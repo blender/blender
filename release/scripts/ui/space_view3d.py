@@ -38,7 +38,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         # Menus
         if context.area.show_menus:
             sub = row.row(align=True)
-			
+
             sub.menu("VIEW3D_MT_view")
 
             # Select Menu
@@ -717,30 +717,78 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
         layout = self.layout
 
         obj = context.object
+        if obj.type == 'CAMERA':
+            layout.operator_context = 'INVOKE_REGION_WIN'
+
+            props = layout.operator("wm.context_modal_mouse", text="Camera Lens Angle")
+            props.data_path_iter = "selected_editable_objects"
+            props.data_path_item = "data.lens"
+            props.input_scale = 0.1
+
+            if not obj.data.dof_object:
+                #layout.label(text="Test Has DOF obj");
+                props = layout.operator("wm.context_modal_mouse", text="DOF Distance")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.dof_distance"
+                props.input_scale = 0.02
+
+        if obj.type in ('CURVE','TEXT'):
+            layout.operator_context = 'INVOKE_REGION_WIN'
+
+            props = layout.operator("wm.context_modal_mouse", text="Extrude Size")
+            props.data_path_iter = "selected_editable_objects"
+            props.data_path_item = "data.extrude"
+            props.input_scale = 0.01
+
+            props = layout.operator("wm.context_modal_mouse", text="Width Size")
+            props.data_path_iter = "selected_editable_objects"
+            props.data_path_item = "data.width"
+            props.input_scale = 0.01
+
+        if obj.type == 'EMPTY':
+            layout.operator_context = 'INVOKE_REGION_WIN'
+
+            props = layout.operator("wm.context_modal_mouse", text="Empty Draw Size")
+            props.data_path_iter = "selected_editable_objects"
+            props.data_path_item = "empty_draw_size"
+            props.input_scale = 0.01
+
         if obj.type == 'LAMP':
             layout.operator_context = 'INVOKE_REGION_WIN'
 
-            props = layout.operator("wm.context_modal_mouse", text="Spot Size")
-            props.path_iter = "selected_editable_objects"
-            props.path_item = "data.spot_size"
-            props.input_scale = 0.01
+            props = layout.operator("wm.context_modal_mouse", text="Energy")
+            props.data_path_iter = "selected_editable_objects"
+            props.data_path_item = "data.energy"
 
-            props = layout.operator("wm.context_modal_mouse", text="Distance")
-            props.path_iter = "selected_editable_objects"
-            props.path_item = "data.distance"
-            props.input_scale = 0.1
+            if obj.data.type in ('SPOT', 'AREA', 'POINT'):
+                props = layout.operator("wm.context_modal_mouse", text="Falloff Distance")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.distance"
+                props.input_scale = 0.1
 
-            props = layout.operator("wm.context_modal_mouse", text="Clip Start")
-            props.path_iter = "selected_editable_objects"
-            props.path_item = "data.shadow_buffer_clip_start"
-            props.input_scale = 0.05
+            if obj.data.type == 'SPOT':
+                layout.separator()
+                props = layout.operator("wm.context_modal_mouse", text="Spot Size")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.spot_size"
+                props.input_scale = 0.01
 
-            props = layout.operator("wm.context_modal_mouse", text="Clip End")
-            props.path_iter = "selected_editable_objects"
-            props.path_item = "data.shadow_buffer_clip_end"
-            props.input_scale = 0.05
+                props = layout.operator("wm.context_modal_mouse", text="Spot Blend")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.spot_blend"
+                props.input_scale = -0.01
 
-            layout.separator()
+                props = layout.operator("wm.context_modal_mouse", text="Clip Start")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.shadow_buffer_clip_start"
+                props.input_scale = 0.05
+
+                props = layout.operator("wm.context_modal_mouse", text="Clip End")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.shadow_buffer_clip_end"
+                props.input_scale = 0.05
+
+        layout.separator()
 
         props = layout.operator("object.isolate_type_render")
 
@@ -811,9 +859,9 @@ class VIEW3D_MT_object_showhide(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.restrictview_clear", text="Show Hidden")
-        layout.operator("object.restrictview_set", text="Hide Selected")
-        layout.operator("object.restrictview_set", text="Hide Unselected").unselected = True
+        layout.operator("object.hide_view_clear", text="Show Hidden")
+        layout.operator("object.hide_view_set", text="Hide Selected")
+        layout.operator("object.hide_view_set", text="Hide Unselected").unselected = True
 
 
 class VIEW3D_MT_make_single_user(bpy.types.Menu):
@@ -855,8 +903,8 @@ class VIEW3D_MT_object_game_properties(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.game_property_copy", text="Replace").operation="REPLACE"
-        layout.operator("object.game_property_copy", text="Merge").operation="MERGE"
+        layout.operator("object.game_property_copy", text="Replace").operation = 'REPLACE'
+        layout.operator("object.game_property_copy", text="Merge").operation = 'MERGE'
         layout.operator_menu_enum("object.game_property_copy", "property", text="Copy...")
         layout.separator()
         layout.operator("object.game_property_clear")
@@ -1277,15 +1325,15 @@ class VIEW3D_MT_edit_mesh_selection_mode(bpy.types.Menu):
 
         prop = layout.operator("wm.context_set_value", text="Vertex", icon='VERTEXSEL')
         prop.value = "(True, False, False)"
-        prop.path = "tool_settings.mesh_selection_mode"
+        prop.data_path = "tool_settings.mesh_selection_mode"
 
         prop = layout.operator("wm.context_set_value", text="Edge", icon='EDGESEL')
         prop.value = "(False, True, False)"
-        prop.path = "tool_settings.mesh_selection_mode"
+        prop.data_path = "tool_settings.mesh_selection_mode"
 
         prop = layout.operator("wm.context_set_value", text="Face", icon='FACESEL')
         prop.value = "(False, False, True)"
-        prop.path = "tool_settings.mesh_selection_mode"
+        prop.data_path = "tool_settings.mesh_selection_mode"
 
 
 class VIEW3D_MT_edit_mesh_extrude(bpy.types.Menu):
@@ -1496,12 +1544,14 @@ class VIEW3D_MT_edit_mesh_faces(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
+        layout.operator("mesh.flip_normals")
         # layout.operator("mesh.bevel")
         # layout.operator("mesh.bevel")
         layout.operator("mesh.edge_face_add")
         layout.operator("mesh.fill")
         layout.operator("mesh.beautify_fill")
         layout.operator("mesh.solidify")
+        layout.operator("mesh.sort_faces")
 
         layout.separator()
 
@@ -1656,6 +1706,13 @@ class VIEW3D_MT_edit_text(bpy.types.Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_edit_text_chars")
+
+        layout.separator()
+        
+        layout.operator("font.style_toggle", text="Toggle Bold").style = 'BOLD'
+        layout.operator("font.style_toggle", text="Toggle Italic").style = 'ITALIC'
+        layout.operator("font.style_toggle", text="Toggle Underline").style = 'UNDERLINE'
+        layout.operator("font.style_toggle", text="Toggle Small Caps").style = 'SMALL_CAPS'
 
 
 class VIEW3D_MT_edit_text_chars(bpy.types.Menu):
@@ -1879,6 +1936,7 @@ class VIEW3D_PT_view3d_properties(bpy.types.Panel):
         scene = context.scene
 
         col = layout.column()
+        col.active = view.region_3d.view_perspective != 'CAMERA'
         col.prop(view, "lens")
         col.label(text="Lock to Object:")
         col.prop(view, "lock_object", text="")
@@ -2021,7 +2079,7 @@ class VIEW3D_PT_view3d_meshdisplay(bpy.types.Panel):
 
         col.separator()
         col.label(text="Numerics:")
-        col.prop(mesh, "draw_edge_lenght")
+        col.prop(mesh, "draw_edge_length")
         col.prop(mesh, "draw_edge_angle")
         col.prop(mesh, "draw_face_area")
 
@@ -2076,7 +2134,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
             layout.active = view.display_background_images
             box = layout.box()
             row = box.row(align=True)
-            row.prop(bg, "show_expanded", text="", no_bg=True)
+            row.prop(bg, "show_expanded", text="", emboss=False)
             row.label(text=getattr(bg.image, "name", "Not Set"))
             row.operator("view3d.remove_background_image", text="", icon='X').index = i
 
@@ -2089,10 +2147,11 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
                     box.template_image(bg, "image", bg.image_user, compact=True)
 
                     box.prop(bg, "transparency", slider=True)
-                    box.prop(bg, "size")
-                    row = box.row(align=True)
-                    row.prop(bg, "offset_x", text="X")
-                    row.prop(bg, "offset_y", text="Y")
+                    if bg.view_axis != 'CAMERA':
+                        box.prop(bg, "size")
+                        row = box.row(align=True)
+                        row.prop(bg, "offset_x", text="X")
+                        row.prop(bg, "offset_y", text="Y")
 
 
 class VIEW3D_PT_transform_orientations(bpy.types.Panel):
@@ -2162,6 +2221,7 @@ class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
             col.prop(toolsettings, "etch_autoname")
             col.prop(toolsettings, "etch_number")
             col.prop(toolsettings, "etch_side")
+            col.operator("sketch.convert", text="Convert")
 
 
 class VIEW3D_PT_context_properties(bpy.types.Panel):

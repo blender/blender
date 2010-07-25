@@ -4095,7 +4095,7 @@ void ARMATURE_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "deselect all editbone";
+	ot->name= "Select or Deselect All";
 	ot->idname= "ARMATURE_OT_select_all";
 	
 	/* api callbacks */
@@ -5213,7 +5213,7 @@ void POSE_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "deselect all bones";
+	ot->name= "Select or Deselect All";
 	ot->idname= "POSE_OT_select_all";
 	
 	/* api callbacks */
@@ -5479,8 +5479,17 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 				/* Rename the pose channel, if it exists */
 				if (ob->pose) {
 					bPoseChannel *pchan = get_pose_channel(ob->pose, oldname);
-					if (pchan)
+					if (pchan) {
 						BLI_strncpy(pchan->name, newname, MAXBONENAME);
+						
+						if (ob->pose->chanhash) {
+							GHash *gh = ob->pose->chanhash;
+							
+							/* remove the old hash entry, and replace with the new name */
+							BLI_ghash_remove(gh, oldname, NULL, NULL);
+							BLI_ghash_insert(gh, pchan->name, pchan);
+						}
+					}
 				}
 				
 				/* Update any object constraints to use the new bone name */

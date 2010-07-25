@@ -200,9 +200,9 @@ void free_image(Image *ima)
 	}
 	BKE_icon_delete(&ima->id);
 	ima->id.icon_id = 0;
-	if (ima->preview) {
-		BKE_previewimg_free(&ima->preview);
-	}
+
+	BKE_previewimg_free(&ima->preview);
+
 	for(a=0; a<IMA_MAX_RENDER_SLOT; a++) {
 		if(ima->renders[a]) {
 			RE_FreeRenderResult(ima->renders[a]);
@@ -328,13 +328,6 @@ Image *BKE_add_image_file(const char *name, int frame)
 	const char *libname;
 	char str[FILE_MAX], strtest[FILE_MAX];
 	
-	/* escape when name is directory */
-	len= strlen(name);
-	if(len) {
-		if(name[len-1]=='/' || name[len-1]=='\\')
-			return NULL;
-	}
-	
 	BLI_strncpy(str, name, sizeof(str));
 	BLI_path_abs(str, G.sce);
 	
@@ -380,18 +373,18 @@ Image *BKE_add_image_file(const char *name, int frame)
 	return ima;
 }
 
-static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, short uvtestgrid, float color[4])
+static ImBuf *add_ibuf_size(int width, int height, char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
 {
 	ImBuf *ibuf;
 	unsigned char *rect= NULL;
 	float *rect_float= NULL;
 	
 	if (floatbuf) {
-		ibuf= IMB_allocImBuf(width, height, 24, IB_rectfloat, 0);
+		ibuf= IMB_allocImBuf(width, height, depth, IB_rectfloat, 0);
 		rect_float= (float*)ibuf->rect_float;
 	}
 	else {
-		ibuf= IMB_allocImBuf(width, height, 24, IB_rect, 0);
+		ibuf= IMB_allocImBuf(width, height, depth, IB_rect, 0);
 		rect= (unsigned char*)ibuf->rect;
 	}
 	
@@ -413,7 +406,7 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 }
 
 /* adds new image block, creates ImBuf and initializes color */
-Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short uvtestgrid, float color[4])
+Image *BKE_add_image_size(int width, int height, char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
 {
 	/* on save, type is changed to FILE in editsima.c */
 	Image *ima= image_alloc(name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
@@ -426,7 +419,7 @@ Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short
 		ima->gen_y= height;
 		ima->gen_type= uvtestgrid;
 		
-		ibuf= add_ibuf_size(width, height, name, floatbuf, uvtestgrid, color);
+		ibuf= add_ibuf_size(width, height, name, depth, floatbuf, uvtestgrid, color);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 		
 		ima->ok= IMA_OK_LOADED;
@@ -1187,6 +1180,10 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 	}
 	else if (ELEM5(imtype, R_PNG, R_FFMPEG, R_H264, R_THEORA, R_XVID)) {
 		ibuf->ftype= PNG;
+
+		if(imtype==R_PNG)
+			ibuf->ftype |= quality;  /* quality is actually compression 0-100 --> 0-9 */
+
 	}
 #ifdef WITH_DDS
 	else if ((imtype==R_DDS)) {
@@ -1715,7 +1712,10 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 	
 	/* is there a PackedFile with this image ? */
 	if (ima->packedfile) {
-		ibuf = IMB_ibImageFromMemory((unsigned char*)ima->packedfile->data, ima->packedfile->size, IB_rect|IB_multilayer);
+		flag = IB_rect|IB_multilayer;
+		if(ima->flag & IMA_DO_PREMUL) flag |= IB_premul;
+		
+		ibuf = IMB_ibImageFromMemory((unsigned char*)ima->packedfile->data, ima->packedfile->size, flag);
 	} 
 	else {
 		flag= IB_rect|IB_multilayer|IB_metadata;
@@ -1831,10 +1831,13 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	layer= (iuser)? iuser->layer: 0;
 	pass= (iuser)? iuser->pass: 0;
 
-	if(from_render)
+	if(from_render) {
 		RE_AcquireResultImage(re, &rres);
-	else if(ima->renders[ima->render_slot])
+	}
+	else if(ima->renders[ima->render_slot]) {
 		rres= *(ima->renders[ima->render_slot]);
+		rres.have_combined= rres.rectf != NULL;
+	}
 	else
 		memset(&rres, 0, sizeof(RenderResult));
 	
@@ -1856,10 +1859,10 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	rectz= rres.rectz;
 	dither= iuser->scene->r.dither_intensity;
 
-	/* get compo/seq result by default */
-	if(rres.compo_seq && layer==0);
+	/* combined layer gets added as first layer */
+	if(rres.have_combined && layer==0);
 	else if(rres.layers.first) {
-		RenderLayer *rl= BLI_findlink(&rres.layers, layer-(rres.compo_seq?1:0));
+		RenderLayer *rl= BLI_findlink(&rres.layers, layer-(rres.have_combined?1:0));
 		if(rl) {
 			RenderPass *rpass;
 
@@ -2072,7 +2075,7 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 				/* UV testgrid or black or solid etc */
 				if(ima->gen_x==0) ima->gen_x= 1024;
 				if(ima->gen_y==0) ima->gen_y= 1024;
-				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 0, ima->gen_type, color);
+				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 24, 0, ima->gen_type, color);
 				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 				ima->ok= IMA_OK_LOADED;
 			}

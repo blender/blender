@@ -93,20 +93,14 @@ typedef struct Lamp {
 	float atm_distance_factor;
 	float skyblendfac;
 	float sky_exposure;
-	short sky_colorspace, pad4;
-	
-	/* yafray: photonlight params */
-	int YF_numphotons, YF_numsearch;
-	short YF_phdepth, YF_useqmc, YF_bufsize, YF_pad;
-	float YF_causticblur, YF_ltradius;
-	/* yafray: glow params */
-	float YF_glowint, YF_glowofs;
-	short YF_glowtype, YF_pad2;
-	
+	short sky_colorspace;
+	char pad4[6];
+
 	struct Ipo *ipo;				// XXX depreceated... old animation system
 	struct MTex *mtex[18];			/* MAX_MTEX */
-	short pr_texture, pad[3];
-	
+	short pr_texture;
+	char pad6[6];
+
 	/* preview */
 	struct PreviewImage *preview;
 } Lamp;

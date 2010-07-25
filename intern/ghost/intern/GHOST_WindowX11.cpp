@@ -57,6 +57,9 @@ typedef struct {
 
 #define MWM_HINTS_DECORATIONS         (1L << 1)
 
+
+// #define GHOST_X11_GRAB
+
 /*
  * A Client can't change the window property, that is
  * the work of the window manager. In case, we send
@@ -1442,7 +1445,9 @@ setWindowCursorGrab(
 				setWindowCursorVisibility(false);
 
 		}
+#ifdef GHOST_X11_GRAB
 		XGrabPointer(m_display, m_window, False, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+#endif
 	}
 	else {
 		if (m_cursorGrab==GHOST_kGrabHide) {
@@ -1460,7 +1465,9 @@ setWindowCursorGrab(
 		/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
 		setCursorGrabAccum(0, 0);
 		m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1; /* disable */
+#ifdef GHOST_X11_GRAB
 		XUngrabPointer(m_display, CurrentTime);
+#endif
 	}
 
 	XFlush(m_display);

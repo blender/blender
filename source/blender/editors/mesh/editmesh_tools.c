@@ -80,6 +80,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_view3d.h"
+#include "ED_object.h"
 
 
 #include "mesh_intern.h"
@@ -484,13 +485,16 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 
 	int count = removedoublesflag(em,1,0,RNA_float_get(op->ptr, "limit"));
 	
-	if(count)
-		BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count);
+	if(count) {
+		recalc_editnormals(em);
 
-	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	}
 
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count);
 	BKE_mesh_end_editmesh(obedit->data, em);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1030,7 +1034,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, INT_MAX);
+	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, 128);
 	RNA_def_boolean(ot->srna, "dupli", 0, "Dupli", "Make Duplicates");
 	RNA_def_float(ot->srna, "degrees", 90.0f, -FLT_MAX, FLT_MAX, "Degrees", "Degrees", -360.0f, 360.0f);
 
@@ -3090,21 +3094,21 @@ static void givequadverts(EditFace *efa, EditFace *efa1, EditVert **v1, EditVert
 
 	if VTEST(efa1, 1, efa) {
 		*v3= efa1->v1;
-		*v4= efa1->v2;
+		*v4= (efa1->v2 == *v2)? efa1->v3: efa1->v2;
 		vindex[2]= 0;
-		vindex[3]= 1;
+		vindex[3]= (efa1->v2 == *v2)? 2: 1;
 	}
 	else if VTEST(efa1, 2, efa) {
 		*v3= efa1->v2;
-		*v4= efa1->v3;
+		*v4= (efa1->v3 == *v2)? efa1->v1: efa1->v3;
 		vindex[2]= 1;
-		vindex[3]= 2;
+		vindex[3]= (efa1->v3 == *v2)? 0: 2;
 	}
 	else if VTEST(efa1, 3, efa) {
 		*v3= efa1->v3;
-		*v4= efa1->v1;
+		*v4= (efa1->v1 == *v2)? efa1->v2: efa1->v1;
 		vindex[2]= 2;
-		vindex[3]= 0;
+		vindex[3]= (efa1->v1 == *v2)? 1: 0;
 	}
 	else
 		*v3= *v4= NULL;
@@ -3413,7 +3417,7 @@ void join_triangles(EditMesh *em)
 				efaa= (EVPtr *)eed->tmp.p;
 				v1 = v2 = v3 = v4 = NULL;
 				givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, vindex);
-				if((v1 && v2 && v3 && v4) && (exist_face(em, v1, v2, v3, v4)==0)){ /*exist_face is very slow! Needs to be adressed.*/
+				if((v1 && v2 && v3 && v4) && (exist_face(em, v1, v2, v3, v4)==0)){ /*exist_face is very slow! Needs to be addressed.*/
 					/*flag for delete*/
 					eed->f1 |= T2QDELETE;
 					/*create new quad and select*/
@@ -5859,6 +5863,7 @@ static int merge_exec(bContext *C, wmOperator *op)
 	if(!count)
 		return OPERATOR_CANCELLED;
 
+	recalc_editnormals(em);
 	
 	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s.", count, (count==1)?"ex":"ices");
 
@@ -7075,6 +7080,184 @@ void MESH_OT_beautify_fill(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ********************** SORT FACES ******************* */
+
+static void permutate(void *list, int num, int size, int *index)
+{
+	void *buf;
+	int len;
+	int i;
+
+	len = num * size;
+
+	buf = MEM_mallocN(len, "permutate");
+	memcpy(buf, list, len);
+	
+	for (i = 0; i < num; i++) {
+		memcpy((char *)list + (i * size), (char *)buf + (index[i] * size), size);
+	}
+	MEM_freeN(buf);
+}
+
+/* sort faces on view axis */
+static float *face_sort_floats;
+static int float_sort(const void *v1, const void *v2)
+{
+	float x1, x2;
+	
+	x1 = face_sort_floats[((int *) v1)[0]];
+	x2 = face_sort_floats[((int *) v2)[0]];
+	
+	if( x1 > x2 ) return 1;
+	else if( x1 < x2 ) return -1;
+	return 0;
+}
+
+
+static int sort_faces_exec(bContext *C, wmOperator *op)
+{
+	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
+	View3D *v3d= CTX_wm_view3d(C);
+	Object *ob= CTX_data_edit_object(C);
+	Scene *scene= CTX_data_scene(C);
+	Mesh *me;
+	CustomDataLayer *layer;
+	int i, *index;
+	int event;
+	float reverse = 1;
+	// XXX int ctrl= 0;
+	
+	if (!v3d) return OPERATOR_CANCELLED;
+
+	/* This operator work in Object Mode, not in edit mode.
+	 * After talk with Cambell we agree that there is no point to port this to EditMesh right now.
+	 * so for now, we just exit_editmode and enter_editmode at the end of this function.
+	 */
+	ED_object_exit_editmode(C, EM_FREEDATA);
+
+	me= ob->data;
+	if(me->totface==0) {
+		ED_object_enter_editmode(C, 0);
+		return OPERATOR_FINISHED;
+	}
+
+	event= RNA_enum_get(op->ptr, "type");
+
+	// XXX
+	//if(ctrl)
+	//	reverse = -1;
+	
+	/* create index list */
+	index= (int *)MEM_mallocN(sizeof(int) * me->totface, "sort faces");
+	for (i = 0; i < me->totface; i++) {
+		index[i] = i;
+	}
+	
+	face_sort_floats = (float *) MEM_mallocN(sizeof(float) * me->totface, "sort faces float");
+
+	/* sort index list instead of faces itself 
+	 * and apply this permutation to all face layers
+	 */
+	if (event == 5) {
+		/* Random */
+		for(i=0; i<me->totface; i++) {
+			face_sort_floats[i] = BLI_frand();
+		}
+		qsort(index, me->totface, sizeof(int), float_sort);		
+	} else {
+		MFace *mf;
+		float vec[3];
+		float mat[4][4];
+		float cur[3];
+		
+		if (event == 1)
+			mul_m4_m4m4(mat, OBACT->obmat, rv3d->viewmat); /* apply the view matrix to the object matrix */
+		else if (event == 2) { /* sort from cursor */
+			if( v3d && v3d->localvd ) {
+				VECCOPY(cur, v3d->cursor);
+			} else {
+				VECCOPY(cur, scene->cursor);
+			}
+			invert_m4_m4(mat, OBACT->obmat);
+			mul_m4_v3(mat, cur);
+		}
+		
+		mf= me->mface;
+
+		for(i=0; i<me->totface; i++, mf++) {
+			if (event==3) {
+				face_sort_floats[i] = ((float)mf->mat_nr)*reverse;
+			} else if (event==4) {
+				/*selected first*/
+				if (mf->flag & ME_FACE_SEL)
+					face_sort_floats[i] = 0.0;
+				else
+					face_sort_floats[i] = reverse;
+			} else {
+				/* find the faces center */
+				add_v3_v3v3(vec, (me->mvert+mf->v1)->co, (me->mvert+mf->v2)->co);
+				if (mf->v4) {
+					add_v3_v3(vec, (me->mvert+mf->v3)->co);
+					add_v3_v3(vec, (me->mvert+mf->v4)->co);
+					mul_v3_fl(vec, 0.25f);
+				} else {
+					add_v3_v3(vec, (me->mvert+mf->v3)->co);
+					mul_v3_fl(vec, 1.0f/3.0f);
+				} /* done */
+				
+				if (event == 1) { /* sort on view axis */
+					mul_m4_v3(mat, vec);
+					face_sort_floats[i] = vec[2] * reverse;
+				} else if(event == 2) { /* distance from cursor*/
+					face_sort_floats[i] = len_v3v3(cur, vec) * reverse; /* back to front */
+				}
+			}
+		}
+		qsort(index, me->totface, sizeof(int), float_sort);
+	}
+	
+	MEM_freeN(face_sort_floats);
+	for(i = 0; i < me->fdata.totlayer; i++) {
+		layer = &me->fdata.layers[i];
+		permutate(layer->data, me->totface, CustomData_sizeof(layer->type), index);
+	}
+
+	MEM_freeN(index);
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+
+	/* Return to editmode. */
+	ED_object_enter_editmode(C, 0);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_sort_faces(wmOperatorType *ot)
+{
+	static EnumPropertyItem type_items[]= {
+		{ 1, "VIEW_AXIS", 0, "View Axis", "" },
+		{ 2, "CURSOR_DISTANCE", 0, "Cursor Distance", "" },
+		{ 3, "MATERIAL", 0, "Material", "" },
+		{ 4, "SELECTION", 0, "Selection", "" },
+		{ 5, "RANDOMIZE", 0, "Randomize", "" },
+		{ 0, NULL, 0, NULL, NULL }};
+
+	/* identifiers */
+	ot->name= "Sort Faces"; // XXX (Ctrl to reverse)%t|
+	ot->description= "The faces of the active Mesh Object are sorted, based on the current view.";
+	ot->idname= "MESH_OT_sort_faces";
+
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= sort_faces_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
 /********************** Quad/Tri Operators *************************/

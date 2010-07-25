@@ -138,7 +138,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
-
+#include "BKE_ipo.h"
 #include "BKE_sound.h"
 
 //XXX #include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
@@ -155,7 +155,7 @@
 #include <errno.h>
 
 /*
- Remark: still a weak point is the newadress() function, that doesnt solve reading from
+ Remark: still a weak point is the newaddress() function, that doesnt solve reading from
  multiple files at the same time
 
  (added remark: oh, i thought that was solved? will look at that... (ton)
@@ -174,7 +174,7 @@ READ
 		- read associated 'direct data'
 		- link direct data (internal and to LibBlock)
 - read FileGlobal
-- read USER data, only when indicated (file is ~/.B.blend or .B25.blend)
+- read USER data, only when indicated (file is ~/X.XX/startup.blend)
 - free file
 - per Library (per Main)
 	- read file
@@ -959,11 +959,11 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 FileData *blo_openblenderfile(char *name, ReportList *reports)
 {
 	gzFile gzfile;
-	
+	errno= 0;
 	gzfile= gzopen(name, "rb");
 
-	if (NULL == gzfile) {
-		BKE_report(reports, RPT_ERROR, "Unable to open");
+	if (gzfile == Z_NULL) {
+		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", name, errno ? strerror(errno) : "Unknown erro reading file");
 		return NULL;
 	} else {
 		FileData *fd = filedata_new();
@@ -996,7 +996,7 @@ FileData *blo_openblendermemory(void *mem, int memsize, ReportList *reports)
 FileData *blo_openblendermemfile(MemFile *memfile, ReportList *reports)
 {
 	if (!memfile) {
-		BKE_report(reports, RPT_ERROR, "Unable to open");
+		BKE_report(reports, RPT_ERROR, "Unable to open blend <memory>");
 		return NULL;
 	} else {
 		FileData *fd= filedata_new();
@@ -1554,6 +1554,9 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 		direct_link_curvemapping(fd, brush->curve);
 	else
 		brush_curve_preset(brush, CURVE_PRESET_SHARP);
+
+	brush->preview= NULL;
+	brush->icon_imbuf= NULL;
 }
 
 static void direct_link_script(FileData *fd, Script *script)
@@ -2244,7 +2247,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 	}
 	
 	if(rebuild) {
-		ob->recalc= OB_RECALC;
+		ob->recalc= OB_RECALC_ALL;
 		pose->flag |= POSE_RECALC;
 	}
 }
@@ -3074,6 +3077,7 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 			for(; pt; pt=pt->next)
 				pt->ob=newlibadr(fd, id->lib, pt->ob);
 
+			psys->parent= newlibadr_us(fd, id->lib, psys->parent);
 			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
 
 			if(psys->clmd) {
@@ -3143,7 +3147,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		psys->childcachebufs.first = psys->childcachebufs.last = NULL;
 		psys->frand = NULL;
 		psys->pdd = NULL;
-
+		
 		direct_link_pointcache_list(fd, &psys->ptcaches, &psys->pointcache);
 
 		if(psys->clmd) {
@@ -3457,7 +3461,7 @@ static void lib_link_object(FileData *fd, Main *main)
 					/* this triggers object_update to always use a copy */
 					ob->proxy->proxy_from= ob;
 					/* force proxy updates after load/undo, a bit weak */
-					ob->recalc= ob->proxy->recalc= OB_RECALC;
+					ob->recalc= ob->proxy->recalc= OB_RECALC_ALL;
 				}
 			}
 			ob->proxy_group= newlibadr(fd, ob->id.lib, ob->proxy_group);
@@ -4558,6 +4562,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 		if(sc->id.flag & LIB_NEEDLINK) {
 			sc->id.us= 1;
 			sc->scene= newlibadr(fd, sc->id.lib, sc->scene);
+			sc->animtimer= NULL; /* saved in rare cases */
 			
 			sa= sc->areabase.first;
 			while(sa) {
@@ -5159,6 +5164,10 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					direct_link_gpencil(fd, snode->gpd);
 				}
 				snode->nodetree= snode->edittree= NULL;
+			}
+			else if(sl->spacetype==SPACE_TIME) {
+				SpaceTime *stime= (SpaceTime *)sl;
+				stime->caches.first= stime->caches.last= NULL;
 			}
 			else if(sl->spacetype==SPACE_LOGIC) {
 				SpaceLogic *slogic= (SpaceLogic *)sl;
@@ -7886,7 +7895,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ob->type==OB_ARMATURE) {
 				if(ob->pose)
 					ob->pose->flag |= POSE_RECALC;
-				ob->recalc |= OB_RECALC;	// cannot call stuff now (pointers!), done in setup_app_data
+				ob->recalc |= OB_RECALC_ALL;	// cannot call stuff now (pointers!), done in setup_app_data
 
 				/* new generic xray option */
 				arm= newlibadr(fd, lib, ob->data);
@@ -9678,7 +9687,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if(sAct->sound)
 					{
 						sound = newlibadr(fd, lib, sAct->sound);
-						sAct->flag = sound->flags | SOUND_FLAGS_3D ? ACT_SND_3D_SOUND : 0;
+						sAct->flag = sound->flags & SOUND_FLAGS_3D ? ACT_SND_3D_SOUND : 0;
 						sAct->pitch = sound->pitch;
 						sAct->volume = sound->volume;
 						sAct->sound3D.reference_distance = sound->distance;
@@ -9732,11 +9741,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			do_versions_windowmanager_2_50(screen);
 			do_versions_gpencil_2_50(main, screen);
 		}
-		
-		/* old Animation System (using IPO's) needs to be converted to the new Animato system 
-		 * (NOTE: conversion code in blenkernel/intern/ipo.c for now)
-		 */
-		//do_versions_ipos_to_animato(main);
 		
 		/* shader, composit and texture node trees have id.name empty, put something in
 		 * to have them show in RNA viewer and accessible otherwise.
@@ -10849,11 +10853,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 
-	/* put 2.50 compatibility code here until next subversion bump */
+	if (main->versionfile < 253)
 	{
 		Object *ob;
 		Scene *scene;
 		bScreen *sc;
+		Tex *tex;
+		Brush *brush;
 
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
@@ -10861,13 +10867,36 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				SpaceLink *sl;
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if (sl->spacetype == SPACE_NODE) {
-						SpaceNode *snode;
+						SpaceNode *snode= (SpaceNode *)sl;
+						ListBase *regionbase;
+						ARegion *ar;
 
-						snode= (SpaceNode *)sl;
+						if (sl == sa->spacedata.first)
+							regionbase = &sa->regionbase;
+						else
+							regionbase = &sl->regionbase;
+
 						if (snode->v2d.minzoom > 0.09f)
 							snode->v2d.minzoom= 0.09f;
 						if (snode->v2d.maxzoom < 2.31f)
 							snode->v2d.maxzoom= 2.31f;
+
+						for (ar= regionbase->first; ar; ar= ar->next) {
+							if (ar->regiontype == RGN_TYPE_WINDOW) {
+								if (ar->v2d.minzoom > 0.09f)
+									ar->v2d.minzoom= 0.09f;
+								if (ar->v2d.maxzoom < 2.31f)
+									ar->v2d.maxzoom= 2.31f;
+							}
+						}
+					}
+					else if (sl->spacetype == SPACE_TIME) {
+						SpaceTime *stime= (SpaceTime *)sl;
+						
+						/* enable all cache display */
+						stime->cache_display |= TIME_CACHE_DISPLAY;
+						stime->cache_display |= (TIME_CACHE_SOFTBODY|TIME_CACHE_PARTICLES);
+						stime->cache_display |= (TIME_CACHE_CLOTH|TIME_CACHE_SMOKE);
 					}
 				}
 			}
@@ -10921,6 +10950,123 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 
+		for(tex= main->tex.first; tex; tex= tex->id.next) {
+			/* if youre picky, this isn't correct until we do a version bump
+			 * since you could set saturation to be 0.0*/
+			if(tex->saturation==0.0f)
+				tex->saturation= 1.0f;
+		}
+
+		{
+			Curve *cu;
+			for(cu= main->curve.first; cu; cu= cu->id.next) {
+				cu->smallcaps_scale= 0.75f;
+			}
+		}
+
+		for (scene= main->scene.first; scene; scene=scene->id.next) {
+			if(scene) {
+				Sequence *seq;
+				SEQ_BEGIN(scene->ed, seq) {
+					if(seq->sat==0.0f) {
+						seq->sat= 1.0f;
+					}
+				}
+				SEQ_END
+			}
+		}
+
+		/* GSOC 2010 Sculpt - New settings for Brush */
+
+		for (brush= main->brush.first; brush; brush= brush->id.next) {
+			/* Sanity Check */
+
+			// infinite number of dabs
+			if (brush->spacing == 0)
+				brush->spacing = 10;
+
+			// will have no effect
+			if (brush->alpha == 0)
+				brush->alpha = 0.5f;
+
+			// bad radius
+			if (brush->unprojected_radius == 0)
+				brush->unprojected_radius = 0.125;
+
+			// unusable size
+			if (brush->size == 0)
+				brush->size = 35;
+
+			// can't see overlay
+			if (brush->texture_overlay_alpha == 0)
+				brush->texture_overlay_alpha = 33;
+
+			// same as draw brush
+			if (brush->crease_pinch_factor == 0)
+				brush->crease_pinch_factor = 0.5f;
+
+			// will sculpt no vertexes
+			if (brush->plane_trim == 0)
+				brush->plane_trim = 0.5f;
+
+			// same as smooth stroke off
+			if (brush->smooth_stroke_radius == 0)
+				brush->smooth_stroke_radius= 75;
+
+			// will keep cursor in one spot
+			if (brush->smooth_stroke_radius == 1)
+				brush->smooth_stroke_factor= 0.9f;
+
+			// same as dots
+			if (brush->rate == 0)
+				brush->rate = 0.1f;
+
+			/* New Settings */
+			if (main->versionfile < 252 || (main->versionfile == 252 && main->subversionfile < 5)) {
+				brush->flag |= BRUSH_SPACE_ATTEN; // explicitly enable adaptive space
+
+				// spacing was originally in pixels, convert it to percentage for new version
+				// size should not be zero due to sanity check above
+				brush->spacing = (int)(100*((float)brush->spacing) / ((float)brush->size));
+
+				if (brush->add_col[0] == 0 &&
+					brush->add_col[1] == 0 &&
+					brush->add_col[2] == 0)
+				{
+					brush->add_col[0] = 1.00;
+					brush->add_col[1] = 0.39;
+					brush->add_col[2] = 0.39;
+				}
+
+				if (brush->sub_col[0] == 0 &&
+					brush->sub_col[1] == 0 &&
+					brush->sub_col[2] == 0)
+				{
+					brush->sub_col[0] = 0.39;
+					brush->sub_col[1] = 0.39;
+					brush->sub_col[2] = 1.00;
+				}
+			}
+		}
+	}
+
+	/* GSOC Sculpt 2010 - Sanity check on Sculpt/Paint settings */
+	if (main->versionfile < 253) {
+		Scene *sce;
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
+			if (sce->toolsettings->sculpt_paint_unified_alpha == 0)
+				sce->toolsettings->sculpt_paint_unified_alpha = 0.5f;
+
+			if (sce->toolsettings->sculpt_paint_unified_unprojected_radius == 0) 
+				sce->toolsettings->sculpt_paint_unified_unprojected_radius = 0.125f;
+
+			if (sce->toolsettings->sculpt_paint_unified_size == 0)
+				sce->toolsettings->sculpt_paint_unified_size = 35;
+		}
+	}
+
+	/* put compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -10928,6 +11074,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* don't forget to set version number in blender.c! */
 }
+
+#if 0 // XXX: disabled for now... we still don't have this in the right place in the loading code for it to work
+static void do_versions_after_linking(FileData *fd, Library *lib, Main *main)
+{
+	/* old Animation System (using IPO's) needs to be converted to the new Animato system */
+	if(main->versionfile < 250)
+		do_versions_ipos_to_animato(main);
+}
+#endif
 
 static void lib_link_all(FileData *fd, Main *main)
 {
@@ -11075,6 +11230,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filename)
 	blo_join_main(&fd->mainlist);
 
 	lib_link_all(fd, bfd->main);
+	//do_versions_after_linking(fd, NULL, bfd->main); // XXX: not here (or even in this function at all)! this causes crashes on many files - Aligorith (July 04, 2010)
 	lib_verify_nodetree(bfd->main, 1);
 	fix_relpaths_library(fd->relabase, bfd->main); /* make all relative paths, relative to the open blend file */
 	
@@ -11203,7 +11359,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				else {
 					/* The line below was commented by Ton (I assume), when Hos did the merge from the orange branch. rev 6568
 					 * This line is NEEDED, the case is that you have 3 blend files...
-					 * user.blend, lib.blend and lib_indirect.blend - if user.blend alredy references a "tree" from
+					 * user.blend, lib.blend and lib_indirect.blend - if user.blend already references a "tree" from
 					 * lib_indirect.blend but lib.blend does too, linking in a Scene or Group from lib.blend can result in an
 					 * empty without the dupli group referenced. Once you save and reload the group would appier. - Campbell */
 					/* This crashes files, must look further into it */
@@ -11987,7 +12143,7 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 			
 				/* IF below is quite confusing!
 				if we are appending, but this object wasnt just added allong with a group,
-				then this is alredy used indirectly in the scene somewhere else and we didnt just append it.
+				then this is already used indirectly in the scene somewhere else and we didnt just append it.
 				
 				(ob->id.flag & LIB_PRE_EXISTING)==0 means that this is a newly appended object - Campbell */
 			if (is_group_append==0 || (ob->id.flag & LIB_PRE_EXISTING)==0) {
@@ -12035,7 +12191,7 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 			base= scene_add_base(scene, ob);
 			base->flag |= SELECT;
 			base->object->flag= base->flag;
-			ob->recalc |= OB_RECALC;
+			ob->recalc |= OB_RECALC_ALL;
 			scene->basact= base;
 
 			/* assign the group */
@@ -12094,6 +12250,7 @@ static void append_named_part(const bContext *C, Main *mainl, FileData *fd, char
 							ob->lay = scene->lay;
 						}
 					}
+					ob->mode= 0;
 					base->lay= ob->lay;
 					base->object= ob;
 					ob->id.us++;

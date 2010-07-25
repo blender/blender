@@ -20,6 +20,7 @@
 import bpy
 
 narrowui = bpy.context.user_preferences.view.properties_width_check
+narrowcon = 260
 
 
 class ConstraintButtonsPanel(bpy.types.Panel):
@@ -30,8 +31,9 @@ class ConstraintButtonsPanel(bpy.types.Panel):
     def draw_constraint(self, context, con):
         layout = self.layout
 
-        box = layout.template_constraint(con)
         wide_ui = context.region.width > narrowui
+        compact_con = context.region.width < narrowcon
+        box = layout.template_constraint(con, compact=compact_con)
 
         if box:
             # match enum type to our functions, avoids a lookup table.
@@ -521,7 +523,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row = layout.row()
         if wide_ui:
             row.label(text="Lock:")
-        row.prop(con, "locked", expand=True)
+        row.prop(con, "lock", expand=True)
 
     def LIMIT_DISTANCE(self, context, layout, con, wide_ui):
         self.target_template(layout, con, wide_ui)
@@ -739,13 +741,14 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         else:
             col = layout.column()
             col.prop(con, "use_relative_position")
-            if con.use_relative_position:  
+            if con.use_relative_position:
                 col.prop(con, "offset", text="Relative Pivot Point")
             else:
                 col.prop(con, "offset", text="Absolute Pivot Point")
 
         col = layout.column()
         col.prop(con, "enabled_rotation_range", text="Pivot When")
+
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel):
     bl_label = "Object Constraints"

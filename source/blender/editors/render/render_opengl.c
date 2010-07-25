@@ -60,6 +60,7 @@
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_image.h"
 
 #include "RE_pipeline.h"
 #include "IMB_imbuf_types.h"
@@ -232,7 +233,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 
 	rr= RE_AcquireResultWrite(oglrender->re);
 	if(rr->rectf==NULL)
-		rr->rectf= MEM_mallocN(sizeof(float)*4*sizex*sizey, "32 bits rects");
+		rr->rectf= MEM_callocN(sizeof(float)*4*sizex*sizey, "screen_opengl_render_init rect");
 	RE_ReleaseResult(oglrender->re);
 
 	return 1;
@@ -303,6 +304,10 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	int ok= 0;
 	int view_context = (oglrender->v3d != NULL);
+
+	/* update animated image textures for gpu, etc,
+	 * call before scene_update_for_newframe so modifiers with textuers dont lag 1 frame */
+	ED_image_update_frame(C);
 
 	/* go to next frame */
 	while(CFRA<oglrender->nfra) {
@@ -397,9 +402,10 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *even
 			return OPERATOR_RUNNING_MODAL;
 	}
 
-	ret= screen_opengl_render_anim_step(C, op);
-
+	/* run first because screen_opengl_render_anim_step can free oglrender */
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, oglrender->scene);
+	
+	ret= screen_opengl_render_anim_step(C, op);
 
 	/* stop at the end or on error */
 	if(ret == 0) {

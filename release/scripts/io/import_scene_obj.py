@@ -65,19 +65,6 @@ from geometry import PolyFill
 # try:		import os
 # except:		os= False
 
-# Generic path functions
-def stripFile(path):
-    '''Return directory, where the file is'''
-    lastSlash= max(path.rfind('\\'), path.rfind('/'))
-    if lastSlash != -1:
-        path= path[:lastSlash]
-    return '%s%s' % (path, os.sep)
-# 	return '%s%s' % (path, sys.sep)
-
-def stripPath(path):
-    '''Strips the slashes from the back of a string'''
-    return path.split('/')[-1].split('\\')[-1]
-
 def stripExt(name): # name is a string
     '''Strips the prefix off the name before writing'''
     index= name.rfind('.')
@@ -360,7 +347,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     Create all the used materials in this obj,
     assign colors and images to the materials from all referenced material libs
     '''
-    DIR= stripFile(filepath)
+    DIR= os.path.dirname(filepath)
 
     #==================================================================================#
     # This function sets textures defined in .mtl file                                 #
@@ -431,10 +418,9 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
 
     # Add an MTL with the same name as the obj if no MTLs are spesified.
-    temp_mtl= stripExt(stripPath(filepath))+ '.mtl'
+    temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + '.mtl'
 
-    if os.path.exists(DIR + temp_mtl) and temp_mtl not in material_libs:
-# 	if sys.exists(DIR + temp_mtl) and temp_mtl not in material_libs:
+    if os.path.exists(os.path.join(DIR, temp_mtl)) and temp_mtl not in material_libs:
         material_libs.append( temp_mtl )
     del temp_mtl
 
@@ -448,11 +434,9 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     unique_material_images[None]= None, False
 
     for libname in material_libs:
-        mtlpath= DIR + libname
+        mtlpath= os.path.join(DIR, libname)
         if not os.path.exists(mtlpath):
-# 		if not sys.exists(mtlpath):
-            #print '\tError Missing MTL: "%s"' % mtlpath
-            pass
+            print ("\tError Missing MTL: '%s'" % mtlpath)
         else:
             #print '\t\tloading mtl: "%s"' % mtlpath
             context_material= None
@@ -519,11 +503,11 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
 def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, SPLIT_MATERIALS):
     '''
-    Takes vert_loc and faces, and seperates into multiple sets of
+    Takes vert_loc and faces, and separates into multiple sets of
     (verts_loc, faces, unique_materials, dataname)
     '''
 
-    filename = stripExt(stripPath(filepath))
+    filename = os.path.splitext((os.path.basename(filepath)))[0]
 
     if not SPLIT_OB_OR_GROUP and not SPLIT_MATERIALS:
         # use the filename for the object name since we arnt chopping up the mesh.
@@ -609,7 +593,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 
     if unique_smooth_groups:
         sharp_edges= {}
-        smooth_group_users= dict([ (context_smooth_group, {}) for context_smooth_group in list(unique_smooth_groups.keys()) ])
+        smooth_group_users = {context_smooth_group: {} for context_smooth_group in list(unique_smooth_groups.keys())}
         context_smooth_group_old= -1
 
     # Split fgons into tri's
@@ -704,7 +688,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 
 
     # map the material names to an index
-    material_mapping= dict([(name, i) for i, name in enumerate(unique_materials)]) # enumerate over unique_materials keys()
+    material_mapping = {name: i for i, name in enumerate(unique_materials)} # enumerate over unique_materials keys()
 
     materials= [None] * len(unique_materials)
 
@@ -1359,7 +1343,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
     'Separate objects from obj...',\
     ('Object', SPLIT_OBJECTS, 'Import OBJ Objects into Blender Objects'),\
     ('Group', SPLIT_GROUPS, 'Import OBJ Groups into Blender Objects'),\
-    ('Split Materials', SPLIT_MATERIALS, 'Import each material into a seperate mesh'),\
+    ('Split Materials', SPLIT_MATERIALS, 'Import each material into a separate mesh'),\
     'Options...',\
     ('Keep Vert Order', KEEP_VERT_ORDER, 'Keep vert and face order, disables some other options.'),\
     ('Clamp Scale:', CLAMP_SIZE, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)'),\
@@ -1445,7 +1429,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
             Draw.BeginAlign()
             SPLIT_OBJECTS = Draw.Toggle('Object', EVENT_REDRAW, ui_x+9, ui_y+89, 55, 21, SPLIT_OBJECTS.val, 'Import OBJ Objects into Blender Objects', do_split)
             SPLIT_GROUPS = Draw.Toggle('Group', EVENT_REDRAW, ui_x+64, ui_y+89, 55, 21, SPLIT_GROUPS.val, 'Import OBJ Groups into Blender Objects', do_split)
-            SPLIT_MATERIALS = Draw.Toggle('Split Materials', EVENT_REDRAW, ui_x+119, ui_y+89, 60, 21, SPLIT_MATERIALS.val, 'Import each material into a seperate mesh', do_split)
+            SPLIT_MATERIALS = Draw.Toggle('Split Materials', EVENT_REDRAW, ui_x+119, ui_y+89, 60, 21, SPLIT_MATERIALS.val, 'Import each material into a separate mesh', do_split)
             Draw.EndAlign()
 
             # Only used for user feedback
@@ -1576,14 +1560,14 @@ class IMPORT_OT_obj(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
 
-    path = StringProperty(name="File Path", description="File path used for importing the OBJ file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="Filepath used for importing the OBJ file", maxlen= 1024, default= "")
 
     CREATE_SMOOTH_GROUPS = BoolProperty(name="Smooth Groups", description="Surround smooth groups by sharp edges", default= True)
     CREATE_FGONS = BoolProperty(name="NGons as FGons", description="Import faces with more then 4 verts as fgons", default= True)
     CREATE_EDGES = BoolProperty(name="Lines as Edges", description="Import lines and faces with 2 verts as edge", default= True)
     SPLIT_OBJECTS = BoolProperty(name="Object", description="Import OBJ Objects into Blender Objects", default= True)
     SPLIT_GROUPS = BoolProperty(name="Group", description="Import OBJ Groups into Blender Objects", default= True)
-    SPLIT_MATERIALS = BoolProperty(name="Split Materials", description="Import each material into a seperate mesh", default= False)
+    SPLIT_MATERIALS = BoolProperty(name="Split Materials", description="Import each material into a separate mesh", default= False)
     # old comment: only used for user feedback
     # disabled this option because in old code a handler for it disabled SPLIT* params, it's not passed to load_obj
     # KEEP_VERT_ORDER = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)
@@ -1596,7 +1580,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
     def execute(self, context):
         # print("Selected: " + context.active_object.name)
 
-        load_obj(self.properties.path,
+        load_obj(self.properties.filepath,
                  context,
                  self.properties.CLAMP_SIZE,
                  self.properties.CREATE_FGONS,

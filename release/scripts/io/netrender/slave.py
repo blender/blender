@@ -79,6 +79,8 @@ def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path = None):
             job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force = True)
 
     if not found:
+        # Force prefix path if not found
+        job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force = True)
         temp_path = JOB_PREFIX + "slave.temp"
         conn.request("GET", fileURL(job_id, rfile.index), headers={"slave-id":slave_id})
         response = conn.getresponse()

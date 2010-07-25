@@ -271,7 +271,7 @@ static int find_missing_files_exec(bContext *C, wmOperator *op)
 {
 	char *path;
 	
-	path= RNA_string_get_alloc(op->ptr, "path", NULL, 0);
+	path= RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
 	findMissingFiles(path, G.sce);
 	MEM_freeN(path);
 
@@ -299,7 +299,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE);
+	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);
 }
 
 /********************* report box operator *********************/

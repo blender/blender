@@ -50,7 +50,6 @@ CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../python
 CPPFLAGS += -I../../gpu
 CPPFLAGS += -I../../makesrna
-CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 # own include 

@@ -35,6 +35,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_path_util.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -322,7 +323,20 @@ static int sound_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	/* copy drag path to properties */
-	RNA_string_set(drop->ptr, "path", drag->path);
+	if(RNA_struct_find_property(drop->ptr, "filepath"))
+		RNA_string_set(drop->ptr, "filepath", drag->path);
+
+	if(RNA_struct_find_property(drop->ptr, "directory")) {
+		PointerRNA itemptr;
+		char dir[FILE_MAX], file[FILE_MAX];
+
+		BLI_split_dirfile(drag->path, dir, file);
+		
+		RNA_string_set(drop->ptr, "directory", dir);
+
+		RNA_collection_add(drop->ptr, "files", &itemptr);
+		RNA_string_set(&itemptr, "name", file);
+	}
 }
 
 /* this region dropbox definition */
@@ -355,9 +369,9 @@ static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
+				case ND_FRAME_RANGE:
 				case ND_MARKERS:
 				case ND_SEQUENCER:
-				case ND_SEQUENCER_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -396,7 +410,21 @@ static void sequencer_preview_area_draw(const bContext *C, ARegion *ar)
 	
 	/* XXX temp fix for wrong setting in sseq->mainb */
 	if (sseq->mainb == SEQ_DRAW_SEQUENCE) sseq->mainb = SEQ_DRAW_IMG_IMBUF;
-	draw_image_seq(C, scene, ar, sseq);
+
+	draw_image_seq(C, scene, ar, sseq, scene->r.cfra, 0);
+
+	if(scene->ed && scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW && sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+		int over_cfra;
+
+		if(scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS)
+			over_cfra= scene->ed->over_cfra;
+		else
+			over_cfra= scene->r.cfra + scene->ed->over_ofs;
+
+		if(over_cfra != scene->r.cfra)
+			draw_image_seq(C, scene, ar, sseq, scene->r.cfra, over_cfra - scene->r.cfra);
+	}
+
 }
 
 static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
@@ -408,7 +436,6 @@ static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_FRAME:
 				case ND_MARKERS:
 				case ND_SEQUENCER:
-				case ND_SEQUENCER_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -450,7 +477,6 @@ static void sequencer_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 		switch(wmn->data) {
 			case ND_FRAME:
 			case ND_SEQUENCER:
-			case ND_SEQUENCER_SELECT:
 				ED_region_tag_redraw(ar);
 				break;
 		}

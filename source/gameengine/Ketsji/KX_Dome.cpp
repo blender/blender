@@ -754,7 +754,7 @@ So I came out with this formula:
 verts_height = tan((rad_ang/2) - (MT_PI/2))*sqrt(2.0);
 
 Here we take half the sphere(rad_ang/2) and subtract a quarter of it (MT_PI/2)
-Therefore we have the lenght in radians of the dome/sphere over the horizon.
+Therefore we have the length in radians of the dome/sphere over the horizon.
 Once we take the tangent of that angle, you have the verts coordinate corresponding to the verts on the side faces.
 Then we need to multiply it by sqrt(2.0) to get the coordinate of the verts on the diagonal of the original cube.
 */

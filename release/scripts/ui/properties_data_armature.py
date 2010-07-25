@@ -93,7 +93,6 @@ class DATA_PT_skeleton(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.prop(arm, "deform_quaternion", text="Quaternion")
-        col.prop(arm, "deform_bbone_rest", text="B-Bones Rest")
 
 
 class DATA_PT_display(DataButtonsPanel):
@@ -122,7 +121,6 @@ class DATA_PT_display(DataButtonsPanel):
             col = split.column()
         col.prop(arm, "draw_group_colors", text="Colors")
         col.prop(arm, "delay_deform", text="Delay Refresh")
-        col.prop(ob, "x_ray", text="X-Ray (Object)")
 
 
 class DATA_PT_bone_groups(DataButtonsPanel):
@@ -162,13 +160,16 @@ class DATA_PT_bone_groups(DataButtonsPanel):
                     col = split.column()
                 col.template_triColorSet(group, "colors")
 
-        row = layout.row(align=True)
+        row = layout.row()
         row.active = (ob.proxy is None)
 
-        row.operator("pose.group_assign", text="Assign")
-        row.operator("pose.group_unassign", text="Remove") #row.operator("pose.bone_group_remove_from", text="Remove")
-        #row.operator("object.bone_group_select", text="Select")
-        #row.operator("object.bone_group_deselect", text="Deselect")
+        sub = row.row(align=True)
+        sub.operator("pose.group_assign", text="Assign")
+        sub.operator("pose.group_unassign", text="Remove") #row.operator("pose.bone_group_remove_from", text="Remove")
+
+        sub = row.row(align=True)
+        sub.operator("pose.group_select", text="Select")
+        sub.operator("pose.group_deselect", text="Deselect")
 
 
 # TODO: this panel will soon be depreceated too

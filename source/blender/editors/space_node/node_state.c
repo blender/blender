@@ -51,12 +51,13 @@
 
 /* **************** Node Header Buttons ************** */
 
-static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
-{
+/* note: call node_tree_verify_groups(snode->nodetree) after this
+ */
+void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
+{	
 	bNodeSocket *sock;
-	
-	/* unhide all */
-	if( node_has_hidden_sockets(node) ) {
+
+	if(set==0) {
 		for(sock= node->inputs.first; sock; sock= sock->next)
 			sock->flag &= ~SOCK_HIDDEN;
 		for(sock= node->outputs.first; sock; sock= sock->next)
@@ -64,7 +65,7 @@ static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
 	}
 	else {
 		bNode *gnode= node_tree_get_editgroup(snode->nodetree);
-		
+
 		/* hiding inside group should not break links in other group users */
 		if(gnode) {
 			nodeGroupSocketUseFlags((bNodeTree *)gnode->id);
@@ -89,7 +90,11 @@ static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
 			}
 		}
 	}
+}
 
+static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
+{
+	node_set_hidden_sockets(snode, node, !node_has_hidden_sockets(node));
 	node_tree_verify_groups(snode->nodetree);
 }
 
@@ -238,7 +243,7 @@ static void snode_home(ScrArea *sa, ARegion *ar, SpaceNode* snode)
 	
 	cur->xmin= cur->ymin= 0.0f;
 	cur->xmax=ar->winx;
-	cur->xmax= ar->winy;
+	cur->ymax=ar->winy;
 	
 	if(snode->edittree) {
 		for(node= snode->edittree->nodes.first; node; node= node->next) {
@@ -256,19 +261,20 @@ static void snode_home(ScrArea *sa, ARegion *ar, SpaceNode* snode)
 	snode->yof= 0;
 	width= cur->xmax - cur->xmin;
 	height= cur->ymax- cur->ymin;
+
 	if(width > height) {
 		float newheight;
 		newheight= oldheight * width/oldwidth;
 		cur->ymin= cur->ymin - newheight/4;
-		cur->ymax= cur->ymin + newheight;
+		cur->ymax= cur->ymax + newheight/4;
 	}
 	else {
 		float newwidth;
 		newwidth= oldwidth * height/oldheight;
 		cur->xmin= cur->xmin - newwidth/4;
-		cur->xmax= cur->xmin + newwidth;
+		cur->xmax= cur->xmax + newwidth/4;
 	}
-	
+
 	ar->v2d.tot= ar->v2d.cur;
 	UI_view2d_curRect_validate(&ar->v2d);
 }

@@ -52,9 +52,9 @@ class SelectPattern(bpy.types.Operator):
         # Can be pose bones or objects
         for item in items:
             if pattern_match(item.name, self.properties.pattern):
-                item.selected = True
+                item.select = True
             elif not self.properties.extend:
-                item.selected = False
+                item.select = False
 
         return {'FINISHED'}
 
@@ -90,7 +90,7 @@ class SelectCamera(bpy.types.Operator):
             self.report({'WARNING'}, "Active camera is not in this scene")
 
         context.scene.objects.active = camera
-        camera.selected = True
+        camera.select = True
         return {'FINISHED'}
 
 
@@ -113,26 +113,46 @@ class SelectHierarchy(bpy.types.Operator):
         return context.object
 
     def execute(self, context):
-        obj = context.object
+        select_new = []
+        act_new = None
+        
+        
+        selected_objects = context.selected_objects
+        obj_act = context.object
+
+        if context.object not in selected_objects:
+            selected_objects.append(context.object)
+
         if self.properties.direction == 'PARENT':
-            parent = obj.parent
-            if not parent:
-                return {'CANCELLED'}
-            obj_act = parent
+            for obj in selected_objects:
+                parent = obj.parent
+
+                if parent:
+                    if obj_act == obj:
+                        act_new = parent
+
+                    select_new.append(parent)
+
         else:
-            children = obj.children
-            if len(children) != 1:
-                return {'CANCELLED'}
-            obj_act = children[0]
+            for obj in selected_objects:
+                select_new.extend(obj.children)
 
-        if not self.properties.extend:
-            # obj.selected = False
-            bpy.ops.object.select_all(action='DESELECT')
+            if select_new:
+                select_new.sort(key=lambda obj_iter: obj_iter.name)
+                act_new = select_new[0]
 
-        obj_act.selected = True
-        context.scene.objects.active = obj_act
+        # dont edit any object settings above this
+        if select_new:
+            if not self.properties.extend:
+                bpy.ops.object.select_all(action='DESELECT')
 
-        return {'FINISHED'}
+            for obj in select_new:
+                obj.select = True
+
+            context.scene.objects.active = act_new
+            return {'FINISHED'}
+            
+        return {'CANCELLED'}
 
 
 class SubdivisionSet(bpy.types.Operator):
@@ -473,7 +493,7 @@ class MakeDupliFace(bpy.types.Operator):
                 linked.setdefault(data, []).append(obj)
 
         for data, objects in linked.items():
-            face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix) for axis in v]
+            face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix_world) for axis in v]
             faces = list(range(int(len(face_verts) / 3)))
 
             mesh = bpy.data.meshes.new(data.name + "_dupli")
@@ -515,14 +535,14 @@ class IsolateTypeRender(bpy.types.Operator):
 
     def execute(self, context):
         act_type = context.object.type
-        
+
         for obj in context.visible_objects:
-            
-            if obj.selected:
-                obj.restrict_render = False
+
+            if obj.select:
+                obj.hide_render = False
             else:
                 if obj.type == act_type:
-                    obj.restrict_render = True
+                    obj.hide_render = True
 
         return {'FINISHED'}
 

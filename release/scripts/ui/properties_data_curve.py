@@ -44,7 +44,7 @@ class DataButtonsPanelActive(DataButtonsPanel):
 
     def poll(self, context):
         curve = context.curve
-        return (curve and curve.splines.active)
+        return (curve and type(curve) is not bpy.types.TextCurve and curve.splines.active)
 
 
 class DATA_PT_context_curve(DataButtonsPanel):
@@ -126,7 +126,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
             sub.prop(curve, "use_deform_fill")
 
         col.label(text="Textures:")
-#       col.prop(curve, "uv_orco")
+        col.prop(curve, "map_along_length")
         col.prop(curve, "auto_texspace")
 
 
@@ -308,10 +308,11 @@ class DATA_PT_font(DataButtonsPanel):
 
         split = layout.split()
 
-        col = split.column(align=True)
-        col.label(text="Underline:")
-        col.prop(text, "ul_position", text="Position")
-        col.prop(text, "ul_height", text="Thickness")
+        col = split.column()
+        colsub = col.column(align=True)
+        colsub.label(text="Underline:")
+        colsub.prop(text, "ul_position", text="Position")
+        colsub.prop(text, "ul_height", text="Thickness")
 
         if wide_ui:
             col = split.column()
@@ -319,8 +320,13 @@ class DATA_PT_font(DataButtonsPanel):
         col.prop(char, "bold")
         col.prop(char, "italic")
         col.prop(char, "underline")
-#       col.prop(char, "style")
-#       col.prop(char, "wrap")
+        
+        split = layout.split()
+        col = split.column()
+        col.prop(text, "small_caps_scale", text="Small Caps")
+        
+        col = split.column()
+        col.prop(char, "use_small_caps")
 
 
 class DATA_PT_paragraph(DataButtonsPanel):
@@ -368,19 +374,34 @@ class DATA_PT_textboxes(DataButtonsPanel):
         text = context.curve
         wide_ui = context.region.width > narrowui
 
-        for box in text.textboxes:
-            split = layout.box().split()
+        split = layout.split()
+        col = split.column()
+        col.operator("font.textbox_add", icon='ZOOMIN')
+        if wide_ui:
+            col = split.column()
+
+        for i, box in enumerate(text.textboxes):
+
+            boxy = layout.box()
+
+            row = boxy.row()
+
+            split = row.split()
 
             col = split.column(align=True)
+
             col.label(text="Dimensions:")
             col.prop(box, "width", text="Width")
             col.prop(box, "height", text="Height")
 
             if wide_ui:
                 col = split.column(align=True)
+
             col.label(text="Offset:")
             col.prop(box, "x", text="X")
             col.prop(box, "y", text="Y")
+
+            row.operator("font.textbox_remove", text='', icon='X', emboss=False).index = i
 
 
 classes = [

@@ -8,7 +8,7 @@ SSH_HOST="ideasman42@emo.blender.org"
 SSH_UPLOAD="/data/www/vhosts/www.blender.org/documentation/250PythonDoc"
 
 # dont delete existing docs, now partial updates are used for quick builds.
-$BLENDER -b -P ./source/blender/python/doc/sphinx_doc_gen.py
+$BLENDER --background --python ./source/blender/python/doc/sphinx_doc_gen.py
 
 # html
 sphinx-build source/blender/python/doc/sphinx-in source/blender/python/doc/sphinx-out

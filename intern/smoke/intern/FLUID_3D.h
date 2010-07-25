@@ -30,6 +30,7 @@
 
 #include <cstdlib>
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include "OBSTACLE.h"
 // #include "WTURBULENCE.h"

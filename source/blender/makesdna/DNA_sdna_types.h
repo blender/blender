@@ -47,7 +47,7 @@ typedef struct SDNA {
 	short *typelens;	/* type lengths */
 
 	int nr_structs;		/* number of struct types */
-	short **structs;	/* sp= structs[a] is the adress of a struct definintion
+	short **structs;	/* sp= structs[a] is the address of a struct definintion
 						   sp[0] is struct type number, sp[1] amount of members
 
 						   (sp[2], sp[3]), (sp[4], sp[5]), .. are the member

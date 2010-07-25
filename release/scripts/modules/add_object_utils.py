@@ -21,6 +21,7 @@
 import bpy
 import mathutils
 
+
 def add_object_align_init(context, operator):
 
     if operator and operator.properties.is_property_set("location") and operator.properties.is_property_set("rotation"):
@@ -49,25 +50,25 @@ def add_object_data(context, obdata, operator=None):
 
     # ugh, could be made nicer
     for ob in scene.objects:
-        ob.selected = False
+        ob.select = False
 
     obj_new = bpy.data.objects.new(obdata.name, obdata)
 
     base = scene.objects.link(obj_new)
-    base.selected = True
+    base.select = True
 
     if context.space_data and context.space_data.type == 'VIEW_3D':
         base.layers_from_view(context.space_data)
 
 
-    obj_new.matrix = add_object_align_init(context, operator)
+    obj_new.matrix_world = add_object_align_init(context, operator)
 
     obj_act = scene.objects.active
 
     if obj_act and obj_act.mode == 'EDIT' and obj_act.type == obj_new.type:
         bpy.ops.object.mode_set(mode='OBJECT')
 
-        obj_act.selected = True
+        obj_act.select = True
         scene.update() # apply location
         #scene.objects.active = obj_new
 

@@ -55,6 +55,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_path_util.h"
 
 #include "IMB_imbuf.h"
 
@@ -64,8 +65,8 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_library.h"
 #include "BKE_ipo.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
@@ -101,6 +102,7 @@ void free_blender(void)
 	BKE_spacetypes_free();		/* after free main, it uses space callbacks */
 	
 	IMB_exit();
+	seq_stripelem_cache_destruct();
 	
 	free_nodesystem();	
 }
@@ -287,9 +289,10 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 		//setscreen(G.curscreen);
 	}
 	
-	// XXX temporarily here
-	if(G.main->versionfile < 250)
-		do_versions_ipos_to_animato(G.main); // XXX fixme... complicated versionpatching
+	// FIXME: this version patching should really be part of the file-reading code, 
+	// but we still get too many unrelated data-corruption crashes otherwise...
+	if (G.main->versionfile < 250)
+		do_versions_ipos_to_animato(G.main);
 	
 	if(recover && bfd->filename[0] && G.relbase_valid) {
 		/* in case of autosave or quit.blend, use original filename instead
@@ -311,8 +314,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(CTX_data_scene(C));
-
-	DAG_on_load_update();
 	
 	MEM_freeN(bfd);
 }
@@ -367,7 +368,7 @@ int BKE_read_file(bContext *C, char *dir, void *unused, ReportList *reports)
 	BlendFileData *bfd;
 	int retval= 1;
 
-	if(strstr(dir, ".B25.blend")==0) /* dont print user-pref loading */
+	if(strstr(dir, BLENDER_STARTUP_FILE)==0) /* dont print user-pref loading */
 		printf("read blend: %s\n", dir);
 
 	bfd= BLO_read_from_file(dir, reports);
@@ -475,6 +476,9 @@ static int read_undosave(bContext *C, UndoElem *uel)
 	/* restore */
 	strcpy(G.sce, scestr);
 	G.fileflags= fileflags;
+
+	if(success)
+		DAG_on_load_update();
 
 	return success;
 }

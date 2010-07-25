@@ -209,12 +209,12 @@ typedef struct RenderData {
 	struct FFMpegCodecData ffcodecdata;
 	
 	int cfra, sfra, efra;	/* frames as in 'images' */
+	float subframe;			/* subframe offset from cfra, in 0.0-1.0 */
 	int psfra, pefra;		/* start+end frames of preview range */
 
 	int images, framapto;
 	short flag, threads;
 
-	float ctime;			/* use for calcutions */
 	float framelen, blurfac;
 
 	/** For UR edge rendering: give the edges this color */
@@ -344,16 +344,6 @@ typedef struct RenderData {
 	short bake_osa, bake_filter, bake_mode, bake_flag;
 	short bake_normal_space, bake_quad_split;
 	float bake_maxdist, bake_biasdist, bake_pad;
-	
-	/* yafray: global panel params. TODO: move elsewhere */
-	short GIquality, GIcache, GImethod, GIphotons, GIdirect;
-	short YF_AA, YFexportxml, YF_nobump, YF_clamprgb, yfpad1;
-	int GIdepth, GIcausdepth, GIpixelspersample;
-	int GIphotoncount, GImixphotons;
-	float GIphotonradius;
-	int YF_raydepth, YF_AApasses, YF_AAsamples, yfpad2;
-	float GIshadowquality, GIrefinement, GIpower, GIindirpower;
-	float YF_gamma, YF_exposure, YF_raybias, YF_AApixelsize, YF_AAthreshold;
 
 	/* paths to backbufffer, output, ftype */
 	char backbuf[160], pic[160];
@@ -579,12 +569,30 @@ typedef struct Sculpt {
 	Paint paint;
 
 	/* For rotating around a pivot point */
-	float pivot[3];
+	//float pivot[3]; XXX not used?
 	int flags;
 
 	/* Control tablet input */
-	char tablet_size, tablet_strength;
-	char pad[6];
+	//char tablet_size, tablet_strength; XXX not used?
+	int radial_symm[3];
+
+	// all this below is used to communicate with the cursor drawing routine
+
+	/* record movement of mouse so that rake can start at an intuitive angle */
+	float last_x, last_y;
+	float last_angle;
+
+	int draw_anchored;
+	int   anchored_size;
+	float anchored_location[3];
+	float anchored_initial_mouse[2];
+
+	int draw_pressure;
+	float pressure_value;
+
+	float special_rotation;
+
+	int pad;
 } Sculpt;
 
 typedef struct VPaint {
@@ -718,6 +726,12 @@ typedef struct ToolSettings {
 	short proportional, prop_mode;
 
 	int auto_normalize, intpad; /*auto normalizing mode in wpaint*/
+
+	short sculpt_paint_settings; /* user preferences for sculpt and paint */
+	short pad;
+	int sculpt_paint_unified_size; /* unified radius of brush in pixels */
+	float sculpt_paint_unified_unprojected_radius;/* unified radius of brush in Blender units */
+	float sculpt_paint_unified_alpha; /* unified strength of brush */
 } ToolSettings;
 
 typedef struct bStats {
@@ -1032,6 +1046,7 @@ typedef struct Scene {
 #define ID_NEW_US(a)	if( (a)->id.newid) {(a)= (void *)(a)->id.newid; (a)->id.us++;}
 #define ID_NEW_US2(a)	if( ((ID *)a)->newid) {(a)= ((ID *)a)->newid; ((ID *)a)->us++;}
 #define	CFRA			(scene->r.cfra)
+#define SUBFRA			(scene->r.subframe)
 #define	F_CFRA			((float)(scene->r.cfra))
 #define	SFRA			(scene->r.sfra)
 #define	EFRA			(scene->r.efra)
@@ -1102,7 +1117,6 @@ typedef struct Scene {
 #define F_ERROR			-1
 #define F_START			0
 #define F_SCENE			1
-#define F_SET			2
 #define F_DUPLI			3
 
 /* audio->flag */
@@ -1115,20 +1129,30 @@ typedef struct Scene {
 
 /* Paint.flags */
 typedef enum {
-	PAINT_SHOW_BRUSH = 1,
-	PAINT_FAST_NAVIGATE = 2
+	PAINT_SHOW_BRUSH = (1<<0),
+	PAINT_FAST_NAVIGATE = (1<<1),
+	PAINT_SHOW_BRUSH_ON_SURFACE = (1<<2),
 } PaintFlags;
 
 /* Sculpt.flags */
 /* These can eventually be moved to paint flags? */
 typedef enum SculptFlags {
-	SCULPT_SYMM_X = 1,
-	SCULPT_SYMM_Y = 2,
-	SCULPT_SYMM_Z = 4,
-	SCULPT_LOCK_X = 64,
-	SCULPT_LOCK_Y = 128,
-	SCULPT_LOCK_Z = 256
+	SCULPT_SYMM_X = (1<<0),
+	SCULPT_SYMM_Y = (1<<1),
+	SCULPT_SYMM_Z = (1<<2),
+	SCULPT_LOCK_X = (1<<3),
+	SCULPT_LOCK_Y = (1<<4),
+	SCULPT_LOCK_Z = (1<<5),
+	SCULPT_SYMMETRY_FEATHER = (1<<6),
+	SCULPT_USE_OPENMP = (1<<7),
 } SculptFlags;
+
+/* sculpt_paint_settings */
+#define SCULPT_PAINT_USE_UNIFIED_SIZE        (1<<0)
+#define SCULPT_PAINT_USE_UNIFIED_ALPHA       (1<<1)
+#define SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE (1<<2)
+#define SCULPT_PAINT_UNIFIED_SIZE_PRESSURE   (1<<3)
+#define SCULPT_PAINT_UNIFIED_ALPHA_PRESSURE  (1<<4)
 
 /* ImagePaintSettings.flag */
 #define IMAGEPAINT_DRAWING				1

@@ -191,21 +191,26 @@ public:
 	 * @return				No return
 	 */
 	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
-	
 
 	/**
 	 * Determine the base dir in which shared resources are located. It will first try to use
 	 * "unpack and run" path, then look for properly installed path, not including versioning.
-	 * @return Unsigned char string pointing to system dir (eg /usr/share/blender/).
+	 * @return Unsigned char string pointing to system dir (eg /usr/share/).
 	 */
 	virtual const GHOST_TUns8* getSystemDir() const;
 
 	/**
 	 * Determine the base dir in which user configuration is stored, not including versioning.
 	 * If needed, it will create the base directory.
-	 * @return Unsigned char string pointing to user dir (eg ~/.blender/).
+	 * @return Unsigned char string pointing to user dir (eg ~/).
 	 */
 	 virtual const GHOST_TUns8* getUserDir() const;
+
+	 /**
+	  * Determine the directory of the current binary
+	  * @return Unsigned char string pointing to the binary dir
+	  */
+	 virtual const GHOST_TUns8* getBinaryDir() const;
 
 	/**
 	 * Creates a drag'n'drop event and pushes it immediately onto the event queue. 
@@ -214,7 +219,7 @@ public:
 	 * @param draggedObjectType The type object concerned (currently array of file names, string, ?bitmap)
 	 * @param mouseX x mouse coordinate (in window coordinates)
 	 * @param mouseY y mouse coordinate
-	 * @param window The window on which the event occured
+	 * @param window The window on which the event occurred
 	 * @return Indication whether the event was handled. 
 	 */
 	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,GHOST_IWindow* window, int mouseX, int mouseY, void* data);

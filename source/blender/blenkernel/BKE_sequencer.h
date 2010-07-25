@@ -136,8 +136,8 @@ struct SeqEffectHandle {
 void printf_strip(struct Sequence *seq);
 
 /* apply functions recursively */
-void seqbase_recursive_apply(struct ListBase *seqbase, int (*apply_func)(struct Sequence *seq, void *), void *arg);
-void seq_recursive_apply(struct Sequence *seq, int (*apply_func)(struct Sequence *, void *), void *arg);
+int seqbase_recursive_apply(struct ListBase *seqbase, int (*apply_func)(struct Sequence *seq, void *), void *arg);
+int seq_recursive_apply(struct Sequence *seq, int (*apply_func)(struct Sequence *, void *), void *arg);
 
 // extern
 void seq_free_sequence(struct Scene *scene, struct Sequence *seq);
@@ -164,6 +164,28 @@ struct StripElem *give_stripelem(struct Sequence *seq, int cfra);
 // intern?
 void update_changed_seq_and_deps(struct Scene *scene, struct Sequence *changed_seq, int len_change, int ibuf_change);
 
+/* seqcache.c */
+
+typedef enum {
+	SEQ_STRIPELEM_IBUF,
+	SEQ_STRIPELEM_IBUF_COMP,
+	SEQ_STRIPELEM_IBUF_STARTSTILL,
+	SEQ_STRIPELEM_IBUF_ENDSTILL
+} seq_stripelem_ibuf_t;
+
+void seq_stripelem_cache_init();
+void seq_stripelem_cache_destruct();
+
+void seq_stripelem_cache_cleanup();
+
+struct ImBuf * seq_stripelem_cache_get(
+	struct Sequence * seq, int rectx, int recty, 
+	float cfra, seq_stripelem_ibuf_t type);
+void seq_stripelem_cache_put(
+	struct Sequence * seq, int rectx, int recty, 
+	float cfra, seq_stripelem_ibuf_t type, struct ImBuf * nval);
+
+
 /* seqeffects.c */
 // intern?
 struct SeqEffectHandle get_sequence_blend(struct Sequence *seq);
@@ -187,21 +209,27 @@ void seq_single_fix(struct Sequence *seq);
 int seq_test_overlap(struct ListBase * seqbasep, struct Sequence *test);
 struct ListBase *seq_seqbase(struct ListBase *seqbase, struct Sequence *seq);
 void seq_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
+void seq_dupe_animdata(struct Scene *scene, char *name_from, char *name_to);
 int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test, struct Scene *evil_scene);
 int shuffle_seq_time(ListBase * seqbasep, struct Scene *evil_scene);
 int seqbase_isolated_sel_check(struct ListBase *seqbase);
-void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage);
+void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage, int keep_file_handles);
+struct Sequence	*seq_dupli_recursive(struct Scene *scene, struct Sequence * seq, int dupe_flag);
+int seq_swap(struct Sequence *seq_a, struct Sequence *seq_b);
 
 void seq_update_sound(struct Scene* scene, struct Sequence *seq);
 void seq_update_muting(struct Scene* scene, struct Editing *ed);
-void seqbase_sound_reload(Scene *scene, ListBase *seqbase);
+void seqbase_sound_reload(struct Scene *scene, ListBase *seqbase);
 void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
+void seqbase_dupli_recursive(struct Scene *scene, ListBase *nseqbase, ListBase *seqbase, int dupe_flag);
+
 void clear_scene_in_allseqs(struct Scene *sce);
 
 struct Sequence *get_seq_by_name(struct ListBase *seqbase, const char *name, int recursive);
 
-struct Sequence *active_seq_get(struct Scene *scene);
-void active_seq_set(struct Scene *scene, struct Sequence *seq);
+struct Sequence *seq_active_get(struct Scene *scene);
+void seq_active_set(struct Scene *scene, struct Sequence *seq);
+int seq_active_pair_get(struct Scene *scene, struct Sequence **seq_act, struct Sequence **seq_other);
 
 /* api for adding new sequence strips */
 typedef struct SeqLoadInfo {
@@ -222,6 +250,13 @@ typedef struct SeqLoadInfo {
 #define SEQ_LOAD_FRAME_ADVANCE	1<<1
 #define SEQ_LOAD_MOVIE_SOUND	1<<2
 #define SEQ_LOAD_SOUND_CACHE	1<<3
+
+
+/* seq_dupli' flags */
+#define SEQ_DUPE_UNIQUE_NAME	1<<0
+#define SEQ_DUPE_CONTEXT		1<<1
+#define SEQ_DUPE_ANIM			1<<2
+#define SEQ_DUPE_ALL			1<<3 /* otherwise only selected are copied */
 
 /* use as an api function */
 typedef struct Sequence *(*SeqLoadFunc)(struct bContext *, ListBase *, struct SeqLoadInfo *);

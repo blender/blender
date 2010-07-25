@@ -33,6 +33,8 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_scene_types.h"
@@ -1104,14 +1106,14 @@ static void rna_def_mvert(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_MeshVertex_normal_get", "rna_MeshVertex_normal_set", NULL);
 	RNA_def_property_ui_text(prop, "Normal", "Vertex Normal");
 
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
-	RNA_def_property_ui_text(prop, "Selected", "");
+	RNA_def_property_ui_text(prop, "Select", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
-	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_HIDE);
-	RNA_def_property_ui_text(prop, "Hidden", "");
+	RNA_def_property_ui_text(prop, "Hide", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
 	prop= RNA_def_property(srna, "bevel_weight", PROP_FLOAT, PROP_NONE);
@@ -1157,14 +1159,14 @@ static void rna_def_medge(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bevel Weight", "Weight used by the Bevel modifier");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
-	RNA_def_property_ui_text(prop, "Selected", "");
+	RNA_def_property_ui_text(prop, "Select", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
-	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_HIDE);
-	RNA_def_property_ui_text(prop, "Hidden", "");
+	RNA_def_property_ui_text(prop, "Hide", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
 	prop= RNA_def_property(srna, "seam", PROP_BOOLEAN, PROP_NONE);
@@ -1224,14 +1226,14 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MeshFace_material_index_range");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_FACE_SEL);
-	RNA_def_property_ui_text(prop, "Selected", "");
+	RNA_def_property_ui_text(prop, "Select", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
-	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_HIDE);
-	RNA_def_property_ui_text(prop, "Hidden", "");
+	RNA_def_property_ui_text(prop, "Hide", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
 	prop= RNA_def_property(srna, "smooth", PROP_BOOLEAN, PROP_NONE);
@@ -1381,7 +1383,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Transparency", "Transparency blending mode");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
-	prop= RNA_def_property(srna, "uv_selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_uv", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TF_SEL1);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "UV Selected", "");
@@ -1806,6 +1808,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "all_edges", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_ALLEDGES);
 	RNA_def_property_ui_text(prop, "All Edges", "Displays all edges for wireframe in all view modes in the 3D view");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "draw_faces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWFACES);
@@ -1842,7 +1845,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Sharp", "Displays sharp edges, used with the EdgeSplit modifier");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
-	prop= RNA_def_property(srna, "draw_edge_lenght", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "draw_edge_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_EDGELEN);
 	RNA_def_property_ui_text(prop, "Edge Length", "Displays selected edge lengths");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");

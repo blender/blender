@@ -439,8 +439,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 
 static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneRenderLayer *srl)
 {
-	TreeStoreElem *tselem= TREESTORE(tenla);
-	TreeElement *te;
+	TreeStoreElem *tselem = NULL;
+	TreeElement *te = NULL;
 
 	/* log stuff is to convert bitflags (powers of 2) to small integers,
 	 * in order to not overflow short tselem->nr */
@@ -450,6 +450,7 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	te->directdata= &srl->passflag;
 	
 	/* save cpu cycles, but we add the first to invoke an open/close triangle */
+	tselem = TREESTORE(tenla);
 	if(tselem->flag & TSE_CLOSED)
 		return;
 	
@@ -1410,7 +1411,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		GroupObject *go;
 		
 		for(group= mainvar->group.first; group; group= group->id.next) {
-			if(group->id.us) {
+			if(group->gobject.first) {
 				te= outliner_add_element(soops, &soops->tree, group, NULL, 0, 0);
 				tselem= TREESTORE(te);
 				
@@ -1926,7 +1927,8 @@ static int tree_element_active_material(bContext *C, Scene *scene, SpaceOops *so
 	
 	/* we search for the object parent */
 	ob= (Object *)outliner_search_back(soops, te, ID_OB);
-	if(ob==NULL || ob!=OBACT) return 0;	// just paranoia
+	// note: ob->matbits can be NULL when a local object points to a library mesh.
+	if(ob==NULL || ob!=OBACT || ob->matbits==NULL) return 0;	// just paranoia
 	
 	/* searching in ob mat array? */
 	tes= te->parent;
@@ -2221,7 +2223,7 @@ static int tree_element_active_psys(bContext *C, Scene *scene, TreeElement *te, 
 	if(set) {
 		Object *ob= (Object *)tselem->id;
 		
-		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 		
 // XXX		extern_set_butspace(F7KEY, 0);
 	}
@@ -3122,7 +3124,6 @@ static void unlink_group_cb(bContext *C, Scene *scene, TreeElement *te, TreeStor
 		if( GS(tsep->id->name)==ID_OB) {
 			Object *ob= (Object *)tsep->id;
 			ob->dup_group= NULL;
-			group->id.us--;
 		}
 	}
 	else {
@@ -4208,11 +4209,11 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 	if(arg->x >= arg->xmax) 
 		UI_icon_draw(arg->x, arg->y, icon);
 	else {
-		uiBut *but= uiDefIconBut(arg->block, LABEL, 0, icon, arg->x-4, arg->y, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH, NULL, 0.0, 0.0, 1.0, arg->alpha, "");
+		uiBut *but= uiDefIconBut(arg->block, LABEL, 0, icon, arg->x-4, arg->y, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH, NULL, 0.0, 0.0, 1.0, arg->alpha, (arg->id && arg->id->lib) ? arg->id->lib->name : "");
 		if(arg->id)
 			uiButSetDragID(but, arg->id);
 	}
-	
+
 }
 
 static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeStoreElem *tselem, TreeElement *te, float alpha)
@@ -5114,17 +5115,17 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_VIEW_OFF,
 							  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1,
-							  &ptr, "restrict_view", -1, 0, 0, -1, -1, NULL);
+							  &ptr, "hide", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_view_cb, scene, ob);
 				
 				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_SELECT_OFF,
 								  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1,
-								  &ptr, "restrict_select", -1, 0, 0, -1, -1, NULL);
+								  &ptr, "hide_select", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_sel_cb, scene, ob);
 				
 				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_RENDER_OFF,
 								  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1,
-								  &ptr, "restrict_render", -1, 0, 0, -1, -1, NULL);
+								  &ptr, "hide_render", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_rend_cb, scene, ob);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);

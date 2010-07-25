@@ -628,6 +628,14 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 					fprintf(f, "	if(value.data)\n");
 					fprintf(f, "		id_us_plus((ID*)value.data);\n\n");
 				}
+				else {
+					PointerPropertyRNA *pprop= (PointerPropertyRNA*)dp->prop;
+					StructRNA *type= rna_find_struct((char*)pprop->type);
+					if(type && (type->flag & STRUCT_ID)) {
+						fprintf(f, "	if(value.data)\n");
+						fprintf(f, "		id_lib_extern((ID*)value.data);\n\n");
+					}
+				}
 
 				fprintf(f, "	data->%s= value.data;\n", dp->dnaname);
 
@@ -2237,7 +2245,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_action.c", "rna_action_api.c", RNA_def_action},
 	{"rna_animation.c", "rna_animation_api.c", RNA_def_animation},
 	{"rna_animviz.c", NULL, RNA_def_animviz},
-	{"rna_actuator.c", NULL, RNA_def_actuator},
+	{"rna_actuator.c", "rna_actuator_api.c", RNA_def_actuator},
 	{"rna_armature.c", "rna_armature_api.c", RNA_def_armature},
 	{"rna_boid.c", NULL, RNA_def_boid},
 	{"rna_brush.c", NULL, RNA_def_brush},
@@ -2246,7 +2254,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_color.c", NULL, RNA_def_color},
 	{"rna_constraint.c", NULL, RNA_def_constraint},
 	{"rna_context.c", NULL, RNA_def_context},
-	{"rna_controller.c", NULL, RNA_def_controller},
+	{"rna_controller.c", "rna_controller_api.c", RNA_def_controller},
 	{"rna_curve.c", NULL, RNA_def_curve},
 	{"rna_fcurve.c", "rna_fcurve_api.c", RNA_def_fcurve},
 	{"rna_fluidsim.c", NULL, RNA_def_fluidsim},
@@ -2273,8 +2281,8 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_scene.c", "rna_scene_api.c", RNA_def_scene},
 	{"rna_screen.c", NULL, RNA_def_screen},
 	{"rna_sculpt_paint.c", NULL, RNA_def_sculpt_paint},
-	{"rna_sensor.c", NULL, RNA_def_sensor},
-	{"rna_sequencer.c", NULL, RNA_def_sequencer},
+	{"rna_sensor.c", "rna_sensor_api.c", RNA_def_sensor},
+	{"rna_sequencer.c", "rna_sequencer_api.c", RNA_def_sequencer},
 	{"rna_smoke.c", NULL, RNA_def_smoke},
 	{"rna_space.c", NULL, RNA_def_space},
 	{"rna_test.c", NULL, RNA_def_test},

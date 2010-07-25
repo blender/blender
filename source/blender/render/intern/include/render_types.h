@@ -189,7 +189,8 @@ struct Render
 	ListBase strandsurface;
 	
 	/* use this instead of R.r.cfra */
-	float cfra;	
+	float cfra;
+	float mblur_offs, field_offs;
 	
 	/* render database */
 	int totvlak, totvert, tothalo, totstrand, totlamp;
@@ -463,6 +464,7 @@ typedef struct VolPrecachePart
 	struct RayObject *tree;
 	struct ShadeInput *shi;
 	struct ObjectInstanceRen *obi;
+	float viewmat[4][4];
 	int num;
 	int minx, maxx;
 	int miny, maxy;
@@ -476,6 +478,7 @@ typedef struct VolPrecachePart
 typedef struct VolumePrecache
 {
 	int res[3];
+	float *bbmin, *bbmax;
 	float *data_r;
 	float *data_g;
 	float *data_b;
@@ -564,13 +567,6 @@ typedef struct LampRen {
 	
 	/* passes & node shader support: all shadow info for a pixel */
 	LampShadowSample *shadsamp;
-		
-	/* yafray: photonlight params */
-	int YF_numphotons, YF_numsearch;
-	short YF_phdepth, YF_useqmc, YF_bufsize;
-	float YF_causticblur, YF_ltradius;
-	float YF_glowint, YF_glowofs;
-	short YF_glowtype;
 	
 	/* ray optim */
 	struct RayObject *last_hit[BLENDER_MAX_THREADS];

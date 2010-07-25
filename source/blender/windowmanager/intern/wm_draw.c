@@ -101,6 +101,14 @@ static void wm_area_mark_invalid_backbuf(ScrArea *sa)
 		((View3D*)sa->spacedata.first)->flag |= V3D_INVALID_BACKBUF;
 }
 
+static int wm_area_test_invalid_backbuf(ScrArea *sa)
+{
+	if(sa->spacetype == SPACE_VIEW3D)
+		return (((View3D*)sa->spacedata.first)->flag & V3D_INVALID_BACKBUF);
+	else
+		return 0;
+}
+
 /********************** draw all **************************/
 /* - reference method, draw all each time                 */
 
@@ -188,6 +196,12 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 	ScrArea *sa;
 	ARegion *ar;
 	static rcti rect= {0, 0, 0, 0};
+
+	/* after backbuffer selection draw, we need to redraw */
+	for(sa= screen->areabase.first; sa; sa= sa->next)
+		for(ar= sa->regionbase.first; ar; ar= ar->next)
+			if(ar->swinid && !wm_area_test_invalid_backbuf(sa))
+					ED_region_tag_redraw(ar);
 
 	/* flush overlapping regions */
 	if(screen->regionbase.first) {
@@ -389,6 +403,7 @@ static void wm_draw_triple_free(wmWindow *win)
 		wmDrawTriple *triple= win->drawdata;
 
 		glDeleteTextures(triple->nx*triple->ny, triple->bind);
+
 		MEM_freeN(triple);
 
 		win->drawdata= NULL;
@@ -560,7 +575,8 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 	else {
 		win->drawdata= MEM_callocN(sizeof(wmDrawTriple), "wmDrawTriple");
 
-		if(!wm_triple_gen_textures(win, win->drawdata)) {
+		if(!wm_triple_gen_textures(win, win->drawdata))
+		{
 			wm_draw_triple_fail(C, win);
 			return;
 		}
@@ -642,6 +658,13 @@ static int wm_draw_update_test_window(wmWindow *win)
 {
 	ScrArea *sa;
 	ARegion *ar;
+
+	for(ar= win->screen->regionbase.first; ar; ar= ar->next) {
+		if(ar->do_draw_overlay) {
+			wm_tag_redraw_overlay(win, ar);
+			ar->do_draw_overlay= 0;
+		}
+	}
 	
 	if(win->screen->do_refresh)
 		return 1;
@@ -668,14 +691,27 @@ static int wm_draw_update_test_window(wmWindow *win)
 
 static int wm_automatic_draw_method(wmWindow *win)
 {
+	/* Ideally all cards would work well with triple buffer, since if it works
+	   well gives the least redraws and is considerably faster at partial redraw
+	   for sculpting or drawing overlapping menus. For typically lower end cards
+	   copy to texture is slow though and so we use overlap instead there. */
+
 	if(win->drawmethod == USER_DRAW_AUTOMATIC) {
 		/* ATI opensource driver is known to be very slow at this */
 		if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE))
 			return USER_DRAW_OVERLAP;
+		/* also Intel drivers are slow */
+		else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_UNIX, GPU_DRIVER_ANY))
+			return USER_DRAW_OVERLAP;
+		else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY))
+			return USER_DRAW_OVERLAP_FLIP;
+		else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY))
+			return USER_DRAW_OVERLAP_FLIP;
 		/* Windows software driver darkens color on each redraw */
 		else if(GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
 			return USER_DRAW_OVERLAP_FLIP;
-		else if(!GPU_24bit_color_support())
+		/* drawing lower color depth again degrades colors each time */
+		else if(GPU_color_depth() < 24)
 			return USER_DRAW_OVERLAP;
 		else
 			return USER_DRAW_TRIPLE;
@@ -687,8 +723,11 @@ static int wm_automatic_draw_method(wmWindow *win)
 void wm_tag_redraw_overlay(wmWindow *win, ARegion *ar)
 {
 	/* for draw triple gestures, paint cursors don't need region redraw */
-	if(ar && win && wm_automatic_draw_method(win) != USER_DRAW_TRIPLE)
-		ED_region_tag_redraw(ar);
+	if(ar && win) {
+		if(wm_automatic_draw_method(win) != USER_DRAW_TRIPLE)
+			ED_region_tag_redraw(ar);
+		win->screen->do_draw_paintcursor= 1;
+	}
 }
 
 void wm_draw_update(bContext *C)
@@ -767,5 +806,13 @@ void wm_draw_region_clear(wmWindow *win, ARegion *ar)
 		wm_flush_regions_down(win->screen, &ar->winrct);
 
 	win->screen->do_draw= 1;
+}
+
+void wm_draw_region_modified(wmWindow *win, ARegion *ar)
+{
+	int drawmethod= wm_automatic_draw_method(win);
+
+	if(ELEM(drawmethod, USER_DRAW_OVERLAP, USER_DRAW_OVERLAP_FLIP))
+		ED_region_tag_redraw(ar);
 }
 

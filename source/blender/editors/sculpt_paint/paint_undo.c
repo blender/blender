@@ -76,7 +76,7 @@ static void undo_elem_free(UndoStack *stack, UndoElem *uel)
 	}
 }
 
-static void undo_stack_push_begin(UndoStack *stack, char *name, UndoRestoreCb restore, UndoFreeCb free)
+static void undo_stack_push_begin(UndoStack *stack, const char *name, UndoRestoreCb restore, UndoFreeCb free)
 {
 	UndoElem *uel;
 	int nr;
@@ -145,27 +145,35 @@ static void undo_stack_push_end(UndoStack *stack)
 	}
 }
 
-static void undo_stack_step(bContext *C, UndoStack *stack, int step)
+static int undo_stack_step(bContext *C, UndoStack *stack, int step, const char *name)
 {
 	UndoElem *undo;
 
 	if(step==1) {
 		if(stack->current==NULL);
 		else {
-			if(G.f & G_DEBUG) printf("undo %s\n", stack->current->name);
-			undo_restore(C, stack, stack->current);
-			stack->current= stack->current->prev;
+			if(!name || strcmp(stack->current->name, name) == 0) {
+				if(G.f & G_DEBUG) printf("undo %s\n", stack->current->name);
+				undo_restore(C, stack, stack->current);
+				stack->current= stack->current->prev;
+				return 1;
+			}
 		}
 	}
 	else if(step==-1) {
 		if((stack->current!=NULL && stack->current->next==NULL) || stack->elems.first==NULL);
 		else {
-			undo= (stack->current && stack->current->next)? stack->current->next: stack->elems.first;
-			undo_restore(C, stack, undo);
-			stack->current= undo;
-			if(G.f & G_DEBUG) printf("redo %s\n", undo->name);
+			if(!name || strcmp(stack->current->name, name) == 0) {
+				undo= (stack->current && stack->current->next)? stack->current->next: stack->elems.first;
+				undo_restore(C, stack, undo);
+				stack->current= undo;
+				if(G.f & G_DEBUG) printf("redo %s\n", undo->name);
+				return 1;
+			}
 		}
 	}
+
+	return 0;
 }
 
 static void undo_stack_free(UndoStack *stack)
@@ -181,7 +189,7 @@ static void undo_stack_free(UndoStack *stack)
 
 /* Exported Functions */
 
-void undo_paint_push_begin(int type, char *name, UndoRestoreCb restore, UndoFreeCb free)
+void undo_paint_push_begin(int type, const char *name, UndoRestoreCb restore, UndoFreeCb free)
 {
 	if(type == UNDO_PAINT_IMAGE)
 		undo_stack_push_begin(&ImageUndoStack, name, restore, free);
@@ -219,12 +227,14 @@ void undo_paint_push_end(int type)
 		undo_stack_push_end(&MeshUndoStack);
 }
 
-void ED_undo_paint_step(bContext *C, int type, int step)
+int ED_undo_paint_step(bContext *C, int type, int step, const char *name)
 {
 	if(type == UNDO_PAINT_IMAGE)
-		undo_stack_step(C, &ImageUndoStack, step);
+		return undo_stack_step(C, &ImageUndoStack, step, name);
 	else if(type == UNDO_PAINT_MESH)
-		undo_stack_step(C, &MeshUndoStack, step);
+		return undo_stack_step(C, &MeshUndoStack, step, name);
+	
+	return 0;
 }
 
 void ED_undo_paint_free(void)

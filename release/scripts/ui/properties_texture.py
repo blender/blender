@@ -204,6 +204,7 @@ class TEXTURE_PT_colors(TextureButtonsPanel):
         col.label(text="Adjust:")
         col.prop(tex, "brightness")
         col.prop(tex, "contrast")
+        col.prop(tex, "saturation")
 
 # Texture Slot Panels #
 
@@ -274,15 +275,12 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
 
         if type(idblock) == bpy.types.Brush:
             if context.sculpt_object:
+                layout.label(text="Brush Mapping:")
                 layout.prop(tex, "map_mode", expand=True)
 
                 row = layout.row()
                 row.active = tex.map_mode in ('FIXED', 'TILED')
                 row.prop(tex, "angle")
-
-                row = layout.row()
-                row.active = tex.map_mode in ('TILED', '3D')
-                row.column().prop(tex, "size")
         else:
             if type(idblock) == bpy.types.Material:
                 split = layout.split(percentage=0.3)
@@ -306,15 +304,17 @@ class TEXTURE_PT_mapping(TextureSlotPanel):
                 row.prop(tex, "y_mapping", text="")
                 row.prop(tex, "z_mapping", text="")
 
-            # any non brush
-            split = layout.split()
+        split = layout.split()
 
+        col = split.column()
+        col.prop(tex, "offset")
+
+        if wide_ui:
             col = split.column()
-            col.prop(tex, "offset")
+        else:
+            col.separator()
 
-            if wide_ui:
-                col = split.column()
-            col.prop(tex, "size")
+        col.prop(tex, "size")
 
 
 class TEXTURE_PT_influence(TextureSlotPanel):

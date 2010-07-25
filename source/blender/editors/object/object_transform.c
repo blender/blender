@@ -205,7 +205,7 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 						eulO_to_axis_angle( ob->rotAxis, &ob->rotAngle,eul, EULER_ORDER_DEFAULT);
 					}
 					else {
-						VECCOPY(ob->rot, eul);
+						copy_v3_v3(ob->rot, eul);
 					}
 				}
 			}						 // Duplicated in source/blender/editors/armature/editarmature.c
@@ -340,10 +340,7 @@ static int object_origin_clear_exec(bContext *C, wmOperator *op)
 			v3= ob->parentinv[3];
 			
 			copy_m3_m4(mat, ob->parentinv);
-			VECCOPY(v3, v1);
-			v3[0]= -v3[0];
-			v3[1]= -v3[1];
-			v3[2]= -v3[2];
+			negate_v3_v3(v3, v1);
 			mul_m3_v3(mat, v3);
 		}
 		ob->recalc |= OB_RECALC_OB;
@@ -432,6 +429,10 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user curve, doing nothing.");
 				return OPERATOR_CANCELLED;
 			}
+			if(!(cu->flag & CU_3D) && (apply_rot || apply_loc)) {
+				BKE_report(reports, RPT_ERROR, "Neither rotation nor location could be applied to a 2d curve, doing nothing.");
+				return OPERATOR_CANCELLED;
+			}
 			if(cu->key) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a curve with vertex keys, doing nothing.");
 				return OPERATOR_CANCELLED;
@@ -498,7 +499,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			cu= ob->data;
 
 			scale = mat3_to_scale(rsmat);
-			
+
 			for(nu=cu->nurb.first; nu; nu=nu->next) {
 				if(nu->type == CU_BEZIER) {
 					a= nu->pntsu;
@@ -708,6 +709,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Object *obedit= CTX_data_edit_object(C);
+	Object *tob;
 	Mesh *me, *tme;
 	Curve *cu;
 /*	BezTriple *bezt;
@@ -775,9 +777,10 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			ob->flag &= ~OB_DONE;
 	}
 	CTX_DATA_END;
-	
-	for (me= G.main->mesh.first; me; me= me->id.next) {
-		me->flag &= ~ME_ISDONE;
+
+	for (tob= G.main->object.first; tob; tob= tob->id.next) {
+		if(tob->data)
+			((ID *)tob->data)->flag &= ~LIB_DOIT;
 	}
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
@@ -819,13 +822,14 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 							}
 						}
 					}
-						
-					me->flag |= ME_ISDONE;
+
+					tot_change++;
+					me->id.flag |= LIB_DOIT;
 						
 					if(centermode) {
 						copy_m3_m4(omat, ob->obmat);
 						
-						VECCOPY(centn, cent);
+						copy_v3_v3(centn, cent);
 						mul_m3_v3(omat, centn);
 						ob->loc[0]+= centn[0];
 						ob->loc[1]+= centn[1];
@@ -845,7 +849,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 									ob_other->recalc= OB_RECALC_OB|OB_RECALC_DATA;
 
 									copy_m3_m4(omat, ob_other->obmat);
-									VECCOPY(centn, cent);
+									copy_v3_v3(centn, cent);
 									mul_m3_v3(omat, centn);
 									ob_other->loc[0]+= centn[0];
 									ob_other->loc[1]+= centn[1];
@@ -854,7 +858,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 									where_is_object(scene, ob_other);
 									ignore_parent_tx(bmain, scene, ob_other);
 									
-									if(tme && (tme->flag & ME_ISDONE)==0) {
+									if(!(tme->id.flag & LIB_DOIT)) {
 										mvert= tme->mvert;
 										for(a=0; a<tme->totvert; a++, mvert++) {
 											sub_v3_v3(mvert->co, cent);
@@ -870,15 +874,15 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 												}
 											}
 										}
-										
-										tme->flag |= ME_ISDONE;
+
+										tot_change++;
+										tme->id.flag |= LIB_DOIT;
 									}
 								}
 							}
 						}
 						CTX_DATA_END;
 					}
-					tot_change++;
 				}
 			}
 			else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
@@ -899,7 +903,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					tot_lib_error++;
 				} else {
 					if(centermode==2) {
-						VECCOPY(cent, give_cursor(scene, v3d));
+						copy_v3_v3(cent, give_cursor(scene, v3d));
 						invert_m4_m4(ob->imat, ob->obmat);
 						mul_m4_v3(ob->imat, cent);
 
@@ -952,6 +956,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					}
 					
 					tot_change++;
+					cu->id.flag |= LIB_DOIT;
+
 					if(obedit) {
 						if (centermode==0) {
 							DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
@@ -978,6 +984,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					cu->yof /= cu->fsize;
 
 					tot_change++;
+					cu->id.flag |= LIB_DOIT;
 				}
 			}
 			else if(ob->type==OB_ARMATURE) {
@@ -994,7 +1001,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					 * Bone + object locations are handled there.
 					 */
 					docenter_armature(scene, v3d, ob, centermode);
+
 					tot_change++;
+					cu->id.flag |= LIB_DOIT;
 					
 					where_is_object(scene, ob);
 					ignore_parent_tx(bmain, scene, ob);
@@ -1003,17 +1012,22 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						break;
 				}
 			}
-			ob->recalc= OB_RECALC_OB|OB_RECALC_DATA;
 		}
 	}
 	CTX_DATA_END;
+
+	for (tob= G.main->object.first; tob; tob= tob->id.next) {
+		if(tob->data && (((ID *)tob->data)->flag & LIB_DOIT)) {
+			tob->recalc= OB_RECALC_OB|OB_RECALC_DATA;
+		}
+	}
 	
 	if (tot_change) {
 		DAG_ids_flush_update(0);
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	}
 	
-	/* Warn if any errors occured */
+	/* Warn if any errors occurred */
 	if (tot_lib_error+tot_multiuser_arm_error) {
 		BKE_reportf(op->reports, RPT_WARNING, "%i Object(s) Not Centered, %i Changed:",tot_lib_error+tot_multiuser_arm_error, tot_change);		
 		if (tot_lib_error)

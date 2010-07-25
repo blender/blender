@@ -41,33 +41,23 @@
 #include "../generic/blf_api.h"
 #include "../generic/IDProp.h"
 
-static char bpy_home_paths_doc[] =
-".. function:: home_paths(subfolder)\n"
+static char bpy_script_paths_doc[] =
+".. function:: script_paths()\n"
 "\n"
-"   Return 3 paths to blender home directories.\n"
+"   Return 2 paths to blender scripts directories.\n"
 "\n"
-"   :arg subfolder: The name of a subfolder to find within the blenders home directory.\n"
-"   :type subfolder: string\n"
-"   :return: (system, local, user) strings will be empty when not found.\n"
+"   :return: (system, user) strings will be empty when not found.\n"
 "   :rtype: tuple of strigs\n";
 
-PyObject *bpy_home_paths(PyObject *self, PyObject *args)
+PyObject *bpy_script_paths(PyObject *self)
 {
-	PyObject *ret= PyTuple_New(3);
+	PyObject *ret= PyTuple_New(2);
 	char *path;
-	char *subfolder= "";
     
-	if (!PyArg_ParseTuple(args, "|s:blender_homes", &subfolder))
-		return NULL;
-
-	path= BLI_gethome_folder(subfolder, BLI_GETHOME_SYSTEM);
+	path= BLI_get_folder(BLENDER_USER_SCRIPTS, NULL);
 	PyTuple_SET_ITEM(ret, 0, PyUnicode_FromString(path?path:""));
-
-	path= BLI_gethome_folder(subfolder, BLI_GETHOME_LOCAL);
+	path= BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, NULL);
 	PyTuple_SET_ITEM(ret, 1, PyUnicode_FromString(path?path:""));
-
-	path= BLI_gethome_folder(subfolder, BLI_GETHOME_USER);
-	PyTuple_SET_ITEM(ret, 2, PyUnicode_FromString(path?path:""));
     
 	return ret;
 }
@@ -75,7 +65,7 @@ PyObject *bpy_home_paths(PyObject *self, PyObject *args)
 static char bpy_blend_paths_doc[] =
 ".. function:: blend_paths(absolute=False)\n"
 "\n"
-"   Returns a list of paths assosiated with this blend file.\n"
+"   Returns a list of paths associated with this blend file.\n"
 "\n"
 "   :arg absolute: When true the paths returned are made absolute.\n"
 "   :type absolute: boolean\n"
@@ -120,7 +110,7 @@ static PyObject *bpy_blend_paths(PyObject * self, PyObject *args, PyObject *kw)
 	return list;
 }
 
-static PyMethodDef meth_bpy_home_paths[] = {{ "home_paths", (PyCFunction)bpy_home_paths, METH_VARARGS, bpy_home_paths_doc}};
+static PyMethodDef meth_bpy_script_paths[] = {{ "script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc}};
 static PyMethodDef meth_bpy_blend_paths[] = {{ "blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc}};
 
 static void bpy_import_test(char *modname)
@@ -141,10 +131,11 @@ static void bpy_import_test(char *modname)
 void BPy_init_modules( void )
 {
 	extern BPy_StructRNA *bpy_context_module;
+	PointerRNA ctx_ptr;
 	PyObject *mod;
 
 	/* Needs to be first since this dir is needed for future modules */
-	char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
+	char *modpath= BLI_get_folder(BLENDER_SCRIPTS, "modules");
 	if(modpath) {
 		// printf("bpy: found module path '%s'.\n", modpath);
 		PyObject *sys_path= PySys_GetObject("path"); /* borrow */
@@ -158,6 +149,7 @@ void BPy_init_modules( void )
 	/* stand alone utility modules not related to blender directly */
 	Geometry_Init();
 	Mathutils_Init();
+	Noise_Init();
 	BGL_Init();
 	BLF_Init();
 	IDProp_Init_Types();
@@ -181,13 +173,16 @@ void BPy_init_modules( void )
 	PyModule_AddObject( mod, "app", BPY_app_struct() );
 
 	/* bpy context */
-	bpy_context_module= ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
-	RNA_pointer_create(NULL, &RNA_Context, BPy_GetContext(), &bpy_context_module->ptr);
-	bpy_context_module->freeptr= 0;
+	RNA_pointer_create(NULL, &RNA_Context, BPy_GetContext(), &ctx_ptr);
+	bpy_context_module= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ctx_ptr);
+	/* odd that this is needed, 1 ref on creation and another for the module
+	 * but without we get a crash on exit */
+	Py_INCREF(bpy_context_module);
+
 	PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 
 	/* utility func's that have nowhere else to go */
-	PyModule_AddObject(mod, meth_bpy_home_paths->ml_name, (PyObject *)PyCFunction_New(meth_bpy_home_paths, NULL));
+	PyModule_AddObject(mod, meth_bpy_script_paths->ml_name, (PyObject *)PyCFunction_New(meth_bpy_script_paths, NULL));
 	PyModule_AddObject(mod, meth_bpy_blend_paths->ml_name, (PyObject *)PyCFunction_New(meth_bpy_blend_paths, NULL));
 
 	/* add our own modules dir, this is a python package */

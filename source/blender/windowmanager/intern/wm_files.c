@@ -30,6 +30,7 @@
 	 */
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #ifdef WIN32
 #include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
@@ -60,6 +61,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_exotic.h"
 #include "BKE_font.h"
@@ -102,7 +104,7 @@
 #include "wm_window.h"
 #include "wm_event_system.h"
 
-static void writeBlog(void);
+static void write_history(void);
 
 /* To be able to read files without windows closing, opening, moving 
    we try to prepare for worst case:
@@ -177,21 +179,23 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 		
 		/* we've read file without wm..., keep current one entirely alive */
 		if(G.main->wm.first==NULL) {
-			bScreen *screen= CTX_wm_screen(C);
-			
-			/* match oldwm to new dbase, only old files */
-			
-			for(wm= oldwmlist->first; wm; wm= wm->id.next) {
-				
-				for(win= wm->windows.first; win; win= win->next) {
-					/* all windows get active screen from file */
-					if(screen->winid==0)
-						win->screen= screen;
-					else 
-						win->screen= ED_screen_duplicate(win, screen);
+			/* when loading without UI, no matching needed */
+			if(!(G.fileflags & G_FILE_NO_UI)) {
+				bScreen *screen= CTX_wm_screen(C);
+
+				/* match oldwm to new dbase, only old files */
+				for(wm= oldwmlist->first; wm; wm= wm->id.next) {
 					
-					BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
-					win->screen->winid= win->winid;
+					for(win= wm->windows.first; win; win= win->next) {
+						/* all windows get active screen from file */
+						if(screen->winid==0)
+							win->screen= screen;
+						else 
+							win->screen= ED_screen_duplicate(win, screen);
+						
+						BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+						win->screen->winid= win->winid;
+					}
 				}
 			}
 			
@@ -220,7 +224,9 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 						if(win->active)
 							wm->winactive= win;
 
-						GHOST_SetWindowUserData(win->ghostwin, win);	/* pointer back */
+						if(!G.background) /* file loading in background mode still calls this */
+							GHOST_SetWindowUserData(win->ghostwin, win);	/* pointer back */
+
 						oldwin->ghostwin= NULL;
 						
 						win->eventstate= oldwin->eventstate;
@@ -259,6 +265,9 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 {
 	int retval;
 
+	/* so we can get the error message */
+	errno = 0;
+
 	/* first try to append data from exotic file formats... */
 	/* it throws error box when file doesnt exist and returns -1 */
 	/* note; it should set some error message somewhere... (ton) */
@@ -292,7 +301,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		if (retval!=0) {
 			G.relbase_valid = 1;
 			if(!G.background) /* assume automated tasks with background, dont write recent file list */
-				writeBlog();
+				write_history();
 		}
 
 // XXX		undo_editmode_clear();
@@ -303,7 +312,9 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 //		refresh_interface_font();
 
 		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+
 		ED_editors_init(C);
+		DAG_on_load_update();
 
 #ifndef DISABLE_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
@@ -315,7 +326,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		BKE_write_undo(C, "Import file");
 	else if(retval == -1) {
 		if(reports)
-			BKE_reportf(reports, RPT_ERROR, "Can't read file \"%s\".", name);
+			BKE_reportf(reports, RPT_ERROR, "Can't read file: \"%s\", %s.", name, errno ? strerror(errno) : "Incompatible file format");
 	}
 }
 
@@ -327,17 +338,23 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 {
 	ListBase wmbase;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
-	char *home= BLI_gethome();
 	int from_memory= op?RNA_boolean_get(op->ptr, "factory"):0;
 	int success;
-		
-	BLI_clean(home);
 	
 	free_ttfont(); /* still weird... what does it here? */
 		
 	G.relbase_valid = 0;
 	if (!from_memory) {
-		BLI_make_file_string(G.sce, tstr, home, ".B25.blend");
+		char *cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
+		if (cfgdir) {
+			BLI_make_file_string(G.sce, tstr, cfgdir, BLENDER_STARTUP_FILE);
+		} else {
+			tstr[0] = '\0';
+			from_memory = 1;
+			if (op) {
+				BKE_report(op->reports, RPT_INFO, "Config directory with startup.blend file found."); 
+			}
+		}
 	}
 	strcpy(scestr, G.sce);	/* temporary store */
 	
@@ -350,7 +367,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	if (!from_memory && BLI_exists(tstr)) {
 		success = BKE_read_file(C, tstr, NULL, NULL);
 	} else {
-		success = BKE_read_file_from_memory(C, datatoc_B_blend, datatoc_B_blend_size, NULL, NULL);
+		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL, NULL);
 		if (wmbase.first == NULL) wm_clear_default_size(C);
 	}
 	
@@ -367,7 +384,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	
 	/* XXX */
 	G.save_over = 0;	// start with save preference untitled.blend
-	G.fileflags &= ~G_FILE_AUTOPLAY;	/*  disable autoplay in .B.blend... */
+	G.fileflags &= ~G_FILE_AUTOPLAY;	/*  disable autoplay in startup.blend... */
 //	mainwindow_set_filename_to_title("");	// empty string re-initializes title to "Blender"
 	
 //	refresh_interface_font();
@@ -377,6 +394,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	BKE_write_undo(C, "original");	/* save current state */
 
 	ED_editors_init(C);
+	DAG_on_load_update();
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 	CTX_wm_window_set(C, NULL); /* exits queues */
@@ -385,20 +403,24 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 }
 
 
-void read_Blog(void)
+void read_history(void)
 {
 	char name[FILE_MAX];
 	LinkNode *l, *lines;
 	struct RecentFile *recent;
 	char *line;
 	int num;
+	char *cfgdir = BLI_get_folder(BLENDER_CONFIG, NULL);
 
-	BLI_make_file_string("/", name, BLI_gethome(), ".Blog");
+	if (!cfgdir) return;
+
+	BLI_make_file_string("/", name, cfgdir, BLENDER_HISTORY_FILE);
+
 	lines= BLI_read_file_as_lines(name);
 
 	G.recent_files.first = G.recent_files.last = NULL;
 
-	/* read list of recent opend files from .Blog to memory */
+	/* read list of recent opend files from recent-files.txt to memory */
 	for (l= lines, num= 0; l && (num<U.recent_files); l= l->next) {
 		line = l->link;
 		if (line[0] && BLI_exists(line)) {
@@ -407,55 +429,52 @@ void read_Blog(void)
 			
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
 			BLI_addtail(&(G.recent_files), recent);
-			recent->filename = (char*)MEM_mallocN(sizeof(char)*(strlen(line)+1), "name of file");
-			recent->filename[0] = '\0';
+			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(line)+1), "name of file");
+			recent->filepath[0] = '\0';
 			
-			strcpy(recent->filename, line);
+			strcpy(recent->filepath, line);
 			num++;
 		}
 	}
-
-	if(G.sce[0] == 0)
-		BLI_make_file_string("/", G.sce, BLI_gethome(), "untitled.blend");
 	
 	BLI_free_file_lines(lines);
 
 }
 
-static void writeBlog(void)
+static void write_history(void)
 {
 	struct RecentFile *recent, *next_recent;
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	FILE *fp;
 	int i;
 
-	BLI_make_file_string("/", name, BLI_gethome(), ".Blog");
+	BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_HISTORY_FILE);
 
 	recent = G.recent_files.first;
-	/* refresh .Blog of recent opened files, when current file was changed */
-	if(!(recent) || (strcmp(recent->filename, G.sce)!=0)) {
+	/* refresh recent-files.txt of recent opened files, when current file was changed */
+	if(!(recent) || (strcmp(recent->filepath, G.sce)!=0)) {
 		fp= fopen(name, "w");
 		if (fp) {
 			/* add current file to the beginning of list */
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
-			recent->filename = (char*)MEM_mallocN(sizeof(char)*(strlen(G.sce)+1), "name of file");
-			recent->filename[0] = '\0';
-			strcpy(recent->filename, G.sce);
+			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(G.sce)+1), "name of file");
+			recent->filepath[0] = '\0';
+			strcpy(recent->filepath, G.sce);
 			BLI_addhead(&(G.recent_files), recent);
-			/* write current file to .Blog */
-			fprintf(fp, "%s\n", recent->filename);
+			/* write current file to recent-files.txt */
+			fprintf(fp, "%s\n", recent->filepath);
 			recent = recent->next;
 			i=1;
-			/* write rest of recent opened files to .Blog */
+			/* write rest of recent opened files to recent-files.txt */
 			while((i<U.recent_files) && (recent)){
 				/* this prevents to have duplicities in list */
-				if (strcmp(recent->filename, G.sce)!=0) {
-					fprintf(fp, "%s\n", recent->filename);
+				if (strcmp(recent->filepath, G.sce)!=0) {
+					fprintf(fp, "%s\n", recent->filepath);
 					recent = recent->next;
 				}
 				else {
 					next_recent = recent->next;
-					MEM_freeN(recent->filename);
+					MEM_freeN(recent->filepath);
 					BLI_freelinkN(&(G.recent_files), recent);
 					recent = next_recent;
 				}
@@ -533,7 +552,23 @@ static ImBuf *blend_file_thumb(const char *path, Scene *scene, int **thumb_pt)
 	return ibuf;
 }
 
-int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
+/* easy access from gdb */
+int write_crash_blend(void)
+{
+	char path[FILE_MAX];
+	BLI_strncpy(path, G.sce, sizeof(path));
+	BLI_replace_extension(path, sizeof(path), "_crash.blend");
+	if(BLO_write_file(G.main, path, G.fileflags, NULL, NULL)) {
+		printf("written: %s\n", path);
+		return 1;
+	}
+	else {
+		printf("failed: %s\n", path);
+		return 0;
+	}
+}
+
+int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports, int copy)
 {
 	Library *li;
 	int len;
@@ -580,17 +615,20 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 	ED_object_exit_editmode(C, EM_DO_UNDO);
 	ED_sculpt_force_update(C);
 
-	do_history(di, reports);
-	
 	/* blend file thumbnail */
 	ibuf_thumb= blend_file_thumb(di, CTX_data_scene(C), &thumb);
 
-	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports, thumb)) {
-		strcpy(G.sce, di);
-		G.relbase_valid = 1;
-		strcpy(G.main->name, di);	/* is guaranteed current file */
+	/* rename to .blend1, do this as last before write */
+	do_history(di, reports);
 
-		G.save_over = 1; /* disable untitled.blend convention */
+	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports, thumb)) {
+		if(!copy) {
+			strcpy(G.sce, di);
+			G.relbase_valid = 1;
+			strcpy(G.main->name, di);	/* is guaranteed current file */
+	
+			G.save_over = 1; /* disable untitled.blend convention */
+		}
 
 		if(fileflags & G_FILE_COMPRESS) G.fileflags |= G_FILE_COMPRESS;
 		else G.fileflags &= ~G_FILE_COMPRESS;
@@ -598,7 +636,7 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports)
 		if(fileflags & G_FILE_AUTOPLAY) G.fileflags |= G_FILE_AUTOPLAY;
 		else G.fileflags &= ~G_FILE_AUTOPLAY;
 
-		writeBlog();
+		write_history();
 
 		/* run this function after because the file cant be written before the blend is */
 		if (ibuf_thumb) {
@@ -630,7 +668,8 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	if(win->screen->full == SCREENTEMP)
 		wm_window_close(C, wm, win);
 	
-	BLI_make_file_string("/", tstr, BLI_gethome(), ".B25.blend");
+	BLI_make_file_string("/", tstr, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
+	printf("trying to save homefile at %s \n", tstr);
 	
 	/*  force save as regular blend file */
 	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_AUTOPLAY | G_FILE_LOCK | G_FILE_SIGN);
@@ -648,21 +687,22 @@ void wm_autosave_location(char *filename)
 {
 	char pidstr[32];
 #ifdef WIN32
-	char subdir[9];
-	char savedir[FILE_MAXDIR];
+	char *savedir;
 #endif
 
 	sprintf(pidstr, "%d.blend", abs(getpid()));
 	
 #ifdef WIN32
+	/* XXX Need to investigate how to handle default location of '/tmp/'
+	 * This is a relative directory on Windows, and it may be
+	 * found. Example:
+	 * Blender installed on D:\ drive, D:\ drive has D:\tmp\
+	 * Now, BLI_exists() will find '/tmp/' exists, but
+	 * BLI_make_file_string will create string that has it most likely on C:\
+	 * through get_default_root().
+	 * If there is no C:\tmp autosave fails. */
 	if (!BLI_exists(U.tempdir)) {
-		BLI_strncpy(subdir, "autosave", sizeof(subdir));
-		BLI_make_file_string("/", savedir, BLI_gethome(), subdir);
-		
-		/* create a new autosave dir
-		 * function already checks for existence or not */
-		BLI_recurdir_fileops(savedir);
-	
+		savedir = BLI_get_folder_create(BLENDER_USER_AUTOSAVE, NULL);
 		BLI_make_file_string("/", filename, savedir, pidstr);
 		return;
 	}

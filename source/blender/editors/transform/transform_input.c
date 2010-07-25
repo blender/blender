@@ -197,17 +197,17 @@ void InputCustomRatio(TransInfo *t, MouseInput *mi, short mval[2], float output[
 			mdx = (mi->precision_mval[0] + (float)(mval[0] - mi->precision_mval[0]) / 10.0f) - data[2];
 			mdy = (mi->precision_mval[1] + (float)(mval[1] - mi->precision_mval[1]) / 10.0f) - data[3];
 
-			distance = (mdx*dx + mdy*dy) / length;
+			distance = (length != 0.0f)? (mdx*dx + mdy*dy) / length: 0.0f;
 		}
 		else {
 			short mdx, mdy;
 			mdx = mval[0] - data[2];
 			mdy = mval[1] - data[3];
 
-			distance = (mdx*dx + mdy*dy) / length;
+			distance = (length != 0.0f)? (mdx*dx + mdy*dy) / length: 0.0f;
 		}
 
-		output[0] = distance / length;
+		output[0] = (length != 0.0f)? distance / length: 0.0f;
 	}
 }
 

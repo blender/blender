@@ -69,6 +69,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	/* set the new frame number */
 	CFRA= RNA_int_get(op->ptr, "frame");
 	FRAMENUMBER_MIN_CLAMP(CFRA);
+	SUBFRA = 0.f;
 	
 	/* do updates */
 	sound_seek_scene(C);
@@ -162,7 +163,7 @@ void ANIM_OT_change_frame(wmOperatorType *ot)
 	ot->poll= change_frame_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_UNDO;
 
 	/* rna */
 	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);

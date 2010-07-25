@@ -56,6 +56,7 @@ void ED_editors_init(bContext *C)
 	Main *bmain= CTX_data_main(C);
 	Scene *sce= CTX_data_scene(C);
 	Object *ob, *obact= (sce && sce->basact)? sce->basact->object: NULL;
+	ID *data;
 
 	/* toggle on modes for objects that were saved with these enabled. for
 	   e.g. linked objects we have to ensure that they are actually the
@@ -65,8 +66,9 @@ void ED_editors_init(bContext *C)
 
 		if(mode && (mode != OB_MODE_POSE)) {
 			ob->mode= 0;
+			data= ob->data;
 
-			if(ob == obact)
+			if(ob == obact && !ob->id.lib && !(data && data->lib))
 				ED_object_toggle_modes(C, mode);
 		}
 	}

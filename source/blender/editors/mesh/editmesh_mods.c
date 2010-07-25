@@ -186,7 +186,7 @@ static void draw_triangulated(short mcords[][2], short tot)
 	}
 	
 	/* do the fill */
-	filldisplist(&lb, &lb);
+	filldisplist(&lb, &lb, 0);
 
 	/* do the draw */
 	dl= lb.first;	/* filldisplist adds in head of list */
@@ -931,7 +931,7 @@ static int similar_edge_select__internal(ToolSettings *ts, EditMesh *em, int mod
 		/* cound how many faces each edge uses use tmp.l */
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			/* here we use the edges temp data to assign a face
-			if a face has alredy been assigned (eed->f2==1)
+			if a face has already been assigned (eed->f2==1)
 			we calculate the angle between the current face and
 			the edges previously found face.
 			store the angle in eed->tmp.fp (loosing the face eed->tmp.f)
@@ -1207,7 +1207,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
 					if (dvert && !(eve->f & SELECT) && !eve->h && dvert->totweight) {
 						/* do the extra check for selection in the following if, so were not
-						checking verts that may be alredy selected */
+						checking verts that may be already selected */
 						for (i=0; base_dvert->totweight >i && !(eve->f & SELECT); i++) { 
 							for (j=0; dvert->totweight >j; j++) {
 								if (base_dvert->dw[i].def_nr==dvert->dw[j].def_nr) {
@@ -3420,7 +3420,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 void MESH_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select/Deselect All";
+	ot->name= "Select or Deselect All";
 	ot->description= "Change selection of all vertices, edges or faces";
 	ot->idname= "MESH_OT_select_all";
 	

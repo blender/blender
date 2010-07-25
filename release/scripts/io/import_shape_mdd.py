@@ -116,7 +116,7 @@ class importMDD(bpy.types.Operator):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    path = StringProperty(name="File Path", description="File path used for importing the MDD file", maxlen=1024)
+    filepath = StringProperty(name="File Path", description="Filepath used for importing the MDD file", maxlen=1024)
     #fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default=25)
     frame_start = IntProperty(name="Start Frame", description="Start frame for inserting animation", min=minframe, max=maxframe, default=0)
 
@@ -125,10 +125,10 @@ class importMDD(bpy.types.Operator):
         return (ob and ob.type == 'MESH')
 
     def execute(self, context):
-        if not self.properties.path:
+        if not self.properties.filepath:
             raise Exception("filename not set")
 
-        mdd_import(self.properties.path, bpy.context.active_object, context.scene, self.properties.frame_start, 1)
+        mdd_import(self.properties.filepath, bpy.context.active_object, context.scene, self.properties.frame_start, 1)
 
         return {'FINISHED'}
 

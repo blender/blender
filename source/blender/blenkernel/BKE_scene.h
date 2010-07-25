@@ -58,12 +58,12 @@ struct Scene *add_scene(char *name);
 struct Base *object_in_scene(struct Object *ob, struct Scene *sce);
 
 void set_scene_bg(struct Scene *sce);
-void set_scene_name(char *name);
+struct Scene *set_scene_name(char *name);
 
 struct Scene *copy_scene(struct Main *bmain, struct Scene *sce, int type);
 void unlink_scene(struct Main *bmain, struct Scene *sce, struct Scene *newsce);
 
-int next_object(struct Scene *scene, int val, struct Base **base, struct Object **ob);
+int next_object(struct Scene **scene, int val, struct Base **base, struct Object **ob);
 struct Object *scene_find_camera(struct Scene *sc);
 struct Object *scene_camera_switch_find(struct Scene *scene); // DURIAN_CAMERA_SWITCH
 int scene_camera_switch_update(struct Scene *scene);
@@ -79,6 +79,8 @@ void scene_select_base(struct Scene *sce, struct Base *selbase);
 
 /* checks for cycle, returns 1 if it's all OK */
 int scene_check_setscene(struct Scene *sce);
+
+float BKE_curframe(struct Scene *scene);
 
 void scene_update_tagged(struct Scene *sce);
 void scene_update_for_newframe(struct Scene *sce, unsigned int lay);

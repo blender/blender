@@ -399,7 +399,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 	if (ob->type==OB_MESH) {
 		DerivedMesh *dm;
 		Mesh *me = ob->data;
-		MultiresModifierData *mmd= find_multires_modifier(scene, ob);
+		MultiresModifierData *mmd= find_multires_modifier_before(scene, md);
 
 		if( me->key) {
 			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
@@ -412,12 +412,15 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		if(md->type == eModifierType_Multires)
 			multires_force_update(ob);
 
-		if (mmd && mti->type==eModifierTypeType_OnlyDeform) {
-			multiresModifier_reshapeFromDeformMod (scene, mmd, ob, md);
+		if (mmd && mmd->totlvl && mti->type==eModifierTypeType_OnlyDeform) {
+			if(!multiresModifier_reshapeFromDeformMod (scene, mmd, ob, md)) {
+				BKE_report(reports, RPT_ERROR, "Multires modifier returned error, skipping apply");
+				return 0;
+			}
 		} else {
 			dm = mesh_create_derived_for_modifier(scene, ob, md);
 			if (!dm) {
-				BKE_report(reports, RPT_ERROR, "Modifier is returned error, skipping apply");
+				BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
 				return 0;
 			}
 
@@ -1009,11 +1012,12 @@ void OBJECT_OT_multires_reshape(wmOperatorType *ot)
 
 /****************** multires save external operator *********************/
 
-static int multires_save_external_exec(bContext *C, wmOperator *op)
+static int multires_external_save_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
 	Mesh *me= (ob)? ob->data: op->customdata;
 	char path[FILE_MAX];
+	int relative= RNA_boolean_get(op->ptr, "relative_path");
 
 	if(!me)
 		return OPERATOR_CANCELLED;
@@ -1021,9 +1025,10 @@ static int multires_save_external_exec(bContext *C, wmOperator *op)
 	if(CustomData_external_test(&me->fdata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 	
-	RNA_string_get(op->ptr, "path", path);
+	RNA_string_get(op->ptr, "filepath", path);
 
-	/* BLI_path_rel(path, G.sce); */ /* TODO, relative path operator option */
+	if(relative)
+		BLI_path_rel(path, G.sce);
 
 	CustomData_external_add(&me->fdata, &me->id, CD_MDISPS, me->totface, path);
 	CustomData_external_write(&me->fdata, &me->id, CD_MASK_MESH, me->totface, 0);
@@ -1031,7 +1036,7 @@ static int multires_save_external_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int multires_save_external_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int multires_external_save_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *ob = ED_object_active_context(C);
 	MultiresModifierData *mmd;
@@ -1049,40 +1054,43 @@ static int multires_save_external_invoke(bContext *C, wmOperator *op, wmEvent *e
 	if(CustomData_external_test(&me->fdata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 
-	if(RNA_property_is_set(op->ptr, "path"))
-		return multires_save_external_exec(C, op);
+	if(!RNA_property_is_set(op->ptr, "relative_path"))
+		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
+
+	if(RNA_property_is_set(op->ptr, "filepath"))
+		return multires_external_save_exec(C, op);
 	
 	op->customdata= me;
 
 	BLI_snprintf(path, sizeof(path), "//%s.btx", me->id.name+2);
-	RNA_string_set(op->ptr, "path", path);
+	RNA_string_set(op->ptr, "filepath", path);
 	
 	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void OBJECT_OT_multires_save_external(wmOperatorType *ot)
+void OBJECT_OT_multires_external_save(wmOperatorType *ot)
 {
 	ot->name= "Multires Save External";
 	ot->description= "Save displacements to an external file";
-	ot->idname= "OBJECT_OT_multires_save_external";
+	ot->idname= "OBJECT_OT_multires_external_save";
 
 	// XXX modifier no longer in context after file browser .. ot->poll= multires_poll;
-	ot->exec= multires_save_external_exec;
-	ot->invoke= multires_save_external_invoke;
+	ot->exec= multires_external_save_exec;
+	ot->invoke= multires_external_save_invoke;
 	ot->poll= multires_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE|BTXFILE, FILE_SPECIAL, FILE_SAVE);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BTXFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH);
 	edit_modifier_properties(ot);
 }
 
 /****************** multires pack operator *********************/
 
-static int multires_pack_external_exec(bContext *C, wmOperator *op)
+static int multires_external_pack_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
 	Mesh *me= ob->data;
@@ -1096,14 +1104,14 @@ static int multires_pack_external_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_multires_pack_external(wmOperatorType *ot)
+void OBJECT_OT_multires_external_pack(wmOperatorType *ot)
 {
 	ot->name= "Multires Pack External";
 	ot->description= "Pack displacements from an external file";
-	ot->idname= "OBJECT_OT_multires_pack_external";
+	ot->idname= "OBJECT_OT_multires_external_pack";
 
 	ot->poll= multires_poll;
-	ot->exec= multires_pack_external_exec;
+	ot->exec= multires_external_pack_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

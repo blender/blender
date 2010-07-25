@@ -348,9 +348,10 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
 	//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
-	
+
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFADepthSize;
 	pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) 32;
+	
 	
 	if (stereoVisual) pixelFormatAttrsWindow[i++] = NSOpenGLPFAStereo;
 	
@@ -732,7 +733,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 #ifdef MAC_OS_X_VERSION_10_6
 				//10.6 provides Cocoa functions to autoshow menu bar, and to change a window style
 				//Hide menu & dock if needed
-				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
+				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]])
 				{
 					[NSApp setPresentationOptions:(NSApplicationPresentationHideDock | NSApplicationPresentationAutoHideMenuBar)];
 				}
@@ -743,7 +744,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 #else
 				//With 10.5, we need to create a new window to change its style to borderless
 				//Hide menu & dock if needed
-				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
+				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]])
 				{
 					//Cocoa function in 10.5 does not allow to set the menu bar in auto-show mode [NSMenu setMenuBarVisible:NO];
 					//One of the very few 64bit compatible Carbon function

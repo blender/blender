@@ -260,6 +260,12 @@ static void rna_def_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
+	prop= RNA_def_property(srna, "pinned", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SENS_PIN);
+	RNA_def_property_ui_text(prop, "Pinned", "Display when not linked to a visible states controller");
+	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SENS_SHOW);
 	RNA_def_property_ui_text(prop, "Expanded", "Set sensor expanded in the user interface");
@@ -296,6 +302,8 @@ static void rna_def_sensor(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Sensor_tap_set");
 	RNA_def_property_ui_text(prop, "Tap", "Trigger controllers only for an instant, even while the sensor remains true");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	RNA_api_sensor(srna);
 }
 
 static void rna_def_always_sensor(BlenderRNA *brna)

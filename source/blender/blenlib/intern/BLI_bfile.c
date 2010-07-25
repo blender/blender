@@ -34,6 +34,7 @@
 #else
  #include <io.h>
  #include "BLI_winstuff.h"
+ static char* find_in_pathlist(char* filename, char* pathlist);
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -46,8 +47,6 @@
 #include "BLI_fileops.h"
 #include "BLI_storage.h"
 #include "BLI_bfile.h"
-
-#include "GHOST_C-api.h"
 
 /* Internal bfile classification flags */
 #define BCF_OPEN     (0)
@@ -63,13 +62,8 @@
 
 
 /* Declaration of internal functions */
-static void chomp(char* line);
-static void expand_envvars(char* src, char* dst);
 static void fill_paths(BFILE *bfile, const char *path, const char *relpath);
-static char* find_in_pathlist(char* filename, char* pathlist);
-static void init_vars_from_file(const char* path);
 static void free_paths(BFILE* bfile);
-static void setup_temp();
 
 
 /*** Exported functions ***/
@@ -274,203 +268,7 @@ void BLI_bfile_set_error(BFILE *bfile, int error) {
 }
 
 
-void BLI_bfile_init_vars() {
-	char file[MAXPATHLEN];
-	char temp[MAXPATHLEN];
-	extern char bprogname[];
-	FILE* fp;
-
-	/* This one is unconditional */
-	sprintf(temp, "%d", BLENDER_VERSION);
-	BLI_setenv("BLENDER_VERSION", temp);
-
-	/* Is this unpack&run? */
-	sprintf(temp, "%s/%d/environment", dirname(bprogname), BLENDER_VERSION);
-	if (BLI_exist(temp)) {
-		BLI_setenv_if_new("BLENDER_SHARE", dirname(bprogname));
-	} else {
-		BLI_setenv_if_new("BLENDER_SHARE", (const char*)GHOST_getSystemDir());
-	}
-
-	strcpy(file, (const char*)GHOST_getUserDir());
-	BLI_add_slash(file);
-	strcat(file, LAST_SESSION_FILE);
-	fp = fopen(file, "r");
-	/* 1st line, read previous version */
-	if (fp && (fscanf(fp, "%3c\n", temp) == 1)) {
-		temp[3] = '\0';
-		BLI_setenv("BLENDER_VERSION_PREV", temp);
-		/* 2nd line, read previous session path if needed */
-		if (!getenv("BLENDER_TEMP")) {
-			if ((fgets(temp, MAXPATHLEN, fp) != NULL)) {
-				/* Clean any \n */
-				chomp(temp);
-				/* Check the dir is still there or generate new one */
-				if (!BLI_exist(temp)) {
-					setup_temp();
-				}
-			} else {
-				/* We have to generate it for sure */
-				setup_temp();
-			}
-		}
-	} else {
-		/* Probably new user, or only <=249 before */
-		BLI_setenv("BLENDER_VERSION_PREV", "0");
-		setup_temp();
-	}
-
-	if (fp) {
-		fclose(fp);
-	}
-
-	/* Loaded session info (or created), so time to store current data */
-	// TODO use own fuctions to get safe saving
-	fp = fopen(file, "w");
-	if (fp) {
-		fprintf(fp, "%s\n%s\n", getenv("BLENDER_VERSION"), getenv("BLENDER_TEMP"));
-		fclose(fp);
-	}
-
-	/* Load vars from user and system files */
-	strcpy(file, (const char *)GHOST_getUserDir());
-	BLI_add_slash(file);
-	strcat(file, ENVIRONMENT_FILE);
-	init_vars_from_file(file);
-	sprintf(temp, "/%d/environment", BLENDER_VERSION);
-	BLI_make_file_string("/", file, getenv("BLENDER_SHARE"), temp);
-	init_vars_from_file(file);
-}
-
-
 /*** Internal functions ***/
-
-/**
- Eliminate trailing EOL by writing a \0 over it.
- Name taken from Perl.
- */
-static void chomp(char* line) {
-	int len = strlen(line);
-#ifndef WIN32
-	if (line[len - 1] == '\n') {
-		line[len - 1] = '\0';
-	}
-#else
-	if ((line[len - 2] == '\r' ) && ((line[len - 1] == '\n'))) {
-		line[len - 2] = '\0';
-	}
-#endif /* WIN32 */
-}
-
-
-/**
- Parse a file with lines like FOO=bar (comment lines have # as first
- character) assigning to envvar FOO the value bar if FOO does not
- exist yet.
- Any white space before FOO, around the = or trailing will be used,
- so beware.
- */
-#define MAX_LINE 4096
-#define ENV_VAR 256
-#define VAR_LEN 8192
-static void init_vars_from_file(const char* path) {
-	char line[MAX_LINE];
-	char name[ENV_VAR];
-	FILE *fp;
-	char* separator;
-	char expanded[VAR_LEN];
-
-	fp = fopen(path, "r");
-	if (!fp) return;
-
-	while (fgets(line, MAX_LINE, fp) != NULL) {
-		/* Ignore comment lines */
-		if (line[0] == '#')
-			continue;
-
-		/* Split into envvar name and contents */
-		separator = strchr(line, '=');
-		if (separator && ((separator - line) < ENV_VAR)) {
-			/* First remove EOL */
-			chomp(line);
-			strncpy(name, line, separator - line);
-			name[separator - line] = '\0';
-			expand_envvars(separator + 1, expanded);
-			BLI_setenv_if_new(name, expanded);
-		}
-	}
-	fclose(fp);
-}
-
-
-/**
- Look for ${} (or %%) env vars in src and expand if the var
- exists (even if empty value). If not exist, the name is left as is.
- The process is done all over src, and nested ${${}} is not supported.
- src must be \0 terminated, and dst must be big enough.
-*/
-#ifndef WIN32
- #define ENVVAR_PREFFIX "${"
- #define ENVVAR_P_SIZE 2
- #define ENVVAR_SUFFIX "}"
- #define ENVVAR_S_SIZE 1
-#else
- #define ENVVAR_PREFFIX "%"
- #define ENVVAR_P_SIZE 1
- #define ENVVAR_SUFFIX "%"
- #define ENVVAR_S_SIZE 1
-#endif /* WIN32 */
-static void expand_envvars(char* src, char* dst) {
-	char* hit1;
-	char* hit2;
-	char name[ENV_VAR];
-	char* value;
-	int prevlen;
-	int done = 0;
-	char* source = src;
-
-	dst[0] = '\0';
-	while (!done) {
-		hit1 = strstr(source, ENVVAR_PREFFIX);
-		if (hit1) {
-			hit2 = strstr(hit1 + ENVVAR_P_SIZE, ENVVAR_SUFFIX);
-			if (hit2) {
-				/* "Copy" the leading part, if any */
-				if (hit1 != source) {
-					prevlen = strlen(dst);
-					strncat(dst, source, hit1 - source);
-					dst[prevlen + (hit1 - source)] = '\0';
-				}
-				/* Figure the name of the env var we just found  */
-				strncpy(name, hit1 + ENVVAR_P_SIZE,
-						hit2 - (hit1 + ENVVAR_P_SIZE));
-				name[hit2 - (hit1 + ENVVAR_P_SIZE)] = '\0';
-				/* See if we can get something with that name */
-				value = getenv(name);
-				if (value) {
-					/* Push the var value */
-					strcat(dst, value);
-				} else {
-					/* Leave the var name, so it is clear that it failed */
-					strcat(dst, ENVVAR_PREFFIX);
-					strcat(dst, name);
-					strcat(dst, ENVVAR_SUFFIX);
-				}
-				/* Continue after closing mark, like a new string */
-				source = hit2 + ENVVAR_S_SIZE;
-			} else {
-				/* Non terminated var so "copy as is" and finish */
-				strcat(dst, source);
-				done = 1;
-			}
-		} else {
-			/* "Copy" whatever is left */
-			strcat(dst, source);
-			done = 1;
-		}
-	}
-}
-
 
 /**
  Return a full path if the filename exists when combined
@@ -481,6 +279,8 @@ static void expand_envvars(char* src, char* dst) {
 #else
  #define SEPARATOR ':'
 #endif
+
+#ifdef WIN32
 static char* find_in_pathlist(char* filename, char* pathlist) {
 	char first[FILE_MAX + 10];
 	char* rest = NULL;
@@ -510,7 +310,7 @@ static char* find_in_pathlist(char* filename, char* pathlist) {
 		return NULL;
 	}
 }
-
+#endif
 
 /**
  Setup fpath and tpath based in the needs of the bfile.
@@ -570,24 +370,3 @@ static void free_paths(BFILE* bfile) {
 		MEM_freeN(bfile->tpath);
 	}
 }
-
-
-/**
- Create a temp directory in safe and multiuser way.
- */
-static void setup_temp() {
-	char template[MAXPATHLEN];
-	char* tempdir;
-
-	if (getenv("TMPDIR")) {
-		sprintf(template, "%s/blender-XXXXXX", getenv("TMPDIR"));
-	} else {
-		sprintf(template, "/tmp/blender-XXXXXX");
-// MacOSX NSTemporaryDirectory and WIN32 ???
-// https://bugs.launchpad.net/cuneiform-linux/+bug/267136
-// https://svn.r-project.org/R/trunk/src/main/mkdtemp.c
-	}
-	tempdir = mkdtemp(template);
-	BLI_setenv("BLENDER_TEMP", tempdir);
-}
-

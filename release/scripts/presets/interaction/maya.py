@@ -126,11 +126,11 @@ kmi.properties.nr = 9
 kmi = km.items.add('view3d.layers', 'ZERO', 'PRESS', any=True)
 kmi.properties.nr = 10
 kmi = km.items.add('wm.context_toggle_enum', 'Z', 'PRESS')
-kmi.properties.path = 'space_data.viewport_shading'
+kmi.properties.data_path = 'space_data.viewport_shading'
 kmi.properties.value_1 = 'SOLID'
 kmi.properties.value_2 = 'WIREFRAME'
 kmi = km.items.add('wm.context_toggle_enum', 'Z', 'PRESS', alt=True)
-kmi.properties.path = 'space_data.viewport_shading'
+kmi.properties.data_path = 'space_data.viewport_shading'
 kmi.properties.value_1 = 'TEXTURED'
 kmi.properties.value_2 = 'SOLID'
 kmi = km.items.add('view3d.select', 'SELECTMOUSE', 'PRESS')
@@ -167,23 +167,23 @@ kmi = km.items.add('view3d.object_as_camera', 'NUMPAD_0', 'PRESS', ctrl=True)
 kmi = km.items.add('wm.call_menu', 'S', 'PRESS', shift=True)
 kmi.properties.name = 'VIEW3D_MT_snap'
 kmi = km.items.add('wm.context_set_enum', 'COMMA', 'PRESS')
-kmi.properties.path = 'space_data.pivot_point'
+kmi.properties.data_path = 'space_data.pivot_point'
 kmi.properties.value = 'BOUNDING_BOX_CENTER'
 kmi = km.items.add('wm.context_set_enum', 'COMMA', 'PRESS', ctrl=True)
-kmi.properties.path = 'space_data.pivot_point'
+kmi.properties.data_path = 'space_data.pivot_point'
 kmi.properties.value = 'MEDIAN_POINT'
 kmi = km.items.add('wm.context_toggle', 'COMMA', 'PRESS', alt=True)
-kmi.properties.path = 'space_data.pivot_point_align'
+kmi.properties.data_path = 'space_data.pivot_point_align'
 kmi = km.items.add('wm.context_toggle', 'Q', 'PRESS')
-kmi.properties.path = 'space_data.manipulator'
+kmi.properties.data_path = 'space_data.manipulator'
 kmi = km.items.add('wm.context_set_enum', 'PERIOD', 'PRESS')
-kmi.properties.path = 'space_data.pivot_point'
+kmi.properties.data_path = 'space_data.pivot_point'
 kmi.properties.value = 'CURSOR'
 kmi = km.items.add('wm.context_set_enum', 'PERIOD', 'PRESS', ctrl=True)
-kmi.properties.path = 'space_data.pivot_point'
+kmi.properties.data_path = 'space_data.pivot_point'
 kmi.properties.value = 'INDIVIDUAL_ORIGINS'
 kmi = km.items.add('wm.context_set_enum', 'PERIOD', 'PRESS', alt=True)
-kmi.properties.path = 'space_data.pivot_point'
+kmi.properties.data_path = 'space_data.pivot_point'
 kmi.properties.value = 'ACTIVE_ELEMENT'
 kmi = km.items.add('transform.translate', 'G', 'PRESS', shift=True)
 kmi = km.items.add('transform.translate', 'EVT_TWEAK_S', 'ANY')
@@ -197,7 +197,7 @@ kmi = km.items.add('transform.create_orientation', 'SPACE', 'PRESS', ctrl=True, 
 kmi.properties.use = True
 kmi = km.items.add('transform.mirror', 'M', 'PRESS', ctrl=True)
 kmi = km.items.add('wm.context_toggle', 'TAB', 'PRESS', shift=True)
-kmi.properties.path = 'tool_settings.snap'
+kmi.properties.data_path = 'tool_settings.snap'
 kmi = km.items.add('transform.snap_type', 'TAB', 'PRESS', shift=True, ctrl=True)
 kmi = km.items.add('view3d.enable_manipulator', 'W', 'PRESS')
 kmi.properties.translate = True
@@ -212,9 +212,9 @@ kmi.properties.extend = True
 km = kc.add_keymap('Object Mode', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.items.add('wm.context_cycle_enum', 'O', 'PRESS', shift=True)
-kmi.properties.path = 'tool_settings.proportional_editing_falloff'
+kmi.properties.data_path = 'tool_settings.proportional_editing_falloff'
 kmi = km.items.add('wm.context_toggle_enum', 'O', 'PRESS')
-kmi.properties.path = 'tool_settings.proportional_editing'
+kmi.properties.data_path = 'tool_settings.proportional_editing'
 kmi.properties.value_1 = 'DISABLED'
 kmi.properties.value_2 = 'ENABLED'
 kmi = km.items.add('view3d.game_start', 'P', 'PRESS')
@@ -244,9 +244,9 @@ kmi = km.items.add('object.location_clear', 'G', 'PRESS', alt=True)
 kmi = km.items.add('object.rotation_clear', 'R', 'PRESS', alt=True)
 kmi = km.items.add('object.scale_clear', 'S', 'PRESS', alt=True)
 kmi = km.items.add('object.origin_clear', 'O', 'PRESS', alt=True)
-kmi = km.items.add('object.restrictview_clear', 'H', 'PRESS', alt=True)
-kmi = km.items.add('object.restrictview_set', 'H', 'PRESS')
-kmi = km.items.add('object.restrictview_set', 'H', 'PRESS', shift=True)
+kmi = km.items.add('object.hide_view_clear', 'H', 'PRESS', alt=True)
+kmi = km.items.add('object.hide_view_set', 'H', 'PRESS')
+kmi = km.items.add('object.hide_view_set', 'H', 'PRESS', shift=True)
 kmi.properties.unselected = True
 kmi = km.items.add('object.move_to_layer', 'M', 'PRESS')
 kmi = km.items.add('object.delete', 'X', 'PRESS')
@@ -363,13 +363,13 @@ kmi.properties.name = 'VIEW3D_MT_uv_map'
 kmi = km.items.add('wm.call_menu', 'G', 'PRESS', ctrl=True)
 kmi.properties.name = 'VIEW3D_MT_vertex_group'
 kmi = km.items.add('wm.context_cycle_enum', 'O', 'PRESS', shift=True)
-kmi.properties.path = 'tool_settings.proportional_editing_falloff'
+kmi.properties.data_path = 'tool_settings.proportional_editing_falloff'
 kmi = km.items.add('wm.context_toggle_enum', 'O', 'PRESS')
-kmi.properties.path = 'tool_settings.proportional_editing'
+kmi.properties.data_path = 'tool_settings.proportional_editing'
 kmi.properties.value_1 = 'DISABLED'
 kmi.properties.value_2 = 'ENABLED'
 kmi = km.items.add('wm.context_toggle_enum', 'O', 'PRESS', alt=True)
-kmi.properties.path = 'tool_settings.proportional_editing'
+kmi.properties.data_path = 'tool_settings.proportional_editing'
 kmi.properties.value_1 = 'DISABLED'
 kmi.properties.value_2 = 'CONNECTED'
 kmi = km.items.add('mesh.select_all', 'SELECTMOUSE', 'CLICK')

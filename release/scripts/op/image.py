@@ -28,7 +28,7 @@ class EditExternally(bpy.types.Operator):
     bl_label = "Image Edit Externally"
     bl_options = {'REGISTER'}
 
-    path = StringProperty(name="File Path", description="Path to an image file", maxlen=1024, default="")
+    filepath = StringProperty(name="File Path", description="Path to an image file", maxlen=1024, default="")
 
     def _editor_guess(self, context):
         import platform
@@ -57,12 +57,12 @@ class EditExternally(bpy.types.Operator):
 
     def execute(self, context):
         import subprocess
-        path = self.properties.path
+        filepath = self.properties.filepath
         image_editor = self._editor_guess(context)
 
         cmd = []
         cmd.extend(image_editor)
-        cmd.append(bpy.utils.expandpath(path))
+        cmd.append(bpy.utils.expandpath(filepath))
 
         subprocess.Popen(cmd)
 
@@ -70,12 +70,12 @@ class EditExternally(bpy.types.Operator):
 
     def invoke(self, context, event):
         try:
-            path = context.space_data.image.filepath
+            filepath = context.space_data.image.filepath
         except:
             self.report({'ERROR'}, "Image not found on disk")
             return {'CANCELLED'}
 
-        self.properties.path = path
+        self.properties.filepath = filepath
         self.execute(context)
 
         return {'FINISHED'}
@@ -91,13 +91,13 @@ class SaveDirty(bpy.types.Operator):
         unique_paths = set()
         for image in bpy.data.images:
             if image.dirty:
-                path = bpy.utils.expandpath(image.filepath)
-                if "\\" not in path and "/" not in path:
-                    self.report({'WARNING'}, "Invalid path: " + path)
-                elif path in unique_paths:
-                    self.report({'WARNING'}, "Path used by more then one image: " + path)
+                filepath = bpy.utils.expandpath(image.filepath)
+                if "\\" not in filepath and "/" not in filepath:
+                    self.report({'WARNING'}, "Invalid path: " + filepath)
+                elif filepath in unique_paths:
+                    self.report({'WARNING'}, "Path used by more then one image: " + filepath)
                 else:
-                    unique_paths.add(path)
+                    unique_paths.add(filepath)
                     image.save()
         return {'FINISHED'}
 
@@ -161,7 +161,7 @@ class ProjectEdit(bpy.types.Operator):
         image_new.file_format = 'PNG'
         image_new.save()
 
-        bpy.ops.image.external_edit(path=filepath_final)
+        bpy.ops.image.external_edit(filepath=filepath_final)
 
         return {'FINISHED'}
 

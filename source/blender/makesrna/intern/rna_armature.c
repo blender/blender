@@ -443,7 +443,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_ui_text(prop, "Cyclic Offset", "When bone doesn't have a parent, it receives cyclic offset effects");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop= RNA_def_property(srna, "restrict_select", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_UNSELECTABLE);
 	RNA_def_property_ui_text(prop, "Selectable", "Bone is able to be selected");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
@@ -523,14 +523,14 @@ static void rna_def_bone(BlenderRNA *brna)
 	rna_def_bone_common(srna, 0);
 
 		// XXX should we define this in PoseChannel wrapping code instead? but PoseChannels directly get some of their flags from here...
-	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_HIDDEN_P);
-	RNA_def_property_ui_text(prop, "Hidden", "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)");
+	RNA_def_property_ui_text(prop, "Hide", "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_SELECTED);
-	RNA_def_property_ui_text(prop, "Selected", "");
+	RNA_def_property_ui_text(prop, "Select", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	/* XXX better matrix descriptions possible (Arystan) */
@@ -604,29 +604,29 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 
 	rna_def_bone_common(srna, 1);
 
-	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_HIDDEN_A);
-	RNA_def_property_ui_text(prop, "Hidden", "Bone is not visible when in Edit Mode");
+	RNA_def_property_ui_text(prop, "Hide", "Bone is not visible when in Edit Mode");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
-	prop= RNA_def_property(srna, "locked", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_EDITMODE_LOCKED);
-	RNA_def_property_ui_text(prop, "Locked", "Bone is not able to be transformed when in Edit Mode");
+	RNA_def_property_ui_text(prop, "Lock", "Bone is not able to be transformed when in Edit Mode");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_SELECTED);
-	RNA_def_property_ui_text(prop, "Selected", "");
+	RNA_def_property_ui_text(prop, "Select", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
-	prop= RNA_def_property(srna, "selected_head", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_head", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_ROOTSEL);
-	RNA_def_property_ui_text(prop, "Head Selected", "");
+	RNA_def_property_ui_text(prop, "Head Select", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
-	prop= RNA_def_property(srna, "selected_tail", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select_tail", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_TIPSEL);
-	RNA_def_property_ui_text(prop, "Tail Selected", "");
+	RNA_def_property_ui_text(prop, "Tail Select", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	/* calculated and read only, not actual data access */
@@ -859,11 +859,6 @@ static void rna_def_armature(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "deform_quaternion", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_QUATERNION);
 	RNA_def_property_ui_text(prop, "Use Dual Quaternion Deformation", "Enable deform rotation with Quaternions");
-	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
-	prop= RNA_def_property(srna, "deform_bbone_rest", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_B_BONE_REST);
-	RNA_def_property_ui_text(prop, "B-Bones Deform in Rest Position", "Make B-Bones deform already in Rest Position");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
 	//prop= RNA_def_property(srna, "deform_invert_vertexgroups", PROP_BOOLEAN, PROP_NONE);

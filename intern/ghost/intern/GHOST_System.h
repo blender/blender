@@ -284,7 +284,7 @@ public:
 	   */
 	  virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const = 0;
 
-	/**
+	  	/**
 	 * Determine the base dir in which shared resources are located. It will first try to use
 	 * "unpack and run" path, then look for properly installed path, not including versioning.
 	 * @return Unsigned char string pointing to system dir (eg /usr/share/blender/).
@@ -298,6 +298,11 @@ public:
 	 */
 	virtual const GHOST_TUns8* getUserDir() const = 0;
 
+	/**
+	  * Determine the directory of the current binary
+	  * @return Unsigned char string pointing to the binary dir
+	  */
+	 virtual const GHOST_TUns8* getBinaryDir() const = 0;
 protected:
 	/**
 	 * Initialize the system.

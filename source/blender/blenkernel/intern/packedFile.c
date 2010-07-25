@@ -216,7 +216,7 @@ void packAll(Main *bmain, ReportList *reports)
 	bSound *sound;
 
 	for(ima=bmain->image.first; ima; ima=ima->id.next)
-		if(ima->packedfile == NULL && ima->id.lib==NULL && ELEM3(ima->type, IMA_SRC_FILE, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
+		if(ima->packedfile == NULL && ima->id.lib==NULL && ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
 			ima->packedfile = newPackedFile(reports, ima->name);
 
 	for(vf=bmain->vfont.first; vf; vf=vf->id.next)
@@ -224,7 +224,7 @@ void packAll(Main *bmain, ReportList *reports)
 			vf->packedfile = newPackedFile(reports, vf->name);
 
 	for(sound=bmain->sound.first; sound; sound=sound->id.next)
-		if(sound->packedfile == NULL && vf->id.lib==NULL)
+		if(sound->packedfile == NULL && sound->id.lib==NULL)
 			sound->packedfile = newPackedFile(reports, sound->name);
 }
 

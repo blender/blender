@@ -72,8 +72,8 @@ typedef struct StripColorBalance {
 	float gain[3];
 	int flag;
 	int pad;
-	float exposure;
-	float saturation;
+	// float exposure;
+	// float saturation;
 } StripColorBalance;
 
 typedef struct StripProxy {
@@ -140,6 +140,7 @@ typedef struct Sequence {
 	int startstill, endstill;
 	int machine, depth; /*machine - the strip channel, depth - the depth in the sequence when dealing with metastrips */
 	int startdisp, enddisp;	/*starting and ending points in the sequence*/
+	float sat, pad;
 	float mul, handsize;
 					/* is sfra needed anymore? - it looks like its only used in one place */
 	int sfra;		/* starting frame according to the timeline of the scene. */
@@ -196,6 +197,10 @@ typedef struct Editing {
 	Sequence *act_seq;
 	char act_imagedir[256];
 	char act_sounddir[256];
+
+	int over_ofs, over_cfra;
+	int over_flag, pad;
+	rctf over_border;
 } Editing;
 
 /* ************* Effect Variable Structs ********* */
@@ -242,6 +247,10 @@ typedef struct SpeedControlVars {
 	int lastValidFrame;
 } SpeedControlVars;
 
+/* Editor->over_flag */
+#define SEQ_EDIT_OVERLAY_SHOW			1
+#define SEQ_EDIT_OVERLAY_ABS			2
+
 #define SEQ_STRIP_OFSBOTTOM		0.2f
 #define SEQ_STRIP_OFSTOP		0.8f
 
@@ -275,6 +284,9 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_PROXY_CUSTOM_DIR               524288
 #define SEQ_USE_PROXY_CUSTOM_FILE             2097152
 #define SEQ_USE_EFFECT_DEFAULT_FADE           4194304
+
+/* convenience define for all selection flags */
+#define SEQ_ALLSEL	(SELECT+SEQ_LEFTSEL+SEQ_RIGHTSEL)
 
 /* deprecated, dont use a flag anymore*/
 /*#define SEQ_ACTIVE                            1048576*/
@@ -320,6 +332,9 @@ typedef struct SpeedControlVars {
    to the table above. (Only those effects that handle _exactly_ two inputs,
    otherwise, you can't really blend, right :) !)
 */
+
+
+#define SEQ_HAS_PATH(_seq) (ELEM5((_seq)->type, SEQ_MOVIE, SEQ_IMAGE, SEQ_SOUND, SEQ_RAM_SOUND, SEQ_HD_SOUND))
 
 #endif
 

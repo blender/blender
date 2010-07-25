@@ -925,11 +925,12 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, v
 		case PROP_STRING:
 		{
 			char *param = _PyUnicode_AsString(value);
-			
+
 			if (param==NULL) {
 				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s expected a string type", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
 				return -1;
-			} else {
+			}
+			else {
 				if(data)	*((char**)data)= param;
 				else		RNA_property_string_set(ptr, prop, param);
 			}
@@ -1853,7 +1854,7 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefi
 static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, PyObject *kw,  const char *parse_str, const char *error_prefix,
 	char **path_full, int *index, float *cfra, char **group_name) /* return values */
 {
-	static char *kwlist[] = {"path", "index", "frame", "group", NULL};
+	static char *kwlist[] = {"data_path", "index", "frame", "group", NULL};
 	char *path;
 
 	/* note, parse_str MUST start with 's|ifs' */
@@ -1870,12 +1871,12 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, PyObject
 }
 
 static char pyrna_struct_keyframe_insert_doc[] =
-".. method:: keyframe_insert(path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
+".. method:: keyframe_insert(data_path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
 "\n"
 "   Insert a keyframe on the property given, adding fcurves and animation data when necessary.\n"
 "\n"
-"   :arg path: path to the property to key, analogous to the fcurve's data path.\n"
-"   :type path: string\n"
+"   :arg data_path: path to the property to key, analogous to the fcurve's data path.\n"
+"   :type data_path: string\n"
 "   :arg index: array index of the property to key. Defaults to -1 which will key all indicies or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :arg frame: The frame on which the keyframe is inserted, defaulting to the current frame.\n"
@@ -1904,12 +1905,12 @@ static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *arg
 }
 
 static char pyrna_struct_keyframe_delete_doc[] =
-".. method:: keyframe_delete(path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
+".. method:: keyframe_delete(data_path, index=-1, frame=bpy.context.scene.frame_current, group=\"\")\n"
 "\n"
 "   Remove a keyframe from this properties fcurve.\n"
 "\n"
-"   :arg path: path to the property to remove a key, analogous to the fcurve's data path.\n"
-"   :type path: string\n"
+"   :arg data_path: path to the property to remove a key, analogous to the fcurve's data path.\n"
+"   :type data_path: string\n"
 "   :arg index: array index of the property to remove a key. Defaults to -1 removing all indicies or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :arg frame: The frame on which the keyframe is deleted, defaulting to the current frame.\n"
@@ -2298,7 +2299,7 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 	}
 	else if ((prop = RNA_struct_find_property(&self->ptr, name))) {
 		  ret = pyrna_prop_to_py(&self->ptr, prop);
-	  }
+	}
 	/* RNA function only if callback is declared (no optional functions) */
 	else if ((func = RNA_struct_find_function(&self->ptr, name)) && RNA_function_defined(func)) {
 		ret = pyrna_func_to_py((BPy_DummyPointerRNA *)self, func);
@@ -2392,17 +2393,43 @@ static int pyrna_struct_pydict_contains(PyObject *self, PyObject *pyname)
 static int pyrna_struct_setattro( BPy_StructRNA *self, PyObject *pyname, PyObject *value )
 {
 	char *name = _PyUnicode_AsString(pyname);
-	PropertyRNA *prop = RNA_struct_find_property(&self->ptr, name);
-	
-	if (prop==NULL) {
-		return PyObject_GenericSetAttr((PyObject *)self, pyname, value);
-	} else if (!RNA_property_editable_flag(&self->ptr, prop)) {
-		PyErr_Format( PyExc_AttributeError, "bpy_struct: attribute \"%.200s\" from \"%.200s\" is read-only", RNA_property_identifier(prop), RNA_struct_identifier(self->ptr.type) );
-		return -1;
+	PropertyRNA *prop= NULL;
+
+	if (name[0] != '_' && (prop= RNA_struct_find_property(&self->ptr, name))) {
+		if (!RNA_property_editable_flag(&self->ptr, prop)) {
+			PyErr_Format( PyExc_AttributeError, "bpy_struct: attribute \"%.200s\" from \"%.200s\" is read-only", RNA_property_identifier(prop), RNA_struct_identifier(self->ptr.type) );
+			return -1;
+		}
 	}
-		
+	else if (self->ptr.type == &RNA_Context) {
+		/* code just raises correct error, context prop's cant be set, unless its apart of the py class */
+		bContext *C = self->ptr.data;
+		if(C==NULL) {
+			PyErr_Format(PyExc_AttributeError, "bpy_struct: Context is 'NULL', can't set \"%.200s\" from context", name);
+			return -1;
+		}
+		else {
+			PointerRNA newptr;
+			ListBase newlb;
+			short newtype;
+
+			int done= CTX_data_get(C, name, &newptr, &newlb, &newtype);
+
+			if(done==1) {
+				PyErr_Format(PyExc_AttributeError, "bpy_struct: Context property \"%.200s\" is read-only", name);
+				BLI_freelistN(&newlb);
+				return -1;
+			}
+
+			BLI_freelistN(&newlb);
+		}
+	}
+
 	/* pyrna_py_to_prop sets its own exceptions */
-	return pyrna_py_to_prop(&self->ptr, prop, NULL, NULL, value, "bpy_struct: item.attr = val:");
+	if(prop)
+		return pyrna_py_to_prop(&self->ptr, prop, NULL, NULL, value, "bpy_struct: item.attr = val:");
+	else
+		return PyObject_GenericSetAttr((PyObject *)self, pyname, value);
 }
 
 static PyObject *pyrna_prop_dir(BPy_PropertyRNA *self)
@@ -3943,7 +3970,7 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		- myClass = type(name='myClass', bases=(myBase,), dict={'__module__':'bpy.types'})
 		*/
 
-		/* Assume RNA_struct_py_type_get(srna) was alredy checked */
+		/* Assume RNA_struct_py_type_get(srna) was already checked */
 		PyObject *py_base= pyrna_srna_PyBase(srna);
 
 		const char *idname= RNA_struct_identifier(srna);
@@ -4136,6 +4163,9 @@ static PyObject *pyrna_basetype_getattro( BPy_BaseTypeRNA *self, PyObject *pynam
 }
 
 static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self);
+static PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class);
+static PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class);
+
 static struct PyMethodDef pyrna_basetype_methods[] = {
 	{"__dir__", (PyCFunction)pyrna_basetype_dir, METH_NOARGS, ""},
 	{"register", (PyCFunction)pyrna_basetype_register, METH_O, ""},
@@ -4733,7 +4763,7 @@ void pyrna_free_types(void)
  * - Should still be fixed - Campbell
  * */
 
-PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
+static PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 {
 	bContext *C= NULL;
 	ReportList reports;
@@ -4809,14 +4839,41 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 	Py_RETURN_NONE;
 }
 
-PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class)
+
+static int pyrna_srna_contains_pointer_prop_srna(StructRNA *srna_props, StructRNA *srna, const char **prop_identifier)
+{
+	PointerRNA tptr;
+	PropertyRNA *iterprop;
+	RNA_pointer_create(NULL, &RNA_Struct, srna_props, &tptr);
+	
+	iterprop= RNA_struct_find_property(&tptr, "properties");
+
+	RNA_PROP_BEGIN(&tptr, itemptr, iterprop) {
+		PropertyRNA *prop= itemptr.data;
+		if(RNA_property_type(prop) == PROP_POINTER) {
+			if (strcmp(RNA_property_identifier(prop), "rna_type") == 0) {
+				/* pass */
+			}
+			else if(RNA_property_pointer_type(&tptr, prop) == srna) {
+				*prop_identifier= RNA_property_identifier(prop);
+				return 1;
+			}
+		}
+	}
+	RNA_PROP_END;
+	
+	return 0;
+}
+
+static PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class)
 {
 	bContext *C= NULL;
 	StructUnregisterFunc unreg;
 	StructRNA *srna;
 
 	/*if(PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "bl_rna")==NULL) {
-		PyErr_SetString(PyExc_ValueError, "bpy.types.unregister(): not a registered as a subclass.");
+		PWM_cursor_wait(0);
+yErr_SetString(PyExc_ValueError, "bpy.types.unregister(): not a registered as a subclass.");
 		return NULL;
 	}*/
 
@@ -4830,6 +4887,34 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class)
 	if(!unreg) {
 		PyErr_SetString(PyExc_ValueError, "bpy.types.unregister(...): expected a Type subclassed from a registerable rna type (no unregister supported).");
 		return NULL;
+	}
+	
+	/* should happen all the time but very slow */
+	if(G.f & G_DEBUG) {
+		/* remove all properties using this class */
+		StructRNA *srna_iter;
+		PointerRNA ptr_rna;
+		PropertyRNA *prop_rna;
+		const char *prop_identifier= NULL;
+
+		RNA_blender_rna_pointer_create(&ptr_rna);
+		prop_rna = RNA_struct_find_property(&ptr_rna, "structs");
+		
+		
+		
+		/* loop over all structs */
+		RNA_PROP_BEGIN(&ptr_rna, itemptr, prop_rna) {
+			srna_iter = itemptr.data;
+			if(pyrna_srna_contains_pointer_prop_srna(srna_iter, srna, &prop_identifier)) {
+				break;
+			}
+		}
+		RNA_PROP_END;
+		
+		if(prop_identifier) {
+			PyErr_Format(PyExc_SystemError, "bpy.types.unregister(...): Cant unregister %s because %s.%s pointer property is using this.", RNA_struct_identifier(srna), RNA_struct_identifier(srna_iter), prop_identifier);
+			return NULL;
+		}		
 	}
 	
 	/* get the context, so register callback can do necessary refreshes */

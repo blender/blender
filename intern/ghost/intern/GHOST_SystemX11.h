@@ -243,6 +243,12 @@ public:
 	const GHOST_TUns8* getUserDir() const;
 
 	/**
+	  * Determine the directory of the current binary
+	  * @return Unsigned char string pointing to the binary dir
+	  */
+	 const GHOST_TUns8* getBinaryDir() const;
+
+	/**
 	 * Atom used for ICCCM, WM-spec and Motif.
 	 * We only need get this atom at the start, it's relative
 	 * to the display not the window and are public for every

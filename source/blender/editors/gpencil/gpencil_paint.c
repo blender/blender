@@ -1494,6 +1494,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* moving mouse - assumed that mouse button is down if in painting status */
 		case MOUSEMOVE:
+		case INBETWEEN_MOUSEMOVE:
 			/* check if we're currently painting */
 			if (p->status == GP_STATUS_PAINTING) {
 				/* handle drawing event */

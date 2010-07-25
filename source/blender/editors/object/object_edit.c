@@ -135,7 +135,7 @@ Object *ED_object_active_context(bContext *C)
 
 
 /* ********* clear/set restrict view *********/
-static int object_restrictview_clear_exec(bContext *C, wmOperator *op)
+static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
@@ -160,23 +160,23 @@ static int object_restrictview_clear_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
+void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Clear Restrict View";
-	ot->description = "Reveal the object by setting the restrictview flag";
-	ot->idname= "OBJECT_OT_restrictview_clear";
+	ot->description = "Reveal the object by setting the hide flag";
+	ot->idname= "OBJECT_OT_hide_view_clear";
 	
 	/* api callbacks */
-	ot->exec= object_restrictview_clear_exec;
+	ot->exec= object_hide_view_clear_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_restrictview_set_exec(bContext *C, wmOperator *op)
+static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	short changed = 0;
@@ -213,15 +213,15 @@ static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_restrictview_set(wmOperatorType *ot)
+void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Restrict View";
-	ot->description = "Hide the object by setting the restrictview flag";
-	ot->idname= "OBJECT_OT_restrictview_set";
+	ot->description = "Hide the object by setting the hide flag";
+	ot->idname= "OBJECT_OT_hide_view_set";
 	
 	/* api callbacks */
-	ot->exec= object_restrictview_set_exec;
+	ot->exec= object_hide_view_set_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
@@ -232,7 +232,7 @@ void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 }
 
 /* 99% same as above except no need for scene refreshing (TODO, update render preview) */
-static int object_restrictrender_clear_exec(bContext *C, wmOperator *op)
+static int object_hide_render_clear_exec(bContext *C, wmOperator *op)
 {
 	short changed= 0;
 
@@ -251,23 +251,23 @@ static int object_restrictrender_clear_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_restrictrender_clear(wmOperatorType *ot)
+void OBJECT_OT_hide_render_clear(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "Clear Restrict Render";
-	ot->description = "Reveal the render object by setting the restrictrender flag";
-	ot->idname= "OBJECT_OT_restrictrender_clear";
+	ot->description = "Reveal the render object by setting the hide render flag";
+	ot->idname= "OBJECT_OT_hide_render_clear";
 
 	/* api callbacks */
-	ot->exec= object_restrictrender_clear_exec;
+	ot->exec= object_hide_render_clear_exec;
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_restrictrender_set_exec(bContext *C, wmOperator *op)
+static int object_hide_render_set_exec(bContext *C, wmOperator *op)
 {
 	int unselected= RNA_boolean_get(op->ptr, "unselected");
 
@@ -288,15 +288,15 @@ static int object_restrictrender_set_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_restrictrender_set(wmOperatorType *ot)
+void OBJECT_OT_hide_render_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Restrict Render";
-	ot->description = "Hide the render object by setting the restrictrender flag";
-	ot->idname= "OBJECT_OT_restrictrender_set";
+	ot->description = "Hide the render object by setting the hide render flag";
+	ot->idname= "OBJECT_OT_hide_render_set";
 
 	/* api callbacks */
-	ot->exec= object_restrictrender_set_exec;
+	ot->exec= object_hide_render_set_exec;
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
@@ -435,7 +435,12 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	if(flag & EM_WAITCURSOR) waitcursor(1);
 
 	ob->restore_mode = ob->mode;
-	ED_object_toggle_modes(C, ob->mode);
+
+	/* note, when switching scenes the object can have editmode data but
+	 * not be scene->obedit: bug 22954, this avoids calling self eternally */
+	if((ob->restore_mode & OB_MODE_EDIT)==0)
+		ED_object_toggle_modes(C, ob->mode);
+
 	ob->mode= OB_MODE_EDIT;
 	
 	if(ob->type==OB_MESH) {
@@ -468,7 +473,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		scene->obedit= ob;
 		ED_armature_to_edit(ob);
 		/* to ensure all goes in restposition and without striding */
-		DAG_id_flush_update(&ob->id, OB_RECALC);
+		DAG_id_flush_update(&ob->id, OB_RECALC_ALL); // XXX: should this be OB_RECALC_DATA?
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_ARMATURE, scene);
 	}
@@ -1408,7 +1413,7 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 
 					base->object->dup_group= ob->dup_group;
 					if(ob->dup_group)
-						id_us_plus((ID *)ob->dup_group);
+						id_lib_extern(&ob->dup_group->id);
 				}
 				else if(event==7) {	/* mass */
 					base->object->mass= ob->mass;
@@ -1792,6 +1797,11 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	return (done)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
+static int shade_poll(bContext *C)
+{
+	return (ED_operator_object_active_editable(C) && !ED_operator_editmesh(C));
+}
+
 void OBJECT_OT_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1799,7 +1809,7 @@ void OBJECT_OT_shade_flat(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shade_flat";
 	
 	/* api callbacks */
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= shade_poll;
 	ot->exec= shade_smooth_exec;
 
 	/* flags */
@@ -1813,7 +1823,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shade_smooth";
 	
 	/* api callbacks */
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= shade_poll;
 	ot->exec= shade_smooth_exec;
 	
 	/* flags */

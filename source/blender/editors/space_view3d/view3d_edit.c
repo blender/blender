@@ -490,9 +490,11 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, LEFTALTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_ENABLE);
 	WM_modalkeymap_add_item(keymap, LEFTALTKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_DISABLE);
 
+	/* disabled mode switching for now, can re-implement better, later on
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
 	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
 	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_MOVE);
+	*/
 	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_rotate");
@@ -728,7 +730,19 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
-static int ED_operator_view3d_rotate(bContext *C)
+static int view3d_camera_active_poll(bContext *C)
+{
+	if(ED_operator_view3d_active(C)) {
+		RegionView3D *rv3d= CTX_wm_region_view3d(C);
+		if(rv3d && rv3d->persp==RV3D_CAMOB) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static int view3d_rotate_poll(bContext *C)
 {
 	if (!ED_operator_view3d_active(C)) {
 		return 0;
@@ -754,7 +768,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= viewrotate_invoke;
 	ot->modal= viewrotate_modal;
-	ot->poll= ED_operator_view3d_rotate;
+	ot->poll= view3d_rotate_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -784,9 +798,11 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 
+	/* disabled mode switching for now, can re-implement better, later on
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
 	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
 	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
+	*/
 	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_move");
@@ -924,9 +940,11 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 
+	/* disabled mode switching for now, can re-implement better, later on
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
 	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
 	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_MOVE);
+	 */
 	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom");
@@ -1111,7 +1129,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	else {
 		if(rv3d->persp==RV3D_CAMOB) {
 			rv3d->camzoom+= 10;
-			if(rv3d->camzoom>300) rv3d->camzoom= 300;
+			if(rv3d->camzoom>600) rv3d->camzoom= 600;
 		}
 		else if(rv3d->dist> 0.001*v3d->grid) {
 			view_zoom_mouseloc(CTX_wm_region(C), .83333f, mx, my);
@@ -1242,7 +1260,17 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 			minmax_object(base->object, min, max);
 		}
 	}
-	if(!onedone) return OPERATOR_FINISHED; /* TODO - should this be cancel? */
+	if(!onedone) {
+		ED_region_tag_redraw(ar);
+		/* TODO - should this be cancel?
+		 * I think no, because we always move the cursor, with or without
+		 * object, but in this case there is no change in the scene,
+		 * only the cursor so I choice a ED_region_tag like
+		 * smooth_view do for the center_cursor.
+		 * See bug #22640
+		 */
+		return OPERATOR_FINISHED;
+	}
 
 	afm[0]= (max[0]-min[0]);
 	afm[1]= (max[1]-min[1]);
@@ -1284,6 +1312,18 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 	return OPERATOR_FINISHED;
 }
 
+static int viewhome_poll(bContext *C)
+{
+	if(ED_operator_view3d_active(C)) {
+		RegionView3D *rv3d= CTX_wm_region_view3d(C); //XXX, when accessed from a header menu this doesnt work!
+		if(rv3d && rv3d->persp!=RV3D_CAMOB) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 void VIEW3D_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1293,13 +1333,14 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewhome_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= viewhome_poll;
 
 	/* flags */
 	ot->flag= 0;
 
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
 }
+
 
 static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview without local!, was centerview() in 2.4x */
 {
@@ -1450,16 +1491,10 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	
 	if (rv3d) {
-		if (rv3d->persp==RV3D_CAMOB) {
-			/* center the camera offset */
-			rv3d->camdx= rv3d->camdy= 0.0;
-		}
-		else {
-			/* non camera center */
-			float new_ofs[3];
-			negate_v3_v3(new_ofs, give_cursor(scene, v3d));
-			smooth_view(C, NULL, NULL, new_ofs, NULL, NULL, NULL);
-		}
+		/* non camera center */
+		float new_ofs[3];
+		negate_v3_v3(new_ofs, give_cursor(scene, v3d));
+		smooth_view(C, NULL, NULL, new_ofs, NULL, NULL, NULL);
 		
 		if (rv3d->viewlock & RV3D_BOXVIEW)
 			view3d_boxview_copy(CTX_wm_area(C), CTX_wm_region(C));
@@ -1479,6 +1514,32 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 	ot->exec= viewcenter_cursor_exec;
 	ot->poll= ED_operator_view3d_active;
 	
+	/* flags */
+	ot->flag= 0;
+}
+
+static int view3d_center_camera_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.4x */
+{
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+
+	rv3d->camdx= rv3d->camdy= 0.0f;
+
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_view_center_camera(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View Camera Center";
+	ot->description = "Center the camera view";
+	ot->idname= "VIEW3D_OT_view_center_camera";
+
+	/* api callbacks */
+	ot->exec= view3d_center_camera_exec;
+	ot->poll= view3d_camera_active_poll;
+
 	/* flags */
 	ot->flag= 0;
 }
@@ -1533,15 +1594,6 @@ static int render_border_exec(bContext *C, wmOperator *op)
 
 }
 
-static int view3d_render_border_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
-
-	/* if not in camera view do not exec the operator*/
-	if (rv3d->persp == RV3D_CAMOB) return WM_border_select_invoke(C, op, event);
-	else return OPERATOR_PASS_THROUGH;
-}
-
 void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1550,11 +1602,11 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 	ot->idname= "VIEW3D_OT_render_border";
 
 	/* api callbacks */
-	ot->invoke= view3d_render_border_invoke;
+	ot->invoke= WM_border_select_invoke;
 	ot->exec= render_border_exec;
 	ot->modal= WM_border_select_modal;
 
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= view3d_camera_active_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1872,11 +1924,12 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 				/* lastview -  */
 
 				if(rv3d->persp != RV3D_CAMOB) {
+					Object *ob= OBACT;
 
 					if (!rv3d->smooth_timer) {
 						/* store settings of current view before allowing overwriting with camera view
 						 * only if we're not currently in a view transition */
-						QUATCOPY(rv3d->lviewquat, rv3d->viewquat);
+						copy_qt_qt(rv3d->lviewquat, rv3d->viewquat);
 						rv3d->lview= rv3d->view;
 						rv3d->lpersp= rv3d->persp;
 					}
@@ -1889,20 +1942,35 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 						handle_view3d_lock();
 					}
 	#endif
-
-					if(BASACT) {
-						/* check both G.vd as G.scene cameras */
-						if((v3d->camera==NULL || scene->camera==NULL) && OBACT->type==OB_CAMERA) {
-							v3d->camera= OBACT;
-							/*handle_view3d_lock();*/
+					
+					/* first get the default camera for the view lock type */
+					if(v3d->scenelock) {
+						/* sets the camera view if available */
+						v3d->camera= scene->camera;						
+					}
+					else {
+						/* use scene camera if one is not set (even though we're unlocked) */
+						if(v3d->camera==NULL) {
+							v3d->camera= scene->camera;
 						}
 					}
 
-					if(v3d->camera==NULL) {
-						v3d->camera= scene_find_camera(scene);
-						if (v3d->camera == NULL)
-							return OPERATOR_CANCELLED;
-					}
+					/* if the camera isnt found, check a number of options */
+					if(v3d->camera==NULL && ob && ob->type==OB_CAMERA)
+						v3d->camera= ob;
+					
+					if(v3d->camera==NULL)
+						v3d->camera= scene_find_camera(scene);		
+
+					/* couldnt find any useful camera, bail out */
+					if(v3d->camera==NULL)
+						return OPERATOR_CANCELLED;
+					
+					/* important these dont get out of sync for locked scenes */
+					if(v3d->scenelock)
+						scene->camera= v3d->camera;
+
+					/* finally do snazzy view zooming */
 					rv3d->persp= RV3D_CAMOB;
 					smooth_view(C, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
 
@@ -2000,7 +2068,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= vieworbit_exec;
-	ot->poll= ED_operator_view3d_rotate;
+	ot->poll= view3d_rotate_poll;
 
 	/* flags */
 	ot->flag= 0;
@@ -2828,7 +2896,7 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 
 	/*----------------------------------------------------
 	 * record how much time has passed. clamp at 10 Hz
-	 * pretend the previous frame occured at the clamped time
+	 * pretend the previous frame occurred at the clamped time
 	 */
 //    now = PIL_check_seconds_timer();
  //   frametime = (now - prevTime);

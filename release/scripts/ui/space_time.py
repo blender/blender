@@ -100,7 +100,31 @@ class TIME_MT_view(bpy.types.Menu):
 
         layout.separator()
 
+        layout.menu("TIME_MT_cache")
+
+        layout.separator()
+
         layout.operator("marker.camera_bind")
+
+
+class TIME_MT_cache(bpy.types.Menu):
+    bl_label = "Cache"
+
+    def draw(self, context):
+        layout = self.layout
+
+        st = context.space_data
+
+        layout.prop(st, "show_cache")
+
+        layout.separator()
+
+        col = layout.column()
+        col.enabled = st.show_cache
+        col.prop(st, "cache_softbody")
+        col.prop(st, "cache_particles")
+        col.prop(st, "cache_cloth")
+        col.prop(st, "cache_smoke")
 
 
 class TIME_MT_frame(bpy.types.Menu):
@@ -117,7 +141,7 @@ class TIME_MT_frame(bpy.types.Menu):
 
         # it was ok for riscos... ok TODO, operator
         for marker in context.scene.timeline_markers:
-            if marker.selected:
+            if marker.select:
                 layout.separator()
                 layout.prop(marker, "name", text="", icon='MARKER_HLT')
                 break
@@ -171,6 +195,7 @@ class TIME_MT_autokey(bpy.types.Menu):
 classes = [
     TIME_HT_header,
     TIME_MT_view,
+    TIME_MT_cache,
     TIME_MT_frame,
     TIME_MT_autokey,
     TIME_MT_playback]

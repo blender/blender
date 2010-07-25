@@ -194,8 +194,9 @@ static void make_unique_prop_names_cb(bContext *C, void *strv, void *redraw_view
 }
 
 
-static void sca_move_sensor(bContext *C, void *datav, void *move_up)
+static void old_sca_move_sensor(bContext *C, void *datav, void *move_up)
 {
+	/* deprecated, no longer using it (moved to sca.c) */
 	Scene *scene= CTX_data_scene(C);
 	bSensor *sens_to_delete= datav;
 	int val;
@@ -246,8 +247,9 @@ static void sca_move_sensor(bContext *C, void *datav, void *move_up)
 	}
 }
 
-static void sca_move_controller(bContext *C, void *datav, void *move_up)
+static void old_sca_move_controller(bContext *C, void *datav, void *move_up)
 {
+	/* deprecated, no longer using it (moved to sca.c) */
 	Scene *scene= CTX_data_scene(C);
 	bController *controller_to_del= datav;
 	int val;
@@ -301,8 +303,9 @@ static void sca_move_controller(bContext *C, void *datav, void *move_up)
 	}
 }
 
-static void sca_move_actuator(bContext *C, void *datav, void *move_up)
+static void old_sca_move_actuator(bContext *C, void *datav, void *move_up)
 {
+	/* deprecated, no longer using it (moved to sca.c) */
 	Scene *scene= CTX_data_scene(C);
 	bActuator *actuator_to_move= datav;
 	int val;
@@ -641,17 +644,17 @@ static char *controller_name(int type)
 {
 	switch (type) {
 	case CONT_LOGIC_AND:
-		return "AND";
+		return "And";
 	case CONT_LOGIC_OR:
-		return "OR";
+		return "Or";
 	case CONT_LOGIC_NAND:
-		return "NAND";
+		return "Nand";
 	case CONT_LOGIC_NOR:
-		return "NOR";
+		return "Nor";
 	case CONT_LOGIC_XOR:
-		return "XOR";
+		return "Xor";
 	case CONT_LOGIC_XNOR:
-		return "XNOR";
+		return "Xnor";
 	case CONT_EXPRESSION:
 		return "Expression";
 	case CONT_PYTHON:
@@ -675,7 +678,7 @@ static char *actuator_name(int type)
 	case ACT_OBJECT:
 		return "Motion";
 	case ACT_IPO:
-		return "Ipo";
+		return "F-Curve";
 	case ACT_LAMP:
 		return "Lamp";
 	case ACT_CAMERA:
@@ -703,7 +706,7 @@ static char *actuator_name(int type)
 	case ACT_VISIBILITY:
 		return "Visibility";
 	case ACT_2DFILTER:
-		return "2D Filter";
+		return "Filter 2D";
 	case ACT_PARENT:
 		return "Parent";
 	case ACT_STATE:
@@ -909,8 +912,15 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	
 	ob= G.main->object.first;
 	nr= 0;
+
+	/* make the active object always the first one of the list */
+	if (obact) {
+		idar[0]= (ID *)obact;
+		nr++;
+	}
+
 	while(ob) {
-		if( ob->scavisflag ) {
+		if( (ob->scavisflag) && (ob != obact)) {
 			idar[nr]= (ID *)ob;
 			nr++;
 		}
@@ -1600,7 +1610,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 					str = "Type %t|Up Axis %x1 |Down Axis %x3|Left Axis %x2|Right Axis %x0"; 
 					uiDefButI(block, MENU, B_REDR, str, xco+10 + 0.6 * (width-20), yco-68, 0.4 * (width-20), 19,
 					&joy->axisf, 2.0, 31, 0, 0,
-					"The direction of the axis, use 'All Events' to recieve events on any direction");
+					"The direction of the axis, use 'All Events' to receive events on any direction");
 				}
 			}
 			else if (joy->type == SENS_JOY_HAT)
@@ -1613,7 +1623,7 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 					str = "Direction%t|Up%x1|Down%x4|Left%x8|Right%x2|%l|Up/Right%x3|Down/Left%x12|Up/Left%x9|Down/Right%x6"; 
 					uiDefButI(block, MENU, 0, str, xco+10 + 0.6 * (width-20), yco-68, 0.4 * (width-20), 19,
 					&joy->hatf, 2.0, 31, 0, 0,
-					"The direction of the hat, use 'All Events' to recieve events on any direction");
+					"The direction of the hat, use 'All Events' to receive events on any direction");
 				}
 			}
 			else { /* (joy->type == SENS_JOY_AXIS_SINGLE)*/
@@ -3164,24 +3174,36 @@ static int is_sensor_linked(uiBlock *block, bSensor *sens)
 	return 0;
 }
 
-/* never used, see CVS 1.134 for the code */
-/*  static FreeCamera *new_freecamera(void) */
-
-/* never used, see CVS 1.120 for the code */
-/*  static uiBlock *freecamera_menu(void) */
-
 /* Sensors code */
 
-static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr)
+static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *logic_ptr)
 {
-	uiLayout *box, *row;
+	uiLayout *box, *row, *subrow;
+	bSensor *sens= (bSensor *)ptr->data;
 	
 	box= uiLayoutBox(layout);
 	row= uiLayoutRow(box, 0);
 	
 	uiItemR(row, ptr, "expanded", UI_ITEM_R_NO_BG, "", 0);
-	uiItemR(row, ptr, "type", 0, "", 0);
-	uiItemR(row, ptr, "name", 0, "", 0);
+	if(RNA_boolean_get(ptr, "expanded")) {
+		uiItemR(row, ptr, "type", 0, "", 0);
+		uiItemR(row, ptr, "name", 0, "", 0);
+	} else {
+		uiItemL(row, sensor_name(sens->type), 0);
+		uiItemL(row, sens->name, 0);
+	}
+
+	subrow= uiLayoutRow(row, 0);
+	uiLayoutSetActive(subrow, ((RNA_boolean_get(logic_ptr, "sensors_show_active_states")
+							&& RNA_boolean_get(ptr, "expanded")) || RNA_boolean_get(ptr, "pinned")));
+	uiItemR(subrow, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
+
+	if(RNA_boolean_get(ptr, "expanded")==0) {
+		subrow= uiLayoutRow(row, 1);
+		uiItemEnumO(subrow, "LOGIC_OT_sensor_move", "", ICON_TRIA_UP, "direction", 1); // up
+		uiItemEnumO(subrow, "LOGIC_OT_sensor_move", "", ICON_TRIA_DOWN, "direction", 2); // down
+	}
+
 	uiItemO(row, "", ICON_X, "LOGIC_OT_sensor_remove");
 }
 
@@ -3504,17 +3526,36 @@ void draw_brick_sensor(uiLayout *layout, PointerRNA *ptr, bContext *C)
 }
 
 /* Controller code */
-static void draw_controller_header(uiLayout *layout, PointerRNA *ptr)
+static void draw_controller_header(uiLayout *layout, PointerRNA *ptr, int xco, int width, int yco)
 {
-	uiLayout *box, *row;
+	uiLayout *box, *row, *subrow;
+	bController *cont= (bController *)ptr->data;
+
+	char state[3];
+	sprintf(state, "%d", RNA_int_get(ptr, "state"));
 	
 	box= uiLayoutBox(layout);
 	row= uiLayoutRow(box, 0);
 	
 	uiItemR(row, ptr, "expanded", UI_ITEM_R_NO_BG, "", 0);
-	uiItemR(row, ptr, "type", 0, "", 0);
-	uiItemR(row, ptr, "name", 0, "", 0);
+	if(RNA_boolean_get(ptr, "expanded")) {
+		uiItemR(row, ptr, "type", 0, "", 0);
+		uiItemR(row, ptr, "name", 0, "", 0);
+		/* XXX provisory for Blender 2.50Beta */
+		uiDefBlockBut(uiLayoutGetBlock(layout), controller_state_mask_menu, cont, state, (short)(xco+width-44), yco, 22+22, UI_UNIT_Y, "Set controller state index (from 1 to 30)");
+	} else {
+		uiItemL(row, controller_name(cont->type), 0);
+		uiItemL(row, cont->name, 0);
+		uiItemL(row, state, 0);
+	}
+
 	uiItemR(row, ptr, "priority", 0, "", 0);
+
+	if(RNA_boolean_get(ptr, "expanded")==0) {
+		subrow= uiLayoutRow(row, 1);
+		uiItemEnumO(subrow, "LOGIC_OT_controller_move", "", ICON_TRIA_UP, "direction", 1); // up
+		uiItemEnumO(subrow, "LOGIC_OT_controller_move", "", ICON_TRIA_DOWN, "direction", 2); // down
+	}
 	uiItemO(row, "", ICON_X, "LOGIC_OT_controller_remove");
 }
 
@@ -3578,16 +3619,33 @@ void draw_brick_controller(uiLayout *layout, PointerRNA *ptr)
 }
 
 /* Actuator code */
-static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr)
+static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *logic_ptr)
 {
-	uiLayout *box, *row;
+	uiLayout *box, *row, *subrow;
+	bActuator *act= (bActuator *)ptr->data;
 	
 	box= uiLayoutBox(layout);
 	row= uiLayoutRow(box, 0);
 	
 	uiItemR(row, ptr, "expanded", UI_ITEM_R_NO_BG, "", 0);
-	uiItemR(row, ptr, "type", 0, "", 0);
-	uiItemR(row, ptr, "name", 0, "", 0);
+	if(RNA_boolean_get(ptr, "expanded")) {
+		uiItemR(row, ptr, "type", 0, "", 0);
+		uiItemR(row, ptr, "name", 0, "", 0);
+	} else {
+		uiItemL(row, actuator_name(act->type), 0);
+		uiItemL(row, act->name, 0);
+	}
+
+	subrow= uiLayoutRow(row, 0);
+	uiLayoutSetActive(subrow, ((RNA_boolean_get(logic_ptr, "actuators_show_active_states")
+							&& RNA_boolean_get(ptr, "expanded")) || RNA_boolean_get(ptr, "pinned")));
+	uiItemR(subrow, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
+
+	if(RNA_boolean_get(ptr, "expanded")==0) {
+		subrow= uiLayoutRow(row, 1);
+		uiItemEnumO(subrow, "LOGIC_OT_actuator_move", "", ICON_TRIA_UP, "direction", 1); // up
+		uiItemEnumO(subrow, "LOGIC_OT_actuator_move", "", ICON_TRIA_DOWN, "direction", 2); // down
+	}
 	uiItemO(row, "", ICON_X, "LOGIC_OT_actuator_remove");
 }
 
@@ -3948,9 +4006,11 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 	Object *ob;
 	PointerRNA settings_ptr;
 	uiLayout *split, *row, *col, *subcol;
+	int physics_type;
 
 	ob = (Object *)ptr->id.data;	
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
+	physics_type = RNA_enum_get(&settings_ptr, "physics_type");
 	
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
 	
@@ -3966,33 +4026,32 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(row, ptr, "rot", 0, NULL, 0);
 			uiItemR(split, ptr, "local_rotation", UI_ITEM_R_TOGGLE, NULL, 0);
 			
-			if (RNA_enum_get(&settings_ptr, "physics_type") != OB_BODY_TYPE_DYNAMIC)
-				break;
-			
-			uiItemL(layout, "Dynamic Object Settings:", 0);
-			split = uiLayoutSplit(layout, 0.9, 0);
-			row = uiLayoutRow(split, 0);
-			uiItemR(row, ptr, "force", 0, NULL, 0);
-			uiItemR(split, ptr, "local_force", UI_ITEM_R_TOGGLE, NULL, 0);
+			if (ELEM3(physics_type, OB_BODY_TYPE_DYNAMIC, OB_BODY_TYPE_RIGID, OB_BODY_TYPE_SOFT)) {			
+				uiItemL(layout, "Dynamic Object Settings:", 0);
+				split = uiLayoutSplit(layout, 0.9, 0);
+				row = uiLayoutRow(split, 0);
+				uiItemR(row, ptr, "force", 0, NULL, 0);
+				uiItemR(split, ptr, "local_force", UI_ITEM_R_TOGGLE, NULL, 0);
 
-			split = uiLayoutSplit(layout, 0.9, 0);
-			row = uiLayoutRow(split, 0);
-			uiItemR(row, ptr, "torque", 0, NULL, 0);
-			uiItemR(split, ptr, "local_torque", UI_ITEM_R_TOGGLE, NULL, 0);
+				split = uiLayoutSplit(layout, 0.9, 0);
+				row = uiLayoutRow(split, 0);
+				uiItemR(row, ptr, "torque", 0, NULL, 0);
+				uiItemR(split, ptr, "local_torque", UI_ITEM_R_TOGGLE, NULL, 0);
 
-			split = uiLayoutSplit(layout, 0.9, 0);
-			row = uiLayoutRow(split, 0);
-			uiItemR(row, ptr, "linear_velocity", 0, NULL, 0);
-			row = uiLayoutRow(split, 1);
-			uiItemR(row, ptr, "local_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
-			uiItemR(row, ptr, "add_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+				split = uiLayoutSplit(layout, 0.9, 0);
+				row = uiLayoutRow(split, 0);
+				uiItemR(row, ptr, "linear_velocity", 0, NULL, 0);
+				row = uiLayoutRow(split, 1);
+				uiItemR(row, ptr, "local_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+				uiItemR(row, ptr, "add_linear_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
 
-			split = uiLayoutSplit(layout, 0.9, 0);
-			row = uiLayoutRow(split, 0);
-			uiItemR(row, ptr, "angular_velocity", 0, NULL, 0);
-			uiItemR(split, ptr, "local_angular_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
+				split = uiLayoutSplit(layout, 0.9, 0);
+				row = uiLayoutRow(split, 0);
+				uiItemR(row, ptr, "angular_velocity", 0, NULL, 0);
+				uiItemR(split, ptr, "local_angular_velocity", UI_ITEM_R_TOGGLE, NULL, 0);
 
-			uiItemR(layout, ptr, "damping", 0, NULL, 0);
+				uiItemR(layout, ptr, "damping", 0, NULL, 0);
+			}
 			break;
 		case ACT_OBJECT_SERVO:
 			uiItemR(layout, ptr, "reference_object", 0, NULL, 0);
@@ -4213,7 +4272,7 @@ static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *row, *col;
 
-	uiTemplateID(layout, C, ptr, "sound", NULL, "SOUND_OT_open", NULL);
+	uiTemplateID(layout, C, ptr, "sound", NULL, "SOUND_OT_open", NULL, NULL);
 	if (!RNA_pointer_get(ptr, "sound").data)
 	{
 		uiItemL(layout, "Select a sound from the list or load a new one", 0);
@@ -4341,11 +4400,12 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 {
 	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	Object *ob= CTX_data_active_object(C);
+	Object *act_ob= ob;
 	ID **idar;
 	
 	PointerRNA logic_ptr, settings_ptr;
 	
-	uiLayout *layout, *row, *split, *subsplit, *box, *col;
+	uiLayout *layout, *row, *box;
 	uiBlock *block;
 	uiBut *but;
 	char name[32];
@@ -4361,13 +4421,17 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	block= uiBeginBlock(C, ar, name, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_logic_buts, NULL);
 	
-	/* clean ACT_LINKED and ACT_VISIBLE of all potentially visible actuators so that 
-	 we can determine which is actually linked/visible */
+	/* loop over all objects and set visible/linked flags for the logic bricks */
 	for(a=0; a<count; a++) {
 		bActuator *act;
 		bSensor *sens;
+		bController *cont;
+		int iact;
+		short flag;
+
 		ob= (Object *)idar[a];
 		
+		/* clean ACT_LINKED and ACT_VISIBLE of all potentially visible actuators so that we can determine which is actually linked/visible */
 		act = ob->actuators.first;
 		while(act) {
 			act->flag &= ~(ACT_LINKED|ACT_VISIBLE);
@@ -4379,6 +4443,23 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			sens->flag &= ~(SENS_VISIBLE);
 			sens = sens->next;
 		}
+
+		/* mark the linked and visible actuators */
+		cont= ob->controllers.first;
+		while(cont) {
+			flag = ACT_LINKED;
+
+			/* this controller is visible, mark all its actuator */
+			if ((ob->scaflag & OB_ALLSTATE) || (ob->state & cont->state_mask))
+				flag |= ACT_VISIBLE;
+
+			for (iact=0; iact<cont->totlinks; iact++) {
+				act = cont->links[iact];
+				if (act)
+					act->flag |= flag;
+			}
+			cont = cont->next;
+		}
 	}
 	
 	/* ****************** Controllers ****************** */
@@ -4387,54 +4468,62 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, U.uistyles.first);
 	row = uiLayoutRow(layout, 1);
 	
-	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco, 70, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
 	uiItemR(row, &logic_ptr, "controllers_show_selected_objects", 0, "Sel", 0);
 	uiItemR(row, &logic_ptr, "controllers_show_active_objects", 0, "Act", 0);
 	uiItemR(row, &logic_ptr, "controllers_show_linked_controller", 0, "Link", 0);
 
-	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
-
-	split= uiLayoutSplit(layout, 0.05, 0);
-	uiItemR(split, &settings_ptr, "show_state_panel", UI_ITEM_R_NO_BG, "", ICON_DISCLOSURE_TRI_RIGHT);
-
-	row = uiLayoutRow(split, 1);
-	uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide controllers");
-	uiItemMenuEnumO(row, "LOGIC_OT_controller_add", "type", "Add Controller", 0);
-
-	if (RNA_boolean_get(&settings_ptr, "show_state_panel")) {
-
-		box= uiLayoutBox(layout);
-		uiLayoutSetAlignment(box, UI_LAYOUT_ALIGN_CENTER); //XXX doesn't seem to work
-		split= uiLayoutSplit(box, 0.2, 0);
-
-		col= uiLayoutColumn(split, 0);
-		uiItemL(col, "Visible", 0);
-		uiItemL(col, "Initial", 0);
-
-		subsplit= uiLayoutSplit(split, 0.85, 0);
-		col= uiLayoutColumn(subsplit, 0);
-		row= uiLayoutRow(col, 0);
-		uiLayoutSetActive(row, RNA_boolean_get(&settings_ptr, "all_states")==0);
-		uiTemplateLayers(row, &settings_ptr, "state", &settings_ptr, "used_state", 0);
-		row= uiLayoutRow(col, 0);
-		uiTemplateLayers(row, &settings_ptr, "initial_state", &settings_ptr, "used_state", 0);
-
-		col= uiLayoutColumn(subsplit, 0);
-		uiItemR(col, &settings_ptr, "all_states", UI_ITEM_R_TOGGLE, NULL, 0);
-		uiItemR(col, &settings_ptr, "debug_state", 0, "", 0); 
-	}
-
 	for(a=0; a<count; a++) {
 		bController *cont;
 		PointerRNA ptr;
 		uiLayout *split, *subsplit, *col;
-		int iact;
+
 		
 		ob= (Object *)idar[a];
+
+		/* only draw the controller common header if "visible" */
+		if( (ob->scavisflag & OB_VIS_CONT) == 0) continue;
+	
+		/* Drawing the Controller Header common to all Selected Objects */
+
+		RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
+
+		split= uiLayoutSplit(layout, 0.05, 0);
+		uiItemR(split, &settings_ptr, "show_state_panel", UI_ITEM_R_NO_BG, "", ICON_DISCLOSURE_TRI_RIGHT);
+
+		row = uiLayoutRow(split, 1);
+		uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide controllers");
+		if (ob == act_ob)
+			uiItemMenuEnumO(row, "LOGIC_OT_controller_add", "type", "Add Controller", 0);
+
+		if (RNA_boolean_get(&settings_ptr, "show_state_panel")) {
+
+			box= uiLayoutBox(layout);
+			split= uiLayoutSplit(box, 0.2, 0);
+
+			col= uiLayoutColumn(split, 0);
+			uiItemL(col, "Visible", 0);
+			uiItemL(col, "Initial", 0);
+
+			subsplit= uiLayoutSplit(split, 0.85, 0);
+			col= uiLayoutColumn(subsplit, 0);
+			row= uiLayoutRow(col, 0);
+			uiLayoutSetActive(row, RNA_boolean_get(&settings_ptr, "all_states")==0);
+			uiTemplateLayers(row, &settings_ptr, "visible_state", &settings_ptr, "used_state", 0);
+			row= uiLayoutRow(col, 0);
+			uiTemplateLayers(row, &settings_ptr, "initial_state", &settings_ptr, "used_state", 0);
+
+			col= uiLayoutColumn(subsplit, 0);
+			uiItemR(col, &settings_ptr, "all_states", UI_ITEM_R_TOGGLE, NULL, 0);
+			uiItemR(col, &settings_ptr, "debug_state", 0, "", 0); 
+		}
+
+		/* End of Drawing the Controller Header common to all Selected Objects */
+
+		if ((ob->scaflag & OB_SHOWCONT) == 0) continue;
 		
-		if (!(ob->scavisflag & OB_VIS_CONT) || !(ob->scaflag & OB_SHOWCONT)) continue;
-		
+
 		uiItemS(layout);
 		
 		for(cont= ob->controllers.first; cont; cont=cont->next) {
@@ -4442,16 +4531,6 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			
 			if (!(ob->scaflag & OB_ALLSTATE) && !(ob->state & cont->state_mask))
 				continue;
-			//if (!(cont->state_mask & (1<<stbit))) 
-			//	continue;
-			
-			/* this controller is visible, mark all its actuator */
-			/* XXX: perhaps move this to a preprocessing stage if possible? */
-			for (iact=0; iact<cont->totlinks; iact++) {
-				bActuator *act = cont->links[iact];
-				if (act)
-					act->flag |= ACT_VISIBLE;
-			}
 			
 			/* use two nested splits to align inlinks/links properly */
 			split = uiLayoutSplit(layout, 0.05, 0);
@@ -4469,8 +4548,9 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			uiLayoutSetContextPointer(col, "controller", &ptr);
 			
 			/* should make UI template for controller header.. function will do for now */
-			draw_controller_header(col, &ptr);
-			
+//			draw_controller_header(col, &ptr);
+			draw_controller_header(col, &ptr, xco, width, yco); //provisory for 2.50 beta
+
 			/* draw the brick contents */
 			draw_brick_controller(col, &ptr);
 			
@@ -4491,24 +4571,28 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, U.uistyles.first);
 	row = uiLayoutRow(layout, 1);
 	
-	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco, 70, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
 	uiItemR(row, &logic_ptr, "sensors_show_selected_objects", 0, "Sel", 0);
 	uiItemR(row, &logic_ptr, "sensors_show_active_objects", 0, "Act", 0);
 	uiItemR(row, &logic_ptr, "sensors_show_linked_controller", 0, "Link", 0);
 	uiItemR(row, &logic_ptr, "sensors_show_active_states", 0, "State", 0);
 	
-	row = uiLayoutRow(layout, 1);
-	uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
-	uiItemMenuEnumO(row, "LOGIC_OT_sensor_add", "type", "Add Sensor", 0);
-	
 	for(a=0; a<count; a++) {
 		bSensor *sens;
 		PointerRNA ptr;
 		
 		ob= (Object *)idar[a];
+
+		/* only draw the sensor common header if "visible" */
+		if((ob->scavisflag & OB_VIS_SENS) == 0) continue;
+
+		row = uiLayoutRow(layout, 1);
+		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
+		if (ob == act_ob)
+			uiItemMenuEnumO(row, "LOGIC_OT_sensor_add", "type", "Add Sensor", 0);
 		
-		if (!(ob->scavisflag & OB_VIS_SENS) || !(ob->scaflag & OB_SHOWSENS)) continue;
+		if ((ob->scaflag & OB_SHOWSENS) == 0) continue;
 		
 		uiItemS(layout);
 		
@@ -4516,7 +4600,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			RNA_pointer_create((ID *)ob, &RNA_Sensor, sens, &ptr);
 			
 			if ((ob->scaflag & OB_ALLSTATE) ||
-				(slogic->scaflag & BUTS_SENS_STATE) ||
+				!(slogic->scaflag & BUTS_SENS_STATE) ||
 				(sens->totlinks == 0) ||											/* always display sensor without links so that is can be edited */
 				(sens->flag & SENS_PIN && slogic->scaflag & BUTS_SENS_STATE) ||	/* states can hide some sensors, pinned sensors ignore the visible state */
 				(is_sensor_linked(block, sens))
@@ -4524,12 +4608,15 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			{	// gotta check if the current state is visible or not
 				uiLayout *split, *col;
 				
+				/* make as visible, for move operator */
+				sens->flag |= SENS_VISIBLE;
+
 				split = uiLayoutSplit(layout, 0.95, 0);
 				col = uiLayoutColumn(split, 1);
 				uiLayoutSetContextPointer(col, "sensor", &ptr);
 				
 				/* should make UI template for sensor header.. function will do for now */
-				draw_sensor_header(col, &ptr);
+				draw_sensor_header(col, &ptr, &logic_ptr);
 				
 				/* draw the brick contents */
 				draw_brick_sensor(col, &ptr, C);
@@ -4550,24 +4637,28 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, U.uistyles.first);
 	row = uiLayoutRow(layout, 1);
 	
-	uiDefBlockBut(block, sensor_menu, NULL, "Actuators", xco-10, yco, 70, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	uiDefBlockBut(block, actuator_menu, NULL, "Actuators", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
 	uiItemR(row, &logic_ptr, "actuators_show_selected_objects", 0, "Sel", 0);
 	uiItemR(row, &logic_ptr, "actuators_show_active_objects", 0, "Act", 0);
 	uiItemR(row, &logic_ptr, "actuators_show_linked_controller", 0, "Link", 0);
 	uiItemR(row, &logic_ptr, "actuators_show_active_states", 0, "State", 0);
 	
-	row = uiLayoutRow(layout, 1);
-	uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
-	uiItemMenuEnumO(row, "LOGIC_OT_actuator_add", "type", "Add Actuator", 0);
-	
 	for(a=0; a<count; a++) {
 		bActuator *act;
 		PointerRNA ptr;
 		
 		ob= (Object *)idar[a];
-		
-		if (!(ob->scavisflag & OB_VIS_ACT) || !(ob->scaflag & OB_SHOWACT)) continue;
+
+		/* only draw the actuator common header if "visible" */
+		if( (ob->scavisflag & OB_VIS_ACT) == 0) continue;
+
+		row = uiLayoutRow(layout, 1);
+		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
+		if (ob == act_ob)
+			uiItemMenuEnumO(row, "LOGIC_OT_actuator_add", "type", "Add Actuator", 0);
+
+		if ((ob->scaflag & OB_SHOWACT) == 0) continue;
 		
 		uiItemS(layout);
 		
@@ -4576,7 +4667,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			RNA_pointer_create((ID *)ob, &RNA_Actuator, act, &ptr);
 			
 			if ((ob->scaflag & OB_ALLSTATE) ||
-				(slogic->scaflag & BUTS_ACT_STATE) ||
+				!(slogic->scaflag & BUTS_ACT_STATE) ||
 				!(act->flag & ACT_LINKED) ||		/* always display actuators without links so that is can be edited */
 				(act->flag & ACT_VISIBLE) ||		/* this actuator has visible connection, display it */
 				(act->flag & ACT_PIN && slogic->scaflag & BUTS_ACT_STATE)	/* states can hide some sensors, pinned sensors ignore the visible state */
@@ -4584,6 +4675,9 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			{	// gotta check if the current state is visible or not
 				uiLayout *split, *col;
 				
+				/* make as visible, for move operator */
+				act->flag |= ACT_VISIBLE;
+
 				split = uiLayoutSplit(layout, 0.05, 0);
 				
 				/* put inlink button to the left */
@@ -4594,7 +4688,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 				uiLayoutSetContextPointer(col, "actuator", &ptr);
 				
 				/* should make UI template for actuator header.. function will do for now */
-				draw_actuator_header(col, &ptr);
+				draw_actuator_header(col, &ptr, &logic_ptr);
 				
 				/* draw the brick contents */
 				draw_brick_actuator(col, &ptr, C);
@@ -4776,15 +4870,15 @@ void logic_buttons(bContext *C, ARegion *ar)
 							cpack(0x999999);
 							glRecti(xco+22, yco, xco+width-22,yco+19);
 							but= uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 70, UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller type");
-							//uiButSetFunc(but, sca_move_controller, cont, NULL);
+							//uiButSetFunc(but, old_sca_move_controller, cont, NULL);
 							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-158), UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller name");
-							//uiButSetFunc(but, sca_move_controller, cont, NULL);
+							//uiButSetFunc(but, old_sca_move_controller, cont, NULL);
 
 							uiBlockBeginAlign(block);
 							but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(110+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
-							uiButSetFunc(but, sca_move_controller, cont, (void *)TRUE);
+							uiButSetFunc(but, old_sca_move_controller, cont, (void *)TRUE);
 							but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(88+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
-							uiButSetFunc(but, sca_move_controller, cont, (void *)FALSE);
+							uiButSetFunc(but, old_sca_move_controller, cont, (void *)FALSE);
 							uiBlockEndAlign(block);
 
 							ycoo= yco;
@@ -4868,15 +4962,15 @@ void logic_buttons(bContext *C, ARegion *ar)
 						set_col_sensor(sens->type, 1);
 						glRecti(xco+22, yco, xco+width-22,yco+19);
 						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 80, UI_UNIT_Y, sens, 0, 0, 0, 0, "");
-						//uiButSetFunc(but, sca_move_sensor, sens, NULL);
+						//uiButSetFunc(but, old_sca_move_sensor, sens, NULL);
 						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-(pin?146:124)), UI_UNIT_Y, sens, 0, 31, 0, 0, "");
-						//uiButSetFunc(but, sca_move_sensor, sens, NULL);
+						//uiButSetFunc(but, old_sca_move_sensor, sens, NULL);
 
 						uiBlockBeginAlign(block);
 						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
-						uiButSetFunc(but, sca_move_sensor, sens, (void *)TRUE);
+						uiButSetFunc(but, old_sca_move_sensor, sens, (void *)TRUE);
 						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
-						uiButSetFunc(but, sca_move_sensor, sens, (void *)FALSE);
+						uiButSetFunc(but, old_sca_move_sensor, sens, (void *)FALSE);
 						uiBlockEndAlign(block);
 					}
 
@@ -4946,15 +5040,15 @@ void logic_buttons(bContext *C, ARegion *ar)
 						set_col_actuator(act->type, 1);
 						glRecti((short)(xco+22), yco, (short)(xco+width-22),(short)(yco+19));
 						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 90, UI_UNIT_Y, act, 0, 0, 0, 0, "Actuator type");
-						// uiButSetFunc(but, sca_move_actuator, act, NULL);
+						// uiButSetFunc(but, old_sca_move_actuator, act, NULL);
 						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+112), yco, (short)(width-(pin?156:134)), UI_UNIT_Y, act, 0, 0, 0, 0, "Actuator name");
-						// uiButSetFunc(but, sca_move_actuator, act, NULL);
+						// uiButSetFunc(but, old_sca_move_actuator, act, NULL);
 
 						uiBlockBeginAlign(block);
 						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
-						uiButSetFunc(but, sca_move_actuator, act, (void *)TRUE);
+						uiButSetFunc(but, old_sca_move_actuator, act, (void *)TRUE);
 						but= uiDefIconBut(block, BUT, B_REDR, ICON_TRIA_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
-						uiButSetFunc(but, sca_move_actuator, act, (void *)FALSE);
+						uiButSetFunc(but, old_sca_move_actuator, act, (void *)FALSE);
 						uiBlockEndAlign(block);
 
 						ycoo= yco;

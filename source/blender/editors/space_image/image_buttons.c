@@ -792,7 +792,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 	uiLayoutSetContextPointer(layout, "edit_image", &imaptr);
 
 	if(!compact)
-		uiTemplateID(layout, C, ptr, propname, "IMAGE_OT_new", "IMAGE_OT_open", NULL);
+		uiTemplateID(layout, C, ptr, propname, "IMAGE_OT_new", "IMAGE_OT_open", NULL, NULL);
 
 	// XXX missing: reload, pack
 
@@ -841,6 +841,16 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 
 			if(ima->source != IMA_SRC_GENERATED) {
 				row= uiLayoutRow(layout, 1);
+				split = uiLayoutSplit(row, 0.0, 0);
+				if (ima->packedfile)
+					uiItemO(split, "", ICON_PACKAGE, "image.unpack");
+				else
+					uiItemO(split, "", ICON_UGLYPACKAGE, "image.pack");
+				
+				split = uiLayoutSplit(row, 0.0, 0);
+				row= uiLayoutRow(split, 1);
+				uiLayoutSetEnabled(row, ima->packedfile==NULL);
+				
 				uiItemR(row, &imaptr, "filepath", 0, "", 0);
 				uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
 			}

@@ -433,7 +433,7 @@ void free_keyed_keys(ParticleSystem *psys)
 		}
 	}
 }
-void psys_free_child_path_cache(ParticleSystem *psys)
+static void free_child_path_cache(ParticleSystem *psys)
 {
 	psys_free_path_cache_buffers(psys->childcache, &psys->childcachebufs);
 	psys->childcache = NULL;
@@ -451,7 +451,7 @@ void psys_free_path_cache(ParticleSystem *psys, PTCacheEdit *edit)
 		psys->pathcache= NULL;
 		psys->totcached= 0;
 
-		psys_free_child_path_cache(psys);
+		free_child_path_cache(psys);
 	}
 }
 void psys_free_children(ParticleSystem *psys)
@@ -462,7 +462,7 @@ void psys_free_children(ParticleSystem *psys)
 		psys->totchild=0;
 	}
 
-	psys_free_child_path_cache(psys);
+	free_child_path_cache(psys);
 }
 void psys_free_particles(ParticleSystem *psys)
 {
@@ -2721,7 +2721,7 @@ void psys_cache_child_paths(ParticleSimulationData *sim, float cfra, int editupd
 	}
 	else {
 		/* clear out old and create new empty path cache */
-		psys_free_child_path_cache(sim->psys);
+		free_child_path_cache(sim->psys);
 		sim->psys->childcache= psys_alloc_path_cache_buffers(&sim->psys->childcachebufs, totchild, ctx->steps+1);
 		sim->psys->totchildcache = totchild;
 	}
@@ -3536,6 +3536,7 @@ ParticleSettings *psys_copy_settings(ParticleSettings *part)
 	partn= copy_libblock(part);
 	if(partn->pd) partn->pd= MEM_dupallocN(part->pd);
 	if(partn->pd2) partn->pd2= MEM_dupallocN(part->pd2);
+	partn->effector_weights = MEM_dupallocN(part->effector_weights);
 
 	partn->boids = boid_copy_settings(part->boids);
 	
@@ -4256,8 +4257,13 @@ void psys_get_dupli_texture(Object *ob, ParticleSettings *part, ParticleSystemMo
 			num= pa->num_dmcache;
 
 			if(num == DMCACHE_NOTFOUND)
-				if(pa->num < psmd->dm->getNumFaces(psmd->dm))
-					num= pa->num;
+				num= pa->num;
+
+			if (num >= psmd->dm->getNumFaces(psmd->dm)) {
+				/* happens when simplify is enabled
+				 * gives invalid coords but would crash otherwise */
+				num= DMCACHE_NOTFOUND;
+			}
 
 			if(mtface && num != DMCACHE_NOTFOUND) {
 				mface= psmd->dm->getFaceData(psmd->dm, num, CD_MFACE);

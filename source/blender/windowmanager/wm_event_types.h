@@ -70,6 +70,7 @@
 		/* mapped with userdef */
 #define WHEELINMOUSE	0x00c
 #define WHEELOUTMOUSE	0x00d
+#define INBETWEEN_MOUSEMOVE	0x011
 
 
 /* SYSTEM : 0x01xx */

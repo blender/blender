@@ -25,19 +25,28 @@ import shutil
 def ui_items_general(col, context):
     """ General UI Theme Settings (User Interface)
     """
+
     row = col.row()
-    sub = row.column()
-    sub.prop(context, "outline")
-    sub.prop(context, "item", slider=True)
-    sub = row.column()
-    sub.prop(context, "inner", slider=True)
-    sub.prop(context, "inner_sel", slider=True)
-    sub = row.column()
-    sub.prop(context, "text")
-    sub.prop(context, "text_sel")
-    sub = row.column()
-    sub.prop(context, "shaded")
-    subsub = sub.column(align=True)
+
+    subsplit = row.split(percentage=0.95)
+
+    padding = subsplit.split(percentage=0.15)
+    colsub = padding.column()
+    colsub = padding.column()
+    colsub.row().prop(context, "outline")
+    colsub.row().prop(context, "item", slider=True)
+    colsub.row().prop(context, "inner", slider=True)
+    colsub.row().prop(context, "inner_sel", slider=True)
+
+    subsplit = row.split(percentage=0.85)
+
+    padding = subsplit.split(percentage=0.15)
+    colsub = padding.column()
+    colsub = padding.column()
+    colsub.row().prop(context, "text")
+    colsub.row().prop(context, "text_sel")
+    colsub.prop(context, "shaded")
+    subsub = colsub.column(align=True)
     subsub.active = context.shaded
     subsub.prop(context, "shadetop")
     subsub.prop(context, "shadedown")
@@ -83,12 +92,12 @@ class USERPREF_HT_header(bpy.types.Header):
 
         if userpref.active_section == 'INPUT':
             op = layout.operator("wm.keyconfig_export")
-            op.path = "keymap.py"
+            op.filepath = "keymap.py"
             op = layout.operator("wm.keyconfig_import")
-            op.path = "keymap.py"
+            op.filepath = "keymap.py"
         elif userpref.active_section == 'ADDONS':
             op = layout.operator("wm.addon_install")
-            op.path = "*.py"
+            op.filepath = "*.py"
         elif userpref.active_section == 'THEMES':
             op = layout.operator("ui.reset_default_theme")
 
@@ -153,7 +162,6 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.prop(view, "show_view_name", text="View Name")
         col.prop(view, "show_playback_fps", text="Playback FPS")
         col.prop(view, "global_scene")
-        col.prop(view, "pin_floating_panels")
         col.prop(view, "object_origin_size")
 
         col.separator()
@@ -162,14 +170,14 @@ class USERPREF_PT_interface(bpy.types.Panel):
 
         col.prop(view, "show_mini_axis", text="Display Mini Axis")
         sub = col.column()
-        sub.enabled = view.show_mini_axis
+        sub.active = view.show_mini_axis
         sub.prop(view, "mini_axis_size", text="Size")
         sub.prop(view, "mini_axis_brightness", text="Brightness")
-        
+
         col.separator()
         col.separator()
         col.separator()
-        
+
         col.label(text="Properties Window:")
         col.prop(view, "properties_width_check")
 
@@ -208,7 +216,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
         col.prop(view, "use_manipulator")
         sub = col.column()
-        sub.enabled = view.use_manipulator
+        sub.active = view.use_manipulator
         sub.prop(view, "manipulator_size", text="Size")
         sub.prop(view, "manipulator_handle_size", text="Handle Size")
         sub.prop(view, "manipulator_hotspot", text="Hotspot")
@@ -272,13 +280,6 @@ class USERPREF_PT_edit(bpy.types.Panel):
         row.separator()
 
         col = row.column()
-        col.label(text="Snap:")
-        col.prop(edit, "snap_translate", text="Translate")
-        col.prop(edit, "snap_rotate", text="Rotate")
-        col.prop(edit, "snap_scale", text="Scale")
-        col.separator()
-        col.separator()
-        col.separator()
         col.label(text="Grease Pencil:")
         col.prop(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
         col.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
@@ -326,7 +327,21 @@ class USERPREF_PT_edit(bpy.types.Panel):
         row.separator()
         row.separator()
 
+        sculpt = context.tool_settings.sculpt
         col = row.column()
+        col.label(text="Paint and Sculpt:")
+        col.prop(edit, "sculpt_paint_use_unified_size", text="Unify Size")
+        col.prop(edit, "sculpt_paint_use_unified_strength", text="Unify Strength")
+        row = col.row(align=True)
+        row.label("Overlay Color:")
+        row.prop(edit, "sculpt_paint_overlay_col", text="")
+        col.prop(sculpt, "use_openmp", text="Threaded Sculpt")
+        col.prop(sculpt, "show_brush")
+
+        col.separator()
+        col.separator()
+        col.separator()
+
         col.label(text="Duplicate Data:")
         col.prop(edit, "duplicate_mesh", text="Mesh")
         col.prop(edit, "duplicate_surface", text="Surface")
@@ -337,7 +352,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.prop(edit, "duplicate_lamp", text="Lamp")
         col.prop(edit, "duplicate_material", text="Material")
         col.prop(edit, "duplicate_texture", text="Texture")
-        col.prop(edit, "duplicate_fcurve", text="F-Curve")
+        #col.prop(edit, "duplicate_fcurve", text="F-Curve")
         col.prop(edit, "duplicate_action", text="Action")
         col.prop(edit, "duplicate_particle", text="Particle")
 
@@ -482,6 +497,36 @@ class USERPREF_PT_theme(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
+    @staticmethod
+    def _theme_generic(split, themedata):
+
+        row = split.row()
+
+        subsplit = row.split(percentage=0.95)
+
+        padding1 = subsplit.split(percentage=0.15)
+        padding1.column()
+
+        subsplit = row.split(percentage=0.85)
+
+        padding2 = subsplit.split(percentage=0.15)
+        padding2.column()
+
+        colsub_pair = padding1.column(), padding2.column()
+
+        props_type = {}
+
+        for i, prop in enumerate(themedata.rna_type.properties):
+            attr = prop.identifier
+            if attr == "rna_type":
+                continue
+
+            props_type.setdefault((prop.type, prop.subtype), []).append(prop.identifier)
+
+        for props_type, props_ls in sorted(props_type.items()):
+            for i, attr in enumerate(props_ls):
+                colsub_pair[i % 2].row().prop(themedata, attr)
+
     def poll(self, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'THEMES')
@@ -493,6 +538,12 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
         split_themes = layout.split(percentage=0.2)
         split_themes.prop(theme, "theme_area", expand=True)
+
+        split = layout.split(percentage=0.4)
+
+
+        layout.separator()
+        layout.separator()
 
         split = split_themes.split()
 
@@ -554,7 +605,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             ui = theme.user_interface.wcol_scroll
             col.label(text="Scroll Bar:")
             ui_items_general(col, ui)
-            
+
             ui = theme.user_interface.wcol_progress
             col.label(text="Progress Bar:")
             ui_items_general(col, ui)
@@ -567,388 +618,39 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.label(text="State:")
 
             row = col.row()
-            sub = row.column()
-            sub.prop(ui, "inner_anim")
-            sub.prop(ui, "inner_anim_sel")
-            sub = row.column()
-            sub.prop(ui, "inner_driven")
-            sub.prop(ui, "inner_driven_sel")
-            sub = row.column()
-            sub.prop(ui, "inner_key")
-            sub.prop(ui, "inner_key_sel")
-            sub = row.column()
-            sub.prop(ui, "blend")
+
+            subsplit = row.split(percentage=0.95)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "inner_anim")
+            colsub.row().prop(ui, "inner_anim_sel")
+            colsub.row().prop(ui, "inner_driven")
+            colsub.row().prop(ui, "inner_driven_sel")
+
+            subsplit = row.split(percentage=0.85)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "inner_key")
+            colsub.row().prop(ui, "inner_key_sel")
+            colsub.row().prop(ui, "blend")
+
 
             ui = theme.user_interface
             col.separator()
             col.separator()
-            col.prop(ui, "icon_file")
+
+            split = col.split(percentage=0.93)
+            split.prop(ui, "icon_file")
 
             layout.separator()
             layout.separator()
 
-
-        elif theme.theme_area == 'VIEW_3D':
-            v3d = theme.view_3d
-
-            col = split.column()
-            col.prop(v3d, "back")
-            col.prop(v3d, "button")
-            col.prop(v3d, "button_title")
-            col.prop(v3d, "button_text")
-            col.prop(v3d, "header")
-
-            col = split.column()
-            col.prop(v3d, "grid")
-            col.prop(v3d, "wire")
-            col.prop(v3d, "lamp", slider=True)
-            col.prop(v3d, "editmesh_active", slider=True)
-
-            col = split.column()
-            col.prop(v3d, "object_selected")
-            col.prop(v3d, "object_active")
-            col.prop(v3d, "object_grouped")
-            col.prop(v3d, "object_grouped_active")
-            col.prop(v3d, "transform")
-            col.prop(v3d, "nurb_uline")
-            col.prop(v3d, "nurb_vline")
-            col.prop(v3d, "nurb_sel_uline")
-            col.prop(v3d, "nurb_sel_vline")
-            col.prop(v3d, "handle_free")
-            col.prop(v3d, "handle_auto")
-            col.prop(v3d, "handle_vect")
-            col.prop(v3d, "handle_align")
-            col.prop(v3d, "handle_sel_free")
-            col.prop(v3d, "handle_sel_auto")
-            col.prop(v3d, "handle_sel_vect")
-            col.prop(v3d, "handle_sel_align")
-            col.prop(v3d, "act_spline")
-            col.prop(v3d, "lastsel_point")
-
-            col = split.column()
-            col.prop(v3d, "vertex")
-            col.prop(v3d, "face", slider=True)
-            col.prop(v3d, "normal")
-            col.prop(v3d, "vertex_normal")
-            col.prop(v3d, "bone_solid")
-            col.prop(v3d, "bone_pose")
-            col.prop(v3d, "edge_seam")
-            col.prop(v3d, "edge_select")
-            col.prop(v3d, "edge_facesel")
-            col.prop(v3d, "edge_sharp")
-            col.prop(v3d, "edge_crease")
-
-        elif theme.theme_area == 'GRAPH_EDITOR':
-            graph = theme.graph_editor
-
-            col = split.column()
-            col.prop(graph, "back")
-            col.prop(graph, "button")
-            col.prop(graph, "button_title")
-            col.prop(graph, "button_text")
-
-            col = split.column()
-            col.prop(graph, "header")
-            col.prop(graph, "grid")
-            col.prop(graph, "list")
-            col.prop(graph, "channel_group")
-
-            col = split.column()
-            col.prop(graph, "active_channels_group")
-            col.prop(graph, "dopesheet_channel")
-            col.prop(graph, "dopesheet_subchannel")
-            col.prop(graph, "frame_current")
-
-            col = split.column()
-            col.prop(graph, "vertex")
-            col.prop(graph, "handle_vertex")
-            col.prop(graph, "handle_vertex_select")
-            col.separator()
-            col.prop(graph, "handle_vertex_size")
-            col.separator()
-            col.separator()
-            col.prop(graph, "handle_free")
-            col.prop(graph, "handle_auto")
-            col.prop(graph, "handle_vect")
-            col.prop(graph, "handle_align")
-            col.prop(graph, "handle_sel_free")
-            col.prop(graph, "handle_sel_auto")
-            col.prop(graph, "handle_sel_vect")
-            col.prop(graph, "handle_sel_align")
-
-        elif theme.theme_area == 'FILE_BROWSER':
-            file_browse = theme.file_browser
-
-            col = split.column()
-            col.prop(file_browse, "back")
-            col.prop(file_browse, "text")
-            col.prop(file_browse, "text_hi")
-
-            col = split.column()
-            col.prop(file_browse, "header")
-            col.prop(file_browse, "list")
-
-            col = split.column()
-            col.prop(file_browse, "selected_file")
-            col.prop(file_browse, "tiles")
-
-            col = split.column()
-            col.prop(file_browse, "active_file")
-            col.prop(file_browse, "active_file_text")
-
-        elif theme.theme_area == 'NLA_EDITOR':
-            nla = theme.nla_editor
-
-            col = split.column()
-            col.prop(nla, "back")
-            col.prop(nla, "button")
-            col.prop(nla, "button_title")
-
-            col = split.column()
-            col.prop(nla, "button_text")
-            col.prop(nla, "text")
-            col.prop(nla, "header")
-
-            col = split.column()
-            col.prop(nla, "grid")
-            col.prop(nla, "bars")
-            col.prop(nla, "bars_selected")
-
-            col = split.column()
-            col.prop(nla, "strips")
-            col.prop(nla, "strips_selected")
-            col.prop(nla, "frame_current")
-
-        elif theme.theme_area == 'DOPESHEET_EDITOR':
-            dope = theme.dopesheet_editor
-
-            col = split.column()
-            col.prop(dope, "back")
-            col.prop(dope, "list")
-            col.prop(dope, "text")
-            col.prop(dope, "header")
-
-            col = split.column()
-            col.prop(dope, "grid")
-            col.prop(dope, "channels")
-            col.prop(dope, "channels_selected")
-            col.prop(dope, "channel_group")
-
-            col = split.column()
-            col.prop(dope, "active_channels_group")
-            col.prop(dope, "long_key")
-            col.prop(dope, "long_key_selected")
-
-            col = split.column()
-            col.prop(dope, "frame_current")
-            col.prop(dope, "dopesheet_channel")
-            col.prop(dope, "dopesheet_subchannel")
-
-        elif theme.theme_area == 'IMAGE_EDITOR':
-            image = theme.image_editor
-
-            col = split.column()
-            col.prop(image, "back")
-            col.prop(image, "scope_back")
-            col.prop(image, "button")
-
-            col = split.column()
-            col.prop(image, "button_title")
-            col.prop(image, "button_text")
-
-            col = split.column()
-            col.prop(image, "header")
-
-            col = split.column()
-            col.prop(image, "editmesh_active", slider=True)
-
-        elif theme.theme_area == 'SEQUENCE_EDITOR':
-            seq = theme.sequence_editor
-
-            col = split.column()
-            col.prop(seq, "back")
-            col.prop(seq, "button")
-            col.prop(seq, "button_title")
-            col.prop(seq, "button_text")
-            col.prop(seq, "text")
-
-            col = split.column()
-            col.prop(seq, "header")
-            col.prop(seq, "grid")
-            col.prop(seq, "movie_strip")
-            col.prop(seq, "image_strip")
-            col.prop(seq, "scene_strip")
-
-            col = split.column()
-            col.prop(seq, "audio_strip")
-            col.prop(seq, "effect_strip")
-            col.prop(seq, "plugin_strip")
-            col.prop(seq, "transition_strip")
-
-            col = split.column()
-            col.prop(seq, "meta_strip")
-            col.prop(seq, "frame_current")
-            col.prop(seq, "keyframe")
-            col.prop(seq, "draw_action")
-
-        elif theme.theme_area == 'PROPERTIES':
-            prop = theme.properties
-
-            col = split.column()
-            col.prop(prop, "back")
-
-            col = split.column()
-            col.prop(prop, "title")
-
-            col = split.column()
-            col.prop(prop, "text")
-
-            col = split.column()
-            col.prop(prop, "header")
-
-        elif theme.theme_area == 'TEXT_EDITOR':
-            text = theme.text_editor
-
-            col = split.column()
-            col.prop(text, "back")
-            col.prop(text, "button")
-            col.prop(text, "button_title")
-            col.prop(text, "button_text")
-
-            col = split.column()
-            col.prop(text, "text")
-            col.prop(text, "text_hi")
-            col.prop(text, "header")
-            col.prop(text, "line_numbers_background")
-
-            col = split.column()
-            col.prop(text, "selected_text")
-            col.prop(text, "cursor")
-            col.prop(text, "syntax_builtin")
-            col.prop(text, "syntax_special")
-
-            col = split.column()
-            col.prop(text, "syntax_comment")
-            col.prop(text, "syntax_string")
-            col.prop(text, "syntax_numbers")
-
-        elif theme.theme_area == 'TIMELINE':
-            time = theme.timeline
-
-            col = split.column()
-            col.prop(time, "back")
-            col.prop(time, "text")
-
-            col = split.column()
-            col.prop(time, "header")
-
-            col = split.column()
-            col.prop(time, "grid")
-
-            col = split.column()
-            col.prop(time, "frame_current")
-
-        elif theme.theme_area == 'NODE_EDITOR':
-            node = theme.node_editor
-
-            col = split.column()
-            col.prop(node, "back")
-            col.prop(node, "button")
-            col.prop(node, "button_title")
-            col.prop(node, "button_text")
-
-            col = split.column()
-            col.prop(node, "text")
-            col.prop(node, "text_hi")
-            col.prop(node, "header")
-            col.prop(node, "wires")
-
-            col = split.column()
-            col.prop(node, "wire_select")
-            col.prop(node, "selected_text")
-            col.prop(node, "node_backdrop", slider=True)
-            col.prop(node, "in_out_node")
-
-            col = split.column()
-            col.prop(node, "converter_node")
-            col.prop(node, "operator_node")
-            col.prop(node, "group_node")
-
-        elif theme.theme_area == 'LOGIC_EDITOR':
-            logic = theme.logic_editor
-
-            col = split.column()
-            col.prop(logic, "back")
-            col.prop(logic, "button")
-
-            col = split.column()
-            col.prop(logic, "button_title")
-            col.prop(logic, "button_text")
-
-            col = split.column()
-            col.prop(logic, "text")
-            col.prop(logic, "header")
-
-            col = split.column()
-            col.prop(logic, "panel")
-
-        elif theme.theme_area == 'OUTLINER':
-            out = theme.outliner
-
-            col = split.column()
-            col.prop(out, "back")
-
-            col = split.column()
-            col.prop(out, "text")
-
-            col = split.column()
-            col.prop(out, "text_hi")
-
-            col = split.column()
-            col.prop(out, "header")
-
-        elif theme.theme_area == 'INFO':
-            info = theme.info
-
-            col = split.column()
-            col.prop(info, "back")
-
-            col = split.column()
-            col.prop(info, "header")
-
-            col = split.column()
-            col.prop(info, "header_text")
-
-            col = split.column()
-
-        elif theme.theme_area == 'USER_PREFERENCES':
-            prefs = theme.user_preferences
-
-            col = split.column()
-            col.prop(prefs, "back")
-
-            col = split.column()
-            col.prop(prefs, "text")
-
-            col = split.column()
-            col.prop(prefs, "header")
-
-            col = split.column()
-            col.prop(prefs, "header_text")
-
-        elif theme.theme_area == 'CONSOLE':
-            console = theme.console
-
-            col = split.column()
-            col.prop(console, "back")
-            col.prop(console, "header")
-
-            col = split.column()
-            col.prop(console, "line_output")
-            col.prop(console, "line_input")
-            col.prop(console, "line_info")
-            col.prop(console, "line_error")
-            col.prop(console, "cursor")
+        else:
+            self._theme_generic(split, getattr(theme, theme.theme_area.lower()))
 
 
 class USERPREF_PT_file(bpy.types.Panel):
@@ -1018,7 +720,7 @@ class USERPREF_PT_file(bpy.types.Panel):
         col.prop(paths, "save_preview_images")
         col.prop(paths, "auto_save_temporary_files")
         sub = col.column()
-        sub.enabled = paths.auto_save_temporary_files
+        sub.active = paths.auto_save_temporary_files
         sub.prop(paths, "auto_save_time", text="Timer (mins)")
 
 from space_userpref_keymap import InputKeyMapPanel
@@ -1041,12 +743,12 @@ class USERPREF_PT_input(InputKeyMapPanel):
         sub.label(text="Presets:")
         subrow = sub.row(align=True)
         subrow.menu("USERPREF_MT_interaction_presets", text=bpy.types.USERPREF_MT_interaction_presets.bl_label)
-        subrow.operator("wm.interaction_preset_add", text="", icon="ZOOMIN")
+        subrow.operator("wm.interaction_preset_add", text="", icon='ZOOMIN')
         sub.separator()
 
         sub.label(text="Mouse:")
         sub1 = sub.column()
-        sub1.enabled = (inputs.select_mouse == 'RIGHT')
+        sub1.active = (inputs.select_mouse == 'RIGHT')
         sub1.prop(inputs, "emulate_3_button_mouse")
         sub.prop(inputs, "continuous_mouse")
 
@@ -1076,8 +778,9 @@ class USERPREF_PT_input(InputKeyMapPanel):
 
         #col.separator()
 
-        #sub = col.column()
-        #sub.label(text="Mouse Wheel:")
+        sub = col.column()
+        sub.label(text="Mouse Wheel:")
+        sub.prop(inputs, "wheel_invert_zoom", text="Invert Wheel Zoom Direction")
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
         col.separator()
@@ -1123,7 +826,8 @@ class USERPREF_PT_addons(bpy.types.Panel):
         userpref = context.user_preferences
         return (userpref.active_section == 'ADDONS')
 
-    def _addon_list(self):
+    @staticmethod
+    def _addon_list():
         import sys
         modules = []
         loaded_modules = set()
@@ -1148,17 +852,19 @@ class USERPREF_PT_addons(bpy.types.Panel):
         cats = {info["category"] for mod, info in addons}
         cats.discard("")
 
-        cats = ['All', 'Disabled', 'Enabled'] + sorted(cats)
+        cats = ["All", "Enabled", "Disabled"] + sorted(cats)
 
-        bpy.types.Scene.EnumProperty(items=[(cat, cat, str(i)) for i, cat in enumerate(cats)],
+        bpy.types.Scene.EnumProperty(items=[(cat, cat, cat + " addons") for cat in cats],
             name="Category", attr="addon_filter", description="Filter add-ons by category")
         bpy.types.Scene.StringProperty(name="Search", attr="addon_search",
             description="Search within the selected filter")
 
-        row = layout.row()
-        row.prop(context.scene, "addon_filter", text="Filter")
-        row.prop(context.scene, "addon_search", text="Search", icon='VIEWZOOM')
-        layout.separator()
+        split = layout.split(percentage=0.2)
+        col = split.column()
+        col.prop(context.scene, "addon_filter", text="Filter", expand=True)
+        col.prop(context.scene, "addon_search", text="", icon='VIEWZOOM')
+
+        col = split.column()
 
         filter = context.scene.addon_filter
         search = context.scene.addon_search.lower()
@@ -1183,51 +889,51 @@ class USERPREF_PT_addons(bpy.types.Panel):
                         continue
 
                 # Addon UI Code
-                box = layout.column().box()
-                column = box.column()
-                row = column.row()
+                box = col.column().box()
+                colsub = box.column()
+                row = colsub.row()
 
-                # Arrow #
-                # If there are Infos or UI is expanded
-                if info["expanded"]:
-                    row.operator("wm.addon_expand", icon="TRIA_DOWN").module = module_name
-                elif info["author"] or info["version"] or info["wiki_url"] or info["location"]:
-                    row.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
+                row.operator("wm.addon_expand", icon='TRIA_DOWN' if info["expanded"] else 'TRIA_RIGHT', emboss=False).module = module_name
+
+                rowsub = row.row()
+                rowsub.active = is_enabled
+                rowsub.label(text=info["name"], icon='ERROR' if info["warning"] else 'BLENDER')
+
+                if is_enabled:
+                    row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
                 else:
-                    # Else, block UI
-                    arrow = row.column()
-                    arrow.enabled = False
-                    arrow.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
-
-                row.label(text=info["name"])
-                row.operator("wm.addon_disable" if is_enabled else "wm.addon_enable").module = module_name
+                    row.operator("wm.addon_enable", icon='CHECKBOX_DEHLT', text="", emboss=False).module = module_name
 
                 # Expanded UI (only if additional infos are available)
                 if info["expanded"]:
+                    if info["description"]:
+                        split = colsub.row().split(percentage=0.15)
+                        split.label(text='Description:')
+                        split.label(text=info["description"])
+                    if info["location"]:
+                        split = colsub.row().split(percentage=0.15)
+                        split.label(text='Location:')
+                        split.label(text=info["location"])
                     if info["author"]:
-                        split = column.row().split(percentage=0.15)
+                        split = colsub.row().split(percentage=0.15)
                         split.label(text='Author:')
                         split.label(text=info["author"])
                     if info["version"]:
-                        split = column.row().split(percentage=0.15)
+                        split = colsub.row().split(percentage=0.15)
                         split.label(text='Version:')
                         split.label(text=info["version"])
-                    if info["location"]:
-                        split = column.row().split(percentage=0.15)
-                        split.label(text='Location:')
-                        split.label(text=info["location"])
-                    if info["description"]:
-                        split = column.row().split(percentage=0.15)
-                        split.label(text='Description:')
-                        split.label(text=info["description"])
+                    if info["warning"]:
+                        split = colsub.row().split(percentage=0.15)
+                        split.label(text="Warning:")
+                        split.label(text='  ' + info["warning"], icon='ERROR')
                     if info["wiki_url"] or info["tracker_url"]:
-                        split = column.row().split(percentage=0.15)
+                        split = colsub.row().split(percentage=0.15)
                         split.label(text="Internet:")
                         if info["wiki_url"]:
                             split.operator("wm.url_open", text="Link to the Wiki", icon='HELP').url = info["wiki_url"]
                         if info["tracker_url"]:
                             split.operator("wm.url_open", text="Report a Bug", icon='URL').url = info["tracker_url"]
-                        
+
                         if info["wiki_url"] and info["tracker_url"]:
                             split.separator()
                         else:
@@ -1240,23 +946,23 @@ class USERPREF_PT_addons(bpy.types.Panel):
         missing_modules = {ext for ext in used_ext if ext not in module_names}
 
         if missing_modules and filter in ("All", "Enabled"):
-            layout.column().separator()
-            layout.column().label(text="Missing script files")
+            col.column().separator()
+            col.column().label(text="Missing script files")
 
             module_names = {mod.__name__ for mod, info in addons}
             for ext in sorted(missing_modules):
                 # Addon UI Code
-                box = layout.column().box()
-                column = box.column()
-                row = column.row()
+                box = col.column().box()
+                colsub = box.column()
+                row = colsub.row()
 
-                row.label(text=ext, icon="ERROR")
+                row.label(text=ext, icon='ERROR')
                 row.operator("wm.addon_disable").module = ext
 
 from bpy.props import *
 
 
-def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "expanded": False}):
+def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "warning": "", "expanded": False}):
     addon_info = getattr(mod, "bl_addon_info", {})
 
     # avoid re-initializing
@@ -1343,16 +1049,14 @@ class WM_OT_addon_install(bpy.types.Operator):
 
     module = StringProperty(name="Module", description="Module name of the addon to disable")
 
-    path = StringProperty(name="File Path", description="File path to write file to")
-    filename = StringProperty(name="File Name", description="Name of the file")
-    directory = StringProperty(name="Directory", description="Directory of the file")
+    filepath = StringProperty(name="File Path", description="File path to write file to")
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
     def execute(self, context):
         import traceback
         import zipfile
-        pyfile = self.properties.path
+        pyfile = self.properties.filepath
 
         path_addons = bpy.utils.script_paths("addons")[-1]
 
@@ -1408,7 +1112,7 @@ class WM_OT_addon_expand(bpy.types.Operator):
     def execute(self, context):
         module_name = self.properties.module
 
-        # unlikely to fail, module should have alredy been imported
+        # unlikely to fail, module should have already been imported
         try:
             mod = __import__(module_name)
         except:

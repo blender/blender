@@ -312,7 +312,7 @@ static void do_plugin_effect(Scene *scene, Sequence *seq, int cfra,
 			IMB_convert_rgba_to_abgr(out);
 		}
 		if (seq->plugin->version<=3 && float_rendering) {
-			IMB_float_from_rect(out);
+			IMB_float_from_rect_simple(out);
 		}
 
 		if (use_temp_bufs) {
@@ -827,7 +827,7 @@ static void makeGammaTables(float gamma)
 
 	/* The end of the table should match 1.0 carefully. In order to avoid    */
 	/* rounding errors, we just set this explicitly. The last segment may    */
-	/* have a different lenght than the other segments, but our              */
+	/* have a different length than the other segments, but our              */
 	/* interpolation is insensitive to that.                                 */
 	color_domain_table[RE_GAMMA_TABLE_SIZE]   = 1.0;
 	gamma_range_table[RE_GAMMA_TABLE_SIZE]     = 1.0;
@@ -2783,9 +2783,10 @@ static void do_multicam(Scene *scene, Sequence *seq, int cfra,
 		IMB_rect_from_float(i);
 		memcpy(out->rect, i->rect, out->x * out->y * 4);
 	} else if (out->rect_float && i->rect) {
-		IMB_float_from_rect(i);
+		IMB_float_from_rect_simple(i);
 		memcpy(out->rect_float, i->rect_float, out->x * out->y *4*sizeof(float));
 	}
+	IMB_freeImBuf(i);
 }
 
 /* **********************************************************************
@@ -2802,7 +2803,7 @@ static void init_speed_effect(Sequence *seq)
 	v = (SpeedControlVars *)seq->effectdata;
 	v->globalSpeed = 1.0;
 	v->frameMap = 0;
-	v->flags = SEQ_SPEED_COMPRESS_IPO_Y;
+	v->flags = 0;
 	v->length = 0;
 }
 
@@ -2925,14 +2926,8 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 
 		for (cfra = 1; cfra < v->length; cfra++) {
 			if(fcu) {
-				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
-					ctime = seq->startdisp + cfra;
-					div = 1.0;
-				} else {
-					ctime= cfra;
-					div= v->length / 100.0f;
-					if(div==0.0) return;
-				}
+				ctime = seq->startdisp + cfra;
+				div = 1.0;
 				
 				facf = evaluate_fcurve(fcu, ctime/div);
 			} else {
@@ -2956,14 +2951,8 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 		for (cfra = 0; cfra < v->length; cfra++) {
 
 			if(fcu) {
-				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
-					ctime = seq->startdisp + cfra;
-					div = 1.0;
-				} else {
-					ctime= cfra;
-					div= v->length / 100.0f;
-					if(div==0.0) return;
-				}
+				ctime = seq->startdisp + cfra;
+				div = 1.0;
 				
 				facf = evaluate_fcurve(fcu, ctime / div);
 				if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {

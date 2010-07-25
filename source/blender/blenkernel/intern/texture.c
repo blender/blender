@@ -451,6 +451,7 @@ void default_tex(Tex *tex)
 	tex->nabla= 0.025;	// also in do_versions
 	tex->bright= 1.0;
 	tex->contrast= 1.0;
+	tex->saturation= 1.0;
 	tex->filtersize= 1.0;
 	tex->rfac= 1.0;
 	tex->gfac= 1.0;
@@ -507,6 +508,27 @@ void default_tex(Tex *tex)
 	tex->iuser.frames= 100;
 	
 	tex->preview = NULL;
+}
+
+void tex_set_type(Tex *tex, int type)
+{
+	switch(type) {
+			
+		case TEX_VOXELDATA:
+			if (tex->vd == NULL)
+				tex->vd = BKE_add_voxeldata();
+			break;
+		case TEX_POINTDENSITY:
+			if (tex->pd == NULL)
+				tex->pd = BKE_add_pointdensity();
+			break;
+		case TEX_ENVMAP:
+			if (tex->env == NULL)
+				tex->env = BKE_add_envmap();
+			break;
+	}
+	
+	tex->type = type;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1111,6 +1133,7 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->totpoints = 0;
 	pd->object = NULL;
 	pd->psys = 0;
+	pd->psys_cache_space= TEX_PD_WORLDSPACE;
 	return pd;
 } 
 

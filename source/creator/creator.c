@@ -131,14 +131,6 @@ extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
 char btempdir[FILE_MAXDIR+FILE_MAXFILE];
 
-/* unix path support.
- * defined by the compiler. eg "/usr/share/blender/2.5" "/opt/blender/2.5" */
-#ifndef BLENDERPATH
-#define BLENDERPATH ""
-#endif
- 
-char blender_path[FILE_MAXDIR+FILE_MAXFILE] = BLENDERPATH;
-
 /* Initialise callbacks for the modules that need them */
 static void setCallbacks(void); 
 
@@ -234,11 +226,11 @@ static int print_help(int argc, char **argv, void *data)
 	BLI_argsPrintArgDoc(ba, "--window-geometry");
 
 	printf("\n");
-	printf ("Game Engine specific options:\n");
+	printf ("Game Engine Specific Options:\n");
 	BLI_argsPrintArgDoc(ba, "-g");
 
 	printf("\n");
-	printf ("Misc options:\n");
+	printf ("Misc Options:\n");
 	BLI_argsPrintArgDoc(ba, "--debug");
 	BLI_argsPrintArgDoc(ba, "--debug-fpe");
 
@@ -273,34 +265,38 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("Other Options:\n");
 	BLI_argsPrintOtherDoc(ba);
 
+	printf ("Argument Parsing:\n");
+	printf ("\targuments must be separated by white space. eg\n");
+	printf ("\t\t\"blender -ba test.blend\"\n");
+	printf ("\t...will ignore the 'a'\n");
+	printf ("\t\t\"blender -b test.blend -f8\"\n");
+	printf ("\t...will ignore 8 because there is no space between the -f and the frame value\n\n");
+
+	printf ("Argument Order:\n");
+	printf ("Arguments are executed in the order they are given. eg\n");
+	printf ("\t\t\"blender --background test.blend --render-frame 1 --render-output /tmp\"\n");
+	printf ("\t...will not render to /tmp because '--render-frame 1' renders before the output path is set\n");
+	printf ("\t\t\"blender --background --render-output /tmp test.blend --render-frame 1\"\n");
+	printf ("\t...will not render to /tmp because loading the blend file overwrites the render output that was set\n");
+	printf ("\t\t\"blender --background test.blend --render-output /tmp --render-frame 1\" works as expected.\n\n");
+
 	printf ("\nEnvironment Variables:\n");
-	printf ("  $HOME\t\t\tStore files such as .blender/ .B.blend .Bfs .Blog here.\n");
-	printf ("  $BLENDERPATH  System directory to use for data files and scripts.\n");
-	printf ("                For this build of blender the default BLENDERPATH is...\n");
-	printf ("                \"%s\"\n", blender_path);
-	printf ("                setting the $BLENDERPATH will override this\n");
+	printf ("  $BLENDER_USER_CONFIG      Directory for user configuration files.\n");
+	printf ("  $BLENDER_SYSTEM_CONFIG    Directory for system wide configuration files.\n");
+	printf ("  $BLENDER_USER_SCRIPTS     Directory for user scripts.\n");
+	printf ("  $BLENDER_SYSTEM_SCRIPTS   Directory for system wide scripts.\n");
+	printf ("  $BLENDER_USER_DATAFILES   Directory for user data files (icons, translations, ..).\n");
+	printf ("  $BLENDER_SYSTEM_DATAFILES Directory for system wide data files.\n");
+	printf ("  $BLENDER_SYSTEM_PYTHON    Directory for system python libraries.\n");
 #ifdef WIN32
-	printf ("  $TEMP         Store temporary files here.\n");
+	printf ("  $TEMP                     Store temporary files here.\n");
 #else
-	printf ("  $TMP or $TMPDIR  Store temporary files here.\n");
+	printf ("  $TMP or $TMPDIR           Store temporary files here.\n");
 #endif
 #ifndef DISABLE_SDL
-	printf ("  $SDL_AUDIODRIVER  LibSDL audio driver - alsa, esd, alsa, dma.\n");
+	printf ("  $SDL_AUDIODRIVER          LibSDL audio driver - alsa, esd, dma.\n");
 #endif
-	printf ("  $PYTHONHOME   Path to the python directory, eg. /usr/lib/python.\n\n");
-
-	printf ("Note: Arguments must be separated by white space. eg:\n");
-	printf ("    \"blender -ba test.blend\"\n");
-	printf ("  ...will ignore the 'a'\n");
-	printf ("    \"blender -b test.blend -f8\"\n");
-	printf ("  ...will ignore 8 because there is no space between the -f and the frame value\n\n");
-
-	printf ("Note: Arguments are executed in the order they are given. eg:\n");
-	printf ("    \"blender --background test.blend --render-frame 1 --render-output /tmp\"\n");
-	printf ("  ...will not render to /tmp because '--render-frame 1' renders before the output path is set\n");
-	printf ("    \"blender --background --render-output /tmp test.blend --render-frame 1\"\n");
-	printf ("  ...will not render to /tmp because loading the blend file overwrites the render output that was set\n");
-	printf ("    \"blender --background test.blend --render-output /tmp --render-frame 1\" works as expected.\n\n");
+	printf ("  $PYTHONHOME               Path to the python directory, eg. /usr/lib/python.\n\n");
 
 	exit(0);
 
@@ -685,9 +681,21 @@ static int render_frame(int argc, char **argv, void *data)
 		Scene *scene= CTX_data_scene(C);
 
 		if (argc > 1) {
-			int frame = atoi(argv[1]);
 			Render *re = RE_NewRender(scene->id.name);
+			int frame;
 			ReportList reports;
+
+			switch(*argv[1]) {
+			case '+':
+				frame= scene->r.sfra + atoi(argv[1]+1);
+				break;
+			case '-':
+				frame= (scene->r.efra - atoi(argv[1]+1)) + 1;
+				break;
+			default:
+				frame= atoi(argv[1]);
+				break;
+			}
 
 			BKE_reports_init(&reports, RPT_PRINT);
 
@@ -723,7 +731,11 @@ static int render_animation(int argc, char **argv, void *data)
 static int set_scene(int argc, char **argv, void *data)
 {
 	if(argc > 1) {
-		set_scene_name(argv[1]);
+		bContext *C= data;
+		Scene *sce= set_scene_name(argv[1]);
+		if(sce) {
+			CTX_data_scene_set(C, sce);
+		}
 		return 1;
 	} else {
 		printf("\nError: Scene name must follow '-S / --scene'.\n");
@@ -966,9 +978,9 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 	/* fourth pass: processing arguments */
 	BLI_argsAdd(ba, 4, "-g", NULL, game_doc, set_ge_parameters, syshandle);
-	BLI_argsAdd(ba, 4, "-f", "--render-frame", "<frame>\n\tRender frame <frame> and save it", render_frame, C);
+	BLI_argsAdd(ba, 4, "-f", "--render-frame", "<frame>\n\tRender frame <frame> and save it.\n\t+<frame> start frame relative, -<frame> end frame relative.", render_frame, C);
 	BLI_argsAdd(ba, 4, "-a", "--render-anim", "\n\tRender frames from start to end (inclusive)", render_animation, C);
-	BLI_argsAdd(ba, 4, "-S", "--scene", "<name>\n\tSet the active scene <name> for rendering", set_scene, NULL);
+	BLI_argsAdd(ba, 4, "-S", "--scene", "<name>\n\tSet the active scene <name> for rendering", set_scene, C);
 	BLI_argsAdd(ba, 4, "-s", "--frame-start", "<frame>\n\tSet start to frame <frame> (use before the -a argument)", set_start_frame, C);
 	BLI_argsAdd(ba, 4, "-e", "--frame-end", "<frame>\n\tSet end to frame <frame> (use before the -a argument)", set_end_frame, C);
 	BLI_argsAdd(ba, 4, "-j", "--frame-jump", "<frames>\n\tSet number of frames to step forward after each rendered frame", set_skip_frame, C);
@@ -1020,12 +1032,6 @@ int main(int argc, char **argv)
 
 	BLI_where_am_i(bprogname, argv[0]);
 	
-	{	/* override the hard coded blender path */
-		char *blender_path_env = getenv("BLENDERPATH");
-		if(blender_path_env)
-			BLI_strncpy(blender_path, blender_path_env, sizeof(blender_path));
-	}
-
 #ifdef BUILD_DATE	
     strip_quotes(build_date);
     strip_quotes(build_time);
@@ -1083,7 +1089,7 @@ int main(int argc, char **argv)
 		WM_init(C, argc, argv);
 		
 		/* this is properly initialized with user defs, but this is default */
-		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
+		BLI_where_is_temp( btempdir, 1 ); /* call after loading the startup.blend so we can read U.tempdir */
 
 #ifndef DISABLE_SDL
 	BLI_setenv("SDL_VIDEODRIVER", "dummy");
@@ -1101,7 +1107,7 @@ int main(int argc, char **argv)
 
 		WM_init(C, argc, argv);
 
-		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
+		BLI_where_is_temp( btempdir, 0 ); /* call after loading the startup.blend so we can read U.tempdir */
 	}
 #ifndef DISABLE_PYTHON
 	/**

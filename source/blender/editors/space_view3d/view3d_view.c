@@ -358,7 +358,7 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		v3d->lens = sms->new_lens*step + sms->orig_lens*step_inv;
 	}
 	
-	ED_region_tag_redraw(CTX_wm_region(C));
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 	
 	return OPERATOR_FINISHED;
 }
@@ -458,7 +458,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_setobjectascamera(wmOperatorType *ot)
+void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 {
 	
 	/* identifiers */
@@ -2005,7 +2005,7 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 	fly->axis= 2;
 	fly->pan_view= FALSE;
 	fly->xlock= FALSE;
-	fly->zlock= TRUE;
+	fly->zlock= FALSE;
 	fly->xlock_momentum=0.0f;
 	fly->zlock_momentum=0.0f;
 	fly->grid= 1.0f;
@@ -2222,7 +2222,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				/* impliment WASD keys */
 			case FLY_MODAL_DIR_FORWARD:
 				if (fly->speed < 0.0f) fly->speed= -fly->speed; /* flip speed rather then stopping, game like motion */
-				else fly->speed += fly->grid; /* increse like mousewheel if were alredy moving in that difection*/
+				else fly->speed += fly->grid; /* increse like mousewheel if were already moving in that difection*/
 				fly->axis= 2;
 				break;
 			case FLY_MODAL_DIR_BACKWARD:
@@ -2277,6 +2277,11 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 
 static int flyApply(bContext *C, FlyInfo *fly)
 {
+
+#define FLY_ROTATE_FAC 2.5f /* more is faster */
+#define FLY_ZUP_CORRECT_FAC 0.1f /* ammount to correct per step */
+#define FLY_ZUP_CORRECT_ACCEL 0.05f /* increase upright momentum each step */
+
 	/*
 	fly mode - Shift+F
 	a fly loop where the user can move move the view as if they are flying
@@ -2392,7 +2397,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					upvec[1]=0;
 					upvec[2]=0;
 					mul_m3_v3(mat, upvec);
-					axis_angle_to_quat( tmp_quat, upvec, (float)moffset[1]*-time_redraw*20); /* Rotate about the relative up vec */
+					axis_angle_to_quat( tmp_quat, upvec, (float)moffset[1] * time_redraw * -FLY_ROTATE_FAC); /* Rotate about the relative up vec */
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
 					if (fly->xlock) fly->xlock = 2; /*check for rotation*/
@@ -2424,7 +2429,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 						mul_m3_v3(mat, upvec);
 					}
 
-					axis_angle_to_quat( tmp_quat, upvec, (float)moffset[0]*time_redraw*20); /* Rotate about the relative up vec */
+					axis_angle_to_quat( tmp_quat, upvec, (float)moffset[0] * time_redraw * FLY_ROTATE_FAC); /* Rotate about the relative up vec */
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
 					if (fly->xlock) fly->xlock = 2;/*check for rotation*/
@@ -2445,10 +2450,10 @@ static int flyApply(bContext *C, FlyInfo *fly)
 						upvec[2]=1;
 
 						mul_m3_v3(mat, upvec);
-						axis_angle_to_quat( tmp_quat, upvec, roll*time_redraw_clamped*fly->zlock_momentum*0.1); /* Rotate about the relative up vec */
+						axis_angle_to_quat( tmp_quat, upvec, roll*time_redraw_clamped*fly->zlock_momentum * FLY_ZUP_CORRECT_FAC); /* Rotate about the relative up vec */
 						mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
-						fly->zlock_momentum += 0.05f;
+						fly->zlock_momentum += FLY_ZUP_CORRECT_ACCEL;
 					} else {
 						fly->zlock=1; /* dont check until the view rotates again */
 						fly->zlock_momentum= 0.0f;

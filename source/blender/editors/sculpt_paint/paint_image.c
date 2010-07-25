@@ -641,8 +641,8 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 		}
 	}
 	else {
-		xi = (uv[0]*ibuf->x) + 0.5f;
-		yi = (uv[1]*ibuf->y) + 0.5f;
+		xi = (int)((uv[0]*ibuf->x) + 0.5f);
+		yi = (int)((uv[1]*ibuf->y) + 0.5f);
 		
 		//if (xi<0 || xi>=ibuf->x  ||  yi<0 || yi>=ibuf->y) return 0;
 		
@@ -1053,15 +1053,15 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 	 * This is incorrect. Its already given radians but without it wont work.
 	 * need to look into a fix - campbell */
 	if (is_quad) {
-		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir4, dir1) * (M_PI/180.0f));
-		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2) * (M_PI/180.0f));
-		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3) * (M_PI/180.0f));
-		a4 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir4) * (M_PI/180.0f));
+		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir4, dir1) * ((float)M_PI/180.0f));
+		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2) * ((float)M_PI/180.0f));
+		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3) * ((float)M_PI/180.0f));
+		a4 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir4) * ((float)M_PI/180.0f));
 	}
 	else {
-		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir1) * (M_PI/180.0f));
-		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2) * (M_PI/180.0f));
-		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3) * (M_PI/180.0f));
+		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir1) * ((float)M_PI/180.0f));
+		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2) * ((float)M_PI/180.0f));
+		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3) * ((float)M_PI/180.0f));
 	}
 	
 	if (is_quad) {
@@ -1197,7 +1197,7 @@ static void screen_px_from_persp(
 		w[2] *= wtot_inv;
 	}
 	else {
-		w[0] = w[1] = w[2] = 1.0/3.0; /* dummy values for zero area face */
+		w[0] = w[1] = w[2] = 1.0f/3.0f; /* dummy values for zero area face */
 	}
 	/* done re-weighting */
 	
@@ -1334,7 +1334,7 @@ float project_paint_uvpixel_mask(
 	
 	// This only works when the opacity dosnt change while painting, stylus pressure messes with this
 	// so dont use it.
-	// if (ps->is_airbrush==0) mask *= ps->brush->alpha;
+	// if (ps->is_airbrush==0) mask *= brush_alpha(ps->brush);
 	
 	return mask;
 }
@@ -1444,7 +1444,7 @@ static ProjPixel *project_paint_uvpixel_init(
 			sub_v2_v2v2(co, projPixel->projCoSS, (float *)ps->cloneOffset);
 			
 			/* no need to initialize the bucket, we're only checking buckets faces and for this
-			 * the faces are alredy initialized in project_paint_delayed_face_init(...) */
+			 * the faces are already initialized in project_paint_delayed_face_init(...) */
 			if (ibuf->rect_float) {
 				if (!project_paint_PickColor(ps, co, ((ProjPixelClone *)projPixel)->clonepx.f, NULL, 1)) {
 					((ProjPixelClone *)projPixel)->clonepx.f[3] = 0; /* zero alpha - ignore */
@@ -1694,7 +1694,7 @@ static float Vec2Lenf_nosqrt_other(const float *v1, const float v2_1, const floa
 static int project_bucket_isect_circle(const int bucket_x, const int bucket_y, const float cent[2], const float radius_squared, rctf *bucket_bounds)
 {
 	 
-	/* Would normally to a simple intersection test, however we know the bounds of these 2 alredy intersect 
+	/* Would normally to a simple intersection test, however we know the bounds of these 2 already intersect 
 	 * so we only need to test if the center is inside the vertical or horizontal bounds on either axis,
 	 * this is even less work then an intersection test
 	 * 
@@ -2513,11 +2513,11 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 												w[0]=w[1]=w[2]= 0.0;
 												if (side) {
 													w[fidx1?fidx1-1:0] = fac;
-													w[fidx2?fidx2-1:0] = 1.0-fac;
+													w[fidx2?fidx2-1:0] = 1.0f-fac;
 												}
 												else {
 													w[fidx1] = fac;
-													w[fidx2] = 1.0-fac;
+													w[fidx2] = 1.0f-fac;
 												}
 #endif
 											}
@@ -2571,11 +2571,12 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 static void project_paint_bucket_bounds(const ProjPaintState *ps, const float min[2], const float max[2], int bucketMin[2], int bucketMax[2])
 {
 	/* divide by bucketWidth & bucketHeight so the bounds are offset in bucket grid units */
-	bucketMin[0] = (int)(((float)(min[0] - ps->screenMin[0]) / ps->screen_width) * ps->buckets_x) + 0.5f; /* these offsets of 0.5 and 1.5 seem odd but they are correct */
-	bucketMin[1] = (int)(((float)(min[1] - ps->screenMin[1]) / ps->screen_height) * ps->buckets_y) + 0.5f;
+	/* XXX: the offset of 0.5 is always truncated to zero and the offset of 1.5f is always truncated to 1, is this really correct?? - jwilkins */
+	bucketMin[0] = (int)((int)(((float)(min[0] - ps->screenMin[0]) / ps->screen_width) * ps->buckets_x) + 0.5f); /* these offsets of 0.5 and 1.5 seem odd but they are correct */
+	bucketMin[1] = (int)((int)(((float)(min[1] - ps->screenMin[1]) / ps->screen_height) * ps->buckets_y) + 0.5f);
 	
-	bucketMax[0] = (int)(((float)(max[0] - ps->screenMin[0]) / ps->screen_width) * ps->buckets_x) + 1.5f;
-	bucketMax[1] = (int)(((float)(max[1] - ps->screenMin[1]) / ps->screen_height) * ps->buckets_y) + 1.5f;	
+	bucketMax[0] = (int)((int)(((float)(max[0] - ps->screenMin[0]) / ps->screen_width) * ps->buckets_x) + 1.5f);
+	bucketMax[1] = (int)((int)(((float)(max[1] - ps->screenMin[1]) / ps->screen_height) * ps->buckets_y) + 1.5f);
 	
 	/* incase the rect is outside the mesh 2d bounds */
 	CLAMP(bucketMin[0], 0, ps->buckets_x);
@@ -2808,6 +2809,8 @@ static void project_paint_begin(ProjPaintState *ps)
 	MVert *mv;
 	
 	MemArena *arena; /* at the moment this is just ps->arena_mt[0], but use this to show were not multithreading */
+
+	const int diameter= 2*brush_size(ps->brush);
 	
 	/* ---- end defines ---- */
 	
@@ -3029,27 +3032,27 @@ static void project_paint_begin(ProjPaintState *ps)
 	
 	if(ps->source==PROJ_SRC_VIEW) {
 #ifdef PROJ_DEBUG_WINCLIP
-		CLAMP(ps->screenMin[0], -ps->brush->size, ps->winx + ps->brush->size);
-		CLAMP(ps->screenMax[0], -ps->brush->size, ps->winx + ps->brush->size);
+		CLAMP(ps->screenMin[0], (float)(-diameter), (float)(ps->winx + diameter));
+		CLAMP(ps->screenMax[0], (float)(-diameter), (float)(ps->winx + diameter));
 
-		CLAMP(ps->screenMin[1], -ps->brush->size, ps->winy + ps->brush->size);
-		CLAMP(ps->screenMax[1], -ps->brush->size, ps->winy + ps->brush->size);
+		CLAMP(ps->screenMin[1], (float)(-diameter), (float)(ps->winy + diameter));
+		CLAMP(ps->screenMax[1], (float)(-diameter), (float)(ps->winy + diameter));
 #endif
 	}
 	else { /* reprojection, use bounds */
 		ps->screenMin[0]= 0;
-		ps->screenMax[0]= ps->winx;
+		ps->screenMax[0]= (float)(ps->winx);
 
 		ps->screenMin[1]= 0;
-		ps->screenMax[1]= ps->winy;
+		ps->screenMax[1]= (float)(ps->winy);
 	}
 
 	/* only for convenience */
 	ps->screen_width  = ps->screenMax[0] - ps->screenMin[0];
 	ps->screen_height = ps->screenMax[1] - ps->screenMin[1];
 	
-	ps->buckets_x = (int)(ps->screen_width / (((float)ps->brush->size) / PROJ_BUCKET_BRUSH_DIV));
-	ps->buckets_y = (int)(ps->screen_height / (((float)ps->brush->size) / PROJ_BUCKET_BRUSH_DIV));
+	ps->buckets_x = (int)(ps->screen_width / (((float)diameter) / PROJ_BUCKET_BRUSH_DIV));
+	ps->buckets_y = (int)(ps->screen_height / (((float)diameter) / PROJ_BUCKET_BRUSH_DIV));
 	
 	/* printf("\tscreenspace bucket division x:%d y:%d\n", ps->buckets_x, ps->buckets_y); */
 	
@@ -3447,16 +3450,16 @@ static int project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
 {
 	if(ps->source==PROJ_SRC_VIEW) {
 		float min_brush[2], max_brush[2];
-		float size_half = ((float)ps->brush->size) * 0.5f;
+		const float radius = (float)brush_size(ps->brush);
 
 		/* so we dont have a bucket bounds that is way too small to paint into */
-		// if (size_half < 1.0f) size_half = 1.0f; // this dosnt work yet :/
+		// if (radius < 1.0f) radius = 1.0f; // this doesn't work yet :/
 
-		min_brush[0] = mval_f[0] - size_half;
-		min_brush[1] = mval_f[1] - size_half;
+		min_brush[0] = mval_f[0] - radius;
+		min_brush[1] = mval_f[1] - radius;
 
-		max_brush[0] = mval_f[0] + size_half;
-		max_brush[1] = mval_f[1] + size_half;
+		max_brush[0] = mval_f[0] + radius;
+		max_brush[1] = mval_f[1] + radius;
 
 		/* offset to make this a valid bucket index */
 		project_paint_bucket_bounds(ps, min_brush, max_brush, ps->bucketMin, ps->bucketMax);
@@ -3485,6 +3488,8 @@ static int project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
 
 static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, rctf *bucket_bounds, const float mval[2])
 {
+	const int diameter= 2*brush_size(ps->brush);
+
 	if (ps->thread_tot > 1)
 		BLI_lock_thread(LOCK_CUSTOM1);
 	
@@ -3497,7 +3502,7 @@ static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, rctf 
 			project_bucket_bounds(ps, ps->context_bucket_x, ps->context_bucket_y, bucket_bounds);
 			
 			if (	(ps->source != PROJ_SRC_VIEW) ||
-					project_bucket_isect_circle(ps->context_bucket_x, ps->context_bucket_y, mval, ps->brush->size * ps->brush->size, bucket_bounds)
+					project_bucket_isect_circle(ps->context_bucket_x, ps->context_bucket_y, mval, (float)(diameter*diameter), bucket_bounds)
 			) {
 				*bucket_index = ps->context_bucket_x + (ps->context_bucket_y * ps->buckets_x);
 				ps->context_bucket_x++;
@@ -3545,23 +3550,25 @@ static void blend_color_mix(unsigned char *cp, const unsigned char *cp1, const u
 
 static void blend_color_mix_float(float *cp, const float *cp1, const float *cp2, const float fac)
 {
-	const float mfac= 1.0-fac;
+	const float mfac= 1.0f-fac;
 	cp[0]= mfac*cp1[0] + fac*cp2[0];
 	cp[1]= mfac*cp1[1] + fac*cp2[1];
 	cp[2]= mfac*cp1[2] + fac*cp2[2];
 	cp[3]= mfac*cp1[3] + fac*cp2[3];
 }
 
-static void blend_color_mix_rgb(unsigned char *cp, const unsigned char *cp1, const unsigned char *cp2, const int fac)
+static void blend_color_mix_accum(unsigned char *cp, const unsigned char *cp1, const unsigned char *cp2, const int fac)
 {
 	/* this and other blending modes previously used >>8 instead of /255. both
 	   are not equivalent (>>8 is /256), and the former results in rounding
 	   errors that can turn colors black fast after repeated blending */
 	const int mfac= 255-fac;
+	const int alpha= cp1[3] + ((fac * cp2[3]) / 255);
 
 	cp[0]= (mfac*cp1[0]+fac*cp2[0])/255;
 	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
 	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
+	cp[3]= alpha > 255 ? 255 : alpha;
 }
 
 static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask)
@@ -3682,7 +3689,6 @@ static void *do_projectpaint_thread(void *ph_v)
 	
 	float rgba[4], alpha, dist_nosqrt, dist;
 	
-	float brush_size_sqared;
 	float falloff;
 	int bucket_index;
 	int is_floatbuf = 0;
@@ -3694,13 +3700,14 @@ static void *do_projectpaint_thread(void *ph_v)
 	float co[2];
 	float mask = 1.0f; /* airbrush wont use mask */
 	unsigned short mask_short;
-	float size_half = ((float)ps->brush->size) * 0.5f;
+	const float radius= (float)brush_size(ps->brush);
+	const float radius_squared= radius*radius; /* avoid a square root with every dist comparison */
+	
 	short lock_alpha= ELEM(ps->brush->blend, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA) ? 0 : ps->brush->flag & BRUSH_LOCK_ALPHA;
 	
 	LinkNode *smearPixels = NULL;
 	LinkNode *smearPixels_f = NULL;
 	MemArena *smearArena = NULL; /* mem arena for this brush projection only */
-	
 	
 	if (tool==PAINT_TOOL_SMEAR) {
 		pos_ofs[0] = pos[0] - lastpos[0];
@@ -3708,9 +3715,6 @@ static void *do_projectpaint_thread(void *ph_v)
 		
 		smearArena = BLI_memarena_new(1<<16, "paint smear arena");
 	}
-	
-	/* avoid a square root with every dist comparison */
-	brush_size_sqared = ps->brush->size * ps->brush->size; 
 	
 	/* printf("brush bounds %d %d %d %d\n", bucketMin[0], bucketMin[1], bucketMax[0], bucketMax[1]); */
 	
@@ -3732,7 +3736,8 @@ static void *do_projectpaint_thread(void *ph_v)
 				bicubic_interpolation_color(ps->reproject_ibuf, projPixel->newColor.ch, NULL, projPixel->projCoSS[0], projPixel->projCoSS[1]);
 				if(projPixel->newColor.ch[3]) {
 					mask = ((float)projPixel->mask)/65535.0f;
-					blend_color_mix_rgb(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (mask*projPixel->newColor.ch[3]));
+					blend_color_mix_accum(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask*projPixel->newColor.ch[3]));
+
 				}
 			}
 		}
@@ -3746,9 +3751,11 @@ static void *do_projectpaint_thread(void *ph_v)
 				/*dist = len_v2v2(projPixel->projCoSS, pos);*/ /* correct but uses a sqrtf */
 				dist_nosqrt = Vec2Lenf_nosqrt(projPixel->projCoSS, pos);
 
-				/*if (dist < s->brush->size) {*/ /* correct but uses a sqrtf */
-				if (dist_nosqrt < brush_size_sqared && (dist=sqrtf(dist_nosqrt)) < size_half) {
-					falloff = brush_curve_strength_clamp(ps->brush, dist, size_half);
+				/*if (dist < radius) {*/ /* correct but uses a sqrtf */
+				if (dist_nosqrt <= radius_squared) {
+					dist=sqrtf(dist_nosqrt);
+
+					falloff = brush_curve_strength_clamp(ps->brush, dist, radius);
 
 					if (falloff > 0.0f) {
 						if (ps->is_texbrush) {
@@ -3760,7 +3767,7 @@ static void *do_projectpaint_thread(void *ph_v)
 						
 						if (ps->is_airbrush) {
 							/* for an aurbrush there is no real mask, so just multiply the alpha by it */
-							alpha *= falloff * ps->brush->alpha;
+							alpha *= falloff * brush_alpha(ps->brush);
 							mask = ((float)projPixel->mask)/65535.0f;
 						}
 						else {
@@ -3768,7 +3775,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							falloff = 1.0f - falloff;
 							falloff = 1.0f - (falloff * falloff);
 							
-							mask_short = projPixel->mask * (ps->brush->alpha * falloff);
+							mask_short = (unsigned short)(projPixel->mask * (brush_alpha(ps->brush) * falloff));
 							if (mask_short > projPixel->mask_max) {
 								mask = ((float)mask_short)/65535.0f;
 								projPixel->mask_max = mask_short;
@@ -3929,8 +3936,8 @@ static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, i
 	/* Use mouse coords as floats for projection painting */
 	float pos[2];
 	
-	pos[0] = mval_i[0];
-	pos[1] = mval_i[1];
+	pos[0] = (float)(mval_i[0]);
+	pos[1] = (float)(mval_i[1]);
 	
 	// we may want to use this later 
 	// brush_painter_require_imbuf(painter, ((ibuf->rect_float)? 1: 0), 0, 0);
@@ -4054,7 +4061,8 @@ static int imapaint_ibuf_add_if(ImBuf *ibuf, unsigned int x, unsigned int y, flo
 {
 	float inrgb[3];
 
-	if ((x >= ibuf->x) || (y >= ibuf->y)) {
+	// XXX: signed unsigned mismatch
+	if ((x >= (unsigned int)(ibuf->x)) || (y >= (unsigned int)(ibuf->y))) {
 		if (torus) imapaint_ibuf_get_set_rgb(ibuf, x, y, 1, 0, inrgb);
 		else return 0;
 	}
@@ -4515,7 +4523,7 @@ typedef struct PaintOperation {
 	int first;
 	int prevmouse[2];
 	float prev_pressure; /* need this since we dont get tablet events for pressure change */
-	int brush_size_orig;
+	int orig_brush_size;
 	double starttime;
 
 	ViewContext vc;
@@ -4608,8 +4616,8 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 		ps->normal_angle_inner= ps->normal_angle= settings->imapaint.normal_angle;
 	}
 
-	ps->normal_angle_inner *=	M_PI_2 / 90;
-	ps->normal_angle *=			M_PI_2 / 90;
+	ps->normal_angle_inner *=	(float)(M_PI_2 / 90);
+	ps->normal_angle *=			(float)(M_PI_2 / 90);
 	ps->normal_angle_range = ps->normal_angle - ps->normal_angle_inner;
 
 	if(ps->normal_angle_range <= 0.0f)
@@ -4648,7 +4656,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	if(pop->mode == PAINT_MODE_3D && (pop->s.tool == PAINT_TOOL_CLONE))
 		pop->s.tool = PAINT_TOOL_DRAW;
 	pop->s.blend = brush->blend;
-	pop->brush_size_orig= brush->size;
+	pop->orig_brush_size= brush_size(brush);
 
 	if(pop->mode != PAINT_MODE_2D) {
 		pop->s.ob = OBACT;
@@ -4680,8 +4688,8 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 			return 0;
 
 		/* Dont allow brush size below 2 */
-		if (brush->size <= 1)
-			brush->size = 2;
+		if (brush_size(brush) < 2)
+			brush_set_size(brush, 2);
 
 		/* allocate and initialize spacial data structures */
 		project_paint_begin(&pop->ps);
@@ -4691,7 +4699,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	}
 	
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
-	undo_paint_push_begin(UNDO_PAINT_IMAGE, "Image Paint",
+	undo_paint_push_begin(UNDO_PAINT_IMAGE, op->type->name,
 		image_undo_restore, image_undo_free);
 
 	/* create painter */
@@ -4708,8 +4716,8 @@ static void paint_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	int mouse[2], redraw;
 
 	RNA_float_get_array(itemptr, "mouse", mousef);
-	mouse[0] = mousef[0];
-	mouse[1] = mousef[1];
+	mouse[0] = (int)(mousef[0]);
+	mouse[1] = (int)(mousef[1]);
 	time= RNA_float_get(itemptr, "time");
 	pressure= RNA_float_get(itemptr, "pressure");
 
@@ -4751,7 +4759,7 @@ static void paint_exit(bContext *C, wmOperator *op)
 	brush_painter_free(pop->painter);
 
 	if(pop->mode == PAINT_MODE_3D_PROJECT) {
-		pop->ps.brush->size = pop->brush_size_orig;
+		brush_set_size(pop->ps.brush, pop->orig_brush_size);
 		project_paint_end(&pop->ps);
 	}
 	
@@ -4822,15 +4830,22 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 
 		/* special exception here for too high pressure values on first touch in
 		   windows for some tablets, then we just skip first touch ..  */
-		if ((pop->s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|BRUSH_SPACING_PRESSURE)) && tablet && (pressure >= 0.99f))
+		if (tablet && (pressure >= 0.99f) && (pop->s.brush->flag & BRUSH_SPACING_PRESSURE) && brush_use_alpha_pressure(pop->s.brush) && brush_use_size_pressure(pop->s.brush))
 			return;
+
+		/* This can be removed once fixed properly in
+		 brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user) 
+		 at zero pressure we should do nothing 1/2^12 is .0002 which is the sensitivity of the most sensitive pen tablet available*/
+		if ((pop->s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|BRUSH_SPACING_PRESSURE)) && tablet && (pressure <= 0.0002f))
+			return;
+	
 	}
 
 	/* fill in stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 
-	mousef[0] = mouse[0];
-	mousef[1] = mouse[1];
+	mousef[0] = (float)(mouse[0]);
+	mousef[1] = (float)(mouse[1]);
 	RNA_float_set_array(&itemptr, "mouse", mousef);
 	RNA_float_set(&itemptr, "time", (float)(time - pop->starttime));
 	RNA_float_set(&itemptr, "pressure", pressure);
@@ -4872,6 +4887,7 @@ static int paint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			paint_exit(C, op);
 			return OPERATOR_FINISHED;
 		case MOUSEMOVE:
+		case INBETWEEN_MOUSEMOVE:
 			paint_apply_event(C, op, event);
 			break;
 		case TIMER:
@@ -4933,9 +4949,14 @@ static int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 static void brush_drawcursor(bContext *C, int x, int y, void *customdata)
 {
 	Brush *brush= image_paint_brush(C);
+	Paint *paint= paint_get_active(CTX_data_scene(C));
 
-	if(brush) {
+	if(paint && brush) {
 		float zoomx, zoomy;
+
+		if(!(paint->flags & PAINT_SHOW_BRUSH))
+			return;
+
 		glPushMatrix();
 
 		glTranslatef((float)x, (float)y, 0.0f);
@@ -4943,13 +4964,13 @@ static void brush_drawcursor(bContext *C, int x, int y, void *customdata)
 		if(get_imapaint_zoom(C, &zoomx, &zoomy))
 			glScalef(zoomx, zoomy, 1.0f);
 
-		glColor4ub(255, 255, 255, 128);
+		glColor4f(brush->add_col[0], brush->add_col[1], brush->add_col[2], 0.5f);
 		glEnable( GL_LINE_SMOOTH );
 		glEnable(GL_BLEND);
-		glutil_draw_lined_arc(0.0, M_PI*2.0, brush->size*0.5f, 40);
+		glutil_draw_lined_arc(0, (float)(M_PI*2.0), (float)brush_size(brush), 40);
 		glDisable(GL_BLEND);
 		glDisable( GL_LINE_SMOOTH );
-		
+
 		glPopMatrix();
 	}
 }
@@ -4973,7 +4994,7 @@ static int paint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
 	get_imapaint_zoom(C, &zoom, &zoom);
 	toggle_paint_cursor(C, !ts->imapaint.paintcursor);
-	brush_radial_control_invoke(op, paint_brush(&ts->imapaint.paint), 0.5 * zoom);
+	brush_radial_control_invoke(op, paint_brush(&ts->imapaint.paint), zoom);
 	return WM_radial_control_invoke(C, op, event);
 }
 
@@ -4993,7 +5014,7 @@ static int paint_radial_control_exec(bContext *C, wmOperator *op)
 	int ret;
 	char str[256];
 	get_imapaint_zoom(C, &zoom, &zoom);
-	ret = brush_radial_control_exec(op, brush, 2.0 / zoom);
+	ret = brush_radial_control_exec(op, brush, 1.0f / zoom);
 	WM_radial_control_string(op, str, 256);
 	
 	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
@@ -5300,14 +5321,14 @@ static int texture_paint_radial_control_invoke(bContext *C, wmOperator *op, wmEv
 {
 	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
 	toggle_paint_cursor(C, !ts->imapaint.paintcursor);
-	brush_radial_control_invoke(op, paint_brush(&ts->imapaint.paint), 0.5);
+	brush_radial_control_invoke(op, paint_brush(&ts->imapaint.paint), 1);
 	return WM_radial_control_invoke(C, op, event);
 }
 
 static int texture_paint_radial_control_exec(bContext *C, wmOperator *op)
 {
 	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->imapaint.paint);
-	int ret = brush_radial_control_exec(op, brush, 2);
+	int ret = brush_radial_control_exec(op, brush, 1);
 	char str[256];
 	WM_radial_control_string(op, str, 256);
 
@@ -5343,7 +5364,7 @@ void PAINT_OT_texture_paint_radial_control(wmOperatorType *ot)
 	ot->poll= texture_paint_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 
@@ -5412,21 +5433,21 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	/* override */
 	ps.is_texbrush= 0;
 	ps.is_airbrush= 1;
-	orig_brush_size= ps.brush->size;
-	ps.brush->size= 32; /* cover the whole image */
+	orig_brush_size= brush_size(ps.brush);
+	brush_set_size(ps.brush, 32); /* cover the whole image */
 
 	ps.tool= PAINT_TOOL_DRAW; /* so pixels are initialized with minimal info */
 
 	scene->toolsettings->imapaint.flag |= IMAGEPAINT_DRAWING;
 
-	undo_paint_push_begin(UNDO_PAINT_IMAGE, "Image Paint",
+	undo_paint_push_begin(UNDO_PAINT_IMAGE, op->type->name,
 		image_undo_restore, image_undo_free);
 
 	/* allocate and initialize spacial data structures */
 	project_paint_begin(&ps);
 
 	if(ps.dm==NULL) {
-		ps.brush->size= orig_brush_size;
+		brush_set_size(ps.brush, orig_brush_size);
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -5450,7 +5471,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	project_paint_end(&ps);
 
 	scene->toolsettings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
-	ps.brush->size= orig_brush_size;
+	brush_set_size(ps.brush, orig_brush_size);
 
 	return OPERATOR_FINISHED;
 }

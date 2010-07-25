@@ -275,6 +275,7 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "atmosphere_turbidity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "atm_turbidity");
 	RNA_def_property_range(prop, 1.0f, 30.0f);
+	RNA_def_property_ui_range(prop, 2.0f, 10.0f, 1, 2);
 	RNA_def_property_ui_text(prop, "Atmosphere Turbidity", "Sky turbidity");
 	RNA_def_property_update(prop, 0, "rna_Lamp_sky_update");
 

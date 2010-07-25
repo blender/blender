@@ -42,6 +42,7 @@ SET(SRC
 INCLUDE_DIRECTORIES(
 	../../../../intern/audaspace/intern
 	../../../../intern/guardedalloc
+	../../../../intern/memutil
 	..
 	../../makesdna
 	../../blenkernel
@@ -52,6 +53,7 @@ INCLUDE_DIRECTORIES(
 	../../gpu
 	../../imbuf
 	../../render/extern/include
+	../../../../extern/glew/include
 	. )
 
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)

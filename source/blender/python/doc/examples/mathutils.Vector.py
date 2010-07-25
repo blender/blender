@@ -1,15 +1,15 @@
 import mathutils
 
 # zero length vector
-vec = mathutils.Vector(0, 0, 1)
+vec = mathutils.Vector((0, 0, 1))
 
 # unit length vector
 vec_a = vec.copy().normalize()
 
-vec_b = mathutils.Vector(0, 1, 2)
+vec_b = mathutils.Vector((0, 1, 2))
 
-vec2d = mathutils.Vector(1, 2)
-vec3d = mathutils.Vector([1, 0, 0])
+vec2d = mathutils.Vector((1, 2))
+vec3d = mathutils.Vector((1, 0, 0))
 vec4d = vec_a.copy().resize4D()
 
 # other mathutuls types

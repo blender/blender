@@ -216,6 +216,10 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 		{CURVE_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
 		{CURVE_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
 		{CURVE_PRESET_MAX, "MAX", 0, "Max", ""},
+		{CURVE_PRESET_MID9, "MID9", 0, "Mid9", ""},
+		{CURVE_PRESET_LINE, "LINE", 0, "Line", ""},
+		{CURVE_PRESET_ROUND, "ROUND", 0, "Round", ""},
+		{CURVE_PRESET_ROOT, "ROOT", 0, "Root", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	ot->name= "Preset";

@@ -71,7 +71,7 @@ static struct GPUGlobal {
 	GLuint currentfb;
 	int glslsupport;
 	int extdisabled;
-	int color24bit;
+	int colordepth;
 	GPUDeviceType device;
 	GPUOSType os;
 	GPUDriverType driver;
@@ -93,7 +93,7 @@ void GPU_extensions_disable()
 
 void GPU_extensions_init()
 {
-	GLint bits;
+	GLint r, g, b;
 	const char *vendor, *renderer;
 
 	glewInit();
@@ -108,9 +108,11 @@ void GPU_extensions_init()
 	if (!GLEW_ARB_vertex_shader) GG.glslsupport = 0;
 	if (!GLEW_ARB_fragment_shader) GG.glslsupport = 0;
 
-	glGetIntegerv(GL_RED_BITS, &bits);
-	GG.color24bit = (bits >= 8);
-
+	glGetIntegerv(GL_RED_BITS, &r);
+	glGetIntegerv(GL_GREEN_BITS, &g);
+	glGetIntegerv(GL_BLUE_BITS, &b);
+    GG.colordepth = r+g+b; /* assumes same depth for RGB */
+    
 	vendor = (const char*)glGetString(GL_VENDOR);
 	renderer = (const char*)glGetString(GL_RENDERER);
 
@@ -150,8 +152,8 @@ void GPU_extensions_init()
 		GG.driver = GPU_DRIVER_SOFTWARE;
 	}
 	else {
-		GG.device = GPU_DEVICE_UNKNOWN;
-		GG.driver = GPU_DRIVER_UNKNOWN;
+		GG.device = GPU_DEVICE_ANY;
+		GG.driver = GPU_DRIVER_ANY;
 	}
 
 	GG.os = GPU_OS_UNIX;
@@ -178,9 +180,9 @@ int GPU_non_power_of_two_support()
 	return GLEW_ARB_texture_non_power_of_two;
 }
 
-int GPU_24bit_color_support()
+int GPU_color_depth()
 {
-	return GG.color24bit;
+    return GG.colordepth;
 }
 
 int GPU_print_error(char *str)

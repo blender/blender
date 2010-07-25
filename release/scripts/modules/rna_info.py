@@ -620,3 +620,23 @@ def BuildRNAInfo():
     #    print(rna_info)
 
     return InfoStructRNA.global_lookup, InfoFunctionRNA.global_lookup, InfoOperatorRNA.global_lookup, InfoPropertyRNA.global_lookup
+
+
+if __name__ == "__main__":
+    import rna_info
+    struct = rna_info.BuildRNAInfo()[0]
+    data = ""
+    for struct_id, v in sorted(struct.items()):
+        struct_id_str = "".join(sid for sid in struct_id if struct_id)
+        props = [(prop.identifier, prop) for prop in v.properties]
+        
+        for prop_id, prop in sorted(props):
+            # if prop.type == 'boolean':
+            #     continue
+            data += "%s.%s -> %s:    %s%s    %s\n" % (struct_id_str, prop.identifier, prop.identifier, prop.type, ", (read-only)" if prop.is_readonly else "", prop.description)
+
+    if bpy.app.background:
+        print(data)
+    else:
+        text = bpy.data.texts.new(name="api.py")
+        text.from_string(data)

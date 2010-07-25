@@ -120,7 +120,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* send notifiers */
-	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	
 	/* allow tweak event to work too */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
@@ -188,7 +188,7 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -264,14 +264,14 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
 			node->flag |= NODE_SELECT;
 	}
 	
-	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 
 void NODE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select/Deselect All";
+	ot->name = "Select or Deselect All";
 	ot->description = "(De)select all nodes";
 	ot->idname = "NODE_OT_select_all";
 	
@@ -304,7 +304,7 @@ static int node_select_linked_to_exec(bContext *C, wmOperator *op)
 			node->flag |= NODE_SELECT;
 	}
 	
-	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -344,7 +344,7 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *op)
 			node->flag |= NODE_SELECT;
 	}
 	
-	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -370,7 +370,7 @@ static int node_select_same_type_exec(bContext *C, wmOperator *op)
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	node_select_same_type(snode);
-	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -396,7 +396,7 @@ static int node_select_same_type_next_exec(bContext *C, wmOperator *op)
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	node_select_same_type_np(snode, 0);
-	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -420,7 +420,7 @@ static int node_select_same_type_prev_exec(bContext *C, wmOperator *op)
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	node_select_same_type_np(snode, 1);
-	WM_event_add_notifier(C, NC_NODE|ND_NODE_SELECT, NULL);
+	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
 

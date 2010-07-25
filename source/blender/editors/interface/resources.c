@@ -999,7 +999,7 @@ void init_userdef_do_versions(void)
 	}
 	if (U.savetime <= 0) {
 		U.savetime = 1;
-// XXX		error(".B.blend is buggy, please consider removing it.\n");
+// XXX		error("startup.blend is buggy, please consider removing it.\n");
 	}
 	/* transform widget settings */
 	if(U.tw_hotspot==0) {
@@ -1138,7 +1138,7 @@ void init_userdef_do_versions(void)
 		}
 		
 		/* set defaults for 3D View rotating axis indicator */ 
-		/* since size can't be set to 0, this indicates it's not saved in .B.blend */
+		/* since size can't be set to 0, this indicates it's not saved in startup.blend */
 		if (U.rvisize == 0) {
 			U.rvisize = 15;
 			U.rvibright = 8;
@@ -1463,7 +1463,7 @@ void init_userdef_do_versions(void)
 				SETCOL(btheme->tv3d.lastsel_point, 0xff, 0xff, 0xff, 255);
 		}
 	}
-	if (G.main->versionfile <= 252 || (G.main->versionfile == 252 && G.main->subversionfile < 5)) {
+	if (G.main->versionfile < 252 || (G.main->versionfile == 252 && G.main->subversionfile < 5)) {
 		bTheme *btheme;
 		
 		/* interface_widgets.c */
@@ -1522,6 +1522,3 @@ void init_userdef_do_versions(void)
 // XXX	reset_autosave();
 
 }
-
-
-

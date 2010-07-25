@@ -168,7 +168,7 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, char *col)
 	}
 }
 
-static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, float stepsize)
+static void drawseqwave(Scene *scene, Sequence *seq, float x1, float y1, float x2, float y2, float stepsize)
 {
 	/*
 	x1 is the starting x value to draw the wave,
@@ -184,7 +184,9 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, f
 		float* samples = MEM_mallocN(length * sizeof(float) * 2, "seqwave_samples");
 		if(!samples)
 			return;
-		if(sound_read_sound_buffer(seq->sound, samples, length) != length)
+		if(sound_read_sound_buffer(seq->sound, samples, length,
+								   (seq->startofs + seq->anim_startofs)/FPS,
+								   (seq->startofs + seq->anim_startofs + seq->enddisp - seq->startdisp)/FPS) != length)
 		{
 			MEM_freeN(samples);
 			return;
@@ -200,46 +202,86 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, f
 	}
 }
 
-static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, float x2, float y2)
+static void drawmeta_stipple(int value)
 {
-	/* Note, this used to use WHILE_SEQ, but it messes up the seq->depth value, (needed by transform when doing overlap checks)
-	 * so for now, just use the meta's immediate children, could be fixed but its only drawing - Campbell */
-	Sequence *seq;
-	float dx;
-	int nr;
-	char col[3];
-	
-	nr= BLI_countlist(&seqm->seqbase);
-
-	dx= (x2-x1)/nr;
-
-	if (seqm->flag & SEQ_MUTE) {
+	if(value) {
 		glEnable(GL_POLYGON_STIPPLE);
 		glPolygonStipple(stipple_halftone);
 		
 		glEnable(GL_LINE_STIPPLE);
 		glLineStipple(1, 0x8888);
 	}
-	
-	for (seq= seqm->seqbase.first; seq; seq= seq->next) {
-		get_seq_color3ubv(scene, seq, col);
-		
-		glColor3ubv((GLubyte *)col);
-
-		glRectf(x1,  y1,  x1+0.9*dx,  y2);
-		
-		UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -30);
-		glColor3ubv((GLubyte *)col);
-
-		fdrawbox(x1,  y1,  x1+0.9*dx,  y2);
-		
-		x1+= dx;
-	}
-	
-	if (seqm->flag & SEQ_MUTE) {
+	else {
 		glDisable(GL_POLYGON_STIPPLE);
 		glDisable(GL_LINE_STIPPLE);
 	}
+}
+
+static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, float x2, float y2)
+{
+	/* Note, this used to use WHILE_SEQ, but it messes up the seq->depth value, (needed by transform when doing overlap checks)
+	 * so for now, just use the meta's immediate children, could be fixed but its only drawing - Campbell */
+	Sequence *seq;
+	char col[4];
+
+	int chan_min= MAXSEQ;
+	int chan_max= 0;
+	int chan_range= 0;
+	float draw_range= y2 - y1;
+	float draw_height;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	if(seqm->flag & SEQ_MUTE)
+		drawmeta_stipple(1);
+
+	for (seq= seqm->seqbase.first; seq; seq= seq->next) {
+		chan_min= MIN2(chan_min, seq->machine);
+		chan_max= MAX2(chan_max, seq->machine);
+	}
+
+	chan_range= (chan_max - chan_min) + 1;
+	draw_height= draw_range / chan_range; 
+
+	col[3]= 196; /* alpha, used for all meta children */
+
+	for (seq= seqm->seqbase.first; seq; seq= seq->next) {
+		if((seq->startdisp > x2 || seq->enddisp < x1) == 0) {
+			float y_chan= (seq->machine - chan_min) / (float)(chan_range) * draw_range;
+			float x1_chan= seq->startdisp;
+			float x2_chan= seq->enddisp;
+			float y1_chan, y2_chan;
+
+			if((seqm->flag & SEQ_MUTE) == 0 && (seq->flag & SEQ_MUTE))
+				drawmeta_stipple(1);
+
+			get_seq_color3ubv(scene, seq, col);
+
+			glColor4ubv((GLubyte *)col);
+			
+			/* clamp within parent sequence strip bounds */
+			if(x1_chan < x1) x1_chan= x1;
+			if(x2_chan > x2) x2_chan= x2;
+
+			y1_chan= y1 + y_chan + (draw_height * SEQ_STRIP_OFSBOTTOM);
+			y2_chan= y1 + y_chan + (draw_height * SEQ_STRIP_OFSTOP);
+
+			glRectf(x1_chan,  y1_chan, x2_chan,  y2_chan);
+
+			UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -30);
+			glColor4ubv((GLubyte *)col);
+			fdrawbox(x1_chan,  y1_chan, x2_chan,  y2_chan);
+
+			if((seqm->flag & SEQ_MUTE) == 0 && (seq->flag & SEQ_MUTE))
+				drawmeta_stipple(0);
+		}
+	}
+
+	if (seqm->flag & SEQ_MUTE)
+		drawmeta_stipple(0);
+	
+	glDisable(GL_BLEND);
 }
 
 /* draw a handle, for each end of a sequence strip */
@@ -325,11 +367,11 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, float pixelx, short dire
 	}	
 }
 
-static void draw_seq_extensions(Scene *scene, SpaceSeq *sseq, Sequence *seq)
+static void draw_seq_extensions(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *seq)
 {
 	float x1, x2, y1, y2, pixely, a;
 	char col[3], blendcol[3];
-	View2D *v2d;
+	View2D *v2d= &ar->v2d;
 	
 	if(seq->type >= SEQ_EFFECT) return;
 
@@ -338,9 +380,10 @@ static void draw_seq_extensions(Scene *scene, SpaceSeq *sseq, Sequence *seq)
 	
 	y1= seq->machine+SEQ_STRIP_OFSBOTTOM;
 	y2= seq->machine+SEQ_STRIP_OFSTOP;
-	
-	v2d = &sseq->v2d;
+
 	pixely = (v2d->cur.ymax - v2d->cur.ymin)/(v2d->mask.ymax - v2d->mask.ymin);
+	
+	if(pixely <= 0) return; /* can happen when the view is split/resized */
 	
 	blendcol[0] = blendcol[1] = blendcol[2] = 120;
 
@@ -549,7 +592,7 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 }
 
 /*
-Draw a sequence strip, bounds check alredy made
+Draw a sequence strip, bounds check already made
 ARegion is currently only used to get the windows width in pixels
 so wave file sample drawing precision is zoom adjusted
 */
@@ -585,7 +628,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *
 	
 	/* draw additional info and controls */
 	if (!is_single_image)
-		draw_seq_extensions(scene, sseq, seq);
+		draw_seq_extensions(scene, ar, sseq, seq);
 	
 	draw_seq_handle(v2d, seq, pixelx, SEQ_LEFTHANDLE);
 	draw_seq_handle(v2d, seq, pixelx, SEQ_RIGHTHANDLE);
@@ -595,7 +638,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *
 	x2= seq->enddisp;
 	
 	/* draw sound wave */
-	if(seq->type == SEQ_SOUND) drawseqwave(seq, x1, y1, x2, y2, (ar->v2d.cur.xmax - ar->v2d.cur.xmin)/ar->winx);
+	if(seq->type == SEQ_SOUND) drawseqwave(scene, seq, x1, y1, x2, y2, (ar->v2d.cur.xmax - ar->v2d.cur.xmin)/ar->winx);
 
 	get_seq_color3ubv(scene, seq, col);
 	if (G.moving && (seq->flag & SELECT)) {
@@ -619,12 +662,11 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *
 		glDisable(GL_LINE_STIPPLE);
 	}
 	
+	if(seq->type==SEQ_META) drawmeta_contents(scene, seq, x1, y1, x2, y2);
+	
 	/* calculate if seq is long enough to print a name */
 	x1= seq->startdisp+seq->handsize;
 	x2= seq->enddisp-seq->handsize;
-
-	/* but first the contents of a meta */
-	if(seq->type==SEQ_META) drawmeta_contents(scene, seq, x1, y1+0.15, x2, y2-0.15);
 
 	/* info text on the strip */
 	if(x1<v2d->cur.xmin) x1= v2d->cur.xmin;
@@ -651,14 +693,14 @@ void set_special_seq_update(int val)
 	else special_seq_update= 0;
 }
 
-void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq)
+void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs)
 {
 	extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
-	struct ImBuf *ibuf;
+	struct ImBuf *ibuf = 0;
+	struct ImBuf *scope = 0;
 	struct View2D *v2d = &ar->v2d;
 	int rectx, recty;
 	float viewrectx, viewrecty;
-	int free_ibuf = 0;
 	static int recursive= 0;
 	float render_size = 0.0;
 	float proxy_size = 100.0;
@@ -687,9 +729,11 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		viewrecty /= proxy_size / 100.0;
 	}
 
-	/* XXX TODO: take color from theme */
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	if(frame_ofs == 0) {
+		/* XXX TODO: take color from theme */
+		glClearColor(0.0, 0.0, 0.0, 0.0);
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
 
 	/* without this colors can flicker from previous opengl state */
 	glColor4ub(255, 255, 255, 255);
@@ -707,13 +751,13 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	else {
 		recursive= 1;
 		if (special_seq_update) {
-			ibuf= give_ibuf_seq_direct(scene, rectx, recty, (scene->r.cfra), proxy_size, special_seq_update);
+			ibuf= give_ibuf_seq_direct(scene, rectx, recty, cfra + frame_ofs, proxy_size, special_seq_update);
 		} 
 		else if (!U.prefetchframes) { // XXX || (G.f & G_PLAYANIM) == 0) {
-			ibuf= (ImBuf *)give_ibuf_seq(scene, rectx, recty, (scene->r.cfra), sseq->chanshown, proxy_size);
+			ibuf= (ImBuf *)give_ibuf_seq(scene, rectx, recty, cfra + frame_ofs, sseq->chanshown, proxy_size);
 		} 
 		else {
-			ibuf= (ImBuf *)give_ibuf_seq_threaded(scene, rectx, recty, (scene->r.cfra), sseq->chanshown, proxy_size);
+			ibuf= (ImBuf *)give_ibuf_seq_threaded(scene, rectx, recty, cfra + frame_ofs, sseq->chanshown, proxy_size);
 		}
 		recursive= 0;
 		
@@ -734,26 +778,27 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	switch(sseq->mainb) {
 	case SEQ_DRAW_IMG_IMBUF:
 		if (sseq->zebra != 0) {
-			ibuf = make_zebra_view_from_ibuf(ibuf, sseq->zebra);
-			free_ibuf = 1;
+			scope = make_zebra_view_from_ibuf(ibuf, sseq->zebra);
 		}
 		break;
 	case SEQ_DRAW_IMG_WAVEFORM:
 		if ((sseq->flag & SEQ_DRAW_COLOR_SEPERATED) != 0) {
-			ibuf = make_sep_waveform_view_from_ibuf(ibuf);
+			scope = make_sep_waveform_view_from_ibuf(ibuf);
 		} else {
-			ibuf = make_waveform_view_from_ibuf(ibuf);
+			scope = make_waveform_view_from_ibuf(ibuf);
 		}
-		free_ibuf = 1;
 		break;
 	case SEQ_DRAW_IMG_VECTORSCOPE:
-		ibuf = make_vectorscope_view_from_ibuf(ibuf);
-		free_ibuf = 1;
+		scope = make_vectorscope_view_from_ibuf(ibuf);
 		break;
 	case SEQ_DRAW_IMG_HISTOGRAM:
-		ibuf = make_histogram_view_from_ibuf(ibuf);
-		free_ibuf = 1;
+		scope = make_histogram_view_from_ibuf(ibuf);
 		break;
+	}
+
+	if (scope) {
+		IMB_freeImBuf(ibuf);
+		ibuf = scope;
 	}
 
 	if(ibuf->rect_float && ibuf->rect==NULL) {
@@ -773,52 +818,79 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-	glBegin(GL_QUADS); 
-		glTexCoord2f(0.0f, 0.0f); glVertex2f(v2d->tot.xmin, v2d->tot.ymin);
-		glTexCoord2f(0.0f, 1.0f);glVertex2f(v2d->tot.xmin, v2d->tot.ymax); 
+	glBegin(GL_QUADS);
+
+	if(frame_ofs) {
+		rctf tot_clip;
+		tot_clip.xmin= v2d->tot.xmin + (ABS(v2d->tot.xmax - v2d->tot.xmin) * scene->ed->over_border.xmin);
+		tot_clip.ymin= v2d->tot.ymin + (ABS(v2d->tot.ymax - v2d->tot.ymin) * scene->ed->over_border.ymin);
+		tot_clip.xmax= v2d->tot.xmin + (ABS(v2d->tot.xmax - v2d->tot.xmin) * scene->ed->over_border.xmax);
+		tot_clip.ymax= v2d->tot.ymin + (ABS(v2d->tot.ymax - v2d->tot.ymin) * scene->ed->over_border.ymax);
+
+		glTexCoord2f(scene->ed->over_border.xmin, scene->ed->over_border.ymin);glVertex2f(tot_clip.xmin, tot_clip.ymin);
+		glTexCoord2f(scene->ed->over_border.xmin, scene->ed->over_border.ymax);glVertex2f(tot_clip.xmin, tot_clip.ymax);
+		glTexCoord2f(scene->ed->over_border.xmax, scene->ed->over_border.ymax);glVertex2f(tot_clip.xmax, tot_clip.ymax);
+		glTexCoord2f(scene->ed->over_border.xmax, scene->ed->over_border.ymin);glVertex2f(tot_clip.xmax, tot_clip.ymin);
+	}
+	else {
+		glTexCoord2f(0.0f, 0.0f);glVertex2f(v2d->tot.xmin, v2d->tot.ymin);
+		glTexCoord2f(0.0f, 1.0f);glVertex2f(v2d->tot.xmin, v2d->tot.ymax);
 		glTexCoord2f(1.0f, 1.0f);glVertex2f(v2d->tot.xmax, v2d->tot.ymax);
-		glTexCoord2f(1.0f, 0.0f);glVertex2f(v2d->tot.xmax, v2d->tot.ymin); 
+		glTexCoord2f(1.0f, 0.0f);glVertex2f(v2d->tot.xmax, v2d->tot.ymin);
+	}
 	glEnd( );
 	glBindTexture(GL_TEXTURE_2D, last_texid);
 	glDisable(GL_TEXTURE_2D);
 	glDeleteTextures(1, &texid);
 
-	/* safety border */
-	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && 
-		(sseq->flag & SEQ_DRAW_SAFE_MARGINS) != 0) {
-		float fac= 0.1;
+	if(sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+
 		float x1 = v2d->tot.xmin;
 		float y1 = v2d->tot.ymin;
 		float x2 = v2d->tot.xmax;
 		float y2 = v2d->tot.ymax;
-		
-		float a= fac*(x2-x1);
-		x1+= a; 
-		x2-= a;
-	
-		a= fac*(y2-y1);
-		y1+= a;
-		y2-= a;
-	
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
+
+		/* border */
 		setlinestyle(3);
 
 		UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 1.0, 0);
-		
-		uiSetRoundBox(15);
-		gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+
+		glBegin(GL_LINE_LOOP);
+		glVertex2f(x1-0.5, y1-0.5);
+		glVertex2f(x1-0.5, y2+0.5);
+		glVertex2f(x2+0.5, y2+0.5);
+		glVertex2f(x2+0.5, y1-0.5);
+		glEnd();
+
+		/* safety border */
+		if ((sseq->flag & SEQ_DRAW_SAFE_MARGINS) != 0) {
+			float fac= 0.1;
+
+			float a= fac*(x2-x1);
+			x1+= a;
+			x2-= a;
+
+			a= fac*(y2-y1);
+			y1+= a;
+			y2-= a;
+
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+			uiSetRoundBox(15);
+			gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		}
 
 		setlinestyle(0);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 	
 	/* draw grease-pencil (image aligned) */
 //	if (sseq->flag & SEQ_DRAW_GPENCIL)
 // XXX		draw_gpencil_2dimage(sa, ibuf);
 
-	if (free_ibuf) {
-		IMB_freeImBuf(ibuf);
-	} 
+	IMB_freeImBuf(ibuf);
 	
 	/* draw grease-pencil (screen aligned) */
 //	if (sseq->flag & SEQ_DRAW_GPENCIL)
@@ -900,7 +972,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 	Scene *scene= CTX_data_scene(C);
 	SpaceSeq *sseq= CTX_wm_space_seq(C);
 	View2D *v2d= &ar->v2d;
-	Sequence *last_seq = active_seq_get(scene);
+	Sequence *last_seq = seq_active_get(scene);
 	int sel = 0, j;
 	float pixelx = (v2d->cur.xmax - v2d->cur.xmin)/(v2d->mask.xmax - v2d->mask.xmin);
 	
@@ -1017,6 +1089,19 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	/* preview range */
 	UI_view2d_view_ortho(C, v2d);
 	ANIM_draw_previewrange(C, v2d);
+
+	/* overlap playhead */
+	if(scene->ed && scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) {
+		int cfra_over= (scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS) ? scene->ed->over_cfra : scene->r.cfra + scene->ed->over_ofs;
+		glColor3f(0.2, 0.2, 0.2);
+		// glRectf(cfra_over, v2d->cur.ymin, scene->ed->over_ofs + scene->r.cfra + 1, v2d->cur.ymax);
+
+		glBegin(GL_LINES);
+			glVertex2f(cfra_over, v2d->cur.ymin);
+			glVertex2f(cfra_over, v2d->cur.ymax);
+		glEnd();
+
+	}
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);

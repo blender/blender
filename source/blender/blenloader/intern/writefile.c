@@ -65,7 +65,7 @@ Any case: direct data is ALWAYS after the lib block
 - write TEST (128x128, blend file preview, optional)
 - write FileGlobal (some global vars)
 - write SDNA
-- write USER if filename is ~/.B.blend
+- write USER if filename is ~/X.XX/config/startup.blend
 */
 
 
@@ -1423,7 +1423,7 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 			
 			if(cu->vfont) {
 				writedata(wd, DATA, amount_of_chars(cu->str)+1, cu->str);
-				writestruct(wd, DATA, "CharInfo", cu->len, cu->strinfo);
+				writestruct(wd, DATA, "CharInfo", cu->len+1, cu->strinfo);
 				writestruct(wd, DATA, "TextBox", cu->totbox, cu->tb);				
 			}
 			else {
@@ -2481,7 +2481,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 
 	file = open(tempname,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {
-		BKE_report(reports, RPT_ERROR, "Unable to open file for writing.");
+		BKE_reportf(reports, RPT_ERROR, "Can't open file %s for writing: %s.", tempname, strerror(errno));
 		return 0;
 	}
 
@@ -2502,7 +2502,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 			makeFilesAbsolute(G.sce, NULL);
 	}
 
-	BLI_make_file_string(G.sce, userfilename, BLI_gethome(), ".B25.blend");
+	BLI_make_file_string(G.sce, userfilename, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
 	write_user_block= BLI_streq(dir, userfilename);
 
 	if(write_flags & G_FILE_RELATIVE_REMAP)

@@ -660,7 +660,7 @@ int main(int argc, char** argv)
 				system->getMainDisplayDimensions(fullScreenWidth, fullScreenHeight);
 			// process first batch of events. If the user
 			// drops a file on top off the blenderplayer icon, we 
-			// recieve an event with the filename
+			// receive an event with the filename
 			
 			system->processEvents(0);
 			

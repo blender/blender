@@ -1,7 +1,6 @@
-
 import bpy
 
-def write_some_data(context, path, use_some_setting):
+def write_some_data(context, filepath, use_some_setting):
     print("running write_some_data...")
     pass
 
@@ -16,7 +15,7 @@ class ExportSomeData(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
     # TODO, add better example props
-    path = StringProperty(name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= "")
     use_setting = BoolProperty(name="Example Boolean", description="Example Tooltip", default= True)
 
     type = bpy.props.EnumProperty(items=(('OPT_A', "First Option", "Description one"), ('OPT_B', "Second Option", "Description two.")),
@@ -30,10 +29,10 @@ class ExportSomeData(bpy.types.Operator):
     def execute(self, context):
 
         # # Bug, currently isnt working
-        #if not self.is_property_set("path"):
+        #if not self.is_property_set("filepath"):
         #    raise Exception("filename not set")
 
-        write_some_data(self.properties.path, context, self.properties.use_setting)
+        write_some_data(self.properties.filepath, context, self.properties.use_setting)
 
         return {'FINISHED'}
 
@@ -63,4 +62,4 @@ menu_func = lambda self, context: self.layout.operator("export.some_data", text=
 bpy.types.INFO_MT_file_export.append(menu_func)
 
 if __name__ == "__main__":
-    bpy.ops.export.some_data('INVOKE_DEFAULT', path="/tmp/test.ply")
+    bpy.ops.export.some_data('INVOKE_DEFAULT', filepath="/tmp/test.ply")

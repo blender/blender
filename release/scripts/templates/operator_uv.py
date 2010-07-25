@@ -1,3 +1,4 @@
+import bpy
 
 def main(context):
     obj = context.active_object
@@ -15,7 +16,7 @@ def main(context):
     for i, uv in enumerate(mesh.active_uv_texture.data):
         uvs = uv.uv1, uv.uv2, uv.uv3, uv.uv4
         for j, v_idx in enumerate(mesh.faces[i].verts):
-            if uv.uv_selected[j]:
+            if uv.select_uv[j]:
                 # apply the location of the vertex as a UV
                 uvs[j][:] = mesh.verts[v_idx].co.xy
 

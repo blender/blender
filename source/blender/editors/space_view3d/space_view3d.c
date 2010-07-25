@@ -454,7 +454,7 @@ static void view3d_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
 	if(id)
 		RNA_string_set(drop->ptr, "name", id->name+2);
 	if(drag->path[0]) 
-		RNA_string_set(drop->ptr, "path", drag->path);
+		RNA_string_set(drop->ptr, "filepath", drag->path);
 }
 
 
@@ -523,12 +523,18 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	switch(wmn->category) {
 		case NC_ANIMATION:
 			switch(wmn->data) {
-				case ND_KEYFRAME_EDIT:
 				case ND_KEYFRAME_PROP:
-				case ND_NLA_EDIT:
 				case ND_NLA_ACTCHANGE:
-				case ND_ANIMCHAN_SELECT:
 					ED_region_tag_redraw(ar);
+					break;
+				case ND_NLA:
+				case ND_KEYFRAME:
+					if (wmn->action == NA_EDITED)
+						ED_region_tag_redraw(ar);
+					break;
+				case ND_ANIMCHAN:
+					if (wmn->action == NA_SELECTED)
+						ED_region_tag_redraw(ar);
 					break;
 			}
 			break;
@@ -557,8 +563,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_MODIFIER:
 				case ND_CONSTRAINT:
 				case ND_KEYS:
-				case ND_PARTICLE_SELECT:
-				case ND_PARTICLE_DATA:
+				case ND_PARTICLE:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -582,7 +587,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_BRUSH:
 			if(wmn->action == NA_EDITED)
-				ED_region_tag_redraw(ar);
+				ED_region_tag_redraw_overlay(ar);
 			break;			
 		case NC_MATERIAL:
 			switch(wmn->data) {
@@ -709,12 +714,15 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 	switch(wmn->category) {
 		case NC_ANIMATION:
 			switch(wmn->data) {
-				case ND_KEYFRAME_EDIT:
 				case ND_KEYFRAME_PROP:
-				case ND_NLA_EDIT:
 				case ND_NLA_ACTCHANGE:
 					ED_region_tag_redraw(ar);
 					break;
+				case ND_NLA:
+				case ND_KEYFRAME:
+					if (wmn->action == NA_EDITED)
+						ED_region_tag_redraw(ar);
+					break;	
 			}
 			break;
 		case NC_SCENE:
@@ -741,6 +749,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_POSE:
 				case ND_DRAW:
 				case ND_KEYS:
+				case ND_MODIFIER:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -752,6 +761,8 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			if (wmn->action == NA_EDITED)
+				ED_region_tag_redraw(ar);
 			break;
 		case NC_TEXTURE:
 			/* for brush textures */
@@ -985,7 +996,10 @@ void ED_spacetype_view3d(void)
 	art->draw= view3d_tools_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 	
+#if 0
+	/* unfinished still */
 	view3d_toolshelf_register(art);
+#endif
 
 	/* regions: tool properties */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");

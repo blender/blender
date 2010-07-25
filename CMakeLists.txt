@@ -43,6 +43,10 @@ Remove the CMakeCache.txt file and try again from another folder, e.g.:
 ENDIF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
+# quiet output for Makefiles, 'make -s' helps too
+# SET_PROPERTY(GLOBAL PROPERTY RULE_MESSAGES OFF)
+
 PROJECT(Blender)
 
 #-----------------------------------------------------------------------------
@@ -51,12 +55,14 @@ PROJECT(Blender)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib)
 
-# Note! - Could create this from the blender version string
-# ...but thats quite involved, make sure this matches the blender version.
-SET(BLENDER_VERSION  2.5)
+#-----------------------------------------------------------------------------
+# Load some macros.
+INCLUDE(build_files/cmake/macros.cmake)
 
 #-----------------------------------------------------------------------------
 # Set default config options
+
+GET_BLENDER_VERSION()
 
 # Blender internal features
 OPTION(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
@@ -106,11 +112,11 @@ OPTION(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON
 OPTION(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" ON)
 
 # Misc
-OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" OFF) 
+OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking" OFF)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 
-IF (APPLE)
+IF(APPLE)
 	OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	OPTION(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	OPTION(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
@@ -124,6 +130,8 @@ IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
 ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 
+TEST_SSE_SUPPORT()
+
 # disabled for now, not supported
 # OPTION(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
 
@@ -136,14 +144,9 @@ ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 # When changing any of this remember to update the notes in doc/blender-cmake.txt
 
 #-----------------------------------------------------------------------------
-# Load some macros.
-INCLUDE(CMake/macros.cmake)
-
-#-----------------------------------------------------------------------------
 #Platform specifics
 
 IF(UNIX AND NOT APPLE)
-
 
 	IF(WITH_OPENAL)
 		FIND_PACKAGE(OpenAL)
@@ -166,20 +169,23 @@ IF(UNIX AND NOT APPLE)
 	SET(SNDFILE_LIBPATH ${SNDFILE}/lib)
 	ENDIF(WITH_SNDFILE)
 
-	FIND_LIBRARY(INTL_LIBRARY
-		NAMES intl
-		PATHS
-		/sw/lib
-	)
-	FIND_LIBRARY(ICONV_LIBRARY
-		NAMES iconv
-		PATHS
-		/sw/lib
-	)
-  
-	IF(INTL_LIBRARY AND ICONV_LIBRARY)
-		SET(GETTEXT_LIB ${INTL_LIBRARY} ${ICONV_LIBRARY})
-	ENDIF(INTL_LIBRARY AND ICONV_LIBRARY)
+	IF(WITH_INTERNATIONAL)
+		FIND_LIBRARY(INTL_LIBRARY
+			NAMES intl
+			PATHS
+			/sw/lib
+		)
+
+		FIND_LIBRARY(ICONV_LIBRARY
+			NAMES iconv
+			PATHS
+			/sw/lib
+		)
+
+		IF(INTL_LIBRARY AND ICONV_LIBRARY)
+			SET(GETTEXT_LIB ${INTL_LIBRARY} ${ICONV_LIBRARY})
+		ENDIF(INTL_LIBRARY AND ICONV_LIBRARY)
+	ENDIF(WITH_INTERNATIONAL)
 
 	FIND_PACKAGE(Freetype)
 	# UNSET(FREETYPE_INCLUDE_DIRS CACHE) # cant use
@@ -222,6 +228,10 @@ IF(UNIX AND NOT APPLE)
 			/opt/include/OpenEXR
 		)
 		SET(OPENEXR_LIB Half IlmImf Iex Imath)
+		
+		IF(NOT OPENEXR_INC)
+			SET(WITH_OPENEXR OFF)
+		ENDIF(NOT OPENEXR_INC)
 	ENDIF(WITH_OPENEXR)
 
 	IF(WITH_TIFF)
@@ -249,6 +259,7 @@ IF(UNIX AND NOT APPLE)
 		SET(FFMPEG_INC ${FFMPEG}/include)
 		SET(FFMPEG_LIB avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
 		SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
 	ENDIF(WITH_FFMPEG)
 
 	IF(WITH_FFTW3)
@@ -298,6 +309,12 @@ IF(UNIX AND NOT APPLE)
 
 	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -Wno-char-subscripts")
 
+	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
+		ADD_DEFINITIONS(-D__SSE__)
+		ADD_DEFINITIONS(-D__MMX__)
+	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
 	# Better warnings
@@ -323,10 +340,12 @@ IF(WIN32)
 	
 	ADD_DEFINITIONS(-DWIN32)
 
-	SET(ICONV ${LIBDIR}/iconv)
-	SET(ICONV_INC ${ICONV}/include)
-	SET(ICONV_LIB iconv)
-	SET(ICONV_LIBPATH ${ICONV}/lib)
+	IF(WITH_INTERNATIONAL)
+		SET(ICONV ${LIBDIR}/iconv)
+		SET(ICONV_INC ${ICONV}/include)
+		SET(ICONV_LIB iconv)
+		SET(ICONV_LIBPATH ${ICONV}/lib)
+	ENDIF(WITH_INTERNATIONAL)
 
 	SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
 	SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
@@ -380,6 +399,11 @@ IF(WIN32)
 		SET(QUICKTIME_LIBPATH ${QUICKTIME}/Libraries)
 	ENDIF(WITH_QUICKTIME)
 
+	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		ADD_DEFINITIONS(-D__SSE__)
+		ADD_DEFINITIONS(-D__MMX__)
+	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+
 	IF(MSVC)
 		IF(CMAKE_CL_64)
 			SET(LLIBS kernel32 user32 vfw32 winmm ws2_32 )
@@ -404,14 +428,16 @@ IF(WIN32)
 			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp ")
 		ENDIF(WITH_OPENMP)
 		
-		SET(GETTEXT ${LIBDIR}/gettext)
-		SET(GETTEXT_INC ${GETTEXT}/include)
-		SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
-		IF(CMAKE_CL_64)
-			SET(GETTEXT_LIB gettext)
-		ELSE(CMAKE_CL_64)
-			SET(GETTEXT_LIB gnu_gettext)
-		ENDIF(CMAKE_CL_64)
+		IF(WITH_INTERNATIONAL)
+			SET(GETTEXT ${LIBDIR}/gettext)
+			SET(GETTEXT_INC ${GETTEXT}/include)
+			SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
+			IF(CMAKE_CL_64)
+				SET(GETTEXT_LIB gettext)
+			ELSE(CMAKE_CL_64)
+				SET(GETTEXT_LIB gnu_gettext)
+			ENDIF(CMAKE_CL_64)
+		ENDIF(WITH_INTERNATIONAL)
 
 		IF(CMAKE_CL_64)
 			SET(PNG_LIBRARIES libpng)
@@ -457,7 +483,7 @@ IF(WIN32)
 			SET(PCRE_LIB pcre)
 		ENDIF(WITH_OPENCOLLADA)
 		
-        # TODO: IF(WITH_LCMS)
+		# TODO: IF(WITH_LCMS)
         
 		IF(WITH_FFMPEG)
 			SET(FFMPEG ${LIBDIR}/ffmpeg)
@@ -506,7 +532,7 @@ IF(WIN32)
 	ELSE(MSVC) # MINGW
 		SET(LLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
 
-		SET(CMAKE_CXX_FLAGS                "-pipe -funsigned-char -fno-strict-aliasing -mwindows" CACHE STRING "Mingw C++ flags ")
+		SET(CMAKE_CXX_FLAGS                "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C++ flags ")
 		SET(CMAKE_C_FLAGS                  "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C flags ")
 
 		SET(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g" CACHE STRING "Mingw debug C++ flags ")
@@ -526,12 +552,14 @@ IF(WIN32)
 			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 		ENDIF(WITH_OPENMP)
 
-		SET(GETTEXT ${LIBDIR}/gcc/gettext)
-		SET(GETTEXT_INC ${GETTEXT}/include)
-		SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
-		SET(GETTEXT_LIB intl)
+		IF(WITH_INTERNATIONAL)
+			SET(GETTEXT ${LIBDIR}/gcc/gettext)
+			SET(GETTEXT_INC ${GETTEXT}/include)
+			SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
+			SET(GETTEXT_LIB intl)
+		ENDIF(WITH_INTERNATIONAL)
 
-		SET(JPEG_LIBRARY jpeg)
+		SET(JPEG_LIBRARY libjpeg)
 		SET(PNG_LIBRARIES png)
 
 		SET(ZLIB ${LIBDIR}/zlib)
@@ -577,7 +605,7 @@ IF(WIN32)
 		IF(WITH_OPENEXR)
 			SET(OPENEXR ${LIBDIR}/gcc/openexr)
 			SET(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/OpenEXR)
-			SET(OPENEXR_LIB Half IlmImf Iex)
+			SET(OPENEXR_LIB Half IlmImf Imath IlmThread)
 			SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
 		ENDIF(WITH_OPENEXR)
 
@@ -597,6 +625,12 @@ IF(WIN32)
 			# TODO, gives linking errors, force off
 			SET(WITH_JACK OFF)
 		ENDIF(WITH_JACK)
+
+		IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+			SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
+			ADD_DEFINITIONS(-D__SSE__)
+			ADD_DEFINITIONS(-D__MMX__)
+		ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
 
 	ENDIF(MSVC)
 
@@ -695,13 +729,19 @@ IF(APPLE)
 		SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
 	ENDIF(WITH_OPENEXR)
 
-    # TODO: IF(WITH_LCMS)
+	IF(WITH_LCMS)
+		SET(LCMS ${LIBDIR}/lcms)
+		SET(LCMS_INCLUDE_DIR ${LCMS}/include)
+		SET(LCMS_LIBRARY lcms)
+		SET(LCMS_LIBPATH ${LCMS}/lib)
+	ENDIF(WITH_LCMS)
 
 	IF(WITH_FFMPEG)
 		SET(FFMPEG ${LIBDIR}/ffmpeg)
 		SET(FFMPEG_INC ${FFMPEG}/include)
 		SET(FFMPEG_LIB avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg)
 		SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
 	ENDIF(WITH_FFMPEG)
 
 	SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
@@ -772,6 +812,12 @@ IF(APPLE)
 		SET(TIFF_LIBPATH ${TIFF}/lib)
 	ENDIF(WITH_TIFF)
 
+	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
+		ADD_DEFINITIONS(-D__SSE__)
+		ADD_DEFINITIONS(-D__MMX__)
+	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+
 	SET(EXETYPE MACOSX_BUNDLE)
 
 	SET(CMAKE_C_FLAGS_DEBUG "-fno-strict-aliasing -g")
@@ -818,10 +864,11 @@ ENDIF(WITH_BUILDINFO)
 	
 #-----------------------------------------------------------------------------
 # Common.
-
-set(OPENJPEG ${CMAKE_SOURCE_DIR}/extern/libopenjpeg)
-set(OPENJPEG_INC ${OPENJPEG})
-set(OPENJPEG_LIb extern_libopenjpeg)
+IF(WITH_OPENJPEG)
+	set(OPENJPEG ${CMAKE_SOURCE_DIR}/extern/libopenjpeg)
+	set(OPENJPEG_INC ${OPENJPEG})
+	set(OPENJPEG_LIb extern_libopenjpeg)
+ENDIF(WITH_OPENJPEG)
 
 #-----------------------------------------------------------------------------
 # Blender WebPlugin

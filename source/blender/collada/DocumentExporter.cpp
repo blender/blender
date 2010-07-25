@@ -1719,7 +1719,11 @@ public:
 				// most widespread de-facto standard.
 				texture.setProfileName("FCOLLADA");
 				texture.setChildElementName("bump");				
+#ifdef WIN32	// currently, Windows builds are using revision 746 of OpenCollada while Linux and Mac are using an older revision 721
 				ep.addExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
+#else
+				ep.setExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
+#endif
 			}
 		}
 		// performs the actual writing
@@ -2478,6 +2482,9 @@ protected:
 				}
 			}
 		}
+
+		// keep the keys in ascending order
+		std::sort(fra.begin(), fra.end());
 	}
 
 	void find_rotation_frames(Object *ob, std::vector<float> &fra, const char *prefix, int rotmode)

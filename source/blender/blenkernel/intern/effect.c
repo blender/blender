@@ -777,7 +777,7 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 	}
 
 	if(eff->pd->flag & PFIELD_TEX_OBJECT) {
-		mul_mat3_m4_v3(eff->ob->obmat, tex_co);
+		mul_m4_v3(eff->ob->obmat, tex_co);
 	}
 
 	hasrgb = multitex_ext(eff->pd->tex, tex_co, NULL,NULL, 0, result);

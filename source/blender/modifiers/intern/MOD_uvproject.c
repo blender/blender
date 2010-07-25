@@ -176,51 +176,42 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		projectors[i].uci= NULL;
 
 		if(projectors[i].ob->type == OB_CAMERA) {
+			
 			cam = (Camera *)projectors[i].ob->data;
-
 			if(cam->flag & CAM_PANORAMA) {
 				projectors[i].uci= project_camera_info(projectors[i].ob, NULL, aspx, aspy);
+				project_camera_info_scale(projectors[i].uci, scax, scay);
 				free_uci= 1;
 			}
-			else if(cam->type == CAM_PERSP) {
-				float perspmat[4][4];
-				float xmax; 
-				float xmin;
-				float ymax;
-				float ymin;
-				float pixsize = cam->clipsta * 32.0 / cam->lens;
+			else {
+				float scale= (cam->type == CAM_PERSP) ? cam->clipsta * 32.0 / cam->lens : cam->ortho_scale;
+				float xmax, xmin, ymax, ymin;
 
 				if(aspect > 1.0f) {
-					xmax = 0.5f * pixsize;
+					xmax = 0.5f * scale;
 					ymax = xmax / aspect;
 				} else {
-					ymax = 0.5f * pixsize;
-					xmax = ymax * aspect; 
+					ymax = 0.5f * scale;
+					xmax = ymax * aspect;
 				}
 				xmin = -xmax;
 				ymin = -ymax;
 
-				perspective_m4( perspmat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
-				mul_m4_m4m4(tmpmat, projectors[i].projmat, perspmat);
-			} else if(cam->type == CAM_ORTHO) {
-				float orthomat[4][4];
-				float xmax; 
-				float xmin;
-				float ymax;
-				float ymin;
+				/* scale the matrix */
+				xmin *= scax;
+				xmax *= scax;
+				ymin *= scay;
+				ymax *= scay;
 
-				if(aspect > 1.0f) {
-					xmax = 0.5f * cam->ortho_scale; 
-					ymax = xmax / aspect;
-				} else {
-					ymax = 0.5f * cam->ortho_scale;
-					xmax = ymax * aspect; 
+				if(cam->type == CAM_PERSP) {
+					float perspmat[4][4];
+					perspective_m4( perspmat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
+					mul_m4_m4m4(tmpmat, projectors[i].projmat, perspmat);
+				} else { /* if(cam->type == CAM_ORTHO) */
+					float orthomat[4][4];
+					orthographic_m4( orthomat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
+					mul_m4_m4m4(tmpmat, projectors[i].projmat, orthomat);
 				}
-				xmin = -xmax;
-				ymin = -ymax;
-
-				orthographic_m4( orthomat,xmin, xmax, ymin, ymax, cam->clipsta, cam->clipend);
-				mul_m4_m4m4(tmpmat, projectors[i].projmat, orthomat);
 			}
 		} else {
 			copy_m4_m4(tmpmat, projectors[i].projmat);
@@ -278,42 +269,26 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	/* apply coords as UVs, and apply image if tfaces are new */
 	for(i = 0, mf = mface; i < numFaces; ++i, ++mf, ++tface) {
 		if(override_image || !image || tface->tpage == image) {
-				if(num_projectors == 1) {
-					if(projectors[0].uci) {
-						project_from_camera(tface->uv[0], coords[mf->v1], projectors[0].uci);
-						project_from_camera(tface->uv[1], coords[mf->v2], projectors[0].uci);
-						project_from_camera(tface->uv[2], coords[mf->v3], projectors[0].uci);
-						if(mf->v3)
-							project_from_camera(tface->uv[3], coords[mf->v4], projectors[0].uci);
-						
-						if(scax != 1.0f) {
-							tface->uv[0][0] = ((tface->uv[0][0] - 0.5f) * scax) + 0.5f;
-							tface->uv[1][0] = ((tface->uv[1][0] - 0.5f) * scax) + 0.5f;
-							tface->uv[2][0] = ((tface->uv[2][0] - 0.5f) * scax) + 0.5f;
-							if(mf->v3)
-								tface->uv[3][0] = ((tface->uv[3][0] - 0.5f) * scax) + 0.5f;
-						}
-						
-						if(scay != 1.0f) {
-							tface->uv[0][1] = ((tface->uv[0][1] - 0.5f) * scay) + 0.5f;
-							tface->uv[1][1] = ((tface->uv[1][1] - 0.5f) * scay) + 0.5f;
-							tface->uv[2][1] = ((tface->uv[2][1] - 0.5f) * scay) + 0.5f;
-							if(mf->v3)
-								tface->uv[3][1] = ((tface->uv[3][1] - 0.5f) * scay) + 0.5f;
-						}
+			if(num_projectors == 1) {
+				if(projectors[0].uci) {
+					project_from_camera(tface->uv[0], coords[mf->v1], projectors[0].uci);
+					project_from_camera(tface->uv[1], coords[mf->v2], projectors[0].uci);
+					project_from_camera(tface->uv[2], coords[mf->v3], projectors[0].uci);
+					if(mf->v3)
+						project_from_camera(tface->uv[3], coords[mf->v4], projectors[0].uci);
+				}
+				else {
+					/* apply transformed coords as UVs */
+					tface->uv[0][0] = coords[mf->v1][0];
+					tface->uv[0][1] = coords[mf->v1][1];
+					tface->uv[1][0] = coords[mf->v2][0];
+					tface->uv[1][1] = coords[mf->v2][1];
+					tface->uv[2][0] = coords[mf->v3][0];
+					tface->uv[2][1] = coords[mf->v3][1];
+					if(mf->v4) {
+						tface->uv[3][0] = coords[mf->v4][0];
+						tface->uv[3][1] = coords[mf->v4][1];
 					}
-					else {
-						/* apply transformed coords as UVs */
-						tface->uv[0][0] = coords[mf->v1][0];
-						tface->uv[0][1] = coords[mf->v1][1];
-						tface->uv[1][0] = coords[mf->v2][0];
-						tface->uv[1][1] = coords[mf->v2][1];
-						tface->uv[2][0] = coords[mf->v3][0];
-						tface->uv[2][1] = coords[mf->v3][1];
-						if(mf->v4) {
-							tface->uv[3][0] = coords[mf->v4][0];
-							tface->uv[3][1] = coords[mf->v4][1];
-						}
 				}
 			} else {
 				/* multiple projectors, select the closest to face normal
@@ -351,7 +326,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 						best_projector = &projectors[j];
 					}
 				}
-				
+
 				if(best_projector->uci) {
 					project_from_camera(tface->uv[0], coords[mf->v1], best_projector->uci);
 					project_from_camera(tface->uv[1], coords[mf->v2], best_projector->uci);

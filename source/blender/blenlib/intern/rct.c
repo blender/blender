@@ -142,6 +142,27 @@ void BLI_translate_rctf(rctf *rect, float x, float y)
 	rect->ymax += y;
 }
 
+/* change width & height around the central location */
+void BLI_resize_rcti(rcti *rect, int x, int y)
+{
+	rect->xmin= rect->xmax= (rect->xmax + rect->xmin) / 2;
+	rect->ymin= rect->ymax= (rect->ymax + rect->ymin) / 2;
+	rect->xmin -= x / 2;
+	rect->ymin -= y / 2;
+	rect->xmax= rect->xmin + x;
+	rect->ymax= rect->ymin + y;
+}
+
+void BLI_resize_rctf(rctf *rect, float x, float y)
+{
+	rect->xmin= rect->xmax= (rect->xmax + rect->xmin) * 0.5f;
+	rect->ymin= rect->ymax= (rect->ymax + rect->ymin) * 0.5f;
+	rect->xmin -= x * 0.5f;
+	rect->ymin -= y * 0.5f;
+	rect->xmax= rect->xmin + x;
+	rect->ymax= rect->ymin + y;
+}
+
 int BLI_isect_rctf(rctf *src1, rctf *src2, rctf *dest)
 {
 	float xmin, xmax;

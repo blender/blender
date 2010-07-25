@@ -1041,11 +1041,13 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 		if((lb_dupli_ob=object_duplilist(scene, ob))) {
 			DupliObject *dob;
 			for(dob= lb_dupli_ob->first; dob; dob= dob->next) {
-				ListBase lb_dupli_pid;
-				BKE_ptcache_ids_from_object(&lb_dupli_pid, dob->ob, scene, duplis);
-				addlisttolist(lb, &lb_dupli_pid);
-				if(lb_dupli_pid.first)
-					printf("Adding Dupli\n");
+				if(dob->ob != ob) { /* avoids recursive loops with dupliframes: bug 22988 */
+					ListBase lb_dupli_pid;
+					BKE_ptcache_ids_from_object(&lb_dupli_pid, dob->ob, scene, duplis);
+					addlisttolist(lb, &lb_dupli_pid);
+					if(lb_dupli_pid.first)
+						printf("Adding Dupli\n");
+				}
 			}
 
 			free_object_duplilist(lb_dupli_ob);	/* does restore */
@@ -1067,20 +1069,20 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 
 static int ptcache_path(PTCacheID *pid, char *filename)
 {
-	Library *lib;
+	Library *lib= (pid)? pid->ob->id.lib: NULL;
+	const char *blendfilename= (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH)==0) ? lib->filepath: G.sce;
 	size_t i;
-
-	lib= (pid)? pid->ob->id.lib: NULL;
 
 	if(pid->cache->flag & PTCACHE_EXTERNAL) {
 		strcpy(filename, pid->cache->path);
+
+		if(strncmp(filename, "//", 2)==0)
+			BLI_path_abs(filename, blendfilename);
+
 		return BLI_add_slash(filename); /* new strlen() */
 	}
 	else if (G.relbase_valid || lib) {
 		char file[MAX_PTCACHE_PATH]; /* we dont want the dir, only the file */
-		char *blendfilename;
-
-		blendfilename= (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH)==0) ? lib->filepath: G.sce;
 
 		BLI_split_dirfile(blendfilename, NULL, file);
 		i = strlen(file);

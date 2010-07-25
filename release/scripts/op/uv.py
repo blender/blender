@@ -29,7 +29,7 @@ class ExportUVLayout(bpy.types.Operator):
     bl_label = "Export UV Layout"
     bl_options = {'REGISTER', 'UNDO'}
 
-    path = StringProperty(name="File Path", description="File path used for exporting the SVG file", maxlen=1024, default="")
+    filepath = StringProperty(name="File Path", description="File path used for exporting the SVG file", maxlen=1024, default="")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
     export_all = BoolProperty(name="All UV's", description="Export all UVs in this mesh (not just the visible ones)", default=False)
     mode = EnumProperty(items=(
@@ -85,9 +85,9 @@ class ExportUVLayout(bpy.types.Operator):
             for i in range(uv_layer_len):
                 uv_elem = uv_layer[i]
                 # context checks
-                if faces[i].selected and (local_image is Ellipsis or local_image == uv_elem.image):
+                if faces[i].select and (local_image is Ellipsis or local_image == uv_elem.image):
                     #~ uv = uv_elem.uv
-                    #~ if False not in uv_elem.uv_selected[:len(uv)]:
+                    #~ if False not in uv_elem.select_uv[:len(uv)]:
                     #~     yield (i, uv)
 
                     # just write what we see.
@@ -113,7 +113,7 @@ class ExportUVLayout(bpy.types.Operator):
 
         mode = self.properties.mode
 
-        file = open(self.properties.path, "w")
+        file = open(self.properties.filepath, "w")
         fw = file.write
 
         if mode == 'SVG':
@@ -178,7 +178,7 @@ class ExportUVLayout(bpy.types.Operator):
             fw('stroke\n')
             fw('} def\n')
             fw('newpath\n')
-            
+
             firstline = True
             for i, uvs in self._face_uv_iter(context):
                 for j, uv in enumerate(uvs):
@@ -210,8 +210,9 @@ class ExportUVLayout(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filepath.replace(".blend", ".svg")
-    self.layout.operator(ExportUVLayout.bl_idname).path = default_path
+    import os
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".svg"
+    self.layout.operator(ExportUVLayout.bl_idname).filepath = default_path
 
 
 def register():

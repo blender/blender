@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 
+narrowui = bpy.context.user_preferences.view.properties_width_check
 
 class View3DPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -40,6 +41,9 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
         col.operator("transform.translate")
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
+
+        col = layout.column(align=True)
+        col.operator("object.origin_set", text="Origin")
 
         col = layout.column(align=True)
         col.label(text="Object:")
@@ -500,18 +504,26 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
         if not context.particle_edit_object:
             col = layout.split().column()
-            row = col.row()
 
-            if context.sculpt_object and brush:
-                defaultbrushes = 8
-            elif context.texture_paint_object and brush:
-                defaultbrushes = 4
+            if context.sculpt_object and context.tool_settings.sculpt:
+                col.template_ID_preview(settings, "brush", new="brush.add", filter="is_sculpt_brush", rows=3, cols=8)
+            elif context.texture_paint_object and context.tool_settings.image_paint:
+                col.template_ID_preview(settings, "brush", new="brush.add", filter="is_imapaint_brush", rows=3, cols=8)
+            elif context.vertex_paint_object and context.tool_settings.vertex_paint:
+                col.template_ID_preview(settings, "brush", new="brush.add", filter="is_vpaint_brush", rows=3, cols=8)
+            elif context.weight_paint_object and context.tool_settings.weight_paint:
+                col.template_ID_preview(settings, "brush", new="brush.add", filter="is_wpaint_brush", rows=3, cols=8)
             else:
-                defaultbrushes = 7
+                row = col.row()
 
-            row.template_list(settings, "brushes", settings, "active_brush_index", rows=2, maxrows=defaultbrushes)
+                if context.sculpt_object and brush:
+                    defaultbrushes = 8
+                elif context.texture_paint_object and brush:
+                    defaultbrushes = 4
+                else:
+                    defaultbrushes = 7
 
-            col.template_ID(settings, "brush", new="brush.add")
+                row.template_list(settings, "brushes", settings, "active_brush_index", rows=2, maxrows=defaultbrushes)
 
         # Particle Mode #
 
@@ -543,44 +555,138 @@ class VIEW3D_PT_tools_brush(PaintPanel):
         # Sculpt Mode #
 
         elif context.sculpt_object and brush:
+
             col = layout.column()
+
+
             col.separator()
 
             row = col.row(align=True)
-            row.prop(brush, "size", slider=True)
 
-            if brush.sculpt_tool != 'GRAB':
-                row.prop(brush, "use_size_pressure", toggle=True, text="")
+            if brush.use_locked_size:
+                row.prop(brush, "use_locked_size", toggle=True, text="", icon='LOCKED')
+                row.prop(brush, "unprojected_radius", text="Radius", slider=True)
+            else:
+                row.prop(brush, "use_locked_size", toggle=True, text="", icon='UNLOCKED')
+                row.prop(brush, "size", text="Radius", slider=True)
+
+            row.prop(brush, "use_size_pressure", toggle=True, text="")
+
+
+            if brush.sculpt_tool not in ('SNAKE_HOOK', 'GRAB', 'ROTATE'):
+                col.separator()
 
                 row = col.row(align=True)
-                row.prop(brush, "strength", slider=True)
+
+                if brush.use_space and brush.sculpt_tool not in ('SMOOTH'):
+                    if brush.use_space_atten:
+                        row.prop(brush, "use_space_atten", toggle=True, text="", icon='LOCKED')
+                    else:
+                        row.prop(brush, "use_space_atten", toggle=True, text="", icon='UNLOCKED')
+
+                row.prop(brush, "strength", text="Strength", slider=True)
                 row.prop(brush, "use_strength_pressure", text="")
 
-                # XXX - TODO
-                #row = col.row(align=True)
-                #row.prop(brush, "jitter", slider=True)
-                #row.prop(brush, "use_jitter_pressure", toggle=True, text="")
 
-                col = layout.column()
 
-                if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
-                    col.row().prop(brush, "direction", expand=True)
+            if brush.sculpt_tool not in ('SMOOTH'):
+                col.separator()
 
-                if brush.sculpt_tool in ('DRAW', 'INFLATE', 'LAYER'):
-                    col.prop(brush, "use_accumulate")
+                row = col.row(align=True)
+                row.prop(brush, "autosmooth_factor", slider=True)
+                row.prop(brush, "use_inverse_smooth_pressure", toggle=True, text="")
 
-                if brush.sculpt_tool == 'LAYER':
-                    ob = context.sculpt_object
-                    do_persistent = True
 
-                    # not supported yet for this case
-                    for md in ob.modifiers:
-                        if md.type == 'MULTIRES':
-                            do_persistent = False
 
-                    if do_persistent:
-                        col.prop(brush, "use_persistent")
-                        col.operator("sculpt.set_persistent_base")
+            if brush.sculpt_tool in ('GRAB', 'SNAKE_HOOK'):
+                col.separator()
+
+                row = col.row(align=True)
+                row.prop(brush, "normal_weight", slider=True)
+
+
+
+            if brush.sculpt_tool in ('CREASE', 'BLOB'):
+                col.separator()
+
+                row = col.row(align=True)
+                row.prop(brush, "crease_pinch_factor", slider=True, text="Pinch")
+
+            if brush.sculpt_tool not in ('PINCH', 'INFLATE', 'SMOOTH'):
+                row = col.row(align=True)
+
+                col.separator()
+
+                if brush.use_original_normal:
+                    row.prop(brush, "use_original_normal", toggle=True, text="", icon='LOCKED')
+                else:
+                    row.prop(brush, "use_original_normal", toggle=True, text="", icon='UNLOCKED')
+
+                row.prop(brush, "sculpt_plane", text="")
+
+            #if brush.sculpt_tool in ('CLAY', 'CLAY_TUBES', 'FLATTEN', 'FILL', 'SCRAPE'):
+            if brush.sculpt_tool in ('CLAY', 'FLATTEN', 'FILL', 'SCRAPE'):
+                row = col.row(align=True)
+                row.prop(brush, "plane_offset", slider=True)
+                row.prop(brush, "use_offset_pressure", text="")
+
+                col.separator()
+
+                row= col.row()
+                row.prop(brush, "use_plane_trim", text="Trim")
+                row= col.row()
+                row.active=brush.use_plane_trim
+                row.prop(brush, "plane_trim", slider=True, text="Distance")
+
+            col.separator()
+
+            row= col.row()
+            row.prop(brush, "use_frontface", text="Front Faces Only")
+
+            #if brush.sculpt_tool in ('DRAW', 'CREASE', 'BLOB', 'LAYER', 'CLAY', 'CLAY_TUBES'):
+            if brush.sculpt_tool in ('DRAW', 'CREASE', 'BLOB', 'LAYER', 'CLAY'):
+                col.separator()
+                col.row().prop(brush, "direction", expand=True)
+            elif brush.sculpt_tool in ('FLATTEN'):
+                col.separator()
+                col.row().prop(brush, "flatten_contrast", expand=True)
+            elif brush.sculpt_tool in ('FILL'):
+                col.separator()
+                col.row().prop(brush, "fill_deepen", expand=True)
+            elif brush.sculpt_tool in ('SCRAPE'):
+                col.separator()
+                col.row().prop(brush, "scrape_peaks", expand=True)
+            elif brush.sculpt_tool in ('INFLATE'):
+                col.separator()
+                col.row().prop(brush, "inflate_deflate", expand=True)
+            elif brush.sculpt_tool in ('PINCH'):
+                col.separator()
+                col.row().prop(brush, "pinch_magnify", expand=True)
+
+
+
+            #if brush.sculpt_tool in ('DRAW', 'CREASE', 'BLOB', 'INFLATE', 'LAYER', 'CLAY', 'CLAY_TUBES'):
+            if brush.sculpt_tool in ('DRAW', 'CREASE', 'BLOB', 'INFLATE', 'LAYER', 'CLAY'):
+                col.separator()
+
+                col.prop(brush, "use_accumulate")
+
+
+
+            if brush.sculpt_tool == 'LAYER':
+                col.separator()
+
+                ob = context.sculpt_object
+                do_persistent = True
+
+                # not supported yet for this case
+                for md in ob.modifiers:
+                    if md.type == 'MULTIRES':
+                        do_persistent = False
+
+                if do_persistent:
+                    col.prop(brush, "use_persistent")
+                    col.operator("sculpt.set_persistent_base")
 
         # Texture Paint Mode #
 
@@ -590,11 +696,11 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)
-            row.prop(brush, "size", slider=True)
+            row.prop(brush, "size", text="Radius", slider=True)
             row.prop(brush, "use_size_pressure", toggle=True, text="")
 
             row = col.row(align=True)
-            row.prop(brush, "strength", slider=True)
+            row.prop(brush, "strength", text="Strength", slider=True)
             row.prop(brush, "use_strength_pressure", toggle=True, text="")
 
             row = col.row(align=True)
@@ -615,12 +721,13 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             layout.prop(context.tool_settings, "auto_normalize", text="Auto Normalize")
 
             col = layout.column()
+
             row = col.row(align=True)
-            row.prop(brush, "size", slider=True)
+            row.prop(brush, "size", text="Radius", slider=True)
             row.prop(brush, "use_size_pressure", toggle=True, text="")
 
             row = col.row(align=True)
-            row.prop(brush, "strength", slider=True)
+            row.prop(brush, "strength", text="Strength", slider=True)
             row.prop(brush, "use_strength_pressure", toggle=True, text="")
 
             row = col.row(align=True)
@@ -635,11 +742,11 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)
-            row.prop(brush, "size", slider=True)
+            row.prop(brush, "size", text="Radius", slider=True)
             row.prop(brush, "use_size_pressure", toggle=True, text="")
 
             row = col.row(align=True)
-            row.prop(brush, "strength", slider=True)
+            row.prop(brush, "strength", text="Strength", slider=True)
             row.prop(brush, "use_strength_pressure", toggle=True, text="")
 
             # XXX - TODO
@@ -666,10 +773,88 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel):
 
         col = layout.column()
 
-        col.template_ID_preview(brush, "texture", new="texture.new", rows=2, cols=4)
+        col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
 
         if context.sculpt_object:
-            col.row().prop(tex_slot, "map_mode", expand=True)
+            #XXX duplicated from properties_texture.py
+
+            wide_ui = context.region.width > narrowui
+
+
+            col.separator()
+
+
+            col.label(text="Brush Mapping:")
+            row = col.row(align=True)
+            row.prop(tex_slot, "map_mode", expand=True)
+
+            col.separator()
+
+            col = layout.column()
+            col.active = tex_slot.map_mode in ('FIXED')
+            col.label(text="Angle:")
+            
+            col = layout.column()
+            if not brush.use_anchor and brush.sculpt_tool not in ('GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE') and tex_slot.map_mode in ('FIXED'):
+                col.prop(brush, "texture_angle_source", text="")
+            else:
+                col.prop(brush, "texture_angle_source_no_random", text="")
+
+            #row = col.row(align=True)
+            #row.label(text="Angle:")
+            #row.active = tex_slot.map_mode in ('FIXED', 'TILED')
+
+            #row = col.row(align=True)
+
+            #col = row.column()
+            #col.active = tex_slot.map_mode in ('FIXED')
+            #col.prop(brush, "use_rake", toggle=True, icon='PARTICLEMODE', text="")
+
+            col = layout.column()
+            col.prop(tex_slot, "angle", text="")
+            col.active = tex_slot.map_mode in ('FIXED', 'TILED')
+
+            #col = layout.column()
+            #col.prop(brush, "use_random_rotation")
+            #col.active = (not brush.use_rake) and (not brush.use_anchor) and brush.sculpt_tool not in ('GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE') and tex_slot.map_mode in ('FIXED')
+
+            split = layout.split()
+
+            col = split.column()
+            col.prop(tex_slot, "offset")
+
+            if wide_ui:
+                col = split.column()
+            else:
+                col.separator()
+
+            col.prop(tex_slot, "size")
+
+            col = layout.column()
+
+            row = col.row(align=True)
+            row.label(text="Sample Bias:")
+            row = col.row(align=True)
+            row.prop(brush, "texture_sample_bias", slider=True, text="")
+
+            row = col.row(align=True)
+            row.label(text="Overlay:")
+            row.active = tex_slot.map_mode in ('FIXED', 'TILED')
+
+            row = col.row(align=True)
+
+            col = row.column()
+
+            if brush.use_texture_overlay:
+                col.prop(brush, "use_texture_overlay", toggle=True, text="", icon='MUTE_IPO_OFF')
+            else:
+                col.prop(brush, "use_texture_overlay", toggle=True, text="", icon='MUTE_IPO_ON')
+
+            col.active = tex_slot.map_mode in ('FIXED', 'TILED')
+
+            col = row.column()
+            col.prop(brush, "texture_overlay_alpha", text="Alpha")
+            col.active = tex_slot.map_mode in ('FIXED', 'TILED') and brush.use_texture_overlay
 
 
 class VIEW3D_PT_tools_brush_tool(PaintPanel):
@@ -693,15 +878,11 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel):
         col = layout.column(align=True)
 
         if context.sculpt_object:
-            col.prop(brush, "sculpt_tool", expand=True)
+            col.prop(brush, "sculpt_tool", expand=False, text="")
         elif context.texture_paint_object:
-            col.prop(brush, "imagepaint_tool", expand=True)
-            #col.prop_enum(settings, "tool", 'DRAW')
-            #col.prop_enum(settings, "tool", 'SOFTEN')
-            #col.prop_enum(settings, "tool", 'CLONE')
-            #col.prop_enum(settings, "tool", 'SMEAR')
+            col.prop(brush, "imagepaint_tool", expand=False, text="")
         elif context.vertex_paint_object or context.weight_paint_object:
-            col.prop(brush, "vertexpaint_tool", expand=True)
+            col.prop(brush, "vertexpaint_tool", expand=False, text="")
 
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel):
@@ -722,29 +903,83 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
         brush = settings.brush
         texture_paint = context.texture_paint_object
 
-        if context.sculpt_object:
-            if brush.sculpt_tool != 'LAYER':
-                layout.prop(brush, "use_anchor")
-            layout.prop(brush, "use_rake")
-
-        layout.prop(brush, "use_airbrush")
         col = layout.column()
-        col.active = brush.use_airbrush
-        col.prop(brush, "rate", slider=True)
 
-        if not texture_paint:
-            layout.prop(brush, "use_smooth_stroke")
+        if context.sculpt_object:
+            col.label(text="Stroke Method:")
+            col.prop(brush, "stroke_method", text="")
+
+            if brush.use_anchor:
+                col.separator()
+                row = col.row()
+                row.prop(brush, "edge_to_edge", "Edge To Edge")
+
+            if brush.use_airbrush:
+                col.separator()
+                row = col.row()
+                row.prop(brush, "rate", text="Rate", slider=True)
+
+            if brush.use_space:
+                col.separator()
+                row = col.row()
+                row.active = brush.use_space
+                row.prop(brush, "spacing", text="Spacing")
+
+            if brush.sculpt_tool not in ('GRAB', 'THUMB', 'SNAKE_HOOK', 'ROTATE') and (not brush.use_anchor) and (not brush.restore_mesh):
+                col = layout.column()
+                col.separator()
+
+                col.prop(brush, "use_smooth_stroke")
+
+                sub = col.column()
+                sub.active = brush.use_smooth_stroke
+                sub.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
+                sub.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
+
+                col.separator()
+
+                row = col.row(align=True)
+                row.prop(brush, "jitter", slider=True)
+                row.prop(brush, "use_jitter_pressure", toggle=True, text="")
+
+        else:
+            row = col.row()
+            row.prop(brush, "use_airbrush")
+
+            row = col.row()
+            row.active = brush.use_airbrush and (not brush.use_space) and (not brush.use_anchor)
+            row.prop(brush, "rate", slider=True)
+
+            col.separator()
+
+            if not texture_paint:
+                row = col.row()
+                row.prop(brush, "use_smooth_stroke")
+
+                col = layout.column()
+                col.active = brush.use_smooth_stroke
+                col.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
+                col.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
+
+            col.separator()
+
             col = layout.column()
-            col.active = brush.use_smooth_stroke
-            col.prop(brush, "smooth_stroke_radius", text="Radius", slider=True)
-            col.prop(brush, "smooth_stroke_factor", text="Factor", slider=True)
+            col.active = (not brush.use_anchor) and (brush.sculpt_tool not in ('GRAB', 'THUMB', 'ROTATE', 'SNAKE_HOOK'))
 
-        layout.prop(brush, "use_space")
-        row = layout.row(align=True)
-        row.active = brush.use_space
-        row.prop(brush, "spacing", text="Distance", slider=True)
-        if texture_paint:
-            row.prop(brush, "use_spacing_pressure", toggle=True, text="")
+            row = col.row()
+            row.prop(brush, "use_space")
+
+            row = col.row()
+            row.active = brush.use_space
+            row.prop(brush, "spacing", text="Spacing")
+
+            #col.prop(brush, "use_space_atten", text="Adaptive Strength")
+            #col.prop(brush, "use_adaptive_space", text="Adaptive Spacing")
+
+            #col.separator()
+
+            #if texture_paint:
+            #    row.prop(brush, "use_spacing_pressure", toggle=True, text="")
 
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
@@ -764,13 +999,17 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
         layout.template_curve_mapping(brush, "curve", brush=True)
 
         row = layout.row(align=True)
-        row.operator("brush.curve_preset", text="Sharp").shape = 'SHARP'
-        row.operator("brush.curve_preset", text="Smooth").shape = 'SMOOTH'
-        row.operator("brush.curve_preset", text="Max").shape = 'MAX'
-
+        row.operator("brush.curve_preset", icon="SMOOTHCURVE", text="").shape = 'SMOOTH'
+        row.operator("brush.curve_preset", icon="SPHERECURVE", text="").shape = 'ROUND'
+        row.operator("brush.curve_preset", icon="ROOTCURVE", text="").shape = 'ROOT'
+        row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
+        row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
+        row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
+        row.operator("brush.curve_preset", icon="RNDCURVE", text="").shape = 'MID9'
 
 class VIEW3D_PT_sculpt_options(PaintPanel):
     bl_label = "Options"
+    bl_default_closed = True
 
     def poll(self, context):
         return (context.sculpt_object and context.tool_settings.sculpt)
@@ -778,25 +1017,106 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
     def draw(self, context):
         layout = self.layout
 
-        sculpt = context.tool_settings.sculpt
+        wide_ui = context.region.width > narrowui
 
-        col = layout.column()
-        col.prop(sculpt, "show_brush")
-        col.prop(sculpt, "fast_navigate")
+        tool_settings = context.tool_settings
+        sculpt = tool_settings.sculpt
+        settings = self.paint_settings(context)
+        brush = settings.brush
 
-        split = self.layout.split()
+        split = layout.split()
 
         col = split.column()
-        col.label(text="Symmetry:")
+
+        col.label(text="Unified Settings:")
+        col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
+        col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
+
+        if wide_ui:
+            col = split.column()
+        else:
+            col.separator()
+
+        col.label(text="Lock:")
+        row = col.row(align=True)
+        row.prop(sculpt, "lock_x", text="X", toggle=True)
+        row.prop(sculpt, "lock_y", text="Y", toggle=True)
+        row.prop(sculpt, "lock_z", text="Z", toggle=True)
+
+class VIEW3D_PT_sculpt_symmetry(PaintPanel):
+    bl_label = "Symmetry"
+    bl_default_closed = True
+
+    def poll(self, context):
+        return (context.sculpt_object and context.tool_settings.sculpt)
+
+    def draw(self, context):
+        wide_ui = context.region.width > narrowui
+
+        layout = self.layout
+
+        sculpt = context.tool_settings.sculpt
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
+        split = layout.split()
+
+        col = split.column()
+
+        col.label(text="Mirror:")
         col.prop(sculpt, "symmetry_x", text="X")
         col.prop(sculpt, "symmetry_y", text="Y")
         col.prop(sculpt, "symmetry_z", text="Z")
 
-        col = split.column()
-        col.label(text="Lock:")
-        col.prop(sculpt, "lock_x", text="X")
-        col.prop(sculpt, "lock_y", text="Y")
-        col.prop(sculpt, "lock_z", text="Z")
+        if wide_ui:
+            col = split.column()
+        else:
+            col.separator()
+
+        col.prop(sculpt, "radial_symm", text="Radial")
+
+        col = layout.column()
+
+        col.separator()
+
+        col.prop(sculpt, "use_symmetry_feather", text="Feather")
+
+class VIEW3D_PT_tools_brush_appearance(PaintPanel):
+    bl_label = "Appearance"
+    bl_default_closed = True
+
+    def poll(self, context):
+        return (context.sculpt_object and context.tool_settings.sculpt) or (context.vertex_paint_object and context.tool_settings.vertex_paint) or (context.weight_paint_object and context.tool_settings.weight_paint) or (context.texture_paint_object and context.tool_settings.image_paint)
+
+    def draw(self, context):
+        layout = self.layout
+
+        sculpt = context.tool_settings.sculpt
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
+        col = layout.column();
+
+        if context.sculpt_object and context.tool_settings.sculpt:
+            #if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE', 'CLAY_TUBES'):
+            if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE'):
+                col.prop(brush, "add_col", text="Add Color")
+                col.prop(brush, "sub_col", text="Subtract Color")
+            else:
+                col.prop(brush, "add_col", text="Color")
+        else:
+            col.prop(brush, "add_col", text="Color")
+
+        col.separator()
+
+        col = layout.column()
+        col.label(text="Icon:")
+
+        row = col.row(align=True)
+        row.prop(brush, "icon", text="")
+
+        row = col.row(align=True)
+        row.prop(brush, "icon_filepath", text="")
 
 # ********** default tools for weightpaint ****************
 
@@ -823,7 +1143,8 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
     def draw(self, context):
         layout = self.layout
 
-        wpaint = context.tool_settings.weight_paint
+        tool_settings = context.tool_settings
+        wpaint = tool_settings.weight_paint
 
         col = layout.column()
         col.prop(wpaint, "all_faces")
@@ -835,6 +1156,10 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
             mesh = obj.data
             col.prop(mesh, "use_mirror_x")
             col.prop(mesh, "use_mirror_topology")
+
+        col.label(text="Unified Settings:")
+        col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
+        col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
 #		col.label(text="Gamma:")
@@ -855,13 +1180,18 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel):
     def draw(self, context):
         layout = self.layout
 
-        vpaint = context.tool_settings.vertex_paint
+        tool_settings = context.tool_settings
+        vpaint = tool_settings.vertex_paint
 
         col = layout.column()
         #col.prop(vpaint, "mode", text="")
         col.prop(vpaint, "all_faces")
         col.prop(vpaint, "normals")
         col.prop(vpaint, "spray")
+
+        col.label(text="Unified Settings:")
+        col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
+        col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
 #		col.label(text="Gamma:")
@@ -941,6 +1271,23 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         sub.operator("image.save_dirty", text="Save All Edited")
 
 
+class VIEW3D_PT_imagepaint_options(PaintPanel):
+    bl_label = "Options"
+    bl_default_closed = True
+
+    def poll(self, context):
+        return (context.texture_paint_object and context.tool_settings.image_paint)
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column()
+
+        tool_settings = context.tool_settings
+        col.label(text="Unified Settings:")
+        col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
+        col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
+        
 class VIEW3D_MT_tools_projectpaint_clone(bpy.types.Menu):
     bl_label = "Clone Layer"
 
@@ -948,7 +1295,7 @@ class VIEW3D_MT_tools_projectpaint_clone(bpy.types.Menu):
         layout = self.layout
         for i, tex in enumerate(context.active_object.data.uv_textures):
             prop = layout.operator("wm.context_set_int", text=tex.name)
-            prop.path = "active_object.data.uv_texture_clone_index"
+            prop.data_path = "active_object.data.uv_texture_clone_index"
             prop.value = i
 
 
@@ -959,7 +1306,7 @@ class VIEW3D_MT_tools_projectpaint_stencil(bpy.types.Menu):
         layout = self.layout
         for i, tex in enumerate(context.active_object.data.uv_textures):
             prop = layout.operator("wm.context_set_int", text=tex.name)
-            prop.path = "active_object.data.uv_texture_stencil_index"
+            prop.data_path = "active_object.data.uv_texture_stencil_index"
             prop.value = i
 
 
@@ -1008,7 +1355,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
         col = layout.column(align=True)
         col.active = pe.editable
         col.label(text="Keep:")
-        col.prop(pe, "keep_lengths", text="Lenghts")
+        col.prop(pe, "keep_lengths", text="Lengths")
         col.prop(pe, "keep_root", text="Root")
         if not pe.hair:
             col.label(text="Correct:")
@@ -1046,12 +1393,15 @@ classes = [
     VIEW3D_PT_tools_posemode_options,
     VIEW3D_PT_tools_brush,
     VIEW3D_PT_tools_brush_texture,
-    VIEW3D_PT_tools_brush_tool,
     VIEW3D_PT_tools_brush_stroke,
     VIEW3D_PT_tools_brush_curve,
+    VIEW3D_PT_tools_brush_appearance,
+    VIEW3D_PT_tools_brush_tool,
+    VIEW3D_PT_sculpt_symmetry,
     VIEW3D_PT_sculpt_options,
     VIEW3D_PT_tools_vertexpaint,
     VIEW3D_PT_tools_weightpaint_options,
+    VIEW3D_PT_imagepaint_options,
 
     VIEW3D_PT_tools_projectpaint,
     VIEW3D_MT_tools_projectpaint_clone,

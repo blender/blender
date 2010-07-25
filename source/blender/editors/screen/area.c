@@ -117,12 +117,6 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 		case NC_WINDOW:
 			ED_region_tag_redraw(ar);
 			break;
-#ifndef WM_FAST_DRAW
-		case NC_SCREEN:
-			if(note->action==NA_EDITED)
-				ED_region_tag_redraw(ar);
-			break;
-#endif
 	}
 
 	if(ar->type && ar->type->listener)
@@ -177,14 +171,18 @@ static void area_draw_azone(short x1, short y1, short x2, short y2)
 	float dx= 0.3f*(xmax-xmin);
 	float dy= 0.3f*(ymax-ymin);
 	
-	glColor4ub(255, 255, 255, 80);
+	glColor4ub(255, 255, 255, 180);
 	fdrawline(xmin, ymax, xmax, ymin);
+	glColor4ub(255, 255, 255, 130);
 	fdrawline(xmin, ymax-dy, xmax-dx, ymin);
+	glColor4ub(255, 255, 255, 80);
 	fdrawline(xmin, ymax-2*dy, xmax-2*dx, ymin);
 	
-	glColor4ub(0, 0, 0, 150);
+	glColor4ub(0, 0, 0, 210);
 	fdrawline(xmin, ymax+1, xmax+1, ymin);
+	glColor4ub(0, 0, 0, 180);
 	fdrawline(xmin, ymax-dy+1, xmax-dx+1, ymin);
+	glColor4ub(0, 0, 0, 150);
 	fdrawline(xmin, ymax-2*dy+1, xmax-2*dx+1, ymin);
 }
 
@@ -370,6 +368,12 @@ void ED_region_tag_redraw(ARegion *ar)
 		ar->do_draw= RGN_DRAW;
 		memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	}
+}
+
+void ED_region_tag_redraw_overlay(ARegion *ar)
+{
+	if(ar)
+		ar->do_draw_overlay= RGN_DRAW;
 }
 
 void ED_region_tag_redraw_partial(ARegion *ar, rcti *rct)
@@ -1417,7 +1421,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 
 	/* draw all headers types */
 	for(ht= ar->type->headertypes.first; ht; ht= ht->next) {
-		block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
+		block= uiBeginBlock(C, ar, ht->idname, UI_EMBOSS);
 		layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, yco, HEADERY-6, 1, style);
 
 		if(ht->draw) {

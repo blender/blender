@@ -95,7 +95,7 @@ static void delete_fmodifier_cb (bContext *C, void *fmods_v, void *fcm_v)
 	
 	/* send notifiers */
 	// XXX for now, this is the only way to get updates in all the right places... but would be nice to have a special one in this case 
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 }
 
 /* --------------- */
@@ -633,7 +633,7 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		
 		
 		/* 'mute' button */
-		uiItemR(subrow, &ptr, "muted", UI_ITEM_R_ICON_ONLY, "", 0);
+		uiItemR(subrow, &ptr, "mute", UI_ITEM_R_ICON_ONLY, "", 0);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		

@@ -81,6 +81,9 @@ void ED_operatortypes_curve(void)
 	
 	WM_operatortype_append(FONT_OT_open);
 	WM_operatortype_append(FONT_OT_unlink);
+	
+	WM_operatortype_append(FONT_OT_textbox_add);
+	WM_operatortype_append(FONT_OT_textbox_remove);
 
 	WM_operatortype_append(CURVE_OT_hide);
 	WM_operatortype_append(CURVE_OT_reveal);
@@ -102,7 +105,14 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_primitive_nurbs_curve_add);
 	WM_operatortype_append(CURVE_OT_primitive_nurbs_circle_add);
 	WM_operatortype_append(CURVE_OT_primitive_nurbs_path_add);
-
+	
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_curve_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_circle_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_surface_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_tube_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_sphere_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_donut_add);
+	
 	WM_operatortype_append(CURVE_OT_smooth);
 	WM_operatortype_append(CURVE_OT_smooth_radius);
 
@@ -137,9 +147,10 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	keymap->poll= ED_operator_editfont;
 	
 	/* only set in editmode font, by space_view3d listener */
-	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", BKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_BOLD);
-	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_ITALIC);
-	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", UKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_UNDERLINE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", BKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_CHINFO_BOLD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_CHINFO_ITALIC);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", UKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_CHINFO_UNDERLINE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_style_toggle", PKEY, KM_PRESS, KM_CTRL, 0)->ptr, "style", CU_CHINFO_SMALLCAPS);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_delete", DELKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_NEXT_SEL);
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_PREV_SEL);
@@ -203,7 +214,6 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CURVE_OT_cyclic_toggle", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_delete", DELKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "CURVE_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_tilt_clear", TKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "TRANSFORM_OT_tilt", TKEY, KM_PRESS, KM_CTRL, 0);

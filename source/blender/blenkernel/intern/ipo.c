@@ -906,7 +906,7 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 			*array_index= dummy_index;
 	}
 	
-	/* append preceeding bits to path */
+	/* append preceding bits to path */
 	if ((actname && actname[0]) && (constname && constname[0])) {
 		/* Constraint in Pose-Channel */
 		sprintf(buf, "pose.bones[\"%s\"].constraints[\"%s\"]", actname, constname);
@@ -1068,7 +1068,7 @@ static void fcurve_add_to_list (ListBase *groups, ListBase *list, FCurve *fcu, c
 		bActionGroup *agrp= NULL;
 		
 		/* init the temp action */
-		//memset(&tmp_act, 0, sizeof(bAction)); // XXX only enable this line if we get errors
+		memset(&tmp_act, 0, sizeof(bAction)); // XXX only enable this line if we get errors
 		tmp_act.groups.first= groups->first;
 		tmp_act.groups.last= groups->last;
 		tmp_act.curves.first= list->first;
@@ -1084,8 +1084,8 @@ static void fcurve_add_to_list (ListBase *groups, ListBase *list, FCurve *fcu, c
 				agrp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
 				
 				agrp->flag = AGRP_SELECTED;
-				if(muteipo) agrp->flag |= AGRP_MUTED;
-
+				if (muteipo) agrp->flag |= AGRP_MUTED;
+				
 				strncpy(agrp->name, grpname, sizeof(agrp->name));
 				
 				BLI_addtail(&tmp_act.groups, agrp);
@@ -1097,9 +1097,9 @@ static void fcurve_add_to_list (ListBase *groups, ListBase *list, FCurve *fcu, c
 		/* WARNING: this func should only need to look at the stuff we initialised, if not, things may crash */
 		action_groups_add_channel(&tmp_act, agrp, fcu);
 		
-		if(agrp->flag & AGRP_MUTED) /* flush down */
+		if (agrp->flag & AGRP_MUTED) /* flush down */
 			fcu->flag |= FCURVE_MUTED;
-
+		
 		/* set the output lists based on the ones in the temp action */
 		groups->first= tmp_act.groups.first;
 		groups->last= tmp_act.groups.last;
@@ -1843,9 +1843,9 @@ void do_versions_ipos_to_animato(Main *main)
 		Editing * ed = scene->ed;
 		if (ed && ed->seqbasep) {
 			Sequence * seq;
-
+			
 			adt= BKE_id_add_animdata(id);
-
+			
 			SEQ_BEGIN(ed, seq) {
 				IpoCurve *icu = (seq->ipo) ? seq->ipo->curve.first : NULL;
 				short adrcode = SEQ_FAC1;
@@ -1877,8 +1877,7 @@ void do_versions_ipos_to_animato(Main *main)
 				icu->adrcode = adrcode;
 				
 				/* convert IPO */
-				ipo_to_animdata((ID *)scene, seq->ipo, 
-						NULL, NULL, seq);
+				ipo_to_animdata((ID *)scene, seq->ipo, NULL, NULL, seq);
 				seq->ipo->id.us--;
 				seq->ipo = NULL;
 			}

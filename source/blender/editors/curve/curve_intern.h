@@ -66,6 +66,9 @@ void FONT_OT_change_spacing(struct wmOperatorType *ot);
 void FONT_OT_open(struct wmOperatorType *ot);
 void FONT_OT_unlink(struct wmOperatorType *ot);
 
+void FONT_OT_textbox_add(struct wmOperatorType *ot);
+void FONT_OT_textbox_remove(struct wmOperatorType *ot);
+
 /* editcurve.c */
 void CURVE_OT_hide(struct wmOperatorType *ot);
 void CURVE_OT_reveal(struct wmOperatorType *ot);
@@ -90,6 +93,13 @@ void CURVE_OT_primitive_bezier_circle_add(struct wmOperatorType *ot);
 void CURVE_OT_primitive_nurbs_curve_add(struct wmOperatorType *ot);
 void CURVE_OT_primitive_nurbs_circle_add(struct wmOperatorType *ot);
 void CURVE_OT_primitive_nurbs_path_add(struct wmOperatorType *ot);
+
+void SURFACE_OT_primitive_nurbs_surface_curve_add(struct wmOperatorType *ot);
+void SURFACE_OT_primitive_nurbs_surface_circle_add(struct wmOperatorType *ot);
+void SURFACE_OT_primitive_nurbs_surface_surface_add(struct wmOperatorType *ot);
+void SURFACE_OT_primitive_nurbs_surface_tube_add(struct wmOperatorType *ot);
+void SURFACE_OT_primitive_nurbs_surface_sphere_add(struct wmOperatorType *ot);
+void SURFACE_OT_primitive_nurbs_surface_donut_add(struct wmOperatorType *ot);
 
 void CURVE_OT_de_select_first(struct wmOperatorType *ot);
 void CURVE_OT_de_select_last(struct wmOperatorType *ot);

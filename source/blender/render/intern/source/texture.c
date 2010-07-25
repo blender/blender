@@ -98,7 +98,7 @@ void init_render_texture(Render *re, Tex *tex)
 	if(tex->type==TEX_PLUGIN) {
 		if(tex->plugin && tex->plugin->doit) {
 			if(tex->plugin->cfra) {
-				*(tex->plugin->cfra)= (float)cfra; //frame_to_float(re->scene, cfra); // XXX old animsys - timing stuff to be fixed 
+				*(tex->plugin->cfra)= (float)cfra; //BKE_curframe(re->scene); // XXX old animsys - timing stuff to be fixed 
 			}
 		}
 	}
@@ -1762,7 +1762,7 @@ void do_material_tex(ShadeInput *shi)
 					// NOTE: test for shi->obr->ob here, since vlr/obr/obi can be 'fake' when called from fastshade(), another reason to move it..
 					// NOTE: shi->v1 is NULL when called from displace_render_vert, assigning verts in this case is not trivial because the shi quad face side is not know.
 					if ((mtex->texflag & MTEX_NEW_BUMP) && shi->obr && shi->obr->ob && shi->v1) {
-						if(mtex->mapto & (MAP_NORM|MAP_DISPLACE|MAP_WARP) && !((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP))) {
+						if(mtex->mapto & (MAP_NORM|MAP_WARP) && !((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP))) {
 							MTFace* tf = RE_vlakren_get_tface(shi->obr, shi->vlr, i, NULL, 0);
 							int j1 = shi->i1, j2 = shi->i2, j3 = shi->i3;
 
@@ -1833,7 +1833,7 @@ void do_material_tex(ShadeInput *shi)
 			else continue;	// can happen when texco defines disappear and it renders old files
 
 			/* the pointer defines if bumping happens */
-			if(mtex->mapto & (MAP_NORM|MAP_DISPLACE|MAP_WARP)) {
+			if(mtex->mapto & (MAP_NORM|MAP_WARP)) {
 				texres.nor= norvec;
 				norvec[0]= norvec[1]= norvec[2]= 0.0;
 			}
@@ -2219,8 +2219,7 @@ void do_material_tex(ShadeInput *shi)
 				}
 				
 				if(rgbnor & TEX_RGB) {
-					if(texres.talpha) texres.tin= texres.ta;
-					else texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
+					texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
 				}
 
 				factt= (0.5f-texres.tin)*mtex->dispfac*stencilTin; facmm= 1.0f-factt;

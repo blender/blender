@@ -405,7 +405,7 @@ static void rna_def_library(BlenderRNA *brna)
 	/* TODO - lib->filename isnt updated, however the outliner also skips this, probably only needed on read. */
 	
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_struct_type(prop, "Library");
 	RNA_def_property_ui_text(prop, "Parent", "");	
 }
 void RNA_def_ID(BlenderRNA *brna)

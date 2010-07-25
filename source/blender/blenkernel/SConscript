@@ -67,6 +67,7 @@ if env['BF_NO_ELBEEM']:
 
 if env['WITH_BF_LCMS']:
 	defs.append('WITH_LCMS')
+	incs += ' ' + env['BF_LCMS_INC']
 
 if env['WITH_BF_LZO']:
 	incs += ' #/extern/lzo/minilzo'

@@ -69,6 +69,14 @@ class SEQUENCER_HT_header(bpy.types.Header):
         else:
             layout.prop(st, "display_channel", text="Channel")
 
+            ed = context.scene.sequence_editor
+            if ed:
+                row = layout.row(align=True)
+                row.prop(ed, "show_overlay", text="", icon='GHOST_ENABLED')
+                if ed.show_overlay:
+                    row.prop(ed, "overlay_frame", text="")
+                    row.prop(ed, "overlay_lock", text="", icon='LOCKED')
+
 
 class SEQUENCER_MT_view_toggle(bpy.types.Menu):
     bl_label = "View Type"
@@ -126,6 +134,10 @@ class SEQUENCER_MT_view(bpy.types.Menu):
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text='Fit preview in window')
             layout.operator_context = 'INVOKE_DEFAULT'
+
+            # # XXX, invokes in the header view
+            # layout.operator("sequencer.view_ghost_border", text='Overlay Border')
+
         layout.operator("sequencer.view_selected")
 
         layout.prop(st, "draw_frames")
@@ -279,6 +291,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 
         layout.separator()
         layout.operator("sequencer.reload")
+        layout.operator("sequencer.reassign_inputs")
         layout.separator()
         layout.operator("sequencer.lock")
         layout.operator("sequencer.unlock")
@@ -290,6 +303,10 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator("sequencer.snap")
 
         layout.operator_menu_enum("sequencer.swap", "side")
+
+        layout.separator()
+
+        layout.operator("sequencer.swap_data")
 
 
 class SequencerButtonsPanel(bpy.types.Panel):
@@ -319,7 +336,9 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
+        scene = context.scene
         render = context.scene.render
+        frame_current = scene.frame_current
         strip = act_strip(context)
 
         split = layout.split(percentage=0.3)
@@ -334,38 +353,30 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         split.label(text="Blend:")
         split.prop(strip, "blend_mode", text="")
 
-        row = layout.row()
-        if strip.mute == True:
-            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON', text="")
-        elif strip.mute is False:
-            row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_OFF', text="")
-
+        row = layout.row(align=True)
         sub = row.row()
         sub.active = (not strip.mute)
-
         sub.prop(strip, "blend_opacity", text="Opacity", slider=True)
-
-        row = layout.row()
-        row.prop(strip, "lock")
-        row.prop(strip, "frame_locked", text="Frame Lock")
+        sub = row.row()
+        row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON' if strip.mute else 'RESTRICT_VIEW_OFF', text="")
+        row.prop(strip, "lock", toggle=True, icon='LOCKED' if strip.lock else 'UNLOCKED', text="")
 
         col = layout.column()
-        col.enabled = not strip.lock
-        col.prop(strip, "channel")
-        col.prop(strip, "frame_start")
-        subrow = col.split(percentage=0.66)
-        subrow.prop(strip, "length")
-        subrow.label(text="%.2f sec" % (strip.length / (render.fps / render.fps_base)))
+        sub = col.column()
+        sub.enabled = not strip.lock
+        sub.prop(strip, "channel")
+        sub.prop(strip, "frame_start")
+        sub.prop(strip, "frame_final_length")
 
         col = layout.column(align=True)
-        col.label(text="Offset:")
-        col.prop(strip, "frame_offset_start", text="Start")
-        col.prop(strip, "frame_offset_end", text="End")
+        row = col.row()
+        row.label(text="Final Length: %s" % bpy.utils.smpte_from_frame(strip.frame_final_length))
+        row = col.row()
+        row.active = (frame_current >= strip.frame_start and frame_current <= strip.frame_start + strip.frame_length)
+        row.label(text="Playhead: %d" % (frame_current - strip.frame_start))
 
-        col = layout.column(align=True)
-        col.label(text="Still:")
-        col.prop(strip, "frame_still_start", text="Start")
-        col.prop(strip, "frame_still_end", text="End")
+        col.label(text="Frame Offset %d:%d" % (strip.frame_offset_start, strip.frame_offset_end))
+        col.label(text="Frame Still %d:%d" % (strip.frame_still_start, strip.frame_still_end))
 
 
 class SEQUENCER_PT_preview(bpy.types.Panel):
@@ -457,7 +468,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
             row = layout.row(align=True)
             sub = row.row()
             sub.scale_x = 2.0
-          
+
             if not context.screen.animation_playing:
                 sub.operator("screen.animation_play", text="", icon='PLAY')
             else:
@@ -475,6 +486,20 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
                 col.prop(strip, "use_effect_default_fade", "Default fade")
                 if not strip.use_effect_default_fade:
                     col.prop(strip, "effect_fader", text="Effect fader")
+        
+        layout.prop(strip, "use_translation", text="Image Offset:")
+        if strip.use_translation:
+            col = layout.column(align=True)
+            col.prop(strip.transform, "offset_x", text="X")
+            col.prop(strip.transform, "offset_y", text="Y")
+
+        layout.prop(strip, "use_crop", text="Image Crop:")
+        if strip.use_crop:
+            col = layout.column(align=True)
+            col.prop(strip.crop, "top")
+            col.prop(strip.crop, "left")
+            col.prop(strip.crop, "bottom")
+            col.prop(strip.crop, "right")
 
     def draw_panel_transform(self, strip):
         layout = self.layout
@@ -536,16 +561,14 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
         self.draw_filename(context)
 
         layout.prop(strip, "use_translation", text="Image Offset:")
-        if strip.transform:
+        if strip.use_translation:
             col = layout.column(align=True)
-            col.active = strip.use_translation
             col.prop(strip.transform, "offset_x", text="X")
             col.prop(strip.transform, "offset_y", text="Y")
 
         layout.prop(strip, "use_crop", text="Image Crop:")
-        if strip.crop:
+        if strip.use_crop:
             col = layout.column(align=True)
-            col.active = strip.use_crop
             col.prop(strip.crop, "top")
             col.prop(strip.crop, "left")
             col.prop(strip.crop, "bottom")
@@ -580,6 +603,7 @@ class SEQUENCER_PT_input_movie(SEQUENCER_PT_input):
         col.label(text="Path:")
         col = split.column()
         col.prop(strip, "filepath", text="")
+        col.prop(strip, "mpeg_preseek", text="MPEG Preseek")
 
 
 class SEQUENCER_PT_input_image(SEQUENCER_PT_input):
@@ -736,24 +760,25 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 
         col = layout.column()
         col.label(text="Colors:")
+        col.prop(strip, "color_saturation", text="Saturation")
         col.prop(strip, "multiply_colors", text="Multiply")
         col.prop(strip, "premultiply")
         col.prop(strip, "convert_float")
 
         layout.prop(strip, "use_color_balance")
-        if strip.color_balance: # TODO - need to add this somehow
+        if strip.use_color_balance and strip.color_balance: # TODO - need to add this somehow
             row = layout.row()
             row.active = strip.use_color_balance
             col = row.column()
-            col.template_color_wheel(strip.color_balance, "lift", value_slider=False)
+            col.template_color_wheel(strip.color_balance, "lift", value_slider=False, cubic=True)
             col.row().prop(strip.color_balance, "lift")
             col.prop(strip.color_balance, "inverse_lift", text="Inverse")
             col = row.column()
-            col.template_color_wheel(strip.color_balance, "gamma", value_slider=False)
+            col.template_color_wheel(strip.color_balance, "gamma", value_slider=False, lock_luminosity=True, cubic=True)
             col.row().prop(strip.color_balance, "gamma")
             col.prop(strip.color_balance, "inverse_gamma", text="Inverse")
             col = row.column()
-            col.template_color_wheel(strip.color_balance, "gain", value_slider=False)
+            col.template_color_wheel(strip.color_balance, "gain", value_slider=False, lock_luminosity=True, cubic=True)
             col.row().prop(strip.color_balance, "gain")
             col.prop(strip.color_balance, "inverse_gain", text="Inverse")
 

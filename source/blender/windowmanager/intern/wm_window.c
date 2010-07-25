@@ -258,7 +258,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 	}
 	else {
 		
-		/* this is set to 1 if you don't have .B.blend open */
+		/* this is set to 1 if you don't have startup.blend open */
 		if(G.save_over) {
 			char *str= MEM_mallocN(strlen(G.sce) + 16, "title");
 			
@@ -729,7 +729,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 					CTX_wm_window_set(C, win);
 					
 					WM_operator_properties_create(&props_ptr, "WM_OT_open_mainfile");
-					RNA_string_set(&props_ptr, "path", path);
+					RNA_string_set(&props_ptr, "filepath", path);
 					WM_operator_name_call(C, "WM_OT_open_mainfile", WM_OP_EXEC_DEFAULT, &props_ptr);
 					WM_operator_properties_free(&props_ptr);
 					

@@ -313,7 +313,7 @@ static void node_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
 		RNA_string_set(drop->ptr, "name", id->name+2);
 	}
 	if (drag->path[0]) {
-		RNA_string_set(drop->ptr, "path", drag->path);
+		RNA_string_set(drop->ptr, "filepath", drag->path);
 	}
 }
 

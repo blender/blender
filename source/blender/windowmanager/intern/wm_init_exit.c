@@ -88,7 +88,7 @@
 #include "UI_interface.h"
 #include "BLF_api.h"
 
-#include "gpu_buffers.h"
+#include "GPU_buffers.h"
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 
@@ -163,7 +163,11 @@ void WM_init(bContext *C, int argc, char **argv)
 	
 	G.ndofdevice = -1;	/* XXX bad initializer, needs set otherwise buttons show! */
 	
-	read_Blog();
+	read_history();
+
+	if(G.sce[0] == 0)
+		BLI_make_file_string("/", G.sce, BLI_getDefaultDocumentFolder(), "untitled.blend");
+
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
 
 }
@@ -202,7 +206,7 @@ static void free_openrecent(void)
 	struct RecentFile *recent;
 	
 	for(recent = G.recent_files.first; recent; recent=recent->next)
-		MEM_freeN(recent->filename);
+		MEM_freeN(recent->filepath);
 	
 	BLI_freelistN(&(G.recent_files));
 }

@@ -285,32 +285,6 @@ void uiEndPanel(uiBlock *block, int width, int height)
 	}
 }
 
-#if 0
-void uiPanelToMouse(const bContext *C, Panel *pa)
-{
-	/* global control over this feature; UI_PNL_TO_MOUSE only called for hotkey panels */
-	if(U.uiflag & USER_PANELPINNED);
-	else if(pa->control & UI_PNL_TO_MOUSE) {
-		int mx, my;
-
-		mx= CTX_wm_window(C)->eventstate->x;
-		my= CTX_wm_window(C)->eventstate->y;
-		
-		pa->ofsx= mx-pa->sizex/2;
-		pa->ofsy= my-pa->sizey/2;
-		
-		if(pa->flag & PNL_CLOSED) pa->flag &= ~PNL_CLOSED;
-	}
-	
-	if(pa->control & UI_PNL_UNSTOW) {
-		if(pa->flag & PNL_CLOSEDY) {
-			pa->flag &= ~PNL_CLOSED;
-		}
-	}
-}
-#endif
-
-
 static void ui_offset_panel_block(uiBlock *block)
 {
 	uiStyle *style= U.uistyles.first;
@@ -655,6 +629,10 @@ static int find_leftmost_panel(const void *a1, const void *a2)
 static int find_highest_panel(const void *a1, const void *a2)
 {
 	const PanelSort *ps1=a1, *ps2=a2;
+	
+	/* stick uppermost header-less panels to the top of the region -
+	 * prevent them from being sorted */
+	if (ps1->pa->sortorder < ps2->pa->sortorder && ps1->pa->type->flag & PNL_NO_HEADER) return -1;
 	
 	if(ps1->pa->ofsy+ps1->pa->sizey < ps2->pa->ofsy+ps2->pa->sizey) return 1;
 	else if(ps1->pa->ofsy+ps1->pa->sizey > ps2->pa->ofsy+ps2->pa->sizey) return -1;
@@ -1055,7 +1033,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 				inside= 1;
 		
 		if(inside && event->val==KM_PRESS) {
-			if(event->type == AKEY) {
+			if(event->type == AKEY && !ELEM4(1, event->ctrl, event->oskey, event->shift, event->alt)) {
 				
 				if(pa->flag & PNL_CLOSEDY) {
 					if((block->maxy <= my) && (block->maxy+PNL_HEADER >= my))

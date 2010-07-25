@@ -192,9 +192,40 @@ IF(WITH_INSTALL)
 		ENDIF(WITH_GAMEENGINE AND WITH_PLAYER)
 
 		INSTALL(
-			DIRECTORY ${TARGETDIR}/.blender/
-			DESTINATION ${BLENDERPATH}
+            FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications
+        )
+		INSTALL(
+            FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/blender.svg
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps
+        )
+		INSTALL(
+			PROGRAMS ${CMAKE_SOURCE_DIR}/bin/blender-thumbnailer.py
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 		)
+		INSTALL(
+            FILES ${CMAKE_SOURCE_DIR}/doc/blender.1
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
+        )
+		INSTALL(
+            DIRECTORY ${CMAKE_SOURCE_DIR}/release/text/
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/blender
+            PATTERN ".svn" EXCLUDE
+        )
+		INSTALL(
+            DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts/
+            DESTINATION ${BLENDERPATH}/scripts
+            PATTERN ".svn" EXCLUDE
+			PATTERN "*.pyc" EXCLUDE
+        )
+		IF(WITH_INTERNATIONAL)
+			INSTALL(
+    	        DIRECTORY ${CMAKE_SOURCE_DIR}/bin/.blender/locale/
+    	        DESTINATION ${BLENDERPATH}/datafiles/locale
+    	        PATTERN ".svn" EXCLUDE
+	        )
+		ENDIF(WITH_INTERNATIONAL)
+        
 		# end "make install"
     
 	ENDIF(UNIX AND NOT APPLE)
@@ -210,18 +241,16 @@ IF(WITH_INSTALL)
 			COMMAND cp -Rf ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/blender.app/Contents/
 			COMMAND cp -Rf ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/blender.app/Contents/
 			COMMAND cat ${SOURCEINFO} | sed s/VERSION/`cat ${CMAKE_SOURCE_DIR}/release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
-			COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/.blender
-			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-			COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.bfont.ttf ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+			COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/datafiles
+			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
+			COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.bfont.ttf ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
 		)
       
 		IF(WITH_INTERNATIONAL)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/Resources/
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-				COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/Resources/
+				COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
 			)
 		ENDIF(WITH_INTERNATIONAL)
       
@@ -233,9 +262,10 @@ IF(WITH_INSTALL)
 			ENDIF(WITH_LIBS10.5)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
-				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/scripts/
+				COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/python/
+				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/python/
+				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${TARGETDIR}/blender.app/Contents/MacOS/python/
 				COMMAND find ${TARGETDIR}/blender.app -name "*.py?" -prune -exec rm -rf {} "\;"
 			)
 		ENDIF(WITH_PYTHON)      
@@ -394,8 +424,6 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
         bf_editor_datafiles
 
 		blender_BSP 
-		bf_ghost 
-		bf_string 
 		blender_render 
 		blender_ONL 
 		bf_python 
@@ -406,9 +434,11 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		bf_nodes
 		bf_gpu
 		bf_blenloader
+		bf_blenlib
+		bf_ghost
+		bf_string
 		bf_blenpluginapi 
 		bf_imbuf 
-		bf_blenlib 
 		bf_avi 
 		bf_cineon 
 		bf_openexr 
@@ -426,7 +456,6 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		blender_CTR 
 		bf_moto 
 		bf_windowmanager
-		bf_editors
 		bf_blroutines 
 		bf_converter 
 		bf_dummy 

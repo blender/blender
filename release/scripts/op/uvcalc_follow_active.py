@@ -65,9 +65,9 @@ def extend(obj, operator, EXTEND_MODE):
 
         # vertex index is the key, uv is the value
 
-        uvs_vhash_source = dict([(vindex, uvs_source[i]) for i, vindex in enumerate(vidx_source)])
+        uvs_vhash_source = {vindex: uvs_source[i] for i, vindex in enumerate(vidx_source)}
 
-        uvs_vhash_target = dict([(vindex, uvs_target[i]) for i, vindex in enumerate(vidx_target)])
+        uvs_vhash_target = {vindex: uvs_target[i] for i, vindex in enumerate(vidx_target)}
 
         edge_idxs_source = face_edge_vs(vidx_source)
         edge_idxs_target = face_edge_vs(vidx_target)
@@ -146,7 +146,7 @@ def extend(obj, operator, EXTEND_MODE):
         operator.report({'ERROR'}, "No active face.")
         return
 
-    face_sel = [f for f in me.faces if len(f.verts) == 4 and f.selected]
+    face_sel = [f for f in me.faces if len(f.verts) == 4 and f.select]
 
     face_act_local_index = -1
     for i, f in enumerate(face_sel):

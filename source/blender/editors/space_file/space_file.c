@@ -393,8 +393,6 @@ void file_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "FILE_OT_directory_new", IKEY, KM_PRESS, 0, 0);  /* XXX needs button */
 	WM_keymap_add_item(keymap, "FILE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_delete", DELKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_delete", BACKSPACEKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_verify_item(keymap, "FILE_OT_smoothscroll", TIMER1, KM_ANY, KM_ANY, 0);
 
 	/* keys for main area */
@@ -591,9 +589,16 @@ void ED_spacetype_file(void)
 
 void ED_file_init(void)
 {
-	char name[FILE_MAX];
-	BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
-	fsmenu_read_file(fsmenu_get(), name);
+	char *cfgdir = BLI_get_folder(BLENDER_CONFIG, NULL);
+	
+	fsmenu_read_system(fsmenu_get());
+
+	if (cfgdir) {
+		char name[FILE_MAX];
+		BLI_make_file_string("/", name, cfgdir, BLENDER_BOOKMARK_FILE);
+		fsmenu_read_bookmarks(fsmenu_get(), name);
+	}
+	
 	filelist_init_icons();
 	IMB_thumb_makedirs();
 }

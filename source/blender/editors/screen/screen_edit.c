@@ -25,6 +25,8 @@
  */
 
 #include <string.h>
+#include <math.h>
+
 
 #include "MEM_guardedalloc.h"
 
@@ -1651,7 +1653,7 @@ void ED_refresh_viewport_fps(bContext *C)
 /* redraws: uses defines from stime->redraws 
  * enable: 1 - forward on, -1 - backwards on, 0 - off
  */
-void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
+void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, int enable)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -1666,11 +1668,14 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
 		ScreenAnimData *sad= MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData");
 		
 		screen->animtimer= WM_event_add_timer(wm, win, TIMER0, (1.0/FPS));
+		
 		sad->ar= CTX_wm_region(C);
 		sad->sfra = scene->r.cfra;
 		sad->redraws= redraws;
+		sad->refresh= refresh;
 		sad->flag |= (enable < 0)? ANIMPLAY_FLAG_REVERSE: 0;
 		sad->flag |= (sync == 0)? ANIMPLAY_FLAG_NO_SYNC: (sync == 1)? ANIMPLAY_FLAG_SYNC: 0;
+		
 		screen->animtimer->customdata= sad;
 		
 	}
@@ -1702,13 +1707,14 @@ static ARegion *time_top_left_3dwindow(bScreen *screen)
 	return aret;
 }
 
-void ED_screen_animation_timer_update(bScreen *screen, int redraws)
+void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
 {
 	if(screen && screen->animtimer) {
 		wmTimer *wt= screen->animtimer;
 		ScreenAnimData *sad= wt->customdata;
 		
 		sad->redraws= redraws;
+		sad->refresh= refresh;
 		sad->ar= NULL;
 		if(redraws & TIME_REGION)
 			sad->ar= time_top_left_3dwindow(screen);
@@ -1735,6 +1741,10 @@ void ED_update_for_newframe(const bContext *C, int mute)
 
 	//extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	
+	/* update animated image textures for gpu, etc,
+	 * call before scene_update_for_newframe so modifiers with textuers dont lag 1 frame */
+	ED_image_update_frame(C);
+
 	/* this function applies the changes too */
 	/* XXX future: do all windows */
 	scene_update_for_newframe(scene, BKE_screen_visible_layers(screen, scene)); /* BKE_scene.h */
@@ -1751,9 +1761,6 @@ void ED_update_for_newframe(const bContext *C, int mute)
 	/* composite */
 	if(scene->use_nodes && scene->nodetree)
 		ntreeCompositTagAnimated(scene->nodetree);
-	
-	/* update animated image textures for gpu, etc */
-	ED_image_update_frame(C);
 	
 	/* update animated texture nodes */
 	{

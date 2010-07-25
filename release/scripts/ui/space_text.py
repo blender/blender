@@ -54,6 +54,9 @@ class TEXT_HT_header(bpy.types.Header):
         if text:
             row = layout.row()
             row.operator("text.run_script")
+
+            row = layout.row()
+            row.active = text.name.endswith(".py")
             row.prop(text, "use_module")
 
             row = layout.row()
@@ -63,10 +66,7 @@ class TEXT_HT_header(bpy.types.Header):
                 else:
                     row.label(text="File: %s" % text.filepath)
             else:
-                if text.library:
-                    row.label(text="Text: External")
-                else:
-                    row.label(text="Text: Internal")
+                row.label(text="Text: External" if text.library else "Text: Internal")
 
 
 class TEXT_PT_properties(bpy.types.Panel):

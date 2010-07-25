@@ -264,7 +264,7 @@ void UI_DrawString(float x, float y, char *str)
 
 /* ************** init exit ************************ */
 
-/* called on each .B.blend read */
+/* called on each startup.blend read */
 /* reading without uifont will create one */
 void uiStyleInit(void)
 {

@@ -160,24 +160,8 @@ static void rna_Texture_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Texture_type_set(PointerRNA *ptr, int value)
 {
 	Tex *tex= (Tex*)ptr->data;
-
-	switch(value) {
-
-		case TEX_VOXELDATA:
-			if (tex->vd == NULL)
-				tex->vd = BKE_add_voxeldata();
-			break;
-		case TEX_POINTDENSITY:
-			if (tex->pd == NULL)
-				tex->pd = BKE_add_pointdensity();
-			break;
-		case TEX_ENVMAP:
-			if (tex->env == NULL)
-				tex->env = BKE_add_envmap();
-			break;
-	}
 	
-	tex->type = value;
+	tex_set_type(tex, value);
 }
 
 void rna_TextureSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -1721,6 +1705,11 @@ static void rna_def_texture(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "contrast", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01, 5);
 	RNA_def_property_ui_text(prop, "Contrast", "");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+
+	prop= RNA_def_property(srna, "saturation", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 2);
+	RNA_def_property_ui_text(prop, "Saturation", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	/* RGB Factor */

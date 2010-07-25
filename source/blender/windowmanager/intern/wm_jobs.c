@@ -339,28 +339,32 @@ void WM_jobs_stop_all(wmWindowManager *wm)
 	
 }
 
-/* signal job(s) from this owner to stop, timer is required to get handled */
-void WM_jobs_stop(wmWindowManager *wm, void *owner)
+/* signal job(s) from this owner or callback to stop, timer is required to get handled */
+void WM_jobs_stop(wmWindowManager *wm, void *owner, void *startjob)
 {
 	wmJob *steve;
 	
 	for(steve= wm->jobs.first; steve; steve= steve->next)
-		if(steve->owner==owner)
+		if(steve->owner==owner || steve->startjob==startjob)
 			if(steve->running)
 				steve->stop= 1;
 }
 
 /* actually terminate thread and job timer */
-void WM_jobs_kill(wmWindowManager *wm, void *owner)
+void WM_jobs_kill(wmWindowManager *wm, void *owner, void *startjob)
 {
 	wmJob *steve;
 	
-	for(steve= wm->jobs.first; steve; steve= steve->next)
-		if(steve->owner==owner)
-			break;
-	
-	if (steve) 
-		wm_jobs_kill_job(wm, steve);
+	steve= wm->jobs.first;
+	while(steve) {
+		if(steve->owner==owner || steve->startjob==startjob) {
+			wmJob* bill = steve;
+			steve= steve->next;
+			wm_jobs_kill_job(wm, bill);
+		} else {
+			steve= steve->next;
+		}
+	}
 }
 
 
@@ -449,12 +453,15 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 		}
 	}
 	
-	/* if there are running jobs, set the global progress indicator */
-	if (jobs_progress > 0) {
-		float progress = total_progress / (float)jobs_progress;
-		WM_progress_set(wm->winactive, progress);
-	} else {
-		WM_progress_clear(wm->winactive);
+	/* on file load 'winactive' can be NULL, possibly it should not happen but for now do a NULL check - campbell */
+	if(wm->winactive) {
+		/* if there are running jobs, set the global progress indicator */
+		if (jobs_progress > 0) {
+			float progress = total_progress / (float)jobs_progress;
+			WM_progress_set(wm->winactive, progress);
+		} else {
+			WM_progress_clear(wm->winactive);
+		}
 	}
 }
 

@@ -82,7 +82,7 @@ def create_derived_objects(scene, ob):
         ob.create_dupli_list(scene)
         return True, [(dob.object, dob.matrix) for dob in ob.dupli_list]
     else:
-        return False, [(ob, ob.matrix)]
+        return False, [(ob, ob.matrix_world)]
 
 # also used by X3D exporter
 def free_derived_objects(ob):
@@ -1006,7 +1006,7 @@ def save_3ds(filename, context):
                             mat = mat_ls[mat_index]
                             if mat:	mat_name = mat.name
                             else:	mat_name = None
-                        # else there alredy set to none
+                        # else there already set to none
 
                         img = uf.image
 # 						img = f.image
@@ -1122,12 +1122,11 @@ class Export3DS(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
 
-    # filename = StringProperty(name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
-    path = StringProperty(name="File Path", description="File path used for exporting the 3DS file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the 3DS file", maxlen= 1024, default= "")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     def execute(self, context):
-        save_3ds(self.properties.path, context)
+        save_3ds(self.properties.filepath, context)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -1141,8 +1140,8 @@ class Export3DS(bpy.types.Operator):
 
 # Add to a menu
 def menu_func(self, context):
-    default_path = bpy.data.filepath.replace(".blend", ".3ds")
-    self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)").path = default_path
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".3ds"
+    self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)").filepath = default_path
 
 
 def register():
@@ -1155,4 +1154,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

@@ -33,7 +33,7 @@ def get_console(console_id):
     '''
     helper function for console operators
     currently each text datablock gets its own
-    console - bpython_code.InteractiveConsole()
+    console - code.InteractiveConsole()
     ...which is stored in this function.
 
     console_id can be any hashable type
@@ -44,28 +44,31 @@ def get_console(console_id):
 
     if consoles is None:
         consoles = get_console.consoles = {}
+    else:
+        # check if clearning the namespace is needed to avoid a memory leak.
+        # the window manager is normally loaded with new blend files
+        # so this is a reasonable way to deal with namespace clearing.
+        # bpy.data hashing is reset by undo so cant be used.
+        hash_prev = getattr(get_console, "consoles_namespace_hash", 0)
+        hash_next = hash(bpy.context.manager)
 
-    # clear all dead consoles, use text names as IDs
-    # TODO, find a way to clear IDs
-    '''
-    for console_id in list(consoles.keys()):
-        if console_id not in bpy.data.texts:
-            del consoles[id]
-    '''
+        if hash_prev != hash_next:
+            get_console.consoles_namespace_hash = hash_next
+            consoles.clear()
 
     console_data = consoles.get(console_id)
 
     if console_data:
         console, stdout, stderr = console_data
 
-        # XXX, bug in python 3.1.2 ?
+        # XXX, bug in python 3.1.2 ? (worked in 3.1.1)
         # seems there is no way to clear StringIO objects for writing, have to make new ones each time.
         import io
         stdout = io.StringIO()
         stderr = io.StringIO()
     else:
         namespace = {'__builtins__': __builtins__, 'bpy': bpy}
-        console = InteractiveConsole(namespace)
+        console = InteractiveConsole(locals=namespace, filename="<blender_console>")
 
         import io
         stdout = io.StringIO()
@@ -121,7 +124,7 @@ def execute(context):
         # unlikely, but this can happen with unicode errors for example.
         import traceback
         stderr.write(traceback.format_exc())
-        
+
 
     stdout.seek(0)
     stderr.seek(0)
@@ -180,7 +183,7 @@ def autocomplete(context):
     # note: unlikely stdin would be used for autocomp. but its possible.
     stdin_backup = sys.stdin
     sys.stdin = None
-    
+
     scrollback = ""
     scrollback_error = ""
 

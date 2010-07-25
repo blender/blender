@@ -119,7 +119,7 @@ typedef struct uiWidgetColors {
 	char text_sel[4];
 	short shaded;
 	short shadetop, shadedown;
-	short pad;
+	short alpha_check;
 } uiWidgetColors;
 
 typedef struct uiWidgetStateColors {
@@ -343,7 +343,8 @@ typedef struct UserDef {
 	struct SolidLight light[3];
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
 	short textimeout,texcollectrate;
-	short wmdrawmethod, wmpad;
+	short wmdrawmethod; /* removed wmpad */
+	short pad2;
 	int memcachelimit;
 	int prefetchframes;
 	short frameserverport;
@@ -373,6 +374,9 @@ typedef struct UserDef {
 	short autokey_flag;		/* flags for autokeying */
 
 	struct ColorBand coba_weight;	/* from texture.h */
+
+	float sculpt_paint_overlay_col[3];
+	int pad3;
 } UserDef;
 
 extern UserDef U; /* from blenkernel blender.c */
@@ -390,9 +394,9 @@ extern UserDef U; /* from blenkernel blender.c */
 
 /* flag */
 #define USER_AUTOSAVE			(1 << 0)
-#define USER_AUTOGRABGRID		(1 << 1)
-#define USER_AUTOROTGRID		(1 << 2)
-#define USER_AUTOSIZEGRID		(1 << 3)
+#define USER_AUTOGRABGRID		(1 << 1)	/* deprecated */
+#define USER_AUTOROTGRID		(1 << 2)	/* deprecated */
+#define USER_AUTOSIZEGRID		(1 << 3)	/* deprecated */
 #define USER_SCENEGLOBAL		(1 << 4)
 #define USER_TRACKBALL			(1 << 5)
 #define USER_DUPLILINK			(1 << 6)
@@ -439,7 +443,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_FLIPFULLSCREEN		(1 << 7)
 #define USER_ALLWINCODECS		(1 << 8)
 #define USER_MENUOPENAUTO		(1 << 9)
-#define USER_PANELPINNED		(1 << 10)
+#define USER_PANELPINNED		(1 << 10)		/* deprecated */
 #define USER_AUTOPERSP     		(1 << 11)
 #define USER_LOCKAROUND     	(1 << 12)
 #define USER_GLOBALUNDO     	(1 << 13)

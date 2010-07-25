@@ -507,7 +507,7 @@ bool CcdPhysicsController::DeleteControllerShape( )
 bool CcdPhysicsController::ReplaceControllerShape(btCollisionShape *newShape)
 {
 	
-	/* Note, deleting the previous collision shape must be done alredy */
+	/* Note, deleting the previous collision shape must be done already */
 	/* if (m_collisionShape) DeleteControllerShape(); */
 
 	m_object->setCollisionShape(newShape);

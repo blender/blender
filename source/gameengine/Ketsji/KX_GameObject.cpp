@@ -846,7 +846,7 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 	{	
 		case 0: //x axis
 			ori.setValue(orimat[0][2], orimat[1][2], orimat[2][2]); //pivot axis
-			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON) //is the vector paralell to the pivot?
+			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON) //is the vector parallel to the pivot?
 				ori.setValue(orimat[0][1], orimat[1][1], orimat[2][1]); //change the pivot!
 			if (fac == 1.0) {
 				x = vect;
@@ -1329,7 +1329,8 @@ static int mathutils_kxgameob_vector_set(BaseMathObject *bmo, int subtype)
 			self->NodeUpdateGS(0.f);
 			break;
 		case MATHUTILS_VEC_CB_SCALE_GLOBAL:
-			break;
+			PyErr_SetString(PyExc_AttributeError, "KX_GameObject.worldScale is read-only");
+			return 0;
 		case MATHUTILS_VEC_CB_INERTIA_LOCAL:
 			/* read only */
 			break;
@@ -1370,9 +1371,7 @@ static int mathutils_kxgameob_vector_set_index(BaseMathObject *bmo, int subtype,
 		return 0;
 	
 	bmo->data[index]= f;
-	mathutils_kxgameob_vector_set(bmo, subtype);
-	
-	return 1;
+	return mathutils_kxgameob_vector_set(bmo, subtype);
 }
 
 Mathutils_Callback mathutils_kxgameob_vector_cb = {

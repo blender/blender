@@ -171,7 +171,7 @@ def prefixPath(prefix_directory, file_path, prefix_path, force = False):
         # if an absolute path, make sure path exists, if it doesn't, use relative local path
         full_path = file_path
         if force or not os.path.exists(full_path):
-            p, n = os.path.split(full_path)
+            p, n = os.path.split(os.path.normpath(full_path))
 
             if prefix_path and p.startswith(prefix_path):
                 if len(prefix_path) < len(p):
@@ -215,7 +215,7 @@ def thumbnail(filename):
         scene = bpy.data.scenes[0] # FIXME, this is dodgy!
         scene.render.file_format = "JPEG"
         scene.render.file_quality = 90
-        bpy.ops.image.open(path = filename)
+        bpy.ops.image.open(filepath=filename)
         img = bpy.data.images[imagename]
         img.save_render(thumbname, scene=scene)
 

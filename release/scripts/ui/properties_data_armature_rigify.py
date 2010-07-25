@@ -232,14 +232,14 @@ class AsScript(bpy.types.Operator):
     bl_label = "Write Metarig to Script"
     bl_options = {'REGISTER', 'UNDO'}
 
-    path = StringProperty(name="File Path", description="File path used for exporting the Armature file", maxlen=1024, default="")
+    filepath = StringProperty(name="File Path", description="File path used for exporting the Armature file", maxlen=1024, default="")
 
     def execute(self, context):
         import rigify_utils
         reload(rigify_utils)
         obj = context.object
         code = rigify_utils.write_meta_rig(obj)
-        path = self.properties.path
+        path = self.properties.filepath
         file = open(path, "w")
         file.write(code)
         file.close()
@@ -249,7 +249,7 @@ class AsScript(bpy.types.Operator):
     def invoke(self, context, event):
         import os
         obj = context.object
-        self.properties.path = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.utils.clean_name(obj.name) + ".py"
+        self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.utils.clean_name(obj.name) + ".py"
         wm = context.manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
@@ -360,6 +360,7 @@ def register():
 
 
 def unregister():
+    bpy.types.Scene.RemoveProperty("pose_templates")
     unregister = bpy.types.unregister
     for cls in classes:
         unregister(cls)

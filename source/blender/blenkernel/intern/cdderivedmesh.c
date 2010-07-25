@@ -54,7 +54,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "gpu_buffers.h"
+#include "GPU_buffers.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
@@ -186,6 +186,16 @@ static ListBase *cdDM_getFaceMap(Object *ob, DerivedMesh *dm)
 	return cddm->fmap;
 }
 
+static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
+	Mesh *me= (ob)? ob->data: NULL;
+
+	if(ob->sculpt->modifiers_active) return 0;
+
+	return (cddm->mvert == me->mvert) || ob->sculpt->kb;
+}
+
 static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
@@ -200,7 +210,7 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		return NULL;
 	if(ob->sculpt->pbvh) {
 		cddm->pbvh= ob->sculpt->pbvh;
-		cddm->pbvh_draw = (cddm->mvert == me->mvert);
+		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 	}
 
 	/* always build pbvh from original mesh, and only use it for drawing if
@@ -208,7 +218,7 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 	   that this is actually for, to support a pbvh on a modified mesh */
 	if(!cddm->pbvh && ob->type == OB_MESH) {
 		cddm->pbvh = BLI_pbvh_new();
-		cddm->pbvh_draw = (cddm->mvert == me->mvert);
+		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
 				   me->totface, me->totvert);
 	}
@@ -734,7 +744,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				if( flag != lastFlag ) {
 					if( startFace < i ) {
 						if( lastFlag != 0 ) { /* if the flag is 0 it means the face is hidden or invisible */
-							if (lastFlag==1 && mcol)
+							if (lastFlag==1 && col)
 								GPU_color_switch(1);
 							else
 								GPU_color_switch(0);
@@ -747,7 +757,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			}
 			if( startFace < dm->drawObject->nelements/3 ) {
 				if( lastFlag != 0 ) { /* if the flag is 0 it means the face is hidden or invisible */
-					if (lastFlag==1 && mcol)
+					if (lastFlag==1 && col)
 						GPU_color_switch(1);
 					else
 						GPU_color_switch(0);
@@ -853,47 +863,41 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 		}
 	}
 	else { /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
-		int state = 1;
-		int prevstate = 1;
 		int prevstart = 0;
 		GPU_vertex_setup(dm);
 		GPU_normal_setup(dm);
 		if( useColors && mc )
 			GPU_color_setup(dm);
 		if( !GPU_buffer_legacy(dm) ) {
+			int tottri = dm->drawObject->nelements/3;
 			glShadeModel(GL_SMOOTH);
-			for( i = 0; i < dm->drawObject->nelements/3; i++ ) {
+
+			for( i = 0; i < tottri; i++ ) {
 				int actualFace = dm->drawObject->faceRemap[i];
 				int drawSmooth = (mf[actualFace].flag & ME_SMOOTH);
-				int dontdraw = 0;
+				int draw = 1;
+
 				if(index) {
 					orig = index[actualFace];
 					if(setDrawOptions && orig == ORIGINDEX_NONE)
-						dontdraw = 1;
+						draw = 0;
 				}
 				else
 					orig = actualFace;
-				if( dontdraw ) {
-					state = 0;
+
+				if(draw && setDrawOptions && !setDrawOptions(userData, orig, &drawSmooth))
+					draw = 0;
+
+				/* Goal is to draw as long of a contiguous triangle
+				   array as possible, so draw when we hit either an
+				   invisible triangle or at the end of the array */
+				if(!draw || i == tottri - 1) {
+					if(prevstart != i)
+						/* Add one to the length (via `draw')
+						   if we're drawing at the end of the array */
+						glDrawArrays(GL_TRIANGLES,prevstart*3, (i-prevstart+draw)*3);
+					prevstart = i + 1;
 				}
-				else {
-					if(!setDrawOptions || setDrawOptions(userData, orig, &drawSmooth)) {
-						state = 1;
-					}
-					else {
-						state = 0;
-					}
-				}
-				if( prevstate != state && prevstate == 1 ) {
-					if( i-prevstart > 0 ) {
-						glDrawArrays(GL_TRIANGLES,prevstart*3,(i-prevstart)*3);
-					}
-					prevstart = i;
-				}
-				prevstate = state;
-			}
-			if(state==1) {
-				glDrawArrays(GL_TRIANGLES,prevstart*3,dm->drawObject->nelements-prevstart*3);
 			}
 			glShadeModel(GL_FLAT);
 		}

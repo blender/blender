@@ -102,7 +102,6 @@ FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile)
 
 short ED_fileselect_set_params(SpaceFile *sfile)
 {
-	char name[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
 	FileSelectParams *params;
 	wmOperator *op = sfile->op;
 
@@ -110,10 +109,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	if (!sfile->params) {
 		sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
 		/* set path to most recently opened .blend */
-		BLI_strncpy(sfile->params->dir, G.sce, sizeof(sfile->params->dir));
-		BLI_split_dirfile(G.sce, dir, file);
-		BLI_strncpy(sfile->params->file, file, sizeof(sfile->params->file));
-		BLI_make_file_string(G.sce, sfile->params->dir, dir, ""); /* XXX needed ? - also solve G.sce */
+		BLI_split_dirfile(G.sce, sfile->params->dir, sfile->params->file);
 	}
 
 	params = sfile->params;
@@ -127,19 +123,33 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		else
 			params->type = FILE_SPECIAL;
 
-		if (RNA_property_is_set(op->ptr, "path")) {
-			RNA_string_get(op->ptr, "path", name);
+		if (RNA_struct_find_property(op->ptr, "filepath") && RNA_property_is_set(op->ptr, "filepath")) {
+			char name[FILE_MAX];
+			RNA_string_get(op->ptr, "filepath", name);
 			if (params->type == FILE_LOADLIB) {
 				BLI_strncpy(params->dir, name, sizeof(params->dir));
-				BLI_cleanup_dir(G.sce, params->dir);	
-			} else { 
-				/* if operator has path set, use it, otherwise keep the last */
-				BLI_path_abs(name, G.sce);
-				BLI_split_dirfile(name, dir, file);
-				BLI_strncpy(params->file, file, sizeof(params->file));
-				BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */
+				sfile->params->file[0]= '\0';
+			}
+			else {
+				BLI_split_dirfile(name, sfile->params->dir, sfile->params->file);
 			}
 		}
+		else {
+			if (RNA_struct_find_property(op->ptr, "directory") && RNA_property_is_set(op->ptr, "directory")) {
+				RNA_string_get(op->ptr, "directory", params->dir);
+				sfile->params->file[0]= '\0';
+			}
+
+			if (RNA_struct_find_property(op->ptr, "filename") && RNA_property_is_set(op->ptr, "filename")) {
+				RNA_string_get(op->ptr, "filename", params->file);
+			}
+		}
+
+		if(params->dir[0]) {
+			BLI_cleanup_dir(G.sce, params->dir);
+			BLI_path_abs(params->dir, G.sce);
+		}
+
 		params->filter = 0;
 		if(RNA_struct_find_property(op->ptr, "filter_blender"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_blender") ? BLENDERFILE : 0;

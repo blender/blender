@@ -167,7 +167,7 @@ class InputKeyMapPanel(bpy.types.Panel):
         col = self.indented_layout(layout, level)
 
         row = col.row()
-        row.prop(km, "children_expanded", text="", no_bg=True)
+        row.prop(km, "children_expanded", text="", emboss=False)
         row.label(text=km.name)
 
         row.label()
@@ -186,7 +186,7 @@ class InputKeyMapPanel(bpy.types.Panel):
                 # equal in hierarchy to the other children categories
                 subcol = self.indented_layout(col, level + 1)
                 subrow = subcol.row()
-                subrow.prop(km, "items_expanded", text="", no_bg=True)
+                subrow.prop(km, "items_expanded", text="", emboss=False)
                 subrow.label(text="%s (Global)" % km.name)
             else:
                 km.items_expanded = True
@@ -227,11 +227,11 @@ class InputKeyMapPanel(bpy.types.Panel):
 
         # header bar
         row = split.row()
-        row.prop(kmi, "expanded", text="", no_bg=True)
+        row.prop(kmi, "expanded", text="", emboss=False)
 
         row = split.row()
         row.enabled = km.user_defined
-        row.prop(kmi, "active", text="", no_bg=True)
+        row.prop(kmi, "active", text="", emboss=False)
 
         if km.modal:
             row.prop(kmi, "propvalue", text="")
@@ -508,9 +508,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
     bl_idname = "wm.keyconfig_import"
     bl_label = "Import Key Configuration..."
 
-    path = StringProperty(name="File Path", description="File path to write file to")
-    filename = StringProperty(name="File Name", description="Name of the file")
-    directory = StringProperty(name="Directory", description="Directory of the file")
+    filepath = StringProperty(name="File Path", description="Filepath to write file to")
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
@@ -518,10 +516,10 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
     keep_original = BoolProperty(name="Keep original", description="Keep original file after copying to configuration folder", default=True)
 
     def execute(self, context):
-        if not self.properties.path:
-            raise Exception("File path not set")
+        if not self.properties.filepath:
+            raise Exception("Filepath not set")
 
-        f = open(self.properties.path, "r")
+        f = open(self.properties.filepath, "r")
         if not f:
             raise Exception("Could not open file")
 
@@ -545,9 +543,9 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
         path = os.path.join(path, config_name + ".py")
 
         if self.properties.keep_original:
-            shutil.copy(self.properties.path, path)
+            shutil.copy(self.properties.filepath, path)
         else:
-            shutil.move(self.properties.path, path)
+            shutil.move(self.properties.filepath, path)
 
         exec("import " + config_name)
 
@@ -569,19 +567,17 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
     bl_idname = "wm.keyconfig_export"
     bl_label = "Export Key Configuration..."
 
-    path = StringProperty(name="File Path", description="File path to write file to")
-    filename = StringProperty(name="File Name", description="Name of the file")
-    directory = StringProperty(name="Directory", description="Directory of the file")
+    filepath = StringProperty(name="File Path", description="Filepath to write file to")
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
     kc_name = StringProperty(name="KeyConfig Name", description="Name to save the key config as")
 
     def execute(self, context):
-        if not self.properties.path:
-            raise Exception("File path not set")
+        if not self.properties.filepath:
+            raise Exception("Filepath not set")
 
-        f = open(self.properties.path, "w")
+        f = open(self.properties.filepath, "w")
         if not f:
             raise Exception("Could not open file")
 
@@ -591,7 +587,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         if self.properties.kc_name != '':
             name = self.properties.kc_name
         elif kc.name == 'Blender':
-            name = os.path.splitext(os.path.basename(self.properties.path))[0]
+            name = os.path.splitext(os.path.basename(self.properties.filepath))[0]
         else:
             name = kc.name
 

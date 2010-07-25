@@ -419,7 +419,7 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 	}
 	else if (totpoints) {
 		/* now make the list to return */
-		filldisplist(&dispbase, &dispbase);
+		filldisplist(&dispbase, &dispbase, 0);
 		
 		/* The faces are stored in a new DisplayList
 		thats added to the head of the listbase */
@@ -634,7 +634,7 @@ static int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )
 	boxPack *box;
 	
 	
-	/* Error checking must alredy be done */
+	/* Error checking must already be done */
 	if( !PyList_Check( value ) ) {
 		PyErr_SetString( PyExc_TypeError, "can only back a list of [x,y,x,w]" );
 		return -1;

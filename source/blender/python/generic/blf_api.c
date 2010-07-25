@@ -46,7 +46,7 @@ static PyObject *py_blf_position(PyObject *self, PyObject *args)
 	int fontid;
 	float x, y, z;
 
-	if (!PyArg_ParseTuple(args, "ifff:BLF.position", &fontid, &x, &y, &z))
+	if (!PyArg_ParseTuple(args, "ifff:blf.position", &fontid, &x, &y, &z))
 		return NULL;
 
 	BLF_position(fontid, x, y, z);
@@ -71,7 +71,7 @@ static PyObject *py_blf_size(PyObject *self, PyObject *args)
 {
 	int fontid, size, dpi;
 
-	if (!PyArg_ParseTuple(args, "iii:BLF.size", &fontid, &size, &dpi))
+	if (!PyArg_ParseTuple(args, "iii:blf.size", &fontid, &size, &dpi))
 		return NULL;
 
 	BLF_size(fontid, size, dpi);
@@ -95,7 +95,7 @@ static PyObject *py_blf_aspect(PyObject *self, PyObject *args)
 	float aspect;
 	int fontid;
 
-	if (!PyArg_ParseTuple(args, "if:BLF.aspect", &fontid, &aspect))
+	if (!PyArg_ParseTuple(args, "if:blf.aspect", &fontid, &aspect))
 		return NULL;
 
 	BLF_aspect(fontid, aspect);
@@ -118,7 +118,7 @@ static PyObject *py_blf_blur(PyObject *self, PyObject *args)
 {
 	int blur, fontid;
 
-	if (!PyArg_ParseTuple(args, "ii:BLF.blur", &fontid, &blur))
+	if (!PyArg_ParseTuple(args, "ii:blf.blur", &fontid, &blur))
 		return NULL;
 
 	BLF_blur(fontid, blur);
@@ -142,7 +142,7 @@ static PyObject *py_blf_draw(PyObject *self, PyObject *args)
 	char *text;
 	int fontid;
 
-	if (!PyArg_ParseTuple(args, "is:BLF.draw", &fontid, &text))
+	if (!PyArg_ParseTuple(args, "is:blf.draw", &fontid, &text))
 		return NULL;
 
 	BLF_draw(fontid, text);
@@ -153,7 +153,7 @@ static PyObject *py_blf_draw(PyObject *self, PyObject *args)
 static char py_blf_dimensions_doc[] =
 ".. function:: dimensions(fontid, text)\n"
 "\n"
-"   Return the width and hight of the text.\n"
+"   Return the width and height of the text.\n"
 "\n"
 "   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
 "   :type fontid: int\n"
@@ -169,7 +169,7 @@ static PyObject *py_blf_dimensions(PyObject *self, PyObject *args)
 	PyObject *ret;
 	int fontid;
 
-	if (!PyArg_ParseTuple(args, "is:BLF.dimensions", &fontid, &text))
+	if (!PyArg_ParseTuple(args, "is:blf.dimensions", &fontid, &text))
 		return NULL;
 
 	BLF_width_and_height(fontid, text, &r_width, &r_height);
@@ -201,7 +201,7 @@ static PyObject *py_blf_clipping(PyObject *self, PyObject *args)
 	float xmin, ymin, xmax, ymax;
 	int fontid;
 
-	if (!PyArg_ParseTuple(args, "iffff:BLF.clipping", &fontid, &xmin, &ymin, &xmax, &ymax))
+	if (!PyArg_ParseTuple(args, "iffff:blf.clipping", &fontid, &xmin, &ymin, &xmax, &ymax))
 		return NULL;
 
 	BLF_clipping(fontid, xmin, ymin, xmax, ymax);
@@ -223,7 +223,7 @@ static PyObject *py_blf_disable(PyObject *self, PyObject *args)
 {
 	int option, fontid;
 
-	if (!PyArg_ParseTuple(args, "ii:BLF.disable", &fontid, &option))
+	if (!PyArg_ParseTuple(args, "ii:blf.disable", &fontid, &option))
 		return NULL;
 
 	BLF_disable(fontid, option);
@@ -245,7 +245,7 @@ static PyObject *py_blf_enable(PyObject *self, PyObject *args)
 {
 	int option, fontid;
 
-	if (!PyArg_ParseTuple(args, "ii:BLF.enable", &fontid, &option))
+	if (!PyArg_ParseTuple(args, "ii:blf.enable", &fontid, &option))
 		return NULL;
 
 	BLF_enable(fontid, option);
@@ -268,7 +268,7 @@ static PyObject *py_blf_rotation(PyObject *self, PyObject *args)
 	float angle;
 	int fontid;
 
-	if (!PyArg_ParseTuple(args, "if:BLF.rotation", &fontid, &angle))
+	if (!PyArg_ParseTuple(args, "if:blf.rotation", &fontid, &angle))
 		return NULL;
 		
 	BLF_rotation(fontid, angle);
@@ -299,7 +299,7 @@ static PyObject *py_blf_shadow(PyObject *self, PyObject *args)
 	int level, fontid;
 	float r, g, b, a;
 
-	if (!PyArg_ParseTuple(args, "iiffff:BLF.shadow", &fontid, &level, &r, &g, &b, &a))
+	if (!PyArg_ParseTuple(args, "iiffff:blf.shadow", &fontid, &level, &r, &g, &b, &a))
 		return NULL;
 
 	if (level != 0 && level != 3 && level != 5) {
@@ -328,7 +328,7 @@ static PyObject *py_blf_shadow_offset(PyObject *self, PyObject *args)
 {
 	int x, y, fontid;
 
-	if (!PyArg_ParseTuple(args, "iii:BLF.shadow_offset", &fontid, &x, &y))
+	if (!PyArg_ParseTuple(args, "iii:blf.shadow_offset", &fontid, &x, &y))
 		return NULL;
 
 	BLF_shadow_offset(fontid, x, y);

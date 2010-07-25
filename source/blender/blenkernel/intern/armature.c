@@ -687,11 +687,11 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 
 /* ************ Armature Deform ******************* */
 
-static void pchan_b_bone_defmats(bPoseChannel *pchan, int use_quaternion, int rest_def)
+static void pchan_b_bone_defmats(bPoseChannel *pchan, int use_quaternion)
 {
 	Bone *bone= pchan->bone;
 	Mat4 *b_bone= b_bone_spline_setup(pchan, 0);
-	Mat4 *b_bone_rest= (rest_def)? NULL: b_bone_spline_setup(pchan, 1);
+	Mat4 *b_bone_rest= b_bone_spline_setup(pchan, 1);
 	Mat4 *b_bone_mats;
 	DualQuat *b_bone_dual_quats= NULL;
 	float tmat[4][4];
@@ -718,10 +718,7 @@ static void pchan_b_bone_defmats(bPoseChannel *pchan, int use_quaternion, int re
 	unit_m4(tmat);
 
 	for(a=0; a<bone->segments; a++) {
-		if(b_bone_rest)
-			invert_m4_m4(tmat, b_bone_rest[a].mat);
-		else
-			tmat[3][1] = -a*(bone->length/(float)bone->segments);
+		invert_m4_m4(tmat, b_bone_rest[a].mat);
 
 		mul_serie_m4(b_bone_mats[a+1].mat, pchan->chan_mat, bone->arm_mat,
 			b_bone[a].mat, tmat, b_bone_mats[0].mat, NULL, NULL, NULL);
@@ -919,7 +916,6 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	float obinv[4][4], premat[4][4], postmat[4][4];
 	int use_envelope = deformflag & ARM_DEF_ENVELOPE;
 	int use_quaternion = deformflag & ARM_DEF_QUATERNION;
-	int bbone_rest_def = deformflag & ARM_DEF_B_BONE_REST;
 	int invert_vgroup= deformflag & ARM_DEF_INVERT_VGROUP;
 	int numGroups = 0;		/* safety for vertexgroup index overflow */
 	int i, target_totvert = 0;	/* safety for vertexgroup overflow */
@@ -946,7 +942,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	for(pchan = armOb->pose->chanbase.first; pchan; pchan = pchan->next) {
 		if(!(pchan->bone->flag & BONE_NO_DEFORM)) {
 			if(pchan->bone->segments > 1)
-				pchan_b_bone_defmats(pchan, use_quaternion, bbone_rest_def);
+				pchan_b_bone_defmats(pchan, use_quaternion);
 
 			if(use_quaternion) {
 				pchan->dual_quat= &dualquats[totchan++];
@@ -1701,6 +1697,8 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	
 	ob->pose->flag &= ~POSE_RECALC;
 	ob->pose->flag |= POSE_WAS_REBUILT;
+
+	make_pose_channels_hash(ob->pose);
 }
 
 

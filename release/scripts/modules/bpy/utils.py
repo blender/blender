@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 """
-This module contains utility functions spesific to blender but
+This module contains utility functions specific to blender but
 not assosiated with blenders internal data.
 """
 
@@ -27,7 +27,8 @@ import bpy as _bpy
 import os as _os
 import sys as _sys
 
-from _bpy import home_paths, blend_paths
+from _bpy import blend_paths
+from _bpy import script_paths as _bpy_script_paths
 
 
 def _test_import(module_name, loaded_modules):
@@ -59,7 +60,7 @@ def modules_from_path(path, loaded_modules):
 
     :arg path: this path is scanned for scripts and packages.
     :type path: string
-    :arg loaded_modules: alredy loaded module names, files matching these names will be ignored.
+    :arg loaded_modules: already loaded module names, files matching these names will be ignored.
     :type loaded_modules: set
     :return: all loaded modules.
     :rtype: list
@@ -144,7 +145,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             _loaded.append(mod)
 
     if reload_scripts:
-        
+
         # TODO, this is broken but should work, needs looking into
         '''
         # reload modules that may not be directly included
@@ -313,7 +314,7 @@ def script_paths(subdir=None, user=True):
     else:
         user_script_path = None
 
-    for path in home_paths("scripts") + (user_script_path, ):
+    for path in _bpy_script_paths() + (user_script_path, ):
         if path:
             path = _os.path.normpath(path)
             if path not in scripts and _os.path.isdir(path):
@@ -369,7 +370,7 @@ def smpte_from_seconds(time, fps=None):
         time = time % 60.0
 
     seconds = int(time)
-    frames= int(round(math.floor(((time - seconds) * fps))))
+    frames = int(round(math.floor(((time - seconds) * fps))))
 
     return "%s%02d:%02d:%02d:%02d" % (neg, hours, minutes, seconds, frames)
 

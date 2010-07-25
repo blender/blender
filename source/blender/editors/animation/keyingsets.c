@@ -43,6 +43,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_main.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_context.h"
@@ -589,7 +590,7 @@ void ANIM_keyingset_info_register (const bContext *C, KeyingSetInfo *ksi)
 /* Remove the given KeyingSetInfo from the list of type infos, and also remove the builtin set if appropriate */
 void ANIM_keyingset_info_unregister (const bContext *C, KeyingSetInfo *ksi)
 {
-	Scene *scene = CTX_data_scene(C);
+	Main *bmain= CTX_data_main(C);
 	KeyingSet *ks, *ksn;
 	
 	/* find relevant builtin KeyingSets which use this, and remove them */
@@ -600,8 +601,14 @@ void ANIM_keyingset_info_unregister (const bContext *C, KeyingSetInfo *ksi)
 		
 		/* remove if matching typeinfo name */
 		if (strcmp(ks->typeinfo, ksi->idname) == 0) {
+			Scene *scene;
 			BKE_keyingset_free(ks);
-			BLI_freelinkN(&scene->keyingsets, ks);
+			BLI_remlink(&builtin_keyingsets, ks);
+
+			for(scene= bmain->scene.first; scene; scene= scene->id.next)
+				BLI_remlink_safe(&scene->keyingsets, ks);
+
+			MEM_freeN(ks);
 		}
 	}
 	
@@ -918,13 +925,13 @@ int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingS
 				{
 					Object *ob= (Object *)ksp->id;
 					
-					ob->recalc |= OB_RECALC;
+					ob->recalc |= OB_RECALC_ALL; // XXX: only object transforms only?
 				}
 					break;
 			}
 			
 			/* send notifiers for updates (this doesn't require context to work!) */
-			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 		}
 	}
 	

@@ -283,7 +283,6 @@ void free_object(Object *ob)
 	ob->path= 0;
 	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
-	if(ob->dup_group) ob->dup_group->id.us--;
 	if(ob->gpd) ob->gpd->id.us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
@@ -317,9 +316,10 @@ static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Objec
 
 	if (*obpoin==unlinkOb) {
 		*obpoin = NULL;
-		ob->recalc |= OB_RECALC;
+		ob->recalc |= OB_RECALC_ALL; // XXX: should this just be OB_RECALC_DATA?
 	}
 }
+
 void unlink_object(Scene *scene, Object *ob)
 {
 	Object *obt;
@@ -334,7 +334,9 @@ void unlink_object(Scene *scene, Object *ob)
 	bConstraint *con;
 	//bActionStrip *strip; // XXX animsys 
 	ModifierData *md;
-	int a;
+	ARegion *ar;
+	RegionView3D *rv3d;
+	int a, found;
 	
 	unlink_controllers(&ob->controllers);
 	unlink_actuators(&ob->actuators);
@@ -354,7 +356,7 @@ void unlink_object(Scene *scene, Object *ob)
 		
 		if(obt->parent==ob) {
 			obt->parent= NULL;
-			obt->recalc |= OB_RECALC;
+			obt->recalc |= OB_RECALC_ALL;
 		}
 		
 		modifiers_foreachObjectLink(obt, unlink_object__unlinkModifierLinks, ob);
@@ -364,15 +366,15 @@ void unlink_object(Scene *scene, Object *ob)
 
 			if(cu->bevobj==ob) {
 				cu->bevobj= NULL;
-				obt->recalc |= OB_RECALC;
+				obt->recalc |= OB_RECALC_ALL;
 			}
 			if(cu->taperobj==ob) {
 				cu->taperobj= NULL;
-				obt->recalc |= OB_RECALC;
+				obt->recalc |= OB_RECALC_ALL;
 			}
 			if(cu->textoncurve==ob) {
 				cu->textoncurve= NULL;
-				obt->recalc |= OB_RECALC;
+				obt->recalc |= OB_RECALC_ALL;
 			}
 		}
 		else if(obt->type==OB_ARMATURE && obt->pose) {
@@ -401,6 +403,9 @@ void unlink_object(Scene *scene, Object *ob)
 				if(pchan->custom==ob)
 					pchan->custom= NULL;
 			}
+		} else if(ELEM(OB_MBALL, ob->type, obt->type)) {
+			if(is_mball_basis_for(obt, ob))
+				obt->recalc|= OB_RECALC_DATA;
 		}
 		
 		sca_remove_ob_poin(obt, ob);
@@ -533,13 +538,7 @@ void unlink_object(Scene *scene, Object *ob)
 		}
 		tex= tex->id.next;
 	}
-	
-	/* mballs (scene==NULL when called from library.c) */
-	if(scene && ob->type==OB_MBALL) {
-		obt= find_basis_mball(scene, ob);
-		if(obt) freedisplist(&obt->disp);
-	}
-	
+
 	/* worlds */
 	wrld= G.main->world.first;
 	while(wrld) {
@@ -610,13 +609,32 @@ void unlink_object(Scene *scene, Object *ob)
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
 
+					found= 0;
 					if(v3d->camera==ob) {
 						v3d->camera= NULL;
-						// XXX if(v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP;
+						found= 1;
 					}
 					if(v3d->localvd && v3d->localvd->camera==ob ) {
 						v3d->localvd->camera= NULL;
-						// XXX if(v3d->localvd->persp==V3D_CAMOB) v3d->localvd->persp= V3D_PERSP;
+						found += 2;
+					}
+
+					if (found) {
+						if (sa->spacetype == SPACE_VIEW3D) {
+							for (ar= sa->regionbase.first; ar; ar= ar->next) {
+								if (ar->regiontype==RGN_TYPE_WINDOW) {
+									rv3d= (RegionView3D *)ar->regiondata;
+									if (found == 1 || found == 3) {
+										if (rv3d->persp == RV3D_CAMOB)
+											rv3d->persp= RV3D_PERSP;
+									}
+									if (found == 2 || found == 3) {
+										if (rv3d->localvd && rv3d->localvd->persp == RV3D_CAMOB)
+											rv3d->localvd->persp= RV3D_PERSP;
+									}
+								}
+							}
+						}
 					}
 				}
 				else if(sl->spacetype==SPACE_OUTLINER) {
@@ -628,6 +646,14 @@ void unlink_object(Scene *scene, Object *ob)
 						for(a=0; a<so->treestore->usedelem; a++, tselem++) {
 							if(tselem->id==(ID *)ob) tselem->id= NULL;
 						}
+					}
+				}
+				else if(sl->spacetype==SPACE_BUTS) {
+					SpaceButs *sbuts= (SpaceButs *)sl;
+
+					if(sbuts->pinid==(ID *)ob) {
+						sbuts->flag&= ~SB_PIN_CONTEXT;
+						sbuts->pinid= NULL;
 					}
 				}
 			}
@@ -679,8 +705,8 @@ void *add_camera(char *name)
 	cam->clipend= 100.0f;
 	cam->drawsize= 0.5f;
 	cam->ortho_scale= 6.0;
-	cam->flag |= CAM_SHOWTITLESAFE;
-	cam->passepartalpha = 0.2f;
+	cam->flag |= CAM_SHOWPASSEPARTOUT;
+	cam->passepartalpha = 0.5f;
 	
 	return cam;
 }
@@ -922,12 +948,6 @@ void free_lamp(Lamp *la)
 	la->id.icon_id = 0;
 }
 
-void *add_wave()
-{
-	return 0;
-}
-
-
 /* *************************************************** */
 
 static void *add_obdata_from_type(int type)
@@ -941,7 +961,6 @@ static void *add_obdata_from_type(int type)
 	case OB_CAMERA: return add_camera("Camera");
 	case OB_LAMP: return add_lamp("Lamp");
 	case OB_LATTICE: return add_lattice("Lattice");
-	case OB_WAVE: return add_wave();
 	case OB_ARMATURE: return add_armature("Armature");
 	case OB_EMPTY: return NULL;
 	default:
@@ -956,12 +975,11 @@ static char *get_obdata_defname(int type)
 	case OB_MESH: return "Mesh";
 	case OB_CURVE: return "Curve";
 	case OB_SURF: return "Surf";
-	case OB_FONT: return "Font";
+	case OB_FONT: return "Text";
 	case OB_MBALL: return "Mball";
 	case OB_CAMERA: return "Camera";
 	case OB_LAMP: return "Lamp";
 	case OB_LATTICE: return "Lattice";
-	case OB_WAVE: return "Wave";
 	case OB_ARMATURE: return "Armature";
 	case OB_EMPTY: return "Empty";
 	default:
@@ -1026,6 +1044,8 @@ Object *add_only_object(int type, char *name)
 	ob->anisotropicFriction[2] = 1.0f;
 	ob->gameflag= OB_PROP|OB_COLLISION;
 	ob->margin = 0.0;
+	ob->init_state=1;
+	ob->state=1;
 	/* ob->pad3 == Contact Processing Threshold */
 	ob->m_contactProcessingThreshold = 1.;
 	
@@ -1058,7 +1078,7 @@ Object *add_object(struct Scene *scene, int type)
 	
 	base= scene_add_base(scene, ob);
 	scene_select_base(scene, base);
-	ob->recalc |= OB_RECALC;
+	ob->recalc |= OB_RECALC_ALL;
 
 	return ob;
 }
@@ -1265,6 +1285,7 @@ Object *copy_object(Object *ob)
 	
 	for (md=ob->modifiers.first; md; md=md->next) {
 		ModifierData *nmd = modifier_new(md->type);
+		BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
 		modifier_copyData(md, nmd);
 		BLI_addtail(&obn->modifiers, nmd);
 	}
@@ -1290,7 +1311,7 @@ Object *copy_object(Object *ob)
 
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
-	id_us_plus((ID *)obn->dup_group);
+	id_lib_extern((ID *)obn->dup_group);
 	
 
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
@@ -1503,7 +1524,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	ob->proxy_group= gob;
 	id_lib_extern(&target->id);
 	
-	ob->recalc= target->recalc= OB_RECALC;
+	ob->recalc= target->recalc= OB_RECALC_ALL;
 	
 	/* copy transform */
 	if(gob) {
@@ -1572,19 +1593,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 
 /* there is also a timing calculation in drawobject() */
 
-float bluroffs= 0.0f, fieldoffs= 0.0f;
 int no_speed_curve= 0;
-
-/* ugly calls from render */
-void set_mblur_offs(float blur)
-{
-	bluroffs= blur;
-}
-
-void set_field_offs(float field)
-{
-	fieldoffs= field;
-}
 
 void disable_speed_curve(int val)
 {
@@ -1595,11 +1604,9 @@ void disable_speed_curve(int val)
 /* ob can be NULL */
 float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 {
-	/* returns float ( see frame_to_float in ipo.c) */
+	/* returns float ( see BKE_curframe in scene.c) */
+	cfra += scene->r.subframe;
 	
-	/* bluroffs and fieldoffs are ugly globals that are set by render */
-	cfra+= bluroffs+fieldoffs;
-
 	/* global time */
 	if (scene)
 		cfra*= scene->r.framelen;	
@@ -1708,10 +1715,8 @@ void object_to_mat4(Object *ob, float mat[][4])
 	object_to_mat3(ob, tmat);
 	
 	copy_m4_m3(mat, tmat);
-	
-	mat[3][0]= ob->loc[0] + ob->dloc[0];
-	mat[3][1]= ob->loc[1] + ob->dloc[1];
-	mat[3][2]= ob->loc[2] + ob->dloc[2];
+
+	add_v3_v3v3(mat[3], ob->loc, ob->dloc);
 }
 
 int enable_cu_speed= 1;
@@ -2460,14 +2465,26 @@ void object_tfm_restore(Object *ob, void *obtfm_pt)
 /* requires flags to be set! */
 void object_handle_update(Scene *scene, Object *ob)
 {
-	if(ob->recalc & OB_RECALC) {
+	if(ob->recalc & OB_RECALC_ALL) {
 		/* speed optimization for animation lookups */
 		if(ob->pose)
 			make_pose_channels_hash(ob->pose);
 
+		if(ob->recalc & OB_RECALC_DATA) {
+			if(ob->type==OB_ARMATURE) {
+				/* this happens for reading old files and to match library armatures
+				   with poses we do it ahead of where_is_object to ensure animation
+				   is evaluated on the rebuilt pose, otherwise we get incorrect poses
+				   on file load */
+				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
+					armature_rebuild_pose(ob, ob->data);
+			}
+		}
+
 		/* XXX new animsys warning: depsgraph tag OB_RECALC_DATA should not skip drivers, 
 		   which is only in where_is_object now */
-		if(ob->recalc & OB_RECALC) {
+		// XXX: should this case be OB_RECALC_OB instead?
+		if(ob->recalc & OB_RECALC_ALL) {
 			
 			if (G.f & G_DEBUG)
 				printf("recalcob %s\n", ob->id.name+2);
@@ -2526,11 +2543,6 @@ void object_handle_update(Scene *scene, Object *ob)
 				lattice_calc_modifiers(scene, ob);
 			}
 			else if(ob->type==OB_ARMATURE) {
-				/* this happens for reading old files and to match library armatures with poses */
-				// XXX this won't screw up the pose set already...
-				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
-					armature_rebuild_pose(ob, ob->data);
-				
 				/* evaluate drivers */
 				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
 				
@@ -2609,7 +2621,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			object_handle_update(scene, ob->proxy);
 		}
 	
-		ob->recalc &= ~OB_RECALC;
+		ob->recalc &= ~OB_RECALC_ALL;
 	}
 
 	/* the case when this is a group proxy, object_update is called in group.c */
@@ -2734,7 +2746,7 @@ void object_camera_matrix(
 	float pixsize;
 	float shiftx=0.0, shifty=0.0, winside, viewfac;
 
-	rd->mode &= ~R_ORTHO;
+	rd->mode &= ~(R_ORTHO|R_PANORAMA);
 
 	/* question mark */
 	(*ycor)= rd->yasp / rd->xasp;

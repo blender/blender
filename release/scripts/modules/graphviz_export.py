@@ -51,10 +51,10 @@ def compat_str(text, line_length=0):
     return text
 
 
-def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, XTRA_INFO=True):
+def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, XTRA_INFO=True):
     CONSTRAINTS = DRIVERS = True
 
-    fileobject = open(path, "w")
+    fileobject = open(filepath, "w")
     fw = fileobject.write
     fw(header)
     fw('label = "%s::%s" ;' % (bpy.data.filepath.split("/")[-1].split("\\")[-1], obj.name))
@@ -178,7 +178,7 @@ def graph_armature(obj, path, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=True, 
     import sys
     sys.stdout.flush()
     '''
-    print("\nSaved:", path)
+    print("\nSaved:", filepath)
     return True
 
 if __name__ == "__main__":

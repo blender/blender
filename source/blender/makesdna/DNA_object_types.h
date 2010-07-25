@@ -301,7 +301,7 @@ extern Object workob;
 #define OB_LAMP			10
 #define OB_CAMERA		11
 
-#define OB_WAVE			21
+// #define OB_WAVE			21
 #define OB_LATTICE		22
 
 /* 23 and 24 are for life and sector (old file compat.) */
@@ -436,7 +436,7 @@ extern Object workob;
 #define OB_RECALC_DATA		2
 		/* time flag is set when time changes need recalc, so baked systems can ignore it */
 #define OB_RECALC_TIME		4
-#define OB_RECALC			7
+#define OB_RECALC_ALL		7
 
 /* controller state */
 #define OB_MAX_STATES		30

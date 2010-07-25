@@ -111,7 +111,7 @@ def write(filename, scene, ob, \
         raise ("Error, could not get mesh data from active object")
         return
 
-    # mesh.transform(ob.matrixWorld) # XXX
+    # mesh.transform(ob.matrix_world) # XXX
 
     faceUV = (len(mesh.uv_textures) > 0)
     vertexUV = (len(mesh.sticky) > 0)
@@ -267,7 +267,7 @@ class ExportPLY(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
 
-    path = StringProperty(name="File Path", description="File path used for exporting the PLY file", maxlen=1024, default="")
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the PLY file", maxlen=1024, default="")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
     use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default=True)
     use_normals = BoolProperty(name="Normals", description="Export Normals for smooth and hard shaded faces", default=True)
@@ -280,10 +280,10 @@ class ExportPLY(bpy.types.Operator):
     def execute(self, context):
         # print("Selected: " + context.active_object.name)
 
-        if not self.properties.path:
+        if not self.properties.filepath:
             raise Exception("filename not set")
 
-        write(self.properties.path, context.scene, context.active_object,\
+        write(self.properties.filepath, context.scene, context.active_object,\
             EXPORT_APPLY_MODIFIERS=self.properties.use_modifiers,
             EXPORT_NORMALS=self.properties.use_normals,
             EXPORT_UV=self.properties.use_uvs,
@@ -310,8 +310,9 @@ class ExportPLY(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = bpy.data.filepath.replace(".blend", ".ply")
-    self.layout.operator(ExportPLY.bl_idname, text="Stanford (.ply)").path = default_path
+    import os
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".ply"
+    self.layout.operator(ExportPLY.bl_idname, text="Stanford (.ply)").filepath = default_path
 
 
 def register():

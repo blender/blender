@@ -64,7 +64,8 @@ typedef struct CurveMap {
 
 typedef struct CurveMapping {
 	int flag, cur;					/* cur; for buttons, to show active curve */
-	int preset, pad;
+	int preset;
+	int changed_timestamp;
 	
 	rctf curr, clipr;				/* current rect, clip rect (is default rect too) */
 	
@@ -87,7 +88,9 @@ typedef enum CurveMappingPreset {
 	CURVE_PRESET_SHARP,
 	CURVE_PRESET_SMOOTH,
 	CURVE_PRESET_MAX,
-	CURVE_PRESET_MID9
+	CURVE_PRESET_MID9,
+	CURVE_PRESET_ROUND,
+	CURVE_PRESET_ROOT,
 } CurveMappingPreset;
 
 /* histogram->mode */

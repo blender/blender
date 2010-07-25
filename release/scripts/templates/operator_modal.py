@@ -1,3 +1,4 @@
+import bpy
 from bpy.props import *
 
 class ModalOperator(bpy.types.Operator):

@@ -166,7 +166,7 @@ PyObject * PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObjec
 		return NULL;
 	}
 
-	/* use base_type rather then Py_TYPE(base) because we could alredy be subtyped */
+	/* use base_type rather then Py_TYPE(base) because we could already be subtyped */
 	if(!PyType_IsSubtype(type, base_type)) {
 		PyErr_Format(PyExc_TypeError, "can't subclass blender game type <%s> from <%s> because it is not a subclass", base_type->tp_name, type->tp_name);
 		return NULL;
@@ -278,7 +278,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 		// the attribute has no field correspondance, handover processing to function.
 		if (attrdef->m_getFunction == NULL)
 			return NULL;
-		return (*attrdef->m_getFunction)(ref, attrdef);
+		return (*attrdef->m_getFunction)(ptr, attrdef);
 	}
 	ptr += attrdef->m_offset;
 	if (attrdef->m_length > 1)
