@@ -1443,7 +1443,7 @@ static void color_balance(Sequence * seq, ImBuf* ibuf, float mul)
 
 */
 
-static int input_have_to_preprocess(
+int input_have_to_preprocess(
 	Scene *scene, Sequence * seq, float cfra, int seqrectx, int seqrecty)
 {
 	float mul;
@@ -1708,13 +1708,9 @@ static ImBuf* seq_render_effect_strip_impl(
 	early_out = sh.early_out(seq, fac, facf);
 
 	if (early_out == -1) { /* no input needed */
-		/* hmmm, global float option ? */
-		out = IMB_allocImBuf(
-			(short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
-
-		sh.execute(scene, seq, cfra, fac, facf, 
-			   out->x, out->y, render_size,
-			   0, 0, 0, out);
+		out = sh.execute(scene, seq, cfra, fac, facf, 
+				 seqrectx, seqrecty, render_size,
+				 0, 0, 0);
 		goto finish;
 	}
 
@@ -1781,31 +1777,9 @@ static ImBuf* seq_render_effect_strip_impl(
 		goto finish;
 	}
 
-	/* if any inputs are rectfloat, output is float too */
-	if((ibuf[0] && ibuf[0]->rect_float) || 
-	   (ibuf[1] && ibuf[1]->rect_float) || 
-	   (ibuf[2] && ibuf[2]->rect_float)) {
-		out = IMB_allocImBuf(
-			(short)seqrectx, (short)seqrecty, 32, IB_rectfloat, 0);
-	} else {
-		out = IMB_allocImBuf(
-			(short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
-	}
-
-	for (i = 0; i < 3; i++) {
-		ImBuf * b = ibuf[i];
-		if (b) {
-			if (!b->rect_float && out->rect_float) {
-				IMB_float_from_rect_simple(b);
-			}
-			if (!b->rect && !out->rect_float) {
-				IMB_rect_from_float(b);
-			}
-		}
-	}
-
-	sh.execute(scene, seq, cfra, fac, facf, out->x, out->y, render_size,
-		   ibuf[0], ibuf[1], ibuf[2], out);
+	out = sh.execute(scene, seq, cfra, fac, facf, seqrectx, seqrecty, 
+			 render_size,
+			 ibuf[0], ibuf[1], ibuf[2]);
 
 finish:
 	for (i = 0; i < 3; i++) {
@@ -2271,41 +2245,17 @@ static ImBuf* seq_render_strip_stack(
 			int swap_input 
 				= seq_must_swap_input_in_blend_mode(seq);
 
-			int x= out->x;
-			int y= out->y;
+			int x= seqrectx;
+			int y= seqrecty;
 
-			if (ibuf1->rect_float || ibuf2->rect_float) {
-				out = IMB_allocImBuf(
-					(short)seqrectx, (short)seqrecty, 
-					32, IB_rectfloat, 0);
-			} else {
-				out = IMB_allocImBuf(
-					(short)seqrectx, (short)seqrecty, 
-					32, IB_rect, 0);
-			}
-
-			if (!ibuf1->rect_float && out->rect_float) {
-				IMB_float_from_rect_simple(ibuf1);
-			}
-			if (!ibuf2->rect_float && out->rect_float) {
-				IMB_float_from_rect_simple(ibuf2);
-			}
-
-			if (!ibuf1->rect && !out->rect_float) {
-				IMB_rect_from_float(ibuf1);
-			}
-			if (!ibuf2->rect && !out->rect_float) {
-				IMB_rect_from_float(ibuf2);
-			}
-			
 			if (swap_input) {
-				sh.execute(scene, seq, cfra, 
-					   facf, facf, x, y, render_size,
-					   ibuf2, ibuf1, 0, out);
+				out = sh.execute(scene, seq, cfra, 
+						 facf, facf, x, y, render_size,
+						 ibuf2, ibuf1, 0);
 			} else {
-				sh.execute(scene, seq, cfra, 
-					   facf, facf, x, y, render_size,
-					   ibuf1, ibuf2, 0, out);
+				out = sh.execute(scene, seq, cfra, 
+						 facf, facf, x, y, render_size,
+						 ibuf1, ibuf2, 0);
 			}
 		
 			IMB_freeImBuf(ibuf1);
