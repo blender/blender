@@ -173,7 +173,7 @@ PyDoc_STRVAR(M_aud_Sound_double_doc,
 			 ":arg second: The sound to play second.\n"
 			 ":type second: aud.Sound\n"
 			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n"
+			 ":rtype: aud.Sound\n\n"
 			 ".. note:: The two sounds have to have the same specifications "
 			 "(channels and samplerate).");
 
@@ -216,7 +216,7 @@ PyDoc_STRVAR(M_aud_Sound_pitch_doc,
 			 ":arg factor: The factor to change the pitch with.\n"
 			 ":type factor: float\n"
 			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n"
+			 ":rtype: aud.Sound\n\n"
 			 ".. note:: This is done by changing the sample rate of the "
 			 "underlying sound, which has to be an integer, so the factor "
 			 "value rounded and the factor may not be 100 % accurate.");
@@ -232,7 +232,7 @@ PyDoc_STRVAR(M_aud_Sound_volume_doc,
 			 ":arg volume: The new volume..\n"
 			 ":type volume: float\n"
 			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n"
+			 ":rtype: aud.Sound\n\n"
 			 ".. note:: Should be in the range [0, 1] to avoid clipping.");
 
 static PyObject *
@@ -301,7 +301,7 @@ PyDoc_STRVAR(M_aud_Sound_pingpong_doc,
 			 ":arg sound: The sound to filter.\n"
 			 ":type sound: aud.Sound\n"
 			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n"
+			 ":rtype: aud.Sound\n\n"
 			 ".. note:: The sound has to be buffered to be played reverse.");
 
 static PyObject *
@@ -313,7 +313,7 @@ PyDoc_STRVAR(M_aud_Sound_reverse_doc,
 			 ":arg sound: The sound to filter.\n"
 			 ":type sound: aud.Sound\n"
 			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n"
+			 ":rtype: aud.Sound\n\n"
 			 ".. note:: The sound has to be buffered to be played reverse.");
 
 static PyObject *
@@ -325,7 +325,7 @@ PyDoc_STRVAR(M_aud_Sound_buffer_doc,
 			 ":arg sound: The sound to buffer.\n"
 			 ":type sound: aud.Sound\n"
 			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n"
+			 ":rtype: aud.Sound\n\n"
 			 ".. note:: Raw PCM data needs a lot of space, only buffer short sounds.");
 
 static PyObject *
@@ -399,6 +399,10 @@ static PyMethodDef Sound_methods[] = {
 	{NULL}  /* Sentinel */
 };
 
+PyDoc_STRVAR(M_aud_Sound_doc,
+			 "Sound objects are immutable and represent a sound that can be "
+			 "played simultaneously multiple times.");
+
 static PyTypeObject SoundType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"aud.Sound",               /* tp_name */
@@ -420,7 +424,7 @@ static PyTypeObject SoundType = {
 	0,                         /* tp_setattro */
 	0,                         /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,        /* tp_flags */
-	"Sound object",            /* tp_doc */
+	M_aud_Sound_doc,           /* tp_doc */
 	0,		                   /* tp_traverse */
 	0,		                   /* tp_clear */
 	0,		                   /* tp_richcompare */
@@ -1119,7 +1123,7 @@ Handle_stop(Handle *self)
 
 PyDoc_STRVAR(M_aud_Handle_update_doc,
 			 "update(info)\n\n"
-			 "Updates the 3D information of the source."
+			 "Updates the 3D information of the source.\n\n"
 			 ":arg info: The 3D info in the format (fff)(fff)((fff)(fff)(fff))."
 			 " Position, velocity and a 3x3 orientation matrix.\n"
 			 ":type info: float tuple\n"
@@ -1467,6 +1471,11 @@ static PyGetSetDef Handle_properties[] = {
 	{NULL}  /* Sentinel */
 };
 
+PyDoc_STRVAR(M_aud_Handle_doc,
+			 "Handle objects are playback handles that can be used to control "
+			 "playback of a sound. If a sound is played back multiple times "
+			 "then there are as many handles.");
+
 static PyTypeObject HandleType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"aud.Handle",              /* tp_name */
@@ -1488,7 +1497,7 @@ static PyTypeObject HandleType = {
 	0,                         /* tp_setattro */
 	0,                         /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,        /* tp_flags */
-	"Handle object",           /* tp_doc */
+	M_aud_Handle_doc,          /* tp_doc */
 	0,		                   /* tp_traverse */
 	0,		                   /* tp_clear */
 	0,		                   /* tp_richcompare */
@@ -1805,7 +1814,6 @@ Device_lock(Device *self)
 
 PyDoc_STRVAR(M_aud_Device_unlock_doc,
 			 "unlock()\n\n"
-			 "Plays a sound.\n\n"
 			 "Unlocks the device after a lock call, see lock() for details.");
 
 static PyObject *
@@ -2037,7 +2045,7 @@ Device_play3D(Device *self, PyObject *args, PyObject *kwds)
 
 PyDoc_STRVAR(M_aud_Device_update_listener_doc,
 			 "update_listener(info)\n\n"
-			 "Updates the 3D information of the listener."
+			 "Updates the 3D information of the listener.\n\n"
 			 ":arg info: The 3D info in the format (fff)(fff)((fff)(fff)(fff))."
 			 " Position, velocity and a 3x3 orientation matrix.\n"
 			 ":type info: float tuple");
@@ -3226,6 +3234,11 @@ static PyGetSetDef Device_properties[] = {
 	{NULL}  /* Sentinel */
 };
 
+PyDoc_STRVAR(M_aud_Device_doc,
+			 "Device objects represent an audio output backend like OpenAL or "
+			 "SDL, but might also represent a file output or RAM buffer "
+			 "output.");
+
 static PyTypeObject DeviceType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"aud.Device",              /* tp_name */
@@ -3247,7 +3260,7 @@ static PyTypeObject DeviceType = {
 	0,                         /* tp_setattro */
 	0,                         /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,        /* tp_flags */
-	"Device object",           /* tp_doc */
+	M_aud_Device_doc,          /* tp_doc */
 	0,		                   /* tp_traverse */
 	0,		                   /* tp_clear */
 	0,		                   /* tp_richcompare */
@@ -3436,12 +3449,15 @@ Device_empty()
 
 // ====================================================================
 
+PyDoc_STRVAR(M_aud_doc,
+			 "This module provides access to the audaspace audio library.");
+
 static struct PyModuleDef audmodule = {
 	PyModuleDef_HEAD_INIT,
-	"aud",   /* name of module */
-	NULL,    /* module documentation, may be NULL */
-	-1,      /* size of per-interpreter state of the module,
-			   or -1 if the module keeps state in global variables. */
+	"aud",     /* name of module */
+	M_aud_doc, /* module documentation */
+	-1,        /* size of per-interpreter state of the module,
+				  or -1 if the module keeps state in global variables. */
    NULL, NULL, NULL, NULL, NULL
 };
 
