@@ -1094,7 +1094,22 @@ PyDoc_STRVAR(M_aud_Handle_pause_doc,
 static PyObject *
 Handle_pause(Handle *self)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_pause"), const_cast<char*>("(O)"), self);
+	Device* device = (Device*)self->device;
+
+	try
+	{
+		if(device->device->pause(self->handle))
+		{
+			Py_RETURN_TRUE;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't pause the sound!");
+		return NULL;
+	}
+
+	Py_RETURN_FALSE;
 }
 
 PyDoc_STRVAR(M_aud_Handle_resume_doc,
@@ -1106,7 +1121,22 @@ PyDoc_STRVAR(M_aud_Handle_resume_doc,
 static PyObject *
 Handle_resume(Handle *self)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_resume"), const_cast<char*>("(O)"), self);
+	Device* device = (Device*)self->device;
+
+	try
+	{
+		if(device->device->resume(self->handle))
+		{
+			Py_RETURN_TRUE;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't resume the sound!");
+		return NULL;
+	}
+
+	Py_RETURN_FALSE;
 }
 
 PyDoc_STRVAR(M_aud_Handle_stop_doc,
@@ -1118,7 +1148,22 @@ PyDoc_STRVAR(M_aud_Handle_stop_doc,
 static PyObject *
 Handle_stop(Handle *self)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_stop"), const_cast<char*>("(O)"), self);
+	Device* device = (Device*)self->device;
+
+	try
+	{
+		if(device->device->stop(self->handle))
+		{
+			Py_RETURN_TRUE;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't stop the sound!");
+		return NULL;
+	}
+
+	Py_RETURN_FALSE;
 }
 
 PyDoc_STRVAR(M_aud_Handle_update_doc,
@@ -1131,9 +1176,41 @@ PyDoc_STRVAR(M_aud_Handle_update_doc,
 			 ":rtype: boolean");
 
 static PyObject *
-Handle_update(Handle *self, PyObject *data)
+Handle_update(Handle *self, PyObject *args)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_update_source"), const_cast<char*>("(OO)"), self, data);
+	AUD_3DData data;
+
+	if(!PyArg_Parse(args, "(fff)(fff)((fff)(fff)(fff))",
+					&data.position[0], &data.position[1], &data.position[2],
+					&data.velocity[0], &data.velocity[1], &data.velocity[2],
+					&data.orientation[0], &data.orientation[1], &data.orientation[2],
+					&data.orientation[3], &data.orientation[4], &data.orientation[5],
+					&data.orientation[6], &data.orientation[7], &data.orientation[8]))
+		return NULL;
+
+	Device* dev = (Device*)self->device;
+
+	try
+	{
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			if(device->updateSource(self->handle, data))
+				Py_RETURN_TRUE;
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			return NULL;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't update the source!");
+		return NULL;
+	}
+
+	Py_RETURN_FALSE;
 }
 
 static PyMethodDef Handle_methods[] = {
@@ -1158,18 +1235,41 @@ PyDoc_STRVAR(M_aud_Handle_position_doc,
 static PyObject *
 Handle_get_position(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_get_position"), const_cast<char*>("(O)"), self);
+	Device* device = (Device*)self->device;
+
+	try
+	{
+		return Py_BuildValue("f", device->device->getPosition(self->handle));
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't retrieve the position of the sound!");
+		return NULL;
+	}
 }
 
 static int
 Handle_set_position(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_seek"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	float position;
+
+	if(!PyArg_Parse(args, "f", &position))
+		return -1;
+
+	Device* device = (Device*)self->device;
+
+	try
 	{
-		Py_DECREF(result);
-		return 0;
+		if(device->device->seek(self->handle, position))
+		{
+			return 0;
+		}
 	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't seek the sound!");
+	}
+
 	return -1;
 }
 
@@ -1179,12 +1279,27 @@ PyDoc_STRVAR(M_aud_Handle_keep_doc,
 static int
 Handle_set_keep(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_set_keep"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	if(!PyBool_Check(args))
 	{
-		Py_DECREF(result);
-		return 0;
+		PyErr_SetString(PyExc_TypeError, "keep is not a boolean!");
+		return -1;
 	}
+
+	bool keep = args == Py_True;
+	Device* device = (Device*)self->device;
+
+	try
+	{
+		if(device->device->setKeep(self->handle, keep))
+		{
+			return 0;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't set keep of the sound!");
+	}
+
 	return -1;
 }
 
@@ -1194,7 +1309,17 @@ PyDoc_STRVAR(M_aud_Handle_status_doc,
 static PyObject *
 Handle_get_status(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_get_status"), const_cast<char*>("(O)"), self);
+	Device* device = (Device*)self->device;
+
+	try
+	{
+		return Py_BuildValue("i", device->device->getStatus(self->handle));
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't retrieve the status of the sound!");
+		return NULL;
+	}
 }
 
 PyDoc_STRVAR(M_aud_Handle_volume_doc,
@@ -1203,18 +1328,52 @@ PyDoc_STRVAR(M_aud_Handle_volume_doc,
 static PyObject *
 Handle_get_volume(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_get_volume"), const_cast<char*>("(O)"), self);
+	Device* device = (Device*)self->device;
+
+	try
+	{
+		AUD_SourceCaps caps;
+		caps.handle = self->handle;
+		caps.value = 1.0f;
+		if(device->device->getCapability(AUD_CAPS_SOURCE_VOLUME, &caps))
+		{
+			return Py_BuildValue("f", caps.value);
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't get the sound volume!");
+		return NULL;
+	}
+
+	Py_RETURN_NAN;
 }
 
 static int
 Handle_set_volume(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_set_volume"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	float volume;
+
+	if(!PyArg_Parse(args, "f", &volume))
+		return -1;
+
+	Device* device = (Device*)self->device;
+
+	try
 	{
-		Py_DECREF(result);
-		return 0;
+		AUD_SourceCaps caps;
+		caps.handle = self->handle;
+		caps.value = volume;
+		if(device->device->setCapability(AUD_CAPS_SOURCE_VOLUME, &caps))
+		{
+			return 0;
+		}
 	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't set the sound volume!");
+	}
+
 	return -1;
 }
 
@@ -1224,12 +1383,28 @@ PyDoc_STRVAR(M_aud_Handle_pitch_doc,
 static int
 Handle_set_pitch(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_set_pitch"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	float pitch;
+
+	if(!PyArg_Parse(args, "f", &pitch))
+		return -1;
+
+	Device* device = (Device*)self->device;
+
+	try
 	{
-		Py_DECREF(result);
-		return 0;
+		AUD_SourceCaps caps;
+		caps.handle = self->handle;
+		caps.value = pitch;
+		if(device->device->setCapability(AUD_CAPS_SOURCE_PITCH, &caps))
+		{
+			return 0;
+		}
 	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't set the sound pitch!");
+	}
+
 	return -1;
 }
 
@@ -1239,12 +1414,28 @@ PyDoc_STRVAR(M_aud_Handle_loop_count_doc,
 static int
 Handle_set_loop_count(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_set_loop_count"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	int loops;
+
+	if(!PyArg_Parse(args, "i", &loops))
+		return -1;
+
+	Device* device = (Device*)self->device;
+
+	try
 	{
-		Py_DECREF(result);
-		return 0;
+		AUD_Message message;
+		message.loopcount = loops;
+		message.type = AUD_MSG_LOOP;
+		if(device->device->sendMessage(self->handle, message))
+		{
+			return 0;
+		}
 	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't set the loop count!");
+	}
+
 	return -1;
 }
 
@@ -1254,18 +1445,65 @@ PyDoc_STRVAR(M_aud_Handle_relative_doc,
 static PyObject *
 Handle_get_relative(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_is_relative"), const_cast<char*>("(O)"), self);
+	Device* dev = (Device*)self->device;
+
+	try
+	{
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			if(device->getSourceSetting(self->handle, AUD_3DSS_IS_RELATIVE) > 0)
+			{
+				Py_RETURN_TRUE;
+			}
+			else
+			{
+				Py_RETURN_FALSE;
+			}
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't retrieve the status of the sound!");
+	}
+
+	return NULL;
 }
 
 static int
 Handle_set_relative(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_set_relative"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	if(!PyBool_Check(args))
 	{
-		Py_DECREF(result);
-		return 0;
+		PyErr_SetString(PyExc_TypeError, "Value is not a boolean!");
+		return -1;
 	}
+
+	float relative = (args == Py_True);
+	Device* dev = (Device*)self->device;
+
+	try
+	{
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			device->setSourceSetting(self->handle, AUD_3DSS_IS_RELATIVE, relative);
+			return 0;
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't set the status!");
+	}
+
 	return -1;
 }
 
@@ -1275,18 +1513,56 @@ PyDoc_STRVAR(M_aud_Handle_min_gain_doc,
 static PyObject *
 Handle_get_min_gain(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_get_min_gain"), const_cast<char*>("(O)"), self);
+	Device* dev = (Device*)self->device;
+
+	try
+	{
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			return Py_BuildValue("f", device->getSourceSetting(self->handle, AUD_3DSS_MIN_GAIN));
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			return NULL;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't retrieve the minimum gain of the sound!");
+		return NULL;
+	}
 }
 
 static int
 Handle_set_min_gain(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_set_min_gain"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	float gain;
+
+	if(!PyArg_Parse(args, "f", &gain))
+		return -1;
+
+	Device* dev = (Device*)self->device;
+
+	try
 	{
-		Py_DECREF(result);
-		return 0;
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			device->setSourceSetting(self->handle, AUD_3DSS_MIN_GAIN, gain);
+			return 0;
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+		}
 	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't set the minimum source gain!");
+	}
+
 	return -1;
 }
 
@@ -1296,18 +1572,56 @@ PyDoc_STRVAR(M_aud_Handle_max_gain_doc,
 static PyObject *
 Handle_get_max_gain(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_get_max_gain"), const_cast<char*>("(O)"), self);
+	Device* dev = (Device*)self->device;
+
+	try
+	{
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			return Py_BuildValue("f", device->getSourceSetting(self->handle, AUD_3DSS_MAX_GAIN));
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			return NULL;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't retrieve the maximum gain of the sound!");
+		return NULL;
+	}
 }
 
 static int
 Handle_set_max_gain(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_set_max_gain"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	float gain;
+
+	if(!PyArg_Parse(args, "f", &gain))
+		return -1;
+
+	Device* dev = (Device*)self->device;
+
+	try
 	{
-		Py_DECREF(result);
-		return 0;
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			device->setSourceSetting(self->handle, AUD_3DSS_MAX_GAIN, gain);
+			return 0;
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+		}
 	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't set the maximum source gain!");
+	}
+
 	return -1;
 }
 
@@ -1317,18 +1631,56 @@ PyDoc_STRVAR(M_aud_Handle_reference_distance_doc,
 static PyObject *
 Handle_get_reference_distance(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_get_reference_distance"), const_cast<char*>("(O)"), self);
+	Device* dev = (Device*)self->device;
+
+	try
+	{
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			return Py_BuildValue("f", device->getSourceSetting(self->handle, AUD_3DSS_REFERENCE_DISTANCE));
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			return NULL;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't retrieve the reference distance of the sound!");
+		return NULL;
+	}
 }
 
 static int
 Handle_set_reference_distance(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_set_reference_distance"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	float distance;
+
+	if(!PyArg_Parse(args, "f", &distance))
+		return -1;
+
+	Device* dev = (Device*)self->device;
+
+	try
 	{
-		Py_DECREF(result);
-		return 0;
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			device->setSourceSetting(self->handle, AUD_3DSS_REFERENCE_DISTANCE, distance);
+			return 0;
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+		}
 	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't set the reference distance!");
+	}
+
 	return -1;
 }
 
@@ -1338,18 +1690,55 @@ PyDoc_STRVAR(M_aud_Handle_max_distance_doc,
 static PyObject *
 Handle_get_max_distance(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_get_max_distance"), const_cast<char*>("(O)"), self);
-}
+	Device* dev = (Device*)self->device;
+
+	try
+	{
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			return Py_BuildValue("f", device->getSourceSetting(self->handle, AUD_3DSS_MAX_DISTANCE));
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			return NULL;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't retrieve the maximum distance of the sound!");
+		return NULL;
+	}}
 
 static int
 Handle_set_max_distance(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_set_max_distance"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	float distance;
+
+	if(!PyArg_Parse(args, "f", &distance))
+		return -1;
+
+	Device* dev = (Device*)self->device;
+
+	try
 	{
-		Py_DECREF(result);
-		return 0;
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			device->setSourceSetting(self->handle, AUD_3DSS_MAX_DISTANCE, distance);
+			return 0;
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+		}
 	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't set the maximum distance!");
+	}
+
 	return -1;
 }
 
@@ -1359,18 +1748,56 @@ PyDoc_STRVAR(M_aud_Handle_rolloff_factor_doc,
 static PyObject *
 Handle_get_rolloff_factor(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_get_rolloff_factor"), const_cast<char*>("(O)"), self);
+	Device* dev = (Device*)self->device;
+
+	try
+	{
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			return Py_BuildValue("f", device->getSourceSetting(self->handle, AUD_3DSS_ROLLOFF_FACTOR));
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			return NULL;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't retrieve the rolloff factor of the sound!");
+		return NULL;
+	}
 }
 
 static int
 Handle_set_rolloff_factor(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_set_rolloff_factor"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	float factor;
+
+	if(!PyArg_Parse(args, "f", &factor))
+		return -1;
+
+	Device* dev = (Device*)self->device;
+
+	try
 	{
-		Py_DECREF(result);
-		return 0;
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			device->setSourceSetting(self->handle, AUD_3DSS_ROLLOFF_FACTOR, factor);
+			return 0;
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+		}
 	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't set the rolloff factor!");
+	}
+
 	return -1;
 }
 
@@ -1380,18 +1807,56 @@ PyDoc_STRVAR(M_aud_Handle_cone_inner_angle_doc,
 static PyObject *
 Handle_get_cone_inner_angle(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_get_cone_inner_angle"), const_cast<char*>("(O)"), self);
+	Device* dev = (Device*)self->device;
+
+	try
+	{
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			return Py_BuildValue("f", device->getSourceSetting(self->handle, AUD_3DSS_CONE_INNER_ANGLE));
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			return NULL;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't retrieve the cone inner angle of the sound!");
+		return NULL;
+	}
 }
 
 static int
 Handle_set_cone_inner_angle(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_set_cone_inner_angle"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	float angle;
+
+	if(!PyArg_Parse(args, "f", &angle))
+		return -1;
+
+	Device* dev = (Device*)self->device;
+
+	try
 	{
-		Py_DECREF(result);
-		return 0;
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			device->setSourceSetting(self->handle, AUD_3DSS_CONE_INNER_ANGLE, angle);
+			return 0;
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+		}
 	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't set the cone inner angle!");
+	}
+
 	return -1;
 }
 
@@ -1401,18 +1866,56 @@ PyDoc_STRVAR(M_aud_Handle_cone_outer_angle_doc,
 static PyObject *
 Handle_get_cone_outer_angle(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_get_cone_outer_angle"), const_cast<char*>("(O)"), self);
+	Device* dev = (Device*)self->device;
+
+	try
+	{
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			return Py_BuildValue("f", device->getSourceSetting(self->handle, AUD_3DSS_CONE_OUTER_ANGLE));
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			return NULL;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't retrieve the cone outer angle of the sound!");
+		return NULL;
+	}
 }
 
 static int
 Handle_set_cone_outer_angle(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_set_cone_outer_angle"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	float angle;
+
+	if(!PyArg_Parse(args, "f", &angle))
+		return -1;
+
+	Device* dev = (Device*)self->device;
+
+	try
 	{
-		Py_DECREF(result);
-		return 0;
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			device->setSourceSetting(self->handle, AUD_3DSS_CONE_OUTER_ANGLE, angle);
+			return 0;
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+		}
 	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't set the cone outer angle!");
+	}
+
 	return -1;
 }
 
@@ -1422,18 +1925,56 @@ PyDoc_STRVAR(M_aud_Handle_cone_outer_gain_doc,
 static PyObject *
 Handle_get_cone_outer_gain(Handle *self, void* nothing)
 {
-	return PyObject_CallMethod(self->device, const_cast<char*>("_get_cone_outer_gain"), const_cast<char*>("(O)"), self);
+	Device* dev = (Device*)self->device;
+
+	try
+	{
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			return Py_BuildValue("f", device->getSourceSetting(self->handle, AUD_3DSS_CONE_OUTER_GAIN));
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			return NULL;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't retrieve the cone outer gain of the sound!");
+		return NULL;
+	}
 }
 
 static int
 Handle_set_cone_outer_gain(Handle *self, PyObject* args, void* nothing)
 {
-	PyObject* result = PyObject_CallMethod(self->device, const_cast<char*>("_set_cone_outer_gain"), const_cast<char*>("(OO)"), self, args);
-	if(result)
+	float gain;
+
+	if(!PyArg_Parse(args, "f", &gain))
+		return -1;
+
+	Device* dev = (Device*)self->device;
+
+	try
 	{
-		Py_DECREF(result);
-		return 0;
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
+		if(device)
+		{
+			device->setSourceSetting(self->handle, AUD_3DSS_CONE_OUTER_GAIN, gain);
+			return 0;
+		}
+		else
+		{
+			PyErr_SetString(AUDError, "Device is not a 3D device!");
+		}
 	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't set the cone outer gain!");
+	}
+
 	return -1;
 }
 
@@ -1591,204 +2132,6 @@ Device_play(Device *self, PyObject *args, PyObject *kwds)
 	return (PyObject *)handle;
 }
 
-static PyObject *
-Device_stop(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		if(self->device->stop(handle->handle))
-		{
-			Py_RETURN_TRUE;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't stop the sound!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_pause(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		if(self->device->pause(handle->handle))
-		{
-			Py_RETURN_TRUE;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't pause the sound!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_resume(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		if(self->device->resume(handle->handle))
-		{
-			Py_RETURN_TRUE;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't resume the sound!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_set_keep(Device *self, PyObject *args)
-{
-	PyObject* object;
-	PyObject* keepo;
-
-	if(!PyArg_ParseTuple(args, "OO", &object, &keepo))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	if(!PyBool_Check(keepo))
-	{
-		PyErr_SetString(PyExc_TypeError, "keep is not a boolean!");
-		return NULL;
-	}
-
-	bool keep = keepo == Py_True;
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		if(self->device->setKeep(handle->handle, keep))
-		{
-			Py_RETURN_TRUE;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't set keep of the sound!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_seek(Device *self, PyObject *args)
-{
-	PyObject* object;
-	float position;
-
-	if(!PyArg_ParseTuple(args, "Of", &object, &position))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		if(self->device->seek(handle->handle, position))
-		{
-			Py_RETURN_TRUE;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't seek the sound!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_get_position(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		return Py_BuildValue("f", self->device->getPosition(handle->handle));
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the position of the sound!");
-		return NULL;
-	}
-}
-
-static PyObject *
-Device_get_status(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		return Py_BuildValue("i", self->device->getStatus(handle->handle));
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the status of the sound!");
-		return NULL;
-	}
-}
-
 PyDoc_STRVAR(M_aud_Device_lock_doc,
 			 "lock()\n\n"
 			 "Locks the device so that it's guaranteed, that no samples are "
@@ -1829,144 +2172,6 @@ Device_unlock(Device *self)
 		PyErr_SetString(AUDError, "Couldn't unlock the device!");
 		return NULL;
 	}
-}
-
-static PyObject *
-Device_set_source_volume(Device *self, PyObject *args)
-{
-	PyObject* object;
-	float volume;
-
-	if(!PyArg_ParseTuple(args, "Of", &object, &volume))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_SourceCaps caps;
-		caps.handle = handle->handle;
-		caps.value = volume;
-		if(self->device->setCapability(AUD_CAPS_SOURCE_VOLUME, &caps))
-		{
-			Py_RETURN_TRUE;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't set the sound volume!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_get_source_volume(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_SourceCaps caps;
-		caps.handle = handle->handle;
-		caps.value = 1.0f;
-		if(self->device->getCapability(AUD_CAPS_SOURCE_VOLUME, &caps))
-		{
-			return Py_BuildValue("f", caps.value);
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't get the sound volume!");
-		return NULL;
-	}
-
-	Py_RETURN_NAN;
-}
-
-static PyObject *
-Device_set_loop_count(Device *self, PyObject *args)
-{
-	PyObject* object;
-	int loops;
-
-	if(!PyArg_ParseTuple(args, "Oi", &object, &loops))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_Message message;
-		message.loopcount = loops;
-		message.type = AUD_MSG_LOOP;
-		if(self->device->sendMessage(handle->handle, message))
-		{
-			Py_RETURN_TRUE;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't set the loop count!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_set_pitch(Device *self, PyObject *args)
-{
-	PyObject* object;
-	float pitch;
-
-	if(!PyArg_ParseTuple(args, "Of", &object, &pitch))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_SourceCaps caps;
-		caps.handle = handle->handle;
-		caps.value = pitch;
-		if(self->device->setCapability(AUD_CAPS_SOURCE_PITCH, &caps))
-		{
-			Py_RETURN_TRUE;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't set the sound pitch!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
 }
 
 PyDoc_STRVAR(M_aud_Device_play3D_doc,
@@ -2085,704 +2290,6 @@ Device_update_listener(Device *self, PyObject *args)
 	Py_RETURN_NONE;
 }
 
-static PyObject *
-Device_update_source(Device *self, PyObject *args)
-{
-	PyObject* object;
-	AUD_3DData data;
-
-	if(!PyArg_ParseTuple(args, "O(fff)(fff)((fff)(fff)(fff))", &object,
-						 &data.position[0], &data.position[1], &data.position[2],
-						 &data.velocity[0], &data.velocity[1], &data.velocity[2],
-						 &data.orientation[0], &data.orientation[1], &data.orientation[2],
-						 &data.orientation[3], &data.orientation[4], &data.orientation[5],
-						 &data.orientation[6], &data.orientation[7], &data.orientation[8]))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			if(device->updateSource(handle->handle, data))
-				Py_RETURN_TRUE;
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't update the source!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_is_relative(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			if(device->getSourceSetting(handle->handle, AUD_3DSS_IS_RELATIVE) > 0)
-			{
-				Py_RETURN_TRUE;
-			}
-			else
-			{
-				Py_RETURN_FALSE;
-			}
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the status of the sound!");
-		return NULL;
-	}
-}
-
-static PyObject *
-Device_set_relative(Device *self, PyObject *args)
-{
-	PyObject* object;
-	PyObject* relativeo;
-
-	if(!PyArg_ParseTuple(args, "OO", &object, &relativeo))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	if(!PyBool_Check(relativeo))
-	{
-		PyErr_SetString(PyExc_TypeError, "Value is not a boolean!");
-		return NULL;
-	}
-
-	float relative = (relativeo == Py_True);
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			device->setSourceSetting(handle->handle, AUD_3DSS_IS_RELATIVE, relative);
-			Py_RETURN_TRUE;
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't set the status!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_get_min_gain(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			return Py_BuildValue("f", device->getSourceSetting(handle->handle, AUD_3DSS_MIN_GAIN));
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the minimum gain of the sound!");
-		return NULL;
-	}
-}
-
-static PyObject *
-Device_set_min_gain(Device *self, PyObject *args)
-{
-	PyObject* object;
-	float gain;
-
-	if(!PyArg_ParseTuple(args, "Of", &object, &gain))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			device->setSourceSetting(handle->handle, AUD_3DSS_MIN_GAIN, gain);
-			Py_RETURN_TRUE;
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't set the minimum source gain!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_get_max_gain(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			return Py_BuildValue("f", device->getSourceSetting(handle->handle, AUD_3DSS_MAX_GAIN));
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the maximum gain of the sound!");
-		return NULL;
-	}
-}
-
-static PyObject *
-Device_set_max_gain(Device *self, PyObject *args)
-{
-	PyObject* object;
-	float gain;
-
-	if(!PyArg_ParseTuple(args, "Of", &object, &gain))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			device->setSourceSetting(handle->handle, AUD_3DSS_MAX_GAIN, gain);
-			Py_RETURN_TRUE;
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't set the maximum source gain!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_get_reference_distance(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			return Py_BuildValue("f", device->getSourceSetting(handle->handle, AUD_3DSS_REFERENCE_DISTANCE));
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the reference distance of the sound!");
-		return NULL;
-	}
-}
-
-static PyObject *
-Device_set_reference_distance(Device *self, PyObject *args)
-{
-	PyObject* object;
-	float distance;
-
-	if(!PyArg_ParseTuple(args, "Of", &object, &distance))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			device->setSourceSetting(handle->handle, AUD_3DSS_REFERENCE_DISTANCE, distance);
-			Py_RETURN_TRUE;
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't set the reference distance!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_get_max_distance(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			return Py_BuildValue("f", device->getSourceSetting(handle->handle, AUD_3DSS_MAX_DISTANCE));
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the maximum distance of the sound!");
-		return NULL;
-	}
-}
-
-static PyObject *
-Device_set_max_distance(Device *self, PyObject *args)
-{
-	PyObject* object;
-	float distance;
-
-	if(!PyArg_ParseTuple(args, "Of", &object, &distance))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			device->setSourceSetting(handle->handle, AUD_3DSS_MAX_DISTANCE, distance);
-			Py_RETURN_TRUE;
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't set the maximum distance!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_get_rolloff_factor(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			return Py_BuildValue("f", device->getSourceSetting(handle->handle, AUD_3DSS_ROLLOFF_FACTOR));
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the rolloff factor of the sound!");
-		return NULL;
-	}
-}
-
-static PyObject *
-Device_set_rolloff_factor(Device *self, PyObject *args)
-{
-	PyObject* object;
-	float factor;
-
-	if(!PyArg_ParseTuple(args, "Of", &object, &factor))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			device->setSourceSetting(handle->handle, AUD_3DSS_ROLLOFF_FACTOR, factor);
-			Py_RETURN_TRUE;
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't set the rolloff factor!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_get_cone_inner_angle(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			return Py_BuildValue("f", device->getSourceSetting(handle->handle, AUD_3DSS_CONE_INNER_ANGLE));
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the cone inner angle of the sound!");
-		return NULL;
-	}
-}
-
-static PyObject *
-Device_set_cone_inner_angle(Device *self, PyObject *args)
-{
-	PyObject* object;
-	float angle;
-
-	if(!PyArg_ParseTuple(args, "Of", &object, &angle))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			device->setSourceSetting(handle->handle, AUD_3DSS_CONE_INNER_ANGLE, angle);
-			Py_RETURN_TRUE;
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't set the cone inner angle!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_get_cone_outer_angle(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			return Py_BuildValue("f", device->getSourceSetting(handle->handle, AUD_3DSS_CONE_OUTER_ANGLE));
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the cone outer angle of the sound!");
-		return NULL;
-	}
-}
-
-static PyObject *
-Device_set_cone_outer_angle(Device *self, PyObject *args)
-{
-	PyObject* object;
-	float angle;
-
-	if(!PyArg_ParseTuple(args, "Of", &object, &angle))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			device->setSourceSetting(handle->handle, AUD_3DSS_CONE_OUTER_ANGLE, angle);
-			Py_RETURN_TRUE;
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't set the cone outer angle!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
-static PyObject *
-Device_get_cone_outer_gain(Device *self, PyObject *object)
-{
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			return Py_BuildValue("f", device->getSourceSetting(handle->handle, AUD_3DSS_CONE_OUTER_GAIN));
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the cone outer gain of the sound!");
-		return NULL;
-	}
-}
-
-static PyObject *
-Device_set_cone_outer_gain(Device *self, PyObject *args)
-{
-	PyObject* object;
-	float gain;
-
-	if(!PyArg_ParseTuple(args, "Of", &object, &gain))
-		return NULL;
-
-	if(!PyObject_TypeCheck(object, &HandleType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Handle!");
-		return NULL;
-	}
-
-	Handle* handle = (Handle*)object;
-
-	try
-	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
-		if(device)
-		{
-			device->setSourceSetting(handle->handle, AUD_3DSS_CONE_OUTER_GAIN, gain);
-			Py_RETURN_TRUE;
-		}
-		else
-		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
-			return NULL;
-		}
-	}
-	catch(AUD_Exception&)
-	{
-		PyErr_SetString(AUDError, "Couldn't set the cone outer gain!");
-		return NULL;
-	}
-
-	Py_RETURN_FALSE;
-}
-
 PyDoc_STRVAR(M_aud_Device_OpenAL_doc,
 			 "OpenAL([frequency[, buffer_size]])\n\n"
 			 "Creates an OpenAL device.\n\n"
@@ -2838,107 +2345,17 @@ static PyMethodDef Device_methods[] = {
 	{"play", (PyCFunction)Device_play, METH_VARARGS | METH_KEYWORDS,
 	 M_aud_Device_play_doc
 	},
-	{"_stop", (PyCFunction)Device_stop, METH_O,
-	 ""
-	},
-	{"_pause", (PyCFunction)Device_pause, METH_O,
-	 ""
-	},
-	{"_resume", (PyCFunction)Device_resume, METH_O,
-	 ""
-	},
-	{"_set_keep", (PyCFunction)Device_set_keep, METH_VARARGS,
-	 ""
-	},
-	{"_seek", (PyCFunction)Device_seek, METH_VARARGS,
-	 ""
-	},
-	{"_get_position", (PyCFunction)Device_get_position, METH_O,
-	 ""
-	},
-	{"_get_status", (PyCFunction)Device_get_status, METH_O,
-	 ""
-	},
 	{"lock", (PyCFunction)Device_lock, METH_NOARGS,
 	 M_aud_Device_lock_doc
 	},
 	{"unlock", (PyCFunction)Device_unlock, METH_NOARGS,
 	 M_aud_Device_unlock_doc
 	},
-	{"_set_volume", (PyCFunction)Device_set_source_volume, METH_VARARGS,
-	 ""
-	},
-	{"_get_volume", (PyCFunction)Device_get_source_volume, METH_O,
-	 ""
-	},
-	{"_set_loop_count", (PyCFunction)Device_set_loop_count, METH_VARARGS,
-	 ""
-	},
-	{"_set_pitch", (PyCFunction)Device_set_pitch, METH_VARARGS,
-	 ""
-	},
 	{"play3D", (PyCFunction)Device_play3D, METH_VARARGS | METH_KEYWORDS,
 	 M_aud_Device_play3D_doc
 	},
 	{"update_listener", (PyCFunction)Device_update_listener, METH_VARARGS,
 	 M_aud_Device_update_listener_doc
-	},
-	{"_update_source", (PyCFunction)Device_update_source, METH_VARARGS,
-	 ""
-	},
-	{"_is_relative", (PyCFunction)Device_is_relative, METH_O,
-	 ""
-	},
-	{"_set_relative", (PyCFunction)Device_set_relative, METH_VARARGS,
-	 ""
-	},
-	{"_get_min_gain", (PyCFunction)Device_get_min_gain, METH_O,
-	 ""
-	},
-	{"_set_min_gain", (PyCFunction)Device_set_min_gain, METH_VARARGS,
-	 ""
-	},
-	{"_get_max_gain", (PyCFunction)Device_get_max_gain, METH_O,
-	 ""
-	},
-	{"_set_max_gain", (PyCFunction)Device_set_max_gain, METH_VARARGS,
-	 ""
-	},
-	{"_get_reference_distance", (PyCFunction)Device_get_reference_distance, METH_O,
-	 ""
-	},
-	{"_set_reference_distance", (PyCFunction)Device_set_reference_distance, METH_VARARGS,
-	 ""
-	},
-	{"_get_max_distance", (PyCFunction)Device_get_max_distance, METH_O,
-	 ""
-	},
-	{"_set_max_distance", (PyCFunction)Device_set_max_distance, METH_VARARGS,
-	 ""
-	},
-	{"_get_rolloff_factor", (PyCFunction)Device_get_rolloff_factor, METH_O,
-	 ""
-	},
-	{"_set_rolloff_factor", (PyCFunction)Device_set_rolloff_factor, METH_VARARGS,
-	 ""
-	},
-	{"_get_cone_inner_angle", (PyCFunction)Device_get_cone_inner_angle, METH_O,
-	 ""
-	},
-	{"_set_cone_inner_angle", (PyCFunction)Device_set_cone_inner_angle, METH_VARARGS,
-	 ""
-	},
-	{"_get_cone_outer_angle", (PyCFunction)Device_get_cone_outer_angle, METH_O,
-	 ""
-	},
-	{"_set_cone_outer_angle", (PyCFunction)Device_set_cone_outer_angle, METH_VARARGS,
-	 ""
-	},
-	{"_get_cone_outer_gain", (PyCFunction)Device_get_cone_outer_gain, METH_O,
-	 ""
-	},
-	{"_set_cone_outer_gain", (PyCFunction)Device_set_cone_outer_gain, METH_VARARGS,
-	 ""
 	},
 	{"OpenAL", (PyCFunction)Device_OpenAL, METH_VARARGS | METH_STATIC | METH_KEYWORDS,
 	 M_aud_Device_OpenAL_doc
