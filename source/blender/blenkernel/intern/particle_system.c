@@ -4038,12 +4038,21 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 				case PART_PHYS_NO:
 				case PART_PHYS_KEYED:
 				{
+					PARTICLE_P;
+
 					if(emit_particles(&sim, NULL, cfra)) {
 						free_keyed_keys(psys);
 						distribute_particles(&sim, part->from);
 						initialize_all_particles(&sim);
 					}
-					reset_all_particles(&sim, 0.0, cfra, 0);
+
+					LOOP_EXISTING_PARTICLES {
+						pa->size = part->size;
+						if(part->randsize > 0.0)
+							pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
+
+						reset_particle(&sim, pa, 0.0, cfra);
+					}
 
 					if(part->phystype == PART_PHYS_KEYED) {
 						psys_count_keyed_targets(&sim);
