@@ -862,7 +862,6 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 		float startdistance, spacing, step, paintpos[2], dmousepos[2], finalpos[2];
 		float t, len, press;
 		const int radius= brush_size(brush);
-		const int diameter= 2*radius;
 
 		/* compute brush spacing adapted to brush radius, spacing may depend
 		   on pressure, so update it */

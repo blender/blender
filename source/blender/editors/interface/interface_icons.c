@@ -453,6 +453,51 @@ static void vicon_move_down_draw(int x, int y, int w, int h, float alpha)
 	glDisable(GL_LINE_SMOOTH);
 }
 
+static void init_brush_icons()
+{
+
+#define INIT_BRUSH_ICON(icon_id, name)					     \
+	bbuf = IMB_ibImageFromMemory((unsigned char*)datatoc_ ##name## _png, \
+				     datatoc_ ##name## _png_size, IB_rect);  \
+	def_internal_icon(bbuf, icon_id, 0, 0, w, ICON_TYPE_BUFFER);	     \
+	IMB_freeImBuf(bbuf);
+	// end INIT_BRUSH_ICON
+
+	ImBuf *bbuf;
+	const int w = 96;
+
+	INIT_BRUSH_ICON(ICON_BRUSH_ADD, add);
+	INIT_BRUSH_ICON(ICON_BRUSH_BLOB, blob);
+	INIT_BRUSH_ICON(ICON_BRUSH_BLUR, blur);
+	INIT_BRUSH_ICON(ICON_BRUSH_CLAY, clay);
+	INIT_BRUSH_ICON(ICON_BRUSH_CLONE, clone);
+	INIT_BRUSH_ICON(ICON_BRUSH_CREASE, crease);
+	INIT_BRUSH_ICON(ICON_BRUSH_DARKEN, darken);
+	INIT_BRUSH_ICON(ICON_BRUSH_SCULPT_DRAW, draw);
+	INIT_BRUSH_ICON(ICON_BRUSH_FILL, fill);
+	INIT_BRUSH_ICON(ICON_BRUSH_FLATTEN, flatten);
+	INIT_BRUSH_ICON(ICON_BRUSH_GRAB, grab);
+	INIT_BRUSH_ICON(ICON_BRUSH_INFLATE, inflate);
+	INIT_BRUSH_ICON(ICON_BRUSH_LAYER, layer);
+	INIT_BRUSH_ICON(ICON_BRUSH_LIGHTEN, lighten);
+	INIT_BRUSH_ICON(ICON_BRUSH_MIX, mix);
+	INIT_BRUSH_ICON(ICON_BRUSH_MULTIPLY, multiply);
+	INIT_BRUSH_ICON(ICON_BRUSH_NUDGE, nudge);
+	INIT_BRUSH_ICON(ICON_BRUSH_PINCH, pinch);
+	INIT_BRUSH_ICON(ICON_BRUSH_SCRAPE, scrape);
+	INIT_BRUSH_ICON(ICON_BRUSH_SMEAR, smear);
+	INIT_BRUSH_ICON(ICON_BRUSH_SMOOTH, smooth);
+	INIT_BRUSH_ICON(ICON_BRUSH_SNAKE_HOOK, snake_hook);
+	INIT_BRUSH_ICON(ICON_BRUSH_SOFTEN, soften);
+	INIT_BRUSH_ICON(ICON_BRUSH_SUBTRACT, subtract);
+	INIT_BRUSH_ICON(ICON_BRUSH_TEXDRAW, texdraw);
+	INIT_BRUSH_ICON(ICON_BRUSH_THUMB, thumb);
+	INIT_BRUSH_ICON(ICON_BRUSH_ROTATE, twist);
+	INIT_BRUSH_ICON(ICON_BRUSH_VERTEXDRAW, vertexdraw);
+
+#undef INIT_BRUSH_ICON
+}
+
 static void init_internal_icons()
 {
 	bTheme *btheme= U.themes.first;
@@ -740,6 +785,7 @@ void UI_icons_init(int first_dyn_id)
 	init_iconfile_list(&iconfilelist);
 	BKE_icons_init(first_dyn_id);
 	init_internal_icons();
+	init_brush_icons();
 }
 
 /* Render size for preview images at level miplevel */

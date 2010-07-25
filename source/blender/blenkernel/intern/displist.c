@@ -1326,7 +1326,6 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	ModifierData *preTesselatePoint;
 	Curve *cu= ob->data;
 	ListBase *nurb= BKE_curve_nurbs(cu);
-	DispList *dl;
 	int required_mode = 0, totvert = 0;
 	int editmode = (!forRender && cu->editnurb);
 	DerivedMesh *dm= NULL, *ndm;

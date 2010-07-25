@@ -240,22 +240,22 @@ static void rna_def_brush(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem brush_sculpt_tool_items[] = {
-		{SCULPT_TOOL_BLOB, "BLOB", 0, "Blob", ""},
-		{SCULPT_TOOL_CLAY, "CLAY", 0, "Clay", ""},
-		{SCULPT_TOOL_CREASE, "CREASE", 0, "Crease", ""},
-		{SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
-		{SCULPT_TOOL_FILL, "FILL", 0, "Fill", ""},
-		{SCULPT_TOOL_FLATTEN, "FLATTEN", 0, "Flatten", ""},
-		{SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", ""},
-		{SCULPT_TOOL_INFLATE, "INFLATE", 0, "Inflate", ""},
-		{SCULPT_TOOL_LAYER, "LAYER", 0, "Layer", ""},
-		{SCULPT_TOOL_NUDGE, "NUDGE", 0, "Nudge", ""},
-		{SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", ""},
-		{SCULPT_TOOL_ROTATE, "ROTATE", 0, "Rotate", ""},
-		{SCULPT_TOOL_SCRAPE, "SCRAPE", 0, "Scrape", ""},
-		{SCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-		{SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", 0, "Snake Hook", ""},
-		{SCULPT_TOOL_THUMB, "THUMB", 0, "Thumb", ""},
+		{SCULPT_TOOL_BLOB, "BLOB", ICON_BRUSH_BLOB, "Blob", ""},
+		{SCULPT_TOOL_CLAY, "CLAY", ICON_BRUSH_CLAY, "Clay", ""},
+		{SCULPT_TOOL_CREASE, "CREASE",ICON_BRUSH_CREASE, "Crease", ""},
+		{SCULPT_TOOL_DRAW, "DRAW", ICON_BRUSH_SCULPT_DRAW, "Draw", ""},
+		{SCULPT_TOOL_FILL, "FILL", ICON_BRUSH_FILL, "Fill", ""},
+		{SCULPT_TOOL_FLATTEN, "FLATTEN", ICON_BRUSH_FLATTEN, "Flatten", ""},
+		{SCULPT_TOOL_GRAB, "GRAB", ICON_BRUSH_GRAB, "Grab", ""},
+		{SCULPT_TOOL_INFLATE, "INFLATE", ICON_BRUSH_INFLATE, "Inflate", ""},
+		{SCULPT_TOOL_LAYER, "LAYER", ICON_BRUSH_LAYER, "Layer", ""},
+		{SCULPT_TOOL_NUDGE, "NUDGE", ICON_BRUSH_NUDGE, "Nudge", ""},
+		{SCULPT_TOOL_PINCH, "PINCH", ICON_BRUSH_PINCH, "Pinch", ""},
+		{SCULPT_TOOL_ROTATE, "ROTATE", ICON_BRUSH_ROTATE, "Rotate", ""},
+		{SCULPT_TOOL_SCRAPE, "SCRAPE", ICON_BRUSH_SCRAPE, "Scrape", ""},
+		{SCULPT_TOOL_SMOOTH, "SMOOTH", ICON_BRUSH_SMOOTH, "Smooth", ""},
+		{SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_BRUSH_SNAKE_HOOK, "Snake Hook", ""},
+		{SCULPT_TOOL_THUMB, "THUMB", ICON_BRUSH_THUMB, "Thumb", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem brush_stroke_method_items[] = {
@@ -278,20 +278,20 @@ static void rna_def_brush(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem brush_vertexpaint_tool_items[] = {
-		{0, "MIX", 0, "Mix", "Use mix blending mode while painting"},
-		{1, "ADD", 0, "Add", "Use add blending mode while painting"},
-		{2, "SUB", 0, "Subtract", "Use subtract blending mode while painting"},
-		{3, "MUL", 0, "Multiply", "Use multiply blending mode while painting"},
-		{4, "BLUR", 0, "Blur", "Blur the color with surrounding values"},
-		{5, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting"},
-		{6, "DARKEN", 0, "Darken", "Use darken blending mode while painting"},
+		{0, "MIX", ICON_BRUSH_MIX, "Mix", "Use mix blending mode while painting"},
+		{1, "ADD", ICON_BRUSH_ADD, "Add", "Use add blending mode while painting"},
+		{2, "SUB", ICON_BRUSH_SUBTRACT, "Subtract", "Use subtract blending mode while painting"},
+		{3, "MUL", ICON_BRUSH_MULTIPLY, "Multiply", "Use multiply blending mode while painting"},
+		{4, "BLUR", ICON_BRUSH_BLUR, "Blur", "Blur the color with surrounding values"},
+		{5, "LIGHTEN", ICON_BRUSH_LIGHTEN, "Lighten", "Use lighten blending mode while painting"},
+		{6, "DARKEN", ICON_BRUSH_DARKEN, "Darken", "Use darken blending mode while painting"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem brush_imagepaint_tool_items[] = {
-		{PAINT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
-		{PAINT_TOOL_SOFTEN, "SOFTEN", 0, "Soften", ""},
-		{PAINT_TOOL_SMEAR, "SMEAR", 0, "Smear", ""},
-		{PAINT_TOOL_CLONE, "CLONE", 0, "Clone", ""},
+		{PAINT_TOOL_DRAW, "DRAW", ICON_BRUSH_TEXDRAW, "Draw", ""},
+		{PAINT_TOOL_SOFTEN, "SOFTEN", ICON_BRUSH_SOFTEN, "Soften", ""},
+		{PAINT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SMEAR, "Smear", ""},
+		{PAINT_TOOL_CLONE, "CLONE", ICON_BRUSH_CLONE, "Clone", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static const EnumPropertyItem prop_flip_direction_items[]= {
