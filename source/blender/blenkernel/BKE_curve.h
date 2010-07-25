@@ -105,5 +105,7 @@ int check_valid_nurb_v( struct Nurb *nu);
 int clamp_nurb_order_u( struct Nurb *nu);
 int clamp_nurb_order_v( struct Nurb *nu);
 
+ListBase *BKE_curve_nurbs(struct Curve *cu);
+
 #endif
 

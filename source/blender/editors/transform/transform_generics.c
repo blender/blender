@@ -84,6 +84,7 @@
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
+#include "ED_curve.h" /* for ED_curve_editnurbs */
 
 //#include "BDR_unwrapper.h"
 
@@ -636,14 +637,15 @@ void recalcData(TransInfo *t)
 		if (t->obedit) {
 			if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
 				Curve *cu= t->obedit->data;
-				Nurb *nu= cu->editnurb->first;
+				ListBase *nurbs= ED_curve_editnurbs(cu);
+				Nurb *nu= nurbs->first;
 
 				if(t->state != TRANS_CANCEL) {
 					clipMirrorModifier(t, t->obedit);
 				}
 
 				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
-				
+
 				if (t->state == TRANS_CANCEL) {
 					while(nu) {
 						calchandlesNurb(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
