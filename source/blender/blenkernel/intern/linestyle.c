@@ -53,7 +53,7 @@ static char *modifier_name[LS_MODIFIER_NUM] = {
 static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 {
 	linestyle->panel = LS_PANEL_COLOR;
-	linestyle->r = linestyle->g = linestyle->b = 1.0;
+	linestyle->r = linestyle->g = linestyle->b = 0.0;
 	linestyle->alpha = 1.0;
 	linestyle->thickness = 1.0;
 
