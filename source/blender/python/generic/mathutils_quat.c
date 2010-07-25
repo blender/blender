@@ -774,27 +774,101 @@ static int Quaternion_setAxis( QuaternionObject * self, PyObject * value, void *
 
 static PyObject *Quaternion_getMagnitude( QuaternionObject * self, void *type )
 {
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
 	return PyFloat_FromDouble(sqrt(dot_qtqt(self->quat, self->quat)));
 }
 
 static PyObject *Quaternion_getAngle( QuaternionObject * self, void *type )
 {
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
 	return PyFloat_FromDouble(2.0 * (saacos(self->quat[0])));
 }
 
-static PyObject *Quaternion_getAxisVec( QuaternionObject * self, void *type )
+static int Quaternion_setAngle(QuaternionObject * self, PyObject * value, void * type)
 {
-	float vec[3];
+	float axis[3];
+	float angle;
 
-	normalize_v3_v3(vec, self->quat+1);
+	if(!BaseMath_ReadCallback(self))
+		return -1;
+
+	quat_to_axis_angle(axis, &angle, self->quat);
+
+	angle = PyFloat_AsDouble(value);
+
+	if(angle==-1.0f && PyErr_Occurred()) { /* parsed item not a number */
+		PyErr_SetString(PyExc_TypeError, "quaternion.angle = value: float expected");
+		return -1;
+	}
 
 	/* If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations */
-	if( EXPP_FloatsAreEqual(vec[0], 0.0f, 10) &&
-		EXPP_FloatsAreEqual(vec[1], 0.0f, 10) &&
-		EXPP_FloatsAreEqual(vec[2], 0.0f, 10) ){
-		vec[0] = 1.0f;
+	if( EXPP_FloatsAreEqual(axis[0], 0.0f, 10) &&
+		EXPP_FloatsAreEqual(axis[1], 0.0f, 10) &&
+		EXPP_FloatsAreEqual(axis[2], 0.0f, 10)
+	) {
+		axis[0] = 1.0f;
 	}
-	return (PyObject *) newVectorObject(vec, 3, Py_NEW, NULL);
+	
+	axis_angle_to_quat(self->quat, axis, angle);
+
+	if(!BaseMath_WriteCallback(self))
+		return -1;
+
+	return 0;
+}
+
+static PyObject *Quaternion_getAxisVec(QuaternionObject *self, void *type)
+{
+	float axis[3];
+	float angle;
+
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+	
+	quat_to_axis_angle(axis, &angle, self->quat);
+
+	/* If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations */
+	if( EXPP_FloatsAreEqual(axis[0], 0.0f, 10) &&
+		EXPP_FloatsAreEqual(axis[1], 0.0f, 10) &&
+		EXPP_FloatsAreEqual(axis[2], 0.0f, 10)
+	) {
+		axis[0] = 1.0f;
+	}
+
+	return (PyObject *) newVectorObject(axis, 3, Py_NEW, NULL);
+}
+
+static int Quaternion_setAxisVec(QuaternionObject *self, PyObject *value, void *type)
+{
+	float axis[3];
+	float angle;
+	
+	VectorObject *vec;
+
+	if(!BaseMath_ReadCallback(self))
+		return -1;
+
+	quat_to_axis_angle(axis, &angle, self->quat);
+
+	if(!VectorObject_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "quaternion.axis = value: expected a 3D Vector");
+		return -1;
+	}
+	
+	vec= (VectorObject *)value;
+	if(!BaseMath_ReadCallback(vec))
+		return -1;
+
+	axis_angle_to_quat(self->quat, vec->vec, angle);
+
+	if(!BaseMath_WriteCallback(self))
+		return -1;
+
+	return 0;
 }
 
 //----------------------------------mathutils.Quaternion() --------------
@@ -853,8 +927,8 @@ static PyGetSetDef Quaternion_getseters[] = {
 	{"y", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion Y axis. **type** float", (void *)2},
 	{"z", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion Z axis. **type** float", (void *)3},
 	{"magnitude", (getter)Quaternion_getMagnitude, (setter)NULL, "Size of the quaternion (readonly). **type** float", NULL},
-	{"angle", (getter)Quaternion_getAngle, (setter)NULL, "angle of the quaternion (readonly). **type** float", NULL},
-	{"axis",(getter)Quaternion_getAxisVec, (setter)NULL, "quaternion axis as a vector (readonly). **type** :class:`Vector`", NULL},
+	{"angle", (getter)Quaternion_getAngle, (setter)Quaternion_setAngle, "angle of the quaternion. **type** float", NULL},
+	{"axis",(getter)Quaternion_getAxisVec, (setter)Quaternion_setAxisVec, "quaternion axis as a vector. **type** :class:`Vector`", NULL},
 	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
 	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */

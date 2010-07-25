@@ -278,7 +278,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 		// the attribute has no field correspondance, handover processing to function.
 		if (attrdef->m_getFunction == NULL)
 			return NULL;
-		return (*attrdef->m_getFunction)(ref, attrdef);
+		return (*attrdef->m_getFunction)(ptr, attrdef);
 	}
 	ptr += attrdef->m_offset;
 	if (attrdef->m_length > 1)

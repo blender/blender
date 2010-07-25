@@ -4095,7 +4095,7 @@ void ARMATURE_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "deselect all editbone";
+	ot->name= "Select or Deselect All";
 	ot->idname= "ARMATURE_OT_select_all";
 	
 	/* api callbacks */
@@ -5213,7 +5213,7 @@ void POSE_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "deselect all bones";
+	ot->name= "Select or Deselect All";
 	ot->idname= "POSE_OT_select_all";
 	
 	/* api callbacks */

@@ -432,13 +432,13 @@ PyAttributeDef BL_ArmatureBone::AttributesPtr[] = {
 	KX_PYATTRIBUTE_FLOAT_MATRIX_RO("arm_mat",Bone,arm_mat,4),
 	KX_PYATTRIBUTE_FLOAT_MATRIX_RO("bone_mat",Bone,bone_mat,4),
 	KX_PYATTRIBUTE_RO_FUNCTION("parent",BL_ArmatureBone,py_bone_get_parent),
-	KX_PYATTRIBUTE_RO_FUNCTION("children",BL_ArmatureBone,py_bone_get_parent),
+	KX_PYATTRIBUTE_RO_FUNCTION("children",BL_ArmatureBone,py_bone_get_children),
 	{ NULL }	//Sentinel
 };
 
 PyObject *BL_ArmatureBone::py_bone_get_parent(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
-	Bone* bone = reinterpret_cast<Bone*>BGE_PROXY_PTR(self);
+	Bone* bone = reinterpret_cast<Bone*>(self);
 	if (bone->parent) {
 		// create a proxy unconnected to any GE object
 		return NewProxyPlus_Ext(NULL,&Type,bone->parent,false);
@@ -448,7 +448,7 @@ PyObject *BL_ArmatureBone::py_bone_get_parent(void *self, const struct KX_PYATTR
 
 PyObject *BL_ArmatureBone::py_bone_get_children(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
-	Bone* bone = reinterpret_cast<Bone*>BGE_PROXY_PTR(self);
+	Bone* bone = reinterpret_cast<Bone*>(self);
 	Bone* child;
 	int count = 0;
 	for (child=(Bone*)bone->childbase.first; child; child=(Bone*)child->next)

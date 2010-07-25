@@ -58,6 +58,8 @@
 #include "BKE_object.h"  
 #include "BKE_utildefines.h"  // VECCOPY
 
+#include "ED_curve.h"
+
 /* globals */
 
 /* local */
@@ -104,13 +106,8 @@ void free_curve(Curve *cu)
 	BLI_freelistN(&cu->bev);
 	freedisplist(&cu->disp);
 	BKE_free_editfont(cu);
-	
-	if(cu->editnurb) {
-		freeNurblist(cu->editnurb);
-		MEM_freeN(cu->editnurb);
-		cu->editnurb= NULL;
-	}
 
+	free_curve_editNurb(cu);
 	unlink_curve(cu);
 	BKE_free_animdata((ID *)cu);
 	
@@ -2008,8 +2005,10 @@ void makeBevelList(Object *ob)
 	/* STEP 1: MAKE POLYS  */
 
 	BLI_freelistN(&(cu->bev));
-	if(cu->editnurb && ob->type!=OB_FONT) nu= cu->editnurb->first;
-	else nu= cu->nurb.first;
+	if(cu->editnurb && ob->type!=OB_FONT) {
+		ListBase *nurbs= ED_curve_editnurbs(cu);
+		nu= nurbs->first;
+	} else nu= cu->nurb.first;
 	
 	while(nu) {
 		
@@ -2999,7 +2998,7 @@ float (*curve_getKeyVertexCos(Curve *cu, ListBase *lb, float *key))[3]
 				VECCOPY(co, key); co+=3; key+=3;
 				VECCOPY(co, key); co+=3; key+=3;
 				VECCOPY(co, key); co+=3; key+=3;
-				key++; /* skip tilt */
+				key+=3; /* skip tilt */
 			}
 		}
 		else {
@@ -3099,5 +3098,12 @@ int clamp_nurb_order_v( struct Nurb *nu)
 	return change;
 }
 
+/* Get edit nurbs or normal nurbs list */
+ListBase *BKE_curve_nurbs(Curve *cu)
+{
+	if (cu->editnurb) {
+		return ED_curve_editnurbs(cu);
+	}
 
-
+	return &cu->nurb;
+}

@@ -52,6 +52,7 @@
 #include "UI_resources.h"
 #include "UI_interface.h"
 
+
 #include "info_intern.h"	// own include
 
 /* ******************** default callbacks for info space ***************** */

@@ -341,6 +341,9 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 
 static int sequencer_add_movie_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	if(RNA_collection_length(op->ptr, "files") || RNA_property_is_set(op->ptr, "filepath"))
+		return sequencer_add_movie_strip_exec(C, op);
+
 	if(!ED_operator_sequencer_active(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
 		return OPERATOR_CANCELLED;
@@ -348,6 +351,10 @@ static int sequencer_add_movie_strip_invoke(bContext *C, wmOperator *op, wmEvent
 
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
+
+	/* This is for drag and drop */
+	if(RNA_property_is_set(op->ptr, "filepath"))
+		return sequencer_add_movie_strip_exec(C, op);
 
 	sequencer_generic_invoke_xy__internal(C, op, event, 0);
 
@@ -389,6 +396,9 @@ static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
 
 static int sequencer_add_sound_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	if(RNA_collection_length(op->ptr, "files") || RNA_property_is_set(op->ptr, "filepath"))
+		return sequencer_add_sound_strip_exec(C, op);
+
 	if(!ED_operator_sequencer_active(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
 		return OPERATOR_CANCELLED;
@@ -396,6 +406,10 @@ static int sequencer_add_sound_strip_invoke(bContext *C, wmOperator *op, wmEvent
 
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
+
+	/* This is for drag and drop */
+	if(RNA_property_is_set(op->ptr, "filepath"))
+		return sequencer_add_sound_strip_exec(C, op);
 
 	sequencer_generic_invoke_xy__internal(C, op, event, 0);
 
@@ -486,6 +500,9 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
 static int sequencer_add_image_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	if(RNA_collection_length(op->ptr, "files"))
+		return sequencer_add_image_strip_exec(C, op);
+
 	if(!ED_operator_sequencer_active(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
 		return OPERATOR_CANCELLED;

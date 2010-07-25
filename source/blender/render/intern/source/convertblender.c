@@ -2848,7 +2848,10 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 		}
 
 		while(dl) {
-			if(dl->type==DL_INDEX3) {
+			if(dl->col > ob->totcol) {
+				/* pass */
+			}
+			else if(dl->type==DL_INDEX3) {
 				int *index;
 
 				startvert= obr->totvert;

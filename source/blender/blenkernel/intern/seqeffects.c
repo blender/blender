@@ -827,7 +827,7 @@ static void makeGammaTables(float gamma)
 
 	/* The end of the table should match 1.0 carefully. In order to avoid    */
 	/* rounding errors, we just set this explicitly. The last segment may    */
-	/* have a different lenght than the other segments, but our              */
+	/* have a different length than the other segments, but our              */
 	/* interpolation is insensitive to that.                                 */
 	color_domain_table[RE_GAMMA_TABLE_SIZE]   = 1.0;
 	gamma_range_table[RE_GAMMA_TABLE_SIZE]     = 1.0;
@@ -2786,6 +2786,7 @@ static void do_multicam(Scene *scene, Sequence *seq, int cfra,
 		IMB_float_from_rect_simple(i);
 		memcpy(out->rect_float, i->rect_float, out->x * out->y *4*sizeof(float));
 	}
+	IMB_freeImBuf(i);
 }
 
 /* **********************************************************************

@@ -63,6 +63,7 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
+#include "ED_curve.h" /* for BKE_curve_nurbs */
 
 static void boundbox_displist(Object *ob);
 
@@ -1221,7 +1222,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	ModifierData *preTesselatePoint;
 	Curve *cu= ob->data;
-	ListBase *nurb= cu->editnurb?cu->editnurb:&cu->nurb;
+	ListBase *nurb= BKE_curve_nurbs(cu);
 	int numVerts = 0;
 	int editmode = (!forRender && cu->editnurb);
 	float (*originalVerts)[3] = NULL;
@@ -1324,8 +1325,9 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	ModifierData *preTesselatePoint;
 	Curve *cu= ob->data;
-	ListBase *nurb= cu->editnurb?cu->editnurb:&cu->nurb;
-	int required_mode, totvert = 0;
+	ListBase *nurb= BKE_curve_nurbs(cu);
+	DispList *dl;
+	int required_mode = 0, totvert = 0;
 	int editmode = (!forRender && cu->editnurb);
 	DerivedMesh *dm= NULL, *ndm;
 	float (*vertCos)[3] = NULL;
@@ -1590,9 +1592,9 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 	int numVerts;
 	float (*originalVerts)[3];
 	float (*deformedVerts)[3];
-		
+
 	if(!forRender && cu->editnurb)
-		nubase= cu->editnurb;
+		nubase= ED_curve_editnurbs(cu);
 	else
 		nubase= &cu->nurb;
 
@@ -1689,10 +1691,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 			cu->taperobj = NULL;
 		}
 
-		if(cu->editnurb)
-			nubase= cu->editnurb;
-		else
-			nubase= &cu->nurb;
+		nubase= BKE_curve_nurbs(cu);
 
 		BLI_freelistN(&(cu->bev));
 

@@ -66,6 +66,7 @@
 #include "ED_armature.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_curve.h" /* for ED_curve_editnurbs */
 
 #include "view3d_intern.h"
 
@@ -100,8 +101,9 @@ static void special_transvert_update(Scene *scene, Object *obedit)
 		}
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= obedit->data;
-			Nurb *nu= cu->editnurb->first;
-			
+			ListBase *nurbs= ED_curve_editnurbs(cu);
+			Nurb *nu= nurbs->first;
+
 			while(nu) {
 				test2DNurb(nu);
 				testhandlesNurb(nu); /* test for bezier too */
@@ -288,8 +290,9 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 		Curve *cu= obedit->data;
 		int totmalloc= 0;
-		
-		for(nu= cu->editnurb->first; nu; nu= nu->next) {
+		ListBase *nurbs= ED_curve_editnurbs(cu);
+
+		for(nu= nurbs->first; nu; nu= nu->next) {
 			if(nu->type == CU_BEZIER)
 				totmalloc += 3*nu->pntsu;
 			else
@@ -297,7 +300,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		}
 		tv=transvmain= MEM_callocN(totmalloc*sizeof(TransVert), "maketransverts curve");
 
-		nu= cu->editnurb->first;
+		nu= nurbs->first;
 		while(nu) {
 			if(nu->type == CU_BEZIER) {
 				a= nu->pntsu;

@@ -1155,7 +1155,7 @@ static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 	int len= strlen(str);
 	int change= 0;
 	if(but->selsta != but->selend && len) {
-		memmove( str+but->selsta, str+but->selend, len+1 );
+		memmove( str+but->selsta, str+but->selend, len-but->selsta+1 );
 		change= 1;
 	}
 	
@@ -5192,7 +5192,8 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 			button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 		}
 		else {
-			if(event->type != MOUSEMOVE) {
+			if (ISKEYBOARD(event->type)) {
+				/* keyboard menu hierarchy navigation, going back to previous level */
 				but->active->used_mouse= 0;
 				button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 			}

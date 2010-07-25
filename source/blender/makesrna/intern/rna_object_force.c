@@ -294,6 +294,29 @@ static void rna_Cache_active_point_cache_index_set(struct PointerRNA *ptr, int v
 	BLI_freelistN(&pidlist);
 }
 
+static void rna_PointCache_step_range(PointerRNA *ptr, int *min, int *max)
+{
+	Object *ob = ptr->id.data;
+	PointCache *cache= ptr->data;
+	PTCacheID *pid;
+	ListBase pidlist;
+
+	*min= 1;
+	*max= 20;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	
+	for(pid=pidlist.first; pid; pid=pid->next) {
+		if(pid->cache == cache) {
+			if(ELEM3(pid->type, PTCACHE_TYPE_CLOTH, PTCACHE_TYPE_SMOKE_DOMAIN, PTCACHE_TYPE_SMOKE_HIGHRES))
+				*max= 1;
+			break;
+		}
+	}
+
+	BLI_freelistN(&pidlist);
+}
+
 static char *rna_CollisionSettings_path(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -670,7 +693,6 @@ static EnumPropertyItem *rna_Effector_shape_itemf(bContext *C, PointerRNA *ptr, 
 	}
 }
 
-
 #else
 
 static void rna_def_pointcache(BlenderRNA *brna)
@@ -694,6 +716,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "step", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, 20);
+	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_PointCache_step_range");
 	RNA_def_property_ui_text(prop, "Cache Step", "Number of frames between cached frames");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
 

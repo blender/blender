@@ -86,6 +86,7 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_types.h"
+#include "ED_curve.h" /* for ED_curve_editnurbs */
 
 #include "UI_resources.h"
 
@@ -1610,10 +1611,11 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 	short s[2] = {IS_CLIPPED, 0};
 	Nurb *nu;
 	int i;
+	ListBase *nurbs= ED_curve_editnurbs(cu);
 
 	ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
-	for (nu= cu->editnurb->first; nu; nu=nu->next) {
+	for (nu= nurbs->first; nu; nu=nu->next) {
 		if(nu->type == CU_BEZIER) {
 			for (i=0; i<nu->pntsu; i++) {
 				BezTriple *bezt = &nu->bezt[i];
@@ -5882,7 +5884,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			cu= ob->data;
 
 			if(cu->editnurb) {
-				drawnurb(scene, v3d, rv3d, base, cu->editnurb->first, dt);
+				ListBase *nurbs= ED_curve_editnurbs(cu);
+				drawnurb(scene, v3d, rv3d, base, nurbs->first, dt);
 			}
 			else if(dt==OB_BOUNDBOX) {
 				if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)

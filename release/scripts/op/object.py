@@ -113,44 +113,46 @@ class SelectHierarchy(bpy.types.Operator):
         return context.object
 
     def execute(self, context):
-        objs = context.selected_objects
+        select_new = []
+        act_new = None
+        
+        
+        selected_objects = context.selected_objects
         obj_act = context.object
 
-        if context.object not in objs:
-            objs.append(context.object)
-
-        if not self.properties.extend:
-            # for obj in objs:
-            #     obj.select = False
-            bpy.ops.object.select_all(action='DESELECT')
+        if context.object not in selected_objects:
+            selected_objects.append(context.object)
 
         if self.properties.direction == 'PARENT':
-            parents = []
-            for obj in objs:
+            for obj in selected_objects:
                 parent = obj.parent
 
                 if parent:
-                    parents.append(parent)
-
                     if obj_act == obj:
-                        context.scene.objects.active = parent
+                        act_new = parent
 
-                    parent.select = True
-                
-            if parents:
-                return {'CANCELLED'}
+                    select_new.append(parent)
 
         else:
-            children = []
-            for obj in objs:
-                children += list(obj.children)
-                for obj_iter in children:
-                    obj_iter.select = True
+            for obj in selected_objects:
+                select_new.extend(obj.children)
 
-            children.sort(key=lambda obj_iter: obj_iter.name)
-            context.scene.objects.active = children[0]
+            if select_new:
+                select_new.sort(key=lambda obj_iter: obj_iter.name)
+                act_new = select_new[0]
 
-        return {'FINISHED'}
+        # dont edit any object settings above this
+        if select_new:
+            if not self.properties.extend:
+                bpy.ops.object.select_all(action='DESELECT')
+
+            for obj in select_new:
+                obj.select = True
+
+            context.scene.objects.active = act_new
+            return {'FINISHED'}
+            
+        return {'CANCELLED'}
 
 
 class SubdivisionSet(bpy.types.Operator):

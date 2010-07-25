@@ -1885,13 +1885,12 @@ static void give_parvert(Object *par, int nr, float *vec)
 		BPoint *bp;
 		BezTriple *bezt;
 		int found= 0;
-		
+		ListBase *nurbs;
+
 		cu= par->data;
-		if(cu->editnurb)
-			nu= cu->editnurb->first;
-		else
-			nu= cu->nurb.first;
-		
+		nurbs= BKE_curve_nurbs(cu);
+		nu= nurbs->first;
+
 		count= 0;
 		while(nu && !found) {
 			if(nu->type == CU_BEZIER) {
@@ -2946,7 +2945,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, char *name, int from_
 	Curve *cu= ob->data;
 	Key *key= cu->key;
 	KeyBlock *kb;
-	ListBase *lb= (cu->editnurb)? cu->editnurb: &cu->nurb;
+	ListBase *lb= BKE_curve_nurbs(cu);
 	int newkey= 0;
 
 	if(key==NULL) {

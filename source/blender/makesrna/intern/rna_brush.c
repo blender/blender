@@ -52,6 +52,7 @@ static void rna_Brush_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Brush *br= (Brush*)ptr->data;
 	WM_main_add_notifier(NC_BRUSH|NA_EDITED, br);
+	//WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
 static int rna_Brush_is_sculpt_brush(Brush *me, bContext *C)
@@ -118,6 +119,78 @@ static void rna_Brush_icon_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	BKE_icon_changed(BKE_icon_getid(&(br->id)));
 
 	WM_main_add_notifier(NC_BRUSH|NA_EDITED, br);
+}
+
+static void rna_Brush_set_size(PointerRNA *ptr, int value)
+{
+	Brush* me = (Brush*)(ptr->data);
+	brush_set_size(me, value);
+}
+
+static int rna_Brush_get_size(PointerRNA *ptr)
+{
+	Brush* me = (Brush*)(ptr->data);
+	return brush_size(me);
+}
+
+static void rna_Brush_set_use_locked_size(PointerRNA *ptr, int value)
+{
+	Brush* me = (Brush*)(ptr->data);
+	brush_set_use_locked_size(me, value);
+}
+
+static int rna_Brush_get_use_locked_size(PointerRNA *ptr)
+{
+	Brush* me = (Brush*)(ptr->data);
+	return brush_use_locked_size(me);
+}
+
+static void rna_Brush_set_use_size_pressure(PointerRNA *ptr, int value)
+{
+	Brush* me = (Brush*)(ptr->data);
+	brush_set_use_size_pressure(me, value);
+}
+
+static int rna_Brush_get_use_size_pressure(PointerRNA *ptr)
+{
+	Brush* me = (Brush*)(ptr->data);
+	return brush_use_size_pressure(me);
+}
+
+static void rna_Brush_set_use_alpha_pressure(PointerRNA *ptr, int value)
+{
+	Brush* me = (Brush*)(ptr->data);
+	brush_set_use_alpha_pressure(me, value);
+}
+
+static int rna_Brush_get_use_alpha_pressure(PointerRNA *ptr)
+{
+	Brush* me = (Brush*)(ptr->data);
+	return brush_use_alpha_pressure(me);
+}
+
+static void rna_Brush_set_unprojected_radius(PointerRNA *ptr, float value)
+{
+	Brush* me = (Brush*)(ptr->data);
+	brush_set_unprojected_radius(me, value);
+}
+
+static float rna_Brush_get_unprojected_radius(PointerRNA *ptr)
+{
+	Brush* me = (Brush*)(ptr->data);
+	return brush_unprojected_radius(me);
+}
+
+static void rna_Brush_set_alpha(PointerRNA *ptr, float value)
+{
+	Brush* me = (Brush*)(ptr->data);
+	brush_set_alpha(me, value);
+}
+
+static float rna_Brush_get_alpha(PointerRNA *ptr)
+{
+	Brush* me = (Brush*)(ptr->data);
+	return brush_alpha(me);
 }
 
 #else
@@ -415,15 +488,17 @@ static void rna_def_brush(BlenderRNA *brna)
 	
 	/* number values */
 	prop= RNA_def_property(srna, "size", PROP_INT, PROP_DISTANCE);
+	RNA_def_property_int_funcs(prop, "rna_Brush_get_size", "rna_Brush_set_size", NULL);
 	RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS*10);
 	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, 0);
 	RNA_def_property_ui_text(prop, "Size", "Radius of the brush in pixels");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	prop= RNA_def_property(srna, "unprojected_radius", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_range(prop, 0, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0, 1, 0, 0);
-	RNA_def_property_ui_text(prop, "Surface Size", "Radius of brush in Blender units");
+	RNA_def_property_float_funcs(prop, "rna_Brush_get_unprojected_radius", "rna_Brush_set_unprojected_radius", NULL);
+	RNA_def_property_range(prop, 0.001, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.001, 1, 0, 0);
+	RNA_def_property_ui_text(prop, "Unprojected Radius", "Radius of brush in Blender units");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "jitter", PROP_FLOAT, PROP_NONE);
@@ -464,6 +539,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
+	RNA_def_property_float_funcs(prop, "rna_Brush_get_alpha", "rna_Brush_set_alpha", NULL);
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 0.001);
@@ -532,6 +608,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_strength_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ALPHA_PRESSURE);
+	RNA_def_property_boolean_funcs(prop, "rna_Brush_get_use_alpha_pressure", "rna_Brush_set_use_alpha_pressure");
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Strength Pressure", "Enable tablet pressure sensitivity for strength");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
@@ -544,6 +621,7 @@ static void rna_def_brush(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_size_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SIZE_PRESSURE);
+	RNA_def_property_boolean_funcs(prop, "rna_Brush_get_use_size_pressure", "rna_Brush_set_use_size_pressure");
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Size Pressure", "Enable tablet pressure sensitivity for size");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
@@ -622,7 +700,8 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Adaptive Spacing", "Space daubs according to surface orientation instead of screen space");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop= RNA_def_property(srna, "lock_brush_size", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_locked_size", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Brush_get_use_locked_size", "rna_Brush_set_use_locked_size");
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_LOCK_SIZE);
 	RNA_def_property_ui_text(prop, "Use Blender Units", "When locked brush stays same size relative to object; when unlocked brush size is given in pixels");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");

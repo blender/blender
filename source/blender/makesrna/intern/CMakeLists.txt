@@ -42,6 +42,7 @@ SET(SRC
 INCLUDE_DIRECTORIES(
 	../../../../intern/audaspace/intern
 	../../../../intern/guardedalloc
+	../../../../intern/memutil
 	..
 	../../makesdna
 	../../blenkernel

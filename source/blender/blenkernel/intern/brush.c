@@ -38,6 +38,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "WM_types.h"
+#include "WM_api.h"
 
 #include "RNA_access.h"
 
@@ -357,9 +358,10 @@ void brush_sample_tex(Brush *brush, float *xy, float *rgba)
 	if (mtex && mtex->tex) {
 		float co[3], tin, tr, tg, tb, ta;
 		int hasrgb;
-		
-		co[0]= xy[0]/(brush->size >> 1);
-		co[1]= xy[1]/(brush->size >> 1);
+		const int radius= brush_size(brush);
+
+		co[0]= xy[0]/radius;
+		co[1]= xy[1]/radius;
 		co[2]= 0.0f;
 
 		hasrgb= externtex(mtex, co, &tin, &tr, &tg, &tb, &ta);
@@ -382,23 +384,24 @@ void brush_sample_tex(Brush *brush, float *xy, float *rgba)
 }
 
 
-void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **outbuf)
+void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf **outbuf)
 {
 	ImBuf *ibuf;
 	float xy[2], dist, rgba[4], *dstf;
 	int x, y, rowbytes, xoff, yoff, imbflag;
-	int maxsize = brush->size >> 1;
+	const int radius= brush_size(brush);
 	char *dst, crgb[3];
+	const float alpha= brush_alpha(brush);
 
 	imbflag= (flt)? IB_rectfloat: IB_rect;
-	xoff = -size/2.0f + 0.5f;
-	yoff = -size/2.0f + 0.5f;
-	rowbytes= size*4;
+	xoff = -bufsize/2.0f + 0.5f;
+	yoff = -bufsize/2.0f + 0.5f;
+	rowbytes= bufsize*4;
 
 	if (*outbuf)
 		ibuf= *outbuf;
 	else
-		ibuf= IMB_allocImBuf(size, size, 32, imbflag, 0);
+		ibuf= IMB_allocImBuf(bufsize, bufsize, 32, imbflag, 0);
 
 	if (flt) {
 		for (y=0; y < ibuf->y; y++) {
@@ -412,7 +415,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
 
 					VECCOPY(dstf, brush->rgb);
-					dstf[3]= brush->alpha*brush_curve_strength_clamp(brush, dist, maxsize);
+					dstf[3]= alpha*brush_curve_strength_clamp(brush, dist, radius);
 				}
 				else if (texfall == 1) {
 					brush_sample_tex(brush, xy, dstf);
@@ -425,7 +428,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dstf[0] = rgba[0]*brush->rgb[0];
 					dstf[1] = rgba[1]*brush->rgb[1];
 					dstf[2] = rgba[2]*brush->rgb[2];
-					dstf[3] = rgba[3]*brush->alpha*brush_curve_strength_clamp(brush, dist, maxsize);
+					dstf[3] = rgba[3]*alpha*brush_curve_strength_clamp(brush, dist, radius);
 				}
 			}
 		}
@@ -448,7 +451,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dst[0]= crgb[0];
 					dst[1]= crgb[1];
 					dst[2]= crgb[2];
-					dst[3]= FTOCHAR(brush->alpha*brush_curve_strength(brush, dist, maxsize));
+					dst[3]= FTOCHAR(alpha*brush_curve_strength(brush, dist, radius));
 				}
 				else if (texfall == 1) {
 					brush_sample_tex(brush, xy, rgba);
@@ -464,7 +467,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 					dst[0] = FTOCHAR(rgba[0]*brush->rgb[0]);
 					dst[1] = FTOCHAR(rgba[1]*brush->rgb[1]);
 					dst[2] = FTOCHAR(rgba[2]*brush->rgb[2]);
-					dst[3] = FTOCHAR(rgba[3]*brush->alpha*brush_curve_strength_clamp(brush, dist, maxsize));
+					dst[3] = FTOCHAR(rgba[3]*alpha*brush_curve_strength_clamp(brush, dist, radius));
 				}
 			}
 		}
@@ -478,7 +481,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **o
 typedef struct BrushPainterCache {
 	short enabled;
 
-	int size;			/* size override, if 0 uses brush->size */
+	int size;			/* size override, if 0 uses 2*brush_size(brush) */
 	short flt;			/* need float imbuf? */
 	short texonly;		/* no alpha, color or fallof, only texture in imbuf */
 
@@ -523,8 +526,8 @@ BrushPainter *brush_painter_new(Brush *brush)
 	painter->firsttouch= 1;
 	painter->cache.lastsize= -1; /* force ibuf create in refresh */
 
-	painter->startsize = brush->size;
-	painter->startalpha = brush->alpha;
+	painter->startsize = brush_size(brush);
+	painter->startalpha = brush_alpha(brush);
 	painter->startjitter = brush->jitter;
 	painter->startspacing = brush->spacing;
 
@@ -557,8 +560,8 @@ void brush_painter_free(BrushPainter *painter)
 {
 	Brush *brush = painter->brush;
 
-	brush->size = painter->startsize;
-	brush->alpha = painter->startalpha;
+	brush_set_size(brush, painter->startsize);
+	brush_set_alpha(brush, painter->startalpha);
 	brush->jitter = painter->startjitter;
 	brush->spacing = painter->startspacing;
 
@@ -575,9 +578,10 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, i
 	float *bf, *mf, *tf, *otf=NULL, xoff, yoff, xy[2], rgba[4];
 	char *b, *m, *t, *ot= NULL;
 	int dotexold, origx= x, origy= y;
+	const int radius= brush_size(brush);
 
-	xoff = -brush->size/2.0f + 0.5f;
-	yoff = -brush->size/2.0f + 0.5f;
+	xoff = -radius + 0.5f;
+	yoff = -radius + 0.5f;
 	xoff += (int)pos[0] - (int)painter->startpaintpos[0];
 	yoff += (int)pos[1] - (int)painter->startpaintpos[1];
 
@@ -659,14 +663,15 @@ static void brush_painter_fixed_tex_partial_update(BrushPainter *painter, float 
 	BrushPainterCache *cache= &painter->cache;
 	ImBuf *oldtexibuf, *ibuf;
 	int imbflag, destx, desty, srcx, srcy, w, h, x1, y1, x2, y2;
+	const int diameter= 2*brush_size(brush);
 
 	imbflag= (cache->flt)? IB_rectfloat: IB_rect;
 	if (!cache->ibuf)
-		cache->ibuf= IMB_allocImBuf(brush->size, brush->size, 32, imbflag, 0);
+		cache->ibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag, 0);
 	ibuf= cache->ibuf;
 
 	oldtexibuf= cache->texibuf;
-	cache->texibuf= IMB_allocImBuf(brush->size, brush->size, 32, imbflag, 0);
+	cache->texibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag, 0);
 
 	if (oldtexibuf) {
 		srcx= srcy= 0;
@@ -713,9 +718,13 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 	MTex *mtex= &brush->mtex;
 	int size;
 	short flt;
+	const int diameter= 2*brush_size(brush);
+	const float alpha= brush_alpha(brush);
 
-	if ((brush->size != cache->lastsize) || (brush->alpha != cache->lastalpha)
-		|| (brush->jitter != cache->lastjitter)) {
+	if (diameter != cache->lastsize ||
+		alpha != cache->lastalpha ||
+		brush->jitter != cache->lastjitter)
+	{
 		if (cache->ibuf) {
 			IMB_freeImBuf(cache->ibuf);
 			cache->ibuf= NULL;
@@ -726,7 +735,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 		}
 
 		flt= cache->flt;
-		size= (cache->size)? cache->size: brush->size;
+		size= (cache->size)? cache->size: diameter;
 
 		if (!(mtex && mtex->tex) || (mtex->tex->type==0)) {
 			brush_imbuf_new(brush, flt, 0, size, &cache->ibuf);
@@ -738,8 +747,8 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 		else
 			brush_imbuf_new(brush, flt, 2, size, &cache->ibuf);
 
-		cache->lastsize= brush->size;
-		cache->lastalpha= brush->alpha;
+		cache->lastsize= diameter;
+		cache->lastalpha= alpha;
 		cache->lastjitter= brush->jitter;
 	}
 	else if ((brush->flag & BRUSH_FIXED_TEX) && mtex && mtex->tex) {
@@ -758,10 +767,10 @@ void brush_painter_break_stroke(BrushPainter *painter)
 
 static void brush_apply_pressure(BrushPainter *painter, Brush *brush, float pressure)
 {
-	if (brush->flag & BRUSH_ALPHA_PRESSURE) 
-		brush->alpha = MAX2(0.0, painter->startalpha*pressure);
-	if (brush->flag & BRUSH_SIZE_PRESSURE)
-		brush->size = MAX2(1.0, painter->startsize*pressure);
+	if (brush_use_alpha_pressure(brush)) 
+		brush_set_alpha(brush, MAX2(0.0, painter->startalpha*pressure));
+	if (brush_use_size_pressure(brush))
+		brush_set_size(brush, MAX2(1.0, painter->startsize*pressure));
 	if (brush->flag & BRUSH_JITTER_PRESSURE)
 		brush->jitter = MAX2(0.0, painter->startjitter*pressure);
 	if (brush->flag & BRUSH_SPACING_PRESSURE)
@@ -772,6 +781,8 @@ void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
 {
 	if(brush->jitter){
 		float rand_pos[2];
+		const int radius= brush_size(brush);
+		const int diameter= 2*radius;
 
 		// find random position within a circle of diameter 1
 		do {
@@ -779,8 +790,8 @@ void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
 			rand_pos[1] = BLI_frand()-0.5f;
 		} while (len_v2(rand_pos) > 0.5f);
 
-		jitterpos[0] = pos[0] + 2*rand_pos[0]*brush->size*brush->jitter;
-		jitterpos[1] = pos[1] + 2*rand_pos[1]*brush->size*brush->jitter;
+		jitterpos[0] = pos[0] + 2*rand_pos[0]*diameter*brush->jitter;
+		jitterpos[1] = pos[1] + 2*rand_pos[1]*diameter*brush->jitter;
 	}
 	else {
 		VECCOPY2D(jitterpos, pos);
@@ -819,7 +830,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 		double starttime, curtime= time;
 
 		/* compute brush spacing adapted to brush size */
-		spacing= brush->rate; //brush->size*brush->spacing*0.01f;
+		spacing= brush->rate; //radius*brush->spacing*0.01f;
 
 		/* setup starting time, direction vector and accumulated time */
 		starttime= painter->accumtime;
@@ -850,11 +861,13 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 	else {
 		float startdistance, spacing, step, paintpos[2], dmousepos[2], finalpos[2];
 		float t, len, press;
+		const int radius= brush_size(brush);
+		const int diameter= 2*radius;
 
-		/* compute brush spacing adapted to brush size, spacing may depend
+		/* compute brush spacing adapted to brush radius, spacing may depend
 		   on pressure, so update it */
 		brush_apply_pressure(painter, brush, painter->lastpressure);
-		spacing= MAX2(1.0f, brush->size)*brush->spacing*0.01f;
+		spacing= MAX2(1.0f, radius)*brush->spacing*0.01f;
 
 		/* setup starting distance, direction vector and accumulated distance */
 		startdistance= painter->accumdistance;
@@ -871,7 +884,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 			t = step/len;
 			press= (1.0f-t)*painter->lastpressure + t*pressure;
 			brush_apply_pressure(painter, brush, press);
-			spacing= MAX2(1.0f, brush->size)*brush->spacing*0.01f;
+			spacing= MAX2(1.0f, radius)*brush->spacing*0.01f;
 
 			brush_jitter_pos(brush, paintpos, finalpos);
 
@@ -921,8 +934,8 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 	painter->lastmousepos[1]= pos[1];
 	painter->lastpressure= pressure;
 
-	brush->alpha = painter->startalpha;
-	brush->size = painter->startsize;
+	brush_set_alpha(brush, painter->startalpha);
+	brush_set_size(brush, painter->startsize);
 	brush->jitter = painter->startjitter;
 	brush->spacing = painter->startspacing;
 
@@ -1041,9 +1054,9 @@ void brush_radial_control_invoke(wmOperator *op, Brush *br, float size_weight)
 	float original_value= 0;
 
 	if(mode == WM_RADIALCONTROL_SIZE)
-		original_value = sculpt_get_brush_size(br) * size_weight;
+		original_value = brush_size(br) * size_weight;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		original_value = sculpt_get_brush_alpha(br);
+		original_value = brush_alpha(br);
 	else if(mode == WM_RADIALCONTROL_ANGLE) {
 		MTex *mtex = brush_active_texture(br);
 		if(mtex)
@@ -1061,15 +1074,15 @@ int brush_radial_control_exec(wmOperator *op, Brush *br, float size_weight)
 	const float conv = 0.017453293;
 
 	if(mode == WM_RADIALCONTROL_SIZE)
-		if (sculpt_get_lock_brush_size(br)) {
+		if (brush_use_locked_size(br)) {
 			float initial_value = RNA_float_get(op->ptr, "initial_value");
-			const float unprojected_radius = sculpt_get_brush_unprojected_radius(br);
-			sculpt_set_brush_unprojected_radius(br, unprojected_radius * new_value/initial_value * size_weight);
+			const float unprojected_radius = brush_unprojected_radius(br);
+			brush_set_unprojected_radius(br, unprojected_radius * new_value/initial_value * size_weight);
 		}
 		else
-			sculpt_set_brush_size(br, new_value * size_weight);
+			brush_set_size(br, new_value * size_weight);
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
-		sculpt_set_brush_alpha(br, new_value);
+		brush_set_alpha(br, new_value);
 	else if(mode == WM_RADIALCONTROL_ANGLE) {
 		MTex *mtex = brush_active_texture(br);
 		if(mtex)
@@ -1077,4 +1090,249 @@ int brush_radial_control_exec(wmOperator *op, Brush *br, float size_weight)
 	}
 
 	return OPERATOR_FINISHED;
+}
+
+/* Unified Size and Strength */
+
+static void set_unified_settings(Brush *brush, short flag, int value)
+{
+	Scene *sce;
+	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if (sce->toolsettings && 
+			ELEM4(brush,
+			    paint_brush(&(sce->toolsettings->imapaint.paint)),
+			    paint_brush(&(sce->toolsettings->vpaint->paint)),
+			    paint_brush(&(sce->toolsettings->wpaint->paint)),
+			    paint_brush(&(sce->toolsettings->sculpt->paint))))
+		{
+			if (value)
+				sce->toolsettings->sculpt_paint_settings |= flag;
+			else
+				sce->toolsettings->sculpt_paint_settings &= ~flag;
+		}
+	}
+}
+
+static short unified_settings(Brush *brush)
+{
+	Scene *sce;
+	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if (sce->toolsettings && 
+			ELEM4(brush,
+			    paint_brush(&(sce->toolsettings->imapaint.paint)),
+			    paint_brush(&(sce->toolsettings->vpaint->paint)),
+			    paint_brush(&(sce->toolsettings->wpaint->paint)),
+			    paint_brush(&(sce->toolsettings->sculpt->paint))))
+		{
+			return sce->toolsettings->sculpt_paint_settings;
+		}
+	}
+
+	return 0;
+}
+
+static void set_unified_size(Brush *brush, int value)
+{
+	Scene *sce;
+	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if (sce->toolsettings && 
+			ELEM4(brush,
+			    paint_brush(&(sce->toolsettings->imapaint.paint)),
+			    paint_brush(&(sce->toolsettings->vpaint->paint)),
+			    paint_brush(&(sce->toolsettings->wpaint->paint)),
+			    paint_brush(&(sce->toolsettings->sculpt->paint))))
+		{
+			sce->toolsettings->sculpt_paint_unified_size= value;
+		}
+	}
+}
+
+static int unified_size(Brush *brush)
+{
+	Scene *sce;
+	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if (sce->toolsettings && 
+			ELEM4(brush,
+			    paint_brush(&(sce->toolsettings->imapaint.paint)),
+			    paint_brush(&(sce->toolsettings->vpaint->paint)),
+			    paint_brush(&(sce->toolsettings->wpaint->paint)),
+			    paint_brush(&(sce->toolsettings->sculpt->paint))))
+		{
+			return sce->toolsettings->sculpt_paint_unified_size;
+		}
+	}
+
+	return 35; // XXX magic number
+}
+
+static void set_unified_alpha(Brush *brush, float value)
+{
+	Scene *sce;
+	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if (sce->toolsettings && 
+			ELEM4(brush,
+			    paint_brush(&(sce->toolsettings->imapaint.paint)),
+			    paint_brush(&(sce->toolsettings->vpaint->paint)),
+			    paint_brush(&(sce->toolsettings->wpaint->paint)),
+			    paint_brush(&(sce->toolsettings->sculpt->paint))))
+		{
+			sce->toolsettings->sculpt_paint_unified_alpha= value;
+		}
+	}
+}
+
+static float unified_alpha(Brush *brush)
+{
+	Scene *sce;
+	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if (sce->toolsettings && 
+			ELEM4(brush,
+			    paint_brush(&(sce->toolsettings->imapaint.paint)),
+			    paint_brush(&(sce->toolsettings->vpaint->paint)),
+			    paint_brush(&(sce->toolsettings->wpaint->paint)),
+			    paint_brush(&(sce->toolsettings->sculpt->paint))))
+		{
+			return sce->toolsettings->sculpt_paint_unified_alpha;
+		}
+	}
+
+	return 0.5f; // XXX magic number
+}
+
+static void set_unified_unprojected_radius(Brush *brush, float value)
+{
+	Scene *sce;
+	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if (sce->toolsettings && 
+			ELEM4(brush,
+			    paint_brush(&(sce->toolsettings->imapaint.paint)),
+			    paint_brush(&(sce->toolsettings->vpaint->paint)),
+			    paint_brush(&(sce->toolsettings->wpaint->paint)),
+			    paint_brush(&(sce->toolsettings->sculpt->paint))))
+		{
+			sce->toolsettings->sculpt_paint_unified_unprojected_radius= value;
+		}
+	}
+}
+
+static float unified_unprojected_radius(Brush *brush)
+{
+	Scene *sce;
+	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if (sce->toolsettings && 
+			ELEM4(brush,
+			    paint_brush(&(sce->toolsettings->imapaint.paint)),
+			    paint_brush(&(sce->toolsettings->vpaint->paint)),
+			    paint_brush(&(sce->toolsettings->wpaint->paint)),
+			    paint_brush(&(sce->toolsettings->sculpt->paint))))
+		{
+			return sce->toolsettings->sculpt_paint_unified_unprojected_radius;
+		}
+	}
+
+	return 0.125f; // XXX magic number
+}
+void brush_set_size(Brush *brush, int size)
+{
+	if (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE)
+		set_unified_size(brush, size);
+	else
+		brush->size= size;
+
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+}
+
+int brush_size(Brush *brush)
+{
+	return (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE) ? unified_size(brush) : brush->size;
+}
+
+void brush_set_use_locked_size(Brush *brush, int value)
+{
+	if (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE) {
+		set_unified_settings(brush, SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE, value);
+	}
+	else {
+		if (value)
+			brush->flag |= BRUSH_LOCK_SIZE;
+		else
+			brush->flag &= ~BRUSH_LOCK_SIZE;
+	}
+
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+}
+
+int brush_use_locked_size(Brush *brush)
+{
+	return (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE) ? (unified_settings(brush) & SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE) : (brush->flag & BRUSH_LOCK_SIZE);
+}
+
+void brush_set_use_size_pressure(Brush *brush, int value)
+{
+	if (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE) {
+		set_unified_settings(brush, SCULPT_PAINT_UNIFIED_SIZE_PRESSURE, value);
+	}
+	else {
+		if (value)
+			brush->flag |= BRUSH_SIZE_PRESSURE;
+		else
+			brush->flag &= ~BRUSH_SIZE_PRESSURE;
+	}
+
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+}
+
+int brush_use_size_pressure(Brush *brush)
+{
+	return (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE) ? (unified_settings(brush) & SCULPT_PAINT_UNIFIED_SIZE_PRESSURE) : (brush->flag & BRUSH_SIZE_PRESSURE);
+}
+
+void brush_set_use_alpha_pressure(Brush *brush, int value)
+{
+	if (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_ALPHA) {
+		set_unified_settings(brush, SCULPT_PAINT_UNIFIED_ALPHA_PRESSURE, value);
+	}
+	else {
+		if (value)
+			brush->flag |= BRUSH_ALPHA_PRESSURE;
+		else
+			brush->flag &= ~BRUSH_ALPHA_PRESSURE;
+	}
+
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+}
+
+int brush_use_alpha_pressure(Brush *brush)
+{
+	return (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_ALPHA) ? (unified_settings(brush) & SCULPT_PAINT_UNIFIED_ALPHA_PRESSURE) : (brush->flag & BRUSH_ALPHA_PRESSURE);
+}
+
+void brush_set_unprojected_radius(Brush *brush, float unprojected_radius)
+{
+	if (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE)
+		set_unified_unprojected_radius(brush, unprojected_radius);
+	else
+		brush->unprojected_radius= unprojected_radius;
+
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+}
+
+float brush_unprojected_radius(Brush *brush)
+{
+	return (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_SIZE) ? unified_unprojected_radius(brush) : brush->unprojected_radius;
+}
+
+void brush_set_alpha(Brush *brush, float alpha)
+{
+	if (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_ALPHA) 
+		set_unified_alpha(brush, alpha);
+	else
+		brush->alpha= alpha;
+
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+}
+
+float brush_alpha(Brush *brush)
+{
+	return (unified_settings(brush) & SCULPT_PAINT_USE_UNIFIED_ALPHA) ? unified_alpha(brush) : brush->alpha;
 }

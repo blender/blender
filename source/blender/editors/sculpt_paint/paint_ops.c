@@ -69,23 +69,44 @@ void BRUSH_OT_add(wmOperatorType *ot)
 	ot->exec= brush_add_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 
 static int brush_scale_size_exec(bContext *C, wmOperator *op)
 {
-	/*int type = RNA_enum_get(op->ptr, "type");*/
-	Paint *paint = paint_get_active(CTX_data_scene(C));
-	Brush *br = paint_brush(paint);
-	float factor = RNA_float_get(op->ptr, "scalar");
+	Paint  *paint=  paint_get_active(CTX_data_scene(C));
+	Brush  *brush=  paint_brush(paint);
+	// Object *ob=     CTX_data_active_object(C);
+	float   scalar= RNA_float_get(op->ptr, "scalar");
 
-	if (br) {
-		if (U.sculpt_paint_settings & SCULPT_PAINT_USE_UNIFIED_SIZE) {
-			U.sculpt_paint_unified_size *= factor;
+	if (brush) {
+		// pixel radius
+		{
+			const int old_size= brush_size(brush);
+			int size= (int)(scalar*old_size);
+
+			if (old_size == size) {
+				if (scalar > 1) {
+					size++;
+				}
+				else if (scalar < 1) {
+					size--;
+				}
+			}
+			CLAMP(size, 1, 2000); // XXX magic number
+
+			brush_set_size(brush, size);
 		}
-		else {
-			br->size *= factor;
+
+		// unprojected radius
+		{
+			float unprojected_radius= scalar*brush_unprojected_radius(brush);
+
+			if (unprojected_radius < 0.001) // XXX magic number
+				unprojected_radius= 0.001f;
+
+			brush_set_unprojected_radius(brush, unprojected_radius);
 		}
 	}
 
@@ -103,7 +124,7 @@ void BRUSH_OT_scale_size(wmOperatorType *ot)
 	ot->exec= brush_scale_size_exec;
 	
 	/* flags */
-	ot->flag= OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_float(ot->srna, "scalar", 1, 0, 2, "Scalar", "Factor to scale brush size by", 0, 2);
 }

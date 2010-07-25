@@ -562,22 +562,10 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
         toolsettings = context.tool_settings.image_paint
         brush = toolsettings.brush
-        wide_ui = context.region.width > narrowui
 
         col = layout.split().column()
         row = col.row()
-        row.template_list(toolsettings, "brushes", toolsettings, "active_brush_index", rows=2)
-
-        col.template_ID(toolsettings, "brush", new="brush.add")
-
-        if wide_ui:
-            sub = layout.row(align=True)
-        else:
-            sub = layout.column(align=True)
-        sub.prop_enum(brush, "imagepaint_tool", 'DRAW')
-        sub.prop_enum(brush, "imagepaint_tool", 'SOFTEN')
-        sub.prop_enum(brush, "imagepaint_tool", 'CLONE')
-        sub.prop_enum(brush, "imagepaint_tool", 'SMEAR')
+        col.template_ID_preview(toolsettings, "brush", new="brush.add", filter="is_imapaint_brush", rows=3, cols=8)
 
         if brush:
             col = layout.column()
@@ -602,6 +590,30 @@ class IMAGE_PT_paint(bpy.types.Panel):
                 col.separator()
                 col.prop(brush, "clone_image", text="Image")
                 col.prop(brush, "clone_alpha", text="Alpha")
+
+
+class IMAGE_PT_tools_brush_texture(bpy.types.Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Texture"
+    bl_default_closed = True
+
+    def poll(self, context):
+        sima = context.space_data
+        toolsettings = context.tool_settings.image_paint
+        return sima.show_paint and toolsettings.brush
+
+    def draw(self, context):
+        layout = self.layout
+
+        toolsettings = context.tool_settings.image_paint
+        brush = toolsettings.brush
+
+#        tex_slot = brush.texture_slot
+
+        col = layout.column()
+
+        col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
 
 
 class IMAGE_PT_paint_stroke(bpy.types.Panel):
@@ -653,8 +665,15 @@ class IMAGE_PT_paint_curve(bpy.types.Panel):
         brush = toolsettings.brush
 
         layout.template_curve_mapping(brush, "curve")
-        layout.operator_menu_enum("brush.curve_preset", "shape")
 
+        row = layout.row(align=True)
+        row.operator("brush.curve_preset", icon="SMOOTHCURVE", text="").shape = 'SMOOTH'
+        row.operator("brush.curve_preset", icon="SPHERECURVE", text="").shape = 'ROUND'
+        row.operator("brush.curve_preset", icon="ROOTCURVE", text="").shape = 'ROOT'
+        row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
+        row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
+        row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
+        row.operator("brush.curve_preset", icon="RNDCURVE", text="").shape = 'MID9'
 
 classes = [
     IMAGE_MT_view,
@@ -669,6 +688,7 @@ classes = [
     IMAGE_HT_header,
     IMAGE_PT_image_properties,
     IMAGE_PT_paint,
+    IMAGE_PT_tools_brush_texture,
     IMAGE_PT_paint_stroke,
     IMAGE_PT_paint_curve,
     IMAGE_PT_game_properties,

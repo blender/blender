@@ -88,14 +88,24 @@ void brush_radial_control_invoke(struct wmOperator *op, struct Brush *br, float 
 int brush_radial_control_exec(struct wmOperator *op, struct Brush *br, float size_weight);
 
 /* unified strength and size */
-int sculpt_get_brush_size(struct Brush *brush);
-void sculpt_set_brush_size(struct Brush *brush, int size);
-int sculpt_get_lock_brush_size(struct Brush *brush);
-float sculpt_get_brush_unprojected_radius(struct Brush *brush);
-void sculpt_set_brush_unprojected_radius(struct Brush *brush, float unprojected_radius);
-float sculpt_get_brush_alpha(struct Brush *brush);
-void sculpt_set_brush_alpha(struct Brush *brush, float alpha);
 
+int  brush_size(struct Brush *brush);
+void brush_set_size(struct Brush *brush, int value);
+
+int  brush_use_locked_size(struct Brush *brush);
+void brush_set_use_locked_size(struct Brush *brush, int value);
+
+int  brush_use_alpha_pressure(struct Brush *brush);
+void brush_set_use_alpha_pressure(struct Brush *brush, int value);
+
+int  brush_use_size_pressure(struct Brush *brush);
+void brush_set_use_size_pressure(struct Brush *brush, int value);
+
+float brush_unprojected_radius(struct Brush *brush);
+void  brush_set_unprojected_radius(struct Brush *brush, float value);
+
+float brush_alpha(struct Brush *brush);
+void  brush_set_alpha(struct Brush *brush, float value);
 
 #endif
 

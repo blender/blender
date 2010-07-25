@@ -1015,7 +1015,9 @@ int splitIDname(char *name, char *left, int *nr)
 		
 		left[a]= 0;
 	}
-	strcpy(left, name);	
+
+	for(a= 0; name[a]; a++)
+		left[a]= name[a];
 
 	return a;
 }
@@ -1105,20 +1107,17 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 		if(nr>999 && strlen(left)>16) left[16]= 0;
 		else if(strlen(left)>17) left[17]= 0;
 
-		if(left_len) {
-			for(idtest= lb->first; idtest; idtest= idtest->next) {
-				if(		(id != idtest) &&
-						(idtest->lib == NULL) &&
-						(*name == *(idtest->name+2)) &&
-						(strncmp(name, idtest->name+2, left_len)==0) &&
-						(splitIDname(idtest->name+2, leftest, &nrtest) == left_len)
-
-				) {
-					if(nrtest < sizeof(in_use))
-						in_use[nrtest]= 1;	/* mark as used */
-					if(nr <= nrtest)
-						nr= nrtest+1;		/* track largest unused */
-				}
+		for(idtest= lb->first; idtest; idtest= idtest->next) {
+			if(		(id != idtest) &&
+					(idtest->lib == NULL) &&
+					(*name == *(idtest->name+2)) &&
+					(strncmp(name, idtest->name+2, left_len)==0) &&
+					(splitIDname(idtest->name+2, leftest, &nrtest) == left_len)
+			) {
+				if(nrtest < sizeof(in_use))
+					in_use[nrtest]= 1;	/* mark as used */
+				if(nr <= nrtest)
+					nr= nrtest+1;		/* track largest unused */
 			}
 		}
 
@@ -1135,7 +1134,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 		 * rather than just chopping and adding numbers, 
 		 * shave off the end chars until we have a unique name.
 		 * Check the null terminators match as well so we dont get Cube.000 -> Cube.00 */
-		if (nr==0 && name[left_len] == left[left_len]) {
+		if (nr==0 && name[left_len]== left[left_len]) {
 			int len = strlen(name)-1;
 			idtest= is_dupid(lb, id, name);
 			

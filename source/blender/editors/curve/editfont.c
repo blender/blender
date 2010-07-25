@@ -1229,7 +1229,7 @@ static int insert_text_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	char *inserted_utf8;
 	wchar_t *inserted_text, first;
-	int len;
+	int a, len;
 
 	if(!RNA_property_is_set(op->ptr, "text"))
 		return OPERATOR_CANCELLED;
@@ -1241,13 +1241,12 @@ static int insert_text_exec(bContext *C, wmOperator *op)
 	utf8towchar(inserted_text, inserted_utf8);
 	first= inserted_text[0];
 
+	for(a=0; a<len; a++)
+		insert_into_textbuf(obedit, inserted_text[a]);
+
 	MEM_freeN(inserted_text);
 	MEM_freeN(inserted_utf8);
 
-	if(!first)
-		return OPERATOR_CANCELLED;
-
-	insert_into_textbuf(obedit, first);
 	kill_selection(obedit, 1);
 	text_update_edited(C, scene, obedit, 1, 0);
 

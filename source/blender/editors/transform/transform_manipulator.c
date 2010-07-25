@@ -73,6 +73,7 @@
 #include "ED_mesh.h"
 #include "ED_particle.h"
 #include "ED_view3d.h"
+#include "ED_curve.h" /* for ED_curve_editnurbs */
 
 #include "UI_resources.h"
 
@@ -311,8 +312,9 @@ int calc_manipulator_stats(const bContext *C)
 			Nurb *nu;
 			BezTriple *bezt;
 			BPoint *bp;
+			ListBase *nurbs= ED_curve_editnurbs(cu);
 
-			nu= cu->editnurb->first;
+			nu= nurbs->first;
 			while(nu) {
 				if(nu->type == CU_BEZIER) {
 					bezt= nu->bezt;
