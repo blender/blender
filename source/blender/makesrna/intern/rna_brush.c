@@ -39,7 +39,7 @@
 
 #include "WM_types.h"
 
-static const EnumPropertyItem prop_direction_items[]= {
+static EnumPropertyItem prop_direction_items[]= {
 	{0, "ADD", 0, "Add", "Add effect of brush"},
 	{BRUSH_DIR_IN, "SUBTRACT", 0, "Subtract", "Subtract effect of brush"},
 	{0, NULL, 0, NULL, NULL}};
@@ -264,30 +264,30 @@ static float rna_Brush_get_alpha(PointerRNA *ptr)
 
 static EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	static const EnumPropertyItem prop_default_items[]= {
+	static EnumPropertyItem prop_default_items[]= {
 		{0, NULL, 0, NULL, NULL}};
 
-	static const EnumPropertyItem prop_flatten_contrast_items[]= {
+	static EnumPropertyItem prop_flatten_contrast_items[]= {
 		{0, "FLATTEN", 0, "Flatten", "Add effect of brush"},
 		{BRUSH_DIR_IN, "CONTRAST", 0, "Contrast", "Subtract effect of brush"},
 		{0, NULL, 0, NULL, NULL}};
 
-	static const EnumPropertyItem prop_fill_deepen_items[]= {
+	static EnumPropertyItem prop_fill_deepen_items[]= {
 		{0, "FILL", 0, "Fill", "Add effect of brush"},
 		{BRUSH_DIR_IN, "DEEPEN", 0, "Deepen", "Subtract effect of brush"},
 		{0, NULL, 0, NULL, NULL}};
 
-	static const EnumPropertyItem prop_scrape_peaks_items[]= {
+	static EnumPropertyItem prop_scrape_peaks_items[]= {
 		{0, "SCRAPE", 0, "Scrape", "Add effect of brush"},
 		{BRUSH_DIR_IN, "PEAKS", 0, "Peaks", "Subtract effect of brush"},
 		{0, NULL, 0, NULL, NULL}};
 
-	static const EnumPropertyItem prop_pinch_magnify_items[]= {
+	static EnumPropertyItem prop_pinch_magnify_items[]= {
 		{0, "PINCH", 0, "Pinch", "Add effect of brush"},
 		{BRUSH_DIR_IN, "MAGNIFY", 0, "Magnify", "Subtract effect of brush"},
 		{0, NULL, 0, NULL, NULL}};
 
-	static const EnumPropertyItem prop_inflate_deflate_items[]= {
+	static EnumPropertyItem prop_inflate_deflate_items[]= {
 		{0, "INFLATE", 0, "Inflate", "Add effect of brush"},
 		{BRUSH_DIR_IN, "DEFLATE", 0, "Deflate", "Subtract effect of brush"},
 		{0, NULL, 0, NULL, NULL}};
@@ -770,7 +770,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Custom Icon", "Set the brush icon from an image file");
 	RNA_def_property_update(prop, 0, "rna_Brush_icon_update");
 
-	prop= RNA_def_property(srna, "icon_filepath", PROP_STRING, PROP_FILEPATH);
+	prop= RNA_def_property(srna, "icon_filepath", PROP_STRING, PROP_IMAGEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "icon_filepath");
 	RNA_def_property_ui_text(prop, "Brush Icon Filepath", "File path to brush icon");
 	RNA_def_property_update(prop, 0, "rna_Brush_icon_update");
