@@ -540,7 +540,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
 
 	view3d_set_viewcontext(C, &vc);
 
-	if (0 && vc.obact->sculpt) {
+	if (vc.obact->sculpt) {
 		Paint *paint = paint_get_active(CTX_data_scene(C));
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = paint_brush(paint);
@@ -556,7 +556,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
 		float* col;
 		float  alpha;
 
-		float visual_strength = brush_alpha(brush)*brush_alpha(brush);
+		const float root_alpha = brush_alpha(brush);
+		float visual_strength = root_alpha*root_alpha;
 
 		const float min_alpha = 0.20f;
 		const float max_alpha = 0.80f;
@@ -581,7 +582,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
 			return;
 
 		hit = sculpt_get_brush_geometry(C, x, y, &pixel_radius, location, modelview, projection, viewport);
-
+return;
 		if (brush_use_locked_size(brush))
 			brush_set_size(brush, pixel_radius);
 
