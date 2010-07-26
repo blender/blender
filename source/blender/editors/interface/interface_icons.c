@@ -44,9 +44,13 @@
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
 
+#include "DNA_brush_types.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_brush_types.h"
+
+#include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -1009,6 +1013,43 @@ void ui_id_icon_render(bContext *C, ID *id, int preview)
 	}
 }
 
+static int ui_id_brush_get_icon(bContext *C, ID *id, int preview)
+{
+	Brush *br = (Brush*)id;
+
+	if(br->flag & BRUSH_CUSTOM_ICON) {
+		BKE_icon_getid(id);
+		ui_id_icon_render(C, id, preview);
+	}
+	else if(!id->icon_id) {
+		/* no icon found, reset it */
+		
+		/* this is not nice, should probably make
+		   brushes be strictly in one paint mode only
+		   to avoid this kind of thing */
+		Object *ob = CTX_data_active_object(C);
+		EnumPropertyItem *items;
+		int tool;
+		
+		if(ob->mode & OB_MODE_SCULPT) {
+			items = brush_sculpt_tool_items;
+			tool = br->sculpt_tool;
+		}
+		else if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT)) {
+			items = brush_vertexpaint_tool_items;
+			tool = br->vertexpaint_tool;
+		}
+		else {
+			items = brush_imagepaint_tool_items;
+			tool = br->imagepaint_tool;
+		}
+
+		RNA_enum_icon_from_value(items, tool, &id->icon_id);
+	}
+
+	return id->icon_id;
+}
+
 int ui_id_icon_get(bContext *C, ID *id, int preview)
 {
 	int iconid= 0;
@@ -1016,12 +1057,14 @@ int ui_id_icon_get(bContext *C, ID *id, int preview)
 	/* icon */
 	switch(GS(id->name))
 	{
+		case ID_BR:
+			iconid= ui_id_brush_get_icon(C, id, preview);
+			break;
 		case ID_MA: /* fall through */
 		case ID_TE: /* fall through */
 		case ID_IM: /* fall through */
 		case ID_WO: /* fall through */
 		case ID_LA: /* fall through */
-		case ID_BR: /* fall through */
 			iconid= BKE_icon_getid(id);
 			/* checks if not exists, or changed */
 			ui_id_icon_render(C, id, preview);

@@ -1107,16 +1107,14 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel):
         else:
             col.prop(brush, "add_col", text="Color")
 
-        col.separator()
-
         col = layout.column()
         col.label(text="Icon:")
 
         row = col.row(align=True)
-        row.prop(brush, "icon", text="")
-
-        row = col.row(align=True)
-        row.prop(brush, "icon_filepath", text="")
+        row.prop(brush, "use_custom_icon")
+        if brush.use_custom_icon:
+            row = col.row(align=True)
+            row.prop(brush, "icon_filepath", text="")
 
 # ********** default tools for weightpaint ****************
 
