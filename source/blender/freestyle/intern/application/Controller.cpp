@@ -58,6 +58,7 @@
 
 #include "../blender_interface/BlenderFileLoader.h"
 #include "../blender_interface/BlenderStrokeRenderer.h"
+#include "../blender_interface/BlenderStyleModule.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -715,6 +716,12 @@ void Controller::InsertStyleModule(unsigned index, const char *iFileName)
   StyleModule* sm = new StyleModule(iFileName, _inter);
   _Canvas->InsertStyleModule(index, sm);
   
+}
+
+void Controller::InsertStyleModule(unsigned index, const char *iName, struct Text *iText)
+{
+	StyleModule* sm = new BlenderStyleModule(iText, iName, _inter);
+  _Canvas->InsertStyleModule(index, sm);
 }
 
 void Controller::AddStyleModule(const char *iFileName)

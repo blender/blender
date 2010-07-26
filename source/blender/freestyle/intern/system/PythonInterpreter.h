@@ -38,6 +38,7 @@
 //soc
 extern "C" {
 #include "MEM_guardedalloc.h"
+#include "DNA_text_types.h"
 #include "BKE_main.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -98,6 +99,27 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 	// cleaning up
 	BKE_reports_clear(reports);
 	
+	return 0;
+  }
+
+  int interpretText(struct Text *text, const string& name) {
+
+	initPath();
+
+	ReportList* reports = CTX_wm_reports(_context);
+
+	BKE_reports_clear(reports);
+
+	if (!BPY_run_python_script(_context, NULL, text, reports)) {
+		cout << "\nError executing Python script from PythonInterpreter::interpretText" << endl;
+		cout << "Name: " << name << endl;
+		cout << "Errors: " << endl;
+		BKE_reports_print(reports, RPT_ERROR);
+		return 1;
+	}
+
+	BKE_reports_clear(reports);
+
 	return 0;
   }
 

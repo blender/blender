@@ -2261,6 +2261,8 @@ static void add_freestyle(Render *re)
 			link->data = (void *)FRS_do_stroke_rendering(re, srl);
 		}
 	}
+
+	FRS_finish_stroke_rendering(re);
 }
 
 /* merges the results of Freestyle stroke rendering into a given render result */

@@ -52,6 +52,7 @@ extern "C" {
 	int FRS_is_freestyle_enabled(struct SceneRenderLayer* srl);
 	void FRS_init_stroke_rendering(struct Render* re);
 	struct Render* FRS_do_stroke_rendering(struct Render* re, struct SceneRenderLayer* srl);
+	void FRS_finish_stroke_rendering(struct Render* re);
 	void FRS_composite_result(struct Render* re, struct SceneRenderLayer* srl, struct Render* freestyle_render);
 	void FRS_exit();
 	

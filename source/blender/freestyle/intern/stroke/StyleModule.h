@@ -54,7 +54,7 @@ public:
     _inter = inter;
   }
 
-  ~StyleModule() {}
+  virtual ~StyleModule() {}
 
   StrokeLayer* execute() {
     if (!_inter) {
@@ -69,7 +69,7 @@ public:
 
     Operators::reset();
 
-    if( _inter->interpretFile(_file_name) ) {
+    if( interpret() ) {
       cerr << "Error: interpretation failed" << endl;
       return NULL;
 	}
@@ -88,6 +88,14 @@ public:
 
    return sl;
   }
+
+protected:
+
+  virtual int interpret() {
+    return _inter->interpretFile(_file_name);
+  }
+
+public:
 
   // accessors
 
@@ -151,6 +159,9 @@ private:
   bool		_drawable;
   bool		_modified;
   bool		_displayed;
+
+protected:
+
   Interpreter*	_inter;
 };
 

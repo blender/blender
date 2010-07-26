@@ -15,12 +15,14 @@ extern "C" {
 #include "MEM_guardedalloc.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_text_types.h"
 #include "DNA_freestyle_types.h"
 
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
+#include "BKE_text.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BPY_extern.h"
@@ -61,6 +63,7 @@ extern "C" {
 		controller = new Controller();
 		view = new AppView;
 		controller->setView(view);
+		controller->Clear();
 		freestyle_scene = NULL;
 			
 		default_module_path = pathconfig->getProjectDir() + Config::DIR_SEP + "style_modules" + Config::DIR_SEP + "contour.py";
@@ -83,7 +86,7 @@ extern "C" {
 	//   Rendering 
 	//=======================================================
 
-	void init_view(Render* re){
+	static void init_view(Render* re){
 		float ycor = ((float)re->r.yasp) / ((float)re->r.xasp);
 		int width = re->r.xsch;
 		int height = (int)(((float)re->r.ysch) * ycor);
@@ -107,7 +110,7 @@ extern "C" {
 			cout << "Border : (" << xmin << ", " << ymin << ") - (" << xmax << ", " << ymax << ")" << endl;
 	}
 
-	void init_camera(Render* re){
+	static void init_camera(Render* re){
 		// It is assumed that imported meshes are in the camera coordinate system.
 		// Therefore, the view point (i.e., camera position) is at the origin, and
 		// the the model-view matrix is simply the identity matrix.
@@ -128,12 +131,19 @@ extern "C" {
 		//print_m4("proj", freestyle_proj);
 	}
 
-	
-	void prepare(Render* re, SceneRenderLayer* srl ) {
-				
-		// clear canvas
-		controller->Clear();
+	static Text *create_lineset_handler(char *layer_name, char *lineset_name)
+	{
+		Text *text = add_empty_text(lineset_name);
+		write_text(text, "import parameter_editor; parameter_editor.process('");
+		write_text(text, layer_name);
+		write_text(text, "', '");
+		write_text(text, lineset_name);
+		write_text(text, "')\n");
+		return text;
+	}
 
+	static void prepare(Render* re, SceneRenderLayer* srl ) {
+				
 		// load mesh
         re->i.infostr= "Freestyle: Mesh loading";
 		re->stats_draw(re->sdh, &re->i);
@@ -147,19 +157,34 @@ extern "C" {
 		FreestyleConfig* config = &srl->freestyleConfig;
 		
 		cout << "\n===  Rendering options  ===" << endl;
-		cout << "Modules :"<< endl;
 		int layer_count = 0;
 		
-
-		for( FreestyleModuleConfig* module_conf = (FreestyleModuleConfig *)config->modules.first; module_conf; module_conf = module_conf->next ) {
-			if( module_conf->is_displayed ) {
-				cout << "  " << layer_count+1 << ": " << module_conf->module_path << endl;
-				controller->InsertStyleModule( layer_count, module_conf->module_path );
-				controller->toggleLayer(layer_count, true);
-				layer_count++;
+		switch (config->mode) {
+		case FREESTYLE_CONTROL_SCRIPT_MODE:
+			cout << "Modules :"<< endl;
+			for (FreestyleModuleConfig* module_conf = (FreestyleModuleConfig *)config->modules.first; module_conf; module_conf = module_conf->next) {
+				if( module_conf->is_displayed ) {
+					cout << "  " << layer_count+1 << ": " << module_conf->module_path << endl;
+					controller->InsertStyleModule( layer_count, module_conf->module_path );
+					controller->toggleLayer(layer_count, true);
+					layer_count++;
+				}
 			}
-		}	
-		cout << endl;
+			cout << endl;
+			break;
+		case FREESTYLE_CONTROL_EDITOR_MODE:
+			cout << "Linesets:"<< endl;
+			for (FreestyleLineSet *lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
+				if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
+					cout << "  " << layer_count+1 << ": " << lineset->name << " - " << lineset->linestyle->id.name+2 << endl;
+					Text *text = create_lineset_handler(srl->name, lineset->name);
+					controller->InsertStyleModule( layer_count, lineset->name, text );
+					controller->toggleLayer(layer_count, true);
+					layer_count++;
+				}
+			}
+			break;
+		}
 		
 		// set parameters
 		controller->setCreaseAngle( config->crease_angle );
@@ -234,12 +259,22 @@ extern "C" {
 	    }
 	}
 	
-	int displayed_layer_count( SceneRenderLayer* srl ) {
+	static int displayed_layer_count( SceneRenderLayer* srl ) {
 		int count = 0;
 
-		for( FreestyleModuleConfig* module_conf = (FreestyleModuleConfig *)srl->freestyleConfig.modules.first; module_conf; module_conf = module_conf->next ) {
-			if( module_conf->is_displayed )
-				count++;
+		switch (srl->freestyleConfig.mode) {
+		case FREESTYLE_CONTROL_SCRIPT_MODE:
+			for (FreestyleModuleConfig* module = (FreestyleModuleConfig *)srl->freestyleConfig.modules.first; module; module = module->next) {
+				if( module->is_displayed )
+					count++;
+			}
+			break;
+		case FREESTYLE_CONTROL_EDITOR_MODE:
+			for (FreestyleLineSet *lineset = (FreestyleLineSet *)srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+				if (lineset->flags & FREESTYLE_LINESET_ENABLED)
+					count++;
+			}
+			break;
 		}
 		return count;
 	}
@@ -271,7 +306,6 @@ extern "C" {
 		cout << "----------------------------------------------------------" << endl;
 		
 		// prepare Freestyle:
-		//   - clear canvas
 		//   - load mesh
 		//   - add style modules
 		//   - set parameters
@@ -303,6 +337,11 @@ extern "C" {
 		}
 
 		return freestyle_render;
+	}
+
+	void FRS_finish_stroke_rendering(Render* re) {
+		// clear canvas
+		controller->Clear();
 	}
 
 	//=======================================================
