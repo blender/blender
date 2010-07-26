@@ -727,7 +727,7 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 				pa->foffset=0.0;
 			else switch(distr){
 				case PART_DISTR_JIT:
-					pa->foffset*= ctx->jit[2*(int)ctx->jitoff[i]];
+					pa->foffset*= ctx->jit[p%(2*ctx->jitlevel)];
 					break;
 				case PART_DISTR_RAND:
 					pa->foffset*=BLI_frand();
