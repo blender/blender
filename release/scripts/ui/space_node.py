@@ -90,6 +90,13 @@ class NODE_MT_view(bpy.types.Menu):
 
         layout.operator("node.view_all")
 
+        if context.space_data.backdrop:
+            layout.separator()
+            
+            layout.operator("node.backimage_move",text = "Backdrop move")
+            layout.operator("node.backimage_zoom",text = "Backdrop zoom in").factor = 1.2
+            layout.operator("node.backimage_zoom",text = "Backdrop zoom out").factor = 0.833
+        
         layout.separator()
 
         layout.operator("screen.area_dupli")
@@ -131,6 +138,7 @@ class NODE_MT_node(bpy.types.Menu):
         layout.separator()
         layout.operator("node.link_make")
         layout.operator("node.link_make", text="Make and Replace Links").replace = True
+        layout.operator("node.links_cut")
 
         layout.separator()
         layout.operator("node.group_edit")
