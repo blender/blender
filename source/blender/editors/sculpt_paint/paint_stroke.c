@@ -582,7 +582,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
 			return;
 
 		hit = sculpt_get_brush_geometry(C, x, y, &pixel_radius, location, modelview, projection, viewport);
-return;
+
 		if (brush_use_locked_size(brush))
 			brush_set_size(brush, pixel_radius);
 
