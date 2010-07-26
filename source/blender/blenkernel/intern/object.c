@@ -2955,7 +2955,11 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, char *name, int from_
 	if(newkey || from_mix==FALSE) {
 		/* create from curve */
 		kb= add_keyblock(key, name);
-		curve_to_key(cu, kb, lb);
+		if (!newkey) {
+			KeyBlock *basekb= (KeyBlock *)key->block.first;
+			kb->data= MEM_dupallocN(basekb->data);
+			kb->totelem= basekb->totelem;
+		} else curve_to_key(cu, kb, lb);
 	}
 	else {
 		/* copy from current values */
