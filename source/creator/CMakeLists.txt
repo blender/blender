@@ -218,6 +218,11 @@ IF(WITH_INSTALL)
             PATTERN ".svn" EXCLUDE
 			PATTERN "*.pyc" EXCLUDE
         )
+		INSTALL(
+			DIRECTORY ${CMAKE_SOURCE_DIR}/release/datafiles/brushicons/
+			DESTINATION ${BLENDERPATH}/datafiles/brushicons
+			PATTERN ".svn" EXCLUDE
+		)
 		IF(WITH_INTERNATIONAL)
 			INSTALL(
     	        DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale/
