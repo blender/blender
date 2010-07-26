@@ -770,7 +770,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Custom Icon", "Set the brush icon from an image file");
 	RNA_def_property_update(prop, 0, "rna_Brush_icon_update");
 
-	prop= RNA_def_property(srna, "icon_filepath", PROP_STRING, PROP_IMAGEPATH);
+	prop= RNA_def_property(srna, "icon_filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "icon_filepath");
 	RNA_def_property_ui_text(prop, "Brush Icon Filepath", "File path to brush icon");
 	RNA_def_property_update(prop, 0, "rna_Brush_icon_update");

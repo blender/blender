@@ -508,16 +508,12 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 	type= RNA_property_type(prop);
 	subtype= RNA_property_subtype(prop);
 
-	if(subtype == PROP_FILEPATH || subtype == PROP_DIRPATH || subtype == PROP_IMAGEPATH) {
+	if(subtype == PROP_FILEPATH || subtype == PROP_DIRPATH) {
 		uiBlockSetCurLayout(block, uiLayoutRow(sub, 1));
 		uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w-UI_UNIT_X, h);
 
 		/* BUTTONS_OT_file_browse calls uiFileBrowseContextProperty */
 		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
-		if(subtype == PROP_IMAGEPATH) {
-			RNA_boolean_set(uiButGetOperatorPtrRNA(but), "filter_folder", 1);
-			RNA_boolean_set(uiButGetOperatorPtrRNA(but), "filter_image", 1);
-		}
 	}
 	else if(subtype == PROP_DIRECTION) {
 		uiDefButR(block, BUT_NORMAL, 0, name, x, y, 100, 100, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);
