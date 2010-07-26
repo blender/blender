@@ -823,7 +823,8 @@ def do_export(filepath, context,
     orig_scene = context.scene
 
     # Exit edit mode before exporting, so current object states are exported properly.
-    bpy.ops.object.mode_set(mode='OBJECT')
+    if context.object:
+        bpy.ops.object.mode_set(mode='OBJECT')
 
 #	if EXPORT_ALL_SCENES:
 #		export_scenes = bpy.data.scenes

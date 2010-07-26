@@ -99,7 +99,8 @@ def write(filename, scene, ob, \
 
     Window.WaitCursor(1)
     """
-    bpy.ops.object.mode_set(mode='OBJECT')
+    if scene.objects.active:
+        bpy.ops.object.mode_set(mode='OBJECT')
 
     #mesh = BPyMesh.getMeshFromObject(ob, None, EXPORT_APPLY_MODIFIERS, False, scn) # XXX
     if EXPORT_APPLY_MODIFIERS:
