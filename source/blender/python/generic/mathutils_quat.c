@@ -190,9 +190,7 @@ static char Quaternion_Difference_doc[] =
 
 static PyObject *Quaternion_Difference(QuaternionObject * self, QuaternionObject * value)
 {
-	float quat[QUAT_SIZE], tempQuat[QUAT_SIZE];
-	double dot = 0.0f;
-	int x;
+	float quat[QUAT_SIZE];
 
 	if (!QuaternionObject_Check(value)) {
 		PyErr_SetString( PyExc_TypeError, "quat.difference(value): expected a quaternion argument" );
@@ -202,14 +200,8 @@ static PyObject *Quaternion_Difference(QuaternionObject * self, QuaternionObject
 	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(value))
 		return NULL;
 
-	copy_qt_qt(tempQuat, self->quat);
-	conjugate_qt(tempQuat);
-	dot = sqrt(dot_qtqt(tempQuat, tempQuat));
+	rotation_between_quats_to_quat(quat, self->quat, value->quat);
 
-	for(x = 0; x < QUAT_SIZE; x++) {
-		tempQuat[x] /= (float)(dot * dot);
-	}
-	mul_qt_qtqt(quat, tempQuat, value->quat);
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 

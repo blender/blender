@@ -600,23 +600,66 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 	/* check for view snap */
 	if (vod->axis_snap){
 		int i;
-		float viewmat[3][3];
+		float viewquat_inv[4];
+		float zaxis[3]={0,0,1};
+		invert_qt_qt(viewquat_inv, rv3d->viewquat);
 
-
-		quat_to_mat3( viewmat,rv3d->viewquat);
+		mul_qt_v3(viewquat_inv, zaxis);
 
 		for (i = 0 ; i < 39; i++){
-			float snapmat[3][3];
+
 			float view = (int)snapquats[i][4];
+			float viewquat_inv_test[4];
+			float zaxis_test[3]={0,0,1};
 
-			quat_to_mat3( snapmat,snapquats[i]);
+			invert_qt_qt(viewquat_inv_test, snapquats[i]);
+			mul_qt_v3(viewquat_inv_test, zaxis_test);
+			
+			if(angle_v3v3(zaxis_test, zaxis) < DEG2RAD(45/3)) {
+				/* find the best roll */
+				float quat_roll[4], quat_final[4], quat_best[4];
+				float viewquat_align[4]; /* viewquat aligned to zaxis_test */
+				float viewquat_align_inv[4]; /* viewquat aligned to zaxis_test */
+				float best_angle = FLT_MAX;
+				int j;
 
-			if ((dot_v3v3(snapmat[0], viewmat[0]) > thres) &&
-				(dot_v3v3(snapmat[1], viewmat[1]) > thres) &&
-				(dot_v3v3(snapmat[2], viewmat[2]) > thres)
-			) {
-				copy_qt_qt(rv3d->viewquat, snapquats[i]);
-				rv3d->view= view;
+				/* viewquat_align is the original viewquat aligned to the snapped axis
+				 * for testing roll */
+				rotation_between_vecs_to_quat(viewquat_align, zaxis_test, zaxis);
+				normalize_qt(viewquat_align);
+				mul_qt_qtqt(viewquat_align, rv3d->viewquat, viewquat_align);
+				normalize_qt(viewquat_align);
+				invert_qt_qt(viewquat_align_inv, viewquat_align);
+
+				/* find best roll */
+				for(j= 0; j<8; j++) {
+					float angle;
+					float xaxis1[3]={1,0,0};
+					float xaxis2[3]={1,0,0};
+					float quat_final_inv[4];
+
+					axis_angle_to_quat(quat_roll, zaxis_test, j * DEG2RAD(45.0));
+					normalize_qt(quat_roll);
+
+					mul_qt_qtqt(quat_final, snapquats[i], quat_roll);
+					normalize_qt(quat_final);
+					
+					/* compare 2 vector angles to find the least roll */
+					invert_qt_qt(quat_final_inv, quat_final);
+					mul_qt_v3(viewquat_align_inv, xaxis1);
+					mul_qt_v3(quat_final_inv, xaxis2);
+					angle= angle_v3v3(xaxis1, xaxis2);
+
+					if(angle <= best_angle) {
+						best_angle= angle;
+						copy_qt_qt(quat_best, quat_final);
+						if(j) view= 0; /* view grid assumes certain up axis */
+					}
+				}
+
+				copy_qt_qt(rv3d->viewquat, quat_best);
+				rv3d->view= view; /* if we snap to a rolled camera the grid is invalid */
+
 				break;
 			}
 		}
