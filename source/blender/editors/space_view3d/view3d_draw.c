@@ -971,6 +971,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);          // interface_panel.c
 	float fac, a;
 	float x1, x2, y1, y2;
+	float x1i, x2i, y1i, y2i;
 	float x3, y3, x4, y4;
 	rctf viewborder;
 	Camera *ca= NULL;
@@ -982,10 +983,17 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		ca = v3d->camera->data;
 	
 	calc_viewborder(scene, ar, rv3d, v3d, &viewborder);
+	/* the offsets */
 	x1= viewborder.xmin;
 	y1= viewborder.ymin;
 	x2= viewborder.xmax;
 	y2= viewborder.ymax;
+	
+	/* apply offsets so the real 3D camera shows through */
+	x1i= (int)(x1 - 1.0f);
+	y1i= (int)(y1 - 1.0f);
+	x2i= (int)(x2 + 1.0f);
+	y2i= (int)(y2 + 1.0f);
 	
 	/* passepartout, specified in camera edit buttons */
 	if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT) && ca->passepartalpha > 0.000001) {
@@ -996,29 +1004,29 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			glEnable(GL_BLEND);
 			glColor4f(0, 0, 0, ca->passepartalpha);
 		}
-		if (x1 > 0.0)
-			glRectf(0.0, (float)ar->winy, x1, 0.0);
-		if (x2 < (float)ar->winx)
-			glRectf(x2, (float)ar->winy, (float)ar->winx, 0.0);
-		if (y2 < (float)ar->winy)
-			glRectf(x1, (float)ar->winy, x2, y2);
-		if (y2 > 0.0) 
-			glRectf(x1, y1, x2, 0.0);
+		if (x1i > 0.0)
+			glRectf(0.0, (float)ar->winy, x1i, 0.0);
+		if (x2i < (float)ar->winx)
+			glRectf(x2i, (float)ar->winy, (float)ar->winx, 0.0);
+		if (y2i < (float)ar->winy)
+			glRectf(x1i, (float)ar->winy, x2i, y2i);
+		if (y2i > 0.0) 
+			glRectf(x1i, y1i, x2i, 0.0);
 		
 		glDisable(GL_BLEND);
 	}
-	
+
 	/* edge */
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
-	
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	
+
 	setlinestyle(0);
 	UI_ThemeColor(TH_BACK);
-	glRectf(x1, y1, x2, y2);
+	glRectf(x1i, y1i, x2i, y2i);
 	
 	setlinestyle(3);
 	UI_ThemeColor(TH_WIRE);
-	glRectf(x1, y1, x2, y2);
-	
+	glRectf(x1i, y1i, x2i, y2i);
+
 	/* border */
 	if(scene->r.mode & R_BORDER) {
 		
@@ -1031,7 +1039,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		cpack(0x4040FF);
 		glRectf(x3,  y3,  x4,  y4); 
 	}
-	
+    
 	/* safety border */
 	if (ca && (ca->flag & CAM_SHOWTITLESAFE)) {
 		fac= 0.1;
@@ -1049,14 +1057,14 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		uiSetRoundBox(15);
 		gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 	}
-	
+
 	setlinestyle(0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	
+
 	/* camera name - draw in highlighted text color */
 	if (ca && (ca->flag & CAM_SHOWNAME)) {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(x1, y1-15, 0.0f, v3d->camera->id.name+2);
+		BLF_draw_default(x1i, y1i-15, 0.0f, v3d->camera->id.name+2);
 		UI_ThemeColor(TH_WIRE);
 	}
 }

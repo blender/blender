@@ -1248,17 +1248,28 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	/* a standing up pyramid with (0,0,0) as top */
 	Camera *cam;
 	World *wrld;
-	float nobmat[4][4], vec[8][4], fac, facx, facy, depth;
+	float nobmat[4][4], vec[8][4], fac, facx, facy, depth, aspx, aspy, caspx, caspy;
 	int i;
 
 	cam= ob->data;
+	aspx= (float) scene->r.xsch*scene->r.xasp;
+	aspy= (float) scene->r.ysch*scene->r.yasp;
+
+	if(aspx < aspy) {
+		caspx= aspx / aspy;
+		caspy= 1.0;
+	}
+	else {
+		caspx= 1.0;
+		caspy= aspy / aspx;
+	}
 	
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
 	
 	if(rv3d->persp>=2 && cam->type==CAM_ORTHO && ob==v3d->camera) {
-		facx= 0.5*cam->ortho_scale*1.28;
-		facy= 0.5*cam->ortho_scale*1.024;
+		facx= 0.5*cam->ortho_scale*caspx;
+		facy= 0.5*cam->ortho_scale*caspy;
 		depth= -cam->clipsta-0.1;
 	}
 	else {
@@ -1266,8 +1277,8 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		if(rv3d->persp>=2 && ob==v3d->camera) fac= cam->clipsta+0.1; /* that way it's always visible */
 		
 		depth= - fac*cam->lens/16.0;
-		facx= fac*1.28;
-		facy= fac*1.024;
+		facx= fac*caspx;
+		facy= fac*caspy;
 	}
 	
 	vec[0][0]= 0.0; vec[0][1]= 0.0; vec[0][2]= 0.001;	/* GLBUG: for picking at iris Entry (well thats old!) */
@@ -1308,16 +1319,16 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		else if (i==1 && (ob == v3d->camera)) glBegin(GL_TRIANGLES);
 		else break;
 		
-		vec[0][0]= -0.7*cam->drawsize;
-		vec[0][1]= 1.1*cam->drawsize;
+		vec[0][0]= -0.7*cam->drawsize*caspx;
+		vec[0][1]= 1.1*cam->drawsize*caspy;
 		glVertex3fv(vec[0]);
 		
 		vec[0][0]= 0.0; 
-		vec[0][1]= 1.8*cam->drawsize;
+		vec[0][1]= 1.8*cam->drawsize*caspy;
 		glVertex3fv(vec[0]);
 		
-		vec[0][0]= 0.7*cam->drawsize; 
-		vec[0][1]= 1.1*cam->drawsize;
+		vec[0][0]= 0.7*cam->drawsize*caspx; 
+		vec[0][1]= 1.1*cam->drawsize*caspy;
 		glVertex3fv(vec[0]);
 	
 		glEnd();
@@ -6138,7 +6149,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 		/* draw extra: after normal draw because of makeDispList */
 		if(dtx && (G.f & G_RENDER_OGL)==0) {
-        
+
 			if(dtx & OB_AXIS) {
 				drawaxes(rv3d, rv3d->viewmatob, 1.0f, flag, OB_ARROWS);
 			}
