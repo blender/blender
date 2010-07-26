@@ -115,6 +115,7 @@ OPTION(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" 
 OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking" OFF)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
+OPTION(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 
 IF(APPLE)
 	OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
@@ -129,6 +130,10 @@ ENDIF(NOT WITH_BULLET AND WITH_GAMEENGINE)
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
 ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
+
+IF(NOT WITH_INSTALL AND WITH_PYTHON_INSTALL)
+	MESSAGE("WARNING: WITH_PYTHON_INSTALL needs WITH_INSTALL")
+ENDIF(NOT WITH_INSTALL AND WITH_PYTHON_INSTALL)
 
 TEST_SSE_SUPPORT()
 

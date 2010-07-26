@@ -143,32 +143,32 @@ IF(WITH_INSTALL)
 				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/.blender/
 				COMMAND find ${TARGETDIR} -name "*.py?" -prune -exec rm -rf {} "\;"
 			)
-      
-			# Copy the systems python into the install directory
-			# Scons copy in tools/Blender.py
-			ADD_CUSTOM_COMMAND(
-				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMENT "copying a subset of the systems python..."
-        
-				COMMAND mkdir ${TARGETDIR}/.blender/python # PYTHONPATH and PYTHONHOME is set here
-				COMMAND mkdir ${TARGETDIR}/.blender/python/lib/
-				COMMAND cp -R ${PYTHON_LIBPATH}/python${PYTHON_VERSION} ${TARGETDIR}/.blender/python/lib/
-        
-				COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/distutils
-				COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib2to3
-				COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/idlelib
-				COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/tkinter
-				COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/config
-        
-				COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages
-				COMMAND mkdir ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages    # python needs it.
+			IF(WITH_PYTHON_INSTALL)
+				# Copy the systems python into the install directory
+				# Scons copy in tools/Blender.py
+				ADD_CUSTOM_COMMAND(
+					TARGET blender POST_BUILD MAIN_DEPENDENCY blender
+					COMMENT "copying a subset of the systems python..."
 
-				COMMAND rm -f ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib-dynload/_tkinter.so
-				COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "test" -prune -exec rm -rf {} "\;"
-				COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.py?" -exec rm -rf {} "\;"
-				COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.so"-exec strip -s {} "\;"
-			)
-     
+					COMMAND mkdir ${TARGETDIR}/.blender/python # PYTHONPATH and PYTHONHOME is set here
+					COMMAND mkdir ${TARGETDIR}/.blender/python/lib/
+					COMMAND cp -R ${PYTHON_LIBPATH}/python${PYTHON_VERSION} ${TARGETDIR}/.blender/python/lib/
+
+					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/distutils
+					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib2to3
+					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/idlelib
+					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/tkinter
+					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/config
+
+					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages
+					COMMAND mkdir ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages    # python needs it.
+
+					COMMAND rm -f ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib-dynload/_tkinter.so
+					COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "test" -prune -exec rm -rf {} "\;"
+					COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.py?" -exec rm -rf {} "\;"
+					COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.so"-exec strip -s {} "\;"
+				)
+			ENDIF(WITH_PYTHON_INSTALL)
 		ENDIF(WITH_PYTHON)
       
 		ADD_CUSTOM_COMMAND(
@@ -177,7 +177,7 @@ IF(WITH_INSTALL)
 		)
     
     
-		# Above we bundle a portable distrobution in ./bin
+		# Above we bundle a portable distribution in ./bin
 		# This is an optional "make install" which installs blender on the system.
 		INSTALL(
 			PROGRAMS ${TARGETDIR}/blender
