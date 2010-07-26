@@ -45,7 +45,7 @@ all::
 	@chmod +x $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/$(APPLICATION)
 ifeq ($(APPLICATION), blender)
 	@echo "---> copying message files"
-	@cp -R $(NANBLENDERHOME)/bin/.blender/locale $(DIR)/bin/$(APPLICATION).app/Contents/Resources
+	@cp -R $(NANBLENDERHOME)/release/bin/.blender/locale $(DIR)/bin/$(APPLICATION).app/Contents/Resources
 	@echo "---> copying .Blanguages"
 	@cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(DIR)/bin/$(APPLICATION).app/Contents/Resources
 	@echo "---> copying .blender/ scripts"
