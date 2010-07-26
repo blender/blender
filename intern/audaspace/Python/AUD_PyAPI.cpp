@@ -118,10 +118,12 @@ Sound_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(M_aud_Sound_sine_doc,
-			 "sine(frequency)\n\n"
+			 "sine(frequency[, rate])\n\n"
 			 "Creates a sine sound wave.\n\n"
 			 ":arg frequency: The frequency of the sine wave in Hz.\n"
 			 ":type frequency: float\n"
+			 ":arg rate: The sampling rate in Hz.\n"
+			 ":type rate: int\n"
 			 ":return: The created aud.Sound object.\n"
 			 ":rtype: aud.Sound");
 
@@ -310,7 +312,7 @@ static PyObject *
 Sound_buffer(Sound* self);
 
 PyDoc_STRVAR(M_aud_Sound_square_doc,
-			 "squre(threshold)\n\n"
+			 "squre([threshold = 0])\n\n"
 			 "Makes a square wave out of an audio wave.\n\n"
 			 ":arg threshold: Threshold value over which an amplitude counts non-zero.\n"
 			 ":type threshold: float\n"
@@ -424,8 +426,9 @@ static PyObject *
 Sound_sine(PyObject* nothing, PyObject* args)
 {
 	double frequency;
+	int rate = 44100;
 
-	if(!PyArg_ParseTuple(args, "d", &frequency))
+	if(!PyArg_ParseTuple(args, "d|i", &frequency, &rate))
 		return NULL;
 
 	Sound *self;
@@ -435,7 +438,7 @@ Sound_sine(PyObject* nothing, PyObject* args)
 	{
 		try
 		{
-			self->factory = new AUD_SinusFactory(frequency, (AUD_SampleRate)44100);
+			self->factory = new AUD_SinusFactory(frequency, (AUD_SampleRate)rate);
 		}
 		catch(AUD_Exception&)
 		{
@@ -889,9 +892,9 @@ Sound_buffer(Sound* self)
 static PyObject *
 Sound_square(Sound* self, PyObject* args)
 {
-	float threshold;
+	float threshold = 0;
 
-	if(!PyArg_ParseTuple(args, "f", &threshold))
+	if(!PyArg_ParseTuple(args, "|f", &threshold))
 		return NULL;
 
 	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
