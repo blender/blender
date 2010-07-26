@@ -1390,8 +1390,7 @@ static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude, f
 	if(onlyshadow)
 		envcolor= WO_AOPLAIN;
 
-	VECCOPY(nn, n);
-	negate_v3(nn);
+	negate_v3_v3(nn, n);
 
 	occ_lookup(tree, thread, exclude, co, nn, &occ, (tree->doindirect)? rad: NULL, (env && envcolor)? bn: NULL);
 

@@ -189,7 +189,7 @@ void view3d_clr_clipping(void)
 static int test_clipping(float *vec, float clip[][4])
 {
 	float view[3];
-	VECCOPY(view, vec);
+	copy_v3_v3(view, vec);
 	
 	if(0.0f < clip[0][3] + INPR(view, clip[0]))
 		if(0.0f < clip[1][3] + INPR(view, clip[1]))
@@ -1937,9 +1937,9 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	{
 		float len1, len2, vec[3];
 		
-		VECCOPY(vec, rv3d->persinv[0]);
+		copy_v3_v3(vec, rv3d->persinv[0]);
 		len1= normalize_v3(vec);
-		VECCOPY(vec, rv3d->persinv[1]);
+		copy_v3_v3(vec, rv3d->persinv[1]);
 		len2= normalize_v3(vec);
 		
 		rv3d->pixsize= 2.0f*(len1>len2?len1:len2);

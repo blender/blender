@@ -2324,11 +2324,9 @@ void minmax_object(Object *ob, float *min, float *max)
 		if(ob->pose) {
 			bPoseChannel *pchan;
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				VECCOPY(vec, pchan->pose_head);
-				mul_m4_v3(ob->obmat, vec);
+				mul_v3_m4v3(vec, ob->obmat, pchan->pose_head);
 				DO_MINMAX(vec, min, max);
-				VECCOPY(vec, pchan->pose_tail);
-				mul_m4_v3(ob->obmat, vec);
+				mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
 				DO_MINMAX(vec, min, max);
 			}
 			break;

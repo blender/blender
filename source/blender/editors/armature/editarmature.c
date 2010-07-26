@@ -2328,12 +2328,10 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 	Object *obedit= scene->obedit; // XXX get from context
 	float		obmat[3][3], curs[3], viewmat[3][3], totmat[3][3], imat[3][3];
 	EditBone	*bone;
-	
-	VECCOPY(curs, give_cursor(scene, v3d));	
 
 	/* Get inverse point for head and orientation for tail */
 	invert_m4_m4(obedit->imat, obedit->obmat);
-	mul_m4_v3(obedit->imat, curs);
+	mul_v3_m4v3(curs, obedit->imat, give_cursor(scene, v3d));
 
 	if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		copy_m3_m4(obmat, rv3d->viewmat);
@@ -2348,7 +2346,7 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 	/*	Create a bone	*/
 	bone= ED_armature_edit_bone_add(obedit->data, "Bone");
 
-	VECCOPY(bone->head, curs);
+	copy_v3_v3(bone->head, curs);
 	
 	if (rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		add_v3_v3v3(bone->tail, bone->head, imat[1]);	// bone with unit length 1
@@ -2941,17 +2939,14 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 	}
 	else if (count == 1) {
 		EditBonePoint *ebp;
-		float *fp, curs[3];
+		float curs[3];
 		
 		/* Get Points - selected joint */
 		ebp= (EditBonePoint *)points.first;
 		
 		/* Get points - cursor (tail) */
-		fp= give_cursor(scene, v3d);
-		VECCOPY (curs, fp);	
-		
 		invert_m4_m4(obedit->imat, obedit->obmat);
-		mul_m4_v3(obedit->imat, curs);
+		mul_v3_m4v3(curs, obedit->imat, give_cursor(scene, v3d));
 		
 		/* Create a bone */
 		newbone= add_points_bone(obedit, ebp->vec, curs);
@@ -2979,15 +2974,13 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 		/* find which one should be the 'head' */
 		if ((ebp->head_owner && ebp2->head_owner) || (ebp->tail_owner && ebp2->tail_owner)) {
 			/* rule: whichever one is closer to 3d-cursor */
-			float curs[3], *fp= give_cursor(scene, v3d);
+			float curs[3];
 			float vecA[3], vecB[3];
 			float distA, distB;
 			
 			/* get cursor location */
-			VECCOPY(curs, fp);	
-			
 			invert_m4_m4(obedit->imat, obedit->obmat);
-			mul_m4_v3(obedit->imat, curs);
+			mul_v3_m4v3(curs, obedit->imat, give_cursor(scene, v3d));
 			
 			/* get distances */
 			sub_v3_v3v3(vecA, ebp->vec, curs);
@@ -3007,12 +3000,12 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 		
 		/* assign head/tail combinations */
 		if (headtail == 2) {
-			VECCOPY(head, ebp->vec);
-			VECCOPY(tail, ebp2->vec);
+			copy_v3_v3(head, ebp->vec);
+			copy_v3_v3(tail, ebp2->vec);
 		}
 		else if (headtail == 1) {
-			VECCOPY(head, ebp2->vec);
-			VECCOPY(tail, ebp->vec);
+			copy_v3_v3(head, ebp2->vec);
+			copy_v3_v3(tail, ebp->vec);
 		}
 		
 		/* add new bone and parent it to the appropriate end */
@@ -3095,16 +3088,16 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	 *	- parent = parent of start
 	 */
 	if ((start->flag & BONE_TIPSEL) && ((start->flag & BONE_SELECTED) || start==arm->act_edbone)==0) {
-		VECCOPY(head, start->tail);
+		copy_v3_v3(head, start->tail);
 	}
 	else {
-		VECCOPY(head, start->head);
+		copy_v3_v3(head, start->head);
 	}
 	if ((end->flag & BONE_ROOTSEL) && ((end->flag & BONE_SELECTED) || end==arm->act_edbone)==0) {
-		VECCOPY(tail, end->head);
+		copy_v3_v3(tail, end->head);
 	}
 	else {
-		VECCOPY(tail, end->tail);
+		copy_v3_v3(tail, end->tail);
 	}
 	newbone= add_points_bone(obedit, head, tail);
 	newbone->parent = start->parent;
@@ -3376,8 +3369,8 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 					newbone = MEM_callocN(sizeof(EditBone), "extrudebone");
 					
 					if (do_extrude==1) {
-						VECCOPY (newbone->head, ebone->tail);
-						VECCOPY (newbone->tail, newbone->head);
+						copy_v3_v3(newbone->head, ebone->tail);
+						copy_v3_v3(newbone->tail, newbone->head);
 						newbone->parent = ebone;
 						
 						newbone->flag = ebone->flag & BONE_TIPSEL;	// copies it, in case mirrored bone
@@ -3385,8 +3378,8 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 						if (newbone->parent) newbone->flag |= BONE_CONNECTED;
 					}
 					else {
-						VECCOPY(newbone->head, ebone->head);
-						VECCOPY(newbone->tail, ebone->head);
+						copy_v3_v3(newbone->head, ebone->head);
+						copy_v3_v3(newbone->tail, ebone->head);
 						newbone->parent= ebone->parent;
 						
 						newbone->flag= BONE_TIPSEL;
@@ -3476,7 +3469,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	
 	RNA_string_get(op->ptr, "name", name);
 	
-	VECCOPY(curs, give_cursor(CTX_data_scene(C),CTX_wm_view3d(C)));	
+	copy_v3_v3(curs, give_cursor(CTX_data_scene(C),CTX_wm_view3d(C)));	
 
 	/* Get inverse point for head and orientation for tail */
 	invert_m4_m4(obedit->imat, obedit->obmat);
@@ -3495,7 +3488,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	/*	Create a bone	*/
 	bone= ED_armature_edit_bone_add(obedit->data, name);
 
-	VECCOPY(bone->head, curs);
+	copy_v3_v3(bone->head, curs);
 	
 	if(rv3d && (U.flag & USER_ADD_VIEWALIGNED))
 		add_v3_v3v3(bone->tail, bone->head, imat[1]);	// bone with unit length 1
@@ -3565,17 +3558,17 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 			BLI_addtail(arm->edbo, newbone);
 			
 			/* calculate location of newbone->head */
-			VECCOPY(val1, ebone->head);
-			VECCOPY(val2, ebone->tail);
-			VECCOPY(val3, newbone->head);
+			copy_v3_v3(val1, ebone->head);
+			copy_v3_v3(val2, ebone->tail);
+			copy_v3_v3(val3, newbone->head);
 			
 			val3[0]= val1[0]*cutratio + val2[0]*cutratioI;
 			val3[1]= val1[1]*cutratio + val2[1]*cutratioI;
 			val3[2]= val1[2]*cutratio + val2[2]*cutratioI;
 			
-			VECCOPY(newbone->head, val3);
-			VECCOPY(newbone->tail, ebone->tail);
-			VECCOPY(ebone->tail, newbone->head);
+			copy_v3_v3(newbone->head, val3);
+			copy_v3_v3(newbone->tail, ebone->tail);
+			copy_v3_v3(ebone->tail, newbone->head);
 			
 			newbone->rad_head= 0.5f * (ebone->rad_head + ebone->rad_tail);
 			ebone->rad_tail= newbone->rad_head;
@@ -3793,7 +3786,7 @@ void ARMATURE_OT_switch_direction(wmOperatorType *ot)
 static void bone_connect_to_existing_parent(EditBone *bone)
 {
 	bone->flag |= BONE_CONNECTED;
-	VECCOPY(bone->head, bone->parent->tail);
+	copy_v3_v3(bone->head, bone->parent->tail);
 	bone->rad_head = bone->parent->rad_tail;
 }
 
@@ -3821,7 +3814,7 @@ static void bone_connect_to_new_parent(ListBase *edbo, EditBone *selbone, EditBo
 		selbone->flag |= BONE_CONNECTED;
 		sub_v3_v3v3(offset, actbone->tail, selbone->head);
 		
-		VECCOPY(selbone->head, actbone->tail);
+		copy_v3_v3(selbone->head, actbone->tail);
 		selbone->rad_head= actbone->rad_tail;
 		
 		add_v3_v3(selbone->tail, offset);
@@ -4594,7 +4587,7 @@ static void add_vgroups__mapFunc(void *userData, int index, float *co, float *no
 	/* DerivedMesh mapFunc for getting final coords in weight paint mode */
 
 	float (*verts)[3] = userData;
-	VECCOPY(verts[index], co);
+	copy_v3_v3(verts[index], co);
 }
 
 static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], int numbones, Bone **bonelist, bDeformGroup **dgrouplist, bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3], int *selected, float scale)
@@ -4721,18 +4714,17 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 		
 		/* compute root and tip */
 		if (bbone) {
-			VECCOPY(root[j], bbone[segments].mat[3]);
-			mul_m4_v3(bone->arm_mat, root[j]);
+			mul_v3_m4v3(root[j], bone->arm_mat, bbone[segments].mat[3]);
 			if ((segments+1) < bone->segments) {
-				VECCOPY(tip[j], bbone[segments+1].mat[3])
-				mul_m4_v3(bone->arm_mat, tip[j]);
+				mul_v3_m4v3(tip[j], bone->arm_mat, bbone[segments+1].mat[3]);
 			}
-			else
-				VECCOPY(tip[j], bone->arm_tail)
+			else {
+				copy_v3_v3(tip[j], bone->arm_tail);
+			}
 		}
 		else {
-			VECCOPY(root[j], bone->arm_head);
-			VECCOPY(tip[j], bone->arm_tail);
+			copy_v3_v3(root[j], bone->arm_head);
+			copy_v3_v3(tip[j], bone->arm_tail);
 		}
 		
 		mul_m4_v3(par->obmat, root[j]);
@@ -4789,7 +4781,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 	/* transform verts to global space */
 	for (i=0; i < mesh->totvert; i++) {
 		if (!vertsfilled)
-			VECCOPY(verts[i], mesh->mvert[i].co)
+			copy_v3_v3(verts[i], mesh->mvert[i].co);
 		mul_m4_v3(ob->obmat, verts[i]);
 	}
 
@@ -5027,14 +5019,14 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 				float eul[3], oldeul[3], quat1[4] = {0};
 				
 				if (pchan->rotmode == ROT_MODE_QUAT) {
-					QUATCOPY(quat1, pchan->quat);
+					copy_qt_qt(quat1, pchan->quat);
 					quat_to_eul( oldeul,pchan->quat);
 				}
 				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 					axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,pchan->rotAxis, pchan->rotAngle);
 				}
 				else {
-					VECCOPY(oldeul, pchan->eul);
+					copy_v3_v3(oldeul, pchan->eul);
 				}
 				
 				eul[0]= eul[1]= eul[2]= 0.0f;
@@ -5057,7 +5049,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 					eulO_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,eul, EULER_ORDER_DEFAULT);
 				}
 				else {
-					VECCOPY(pchan->eul, eul);
+					copy_v3_v3(pchan->eul, eul);
 				}
 			}
 		}						// Duplicated in source/blender/editors/object/object_transform.c

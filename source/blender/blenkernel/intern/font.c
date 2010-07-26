@@ -1194,18 +1194,14 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				ascii = mem[i];
 				info = &(custrinfo[i]);
 				if (cu->sepchar == (i+1)) {
-					float vecyo[3];
+					float vecyo[3]= {ct->xof, ct->yof, 0.0f};
 					
 					mem[0] = ascii;
 					mem[1] = 0;
 					custrinfo[0]= *info;
 					cu->pos = 1;
 					cu->len = 1;
-					vecyo[0] = ct->xof;
-					vecyo[1] = ct->yof;
-					vecyo[2] = 0;
-					mul_m4_v3(ob->obmat, vecyo);
-					VECCOPY(ob->loc, vecyo);
+					mul_v3_m4v3(ob->loc, ob->obmat, vecyo);
 					outta = 1;
 					cu->sepchar = 0;
 				}
