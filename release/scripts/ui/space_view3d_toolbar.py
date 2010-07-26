@@ -643,29 +643,9 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             row= col.row()
             row.prop(brush, "use_frontface", text="Front Faces Only")
 
-            #if brush.sculpt_tool in ('DRAW', 'CREASE', 'BLOB', 'LAYER', 'CLAY', 'CLAY_TUBES'):
-            if brush.sculpt_tool in ('DRAW', 'CREASE', 'BLOB', 'LAYER', 'CLAY'):
-                col.separator()
-                col.row().prop(brush, "direction", expand=True)
-            elif brush.sculpt_tool in ('FLATTEN'):
-                col.separator()
-                col.row().prop(brush, "flatten_contrast", expand=True)
-            elif brush.sculpt_tool in ('FILL'):
-                col.separator()
-                col.row().prop(brush, "fill_deepen", expand=True)
-            elif brush.sculpt_tool in ('SCRAPE'):
-                col.separator()
-                col.row().prop(brush, "scrape_peaks", expand=True)
-            elif brush.sculpt_tool in ('INFLATE'):
-                col.separator()
-                col.row().prop(brush, "inflate_deflate", expand=True)
-            elif brush.sculpt_tool in ('PINCH'):
-                col.separator()
-                col.row().prop(brush, "pinch_magnify", expand=True)
+            col.separator()
+            col.row().prop(brush, "direction", expand=True)
 
-
-
-            #if brush.sculpt_tool in ('DRAW', 'CREASE', 'BLOB', 'INFLATE', 'LAYER', 'CLAY', 'CLAY_TUBES'):
             if brush.sculpt_tool in ('DRAW', 'CREASE', 'BLOB', 'INFLATE', 'LAYER', 'CLAY'):
                 col.separator()
 

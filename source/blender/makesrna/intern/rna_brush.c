@@ -39,6 +39,11 @@
 
 #include "WM_types.h"
 
+static const EnumPropertyItem prop_direction_items[]= {
+	{0, "ADD", 0, "Add", "Add effect of brush"},
+	{BRUSH_DIR_IN, "SUBTRACT", 0, "Subtract", "Subtract effect of brush"},
+	{0, NULL, 0, NULL, NULL}};
+
 EnumPropertyItem brush_sculpt_tool_items[] = {
 	{SCULPT_TOOL_BLOB, "BLOB", ICON_BRUSH_BLOB, "Blob", ""},
 	{SCULPT_TOOL_CLAY, "CLAY", ICON_BRUSH_CLAY, "Clay", ""},
@@ -257,6 +262,66 @@ static float rna_Brush_get_alpha(PointerRNA *ptr)
 	return brush_alpha(me);
 }
 
+static EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	static const EnumPropertyItem prop_default_items[]= {
+		{0, NULL, 0, NULL, NULL}};
+
+	static const EnumPropertyItem prop_flatten_contrast_items[]= {
+		{0, "FLATTEN", 0, "Flatten", "Add effect of brush"},
+		{BRUSH_DIR_IN, "CONTRAST", 0, "Contrast", "Subtract effect of brush"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static const EnumPropertyItem prop_fill_deepen_items[]= {
+		{0, "FILL", 0, "Fill", "Add effect of brush"},
+		{BRUSH_DIR_IN, "DEEPEN", 0, "Deepen", "Subtract effect of brush"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static const EnumPropertyItem prop_scrape_peaks_items[]= {
+		{0, "SCRAPE", 0, "Scrape", "Add effect of brush"},
+		{BRUSH_DIR_IN, "PEAKS", 0, "Peaks", "Subtract effect of brush"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static const EnumPropertyItem prop_pinch_magnify_items[]= {
+		{0, "PINCH", 0, "Pinch", "Add effect of brush"},
+		{BRUSH_DIR_IN, "MAGNIFY", 0, "Magnify", "Subtract effect of brush"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static const EnumPropertyItem prop_inflate_deflate_items[]= {
+		{0, "INFLATE", 0, "Inflate", "Add effect of brush"},
+		{BRUSH_DIR_IN, "DEFLATE", 0, "Deflate", "Subtract effect of brush"},
+		{0, NULL, 0, NULL, NULL}};
+
+	Brush *me= (Brush*)(ptr->data);
+
+	switch (me->sculpt_tool) {
+		case SCULPT_TOOL_DRAW:
+		case SCULPT_TOOL_CREASE:
+		case SCULPT_TOOL_BLOB:
+		case SCULPT_TOOL_LAYER:
+		case SCULPT_TOOL_CLAY:
+			return prop_direction_items;
+
+		case SCULPT_TOOL_FLATTEN:
+			return prop_flatten_contrast_items;
+
+		case SCULPT_TOOL_FILL:
+			return prop_fill_deepen_items;
+
+		case SCULPT_TOOL_SCRAPE:
+			return prop_scrape_peaks_items;
+
+		case SCULPT_TOOL_PINCH:
+			return prop_pinch_magnify_items;
+
+		case SCULPT_TOOL_INFLATE:
+			return prop_inflate_deflate_items;
+
+		default:
+			return prop_default_items;
+	}
+}
+
 #else
 
 static void rna_def_brush_texture_slot(BlenderRNA *brna)
@@ -320,36 +385,6 @@ static void rna_def_brush(BlenderRNA *brna)
 	static EnumPropertyItem texture_angle_source_no_random_items[] = {
 		{0, "USER", 0, "User", ""},
 		{BRUSH_RAKE, "RAKE", 0, "Rake", ""},
-		{0, NULL, 0, NULL, NULL}};
-
-	static const EnumPropertyItem prop_flip_direction_items[]= {
-		{0, "ADD", 0, "Add", "Add effect of brush"},
-		{BRUSH_DIR_IN, "SUBTRACT", 0, "Subtract", "Subtract effect of brush"},
-		{0, NULL, 0, NULL, NULL}};
-
-	static const EnumPropertyItem prop_flatten_contrast_items[]= {
-		{0, "FLATTEN", 0, "Flatten", "Add effect of brush"},
-		{BRUSH_DIR_IN, "CONTRAST", 0, "Contrast", "Subtract effect of brush"},
-		{0, NULL, 0, NULL, NULL}};
-
-	static const EnumPropertyItem prop_fill_deepen_items[]= {
-		{0, "FILL", 0, "Fill", "Add effect of brush"},
-		{BRUSH_DIR_IN, "DEEPEN", 0, "Deepen", "Subtract effect of brush"},
-		{0, NULL, 0, NULL, NULL}};
-
-	static const EnumPropertyItem prop_scrape_peaks_items[]= {
-		{0, "SCRAPE", 0, "Scrape", "Add effect of brush"},
-		{BRUSH_DIR_IN, "PEAKS", 0, "Peaks", "Subtract effect of brush"},
-		{0, NULL, 0, NULL, NULL}};
-
-	static const EnumPropertyItem prop_pinch_magnify_items[]= {
-		{0, "PINCH", 0, "Pinch", "Add effect of brush"},
-		{BRUSH_DIR_IN, "MAGNIFY", 0, "Magnify", "Subtract effect of brush"},
-		{0, NULL, 0, NULL, NULL}};
-
-	static const EnumPropertyItem prop_inflate_deflate_items[]= {
-		{0, "INFLATE", 0, "Inflate", "Add effect of brush"},
-		{BRUSH_DIR_IN, "DEFLATE", 0, "Deflate", "Subtract effect of brush"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem brush_sculpt_plane_items[] = {
@@ -419,7 +454,8 @@ static void rna_def_brush(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_flip_direction_items);
+	RNA_def_property_enum_items(prop, prop_direction_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Brush_direction_itemf");
 	RNA_def_property_ui_text(prop, "Direction", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
@@ -439,36 +475,6 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, texture_angle_source_no_random_items);
 	RNA_def_property_ui_text(prop, "Texture Angle Source", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop= RNA_def_property(srna, "flatten_contrast", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_flatten_contrast_items);
-	RNA_def_property_ui_text(prop, "Flatten/Contrast", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop= RNA_def_property(srna, "inflate_deflate", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_inflate_deflate_items);
-	RNA_def_property_ui_text(prop, "Inflate/Deflate", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop= RNA_def_property(srna, "fill_deepen", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_fill_deepen_items);
-	RNA_def_property_ui_text(prop, "Fill/Deepen", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop= RNA_def_property(srna, "scrape_peaks", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_scrape_peaks_items);
-	RNA_def_property_ui_text(prop, "Scrape/Peaks", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop= RNA_def_property(srna, "pinch_magnify", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_pinch_magnify_items);
-	RNA_def_property_ui_text(prop, "Pinch/Magnify", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "sculpt_plane", PROP_ENUM, PROP_NONE);
