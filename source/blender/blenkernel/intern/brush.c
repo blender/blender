@@ -1238,7 +1238,7 @@ void brush_set_size(Brush *brush, int size)
 	else
 		brush->size= size;
 
-	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 int brush_size(Brush *brush)
@@ -1258,7 +1258,7 @@ void brush_set_use_locked_size(Brush *brush, int value)
 			brush->flag &= ~BRUSH_LOCK_SIZE;
 	}
 
-	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 int brush_use_locked_size(Brush *brush)
@@ -1278,7 +1278,7 @@ void brush_set_use_size_pressure(Brush *brush, int value)
 			brush->flag &= ~BRUSH_SIZE_PRESSURE;
 	}
 
-	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 int brush_use_size_pressure(Brush *brush)
@@ -1298,7 +1298,7 @@ void brush_set_use_alpha_pressure(Brush *brush, int value)
 			brush->flag &= ~BRUSH_ALPHA_PRESSURE;
 	}
 
-	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 int brush_use_alpha_pressure(Brush *brush)
@@ -1313,7 +1313,7 @@ void brush_set_unprojected_radius(Brush *brush, float unprojected_radius)
 	else
 		brush->unprojected_radius= unprojected_radius;
 
-	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 float brush_unprojected_radius(Brush *brush)
@@ -1328,7 +1328,7 @@ void brush_set_alpha(Brush *brush, float alpha)
 	else
 		brush->alpha= alpha;
 
-	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 float brush_alpha(Brush *brush)
