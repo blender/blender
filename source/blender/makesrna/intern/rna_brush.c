@@ -45,6 +45,7 @@
 #include "BKE_texture.h"
 #include "BKE_brush.h"
 #include "BKE_icons.h"
+#include "BKE_paint.h"
 
 #include "WM_api.h"
 
@@ -55,43 +56,22 @@ static void rna_Brush_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	//WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
-static int rna_Brush_is_sculpt_brush(Brush *me, bContext *C)
+static int rna_Brush_is_sculpt_brush(Brush *br, bContext *C)
 {
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	int i;
-
-	for (i= 0; i < sd->paint.brush_count; i++) {
-		if (strcmp(me->id.name+2, sd->paint.brushes[i]->id.name+2) == 0) 
-			return 1;
-	}
-
-	return 0;
+	return paint_has_brush(&sd->paint, br);
 }
 
-static int rna_Brush_is_vpaint_brush(Brush *me, bContext *C)
+static int rna_Brush_is_vpaint_brush(Brush *br, bContext *C)
 {
 	VPaint *vp = CTX_data_tool_settings(C)->vpaint;
-	int i;
-
-	for (i= 0; i < vp->paint.brush_count; i++) {
-		if (strcmp(me->id.name+2, vp->paint.brushes[i]->id.name+2) == 0) 
-			return 1;
-	}
-
-	return 0;
+	return paint_has_brush(&vp->paint, br);
 }
 
-static int rna_Brush_is_wpaint_brush(Brush *me, bContext *C)
+static int rna_Brush_is_wpaint_brush(Brush *br, bContext *C)
 {
 	VPaint *vp = CTX_data_tool_settings(C)->wpaint;
-	int i;
-
-	for (i= 0; i < vp->paint.brush_count; i++) {
-		if (strcmp(me->id.name+2, vp->paint.brushes[i]->id.name+2) == 0) 
-			return 1;
-	}
-
-	return 0;
+	return paint_has_brush(&vp->paint, br);
 }
 
 static int rna_Brush_is_imapaint_brush(Brush *me, bContext *C)
