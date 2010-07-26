@@ -295,49 +295,41 @@ bool SCA_PythonController::Import()
 {
 	//printf("py module modified '%s'\n", m_scriptName.Ptr());
 	m_bModified= false;
-	
+
 	/* incase we re-import */
 	Py_XDECREF(m_function);
 	m_function= NULL;
 	
-	vector<STR_String> py_function_path = m_scriptText.Explode('.');
+	char mod_path[m_scriptText.Length()+1];
+	char *function_string;
+
+	strcpy(mod_path, m_scriptText.Ptr());
+	function_string= strrchr(mod_path, '.');
 	
-	if(py_function_path.size() < 2) {
+	if(function_string == NULL) {
 		printf("Python module name formatting error \"%s\":\n\texpected \"SomeModule.Func\", got \"%s\"\n", GetName().Ptr(), m_scriptText.Ptr());
 		return false;
 	}
-	
-	PyObject *mod = PyImport_ImportModule((char *)py_function_path[0].Ptr());
-	/* Dont reload yet, do this within the loop so packages reload too */
-	
-	if(mod==NULL) {
+
+	*function_string= '\0';
+	function_string++;
+
+	// Import the module and print an error if it's not found
+	PyObject *mod = PyImport_ImportModule(mod_path);
+	if(mod && m_debug)
+		mod = PyImport_ReloadModule(mod);
+
+	if (mod == NULL) {
 		ErrorPrint("Python module not found");
 		return false;
 	}
-	/* 'mod' will be DECREF'd as 'base' 
-	 * 'm_function' will be left holding a reference that the controller owns */
-	
-	PyObject *base= mod;
-	
-	for(unsigned int i=1; i < py_function_path.size(); i++) {
-		if(m_debug && PyModule_Check(base)) { /* base could be a class */
-			Py_DECREF(base); /* getting a new one so dont hold a ref to the old one */
-			base= PyImport_ReloadModule(base);
-			if (base==NULL) {
-				m_function= NULL;
-				break;
-			}
-		}
-		
-		m_function = PyObject_GetAttrString(base, py_function_path[i].Ptr());
-		Py_DECREF(base);
-		base = m_function; /* for the next loop if there is on */
-		
-		if(m_function==NULL) {
-			break;
-		}
-	}
-	
+
+	// Get the function object
+	m_function = PyObject_GetAttrString(mod, function_string);
+
+	// DECREF the module as we don't need it anymore
+	Py_DECREF(mod);
+
 	if(m_function==NULL) {
 		if(PyErr_Occurred())
 			ErrorPrint("Python controller found the module but could not access the function");
