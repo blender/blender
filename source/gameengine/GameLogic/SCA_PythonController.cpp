@@ -300,10 +300,10 @@ bool SCA_PythonController::Import()
 	Py_XDECREF(m_function);
 	m_function= NULL;
 	
-	char mod_path[m_scriptText.Length()+1];
+	STR_String mod_path_str= m_scriptText; /* just for storage, use C style string access */
+	char *mod_path= mod_path_str.Ptr();
 	char *function_string;
 
-	strcpy(mod_path, m_scriptText.Ptr());
 	function_string= strrchr(mod_path, '.');
 	
 	if(function_string == NULL) {
