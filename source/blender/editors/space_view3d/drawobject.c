@@ -2082,13 +2082,15 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 	Mesh *me= ob->data;
 	EditEdge *eed;
 	EditFace *efa;
-	float v1[3], v2[3], v3[3], v4[3], x, y, z;
+	float v1[3], v2[3], v3[3], v4[3], vmid[3];
 	float fvec[3];
 	char val[32]; /* Stores the measurement display text here */
 	char conv_float[5]; /* Use a float conversion matching the grid size */
 	float area, col[3]; /* area of the face,  color of the text to draw */
 	float grid= unit->system ? unit->scale_length : v3d->grid;
-	int do_split= unit->flag & USER_UNIT_OPT_SPLIT;
+	const int do_split= unit->flag & USER_UNIT_OPT_SPLIT;
+	const int do_global= v3d->flag & V3D_GLOBAL_STATS;
+	const int do_moving= G.moving;
 
 	if(v3d->flag2 & V3D_RENDER_OVERRIDE)
 		return;
@@ -2121,24 +2123,22 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 		
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			/* draw non fgon edges, or selected edges, or edges next to selected verts while draging */
-			if((eed->h != EM_FGON) && ((eed->f & SELECT) || (G.moving && ((eed->v1->f & SELECT) || (eed->v2->f & SELECT)) ))) {
-				VECCOPY(v1, eed->v1->co);
-				VECCOPY(v2, eed->v2->co);
-				
-				x= 0.5f*(v1[0]+v2[0]);
-				y= 0.5f*(v1[1]+v2[1]);
-				z= 0.5f*(v1[2]+v2[2]);
-				
-				if(v3d->flag & V3D_GLOBAL_STATS) {
-					mul_m4_v3(ob->obmat, v1);
-					mul_m4_v3(ob->obmat, v2);
+			if((eed->h != EM_FGON) && ((eed->f & SELECT) || (do_moving && ((eed->v1->f & SELECT) || (eed->v2->f & SELECT)) ))) {
+				copy_v3_v3(v1, eed->v1->co);
+				copy_v3_v3(v2, eed->v2->co);
+
+				interp_v3_v3v3(vmid, v1, v2, 0.5f);
+
+				if(do_global) {
+					mul_mat3_m4_v3(ob->obmat, v1);
+					mul_mat3_m4_v3(ob->obmat, v2);
 				}
 				if(unit->system)
 					bUnit_AsString(val, sizeof(val), len_v3v3(v1, v2)*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE);
 				else
 					sprintf(val, conv_float, len_v3v3(v1, v2));
 				
-				view3d_cached_text_draw_add(x, y, z, val, 0, 0);
+				view3d_cached_text_draw_add(vmid[0], vmid[1], vmid[2], val, 0, 0);
 			}
 		}
 	}
@@ -2153,18 +2153,18 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 		glColor3fv(col);
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if((efa->f & SELECT)) { // XXX || (G.moving && faceselectedOR(efa, SELECT)) ) {
-				VECCOPY(v1, efa->v1->co);
-				VECCOPY(v2, efa->v2->co);
-				VECCOPY(v3, efa->v3->co);
+			if((efa->f & SELECT)) { // XXX || (do_moving && faceselectedOR(efa, SELECT)) ) {
+				copy_v3_v3(v1, efa->v1->co);
+				copy_v3_v3(v2, efa->v2->co);
+				copy_v3_v3(v3, efa->v3->co);
 				if (efa->v4) {
-					VECCOPY(v4, efa->v4->co);
+					copy_v3_v3(v4, efa->v4->co);
 				}
-				if(v3d->flag & V3D_GLOBAL_STATS) {
-					mul_m4_v3(ob->obmat, v1);
-					mul_m4_v3(ob->obmat, v2);
-					mul_m4_v3(ob->obmat, v3);
-					if (efa->v4) mul_m4_v3(ob->obmat, v4);
+				if(do_global) {
+					mul_mat3_m4_v3(ob->obmat, v1);
+					mul_mat3_m4_v3(ob->obmat, v2);
+					mul_mat3_m4_v3(ob->obmat, v3);
+					if (efa->v4) mul_mat3_m4_v3(ob->obmat, v4);
 				}
 				
 				if (efa->v4)
@@ -2192,20 +2192,20 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 		glColor3fv(col);
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			VECCOPY(v1, efa->v1->co);
-			VECCOPY(v2, efa->v2->co);
-			VECCOPY(v3, efa->v3->co);
+			copy_v3_v3(v1, efa->v1->co);
+			copy_v3_v3(v2, efa->v2->co);
+			copy_v3_v3(v3, efa->v3->co);
 			if(efa->v4) {
-				VECCOPY(v4, efa->v4->co); 
+				copy_v3_v3(v4, efa->v4->co); 
 			}
 			else {
-				VECCOPY(v4, v3);
+				copy_v3_v3(v4, v3);
 			}
-			if(v3d->flag & V3D_GLOBAL_STATS) {
-				mul_m4_v3(ob->obmat, v1);
-				mul_m4_v3(ob->obmat, v2);
-				mul_m4_v3(ob->obmat, v3);
-				mul_m4_v3(ob->obmat, v4);
+			if(do_global) {
+				mul_mat3_m4_v3(ob->obmat, v1);
+				mul_mat3_m4_v3(ob->obmat, v2);
+				mul_mat3_m4_v3(ob->obmat, v3);
+				mul_mat3_m4_v3(ob->obmat, v4); /* intentionally executed even for tri's */
 			}
 			
 			e1= efa->e1;
@@ -2215,19 +2215,19 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 			
 			/* Calculate the angles */
 				
-			if( (e4->f & e1->f & SELECT) || (G.moving && (efa->v1->f & SELECT)) ) {
+			if( (e4->f & e1->f & SELECT) || (do_moving && (efa->v1->f & SELECT)) ) {
 				/* Vec 1 */
 				sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v4, v1, v2)));
 				interp_v3_v3v3(fvec, efa->cent, efa->v1->co, 0.8f);
 				view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0, 0);
 			}
-			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
+			if( (e1->f & e2->f & SELECT) || (do_moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
 				sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v1, v2, v3)));
 				interp_v3_v3v3(fvec, efa->cent, efa->v2->co, 0.8f);
 				view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0, 0);
 			}
-			if( (e2->f & e3->f & SELECT) || (G.moving && (efa->v3->f & SELECT)) ) {
+			if( (e2->f & e3->f & SELECT) || (do_moving && (efa->v3->f & SELECT)) ) {
 				/* Vec 3 */
 				if(efa->v4) 
 					sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v2, v3, v4)));
@@ -2238,7 +2238,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 			}
 				/* Vec 4 */
 			if(efa->v4) {
-				if( (e3->f & e4->f & SELECT) || (G.moving && (efa->v4->f & SELECT)) ) {
+				if( (e3->f & e4->f & SELECT) || (do_moving && (efa->v4->f & SELECT)) ) {
 					sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v3, v4, v1)));
 					interp_v3_v3v3(fvec, efa->cent, efa->v4->co, 0.8f);
 					view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0, 0);
