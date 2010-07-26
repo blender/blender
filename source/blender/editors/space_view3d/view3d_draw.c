@@ -1729,8 +1729,12 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	if (v3d->afterdraw.first) {
 		View3DAfter *v3da, *next;
 		int num = 0;
+		int mask_orig;
 		v3d->xray= TRUE;
 		
+		/* transp materials can change the depth mask, see #21388 */
+		glGetIntegerv(GL_DEPTH_WRITEMASK, &mask_orig);
+
 		glDepthFunc(GL_ALWAYS); /* always write into the depth bufer, overwriting front z values */
 		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
 			next= v3da->next;
@@ -1757,6 +1761,8 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 		}
 		v3d->xray= FALSE;
 		v3d->transp= FALSE;
+
+		glDepthMask(mask_orig);
 	}
 	
 	if(rv3d->rflag & RV3D_CLIPPING)
