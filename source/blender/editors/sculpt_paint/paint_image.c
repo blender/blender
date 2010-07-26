@@ -4830,13 +4830,13 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 
 		/* special exception here for too high pressure values on first touch in
 		   windows for some tablets, then we just skip first touch ..  */
-		if (tablet && (pressure >= 0.99f) && (pop->s.brush->flag & BRUSH_SPACING_PRESSURE) && brush_use_alpha_pressure(pop->s.brush) && brush_use_size_pressure(pop->s.brush))
+		if (tablet && (pressure >= 0.99f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(pop->s.brush) || brush_use_size_pressure(pop->s.brush)))
 			return;
 
 		/* This can be removed once fixed properly in
 		 brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user) 
 		 at zero pressure we should do nothing 1/2^12 is .0002 which is the sensitivity of the most sensitive pen tablet available*/
-		if ((pop->s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|BRUSH_SPACING_PRESSURE)) && tablet && (pressure <= 0.0002f))
+		if (tablet && (pressure < .0002f) && ((pop->s.brush->flag & BRUSH_SPACING_PRESSURE) || brush_use_alpha_pressure(pop->s.brush) || brush_use_size_pressure(pop->s.brush)))
 			return;
 	
 	}
