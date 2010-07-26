@@ -226,6 +226,9 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, Object *ob)
 static void cache_pointdensity(Render *re, Tex *tex)
 {
 	PointDensity *pd = tex->pd;
+	
+	if(!pd)
+		return;
 
 	if (pd->point_tree) {
 		BLI_bvhtree_free(pd->point_tree);
