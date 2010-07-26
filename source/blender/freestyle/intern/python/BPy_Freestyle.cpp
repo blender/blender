@@ -55,6 +55,77 @@ static PyObject *Freestyle_getCurrentScene( PyObject *self )
 	return pyrna_struct_CreatePyObject(&ptr_scene);
 }
 
+#include "BKE_texture.h" /* do_colorband() */
+
+static char Freestyle_evaluateColorRamp___doc__[] =
+".. function:: evaluateColorRamp(ramp, in)\n"
+"\n"
+"   Evaluate a color ramp at a point in the interval 0 to 1.\n"
+"\n"
+"   :arg ramp: Color ramp object.\n"
+"   :type ramp: :class:`bpy.types.ColorRamp`\n"
+"   :arg in: Value in the interval 0 to 1.\n"
+"   :type in: float\n"
+"   :return: color in RGBA format.\n"
+"   :rtype: Tuple of 4 float values\n";
+
+static PyObject *Freestyle_evaluateColorRamp( PyObject *self, PyObject *args )
+{
+	BPy_StructRNA *py_srna;
+	ColorBand *coba;
+	float in, out[4];
+
+	if(!( PyArg_ParseTuple(args, "O!f", &pyrna_struct_Type, &py_srna, &in) ))
+		return NULL;
+	if(!RNA_struct_is_a(py_srna->ptr.type, &RNA_ColorRamp)) {
+		PyErr_SetString(PyExc_TypeError, "1st argument is not a ColorRamp object");
+		return NULL;
+	}
+	coba = (ColorBand *)py_srna->ptr.data;
+	if (!do_colorband(coba, in, out)) {
+		PyErr_SetString(PyExc_ValueError, "failed to evaluate the color ramp");
+		return NULL;
+	}
+	return Py_BuildValue("(f,f,f,f)", out[0], out[1], out[2], out[3]);
+}
+
+#include "BKE_colortools.h" /* curvemapping_evaluateF() */
+
+static char Freestyle_evaluateCurveMappingF___doc__[] =
+".. function:: evaluateCurveMappingF(cumap, cur, value)\n"
+"\n"
+"   Evaluate a curve mapping at a point in the interval 0 to 1.\n"
+"\n"
+"   :arg cumap: Curve mapping object.\n"
+"   :type cumap: :class:`bpy.types.CurveMapping`\n"
+"   :arg cur: Index of the curve to be used (0 <= cur <= 3).\n"
+"   :type cur: int\n"
+"   :arg value: Input value in the interval 0 to 1.\n"
+"   :type value: float\n"
+"   :return: Mapped output value.\n"
+"   :rtype: float\n";
+
+static PyObject *Freestyle_evaluateCurveMappingF( PyObject *self, PyObject *args )
+{
+	BPy_StructRNA *py_srna;
+	CurveMapping *cumap;
+	int cur;
+	float value;
+
+	if(!( PyArg_ParseTuple(args, "O!if", &pyrna_struct_Type, &py_srna, &cur, &value) ))
+		return NULL;
+	if(!RNA_struct_is_a(py_srna->ptr.type, &RNA_CurveMapping)) {
+		PyErr_SetString(PyExc_TypeError, "1st argument is not a CurveMapping object");
+		return NULL;
+	}
+	if (cur < 0 || cur > 3) {
+		PyErr_SetString(PyExc_ValueError, "2nd argument is out of range");
+		return NULL;
+	}
+	cumap = (CurveMapping *)py_srna->ptr.data;
+	return PyFloat_FromDouble(curvemapping_evaluateF(cumap, cur, value));
+}
+
 /*-----------------------Freestyle module docstring----------------------------*/
 
 static char module_docstring[] = "The Blender Freestyle module\n\n";
@@ -63,6 +134,8 @@ static char module_docstring[] = "The Blender Freestyle module\n\n";
 
 static PyMethodDef module_functions[] = {
 	{"getCurrentScene", ( PyCFunction ) Freestyle_getCurrentScene, METH_NOARGS, Freestyle_getCurrentScene___doc__},
+	{"evaluateColorRamp", ( PyCFunction ) Freestyle_evaluateColorRamp, METH_VARARGS, Freestyle_evaluateColorRamp___doc__},
+	{"evaluateCurveMappingF", ( PyCFunction ) Freestyle_evaluateCurveMappingF, METH_VARARGS, Freestyle_evaluateCurveMappingF___doc__},
 	{NULL, NULL, 0, NULL}
 };
 
