@@ -403,13 +403,13 @@ static const float thres = 0.93f; //cos(20 deg);
 #define SIN45 COS45
 
 static float snapquats[39][6] = {
-	/*{q0, q1, q3, q4, view, oposite_direction}*/
+	/*{q0, q1, q3, q4, view, opposite_direction}*/
 {COS45, -SIN45, 0.0, 0.0, RV3D_VIEW_FRONT, 0},  //front
 {0.0, 0.0, -SIN45, -SIN45, RV3D_VIEW_BACK, 0}, //back
 {1.0, 0.0, 0.0, 0.0, RV3D_VIEW_TOP, 0},       //top
 {0.0, -1.0, 0.0, 0.0, RV3D_VIEW_BOTTOM, 0},      //bottom
-{0.5, -0.5, -0.5, -0.5, RV3D_VIEW_LEFT, 0},    //left
-{0.5, -0.5, 0.5, 0.5, RV3D_VIEW_RIGHT, 0},      //right
+{0.5, -0.5, -0.5, -0.5, RV3D_VIEW_RIGHT, 0},    //left
+{0.5, -0.5, 0.5, 0.5, RV3D_VIEW_LEFT, 0},      //right
 
 	/* some more 45 deg snaps */
 {0.65328145027160645, -0.65328145027160645, 0.27059805393218994, 0.27059805393218994, 0, 0},
