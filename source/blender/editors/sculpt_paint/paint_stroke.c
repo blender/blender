@@ -376,7 +376,7 @@ int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 					if (br->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED)
 						avg *= brush_curve_strength(br, len, 1); /* Falloff curve */
 
-					buffer[index] = (GLubyte)(255*avg);
+					buffer[index] = 255 - (GLubyte)(255*avg);
 				}
 				else {
 					buffer[index] = 0;
@@ -540,7 +540,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
 
 	view3d_set_viewcontext(C, &vc);
 
-	if (vc.obact->sculpt) {
+	if (0 && vc.obact->sculpt) {
 		Paint *paint = paint_get_active(CTX_data_scene(C));
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = paint_brush(paint);
