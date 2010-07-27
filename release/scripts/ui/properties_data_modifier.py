@@ -462,7 +462,12 @@ class DATA_PT_modifiers(DataButtonsPanel):
             row.label()
 
     def NAVMESH(self, layout, ob, md, wide_ui):
-        layout = self.layout
+        split = layout.split()
+        if ob.mode == 'EDIT':
+            col = split.column()
+            col.operator("object.assign_navpolygon", text="Assign poly idx")
+            col = split.column()
+            col.operator("object.assign_new_navpolygon", text="Assign new poly idx")
 
     def PARTICLE_INSTANCE(self, layout, ob, md, wide_ui):
         layout.prop(md, "object")

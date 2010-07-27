@@ -120,16 +120,11 @@ void KX_NavMeshObject::ProcessReplica()
 
 }
 
-bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&vertices, int& nverts,
+bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 									   unsigned short* &polys, int& npolys, unsigned short *&dmeshes,
 									   float *&dvertices, int &ndvertsuniq, unsigned short *&dtris, 
 									   int& ndtris, int &vertsPerPoly)
 {
-	if (!meshobj) 
-	{
-		return false;
-	}
-
 	DerivedMesh* dm = mesh_create_derived_no_virtual(KX_GetActiveScene()->GetBlenderScene(), GetBlenderObject(), 
 													NULL, CD_MASK_MESH);
 	int* recastData = (int*) dm->getFaceDataArray(dm, CD_PROP_INT);
@@ -163,7 +158,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&verti
 
 
 		//assumption: detailed mesh triangles are sorted by polygon idx
-		npolys = recastData[numfaces-1] + 1;
+		npolys = recastData[numfaces-1]/* + 1*/; //stored indices start from 1
 		
 		dmeshes = new unsigned short[npolys*4];
 		memset(dmeshes, 0, npolys*4*sizeof(unsigned short));
@@ -177,6 +172,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&verti
 				if (curpolyidx!=prevpolyidx+1)
 				{
 					//error - wrong order of detailed mesh faces
+					printf("Converting navmesh: Error! Wrong order of detailed mesh faces\n");
 					return false;
 				}
 				dmesh = dmesh==NULL ? dmeshes : dmesh+4;
@@ -386,6 +382,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(RAS_MeshObject* meshobj, float *&verti
 	else
 	{
 		//create from RAS_MeshObject (detailed mesh is fake)
+		RAS_MeshObject* meshobj = GetMesh(0);
 		vertsPerPoly = 3;
 		nverts = meshobj->m_sharedvertex_map.size();
 		if (nverts >= 0xffff)
@@ -452,20 +449,23 @@ bool KX_NavMeshObject::BuildNavMesh()
 		m_navMesh = NULL;
 	}
 
-
 	if (GetMeshCount()==0)
+	{
+		printf("Can't find mesh for navmesh object: %s \n", m_name);
 		return false;
-
-	RAS_MeshObject* meshobj = GetMesh(0);
+	}
 
 	float *vertices = NULL, *dvertices = NULL;
 	unsigned short *polys = NULL, *dtris = NULL, *dmeshes = NULL;
 	int nverts = 0, npolys = 0, ndvertsuniq = 0, ndtris = 0;	
 	int vertsPerPoly = 0;
-	if (!BuildVertIndArrays(meshobj, vertices, nverts, polys, npolys, 
+	if (!BuildVertIndArrays(vertices, nverts, polys, npolys, 
 							dmeshes, dvertices, ndvertsuniq, dtris, ndtris, vertsPerPoly ) 
 			|| vertsPerPoly<3)
+	{
+		printf("Can't build navigation mesh data for object:%s \n", m_name);
 		return false;
+	}
 	
 	MT_Point3 pos;
 	for (int i=0; i<nverts; i++)

@@ -50,6 +50,8 @@ extern "C"
 #include "ED_object.h"
 #include "BLI_math_vector.h"
 
+#include "RNA_access.h"
+
 #include "ED_mesh.h"
 
 /*mesh/mesh_intern.h */
@@ -372,7 +374,7 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 
 			//set navigation polygon idx to the custom layer
 			int* polygonIdx = (int*)CustomData_em_get(&em->fdata, newFace->data, CD_PROP_INT);
-			*polygonIdx = i;
+			*polygonIdx = i+1; //add 1 to avoid zero idx
 		}
 		
 		EM_free_index_arrays();
@@ -425,12 +427,153 @@ static int create_navmesh_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_create_navmesh(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "NavMesh";
+	ot->name= "Create navigation mesh";
 	ot->description= "Create navigation mesh for selected objects";
 	ot->idname= "OBJECT_OT_create_navmesh";
 
 	/* api callbacks */
 	ot->exec= create_navmesh_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int assign_navpolygon_poll(bContext *C)
+{
+	Object *ob= (Object *)CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	if (!ob || !ob->data)
+		return 0;
+	return (((Mesh*)ob->data)->edit_mesh != NULL);
+}
+
+static int assign_navpolygon_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+	//do work here
+	int targetPolyIdx = -1;
+	EditFace *ef, *efa;
+	efa = EM_get_actFace(em, 0);
+	if (efa) 
+	{
+		if (CustomData_has_layer(&em->fdata, CD_PROP_INT))
+		{
+			targetPolyIdx = *(int*)CustomData_em_get(&em->fdata, efa->data, CD_PROP_INT);
+			targetPolyIdx = targetPolyIdx>=0? targetPolyIdx : -targetPolyIdx;
+			if (targetPolyIdx>0)
+			{
+				//set target poly idx to other selected faces
+				ef = (EditFace*)em->faces.last;
+				while(ef) 
+				{
+					if((ef->f & SELECT )&& ef!=efa) 
+					{
+						int* recastDataBlock = (int*)CustomData_em_get(&em->fdata, ef->data, CD_PROP_INT);
+						*recastDataBlock = targetPolyIdx;
+					}
+					ef = ef->prev;
+				}
+			}
+		}		
+	}
+	
+	DAG_id_flush_update((ID*)obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	BKE_mesh_end_editmesh((Mesh*)obedit->data, em);
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_assign_navpolygon(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Assign polygon index ";
+	ot->description= "Assign polygon index to face by active face";
+	ot->idname= "OBJECT_OT_assign_navpolygon";
+
+	/* api callbacks */
+	ot->poll = assign_navpolygon_poll;
+	ot->exec= assign_navpolygon_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int compare(const void * a, const void * b){  
+	return ( *(int*)a - *(int*)b );
+}
+static int findFreeNavPolyIndex(EditMesh* em)
+{
+	//construct vector of indices
+	int numfaces = em->totface;
+	int* indices = new int[numfaces];
+	EditFace* ef = (EditFace*)em->faces.last;
+	int idx = 0;
+	while(ef) 
+	{
+		int polyIdx = *(int*)CustomData_em_get(&em->fdata, ef->data, CD_PROP_INT);
+		indices[idx] = polyIdx;
+		idx++;
+		ef = ef->prev;
+	}
+	qsort(indices, numfaces, sizeof(int), compare);
+	//search first free index
+	int freeIdx = 1;
+	int maxIdx = indices[numfaces-1];
+	for (int i=0; i<numfaces; i++)
+	{
+		if (indices[i]==freeIdx)
+			freeIdx++;
+		else if (indices[i]>freeIdx)
+			break;
+	}
+	delete indices;
+	return freeIdx;
+}
+
+static int assign_new_navpolygon_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+	EditFace *ef;
+	if (CustomData_has_layer(&em->fdata, CD_PROP_INT))
+	{
+		int targetPolyIdx = findFreeNavPolyIndex(em);
+		if (targetPolyIdx>0)
+		{
+			//set target poly idx to selected faces
+			ef = (EditFace*)em->faces.last;
+			while(ef) 
+			{
+				if(ef->f & SELECT ) 
+				{
+					int* recastDataBlock = (int*)CustomData_em_get(&em->fdata, ef->data, CD_PROP_INT);
+					*recastDataBlock = targetPolyIdx;
+				}
+				ef = ef->prev;
+			}
+		}
+	}		
+
+	DAG_id_flush_update((ID*)obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	BKE_mesh_end_editmesh((Mesh*)obedit->data, em);
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_assign_new_navpolygon(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Assign new polygon index ";
+	ot->description= "Assign new polygon index to face";
+	ot->idname= "OBJECT_OT_assign_new_navpolygon";
+
+	/* api callbacks */
+	ot->poll = assign_navpolygon_poll;
+	ot->exec= assign_new_navpolygon_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
