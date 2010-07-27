@@ -937,12 +937,11 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 
 
 								// Uses particle velocity as initial velocity for smoke
-								if(sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY) {
-
+								if(sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && (psys->part->phystype != PART_PHYS_NO))
+								{
 									velocity_x[index] = pa->state.vel[0]*sfs->vel_multi;
 									velocity_y[index] = pa->state.vel[1]*sfs->vel_multi;
 									velocity_z[index] = pa->state.vel[2]*sfs->vel_multi;
-
 								}										
 							
 

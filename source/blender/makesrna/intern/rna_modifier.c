@@ -252,7 +252,6 @@ static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 					part->sta = 1.0f;
 					part->end = 250.0f;
 					part->ren_as = PART_DRAW_NOT;
-					part->phystype = PART_PHYS_NO;
 					sprintf(psys->name, "SmokeParticles");
 					psys->recalc |= (PSYS_RECALC_RESET|PSYS_RECALC_PHYS);
 					DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
