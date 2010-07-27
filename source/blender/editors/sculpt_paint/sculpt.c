@@ -3305,6 +3305,8 @@ static void sculpt_flush_update(bContext *C)
 
 	if(mmd)
 		multires_mark_as_modified(ob);
+	if(ob->derivedFinal) /* VBO no longer valid */
+		GPU_drawobject_free(ob->derivedFinal);
 
 	if(ss->modifiers_active) {
 		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
