@@ -78,14 +78,17 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 col = split.column()
                 col.label(text="Resolution:")
                 col.prop(domain, "maxres", text="Divisions")
-                col.label(text="Particle:")
-                col.prop(domain, "initial_velocity", text="Initial Velocity")
+                col.label(text="Time:")
+                col.prop(domain, "time_scale", text="Scale")
+                col.label(text="Border Collisions:")
+                col.prop(domain, "smoke_domain_colli", text="")
 
                 if wide_ui:
                     col = split.column()
                 col.label(text="Behavior:")
                 col.prop(domain, "alpha")
                 col.prop(domain, "beta")
+                col.prop(domain, "vorticity")
                 col.prop(domain, "dissolve_smoke", text="Dissolve")
                 sub = col.column()
                 sub.active = domain.dissolve_smoke
@@ -93,24 +96,31 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 sub.prop(domain, "dissolve_smoke_log", text="Slow")
 
             elif md.smoke_type == 'FLOW':
+    
                 flow = md.flow_settings
 
                 split = layout.split()
 
                 col = split.column()
                 col.prop(flow, "outflow")
-                col.label(text="Particle System:")
+                col.label(text="Particle:")
                 col.prop_object(flow, "psys", ob, "particle_systems", text="")
 
-                if md.flow_settings.outflow:
-                    if wide_ui:
-                        col = split.column()
-                else:
-                    if wide_ui:
-                        col = split.column()
-                    col.label(text="Behavior:")
-                    col.prop(flow, "temperature")
-                    col.prop(flow, "density")
+                sub = col.column()
+                sub.active = not md.flow_settings.outflow
+
+                sub.prop(flow, "initial_velocity", text="Initial Velocity")
+                sub = sub.column()
+                sub.active = flow.initial_velocity
+                sub.prop(flow, "velocity_multiplier", text="Multiplier")
+
+                if wide_ui:
+                    sub = split.column()
+                sub.active = not md.flow_settings.outflow
+                sub.label(text="Behavior:")
+                sub.prop(flow, "temperature")
+                sub.prop(flow, "density")
+                sub.prop(flow, "absolute")
 
             #elif md.smoke_type == 'COLLISION':
             #	layout.separator()
@@ -191,6 +201,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
         col = split.column()
         col.label(text="Resolution:")
         col.prop(md, "amplify", text="Divisions")
+        col.prop(md, "smoothemitter")
         col.prop(md, "viewhighres")
 
         if wide_ui:

@@ -33,8 +33,8 @@
 #define MOD_SMOKE_HIGHRES (1<<1) /* enable high resolution */
 #define MOD_SMOKE_DISSOLVE (1<<2) /* let smoke dissolve */
 #define MOD_SMOKE_DISSOLVE_LOG (1<<3) /* using 1/x for dissolve */
-#define MOD_SMOKE_INITVELOCITY (1<<4) /* passes particles speed to
-										 the smoke*/
+
+#define MOD_SMOKE_HIGH_SMOOTH (1<<5) /* smoothens high res emission*/
 
 /* noise */
 #define MOD_SMOKE_NOISEWAVE (1<<0)
@@ -46,6 +46,11 @@
 /* cache compression */
 #define SM_CACHE_LIGHT		0
 #define SM_CACHE_HEAVY		1
+
+/* domain border collision */
+#define SM_BORDER_OPEN		0
+#define SM_BORDER_VERTICAL	1
+#define SM_BORDER_CLOSED	2
 
 typedef struct SmokeDomainSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
@@ -84,6 +89,10 @@ typedef struct SmokeDomainSettings {
 	struct PointCache *point_cache[2];	/* definition is in DNA_object_force.h */
 	struct ListBase ptcaches[2];
 	struct EffectorWeights *effector_weights;
+	int border_collisions;	/* How domain border collisions are handled */
+	float time_scale;
+	float vorticity;
+	int pad2;
 } SmokeDomainSettings;
 
 
@@ -92,18 +101,25 @@ typedef struct SmokeDomainSettings {
 /* type */
 #define MOD_SMOKE_FLOW_TYPE_OUTFLOW (1<<1)
 
+/* flags */
+#define MOD_SMOKE_FLOW_ABSOLUTE (1<<1) /*old style emission*/
+#define MOD_SMOKE_FLOW_INITVELOCITY (1<<2) /* passes particles speed to
+										 the smoke*/
+
+
 typedef struct SmokeFlowSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
 	struct ParticleSystem *psys;
 	float density;
 	float temp; /* delta temperature (temp - ambient temp) */
-	float velocity[3]; /* UNUSED, velocity taken from particles */
+	float velocity[2]; /* UNUSED, velocity taken from particles */
+	float vel_multi; // Multiplier for particle velocity
 	float vgrp_heat_scale[2]; /* min and max scaling for vgroup_heat */
 	short vgroup_flow; /* where inflow/outflow happens - red=1=action */
 	short vgroup_density;
 	short vgroup_heat;
 	short type; /* inflow =0 or outflow = 1 */
-	int pad;
+	int flags; /* absolute emission etc*/
 } SmokeFlowSettings;
 
 /*

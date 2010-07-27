@@ -87,10 +87,15 @@ EnumPropertyItem modifier_type_items[] ={
 
 #ifdef RNA_RUNTIME
 
+#include "DNA_particle_types.h"
+#include "DNA_smoke_types.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_library.h"
 #include "BKE_modifier.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 
 static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -216,6 +221,9 @@ static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SmokeModifierData *smd= (SmokeModifierData *)ptr->data;
 	Object *ob= (Object*)ptr->id.data;
+	ParticleSystemModifierData *psmd = NULL;
+	ParticleSystem *psys = NULL;
+	ParticleSettings *part = NULL;
 
 	// nothing changed
 	if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
@@ -226,9 +234,32 @@ static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	switch (smd->type) {
 		case MOD_SMOKE_TYPE_DOMAIN:
-			ob->dt = OB_WIRE;
+			ob->dt = OB_BOUNDBOX;
 			break;
 		case MOD_SMOKE_TYPE_FLOW:
+			for(psys=ob->particlesystem.first; psys; psys=psys->next)
+				if(psys->part->type == PART_EMITTER)
+					break;
+			if(ob->type == OB_MESH && !psys) {
+				/* add particle system */
+				psmd = object_add_particle_system(scene, ob, NULL);
+				if(psmd)
+				{
+					psys = psmd->psys;
+					part = psys->part;
+					part->flag |= PART_UNBORN;
+					part->lifetime = 1.0f;
+					part->sta = 1.0f;
+					part->end = 250.0f;
+					part->ren_as = PART_DRAW_NOT;
+					part->phystype = PART_PHYS_NO;
+					sprintf(psys->name, "SmokeParticles");
+					psys->recalc |= (PSYS_RECALC_RESET|PSYS_RECALC_PHYS);
+					DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
+				}
+			}
+			if(smd->flow)
+				smd->flow->psys = psys;
 		case MOD_SMOKE_TYPE_COLL:
 		case 0:
 		default:
