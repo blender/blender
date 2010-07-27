@@ -75,13 +75,13 @@ extern "C" size_t smoke_get_index2d(int x, int max_x, int y /*, int max_y, int z
 	return x + y * max_x;
 }
 
-extern "C" void smoke_step(FLUID_3D *fluid, size_t framenr)
+extern "C" void smoke_step(FLUID_3D *fluid, size_t framenr, float fps)
 {
 	/* stability values copied from wturbulence.cpp */
 	const int maxSubSteps = 25;
 	const float maxVel = 0.5f; /* TODO: maybe 0.5 is still too high, please confirm! -dg */
 
-	const float dt = DT_DEFAULT;
+	float dt = DT_DEFAULT;
 	float maxVelMag = 0.0f;
 	int totalSubsteps;
 	int substep = 0;
@@ -96,6 +96,9 @@ extern "C" void smoke_step(FLUID_3D *fluid, size_t framenr)
 		if(vtemp > maxVelMag)
 			maxVelMag = vtemp;
 	}
+
+	/* adapt timestep for different framerates, dt = 0.1 is at 25fps */
+	dt *= (25.0f / fps);
 
 	maxVelMag = sqrt(maxVelMag) * dt * (*(fluid->_dtFactor));
 	totalSubsteps = (int)((maxVelMag / maxVel) + 1.0f); /* always round up */

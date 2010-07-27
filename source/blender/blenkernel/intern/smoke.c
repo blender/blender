@@ -1413,7 +1413,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		{
 			if(sds->flags & MOD_SMOKE_DISSOLVE)
 				smoke_dissolve(sds->fluid, sds->diss_speed, sds->flags & MOD_SMOKE_DISSOLVE_LOG);
-			smoke_step(sds->fluid, smd->time);
+			smoke_step(sds->fluid, smd->time, scene->r.frs_sec / scene->r.frs_sec_base);
 		}
 
 		// create shadows before writing cache so we get nice shadows for sstartframe, too

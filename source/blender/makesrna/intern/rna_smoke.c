@@ -245,7 +245,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "smoke_domain_colli", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "border_collisions");
 	RNA_def_property_enum_items(prop, smoke_domain_colli_items);
-	RNA_def_property_ui_text(prop, "Cache Compression", "Compression method to be used");
+	RNA_def_property_ui_text(prop, "Border Collisions", "Selects which domain border will be treated as collision object.");
 	RNA_def_property_update(prop, 0, NULL);
 
 	prop= RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
