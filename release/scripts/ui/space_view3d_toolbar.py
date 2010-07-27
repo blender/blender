@@ -859,6 +859,7 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel):
 
         if context.sculpt_object:
             col.prop(brush, "sculpt_tool", expand=False, text="")
+            col.operator("brush.reset")
         elif context.texture_paint_object:
             col.prop(brush, "imagepaint_tool", expand=False, text="")
         elif context.vertex_paint_object or context.weight_paint_object:
