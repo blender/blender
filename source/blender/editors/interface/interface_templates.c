@@ -469,6 +469,10 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			if(!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib))
 				uiButSetFlag(but, UI_BUT_DISABLED);
 		}
+		
+		if(id->lib == NULL && !(ELEM4(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT))) {
+			uiDefButR(block, TOG, 0, "F", 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "fake_user", -1, 0, 0, -1, -1, NULL);
+		}
 	}
 	
 	if(flag & UI_ID_ADD_NEW) {

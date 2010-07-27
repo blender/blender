@@ -1424,7 +1424,7 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 			
 			if(cu->vfont) {
 				writedata(wd, DATA, amount_of_chars(cu->str)+1, cu->str);
-				writestruct(wd, DATA, "CharInfo", cu->len, cu->strinfo);
+				writestruct(wd, DATA, "CharInfo", cu->len+1, cu->strinfo);
 				writestruct(wd, DATA, "TextBox", cu->totbox, cu->tb);				
 			}
 			else {

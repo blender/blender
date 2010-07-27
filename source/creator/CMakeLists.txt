@@ -126,14 +126,14 @@ IF(WITH_INSTALL)
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 			COMMAND rm -Rf ${TARGETDIR}/.blender
 			COMMAND mkdir ${TARGETDIR}/.blender/
-			COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.bfont.ttf ${TARGETDIR}/.blender/
+			COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf ${TARGETDIR}/.blender/
 		)
     
 		IF(WITH_INTERNATIONAL)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/.blender/
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/.blender/
+				COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages ${TARGETDIR}/.blender/
+				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale ${TARGETDIR}/.blender/
 			)
 		ENDIF(WITH_INTERNATIONAL)
     
@@ -144,32 +144,32 @@ IF(WITH_INSTALL)
 				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/.blender/
 				COMMAND find ${TARGETDIR} -name "*.py?" -prune -exec rm -rf {} "\;"
 			)
-      
-			# Copy the systems python into the install directory
-			# Scons copy in tools/Blender.py
-			ADD_CUSTOM_COMMAND(
-				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMENT "copying a subset of the systems python..."
-        
-				COMMAND mkdir ${TARGETDIR}/.blender/python # PYTHONPATH and PYTHONHOME is set here
-				COMMAND mkdir ${TARGETDIR}/.blender/python/lib/
-				COMMAND cp -R ${PYTHON_LIBPATH}/python${PYTHON_VERSION} ${TARGETDIR}/.blender/python/lib/
-        
-				COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/distutils
-				COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib2to3
-				COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/idlelib
-				COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/tkinter
-				COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/config
-        
-				COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages
-				COMMAND mkdir ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages    # python needs it.
+			IF(WITH_PYTHON_INSTALL)
+				# Copy the systems python into the install directory
+				# Scons copy in tools/Blender.py
+				ADD_CUSTOM_COMMAND(
+					TARGET blender POST_BUILD MAIN_DEPENDENCY blender
+					COMMENT "copying a subset of the systems python..."
 
-				COMMAND rm -f ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib-dynload/_tkinter.so
-				COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "test" -prune -exec rm -rf {} "\;"
-				COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.py?" -exec rm -rf {} "\;"
-				COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.so"-exec strip -s {} "\;"
-			)
-     
+					COMMAND mkdir ${TARGETDIR}/.blender/python # PYTHONPATH and PYTHONHOME is set here
+					COMMAND mkdir ${TARGETDIR}/.blender/python/lib/
+					COMMAND cp -R ${PYTHON_LIBPATH}/python${PYTHON_VERSION} ${TARGETDIR}/.blender/python/lib/
+
+					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/distutils
+					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib2to3
+					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/idlelib
+					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/tkinter
+					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/config
+
+					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages
+					COMMAND mkdir ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages    # python needs it.
+
+					COMMAND rm -f ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib-dynload/_tkinter.so
+					COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "test" -prune -exec rm -rf {} "\;"
+					COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.py?" -exec rm -rf {} "\;"
+					COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.so"-exec strip -s {} "\;"
+				)
+			ENDIF(WITH_PYTHON_INSTALL)
 		ENDIF(WITH_PYTHON)
       
 		ADD_CUSTOM_COMMAND(
@@ -178,7 +178,7 @@ IF(WITH_INSTALL)
 		)
     
     
-		# Above we bundle a portable distrobution in ./bin
+		# Above we bundle a portable distribution in ./bin
 		# This is an optional "make install" which installs blender on the system.
 		INSTALL(
 			PROGRAMS ${TARGETDIR}/blender
@@ -201,7 +201,7 @@ IF(WITH_INSTALL)
             DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps
         )
 		INSTALL(
-			PROGRAMS ${CMAKE_SOURCE_DIR}/bin/blender-thumbnailer.py
+			PROGRAMS ${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 		)
 		INSTALL(
@@ -219,9 +219,14 @@ IF(WITH_INSTALL)
             PATTERN ".svn" EXCLUDE
 			PATTERN "*.pyc" EXCLUDE
         )
+		INSTALL(
+			DIRECTORY ${CMAKE_SOURCE_DIR}/release/datafiles/brushicons/
+			DESTINATION ${BLENDERPATH}/datafiles/brushicons
+			PATTERN ".svn" EXCLUDE
+		)
 		IF(WITH_INTERNATIONAL)
 			INSTALL(
-    	        DIRECTORY ${CMAKE_SOURCE_DIR}/bin/.blender/locale/
+    	        DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale/
     	        DESTINATION ${BLENDERPATH}/datafiles/locale
     	        PATTERN ".svn" EXCLUDE
 	        )
@@ -244,14 +249,14 @@ IF(WITH_INSTALL)
 			COMMAND cat ${SOURCEINFO} | sed s/VERSION/`cat ${CMAKE_SOURCE_DIR}/release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
 			COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/datafiles
 			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
-			COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.bfont.ttf ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
+			COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
 		)
       
 		IF(WITH_INTERNATIONAL)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
+				COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
 			)
 		ENDIF(WITH_INTERNATIONAL)
       
@@ -287,9 +292,9 @@ IF(WITH_INSTALL)
 			COMMAND if not exist \"${TARGETDIR}\\.blender\\locale\" mkdir \"${TARGETDIR}\\.blender\\locale\"
 			COMMAND if not exist \"${TARGETDIR}\\.blender\\scripts\" mkdir \"${TARGETDIR}\\.blender\\scripts\"
 			COMMAND if not exist \"${TARGETDIR}\\plugins\" mkdir \"${TARGETDIR}\\plugins\"
-			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\.blender\\\" 
-			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\bin\\.blender\\.bfont.ttf\" \"${TARGETDIR}\\.blender\\\"
-			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\.blender\\locale\"
+			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\.blender\\\" 
+			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\.bfont.ttf\" \"${TARGETDIR}\\.blender\\\"
+			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\.blender\\locale\"
 			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
 			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
 			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"

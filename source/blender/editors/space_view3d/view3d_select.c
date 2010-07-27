@@ -356,11 +356,9 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, short mcords[][2],
 	if(ob->type!=OB_ARMATURE || ob->pose==NULL) return;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		VECCOPY(vec, pchan->pose_head);
-		mul_m4_v3(ob->obmat, vec);
+		mul_v3_m4v3(vec, ob->obmat, pchan->pose_head);
 		project_short(vc->ar, vec, sco1);
-		VECCOPY(vec, pchan->pose_tail);
-		mul_m4_v3(ob->obmat, vec);
+		mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
 		project_short(vc->ar, vec, sco2);
 		
 		if(lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
@@ -644,11 +642,9 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 	
 	for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
 
-		VECCOPY(vec, ebone->head);
-		mul_m4_v3(vc->obedit->obmat, vec);
+		mul_v3_m4v3(vec, vc->obedit->obmat, ebone->head);
 		project_short(vc->ar, vec, sco1);
-		VECCOPY(vec, ebone->tail);
-		mul_m4_v3(vc->obedit->obmat, vec);
+		mul_v3_m4v3(vec, vc->obedit->obmat, ebone->tail);
 		project_short(vc->ar, vec, sco2);
 		
 		didpoint= 0;
@@ -2010,13 +2006,11 @@ static void armature_circle_select(ViewContext *vc, int selecting, short *mval, 
 		float vec[3];
 		
 		/* project head location to screenspace */
-		VECCOPY(vec, ebone->head);
-		mul_m4_v3(vc->obedit->obmat, vec);
+		mul_v3_m4v3(vec, vc->obedit->obmat, ebone->head);
 		project_short(vc->ar, vec, sco1);
 		
 		/* project tail location to screenspace */
-		VECCOPY(vec, ebone->tail);
-		mul_m4_v3(vc->obedit->obmat, vec);
+		mul_v3_m4v3(vec, vc->obedit->obmat, ebone->tail);
 		project_short(vc->ar, vec, sco2);
 		
 		/* check if the head and/or tail is in the circle 

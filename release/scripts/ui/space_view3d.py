@@ -1001,8 +1001,9 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        sculpt = context.tool_settings.sculpt
-        brush = context.tool_settings.sculpt.brush
+        tool_settings = context.tool_settings
+        sculpt = tool_settings.sculpt
+        brush = tool_settings.sculpt.brush
 
         layout.prop(sculpt, "symmetry_x")
         layout.prop(sculpt, "symmetry_y")
@@ -1024,11 +1025,19 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
                 layout.prop(brush, "use_anchor")
 
             if sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
-                layout.prop(brush, "flip_direction")
+                layout.prop(brush, "direction")
 
             if sculpt_tool == 'LAYER':
                 layout.prop(brush, "use_persistent")
                 layout.operator("sculpt.set_persistent_base")
+
+        layout.separator()
+        layout.prop(sculpt, "use_openmp", text="Threaded Sculpt")
+        layout.prop(sculpt, "show_brush")
+
+        # TODO, make availabel from paint menu!
+        layout.prop(tool_settings, "sculpt_paint_use_unified_size", text="Unify Size")
+        layout.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Unify Strength")
 
 # ********** Particle menu **********
 
@@ -2079,7 +2088,7 @@ class VIEW3D_PT_view3d_meshdisplay(bpy.types.Panel):
 
         col.separator()
         col.label(text="Numerics:")
-        col.prop(mesh, "draw_edge_lenght")
+        col.prop(mesh, "draw_edge_length")
         col.prop(mesh, "draw_edge_angle")
         col.prop(mesh, "draw_face_area")
 

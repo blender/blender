@@ -314,11 +314,11 @@ static int material_slot_assign_exec(bContext *C, wmOperator *op)
 			}
 		}
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
-			ListBase *editnurb= ((Curve*)ob->data)->editnurb;
 			Nurb *nu;
+			ListBase *nurbs= ED_curve_editnurbs((Curve*)ob->data);
 
-			if(editnurb) {
-				for(nu= editnurb->first; nu; nu= nu->next)
+			if(nurbs) {
+				for(nu= nurbs->first; nu; nu= nu->next)
 					if(isNurbsel(nu))
 						nu->mat_nr= nu->charidx= ob->actcol-1;
 			}
@@ -372,13 +372,13 @@ static int material_slot_de_select(bContext *C, int select)
 		}
 	}
 	else if ELEM(ob->type, OB_CURVE, OB_SURF) {
-		ListBase *editnurb= ((Curve*)ob->data)->editnurb;
+		ListBase *nurbs= ED_curve_editnurbs((Curve*)ob->data);
 		Nurb *nu;
 		BPoint *bp;
 		BezTriple *bezt;
 		int a;
 
-		for(nu= editnurb->first; nu; nu=nu->next) {
+		for(nu= nurbs->first; nu; nu=nu->next) {
 			if(nu->mat_nr==ob->actcol-1) {
 				if(nu->bezt) {
 					a= nu->pntsu;

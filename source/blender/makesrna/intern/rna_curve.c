@@ -36,6 +36,9 @@
 
 #include "WM_types.h"
 
+#include "BKE_curve.h"
+#include "ED_curve.h"
+
 EnumPropertyItem beztriple_handle_type_items[] = {
 		{HD_FREE, "FREE", 0, "Free", ""},
 		{HD_AUTO, "AUTO", 0, "Auto", ""},
@@ -70,6 +73,8 @@ EnumPropertyItem curve_type_items[] = {
 #include "WM_api.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "ED_curve.h" /* for BKE_curve_nurbs */
 
 static StructRNA *rna_Curve_refine(PointerRNA *ptr)
 {
@@ -193,7 +198,8 @@ static void rna_Curve_active_textbox_index_range(PointerRNA *ptr, int *min, int 
 static void rna_Curve_dimension_set(PointerRNA *ptr, int value)
 {
 	Curve *cu= (Curve*)ptr->id.data;
-	Nurb *nu= cu->editnurb ? cu->editnurb->first : cu->nurb.first;
+	ListBase *nurbs= BKE_curve_nurbs(cu);
+	Nurb *nu= nurbs->first;
 
 	if(value==CU_3D) {
 		cu->flag |=  CU_3D;
@@ -309,11 +315,9 @@ static void rna_Curve_taperObject_set(PointerRNA *ptr, PointerRNA value)
 static void rna_Curve_resolution_u_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->id.data;
-	Nurb *nu=NULL;
-	
-	if (cu->editnurb) nu= cu->editnurb->first;
-	else nu=cu->nurb.first;
-	
+	ListBase *nurbs= BKE_curve_nurbs(cu);
+	Nurb *nu= nurbs->first;
+
 	while(nu) {
 		nu->resolu= cu->resolu;
 		nu= nu->next;
@@ -325,16 +329,15 @@ static void rna_Curve_resolution_u_update_data(Main *bmain, Scene *scene, Pointe
 static void rna_Curve_resolution_v_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->id.data;
-	Nurb *nu=NULL;
-	
-	if (cu->editnurb) nu= cu->editnurb->first;
-	else nu=cu->nurb.first;
-	
+	ListBase *nurbs= BKE_curve_nurbs(cu);
+	Nurb *nu=nurbs->first;
+
+
 	while(nu) {
 		nu->resolv= cu->resolv;
 		nu= nu->next;
 	}
-	
+
 	rna_Curve_update_data(bmain, scene, ptr);
 }
 
@@ -466,12 +469,9 @@ static void rna_Curve_spline_remove(Curve *cu, ReportList *reports, Nurb *nu)
 {
 	/* todo, check we're in the list */
 	int found= 0;
-	if(cu->editnurb) {
-		found= BLI_remlink_safe(cu->editnurb, nu);
-	}
-	else {
-		found= BLI_remlink_safe(&cu->nurb, nu);
-	}
+	ListBase *nurbs= BKE_curve_nurbs(cu);
+
+	found= BLI_remlink_safe(nurbs, nu);
 
 	if(!found) {
 		BKE_reportf(reports, RPT_ERROR, "Curve \"%s\" does not contain spline given", cu->id.name+2);
@@ -486,11 +486,10 @@ static PointerRNA rna_Curve_active_spline_get(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->data;
 	Nurb *nu;
+	ListBase *nurbs= BKE_curve_nurbs(cu);
 
-	if(cu->editnurb)
-		nu= BLI_findlink(cu->editnurb, cu->actnu);
-	else
-		nu= BLI_findlink(&cu->nurb, cu->actnu); // currently set to -1,  should be changed to be allowed outside of editmode.
+	// for curve outside editmode will set to -1,  should be changed to be allowed outside of editmode.
+	nu= BLI_findlink(nurbs, cu->actnu);
 
 	if(nu)
 		return rna_pointer_inherit_refine(ptr, &RNA_Spline, nu);
@@ -502,14 +501,13 @@ static void rna_Curve_active_spline_set(PointerRNA *ptr, PointerRNA value)
 {
 	Curve *cu= (Curve*)ptr->data;
 	Nurb *nu= value.data;
+	ListBase *nubase= BKE_curve_nurbs(cu);
 
 	/* -1 is ok for an unset index */
 	if(nu==NULL)
 		cu->actnu= -1;
-	else if(cu->editnurb)
-		cu->actnu= BLI_findindex(cu->editnurb, nu);
 	else
-		cu->actnu= BLI_findindex(&cu->nurb, nu);
+		cu->actnu= BLI_findindex(nubase, nu);
 }
 
 #else

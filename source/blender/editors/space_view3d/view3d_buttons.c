@@ -73,6 +73,7 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
+#include "ED_curve.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -205,8 +206,9 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 		BPoint *bp;
 		BezTriple *bezt;
 		int a;
-		
-		nu= cu->editnurb->first;
+		ListBase *nurbs= ED_curve_editnurbs(cu);
+
+		nu= nurbs->first;
 		while(nu) {
 			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
@@ -410,8 +412,9 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 			BPoint *bp;
 			BezTriple *bezt;
 			int a;
-			
-			nu= cu->editnurb->first;
+			ListBase *nurbs= ED_curve_editnurbs(cu);
+
+			nu= nurbs->first;
 			while(nu) {
 				if(nu->type == CU_BEZIER) {
 					bezt= nu->bezt;

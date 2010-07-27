@@ -973,7 +973,8 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 		if(ob->mat==NULL) ob->totcol= 0;
 		
 		basen= MEM_dupallocN(base);
-		basen->flag &= ~OB_FROMDUPLI;
+		basen->flag &= ~(OB_FROMDUPLI|OB_FROMGROUP);
+		ob->flag= basen->flag;
 		basen->lay= base->lay;
 		BLI_addhead(&scene->base, basen);	/* addhead: othwise eternal loop */
 		basen->object= ob;

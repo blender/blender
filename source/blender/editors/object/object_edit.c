@@ -435,7 +435,12 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	if(flag & EM_WAITCURSOR) waitcursor(1);
 
 	ob->restore_mode = ob->mode;
-	ED_object_toggle_modes(C, ob->mode);
+
+	/* note, when switching scenes the object can have editmode data but
+	 * not be scene->obedit: bug 22954, this avoids calling self eternally */
+	if((ob->restore_mode & OB_MODE_EDIT)==0)
+		ED_object_toggle_modes(C, ob->mode);
+
 	ob->mode= OB_MODE_EDIT;
 	
 	if(ob->type==OB_MESH) {

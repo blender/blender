@@ -86,6 +86,7 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_types.h"
+#include "ED_curve.h" /* for ED_curve_editnurbs */
 
 #include "UI_resources.h"
 
@@ -1247,17 +1248,28 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	/* a standing up pyramid with (0,0,0) as top */
 	Camera *cam;
 	World *wrld;
-	float nobmat[4][4], vec[8][4], fac, facx, facy, depth;
+	float nobmat[4][4], vec[8][4], fac, facx, facy, depth, aspx, aspy, caspx, caspy;
 	int i;
 
 	cam= ob->data;
+	aspx= (float) scene->r.xsch*scene->r.xasp;
+	aspy= (float) scene->r.ysch*scene->r.yasp;
+
+	if(aspx < aspy) {
+		caspx= aspx / aspy;
+		caspy= 1.0;
+	}
+	else {
+		caspx= 1.0;
+		caspy= aspy / aspx;
+	}
 	
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
 	
 	if(rv3d->persp>=2 && cam->type==CAM_ORTHO && ob==v3d->camera) {
-		facx= 0.5*cam->ortho_scale*1.28;
-		facy= 0.5*cam->ortho_scale*1.024;
+		facx= 0.5*cam->ortho_scale*caspx;
+		facy= 0.5*cam->ortho_scale*caspy;
 		depth= -cam->clipsta-0.1;
 	}
 	else {
@@ -1265,8 +1277,8 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		if(rv3d->persp>=2 && ob==v3d->camera) fac= cam->clipsta+0.1; /* that way it's always visible */
 		
 		depth= - fac*cam->lens/16.0;
-		facx= fac*1.28;
-		facy= fac*1.024;
+		facx= fac*caspx;
+		facy= fac*caspy;
 	}
 	
 	vec[0][0]= 0.0; vec[0][1]= 0.0; vec[0][2]= 0.001;	/* GLBUG: for picking at iris Entry (well thats old!) */
@@ -1307,16 +1319,16 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		else if (i==1 && (ob == v3d->camera)) glBegin(GL_TRIANGLES);
 		else break;
 		
-		vec[0][0]= -0.7*cam->drawsize;
-		vec[0][1]= 1.1*cam->drawsize;
+		vec[0][0]= -0.7*cam->drawsize*caspx;
+		vec[0][1]= 1.1*cam->drawsize*caspy;
 		glVertex3fv(vec[0]);
 		
 		vec[0][0]= 0.0; 
-		vec[0][1]= 1.8*cam->drawsize;
+		vec[0][1]= 1.8*cam->drawsize*caspy;
 		glVertex3fv(vec[0]);
 		
-		vec[0][0]= 0.7*cam->drawsize; 
-		vec[0][1]= 1.1*cam->drawsize;
+		vec[0][0]= 0.7*cam->drawsize*caspx; 
+		vec[0][1]= 1.1*cam->drawsize*caspy;
 		glVertex3fv(vec[0]);
 	
 		glEnd();
@@ -1610,10 +1622,11 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 	short s[2] = {IS_CLIPPED, 0};
 	Nurb *nu;
 	int i;
+	ListBase *nurbs= ED_curve_editnurbs(cu);
 
 	ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
-	for (nu= cu->editnurb->first; nu; nu=nu->next) {
+	for (nu= nurbs->first; nu; nu=nu->next) {
 		if(nu->type == CU_BEZIER) {
 			for (i=0; i<nu->pntsu; i++) {
 				BezTriple *bezt = &nu->bezt[i];
@@ -2080,13 +2093,15 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 	Mesh *me= ob->data;
 	EditEdge *eed;
 	EditFace *efa;
-	float v1[3], v2[3], v3[3], v4[3], x, y, z;
+	float v1[3], v2[3], v3[3], v4[3], vmid[3];
 	float fvec[3];
 	char val[32]; /* Stores the measurement display text here */
 	char conv_float[5]; /* Use a float conversion matching the grid size */
 	float area, col[3]; /* area of the face,  color of the text to draw */
 	float grid= unit->system ? unit->scale_length : v3d->grid;
-	int do_split= unit->flag & USER_UNIT_OPT_SPLIT;
+	const int do_split= unit->flag & USER_UNIT_OPT_SPLIT;
+	const int do_global= v3d->flag & V3D_GLOBAL_STATS;
+	const int do_moving= G.moving;
 
 	if(v3d->flag2 & V3D_RENDER_OVERRIDE)
 		return;
@@ -2119,24 +2134,22 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 		
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			/* draw non fgon edges, or selected edges, or edges next to selected verts while draging */
-			if((eed->h != EM_FGON) && ((eed->f & SELECT) || (G.moving && ((eed->v1->f & SELECT) || (eed->v2->f & SELECT)) ))) {
-				VECCOPY(v1, eed->v1->co);
-				VECCOPY(v2, eed->v2->co);
-				
-				x= 0.5f*(v1[0]+v2[0]);
-				y= 0.5f*(v1[1]+v2[1]);
-				z= 0.5f*(v1[2]+v2[2]);
-				
-				if(v3d->flag & V3D_GLOBAL_STATS) {
-					mul_m4_v3(ob->obmat, v1);
-					mul_m4_v3(ob->obmat, v2);
+			if((eed->h != EM_FGON) && ((eed->f & SELECT) || (do_moving && ((eed->v1->f & SELECT) || (eed->v2->f & SELECT)) ))) {
+				copy_v3_v3(v1, eed->v1->co);
+				copy_v3_v3(v2, eed->v2->co);
+
+				interp_v3_v3v3(vmid, v1, v2, 0.5f);
+
+				if(do_global) {
+					mul_mat3_m4_v3(ob->obmat, v1);
+					mul_mat3_m4_v3(ob->obmat, v2);
 				}
 				if(unit->system)
 					bUnit_AsString(val, sizeof(val), len_v3v3(v1, v2)*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE);
 				else
 					sprintf(val, conv_float, len_v3v3(v1, v2));
 				
-				view3d_cached_text_draw_add(x, y, z, val, 0, 0);
+				view3d_cached_text_draw_add(vmid[0], vmid[1], vmid[2], val, 0, 0);
 			}
 		}
 	}
@@ -2151,18 +2164,18 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 		glColor3fv(col);
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if((efa->f & SELECT)) { // XXX || (G.moving && faceselectedOR(efa, SELECT)) ) {
-				VECCOPY(v1, efa->v1->co);
-				VECCOPY(v2, efa->v2->co);
-				VECCOPY(v3, efa->v3->co);
+			if((efa->f & SELECT)) { // XXX || (do_moving && faceselectedOR(efa, SELECT)) ) {
+				copy_v3_v3(v1, efa->v1->co);
+				copy_v3_v3(v2, efa->v2->co);
+				copy_v3_v3(v3, efa->v3->co);
 				if (efa->v4) {
-					VECCOPY(v4, efa->v4->co);
+					copy_v3_v3(v4, efa->v4->co);
 				}
-				if(v3d->flag & V3D_GLOBAL_STATS) {
-					mul_m4_v3(ob->obmat, v1);
-					mul_m4_v3(ob->obmat, v2);
-					mul_m4_v3(ob->obmat, v3);
-					if (efa->v4) mul_m4_v3(ob->obmat, v4);
+				if(do_global) {
+					mul_mat3_m4_v3(ob->obmat, v1);
+					mul_mat3_m4_v3(ob->obmat, v2);
+					mul_mat3_m4_v3(ob->obmat, v3);
+					if (efa->v4) mul_mat3_m4_v3(ob->obmat, v4);
 				}
 				
 				if (efa->v4)
@@ -2190,20 +2203,20 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 		glColor3fv(col);
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			VECCOPY(v1, efa->v1->co);
-			VECCOPY(v2, efa->v2->co);
-			VECCOPY(v3, efa->v3->co);
+			copy_v3_v3(v1, efa->v1->co);
+			copy_v3_v3(v2, efa->v2->co);
+			copy_v3_v3(v3, efa->v3->co);
 			if(efa->v4) {
-				VECCOPY(v4, efa->v4->co); 
+				copy_v3_v3(v4, efa->v4->co); 
 			}
 			else {
-				VECCOPY(v4, v3);
+				copy_v3_v3(v4, v3);
 			}
-			if(v3d->flag & V3D_GLOBAL_STATS) {
-				mul_m4_v3(ob->obmat, v1);
-				mul_m4_v3(ob->obmat, v2);
-				mul_m4_v3(ob->obmat, v3);
-				mul_m4_v3(ob->obmat, v4);
+			if(do_global) {
+				mul_mat3_m4_v3(ob->obmat, v1);
+				mul_mat3_m4_v3(ob->obmat, v2);
+				mul_mat3_m4_v3(ob->obmat, v3);
+				mul_mat3_m4_v3(ob->obmat, v4); /* intentionally executed even for tri's */
 			}
 			
 			e1= efa->e1;
@@ -2213,19 +2226,19 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 			
 			/* Calculate the angles */
 				
-			if( (e4->f & e1->f & SELECT) || (G.moving && (efa->v1->f & SELECT)) ) {
+			if( (e4->f & e1->f & SELECT) || (do_moving && (efa->v1->f & SELECT)) ) {
 				/* Vec 1 */
 				sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v4, v1, v2)));
 				interp_v3_v3v3(fvec, efa->cent, efa->v1->co, 0.8f);
 				view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0, 0);
 			}
-			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
+			if( (e1->f & e2->f & SELECT) || (do_moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
 				sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v1, v2, v3)));
 				interp_v3_v3v3(fvec, efa->cent, efa->v2->co, 0.8f);
 				view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0, 0);
 			}
-			if( (e2->f & e3->f & SELECT) || (G.moving && (efa->v3->f & SELECT)) ) {
+			if( (e2->f & e3->f & SELECT) || (do_moving && (efa->v3->f & SELECT)) ) {
 				/* Vec 3 */
 				if(efa->v4) 
 					sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v2, v3, v4)));
@@ -2236,7 +2249,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 			}
 				/* Vec 4 */
 			if(efa->v4) {
-				if( (e3->f & e4->f & SELECT) || (G.moving && (efa->v4->f & SELECT)) ) {
+				if( (e3->f & e4->f & SELECT) || (do_moving && (efa->v4->f & SELECT)) ) {
 					sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v3, v4, v1)));
 					interp_v3_v3v3(fvec, efa->cent, efa->v4->co, 0.8f);
 					view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0, 0);
@@ -5882,7 +5895,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			cu= ob->data;
 
 			if(cu->editnurb) {
-				drawnurb(scene, v3d, rv3d, base, cu->editnurb->first, dt);
+				ListBase *nurbs= ED_curve_editnurbs(cu);
+				drawnurb(scene, v3d, rv3d, base, nurbs->first, dt);
 			}
 			else if(dt==OB_BOUNDBOX) {
 				if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
@@ -6135,7 +6149,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 		/* draw extra: after normal draw because of makeDispList */
 		if(dtx && (G.f & G_RENDER_OGL)==0) {
-        
+
 			if(dtx & OB_AXIS) {
 				drawaxes(rv3d, rv3d->viewmatob, 1.0f, flag, OB_ARROWS);
 			}

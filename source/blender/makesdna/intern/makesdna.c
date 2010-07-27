@@ -205,7 +205,7 @@ static int calculate_structlens(int);
 void dna_write(FILE *file, void *pntr, int size);
 
 /**
- * Report all structures found so far, and print their lenghts.
+ * Report all structures found so far, and print their lengths.
  */
 void printStructLenghts(void);
 

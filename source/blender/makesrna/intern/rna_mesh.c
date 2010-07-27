@@ -1845,19 +1845,19 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Sharp", "Displays sharp edges, used with the EdgeSplit modifier");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
-	prop= RNA_def_property(srna, "draw_edge_lenght", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "draw_edge_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_EDGELEN);
-	RNA_def_property_ui_text(prop, "Edge Length", "Displays selected edge lengths");
+	RNA_def_property_ui_text(prop, "Edge Length", "Displays selected edge lengths, Using global values when set in the transform panel");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
 	prop= RNA_def_property(srna, "draw_edge_angle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_EDGEANG);
-	RNA_def_property_ui_text(prop, "Edge Angles", "Displays the angles in the selected edges in degrees");
+	RNA_def_property_ui_text(prop, "Edge Angles", "Displays the angles in the selected edges in degrees, Using global values when set in the transform panel");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
 	prop= RNA_def_property(srna, "draw_face_area", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_FACEAREA);
-	RNA_def_property_ui_text(prop, "Face Area", "Displays the area of selected faces");
+	RNA_def_property_ui_text(prop, "Face Area", "Displays the area of selected faces, Using global values when set in the transform panel");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
 	/* editflag */

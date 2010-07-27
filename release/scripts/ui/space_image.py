@@ -592,6 +592,30 @@ class IMAGE_PT_paint(bpy.types.Panel):
                 col.prop(brush, "clone_alpha", text="Alpha")
 
 
+class IMAGE_PT_tools_brush_texture(bpy.types.Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Texture"
+    bl_default_closed = True
+
+    def poll(self, context):
+        sima = context.space_data
+        toolsettings = context.tool_settings.image_paint
+        return sima.show_paint and toolsettings.brush
+
+    def draw(self, context):
+        layout = self.layout
+
+        toolsettings = context.tool_settings.image_paint
+        brush = toolsettings.brush
+
+#        tex_slot = brush.texture_slot
+
+        col = layout.column()
+
+        col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
+
+
 class IMAGE_PT_paint_stroke(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
@@ -641,8 +665,15 @@ class IMAGE_PT_paint_curve(bpy.types.Panel):
         brush = toolsettings.brush
 
         layout.template_curve_mapping(brush, "curve")
-        layout.operator_menu_enum("brush.curve_preset", "shape")
 
+        row = layout.row(align=True)
+        row.operator("brush.curve_preset", icon="SMOOTHCURVE", text="").shape = 'SMOOTH'
+        row.operator("brush.curve_preset", icon="SPHERECURVE", text="").shape = 'ROUND'
+        row.operator("brush.curve_preset", icon="ROOTCURVE", text="").shape = 'ROOT'
+        row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
+        row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
+        row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
+        row.operator("brush.curve_preset", icon="RNDCURVE", text="").shape = 'MID9'
 
 classes = [
     IMAGE_MT_view,
@@ -657,6 +688,7 @@ classes = [
     IMAGE_HT_header,
     IMAGE_PT_image_properties,
     IMAGE_PT_paint,
+    IMAGE_PT_tools_brush_texture,
     IMAGE_PT_paint_stroke,
     IMAGE_PT_paint_curve,
     IMAGE_PT_game_properties,

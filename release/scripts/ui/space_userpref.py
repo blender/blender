@@ -170,7 +170,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
 
         col.prop(view, "show_mini_axis", text="Display Mini Axis")
         sub = col.column()
-        sub.enabled = view.show_mini_axis
+        sub.active = view.show_mini_axis
         sub.prop(view, "mini_axis_size", text="Size")
         sub.prop(view, "mini_axis_brightness", text="Brightness")
 
@@ -223,7 +223,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
         col.prop(view, "use_manipulator")
         sub = col.column()
-        sub.enabled = view.use_manipulator
+        sub.active = view.use_manipulator
         sub.prop(view, "manipulator_size", text="Size")
         sub.prop(view, "manipulator_handle_size", text="Handle Size")
         sub.prop(view, "manipulator_hotspot", text="Hotspot")
@@ -334,16 +334,10 @@ class USERPREF_PT_edit(bpy.types.Panel):
         row.separator()
         row.separator()
 
-        sculpt = context.tool_settings.sculpt
         col = row.column()
-        col.label(text="Paint and Sculpt:")
-        col.prop(edit, "sculpt_paint_use_unified_size", text="Unify Size")
-        col.prop(edit, "sculpt_paint_use_unified_strength", text="Unify Strength")
         row = col.row(align=True)
         row.label("Overlay Color:")
         row.prop(edit, "sculpt_paint_overlay_col", text="")
-        col.prop(sculpt, "use_openmp", text="Threaded Sculpt")
-        col.prop(sculpt, "show_brush")
 
         col.separator()
         col.separator()
@@ -727,7 +721,7 @@ class USERPREF_PT_file(bpy.types.Panel):
         col.prop(paths, "save_preview_images")
         col.prop(paths, "auto_save_temporary_files")
         sub = col.column()
-        sub.enabled = paths.auto_save_temporary_files
+        sub.active = paths.auto_save_temporary_files
         sub.prop(paths, "auto_save_time", text="Timer (mins)")
 
 from space_userpref_keymap import InputKeyMapPanel
@@ -755,7 +749,7 @@ class USERPREF_PT_input(InputKeyMapPanel):
 
         sub.label(text="Mouse:")
         sub1 = sub.column()
-        sub1.enabled = (inputs.select_mouse == 'RIGHT')
+        sub1.active = (inputs.select_mouse == 'RIGHT')
         sub1.prop(inputs, "emulate_3_button_mouse")
         sub.prop(inputs, "continuous_mouse")
 
@@ -836,13 +830,22 @@ class USERPREF_PT_addons(bpy.types.Panel):
     @staticmethod
     def _addon_list():
         import sys
+        import time
+
         modules = []
         loaded_modules = set()
         paths = bpy.utils.script_paths("addons")
+
+        if bpy.app.debug:
+            t_main = time.time()
+
         # sys.path.insert(0, None)
         for path in paths:
             # sys.path[0] = path
             modules.extend(bpy.utils.modules_from_path(path, loaded_modules))
+
+        if bpy.app.debug:
+            print("Addon Script Load Time %.4f" % (time.time() - t_main))
 
         # del sys.path[0]
         return modules

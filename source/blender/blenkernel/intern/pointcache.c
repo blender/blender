@@ -1041,11 +1041,13 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 		if((lb_dupli_ob=object_duplilist(scene, ob))) {
 			DupliObject *dob;
 			for(dob= lb_dupli_ob->first; dob; dob= dob->next) {
-				ListBase lb_dupli_pid;
-				BKE_ptcache_ids_from_object(&lb_dupli_pid, dob->ob, scene, duplis);
-				addlisttolist(lb, &lb_dupli_pid);
-				if(lb_dupli_pid.first)
-					printf("Adding Dupli\n");
+				if(dob->ob != ob) { /* avoids recursive loops with dupliframes: bug 22988 */
+					ListBase lb_dupli_pid;
+					BKE_ptcache_ids_from_object(&lb_dupli_pid, dob->ob, scene, duplis);
+					addlisttolist(lb, &lb_dupli_pid);
+					if(lb_dupli_pid.first)
+						printf("Adding Dupli\n");
+				}
 			}
 
 			free_object_duplilist(lb_dupli_ob);	/* does restore */

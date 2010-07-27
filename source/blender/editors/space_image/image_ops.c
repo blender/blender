@@ -33,6 +33,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
+#include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 
@@ -1244,7 +1245,7 @@ static int new_exec(bContext *C, wmOperator *op)
 void IMAGE_OT_new(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	float default_color[4]= {0.0f, 0.0f, 0.0f, 1.0f};
+	static float default_color[4]= {0.0f, 0.0f, 0.0f, 1.0f};
 	
 	/* identifiers */
 	ot->name= "New";
@@ -2059,8 +2060,10 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 
 void ED_image_update_frame(const bContext *C)
 {
-	Main *mainp = CTX_data_main(C);
+	Main *mainp= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindow *win;
 	Tex *tex;
 	
 	/* texture users */
@@ -2073,41 +2076,40 @@ void ED_image_update_frame(const bContext *C)
 		}
 	}
 	
-#if 0
 	/* image window, compo node users */
-	if(G.curscreen) {
-		ScrArea *sa;
-		for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-			if(sa->spacetype==SPACE_VIEW3D) {
-				View3D *v3d= sa->spacedata.first;
-				if(v3d->bgpic)
-					if(v3d->bgpic->iuser.flag & IMA_ANIM_ALWAYS)
-						BKE_image_user_calc_frame(&v3d->bgpic->iuser, scene->r.cfra, 0);
-			}
-			else if(sa->spacetype==SPACE_IMAGE) {
-				SpaceImage *sima= sa->spacedata.first;
-				if(sima->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_calc_frame(&sima->iuser, scene->r.cfra, 0);
-			}
-			else if(sa->spacetype==SPACE_NODE) {
-				SpaceNode *snode= sa->spacedata.first;
-				if((snode->treetype==NTREE_COMPOSIT) && (snode->nodetree)) {
-					bNode *node;
-					for(node= snode->nodetree->nodes.first; node; node= node->next) {
-						if(node->id && node->type==CMP_NODE_IMAGE) {
-							Image *ima= (Image *)node->id;
-							ImageUser *iuser= node->storage;
-							if(ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
-								if(iuser->flag & IMA_ANIM_ALWAYS)
-									BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
+	if(wm) {
+		for(win= wm->windows.first; win; win= win->next) {
+			ScrArea *sa;
+			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+				if(sa->spacetype==SPACE_VIEW3D) {
+					View3D *v3d= sa->spacedata.first;
+					BGpic *bgpic;
+					for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next)
+						if(bgpic->iuser.flag & IMA_ANIM_ALWAYS)
+							BKE_image_user_calc_frame(&bgpic->iuser, scene->r.cfra, 0);
+				}
+				else if(sa->spacetype==SPACE_IMAGE) {
+					SpaceImage *sima= sa->spacedata.first;
+					if(sima->iuser.flag & IMA_ANIM_ALWAYS)
+						BKE_image_user_calc_frame(&sima->iuser, scene->r.cfra, 0);
+				}
+				else if(sa->spacetype==SPACE_NODE) {
+					SpaceNode *snode= sa->spacedata.first;
+					if((snode->treetype==NTREE_COMPOSIT) && (snode->nodetree)) {
+						bNode *node;
+						for(node= snode->nodetree->nodes.first; node; node= node->next) {
+							if(node->id && node->type==CMP_NODE_IMAGE) {
+								Image *ima= (Image *)node->id;
+								ImageUser *iuser= node->storage;
+								if(ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
+									if(iuser->flag & IMA_ANIM_ALWAYS)
+										BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-#endif
 }
-
-
 

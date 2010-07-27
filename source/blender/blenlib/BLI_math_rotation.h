@@ -40,10 +40,10 @@ extern "C" {
 
 /* init */
 void unit_qt(float q[4]);
-void copy_qt_qt(float q[4], float a[4]);
+void copy_qt_qt(float q[4], const float a[4]);
 
 /* arithmetic */
-void mul_qt_qtqt(float q[4], float a[4], float b[4]);
+void mul_qt_qtqt(float q[4], const float a[4], const float b[4]);
 void mul_qt_v3(float q[4], float r[3]);
 void mul_qt_fl(float q[4], float f);
 void mul_fac_qt_fl(float q[4], float f);
@@ -51,6 +51,7 @@ void mul_fac_qt_fl(float q[4], float f);
 void sub_qt_qtqt(float q[4], float a[4], float b[4]);
 
 void invert_qt(float q[4]);
+void invert_qt_qt(float *q1, const float *q2);
 void conjugate_qt(float q[4]);
 float dot_qtqt(float a[4], float b[4]);
 void normalize_qt(float q[4]);
@@ -72,6 +73,7 @@ void tri_to_quat(float q[4], float a[3], float b[3], float c[3]);
 void vec_to_quat(float q[4], float vec[3], short axis, short upflag);
 /* note: v1 and v2 must be normalized */
 void rotation_between_vecs_to_quat(float q[4], const float v1[3], const float v2[3]);
+void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q2[4]);
 
 /* TODO: don't what this is, but it's not the same as mat3_to_quat */
 void mat3_to_quat_is_ok(float q[4], float mat[3][3]);

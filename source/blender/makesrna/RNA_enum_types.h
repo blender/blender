@@ -66,6 +66,8 @@ extern EnumPropertyItem event_type_items[];
 extern EnumPropertyItem operator_return_items[];
 
 extern EnumPropertyItem brush_sculpt_tool_items[];
+extern EnumPropertyItem brush_vertexpaint_tool_items[];
+extern EnumPropertyItem brush_imagepaint_tool_items[];
 
 extern EnumPropertyItem texture_type_items[];
 

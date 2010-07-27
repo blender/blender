@@ -66,6 +66,8 @@
 #include "BKE_utildefines.h"
 #include "BKE_depsgraph.h"
 
+#include "ED_curve.h" /* for ED_curve_nurbs */
+
 // XXX bad level call...
 
 /* --------------------- */
@@ -458,17 +460,17 @@ void calc_curvepath(Object *ob)
 	float *fp, *dist, *maxdist, xyz[3];
 	float fac, d=0, fac1, fac2;
 	int a, tot, cycl=0;
+	ListBase *nurbs;
 	
 	/* in a path vertices are with equal differences: path->len = number of verts */
 	/* NOW WITH BEVELCURVE!!! */
 	
 	if(ob==NULL || ob->type != OB_CURVE) return;
 	cu= ob->data;
-	if(cu->editnurb) 
-		nu= cu->editnurb->first;
-	else 
-		nu= cu->nurb.first;
-	
+
+	nurbs= BKE_curve_nurbs(cu);
+	nu= nurbs->first;
+
 	if(cu->path) free_path(cu->path);
 	cu->path= NULL;
 	

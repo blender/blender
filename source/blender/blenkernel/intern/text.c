@@ -2689,7 +2689,7 @@ int setcurr_tab (Text *text)
 	int test = 0;
 	char *word = ":";
 	char *comm = "#";
-	char back_words[4][7] = {"return", "break", "pass", "yield"};
+	static char *back_words[]= {"return", "break", "continue", "pass", "yield", NULL};
 	if (!text) return 0;
 	if (!text->curl) return 0;
 	
@@ -2722,9 +2722,9 @@ int setcurr_tab (Text *text)
 		}
 	}
 
-	for(test=0; test < 4; test++)
+	for(test=0; back_words[test]; test++)
 	{
-		//if there are these 4 key words then remove a tab because we are done with the block
+		/* if there are these key words then remove a tab because we are done with the block */
 		if(strstr(text->curl->line, back_words[test]) && i > 0)
 		{
 			if(strcspn(text->curl->line, back_words[test]) < strcspn(text->curl->line, comm))

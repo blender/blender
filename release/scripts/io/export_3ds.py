@@ -941,7 +941,8 @@ def save_3ds(filename, context):
     sce = context.scene
 #	sce= bpy.data.scenes.active
 
-    bpy.ops.object.mode_set(mode='OBJECT')
+    if context.object:
+        bpy.ops.object.mode_set(mode='OBJECT')
 
     # Initialize the main chunk (primary):
     primary = _3ds_chunk(PRIMARY)

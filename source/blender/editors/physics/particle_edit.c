@@ -2098,6 +2098,7 @@ static void remove_tagged_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 	ParticleData *pa;
 	HairKey *hkey, *nhkey, *new_hkeys=0;
 	POINT_P; KEY_K;
+	PTCacheEditKey *nkey, *new_keys;
 	ParticleSystemModifierData *psmd;
 	short new_totkey;
 
@@ -2133,9 +2134,10 @@ static void remove_tagged_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 		}
 
 		if(new_totkey != pa->totkey) {
-			hkey= pa->hair;
 			nhkey= new_hkeys= MEM_callocN(new_totkey*sizeof(HairKey), "HairKeys");
+			nkey= new_keys= MEM_callocN(new_totkey*sizeof(PTCacheEditKey), "particle edit keys");
 
+			hkey= pa->hair;
 			LOOP_KEYS {
 				while(key->flag & PEK_TAG && hkey < pa->hair + pa->totkey) {
 					key++;
@@ -2144,29 +2146,36 @@ static void remove_tagged_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 
 				if(hkey < pa->hair + pa->totkey) {
 					VECCOPY(nhkey->co, hkey->co);
+					nhkey->editflag = hkey->editflag;
 					nhkey->time= hkey->time;
 					nhkey->weight= hkey->weight;
+					
+					nkey->co= nhkey->co;
+					nkey->time= &nhkey->time;
+					/* these can be copied from old edit keys */
+					nkey->flag = key->flag;
+					nkey->ftime = key->ftime;
+					nkey->length = key->length;
+					VECCOPY(nkey->world_co, key->world_co);
 				}
-				hkey++;
+				nkey++;
 				nhkey++;
+				hkey++;
 			}
+
 			if(pa->hair)
 				MEM_freeN(pa->hair);
-			
-			pa->hair= new_hkeys;
-
-			point->totkey= pa->totkey= new_totkey;
 
 			if(point->keys)
 				MEM_freeN(point->keys);
-			key= point->keys= MEM_callocN(new_totkey*sizeof(PTCacheEditKey), "particle edit keys");
+			
+			pa->hair= new_hkeys;
+			point->keys= new_keys;
 
-			hkey = pa->hair;
-			LOOP_KEYS {
-				key->co= hkey->co;
-				key->time= &hkey->time;
-				hkey++;
-			}
+			point->totkey= pa->totkey= new_totkey;
+
+			/* flag for recalculating length */
+			point->flag |= PEP_EDIT_RECALC;
 		}
 	}
 }

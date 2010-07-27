@@ -63,7 +63,7 @@ void free_libblock_us(struct ListBase *lb, void *idv);
 void free_main(struct Main *mainvar);
 void tag_main(struct Main *mainvar, int tag);
 
-void splitIDname(char *name, char *left, int *nr);
+int splitIDname(char *name, char *left, int *nr);
 void rename_id(struct ID *id, char *name);
 void test_idbutton(char *name);
 void text_idbutton(struct ID *id, char *text);
@@ -85,4 +85,3 @@ void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowMa
 #define ID_FALLBACK_NAME "Untitled"
 
 #endif
-

@@ -1521,17 +1521,4 @@ void init_userdef_do_versions(void)
 	/* this timer uses U */
 // XXX	reset_autosave();
 
-	/* GSOC Sculpt 2010 - Sanity check on Sculpt/Paint settings */
-
-	if (U.sculpt_paint_unified_alpha == 0)
-		U.sculpt_paint_unified_alpha = 0.5f;
-
-	if (U.sculpt_paint_unified_unprojected_radius == 0) 
-		U.sculpt_paint_unified_unprojected_radius = 0.125f;
-
-	if (U.sculpt_paint_unified_size == 0)
-		U.sculpt_paint_unified_size = 35;
-
-	if (G.main->versionfile < 253 || (G.main->versionfile == 253 && G.main->subversionfile < 1))
-		U.sculpt_paint_settings &= ~SCULPT_PAINT_USE_UNIFIED_SIZE;
 }

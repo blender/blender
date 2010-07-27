@@ -94,6 +94,7 @@
 #include "ED_mesh.h"
 #include "ED_types.h"
 #include "ED_uvedit.h"
+#include "ED_curve.h" /* for ED_curve_editnurbs */
 
 #include "UI_view2d.h"
 
@@ -1347,12 +1348,14 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 	short hide_handles = (cu->drawflag & CU_HIDE_HANDLES);
-	
+	ListBase *nurbs;
+
 	/* to be sure */
 	if(cu->editnurb==NULL) return;
 
 	/* count total of vertices, check identical as in 2nd loop for making transdata! */
-	for(nu= cu->editnurb->first; nu; nu= nu->next) {
+	nurbs= ED_curve_editnurbs(cu);
+	for(nu= nurbs->first; nu; nu= nu->next) {
 		if(nu->type == CU_BEZIER) {
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
@@ -1388,7 +1391,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	invert_m3_m3(smtx, mtx);
 
 	td = t->data;
-	for(nu= cu->editnurb->first; nu; nu= nu->next) {
+	for(nu= nurbs->first; nu; nu= nu->next) {
 		if(nu->type == CU_BEZIER) {
 			TransData *head, *tail;
 			head = tail = td;
@@ -3033,7 +3036,7 @@ static TransData *ActionFCurveToTransData(TransData *td, TransData2D **td2dv, FC
 
 	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 		/* only add selected keyframes (for now, proportional edit is not enabled) */
-		if (BEZSELECTED(bezt)) {
+		if (bezt->f2 & SELECT) { /* note this MUST match count_fcurve_keys(), so can't use BEZSELECTED() macro */
 			/* only add if on the right 'side' of the current frame */
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
 				TimeToTransData(td, bezt->vec[1], adt);

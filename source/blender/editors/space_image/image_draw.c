@@ -521,7 +521,7 @@ static void draw_image_view_tool(Scene *scene)
 		if(draw) {
 			getmouseco_areawin(mval);
 
-			radius= brush->size*G.sima->zoom/2;
+			radius= brush_size(brush)*G.sima->zoom;
 			fdrawXORcirc(mval[0], mval[1], radius);
 
 			if (brush->innerradius != 1.0) {

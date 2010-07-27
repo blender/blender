@@ -45,6 +45,7 @@
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
+#include "ED_curve.h" /* for ED_curve_editnurbs */
 
 #include "BLI_editVert.h"
 
@@ -187,8 +188,9 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 		BezTriple *bezt;
 		BPoint *bp;
 		int a;
+		ListBase *nurbs= ED_curve_editnurbs(cu);
 
-		for(nu=cu->editnurb->first; nu; nu=nu->next) {
+		for(nu=nurbs->first; nu; nu=nu->next) {
 			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;

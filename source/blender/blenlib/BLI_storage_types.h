@@ -58,6 +58,8 @@ struct direntry{
 	char	*path;
 #if (defined(WIN32) || defined(WIN64)) && (_MSC_VER>=1500)
 	struct _stat64 s;
+#elif defined(__MINGW32__)
+	struct _stati64 s;
 #else
 	struct	stat s;
 #endif

@@ -37,6 +37,10 @@ struct Text;
 struct View3D;
 struct wmOperator;
 struct wmKeyConfig;
+struct Curve;
+struct EditNurb;
+struct BezTriple;
+struct BPoint;
 
 /* curve_ops.c */
 void	ED_operatortypes_curve(void);
@@ -55,6 +59,8 @@ void	load_editNurb	(struct Object *obedit);
 void	make_editNurb	(struct Object *obedit);
 void	free_editNurb	(struct Object *obedit);
 
+void	free_curve_editNurb	(struct Curve *cu);
+
 int 	mouse_nurb		(struct bContext *C, short mval[2], int extend);
 
 struct Nurb *add_nurbs_primitive(struct bContext *C, float mat[4][4], int type, int newname);
@@ -72,6 +78,10 @@ void	free_editText	(struct Object *obedit);
 void	ED_text_to_object(struct bContext *C, struct Text *text, int split_lines);
 
 int CU_select_nth(struct Object *obedit, int nth);
+ListBase *ED_curve_editnurbs(struct Curve *cu);
+
+void ED_curve_beztcpy(struct EditNurb *editnurb, struct BezTriple *dst, struct BezTriple *src, int count);
+void ED_curve_bpcpy(struct EditNurb *editnurb, struct BPoint *dst, struct BPoint *src, int count);
 
 #endif /* ED_CURVE_H */
 

@@ -44,6 +44,7 @@
 
 #include "BKE_context.h"
 #include "BKE_text.h"
+#include "BKE_font.h" /* only for utf8towchar */
 #include "BKE_main.h"
 #include "BKE_global.h" /* only for script checking */
 
@@ -204,10 +205,13 @@ void BPY_start_python_path(void)
 #endif
 
 	{
-		static wchar_t py_path_bundle_wchar[FILE_MAXDIR];
+		static wchar_t py_path_bundle_wchar[FILE_MAX];
 
-		mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR);
+		/* mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR); */ /* cant use this, on linux gives bug: #23018 */
+		utf8towchar(py_path_bundle_wchar, py_path_bundle);
+
 		Py_SetPythonHome(py_path_bundle_wchar);
+		// printf("found python (wchar_t) '%ls'\n", py_path_bundle_wchar);
 	}
 }
 

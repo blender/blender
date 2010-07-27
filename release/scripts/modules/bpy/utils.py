@@ -210,7 +210,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         print("gc.collect() -> %d" % gc.collect())
 
     if _bpy.app.debug:
-        print("Time %.4f" % (time.time() - t_main))
+        print("Python Script Load Time %.4f" % (time.time() - t_main))
 
 
 def expandpath(path):

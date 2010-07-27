@@ -615,10 +615,8 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 					return area_swap_cancel(C, op);
 				}
 
-#ifdef WM_FAST_DRAW
 				ED_area_tag_redraw(sad->sa1);
 				ED_area_tag_redraw(sad->sa2);
-#endif
 
 				ED_area_swapspace(C, sad->sa1, sad->sa2);
 				
@@ -691,10 +689,8 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* copy area to new screen */
 	area_copy_data((ScrArea *)newsc->areabase.first, sa, 0);
-	
-#ifdef WM_FAST_DRAW
+
 	ED_area_tag_redraw((ScrArea *)newsc->areabase.first);
-#endif
 
 	/* screen, areas init */
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
@@ -820,6 +816,7 @@ static void area_move_apply_do(bContext *C, int origval, int delta, int dir, int
 	wmWindow *win= CTX_wm_window(C);
 	bScreen *sc= CTX_wm_screen(C);
 	ScrVert *v1;
+	ScrArea *sa;
 	
 	delta= CLAMPIS(delta, -smaller, bigger);
 	
@@ -842,15 +839,12 @@ static void area_move_apply_do(bContext *C, int origval, int delta, int dir, int
 			}
 		}
 	}
-#ifdef WM_FAST_DRAW
-	{
-		ScrArea *sa;
-		for(sa= sc->areabase.first; sa; sa= sa->next)
-			if(sa->v1->flag || sa->v2->flag || sa->v3->flag || sa->v4->flag)
-				ED_area_tag_redraw(sa);
+
+	for(sa= sc->areabase.first; sa; sa= sa->next) {
+		if(sa->v1->flag || sa->v2->flag || sa->v3->flag || sa->v4->flag)
+			ED_area_tag_redraw(sa);
 	}
 
-#endif
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL); /* redraw everything */
 }
 
@@ -1113,10 +1107,9 @@ static int area_split_apply(bContext *C, wmOperator *op)
 		if(dir=='h') sd->origval= sd->nedge->v1->vec.y;
 		else sd->origval= sd->nedge->v1->vec.x;
 
-#ifdef WM_FAST_DRAW
 		ED_area_tag_redraw(sd->sarea);
 		ED_area_tag_redraw(sd->narea);
-#endif
+
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 		
 		return 1;
@@ -1128,11 +1121,9 @@ static int area_split_apply(bContext *C, wmOperator *op)
 static void area_split_exit(bContext *C, wmOperator *op)
 {
 	if (op->customdata) {
-#ifdef WM_FAST_DRAW
 		sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
 		if(sd->sarea) ED_area_tag_redraw(sd->sarea);
 		if(sd->narea) ED_area_tag_redraw(sd->narea);
-#endif
 
 		MEM_freeN(op->customdata);
 		op->customdata = NULL;
@@ -1444,9 +1435,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				else if(rmd->ar->flag & RGN_FLAG_HIDDEN)
 					ED_region_toggle_hidden(C, rmd->ar);
 			}
-#ifdef WM_FAST_DRAW
 			ED_area_tag_redraw(rmd->sa);
-#endif
 			WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 			
 			break;
@@ -1457,9 +1446,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if(ABS(event->x - rmd->origx) < 2 && ABS(event->y - rmd->origy) < 2) {
 					if(rmd->ar->flag & RGN_FLAG_HIDDEN) {
 						ED_region_toggle_hidden(C, rmd->ar);
-#ifdef WM_FAST_DRAW
 						ED_area_tag_redraw(rmd->sa);
-#endif
 						WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 					}
 				}
@@ -1962,10 +1949,9 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 		case LEFTMOUSE:
 			if(event->val==KM_RELEASE) {
-#ifdef WM_FAST_DRAW
 				ED_area_tag_redraw(jd->sa1);
 				ED_area_tag_redraw(jd->sa2);
-#endif
+
 				area_join_apply(C, op);
 				WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 				area_join_exit(C, op);
@@ -2148,9 +2134,7 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 				MEM_freeN(ar);
 			}
 		}
-#ifdef WM_FAST_DRAW
 		ED_area_tag_redraw(sa);
-#endif
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	}
 	else if(ar->next)
@@ -2190,10 +2174,7 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 			rv3d->view= RV3D_VIEW_CAMERA; rv3d->persp= RV3D_CAMOB;
 			if (rv3d->localvd) {rv3d->localvd->view = rv3d->view; rv3d->localvd->persp = rv3d->persp; }
 		}
-		
-#ifdef WM_FAST_DRAW
 		ED_area_tag_redraw(sa);
-#endif
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	}
 	
@@ -2235,10 +2216,8 @@ static int region_flip_exec(bContext *C, wmOperator *op)
 		ar->alignment= RGN_ALIGN_RIGHT;
 	else if(ar->alignment==RGN_ALIGN_RIGHT)
 		ar->alignment= RGN_ALIGN_LEFT;
-	
-#ifdef WM_FAST_DRAW
-		ED_area_tag_redraw(CTX_wm_area(C));
-#endif
+
+	ED_area_tag_redraw(CTX_wm_area(C));
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -2290,10 +2269,8 @@ static int header_flip_exec(bContext *C, wmOperator *op)
 		ar->alignment= RGN_ALIGN_RIGHT;
 	else if(ar->alignment==RGN_ALIGN_RIGHT)
 		ar->alignment= RGN_ALIGN_LEFT;
-	
-#ifdef WM_FAST_DRAW
+
 	ED_area_tag_redraw(CTX_wm_area(C));
-#endif
 
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	

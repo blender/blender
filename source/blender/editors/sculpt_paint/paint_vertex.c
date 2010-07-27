@@ -663,7 +663,7 @@ static void vpaint_blend(VPaint *vp, unsigned int *col, unsigned int *colorig, u
 		unsigned int testcol=0, a;
 		char *cp, *ct, *co;
 		
-		alpha= (int)(255.0*brush->alpha);
+		alpha= (int)(255.0*brush_alpha(brush));
 		
 		if(brush->vertexpaint_tool==VP_MIX || brush->vertexpaint_tool==VP_BLUR) testcol= mcol_blend( *colorig, paintcol, alpha);
 		else if(brush->vertexpaint_tool==VP_ADD) testcol= mcol_add( *colorig, paintcol, alpha);
@@ -733,23 +733,24 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], fl
 	float fac, fac_2, size, dx, dy;
 	float alpha;
 	short vertco[2];
-	
+	const int radius= brush_size(brush);
+
 	project_short_noclip(vc->ar, vert_nor, vertco);
 	dx= mval[0]-vertco[0];
 	dy= mval[1]-vertco[1];
 	
-	if (brush->flag & BRUSH_SIZE_PRESSURE)
-		size = pressure * brush->size;
+	if (brush_use_size_pressure(brush))
+		size = pressure * radius;
 	else
-		size = brush->size;
+		size = radius;
 	
 	fac_2= dx*dx + dy*dy;
 	if(fac_2 > size*size) return 0.f;
 	fac = sqrtf(fac_2);
 	
-	alpha= brush->alpha * brush_curve_strength_clamp(brush, fac, size);
+	alpha= brush_alpha(brush) * brush_curve_strength_clamp(brush, fac, size);
 	
-	if (brush->flag & BRUSH_ALPHA_PRESSURE)
+	if (brush_use_alpha_pressure(brush))
 		alpha *= pressure;
 		
 	if(vp->flag & VP_NORMALS) {
@@ -813,7 +814,7 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 	if((wp->flag & VP_SPRAY)==0) {
 		float testw=0.0f;
 		
-		alpha= brush->alpha;
+		alpha= brush_alpha(brush);
 		if(tool==VP_MIX || tool==VP_BLUR)
 			testw = paintval*alpha + uw->weight*(1.0-alpha);
 		else if(tool==VP_ADD)
@@ -1454,7 +1455,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	/* which faces are involved */
 	if(wp->flag & VP_AREA) {
-		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
+		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush_size(brush));
 	}
 	else {
 		indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
@@ -1740,7 +1741,6 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
 }
 
 
@@ -1874,7 +1874,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	/* which faces are involved */
 	if(vp->flag & VP_AREA) {
-		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
+		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush_size(brush));
 	}
 	else {
 		indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);

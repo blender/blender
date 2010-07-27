@@ -11191,6 +11191,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	/* GSOC Sculpt 2010 - Sanity check on Sculpt/Paint settings */
+	if (main->versionfile < 253) {
+		Scene *sce;
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
+			if (sce->toolsettings->sculpt_paint_unified_alpha == 0)
+				sce->toolsettings->sculpt_paint_unified_alpha = 0.5f;
+
+			if (sce->toolsettings->sculpt_paint_unified_unprojected_radius == 0) 
+				sce->toolsettings->sculpt_paint_unified_unprojected_radius = 0.125f;
+
+			if (sce->toolsettings->sculpt_paint_unified_size == 0)
+				sce->toolsettings->sculpt_paint_unified_size = 35;
+		}
+	}
+
 	/* put compatibility code here until next subversion bump */
 	{
 	}

@@ -433,9 +433,8 @@ static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, Effect
 
 	if(!colls)
 		return visibility;
-	
-	VECCOPY(norm, efd->vec_to_point);
-	negate_v3(norm);
+
+	negate_v3_v3(norm, efd->vec_to_point);
 	len = normalize_v3(norm);
 	
 	// check all collision objects
