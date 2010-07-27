@@ -3298,6 +3298,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->msticky= newdataadr(fd, mesh->msticky);
 	mesh->dvert= newdataadr(fd, mesh->dvert);
 	
+	/* animdata */
 	mesh->adt= newdataadr(fd, mesh->adt);
 	direct_link_animdata(fd, mesh->adt);
 
@@ -11681,6 +11682,9 @@ static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 	TFace *tf;
 	int a, i;
 	
+	if(me->adt)
+		expand_animdata(fd, mainvar, me->adt);
+		
 	for(a=0; a<me->totcol; a++) {
 		expand_doit(fd, mainvar, me->mat[a]);
 	}
