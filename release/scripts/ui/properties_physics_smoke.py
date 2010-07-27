@@ -103,7 +103,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 
                 col = split.column()
                 col.prop(flow, "outflow")
-                col.label(text="Particle:")
+                col.label(text="Particle System:")
                 col.prop_object(flow, "psys", ob, "particle_systems", text="")
 
                 sub = col.column()
