@@ -634,7 +634,7 @@ def write(filepath, objects, scene,
 #					for vIdx, vWeight in me.getVertsFromGroup(vertexGroupName, 1):
                         vgroupsMap[vIdx].append((g.name, vWeight))
 
-            for f_index, f in enumerate(faces):
+            for f, f_index in face_index_pairs:
                 f_v = [{"index": index, "vertex": me.verts[index]} for index in f.verts]
 
                 # if f.verts[3] == 0:
@@ -646,7 +646,7 @@ def write(filepath, objects, scene,
 #				f_mat = min(f.mat, len(materialNames)-1)
                 if faceuv:
 
-                    tface = me.active_uv_texture.data[face_index_pairs[f_index][1]]
+                    tface = me.active_uv_texture.data[f_index]
 
                     f_image = tface.image
                     f_uv = tface.uv
