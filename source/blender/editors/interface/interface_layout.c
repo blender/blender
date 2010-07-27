@@ -2002,6 +2002,7 @@ uiLayout *uiLayoutRow(uiLayout *layout, int align)
 	litem->enabled= 1;
 	litem->context= layout->context;
 	litem->space= (align)? 0: layout->root->style->buttonspacex;
+	litem->w = layout->w;
 	BLI_addtail(&layout->items, litem);
 
 	uiBlockSetCurLayout(layout->root->block, litem);
@@ -2021,6 +2022,7 @@ uiLayout *uiLayoutColumn(uiLayout *layout, int align)
 	litem->enabled= 1;
 	litem->context= layout->context;
 	litem->space= (litem->align)? 0: layout->root->style->buttonspacey;
+	litem->w = layout->w;
 	BLI_addtail(&layout->items, litem);
 
 	uiBlockSetCurLayout(layout->root->block, litem);
@@ -2040,6 +2042,7 @@ uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align)
 	flow->litem.enabled= 1;
 	flow->litem.context= layout->context;
 	flow->litem.space= (flow->litem.align)? 0: layout->root->style->columnspace;
+	flow->litem.w = layout->w;
 	flow->number= number;
 	BLI_addtail(&layout->items, flow);
 
@@ -2059,6 +2062,7 @@ static uiLayoutItemBx *ui_layout_box(uiLayout *layout, int type)
 	box->litem.enabled= 1;
 	box->litem.context= layout->context;
 	box->litem.space= layout->root->style->columnspace;
+	box->litem.w = layout->w;
 	BLI_addtail(&layout->items, box);
 
 	uiBlockSetCurLayout(layout->root->block, &box->litem);
