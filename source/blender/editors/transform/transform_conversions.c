@@ -1775,13 +1775,16 @@ static int connectivity_edge(float mtx[][3], EditVert *v1, EditVert *v2)
 	float edge_len;
 	int done = 0;
 
+	/* note: hidden verts are not being checked for, this assumes
+	 * flushing of hidden faces & edges is working right */
+	
+	if (v1->f2 + v2->f2 == 4)
+		return 0;
+	
 	sub_v3_v3v3(edge_vec, v1->co, v2->co);
 	mul_m3_v3(mtx, edge_vec);
 
 	edge_len = len_v3(edge_vec);
-
-	if (v1->f2 + v2->f2 == 4)
-		return 0;
 
 	if (v1->f2) {
 		if (v2->f2) {
@@ -1848,7 +1851,7 @@ static void editmesh_set_connectivity_distance(EditMesh *em, float mtx[][3])
 
 		/* do internal edges for quads */
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (efa->v4) {
+			if (efa->v4 && efa->h==0) {
 				done |= connectivity_edge(mtx, efa->v1, efa->v3);
 				done |= connectivity_edge(mtx, efa->v2, efa->v4);
 			}
