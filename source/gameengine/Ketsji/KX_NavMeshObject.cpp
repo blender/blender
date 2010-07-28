@@ -43,6 +43,7 @@ extern "C" {
 #include "Value.h"
 #include "Recast.h"
 #include "DetourStatNavMeshBuilder.h"
+#include "NavMeshConversion.h"
 #include "KX_ObstacleSimulation.h"
 
 static const int MAX_PATH_LEN = 256;
@@ -69,25 +70,6 @@ inline void flipAxes(float* vec)
 {
 	std::swap(vec[1],vec[2]);
 }
-
-static float distPointToSegmentSq(const float* point, const float* a, const float* b)
-{
-	float abx[3], dx[3];
-	vsub(abx, b,a);
-	vsub(dx, point,a);
-	float d = abx[0]*abx[0]+abx[1]*abx[1];
-	float t = abx[0]*dx[0]+abx[1]*dx[1];
-	if (d > 0)
-		t /= d;
-	if (t < 0)
-		t = 0;
-	else if (t > 1)
-		t = 1;
-	dx[0] = a[0] + t*abx[0] - point[0];
-	dx[1] = a[1] + t*abx[1] - point[1];
-	return dx[0]*dx[0] + dx[1]*dx[1];
-}
-
 KX_NavMeshObject::KX_NavMeshObject(void* sgReplicationInfo, SG_Callbacks callbacks)
 :	KX_GameObject(sgReplicationInfo, callbacks)
 ,	m_navMesh(NULL)
@@ -130,253 +112,98 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 	int* recastData = (int*) dm->getFaceDataArray(dm, CD_PROP_INT);
 	if (recastData)
 	{
-		//create from blender mesh using recast data to build navigation 
-		//polygon mesh from detailed triangle mesh
-		MVert *mvert = dm->getVertArray(dm);
-		MFace *mface = dm->getFaceArray(dm);
-		int numfaces = dm->getNumFaces(dm);
-		int numverts = dm->getNumVerts(dm);
+		int *dtrisToPolysMap=NULL, *dtrisToTrisMap=NULL, *trisToFacesMap=NULL;
+		int nAllVerts = 0;
+		float *allVerts = NULL;
+		buildNavMeshDataByDerivedMesh(dm, vertsPerPoly, nAllVerts, allVerts, ndtris, dtris,
+			npolys, dmeshes, polys, dtrisToPolysMap, dtrisToTrisMap, trisToFacesMap);
 
-		if (numfaces==0)
-		{
-			return true;
-		}
-
-		//build detailed mesh adjacency (with triangle reordering)
-		ndtris = numfaces;
-		dtris = new unsigned short[numfaces*3*2];
-		memset(dtris, 0xffff, sizeof(unsigned short)*3*2*numfaces);
-		for (int i=0; i<numfaces;i++)
-		{
-			MFace* mf = &mface[i];
-			dtris[i*3*2+0] = mf->v1;
-			dtris[i*3*2+1] = mf->v3;
-			dtris[i*3*2+2] = mf->v2;
-			
-		}
-		buildMeshAdjacency(dtris, numfaces, numverts, 3);
-
-
-		//assumption: detailed mesh triangles are sorted by polygon idx
-		npolys = recastData[numfaces-1]/* + 1*/; //stored indices start from 1
-		
-		dmeshes = new unsigned short[npolys*4];
-		memset(dmeshes, 0, npolys*4*sizeof(unsigned short));
-		unsigned short *dmesh = NULL;
-		int prevpolyidx = -1;
-		for (int i=0; i<numfaces; i++)
-		{
-			int curpolyidx = recastData[i];
-			if (curpolyidx!=prevpolyidx)
-			{
-				if (curpolyidx!=prevpolyidx+1)
-				{
-					//error - wrong order of detailed mesh faces
-					printf("Converting navmesh: Error! Wrong order of detailed mesh faces\n");
-					return false;
-				}
-				dmesh = dmesh==NULL ? dmeshes : dmesh+4;
-				dmesh[2] = i;	//tbase
-				dmesh[3] = 0;	//tnum
-				prevpolyidx = curpolyidx;
-			}
-			dmesh[3]++;
-		}
-
-		vertsPerPoly = 6;
-		polys = new unsigned short[npolys*vertsPerPoly*2];
-		memset(polys, 0xff, sizeof(unsigned short)*vertsPerPoly*2*npolys);
-		
-		int curpolytri = 0;
-		
+		unsigned short *verticesMap = new unsigned short[nAllVerts];
+		memset(verticesMap, 0xffff, sizeof(unsigned short)*nAllVerts);
+		int curIdx = 0;
+		//vertices - mesh verts
+		//iterate over all polys and create map for their vertices first...
 		for (int polyidx=0; polyidx<npolys; polyidx++)
 		{
-			vector<unsigned short> poly, tempPoly;
-			//search border 
-			int btri = -1;
-			int bedge = -1;
-			
-			for (int j=0; j<dmeshes[polyidx*4+3] && btri==-1;j++)
-			{
-				int curpolytri = dmeshes[polyidx*4+2]+j;
-				for (int k=0; k<3; k++)
-				{
-					unsigned short neighbortri = dtris[curpolytri*3*2+3+k];
-					if ( neighbortri==0xffff || recastData[neighbortri]!=polyidx)
-					{
-						btri = curpolytri;
-						bedge = k;
-						break;
-					}
-				}							
-			}
-			if (btri==-1 || bedge==-1)
-			{
-				//can't find triangle with border edge
-				return false;
-			}
-
-			poly.push_back(dtris[btri*3*2+bedge]);
-			//poly.push_back(detailedpolys[btri*3*2+(bedge+1)%3]);
-
-			int tri = btri;
-			int edge = (bedge+1)%3;
-			while (tri!=btri || edge!=bedge)
-			{
-				int neighbortri = dtris[tri*3*2+3+edge];
-				if (neighbortri==0xffff || recastData[neighbortri]!=polyidx)
-				{
-					//add vertex to current edge
-					poly.push_back(dtris[tri*3*2+edge]);
-					//move to next edge					
-					edge = (edge+1)%3;
-				}
-				else
-				{
-					//move to next tri
-					int twinedge = -1;
-					for (int k=0; k<3; k++)
-					{
-						if (dtris[neighbortri*3*2+3+k] == tri)
-						{
-							twinedge = k;
-							break;
-						}
-					}
-					if (twinedge==-1)
-					{
-						//can't find neighbor edge - invalid adjacency info
-						return false;
-					}
-					tri = neighbortri;
-					edge = (twinedge+1)%3;
-				}
-			}
-			
-			size_t nv = poly.size();
-			for (size_t i=0; i<nv; i++)
-			{
-				unsigned short prev = poly[(poly.size()+i-1)%nv];
-				unsigned short cur = poly[i];
-				unsigned short next = poly[(i+1)%nv];
-				float distSq = distPointToSegmentSq(mvert[cur].co, mvert[prev].co, mvert[next].co);
-				static const float tolerance = 0.001f;
-				if (distSq>tolerance)
-					tempPoly.push_back(cur);
-			}
-			poly = tempPoly;
-
-			if (poly.size()>vertsPerPoly)
-			{
-				printf("Error! Polygon size exceeds max verts count");
-				return false;
-			}
-
-			for (int i=0; i<poly.size(); i++)
-			{
-				polys[polyidx*vertsPerPoly*2+i] = poly[i];
-			}
-		}
-
-		//assumption: vertices in mesh are stored in following order: 
-		//navigation mesh vertices - unique detailed mesh vertex
-		unsigned short  maxidx = 0;
-		for (int polyidx=0; polyidx<npolys; polyidx++)
-		{
+			unsigned short* poly = &polys[polyidx*vertsPerPoly*2];
 			for (int i=0; i<vertsPerPoly; i++)
 			{
-				unsigned short idx = polys[polyidx*vertsPerPoly*2+i];
+				unsigned short idx = poly[i];
 				if (idx==0xffff)
 					break;
-				if (idx>maxidx)
-					maxidx=idx;
-			}
-		}
-		
-		//create navigation mesh verts
-		nverts = maxidx+1;
-		vertices = new float[nverts*3];
-		for (int vi=0; vi<nverts; vi++)
-		{
-			MVert *v = &mvert[vi];
-			copy_v3_v3(&vertices[3*vi], v->co);
-		}
-		
-		//create unique detailed mesh verts
-		ndvertsuniq = numverts - nverts;
-		if (ndvertsuniq>0)
-		{
-			dvertices = new float[ndvertsuniq*3];
-			for (int vi=0; vi<ndvertsuniq; vi++)
-			{
-				MVert *v = &mvert[nverts+vi];
-				copy_v3_v3(&dvertices[3*vi], v->co);
-			}
-		}
-
-		for (int polyIdx=0; polyIdx<npolys; polyIdx++)
-		{
-			unsigned short *dmesh = &dmeshes[4*polyIdx];
-			unsigned short minvert = 0xffff, maxvert = 0;
-			for (int j=0; j<dmesh[3]; j++)
-			{
-				unsigned short* dtri = &dtris[(dmesh[2]+j)*3*2];
-				for (int k=0; k<3; k++)
+				if (verticesMap[idx]==0xffff)
 				{
-					if (dtri[k]<nverts)
-						continue;
-					minvert = std::min(minvert, dtri[k]);
-					maxvert = std::max(maxvert, dtri[k]);
+					verticesMap[idx] = curIdx++;
 				}
+				poly[i] = verticesMap[idx];
 			}
-			dmesh[0] = minvert; //vbase
-			dmesh[1] = minvert != 0xffff ? maxvert - minvert + 1 : 0; //vnum
 		}
-
-		//recalculate detailed mesh indices (they must be local)
-		for (int polyIdx=0; polyIdx<npolys; polyIdx++)
+		nverts = curIdx;
+		//...then iterate over detailed meshes
+		//transform indices to local ones (for each navigation polygon)
+		for (int polyidx=0; polyidx<npolys; polyidx++)
 		{
-			unsigned short * poly = &polys[polyIdx*vertsPerPoly*2];
-			int nv=0;
-			for (int vi=0; vi<vertsPerPoly; vi++)
+			unsigned short *poly = &polys[polyidx*vertsPerPoly*2];
+			int nv = polyNumVerts(poly, vertsPerPoly);
+			unsigned short *dmesh = &dmeshes[4*polyidx];
+			unsigned short tribase = dmesh[2];
+			unsigned short trinum = dmesh[3];
+			unsigned short vbase = curIdx;
+			for (int j=0; j<trinum; j++)
 			{
-				if (poly[vi]==0xffff)
-					break;
-				nv++;
-			}
-			unsigned short *dmesh = &dmeshes[4*polyIdx];
-			for (int j=0; j<dmesh[3]; j++)
-			{
-				unsigned short* dtri = &dtris[(dmesh[2]+j)*3*2];
+				unsigned short* dtri = &dtris[(tribase+j)*3*2];
 				for (int k=0; k<3; k++)
 				{
-					if (dtri[k]<nverts)
+					int newVertexIdx = verticesMap[dtri[k]];
+					if (newVertexIdx==0xffff)
 					{
-						//shared vertex from polygon
-						unsigned short idx = 0xffff;
-						for (int vi=0; vi<nv; vi++)
+						newVertexIdx = curIdx++;
+						verticesMap[dtri[k]] = newVertexIdx;
+					}
+
+					if (newVertexIdx<nverts)
+					{
+						//it's polygon vertex ("shared")
+						int idxInPoly = polyFindVertex(poly, vertsPerPoly, newVertexIdx);
+						if (idxInPoly==-1)
 						{
-							if (poly[vi]==dtri[k])
-							{
-								idx = vi;
-								break;
-							}
-						}
-						if (idx==0xffff)
-						{
-							printf("Can't find vertex in navigation polygon");
+							printf("Building NavMeshObject: Error! Can't find vertex in polygon\n");
 							return false;
 						}
-						dtri[k] = idx;
+						dtri[k] = idxInPoly;
 					}
 					else
 					{
-						dtri[k] = dtri[k]-dmesh[0]+nv;
+						dtri[k] = newVertexIdx - vbase + nv;
 					}
 				}
 			}
-			if (dmesh[1]>0)
-				dmesh[0] -= nverts;
+			dmesh[0] = vbase-nverts; //verts base
+			dmesh[1] = curIdx-vbase; //verts num
+		}
+
+		vertices = new float[nverts*3];
+		ndvertsuniq = curIdx - nverts;
+		if (ndvertsuniq>0)
+		{
+			dvertices = new float[ndvertsuniq*3];
+		}
+		for (int vi=0; vi<nAllVerts; vi++)
+		{
+			int newIdx = verticesMap[vi];
+			if (newIdx!=0xffff)
+			{
+				if (newIdx<nverts)
+				{
+					//navigation mesh vertex
+					memcpy(vertices+3*newIdx, allVerts+3*vi, 3*sizeof(float));
+				}
+				else
+				{
+					//detailed mesh vertex
+					memcpy(dvertices+3*(newIdx-nverts), allVerts+3*vi, 3*sizeof(float));
+				}				
+			}
 		}
 	}
 	else
@@ -468,13 +295,16 @@ bool KX_NavMeshObject::BuildNavMesh()
 	}
 	
 	MT_Point3 pos;
-	for (int i=0; i<nverts; i++)
+	if (dmeshes==NULL)
 	{
-		flipAxes(&vertices[i*3]);
-	}
-	for (int i=0; i<ndvertsuniq; i++)
-	{
-		flipAxes(&dvertices[i*3]);
+		for (int i=0; i<nverts; i++)
+		{
+			flipAxes(&vertices[i*3]);
+		}
+		for (int i=0; i<ndvertsuniq; i++)
+		{
+			flipAxes(&dvertices[i*3]);
+		}
 	}
 
 	buildMeshAdjacency(polys, npolys, nverts, vertsPerPoly);

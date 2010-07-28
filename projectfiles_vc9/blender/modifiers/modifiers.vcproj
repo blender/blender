@@ -182,7 +182,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenkernel\intern;..\..\..\source\blender\makesdna;..\..\..\source\blender\editors\include;..\..\..\source\blender\gpu;..\..\..\source\blender\modifiers;..\..\..\source\blender\render\extern\include;..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenkernel\intern;..\..\..\source\blender\makesdna;..\..\..\source\blender\editors\include;..\..\..\source\blender\gpu;..\..\..\source\blender\modifiers;..\..\..\source\blender\render\extern\include;..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include;..\..\..\..\build\msvc_9\extern\recastnavigation\BlenderNavMesh"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_LZO;WITH_LZMA"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -253,7 +253,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenkernel\intern;..\..\..\source\blender\makesdna;..\..\..\source\blender\modifiers;..\..\..\source\blender\render\extern\include;..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include;..\..\..\source\blender\editors\include;..\..\..\source\blender\gpu"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\decimation\include;..\..\..\..\build\msvc_9\intern\elbeem\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenkernel\intern;..\..\..\source\blender\makesdna;..\..\..\source\blender\modifiers;..\..\..\source\blender\render\extern\include;..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include;..\..\..\..\build\msvc_9\extern\recastnavigation\BlenderNavMesh;..\..\..\source\blender\editors\include;..\..\..\source\blender\gpu"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_LZO;WITH_LZMA"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="0"

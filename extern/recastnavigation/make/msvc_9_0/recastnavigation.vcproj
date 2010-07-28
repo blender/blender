@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Recast/Include; ../../Detour/Include"
+				AdditionalIncludeDirectories="../../Recast/Include;../../Detour/Include;../../../../source/blender/makesdna;../../../../source/blender/blenkernel;../../../../source/blender/blenlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -77,7 +77,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="ECHO Copying header files&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour\Include MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour\Include&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\ MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include&#x0D;&#x0A;&#x0D;&#x0A;XCOPY /Y ..\..\Detour\Include\*.h ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour\Include&#x0D;&#x0A;XCOPY /Y ..\..\Recast\Include\*.h ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include&#x0D;&#x0A;&#x0D;&#x0A;ECHO Done"
+				CommandLine="ECHO Copying header files&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour\Include MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour\Include&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\ MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\BlenderNavMesh MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\BlenderNavMesh&#x0D;&#x0A;&#x0D;&#x0A;XCOPY /Y ..\..\Detour\Include\*.h ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour\Include&#x0D;&#x0A;XCOPY /Y ..\..\Recast\Include\*.h ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include&#x0D;&#x0A;XCOPY /Y ..\..\BlenderNavMesh\*.h ..\..\..\..\..\build\msvc_9\extern\recastnavigation\BlenderNavMesh&#x0D;&#x0A;&#x0D;&#x0A;ECHO Done&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -106,8 +106,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Recast/Include; ../../Detour/Include"
+				EnableIntrinsicFunctions="false"
+				AdditionalIncludeDirectories="../../Recast/Include;../../Detour/Include;../../../../source/blender/makesdna;../../../../source/blender/blenkernel;../../../../source/blender/blenlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -142,7 +142,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="ECHO Copying header files&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour\Include MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour\Include&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\ MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include&#x0D;&#x0A;&#x0D;&#x0A;XCOPY /Y ..\..\Detour\Include\*.h ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour\Include&#x0D;&#x0A;XCOPY /Y ..\..\Recast\Include\*.h ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include&#x0D;&#x0A;&#x0D;&#x0A;ECHO Done"
+				CommandLine="ECHO Copying header files&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour\Include MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour\Include&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\ MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include&#x0D;&#x0A;IF NOT EXIST ..\..\..\..\..\build\msvc_9\extern\recastnavigation\BlenderNavMesh MKDIR ..\..\..\..\..\build\msvc_9\extern\recastnavigation\BlenderNavMesh&#x0D;&#x0A;&#x0D;&#x0A;XCOPY /Y ..\..\Detour\Include\*.h ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Detour\Include&#x0D;&#x0A;XCOPY /Y ..\..\Recast\Include\*.h ..\..\..\..\..\build\msvc_9\extern\recastnavigation\Recast\Include&#x0D;&#x0A;XCOPY /Y ..\..\BlenderNavMesh\*.h ..\..\..\..\..\build\msvc_9\extern\recastnavigation\BlenderNavMesh&#x0D;&#x0A;&#x0D;&#x0A;ECHO Done&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -268,6 +268,18 @@
 					>
 				</File>
 			</Filter>
+		</Filter>
+		<Filter
+			Name="BlenderNavMesh"
+			>
+			<File
+				RelativePath="..\..\BlenderNavMesh\NavMeshConversion.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\BlenderNavMesh\NavMeshConversion.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

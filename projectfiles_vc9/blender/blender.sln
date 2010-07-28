@@ -185,6 +185,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KX_converter", "..\gameengine\converter\KX_converter.vcproj", "{F90BD995-FFA4-4B18-81E8-FA4322C939E8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KX_ketsji", "..\gameengine\ketsji\KX_ketsji.vcproj", "{E645CC32-4823-463E-82F0-46ADDE664018}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FB55B14E-D38E-4D04-BA7B-748EBC97FDB6} = {FB55B14E-D38E-4D04-BA7B-748EBC97FDB6}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KX_network", "..\gameengine\ketsji\network\KX_network.vcproj", "{6E24BF09-9653-4166-A871-F65CC9E98A9B}"
 EndProject
@@ -340,6 +343,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BF_collada", "collada\BF_collada.vcproj", "{76D3102B-7DD2-8BA1-034A-8B19FE2897C2}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BL_modifiers", "modifiers\modifiers.vcproj", "{7CB0C521-91E0-40CE-A7C4-45FEA7ABE8BC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FB55B14E-D38E-4D04-BA7B-748EBC97FDB6} = {FB55B14E-D38E-4D04-BA7B-748EBC97FDB6}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EXT_recastnavigation", "..\..\extern\recastnavigation\make\msvc_9_0\recastnavigation.vcproj", "{FB55B14E-D38E-4D04-BA7B-748EBC97FDB6}"
 EndProject
