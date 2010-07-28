@@ -181,7 +181,9 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 		/* used for image strip */
 		/* best guess, first images name */
 		RNA_BEGIN(op->ptr, itemptr, "files") {
-			RNA_string_get(&itemptr, "name", seq_load->name);
+			char *name= RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+			BLI_strncpy(seq_load->name, name, sizeof(seq_load->name));
+			MEM_freeN(name);
 			break;
 		}
 		RNA_END;
