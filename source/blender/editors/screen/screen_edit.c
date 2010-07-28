@@ -51,6 +51,7 @@
 #include "WM_types.h"
 
 #include "ED_image.h"
+#include "ED_object.h"
 #include "ED_view3d.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
@@ -1369,6 +1370,8 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 	bScreen *sc;
 	bScreen *curscreen= CTX_wm_screen(C);
 	
+	ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
+
 	for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
 		if((U.flag & USER_SCENEGLOBAL) || sc==curscreen) {
 			
