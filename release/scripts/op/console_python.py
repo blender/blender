@@ -22,6 +22,9 @@ import bpy
 
 language_id = 'python'
 
+# store our own __main__ module, not 100% needed
+# but python expects this in some places
+_BPY_MAIN_OWN = True
 
 def add_scrollback(text, text_type):
     for l in text.split('\n'):
@@ -63,12 +66,25 @@ def get_console(console_id):
 
         # XXX, bug in python 3.1.2 ? (worked in 3.1.1)
         # seems there is no way to clear StringIO objects for writing, have to make new ones each time.
-        import io
-        stdout = io.StringIO()
-        stderr = io.StringIO()
+        # import io
+        # stdout = io.StringIO()
+        # stderr = io.StringIO()
     else:
-        namespace = {"__builtins__": __builtins__, "bpy": bpy, "C": bpy.context}
+        if _BPY_MAIN_OWN:
+            import types
+            bpy_main_mod = types.ModuleType("__main__")
+            namespace = bpy_main_mod.__dict__
+        else:
+            namespace = {}
+        
+        namespace["__builtins__"] = sys.modules["builtins"]
+        namespace["bpy"] = bpy
+        namespace["C"] = bpy.context
+
         console = InteractiveConsole(locals=namespace, filename="<blender_console>")
+        
+        if _BPY_MAIN_OWN:
+            console._bpy_main_mod = bpy_main_mod
 
         import io
         stdout = io.StringIO()
@@ -105,6 +121,10 @@ def execute(context):
     stdin_backup = sys.stdin
     sys.stdin = None
 
+    if _BPY_MAIN_OWN:
+        main_mod_back = sys.modules["__main__"]
+        sys.modules["__main__"] = console._bpy_main_mod
+
     # incase exception happens
     line = "" # incase of encodingf error
     is_multiline = False
@@ -121,6 +141,8 @@ def execute(context):
         import traceback
         stderr.write(traceback.format_exc())
 
+    if _BPY_MAIN_OWN:
+        sys.modules["__main__"] = main_mod_back
 
     stdout.seek(0)
     stderr.seek(0)
