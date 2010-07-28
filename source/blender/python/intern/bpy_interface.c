@@ -152,9 +152,28 @@ void BPY_update_modules( void )
 static PyObject *CreateGlobalDictionary( bContext *C, const char *filename )
 {
 	PyObject *item;
-	PyObject *dict = PyDict_New(  );
-	PyDict_SetItemString( dict, "__builtins__", PyEval_GetBuiltins(  ) );
+	PyObject *dict;
+#if 1
+	/* important we use the dict from __main__, this is what python expects
+	 * for 'pickle' to work as well as strings like this... 
 
+	>> foo = 10
+	>> print(__import__("__main__").foo)
+	 */
+	dict= PyModule_GetDict(PyImport_AddModule("__main__"));
+	PyDict_Clear(dict);
+	Py_INCREF(dict);
+
+	/* using builtins rather then PyEval_GetBuiltins()
+	 * print's many less items when printing, the modules __dict__
+	 *  this is how python works so better follow. */
+	PyDict_SetItemString(dict, "__builtins__", PyImport_AddModule("builtins"));
+#else
+	/* otherwise this works for 99% of cases, from 2.4x */
+	dict = PyDict_New();
+	PyDict_SetItemString( dict, "__builtins__", PyEval_GetBuiltins());
+#endif
+	
 	item = PyUnicode_FromString( "__main__" );
 	PyDict_SetItemString( dict, "__name__", item );
 	Py_DECREF(item);
@@ -388,7 +407,11 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	} else {
 		Py_DECREF( py_result );
 	}
-	
+
+	/* so __main__ module isnt left with an invalid __file__ variable which could be confusing */	
+	if (PyDict_DelItemString(py_dict, "__file__"))
+		PyErr_Clear();
+
 	Py_DECREF(py_dict);
 	
 	bpy_context_clear(C, &gilstate);
