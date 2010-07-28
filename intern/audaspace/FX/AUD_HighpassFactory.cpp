@@ -30,22 +30,11 @@ AUD_HighpassFactory::AUD_HighpassFactory(AUD_IFactory* factory, float frequency,
 										 float Q) :
 		AUD_EffectFactory(factory),
 		m_frequency(frequency),
-		m_Q(Q) {}
-
-AUD_HighpassFactory::AUD_HighpassFactory(float frequency, float Q) :
-		AUD_EffectFactory(0),
-		m_frequency(frequency),
-		m_Q(Q) {}
-
-AUD_IReader* AUD_HighpassFactory::createReader()
+		m_Q(Q)
 {
-	AUD_IReader* reader = getReader();
+}
 
-	if(reader != 0)
-	{
-		reader = new AUD_HighpassReader(reader, m_frequency, m_Q);
-		AUD_NEW("reader")
-	}
-
-	return reader;
+AUD_IReader* AUD_HighpassFactory::createReader() const
+{
+	return new AUD_HighpassReader(getReader(), m_frequency, m_Q);
 }

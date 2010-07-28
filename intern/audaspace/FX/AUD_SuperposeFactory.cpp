@@ -27,29 +27,23 @@
 #include "AUD_SuperposeReader.h"
 
 AUD_SuperposeFactory::AUD_SuperposeFactory(AUD_IFactory* factory1, AUD_IFactory* factory2) :
-		m_factory1(factory1), m_factory2(factory2) {}
+		m_factory1(factory1), m_factory2(factory2)
+{
+}
 
-AUD_IReader* AUD_SuperposeFactory::createReader()
+AUD_IReader* AUD_SuperposeFactory::createReader() const
 {
 	AUD_IReader* reader1 = m_factory1->createReader();
-	if(!reader1)
-		return 0;
 	AUD_IReader* reader2;
 	try
 	{
 		reader2 = m_factory2->createReader();
-		if(!reader2)
-		{
-			delete reader1; AUD_DELETE("reader")
-			return 0;
-		}
 	}
 	catch(AUD_Exception&)
 	{
-		delete reader1; AUD_DELETE("reader")
+		delete reader1;
 		throw;
 	}
 
-	AUD_IReader* reader = new AUD_SuperposeReader(reader1, reader2);
-	return reader;
+	return new AUD_SuperposeReader(reader1, reader2);
 }

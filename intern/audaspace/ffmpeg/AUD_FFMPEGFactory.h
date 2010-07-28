@@ -30,6 +30,8 @@
 #include "AUD_Reference.h"
 class AUD_Buffer;
 
+#include <string>
+
 /**
  * This factory reads a sound file via ffmpeg.
  * \warning Notice that the needed formats and codecs have to be registered
@@ -41,33 +43,32 @@ private:
 	/**
 	 * The filename of the sound source file.
 	 */
-	char* m_filename;
+	const std::string m_filename;
 
 	/**
 	 * The buffer to read from.
 	 */
 	AUD_Reference<AUD_Buffer> m_buffer;
 
+	// hide copy constructor and operator=
+	AUD_FFMPEGFactory(const AUD_FFMPEGFactory&);
+	AUD_FFMPEGFactory& operator=(const AUD_FFMPEGFactory&);
+
 public:
 	/**
 	 * Creates a new factory.
 	 * \param filename The sound file path.
 	 */
-	AUD_FFMPEGFactory(const char* filename);
+	AUD_FFMPEGFactory(std::string filename);
 
 	/**
 	 * Creates a new factory.
 	 * \param buffer The buffer to read from.
 	 * \param size The size of the buffer.
 	 */
-	AUD_FFMPEGFactory(unsigned char* buffer, int size);
+	AUD_FFMPEGFactory(const data_t* buffer, int size);
 
-	/**
-	 * Destroys the factory.
-	 */
-	~AUD_FFMPEGFactory();
-
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_FFMPEGFACTORY

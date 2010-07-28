@@ -38,7 +38,11 @@ private:
 	/**
 	 * The loop count.
 	 */
-	int m_loop;
+	const int m_loop;
+
+	// hide copy constructor and operator=
+	AUD_LoopFactory(const AUD_LoopFactory&);
+	AUD_LoopFactory& operator=(const AUD_LoopFactory&);
 
 public:
 	/**
@@ -47,28 +51,14 @@ public:
 	 * \param loop The desired loop count, negative values result in endless
 	 *        looping.
 	 */
-	AUD_LoopFactory(AUD_IFactory* factory = 0, int loop = -1);
-
-	/**
-	 * Creates a new loop factory.
-	 * \param loop The desired loop count, negative values result in endless
-	 *        looping.
-	 */
-	AUD_LoopFactory(int loop);
+	AUD_LoopFactory(AUD_IFactory* factory, int loop = -1);
 
 	/**
 	 * Returns the loop count.
 	 */
-	int getLoop();
+	int getLoop() const;
 
-	/**
-	 * Sets the loop count.
-	 * \param loop The desired loop count, negative values result in endless
-	 *        looping.
-	 */
-	void setLoop(int loop);
-
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_LOOPFACTORY

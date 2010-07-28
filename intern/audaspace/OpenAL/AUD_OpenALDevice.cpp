@@ -24,8 +24,9 @@
  */
 
 #include "AUD_OpenALDevice.h"
+#include "AUD_IFactory.h"
 #include "AUD_IReader.h"
-#include "AUD_ConverterFactory.h"
+#include "AUD_ConverterReader.h"
 #include "AUD_SourceCaps.h"
 
 #include <cstring>
@@ -302,12 +303,7 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 
 	// check for specific formats and channel counts to be played back
 	if(alIsExtensionPresent("AL_EXT_FLOAT32") == AL_TRUE)
-	{
 		specs.format = AUD_FORMAT_FLOAT32;
-		m_converter = NULL;
-	}
-	else
-		m_converter = new AUD_ConverterFactory(specs); AUD_NEW("factory")
 
 	m_useMC = alIsExtensionPresent("AL_EXT_MCFORMATS") == AL_TRUE;
 
@@ -317,10 +313,9 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 	m_buffersize = buffersize;
 	m_playing = false;
 
-	m_playingSounds = new std::list<AUD_OpenALHandle*>(); AUD_NEW("list")
-	m_pausedSounds = new std::list<AUD_OpenALHandle*>(); AUD_NEW("list")
+	m_playingSounds = new std::list<AUD_OpenALHandle*>();
+	m_pausedSounds = new std::list<AUD_OpenALHandle*>();
 	m_bufferedFactories = new std::list<AUD_OpenALBufferedFactory*>();
-	AUD_NEW("list")
 
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
@@ -345,10 +340,10 @@ AUD_OpenALDevice::~AUD_OpenALDevice()
 		alDeleteSources(1, &sound->source);
 		if(!sound->isBuffered)
 		{
-			delete sound->reader; AUD_DELETE("reader")
+			delete sound->reader;
 			alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 		}
-		delete sound; AUD_DELETE("handle")
+		delete sound;
 		m_playingSounds->erase(m_playingSounds->begin());
 	}
 
@@ -359,10 +354,10 @@ AUD_OpenALDevice::~AUD_OpenALDevice()
 		alDeleteSources(1, &sound->source);
 		if(!sound->isBuffered)
 		{
-			delete sound->reader; AUD_DELETE("reader")
+			delete sound->reader;
 			alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 		}
-		delete sound; AUD_DELETE("handle")
+		delete sound;
 		m_pausedSounds->erase(m_pausedSounds->begin());
 	}
 
@@ -370,7 +365,7 @@ AUD_OpenALDevice::~AUD_OpenALDevice()
 	while(!m_bufferedFactories->empty())
 	{
 		alDeleteBuffers(1, &(*(m_bufferedFactories->begin()))->buffer);
-		delete *m_bufferedFactories->begin(); AUD_DELETE("bufferedfactory");
+		delete *m_bufferedFactories->begin();
 		m_bufferedFactories->erase(m_bufferedFactories->begin());
 	}
 
@@ -385,22 +380,19 @@ AUD_OpenALDevice::~AUD_OpenALDevice()
 	else
 		unlock();
 
-	delete m_playingSounds; AUD_DELETE("list")
-	delete m_pausedSounds; AUD_DELETE("list")
-	delete m_bufferedFactories; AUD_DELETE("list")
+	delete m_playingSounds;
+	delete m_pausedSounds;
+	delete m_bufferedFactories;
 
 	// quit OpenAL
 	alcMakeContextCurrent(NULL);
 	alcDestroyContext(m_context);
 	alcCloseDevice(m_device);
 
-	if(m_converter)
-		delete m_converter; AUD_DELETE("factory")
-
 	pthread_mutex_destroy(&m_mutex);
 }
 
-AUD_DeviceSpecs AUD_OpenALDevice::getSpecs()
+AUD_DeviceSpecs AUD_OpenALDevice::getSpecs() const
 {
 	return m_specs;
 }
@@ -511,7 +503,7 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 			if((*i)->factory == factory)
 			{
 				// create the handle
-				sound = new AUD_OpenALHandle; AUD_NEW("handle")
+				sound = new AUD_OpenALHandle;
 				sound->keep = keep;
 				sound->current = -1;
 				sound->isBuffered = true;
@@ -532,15 +524,15 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 						if(alGetError() != AL_NO_ERROR)
 							AUD_THROW(AUD_ERROR_OPENAL);
 					}
-					catch(AUD_Exception)
+					catch(AUD_Exception&)
 					{
 						alDeleteSources(1, &sound->source);
 						throw;
 					}
 				}
-				catch(AUD_Exception)
+				catch(AUD_Exception&)
 				{
-					delete sound; AUD_DELETE("handle")
+					delete sound;
 					alcProcessContext(m_context);
 					throw;
 				}
@@ -555,7 +547,7 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 			}
 		}
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		unlock();
 		throw;
@@ -577,14 +569,11 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 	// check format
 	bool valid = specs.channels != AUD_CHANNELS_INVALID;
 
-	if(m_converter)
-	{
-		m_converter->setReader(reader);
-		reader = m_converter->createReader();
-	}
+	if(m_specs.format != AUD_FORMAT_FLOAT32)
+		reader = new AUD_ConverterReader(reader, m_specs);
 
 	// create the handle
-	sound = new AUD_OpenALHandle; AUD_NEW("handle")
+	sound = new AUD_OpenALHandle;
 	sound->keep = keep;
 	sound->reader = reader;
 	sound->current = 0;
@@ -595,8 +584,8 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 
 	if(!valid)
 	{
-		delete sound; AUD_DELETE("handle")
-		delete reader; AUD_DELETE("reader")
+		delete sound;
+		delete reader;
 		return NULL;
 	}
 
@@ -637,22 +626,22 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 				if(alGetError() != AL_NO_ERROR)
 					AUD_THROW(AUD_ERROR_OPENAL);
 			}
-			catch(AUD_Exception)
+			catch(AUD_Exception&)
 			{
 				alDeleteSources(1, &sound->source);
 				throw;
 			}
 		}
-		catch(AUD_Exception)
+		catch(AUD_Exception&)
 		{
 			alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 			throw;
 		}
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
-		delete sound; AUD_DELETE("handle")
-		delete reader; AUD_DELETE("reader")
+		delete sound;
+		delete reader;
 		alcProcessContext(m_context);
 		unlock();
 		throw;
@@ -737,10 +726,10 @@ bool AUD_OpenALDevice::stop(AUD_Handle* handle)
 			alDeleteSources(1, &sound->source);
 			if(!sound->isBuffered)
 			{
-				delete sound->reader; AUD_DELETE("reader")
+				delete sound->reader;
 				alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 			}
-			delete *i; AUD_DELETE("handle")
+			delete *i;
 			m_playingSounds->erase(i);
 			result = true;
 			break;
@@ -757,10 +746,10 @@ bool AUD_OpenALDevice::stop(AUD_Handle* handle)
 				alDeleteSources(1, &sound->source);
 				if(!sound->isBuffered)
 				{
-					delete sound->reader; AUD_DELETE("reader")
+					delete sound->reader;
 					alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 				}
-				delete *i; AUD_DELETE("handle")
+				delete *i;
 				m_pausedSounds->erase(i);
 				result = true;
 				break;
@@ -784,32 +773,6 @@ bool AUD_OpenALDevice::setKeep(AUD_Handle* handle, bool keep)
 		((AUD_OpenALHandle*)handle)->keep = keep;
 		result = true;
 	}
-
-	unlock();
-
-	return result;
-}
-
-bool AUD_OpenALDevice::sendMessage(AUD_Handle* handle, AUD_Message &message)
-{
-	bool result = false;
-
-	lock();
-
-	if(handle == 0)
-	{
-		for(AUD_HandleIterator i = m_playingSounds->begin();
-			i != m_playingSounds->end(); i++)
-			if(!(*i)->isBuffered)
-				result |= (*i)->reader->notify(message);
-		for(AUD_HandleIterator i = m_pausedSounds->begin();
-			i != m_pausedSounds->end(); i++)
-			if(!(*i)->isBuffered)
-				result |= (*i)->reader->notify(message);
-	}
-	else if(isValid(handle))
-		if(!((AUD_OpenALHandle*)handle)->isBuffered)
-			result = ((AUD_OpenALHandle*)handle)->reader->notify(message);
 
 	unlock();
 
@@ -1024,26 +987,14 @@ bool AUD_OpenALDevice::setCapability(int capability, void *value)
 				AUD_DeviceSpecs specs = m_specs;
 				specs.specs = reader->getSpecs();
 
-				// determine format
-				bool valid = reader->getType() == AUD_TYPE_BUFFER;
-
-				if(valid)
-				{
-					if(m_converter)
-					{
-						m_converter->setReader(reader);
-						reader = m_converter->createReader();
-					}
-				}
+				if(m_specs.format != AUD_FORMAT_FLOAT32)
+					reader = new AUD_ConverterReader(reader, m_specs);
 
 				ALenum format;
 
-				if(valid)
-					valid = getFormat(format, specs.specs);
-
-				if(!valid)
+				if(!getFormat(format, specs.specs))
 				{
-					delete reader; AUD_DELETE("reader")
+					delete reader;
 					return false;
 				}
 
@@ -1052,7 +1003,6 @@ bool AUD_OpenALDevice::setCapability(int capability, void *value)
 				alcSuspendContext(m_context);
 
 				AUD_OpenALBufferedFactory* bf = new AUD_OpenALBufferedFactory;
-				AUD_NEW("bufferedfactory");
 				bf->factory = factory;
 
 				try
@@ -1073,16 +1023,16 @@ bool AUD_OpenALDevice::setCapability(int capability, void *value)
 						if(alGetError() != AL_NO_ERROR)
 							AUD_THROW(AUD_ERROR_OPENAL);
 					}
-					catch(AUD_Exception)
+					catch(AUD_Exception&)
 					{
 						alDeleteBuffers(1, &bf->buffer);
 						throw;
 					}
 				}
-				catch(AUD_Exception)
+				catch(AUD_Exception&)
 				{
-					delete bf; AUD_DELETE("bufferedfactory")
-					delete reader; AUD_DELETE("reader")
+					delete bf;
+					delete reader;
 					alcProcessContext(m_context);
 					unlock();
 					return false;
@@ -1116,7 +1066,6 @@ bool AUD_OpenALDevice::setCapability(int capability, void *value)
 					alDeleteBuffers(1,
 									&(*(m_bufferedFactories->begin()))->buffer);
 					delete *m_bufferedFactories->begin();
-					AUD_DELETE("bufferedfactory");
 					m_bufferedFactories->erase(m_bufferedFactories->begin());
 				}
 				unlock();

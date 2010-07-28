@@ -27,7 +27,7 @@
 #define AUD_ENVELOPEREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class represents an envelope follower.
@@ -36,29 +36,33 @@ class AUD_EnvelopeReader : public AUD_EffectReader
 {
 private:
 	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer *m_buffer;
-
-	/**
-	 * The last envelopes buffer.
-	 */
-	AUD_Buffer *m_envelopes;
-
-	/**
 	 * Attack b value.
 	 */
-	float m_bAttack;
+	const float m_bAttack;
 
 	/**
 	 * Release b value.
 	 */
-	float m_bRelease;
+	const float m_bRelease;
 
 	/**
 	 * Threshold value.
 	 */
-	float m_threshold;
+	const float m_threshold;
+
+	/**
+	 * The playback buffer.
+	 */
+	AUD_Buffer m_buffer;
+
+	/**
+	 * The last envelopes buffer.
+	 */
+	AUD_Buffer m_envelopes;
+
+	// hide copy constructor and operator=
+	AUD_EnvelopeReader(const AUD_EnvelopeReader&);
+	AUD_EnvelopeReader& operator=(const AUD_EnvelopeReader&);
 
 public:
 	/**
@@ -68,15 +72,9 @@ public:
 	 * \param release The release value in seconds.
 	 * \param threshold The threshold value.
 	 * \param arthreshold The attack/release threshold value.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_EnvelopeReader(AUD_IReader* reader, float attack, float release,
 					   float threshold, float arthreshold);
-
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_EnvelopeReader();
 
 	virtual void read(int & length, sample_t* & buffer);
 };

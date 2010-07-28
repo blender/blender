@@ -30,7 +30,6 @@
 #include "AUD_I3DDevice.h"
 struct AUD_OpenALHandle;
 struct AUD_OpenALBufferedFactory;
-class AUD_ConverterFactory;
 
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -62,11 +61,6 @@ private:
 	 * Whether the device has the AL_EXT_MCFORMATS extension.
 	 */
 	bool m_useMC;
-
-	/**
-	* The converter factory for readers with wrong input format.
-	*/
-	AUD_ConverterFactory* m_converter;
 
 	/**
 	 * The list of sounds that are currently playing.
@@ -123,6 +117,10 @@ private:
 	 */
 	bool getFormat(ALenum &format, AUD_Specs specs);
 
+	// hide copy constructor and operator=
+	AUD_OpenALDevice(const AUD_OpenALDevice&);
+	AUD_OpenALDevice& operator=(const AUD_OpenALDevice&);
+
 public:
 	/**
 	 * Opens the OpenAL audio device for playback.
@@ -142,13 +140,12 @@ public:
 
 	virtual ~AUD_OpenALDevice();
 
-	virtual AUD_DeviceSpecs getSpecs();
+	virtual AUD_DeviceSpecs getSpecs() const;
 	virtual AUD_Handle* play(AUD_IFactory* factory, bool keep = false);
 	virtual bool pause(AUD_Handle* handle);
 	virtual bool resume(AUD_Handle* handle);
 	virtual bool stop(AUD_Handle* handle);
 	virtual bool setKeep(AUD_Handle* handle, bool keep);
-	virtual bool sendMessage(AUD_Handle* handle, AUD_Message &message);
 	virtual bool seek(AUD_Handle* handle, float position);
 	virtual float getPosition(AUD_Handle* handle);
 	virtual AUD_Status getStatus(AUD_Handle* handle);

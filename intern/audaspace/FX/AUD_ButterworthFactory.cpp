@@ -29,21 +29,11 @@
 AUD_ButterworthFactory::AUD_ButterworthFactory(AUD_IFactory* factory,
 											   float frequency) :
 		AUD_EffectFactory(factory),
-		m_frequency(frequency) {}
-
-AUD_ButterworthFactory::AUD_ButterworthFactory(float frequency) :
-		AUD_EffectFactory(0),
-		m_frequency(frequency) {}
-
-AUD_IReader* AUD_ButterworthFactory::createReader()
+		m_frequency(frequency)
 {
-	AUD_IReader* reader = getReader();
+}
 
-	if(reader != 0)
-	{
-		reader = new AUD_ButterworthReader(reader, m_frequency);
-		AUD_NEW("reader")
-	}
-
-	return reader;
+AUD_IReader* AUD_ButterworthFactory::createReader() const
+{
+	return new AUD_ButterworthReader(getReader(), m_frequency);
 }

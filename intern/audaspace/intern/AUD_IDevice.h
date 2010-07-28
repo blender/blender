@@ -53,7 +53,7 @@ public:
 	/**
 	 * Returns the specification of the device.
 	 */
-	virtual AUD_DeviceSpecs getSpecs()=0;
+	virtual AUD_DeviceSpecs getSpecs() const=0;
 
 	/**
 	 * Plays a sound source.
@@ -105,16 +105,6 @@ public:
 	 *        - false if the handle is invalid.
 	 */
 	virtual bool setKeep(AUD_Handle* handle, bool keep)=0;
-
-	/**
-	 * Sends a message to a sound or all sounds that are currently played or
-	 * paused.
-	 * \param handle The sound that should receive the message or NULL if all
-	 *        sounds should receive it.
-	 * \param message The message.
-	 * \return True if the message has been read by at least one sound.
-	 */
-	virtual bool sendMessage(AUD_Handle* handle, AUD_Message &message)=0;
 
 	/**
 	 * Seeks in a played back sound.

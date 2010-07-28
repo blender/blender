@@ -33,26 +33,12 @@ AUD_EnvelopeFactory::AUD_EnvelopeFactory(AUD_IFactory* factory, float attack,
 		m_attack(attack),
 		m_release(release),
 		m_threshold(threshold),
-		m_arthreshold(arthreshold) {}
-
-AUD_EnvelopeFactory::AUD_EnvelopeFactory(float attack, float release,
-										 float threshold, float arthreshold) :
-		AUD_EffectFactory(0),
-		m_attack(attack),
-		m_release(release),
-		m_threshold(threshold),
-		m_arthreshold(arthreshold) {}
-
-AUD_IReader* AUD_EnvelopeFactory::createReader()
+		m_arthreshold(arthreshold)
 {
-	AUD_IReader* reader = getReader();
+}
 
-	if(reader != 0)
-	{
-		reader = new AUD_EnvelopeReader(reader, m_attack, m_release,
-										m_threshold, m_arthreshold);
-		AUD_NEW("reader")
-	}
-
-	return reader;
+AUD_IReader* AUD_EnvelopeFactory::createReader() const
+{
+	return new AUD_EnvelopeReader(getReader(), m_attack, m_release, m_threshold,
+								  m_arthreshold);
 }

@@ -425,10 +425,10 @@ static PyTypeObject SoundType = {
 static PyObject *
 Sound_sine(PyObject* nothing, PyObject* args)
 {
-	double frequency;
+	float frequency;
 	int rate = 44100;
 
-	if(!PyArg_ParseTuple(args, "d|i", &frequency, &rate))
+	if(!PyArg_ParseTuple(args, "f|i", &frequency, &rate))
 		return NULL;
 
 	Sound *self;
@@ -1266,13 +1266,14 @@ Handle_set_loop_count(Handle *self, PyObject* args, void* nothing)
 
 	try
 	{
+		/* AUD_XXX Doesn't work atm, will come back
 		AUD_Message message;
 		message.loopcount = loops;
 		message.type = AUD_MSG_LOOP;
 		if(device->device->sendMessage(self->handle, message))
 		{
 			return 0;
-		}
+		}*/
 	}
 	catch(AUD_Exception&)
 	{

@@ -26,13 +26,8 @@
 #ifndef AUD_MIXER
 #define AUD_MIXER
 
-#define AUD_MIXER_RESAMPLER AUD_SRCResampleFactory
-
 #include "AUD_ConverterFunctions.h"
-class AUD_ConverterFactory;
-class AUD_MIXER_RESAMPLER;
-class AUD_ChannelMapperFactory;
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 class AUD_IReader;
 #include <list>
 
@@ -45,24 +40,12 @@ struct AUD_MixerBuffer
 };
 
 /**
- * This class is able to mix audiosignals of different channel count and sample
- * rate and convert it to a specific output format.
- * It uses a default ChannelMapperFactory and a SRCResampleFactory for
- * the perparation.
+ * This abstract class is able to mix audiosignals of different channel count
+ * and sample rate and convert it to a specific output format.
  */
 class AUD_Mixer
 {
-private:
-	/**
-	 * The resampling factory that resamples all readers for superposition.
-	 */
-	AUD_MIXER_RESAMPLER* m_resampler;
-
-	/**
-	 * The channel mapper factory that maps all readers for superposition.
-	 */
-	AUD_ChannelMapperFactory* m_mapper;
-
+protected:
 	/**
 	 * The list of buffers to superpose.
 	 */
@@ -71,12 +54,12 @@ private:
 	/**
 	 * The output specification.
 	 */
-	AUD_DeviceSpecs m_specs;
+	const AUD_DeviceSpecs m_specs;
 
 	/**
 	 * The temporary mixing buffer.
 	 */
-	AUD_Buffer* m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * Converter function.
@@ -87,31 +70,25 @@ public:
 	/**
 	 * Creates the mixer.
 	 */
-	AUD_Mixer();
+	AUD_Mixer(AUD_DeviceSpecs specs);
 
 	/**
 	 * Destroys the mixer.
 	 */
-	~AUD_Mixer();
+	virtual ~AUD_Mixer() {}
+
+	/**
+	 * Returns the target specification for superposing.
+	 * \return The target specification.
+	 */
+	AUD_DeviceSpecs getSpecs() const;
 
 	/**
 	 * This funuction prepares a reader for playback.
 	 * \param reader The reader to prepare.
 	 * \return The reader that should be used for playback.
 	 */
-	AUD_IReader* prepare(AUD_IReader* reader);
-
-	/**
-	 * Returns the target specification for superposing.
-	 * \return The target specification.
-	 */
-	AUD_DeviceSpecs getSpecs();
-
-	/**
-	 * Sets the target specification for superposing.
-	 * \param specs The target specification.
-	 */
-	void setSpecs(AUD_DeviceSpecs specs);
+	virtual AUD_IReader* prepare(AUD_IReader* reader)=0;
 
 	/**
 	 * Adds a buffer for superposition.
@@ -120,7 +97,7 @@ public:
 	 * \param length The length of the buffer in samples.
 	 * \param volume The mixing volume. Must be a value between 0.0 and 1.0.
 	 */
-	void add(sample_t* buffer, int start, int length, float volume);
+	virtual void add(sample_t* buffer, int start, int length, float volume);
 
 	/**
 	 * Superposes all added buffers into an output buffer.
@@ -128,7 +105,7 @@ public:
 	 * \param length The length of the buffer in samples.
 	 * \param volume The mixing volume. Must be a value between 0.0 and 1.0.
 	 */
-	void superpose(data_t* buffer, int length, float volume);
+	virtual void superpose(data_t* buffer, int length, float volume);
 };
 
 #endif //AUD_MIXER

@@ -23,29 +23,31 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_SUMFACTORY
-#define AUD_SUMFACTORY
+#ifndef AUD_DEFAULTMIXER
+#define AUD_DEFAULTMIXER
 
-#include "AUD_EffectFactory.h"
+#include "AUD_Mixer.h"
 
 /**
- * This factory creates a sum reader.
+ * This class is able to mix audiosignals of different channel count and sample
+ * rate and convert it to a specific output format.
+ * It uses a default ChannelMapperFactory and a SRCResampleFactory for
+ * the perparation.
  */
-class AUD_SumFactory : public AUD_EffectFactory
+class AUD_DefaultMixer : public AUD_Mixer
 {
-private:
-	// hide copy constructor and operator=
-	AUD_SumFactory(const AUD_SumFactory&);
-	AUD_SumFactory& operator=(const AUD_SumFactory&);
-
 public:
 	/**
-	 * Creates a new sum factory.
-	 * \param factory The input factory.
+	 * Creates the mixer.
 	 */
-	AUD_SumFactory(AUD_IFactory* factory);
+	AUD_DefaultMixer(AUD_DeviceSpecs specs);
 
-	virtual AUD_IReader* createReader() const;
+	/**
+	 * This funuction prepares a reader for playback.
+	 * \param reader The reader to prepare.
+	 * \return The reader that should be used for playback.
+	 */
+	virtual AUD_IReader* prepare(AUD_IReader* reader);
 };
 
-#endif //AUD_SUMFACTORY
+#endif //AUD_DEFAULTMIXER

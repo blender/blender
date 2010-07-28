@@ -155,7 +155,7 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 
 		return true;
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		return false;
 	}
@@ -284,7 +284,7 @@ AUD_Sound* AUD_bufferSound(AUD_Sound* sound)
 	{
 		return new AUD_StreamBufferFactory(sound);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		return NULL;
 	}
@@ -298,7 +298,7 @@ AUD_Sound* AUD_delaySound(AUD_Sound* sound, float delay)
 	{
 		return new AUD_DelayFactory(sound, delay);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		return NULL;
 	}
@@ -312,7 +312,7 @@ AUD_Sound* AUD_limitSound(AUD_Sound* sound, float start, float end)
 	{
 		return new AUD_LimiterFactory(sound, start, end);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		return NULL;
 	}
@@ -326,7 +326,7 @@ AUD_Sound* AUD_pingpongSound(AUD_Sound* sound)
 	{
 		return new AUD_PingPongFactory(sound);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		return NULL;
 	}
@@ -340,7 +340,7 @@ AUD_Sound* AUD_loopSound(AUD_Sound* sound)
 	{
 		return new AUD_LoopFactory(sound);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		return NULL;
 	}
@@ -350,6 +350,8 @@ int AUD_setLoop(AUD_Channel* handle, int loops, float time)
 {
 	if(handle)
 	{
+		/* AUD_XXX Doesn't work atm, will come back
+
 		AUD_Message message;
 		message.type = AUD_MSG_LOOP;
 		message.loopcount = loops;
@@ -359,9 +361,9 @@ int AUD_setLoop(AUD_Channel* handle, int loops, float time)
 		{
 			return AUD_device->sendMessage(handle, message);
 		}
-		catch(AUD_Exception)
+		catch(AUD_Exception&)
 		{
-		}
+		}*/
 	}
 	return false;
 }
@@ -374,7 +376,7 @@ AUD_Sound* AUD_rectifySound(AUD_Sound* sound)
 	{
 		return new AUD_RectifyFactory(sound);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		return NULL;
 	}
@@ -394,7 +396,7 @@ AUD_Channel* AUD_play(AUD_Sound* sound, int keep)
 	{
 		return AUD_device->play(sound, keep);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		return NULL;
 	}
@@ -455,7 +457,7 @@ AUD_Channel* AUD_play3D(AUD_Sound* sound, int keep)
 		else
 			return AUD_device->play(sound, keep);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		return NULL;
 	}
@@ -471,7 +473,7 @@ int AUD_updateListener(AUD_3DData* data)
 		if(AUD_3ddevice)
 			return AUD_3ddevice->updateListener(*data);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 	}
 	return false;
@@ -486,7 +488,7 @@ int AUD_set3DSetting(AUD_3DSetting setting, float value)
 		if(AUD_3ddevice)
 			return AUD_3ddevice->setSetting(setting, value);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 	}
 	return false;
@@ -501,7 +503,7 @@ float AUD_get3DSetting(AUD_3DSetting setting)
 		if(AUD_3ddevice)
 			return AUD_3ddevice->getSetting(setting);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 	}
 	return 0.0f;
@@ -519,7 +521,7 @@ int AUD_update3DSource(AUD_Channel* handle, AUD_3DData* data)
 			if(AUD_3ddevice)
 				return AUD_3ddevice->updateSource(handle, *data);
 		}
-		catch(AUD_Exception)
+		catch(AUD_Exception&)
 		{
 		}
 	}
@@ -538,7 +540,7 @@ int AUD_set3DSourceSetting(AUD_Channel* handle,
 			if(AUD_3ddevice)
 				return AUD_3ddevice->setSourceSetting(handle, setting, value);
 		}
-		catch(AUD_Exception)
+		catch(AUD_Exception&)
 		{
 		}
 	}
@@ -556,7 +558,7 @@ float AUD_get3DSourceSetting(AUD_Channel* handle, AUD_3DSourceSetting setting)
 			if(AUD_3ddevice)
 				return AUD_3ddevice->getSourceSetting(handle, setting);
 		}
-		catch(AUD_Exception)
+		catch(AUD_Exception&)
 		{
 		}
 	}
@@ -576,7 +578,7 @@ int AUD_setSoundVolume(AUD_Channel* handle, float volume)
 		{
 			return AUD_device->setCapability(AUD_CAPS_SOURCE_VOLUME, &caps);
 		}
-		catch(AUD_Exception) {}
+		catch(AUD_Exception&) {}
 	}
 	return false;
 }
@@ -594,7 +596,7 @@ int AUD_setSoundPitch(AUD_Channel* handle, float pitch)
 		{
 			return AUD_device->setCapability(AUD_CAPS_SOURCE_PITCH, &caps);
 		}
-		catch(AUD_Exception) {}
+		catch(AUD_Exception&) {}
 	}
 	return false;
 }
@@ -605,7 +607,7 @@ AUD_Device* AUD_openReadDevice(AUD_DeviceSpecs specs)
 	{
 		return new AUD_ReadDevice(specs);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		return NULL;
 	}
@@ -622,7 +624,7 @@ AUD_Channel* AUD_playDevice(AUD_Device* device, AUD_Sound* sound, float seek)
 		device->seek(handle, seek);
 		return handle;
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		return NULL;
 	}
@@ -636,7 +638,7 @@ int AUD_setDeviceVolume(AUD_Device* device, float volume)
 	{
 		return device->setCapability(AUD_CAPS_VOLUME, &volume);
 	}
-	catch(AUD_Exception) {}
+	catch(AUD_Exception&) {}
 	
 	return false;
 }
@@ -655,7 +657,7 @@ int AUD_setDeviceSoundVolume(AUD_Device* device, AUD_Channel* handle,
 		{
 			return device->setCapability(AUD_CAPS_SOURCE_VOLUME, &caps);
 		}
-		catch(AUD_Exception) {}
+		catch(AUD_Exception&) {}
 	}
 	return false;
 }
@@ -669,7 +671,7 @@ int AUD_readDevice(AUD_Device* device, data_t* buffer, int length)
 	{
 		return device->read(buffer, length);
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		return false;
 	}
@@ -683,7 +685,7 @@ void AUD_closeReadDevice(AUD_Device* device)
 	{
 		delete device;
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 	}
 }
@@ -782,23 +784,16 @@ void AUD_muteSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry, char mut
 
 int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
 {
-	AUD_IReader* reader = sound->createReader();
 	AUD_DeviceSpecs specs;
 	sample_t* buf;
 
-	specs.specs = reader->getSpecs();
+	specs.rate = AUD_RATE_INVALID;
 	specs.channels = AUD_CHANNELS_MONO;
-	specs.format = AUD_FORMAT_FLOAT32;
+	specs.format = AUD_FORMAT_INVALID;
 
-	AUD_ChannelMapperFactory mapper(reader, specs);
+	AUD_ChannelMapperFactory mapper(sound, specs);
 
-	if(!reader || reader->getType() != AUD_TYPE_BUFFER)
-		return -1;
-
-	reader = mapper.createReader();
-
-	if(!reader)
-		return -1;
+	AUD_IReader* reader = mapper.createReader();
 
 	int len = reader->getLength();
 	float samplejump = (float)len / (float)length;
@@ -827,7 +822,7 @@ int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
 		}
 	}
 
-	delete reader; AUD_DELETE("reader")
+	delete reader;
 
 	return length;
 }
@@ -894,16 +889,3 @@ int AUD_doesPlayback()
 #endif
 	return -1;
 }
-
-#ifdef AUD_DEBUG_MEMORY
-int AUD_References(int count, const char* text)
-{
-	static int m_count = 0;
-	m_count += count;
-	if(count > 0)
-		printf("+%s\n", text);
-	if(count < 0)
-		printf("-%s\n", text);
-	return m_count;
-}
-#endif

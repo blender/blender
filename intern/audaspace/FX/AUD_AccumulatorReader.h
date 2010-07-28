@@ -27,7 +27,7 @@
 #define AUD_ACCUMULATORREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class represents an accumulator.
@@ -36,38 +36,36 @@ class AUD_AccumulatorReader : public AUD_EffectReader
 {
 private:
 	/**
+	 * Whether the accumulator is additive.
+	 */
+	const bool m_additive;
+
+	/**
 	 * The playback buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The sums of the specific channels.
 	 */
-	AUD_Buffer *m_sums;
+	AUD_Buffer m_sums;
 
 	/**
 	 * The previous results of the specific channels.
 	 */
-	AUD_Buffer *m_prevs;
+	AUD_Buffer m_prevs;
 
-	/**
-	 * Whether the accumulator is additive.
-	 */
-	bool m_additive;
+	// hide copy constructor and operator=
+	AUD_AccumulatorReader(const AUD_AccumulatorReader&);
+	AUD_AccumulatorReader& operator=(const AUD_AccumulatorReader&);
 
 public:
 	/**
 	 * Creates a new accumulator reader.
 	 * \param reader The reader to read from.
 	 * \param additive Whether the accumulator is additive.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_AccumulatorReader(AUD_IReader* reader, bool additive);
-
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_AccumulatorReader();
 
 	virtual void read(int & length, sample_t* & buffer);
 };

@@ -37,7 +37,11 @@ private:
 	/**
 	 * The threshold.
 	 */
-	float m_threshold;
+	const float m_threshold;
+
+	// hide copy constructor and operator=
+	AUD_SquareFactory(const AUD_SquareFactory&);
+	AUD_SquareFactory& operator=(const AUD_SquareFactory&);
 
 public:
 	/**
@@ -45,26 +49,14 @@ public:
 	 * \param factory The input factory.
 	 * \param threshold The threshold.
 	 */
-	AUD_SquareFactory(AUD_IFactory* factory = 0, float threshold = 0.0f);
-
-	/**
-	 * Creates a new square factory.
-	 * \param threshold The threshold.
-	 */
-	AUD_SquareFactory(float threshold);
+	AUD_SquareFactory(AUD_IFactory* factory, float threshold = 0.0f);
 
 	/**
 	 * Returns the threshold.
 	 */
-	float getThreshold();
+	float getThreshold() const;
 
-	/**
-	 * Sets the threshold.
-	 * \param threshold The new threshold value. Should be between 0.0 and 1.0.
-	 */
-	void setThreshold(float threshold);
-
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_SQUAREFACTORY

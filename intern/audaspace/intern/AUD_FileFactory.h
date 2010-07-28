@@ -30,6 +30,8 @@
 #include "AUD_Reference.h"
 class AUD_Buffer;
 
+#include <string>
+
 /**
  * This factory tries to read a sound file via all available file readers.
  */
@@ -39,33 +41,32 @@ private:
 	/**
 	 * The filename of the sound source file.
 	 */
-	char* m_filename;
+	std::string m_filename;
 
 	/**
 	 * The buffer to read from.
 	 */
 	AUD_Reference<AUD_Buffer> m_buffer;
 
+	// hide copy constructor and operator=
+	AUD_FileFactory(const AUD_FileFactory&);
+	AUD_FileFactory& operator=(const AUD_FileFactory&);
+
 public:
 	/**
 	 * Creates a new factory.
 	 * \param filename The sound file path.
 	 */
-	AUD_FileFactory(const char* filename);
+	AUD_FileFactory(std::string filename);
 
 	/**
 	 * Creates a new factory.
 	 * \param buffer The buffer to read from.
 	 * \param size The size of the buffer.
 	 */
-	AUD_FileFactory(unsigned char* buffer, int size);
+	AUD_FileFactory(const data_t* buffer, int size);
 
-	/**
-	 * Destroys the factory.
-	 */
-	~AUD_FileFactory();
-
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_FILEFACTORY

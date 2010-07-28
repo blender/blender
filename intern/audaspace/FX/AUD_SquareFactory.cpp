@@ -28,30 +28,16 @@
 
 AUD_SquareFactory::AUD_SquareFactory(AUD_IFactory* factory, float threshold) :
 		AUD_EffectFactory(factory),
-		m_threshold(threshold) {}
+		m_threshold(threshold)
+{
+}
 
-AUD_SquareFactory::AUD_SquareFactory(float threshold) :
-		AUD_EffectFactory(0),
-		m_threshold(threshold) {}
-
-float AUD_SquareFactory::getThreshold()
+float AUD_SquareFactory::getThreshold() const
 {
 	return m_threshold;
 }
 
-void AUD_SquareFactory::setThreshold(float threshold)
+AUD_IReader* AUD_SquareFactory::createReader() const
 {
-	m_threshold = threshold;
-}
-
-AUD_IReader* AUD_SquareFactory::createReader()
-{
-	AUD_IReader* reader = getReader();
-
-	if(reader != 0)
-	{
-		reader = new AUD_SquareReader(reader, m_threshold); AUD_NEW("reader")
-	}
-
-	return reader;
+	return new AUD_SquareReader(getReader(), m_threshold);
 }

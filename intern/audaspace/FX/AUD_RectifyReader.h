@@ -27,7 +27,7 @@
 #define AUD_RECTIFYREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class reads another reader and rectifies it.
@@ -38,20 +38,18 @@ private:
 	/**
 	 * The playback buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
+
+	// hide copy constructor and operator=
+	AUD_RectifyReader(const AUD_RectifyReader&);
+	AUD_RectifyReader& operator=(const AUD_RectifyReader&);
 
 public:
 	/**
 	 * Creates a new rectify reader.
 	 * \param reader The reader to read from.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_RectifyReader(AUD_IReader* reader);
-
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_RectifyReader();
 
 	virtual void read(int & length, sample_t* & buffer);
 };

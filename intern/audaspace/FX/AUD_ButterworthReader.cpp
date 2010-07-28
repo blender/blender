@@ -24,7 +24,6 @@
  */
 
 #include "AUD_ButterworthReader.h"
-#include "AUD_Buffer.h"
 
 #include <cstring>
 #include <cmath>
@@ -39,20 +38,14 @@
 
 AUD_ButterworthReader::AUD_ButterworthReader(AUD_IReader* reader,
 											 float frequency) :
-		AUD_EffectReader(reader)
+		AUD_EffectReader(reader),
+		m_outvalues(AUD_SAMPLE_SIZE(reader->getSpecs()) * 5),
+		m_invalues(AUD_SAMPLE_SIZE(reader->getSpecs()) * 5),
+		m_position(0)
 {
 	AUD_Specs specs = reader->getSpecs();
-	int samplesize = AUD_SAMPLE_SIZE(specs);
-
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
-
-	m_outvalues = new AUD_Buffer(samplesize * 5); AUD_NEW("buffer")
-	memset(m_outvalues->getBuffer(), 0, samplesize * 5);
-
-	m_invalues = new AUD_Buffer(samplesize * 5); AUD_NEW("buffer")
-	memset(m_invalues->getBuffer(), 0, samplesize * 5);
-
-	m_position = 0;
+	memset(m_outvalues.getBuffer(), 0, m_outvalues.getSize());
+	memset(m_invalues.getBuffer(), 0, m_invalues.getSize());
 
 	// calculate coefficients
 	float omega = 2 * tan(frequency * M_PI / specs.rate);
@@ -74,31 +67,23 @@ AUD_ButterworthReader::AUD_ButterworthReader(AUD_IReader* reader,
 	m_coeff[1][2] = 6 * o4 / norm;
 }
 
-AUD_ButterworthReader::~AUD_ButterworthReader()
-{
-	delete m_buffer; AUD_DELETE("buffer")
-
-	delete m_outvalues; AUD_DELETE("buffer")
-	delete m_invalues; AUD_DELETE("buffer");
-}
-
 void AUD_ButterworthReader::read(int & length, sample_t* & buffer)
 {
 	sample_t* buf;
 	sample_t* outvalues;
 	sample_t* invalues;
 
-	outvalues = m_outvalues->getBuffer();
-	invalues = m_invalues->getBuffer();
+	outvalues = m_outvalues.getBuffer();
+	invalues = m_invalues.getBuffer();
 
 	AUD_Specs specs = m_reader->getSpecs();
 
 	m_reader->read(length, buf);
 
-	if(m_buffer->getSize() < length * AUD_SAMPLE_SIZE(specs))
-		m_buffer->resize(length * AUD_SAMPLE_SIZE(specs));
+	if(m_buffer.getSize() < length * AUD_SAMPLE_SIZE(specs))
+		m_buffer.resize(length * AUD_SAMPLE_SIZE(specs));
 
-	buffer = m_buffer->getBuffer();
+	buffer = m_buffer.getBuffer();
 	int channels = specs.channels;
 
 	for(int channel = 0; channel < channels; channel++)

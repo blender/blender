@@ -27,19 +27,11 @@
 #include "AUD_RectifyReader.h"
 
 AUD_RectifyFactory::AUD_RectifyFactory(AUD_IFactory* factory) :
-		AUD_EffectFactory(factory) {}
-
-AUD_RectifyFactory::AUD_RectifyFactory() :
-		AUD_EffectFactory(0) {}
-
-AUD_IReader* AUD_RectifyFactory::createReader()
+		AUD_EffectFactory(factory)
 {
-	AUD_IReader* reader = getReader();
+}
 
-	if(reader != 0)
-	{
-		reader = new AUD_RectifyReader(reader); AUD_NEW("reader")
-	}
-
-	return reader;
+AUD_IReader* AUD_RectifyFactory::createReader() const
+{
+	return new AUD_RectifyReader(getReader());
 }

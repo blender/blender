@@ -37,18 +37,21 @@ private:
 	/**
 	 * The pitch level.
 	 */
-	float m_pitch;
+	const float m_pitch;
+
+	// hide copy constructor and operator=
+	AUD_PitchReader(const AUD_PitchReader&);
+	AUD_PitchReader& operator=(const AUD_PitchReader&);
 
 public:
 	/**
 	 * Creates a new pitch reader.
 	 * \param reader The reader to read from.
 	 * \param pitch The size of the buffer.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_PitchReader(AUD_IReader* reader, float pitch);
 
-	virtual AUD_Specs getSpecs();
+	virtual AUD_Specs getSpecs() const;
 };
 
 #endif //AUD_PITCHREADER

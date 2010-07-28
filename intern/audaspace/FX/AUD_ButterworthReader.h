@@ -27,7 +27,7 @@
 #define AUD_BUTTERWORTHREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class represents a butterworth filter.
@@ -38,17 +38,17 @@ private:
 	/**
 	 * The playback buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The last out values buffer.
 	 */
-	AUD_Buffer *m_outvalues;
+	AUD_Buffer m_outvalues;
 
 	/**
 	 * The last in values buffer.
 	 */
-	AUD_Buffer *m_invalues;
+	AUD_Buffer m_invalues;
 
 	/**
 	 * The position for buffer cycling.
@@ -60,6 +60,10 @@ private:
 	 */
 	float m_coeff[2][5];
 
+	// hide copy constructor and operator=
+	AUD_ButterworthReader(const AUD_ButterworthReader&);
+	AUD_ButterworthReader& operator=(const AUD_ButterworthReader&);
+
 public:
 	/**
 	 * Creates a new butterworth reader.
@@ -68,14 +72,8 @@ public:
 	 * \param release The release value in seconds.
 	 * \param threshold The threshold value.
 	 * \param arthreshold The attack/release threshold value.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_ButterworthReader(AUD_IReader* reader, float frequency);
-
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_ButterworthReader();
 
 	virtual void read(int & length, sample_t* & buffer);
 };

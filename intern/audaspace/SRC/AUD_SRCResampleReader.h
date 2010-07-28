@@ -27,7 +27,7 @@
 #define AUD_SRCRESAMPLEREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 #include <samplerate.h>
 
@@ -38,24 +38,24 @@ class AUD_SRCResampleReader : public AUD_EffectReader
 {
 private:
 	/**
+	 * The sample specification of the source.
+	 */
+	const AUD_Specs m_sspecs;
+
+	/**
 	 * The resampling factor.
 	 */
-	double m_factor;
+	const double m_factor;
 
 	/**
 	 * The sound output buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The target specification.
 	 */
 	AUD_Specs m_tspecs;
-
-	/**
-	 * The sample specification of the source.
-	 */
-	AUD_Specs m_sspecs;
 
 	/**
 	 * The src state structure.
@@ -67,14 +67,17 @@ private:
 	 */
 	int m_position;
 
+	// hide copy constructor and operator=
+	AUD_SRCResampleReader(const AUD_SRCResampleReader&);
+	AUD_SRCResampleReader& operator=(const AUD_SRCResampleReader&);
+
 public:
 	/**
 	 * Creates a resampling reader.
 	 * \param reader The reader to mix.
 	 * \param specs The target specification.
 	 * \exception AUD_Exception Thrown if the source specification cannot be
-	 *            mixed to the target specification or if the reader is
-	 *            NULL.
+	 *            resampled to the target specification.
 	 */
 	AUD_SRCResampleReader(AUD_IReader* reader, AUD_Specs specs);
 
@@ -92,9 +95,9 @@ public:
 	long doCallback(float** data);
 
 	virtual void seek(int position);
-	virtual int getLength();
-	virtual int getPosition();
-	virtual AUD_Specs getSpecs();
+	virtual int getLength() const;
+	virtual int getPosition() const;
+	virtual AUD_Specs getSpecs() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 

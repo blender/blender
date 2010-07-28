@@ -24,7 +24,6 @@
  */
 
 #include "AUD_LowpassReader.h"
-#include "AUD_Buffer.h"
 
 #include <cstring>
 #include <cmath>
@@ -37,22 +36,15 @@
 
 AUD_LowpassReader::AUD_LowpassReader(AUD_IReader* reader, float frequency,
 									 float Q) :
-		AUD_EffectReader(reader)
+		AUD_EffectReader(reader),
+		m_outvalues(AUD_SAMPLE_SIZE(reader->getSpecs()) * AUD_LOWPASS_ORDER),
+		m_invalues(AUD_SAMPLE_SIZE(reader->getSpecs()) * AUD_LOWPASS_ORDER),
+		m_position(0)
 {
+	memset(m_outvalues.getBuffer(), 0, m_outvalues.getSize());
+	memset(m_invalues.getBuffer(), 0, m_invalues.getSize());
+
 	AUD_Specs specs = reader->getSpecs();
-	int samplesize = AUD_SAMPLE_SIZE(specs);
-
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
-
-	m_outvalues = new AUD_Buffer(samplesize * AUD_LOWPASS_ORDER);
-	AUD_NEW("buffer")
-	memset(m_outvalues->getBuffer(), 0, samplesize * AUD_LOWPASS_ORDER);
-
-	m_invalues = new AUD_Buffer(samplesize * AUD_LOWPASS_ORDER);
-	AUD_NEW("buffer")
-	memset(m_invalues->getBuffer(), 0, samplesize * AUD_LOWPASS_ORDER);
-
-	m_position = 0;
 
 	// calculate coefficients
 	float w0 = 2 * M_PI * frequency / specs.rate;
@@ -65,31 +57,23 @@ AUD_LowpassReader::AUD_LowpassReader(AUD_IReader* reader, float frequency,
 	m_coeff[1][1] = (1 - cos(w0)) / norm;
 }
 
-AUD_LowpassReader::~AUD_LowpassReader()
-{
-	delete m_buffer; AUD_DELETE("buffer")
-
-	delete m_outvalues; AUD_DELETE("buffer")
-	delete m_invalues; AUD_DELETE("buffer");
-}
-
 void AUD_LowpassReader::read(int & length, sample_t* & buffer)
 {
 	sample_t* buf;
 	sample_t* outvalues;
 	sample_t* invalues;
 
-	outvalues = m_outvalues->getBuffer();
-	invalues = m_invalues->getBuffer();
+	outvalues = m_outvalues.getBuffer();
+	invalues = m_invalues.getBuffer();
 
 	AUD_Specs specs = m_reader->getSpecs();
 
 	m_reader->read(length, buf);
 
-	if(m_buffer->getSize() < length * AUD_SAMPLE_SIZE(specs))
-		m_buffer->resize(length * AUD_SAMPLE_SIZE(specs));
+	if(m_buffer.getSize() < length * AUD_SAMPLE_SIZE(specs))
+		m_buffer.resize(length * AUD_SAMPLE_SIZE(specs));
 
-	buffer = m_buffer->getBuffer();
+	buffer = m_buffer.getBuffer();
 	int channels = specs.channels;
 
 	for(int channel = 0; channel < channels; channel++)

@@ -24,7 +24,6 @@
  */
 
 #include "AUD_SuperposeReader.h"
-#include "AUD_Buffer.h"
 
 #include <cstring>
 
@@ -33,44 +32,28 @@ AUD_SuperposeReader::AUD_SuperposeReader(AUD_IReader* reader1, AUD_IReader* read
 {
 	try
 	{
-		if(!reader1)
-			AUD_THROW(AUD_ERROR_READER);
-
-		if(!reader2)
-			AUD_THROW(AUD_ERROR_READER);
-
 		AUD_Specs s1, s2;
 		s1 = reader1->getSpecs();
 		s2 = reader2->getSpecs();
-		if(memcmp(&s1, &s2, sizeof(AUD_Specs)) != 0)
+		if(memcmp(&s1, &s2, sizeof(AUD_Specs)))
 			AUD_THROW(AUD_ERROR_READER);
 	}
-
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
-		if(reader1)
-		{
-			delete reader1; AUD_DELETE("reader")
-		}
-		if(reader2)
-		{
-			delete reader2; AUD_DELETE("reader")
-		}
+		delete reader1;
+		delete reader2;
 
 		throw;
 	}
-
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
 }
 
 AUD_SuperposeReader::~AUD_SuperposeReader()
 {
-	delete m_reader1; AUD_DELETE("reader")
-	delete m_reader2; AUD_DELETE("reader")
-	delete m_buffer; AUD_DELETE("buffer")
+	delete m_reader1;
+	delete m_reader2;
 }
 
-bool AUD_SuperposeReader::isSeekable()
+bool AUD_SuperposeReader::isSeekable() const
 {
 	return m_reader1->isSeekable() && m_reader2->isSeekable();
 }
@@ -81,40 +64,25 @@ void AUD_SuperposeReader::seek(int position)
 	m_reader2->seek(position);
 }
 
-int AUD_SuperposeReader::getLength()
+int AUD_SuperposeReader::getLength() const
 {
 	int len1 = m_reader1->getLength();
 	int len2 = m_reader2->getLength();
 	if((len1 < 0) || (len2 < 0))
 		return -1;
-	if(len1 < len2)
-		return len2;
-	return len1;
+	return AUD_MIN(len1, len2);
 }
 
-int AUD_SuperposeReader::getPosition()
+int AUD_SuperposeReader::getPosition() const
 {
 	int pos1 = m_reader1->getPosition();
 	int pos2 = m_reader2->getPosition();
 	return AUD_MAX(pos1, pos2);
 }
 
-AUD_Specs AUD_SuperposeReader::getSpecs()
+AUD_Specs AUD_SuperposeReader::getSpecs() const
 {
 	return m_reader1->getSpecs();
-}
-
-AUD_ReaderType AUD_SuperposeReader::getType()
-{
-	if(m_reader1->getType() == AUD_TYPE_BUFFER &&
-	   m_reader2->getType() == AUD_TYPE_BUFFER)
-		return AUD_TYPE_BUFFER;
-	return AUD_TYPE_STREAM;
-}
-
-bool AUD_SuperposeReader::notify(AUD_Message &message)
-{
-	return m_reader1->notify(message) | m_reader2->notify(message);
 }
 
 void AUD_SuperposeReader::read(int & length, sample_t* & buffer)
@@ -122,9 +90,9 @@ void AUD_SuperposeReader::read(int & length, sample_t* & buffer)
 	AUD_Specs specs = m_reader1->getSpecs();
 	int samplesize = AUD_SAMPLE_SIZE(specs);
 
-	if(m_buffer->getSize() < length * samplesize)
-		m_buffer->resize(length * samplesize);
-	buffer = m_buffer->getBuffer();
+	if(m_buffer.getSize() < length * samplesize)
+		m_buffer.resize(length * samplesize);
+	buffer = m_buffer.getBuffer();
 
 	int len1 = length;
 	sample_t* buf;

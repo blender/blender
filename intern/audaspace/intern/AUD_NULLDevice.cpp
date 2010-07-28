@@ -31,14 +31,15 @@
 
 AUD_NULLDevice::AUD_NULLDevice()
 {
-	m_specs.channels = AUD_CHANNELS_INVALID;
-	m_specs.format = AUD_FORMAT_INVALID;
-	m_specs.rate = AUD_RATE_INVALID;
 }
 
-AUD_DeviceSpecs AUD_NULLDevice::getSpecs()
+AUD_DeviceSpecs AUD_NULLDevice::getSpecs() const
 {
-	return m_specs;
+	AUD_DeviceSpecs specs;
+	specs.channels = AUD_CHANNELS_INVALID;
+	specs.format = AUD_FORMAT_INVALID;
+	specs.rate = AUD_RATE_INVALID;
+	return specs;
 }
 
 AUD_Handle* AUD_NULLDevice::play(AUD_IFactory* factory, bool keep)
@@ -62,11 +63,6 @@ bool AUD_NULLDevice::stop(AUD_Handle* handle)
 }
 
 bool AUD_NULLDevice::setKeep(AUD_Handle* handle, bool keep)
-{
-	return false;
-}
-
-bool AUD_NULLDevice::sendMessage(AUD_Handle* handle, AUD_Message &message)
 {
 	return false;
 }

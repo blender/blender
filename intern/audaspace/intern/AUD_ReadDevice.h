@@ -33,14 +33,18 @@
  */
 class AUD_ReadDevice : public AUD_SoftwareDevice
 {
-protected:
-	virtual void playing(bool playing);
-
 private:
 	/**
 	 * Whether the device currently.
 	 */
 	bool m_playing;
+
+	// hide copy constructor and operator=
+	AUD_ReadDevice(const AUD_ReadDevice&);
+	AUD_ReadDevice& operator=(const AUD_ReadDevice&);
+
+protected:
+	virtual void playing(bool playing);
 
 public:
 	/**

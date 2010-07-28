@@ -111,13 +111,12 @@ private:
 	bool isValid(AUD_Handle* handle);
 
 public:
-	virtual AUD_DeviceSpecs getSpecs();
+	virtual AUD_DeviceSpecs getSpecs() const;
 	virtual AUD_Handle* play(AUD_IFactory* factory, bool keep = false);
 	virtual bool pause(AUD_Handle* handle);
 	virtual bool resume(AUD_Handle* handle);
 	virtual bool stop(AUD_Handle* handle);
 	virtual bool setKeep(AUD_Handle* handle, bool keep);
-	virtual bool sendMessage(AUD_Handle* handle, AUD_Message &message);
 	virtual bool seek(AUD_Handle* handle, float position);
 	virtual float getPosition(AUD_Handle* handle);
 	virtual AUD_Status getStatus(AUD_Handle* handle);

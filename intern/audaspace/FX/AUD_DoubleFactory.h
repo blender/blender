@@ -45,6 +45,10 @@ private:
 	 */
 	AUD_IFactory* m_factory2;
 
+	// hide copy constructor and operator=
+	AUD_DoubleFactory(const AUD_DoubleFactory&);
+	AUD_DoubleFactory& operator=(const AUD_DoubleFactory&);
+
 public:
 	/**
 	 * Creates a new double factory.
@@ -53,7 +57,7 @@ public:
 	 */
 	AUD_DoubleFactory(AUD_IFactory* factory1, AUD_IFactory* factory2);
 
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_DOUBLEFACTORY

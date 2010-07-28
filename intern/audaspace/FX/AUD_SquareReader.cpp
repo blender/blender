@@ -24,7 +24,6 @@
  */
 
 #include "AUD_SquareReader.h"
-#include "AUD_Buffer.h"
 
 #include <cstring>
 
@@ -32,12 +31,6 @@ AUD_SquareReader::AUD_SquareReader(AUD_IReader* reader, float threshold) :
 		AUD_EffectReader(reader),
 		m_threshold(threshold)
 {
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
-}
-
-AUD_SquareReader::~AUD_SquareReader()
-{
-	delete m_buffer; AUD_DELETE("buffer")
 }
 
 void AUD_SquareReader::read(int & length, sample_t* & buffer)
@@ -46,10 +39,11 @@ void AUD_SquareReader::read(int & length, sample_t* & buffer)
 	AUD_Specs specs = m_reader->getSpecs();
 
 	m_reader->read(length, buf);
-	if(m_buffer->getSize() < length * AUD_SAMPLE_SIZE(specs))
-		m_buffer->resize(length * AUD_SAMPLE_SIZE(specs));
 
-	buffer = m_buffer->getBuffer();
+	if(m_buffer.getSize() < length * AUD_SAMPLE_SIZE(specs))
+		m_buffer.resize(length * AUD_SAMPLE_SIZE(specs));
+
+	buffer = m_buffer.getBuffer();
 
 	for(int i = 0; i < length * specs.channels; i++)
 	{

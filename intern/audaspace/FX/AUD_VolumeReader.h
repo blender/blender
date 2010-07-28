@@ -27,7 +27,7 @@
 #define AUD_VOLUMEREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class reads another reader and changes it's volume.
@@ -38,28 +38,25 @@ private:
 	/**
 	 * The playback buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The volume level.
 	 */
-	float m_volume;
+	const float m_volume;
+
+	// hide copy constructor and operator=
+	AUD_VolumeReader(const AUD_VolumeReader&);
+	AUD_VolumeReader& operator=(const AUD_VolumeReader&);
 
 public:
 	/**
 	 * Creates a new volume reader.
 	 * \param reader The reader to read from.
 	 * \param volume The size of the buffer.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_VolumeReader(AUD_IReader* reader, float volume);
 
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_VolumeReader();
-
-	virtual bool notify(AUD_Message &message);
 	virtual void read(int & length, sample_t* & buffer);
 };
 

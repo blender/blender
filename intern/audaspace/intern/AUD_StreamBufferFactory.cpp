@@ -29,15 +29,12 @@
 
 #include <cstring>
 
-AUD_StreamBufferFactory::AUD_StreamBufferFactory(AUD_IFactory* factory)
+AUD_StreamBufferFactory::AUD_StreamBufferFactory(AUD_IFactory* factory) :
+	m_buffer(new AUD_Buffer())
 {
 	AUD_IReader* reader = factory->createReader();
 
-	if(reader == NULL)
-		AUD_THROW(AUD_ERROR_READER);
-
 	m_specs = reader->getSpecs();
-	m_buffer = AUD_Reference<AUD_Buffer>(new AUD_Buffer()); AUD_NEW("buffer")
 
 	int sample_size = AUD_SAMPLE_SIZE(m_specs);
 	int length;
@@ -68,13 +65,11 @@ AUD_StreamBufferFactory::AUD_StreamBufferFactory(AUD_IFactory* factory)
 		index += length;
 	}
 
-	m_buffer.get()->resize(index*sample_size, true);
-	delete reader; AUD_DELETE("reader")
+	m_buffer.get()->resize(index * sample_size, true);
+	delete reader;
 }
 
-AUD_IReader* AUD_StreamBufferFactory::createReader()
+AUD_IReader* AUD_StreamBufferFactory::createReader() const
 {
-	AUD_IReader* reader = new AUD_BufferReader(m_buffer, m_specs);
-	AUD_NEW("reader")
-	return reader;
+	return new AUD_BufferReader(m_buffer, m_specs);
 }

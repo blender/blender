@@ -39,17 +39,21 @@ private:
 	/**
 	 * The fading type.
 	 */
-	AUD_FadeType m_type;
+	const AUD_FadeType m_type;
 
 	/**
 	 * The fading start.
 	 */
-	float m_start;
+	const float m_start;
 
 	/**
 	 * The fading length.
 	 */
-	float m_length;
+	const float m_length;
+
+	// hide copy constructor and operator=
+	AUD_FaderFactory(const AUD_FaderFactory&);
+	AUD_FaderFactory& operator=(const AUD_FaderFactory&);
 
 public:
 	/**
@@ -59,53 +63,26 @@ public:
 	 * \param start The time where fading should start in seconds.
 	 * \param length How long fading should last in seconds.
 	 */
-	AUD_FaderFactory(AUD_IFactory* factory = 0,
+	AUD_FaderFactory(AUD_IFactory* factory,
 					  AUD_FadeType type = AUD_FADE_IN,
-					  float start = 0.0f, float length = 1.0f);
-
-	/**
-	 * Creates a new fader factory.
-	 * \param type The fading type.
-	 * \param start The time where fading should start in seconds.
-	 * \param length How long fading should last in seconds.
-	 */
-	AUD_FaderFactory(AUD_FadeType type = AUD_FADE_IN,
 					  float start = 0.0f, float length = 1.0f);
 
 	/**
 	 * Returns the fading type.
 	 */
-	AUD_FadeType getType();
-
-	/**
-	 * Sets the fading type.
-	 * \param type The new fading type: AUD_FADE_IN or AUD_FADE_OUT.
-	 */
-	void setType(AUD_FadeType type);
+	AUD_FadeType getType() const;
 
 	/**
 	 * Returns the fading start.
 	 */
-	float getStart();
-
-	/**
-	 * Sets the fading start.
-	 * \param start The new fading start.
-	 */
-	void setStart(float start);
+	float getStart() const;
 
 	/**
 	 * Returns the fading length.
 	 */
-	float getLength();
+	float getLength() const;
 
-	/**
-	 * Sets the fading length.
-	 * \param start The new fading length.
-	 */
-	void setLength(float length);
-
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_FADERFACTORY

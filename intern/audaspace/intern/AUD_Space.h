@@ -93,18 +93,6 @@
  */
 #define AUD_CAPS_BUFFERED_FACTORY	0x2001
 
-// Used for debugging memory leaks.
-//#define AUD_DEBUG_MEMORY
-
-#ifdef AUD_DEBUG_MEMORY
-extern int AUD_References(int count, const char* text);
-#define AUD_NEW(text) AUD_References(1, text);
-#define AUD_DELETE(text) AUD_References(-1, text);
-#else
-#define AUD_NEW(text)
-#define AUD_DELETE(text)
-#endif
-
 /**
  * The format of a sample.
  * The last 4 bit save the byte count of the format.
@@ -154,17 +142,6 @@ typedef enum
 	AUD_RATE_192000  = 192000		/// 192000 Hz.
 } AUD_SampleRate;
 
-/**
- * Type of a reader.
- * @see AUD_IReader for details.
- */
-typedef enum
-{
-	AUD_TYPE_INVALID = 0,			/// Invalid reader type.
-	AUD_TYPE_BUFFER,				/// Reader reads from a buffer.
-	AUD_TYPE_STREAM					/// Reader reads from a stream.
-} AUD_ReaderType;
-
 /// Status of a playback handle.
 typedef enum
 {
@@ -185,14 +162,6 @@ typedef enum
 	AUD_ERROR_OPENAL,
 	AUD_ERROR_JACK
 } AUD_Error;
-
-/// Message codes.
-typedef enum
-{
-	AUD_MSG_INVALID = 0,			/// Invalid message.
-	AUD_MSG_LOOP,					/// Loop reader message.
-	AUD_MSG_VOLUME					/// Volume reader message.
-} AUD_MessageType;
 
 /// Fading types.
 typedef enum
@@ -282,28 +251,6 @@ typedef struct
 
 	// void* userData; - for the case it is needed someday
 } AUD_Exception;
-
-/// Message structure.
-typedef struct
-{
-	/**
-	 * The message type.
-	 */
-	AUD_MessageType type;
-
-	union
-	{
-		// loop reader
-		struct
-		{
-			int loopcount;
-			float time;
-		};
-
-		// volume reader
-		float volume;
-	};
-} AUD_Message;
 
 /// Handle structure, for inherition.
 typedef struct

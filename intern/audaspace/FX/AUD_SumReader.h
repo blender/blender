@@ -27,7 +27,7 @@
 #define AUD_SUMREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class represents an summer.
@@ -38,25 +38,23 @@ private:
 	/**
 	 * The playback buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The sums of the specific channels.
 	 */
-	AUD_Buffer *m_sums;
+	AUD_Buffer m_sums;
+
+	// hide copy constructor and operator=
+	AUD_SumReader(const AUD_SumReader&);
+	AUD_SumReader& operator=(const AUD_SumReader&);
 
 public:
 	/**
 	 * Creates a new sum reader.
 	 * \param reader The reader to read from.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_SumReader(AUD_IReader* reader);
-
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_SumReader();
 
 	virtual void read(int & length, sample_t* & buffer);
 };

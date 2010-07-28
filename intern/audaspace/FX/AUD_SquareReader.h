@@ -27,7 +27,7 @@
 #define AUD_SQUAREREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class changes another signal into a square signal.
@@ -38,26 +38,24 @@ private:
 	/**
 	 * The playback buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The threshold level.
 	 */
-	float m_threshold;
+	const float m_threshold;
+
+	// hide copy constructor and operator=
+	AUD_SquareReader(const AUD_SquareReader&);
+	AUD_SquareReader& operator=(const AUD_SquareReader&);
 
 public:
 	/**
 	 * Creates a new square reader.
 	 * \param reader The reader to read from.
 	 * \param threshold The size of the buffer.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_SquareReader(AUD_IReader* reader, float threshold);
-
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_SquareReader();
 
 	virtual void read(int & length, sample_t* & buffer);
 };

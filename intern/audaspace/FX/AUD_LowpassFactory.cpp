@@ -30,22 +30,11 @@ AUD_LowpassFactory::AUD_LowpassFactory(AUD_IFactory* factory, float frequency,
 									   float Q) :
 		AUD_EffectFactory(factory),
 		m_frequency(frequency),
-		m_Q(Q) {}
-
-AUD_LowpassFactory::AUD_LowpassFactory(float frequency, float Q) :
-		AUD_EffectFactory(0),
-		m_frequency(frequency),
-		m_Q(Q) {}
-
-AUD_IReader* AUD_LowpassFactory::createReader()
+		m_Q(Q)
 {
-	AUD_IReader* reader = getReader();
+}
 
-	if(reader != 0)
-	{
-		reader = new AUD_LowpassReader(reader, m_frequency, m_Q);
-		AUD_NEW("reader")
-	}
-
-	return reader;
+AUD_IReader* AUD_LowpassFactory::createReader() const
+{
+	return new AUD_LowpassReader(getReader(), m_frequency, m_Q);
 }

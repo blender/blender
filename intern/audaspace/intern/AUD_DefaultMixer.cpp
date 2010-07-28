@@ -23,21 +23,41 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#include "AUD_SRCResampleFactory.h"
+#include "AUD_DefaultMixer.h"
 #include "AUD_SRCResampleReader.h"
+#include "AUD_ChannelMapperReader.h"
+#include "AUD_ChannelMapperFactory.h"
 
-AUD_SRCResampleFactory::AUD_SRCResampleFactory(AUD_IFactory* factory,
-											   AUD_DeviceSpecs specs) :
-		AUD_ResampleFactory(factory, specs)
+#include <cstring>
+
+AUD_DefaultMixer::AUD_DefaultMixer(AUD_DeviceSpecs specs) :
+	AUD_Mixer(specs)
 {
 }
 
-AUD_IReader* AUD_SRCResampleFactory::createReader() const
+AUD_IReader* AUD_DefaultMixer::prepare(AUD_IReader* reader)
 {
-	AUD_IReader* reader = getReader();
+	// hacky for now, until a better channel mapper reader is available
+	AUD_ChannelMapperFactory cmf(NULL, m_specs);
 
-	if(reader->getSpecs().rate != m_specs.rate)
+	AUD_Specs specs = reader->getSpecs();
+
+	// if channel count is lower in output, rechannel before resampling
+	if(specs.channels < m_specs.channels)
+	{
+		reader = new AUD_ChannelMapperReader(reader,
+											 cmf.getMapping(specs.channels));
+		specs.channels = m_specs.channels;
+	}
+
+	// resample
+	if(specs.rate != m_specs.rate)
 		reader = new AUD_SRCResampleReader(reader, m_specs.specs);
+
+	// rechannel
+	if(specs.channels != m_specs.channels)
+		reader = new AUD_ChannelMapperReader(reader,
+											 cmf.getMapping(specs.channels));
 
 	return reader;
 }

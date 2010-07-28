@@ -45,6 +45,10 @@ private:
 	 */
 	AUD_IFactory* m_factory2;
 
+	// hide copy constructor and operator=
+	AUD_SuperposeFactory(const AUD_SuperposeFactory&);
+	AUD_SuperposeFactory& operator=(const AUD_SuperposeFactory&);
+
 public:
 	/**
 	 * Creates a new superpose factory.
@@ -53,7 +57,7 @@ public:
 	 */
 	AUD_SuperposeFactory(AUD_IFactory* factory1, AUD_IFactory* factory2);
 
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_SUPERPOSEFACTORY

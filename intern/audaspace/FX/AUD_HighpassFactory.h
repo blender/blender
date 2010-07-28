@@ -37,12 +37,16 @@ private:
 	/**
 	 * The attack value in seconds.
 	 */
-	float m_frequency;
+	const float m_frequency;
 
 	/**
 	 * The Q factor.
 	 */
-	float m_Q;
+	const float m_Q;
+
+	// hide copy constructor and operator=
+	AUD_HighpassFactory(const AUD_HighpassFactory&);
+	AUD_HighpassFactory& operator=(const AUD_HighpassFactory&);
 
 public:
 	/**
@@ -53,14 +57,7 @@ public:
 	 */
 	AUD_HighpassFactory(AUD_IFactory* factory, float frequency, float Q = 1.0f);
 
-	/**
-	 * Creates a new highpass factory.
-	 * \param frequency The cutoff frequency.
-	 * \param Q The Q factor.
-	 */
-	AUD_HighpassFactory(float frequency, float Q = 1.0f);
-
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_HIGHPASSFACTORY

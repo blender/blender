@@ -29,21 +29,11 @@
 AUD_AccumulatorFactory::AUD_AccumulatorFactory(AUD_IFactory* factory,
 											   bool additive) :
 		AUD_EffectFactory(factory),
-		m_additive(additive) {}
-
-AUD_AccumulatorFactory::AUD_AccumulatorFactory(bool additive) :
-		AUD_EffectFactory(0),
-		m_additive(additive) {}
-
-AUD_IReader* AUD_AccumulatorFactory::createReader()
+		m_additive(additive)
 {
-	AUD_IReader* reader = getReader();
+}
 
-	if(reader != 0)
-	{
-		reader = new AUD_AccumulatorReader(reader, m_additive);
-		AUD_NEW("reader")
-	}
-
-	return reader;
+AUD_IReader* AUD_AccumulatorFactory::createReader() const
+{
+	return new AUD_AccumulatorReader(getReader(), m_additive);
 }

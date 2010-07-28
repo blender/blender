@@ -24,7 +24,6 @@
  */
 
 #include "AUD_ChannelMapperReader.h"
-#include "AUD_Buffer.h"
 
 AUD_ChannelMapperReader::AUD_ChannelMapperReader(AUD_IReader* reader,
 												 float **mapping) :
@@ -36,7 +35,7 @@ AUD_ChannelMapperReader::AUD_ChannelMapperReader(AUD_IReader* reader,
 	m_rch = m_specs.channels;
 	while(mapping[++channels] != 0);
 
-	m_mapping = new float*[channels]; AUD_NEW("mapping")
+	m_mapping = new float*[channels];
 	m_specs.channels = (AUD_Channels)channels;
 
 	float sum;
@@ -44,7 +43,7 @@ AUD_ChannelMapperReader::AUD_ChannelMapperReader(AUD_IReader* reader,
 
 	while(channels--)
 	{
-		m_mapping[channels] = new float[m_rch]; AUD_NEW("mapping")
+		m_mapping[channels] = new float[m_rch];
 		sum = 0.0f;
 		for(i=0; i < m_rch; i++)
 			sum += mapping[channels][i];
@@ -52,8 +51,6 @@ AUD_ChannelMapperReader::AUD_ChannelMapperReader(AUD_IReader* reader,
 			m_mapping[channels][i] = sum > 0.0f ?
 									 mapping[channels][i]/sum : 0.0f;
 	}
-
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
 }
 
 AUD_ChannelMapperReader::~AUD_ChannelMapperReader()
@@ -62,42 +59,37 @@ AUD_ChannelMapperReader::~AUD_ChannelMapperReader()
 
 	while(channels--)
 	{
-		delete[] m_mapping[channels]; AUD_DELETE("mapping")
+		delete[] m_mapping[channels];
 	}
 
-	delete[] m_mapping; AUD_DELETE("mapping")
-
-	delete m_buffer; AUD_DELETE("buffer")
+	delete[] m_mapping;
 }
 
-AUD_Specs AUD_ChannelMapperReader::getSpecs()
+AUD_Specs AUD_ChannelMapperReader::getSpecs() const
 {
 	return m_specs;
 }
 
 void AUD_ChannelMapperReader::read(int & length, sample_t* & buffer)
 {
-	m_reader->read(length, buffer);
-
-	int channels = m_specs.channels;
-
-	if(m_buffer->getSize() < length * 4 * channels)
-		m_buffer->resize(length * 4 * channels);
-
 	sample_t* in = buffer;
-	sample_t* out = m_buffer->getBuffer();
+
+	m_reader->read(length, in);
+
+	if(m_buffer.getSize() < length * AUD_SAMPLE_SIZE(m_specs))
+		m_buffer.resize(length * AUD_SAMPLE_SIZE(m_specs));
+
+	buffer = m_buffer.getBuffer();
 	sample_t sum;
 
 	for(int i = 0; i < length; i++)
 	{
-		for(int j = 0; j < channels; j++)
+		for(int j = 0; j < m_specs.channels; j++)
 		{
 			sum = 0;
 			for(int k = 0; k < m_rch; k++)
 				sum += m_mapping[j][k] * in[i * m_rch + k];
-			out[i * channels + j] = sum;
+			buffer[i * m_specs.channels + j] = sum;
 		}
 	}
-
-	buffer = m_buffer->getBuffer();
 }

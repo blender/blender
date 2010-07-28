@@ -27,7 +27,7 @@
 #define AUD_REVERSEREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class reads another reader from back to front.
@@ -37,37 +37,36 @@ class AUD_ReverseReader : public AUD_EffectReader
 {
 private:
 	/**
+	 * The sample count.
+	 */
+	const int m_length;
+
+	/**
 	 * The current position.
 	 */
 	int m_position;
 
 	/**
-	 * The sample count.
-	 */
-	int m_length;
-
-	/**
 	 * The playback buffer.
 	 */
-	AUD_Buffer* m_buffer;
+	AUD_Buffer m_buffer;
+
+	// hide copy constructor and operator=
+	AUD_ReverseReader(const AUD_ReverseReader&);
+	AUD_ReverseReader& operator=(const AUD_ReverseReader&);
 
 public:
 	/**
 	 * Creates a new reverse reader.
 	 * \param reader The reader to read from.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL or not
-	 *            a buffer.
+	 * \exception AUD_Exception Thrown if the reader specified has an
+	 *            undeterminable/infinite length or is not seekable.
 	 */
 	AUD_ReverseReader(AUD_IReader* reader);
 
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_ReverseReader();
-
 	virtual void seek(int position);
-	virtual int getLength();
-	virtual int getPosition();
+	virtual int getLength() const;
+	virtual int getPosition() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 

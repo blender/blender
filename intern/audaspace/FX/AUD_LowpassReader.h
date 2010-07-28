@@ -27,7 +27,7 @@
 #define AUD_LOWPASSREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 #define AUD_LOWPASS_ORDER 3
 
@@ -40,17 +40,17 @@ private:
 	/**
 	 * The playback buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The last out values buffer.
 	 */
-	AUD_Buffer *m_outvalues;
+	AUD_Buffer m_outvalues;
 
 	/**
 	 * The last in values buffer.
 	 */
-	AUD_Buffer *m_invalues;
+	AUD_Buffer m_invalues;
 
 	/**
 	 * The position for buffer cycling.
@@ -62,20 +62,18 @@ private:
 	 */
 	float m_coeff[2][AUD_LOWPASS_ORDER];
 
+	// hide copy constructor and operator=
+	AUD_LowpassReader(const AUD_LowpassReader&);
+	AUD_LowpassReader& operator=(const AUD_LowpassReader&);
+
 public:
 	/**
 	 * Creates a new lowpass reader.
 	 * \param reader The reader to read from.
 	 * \param frequency The cutoff frequency.
 	 * \param Q The Q factor.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_LowpassReader(AUD_IReader* reader, float frequency, float Q);
-
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_LowpassReader();
 
 	virtual void read(int & length, sample_t* & buffer);
 };

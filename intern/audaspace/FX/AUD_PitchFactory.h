@@ -37,7 +37,11 @@ private:
 	/**
 	 * The pitch.
 	 */
-	float m_pitch;
+	const float m_pitch;
+
+	// hide copy constructor and operator=
+	AUD_PitchFactory(const AUD_PitchFactory&);
+	AUD_PitchFactory& operator=(const AUD_PitchFactory&);
 
 public:
 	/**
@@ -45,26 +49,9 @@ public:
 	 * \param factory The input factory.
 	 * \param pitch The desired pitch.
 	 */
-	AUD_PitchFactory(AUD_IFactory* factory = 0, float pitch = 1.0f);
+	AUD_PitchFactory(AUD_IFactory* factory, float pitch);
 
-	/**
-	 * Creates a new pitch factory.
-	 * \param pitch The desired pitch.
-	 */
-	AUD_PitchFactory(float pitch);
-
-	/**
-	 * Returns the pitch.
-	 */
-	float getPitch();
-
-	/**
-	 * Sets the pitch.
-	 * \param pitch The new pitch value. Should be between 0.0 and 1.0.
-	 */
-	void setPitch(float pitch);
-
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_PITCHFACTORY

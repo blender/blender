@@ -24,7 +24,6 @@
  */
 
 #include "AUD_VolumeReader.h"
-#include "AUD_Buffer.h"
 
 #include <cstring>
 
@@ -32,25 +31,6 @@ AUD_VolumeReader::AUD_VolumeReader(AUD_IReader* reader, float volume) :
 		AUD_EffectReader(reader),
 		m_volume(volume)
 {
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
-}
-
-AUD_VolumeReader::~AUD_VolumeReader()
-{
-	delete m_buffer; AUD_DELETE("buffer")
-}
-
-bool AUD_VolumeReader::notify(AUD_Message &message)
-{
-	if(message.type == AUD_MSG_VOLUME)
-	{
-		m_volume = message.volume;
-
-		m_reader->notify(message);
-
-		return true;
-	}
-	return m_reader->notify(message);
 }
 
 void AUD_VolumeReader::read(int & length, sample_t* & buffer)
@@ -59,10 +39,10 @@ void AUD_VolumeReader::read(int & length, sample_t* & buffer)
 	AUD_Specs specs = m_reader->getSpecs();
 
 	m_reader->read(length, buf);
-	if(m_buffer->getSize() < length*AUD_SAMPLE_SIZE(specs))
-		m_buffer->resize(length*AUD_SAMPLE_SIZE(specs));
+	if(m_buffer.getSize() < length * AUD_SAMPLE_SIZE(specs))
+		m_buffer.resize(length * AUD_SAMPLE_SIZE(specs));
 
-	buffer = m_buffer->getBuffer();
+	buffer = m_buffer.getBuffer();
 
 	for(int i = 0; i < length * specs.channels; i++)
 		buffer[i] = buf[i] * m_volume;

@@ -24,7 +24,6 @@
  */
 
 #include "AUD_EnvelopeReader.h"
-#include "AUD_Buffer.h"
 
 #include <cstring>
 #include <cmath>
@@ -33,40 +32,27 @@ AUD_EnvelopeReader::AUD_EnvelopeReader(AUD_IReader* reader, float attack,
 									   float release, float threshold,
 									   float arthreshold) :
 		AUD_EffectReader(reader),
-		m_threshold(threshold)
+		m_bAttack(pow(arthreshold, 1.0f/(reader->getSpecs().rate * attack))),
+		m_bRelease(pow(arthreshold, 1.0f/(reader->getSpecs().rate * release))),
+		m_threshold(threshold),
+		m_envelopes(AUD_SAMPLE_SIZE(reader->getSpecs()))
 {
-	AUD_Specs specs = reader->getSpecs();
-	int samplesize = AUD_SAMPLE_SIZE(specs);
-
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
-
-	m_envelopes = new AUD_Buffer(samplesize);
-	AUD_NEW("buffer")
-	memset(m_envelopes->getBuffer(), 0, samplesize);
-
-	m_bAttack = pow(arthreshold, 1.0f/(specs.rate * attack));
-	m_bRelease = pow(arthreshold, 1.0f/(specs.rate * release));
-}
-
-AUD_EnvelopeReader::~AUD_EnvelopeReader()
-{
-	delete m_buffer; AUD_DELETE("buffer")
-	delete m_envelopes; AUD_DELETE("buffer")
+	memset(m_envelopes.getBuffer(), 0, m_envelopes.getSize());
 }
 
 void AUD_EnvelopeReader::read(int & length, sample_t* & buffer)
 {
 	sample_t* buf;
 	sample_t* envelopes;
-	envelopes = m_envelopes->getBuffer();
+	envelopes = m_envelopes.getBuffer();
 
 	AUD_Specs specs = m_reader->getSpecs();
 
 	m_reader->read(length, buf);
-	if(m_buffer->getSize() < length * AUD_SAMPLE_SIZE(specs))
-		m_buffer->resize(length * AUD_SAMPLE_SIZE(specs));
+	if(m_buffer.getSize() < length * AUD_SAMPLE_SIZE(specs))
+		m_buffer.resize(length * AUD_SAMPLE_SIZE(specs));
 
-	buffer = m_buffer->getBuffer();
+	buffer = m_buffer.getBuffer();
 
 	sample_t value;
 
