@@ -4,6 +4,7 @@
 #include "BPy_BinaryPredicate0D.h"
 #include "BPy_BinaryPredicate1D.h"
 #include "BPy_ContextFunctions.h"
+#include "BPy_Convert.h"
 #include "BPy_FrsMaterial.h"
 #include "BPy_FrsNoise.h"
 #include "BPy_Id.h"
@@ -55,6 +56,88 @@ static PyObject *Freestyle_getCurrentScene( PyObject *self )
 	return pyrna_struct_CreatePyObject(&ptr_scene);
 }
 
+#include "DNA_material_types.h"
+
+static int ramp_blend_type(const char *type)
+{
+	if (!strcmp(type, "MIX"))           return MA_RAMP_BLEND;
+	if (!strcmp(type, "ADD"))           return MA_RAMP_ADD;
+	if (!strcmp(type, "MULTIPLY"))      return MA_RAMP_MULT;
+	if (!strcmp(type, "SUBTRACT"))      return MA_RAMP_SUB;
+	if (!strcmp(type, "SCREEN"))        return MA_RAMP_SCREEN;
+	if (!strcmp(type, "DIVIDE"))        return MA_RAMP_DIV;
+	if (!strcmp(type, "DIFFERENCE"))    return MA_RAMP_DIFF;
+	if (!strcmp(type, "DARKEN"))        return MA_RAMP_DARK;
+	if (!strcmp(type, "LIGHTEN"))       return MA_RAMP_LIGHT;
+	if (!strcmp(type, "OVERLAY"))       return MA_RAMP_OVERLAY;
+	if (!strcmp(type, "DODGE"))         return MA_RAMP_DODGE;
+	if (!strcmp(type, "BURN"))          return MA_RAMP_BURN;
+	if (!strcmp(type, "HUE"))           return MA_RAMP_HUE;
+	if (!strcmp(type, "SATURATION"))    return MA_RAMP_SAT;
+	if (!strcmp(type, "VALUE"))         return MA_RAMP_VAL;
+	if (!strcmp(type, "COLOR"))         return MA_RAMP_COLOR;
+	if (!strcmp(type, "SOFT LIGHT"))    return MA_RAMP_SOFT;
+	if (!strcmp(type, "LINEAR LIGHT"))  return MA_RAMP_LINEAR;
+	return -1;
+}
+
+#include "BKE_material.h" /* ramp_blend() */
+
+static char Freestyle_blendRamp___doc__[] =
+".. function:: blendRamp(type, color1, fac, color2)\n"
+"\n"
+"   Blend two colors according to a ramp blend type.\n"
+"\n"
+"   :arg type: Ramp blend type.\n"
+"   :type type: int\n"
+"   :arg color1: 1st color.\n"
+"   :type color1: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n"
+"   :arg fac: Blend factor.\n"
+"   :type fac: float\n"
+"   :arg color2: 1st color.\n"
+"   :type color2: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n"
+"   :return: Blended color in RGB format.\n"
+"   :rtype: :class:`mathutils.Vector`\n";
+
+static PyObject *Freestyle_blendRamp( PyObject *self, PyObject *args )
+{
+	PyObject *obj1, *obj2;
+	char *s;
+	int type;
+	Vec3f *v1 = NULL, *v2 = NULL;
+	float a[3], fac, b[3];
+
+	if (!PyArg_ParseTuple(args, "sOfO", &s, &obj1, &fac, &obj2))
+		return NULL;
+	type = ramp_blend_type(s);
+	if (type < 0) {
+		PyErr_SetString(PyExc_TypeError, "argument 1 is an unknown ramp blend type");
+		goto error;
+	}
+	v1 = Vec3f_ptr_from_PyObject(obj1);
+	if (!v1) {
+		PyErr_SetString(PyExc_TypeError, "argument 2 must be a 3D vector (either a tuple/list of 3 elements or Vector)");
+		goto error;
+	}
+	v2 = Vec3f_ptr_from_PyObject(obj2);
+	if (!v2) {
+		PyErr_SetString(PyExc_TypeError, "argument 4 must be a 3D vector (either a tuple/list of 3 elements or Vector)");
+		goto error;
+	}
+	a[0] = v1->x(); b[0] = v2->x();
+	a[1] = v1->y(); b[1] = v2->y();
+	a[2] = v1->z(); b[2] = v2->z();
+	ramp_blend(type, &a[0], &a[1], &a[2], fac, b);
+	delete v1;
+	delete v2;
+	return newVectorObject( a, 3, Py_NEW, NULL);
+
+error:
+	if (v1) delete v1;
+	if (v2) delete v2;
+	return NULL;
+}
+
 #include "BKE_texture.h" /* do_colorband() */
 
 static char Freestyle_evaluateColorRamp___doc__[] =
@@ -67,7 +150,7 @@ static char Freestyle_evaluateColorRamp___doc__[] =
 "   :arg in: Value in the interval 0 to 1.\n"
 "   :type in: float\n"
 "   :return: color in RGBA format.\n"
-"   :rtype: Tuple of 4 float values\n";
+"   :rtype: :class:`mathutils.Vector`\n";
 
 static PyObject *Freestyle_evaluateColorRamp( PyObject *self, PyObject *args )
 {
@@ -86,7 +169,7 @@ static PyObject *Freestyle_evaluateColorRamp( PyObject *self, PyObject *args )
 		PyErr_SetString(PyExc_ValueError, "failed to evaluate the color ramp");
 		return NULL;
 	}
-	return Py_BuildValue("(f,f,f,f)", out[0], out[1], out[2], out[3]);
+	return newVectorObject( out, 4, Py_NEW, NULL);
 }
 
 #include "BKE_colortools.h" /* curvemapping_evaluateF() */
@@ -134,6 +217,7 @@ static char module_docstring[] = "The Blender Freestyle module\n\n";
 
 static PyMethodDef module_functions[] = {
 	{"getCurrentScene", ( PyCFunction ) Freestyle_getCurrentScene, METH_NOARGS, Freestyle_getCurrentScene___doc__},
+	{"blendRamp", ( PyCFunction ) Freestyle_blendRamp, METH_VARARGS, Freestyle_blendRamp___doc__},
 	{"evaluateColorRamp", ( PyCFunction ) Freestyle_evaluateColorRamp, METH_VARARGS, Freestyle_evaluateColorRamp___doc__},
 	{"evaluateCurveMappingF", ( PyCFunction ) Freestyle_evaluateCurveMappingF, METH_VARARGS, Freestyle_evaluateCurveMappingF___doc__},
 	{NULL, NULL, 0, NULL}

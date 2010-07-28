@@ -213,10 +213,12 @@ static void rna_def_modifier_curve_common(StructRNA *srna, int range, int value)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem value_blend_items[] = {
-		{LS_VALUE_ADD, "ADD", 0, "Addd", ""},
-		{LS_VALUE_MUL, "MULTIPLY", 0, "Multiply", ""},
+		{LS_VALUE_BLEND, "MIX", 0, "Mix", ""},
+		{LS_VALUE_ADD, "ADD", 0, "Add", ""},
 		{LS_VALUE_SUB, "SUBTRACT", 0, "Subtract", ""},
+		{LS_VALUE_MULT, "MULTIPLY", 0, "Multiply", ""},
 		{LS_VALUE_DIV, "DIVIDE", 0, "Divide", ""},
+		{LS_VALUE_DIFF, "DIFFERENCE", 0, "Divide", ""},
 		{LS_VALUE_MIN, "MININUM", 0, "Minimum", ""}, 
 		{LS_VALUE_MAX, "MAXIMUM", 0, "Maximum", ""}, 
 		{0, NULL, 0, NULL, NULL}};

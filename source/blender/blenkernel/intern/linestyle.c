@@ -183,18 +183,18 @@ int FRS_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, int type)
 	switch (type) {
 	case LS_MODIFIER_ALONG_STROKE:
 		((LineStyleAlphaModifier_AlongStroke *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleAlphaModifier_AlongStroke *)m)->blend = LS_VALUE_ADD;
+		((LineStyleAlphaModifier_AlongStroke *)m)->blend = LS_VALUE_BLEND;
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
 		((LineStyleAlphaModifier_DistanceFromCamera *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleAlphaModifier_DistanceFromCamera *)m)->blend = LS_VALUE_ADD;
+		((LineStyleAlphaModifier_DistanceFromCamera *)m)->blend = LS_VALUE_BLEND;
 		((LineStyleAlphaModifier_DistanceFromCamera *)m)->range_min = 0.0f;
 		((LineStyleAlphaModifier_DistanceFromCamera *)m)->range_max = 10000.0f;
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 		((LineStyleAlphaModifier_DistanceFromObject *)m)->target = NULL;
 		((LineStyleAlphaModifier_DistanceFromObject *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleAlphaModifier_DistanceFromObject *)m)->blend = LS_VALUE_ADD;
+		((LineStyleAlphaModifier_DistanceFromObject *)m)->blend = LS_VALUE_BLEND;
 		((LineStyleAlphaModifier_DistanceFromObject *)m)->range_min = 0.0f;
 		((LineStyleAlphaModifier_DistanceFromObject *)m)->range_max = 10000.0f;
 		break;
@@ -240,13 +240,13 @@ int FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type
 	switch (type) {
 	case LS_MODIFIER_ALONG_STROKE:
 		((LineStyleThicknessModifier_AlongStroke *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleThicknessModifier_AlongStroke *)m)->blend = LS_VALUE_ADD;
+		((LineStyleThicknessModifier_AlongStroke *)m)->blend = LS_VALUE_BLEND;
 		((LineStyleThicknessModifier_AlongStroke *)m)->value_min = 0.0f;
 		((LineStyleThicknessModifier_AlongStroke *)m)->value_max = 1.0f;
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
 		((LineStyleThicknessModifier_DistanceFromCamera *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleThicknessModifier_DistanceFromCamera *)m)->blend = LS_VALUE_ADD;
+		((LineStyleThicknessModifier_DistanceFromCamera *)m)->blend = LS_VALUE_BLEND;
 		((LineStyleThicknessModifier_DistanceFromCamera *)m)->range_min = 0.0f;
 		((LineStyleThicknessModifier_DistanceFromCamera *)m)->range_max = 1000.0f;
 		((LineStyleThicknessModifier_DistanceFromCamera *)m)->value_min = 0.0f;
@@ -255,7 +255,7 @@ int FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type
 	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 		((LineStyleThicknessModifier_DistanceFromObject *)m)->target = NULL;
 		((LineStyleThicknessModifier_DistanceFromObject *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleThicknessModifier_DistanceFromObject *)m)->blend = LS_VALUE_ADD;
+		((LineStyleThicknessModifier_DistanceFromObject *)m)->blend = LS_VALUE_BLEND;
 		((LineStyleThicknessModifier_DistanceFromObject *)m)->range_min = 0.0f;
 		((LineStyleThicknessModifier_DistanceFromObject *)m)->range_max = 1000.0f;
 		((LineStyleThicknessModifier_DistanceFromObject *)m)->value_min = 0.0f;

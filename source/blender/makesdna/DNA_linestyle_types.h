@@ -62,12 +62,14 @@ typedef struct LineStyleModifier {
 #define LS_MODIFIER_INVERT       2
 
 /* blend (for alpha & thickness) */
+#define LS_VALUE_BLEND  0
 #define LS_VALUE_ADD    1
-#define LS_VALUE_MUL    2
+#define LS_VALUE_MULT   2
 #define LS_VALUE_SUB    3
 #define LS_VALUE_DIV    4
-#define LS_VALUE_MIN    5
-#define LS_VALUE_MAX    6
+#define LS_VALUE_DIFF   5
+#define LS_VALUE_MIN    6
+#define LS_VALUE_MAX    7
 
 /* Along Stroke modifiers */
 
