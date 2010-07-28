@@ -321,31 +321,12 @@ static float cosval[32] ={
 	1.00000000
 };
 
-static void draw_xyz_wire(RegionView3D *rv3d, float mat[][4], float *c, float size, int axis)
+static void draw_xyz_wire(float *c, float size, int axis)
 {
 	float v1[3]= {0.f, 0.f, 0.f}, v2[3] = {0.f, 0.f, 0.f};
-	float imat[4][4];
-	float dim;
-	float dx[3], dy[3];
-
-	/* hrms, really only works properly after glLoadMatrixf(rv3d->viewmat); */
-	float pixscale= rv3d->persmat[0][3]*c[0]+ rv3d->persmat[1][3]*c[1]+ rv3d->persmat[2][3]*c[2] + rv3d->persmat[3][3];
-	pixscale*= rv3d->pixsize;
-
-	/* halfway blend between fixed size in worldspace vs viewspace -
-	 * alleviates some of the weirdness due to not using viewmat for gl matrix */
-	dim = (0.05*size*0.5) + (size*10.f*pixscale*0.5);
-
-	invert_m4_m4(imat, mat);
-	normalize_v3(imat[0]);
-	normalize_v3(imat[1]);
+	float dim = size * 0.1;
+	float dx[3]={dim, 0.0, 0.0}, dy[3]={0.0, dim, 0.0}, dz[3]={0.0, 0.0, dim};
 	
-	copy_v3_v3(dx, imat[0]);
-	copy_v3_v3(dy, imat[1]);
-	
-	mul_v3_fl(dx, dim);
-	mul_v3_fl(dy, dim);
-
 	switch(axis) {
 		case 0:		/* x axis */
 			glBegin(GL_LINES);
@@ -397,7 +378,7 @@ static void draw_xyz_wire(RegionView3D *rv3d, float mat[][4], float *c, float si
 			
 			/* start at top left */
 			sub_v3_v3v3(v1, c, dx);
-			add_v3_v3v3(v1, c, dy);
+			add_v3_v3v3(v1, c, dz);
 			
 			glVertex3fv(v1);
 			
@@ -406,9 +387,9 @@ static void draw_xyz_wire(RegionView3D *rv3d, float mat[][4], float *c, float si
 
 			glVertex3fv(v1);
 			
-			mul_v3_fl(dy, 2.f);
+			mul_v3_fl(dz, 2.f);
 			sub_v3_v3(v1, dx);
-			sub_v3_v3(v1, dy);
+			sub_v3_v3(v1, dz);
 			
 			glVertex3fv(v1);
 			
@@ -423,7 +404,7 @@ static void draw_xyz_wire(RegionView3D *rv3d, float mat[][4], float *c, float si
 }
 
 /* flag is same as for draw_object */
-void drawaxes(RegionView3D *rv3d, float mat[][4], float size, int flag, char drawtype)
+void drawaxes(float size, int flag, char drawtype)
 {
 	int axis;
 	float v1[3]= {0.0, 0.0, 0.0};
@@ -522,7 +503,7 @@ void drawaxes(RegionView3D *rv3d, float mat[][4], float size, int flag, char dra
 				
 			v2[axis]+= size*0.125;
 			
-			draw_xyz_wire(rv3d, mat, v2, size, axis);
+			draw_xyz_wire(v2, size, axis);
 		}
 		break;
 	}
@@ -5925,7 +5906,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		}
 		case OB_EMPTY:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
-				drawaxes(rv3d, rv3d->viewmatob, ob->empty_drawsize, flag, ob->empty_drawtype);
+				drawaxes(ob->empty_drawsize, flag, ob->empty_drawtype);
 			break;
 		case OB_LAMP:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
@@ -5951,7 +5932,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			break;
 		default:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
-				drawaxes(rv3d, rv3d->viewmatob, 1.0, flag, OB_ARROWS);
+				drawaxes(1.0, flag, OB_ARROWS);
 			}
 	}
 
@@ -6151,7 +6132,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		if(dtx && (G.f & G_RENDER_OGL)==0) {
 
 			if(dtx & OB_AXIS) {
-				drawaxes(rv3d, rv3d->viewmatob, 1.0f, flag, OB_ARROWS);
+				drawaxes(1.0f, flag, OB_ARROWS);
 			}
 			if(dtx & OB_BOUNDBOX) {
 				if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
@@ -6525,7 +6506,7 @@ void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			draw_object_mesh_instance(scene, v3d, rv3d, ob, dt, outline);
 			break;
 		case OB_EMPTY:
-			drawaxes(rv3d, rv3d->viewmatob, ob->empty_drawsize, 0, ob->empty_drawtype);
+			drawaxes(ob->empty_drawsize, 0, ob->empty_drawtype);
 			break;
 	}
 }
