@@ -395,6 +395,7 @@ Scene *add_scene(char *name)
 	sce->toolsettings->jointrilimit = 0.8f;
 
 	sce->toolsettings->selectmode= SCE_SELECT_VERTEX;
+	sce->toolsettings->uv_selectmode= UV_SELECT_VERTEX;
 	sce->toolsettings->normalsize= 0.1;
 	sce->toolsettings->autokey_mode= U.autokey_mode;
 
