@@ -329,8 +329,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
 
         col = row.column()
         row = col.row(align=True)
-        row.label("Overlay Color:")
-        row.prop(edit, "sculpt_paint_overlay_col", text="")
+        row.prop(edit, "sculpt_paint_overlay_col", text="Sculpt Overlay Color")
 
         col.separator()
         col.separator()
