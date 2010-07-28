@@ -1731,7 +1731,7 @@ void do_material_tex(ShadeInput *shi)
 				co= shi->tang; dx= shi->dxno; dy= shi->dyno;
 			}
 			else if(mtex->texco==TEXCO_GLOB) {
-				co= shi->gl; dx= shi->dxco; dy= shi->dyco;
+				co= shi->gl; dx= shi->dxgl; dy= shi->dygl;
 			}
 			else if(mtex->texco==TEXCO_UV) {
 				if(mtex->texflag & MTEX_DUPLI_MAPTO) {
