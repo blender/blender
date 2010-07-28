@@ -558,19 +558,9 @@ void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
 		}
 		else {
-			int tempdepth;
-			/* XXX dodgy business here, set ray depth to -1
-			 * to ignore raytrace in shade_material_loop()
-			 * this could really use a refactor --Matt */
-			if (shi->volume_depth == 0) {
-				tempdepth = shi->depth;
-				shi->depth = -1;
-				shade_material_loop(shi, shr);
-				shi->depth = tempdepth;
-			} else {
-				shade_material_loop(shi, shr);
-			}
+			shade_material_loop(shi, shr);
 		}
+		
 		/* raytrace likes to separate the spec color */
 		VECSUB(shr->diff, shr->combined, shr->spec);
 	}	
