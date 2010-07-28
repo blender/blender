@@ -30,8 +30,6 @@
 
 /**
  * This class represents an output device for 3D sound.
- * Whether a normal device supports this or not can be checked with the
- * AUD_CAPS_3D_DEVICE capability.
  */
 class AUD_I3DDevice
 {

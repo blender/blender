@@ -58,7 +58,6 @@ bool g_pyinitialized = false;
 #include "AUD_ChannelMapperFactory.h"
 #include "AUD_Buffer.h"
 #include "AUD_ReadDevice.h"
-#include "AUD_SourceCaps.h"
 #include "AUD_IReader.h"
 #include "AUD_SequencerFactory.h"
 
@@ -139,8 +138,7 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 		}
 
 		AUD_device = dev;
-		if(AUD_device->checkCapability(AUD_CAPS_3D_DEVICE))
-			AUD_3ddevice = dynamic_cast<AUD_I3DDevice*>(AUD_device);
+		AUD_3ddevice = dynamic_cast<AUD_I3DDevice*>(AUD_device);
 
 #ifdef WITH_PYTHON
 		if(g_pyinitialized)
@@ -570,13 +568,10 @@ int AUD_setSoundVolume(AUD_Channel* handle, float volume)
 	if(handle)
 	{
 		assert(AUD_device);
-		AUD_SourceCaps caps;
-		caps.handle = handle;
-		caps.value = volume;
 
 		try
 		{
-			return AUD_device->setCapability(AUD_CAPS_SOURCE_VOLUME, &caps);
+			return AUD_device->setVolume(handle, volume);
 		}
 		catch(AUD_Exception&) {}
 	}
@@ -588,13 +583,10 @@ int AUD_setSoundPitch(AUD_Channel* handle, float pitch)
 	if(handle)
 	{
 		assert(AUD_device);
-		AUD_SourceCaps caps;
-		caps.handle = handle;
-		caps.value = pitch;
 
 		try
 		{
-			return AUD_device->setCapability(AUD_CAPS_SOURCE_PITCH, &caps);
+			return AUD_device->setPitch(handle, pitch);
 		}
 		catch(AUD_Exception&) {}
 	}
@@ -636,7 +628,8 @@ int AUD_setDeviceVolume(AUD_Device* device, float volume)
 
 	try
 	{
-		return device->setCapability(AUD_CAPS_VOLUME, &volume);
+		device->setVolume(volume);
+		return true;
 	}
 	catch(AUD_Exception&) {}
 	
@@ -649,13 +642,10 @@ int AUD_setDeviceSoundVolume(AUD_Device* device, AUD_Channel* handle,
 	if(handle)
 	{
 		assert(device);
-		AUD_SourceCaps caps;
-		caps.handle = handle;
-		caps.value = volume;
 
 		try
 		{
-			return device->setCapability(AUD_CAPS_SOURCE_VOLUME, &caps);
+			return device->setVolume(handle, volume);
 		}
 		catch(AUD_Exception&) {}
 	}

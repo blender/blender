@@ -27,9 +27,9 @@
 #include "AUD_IReader.h"
 #include "AUD_DefaultMixer.h"
 #include "AUD_IFactory.h"
-#include "AUD_SourceCaps.h"
 
 #include <cstring>
+#include <limits>
 
 /// Saves the data for playback.
 struct AUD_SoftwareHandle : AUD_Handle
@@ -281,6 +281,20 @@ bool AUD_SoftwareDevice::stop(AUD_Handle* handle)
 	return result;
 }
 
+bool AUD_SoftwareDevice::getKeep(AUD_Handle* handle)
+{
+	bool result = false;
+
+	lock();
+
+	if(isValid(handle))
+		result = ((AUD_SoftwareHandle*)handle)->keep;
+
+	unlock();
+
+	return result;
+}
+
 bool AUD_SoftwareDevice::setKeep(AUD_Handle* handle, bool keep)
 {
 	bool result = false;
@@ -376,77 +390,42 @@ void AUD_SoftwareDevice::unlock()
 	pthread_mutex_unlock(&m_mutex);
 }
 
-bool AUD_SoftwareDevice::checkCapability(int capability)
+float AUD_SoftwareDevice::getVolume() const
 {
-	return capability == AUD_CAPS_SOFTWARE_DEVICE ||
-		   capability == AUD_CAPS_VOLUME ||
-		   capability == AUD_CAPS_SOURCE_VOLUME;
+	return m_volume;
 }
 
-bool AUD_SoftwareDevice::setCapability(int capability, void *value)
+void AUD_SoftwareDevice::setVolume(float volume)
 {
-	bool result = false;
-
-	switch(capability)
-	{
-	case AUD_CAPS_VOLUME:
-		lock();
-		m_volume = *((float*)value);
-		if(m_volume > 1.0f)
-			m_volume = 1.0f;
-		else if(m_volume < 0.0f)
-			m_volume = 0.0f;
-		unlock();
-		return true;
-	case AUD_CAPS_SOURCE_VOLUME:
-		{
-			AUD_SourceCaps* caps = (AUD_SourceCaps*) value;
-			lock();
-			if(isValid(caps->handle))
-			{
-				AUD_SoftwareHandle* handle = (AUD_SoftwareHandle*)caps->handle;
-				handle->volume = caps->value;
-				if(handle->volume > 1.0f)
-					handle->volume = 1.0f;
-				else if(handle->volume < 0.0f)
-					handle->volume = 0.0f;
-				result = true;
-			}
-			unlock();
-		}
-		break;
-	}
-
-	return result;;
+	m_volume = volume;
 }
 
-bool AUD_SoftwareDevice::getCapability(int capability, void *value)
+float AUD_SoftwareDevice::getVolume(AUD_Handle* handle)
 {
-	bool result = false;
-
-	switch(capability)
-	{
-	case AUD_CAPS_VOLUME:
-		lock();
-		*((float*)value) = m_volume;
-		unlock();
-		return true;
-	case AUD_CAPS_SOURCE_VOLUME:
-		{
-			AUD_SourceCaps* caps = (AUD_SourceCaps*) value;
-
-			lock();
-
-			if(isValid(caps->handle))
-			{
-				caps->value = ((AUD_SoftwareHandle*)caps->handle)->volume;
-				result = true;
-			}
-
-			unlock();
-		}
-		break;
-	}
-
+	lock();
+	float result = std::numeric_limits<float>::quiet_NaN();
+	if(isValid(handle))
+		result = ((AUD_SoftwareHandle*)handle)->volume;
+	unlock();
 	return result;
+}
+
+bool AUD_SoftwareDevice::setVolume(AUD_Handle* handle, float volume)
+{
+	lock();
+	bool result = isValid(handle);
+	if(result)
+		((AUD_SoftwareHandle*)handle)->volume = volume;
+	unlock();
+	return result;
+}
+
+float AUD_SoftwareDevice::getPitch(AUD_Handle* handle)
+{
+	return std::numeric_limits<float>::quiet_NaN();
+}
+
+bool AUD_SoftwareDevice::setPitch(AUD_Handle* handle, float pitch)
+{
+	return false;
 }

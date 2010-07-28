@@ -47,52 +47,6 @@
 /// The default playback buffer size of a device.
 #define AUD_DEFAULT_BUFFER_SIZE 1024
 
-// Capability defines
-
-/// This capability checks whether a device is a 3D device. See AUD_I3DDevice.h.
-#define AUD_CAPS_3D_DEVICE			0x0001
-
-/**
- * This capability checks whether a device is a software device. See
- * AUD_SoftwareDevice.
- */
-#define AUD_CAPS_SOFTWARE_DEVICE	0x0002
-
-/**
- * This capability enables the user to set the overall volume of the device.
- * You can set and get it with the pointer pointing to a float value between
- * 0.0 (muted) and 1.0 (maximum volume).
- */
-#define AUD_CAPS_VOLUME				0x0101
-
-/**
- * This capability enables the user to set the volume of a source.
- * You can set and get it with the pointer pointing to a AUD_SourceValue
- * structure defined in AUD_SourceCaps.h.
- */
-#define AUD_CAPS_SOURCE_VOLUME		0x1001
-
-/**
- * This capability enables the user to set the pitch of a source.
- * You can set and get it with the pointer pointing to a AUD_SourceValue
- * structure defined in AUD_SourceCaps.h.
- */
-#define AUD_CAPS_SOURCE_PITCH		0x1002
-
-/**
- * This capability enables the user to buffer a factory into the device.
- * Setting with the factory as pointer loads the factory into a device internal
- * buffer. Play function calls with the buffered factory as argument result in
- * the internal buffer being played back, so there's no reader created, what
- * also results in not being able to send messages to that handle.
- * A repeated call with the same factory doesn't do anything.
- * A set call with a NULL pointer results in all buffered factories being
- * deleted.
- * \note This is only possible with factories that create readers of the buffer
- *       type.
- */
-#define AUD_CAPS_BUFFERED_FACTORY	0x2001
-
 /**
  * The format of a sample.
  * The last 4 bit save the byte count of the format.

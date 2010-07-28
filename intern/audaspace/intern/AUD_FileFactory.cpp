@@ -75,5 +75,5 @@ AUD_IReader* AUD_FileFactory::createReader() const
 	catch(AUD_Exception&) {}
 #endif
 
-	AUD_THROW(AUD_ERROR_FILE)
+	AUD_THROW(AUD_ERROR_FILE);
 }

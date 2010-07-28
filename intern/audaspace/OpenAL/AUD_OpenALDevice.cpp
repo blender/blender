@@ -27,7 +27,6 @@
 #include "AUD_IFactory.h"
 #include "AUD_IReader.h"
 #include "AUD_ConverterReader.h"
-#include "AUD_SourceCaps.h"
 
 #include <cstring>
 #include <limits>
@@ -762,6 +761,20 @@ bool AUD_OpenALDevice::stop(AUD_Handle* handle)
 	return result;
 }
 
+bool AUD_OpenALDevice::getKeep(AUD_Handle* handle)
+{
+	bool result = false;
+
+	lock();
+
+	if(isValid(handle))
+		result = ((AUD_OpenALHandle*)handle)->keep;
+
+	unlock();
+
+	return result;
+}
+
 bool AUD_OpenALDevice::setKeep(AUD_Handle* handle, bool keep)
 {
 	bool result = false;
@@ -910,213 +923,177 @@ void AUD_OpenALDevice::unlock()
 	pthread_mutex_unlock(&m_mutex);
 }
 
-/******************************************************************************/
-/**************************** Capabilities Code *******************************/
-/******************************************************************************/
-
-bool AUD_OpenALDevice::checkCapability(int capability)
+float AUD_OpenALDevice::getVolume() const
 {
-	return capability == AUD_CAPS_3D_DEVICE ||
-		   capability == AUD_CAPS_VOLUME ||
-		   capability == AUD_CAPS_SOURCE_VOLUME ||
-		   capability == AUD_CAPS_SOURCE_PITCH ||
-		   capability == AUD_CAPS_BUFFERED_FACTORY;
-}
-
-bool AUD_OpenALDevice::setCapability(int capability, void *value)
-{
-	bool result = false;
-	switch(capability)
-	{
-	case AUD_CAPS_VOLUME:
-		alListenerf(AL_GAIN, *((float*)value));
-		return true;
-	case AUD_CAPS_SOURCE_VOLUME:
-		{
-			AUD_SourceCaps* caps = (AUD_SourceCaps*) value;
-			lock();
-			if(isValid(caps->handle))
-			{
-				alSourcef(((AUD_OpenALHandle*)caps->handle)->source,
-						  AL_GAIN, caps->value);
-				result = true;
-			}
-			unlock();
-		}
-		break;
-	case AUD_CAPS_SOURCE_PITCH:
-		{
-			AUD_SourceCaps* caps = (AUD_SourceCaps*) value;
-			lock();
-			if(isValid(caps->handle))
-			{
-				alSourcef(((AUD_OpenALHandle*)caps->handle)->source,
-						  AL_PITCH, caps->value);
-				result = true;
-			}
-			unlock();
-		}
-		break;
-	case AUD_CAPS_BUFFERED_FACTORY:
-		{
-			AUD_IFactory* factory = (AUD_IFactory*) value;
-
-			// load the factory into an OpenAL buffer
-			if(factory)
-			{
-				// check if the factory is already buffered
-				lock();
-				for(AUD_BFIterator i = m_bufferedFactories->begin();
-					i != m_bufferedFactories->end(); i++)
-				{
-					if((*i)->factory == factory)
-					{
-						result = true;
-						break;
-					}
-				}
-				unlock();
-				if(result)
-					return result;
-
-				AUD_IReader* reader = factory->createReader();
-
-				if(reader == NULL)
-					return false;
-
-				AUD_DeviceSpecs specs = m_specs;
-				specs.specs = reader->getSpecs();
-
-				if(m_specs.format != AUD_FORMAT_FLOAT32)
-					reader = new AUD_ConverterReader(reader, m_specs);
-
-				ALenum format;
-
-				if(!getFormat(format, specs.specs))
-				{
-					delete reader;
-					return false;
-				}
-
-				// load into a buffer
-				lock();
-				alcSuspendContext(m_context);
-
-				AUD_OpenALBufferedFactory* bf = new AUD_OpenALBufferedFactory;
-				bf->factory = factory;
-
-				try
-				{
-					alGenBuffers(1, &bf->buffer);
-					if(alGetError() != AL_NO_ERROR)
-						AUD_THROW(AUD_ERROR_OPENAL);
-
-					try
-					{
-						sample_t* buf;
-						int length = reader->getLength();
-
-						reader->read(length, buf);
-						alBufferData(bf->buffer, format, buf,
-									 length * AUD_DEVICE_SAMPLE_SIZE(specs),
-									 specs.rate);
-						if(alGetError() != AL_NO_ERROR)
-							AUD_THROW(AUD_ERROR_OPENAL);
-					}
-					catch(AUD_Exception&)
-					{
-						alDeleteBuffers(1, &bf->buffer);
-						throw;
-					}
-				}
-				catch(AUD_Exception&)
-				{
-					delete bf;
-					delete reader;
-					alcProcessContext(m_context);
-					unlock();
-					return false;
-				}
-
-				m_bufferedFactories->push_back(bf);
-
-				alcProcessContext(m_context);
-				unlock();
-			}
-			else
-			{
-				// stop all playing and paused buffered sources
-				lock();
-				alcSuspendContext(m_context);
-
-				AUD_OpenALHandle* sound;
-				AUD_HandleIterator it = m_playingSounds->begin();
-				while(it != m_playingSounds->end())
-				{
-					sound = *it;
-					++it;
-
-					if(sound->isBuffered)
-						stop(sound);
-				}
-				alcProcessContext(m_context);
-
-				while(!m_bufferedFactories->empty())
-				{
-					alDeleteBuffers(1,
-									&(*(m_bufferedFactories->begin()))->buffer);
-					delete *m_bufferedFactories->begin();
-					m_bufferedFactories->erase(m_bufferedFactories->begin());
-				}
-				unlock();
-			}
-
-			return true;
-		}
-		break;
-	}
+	float result;
+	alGetListenerf(AL_GAIN, &result);
 	return result;
 }
 
-bool AUD_OpenALDevice::getCapability(int capability, void *value)
+void AUD_OpenALDevice::setVolume(float volume)
 {
-	bool result = false;
+	alListenerf(AL_GAIN, volume);
+}
 
-	switch(capability)
-	{
-	case AUD_CAPS_VOLUME:
-		alGetListenerf(AL_GAIN, (float*)value);
-		return true;
-	case AUD_CAPS_SOURCE_VOLUME:
-		{
-			AUD_SourceCaps* caps = (AUD_SourceCaps*) value;
-			lock();
-			if(isValid(caps->handle))
-			{
-				alGetSourcef(((AUD_OpenALHandle*)caps->handle)->source,
-						  AL_GAIN, &caps->value);
-				result = true;
-			}
-			unlock();
-		}
-		break;
-	case AUD_CAPS_SOURCE_PITCH:
-		{
-			AUD_SourceCaps* caps = (AUD_SourceCaps*) value;
-			lock();
-			if(isValid(caps->handle))
-			{
-				alGetSourcef(((AUD_OpenALHandle*)caps->handle)->source,
-						  AL_PITCH, &caps->value);
-				result = true;
-			}
-			unlock();
-		}
-		break;
-	}
-
+float AUD_OpenALDevice::getVolume(AUD_Handle* handle)
+{
+	lock();
+	float result = std::numeric_limits<float>::quiet_NaN();
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source,AL_GAIN, &result);
+	unlock();
 	return result;
 }
+
+bool AUD_OpenALDevice::setVolume(AUD_Handle* handle, float volume)
+{
+	lock();
+	bool result = isValid(handle);
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_GAIN, volume);
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getPitch(AUD_Handle* handle)
+{
+	lock();
+	float result = std::numeric_limits<float>::quiet_NaN();
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source,AL_PITCH, &result);
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setPitch(AUD_Handle* handle, float pitch)
+{
+	lock();
+	bool result = isValid(handle);
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_PITCH, pitch);
+	unlock();
+	return result;
+}
+
+/* AUD_XXX Temorary disabled
+
+bool AUD_OpenALDevice::bufferFactory(void *value)
+{
+	bool result = false;
+	AUD_IFactory* factory = (AUD_IFactory*) value;
+
+	// load the factory into an OpenAL buffer
+	if(factory)
+	{
+		// check if the factory is already buffered
+		lock();
+		for(AUD_BFIterator i = m_bufferedFactories->begin();
+			i != m_bufferedFactories->end(); i++)
+		{
+			if((*i)->factory == factory)
+			{
+				result = true;
+				break;
+			}
+		}
+		unlock();
+		if(result)
+			return result;
+
+		AUD_IReader* reader = factory->createReader();
+
+		if(reader == NULL)
+			return false;
+
+		AUD_DeviceSpecs specs = m_specs;
+		specs.specs = reader->getSpecs();
+
+		if(m_specs.format != AUD_FORMAT_FLOAT32)
+			reader = new AUD_ConverterReader(reader, m_specs);
+
+		ALenum format;
+
+		if(!getFormat(format, specs.specs))
+		{
+			delete reader;
+			return false;
+		}
+
+		// load into a buffer
+		lock();
+		alcSuspendContext(m_context);
+
+		AUD_OpenALBufferedFactory* bf = new AUD_OpenALBufferedFactory;
+		bf->factory = factory;
+
+		try
+		{
+			alGenBuffers(1, &bf->buffer);
+			if(alGetError() != AL_NO_ERROR)
+				AUD_THROW(AUD_ERROR_OPENAL);
+
+			try
+			{
+				sample_t* buf;
+				int length = reader->getLength();
+
+				reader->read(length, buf);
+				alBufferData(bf->buffer, format, buf,
+							 length * AUD_DEVICE_SAMPLE_SIZE(specs),
+							 specs.rate);
+				if(alGetError() != AL_NO_ERROR)
+					AUD_THROW(AUD_ERROR_OPENAL);
+			}
+			catch(AUD_Exception&)
+			{
+				alDeleteBuffers(1, &bf->buffer);
+				throw;
+			}
+		}
+		catch(AUD_Exception&)
+		{
+			delete bf;
+			delete reader;
+			alcProcessContext(m_context);
+			unlock();
+			return false;
+		}
+
+		m_bufferedFactories->push_back(bf);
+
+		alcProcessContext(m_context);
+		unlock();
+	}
+	else
+	{
+		// stop all playing and paused buffered sources
+		lock();
+		alcSuspendContext(m_context);
+
+		AUD_OpenALHandle* sound;
+		AUD_HandleIterator it = m_playingSounds->begin();
+		while(it != m_playingSounds->end())
+		{
+			sound = *it;
+			++it;
+
+			if(sound->isBuffered)
+				stop(sound);
+		}
+		alcProcessContext(m_context);
+
+		while(!m_bufferedFactories->empty())
+		{
+			alDeleteBuffers(1,
+							&(*(m_bufferedFactories->begin()))->buffer);
+			delete *m_bufferedFactories->begin();
+			m_bufferedFactories->erase(m_bufferedFactories->begin());
+		}
+		unlock();
+	}
+
+	return true;
+}*/
 
 /******************************************************************************/
 /**************************** 3D Device Code **********************************/

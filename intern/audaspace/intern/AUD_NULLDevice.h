@@ -44,15 +44,19 @@ public:
 	virtual bool pause(AUD_Handle* handle);
 	virtual bool resume(AUD_Handle* handle);
 	virtual bool stop(AUD_Handle* handle);
+	virtual bool getKeep(AUD_Handle* handle);
 	virtual bool setKeep(AUD_Handle* handle, bool keep);
 	virtual bool seek(AUD_Handle* handle, float position);
 	virtual float getPosition(AUD_Handle* handle);
 	virtual AUD_Status getStatus(AUD_Handle* handle);
 	virtual void lock();
 	virtual void unlock();
-	virtual bool checkCapability(int capability);
-	virtual bool setCapability(int capability, void *value);
-	virtual bool getCapability(int capability, void *value);
+	virtual float getVolume() const;
+	virtual void setVolume(float volume);
+	virtual float getVolume(AUD_Handle* handle);
+	virtual bool setVolume(AUD_Handle* handle, float volume);
+	virtual float getPitch(AUD_Handle* handle);
+	virtual bool setPitch(AUD_Handle* handle, float pitch);
 };
 
 #endif //AUD_NULLDEVICE

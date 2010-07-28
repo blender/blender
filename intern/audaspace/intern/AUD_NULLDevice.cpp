@@ -62,6 +62,11 @@ bool AUD_NULLDevice::stop(AUD_Handle* handle)
 	return false;
 }
 
+bool AUD_NULLDevice::getKeep(AUD_Handle* handle)
+{
+	return false;
+}
+
 bool AUD_NULLDevice::setKeep(AUD_Handle* handle, bool keep)
 {
 	return false;
@@ -90,17 +95,31 @@ void AUD_NULLDevice::unlock()
 {
 }
 
-bool AUD_NULLDevice::checkCapability(int capability)
+float AUD_NULLDevice::getVolume() const
+{
+	return 0;
+}
+
+void AUD_NULLDevice::setVolume(float volume)
+{
+}
+
+float AUD_NULLDevice::getVolume(AUD_Handle* handle)
+{
+	return std::numeric_limits<float>::quiet_NaN();
+}
+
+bool AUD_NULLDevice::setVolume(AUD_Handle* handle, float volume)
 {
 	return false;
 }
 
-bool AUD_NULLDevice::setCapability(int capability, void *value)
+float AUD_NULLDevice::getPitch(AUD_Handle* handle)
 {
-	return false;
+	return std::numeric_limits<float>::quiet_NaN();
 }
 
-bool AUD_NULLDevice::getCapability(int capability, void *value)
+bool AUD_NULLDevice::setPitch(AUD_Handle* handle, float pitch)
 {
 	return false;
 }

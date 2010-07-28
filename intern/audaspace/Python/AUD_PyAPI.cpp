@@ -27,7 +27,6 @@
 #include "structmember.h"
 
 #include "AUD_NULLDevice.h"
-#include "AUD_SourceCaps.h"
 #include "AUD_DelayFactory.h"
 #include "AUD_DoubleFactory.h"
 #include "AUD_FaderFactory.h"
@@ -1039,7 +1038,9 @@ Handle_update(Handle *self, PyObject *args)
 		if(device)
 		{
 			if(device->updateSource(self->handle, data))
+			{
 				Py_RETURN_TRUE;
+			}
 		}
 		else
 		{
@@ -1104,20 +1105,41 @@ Handle_set_position(Handle *self, PyObject* args, void* nothing)
 	try
 	{
 		if(device->device->seek(self->handle, position))
-		{
 			return 0;
-		}
 	}
 	catch(AUD_Exception&)
 	{
-		PyErr_SetString(AUDError, "Couldn't seek the sound!");
 	}
 
+	PyErr_SetString(AUDError, "Couldn't seek the sound!");
 	return -1;
 }
 
 PyDoc_STRVAR(M_aud_Handle_keep_doc,
 			 "Whether the sound should be kept paused in the device when its end is reached.");
+
+static PyObject *
+Handle_get_keep(Handle *self, void* nothing)
+{
+	Device* device = (Device*)self->device;
+
+	try
+	{
+		if(device->device->getKeep(self->handle))
+		{
+			Py_RETURN_TRUE;
+		}
+		else
+		{
+			Py_RETURN_FALSE;
+		}
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't retrieve the status of the sound!");
+		return NULL;
+	}
+}
 
 static int
 Handle_set_keep(Handle *self, PyObject* args, void* nothing)
@@ -1134,15 +1156,13 @@ Handle_set_keep(Handle *self, PyObject* args, void* nothing)
 	try
 	{
 		if(device->device->setKeep(self->handle, keep))
-		{
 			return 0;
-		}
 	}
 	catch(AUD_Exception&)
 	{
-		PyErr_SetString(AUDError, "Couldn't set keep of the sound!");
 	}
 
+	PyErr_SetString(AUDError, "Couldn't set keep of the sound!");
 	return -1;
 }
 
@@ -1175,21 +1195,13 @@ Handle_get_volume(Handle *self, void* nothing)
 
 	try
 	{
-		AUD_SourceCaps caps;
-		caps.handle = self->handle;
-		caps.value = 1.0f;
-		if(device->device->getCapability(AUD_CAPS_SOURCE_VOLUME, &caps))
-		{
-			return Py_BuildValue("f", caps.value);
-		}
+		return Py_BuildValue("f", device->device->getVolume(self->handle));
 	}
 	catch(AUD_Exception&)
 	{
 		PyErr_SetString(AUDError, "Couldn't get the sound volume!");
 		return NULL;
 	}
-
-	Py_RETURN_NAN;
 }
 
 static int
@@ -1204,24 +1216,35 @@ Handle_set_volume(Handle *self, PyObject* args, void* nothing)
 
 	try
 	{
-		AUD_SourceCaps caps;
-		caps.handle = self->handle;
-		caps.value = volume;
-		if(device->device->setCapability(AUD_CAPS_SOURCE_VOLUME, &caps))
-		{
+		if(device->device->setVolume(self->handle, volume))
 			return 0;
-		}
 	}
 	catch(AUD_Exception&)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the sound volume!");
 	}
 
+	PyErr_SetString(AUDError, "Couldn't set the sound volume!");
 	return -1;
 }
 
 PyDoc_STRVAR(M_aud_Handle_pitch_doc,
 			 "The pitch of the sound.");
+
+static PyObject *
+Handle_get_pitch(Handle *self, void* nothing)
+{
+	Device* device = (Device*)self->device;
+
+	try
+	{
+		return Py_BuildValue("f", device->device->getPitch(self->handle));
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't get the sound pitch!");
+		return NULL;
+	}
+}
 
 static int
 Handle_set_pitch(Handle *self, PyObject* args, void* nothing)
@@ -1235,24 +1258,36 @@ Handle_set_pitch(Handle *self, PyObject* args, void* nothing)
 
 	try
 	{
-		AUD_SourceCaps caps;
-		caps.handle = self->handle;
-		caps.value = pitch;
-		if(device->device->setCapability(AUD_CAPS_SOURCE_PITCH, &caps))
-		{
+		if(device->device->setPitch(self->handle, pitch))
 			return 0;
-		}
 	}
 	catch(AUD_Exception&)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the sound pitch!");
 	}
 
+	PyErr_SetString(AUDError, "Couldn't set the sound pitch!");
 	return -1;
 }
 
 PyDoc_STRVAR(M_aud_Handle_loop_count_doc,
 			 "The (remaining) loop count of the sound. A negative value indicates infinity.");
+
+static PyObject *
+Handle_get_loop_count(Handle *self, void* nothing)
+{
+	Device* device = (Device*)self->device;
+
+	try
+	{
+		// AUD_XXX will come soon; return Py_BuildValue("f", device->device->getPitch(self->handle));
+		AUD_THROW(AUD_ERROR_FACTORY);
+	}
+	catch(AUD_Exception&)
+	{
+		PyErr_SetString(AUDError, "Couldn't get the loop count!");
+		return NULL;
+	}
+}
 
 static int
 Handle_set_loop_count(Handle *self, PyObject* args, void* nothing)
@@ -1277,9 +1312,9 @@ Handle_set_loop_count(Handle *self, PyObject* args, void* nothing)
 	}
 	catch(AUD_Exception&)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the loop count!");
 	}
 
+	PyErr_SetString(AUDError, "Couldn't set the loop count!");
 	return -1;
 }
 
@@ -1339,9 +1374,7 @@ Handle_set_relative(Handle *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-		{
 			PyErr_SetString(AUDError, "Device is not a 3D device!");
-		}
 	}
 	catch(AUD_Exception&)
 	{
@@ -1398,9 +1431,7 @@ Handle_set_min_gain(Handle *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-		{
 			PyErr_SetString(AUDError, "Device is not a 3D device!");
-		}
 	}
 	catch(AUD_Exception&)
 	{
@@ -1457,9 +1488,7 @@ Handle_set_max_gain(Handle *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-		{
 			PyErr_SetString(AUDError, "Device is not a 3D device!");
-		}
 	}
 	catch(AUD_Exception&)
 	{
@@ -1516,9 +1545,7 @@ Handle_set_reference_distance(Handle *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-		{
 			PyErr_SetString(AUDError, "Device is not a 3D device!");
-		}
 	}
 	catch(AUD_Exception&)
 	{
@@ -1553,7 +1580,8 @@ Handle_get_max_distance(Handle *self, void* nothing)
 	{
 		PyErr_SetString(AUDError, "Couldn't retrieve the maximum distance of the sound!");
 		return NULL;
-	}}
+	}
+}
 
 static int
 Handle_set_max_distance(Handle *self, PyObject* args, void* nothing)
@@ -1574,9 +1602,7 @@ Handle_set_max_distance(Handle *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-		{
 			PyErr_SetString(AUDError, "Device is not a 3D device!");
-		}
 	}
 	catch(AUD_Exception&)
 	{
@@ -1633,9 +1659,7 @@ Handle_set_rolloff_factor(Handle *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-		{
 			PyErr_SetString(AUDError, "Device is not a 3D device!");
-		}
 	}
 	catch(AUD_Exception&)
 	{
@@ -1692,9 +1716,7 @@ Handle_set_cone_inner_angle(Handle *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-		{
 			PyErr_SetString(AUDError, "Device is not a 3D device!");
-		}
 	}
 	catch(AUD_Exception&)
 	{
@@ -1751,9 +1773,7 @@ Handle_set_cone_outer_angle(Handle *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-		{
 			PyErr_SetString(AUDError, "Device is not a 3D device!");
-		}
 	}
 	catch(AUD_Exception&)
 	{
@@ -1810,9 +1830,7 @@ Handle_set_cone_outer_gain(Handle *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-		{
 			PyErr_SetString(AUDError, "Device is not a 3D device!");
-		}
 	}
 	catch(AUD_Exception&)
 	{
@@ -1825,15 +1843,15 @@ Handle_set_cone_outer_gain(Handle *self, PyObject* args, void* nothing)
 static PyGetSetDef Handle_properties[] = {
 	{(char*)"position", (getter)Handle_get_position, (setter)Handle_set_position,
 	 M_aud_Handle_position_doc, NULL },
-	{(char*)"keep", NULL, (setter)Handle_set_keep,
+	{(char*)"keep", (getter)Handle_get_keep, (setter)Handle_set_keep,
 	 M_aud_Handle_keep_doc, NULL },
 	{(char*)"status", (getter)Handle_get_status, NULL,
 	 M_aud_Handle_status_doc, NULL },
 	{(char*)"volume", (getter)Handle_get_volume, (setter)Handle_set_volume,
 	 M_aud_Handle_volume_doc, NULL },
-	{(char*)"pitch", NULL, (setter)Handle_set_pitch,
+	{(char*)"pitch", (getter)Handle_get_pitch, (setter)Handle_set_pitch,
 	 M_aud_Handle_pitch_doc, NULL },
-	{(char*)"loop_count", NULL, (setter)Handle_set_loop_count,
+	{(char*)"loop_count", (getter)Handle_get_loop_count, (setter)Handle_set_loop_count,
 	 M_aud_Handle_loop_count_doc, NULL },
 	{(char*)"relative", (getter)Handle_get_relative, (setter)Handle_set_relative,
 	 M_aud_Handle_relative_doc, NULL },
@@ -2278,17 +2296,13 @@ Device_get_volume(Device *self, void* nothing)
 {
 	try
 	{
-		float volume = 0.0;
-		if(self->device->getCapability(AUD_CAPS_VOLUME, &volume))
-			return Py_BuildValue("f", volume);
+		return Py_BuildValue("f", self->device->getVolume());
 	}
 	catch(AUD_Exception&)
 	{
 		PyErr_SetString(AUDError, "Couldn't retrieve device volume!");
 		return NULL;
 	}
-
-	Py_RETURN_NAN;
 }
 
 static int
@@ -2301,15 +2315,14 @@ Device_set_volume(Device *self, PyObject* args, void* nothing)
 
 	try
 	{
-		if(self->device->setCapability(AUD_CAPS_VOLUME, &volume))
-			return 0;
+		self->device->setVolume(volume);
+		return 0;
 	}
 	catch(AUD_Exception&)
 	{
 		PyErr_SetString(AUDError, "Couldn't set device volume!");
+		return -1;
 	}
-
-	return -1;
 }
 
 PyDoc_STRVAR(M_aud_Device_speed_of_sound_doc,
@@ -2355,9 +2368,7 @@ Device_set_speed_of_sound(Device *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-		{
 			PyErr_SetString(AUDError, "Device is not a 3D device!");
-		}
 	}
 	catch(AUD_Exception&)
 	{
@@ -2410,9 +2421,7 @@ Device_set_doppler_factor(Device *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-		{
 			PyErr_SetString(AUDError, "Device is not a 3D device!");
-		}
 	}
 	catch(AUD_Exception&)
 	{
@@ -2465,9 +2474,7 @@ Device_set_distance_model(Device *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-		{
 			PyErr_SetString(AUDError, "Device is not a 3D device!");
-		}
 	}
 	catch(AUD_Exception&)
 	{

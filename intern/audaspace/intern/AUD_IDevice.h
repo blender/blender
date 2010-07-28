@@ -96,6 +96,16 @@ public:
 	virtual bool stop(AUD_Handle* handle)=0;
 
 	/**
+	 * Gets the behaviour of the device for a played back sound when the sound
+	 * doesn't return any more samples.
+	 * \param handle The handle returned by the play function.
+	 * \return
+	 *        - true if the source will be paused when it's end is reached
+	 *        - false if the handle won't kept or is invalid.
+	 */
+	virtual bool getKeep(AUD_Handle* handle)=0;
+
+	/**
 	 * Sets the behaviour of the device for a played back sound when the sound
 	 * doesn't return any more samples.
 	 * \param handle The handle returned by the play function.
@@ -153,29 +163,50 @@ public:
 	virtual void unlock()=0;
 
 	/**
-	 * Checks if a specific capability as available on a device.
-	 * \param capability The capability.
-	 * \return Whether it is available or not.
+	 * Retrieves the overall device volume.
+	 * \return The overall device volume.
 	 */
-	virtual bool checkCapability(int capability)=0;
+	virtual float getVolume() const=0;
 
 	/**
-	 * Set a value of a capability. The data behind the pointer depends on the
-	 * capability.
-	 * \param capability The capability.
-	 * \param value The value.
-	 * \return Whether the action succeeded or not.
+	 * Sets the overall device volume.
+	 * \param handle The sound handle.
+	 * \param volume The overall device volume.
 	 */
-	virtual bool setCapability(int capability, void *value)=0;
+	virtual void setVolume(float volume)=0;
 
 	/**
-	 * Retrieves a value of a capability. The data behind the pointer depends on
-	 * the capability.
-	 * \param capability The capability.
-	 * \param value The value.
-	 * \return Whether the action succeeded or not.
+	 * Retrieves the volume of a playing sound.
+	 * \param handle The sound handle.
+	 * \return The volume.
 	 */
-	virtual bool getCapability(int capability, void *value)=0;
+	virtual float getVolume(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets the volume of a playing sound.
+	 * \param handle The sound handle.
+	 * \param volume The volume.
+	 * \return
+	 *        - true if the handle is valid.
+	 *        - false if the handle is invalid.
+	 */
+	virtual bool setVolume(AUD_Handle* handle, float volume)=0;
+
+	/**
+	 * Retrieves the pitch of a playing sound.
+	 * \return The pitch.
+	 */
+	virtual float getPitch(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets the pitch of a playing sound.
+	 * \param handle The sound handle.
+	 * \param pitch The pitch.
+	 * \return
+	 *        - true if the handle is valid.
+	 *        - false if the handle is invalid.
+	 */
+	virtual bool setPitch(AUD_Handle* handle, float pitch)=0;
 };
 
 #endif //AUD_IDevice
