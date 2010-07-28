@@ -1673,6 +1673,11 @@ DerivedMesh *CDDM_from_template(DerivedMesh *source,
 	CDDerivedMesh *cddm = cdDM_create("CDDM_from_template dest");
 	DerivedMesh *dm = &cddm->dm;
 
+	/* ensure these are created if they are made on demand */
+	source->getVertDataArray(source, CD_ORIGINDEX);
+	source->getEdgeDataArray(source, CD_ORIGINDEX);
+	source->getFaceDataArray(source, CD_ORIGINDEX);
+
 	/* this does a copy of all non mvert/medge/mface layers */
 	DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges, numFaces);
 

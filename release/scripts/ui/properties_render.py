@@ -343,7 +343,7 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel):
             sub.prop(modifier, "invert")
             if modifier.mapping == "CURVE":
                 sub.enabled = False
-                box.template_curve_mapping(modifier, "curve") # FIXME: not properly displayed
+                box.template_curve_mapping(modifier, "curve")
             if modifier.type not in ["ALONG_STROKE"]:
                 row = box.row(align=True)
                 row.prop(modifier, "range_min")
@@ -367,7 +367,7 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel):
             sub.prop(modifier, "invert")
             if modifier.mapping == "CURVE":
                 sub.enabled = False
-                box.template_curve_mapping(modifier, "curve") # FIXME: not properly displayed
+                box.template_curve_mapping(modifier, "curve")
             if modifier.type not in ["ALONG_STROKE"]:
                 row = box.row(align=True)
                 row.prop(modifier, "range_min")

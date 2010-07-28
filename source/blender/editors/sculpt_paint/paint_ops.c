@@ -154,6 +154,35 @@ void PAINT_OT_vertex_color_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+static int brush_reset_exec(bContext *C, wmOperator *op)
+{
+	Paint *paint = paint_get_active(CTX_data_scene(C));
+	Brush *brush = paint_brush(paint);
+	Object *ob = CTX_data_active_object(C);
+
+	if(!ob) return OPERATOR_CANCELLED;
+
+	if(ob->mode & OB_MODE_SCULPT)
+		brush_reset_sculpt(brush);
+	/* TODO: other modes */
+
+	return OPERATOR_FINISHED;
+}
+
+void BRUSH_OT_reset(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reset Brush";
+	ot->description= "Return brush to defaults based on current tool";
+	ot->idname= "BRUSH_OT_reset";
+	
+	/* api callbacks */
+	ot->exec= brush_reset_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /**************************** registration **********************************/
 
 void ED_operatortypes_paint(void)
@@ -162,7 +191,7 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(BRUSH_OT_add);
 	WM_operatortype_append(BRUSH_OT_scale_size);
 	WM_operatortype_append(BRUSH_OT_curve_preset);
-
+	WM_operatortype_append(BRUSH_OT_reset);
 
 	/* image */
 	WM_operatortype_append(PAINT_OT_texture_paint_toggle);
@@ -174,7 +203,6 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_clone_cursor_set);
 	WM_operatortype_append(PAINT_OT_project_image);
 	WM_operatortype_append(PAINT_OT_image_from_view);
-
 
 	/* weight */
 	WM_operatortype_append(PAINT_OT_weight_paint_toggle);

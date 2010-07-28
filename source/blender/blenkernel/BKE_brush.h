@@ -44,6 +44,8 @@ struct Brush *copy_brush(struct Brush *brush);
 void make_local_brush(struct Brush *brush);
 void free_brush(struct Brush *brush);
 
+void brush_reset_sculpt(struct Brush *brush);
+
 /* image icon function */
 struct ImBuf *get_brush_icon(struct Brush *brush);
 

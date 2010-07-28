@@ -219,38 +219,16 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 		if (sms.new_lens != v3d->lens)
 			changed = 1;
 		
-		if ((sms.new_ofs[0]!=rv3d->ofs[0]) ||
-			(sms.new_ofs[1]!=rv3d->ofs[1]) ||
-			(sms.new_ofs[2]!=rv3d->ofs[2]) )
+		if (!equals_v3v3(sms.new_ofs, rv3d->ofs))
 			changed = 1;
-		
-		if ((sms.new_quat[0]!=rv3d->viewquat[0]) ||
-			(sms.new_quat[1]!=rv3d->viewquat[1]) ||
-			(sms.new_quat[2]!=rv3d->viewquat[2]) ||
-			(sms.new_quat[3]!=rv3d->viewquat[3]) )
+
+		if (!equals_v4v4(sms.new_quat, rv3d->viewquat))
 			changed = 1;
 		
 		/* The new view is different from the old one
 			* so animate the view */
 		if (changed) {
-			
-			sms.time_allowed= (double)U.smooth_viewtx / 1000.0;
-			
-			/* if this is view rotation only
-				* we can decrease the time allowed by
-				* the angle between quats 
-				* this means small rotations wont lag */
-			if (quat && !ofs && !dist) {
-				 float vec1[3], vec2[3];
-				
-				 copy_v3_v3(vec1, sms.new_quat);
-				 copy_v3_v3(vec2, sms.orig_quat);
-				 normalize_v3(vec1);
-				 normalize_v3(vec2);
-				 /* scale the time allowed by the rotation */
-				 sms.time_allowed *= angle_normalized_v3v3(vec1, vec2)/(M_PI/2); 
-			}
-			
+
 			/* original values */
 			if (oldcamera) {
 				sms.orig_dist= rv3d->dist; // below function does weird stuff with it...
@@ -267,6 +245,26 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 				/* use existing if exists, means multiple calls to smooth view wont loose the original 'view' setting */
 				sms.orig_view= rv3d->sms ? rv3d->sms->orig_view : rv3d->view;
 				rv3d->view= 0;
+			}
+
+			sms.time_allowed= (double)U.smooth_viewtx / 1000.0;
+			
+			/* if this is view rotation only
+				* we can decrease the time allowed by
+				* the angle between quats 
+				* this means small rotations wont lag */
+			if (quat && !ofs && !dist) {
+				float vec1[3]={0,0,1}, vec2[3]= {0,0,1};
+				float q1[4], q2[4];
+
+				invert_qt_qt(q1, sms.new_quat);
+				invert_qt_qt(q2, sms.orig_quat);
+
+				mul_qt_v3(q1, vec1);
+				mul_qt_v3(q2, vec2);
+
+				/* scale the time allowed by the rotation */
+				sms.time_allowed *= angle_v3v3(vec1, vec2) / M_PI; /* 180deg == 1.0 */
 			}
 
 			/* ensure it shows correct */

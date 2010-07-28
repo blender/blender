@@ -67,7 +67,7 @@ def get_console(console_id):
         stdout = io.StringIO()
         stderr = io.StringIO()
     else:
-        namespace = {'__builtins__': __builtins__, 'bpy': bpy}
+        namespace = {"__builtins__": __builtins__, "bpy": bpy, "C": bpy.context}
         console = InteractiveConsole(locals=namespace, filename="<blender_console>")
 
         import io
@@ -96,10 +96,6 @@ def execute(context):
         return {'CANCELLED'}
 
     console, stdout, stderr = get_console(hash(context.region))
-
-    # Hack, useful but must add some other way to access
-    #if "C" not in console.locals:
-    console.locals["C"] = context
 
     # redirect output
     sys.stdout = stdout
@@ -242,10 +238,6 @@ def banner(context):
     add_scrollback("  WARNING!!! Blender 2.5 API is subject to change, see API reference for more info.", 'ERROR')
     add_scrollback("", 'OUTPUT')
     sc.prompt = PROMPT
-
-    # Add context into the namespace for quick access
-    console = get_console(hash(context.region))[0]
-    console.locals["C"] = bpy.context
 
     return {'FINISHED'}
 

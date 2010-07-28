@@ -1539,6 +1539,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 			/* direct data */
 			if (mesh->id.properties) IDP_WriteProperty(mesh->id.properties, wd);
+			if (mesh->adt) write_animdata(wd, mesh->adt);
 
 			writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
 

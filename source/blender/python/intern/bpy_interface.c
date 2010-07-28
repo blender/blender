@@ -207,7 +207,9 @@ void BPY_start_python_path(void)
 	{
 		static wchar_t py_path_bundle_wchar[FILE_MAX];
 
-		/* mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR); */ /* cant use this, on linux gives bug: #23018 */
+		/* cant use this, on linux gives bug: #23018, TODO: try LANG="en_US.UTF-8" /usr/bin/blender, suggested 22008 */
+		/* mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR); */
+
 		utf8towchar(py_path_bundle_wchar, py_path_bundle);
 
 		Py_SetPythonHome(py_path_bundle_wchar);

@@ -1157,7 +1157,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 		c++;
 		while(linep) {
 			while(c<linep->len) {
-				if(linep->format[c] != 'l' && linep->format[c] != '#') {
+				if(linep->format && linep->format[c] != 'l' && linep->format[c] != '#') {
 					b= text_check_bracket(linep->line[c]);
 					if(b==find) {
 						if(stack==0) {
@@ -1183,7 +1183,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 		c--;
 		while(linep) {
 			while(c>=0) {
-				if(linep->format[c] != 'l' && linep->format[c] != '#') {
+				if(linep->format && linep->format[c] != 'l' && linep->format[c] != '#') {
 					b= text_check_bracket(linep->line[c]);
 					if(b==find) {
 						if(stack==0) {

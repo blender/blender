@@ -103,7 +103,7 @@ struct GPULamp {
 	Object *par;
 	Lamp *la;
 
-	int type, mode, lay;
+	int type, mode, lay, hide;
 
 	float dynenergy, dyncol[3];
 	float energy, col[3];
@@ -256,7 +256,7 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 		for(nlink=material->lamps.first; nlink; nlink=nlink->next) {
 			lamp= nlink->data;
 
-			if((lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay))) {
+			if(!lamp->hide && (lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay))) {
 				lamp->dynenergy = lamp->energy;
 				VECCOPY(lamp->dyncol, lamp->col);
 			}
@@ -1310,11 +1310,12 @@ void GPU_materials_free()
 
 /* Lamps and shadow buffers */
 
-void GPU_lamp_update(GPULamp *lamp, int lay, float obmat[][4])
+void GPU_lamp_update(GPULamp *lamp, int lay, int hide, float obmat[][4])
 {
 	float mat[4][4];
 
 	lamp->lay = lay;
+	lamp->hide = hide;
 
 	copy_m4_m4(mat, obmat);
 	normalize_m4(mat);
@@ -1355,7 +1356,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	lamp->col[1]= la->g*lamp->energy;
 	lamp->col[2]= la->b*lamp->energy;
 
-	GPU_lamp_update(lamp, ob->lay, ob->obmat);
+	GPU_lamp_update(lamp, ob->lay, (ob->restrictflag & OB_RESTRICT_VIEW), ob->obmat);
 
 	lamp->spotsi= la->spotsize;
 	if(lamp->mode & LA_HALO)

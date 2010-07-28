@@ -120,6 +120,7 @@ class DATA_PT_display(DataButtonsPanel):
         if wide_ui:
             col = split.column()
         col.prop(arm, "draw_group_colors", text="Colors")
+        col.prop(ob, "x_ray", text="X-Ray")
         col.prop(arm, "delay_deform", text="Delay Refresh")
 
 
@@ -173,8 +174,6 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 
 
 # TODO: this panel will soon be depreceated too
-
-
 class DATA_PT_ghost(DataButtonsPanel):
     bl_label = "Ghost"
 

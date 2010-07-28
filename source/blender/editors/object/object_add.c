@@ -756,7 +756,10 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 		ob->transflag |= OB_DUPLIGROUP;
 		id_lib_extern(&group->id);
 
-		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+		/* works without this except if you try render right after, see: 22027 */
+		DAG_scene_sort(CTX_data_scene(C));
+
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, CTX_data_scene(C));
 
 		return OPERATOR_FINISHED;
 	}
