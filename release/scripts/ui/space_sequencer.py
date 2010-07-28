@@ -357,7 +357,6 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         sub = row.row()
         sub.active = (not strip.mute)
         sub.prop(strip, "blend_opacity", text="Opacity", slider=True)
-        sub = row.row()
         row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON' if strip.mute else 'RESTRICT_VIEW_OFF', text="")
         row.prop(strip, "lock", toggle=True, icon='LOCKED' if strip.lock else 'UNLOCKED', text="")
 
@@ -377,30 +376,6 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 
         col.label(text="Frame Offset %d:%d" % (strip.frame_offset_start, strip.frame_offset_end))
         col.label(text="Frame Still %d:%d" % (strip.frame_still_start, strip.frame_still_end))
-
-
-class SEQUENCER_PT_preview(bpy.types.Panel):
-    bl_label = "Scene Preview/Render"
-    bl_space_type = 'SEQUENCE_EDITOR'
-    bl_region_type = 'UI'
-
-    def draw(self, context):
-        layout = self.layout
-        render = context.scene.render
-
-        col = layout.column()
-        col.prop(render, "use_sequencer_gl_preview", text="Open GL Preview")
-        col = layout.column()
-        col.active = render.use_sequencer_gl_preview
-        col.prop(render, "sequencer_gl_preview", text="")
-
-        '''
-        col = layout.column()
-        col.prop(render, "use_sequencer_gl_render", text="Open GL Render")
-        col = layout.column()
-        col.active = render.use_sequencer_gl_render
-        col.prop(render, "sequencer_gl_render", text="")
-        '''
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel):
@@ -816,6 +791,30 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
                 flow.prop(strip.proxy, "filepath")
 
 
+class SEQUENCER_PT_preview(SequencerButtonsPanel_Output):
+    bl_label = "Scene Preview/Render"
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'UI'
+
+    def draw(self, context):
+        layout = self.layout
+        render = context.scene.render
+
+        col = layout.column()
+        col.prop(render, "use_sequencer_gl_preview", text="Open GL Preview")
+        col = layout.column()
+        col.active = render.use_sequencer_gl_preview
+        col.prop(render, "sequencer_gl_preview", text="")
+
+        '''
+        col = layout.column()
+        col.prop(render, "use_sequencer_gl_render", text="Open GL Render")
+        col = layout.column()
+        col.active = render.use_sequencer_gl_render
+        col.prop(render, "sequencer_gl_render", text="")
+        '''
+
+
 class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
     bl_label = "View Settings"
 
@@ -843,7 +842,6 @@ classes = [
     SEQUENCER_MT_strip,
 
     SEQUENCER_PT_edit, # sequencer panels
-    SEQUENCER_PT_preview,
     SEQUENCER_PT_effect,
     SEQUENCER_PT_input_movie,
     SEQUENCER_PT_input_image,
@@ -853,6 +851,7 @@ classes = [
     SEQUENCER_PT_filter,
     SEQUENCER_PT_proxy,
 
+    SEQUENCER_PT_preview,
     SEQUENCER_PT_view] # view panels
 
 
