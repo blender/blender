@@ -173,13 +173,15 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 		const MT_Point3& mypos = obj->NodeGetWorldPosition();
 		const MT_Point3& targpos = m_target->NodeGetWorldPosition();
 		MT_Vector3 vectotarg = targpos - mypos;
+		MT_Vector3 vectotarg2d = vectotarg;
+		vectotarg2d.z() = 0;
 		MT_Vector3 steervec = MT_Vector3(0, 0, 0);
 		bool apply_steerforce = false;
 		bool terminate = true;
 
 		switch (m_mode) {
 			case KX_STEERING_SEEK:
-				if (vectotarg.length2()>m_distance*m_distance)
+				if (vectotarg2d.length2()>m_distance*m_distance)
 				{
 					terminate = false;
 					steervec = vectotarg;
@@ -188,7 +190,7 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 				}
 				break;
 			case KX_STEERING_FLEE:
-				if (vectotarg.length2()<m_distance*m_distance)
+				if (vectotarg2d.length2()<m_distance*m_distance)
 				{
 					terminate = false;
 					steervec = -vectotarg;

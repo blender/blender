@@ -30,7 +30,7 @@
 #include "NavMeshConversion.h"
 
 extern "C"{
-
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "BLI_math.h"
 #include "BKE_cdderivedmesh.h"
@@ -125,9 +125,6 @@ static void navDM_drawFacesSolid(DerivedMesh *dm,
 static DerivedMesh *createNavMeshForVisualization(NavMeshModifierData *mmd,DerivedMesh *dm)
 {
 	DerivedMesh *result;
-	int numVerts, numEdges, numFaces;
-	int maxVerts = dm->getNumVerts(dm);
-	int maxEdges = dm->getNumEdges(dm);
 	int maxFaces = dm->getNumFaces(dm);
 
 	result = CDDM_copy(dm);
@@ -209,9 +206,39 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 {
 	DerivedMesh *result = NULL;
 	NavMeshModifierData *nmmd = (NavMeshModifierData*) md;
+	bool hasRecastData = CustomData_has_layer(&derivedData->faceData, CD_PROP_INT)>0;
+	if (ob->body_type!=OB_BODY_TYPE_NAVMESH || !hasRecastData )
+	{
+		//convert to nav mesh object:
+		//1)set physics type
+		ob->gameflag &= ~OB_COLLISION;
+		ob->gameflag |= OB_NAVMESH;
+		ob->body_type = OB_BODY_TYPE_NAVMESH;
+		//2)add and init recast data layer
+		if (!hasRecastData)
+		{
+			int numFaces = derivedData->getNumFaces(derivedData);
+			CustomData_add_layer_named(&derivedData->faceData, CD_PROP_INT, CD_CALLOC, NULL, numFaces, "recastData");
+			int* recastData = (int*)CustomData_get_layer(&derivedData->faceData, CD_PROP_INT);
+			for (int i=0; i<numFaces; i++)
+			{
+				recastData[i] = i+1;
+			}
 
-	if (ob->body_type==OB_BODY_TYPE_NAVMESH)
-		result = createNavMeshForVisualization(nmmd, derivedData);
+			Mesh* obmesh = (Mesh *)ob->data;
+			if (obmesh)
+			{
+				CustomData_add_layer_named(&obmesh->fdata, CD_PROP_INT, CD_CALLOC, NULL, numFaces, "recastData");
+				int* recastData = (int*)CustomData_get_layer(&obmesh->fdata, CD_PROP_INT);
+				for (int i=0; i<numFaces; i++)
+				{
+					recastData[i] = i+1;
+				}
+			}
+		}
+	}
+
+	result = createNavMeshForVisualization(nmmd, derivedData);
 	
 	return result;
 }
@@ -223,7 +250,7 @@ ModifierTypeInfo modifierType_NavMesh = {
 	/* structSize */        sizeof(NavMeshModifierData),
 	/* type */              eModifierTypeType_Constructive,
 	/* flags */             (ModifierTypeFlag) (eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_NoUserAdd),
+							| eModifierTypeFlag_Single),
 	/* copyData */          copyData,
 	/* deformVerts */       0,
 	/* deformVertsEM */     0,

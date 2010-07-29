@@ -43,6 +43,8 @@ extern "C"
 #include "BKE_depsgraph.h"
 #include "BKE_context.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
+#include "BKE_scene.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BLI_editVert.h"
@@ -57,6 +59,9 @@ extern "C"
 /*mesh/mesh_intern.h */
 extern struct EditVert *addvertlist(EditMesh *em, float *vec, struct EditVert *example);
 extern struct EditFace *addfacelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example, struct EditFace *exampleEdges);
+extern void free_vertlist(EditMesh *em, ListBase *edve);
+extern void free_edgelist(EditMesh *em, ListBase *lb);
+extern void free_facelist(EditMesh *em, ListBase *lb);
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -301,22 +306,42 @@ static bool buildNavMesh(const RecastData& recastParams, int nverts, float* vert
 	return true;
 }
 
-static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshDetail*& dmesh)
+static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshDetail*& dmesh, Base* base)
 {
-	Object *obedit;
 	float co[3], rot[3];
 	EditMesh *em;
 	int i,j, k, polyverts;
 	unsigned short* v;
 	int face[3];
 	Scene *scene= CTX_data_scene(C);
-
+	Object* obedit;
+	int createob = base==NULL;
 	zero_v3(co);
 	zero_v3(rot);
-	obedit = ED_object_add_type(C, OB_MESH, co, rot, FALSE, 1);
-	ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER);
+	if (createob)
+	{
+		//create new object
+		obedit = ED_object_add_type(C, OB_MESH, co, rot, FALSE, 1);
+	}
+	else
+	{
+		obedit = base->object;
+		scene_select_base(scene, base);
+		copy_v3_v3(obedit->loc, co);
+		copy_v3_v3(obedit->rot, rot);
+	}
 
+	ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER);
 	em = BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+
+	if (!createob)
+	{
+		//clear
+		if(em->verts.first) free_vertlist(em, &em->verts);
+		if(em->edges.first) free_edgelist(em, &em->edges);
+		if(em->faces.first) free_facelist(em, &em->faces);
+		if(em->selected.first) BLI_freelistN(&(em->selected));
+	}
 
 	//create verts for polygon mesh
 	for(i = 0; i < pmesh->nverts; i++) {
@@ -392,13 +417,20 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 	ED_object_exit_editmode(C, EM_FREEDATA); 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 
-	obedit->gameflag &= ~OB_COLLISION;
-	obedit->gameflag |= OB_NAVMESH;
-	obedit->body_type = OB_BODY_TYPE_NAVMESH;
-	rename_id((ID *)obedit, "Navmesh");
+	if (createob)
+	{
+		obedit->gameflag &= ~OB_COLLISION;
+		obedit->gameflag |= OB_NAVMESH;
+		obedit->body_type = OB_BODY_TYPE_NAVMESH;
+		rename_id((ID *)obedit, "Navmesh");
+	}
+	
+	ModifierData *md= modifiers_findByType(obedit, eModifierType_NavMesh);
+	if (!md)
+	{
+		ED_object_modifier_add(NULL, scene, obedit, NULL, eModifierType_NavMesh);
+	}
 
-	ED_object_modifier_add(NULL, scene, obedit, NULL, eModifierType_NavMesh);
-	//ModifierData *md= modifiers_findByType(ob, eModifierType_NavMesh);
 	return obedit;
 }
 
@@ -411,15 +443,22 @@ static int create_navmesh_exec(bContext *C, wmOperator *op)
 	rcPolyMesh* pmesh;
 	rcPolyMeshDetail* dmesh;
 	LinkNode* obs = NULL;
+	Base* navmeshBase = NULL;
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases)
 	{
-		BLI_linklist_append(&obs, (void*)base->object);
+		if (base->object->body_type==OB_BODY_TYPE_NAVMESH)
+		{
+			if (!navmeshBase || base==CTX_data_active_base(C))
+				navmeshBase = base;
+		}
+		else
+			BLI_linklist_append(&obs, (void*)base->object);
 	}		
 	CTX_DATA_END;
 	createVertsTrisData(C, obs, nverts, verts, ntris, tris);
 	BLI_linklist_free(obs, NULL);
 	buildNavMesh(scene->gm.recastData, nverts, verts, ntris, tris, pmesh, dmesh);
-	createRepresentation(C, pmesh, dmesh);
+	createRepresentation(C, pmesh, dmesh, navmeshBase);
 
 	return OPERATOR_FINISHED;
 }
@@ -520,7 +559,6 @@ static int findFreeNavPolyIndex(EditMesh* em)
 	qsort(indices, numfaces, sizeof(int), compare);
 	//search first free index
 	int freeIdx = 1;
-	int maxIdx = indices[numfaces-1];
 	for (int i=0; i<numfaces; i++)
 	{
 		if (indices[i]==freeIdx)
