@@ -218,7 +218,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	char str[FILE_MAX];
-	short internal = RNA_int_get(op->ptr, "internal");
+	short internal = RNA_boolean_get(op->ptr, "internal");
 
 	RNA_string_get(op->ptr, "filepath", str);
 

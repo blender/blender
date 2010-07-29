@@ -66,9 +66,9 @@ def get_console(console_id):
 
         # XXX, bug in python 3.1.2 ? (worked in 3.1.1)
         # seems there is no way to clear StringIO objects for writing, have to make new ones each time.
-        # import io
-        # stdout = io.StringIO()
-        # stderr = io.StringIO()
+        import io
+        stdout = io.StringIO()
+        stderr = io.StringIO()
     else:
         if _BPY_MAIN_OWN:
             import types

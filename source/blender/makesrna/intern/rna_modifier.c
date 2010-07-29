@@ -242,7 +242,7 @@ static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 					break;
 			if(ob->type == OB_MESH && !psys) {
 				/* add particle system */
-				psmd = object_add_particle_system(scene, ob, NULL);
+				psmd = (ParticleSystemModifierData *)object_add_particle_system(scene, ob, NULL);
 				if(psmd)
 				{
 					psys = psmd->psys;
