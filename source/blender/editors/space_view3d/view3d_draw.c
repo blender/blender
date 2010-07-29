@@ -1968,6 +1968,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 {
 	Scene *sce;
 	Base *base;
+	float backcol[3];
 	int bwinx, bwiny;
 
 	glPushMatrix();
@@ -1987,7 +1988,11 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 
 	/* set background color, fallback on the view background color */
 	if(scene->world) {
-		glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
+		if(scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
+		else
+			copy_v3_v3(backcol, &scene->world->horr);
+		glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
 	}
 	else {
 		UI_ThemeClearColor(TH_BACK);	
@@ -2205,6 +2210,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Scene *sce;
 	Base *base;
 	Object *ob;
+	float backcol[3];
 	int retopo= 0, sculptparticle= 0;
 	Object *obact = OBACT;
 	char *grid_unit= NULL;
@@ -2223,8 +2229,13 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 	/* clear background */
-	if((v3d->flag2 & V3D_RENDER_OVERRIDE) && scene->world)
-		glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
+	if((v3d->flag2 & V3D_RENDER_OVERRIDE) && scene->world) {
+		if(scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
+		else
+			copy_v3_v3(backcol, &scene->world->horr);
+		glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
+	}
 	else
 		UI_ThemeClearColor(TH_BACK);
 
