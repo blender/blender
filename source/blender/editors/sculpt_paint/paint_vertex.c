@@ -1445,7 +1445,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	/* load projection matrix */
 	mul_m4_m4m4(mat, ob->obmat, vc->rv3d->persmat);
 
-	flip = RNA_boolean_get(itemptr, "flip");
+	flip = RNA_boolean_get(itemptr, "pen_flip");
 	pressure = RNA_float_get(itemptr, "pressure");
 	RNA_float_get_array(itemptr, "mouse", mval);
 	mval[0]-= vc->ar->winrct.xmin;
@@ -1860,7 +1860,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float pressure, mval[2];
 
 	RNA_float_get_array(itemptr, "mouse", mval);
-	flip = RNA_boolean_get(itemptr, "flip");
+	flip = RNA_boolean_get(itemptr, "pen_flip");
 	pressure = RNA_float_get(itemptr, "pressure");
 			
 	view3d_operator_needs_opengl(C);
