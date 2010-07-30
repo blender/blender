@@ -4803,7 +4803,7 @@ static PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 	reg= RNA_struct_register(srna);
 
 	if(!reg) {
-		PyErr_SetString(PyExc_ValueError, "bpy.types.register(...): expected a Type subclassed from a registerable rna type (no register supported).");
+		PyErr_Format(PyExc_ValueError, "bpy.types.register(...): expected a subclass of a registerable rna type (%.200s does not support registration).", RNA_struct_identifier(srna));
 		return NULL;
 	}
 	
