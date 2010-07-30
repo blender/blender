@@ -1752,9 +1752,8 @@ EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
 	
 	if (ebo == NULL)
 		return NULL;
-	
-	BLI_strncpy(name, ebo->name, sizeof(name));
-	bone_flip_name(name, 0);		// 0 = don't strip off number extensions
+
+	flip_side_name(name, ebo->name, FALSE);
 	
 	for (eboflip= edbo->first; eboflip; eboflip=eboflip->next) {
 		if (ebo != eboflip) {
@@ -4741,11 +4740,10 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 		/* find flipped group */
 		if (dgroup && mirror) {
 			char name[32];
-			
-			BLI_strncpy(name, dgroup->name, 32);
+
 			// 0 = don't strip off number extensions
-			bone_flip_name(name, 0);
-			
+			flip_side_name(name, dgroup->name, FALSE);
+
 			for (curdg = ob->defbase.first; curdg; curdg=curdg->next) {
 				if (!strcmp(curdg->name, name))
 					break;
@@ -5540,8 +5538,7 @@ static int armature_flip_names_exec (bContext *C, wmOperator *op)
 	/* loop through selected bones, auto-naming them */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
 	{
-		BLI_strncpy(newname, ebone->name, sizeof(newname));
-		bone_flip_name(newname, 1);		// 1 = do strip off number extensions
+		flip_side_name(newname, ebone->name, TRUE); // 1 = do strip off number extensions
 		ED_armature_bone_rename(arm, ebone->name, newname);
 	}
 	CTX_DATA_END;

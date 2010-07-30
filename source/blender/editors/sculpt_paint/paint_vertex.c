@@ -386,9 +386,8 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 			int actdef= 0;
 			char name[32];
 
-			BLI_strncpy(name, defgroup->name, 32);
-			bone_flip_name(name, 0);		/* 0 = don't strip off number extensions */
-			
+			flip_side_name(name, defgroup->name, FALSE);
+
 			for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++)
 				if (!strcmp(curdef->name, name))
 					break;
@@ -1390,10 +1389,9 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 			bDeformGroup *curdef;
 			int actdef= 0;
 			char name[32];
-			
-			BLI_strncpy(name, defgroup->name, 32);
-			bone_flip_name(name, 0);		/* 0 = don't strip off number extensions */
-			
+
+			flip_side_name(name, defgroup->name, FALSE);
+
 			for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++)
 				if (!strcmp(curdef->name, name))
 					break;

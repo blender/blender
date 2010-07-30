@@ -1321,7 +1321,6 @@ static void colorband_add_cb(bContext *C, void *cb_v, void *coba_v)
 static void colorband_del_cb(bContext *C, void *cb_v, void *coba_v)
 {
 	ColorBand *coba= coba_v;
-	int a;
 
 	if(colorband_element_remove(coba, coba->cur)) {
 		ED_undo_push(C, "Delete colorband");
