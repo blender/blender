@@ -56,13 +56,17 @@ DO_INLINE float colorbalance_cdl(float in, float offset, float power, float slop
 
 /* note: lift_lgg is just 2-lift */
 DO_INLINE float colorbalance_lgg(float in, float lift_lgg, float gamma, float gain)
-{	
-	float x= (((in - 1.0f) * lift_lgg) + 1.0f) * gain;
+{
+	/* 1:1 match with the sequencer with linear/srgb conversions, the conversion isnt pretty
+	 * but best keep it this way, sice testing for durian shows a similar calculation
+	 * without lin/srgb conversions gives bad results (over-saturated shadows) with colors
+	 * slightly below 1.0. some correction can be done but it ends up looking bad for shadows or lighter tones - campbell */
+	float x= (((linearrgb_to_srgb(in) - 1.0f) * lift_lgg) + 1.0f) * gain;
 
 	/* prevent NaN */
 	if (x < 0.f) x = 0.f;
-	
-	return powf(x, (1.f/gamma));
+
+	return powf(srgb_to_linearrgb(x), gamma);
 }
 
 static void do_colorbalance_cdl(bNode *node, float* out, float *in)
@@ -125,15 +129,8 @@ static void node_composit_exec_colorbalance(void *data, bNode *node, bNodeStack 
 		NodeColorBalance *n= (NodeColorBalance *)node->storage;
 		int c;
 
-		copy_v3_v3(n->lift_lgg, n->lift);
-
 		for (c = 0; c < 3; c++) {
-			/* tweak to give more subtle results
-			 * values above 1.0 are scaled */
-			if(n->lift_lgg[c] > 1.0f)
-				n->lift_lgg[c] = pow(n->lift_lgg[c] - 1.0f, 2.0f) + 1.0f;
-
-			n->lift_lgg[c] = 2.0f - n->lift_lgg[c];
+			n->lift_lgg[c] = 2.0f - n->lift[c];
 		}
 	}
 
