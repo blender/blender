@@ -269,18 +269,6 @@
 				</File>
 			</Filter>
 		</Filter>
-		<Filter
-			Name="BlenderNavMesh"
-			>
-			<File
-				RelativePath="..\..\BlenderNavMesh\NavMeshConversion.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\BlenderNavMesh\NavMeshConversion.h"
-				>
-			</File>
-		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

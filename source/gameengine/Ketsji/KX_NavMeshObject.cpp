@@ -31,19 +31,22 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+
 extern "C" {
 #include "BKE_scene.h"
 #include "BKE_customdata.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
 #include "BLI_math_vector.h"
+
+#include "ED_navmesh_conversion.h"
 }
+
 #include "KX_PythonInit.h"
 #include "KX_PyMath.h"
 #include "Value.h"
 #include "Recast.h"
 #include "DetourStatNavMeshBuilder.h"
-#include "NavMeshConversion.h"
 #include "KX_ObstacleSimulation.h"
 
 static const int MAX_PATH_LEN = 256;
@@ -109,7 +112,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 {
 	DerivedMesh* dm = mesh_create_derived_no_virtual(KX_GetActiveScene()->GetBlenderScene(), GetBlenderObject(), 
 													NULL, CD_MASK_MESH);
-	int* recastData = (int*) dm->getFaceDataArray(dm, CD_PROP_INT);
+	int* recastData = (int*) dm->getFaceDataArray(dm, CD_RECAST);
 	if (recastData)
 	{
 		int *dtrisToPolysMap=NULL, *dtrisToTrisMap=NULL, *trisToFacesMap=NULL;

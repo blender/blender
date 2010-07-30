@@ -27,9 +27,10 @@
 */
 #include <math.h>
 #include "Recast.h"
-#include "NavMeshConversion.h"
 
 extern "C"{
+#include "ED_navmesh_conversion.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "BLI_math.h"
@@ -66,7 +67,7 @@ static void drawNavMeshColored(DerivedMesh *dm)
 	int a, glmode;
 	MVert *mvert = (MVert *)CustomData_get_layer(&dm->vertData, CD_MVERT);
 	MFace *mface = (MFace *)CustomData_get_layer(&dm->faceData, CD_MFACE);
-	int* polygonIdx = (int*)CustomData_get_layer(&dm->faceData, CD_PROP_INT);
+	int* polygonIdx = (int*)CustomData_get_layer(&dm->faceData, CD_RECAST);
 	if (!polygonIdx)
 		return;
 	const float BLACK_COLOR[3] = {0.f, 0.f, 0.f};
@@ -86,7 +87,7 @@ static void drawNavMeshColored(DerivedMesh *dm)
 		glBegin(glmode = GL_QUADS);
 		for(a = 0; a < dm->numFaceData; a++, mface++) {
 			int new_glmode = mface->v4?GL_QUADS:GL_TRIANGLES;
-			int polygonIdx = *(int*)CustomData_get(&dm->faceData, a, CD_PROP_INT);
+			int polygonIdx = *(int*)CustomData_get(&dm->faceData, a, CD_RECAST);
 			if (polygonIdx<=0)
 				memcpy(col, BLACK_COLOR, 3*sizeof(float));
 			else
@@ -128,10 +129,10 @@ static DerivedMesh *createNavMeshForVisualization(NavMeshModifierData *mmd,Deriv
 	int maxFaces = dm->getNumFaces(dm);
 
 	result = CDDM_copy(dm);
-	int *recastData = (int*)CustomData_get_layer(&dm->faceData, CD_PROP_INT);
-	CustomData_add_layer_named(&result->faceData, CD_PROP_INT, CD_DUPLICATE, 
+	int *recastData = (int*)CustomData_get_layer(&dm->faceData, CD_RECAST);
+	CustomData_add_layer_named(&result->faceData, CD_RECAST, CD_DUPLICATE, 
 			recastData, maxFaces, "recastData");
-	recastData = (int*)CustomData_get_layer(&result->faceData, CD_PROP_INT);
+	recastData = (int*)CustomData_get_layer(&result->faceData, CD_RECAST);
 	result->drawFacesTex =  navDM_drawFacesTex;
 	result->drawFacesSolid = navDM_drawFacesSolid;
 	
@@ -206,7 +207,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 {
 	DerivedMesh *result = NULL;
 	NavMeshModifierData *nmmd = (NavMeshModifierData*) md;
-	bool hasRecastData = CustomData_has_layer(&derivedData->faceData, CD_PROP_INT)>0;
+	bool hasRecastData = CustomData_has_layer(&derivedData->faceData, CD_RECAST)>0;
 	if (ob->body_type!=OB_BODY_TYPE_NAVMESH || !hasRecastData )
 	{
 		//convert to nav mesh object:
@@ -218,8 +219,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		if (!hasRecastData)
 		{
 			int numFaces = derivedData->getNumFaces(derivedData);
-			CustomData_add_layer_named(&derivedData->faceData, CD_PROP_INT, CD_CALLOC, NULL, numFaces, "recastData");
-			int* recastData = (int*)CustomData_get_layer(&derivedData->faceData, CD_PROP_INT);
+			CustomData_add_layer_named(&derivedData->faceData, CD_RECAST, CD_CALLOC, NULL, numFaces, "recastData");
+			int* recastData = (int*)CustomData_get_layer(&derivedData->faceData, CD_RECAST);
 			for (int i=0; i<numFaces; i++)
 			{
 				recastData[i] = i+1;
@@ -228,8 +229,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 			Mesh* obmesh = (Mesh *)ob->data;
 			if (obmesh)
 			{
-				CustomData_add_layer_named(&obmesh->fdata, CD_PROP_INT, CD_CALLOC, NULL, numFaces, "recastData");
-				int* recastData = (int*)CustomData_get_layer(&obmesh->fdata, CD_PROP_INT);
+				CustomData_add_layer_named(&obmesh->fdata, CD_RECAST, CD_CALLOC, NULL, numFaces, "recastData");
+				int* recastData = (int*)CustomData_get_layer(&obmesh->fdata, CD_RECAST);
 				for (int i=0; i<numFaces; i++)
 				{
 					recastData[i] = i+1;

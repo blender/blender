@@ -355,7 +355,7 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 	polyverts = pmesh->nverts;
 
 	//create custom data layer to save polygon idx
-	CustomData_add_layer_named(&em->fdata, CD_PROP_INT, CD_CALLOC, NULL, 0, "recastData");
+	CustomData_add_layer_named(&em->fdata, CD_RECAST, CD_CALLOC, NULL, 0, "recastData");
 
 	//create verts and faces for detailed mesh
 	for (i=0; i<dmesh->nmeshes; i++)
@@ -398,7 +398,7 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 									EM_get_vert_for_index(face[1]), NULL, NULL, NULL);
 
 			//set navigation polygon idx to the custom layer
-			int* polygonIdx = (int*)CustomData_em_get(&em->fdata, newFace->data, CD_PROP_INT);
+			int* polygonIdx = (int*)CustomData_em_get(&em->fdata, newFace->data, CD_RECAST);
 			*polygonIdx = i+1; //add 1 to avoid zero idx
 		}
 		
@@ -496,9 +496,9 @@ static int assign_navpolygon_exec(bContext *C, wmOperator *op)
 	efa = EM_get_actFace(em, 0);
 	if (efa) 
 	{
-		if (CustomData_has_layer(&em->fdata, CD_PROP_INT))
+		if (CustomData_has_layer(&em->fdata, CD_RECAST))
 		{
-			targetPolyIdx = *(int*)CustomData_em_get(&em->fdata, efa->data, CD_PROP_INT);
+			targetPolyIdx = *(int*)CustomData_em_get(&em->fdata, efa->data, CD_RECAST);
 			targetPolyIdx = targetPolyIdx>=0? targetPolyIdx : -targetPolyIdx;
 			if (targetPolyIdx>0)
 			{
@@ -508,7 +508,7 @@ static int assign_navpolygon_exec(bContext *C, wmOperator *op)
 				{
 					if((ef->f & SELECT )&& ef!=efa) 
 					{
-						int* recastDataBlock = (int*)CustomData_em_get(&em->fdata, ef->data, CD_PROP_INT);
+						int* recastDataBlock = (int*)CustomData_em_get(&em->fdata, ef->data, CD_RECAST);
 						*recastDataBlock = targetPolyIdx;
 					}
 					ef = ef->prev;
@@ -551,7 +551,7 @@ static int findFreeNavPolyIndex(EditMesh* em)
 	int idx = 0;
 	while(ef) 
 	{
-		int polyIdx = *(int*)CustomData_em_get(&em->fdata, ef->data, CD_PROP_INT);
+		int polyIdx = *(int*)CustomData_em_get(&em->fdata, ef->data, CD_RECAST);
 		indices[idx] = polyIdx;
 		idx++;
 		ef = ef->prev;
@@ -576,7 +576,7 @@ static int assign_new_navpolygon_exec(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
 	EditFace *ef;
-	if (CustomData_has_layer(&em->fdata, CD_PROP_INT))
+	if (CustomData_has_layer(&em->fdata, CD_RECAST))
 	{
 		int targetPolyIdx = findFreeNavPolyIndex(em);
 		if (targetPolyIdx>0)
@@ -587,7 +587,7 @@ static int assign_new_navpolygon_exec(bContext *C, wmOperator *op)
 			{
 				if(ef->f & SELECT ) 
 				{
-					int* recastDataBlock = (int*)CustomData_em_get(&em->fdata, ef->data, CD_PROP_INT);
+					int* recastDataBlock = (int*)CustomData_em_get(&em->fdata, ef->data, CD_RECAST);
 					*recastDataBlock = targetPolyIdx;
 				}
 				ef = ef->prev;

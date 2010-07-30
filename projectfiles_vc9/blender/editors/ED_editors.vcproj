@@ -251,6 +251,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_navmesh_conversion.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_node.h"
 				>
 			</File>
@@ -717,6 +721,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\util\editmode_undo.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\util\navmesh_conversion.cpp"
 				>
 			</File>
 			<File
