@@ -4927,7 +4927,7 @@ Game Engine  bge.types Module
       
          Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`)
 
-   .. attribute:: rotation
+   .. attribute:: rotation_quaternion
 
       rotation of the bone relative to its parent expressed as a quaternion, read-write.
 
@@ -4941,7 +4941,7 @@ Game Engine  bge.types Module
       
          Changing this field has no immediate effect, the pose is updated when the armature is updated during the graphic render (see :data:`BL_ArmatureObject.update`)
 
-   .. attribute:: euler_rotation
+   .. attribute:: rotation_euler
 
       rotation of the bone relative to its parent expressed as a set of euler angles, read-write.
 
