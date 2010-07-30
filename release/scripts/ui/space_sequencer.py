@@ -98,6 +98,10 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         st = context.space_data
 
         layout.column()
+        
+        layout.operator("sequencer.properties", icon='MENU_PANEL')
+        
+        layout.separator()
 
         """
     uiBlock *block= uiBeginBlock(C, ar, "seq_viewmenu", UI_EMBOSSP);
@@ -127,7 +131,6 @@ class SEQUENCER_MT_view(bpy.types.Menu):
              menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 
         """
-        layout.separator()
         if (st.view_type == 'SEQUENCER') or (st.view_type == 'SEQUENCER_PREVIEW'):
             layout.operator("sequencer.view_all", text='View all Sequences')
         if (st.view_type == 'PREVIEW') or (st.view_type == 'SEQUENCER_PREVIEW'):
