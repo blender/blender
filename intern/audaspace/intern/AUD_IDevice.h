@@ -30,9 +30,9 @@
 class AUD_IFactory;
 
 /// Handle structure, for inherition.
-typedef struct
+struct AUD_Handle
 {
-} AUD_Handle;
+};
 
 /**
  * This class represents an output device for sound sources.

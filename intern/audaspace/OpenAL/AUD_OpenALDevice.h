@@ -159,15 +159,42 @@ public:
 	virtual float getPitch(AUD_Handle* handle);
 	virtual bool setPitch(AUD_Handle* handle, float pitch);
 
-	virtual AUD_Handle* play3D(AUD_IFactory* factory, bool keep = false);
-	virtual bool updateListener(AUD_3DData &data);
-	virtual bool setSetting(AUD_3DSetting setting, float value);
-	virtual float getSetting(AUD_3DSetting setting);
-	virtual bool updateSource(AUD_Handle* handle, AUD_3DData &data);
-	virtual bool setSourceSetting(AUD_Handle* handle,
-								  AUD_3DSourceSetting setting, float value);
-	virtual float getSourceSetting(AUD_Handle* handle,
-								   AUD_3DSourceSetting setting);
+	virtual AUD_Vector3 getListenerLocation() const;
+	virtual void setListenerLocation(const AUD_Vector3& location);
+	virtual AUD_Vector3 getListenerVelocity() const;
+	virtual void setListenerVelocity(const AUD_Vector3& velocity);
+	virtual AUD_Quaternion getListenerOrientation() const;
+	virtual void setListenerOrientation(const AUD_Quaternion& orientation);
+	virtual float getSpeedOfSound() const;
+	virtual void setSpeedOfSound(float speed);
+	virtual float getDopplerFactor() const;
+	virtual void setDopplerFactor(float factor);
+	virtual AUD_DistanceModel getDistanceModel() const;
+	virtual void setDistanceModel(AUD_DistanceModel model);
+	virtual AUD_Vector3 getSourceLocation(AUD_Handle* handle);
+	virtual bool setSourceLocation(AUD_Handle* handle, const AUD_Vector3& location);
+	virtual AUD_Vector3 getSourceVelocity(AUD_Handle* handle);
+	virtual bool setSourceVelocity(AUD_Handle* handle, const AUD_Vector3& velocity);
+	virtual AUD_Quaternion getSourceOrientation(AUD_Handle* handle);
+	virtual bool setSourceOrientation(AUD_Handle* handle, const AUD_Quaternion& orientation);
+	virtual bool isRelative(AUD_Handle* handle);
+	virtual bool setRelative(AUD_Handle* handle, bool relative);
+	virtual float getVolumeMaximum(AUD_Handle* handle);
+	virtual bool setVolumeMaximum(AUD_Handle* handle, float volume);
+	virtual float getVolumeMinimum(AUD_Handle* handle);
+	virtual bool setVolumeMinimum(AUD_Handle* handle, float volume);
+	virtual float getDistanceMaximum(AUD_Handle* handle);
+	virtual bool setDistanceMaximum(AUD_Handle* handle, float distance);
+	virtual float getDistanceReference(AUD_Handle* handle);
+	virtual bool setDistanceReference(AUD_Handle* handle, float distance);
+	virtual float getAttenuation(AUD_Handle* handle);
+	virtual bool setAttenuation(AUD_Handle* handle, float factor);
+	virtual float getConeAngleOuter(AUD_Handle* handle);
+	virtual bool setConeAngleOuter(AUD_Handle* handle, float angle);
+	virtual float getConeAngleInner(AUD_Handle* handle);
+	virtual bool setConeAngleInner(AUD_Handle* handle, float angle);
+	virtual float getConeVolumeOuter(AUD_Handle* handle);
+	virtual bool setConeVolumeOuter(AUD_Handle* handle, float volume);
 };
 
 #endif //AUD_OPENALDEVICE

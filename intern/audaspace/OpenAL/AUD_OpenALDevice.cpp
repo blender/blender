@@ -1099,214 +1099,447 @@ bool AUD_OpenALDevice::bufferFactory(void *value)
 /**************************** 3D Device Code **********************************/
 /******************************************************************************/
 
-AUD_Handle* AUD_OpenALDevice::play3D(AUD_IFactory* factory, bool keep)
+AUD_Vector3 AUD_OpenALDevice::getListenerLocation() const
 {
-	AUD_OpenALHandle* handle = (AUD_OpenALHandle*)play(factory, keep);
-	if(handle)
-		alSourcei(handle->source, AL_SOURCE_RELATIVE, 0);
-	return handle;
+	ALfloat p[3];
+	alGetListenerfv(AL_POSITION, p);
+	return AUD_Vector3(p[0], p[1], p[2]);
 }
 
-bool AUD_OpenALDevice::updateListener(AUD_3DData &data)
+void AUD_OpenALDevice::setListenerLocation(const AUD_Vector3& location)
 {
-	alListenerfv(AL_POSITION, (ALfloat*)data.position);
-	alListenerfv(AL_VELOCITY, (ALfloat*)data.velocity);
-	alListenerfv(AL_ORIENTATION, (ALfloat*)&(data.orientation[3]));
-
-	return true;
+	alListenerfv(AL_POSITION, (ALfloat*)location.get());
 }
 
-bool AUD_OpenALDevice::setSetting(AUD_3DSetting setting, float value)
+AUD_Vector3 AUD_OpenALDevice::getListenerVelocity() const
 {
-	switch(setting)
+	ALfloat v[3];
+	alGetListenerfv(AL_VELOCITY, v);
+	return AUD_Vector3(v[0], v[1], v[2]);
+}
+
+void AUD_OpenALDevice::setListenerVelocity(const AUD_Vector3& velocity)
+{
+	alListenerfv(AL_VELOCITY, (ALfloat*)velocity.get());
+}
+
+AUD_Quaternion AUD_OpenALDevice::getListenerOrientation() const
+{
+	// AUD_XXX not implemented yet
+	return AUD_Quaternion(0, 0, 0, 0);
+}
+
+void AUD_OpenALDevice::setListenerOrientation(const AUD_Quaternion& orientation)
+{
+	ALfloat direction[6];
+	direction[0] = -2 * (orientation.w() * orientation.y() +
+						 orientation.x() * orientation.z());
+	direction[1] = 2 * (orientation.x() * orientation.w() -
+						orientation.z() * orientation.y());
+	direction[2] = 2 * (orientation.x() * orientation.x() +
+						orientation.y() * orientation.y()) - 1;
+	direction[3] = 2 * (orientation.x() * orientation.y() -
+						orientation.w() * orientation.z());
+	direction[4] = 1 - 2 * (orientation.x() * orientation.x() +
+							orientation.z() * orientation.z());
+	direction[5] = 2 * (orientation.w() * orientation.x() +
+						orientation.y() * orientation.z());
+	alListenerfv(AL_ORIENTATION, direction);
+}
+
+float AUD_OpenALDevice::getSpeedOfSound() const
+{
+	return alGetFloat(AL_SPEED_OF_SOUND);
+}
+
+void AUD_OpenALDevice::setSpeedOfSound(float speed)
+{
+	alSpeedOfSound(speed);
+}
+
+float AUD_OpenALDevice::getDopplerFactor() const
+{
+	return alGetFloat(AL_DOPPLER_FACTOR);
+}
+
+void AUD_OpenALDevice::setDopplerFactor(float factor)
+{
+	alDopplerFactor(factor);
+}
+
+AUD_DistanceModel AUD_OpenALDevice::getDistanceModel() const
+{
+	switch(alGetInteger(AL_DISTANCE_MODEL))
 	{
-	case AUD_3DS_DISTANCE_MODEL:
-		if(value == AUD_DISTANCE_MODEL_NONE)
-			alDistanceModel(AL_NONE);
-		else if(value == AUD_DISTANCE_MODEL_INVERSE)
-			alDistanceModel(AL_INVERSE_DISTANCE);
-		else if(value == AUD_DISTANCE_MODEL_INVERSE_CLAMPED)
-			alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
-		else if(value == AUD_DISTANCE_MODEL_LINEAR)
-			alDistanceModel(AL_LINEAR_DISTANCE);
-		else if(value == AUD_DISTANCE_MODEL_LINEAR_CLAMPED)
-			alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
-		else if(value == AUD_DISTANCE_MODEL_EXPONENT)
-			alDistanceModel(AL_EXPONENT_DISTANCE);
-		else if(value == AUD_DISTANCE_MODEL_EXPONENT_CLAMPED)
-			alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
-		else
-			return false;
-		return true;
-	case AUD_3DS_DOPPLER_FACTOR:
-		alDopplerFactor(value);
-		return true;
-	case AUD_3DS_SPEED_OF_SOUND:
-		alSpeedOfSound(value);
-		return true;
+	case AL_INVERSE_DISTANCE:
+		return AUD_DISTANCE_MODEL_INVERSE;
+	case AL_INVERSE_DISTANCE_CLAMPED:
+		return AUD_DISTANCE_MODEL_INVERSE_CLAMPED;
+	case AL_LINEAR_DISTANCE:
+		return AUD_DISTANCE_MODEL_LINEAR;
+	case AL_LINEAR_DISTANCE_CLAMPED:
+		return AUD_DISTANCE_MODEL_LINEAR_CLAMPED;
+	case AL_EXPONENT_DISTANCE:
+		return AUD_DISTANCE_MODEL_EXPONENT;
+	case AL_EXPONENT_DISTANCE_CLAMPED:
+		return AUD_DISTANCE_MODEL_EXPONENT_CLAMPED;
 	default:
-		return false;
+		return AUD_DISTANCE_MODEL_INVALID;
 	}
 }
 
-float AUD_OpenALDevice::getSetting(AUD_3DSetting setting)
+void AUD_OpenALDevice::setDistanceModel(AUD_DistanceModel model)
 {
-	switch(setting)
+	switch(model)
 	{
-	case AUD_3DS_DISTANCE_MODEL:
-		switch(alGetInteger(AL_DISTANCE_MODEL))
-		{
-			case AL_NONE:
-				return AUD_DISTANCE_MODEL_NONE;
-			case AL_INVERSE_DISTANCE:
-				return AUD_DISTANCE_MODEL_INVERSE;
-			case AL_INVERSE_DISTANCE_CLAMPED:
-				return AUD_DISTANCE_MODEL_INVERSE_CLAMPED;
-			case AL_LINEAR_DISTANCE:
-				return AUD_DISTANCE_MODEL_LINEAR;
-			case AL_LINEAR_DISTANCE_CLAMPED:
-				return AUD_DISTANCE_MODEL_LINEAR_CLAMPED;
-			case AL_EXPONENT_DISTANCE:
-				return AUD_DISTANCE_MODEL_EXPONENT;
-			case AL_EXPONENT_DISTANCE_CLAMPED:
-				return AUD_DISTANCE_MODEL_EXPONENT_CLAMPED;
-		}
-	case AUD_3DS_DOPPLER_FACTOR:
-		return alGetFloat(AL_DOPPLER_FACTOR);
-	case AUD_3DS_SPEED_OF_SOUND:
-		return alGetFloat(AL_SPEED_OF_SOUND);
+	case AUD_DISTANCE_MODEL_INVERSE:
+		alDistanceModel(AL_INVERSE_DISTANCE);
+		break;
+	case AUD_DISTANCE_MODEL_INVERSE_CLAMPED:
+		alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
+		break;
+	case AUD_DISTANCE_MODEL_LINEAR:
+		alDistanceModel(AL_LINEAR_DISTANCE);
+		break;
+	case AUD_DISTANCE_MODEL_LINEAR_CLAMPED:
+		alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
+		break;
+	case AUD_DISTANCE_MODEL_EXPONENT:
+		alDistanceModel(AL_EXPONENT_DISTANCE);
+		break;
+	case AUD_DISTANCE_MODEL_EXPONENT_CLAMPED:
+		alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
+		break;
 	default:
-		return std::numeric_limits<float>::quiet_NaN();
+		alDistanceModel(AL_NONE);
 	}
 }
 
-bool AUD_OpenALDevice::updateSource(AUD_Handle* handle, AUD_3DData &data)
+AUD_Vector3 AUD_OpenALDevice::getSourceLocation(AUD_Handle* handle)
 {
-	bool result = false;
-
+	AUD_Vector3 result = AUD_Vector3(0, 0, 0);
+	ALfloat p[3];
 	lock();
 
 	if(isValid(handle))
 	{
-		int source = ((AUD_OpenALHandle*)handle)->source;
-		alSourcefv(source, AL_POSITION, (ALfloat*)data.position);
-		alSourcefv(source, AL_VELOCITY, (ALfloat*)data.velocity);
-		alSourcefv(source, AL_DIRECTION, (ALfloat*)&(data.orientation[3]));
-		result = true;
-	}
-
-	unlock();
-
-	return result;
-}
-
-bool AUD_OpenALDevice::setSourceSetting(AUD_Handle* handle,
-										AUD_3DSourceSetting setting,
-										float value)
-{
-	lock();
-
-	bool result = false;
-
-	if(isValid(handle))
-	{
-		int source = ((AUD_OpenALHandle*)handle)->source;
-
-		switch(setting)
-		{
-		case AUD_3DSS_CONE_INNER_ANGLE:
-			alSourcef(source, AL_CONE_INNER_ANGLE, value);
-			result = true;
-			break;
-		case AUD_3DSS_CONE_OUTER_ANGLE:
-			alSourcef(source, AL_CONE_OUTER_ANGLE, value);
-			result = true;
-			break;
-		case AUD_3DSS_CONE_OUTER_GAIN:
-			alSourcef(source, AL_CONE_OUTER_GAIN, value);
-			result = true;
-			break;
-		case AUD_3DSS_IS_RELATIVE:
-			alSourcei(source, AL_SOURCE_RELATIVE, value > 0.0f);
-			result = true;
-			break;
-		case AUD_3DSS_MAX_DISTANCE:
-			alSourcef(source, AL_MAX_DISTANCE, value);
-			result = true;
-			break;
-		case AUD_3DSS_MAX_GAIN:
-			alSourcef(source, AL_MAX_GAIN, value);
-			result = true;
-			break;
-		case AUD_3DSS_MIN_GAIN:
-			alSourcef(source, AL_MIN_GAIN, value);
-			result = true;
-			break;
-		case AUD_3DSS_REFERENCE_DISTANCE:
-			alSourcef(source, AL_REFERENCE_DISTANCE, value);
-			result = true;
-			break;
-		case AUD_3DSS_ROLLOFF_FACTOR:
-			alSourcef(source, AL_ROLLOFF_FACTOR, value);
-			result = true;
-			break;
-		default:
-			break;
-		}
+		alGetSourcefv(((AUD_OpenALHandle*)handle)->source, AL_POSITION, p);
+		result = AUD_Vector3(p[0], p[1], p[2]);
 	}
 
 	unlock();
 	return result;
 }
 
-float AUD_OpenALDevice::getSourceSetting(AUD_Handle* handle,
-										 AUD_3DSourceSetting setting)
+bool AUD_OpenALDevice::setSourceLocation(AUD_Handle* handle, const AUD_Vector3& location)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcefv(((AUD_OpenALHandle*)handle)->source, AL_POSITION,
+				   (ALfloat*)location.get());
+
+	unlock();
+	return result;
+}
+
+AUD_Vector3 AUD_OpenALDevice::getSourceVelocity(AUD_Handle* handle)
+{
+	AUD_Vector3 result = AUD_Vector3(0, 0, 0);
+	ALfloat v[3];
+	lock();
+
+	if(isValid(handle))
+	{
+		alGetSourcefv(((AUD_OpenALHandle*)handle)->source, AL_VELOCITY, v);
+		result = AUD_Vector3(v[0], v[1], v[2]);
+	}
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setSourceVelocity(AUD_Handle* handle, const AUD_Vector3& velocity)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcefv(((AUD_OpenALHandle*)handle)->source, AL_VELOCITY,
+				   (ALfloat*)velocity.get());
+
+	unlock();
+	return result;
+}
+
+AUD_Quaternion AUD_OpenALDevice::getSourceOrientation(AUD_Handle* handle)
+{
+	// AUD_XXX not implemented yet
+	return AUD_Quaternion(0, 0, 0, 0);
+}
+
+bool AUD_OpenALDevice::setSourceOrientation(AUD_Handle* handle, const AUD_Quaternion& orientation)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+	{
+		ALfloat direction[3];
+		direction[0] = -2 * (orientation.w() * orientation.y() +
+							 orientation.x() * orientation.z());
+		direction[1] = 2 * (orientation.x() * orientation.w() -
+							orientation.z() * orientation.y());
+		direction[2] = 2 * (orientation.x() * orientation.x() +
+							orientation.y() * orientation.y()) - 1;
+		alSourcefv(((AUD_OpenALHandle*)handle)->source, AL_DIRECTION,
+				   direction);
+	}
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::isRelative(AUD_Handle* handle)
+{
+	int result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcei(((AUD_OpenALHandle*)handle)->source, AL_SOURCE_RELATIVE,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setRelative(AUD_Handle* handle, bool relative)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcei(((AUD_OpenALHandle*)handle)->source, AL_SOURCE_RELATIVE,
+				  relative);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getVolumeMaximum(AUD_Handle* handle)
 {
 	float result = std::numeric_limits<float>::quiet_NaN();;
 
 	lock();
 
 	if(isValid(handle))
-	{
-		int source = ((AUD_OpenALHandle*)handle)->source;
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_MAX_GAIN,
+					 &result);
 
-		switch(setting)
-		{
-		case AUD_3DSS_CONE_INNER_ANGLE:
-			alGetSourcef(source, AL_CONE_INNER_ANGLE, &result);
-			break;
-		case AUD_3DSS_CONE_OUTER_ANGLE:
-			alGetSourcef(source, AL_CONE_OUTER_ANGLE, &result);
-			break;
-		case AUD_3DSS_CONE_OUTER_GAIN:
-			alGetSourcef(source, AL_CONE_OUTER_GAIN, &result);
-			break;
-		case AUD_3DSS_IS_RELATIVE:
-			{
-				ALint i;
-				alGetSourcei(source, AL_SOURCE_RELATIVE, &i);
-				result = i ? 1.0f : 0.0f;
-				break;
-			}
-		case AUD_3DSS_MAX_DISTANCE:
-			alGetSourcef(source, AL_MAX_DISTANCE, &result);
-			break;
-		case AUD_3DSS_MAX_GAIN:
-			alGetSourcef(source, AL_MAX_GAIN, &result);
-			break;
-		case AUD_3DSS_MIN_GAIN:
-			alGetSourcef(source, AL_MIN_GAIN, &result);
-			break;
-		case AUD_3DSS_REFERENCE_DISTANCE:
-			alGetSourcef(source, AL_REFERENCE_DISTANCE, &result);
-			break;
-		case AUD_3DSS_ROLLOFF_FACTOR:
-			alGetSourcef(source, AL_ROLLOFF_FACTOR, &result);
-			break;
-		default:
-			break;
-		}
-	}
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setVolumeMaximum(AUD_Handle* handle, float volume)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_MAX_GAIN,
+				  volume);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getVolumeMinimum(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_MIN_GAIN,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setVolumeMinimum(AUD_Handle* handle, float volume)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_MIN_GAIN,
+				  volume);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getDistanceMaximum(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_MAX_DISTANCE,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setDistanceMaximum(AUD_Handle* handle, float distance)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_MAX_DISTANCE,
+				  distance);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getDistanceReference(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_REFERENCE_DISTANCE,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setDistanceReference(AUD_Handle* handle, float distance)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_REFERENCE_DISTANCE,
+				  distance);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getAttenuation(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_ROLLOFF_FACTOR,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setAttenuation(AUD_Handle* handle, float factor)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_ROLLOFF_FACTOR,
+				  factor);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getConeAngleOuter(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_CONE_OUTER_ANGLE,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setConeAngleOuter(AUD_Handle* handle, float angle)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_CONE_OUTER_ANGLE,
+				  angle);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getConeAngleInner(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_CONE_INNER_ANGLE,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setConeAngleInner(AUD_Handle* handle, float angle)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_CONE_INNER_ANGLE,
+				  angle);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getConeVolumeOuter(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_CONE_OUTER_GAIN,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setConeVolumeOuter(AUD_Handle* handle, float volume)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_CONE_OUTER_GAIN,
+				  volume);
 
 	unlock();
 	return result;

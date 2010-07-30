@@ -443,124 +443,244 @@ AUD_Status AUD_getStatus(AUD_Channel* handle)
 	return AUD_device->getStatus(handle);
 }
 
-AUD_Channel* AUD_play3D(AUD_Sound* sound, int keep)
-{
-	assert(AUD_device);
-	assert(sound);
-
-	try
-	{
-		if(AUD_3ddevice)
-			return AUD_3ddevice->play3D(sound, keep);
-		else
-			return AUD_device->play(sound, keep);
-	}
-	catch(AUD_Exception&)
-	{
-		return NULL;
-	}
-}
-
-int AUD_updateListener(AUD_3DData* data)
-{
-	assert(AUD_device);
-	assert(data);
-
-	try
-	{
-		if(AUD_3ddevice)
-			return AUD_3ddevice->updateListener(*data);
-	}
-	catch(AUD_Exception&)
-	{
-	}
-	return false;
-}
-
-int AUD_set3DSetting(AUD_3DSetting setting, float value)
+int AUD_setListenerLocation(const float* location)
 {
 	assert(AUD_device);
 
-	try
+	if(AUD_3ddevice)
 	{
-		if(AUD_3ddevice)
-			return AUD_3ddevice->setSetting(setting, value);
+		AUD_Vector3 v(location[0], location[1], location[2]);
+		AUD_3ddevice->setListenerLocation(v);
+		return true;
 	}
-	catch(AUD_Exception&)
-	{
-	}
+
 	return false;
 }
 
-float AUD_get3DSetting(AUD_3DSetting setting)
+int AUD_setListenerVelocity(const float* velocity)
 {
 	assert(AUD_device);
 
-	try
+	if(AUD_3ddevice)
 	{
-		if(AUD_3ddevice)
-			return AUD_3ddevice->getSetting(setting);
+		AUD_Vector3 v(velocity[0], velocity[1], velocity[2]);
+		AUD_3ddevice->setListenerVelocity(v);
+		return true;
 	}
-	catch(AUD_Exception&)
-	{
-	}
-	return 0.0f;
-}
 
-int AUD_update3DSource(AUD_Channel* handle, AUD_3DData* data)
-{
-	if(handle)
-	{
-		assert(AUD_device);
-		assert(data);
-
-		try
-		{
-			if(AUD_3ddevice)
-				return AUD_3ddevice->updateSource(handle, *data);
-		}
-		catch(AUD_Exception&)
-		{
-		}
-	}
 	return false;
 }
 
-int AUD_set3DSourceSetting(AUD_Channel* handle,
-						   AUD_3DSourceSetting setting, float value)
+int AUD_setListenerOrientation(const float* orientation)
 {
-	if(handle)
-	{
-		assert(AUD_device);
+	assert(AUD_device);
 
-		try
-		{
-			if(AUD_3ddevice)
-				return AUD_3ddevice->setSourceSetting(handle, setting, value);
-		}
-		catch(AUD_Exception&)
-		{
-		}
+	if(AUD_3ddevice)
+	{
+		AUD_Quaternion q(orientation[0], orientation[1], orientation[2], orientation[3]);
+		AUD_3ddevice->setListenerOrientation(q);
+		return true;
 	}
+
 	return false;
 }
 
-float AUD_get3DSourceSetting(AUD_Channel* handle, AUD_3DSourceSetting setting)
+int AUD_setSpeedOfSound(float speed)
 {
-	if(handle)
-	{
-		assert(AUD_device);
+	assert(AUD_device);
 
-		try
-		{
-			if(AUD_3ddevice)
-				return AUD_3ddevice->getSourceSetting(handle, setting);
-		}
-		catch(AUD_Exception&)
-		{
-		}
+	if(AUD_3ddevice)
+	{
+		AUD_3ddevice->setSpeedOfSound(speed);
+		return true;
 	}
-	return 0.0f;
+
+	return false;
+}
+
+int AUD_setDopplerFactor(float factor)
+{
+	assert(AUD_device);
+
+	if(AUD_3ddevice)
+	{
+		AUD_3ddevice->setDopplerFactor(factor);
+		return true;
+	}
+
+	return false;
+}
+
+int AUD_setDistanceModel(AUD_DistanceModel model)
+{
+	assert(AUD_device);
+
+	if(AUD_3ddevice)
+	{
+		AUD_3ddevice->setDistanceModel(model);
+		return true;
+	}
+
+	return false;
+}
+
+int AUD_setSourceLocation(AUD_Channel* handle, const float* location)
+{
+	assert(AUD_device);
+	assert(handle);
+
+	if(AUD_3ddevice)
+	{
+		AUD_Vector3 v(location[0], location[1], location[2]);
+		return AUD_3ddevice->setSourceLocation(handle, v);
+	}
+
+	return false;
+}
+
+int AUD_setSourceVelocity(AUD_Channel* handle, const float* velocity)
+{
+	assert(AUD_device);
+	assert(handle);
+
+	if(AUD_3ddevice)
+	{
+		AUD_Vector3 v(velocity[0], velocity[1], velocity[2]);
+		return AUD_3ddevice->setSourceVelocity(handle, v);
+	}
+
+	return false;
+}
+
+int AUD_setSourceOrientation(AUD_Channel* handle, const float* orientation)
+{
+	assert(AUD_device);
+	assert(handle);
+
+	if(AUD_3ddevice)
+	{
+		AUD_Quaternion q(orientation[0], orientation[1], orientation[2], orientation[3]);
+		return AUD_3ddevice->setSourceOrientation(handle, q);
+	}
+
+	return false;
+}
+
+int AUD_setRelative(AUD_Channel* handle, int relative)
+{
+	assert(AUD_device);
+	assert(handle);
+
+	if(AUD_3ddevice)
+	{
+		return AUD_3ddevice->setRelative(handle, relative);
+	}
+
+	return false;
+}
+
+int AUD_setVolumeMaximum(AUD_Channel* handle, float volume)
+{
+	assert(AUD_device);
+	assert(handle);
+
+	if(AUD_3ddevice)
+	{
+		return AUD_3ddevice->setVolumeMaximum(handle, volume);
+	}
+
+	return false;
+}
+
+int AUD_setVolumeMinimum(AUD_Channel* handle, float volume)
+{
+	assert(AUD_device);
+	assert(handle);
+
+	if(AUD_3ddevice)
+	{
+		return AUD_3ddevice->setVolumeMinimum(handle, volume);
+	}
+
+	return false;
+}
+
+int AUD_setDistanceMaximum(AUD_Channel* handle, float distance)
+{
+	assert(AUD_device);
+	assert(handle);
+
+	if(AUD_3ddevice)
+	{
+		return AUD_3ddevice->setDistanceMaximum(handle, distance);
+	}
+
+	return false;
+}
+
+int AUD_setDistanceReference(AUD_Channel* handle, float distance)
+{
+	assert(AUD_device);
+	assert(handle);
+
+	if(AUD_3ddevice)
+	{
+		return AUD_3ddevice->setDistanceReference(handle, distance);
+	}
+
+	return false;
+}
+
+int AUD_setAttenuation(AUD_Channel* handle, float factor)
+{
+	assert(AUD_device);
+	assert(handle);
+
+	if(AUD_3ddevice)
+	{
+		return AUD_3ddevice->setAttenuation(handle, factor);
+	}
+
+	return false;
+}
+
+int AUD_setConeAngleOuter(AUD_Channel* handle, float angle)
+{
+	assert(AUD_device);
+	assert(handle);
+
+	if(AUD_3ddevice)
+	{
+		return AUD_3ddevice->setConeAngleOuter(handle, angle);
+	}
+
+	return false;
+}
+
+int AUD_setConeAngleInner(AUD_Channel* handle, float angle)
+{
+	assert(AUD_device);
+	assert(handle);
+
+	if(AUD_3ddevice)
+	{
+		return AUD_3ddevice->setConeAngleInner(handle, angle);
+	}
+
+	return false;
+}
+
+int AUD_setConeVolumeOuter(AUD_Channel* handle, float volume)
+{
+	assert(AUD_device);
+	assert(handle);
+
+	if(AUD_3ddevice)
+	{
+		return AUD_3ddevice->setConeVolumeOuter(handle, volume);
+	}
+
+	return false;
 }
 
 int AUD_setSoundVolume(AUD_Channel* handle, float volume)

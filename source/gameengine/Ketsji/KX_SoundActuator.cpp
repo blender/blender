@@ -31,6 +31,7 @@
  */
 
 #include "KX_SoundActuator.h"
+#include "AUD_C-API.h"
 #include "KX_GameObject.h"
 #include "KX_PyMath.h" // needed for PyObjectFrom()
 #include <iostream>
@@ -102,16 +103,17 @@ void KX_SoundActuator::play()
 	if(m_is3d)
 	{
 		// sound shall be played 3D
-		m_handle = AUD_play3D(sound, 0);
+		m_handle = AUD_play(sound, 0);
 
-		AUD_set3DSourceSetting(m_handle, AUD_3DSS_MAX_GAIN, m_3d.max_gain);
-		AUD_set3DSourceSetting(m_handle, AUD_3DSS_MIN_GAIN, m_3d.min_gain);
-		AUD_set3DSourceSetting(m_handle, AUD_3DSS_REFERENCE_DISTANCE, m_3d.reference_distance);
-		AUD_set3DSourceSetting(m_handle, AUD_3DSS_MAX_DISTANCE, m_3d.max_distance);
-		AUD_set3DSourceSetting(m_handle, AUD_3DSS_ROLLOFF_FACTOR, m_3d.rolloff_factor);
-		AUD_set3DSourceSetting(m_handle, AUD_3DSS_CONE_INNER_ANGLE, m_3d.cone_inner_angle);
-		AUD_set3DSourceSetting(m_handle, AUD_3DSS_CONE_OUTER_ANGLE, m_3d.cone_outer_angle);
-		AUD_set3DSourceSetting(m_handle, AUD_3DSS_CONE_OUTER_GAIN, m_3d.cone_outer_gain);
+		AUD_setRelative(m_handle, true);
+		AUD_setVolumeMaximum(m_handle, m_3d.max_gain);
+		AUD_setVolumeMinimum(m_handle, m_3d.min_gain);
+		AUD_setDistanceReference(m_handle, m_3d.reference_distance);
+		AUD_setDistanceMaximum(m_handle, m_3d.max_distance);
+		AUD_setAttenuation(m_handle, m_3d.rolloff_factor);
+		AUD_setConeAngleInner(m_handle, m_3d.cone_inner_angle);
+		AUD_setConeAngleOuter(m_handle, m_3d.cone_outer_angle);
+		AUD_setConeVolumeOuter(m_handle, m_3d.cone_outer_gain);
 	}
 	else
 		m_handle = AUD_play(sound, 0);
@@ -215,39 +217,15 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 	{
 		if(m_is3d)
 		{
-			AUD_3DData data;
-			float f;
-			((KX_GameObject*)this->GetParent())->NodeGetWorldPosition().getValue(data.position);
-			((KX_GameObject*)this->GetParent())->GetLinearVelocity().getValue(data.velocity);
-			((KX_GameObject*)this->GetParent())->NodeGetWorldOrientation().getValue3x3(data.orientation);
+			KX_GameObject* obj = (KX_GameObject*)this->GetParent();
+			float f[4];
 
-			/*
-			 * The 3D data from blender has to be transformed for OpenAL:
-			 *  - In blender z is up and y is forwards
-			 *  - In OpenAL y is up and z is backwards
-			 * We have to do that for all 5 vectors.
-			 */
-			f = data.position[1];
-			data.position[1] = data.position[2];
-			data.position[2] = -f;
-
-			f = data.velocity[1];
-			data.velocity[1] = data.velocity[2];
-			data.velocity[2] = -f;
-
-			f = data.orientation[1];
-			data.orientation[1] = data.orientation[2];
-			data.orientation[2] = -f;
-
-			f = data.orientation[4];
-			data.orientation[4] = data.orientation[5];
-			data.orientation[5] = -f;
-
-			f = data.orientation[7];
-			data.orientation[7] = data.orientation[8];
-			data.orientation[8] = -f;
-
-			AUD_update3DSource(m_handle, &data);
+			obj->NodeGetWorldPosition().getValue(f);
+			AUD_setSourceLocation(m_handle, f);
+			obj->GetLinearVelocity().getValue(f);
+			AUD_setSourceVelocity(m_handle, f);
+			obj->NodeGetWorldOrientation().getRotation().getValue(f);
+			AUD_setSourceOrientation(m_handle, f);
 		}
 		result = true;
 	}
@@ -300,19 +278,18 @@ PyMethodDef KX_SoundActuator::Methods[] = {
 
 PyAttributeDef KX_SoundActuator::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RO("is3D", KX_SoundActuator, m_is3d),
-	KX_PYATTRIBUTE_RW_FUNCTION("maxGain3D", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
-	KX_PYATTRIBUTE_RW_FUNCTION("minGain3D", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
-	KX_PYATTRIBUTE_RW_FUNCTION("referenceDistance3D", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
-	KX_PYATTRIBUTE_RW_FUNCTION("maxDistance3D", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
-	KX_PYATTRIBUTE_RW_FUNCTION("rolloffFactor3D", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
-	KX_PYATTRIBUTE_RW_FUNCTION("coneInnerAngle3D", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
-	KX_PYATTRIBUTE_RW_FUNCTION("coneOuterAngle3D", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
-	KX_PYATTRIBUTE_RW_FUNCTION("coneOuterGain3D", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
-	
+	KX_PYATTRIBUTE_RW_FUNCTION("volume_maximum", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
+	KX_PYATTRIBUTE_RW_FUNCTION("volume_minimum", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
+	KX_PYATTRIBUTE_RW_FUNCTION("distance_reference", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
+	KX_PYATTRIBUTE_RW_FUNCTION("distance_maximum", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
+	KX_PYATTRIBUTE_RW_FUNCTION("attenuation", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
+	KX_PYATTRIBUTE_RW_FUNCTION("cone_angle_inner", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
+	KX_PYATTRIBUTE_RW_FUNCTION("cone_angle_outer", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
+	KX_PYATTRIBUTE_RW_FUNCTION("cone_volume_outer", KX_SoundActuator, pyattr_get_3d_property, pyattr_set_3d_property),
+
 	KX_PYATTRIBUTE_RW_FUNCTION("time", KX_SoundActuator, pyattr_get_audposition, pyattr_set_audposition),
 	KX_PYATTRIBUTE_RW_FUNCTION("volume", KX_SoundActuator, pyattr_get_gain, pyattr_set_gain),
 	KX_PYATTRIBUTE_RW_FUNCTION("pitch", KX_SoundActuator, pyattr_get_pitch, pyattr_set_pitch),
-	KX_PYATTRIBUTE_RW_FUNCTION("rollOffFactor", KX_SoundActuator, pyattr_get_rollOffFactor, pyattr_set_rollOffFactor),
 	KX_PYATTRIBUTE_ENUM_RW("mode",KX_SoundActuator::KX_SOUNDACT_NODEF+1,KX_SoundActuator::KX_SOUNDACT_MAX-1,false,KX_SoundActuator,m_type),
 	{ NULL }	//Sentinel
 };
@@ -358,28 +335,28 @@ PyObject* KX_SoundActuator::pyattr_get_3d_property(void *self, const struct KX_P
 	const char* prop = attrdef->m_name;
 	float result_value = 0.0;
 
-	if(!strcmp(prop, "maxGain3D")) {
+	if(!strcmp(prop, "volume_maximum")) {
 		result_value = actuator->m_3d.max_gain;
 
-	} else if (!strcmp(prop, "minGain3D")) {
+	} else if (!strcmp(prop, "volume_minimum")) {
 		result_value = actuator->m_3d.min_gain;
 
-	} else if (!strcmp(prop, "referenceDistance3D")) {
+	} else if (!strcmp(prop, "distance_reference")) {
 		result_value = actuator->m_3d.reference_distance;
 
-	} else if (!strcmp(prop, "maxDistance3D")) {
+	} else if (!strcmp(prop, "distance_maximum")) {
 		result_value = actuator->m_3d.max_distance;
 
-	} else if (!strcmp(prop, "rolloffFactor3D")) {
+	} else if (!strcmp(prop, "attenuation")) {
 		result_value = actuator->m_3d.rolloff_factor;
 
-	} else if (!strcmp(prop, "coneInnerAngle3D")) {
+	} else if (!strcmp(prop, "cone_angle_inner")) {
 		result_value = actuator->m_3d.cone_inner_angle;
 
-	} else if (!strcmp(prop, "coneOuterAngle3D")) {
+	} else if (!strcmp(prop, "cone_angle_outer")) {
 		result_value = actuator->m_3d.cone_outer_angle;
 
-	} else if (!strcmp(prop, "coneOuterGain3D")) {
+	} else if (!strcmp(prop, "cone_volume_outer")) {
 		result_value = actuator->m_3d.cone_outer_gain;
 
 	} else {
@@ -423,66 +400,63 @@ PyObject* KX_SoundActuator::pyattr_get_pitch(void *self, const struct KX_PYATTRI
 	return result;
 }
 
-PyObject* KX_SoundActuator::pyattr_get_rollOffFactor(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
-{
-	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
-	float rollofffactor = actuator->m_3d.rolloff_factor;
-	PyObject* result = PyFloat_FromDouble(rollofffactor);
-
-	return result;
-}
-
 int KX_SoundActuator::pyattr_set_3d_property(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	const char* prop = attrdef->m_name;
 	float prop_value = 0.0;
-	AUD_3DSourceSetting setting = AUD_3DSS_NONE;
 
 	if (!PyArg_Parse(value, "f", &prop_value))
 		return PY_SET_ATTR_FAIL;
 
-	// update the internal value
-	if(!strcmp(prop, "maxGain3D")) {
+	// if sound is working and 3D, set the new setting
+	if(!actuator->m_is3d)
+		return PY_SET_ATTR_FAIL;
+
+	if(!strcmp(prop, "volume_maximum")) {
 		actuator->m_3d.max_gain = prop_value;
-		setting = AUD_3DSS_MAX_GAIN;
+		if(actuator->m_handle)
+			AUD_setVolumeMaximum(actuator->m_handle, prop_value);
 
-	} else if (!strcmp(prop, "minGain3D")) {
+	} else if (!strcmp(prop, "volume_minimum")) {
 		actuator->m_3d.min_gain = prop_value;
-		setting = AUD_3DSS_MIN_GAIN;
+		if(actuator->m_handle)
+			AUD_setVolumeMinimum(actuator->m_handle, prop_value);
 
-	} else if (!strcmp(prop, "referenceDistance3D")) {
+	} else if (!strcmp(prop, "distance_reference")) {
 		actuator->m_3d.reference_distance = prop_value;
-		setting = AUD_3DSS_REFERENCE_DISTANCE;
+		if(actuator->m_handle)
+			AUD_setDistanceReference(actuator->m_handle, prop_value);
 
-	} else if (!strcmp(prop, "maxDistance3D")) {
+	} else if (!strcmp(prop, "distance_maximum")) {
 		actuator->m_3d.max_distance = prop_value;
-		setting = AUD_3DSS_MAX_DISTANCE;
+		if(actuator->m_handle)
+			AUD_setDistanceMaximum(actuator->m_handle, prop_value);
 
-	} else if (!strcmp(prop, "rolloffFactor3D")) {
+	} else if (!strcmp(prop, "attenuation")) {
 		actuator->m_3d.rolloff_factor = prop_value;
-		setting = AUD_3DSS_ROLLOFF_FACTOR;
+		if(actuator->m_handle)
+			AUD_setAttenuation(actuator->m_handle, prop_value);
 
-	} else if (!!strcmp(prop, "coneInnerAngle3D")) {
+	} else if (!!strcmp(prop, "cone_angle_inner")) {
 		actuator->m_3d.cone_inner_angle = prop_value;
-		setting = AUD_3DSS_CONE_INNER_ANGLE;
+		if(actuator->m_handle)
+			AUD_setConeAngleInner(actuator->m_handle, prop_value);
 
-	} else if (!strcmp(prop, "coneOuterAngle3D")) {
+	} else if (!strcmp(prop, "cone_angle_outer")) {
 		actuator->m_3d.cone_outer_angle = prop_value;
-		setting = AUD_3DSS_CONE_OUTER_ANGLE;
+		if(actuator->m_handle)
+			AUD_setConeAngleOuter(actuator->m_handle, prop_value);
 
-	} else if (!strcmp(prop, "coneOuterGain3D")) {
+	} else if (!strcmp(prop, "cone_volume_outer")) {
 		actuator->m_3d.cone_outer_gain = prop_value;
-		setting = AUD_3DSS_CONE_OUTER_GAIN;
+		if(actuator->m_handle)
+			AUD_setConeVolumeOuter(actuator->m_handle, prop_value);
 
 	} else {
 		return PY_SET_ATTR_FAIL;
-	}	
+	}
 	
-	// if sound is working and 3D, set the new setting
-	if(actuator->m_handle && actuator->m_is3d && setting != AUD_3DSS_NONE)
-		AUD_set3DSourceSetting(actuator->m_handle, setting, prop_value);
-
 	return PY_SET_ATTR_SUCCESS;
 }
 
@@ -523,20 +497,6 @@ int KX_SoundActuator::pyattr_set_pitch(void *self, const struct KX_PYATTRIBUTE_D
 	actuator->m_pitch = pitch;
 	if(actuator->m_handle)
 		AUD_setSoundPitch(actuator->m_handle, pitch);
-
-	return PY_SET_ATTR_SUCCESS;
-}
-
-int KX_SoundActuator::pyattr_set_rollOffFactor(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
-{
-	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
-	float rollofffactor = 1.0;
-	if (!PyArg_Parse(value, "f", &rollofffactor))
-		return PY_SET_ATTR_FAIL;
-
-	actuator->m_3d.rolloff_factor = rollofffactor;
-	if(actuator->m_handle)
-		AUD_set3DSourceSetting(actuator->m_handle, AUD_3DSS_ROLLOFF_FACTOR, rollofffactor);
 
 	return PY_SET_ATTR_SUCCESS;
 }

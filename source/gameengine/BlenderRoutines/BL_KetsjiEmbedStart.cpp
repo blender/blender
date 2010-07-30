@@ -388,9 +388,9 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				ketsjiengine->InitDome(scene->gm.dome.res, scene->gm.dome.mode, scene->gm.dome.angle, scene->gm.dome.resbuf, scene->gm.dome.tilt, scene->gm.dome.warptext);
 
 			// initialize 3D Audio Settings
-			AUD_set3DSetting(AUD_3DS_SPEED_OF_SOUND, scene->audio.speed_of_sound);
-			AUD_set3DSetting(AUD_3DS_DOPPLER_FACTOR, scene->audio.doppler_factor);
-			AUD_set3DSetting(AUD_3DS_DISTANCE_MODEL, scene->audio.distance_model);
+			AUD_setSpeedOfSound(scene->audio.speed_of_sound);
+			AUD_setDopplerFactor(scene->audio.doppler_factor);
+			AUD_setDistanceModel(AUD_DistanceModel(scene->audio.distance_model));
 
 			// from see blender.c:
 			// FIXME: this version patching should really be part of the file-reading code,

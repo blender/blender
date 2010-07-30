@@ -124,39 +124,17 @@ typedef enum
 	AUD_FADE_OUT
 } AUD_FadeType;
 
-/// 3D device settings.
-typedef enum
-{
-	AUD_3DS_NONE,					/// No setting.
-	AUD_3DS_SPEED_OF_SOUND,			/// Speed of sound.
-	AUD_3DS_DOPPLER_FACTOR,			/// Doppler factor.
-	AUD_3DS_DISTANCE_MODEL			/// Distance model.
-} AUD_3DSetting;
-
 /// Possible distance models for the 3D device.
-#define AUD_DISTANCE_MODEL_NONE					0.0f
-#define AUD_DISTANCE_MODEL_INVERSE				1.0f
-#define AUD_DISTANCE_MODEL_INVERSE_CLAMPED		2.0f
-#define AUD_DISTANCE_MODEL_LINEAR				3.0f
-#define AUD_DISTANCE_MODEL_LINEAR_CLAMPED		4.0f
-#define AUD_DISTANCE_MODEL_EXPONENT				5.0f
-#define AUD_DISTANCE_MODEL_EXPONENT_CLAMPED		6.0f
-
-/// 3D source settings.
 typedef enum
 {
-	AUD_3DSS_NONE,					/// No setting.
-	AUD_3DSS_IS_RELATIVE,			/// > 0 tells that the sound source is
-									/// relative to the listener
-	AUD_3DSS_MIN_GAIN,				/// Minimum gain.
-	AUD_3DSS_MAX_GAIN,				/// Maximum gain.
-	AUD_3DSS_REFERENCE_DISTANCE,	/// Reference distance.
-	AUD_3DSS_MAX_DISTANCE,			/// Maximum distance.
-	AUD_3DSS_ROLLOFF_FACTOR,		/// Rolloff factor.
-	AUD_3DSS_CONE_INNER_ANGLE,		/// Cone inner angle.
-	AUD_3DSS_CONE_OUTER_ANGLE,		/// Cone outer angle.
-	AUD_3DSS_CONE_OUTER_GAIN		/// Cone outer gain.
-} AUD_3DSourceSetting;
+	AUD_DISTANCE_MODEL_INVALID = 0,
+	AUD_DISTANCE_MODEL_INVERSE,
+	AUD_DISTANCE_MODEL_INVERSE_CLAMPED,
+	AUD_DISTANCE_MODEL_LINEAR,
+	AUD_DISTANCE_MODEL_LINEAR_CLAMPED,
+	AUD_DISTANCE_MODEL_EXPONENT,
+	AUD_DISTANCE_MODEL_EXPONENT_CLAMPED,
+} AUD_DistanceModel;
 
 /// Sample type.(float samples)
 typedef float sample_t;
@@ -205,18 +183,5 @@ typedef struct
 
 	// void* userData; - for the case it is needed someday
 } AUD_Exception;
-
-/// Handle structure, for inherition.
-typedef struct
-{
-	/// x, y and z coordinates of the object.
-	float position[3];
-
-	/// x, y and z coordinates telling the velocity and direction of the object.
-	float velocity[3];
-
-	/// 3x3 matrix telling the orientation of the object.
-	float orientation[9];
-} AUD_3DData;
 
 #endif //AUD_SPACE

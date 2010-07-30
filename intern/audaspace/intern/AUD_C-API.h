@@ -246,64 +246,145 @@ extern float AUD_getPosition(AUD_Channel* handle);
 extern AUD_Status AUD_getStatus(AUD_Channel* handle);
 
 /**
- * Plays a 3D sound.
- * \param sound The handle of the sound file.
- * \param keep When keep is true the sound source will not be deleted but set to
- *             paused when its end has been reached.
- * \return A handle to the played back sound.
- * \note The factory must provide a mono (single channel) source and the device
- *       must support 3D audio, otherwise the sound is played back normally.
+ * Sets the listener location.
+ * \param location The new location.
  */
-extern AUD_Channel* AUD_play3D(AUD_Sound* sound, int keep);
+extern int AUD_setListenerLocation(const float* location);
 
 /**
- * Updates the listener 3D data.
- * \param data The 3D data.
+ * Sets the listener velocity.
+ * \param velocity The new velocity.
+ */
+extern int AUD_setListenerVelocity(const float* velocity);
+
+/**
+ * Sets the listener orientation.
+ * \param orientation The new orientation as quaternion.
+ */
+extern int AUD_setListenerOrientation(const float* orientation);
+
+/**
+ * Sets the speed of sound.
+ * This value is needed for doppler effect calculation.
+ * \param speed The new speed of sound.
+ */
+extern int AUD_setSpeedOfSound(float speed);
+
+/**
+ * Sets the doppler factor.
+ * This value is a scaling factor for the velocity vectors of sources and
+ * listener which is used while calculating the doppler effect.
+ * \param factor The new doppler factor.
+ */
+extern int AUD_setDopplerFactor(float factor);
+
+/**
+ * Sets the distance model.
+ * \param model distance model.
+ */
+extern int AUD_setDistanceModel(AUD_DistanceModel model);
+
+/**
+ * Sets the location of a source.
+ * \param handle The handle of the source.
+ * \param location The new location.
  * \return Whether the action succeeded.
  */
-extern int AUD_updateListener(AUD_3DData* data);
+extern int AUD_setSourceLocation(AUD_Channel* handle, const float* location);
 
 /**
- * Sets a 3D device setting.
- * \param setting The setting type.
- * \param value The new setting value.
+ * Sets the velocity of a source.
+ * \param handle The handle of the source.
+ * \param velocity The new velocity.
  * \return Whether the action succeeded.
  */
-extern int AUD_set3DSetting(AUD_3DSetting setting, float value);
+extern int AUD_setSourceVelocity(AUD_Channel* handle, const float* velocity);
 
 /**
- * Retrieves a 3D device setting.
- * \param setting The setting type.
- * \return The setting value.
- */
-extern float AUD_get3DSetting(AUD_3DSetting setting);
-
-/**
- * Updates a listeners 3D data.
- * \param handle The source handle.
- * \param data The 3D data.
+ * Sets the orientation of a source.
+ * \param handle The handle of the source.
+ * \param orientation The new orientation as quaternion.
  * \return Whether the action succeeded.
  */
-extern int AUD_update3DSource(AUD_Channel* handle, AUD_3DData* data);
+extern int AUD_setSourceOrientation(AUD_Channel* handle, const float* orientation);
 
 /**
- * Sets a 3D source setting.
- * \param handle The source handle.
- * \param setting The setting type.
- * \param value The new setting value.
+ * Sets whether the source location, velocity and orientation are relative
+ * to the listener.
+ * \param handle The handle of the source.
+ * \param relative Whether the source is relative.
  * \return Whether the action succeeded.
  */
-extern int AUD_set3DSourceSetting(AUD_Channel* handle,
-								  AUD_3DSourceSetting setting, float value);
+extern int AUD_setRelative(AUD_Channel* handle, int relative);
 
 /**
- * Retrieves a 3D source setting.
- * \param handle The source handle.
- * \param setting The setting type.
- * \return The setting value.
+ * Sets the maximum volume of a source.
+ * \param handle The handle of the source.
+ * \param volume The new maximum volume.
+ * \return Whether the action succeeded.
  */
-extern float AUD_get3DSourceSetting(AUD_Channel* handle,
-									AUD_3DSourceSetting setting);
+extern int AUD_setVolumeMaximum(AUD_Channel* handle, float volume);
+
+/**
+ * Sets the minimum volume of a source.
+ * \param handle The handle of the source.
+ * \param volume The new minimum volume.
+ * \return Whether the action succeeded.
+ */
+extern int AUD_setVolumeMinimum(AUD_Channel* handle, float volume);
+
+/**
+ * Sets the maximum distance of a source.
+ * If a source is further away from the reader than this distance, the
+ * volume will automatically be set to 0.
+ * \param handle The handle of the source.
+ * \param distance The new maximum distance.
+ * \return Whether the action succeeded.
+ */
+extern int AUD_setDistanceMaximum(AUD_Channel* handle, float distance);
+
+/**
+ * Sets the reference distance of a source.
+ * \param handle The handle of the source.
+ * \param distance The new reference distance.
+ * \return Whether the action succeeded.
+ */
+extern int AUD_setDistanceReference(AUD_Channel* handle, float distance);
+
+/**
+ * Sets the attenuation of a source.
+ * This value is used for distance calculation.
+ * \param handle The handle of the source.
+ * \param factor The new attenuation.
+ * \return Whether the action succeeded.
+ */
+extern int AUD_setAttenuation(AUD_Channel* handle, float factor);
+
+/**
+ * Sets the outer angle of the cone of a source.
+ * \param handle The handle of the source.
+ * \param angle The new outer angle of the cone.
+ * \return Whether the action succeeded.
+ */
+extern int AUD_setConeAngleOuter(AUD_Channel* handle, float angle);
+
+/**
+ * Sets the inner angle of the cone of a source.
+ * \param handle The handle of the source.
+ * \param angle The new inner angle of the cone.
+ * \return Whether the action succeeded.
+ */
+extern int AUD_setConeAngleInner(AUD_Channel* handle, float angle);
+
+/**
+ * Sets the outer volume of the cone of a source.
+ * The volume between inner and outer angle is interpolated between inner
+ * volume and this value.
+ * \param handle The handle of the source.
+ * \param volume The new outer volume of the cone.
+ * \return Whether the action succeeded.
+ */
+extern int AUD_setConeVolumeOuter(AUD_Channel* handle, float volume);
 
 /**
  * Sets the volume of a played back sound.
