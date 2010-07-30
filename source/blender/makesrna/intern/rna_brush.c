@@ -731,7 +731,7 @@ static void rna_def_brush(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_ui_text(prop, "CurveMapping", "Editable falloff curve");
+	RNA_def_property_ui_text(prop, "Curve", "Editable falloff curve");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	/* texture */
