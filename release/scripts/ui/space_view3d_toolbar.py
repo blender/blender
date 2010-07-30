@@ -986,7 +986,6 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
         row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
         row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
         row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
-        row.operator("brush.curve_preset", icon="RNDCURVE", text="").shape = 'MID9'
 
 class VIEW3D_PT_sculpt_options(PaintPanel):
     bl_label = "Options"

@@ -1747,7 +1747,7 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 
 	switch(event) {
 		case 0: /* reset */
-			curvemap_reset(cuma, &cumap->clipr,	cumap->preset);
+			curvemap_reset(cuma, &cumap->clipr,	cumap->preset, CURVEMAP_SLOPE_POSITIVE);
 			curvemapping_changed(cumap, 0);
 			break;
 		case 1:
@@ -1827,7 +1827,7 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 	
 	cumap->preset = CURVE_PRESET_LINE;
 	for(a=0; a<CM_TOT; a++)
-		curvemap_reset(cumap->cm+a, &cumap->clipr, cumap->preset);
+		curvemap_reset(cumap->cm+a, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_POSITIVE);
 	
 	cumap->black[0]=cumap->black[1]=cumap->black[2]= 0.0f;
 	cumap->white[0]=cumap->white[1]=cumap->white[2]= 1.0f;
