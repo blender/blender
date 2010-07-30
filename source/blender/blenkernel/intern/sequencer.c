@@ -1882,8 +1882,12 @@ static ImBuf * seq_render_scene_strip_impl(
 			   IMB_saveiff(imb, "/tmp/foo.image", IB_rect | IB_metadata);
 			   IMB_freeImBuf(imb);
 			   } */
-			
-		} else if (rres.rect32) {
+
+			/* float buffers in the sequencer are not linear */
+			ibuf->profile= IB_PROFILE_LINEAR_RGB;
+			IMB_convert_profile(ibuf, IB_PROFILE_SRGB);			
+		}
+		else if (rres.rect32) {
 			ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect, 0);
 			memcpy(ibuf->rect, rres.rect32, 4*rres.rectx*rres.recty);
 		}
