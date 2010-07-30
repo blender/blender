@@ -1363,7 +1363,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	lamp->col[1]= la->g*lamp->energy;
 	lamp->col[2]= la->b*lamp->energy;
 
-	GPU_lamp_update(lamp, ob->lay, (ob->restrictflag & OB_RESTRICT_VIEW), ob->obmat);
+	GPU_lamp_update(lamp, ob->lay, (ob->restrictflag & OB_RESTRICT_RENDER), ob->obmat);
 
 	lamp->spotsi= la->spotsize;
 	if(lamp->mode & LA_HALO)

@@ -1807,7 +1807,7 @@ static void gpu_render_lamp_update(Scene *scene, View3D *v3d, Object *ob, Object
 	lamp = GPU_lamp_from_blender(scene, ob, par);
 	
 	if(lamp) {
-		GPU_lamp_update(lamp, ob->lay, (ob->restrictflag & OB_RESTRICT_VIEW), obmat);
+		GPU_lamp_update(lamp, ob->lay, (ob->restrictflag & OB_RESTRICT_RENDER), obmat);
 		GPU_lamp_update_colors(lamp, la->r, la->g, la->b, la->energy);
 		
 		if((ob->lay & v3d->lay) && GPU_lamp_has_shadow_buffer(lamp)) {
