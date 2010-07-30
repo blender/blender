@@ -245,7 +245,7 @@ typedef struct Curve {
 #define CU_PATH			8
 #define CU_FOLLOW		16
 #define CU_UV_ORCO		32
-#define CU_NOPUNOFLIP	64
+#define CU_DEPRECATED	64
 #define CU_STRETCH		128
 #define CU_OFFS_PATHDIST	256
 #define CU_FAST			512 /* Font: no filling inside editmode */

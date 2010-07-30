@@ -273,7 +273,8 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
 	shi->mode= shi->mat->mode_l;		/* or-ed result for all nodes */
 
 	/* facenormal copy, can get flipped */
-	shi->flippednor= RE_vlakren_get_normal(&R, obi, vlr, shi->facenor);
+	shi->flippednor= 0;
+	RE_vlakren_get_normal(&R, obi, vlr, shi->facenor);
 	
 	/* calculate vertexnormals */
 	if(vlr->flag & R_SMOOTH) {
@@ -285,24 +286,6 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
 			mul_m3_v3(obi->nmat, shi->n1);
 			mul_m3_v3(obi->nmat, shi->n2);
 			mul_m3_v3(obi->nmat, shi->n3);
-		}
-
-		if(!(vlr->flag & (R_NOPUNOFLIP|R_TANGENT))) {
-			if(INPR(shi->facenor, shi->n1) < 0.0f) {
-				shi->n1[0]= -shi->n1[0];
-				shi->n1[1]= -shi->n1[1];
-				shi->n1[2]= -shi->n1[2];
-			}
-			if(INPR(shi->facenor, shi->n2) < 0.0f) {
-				shi->n2[0]= -shi->n2[0];
-				shi->n2[1]= -shi->n2[1];
-				shi->n2[2]= -shi->n2[2];
-			}
-			if(INPR(shi->facenor, shi->n3) < 0.0f) {
-				shi->n3[0]= -shi->n3[0];
-				shi->n3[1]= -shi->n3[1];
-				shi->n3[2]= -shi->n3[2];
-			}
 		}
 	}
 }
@@ -826,6 +809,10 @@ void shade_input_set_normals(ShadeInput *shi)
 	/* used in nodes */
 	VECCOPY(shi->vno, shi->vn);
 
+	/* flip normals to viewing direction */
+	if(!(shi->vlr->flag & R_TANGENT))
+		if(dot_v3v3(shi->facenor, shi->view) < 0.0f)
+			shade_input_flip_normals(shi);
 }
 
 /* use by raytrace, sss, bake to flip into the right direction */

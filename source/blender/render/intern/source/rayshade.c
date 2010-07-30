@@ -531,10 +531,6 @@ void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 
 	shade_input_set_normals(shi);
 
-	/* point normals to viewing direction */
-	if(INPR(shi->facenor, shi->view) < 0.0f)
-		shade_input_flip_normals(shi);
-
 	shade_input_set_shade_texco(shi);
 	if (shi->mat->material_type == MA_TYPE_VOLUME) {
 		if(ELEM(is->mode, RE_RAY_SHADOW, RE_RAY_SHADOW_TRA)) {

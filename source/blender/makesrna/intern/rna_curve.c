@@ -706,11 +706,6 @@ static void rna_def_nurbs(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_UV_ORCO);
 	RNA_def_property_ui_text(prop, "Map Along Length", "Generate texture mapping coordinates following the curve direction, rather than the local bounding box");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-	
-	prop= RNA_def_property(srna, "vertex_normal_flip", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CU_NOPUNOFLIP);
-	RNA_def_property_ui_text(prop, "Vertex Normal Flip", "Flip vertex normals towards the camera during render");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
 static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
