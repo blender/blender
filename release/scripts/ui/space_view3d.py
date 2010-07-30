@@ -791,7 +791,7 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
         layout.separator()
 
         props = layout.operator("object.isolate_type_render")
-
+        props = layout.operator("object.hide_render_clear_all")
 
 class VIEW3D_MT_object_apply(bpy.types.Menu):
     bl_label = "Apply"
