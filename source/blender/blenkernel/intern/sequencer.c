@@ -1800,8 +1800,8 @@ static ImBuf * seq_render_scene_strip_impl(
 {
 	ImBuf * ibuf = 0;
 	float frame= seq->sfra + nr + seq->anim_startofs;
-	float oldcfra = seq->scene->r.cfra;
-	Object *oldcamera= seq->scene->camera;
+	float oldcfra;
+	Object *oldcamera;
 	ListBase oldmarkers;
 	
 	/* Hack! This function can be called from do_render_seq(), in that case
@@ -1820,21 +1820,20 @@ static ImBuf * seq_render_scene_strip_impl(
 	int doseq;
 	int doseq_gl= G.rendering ? /*(scene->r.seq_flag & R_SEQ_GL_REND)*/ 0 : (scene->r.seq_flag & R_SEQ_GL_PREV);
 	int have_seq= FALSE;
-	Scene *sce= seq->scene;// *oldsce= scene;
+	Scene *sce= seq->scene; /* dont refer to seq->scene above this point!, it can be NULL */
 	int sce_valid= FALSE;
 
-	have_seq= (sce->r.scemode & R_DOSEQ) 
-		&& sce->ed && sce->ed->seqbase.first;
-
 	if(sce) {
+		have_seq= (sce->r.scemode & R_DOSEQ) && sce->ed && sce->ed->seqbase.first;
 		sce_valid= (sce->camera || have_seq);
 	}
 
-	if (!sce_valid) {
-		return 0;
-	}
+	if (!sce_valid)
+		return NULL;
 
-	
+	oldcfra= seq->scene->r.cfra;
+	oldcamera= seq->scene->camera;
+
 	/* prevent eternal loop */
 	doseq= scene->r.scemode & R_DOSEQ;
 	scene->r.scemode &= ~R_DOSEQ;
