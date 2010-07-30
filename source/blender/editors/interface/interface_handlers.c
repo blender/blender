@@ -3251,24 +3251,8 @@ static int ui_do_but_COLORBAND(bContext *C, uiBlock *block, uiBut *but, uiHandle
 
 			if(event->ctrl) {
 				/* insert new key on mouse location */
-				if(coba->tot < MAXCOLORBAND-1) {
-					float pos= ((float)(mx - but->x1))/(but->x2-but->x1);
-					float col[4];
-					
-					do_colorband(coba, pos, col);	/* executes it */
-					
-					coba->tot++;
-					coba->cur= coba->tot-1;
-					
-					coba->data[coba->cur].r= col[0];
-					coba->data[coba->cur].g= col[1];
-					coba->data[coba->cur].b= col[2];
-					coba->data[coba->cur].a= col[3];
-					coba->data[coba->cur].pos= pos;
-
-					ui_colorband_update(coba);
-				}
-
+				float pos= ((float)(mx - but->x1))/(but->x2-but->x1);
+				colorband_element_add(coba, pos);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
 			else {

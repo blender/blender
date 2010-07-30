@@ -11078,10 +11078,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 						if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 						{
-							GroupObject *go = NULL;
-							Base *base = NULL;
-							Scene *scene = NULL;
-
 							smd->domain->vorticity = 2.0f;
 							smd->domain->time_scale = 1.0f;
 

@@ -1302,71 +1302,20 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *arg_unused)
 
 #define B_BANDCOL 1
 
-static int vergcband(const void *a1, const void *a2)
-{
-	const CBData *x1=a1, *x2=a2;
-
-	if( x1->pos > x2->pos ) return 1;
-	else if( x1->pos < x2->pos) return -1;
-	return 0;
-}
-
-static void colorband_pos_cb(bContext *C, void *cb_v, void *coba_v)
-{
-	ColorBand *coba= coba_v;
-	int a;
-
-	if(coba->tot<2) return;
-
-	for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
-	qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
-	for(a=0; a<coba->tot; a++) {
-		if(coba->data[a].cur==coba->cur) {
-			coba->cur= a;
-			break;
-		}
-	}
-
-	rna_update_cb(C, cb_v, NULL);
-}
-
 static void colorband_add_cb(bContext *C, void *cb_v, void *coba_v)
 {
 	ColorBand *coba= coba_v;
+	float pos= 0.5f;
 
-	if(coba->tot > 0) {
-		CBData *xnew, *x1, *x2;
-		float col[4];
-
-		xnew= &coba->data[coba->tot];
-
-		if(coba->tot > 1) {
-			if(coba->cur > 0) {
-				x1= &coba->data[coba->cur-1];
-				x2= &coba->data[coba->cur];
-			}
-			else {
-				x1= &coba->data[coba->cur];
-				x2= &coba->data[coba->cur+1];
-			}
-
-			xnew->pos = x1->pos + ((x2->pos - x1->pos) / 2);
-		}
-
-		do_colorband(coba, xnew->pos, col);
-
-		xnew->r= col[0];
-		xnew->g= col[1];
-		xnew->b= col[2];
-		xnew->a= col[3];
+	if(coba->tot > 1) {
+		if(coba->cur > 0)	pos= (coba->data[coba->cur-1].pos + coba->data[coba->cur].pos) * 0.5f;
+		else				pos= (coba->data[coba->cur+1].pos + coba->data[coba->cur].pos) * 0.5f;
 	}
 
-	if(coba->tot < MAXCOLORBAND-1) coba->tot++;
-	coba->cur= coba->tot-1;
-
-	colorband_pos_cb(C, cb_v, coba_v);
-
-	ED_undo_push(C, "Add colorband");
+	if(colorband_element_add(coba, pos)) {
+		rna_update_cb(C, cb_v, NULL);
+		ED_undo_push(C, "Add colorband");	
+	}
 }
 
 static void colorband_del_cb(bContext *C, void *cb_v, void *coba_v)
@@ -1374,17 +1323,10 @@ static void colorband_del_cb(bContext *C, void *cb_v, void *coba_v)
 	ColorBand *coba= coba_v;
 	int a;
 
-	if(coba->tot<2) return;
-
-	for(a=coba->cur; a<coba->tot; a++) {
-		coba->data[a]= coba->data[a+1];
+	if(colorband_element_remove(coba, coba->cur)) {
+		ED_undo_push(C, "Delete colorband");
+		rna_update_cb(C, cb_v, NULL);
 	}
-	if(coba->cur) coba->cur--;
-	coba->tot--;
-
-	ED_undo_push(C, "Delete colorband");
-
-	rna_update_cb(C, cb_v, NULL);
 }
 
 static void colorband_flip_cb(bContext *C, void *cb_v, void *coba_v)
