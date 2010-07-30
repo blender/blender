@@ -471,6 +471,7 @@ void flip_side_name (char *name, const char *from_name, int strip_number)
 #undef IS_SEPARATOR
 
 	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
+	printf("'%s' --> '%s'\n", from_name, name);
 }
 
 float defvert_find_weight(const struct MDeformVert *dvert, int group_num)
