@@ -305,7 +305,8 @@ def write(filename, batch_objects = None, \
         BATCH_OWN_DIR =				False
     ):
 
-    bpy.ops.object.mode_set(mode='OBJECT')
+    if bpy.context.object:
+        bpy.ops.object.mode_set(mode='OBJECT')
 
     # ----------------- Batch support!
     if BATCH_ENABLE:

@@ -193,7 +193,7 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *co
 	isect.labda = FLT_MAX;
 	
 	isect.mode= RE_RAY_MIRROR;
-	isect.skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK;
+	isect.skip = RE_SKIP_VLR_NEIGHBOUR;
 	isect.orig.ob = (void*) shi->obi;
 	isect.orig.face = (void*)vlr;
 	isect.last_hit = NULL;
@@ -446,7 +446,7 @@ static void vol_get_transmittance(ShadeInput *shi, float *tr, float *co, float *
 		const float stepd = (t0 - pt0) * d;
 		float sigma_t[3];
 		
-		vol_get_sigma_t(shi, sigma_t, co);
+		vol_get_sigma_t(shi, sigma_t, p);
 		
 		tau[0] += stepd * sigma_t[0];
 		tau[1] += stepd * sigma_t[1];
@@ -609,7 +609,10 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 			/* transmittance component (alpha) */
 			vol_get_transmittance_seg(shi, tr, stepsize, co, density);
 			
-			if (luminance(tr) < shi->mat->vol.depth_cutoff) break;
+			if (t0 > t1 * 0.25) {
+				/* only use depth cutoff after we've traced a little way into the volume */
+				if (luminance(tr) < shi->mat->vol.depth_cutoff) break;
+			}
 			
 			vol_get_emission(shi, emit_col, p);
 			
@@ -783,8 +786,7 @@ void shade_volume_inside(ShadeInput *shi, ShadeResult *shr)
 	MatInside *m;
 	Material *mat_backup;
 	ObjectInstanceRen *obi_backup;
-	float prev_alpha = shr->alpha;
-	
+
 	/* XXX: extend to multiple volumes perhaps later */
 	mat_backup = shi->mat;
 	obi_backup = shi->obi;
@@ -794,10 +796,10 @@ void shade_volume_inside(ShadeInput *shi, ShadeResult *shr)
 	shi->obi = m->obi;
 	shi->obr = m->obi->obr;
 	
-	volume_trace(shi, shr, VOL_SHADE_INSIDE);
-	shr->alpha += prev_alpha;
-	CLAMP(shr->alpha, 0.f, 1.f);
+	memset(shr, 0, sizeof(ShadeResult));
 	
+	volume_trace(shi, shr, VOL_SHADE_INSIDE);
+
 	shi->mat = mat_backup;
 	shi->obi = obi_backup;
 	shi->obr = obi_backup->obr;

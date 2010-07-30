@@ -643,29 +643,9 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             row= col.row()
             row.prop(brush, "use_frontface", text="Front Faces Only")
 
-            #if brush.sculpt_tool in ('DRAW', 'CREASE', 'BLOB', 'LAYER', 'CLAY', 'CLAY_TUBES'):
-            if brush.sculpt_tool in ('DRAW', 'CREASE', 'BLOB', 'LAYER', 'CLAY'):
-                col.separator()
-                col.row().prop(brush, "direction", expand=True)
-            elif brush.sculpt_tool in ('FLATTEN'):
-                col.separator()
-                col.row().prop(brush, "flatten_contrast", expand=True)
-            elif brush.sculpt_tool in ('FILL'):
-                col.separator()
-                col.row().prop(brush, "fill_deepen", expand=True)
-            elif brush.sculpt_tool in ('SCRAPE'):
-                col.separator()
-                col.row().prop(brush, "scrape_peaks", expand=True)
-            elif brush.sculpt_tool in ('INFLATE'):
-                col.separator()
-                col.row().prop(brush, "inflate_deflate", expand=True)
-            elif brush.sculpt_tool in ('PINCH'):
-                col.separator()
-                col.row().prop(brush, "pinch_magnify", expand=True)
+            col.separator()
+            col.row().prop(brush, "direction", expand=True)
 
-
-
-            #if brush.sculpt_tool in ('DRAW', 'CREASE', 'BLOB', 'INFLATE', 'LAYER', 'CLAY', 'CLAY_TUBES'):
             if brush.sculpt_tool in ('DRAW', 'CREASE', 'BLOB', 'INFLATE', 'LAYER', 'CLAY'):
                 col.separator()
 
@@ -879,6 +859,7 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel):
 
         if context.sculpt_object:
             col.prop(brush, "sculpt_tool", expand=False, text="")
+            col.operator("brush.reset")
         elif context.texture_paint_object:
             col.prop(brush, "imagepaint_tool", expand=False, text="")
         elif context.vertex_paint_object or context.weight_paint_object:
@@ -1005,7 +986,6 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
         row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
         row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
         row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
-        row.operator("brush.curve_preset", icon="RNDCURVE", text="").shape = 'MID9'
 
 class VIEW3D_PT_sculpt_options(PaintPanel):
     bl_label = "Options"
@@ -1028,6 +1008,10 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
 
         col = split.column()
 
+        col.prop(sculpt, "use_openmp", text="Threaded Sculpt")
+        col.prop(sculpt, "fast_navigate")
+        col.prop(sculpt, "show_brush")
+
         col.label(text="Unified Settings:")
         col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
         col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
@@ -1043,6 +1027,8 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
         row.prop(sculpt, "lock_y", text="Y", toggle=True)
         row.prop(sculpt, "lock_z", text="Z", toggle=True)
 
+		
+		
 class VIEW3D_PT_sculpt_symmetry(PaintPanel):
     bl_label = "Symmetry"
     bl_default_closed = True
@@ -1107,16 +1093,14 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel):
         else:
             col.prop(brush, "add_col", text="Color")
 
-        col.separator()
-
         col = layout.column()
         col.label(text="Icon:")
 
         row = col.row(align=True)
-        row.prop(brush, "icon", text="")
-
-        row = col.row(align=True)
-        row.prop(brush, "icon_filepath", text="")
+        row.prop(brush, "use_custom_icon")
+        if brush.use_custom_icon:
+            row = col.row(align=True)
+            row.prop(brush, "icon_filepath", text="")
 
 # ********** default tools for weightpaint ****************
 

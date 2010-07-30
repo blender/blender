@@ -218,7 +218,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	char str[FILE_MAX];
-	short internal = RNA_int_get(op->ptr, "internal");
+	short internal = RNA_boolean_get(op->ptr, "internal");
 
 	RNA_string_get(op->ptr, "filepath", str);
 
@@ -902,15 +902,22 @@ void TEXT_OT_unindent(wmOperatorType *ot)
 
 static int line_break_exec(bContext *C, wmOperator *op)
 {
+	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= CTX_data_edit_text(C);
-	int a, curtab;
+	int a, curts;
+	int space = (text->flags & TXT_TABSTOSPACES) ? st->tabnumber : 1;
 
-	// double check tabs before splitting the line
-	curtab= setcurr_tab(text);
+	// double check tabs/spaces before splitting the line
+	curts= setcurr_tab_spaces(text, space);
 	txt_split_curline(text);
 
-	for(a=0; a < curtab; a++)
-		txt_add_char(text, '\t');
+	for(a=0; a < curts; a++) {
+		if (text->flags & TXT_TABSTOSPACES) {
+			txt_add_char(text, ' ');
+		} else {
+			txt_add_char(text, '\t');
+		}
+	}
 
 	if(text->curl) {
 		if(text->curl->prev)

@@ -1127,10 +1127,9 @@ static void kinematic_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstra
 			else {
 				float vec[3];
 				/* move grabtarget into world space */
-				VECCOPY(vec, data->grabtarget);
-				mul_m4_v3(ob->obmat, vec);
+				mul_v3_m4v3(vec, ob->obmat, data->grabtarget);
 				copy_m4_m4(ct->matrix, ob->obmat);
-				VECCOPY(ct->matrix[3], vec);
+				copy_v3_v3(ct->matrix[3], vec);
 			}
 		}
 		else

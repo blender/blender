@@ -1837,47 +1837,38 @@ static void give_parvert(Object *par, int nr, float *vec)
 	
 	if(par->type==OB_MESH) {
 		Mesh *me= par->data;
+		DerivedMesh *dm;
+
 		em = BKE_mesh_get_editmesh(me);
-
-		if(em) {
-			EditVert *eve;
+		dm = (em)? em->derivedFinal: par->derivedFinal;
 			
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->keyindex==nr) {
-					memcpy(vec, eve->co, sizeof(float)*3);
-					break;
+		if(dm) {
+			MVert *mvert= dm->getVertArray(dm);
+			int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
+			int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
+
+			/* get the average of all verts with (original index == nr) */
+			for(i = 0; i < numVerts; i++) {
+				vindex= (index)? index[i]: i;
+
+				if(vindex == nr) {
+					add_v3_v3(vec, mvert[i].co);
+					count++;
 				}
 			}
+
+			if (count==0) {
+				/* keep as 0,0,0 */
+			} else if(count > 0) {
+				mul_v3_fl(vec, 1.0f / count);
+			} else {
+				/* use first index if its out of range */
+				dm->getVertCo(dm, 0, vec);
+			}
+		}
+
+		if(em)
 			BKE_mesh_end_editmesh(me, em);
-		}
-		else {
-			DerivedMesh *dm = par->derivedFinal;
-			
-			if(dm) {
-				MVert *mvert= dm->getVertArray(dm);
-				int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
-				int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
-
-				/* get the average of all verts with (original index == nr) */
-				for(i = 0; i < numVerts; i++) {
-					vindex= (index)? index[i]: i;
-
-					if(vindex == nr) {
-						add_v3_v3(vec, mvert[i].co);
-						count++;
-					}
-				}
-
-				if (count==0) {
-					/* keep as 0,0,0 */
-				} else if(count > 0) {
-					mul_v3_fl(vec, 1.0f / count);
-				} else {
-					/* use first index if its out of range */
-					dm->getVertCo(dm, 0, vec);
-				}
-			}
-		}
 	}
 	else if (ELEM(par->type, OB_CURVE, OB_SURF)) {
 		Nurb *nu;
@@ -2324,11 +2315,9 @@ void minmax_object(Object *ob, float *min, float *max)
 		if(ob->pose) {
 			bPoseChannel *pchan;
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				VECCOPY(vec, pchan->pose_head);
-				mul_m4_v3(ob->obmat, vec);
+				mul_v3_m4v3(vec, ob->obmat, pchan->pose_head);
 				DO_MINMAX(vec, min, max);
-				VECCOPY(vec, pchan->pose_tail);
-				mul_m4_v3(ob->obmat, vec);
+				mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
 				DO_MINMAX(vec, min, max);
 			}
 			break;
@@ -2957,7 +2946,11 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, char *name, int from_
 	if(newkey || from_mix==FALSE) {
 		/* create from curve */
 		kb= add_keyblock(key, name);
-		curve_to_key(cu, kb, lb);
+		if (!newkey) {
+			KeyBlock *basekb= (KeyBlock *)key->block.first;
+			kb->data= MEM_dupallocN(basekb->data);
+			kb->totelem= basekb->totelem;
+		} else curve_to_key(cu, kb, lb);
 	}
 	else {
 		/* copy from current values */

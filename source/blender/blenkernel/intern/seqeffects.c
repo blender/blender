@@ -67,6 +67,48 @@ enum {
 	GlowA=3
 };
 
+static struct ImBuf * prepare_effect_imbufs(
+	int x, int y,
+	struct ImBuf *ibuf1, struct ImBuf *ibuf2,
+	struct ImBuf *ibuf3)
+{
+	struct ImBuf * out;
+
+	if (!ibuf1 && !ibuf2 && !ibuf3) {
+		/* hmmm, global float option ? */
+		out = IMB_allocImBuf((short)x, (short)y, 32, IB_rect, 0);
+	} else if ((ibuf1 && ibuf1->rect_float) || 
+		   (ibuf2 && ibuf2->rect_float) || 
+		   (ibuf3 && ibuf3->rect_float)) {
+		/* if any inputs are rectfloat, output is float too */
+
+		out = IMB_allocImBuf((short)x, (short)y, 32, IB_rectfloat, 0);
+	} else {
+		out = IMB_allocImBuf((short)x, (short)y, 32, IB_rect, 0);
+	}
+	
+	if (ibuf1 && !ibuf1->rect_float && out->rect_float) {
+		IMB_float_from_rect_simple(ibuf1);
+	}
+	if (ibuf2 && !ibuf2->rect_float && out->rect_float) {
+		IMB_float_from_rect_simple(ibuf2);
+	}
+	if (ibuf3 && !ibuf3->rect_float && out->rect_float) {
+		IMB_float_from_rect_simple(ibuf3);
+	}
+	
+	if (ibuf1 && !ibuf1->rect && !out->rect_float) {
+		IMB_rect_from_float(ibuf1);
+	}
+	if (ibuf2 && !ibuf2->rect && !out->rect_float) {
+		IMB_rect_from_float(ibuf2);
+	}
+	if (ibuf3 && !ibuf3->rect && !out->rect_float) {
+		IMB_rect_from_float(ibuf3);
+	}
+			
+	return out;
+}
 
 /* **********************************************************************
    PLUGINS
@@ -229,17 +271,20 @@ static ImBuf * IMB_cast_away_list(ImBuf * i)
 	return (ImBuf*) (((void**) i) + 2);
 }
 
-static void do_plugin_effect(Scene *scene, Sequence *seq, int cfra,
-			     float facf0, float facf1, int x, int y, 
-			     int preview_render_size,
-			     struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-			     struct ImBuf *ibuf3, struct ImBuf *out)
+static struct ImBuf * do_plugin_effect(
+	Scene *scene, Sequence *seq, float cfra,
+	float facf0, float facf1, int x, int y, 
+	int preview_render_size,
+	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+	struct ImBuf *ibuf3)
 {
 	char *cp;
 	int float_rendering;
 	int use_temp_bufs = 0; /* Are needed since blur.c (and maybe some other
 				  old plugins) do very bad stuff
 				  with imbuf-internals */
+
+	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
 
 	if(seq->plugin && seq->plugin->doit) {
 		
@@ -321,6 +366,7 @@ static void do_plugin_effect(Scene *scene, Sequence *seq, int cfra,
 			if (ibuf3) IMB_freeImBuf(ibuf3);
 		}
 	}
+	return out;
 }
 
 static int do_plugin_early_out(struct Sequence *seq,
@@ -476,12 +522,15 @@ static void do_alphaover_effect_float(float facf0, float facf1, int x, int y,
 	}
 }
 
-static void do_alphaover_effect(Scene *scene, Sequence *seq, int cfra,
-				float facf0, float facf1, int x, int y, 
-				int preview_render_size,
-				struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-				struct ImBuf *ibuf3, struct ImBuf *out)
+static struct ImBuf * do_alphaover_effect(
+	Scene *scene, Sequence *seq, float cfra,
+	float facf0, float facf1, int x, int y, 
+	int preview_render_size,
+	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+	struct ImBuf *ibuf3)
 {
+	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
+
 	if (out->rect_float) {
 		do_alphaover_effect_float(
 			facf0, facf1, x, y,
@@ -493,6 +542,7 @@ static void do_alphaover_effect(Scene *scene, Sequence *seq, int cfra,
 			(char*) ibuf1->rect, (char*) ibuf2->rect,
 			(char*) out->rect);
 	}
+	return out;
 }
 
 
@@ -644,12 +694,15 @@ static void do_alphaunder_effect_float(float facf0, float facf1, int x, int y,
 	}
 }
 
-static void do_alphaunder_effect(Scene *scene, Sequence *seq, int cfra,
-				float facf0, float facf1, int x, int y, 
-				 int preview_render_size,
-				struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-				struct ImBuf *ibuf3, struct ImBuf *out)
+static struct ImBuf* do_alphaunder_effect(
+	Scene *scene, Sequence *seq, float cfra,
+	float facf0, float facf1, int x, int y, 
+	int preview_render_size,
+	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+	struct ImBuf *ibuf3)
 {
+	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
+
 	if (out->rect_float) {
 		do_alphaunder_effect_float(
 			facf0, facf1, x, y,
@@ -661,6 +714,7 @@ static void do_alphaunder_effect(Scene *scene, Sequence *seq, int cfra,
 			(char*) ibuf1->rect, (char*) ibuf2->rect,
 			(char*) out->rect);
 	}
+	return out;
 }
 
 
@@ -765,12 +819,15 @@ void do_cross_effect_float(float facf0, float facf1, int x, int y,
 
 /* carefull: also used by speed effect! */
 
-static void do_cross_effect(Scene *scene, Sequence *seq, int cfra,
-			    float facf0, float facf1, int x, int y, 
-			    int preview_render_size,
-			    struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-			    struct ImBuf *ibuf3, struct ImBuf *out)
+static struct ImBuf* do_cross_effect(
+	Scene *scene, Sequence *seq, float cfra,
+	float facf0, float facf1, int x, int y, 
+	int preview_render_size,
+	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+	struct ImBuf *ibuf3)
 {
+	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
+
 	if (out->rect_float) {
 		do_cross_effect_float(
 			facf0, facf1, x, y,
@@ -782,6 +839,7 @@ static void do_cross_effect(Scene *scene, Sequence *seq, int cfra,
 			(char*) ibuf1->rect, (char*) ibuf2->rect,
 			(char*) out->rect);
 	}
+	return out;
 }
 
 
@@ -1028,12 +1086,15 @@ static void do_gammacross_effect_float(float facf0, float facf1,
 	}
 }
 
-static void do_gammacross_effect(Scene *scene, Sequence *seq, int cfra,
-				 float facf0, float facf1, int x, int y, 
-				 int preview_render_size,
-				 struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-				 struct ImBuf *ibuf3, struct ImBuf *out)
+static struct ImBuf * do_gammacross_effect(
+	Scene *scene, Sequence *seq, float cfra,
+	float facf0, float facf1, int x, int y, 
+	int preview_render_size,
+	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+	struct ImBuf *ibuf3)
 {
+	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
+
 	build_gammatabs();
 
 	if (out->rect_float) {
@@ -1047,6 +1108,7 @@ static void do_gammacross_effect(Scene *scene, Sequence *seq, int cfra,
 			(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
 			(unsigned char*) out->rect);
 	}
+	return out;
 }
 
 
@@ -1143,12 +1205,14 @@ static void do_add_effect_float(float facf0, float facf1, int x, int y,
 	}
 }
 
-static void do_add_effect(Scene *scene, Sequence *seq, int cfra,
-			  float facf0, float facf1, int x, int y, 
-			  int preview_render_size,
-			  struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-			  struct ImBuf *ibuf3, struct ImBuf *out)
+static struct ImBuf * do_add_effect(Scene *scene, Sequence *seq, float cfra,
+				    float facf0, float facf1, int x, int y, 
+				    int preview_render_size,
+				    struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+				    struct ImBuf *ibuf3)
 {
+	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
+
 	if (out->rect_float) {
 		do_add_effect_float(
 			facf0, facf1, x, y,
@@ -1160,6 +1224,7 @@ static void do_add_effect(Scene *scene, Sequence *seq, int cfra,
 			(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
 			(unsigned char*) out->rect);
 	}
+	return out;
 }
 
 
@@ -1256,12 +1321,15 @@ static void do_sub_effect_float(float facf0, float facf1, int x, int y,
 	}
 }
 
-static void do_sub_effect(Scene *scene, Sequence *seq, int cfra,
-			  float facf0, float facf1, int x, int y,
-			  int preview_render_size,
-			  struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-			  struct ImBuf *ibuf3, struct ImBuf *out)
+static struct ImBuf * do_sub_effect(
+	Scene *scene, Sequence *seq, float cfra,
+	float facf0, float facf1, int x, int y,
+	int preview_render_size,
+	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+	struct ImBuf *ibuf3)
 {
+	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
+
 	if (out->rect_float) {
 		do_sub_effect_float(
 			facf0, facf1, x, y,
@@ -1273,6 +1341,7 @@ static void do_sub_effect(Scene *scene, Sequence *seq, int cfra,
 			(char*) ibuf1->rect, (char*) ibuf2->rect,
 			(char*) out->rect);
 	}
+	return out;
 }
 
 /* **********************************************************************
@@ -1284,8 +1353,8 @@ static void do_sub_effect(Scene *scene, Sequence *seq, int cfra,
 #define YOFF	8
 
 static void do_drop_effect_byte(float facf0, float facf1, int x, int y, 
-				unsigned char *rect2i, unsigned char *rect1i, 
-				unsigned char *outi)
+				char *rect2i, char *rect1i, 
+				char *outi)
 {
 	int height, width, temp, fac, fac1, fac2;
 	char *rt1, *rt2, *out;
@@ -1362,27 +1431,6 @@ static void do_drop_effect_float(float facf0, float facf1, int x, int y,
 		rt2+=XOFF*4;
 	}
 	memcpy(out, rt1, 4 * sizeof(float)*YOFF*width);
-}
-
-
-static void do_drop_effect(Scene *scene, Sequence *seq, int cfra,
-			   float facf0, float facf1, int x, int y, 
-			   int preview_render_size,
-			   struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-			   struct ImBuf * ibuf3,
-			   struct ImBuf *out)
-{
-	if (out->rect_float) {
-		do_drop_effect_float(
-			facf0, facf1, x, y,
-			ibuf1->rect_float, ibuf2->rect_float,
-			out->rect_float);
-	} else {
-		do_drop_effect_byte(
-			facf0, facf1, x, y,
-			(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
-			(unsigned char*) out->rect);
-	}
 }
 
 /* **********************************************************************
@@ -1487,12 +1535,15 @@ static void do_mul_effect_float(float facf0, float facf1, int x, int y,
 	}
 }
 
-static void do_mul_effect(Scene *scene, Sequence *seq, int cfra,
-			  float facf0, float facf1, int x, int y, 
-			  int preview_render_size,
-			  struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-			  struct ImBuf *ibuf3, struct ImBuf *out)
+static struct ImBuf * do_mul_effect(
+	Scene *scene, Sequence *seq, float cfra,
+	float facf0, float facf1, int x, int y, 
+	int preview_render_size,
+	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+	struct ImBuf *ibuf3)
 {
+	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
+
 	if (out->rect_float) {
 		do_mul_effect_float(
 			facf0, facf1, x, y,
@@ -1504,6 +1555,8 @@ static void do_mul_effect(Scene *scene, Sequence *seq, int cfra,
 			(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
 			(unsigned char*) out->rect);
 	}
+
+	return out;
 }
 
 /* **********************************************************************
@@ -1938,12 +1991,15 @@ static void do_wipe_effect_float(Sequence *seq, float facf0, float facf1,
 	}
 }
 
-static void do_wipe_effect(Scene *scene, Sequence *seq, int cfra,
-			   float facf0, float facf1, int x, int y, 
-			   int preview_render_size,
-			   struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-			   struct ImBuf *ibuf3, struct ImBuf *out)
+static struct ImBuf * do_wipe_effect(
+	Scene *scene, Sequence *seq, float cfra,
+	float facf0, float facf1, int x, int y, 
+	int preview_render_size,
+	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+	struct ImBuf *ibuf3)
 {
+	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
+
 	if (out->rect_float) {
 		do_wipe_effect_float(seq,
 					 facf0, facf1, x, y,
@@ -1955,6 +2011,8 @@ static void do_wipe_effect(Scene *scene, Sequence *seq, int cfra,
 					(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
 					(unsigned char*) out->rect);
 	}
+
+	return out;
 }
 /* **********************************************************************
    TRANSFORM
@@ -2084,13 +2142,18 @@ static void do_transform(Scene *scene, Sequence *seq, float facf0, int x, int y,
 }
 
 
-static void do_transform_effect(Scene *scene, Sequence *seq,int cfra,
-				float facf0, float facf1, int x, int y, 
-				int preview_render_size,
-				struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-				struct ImBuf *ibuf3, struct ImBuf *out)
+static struct ImBuf * do_transform_effect(
+	Scene *scene, Sequence *seq,float cfra,
+	float facf0, float facf1, int x, int y, 
+	int preview_render_size,
+	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+	struct ImBuf *ibuf3)
 {
+	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
+
 	do_transform(scene, seq, facf0, x, y, ibuf1, out);
+
+	return out;
 }
 
 
@@ -2597,12 +2660,15 @@ static void do_glow_effect_float(Sequence *seq, float facf0, float facf1,
 		RVAddBitmaps_float (inbuf , outbuf, outbuf, x, y);
 }
 
-static void do_glow_effect(Scene *scene, Sequence *seq, int cfra,
-			   float facf0, float facf1, int x, int y, 
-			   int preview_render_size,
-			   struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-			   struct ImBuf *ibuf3, struct ImBuf *out)
+static struct ImBuf * do_glow_effect(
+	Scene *scene, Sequence *seq, float cfra,
+	float facf0, float facf1, int x, int y, 
+	int preview_render_size,
+	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+	struct ImBuf *ibuf3)
 {
+	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
+
 	if (out->rect_float) {
 		do_glow_effect_float(seq,
 					 facf0, facf1, x, y,
@@ -2614,6 +2680,8 @@ static void do_glow_effect(Scene *scene, Sequence *seq, int cfra,
 					(char*) ibuf1->rect, (char*) ibuf2->rect,
 					(char*) out->rect);
 	}
+
+	return out;
 }
 
 /* **********************************************************************
@@ -2653,12 +2721,15 @@ static int early_out_color(struct Sequence *seq,
 	return -1;
 }
 
-static void do_solid_color(Scene *scene, Sequence *seq, int cfra,
-			   float facf0, float facf1, int x, int y, 
-			   int preview_render_size,
-			   struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-			   struct ImBuf *ibuf3, struct ImBuf *out)
+static struct ImBuf * do_solid_color(
+	Scene *scene, Sequence *seq, float cfra,
+	float facf0, float facf1, int x, int y, 
+	int preview_render_size,
+	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+	struct ImBuf *ibuf3)
 {
+	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
+
 	SolidColorVars *cv = (SolidColorVars *)seq->effectdata;
 
 	unsigned char *rect;
@@ -2728,6 +2799,7 @@ static void do_solid_color(Scene *scene, Sequence *seq, int cfra,
 			}
 		}
 	}
+	return out;
 }
 
 /* **********************************************************************
@@ -2745,48 +2817,45 @@ static int early_out_multicam(struct Sequence *seq, float facf0, float facf1)
 	return -1;
 }
 
-static void do_multicam(Scene *scene, Sequence *seq, int cfra,
-			float facf0, float facf1, int x, int y, 
-			int preview_render_size,
-			struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-			struct ImBuf *ibuf3, struct ImBuf *out)
+static struct ImBuf * do_multicam(
+	Scene *scene, Sequence *seq, float cfra,
+	float facf0, float facf1, int x, int y, 
+	int preview_render_size,
+	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+	struct ImBuf *ibuf3)
 {
 	struct ImBuf * i;
+	struct ImBuf * out;
 	Editing * ed;
 	ListBase * seqbasep;
 
 	if (seq->multicam_source == 0 || seq->multicam_source >= seq->machine) {
-		return;
+		return 0;
 	}
 
 	ed = scene->ed;
 	if (!ed) {
-		return;
+		return 0;
 	}
 	seqbasep = seq_seqbase(&ed->seqbase, seq);
 	if (!seqbasep) {
-		return;
+		return 0;
 	}
 
-	i = give_ibuf_seqbase(scene, 
-			      out->x, out->y, cfra, seq->multicam_source, 
+	i = give_ibuf_seqbase(scene, x, y, cfra, seq->multicam_source, 
 			      preview_render_size, seqbasep);
 	if (!i) {
-		return;
+		return 0;
 	}
 
-	if (out->rect && i->rect) {
-		memcpy(out->rect, i->rect, out->x * out->y * 4);
-	} else if (out->rect_float && i->rect_float) {
-		memcpy(out->rect_float, i->rect_float, out->x * out->y *4*sizeof(float));
-	} else if (out->rect && i->rect_float) { 
-		IMB_rect_from_float(i);
-		memcpy(out->rect, i->rect, out->x * out->y * 4);
-	} else if (out->rect_float && i->rect) {
-		IMB_float_from_rect_simple(i);
-		memcpy(out->rect_float, i->rect_float, out->x * out->y *4*sizeof(float));
+	if (input_have_to_preprocess(scene, seq, cfra, x, y)) {
+		out = IMB_dupImBuf(i);
+		IMB_freeImBuf(i);
+	} else {
+		out = i;
 	}
-	IMB_freeImBuf(i);
+	
+	return out;
 }
 
 /* **********************************************************************
@@ -3049,13 +3118,13 @@ static void store_icu_yrange_noop(struct Sequence * seq,
 	/* defaults are fine */
 }
 
-static void get_default_fac_noop(struct Sequence *seq, int cfra,
+static void get_default_fac_noop(struct Sequence *seq, float cfra,
 				 float * facf0, float * facf1)
 {
 	*facf0 = *facf1 = 1.0;
 }
 
-static void get_default_fac_fade(struct Sequence *seq, int cfra,
+static void get_default_fac_fade(struct Sequence *seq, float cfra,
 				 float * facf0, float * facf1)
 {
 	*facf0 = (float)(cfra - seq->startdisp);
@@ -3064,21 +3133,38 @@ static void get_default_fac_fade(struct Sequence *seq, int cfra,
 	*facf1 /= seq->len;
 }
 
-static void do_overdrop_effect(Scene *scene, Sequence *seq, int cfra,
-			       float fac, float facf, 
-			       int x, int y, 
-			       int preview_render_size,
-			       struct ImBuf * ibuf1, 
-			       struct ImBuf * ibuf2, 
-			       struct ImBuf * ibuf3, 
-			       struct ImBuf * out)
+static struct ImBuf * do_overdrop_effect(Scene *scene, Sequence *seq, float cfra,
+					 float facf0, float facf1, 
+					 int x, int y, 
+					 int preview_render_size,
+					 struct ImBuf * ibuf1, 
+					 struct ImBuf * ibuf2, 
+					 struct ImBuf * ibuf3)
 {
-	do_drop_effect(scene, seq, cfra, fac, facf, x, y, 
-		       preview_render_size,
-		       ibuf1, ibuf2, ibuf3, out);
-	do_alphaover_effect(scene, seq, cfra, fac, facf, x, y, 
-			    preview_render_size,
-			    ibuf1, ibuf2, ibuf3, out);
+	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
+
+	if (out->rect_float) {
+		do_drop_effect_float(
+			facf0, facf1, x, y,
+			ibuf1->rect_float, ibuf2->rect_float,
+			out->rect_float);
+		do_alphaover_effect_float(
+			facf0, facf1, x, y,
+			ibuf1->rect_float, ibuf2->rect_float,
+			out->rect_float);
+	} else {
+		do_drop_effect_byte(
+			facf0, facf1, x, y,
+			(char*) ibuf1->rect, 
+			(char*) ibuf2->rect,
+			(char*) out->rect);
+		do_alphaover_effect_byte(
+			facf0, facf1, x, y,
+			(char*) ibuf1->rect, (char*) ibuf2->rect,
+			(char*) out->rect);
+	}
+
+	return out;
 }
 
 static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)

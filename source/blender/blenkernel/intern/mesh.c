@@ -697,7 +697,6 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 	if(dl==0) return;
 
 	if(dl->type==DL_INDEX4) {
-		me->flag= ME_NOPUNOFLIP;
 		me->totvert= dl->nr;
 		me->totface= dl->parts;
 		

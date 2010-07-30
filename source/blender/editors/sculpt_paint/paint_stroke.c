@@ -376,7 +376,7 @@ int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 					if (br->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED)
 						avg *= brush_curve_strength(br, len, 1); /* Falloff curve */
 
-					buffer[index] = (GLubyte)(255*avg);
+					buffer[index] = 255 - (GLubyte)(255*avg);
 				}
 				else {
 					buffer[index] = 0;
@@ -556,7 +556,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
 		float* col;
 		float  alpha;
 
-		float visual_strength = brush_alpha(brush)*brush_alpha(brush);
+		const float root_alpha = brush_alpha(brush);
+		float visual_strength = root_alpha*root_alpha;
 
 		const float min_alpha = 0.20f;
 		const float max_alpha = 0.80f;
@@ -788,7 +789,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	Paint *paint = paint_get_active(CTX_data_scene(C)); // XXX
 	Brush *brush = paint_brush(paint); // XXX
 
-	float mouse[2];
+	float mouse[3];
 
 	PointerRNA itemptr;
 

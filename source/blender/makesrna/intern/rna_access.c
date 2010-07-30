@@ -3424,6 +3424,18 @@ int	RNA_enum_id_from_value(EnumPropertyItem *item, int value, const char **ident
 	return 0;
 }
 
+int RNA_enum_icon_from_value(EnumPropertyItem *item, int value, int *icon)
+{
+	for( ; item->identifier; item++) {
+		if(item->value==value) {
+			*icon = item->icon;
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, name);

@@ -159,7 +159,7 @@ void BKE_image_memorypack(struct Image *ima);
 void BKE_image_print_memlist(void);
 
 /* empty image block, of similar type and filename */
-struct Image *BKE_image_copy(struct Image *ima);
+struct Image *copy_image(struct Image *ima);
 
 /* merge source into dest, and free source */
 void BKE_image_merge(struct Image *dest, struct Image *source);

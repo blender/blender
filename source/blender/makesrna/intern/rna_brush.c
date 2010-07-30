@@ -36,17 +36,81 @@
 
 #include "IMB_imbuf.h"
 
+
 #include "WM_types.h"
+
+static EnumPropertyItem prop_direction_items[]= {
+	{0, "ADD", 0, "Add", "Add effect of brush"},
+	{BRUSH_DIR_IN, "SUBTRACT", 0, "Subtract", "Subtract effect of brush"},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem brush_sculpt_tool_items[] = {
+	{SCULPT_TOOL_BLOB, "BLOB", ICON_BRUSH_BLOB, "Blob", ""},
+	{SCULPT_TOOL_CLAY, "CLAY", ICON_BRUSH_CLAY, "Clay", ""},
+	{SCULPT_TOOL_CREASE, "CREASE",ICON_BRUSH_CREASE, "Crease", ""},
+	{SCULPT_TOOL_DRAW, "DRAW", ICON_BRUSH_SCULPT_DRAW, "Draw", ""},
+	{SCULPT_TOOL_FILL, "FILL", ICON_BRUSH_FILL, "Fill", ""},
+	{SCULPT_TOOL_FLATTEN, "FLATTEN", ICON_BRUSH_FLATTEN, "Flatten", ""},
+	{SCULPT_TOOL_GRAB, "GRAB", ICON_BRUSH_GRAB, "Grab", ""},
+	{SCULPT_TOOL_INFLATE, "INFLATE", ICON_BRUSH_INFLATE, "Inflate", ""},
+	{SCULPT_TOOL_LAYER, "LAYER", ICON_BRUSH_LAYER, "Layer", ""},
+	{SCULPT_TOOL_NUDGE, "NUDGE", ICON_BRUSH_NUDGE, "Nudge", ""},
+	{SCULPT_TOOL_PINCH, "PINCH", ICON_BRUSH_PINCH, "Pinch", ""},
+	{SCULPT_TOOL_ROTATE, "ROTATE", ICON_BRUSH_ROTATE, "Rotate", ""},
+	{SCULPT_TOOL_SCRAPE, "SCRAPE", ICON_BRUSH_SCRAPE, "Scrape", ""},
+	{SCULPT_TOOL_SMOOTH, "SMOOTH", ICON_BRUSH_SMOOTH, "Smooth", ""},
+	{SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_BRUSH_SNAKE_HOOK, "Snake Hook", ""},
+	{SCULPT_TOOL_THUMB, "THUMB", ICON_BRUSH_THUMB, "Thumb", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+
+EnumPropertyItem brush_vertexpaint_tool_items[] = {
+	{0, "MIX", ICON_BRUSH_MIX, "Mix", "Use mix blending mode while painting"},
+	{1, "ADD", ICON_BRUSH_ADD, "Add", "Use add blending mode while painting"},
+	{2, "SUB", ICON_BRUSH_SUBTRACT, "Subtract", "Use subtract blending mode while painting"},
+	{3, "MUL", ICON_BRUSH_MULTIPLY, "Multiply", "Use multiply blending mode while painting"},
+	{4, "BLUR", ICON_BRUSH_BLUR, "Blur", "Blur the color with surrounding values"},
+	{5, "LIGHTEN", ICON_BRUSH_LIGHTEN, "Lighten", "Use lighten blending mode while painting"},
+	{6, "DARKEN", ICON_BRUSH_DARKEN, "Darken", "Use darken blending mode while painting"},
+	{0, NULL, 0, NULL, NULL}};
+	
+EnumPropertyItem brush_imagepaint_tool_items[] = {
+	{PAINT_TOOL_DRAW, "DRAW", ICON_BRUSH_TEXDRAW, "Draw", ""},
+	{PAINT_TOOL_SOFTEN, "SOFTEN", ICON_BRUSH_SOFTEN, "Soften", ""},
+	{PAINT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SMEAR, "Smear", ""},
+	{PAINT_TOOL_CLONE, "CLONE", ICON_BRUSH_CLONE, "Clone", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_object_types.h"
+
+#include "RNA_access.h"
+
 #include "BKE_texture.h"
 #include "BKE_brush.h"
 #include "BKE_icons.h"
 
+#include "BKE_paint.h"
+
 #include "WM_api.h"
+
+static void rna_Brush_reset_icon(Brush *br, char *type)
+{
+	ID *id = &br->id;
+
+	if(br->flag & BRUSH_CUSTOM_ICON)
+		return;
+
+	if(id->icon_id >= BIFICONID_LAST) {
+		BKE_icon_delete(id);
+		BKE_previewimg_free_id(id);
+ 	}
+
+	id->icon_id = 0;
+}
 
 static void rna_Brush_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -55,43 +119,43 @@ static void rna_Brush_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	//WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
 }
 
-static int rna_Brush_is_sculpt_brush(Brush *me, bContext *C)
+static void rna_Brush_sculpt_tool_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Brush *br= (Brush*)ptr->data;
+	rna_Brush_reset_icon(br, "sculpt");
+	rna_Brush_update(bmain, scene, ptr);
+}
+ 
+static void rna_Brush_vertexpaint_tool_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Brush *br= (Brush*)ptr->data;
+	rna_Brush_reset_icon(br, "vertex_paint");
+	rna_Brush_update(bmain, scene, ptr);
+}
+ 
+static void rna_Brush_imagepaint_tool_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Brush *br= (Brush*)ptr->data;
+	rna_Brush_reset_icon(br, "texture_paint");
+	rna_Brush_update(bmain, scene, ptr);
+}
+
+static int rna_Brush_is_sculpt_brush(Brush *br, bContext *C)
 {
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	int i;
-
-	for (i= 0; i < sd->paint.brush_count; i++) {
-		if (strcmp(me->id.name+2, sd->paint.brushes[i]->id.name+2) == 0) 
-			return 1;
-	}
-
-	return 0;
+	return paint_has_brush(&sd->paint, br);
 }
 
-static int rna_Brush_is_vpaint_brush(Brush *me, bContext *C)
+static int rna_Brush_is_vpaint_brush(Brush *br, bContext *C)
 {
 	VPaint *vp = CTX_data_tool_settings(C)->vpaint;
-	int i;
-
-	for (i= 0; i < vp->paint.brush_count; i++) {
-		if (strcmp(me->id.name+2, vp->paint.brushes[i]->id.name+2) == 0) 
-			return 1;
-	}
-
-	return 0;
+	return paint_has_brush(&vp->paint, br);
 }
 
-static int rna_Brush_is_wpaint_brush(Brush *me, bContext *C)
+static int rna_Brush_is_wpaint_brush(Brush *br, bContext *C)
 {
 	VPaint *vp = CTX_data_tool_settings(C)->wpaint;
-	int i;
-
-	for (i= 0; i < vp->paint.brush_count; i++) {
-		if (strcmp(me->id.name+2, vp->paint.brushes[i]->id.name+2) == 0) 
-			return 1;
-	}
-
-	return 0;
+	return paint_has_brush(&vp->paint, br);
 }
 
 static int rna_Brush_is_imapaint_brush(Brush *me, bContext *C)
@@ -111,12 +175,17 @@ static void rna_Brush_icon_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Brush *br= (Brush*)ptr->data;
 
-	if (br->icon_imbuf) {
+	if(br->icon_imbuf) {
 		IMB_freeImBuf(br->icon_imbuf);
 		br->icon_imbuf= NULL;
 	}
 
-	BKE_icon_changed(BKE_icon_getid(&(br->id)));
+	br->id.icon_id = 0;
+
+	if(br->flag & BRUSH_CUSTOM_ICON) {
+		BKE_previewimg_get(&br->id);
+		BKE_icon_changed(BKE_icon_getid(&br->id));
+	}
 
 	WM_main_add_notifier(NC_BRUSH|NA_EDITED, br);
 }
@@ -193,6 +262,66 @@ static float rna_Brush_get_alpha(PointerRNA *ptr)
 	return brush_alpha(me);
 }
 
+static EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	static EnumPropertyItem prop_default_items[]= {
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem prop_flatten_contrast_items[]= {
+		{0, "FLATTEN", 0, "Flatten", "Add effect of brush"},
+		{BRUSH_DIR_IN, "CONTRAST", 0, "Contrast", "Subtract effect of brush"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem prop_fill_deepen_items[]= {
+		{0, "FILL", 0, "Fill", "Add effect of brush"},
+		{BRUSH_DIR_IN, "DEEPEN", 0, "Deepen", "Subtract effect of brush"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem prop_scrape_peaks_items[]= {
+		{0, "SCRAPE", 0, "Scrape", "Add effect of brush"},
+		{BRUSH_DIR_IN, "PEAKS", 0, "Peaks", "Subtract effect of brush"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem prop_pinch_magnify_items[]= {
+		{0, "PINCH", 0, "Pinch", "Add effect of brush"},
+		{BRUSH_DIR_IN, "MAGNIFY", 0, "Magnify", "Subtract effect of brush"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem prop_inflate_deflate_items[]= {
+		{0, "INFLATE", 0, "Inflate", "Add effect of brush"},
+		{BRUSH_DIR_IN, "DEFLATE", 0, "Deflate", "Subtract effect of brush"},
+		{0, NULL, 0, NULL, NULL}};
+
+	Brush *me= (Brush*)(ptr->data);
+
+	switch (me->sculpt_tool) {
+		case SCULPT_TOOL_DRAW:
+		case SCULPT_TOOL_CREASE:
+		case SCULPT_TOOL_BLOB:
+		case SCULPT_TOOL_LAYER:
+		case SCULPT_TOOL_CLAY:
+			return prop_direction_items;
+
+		case SCULPT_TOOL_FLATTEN:
+			return prop_flatten_contrast_items;
+
+		case SCULPT_TOOL_FILL:
+			return prop_fill_deepen_items;
+
+		case SCULPT_TOOL_SCRAPE:
+			return prop_scrape_peaks_items;
+
+		case SCULPT_TOOL_PINCH:
+			return prop_pinch_magnify_items;
+
+		case SCULPT_TOOL_INFLATE:
+			return prop_inflate_deflate_items;
+
+		default:
+			return prop_default_items;
+	}
+}
+
 #else
 
 static void rna_def_brush_texture_slot(BlenderRNA *brna)
@@ -239,26 +368,6 @@ static void rna_def_brush(BlenderRNA *brna)
 		{IMB_BLEND_ADD_ALPHA, "ADD_ALPHA", 0, "Add Alpha", "Add alpha while painting"},
 		{0, NULL, 0, NULL, NULL}};
 	
-	static EnumPropertyItem brush_sculpt_tool_items[] = {
-		{SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
-		{SCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-		{SCULPT_TOOL_CREASE, "CREASE", 0, "Crease", ""},
-		{SCULPT_TOOL_BLOB, "BLOB", 0, "Blob", ""},
-		{SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", ""},
-		{SCULPT_TOOL_INFLATE, "INFLATE", 0, "Inflate", ""},
-		{SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", ""},
-		{SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", 0, "Snake Hook", ""},
-		{SCULPT_TOOL_ROTATE, "ROTATE", 0, "Rotate", ""},
-		{SCULPT_TOOL_THUMB, "THUMB", 0, "Thumb", ""},
-		{SCULPT_TOOL_NUDGE, "NUDGE", 0, "Nudge", ""},
-		{SCULPT_TOOL_LAYER, "LAYER", 0, "Layer", ""},
-		{SCULPT_TOOL_FLATTEN, "FLATTEN", 0, "Flatten", ""},
-		{SCULPT_TOOL_CLAY, "CLAY", 0, "Clay", ""},
-		//{SCULPT_TOOL_CLAY_TUBES, "CLAY_TUBES", 0, "Clay Tubes", ""}, XXX: remove clay tubes from UI
-		{SCULPT_TOOL_FILL, "FILL", 0, "Fill", ""},
-		{SCULPT_TOOL_SCRAPE, "SCRAPE", 0, "Scrape", ""},
-		{0, NULL, 0, NULL, NULL}};
-
 	static EnumPropertyItem brush_stroke_method_items[] = {
 		{0, "DOTS", 0, "Dots", ""},
 		{BRUSH_RESTORE_MESH, "DRAG_DOT", 0, "Drag Dot", ""},
@@ -278,91 +387,12 @@ static void rna_def_brush(BlenderRNA *brna)
 		{BRUSH_RAKE, "RAKE", 0, "Rake", ""},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem brush_vertexpaint_tool_items[] = {
-		{0, "MIX", 0, "Mix", "Use mix blending mode while painting"},
-		{1, "ADD", 0, "Add", "Use add blending mode while painting"},
-		{2, "SUB", 0, "Subtract", "Use subtract blending mode while painting"},
-		{3, "MUL", 0, "Multiply", "Use multiply blending mode while painting"},
-		{4, "BLUR", 0, "Blur", "Blur the color with surrounding values"},
-		{5, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting"},
-		{6, "DARKEN", 0, "Darken", "Use darken blending mode while painting"},
-		{0, NULL, 0, NULL, NULL}};
-	
-	static EnumPropertyItem brush_imagepaint_tool_items[] = {
-		{PAINT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
-		{PAINT_TOOL_SOFTEN, "SOFTEN", 0, "Soften", ""},
-		{PAINT_TOOL_SMEAR, "SMEAR", 0, "Smear", ""},
-		{PAINT_TOOL_CLONE, "CLONE", 0, "Clone", ""},
-		{0, NULL, 0, NULL, NULL}};
-	
-	static const EnumPropertyItem prop_flip_direction_items[]= {
-		{0, "ADD", 0, "Add", "Add effect of brush"},
-		{BRUSH_DIR_IN, "SUBTRACT", 0, "Subtract", "Subtract effect of brush"},
-		{0, NULL, 0, NULL, NULL}};
-
-	static const EnumPropertyItem prop_flatten_contrast_items[]= {
-		{0, "FLATTEN", 0, "Flatten", "Add effect of brush"},
-		{BRUSH_DIR_IN, "CONTRAST", 0, "Contrast", "Subtract effect of brush"},
-		{0, NULL, 0, NULL, NULL}};
-
-	static const EnumPropertyItem prop_fill_deepen_items[]= {
-		{0, "FILL", 0, "Fill", "Add effect of brush"},
-		{BRUSH_DIR_IN, "DEEPEN", 0, "Deepen", "Subtract effect of brush"},
-		{0, NULL, 0, NULL, NULL}};
-
-	static const EnumPropertyItem prop_scrape_peaks_items[]= {
-		{0, "SCRAPE", 0, "Scrape", "Add effect of brush"},
-		{BRUSH_DIR_IN, "PEAKS", 0, "Peaks", "Subtract effect of brush"},
-		{0, NULL, 0, NULL, NULL}};
-
-	static const EnumPropertyItem prop_pinch_magnify_items[]= {
-		{0, "PINCH", 0, "Pinch", "Add effect of brush"},
-		{BRUSH_DIR_IN, "MAGNIFY", 0, "Magnify", "Subtract effect of brush"},
-		{0, NULL, 0, NULL, NULL}};
-
-	static const EnumPropertyItem prop_inflate_deflate_items[]= {
-		{0, "INFLATE", 0, "Inflate", "Add effect of brush"},
-		{BRUSH_DIR_IN, "DEFLATE", 0, "Deflate", "Subtract effect of brush"},
-		{0, NULL, 0, NULL, NULL}};
-
 	static EnumPropertyItem brush_sculpt_plane_items[] = {
 		{SCULPT_DISP_DIR_AREA, "AREA", 0, "Area Plane", ""},
 		{SCULPT_DISP_DIR_VIEW, "VIEW", 0, "View Plane", ""},
 		{SCULPT_DISP_DIR_X, "X", 0, "X Plane", ""},
 		{SCULPT_DISP_DIR_Y, "Y", 0, "Y Plane", ""},
 		{SCULPT_DISP_DIR_Z, "Z", 0, "Z Plane", ""},
-		{0, NULL, 0, NULL, NULL}};
-
-	static EnumPropertyItem brush_icon_items[] = {
-		{BRUSH_ICON_FILE, "FILE", 0, "Use An Image File", ""},
-		{BRUSH_ICON_BLOB, "BLOB", 0, "Blob", ""},
-		{BRUSH_ICON_CREASE, "CREASE", 0, "Crease", ""},
-		{BRUSH_ICON_CLAY, "CLAY", 0, "Clay", ""},
-		{BRUSH_ICON_SCULPTDRAW, "SCULPTDRAW", 0, "Sculpt Draw", ""},
-		{BRUSH_ICON_FILL, "FILL", 0, "Fill", ""},
-		{BRUSH_ICON_FLATTEN, "FLATTEN", 0, "Flatten", ""},
-		{BRUSH_ICON_GRAB, "GRAB", 0, "Grab", ""},
-		{BRUSH_ICON_INFLATE, "INFLATE", 0, "Inflate", ""},
-		{BRUSH_ICON_LAYER, "LAYER", 0, "Layer", ""},
-		{BRUSH_ICON_NUDGE, "NUDGE", 0, "Nudge", ""},
-		{BRUSH_ICON_PINCH, "PINCH", 0, "Pinch", ""},
-		{BRUSH_ICON_TWIST, "TWIST", 0, "Twist", ""},
-		{BRUSH_ICON_SCRAPE, "SCRAPE", 0, "Scrape", ""},
-		{BRUSH_ICON_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-		{BRUSH_ICON_SNAKE_HOOK, "SNAKE_HOOK", 0, "Snake Hook", ""},
-		{BRUSH_ICON_THUMB, "THUMB", 0, "Thumb", ""},
-		{BRUSH_ICON_ADD, "ADD", 0, "Add", ""},
-		{BRUSH_ICON_BLUR, "BLUR", 0, "Blur", ""},
-		{BRUSH_ICON_CLONE, "CLONE", 0, "Clone", ""},
-		{BRUSH_ICON_DARKEN, "DARKEN", 0, "Darken", ""},
-		{BRUSH_ICON_LIGHTEN, "LIGHTEN", 0, "Lighten", ""},
-		{BRUSH_ICON_MIX, "MIX", 0, "Mix", ""},
-		{BRUSH_ICON_MULTIPLY, "MULTIPLY", 0, "Multiply", ""},
-		{BRUSH_ICON_SMEAR, "SMEAR", 0, "Smear", ""},
-		{BRUSH_ICON_SOFTEN, "SOFTEN", 0, "Soften", ""},
-		{BRUSH_ICON_SUBTRACT, "SUBTRACT", 0, "Subtract", ""},
-		{BRUSH_ICON_TEXDRAW, "TEXDRAW", 0, "Texture Draw", ""},
-		{BRUSH_ICON_VERTEXDRAW, "VERTEXDRAW", 0, "Vertex Draw", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	FunctionRNA *func;
@@ -410,28 +440,24 @@ static void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "sculpt_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, brush_sculpt_tool_items);
 	RNA_def_property_ui_text(prop, "Sculpt Tool", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
+	RNA_def_property_update(prop, 0, "rna_Brush_sculpt_tool_update");
 
 	prop= RNA_def_property(srna, "vertexpaint_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, brush_vertexpaint_tool_items);
 	RNA_def_property_ui_text(prop, "Vertex/Weight Paint Tool", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
+	RNA_def_property_update(prop, 0, "rna_Brush_vertexpaint_tool_update");
 	
 	prop= RNA_def_property(srna, "imagepaint_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, brush_imagepaint_tool_items);
 	RNA_def_property_ui_text(prop, "Image Paint Tool", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_Brush_update");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_Brush_imagepaint_tool_update");
 
 	prop= RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_flip_direction_items);
+	RNA_def_property_enum_items(prop, prop_direction_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Brush_direction_itemf");
 	RNA_def_property_ui_text(prop, "Direction", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop= RNA_def_property(srna, "icon", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, brush_icon_items);
-	RNA_def_property_ui_text(prop, "Brush Icon", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_icon_update");
 
 	prop= RNA_def_property(srna, "stroke_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
@@ -449,36 +475,6 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, texture_angle_source_no_random_items);
 	RNA_def_property_ui_text(prop, "Texture Angle Source", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop= RNA_def_property(srna, "flatten_contrast", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_flatten_contrast_items);
-	RNA_def_property_ui_text(prop, "Flatten/Contrast", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop= RNA_def_property(srna, "inflate_deflate", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_inflate_deflate_items);
-	RNA_def_property_ui_text(prop, "Inflate/Deflate", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop= RNA_def_property(srna, "fill_deepen", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_fill_deepen_items);
-	RNA_def_property_ui_text(prop, "Fill/Deepen", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop= RNA_def_property(srna, "scrape_peaks", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_scrape_peaks_items);
-	RNA_def_property_ui_text(prop, "Scrape/Peaks", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop= RNA_def_property(srna, "pinch_magnify", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_pinch_magnify_items);
-	RNA_def_property_ui_text(prop, "Pinch/Magnify", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "sculpt_plane", PROP_ENUM, PROP_NONE);
@@ -768,6 +764,11 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Subract Color", "Color of cursor when subtracting");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	prop= RNA_def_property(srna, "use_custom_icon", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_CUSTOM_ICON);
+	RNA_def_property_ui_text(prop, "Custom Icon", "Set the brush icon from an image file");
+	RNA_def_property_update(prop, 0, "rna_Brush_icon_update");
 
 	prop= RNA_def_property(srna, "icon_filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "icon_filepath");

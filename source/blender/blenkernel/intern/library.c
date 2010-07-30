@@ -262,7 +262,8 @@ int id_copy(ID *id, ID **newid, int test)
 			if(!test) *newid= (ID*)copy_texture((Tex*)id);
 			return 1;
 		case ID_IM:
-			return 0; /* not implemented */
+			if(!test) *newid= (ID*)copy_image((Image*)id);
+			return 1;
 		case ID_WV:
 			return 0; /* deprecated */
 		case ID_LT:

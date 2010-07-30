@@ -42,9 +42,6 @@ struct Scene;
 /* space_logic.c */
 struct ARegion *logic_has_buttons_region(struct ScrArea *sa);
 
-/* logic_header.c */
-void logic_header_buttons(const struct bContext *C, struct ARegion *ar);
-
 /* logic_ops.c */
 
 /* logic_buttons.c */

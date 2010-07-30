@@ -727,7 +727,7 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 				pa->foffset=0.0;
 			else switch(distr){
 				case PART_DISTR_JIT:
-					pa->foffset*= ctx->jit[2*(int)ctx->jitoff[i]];
+					pa->foffset*= ctx->jit[p%(2*ctx->jitlevel)];
 					break;
 				case PART_DISTR_RAND:
 					pa->foffset*=BLI_frand();
@@ -4038,12 +4038,21 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 				case PART_PHYS_NO:
 				case PART_PHYS_KEYED:
 				{
+					PARTICLE_P;
+
 					if(emit_particles(&sim, NULL, cfra)) {
 						free_keyed_keys(psys);
 						distribute_particles(&sim, part->from);
 						initialize_all_particles(&sim);
 					}
-					reset_all_particles(&sim, 0.0, cfra, 0);
+
+					LOOP_EXISTING_PARTICLES {
+						pa->size = part->size;
+						if(part->randsize > 0.0)
+							pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
+
+						reset_particle(&sim, pa, 0.0, cfra);
+					}
 
 					if(part->phystype == PART_PHYS_KEYED) {
 						psys_count_keyed_targets(&sim);

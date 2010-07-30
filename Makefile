@@ -45,7 +45,7 @@ MAKEFLAGS=-I$(NANBLENDERHOME)/build_files/make --no-print-directory
 
 SOURCEDIR = 
 ifeq ($(FREE_WINDOWS),true)
-    DIRS ?= dlltool extern intern source po
+    DIRS ?= $(NANBLENDERHOME)/build_files/make/dlltool extern intern source po
 else
     DIRS ?= extern intern source po
 endif

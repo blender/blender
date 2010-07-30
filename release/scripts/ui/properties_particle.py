@@ -401,11 +401,12 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
         else:
             row.prop(part, "physics_type", text="")
 
+        row = layout.row()
+        col = row.column(align=True)
+        col.prop(part, "particle_size")
+        col.prop(part, "random_size", slider=True)
+
         if part.physics_type != 'NO':
-            row = layout.row()
-            col = row.column(align=True)
-            col.prop(part, "particle_size")
-            col.prop(part, "random_size", slider=True)
             col = row.column(align=True)
             col.prop(part, "mass")
             col.prop(part, "sizemass", text="Multiply mass with size")

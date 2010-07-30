@@ -191,24 +191,14 @@ void buttons_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "BUTTONS_OT_toolbox", RIGHTMOUSE, KM_PRESS, 0, 0);
 }
 
-//#define PY_HEADER
 /* add handlers, stuff you only do once or on area/region changes */
 static void buttons_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-#ifdef PY_HEADER
-	ED_region_header_init(ar);
-#else
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
-#endif
 }
 
 static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 {
-#ifdef PY_HEADER
-	ED_region_header(C, ar);
-#else
-
-
 	/* clear */
 	UI_ThemeClearColor(ED_screen_area_active(C)?TH_HEADER:TH_HEADERDESEL);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -217,7 +207,6 @@ static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(C, &ar->v2d);
 	
 	buttons_header_buttons(C, ar);
-#endif	
 
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
@@ -341,7 +330,6 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		case NC_BRUSH:
 			buttons_area_redraw(sa, BCONTEXT_TEXTURE);
-			sbuts->preview= 1;
 			break;
 		case NC_TEXTURE:
 		case NC_IMAGE:

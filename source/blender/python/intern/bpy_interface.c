@@ -44,6 +44,7 @@
 
 #include "BKE_context.h"
 #include "BKE_text.h"
+#include "BKE_font.h" /* only for utf8towchar */
 #include "BKE_main.h"
 #include "BKE_global.h" /* only for script checking */
 
@@ -148,11 +149,28 @@ void BPY_update_modules( void )
 /*****************************************************************************
 * Description: This function creates a new Python dictionary object.
 *****************************************************************************/
-static PyObject *CreateGlobalDictionary( bContext *C, const char *filename )
+static PyObject *CreateGlobalDictionary(bContext *C, const char *filename, PyObject *main_ns_orig)
 {
 	PyObject *item;
-	PyObject *dict = PyDict_New(  );
-	PyDict_SetItemString( dict, "__builtins__", PyEval_GetBuiltins(  ) );
+	PyObject *dict;
+
+
+	/* important we use the dict from __main__, this is what python expects
+	 * for 'pickle' to work as well as strings like this... 
+
+	>> foo = 10
+	>> print(__import__("__main__").foo)
+	 */
+	dict= PyModule_GetDict(PyImport_AddModule("__main__"));
+	PyDict_Merge(main_ns_orig, dict, 1);
+	PyDict_Clear(dict);
+	Py_INCREF(dict);
+
+	/* using builtins rather then PyEval_GetBuiltins()
+	 * print's many less items when printing, the modules __dict__
+	 *  this is how python works so better follow. */
+	PyDict_SetItemString(dict, "__builtins__", PyImport_AddModule("builtins"));
+
 
 	item = PyUnicode_FromString( "__main__" );
 	PyDict_SetItemString( dict, "__name__", item );
@@ -166,6 +184,13 @@ static PyObject *CreateGlobalDictionary( bContext *C, const char *filename )
 	}
 
 	return dict;
+}
+
+static void CreateGlobalDictionary_Restore(PyObject *main_ns_orig)
+{
+	PyObject *main_ns= PyModule_GetDict(PyImport_AddModule("__main__"));
+	PyDict_Clear(main_ns);
+	PyDict_Merge(main_ns, main_ns_orig, 1);
 }
 
 /* must be called before Py_Initialize */
@@ -204,10 +229,15 @@ void BPY_start_python_path(void)
 #endif
 
 	{
-		static wchar_t py_path_bundle_wchar[FILE_MAXDIR];
+		static wchar_t py_path_bundle_wchar[FILE_MAX];
 
-		mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR);
+		/* cant use this, on linux gives bug: #23018, TODO: try LANG="en_US.UTF-8" /usr/bin/blender, suggested 22008 */
+		/* mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR); */
+
+		utf8towchar(py_path_bundle_wchar, py_path_bundle);
+
 		Py_SetPythonHome(py_path_bundle_wchar);
+		// printf("found python (wchar_t) '%ls'\n", py_path_bundle_wchar);
 	}
 }
 
@@ -316,6 +346,7 @@ void BPY_end_python( void )
 int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struct ReportList *reports)
 {
 	PyObject *py_dict, *py_result= NULL;
+	PyObject *main_ns_orig= PyDict_New();
 	PyGILState_STATE gilstate;
 	
 	if (fn==NULL && text==NULL) {
@@ -327,7 +358,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	if (text) {
 		char fn_dummy[FILE_MAXDIR];
 		bpy_text_filename_get(fn_dummy, text);
-		py_dict = CreateGlobalDictionary(C, fn_dummy);
+		py_dict = CreateGlobalDictionary(C, fn_dummy, main_ns_orig);
 		
 		if( !text->compiled ) {	/* if it wasn't already compiled, do it now */
 			char *buf = txt_to_buf( text );
@@ -348,7 +379,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	else {
 		FILE *fp= fopen(fn, "r");
 
-		py_dict = CreateGlobalDictionary(C, fn);
+		py_dict = CreateGlobalDictionary(C, fn, main_ns_orig);
 
 		if(fp) {
 #ifdef _WIN32
@@ -382,7 +413,10 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	} else {
 		Py_DECREF( py_result );
 	}
-	
+
+	CreateGlobalDictionary_Restore(main_ns_orig);
+	Py_DECREF(main_ns_orig);
+
 	Py_DECREF(py_dict);
 	
 	bpy_context_clear(C, &gilstate);
@@ -533,6 +567,7 @@ int BPY_eval_button(bContext *C, const char *expr, double *value)
 {
 	PyGILState_STATE gilstate;
 	PyObject *dict, *mod, *retval;
+	PyObject *main_ns_orig= PyDict_New();
 	int error_ret = 0;
 	
 	if (!value || !expr) return -1;
@@ -544,7 +579,7 @@ int BPY_eval_button(bContext *C, const char *expr, double *value)
 
 	bpy_context_set(C, &gilstate);
 	
-	dict= CreateGlobalDictionary(C, NULL);
+	dict= CreateGlobalDictionary(C, NULL, main_ns_orig);
 
 	mod = PyImport_ImportModule("math");
 	if (mod) {
@@ -594,6 +629,9 @@ int BPY_eval_button(bContext *C, const char *expr, double *value)
 		BPy_errors_to_report(CTX_wm_reports(C));
 	}
 	
+	CreateGlobalDictionary_Restore(main_ns_orig);
+	Py_DECREF(main_ns_orig);
+
 	Py_DECREF(dict);
 	bpy_context_clear(C, &gilstate);
 	
@@ -604,6 +642,7 @@ int BPY_eval_string(bContext *C, const char *expr)
 {
 	PyGILState_STATE gilstate;
 	PyObject *dict, *retval;
+	PyObject *main_ns_orig= PyDict_New();
 	int error_ret = 0;
 
 	if (!expr) return -1;
@@ -614,7 +653,7 @@ int BPY_eval_string(bContext *C, const char *expr)
 
 	bpy_context_set(C, &gilstate);
 
-	dict= CreateGlobalDictionary(C, NULL);
+	dict= CreateGlobalDictionary(C, NULL, main_ns_orig);
 
 	retval = PyRun_String(expr, Py_eval_input, dict, dict);
 
@@ -627,6 +666,9 @@ int BPY_eval_string(bContext *C, const char *expr)
 		Py_DECREF(retval);
 	}
 
+	CreateGlobalDictionary_Restore(main_ns_orig);
+	Py_DECREF(main_ns_orig);
+	
 	Py_DECREF(dict);
 	bpy_context_clear(C, &gilstate);
 

@@ -3336,7 +3336,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	RNA_float_get_array(itemptr, "mouse", mousef);
 	mouse[0] = mousef[0];
 	mouse[1] = mousef[1];
-	flip= RNA_boolean_get(itemptr, "flip");
+	flip= RNA_boolean_get(itemptr, "pen_flip");
 
 	if(bedit->first) {
 		bedit->lastmouse[0]= mouse[0];

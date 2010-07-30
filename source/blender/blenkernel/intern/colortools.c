@@ -236,7 +236,7 @@ void curvemap_insert(CurveMap *cuma, float x, float y)
 	cuma->curve= cmp;
 }
 
-void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset)
+void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset, int slope)
 {
 	if(cuma->curve)
 		MEM_freeN(cuma->curve);
@@ -320,6 +320,20 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset)
 			break;
 	}
 
+	/* mirror curve in x direction to have positive slope
+	 * rather than default negative slope */
+	if (slope == CURVEMAP_SLOPE_POSITIVE) {
+		int i, last=cuma->totpoint-1;
+		CurveMapPoint *newpoints= MEM_dupallocN(cuma->curve);
+		
+		for (i=0; i<cuma->totpoint; i++) {
+			newpoints[i].y = cuma->curve[last-i].y;
+		}
+		
+		MEM_freeN(cuma->curve);
+		cuma->curve = newpoints;
+	}
+	
 	if(cuma->table) {
 		MEM_freeN(cuma->table);
 		cuma->table= NULL;

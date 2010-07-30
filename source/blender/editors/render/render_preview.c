@@ -85,6 +85,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_datafiles.h"
 #include "ED_render.h"
 #include "ED_view3d.h"
 
@@ -103,145 +104,13 @@ static int qtest() {return 0;}
 
 ImBuf* get_brush_icon(Brush *brush)
 {
-	/* Sculpt */
-	extern char datatoc_blob_png;
-	extern char datatoc_clay_png;
-	extern char datatoc_crease_png;
-	extern char datatoc_draw_png;
-	extern char datatoc_fill_png;
-	extern char datatoc_flatten_png;
-	extern char datatoc_grab_png;
-	extern char datatoc_inflate_png;
-	extern char datatoc_layer_png;
-	extern char datatoc_nudge_png;
-	extern char datatoc_pinch_png;
-	extern char datatoc_scrape_png;
-	extern char datatoc_smooth_png;
-	extern char datatoc_snake_hook_png;
-	extern char datatoc_thumb_png;
-	extern char datatoc_twist_png;
-
-	/* Paint */
-	extern char datatoc_add_png;
-	extern char datatoc_blur_png;
-	extern char datatoc_clone_png;
-	extern char datatoc_darken_png;
-	extern char datatoc_lighten_png;
-	extern char datatoc_mix_png;
-	extern char datatoc_multiply_png;
-	extern char datatoc_smear_png;
-	extern char datatoc_soften_png;
-	extern char datatoc_subtract_png;
-	extern char datatoc_texdraw_png;
-	extern char datatoc_vertexdraw_png;
-
-	extern int datatoc_blob_png_size;
-	extern int datatoc_clay_png_size;
-	extern int datatoc_crease_png_size;
-	extern int datatoc_draw_png_size;
-	extern int datatoc_fill_png_size;
-	extern int datatoc_flatten_png_size;
-	extern int datatoc_grab_png_size;
-	extern int datatoc_inflate_png_size;
-	extern int datatoc_layer_png_size;
-	extern int datatoc_nudge_png_size;
-	extern int datatoc_pinch_png_size;
-	extern int datatoc_scrape_png_size;
-	extern int datatoc_smooth_png_size;
-	extern int datatoc_snake_hook_png_size;
-	extern int datatoc_thumb_png_size;
-	extern int datatoc_twist_png_size;
-
-	extern int datatoc_add_png_size;
-	extern int datatoc_blur_png_size;
-	extern int datatoc_clone_png_size;
-	extern int datatoc_darken_png_size;
-	extern int datatoc_lighten_png_size;
-	extern int datatoc_mix_png_size;
-	extern int datatoc_multiply_png_size;
-	extern int datatoc_smear_png_size;
-	extern int datatoc_soften_png_size;
-	extern int datatoc_subtract_png_size;
-	extern int datatoc_texdraw_png_size;
-	extern int datatoc_vertexdraw_png_size;
-
-	void *icon_data[]= {
-		0,
-
-		&datatoc_blob_png,
-		&datatoc_clay_png,
-		&datatoc_crease_png,
-		&datatoc_draw_png,
-		&datatoc_fill_png,
-		&datatoc_flatten_png,
-		&datatoc_grab_png,
-		&datatoc_inflate_png,
-		&datatoc_layer_png,
-		&datatoc_nudge_png,
-		&datatoc_pinch_png,
-		&datatoc_scrape_png,
-		&datatoc_smooth_png,
-		&datatoc_snake_hook_png,
-		&datatoc_thumb_png,
-		&datatoc_twist_png,
-
-		&datatoc_add_png,
-		&datatoc_blur_png,
-		&datatoc_clone_png,
-		&datatoc_darken_png,
-		&datatoc_lighten_png,
-		&datatoc_mix_png,
-		&datatoc_multiply_png,
-		&datatoc_smear_png,
-		&datatoc_soften_png,
-		&datatoc_subtract_png,
-		&datatoc_texdraw_png,
-		&datatoc_vertexdraw_png,
-	};
-
-	size_t icon_size[]= {
-		0,
-
-		datatoc_blob_png_size,
-		datatoc_clay_png_size,
-		datatoc_crease_png_size,
-		datatoc_draw_png_size,
-		datatoc_fill_png_size,
-		datatoc_flatten_png_size,
-		datatoc_grab_png_size,
-		datatoc_inflate_png_size,
-		datatoc_layer_png_size,
-		datatoc_nudge_png_size,
-		datatoc_pinch_png_size,
-		datatoc_scrape_png_size,
-		datatoc_smooth_png_size,
-		datatoc_snake_hook_png_size,
-		datatoc_thumb_png_size,
-		datatoc_twist_png_size,
-
-		datatoc_add_png_size,
-		datatoc_blur_png_size,
-		datatoc_clone_png_size,
-		datatoc_darken_png_size,
-		datatoc_lighten_png_size,
-		datatoc_mix_png_size,
-		datatoc_multiply_png_size,
-		datatoc_smear_png_size,
-		datatoc_soften_png_size,
-		datatoc_subtract_png_size,
-		datatoc_texdraw_png_size,
-		datatoc_vertexdraw_png_size,
-	};
-
 	static const int flags = IB_rect|IB_multilayer|IB_metadata;
-
-	static const int default_icon = BRUSH_ICON_SCULPTDRAW;
 
 	char path[240];
 	char *folder;
 
 	if (!(brush->icon_imbuf)) {
-		if (brush->icon==BRUSH_ICON_FILE) {
+		if (brush->flag & BRUSH_CUSTOM_ICON) {
 
 			if (brush->icon_filepath[0]) {
 				// first use the path directly to try and load the file
@@ -263,21 +132,13 @@ ImBuf* get_brush_icon(Brush *brush)
 						brush->icon_imbuf= IMB_loadiffname(path, flags);
 				}
 			}
-
-			// if all else fails use a default image
-			if (!(brush->icon_imbuf))
-				brush->icon_imbuf= IMB_ibImageFromMemory(icon_data[default_icon], icon_size[default_icon], flags);
 		}
-		else {
-			if (!(brush->icon_imbuf))
-				brush->icon_imbuf= IMB_ibImageFromMemory(icon_data[brush->icon], icon_size[brush->icon], flags);
-		}
-
-		BKE_icon_changed(BKE_icon_getid(&(brush->id)));
 	}
 
 	if (!(brush->icon_imbuf))
-		printf("get_brush_icon: unable to resolve brush icon imbuf\n");
+		brush->id.icon_id = 0;
+	else
+		BKE_icon_changed(BKE_icon_getid(&(brush->id)));
 
 	return brush->icon_imbuf;
 }

@@ -1731,7 +1731,7 @@ void do_material_tex(ShadeInput *shi)
 				co= shi->tang; dx= shi->dxno; dy= shi->dyno;
 			}
 			else if(mtex->texco==TEXCO_GLOB) {
-				co= shi->gl; dx= shi->dxco; dy= shi->dyco;
+				co= shi->gl; dx= shi->dxgl; dy= shi->dygl;
 			}
 			else if(mtex->texco==TEXCO_UV) {
 				if(mtex->texflag & MTEX_DUPLI_MAPTO) {
@@ -2881,6 +2881,9 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 				if(la->type==LA_SPOT) {
 					tempvec[0]*= la->spottexfac;
 					tempvec[1]*= la->spottexfac;
+                    /* project from 3d to 2d */
+					tempvec[0] /= -tempvec[2];
+					tempvec[1] /= -tempvec[2];
 				}
 				co= tempvec; 
 				

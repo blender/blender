@@ -34,6 +34,7 @@ class TEXT_HT_header(bpy.types.Header):
 
         if context.area.show_menus:
             sub = row.row(align=True)
+            sub.menu("TEXT_MT_view")
             sub.menu("TEXT_MT_text")
             if text:
                 sub.menu("TEXT_MT_edit")
@@ -127,6 +128,20 @@ class TEXT_PT_find(bpy.types.Panel):
         row.prop(st, "find_all", text="All")
 
 
+class TEXT_MT_view(bpy.types.Menu):
+    bl_label = "View"
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        layout.operator("text.properties", icon='MENU_PANEL')
+        
+        layout.separator()
+
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.screen_full_area")
+        
+        
 class TEXT_MT_text(bpy.types.Menu):
     bl_label = "Text"
 
@@ -160,14 +175,7 @@ class TEXT_MT_text(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("text.properties", icon='MENU_PANEL')
-
         layout.menu("TEXT_MT_templates")
-
-        layout.separator()
-
-        layout.operator("screen.area_dupli")
-        layout.operator("screen.screen_full_area")
 
 
 class TEXT_MT_templates(bpy.types.Menu):
@@ -294,6 +302,7 @@ classes = [
     TEXT_HT_header,
     TEXT_PT_properties,
     TEXT_PT_find,
+    TEXT_MT_view,
     TEXT_MT_text,
     TEXT_MT_templates,
     TEXT_MT_format,

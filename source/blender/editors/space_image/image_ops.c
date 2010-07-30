@@ -2085,8 +2085,8 @@ void ED_image_update_frame(const bContext *C)
 					View3D *v3d= sa->spacedata.first;
 					BGpic *bgpic;
 					for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next)
-						if(v3d->bgpic->iuser.flag & IMA_ANIM_ALWAYS)
-							BKE_image_user_calc_frame(&v3d->bgpic->iuser, scene->r.cfra, 0);
+						if(bgpic->iuser.flag & IMA_ANIM_ALWAYS)
+							BKE_image_user_calc_frame(&bgpic->iuser, scene->r.cfra, 0);
 				}
 				else if(sa->spacetype==SPACE_IMAGE) {
 					SpaceImage *sima= sa->spacedata.first;

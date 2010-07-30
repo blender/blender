@@ -403,6 +403,73 @@ void colorband_table_RGBA(ColorBand *coba, float **array, int *size)
 		do_colorband(coba, (float)a/(float)CM_TABLE, &(*array)[a*4]);
 }
 
+int vergcband(const void *a1, const void *a2)
+{
+	const CBData *x1=a1, *x2=a2;
+
+	if( x1->pos > x2->pos ) return 1;
+	else if( x1->pos < x2->pos) return -1;
+	return 0;
+}
+
+CBData *colorband_element_add(struct ColorBand *coba, float position)
+{
+	int a;
+
+	if(coba->tot==MAXCOLORBAND) {
+		return NULL;
+	}
+	else if(coba->tot > 0) {
+		CBData *xnew;
+		float col[4];
+
+		do_colorband(coba, position, col);
+
+		xnew = &coba->data[coba->tot];
+		xnew->pos = position;
+
+		xnew->r = col[0];
+		xnew->g = col[1];
+		xnew->b = col[2];
+		xnew->a = col[3];
+	}
+
+	coba->tot++;
+	coba->cur = coba->tot-1;
+
+	for(a = 0; a < coba->tot; a++)
+		coba->data[a].cur = a;
+
+	qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
+
+	for(a = 0; a < coba->tot; a++) {
+		if(coba->data[a].cur == coba->cur) {
+			coba->cur = a;
+			break;
+		}
+	}
+
+	return coba->data + coba->cur;
+}
+
+int colorband_element_remove(struct ColorBand *coba, int index)
+{
+	int a;
+
+	if(coba->tot < 2)
+		return 0;
+
+	if(index < 0 || index >= coba->tot)
+		return 0;
+
+	for(a = index; a < coba->tot; a++) {
+		coba->data[a] = coba->data[a + 1];
+	}
+	if(coba->cur) coba->cur--;
+	coba->tot--;
+	return 1;
+}
+
 /* ******************* TEX ************************ */
 
 void free_texture(Tex *tex)

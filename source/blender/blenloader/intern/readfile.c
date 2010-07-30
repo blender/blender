@@ -3298,6 +3298,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->msticky= newdataadr(fd, mesh->msticky);
 	mesh->dvert= newdataadr(fd, mesh->dvert);
 	
+	/* animdata */
 	mesh->adt= newdataadr(fd, mesh->adt);
 	direct_link_animdata(fd, mesh->adt);
 
@@ -11065,6 +11066,56 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 253 || (main->versionfile == 253 && main->subversionfile < 1))
+		{
+			Object *ob;
+
+			for(ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+				for(md= ob->modifiers.first; md; md= md->next) {
+					if (md->type == eModifierType_Smoke) {
+						SmokeModifierData *smd = (SmokeModifierData *)md;
+
+						if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
+						{
+							smd->domain->vorticity = 2.0f;
+							smd->domain->time_scale = 1.0f;
+
+							if(!(smd->domain->flags & (1<<4)))
+								continue;
+
+							/* delete old MOD_SMOKE_INITVELOCITY flag */
+							smd->domain->flags &= ~(1<<4);
+
+							/* for now just add it to all flow objects in the scene */
+							{
+								Object *ob2;
+								for(ob2 = main->object.first; ob2; ob2 = ob2->id.next) {
+									ModifierData *md2;
+									for(md2= ob2->modifiers.first; md2; md2= md2->next) {
+										if (md2->type == eModifierType_Smoke) {
+											SmokeModifierData *smd2 = (SmokeModifierData *)md2;
+
+											if((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow)
+											{
+												smd2->flow->flags |= MOD_SMOKE_FLOW_INITVELOCITY;
+											}
+										}
+									}
+								}
+							}
+
+						}
+						else if((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow)
+						{
+							smd->flow->vel_multi = 1.0f;
+						}
+
+					}
+				}
+			}
+		}
+
 	/* put compatibility code here until next subversion bump */
 	{
 	}
@@ -11681,6 +11732,9 @@ static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 	TFace *tf;
 	int a, i;
 	
+	if(me->adt)
+		expand_animdata(fd, mainvar, me->adt);
+		
 	for(a=0; a<me->totcol; a++) {
 		expand_doit(fd, mainvar, me->mat[a]);
 	}

@@ -356,17 +356,6 @@ static void split_v_renderfaces(ObjectRen *obr, int startvlak, int startvert, in
 }
 
 /* ------------------------------------------------------------------------- */
-
-static int check_vnormal(float *n, float *veno)
-{
-	float inp;
-
-	inp=n[0]*veno[0]+n[1]*veno[1]+n[2]*veno[2];
-	if(inp < -FLT_EPSILON10) return 1;
-	return 0;
-}
-
-/* ------------------------------------------------------------------------- */
 /* Stress, tangents and normals                                              */
 /* ------------------------------------------------------------------------- */
 
@@ -536,9 +525,6 @@ static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent, int d
 			float n1[3], n2[3], n3[3], n4[3];
 			float fac1, fac2, fac3, fac4=0.0f;
 			
-			if(re->flag & R_GLOB_NOPUNOFLIP)
-				vlr->flag |= R_NOPUNOFLIP;
-			
 			sub_v3_v3v3(n1, v2->co, v1->co);
 			normalize_v3(n1);
 			sub_v3_v3v3(n2, v3->co, v2->co);
@@ -562,19 +548,9 @@ static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent, int d
 				fac3= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
 				fac4= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
 
-				if(!(vlr->flag & R_NOPUNOFLIP)) {
-					if( check_vnormal(vlr->n, v4->n) ) fac4= -fac4;
-				}
-
 				v4->n[0] +=fac4*vlr->n[0];
 				v4->n[1] +=fac4*vlr->n[1];
 				v4->n[2] +=fac4*vlr->n[2];
-			}
-
-			if(!(vlr->flag & R_NOPUNOFLIP)) {
-				if( check_vnormal(vlr->n, v1->n) ) fac1= -fac1;
-				if( check_vnormal(vlr->n, v2->n) ) fac2= -fac2;
-				if( check_vnormal(vlr->n, v3->n) ) fac3= -fac3;
 			}
 
 			v1->n[0] +=fac1*vlr->n[0];
@@ -1021,7 +997,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 	else width= 1.0f;
 	
 	if(ma->mode & MA_TANGENT_STR)
-		flag= R_SMOOTH|R_NOPUNOFLIP|R_TANGENT;
+		flag= R_SMOOTH|R_TANGENT;
 	else
 		flag= R_SMOOTH;
 	
@@ -2431,7 +2407,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 			normal_tri_v3( vlr->n,vlr->v3->co, vlr->v2->co, vlr->v1->co);
 
 		vlr->mat= ma;
-		vlr->flag= ME_SMOOTH+R_NOPUNOFLIP;
+		vlr->flag= ME_SMOOTH;
 		vlr->ec= 0;
 
 		/* mball -too bad- always has triangles, because quads can be non-planar */
@@ -2460,10 +2436,8 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 /* returns amount of vertices added for orco */
 static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar, float *orco, float mat[4][4])
 {
-	Object *ob= obr->ob;
 	VertRen *v1, *v2, *v3, *v4, *ver;
 	VlakRen *vlr, *vlr1, *vlr2, *vlr3;
-	Curve *cu= ob->data;
 	float *data, n1[3];
 	int u, v, orcoret= 0;
 	int p1, p2, p3, p4, a;
@@ -2543,9 +2517,6 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			vlr->mat= matar[ dl->col];
 			vlr->ec= ME_V1V2+ME_V2V3;
 			vlr->flag= dl->rt;
-			if( (cu->flag & CU_NOPUNOFLIP) ) {
-				vlr->flag |= R_NOPUNOFLIP;
-			}
 			
 			add_v3_v3(v1->n, n1);
 			add_v3_v3(v2->n, n1);
@@ -2694,9 +2665,6 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 
 					vlr->mat= ma;
 					vlr->flag= flag;
-					if(cu &&(cu->flag & ME_NOPUNOFLIP)) {
-						vlr->flag |= R_NOPUNOFLIP;
-					}
 					vlr->ec= 0; /* mesh edges rendered separately */
 
 					if(len==0) obr->totvlak--;
@@ -2904,9 +2872,6 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 
 						vlr->mat= matar[ dl->col ];
 						vlr->flag= 0;
-						if( (cu->flag & CU_NOPUNOFLIP) ) {
-							vlr->flag |= R_NOPUNOFLIP;
-						}
 						vlr->ec= 0;
 					}
 				}
@@ -3391,9 +3356,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 							vlr->mat= ma;
 							vlr->flag= flag;
-							if((me->flag & ME_NOPUNOFLIP) ) {
-								vlr->flag |= R_NOPUNOFLIP;
-							}
 							vlr->ec= 0; /* mesh edges rendered separately */
 
 							if(len==0) obr->totvlak--;
@@ -5612,7 +5574,6 @@ void RE_Database_Baking(Render *re, Scene *scene, unsigned int lay, int type, Ob
 	
 	RE_init_threadcount(re);
 	
-	re->flag |= R_GLOB_NOPUNOFLIP;
 	re->flag |= R_BAKING;
 	re->excludeob= actob;
 	if(actob)

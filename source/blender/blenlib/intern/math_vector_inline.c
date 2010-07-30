@@ -409,6 +409,11 @@ MINLINE int equals_v3v3(float *v1, float *v2)
 	return ((v1[0]==v2[0]) && (v1[1]==v2[1]) && (v1[2]==v2[2]));
 }
 
+MINLINE int equals_v4v4(float *v1, float *v2)
+{
+	return ((v1[0]==v2[0]) && (v1[1]==v2[1]) && (v1[2]==v2[2]) && (v1[3]==v2[3]));
+}
+
 MINLINE int compare_v3v3(float *v1, float *v2, float limit)
 {
 	if(fabs(v1[0]-v2[0])<limit)

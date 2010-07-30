@@ -243,12 +243,12 @@ void IMB_thumb_makedirs()
 /* create thumbnail for file and returns new imbuf for thumbnail */
 ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, ImBuf *img)
 {
-	char uri[URI_MAX];
+	char uri[URI_MAX]= "";
 	char desc[URI_MAX+22];
 	char tpath[FILE_MAX];
 	char tdir[FILE_MAX];
 	char temp[FILE_MAX];
-	char mtime[40];
+	char mtime[40]= "0"; /* incase we can't stat the file */
 	char cwidth[40];
 	char cheight[40];
 	char thumb[40];

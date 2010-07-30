@@ -884,7 +884,7 @@ static void calc_shapeKeys(Object *obedit)
 
 										fp+= 3; curofp+= 3;
 									}
-									fp[0]= ofp[0];
+									fp[0]= curofp[0];
 
 									if(apply_offset) {
 										/* apply alfa offsets */
@@ -914,7 +914,7 @@ static void calc_shapeKeys(Object *obedit)
 								if (index >= 0) {
 									curofp= ofp + index;
 									VECCOPY(fp, curofp);
-									fp[3]= curofp[4];
+									fp[3]= curofp[3];
 
 									if(apply_offset) {
 										VECADD(fp, fp, ofs[i]);

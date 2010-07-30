@@ -822,9 +822,10 @@ void RNA_enum_set(PointerRNA *ptr, const char *name, int value);
 void RNA_enum_set_identifier(PointerRNA *ptr, const char *name, const char *id);
 int RNA_enum_is_equal(struct bContext *C, PointerRNA *ptr, const char *name, const char *enumname);
 
-/* lower level functions that donr use a PointerRNA */
-int	RNA_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value);
-int	RNA_enum_id_from_value(EnumPropertyItem *item, int value, const char **identifier);
+/* lower level functions that don't use a PointerRNA */
+int RNA_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value);
+int RNA_enum_id_from_value(EnumPropertyItem *item, int value, const char **identifier);
+int RNA_enum_icon_from_value(EnumPropertyItem *item, int value, int *icon);
 
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value);
 char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen);

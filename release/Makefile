@@ -114,8 +114,8 @@ install: package
     ifneq ($(OS), darwin)
 	@[ ! -d $(OCGDIR)/bin/.blender ] || \
 		cp -r $(OCGDIR)/bin/.blender $(DISTDIR)
-	@cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(CONFDIR)
-	@cp $(NANBLENDERHOME)/bin/.blender/.bfont.ttf $(CONFDIR)
+	@cp $(NANBLENDERHOME)/release/bin/.blender/.Blanguages $(CONFDIR)
+	@cp $(NANBLENDERHOME)/release/bin/.blender/.bfont.ttf $(CONFDIR)
     endif
 	@echo "----> Copy blender$(EXT0) executable"
     ifeq ($(TYPE),-static)
