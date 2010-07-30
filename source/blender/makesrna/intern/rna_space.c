@@ -310,22 +310,32 @@ static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
 {
 	View3D *v3d= (View3D*)(ptr->data);
 	ScrArea *sa= rna_area_from_space(ptr);
-	ListBase *regionbase= (sa->spacedata.first == v3d)? &sa->regionbase: &v3d->regionbase;
-	ARegion *ar= regionbase->last; /* always last in list, weak .. */
+	void *regiondata= NULL;
+	if(sa) {
+		ListBase *regionbase= (sa->spacedata.first == v3d)? &sa->regionbase: &v3d->regionbase;
+		ARegion *ar= regionbase->last; /* always last in list, weak .. */
+		regiondata= ar->regiondata;
+	}
 
-	return rna_pointer_inherit_refine(ptr, &RNA_RegionView3D, ar->regiondata);
+	return rna_pointer_inherit_refine(ptr, &RNA_RegionView3D, regiondata);
 }
 
 static PointerRNA rna_SpaceView3D_region_quadview_get(PointerRNA *ptr)
 {
 	View3D *v3d= (View3D*)(ptr->data);
 	ScrArea *sa= rna_area_from_space(ptr);
-	ListBase *regionbase= (sa->spacedata.first == v3d)? &sa->regionbase: &v3d->regionbase;
-	ARegion *ar= regionbase->last; /* always before last in list, weak .. */
+	void *regiondata= NULL;
+	if(sa) {
+		ListBase *regionbase= (sa->spacedata.first == v3d)? &sa->regionbase: &v3d->regionbase;
+		ARegion *ar= regionbase->last; /* always before last in list, weak .. */
 
-	ar= (ar->alignment == RGN_ALIGN_QSPLIT)? ar->prev: NULL;
+		ar= (ar->alignment == RGN_ALIGN_QSPLIT)? ar->prev: NULL;
+		if(ar) {
+			regiondata= ar->regiondata;
+		}
+	}
 
-	return rna_pointer_inherit_refine(ptr, &RNA_RegionView3D, (ar)? ar->regiondata: NULL);
+	return rna_pointer_inherit_refine(ptr, &RNA_RegionView3D, regiondata);
 }
 
 static void rna_RegionView3D_quadview_update(Main *main, Scene *scene, PointerRNA *ptr)
