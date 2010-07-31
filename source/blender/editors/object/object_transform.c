@@ -182,7 +182,7 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 						axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,ob->rotAxis, ob->rotAngle);
 					}
 					else {
-						VECCOPY(oldeul, ob->rot);
+						copy_v3_v3(oldeul, ob->rot);
 					}
 					
 					eul[0]= eul[1]= eul[2]= 0.0f;
@@ -706,8 +706,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
+	View3D *v3d= CTX_wm_view3d(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Object *tob;
 	Mesh *me, *tme;
@@ -716,7 +715,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	BPoint *bp; */
 	Nurb *nu, *nu1;
 	EditVert *eve;
-	float cent[3], centn[3], min[3], max[3], omat[3][3];
+	float cent[3], centn[3], min[3], max[3];
 	int a, total= 0;
 	int centermode = RNA_enum_get(op->ptr, "type");
 	
@@ -731,8 +730,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	if (obedit && centermode > 0) {
 		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
 		return OPERATOR_CANCELLED;
-	}	
-	cent[0]= cent[1]= cent[2]= 0.0;	
+	}
+	zero_v3(cent);
 	
 	if(obedit) {
 
@@ -745,7 +744,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(v3d->around==V3D_CENTROID) {
 					total++;
-					VECADD(cent, cent, eve->co);
+					add_v3_v3(cent, eve->co);
 				}
 				else {
 					DO_MINMAX(eve->co, min, max);
@@ -756,9 +755,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				mul_v3_fl(cent, 1.0f/(float)total);
 			}
 			else {
-				cent[0]= (min[0]+max[0])/2.0f;
-				cent[1]= (min[1]+max[1])/2.0f;
-				cent[2]= (min[2]+max[2])/2.0f;
+				mid_v3_v3v3(cent, min, max);
 			}
 			
 			for(eve= em->verts.first; eve; eve= eve->next) {
@@ -792,7 +789,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					tot_lib_error++;
 				} else {
 					if(centermode==2) {
-						VECCOPY(cent, give_cursor(scene, v3d));
+						copy_v3_v3(cent, give_cursor(scene, v3d));
 						invert_m4_m4(ob->imat, ob->obmat);
 						mul_m4_v3(ob->imat, cent);
 					} else {
@@ -801,10 +798,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						for(a=0; a<me->totvert; a++, mvert++) {
 							DO_MINMAX(mvert->co, min, max);
 						}
-					
-						cent[0]= (min[0]+max[0])/2.0f;
-						cent[1]= (min[1]+max[1])/2.0f;
-						cent[2]= (min[2]+max[2])/2.0f;
+
+						mid_v3_v3v3(cent, min, max);
 					}
 
 					mvert= me->mvert;
@@ -827,13 +822,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					me->id.flag |= LIB_DOIT;
 						
 					if(centermode) {
-						copy_m3_m4(omat, ob->obmat);
-						
 						copy_v3_v3(centn, cent);
-						mul_m3_v3(omat, centn);
-						ob->loc[0]+= centn[0];
-						ob->loc[1]+= centn[1];
-						ob->loc[2]+= centn[2];
+						mul_mat3_m4_v3(ob->obmat, centn); /* ommit translation part */
+						add_v3_v3(ob->loc, centn);
 						
 						where_is_object(scene, ob);
 						ignore_parent_tx(bmain, scene, ob);
@@ -848,12 +839,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 									ob_other->flag |= OB_DONE;
 									ob_other->recalc= OB_RECALC_OB|OB_RECALC_DATA;
 
-									copy_m3_m4(omat, ob_other->obmat);
 									copy_v3_v3(centn, cent);
-									mul_m3_v3(omat, centn);
-									ob_other->loc[0]+= centn[0];
-									ob_other->loc[1]+= centn[1];
-									ob_other->loc[2]+= centn[2];
+									mul_mat3_m4_v3(ob_other->obmat, centn); /* ommit translation part */
+									add_v3_v3(ob_other->loc, centn);
 									
 									where_is_object(scene, ob_other);
 									ignore_parent_tx(bmain, scene, ob_other);
@@ -920,9 +908,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 							nu= nu->next;
 						}
 						
-						cent[0]= (min[0]+max[0])/2.0f;
-						cent[1]= (min[1]+max[1])/2.0f;
-						cent[2]= (min[2]+max[2])/2.0f;
+						mid_v3_v3v3(cent, min, max);
 					}
 					
 					nu= nu1;
@@ -944,13 +930,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					}
 			
 					if(centermode && obedit==NULL) {
-						copy_m3_m4(omat, ob->obmat);
-						
-						mul_m3_v3(omat, cent);
-						ob->loc[0]+= cent[0];
-						ob->loc[1]+= cent[1];
-						ob->loc[2]+= cent[2];
-						
+						mul_mat3_m4_v3(ob->obmat, cent); /* ommit translation part */
+						add_v3_v3(ob->loc, cent);
 						where_is_object(scene, ob);
 						ignore_parent_tx(bmain, scene, ob);
 					}

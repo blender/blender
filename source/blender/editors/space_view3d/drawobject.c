@@ -446,11 +446,11 @@ void drawaxes(float size, int flag, char drawtype)
 		
 		for (axis=0; axis<4; axis++) {
 			if (axis % 2 == 1) {
-				v2[0] *= -1;
-				v3[1] *= -1;
+				v2[0] = -v2[0];
+				v3[1] = -v3[1];
 			} else {
-				v2[1] *= -1;
-				v3[0] *= -1;
+				v2[1] = -v2[1];
+				v3[0] = -v3[0];
 			}
 			
 			glVertex3fv(v1);
@@ -513,12 +513,10 @@ void drawcircball(int mode, float *cent, float rad, float tmat[][4])
 {
 	float vec[3], vx[3], vy[3];
 	int a, tot=32;
-	
-	VECCOPY(vx, tmat[0]);
-	VECCOPY(vy, tmat[1]);
-	mul_v3_fl(vx, rad);
-	mul_v3_fl(vy, rad);
-	
+
+	mul_v3_v3fl(vx, tmat[0], rad);
+	mul_v3_v3fl(vy, tmat[1], rad);
+
 	glBegin(mode);
 	for(a=0; a<tot; a++) {
 		vec[0]= cent[0] + *(sinval+a) * vx[0] + *(cosval+a) * vy[0];
@@ -758,14 +756,8 @@ static void drawshadbuflimits(Lamp *la, float mat[][4])
 	negate_v3_v3(lavec, mat[2]);
 	normalize_v3(lavec);
 
-	sta[0]= mat[3][0]+ la->clipsta*lavec[0];
-	sta[1]= mat[3][1]+ la->clipsta*lavec[1];
-	sta[2]= mat[3][2]+ la->clipsta*lavec[2];
-
-	end[0]= mat[3][0]+ la->clipend*lavec[0];
-	end[1]= mat[3][1]+ la->clipend*lavec[1];
-	end[2]= mat[3][2]+ la->clipend*lavec[2];
-
+	madd_v3_v3v3fl(sta, mat[3], lavec, la->clipsta);
+	madd_v3_v3v3fl(end, mat[3], lavec, la->clipend);
 
 	glBegin(GL_LINE_STRIP);
 		glVertex3fv(sta);
@@ -820,10 +812,7 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	quat_to_mat3(mat1,q);
 
 	/* rotate lamp vector now over acos(inp) degrees */
-
-	vvec[0] = lvec[0] ; 
-	vvec[1] = lvec[1] ; 
-	vvec[2] = lvec[2] ;
+	copy_v3_v3(vvec, lvec);
 
 	unit_m3(mat2);
 	co = inp;
@@ -948,7 +937,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 		}
 		
 		/* Inner Circle */
-		VECCOPY(vec, ob->obmat[3]);
+		copy_v3_v3(vec, ob->obmat[3]);
 		glEnable(GL_BLEND);
 		drawcircball(GL_LINE_LOOP, vec, lampsize, imat);
 		glDisable(GL_BLEND);
@@ -987,10 +976,8 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 		vec_rot_to_mat3( mat,imat[2], M_PI/4.0f);
 		
 		/* vectors */
-		VECCOPY(v1, imat[0]);
-		mul_v3_fl(v1, circrad*1.2f);
-		VECCOPY(v2, imat[0]);
-		mul_v3_fl(v2, circrad*2.5f);
+		mul_v3_v3fl(v1, imat[0], circrad * 1.2f);
+		mul_v3_v3fl(v2, imat[0], circrad * 2.5f);
 		
 		/* center */
 		glTranslatef(vec[0], vec[1], vec[2]);
@@ -1018,7 +1005,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	}
 	
 	glPopMatrix();	/* back in object space */
-	vec[0]= vec[1]= vec[2]= 0.0f;
+	zero_v3(vec);
 	
 	if ((la->type==LA_SPOT) || (la->type==LA_YF_PHOTON)) {	
 		lvec[0]=lvec[1]= 0.0; 
@@ -1110,7 +1097,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 			/* draw the hemisphere curves */
 			short axis, steps, dir;
 			float outdist, zdist, mul;
-			vec[0]=vec[1]=vec[2]= 0.0;
+			zero_v3(vec);
 			outdist = 0.14; mul = 1.4; dir = 1;
 			
 			setlinestyle(4);
@@ -5246,8 +5233,8 @@ void get_local_bounds(Object *ob, float *center, float *size)
 	BoundBox *bb= object_get_boundbox(ob);
 	
 	if(bb==NULL) {
-		center[0]= center[1]= center[2]= 0.0;
-		VECCOPY(size, ob->size);
+		zero_v3(center);
+		copy_v3_v3(size, ob->size);
 	}
 	else {
 		size[0]= 0.5*fabs(bb->vec[0][0] - bb->vec[4][0]);
@@ -5506,9 +5493,7 @@ void drawRBpivot(bRigidBodyJointConstraint *data)
 		dir[axis] = 1.f;
 		glBegin(GL_LINES);
 		mul_m4_v3(mat,dir);
-		v[0] += dir[0];
-		v[1] += dir[1];
-		v[2] += dir[2];
+		add_v3_v3(v, dir);
 		glVertex3fv(v1);
 		glVertex3fv(v);			
 		glEnd();
@@ -6154,9 +6139,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if(dt<OB_SHADED && (v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		if((ob->gameflag & OB_DYNAMIC) || 
 			((ob->gameflag & OB_BOUNDS) && (ob->boundtype == OB_BOUND_SPHERE))) {
-			float imat[4][4], vec[3];
+			float imat[4][4], vec[3]= {0.0f, 0.0f, 0.0f};
 
-			vec[0]= vec[1]= vec[2]= 0.0;
 			invert_m4_m4(imat, rv3d->viewmatob);
 
 			setlinestyle(2);

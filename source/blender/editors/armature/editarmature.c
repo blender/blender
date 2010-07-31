@@ -428,7 +428,6 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 	bArmature *arm= ob->data;
 	float cent[3] = {0.0f, 0.0f, 0.0f};
 	float min[3], max[3];
-	float omat[3][3];
 
 	/* Put the armature into editmode */
 	if(ob!=obedit)
@@ -437,7 +436,7 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 	/* Find the centerpoint */
 	if (centermode == 2) {
 		float *fp= give_cursor(scene, v3d);
-		VECCOPY(cent, fp);
+		copy_v3_v3(cent, fp);
 		invert_m4_m4(ob->imat, ob->obmat);
 		mul_m4_v3(ob->imat, cent);
 	}
@@ -448,10 +447,8 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 			DO_MINMAX(ebone->head, min, max);
 			DO_MINMAX(ebone->tail, min, max);
 		}
-		
-		cent[0]= (min[0] + max[0]) / 2.0f;
-		cent[1]= (min[1] + max[1]) / 2.0f;
-		cent[2]= (min[2] + max[2]) / 2.0f;
+
+		mid_v3_v3v3(cent, min, max);
 	}
 	
 	/* Do the adjustments */
@@ -465,13 +462,12 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 	
 	/* Adjust object location for new centerpoint */
 	if(centermode && obedit==NULL) {
-		copy_m3_m4(omat, ob->obmat);
-		
-		mul_m3_v3(omat, cent);
+		mul_mat3_m4_v3(ob->obmat, cent); /* ommit translation part */
 		add_v3_v3(ob->loc, cent);
 	}
-	else 
+	else {
 		ED_armature_edit_free(ob);
+	}
 }
 
 /* ---------------------- */

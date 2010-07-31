@@ -2171,21 +2171,19 @@ void initWarp(TransInfo *t)
 	/* we need min/max in view space */
 	for(i = 0; i < t->total; i++) {
 		float center[3];
-		VECCOPY(center, t->data[i].center);
+		copy_v3_v3(center, t->data[i].center);
 		mul_m3_v3(t->data[i].mtx, center);
 		mul_m4_v3(t->viewmat, center);
 		sub_v3_v3(center, t->viewmat[3]);
 		if (i)
 			minmax_v3_v3v3(min, max, center);
 		else {
-			VECCOPY(max, center);
-			VECCOPY(min, center);
+			copy_v3_v3(max, center);
+			copy_v3_v3(min, center);
 		}
 	}
-	
-	t->center[0]= (min[0]+max[0])/2.0f;
-	t->center[1]= (min[1]+max[1])/2.0f;
-	t->center[2]= (min[2]+max[2])/2.0f;
+
+	mid_v3_v3v3(t->center, min, max);
 
 	if (max[0] == min[0]) max[0] += 0.1; /* not optimal, but flipping is better than invalid garbage (i.e. division by zero!) */
 	t->val= (max[0]-min[0])/2.0f; /* t->val is X dimension projected boundbox */

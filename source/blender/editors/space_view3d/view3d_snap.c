@@ -365,7 +365,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		while(ml) {
 			if(ml->flag & SELECT) {
 				tv->loc= &ml->x;
-				VECCOPY(tv->oldloc, tv->loc);
+				copy_v3_v3(tv->oldloc, tv->loc);
 				tv->val= &(ml->rad);
 				tv->oldval= ml->rad;
 				tv->flag= 1;
@@ -387,7 +387,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		while(a--) {
 			if((mode & 1) || (bp->f1 & SELECT)) {
 				if(bp->hide==0) {
-					VECCOPY(tv->oldloc, bp->vec);
+					copy_v3_v3(tv->oldloc, bp->vec);
 					tv->loc= bp->vec;
 					tv->flag= bp->f1 & SELECT;
 					tv++;
@@ -403,23 +403,16 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	total= 0.0;
 	for(a=0; a<tottrans; a++, tv++) {
 		if(tv->flag & SELECT) {
-			centroid[0]+= tv->oldloc[0];
-			centroid[1]+= tv->oldloc[1];
-			centroid[2]+= tv->oldloc[2];
+			add_v3_v3(centroid, tv->oldloc);
 			total+= 1.0;
 			DO_MINMAX(tv->oldloc, min, max);
 		}
 	}
 	if(total!=0.0) {
-		centroid[0]/= total;
-		centroid[1]/= total;
-		centroid[2]/= total;
+		mul_v3_fl(centroid, 1.0f/total);
 	}
 
-	center[0]= (min[0]+max[0])/2.0;
-	center[1]= (min[1]+max[1])/2.0;
-	center[2]= (min[2]+max[2])/2.0;
-	
+	mid_v3_v3v3(center, min, max);
 }
 
 /* *********************** operators ******************** */
