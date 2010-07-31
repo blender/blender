@@ -1367,17 +1367,17 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		}
 	}
 
-	/* XXX convert stupid flag to enum */
+	/* convert flag to enum */
 	switch(t->flag & (T_PROP_EDIT|T_PROP_CONNECTED))
 	{
 	case (T_PROP_EDIT|T_PROP_CONNECTED):
-		proportional = 2;
+		proportional = PROP_EDIT_CONNECTED;
 		break;
 	case T_PROP_EDIT:
-		proportional = 1;
+		proportional = PROP_EDIT_ON;
 		break;
 	default:
-		proportional = 0;
+		proportional = PROP_EDIT_OFF;
 	}
 
 	// If modal, save settings back in scene if not set as operator argument
@@ -1385,7 +1385,10 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
 		/* save settings if not set in operator */
 		if (RNA_struct_find_property(op->ptr, "proportional") && !RNA_property_is_set(op->ptr, "proportional")) {
-			ts->proportional = proportional;
+			if (t->obedit)
+				ts->proportional = proportional;
+			else
+				ts->proportional_objects = (proportional != PROP_EDIT_OFF);
 		}
 
 		if (RNA_struct_find_property(op->ptr, "proportional_size") && !RNA_property_is_set(op->ptr, "proportional_size")) {

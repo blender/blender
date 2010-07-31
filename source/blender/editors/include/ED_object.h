@@ -55,7 +55,13 @@ void ED_operatortypes_object(void);
 void ED_operatormacros_object(void);
 void ED_keymap_object(struct wmKeyConfig *keyconf);
 
-/* generic editmode keys like pet */
+/* generic editmode keys like pet
+ * do_pet
+ * 	0: No
+ * 	1: Object
+ * 	2: Edit
+ * 	3: Edit with connected
+ * */
 void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet);
 
 	/* send your own notifier for select! */
