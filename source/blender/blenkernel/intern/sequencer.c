@@ -1876,12 +1876,6 @@ static ImBuf * seq_render_scene_strip_impl(
 				addzbuffloatImBuf(ibuf);
 				memcpy(ibuf->zbuf_float, rres.rectz, sizeof(float)*rres.rectx*rres.recty);
 			}
-			
-			/* {
-			   ImBuf *imb= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat, 0);
-			   IMB_saveiff(imb, "/tmp/foo.image", IB_rect | IB_metadata);
-			   IMB_freeImBuf(imb);
-			   } */
 
 			/* float buffers in the sequencer are not linear */
 			ibuf->profile= IB_PROFILE_LINEAR_RGB;

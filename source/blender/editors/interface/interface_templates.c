@@ -218,9 +218,12 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 					continue;
 
 			if(BLI_strcasestr(id->name+2, str)) {
+				char name_ui[32];
+				name_uiprefix_id(name_ui, id);
+
 				iconid= ui_id_icon_get((bContext*)C, id, 1);
 
-				if(!uiSearchItemAdd(items, id->name+2, id, iconid))
+				if(!uiSearchItemAdd(items, name_ui, id, iconid))
 					break;
 			}
 		}
