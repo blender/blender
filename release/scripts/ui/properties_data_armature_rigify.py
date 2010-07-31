@@ -365,7 +365,7 @@ def unregister():
     for cls in classes:
         unregister(cls)
 
-    bpy.types.INFO_MT_armature_add.remove(menu_func)
+    space_info.INFO_MT_armature_add.remove(menu_func)
 
 if __name__ == "__main__":
     register()
