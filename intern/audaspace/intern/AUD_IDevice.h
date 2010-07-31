@@ -207,6 +207,24 @@ public:
 	 *        - false if the handle is invalid.
 	 */
 	virtual bool setPitch(AUD_Handle* handle, float pitch)=0;
+
+	/**
+	 * Retrieves the loop count of a playing sound.
+	 * A negative value indicates infinity.
+	 * \return The remaining loop count.
+	 */
+	virtual int getLoopCount(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets the loop count of a playing sound.
+	 * A negative value indicates infinity.
+	 * \param handle The sound handle.
+	 * \param count The new loop count.
+	 * \return
+	 *        - true if the handle is valid.
+	 *        - false if the handle is invalid.
+	 */
+	virtual bool setLoopCount(AUD_Handle* handle, int count)=0;
 };
 
 #endif //AUD_IDevice

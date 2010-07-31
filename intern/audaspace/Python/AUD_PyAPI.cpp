@@ -1228,8 +1228,7 @@ Handle_get_loop_count(Handle *self, void* nothing)
 
 	try
 	{
-		// AUD_XXX will come soon; return Py_BuildValue("f", device->device->getPitch(self->handle));
-		AUD_THROW(AUD_ERROR_FACTORY);
+		return Py_BuildValue("i", device->device->getLoopCount(self->handle));
 	}
 	catch(AUD_Exception&)
 	{
@@ -1250,14 +1249,8 @@ Handle_set_loop_count(Handle *self, PyObject* args, void* nothing)
 
 	try
 	{
-		/* AUD_XXX Doesn't work atm, will come back
-		AUD_Message message;
-		message.loopcount = loops;
-		message.type = AUD_MSG_LOOP;
-		if(device->device->sendMessage(self->handle, message))
-		{
+		if(device->device->setLoopCount(self->handle, loops))
 			return 0;
-		}*/
 	}
 	catch(AUD_Exception&)
 	{
@@ -1302,7 +1295,7 @@ Handle_set_location(Handle *self, PyObject* args, void* nothing)
 	float x, y, z;
 
 	if(!PyArg_Parse(args, "(fff)", &x, &y, &z))
-		return NULL;
+		return -1;
 
 	Device* dev = (Device*)self->device;
 
@@ -1361,7 +1354,7 @@ Handle_set_velocity(Handle *self, PyObject* args, void* nothing)
 	float x, y, z;
 
 	if(!PyArg_Parse(args, "(fff)", &x, &y, &z))
-		return NULL;
+		return -1;
 
 	Device* dev = (Device*)self->device;
 
@@ -1420,7 +1413,7 @@ Handle_set_orientation(Handle *self, PyObject* args, void* nothing)
 	float w, x, y, z;
 
 	if(!PyArg_Parse(args, "(ffff)", &w, &x, &y, &z))
-		return NULL;
+		return -1;
 
 	Device* dev = (Device*)self->device;
 
@@ -2368,7 +2361,7 @@ Device_set_listener_location(Device *self, PyObject* args, void* nothing)
 	float x, y, z;
 
 	if(!PyArg_Parse(args, "(fff)", &x, &y, &z))
-		return NULL;
+		return -1;
 
 	try
 	{
@@ -2423,7 +2416,7 @@ Device_set_listener_velocity(Device *self, PyObject* args, void* nothing)
 	float x, y, z;
 
 	if(!PyArg_Parse(args, "(fff)", &x, &y, &z))
-		return NULL;
+		return -1;
 
 	try
 	{
@@ -2478,7 +2471,7 @@ Device_set_listener_orientation(Device *self, PyObject* args, void* nothing)
 	float w, x, y, z;
 
 	if(!PyArg_Parse(args, "(ffff)", &w, &x, &y, &z))
-		return NULL;
+		return -1;
 
 	try
 	{

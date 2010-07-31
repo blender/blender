@@ -158,6 +158,8 @@ public:
 	virtual bool setVolume(AUD_Handle* handle, float volume);
 	virtual float getPitch(AUD_Handle* handle);
 	virtual bool setPitch(AUD_Handle* handle, float pitch);
+	virtual int getLoopCount(AUD_Handle* handle);
+	virtual bool setLoopCount(AUD_Handle* handle, int count);
 
 	virtual AUD_Vector3 getListenerLocation() const;
 	virtual void setListenerLocation(const AUD_Vector3& location);

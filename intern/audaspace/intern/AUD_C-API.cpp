@@ -344,24 +344,17 @@ AUD_Sound* AUD_loopSound(AUD_Sound* sound)
 	}
 }
 
-int AUD_setLoop(AUD_Channel* handle, int loops, float time)
+int AUD_setLoop(AUD_Channel* handle, int loops)
 {
 	if(handle)
 	{
-		/* AUD_XXX Doesn't work atm, will come back
-
-		AUD_Message message;
-		message.type = AUD_MSG_LOOP;
-		message.loopcount = loops;
-		message.time = time;
-
 		try
 		{
-			return AUD_device->sendMessage(handle, message);
+			return AUD_device->setLoopCount(handle, loops);
 		}
 		catch(AUD_Exception&)
 		{
-		}*/
+		}
 	}
 	return false;
 }

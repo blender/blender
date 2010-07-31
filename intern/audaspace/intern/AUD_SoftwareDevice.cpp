@@ -42,14 +42,15 @@ struct AUD_SoftwareHandle : AUD_Handle
 
 	/// The volume of the source.
 	float volume;
+
+	/// The loop count of the source.
+	int loopcount;
 };
 
 typedef std::list<AUD_SoftwareHandle*>::iterator AUD_HandleIterator;
 
 void AUD_SoftwareDevice::create()
 {
-	m_playingSounds = new std::list<AUD_SoftwareHandle*>();
-	m_pausedSounds = new std::list<AUD_SoftwareHandle*>();
 	m_playback = false;
 	m_volume = 1.0f;
 	m_mixer = new AUD_DefaultMixer(m_specs);
@@ -70,23 +71,25 @@ void AUD_SoftwareDevice::destroy()
 
 	delete m_mixer;
 
+	AUD_SoftwareHandle* handle;
+
 	// delete all playing sounds
-	while(m_playingSounds->begin() != m_playingSounds->end())
+	while(!m_playingSounds.empty())
 	{
-		delete (*(m_playingSounds->begin()))->reader;
-		delete *(m_playingSounds->begin());
-		m_playingSounds->erase(m_playingSounds->begin());
+		handle = m_playingSounds.front();
+		m_playingSounds.pop_front();
+		delete handle->reader;
+		delete handle;
 	}
-	delete m_playingSounds;
 
 	// delete all paused sounds
-	while(m_pausedSounds->begin() != m_pausedSounds->end())
+	while(!m_pausedSounds.empty())
 	{
-		delete (*(m_pausedSounds->begin()))->reader;
-		delete *(m_pausedSounds->begin());
-		m_pausedSounds->erase(m_pausedSounds->begin());
+		handle = m_pausedSounds.front();
+		m_pausedSounds.pop_front();
+		delete handle->reader;
+		delete handle;
 	}
-	delete m_pausedSounds;
 
 	pthread_mutex_destroy(&m_mutex);
 }
@@ -98,12 +101,16 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 	{
 		AUD_SoftwareHandle* sound;
 		int len;
+		int pos;
 		sample_t* buf;
 		std::list<AUD_SoftwareHandle*> stopSounds;
+		std::list<AUD_Buffer*> tempBufs;
+		AUD_Buffer* tempbuf;
+		int samplesize = AUD_SAMPLE_SIZE(m_specs);
 
 		// for all sounds
-		AUD_HandleIterator it = m_playingSounds->begin();
-		while(it != m_playingSounds->end())
+		AUD_HandleIterator it = m_playingSounds.begin();
+		while(it != m_playingSounds.end())
 		{
 			sound = *it;
 			// increment the iterator to make sure it's valid,
@@ -111,13 +118,38 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 			++it;
 
 			// get the buffer from the source
+			pos = 0;
 			len = length;
 			sound->reader->read(len, buf);
 
-			m_mixer->add(buf, 0, len, sound->volume);
+			// in case of looping
+			while(pos + len < length && sound->loopcount)
+			{
+				tempbuf = new AUD_Buffer(len * samplesize);
+				memcpy(tempbuf->getBuffer(), buf, len * samplesize);
+				tempBufs.push_back(tempbuf);
+				m_mixer->add(tempbuf->getBuffer(), pos, len, sound->volume);
+
+				pos += len;
+
+				if(sound->loopcount > 0)
+					sound->loopcount--;
+
+				sound->reader->seek(0);
+
+				len = length - pos;
+				sound->reader->read(len, buf);
+
+				// prevent endless loop
+				if(!len)
+					break;
+			}
+
+			m_mixer->add(buf, pos, len, sound->volume);
+			pos += len;
 
 			// in case the end of the sound is reached
-			if(len < length)
+			if(pos < length)
 			{
 				if(sound->keep)
 					pause(sound);
@@ -129,11 +161,19 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 		// superpose
 		m_mixer->superpose(buffer, length, m_volume);
 
+		// cleanup
 		while(!stopSounds.empty())
 		{
 			sound = stopSounds.front();
 			stopSounds.pop_front();
 			stop(sound);
+		}
+
+		while(!tempBufs.empty())
+		{
+			tempbuf = tempBufs.front();
+			tempBufs.pop_front();
+			delete tempbuf;
 		}
 	}
 
@@ -142,12 +182,12 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 
 bool AUD_SoftwareDevice::isValid(AUD_Handle* handle)
 {
-	for(AUD_HandleIterator i = m_playingSounds->begin();
-		i != m_playingSounds->end(); i++)
+	for(AUD_HandleIterator i = m_playingSounds.begin();
+		i != m_playingSounds.end(); i++)
 		if(*i == handle)
 			return true;
-	for(AUD_HandleIterator i = m_pausedSounds->begin();
-		i != m_pausedSounds->end(); i++)
+	for(AUD_HandleIterator i = m_pausedSounds.begin();
+		i != m_pausedSounds.end(); i++)
 		if(*i == handle)
 			return true;
 	return false;
@@ -170,16 +210,15 @@ AUD_Handle* AUD_SoftwareDevice::play(AUD_IFactory* factory, bool keep)
 	if(reader == NULL)
 		return NULL;
 
-	AUD_Specs rs = reader->getSpecs();
-
 	// play sound
 	AUD_SoftwareHandle* sound = new AUD_SoftwareHandle;
 	sound->keep = keep;
 	sound->reader = reader;
 	sound->volume = 1.0f;
+	sound->loopcount = 0;
 
 	lock();
-	m_playingSounds->push_back(sound);
+	m_playingSounds.push_back(sound);
 
 	if(!m_playback)
 		playing(m_playback = true);
@@ -195,14 +234,14 @@ bool AUD_SoftwareDevice::pause(AUD_Handle* handle)
 	lock();
 
 	// only songs that are played can be paused
-	for(AUD_HandleIterator i = m_playingSounds->begin();
-		i != m_playingSounds->end(); i++)
+	for(AUD_HandleIterator i = m_playingSounds.begin();
+		i != m_playingSounds.end(); i++)
 	{
 		if(*i == handle)
 		{
-			m_pausedSounds->push_back(*i);
-			m_playingSounds->erase(i);
-			if(m_playingSounds->empty())
+			m_pausedSounds.push_back(*i);
+			m_playingSounds.erase(i);
+			if(m_playingSounds.empty())
 				playing(m_playback = false);
 			result = true;
 			break;
@@ -221,13 +260,13 @@ bool AUD_SoftwareDevice::resume(AUD_Handle* handle)
 	lock();
 
 	// only songs that are paused can be resumed
-	for(AUD_HandleIterator i = m_pausedSounds->begin();
-		i != m_pausedSounds->end(); i++)
+	for(AUD_HandleIterator i = m_pausedSounds.begin();
+		i != m_pausedSounds.end(); i++)
 	{
 		if(*i == handle)
 		{
-			m_playingSounds->push_back(*i);
-			m_pausedSounds->erase(i);
+			m_playingSounds.push_back(*i);
+			m_pausedSounds.erase(i);
 			if(!m_playback)
 				playing(m_playback = true);
 			result = true;
@@ -246,15 +285,15 @@ bool AUD_SoftwareDevice::stop(AUD_Handle* handle)
 
 	lock();
 
-	for(AUD_HandleIterator i = m_playingSounds->begin();
-		i != m_playingSounds->end(); i++)
+	for(AUD_HandleIterator i = m_playingSounds.begin();
+		i != m_playingSounds.end(); i++)
 	{
 		if(*i == handle)
 		{
 			delete (*i)->reader;
 			delete *i;
-			m_playingSounds->erase(i);
-			if(m_playingSounds->empty())
+			m_playingSounds.erase(i);
+			if(m_playingSounds.empty())
 				playing(m_playback = false);
 			result = true;
 			break;
@@ -262,14 +301,14 @@ bool AUD_SoftwareDevice::stop(AUD_Handle* handle)
 	}
 	if(!result)
 	{
-		for(AUD_HandleIterator i = m_pausedSounds->begin();
-			i != m_pausedSounds->end(); i++)
+		for(AUD_HandleIterator i = m_pausedSounds.begin();
+			i != m_pausedSounds.end(); i++)
 		{
 			if(*i == handle)
 			{
 				delete (*i)->reader;
 				delete *i;
-				m_pausedSounds->erase(i);
+				m_pausedSounds.erase(i);
 				result = true;
 				break;
 			}
@@ -353,8 +392,8 @@ AUD_Status AUD_SoftwareDevice::getStatus(AUD_Handle* handle)
 
 	lock();
 
-	for(AUD_HandleIterator i = m_playingSounds->begin();
-		i != m_playingSounds->end(); i++)
+	for(AUD_HandleIterator i = m_playingSounds.begin();
+		i != m_playingSounds.end(); i++)
 	{
 		if(*i == handle)
 		{
@@ -364,8 +403,8 @@ AUD_Status AUD_SoftwareDevice::getStatus(AUD_Handle* handle)
 	}
 	if(status == AUD_STATUS_INVALID)
 	{
-		for(AUD_HandleIterator i = m_pausedSounds->begin();
-			i != m_pausedSounds->end(); i++)
+		for(AUD_HandleIterator i = m_pausedSounds.begin();
+			i != m_pausedSounds.end(); i++)
 		{
 			if(*i == handle)
 			{
@@ -428,4 +467,24 @@ float AUD_SoftwareDevice::getPitch(AUD_Handle* handle)
 bool AUD_SoftwareDevice::setPitch(AUD_Handle* handle, float pitch)
 {
 	return false;
+}
+
+int AUD_SoftwareDevice::getLoopCount(AUD_Handle* handle)
+{
+	lock();
+	int result = 0;
+	if(isValid(handle))
+		result = ((AUD_SoftwareHandle*)handle)->loopcount;
+	unlock();
+	return result;
+}
+
+bool AUD_SoftwareDevice::setLoopCount(AUD_Handle* handle, int count)
+{
+	lock();
+	bool result = isValid(handle);
+	if(result)
+		((AUD_SoftwareHandle*)handle)->loopcount = count;
+	unlock();
+	return result;
 }

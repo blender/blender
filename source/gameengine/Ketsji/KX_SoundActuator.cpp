@@ -76,23 +76,20 @@ void KX_SoundActuator::play()
 
 	// this is the sound that will be played and not deleted afterwards
 	AUD_Sound* sound = m_sound;
-	// this sounds are for temporary stacked sounds, will be deleted if not NULL
+	// this sound is for temporary stacked sounds, will be deleted if not NULL
 	AUD_Sound* sound2 = NULL;
-	AUD_Sound* sound3 = NULL;
+
+	bool loop = false;
 
 	switch (m_type)
 	{
 	case KX_SOUNDACT_LOOPBIDIRECTIONAL:
 	case KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP:
-		// create a ping pong sound on sound2 stacked on the orignal sound
-		sound2 = AUD_pingpongSound(sound);
-		// create a loop sound on sound3 stacked on the pingpong sound and let that one play (save it to sound)
-		sound = sound3 = AUD_loopSound(sound2);
-		break;
+		sound = sound2 = AUD_pingpongSound(sound);
+		// fall through
 	case KX_SOUNDACT_LOOPEND:
 	case KX_SOUNDACT_LOOPSTOP:
-		// create a loop sound on sound2 stacked on the pingpong sound and let that one play (save it to sound)
-		sound = sound2 = AUD_loopSound(sound);
+		loop = true;
 		break;
 	case KX_SOUNDACT_PLAYSTOP:
 	case KX_SOUNDACT_PLAYEND:
@@ -118,14 +115,12 @@ void KX_SoundActuator::play()
 	else
 		m_handle = AUD_play(sound, 0);
 
+	if(loop)
+		AUD_setLoop(m_handle, -1);
 	AUD_setSoundPitch(m_handle, m_pitch);
 	AUD_setSoundVolume(m_handle, m_volume);
 	m_isplaying = true;
 
-	// now we unload the pingpong and loop sounds, as we don't need them anymore
-	// the started sound will continue playing like it was created, don't worry!
-	if(sound3)
-		AUD_unload(sound3);
 	if(sound2)
 		AUD_unload(sound2);
 }
@@ -185,7 +180,7 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 			case KX_SOUNDACT_LOOPBIDIRECTIONAL:
 				{
 					// stop the looping so that the sound stops when it finished
-					AUD_setLoop(m_handle, 0, -1);
+					AUD_setLoop(m_handle, 0);
 					break;
 				}
 			default:

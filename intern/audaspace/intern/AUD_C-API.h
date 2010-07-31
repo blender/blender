@@ -165,10 +165,9 @@ extern AUD_Sound* AUD_loopSound(AUD_Sound* sound);
  * Sets a remaining loop count of a looping sound that currently plays.
  * \param handle The playback handle.
  * \param loops The count of remaining loops, -1 for infinity.
- * \param time The time after which playback should stop, -1 for infinity.
  * \return Whether the handle is valid.
  */
-extern int AUD_setLoop(AUD_Channel* handle, int loops, float time);
+extern int AUD_setLoop(AUD_Channel* handle, int loops);
 
 /**
  * Rectifies a sound.

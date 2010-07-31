@@ -65,6 +65,9 @@ struct AUD_OpenALHandle : AUD_Handle
 
 	/// Whether the stream doesn't return any more data.
 	bool data_end;
+
+	/// The loop count of the source.
+	int loopcount;
 };
 
 struct AUD_OpenALBufferedFactory
@@ -155,6 +158,18 @@ void AUD_OpenALDevice::updateStreams()
 								// read data
 								length = m_buffersize;
 								sound->reader->read(length, buffer);
+
+								// looping necessary?
+								if(length == 0 && sound->loopcount)
+								{
+									if(sound->loopcount > 0)
+										sound->loopcount--;
+
+									sound->reader->seek(0);
+
+									length = m_buffersize;
+									sound->reader->read(length, buffer);
+								}
 
 								// read nothing?
 								if(length == 0)
@@ -507,6 +522,7 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 				sound->current = -1;
 				sound->isBuffered = true;
 				sound->data_end = true;
+				sound->loopcount = 0;
 
 				alcSuspendContext(m_context);
 
@@ -578,6 +594,7 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 	sound->current = 0;
 	sound->isBuffered = false;
 	sound->data_end = false;
+	sound->loopcount = 0;
 
 	valid &= getFormat(sound->format, specs.specs);
 
@@ -971,6 +988,26 @@ bool AUD_OpenALDevice::setPitch(AUD_Handle* handle, float pitch)
 	bool result = isValid(handle);
 	if(result)
 		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_PITCH, pitch);
+	unlock();
+	return result;
+}
+
+int AUD_OpenALDevice::getLoopCount(AUD_Handle* handle)
+{
+	lock();
+	int result = 0;
+	if(isValid(handle))
+		result = ((AUD_OpenALHandle*)handle)->loopcount;
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setLoopCount(AUD_Handle* handle, int count)
+{
+	lock();
+	bool result = isValid(handle);
+	if(result)
+		((AUD_OpenALHandle*)handle)->loopcount = count;
 	unlock();
 	return result;
 }

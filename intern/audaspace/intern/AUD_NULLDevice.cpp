@@ -123,3 +123,13 @@ bool AUD_NULLDevice::setPitch(AUD_Handle* handle, float pitch)
 {
 	return false;
 }
+
+int AUD_NULLDevice::getLoopCount(AUD_Handle* handle)
+{
+	return 0;
+}
+
+bool AUD_NULLDevice::setLoopCount(AUD_Handle* handle, int count)
+{
+	return false;
+}

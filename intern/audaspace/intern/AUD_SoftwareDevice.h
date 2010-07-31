@@ -29,6 +29,7 @@
 #include "AUD_IDevice.h"
 struct AUD_SoftwareHandle;
 class AUD_Mixer;
+class AUD_Buffer;
 
 #include <list>
 #include <pthread.h>
@@ -81,12 +82,12 @@ private:
 	/**
 	 * The list of sounds that are currently playing.
 	 */
-	std::list<AUD_SoftwareHandle*>* m_playingSounds;
+	std::list<AUD_SoftwareHandle*> m_playingSounds;
 
 	/**
 	 * The list of sounds that are currently paused.
 	 */
-	std::list<AUD_SoftwareHandle*>* m_pausedSounds;
+	std::list<AUD_SoftwareHandle*> m_pausedSounds;
 
 	/**
 	 * Whether there is currently playback.
@@ -129,6 +130,8 @@ public:
 	virtual bool setVolume(AUD_Handle* handle, float volume);
 	virtual float getPitch(AUD_Handle* handle);
 	virtual bool setPitch(AUD_Handle* handle, float pitch);
+	virtual int getLoopCount(AUD_Handle* handle);
+	virtual bool setLoopCount(AUD_Handle* handle, int count);
 };
 
 #endif //AUD_SOFTWAREDEVICE
