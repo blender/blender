@@ -814,7 +814,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 		twidth = char_width(cu, che, info);
 
 		// Calculate positions
-		if((tb->w != 0.0) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+twidth)*cu->fsize) > tb->w) {
+		if((tb->w != 0.0) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+twidth)*cu->fsize) > tb->w + cu->xof*cu->fsize) {
 	//		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", mem[i], mem[i+1], mem[i+2]);
 			for (j=i; j && (mem[j] != '\n') && (mem[j] != '\r') && (chartransdata[j].dobreak==0); j--) {
 				if (mem[j]==' ' || mem[j]=='-') {
@@ -855,7 +855,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			linedata4[lnr]= wsnr;
 			
 			if ( (tb->h != 0.0) &&
-				 ((-(yof-(tb->y/cu->fsize))) > ((tb->h/cu->fsize)-(linedist*cu->fsize))) &&
+				 ((-(yof-(tb->y/cu->fsize))) > ((tb->h/cu->fsize)-(linedist*cu->fsize)) - cu->yof) &&
 				 (cu->totbox > (curbox+1)) ) {
 				maxlen= 0;
 				tb++;

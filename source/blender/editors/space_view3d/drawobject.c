@@ -5802,8 +5802,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 							UI_ThemeColor(TH_ACTIVE);
 						else
 							UI_ThemeColor(TH_WIRE);
-						vec1[0] = cu->tb[i].x;
-						vec1[1] = cu->tb[i].y + cu->fsize;
+						vec1[0] = (cu->xof * cu->fsize) + cu->tb[i].x;
+						vec1[1] = (cu->yof * cu->fsize) + cu->tb[i].y + cu->fsize;
 						vec1[2] = 0.001;
 						glBegin(GL_LINE_STRIP);
 						glVertex3fv(vec1);
