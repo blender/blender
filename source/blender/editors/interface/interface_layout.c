@@ -1115,7 +1115,11 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, ui
 			ID *id= itemptr.data;
 			char name_ui[32];
 
+#if 0		/* this name is used for a string comparison and can't be modified, TODO */
 			name_uiprefix_id(name_ui, id);
+#else
+			strcpy(name_ui, id->name+2);
+#endif
 			name= BLI_strdup(name_ui);
 			iconid= ui_id_icon_get((bContext*)C, id, 1);
         }
