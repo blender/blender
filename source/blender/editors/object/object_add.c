@@ -241,7 +241,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 
 	if(RNA_property_is_set(op->ptr, "layer")) {
 		RNA_boolean_get_array(op->ptr, "layer", layer_values);
-
+		*layer= 0;
 		for(a=0; a<20; a++) {
 			if(layer_values[a])
 				*layer |= (1 << a);
