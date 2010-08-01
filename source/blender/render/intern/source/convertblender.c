@@ -5560,12 +5560,13 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce, unsigned int lay)
    RE_BAKE_DISPLACEMENT:for baking, no lamps, only selected objects
    RE_BAKE_SHADOW: for baking, only shadows, but all objects
 */
-void RE_Database_Baking(Render *re, Scene *scene, unsigned int lay, int type, Object *actob)
+void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay, int type, Object *actob)
 {
 	float mat[4][4];
 	float amb[3];
 	int onlyselected, nolamps;
 	
+	re->main= bmain;
 	re->scene= scene;
 	re->lay= lay;
 

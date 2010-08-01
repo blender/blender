@@ -975,7 +975,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 		((Camera *)sce->camera->data)->lens *= (float)sp->sizey/(float)sizex;
 
 	/* entire cycle for render engine */
-	RE_PreviewRender(re, sce);
+	RE_PreviewRender(re, G.main, sce);
 
 	((Camera *)sce->camera->data)->lens= oldlens;
 

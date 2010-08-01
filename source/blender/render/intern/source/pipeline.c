@@ -2975,7 +2975,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, unsigned int lay, int
 	G.rendering= 0;
 }
 
-void RE_PreviewRender(Render *re, Scene *sce)
+void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 {
 	int winx, winy;
 
@@ -2984,6 +2984,7 @@ void RE_PreviewRender(Render *re, Scene *sce)
 
 	RE_InitState(re, NULL, &sce->r, NULL, winx, winy, NULL);
 
+	re->main = bmain;
 	re->scene = sce;
 	re->lay = sce->lay;
 
