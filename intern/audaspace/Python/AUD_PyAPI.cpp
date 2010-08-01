@@ -44,6 +44,7 @@
 #include "AUD_StreamBufferFactory.h"
 #include "AUD_SuperposeFactory.h"
 #include "AUD_VolumeFactory.h"
+#include "AUD_IIRFilterFactory.h"
 
 #ifdef WITH_SDL
 #include "AUD_SDLDevice.h"
@@ -142,10 +143,12 @@ static PyObject *
 Sound_file(PyObject* nothing, PyObject* args);
 
 PyDoc_STRVAR(M_aud_Sound_lowpass_doc,
-			 "lowpass(frequency)\n\n"
-			 "Creates a low quality lowpass filter.\n\n"
+			 "lowpass(frequency[, Q])\n\n"
+			 "Creates a second order lowpass filter.\n\n"
 			 ":arg frequency: The cut off trequency of the lowpass.\n"
 			 ":type frequency: float\n"
+			 ":arg Q: Q factor of the lowpass.\n"
+			 ":type Q: float\n"
 			 ":return: The created aud.Sound object.\n"
 			 ":rtype: aud.Sound");
 
@@ -177,10 +180,12 @@ static PyObject *
 Sound_join(Sound* self, PyObject* object);
 
 PyDoc_STRVAR(M_aud_Sound_highpass_doc,
-			 "highpass(frequency)\n\n"
-			 "Creates a low quality highpass filter.\n\n"
+			 "highpass(frequency[, Q])\n\n"
+			 "Creates a second order highpass filter.\n\n"
 			 ":arg frequency: The cut off trequency of the highpass.\n"
 			 ":type frequency: float\n"
+			 ":arg Q: Q factor of the lowpass.\n"
+			 ":type Q: float\n"
 			 ":return: The created aud.Sound object.\n"
 			 ":rtype: aud.Sound");
 
@@ -322,6 +327,19 @@ PyDoc_STRVAR(M_aud_Sound_square_doc,
 static PyObject *
 Sound_square(Sound* self, PyObject* args);
 
+PyDoc_STRVAR(M_aud_Sound_filter_doc,
+			 "filter(b[, a = (1)])\n\n"
+			 "Filters a sound with the supplied IIR filter coefficients.\n\n"
+			 ":arg b: The nominator filter coefficients.\n"
+			 ":type b: sequence of float\n"
+			 ":arg a: The denominator filter coefficients.\n"
+			 ":type a: sequence of float\n"
+			 ":return: The created aud.Sound object.\n"
+			 ":rtype: aud.Sound");
+
+static PyObject *
+Sound_filter(Sound* self, PyObject* args);
+
 static PyMethodDef Sound_methods[] = {
 	{"sine", (PyCFunction)Sound_sine, METH_VARARGS | METH_STATIC,
 	 M_aud_Sound_sine_doc
@@ -373,6 +391,9 @@ static PyMethodDef Sound_methods[] = {
 	},
 	{"square", (PyCFunction)Sound_square, METH_VARARGS,
 	 M_aud_Sound_square_doc
+	},
+	{"filter", (PyCFunction)Sound_filter, METH_VARARGS,
+	 M_aud_Sound_filter_doc
 	},
 	{NULL}  /* Sentinel */
 };
@@ -483,8 +504,9 @@ static PyObject *
 Sound_lowpass(Sound* self, PyObject* args)
 {
 	float frequency;
+	float Q = 0.5;
 
-	if(!PyArg_ParseTuple(args, "f", &frequency))
+	if(!PyArg_ParseTuple(args, "f|f", &frequency, &Q))
 		return NULL;
 
 	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
@@ -496,7 +518,7 @@ Sound_lowpass(Sound* self, PyObject* args)
 
 		try
 		{
-			parent->factory = new AUD_LowpassFactory(self->factory, frequency, 0.9);
+			parent->factory = new AUD_LowpassFactory(self->factory, frequency, Q);
 		}
 		catch(AUD_Exception&)
 		{
@@ -574,8 +596,9 @@ static PyObject *
 Sound_highpass(Sound* self, PyObject* args)
 {
 	float frequency;
+	float Q = 0.5;
 
-	if(!PyArg_ParseTuple(args, "f", &frequency))
+	if(!PyArg_ParseTuple(args, "f|f", &frequency, &Q))
 		return NULL;
 
 	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
@@ -587,7 +610,7 @@ Sound_highpass(Sound* self, PyObject* args)
 
 		try
 		{
-			parent->factory = new AUD_HighpassFactory(self->factory, frequency, 0.9);
+			parent->factory = new AUD_HighpassFactory(self->factory, frequency, Q);
 		}
 		catch(AUD_Exception&)
 		{
@@ -912,6 +935,86 @@ Sound_square(Sound* self, PyObject* args)
 		{
 			Py_DECREF(parent);
 			PyErr_SetString(AUDError, "Squarefactory couldn't be created!");
+			return NULL;
+		}
+	}
+
+	return (PyObject *)parent;
+}
+
+static PyObject *
+Sound_filter(Sound* self, PyObject* args)
+{
+	PyObject* py_b;
+	PyObject* py_a = NULL;
+
+	if(!PyArg_ParseTuple(args, "O|O", &py_b, &py_a))
+		return NULL;
+
+	if(!PySequence_Check(py_b) || (py_a != NULL && !PySequence_Check(py_a)))
+	{
+		PyErr_SetString(AUDError, "Supplied parameter is not a sequence!");
+		return NULL;
+	}
+
+	if(!PySequence_Length(py_b) || (py_a != NULL && !PySequence_Length(py_a)))
+	{
+		PyErr_SetString(AUDError, "The sequence has to contain at least one value!");
+		return NULL;
+	}
+
+	std::vector<float> a, b;
+	PyObject* py_value;
+	float value;
+	int result;
+
+	for(int i = 0; i < PySequence_Length(py_b); i++)
+	{
+		py_value = PySequence_GetItem(py_b, i);
+		result = PyArg_Parse(py_value, "f", &value);
+		Py_DECREF(py_value);
+
+		if(!result)
+			return NULL;
+
+		b.push_back(value);
+	}
+
+	if(py_a)
+	{
+		for(int i = 0; i < PySequence_Length(py_a); i++)
+		{
+			py_value = PySequence_GetItem(py_a, i);
+			result = PyArg_Parse(py_value, "f", &value);
+			Py_DECREF(py_value);
+
+			if(!result)
+				return NULL;
+
+			a.push_back(value);
+		}
+
+		if(a[0] == 0)
+			a[0] = 1;
+	}
+	else
+		a.push_back(1);
+
+	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
+
+	if(parent != NULL)
+	{
+		Py_INCREF(self);
+		parent->child_list = (PyObject*)self;
+
+		try
+		{
+			parent->factory = new AUD_IIRFilterFactory(self->factory, b, a);
+		}
+		catch(AUD_Exception&)
+		{
+			Py_DECREF(parent);
+			PyErr_SetString(AUDError, "IIRFilterFactory couldn't be created!");
 			return NULL;
 		}
 	}

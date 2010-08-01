@@ -23,59 +23,44 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_LOWPASSREADER
-#define AUD_LOWPASSREADER
+#ifndef AUD_IIRFILTERFACTORY
+#define AUD_IIRFILTERFACTORY
 
-#include "AUD_EffectReader.h"
-#include "AUD_Buffer.h"
+#include "AUD_EffectFactory.h"
 
-#define AUD_LOWPASS_ORDER 3
+#include <vector>
 
 /**
- * This class represents a lowpass filter.
+ * This factory creates a IIR filter reader.
  */
-class AUD_LowpassReader : public AUD_EffectReader
+class AUD_IIRFilterFactory : public AUD_EffectFactory
 {
 private:
 	/**
-	 * The playback buffer.
+	 * Output filter coefficients.
 	 */
-	AUD_Buffer m_buffer;
+	std::vector<float> m_a;
 
 	/**
-	 * The last out values buffer.
+	 * Input filter coefficients.
 	 */
-	AUD_Buffer m_outvalues;
-
-	/**
-	 * The last in values buffer.
-	 */
-	AUD_Buffer m_invalues;
-
-	/**
-	 * The position for buffer cycling.
-	 */
-	int m_position;
-
-	/**
-	 * Filter coefficients.
-	 */
-	float m_coeff[2][AUD_LOWPASS_ORDER];
+	std::vector<float> m_b;
 
 	// hide copy constructor and operator=
-	AUD_LowpassReader(const AUD_LowpassReader&);
-	AUD_LowpassReader& operator=(const AUD_LowpassReader&);
+	AUD_IIRFilterFactory(const AUD_IIRFilterFactory&);
+	AUD_IIRFilterFactory& operator=(const AUD_IIRFilterFactory&);
 
 public:
 	/**
-	 * Creates a new lowpass reader.
-	 * \param reader The reader to read from.
-	 * \param frequency The cutoff frequency.
-	 * \param Q The Q factor.
+	 * Creates a new IIR filter factory.
+	 * \param factory The input factory.
+	 * \param b The input filter coefficients.
+	 * \param a The output filter coefficients.
 	 */
-	AUD_LowpassReader(AUD_IReader* reader, float frequency, float Q);
+	AUD_IIRFilterFactory(AUD_IFactory* factory, std::vector<float> b,
+						 std::vector<float> a);
 
-	virtual void read(int & length, sample_t* & buffer);
+	virtual AUD_IReader* createReader() const;
 };
 
-#endif //AUD_LOWPASSREADER
+#endif //AUD_IIRFILTERFACTORY

@@ -23,35 +23,17 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#include "AUD_SumReader.h"
+#include "AUD_IIRFilterFactory.h"
+#include "AUD_IIRFilterReader.h"
 
-#include <cstring>
-
-#define CC specs.channels + channel
-
-AUD_SumReader::AUD_SumReader(AUD_IReader* reader) :
-		AUD_EffectReader(reader),
-		m_sums(AUD_SAMPLE_SIZE(reader->getSpecs()))
+AUD_IIRFilterFactory::AUD_IIRFilterFactory(AUD_IFactory* factory,
+										   std::vector<float> b,
+										   std::vector<float> a) :
+		AUD_EffectFactory(factory), m_a(a), m_b(b)
 {
-	memset(m_sums.getBuffer(), 0, m_sums.getSize());
 }
 
-void AUD_SumReader::read(int & length, sample_t* & buffer)
+AUD_IReader* AUD_IIRFilterFactory::createReader() const
 {
-	sample_t* buf;
-	sample_t* sums;
-	sums = m_sums.getBuffer();
-
-	AUD_Specs specs = m_reader->getSpecs();
-
-	m_reader->read(length, buf);
-
-	if(m_buffer.getSize() < length * AUD_SAMPLE_SIZE(specs))
-		m_buffer.resize(length * AUD_SAMPLE_SIZE(specs));
-
-	buffer = m_buffer.getBuffer();
-
-	for(int channel = 0; channel < specs.channels; channel++)
-		for(int i = 0; i < length * specs.channels; i++)
-			buffer[i * CC] = sums[channel] = sums[channel] + buf[i * CC];
+	return new AUD_IIRFilterReader(getReader(), m_b, m_a);
 }

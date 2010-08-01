@@ -24,7 +24,23 @@
  */
 
 #include "AUD_SquareFactory.h"
-#include "AUD_SquareReader.h"
+#include "AUD_CallbackIIRFilterReader.h"
+
+sample_t squareFilter(AUD_CallbackIIRFilterReader* reader, float* threshold)
+{
+	float in = reader->x(0);
+	if(in >= *threshold)
+		return 1;
+	else if(in <= -*threshold)
+		return -1;
+	else
+		return 0;
+}
+
+void endSquareFilter(float* threshold)
+{
+	delete threshold;
+}
 
 AUD_SquareFactory::AUD_SquareFactory(AUD_IFactory* factory, float threshold) :
 		AUD_EffectFactory(factory),
@@ -39,5 +55,8 @@ float AUD_SquareFactory::getThreshold() const
 
 AUD_IReader* AUD_SquareFactory::createReader() const
 {
-	return new AUD_SquareReader(getReader(), m_threshold);
+	return new AUD_CallbackIIRFilterReader(getReader(), 1, 1,
+										   (doFilterIIR) squareFilter,
+										   (endFilterIIR) endSquareFilter,
+										   new float(m_threshold));
 }

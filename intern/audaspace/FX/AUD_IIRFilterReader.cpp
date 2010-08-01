@@ -23,41 +23,28 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_VOLUMEREADER
-#define AUD_VOLUMEREADER
+#include "AUD_IIRFilterReader.h"
 
-#include "AUD_EffectReader.h"
-#include "AUD_Buffer.h"
-
-/**
- * This class reads another reader and changes it's volume.
- */
-class AUD_VolumeReader : public AUD_EffectReader
+AUD_IIRFilterReader::AUD_IIRFilterReader(AUD_IReader* reader,
+										 std::vector<float> b,
+										 std::vector<float> a) :
+	AUD_BaseIIRFilterReader(reader, b.size(), a.size()), m_a(a), m_b(b)
 {
-private:
-	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer m_buffer;
+	for(int i = 1; i < m_a.size(); i++)
+		m_a[i] /= m_a[0];
+	for(int i = 0; i < m_b.size(); i++)
+		m_b[i] /= m_a[0];
+	m_a[0] = 1;
+}
 
-	/**
-	 * The volume level.
-	 */
-	const float m_volume;
+sample_t AUD_IIRFilterReader::filter()
+{
+	sample_t out = 0;
 
-	// hide copy constructor and operator=
-	AUD_VolumeReader(const AUD_VolumeReader&);
-	AUD_VolumeReader& operator=(const AUD_VolumeReader&);
+	for(int i = 1; i < m_a.size(); i++)
+		out -= y(-i) * m_a[i];
+	for(int i = 0; i < m_b.size(); i++)
+		out += x(-i) * m_b[i];
 
-public:
-	/**
-	 * Creates a new volume reader.
-	 * \param reader The reader to read from.
-	 * \param volume The size of the buffer.
-	 */
-	AUD_VolumeReader(AUD_IReader* reader, float volume);
-
-	virtual void read(int & length, sample_t* & buffer);
-};
-
-#endif //AUD_VOLUMEREADER
+	return out;
+}

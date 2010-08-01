@@ -23,35 +23,44 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_RECTIFYREADER
-#define AUD_RECTIFYREADER
+#ifndef AUD_IIRFILTERREADER
+#define AUD_IIRFILTERREADER
 
-#include "AUD_EffectReader.h"
-#include "AUD_Buffer.h"
+#include "AUD_BaseIIRFilterReader.h"
+
+#include <vector>
 
 /**
- * This class reads another reader and rectifies it.
+ * This class is for infinite impulse response filters with simple coefficients.
  */
-class AUD_RectifyReader : public AUD_EffectReader
+class AUD_IIRFilterReader : public AUD_BaseIIRFilterReader
 {
 private:
 	/**
-	 * The playback buffer.
+	 * Output filter coefficients.
 	 */
-	AUD_Buffer m_buffer;
+	std::vector<float> m_a;
+
+	/**
+	 * Input filter coefficients.
+	 */
+	std::vector<float> m_b;
 
 	// hide copy constructor and operator=
-	AUD_RectifyReader(const AUD_RectifyReader&);
-	AUD_RectifyReader& operator=(const AUD_RectifyReader&);
+	AUD_IIRFilterReader(const AUD_IIRFilterReader&);
+	AUD_IIRFilterReader& operator=(const AUD_IIRFilterReader&);
 
 public:
 	/**
-	 * Creates a new rectify reader.
+	 * Creates a new IIR filter reader.
 	 * \param reader The reader to read from.
+	 * \param b The input filter coefficients.
+	 * \param a The output filter coefficients.
 	 */
-	AUD_RectifyReader(AUD_IReader* reader);
+	AUD_IIRFilterReader(AUD_IReader* reader, std::vector<float> b,
+						std::vector<float> a);
 
-	virtual void read(int & length, sample_t* & buffer);
+	virtual sample_t filter();
 };
 
-#endif //AUD_RECTIFYREADER
+#endif //AUD_IIRFILTERREADER

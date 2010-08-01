@@ -23,40 +23,25 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_SUMREADER
-#define AUD_SUMREADER
+#include "AUD_CallbackIIRFilterReader.h"
 
-#include "AUD_EffectReader.h"
-#include "AUD_Buffer.h"
-
-/**
- * This class represents an summer.
- */
-class AUD_SumReader : public AUD_EffectReader
+AUD_CallbackIIRFilterReader::AUD_CallbackIIRFilterReader(AUD_IReader* reader,
+														 int in, int out,
+														 doFilterIIR doFilter,
+														 endFilterIIR endFilter,
+														 void* data) :
+	AUD_BaseIIRFilterReader(reader, in, out),
+	m_filter(doFilter), m_endFilter(endFilter), m_data(data)
 {
-private:
-	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer m_buffer;
+}
 
-	/**
-	 * The sums of the specific channels.
-	 */
-	AUD_Buffer m_sums;
+AUD_CallbackIIRFilterReader::~AUD_CallbackIIRFilterReader()
+{
+	if(m_endFilter)
+		m_endFilter(m_data);
+}
 
-	// hide copy constructor and operator=
-	AUD_SumReader(const AUD_SumReader&);
-	AUD_SumReader& operator=(const AUD_SumReader&);
-
-public:
-	/**
-	 * Creates a new sum reader.
-	 * \param reader The reader to read from.
-	 */
-	AUD_SumReader(AUD_IReader* reader);
-
-	virtual void read(int & length, sample_t* & buffer);
-};
-
-#endif //AUD_SUMREADER
+sample_t AUD_CallbackIIRFilterReader::filter()
+{
+	return m_filter(this, m_data);
+}

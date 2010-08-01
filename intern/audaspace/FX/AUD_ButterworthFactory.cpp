@@ -24,7 +24,16 @@
  */
 
 #include "AUD_ButterworthFactory.h"
-#include "AUD_ButterworthReader.h"
+#include "AUD_IIRFilterReader.h"
+
+#include <cmath>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+#define BWPB41 0.76536686473
+#define BWPB42 1.84775906502
 
 AUD_ButterworthFactory::AUD_ButterworthFactory(AUD_IFactory* factory,
 											   float frequency) :
@@ -35,5 +44,29 @@ AUD_ButterworthFactory::AUD_ButterworthFactory(AUD_IFactory* factory,
 
 AUD_IReader* AUD_ButterworthFactory::createReader() const
 {
-	return new AUD_ButterworthReader(getReader(), m_frequency);
+	AUD_IReader* reader = getReader();
+
+	// calculate coefficients
+	float omega = 2 * tan(m_frequency * M_PI / reader->getSpecs().rate);
+	float o2 = omega * omega;
+	float o4 = o2 * o2;
+	float x1 = o2 + 2 * BWPB41 * omega + 4;
+	float x2 = o2 + 2 * BWPB42 * omega + 4;
+	float y1 = o2 - 2 * BWPB41 * omega + 4;
+	float y2 = o2 - 2 * BWPB42 * omega + 4;
+	float o228 = 2 * o2 - 8;
+	float norm = x1 * x2;
+	std::vector<float> a, b;
+	a.push_back(1);
+	a.push_back((x1 + x2) * o228 / norm);
+	a.push_back((x1 * y2 + x2 * y1 + o228 * o228) / norm);
+	a.push_back((y1 + y2) * o228 / norm);
+	a.push_back(y1 * y2 / norm);
+	b.push_back(o4 / norm);
+	b.push_back(4 * o4 / norm);
+	b.push_back(6 * o4 / norm);
+	b.push_back(b[1]);
+	b.push_back(b[0]);
+
+	return new AUD_IIRFilterReader(reader, b, a);
 }
