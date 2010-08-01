@@ -23,59 +23,20 @@ from logical_operators import *
 from ChainingIterators import *
 from shaders import *
 
-def blend_curve(blend_type, v1, fac, v2):
-    facm = 1.0 - fac
-    if blend_type == "MIX":
-        v1 = facm * v1 + fac * v2
-    elif blend_type == "ADD":
-        v1 += fac * v2
-    elif blend_type == "MULTIPLY":
-        v1 *= facm + fac * v2;
-    elif blend_type == "SUBTRACT":
-        v1 -= fac * v2
-    elif blend_type == "DIVIDE":
-        if v2 != 0.0:
-            v1 = facm * v1 + fac * v1 / v2
-    elif blend_type == "DIFFERENCE":
-        v1 = facm * v1 + fac * abs(v1 - v2)
-    elif blend_type == "MININUM":
-        tmp = fac * v1
-        if v1 > tmp:
-            v1 = tmp
-    elif blend_type == "MAXIMUM":
-        tmp = fac * v1
-        if v1 < tmp:
-            v1 = tmp
-    else:
-        raise ValueError("unknown curve blend type: " + blend_type)
-    return v1
-
-class ColorAlongStrokeShader(StrokeShader):
+class ColorRampModifier(StrokeShader):
     def __init__(self, blend, influence, ramp):
         StrokeShader.__init__(self)
         self.__blend = blend
         self.__influence = influence
         self.__ramp = ramp
-    def getName(self):
-        return "ColorAlongStrokeShader"
-    def shade(self, stroke):
-        distance, total = 0.0, stroke.getLength2D()
-        it = stroke.strokeVerticesBegin()
-        while not it.isEnd():
-            sv = it.getObject()
-            p = sv.getPoint()
-            if not it.isBegin():
-                distance += (prev - p).length
-            prev = p
-            t = min(distance / total, 1.0)
-            b = Freestyle.evaluateColorRamp(self.__ramp, t)
-            b = b.xyz # omit alpha
-            a = sv.attribute().getColorRGB()
-            c = Freestyle.blendRamp(self.__blend, a, self.__influence, b)
-            sv.attribute().setColor(c)
-            it.increment()
+    def evaluate(self, t):
+        col = Freestyle.evaluateColorRamp(self.__ramp, t)
+        col = col.xyz # omit alpha
+        return col
+    def blend_ramp(self, a, b):
+        return Freestyle.blendRamp(self.__blend, a, self.__influence, b)
 
-class AlphaAlongStrokeShader(StrokeShader):
+class CurveMappingModifier(StrokeShader):
     def __init__(self, blend, influence, mapping, invert, curve):
         StrokeShader.__init__(self)
         self.__blend = blend
@@ -84,66 +45,161 @@ class AlphaAlongStrokeShader(StrokeShader):
         self.__mapping = getattr(self, mapping)
         self.__invert = invert
         self.__curve = curve
-    def getName(self):
-        return "AlphaAlongStrokeShader"
     def LINEAR(self, t):
         if self.__invert:
             return 1.0 - t
         return t
     def CURVE(self, t):
         return Freestyle.evaluateCurveMappingF(self.__curve, 0, t)
-    def shade(self, stroke):
-        distance, total = 0.0, stroke.getLength2D()
-        it = stroke.strokeVerticesBegin()
-        while not it.isEnd():
-            sv = it.getObject()
-            p = sv.getPoint()
-            if not it.isBegin():
-                distance += (prev - p).length
-            prev = p
-            t = min(distance / total, 1.0)
-            b = self.__mapping(t)
-            a = sv.attribute().getAlpha()
-            c = blend_curve(self.__blend, a, self.__influence, b)
-            sv.attribute().setAlpha(c)
-            it.increment()
+    def evaluate(self, t):
+        return self.__mapping(t)
+    def blend_curve(self, v1, v2):
+        fac = self.__influence
+        facm = 1.0 - fac
+        if self.__blend == "MIX":
+            v1 = facm * v1 + fac * v2
+        elif self.__blend == "ADD":
+            v1 += fac * v2
+        elif self.__blend == "MULTIPLY":
+            v1 *= facm + fac * v2;
+        elif self.__blend == "SUBTRACT":
+            v1 -= fac * v2
+        elif self.__blend == "DIVIDE":
+            if v2 != 0.0:
+                v1 = facm * v1 + fac * v1 / v2
+        elif self.__blend == "DIFFERENCE":
+            v1 = facm * v1 + fac * abs(v1 - v2)
+        elif self.__blend == "MININUM":
+            tmp = fac * v1
+            if v1 > tmp:
+                v1 = tmp
+        elif self.__blend == "MAXIMUM":
+            tmp = fac * v1
+            if v1 < tmp:
+                v1 = tmp
+        else:
+            raise ValueError("unknown curve blend type: " + self.__blend)
+        return v1
 
-class ThicknessAlongStrokeShader(StrokeShader):
+# Along Stroke modifiers
+
+def iter_t2d_along_stroke(stroke):
+    total = stroke.getLength2D()
+    distance = 0.0
+    it = stroke.strokeVerticesBegin()
+    while not it.isEnd():
+        p = it.getObject().getPoint()
+        if not it.isBegin():
+            distance += (prev - p).length
+        prev = p
+        t = min(distance / total, 1.0)
+        yield it, t
+        it.increment()
+
+class ColorAlongStrokeShader(ColorRampModifier):
+    def getName(self):
+        return "ColorAlongStrokeShader"
+    def shade(self, stroke):
+        for it, t in iter_t2d_along_stroke(stroke):
+            attr = it.getObject().attribute()
+            a = attr.getColorRGB()
+            b = self.evaluate(t)
+            c = self.blend_ramp(a, b)
+            attr.setColor(c)
+
+class AlphaAlongStrokeShader(CurveMappingModifier):
+    def getName(self):
+        return "AlphaAlongStrokeShader"
+    def shade(self, stroke):
+        for it, t in iter_t2d_along_stroke(stroke):
+            attr = it.getObject().attribute()
+            a = attr.getAlpha()
+            b = self.evaluate(t)
+            c = self.blend_curve(a, b)
+            attr.setAlpha(c)
+
+class ThicknessAlongStrokeShader(CurveMappingModifier):
     def __init__(self, blend, influence, mapping, invert, curve, value_min, value_max):
-        StrokeShader.__init__(self)
-        self.__blend = blend
-        self.__influence = influence
-        assert mapping in ("LINEAR", "CURVE")
-        self.__mapping = getattr(self, mapping)
-        self.__invert = invert
-        self.__curve = curve
+        CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
         self.__value_min = value_min
         self.__value_max = value_max
     def getName(self):
         return "ThicknessAlongStrokeShader"
-    def LINEAR(self, t):
-        if self.__invert:
-            return 1.0 - t
-        return t
-    def CURVE(self, t):
-        return Freestyle.evaluateCurveMappingF(self.__curve, 0, t)
     def shade(self, stroke):
-        distance, total = 0.0, stroke.getLength2D()
-        it = stroke.strokeVerticesBegin()
-        while not it.isEnd():
-            sv = it.getObject()
-            p = sv.getPoint()
-            if not it.isBegin():
-                distance += (prev - p).length
-            prev = p
-            t = min(distance / total, 1.0)
-            t = self.__mapping(t)
-            b = self.__value_min + t * (self.__value_max - self.__value_min)
-            a = sv.attribute().getThicknessRL()
+        for it, t in iter_t2d_along_stroke(stroke):
+            attr = it.getObject().attribute()
+            a = attr.getThicknessRL()
             a = a[0] + a[1]
-            c = blend_curve(self.__blend, a, self.__influence, b)
-            sv.attribute().setThickness(c/2, c/2)
-            it.increment()
+            b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
+            c = self.blend_curve(a, b)
+            attr.setThickness(c/2, c/2)
+
+# Distance from Camera modifiers
+
+def iter_distance_from_camera(stroke, range_min, range_max):
+    normfac = range_max - range_min # normalization factor
+    it = stroke.strokeVerticesBegin()
+    while not it.isEnd():
+        p = it.getObject().getPoint3D() # in the camera coordinate
+        distance = p.length
+        if distance < range_min:
+            t = 0.0
+        elif distance > range_max:
+            t = 1.0
+        else:
+            t = (distance - range_min) / normfac
+        yield it, t
+        it.increment()
+
+class ColorDistanceFromCameraShader(ColorRampModifier):
+    def __init__(self, blend, influence, ramp, range_min, range_max):
+        ColorRampModifier.__init__(self, blend, influence, ramp)
+        self.__range_min = range_min
+        self.__range_max = range_max
+    def getName(self):
+        return "ColorDistanceFromCameraShader"
+    def shade(self, stroke):
+        for it, t in iter_distance_from_camera(stroke, self.__range_min, self.__range_max):
+            attr = it.getObject().attribute()
+            a = attr.getColorRGB()
+            b = self.evaluate(t)
+            c = self.blend_ramp(a, b)
+            attr.setColor(c)
+
+class AlphaDistanceFromCameraShader(CurveMappingModifier):
+    def __init__(self, blend, influence, mapping, invert, curve, range_min, range_max):
+        CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
+        self.__range_min = range_min
+        self.__range_max = range_max
+    def getName(self):
+        return "AlphaDistanceFromCameraShader"
+    def shade(self, stroke):
+        for it, t in iter_distance_from_camera(stroke, self.__range_min, self.__range_max):
+            attr = it.getObject().attribute()
+            a = attr.getAlpha()
+            b = self.evaluate(t)
+            c = self.blend_curve(a, b)
+            attr.setAlpha(c)
+
+class ThicknessDistanceFromCameraShader(CurveMappingModifier):
+    def __init__(self, blend, influence, mapping, invert, curve, range_min, range_max, value_min, value_max):
+        CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
+        self.__range_min = range_min
+        self.__range_max = range_max
+        self.__value_min = value_min
+        self.__value_max = value_max
+    def getName(self):
+        return "ThicknessDistanceFromCameraShader"
+    def shade(self, stroke):
+        for it, t in iter_distance_from_camera(stroke, self.__range_min, self.__range_max):
+            attr = it.getObject().attribute()
+            a = attr.getThicknessRL()
+            a = a[0] + a[1]
+            b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
+            c = self.blend_curve(a, b)
+            attr.setThickness(c/2, c/2)
+
+# Predicates and helper functions
 
 class QuantitativeInvisibilityRangeUP1D(UnaryPredicate1D):
     def __init__(self, qi_start, qi_end):
@@ -164,6 +220,8 @@ def join_unary_predicates(upred_list, bpred):
     for p in upred_list[1:]:
         upred = bpred(upred, p)
     return upred
+
+# main function for parameter processing
 
 def process(layer_name, lineset_name):
     scene = Freestyle.getCurrentScene()
@@ -248,20 +306,32 @@ def process(layer_name, lineset_name):
         if not m.enabled:
             continue
         if m.type == "ALONG_STROKE":
-            shaders_list.append(
-                ColorAlongStrokeShader(m.blend, m.influence, m.color_ramp))
+            shaders_list.append(ColorAlongStrokeShader(
+                m.blend, m.influence, m.color_ramp))
+        elif m.type == "DISTANCE_FROM_CAMERA":
+            shaders_list.append(ColorDistanceFromCameraShader(
+                m.blend, m.influence, m.color_ramp,
+                m.range_min, m.range_max))
     for m in linestyle.alpha_modifiers:
         if not m.enabled:
             continue
         if m.type == "ALONG_STROKE":
-            shaders_list.append(
-                AlphaAlongStrokeShader(m.blend, m.influence, m.mapping, m.invert, m.curve))
+            shaders_list.append(AlphaAlongStrokeShader(
+                m.blend, m.influence, m.mapping, m.invert, m.curve))
+        elif m.type == "DISTANCE_FROM_CAMERA":
+            shaders_list.append(AlphaDistanceFromCameraShader(
+                m.blend, m.influence, m.mapping, m.invert, m.curve,
+                m.range_min, m.range_max))
     for m in linestyle.thickness_modifiers:
         if not m.enabled:
             continue
         if m.type == "ALONG_STROKE":
-            shaders_list.append(
-                ThicknessAlongStrokeShader(m.blend, m.influence, m.mapping, m.invert, m.curve,
-                                           m.value_min, m.value_max))
+            shaders_list.append(ThicknessAlongStrokeShader(
+                m.blend, m.influence, m.mapping, m.invert, m.curve,
+                m.value_min, m.value_max))
+        elif m.type == "DISTANCE_FROM_CAMERA":
+            shaders_list.append(ThicknessDistanceFromCameraShader(
+                m.blend, m.influence, m.mapping, m.invert, m.curve,
+                m.range_min, m.range_max, m.value_min, m.value_max))
     # create strokes using the shaders list
     Operators.create(TrueUP1D(), shaders_list)
