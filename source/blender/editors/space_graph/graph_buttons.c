@@ -299,16 +299,17 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 
 static void do_graph_region_driver_buttons(bContext *C, void *arg, int event)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	switch (event) {
 		case B_IPO_DEPCHANGE:
 		{
 			/* rebuild depsgraph for the new deps */
-			DAG_scene_sort(scene);
+			DAG_scene_sort(bmain, scene);
 			
 			/* force an update of depsgraph */
-			DAG_ids_flush_update(0);
+			DAG_ids_flush_update(bmain, 0);
 		}
 			break;
 	}

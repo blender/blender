@@ -1852,7 +1852,7 @@ static ImBuf * seq_render_scene_strip_impl(
 	
 	if(sequencer_view3d_cb && BLI_thread_is_main() && doseq_gl && (seq->scene == scene || have_seq==0) && seq->scene->camera) {
 		/* opengl offscreen render */
-		scene_update_for_newframe(seq->scene, seq->scene->lay);
+		scene_update_for_newframe(G.main, seq->scene, seq->scene->lay);
 		ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty, 
 					  scene->r.seq_prev_type);
 	}
@@ -1865,7 +1865,7 @@ static ImBuf * seq_render_scene_strip_impl(
 		else
 			re= RE_NewRender(sce->id.name);
 		
-		RE_BlenderFrame(re, sce, NULL, sce->lay, frame);
+		RE_BlenderFrame(re, G.main, sce, NULL, sce->lay, frame);
 		
 		RE_AcquireResultImage(re, &rres);
 		

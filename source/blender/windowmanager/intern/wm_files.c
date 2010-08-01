@@ -314,7 +314,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
 		ED_editors_init(C);
-		DAG_on_load_update();
+		DAG_on_load_update(CTX_data_main(C));
 
 #ifndef DISABLE_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
@@ -394,7 +394,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	BKE_write_undo(C, "original");	/* save current state */
 
 	ED_editors_init(C);
-	DAG_on_load_update();
+	DAG_on_load_update(CTX_data_main(C));
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 	CTX_wm_window_set(C, NULL); /* exits queues */

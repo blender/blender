@@ -70,7 +70,7 @@ int		queue_count(struct DagNodeQueue *queue);
 void	queue_delete(struct DagNodeQueue *queue);
 
 // queries
-struct DagForest	*build_dag(struct Scene *sce, short mask);
+struct DagForest	*build_dag(struct Main *bmain, struct Scene *sce, short mask);
 void				free_forest(struct DagForest *Dag);
 
 // note :
@@ -97,14 +97,14 @@ void	draw_all_deps(void);
 /* Note that the DAG never executes changes in Objects, only sets flags in Objects */
 
 		/* (re)-create dependency graph for scene */
-void	DAG_scene_sort(struct Scene *sce);
+void	DAG_scene_sort(struct Main *bmain, struct Scene *sce);
 
 		/* flag all objects that need recalc because they're animated */
-void	DAG_scene_update_flags(struct Scene *sce, unsigned int lay);
+void	DAG_scene_update_flags(struct Main *bmain, struct Scene *sce, unsigned int lay);
 		/* flushes all recalc flags in objects down the dependency tree */
-void	DAG_scene_flush_update(struct Scene *sce, unsigned int lay, int time);
+void	DAG_scene_flush_update(struct Main *bmain, struct Scene *sce, unsigned int lay, int time);
 		/* tag objects for update on file load */
-void	DAG_on_load_update(void);
+void	DAG_on_load_update(struct Main *bmain);
 
 		/* flag all IDs that need recalc because they're animated, influencing
 		   this ID only. only for objects currently */
@@ -113,7 +113,7 @@ void	DAG_id_update_flags(struct ID *id);
 		   but note the DAG only supports objects and object data currently */
 void	DAG_id_flush_update(struct ID *id, short flag);
 		/* when setting manual RECALC flags, call this afterwards */
-void	DAG_ids_flush_update(int time);
+void	DAG_ids_flush_update(struct Main *bmain, int time);
 
 		/* (re)-create dependency graph for armature pose */
 void	DAG_pose_sort(struct Object *ob);

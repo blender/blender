@@ -531,12 +531,12 @@ void set_scene_bg(Scene *scene)
 	}
 
 	/* sort baselist */
-	DAG_scene_sort(scene);
+	DAG_scene_sort(G.main, scene);
 	
 	/* ensure dags are built for sets */
 	for(sce= scene->set; sce; sce= sce->set)
 		if(sce->theDag==NULL)
-			DAG_scene_sort(sce);
+			DAG_scene_sort(G.main, sce);
 
 	/* copy layers and flags from bases to objects */
 	for(base= scene->base.first; base; base= base->next) {
@@ -907,14 +907,14 @@ float BKE_curframe(Scene *scene)
 	return ctime;
 }
 
-static void scene_update_tagged_recursive(Scene *scene, Scene *scene_parent)
+static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scene_parent)
 {
 	Base *base;
 
 	/* sets first, we allow per definition current scene to have
 	   dependencies on sets, but not the other way around. */
 	if(scene->set)
-		scene_update_tagged_recursive(scene->set, scene_parent);
+		scene_update_tagged_recursive(bmain, scene->set, scene_parent);
 
 	for(base= scene->base.first; base; base= base->next) {
 		Object *ob= base->object;
@@ -930,14 +930,14 @@ static void scene_update_tagged_recursive(Scene *scene, Scene *scene_parent)
 }
 
 /* this is called in main loop, doing tagged updates before redraw */
-void scene_update_tagged(Scene *scene)
+void scene_update_tagged(Main *bmain, Scene *scene)
 {
 	scene->physics_settings.quick_cache_step= 0;
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
 	   by depgraph or manual, no layer check here, gets correct flushed */
 
-	scene_update_tagged_recursive(scene, scene);
+	scene_update_tagged_recursive(bmain, scene, scene);
 
 	/* recalc scene animation data here (for sequencer) */
 	{
@@ -949,14 +949,14 @@ void scene_update_tagged(Scene *scene)
 	}
 
 	if(scene->physics_settings.quick_cache_step)
-		BKE_ptcache_quick_cache_all(scene);
+		BKE_ptcache_quick_cache_all(bmain, scene);
 
 	/* in the future this should handle updates for all datablocks, not
 	   only objects and scenes. - brecht */
 }
 
 /* applies changes right away, does all sets too */
-void scene_update_for_newframe(Scene *sce, unsigned int lay)
+void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 {
 	float ctime = BKE_curframe(sce);
 	Scene *sce_iter;
@@ -966,13 +966,13 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 
 	for(sce_iter= sce; sce_iter; sce_iter= sce_iter->set) {
 		if(sce_iter->theDag==NULL)
-			DAG_scene_sort(sce_iter);
+			DAG_scene_sort(bmain, sce_iter);
 	}
 
 
 	/* Following 2 functions are recursive
 	 * so dont call within 'scene_update_tagged_recursive' */
-	DAG_scene_update_flags(sce, lay);   // only stuff that moves or needs display still
+	DAG_scene_update_flags(bmain, sce, lay);   // only stuff that moves or needs display still
 
 	/* All 'standard' (i.e. without any dependencies) animation is handled here,
 	 * with an 'local' to 'macro' order of evaluation. This should ensure that
@@ -980,11 +980,11 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 	 * can be overridden by settings from Scene, which owns the Texture through a hierarchy
 	 * such as Scene->World->MTex/Texture) can still get correctly overridden.
 	 */
-	BKE_animsys_evaluate_all_animation(G.main, ctime);
+	BKE_animsys_evaluate_all_animation(bmain, ctime);
 	/*...done with recusrive funcs */
 
 	/* object_handle_update() on all objects, groups and sets */
-	scene_update_tagged_recursive(sce, sce);
+	scene_update_tagged_recursive(bmain, sce, sce);
 }
 
 /* return default layer, also used to patch old files */

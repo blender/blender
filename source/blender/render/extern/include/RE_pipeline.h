@@ -37,13 +37,14 @@
 
 struct bNodeTree;
 struct Image;
+struct Main;
 struct NodeBlurData;
 struct Object;
-struct ReportList;
 struct RenderData;
 struct RenderEngine;
 struct RenderEngineType;
 struct RenderResult;
+struct ReportList;
 struct ReportList;
 struct Scene;
 struct SceneRenderLayer;
@@ -208,8 +209,8 @@ void RE_init_threadcount(Render *re);
 void RE_TileProcessor(struct Render *re);
 
 /* only RE_NewRender() needed, main Blender render calls */
-void RE_BlenderFrame(struct Render *re, struct Scene *scene, struct SceneRenderLayer *srl, unsigned int lay, int frame);
-void RE_BlenderAnim(struct Render *re, struct Scene *scene, unsigned int lay, int sfra, int efra, int tfra, struct ReportList *reports);
+void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneRenderLayer *srl, unsigned int lay, int frame);
+void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, unsigned int lay, int sfra, int efra, int tfra, struct ReportList *reports);
 
 /* main preview render call */
 void RE_PreviewRender(struct Render *re, struct Scene *scene);

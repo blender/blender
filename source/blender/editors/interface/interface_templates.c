@@ -961,6 +961,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr, int
 
 void do_constraint_panels(bContext *C, void *arg, int event)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	
@@ -972,7 +973,7 @@ void do_constraint_panels(bContext *C, void *arg, int event)
 		break;  // no handling
 	case B_CONSTRAINT_CHANGETARGET:
 		if (ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 		break;
 	default:
 		break;

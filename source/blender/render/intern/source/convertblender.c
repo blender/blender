@@ -3855,12 +3855,12 @@ static void set_material_lightgroups(Render *re)
 	if(re->scene->r.scemode & R_PREVIEWBUTS)
 		return;
 	
-	for(group= G.main->group.first; group; group=group->id.next)
+	for(group= re->main->group.first; group; group=group->id.next)
 		group->id.flag |= LIB_DOIT;
 	
 	/* it's a bit too many loops in loops... but will survive */
 	/* hola! materials not in use...? */
-	for(ma= G.main->mat.first; ma; ma=ma->id.next) {
+	for(ma= re->main->mat.first; ma; ma=ma->id.next) {
 		if(ma->group && (ma->group->id.flag & LIB_DOIT))
 			add_lightgroup(re, ma->group, ma->mode & MA_GROUP_NOLAY);
 	}
@@ -4542,8 +4542,8 @@ void RE_Database_Free(Render *re)
 #if 0	/* radio can be redone better */
 	end_radio_render();
 #endif
-	end_render_materials();
-	end_render_textures();
+	end_render_materials(re->main);
+	end_render_textures(re);
 	
 	free_pointdensities(re);
 	
@@ -4868,7 +4868,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 
 	/* objects in groups with OB_RENDER_DUPLI set still need to be created,
 	 * since they may not be part of the scene */
-	for(group= G.main->group.first; group; group=group->id.next)
+	for(group= re->main->group.first; group; group=group->id.next)
 		add_group_render_dupli_obs(re, group, nolamps, onlyselected, actob, timeoffset, renderlay, 0);
 
 	/* imat objects has to be done again, since groups can mess it up */
@@ -4916,7 +4916,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, unsigned int lay, int use_c
 	
 	/* applies changes fully */
 	if((re->r.scemode & R_PREVIEWBUTS)==0)
-		scene_update_for_newframe(re->scene, lay);
+		scene_update_for_newframe(re->main, re->scene, lay);
 	
 	/* if no camera, viewmat should have been set! */
 	if(use_camera_view && re->scene->camera) {
@@ -4943,7 +4943,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, unsigned int lay, int use_c
 	/* still bad... doing all */
 	init_render_textures(re);
 	VECCOPY(amb, &re->wrld.ambr);
-	init_render_materials(re->r.mode, amb);
+	init_render_materials(re->main, re->r.mode, amb);
 	set_node_shader_lamp_loop(shade_material_loop);
 
 	/* MAKE RENDER DATA */
@@ -5070,7 +5070,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 	
 	/* applies changes fully */
 	scene->r.cfra += timeoffset;
-	scene_update_for_newframe(re->scene, lay);
+	scene_update_for_newframe(re->main, re->scene, lay);
 	
 	/* if no camera, viewmat should have been set! */
 	if(re->scene->camera) {
@@ -5626,7 +5626,7 @@ void RE_Database_Baking(Render *re, Scene *scene, unsigned int lay, int type, Ob
 	init_render_textures(re);
 	
 	VECCOPY(amb, &re->wrld.ambr);
-	init_render_materials(re->r.mode, amb);
+	init_render_materials(re->main, re->r.mode, amb);
 	
 	set_node_shader_lamp_loop(shade_material_loop);
 	

@@ -704,7 +704,7 @@ void BIF_view3d_previewrender_clear(ScrArea *sa)
 }
 
 /* afterqueue call */
-void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
+void BIF_view3d_previewrender(Main *bmain, Scene *scene, ScrArea *sa)
 {
 	View3D *v3d= sa->spacedata.first;
 	RegionView3D *rv3d= NULL; // XXX
@@ -804,7 +804,7 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 			
 			/* database can have created render-resol data... */
 			if(rstats->convertdone) 
-				DAG_scene_flush_update(scene, scene->lay, 0);
+				DAG_scene_flush_update(bmain, scene, scene->lay, 0);
 			
 			//printf("dbase update\n");
 		}

@@ -254,7 +254,7 @@ static void rna_Curve_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Curve_update_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	rna_Curve_update_data(bmain, scene, ptr);
 }
 

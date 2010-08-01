@@ -68,6 +68,7 @@
 
 static int object_location_clear_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
 	
@@ -102,7 +103,7 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* this is needed so children are also updated */
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
@@ -126,6 +127,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 
 static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
 	
@@ -244,7 +246,7 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* this is needed so children are also updated */
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -268,6 +270,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 
 static int object_scale_clear_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
 	
@@ -307,7 +310,7 @@ static int object_scale_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* this is needed so children are also updated */
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -331,6 +334,7 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 
 static int object_origin_clear_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	float *v1, *v3, mat[3][3];
 	int armature_clear= 0;
 
@@ -348,7 +352,7 @@ static int object_origin_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if(armature_clear==0) /* in this case flush was done */
-		DAG_ids_flush_update(0);
+		DAG_ids_flush_update(bmain, 0);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -767,7 +771,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	for (tob= G.main->object.first; tob; tob= tob->id.next) {
+	for (tob= bmain->object.first; tob; tob= tob->id.next) {
 		if(tob->data)
 			((ID *)tob->data)->flag &= ~LIB_DOIT;
 	}
@@ -921,14 +925,14 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	for (tob= G.main->object.first; tob; tob= tob->id.next) {
+	for (tob= bmain->object.first; tob; tob= tob->id.next) {
 		if(tob->data && (((ID *)tob->data)->flag & LIB_DOIT)) {
 			tob->recalc= OB_RECALC_OB|OB_RECALC_DATA;
 		}
 	}
 
 	if (tot_change) {
-		DAG_ids_flush_update(0);
+		DAG_ids_flush_update(bmain, 0);
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	}
 

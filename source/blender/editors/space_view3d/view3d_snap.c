@@ -45,14 +45,15 @@
 
 #include "BKE_action.h"
 #include "BKE_anim.h"
-#include "BKE_context.h"
 #include "BKE_armature.h"
+#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_lattice.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -420,6 +421,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 static int snap_sel_to_grid(bContext *C, wmOperator *op)
 {
 	extern float originmat[3][3];	/* XXX object.c */
+	Main *bmain= CTX_data_main(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene= CTX_data_scene(C);
 	RegionView3D *rv3d= CTX_wm_region_data(C);
@@ -526,7 +528,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -553,6 +555,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 static int snap_sel_to_curs(bContext *C, wmOperator *op)
 {
 	extern float originmat[3][3];	/* XXX object.c */
+	Main *bmain= CTX_data_main(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
@@ -651,7 +654,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;

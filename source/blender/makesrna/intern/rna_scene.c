@@ -203,7 +203,7 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 
 	ob->recalc |= OB_RECALC_ALL;
 
-	DAG_scene_sort(scene);
+	DAG_scene_sort(G.main, scene);
 
 	return base;
 }
@@ -229,8 +229,8 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 	ob->id.us--;
 
 	/* needed otherwise the depgraph will contain free'd objects which can crash, see [#20958] */
-	DAG_scene_sort(scene);
-	DAG_ids_flush_update(0);
+	DAG_scene_sort(G.main, scene);
+	DAG_ids_flush_update(G.main, 0);
 
 	WM_main_add_notifier(NC_SCENE|ND_OB_ACTIVE, scene);
 }
@@ -838,7 +838,7 @@ static void rna_Scene_use_simplify_update(Main *bmain, Scene *scene, PointerRNA 
 	for(SETLOOPER(scene, base))
 		object_simplify_update(base->object);
 	
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	WM_main_add_notifier(NC_GEOM|ND_DATA, NULL);
 }
 

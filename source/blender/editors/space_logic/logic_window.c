@@ -359,6 +359,7 @@ static void old_sca_move_actuator(bContext *C, void *datav, void *move_up)
 
 void do_logic_buts(bContext *C, void *arg, int event)
 {
+	Main *bmain= CTX_data_main(C);
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
@@ -382,7 +383,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 		break;
 	
 	case B_ADD_SENS:
-		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		for(ob=bmain->object.first; ob; ob=ob->id.next) {
 			if(ob->scaflag & OB_ADDSENS) {
 				ob->scaflag &= ~OB_ADDSENS;
 				sens= new_sensor(SENS_ALWAYS);
@@ -396,7 +397,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 		break;
 
 	case B_CHANGE_SENS:
-		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		for(ob=bmain->object.first; ob; ob=ob->id.next) {
 			sens= ob->sensors.first;
 			while(sens) {
 				if(sens->type != sens->otype) {
@@ -410,7 +411,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 		break;
 	
 	case B_DEL_SENS:
-		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		for(ob=bmain->object.first; ob; ob=ob->id.next) {
 			sens= ob->sensors.first;
 			while(sens) {
 				if(sens->flag & SENS_DEL) {
@@ -425,7 +426,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 		break;
 	
 	case B_ADD_CONT:
-		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		for(ob=bmain->object.first; ob; ob=ob->id.next) {
 			if(ob->scaflag & OB_ADDCONT) {
 				ob->scaflag &= ~OB_ADDCONT;
 				cont= new_controller(CONT_LOGIC_AND);
@@ -450,7 +451,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 		break;
 
 	case B_SET_STATE_BIT:
-		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		for(ob=bmain->object.first; ob; ob=ob->id.next) {
 			if(ob->scaflag & OB_ALLSTATE) {
 				ob->scaflag &= ~OB_ALLSTATE;
 				ob->state = 0x3FFFFFFF;
@@ -459,7 +460,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 		break;
 
 	case B_INIT_STATE_BIT:
-		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		for(ob=bmain->object.first; ob; ob=ob->id.next) {
 			if(ob->scaflag & OB_INITSTBIT) {
 				ob->scaflag &= ~OB_INITSTBIT;
 				ob->state = ob->init_state;
@@ -470,7 +471,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 		break;
 
 	case B_CHANGE_CONT:
-		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		for(ob=bmain->object.first; ob; ob=ob->id.next) {
 			cont= ob->controllers.first;
 			while(cont) {
 				if(cont->type != cont->otype) {
@@ -485,7 +486,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 	
 
 	case B_DEL_CONT:
-		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		for(ob=bmain->object.first; ob; ob=ob->id.next) {
 			cont= ob->controllers.first;
 			while(cont) {
 				if(cont->flag & CONT_DEL) {
@@ -501,7 +502,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 		break;
 
 	case B_ADD_ACT:
-		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		for(ob=bmain->object.first; ob; ob=ob->id.next) {
 			if(ob->scaflag & OB_ADDACT) {
 				ob->scaflag &= ~OB_ADDACT;
 				act= new_actuator(ACT_OBJECT);
@@ -514,7 +515,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 		break;
 
 	case B_CHANGE_ACT:
-		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		for(ob=bmain->object.first; ob; ob=ob->id.next) {
 			act= ob->actuators.first;
 			while(act) {
 				if(act->type != act->otype) {
@@ -528,7 +529,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 		break;
 
 	case B_DEL_ACT:
-		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		for(ob=bmain->object.first; ob; ob=ob->id.next) {
 			act= ob->actuators.first;
 			while(act) {
 				if(act->flag & ACT_DEL) {
@@ -546,7 +547,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 	case B_SOUNDACT_BROWSE:
 		/* since we don't know which... */
 		didit= 0;
-		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		for(ob=bmain->object.first; ob; ob=ob->id.next) {
 			act= ob->actuators.first;
 			while(act)
 			{
@@ -555,11 +556,11 @@ void do_logic_buts(bContext *C, void *arg, int event)
 					bSoundActuator *sa= act->data;
 					if(sa->sndnr)
 					{
-						bSound *sound= G.main->sound.first;
+						bSound *sound= bmain->sound.first;
 						int nr= 1;
 
 						if(sa->sndnr == -2) {
-// XXX							activate_databrowse((ID *)G.main->sound.first, ID_SO, 0, B_SOUNDACT_BROWSE,
+// XXX							activate_databrowse((ID *)bmain->sound.first, ID_SO, 0, B_SOUNDACT_BROWSE,
 //											&sa->sndnr, do_logic_buts);
 							break;
 						}
@@ -768,6 +769,7 @@ static void set_sca_ob(Object *ob)
 static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisflag)
 {
 	Base *base;
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob, *obt, *obact= CTX_data_active_object(C);
 	ID **idar;
@@ -784,7 +786,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	
 	if(scene==NULL) return NULL;
 	
-	ob= G.main->object.first;
+	ob= bmain->object.first;
 	while(ob) {
 		ob->scavisflag= 0;
 		set_sca_ob(ob);
@@ -818,7 +820,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 		while(doit) {
 			doit= 0;
 			
-			ob= G.main->object.first;
+			ob= bmain->object.first;
 			while(ob) {
 			
 				/* 1st case: select sensor when controller selected */
@@ -899,7 +901,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	} 
 	
 	/* now we count */
-	ob= G.main->object.first;
+	ob= bmain->object.first;
 	while(ob) {
 		if( ob->scavisflag ) (*count)++;
 		ob= ob->id.next;
@@ -910,7 +912,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	
 	idar= MEM_callocN( (*count)*sizeof(void *), "idar");
 	
-	ob= G.main->object.first;
+	ob= bmain->object.first;
 	nr= 0;
 
 	/* make the active object always the first one of the list */
@@ -1817,7 +1819,7 @@ static void check_armature_actuator(bContext *C, void *arg1_but, void *arg2_act)
 }
 
 
-static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, short xco, short yco, short width)
+static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlock *block, short xco, short yco, short width)
 {
 	bSoundActuator      *sa      = NULL;
 	bObjectActuator     *oa      = NULL;
@@ -2142,8 +2144,8 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 			
-			if(G.main->sound.first) {
-				IDnames_to_pupstring(&str, "Sound files", NULL, &(G.main->sound), (ID *)sa->sound, &(sa->sndnr));
+			if(bmain->sound.first) {
+				IDnames_to_pupstring(&str, "Sound files", NULL, &(bmain->sound), (ID *)sa->sound, &(sa->sndnr));
 				/* reset this value, it is for handling the event */
 				sa->sndnr = 0;
 				uiDefButS(block, MENU, B_SOUNDACT_BROWSE, str, xco+10,yco-22,20,19, &(sa->sndnr), 0, 0, 0, 0, "");	
@@ -4709,6 +4711,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 
 void logic_buttons(bContext *C, ARegion *ar)
 {
+	Main *bmain= CTX_data_main(C);
 	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	Object *ob= CTX_data_active_object(C);
 	ID **idar;
@@ -5033,7 +5036,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 						uiButSetFunc(but, make_unique_prop_names_cb, act->name, (void*) 0);
 
 						ycoo= yco;
-						yco= draw_actuatorbuttons(ob, act, block, xco, yco, width);
+						yco= draw_actuatorbuttons(bmain, ob, act, block, xco, yco, width);
 						if(yco-6 < ycoo) ycoo= (yco+ycoo-20)/2;
 					}
 					else {

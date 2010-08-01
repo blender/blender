@@ -809,6 +809,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 /* join armature exec is exported for use in object->join objects operator... */
 int join_armature_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object	*ob= CTX_data_active_object(C);
 	bArmature *arm= (ob)? ob->data: NULL;
@@ -901,12 +902,12 @@ int join_armature_exec(bContext *C, wmOperator *op)
 				free_pose_channels_hash(pose);
 			}
 			
-			ED_base_object_free_and_unlink(scene, base);
+			ED_base_object_free_and_unlink(bmain, scene, base);
 		}
 	}
 	CTX_DATA_END;
 	
-	DAG_scene_sort(scene);	// because we removed object(s)
+	DAG_scene_sort(bmain, scene);	// because we removed object(s)
 
 	ED_armature_from_edit(ob);
 	ED_armature_edit_free(ob);
@@ -1118,6 +1119,7 @@ static void separate_armature_bones (Scene *scene, Object *ob, short sel)
 /* separate selected bones into their armature */
 static int separate_armature_exec (bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Object *oldob, *newob;
@@ -1158,7 +1160,7 @@ static int separate_armature_exec (bContext *C, wmOperator *op)
 	ED_armature_edit_free(obedit);
 	
 	/* 2) duplicate base */
-	newbase= ED_object_add_duplicate(scene, oldbase, USER_DUP_ARM); /* only duplicate linked armature */
+	newbase= ED_object_add_duplicate(bmain, scene, oldbase, USER_DUP_ARM); /* only duplicate linked armature */
 	newob= newbase->object;		
 	newbase->flag &= ~SELECT;
 	

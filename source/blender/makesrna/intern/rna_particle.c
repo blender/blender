@@ -214,7 +214,7 @@ static void rna_Particle_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Particle_redo_dependency(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	rna_Particle_redo(bmain, scene, ptr);
 }
 
@@ -266,7 +266,7 @@ static void rna_Particle_target_reset(Main *bmain, Scene *scene, PointerRNA *ptr
 		psys->recalc = PSYS_RECALC_RESET;
 
 		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 	}
 
 	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);

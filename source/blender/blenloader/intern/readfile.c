@@ -12509,7 +12509,7 @@ void BLO_script_library_append(BlendHandle **bh, char *dir, char *name,
 
 	/* do we need to do this? */
 	if(scene)
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 
 	*bh= (BlendHandle*)fd;
 }

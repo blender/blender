@@ -214,7 +214,7 @@ static void rna_Modifier_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Modifier_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	rna_Modifier_update(bmain, scene, ptr);
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 }
 
 static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)

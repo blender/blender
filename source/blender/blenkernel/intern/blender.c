@@ -478,7 +478,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 	G.fileflags= fileflags;
 
 	if(success)
-		DAG_on_load_update();
+		DAG_on_load_update(G.main);
 
 	return success;
 }

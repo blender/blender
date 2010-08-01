@@ -510,11 +510,11 @@ static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA
 		if(!md) {
 			if(pd && (pd->shape == PFIELD_SHAPE_SURFACE) && ELEM(pd->forcefield,PFIELD_GUIDE,PFIELD_TEXTURE)==0)
 				if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE))
-					ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Surface);
+					ED_object_modifier_add(NULL, bmain, scene, ob, NULL, eModifierType_Surface);
 		}
 		else {
 			if(!pd || pd->shape != PFIELD_SHAPE_SURFACE)
-				ED_object_modifier_remove(NULL, scene, ob, md);
+				ED_object_modifier_remove(NULL, bmain, scene, ob, md);
 		}
 
 		WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
@@ -538,7 +538,7 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
 
 		rna_FieldSettings_shape_update(bmain, scene, ptr);
 
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 
 		if(ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE)
 			DAG_id_flush_update(&ob->id, OB_RECALC_ALL);
@@ -582,7 +582,7 @@ static void rna_EffectorWeight_update(Main *bmain, Scene *scene, PointerRNA *ptr
 
 static void rna_EffectorWeight_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 
 	DAG_id_flush_update((ID*)ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
@@ -640,9 +640,9 @@ static void rna_CollisionSettings_dependency_update(Main *bmain, Scene *scene, P
 
 	/* add/remove modifier as needed */
 	if(ob->pd->deflect && !md)
-		ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Collision);
+		ED_object_modifier_add(NULL, bmain, scene, ob, NULL, eModifierType_Collision);
 	else if(!ob->pd->deflect && md)
-		ED_object_modifier_remove(NULL, scene, ob, md);
+		ED_object_modifier_remove(NULL, bmain, scene, ob, md);
 
 	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
 }

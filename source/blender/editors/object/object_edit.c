@@ -137,6 +137,7 @@ Object *ED_object_active_context(bContext *C)
 /* ********* clear/set restrict view *********/
 static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Scene *scene= CTX_data_scene(C);
@@ -153,7 +154,7 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
 		}
 	}
 	if (changed) {
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
 
@@ -178,6 +179,7 @@ void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
 
 static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	short changed = 0;
 	int unselected= RNA_boolean_get(op->ptr, "unselected");
@@ -204,7 +206,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if (changed) {
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 		
@@ -965,144 +967,6 @@ void special_editmenu(Scene *scene, View3D *v3d)
 
 }
 
-/* Change subdivision or particle properties of mesh object ob, if level==-1
- * then toggle subsurf, else set to level set allows to toggle multiple
- * selections */
-
-static void object_has_subdivision_particles(Object *ob, int *havesubdiv, int *havepart, int depth)
-{
-	if(ob->type==OB_MESH) {
-		if(modifiers_findByType(ob, eModifierType_Subsurf))
-			*havesubdiv= 1;
-		if(modifiers_findByType(ob, eModifierType_ParticleSystem))
-			*havepart= 1;
-	}
-
-	if(ob->dup_group && depth <= 4) {
-		GroupObject *go;
-
-		for(go= ob->dup_group->gobject.first; go; go= go->next)
-			object_has_subdivision_particles(go->ob, havesubdiv, havepart, depth+1);
-	}
-}
-
-static void object_flip_subdivison_particles(Scene *scene, Object *ob, int *set, int level, int mode, int particles, int depth)
-{
-	ModifierData *md;
-
-	if(ob->type==OB_MESH) {
-		if(particles) {
-			for(md=ob->modifiers.first; md; md=md->next) {
-				if(md->type == eModifierType_ParticleSystem) {
-					ParticleSystemModifierData *psmd = (ParticleSystemModifierData*)md;
-
-					if(*set == -1)
-						*set= psmd->modifier.mode&(mode);
-
-					if (*set)
-						psmd->modifier.mode &= ~(mode);
-					else
-						psmd->modifier.mode |= (mode);
-				}
-			}
-		}
-		else {
-			md = modifiers_findByType(ob, eModifierType_Subsurf);
-
-			if (md) {
-				SubsurfModifierData *smd = (SubsurfModifierData*) md;
-
-				if (level == -1) {
-					if(*set == -1) 
-						*set= smd->modifier.mode&(mode);
-
-					if (*set)
-						smd->modifier.mode &= ~(mode);
-					else
-						smd->modifier.mode |= (mode);
-				} else {
-					smd->levels = level;
-				}
-			} 
-			else if(depth == 0 && *set != 0) {
-				SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
-				
-				BLI_addtail(&ob->modifiers, smd);
-				modifier_unique_name(&ob->modifiers, (ModifierData*)smd);
-				
-				if (level!=-1) {
-					smd->levels = level;
-				}
-				
-				if(*set == -1)
-					*set= 1;
-			}
-		}
-
-		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	}
-
-	if(ob->dup_group && depth<=4) {
-		GroupObject *go;
-
-		for(go= ob->dup_group->gobject.first; go; go= go->next)
-			object_flip_subdivison_particles(scene, go->ob, set, level, mode, particles, depth+1);
-	}
-}
-
-/* Change subdivision properties of mesh object ob, if
-* level==-1 then toggle subsurf, else set to level.
-*/
-
-void flip_subdivison(Scene *scene, View3D *v3d, int level)
-{
-	Base *base;
-	int set= -1;
-	int mode, pupmode, particles= 0, havesubdiv= 0, havepart= 0;
-	int alt= 0; // XXX
-	
-	if(alt)
-		mode= eModifierMode_Realtime;
-	else
-		mode= eModifierMode_Render|eModifierMode_Realtime;
-	
-	if(level == -1) {
-		if (scene->obedit) { // XXX get from context
-			object_has_subdivision_particles(scene->obedit, &havesubdiv, &havepart, 0);			
-		} else {
-			for(base= scene->base.first; base; base= base->next) {
-				if(((level==-1) && (TESTBASE(v3d, base))) || (TESTBASELIB(v3d, base))) {
-					object_has_subdivision_particles(base->object, &havesubdiv, &havepart, 0);
-				}
-			}
-		}
-	}
-	else
-		havesubdiv= 1;
-	
-	if(havesubdiv && havepart) {
-		pupmode= pupmenu("Switch%t|Subsurf %x1|Particle Systems %x2");
-		if(pupmode <= 0)
-			return;
-		else if(pupmode == 2)
-			particles= 1;
-	}
-	else if(havepart)
-		particles= 1;
-
-	if (scene->obedit) {	 // XXX get from context
-		object_flip_subdivison_particles(scene, scene->obedit, &set, level, mode, particles, 0);
-	} else {
-		for(base= scene->base.first; base; base= base->next) {
-			if(((level==-1) && (TESTBASE(v3d, base))) || (TESTBASELIB(v3d, base))) {
-				object_flip_subdivison_particles(scene, base->object, &set, level, mode, particles, 0);
-			}
-		}
-	}
-	
-	DAG_ids_flush_update(0);
-}
- 
 static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
 {	
 //XXX no longer used - to be removed - replaced by game_properties_copy_exec
@@ -1197,7 +1061,7 @@ static void copymenu_logicbricks(Scene *scene, View3D *v3d, Object *ob)
 	}
 }
 
-static void copymenu_modifiers(Scene *scene, View3D *v3d, Object *ob)
+static void copymenu_modifiers(Main *bmain, Scene *scene, View3D *v3d, Object *ob)
 {
 	Base *base;
 	int i, event;
@@ -1296,7 +1160,7 @@ static void copymenu_modifiers(Scene *scene, View3D *v3d, Object *ob)
 	
 //	if(errorstr) notice(errorstr);
 	
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	
 }
 
@@ -1344,7 +1208,7 @@ static void copy_texture_space(Object *to, Object *ob)
 	
 }
 
-void copy_attr(Scene *scene, View3D *v3d, short event)
+void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 {
 	Object *ob;
 	Base *base;
@@ -1369,7 +1233,7 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 		return;
 	}
 	else if(event==24) {
-		copymenu_modifiers(scene, v3d, ob);
+		copymenu_modifiers(bmain, scene, v3d, ob);
 		return;
 	}
 
@@ -1587,12 +1451,12 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 	}
 	
 	if(do_scene_sort)
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 }
 
-void copy_attr_menu(Scene *scene, View3D *v3d)
+void copy_attr_menu(Main *bmain, Scene *scene, View3D *v3d)
 {
 	Object *ob;
 	short event;
@@ -1643,7 +1507,7 @@ void copy_attr_menu(Scene *scene, View3D *v3d)
 	event= pupmenu(str);
 	if(event<= 0) return;
 	
-	copy_attr(scene, v3d, event);
+	copy_attr(bmain, scene, v3d, event);
 }
 
 /* ********************************************** */

@@ -403,6 +403,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	Render *re= RE_NewRender(scene->id.name);
 	Image *ima;
 	View3D *v3d= CTX_wm_view3d(C);
+	Main *mainp= G.main; //BKE_undo_get_main(&scene);
 	int lay= (v3d)? v3d->lay: scene->lay;
 
 	if(re==NULL) {
@@ -418,9 +419,11 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	BKE_image_backup_render(scene, ima);
 
 	if(RNA_boolean_get(op->ptr, "animation"))
-		RE_BlenderAnim(re, scene, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
+		RE_BlenderAnim(re, mainp, scene, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
 	else
-		RE_BlenderFrame(re, scene, NULL, lay, scene->r.cfra);
+		RE_BlenderFrame(re, mainp, scene, NULL, lay, scene->r.cfra);
+
+	//free_main(mainp);
 
 	// no redraw needed, we leave state as we entered it
 	ED_update_for_newframe(C, 1);
@@ -555,19 +558,18 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 static void render_startjob(void *rjv, short *stop, short *do_update, float *progress)
 {
 	RenderJob *rj= rjv;
-//	Main *mainp= BKE_undo_get_main(&rj->scene);
+	Main *mainp= G.main; //BKE_undo_get_main(&rj->scene);
 
 	rj->stop= stop;
 	rj->do_update= do_update;
 	rj->progress= progress;
 
 	if(rj->anim)
-		RE_BlenderAnim(rj->re, rj->scene, rj->lay, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
+		RE_BlenderAnim(rj->re, mainp, rj->scene, rj->lay, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
 	else
-		RE_BlenderFrame(rj->re, rj->scene, rj->srl, rj->lay, rj->scene->r.cfra);
+		RE_BlenderFrame(rj->re, mainp, rj->scene, rj->srl, rj->lay, rj->scene->r.cfra);
 
-//	if(mainp)
-//		free_main(mainp);
+	//free_main(mainp);
 }
 
 static void render_endjob(void *rjv)
