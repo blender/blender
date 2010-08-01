@@ -199,6 +199,83 @@ class ThicknessDistanceFromCameraShader(CurveMappingModifier):
             c = self.blend_curve(a, b)
             attr.setThickness(c/2, c/2)
 
+# Distance from Object modifiers
+
+def iter_distance_from_object(stroke, object, range_min, range_max):
+    scene = Freestyle.getCurrentScene()
+    mv = scene.camera.matrix_world.copy().invert() # model-view matrix
+    loc = mv * object.location # loc in the camera coordinate
+    normfac = range_max - range_min # normalization factor
+    it = stroke.strokeVerticesBegin()
+    while not it.isEnd():
+        p = it.getObject().getPoint3D() # in the camera coordinate
+        distance = (p - loc).length
+        if distance < range_min:
+            t = 0.0
+        elif distance > range_max:
+            t = 1.0
+        else:
+            t = (distance - range_min) / normfac
+        yield it, t
+        it.increment()
+
+class ColorDistanceFromObjectShader(ColorRampModifier):
+    def __init__(self, blend, influence, ramp, target, range_min, range_max):
+        ColorRampModifier.__init__(self, blend, influence, ramp)
+        self.__target = target
+        self.__range_min = range_min
+        self.__range_max = range_max
+    def getName(self):
+        return "ColorDistanceFromObjectShader"
+    def shade(self, stroke):
+        if self.__target is None:
+            return
+        for it, t in iter_distance_from_object(stroke, self.__target, self.__range_min, self.__range_max):
+            attr = it.getObject().attribute()
+            a = attr.getColorRGB()
+            b = self.evaluate(t)
+            c = self.blend_ramp(a, b)
+            attr.setColor(c)
+
+class AlphaDistanceFromObjectShader(CurveMappingModifier):
+    def __init__(self, blend, influence, mapping, invert, curve, target, range_min, range_max):
+        CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
+        self.__target = target
+        self.__range_min = range_min
+        self.__range_max = range_max
+    def getName(self):
+        return "AlphaDistanceFromObjectShader"
+    def shade(self, stroke):
+        if self.__target is None:
+            return
+        for it, t in iter_distance_from_object(stroke, self.__target, self.__range_min, self.__range_max):
+            attr = it.getObject().attribute()
+            a = attr.getAlpha()
+            b = self.evaluate(t)
+            c = self.blend_curve(a, b)
+            attr.setAlpha(c)
+
+class ThicknessDistanceFromObjectShader(CurveMappingModifier):
+    def __init__(self, blend, influence, mapping, invert, curve, target, range_min, range_max, value_min, value_max):
+        CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
+        self.__target = target
+        self.__range_min = range_min
+        self.__range_max = range_max
+        self.__value_min = value_min
+        self.__value_max = value_max
+    def getName(self):
+        return "ThicknessDistanceFromObjectShader"
+    def shade(self, stroke):
+        if self.__target is None:
+            return
+        for it, t in iter_distance_from_object(stroke, self.__target, self.__range_min, self.__range_max):
+            attr = it.getObject().attribute()
+            a = attr.getThicknessRL()
+            a = a[0] + a[1]
+            b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
+            c = self.blend_curve(a, b)
+            attr.setThickness(c/2, c/2)
+
 # Predicates and helper functions
 
 class QuantitativeInvisibilityRangeUP1D(UnaryPredicate1D):
@@ -312,6 +389,10 @@ def process(layer_name, lineset_name):
             shaders_list.append(ColorDistanceFromCameraShader(
                 m.blend, m.influence, m.color_ramp,
                 m.range_min, m.range_max))
+        elif m.type == "DISTANCE_FROM_OBJECT":
+            shaders_list.append(ColorDistanceFromObjectShader(
+                m.blend, m.influence, m.color_ramp, m.target,
+                m.range_min, m.range_max))
     for m in linestyle.alpha_modifiers:
         if not m.enabled:
             continue
@@ -321,6 +402,10 @@ def process(layer_name, lineset_name):
         elif m.type == "DISTANCE_FROM_CAMERA":
             shaders_list.append(AlphaDistanceFromCameraShader(
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
+                m.range_min, m.range_max))
+        elif m.type == "DISTANCE_FROM_OBJECT":
+            shaders_list.append(AlphaDistanceFromObjectShader(
+                m.blend, m.influence, m.mapping, m.invert, m.curve, m.target,
                 m.range_min, m.range_max))
     for m in linestyle.thickness_modifiers:
         if not m.enabled:
@@ -332,6 +417,10 @@ def process(layer_name, lineset_name):
         elif m.type == "DISTANCE_FROM_CAMERA":
             shaders_list.append(ThicknessDistanceFromCameraShader(
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
+                m.range_min, m.range_max, m.value_min, m.value_max))
+        elif m.type == "DISTANCE_FROM_OBJECT":
+            shaders_list.append(ThicknessDistanceFromObjectShader(
+                m.blend, m.influence, m.mapping, m.invert, m.curve, m.target,
                 m.range_min, m.range_max, m.value_min, m.value_max))
     # create strokes using the shaders list
     Operators.create(TrueUP1D(), shaders_list)
