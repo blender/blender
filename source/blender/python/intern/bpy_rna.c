@@ -3088,7 +3088,7 @@ static PyObject * pyrna_struct_new(PyTypeObject *type, PyObject *args, PyObject 
 
 	BPy_StructRNA *base;
 	
-	if (!PyArg_ParseTuple(args, "|O!:bpy_struct.__new__", &pyrna_struct_Type, &base))
+	if (!PyArg_ParseTuple(args, "O!:bpy_struct.__new__", &pyrna_struct_Type, &base))
 		return NULL;
 
 	if (type == Py_TYPE(base)) {
