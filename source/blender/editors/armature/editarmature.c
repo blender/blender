@@ -421,34 +421,45 @@ void ED_armature_apply_transform(Object *ob, float mat[4][4])
 
 /* exported for use in editors/object/ */
 /* 0 == do center, 1 == center new, 2 == center cursor */
-void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
+void docenter_armature (Scene *scene, Object *ob, float cursor[3], int centermode, int around)
 {
 	Object *obedit= scene->obedit; // XXX get from context
 	EditBone *ebone;
 	bArmature *arm= ob->data;
-	float cent[3] = {0.0f, 0.0f, 0.0f};
-	float min[3], max[3];
+	float cent[3];
 
 	/* Put the armature into editmode */
-	if(ob!=obedit)
+	if(ob != obedit) {
 		ED_armature_to_edit(ob);
+		obedit= NULL; /* we cant use this so behave as if there is no obedit */
+	}
 
 	/* Find the centerpoint */
 	if (centermode == 2) {
-		float *fp= give_cursor(scene, v3d);
-		copy_v3_v3(cent, fp);
+		copy_v3_v3(cent, cursor);
 		invert_m4_m4(ob->imat, ob->obmat);
 		mul_m4_v3(ob->imat, cent);
 	}
 	else {
-		INIT_MINMAX(min, max);
-		
-		for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
-			DO_MINMAX(ebone->head, min, max);
-			DO_MINMAX(ebone->tail, min, max);
+		if(around==V3D_CENTROID) {
+			int total= 0;
+			zero_v3(cent);
+			for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
+				total+=2;
+				add_v3_v3(cent, ebone->head);
+				add_v3_v3(cent, ebone->tail);
+			}
+			mul_v3_fl(cent, 1.0f/(float)total);
 		}
-
-		mid_v3_v3v3(cent, min, max);
+		else {
+			float min[3], max[3];
+			INIT_MINMAX(min, max);
+			for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
+				DO_MINMAX(ebone->head, min, max);
+				DO_MINMAX(ebone->tail, min, max);
+			}
+			mid_v3_v3v3(cent, min, max);
+		}
 	}
 	
 	/* Do the adjustments */
@@ -458,15 +469,15 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 	}
 	
 	/* Turn the list into an armature */
-	ED_armature_from_edit(ob);
-	
+	if(obedit==NULL) {
+		ED_armature_from_edit(ob);
+		ED_armature_edit_free(ob);
+	}
+
 	/* Adjust object location for new centerpoint */
 	if(centermode && obedit==NULL) {
 		mul_mat3_m4_v3(ob->obmat, cent); /* ommit translation part */
 		add_v3_v3(ob->loc, cent);
-	}
-	else {
-		ED_armature_edit_free(ob);
 	}
 }
 
@@ -2018,7 +2029,6 @@ void ED_armature_edit_free(struct Object *ob)
 
 			BLI_freelistN(arm->edbo);
 		}
-
 		MEM_freeN(arm->edbo);
 		arm->edbo= NULL;
 	}

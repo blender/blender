@@ -276,7 +276,7 @@ void tex_space_curve(Curve *cu)
 {
 	DispList *dl;
 	BoundBox *bb;
-	float *fp, min[3], max[3], loc[3], size[3];
+	float *fp, min[3], max[3];
 	int tot, doit= 0;
 	
 	if(cu->bb==NULL) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");
@@ -303,20 +303,15 @@ void tex_space_curve(Curve *cu)
 		min[0] = min[1] = min[2] = -1.0f;
 		max[0] = max[1] = max[2] = 1.0f;
 	}
-	
-	loc[0]= (min[0]+max[0])/2.0f;
-	loc[1]= (min[1]+max[1])/2.0f;
-	loc[2]= (min[2]+max[2])/2.0f;
-	
-	size[0]= (max[0]-min[0])/2.0f;
-	size[1]= (max[1]-min[1])/2.0f;
-	size[2]= (max[2]-min[2])/2.0f;
 
 	boundbox_set_from_min_max(bb, min, max);
 
 	if(cu->texflag & CU_AUTOSPACE) {
-		VECCOPY(cu->loc, loc);
-		VECCOPY(cu->size, size);
+		mid_v3_v3v3(cu->loc, min, max);
+		cu->size[0]= (max[0]-min[0])/2.0f;
+		cu->size[1]= (max[1]-min[1])/2.0f;
+		cu->size[2]= (max[2]-min[2])/2.0f;
+
 		cu->rot[0]= cu->rot[1]= cu->rot[2]= 0.0;
 
 		if(cu->size[0]==0.0) cu->size[0]= 1.0;
@@ -3106,4 +3101,104 @@ ListBase *BKE_curve_nurbs(Curve *cu)
 	}
 
 	return &cu->nurb;
+}
+
+
+/* basic vertex data functions */
+int curve_bounds(Curve *cu, float min[3], float max[3])
+{
+	ListBase *nurb_lb= BKE_curve_nurbs(cu);
+	Nurb *nu;
+
+	INIT_MINMAX(min, max);
+
+	for(nu= nurb_lb->first; nu; nu= nu->next)
+		minmaxNurb(nu, min, max);
+
+	return (nurb_lb->first != NULL);
+}
+
+int curve_center_median(Curve *cu, float cent[3])
+{
+	ListBase *nurb_lb= BKE_curve_nurbs(cu);
+	Nurb *nu;
+	int total= 0;
+
+	zero_v3(cent);
+
+	for(nu= nurb_lb->first; nu; nu= nu->next) {
+		int i;
+
+		if(nu->type == CU_BEZIER) {
+			BezTriple *bezt;
+			i= nu->pntsu;
+			total += i * 3;
+			for(bezt= nu->bezt; i--; bezt++) {
+				add_v3_v3(cent, bezt->vec[0]);
+				add_v3_v3(cent, bezt->vec[1]);
+				add_v3_v3(cent, bezt->vec[2]);
+			}
+		}
+		else {
+			BPoint *bp;
+			i= nu->pntsu*nu->pntsv;
+			total += i;
+			for(bp= nu->bp; i--; bp++) {
+				add_v3_v3(cent, bp->vec);
+			}
+		}
+	}
+
+	mul_v3_fl(cent, 1.0f/(float)total);
+
+	return (total != 0);
+}
+
+int curve_center_bounds(Curve *cu, float cent[3])
+{
+	float min[3], max[3];
+
+	if(curve_bounds(cu, min, max)) {
+		mid_v3_v3v3(cent, min, max);
+		return 1;
+	}
+
+	return 0;
+}
+
+void curve_translate(Curve *cu, float offset[3], int do_keys)
+{
+	ListBase *nurb_lb= BKE_curve_nurbs(cu);
+	Nurb *nu;
+	int i;
+
+	for(nu= nurb_lb->first; nu; nu= nu->next) {
+		BezTriple *bezt;
+		BPoint *bp;
+
+		if(nu->type == CU_BEZIER) {
+			i= nu->pntsu;
+			for(bezt= nu->bezt; i--; bezt++) {
+				add_v3_v3(bezt->vec[0], offset);
+				add_v3_v3(bezt->vec[1], offset);
+				add_v3_v3(bezt->vec[2], offset);
+			}
+		}
+		else {
+			i= nu->pntsu*nu->pntsv;
+			for(bp= nu->bp; i--; bp++) {
+				add_v3_v3(bp->vec, offset);
+			}
+		}
+	}
+
+	if (do_keys && cu->key) {
+		KeyBlock *kb;
+		for (kb=cu->key->block.first; kb; kb=kb->next) {
+			float *fp= kb->data;
+			for (i= kb->totelem; i--; fp+=3) {
+				add_v3_v3(fp, offset);
+			}
+		}
+	}
 }
