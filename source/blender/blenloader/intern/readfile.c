@@ -11219,10 +11219,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 						if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 						{
-							GroupObject *go = NULL;
-							Base *base = NULL;
-							Scene *scene = NULL;
-
 							smd->domain->vorticity = 2.0f;
 							smd->domain->time_scale = 1.0f;
 
@@ -12573,9 +12569,7 @@ static void append_do_cursor(Scene *scene, Library *curlib, short flag)
 		return;
 	
 	/* move from the center of the appended objects to cursor */
-	centerloc[0]= (min[0]+max[0])/2;
-	centerloc[1]= (min[1]+max[1])/2;
-	centerloc[2]= (min[2]+max[2])/2;
+	mid_v3_v3v3(centerloc, min, max);
 	curs = scene->cursor;
 	VECSUB(centerloc,curs,centerloc);
 	
@@ -12678,7 +12672,7 @@ void BLO_script_library_append(BlendHandle **bh, char *dir, char *name,
 
 	/* do we need to do this? */
 	if(scene)
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 
 	*bh= (BlendHandle*)fd;
 }

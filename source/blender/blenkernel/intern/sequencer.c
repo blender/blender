@@ -1800,8 +1800,8 @@ static ImBuf * seq_render_scene_strip_impl(
 {
 	ImBuf * ibuf = 0;
 	float frame= seq->sfra + nr + seq->anim_startofs;
-	float oldcfra = seq->scene->r.cfra;
-	Object *oldcamera= seq->scene->camera;
+	float oldcfra;
+	Object *oldcamera;
 	ListBase oldmarkers;
 	
 	/* Hack! This function can be called from do_render_seq(), in that case
@@ -1820,21 +1820,20 @@ static ImBuf * seq_render_scene_strip_impl(
 	int doseq;
 	int doseq_gl= G.rendering ? /*(scene->r.seq_flag & R_SEQ_GL_REND)*/ 0 : (scene->r.seq_flag & R_SEQ_GL_PREV);
 	int have_seq= FALSE;
-	Scene *sce= seq->scene;// *oldsce= scene;
+	Scene *sce= seq->scene; /* dont refer to seq->scene above this point!, it can be NULL */
 	int sce_valid= FALSE;
 
-	have_seq= (sce->r.scemode & R_DOSEQ) 
-		&& sce->ed && sce->ed->seqbase.first;
-
 	if(sce) {
+		have_seq= (sce->r.scemode & R_DOSEQ) && sce->ed && sce->ed->seqbase.first;
 		sce_valid= (sce->camera || have_seq);
 	}
 
-	if (!sce_valid) {
-		return 0;
-	}
+	if (!sce_valid)
+		return NULL;
 
-	
+	oldcfra= seq->scene->r.cfra;
+	oldcamera= seq->scene->camera;
+
 	/* prevent eternal loop */
 	doseq= scene->r.scemode & R_DOSEQ;
 	scene->r.scemode &= ~R_DOSEQ;
@@ -1853,7 +1852,7 @@ static ImBuf * seq_render_scene_strip_impl(
 	
 	if(sequencer_view3d_cb && BLI_thread_is_main() && doseq_gl && (seq->scene == scene || have_seq==0) && seq->scene->camera) {
 		/* opengl offscreen render */
-		scene_update_for_newframe(seq->scene, seq->scene->lay);
+		scene_update_for_newframe(G.main, seq->scene, seq->scene->lay);
 		ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty, 
 					  scene->r.seq_prev_type);
 	}
@@ -1866,7 +1865,7 @@ static ImBuf * seq_render_scene_strip_impl(
 		else
 			re= RE_NewRender(sce->id.name);
 		
-		RE_BlenderFrame(re, sce, NULL, sce->lay, frame);
+		RE_BlenderFrame(re, G.main, sce, NULL, sce->lay, frame);
 		
 		RE_AcquireResultImage(re, &rres);
 		
@@ -1877,14 +1876,12 @@ static ImBuf * seq_render_scene_strip_impl(
 				addzbuffloatImBuf(ibuf);
 				memcpy(ibuf->zbuf_float, rres.rectz, sizeof(float)*rres.rectx*rres.recty);
 			}
-			
-			/* {
-			   ImBuf *imb= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat, 0);
-			   IMB_saveiff(imb, "/tmp/foo.image", IB_rect | IB_metadata);
-			   IMB_freeImBuf(imb);
-			   } */
-			
-		} else if (rres.rect32) {
+
+			/* float buffers in the sequencer are not linear */
+			ibuf->profile= IB_PROFILE_LINEAR_RGB;
+			IMB_convert_profile(ibuf, IB_PROFILE_SRGB);			
+		}
+		else if (rres.rect32) {
 			ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect, 0);
 			memcpy(ibuf->rect, rres.rect32, 4*rres.rectx*rres.recty);
 		}

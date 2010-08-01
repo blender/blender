@@ -1837,47 +1837,38 @@ static void give_parvert(Object *par, int nr, float *vec)
 	
 	if(par->type==OB_MESH) {
 		Mesh *me= par->data;
+		DerivedMesh *dm;
+
 		em = BKE_mesh_get_editmesh(me);
-
-		if(em) {
-			EditVert *eve;
+		dm = (em)? em->derivedFinal: par->derivedFinal;
 			
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->keyindex==nr) {
-					memcpy(vec, eve->co, sizeof(float)*3);
-					break;
+		if(dm) {
+			MVert *mvert= dm->getVertArray(dm);
+			int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
+			int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
+
+			/* get the average of all verts with (original index == nr) */
+			for(i = 0; i < numVerts; i++) {
+				vindex= (index)? index[i]: i;
+
+				if(vindex == nr) {
+					add_v3_v3(vec, mvert[i].co);
+					count++;
 				}
 			}
+
+			if (count==0) {
+				/* keep as 0,0,0 */
+			} else if(count > 0) {
+				mul_v3_fl(vec, 1.0f / count);
+			} else {
+				/* use first index if its out of range */
+				dm->getVertCo(dm, 0, vec);
+			}
+		}
+
+		if(em)
 			BKE_mesh_end_editmesh(me, em);
-		}
-		else {
-			DerivedMesh *dm = par->derivedFinal;
-			
-			if(dm) {
-				MVert *mvert= dm->getVertArray(dm);
-				int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
-				int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
-
-				/* get the average of all verts with (original index == nr) */
-				for(i = 0; i < numVerts; i++) {
-					vindex= (index)? index[i]: i;
-
-					if(vindex == nr) {
-						add_v3_v3(vec, mvert[i].co);
-						count++;
-					}
-				}
-
-				if (count==0) {
-					/* keep as 0,0,0 */
-				} else if(count > 0) {
-					mul_v3_fl(vec, 1.0f / count);
-				} else {
-					/* use first index if its out of range */
-					dm->getVertCo(dm, 0, vec);
-				}
-			}
-		}
 	}
 	else if (ELEM(par->type, OB_CURVE, OB_SURF)) {
 		Nurb *nu;

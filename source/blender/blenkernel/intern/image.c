@@ -287,17 +287,25 @@ static void image_assign_ibuf(Image *ima, ImBuf *ibuf, int index, int frame)
 }
 
 /* empty image block, of similar type and filename */
-Image *BKE_image_copy(Image *ima)
+Image *copy_image(Image *ima)
 {
-	Image *new= image_alloc(ima->id.name+2, ima->source, ima->type);
+	Image *nima= image_alloc(ima->id.name+2, ima->source, ima->type);
 
-	BLI_strncpy(new->name, ima->name, sizeof(ima->name));
+	BLI_strncpy(nima->name, ima->name, sizeof(ima->name));
+
+	nima->flag= ima->flag;
+	nima->tpageflag= ima->tpageflag;
 	
-	new->gen_x= ima->gen_x;
-	new->gen_y= ima->gen_y;
-	new->gen_type= ima->gen_type;
-	
-	return new;
+	nima->gen_x= ima->gen_x;
+	nima->gen_y= ima->gen_y;
+	nima->gen_type= ima->gen_type;
+
+	nima->animspeed= ima->animspeed;
+
+	nima->aspx= ima->aspx;
+	nima->aspy= ima->aspy;
+
+	return nima;
 }
 
 void BKE_image_merge(Image *dest, Image *source)

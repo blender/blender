@@ -45,14 +45,15 @@
 
 #include "BKE_action.h"
 #include "BKE_anim.h"
-#include "BKE_context.h"
 #include "BKE_armature.h"
+#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_lattice.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -365,7 +366,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		while(ml) {
 			if(ml->flag & SELECT) {
 				tv->loc= &ml->x;
-				VECCOPY(tv->oldloc, tv->loc);
+				copy_v3_v3(tv->oldloc, tv->loc);
 				tv->val= &(ml->rad);
 				tv->oldval= ml->rad;
 				tv->flag= 1;
@@ -387,7 +388,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		while(a--) {
 			if((mode & 1) || (bp->f1 & SELECT)) {
 				if(bp->hide==0) {
-					VECCOPY(tv->oldloc, bp->vec);
+					copy_v3_v3(tv->oldloc, bp->vec);
 					tv->loc= bp->vec;
 					tv->flag= bp->f1 & SELECT;
 					tv++;
@@ -403,23 +404,16 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	total= 0.0;
 	for(a=0; a<tottrans; a++, tv++) {
 		if(tv->flag & SELECT) {
-			centroid[0]+= tv->oldloc[0];
-			centroid[1]+= tv->oldloc[1];
-			centroid[2]+= tv->oldloc[2];
+			add_v3_v3(centroid, tv->oldloc);
 			total+= 1.0;
 			DO_MINMAX(tv->oldloc, min, max);
 		}
 	}
 	if(total!=0.0) {
-		centroid[0]/= total;
-		centroid[1]/= total;
-		centroid[2]/= total;
+		mul_v3_fl(centroid, 1.0f/total);
 	}
 
-	center[0]= (min[0]+max[0])/2.0;
-	center[1]= (min[1]+max[1])/2.0;
-	center[2]= (min[2]+max[2])/2.0;
-	
+	mid_v3_v3v3(center, min, max);
 }
 
 /* *********************** operators ******************** */
@@ -427,6 +421,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 static int snap_sel_to_grid(bContext *C, wmOperator *op)
 {
 	extern float originmat[3][3];	/* XXX object.c */
+	Main *bmain= CTX_data_main(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene= CTX_data_scene(C);
 	RegionView3D *rv3d= CTX_wm_region_data(C);
@@ -533,7 +528,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -560,6 +555,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 static int snap_sel_to_curs(bContext *C, wmOperator *op)
 {
 	extern float originmat[3][3];	/* XXX object.c */
+	Main *bmain= CTX_data_main(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
@@ -658,7 +654,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;

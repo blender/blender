@@ -35,6 +35,7 @@
 #include "BKE_boids.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_main.h"
 #include "BKE_particle.h"
 
 #include "BLI_listbase.h"
@@ -99,6 +100,7 @@ void BOID_OT_rule_add(wmOperatorType *ot)
 }
 static int rule_del_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -125,7 +127,7 @@ static int rule_del_exec(bContext *C, wmOperator *op)
 	if(rule)
 		rule->flag |= BOIDRULE_CURRENT;
 
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	DAG_id_flush_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
@@ -266,6 +268,7 @@ void BOID_OT_state_add(wmOperatorType *ot)
 }
 static int state_del_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -297,7 +300,7 @@ static int state_del_exec(bContext *C, wmOperator *op)
 
 	state->flag |= BOIDSTATE_CURRENT;
 
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	DAG_id_flush_update(&psys->part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);

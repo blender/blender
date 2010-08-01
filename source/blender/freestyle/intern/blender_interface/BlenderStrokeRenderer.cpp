@@ -50,7 +50,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 	lb = freestyle_scene->r.layers;
 	freestyle_scene->r= old_scene->r;
 	freestyle_scene->r.layers= lb;
-	set_scene_bg( freestyle_scene );
+	set_scene_bg( G.main, freestyle_scene );
 
 	// image dimensions
 	float ycor = ((float)re->r.yasp) / ((float)re->r.xasp);
@@ -127,7 +127,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer(){
 	// release material
 	free_libblock( &G.main->mat, material );
 	
-	set_scene_bg( old_scene );
+	set_scene_bg( G.main, old_scene );
 }
 
 float BlenderStrokeRenderer::get_stroke_vertex_z(void) const {
@@ -336,6 +336,6 @@ Render* BlenderStrokeRenderer::RenderScene( Render *re ) {
 	
 	Render *freestyle_render = RE_NewRender(freestyle_scene->id.name);
 
-	RE_RenderFreestyleStrokes(freestyle_render, freestyle_scene);
+	RE_RenderFreestyleStrokes(freestyle_render, G.main, freestyle_scene);
 	return freestyle_render;
 }

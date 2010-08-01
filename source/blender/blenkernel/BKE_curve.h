@@ -107,5 +107,9 @@ int clamp_nurb_order_v( struct Nurb *nu);
 
 ListBase *BKE_curve_nurbs(struct Curve *cu);
 
+int curve_bounds(struct Curve *cu, float min[3], float max[3]);
+int curve_center_median(struct Curve *cu, float cent[3]);
+int curve_center_bounds(struct Curve *cu, float cent[3]);
+void curve_translate(struct Curve *cu, float offset[3], int do_keys);
 #endif
 

@@ -2683,19 +2683,20 @@ void uncomment(Text *text)
 	}
 }
 
-int setcurr_tab (Text *text)
+int setcurr_tab_spaces (Text *text, int space)
 {
 	int i = 0;
 	int test = 0;
-	char *word = ":";
-	char *comm = "#";
+	const char *word = ":";
+	const char *comm = "#";
+	const char indent= (text->flags & TXT_TABSTOSPACES) ? ' ' : '\t';
 	static char *back_words[]= {"return", "break", "continue", "pass", "yield", NULL};
 	if (!text) return 0;
 	if (!text->curl) return 0;
-	
-	while (text->curl->line[i] == '\t')
+
+	while (text->curl->line[i] == indent)
 	{
-		//we only count thos tabs that are before any text or before the curs;
+		//we only count those tabs/spaces that are before any text or before the curs;
 		if (i == text->curc)
 		{
 			return i;
@@ -2718,7 +2719,7 @@ int setcurr_tab (Text *text)
 			}
 		}
 		if (indent) {
-			i++;
+			i += space;
 		}
 	}
 
@@ -2729,7 +2730,7 @@ int setcurr_tab (Text *text)
 		{
 			if(strcspn(text->curl->line, back_words[test]) < strcspn(text->curl->line, comm))
 			{
-				i--;
+				i -= space;
 			}
 		}
 	}

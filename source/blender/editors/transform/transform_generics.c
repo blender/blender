@@ -38,6 +38,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
@@ -1033,9 +1034,9 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		{
 			switch(RNA_enum_get(op->ptr, "proportional"))
 			{
-			case 2: /* XXX connected constant */
+			case PROP_EDIT_CONNECTED:
 				t->flag |= T_PROP_CONNECTED;
-			case 1: /* XXX prop on constant */
+			case PROP_EDIT_ON:
 				t->flag |= T_PROP_EDIT;
 				break;
 			}
@@ -1045,11 +1046,19 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 			/* use settings from scene only if modal */
 			if (t->flag & T_MODAL)
 			{
-				if ((t->options & CTX_NO_PET) == 0 && (ts->proportional != PROP_EDIT_OFF)) {
-					t->flag |= T_PROP_EDIT;
+				if ((t->options & CTX_NO_PET) == 0)
+				{
+					if (t->obedit && ts->proportional != PROP_EDIT_OFF)
+					{
+						t->flag |= T_PROP_EDIT;
 
-					if(ts->proportional == PROP_EDIT_CONNECTED)
-						t->flag |= T_PROP_CONNECTED;
+						if(ts->proportional == PROP_EDIT_CONNECTED)
+							t->flag |= T_PROP_CONNECTED;
+					}
+					else if (t->obedit == NULL && ts->proportional_objects)
+					{
+						t->flag |= T_PROP_EDIT;
+					}
 				}
 			}
 		}

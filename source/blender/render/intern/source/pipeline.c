@@ -2157,7 +2157,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	resc->lay= sce->lay;
 	
 	/* ensure scene has depsgraph, base flags etc OK */
-	set_scene_bg(sce);
+	set_scene_bg(re->main, sce);
 
 	/* copy callbacks */
 	resc->display_draw= re->display_draw;
@@ -2175,7 +2175,7 @@ static void tag_scenes_for_render(Render *re)
 	bNode *node;
 	Scene *sce;
 	
-	for(sce= G.main->scene.first; sce; sce= sce->id.next)
+	for(sce= re->main->scene.first; sce; sce= sce->id.next)
 		sce->id.flag &= ~LIB_DOIT;
 	
 	re->scene->id.flag |= LIB_DOIT;
@@ -2393,7 +2393,7 @@ void RE_MergeFullSample(Render *re, Scene *sce, bNodeTree *ntree)
 	/* first call RE_ReadRenderResult on every renderlayer scene. this creates Render structs */
 	
 	/* tag scenes unread */
-	for(scene= G.main->scene.first; scene; scene= scene->id.next) 
+	for(scene= re->main->scene.first; scene; scene= scene->id.next) 
 		scene->id.flag |= LIB_DOIT;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
@@ -2468,7 +2468,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				R.stats_draw= re->stats_draw;
 				
 				if (update_newframe)
-					scene_update_for_newframe(re->scene, re->lay);
+					scene_update_for_newframe(re->main, re->scene, re->lay);
 				
 				if(re->r.scemode & R_FULL_SAMPLE) 
 					do_merge_fullsample(re, ntree);
@@ -2533,7 +2533,7 @@ static void do_render_seq(Render * re)
 
 	if(recurs_depth==0) {
 		/* otherwise sequencer animation isnt updated */
-		BKE_animsys_evaluate_all_animation(G.main, (float)cfra); // XXX, was BKE_curframe(re->scene)
+		BKE_animsys_evaluate_all_animation(re->main, (float)cfra); // XXX, was BKE_curframe(re->scene)
 	}
 
 	recurs_depth++;
@@ -2768,7 +2768,7 @@ static void update_physics_cache(Render *re, Scene *scene, int anim_init)
 	BKE_ptcache_make_cache(&baker);
 }
 /* evaluating scene options for general Blender render */
-static int render_initialize_from_scene(Render *re, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int anim, int anim_init)
+static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int anim, int anim_init)
 {
 	int winx, winy;
 	rcti disprect;
@@ -2794,6 +2794,7 @@ static int render_initialize_from_scene(Render *re, Scene *scene, SceneRenderLay
 		disprect.ymax= winy;
 	}
 	
+	re->main= bmain;
 	re->scene= scene;
 	re->lay= lay;
 	
@@ -2836,14 +2837,14 @@ static int render_initialize_from_scene(Render *re, Scene *scene, SceneRenderLay
 }
 
 /* general Blender frame render call */
-void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int frame)
+void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int frame)
 {
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
 	G.rendering= 1;
 	
 	scene->r.cfra= frame;
 	
-	if(render_initialize_from_scene(re, scene, srl, lay, 0, 0)) {
+	if(render_initialize_from_main(re, bmain, scene, srl, lay, 0, 0)) {
 		MEM_reset_peak_memory();
 		do_render_all_options(re);
 	}
@@ -2852,11 +2853,11 @@ void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, unsigned i
 	G.rendering= 0;
 }
 
-void RE_RenderFreestyleStrokes(Render *re, Scene *scene)
+void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene)
 {
 	re->result_ok= 0;
 	scene->r.cfra= 1;
-	if(render_initialize_from_scene(re, scene, NULL, scene->lay, 0, 0)) {
+	if(render_initialize_from_main(re, bmain, scene, NULL, scene->lay, 0, 0)) {
 		do_render_fields_blur_3d(re);
 	}
 	re->result_ok= 1;
@@ -2949,14 +2950,14 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 }
 
 /* saves images to disk */
-void RE_BlenderAnim(Render *re, Scene *scene, unsigned int lay, int sfra, int efra, int tfra, ReportList *reports)
+void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, unsigned int lay, int sfra, int efra, int tfra, ReportList *reports)
 {
 	bMovieHandle *mh= BKE_get_movie_handle(scene->r.imtype);
 	int cfrao= scene->r.cfra;
 	int nfra;
 	
 	/* do not fully call for each frame, it initializes & pops output window */
-	if(!render_initialize_from_scene(re, scene, NULL, lay, 0, 1))
+	if(!render_initialize_from_main(re, bmain, scene, NULL, lay, 0, 1))
 		return;
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
@@ -2989,7 +2990,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, unsigned int lay, int sfra, int ef
 			char name[FILE_MAX];
 			
 			/* only border now, todo: camera lens. (ton) */
-			render_initialize_from_scene(re, scene, NULL, lay, 1, 0);
+			render_initialize_from_main(re, bmain, scene, NULL, lay, 1, 0);
 
 			if(nfra!=scene->r.cfra) {
 				/*
@@ -3004,7 +3005,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, unsigned int lay, int sfra, int ef
 				else
 					updatelay= re->lay;
 
-				scene_update_for_newframe(scene, updatelay);
+				scene_update_for_newframe(bmain, scene, updatelay);
 				continue;
 			}
 			else
@@ -3060,7 +3061,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, unsigned int lay, int sfra, int ef
 	G.rendering= 0;
 }
 
-void RE_PreviewRender(Render *re, Scene *sce)
+void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 {
 	int winx, winy;
 
@@ -3069,6 +3070,7 @@ void RE_PreviewRender(Render *re, Scene *sce)
 
 	RE_InitState(re, NULL, &sce->r, NULL, winx, winy, NULL);
 
+	re->main = bmain;
 	re->scene = sce;
 	re->lay = sce->lay;
 

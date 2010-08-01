@@ -729,11 +729,13 @@ typedef struct ToolSettings {
 	/* Transform */
 	short snap_mode, snap_flag, snap_target;
 	short proportional, prop_mode;
+	char proportional_objects; /* proportional edit, object mode */
+	char pad[3];
 
-	int auto_normalize, intpad; /*auto normalizing mode in wpaint*/
+	int auto_normalize; /*auto normalizing mode in wpaint*/
 
 	short sculpt_paint_settings; /* user preferences for sculpt and paint */
-	short pad;
+	short pad1;
 	int sculpt_paint_unified_size; /* unified radius of brush in pixels */
 	float sculpt_paint_unified_unprojected_radius;/* unified radius of brush in Blender units */
 	float sculpt_paint_unified_alpha; /* unified strength of brush */

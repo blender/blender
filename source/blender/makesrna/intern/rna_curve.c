@@ -254,7 +254,7 @@ static void rna_Curve_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Curve_update_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	rna_Curve_update_data(bmain, scene, ptr);
 }
 
@@ -510,6 +510,18 @@ static void rna_Curve_active_spline_set(PointerRNA *ptr, PointerRNA value)
 		cu->actnu= BLI_findindex(nubase, nu);
 }
 
+static char *rna_TextBox_path(PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	TextBox *tb= ptr->data;
+	int index= (int)(tb - cu->tb);
+
+	if (index >= 0 && index < cu->totbox)
+		return BLI_sprintfN("textboxes[%d]", index);
+	else
+		return BLI_strdup("");
+}
+
 #else
 
 static void rna_def_bpoint(BlenderRNA *brna)
@@ -694,11 +706,6 @@ static void rna_def_nurbs(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_UV_ORCO);
 	RNA_def_property_ui_text(prop, "Map Along Length", "Generate texture mapping coordinates following the curve direction, rather than the local bounding box");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-	
-	prop= RNA_def_property(srna, "vertex_normal_flip", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CU_NOPUNOFLIP);
-	RNA_def_property_ui_text(prop, "Vertex Normal Flip", "Flip vertex normals towards the camera during render");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
 static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
@@ -841,7 +848,6 @@ static void rna_def_textbox(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "TextBox", NULL);
 	RNA_def_struct_ui_text(srna, "Text Box", "Text bounding box for layout");
-	// XXX: still needs path function
 	
 	/* number values */
 	prop= RNA_def_property(srna, "x", PROP_FLOAT, PROP_NONE);
@@ -867,6 +873,8 @@ static void rna_def_textbox(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 50.0f);
 	RNA_def_property_ui_text(prop, "Textbox Height", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	
+	RNA_def_struct_path_func(srna, "rna_TextBox_path");
 }
 
 static void rna_def_charinfo(BlenderRNA *brna)

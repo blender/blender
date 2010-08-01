@@ -2420,9 +2420,9 @@ void SEQUENCER_OT_previous_edit(wmOperatorType *ot)
 static void swap_sequence(Scene* scene, Sequence* seqa, Sequence* seqb)
 {
 	int gap = seqb->startdisp - seqa->enddisp;
-	seqb->start = seqa->start;
+	seqb->start = (seqb->start - seqb->startdisp) + seqa->startdisp;
 	calc_sequence(scene, seqb);
-	seqa->start = seqb->enddisp + gap;
+	seqa->start = (seqa->start - seqa->startdisp) + seqb->enddisp + gap;
 	calc_sequence(scene, seqa);
 }
 

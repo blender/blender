@@ -131,7 +131,7 @@ void init_render_textures(Render *re)
 {
 	Tex *tex;
 	
-	tex= G.main->tex.first;
+	tex= re->main->tex.first;
 	while(tex) {
 		if(tex->id.us) init_render_texture(re, tex);
 		tex= tex->id.next;
@@ -144,10 +144,10 @@ void end_render_texture(Tex *tex)
 		ntreeEndExecTree(tex->nodetree);
 }
 
-void end_render_textures(void)
+void end_render_textures(Render *re)
 {
 	Tex *tex;
-	for(tex= G.main->tex.first; tex; tex= tex->id.next)
+	for(tex= re->main->tex.first; tex; tex= tex->id.next)
 		if(tex->id.us)
 			end_render_texture(tex);
 }
@@ -1731,7 +1731,7 @@ void do_material_tex(ShadeInput *shi)
 				co= shi->tang; dx= shi->dxno; dy= shi->dyno;
 			}
 			else if(mtex->texco==TEXCO_GLOB) {
-				co= shi->gl; dx= shi->dxco; dy= shi->dyco;
+				co= shi->gl; dx= shi->dxgl; dy= shi->dygl;
 			}
 			else if(mtex->texco==TEXCO_UV) {
 				if(mtex->texflag & MTEX_DUPLI_MAPTO) {

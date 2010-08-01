@@ -320,33 +320,22 @@ void make_local_mesh(Mesh *me)
 
 void boundbox_mesh(Mesh *me, float *loc, float *size)
 {
-	MVert *mvert;
 	BoundBox *bb;
 	float min[3], max[3];
 	float mloc[3], msize[3];
-	int a;
 	
 	if(me->bb==0) me->bb= MEM_callocN(sizeof(BoundBox), "boundbox");
 	bb= me->bb;
-	
-	INIT_MINMAX(min, max);
 
 	if (!loc) loc= mloc;
 	if (!size) size= msize;
 	
-	mvert= me->mvert;
-	for(a=0; a<me->totvert; a++, mvert++) {
-		DO_MINMAX(mvert->co, min, max);
-	}
-
-	if(!me->totvert) {
+	if(!mesh_bounds(me, min, max)) {
 		min[0] = min[1] = min[2] = -1.0f;
 		max[0] = max[1] = max[2] = 1.0f;
 	}
 
-	loc[0]= (min[0]+max[0])/2.0f;
-	loc[1]= (min[1]+max[1])/2.0f;
-	loc[2]= (min[2]+max[2])/2.0f;
+	mid_v3_v3v3(loc, min, max);
 		
 	size[0]= (max[0]-min[0])/2.0f;
 	size[1]= (max[1]-min[1])/2.0f;
@@ -369,9 +358,9 @@ void tex_space_mesh(Mesh *me)
 			else if(size[a]<0.0 && size[a]> -0.00001) size[a]= -0.00001;
 		}
 
-		VECCOPY(me->loc, loc);
-		VECCOPY(me->size, size);
-		me->rot[0]= me->rot[1]= me->rot[2]= 0.0;
+		copy_v3_v3(me->loc, loc);
+		copy_v3_v3(me->size, size);
+		zero_v3(me->rot);
 	}
 }
 
@@ -413,9 +402,7 @@ float *get_mesh_orco_verts(Object *ob)
 	totvert = MIN2(tme->totvert, me->totvert);
 
 	for(a=0; a<totvert; a++, mvert++) {
-		vcos[a][0]= mvert->co[0];
-		vcos[a][1]= mvert->co[1];
-		vcos[a][2]= mvert->co[2];
+		copy_v3_v3(vcos[a], mvert->co);
 	}
 
 	return (float*)vcos;
@@ -431,9 +418,7 @@ void transform_mesh_orco_verts(Mesh *me, float (*orco)[3], int totvert, int inve
 	if(invert) {
 		for(a=0; a<totvert; a++) {
 			float *co = orco[a];
-			co[0] = co[0]*size[0] + loc[0];
-			co[1] = co[1]*size[1] + loc[1];
-			co[2] = co[2]*size[2] + loc[2];
+			madd_v3_v3v3v3(co, loc, co, size);
 		}
 	}
 	else {
@@ -697,7 +682,6 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 	if(dl==0) return;
 
 	if(dl->type==DL_INDEX4) {
-		me->flag= ME_NOPUNOFLIP;
 		me->totvert= dl->nr;
 		me->totface= dl->parts;
 		
@@ -1496,5 +1480,62 @@ void mesh_pmv_off(Object *ob, Mesh *me)
 		mesh_pmv_revert(ob, me);
 		MEM_freeN(me->pv);
 		me->pv= NULL;
+	}
+}
+
+/* basic vertex data functions */
+int mesh_bounds(Mesh *me, float min[3], float max[3])
+{
+	int i= me->totvert;
+	MVert *mvert;
+	INIT_MINMAX(min, max);
+	for(mvert= me->mvert; i--; mvert++) {
+		DO_MINMAX(mvert->co, min, max);
+	}
+	
+	return (me->totvert != 0);
+}
+
+int mesh_center_median(Mesh *me, float cent[3])
+{
+	int i= me->totvert;
+	MVert *mvert;
+	zero_v3(cent);
+	for(mvert= me->mvert; i--; mvert++) {
+		add_v3_v3(cent, mvert->co);
+	}
+	mul_v3_fl(cent, 1.0f/(float)me->totvert);
+
+	return (me->totvert != 0);
+}
+
+int mesh_center_bounds(Mesh *me, float cent[3])
+{
+	float min[3], max[3];
+
+	if(mesh_bounds(me, min, max)) {
+		mid_v3_v3v3(cent, min, max);
+		return 1;
+	}
+
+	return 0;
+}
+
+void mesh_translate(Mesh *me, float offset[3], int do_keys)
+{
+	int i= me->totvert;
+	MVert *mvert;
+	for(mvert= me->mvert; i--; mvert++) {
+		add_v3_v3(mvert->co, offset);
+	}
+	
+	if (do_keys && me->key) {
+		KeyBlock *kb;
+		for (kb=me->key->block.first; kb; kb=kb->next) {
+			float *fp= kb->data;
+			for (i= kb->totelem; i--; fp+=3) {
+				add_v3_v3(fp, offset);
+			}
+		}
 	}
 }

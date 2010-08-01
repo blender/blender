@@ -220,9 +220,12 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 					continue;
 
 			if(BLI_strcasestr(id->name+2, str)) {
+				char name_ui[32];
+				name_uiprefix_id(name_ui, id);
+
 				iconid= ui_id_icon_get((bContext*)C, id, 1);
 
-				if(!uiSearchItemAdd(items, id->name+2, id, iconid))
+				if(!uiSearchItemAdd(items, name_ui, id, iconid))
 					break;
 			}
 		}
@@ -960,6 +963,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr, int
 
 void do_constraint_panels(bContext *C, void *arg, int event)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	
@@ -971,7 +975,7 @@ void do_constraint_panels(bContext *C, void *arg, int event)
 		break;  // no handling
 	case B_CONSTRAINT_CHANGETARGET:
 		if (ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 		break;
 	default:
 		break;
@@ -1304,89 +1308,30 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *arg_unused)
 
 #define B_BANDCOL 1
 
-static int vergcband(const void *a1, const void *a2)
-{
-	const CBData *x1=a1, *x2=a2;
-
-	if( x1->pos > x2->pos ) return 1;
-	else if( x1->pos < x2->pos) return -1;
-	return 0;
-}
-
-static void colorband_pos_cb(bContext *C, void *cb_v, void *coba_v)
-{
-	ColorBand *coba= coba_v;
-	int a;
-
-	if(coba->tot<2) return;
-
-	for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
-	qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
-	for(a=0; a<coba->tot; a++) {
-		if(coba->data[a].cur==coba->cur) {
-			coba->cur= a;
-			break;
-		}
-	}
-
-	rna_update_cb(C, cb_v, NULL);
-}
-
 static void colorband_add_cb(bContext *C, void *cb_v, void *coba_v)
 {
 	ColorBand *coba= coba_v;
+	float pos= 0.5f;
 
-	if(coba->tot > 0) {
-		CBData *xnew, *x1, *x2;
-		float col[4];
-
-		xnew= &coba->data[coba->tot];
-
-		if(coba->tot > 1) {
-			if(coba->cur > 0) {
-				x1= &coba->data[coba->cur-1];
-				x2= &coba->data[coba->cur];
-			}
-			else {
-				x1= &coba->data[coba->cur];
-				x2= &coba->data[coba->cur+1];
-			}
-
-			xnew->pos = x1->pos + ((x2->pos - x1->pos) / 2);
-		}
-
-		do_colorband(coba, xnew->pos, col);
-
-		xnew->r= col[0];
-		xnew->g= col[1];
-		xnew->b= col[2];
-		xnew->a= col[3];
+	if(coba->tot > 1) {
+		if(coba->cur > 0)	pos= (coba->data[coba->cur-1].pos + coba->data[coba->cur].pos) * 0.5f;
+		else				pos= (coba->data[coba->cur+1].pos + coba->data[coba->cur].pos) * 0.5f;
 	}
 
-	if(coba->tot < MAXCOLORBAND-1) coba->tot++;
-	coba->cur= coba->tot-1;
-
-	colorband_pos_cb(C, cb_v, coba_v);
-
-	ED_undo_push(C, "Add colorband");
+	if(colorband_element_add(coba, pos)) {
+		rna_update_cb(C, cb_v, NULL);
+		ED_undo_push(C, "Add colorband");	
+	}
 }
 
 static void colorband_del_cb(bContext *C, void *cb_v, void *coba_v)
 {
 	ColorBand *coba= coba_v;
-	int a;
 
-	if(coba->tot<2) return;
-
-	for(a=coba->cur; a<coba->tot; a++) {
-		coba->data[a]= coba->data[a+1];
+	if(colorband_element_remove(coba, coba->cur)) {
+		ED_undo_push(C, "Delete colorband");
+		rna_update_cb(C, cb_v, NULL);
 	}
-	if(coba->cur) coba->cur--;
-	coba->tot--;
-
-	ED_undo_push(C, "Delete colorband");
-
-	rna_update_cb(C, cb_v, NULL);
 }
 
 static void colorband_flip_cb(bContext *C, void *cb_v, void *coba_v)
@@ -1749,7 +1694,7 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 
 	switch(event) {
 		case 0: /* reset */
-			curvemap_reset(cuma, &cumap->clipr,	cumap->preset);
+			curvemap_reset(cuma, &cumap->clipr,	cumap->preset, CURVEMAP_SLOPE_POSITIVE);
 			curvemapping_changed(cumap, 0);
 			break;
 		case 1:
@@ -1829,7 +1774,7 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 	
 	cumap->preset = CURVE_PRESET_LINE;
 	for(a=0; a<CM_TOT; a++)
-		curvemap_reset(cumap->cm+a, &cumap->clipr, cumap->preset);
+		curvemap_reset(cumap->cm+a, &cumap->clipr, cumap->preset, CURVEMAP_SLOPE_POSITIVE);
 	
 	cumap->black[0]=cumap->black[1]=cumap->black[2]= 0.0f;
 	cumap->white[0]=cumap->white[1]=cumap->white[2]= 1.0f;

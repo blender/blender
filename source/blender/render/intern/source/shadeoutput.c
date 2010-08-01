@@ -1644,7 +1644,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		if(((passflag & SCE_PASS_COMBINED) && (shi->combinedflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
 			|| (passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT))) {
 			/* AO was calculated for scanline already */
-			if(shi->depth)
+			if(shi->depth || shi->volume_depth)
 				ambient_occlusion(shi);
 			VECCOPY(shr->ao, shi->ao);
 			VECCOPY(shr->env, shi->env); // XXX multiply

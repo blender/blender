@@ -151,7 +151,7 @@ static void rna_Pose_ik_solver_update(Main *bmain, Scene *scene, PointerRNA *ptr
 	bPose *pose = ptr->data;
 
 	pose->flag |= POSE_RECALC;	// checks & sorts pose channels
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	
 	update_pose_constraint_flags(pose);
 	

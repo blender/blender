@@ -986,7 +986,6 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
         row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
         row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
         row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
-        row.operator("brush.curve_preset", icon="RNDCURVE", text="").shape = 'MID9'
 
 class VIEW3D_PT_sculpt_options(PaintPanel):
     bl_label = "Options"
@@ -1009,6 +1008,10 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
 
         col = split.column()
 
+        col.prop(sculpt, "use_openmp", text="Threaded Sculpt")
+        col.prop(sculpt, "fast_navigate")
+        col.prop(sculpt, "show_brush")
+
         col.label(text="Unified Settings:")
         col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
         col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
@@ -1024,6 +1027,8 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
         row.prop(sculpt, "lock_y", text="Y", toggle=True)
         row.prop(sculpt, "lock_z", text="Z", toggle=True)
 
+		
+		
 class VIEW3D_PT_sculpt_symmetry(PaintPanel):
     bl_label = "Symmetry"
     bl_default_closed = True

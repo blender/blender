@@ -70,15 +70,16 @@
 #define PTCACHE_READ_OLD				3
 
 /* Structs */
-struct Object;
-struct Scene;
-struct SoftBody;
-struct ParticleSystem;
-struct ParticleKey;
 struct ClothModifierData;
-struct SmokeModifierData;
-struct PointCache;
 struct ListBase;
+struct Main;
+struct Object;
+struct ParticleKey;
+struct ParticleSystem;
+struct PointCache;
+struct Scene;
+struct SmokeModifierData;
+struct SoftBody;
 
 /* temp structure for read/write */
 typedef struct PTCacheData {
@@ -143,6 +144,7 @@ typedef struct PTCacheID {
 } PTCacheID;
 
 typedef struct PTCacheBaker {
+	struct Main *main;
 	struct Scene *scene;
 	int bake;
 	int render;
@@ -286,7 +288,7 @@ struct PointCache *BKE_ptcache_copy_list(struct ListBase *ptcaches_new, struct L
 /********************** Baking *********************/
 
 /* Bakes cache with cache_step sized jumps in time, not accurate but very fast. */
-void BKE_ptcache_quick_cache_all(struct Scene *scene);
+void BKE_ptcache_quick_cache_all(struct Main *bmain, struct Scene *scene);
 
 /* Bake cache or simulate to current frame with settings defined in the baker. */
 void BKE_ptcache_make_cache(struct PTCacheBaker* baker);

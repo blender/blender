@@ -980,7 +980,6 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Operator_name_get", "rna_Operator_name_length", NULL);
 	RNA_def_property_ui_text(prop, "Name", "");
-	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -1001,6 +1000,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
@@ -1043,7 +1043,6 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Operator_name_get", "rna_Operator_name_length", NULL);
 	RNA_def_property_ui_text(prop, "Name", "");
-	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -1056,6 +1055,7 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");

@@ -289,7 +289,7 @@ static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
 	}
 	
 	/* "brew me a list that's sorted a bit faster now depsy" */
-	DAG_scene_sort(scene);
+	DAG_scene_sort(G.main, scene);
 }
 
 /* update scene for current frame */
@@ -299,7 +299,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	Base *base, *last=NULL;
 	
 	/* only stuff that moves or needs display still */
-	DAG_scene_update_flags(scene, scene->lay);
+	DAG_scene_update_flags(G.main, scene, scene->lay);
 	
 	/* find the last object with the tag 
 	 *	- all those afterwards are assumed to not be relevant for our calculations
@@ -327,7 +327,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	 * 	  that doesn't force complete update, but for now, this is the
 	 *	  most accurate way!
 	 */
-	scene_update_for_newframe(scene, scene->lay); // XXX this is the best way we can get anything moving
+	scene_update_for_newframe(G.main, scene, scene->lay); // XXX this is the best way we can get anything moving
 #endif
 }
 

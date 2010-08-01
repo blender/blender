@@ -1330,7 +1330,7 @@ static EnumPropertyItem prop_separate_types[] = {
 };
 
 /* return 1: success */
-static int mesh_separate_selected(Scene *scene, Base *editbase)
+static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase)
 {
 	EditMesh *em, *emnew;
 	EditVert *eve, *v1;
@@ -1372,7 +1372,7 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	 */
 	
 	/* 1 */
-	basenew= ED_object_add_duplicate(scene, editbase, 0);	/* 0 = fully linked */
+	basenew= ED_object_add_duplicate(bmain, scene, editbase, 0);	/* 0 = fully linked */
 	ED_base_object_select(basenew, BA_DESELECT);
 	
 	/* 2 */
@@ -1441,7 +1441,7 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 }
 
 /* return 1: success */
-static int mesh_separate_material(Scene *scene, Base *editbase)
+static int mesh_separate_material(Main *bmain, Scene *scene, Base *editbase)
 {
 	Mesh *me= editbase->object->data;
 	EditMesh *em= BKE_mesh_get_editmesh(me);
@@ -1453,7 +1453,7 @@ static int mesh_separate_material(Scene *scene, Base *editbase)
 		/* select the material */
 		EM_select_by_material(em, curr_mat);
 		/* and now separate */
-		if(0==mesh_separate_selected(scene, editbase)) {
+		if(0==mesh_separate_selected(bmain, scene, editbase)) {
 			BKE_mesh_end_editmesh(me, em);
 			return 0;
 		}
@@ -1464,7 +1464,7 @@ static int mesh_separate_material(Scene *scene, Base *editbase)
 }
 
 /* return 1: success */
-static int mesh_separate_loose(Scene *scene, Base *editbase)
+static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase)
 {
 	Mesh *me;
 	EditMesh *em;
@@ -1504,7 +1504,7 @@ static int mesh_separate_loose(Scene *scene, Base *editbase)
 		tot= BLI_countlist(&em->verts);
 
 		/* and now separate */
-		doit= mesh_separate_selected(scene, editbase);
+		doit= mesh_separate_selected(bmain, scene, editbase);
 
 		/* with hidden verts this can happen */
 		if(tot == BLI_countlist(&em->verts))
@@ -1518,16 +1518,17 @@ static int mesh_separate_loose(Scene *scene, Base *editbase)
 
 static int mesh_separate_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Base *base= CTX_data_active_base(C);
 	int retval= 0, type= RNA_enum_get(op->ptr, "type");
 	
 	if(type == 0)
-		retval= mesh_separate_selected(scene, base);
+		retval= mesh_separate_selected(bmain, scene, base);
 	else if(type == 1)
-		retval= mesh_separate_material (scene, base);
+		retval= mesh_separate_material(bmain, scene, base);
 	else if(type == 2)
-		retval= mesh_separate_loose(scene, base);
+		retval= mesh_separate_loose(bmain, scene, base);
 	   
 	if(retval) {
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, base->object->data);

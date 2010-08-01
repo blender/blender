@@ -92,6 +92,7 @@ return 0 if no join is made (error) and 1 of the join is done */
 
 int join_mesh_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	Material **matar, *ma;
@@ -443,7 +444,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			
 			/* free base, now that data is merged */
 			if(base->object != ob)
-				ED_base_object_free_and_unlink(scene, base);
+				ED_base_object_free_and_unlink(bmain, scene, base);
 		}
 	}
 	CTX_DATA_END;
@@ -503,17 +504,17 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		/* free it's ipo too - both are not actually freed from memory yet as ID-blocks */
 		if(nkey->ipo) {
 			free_ipo(nkey->ipo);
-			BLI_remlink(&G.main->ipo, nkey->ipo);
+			BLI_remlink(&bmain->ipo, nkey->ipo);
 			MEM_freeN(nkey->ipo);
 		}
 #endif
 		
 		free_key(nkey);
-		BLI_remlink(&G.main->key, nkey);
+		BLI_remlink(&bmain->key, nkey);
 		MEM_freeN(nkey);
 	}
 	
-	DAG_scene_sort(scene);	// removed objects, need to rebuild dag before editmode call
+	DAG_scene_sort(bmain, scene);	// removed objects, need to rebuild dag before editmode call
 	
 	ED_object_enter_editmode(C, EM_WAITCURSOR);
 	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR|EM_DO_UNDO);

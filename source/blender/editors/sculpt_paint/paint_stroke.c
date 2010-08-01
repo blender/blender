@@ -789,7 +789,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	Paint *paint = paint_get_active(CTX_data_scene(C)); // XXX
 	Brush *brush = paint_brush(paint); // XXX
 
-	float mouse[2];
+	float mouse[3];
 
 	PointerRNA itemptr;
 

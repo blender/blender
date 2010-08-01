@@ -120,7 +120,7 @@ void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *exBone);
 
 void transform_armature_mirror_update(struct Object *obedit);
 void clear_armature(struct Scene *scene, struct Object *ob, char mode);
-void docenter_armature (struct Scene *scene, struct View3D *v3d, struct Object *ob, int centermode);
+void docenter_armature (struct Scene *scene, struct Object *ob, float cursor[3], int centermode, int around);
 
 void ED_armature_apply_transform(struct Object *ob, float mat[4][4]);
 

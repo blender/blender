@@ -47,9 +47,9 @@ ifeq ($(APPLICATION), blender)
 	@echo "---> copying message files"
 	@cp -R $(NANBLENDERHOME)/release/bin/.blender/locale $(DIR)/bin/$(APPLICATION).app/Contents/Resources
 	@echo "---> copying .Blanguages"
-	@cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(DIR)/bin/$(APPLICATION).app/Contents/Resources
+	@cp $(NANBLENDERHOME)/release/bin/.blender/.Blanguages $(DIR)/bin/$(APPLICATION).app/Contents/Resources
 	@echo "---> copying .blender/ scripts"
-	@cp -R $(NANBLENDERHOME)/bin/.blender $(DIR)/bin/$(APPLICATION).app/Contents/MacOS
+	@cp -R $(NANBLENDERHOME)/release/bin/.blender $(DIR)/bin/$(APPLICATION).app/Contents/MacOS
 	@cp -R $(NANBLENDERHOME)/release/scripts $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/
 	@echo "---> copying python modules"
 	@mkdir $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/python

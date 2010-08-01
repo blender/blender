@@ -114,7 +114,6 @@ class DATA_PT_normals(DataButtonsPanel):
             col = split.column()
         else:
             col.separator()
-        col.prop(mesh, "vertex_normal_flip")
         col.prop(mesh, "double_sided")
 
 

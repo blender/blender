@@ -3073,20 +3073,15 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, SculptSession 
 		cache->special_rotation = atan2(dx, dy) + M_PI;
 
 		if (brush->flag & BRUSH_EDGE_TO_EDGE) {
-			float d[3];
-			float halfway[3];
+			float halfway[2];
 			float out[3];
 
-			d[0] = dx;
-			d[1] = dy;
-			d[2] = 0;
-
-			mul_v3_v3fl(halfway, d, 0.5f);
-			add_v3_v3(halfway, cache->initial_mouse);
+			halfway[0] = dx*0.5 + cache->initial_mouse[0];
+			halfway[1] = dy*0.5 + cache->initial_mouse[1];
 
 			if (sculpt_stroke_get_location(C, stroke, out, halfway)) {
 				copy_v3_v3(sd->anchored_location, out);
-				copy_v3_v3(sd->anchored_initial_mouse, halfway);
+				copy_v2_v2(sd->anchored_initial_mouse, halfway);
 				copy_v2_v2(cache->tex_mouse, halfway);
 				copy_v3_v3(cache->true_location, sd->anchored_location);
 				sd->anchored_size /= 2.0f;
@@ -3114,7 +3109,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, SculptSession 
 		const float dy = cache->last_rake[1] - cache->mouse[1];
 
 		if (cache->first_time) {
-			copy_v3_v3(cache->last_rake, cache->mouse);
+			copy_v2_v2(cache->last_rake, cache->mouse);
 		}
 		else if (dx*dx + dy*dy >= r*r) {
 			cache->special_rotation = atan2(dx, dy);
@@ -3130,7 +3125,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, SculptSession 
 		dx = cache->mouse[0] - cache->initial_mouse[0];
 		dy = cache->mouse[1] - cache->initial_mouse[1];
 
-		cache->vertex_rotation = -atan2(dx, dy) / 4.0f;
+		cache->vertex_rotation = -atan2(dx, dy);
 
 		sd->draw_anchored = 1;
 		copy_v2_v2(sd->anchored_initial_mouse, cache->initial_mouse);

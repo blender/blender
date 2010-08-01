@@ -784,14 +784,14 @@ void init_render_material(Material *mat, int r_mode, float *amb)
 	}
 }
 
-void init_render_materials(int r_mode, float *amb)
+void init_render_materials(Main *bmain, int r_mode, float *amb)
 {
 	Material *ma;
 	
 	/* clear these flags before going over materials, to make sure they
 	 * are cleared only once, otherwise node materials contained in other
 	 * node materials can go wrong */
-	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+	for(ma= bmain->mat.first; ma; ma= ma->id.next) {
 		if(ma->id.us) {
 			ma->texco= 0;
 			ma->mapto= 0;
@@ -799,7 +799,7 @@ void init_render_materials(int r_mode, float *amb)
 	}
 
 	/* two steps, first initialize, then or the flags for layers */
-	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+	for(ma= bmain->mat.first; ma; ma= ma->id.next) {
 		/* is_used flag comes back in convertblender.c */
 		ma->flag &= ~MA_IS_USED;
 		if(ma->id.us) 
@@ -816,10 +816,10 @@ void end_render_material(Material *mat)
 		ntreeEndExecTree(mat->nodetree); /* has internal flag to detect it only does it once */
 }
 
-void end_render_materials(void)
+void end_render_materials(Main *bmain)
 {
 	Material *ma;
-	for(ma= G.main->mat.first; ma; ma= ma->id.next)
+	for(ma= bmain->mat.first; ma; ma= ma->id.next)
 		if(ma->id.us) 
 			end_render_material(ma);
 }

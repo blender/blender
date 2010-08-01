@@ -196,7 +196,7 @@ void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Object_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 }
 
 /* when changing the selection flag the scene needs updating */
@@ -214,7 +214,7 @@ static void rna_Base_select_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	ED_base_object_select(base, mode);
 }
 
-static void rna_Object_layer_update__internal(Scene *scene, Base *base, Object *ob)
+static void rna_Object_layer_update__internal(Main *bmain, Scene *scene, Base *base, Object *ob)
 {
 	/* try to avoid scene sort */
 	if((ob->lay & scene->lay) && (base->lay & scene->lay)) {
@@ -222,7 +222,7 @@ static void rna_Object_layer_update__internal(Scene *scene, Base *base, Object *
 	} else if((ob->lay & scene->lay)==0 && (base->lay & scene->lay)==0) {
 		/* pass */
 	} else {
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 	}
 }
 
@@ -237,7 +237,7 @@ static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	
 	SWAP(int, base->lay, ob->lay);
 
-	rna_Object_layer_update__internal(scene, base, ob);
+	rna_Object_layer_update__internal(bmain, scene, base, ob);
 	ob->lay= base->lay;
 }
 
@@ -246,7 +246,7 @@ static void rna_Base_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Base *base= (Base*)ptr->data;
 	Object *ob= (Object*)base->object;
 
-	rna_Object_layer_update__internal(scene, base, ob);
+	rna_Object_layer_update__internal(bmain, scene, base, ob);
 	ob->lay= base->lay;
 }
 
@@ -1031,12 +1031,12 @@ static int rna_Object_constraint_remove(Object *object, int index)
 
 static ModifierData *rna_Object_modifier_new(Object *object, bContext *C, ReportList *reports, char *name, int type)
 {
-	return ED_object_modifier_add(reports, CTX_data_scene(C), object, name, type);
+	return ED_object_modifier_add(reports, CTX_data_main(C), CTX_data_scene(C), object, name, type);
 }
 
 static void rna_Object_modifier_remove(Object *object, bContext *C, ReportList *reports, ModifierData *md)
 {
-	ED_object_modifier_remove(reports, CTX_data_scene(C), object, md);
+	ED_object_modifier_remove(reports, CTX_data_main(C), CTX_data_scene(C), object, md);
 }
 
 static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)

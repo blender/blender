@@ -265,7 +265,8 @@ int id_copy(ID *id, ID **newid, int test)
 			if(!test) *newid= (ID*)copy_texture((Tex*)id);
 			return 1;
 		case ID_IM:
-			return 0; /* not implemented */
+			if(!test) *newid= (ID*)copy_image((Image*)id);
+			return 1;
 		case ID_WV:
 			return 0; /* deprecated */
 		case ID_LT:
@@ -1406,4 +1407,13 @@ void rename_id(ID *id, char *name)
 	lb= which_libbase(G.main, GS(id->name) );
 	
 	new_id(lb, id, name);				
+}
+
+void name_uiprefix_id(char *name, ID *id)
+{
+	name[0] = id->lib ? 'L':' ';
+	name[1] = id->flag & LIB_FAKEUSER ? 'F':' ';
+	name[2] = ' ';
+
+	strcpy(name+3, id->name+2);
 }

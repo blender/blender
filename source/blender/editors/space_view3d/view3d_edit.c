@@ -826,6 +826,9 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
+		
+	{VIEWROT_MODAL_SWITCH_ZOOM, "SWITCH_TO_ZOOM", 0, "Switch to Zoom"},
+	{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
 
 	{0, NULL, 0, NULL, NULL}};
 
@@ -968,6 +971,9 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
+		
+	{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
+	{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
 
 	{0, NULL, 0, NULL, NULL}};
 

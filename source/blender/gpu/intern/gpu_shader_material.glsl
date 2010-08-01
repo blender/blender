@@ -75,6 +75,38 @@ void hsv_to_rgb(vec4 hsv, out vec4 outcol)
 	outcol = vec4(rgb, hsv.w);
 }
 
+float srgb_to_linearrgb(float c)
+{
+	if(c < 0.04045)
+		return (c < 0.0)? 0.0: c * (1.0/12.92);
+	else
+		return pow((c + 0.055)*(1.0/1.055), 2.4);
+}
+
+float linearrgb_to_srgb(float c)
+{
+	if(c < 0.0031308)
+		return (c < 0.0)? 0.0: c * 12.92;
+	else
+		return 1.055 * pow(c, 1.0/2.4) - 0.055f;
+}
+
+void srgb_to_linearrgb(vec4 col_from, out vec4 col_to)
+{
+	col_to.r = srgb_to_linearrgb(col_from.r);
+	col_to.g = srgb_to_linearrgb(col_from.g);
+	col_to.b = srgb_to_linearrgb(col_from.b);
+	col_to.a = col_from.a;
+}
+
+void linearrgb_to_srgb(vec4 col_from, out vec4 col_to)
+{
+	col_to.r = linearrgb_to_srgb(col_from.r);
+	col_to.g = linearrgb_to_srgb(col_from.g);
+	col_to.b = linearrgb_to_srgb(col_from.b);
+	col_to.a = col_from.a;
+}
+
 #define M_PI 3.14159265358979323846
 
 /*********** SHADER NODES ***************/

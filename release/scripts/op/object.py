@@ -528,9 +528,9 @@ class MakeDupliFace(bpy.types.Operator):
 
 
 class IsolateTypeRender(bpy.types.Operator):
-    '''Select object matching a naming pattern'''
+    '''Hide unselected render objects of same type as active by setting the hide render flag'''
     bl_idname = "object.isolate_type_render"
-    bl_label = "Isolate Render Selection"
+    bl_label = "Restrict Render Unselected"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -545,6 +545,17 @@ class IsolateTypeRender(bpy.types.Operator):
                     obj.hide_render = True
 
         return {'FINISHED'}
+        
+class ClearAllRestrictRender(bpy.types.Operator):
+    '''Reveal all render objects by setting the hide render flag'''
+    bl_idname = "object.hide_render_clear_all"
+    bl_label = "Clear All Restrict Render"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        for obj in context.scene.objects:
+        	obj.hide_render = False
+        return {'FINISHED'}
 
 
 classes = [
@@ -555,7 +566,8 @@ classes = [
     ShapeTransfer,
     JoinUVs,
     IsolateTypeRender,
-    MakeDupliFace]
+    MakeDupliFace,
+    ClearAllRestrictRender]
 
 
 def register():

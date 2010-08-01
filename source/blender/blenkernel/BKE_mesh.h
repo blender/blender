@@ -140,7 +140,12 @@ int mesh_layers_menu_charlen(struct CustomData *data, int type); /* use this to 
 void mesh_layers_menu_concat(struct CustomData *data, int type, char *str);
 int mesh_layers_menu(struct CustomData *data, int type);
 
+/* vertex level transformations & checks (no derived mesh) */
 
+int mesh_bounds(struct Mesh *me, float min[3], float max[3]);
+int mesh_center_median(struct Mesh *me, float cent[3]);
+int mesh_center_bounds(struct Mesh *me, float cent[3]);
+void mesh_translate(struct Mesh *me, float offset[3], int do_keys);
 
 #ifdef __cplusplus
 }

@@ -1119,6 +1119,7 @@ void CU_select_swap(Object *obedit)
 
 static int separate_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Nurb *nu, *nu1;
 	Object *oldob, *newob;
@@ -1139,7 +1140,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	WM_cursor_wait(1);
 	
 	/* 1. duplicate the object and data */
-	newbase= ED_object_add_duplicate(scene, oldbase, 0);	/* 0 = fully linked */
+	newbase= ED_object_add_duplicate(bmain, scene, oldbase, 0);	/* 0 = fully linked */
 	ED_base_object_select(newbase, BA_DESELECT);
 	newob= newbase->object;
 
@@ -5543,6 +5544,7 @@ void CURVE_OT_shade_flat(wmOperatorType *ot)
 
 int join_curve_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	Curve *cu;
@@ -5594,7 +5596,7 @@ int join_curve_exec(bContext *C, wmOperator *op)
 					}
 				}
 			
-				ED_base_object_free_and_unlink(scene, base);
+				ED_base_object_free_and_unlink(bmain, scene, base);
 			}
 		}
 	}
@@ -5603,7 +5605,7 @@ int join_curve_exec(bContext *C, wmOperator *op)
 	cu= ob->data;
 	addlisttolist(&cu->nurb, &tempbase);
 	
-	DAG_scene_sort(scene);	// because we removed object(s), call before editmode!
+	DAG_scene_sort(bmain, scene);	// because we removed object(s), call before editmode!
 	
 	ED_object_enter_editmode(C, EM_WAITCURSOR);
 	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR|EM_DO_UNDO);

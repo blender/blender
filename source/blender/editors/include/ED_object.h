@@ -28,24 +28,25 @@
 #ifndef ED_OBJECT_H
 #define ED_OBJECT_H
 
-struct wmKeyConfig;
-struct wmKeyMap;
-struct Scene;
-struct Object;
-struct bContext;
 struct Base;
-struct View3D;
 struct bConstraint;
+struct bContext;
 struct bPoseChannel;
+struct Curve;
 struct KeyBlock;
 struct Lattice;
+struct Main;
 struct Mesh;
-struct Curve;
-struct ReportList;
 struct ModifierData;
-struct wmOperatorType;
-struct wmOperator;
+struct Object;
+struct ReportList;
+struct Scene;
+struct View3D;
 struct wmEvent;
+struct wmKeyConfig;
+struct wmKeyMap;
+struct wmOperator;
+struct wmOperatorType;
 
 /* object_edit.c */
 struct Object *ED_object_active_context(struct bContext *C);
@@ -55,7 +56,13 @@ void ED_operatortypes_object(void);
 void ED_operatormacros_object(void);
 void ED_keymap_object(struct wmKeyConfig *keyconf);
 
-/* generic editmode keys like pet */
+/* generic editmode keys like pet
+ * do_pet
+ * 	0: No
+ * 	1: Object
+ * 	2: Edit
+ * 	3: Edit with connected
+ * */
 void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet);
 
 	/* send your own notifier for select! */
@@ -63,10 +70,10 @@ void ED_base_object_select(struct Base *base, short mode);
 	/* includes notifier */
 void ED_base_object_activate(struct bContext *C, struct Base *base);
 
-void ED_base_object_free_and_unlink(struct Scene *scene, struct Base *base);
+void ED_base_object_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Base *base);
 
 	/* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
-struct Base *ED_object_add_duplicate(struct Scene *scene, struct Base *base, int dupflag);
+struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, struct Base *base, int dupflag);
 
 void ED_object_parent(struct Object *ob, struct Object *parent, int type, const char *substr);
 
@@ -91,7 +98,7 @@ int ED_object_add_generic_invoke(struct bContext *C, struct wmOperator *op, stru
 int ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op, float *loc, float *rot, int *enter_editmode, unsigned int *layer);
 struct Object *ED_object_add_type(struct bContext *C, int type, float *loc, float *rot, int enter_editmode, unsigned int layer);
 
-void ED_object_single_users(struct Scene *scene, int full);
+void ED_object_single_users(struct Main *bmain, struct Scene *scene, int full);
 
 /* cleanup */
 int object_is_libdata(struct Object *ob);
@@ -110,7 +117,7 @@ void object_test_constraints(struct Object *ob);
 
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con);
 void ED_object_constraint_update(struct Object *ob);
-void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob);
+void ED_object_constraint_dependency_update(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
 /* object_lattice.c */
 int  mouse_lattice(struct bContext *C, short mval[2], int extend);
@@ -126,11 +133,11 @@ enum {
 	MODIFIER_APPLY_SHAPE,
 } eModifier_Apply_Mode;
 
-struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, char *name, int type);
-int ED_object_modifier_remove(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md);
+struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, char *name, int type);
+int ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
-int ED_object_modifier_convert(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md);
+int ED_object_modifier_convert(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 

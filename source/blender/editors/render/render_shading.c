@@ -213,6 +213,21 @@ static void image_changed(Main *bmain, Image *ima)
 			texture_changed(bmain, tex);
 }
 
+static void scene_changed(Main *bmain, Scene *sce)
+{
+	Object *ob;
+	Material *ma;
+
+	/* glsl */
+	for(ob=bmain->object.first; ob; ob=ob->id.next)
+		if(ob->gpulamp.first)
+			GPU_lamp_free(ob);
+
+	for(ma=bmain->mat.first; ma; ma=ma->id.next)
+		if(ma->gpumaterial.first)
+			GPU_material_free(ma);
+}
+
 void ED_render_id_flush_update(Main *bmain, ID *id)
 {
 	if(!id)
@@ -233,6 +248,9 @@ void ED_render_id_flush_update(Main *bmain, ID *id)
 			break;
 		case ID_IM:
 			image_changed(bmain, (Image*)id);
+			break;
+		case ID_SCE:
+			scene_changed(bmain, (Scene*)id);
 			break;
 		default:
 			break;

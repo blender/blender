@@ -3186,7 +3186,7 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 		if(scene->obedit==base->object) 
 			ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
 		
-		ED_base_object_free_and_unlink(scene, base);
+		ED_base_object_free_and_unlink(CTX_data_main(C), scene, base);
 		te->directdata= NULL;
 		tselem->id= NULL;
 	}
@@ -3337,7 +3337,7 @@ void outliner_del(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops)
 		;//		del_seq();
 	else {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_delete_cb);
-		DAG_scene_sort(scene);
+		DAG_scene_sort(CTX_data_main(C), scene);
 		ED_undo_push(C, "Delete Objects");
 	}
 }
@@ -3356,6 +3356,7 @@ static EnumPropertyItem prop_object_op_types[] = {
 
 static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	int event;
@@ -3382,7 +3383,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 	}
 	else if(event==4) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_delete_cb);
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 		str= "Delete Objects";
 	}
 	else if(event==5) {	/* disabled, see above (ton) */

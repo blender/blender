@@ -673,7 +673,6 @@ class IMAGE_PT_paint_curve(bpy.types.Panel):
         row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
         row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
         row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
-        row.operator("brush.curve_preset", icon="RNDCURVE", text="").shape = 'MID9'
 
 classes = [
     IMAGE_MT_view,
