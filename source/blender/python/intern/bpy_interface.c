@@ -228,9 +228,12 @@ void BPY_start_python( int argc, char **argv )
 {
 	PyThreadState *py_tstate = NULL;
 	
-	BPY_start_python_path(); /* allow to use our own included python */
+	/* not essential but nice to set our name */
+	static wchar_t bprogname_wchar[FILE_MAXDIR+FILE_MAXFILE]; /* python holds a reference */
+	utf8towchar(bprogname_wchar, bprogname);
+	Py_SetProgramName(bprogname_wchar);
 
-	// Py_SetProgramName(); // extern char bprogname[FILE_MAXDIR+FILE_MAXFILE];
+	BPY_start_python_path(); /* allow to use our own included python */
 
 	Py_Initialize(  );
 	
