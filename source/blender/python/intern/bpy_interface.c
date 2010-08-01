@@ -159,6 +159,7 @@ static PyObject *CreateGlobalDictionary(bContext *C, const char *filename)
 	PyInterpreterState *interp= PyThreadState_GET()->interp;
 	PyObject *mod_main= PyModule_New("__main__");	
 	PyDict_SetItemString(interp->modules, "__main__", mod_main);
+	Py_DECREF(mod_main); /* sys.modules owns now */
 
 	PyModule_AddObject(mod_main, "__builtins__", interp->builtins);
 	PyModule_AddStringConstant(mod_main, "__name__", "__main__");

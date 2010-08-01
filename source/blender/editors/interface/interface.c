@@ -1644,7 +1644,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		value= atof(str);
 #endif
 
-		if(!ui_is_but_float(but)) value= (int)value;
+		if(!ui_is_but_float(but)) value= (int)floor(value + 0.5);
 		if(but->type==NUMABS) value= fabs(value);
 
 		/* not that we use hard limits here */
