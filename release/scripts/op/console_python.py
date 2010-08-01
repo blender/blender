@@ -205,6 +205,10 @@ def autocomplete(context):
     scrollback = ""
     scrollback_error = ""
 
+    if _BPY_MAIN_OWN:
+        main_mod_back = sys.modules["__main__"]
+        sys.modules["__main__"] = console._bpy_main_mod
+
     try:
         current_line = sc.history[-1]
         line = current_line.line
@@ -222,6 +226,9 @@ def autocomplete(context):
         # or if the api attribute access its self causes an error.
         import traceback
         scrollback_error = traceback.format_exc()
+
+    if _BPY_MAIN_OWN:
+        sys.modules["__main__"] = main_mod_back
 
     # Separate automplete output by command prompts
     if scrollback != '':
