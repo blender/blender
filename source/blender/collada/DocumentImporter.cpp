@@ -615,7 +615,7 @@ private:
 			Main *bmain = CTX_data_main(C);
 			Scene *scene = CTX_data_scene(C);
 
-			ModifierData *md = ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Armature);
+			ModifierData *md = ED_object_modifier_add(NULL, NULL, scene, ob, NULL, eModifierType_Armature);
 			((ArmatureModifierData *)md)->object = ob_arm;
 
 			copy_m4_m4(ob->obmat, bind_shape_matrix);
