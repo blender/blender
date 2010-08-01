@@ -313,7 +313,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	BLI_strncpy(G.main->name, filename, FILE_MAX); /* is guaranteed current file */
 
 	/* baseflags, groups, make depsgraph, etc */
-	set_scene_bg(CTX_data_scene(C));
+	set_scene_bg(G.main, CTX_data_scene(C));
 	
 	MEM_freeN(bfd);
 }

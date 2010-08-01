@@ -2146,7 +2146,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	resc->lay= sce->lay;
 	
 	/* ensure scene has depsgraph, base flags etc OK */
-	set_scene_bg(sce);
+	set_scene_bg(re->main, sce);
 
 	/* copy callbacks */
 	resc->display_draw= re->display_draw;

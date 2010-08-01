@@ -1426,7 +1426,7 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 	}
 	
 	CTX_data_scene_set(C, scene);
-	set_scene_bg(scene);
+	set_scene_bg(CTX_data_main(C), scene);
 	
 	ED_update_for_newframe(C, 1);
 	

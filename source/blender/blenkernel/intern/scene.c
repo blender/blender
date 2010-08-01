@@ -501,7 +501,7 @@ Base *object_in_scene(Object *ob, Scene *sce)
 	return NULL;
 }
 
-void set_scene_bg(Scene *scene)
+void set_scene_bg(Main *bmain, Scene *scene)
 {
 	Scene *sce;
 	Base *base;
@@ -511,18 +511,18 @@ void set_scene_bg(Scene *scene)
 	int flag;
 	
 	/* check for cyclic sets, for reading old files but also for definite security (py?) */
-	scene_check_setscene(scene);
+	scene_check_setscene(bmain, scene);
 	
 	/* can happen when switching modes in other scenes */
 	if(scene->obedit && !(scene->obedit->mode & OB_MODE_EDIT))
 		scene->obedit= NULL;
 
 	/* deselect objects (for dataselect) */
-	for(ob= G.main->object.first; ob; ob= ob->id.next)
+	for(ob= bmain->object.first; ob; ob= ob->id.next)
 		ob->flag &= ~(SELECT|OB_FROMGROUP);
 
 	/* group flags again */
-	for(group= G.main->group.first; group; group= group->id.next) {
+	for(group= bmain->group.first; group; group= group->id.next) {
 		go= group->gobject.first;
 		while(go) {
 			if(go->ob) go->ob->flag |= OB_FROMGROUP;
@@ -531,12 +531,12 @@ void set_scene_bg(Scene *scene)
 	}
 
 	/* sort baselist */
-	DAG_scene_sort(G.main, scene);
+	DAG_scene_sort(bmain, scene);
 	
 	/* ensure dags are built for sets */
 	for(sce= scene->set; sce; sce= sce->set)
 		if(sce->theDag==NULL)
-			DAG_scene_sort(G.main, sce);
+			DAG_scene_sort(bmain, sce);
 
 	/* copy layers and flags from bases to objects */
 	for(base= scene->base.first; base; base= base->next) {
@@ -558,11 +558,11 @@ void set_scene_bg(Scene *scene)
 }
 
 /* called from creator.c */
-Scene *set_scene_name(char *name)
+Scene *set_scene_name(Main *bmain, char *name)
 {
 	Scene *sce= (Scene *)find_id("SC", name);
 	if(sce) {
-		set_scene_bg(sce);
+		set_scene_bg(bmain, sce);
 		printf("Scene switch: '%s' in file: '%s'\n", name, G.sce);
 		return sce;
 	}
@@ -871,7 +871,7 @@ void scene_select_base(Scene *sce, Base *selbase)
 }
 
 /* checks for cycle, returns 1 if it's all OK */
-int scene_check_setscene(Scene *sce)
+int scene_check_setscene(Main *bmain, Scene *sce)
 {
 	Scene *scene;
 	int a, totscene;
@@ -879,7 +879,7 @@ int scene_check_setscene(Scene *sce)
 	if(sce->set==NULL) return 1;
 	
 	totscene= 0;
-	for(scene= G.main->scene.first; scene; scene= scene->id.next)
+	for(scene= bmain->scene.first; scene; scene= scene->id.next)
 		totscene++;
 	
 	for(a=0, scene=sce; scene->set; scene=scene->set, a++) {
