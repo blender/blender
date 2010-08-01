@@ -935,7 +935,6 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 								// Add emitter density to temp emission map
 								temp_emission_map[index] = sfs->density;
 
-
 								// Uses particle velocity as initial velocity for smoke
 								if(sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && (psys->part->phystype != PART_PHYS_NO))
 								{
@@ -943,8 +942,6 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 									velocity_y[index] = pa->state.vel[1]*sfs->vel_multi;
 									velocity_z[index] = pa->state.vel[2]*sfs->vel_multi;
 								}										
-							
-
 							}									
 							else if(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW) // outflow									
 							{										

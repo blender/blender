@@ -234,7 +234,7 @@ static void rna_Smoke_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	switch (smd->type) {
 		case MOD_SMOKE_TYPE_DOMAIN:
-			ob->dt = OB_BOUNDBOX;
+			ob->dt = OB_WIRE;
 			break;
 		case MOD_SMOKE_TYPE_FLOW:
 			for(psys=ob->particlesystem.first; psys; psys=psys->next)
