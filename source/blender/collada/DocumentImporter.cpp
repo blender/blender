@@ -216,6 +216,7 @@ static int set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space
 		return false;
 
 	Object workob;
+	Main *bmain = CTX_data_main(C);
 	Scene *sce = CTX_data_scene(C);
 
 	ob->parent = par;
@@ -243,8 +244,8 @@ static int set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space
 	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA;
 	par->recalc |= OB_RECALC_OB;
 
-	DAG_scene_sort(sce);
-	DAG_ids_flush_update(0);
+	DAG_scene_sort(bmain, sce);
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return true;
@@ -611,9 +612,10 @@ private:
 		void link_armature(bContext *C, Object *ob, std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& joint_by_uid,
 						   TransformReader *tm)
 		{
+			Main *bmain = CTX_data_main(C);
 			Scene *scene = CTX_data_scene(C);
 
-			ModifierData *md = ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Armature);
+			ModifierData *md = ED_object_modifier_add(NULL, bmain, scene, ob, NULL, eModifierType_Armature);
 			((ArmatureModifierData *)md)->object = ob_arm;
 
 			copy_m4_m4(ob->obmat, bind_shape_matrix);
@@ -630,8 +632,8 @@ private:
 
 			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 
-			DAG_scene_sort(scene);
-			DAG_ids_flush_update(0);
+			DAG_scene_sort(bmain, scene);
+			DAG_ids_flush_update(bmain, 0);
 			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 #endif
 
@@ -3132,7 +3134,7 @@ public:
 			where_is_object(scene, job);
 
 			// after parenting and layer change
-			DAG_scene_sort(scene);
+			DAG_scene_sort(CTX_data_main(C), scene);
 
 			joint_objects[node->getUniqueId()] = job;
 		}

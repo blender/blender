@@ -296,7 +296,7 @@ void wm_event_do_notifiers(bContext *C)
 		/* XXX make lock in future, or separated derivedmesh users in scene */
 		if(!G.rendering)
 			/* depsgraph & animation: update tagged datablocks */
-			scene_update_tagged(win->screen->scene);
+			scene_update_tagged(CTX_data_main(C), win->screen->scene);
 	}
 
 	CTX_wm_window_set(C, NULL);

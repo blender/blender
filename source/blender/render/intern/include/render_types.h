@@ -55,6 +55,7 @@ struct RenderBuckets;
 struct ObjectInstanceRen;
 struct RayObject;
 struct RayFace;
+struct Main;
 
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
@@ -170,7 +171,8 @@ struct Render
 	/* shadow counter, detect shadow-reuse for shaders */
 	int shadowsamplenr[BLENDER_MAX_THREADS];
 	
-	/* scene, and its full copy of renderdata and world */
+	/* main, scene, and its full copy of renderdata and world */
+	struct Main *main;
 	Scene *scene;
 	RenderData r;
 	World wrld;

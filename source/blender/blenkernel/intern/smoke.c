@@ -296,7 +296,7 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 		return 1;
 	}
 
-	return 1;
+	return 2;
 }
 
 static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
@@ -935,7 +935,6 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 								// Add emitter density to temp emission map
 								temp_emission_map[index] = sfs->density;
 
-
 								// Uses particle velocity as initial velocity for smoke
 								if(sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY && (psys->part->phystype != PART_PHYS_NO))
 								{
@@ -943,8 +942,6 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 									velocity_y[index] = pa->state.vel[1]*sfs->vel_multi;
 									velocity_z[index] = pa->state.vel[2]*sfs->vel_multi;
 								}										
-							
-
 							}									
 							else if(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW) // outflow									
 							{										
@@ -1328,6 +1325,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		int startframe, endframe, framenr;
 		float timescale;
 		int cache_result = 0, cache_result_wt = 0;
+		int did_init = 0;
 
 		framenr = scene->r.cfra;
 
@@ -1357,7 +1355,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		// printf("startframe: %d, framenr: %d\n", startframe, framenr);
 
-		if(!smokeModifier_init(smd, ob, scene, dm))
+		if(!(did_init = smokeModifier_init(smd, ob, scene, dm)))
 		{
 			printf("bad smokeModifier_init\n");
 			return;
@@ -1414,8 +1412,18 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 				smoke_dissolve(sds->fluid, sds->diss_speed, sds->flags & MOD_SMOKE_DISSOLVE_LOG);
 			smoke_step(sds->fluid, smd->time, scene->r.frs_sec / scene->r.frs_sec_base);
 		}
+		else
+		{
+			/* Smoke did not load cache and was not reset but we're on startframe */
+			/* So now reinit the smoke since it was not done yet */
+			if(did_init == 2)
+			{
+				smokeModifier_reset(smd);
+				smokeModifier_init(smd, ob, scene, dm);
+			}
+		}
 
-		// create shadows before writing cache so we get nice shadows for sstartframe, too
+		// create shadows before writing cache so we get nice shadows for startframe, too
 		if(get_lamp(scene, light))
 			smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
 	

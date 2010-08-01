@@ -148,49 +148,24 @@ void BPY_update_modules( void )
 
 /*****************************************************************************
 * Description: This function creates a new Python dictionary object.
+* note: dict is owned by sys.modules["__main__"] module, reference is borrowed
+* note: important we use the dict from __main__, this is what python expects
+  for 'pickle' to work as well as strings like this...
+ >> foo = 10
+ >> print(__import__("__main__").foo)
 *****************************************************************************/
-static PyObject *CreateGlobalDictionary(bContext *C, const char *filename, PyObject *main_ns_orig)
+static PyObject *CreateGlobalDictionary(bContext *C, const char *filename)
 {
-	PyObject *item;
-	PyObject *dict;
+	PyInterpreterState *interp= PyThreadState_GET()->interp;
+	PyObject *mod_main= PyModule_New("__main__");	
+	PyDict_SetItemString(interp->modules, "__main__", mod_main);
+	Py_DECREF(mod_main); /* sys.modules owns now */
 
+	PyModule_AddObject(mod_main, "__builtins__", interp->builtins);
+	PyModule_AddStringConstant(mod_main, "__name__", "__main__");
+	PyModule_AddStringConstant(mod_main, "__file__", filename); /* __file__ only for nice UI'ness */
 
-	/* important we use the dict from __main__, this is what python expects
-	 * for 'pickle' to work as well as strings like this... 
-
-	>> foo = 10
-	>> print(__import__("__main__").foo)
-	 */
-	dict= PyModule_GetDict(PyImport_AddModule("__main__"));
-	PyDict_Merge(main_ns_orig, dict, 1);
-	PyDict_Clear(dict);
-	Py_INCREF(dict);
-
-	/* using builtins rather then PyEval_GetBuiltins()
-	 * print's many less items when printing, the modules __dict__
-	 *  this is how python works so better follow. */
-	PyDict_SetItemString(dict, "__builtins__", PyImport_AddModule("builtins"));
-
-
-	item = PyUnicode_FromString( "__main__" );
-	PyDict_SetItemString( dict, "__name__", item );
-	Py_DECREF(item);
-	
-	/* __file__ only for nice UI'ness */
-	if(filename) {
-		PyObject *item = PyUnicode_FromString( filename );
-		PyDict_SetItemString( dict, "__file__", item );
-		Py_DECREF(item);
-	}
-
-	return dict;
-}
-
-static void CreateGlobalDictionary_Restore(PyObject *main_ns_orig)
-{
-	PyObject *main_ns= PyModule_GetDict(PyImport_AddModule("__main__"));
-	PyDict_Clear(main_ns);
-	PyDict_Merge(main_ns, main_ns_orig, 1);
+	return PyModule_GetDict(mod_main);
 }
 
 /* must be called before Py_Initialize */
@@ -253,9 +228,12 @@ void BPY_start_python( int argc, char **argv )
 {
 	PyThreadState *py_tstate = NULL;
 	
-	BPY_start_python_path(); /* allow to use our own included python */
+	/* not essential but nice to set our name */
+	static wchar_t bprogname_wchar[FILE_MAXDIR+FILE_MAXFILE]; /* python holds a reference */
+	utf8towchar(bprogname_wchar, bprogname);
+	Py_SetProgramName(bprogname_wchar);
 
-	// Py_SetProgramName(); // extern char bprogname[FILE_MAXDIR+FILE_MAXFILE];
+	BPY_start_python_path(); /* allow to use our own included python */
 
 	Py_Initialize(  );
 	
@@ -346,7 +324,6 @@ void BPY_end_python( void )
 int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struct ReportList *reports)
 {
 	PyObject *py_dict, *py_result= NULL;
-	PyObject *main_ns_orig= PyDict_New();
 	PyGILState_STATE gilstate;
 	
 	if (fn==NULL && text==NULL) {
@@ -358,7 +335,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	if (text) {
 		char fn_dummy[FILE_MAXDIR];
 		bpy_text_filename_get(fn_dummy, text);
-		py_dict = CreateGlobalDictionary(C, fn_dummy, main_ns_orig);
+		py_dict = CreateGlobalDictionary(C, fn_dummy);
 		
 		if( !text->compiled ) {	/* if it wasn't already compiled, do it now */
 			char *buf = txt_to_buf( text );
@@ -379,7 +356,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	else {
 		FILE *fp= fopen(fn, "r");
 
-		py_dict = CreateGlobalDictionary(C, fn, main_ns_orig);
+		py_dict = CreateGlobalDictionary(C, fn);
 
 		if(fp) {
 #ifdef _WIN32
@@ -413,11 +390,8 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	} else {
 		Py_DECREF( py_result );
 	}
-
-	CreateGlobalDictionary_Restore(main_ns_orig);
-	Py_DECREF(main_ns_orig);
-
-	Py_DECREF(py_dict);
+	
+	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "__main__", Py_None);
 	
 	bpy_context_clear(C, &gilstate);
 
@@ -555,7 +529,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 	
 	Py_XDECREF(module);
 	
-	Py_DECREF(py_dict);
+	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "__main__", Py_None);
 	
 	PyGILState_Release(gilstate);
 	return 1;
@@ -566,8 +540,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 int BPY_eval_button(bContext *C, const char *expr, double *value)
 {
 	PyGILState_STATE gilstate;
-	PyObject *dict, *mod, *retval;
-	PyObject *main_ns_orig= PyDict_New();
+	PyObject *py_dict, *mod, *retval;
 	int error_ret = 0;
 	
 	if (!value || !expr) return -1;
@@ -579,11 +552,11 @@ int BPY_eval_button(bContext *C, const char *expr, double *value)
 
 	bpy_context_set(C, &gilstate);
 	
-	dict= CreateGlobalDictionary(C, NULL, main_ns_orig);
+	py_dict= CreateGlobalDictionary(C, "<blender button>");
 
 	mod = PyImport_ImportModule("math");
 	if (mod) {
-		PyDict_Merge(dict, PyModule_GetDict(mod), 0); /* 0 - dont overwrite existing values */
+		PyDict_Merge(py_dict, PyModule_GetDict(mod), 0); /* 0 - dont overwrite existing values */
 		Py_DECREF(mod);
 	}
 	else { /* highly unlikely but possibly */
@@ -591,7 +564,7 @@ int BPY_eval_button(bContext *C, const char *expr, double *value)
 		PyErr_Clear();
 	}
 	
-	retval = PyRun_String(expr, Py_eval_input, dict, dict);
+	retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict);
 	
 	if (retval == NULL) {
 		error_ret= -1;
@@ -628,11 +601,9 @@ int BPY_eval_button(bContext *C, const char *expr, double *value)
 	if(error_ret) {
 		BPy_errors_to_report(CTX_wm_reports(C));
 	}
-	
-	CreateGlobalDictionary_Restore(main_ns_orig);
-	Py_DECREF(main_ns_orig);
 
-	Py_DECREF(dict);
+	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "__main__", Py_None);
+	
 	bpy_context_clear(C, &gilstate);
 	
 	return error_ret;
@@ -641,8 +612,7 @@ int BPY_eval_button(bContext *C, const char *expr, double *value)
 int BPY_eval_string(bContext *C, const char *expr)
 {
 	PyGILState_STATE gilstate;
-	PyObject *dict, *retval;
-	PyObject *main_ns_orig= PyDict_New();
+	PyObject *py_dict, *retval;
 	int error_ret = 0;
 
 	if (!expr) return -1;
@@ -653,9 +623,9 @@ int BPY_eval_string(bContext *C, const char *expr)
 
 	bpy_context_set(C, &gilstate);
 
-	dict= CreateGlobalDictionary(C, NULL, main_ns_orig);
+	py_dict= CreateGlobalDictionary(C, "<blender string>");
 
-	retval = PyRun_String(expr, Py_eval_input, dict, dict);
+	retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict);
 
 	if (retval == NULL) {
 		error_ret= -1;
@@ -666,12 +636,10 @@ int BPY_eval_string(bContext *C, const char *expr)
 		Py_DECREF(retval);
 	}
 
-	CreateGlobalDictionary_Restore(main_ns_orig);
-	Py_DECREF(main_ns_orig);
+	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "__main__", Py_None);
 	
-	Py_DECREF(dict);
 	bpy_context_clear(C, &gilstate);
-
+	
 	return error_ret;
 }
 

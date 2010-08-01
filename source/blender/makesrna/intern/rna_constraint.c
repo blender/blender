@@ -214,7 +214,7 @@ static void rna_Constraint_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Constraint_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	ED_object_constraint_dependency_update(scene, ptr->id.data);
+	ED_object_constraint_dependency_update(bmain, scene, ptr->id.data);
 }
 
 static void rna_Constraint_influence_update(Main *bmain, Scene *scene, PointerRNA *ptr)

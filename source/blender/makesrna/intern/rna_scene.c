@@ -203,7 +203,7 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 
 	ob->recalc |= OB_RECALC_ALL;
 
-	DAG_scene_sort(scene);
+	DAG_scene_sort(G.main, scene);
 
 	return base;
 }
@@ -229,8 +229,8 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 	ob->id.us--;
 
 	/* needed otherwise the depgraph will contain free'd objects which can crash, see [#20958] */
-	DAG_scene_sort(scene);
-	DAG_ids_flush_update(0);
+	DAG_scene_sort(G.main, scene);
+	DAG_ids_flush_update(G.main, 0);
 
 	WM_main_add_notifier(NC_SCENE|ND_OB_ACTIVE, scene);
 }
@@ -838,7 +838,7 @@ static void rna_Scene_use_simplify_update(Main *bmain, Scene *scene, PointerRNA 
 	for(SETLOOPER(scene, base))
 		object_simplify_update(base->object);
 	
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	WM_main_add_notifier(NC_GEOM|ND_DATA, NULL);
 }
 
@@ -1007,6 +1007,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "proportional");
 	RNA_def_property_enum_items(prop, proportional_editing_items);
 	RNA_def_property_ui_text(prop, "Proportional Editing", "Proportional editing mode");
+	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
+
+	prop= RNA_def_property(srna, "proportional_editing_objects", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "proportional_objects", 0);
+	RNA_def_property_ui_text(prop, "Proportional Editing Objects", "Proportional editing object mode");
+	RNA_def_property_ui_icon(prop, ICON_PROP_OFF, 1);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "proportional_editing_falloff", PROP_ENUM, PROP_NONE);

@@ -282,7 +282,7 @@ void make_pointdensities(Render *re)
 	re->i.infostr= "Caching Point Densities";
 	re->stats_draw(re->sdh, &re->i);
 
-	for (tex= G.main->tex.first; tex; tex= tex->id.next) {
+	for (tex= re->main->tex.first; tex; tex= tex->id.next) {
 		if(tex->id.us && tex->type==TEX_POINTDENSITY) {
 			cache_pointdensity(re, tex);
 		}
@@ -299,7 +299,7 @@ void free_pointdensities(Render *re)
 	if(re->scene->r.scemode & R_PREVIEWBUTS)
 		return;
 	
-	for (tex= G.main->tex.first; tex; tex= tex->id.next) {
+	for (tex= re->main->tex.first; tex; tex= tex->id.next) {
 		if(tex->id.us && tex->type==TEX_POINTDENSITY) {
 			free_pointdensity(re, tex);
 		}

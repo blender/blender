@@ -65,6 +65,7 @@ void tag_main(struct Main *mainvar, int tag);
 
 int splitIDname(char *name, char *left, int *nr);
 void rename_id(struct ID *id, char *name);
+void name_uiprefix_id(char *name, struct ID *id);
 void test_idbutton(char *name);
 void text_idbutton(struct ID *id, char *text);
 void all_local(struct Library *lib, int untagged_only);

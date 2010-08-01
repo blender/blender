@@ -126,7 +126,7 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
 	float weight, cageweight, totweight, *cageco;
 	int i, j, a, x, y, z, size;
 
-	co[0]= co[1]= co[2]= 0.0f;
+	zero_v3(co);
 	totweight= 0.0f;
 	size= mmd->dyngridsize;
 
@@ -312,7 +312,7 @@ static void meshdeformModifier_do(
 		}
 		else {
 			totweight= 0.0f;
-			co[0]= co[1]= co[2]= 0.0f;
+			zero_v3(co);
 
 			for(a=offsets[b]; a<offsets[b+1]; a++) {
 				weight= influences[a].weight;

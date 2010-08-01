@@ -2359,6 +2359,7 @@ void TEXT_OT_insert(wmOperatorType *ot)
 
 static int find_and_replace(bContext *C, wmOperator *op, short mode)
 {
+	Main *bmain= CTX_data_main(C);
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *start= NULL, *text= st->text;
 	int flags, first= 1;
@@ -2420,7 +2421,7 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 			if(text->id.next)
 				text= st->text= text->id.next;
 			else
-				text= st->text= G.main->text.first;
+				text= st->text= bmain->text.first;
 			txt_move_toline(text, 0, 0);
 			text_update_cursor_moved(C);
 			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);

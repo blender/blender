@@ -678,6 +678,7 @@ static int render_frame(int argc, char **argv, void *data)
 {
 	bContext *C = data;
 	if (CTX_data_scene(C)) {
+		Main *bmain= CTX_data_main(C);
 		Scene *scene= CTX_data_scene(C);
 
 		if (argc > 1) {
@@ -701,7 +702,7 @@ static int render_frame(int argc, char **argv, void *data)
 
 			frame = MIN2(MAXFRAME, MAX2(MINAFRAME, frame));
 
-			RE_BlenderAnim(re, scene, scene->lay, frame, frame, scene->r.frame_step, &reports);
+			RE_BlenderAnim(re, bmain, scene, scene->lay, frame, frame, scene->r.frame_step, &reports);
 			return 1;
 		} else {
 			printf("\nError: frame number must follow '-f / --render-frame'.\n");
@@ -717,11 +718,12 @@ static int render_animation(int argc, char **argv, void *data)
 {
 	bContext *C = data;
 	if (CTX_data_scene(C)) {
+		Main *bmain= CTX_data_main(C);
 		Scene *scene= CTX_data_scene(C);
 		Render *re= RE_NewRender(scene->id.name);
 		ReportList reports;
 		BKE_reports_init(&reports, RPT_PRINT);
-		RE_BlenderAnim(re, scene, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);
+		RE_BlenderAnim(re, bmain, scene, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);
 	} else {
 		printf("\nError: no blend loaded. cannot use '-a'.\n");
 	}
@@ -732,7 +734,7 @@ static int set_scene(int argc, char **argv, void *data)
 {
 	if(argc > 1) {
 		bContext *C= data;
-		Scene *sce= set_scene_name(argv[1]);
+		Scene *sce= set_scene_name(CTX_data_main(C), argv[1]);
 		if(sce) {
 			CTX_data_scene_set(C, sce);
 		}

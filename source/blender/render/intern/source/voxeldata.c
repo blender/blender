@@ -39,7 +39,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
@@ -318,7 +317,7 @@ void make_voxeldata(struct Render *re)
 	re->stats_draw(re->sdh, &re->i);
 	
 	/* XXX: should be doing only textures used in this render */
-	for (tex= G.main->tex.first; tex; tex= tex->id.next) {
+	for (tex= re->main->tex.first; tex; tex= tex->id.next) {
 		if(tex->id.us && tex->type==TEX_VOXELDATA) {
 			cache_voxeldata(re, tex);
 		}

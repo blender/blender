@@ -233,6 +233,6 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	/* menus */
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
 
-	ED_object_generic_keymap(keyconf, keymap, 2);
+	ED_object_generic_keymap(keyconf, keymap, 3);
 }
 
