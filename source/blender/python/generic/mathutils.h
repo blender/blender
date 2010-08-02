@@ -63,8 +63,6 @@ void BaseMathObject_dealloc(BaseMathObject * self);
 PyObject *Mathutils_Init(void);
 PyObject *Noise_Init(void); /* lazy, saves having own header */
 
-PyObject *quat_rotation(PyObject *arg1, PyObject *arg2);
-
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 

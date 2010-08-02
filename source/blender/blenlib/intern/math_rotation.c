@@ -63,7 +63,7 @@ void mul_qt_qtqt(float *q, const float *q1, const float *q2)
 }
 
 /* Assumes a unit quaternion */
-void mul_qt_v3(float *q, float *v)
+void mul_qt_v3(const float *q, float *v)
 {
 	float t0, t1, t2;
 
@@ -111,7 +111,7 @@ void invert_qt_qt(float *q1, const float *q2)
 }
 
 /* simple mult */
-void mul_qt_fl(float *q, float f)
+void mul_qt_fl(float *q, const float f)
 {
 	q[0] *= f;
 	q[1] *= f;
@@ -127,7 +127,7 @@ void sub_qt_qtqt(float *q, float *q1, float *q2)
 }
 
 /* angular mult factor */
-void mul_fac_qt_fl(float *q, float fac)
+void mul_fac_qt_fl(float *q, const float fac)
 {
 	float angle= fac*saacos(q[0]);	/* quat[0]= cos(0.5*angle), but now the 0.5 and 2.0 rule out */
 	
