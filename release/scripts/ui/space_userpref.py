@@ -814,13 +814,20 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_label = "Addons"
     bl_region_type = 'WINDOW'
     bl_show_header = False
+    
+    _addons_fake_modules = {}
 
     def poll(self, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'ADDONS')
 
     @staticmethod
+    def module_get(mod_name):
+        return USERPREF_PT_addons._addons_fake_modules[mod_name]
+
+    @staticmethod
     def _addon_list():
+        import os
         import sys
         import time
 
@@ -829,20 +836,98 @@ class USERPREF_PT_addons(bpy.types.Panel):
         paths = bpy.utils.script_paths("addons")
         # if folder addons_contrib/ exists, scripts in there will be loaded
         paths += bpy.utils.script_paths("addons_contrib")
-        
+
         if bpy.app.debug:
             t_main = time.time()
 
-        # sys.path.insert(0, None)
-        for path in paths:
-            # sys.path[0] = path
-            modules.extend(bpy.utils.modules_from_path(path, loaded_modules))
+        if 1:
+            # fake module importing
+            def fake_module(mod_name, mod_path):
+                import ast
+                ModuleType = type(ast)
+                data = open(mod_path, "r").read()
+                ast_data = ast.parse(data, filename=mod_path)
+                body_info = None
+                for body in ast_data.body:
+                    if body.__class__ == ast.Assign:
+                        if len(body.targets) == 1:
+                            if body.targets[0].id == "bl_addon_info":
+                                body_info = body
+                                break
+                
+                if body_info:
+                    mod = ModuleType(mod_name)
+                    mod.bl_addon_info = ast.literal_eval(body.value)
+                    mod.__file__ = mod_path
+                    mod.__time__ = os.path.getmtime(mod_path)
+                    return mod
+                else:
+                    return None
 
-        if bpy.app.debug:
-            print("Addon Script Load Time %.4f" % (time.time() - t_main))
 
-        # del sys.path[0]
-        return modules
+            modules_stale = set(USERPREF_PT_addons._addons_fake_modules.keys())
+
+            for path in paths:
+                for f in sorted(os.listdir(path)):
+                    if f.endswith(".py"):
+                        mod_name = f[0:-3]
+                        mod_path = os.path.join(path, f)
+                    elif ("." not in f) and (os.path.isfile(os.path.join(path, f, "__init__.py"))):
+                        mod_name = f
+                        mod_path = os.path.join(path, f, "__init__.py")
+                    else:
+                        mod_name = ""
+                        mod_path = ""
+
+                    if mod_name:
+                        if mod_name in modules_stale:
+                            modules_stale.remove(mod_name)
+                        mod = USERPREF_PT_addons._addons_fake_modules.get(mod_name)
+                        if mod:
+                            if mod.__time__ != os.path.getmtime(mod_path):
+                                print("Reloading", mod_name)
+                                del USERPREF_PT_addons._addons_fake_modules[mod_name]
+                                mod = None
+
+                        if mod is None:
+                            mod = fake_module(mod_name, mod_path)
+                            if mod:
+                                USERPREF_PT_addons._addons_fake_modules[mod_name] = mod
+                        
+            
+            # just incase we get stale modules, not likely
+            for mod_stale in modules_stale:
+                del USERPREF_PT_addons._addons_fake_modules[mod_stale]
+            del modules_stale
+            
+            return list(USERPREF_PT_addons._addons_fake_modules.values())
+        
+        else:
+            # never run this!, before it used ast
+            pass
+            '''
+            # note, this still gets added to _bpy_types.TypeMap
+            import bpy_types as _bpy_types
+            _bpy_types._register_override = True
+
+            # sys.path.insert(0, None)
+            for path in paths:
+                # sys.path[0] = path
+                modules.extend(bpy.utils.modules_from_path(path, loaded_modules))
+
+            if bpy.app.debug:
+                print("Addon Script Load Time %.4f" % (time.time() - t_main))
+
+            _bpy_types._register_override = False
+
+            # del sys.path[0]
+            return modules
+            '''
+        
+        
+        
+        
+        
 
     def draw(self, context):
         layout = self.layout
@@ -996,8 +1081,13 @@ class WM_OT_addon_enable(bpy.types.Operator):
     def execute(self, context):
         module_name = self.properties.module
 
+        # note, this still gets added to _bpy_types.TypeMap
+        import bpy_types as _bpy_types
+        _bpy_types._register_immediate = False
+
         try:
             mod = __import__(module_name)
+            bpy.utils._load_module(module_name)
             mod.register()
         except:
             import traceback
@@ -1012,7 +1102,9 @@ class WM_OT_addon_enable(bpy.types.Operator):
 
         if info.get("blender", (0, 0, 0)) > bpy.app.version:
             self.report("WARNING','This script was written for a newer version of Blender and might not function (correctly).\nThe script is enabled though.")
-
+        
+        _bpy_types._register_immediate = True
+        
         return {'FINISHED'}
 
 
@@ -1029,6 +1121,7 @@ class WM_OT_addon_disable(bpy.types.Operator):
 
         try:
             mod = __import__(module_name)
+            bpy.utils._unload_module(module_name, free=False) # dont free because we may want to enable again.
             mod.unregister()
         except:
             traceback.print_exc()
@@ -1118,7 +1211,8 @@ class WM_OT_addon_expand(bpy.types.Operator):
 
         # unlikely to fail, module should have already been imported
         try:
-            mod = __import__(module_name)
+            # mod = __import__(module_name)
+            mod = USERPREF_PT_addons.module_get(module_name)
         except:
             import traceback
             traceback.print_exc()

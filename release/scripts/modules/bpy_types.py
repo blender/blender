@@ -551,18 +551,18 @@ PropertiesMap = {}
 # registers moduals instantly.
 _register_immediate = True
 
-def _unload_module(module):
+def _unload_module(module, free=True):
     for t in TypeMap.get(module, ()):
         bpy_types.unregister(t)
 
-    if module in TypeMap:
+    if free == True and module in TypeMap:
         del TypeMap[module]
 
 
     for t in PropertiesMap.get(module, ()):
         bpy_types.unregister(t)
 
-    if module in PropertiesMap:
+    if free == True and module in PropertiesMap:
         del PropertiesMap[module]
 
 def _load_module(module, force=False):
