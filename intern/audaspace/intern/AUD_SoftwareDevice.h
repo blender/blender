@@ -132,6 +132,7 @@ public:
 	virtual bool setPitch(AUD_Handle* handle, float pitch);
 	virtual int getLoopCount(AUD_Handle* handle);
 	virtual bool setLoopCount(AUD_Handle* handle, int count);
+	virtual bool setStopCallback(AUD_Handle* handle, stopCallback callback = NULL, void* data = NULL);
 };
 
 #endif //AUD_SOFTWAREDEVICE

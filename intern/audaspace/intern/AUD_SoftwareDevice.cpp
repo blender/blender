@@ -45,6 +45,12 @@ struct AUD_SoftwareHandle : AUD_Handle
 
 	/// The loop count of the source.
 	int loopcount;
+
+	/// The stop callback.
+	stopCallback stop;
+
+	/// Stop callback data.
+	void* stop_data;
 };
 
 typedef std::list<AUD_SoftwareHandle*>::iterator AUD_HandleIterator;
@@ -151,6 +157,9 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 			// in case the end of the sound is reached
 			if(pos < length)
 			{
+				if(sound->stop)
+					sound->stop(sound->stop_data);
+
 				if(sound->keep)
 					pause(sound);
 				else
@@ -485,6 +494,20 @@ bool AUD_SoftwareDevice::setLoopCount(AUD_Handle* handle, int count)
 	bool result = isValid(handle);
 	if(result)
 		((AUD_SoftwareHandle*)handle)->loopcount = count;
+	unlock();
+	return result;
+}
+
+bool AUD_SoftwareDevice::setStopCallback(AUD_Handle* handle, stopCallback callback, void* data)
+{
+	lock();
+	bool result = isValid(handle);
+	if(result)
+	{
+		AUD_SoftwareHandle* h = (AUD_SoftwareHandle*)handle;
+		h->stop = callback;
+		h->stop_data = data;
+	}
 	unlock();
 	return result;
 }

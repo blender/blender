@@ -463,6 +463,14 @@ extern float* AUD_readSoundBuffer(const char* filename, float low, float high,
 								  float sthreshold, int samplerate,
 								  int* length);
 
+/**
+ * Pauses a playing sound after a specific amount of time.
+ * \param handle The handle to the sound.
+ * \param time The time in seconds.
+ * \return The silence handle.
+ */
+extern AUD_Channel* AUD_pauseAfter(AUD_Channel* handle, float seconds);
+
 extern AUD_Sound* AUD_createSequencer(void* data, AUD_volumeFunction volume);
 
 extern void AUD_destroySequencer(AUD_Sound* sequencer);

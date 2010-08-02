@@ -68,6 +68,12 @@ struct AUD_OpenALHandle : AUD_Handle
 
 	/// The loop count of the source.
 	int loopcount;
+
+	/// The stop callback.
+	stopCallback stop;
+
+	/// Stop callback data.
+	void* stop_data;
 };
 
 struct AUD_OpenALBufferedFactory
@@ -131,13 +137,9 @@ void AUD_OpenALDevice::updateStreams()
 
 		{
 			// for all sounds
-			AUD_HandleIterator it = m_playingSounds->begin();
-			while(it != m_playingSounds->end())
+			for(AUD_HandleIterator it = m_playingSounds->begin(); it != m_playingSounds->end(); it++)
 			{
 				sound = *it;
-				// increment the iterator to make sure it's valid,
-				// in case the sound gets deleted after stopping
-				++it;
 
 				// is it a streamed sound?
 				if(!sound->isBuffered)
@@ -227,12 +229,21 @@ void AUD_OpenALDevice::updateStreams()
 					// if it really stopped
 					if(sound->data_end)
 					{
+						if(sound->stop)
+							sound->stop(sound->stop_data);
+
+						// increment the iterator to the next value,
+						// because the sound gets deleted in the list here.
+						++it;
 						// pause or
 						if(sound->keep)
 							pause(sound);
 						// stop
 						else
 							stop(sound);
+						// decrement again, so that we get the next sound in the
+						// next loop run
+						--it;
 					}
 					// continue playing
 					else
@@ -1008,6 +1019,20 @@ bool AUD_OpenALDevice::setLoopCount(AUD_Handle* handle, int count)
 	bool result = isValid(handle);
 	if(result)
 		((AUD_OpenALHandle*)handle)->loopcount = count;
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setStopCallback(AUD_Handle* handle, stopCallback callback, void* data)
+{
+	lock();
+	bool result = isValid(handle);
+	if(result)
+	{
+		AUD_OpenALHandle* h = (AUD_OpenALHandle*)handle;
+		h->stop = callback;
+		h->stop_data = data;
+	}
 	unlock();
 	return result;
 }

@@ -133,3 +133,8 @@ bool AUD_NULLDevice::setLoopCount(AUD_Handle* handle, int count)
 {
 	return false;
 }
+
+bool AUD_NULLDevice::setStopCallback(AUD_Handle* handle, stopCallback callback, void* data)
+{
+	return false;
+}

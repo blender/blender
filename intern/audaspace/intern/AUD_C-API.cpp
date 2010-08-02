@@ -60,6 +60,7 @@ bool g_pyinitialized = false;
 #include "AUD_ReadDevice.h"
 #include "AUD_IReader.h"
 #include "AUD_SequencerFactory.h"
+#include "AUD_SilenceFactory.h"
 
 #ifdef WITH_SDL
 #include "AUD_SDLDevice.h"
@@ -843,6 +844,32 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 	memcpy(result, buffer.getBuffer(), position * sizeof(float));
 	*length = position;
 	return result;
+}
+
+static void pauseSound(AUD_Channel* handle)
+{
+	assert(AUD_device);
+
+	AUD_device->pause(handle);
+}
+
+AUD_Channel* AUD_pauseAfter(AUD_Channel* handle, float seconds)
+{
+	assert(AUD_device);
+
+	AUD_SilenceFactory silence;
+	AUD_LimiterFactory limiter(&silence, 0, seconds);
+
+	try
+	{
+		AUD_Channel* channel = AUD_device->play(&limiter);
+		AUD_device->setStopCallback(channel, (stopCallback)pauseSound, handle);
+		return channel;
+	}
+	catch(AUD_Exception&)
+	{
+		return NULL;
+	}
 }
 
 AUD_Sound* AUD_createSequencer(void* data, AUD_volumeFunction volume)

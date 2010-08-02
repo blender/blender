@@ -34,6 +34,8 @@ struct AUD_Handle
 {
 };
 
+typedef void (*stopCallback)(void*);
+
 /**
  * This class represents an output device for sound sources.
  * Output devices may be several backends such as plattform independand like
@@ -225,6 +227,18 @@ public:
 	 *        - false if the handle is invalid.
 	 */
 	virtual bool setLoopCount(AUD_Handle* handle, int count)=0;
+
+	/**
+	 * Sets the callback function that's called when the end of a playing sound
+	 * is reached.
+	 * \param handle The sound handle.
+	 * \param callback The callback function.
+	 * \param data The data that should be passed to the callback function.
+	 * \return
+	 *        - true if the handle is valid.
+	 *        - false if the handle is invalid.
+	 */
+	virtual bool setStopCallback(AUD_Handle* handle, stopCallback callback = 0, void* data = 0)=0;
 };
 
 #endif //AUD_IDevice
