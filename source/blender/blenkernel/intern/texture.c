@@ -169,8 +169,8 @@ PluginTex *add_plugin_tex(char *str)
 	open_plugin_tex(pit);
 	
 	if(pit->doit==0) {
-		if(pit->handle==0); //XXX error("no plugin: %s", str);
-		else ; //XXX error("in plugin: %s", str);
+		if(pit->handle==0) {;} //XXX error("no plugin: %s", str);
+		else {;} //XXX error("in plugin: %s", str);
 		MEM_freeN(pit);
 		return NULL;
 	}

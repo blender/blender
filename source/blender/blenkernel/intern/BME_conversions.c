@@ -391,9 +391,9 @@ void BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td, EditMesh *em) {
 			if(e->flag & SELECT) eed->f |= SELECT;
 			//XXX if(e->flag & ME_FGON) eed->h= EM_FGON; // 2 different defines!
 			if(e->flag & ME_HIDE) eed->h |= 1;
-			if(em->selectmode==SCE_SELECT_EDGE) 
+			if(em->selectmode==SCE_SELECT_EDGE) { 
 				; //XXX EM_select_edge(eed, eed->f & SELECT);
-		
+			}
 			CustomData_em_copy_data(&bm->edata, &em->edata, e->data, &eed->data);
 		}
 	}

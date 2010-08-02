@@ -887,7 +887,7 @@ static StructRNA *rna_MacroOperator_register(const bContext *C, ReportList *repo
 
 	return dummyot.ext.srna;
 }
-#endif
+#endif /* DISABLE_PYTHON */
 
 static StructRNA* rna_Operator_refine(PointerRNA *opr)
 {
@@ -961,7 +961,7 @@ static wmKeyMapItem *rna_KeyMap_add_modal_item(wmKeyMap *km, bContext *C, Report
 	return WM_modalkeymap_add_item(km, type, value, modifier, keymodifier, propvalue);
 }
 
-#else
+#else /* RNA_RUNTIME */
 
 static void rna_def_operator(BlenderRNA *brna)
 {
@@ -1518,5 +1518,5 @@ void RNA_def_wm(BlenderRNA *brna)
 	rna_def_keyconfig(brna);
 }
 
-#endif
+#endif /* RNA_RUNTIME */
 

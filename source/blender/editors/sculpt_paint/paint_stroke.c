@@ -1005,8 +1005,9 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 					paint_brush_stroke_add_step(C, op, event, mouse);
 				}
 			}
-			else
+			else {
 				;//ED_region_tag_redraw(ar);
+			}
 		}
 	}
 

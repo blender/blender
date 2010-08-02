@@ -388,7 +388,7 @@ static int sculpt_brush_test_fast(SculptBrushTest *test, float co[3])
 
 static int sculpt_brush_test_cube(SculptBrushTest *test, float co[3], float local[4][4])
 {
-	const static float side = 0.70710678118654752440084436210485; // sqrt(.5);
+	static const float side = 0.70710678118654752440084436210485; // sqrt(.5);
 
 	float local_co[3];
 
