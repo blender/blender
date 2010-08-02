@@ -144,11 +144,11 @@ class PlayRenderedAnim(bpy.types.Operator):
 
 
 def register():
-    bpy.types.register(PlayRenderedAnim)
+    pass
 
 
 def unregister():
-    bpy.types.unregister(PlayRenderedAnim)
+    pass
 
 if __name__ == "__main__":
     register()

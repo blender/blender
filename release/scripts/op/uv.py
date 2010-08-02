@@ -216,12 +216,10 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(ExportUVLayout)
     bpy.types.IMAGE_MT_uvs.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(ExportUVLayout)
     bpy.types.IMAGE_MT_uvs.remove(menu_func)
 
 if __name__ == "__main__":

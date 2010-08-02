@@ -330,6 +330,8 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 		return 0;
 	}
 	
+	bpy_set_immediate_register(1);
+
 	bpy_context_set(C, &gilstate);
 
 	if (text) {
@@ -394,6 +396,8 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "__main__", Py_None);
 	
 	bpy_context_clear(C, &gilstate);
+
+	bpy_set_immediate_register(0);
 
 	return py_result ? 1:0;
 }

@@ -87,7 +87,6 @@ class RenderButtonsPanel():
         return (rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
 
 # Setting panel, use in the scene for now.
-@rnaType
 class RENDER_PT_network_settings(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Network Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
@@ -122,7 +121,6 @@ class RENDER_PT_network_settings(bpy.types.Panel, RenderButtonsPanel):
 
         layout.operator("render.netclientweb", icon='QUESTION')
 
-@rnaType
 class RENDER_PT_network_slave_settings(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Slave Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
@@ -147,7 +145,7 @@ class RENDER_PT_network_slave_settings(bpy.types.Panel, RenderButtonsPanel):
         sub = layout.column()
         sub.enabled = rd.threads_mode == 'FIXED'
         sub.prop(rd, "threads")
-@rnaType
+
 class RENDER_PT_network_master_settings(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Master Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
@@ -166,7 +164,6 @@ class RENDER_PT_network_master_settings(bpy.types.Panel, RenderButtonsPanel):
         layout.prop(netsettings, "master_broadcast")
         layout.prop(netsettings, "master_clear")
 
-@rnaType
 class RENDER_PT_network_job(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Job Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
@@ -207,7 +204,6 @@ class RENDER_PT_network_job(bpy.types.Panel, RenderButtonsPanel):
         row.prop(netsettings, "priority")
         row.prop(netsettings, "chunks")
 
-@rnaType
 class RENDER_PT_network_slaves(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Slaves Status"
     COMPAT_ENGINES = {'NET_RENDER'}
@@ -246,7 +242,6 @@ class RENDER_PT_network_slaves(bpy.types.Panel, RenderButtonsPanel):
             layout.label(text="Seen: " + time.ctime(slave.last_seen))
             layout.label(text="Stats: " + slave.stats)
 
-@rnaType
 class RENDER_PT_network_slaves_blacklist(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Slaves Blacklist"
     COMPAT_ENGINES = {'NET_RENDER'}
@@ -284,7 +279,6 @@ class RENDER_PT_network_slaves_blacklist(bpy.types.Panel, RenderButtonsPanel):
             layout.label(text="Seen: " + time.ctime(slave.last_seen))
             layout.label(text="Stats: " + slave.stats)
 
-@rnaType
 class RENDER_PT_network_jobs(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Jobs"
     COMPAT_ENGINES = {'NET_RENDER'}
@@ -325,15 +319,12 @@ class RENDER_PT_network_jobs(bpy.types.Panel, RenderButtonsPanel):
             layout.label(text="Done: %04i" % job.results[DONE])
             layout.label(text="Error: %04i" % job.results[ERROR])
 
-@rnaType
 class NetRenderSettings(bpy.types.IDPropertyGroup):
     pass
 
-@rnaType
 class NetRenderSlave(bpy.types.IDPropertyGroup):
     pass
 
-@rnaType
 class NetRenderJob(bpy.types.IDPropertyGroup):
     pass
 

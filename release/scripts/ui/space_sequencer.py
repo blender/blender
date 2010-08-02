@@ -312,7 +312,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator("sequencer.swap_data")
 
 
-class SequencerButtonsPanel(bpy.types.Panel):
+class SequencerButtonsPanel():
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
 
@@ -323,7 +323,7 @@ class SequencerButtonsPanel(bpy.types.Panel):
         return self.has_sequencer(context) and (act_strip(context) is not None)
 
 
-class SequencerButtonsPanel_Output(bpy.types.Panel):
+class SequencerButtonsPanel_Output():
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
 
@@ -334,7 +334,7 @@ class SequencerButtonsPanel_Output(bpy.types.Panel):
         return self.has_preview(context)
 
 
-class SEQUENCER_PT_edit(SequencerButtonsPanel):
+class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Edit Strip"
 
     def draw(self, context):
@@ -381,7 +381,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         col.label(text="Frame Still %d:%d" % (strip.frame_still_start, strip.frame_still_end))
 
 
-class SEQUENCER_PT_effect(SequencerButtonsPanel):
+class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Effect Strip"
 
     def poll(self, context):
@@ -510,7 +510,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
         col.prop(strip, "rotation_start", text="Rotation")
 
 
-class SEQUENCER_PT_input(SequencerButtonsPanel):
+class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Strip Input"
 
     def poll(self, context):
@@ -635,8 +635,7 @@ class SEQUENCER_PT_input_secondary(SEQUENCER_PT_input):
     def draw_filename(self, context):
         pass
 
-
-class SEQUENCER_PT_sound(SequencerButtonsPanel):
+class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Sound"
 
     def poll(self, context):
@@ -676,7 +675,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         col.prop(strip, "animation_end_offset", text="End")
 
 
-class SEQUENCER_PT_scene(SequencerButtonsPanel):
+class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Scene"
 
     def poll(self, context):
@@ -700,7 +699,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel):
         layout.template_ID(strip, "scene_camera")
 
 
-class SEQUENCER_PT_filter(SequencerButtonsPanel):
+class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Filter"
 
     def poll(self, context):
@@ -761,7 +760,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
             col.prop(strip.color_balance, "inverse_gain", text="Inverse")
 
 
-class SEQUENCER_PT_proxy(SequencerButtonsPanel):
+class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Proxy"
 
     def poll(self, context):
@@ -794,7 +793,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
                 flow.prop(strip.proxy, "filepath")
 
 
-class SEQUENCER_PT_preview(SequencerButtonsPanel_Output):
+class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, bpy.types.Panel):
     bl_label = "Scene Preview/Render"
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
@@ -818,7 +817,7 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output):
         '''
 
 
-class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
+class SEQUENCER_PT_view(SequencerButtonsPanel_Output, bpy.types.Panel):
     bl_label = "View Settings"
 
     def draw(self, context):
@@ -834,40 +833,12 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
             col.prop(st, "separate_color_preview")
         col.prop(st, "proxy_render_size")
 
-classes = [
-    SEQUENCER_HT_header, # header/menu classes
-    SEQUENCER_MT_view,
-    SEQUENCER_MT_view_toggle,
-    SEQUENCER_MT_select,
-    SEQUENCER_MT_marker,
-    SEQUENCER_MT_add,
-    SEQUENCER_MT_add_effect,
-    SEQUENCER_MT_strip,
-
-    SEQUENCER_PT_edit, # sequencer panels
-    SEQUENCER_PT_effect,
-    SEQUENCER_PT_input_movie,
-    SEQUENCER_PT_input_image,
-    SEQUENCER_PT_input_secondary,
-    SEQUENCER_PT_sound,
-    SEQUENCER_PT_scene,
-    SEQUENCER_PT_filter,
-    SEQUENCER_PT_proxy,
-
-    SEQUENCER_PT_preview,
-    SEQUENCER_PT_view] # view panels
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

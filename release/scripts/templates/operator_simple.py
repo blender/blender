@@ -17,10 +17,10 @@ class SimpleOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 def register():
-    bpy.types.register(SimpleOperator)
+    pass
 
 def unregister():
-    bpy.types.unregister(SimpleOperator)
+    pass
 
 if __name__ == "__main__":
     register()

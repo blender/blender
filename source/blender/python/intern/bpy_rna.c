@@ -4175,9 +4175,11 @@ static PyObject *pyrna_basetype_getattro( BPy_BaseTypeRNA *self, PyObject *pynam
 static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self);
 static PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class);
 static PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class);
+static PyObject *pyrna_register_immediate(PyObject *self);
 
 static struct PyMethodDef pyrna_basetype_methods[] = {
 	{"__dir__", (PyCFunction)pyrna_basetype_dir, METH_NOARGS, ""},
+	{"immediate", (PyCFunction)pyrna_register_immediate, METH_NOARGS, ""},
 	{"register", (PyCFunction)pyrna_basetype_register, METH_O, ""},
 	{"unregister", (PyCFunction)pyrna_basetype_unregister, METH_O, ""},
 	{NULL, NULL, 0, NULL}
@@ -4767,6 +4769,22 @@ void pyrna_free_types(void)
 	}
 	RNA_PROP_END;
 
+}
+
+static int IMMEDIATE = 0;
+
+void bpy_set_immediate_register(int value)
+{
+	IMMEDIATE = value;
+}
+
+static PyObject *pyrna_register_immediate(PyObject *self)
+{
+	if (IMMEDIATE) {
+		Py_RETURN_TRUE;
+	} else {
+		Py_RETURN_FALSE;
+	}
 }
 
 /* Note! MemLeak XXX

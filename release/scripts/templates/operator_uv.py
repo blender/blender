@@ -37,7 +37,6 @@ class UvOperator(bpy.types.Operator):
         main(context)
         return {'FINISHED'}
 
-bpy.types.register(UvOperator)
 
 if __name__ == "__main__":
     bpy.ops.uv.simple_operator()

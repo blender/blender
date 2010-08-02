@@ -23,13 +23,13 @@ narrowui = bpy.context.user_preferences.view.properties_width_check
 narrowmod = 260
 
 
-class DataButtonsPanel(bpy.types.Panel):
+class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "modifier"
 
 
-class DATA_PT_modifiers(DataButtonsPanel):
+class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Modifiers"
 
     def draw(self, context):
@@ -766,20 +766,12 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "narrowness", slider=True)
 
 
-classes = [
-    DATA_PT_modifiers]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

@@ -576,46 +576,139 @@ class WM_OT_doc_edit(bpy.types.Operator):
         return wm.invoke_props_dialog(self, width=600)
 
 
-import rna_prop_ui
+from bpy.props import *
 
-classes = [
-    MESH_OT_delete_edgeloop,
 
-    WM_OT_context_set_boolean,
-    WM_OT_context_set_int,
-    WM_OT_context_scale_int,
-    WM_OT_context_set_float,
-    WM_OT_context_set_string,
-    WM_OT_context_set_enum,
-    WM_OT_context_set_value,
-    WM_OT_context_toggle,
-    WM_OT_context_toggle_enum,
-    WM_OT_context_cycle_enum,
-    WM_OT_context_cycle_int,
-    WM_OT_context_modal_mouse,
+rna_path = StringProperty(name="Property Edit",
+    description="Property data_path edit", maxlen=1024, default="", options={'HIDDEN'})
 
-    WM_OT_url_open,
-    WM_OT_path_open,
+rna_value = StringProperty(name="Property Value",
+    description="Property value edit", maxlen=1024, default="")
 
-    WM_OT_doc_view,
-    WM_OT_doc_edit,
+rna_property = StringProperty(name="Property Name",
+    description="Property name edit", maxlen=1024, default="")
 
-    # experemental!
-    rna_prop_ui.WM_OT_properties_edit,
-    rna_prop_ui.WM_OT_properties_add,
-    rna_prop_ui.WM_OT_properties_remove]
+rna_min = FloatProperty(name="Min", default=0.0, precision=3)
+rna_max = FloatProperty(name="Max", default=1.0, precision=3)
 
+
+class WM_OT_properties_edit(bpy.types.Operator):
+    '''Internal use (edit a property data_path)'''
+    bl_idname = "wm.properties_edit"
+    bl_label = "Edit Property"
+
+    data_path = rna_path
+    property = rna_property
+    value = rna_value
+    min = rna_min
+    max = rna_max
+    description = StringProperty(name="Tip", default="")
+
+    def execute(self, context):
+        data_path = self.properties.data_path
+        value = self.properties.value
+        prop = self.properties.property
+        prop_old = self._last_prop[0]
+
+        try:
+            value_eval = eval(value)
+        except:
+            value_eval = value
+
+        # First remove
+        item = eval("context.%s" % data_path)
+
+        rna_idprop_ui_prop_clear(item, prop_old)
+        exec_str = "del item['%s']" % prop_old
+        # print(exec_str)
+        exec(exec_str)
+
+
+        # Reassign
+        exec_str = "item['%s'] = %s" % (prop, repr(value_eval))
+        # print(exec_str)
+        exec(exec_str)
+        self._last_prop[:] = [prop]
+
+        prop_type = type(item[prop])
+
+        prop_ui = rna_idprop_ui_prop_get(item, prop)
+
+        if prop_type in (float, int):
+
+            prop_ui['soft_min'] = prop_ui['min'] = prop_type(self.properties.min)
+            prop_ui['soft_max'] = prop_ui['max'] = prop_type(self.properties.max)
+
+        prop_ui['description'] = self.properties.description
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+
+        self._last_prop = [self.properties.property]
+
+        item = eval("context.%s" % self.properties.data_path)
+
+        # setup defaults
+        prop_ui = rna_idprop_ui_prop_get(item, self.properties.property, False) # dont create
+        if prop_ui:
+            self.properties.min = prop_ui.get("min", -1000000000)
+            self.properties.max = prop_ui.get("max", 1000000000)
+            self.properties.description = prop_ui.get("description", "")
+
+        wm = context.manager
+        # This crashes, TODO - fix
+        #return wm.invoke_props_popup(self, event)
+
+        wm.invoke_props_popup(self, event)
+        return {'RUNNING_MODAL'}
+
+
+class WM_OT_properties_add(bpy.types.Operator):
+    '''Internal use (edit a property data_path)'''
+    bl_idname = "wm.properties_add"
+    bl_label = "Add Property"
+
+    data_path = rna_path
+
+    def execute(self, context):
+        item = eval("context.%s" % self.properties.data_path)
+
+        def unique_name(names):
+            prop = 'prop'
+            prop_new = prop
+            i = 1
+            while prop_new in names:
+                prop_new = prop + str(i)
+                i += 1
+
+            return prop_new
+
+        property = unique_name(item.keys())
+
+        item[property] = 1.0
+        return {'FINISHED'}
+
+
+class WM_OT_properties_remove(bpy.types.Operator):
+    '''Internal use (edit a property data_path)'''
+    bl_idname = "wm.properties_remove"
+    bl_label = "Remove Property"
+
+    data_path = rna_path
+    property = rna_property
+
+    def execute(self, context):
+        item = eval("context.%s" % self.properties.data_path)
+        del item[self.properties.property]
+        return {'FINISHED'}
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

@@ -970,11 +970,9 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(ExportOBJ)
     bpy.types.INFO_MT_file_export.append(menu_func)
 
 def unregister():
-    bpy.types.unregister(ExportOBJ)
     bpy.types.INFO_MT_file_export.remove(menu_func)
 
 

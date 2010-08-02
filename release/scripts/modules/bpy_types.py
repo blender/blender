@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 from _bpy import types as bpy_types
+import _bpy
 from mathutils import Vector
 
 StructRNA = bpy_types.Struct.__bases__[0]
@@ -539,8 +540,64 @@ class Text(bpy_types.ID):
 
 import collections
 
+TypeMap = {}
+# Properties (IDPropertyGroup) are different from types because they need to be registered
+# before adding sub properties to them, so they are registered on definition
+# and unregistered on unload
+PropertiesMap = {}
 
-class OrderedMeta(type):
+def UnloadModule(module):
+    global TypeMap, PropertiesMap
+    for t in TypeMap.get(module, []):
+        bpy_types.unregister(t)
+        
+    TypeMap = {}
+
+    for t in PropertiesMap.get(module, []):
+        bpy_types.unregister(t)
+        
+    PropertiesMap = {}
+    
+def LoadModule(module, force=False):
+    for t in TypeMap.get(module, []):
+        bpy_types.register(t)
+
+_bpy.LoadModule = LoadModule
+_bpy.UnloadModule = UnloadModule
+
+class RNAMeta(type):
+    @classmethod
+    def _immediate(cls):
+        return bpy_types.immediate();
+    
+    def __new__(cls, name, bases, classdict, **args):
+        result = type.__new__(cls, name, bases, classdict)
+        if bases and bases[0] != StructRNA:
+            module = result.__module__
+            
+            ClassMap = TypeMap
+            
+            # Register right away if needed
+            if cls._immediate():
+                bpy_types.register(result)
+                ClassMap = PropertiesMap 
+
+            # first part of packages only
+            if "." in module:
+                module = module[:module.index(".")]
+            
+            if not module in ClassMap:
+                ClassMap[module] = []
+                
+            ClassMap[module].append(result)
+        return result
+
+class RNAMetaRegister(RNAMeta):
+    @classmethod
+    def _immediate(cls):
+        return True;
+
+class OrderedMeta(RNAMeta):
 
     def __init__(cls, name, bases, attributes):
         super(OrderedMeta, cls).__init__(name, bases, attributes)
@@ -548,7 +605,6 @@ class OrderedMeta(type):
 
     def __prepare__(name, bases, **kwargs):
         return collections.OrderedDict()
-
 
 # Only defined so operators members can be used by accessing self.order
 class Operator(StructRNA, metaclass=OrderedMeta):
@@ -564,7 +620,12 @@ class Macro(StructRNA, metaclass=OrderedMeta):
     def define(self, opname):
         from _bpy import ops
         return ops.macro_define(self, opname)
+    
+class IDPropertyGroup(StructRNA, metaclass=RNAMetaRegister):
+        __slots__ = ()
 
+class RenderEngine(StructRNA, metaclass=RNAMeta):
+    __slots__ = ()
 
 class _GenericUI:
     __slots__ = ()
@@ -606,15 +667,15 @@ class _GenericUI:
             pass
 
 
-class Panel(StructRNA, _GenericUI):
+class Panel(StructRNA, _GenericUI, metaclass=RNAMeta):
     __slots__ = ()
 
 
-class Header(StructRNA, _GenericUI):
+class Header(StructRNA, _GenericUI, metaclass=RNAMeta):
     __slots__ = ()
 
 
-class Menu(StructRNA, _GenericUI):
+class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
     __slots__ = ()
 
     def path_menu(self, searchpaths, operator, props_default={}):

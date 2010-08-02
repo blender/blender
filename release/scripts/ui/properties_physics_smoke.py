@@ -26,7 +26,7 @@ from properties_physics_common import point_cache_ui
 from properties_physics_common import effector_weights_ui
 
 
-class PhysicButtonsPanel(bpy.types.Panel):
+class PhysicButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"
@@ -37,7 +37,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 
 
-class PHYSICS_PT_smoke(PhysicButtonsPanel):
+class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke"
 
     def draw(self, context):
@@ -126,7 +126,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
             #	layout.separator()
 
 
-class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
+class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke Groups"
     bl_default_closed = True
 
@@ -155,7 +155,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
         col.prop(group, "coll_group", text="")
 
 
-class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
+class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke Cache"
     bl_default_closed = True
 
@@ -175,7 +175,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
         point_cache_ui(self, context, cache, (cache.baked is False), 'SMOKE')
 
 
-class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
+class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke High Resolution"
     bl_default_closed = True
 
@@ -211,7 +211,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
         col.prop(md, "strength")
 
 
-class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
+class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke High Resolution Cache"
     bl_default_closed = True
 
@@ -231,7 +231,7 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
         point_cache_ui(self, context, cache, (cache.baked is False), 'SMOKE')
 
 
-class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel):
+class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke Field Weights"
     bl_default_closed = True
 
@@ -244,25 +244,12 @@ class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel):
         effector_weights_ui(self, context, domain.effector_weights)
 
 
-classes = [
-    PHYSICS_PT_smoke,
-    PHYSICS_PT_smoke_field_weights,
-    PHYSICS_PT_smoke_cache,
-    PHYSICS_PT_smoke_highres,
-    PHYSICS_PT_smoke_groups,
-    PHYSICS_PT_smoke_cache_highres]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

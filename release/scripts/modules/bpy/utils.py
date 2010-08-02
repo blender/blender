@@ -29,6 +29,7 @@ import sys as _sys
 
 from _bpy import blend_paths
 from _bpy import script_paths as _bpy_script_paths
+from _bpy import LoadModule, UnloadModule
 
 
 def _test_import(module_name, loaded_modules):
@@ -84,7 +85,7 @@ def modules_from_path(path, loaded_modules):
             modules.append(mod)
 
     return modules
-
+            
 _loaded = [] # store loaded modules for reloading.
 _bpy_types = __import__("bpy_types") # keep for comparisons, never ever reload this.
 
@@ -108,6 +109,15 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     if refresh_scripts:
         original_modules = _sys.modules.values()
 
+    def unload_module(mod):
+        UnloadModule(mod.__name__)
+        unregister = getattr(mod, "unregister", None)
+        if unregister:
+            try:
+                unregister()
+            except:
+                traceback.print_exc()
+                
     def sys_path_ensure(path):
         if path not in _sys.path: # reloading would add twice
             _sys.path.insert(0, path)
@@ -134,6 +144,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             mod = test_reload(mod)
 
         if mod:
+            LoadModule(mod.__name__, reload_scripts)
             register = getattr(mod, "register", None)
             if register:
                 try:
@@ -165,12 +176,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         # loop over and unload all scripts
         _loaded.reverse()
         for mod in _loaded:
-            unregister = getattr(mod, "unregister", None)
-            if unregister:
-                try:
-                    unregister()
-                except:
-                    traceback.print_exc()
+            unload_module(mod)
 
         for mod in _loaded:
             reload(mod)
@@ -336,7 +342,7 @@ _presets = _os.path.join(_scripts[0], "presets") # FIXME - multiple paths
 
 def preset_paths(subdir):
     '''
-    Returns a list of paths for a spesific preset.
+    Returns a list of paths for a specific preset.
     '''
 
     return (_os.path.join(_presets, subdir), )

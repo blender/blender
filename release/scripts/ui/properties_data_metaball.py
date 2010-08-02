@@ -23,7 +23,7 @@ from rna_prop_ui import PropertyPanel
 narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
-class DataButtonsPanel(bpy.types.Panel):
+class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
@@ -32,7 +32,7 @@ class DataButtonsPanel(bpy.types.Panel):
         return context.meta_ball
 
 
-class DATA_PT_context_metaball(DataButtonsPanel):
+class DATA_PT_context_metaball(DataButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
 
@@ -59,11 +59,11 @@ class DATA_PT_context_metaball(DataButtonsPanel):
                 layout.template_ID(space, "pin_id")
 
 
-class DATA_PT_custom_props_metaball(DataButtonsPanel, PropertyPanel):
+class DATA_PT_custom_props_metaball(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
     _context_path = "object.data"
 
 
-class DATA_PT_metaball(DataButtonsPanel):
+class DATA_PT_metaball(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Metaball"
 
     def draw(self, context):
@@ -92,7 +92,7 @@ class DATA_PT_metaball(DataButtonsPanel):
             layout.prop(mball, "flag", text="")
 
 
-class DATA_PT_metaball_element(DataButtonsPanel):
+class DATA_PT_metaball_element(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Active Element"
 
     def poll(self, context):
@@ -136,24 +136,12 @@ class DATA_PT_metaball_element(DataButtonsPanel):
             col.prop(metaelem, "size_y", text="Y")
 
 
-classes = [
-    DATA_PT_context_metaball,
-    DATA_PT_metaball,
-    DATA_PT_metaball_element,
-
-    DATA_PT_custom_props_metaball]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

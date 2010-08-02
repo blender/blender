@@ -1032,11 +1032,9 @@ def menu_func(self, context):
     self.layout.operator(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)")
 
 def register():
-    bpy.types.register(IMPORT_OT_autodesk_3ds)
     bpy.types.INFO_MT_file_import.append(menu_func)
 
 def unregister():
-    bpy.types.unregister(IMPORT_OT_autodesk_3ds)
     bpy.types.INFO_MT_file_import.remove(menu_func)
 
 # NOTES:

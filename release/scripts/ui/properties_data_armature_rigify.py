@@ -307,33 +307,11 @@ class INFO_MT_armature_metarig_add(bpy.types.Menu):
             text = bpy.utils.display_name(submodule_type)
             layout.operator("pose.metarig_sample_add", text=text, icon='OUTLINER_OB_ARMATURE').metarig_type = submodule_type
 
-classes = [
-    DATA_PT_template,
-
-    PoseTemplateSettings,
-    PoseTemplate,
-
-    Reload,
-    Generate,
-    Validate,
-    Sample,
-    Graph,
-    AsScript,
-
-    ActiveAssign,
-    ActiveClear,
-
-    INFO_MT_armature_metarig_add]
-
 menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))
 import space_info # ensure the menu is loaded first
 
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
-
     PoseTemplate.StringProperty(attr="name",
                     name="Name of the slave",
                     description="",
@@ -361,10 +339,6 @@ def register():
 
 def unregister():
     bpy.types.Scene.RemoveProperty("pose_templates")
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
-
     space_info.INFO_MT_armature_add.remove(menu_func)
 
 if __name__ == "__main__":

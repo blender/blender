@@ -23,7 +23,7 @@ from rna_prop_ui import PropertyPanel
 narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
-class DataButtonsPanel(bpy.types.Panel):
+class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
@@ -32,7 +32,7 @@ class DataButtonsPanel(bpy.types.Panel):
         return context.armature
 
 
-class DATA_PT_context_arm(DataButtonsPanel):
+class DATA_PT_context_arm(DataButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
 
@@ -56,11 +56,11 @@ class DATA_PT_context_arm(DataButtonsPanel):
             layout.template_ID(ob, "data")
 
 
-class DATA_PT_custom_props_arm(DataButtonsPanel, PropertyPanel):
+class DATA_PT_custom_props_arm(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
     _context_path = "object.data"
 
 
-class DATA_PT_skeleton(DataButtonsPanel):
+class DATA_PT_skeleton(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Skeleton"
 
     def draw(self, context):
@@ -95,7 +95,7 @@ class DATA_PT_skeleton(DataButtonsPanel):
         col.prop(arm, "deform_quaternion", text="Quaternion")
 
 
-class DATA_PT_display(DataButtonsPanel):
+class DATA_PT_display(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
 
     def draw(self, context):
@@ -124,7 +124,7 @@ class DATA_PT_display(DataButtonsPanel):
         col.prop(arm, "delay_deform", text="Delay Refresh")
 
 
-class DATA_PT_bone_groups(DataButtonsPanel):
+class DATA_PT_bone_groups(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Bone Groups"
 
     def poll(self, context):
@@ -174,7 +174,7 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 
 
 # TODO: this panel will soon be depreceated too
-class DATA_PT_ghost(DataButtonsPanel):
+class DATA_PT_ghost(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Ghost"
 
     def draw(self, context):
@@ -207,7 +207,7 @@ class DATA_PT_ghost(DataButtonsPanel):
         col.prop(arm, "ghost_only_selected", text="Selected Only")
 
 
-class DATA_PT_iksolver_itasc(DataButtonsPanel):
+class DATA_PT_iksolver_itasc(DataButtonsPanel, bpy.types.Panel):
     bl_label = "iTaSC parameters"
     bl_default_closed = True
 
@@ -261,33 +261,58 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel):
                 row.prop(itasc, "dampmax", text="Damp", slider=True)
                 row.prop(itasc, "dampeps", text="Eps", slider=True)
 
-# import generic panels from other files
-from properties_animviz import DATA_PT_motion_paths, DATA_PT_onion_skinning
+from properties_animviz import MotionPathButtonsPanel, OnionSkinButtonsPanel
 
-classes = [
-    DATA_PT_context_arm,
-    DATA_PT_skeleton,
-    DATA_PT_display,
-    DATA_PT_bone_groups,
-    DATA_PT_ghost,
-    DATA_PT_iksolver_itasc,
+class DATA_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
+    #bl_label = "Bones Motion Paths"
+    bl_context = "data"
 
-    DATA_PT_motion_paths,
-    #DATA_PT_onion_skinning,
+    def poll(self, context):
+        # XXX: include posemode check?
+        return (context.object) and (context.armature)
 
-    DATA_PT_custom_props_arm]
+    def draw(self, context):
+        layout = self.layout
 
+        ob = context.object
+        wide_ui = context.region.width > narrowui
+
+        self.draw_settings(context, ob.pose.animation_visualisation, wide_ui, bones=True)
+
+        layout.separator()
+
+        split = layout.split()
+
+        col = split.column()
+        col.operator("pose.paths_calculate", text="Calculate Paths")
+
+        if wide_ui:
+            col = split.column()
+        col.operator("pose.paths_clear", text="Clear Paths")
+
+
+class DATA_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # inherit from panel when ready
+    #bl_label = "Bones Onion Skinning"
+    bl_context = "data"
+
+    def poll(self, context):
+        # XXX: include posemode check?
+        return (context.object) and (context.armature)
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+        wide_ui = context.region.width > narrowui
+
+        self.draw_settings(context, ob.pose.animation_visualisation, wide_ui, bones=True)
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

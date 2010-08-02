@@ -56,10 +56,10 @@ class DiscontFilterOp(bpy.types.Operator):
         return {'FINISHED'}
 
 def register():
-    bpy.types.register(DiscontFilterOp)
+    pass
 
 def unregister():
-    bpy.types.unregister(DiscontFilterOp)
+    pass
 
 if __name__ == "__main__":
     register()

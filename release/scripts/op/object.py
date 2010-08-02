@@ -558,28 +558,12 @@ class ClearAllRestrictRender(bpy.types.Operator):
         return {'FINISHED'}
 
 
-classes = [
-    SelectPattern,
-    SelectCamera,
-    SelectHierarchy,
-    SubdivisionSet,
-    ShapeTransfer,
-    JoinUVs,
-    IsolateTypeRender,
-    MakeDupliFace,
-    ClearAllRestrictRender]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

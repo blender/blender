@@ -23,13 +23,13 @@ from rna_prop_ui import PropertyPanel
 narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
-class ObjectButtonsPanel(bpy.types.Panel):
+class ObjectButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"
 
 
-class OBJECT_PT_context_object(ObjectButtonsPanel):
+class OBJECT_PT_context_object(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
 
@@ -46,11 +46,7 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
             row.prop(ob, "name", text="")
 
 
-class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel):
-    _context_path = "object"
-
-
-class OBJECT_PT_transform(ObjectButtonsPanel):
+class OBJECT_PT_transform(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Transform"
 
     def draw(self, context):
@@ -90,7 +86,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
             col.prop(ob, "scale")
 
 
-class OBJECT_PT_transform_locks(ObjectButtonsPanel):
+class OBJECT_PT_transform_locks(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Transform Locks"
     bl_default_closed = True
 
@@ -117,7 +113,7 @@ class OBJECT_PT_transform_locks(ObjectButtonsPanel):
         row.column().prop(ob, "lock_scale", text="Scale")
 
 
-class OBJECT_PT_relations(ObjectButtonsPanel):
+class OBJECT_PT_relations(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Relations"
 
     def draw(self, context):
@@ -146,7 +142,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
         sub.active = (parent is not None)
 
 
-class OBJECT_PT_groups(ObjectButtonsPanel):
+class OBJECT_PT_groups(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Groups"
 
     def draw(self, context):
@@ -187,7 +183,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
                 index += 1
 
 
-class OBJECT_PT_display(ObjectButtonsPanel):
+class OBJECT_PT_display(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
 
     def draw(self, context):
@@ -223,7 +219,7 @@ class OBJECT_PT_display(ObjectButtonsPanel):
         col.prop(ob, "draw_transparent", text="Transparency")
 
 
-class OBJECT_PT_duplication(ObjectButtonsPanel):
+class OBJECT_PT_duplication(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Duplication"
 
     def draw(self, context):
@@ -272,8 +268,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 
 # XXX: the following options are all quite buggy, ancient hacks that should be dropped
 
-
-class OBJECT_PT_animation(ObjectButtonsPanel):
+class OBJECT_PT_animation(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Animation Hacks"
     bl_default_closed = True
 
@@ -306,36 +301,60 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         col.prop(ob, "track_axis", text="Axis")
         col.prop(ob, "up_axis", text="Up Axis")
 
+from properties_animviz import MotionPathButtonsPanel, OnionSkinButtonsPanel
 
-# import generic panels from other files
-from properties_animviz import OBJECT_PT_motion_paths, OBJECT_PT_onion_skinning
 
-classes = [
-    OBJECT_PT_context_object,
-    OBJECT_PT_transform,
-    OBJECT_PT_transform_locks,
-    OBJECT_PT_relations,
-    OBJECT_PT_groups,
-    OBJECT_PT_display,
-    OBJECT_PT_duplication,
-    OBJECT_PT_animation, # XXX: panel of old hacks pending to be removed...
+class OBJECT_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
+    #bl_label = "Object Motion Paths"
+    bl_context = "object"
 
-    OBJECT_PT_motion_paths,
-    #OBJECT_PT_onion_skinning,
+    def poll(self, context):
+        return (context.object)
 
-    OBJECT_PT_custom_props]
+    def draw(self, context):
+        layout = self.layout
 
+        ob = context.object
+        wide_ui = context.region.width > narrowui
+
+        self.draw_settings(context, ob.animation_visualisation, wide_ui)
+
+        layout.separator()
+
+        split = layout.split()
+
+        col = split.column()
+        col.operator("object.paths_calculate", text="Calculate Paths")
+
+        if wide_ui:
+            col = split.column()
+        col.operator("object.paths_clear", text="Clear Paths")
+
+
+class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # inherit from panel when ready
+    #bl_label = "Object Onion Skinning"
+    bl_context = "object"
+
+    def poll(self, context):
+        return (context.object)
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+        wide_ui = context.region.width > narrowui
+
+        self.draw_settings(context, ob.animation_visualisation, wide_ui)
+
+class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, bpy.types.Panel):
+    _context_path = "object"
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

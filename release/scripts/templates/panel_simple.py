@@ -19,4 +19,3 @@ class OBJECT_PT_hello(bpy.types.Panel):
         row = layout.row()
         row.prop(obj, "name")
 
-bpy.types.register(OBJECT_PT_hello)

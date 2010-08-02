@@ -1129,36 +1129,11 @@ class WM_OT_addon_expand(bpy.types.Operator):
         return {'FINISHED'}
 
 
-classes = [
-    USERPREF_HT_header,
-    USERPREF_PT_tabs,
-    USERPREF_PT_interface,
-    USERPREF_PT_theme,
-    USERPREF_PT_edit,
-    USERPREF_PT_system,
-    USERPREF_PT_file,
-    USERPREF_PT_input,
-    USERPREF_PT_addons,
-
-    USERPREF_MT_interaction_presets,
-    USERPREF_MT_splash,
-
-    WM_OT_addon_enable,
-    WM_OT_addon_disable,
-    WM_OT_addon_install,
-    WM_OT_addon_expand]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
-
+    pass
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

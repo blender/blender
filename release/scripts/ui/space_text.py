@@ -297,33 +297,12 @@ class TEXT_MT_toolbox(bpy.types.Menu):
 
         layout.operator("text.run_script")
 
-
-classes = [
-    TEXT_HT_header,
-    TEXT_PT_properties,
-    TEXT_PT_find,
-    TEXT_MT_view,
-    TEXT_MT_text,
-    TEXT_MT_templates,
-    TEXT_MT_format,
-    TEXT_MT_edit,
-    TEXT_MT_edit_view,
-    TEXT_MT_edit_select,
-    TEXT_MT_edit_markers,
-    TEXT_MT_edit_to3d,
-    TEXT_MT_toolbox]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

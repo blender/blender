@@ -180,11 +180,11 @@ class VertexPaintDirt(bpy.types.Operator):
 
 
 def register():
-    bpy.types.register(VertexPaintDirt)
+    pass
 
 
 def unregister():
-    bpy.types.unregister(VertexPaintDirt)
+    pass
 
 if __name__ == "__main__":
     register()

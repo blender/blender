@@ -22,7 +22,7 @@ import bpy
 narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
-class PhysicButtonsPanel(bpy.types.Panel):
+class PhysicButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"
@@ -33,7 +33,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 
 
-class PHYSICS_PT_fluid(PhysicButtonsPanel):
+class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Fluid"
 
     def draw(self, context):
@@ -216,7 +216,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
                 sub.prop(fluid, "velocity_radius", text="Radius")
 
 
-class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
+class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain World"
     bl_default_closed = True
 
@@ -267,7 +267,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
         col.prop(fluid, "compressibility", slider=True)
 
 
-class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
+class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain Boundary"
     bl_default_closed = True
 
@@ -296,7 +296,7 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
         col.prop(fluid, "surface_subdivisions", text="Subdivisions")
 
 
-class PHYSICS_PT_domain_particles(PhysicButtonsPanel):
+class PHYSICS_PT_domain_particles(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain Particles"
     bl_default_closed = True
 
@@ -314,23 +314,12 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel):
         col.prop(fluid, "generate_particles")
 
 
-classes = [
-    PHYSICS_PT_fluid,
-    PHYSICS_PT_domain_gravity,
-    PHYSICS_PT_domain_boundary,
-    PHYSICS_PT_domain_particles]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()
