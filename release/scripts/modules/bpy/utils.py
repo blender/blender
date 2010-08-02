@@ -29,7 +29,7 @@ import sys as _sys
 
 from _bpy import blend_paths
 from _bpy import script_paths as _bpy_script_paths
-from _bpy import LoadModule, UnloadModule
+from _bpy import _load_module, _unload_module
 
 
 def _test_import(module_name, loaded_modules):
@@ -113,7 +113,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         original_modules = _sys.modules.values()
 
     def unload_module(mod):
-        UnloadModule(mod.__name__)
+        _unload_module(mod.__name__)
         unregister = getattr(mod, "unregister", None)
         if unregister:
             try:
@@ -147,7 +147,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             mod = test_reload(mod)
 
         if mod:
-            LoadModule(mod.__name__, reload_scripts)
+            _load_module(mod.__name__, reload_scripts)
             register = getattr(mod, "register", None)
             if register:
                 try:

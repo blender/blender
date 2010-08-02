@@ -551,29 +551,32 @@ PropertiesMap = {}
 # registers moduals instantly.
 _register_immediate = True
 
-def UnloadModule(module):
-    for t in TypeMap.setdefault(module, ()):
+def _unload_module(module):
+    for t in TypeMap.get(module, ()):
         bpy_types.unregister(t)
-        
-    del TypeMap[module]
 
-    for t in PropertiesMap.setdefault(module, ()):
+    if module in TypeMap:
+        del TypeMap[module]
+
+
+    for t in PropertiesMap.get(module, ()):
         bpy_types.unregister(t)
-        
-    del PropertiesMap[module]
 
-def LoadModule(module, force=False):
+    if module in PropertiesMap:
+        del PropertiesMap[module]
+
+def _load_module(module, force=False):
     for t in TypeMap.get(module, ()):
         bpy_types.register(t)
 
-_bpy.LoadModule = LoadModule
-_bpy.UnloadModule = UnloadModule
+_bpy._load_module = _load_module
+_bpy._unload_module = _unload_module
 
 class RNAMeta(type):
     @classmethod
     def _register_immediate(cls):
         return _register_immediate
-
+    
     def __new__(cls, name, bases, classdict, **args):
         result = type.__new__(cls, name, bases, classdict)
         if bases and bases[0] != StructRNA:
@@ -589,7 +592,7 @@ class RNAMeta(type):
             # first part of packages only
             if "." in module:
                 module = module[:module.index(".")]
-
+            
             ClassMap.setdefault(module, []).append(result)
 
         return result
