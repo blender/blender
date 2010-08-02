@@ -123,16 +123,16 @@ IF(WITH_INSTALL)
 		
 		ADD_CUSTOM_COMMAND(
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-			COMMAND rm -Rf ${TARGETDIR}/.blender
-			COMMAND mkdir ${TARGETDIR}/.blender/
-			COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf ${TARGETDIR}/.blender/
+			COMMAND rm -Rf ${TARGETDIR}/${BLENDER_VERSION}
+			COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/
+			COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf ${TARGETDIR}/${BLENDER_VERSION}/
 		)
     
 		IF(WITH_INTERNATIONAL)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages ${TARGETDIR}/.blender/
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale ${TARGETDIR}/.blender/
+				COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages ${TARGETDIR}/${BLENDER_VERSION}/
+				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale ${TARGETDIR}/${BLENDER_VERSION}/
 			)
 		ENDIF(WITH_INTERNATIONAL)
     
@@ -140,7 +140,7 @@ IF(WITH_INSTALL)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 				COMMENT "copying blender scripts..."
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/.blender/
+				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/${BLENDER_VERSION}/
 				COMMAND find ${TARGETDIR} -name "*.py?" -prune -exec rm -rf {} "\;"
 			)
 			IF(WITH_PYTHON_INSTALL)
@@ -150,23 +150,23 @@ IF(WITH_INSTALL)
 					TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 					COMMENT "copying a subset of the systems python..."
 
-					COMMAND mkdir ${TARGETDIR}/.blender/python # PYTHONPATH and PYTHONHOME is set here
-					COMMAND mkdir ${TARGETDIR}/.blender/python/lib/
-					COMMAND cp -R ${PYTHON_LIBPATH}/python${PYTHON_VERSION} ${TARGETDIR}/.blender/python/lib/
+					COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/python # PYTHONPATH and PYTHONHOME is set here
+					COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/python/lib/
+					COMMAND cp -R ${PYTHON_LIBPATH}/python${PYTHON_VERSION} ${TARGETDIR}/${BLENDER_VERSION}/python/lib/
 
-					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/distutils
-					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib2to3
-					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/idlelib
-					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/tkinter
-					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/config
+					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/distutils
+					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/lib2to3
+					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/idlelib
+					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/tkinter
+					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/config
 
-					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages
-					COMMAND mkdir ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages    # python needs it.
+					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/site-packages
+					COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/site-packages    # python needs it.
 
-					COMMAND rm -f ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib-dynload/_tkinter.so
-					COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "test" -prune -exec rm -rf {} "\;"
-					COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.py?" -exec rm -rf {} "\;"
-					COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.so"-exec strip -s {} "\;"
+					COMMAND rm -f ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/lib-dynload/_tkinter.so
+					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name "test" -prune -exec rm -rf {} "\;"
+					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name "*.py?" -exec rm -rf {} "\;"
+					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name "*.so"-exec strip -s {} "\;"
 				)
 			ENDIF(WITH_PYTHON_INSTALL)
 		ENDIF(WITH_PYTHON)
