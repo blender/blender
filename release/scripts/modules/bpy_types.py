@@ -553,14 +553,24 @@ _register_immediate = True
 
 def _unload_module(module, free=True):
     for t in TypeMap.get(module, ()):
-        bpy_types.unregister(t)
+        try:
+            bpy_types.unregister(t)
+        except:
+            import traceback
+            print("bpy.utils._unload_module(): Module '%s' failed to unregister class '%s.%s'" % (module, t.__module__, t.__name__))
+            traceback.print_exc()
 
     if free == True and module in TypeMap:
         del TypeMap[module]
 
 
     for t in PropertiesMap.get(module, ()):
-        bpy_types.unregister(t)
+        try:
+            bpy_types.unregister(t)
+        except:
+            import traceback
+            print("bpy.utils._unload_module(): Module '%s' failed to unregister class '%s.%s'" % (module, t.__module__, t.__name__))
+            traceback.print_exc()
 
     if free == True and module in PropertiesMap:
         del PropertiesMap[module]
@@ -571,7 +581,7 @@ def _load_module(module, force=False):
             bpy_types.register(t)
         except:
             import traceback
-            print("bpy.utils._load_module(): Module '%s' failed to register calss '%s.%s'" % (module, t.__module__, t.__name__))
+            print("bpy.utils._load_module(): Module '%s' failed to register class '%s.%s'" % (module, t.__module__, t.__name__))
             traceback.print_exc()
 
 _bpy._load_module = _load_module
