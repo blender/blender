@@ -1,6 +1,6 @@
 
   This version of Blender has been originally released at www.blender.org.
-  It is subject to the GPL license, which is part of this download.
+  It is subject to the GNU GPL license, which is part of this download.
   For more information please review the Blender source code distribution, 
   which should be available at the same location as where you obtained 
   this version.
@@ -14,14 +14,12 @@
   License Agreement accompanies (the "Software"). 
   
   By installing, copying or otherwise using the Software, You agree to be
-  bound by the terms of this License Agreement. If You do not agree to the
-  terms of this License Agreement do not install or use the Software.
+  bound by the terms of this License Agreement.
   
   1. Grant of License
   
-  Subject to the provisions of this License Agreement, BF grants You a
-  limited, non-exclusive, personal, non-sublicenseable, non-transferable
-  license to use the Software at any computer You own or use. 
+  Subject to the provisions of the GNU GPL license, BF grants You a
+  non-exclusive right to use the Software at any computer You own or use. 
   Artwork you create with the Software - whether it is images, movies, 
   scripts, exported 3d files or the .blend files themselves - is your sole 
   property, and can be licensed or sold under any conditions you prefer. 
@@ -76,25 +74,8 @@
   out of or in connection with (i) the use of the Software by You and (ii)
   the use of any Works created with the Software by You or any third
   parties.
-  
-  6. Term and Termination
-  
-  This License Agreement and the license granted hereunder is effective
-  until terminated. This License Agreement shall terminate automatically
-  and forthwith if You fail to comply with the terms of this License
-  Agreement. Upon termination, You shall cease the use of the Software,
-  remove the Software from (the memory of) your computer and destroy all
-  copies of the Software.
-  
-  7. Entire Agreement
-  
-  This License Agreement is the entire agreement between BF and You in
-  respect of the subject matter of the License Agreement. This License
-  Agreement supersedes all prior written or oral agreements, proposals or
-  understandings, and any other communications between BF and You
-  relating to the subject matter of this License Agreement.
-  
-  8. Enforceability
+    
+  6. Enforceability
   
   If any provision of this License Agreement is held to be unenforceable
   by a court of competent jurisdiction for any reason, such provision
@@ -102,7 +83,7 @@
   enforceable, and the remainder of the License Agreement shall remain in
   effect.
   
-  9. Governing law and disputes
+  7. Governing law and disputes
   
   This License Agreement and all disputes arising from it will be governed
   by the laws of The Netherlands. All disputes arising in connection with
