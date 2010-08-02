@@ -827,7 +827,9 @@ class USERPREF_PT_addons(bpy.types.Panel):
         modules = []
         loaded_modules = set()
         paths = bpy.utils.script_paths("addons")
-
+        # if folder addons_contrib/ exists, scripts in there will be loaded
+        paths += bpy.utils.script_paths("addons_contrib")
+        
         if bpy.app.debug:
             t_main = time.time()
 
