@@ -567,7 +567,12 @@ def _unload_module(module, free=True):
 
 def _load_module(module, force=False):
     for t in TypeMap.get(module, ()):
-        bpy_types.register(t)
+        try:
+            bpy_types.register(t)
+        except:
+            import traceback
+            print("bpy.utils._load_module(): Module '%s' failed to register calss '%s.%s'" % (module, t.__module__, t.__name__))
+            traceback.print_exc()
 
 _bpy._load_module = _load_module
 _bpy._unload_module = _unload_module
