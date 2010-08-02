@@ -63,6 +63,17 @@
 
 // ====================================================================
 
+typedef enum
+{
+	AUD_DEVICE_NULL = 0,
+	AUD_DEVICE_OPENAL,
+	AUD_DEVICE_SDL,
+	AUD_DEVICE_JACK,
+	AUD_DEVICE_READ,
+} AUD_DeviceTypes;
+
+// ====================================================================
+
 #define PY_MODULE_ADD_CONSTANT(module, name) PyModule_AddIntConstant(module, #name, name)
 
 // ====================================================================
@@ -2158,6 +2169,83 @@ Device_dealloc(Device* self)
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
+static PyObject *
+Device_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+	Device *self;
+
+	static const char *kwlist[] = {"type", "rate", "channels", "format", "buffer_size", NULL};
+	int device;
+	int rate = AUD_RATE_44100;
+	int channels = AUD_CHANNELS_STEREO;
+	int format = AUD_FORMAT_FLOAT32;
+	int buffersize = AUD_DEFAULT_BUFFER_SIZE;
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|iiii", const_cast<char**>(kwlist),
+									&device, &rate, &channels, &format, &buffersize))
+		return NULL;
+
+	if(buffersize < 128)
+	{
+		PyErr_SetString(PyExc_ValueError, "buffer_size must be greater than 127!");
+		return NULL;
+	}
+
+	self = (Device*)type->tp_alloc(type, 0);
+	if(self != NULL)
+	{
+		AUD_DeviceSpecs specs;
+		specs.channels = (AUD_Channels)channels;
+		specs.format = (AUD_SampleFormat)format;
+		specs.rate = (AUD_SampleRate)rate;
+
+		self->device = NULL;
+
+		try
+		{
+			switch(device)
+			{
+			case AUD_DEVICE_NULL:
+				self->device = new AUD_NULLDevice();
+				break;
+			case AUD_DEVICE_OPENAL:
+#ifdef WITH_OPENAL
+				self->device = new AUD_OpenALDevice(specs, buffersize);
+#endif
+				break;
+			case AUD_DEVICE_SDL:
+#ifdef WITH_SDL
+				self->device = new AUD_SDLDevice(specs, buffersize);
+#endif
+				break;
+			case AUD_DEVICE_JACK:
+#ifdef WITH_JACK
+				self->device = new AUD_JackDevice(specs, buffersize);
+#endif
+				break;
+			case AUD_DEVICE_READ:
+				break;
+			}
+
+		}
+		catch(AUD_Exception&)
+		{
+			Py_DECREF(self);
+			PyErr_SetString(AUDError, "Device couldn't be created!");
+			return NULL;
+		}
+
+		if(!self->device)
+		{
+			Py_DECREF(self);
+			PyErr_SetString(AUDError, "Unsupported device type!");
+			return NULL;
+		}
+	}
+
+	return (PyObject *)self;
+}
+
 PyDoc_STRVAR(M_aud_Device_play_doc,
 			 "play(sound[, keep])\n\n"
 			 "Plays a sound.\n\n"
@@ -2264,57 +2352,6 @@ Device_unlock(Device *self)
 	}
 }
 
-PyDoc_STRVAR(M_aud_Device_OpenAL_doc,
-			 "OpenAL([frequency[, buffer_size]])\n\n"
-			 "Creates an OpenAL device.\n\n"
-			 ":arg frequency: The prefered sampling frequency.\n"
-			 ":type frequency: integer\n"
-			 ":arg buffer_size: The size of a playback buffer, "
-			 "must be at least 128.\n"
-			 ":type buffer_size: integer\n"
-			 ":return: The created aud.Device object.\n"
-			 ":rtype: aud.Device");
-
-static PyObject *
-Device_OpenAL(PyTypeObject *type, PyObject *args, PyObject *kwds);
-
-PyDoc_STRVAR(M_aud_Device_SDL_doc,
-			 "SDL([frequency[, buffer_size]])\n\n"
-			 "Creates an SDL device.\n\n"
-			 ":arg frequency: The sampling frequency.\n"
-			 ":type frequency: integer\n"
-			 ":arg buffer_size: The size of the playback buffer, "
-			 "must be at least 128.\n"
-			 ":type buffer_size: integer\n"
-			 ":return: The created aud.Device object.\n"
-			 ":rtype: aud.Device");
-
-static PyObject *
-Device_SDL(PyTypeObject *type, PyObject *args, PyObject *kwds);
-
-PyDoc_STRVAR(M_aud_Device_Jack_doc,
-			 "Jack([channels[, buffer_size]])\n\n"
-			 "Creates a Jack device.\n\n"
-			 ":arg channels: The count of channels.\n"
-			 ":type channels: integer\n"
-			 ":arg buffer_size: The size of the playback buffer, "
-			 "must be at least 128.\n"
-			 ":type buffer_size: integer\n"
-			 ":return: The created aud.Device object.\n"
-			 ":rtype: aud.Device");
-
-static PyObject *
-Device_Jack(PyTypeObject *type, PyObject *args, PyObject *kwds);
-
-PyDoc_STRVAR(M_aud_Device_Null_doc,
-			 "Null()\n\n"
-			 "Creates a Null device.\n\n"
-			 ":return: The created aud.Device object.\n"
-			 ":rtype: aud.Device");
-
-static PyObject *
-Device_Null(PyTypeObject *type);
-
 static PyMethodDef Device_methods[] = {
 	{"play", (PyCFunction)Device_play, METH_VARARGS | METH_KEYWORDS,
 	 M_aud_Device_play_doc
@@ -2324,18 +2361,6 @@ static PyMethodDef Device_methods[] = {
 	},
 	{"unlock", (PyCFunction)Device_unlock, METH_NOARGS,
 	 M_aud_Device_unlock_doc
-	},
-	{"OpenAL", (PyCFunction)Device_OpenAL, METH_VARARGS | METH_STATIC | METH_KEYWORDS,
-	 M_aud_Device_OpenAL_doc
-	},
-	{"SDL", (PyCFunction)Device_SDL, METH_VARARGS | METH_STATIC | METH_KEYWORDS,
-	 M_aud_Device_SDL_doc
-	},
-	{"Jack", (PyCFunction)Device_Jack, METH_VARARGS | METH_STATIC | METH_KEYWORDS,
-	 M_aud_Device_Jack_doc
-	},
-	{"Null", (PyCFunction)Device_Null, METH_NOARGS | METH_STATIC,
-	 M_aud_Device_Null_doc
 	},
 	{NULL}  /* Sentinel */
 };
@@ -2822,169 +2847,8 @@ static PyTypeObject DeviceType = {
 	0,                         /* tp_dictoffset */
 	0,                         /* tp_init */
 	0,                         /* tp_alloc */
-	0,                         /* tp_new */
+	Device_new,                /* tp_new */
 };
-
-static PyObject *
-Device_OpenAL(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-#ifdef WITH_OPENAL
-	int buffersize = AUD_DEFAULT_BUFFER_SIZE;
-	int frequency = AUD_RATE_44100;
-
-	static const char *kwlist[] = {"frequency", "buffer_size", NULL};
-
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", const_cast<char**>(kwlist), &frequency, &buffersize))
-		return NULL;
-
-	if(buffersize < 128)
-	{
-		PyErr_SetString(PyExc_ValueError, "buffer_size must be greater than 127!");
-		return NULL;
-	}
-
-	Device *self;
-
-	self = (Device*)DeviceType.tp_alloc(&DeviceType, 0);
-	if(self != NULL)
-	{
-		try
-		{
-			AUD_DeviceSpecs specs;
-			specs.rate = static_cast<AUD_SampleRate>(frequency);
-			specs.channels = AUD_CHANNELS_STEREO;
-			specs.format = AUD_FORMAT_S16;
-			self->device = new AUD_OpenALDevice(specs, buffersize);
-		}
-		catch(AUD_Exception&)
-		{
-			Py_DECREF(self);
-			PyErr_SetString(AUDError, "OpenAL device couldn't be created!");
-			return NULL;
-		}
-	}
-
-	return (PyObject *)self;
-#else
-	PyErr_SetString(AUDError, "OpenAL device couldn't be created!");
-	return NULL;
-#endif
-}
-
-static PyObject *
-Device_SDL(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-#ifdef WITH_SDL
-	int buffersize = AUD_DEFAULT_BUFFER_SIZE;
-	int frequency = AUD_RATE_44100;
-
-	static const char *kwlist[] = {"frequency", "buffer_size", NULL};
-
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", const_cast<char**>(kwlist), &frequency, &buffersize))
-		return NULL;
-
-	if(buffersize < 128)
-	{
-		PyErr_SetString(PyExc_ValueError, "buffer_size must be greater than 127!");
-		return NULL;
-	}
-
-	Device *self;
-
-	self = (Device*)DeviceType.tp_alloc(&DeviceType, 0);
-	if(self != NULL)
-	{
-		try
-		{
-			AUD_DeviceSpecs specs;
-			specs.rate = static_cast<AUD_SampleRate>(frequency);
-			specs.channels = AUD_CHANNELS_STEREO;
-			specs.format = AUD_FORMAT_S16;
-			self->device = new AUD_SDLDevice(specs, buffersize);
-		}
-		catch(AUD_Exception&)
-		{
-			Py_DECREF(self);
-			PyErr_SetString(AUDError, "SDL device couldn't be created!");
-			return NULL;
-		}
-	}
-
-	return (PyObject *)self;
-#else
-	PyErr_SetString(AUDError, "SDL device couldn't be created!");
-	return NULL;
-#endif
-}
-
-static PyObject *
-Device_Jack(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-#ifdef WITH_JACK
-	int buffersize = AUD_DEFAULT_BUFFER_SIZE;
-	int channels = AUD_CHANNELS_STEREO;
-
-	static const char *kwlist[] = {"channels", "buffer_size", NULL};
-
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", const_cast<char**>(kwlist), &channels, &buffersize))
-		return NULL;
-
-	if(buffersize < 128)
-	{
-		PyErr_SetString(PyExc_ValueError, "buffer_size must be greater than 127!");
-		return NULL;
-	}
-
-	Device *self;
-
-	self = (Device*)DeviceType.tp_alloc(&DeviceType, 0);
-	if(self != NULL)
-	{
-		try
-		{
-			AUD_DeviceSpecs specs;
-			specs.rate = AUD_RATE_44100;
-			specs.channels = static_cast<AUD_Channels>(channels);
-			specs.format = AUD_FORMAT_FLOAT32;
-			self->device = new AUD_JackDevice(specs, buffersize);
-		}
-		catch(AUD_Exception&)
-		{
-			Py_DECREF(self);
-			PyErr_SetString(AUDError, "Jack device couldn't be created!");
-			return NULL;
-		}
-	}
-
-	return (PyObject *)self;
-#else
-	PyErr_SetString(AUDError, "Jack device couldn't be created!");
-	return NULL;
-#endif
-}
-
-static PyObject *
-Device_Null(PyTypeObject *type)
-{
-	Device *self;
-
-	self = (Device*)DeviceType.tp_alloc(&DeviceType, 0);
-	if(self != NULL)
-	{
-		try
-		{
-			self->device = new AUD_NULLDevice();
-		}
-		catch(AUD_Exception&)
-		{
-			Py_DECREF(self);
-			PyErr_SetString(AUDError, "Null device couldn't be created!");
-			return NULL;
-		}
-	}
-
-	return (PyObject *)self;
-}
 
 PyObject *
 Device_empty()
@@ -3037,6 +2901,12 @@ PyInit_aud(void)
 	Py_INCREF(AUDError);
 	PyModule_AddObject(m, "error", AUDError);
 
+	// device constants
+	PY_MODULE_ADD_CONSTANT(m, AUD_DEVICE_NULL);
+	PY_MODULE_ADD_CONSTANT(m, AUD_DEVICE_OPENAL);
+	PY_MODULE_ADD_CONSTANT(m, AUD_DEVICE_SDL);
+	PY_MODULE_ADD_CONSTANT(m, AUD_DEVICE_JACK);
+	//PY_MODULE_ADD_CONSTANT(m, AUD_DEVICE_READ);
 	// format constants
 	PY_MODULE_ADD_CONSTANT(m, AUD_FORMAT_FLOAT32);
 	PY_MODULE_ADD_CONSTANT(m, AUD_FORMAT_FLOAT64);
