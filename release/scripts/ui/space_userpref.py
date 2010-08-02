@@ -842,12 +842,23 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         if 1:
             # fake module importing
-            def fake_module(mod_name, mod_path, speedy=False):
-                print("fake_module", mod_name, mod_path)
+            def fake_module(mod_name, mod_path, speedy=True):
+                if bpy.app.debug:
+                    print("fake_module", mod_name, mod_path)
                 import ast
                 ModuleType = type(ast)
                 if speedy:
-                    pass
+                    lines = []
+                    line_iter = iter(open(mod_path, "r"))
+                    l = ""
+                    while not l.startswith("bl_addon_info"):
+                        l = line_iter.readline()
+                    while l.rstrip():
+                        lines.append(l)
+                        l = line_iter.readline()
+                    del line_iter
+                    data = "".join(lines)
+
                 else:
                     data = open(mod_path, "r").read()
 
