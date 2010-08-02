@@ -1387,6 +1387,7 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_UVProjector_object_get", "rna_UVProjector_object_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_ui_text(prop, "Object", "Object to use as projector transform");
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 }
 
 static void rna_def_modifier_smooth(BlenderRNA *brna)
