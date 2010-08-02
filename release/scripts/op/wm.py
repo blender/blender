@@ -21,7 +21,7 @@
 import bpy
 
 from bpy.props import *
-
+from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 
 class MESH_OT_delete_edgeloop(bpy.types.Operator):
     '''Delete an edge loop by merging the faces on each side to a single face loop'''
