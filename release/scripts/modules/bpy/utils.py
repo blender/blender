@@ -102,6 +102,9 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     import traceback
     import time
 
+    # must be set back to True on exits
+    _bpy_types._register_immediate = False
+
     t_main = time.time()
 
     loaded_modules = set()
@@ -217,6 +220,8 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     if _bpy.app.debug:
         print("Python Script Load Time %.4f" % (time.time() - t_main))
+    
+    _bpy_types._register_immediate = True
 
 
 def expandpath(path):

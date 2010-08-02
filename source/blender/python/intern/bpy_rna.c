@@ -4175,11 +4175,9 @@ static PyObject *pyrna_basetype_getattro( BPy_BaseTypeRNA *self, PyObject *pynam
 static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self);
 static PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class);
 static PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class);
-static PyObject *pyrna_register_immediate(PyObject *self);
 
 static struct PyMethodDef pyrna_basetype_methods[] = {
 	{"__dir__", (PyCFunction)pyrna_basetype_dir, METH_NOARGS, ""},
-	{"immediate", (PyCFunction)pyrna_register_immediate, METH_NOARGS, ""},
 	{"register", (PyCFunction)pyrna_basetype_register, METH_O, ""},
 	{"unregister", (PyCFunction)pyrna_basetype_unregister, METH_O, ""},
 	{NULL, NULL, 0, NULL}
@@ -4546,9 +4544,16 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 	PyGILState_STATE gilstate;
 
 	bContext *C= BPy_GetContext(); // XXX - NEEDS FIXING, QUITE BAD.
-	bpy_context_set(C, &gilstate);
-
+	
 	py_class= RNA_struct_py_type_get(ptr->type);
+	
+	/* rare case. can happen when registering subclasses */
+	if(py_class==NULL) {
+		fprintf(stderr, "bpy_class_call(): unable to get python class for rna struct '%.200s'\n", RNA_struct_identifier(ptr->type));
+		return -1;
+	}
+	
+	bpy_context_set(C, &gilstate);
 	
 	/* exception, operators store their PyObjects for re-use */
 	if(ptr->data) {
@@ -4738,7 +4743,16 @@ void pyrna_alloc_types(void)
 	prop = RNA_struct_find_property(&ptr, "structs");
 
 	RNA_PROP_BEGIN(&ptr, itemptr, prop) {
-		Py_DECREF(pyrna_struct_Subtype(&itemptr));
+		PyObject *item= pyrna_struct_Subtype(&itemptr);
+		if(item == NULL) {
+			if(PyErr_Occurred()) {
+				PyErr_Print();
+				PyErr_Clear();
+			}
+		}
+		else {
+			Py_DECREF(item);
+		}
 	}
 	RNA_PROP_END;
 
@@ -4771,22 +4785,6 @@ void pyrna_free_types(void)
 
 }
 
-static int IMMEDIATE = 0;
-
-void bpy_set_immediate_register(int value)
-{
-	IMMEDIATE = value;
-}
-
-static PyObject *pyrna_register_immediate(PyObject *self)
-{
-	if (IMMEDIATE) {
-		Py_RETURN_TRUE;
-	} else {
-		Py_RETURN_FALSE;
-	}
-}
-
 /* Note! MemLeak XXX
  *
  * There is currently a bug where moving registering a python class does
@@ -4817,6 +4815,14 @@ static PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 	if(srna==NULL)
 		return NULL;
 	
+	/* fails in cases, cant use this check but would like to :| */
+	/*
+	if(RNA_struct_py_type_get(srna)) {
+		PyErr_Format(PyExc_ValueError, "bpy.types.register(...): %.200s's parent class %.200s is alredy registered, this is not allowed.", ((PyTypeObject*)py_class)->tp_name, RNA_struct_identifier(srna));
+		return NULL;
+	}
+	*/
+
 	/* check that we have a register callback for this type */
 	reg= RNA_struct_register(srna);
 

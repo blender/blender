@@ -86,8 +86,6 @@ int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_
 
 int pyrna_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value, const char *error_prefix);
 
-void bpy_set_immediate_register(int value);
-
 int pyrna_deferred_register_props(struct StructRNA *srna, PyObject *class_dict);
 
 /* called before stopping python */

@@ -546,20 +546,24 @@ TypeMap = {}
 # and unregistered on unload
 PropertiesMap = {}
 
-def UnloadModule(module):
-    global TypeMap, PropertiesMap
-    for t in TypeMap.get(module, []):
-        bpy_types.unregister(t)
-        
-    TypeMap = {}
+# Using our own loading function we set this to false
+# so when running a script directly in the text editor
+# registers moduals instantly.
+_register_immediate = True
 
-    for t in PropertiesMap.get(module, []):
+def UnloadModule(module):
+    for t in TypeMap.setdefault(module, ()):
         bpy_types.unregister(t)
         
-    PropertiesMap = {}
-    
+    del TypeMap[module]
+
+    for t in PropertiesMap.setdefault(module, ()):
+        bpy_types.unregister(t)
+        
+    del PropertiesMap[module]
+
 def LoadModule(module, force=False):
-    for t in TypeMap.get(module, []):
+    for t in TypeMap.get(module, ()):
         bpy_types.register(t)
 
 _bpy.LoadModule = LoadModule
@@ -567,35 +571,33 @@ _bpy.UnloadModule = UnloadModule
 
 class RNAMeta(type):
     @classmethod
-    def _immediate(cls):
-        return bpy_types.immediate();
-    
+    def _register_immediate(cls):
+        return _register_immediate
+
     def __new__(cls, name, bases, classdict, **args):
         result = type.__new__(cls, name, bases, classdict)
         if bases and bases[0] != StructRNA:
             module = result.__module__
-            
+
             ClassMap = TypeMap
-            
+
             # Register right away if needed
-            if cls._immediate():
+            if cls._register_immediate():
                 bpy_types.register(result)
                 ClassMap = PropertiesMap 
 
             # first part of packages only
             if "." in module:
                 module = module[:module.index(".")]
-            
-            if not module in ClassMap:
-                ClassMap[module] = []
-                
-            ClassMap[module].append(result)
+
+            ClassMap.setdefault(module, []).append(result)
+
         return result
 
 class RNAMetaRegister(RNAMeta):
     @classmethod
-    def _immediate(cls):
-        return True;
+    def _register_immediate(cls):
+        return True
 
 class OrderedMeta(RNAMeta):
 
