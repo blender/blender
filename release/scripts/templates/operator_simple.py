@@ -16,11 +16,6 @@ class SimpleOperator(bpy.types.Operator):
         main(context)
         return {'FINISHED'}
 
-def register():
-    pass
-
-def unregister():
-    pass
 
 if __name__ == "__main__":
-    register()
+    bpy.ops.object.simple_operator()
