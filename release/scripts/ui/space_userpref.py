@@ -1103,7 +1103,7 @@ class WM_OT_addon_enable(bpy.types.Operator):
 
         try:
             mod = __import__(module_name)
-            bpy.utils._load_module(module_name)
+            _bpy_types._register_module(module_name)
             mod.register()
         except:
             import traceback
@@ -1132,14 +1132,15 @@ class WM_OT_addon_disable(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to disable")
 
     def execute(self, context):
-        import traceback
+        import bpy_types as _bpy_types
         module_name = self.properties.module
 
         try:
             mod = __import__(module_name)
-            bpy.utils._unload_module(module_name, free=False) # dont free because we may want to enable again.
+            _bpy_types._unregister_module(module_name, free=False) # dont free because we may want to enable again.
             mod.unregister()
         except:
+            import traceback
             traceback.print_exc()
 
         addons = context.user_preferences.addons
