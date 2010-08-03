@@ -105,13 +105,17 @@ EnumPropertyItem image_type_items[] = {
 	{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", ""},
 	{R_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", ""},
 	{0, "", 0, " ", NULL},
+#ifdef WITH_CINEON
 	{R_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", ""},
 	{R_DPX, "DPX",ICON_FILE_IMAGE, "DPX", ""},
+#endif
 #ifdef WITH_OPENEXR
 	{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", ""},
 	{R_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", ""},
 #endif
+#ifdef WITH_HDR
 	{R_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
+#endif
 #ifdef WITH_TIFF
 	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", ""},
 #endif

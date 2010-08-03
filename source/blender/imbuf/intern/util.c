@@ -118,7 +118,9 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".tiff")
 				||	BLI_testextensie(filename, ".tx")
 #endif
+#ifdef WITH_HDR
 				||	BLI_testextensie(filename, ".hdr")
+#endif
 				||	BLI_testextensie(filename, ".tga")
 				||	BLI_testextensie(filename, ".rgb")
 				||	BLI_testextensie(filename, ".bmp")
@@ -134,7 +136,10 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".pict")
 				||	BLI_testextensie(filename, ".pntg") //macpaint
 				||	BLI_testextensie(filename, ".qtif")
+#ifdef WITH_CINEON				
+				||	BLI_testextensie(filename, ".dpx")
 				||	BLI_testextensie(filename, ".cin")
+#endif
 #ifdef WITH_BF_OPENEXR
 				||	BLI_testextensie(filename, ".exr")
 #endif
@@ -154,12 +159,17 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".tiff")
 				||	BLI_testextensie(filename, ".tx")
 #endif
+#ifdef WITH_HDR
 				||	BLI_testextensie(filename, ".hdr")
+#endif
 				||	BLI_testextensie(filename, ".tga")
 				||	BLI_testextensie(filename, ".rgb")
 				||	BLI_testextensie(filename, ".bmp")
 				||	BLI_testextensie(filename, ".png")
+#ifdef WITH_CINEON
 				||	BLI_testextensie(filename, ".cin")
+				||	BLI_testextensie(filename, ".dpx")
+#endif
 #ifdef WITH_DDS
 				||	BLI_testextensie(filename, ".dds")
 #endif

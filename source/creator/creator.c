@@ -559,7 +559,9 @@ static int set_image_type(int argc, char **argv, void *data)
 			else if (!strcmp(imtype,"AVICODEC")) scene->r.imtype = R_AVICODEC;
 			else if (!strcmp(imtype,"QUICKTIME")) scene->r.imtype = R_QUICKTIME;
 			else if (!strcmp(imtype,"BMP")) scene->r.imtype = R_BMP;
+#ifdef WITH_HDR
 			else if (!strcmp(imtype,"HDR")) scene->r.imtype = R_RADHDR;
+#endif
 #ifdef WITH_TIFF
 			else if (!strcmp(imtype,"TIFF")) scene->r.imtype = R_TIFF;
 #endif
@@ -569,8 +571,10 @@ static int set_image_type(int argc, char **argv, void *data)
 #endif
 			else if (!strcmp(imtype,"MPEG")) scene->r.imtype = R_FFMPEG;
 			else if (!strcmp(imtype,"FRAMESERVER")) scene->r.imtype = R_FRAMESERVER;
+#ifdef WITH_CINEON
 			else if (!strcmp(imtype,"CINEON")) scene->r.imtype = R_CINEON;
 			else if (!strcmp(imtype,"DPX")) scene->r.imtype = R_DPX;
+#endif
 #if WITH_OPENJPEG
 			else if (!strcmp(imtype,"JP2")) scene->r.imtype = R_JP2;
 #endif

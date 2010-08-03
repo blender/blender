@@ -61,3 +61,10 @@ ifeq ($(WHITH_TIFF), true)
     CPPFLAGS += -DWITH_TIFF
 endif
 
+ifeq ($(WHITH_CINEON), true)
+    CPPFLAGS += -DWITH_CINEON
+endif
+
+ifeq ($(WHITH_HDR), true)
+    CPPFLAGS += -DWITH_HDR
+endif

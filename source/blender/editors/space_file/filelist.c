@@ -853,7 +853,13 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".pntg") //macpaint
 				||	BLI_testextensie(file->relname, ".qtif")
 				||	BLI_testextensie(file->relname, ".sgi")
+#ifdef WITH_HDR
 				||	BLI_testextensie(file->relname, ".hdr")
+#endif
+#ifdef WITH_CINEON
+				||	BLI_testextensie(file->relname, ".cin")
+				||	BLI_testextensie(file->relname, ".dpx")
+#endif
 #ifdef WITH_DDS
 				||	BLI_testextensie(file->relname, ".dds")
 #endif
@@ -916,7 +922,13 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".tif")
 				||	BLI_testextensie(file->relname, ".tiff")
 				||	BLI_testextensie(file->relname, ".tx")
+#ifdef WITH_HDR
 				||	BLI_testextensie(file->relname, ".hdr")
+#endif
+#ifdef WITH_CINEON				
+				||	BLI_testextensie(file->relname, ".cin")
+				||	BLI_testextensie(file->relname, ".dpx")
+#endif
 #ifdef WITH_DDS
 				||	BLI_testextensie(file->relname, ".dds")
 #endif

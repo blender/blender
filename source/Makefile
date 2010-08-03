@@ -204,7 +204,9 @@ ifeq ($(WITH_OPENJPEG), true)
     endif
 endif
 
-COMLIB += $(OCGDIR)/blender/imbuf/cineon/$(DEBUG_DIR)libcineon.a
+ifeq ($(WITH_CINEON), true)
+	COMLIB += $(OCGDIR)/blender/imbuf/cineon/$(DEBUG_DIR)libcineon.a
+endif
 
 ifeq ($(WITH_DDS), true)
     COMLIB += $(OCGDIR)/blender/imbuf/dds/$(DEBUG_DIR)libdds.a

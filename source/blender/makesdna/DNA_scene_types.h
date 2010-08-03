@@ -961,8 +961,8 @@ typedef struct Scene {
 /* imtype */
 #define R_TARGA		0
 #define R_IRIS		1
-#define R_HAMX		2
-#define R_FTYPE		3 /* ftype is nomore */
+/* #define R_HAMX		2 */ /* hamx is nomore */
+/* #define R_FTYPE		3 */ /* ftype is nomore */
 #define R_JPEG90	4
 #define R_MOVIE		5
 #define R_IRIZ		7

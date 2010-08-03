@@ -73,4 +73,12 @@ ifeq ($(WITH_TIFF), true)
   CPPFLAGS += -DWITH_TIFF
 endif
 
+ifeq ($(WITH_CINEON), true)
+  CPPFLAGS += -DWITH_CINEON
+endif
+
+ifeq ($(WITH_HDR), true)
+  CPPFLAGS += -DWITH_HDR
+endif
+
 CPPFLAGS += -I$(OPENGL_HEADERS)

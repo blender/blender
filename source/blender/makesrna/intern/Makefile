@@ -97,6 +97,14 @@ ifeq ($(WITH_TIFF),true)
     CPPFLAGS += -DWITH_TIFF
 endif
 
+ifeq ($(WITH_CINEON),true)
+    CPPFLAGS += -DWITH_CINEON
+endif
+
+ifeq ($(WITH_HDR),true)
+    CPPFLAGS += -DWITH_HDR
+endif
+
 ifeq ($(OS),windows)
     # Windows needs these extra libs because of winstuff... It is not 
     # _really_ needed, but it is the easiest fix for now. If you have 

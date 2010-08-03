@@ -36,7 +36,7 @@ def validate_arguments(args, bc):
             'WITH_BF_SNDFILE', 'BF_SNDFILE', 'BF_SNDFILE_INC', 'BF_SNDFILE_LIB', 'BF_SNDFILE_LIBPATH',
             'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
             'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
-            'WITH_BF_DDS',
+            'WITH_BF_DDS', 'WITH_BF_CINEON', 'WITH_BF_HDR',
             'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB','BF_FFMPEG_EXTRA', 'BF_FFMPEG',  'BF_FFMPEG_INC',
             'WITH_BF_OGG', 'BF_OGG', 'BF_OGG_LIB',
             'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
@@ -223,7 +223,11 @@ def read_opts(env, cfg, args):
         ('BF_OPENEXR_LIBPATH', 'OPENEXR library path', ''),
         ('BF_OPENEXR_LIB_STATIC', 'OPENEXR static library', ''),
 
-        (BoolVariable('WITH_BF_DDS', 'Use DDS if true', True)),
+        (BoolVariable('WITH_BF_DDS', 'Support DDS image format if true', True)),
+
+        (BoolVariable('WITH_BF_CINEON', 'Support CINEON and DPX image formats if true', True)),
+
+        (BoolVariable('WITH_BF_HDR', 'Support HDR image formats if true', True)),
 
         (BoolVariable('WITH_BF_FFMPEG', 'Use FFMPEG if true', False)),
         ('BF_FFMPEG', 'FFMPEG base path', ''),
