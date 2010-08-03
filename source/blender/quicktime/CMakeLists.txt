@@ -52,11 +52,3 @@ SET(INC ${INC} ${QUICKTIME_INC})
 ADD_DEFINITIONS(-DWITH_QUICKTIME)
 
 BLENDERLIB(bf_quicktime "${SRC}" "${INC}")
-#if env['OURPLATFORM'] in ['win32-vc', 'darwin']:
-#    types = ['core', 'player']
-#    priorities = [95, 200]
-#else:
-#    types = ['core']
-#    priorities = [95]
-#
-#env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=['WITH_QUICKTIME'], libtype=types, priority=priorities)

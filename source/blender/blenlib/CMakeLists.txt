@@ -49,7 +49,3 @@ IF(WITH_OPENMP)
 ENDIF(WITH_OPENMP)
 
 BLENDERLIB(bf_blenlib "${SRC}" "${INC}")
-#if env['OURPLATFORM'] == 'linux2':
-#    cflags='-pthread'
-#
-#env.BlenderLib ( 'bf_blenlib', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [85,195], compileflags =cflags )

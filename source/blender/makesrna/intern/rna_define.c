@@ -476,7 +476,7 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 
 	if(srna->flag & STRUCT_RUNTIME) {
 		if(RNA_struct_py_type_get(srna)) {
-			fprintf(stderr, "StructRNA \"%s\" freed while holding a python reference\n", srna->name);
+			fprintf(stderr, "RNA_struct_free '%s' freed while holding a python reference\n", srna->identifier);
 		}
 	}
 

@@ -64,4 +64,3 @@ ELSE(WITH_PYTHON)
 ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_videotex "${SRC}" "${INC}")
-#env.BlenderLib ( 'bf_videotex', sources, Split(incs), [], libtype=['game','player'], priority=[25, 72], compileflags = cflags )

@@ -42,4 +42,3 @@ if(WITH_DDS)
 ENDIF(WITH_DDS)
 
 BLENDERLIB(bf_dds "${SRC}" "${INC}")                 
-#env.BlenderLib ('bf_dds', source_files, incs, defs, libtype=['core','player'], priority = [90, 200])

@@ -43,4 +43,3 @@ IF(WITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
 BLENDERLIB(bf_openexr "${SRC}" "${INC}")                 
-#env.BlenderLib ('bf_openexr', source_files, incs, defs, libtype=['core','player'], priority = [90, 200])

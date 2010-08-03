@@ -54,9 +54,4 @@ IF(APPLE)
 	ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES "i386" OR CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
 ENDIF(APPLE)
 
-#TODO
-#if env['OURPLATFORM']=='linux2':
-#    cflags='-pthread'
-
 BLENDERLIB_NOLIST(blender_render "${SRC}" "${INC}")
-#env.BlenderLib ( libname = 'blender_render', sources = sources, includes = Split(incs), defines=defs, libtype='core', priority=45, compileflags=cflags )

@@ -73,4 +73,3 @@ IF(WITH_DDS)
 ENDIF(WITH_DDS)
 
 BLENDERLIB(bf_imbuf "${SRC}" "${INC}")
-#env.BlenderLib ( libname = 'bf_imbuf', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [80, 40] )

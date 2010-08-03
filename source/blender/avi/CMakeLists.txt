@@ -32,4 +32,3 @@ SET(INC
 )
 
 BLENDERLIB(bf_avi "${SRC}" "${INC}")
-#env.BlenderLib ('bf_avi', sources, Split(incs), [], libtype=['core','player'], priority = [90, 50] )
