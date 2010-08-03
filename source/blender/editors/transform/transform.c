@@ -1460,6 +1460,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 }
 
+/* note: caller needs to free 't' on a 0 return */
 int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int mode)
 {
 	int options = 0;
