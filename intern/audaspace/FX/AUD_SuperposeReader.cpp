@@ -27,6 +27,9 @@
 
 #include <cstring>
 
+static const char* specs_error = "AUD_SuperposeReader: Both readers have to "
+								 "have the same specs.";
+
 AUD_SuperposeReader::AUD_SuperposeReader(AUD_IReader* reader1, AUD_IReader* reader2) :
 	m_reader1(reader1), m_reader2(reader2)
 {
@@ -36,7 +39,7 @@ AUD_SuperposeReader::AUD_SuperposeReader(AUD_IReader* reader1, AUD_IReader* read
 		s1 = reader1->getSpecs();
 		s2 = reader2->getSpecs();
 		if(memcmp(&s1, &s2, sizeof(AUD_Specs)))
-			AUD_THROW(AUD_ERROR_READER);
+			AUD_THROW(AUD_ERROR_SPECS, specs_error);
 	}
 	catch(AUD_Exception&)
 	{

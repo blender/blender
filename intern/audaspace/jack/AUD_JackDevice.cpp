@@ -172,7 +172,13 @@ void AUD_JackDevice::jack_shutdown(void *data)
 	device->m_valid = false;
 }
 
-AUD_JackDevice::AUD_JackDevice(AUD_DeviceSpecs specs, int buffersize)
+static const char* clientopen_error = "AUD_JackDevice: Couldn't connect to "
+									  "jack server.";
+static const char* port_error = "AUD_JackDevice: Couldn't create output port.";
+static const char* activate_error = "AUD_JackDevice: Couldn't activate the "
+									"client.";
+
+AUD_JackDevice::AUD_JackDevice(std::string name, AUD_DeviceSpecs specs, int buffersize)
 {
 	if(specs.channels == AUD_CHANNELS_INVALID)
 		specs.channels = AUD_CHANNELS_STEREO;
@@ -185,9 +191,9 @@ AUD_JackDevice::AUD_JackDevice(AUD_DeviceSpecs specs, int buffersize)
 	jack_status_t status;
 
 	// open client
-	m_client = jack_client_open("Blender", options, &status);
+	m_client = jack_client_open(name.c_str(), options, &status);
 	if(m_client == NULL)
-		AUD_THROW(AUD_ERROR_JACK);
+		AUD_THROW(AUD_ERROR_JACK, clientopen_error);
 
 	// set callbacks
 	jack_set_process_callback(m_client, AUD_JackDevice::jack_mix, this);
@@ -207,7 +213,7 @@ AUD_JackDevice::AUD_JackDevice(AUD_DeviceSpecs specs, int buffersize)
 											JACK_DEFAULT_AUDIO_TYPE,
 											JackPortIsOutput, 0);
 			if(m_ports[i] == NULL)
-				AUD_THROW(AUD_ERROR_JACK);
+				AUD_THROW(AUD_ERROR_JACK, port_error);
 		}
 	}
 	catch(AUD_Exception&)
@@ -249,7 +255,7 @@ AUD_JackDevice::AUD_JackDevice(AUD_DeviceSpecs specs, int buffersize)
 		pthread_cond_destroy(&m_mixingCondition);
 		destroy();
 
-		AUD_THROW(AUD_ERROR_JACK);
+		AUD_THROW(AUD_ERROR_JACK, activate_error);
 	}
 
 	const char** ports = jack_get_ports(m_client, NULL, NULL,

@@ -77,13 +77,24 @@ int AUD_FFMPEGReader::decode(AVPacket* packet, AUD_Buffer& buffer)
 	return buf_pos;
 }
 
+static const char* streaminfo_error = "AUD_FFMPEGReader: Stream info couldn't "
+									  "be found.";
+static const char* noaudio_error = "AUD_FFMPEGReader: File doesn't include an "
+								   "audio stream.";
+static const char* nodecoder_error = "AUD_FFMPEGReader: No decoder found for "
+									 "the audio stream.";
+static const char* codecopen_error = "AUD_FFMPEGReader: Codec couldn't be "
+									 "opened.";
+static const char* format_error = "AUD_FFMPEGReader: Unsupported sample "
+								  "format.";
+
 void AUD_FFMPEGReader::init()
 {
 	m_position = 0;
 	m_pkgbuf_left = 0;
 
 	if(av_find_stream_info(m_formatCtx)<0)
-		AUD_THROW(AUD_ERROR_FFMPEG);
+		AUD_THROW(AUD_ERROR_FFMPEG, streaminfo_error);
 
 	// find audio stream and codec
 	m_stream = -1;
@@ -99,17 +110,17 @@ void AUD_FFMPEGReader::init()
 	}
 
 	if(m_stream == -1)
-		AUD_THROW(AUD_ERROR_FFMPEG);
+		AUD_THROW(AUD_ERROR_FFMPEG, noaudio_error);
 
 	m_codecCtx = m_formatCtx->streams[m_stream]->codec;
 
 	// get a decoder and open it
 	AVCodec *aCodec = avcodec_find_decoder(m_codecCtx->codec_id);
 	if(!aCodec)
-		AUD_THROW(AUD_ERROR_FFMPEG);
+		AUD_THROW(AUD_ERROR_FFMPEG, nodecoder_error);
 
 	if(avcodec_open(m_codecCtx, aCodec)<0)
-		AUD_THROW(AUD_ERROR_FFMPEG);
+		AUD_THROW(AUD_ERROR_FFMPEG, codecopen_error);
 
 	// XXX this prints file information to stdout:
 	//dump_format(m_formatCtx, 0, NULL, 0);
@@ -139,11 +150,14 @@ void AUD_FFMPEGReader::init()
 		m_specs.format = AUD_FORMAT_FLOAT64;
 		break;
 	default:
-		AUD_THROW(AUD_ERROR_FILE);
+		AUD_THROW(AUD_ERROR_FFMPEG, format_error);
 	}
 
 	m_specs.rate = (AUD_SampleRate) m_codecCtx->sample_rate;
 }
+
+static const char* fileopen_error = "AUD_FFMPEGReader: File couldn't be "
+									"opened.";
 
 AUD_FFMPEGReader::AUD_FFMPEGReader(std::string filename) :
 	m_pkgbuf(AVCODEC_MAX_AUDIO_FRAME_SIZE<<1),
@@ -151,7 +165,7 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(std::string filename) :
 {
 	// open file
 	if(av_open_input_file(&m_formatCtx, filename.c_str(), NULL, 0, NULL)!=0)
-		AUD_THROW(AUD_ERROR_FILE);
+		AUD_THROW(AUD_ERROR_FILE, fileopen_error);
 
 	try
 	{
@@ -164,6 +178,9 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(std::string filename) :
 	}
 }
 
+static const char* streamopen_error = "AUD_FFMPEGReader: Stream couldn't be "
+									  "opened.";
+
 AUD_FFMPEGReader::AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer) :
 		m_pkgbuf(AVCODEC_MAX_AUDIO_FRAME_SIZE<<1),
 		m_membuffer(buffer)
@@ -174,7 +191,7 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer) :
 					 buffer.get()->getSize(), 0, NULL, NULL, NULL, NULL) != 0)
 	{
 		av_free(m_byteiocontext);
-		AUD_THROW(AUD_ERROR_FILE);
+		AUD_THROW(AUD_ERROR_FILE, fileopen_error);
 	}
 
 	AVProbeData probe_data;
@@ -187,7 +204,7 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer) :
 	if(av_open_input_stream(&m_formatCtx, m_byteiocontext, "", fmt, NULL)!=0)
 	{
 		av_free(m_byteiocontext);
-		AUD_THROW(AUD_ERROR_FILE);
+		AUD_THROW(AUD_ERROR_FILE, streamopen_error);
 	}
 
 	try

@@ -33,7 +33,7 @@
 /// The size of a sample in the specified format in bytes.
 #define AUD_SAMPLE_SIZE(specs) (specs.channels * sizeof(sample_t))
 /// Throws a AUD_Exception with the provided error code.
-#define AUD_THROW(exception) { AUD_Exception e; e.error = exception; throw e; }
+#define AUD_THROW(exception, errorstr) { AUD_Exception e; e.error = exception; e.str = errorstr; throw e; }
 
 /// Returns the smaller of the two values.
 #define AUD_MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -108,13 +108,14 @@ typedef enum
 typedef enum
 {
 	AUD_NO_ERROR = 0,
-	AUD_ERROR_READER,
-	AUD_ERROR_FACTORY,
+	AUD_ERROR_SPECS,
+	AUD_ERROR_PROPS,
 	AUD_ERROR_FILE,
+	AUD_ERROR_SRC,
 	AUD_ERROR_FFMPEG,
-	AUD_ERROR_SDL,
 	AUD_ERROR_OPENAL,
-	AUD_ERROR_JACK
+	AUD_ERROR_SDL,
+	AUD_ERROR_JACK,
 } AUD_Error;
 
 /// Fading types.
@@ -180,6 +181,11 @@ typedef struct
 	 * \see AUD_Error
 	 */
 	AUD_Error error;
+
+	/**
+	 * Error string.
+	 */
+	const char* str;
 
 	// void* userData; - for the case it is needed someday
 } AUD_Exception;

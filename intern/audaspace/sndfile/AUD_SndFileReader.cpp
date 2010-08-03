@@ -76,6 +76,9 @@ sf_count_t AUD_SndFileReader::vio_tell(void *user_data)
 	return reader->m_memoffset;
 }
 
+static const char* fileopen_error = "AUD_SndFileReader: File couldn't be "
+									"read.";
+
 AUD_SndFileReader::AUD_SndFileReader(std::string filename) :
 	m_position(0)
 {
@@ -85,7 +88,7 @@ AUD_SndFileReader::AUD_SndFileReader(std::string filename) :
 	m_sndfile = sf_open(filename.c_str(), SFM_READ, &sfinfo);
 
 	if(!m_sndfile)
-		AUD_THROW(AUD_ERROR_FILE);
+		AUD_THROW(AUD_ERROR_FILE, fileopen_error);
 
 	m_specs.channels = (AUD_Channels) sfinfo.channels;
 	m_specs.rate = (AUD_SampleRate) sfinfo.samplerate;
@@ -110,7 +113,7 @@ AUD_SndFileReader::AUD_SndFileReader(AUD_Reference<AUD_Buffer> buffer) :
 	m_sndfile = sf_open_virtual(&m_vio, SFM_READ, &sfinfo, this);
 
 	if(!m_sndfile)
-		AUD_THROW(AUD_ERROR_FILE);
+		AUD_THROW(AUD_ERROR_FILE, fileopen_error);
 
 	m_specs.channels = (AUD_Channels) sfinfo.channels;
 	m_specs.rate = (AUD_SampleRate) sfinfo.samplerate;

@@ -289,6 +289,8 @@ bool AUD_OpenALDevice::isValid(AUD_Handle* handle)
 	return false;
 }
 
+static const char* open_error = "AUD_OpenALDevice: Device couldn't be opened.";
+
 AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 {
 	// cannot determine how many channels or which format OpenAL uses, but
@@ -313,7 +315,7 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 	m_device = alcOpenDevice(NULL);
 
 	if(!m_device)
-		AUD_THROW(AUD_ERROR_OPENAL);
+		AUD_THROW(AUD_ERROR_OPENAL, open_error);
 
 	// at least try to set the frequency
 	ALCint attribs[] = { ALC_FREQUENCY, specs.rate, 0 };
@@ -513,6 +515,15 @@ bool AUD_OpenALDevice::getFormat(ALenum &format, AUD_Specs specs)
 	return valid;
 }
 
+static const char* genbuffer_error = "AUD_OpenALDevice: Buffer couldn't be "
+									 "generated.";
+static const char* gensource_error = "AUD_OpenALDevice: Source couldn't be "
+									 "generated.";
+static const char* queue_error = "AUD_OpenALDevice: Buffer couldn't be "
+								 "queued to the source.";
+static const char* bufferdata_error = "AUD_OpenALDevice: Buffer couldn't be "
+									  "filled with data.";
+
 AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 {
 	lock();
@@ -542,13 +553,13 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 				{
 					alGenSources(1, &sound->source);
 					if(alGetError() != AL_NO_ERROR)
-						AUD_THROW(AUD_ERROR_OPENAL);
+						AUD_THROW(AUD_ERROR_OPENAL, gensource_error);
 
 					try
 					{
 						alSourcei(sound->source, AL_BUFFER, (*i)->buffer);
 						if(alGetError() != AL_NO_ERROR)
-							AUD_THROW(AUD_ERROR_OPENAL);
+							AUD_THROW(AUD_ERROR_OPENAL, queue_error);
 					}
 					catch(AUD_Exception&)
 					{
@@ -586,9 +597,6 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 
 	AUD_IReader* reader = factory->createReader();
 
-	if(reader == NULL)
-		AUD_THROW(AUD_ERROR_READER);
-
 	AUD_DeviceSpecs specs = m_specs;
 	specs.specs = reader->getSpecs();
 
@@ -624,7 +632,7 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 	{
 		alGenBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 		if(alGetError() != AL_NO_ERROR)
-			AUD_THROW(AUD_ERROR_OPENAL);
+			AUD_THROW(AUD_ERROR_OPENAL, genbuffer_error);
 
 		try
 		{
@@ -639,19 +647,19 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 							 length * AUD_DEVICE_SAMPLE_SIZE(specs),
 							 specs.rate);
 				if(alGetError() != AL_NO_ERROR)
-					AUD_THROW(AUD_ERROR_OPENAL);
+					AUD_THROW(AUD_ERROR_OPENAL, bufferdata_error);
 			}
 
 			alGenSources(1, &sound->source);
 			if(alGetError() != AL_NO_ERROR)
-				AUD_THROW(AUD_ERROR_OPENAL);
+				AUD_THROW(AUD_ERROR_OPENAL, gensource_error);
 
 			try
 			{
 				alSourceQueueBuffers(sound->source, AUD_OPENAL_CYCLE_BUFFERS,
 									 sound->buffers);
 				if(alGetError() != AL_NO_ERROR)
-					AUD_THROW(AUD_ERROR_OPENAL);
+					AUD_THROW(AUD_ERROR_OPENAL, queue_error);
 			}
 			catch(AUD_Exception&)
 			{

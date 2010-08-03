@@ -30,6 +30,8 @@
 #include "AUD_SoftwareDevice.h"
 #include "AUD_Buffer.h"
 
+#include <string>
+
 #include <jack.h>
 #include <ringbuffer.h>
 
@@ -127,11 +129,13 @@ protected:
 public:
 	/**
 	 * Creates a Jack client for audio output.
+	 * \param name The client name.
 	 * \param specs The wanted audio specification, where only the channel count
 	 *              is important.
+	 * \param buffersize The size of the internal buffer.
 	 * \exception AUD_Exception Thrown if the audio device cannot be opened.
 	 */
-	AUD_JackDevice(AUD_DeviceSpecs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE);
+	AUD_JackDevice(std::string name, AUD_DeviceSpecs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE);
 
 	/**
 	 * Closes the Jack client.

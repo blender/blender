@@ -211,9 +211,6 @@ AUD_Handle* AUD_SoftwareDevice::play(AUD_IFactory* factory, bool keep)
 {
 	AUD_IReader* reader = factory->createReader();
 
-	if(reader == NULL)
-		AUD_THROW(AUD_ERROR_READER);
-
 	// prepare the reader
 	reader = m_mixer->prepare(reader);
 	if(reader == NULL)

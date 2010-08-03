@@ -80,6 +80,8 @@ typedef enum
 
 static PyObject* AUDError;
 
+static const char* device_not_3d_error = "Device is not a 3D device!";
+
 // ====================================================================
 
 static void
@@ -102,15 +104,9 @@ Sound_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		static const char *kwlist[] = {"filename", NULL};
 		const char* filename = NULL;
 
-		if(!PyArg_ParseTupleAndKeywords(args, kwds, "|s", const_cast<char**>(kwlist), &filename))
+		if(!PyArg_ParseTupleAndKeywords(args, kwds, "s:Sound", const_cast<char**>(kwlist), &filename))
 		{
 			Py_DECREF(self);
-			return NULL;
-		}
-		else if(filename == NULL)
-		{
-			Py_DECREF(self);
-			PyErr_SetString(AUDError, "Missing filename parameter!");
 			return NULL;
 		}
 
@@ -118,10 +114,10 @@ Sound_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		{
 			self->factory = new AUD_FileFactory(filename);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(self);
-			PyErr_SetString(AUDError, "Filefactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -460,7 +456,7 @@ Sound_sine(PyObject* nothing, PyObject* args)
 	float frequency;
 	int rate = 44100;
 
-	if(!PyArg_ParseTuple(args, "f|i", &frequency, &rate))
+	if(!PyArg_ParseTuple(args, "f|i:sine", &frequency, &rate))
 		return NULL;
 
 	Sound *self;
@@ -472,10 +468,10 @@ Sound_sine(PyObject* nothing, PyObject* args)
 		{
 			self->factory = new AUD_SinusFactory(frequency, (AUD_SampleRate)rate);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(self);
-			PyErr_SetString(AUDError, "Sinusfactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -488,7 +484,7 @@ Sound_file(PyObject* nothing, PyObject* args)
 {
 	const char* filename = NULL;
 
-	if(!PyArg_ParseTuple(args, "s", &filename))
+	if(!PyArg_ParseTuple(args, "s:file", &filename))
 		return NULL;
 
 	Sound *self;
@@ -500,10 +496,10 @@ Sound_file(PyObject* nothing, PyObject* args)
 		{
 			self->factory = new AUD_FileFactory(filename);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(self);
-			PyErr_SetString(AUDError, "Filefactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -517,7 +513,7 @@ Sound_lowpass(Sound* self, PyObject* args)
 	float frequency;
 	float Q = 0.5;
 
-	if(!PyArg_ParseTuple(args, "f|f", &frequency, &Q))
+	if(!PyArg_ParseTuple(args, "f|f:lowpass", &frequency, &Q))
 		return NULL;
 
 	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
@@ -531,10 +527,10 @@ Sound_lowpass(Sound* self, PyObject* args)
 		{
 			parent->factory = new AUD_LowpassFactory(self->factory, frequency, Q);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Lowpassfactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -547,7 +543,7 @@ Sound_delay(Sound* self, PyObject* args)
 {
 	float delay;
 
-	if(!PyArg_ParseTuple(args, "f", &delay))
+	if(!PyArg_ParseTuple(args, "f:delay", &delay))
 		return NULL;
 
 	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
@@ -560,10 +556,10 @@ Sound_delay(Sound* self, PyObject* args)
 		{
 			parent->factory = new AUD_DelayFactory(self->factory, delay);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Delayfactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -592,10 +588,10 @@ Sound_join(Sound* self, PyObject* object)
 		{
 			parent->factory = new AUD_DoubleFactory(self->factory, child->factory);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Doublefactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -609,7 +605,7 @@ Sound_highpass(Sound* self, PyObject* args)
 	float frequency;
 	float Q = 0.5;
 
-	if(!PyArg_ParseTuple(args, "f|f", &frequency, &Q))
+	if(!PyArg_ParseTuple(args, "f|f:highpass", &frequency, &Q))
 		return NULL;
 
 	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
@@ -623,10 +619,10 @@ Sound_highpass(Sound* self, PyObject* args)
 		{
 			parent->factory = new AUD_HighpassFactory(self->factory, frequency, Q);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Highpassfactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -639,7 +635,7 @@ Sound_limit(Sound* self, PyObject* args)
 {
 	float start, end;
 
-	if(!PyArg_ParseTuple(args, "ff", &start, &end))
+	if(!PyArg_ParseTuple(args, "ff:limit", &start, &end))
 		return NULL;
 
 	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
@@ -653,10 +649,10 @@ Sound_limit(Sound* self, PyObject* args)
 		{
 			parent->factory = new AUD_LimiterFactory(self->factory, start, end);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Limiterfactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -669,7 +665,7 @@ Sound_pitch(Sound* self, PyObject* args)
 {
 	float factor;
 
-	if(!PyArg_ParseTuple(args, "f", &factor))
+	if(!PyArg_ParseTuple(args, "f:pitch", &factor))
 		return NULL;
 
 	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
@@ -683,10 +679,10 @@ Sound_pitch(Sound* self, PyObject* args)
 		{
 			parent->factory = new AUD_PitchFactory(self->factory, factor);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Pitchfactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -699,7 +695,7 @@ Sound_volume(Sound* self, PyObject* args)
 {
 	float volume;
 
-	if(!PyArg_ParseTuple(args, "f", &volume))
+	if(!PyArg_ParseTuple(args, "f:volume", &volume))
 		return NULL;
 
 	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
@@ -713,10 +709,10 @@ Sound_volume(Sound* self, PyObject* args)
 		{
 			parent->factory = new AUD_VolumeFactory(self->factory, volume);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Volumefactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -729,7 +725,7 @@ Sound_fadein(Sound* self, PyObject* args)
 {
 	float start, length;
 
-	if(!PyArg_ParseTuple(args, "ff", &start, &length))
+	if(!PyArg_ParseTuple(args, "ff:fadein", &start, &length))
 		return NULL;
 
 	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
@@ -743,10 +739,10 @@ Sound_fadein(Sound* self, PyObject* args)
 		{
 			parent->factory = new AUD_FaderFactory(self->factory, AUD_FADE_IN, start, length);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Faderfactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -759,14 +755,8 @@ Sound_fadeout(Sound* self, PyObject* args)
 {
 	float start, length;
 
-	if(!PyArg_ParseTuple(args, "ff", &start, &length))
+	if(!PyArg_ParseTuple(args, "ff:fadeout", &start, &length))
 		return NULL;
-
-	if(!PyObject_TypeCheck(self, &SoundType))
-	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Sound!");
-		return NULL;
-	}
 
 	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
 
@@ -779,10 +769,10 @@ Sound_fadeout(Sound* self, PyObject* args)
 		{
 			parent->factory = new AUD_FaderFactory(self->factory, AUD_FADE_OUT, start, length);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Faderfactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -795,7 +785,7 @@ Sound_loop(Sound* self, PyObject* args)
 {
 	int loop;
 
-	if(!PyArg_ParseTuple(args, "i", &loop))
+	if(!PyArg_ParseTuple(args, "i:loop", &loop))
 		return NULL;
 
 	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
@@ -809,10 +799,10 @@ Sound_loop(Sound* self, PyObject* args)
 		{
 			parent->factory = new AUD_LoopFactory(self->factory, loop);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Loopfactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -840,10 +830,10 @@ Sound_mix(Sound* self, PyObject* object)
 		{
 			parent->factory = new AUD_SuperposeFactory(self->factory, child->factory);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Superposefactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -865,10 +855,10 @@ Sound_pingpong(Sound* self)
 		{
 			parent->factory = new AUD_PingPongFactory(self->factory);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Pingpongfactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -890,10 +880,10 @@ Sound_reverse(Sound* self)
 		{
 			parent->factory = new AUD_ReverseFactory(self->factory);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Reversefactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -912,10 +902,10 @@ Sound_buffer(Sound* self)
 		{
 			parent->factory = new AUD_StreamBufferFactory(self->factory);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Bufferfactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -928,7 +918,7 @@ Sound_square(Sound* self, PyObject* args)
 {
 	float threshold = 0;
 
-	if(!PyArg_ParseTuple(args, "|f", &threshold))
+	if(!PyArg_ParseTuple(args, "|f:square", &threshold))
 		return NULL;
 
 	Sound *parent = (Sound*)SoundType.tp_alloc(&SoundType, 0);
@@ -942,10 +932,10 @@ Sound_square(Sound* self, PyObject* args)
 		{
 			parent->factory = new AUD_SquareFactory(self->factory, threshold);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "Squarefactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -959,18 +949,18 @@ Sound_filter(Sound* self, PyObject* args)
 	PyObject* py_b;
 	PyObject* py_a = NULL;
 
-	if(!PyArg_ParseTuple(args, "O|O", &py_b, &py_a))
+	if(!PyArg_ParseTuple(args, "O|O:filter", &py_b, &py_a))
 		return NULL;
 
 	if(!PySequence_Check(py_b) || (py_a != NULL && !PySequence_Check(py_a)))
 	{
-		PyErr_SetString(AUDError, "Supplied parameter is not a sequence!");
+		PyErr_SetString(PyExc_TypeError, "Parameter is not a sequence!");
 		return NULL;
 	}
 
 	if(!PySequence_Length(py_b) || (py_a != NULL && !PySequence_Length(py_a)))
 	{
-		PyErr_SetString(AUDError, "The sequence has to contain at least one value!");
+		PyErr_SetString(PyExc_ValueError, "The sequence has to contain at least one value!");
 		return NULL;
 	}
 
@@ -982,7 +972,7 @@ Sound_filter(Sound* self, PyObject* args)
 	for(int i = 0; i < PySequence_Length(py_b); i++)
 	{
 		py_value = PySequence_GetItem(py_b, i);
-		result = PyArg_Parse(py_value, "f", &value);
+		result = PyArg_Parse(py_value, "f:filter", &value);
 		Py_DECREF(py_value);
 
 		if(!result)
@@ -996,7 +986,7 @@ Sound_filter(Sound* self, PyObject* args)
 		for(int i = 0; i < PySequence_Length(py_a); i++)
 		{
 			py_value = PySequence_GetItem(py_a, i);
-			result = PyArg_Parse(py_value, "f", &value);
+			result = PyArg_Parse(py_value, "f:filter", &value);
 			Py_DECREF(py_value);
 
 			if(!result)
@@ -1022,10 +1012,10 @@ Sound_filter(Sound* self, PyObject* args)
 		{
 			parent->factory = new AUD_IIRFilterFactory(self->factory, b, a);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(parent);
-			PyErr_SetString(AUDError, "IIRFilterFactory couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -1060,9 +1050,9 @@ Handle_pause(Handle *self)
 			Py_RETURN_TRUE;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't pause the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 
@@ -1087,9 +1077,9 @@ Handle_resume(Handle *self)
 			Py_RETURN_TRUE;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't resume the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 
@@ -1114,9 +1104,9 @@ Handle_stop(Handle *self)
 			Py_RETURN_TRUE;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't stop the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 
@@ -1148,9 +1138,9 @@ Handle_get_position(Handle *self, void* nothing)
 	{
 		return Py_BuildValue("f", device->device->getPosition(self->handle));
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the position of the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -1160,7 +1150,7 @@ Handle_set_position(Handle *self, PyObject* args, void* nothing)
 {
 	float position;
 
-	if(!PyArg_Parse(args, "f", &position))
+	if(!PyArg_Parse(args, "f:position", &position))
 		return -1;
 
 	Device* device = (Device*)self->device;
@@ -1169,12 +1159,13 @@ Handle_set_position(Handle *self, PyObject* args, void* nothing)
 	{
 		if(device->device->seek(self->handle, position))
 			return 0;
+		PyErr_SetString(AUDError, "Couldn't seek the sound!");
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
+		PyErr_SetString(AUDError, e.str);
 	}
 
-	PyErr_SetString(AUDError, "Couldn't seek the sound!");
 	return -1;
 }
 
@@ -1197,9 +1188,9 @@ Handle_get_keep(Handle *self, void* nothing)
 			Py_RETURN_FALSE;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the status of the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -1220,12 +1211,13 @@ Handle_set_keep(Handle *self, PyObject* args, void* nothing)
 	{
 		if(device->device->setKeep(self->handle, keep))
 			return 0;
+		PyErr_SetString(AUDError, "Couldn't set keep of the sound!");
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
+		PyErr_SetString(AUDError, e.str);
 	}
 
-	PyErr_SetString(AUDError, "Couldn't set keep of the sound!");
 	return -1;
 }
 
@@ -1241,9 +1233,9 @@ Handle_get_status(Handle *self, void* nothing)
 	{
 		return Py_BuildValue("i", device->device->getStatus(self->handle));
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the status of the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -1260,9 +1252,9 @@ Handle_get_volume(Handle *self, void* nothing)
 	{
 		return Py_BuildValue("f", device->device->getVolume(self->handle));
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't get the sound volume!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -1272,7 +1264,7 @@ Handle_set_volume(Handle *self, PyObject* args, void* nothing)
 {
 	float volume;
 
-	if(!PyArg_Parse(args, "f", &volume))
+	if(!PyArg_Parse(args, "f:volume", &volume))
 		return -1;
 
 	Device* device = (Device*)self->device;
@@ -1281,12 +1273,13 @@ Handle_set_volume(Handle *self, PyObject* args, void* nothing)
 	{
 		if(device->device->setVolume(self->handle, volume))
 			return 0;
+		PyErr_SetString(AUDError, "Couldn't set the sound volume!");
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
+		PyErr_SetString(AUDError, e.str);
 	}
 
-	PyErr_SetString(AUDError, "Couldn't set the sound volume!");
 	return -1;
 }
 
@@ -1302,9 +1295,9 @@ Handle_get_pitch(Handle *self, void* nothing)
 	{
 		return Py_BuildValue("f", device->device->getPitch(self->handle));
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't get the sound pitch!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -1314,7 +1307,7 @@ Handle_set_pitch(Handle *self, PyObject* args, void* nothing)
 {
 	float pitch;
 
-	if(!PyArg_Parse(args, "f", &pitch))
+	if(!PyArg_Parse(args, "f:pitch", &pitch))
 		return -1;
 
 	Device* device = (Device*)self->device;
@@ -1323,12 +1316,13 @@ Handle_set_pitch(Handle *self, PyObject* args, void* nothing)
 	{
 		if(device->device->setPitch(self->handle, pitch))
 			return 0;
+		PyErr_SetString(AUDError, "Couldn't set the sound pitch!");
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
+		PyErr_SetString(AUDError, e.str);
 	}
 
-	PyErr_SetString(AUDError, "Couldn't set the sound pitch!");
 	return -1;
 }
 
@@ -1344,9 +1338,9 @@ Handle_get_loop_count(Handle *self, void* nothing)
 	{
 		return Py_BuildValue("i", device->device->getLoopCount(self->handle));
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't get the loop count!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -1356,7 +1350,7 @@ Handle_set_loop_count(Handle *self, PyObject* args, void* nothing)
 {
 	int loops;
 
-	if(!PyArg_Parse(args, "i", &loops))
+	if(!PyArg_Parse(args, "i:loop_count", &loops))
 		return -1;
 
 	Device* device = (Device*)self->device;
@@ -1365,12 +1359,13 @@ Handle_set_loop_count(Handle *self, PyObject* args, void* nothing)
 	{
 		if(device->device->setLoopCount(self->handle, loops))
 			return 0;
+		PyErr_SetString(AUDError, "Couldn't set the loop count!");
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
+		PyErr_SetString(AUDError, e.str);
 	}
 
-	PyErr_SetString(AUDError, "Couldn't set the loop count!");
 	return -1;
 }
 
@@ -1392,12 +1387,12 @@ Handle_get_location(Handle *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the location!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return NULL;
@@ -1408,7 +1403,7 @@ Handle_set_location(Handle *self, PyObject* args, void* nothing)
 {
 	float x, y, z;
 
-	if(!PyArg_Parse(args, "(fff)", &x, &y, &z))
+	if(!PyArg_Parse(args, "(fff):location", &x, &y, &z))
 		return -1;
 
 	Device* dev = (Device*)self->device;
@@ -1419,15 +1414,16 @@ Handle_set_location(Handle *self, PyObject* args, void* nothing)
 		if(device)
 		{
 			AUD_Vector3 location(x, y, z);
-			device->setSourceLocation(self->handle, location);
-			return 0;
+			if(device->setSourceLocation(self->handle, location))
+				return 0;
+			PyErr_SetString(AUDError, "Location couldn't be set!");
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the location!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -1451,12 +1447,12 @@ Handle_get_velocity(Handle *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the velocity!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return NULL;
@@ -1467,7 +1463,7 @@ Handle_set_velocity(Handle *self, PyObject* args, void* nothing)
 {
 	float x, y, z;
 
-	if(!PyArg_Parse(args, "(fff)", &x, &y, &z))
+	if(!PyArg_Parse(args, "(fff):velocity", &x, &y, &z))
 		return -1;
 
 	Device* dev = (Device*)self->device;
@@ -1478,15 +1474,16 @@ Handle_set_velocity(Handle *self, PyObject* args, void* nothing)
 		if(device)
 		{
 			AUD_Vector3 velocity(x, y, z);
-			device->setSourceVelocity(self->handle, velocity);
-			return 0;
+			if(device->setSourceVelocity(self->handle, velocity))
+				return 0;
+			PyErr_SetString(AUDError, "Couldn't set the velocity!");
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the velocity!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -1510,12 +1507,12 @@ Handle_get_orientation(Handle *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the orientation!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return NULL;
@@ -1526,7 +1523,7 @@ Handle_set_orientation(Handle *self, PyObject* args, void* nothing)
 {
 	float w, x, y, z;
 
-	if(!PyArg_Parse(args, "(ffff)", &w, &x, &y, &z))
+	if(!PyArg_Parse(args, "(ffff):orientation", &w, &x, &y, &z))
 		return -1;
 
 	Device* dev = (Device*)self->device;
@@ -1537,15 +1534,16 @@ Handle_set_orientation(Handle *self, PyObject* args, void* nothing)
 		if(device)
 		{
 			AUD_Quaternion orientation(w, x, y, z);
-			device->setSourceOrientation(self->handle, orientation);
-			return 0;
+			if(device->setSourceOrientation(self->handle, orientation))
+				return 0;
+			PyErr_SetString(AUDError, "Couldn't set the orientation!");
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the orientation!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -1575,12 +1573,12 @@ Handle_get_relative(Handle *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the status of the sound!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return NULL;
@@ -1603,15 +1601,16 @@ Handle_set_relative(Handle *self, PyObject* args, void* nothing)
 		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
 		if(device)
 		{
-			device->setRelative(self->handle, relative);
-			return 0;
+			if(device->setRelative(self->handle, relative))
+				return 0;
+			PyErr_SetString(AUDError, "Couldn't set the relativeness!");
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the status!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -1634,13 +1633,13 @@ Handle_get_volume_minimum(Handle *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 			return NULL;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the minimum volume of the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -1650,7 +1649,7 @@ Handle_set_volume_minimum(Handle *self, PyObject* args, void* nothing)
 {
 	float volume;
 
-	if(!PyArg_Parse(args, "f", &volume))
+	if(!PyArg_Parse(args, "f:volume_minimum", &volume))
 		return -1;
 
 	Device* dev = (Device*)self->device;
@@ -1660,15 +1659,16 @@ Handle_set_volume_minimum(Handle *self, PyObject* args, void* nothing)
 		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
 		if(device)
 		{
-			device->setVolumeMinimum(self->handle, volume);
-			return 0;
+			if(device->setVolumeMinimum(self->handle, volume))
+				return 0;
+			PyErr_SetString(AUDError, "Couldn't set the minimum volume!");
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the minimum source volume!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -1691,13 +1691,13 @@ Handle_get_volume_maximum(Handle *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 			return NULL;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the maximum volume of the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -1707,7 +1707,7 @@ Handle_set_volume_maximum(Handle *self, PyObject* args, void* nothing)
 {
 	float volume;
 
-	if(!PyArg_Parse(args, "f", &volume))
+	if(!PyArg_Parse(args, "f:volume_maximum", &volume))
 		return -1;
 
 	Device* dev = (Device*)self->device;
@@ -1717,15 +1717,16 @@ Handle_set_volume_maximum(Handle *self, PyObject* args, void* nothing)
 		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
 		if(device)
 		{
-			device->setVolumeMaximum(self->handle, volume);
-			return 0;
+			if(device->setVolumeMaximum(self->handle, volume))
+				return 0;
+			PyErr_SetString(AUDError, "Couldn't set the maximum volume!");
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the maximum source volume!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -1748,13 +1749,13 @@ Handle_get_distance_reference(Handle *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 			return NULL;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the reference distance of the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -1764,7 +1765,7 @@ Handle_set_distance_reference(Handle *self, PyObject* args, void* nothing)
 {
 	float distance;
 
-	if(!PyArg_Parse(args, "f", &distance))
+	if(!PyArg_Parse(args, "f:distance_reference", &distance))
 		return -1;
 
 	Device* dev = (Device*)self->device;
@@ -1774,15 +1775,16 @@ Handle_set_distance_reference(Handle *self, PyObject* args, void* nothing)
 		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
 		if(device)
 		{
-			device->setDistanceReference(self->handle, distance);
-			return 0;
+			if(device->setDistanceReference(self->handle, distance))
+				return 0;
+			PyErr_SetString(AUDError, "Couldn't set the reference distance!");
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the reference distance!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -1805,13 +1807,13 @@ Handle_get_distance_maximum(Handle *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 			return NULL;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the maximum distance of the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -1821,7 +1823,7 @@ Handle_set_distance_maximum(Handle *self, PyObject* args, void* nothing)
 {
 	float distance;
 
-	if(!PyArg_Parse(args, "f", &distance))
+	if(!PyArg_Parse(args, "f:distance_maximum", &distance))
 		return -1;
 
 	Device* dev = (Device*)self->device;
@@ -1831,15 +1833,16 @@ Handle_set_distance_maximum(Handle *self, PyObject* args, void* nothing)
 		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
 		if(device)
 		{
-			device->setDistanceMaximum(self->handle, distance);
-			return 0;
+			if(device->setDistanceMaximum(self->handle, distance))
+				return 0;
+			PyErr_SetString(AUDError, "Couldn't set the maximum distance!");
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the maximum distance!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -1862,13 +1865,13 @@ Handle_get_attenuation(Handle *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 			return NULL;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the attenuation of the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -1878,7 +1881,7 @@ Handle_set_attenuation(Handle *self, PyObject* args, void* nothing)
 {
 	float factor;
 
-	if(!PyArg_Parse(args, "f", &factor))
+	if(!PyArg_Parse(args, "f:attenuation", &factor))
 		return -1;
 
 	Device* dev = (Device*)self->device;
@@ -1888,15 +1891,16 @@ Handle_set_attenuation(Handle *self, PyObject* args, void* nothing)
 		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
 		if(device)
 		{
-			device->setAttenuation(self->handle, factor);
-			return 0;
+			if(device->setAttenuation(self->handle, factor))
+				return 0;
+			PyErr_SetString(AUDError, "Couldn't set the attenuation!");
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the attenuation!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -1919,13 +1923,13 @@ Handle_get_cone_angle_inner(Handle *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 			return NULL;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the cone inner angle of the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -1935,7 +1939,7 @@ Handle_set_cone_angle_inner(Handle *self, PyObject* args, void* nothing)
 {
 	float angle;
 
-	if(!PyArg_Parse(args, "f", &angle))
+	if(!PyArg_Parse(args, "f:cone_angle_inner", &angle))
 		return -1;
 
 	Device* dev = (Device*)self->device;
@@ -1945,15 +1949,16 @@ Handle_set_cone_angle_inner(Handle *self, PyObject* args, void* nothing)
 		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
 		if(device)
 		{
-			device->setConeAngleInner(self->handle, angle);
-			return 0;
+			if(device->setConeAngleInner(self->handle, angle))
+				return 0;
+			PyErr_SetString(AUDError, "Couldn't set the cone inner angle!");
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the cone inner angle!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -1976,13 +1981,13 @@ Handle_get_cone_angle_outer(Handle *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 			return NULL;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the cone outer angle of the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -1992,7 +1997,7 @@ Handle_set_cone_angle_outer(Handle *self, PyObject* args, void* nothing)
 {
 	float angle;
 
-	if(!PyArg_Parse(args, "f", &angle))
+	if(!PyArg_Parse(args, "f:cone_angle_outer", &angle))
 		return -1;
 
 	Device* dev = (Device*)self->device;
@@ -2002,15 +2007,16 @@ Handle_set_cone_angle_outer(Handle *self, PyObject* args, void* nothing)
 		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
 		if(device)
 		{
-			device->setConeAngleOuter(self->handle, angle);
-			return 0;
+			if(device->setConeAngleOuter(self->handle, angle))
+				return 0;
+			PyErr_SetString(AUDError, "Couldn't set the cone outer angle!");
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the cone outer angle!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -2033,13 +2039,13 @@ Handle_get_cone_volume_outer(Handle *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 			return NULL;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the cone outer volume of the sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -2049,7 +2055,7 @@ Handle_set_cone_volume_outer(Handle *self, PyObject* args, void* nothing)
 {
 	float volume;
 
-	if(!PyArg_Parse(args, "f", &volume))
+	if(!PyArg_Parse(args, "f:cone_volume_outer", &volume))
 		return -1;
 
 	Device* dev = (Device*)self->device;
@@ -2059,15 +2065,16 @@ Handle_set_cone_volume_outer(Handle *self, PyObject* args, void* nothing)
 		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
 		if(device)
 		{
-			device->setConeVolumeOuter(self->handle, volume);
-			return 0;
+			if(device->setConeVolumeOuter(self->handle, volume))
+				return 0;
+			PyErr_SetString(AUDError, "Couldn't set the cone outer volume!");
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the cone outer volume!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -2174,15 +2181,16 @@ Device_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	Device *self;
 
-	static const char *kwlist[] = {"type", "rate", "channels", "format", "buffer_size", NULL};
+	static const char *kwlist[] = {"type", "rate", "channels", "format", "buffer_size", "name", NULL};
 	int device;
 	int rate = AUD_RATE_44100;
 	int channels = AUD_CHANNELS_STEREO;
 	int format = AUD_FORMAT_FLOAT32;
 	int buffersize = AUD_DEFAULT_BUFFER_SIZE;
+	const char* name = "Audaspace";
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|iiii", const_cast<char**>(kwlist),
-									&device, &rate, &channels, &format, &buffersize))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|iiiis:Device", const_cast<char**>(kwlist),
+									&device, &rate, &channels, &format, &buffersize, &name))
 		return NULL;
 
 	if(buffersize < 128)
@@ -2220,7 +2228,7 @@ Device_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 				break;
 			case AUD_DEVICE_JACK:
 #ifdef WITH_JACK
-				self->device = new AUD_JackDevice(specs, buffersize);
+				self->device = new AUD_JackDevice(name, specs, buffersize);
 #endif
 				break;
 			case AUD_DEVICE_READ:
@@ -2228,10 +2236,10 @@ Device_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 			}
 
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(self);
-			PyErr_SetString(AUDError, "Device couldn't be created!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 
@@ -2266,7 +2274,7 @@ Device_play(Device *self, PyObject *args, PyObject *kwds)
 
 	static const char *kwlist[] = {"sound", "keep", NULL};
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", const_cast<char**>(kwlist), &object, &keepo))
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O:play", const_cast<char**>(kwlist), &object, &keepo))
 		return NULL;
 
 	if(!PyObject_TypeCheck(object, &SoundType))
@@ -2299,10 +2307,10 @@ Device_play(Device *self, PyObject *args, PyObject *kwds)
 		{
 			handle->handle = self->device->play(sound->factory, keep);
 		}
-		catch(AUD_Exception&)
+		catch(AUD_Exception& e)
 		{
 			Py_DECREF(handle);
-			PyErr_SetString(AUDError, "Couldn't play the sound!");
+			PyErr_SetString(AUDError, e.str);
 			return NULL;
 		}
 	}
@@ -2326,9 +2334,9 @@ Device_lock(Device *self)
 		self->device->lock();
 		Py_RETURN_NONE;
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't lock the device!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -2345,9 +2353,9 @@ Device_unlock(Device *self)
 		self->device->unlock();
 		Py_RETURN_NONE;
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't unlock the device!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -2376,9 +2384,9 @@ Device_get_rate(Device *self, void* nothing)
 		AUD_DeviceSpecs specs = self->device->getSpecs();
 		return Py_BuildValue("i", specs.rate);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve device stats!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -2394,9 +2402,9 @@ Device_get_format(Device *self, void* nothing)
 		AUD_DeviceSpecs specs = self->device->getSpecs();
 		return Py_BuildValue("i", specs.format);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve device stats!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -2412,9 +2420,9 @@ Device_get_channels(Device *self, void* nothing)
 		AUD_DeviceSpecs specs = self->device->getSpecs();
 		return Py_BuildValue("i", specs.channels);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve device stats!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -2429,9 +2437,9 @@ Device_get_volume(Device *self, void* nothing)
 	{
 		return Py_BuildValue("f", self->device->getVolume());
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve device volume!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -2441,7 +2449,7 @@ Device_set_volume(Device *self, PyObject* args, void* nothing)
 {
 	float volume;
 
-	if(!PyArg_Parse(args, "f", &volume))
+	if(!PyArg_Parse(args, "f:volume", &volume))
 		return -1;
 
 	try
@@ -2449,9 +2457,9 @@ Device_set_volume(Device *self, PyObject* args, void* nothing)
 		self->device->setVolume(volume);
 		return 0;
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set device volume!");
+		PyErr_SetString(AUDError, e.str);
 		return -1;
 	}
 }
@@ -2472,12 +2480,12 @@ Device_get_listener_location(Device *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the location!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return NULL;
@@ -2488,7 +2496,7 @@ Device_set_listener_location(Device *self, PyObject* args, void* nothing)
 {
 	float x, y, z;
 
-	if(!PyArg_Parse(args, "(fff)", &x, &y, &z))
+	if(!PyArg_Parse(args, "(fff):listener_location", &x, &y, &z))
 		return -1;
 
 	try
@@ -2501,11 +2509,11 @@ Device_set_listener_location(Device *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the location!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -2527,12 +2535,12 @@ Device_get_listener_velocity(Device *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the velocity!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return NULL;
@@ -2543,7 +2551,7 @@ Device_set_listener_velocity(Device *self, PyObject* args, void* nothing)
 {
 	float x, y, z;
 
-	if(!PyArg_Parse(args, "(fff)", &x, &y, &z))
+	if(!PyArg_Parse(args, "(fff):listener_velocity", &x, &y, &z))
 		return -1;
 
 	try
@@ -2556,11 +2564,11 @@ Device_set_listener_velocity(Device *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the velocity!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -2582,12 +2590,12 @@ Device_get_listener_orientation(Device *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve the orientation!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return NULL;
@@ -2598,7 +2606,7 @@ Device_set_listener_orientation(Device *self, PyObject* args, void* nothing)
 {
 	float w, x, y, z;
 
-	if(!PyArg_Parse(args, "(ffff)", &w, &x, &y, &z))
+	if(!PyArg_Parse(args, "(ffff):listener_orientation", &w, &x, &y, &z))
 		return -1;
 
 	try
@@ -2611,11 +2619,11 @@ Device_set_listener_orientation(Device *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set the orientation!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -2636,13 +2644,13 @@ Device_get_speed_of_sound(Device *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 			return NULL;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve device speed of sound!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -2652,7 +2660,7 @@ Device_set_speed_of_sound(Device *self, PyObject* args, void* nothing)
 {
 	float speed;
 
-	if(!PyArg_Parse(args, "f", &speed))
+	if(!PyArg_Parse(args, "f:speed_of_sound", &speed))
 		return -1;
 
 	try
@@ -2664,11 +2672,11 @@ Device_set_speed_of_sound(Device *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set device speed of sound!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -2689,13 +2697,13 @@ Device_get_doppler_factor(Device *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 			return NULL;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve device doppler factor!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -2705,7 +2713,7 @@ Device_set_doppler_factor(Device *self, PyObject* args, void* nothing)
 {
 	float factor;
 
-	if(!PyArg_Parse(args, "f", &factor))
+	if(!PyArg_Parse(args, "f:doppler_factor", &factor))
 		return -1;
 
 	try
@@ -2717,11 +2725,11 @@ Device_set_doppler_factor(Device *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set device doppler factor!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;
@@ -2742,13 +2750,13 @@ Device_get_distance_model(Device *self, void* nothing)
 		}
 		else
 		{
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 			return NULL;
 		}
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't retrieve device distance model!");
+		PyErr_SetString(AUDError, e.str);
 		return NULL;
 	}
 }
@@ -2758,7 +2766,7 @@ Device_set_distance_model(Device *self, PyObject* args, void* nothing)
 {
 	int model;
 
-	if(!PyArg_Parse(args, "i", &model))
+	if(!PyArg_Parse(args, "i:distance_model", &model))
 		return -1;
 
 	try
@@ -2770,11 +2778,11 @@ Device_set_distance_model(Device *self, PyObject* args, void* nothing)
 			return 0;
 		}
 		else
-			PyErr_SetString(AUDError, "Device is not a 3D device!");
+			PyErr_SetString(AUDError, device_not_3d_error);
 	}
-	catch(AUD_Exception&)
+	catch(AUD_Exception& e)
 	{
-		PyErr_SetString(AUDError, "Couldn't set device distance model!");
+		PyErr_SetString(AUDError, e.str);
 	}
 
 	return -1;

@@ -27,13 +27,16 @@
 
 #include <cstring>
 
+static const char* props_error = "AUD_ReverseReader: The reader has to be "
+								 "seekable and a finite length.";
+
 AUD_ReverseReader::AUD_ReverseReader(AUD_IReader* reader) :
 		AUD_EffectReader(reader),
 		m_length(reader->getLength()),
 		m_position(0)
 {
 	if(m_length < 0 || !reader->isSeekable())
-		AUD_THROW(AUD_ERROR_READER);
+		AUD_THROW(AUD_ERROR_PROPS, props_error);
 }
 
 void AUD_ReverseReader::seek(int position)

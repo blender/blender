@@ -34,6 +34,9 @@ static long src_callback(void *cb_data, float **data)
 	return ((AUD_SRCResampleReader*)cb_data)->doCallback(data);
 }
 
+static const char* state_error = "AUD_SRCResampleReader: SRC State couldn't be "
+								 "created.";
+
 AUD_SRCResampleReader::AUD_SRCResampleReader(AUD_IReader* reader,
 											 AUD_Specs specs) :
 		AUD_EffectReader(reader),
@@ -54,8 +57,7 @@ AUD_SRCResampleReader::AUD_SRCResampleReader(AUD_IReader* reader,
 	if(!m_src)
 	{
 		// XXX printf("%s\n", src_strerror(error));
-		delete m_reader;
-		AUD_THROW(AUD_ERROR_READER);
+		AUD_THROW(AUD_ERROR_SRC, state_error);
 	}
 }
 
