@@ -69,7 +69,7 @@
 #define UTIL_DEBUG 0
 
 const char *imb_ext_image[] = {
-	".png"
+	".png",
 	".tga",
 	".bmp",
 	".jpg", ".jpeg",
