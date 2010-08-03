@@ -88,7 +88,7 @@ float linearrgb_to_srgb(float c)
 	if(c < 0.0031308)
 		return (c < 0.0)? 0.0: c * 12.92;
 	else
-		return 1.055 * pow(c, 1.0/2.4) - 0.055f;
+		return 1.055 * pow(c, 1.0/2.4) - 0.055;
 }
 
 void srgb_to_linearrgb(vec4 col_from, out vec4 col_to)
