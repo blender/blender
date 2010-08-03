@@ -397,6 +397,10 @@ static void keyIndex_delNurb(EditNurb *editnurb, Nurb *nu)
 {
 	int a;
 
+	if (!editnurb->keyindex) {
+		return;
+	}
+
 	if (nu->bezt) {
 		BezTriple *bezt= nu->bezt;
 		a= nu->pntsu;
