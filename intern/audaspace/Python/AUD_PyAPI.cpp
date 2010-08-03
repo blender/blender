@@ -417,7 +417,9 @@ PyDoc_STRVAR(M_aud_Factory_pitch_doc,
 			 ":rtype: aud.Factory\n\n"
 			 ".. note:: This is done by changing the sample rate of the "
 			 "underlying sound, which has to be an integer, so the factor "
-			 "value rounded and the factor may not be 100 % accurate.");
+			 "value rounded and the factor may not be 100 % accurate.\n\n"
+			 ".. note:: This is a filter function, you might consider using "
+			 "aud.Handle.pitch instead.");
 
 static PyObject *
 Factory_pitch(Factory* self, PyObject* args)
@@ -459,7 +461,7 @@ PyDoc_STRVAR(M_aud_Factory_volume_doc,
 			 ":rtype: aud.Factory\n\n"
 			 ".. note:: Should be in the range [0, 1] to avoid clipping.\n\n"
 			 ".. note:: This is a filter function, you might consider using "
-			 "aud.Handle.pitch instead.");
+			 "aud.Handle.volume instead.");
 
 static PyObject *
 Factory_volume(Factory* self, PyObject* args)
@@ -500,9 +502,7 @@ PyDoc_STRVAR(M_aud_Factory_fadein_doc,
 			 ":arg length: Time in seconds how long the fading should last.\n"
 			 ":type length: float\n"
 			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory\n\n"
-			 ".. note:: This is a filter function, you might consider using "
-			 "aud.Handle.volume instead.");
+			 ":rtype: aud.Factory");
 
 static PyObject *
 Factory_fadein(Factory* self, PyObject* args)
@@ -663,8 +663,7 @@ PyDoc_STRVAR(M_aud_Factory_pingpong_doc,
 			 "pingpong()\n\n"
 			 "Plays a sound forward and then backward.\n\n"
 			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory\n\n"
-			 ".. note:: The sound has to be buffered to be played reverse.");
+			 ":rtype: aud.Factory");
 
 static PyObject *
 Factory_pingpong(Factory* self)
@@ -697,7 +696,8 @@ PyDoc_STRVAR(M_aud_Factory_reverse_doc,
 			 "Plays a sound reversed.\n\n"
 			 ":return: The created aud.Factory object.\n"
 			 ":rtype: aud.Factory\n\n"
-			 ".. note:: The sound has to be buffered to be played reverse.");
+			 ".. note:: The sound has have a finite length and be seekable. "
+			 "It's recommended to buffer sounds that should be played reversed.");
 
 static PyObject *
 Factory_reverse(Factory* self)
