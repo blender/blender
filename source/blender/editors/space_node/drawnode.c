@@ -904,7 +904,10 @@ static void node_composit_buts_file_output(uiLayout *layout, bContext *C, Pointe
 		uiItemR(row, ptr, "exr_codec", 0, "", 0);
 	}
 	else if (RNA_enum_get(ptr, "image_type")== R_JPEG90) {
-		uiItemR(row, ptr, "quality", UI_ITEM_R_SLIDER, NULL, 0);
+		uiItemR(row, ptr, "quality", UI_ITEM_R_SLIDER, "Quality", 0);
+	}
+	else if (RNA_enum_get(ptr, "image_type")== R_PNG) {
+		uiItemR(row, ptr, "quality", UI_ITEM_R_SLIDER, "Compression", 0);
 	}
 	
 	row= uiLayoutRow(layout, 1);
