@@ -222,5 +222,9 @@ typedef struct ImBuf {
 #define IB_PROFILE_SRGB			2
 #define IB_PROFILE_CUSTOM		3
 
-#endif
+extern const char *imb_ext_image[];
+extern const char *imb_ext_image_qt[];
+extern const char *imb_ext_movie[];
+extern const char *imb_ext_audio[];
 
+#endif

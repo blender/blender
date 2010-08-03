@@ -68,6 +68,80 @@
 
 #define UTIL_DEBUG 0
 
+const char *imb_ext_image[] = {
+	".png"
+	".tga",
+	".bmp",
+	".jpg", ".jpeg",
+	".sgi", ".rgb", ".rgba",
+#ifdef WITH_TIFF
+	".tif", ".tiff", ".tx",
+#endif
+#ifdef WITH_BF_OPENJPEG
+	".jp2",
+#endif
+#ifdef WITH_HDR
+	".hdr",
+#endif
+#ifdef WITH_DDS
+	".dds",
+#endif
+#ifdef WITH_CINEON
+	".dpx",
+	".cin",
+#endif
+#ifdef WITH_BF_OPENEXR
+	".exr",
+#endif
+	NULL};
+
+const char *imb_ext_image_qt[] = {
+	".gif",
+	".psd",
+	".pct", ".pict",
+	".pntg",
+	".qtif",
+	NULL};
+
+const char *imb_ext_movie[] = {
+	".avi",
+	".flc",
+	".mov",
+	".movie",
+	".mp4",
+	".m4v",
+	".m2v",
+	".m2t",
+	".mts",
+	".mv",
+	".avs",
+	".wmv",
+	".ogv",
+	".dv",
+	".mpeg",
+	".mpg",
+	".mpg2",
+	".vob",
+	".mkv",
+	".flv",
+	".divx",
+	".xvid",
+	NULL};
+
+/* sort of wrong being here... */
+const char *imb_ext_audio[] = {
+	".wav",
+	".ogg",
+	".oga",
+	".mp3",
+	".mp2",
+	".ac3",
+	".aac",
+	".flac",
+	".wma",
+	".eac3",
+	NULL};
+
 static int IMB_ispic_name(char *name)
 {
 	ImFileType *type;
@@ -105,90 +179,16 @@ static int IMB_ispic_name(char *name)
 int IMB_ispic(char *filename)
 {
 	if(U.uiflag & USER_FILTERFILEEXTS) {
-		if (BLI_testextensie(filename, ".tif")
-				||	BLI_testextensie(filename, ".tiff")
-				||	BLI_testextensie(filename, ".tx")) {
-				return IMB_ispic_name(filename);
+		if(	(BLI_testextensie_array(filename, imb_ext_image)) ||
+			(G.have_quicktime && BLI_testextensie_array(filename, imb_ext_image_qt))
+		) {
+			return IMB_ispic_name(filename);
 		}
-		if (G.have_quicktime){
-			if(		BLI_testextensie(filename, ".jpg")
-				||	BLI_testextensie(filename, ".jpeg")
-#ifdef WITH_TIFF
-				||	BLI_testextensie(filename, ".tif")
-				||	BLI_testextensie(filename, ".tiff")
-				||	BLI_testextensie(filename, ".tx")
-#endif
-#ifdef WITH_HDR
-				||	BLI_testextensie(filename, ".hdr")
-#endif
-				||	BLI_testextensie(filename, ".tga")
-				||	BLI_testextensie(filename, ".rgb")
-				||	BLI_testextensie(filename, ".bmp")
-				||	BLI_testextensie(filename, ".png")
-#ifdef WITH_DDS
-				||	BLI_testextensie(filename, ".dds")
-#endif
-				||	BLI_testextensie(filename, ".iff")
-				||	BLI_testextensie(filename, ".lbm")
-				||	BLI_testextensie(filename, ".gif")
-				||	BLI_testextensie(filename, ".psd")
-				||	BLI_testextensie(filename, ".pct")
-				||	BLI_testextensie(filename, ".pict")
-				||	BLI_testextensie(filename, ".pntg") //macpaint
-				||	BLI_testextensie(filename, ".qtif")
-#ifdef WITH_CINEON				
-				||	BLI_testextensie(filename, ".dpx")
-				||	BLI_testextensie(filename, ".cin")
-#endif
-#ifdef WITH_BF_OPENEXR
-				||	BLI_testextensie(filename, ".exr")
-#endif
-#ifdef WITH_BF_OPENJPEG
-				||	BLI_testextensie(filename, ".jp2")
-#endif
-				||	BLI_testextensie(filename, ".sgi")) {
-				return IMB_ispic_name(filename);
-			} else {
-				return(FALSE);			
-			}
-		} else { /* no quicktime */
-			if(		BLI_testextensie(filename, ".jpg")
-				||	BLI_testextensie(filename, ".jpeg")
-#ifdef WITH_TIFF
-				||	BLI_testextensie(filename, ".tif")
-				||	BLI_testextensie(filename, ".tiff")
-				||	BLI_testextensie(filename, ".tx")
-#endif
-#ifdef WITH_HDR
-				||	BLI_testextensie(filename, ".hdr")
-#endif
-				||	BLI_testextensie(filename, ".tga")
-				||	BLI_testextensie(filename, ".rgb")
-				||	BLI_testextensie(filename, ".bmp")
-				||	BLI_testextensie(filename, ".png")
-#ifdef WITH_CINEON
-				||	BLI_testextensie(filename, ".cin")
-				||	BLI_testextensie(filename, ".dpx")
-#endif
-#ifdef WITH_DDS
-				||	BLI_testextensie(filename, ".dds")
-#endif
-#ifdef WITH_BF_OPENEXR
-				||	BLI_testextensie(filename, ".exr")
-#endif
-#ifdef WITH_BF_OPENJPEG
-				||	BLI_testextensie(filename, ".jp2")
-#endif
-				||	BLI_testextensie(filename, ".iff")
-				||	BLI_testextensie(filename, ".lbm")
-				||	BLI_testextensie(filename, ".sgi")) {
-				return IMB_ispic_name(filename);
-			}
-			else  {
-				return(FALSE);
-			}
+		else  {
+			return FALSE;
 		}
-	} else { /* no FILTERFILEEXTS */
+	}
+	else { /* no FILTERFILEEXTS */
 		return IMB_ispic_name(filename);
 	}
 }
