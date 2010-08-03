@@ -129,18 +129,18 @@ EnumPropertyItem object_type_curve_items[] = {
 #include "ED_object.h"
 #include "ED_particle.h"
 
-void rna_Object_internal_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Object_internal_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
 }
 
-void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	object_apply_mat4(ptr->id.data, ((Object *)ptr->id.data)->obmat);
 	rna_Object_internal_update(bmain, scene, ptr);
 }
 
-void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
+static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
 {
 	Object *ob= ptr->id.data;
 
@@ -154,7 +154,7 @@ void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
 	}
 }
 
-void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
+static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
 {
 	Object *ob= ptr->id.data;
 
@@ -1050,6 +1050,32 @@ static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 		memset(values, -1.0f, sizeof(bb->vec));
 	}
 
+}
+
+/* generic poll functions */
+int rna_Lattice_object_poll(PointerRNA *ptr, PointerRNA value)
+{
+	return ((Object *)value.id.data)->type == OB_LATTICE;
+}
+
+int rna_Curve_object_poll(PointerRNA *ptr, PointerRNA value)
+{
+	return ((Object *)value.id.data)->type == OB_CURVE;
+}
+
+int rna_Armature_object_poll(PointerRNA *ptr, PointerRNA value)
+{
+	return ((Object *)value.id.data)->type == OB_ARMATURE;
+}
+
+int rna_Mesh_object_poll(PointerRNA *ptr, PointerRNA value)
+{
+	return ((Object *)value.id.data)->type == OB_MESH;
+}
+
+int rna_Camera_object_poll(PointerRNA *ptr, PointerRNA value)
+{
+	return ((Object *)value.id.data)->type == OB_CAMERA;
 }
 
 #else

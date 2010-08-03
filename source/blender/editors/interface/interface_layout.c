@@ -1111,6 +1111,12 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, ui
 			if(itemptr.data == but->rnapoin.id.data)
 				continue;
 
+		/* use filter */
+		if(RNA_property_type(but->rnaprop)==PROP_POINTER) {
+			if(RNA_property_pointer_poll(&but->rnapoin, but->rnaprop, &itemptr)==0)
+				continue;
+		}
+
 		if(itemptr.type && RNA_struct_is_ID(itemptr.type)) {
 			ID *id= itemptr.data;
 			char name_ui[32];

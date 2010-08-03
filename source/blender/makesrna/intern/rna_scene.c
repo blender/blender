@@ -2929,6 +2929,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	/* Global Settings */
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Camera_object_poll");
 	RNA_def_property_ui_text(prop, "Camera", "Active camera used for rendering the scene");
 	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, "rna_Scene_view3d_update");
 

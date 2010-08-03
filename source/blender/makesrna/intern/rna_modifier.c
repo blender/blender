@@ -659,7 +659,7 @@ static void rna_def_modifier_lattice(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Object", "Lattice object to deform with");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_LatticeModifier_object_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_LatticeModifier_object_set", NULL, "rna_Lattice_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
@@ -691,7 +691,7 @@ static void rna_def_modifier_curve(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Object", "Curve object to deform with");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_CurveModifier_object_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_CurveModifier_object_set", NULL, "rna_Curve_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
@@ -983,7 +983,7 @@ static void rna_def_modifier_armature(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Object", "Armature object to deform with");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_ArmatureModifier_object_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_ArmatureModifier_object_set", NULL, "rna_Armature_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
@@ -1145,7 +1145,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curve_ob");
 	RNA_def_property_ui_text(prop, "Curve", "Curve object to fit array length to");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_ArrayModifier_curve_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_ArrayModifier_curve_set", NULL, "rna_Curve_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
@@ -1203,13 +1203,13 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	/* Caps */
 	prop= RNA_def_property(srna, "start_cap", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Start Cap", "Mesh object to use as a start cap");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_ArrayModifier_start_cap_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_ArrayModifier_start_cap_set", NULL, "rna_Mesh_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "end_cap", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "End Cap", "Mesh object to use as an end cap");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_ArrayModifier_end_cap_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_ArrayModifier_end_cap_set", NULL, "rna_Mesh_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 }
@@ -1875,14 +1875,14 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Target", "Mesh target to shrink to");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_ShrinkwrapModifier_target_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_ShrinkwrapModifier_target_set", NULL, "rna_Mesh_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
 	prop= RNA_def_property(srna, "auxiliary_target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "auxTarget");
 	RNA_def_property_ui_text(prop, "Auxiliary Target", "Additional mesh target to shrink to");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_ShrinkwrapModifier_auxiliary_target_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_ShrinkwrapModifier_auxiliary_target_set", NULL, "rna_Mesh_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
@@ -1986,7 +1986,7 @@ static void rna_def_modifier_mask(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "armature", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ob_arm");
 	RNA_def_property_ui_text(prop, "Armature", "Armature to use as source of bones to mask");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_MaskModifier_armature_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_MaskModifier_armature_set", NULL, "rna_Armature_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 

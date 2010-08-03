@@ -178,7 +178,15 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 			filter_yes= 0;
 
 			/* use filter */
-			if (template->filterop[0] != 0) {
+			if(RNA_property_type(template->prop)==PROP_POINTER) {
+				PointerRNA ptr;
+				RNA_id_pointer_create(id, &ptr);
+				if(RNA_property_pointer_poll(&template->ptr, template->prop, &ptr)==0)
+					filter_yes= 1;
+			}
+
+			if (filter_yes==0 && template->filterop[0] != 0) {
+				/* XXX, remove this, use pointer filtering */
 				PointerRNA ptr;
 				ReportList reports;
 				FunctionRNA *func;

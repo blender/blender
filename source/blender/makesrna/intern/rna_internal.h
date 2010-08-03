@@ -206,10 +206,17 @@ PointerRNA rna_object_shapekey_index_get(struct ID *id, int value);
 int rna_object_shapekey_index_set(struct ID *id, PointerRNA value, int current);
 
 /* named internal so as not to conflict with obj.update() rna func */
-void rna_Object_internal_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_Object_internal_update_data(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_Mesh_update_draw(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_TextureSlot_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+
+/* basic poll functions for object types */
+int rna_Armature_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+int rna_Camera_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+int rna_Curve_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+int rna_Lattice_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+int rna_Mesh_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+
 
 char *rna_TextureSlot_path(struct PointerRNA *ptr);
 

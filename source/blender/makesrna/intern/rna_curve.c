@@ -285,6 +285,20 @@ static void rna_Curve_bevelObject_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
+static int rna_Curve_otherObject_poll(PointerRNA *ptr, PointerRNA value)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	Object *ob= (Object*)value.data;
+
+	if (ob) {
+		if (ob->type == OB_CURVE && ob->data != cu) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 static PointerRNA rna_Curve_taperObject_get(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->id.data;
@@ -819,6 +833,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	/* pointers */
 	prop= RNA_def_property(srna, "text_on_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "textoncurve");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Curve_otherObject_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Text on Curve", "Curve deforming text object");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_deps");
@@ -1144,7 +1159,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bevel Object", "Curve object name that defines the bevel shape");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_deps");
-	RNA_def_property_pointer_funcs(prop, "rna_Curve_bevelObject_get", "rna_Curve_bevelObject_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Curve_bevelObject_get", "rna_Curve_bevelObject_set", NULL, "rna_Curve_otherObject_poll");
 
 	prop= RNA_def_property(srna, "taper_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
@@ -1152,7 +1167,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Taper Object", "Curve object name that defines the taper (width)");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_deps");
-	RNA_def_property_pointer_funcs(prop, "rna_Curve_taperObject_get", "rna_Curve_taperObject_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Curve_taperObject_get", "rna_Curve_taperObject_set", NULL, "rna_Curve_otherObject_poll");
 
 	/* Flags */
 
