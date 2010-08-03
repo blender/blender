@@ -222,6 +222,8 @@ AUD_Handle* AUD_SoftwareDevice::play(AUD_IFactory* factory, bool keep)
 	sound->reader = reader;
 	sound->volume = 1.0f;
 	sound->loopcount = 0;
+	sound->stop = NULL;
+	sound->stop_data = NULL;
 
 	lock();
 	m_playingSounds.push_back(sound);

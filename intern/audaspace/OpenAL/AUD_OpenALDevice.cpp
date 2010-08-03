@@ -545,6 +545,8 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 				sound->isBuffered = true;
 				sound->data_end = true;
 				sound->loopcount = 0;
+				sound->stop = NULL;
+				sound->stop_data = NULL;
 
 				alcSuspendContext(m_context);
 
@@ -614,6 +616,8 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 	sound->isBuffered = false;
 	sound->data_end = false;
 	sound->loopcount = 0;
+	sound->stop = NULL;
+	sound->stop_data = NULL;
 
 	valid &= getFormat(sound->format, specs.specs);
 

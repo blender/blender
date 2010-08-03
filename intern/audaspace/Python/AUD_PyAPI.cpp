@@ -85,7 +85,7 @@ static const char* device_not_3d_error = "Device is not a 3D device!";
 // ====================================================================
 
 static void
-Sound_dealloc(Sound* self)
+Factory_dealloc(Factory* self)
 {
 	if(self->factory)
 		delete self->factory;
@@ -94,17 +94,17 @@ Sound_dealloc(Sound* self)
 }
 
 static PyObject *
-Sound_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+Factory_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-	Sound *self;
+	Factory *self;
 
-	self = (Sound*)type->tp_alloc(type, 0);
+	self = (Factory*)type->tp_alloc(type, 0);
 	if(self != NULL)
 	{
 		static const char *kwlist[] = {"filename", NULL};
 		const char* filename = NULL;
 
-		if(!PyArg_ParseTupleAndKeywords(args, kwds, "s:Sound", const_cast<char**>(kwlist), &filename))
+		if(!PyArg_ParseTupleAndKeywords(args, kwds, "s:Factory", const_cast<char**>(kwlist), &filename))
 		{
 			Py_DECREF(self);
 			return NULL;
@@ -125,18 +125,18 @@ Sound_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	return (PyObject *)self;
 }
 
-PyDoc_STRVAR(M_aud_Sound_sine_doc,
+PyDoc_STRVAR(M_aud_Factory_sine_doc,
 			 "sine(frequency[, rate])\n\n"
 			 "Creates a sine sound wave.\n\n"
 			 ":arg frequency: The frequency of the sine wave in Hz.\n"
 			 ":type frequency: float\n"
 			 ":arg rate: The sampling rate in Hz.\n"
 			 ":type rate: int\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound");
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory");
 
 static PyObject *
-Sound_sine(PyTypeObject* type, PyObject* args)
+Factory_sine(PyTypeObject* type, PyObject* args)
 {
 	float frequency;
 	int rate = 44100;
@@ -144,9 +144,9 @@ Sound_sine(PyTypeObject* type, PyObject* args)
 	if(!PyArg_ParseTuple(args, "f|i:sine", &frequency, &rate))
 		return NULL;
 
-	Sound *self;
+	Factory *self;
 
-	self = (Sound*)type->tp_alloc(type, 0);
+	self = (Factory*)type->tp_alloc(type, 0);
 	if(self != NULL)
 	{
 		try
@@ -164,25 +164,25 @@ Sound_sine(PyTypeObject* type, PyObject* args)
 	return (PyObject *)self;
 }
 
-PyDoc_STRVAR(M_aud_Sound_file_doc,
+PyDoc_STRVAR(M_aud_Factory_file_doc,
 			 "file(filename)\n\n"
 			 "Creates a sound object of a sound file.\n\n"
 			 ":arg filename: Path of the file.\n"
 			 ":type filename: string\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound");
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory");
 
 static PyObject *
-Sound_file(PyTypeObject* type, PyObject* args)
+Factory_file(PyTypeObject* type, PyObject* args)
 {
 	const char* filename = NULL;
 
 	if(!PyArg_ParseTuple(args, "s:file", &filename))
 		return NULL;
 
-	Sound *self;
+	Factory *self;
 
-	self = (Sound*)type->tp_alloc(type, 0);
+	self = (Factory*)type->tp_alloc(type, 0);
 	if(self != NULL)
 	{
 		try
@@ -200,18 +200,18 @@ Sound_file(PyTypeObject* type, PyObject* args)
 	return (PyObject *)self;
 }
 
-PyDoc_STRVAR(M_aud_Sound_lowpass_doc,
+PyDoc_STRVAR(M_aud_Factory_lowpass_doc,
 			 "lowpass(frequency[, Q])\n\n"
 			 "Creates a second order lowpass filter.\n\n"
 			 ":arg frequency: The cut off trequency of the lowpass.\n"
 			 ":type frequency: float\n"
 			 ":arg Q: Q factor of the lowpass.\n"
 			 ":type Q: float\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound");
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory");
 
 static PyObject *
-Sound_lowpass(Sound* self, PyObject* args)
+Factory_lowpass(Factory* self, PyObject* args)
 {
 	float frequency;
 	float Q = 0.5;
@@ -220,7 +220,7 @@ Sound_lowpass(Sound* self, PyObject* args)
 		return NULL;
 
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -242,16 +242,16 @@ Sound_lowpass(Sound* self, PyObject* args)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_delay_doc,
+PyDoc_STRVAR(M_aud_Factory_delay_doc,
 			 "delay(time)\n\n"
 			 "Delays a sound by playing silence before the sound starts.\n\n"
 			 ":arg time: How many seconds of silence should be added before the sound.\n"
 			 ":type time: float\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound");
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory");
 
 static PyObject *
-Sound_delay(Sound* self, PyObject* args)
+Factory_delay(Factory* self, PyObject* args)
 {
 	float delay;
 
@@ -259,7 +259,7 @@ Sound_delay(Sound* self, PyObject* args)
 		return NULL;
 
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -281,31 +281,31 @@ Sound_delay(Sound* self, PyObject* args)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_join_doc,
+PyDoc_STRVAR(M_aud_Factory_join_doc,
 			 "join(sound)\n\n"
 			 "Plays two sounds in sequence.\n\n"
 			 ":arg sound: The sound to play second.\n"
-			 ":type sound: aud.Sound\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n\n"
+			 ":type sound: aud.Factory\n"
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory\n\n"
 			 ".. note:: The two sounds have to have the same specifications "
 			 "(channels and samplerate).");
 
 static PyObject *
-Sound_join(Sound* self, PyObject* object)
+Factory_join(Factory* self, PyObject* object)
 {
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
 
 	if(!PyObject_TypeCheck(object, type))
 	{
-		PyErr_SetString(PyExc_TypeError, "Object has to be of type aud.Sound!");
+		PyErr_SetString(PyExc_TypeError, "Object has to be of type aud.Factory!");
 		return NULL;
 	}
 
-	Sound *parent;
-	Sound *child = (Sound*)object;
+	Factory *parent;
+	Factory *child = (Factory*)object;
 
-	parent = (Sound*)type->tp_alloc(type, 0);
+	parent = (Factory*)type->tp_alloc(type, 0);
 	if(parent != NULL)
 	{
 		parent->child_list = Py_BuildValue("(OO)", self, object);
@@ -325,18 +325,18 @@ Sound_join(Sound* self, PyObject* object)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_highpass_doc,
+PyDoc_STRVAR(M_aud_Factory_highpass_doc,
 			 "highpass(frequency[, Q])\n\n"
 			 "Creates a second order highpass filter.\n\n"
 			 ":arg frequency: The cut off trequency of the highpass.\n"
 			 ":type frequency: float\n"
 			 ":arg Q: Q factor of the lowpass.\n"
 			 ":type Q: float\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound");
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory");
 
 static PyObject *
-Sound_highpass(Sound* self, PyObject* args)
+Factory_highpass(Factory* self, PyObject* args)
 {
 	float frequency;
 	float Q = 0.5;
@@ -345,7 +345,7 @@ Sound_highpass(Sound* self, PyObject* args)
 		return NULL;
 
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -367,18 +367,18 @@ Sound_highpass(Sound* self, PyObject* args)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_limit_doc,
+PyDoc_STRVAR(M_aud_Factory_limit_doc,
 			 "limit(start, end)\n\n"
 			 "Limits a sound within a specific start and end time.\n\n"
 			 ":arg start: Start time in seconds.\n"
 			 ":type start: float\n"
 			 ":arg end: End time in seconds.\n"
 			 ":type end: float\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound");
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory");
 
 static PyObject *
-Sound_limit(Sound* self, PyObject* args)
+Factory_limit(Factory* self, PyObject* args)
 {
 	float start, end;
 
@@ -386,7 +386,7 @@ Sound_limit(Sound* self, PyObject* args)
 		return NULL;
 
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -408,19 +408,19 @@ Sound_limit(Sound* self, PyObject* args)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_pitch_doc,
+PyDoc_STRVAR(M_aud_Factory_pitch_doc,
 			 "pitch(factor)\n\n"
 			 "Changes the pitch of a sound with a specific factor.\n\n"
 			 ":arg factor: The factor to change the pitch with.\n"
 			 ":type factor: float\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n\n"
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory\n\n"
 			 ".. note:: This is done by changing the sample rate of the "
 			 "underlying sound, which has to be an integer, so the factor "
 			 "value rounded and the factor may not be 100 % accurate.");
 
 static PyObject *
-Sound_pitch(Sound* self, PyObject* args)
+Factory_pitch(Factory* self, PyObject* args)
 {
 	float factor;
 
@@ -428,7 +428,7 @@ Sound_pitch(Sound* self, PyObject* args)
 		return NULL;
 
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -450,19 +450,19 @@ Sound_pitch(Sound* self, PyObject* args)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_volume_doc,
+PyDoc_STRVAR(M_aud_Factory_volume_doc,
 			 "volume(volume)\n\n"
 			 "Changes the volume of a sound.\n\n"
 			 ":arg volume: The new volume..\n"
 			 ":type volume: float\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n\n"
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory\n\n"
 			 ".. note:: Should be in the range [0, 1] to avoid clipping.\n\n"
 			 ".. note:: This is a filter function, you might consider using "
 			 "aud.Handle.pitch instead.");
 
 static PyObject *
-Sound_volume(Sound* self, PyObject* args)
+Factory_volume(Factory* self, PyObject* args)
 {
 	float volume;
 
@@ -470,7 +470,7 @@ Sound_volume(Sound* self, PyObject* args)
 		return NULL;
 
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -492,20 +492,20 @@ Sound_volume(Sound* self, PyObject* args)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_fadein_doc,
+PyDoc_STRVAR(M_aud_Factory_fadein_doc,
 			 "fadein(start, length)\n\n"
 			 "Fades a sound in.\n\n"
 			 ":arg start: Time in seconds when the fading should start.\n"
 			 ":type start: float\n"
 			 ":arg length: Time in seconds how long the fading should last.\n"
 			 ":type length: float\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n\n"
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory\n\n"
 			 ".. note:: This is a filter function, you might consider using "
 			 "aud.Handle.volume instead.");
 
 static PyObject *
-Sound_fadein(Sound* self, PyObject* args)
+Factory_fadein(Factory* self, PyObject* args)
 {
 	float start, length;
 
@@ -513,7 +513,7 @@ Sound_fadein(Sound* self, PyObject* args)
 		return NULL;
 
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -535,18 +535,18 @@ Sound_fadein(Sound* self, PyObject* args)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_fadeout_doc,
+PyDoc_STRVAR(M_aud_Factory_fadeout_doc,
 			 "fadeout(start, length)\n\n"
 			 "Fades a sound out.\n\n"
 			 ":arg start: Time in seconds when the fading should start.\n"
 			 ":type start: float\n"
 			 ":arg length: Time in seconds how long the fading should last.\n"
 			 ":type length: float\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound");
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory");
 
 static PyObject *
-Sound_fadeout(Sound* self, PyObject* args)
+Factory_fadeout(Factory* self, PyObject* args)
 {
 	float start, length;
 
@@ -554,7 +554,7 @@ Sound_fadeout(Sound* self, PyObject* args)
 		return NULL;
 
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -576,17 +576,17 @@ Sound_fadeout(Sound* self, PyObject* args)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_loop_doc,
+PyDoc_STRVAR(M_aud_Factory_loop_doc,
 			 "loop(count)\n\n"
 			 "Loops a sound.\n\n"
 			 ":arg count: How often the sound should be looped. "
 			 "Negative values mean endlessly.\n"
 			 ":type count: integer\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound");
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory");
 
 static PyObject *
-Sound_loop(Sound* self, PyObject* args)
+Factory_loop(Factory* self, PyObject* args)
 {
 	int loop;
 
@@ -594,7 +594,7 @@ Sound_loop(Sound* self, PyObject* args)
 		return NULL;
 
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -616,29 +616,29 @@ Sound_loop(Sound* self, PyObject* args)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_mix_doc,
+PyDoc_STRVAR(M_aud_Factory_mix_doc,
 			 "mix(sound)\n\n"
 			 "Mixes two sounds.\n\n"
 			 ":arg sound: The sound to mix over the other.\n"
-			 ":type sound: aud.Sound\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n\n"
+			 ":type sound: aud.Factory\n"
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory\n\n"
 			 ".. note:: The two sounds have to have the same specifications "
 			 "(channels and samplerate).");
 
 static PyObject *
-Sound_mix(Sound* self, PyObject* object)
+Factory_mix(Factory* self, PyObject* object)
 {
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
 
 	if(!PyObject_TypeCheck(object, type))
 	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Sound!");
+		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Factory!");
 		return NULL;
 	}
 
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
-	Sound *child = (Sound*)object;
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
+	Factory *child = (Factory*)object;
 
 	if(parent != NULL)
 	{
@@ -659,18 +659,18 @@ Sound_mix(Sound* self, PyObject* object)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_pingpong_doc,
+PyDoc_STRVAR(M_aud_Factory_pingpong_doc,
 			 "pingpong()\n\n"
 			 "Plays a sound forward and then backward.\n\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n\n"
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory\n\n"
 			 ".. note:: The sound has to be buffered to be played reverse.");
 
 static PyObject *
-Sound_pingpong(Sound* self)
+Factory_pingpong(Factory* self)
 {
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -692,18 +692,18 @@ Sound_pingpong(Sound* self)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_reverse_doc,
+PyDoc_STRVAR(M_aud_Factory_reverse_doc,
 			 "reverse()\n\n"
 			 "Plays a sound reversed.\n\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n\n"
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory\n\n"
 			 ".. note:: The sound has to be buffered to be played reverse.");
 
 static PyObject *
-Sound_reverse(Sound* self)
+Factory_reverse(Factory* self)
 {
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -725,18 +725,18 @@ Sound_reverse(Sound* self)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_buffer_doc,
+PyDoc_STRVAR(M_aud_Factory_buffer_doc,
 			 "buffer()\n\n"
 			 "Buffers a sound into RAM.\n\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound\n\n"
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory\n\n"
 			 ".. note:: Raw PCM data needs a lot of space, only buffer short sounds.");
 
 static PyObject *
-Sound_buffer(Sound* self)
+Factory_buffer(Factory* self)
 {
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -755,16 +755,16 @@ Sound_buffer(Sound* self)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_square_doc,
+PyDoc_STRVAR(M_aud_Factory_square_doc,
 			 "squre([threshold = 0])\n\n"
 			 "Makes a square wave out of an audio wave.\n\n"
 			 ":arg threshold: Threshold value over which an amplitude counts non-zero.\n"
 			 ":type threshold: float\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound");
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory");
 
 static PyObject *
-Sound_square(Sound* self, PyObject* args)
+Factory_square(Factory* self, PyObject* args)
 {
 	float threshold = 0;
 
@@ -772,7 +772,7 @@ Sound_square(Sound* self, PyObject* args)
 		return NULL;
 
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -794,18 +794,18 @@ Sound_square(Sound* self, PyObject* args)
 	return (PyObject *)parent;
 }
 
-PyDoc_STRVAR(M_aud_Sound_filter_doc,
+PyDoc_STRVAR(M_aud_Factory_filter_doc,
 			 "filter(b[, a = (1)])\n\n"
 			 "Filters a sound with the supplied IIR filter coefficients.\n\n"
 			 ":arg b: The nominator filter coefficients.\n"
 			 ":type b: sequence of float\n"
 			 ":arg a: The denominator filter coefficients.\n"
 			 ":type a: sequence of float\n"
-			 ":return: The created aud.Sound object.\n"
-			 ":rtype: aud.Sound");
+			 ":return: The created aud.Factory object.\n"
+			 ":rtype: aud.Factory");
 
 static PyObject *
-Sound_filter(Sound* self, PyObject* args)
+Factory_filter(Factory* self, PyObject* args)
 {
 	PyObject* py_b;
 	PyObject* py_a = NULL;
@@ -863,7 +863,7 @@ Sound_filter(Sound* self, PyObject* args)
 		a.push_back(1);
 
 	PyTypeObject* type = ((PyObject*)self)->ob_type;
-	Sound *parent = (Sound*)type->tp_alloc(type, 0);
+	Factory *parent = (Factory*)type->tp_alloc(type, 0);
 
 	if(parent != NULL)
 	{
@@ -885,74 +885,74 @@ Sound_filter(Sound* self, PyObject* args)
 	return (PyObject *)parent;
 }
 
-static PyMethodDef Sound_methods[] = {
-	{"sine", (PyCFunction)Sound_sine, METH_VARARGS | METH_CLASS,
-	 M_aud_Sound_sine_doc
+static PyMethodDef Factory_methods[] = {
+	{"sine", (PyCFunction)Factory_sine, METH_VARARGS | METH_CLASS,
+	 M_aud_Factory_sine_doc
 	},
-	{"file", (PyCFunction)Sound_file, METH_VARARGS | METH_CLASS,
-	 M_aud_Sound_file_doc
+	{"file", (PyCFunction)Factory_file, METH_VARARGS | METH_CLASS,
+	 M_aud_Factory_file_doc
 	},
-	{"lowpass", (PyCFunction)Sound_lowpass, METH_VARARGS,
-	 M_aud_Sound_lowpass_doc
+	{"lowpass", (PyCFunction)Factory_lowpass, METH_VARARGS,
+	 M_aud_Factory_lowpass_doc
 	},
-	{"delay", (PyCFunction)Sound_delay, METH_VARARGS,
-	 M_aud_Sound_delay_doc
+	{"delay", (PyCFunction)Factory_delay, METH_VARARGS,
+	 M_aud_Factory_delay_doc
 	},
-	{"join", (PyCFunction)Sound_join, METH_O,
-	 M_aud_Sound_join_doc
+	{"join", (PyCFunction)Factory_join, METH_O,
+	 M_aud_Factory_join_doc
 	},
-	{"highpass", (PyCFunction)Sound_highpass, METH_VARARGS,
-	 M_aud_Sound_highpass_doc
+	{"highpass", (PyCFunction)Factory_highpass, METH_VARARGS,
+	 M_aud_Factory_highpass_doc
 	},
-	{"limit", (PyCFunction)Sound_limit, METH_VARARGS,
-	 M_aud_Sound_limit_doc
+	{"limit", (PyCFunction)Factory_limit, METH_VARARGS,
+	 M_aud_Factory_limit_doc
 	},
-	{"pitch", (PyCFunction)Sound_pitch, METH_VARARGS,
-	 M_aud_Sound_pitch_doc
+	{"pitch", (PyCFunction)Factory_pitch, METH_VARARGS,
+	 M_aud_Factory_pitch_doc
 	},
-	{"volume", (PyCFunction)Sound_volume, METH_VARARGS,
-	 M_aud_Sound_volume_doc
+	{"volume", (PyCFunction)Factory_volume, METH_VARARGS,
+	 M_aud_Factory_volume_doc
 	},
-	{"fadein", (PyCFunction)Sound_fadein, METH_VARARGS,
-	 M_aud_Sound_fadein_doc
+	{"fadein", (PyCFunction)Factory_fadein, METH_VARARGS,
+	 M_aud_Factory_fadein_doc
 	},
-	{"fadeout", (PyCFunction)Sound_fadeout, METH_VARARGS,
-	 M_aud_Sound_fadeout_doc
+	{"fadeout", (PyCFunction)Factory_fadeout, METH_VARARGS,
+	 M_aud_Factory_fadeout_doc
 	},
-	{"loop", (PyCFunction)Sound_loop, METH_VARARGS,
-	 M_aud_Sound_loop_doc
+	{"loop", (PyCFunction)Factory_loop, METH_VARARGS,
+	 M_aud_Factory_loop_doc
 	},
-	{"mix", (PyCFunction)Sound_mix, METH_O,
-	 M_aud_Sound_mix_doc
+	{"mix", (PyCFunction)Factory_mix, METH_O,
+	 M_aud_Factory_mix_doc
 	},
-	{"pingpong", (PyCFunction)Sound_pingpong, METH_NOARGS,
-	 M_aud_Sound_pingpong_doc
+	{"pingpong", (PyCFunction)Factory_pingpong, METH_NOARGS,
+	 M_aud_Factory_pingpong_doc
 	},
-	{"reverse", (PyCFunction)Sound_reverse, METH_NOARGS,
-	 M_aud_Sound_reverse_doc
+	{"reverse", (PyCFunction)Factory_reverse, METH_NOARGS,
+	 M_aud_Factory_reverse_doc
 	},
-	{"buffer", (PyCFunction)Sound_buffer, METH_NOARGS,
-	 M_aud_Sound_buffer_doc
+	{"buffer", (PyCFunction)Factory_buffer, METH_NOARGS,
+	 M_aud_Factory_buffer_doc
 	},
-	{"square", (PyCFunction)Sound_square, METH_VARARGS,
-	 M_aud_Sound_square_doc
+	{"square", (PyCFunction)Factory_square, METH_VARARGS,
+	 M_aud_Factory_square_doc
 	},
-	{"filter", (PyCFunction)Sound_filter, METH_VARARGS,
-	 M_aud_Sound_filter_doc
+	{"filter", (PyCFunction)Factory_filter, METH_VARARGS,
+	 M_aud_Factory_filter_doc
 	},
 	{NULL}  /* Sentinel */
 };
 
-PyDoc_STRVAR(M_aud_Sound_doc,
-			 "Sound objects are immutable and represent a sound that can be "
+PyDoc_STRVAR(M_aud_Factory_doc,
+			 "Factory objects are immutable and represent a sound that can be "
 			 "played simultaneously multiple times.");
 
-static PyTypeObject SoundType = {
+static PyTypeObject FactoryType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"aud.Sound",               /* tp_name */
-	sizeof(Sound),             /* tp_basicsize */
+	"aud.Factory",               /* tp_name */
+	sizeof(Factory),             /* tp_basicsize */
 	0,                         /* tp_itemsize */
-	(destructor)Sound_dealloc, /* tp_dealloc */
+	(destructor)Factory_dealloc, /* tp_dealloc */
 	0,                         /* tp_print */
 	0,                         /* tp_getattr */
 	0,                         /* tp_setattr */
@@ -968,14 +968,14 @@ static PyTypeObject SoundType = {
 	0,                         /* tp_setattro */
 	0,                         /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,        /* tp_flags */
-	M_aud_Sound_doc,           /* tp_doc */
+	M_aud_Factory_doc,           /* tp_doc */
 	0,		                   /* tp_traverse */
 	0,		                   /* tp_clear */
 	0,		                   /* tp_richcompare */
 	0,		                   /* tp_weaklistoffset */
 	0,		                   /* tp_iter */
 	0,		                   /* tp_iternext */
-	Sound_methods,             /* tp_methods */
+	Factory_methods,             /* tp_methods */
 	0,                         /* tp_members */
 	0,                         /* tp_getset */
 	0,                         /* tp_base */
@@ -985,7 +985,7 @@ static PyTypeObject SoundType = {
 	0,                         /* tp_dictoffset */
 	0,                         /* tp_init */
 	0,                         /* tp_alloc */
-	Sound_new,                 /* tp_new */
+	Factory_new,                 /* tp_new */
 };
 
 // ========== Handle ==================================================
@@ -2223,7 +2223,7 @@ PyDoc_STRVAR(M_aud_Device_play_doc,
 			 "play(sound[, keep])\n\n"
 			 "Plays a sound.\n\n"
 			 ":arg sound: The sound to play.\n"
-			 ":type sound: aud.Sound\n"
+			 ":type sound: aud.Factory\n"
 			 ":arg keep: Whether the sound should be kept paused in the device when its end is reached.\n"
 			 ":type keep: boolean\n"
 			 ":return: The playback handle.\n"
@@ -2242,9 +2242,9 @@ Device_play(Device *self, PyObject *args, PyObject *kwds)
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O:play", const_cast<char**>(kwlist), &object, &keepo))
 		return NULL;
 
-	if(!PyObject_TypeCheck(object, &SoundType))
+	if(!PyObject_TypeCheck(object, &FactoryType))
 	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Sound!");
+		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Factory!");
 		return NULL;
 	}
 
@@ -2259,7 +2259,7 @@ Device_play(Device *self, PyObject *args, PyObject *kwds)
 		keep = keepo == Py_True;
 	}
 
-	Sound* sound = (Sound*)object;
+	Factory* sound = (Factory*)object;
 	Handle *handle;
 
 	handle = (Handle*)HandleType.tp_alloc(&HandleType, 0);
@@ -2848,7 +2848,7 @@ PyInit_aud(void)
 {
 	PyObject* m;
 
-	if(PyType_Ready(&SoundType) < 0)
+	if(PyType_Ready(&FactoryType) < 0)
 		return NULL;
 
 	if(PyType_Ready(&DeviceType) < 0)
@@ -2861,8 +2861,8 @@ PyInit_aud(void)
 	if(m == NULL)
 		return NULL;
 
-	Py_INCREF(&SoundType);
-	PyModule_AddObject(m, "Sound", (PyObject*)&SoundType);
+	Py_INCREF(&FactoryType);
+	PyModule_AddObject(m, "Factory", (PyObject*)&FactoryType);
 
 	Py_INCREF(&DeviceType);
 	PyModule_AddObject(m, "Device", (PyObject*)&DeviceType);

@@ -41,7 +41,7 @@ typedef struct {
 	PyObject_HEAD
 	PyObject* child_list;
 	AUD_IFactory* factory;
-} Sound;
+} Factory;
 
 typedef struct {
 	PyObject_HEAD
