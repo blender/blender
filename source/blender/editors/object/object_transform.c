@@ -34,6 +34,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_group_types.h"
 
 #include "BLI_math.h"
 #include "BLI_editVert.h"
@@ -774,14 +775,45 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	for (tob= bmain->object.first; tob; tob= tob->id.next) {
 		if(tob->data)
 			((ID *)tob->data)->flag &= ~LIB_DOIT;
+		if(tob->dup_group)
+			((ID *)tob->dup_group)->flag &= ~LIB_DOIT;
 	}
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if((ob->flag & OB_DONE)==0) {
+			int do_inverse_offset = FALSE;
 			ob->flag |= OB_DONE;
 
+			if(centermode == ORIGIN_TO_CURSOR) {
+				copy_v3_v3(cent, cursor);
+				invert_m4_m4(ob->imat, ob->obmat);
+				mul_m4_v3(ob->imat, cent);
+			}
+			
 			if(ob->data == NULL) {
-				/* pass */
+				/* special support for dupligroups */
+				if((ob->transflag & OB_DUPLIGROUP) && ob->dup_group && (ob->dup_group->id.flag & LIB_DOIT)==0) {
+					if(ob->dup_group->id.lib) {
+						tot_lib_error++;
+					}
+					else {
+						if(centermode == ORIGIN_TO_CURSOR) { /* done */ }
+						else {
+							/* only bounds support */
+							INIT_MINMAX(min, max);
+							minmax_object_duplis(scene, ob, min, max);
+							mid_v3_v3v3(cent, min, max);
+							invert_m4_m4(ob->imat, ob->obmat);
+							mul_m4_v3(ob->imat, cent);
+						}
+						
+						add_v3_v3(ob->dup_group->dupli_ofs, cent);
+
+						tot_change++;
+						ob->dup_group->id.flag |= LIB_DOIT;
+						do_inverse_offset= TRUE;
+					}
+				}
 			}
 			else if (((ID *)ob->data)->lib) {
 				tot_lib_error++;
@@ -790,40 +822,26 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			if(obedit==NULL && ob->type==OB_MESH) {
 				Mesh *me= ob->data;
 
-				if(centermode == ORIGIN_TO_CURSOR) {
-					copy_v3_v3(cent, cursor);
-					invert_m4_m4(ob->imat, ob->obmat);
-					mul_m4_v3(ob->imat, cent);
-				} else  {
-					if(around==V3D_CENTROID)
-						mesh_center_median(me, cent);
-					else
-						mesh_center_bounds(me, cent);
-				}
+				if(centermode == ORIGIN_TO_CURSOR) { /* done */ }
+				else if(around==V3D_CENTROID) { mesh_center_median(me, cent); }
+				else { mesh_center_bounds(me, cent); }
 
 				negate_v3_v3(cent_neg, cent);
 				mesh_translate(me, cent_neg, 1);
 
 				tot_change++;
 				me->id.flag |= LIB_DOIT;
+				do_inverse_offset= TRUE;
 			}
 			else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 				Curve *cu= ob->data;
 
-				if(centermode == ORIGIN_TO_CURSOR) {
-					copy_v3_v3(cent, cursor);
-					invert_m4_m4(ob->imat, ob->obmat);
-					mul_m4_v3(ob->imat, cent);
-				}
-				else {
-					if(around==V3D_CENTROID)
-						curve_center_median(cu, cent);
-					else
-						curve_center_bounds(cu, cent);
-				}
+				if(centermode == ORIGIN_TO_CURSOR) { /* done */ }
+				else if(around==V3D_CENTROID) { curve_center_median(cu, cent); }
+				else { curve_center_bounds(cu, cent);	}
 
 				/* don't allow Z change if curve is 2D */
-				if( !( cu->flag & CU_3D ) )
+				if((ob->type == OB_CURVE) && !(cu->flag & CU_3D))
 					cent[2] = 0.0;
 
 				negate_v3_v3(cent_neg, cent);
@@ -831,6 +849,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				tot_change++;
 				cu->id.flag |= LIB_DOIT;
+				do_inverse_offset= TRUE;
 
 				if(obedit) {
 					if (centermode == GEOMETRY_TO_ORIGIN) {
@@ -849,9 +868,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				}
 				else {
 					if(centermode == ORIGIN_TO_CURSOR) {
-						copy_v3_v3(cent, cursor);
-						invert_m4_m4(ob->imat, ob->obmat);
-						mul_m4_v3(ob->imat, cent);
+						/* done */
 					}
 					else {
 						cent[0]= 0.5f * ( cu->bb->vec[4][0] + cu->bb->vec[0][0]);
@@ -865,6 +882,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 					tot_change++;
 					cu->id.flag |= LIB_DOIT;
+					do_inverse_offset= TRUE;
 				}
 			}
 			else if(ob->type==OB_ARMATURE) {
@@ -883,6 +901,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 					tot_change++;
 					arm->id.flag |= LIB_DOIT;
+					/* do_inverse_offset= TRUE; */ /* docenter_armature() handles this */
 
 					where_is_object(scene, ob);
 					ignore_parent_tx(bmain, scene, ob);
@@ -893,33 +912,34 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			}
 
 			/* offset other selected objects */
-			if(centermode != GEOMETRY_TO_ORIGIN) {
+			if(do_inverse_offset && (centermode != GEOMETRY_TO_ORIGIN)) {
 				/* was the object data modified
 				 * note: the functions above must set 'cent' */
-				if(ob->data && (((ID *)ob->data)->flag && LIB_DOIT) && ob->type != OB_ARMATURE) {
-					copy_v3_v3(centn, cent);
-					mul_mat3_m4_v3(ob->obmat, centn); /* ommit translation part */
-					add_v3_v3(ob->loc, centn);
+				copy_v3_v3(centn, cent);
+				mul_mat3_m4_v3(ob->obmat, centn); /* ommit translation part */
+				add_v3_v3(ob->loc, centn);
 
-					where_is_object(scene, ob);
-					ignore_parent_tx(bmain, scene, ob);
+				where_is_object(scene, ob);
+				ignore_parent_tx(bmain, scene, ob);
+				
+				/* other users? */
+				CTX_DATA_BEGIN(C, Object*, ob_other, selected_editable_objects) {
+					if(		(ob_other->flag & OB_DONE)==0 &&
+							(	(ob->data && (ob->data == ob_other->data)) ||
+								(ob->dup_group==ob_other->dup_group && (ob->transflag|ob_other->transflag) & OB_DUPLIGROUP) )
+					) {
+						ob_other->flag |= OB_DONE;
+						ob_other->recalc= OB_RECALC_OB|OB_RECALC_DATA;
 
-					/* other users? */
-					CTX_DATA_BEGIN(C, Object*, ob_other, selected_editable_objects) {
-						if((ob_other->flag & OB_DONE)==0 && (ob_other->data == ob->data)) {
-							ob_other->flag |= OB_DONE;
-							ob_other->recalc= OB_RECALC_OB|OB_RECALC_DATA;
+						copy_v3_v3(centn, cent);
+						mul_mat3_m4_v3(ob_other->obmat, centn); /* ommit translation part */
+						add_v3_v3(ob_other->loc, centn);
 
-							copy_v3_v3(centn, cent);
-							mul_mat3_m4_v3(ob_other->obmat, centn); /* ommit translation part */
-							add_v3_v3(ob_other->loc, centn);
-
-							where_is_object(scene, ob_other);
-							ignore_parent_tx(bmain, scene, ob_other);
-						}
+						where_is_object(scene, ob_other);
+						ignore_parent_tx(bmain, scene, ob_other);
 					}
-					CTX_DATA_END;
 				}
+				CTX_DATA_END;
 			}
 		}
 	}
