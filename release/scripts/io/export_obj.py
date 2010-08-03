@@ -18,13 +18,6 @@
 
 # <pep8 compliant>
 
-"""
-Name: 'Wavefront (.obj)...'
-Blender: 248
-Group: 'Export'
-Tooltip: 'Save a Wavefront OBJ File'
-"""
-
 __author__ = "Campbell Barton, Jiri Hnidek, Paolo Ciccone"
 __url__ = ['http://wiki.blender.org/index.php/Scripts/Manual/Export/wavefront_obj', 'www.blender.org', 'blenderartists.org']
 __version__ = "1.21"
