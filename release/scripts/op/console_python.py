@@ -47,6 +47,7 @@ def get_console(console_id):
 
     if consoles is None:
         consoles = get_console.consoles = {}
+        get_console.consoles_namespace_hash = hash(bpy.context.manager)
     else:
         # check if clearning the namespace is needed to avoid a memory leak.
         # the window manager is normally loaded with new blend files
