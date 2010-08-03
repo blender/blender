@@ -29,8 +29,6 @@ import sys as _sys
 
 from _bpy import blend_paths
 from _bpy import script_paths as _bpy_script_paths
-from _bpy import _load_module, _unload_module
-
 
 def _test_import(module_name, loaded_modules):
     import traceback
@@ -86,8 +84,8 @@ def modules_from_path(path, loaded_modules):
 
     return modules
             
-_loaded = [] # store loaded modules for reloading.
-_bpy_types = __import__("bpy_types") # keep for comparisons, never ever reload this.
+_global_loaded_modules = [] # store loaded module names for reloading.
+import bpy_types as _bpy_types # keep for comparisons, never ever reload this.
 
 
 def load_scripts(reload_scripts=False, refresh_scripts=False):
@@ -111,16 +109,31 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     if refresh_scripts:
         original_modules = _sys.modules.values()
+    
+    if reload_scripts:
+        _bpy_types.TypeMap.clear()
+        _bpy_types.PropertiesMap.clear()
 
-    def unload_module(mod):
-        _unload_module(mod.__name__)
+    def register_module_call(mod):
+        _bpy_types._register_module(mod.__name__)
+        register = getattr(mod, "register", None)
+        if register:
+            try:
+                register()
+            except:
+                traceback.print_exc()
+        else:
+            print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
+
+    def unregister_module_call(mod):
+        _bpy_types._unregister_module(mod.__name__)
         unregister = getattr(mod, "unregister", None)
         if unregister:
             try:
                 unregister()
             except:
                 traceback.print_exc()
-                
+
     def sys_path_ensure(path):
         if path not in _sys.path: # reloading would add twice
             _sys.path.insert(0, path)
@@ -147,44 +160,23 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             mod = test_reload(mod)
 
         if mod:
-            _load_module(mod.__name__, reload_scripts)
-            register = getattr(mod, "register", None)
-            if register:
-                try:
-                    register()
-                except:
-                    traceback.print_exc()
-            else:
-                print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
-            _loaded.append(mod)
+            register_module_call(mod)
+            _global_loaded_modules.append(mod.__name__)
 
     if reload_scripts:
 
-        # TODO, this is broken but should work, needs looking into
-        '''
-        # reload modules that may not be directly included
-        for type_class_name in dir(_bpy.types):
-            type_class = getattr(_bpy.types, type_class_name)
-            module_name = getattr(type_class, "__module__", "")
-
-            if module_name and module_name != "bpy.types": # hard coded for C types
-                loaded_modules.add(module_name)
-
-        # sorting isnt needed but rather it be pradictable
-        for module_name in sorted(loaded_modules):
-            print("Reloading:", module_name)
-            test_reload(_sys.modules[module_name])
-        '''
+        # module names -> modules
+        _global_loaded_modules[:] = [_sys.modules[mod_name] for mod_name in _global_loaded_modules]
 
         # loop over and unload all scripts
-        _loaded.reverse()
-        for mod in _loaded:
-            unload_module(mod)
+        _global_loaded_modules.reverse()
+        for mod in _global_loaded_modules:
+            unregister_module_call(mod)
 
-        for mod in _loaded:
-            reload(mod)
+        for mod in _global_loaded_modules:
+            test_reload(mod)
 
-        _loaded[:] = []
+        _global_loaded_modules[:] = []
 
     user_path = user_script_path()
 
@@ -206,7 +198,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     # load addons
     used_ext = {ext.module for ext in _bpy.context.user_preferences.addons}
-    paths = script_paths("addons")
+    paths = script_paths("addons") + script_paths("addons_contrib")
     for path in paths:
         sys_path_ensure(path)
 

@@ -551,13 +551,13 @@ PropertiesMap = {}
 # registers moduals instantly.
 _register_immediate = True
 
-def _unload_module(module, free=True):
+def _unregister_module(module, free=True):
     for t in TypeMap.get(module, ()):
         try:
             bpy_types.unregister(t)
         except:
             import traceback
-            print("bpy.utils._unload_module(): Module '%s' failed to unregister class '%s.%s'" % (module, t.__module__, t.__name__))
+            print("bpy.utils._unregister_module(): Module '%s' failed to unregister class '%s.%s'" % (module, t.__module__, t.__name__))
             traceback.print_exc()
 
     if free == True and module in TypeMap:
@@ -575,17 +575,16 @@ def _unload_module(module, free=True):
     if free == True and module in PropertiesMap:
         del PropertiesMap[module]
 
-def _load_module(module, force=False):
+
+def _register_module(module):
     for t in TypeMap.get(module, ()):
         try:
             bpy_types.register(t)
         except:
             import traceback
-            print("bpy.utils._load_module(): Module '%s' failed to register class '%s.%s'" % (module, t.__module__, t.__name__))
+            print("bpy.utils._register_module(): Module '%s' failed to register class '%s.%s'" % (module, t.__module__, t.__name__))
             traceback.print_exc()
 
-_bpy._load_module = _load_module
-_bpy._unload_module = _unload_module
 
 class RNAMeta(type):
     @classmethod

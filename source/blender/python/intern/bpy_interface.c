@@ -160,11 +160,10 @@ static PyObject *CreateGlobalDictionary(bContext *C, const char *filename)
 	PyObject *mod_main= PyModule_New("__main__");	
 	PyDict_SetItemString(interp->modules, "__main__", mod_main);
 	Py_DECREF(mod_main); /* sys.modules owns now */
-
-	PyModule_AddObject(mod_main, "__builtins__", interp->builtins);
 	PyModule_AddStringConstant(mod_main, "__name__", "__main__");
 	PyModule_AddStringConstant(mod_main, "__file__", filename); /* __file__ only for nice UI'ness */
-
+	PyModule_AddObject(mod_main, "__builtins__", interp->builtins);
+	Py_INCREF(interp->builtins); /* AddObject steals a reference */
 	return PyModule_GetDict(mod_main);
 }
 
