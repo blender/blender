@@ -1149,7 +1149,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "skgen_template");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_skgen_etch_template_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_skgen_etch_template_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Template", "Template armature that will be retargeted to the stroke");
 
 	prop= RNA_def_property(srna, "etch_subdivision_number", PROP_INT, PROP_NONE);
@@ -2838,7 +2838,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Object", "Active object for this scene");
 	/* Could call: ED_base_object_activate(C, scene->basact);
@@ -2936,7 +2936,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "set");
 	RNA_def_property_struct_type(prop, "Scene");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Background Scene", "Background set scene");
 	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, NULL);
 
@@ -3091,7 +3091,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_keying_set", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyingSet");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_keying_set_get", "rna_Scene_active_keying_set_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_keying_set_get", "rna_Scene_active_keying_set_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Keying Set", "Active Keying Set used to insert/delete keyframes");
 	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET, NULL);
 	

@@ -253,7 +253,7 @@ static void rna_def_paint(BlenderRNA *brna)
 	/* Fake property to get active brush directly, rather than integer index */
 	prop= RNA_def_property(srna, "brush", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Brush");
-	RNA_def_property_pointer_funcs(prop, "rna_Paint_active_brush_get", "rna_Paint_active_brush_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Paint_active_brush_get", "rna_Paint_active_brush_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Brush", "Active paint brush");
 	RNA_def_property_update(prop, NC_BRUSH|NA_EDITED, NULL);
@@ -492,7 +492,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "brush", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ParticleBrush");
-	RNA_def_property_pointer_funcs(prop, "rna_ParticleEdit_brush_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_ParticleEdit_brush_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Brush", "");
 
 	prop= RNA_def_property(srna, "draw_step", PROP_INT, PROP_NONE);
@@ -569,7 +569,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	/* dummy */
 	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "CurveMapping");
-	RNA_def_property_pointer_funcs(prop, "rna_ParticleBrush_curve_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_ParticleBrush_curve_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Curve", "");
 }
 

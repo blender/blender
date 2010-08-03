@@ -2844,31 +2844,31 @@ void RNA_def_userdef(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "view", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesView");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_view_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_view_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "View & Controls", "Preferences related to viewing data");
 
 	prop= RNA_def_property(srna, "edit", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesEdit");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_edit_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_edit_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Edit Methods", "Settings for interacting with Blender data");
 	
 	prop= RNA_def_property(srna, "inputs", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesInput");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_input_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_input_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Inputs", "Settings for input devices");
 	
 	prop= RNA_def_property(srna, "filepaths", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesFilePaths");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_filepaths_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_filepaths_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "File Paths", "Default paths for external files");
 	
 	prop= RNA_def_property(srna, "system", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesSystem");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_system_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_system_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "System & OpenGL", "Graphics driver and operating system settings");
 	
 	rna_def_userdef_view(brna);
