@@ -325,8 +325,8 @@ IF(UNIX AND NOT APPLE)
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
 	# Better warnings
-	SET(C_WARNINGS "-Wall -Wextra -Winit-self -Wno-unused-parameter -Wno-ignored-qualifiers -Wno-sign-compare -Wno-missing-field-initializers -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
-	SET(CXX_WARNINGS "-Wall -Wextra -Winit-self -Wno-unused-parameter -Wno-ignored-qualifiers -Wno-sign-compare -Wno-missing-field-initializers -Wno-invalid-offsetof -Wno-sign-compare")
+	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
+	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
 	INCLUDE_DIRECTORIES(${JPEG_INCLUDE_DIR} ${PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} )
 ENDIF(UNIX AND NOT APPLE)
