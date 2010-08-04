@@ -264,7 +264,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
     def poll(self, context):
         mat = active_node_mat(context.material)
         engine = context.scene.render.engine
-        return mat and (mat.type in ('SURFACE', 'WIRE', 'HALO')) and (engine in self.COMPAT_ENGINES)
+        return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
