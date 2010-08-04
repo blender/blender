@@ -338,22 +338,25 @@ class WM_OT_context_set_id(bpy.types.Operator):
 
     def execute(self, context):
         value = self.properties.value
-        print(value)
+        data_path = self.properties.data_path
 
-        # TODO! highly lazy, must rewrite
-        for lib in dir(bpy.data):
-            try:
-                id_value = getattr(bpy.data, lib)[value] # bpy.data.brushes["Smooth"]
-            except:
-                id_value = None
-            
-            if id_value:
-                try:
-                    print("attempts", id_value)
-                    exec("context.%s=id_value" % self.properties.data_path)
-                    break # success
-                except:
-                    pass
+        # match the pointer type from the target property to bpy.data.*
+        # so we lookup the correct list.
+        data_path_base, data_path_prop = data_path.rsplit(".", 1)
+        data_prop_rna = eval("context.%s" % data_path_base).rna_type.properties[data_path_prop]
+        data_prop_rna_type = data_prop_rna.fixed_type
+
+        id_iter = None
+
+        for prop in bpy.data.rna_type.properties:
+            if prop.rna_type.identifier == "CollectionProperty":
+                if prop.fixed_type == data_prop_rna_type:
+                    id_iter = prop.identifier
+                    break
+
+        if id_iter:
+            value_id = getattr(bpy.data, id_iter).get(value)
+            exec("context.%s=value_id" % data_path)
 
         return {'FINISHED'}
 
