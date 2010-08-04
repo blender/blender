@@ -134,7 +134,7 @@ static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 	ParticleEditSettings *pset= (ParticleEditSettings*)ptr->data;
 	
 	/* redraw hair completely if weight brush is/was used */
-	if(pset->brushtype == PE_BRUSH_WEIGHT || value == PE_BRUSH_WEIGHT) {
+	if((pset->brushtype == PE_BRUSH_WEIGHT || value == PE_BRUSH_WEIGHT) && pset->scene) {
 		Object *ob = (pset->scene->basact)? pset->scene->basact->object: NULL;
 		if(ob) {
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -164,15 +164,19 @@ static int rna_ParticleEdit_editable_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset= (ParticleEditSettings*)ptr->data;
 
-	return (pset->object && PE_get_current(pset->scene, pset->object));
+	return (pset->object && pset->scene && PE_get_current(pset->scene, pset->object));
 }
 static int rna_ParticleEdit_hair_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset= (ParticleEditSettings*)ptr->data;
 
-	PTCacheEdit *edit = PE_get_current(pset->scene, pset->object);
+	if(pset->scene) {
+		PTCacheEdit *edit = PE_get_current(pset->scene, pset->object);
 
-	return (edit && edit->psys);
+		return (edit && edit->psys);
+	}
+	
+	return 0;
 }
 
 static void rna_Paint_active_brush_index_set(PointerRNA *ptr, int value)
