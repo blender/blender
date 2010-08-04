@@ -4123,10 +4123,8 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
 
 static void link_paint(FileData *fd, Scene *sce, Paint *p)
 {
-	if(p && p->brushes) {
-		int i;
-		for(i = 0; i < p->brush_count; ++i)
-			p->brushes[i]= newlibadr_us(fd, sce->id.lib, p->brushes[i]);
+	if(p && p->brush) {
+		p->brush= newlibadr_us(fd, sce->id.lib, p->brush);
 	}
 }
 
@@ -4242,13 +4240,8 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 static void direct_link_paint(FileData *fd, Paint **paint)
 {
 	Paint *p;
-
+/* TODO. is this needed */
 	p= (*paint)= newdataadr(fd, (*paint));
-	if(p) {
-		p->paint_cursor= NULL;
-		p->brushes= newdataadr(fd, p->brushes);
-		test_pointer_array(fd, (void**)&p->brushes);
-	}
 }
 
 static void direct_link_scene(FileData *fd, Scene *sce)
@@ -4283,9 +4276,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->sculpt);
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->vpaint);
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->wpaint);
-
-		sce->toolsettings->imapaint.paint.brushes= newdataadr(fd, sce->toolsettings->imapaint.paint.brushes);
-		test_pointer_array(fd, (void**)&sce->toolsettings->imapaint.paint.brushes);
 
 		sce->toolsettings->imapaint.paintcursor= NULL;
 		sce->toolsettings->particle.paintcursor= NULL;
@@ -11117,6 +11107,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put compatibility code here until next subversion bump */
 	{
+		Brush *br;
+		for(br= main->brush.first; br; br= br->id.next) {
+			if(br->ob_mode==0)
+				br->ob_mode= (OB_MODE_SCULPT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT|OB_MODE_VERTEX_PAINT);
+		}
+		
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

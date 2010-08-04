@@ -35,6 +35,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "WM_types.h"
@@ -66,6 +67,8 @@ static void brush_set_defaults(Brush *brush)
 {
 	brush->blend = 0;
 	brush->flag = 0;
+
+	brush->ob_mode = (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT);
 
 	/* BRUSH SCULPT TOOL SETTINGS */
 	brush->size= 35; /* radius of the brush in pixels */
@@ -120,16 +123,15 @@ Brush *add_brush(const char *name)
 
 	brush= alloc_libblock(&G.main->brush, ID_BR, name);
 
+	/* enable fake user by default */
+	brush->id.flag |= LIB_FAKEUSER;
+
 	brush_set_defaults(brush);
 
 	brush->sculpt_tool = SCULPT_TOOL_DRAW; /* sculpting defaults to the draw tool for new brushes */
 
 	 /* the default alpha falloff curve */
 	brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
-
-	/* enable fake user by default */
-	brush->id.flag |= LIB_FAKEUSER;
-	brush_toggled_fake_user(brush);
 
 	return brush;
 }
@@ -151,7 +153,7 @@ Brush *copy_brush(Brush *brush)
 	/* enable fake user by default */
 	if (!(brushn->id.flag & LIB_FAKEUSER)) {
 		brushn->id.flag |= LIB_FAKEUSER;
-		brush_toggled_fake_user(brushn);
+		brushn->id.us++;
 	}
 	
 	return brushn;
@@ -205,7 +207,7 @@ void make_local_brush(Brush *brush)
 		/* enable fake user by default */
 		if (!(brush->id.flag & LIB_FAKEUSER)) {
 			brush->id.flag |= LIB_FAKEUSER;
-			brush_toggled_fake_user(brush);
+			brush->id.us++;
 		}
 	}
 	else if(local && lib) {
@@ -393,54 +395,6 @@ void brush_reset_sculpt(Brush *br)
 }
 
 /* Library Operations */
-
-int brush_set_nr(Brush **current_brush, int nr, const char *name)
-{
-	ID *idtest, *id;
-	
-	id= (ID*)(*current_brush);
-	idtest= (ID*)BLI_findlink(&G.main->brush, nr-1);
-	
-	if(idtest==0) { /* new brush */
-		if(id) idtest= (ID *)copy_brush((Brush *)id);
-		else idtest= (ID *)add_brush(name);
-		idtest->us--;
-	}
-	if(idtest!=id) {
-		brush_delete(current_brush);
-		*current_brush= (Brush *)idtest;
-		id_us_plus(idtest);
-
-		return 1;
-	}
-
-	return 0;
-}
-
-int brush_delete(Brush **current_brush)
-{
-	if (*current_brush) {
-		(*current_brush)->id.us--;
-		*current_brush= NULL;
-
-		return 1;
-	}
-
-	return 0;
-}
-
-void brush_toggled_fake_user(Brush *brush)
-{
-	ID *id= (ID*)brush;
-	if(id) {
-		if(id->flag & LIB_FAKEUSER) {
-			id_us_plus(id);
-		} else {
-			id->us--;
-		}
-	}
-}
-
 void brush_curve_preset(Brush *b, /*CurveMappingPreset*/int preset)
 {
 	CurveMap *cm = NULL;
@@ -522,12 +476,6 @@ int brush_clone_image_delete(Brush *brush)
 	}
 
 	return 0;
-}
-
-void brush_check_exists(Brush **brush, const char *name)
-{
-	if(*brush==NULL)
-		brush_set_nr(brush, 1, name);
 }
 
 /* Brush Sampling */

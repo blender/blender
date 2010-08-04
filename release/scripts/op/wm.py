@@ -325,6 +325,39 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
         exec("context.%s=advance_enum" % self.properties.data_path)
         return {'FINISHED'}
 
+
+class WM_OT_context_set_id(bpy.types.Operator):
+    '''Toggle a context value.'''
+    bl_idname = "wm.context_set_id"
+    bl_label = "Set Library ID"
+    bl_options = {'UNDO'}
+
+    data_path = rna_path_prop
+    value = StringProperty(name="Value",
+            description="Assign value", maxlen=1024, default="")
+
+    def execute(self, context):
+        value = self.properties.value
+        print(value)
+
+        # TODO! highly lazy, must rewrite
+        for lib in dir(bpy.data):
+            try:
+                id_value = getattr(bpy.data, lib)[value] # bpy.data.brushes["Smooth"]
+            except:
+                id_value = None
+            
+            if id_value:
+                try:
+                    print("attempts", id_value)
+                    exec("context.%s=id_value" % self.properties.data_path)
+                    break # success
+                except:
+                    pass
+
+        return {'FINISHED'}
+
+
 doc_id = StringProperty(name="Doc ID",
         description="", maxlen=1024, default="", options={'HIDDEN'})
 

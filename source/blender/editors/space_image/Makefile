@@ -66,11 +66,11 @@ ifeq ($(WITH_LCMS), true)
     CPPFLAGS += -I$(BF_LCMS_INC)
 endif
 
-ifeq ($(WHITH_CINEON), true)
+ifeq ($(WITH_CINEON), true)
     CPPFLAGS += -DWITH_CINEON
 endif
 
-ifeq ($(WHITH_HDR), true)
+ifeq ($(WITH_HDR), true)
     CPPFLAGS += -DWITH_HDR
 endif
 

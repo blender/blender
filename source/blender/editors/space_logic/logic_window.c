@@ -4275,7 +4275,7 @@ static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *row, *col;
 
-	uiTemplateID(layout, C, ptr, "sound", NULL, "SOUND_OT_open", NULL, NULL);
+	uiTemplateID(layout, C, ptr, "sound", NULL, "SOUND_OT_open", NULL);
 	if (!RNA_pointer_get(ptr, "sound").data)
 	{
 		uiItemL(layout, "Select a sound from the list or load a new one", 0);

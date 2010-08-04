@@ -504,26 +504,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
 
         if not context.particle_edit_object:
             col = layout.split().column()
-
-            if context.sculpt_object and context.tool_settings.sculpt:
-                col.template_ID_preview(settings, "brush", new="brush.add", filter="is_sculpt_brush", rows=3, cols=8)
-            elif context.texture_paint_object and context.tool_settings.image_paint:
-                col.template_ID_preview(settings, "brush", new="brush.add", filter="is_imapaint_brush", rows=3, cols=8)
-            elif context.vertex_paint_object and context.tool_settings.vertex_paint:
-                col.template_ID_preview(settings, "brush", new="brush.add", filter="is_vpaint_brush", rows=3, cols=8)
-            elif context.weight_paint_object and context.tool_settings.weight_paint:
-                col.template_ID_preview(settings, "brush", new="brush.add", filter="is_wpaint_brush", rows=3, cols=8)
-            else:
-                row = col.row()
-
-                if context.sculpt_object and brush:
-                    defaultbrushes = 8
-                elif context.texture_paint_object and brush:
-                    defaultbrushes = 4
-                else:
-                    defaultbrushes = 7
-
-                row.template_list(settings, "brushes", settings, "active_brush_index", rows=2, maxrows=defaultbrushes)
+            col.template_ID_preview(settings, "brush", new="brush.add", rows=3, cols=8)
 
         # Particle Mode #
 
@@ -865,6 +846,12 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel, bpy.types.Panel):
         elif context.vertex_paint_object or context.weight_paint_object:
             col.prop(brush, "vertexpaint_tool", expand=False, text="")
 
+        row = layout.row(align=True)
+        row.prop(brush, "use_paint_sculpt", text="", icon='SCULPTMODE_HLT')
+        row.prop(brush, "use_paint_vertex", text="", icon='VPAINT_HLT')
+        row.prop(brush, "use_paint_weight", text="", icon='WPAINT_HLT')
+        row.prop(brush, "use_paint_texture", text="", icon='TPAINT_HLT')
+
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
     bl_label = "Stroke"
@@ -1191,7 +1178,8 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, bpy.types.Panel):
     bl_label = "Project Paint"
 
     def poll(self, context):
-        return context.tool_settings.image_paint.brush.imagepaint_tool != 'SMEAR'
+        brush = context.tool_settings.image_paint.brush
+        return (brush and brush.imagepaint_tool != 'SMEAR')
 
     def draw_header(self, context):
         ipaint = context.tool_settings.image_paint

@@ -507,9 +507,7 @@ typedef struct TimeMarker {
 } TimeMarker;
 
 typedef struct Paint {
-	/* Array of brushes selected for use in this paint mode */
-	struct Brush **brushes;
-	int active_brush_index, brush_count;
+	struct Brush *brush;
 	
 	/* WM Paint cursor */
 	void *paint_cursor;

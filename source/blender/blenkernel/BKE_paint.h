@@ -47,20 +47,16 @@ extern const char PAINT_CURSOR_TEXTURE_PAINT[3];
 
 void paint_init(struct Paint *p, const char col[3]);
 void free_paint(struct Paint *p);
-void copy_paint(struct Paint *orig, struct Paint *new);
+void copy_paint(struct Paint *src, struct Paint *tar);
 
 struct Paint *paint_get_active(struct Scene *sce);
 struct Brush *paint_brush(struct Paint *paint);
 void paint_brush_set(struct Paint *paint, struct Brush *br);
-void paint_brush_slot_add(struct Paint *p);
-void paint_brush_slot_remove(struct Paint *p);
 
 /* testing face select mode
  * Texture paint could be removed since selected faces are not used
  * however hiding faces is useful */
 int paint_facesel_test(struct Object *ob);
-
-int paint_has_brush(struct Paint *p, struct Brush *brush);
 
 /* Session data (mode-specific) */
 

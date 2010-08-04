@@ -2860,18 +2860,13 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 	if (ss->cache->alt_smooth) {
 		Paint *p= &sd->paint;
 		Brush *br;
-		int i;
 		
 		BLI_strncpy(cache->saved_active_brush_name, brush->id.name+2, sizeof(cache->saved_active_brush_name));
 
-		for(i = 0; i < p->brush_count; ++i) {
-			br = p->brushes[i];
-		
-			if (strcmp(br->id.name+2, "Smooth")==0) {
-				paint_brush_set(p, br);
-				brush = br;
-				break;
-			}
+		br= (Brush *)find_id("BR", "Smooth");
+		if(br) {
+			paint_brush_set(p, br);
+			brush = br;
 		}
 	}
 
@@ -3414,16 +3409,9 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *unused)
 		/* Alt-Smooth */
 		if (ss->cache->alt_smooth) {
 			Paint *p= &sd->paint;
-			Brush *br;
-			int i;
-
-			for(i = 0; i < p->brush_count; ++i) {
-				br = p->brushes[i];
-
-				if (strcmp(br->id.name+2, ss->cache->saved_active_brush_name)==0) {
-					paint_brush_set(p, br);
-					break;
-				}
+			Brush *br= (Brush *)find_id("BR", ss->cache->saved_active_brush_name);
+			if(br) {
+				paint_brush_set(p, br);
 			}
 		}
 

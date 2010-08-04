@@ -60,7 +60,8 @@ typedef struct Brush {
 
 	float normal_weight;
 
-	short blend, pad;		/* blend mode */
+	short blend;		/* blend mode */
+	short ob_mode;		/* & with ob->mode to see if the brush is compatible, use for display only. */
 	int size;			/* brush diameter */
 	int flag;			/* general purpose flag */	
 	float jitter;			/* jitter the position of the brush */
@@ -94,9 +95,6 @@ typedef struct Brush {
 
 	float add_col[3];
 	float sub_col[3];
-	
-	int use_flag; /* set the different object modes this brush should be shown in */
-	int pad4;
 } Brush;
 
 /* Brush.flag */
