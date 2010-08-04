@@ -1016,7 +1016,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
 
 		
 		
-class VIEW3D_PT_sculpt_symmetry(PaintPanel):
+class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
     bl_label = "Symmetry"
     bl_default_closed = True
 
@@ -1054,7 +1054,7 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel):
 
         col.prop(sculpt, "use_symmetry_feather", text="Feather")
 
-class VIEW3D_PT_tools_brush_appearance(PaintPanel):
+class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
     bl_label = "Appearance"
     bl_default_closed = True
 
