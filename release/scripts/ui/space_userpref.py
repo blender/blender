@@ -853,6 +853,8 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     l = ""
                     while not l.startswith("bl_addon_info"):
                         l = line_iter.readline()
+                        if len(l) == 0:
+                            break
                     while l.rstrip():
                         lines.append(l)
                         l = line_iter.readline()
