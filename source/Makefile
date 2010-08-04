@@ -420,7 +420,7 @@ ifeq ($(WITH_JACK),true)
 endif
 
 ifeq ($(WITH_SNDFILE),true)
-  ifeq ($(OS),$(findstring $(OS), "linux"))
+  ifeq ($(OS),$(findstring $(OS), "linux darwin"))
     NAN_SND_LIBS += $(NAN_SNDFILELIBS)
   endif
 endif

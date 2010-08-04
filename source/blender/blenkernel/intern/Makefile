@@ -149,3 +149,8 @@ ifeq ($(OS), darwin)
       CPPFLAGS += -DPARALLEL=1
     endif
 endif
+
+ifeq ($(WITH_LCMS), true)
+    CPPFLAGS += -DWITH_LCMS
+    CPPFLAGS += -I$(BF_LCMS_INC)
+endif

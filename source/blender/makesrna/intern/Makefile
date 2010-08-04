@@ -97,6 +97,10 @@ ifeq ($(WITH_TIFF),true)
     CPPFLAGS += -DWITH_TIFF
 endif
 
+ifeq ($(WITH_LCMS),true)
+    CPPFLAGS += -DWITH_LCMS
+endif
+
 ifeq ($(WITH_CINEON),true)
     CPPFLAGS += -DWITH_CINEON
 endif
