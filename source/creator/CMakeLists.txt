@@ -275,7 +275,7 @@ IF(WITH_INSTALL)
 			SET(PYTHON_ZIP "python_${CMAKE_OSX_ARCHITECTURES}.zip")
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/scripts/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/
 				COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/python/
 				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/python/
 				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${TARGETDIR}/blender.app/Contents/MacOS/python/
