@@ -36,12 +36,12 @@
 extern "C" {
 #endif
 
-#include "DNA_brush_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
 struct Object;
+struct Brush;
 struct World;
 struct Scene;
 struct Image;
@@ -345,7 +345,7 @@ typedef struct RenderData {
 	short bake_normal_space, bake_quad_split;
 	float bake_maxdist, bake_biasdist, bake_pad;
 
-	/* paths to backbufffer, output, ftype */
+	/* paths to backbufffer, output */
 	char backbuf[160], pic[160];
 
 	/* stamps flags. */
@@ -508,7 +508,7 @@ typedef struct TimeMarker {
 
 typedef struct Paint {
 	/* Array of brushes selected for use in this paint mode */
-	Brush **brushes;
+	struct Brush **brushes;
 	int active_brush_index, brush_count;
 	
 	/* WM Paint cursor */

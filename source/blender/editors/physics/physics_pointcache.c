@@ -33,7 +33,6 @@
 
 #include "DNA_scene_types.h"
 
-#include "BKE_anim.h"
 #include "BKE_context.h"
 #include "BKE_particle.h"
 #include "BKE_report.h"

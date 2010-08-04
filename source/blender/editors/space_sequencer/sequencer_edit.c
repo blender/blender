@@ -725,8 +725,9 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 	while(seq) {
 		seqn= seq->next;
 		if((seq->flag & flag) || deleteall) {
-			if(seq->type==SEQ_SOUND && seq->sound)
-				seq->sound->id.us--;
+			if(seq->type==SEQ_SOUND && seq->sound) {
+				((ID *)seq->sound)->us--; /* TODO, could be moved into seq_free_sequence() */
+			}
 
 			BLI_remlink(lb, seq);
 			if(seq==last_seq) seq_active_set(scene, NULL);

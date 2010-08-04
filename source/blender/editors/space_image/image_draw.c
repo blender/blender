@@ -36,6 +36,7 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_brush_types.h"
 
 #include "PIL_time.h"
 #include "BLI_threads.h"

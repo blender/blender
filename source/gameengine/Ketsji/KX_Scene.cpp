@@ -68,7 +68,6 @@
 #include "SG_Tree.h"
 #include "DNA_group_types.h"
 #include "DNA_scene_types.h"
-#include "BKE_anim.h"
 
 #include "KX_SG_NodeRelationships.h"
 

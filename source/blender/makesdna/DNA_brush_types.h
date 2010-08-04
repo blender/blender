@@ -31,7 +31,7 @@
 #define DNA_BRUSH_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_texture_types.h"
+#include "DNA_texture_types.h" /* for MTex */
 
 //#ifndef MAX_MTEX // XXX Not used?
 //#define MAX_MTEX	18
@@ -94,6 +94,9 @@ typedef struct Brush {
 
 	float add_col[3];
 	float sub_col[3];
+	
+	int use_flag; /* set the different object modes this brush should be shown in */
+	int pad4;
 } Brush;
 
 /* Brush.flag */

@@ -9289,7 +9289,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		idproperties_fix_group_lengths(main->mat);
 		idproperties_fix_group_lengths(main->tex);
 		idproperties_fix_group_lengths(main->image);
-		idproperties_fix_group_lengths(main->wave);
 		idproperties_fix_group_lengths(main->latt);
 		idproperties_fix_group_lengths(main->lamp);
 		idproperties_fix_group_lengths(main->camera);

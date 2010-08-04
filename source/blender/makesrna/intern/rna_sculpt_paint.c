@@ -30,6 +30,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
+#include "DNA_brush_types.h"
 
 #include "BKE_paint.h"
 

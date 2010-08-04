@@ -283,7 +283,7 @@ void free_object(Object *ob)
 	ob->path= 0;
 	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
-	if(ob->gpd) ob->gpd->id.us--;
+	if(ob->gpd) ((ID *)ob->gpd)->us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose)

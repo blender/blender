@@ -36,6 +36,7 @@
 
 #include "DNA_constraint_types.h"
 #include "DNA_text_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 #include "PIL_time.h"
@@ -591,6 +592,7 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 static int refresh_pyconstraints_exec(bContext *C, wmOperator *op)
 {
 #ifndef DISABLE_PYTHON
+#if 0
 	Text *text= CTX_data_edit_text(C);
 	Object *ob;
 	bConstraint *con;
@@ -624,6 +626,7 @@ static int refresh_pyconstraints_exec(bContext *C, wmOperator *op)
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
+#endif
 #endif
 
 	return OPERATOR_FINISHED;

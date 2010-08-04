@@ -411,7 +411,7 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 			snode->id= &tx->id;
 		}
 		else {
-			Brush *brush= NULL;
+			struct Brush *brush= NULL;
 			
 			if(ob && (ob->mode & OB_MODE_SCULPT))
 				brush= paint_brush(&scene->toolsettings->sculpt->paint);

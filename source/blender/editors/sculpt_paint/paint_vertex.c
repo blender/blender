@@ -48,6 +48,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_brush_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

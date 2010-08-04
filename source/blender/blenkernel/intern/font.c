@@ -46,6 +46,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_utildefines.h"
 

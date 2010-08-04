@@ -37,9 +37,6 @@ struct Scene;
 struct Group;
 struct Text;
 
-// for Sound3D
-#include "DNA_sound_types.h"
-
 /* ****************** ACTUATORS ********************* */
 
 /* unused now, moved to editobjectactuator in 2.02. Still needed for dna */
@@ -60,6 +57,18 @@ typedef struct bActionActuator {
 	short	strideaxis;		/* Displacement axis */
 	float	stridelength;	/* Displacement incurred by cycle */ // not in use
 } bActionActuator;												
+
+typedef struct Sound3D
+{
+	float min_gain;
+	float max_gain;
+	float reference_distance;
+	float max_distance;
+	float rolloff_factor;
+	float cone_inner_angle;
+	float cone_outer_angle;
+	float cone_outer_gain;
+} Sound3D;
 
 typedef struct bSoundActuator {
 	short flag, sndnr;

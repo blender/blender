@@ -31,8 +31,6 @@
 #ifndef BKE_ANIM_H
 #define BKE_ANIM_H
 
-#define MAX_DUPLI_RECUR 8
-
 struct Path;
 struct Object;
 struct PartEff;
@@ -41,8 +39,6 @@ struct ListBase;
 struct bAnimVizSettings;
 struct bMotionPath;
 struct bPoseChannel;
-
-#include "DNA_object_types.h"
 
 /* ---------------------------------------------------- */
 /* Animation Visualisation */
@@ -54,7 +50,7 @@ void animviz_free_motionpath(struct bMotionPath *mpath);
 
 struct bMotionPath *animviz_verify_motionpaths(struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan);
 
-void animviz_get_object_motionpaths(Object *ob, ListBase *targets);
+void animviz_get_object_motionpaths(struct Object *ob, ListBase *targets);
 void animviz_calc_motionpaths(struct Scene *scene, ListBase *targets);
 
 /* ---------------------------------------------------- */

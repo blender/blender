@@ -43,6 +43,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
+#include "DNA_userdef_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -479,7 +481,7 @@ void unlink_text(Main *bmain, Text *text)
 	for(scene=bmain->scene.first; scene; scene=scene->id.next)
 		if(scene->r.dometext == text)
 			scene->r.dometext = NULL;
-	
+
 	for(ob=bmain->object.first; ob; ob=ob->id.next) {
 		/* game controllers */
 		for(cont=ob->controllers.first; cont; cont=cont->next) {

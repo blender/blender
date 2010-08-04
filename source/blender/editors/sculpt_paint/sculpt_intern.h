@@ -111,6 +111,6 @@ struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct 
 int sculpt_modifiers_active(Scene *scene, Object *ob);
 void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3]);
 
-void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos);
+void brush_jitter_pos(struct Brush *brush, float *pos, float *jitterpos);
 
 #endif

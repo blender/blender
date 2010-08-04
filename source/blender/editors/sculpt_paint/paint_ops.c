@@ -46,7 +46,7 @@ static int brush_add_exec(bContext *C, wmOperator *op)
 {
 	/*int type = RNA_enum_get(op->ptr, "type");*/
 	Paint *paint = paint_get_active(CTX_data_scene(C));
-	Brush *br = paint_brush(paint);
+	struct Brush *br = paint_brush(paint);
 
 	if (br)
 		br = copy_brush(br);
@@ -76,7 +76,7 @@ void BRUSH_OT_add(wmOperatorType *ot)
 static int brush_scale_size_exec(bContext *C, wmOperator *op)
 {
 	Paint  *paint=  paint_get_active(CTX_data_scene(C));
-	Brush  *brush=  paint_brush(paint);
+	struct Brush  *brush=  paint_brush(paint);
 	// Object *ob=     CTX_data_active_object(C);
 	float   scalar= RNA_float_get(op->ptr, "scalar");
 
@@ -157,7 +157,7 @@ void PAINT_OT_vertex_color_set(wmOperatorType *ot)
 static int brush_reset_exec(bContext *C, wmOperator *op)
 {
 	Paint *paint = paint_get_active(CTX_data_scene(C));
-	Brush *brush = paint_brush(paint);
+	struct Brush *brush = paint_brush(paint);
 	Object *ob = CTX_data_active_object(C);
 
 	if(!ob) return OPERATOR_CANCELLED;

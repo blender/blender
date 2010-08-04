@@ -62,7 +62,6 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 
-#include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_boids.h"
 #include "BKE_cdderivedmesh.h"

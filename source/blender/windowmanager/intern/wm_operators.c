@@ -35,6 +35,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -2612,7 +2613,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 	float r1=0.0f, r2=0.0f, r3=0.0f, angle=0.0f;
 
 	Paint *paint = paint_get_active(CTX_data_scene(C));
-	Brush *brush = paint_brush(paint);
+	struct Brush *brush = paint_brush(paint);
 
 	ViewContext vc;
 
