@@ -48,7 +48,7 @@ struct FreestyleLineStyle;
 #define FREESTYLE_LINESET_CURRENT  1
 #define FREESTYLE_LINESET_ENABLED  2
 #define FREESTYLE_LINESET_FE_NOT   4
-#define FREESTYLE_LINESET_FE_OR    8
+#define FREESTYLE_LINESET_FE_AND   8
 
 /* FreestyleLineSet::selection */
 #define FREESTYLE_SEL_VISIBILITY  1

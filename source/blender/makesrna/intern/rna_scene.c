@@ -1567,8 +1567,8 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem combination_items[] = {
-		{0, "AND", 0, "Logical AND", "Combine feature edge type conditions by logical AND (logical conjunction)."},
-		{FREESTYLE_LINESET_FE_OR, "OR", 0, "Logical OR", "Combine feature edge type conditions by logical OR (logical disjunction)."},
+		{0, "OR", 0, "Logical OR", "Combine feature edge type conditions by logical OR (logical disjunction)."},
+		{FREESTYLE_LINESET_FE_AND, "AND", 0, "Logical AND", "Combine feature edge type conditions by logical AND (logical conjunction)."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem freestyle_ui_mode_items[] = {
