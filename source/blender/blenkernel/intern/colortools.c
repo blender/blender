@@ -829,8 +829,8 @@ void colorcorrection_do_ibuf(ImBuf *ibuf, const char *profile)
 			cmsCloseProfile(imageProfile);
 			cmsCloseProfile(proofingProfile);
 		}
-#endif
 	}
+#endif
 }
 
 /* only used for image editor curves */
