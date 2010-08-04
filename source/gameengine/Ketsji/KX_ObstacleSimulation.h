@@ -56,6 +56,7 @@ enum KX_OBSTACLE_SHAPE
 	KX_OBSTACLE_SEGMENT,
 };
 
+#define VEL_HIST_SIZE 6
 struct KX_Obstacle
 {
 	KX_OBSTACLE_TYPE m_type;
@@ -63,26 +64,50 @@ struct KX_Obstacle
 	MT_Point3 m_pos;
 	MT_Point3 m_pos2;
 	MT_Scalar m_rad;
-	MT_Vector2 m_vel;
+	
+	float vel[2];
+	float pvel[2];
+	float dvel[2];
+	float nvel[2];
+	float hvel[VEL_HIST_SIZE*2];
+	int hhead;
+
 	
 	KX_GameObject* m_gameObj;
 };
+typedef std::vector<KX_Obstacle*> KX_Obstacles;
+/*
+struct RVO
+{
+	inline RVO() : ns(0) {}
+	float spos[MAX_RVO_SAMPLES*2];
+	float scs[MAX_RVO_SAMPLES];
+	float spen[MAX_RVO_SAMPLES];
+
+	float svpen[MAX_RVO_SAMPLES];
+	float svcpen[MAX_RVO_SAMPLES];
+	float sspen[MAX_RVO_SAMPLES];
+	float stpen[MAX_RVO_SAMPLES];
+
+	int ns;
+};
+*/
 
 class KX_ObstacleSimulation
 {
 protected:
-	std::vector<KX_Obstacle*>	m_obstacles;
+	KX_Obstacles m_obstacles;
 
 	MT_Scalar m_levelHeight;
 	bool m_enableVisualization;
 
 	virtual KX_Obstacle* CreateObstacle(KX_GameObject* gameobj);
-	bool FilterObstacle(KX_Obstacle* activeObstacle, KX_NavMeshObject* activeNavMeshObj, KX_Obstacle* otherObstacle);
 public:
 	KX_ObstacleSimulation(MT_Scalar levelHeight, bool enableVisualization);
 	virtual ~KX_ObstacleSimulation();
 
 	void DrawObstacles();
+	//void DebugDraw();
 
 	void AddObstacleForObj(KX_GameObject* gameobj);
 	void DestroyObstacleForObj(KX_GameObject* gameobj);

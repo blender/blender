@@ -38,8 +38,65 @@
 #include "DNA_object_types.h"
 #include "BLI_math.h"
 
-inline float perp(const MT_Vector2& a, const MT_Vector2& b) { return a.x()*b.y() - a.y()*b.x(); }
-inline float lerp(float a, float b, float t) { return a + (b-a)*t; }
+namespace
+{
+	inline float perp(const MT_Vector2& a, const MT_Vector2& b) { return a.x()*b.y() - a.y()*b.x(); }
+
+	inline float sqr(float x) { return x*x; }
+	inline float lerp(float a, float b, float t) { return a + (b-a)*t; }
+	inline float clamp(float a, float mn, float mx) { return a < mn ? mn : (a > mx ? mx : a); }
+
+	inline float vdistsqr(const float* a, const float* b) { return sqr(b[0]-a[0]) + sqr(b[1]-a[1]); }
+	inline float vdist(const float* a, const float* b) { return sqrtf(vdistsqr(a,b)); }
+	inline void vcpy(float* a, const float* b) { a[0]=b[0]; a[1]=b[1]; }
+	inline float vdot(const float* a, const float* b) { return a[0]*b[0] + a[1]*b[1]; }
+	inline float vperp(const float* a, const float* b) { return a[0]*b[1] - a[1]*b[0]; }
+	inline void vsub(float* v, const float* a, const float* b) { v[0] = a[0]-b[0]; v[1] = a[1]-b[1]; }
+	inline void vadd(float* v, const float* a, const float* b) { v[0] = a[0]+b[0]; v[1] = a[1]+b[1]; }
+	inline void vscale(float* v, const float* a, const float s) { v[0] = a[0]*s; v[1] = a[1]*s; }
+	inline void vset(float* v, float x, float y) { v[0]=x; v[1]=y; }
+	inline float vlensqr(const float* v) { return vdot(v,v); }
+	inline float vlen(const float* v) { return sqrtf(vlensqr(v)); }
+	inline void vlerp(float* v, const float* a, const float* b, float t) { v[0] = lerp(a[0], b[0], t); v[1] = lerp(a[1], b[1], t); }
+	inline void vmad(float* v, const float* a, const float* b, float s) { v[0] = a[0] + b[0]*s; v[1] = a[1] + b[1]*s; }
+	inline void vnorm(float* v)
+	{
+		float d = vlen(v);
+		if (d > 0.0001f)
+		{
+			d = 1.0f/d;
+			v[0] *= d;
+			v[1] *= d;
+		}
+	}
+}
+inline float triarea(const float* a, const float* b, const float* c)
+{
+	return (b[0]*a[1] - a[0]*b[1]) + (c[0]*b[1] - b[0]*c[1]) + (a[0]*c[1] - c[0]*a[1]);
+}
+
+static void closestPtPtSeg(const float* pt,
+					const float* sp, const float* sq,
+					float& t)
+{
+	float dir[2],diff[3];
+	vsub(dir,sq,sp);
+	vsub(diff,pt,sp);
+	t = vdot(diff,dir);
+	if (t <= 0.0f) { t = 0; return; }
+	float d = vdot(dir,dir);
+	if (t >= d) { t = 1; return; }
+	t /= d;
+}
+
+static float distPtSegSqr(const float* pt, const float* sp, const float* sq)
+{
+	float t;
+	closestPtPtSeg(pt, sp,sq, t);
+	float np[2];
+	vlerp(np, sp,sq, t);
+	return vdistsqr(pt,np);
+}
 
 static int sweepCircleCircle(const MT_Vector3& pos0, const MT_Scalar r0, const MT_Vector2& v,
 					  const MT_Vector3& pos1, const MT_Scalar r1,
@@ -152,20 +209,6 @@ static bool inBetweenAngle(float a, float amin, float amax, float& t)
 	return false;
 }
 
-static float interpolateToi(float a, const float* dir, const float* toi, const int ntoi)
-{
-	for (int i = 0; i < ntoi; ++i)
-	{
-		int next = (i+1) % ntoi;
-		float t;
-		if (inBetweenAngle(a, dir[i], dir[next], t))
-		{
-			return lerp(toi[i], toi[next], t);
-		}
-	}
-	return 0;
-}
-
 KX_ObstacleSimulation::KX_ObstacleSimulation(MT_Scalar levelHeight, bool enableVisualization)
 :	m_levelHeight(levelHeight)
 ,	m_enableVisualization(enableVisualization)
@@ -186,6 +229,15 @@ KX_Obstacle* KX_ObstacleSimulation::CreateObstacle(KX_GameObject* gameobj)
 {
 	KX_Obstacle* obstacle = new KX_Obstacle();
 	obstacle->m_gameObj = gameobj;
+
+	vset(obstacle->vel, 0,0);
+	vset(obstacle->pvel, 0,0);
+	vset(obstacle->dvel, 0,0);
+	vset(obstacle->nvel, 0,0);
+	for (int i = 0; i < VEL_HIST_SIZE; ++i)
+		vset(&obstacle->hvel[i*2], 0,0);
+	obstacle->hhead = 0;
+
 	gameobj->RegisterObstacle(this);
 	m_obstacles.push_back(obstacle);
 	return obstacle;
@@ -222,7 +274,6 @@ void KX_ObstacleSimulation::AddObstaclesForNavMesh(KX_NavMeshObject* navmeshobj)
 				obstacle->m_pos = MT_Point3(vj[0], vj[2], vj[1]);
 				obstacle->m_pos2 = MT_Point3(vi[0], vi[2], vi[1]);
 				obstacle->m_rad = 0;
-				obstacle->m_vel = MT_Vector2(0,0);
 			}
 		}
 	}
@@ -254,8 +305,16 @@ void KX_ObstacleSimulation::UpdateObstacles()
 
 		KX_Obstacle* obs = m_obstacles[i];
 		obs->m_pos = obs->m_gameObj->NodeGetWorldPosition();
-		obs->m_vel.x() = obs->m_gameObj->GetLinearVelocity().x();
-		obs->m_vel.y() = obs->m_gameObj->GetLinearVelocity().y();
+		obs->vel[0] = obs->m_gameObj->GetLinearVelocity().x();
+		obs->vel[1] = obs->m_gameObj->GetLinearVelocity().y();
+
+		// Update velocity history and calculate perceived (average) velocity.
+		vcpy(&obs->hvel[obs->hhead*2], obs->vel);
+		obs->hhead = (obs->hhead+1) % VEL_HIST_SIZE;
+		vset(obs->pvel,0,0);
+		for (int j = 0; j < VEL_HIST_SIZE; ++j)
+			vadd(obs->pvel, obs->pvel, &obs->hvel[j*2]);
+		vscale(obs->pvel, obs->pvel, 1.0f/VEL_HIST_SIZE);
 	}
 }
 
@@ -329,7 +388,8 @@ static MT_Point3 nearestPointToObstacle(MT_Point3& pos ,KX_Obstacle* obstacle)
 	}
 }
 
-bool KX_ObstacleSimulation::FilterObstacle(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, KX_Obstacle* otherObst)
+static bool filterObstacle(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, KX_Obstacle* otherObst,
+							float levelHeight)
 {
 	//filter obstacles by type
 	if ( (otherObst == activeObst) ||
@@ -338,7 +398,7 @@ bool KX_ObstacleSimulation::FilterObstacle(KX_Obstacle* activeObst, KX_NavMeshOb
 
 	//filter obstacles by position
 	MT_Point3 p = nearestPointToObstacle(activeObst->m_pos, otherObst);
-	if ( fabs(activeObst->m_pos.z() - p.z()) > m_levelHeight)
+	if ( fabs(activeObst->m_pos.z() - p.z()) > levelHeight)
 		return false;
 
 	return true;
@@ -373,71 +433,100 @@ KX_Obstacle* KX_ObstacleSimulationTOI::CreateObstacle(KX_GameObject* gameobj)
 	return obstacle;
 }
 
-void KX_ObstacleSimulationTOI::AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
-										MT_Vector3& velocity, MT_Scalar maxDeltaSpeed, MT_Scalar maxDeltaAngle)
+static const float VEL_WEIGHT = 2.0f;
+static const float CUR_VEL_WEIGHT = 0.75f;
+static const float SIDE_WEIGHT = 0.75f;
+static const float TOI_WEIGHT = 2.5f;
+
+static void processSamples(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+						   KX_Obstacles& obstacles,  float levelHeight, const float vmax,
+						   const float* spos, const float cs, const int nspos,
+						   float* res)
 {
-	int nobs = m_obstacles.size();
-	int obstidx = std::find(m_obstacles.begin(), m_obstacles.end(), activeObst) - m_obstacles.begin();
-	if (obstidx == nobs)
-		return; 
-	TOICircle* tc = m_toiCircles[obstidx];
+	vset(res, 0,0);
 
-	MT_Vector2 vel(velocity.x(), velocity.y());
-	float vmax = (float) velocity.length();
-	float odir = (float) atan2(velocity.y(), velocity.x());
+	const float ivmax = 1.0f / vmax;
 
-	MT_Vector2 ddir = vel;
-	ddir.normalize();
+	// Max time of collision to be considered.
+	const float maxToi = 1.5f;
 
-	float bestScore = FLT_MAX;
-	float bestDir = odir;
-	float bestToi = 0;
+	float adir[2], adist;
+	vcpy(adir, activeObst->pvel);
+	if (vlen(adir) > 0.01f)
+		vnorm(adir);
+	else
+		vset(adir,0,0);
+	float activeObstPos[2];
+	vset(activeObstPos, activeObst->m_pos.x(), activeObst->m_pos.y()); 
+	adist = vdot(adir, activeObstPos);
 
-	tc->n = m_avoidSteps;
-	tc->minToi = m_minToi;
-	tc->maxToi = m_maxToi;
+	float minPenalty = FLT_MAX;
 
-	const int iforw = m_avoidSteps/2;
-	const float aoff = (float)iforw / (float)m_avoidSteps;
-
-	for (int iter = 0; iter < m_avoidSteps; ++iter)
+	for (int n = 0; n < nspos; ++n)
 	{
-		// Calculate sample velocity
-		const float ndir = ((float)iter/(float)m_avoidSteps) - aoff;
-		const float dir = odir+ndir*M_PI*2;
-		MT_Vector2 svel;
-		svel.x() = cosf(dir) * vmax;
-		svel.y() = sinf(dir) * vmax;
+		float vcand[2];
+		vcpy(vcand, &spos[n*2]);		
 
 		// Find min time of impact and exit amongst all obstacles.
-		float tmin = m_maxToi;
-		float tmine = 0;
-		for (int i = 0; i < nobs; ++i)
+		float tmin = maxToi;
+		float side = 0;
+		int nside = 0;
+
+		for (int i = 0; i < obstacles.size(); ++i)
 		{
-			KX_Obstacle* ob = m_obstacles[i];
-			bool res = FilterObstacle(activeObst, activeNavMeshObj, ob);
+			KX_Obstacle* ob = obstacles[i];
+			bool res = filterObstacle(activeObst, activeNavMeshObj, ob, levelHeight);
 			if (!res)
 				continue;
-			
-			float htmin,htmax;
+			float htmin, htmax;
 
-			if (ob->m_shape == KX_OBSTACLE_CIRCLE)
+			if (ob->m_shape==KX_OBSTACLE_CIRCLE)
 			{
-				MT_Vector2 vab;
-				if (ob->m_vel.length2() < 0.01f*0.01f)
+				float vab[2];
+
+				// Moving, use RVO
+				vscale(vab, vcand, 2);
+				vsub(vab, vab, activeObst->vel);
+				vsub(vab, vab, ob->vel);
+
+				// Side
+				// NOTE: dp, and dv are constant over the whole calculation,
+				// they can be precomputed per object. 
+				const float* pa = activeObstPos;
+				float pb[2];
+				vset(pb, ob->m_pos.x(), ob->m_pos.y());
+
+				const float orig[2] = {0,0};
+				float dp[2],dv[2],np[2];
+				vsub(dp,pb,pa);
+				vnorm(dp);
+				vsub(dv,ob->dvel, activeObst->dvel);
+
+				const float a = triarea(orig, dp,dv);
+				if (a < 0.01f)
 				{
-					// Stationary, use VO
-					vab = svel;
+					np[0] = -dp[1];
+					np[1] = dp[0];
 				}
 				else
 				{
-					// Moving, use RVO
-					vab = 2*svel - vel - ob->m_vel;
+					np[0] = dp[1];
+					np[1] = -dp[0];
 				}
 
-				if (!sweepCircleCircle(activeObst->m_pos, activeObst->m_rad, 
-										vab, ob->m_pos, ob->m_rad, htmin, htmax))
+				side += clamp(min(vdot(dp,vab)*2,vdot(np,vab)*2), 0.0f, 1.0f);
+				nside++;
+
+				if (!sweepCircleCircle(activeObst->m_pos, activeObst->m_rad, vab, ob->m_pos, ob->m_rad, 
+					htmin, htmax))
 					continue;
+
+				// Handle overlapping obstacles.
+				if (htmin < 0.0f && htmax > 0.0f)
+				{
+					// Avoid more when overlapped.
+					htmin = -htmin * 0.5f;
+				}
 			}
 			else if (ob->m_shape == KX_OBSTACLE_SEGMENT)
 			{
@@ -450,77 +539,193 @@ void KX_ObstacleSimulationTOI::AdjustObstacleVelocity(KX_Obstacle* activeObst, K
 					p1 = navmeshobj->TransformToWorldCoords(p1);
 					p2 = navmeshobj->TransformToWorldCoords(p2);
 				}
-				if (!sweepCircleSegment(activeObst->m_pos, activeObst->m_rad, svel, 
-										p1, p2, ob->m_rad, htmin, htmax))
-					continue;
+				float p[2], q[2];
+				vset(p, p1.x(), p1.y());
+				vset(q, p2.x(), p2.y());
+
+				// NOTE: the segments are assumed to come from a navmesh which is shrunken by
+				// the agent radius, hence the use of really small radius.
+				// This can be handle more efficiently by using seg-seg test instead.
+				// If the whole segment is to be treated as obstacle, use agent->rad instead of 0.01f!
+				const float r = 0.01f; // agent->rad
+				if (distPtSegSqr(activeObstPos, p, q) < sqr(r+ob->m_rad))
+				{
+					float sdir[2], snorm[2];
+					vsub(sdir, q, p);
+					snorm[0] = sdir[1];
+					snorm[1] = -sdir[0];
+					// If the velocity is pointing towards the segment, no collision.
+					if (vdot(snorm, vcand) < 0.0f)
+						continue;
+					// Else immediate collision.
+					htmin = 0.0f;
+					htmax = 10.0f;
+				}
+				else
+				{
+					if (!sweepCircleSegment(activeObstPos, r, vcand, p, q, ob->m_rad, htmin, htmax))
+						continue;
+				}
+
+				// Avoid less when facing walls.
+				htmin *= 2.0f;
 			}
 
-			if (htmin > 0.0f)
+			if (htmin >= 0.0f)
 			{
 				// The closest obstacle is somewhere ahead of us, keep track of nearest obstacle.
 				if (htmin < tmin)
 					tmin = htmin;
 			}
-			else if	(htmax > 0.0f)
+		}
+
+		// Normalize side bias, to prevent it dominating too much.
+		if (nside)
+			side /= nside;
+
+		const float vpen = VEL_WEIGHT * (vdist(vcand, activeObst->dvel) * ivmax);
+		const float vcpen = CUR_VEL_WEIGHT * (vdist(vcand, activeObst->vel) * ivmax);
+		const float spen = SIDE_WEIGHT * side;
+		const float tpen = TOI_WEIGHT * (1.0f/(0.1f+tmin/maxToi));
+
+		const float penalty = vpen + vcpen + spen + tpen;
+
+		if (penalty < minPenalty)
+		{
+			minPenalty = penalty;
+			vcpy(res, vcand);
+		}
+	}
+}
+
+static const int RVO_SAMPLE_RAD = 15;
+static const int MAX_RVO_SAMPLES = (RVO_SAMPLE_RAD*2+1)*(RVO_SAMPLE_RAD*2+1) + 100;
+
+static void sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+					  KX_Obstacles& obstacles, const float levelHeight,const float bias)
+{
+	float spos[2*MAX_RVO_SAMPLES];
+	int nspos = 0;
+
+	const float cvx = activeObst->dvel[0]*bias;
+	const float cvy = activeObst->dvel[1]*bias;
+	float vmax = vlen(activeObst->dvel);
+	const float vrange = vmax*(1-bias);
+	const float cs = 1.0f / (float)RVO_SAMPLE_RAD*vrange;
+
+	for (int y = -RVO_SAMPLE_RAD; y <= RVO_SAMPLE_RAD; ++y)
+	{
+		for (int x = -RVO_SAMPLE_RAD; x <= RVO_SAMPLE_RAD; ++x)
+		{
+			if (nspos < MAX_RVO_SAMPLES)
 			{
-				// The agent overlaps the obstacle, keep track of first safe exit.
-				if (htmax > tmine)
-					tmine = htmax;
+				const float vx = cvx + (float)(x+0.5f)*cs;
+				const float vy = cvy + (float)(y+0.5f)*cs;
+				if (vx*vx+vy*vy > sqr(vmax+cs/2)) continue;
+				spos[nspos*2+0] = vx;
+				spos[nspos*2+1] = vy;
+				nspos++;
+			}
+		}
+	}
+	processSamples(activeObst, activeNavMeshObj, obstacles, levelHeight, vmax, spos, cs/2, 
+					nspos,  activeObst->nvel);
+}
+
+static void sampleRVOAdaptive(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+					   KX_Obstacles& obstacles, const float levelHeight,const float bias)
+{
+	vset(activeObst->nvel, 0.f, 0.f);
+	float vmax = vlen(activeObst->dvel);
+
+	float spos[2*MAX_RVO_SAMPLES];
+	int nspos = 0;
+
+	int rad;
+	float res[2];
+	float cs;
+
+	// First sample location.
+	rad = 4;
+	res[0] = activeObst->dvel[0]*bias;
+	res[1] = activeObst->dvel[1]*bias;
+	cs = vmax*(2-bias*2) / (float)(rad-1);
+
+	for (int k = 0; k < 5; ++k)
+	{
+		const float half = (rad-1)*cs*0.5f;
+
+		nspos = 0;
+		for (int y = 0; y < rad; ++y)
+		{
+			for (int x = 0; x < rad; ++x)
+			{
+				const float vx = res[0] + x*cs - half;
+				const float vy = res[1] + y*cs - half;
+				if (vx*vx+vy*vy > sqr(vmax+cs/2)) continue;
+				spos[nspos*2+0] = vx;
+				spos[nspos*2+1] = vy;
+				nspos++;
 			}
 		}
 
-		// Calculate sample penalties and final score.
-		const float apen = m_angleWeight * fabsf(ndir);
-		const float tpen = m_toiWeight * (1.0f/(0.0001f+tmin/m_maxToi));
-		const float cpen = m_collisionWeight * (tmine/m_minToi)*(tmine/m_minToi);
-		const float score = apen + tpen + cpen;
+		processSamples(activeObst, activeNavMeshObj, obstacles, levelHeight, vmax, spos, cs/2, 
+			nspos,  res);
 
-		// Update best score.
-		if (score < bestScore)
-		{
-			bestDir = dir;
-			bestToi = tmin;
-			bestScore = score;
-		}
-
-		tc->dir[iter] = dir;
-		tc->toi[iter] = tmin;
-		tc->toie[iter] = tmine;
+		cs *= 0.5f;
 	}
 
-	if (activeObst->m_vel.length() > 0.1)
-	{
-		// Constrain max turn rate.
-		float cura = atan2(activeObst->m_vel.y(),activeObst->m_vel.x());
-		float da = bestDir - cura;
-		if (da < -M_PI) da += (float)M_PI*2;
-		if (da > M_PI) da -= (float)M_PI*2;
-		if (da < -maxDeltaAngle)
-		{
-			bestDir = cura - maxDeltaAngle;
-			bestToi = min(bestToi, interpolateToi(bestDir, tc->dir, tc->toi, tc->n));
-		}
-		else if (da > maxDeltaAngle)
-		{
-			bestDir = cura + maxDeltaAngle;
-			bestToi = min(bestToi, interpolateToi(bestDir, tc->dir, tc->toi, tc->n));
-		}
-	}
-
-	// Adjust speed when time of impact is less than min TOI.
-	if (bestToi < m_minToi)
-		vmax *= bestToi/m_minToi;
-
-	// Constrain velocity change.
-	const float curSpeed = (float) activeObst->m_vel.length();
-	float deltaSpeed =  vmax - curSpeed; 
-	CLAMP(deltaSpeed, -maxDeltaSpeed, maxDeltaSpeed);
-	vmax = curSpeed + deltaSpeed;
-
-	// New steering velocity.
-	vel.x() = cosf(bestDir) * vmax;
-	vel.y() = sinf(bestDir) * vmax;
-
-	velocity.x() = vel.x();
-	velocity.y() = vel.y();
+	vcpy(activeObst->nvel, res);
 }
+
+
+void KX_ObstacleSimulationTOI::AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+													MT_Vector3& velocity, MT_Scalar maxDeltaSpeed, MT_Scalar maxDeltaAngle)
+{
+	int nobs = m_obstacles.size();
+	int obstidx = std::find(m_obstacles.begin(), m_obstacles.end(), activeObst) - m_obstacles.begin();
+	if (obstidx == nobs)
+		return;
+	
+	vset(activeObst->dvel, velocity.x(), velocity.y());
+
+	//apply RVO
+	const float bias = 0.4f;
+	//sampleRVO(activeObst, activeNavMeshObj, m_obstacles, m_levelHeight, bias);
+	sampleRVOAdaptive(activeObst, activeNavMeshObj, m_obstacles, m_levelHeight, bias);
+
+	// Fake dynamic constraint.
+	float dv[2];
+	float vel[2];
+	vsub(dv, activeObst->nvel, activeObst->vel);
+	float ds = vlen(dv);
+	if (ds > maxDeltaSpeed || ds<-maxDeltaSpeed)
+		vscale(dv, dv, fabs(maxDeltaSpeed/ds));
+	vadd(vel, activeObst->vel, dv);
+	
+	velocity.x() = vel[0];
+	velocity.y() = vel[1];
+/*	printf("dvel: %f, nvel: %f, vel: %f\n", vlen(activeObst->dvel), vlen(activeObst->nvel),
+											vlen(vel));*/
+
+}
+/*
+#include "GL/glew.h"
+void KX_ObstacleSimulation::DebugDraw()
+{
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0, 100.0, 0.0, 100.0, -1.0, 1.0);
+	glBegin(GL_QUADS);
+	glColor4ub(255,0,0,255);
+	glVertex2f(0.f, 0.f);
+	glVertex2f(100.f, 25.f);
+	glVertex2f(100.f, 75.f);
+	glVertex2f(25.f, 75.f);
+	glEnd(); 
+
+}*/

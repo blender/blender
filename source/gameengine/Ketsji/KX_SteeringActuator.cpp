@@ -254,7 +254,7 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 			MT_Vector3 newvel = m_velocity*steervec;
 
 			//adjust velocity to avoid obstacles
-			if (m_simulation && m_obstacle && !newvel.fuzzyZero())
+			if (m_simulation && m_obstacle /*&& !newvel.fuzzyZero()*/)
 			{
 				if (m_enableVisualization)
 					KX_RasterizerDrawDebugLine(mypos, mypos + newvel, MT_Vector3(1.,0.,0.));
@@ -277,6 +277,15 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 				MT_Vector3 movement = delta*newvel;
 				obj->ApplyMovement(movement, false);
 			}
+		}
+		else
+		{
+			if (m_simulation && m_obstacle)
+			{
+				m_obstacle->dvel[0] = 0.f;
+				m_obstacle->dvel[1] = 0.f;
+			}
+			
 		}
 
 		if (terminate && m_isSelfTerminated)
