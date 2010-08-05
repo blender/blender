@@ -2253,7 +2253,7 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
     bl_label = "Properties"
     bl_default_closed = True
 
-    def _active_context_member(self, context):
+    def _active_context_member(context):
         obj = context.object
         if obj:
             mode = obj.mode
@@ -2268,7 +2268,7 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
 
     @staticmethod
     def poll(context):
-        member = self._active_context_member(context)
+        member = __class__._active_context_member(context)
         if member:
             context_member = getattr(context, member)
             return context_member and context_member.keys()
@@ -2278,7 +2278,7 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
     def draw(self, context):
         import rna_prop_ui
         # reload(rna_prop_ui)
-        member = self._active_context_member(context)
+        member = __class__._active_context_member(context)
 
         if member:
             # Draw with no edit button

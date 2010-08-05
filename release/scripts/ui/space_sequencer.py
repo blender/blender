@@ -316,24 +316,26 @@ class SequencerButtonsPanel():
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
 
-    def has_sequencer(self, context):
+    @staticmethod
+    def has_sequencer(context):
         return (context.space_data.view_type == 'SEQUENCER') or (context.space_data.view_type == 'SEQUENCER_PREVIEW')
 
     @staticmethod
     def poll(context):
-        return self.has_sequencer(context) and (act_strip(context) is not None)
+        return __class__.has_sequencer(context) and (act_strip(context) is not None)
 
 
 class SequencerButtonsPanel_Output():
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
 
-    def has_preview(self, context):
+    @staticmethod
+    def has_preview(context):
         return (context.space_data.view_type == 'PREVIEW') or (context.space_data.view_type == 'SEQUENCER_PREVIEW')
 
     @staticmethod
     def poll(context):
-        return self.has_preview(context)
+        return __class__.has_preview(context)
 
 
 class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
@@ -388,7 +390,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
 
     @staticmethod
     def poll(context):
-        if not self.has_sequencer(context):
+        if not __class__.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -518,7 +520,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
 
     @staticmethod
     def poll(context):
-        if not self.has_sequencer(context):
+        if not __class__.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -584,8 +586,8 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
 
         col = layout.column(align=True)
         col.label(text="Trim Duration:")
-        col.prop(strip, "animation_start_offset", text="Start")
-        col.prop(strip, "animation_end_offset", text="End")
+        col.prop(strip, "frame_offset_start", text="Start")
+        col.prop(strip, "frame_offset_end", text="End")
 
 
 class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
@@ -593,7 +595,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
 
     @staticmethod
     def poll(context):
-        if not self.has_sequencer(context):
+        if not __class__.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -634,7 +636,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
 
     @staticmethod
     def poll(context):
-        if not self.has_sequencer(context):
+        if not __class__.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -659,7 +661,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
 
     @staticmethod
     def poll(context):
-        if not self.has_sequencer(context):
+        if not __class__.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -721,7 +723,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
 
     @staticmethod
     def poll(context):
-        if not self.has_sequencer(context):
+        if not __class__.has_sequencer(context):
             return False
 
         strip = act_strip(context)
