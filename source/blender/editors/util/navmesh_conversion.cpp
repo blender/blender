@@ -156,9 +156,13 @@ bool buildPolygonsByDetailedMeshes(const int vertsPerPoly, const int npolys,
 		//search border 
 		int btri = -1;
 		int bedge = -1;
-		for (int j=0; j<dmeshes[polyidx*4+3] && btri==-1;j++)
+		int dtrisNum = dmeshes[polyidx*4+3];
+		int dtrisBase = dmeshes[polyidx*4+2];
+		unsigned char *traversedTris = new unsigned char[dtrisNum];
+		memset(traversedTris, 0, dtrisNum*sizeof(unsigned char));
+		for (int j=0; j<dtrisNum && btri==-1;j++)
 		{
-			int curpolytri = dmeshes[polyidx*4+2]+j;
+			int curpolytri = dtrisBase+j;
 			for (int k=0; k<3; k++)
 			{
 				unsigned short neighbortri = dtris[curpolytri*3*2+3+k];
@@ -177,9 +181,9 @@ bool buildPolygonsByDetailedMeshes(const int vertsPerPoly, const int npolys,
 		}
 
 		newPoly[nv++] = dtris[btri*3*2+bedge];
-
 		int tri = btri;
 		int edge = (bedge+1)%3;
+		traversedTris[tri-dtrisBase] = 1;
 		while (tri!=btri || edge!=bedge)
 		{
 			int neighbortri = dtris[tri*3*2+3+edge];
@@ -217,6 +221,7 @@ bool buildPolygonsByDetailedMeshes(const int vertsPerPoly, const int npolys,
 				}
 				tri = neighbortri;
 				edge = (twinedge+1)%3;
+				traversedTris[tri-dtrisBase] = 1;
 			}
 		}
 
@@ -236,7 +241,14 @@ bool buildPolygonsByDetailedMeshes(const int vertsPerPoly, const int npolys,
 		delete adjustedPoly;
 		nv = adjustedNv;
 
-		if (nv<=vertsPerPoly)
+		bool allTraversed = true;
+		for (size_t i=0; i<(size_t)dtrisNum; i++)
+		{
+			if (traversedTris[i]==0)
+				allTraversed = false;
+		}
+
+		if (nv<=vertsPerPoly && allTraversed)
 		{
 			for (int i=0; i<nv; i++)
 			{
