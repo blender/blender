@@ -2366,6 +2366,7 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *start= NULL, *text= st->text;
 	int flags, first= 1;
+	int found = 0;
 	char *tmp;
 
 	if(!st->findstr[0] || (mode == TEXT_REPLACE && !st->replacestr[0]))
@@ -2431,9 +2432,10 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 			first= 1;
 		}
 		else {
-			BKE_reportf(op->reports, RPT_ERROR, "Text not found: %s", st->findstr);
+			if(!found) BKE_reportf(op->reports, RPT_ERROR, "Text not found: %s", st->findstr);
 			break;
 		}
+		found = 1;
 	} while(mode==TEXT_MARK_ALL);
 
 	return OPERATOR_FINISHED;
