@@ -2651,8 +2651,9 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 			for(lsock= lnode->outputs.first; lsock; lsock= lsock->next) {
 				if(outsocket_exists(lnode->new_node, lsock->new_sock)) {
 					lsock->new_sock->ns.data= lsock->ns.data;
+					compbuf_set_node(lsock->new_sock->ns.data, lnode->new_node);
 					lsock->ns.data= NULL;
-						lsock->new_sock= NULL;
+					lsock->new_sock= NULL;
 				}
 			}
 		}

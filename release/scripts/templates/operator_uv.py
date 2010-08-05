@@ -24,8 +24,9 @@ def main(context):
     if is_editmode:
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
+
 class UvOperator(bpy.types.Operator):
-    ''''''
+    '''UV Operator description'''
     bl_idname = "uv.simple_operator"
     bl_label = "Simple UV Operator"
 
@@ -37,7 +38,6 @@ class UvOperator(bpy.types.Operator):
         main(context)
         return {'FINISHED'}
 
-bpy.types.register(UvOperator)
 
 if __name__ == "__main__":
     bpy.ops.uv.simple_operator()

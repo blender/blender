@@ -23,7 +23,7 @@ from rna_prop_ui import PropertyPanel
 narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
-class BoneButtonsPanel(bpy.types.Panel):
+class BoneButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "bone"
@@ -32,7 +32,7 @@ class BoneButtonsPanel(bpy.types.Panel):
         return (context.bone or context.edit_bone)
 
 
-class BONE_PT_context_bone(BoneButtonsPanel):
+class BONE_PT_context_bone(BoneButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
 
@@ -48,7 +48,7 @@ class BONE_PT_context_bone(BoneButtonsPanel):
         row.prop(bone, "name", text="")
 
 
-class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel):
+class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, bpy.types.Panel):
 
     @property
     def _context_path(self):
@@ -59,7 +59,7 @@ class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel):
             return "active_bone"
 
 
-class BONE_PT_transform(BoneButtonsPanel):
+class BONE_PT_transform(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Transform"
 
     def draw(self, context):
@@ -128,7 +128,7 @@ class BONE_PT_transform(BoneButtonsPanel):
                 col.prop(pchan, "scale")
 
 
-class BONE_PT_transform_locks(BoneButtonsPanel):
+class BONE_PT_transform_locks(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Transform Locks"
     bl_default_closed = True
 
@@ -159,7 +159,7 @@ class BONE_PT_transform_locks(BoneButtonsPanel):
         row.column().prop(pchan, "lock_scale")
 
 
-class BONE_PT_relations(BoneButtonsPanel):
+class BONE_PT_relations(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Relations"
 
     def draw(self, context):
@@ -206,7 +206,7 @@ class BONE_PT_relations(BoneButtonsPanel):
         sub.prop(bone, "local_location", text="Local Location")
 
 
-class BONE_PT_display(BoneButtonsPanel):
+class BONE_PT_display(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
 
     def poll(self, context):
@@ -242,7 +242,7 @@ class BONE_PT_display(BoneButtonsPanel):
                 col.prop_object(pchan, "custom_shape_transform", ob.pose, "bones", text="At")
 
 
-class BONE_PT_inverse_kinematics(BoneButtonsPanel):
+class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Inverse Kinematics"
     bl_default_closed = True
 
@@ -340,7 +340,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel):
             #row.prop(pchan, "ik_lin_weight", text="Weight", slider=True)
 
 
-class BONE_PT_deform(BoneButtonsPanel):
+class BONE_PT_deform(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Deform"
     bl_default_closed = True
 
@@ -390,28 +390,13 @@ class BONE_PT_deform(BoneButtonsPanel):
         col.label(text="Offset:")
         col.prop(bone, "cyclic_offset")
 
-classes = [
-    BONE_PT_context_bone,
-    BONE_PT_transform,
-    BONE_PT_transform_locks,
-    BONE_PT_relations,
-    BONE_PT_display,
-    BONE_PT_inverse_kinematics,
-    BONE_PT_deform,
-
-    BONE_PT_custom_props]
-
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

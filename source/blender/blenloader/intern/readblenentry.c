@@ -107,7 +107,6 @@ static IDType idtypes[]= {
 	{ ID_VF,		"VFont",	"fonts",		IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_WO,		"World",	"worlds",		IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_WM,		"WindowManager", "window_managers",	0}, 
-	{ ID_WV,		"Wave",		"waves",		0},  /* deprecated */
 };
 static int nidtypes= sizeof(idtypes)/sizeof(idtypes[0]);
 

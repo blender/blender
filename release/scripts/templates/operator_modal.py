@@ -34,7 +34,5 @@ class ModalOperator(bpy.types.Operator):
             return {'CANCELLED'}
 
 
-bpy.types.register(ModalOperator)
-
 if __name__ == "__main__":
     bpy.ops.object.modal_operator()

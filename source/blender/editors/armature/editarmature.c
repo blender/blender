@@ -60,6 +60,7 @@
 #include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
 #include "BKE_modifier.h"
+#include "DNA_object_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_generate.h"

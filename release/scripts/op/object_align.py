@@ -286,12 +286,10 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(AlignObjects)
     bpy.types.VIEW3D_MT_transform.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(AlignObjects)
     bpy.types.VIEW3D_MT_transform.remove(menu_func)
 
 if __name__ == "__main__":

@@ -32,4 +32,3 @@ SET(INC
 )
 
 BLENDERLIB(bf_dummy "${SRC}" "${INC}")
-#env.BlenderLib ( 'bf_dummy', Split(sources), Split(incs), [], libtype=['game','player'], priority=[10,100] )

@@ -39,6 +39,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_material_types.h"
 
 #include "BLI_blenlib.h"
@@ -153,7 +154,7 @@ void copy_displist(ListBase *lbn, ListBase *lb)
 	}
 }
 
-void addnormalsDispList(Object *ob, ListBase *lb)
+void addnormalsDispList(ListBase *lb)
 {
 	DispList *dl = NULL;
 	float *vdata, *ndata, nor[3];

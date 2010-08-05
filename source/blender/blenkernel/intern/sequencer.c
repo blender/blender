@@ -39,6 +39,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
+#include "DNA_sound_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_global.h"

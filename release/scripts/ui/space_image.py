@@ -674,41 +674,12 @@ class IMAGE_PT_paint_curve(bpy.types.Panel):
         row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
         row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
 
-classes = [
-    IMAGE_MT_view,
-    IMAGE_MT_select,
-    IMAGE_MT_image,
-    IMAGE_MT_uvs_showhide,
-    IMAGE_MT_uvs_transform,
-    IMAGE_MT_uvs_snap,
-    IMAGE_MT_uvs_mirror,
-    IMAGE_MT_uvs_weldalign,
-    IMAGE_MT_uvs,
-    IMAGE_HT_header,
-    IMAGE_PT_image_properties,
-    IMAGE_PT_paint,
-    IMAGE_PT_tools_brush_texture,
-    IMAGE_PT_paint_stroke,
-    IMAGE_PT_paint_curve,
-    IMAGE_PT_game_properties,
-    IMAGE_PT_view_properties,
-    IMAGE_PT_view_histogram,
-    IMAGE_PT_view_waveform,
-    IMAGE_PT_view_vectorscope,
-    IMAGE_PT_sample_line,
-    IMAGE_PT_scope_sample]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

@@ -36,6 +36,8 @@
 #include "BKE_modifier.h"
 #include "BKE_shrinkwrap.h"
 
+#include "DNA_object_types.h"
+
 #include "depsgraph_private.h"
 
 #include "MOD_util.h"

@@ -1357,7 +1357,7 @@ void text_update_cursor_moved(bContext *C)
 	ARegion *ar;
 	int i, x, winx= 0;
 
-	if(!st || !st->text || st->text->curl) return;
+	if(ELEM3(NULL, st, st->text, st->text->curl)) return;
 
 	text= st->text;
 

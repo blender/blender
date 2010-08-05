@@ -44,6 +44,7 @@
  * - toEuler --> to_euler
  * - toQuat --> to_quat
  * - Vector.toTrackQuat --> Vector.to_track_quat
+ * - Quaternion * Quaternion --> cross product (not dot product)
  *
  * Moved to Geometry module: Intersect, TriangleArea, TriangleNormal, QuadNormal, LineIntersect
  */
@@ -90,74 +91,6 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 
 	Py_XDECREF(value_fast);
 	return size;
-}
-
-//-----------------------------METHODS----------------------------
-//-----------------quat_rotation (internal)-----------
-//This function multiplies a vector/point * quat or vice versa
-//to rotate the point/vector by the quaternion
-//arguments should all be 3D
-PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
-{
-	float rot[3];
-	QuaternionObject *quat = NULL;
-	VectorObject *vec = NULL;
-
-	if(QuaternionObject_Check(arg1)){
-		quat = (QuaternionObject*)arg1;
-		if(!BaseMath_ReadCallback(quat))
-			return NULL;
-
-		if(VectorObject_Check(arg2)){
-			vec = (VectorObject*)arg2;
-			
-			if(!BaseMath_ReadCallback(vec))
-				return NULL;
-			
-			rot[0] = quat->quat[0]*quat->quat[0]*vec->vec[0] + 2*quat->quat[2]*quat->quat[0]*vec->vec[2] - 
-				2*quat->quat[3]*quat->quat[0]*vec->vec[1] + quat->quat[1]*quat->quat[1]*vec->vec[0] + 
-				2*quat->quat[2]*quat->quat[1]*vec->vec[1] + 2*quat->quat[3]*quat->quat[1]*vec->vec[2] - 
-				quat->quat[3]*quat->quat[3]*vec->vec[0] - quat->quat[2]*quat->quat[2]*vec->vec[0];
-			rot[1] = 2*quat->quat[1]*quat->quat[2]*vec->vec[0] + quat->quat[2]*quat->quat[2]*vec->vec[1] + 
-				2*quat->quat[3]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[3]*vec->vec[0] - 
-				quat->quat[3]*quat->quat[3]*vec->vec[1] + quat->quat[0]*quat->quat[0]*vec->vec[1] - 
-				2*quat->quat[1]*quat->quat[0]*vec->vec[2] - quat->quat[1]*quat->quat[1]*vec->vec[1];
-			rot[2] = 2*quat->quat[1]*quat->quat[3]*vec->vec[0] + 2*quat->quat[2]*quat->quat[3]*vec->vec[1] + 
-				quat->quat[3]*quat->quat[3]*vec->vec[2] - 2*quat->quat[0]*quat->quat[2]*vec->vec[0] - 
-				quat->quat[2]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[1]*vec->vec[1] - 
-				quat->quat[1]*quat->quat[1]*vec->vec[2] + quat->quat[0]*quat->quat[0]*vec->vec[2];
-			return newVectorObject(rot, 3, Py_NEW, NULL);
-		}
-	}else if(VectorObject_Check(arg1)){
-		vec = (VectorObject*)arg1;
-		
-		if(!BaseMath_ReadCallback(vec))
-			return NULL;
-		
-		if(QuaternionObject_Check(arg2)){
-			quat = (QuaternionObject*)arg2;
-			if(!BaseMath_ReadCallback(quat))
-				return NULL;
-
-			rot[0] = quat->quat[0]*quat->quat[0]*vec->vec[0] + 2*quat->quat[2]*quat->quat[0]*vec->vec[2] - 
-				2*quat->quat[3]*quat->quat[0]*vec->vec[1] + quat->quat[1]*quat->quat[1]*vec->vec[0] + 
-				2*quat->quat[2]*quat->quat[1]*vec->vec[1] + 2*quat->quat[3]*quat->quat[1]*vec->vec[2] - 
-				quat->quat[3]*quat->quat[3]*vec->vec[0] - quat->quat[2]*quat->quat[2]*vec->vec[0];
-			rot[1] = 2*quat->quat[1]*quat->quat[2]*vec->vec[0] + quat->quat[2]*quat->quat[2]*vec->vec[1] + 
-				2*quat->quat[3]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[3]*vec->vec[0] - 
-				quat->quat[3]*quat->quat[3]*vec->vec[1] + quat->quat[0]*quat->quat[0]*vec->vec[1] - 
-				2*quat->quat[1]*quat->quat[0]*vec->vec[2] - quat->quat[1]*quat->quat[1]*vec->vec[1];
-			rot[2] = 2*quat->quat[1]*quat->quat[3]*vec->vec[0] + 2*quat->quat[2]*quat->quat[3]*vec->vec[1] + 
-				quat->quat[3]*quat->quat[3]*vec->vec[2] - 2*quat->quat[0]*quat->quat[2]*vec->vec[0] - 
-				quat->quat[2]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[1]*vec->vec[1] - 
-				quat->quat[1]*quat->quat[1]*vec->vec[2] + quat->quat[0]*quat->quat[0]*vec->vec[2];
-			return newVectorObject(rot, 3, Py_NEW, NULL);
-		}
-	}
-
-	PyErr_SetString(PyExc_RuntimeError, "quat_rotation(internal): internal problem rotating vector/point\n");
-	return NULL;
-	
 }
 
 //----------------------------------MATRIX FUNCTIONS--------------------

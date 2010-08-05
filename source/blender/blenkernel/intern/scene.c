@@ -42,6 +42,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_group_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"

@@ -189,7 +189,6 @@ def clientSendJob(conn, scene, anim = False):
 def requestResult(conn, job_id, frame):
     conn.request("GET", renderURL(job_id, frame))
 
-@rnaType
 class NetworkRenderEngine(bpy.types.RenderEngine):
     bl_idname = 'NET_RENDER'
     bl_label = "Network Render"

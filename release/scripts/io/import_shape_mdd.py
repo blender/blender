@@ -143,12 +143,10 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(importMDD)
     bpy.types.INFO_MT_file_import.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(importMDD)
     bpy.types.INFO_MT_file_import.remove(menu_func)
 
 if __name__ == "__main__":

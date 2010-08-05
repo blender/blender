@@ -117,23 +117,12 @@ class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
         col.operator("outliner.drivers_delete_selected")
 
 
-classes = [
-    OUTLINER_HT_header,
-    OUTLINER_MT_view,
-    OUTLINER_MT_search,
-    OUTLINER_MT_edit_datablocks]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

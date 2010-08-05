@@ -45,6 +45,7 @@
 #include "DNA_key_types.h"  
 #include "DNA_scene_types.h"  
 #include "DNA_vfont_types.h"  
+#include "DNA_object_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_anim.h"  
@@ -3105,12 +3106,10 @@ ListBase *BKE_curve_nurbs(Curve *cu)
 
 
 /* basic vertex data functions */
-int curve_bounds(Curve *cu, float min[3], float max[3])
+int minmax_curve(Curve *cu, float min[3], float max[3])
 {
 	ListBase *nurb_lb= BKE_curve_nurbs(cu);
 	Nurb *nu;
-
-	INIT_MINMAX(min, max);
 
 	for(nu= nurb_lb->first; nu; nu= nu->next)
 		minmaxNurb(nu, min, max);
@@ -3157,8 +3156,8 @@ int curve_center_median(Curve *cu, float cent[3])
 int curve_center_bounds(Curve *cu, float cent[3])
 {
 	float min[3], max[3];
-
-	if(curve_bounds(cu, min, max)) {
+	INIT_MINMAX(min, max);
+	if(minmax_curve(cu, min, max)) {
 		mid_v3_v3v3(cent, min, max);
 		return 1;
 	}

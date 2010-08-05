@@ -81,7 +81,7 @@
 
 void node_buts_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiTemplateIDBrowse(layout, C, ptr, "nodetree", NULL, NULL, "", NULL);
+	uiTemplateIDBrowse(layout, C, ptr, "nodetree", NULL, NULL, "");
 }
 
 static void node_buts_value(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -309,7 +309,7 @@ static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA 
 	bNode *node= ptr->data;
 	uiLayout *col;
 	
-	uiTemplateID(layout, C, ptr, "material", "MATERIAL_OT_new", NULL, NULL, NULL);
+	uiTemplateID(layout, C, ptr, "material", "MATERIAL_OT_new", NULL, NULL);
 	
 	if(!node->id) return;
 	
@@ -471,7 +471,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	PointerRNA imaptr;
 	PropertyRNA *prop;
 	
-	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL, NULL);
+	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	
 	if(!node->id) return;
 	
@@ -508,7 +508,7 @@ static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, Point
 	const char *layer_name;
 	char scene_name[19];
 	
-	uiTemplateID(layout, C, ptr, "scene", NULL, NULL, NULL, NULL);
+	uiTemplateID(layout, C, ptr, "scene", NULL, NULL, NULL);
 	
 	if(!node->id) return;
 
@@ -904,7 +904,10 @@ static void node_composit_buts_file_output(uiLayout *layout, bContext *C, Pointe
 		uiItemR(row, ptr, "exr_codec", 0, "", 0);
 	}
 	else if (RNA_enum_get(ptr, "image_type")== R_JPEG90) {
-		uiItemR(row, ptr, "quality", UI_ITEM_R_SLIDER, NULL, 0);
+		uiItemR(row, ptr, "quality", UI_ITEM_R_SLIDER, "Quality", 0);
+	}
+	else if (RNA_enum_get(ptr, "image_type")== R_PNG) {
+		uiItemR(row, ptr, "quality", UI_ITEM_R_SLIDER, "Compression", 0);
 	}
 	
 	row= uiLayoutRow(layout, 1);
@@ -1208,7 +1211,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *C, PointerRNA *pt
 
 static void node_texture_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL, NULL);
+	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 }
 
 static void node_texture_buts_output(uiLayout *layout, bContext *C, PointerRNA *ptr)

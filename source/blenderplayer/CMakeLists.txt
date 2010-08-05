@@ -101,7 +101,7 @@ IF(UNIX)
 		bf_python
 		bf_gen_python
 		bf_blenlib 
-		bf_cineon 
+		bf_cineon
 		bf_openexr 
 		extern_libopenjpeg 
 		bf_dds

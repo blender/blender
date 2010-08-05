@@ -31,7 +31,7 @@
 #define DNA_BRUSH_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_texture_types.h"
+#include "DNA_texture_types.h" /* for MTex */
 
 //#ifndef MAX_MTEX // XXX Not used?
 //#define MAX_MTEX	18
@@ -60,7 +60,8 @@ typedef struct Brush {
 
 	float normal_weight;
 
-	short blend, pad;		/* blend mode */
+	short blend;		/* blend mode */
+	short ob_mode;		/* & with ob->mode to see if the brush is compatible, use for display only. */
 	int size;			/* brush diameter */
 	int flag;			/* general purpose flag */	
 	float jitter;			/* jitter the position of the brush */

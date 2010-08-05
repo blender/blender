@@ -32,4 +32,3 @@ SET(INC
 )
 
 BLENDERLIB(bf_scenegraph "${SRC}" "${INC}")
-#env.BlenderLib ( 'bf_scenegraph', sources, Split(incs), [], libtype=['game','player'], priority=[50,130] )

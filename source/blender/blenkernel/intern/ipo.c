@@ -54,6 +54,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_math.h" /* windows needs for M_PI */
 #include "BLI_blenlib.h"

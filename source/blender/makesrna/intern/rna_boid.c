@@ -436,7 +436,7 @@ static void rna_def_boidstate(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active_boid_rule", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "BoidRule");
-	RNA_def_property_pointer_funcs(prop, "rna_BoidState_active_boid_rule_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_BoidState_active_boid_rule_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Boid Rule", "");
 
 	prop= RNA_def_property(srna, "active_boid_rule_index", PROP_INT, PROP_UNSIGNED);
@@ -488,7 +488,7 @@ static void rna_def_boid_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active_boid_state", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "BoidRule");
-	RNA_def_property_pointer_funcs(prop, "rna_BoidSettings_active_boid_state_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_BoidSettings_active_boid_state_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Boid Rule", "");
 
 	prop= RNA_def_property(srna, "active_boid_state_index", PROP_INT, PROP_UNSIGNED);

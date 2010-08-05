@@ -36,6 +36,7 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
+#include "DNA_brush_types.h"
 
 #include "BLI_listbase.h"
 
@@ -342,7 +343,7 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 			br= paint_brush(paint_get_active(scene));
 
 		if(br) {
-			RNA_id_pointer_create(&br->id, &path->ptr[path->len]);
+			RNA_id_pointer_create((ID *)br, &path->ptr[path->len]);
 			path->len++;
 
 			return 1;

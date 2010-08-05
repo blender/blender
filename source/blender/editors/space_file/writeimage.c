@@ -125,9 +125,11 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 void save_image_filesel_str(Scene *scene, char *str)
 {
 	switch(scene->r.imtype) {
+#ifdef WITH_HDR
 		case R_RADHDR:
 			strcpy(str, "Save Radiance HDR");
 			break;
+#endif
 		case R_FFMPEG:
 		case R_H264:
 		case R_XVID:
@@ -153,12 +155,14 @@ void save_image_filesel_str(Scene *scene, char *str)
 			strcpy(str, "Save OpenEXR");
 			break;
 #endif
+#ifdef WITH_CINEON
 		case R_CINEON:
 			strcpy(str, "Save Cineon");
 			break;
 		case R_DPX:
 			strcpy(str, "Save DPX");
 			break;
+#endif
 		case R_RAWTGA:
 			strcpy(str, "Save Raw Targa");
 			break;
@@ -167,9 +171,6 @@ void save_image_filesel_str(Scene *scene, char *str)
 			break;
 		case R_IRIZ:
 			strcpy(str, "Save IRIS");
-			break;
-		case R_HAMX:
-			strcpy(str, "Save HAMX");
 			break;
 		case R_TARGA:
 			strcpy(str, "Save Targa");

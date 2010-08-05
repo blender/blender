@@ -30,6 +30,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_brush_types.h"
 
 #include "RNA_access.h"
 
@@ -1005,8 +1006,9 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 					paint_brush_stroke_add_step(C, op, event, mouse);
 				}
 			}
-			else
+			else {
 				;//ED_region_tag_redraw(ar);
+			}
 		}
 	}
 

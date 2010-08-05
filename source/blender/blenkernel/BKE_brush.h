@@ -50,10 +50,7 @@ void brush_reset_sculpt(struct Brush *brush);
 struct ImBuf *get_brush_icon(struct Brush *brush);
 
 /* brush library operations used by different paint panels */
-int brush_set_nr(struct Brush **current_brush, int nr, const char *name);
 int brush_delete(struct Brush **current_brush);
-void brush_check_exists(struct Brush **brush, const char *name);
-void brush_toggled_fake_user(struct Brush *brush);
 int brush_texture_set_nr(struct Brush *brush, int nr);
 int brush_texture_delete(struct Brush *brush);
 int brush_clone_image_set_nr(struct Brush *brush, int nr);

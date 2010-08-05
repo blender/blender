@@ -36,7 +36,7 @@ def validate_arguments(args, bc):
             'WITH_BF_SNDFILE', 'BF_SNDFILE', 'BF_SNDFILE_INC', 'BF_SNDFILE_LIB', 'BF_SNDFILE_LIBPATH',
             'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
             'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
-            'WITH_BF_DDS',
+            'WITH_BF_DDS', 'WITH_BF_CINEON', 'WITH_BF_HDR',
             'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB','BF_FFMPEG_EXTRA', 'BF_FFMPEG',  'BF_FFMPEG_INC',
             'WITH_BF_OGG', 'BF_OGG', 'BF_OGG_LIB',
             'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
@@ -78,7 +78,6 @@ def validate_arguments(args, bc):
             'WITH_BF_DOCS',
             'BF_NUMJOBS',
             'BF_MSVS',
-            'WITH_BF_FHS',
             'BF_VERSION',
             'BF_GHOST_DEBUG',
             'WITH_BF_RAYOPTIMIZATION',
@@ -224,7 +223,11 @@ def read_opts(env, cfg, args):
         ('BF_OPENEXR_LIBPATH', 'OPENEXR library path', ''),
         ('BF_OPENEXR_LIB_STATIC', 'OPENEXR static library', ''),
 
-        (BoolVariable('WITH_BF_DDS', 'Use DDS if true', True)),
+        (BoolVariable('WITH_BF_DDS', 'Support DDS image format if true', True)),
+
+        (BoolVariable('WITH_BF_CINEON', 'Support CINEON and DPX image formats if true', True)),
+
+        (BoolVariable('WITH_BF_HDR', 'Support HDR image formats if true', True)),
 
         (BoolVariable('WITH_BF_FFMPEG', 'Use FFMPEG if true', False)),
         ('BF_FFMPEG', 'FFMPEG base path', ''),
@@ -428,13 +431,12 @@ def read_opts(env, cfg, args):
         
         ('BF_X264_CONFIG', 'configuration flags for x264', ''),
         ('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),
-        (BoolVariable('WITH_BF_DOCS', 'Generate API documentation', False)),
+#        (BoolVariable('WITH_BF_DOCS', 'Generate API documentation', False)),
         
         ('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
         ('BF_NUMJOBS', 'Number of build processes to spawn', '1'),
         ('BF_MSVS', 'Generate MSVS project files and solution', False),
-        
-        (BoolVariable('WITH_BF_FHS', 'Use the Unix "Filesystem Hierarchy Standard" rather then a redistributable directory layout', False)),
+
         ('BF_VERSION', 'The root path for Unix (non-apple)', '2.5'),
 
         (BoolVariable('BF_UNIT_TEST', 'Build with unit test support.', False)),

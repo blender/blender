@@ -62,7 +62,6 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 
-#include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_boids.h"
 #include "BKE_cdderivedmesh.h"
@@ -182,7 +181,7 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 	else
 		totpart=new_totpart;
 
-	if(totpart && totpart != psys->totpart) {
+	if(totpart != psys->totpart) {
 		if(psys->edit && psys->free_edit) {
 			psys->free_edit(psys->edit);
 			psys->edit = NULL;

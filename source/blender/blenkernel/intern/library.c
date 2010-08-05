@@ -43,27 +43,29 @@
 #include "MEM_guardedalloc.h"
 
 /* all types are needed here, in order to do memory operations */
-#include "DNA_scene_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_material_types.h"
-#include "DNA_wave_types.h"
-#include "DNA_lamp_types.h"
+#include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_group_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
-#include "DNA_world_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_vfont_types.h"
-#include "DNA_text_types.h"
-#include "DNA_sound_types.h"
-#include "DNA_group_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_node_types.h"
+#include "DNA_lamp_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_nla_types.h"
+#include "DNA_node_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_text_types.h"
+#include "DNA_vfont_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_anim_types.h"
+#include "DNA_world_types.h"
+#include "DNA_gpencil_types.h"
+
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -174,8 +176,6 @@ int id_make_local(ID *id, int test)
 			return 1;
 		case ID_IM:
 			return 0; /* not implemented */
-		case ID_WV:
-			return 0; /* deprecated */
 		case ID_LT:
 			if(!test) {
 				make_local_lattice((Lattice*)id);
@@ -264,8 +264,6 @@ int id_copy(ID *id, ID **newid, int test)
 		case ID_IM:
 			if(!test) *newid= (ID*)copy_image((Image*)id);
 			return 1;
-		case ID_WV:
-			return 0; /* deprecated */
 		case ID_LT:
 			if(!test) *newid= (ID*)copy_lattice((Lattice*)id);
 			return 1;
@@ -374,8 +372,6 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->tex);
 		case ID_IM:
 			return &(mainlib->image);
-		case ID_WV:
-			return &(mainlib->wave);
 		case ID_LT:
 			return &(mainlib->latt);
 		case ID_LA:
@@ -475,7 +471,6 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++]= &(main->curve);
 	lb[a++]= &(main->mball);
 
-	lb[a++]= &(main->wave);
 	lb[a++]= &(main->latt);
 	lb[a++]= &(main->lamp);
 	lb[a++]= &(main->camera);
@@ -541,9 +536,6 @@ static ID *alloc_libblock_notest(short type)
 			break;
 		case ID_IM:
 			id= MEM_callocN(sizeof(Image), "image");
-			break;
-		case ID_WV:
-			id= MEM_callocN(sizeof(Wave), "wave");
 			break;
 		case ID_LT:
 			id= MEM_callocN(sizeof(Lattice), "latt");
@@ -745,9 +737,6 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_IM:
 			free_image((Image *)id);
-			break;
-		case ID_WV:
-			/* free_wave(id); */
 			break;
 		case ID_LT:
 			free_lattice((Lattice *)id);

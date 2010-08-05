@@ -989,7 +989,7 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_editable_func(prop, "rna_DriverTarget_id_editable");
     /* note: custom set function is ONLY to avoid rna setting a user for this. */
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_DriverTarget_id_set", "rna_DriverTarget_id_typef");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_DriverTarget_id_set", "rna_DriverTarget_id_typef", NULL);
 	RNA_def_property_ui_text(prop, "ID", "ID-block that the specific property used can be found from (id_type property must be set first)");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	
@@ -1261,7 +1261,7 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	/* Collection active property */
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "FModifier");
-	RNA_def_property_pointer_funcs(prop, "rna_FCurve_active_modifier_get", "rna_FCurve_active_modifier_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_FCurve_active_modifier_get", "rna_FCurve_active_modifier_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active F-Curve Modifier", "Active F-Curve Modifier");
 
@@ -1359,7 +1359,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "grp");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Group", "Action Group that this F-Curve belongs to");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_FCurve_group_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_FCurve_group_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_ANIMATION, NULL);
 
 	/* Path + Array Index */

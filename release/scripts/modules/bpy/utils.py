@@ -30,7 +30,6 @@ import sys as _sys
 from _bpy import blend_paths
 from _bpy import script_paths as _bpy_script_paths
 
-
 def _test_import(module_name, loaded_modules):
     import traceback
     import time
@@ -84,9 +83,9 @@ def modules_from_path(path, loaded_modules):
             modules.append(mod)
 
     return modules
-
-_loaded = [] # store loaded modules for reloading.
-_bpy_types = __import__("bpy_types") # keep for comparisons, never ever reload this.
+            
+_global_loaded_modules = [] # store loaded module names for reloading.
+import bpy_types as _bpy_types # keep for comparisons, never ever reload this.
 
 
 def load_scripts(reload_scripts=False, refresh_scripts=False):
@@ -101,12 +100,39 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     import traceback
     import time
 
+    # must be set back to True on exits
+    _bpy_types._register_immediate = False
+
     t_main = time.time()
 
     loaded_modules = set()
 
     if refresh_scripts:
         original_modules = _sys.modules.values()
+    
+    if reload_scripts:
+        _bpy_types.TypeMap.clear()
+        _bpy_types.PropertiesMap.clear()
+
+    def register_module_call(mod):
+        _bpy_types._register_module(mod.__name__)
+        register = getattr(mod, "register", None)
+        if register:
+            try:
+                register()
+            except:
+                traceback.print_exc()
+        else:
+            print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
+
+    def unregister_module_call(mod):
+        _bpy_types._unregister_module(mod.__name__)
+        unregister = getattr(mod, "unregister", None)
+        if unregister:
+            try:
+                unregister()
+            except:
+                traceback.print_exc()
 
     def sys_path_ensure(path):
         if path not in _sys.path: # reloading would add twice
@@ -134,48 +160,23 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             mod = test_reload(mod)
 
         if mod:
-            register = getattr(mod, "register", None)
-            if register:
-                try:
-                    register()
-                except:
-                    traceback.print_exc()
-            else:
-                print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
-            _loaded.append(mod)
+            register_module_call(mod)
+            _global_loaded_modules.append(mod.__name__)
 
     if reload_scripts:
 
-        # TODO, this is broken but should work, needs looking into
-        '''
-        # reload modules that may not be directly included
-        for type_class_name in dir(_bpy.types):
-            type_class = getattr(_bpy.types, type_class_name)
-            module_name = getattr(type_class, "__module__", "")
-
-            if module_name and module_name != "bpy.types": # hard coded for C types
-                loaded_modules.add(module_name)
-
-        # sorting isnt needed but rather it be pradictable
-        for module_name in sorted(loaded_modules):
-            print("Reloading:", module_name)
-            test_reload(_sys.modules[module_name])
-        '''
+        # module names -> modules
+        _global_loaded_modules[:] = [_sys.modules[mod_name] for mod_name in _global_loaded_modules]
 
         # loop over and unload all scripts
-        _loaded.reverse()
-        for mod in _loaded:
-            unregister = getattr(mod, "unregister", None)
-            if unregister:
-                try:
-                    unregister()
-                except:
-                    traceback.print_exc()
+        _global_loaded_modules.reverse()
+        for mod in _global_loaded_modules:
+            unregister_module_call(mod)
 
-        for mod in _loaded:
-            reload(mod)
+        for mod in _global_loaded_modules:
+            test_reload(mod)
 
-        _loaded[:] = []
+        _global_loaded_modules[:] = []
 
     user_path = user_script_path()
 
@@ -197,7 +198,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     # load addons
     used_ext = {ext.module for ext in _bpy.context.user_preferences.addons}
-    paths = script_paths("addons")
+    paths = script_paths("addons") + script_paths("addons_contrib")
     for path in paths:
         sys_path_ensure(path)
 
@@ -211,6 +212,8 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     if _bpy.app.debug:
         print("Python Script Load Time %.4f" % (time.time() - t_main))
+    
+    _bpy_types._register_immediate = True
 
 
 def expandpath(path):
@@ -336,7 +339,7 @@ _presets = _os.path.join(_scripts[0], "presets") # FIXME - multiple paths
 
 def preset_paths(subdir):
     '''
-    Returns a list of paths for a spesific preset.
+    Returns a list of paths for a specific preset.
     '''
 
     return (_os.path.join(_presets, subdir), )

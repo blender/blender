@@ -580,7 +580,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "EditBone");
-	RNA_def_property_pointer_funcs(prop, "rna_EditBone_parent_get", "rna_EditBone_parent_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_EditBone_parent_get", "rna_EditBone_parent_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent", "Parent edit bone (in same Armature)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
@@ -664,7 +664,7 @@ static void rna_def_armature_bones(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_pointer_sdna(prop, NULL, "act_bone");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Bone", "Armatures active bone");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Armature_act_bone_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Armature_act_bone_set", NULL, NULL);
 
 	/* todo, redraw */
 //		RNA_def_property_collection_active(prop, prop_act);
@@ -690,7 +690,7 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active EditBone", "Armatures active edit bone");
 	//RNA_def_property_update(prop, 0, "rna_Armature_act_editbone_update");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Armature_act_edit_bone_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Armature_act_edit_bone_set", NULL, NULL);
 
 	/* todo, redraw */
 //		RNA_def_property_collection_active(prop, prop_act);

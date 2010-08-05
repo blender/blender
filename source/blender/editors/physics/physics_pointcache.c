@@ -33,15 +33,15 @@
 
 #include "DNA_scene_types.h"
 
-#include "BKE_anim.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h" 
-#include "BKE_pointcache.h"
-#include "BKE_global.h"
-#include "BKE_modifier.h"
 
 #include "BLI_blenlib.h"
 
@@ -88,11 +88,12 @@ void bake_console_progress_end(void *arg)
 
 static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	wmWindow *win = G.background ? NULL : CTX_wm_window(C);
 	PTCacheBaker baker;
 
-
+	baker.main = bmain;
 	baker.scene = scene;
 	baker.pid = NULL;
 	baker.bake = RNA_boolean_get(op->ptr, "bake");
@@ -173,6 +174,7 @@ void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 }
 static int ptcache_bake_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	wmWindow *win = G.background ? NULL : CTX_wm_window(C);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
@@ -189,6 +191,7 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 			break;
 	}
 
+	baker.main = bmain;
 	baker.scene = scene;
 	baker.pid = pid;
 	baker.bake = RNA_boolean_get(op->ptr, "bake");

@@ -1949,7 +1949,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active_dupliweight", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ParticleDupliWeight");
-	RNA_def_property_pointer_funcs(prop, "rna_ParticleDupliWeight_active_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_ParticleDupliWeight_active_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Dupli Object", "");
 
 	prop= RNA_def_property(srna, "active_dupliweight_index", PROP_INT, PROP_UNSIGNED);
@@ -1981,13 +1981,13 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "force_field_1", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "pd");
 	RNA_def_property_struct_type(prop, "FieldSettings");
-	RNA_def_property_pointer_funcs(prop, "rna_Particle_field1_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Particle_field1_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Force Field 1", "");
 
 	prop= RNA_def_property(srna, "force_field_2", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "pd2");
 	RNA_def_property_struct_type(prop, "FieldSettings");
-	RNA_def_property_pointer_funcs(prop, "rna_Particle_field2_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Particle_field2_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Force Field 2", "");
 }
 
@@ -2069,7 +2069,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	//RNA_def_property_pointer_sdna(prop, NULL, "part");
 	RNA_def_property_struct_type(prop, "ParticleSettings");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
-	RNA_def_property_pointer_funcs(prop, "rna_particle_settings_get", "rna_particle_settings_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_particle_settings_get", "rna_particle_settings_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Settings", "Particle system settings");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -2131,7 +2131,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active_particle_target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ParticleTarget");
-	RNA_def_property_pointer_funcs(prop, "rna_ParticleSystem_active_particle_target_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_ParticleSystem_active_particle_target_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Particle Target", "");
 
 	prop= RNA_def_property(srna, "active_particle_target_index", PROP_INT, PROP_UNSIGNED);

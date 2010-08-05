@@ -46,6 +46,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_utildefines.h"
 
@@ -122,8 +123,8 @@ wcsleninu8(wchar_t *src)
 	return len;
 }
 
-int
-static utf8slen(char *src)
+static int
+utf8slen(char *src)
 {
 	int size = 0, index = 0;
 	unsigned char c;

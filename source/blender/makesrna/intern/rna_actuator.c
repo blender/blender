@@ -522,7 +522,7 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Action", "");
         /* note: custom set function is ONLY to avoid rna setting a user for this. */
-        RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_action_action_set", NULL);
+        RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_action_action_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "continue_last_frame", PROP_BOOLEAN, PROP_NONE);
@@ -1266,7 +1266,7 @@ static void rna_def_edit_object_actuator(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Mesh", "Replace the existing, when left blank 'Phys' will remake the existing physics mesh");
 	/* note: custom set function is ONLY to avoid rna setting a user for this. */
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_editobject_mesh_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_editobject_mesh_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "time", PROP_INT, PROP_NONE);
@@ -1734,7 +1734,7 @@ static void rna_def_shape_action_actuator(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Action", "");
         /* note: custom set function is ONLY to avoid rna setting a user for this. */
-        RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_action_action_set", NULL);
+        RNA_def_property_pointer_funcs(prop, NULL, "rna_Actuator_action_action_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "continue_last_frame", PROP_BOOLEAN, PROP_NONE);

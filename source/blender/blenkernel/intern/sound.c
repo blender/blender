@@ -16,6 +16,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sound_types.h"
 
 #include "AUD_C-API.h"
 

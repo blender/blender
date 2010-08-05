@@ -3107,7 +3107,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			dl= lb->first;
 			if(dl==NULL) return 1;
 
-			if(dl->nors==0) addnormalsDispList(ob, lb);
+			if(dl->nors==0) addnormalsDispList(lb);
 			index3_nors_incr= 0;
 			
 			if( displist_has_faces(lb)==0) {
@@ -3154,7 +3154,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			dl= lb->first;
 			if(dl==NULL) return 1;
 			
-			if(dl->nors==NULL) addnormalsDispList(ob, lb);
+			if(dl->nors==NULL) addnormalsDispList(lb);
 			
 			if(draw_glsl_material(scene, ob, v3d, dt)) {
 				GPU_begin_object_materials(v3d, rv3d, scene, ob, 1, NULL);

@@ -1010,13 +1010,20 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		/* VEC * MATRIX */
 		return row_vector_multiplication(vec1, (MatrixObject*)v2);
 	} else if (QuaternionObject_Check(v2)) {
-		QuaternionObject *quat = (QuaternionObject*)v2; /* quat_rotation validates */
+		/* VEC * QUAT */
+		QuaternionObject *quat2 = (QuaternionObject*)v2;
+		float tvec[4];
 
 		if(vec1->size != 3) {
 			PyErr_SetString(PyExc_TypeError, "Vector multiplication: only 3D vector rotations (with quats) currently supported\n");
 			return NULL;
 		}
-		return quat_rotation((PyObject*)vec1, (PyObject*)quat);
+		if(!BaseMath_ReadCallback(quat2)) {
+			return NULL;
+		}
+		copy_v3_v3(tvec, vec1->vec);
+		mul_qt_v3(quat2->quat, tvec);
+		return newVectorObject(tvec, 3, Py_NEW, NULL);
 	}
 	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*FLOAT */
 		int i;

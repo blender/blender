@@ -648,9 +648,13 @@ static const EnumPropertyItem image_file_type_items[] = {
 #ifdef WITH_TIFF
 		{R_TIFF, "TIFF", 0, "Tiff", ""},
 #endif
+#ifdef WITH_DDS
 		{R_RADHDR, "RADIANCE_HDR", 0, "Radiance HDR", ""},
+#endif
+#ifdef WITH_CINEON
 		{R_CINEON, "CINEON", 0, "Cineon", ""},
 		{R_DPX, "DPX", 0, "DPX", ""},
+#endif
 #ifdef WITH_OPENEXR
 		{R_OPENEXR, "OPENEXR", 0, "OpenEXR", ""},
 	/* saving sequences of multilayer won't work, they copy buffers  */

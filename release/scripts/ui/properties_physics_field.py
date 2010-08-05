@@ -26,7 +26,7 @@ from properties_physics_common import basic_force_field_settings_ui
 from properties_physics_common import basic_force_field_falloff_ui
 
 
-class PhysicButtonsPanel(bpy.types.Panel):
+class PhysicButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"
@@ -36,7 +36,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
         return (context.object) and (not rd.use_game_engine)
 
 
-class PHYSICS_PT_field(PhysicButtonsPanel):
+class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Force Fields"
 
     def draw(self, context):
@@ -169,7 +169,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
                 sub.prop(field, "radial_maximum", text="Distance")
 
 
-class PHYSICS_PT_collision(PhysicButtonsPanel):
+class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Collision"
     #bl_default_closed = True
 
@@ -243,21 +243,12 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
             col.prop(settings, "absorption", text="Absorption")
 
 
-classes = [
-    PHYSICS_PT_field,
-    PHYSICS_PT_collision]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

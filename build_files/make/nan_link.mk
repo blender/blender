@@ -195,4 +195,8 @@ ifeq ($(WITH_TIFF),true)
    LLIBS += $(NAN_TIFF_LIBS)
 endif
 
+ifeq ($(WITH_LCMS),true)
+   LLIBS += $(BF_LCMS_LIBS)
+endif
+
 LLIBS += $(NAN_PYTHON_LIB)
