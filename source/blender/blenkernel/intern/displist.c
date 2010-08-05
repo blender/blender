@@ -1129,7 +1129,7 @@ float calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
 	Curve *cu;
 	DispList *dl;
 	
-	if(taperobj==NULL) return 1.0;
+	if(taperobj==NULL || taperobj->type!=OB_CURVE) return 1.0;
 	
 	cu= taperobj->data;
 	dl= cu->disp.first;
@@ -1681,15 +1681,6 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		float (*originalVerts)[3];
 		float (*deformedVerts)[3];
 		int numVerts;
-
-		/* Bevel and taper objects should always be curves */
-		if (cu->bevobj && cu->bevobj->type != OB_CURVE) {
-			cu->bevobj = NULL;
-		}
-
-		if (cu->taperobj && cu->taperobj->type != OB_CURVE) {
-			cu->taperobj = NULL;
-		}
 
 		nubase= BKE_curve_nurbs(cu);
 

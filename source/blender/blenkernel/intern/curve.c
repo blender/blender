@@ -1222,6 +1222,8 @@ void makebevelcurve(Scene *scene, Object *ob, ListBase *disp, int forRender)
 // XXX	if( ob == obedit && ob->type == OB_FONT ) return;
 
 	if(cu->bevobj) {
+		if (cu->bevobj->type!=OB_CURVE) return;
+
 		bevcu= cu->bevobj->data;
 		if(bevcu->ext1==0.0 && bevcu->ext2==0.0) {
 			ListBase bevdisp= {NULL, NULL};
