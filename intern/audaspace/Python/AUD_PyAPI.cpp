@@ -132,8 +132,8 @@ PyDoc_STRVAR(M_aud_Factory_sine_doc,
 			 ":type frequency: float\n"
 			 ":arg rate: The sampling rate in Hz.\n"
 			 ":type rate: int\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory");
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`");
 
 static PyObject *
 Factory_sine(PyTypeObject* type, PyObject* args)
@@ -169,8 +169,8 @@ PyDoc_STRVAR(M_aud_Factory_file_doc,
 			 "Creates a sound object of a sound file.\n\n"
 			 ":arg filename: Path of the file.\n"
 			 ":type filename: string\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory");
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`");
 
 static PyObject *
 Factory_file(PyTypeObject* type, PyObject* args)
@@ -207,8 +207,8 @@ PyDoc_STRVAR(M_aud_Factory_lowpass_doc,
 			 ":type frequency: float\n"
 			 ":arg Q: Q factor of the lowpass.\n"
 			 ":type Q: float\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory");
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`");
 
 static PyObject *
 Factory_lowpass(Factory* self, PyObject* args)
@@ -247,8 +247,8 @@ PyDoc_STRVAR(M_aud_Factory_delay_doc,
 			 "Delays a sound by playing silence before the sound starts.\n\n"
 			 ":arg time: How many seconds of silence should be added before the sound.\n"
 			 ":type time: float\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory");
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`");
 
 static PyObject *
 Factory_delay(Factory* self, PyObject* args)
@@ -285,9 +285,9 @@ PyDoc_STRVAR(M_aud_Factory_join_doc,
 			 "join(sound)\n\n"
 			 "Plays two sounds in sequence.\n\n"
 			 ":arg sound: The sound to play second.\n"
-			 ":type sound: aud.Factory\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory\n\n"
+			 ":type sound: :class:`Factory`\n"
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`\n\n"
 			 ".. note:: The two sounds have to have the same specifications "
 			 "(channels and samplerate).");
 
@@ -298,7 +298,7 @@ Factory_join(Factory* self, PyObject* object)
 
 	if(!PyObject_TypeCheck(object, type))
 	{
-		PyErr_SetString(PyExc_TypeError, "Object has to be of type aud.Factory!");
+		PyErr_SetString(PyExc_TypeError, "Object has to be of type Factory!");
 		return NULL;
 	}
 
@@ -332,8 +332,8 @@ PyDoc_STRVAR(M_aud_Factory_highpass_doc,
 			 ":type frequency: float\n"
 			 ":arg Q: Q factor of the lowpass.\n"
 			 ":type Q: float\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory");
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`");
 
 static PyObject *
 Factory_highpass(Factory* self, PyObject* args)
@@ -374,8 +374,8 @@ PyDoc_STRVAR(M_aud_Factory_limit_doc,
 			 ":type start: float\n"
 			 ":arg end: End time in seconds.\n"
 			 ":type end: float\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory");
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`");
 
 static PyObject *
 Factory_limit(Factory* self, PyObject* args)
@@ -413,13 +413,13 @@ PyDoc_STRVAR(M_aud_Factory_pitch_doc,
 			 "Changes the pitch of a sound with a specific factor.\n\n"
 			 ":arg factor: The factor to change the pitch with.\n"
 			 ":type factor: float\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory\n\n"
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`\n\n"
 			 ".. note:: This is done by changing the sample rate of the "
 			 "underlying sound, which has to be an integer, so the factor "
 			 "value rounded and the factor may not be 100 % accurate.\n\n"
 			 ".. note:: This is a filter function, you might consider using "
-			 "aud.Handle.pitch instead.");
+			 "Handle.pitch instead.");
 
 static PyObject *
 Factory_pitch(Factory* self, PyObject* args)
@@ -457,11 +457,11 @@ PyDoc_STRVAR(M_aud_Factory_volume_doc,
 			 "Changes the volume of a sound.\n\n"
 			 ":arg volume: The new volume..\n"
 			 ":type volume: float\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory\n\n"
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`\n\n"
 			 ".. note:: Should be in the range [0, 1] to avoid clipping.\n\n"
 			 ".. note:: This is a filter function, you might consider using "
-			 "aud.Handle.volume instead.");
+			 "Handle.volume instead.");
 
 static PyObject *
 Factory_volume(Factory* self, PyObject* args)
@@ -501,8 +501,8 @@ PyDoc_STRVAR(M_aud_Factory_fadein_doc,
 			 ":type start: float\n"
 			 ":arg length: Time in seconds how long the fading should last.\n"
 			 ":type length: float\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory");
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`");
 
 static PyObject *
 Factory_fadein(Factory* self, PyObject* args)
@@ -542,8 +542,8 @@ PyDoc_STRVAR(M_aud_Factory_fadeout_doc,
 			 ":type start: float\n"
 			 ":arg length: Time in seconds how long the fading should last.\n"
 			 ":type length: float\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory");
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`");
 
 static PyObject *
 Factory_fadeout(Factory* self, PyObject* args)
@@ -582,8 +582,8 @@ PyDoc_STRVAR(M_aud_Factory_loop_doc,
 			 ":arg count: How often the sound should be looped. "
 			 "Negative values mean endlessly.\n"
 			 ":type count: integer\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory");
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`");
 
 static PyObject *
 Factory_loop(Factory* self, PyObject* args)
@@ -620,9 +620,9 @@ PyDoc_STRVAR(M_aud_Factory_mix_doc,
 			 "mix(sound)\n\n"
 			 "Mixes two sounds.\n\n"
 			 ":arg sound: The sound to mix over the other.\n"
-			 ":type sound: aud.Factory\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory\n\n"
+			 ":type sound: :class:`Factory`\n"
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`\n\n"
 			 ".. note:: The two sounds have to have the same specifications "
 			 "(channels and samplerate).");
 
@@ -633,7 +633,7 @@ Factory_mix(Factory* self, PyObject* object)
 
 	if(!PyObject_TypeCheck(object, type))
 	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Factory!");
+		PyErr_SetString(PyExc_TypeError, "Object is not of type Factory!");
 		return NULL;
 	}
 
@@ -662,8 +662,8 @@ Factory_mix(Factory* self, PyObject* object)
 PyDoc_STRVAR(M_aud_Factory_pingpong_doc,
 			 "pingpong()\n\n"
 			 "Plays a sound forward and then backward.\n\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory");
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`");
 
 static PyObject *
 Factory_pingpong(Factory* self)
@@ -694,8 +694,8 @@ Factory_pingpong(Factory* self)
 PyDoc_STRVAR(M_aud_Factory_reverse_doc,
 			 "reverse()\n\n"
 			 "Plays a sound reversed.\n\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory\n\n"
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`\n\n"
 			 ".. note:: The sound has have a finite length and be seekable. "
 			 "It's recommended to buffer sounds that should be played reversed.");
 
@@ -728,8 +728,8 @@ Factory_reverse(Factory* self)
 PyDoc_STRVAR(M_aud_Factory_buffer_doc,
 			 "buffer()\n\n"
 			 "Buffers a sound into RAM.\n\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory\n\n"
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`\n\n"
 			 ".. note:: Raw PCM data needs a lot of space, only buffer short sounds.");
 
 static PyObject *
@@ -760,8 +760,8 @@ PyDoc_STRVAR(M_aud_Factory_square_doc,
 			 "Makes a square wave out of an audio wave.\n\n"
 			 ":arg threshold: Threshold value over which an amplitude counts non-zero.\n"
 			 ":type threshold: float\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory");
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`");
 
 static PyObject *
 Factory_square(Factory* self, PyObject* args)
@@ -801,8 +801,8 @@ PyDoc_STRVAR(M_aud_Factory_filter_doc,
 			 ":type b: sequence of float\n"
 			 ":arg a: The denominator filter coefficients.\n"
 			 ":type a: sequence of float\n"
-			 ":return: The created aud.Factory object.\n"
-			 ":rtype: aud.Factory");
+			 ":return: The created :class:`Factory` object.\n"
+			 ":rtype: :class:`Factory`");
 
 static PyObject *
 Factory_filter(Factory* self, PyObject* args)
@@ -1001,7 +1001,7 @@ PyDoc_STRVAR(M_aud_Handle_pause_doc,
 			 "pause()\n\n"
 			 "Pauses playback.\n\n"
 			 ":return: Whether the action succeeded.\n"
-			 ":rtype: boolean");
+			 ":rtype: bool");
 
 static PyObject *
 Handle_pause(Handle *self)
@@ -1028,7 +1028,7 @@ PyDoc_STRVAR(M_aud_Handle_resume_doc,
 			 "resume()\n\n"
 			 "Resumes playback.\n\n"
 			 ":return: Whether the action succeeded.\n"
-			 ":rtype: boolean");
+			 ":rtype: bool");
 
 static PyObject *
 Handle_resume(Handle *self)
@@ -1055,7 +1055,7 @@ PyDoc_STRVAR(M_aud_Handle_stop_doc,
 			 "stop()\n\n"
 			 "Stops playback.\n\n"
 			 ":return: Whether the action succeeded.\n"
-			 ":rtype: boolean");
+			 ":rtype: bool");
 
 static PyObject *
 Handle_stop(Handle *self)
@@ -2223,11 +2223,11 @@ PyDoc_STRVAR(M_aud_Device_play_doc,
 			 "play(sound[, keep])\n\n"
 			 "Plays a sound.\n\n"
 			 ":arg sound: The sound to play.\n"
-			 ":type sound: aud.Factory\n"
+			 ":type sound: :class:`Factory`\n"
 			 ":arg keep: Whether the sound should be kept paused in the device when its end is reached.\n"
-			 ":type keep: boolean\n"
+			 ":type keep: bool\n"
 			 ":return: The playback handle.\n"
-			 ":rtype: aud.Handle");
+			 ":rtype: :class:`Handle`");
 
 static PyObject *
 Device_play(Device *self, PyObject *args, PyObject *kwds)
@@ -2244,7 +2244,7 @@ Device_play(Device *self, PyObject *args, PyObject *kwds)
 
 	if(!PyObject_TypeCheck(object, &FactoryType))
 	{
-		PyErr_SetString(PyExc_TypeError, "Object is not of type aud.Factory!");
+		PyErr_SetString(PyExc_TypeError, "Object is not of type Factory!");
 		return NULL;
 	}
 

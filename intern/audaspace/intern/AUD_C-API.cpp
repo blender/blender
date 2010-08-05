@@ -205,9 +205,9 @@ static PyObject* AUD_getCDevice(PyObject* self)
 
 static PyMethodDef meth_getcdevice[] = {{ "device", (PyCFunction)AUD_getCDevice, METH_NOARGS,
 										  "device()\n\n"
-										  "Returns the application's Device.\n\n"
-										  ":return: The application's Device.\n"
-										  ":rtype: aud.Device"}};
+										  "Returns the application's :class:`Device`.\n\n"
+										  ":return: The application's :class:`Device`.\n"
+										  ":rtype: :class:`Device`"}};
 
 PyObject* AUD_initPython()
 {
