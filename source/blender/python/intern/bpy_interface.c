@@ -146,27 +146,6 @@ void BPY_update_modules( void )
 	bpy_context_module->ptr.data= (void *)BPy_GetContext();
 }
 
-/*****************************************************************************
-* Description: This function creates a new Python dictionary object.
-* note: dict is owned by sys.modules["__main__"] module, reference is borrowed
-* note: important we use the dict from __main__, this is what python expects
-  for 'pickle' to work as well as strings like this...
- >> foo = 10
- >> print(__import__("__main__").foo)
-*****************************************************************************/
-static PyObject *CreateGlobalDictionary(bContext *C, const char *filename)
-{
-	PyInterpreterState *interp= PyThreadState_GET()->interp;
-	PyObject *mod_main= PyModule_New("__main__");	
-	PyDict_SetItemString(interp->modules, "__main__", mod_main);
-	Py_DECREF(mod_main); /* sys.modules owns now */
-	PyModule_AddStringConstant(mod_main, "__name__", "__main__");
-	PyModule_AddStringConstant(mod_main, "__file__", filename); /* __file__ only for nice UI'ness */
-	PyModule_AddObject(mod_main, "__builtins__", interp->builtins);
-	Py_INCREF(interp->builtins); /* AddObject steals a reference */
-	return PyModule_GetDict(mod_main);
-}
-
 /* must be called before Py_Initialize */
 void BPY_start_python_path(void)
 {
@@ -334,7 +313,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	if (text) {
 		char fn_dummy[FILE_MAXDIR];
 		bpy_text_filename_get(fn_dummy, text);
-		py_dict = CreateGlobalDictionary(C, fn_dummy);
+		py_dict = bpy_namespace_dict_new(fn_dummy);
 		
 		if( !text->compiled ) {	/* if it wasn't already compiled, do it now */
 			char *buf = txt_to_buf( text );
@@ -355,7 +334,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	else {
 		FILE *fp= fopen(fn, "r");
 
-		py_dict = CreateGlobalDictionary(C, fn);
+		py_dict = bpy_namespace_dict_new(fn);
 
 		if(fp) {
 #ifdef _WIN32
@@ -499,7 +478,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 	
 	gilstate = PyGILState_Ensure();
 	
-	py_dict = CreateGlobalDictionary(C);
+	py_dict = bpy_namespace_dict_new("<dummy>");
 	
 	PyObject *module = PyImport_ImportModule(scpt->script.filename);
 	if (module==NULL) {
@@ -551,7 +530,7 @@ int BPY_eval_button(bContext *C, const char *expr, double *value)
 
 	bpy_context_set(C, &gilstate);
 	
-	py_dict= CreateGlobalDictionary(C, "<blender button>");
+	py_dict= bpy_namespace_dict_new("<blender button>");
 
 	mod = PyImport_ImportModule("math");
 	if (mod) {
@@ -622,7 +601,7 @@ int BPY_eval_string(bContext *C, const char *expr)
 
 	bpy_context_set(C, &gilstate);
 
-	py_dict= CreateGlobalDictionary(C, "<blender string>");
+	py_dict= bpy_namespace_dict_new("<blender string>");
 
 	retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict);
 
