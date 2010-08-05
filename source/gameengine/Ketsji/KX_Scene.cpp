@@ -233,9 +233,6 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 KX_Scene::~KX_Scene()
 {
-	if (m_obstacleSimulation)
-		delete m_obstacleSimulation;
-
 	// The release of debug properties used to be in SCA_IScene::~SCA_IScene
 	// It's still there but we remove all properties here otherwise some
 	// reference might be hanging and causing late release of objects
@@ -246,6 +243,9 @@ KX_Scene::~KX_Scene()
 		KX_GameObject* parentobj = (KX_GameObject*) GetRootParentList()->GetValue(0);
 		this->RemoveObject(parentobj);
 	}
+
+	if (m_obstacleSimulation)
+		delete m_obstacleSimulation;
 
 	if(m_objectlist)
 		m_objectlist->Release();
