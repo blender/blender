@@ -65,6 +65,10 @@ CPPFLAGS += -I../../blender/imbuf
 CPPFLAGS += -I../../blender/gpu
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
+ifeq ($(WITH_FFMPEG), true)
+    CPPFLAGS += -DWITH_FFMPEG
+endif
+
 ###########################
 
 SOURCEDIR = source/gameengine/Ketsji

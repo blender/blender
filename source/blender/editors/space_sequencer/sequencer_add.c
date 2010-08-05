@@ -181,7 +181,9 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 		/* used for image strip */
 		/* best guess, first images name */
 		RNA_BEGIN(op->ptr, itemptr, "files") {
-			RNA_string_get(&itemptr, "name", seq_load->name);
+			char *name= RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+			BLI_strncpy(seq_load->name, name, sizeof(seq_load->name));
+			MEM_freeN(name);
 			break;
 		}
 		RNA_END;
@@ -352,6 +354,10 @@ static int sequencer_add_movie_strip_invoke(bContext *C, wmOperator *op, wmEvent
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 
+	/* This is for drag and drop */
+	if(RNA_property_is_set(op->ptr, "filepath"))
+		return sequencer_add_movie_strip_exec(C, op);
+
 	sequencer_generic_invoke_xy__internal(C, op, event, 0);
 
 	WM_event_add_fileselect(C, op);
@@ -402,6 +408,10 @@ static int sequencer_add_sound_strip_invoke(bContext *C, wmOperator *op, wmEvent
 
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
+
+	/* This is for drag and drop */
+	if(RNA_property_is_set(op->ptr, "filepath"))
+		return sequencer_add_sound_strip_exec(C, op);
 
 	sequencer_generic_invoke_xy__internal(C, op, event, 0);
 

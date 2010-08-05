@@ -236,7 +236,7 @@ void curvemap_insert(CurveMap *cuma, float x, float y)
 	cuma->curve= cmp;
 }
 
-void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset)
+void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset, int slope)
 {
 	if(cuma->curve)
 		MEM_freeN(cuma->curve);
@@ -320,6 +320,20 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset)
 			break;
 	}
 
+	/* mirror curve in x direction to have positive slope
+	 * rather than default negative slope */
+	if (slope == CURVEMAP_SLOPE_POSITIVE) {
+		int i, last=cuma->totpoint-1;
+		CurveMapPoint *newpoints= MEM_dupallocN(cuma->curve);
+		
+		for (i=0; i<cuma->totpoint; i++) {
+			newpoints[i].y = cuma->curve[last-i].y;
+		}
+		
+		MEM_freeN(cuma->curve);
+		cuma->curve = newpoints;
+	}
+	
 	if(cuma->table) {
 		MEM_freeN(cuma->table);
 		cuma->table= NULL;
@@ -768,36 +782,55 @@ void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float *vecout, const 
 	vecout[2]= curvemap_evaluateF(cumap->cm+2, fac);
 }
 
+
+#ifdef WITH_LCMS
+/* basic error handler, if we dont do this blender will exit */
+static int ErrorReportingFunction(int ErrorCode, const char *ErrorText)
+{
+    fprintf(stderr, "%s:%d\n", ErrorText, ErrorCode);
+	return 1;
+}
+#endif
+
 void colorcorrection_do_ibuf(ImBuf *ibuf, const char *profile)
 {
+#ifdef WITH_LCMS
 	if (ibuf->crect == NULL)
 	{
-#ifdef WITH_LCMS
-		cmsHPROFILE imageProfile, proofingProfile;
-		cmsHTRANSFORM hTransform;
+		cmsHPROFILE proofingProfile;
 		
-		ibuf->crect = MEM_mallocN(ibuf->x*ibuf->y*sizeof(int), "imbuf crect");
-
-		imageProfile  = cmsCreate_sRGBProfile();
+		/* TODO, move to initialization area of code */
+		//cmsSetLogErrorHandler(ErrorReportingFunction);
+		cmsSetErrorHandler(ErrorReportingFunction);
+		
+		/* will return NULL if the file isn't fount */
 		proofingProfile = cmsOpenProfileFromFile(profile, "r");
-		
+
 		cmsErrorAction(LCMS_ERROR_SHOW);
-	
-		hTransform = cmsCreateProofingTransform(imageProfile, TYPE_RGBA_8, imageProfile, TYPE_RGBA_8, 
-											  proofingProfile,
-											  INTENT_ABSOLUTE_COLORIMETRIC,
-											  INTENT_ABSOLUTE_COLORIMETRIC,
-											  cmsFLAGS_SOFTPROOFING);
-	
-		cmsDoTransform(hTransform, ibuf->rect, ibuf->crect, ibuf->x * ibuf->y);
-	
-		cmsDeleteTransform(hTransform);
-		cmsCloseProfile(imageProfile);
-		cmsCloseProfile(proofingProfile);
-#else
-		ibuf->crect = ibuf->rect;
-#endif
+
+		if(proofingProfile) {
+			cmsHPROFILE imageProfile;
+			cmsHTRANSFORM hTransform;
+
+			ibuf->crect = MEM_mallocN(ibuf->x*ibuf->y*sizeof(int), "imbuf crect");
+
+			imageProfile  = cmsCreate_sRGBProfile();
+
+
+			hTransform = cmsCreateProofingTransform(imageProfile, TYPE_RGBA_8, imageProfile, TYPE_RGBA_8, 
+												  proofingProfile,
+												  INTENT_ABSOLUTE_COLORIMETRIC,
+												  INTENT_ABSOLUTE_COLORIMETRIC,
+												  cmsFLAGS_SOFTPROOFING);
+		
+			cmsDoTransform(hTransform, ibuf->rect, ibuf->crect, ibuf->x * ibuf->y);
+
+			cmsDeleteTransform(hTransform);
+			cmsCloseProfile(imageProfile);
+			cmsCloseProfile(proofingProfile);
+		}
 	}
+#endif
 }
 
 /* only used for image editor curves */

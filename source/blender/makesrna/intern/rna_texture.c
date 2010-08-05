@@ -1447,7 +1447,7 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Particle System", "Particle System to render as points");
 	RNA_def_property_struct_type(prop, "ParticleSystem");
-	RNA_def_property_pointer_funcs(prop, "rna_PointDensity_psys_get", "rna_PointDensity_psys_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_PointDensity_psys_get", "rna_PointDensity_psys_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	

@@ -18,13 +18,6 @@
 
 # <pep8 compliant>
 
-"""
-Name: 'Wavefront (.obj)...'
-Blender: 248
-Group: 'Export'
-Tooltip: 'Save a Wavefront OBJ File'
-"""
-
 __author__ = "Campbell Barton, Jiri Hnidek, Paolo Ciccone"
 __url__ = ['http://wiki.blender.org/index.php/Scripts/Manual/Export/wavefront_obj', 'www.blender.org', 'blenderartists.org']
 __version__ = "1.21"
@@ -634,7 +627,7 @@ def write(filepath, objects, scene,
 #					for vIdx, vWeight in me.getVertsFromGroup(vertexGroupName, 1):
                         vgroupsMap[vIdx].append((g.name, vWeight))
 
-            for f_index, f in enumerate(faces):
+            for f, f_index in face_index_pairs:
                 f_v = [{"index": index, "vertex": me.verts[index]} for index in f.verts]
 
                 # if f.verts[3] == 0:
@@ -646,7 +639,7 @@ def write(filepath, objects, scene,
 #				f_mat = min(f.mat, len(materialNames)-1)
                 if faceuv:
 
-                    tface = me.active_uv_texture.data[face_index_pairs[f_index][1]]
+                    tface = me.active_uv_texture.data[f_index]
 
                     f_image = tface.image
                     f_uv = tface.uv
@@ -823,7 +816,8 @@ def do_export(filepath, context,
     orig_scene = context.scene
 
     # Exit edit mode before exporting, so current object states are exported properly.
-    bpy.ops.object.mode_set(mode='OBJECT')
+    if context.object:
+        bpy.ops.object.mode_set(mode='OBJECT')
 
 #	if EXPORT_ALL_SCENES:
 #		export_scenes = bpy.data.scenes
@@ -969,11 +963,9 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(ExportOBJ)
     bpy.types.INFO_MT_file_export.append(menu_func)
 
 def unregister():
-    bpy.types.unregister(ExportOBJ)
     bpy.types.INFO_MT_file_export.remove(menu_func)
 
 

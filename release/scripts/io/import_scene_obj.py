@@ -420,8 +420,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     # Add an MTL with the same name as the obj if no MTLs are spesified.
     temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + '.mtl'
 
-    if os.path.exists(DIR + temp_mtl) and temp_mtl not in material_libs:
-# 	if sys.exists(DIR + temp_mtl) and temp_mtl not in material_libs:
+    if os.path.exists(os.path.join(DIR, temp_mtl)) and temp_mtl not in material_libs:
         material_libs.append( temp_mtl )
     del temp_mtl
 
@@ -435,11 +434,9 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     unique_material_images[None]= None, False
 
     for libname in material_libs:
-        mtlpath= DIR + libname
+        mtlpath= os.path.join(DIR, libname)
         if not os.path.exists(mtlpath):
-# 		if not sys.exists(mtlpath):
-            #print '\tError Missing MTL: "%s"' % mtlpath
-            pass
+            print ("\tError Missing MTL: '%s'" % mtlpath)
         else:
             #print '\t\tloading mtl: "%s"' % mtlpath
             context_material= None
@@ -1609,11 +1606,9 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(IMPORT_OT_obj)
     bpy.types.INFO_MT_file_import.append(menu_func)
 
 def unregister():
-    bpy.types.unregister(IMPORT_OT_obj)
     bpy.types.INFO_MT_file_import.remove(menu_func)
 
 

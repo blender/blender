@@ -247,7 +247,7 @@ static int sequencer_deselect_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_select_all_toggle(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "(De)Select All";
+	ot->name= "Select or Deselect All";
 	ot->idname= "SEQUENCER_OT_select_all_toggle";
 	ot->description="Select or deselect all strips";
 	

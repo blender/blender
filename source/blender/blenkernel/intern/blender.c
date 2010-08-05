@@ -52,6 +52,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_sound_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -102,6 +103,7 @@ void free_blender(void)
 	BKE_spacetypes_free();		/* after free main, it uses space callbacks */
 	
 	IMB_exit();
+	seq_stripelem_cache_destruct();
 	
 	free_nodesystem();	
 }
@@ -312,7 +314,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	BLI_strncpy(G.main->name, filename, FILE_MAX); /* is guaranteed current file */
 
 	/* baseflags, groups, make depsgraph, etc */
-	set_scene_bg(CTX_data_scene(C));
+	set_scene_bg(G.main, CTX_data_scene(C));
 	
 	MEM_freeN(bfd);
 }
@@ -477,7 +479,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 	G.fileflags= fileflags;
 
 	if(success)
-		DAG_on_load_update();
+		DAG_on_load_update(G.main);
 
 	return success;
 }

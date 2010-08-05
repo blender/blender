@@ -1041,11 +1041,13 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 		if((lb_dupli_ob=object_duplilist(scene, ob))) {
 			DupliObject *dob;
 			for(dob= lb_dupli_ob->first; dob; dob= dob->next) {
-				ListBase lb_dupli_pid;
-				BKE_ptcache_ids_from_object(&lb_dupli_pid, dob->ob, scene, duplis);
-				addlisttolist(lb, &lb_dupli_pid);
-				if(lb_dupli_pid.first)
-					printf("Adding Dupli\n");
+				if(dob->ob != ob) { /* avoids recursive loops with dupliframes: bug 22988 */
+					ListBase lb_dupli_pid;
+					BKE_ptcache_ids_from_object(&lb_dupli_pid, dob->ob, scene, duplis);
+					addlisttolist(lb, &lb_dupli_pid);
+					if(lb_dupli_pid.first)
+						printf("Adding Dupli\n");
+				}
 			}
 
 			free_object_duplilist(lb_dupli_ob);	/* does restore */
@@ -2333,7 +2335,7 @@ PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, ListBase *ptcaches_old
 
 
 /* Baking */
-void BKE_ptcache_quick_cache_all(Scene *scene)
+void BKE_ptcache_quick_cache_all(Main *bmain, Scene *scene)
 {
 	PTCacheBaker baker;
 
@@ -2346,6 +2348,7 @@ void BKE_ptcache_quick_cache_all(Scene *scene)
 	baker.progresscontext=NULL;
 	baker.render=0;
 	baker.anim_init = 0;
+	baker.main=bmain;
 	baker.scene=scene;
 	baker.quick_step=scene->physics_settings.quick_cache_step;
 
@@ -2360,6 +2363,7 @@ typedef struct {
 	int endframe;
 	int step;
 	int *cfra_ptr;
+	Main *main;
 	Scene *scene;
 } ptcache_make_cache_data;
 
@@ -2367,7 +2371,7 @@ static void *ptcache_make_cache_thread(void *ptr) {
 	ptcache_make_cache_data *data = (ptcache_make_cache_data*)ptr;
 
 	for(; (*data->cfra_ptr <= data->endframe) && !data->break_operation; *data->cfra_ptr+=data->step) {
-		scene_update_for_newframe(data->scene, data->scene->lay);
+		scene_update_for_newframe(data->main, data->scene, data->scene->lay);
 		if(G.background) {
 			printf("bake: frame %d :: %d\n", (int)*data->cfra_ptr, data->endframe);
 		}
@@ -2380,6 +2384,7 @@ static void *ptcache_make_cache_thread(void *ptr) {
 /* if bake is not given run simulations to current frame */
 void BKE_ptcache_make_cache(PTCacheBaker* baker)
 {
+	Main *bmain = baker->main;
 	Scene *scene = baker->scene;
 	Scene *sce; /* SETLOOPER macro only */
 	Base *base;
@@ -2399,6 +2404,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 	thread_data.step = baker->quick_step;
 	thread_data.cfra_ptr = &CFRA;
 	thread_data.scene = baker->scene;
+	thread_data.main = baker->main;
 
 	G.afbreek = 0;
 
@@ -2568,7 +2574,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 	CFRA = cfrao;
 	
 	if(bake) /* already on cfra unless baking */
-		scene_update_for_newframe(scene, scene->lay);
+		scene_update_for_newframe(bmain, scene, scene->lay);
 
 	if (thread_data.break_operation)
 		WM_cursor_wait(0);

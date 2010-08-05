@@ -313,6 +313,7 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 	int i,j, k, polyverts;
 	unsigned short* v;
 	int face[3];
+	Main *bmain = CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object* obedit;
 	int createob = base==NULL;
@@ -428,7 +429,7 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 	ModifierData *md= modifiers_findByType(obedit, eModifierType_NavMesh);
 	if (!md)
 	{
-		ED_object_modifier_add(NULL, scene, obedit, NULL, eModifierType_NavMesh);
+		ED_object_modifier_add(NULL, bmain, scene, obedit, NULL, eModifierType_NavMesh);
 	}
 
 	return obedit;

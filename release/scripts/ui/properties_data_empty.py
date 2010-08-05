@@ -22,7 +22,7 @@ import bpy
 narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
-class DataButtonsPanel(bpy.types.Panel):
+class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
@@ -31,7 +31,7 @@ class DataButtonsPanel(bpy.types.Panel):
         return (context.object and context.object.type == 'EMPTY')
 
 
-class DATA_PT_empty(DataButtonsPanel):
+class DATA_PT_empty(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Empty"
 
     def draw(self, context):
@@ -48,20 +48,13 @@ class DATA_PT_empty(DataButtonsPanel):
         layout.prop(ob, "empty_draw_size", text="Size")
 
 
-classes = [
-    DATA_PT_empty]
-
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

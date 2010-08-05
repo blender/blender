@@ -35,6 +35,7 @@
 extern "C" {
 #endif
 
+struct Main;
 struct Material;
 struct ID;
 struct Object;
@@ -69,9 +70,9 @@ int object_remove_material_slot(struct Object *ob);
 /* rendering */
 
 void init_render_material(struct Material *, int, float *);
-void init_render_materials(int, float *);
+void init_render_materials(struct Main *, int, float *);
 void end_render_material(struct Material *);
-void end_render_materials(void);
+void end_render_materials(struct Main *);
 
 int material_in_material(struct Material *parmat, struct Material *mat);
 

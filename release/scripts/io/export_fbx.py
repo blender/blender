@@ -305,7 +305,8 @@ def write(filename, batch_objects = None, \
         BATCH_OWN_DIR =				False
     ):
 
-    bpy.ops.object.mode_set(mode='OBJECT')
+    if bpy.context.object:
+        bpy.ops.object.mode_set(mode='OBJECT')
 
     # ----------------- Batch support!
     if BATCH_ENABLE:
@@ -947,10 +948,7 @@ def write(filename, batch_objects = None, \
         render = scene.render
         width	= render.resolution_x
         height	= render.resolution_y
-# 		render = scene.render
-# 		width	= render.sizeX
-# 		height	= render.sizeY
-        aspect	= float(width)/height
+        aspect	= width / height
 
         data = my_cam.blenObject.data
 
@@ -962,11 +960,9 @@ def write(filename, batch_objects = None, \
         file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % math.degrees(data.angle))
         file.write('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1')
         file.write('\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1')
-        file.write('\n\t\t\tProperty: "FocalLength", "Real", "A+",14.0323972702026')
+        # file.write('\n\t\t\tProperty: "FocalLength", "Real", "A+",14.0323972702026')
         file.write('\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",%.6f' % data.shift_x) # not sure if this is in the correct units?
-# 		file.write('\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",%.6f' % data.shiftX) # not sure if this is in the correct units?
         file.write('\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",%.6f' % data.shift_y) # ditto
-# 		file.write('\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",%.6f' % data.shiftY) # ditto
         file.write('\n\t\t\tProperty: "BackgroundColor", "Color", "A+",0,0,0')
         file.write('\n\t\t\tProperty: "TurnTable", "Real", "A+",0')
         file.write('\n\t\t\tProperty: "DisplayTurnTableIcon", "bool", "",1')
@@ -975,7 +971,7 @@ def write(filename, batch_objects = None, \
         file.write('\n\t\t\tProperty: "UseRealTimeMotionBlur", "bool", "",1')
         file.write('\n\t\t\tProperty: "ResolutionMode", "enum", "",0')
         file.write('\n\t\t\tProperty: "ApertureMode", "enum", "",2')
-        file.write('\n\t\t\tProperty: "GateFit", "enum", "",0')
+        file.write('\n\t\t\tProperty: "GateFit", "enum", "",2')
         file.write('\n\t\t\tProperty: "CameraFormat", "enum", "",0')
         file.write('\n\t\t\tProperty: "AspectW", "double", "",%i' % width)
         file.write('\n\t\t\tProperty: "AspectH", "double", "",%i' % height)
@@ -3443,12 +3439,10 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(ExportFBX)
     bpy.types.INFO_MT_file_export.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(ExportFBX)
     bpy.types.INFO_MT_file_export.remove(menu_func)
 
 if __name__ == "__main__":

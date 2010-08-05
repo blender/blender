@@ -23,7 +23,7 @@ from rna_prop_ui import PropertyPanel
 narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
-class DataButtonsPanel(bpy.types.Panel):
+class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
@@ -32,7 +32,7 @@ class DataButtonsPanel(bpy.types.Panel):
         return context.lattice
 
 
-class DATA_PT_context_lattice(DataButtonsPanel):
+class DATA_PT_context_lattice(DataButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
 
@@ -59,11 +59,11 @@ class DATA_PT_context_lattice(DataButtonsPanel):
                 layout.template_ID(space, "pin_id")
 
 
-class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel):
+class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
     _context_path = "object.data"
 
 
-class DATA_PT_lattice(DataButtonsPanel):
+class DATA_PT_lattice(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Lattice"
 
     def draw(self, context):
@@ -98,23 +98,12 @@ class DATA_PT_lattice(DataButtonsPanel):
         row.prop_object(lat, "vertex_group", context.object, "vertex_groups", text="")
 
 
-classes = [
-    DATA_PT_context_lattice,
-    DATA_PT_lattice,
-
-    DATA_PT_custom_props_lattice]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

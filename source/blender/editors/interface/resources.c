@@ -979,6 +979,7 @@ void UI_make_axis_color(char *src_col, char *dst_col, char axis)
 /* patching UserDef struct and Themes */
 void init_userdef_do_versions(void)
 {
+	Main *bmain= G.main;
 //	countall();
 	
 	/* the UserDef struct is not corrected with do_versions() .... ugh! */
@@ -1013,18 +1014,18 @@ void init_userdef_do_versions(void)
 	if(U.flag & USER_CUSTOM_RANGE) 
 		vDM_ColorBand_store(&U.coba_weight); /* signal for derivedmesh to use colorband */
 	
-	if (G.main->versionfile <= 191) {
+	if (bmain->versionfile <= 191) {
 		strcpy(U.plugtexdir, U.textudir);
 		strcpy(U.sounddir, "/");
 	}
 	
 	/* patch to set Dupli Armature */
-	if (G.main->versionfile < 220) {
+	if (bmain->versionfile < 220) {
 		U.dupflag |= USER_DUP_ARM;
 	}
 	
 	/* added seam, normal color, undo */
-	if (G.main->versionfile <= 234) {
+	if (bmain->versionfile <= 234) {
 		bTheme *btheme;
 		
 		U.uiflag |= USER_GLOBALUNDO;
@@ -1047,12 +1048,12 @@ void init_userdef_do_versions(void)
 			}
 		}
 	}
-	if (G.main->versionfile <= 235) {
+	if (bmain->versionfile <= 235) {
 		/* illegal combo... */
 		if (U.flag & USER_LMOUSESELECT) 
 			U.flag &= ~USER_TWOBUTTONMOUSE;
 	}
-	if (G.main->versionfile <= 236) {
+	if (bmain->versionfile <= 236) {
 		bTheme *btheme;
 		/* new space type */
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
@@ -1069,7 +1070,7 @@ void init_userdef_do_versions(void)
 			}
 		}
 	}
-	if (G.main->versionfile <= 237) {
+	if (bmain->versionfile <= 237) {
 		bTheme *btheme;
 		/* bone colors */
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
@@ -1080,7 +1081,7 @@ void init_userdef_do_versions(void)
 			}
 		}
 	}
-	if (G.main->versionfile <= 238) {
+	if (bmain->versionfile <= 238) {
 		bTheme *btheme;
 		/* bone colors */
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
@@ -1091,7 +1092,7 @@ void init_userdef_do_versions(void)
 			}
 		}
 	}
-	if (G.main->versionfile <= 239) {
+	if (bmain->versionfile <= 239) {
 		bTheme *btheme;
 		
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
@@ -1105,7 +1106,7 @@ void init_userdef_do_versions(void)
 		}
 		if(U.obcenter_dia==0) U.obcenter_dia= 6;
 	}
-	if (G.main->versionfile <= 241) {
+	if (bmain->versionfile <= 241) {
 		bTheme *btheme;
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 			/* Node editor theme, check for alpha==0 is safe, then color was never set */
@@ -1146,7 +1147,7 @@ void init_userdef_do_versions(void)
 		}
 		
 	}
-	if (G.main->versionfile <= 242) {
+	if (bmain->versionfile <= 242) {
 		bTheme *btheme;
 		
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
@@ -1164,11 +1165,11 @@ void init_userdef_do_versions(void)
 			}
 		}
 	}
-	if (G.main->versionfile <= 243) {
+	if (bmain->versionfile <= 243) {
 		/* set default number of recently-used files (if not set) */
 		if (U.recent_files == 0) U.recent_files = 10;
 	}
-	if (G.main->versionfile < 245 || (G.main->versionfile == 245 && G.main->subversionfile < 3)) {
+	if (bmain->versionfile < 245 || (bmain->versionfile == 245 && bmain->subversionfile < 3)) {
 		bTheme *btheme;
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 			SETCOL(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
@@ -1176,7 +1177,7 @@ void init_userdef_do_versions(void)
 		if(U.coba_weight.tot==0)
 			init_colorband(&U.coba_weight, 1);
 	}
-	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 11)) {
+	if ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile < 11)) {
 		bTheme *btheme;
 		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
 			/* these should all use the same colour */
@@ -1189,7 +1190,7 @@ void init_userdef_do_versions(void)
 			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
 		}
 	}
-	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 13)) {
+	if ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile < 13)) {
 		bTheme *btheme;
 		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
 			/* action channel groups (recolor anyway) */
@@ -1262,10 +1263,10 @@ void init_userdef_do_versions(void)
 			}
 		}
 	}
-	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 16)) {
+	if ((bmain->versionfile < 245) || (bmain->versionfile == 245 && bmain->subversionfile < 16)) {
 		U.flag |= USER_ADD_VIEWALIGNED|USER_ADD_EDITMODE;
 	}
-	if ((G.main->versionfile < 247) || (G.main->versionfile == 247 && G.main->subversionfile <= 2)) {
+	if ((bmain->versionfile < 247) || (bmain->versionfile == 247 && bmain->subversionfile <= 2)) {
 		bTheme *btheme;
 		
 		/* adjust themes */
@@ -1287,7 +1288,7 @@ void init_userdef_do_versions(void)
 			SETCOL(btheme->tseq.vertex_select, col[0], col[1], col[2], 255);
 		}
 	}
-	if (G.main->versionfile < 250) {
+	if (bmain->versionfile < 250) {
 		bTheme *btheme;
 		
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
@@ -1328,7 +1329,7 @@ void init_userdef_do_versions(void)
 		U.ipo_new= BEZT_IPO_BEZ;
 	}
 	
-	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 1)) {
+	if (bmain->versionfile < 250 || (bmain->versionfile == 250 && bmain->subversionfile < 1)) {
 		bTheme *btheme;
 
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
@@ -1351,7 +1352,7 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 3)) {
+	if (bmain->versionfile < 250 || (bmain->versionfile == 250 && bmain->subversionfile < 3)) {
 		/* new audio system */
 		if(U.audiochannels == 0)
 			U.audiochannels = 2;
@@ -1369,10 +1370,10 @@ void init_userdef_do_versions(void)
 			U.audiorate = 44100;
 	}
 
-	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 5))
+	if (bmain->versionfile < 250 || (bmain->versionfile == 250 && bmain->subversionfile < 5))
 		U.gameflags |= USER_DISABLE_VBO;
 	
-	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 8)) {
+	if (bmain->versionfile < 250 || (bmain->versionfile == 250 && bmain->subversionfile < 8)) {
 		wmKeyMap *km;
 		
 		for(km=U.keymaps.first; km; km=km->next) {
@@ -1412,16 +1413,16 @@ void init_userdef_do_versions(void)
 				strcpy(km->idname, "Property Editor");
 		}
 	}
-	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 16)) {
+	if (bmain->versionfile < 250 || (bmain->versionfile == 250 && bmain->subversionfile < 16)) {
 		if(U.wmdrawmethod == USER_DRAW_TRIPLE)
 			U.wmdrawmethod = USER_DRAW_AUTOMATIC;
 	}
 	
-	if (G.main->versionfile < 252 || (G.main->versionfile == 252 && G.main->subversionfile < 3)) {
+	if (bmain->versionfile < 252 || (bmain->versionfile == 252 && bmain->subversionfile < 3)) {
 		if (U.flag & USER_LMOUSESELECT) 
 			U.flag &= ~USER_TWOBUTTONMOUSE;
 	}
-	if (G.main->versionfile < 252 || (G.main->versionfile == 252 && G.main->subversionfile < 4)) {
+	if (bmain->versionfile < 252 || (bmain->versionfile == 252 && bmain->subversionfile < 4)) {
 		bTheme *btheme;
 		
 		/* default new handle type is auto handles */
@@ -1454,7 +1455,7 @@ void init_userdef_do_versions(void)
 			SETCOLF(btheme->tv3d.edge_crease, 0.8, 0, 0.6, 1.0);
 		}
 	}
-	if (G.main->versionfile <= 252) {
+	if (bmain->versionfile <= 252) {
 		bTheme *btheme;
 
 		/* init new curve colors */
@@ -1463,7 +1464,7 @@ void init_userdef_do_versions(void)
 				SETCOL(btheme->tv3d.lastsel_point, 0xff, 0xff, 0xff, 255);
 		}
 	}
-	if (G.main->versionfile < 252 || (G.main->versionfile == 252 && G.main->subversionfile < 5)) {
+	if (bmain->versionfile < 252 || (bmain->versionfile == 252 && bmain->subversionfile < 5)) {
 		bTheme *btheme;
 		
 		/* interface_widgets.c */
@@ -1521,17 +1522,4 @@ void init_userdef_do_versions(void)
 	/* this timer uses U */
 // XXX	reset_autosave();
 
-	/* GSOC Sculpt 2010 - Sanity check on Sculpt/Paint settings */
-
-	if (U.sculpt_paint_unified_alpha == 0)
-		U.sculpt_paint_unified_alpha = 0.5f;
-
-	if (U.sculpt_paint_unified_unprojected_radius == 0) 
-		U.sculpt_paint_unified_unprojected_radius = 0.125f;
-
-	if (U.sculpt_paint_unified_size == 0)
-		U.sculpt_paint_unified_size = 35;
-
-	if (G.main->versionfile < 253 || (G.main->versionfile == 253 && G.main->subversionfile < 1))
-		U.sculpt_paint_settings &= ~SCULPT_PAINT_USE_UNIFIED_SIZE;
 }

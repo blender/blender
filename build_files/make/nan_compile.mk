@@ -89,7 +89,6 @@ ifeq ($(OS),darwin)
         CCFLAGS += -pipe -fPIC -funsigned-char
     endif
 
-
     CFLAGS += -arch $(MACOSX_ARCHITECTURE) #-isysroot $(MACOSX_SDK) -mmacosx-version-min=$(MACOSX_MIN_VERS)
     CCFLAGS += -arch $(MACOSX_ARCHITECTURE) #-isysroot $(MACOSX_SDK) -mmacosx-version-min=$(MACOSX_MIN_VERS)
 

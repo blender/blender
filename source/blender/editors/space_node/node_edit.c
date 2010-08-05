@@ -411,7 +411,7 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 			snode->id= &tx->id;
 		}
 		else {
-			Brush *brush= NULL;
+			struct Brush *brush= NULL;
 			
 			if(ob && (ob->mode & OB_MODE_SCULPT))
 				brush= paint_brush(&scene->toolsettings->sculpt->paint);
@@ -1852,6 +1852,7 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 /* goes over all scenes, reads render layers */
 static int node_read_renderlayers_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	SpaceNode *snode= CTX_wm_space_node(C);
 	Scene *curscene= CTX_data_scene(C), *scene;
 	bNode *node;
@@ -1859,7 +1860,7 @@ static int node_read_renderlayers_exec(bContext *C, wmOperator *op)
 	ED_preview_kill_jobs(C);
 
 	/* first tag scenes unread */
-	for(scene= G.main->scene.first; scene; scene= scene->id.next) 
+	for(scene= bmain->scene.first; scene; scene= scene->id.next) 
 		scene->id.flag |= LIB_DOIT;
 
 	for(node= snode->edittree->nodes.first; node; node= node->next) {

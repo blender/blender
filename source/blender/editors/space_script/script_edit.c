@@ -90,13 +90,9 @@ static int script_reload_exec(bContext *C, wmOperator *op)
 #ifndef DISABLE_PYTHON
 	/* TODO, this crashes on netrender and keying sets, need to look into why
 	 * disable for now unless running in debug mode */
-	if(G.f & G_DEBUG) {
-		BPY_eval_string(C, "__import__('bpy').utils.load_scripts(reload_scripts=True)");
-	}
-	else {
-		BKE_reportf(op->reports, RPT_ERROR, "reloading is currently unstable, only operates in debug mode.\n");
-		return OPERATOR_CANCELLED;
-	}
+	WM_cursor_wait(1);
+	BPY_eval_string(C, "__import__('bpy').utils.load_scripts(reload_scripts=True)");
+	WM_cursor_wait(0);
 	return OPERATOR_FINISHED;
 #endif
 	return OPERATOR_CANCELLED;

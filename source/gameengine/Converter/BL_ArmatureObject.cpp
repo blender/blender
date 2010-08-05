@@ -114,6 +114,11 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 			pchan->constraints.first = NULL;
 			pchan->constraints.last = NULL;
 		}
+
+		// fails to link, props are not used in the BGE yet.
+		/* if(pchan->prop)
+			pchan->prop= IDP_CopyProperty(pchan->prop); */
+		pchan->prop= NULL;
 	}
 
 	BLI_ghash_free(ghash, NULL, NULL);

@@ -1132,7 +1132,8 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	int viewc, viewl, offl, offc, x, y;
 	char ch;
 
-	if(!text->curl) return;
+	// showsyntax must be on or else the format string will be null
+	if(!text->curl || !st->showsyntax) return;
 
 	startl= text->curl;
 	startc= text->curc;
@@ -1146,23 +1147,29 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	endc= -1;
 	find= -b;
 	stack= 0;
+	
+	/* Dont highlight backets if syntax HL is off or bracket in string or comment. */
+	if(!linep->format || linep->format[c] == 'l' || linep->format[c] == '#')
+		return;
 
 	if(b>0) {
 		/* opening bracket, search forward for close */
 		c++;
 		while(linep) {
 			while(c<linep->len) {
-				b= text_check_bracket(linep->line[c]);
-				if(b==find) {
-					if(stack==0) {
-						endl= linep;
-						endc= c;
-						break;
+				if(linep->format && linep->format[c] != 'l' && linep->format[c] != '#') {
+					b= text_check_bracket(linep->line[c]);
+					if(b==find) {
+						if(stack==0) {
+							endl= linep;
+							endc= c;
+							break;
+						}
+						stack--;
 					}
-					stack--;
-				}
-				else if(b==-find) {
-					stack++;
+					else if(b==-find) {
+						stack++;
+					}
 				}
 				c++;
 			}
@@ -1176,17 +1183,19 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 		c--;
 		while(linep) {
 			while(c>=0) {
-				b= text_check_bracket(linep->line[c]);
-				if(b==find) {
-					if(stack==0) {
-						endl= linep;
-						endc= c;
-						break;
+				if(linep->format && linep->format[c] != 'l' && linep->format[c] != '#') {
+					b= text_check_bracket(linep->line[c]);
+					if(b==find) {
+						if(stack==0) {
+							endl= linep;
+							endc= c;
+							break;
+						}
+						stack--;
 					}
-					stack--;
-				}
-				else if(b==-find) {
-					stack++;
+					else if(b==-find) {
+						stack++;
+					}
 				}
 				c--;
 			}
@@ -1348,7 +1357,7 @@ void text_update_cursor_moved(bContext *C)
 	ARegion *ar;
 	int i, x, winx= 0;
 
-	if(!st || !st->text || st->text->curl) return;
+	if(ELEM3(NULL, st, st->text, st->text->curl)) return;
 
 	text= st->text;
 

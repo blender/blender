@@ -44,7 +44,7 @@ AUD_StreamBufferFactory::AUD_StreamBufferFactory(AUD_IFactory* factory)
 	int index = 0;
 	sample_t* buffer;
 
-	// get an aproximated size if possible
+	// get an approximated size if possible
 	int size = reader->getLength();
 
 	if(size <= 0)

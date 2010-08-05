@@ -105,7 +105,7 @@ void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, int 
 int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);
 void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, int dt, int outline);
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob);
-void drawaxes(struct RegionView3D *rv3d, float mat[][4], float size, int flag, char drawtype);
+void drawaxes(float size, int flag, char drawtype);
 
 void view3d_cached_text_draw_begin(void);
 void view3d_cached_text_draw_add(float x, float y, float z, char *str, short xoffs, short flag);
@@ -144,7 +144,7 @@ void view3d_settings_from_ob(struct Object *ob, float *ofs, float *quat, float *
 
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
 void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
-void VIEW3D_OT_setobjectascamera(struct wmOperatorType *ot);
+void VIEW3D_OT_object_as_camera(struct wmOperatorType *ot);
 void VIEW3D_OT_localview(struct wmOperatorType *ot);
 void VIEW3D_OT_game_start(struct wmOperatorType *ot);
 void VIEW3D_OT_fly(struct wmOperatorType *ot);

@@ -106,13 +106,17 @@ EnumPropertyItem image_type_items[] = {
 	{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", ""},
 	{R_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", ""},
 	{0, "", 0, " ", NULL},
+#ifdef WITH_CINEON
 	{R_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", ""},
 	{R_DPX, "DPX",ICON_FILE_IMAGE, "DPX", ""},
+#endif
 #ifdef WITH_OPENEXR
 	{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", ""},
 	{R_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", ""},
 #endif
+#ifdef WITH_HDR
 	{R_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
+#endif
 #ifdef WITH_TIFF
 	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", ""},
 #endif
@@ -204,7 +208,7 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 
 	ob->recalc |= OB_RECALC_ALL;
 
-	DAG_scene_sort(scene);
+	DAG_scene_sort(G.main, scene);
 
 	return base;
 }
@@ -230,8 +234,8 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 	ob->id.us--;
 
 	/* needed otherwise the depgraph will contain free'd objects which can crash, see [#20958] */
-	DAG_scene_sort(scene);
-	DAG_ids_flush_update(0);
+	DAG_scene_sort(G.main, scene);
+	DAG_ids_flush_update(G.main, 0);
 
 	WM_main_add_notifier(NC_SCENE|ND_OB_ACTIVE, scene);
 }
@@ -680,6 +684,13 @@ static int rna_RenderSettings_engine_get(PointerRNA *ptr)
 	return 0;
 }
 
+static void rna_Scene_glsl_update(Main *bmain, Scene *unused, PointerRNA *ptr)
+{
+	Scene *scene= (Scene*)ptr->id.data;
+
+	DAG_id_flush_update(&scene->id, 0);
+}
+
 static void rna_RenderSettings_color_management_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
 	/* reset image nodes */
@@ -698,6 +709,8 @@ static void rna_RenderSettings_color_management_update(Main *bmain, Scene *unuse
 			}
 		}
 	}
+
+	rna_Scene_glsl_update(bmain, unused, ptr);
 }
 
 static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
@@ -830,7 +843,7 @@ static void rna_Scene_use_simplify_update(Main *bmain, Scene *scene, PointerRNA 
 	for(SETLOOPER(scene, base))
 		object_simplify_update(base->object);
 	
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	WM_main_add_notifier(NC_GEOM|ND_DATA, NULL);
 }
 
@@ -1001,6 +1014,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Proportional Editing", "Proportional editing mode");
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
+	prop= RNA_def_property(srna, "proportional_editing_objects", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "proportional_objects", 0);
+	RNA_def_property_ui_text(prop, "Proportional Editing Objects", "Proportional editing object mode");
+	RNA_def_property_ui_icon(prop, ICON_PROP_OFF, 1);
+	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
+
 	prop= RNA_def_property(srna, "proportional_editing_falloff", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "prop_mode");
 	RNA_def_property_enum_items(prop, proportional_falloff_items);
@@ -1135,7 +1154,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "skgen_template");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_skgen_etch_template_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_skgen_etch_template_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Template", "Template armature that will be retargeted to the stroke");
 
 	prop= RNA_def_property(srna, "etch_subdivision_number", PROP_INT, PROP_NONE);
@@ -1168,6 +1187,16 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_items(prop, sketch_convert_items);
 	RNA_def_property_ui_text(prop, "Stroke conversion method", "Method used to convert stroke to bones");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	/* Sculpt/Paint Unified Size and Strength */
+
+	prop= RNA_def_property(srna, "sculpt_paint_use_unified_size", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "sculpt_paint_settings", SCULPT_PAINT_USE_UNIFIED_SIZE);
+	RNA_def_property_ui_text(prop, "Sculpt/Paint Use Unified Radius", "Instead of per brush radius, the radius is shared across brushes");
+
+	prop= RNA_def_property(srna, "sculpt_paint_use_unified_strength", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "sculpt_paint_settings", SCULPT_PAINT_USE_UNIFIED_ALPHA);
+	RNA_def_property_ui_text(prop, "Sculpt/Paint Use Unified Strength", "Instead of per brush strength, the strength is shared across brushes");
 }
 
 
@@ -1822,32 +1851,32 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "glsl_lights", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_LIGHTS);
 	RNA_def_property_ui_text(prop, "GLSL Lights", "Use lights for GLSL rendering");
-	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, "rna_Scene_glsl_update");
 
 	prop= RNA_def_property(srna, "glsl_shaders", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_SHADERS);
 	RNA_def_property_ui_text(prop, "GLSL Shaders", "Use shaders for GLSL rendering");
-	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, "rna_Scene_glsl_update");
 
 	prop= RNA_def_property(srna, "glsl_shadows", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_SHADOWS);
 	RNA_def_property_ui_text(prop, "GLSL Shadows", "Use shadows for GLSL rendering");
-	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, "rna_Scene_glsl_update");
 
 	prop= RNA_def_property(srna, "glsl_ramps", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_RAMPS);
 	RNA_def_property_ui_text(prop, "GLSL Ramps", "Use ramps for GLSL rendering");
-	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, "rna_Scene_glsl_update");
 
 	prop= RNA_def_property(srna, "glsl_nodes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_NODES);
 	RNA_def_property_ui_text(prop, "GLSL Nodes", "Use nodes for GLSL rendering");
-	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, "rna_Scene_glsl_update");
 
 	prop= RNA_def_property(srna, "glsl_extra_textures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_EXTRA_TEX);
 	RNA_def_property_ui_text(prop, "GLSL Extra Textures", "Use extra textures like normal or specular maps for GLSL rendering");
-	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, "rna_Scene_glsl_update");
 
 	/* obstacle simulation */
 	prop= RNA_def_property(srna, "obstacle_simulation", PROP_ENUM, PROP_NONE);
@@ -2924,7 +2953,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Object", "Active object for this scene");
 	/* Could call: ED_base_object_activate(C, scene->basact);
@@ -3015,6 +3044,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	/* Global Settings */
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Camera_object_poll");
 	RNA_def_property_ui_text(prop, "Camera", "Active camera used for rendering the scene");
 	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, "rna_Scene_view3d_update");
 
@@ -3022,7 +3052,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "set");
 	RNA_def_property_struct_type(prop, "Scene");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Background Scene", "Background set scene");
 	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, NULL);
 
@@ -3177,7 +3207,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_keying_set", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyingSet");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_keying_set_get", "rna_Scene_active_keying_set_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_keying_set_get", "rna_Scene_active_keying_set_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Keying Set", "Active Keying Set used to insert/delete keyframes");
 	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET, NULL);
 	

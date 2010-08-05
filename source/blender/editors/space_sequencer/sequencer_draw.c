@@ -39,6 +39,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_sound_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -696,11 +697,11 @@ void set_special_seq_update(int val)
 void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs)
 {
 	extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
-	struct ImBuf *ibuf;
+	struct ImBuf *ibuf = 0;
+	struct ImBuf *scope = 0;
 	struct View2D *v2d = &ar->v2d;
 	int rectx, recty;
 	float viewrectx, viewrecty;
-	int free_ibuf = 0;
 	static int recursive= 0;
 	float render_size = 0.0;
 	float proxy_size = 100.0;
@@ -778,26 +779,27 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	switch(sseq->mainb) {
 	case SEQ_DRAW_IMG_IMBUF:
 		if (sseq->zebra != 0) {
-			ibuf = make_zebra_view_from_ibuf(ibuf, sseq->zebra);
-			free_ibuf = 1;
+			scope = make_zebra_view_from_ibuf(ibuf, sseq->zebra);
 		}
 		break;
 	case SEQ_DRAW_IMG_WAVEFORM:
 		if ((sseq->flag & SEQ_DRAW_COLOR_SEPERATED) != 0) {
-			ibuf = make_sep_waveform_view_from_ibuf(ibuf);
+			scope = make_sep_waveform_view_from_ibuf(ibuf);
 		} else {
-			ibuf = make_waveform_view_from_ibuf(ibuf);
+			scope = make_waveform_view_from_ibuf(ibuf);
 		}
-		free_ibuf = 1;
 		break;
 	case SEQ_DRAW_IMG_VECTORSCOPE:
-		ibuf = make_vectorscope_view_from_ibuf(ibuf);
-		free_ibuf = 1;
+		scope = make_vectorscope_view_from_ibuf(ibuf);
 		break;
 	case SEQ_DRAW_IMG_HISTOGRAM:
-		ibuf = make_histogram_view_from_ibuf(ibuf);
-		free_ibuf = 1;
+		scope = make_histogram_view_from_ibuf(ibuf);
 		break;
+	}
+
+	if (scope) {
+		IMB_freeImBuf(ibuf);
+		ibuf = scope;
 	}
 
 	if(ibuf->rect_float && ibuf->rect==NULL) {
@@ -889,9 +891,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 //	if (sseq->flag & SEQ_DRAW_GPENCIL)
 // XXX		draw_gpencil_2dimage(sa, ibuf);
 
-	if (free_ibuf) {
-		IMB_freeImBuf(ibuf);
-	} 
+	IMB_freeImBuf(ibuf);
 	
 	/* draw grease-pencil (screen aligned) */
 //	if (sseq->flag & SEQ_DRAW_GPENCIL)

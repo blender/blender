@@ -10,6 +10,9 @@ incs += ' ' + env['BF_PYTHON_INC']
 
 defs = []
 
+if env['BF_BUILDINFO']:
+	defs.append('BUILD_DATE')
+
 if env['OURPLATFORM'] in ('win32-mingw', 'win32-vc','win64-vc') and env['BF_DEBUG']:
 	defs.append('_DEBUG')
 

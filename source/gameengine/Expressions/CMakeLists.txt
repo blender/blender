@@ -43,4 +43,3 @@ ELSE(WITH_PYTHON)
 ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_expressions "${SRC}" "${INC}")
-#env.BlenderLib ( 'bf_expressions', sources, Split(incs), [], libtype=['game','player'], priority = [45,125] )

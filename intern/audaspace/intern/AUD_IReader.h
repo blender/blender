@@ -60,7 +60,7 @@ public:
 	virtual void seek(int position)=0;
 
 	/**
-	 * Returns an aproximated length of the source in samples.
+	 * Returns an approximated length of the source in samples.
 	 * For readers of the type buffer this has to return a correct value!
 	 * \return The length as sample count. May be negative if unknown.
 	 * \see getType

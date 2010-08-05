@@ -56,13 +56,15 @@ class EditExternally(bpy.types.Operator):
         return image_editor
 
     def execute(self, context):
+        import os
         import subprocess
-        filepath = self.properties.filepath
-        image_editor = self._editor_guess(context)
+        filepath = bpy.utils.expandpath(self.properties.filepath)
 
-        cmd = []
-        cmd.extend(image_editor)
-        cmd.append(bpy.utils.expandpath(filepath))
+        if not os.path.exists(filepath):
+            self.report('ERROR', "Image path '%s' not found." % filepath)
+            return {'CANCELLED'}
+
+        cmd = self._editor_guess(context) + [filepath]
 
         subprocess.Popen(cmd)
 
@@ -186,23 +188,12 @@ class ProjectApply(bpy.types.Operator):
 
         return {'FINISHED'}
 
-classes = [
-    EditExternally,
-    SaveDirty,
-    ProjectEdit,
-    ProjectApply]
-
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
-
+    pass
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

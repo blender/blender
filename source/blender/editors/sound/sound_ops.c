@@ -36,6 +36,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_sound_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"

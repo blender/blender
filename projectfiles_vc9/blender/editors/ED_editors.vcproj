@@ -1600,10 +1600,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_logic\logic_header.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\space_logic\logic_intern.h"
 				>
 			</File>

@@ -51,6 +51,7 @@
 #include "WM_types.h"
 
 #include "ED_image.h"
+#include "ED_object.h"
 #include "ED_view3d.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
@@ -1369,6 +1370,8 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 	bScreen *sc;
 	bScreen *curscreen= CTX_wm_screen(C);
 	
+	ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
+
 	for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
 		if((U.flag & USER_SCENEGLOBAL) || sc==curscreen) {
 			
@@ -1423,7 +1426,7 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 	}
 	
 	CTX_data_scene_set(C, scene);
-	set_scene_bg(scene);
+	set_scene_bg(CTX_data_main(C), scene);
 	
 	ED_update_for_newframe(C, 1);
 	
@@ -1724,6 +1727,7 @@ void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
 /* results in fully updated anim system */
 void ED_update_for_newframe(const bContext *C, int mute)
 {
+	Main *bmain= CTX_data_main(C);
 	bScreen *screen= CTX_wm_screen(C);
 	Scene *scene= CTX_data_scene(C);
 	
@@ -1747,7 +1751,7 @@ void ED_update_for_newframe(const bContext *C, int mute)
 
 	/* this function applies the changes too */
 	/* XXX future: do all windows */
-	scene_update_for_newframe(scene, BKE_screen_visible_layers(screen, scene)); /* BKE_scene.h */
+	scene_update_for_newframe(bmain, scene, BKE_screen_visible_layers(screen, scene)); /* BKE_scene.h */
 	
 	//if ( (CFRA>1) && (!mute) && (scene->r.audio.flag & AUDIO_SCRUB)) 
 	//	audiostream_scrub( CFRA );

@@ -55,6 +55,7 @@ struct RenderBuckets;
 struct ObjectInstanceRen;
 struct RayObject;
 struct RayFace;
+struct Main;
 
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
@@ -170,7 +171,8 @@ struct Render
 	/* shadow counter, detect shadow-reuse for shaders */
 	int shadowsamplenr[BLENDER_MAX_THREADS];
 	
-	/* scene, and its full copy of renderdata and world */
+	/* main, scene, and its full copy of renderdata and world */
+	struct Main *main;
 	Scene *scene;
 	RenderData r;
 	World wrld;
@@ -464,6 +466,7 @@ typedef struct VolPrecachePart
 	struct RayObject *tree;
 	struct ShadeInput *shi;
 	struct ObjectInstanceRen *obi;
+	float viewmat[4][4];
 	int num;
 	int minx, maxx;
 	int miny, maxy;
@@ -477,6 +480,7 @@ typedef struct VolPrecachePart
 typedef struct VolumePrecache
 {
 	int res[3];
+	float *bbmin, *bbmax;
 	float *data_r;
 	float *data_g;
 	float *data_b;
@@ -585,23 +589,21 @@ typedef struct LampRen {
 #define R_HALO			2
 #define R_SEC_FIELD		4
 #define R_LAMPHALO		8
-#define R_GLOB_NOPUNOFLIP	16
-#define R_NEED_TANGENT	32
-#define R_BAKE_TRACE	128
-#define R_BAKING		256
+#define R_NEED_TANGENT	16
+#define R_BAKE_TRACE	32
+#define R_BAKING		64
 
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1
 #define R_HIDDEN		2
 /* strand flag, means special handling */
 #define R_STRAND		4
-#define R_NOPUNOFLIP	8
-#define R_FULL_OSA		16
-#define R_FACE_SPLIT	32
+#define R_FULL_OSA		8
+#define R_FACE_SPLIT	16
 /* Tells render to divide face other way. */
-#define R_DIVIDE_24		64	
+#define R_DIVIDE_24		32	
 /* vertex normals are tangent or view-corrected vector, for hair strands */
-#define R_TANGENT		128		
+#define R_TANGENT		64		
 
 /* strandbuffer->flag */
 #define R_STRAND_BSPLINE	1

@@ -84,13 +84,13 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Passepartout Alpha", "Opacity (alpha) of the darkened overlay in Camera view");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Clip Start", "Camera near clipping distance");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipend");
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Clip End", "Camera far clipping distance");
@@ -114,7 +114,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Orthographic Scale", "Orthographic Camera scale (similar to zoom)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "draw_size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "draw_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "drawsize");
 	RNA_def_property_range(prop, 0.1f, 1000.0f);
 	RNA_def_property_ui_range(prop, 0.01, 100, 1, 1);
@@ -135,7 +135,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shift Y", "Perspective Camera vertical shift");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "dof_distance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "dof_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "YF_dofdist");
 	RNA_def_property_range(prop, 0.0f, 5000.0f);
 	RNA_def_property_ui_text(prop, "DOF Distance", "Distance to the focus point for depth of field");

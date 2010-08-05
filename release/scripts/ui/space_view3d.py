@@ -75,10 +75,15 @@ class VIEW3D_HT_header(bpy.types.Header):
                 row.prop(view, "occlude_geometry", text="")
 
             # Proportional editing
-            if obj.mode in ('OBJECT', 'EDIT', 'PARTICLE_EDIT'):
+            if obj.mode in ('EDIT', 'PARTICLE_EDIT'):
                 row = layout.row(align=True)
                 row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
                 if toolsettings.proportional_editing != 'DISABLED':
+                    row.prop(toolsettings, "proportional_editing_falloff", text="", icon_only=True)
+            elif obj.mode == 'OBJECT':
+                row = layout.row(align=True)
+                row.prop(toolsettings, "proportional_editing_objects", text="", icon_only=True)
+                if toolsettings.proportional_editing_objects:
                     row.prop(toolsettings, "proportional_editing_falloff", text="", icon_only=True)
 
         # Snap
@@ -114,7 +119,7 @@ class VIEW3D_HT_header(bpy.types.Header):
 # ********** Utilities **********
 
 
-class VIEW3D_MT_showhide(bpy.types.Menu):
+class ShowHideMenu():
     bl_label = "Show/Hide"
     _operator_name = ""
 
@@ -791,7 +796,7 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
         layout.separator()
 
         props = layout.operator("object.isolate_type_render")
-
+        props = layout.operator("object.hide_render_clear_all")
 
 class VIEW3D_MT_object_apply(bpy.types.Menu):
     bl_label = "Apply"
@@ -1001,8 +1006,9 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        sculpt = context.tool_settings.sculpt
-        brush = context.tool_settings.sculpt.brush
+        tool_settings = context.tool_settings
+        sculpt = tool_settings.sculpt
+        brush = tool_settings.sculpt.brush
 
         layout.prop(sculpt, "symmetry_x")
         layout.prop(sculpt, "symmetry_y")
@@ -1024,11 +1030,19 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
                 layout.prop(brush, "use_anchor")
 
             if sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
-                layout.prop(brush, "flip_direction")
+                layout.prop_menu_enum(brush, "direction")
 
             if sculpt_tool == 'LAYER':
                 layout.prop(brush, "use_persistent")
                 layout.operator("sculpt.set_persistent_base")
+
+        layout.separator()
+        layout.prop(sculpt, "use_openmp", text="Threaded Sculpt")
+        layout.prop(sculpt, "show_brush")
+
+        # TODO, make availabel from paint menu!
+        layout.prop(tool_settings, "sculpt_paint_use_unified_size", text="Unify Size")
+        layout.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Unify Strength")
 
 # ********** Particle menu **********
 
@@ -1077,7 +1091,7 @@ class VIEW3D_MT_particle_specials(bpy.types.Menu):
         layout.operator("particle.remove_doubles")
 
 
-class VIEW3D_MT_particle_showhide(VIEW3D_MT_showhide):
+class VIEW3D_MT_particle_showhide(ShowHideMenu, bpy.types.Menu):
     _operator_name = "particle"
 
 # ********** Pose Menu **********
@@ -1227,7 +1241,7 @@ class VIEW3D_MT_pose_constraints(bpy.types.Menu):
         layout.operator("pose.constraints_clear")
 
 
-class VIEW3D_MT_pose_showhide(VIEW3D_MT_showhide):
+class VIEW3D_MT_pose_showhide(ShowHideMenu, bpy.types.Menu):
     _operator_name = "pose"
 
 
@@ -1593,7 +1607,7 @@ class VIEW3D_MT_edit_mesh_normals(bpy.types.Menu):
         layout.operator("mesh.flip_normals")
 
 
-class VIEW3D_MT_edit_mesh_showhide(VIEW3D_MT_showhide):
+class VIEW3D_MT_edit_mesh_showhide(ShowHideMenu, bpy.types.Menu):
     _operator_name = "mesh"
 
 # Edit Curve
@@ -1685,7 +1699,7 @@ class VIEW3D_MT_edit_curve_specials(bpy.types.Menu):
         layout.operator("curve.smooth_radius")
 
 
-class VIEW3D_MT_edit_curve_showhide(VIEW3D_MT_showhide):
+class VIEW3D_MT_edit_curve_showhide(ShowHideMenu, bpy.types.Menu):
     _operator_name = "curve"
 
 
@@ -2079,7 +2093,7 @@ class VIEW3D_PT_view3d_meshdisplay(bpy.types.Panel):
 
         col.separator()
         col.label(text="Numerics:")
-        col.prop(mesh, "draw_edge_lenght")
+        col.prop(mesh, "draw_edge_length")
         col.prop(mesh, "draw_edge_angle")
         col.prop(mesh, "draw_face_area")
 
@@ -2260,123 +2274,13 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
             # Draw with no edit button
             rna_prop_ui.draw(self.layout, context, member, False)
 
-classes = [
-    VIEW3D_OT_edit_mesh_extrude_move, # detects constraints setup and extrude region
-    VIEW3D_OT_edit_mesh_extrude_individual_move,
-
-    VIEW3D_HT_header, # Header
-
-    VIEW3D_MT_view, #View Menus
-    VIEW3D_MT_view_navigation,
-    VIEW3D_MT_view_align,
-    VIEW3D_MT_view_align_selected,
-    VIEW3D_MT_view_cameras,
-
-    VIEW3D_MT_select_object, # Select Menus
-    VIEW3D_MT_select_pose,
-    VIEW3D_MT_select_particle,
-    VIEW3D_MT_select_edit_mesh,
-    VIEW3D_MT_select_edit_curve,
-    VIEW3D_MT_select_edit_surface,
-    VIEW3D_MT_select_edit_metaball,
-    VIEW3D_MT_select_edit_lattice,
-    VIEW3D_MT_select_edit_armature,
-    VIEW3D_MT_select_face, # XXX todo
-
-    VIEW3D_MT_transform, # Object/Edit Menus
-    VIEW3D_MT_mirror, # Object/Edit Menus
-    VIEW3D_MT_snap, # Object/Edit Menus
-    VIEW3D_MT_uv_map, # Edit Menus
-
-    VIEW3D_MT_object, # Object Menu
-    VIEW3D_MT_object_specials,
-    VIEW3D_MT_object_apply,
-    VIEW3D_MT_object_clear,
-    VIEW3D_MT_object_parent,
-    VIEW3D_MT_object_track,
-    VIEW3D_MT_object_group,
-    VIEW3D_MT_object_constraints,
-    VIEW3D_MT_object_showhide,
-    VIEW3D_MT_make_single_user,
-    VIEW3D_MT_make_links,
-    VIEW3D_MT_object_game_properties,
-    VIEW3D_MT_object_game_logicbricks,
-
-    VIEW3D_MT_hook,
-    VIEW3D_MT_vertex_group,
-
-    VIEW3D_MT_sculpt, # Sculpt Menu
-    VIEW3D_MT_paint_vertex,
-    VIEW3D_MT_paint_weight,
-
-    VIEW3D_MT_particle, # Particle Menu
-    VIEW3D_MT_particle_specials,
-    VIEW3D_MT_particle_showhide,
-
-    VIEW3D_MT_pose, # POSE Menu
-    VIEW3D_MT_pose_transform,
-    VIEW3D_MT_pose_pose,
-    VIEW3D_MT_pose_motion,
-    VIEW3D_MT_pose_group,
-    VIEW3D_MT_pose_ik,
-    VIEW3D_MT_pose_constraints,
-    VIEW3D_MT_pose_showhide,
-    VIEW3D_MT_pose_apply,
-
-    VIEW3D_MT_edit_mesh,
-    VIEW3D_MT_edit_mesh_specials, # Only as a menu for keybindings
-    VIEW3D_MT_edit_mesh_selection_mode, # Only as a menu for keybindings
-    VIEW3D_MT_edit_mesh_vertices,
-    VIEW3D_MT_edit_mesh_edges,
-    VIEW3D_MT_edit_mesh_faces,
-    VIEW3D_MT_edit_mesh_normals,
-    VIEW3D_MT_edit_mesh_showhide,
-    VIEW3D_MT_edit_mesh_extrude, # use with VIEW3D_OT_edit_mesh_extrude_menu
-
-    VIEW3D_MT_edit_curve,
-    VIEW3D_MT_edit_curve_ctrlpoints,
-    VIEW3D_MT_edit_curve_segments,
-    VIEW3D_MT_edit_curve_specials,
-    VIEW3D_MT_edit_curve_showhide,
-
-    VIEW3D_MT_edit_surface,
-
-    VIEW3D_MT_edit_text,
-    VIEW3D_MT_edit_text_chars,
-
-    VIEW3D_MT_edit_meta,
-    VIEW3D_MT_edit_meta_showhide,
-
-    VIEW3D_MT_edit_lattice,
-
-    VIEW3D_MT_edit_armature,
-    VIEW3D_MT_edit_armature_parent,
-    VIEW3D_MT_edit_armature_roll,
-
-    VIEW3D_MT_armature_specials, # Only as a menu for keybindings
-
-   # Panels
-    VIEW3D_PT_view3d_properties,
-    VIEW3D_PT_view3d_display,
-    VIEW3D_PT_view3d_name,
-    VIEW3D_PT_view3d_meshdisplay,
-    VIEW3D_PT_view3d_curvedisplay,
-    VIEW3D_PT_background_image,
-    VIEW3D_PT_transform_orientations,
-    VIEW3D_PT_etch_a_ton,
-    VIEW3D_PT_context_properties]
-
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

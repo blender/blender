@@ -271,7 +271,7 @@ static int node_select_all_exec(bContext *C, wmOperator *op)
 void NODE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select/Deselect All";
+	ot->name = "Select or Deselect All";
 	ot->description = "(De)select all nodes";
 	ot->idname = "NODE_OT_select_all";
 	

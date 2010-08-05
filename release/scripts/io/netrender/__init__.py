@@ -18,16 +18,31 @@
 
 # This directory is a Python package.
 
-from netrender import model
-from netrender import operators
-from netrender import client
-from netrender import slave
-from netrender import master
-from netrender import master_html
-from netrender import utils
-from netrender import balancing
-from netrender import ui
-from netrender import repath
+# To support reload properly, try to access a package var, if it's there, reload everything
+try:
+    init_data
+
+    reload(model)
+    reload(operators)
+    reload(client)
+    reload(slave)
+    reload(master)
+    reload(master_html)
+    reload(utils)
+    reload(balancing)
+    reload(ui)
+    reload(repath)
+except:
+    from netrender import model
+    from netrender import operators
+    from netrender import client
+    from netrender import slave
+    from netrender import master
+    from netrender import master_html
+    from netrender import utils
+    from netrender import balancing
+    from netrender import ui
+    from netrender import repath
 
 jobs = []
 slaves = []
@@ -38,11 +53,10 @@ init_data = True
 init_address = True
 
 def register():
-    pass # TODO
+    ui.addProperties()
+    
 
 def unregister():
     import bpy
-    bpy.types.unregister(ui.NetRenderJob)
-    bpy.types.unregister(ui.NetRenderSettings)
-    bpy.types.unregister(ui.NetRenderSlave)
+    bpy.types.Scene.RemoveProperty("network_render")
 

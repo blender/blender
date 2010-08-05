@@ -179,21 +179,23 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 		
 		/* we've read file without wm..., keep current one entirely alive */
 		if(G.main->wm.first==NULL) {
-			bScreen *screen= CTX_wm_screen(C);
-			
-			/* match oldwm to new dbase, only old files */
-			
-			for(wm= oldwmlist->first; wm; wm= wm->id.next) {
-				
-				for(win= wm->windows.first; win; win= win->next) {
-					/* all windows get active screen from file */
-					if(screen->winid==0)
-						win->screen= screen;
-					else 
-						win->screen= ED_screen_duplicate(win, screen);
+			/* when loading without UI, no matching needed */
+			if(!(G.fileflags & G_FILE_NO_UI)) {
+				bScreen *screen= CTX_wm_screen(C);
+
+				/* match oldwm to new dbase, only old files */
+				for(wm= oldwmlist->first; wm; wm= wm->id.next) {
 					
-					BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
-					win->screen->winid= win->winid;
+					for(win= wm->windows.first; win; win= win->next) {
+						/* all windows get active screen from file */
+						if(screen->winid==0)
+							win->screen= screen;
+						else 
+							win->screen= ED_screen_duplicate(win, screen);
+						
+						BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+						win->screen->winid= win->winid;
+					}
 				}
 			}
 			
@@ -312,7 +314,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
 		ED_editors_init(C);
-		DAG_on_load_update();
+		DAG_on_load_update(CTX_data_main(C));
 
 #ifndef DISABLE_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
@@ -392,7 +394,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	BKE_write_undo(C, "original");	/* save current state */
 
 	ED_editors_init(C);
-	DAG_on_load_update();
+	DAG_on_load_update(CTX_data_main(C));
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 	CTX_wm_window_set(C, NULL); /* exits queues */

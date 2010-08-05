@@ -46,6 +46,7 @@ endif
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I$(NAN_MEMUTIL)/include
 CPPFLAGS += -I../../../../intern/audaspace/intern
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenkernel
@@ -94,6 +95,18 @@ endif
 
 ifeq ($(WITH_TIFF),true)
     CPPFLAGS += -DWITH_TIFF
+endif
+
+ifeq ($(WITH_LCMS),true)
+    CPPFLAGS += -DWITH_LCMS
+endif
+
+ifeq ($(WITH_CINEON),true)
+    CPPFLAGS += -DWITH_CINEON
+endif
+
+ifeq ($(WITH_HDR),true)
+    CPPFLAGS += -DWITH_HDR
 endif
 
 ifeq ($(OS),windows)

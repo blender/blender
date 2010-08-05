@@ -51,6 +51,7 @@
 #include "BKE_global.h"
 
 #include "MEM_guardedalloc.h"
+#include "MEM_CacheLimiterC-Api.h"
 
 static void rna_userdef_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -169,6 +170,11 @@ static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 static void rna_UserDef_audio_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	sound_init(bmain);
+}
+
+static void rna_Userdef_memcache_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
 }
 
 static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -2189,35 +2195,6 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Sculpt/Paint Overlay Color", "Color of texture overlay");
 
-	prop= RNA_def_property(srna, "sculpt_paint_use_unified_size", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "sculpt_paint_settings", SCULPT_PAINT_USE_UNIFIED_SIZE);
-	RNA_def_property_ui_text(prop, "Sculpt/Paint Use Unified Radius", "Instead of per brush radius, the radius is shared across brushes");
-
-	prop= RNA_def_property(srna, "sculpt_paint_use_unified_strength", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "sculpt_paint_settings", SCULPT_PAINT_USE_UNIFIED_ALPHA);
-	RNA_def_property_ui_text(prop, "Sculpt/Paint Use Unified Strength", "Instead of per brush strength, the strength is shared across brushes");
-
-	prop= RNA_def_property(srna, "sculpt_paint_unified_lock_brush_size", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "sculpt_paint_settings", SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE);
-	RNA_def_property_ui_text(prop, "Sculpt/Paint Use Unified Blender Units", "When locked all brushes stay same size relative to object; when unlocked all brush sizes are given in pixels");
-
-	prop= RNA_def_property(srna, "sculpt_paint_unified_size", PROP_INT, PROP_DISTANCE);
-	RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS*10);
-	RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, 0);
-	RNA_def_property_ui_text(prop, "Sculpt/Paint Unified Size", "Unified radius of the brush in pixels");
-
-	prop= RNA_def_property(srna, "sculpt_paint_unified_unprojected_radius", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_range(prop, 0, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0, 1, 0, 0);
-	RNA_def_property_ui_text(prop, "Sculpt/Paint Unified Surface Size", "Unified radius of brush in Blender units");
-
-	prop= RNA_def_property(srna, "sculpt_paint_unified_strength", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "sculpt_paint_unified_alpha");
-	RNA_def_property_float_default(prop, 0.5f);
-	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 0.001);
-	RNA_def_property_ui_text(prop, "Sculpt/Paint Unified Strength", "Unified power of effect of brushes when applied");
-
 	/* duplication linking */
 	prop= RNA_def_property(srna, "duplicate_mesh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_MESH);
@@ -2477,6 +2454,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "memcachelimit");
 	RNA_def_property_range(prop, 0, (sizeof(void *) ==8)? 1024*16: 1024); /* 32 bit 2 GB, 64 bit 16 GB */
 	RNA_def_property_ui_text(prop, "Memory Cache Limit", "Memory cache limit in sequencer (megabytes)");
+	RNA_def_property_update(prop, 0, "rna_Userdef_memcache_update");
 
 	prop= RNA_def_property(srna, "frame_server_port", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frameserverport");
@@ -2866,31 +2844,31 @@ void RNA_def_userdef(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "view", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesView");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_view_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_view_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "View & Controls", "Preferences related to viewing data");
 
 	prop= RNA_def_property(srna, "edit", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesEdit");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_edit_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_edit_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Edit Methods", "Settings for interacting with Blender data");
 	
 	prop= RNA_def_property(srna, "inputs", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesInput");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_input_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_input_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Inputs", "Settings for input devices");
 	
 	prop= RNA_def_property(srna, "filepaths", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesFilePaths");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_filepaths_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_filepaths_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "File Paths", "Default paths for external files");
 	
 	prop= RNA_def_property(srna, "system", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesSystem");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_system_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_system_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "System & OpenGL", "Graphics driver and operating system settings");
 	
 	rna_def_userdef_view(brna);

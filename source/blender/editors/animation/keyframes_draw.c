@@ -53,6 +53,7 @@
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_world_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"

@@ -63,8 +63,6 @@ void BaseMathObject_dealloc(BaseMathObject * self);
 PyObject *Mathutils_Init(void);
 PyObject *Noise_Init(void); /* lazy, saves having own header */
 
-PyObject *quat_rotation(PyObject *arg1, PyObject *arg2);
-
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 
@@ -73,19 +71,6 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 
 #define Py_NEW  1
 #define Py_WRAP 2
-
-
-/* Mathutils is used by the BGE and Blender so have to define 
- * some things here for luddite mac users of py2.3 */
-#ifndef Py_RETURN_NONE
-#define Py_RETURN_NONE  return Py_INCREF(Py_None), Py_None
-#endif
-#ifndef Py_RETURN_FALSE
-#define Py_RETURN_FALSE  return Py_INCREF(Py_False), Py_False
-#endif
-#ifndef Py_RETURN_TRUE
-#define Py_RETURN_TRUE  return Py_INCREF(Py_True), Py_True
-#endif
 
 typedef struct Mathutils_Callback Mathutils_Callback;
 

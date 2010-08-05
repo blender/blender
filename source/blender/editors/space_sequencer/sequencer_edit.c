@@ -725,8 +725,9 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 	while(seq) {
 		seqn= seq->next;
 		if((seq->flag & flag) || deleteall) {
-			if(seq->type==SEQ_SOUND && seq->sound)
-				seq->sound->id.us--;
+			if(seq->type==SEQ_SOUND && seq->sound) {
+				((ID *)seq->sound)->us--; /* TODO, could be moved into seq_free_sequence() */
+			}
 
 			BLI_remlink(lb, seq);
 			if(seq==last_seq) seq_active_set(scene, NULL);
@@ -2420,9 +2421,9 @@ void SEQUENCER_OT_previous_edit(wmOperatorType *ot)
 static void swap_sequence(Scene* scene, Sequence* seqa, Sequence* seqb)
 {
 	int gap = seqb->startdisp - seqa->enddisp;
-	seqb->start = seqa->start;
+	seqb->start = (seqb->start - seqb->startdisp) + seqa->startdisp;
 	calc_sequence(scene, seqb);
-	seqa->start = seqb->enddisp + gap;
+	seqa->start = (seqa->start - seqa->startdisp) + seqb->enddisp + gap;
 	calc_sequence(scene, seqa);
 }
 

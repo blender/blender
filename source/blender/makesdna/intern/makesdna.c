@@ -78,7 +78,6 @@ char *includefiles[] = {
 	"DNA_image_types.h",
 	"DNA_texture_types.h",
 	"DNA_lamp_types.h",
-	"DNA_wave_types.h",
 	"DNA_material_types.h",
 	"DNA_vfont_types.h",
 	// if you add files here, please add them at the end
@@ -203,7 +202,7 @@ static int calculate_structlens(int);
 void dna_write(FILE *file, void *pntr, int size);
 
 /**
- * Report all structures found so far, and print their lenghts.
+ * Report all structures found so far, and print their lengths.
  */
 void printStructLenghts(void);
 
@@ -1128,7 +1127,6 @@ int main(int argc, char ** argv)
 #include "DNA_image_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_lamp_types.h"
-#include "DNA_wave_types.h"
 #include "DNA_material_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_meta_types.h"

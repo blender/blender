@@ -356,17 +356,6 @@ static void split_v_renderfaces(ObjectRen *obr, int startvlak, int startvert, in
 }
 
 /* ------------------------------------------------------------------------- */
-
-static int check_vnormal(float *n, float *veno)
-{
-	float inp;
-
-	inp=n[0]*veno[0]+n[1]*veno[1]+n[2]*veno[2];
-	if(inp < -FLT_EPSILON10) return 1;
-	return 0;
-}
-
-/* ------------------------------------------------------------------------- */
 /* Stress, tangents and normals                                              */
 /* ------------------------------------------------------------------------- */
 
@@ -536,9 +525,6 @@ static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent, int d
 			float n1[3], n2[3], n3[3], n4[3];
 			float fac1, fac2, fac3, fac4=0.0f;
 			
-			if(re->flag & R_GLOB_NOPUNOFLIP)
-				vlr->flag |= R_NOPUNOFLIP;
-			
 			sub_v3_v3v3(n1, v2->co, v1->co);
 			normalize_v3(n1);
 			sub_v3_v3v3(n2, v3->co, v2->co);
@@ -562,19 +548,9 @@ static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent, int d
 				fac3= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
 				fac4= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
 
-				if(!(vlr->flag & R_NOPUNOFLIP)) {
-					if( check_vnormal(vlr->n, v4->n) ) fac4= -fac4;
-				}
-
 				v4->n[0] +=fac4*vlr->n[0];
 				v4->n[1] +=fac4*vlr->n[1];
 				v4->n[2] +=fac4*vlr->n[2];
-			}
-
-			if(!(vlr->flag & R_NOPUNOFLIP)) {
-				if( check_vnormal(vlr->n, v1->n) ) fac1= -fac1;
-				if( check_vnormal(vlr->n, v2->n) ) fac2= -fac2;
-				if( check_vnormal(vlr->n, v3->n) ) fac3= -fac3;
 			}
 
 			v1->n[0] +=fac1*vlr->n[0];
@@ -1021,7 +997,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 	else width= 1.0f;
 	
 	if(ma->mode & MA_TANGENT_STR)
-		flag= R_SMOOTH|R_NOPUNOFLIP|R_TANGENT;
+		flag= R_SMOOTH|R_TANGENT;
 	else
 		flag= R_SMOOTH;
 	
@@ -2431,7 +2407,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 			normal_tri_v3( vlr->n,vlr->v3->co, vlr->v2->co, vlr->v1->co);
 
 		vlr->mat= ma;
-		vlr->flag= ME_SMOOTH+R_NOPUNOFLIP;
+		vlr->flag= ME_SMOOTH;
 		vlr->ec= 0;
 
 		/* mball -too bad- always has triangles, because quads can be non-planar */
@@ -2460,10 +2436,8 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 /* returns amount of vertices added for orco */
 static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar, float *orco, float mat[4][4])
 {
-	Object *ob= obr->ob;
 	VertRen *v1, *v2, *v3, *v4, *ver;
 	VlakRen *vlr, *vlr1, *vlr2, *vlr3;
-	Curve *cu= ob->data;
 	float *data, n1[3];
 	int u, v, orcoret= 0;
 	int p1, p2, p3, p4, a;
@@ -2543,9 +2517,6 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			vlr->mat= matar[ dl->col];
 			vlr->ec= ME_V1V2+ME_V2V3;
 			vlr->flag= dl->rt;
-			if( (cu->flag & CU_NOPUNOFLIP) ) {
-				vlr->flag |= R_NOPUNOFLIP;
-			}
 			
 			add_v3_v3(v1->n, n1);
 			add_v3_v3(v2->n, n1);
@@ -2694,9 +2665,6 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 
 					vlr->mat= ma;
 					vlr->flag= flag;
-					if(cu &&(cu->flag & ME_NOPUNOFLIP)) {
-						vlr->flag |= R_NOPUNOFLIP;
-					}
 					vlr->ec= 0; /* mesh edges rendered separately */
 
 					if(len==0) obr->totvlak--;
@@ -2848,7 +2816,10 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 		}
 
 		while(dl) {
-			if(dl->type==DL_INDEX3) {
+			if(dl->col > ob->totcol) {
+				/* pass */
+			}
+			else if(dl->type==DL_INDEX3) {
 				int *index;
 
 				startvert= obr->totvert;
@@ -2901,9 +2872,6 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 
 						vlr->mat= matar[ dl->col ];
 						vlr->flag= 0;
-						if( (cu->flag & CU_NOPUNOFLIP) ) {
-							vlr->flag |= R_NOPUNOFLIP;
-						}
 						vlr->ec= 0;
 					}
 				}
@@ -3388,9 +3356,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 							vlr->mat= ma;
 							vlr->flag= flag;
-							if((me->flag & ME_NOPUNOFLIP) ) {
-								vlr->flag |= R_NOPUNOFLIP;
-							}
 							vlr->ec= 0; /* mesh edges rendered separately */
 
 							if(len==0) obr->totvlak--;
@@ -3890,12 +3855,12 @@ static void set_material_lightgroups(Render *re)
 	if(re->scene->r.scemode & R_PREVIEWBUTS)
 		return;
 	
-	for(group= G.main->group.first; group; group=group->id.next)
+	for(group= re->main->group.first; group; group=group->id.next)
 		group->id.flag |= LIB_DOIT;
 	
 	/* it's a bit too many loops in loops... but will survive */
 	/* hola! materials not in use...? */
-	for(ma= G.main->mat.first; ma; ma=ma->id.next) {
+	for(ma= re->main->mat.first; ma; ma=ma->id.next) {
 		if(ma->group && (ma->group->id.flag & LIB_DOIT))
 			add_lightgroup(re, ma->group, ma->mode & MA_GROUP_NOLAY);
 	}
@@ -4577,8 +4542,8 @@ void RE_Database_Free(Render *re)
 #if 0	/* radio can be redone better */
 	end_radio_render();
 #endif
-	end_render_materials();
-	end_render_textures();
+	end_render_materials(re->main);
+	end_render_textures(re);
 	
 	free_pointdensities(re);
 	
@@ -4903,7 +4868,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 
 	/* objects in groups with OB_RENDER_DUPLI set still need to be created,
 	 * since they may not be part of the scene */
-	for(group= G.main->group.first; group; group=group->id.next)
+	for(group= re->main->group.first; group; group=group->id.next)
 		add_group_render_dupli_obs(re, group, nolamps, onlyselected, actob, timeoffset, renderlay, 0);
 
 	/* imat objects has to be done again, since groups can mess it up */
@@ -4951,7 +4916,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, unsigned int lay, int use_c
 	
 	/* applies changes fully */
 	if((re->r.scemode & R_PREVIEWBUTS)==0)
-		scene_update_for_newframe(re->scene, lay);
+		scene_update_for_newframe(re->main, re->scene, lay);
 	
 	/* if no camera, viewmat should have been set! */
 	if(use_camera_view && re->scene->camera) {
@@ -4978,7 +4943,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, unsigned int lay, int use_c
 	/* still bad... doing all */
 	init_render_textures(re);
 	VECCOPY(amb, &re->wrld.ambr);
-	init_render_materials(re->r.mode, amb);
+	init_render_materials(re->main, re->r.mode, amb);
 	set_node_shader_lamp_loop(shade_material_loop);
 
 	/* MAKE RENDER DATA */
@@ -5105,7 +5070,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 	
 	/* applies changes fully */
 	scene->r.cfra += timeoffset;
-	scene_update_for_newframe(re->scene, lay);
+	scene_update_for_newframe(re->main, re->scene, lay);
 	
 	/* if no camera, viewmat should have been set! */
 	if(re->scene->camera) {
@@ -5595,12 +5560,13 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce, unsigned int lay)
    RE_BAKE_DISPLACEMENT:for baking, no lamps, only selected objects
    RE_BAKE_SHADOW: for baking, only shadows, but all objects
 */
-void RE_Database_Baking(Render *re, Scene *scene, unsigned int lay, int type, Object *actob)
+void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay, int type, Object *actob)
 {
 	float mat[4][4];
 	float amb[3];
 	int onlyselected, nolamps;
 	
+	re->main= bmain;
 	re->scene= scene;
 	re->lay= lay;
 
@@ -5609,7 +5575,6 @@ void RE_Database_Baking(Render *re, Scene *scene, unsigned int lay, int type, Ob
 	
 	RE_init_threadcount(re);
 	
-	re->flag |= R_GLOB_NOPUNOFLIP;
 	re->flag |= R_BAKING;
 	re->excludeob= actob;
 	if(actob)
@@ -5662,7 +5627,7 @@ void RE_Database_Baking(Render *re, Scene *scene, unsigned int lay, int type, Ob
 	init_render_textures(re);
 	
 	VECCOPY(amb, &re->wrld.ambr);
-	init_render_materials(re->r.mode, amb);
+	init_render_materials(re->main, re->r.mode, amb);
 	
 	set_node_shader_lamp_loop(shade_material_loop);
 	

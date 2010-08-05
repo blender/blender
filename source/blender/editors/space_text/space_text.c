@@ -274,6 +274,8 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "type", NEXT_LINE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", PAGEUPKEY, KM_PRESS, 0, 0)->ptr, "type", PREV_PAGE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", PAGEDOWNKEY, KM_PRESS, 0, 0)->ptr, "type", NEXT_PAGE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", HOMEKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", FILE_TOP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", ENDKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", FILE_BOTTOM);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", HOMEKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", LINE_BEGIN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", ENDKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", LINE_END);
@@ -285,6 +287,8 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", DOWNARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", NEXT_LINE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", PREV_PAGE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", NEXT_PAGE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", HOMEKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "type", FILE_TOP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move_select", ENDKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "type", FILE_BOTTOM);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DELKEY, KM_PRESS, 0, 0)->ptr, "type", DEL_NEXT_CHAR);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_delete", DKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_NEXT_CHAR);

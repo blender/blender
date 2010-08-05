@@ -22,7 +22,7 @@ import bpy
 narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
-class PhysicsButtonsPanel(bpy.types.Panel):
+class PhysicsButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"
@@ -33,7 +33,7 @@ class PhysicsButtonsPanel(bpy.types.Panel):
         return ob and ob.game and (rd.engine in self.COMPAT_ENGINES)
 
 
-class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
+class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
     bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -162,7 +162,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
             layout.prop(ob, "hide_render", text="Invisible")
 
 
-class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
+class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, bpy.types.Panel):
     bl_label = "Collision Bounds"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -196,10 +196,10 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
         if wide_ui:
             col = split.column()
         col.prop(game, "collision_compound", text="Compound")
-		
-class PHYSICS_PT_game_obstacles(PhysicsButtonsPanel):
-    bl_label = "Create obstacle"
 
+class PHYSICS_PT_game_obstacles(PhysicsButtonsPanel, bpy.types.Panel):
+    bl_label = "Create obstacle"
+    COMPAT_ENGINES = {'BLENDER_GAME'}
     def poll(self, context):
         game = context.object.game
         rd = context.scene.render
@@ -222,7 +222,7 @@ class PHYSICS_PT_game_obstacles(PhysicsButtonsPanel):
         col = split.column()
         col.prop(game, "obstacle_radius", text="Radius")
 
-class RenderButtonsPanel(bpy.types.Panel):
+class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
@@ -232,7 +232,7 @@ class RenderButtonsPanel(bpy.types.Panel):
         return (rd.engine in self.COMPAT_ENGINES)
 
 
-class RENDER_PT_game(RenderButtonsPanel):
+class RENDER_PT_game(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Game"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -244,7 +244,7 @@ class RENDER_PT_game(RenderButtonsPanel):
         row.label()
 
 
-class RENDER_PT_game_player(RenderButtonsPanel):
+class RENDER_PT_game_player(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Standalone Player"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -282,7 +282,7 @@ class RENDER_PT_game_player(RenderButtonsPanel):
             col.prop(gs, "framing_color", text="")
 
 
-class RENDER_PT_game_stereo(RenderButtonsPanel):
+class RENDER_PT_game_stereo(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Stereo"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -342,7 +342,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel):
             layout.prop(gs, "dome_text")
 
 
-class RENDER_PT_game_shading(RenderButtonsPanel):
+class RENDER_PT_game_shading(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Shading"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -371,7 +371,7 @@ class RENDER_PT_game_shading(RenderButtonsPanel):
             col.prop(gs, "glsl_extra_textures", text="Extra Textures")
 
 
-class RENDER_PT_game_performance(RenderButtonsPanel):
+class RENDER_PT_game_performance(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Performance"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -397,7 +397,7 @@ class RENDER_PT_game_performance(RenderButtonsPanel):
         col.prop(gs, "use_display_lists")
 
 
-class RENDER_PT_game_sound(RenderButtonsPanel):
+class RENDER_PT_game_sound(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Sound"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -415,7 +415,7 @@ class RENDER_PT_game_sound(RenderButtonsPanel):
         layout.prop(scene, "doppler_factor")
 
 
-class WorldButtonsPanel(bpy.types.Panel):
+class WorldButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "world"
@@ -425,7 +425,7 @@ class WorldButtonsPanel(bpy.types.Panel):
         return (scene.render.engine in self.COMPAT_ENGINES) and (scene.world is not None)
 
 
-class WORLD_PT_game_context_world(WorldButtonsPanel):
+class WORLD_PT_game_context_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
     COMPAT_ENGINES = {'BLENDER_GAME'}
@@ -455,7 +455,7 @@ class WORLD_PT_game_context_world(WorldButtonsPanel):
                 layout.template_ID(space, "pin_id")
 
 
-class WORLD_PT_game_world(WorldButtonsPanel):
+class WORLD_PT_game_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "World"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -475,7 +475,7 @@ class WORLD_PT_game_world(WorldButtonsPanel):
         col.prop(world, "ambient_color")
 
 
-class WORLD_PT_game_mist(WorldButtonsPanel):
+class WORLD_PT_game_mist(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Mist"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -501,7 +501,7 @@ class WORLD_PT_game_mist(WorldButtonsPanel):
         col.prop(world.mist, "depth")
 
 
-class WORLD_PT_game_physics(WorldButtonsPanel):
+class WORLD_PT_game_physics(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -546,7 +546,7 @@ class WORLD_PT_game_physics(WorldButtonsPanel):
             col.label(text="Logic Steps:")
             col.prop(gs, "logic_step_max", text="Max")
 
-class WORLD_PT_game_physics_obstacles(WorldButtonsPanel):
+class WORLD_PT_game_physics_obstacles(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Obstacle simulation"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -560,37 +560,13 @@ class WORLD_PT_game_physics_obstacles(WorldButtonsPanel):
         if gs.obstacle_simulation != 'None':
             layout.prop(gs, "level_height")
             layout.prop(gs, "show_obstacle_simulation")
-			
-
-classes = [
-    PHYSICS_PT_game_physics,
-    PHYSICS_PT_game_collision_bounds,
-    PHYSICS_PT_game_obstacles,
-
-    RENDER_PT_game,
-    RENDER_PT_game_player,
-    RENDER_PT_game_stereo,
-    RENDER_PT_game_shading,
-    RENDER_PT_game_performance,
-    RENDER_PT_game_sound,
-
-    WORLD_PT_game_context_world,
-    WORLD_PT_game_world,
-    WORLD_PT_game_mist,
-    WORLD_PT_game_physics,
-    WORLD_PT_game_physics_obstacles]
-
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

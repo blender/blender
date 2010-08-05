@@ -25,7 +25,7 @@ narrowui = bpy.context.user_preferences.view.properties_width_check
 # Generic Panels (Independent of DataType)
 
 
-class MotionPathButtonsPanel(bpy.types.Panel):
+class MotionPathButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_label = "Motion Paths"
@@ -67,7 +67,7 @@ class MotionPathButtonsPanel(bpy.types.Panel):
 
 
 # FIXME: this panel still needs to be ported so that it will work correctly with animviz
-class OnionSkinButtonsPanel(bpy.types.Panel):
+class OnionSkinButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_label = "Onion Skinning"
@@ -102,119 +102,19 @@ class OnionSkinButtonsPanel(bpy.types.Panel):
         col.label(text="Display:")
         col.prop(arm, "ghost_only_selected", text="Selected Only")
 
-################################################
-# Specific Panels for DataTypes
 
-
-class OBJECT_PT_motion_paths(MotionPathButtonsPanel):
-    #bl_label = "Object Motion Paths"
-    bl_context = "object"
-
-    def poll(self, context):
-        return (context.object)
-
-    def draw(self, context):
-        layout = self.layout
-
-        ob = context.object
-        wide_ui = context.region.width > narrowui
-
-        self.draw_settings(context, ob.animation_visualisation, wide_ui)
-
-        layout.separator()
-
-        split = layout.split()
-
-        col = split.column()
-        col.operator("object.paths_calculate", text="Calculate Paths")
-
-        if wide_ui:
-            col = split.column()
-        col.operator("object.paths_clear", text="Clear Paths")
-
-
-class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):
-    #bl_label = "Object Onion Skinning"
-    bl_context = "object"
-
-    def poll(self, context):
-        return (context.object)
-
-    def draw(self, context):
-        layout = self.layout
-
-        ob = context.object
-        wide_ui = context.region.width > narrowui
-
-        self.draw_settings(context, ob.animation_visualisation, wide_ui)
-
-
-class DATA_PT_motion_paths(MotionPathButtonsPanel):
-    #bl_label = "Bones Motion Paths"
-    bl_context = "data"
-
-    def poll(self, context):
-        # XXX: include posemode check?
-        return (context.object) and (context.armature)
-
-    def draw(self, context):
-        layout = self.layout
-
-        ob = context.object
-        wide_ui = context.region.width > narrowui
-
-        self.draw_settings(context, ob.pose.animation_visualisation, wide_ui, bones=True)
-
-        layout.separator()
-
-        split = layout.split()
-
-        col = split.column()
-        col.operator("pose.paths_calculate", text="Calculate Paths")
-
-        if wide_ui:
-            col = split.column()
-        col.operator("pose.paths_clear", text="Clear Paths")
-
-
-class DATA_PT_onion_skinning(OnionSkinButtonsPanel):
-    #bl_label = "Bones Onion Skinning"
-    bl_context = "data"
-
-    def poll(self, context):
-        # XXX: include posemode check?
-        return (context.object) and (context.armature)
-
-    def draw(self, context):
-        layout = self.layout
-
-        ob = context.object
-        wide_ui = context.region.width > narrowui
-
-        self.draw_settings(context, ob.pose.animation_visualisation, wide_ui, bones=True)
 
 # NOTE:
-# The specialised panel types defined here (i.e. OBJECT_PT_*, etc.)
-# aren't registered here, but are rather imported to (and registered)
-# in the files defining the contexts where they reside. Otherwise,
-# these panels appear at the top of the lists by default.
-#
-# However, we keep these empty register funcs here just in case
-# something will need them again one day, and also to make
-# it easier to maintain these scripts.
-classes = []
+# The specialised panel types are derived in their respective UI modules
+
 
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

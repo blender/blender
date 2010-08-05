@@ -1263,6 +1263,19 @@ int BLI_testextensie(const char *str, const char *ext)
 	return (retval);
 }
 
+int BLI_testextensie_array(const char *str, const char **ext_array)
+{
+	int i=0;
+	while(ext_array[i]) {
+		if(BLI_testextensie(str, ext_array[i])) {
+			return 1;
+		}
+
+		i++;
+	}
+	return 0;
+}
+
 int BLI_replace_extension(char *path, int maxlen, const char *ext)
 {
 	int a;

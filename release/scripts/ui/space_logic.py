@@ -57,21 +57,43 @@ class LOGIC_MT_logicbricks_add(bpy.types.Menu):
         layout.operator_menu_enum("logic.sensor_add", "type", text="Sensor")
         layout.operator_menu_enum("logic.controller_add", "type", text="Controller")
         layout.operator_menu_enum("logic.actuator_add", "type", text="Actuator")
+        
 
-classes = [
-    LOGIC_PT_properties, LOGIC_MT_logicbricks_add]
+class LOGIC_HT_header(bpy.types.Header):
+    bl_space_type = 'LOGIC_EDITOR'
+
+    def draw(self, context):
+        layout = self.layout
+
+        st = context.space_data
+
+        row = layout.row(align=True)
+        row.template_header()
+
+        if context.area.show_menus:
+            sub = row.row(align=True)
+            sub.menu("LOGIC_MT_view")
+            #sub.menu("LOGIC_MT_select")
+            #sub.menu("LOGIC_MT_add")
+        
+
+class LOGIC_MT_view(bpy.types.Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.column()
+        
+        layout.operator("logic.properties", icon='MENU_PANEL')
 
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

@@ -3298,6 +3298,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->msticky= newdataadr(fd, mesh->msticky);
 	mesh->dvert= newdataadr(fd, mesh->dvert);
 	
+	/* animdata */
 	mesh->adt= newdataadr(fd, mesh->adt);
 	direct_link_animdata(fd, mesh->adt);
 
@@ -4127,10 +4128,8 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
 
 static void link_paint(FileData *fd, Scene *sce, Paint *p)
 {
-	if(p && p->brushes) {
-		int i;
-		for(i = 0; i < p->brush_count; ++i)
-			p->brushes[i]= newlibadr_us(fd, sce->id.lib, p->brushes[i]);
+	if(p && p->brush) {
+		p->brush= newlibadr_us(fd, sce->id.lib, p->brush);
 	}
 }
 
@@ -4246,13 +4245,8 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 static void direct_link_paint(FileData *fd, Paint **paint)
 {
 	Paint *p;
-
+/* TODO. is this needed */
 	p= (*paint)= newdataadr(fd, (*paint));
-	if(p) {
-		p->paint_cursor= NULL;
-		p->brushes= newdataadr(fd, p->brushes);
-		test_pointer_array(fd, (void**)&p->brushes);
-	}
 }
 
 static void direct_link_scene(FileData *fd, Scene *sce)
@@ -4287,9 +4281,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->sculpt);
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->vpaint);
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->wpaint);
-
-		sce->toolsettings->imapaint.paint.brushes= newdataadr(fd, sce->toolsettings->imapaint.paint.brushes);
-		test_pointer_array(fd, (void**)&sce->toolsettings->imapaint.paint.brushes);
 
 		sce->toolsettings->imapaint.paintcursor= NULL;
 		sce->toolsettings->particle.paintcursor= NULL;
@@ -9293,7 +9284,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		idproperties_fix_group_lengths(main->mat);
 		idproperties_fix_group_lengths(main->tex);
 		idproperties_fix_group_lengths(main->image);
-		idproperties_fix_group_lengths(main->wave);
 		idproperties_fix_group_lengths(main->latt);
 		idproperties_fix_group_lengths(main->lamp);
 		idproperties_fix_group_lengths(main->camera);
@@ -11092,8 +11082,79 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	/* GSOC Sculpt 2010 - Sanity check on Sculpt/Paint settings */
+	if (main->versionfile < 253) {
+		Scene *sce;
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
+			if (sce->toolsettings->sculpt_paint_unified_alpha == 0)
+				sce->toolsettings->sculpt_paint_unified_alpha = 0.5f;
+
+			if (sce->toolsettings->sculpt_paint_unified_unprojected_radius == 0) 
+				sce->toolsettings->sculpt_paint_unified_unprojected_radius = 0.125f;
+
+			if (sce->toolsettings->sculpt_paint_unified_size == 0)
+				sce->toolsettings->sculpt_paint_unified_size = 35;
+		}
+	}
+
+	if (main->versionfile < 253 || (main->versionfile == 253 && main->subversionfile < 1))
+		{
+			Object *ob;
+
+			for(ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+				for(md= ob->modifiers.first; md; md= md->next) {
+					if (md->type == eModifierType_Smoke) {
+						SmokeModifierData *smd = (SmokeModifierData *)md;
+
+						if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
+						{
+							smd->domain->vorticity = 2.0f;
+							smd->domain->time_scale = 1.0f;
+
+							if(!(smd->domain->flags & (1<<4)))
+								continue;
+
+							/* delete old MOD_SMOKE_INITVELOCITY flag */
+							smd->domain->flags &= ~(1<<4);
+
+							/* for now just add it to all flow objects in the scene */
+							{
+								Object *ob2;
+								for(ob2 = main->object.first; ob2; ob2 = ob2->id.next) {
+									ModifierData *md2;
+									for(md2= ob2->modifiers.first; md2; md2= md2->next) {
+										if (md2->type == eModifierType_Smoke) {
+											SmokeModifierData *smd2 = (SmokeModifierData *)md2;
+
+											if((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow)
+											{
+												smd2->flow->flags |= MOD_SMOKE_FLOW_INITVELOCITY;
+											}
+										}
+									}
+								}
+							}
+
+						}
+						else if((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow)
+						{
+							smd->flow->vel_multi = 1.0f;
+						}
+
+					}
+				}
+			}
+		}
+
 	/* put compatibility code here until next subversion bump */
 	{
+		Brush *br;
+		for(br= main->brush.first; br; br= br->id.next) {
+			if(br->ob_mode==0)
+				br->ob_mode= (OB_MODE_SCULPT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT|OB_MODE_VERTEX_PAINT);
+		}
+		
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -11708,6 +11769,9 @@ static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 	TFace *tf;
 	int a, i;
 	
+	if(me->adt)
+		expand_animdata(fd, mainvar, me->adt);
+		
 	for(a=0; a<me->totcol; a++) {
 		expand_doit(fd, mainvar, me->mat[a]);
 	}
@@ -12384,9 +12448,7 @@ static void append_do_cursor(Scene *scene, Library *curlib, short flag)
 		return;
 	
 	/* move from the center of the appended objects to cursor */
-	centerloc[0]= (min[0]+max[0])/2;
-	centerloc[1]= (min[1]+max[1])/2;
-	centerloc[2]= (min[2]+max[2])/2;
+	mid_v3_v3v3(centerloc, min, max);
 	curs = scene->cursor;
 	VECSUB(centerloc,curs,centerloc);
 	
@@ -12489,7 +12551,7 @@ void BLO_script_library_append(BlendHandle **bh, char *dir, char *name,
 
 	/* do we need to do this? */
 	if(scene)
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 
 	*bh= (BlendHandle*)fd;
 }

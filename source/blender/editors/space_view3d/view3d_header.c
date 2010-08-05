@@ -152,6 +152,7 @@ static void handle_view3d_lock(bContext *C)
 
 static int layers_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
@@ -213,7 +214,7 @@ static int layers_exec(bContext *C, wmOperator *op)
 	if(v3d->scenelock) handle_view3d_lock(C);
 	
 	/* new layers might need unflushed events events */
-	DAG_scene_update_flags(scene, v3d->lay);	/* tags all that moves and flushes */
+	DAG_scene_update_flags(bmain, scene, v3d->lay);	/* tags all that moves and flushes */
 
 	ED_area_tag_redraw(sa);
 	

@@ -3226,7 +3226,7 @@ static void get_scalar_from_vertexgroup(Object *ob, int vertID, short groupindex
 }
 
 /* Resetting a Mesh SB object's springs */
-/* Spring lenght are caculted from'raw' mesh vertices that are NOT altered by modifier stack. */
+/* Spring length are caculted from'raw' mesh vertices that are NOT altered by modifier stack. */
 static void springs_from_mesh(Object *ob)
 {
 	SoftBody *sb;
@@ -3362,7 +3362,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 				add_2nd_order_springs(ob,sb->secondspring); /* exploits the the first run of build_bps_springlist(ob);*/
 				build_bps_springlist(ob); /* yes we need to do it again*/
 			}
-			springs_from_mesh(ob); /* write the 'rest'-lenght of the springs */
+			springs_from_mesh(ob); /* write the 'rest'-length of the springs */
 			   if (ob->softflag & OB_SB_SELF) {calculate_collision_balls(ob);}
 
 		}

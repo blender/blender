@@ -1156,8 +1156,9 @@ def x3d_export(filename,
 
     scene = context.scene
     world = scene.world
-    
-    bpy.ops.object.mode_set(mode='OBJECT')
+
+    if scene.objects.active:
+        bpy.ops.object.mode_set(mode='OBJECT')
 
     # XXX these are global textures while .Get() returned only scene's?
     alltextures = bpy.data.textures
@@ -1247,11 +1248,9 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(ExportX3D)
     bpy.types.INFO_MT_file_export.append(menu_func)
 
 def unregister():
-    bpy.types.unregister(ExportX3D)
     bpy.types.INFO_MT_file_export.remove(menu_func)
 
 # NOTES

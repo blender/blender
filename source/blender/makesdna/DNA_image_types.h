@@ -105,7 +105,7 @@ typedef struct Image {
 
 /* **************** IMAGE ********************* */
 
-/* flag */
+/* Image.flag */
 #define IMA_FIELDS		1
 #define IMA_STD_FIELD	2
 #define IMA_DO_PREMUL	4
@@ -115,7 +115,7 @@ typedef struct Image {
 #define IMA_DEPRECATED	64
 #define IMA_OLD_PREMUL	128
 
-/* tpageflag */
+/* Image.tpageflag */
 #define IMA_TILES			1
 #define IMA_TWINANIM		2
 #define IMA_COLCYCLE		4	/* Depreciated */

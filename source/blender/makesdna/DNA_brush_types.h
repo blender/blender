@@ -31,7 +31,7 @@
 #define DNA_BRUSH_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_texture_types.h"
+#include "DNA_texture_types.h" /* for MTex */
 
 //#ifndef MAX_MTEX // XXX Not used?
 //#define MAX_MTEX	18
@@ -55,14 +55,13 @@ typedef struct Brush {
 	struct MTex mtex;
 
 	struct ImBuf *icon_imbuf;
-	char icon;
-	char pad2[7];
 	PreviewImage *preview;
 	char icon_filepath[240];
 
 	float normal_weight;
 
-	short blend, pad;		/* blend mode */
+	short blend;		/* blend mode */
+	short ob_mode;		/* & with ob->mode to see if the brush is compatible, use for display only. */
 	int size;			/* brush diameter */
 	int flag;			/* general purpose flag */	
 	float jitter;			/* jitter the position of the brush */
@@ -126,6 +125,7 @@ typedef struct Brush {
 #define BRUSH_RANDOM_ROTATION (1<<25)
 #define BRUSH_PLANE_TRIM (1<<26)
 #define BRUSH_FRONTFACE (1<<27)
+#define BRUSH_CUSTOM_ICON (1<<28)
 
 /* Brush.sculpt_tool */
 #define SCULPT_TOOL_DRAW        1
@@ -146,41 +146,6 @@ typedef struct Brush {
 #define SCULPT_TOOL_CREASE     16
 #define SCULPT_TOOL_BLOB       17
 #define SCULPT_TOOL_CLAY_TUBES 18
-
-/* Internal Icons */
-#define BRUSH_ICON_FILE        0
-
-#define BRUSH_ICON_BLOB        1
-#define BRUSH_ICON_CLAY        2
-#define BRUSH_ICON_CREASE      3
-#define BRUSH_ICON_SCULPTDRAW        4
-#define BRUSH_ICON_FILL        5
-#define BRUSH_ICON_FLATTEN     6
-#define BRUSH_ICON_GRAB        7
-#define BRUSH_ICON_INFLATE     8
-#define BRUSH_ICON_LAYER       9
-#define BRUSH_ICON_NUDGE      10
-#define BRUSH_ICON_PINCH      11
-#define BRUSH_ICON_SCRAPE     12
-#define BRUSH_ICON_SMOOTH     13
-#define BRUSH_ICON_SNAKE_HOOK 14
-#define BRUSH_ICON_THUMB      15
-#define BRUSH_ICON_TWIST      16
-
-#define BRUSH_ICON_ADD        17
-#define BRUSH_ICON_BLUR       18
-#define BRUSH_ICON_CLONE      19
-#define BRUSH_ICON_DARKEN     20
-#define BRUSH_ICON_LIGHTEN    21
-#define BRUSH_ICON_MIX        22
-#define BRUSH_ICON_MULTIPLY   23
-#define BRUSH_ICON_SMEAR      24
-#define BRUSH_ICON_SOFTEN     25
-#define BRUSH_ICON_SUBTRACT   26
-#define BRUSH_ICON_TEXDRAW    27
-#define BRUSH_ICON_VERTEXDRAW 28
-
-#define BRUSH_ICON_COUNT      29
 
 /* ImagePaintSettings.tool */
 #define PAINT_TOOL_DRAW		0

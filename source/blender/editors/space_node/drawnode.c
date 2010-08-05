@@ -81,7 +81,7 @@
 
 void node_buts_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiTemplateIDBrowse(layout, C, ptr, "nodetree", NULL, NULL, "", NULL);
+	uiTemplateIDBrowse(layout, C, ptr, "nodetree", NULL, NULL, "");
 }
 
 static void node_buts_value(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -190,6 +190,7 @@ static void node_buts_normal(uiLayout *layout, bContext *C, PointerRNA *ptr)
 #if 0 // not used in 2.5x yet
 static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
 {
+	Main *bmain= CTX_data_main(C);
 	bNodeTree *ntree= ntree_v;
 	bNode *node= node_v;
 	Tex *tex;
@@ -200,7 +201,7 @@ static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
 		node->id->us--;
 		node->id= NULL;
 	}
-	tex= BLI_findlink(&G.main->tex, node->menunr-1);
+	tex= BLI_findlink(&bmain->tex, node->menunr-1);
 
 	node->id= &tex->id;
 	id_us_plus(node->id);
@@ -220,6 +221,7 @@ static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
 #endif
 static void node_dynamic_update_cb(bContext *C, void *ntree_v, void *node_v)
 {
+	Main *bmain= CTX_data_main(C);
 	Material *ma;
 	bNode *node= (bNode *)node_v;
 	ID *id= node->id;
@@ -229,7 +231,7 @@ static void node_dynamic_update_cb(bContext *C, void *ntree_v, void *node_v)
 
 	/* Users only have to press the "update" button in one pynode
 	 * and we also update all others sharing the same script */
-	for (ma= G.main->mat.first; ma; ma= ma->id.next) {
+	for (ma= bmain->mat.first; ma; ma= ma->id.next) {
 		if (ma->nodetree) {
 			bNode *nd;
 			for (nd= ma->nodetree->nodes.first; nd; nd= nd->next) {
@@ -277,6 +279,7 @@ static void node_buts_math(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 static void node_browse_text_cb(bContext *C, void *ntree_v, void *node_v)
 {
+	Main *bmain= CTX_data_main(C);
 	bNodeTree *ntree= ntree_v;
 	bNode *node= node_v;
 	ID *oldid;
@@ -287,7 +290,7 @@ static void node_browse_text_cb(bContext *C, void *ntree_v, void *node_v)
 		node->id->us--;
 	}
 	oldid= node->id;
-	node->id= BLI_findlink(&G.main->text, node->menunr-1);
+	node->id= BLI_findlink(&bmain->text, node->menunr-1);
 	id_us_plus(node->id);
 	BLI_strncpy(node->name, node->id->name+2, 21); /* huh? why 21? */
 
@@ -306,7 +309,7 @@ static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA 
 	bNode *node= ptr->data;
 	uiLayout *col;
 	
-	uiTemplateID(layout, C, ptr, "material", "MATERIAL_OT_new", NULL, NULL, NULL);
+	uiTemplateID(layout, C, ptr, "material", "MATERIAL_OT_new", NULL, NULL);
 	
 	if(!node->id) return;
 	
@@ -368,6 +371,7 @@ static void node_shader_buts_geometry(uiLayout *layout, bContext *C, PointerRNA 
 
 static void node_shader_buts_dynamic(uiLayout *layout, bContext *C, PointerRNA *ptr)
 { 
+	Main *bmain= CTX_data_main(C);
 	uiBlock *block= uiLayoutAbsoluteBlock(layout);
 	bNode *node= ptr->data;
 	bNodeTree *ntree= ptr->id.data;
@@ -380,7 +384,7 @@ static void node_shader_buts_dynamic(uiLayout *layout, bContext *C, PointerRNA *
 	/* B_NODE_EXEC is handled in butspace.c do_node_buts */
 	if(!node->id) {
 			char *strp;
-			IDnames_to_pupstring(&strp, NULL, "", &(G.main->text), NULL, NULL);
+			IDnames_to_pupstring(&strp, NULL, "", &(bmain->text), NULL, NULL);
 			node->menunr= 0;
 			bt= uiDefButS(block, MENU, B_NODE_EXEC/*+node->nr*/, strp, 
 							butr->xmin, dy, 19, 19, 
@@ -467,7 +471,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	PointerRNA imaptr;
 	PropertyRNA *prop;
 	
-	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL, NULL);
+	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	
 	if(!node->id) return;
 	
@@ -504,7 +508,7 @@ static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, Point
 	const char *layer_name;
 	char scene_name[19];
 	
-	uiTemplateID(layout, C, ptr, "scene", NULL, NULL, NULL, NULL);
+	uiTemplateID(layout, C, ptr, "scene", NULL, NULL, NULL);
 	
 	if(!node->id) return;
 
@@ -900,7 +904,10 @@ static void node_composit_buts_file_output(uiLayout *layout, bContext *C, Pointe
 		uiItemR(row, ptr, "exr_codec", 0, "", 0);
 	}
 	else if (RNA_enum_get(ptr, "image_type")== R_JPEG90) {
-		uiItemR(row, ptr, "quality", UI_ITEM_R_SLIDER, NULL, 0);
+		uiItemR(row, ptr, "quality", UI_ITEM_R_SLIDER, "Quality", 0);
+	}
+	else if (RNA_enum_get(ptr, "image_type")== R_PNG) {
+		uiItemR(row, ptr, "quality", UI_ITEM_R_SLIDER, "Compression", 0);
 	}
 	
 	row= uiLayoutRow(layout, 1);
@@ -1204,7 +1211,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *C, PointerRNA *pt
 
 static void node_texture_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL, NULL);
+	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 }
 
 static void node_texture_buts_output(uiLayout *layout, bContext *C, PointerRNA *ptr)

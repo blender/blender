@@ -103,7 +103,7 @@ struct GPULamp {
 	Object *par;
 	Lamp *la;
 
-	int type, mode, lay;
+	int type, mode, lay, hide;
 
 	float dynenergy, dyncol[3];
 	float energy, col[3];
@@ -256,7 +256,7 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 		for(nlink=material->lamps.first; nlink; nlink=nlink->next) {
 			lamp= nlink->data;
 
-			if((lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay))) {
+			if(!lamp->hide && (lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay))) {
 				lamp->dynenergy = lamp->energy;
 				VECCOPY(lamp->dyncol, lamp->col);
 			}
@@ -1004,6 +1004,10 @@ static void do_material_tex(GPUShadeInput *shi)
 					else
 						GPU_link(mat, "set_value_one", &tin);
 				}
+
+				if(tex->type==TEX_IMAGE)
+					if(mat->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+						GPU_link(mat, "srgb_to_linearrgb", tcol, tcol);
 				
 				if(mtex->mapto & MAP_COL) {
 					GPUNodeLink *colfac;
@@ -1244,6 +1248,9 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 		mat->obcolalpha = 1;
 		GPU_link(mat, "shade_alpha_obcolor", shr->combined, GPU_builtin(GPU_OBCOLOR), &shr->combined);
 	}
+
+	if(mat->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+		GPU_link(mat, "linearrgb_to_srgb", shr->combined, &shr->combined);
 }
 
 GPUNodeLink *GPU_blender_material(GPUMaterial *mat, Material *ma)
@@ -1310,11 +1317,12 @@ void GPU_materials_free()
 
 /* Lamps and shadow buffers */
 
-void GPU_lamp_update(GPULamp *lamp, int lay, float obmat[][4])
+void GPU_lamp_update(GPULamp *lamp, int lay, int hide, float obmat[][4])
 {
 	float mat[4][4];
 
 	lamp->lay = lay;
+	lamp->hide = hide;
 
 	copy_m4_m4(mat, obmat);
 	normalize_m4(mat);
@@ -1355,7 +1363,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	lamp->col[1]= la->g*lamp->energy;
 	lamp->col[2]= la->b*lamp->energy;
 
-	GPU_lamp_update(lamp, ob->lay, ob->obmat);
+	GPU_lamp_update(lamp, ob->lay, (ob->restrictflag & OB_RESTRICT_RENDER), ob->obmat);
 
 	lamp->spotsi= la->spotsize;
 	if(lamp->mode & LA_HALO)

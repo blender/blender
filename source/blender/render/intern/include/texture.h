@@ -65,7 +65,7 @@ void do_lamp_tex(LampRen *la, float *lavec, struct ShadeInput *shi, float *colf,
 void do_volume_tex(struct ShadeInput *shi, float *xyz, int mapto_flag, float *col, float *val);
 
 void init_render_textures(Render *re);
-void end_render_textures(void);
+void end_render_textures(Render *re);
 
 void render_realtime_texture(struct ShadeInput *shi, struct Image *ima);
 

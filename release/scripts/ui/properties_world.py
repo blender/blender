@@ -23,7 +23,7 @@ from rna_prop_ui import PropertyPanel
 narrowui = bpy.context.user_preferences.view.properties_width_check
 
 
-class WorldButtonsPanel(bpy.types.Panel):
+class WorldButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "world"
@@ -34,7 +34,7 @@ class WorldButtonsPanel(bpy.types.Panel):
         return (context.world) and (not rd.use_game_engine) and (rd.engine in self.COMPAT_ENGINES)
 
 
-class WORLD_PT_preview(WorldButtonsPanel):
+class WORLD_PT_preview(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -42,7 +42,7 @@ class WORLD_PT_preview(WorldButtonsPanel):
         self.layout.template_preview(context.world)
 
 
-class WORLD_PT_context_world(WorldButtonsPanel):
+class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -70,12 +70,12 @@ class WORLD_PT_context_world(WorldButtonsPanel):
             layout.template_ID(scene, "world", new="world.new")
 
 
-class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel):
+class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
     _context_path = "world"
 
 
-class WORLD_PT_world(WorldButtonsPanel):
+class WORLD_PT_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "World"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -103,7 +103,7 @@ class WORLD_PT_world(WorldButtonsPanel):
         row.column().prop(world, "ambient_color")
 
 
-class WORLD_PT_mist(WorldButtonsPanel):
+class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Mist"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -134,7 +134,7 @@ class WORLD_PT_mist(WorldButtonsPanel):
         layout.prop(world.mist, "falloff")
 
 
-class WORLD_PT_stars(WorldButtonsPanel):
+class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Stars"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -163,7 +163,7 @@ class WORLD_PT_stars(WorldButtonsPanel):
         col.prop(world.stars, "average_separation", text="Separation")
 
 
-class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
+class WORLD_PT_ambient_occlusion(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Ambient Occlusion"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -182,7 +182,7 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
         split.prop(light, "ao_blend_mode", text="")
 
 
-class WORLD_PT_environment_lighting(WorldButtonsPanel):
+class WORLD_PT_environment_lighting(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Environment Lighting"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -201,7 +201,7 @@ class WORLD_PT_environment_lighting(WorldButtonsPanel):
         split.prop(light, "environment_color", text="")
 
 
-class WORLD_PT_indirect_lighting(WorldButtonsPanel):
+class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Indirect Lighting"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -224,7 +224,7 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel):
         split.prop(light, "indirect_bounces", text="Bounces")
 
 
-class WORLD_PT_gather(WorldButtonsPanel):
+class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Gather"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -272,30 +272,12 @@ class WORLD_PT_gather(WorldButtonsPanel):
             col.prop(light, "correction")
 
 
-classes = [
-    WORLD_PT_context_world,
-    WORLD_PT_preview,
-    WORLD_PT_world,
-    WORLD_PT_ambient_occlusion,
-    WORLD_PT_environment_lighting,
-    WORLD_PT_indirect_lighting,
-    WORLD_PT_gather,
-    WORLD_PT_mist,
-    WORLD_PT_stars,
-
-    WORLD_PT_custom_props]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

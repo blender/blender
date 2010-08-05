@@ -38,9 +38,9 @@ IF(WIN32)
 	SET(INC ${INC} ${PTHREADS_INC})
 ENDIF(WIN32)
 
-IF(WITH_OPENEXR)
+IF(WITH_IMAGE_OPENEXR)
 	ADD_DEFINITIONS(-DWITH_OPENEXR)
-ENDIF(WITH_OPENEXR)
+ENDIF(WITH_IMAGE_OPENEXR)
 
 IF(WITH_QUICKTIME)
 	SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
@@ -54,9 +54,4 @@ IF(APPLE)
 	ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES "i386" OR CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
 ENDIF(APPLE)
 
-#TODO
-#if env['OURPLATFORM']=='linux2':
-#    cflags='-pthread'
-
 BLENDERLIB_NOLIST(blender_render "${SRC}" "${INC}")
-#env.BlenderLib ( libname = 'blender_render', sources = sources, includes = Split(incs), defines=defs, libtype='core', priority=45, compileflags=cflags )

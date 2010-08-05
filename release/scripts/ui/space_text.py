@@ -34,6 +34,7 @@ class TEXT_HT_header(bpy.types.Header):
 
         if context.area.show_menus:
             sub = row.row(align=True)
+            sub.menu("TEXT_MT_view")
             sub.menu("TEXT_MT_text")
             if text:
                 sub.menu("TEXT_MT_edit")
@@ -127,6 +128,25 @@ class TEXT_PT_find(bpy.types.Panel):
         row.prop(st, "find_all", text="All")
 
 
+class TEXT_MT_view(bpy.types.Menu):
+    bl_label = "View"
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        layout.operator("text.properties", icon='MENU_PANEL')
+        
+        layout.separator()
+
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.screen_full_area")
+
+        layout.separator()
+
+        layout.operator("text.move", text="Top of File").type = 'FILE_TOP'
+        layout.operator("text.move", text="Bottom of File").type = 'FILE_BOTTOM'
+        
+        
 class TEXT_MT_text(bpy.types.Menu):
     bl_label = "Text"
 
@@ -160,14 +180,7 @@ class TEXT_MT_text(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("text.properties", icon='MENU_PANEL')
-
         layout.menu("TEXT_MT_templates")
-
-        layout.separator()
-
-        layout.operator("screen.area_dupli")
-        layout.operator("screen.screen_full_area")
 
 
 class TEXT_MT_templates(bpy.types.Menu):
@@ -178,16 +191,6 @@ class TEXT_MT_templates(bpy.types.Menu):
 
     def draw(self, context):
         self.path_menu(bpy.utils.script_paths("templates"), "text.open", {"internal": True})
-
-
-class TEXT_MT_edit_view(bpy.types.Menu):
-    bl_label = "View"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("text.move", text="Top of File").type = 'FILE_TOP'
-        layout.operator("text.move", text="Bottom of File").type = 'FILE_BOTTOM'
 
 
 class TEXT_MT_edit_select(bpy.types.Menu):
@@ -260,7 +263,6 @@ class TEXT_MT_edit(bpy.types.Menu):
 
         layout.separator()
 
-        layout.menu("TEXT_MT_edit_view")
         layout.menu("TEXT_MT_edit_select")
         layout.menu("TEXT_MT_edit_markers")
 
@@ -289,32 +291,12 @@ class TEXT_MT_toolbox(bpy.types.Menu):
 
         layout.operator("text.run_script")
 
-
-classes = [
-    TEXT_HT_header,
-    TEXT_PT_properties,
-    TEXT_PT_find,
-    TEXT_MT_text,
-    TEXT_MT_templates,
-    TEXT_MT_format,
-    TEXT_MT_edit,
-    TEXT_MT_edit_view,
-    TEXT_MT_edit_select,
-    TEXT_MT_edit_markers,
-    TEXT_MT_edit_to3d,
-    TEXT_MT_toolbox]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

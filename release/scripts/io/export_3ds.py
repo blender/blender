@@ -941,7 +941,8 @@ def save_3ds(filename, context):
     sce = context.scene
 #	sce= bpy.data.scenes.active
 
-    bpy.ops.object.mode_set(mode='OBJECT')
+    if context.object:
+        bpy.ops.object.mode_set(mode='OBJECT')
 
     # Initialize the main chunk (primary):
     primary = _3ds_chunk(PRIMARY)
@@ -1137,7 +1138,6 @@ class Export3DS(bpy.types.Operator):
     def poll(self, context): # Poll isnt working yet
         return context.active_object != None
 
-
 # Add to a menu
 def menu_func(self, context):
     default_path = os.path.splitext(bpy.data.filepath)[0] + ".3ds"
@@ -1145,11 +1145,9 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(Export3DS)
     bpy.types.INFO_MT_file_export.append(menu_func)
 
 def unregister():
-    bpy.types.unregister(Export3DS)
     bpy.types.INFO_MT_file_export.remove(menu_func)
 
 if __name__ == "__main__":

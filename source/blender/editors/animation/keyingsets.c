@@ -42,7 +42,9 @@
 #include "DNA_anim_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
+#include "BKE_main.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_context.h"
@@ -288,6 +290,7 @@ void ANIM_OT_keying_set_path_remove (wmOperatorType *ot)
 
 static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks = NULL;
 	PropertyRNA *prop= NULL;
@@ -358,7 +361,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		DAG_ids_flush_update(0);
+		DAG_ids_flush_update(bmain, 0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
@@ -388,6 +391,7 @@ void ANIM_OT_keyingset_button_add (wmOperatorType *ot)
 
 static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks = NULL;
 	PropertyRNA *prop= NULL;
@@ -440,7 +444,7 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		DAG_ids_flush_update(0);
+		DAG_ids_flush_update(bmain, 0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
@@ -589,7 +593,7 @@ void ANIM_keyingset_info_register (const bContext *C, KeyingSetInfo *ksi)
 /* Remove the given KeyingSetInfo from the list of type infos, and also remove the builtin set if appropriate */
 void ANIM_keyingset_info_unregister (const bContext *C, KeyingSetInfo *ksi)
 {
-	Scene *scene = CTX_data_scene(C);
+	Main *bmain= CTX_data_main(C);
 	KeyingSet *ks, *ksn;
 	
 	/* find relevant builtin KeyingSets which use this, and remove them */
@@ -600,8 +604,14 @@ void ANIM_keyingset_info_unregister (const bContext *C, KeyingSetInfo *ksi)
 		
 		/* remove if matching typeinfo name */
 		if (strcmp(ks->typeinfo, ksi->idname) == 0) {
+			Scene *scene;
 			BKE_keyingset_free(ks);
-			BLI_freelinkN(&scene->keyingsets, ks);
+			BLI_remlink(&builtin_keyingsets, ks);
+
+			for(scene= bmain->scene.first; scene; scene= scene->id.next)
+				BLI_remlink_safe(&scene->keyingsets, ks);
+
+			MEM_freeN(ks);
 		}
 	}
 	

@@ -132,19 +132,11 @@ class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
 
 
 def register():
-    register = bpy.types.register
-
-    register(SequencerCrossfadeSounds)
-    register(SequencerCutMulticam)
-    register(SequencerDeinterlaceSelectedMovies)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-
-    unregister(SequencerCrossfadeSounds)
-    unregister(SequencerCutMulticam)
-    unregister(SequencerDeinterlaceSelectedMovies)
+    pass
 
 
 if __name__ == "__main__":

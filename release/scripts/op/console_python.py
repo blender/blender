@@ -22,6 +22,9 @@ import bpy
 
 language_id = 'python'
 
+# store our own __main__ module, not 100% needed
+# but python expects this in some places
+_BPY_MAIN_OWN = True
 
 def add_scrollback(text, text_type):
     for l in text.split('\n'):
@@ -41,16 +44,17 @@ def get_console(console_id):
     from code import InteractiveConsole
 
     consoles = getattr(get_console, "consoles", None)
+    hash_next = hash(bpy.context.manager)
 
     if consoles is None:
         consoles = get_console.consoles = {}
+        get_console.consoles_namespace_hash = hash_next
     else:
         # check if clearning the namespace is needed to avoid a memory leak.
         # the window manager is normally loaded with new blend files
         # so this is a reasonable way to deal with namespace clearing.
         # bpy.data hashing is reset by undo so cant be used.
         hash_prev = getattr(get_console, "consoles_namespace_hash", 0)
-        hash_next = hash(bpy.context.manager)
 
         if hash_prev != hash_next:
             get_console.consoles_namespace_hash = hash_next
@@ -67,8 +71,21 @@ def get_console(console_id):
         stdout = io.StringIO()
         stderr = io.StringIO()
     else:
-        namespace = {'__builtins__': __builtins__, 'bpy': bpy}
+        if _BPY_MAIN_OWN:
+            import types
+            bpy_main_mod = types.ModuleType("__main__")
+            namespace = bpy_main_mod.__dict__
+        else:
+            namespace = {}
+        
+        namespace["__builtins__"] = sys.modules["builtins"]
+        namespace["bpy"] = bpy
+        namespace["C"] = bpy.context
+
         console = InteractiveConsole(locals=namespace, filename="<blender_console>")
+        
+        if _BPY_MAIN_OWN:
+            console._bpy_main_mod = bpy_main_mod
 
         import io
         stdout = io.StringIO()
@@ -97,10 +114,6 @@ def execute(context):
 
     console, stdout, stderr = get_console(hash(context.region))
 
-    # Hack, useful but must add some other way to access
-    #if "C" not in console.locals:
-    console.locals["C"] = context
-
     # redirect output
     sys.stdout = stdout
     sys.stderr = stderr
@@ -108,6 +121,10 @@ def execute(context):
     # dont allow the stdin to be used, can lock blender.
     stdin_backup = sys.stdin
     sys.stdin = None
+
+    if _BPY_MAIN_OWN:
+        main_mod_back = sys.modules["__main__"]
+        sys.modules["__main__"] = console._bpy_main_mod
 
     # incase exception happens
     line = "" # incase of encodingf error
@@ -125,6 +142,8 @@ def execute(context):
         import traceback
         stderr.write(traceback.format_exc())
 
+    if _BPY_MAIN_OWN:
+        sys.modules["__main__"] = main_mod_back
 
     stdout.seek(0)
     stderr.seek(0)
@@ -187,6 +206,10 @@ def autocomplete(context):
     scrollback = ""
     scrollback_error = ""
 
+    if _BPY_MAIN_OWN:
+        main_mod_back = sys.modules["__main__"]
+        sys.modules["__main__"] = console._bpy_main_mod
+
     try:
         current_line = sc.history[-1]
         line = current_line.line
@@ -204,6 +227,9 @@ def autocomplete(context):
         # or if the api attribute access its self causes an error.
         import traceback
         scrollback_error = traceback.format_exc()
+
+    if _BPY_MAIN_OWN:
+        sys.modules["__main__"] = main_mod_back
 
     # Separate automplete output by command prompts
     if scrollback != '':
@@ -242,10 +268,6 @@ def banner(context):
     add_scrollback("  WARNING!!! Blender 2.5 API is subject to change, see API reference for more info.", 'ERROR')
     add_scrollback("", 'OUTPUT')
     sc.prompt = PROMPT
-
-    # Add context into the namespace for quick access
-    console = get_console(hash(context.region))[0]
-    console.locals["C"] = bpy.context
 
     return {'FINISHED'}
 

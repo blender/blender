@@ -23,7 +23,7 @@ narrowui = bpy.context.user_preferences.view.properties_width_check
 narrowcon = 260
 
 
-class ConstraintButtonsPanel(bpy.types.Panel):
+class ConstraintButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "constraint"
@@ -749,8 +749,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         col = layout.column()
         col.prop(con, "enabled_rotation_range", text="Pivot When")
 
-
-class OBJECT_PT_constraints(ConstraintButtonsPanel):
+class OBJECT_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
     bl_label = "Object Constraints"
     bl_context = "constraint"
 
@@ -768,7 +767,7 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
             self.draw_constraint(context, con)
 
 
-class BONE_PT_constraints(ConstraintButtonsPanel):
+class BONE_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
     bl_label = "Bone Constraints"
     bl_context = "bone_constraint"
 
@@ -784,21 +783,12 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
             self.draw_constraint(context, con)
 
 
-classes = [
-    OBJECT_PT_constraints,
-    BONE_PT_constraints]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

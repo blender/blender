@@ -36,6 +36,7 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_brush_types.h"
 
 #include "PIL_time.h"
 #include "BLI_threads.h"
@@ -215,7 +216,7 @@ static void draw_image_grid(ARegion *ar, float zoomx, float zoomy)
 	glEnd();
 }
 
-static void sima_draw_alpha_backdrop(float x1, float y1, float xsize, float ysize, float zoomx, float zoomy)
+static void sima_draw_alpha_backdrop(float x1, float y1, float xsize, float ysize, float zoomx, float zoomy, unsigned char col1[3], unsigned char col2[3])
 {
 	GLubyte checker_stipple[32*32/8] =
 	{
@@ -229,9 +230,9 @@ static void sima_draw_alpha_backdrop(float x1, float y1, float xsize, float ysiz
 		0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255, \
 	};
 	
-	glColor3ub(100, 100, 100);
+	glColor3ubv(col1);
 	glRectf(x1, y1, x1 + zoomx*xsize, y1 + zoomy*ysize);
-	glColor3ub(160, 160, 160);
+	glColor3ubv(col2);
 
 	glEnable(GL_POLYGON_STIPPLE);
 	glPolygonStipple(checker_stipple);
@@ -271,11 +272,16 @@ static void sima_draw_alpha_pixelsf(float x1, float y1, int rectx, int recty, fl
 }
 
 #ifdef WITH_LCMS
-static void sima_draw_colorcorrected_pixels(float x1, float y1, ImBuf *ibuf)
+static int sima_draw_colorcorrected_pixels(float x1, float y1, ImBuf *ibuf)
 {
 	colorcorrection_do_ibuf(ibuf, "MONOSCNR.ICM"); /* path is hardcoded here, find some place better */
-	
-	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->crect);
+
+	if(ibuf->crect) {
+		glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->crect);
+		return 1;
+	}
+
+	return 0;
 }
 #endif
 
@@ -361,13 +367,17 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 	else if(sima->flag & SI_COLOR_CORRECTION) {
 		image_verify_buffer_float(sima, ima, ibuf, color_manage);
 		
-		sima_draw_colorcorrected_pixels(x, y, ibuf);
+		if(sima_draw_colorcorrected_pixels(x, y, ibuf)==0) {
+			unsigned char col1[3]= {100, 0, 100}, col2[3]= {160, 0, 160}; /* pink says 'warning' in blender land */
+			sima_draw_alpha_backdrop(x, y, ibuf->x, ibuf->y, zoomx, zoomy, col1, col2);
+		}
 
 	}
 #endif
 	else {
 		if(sima->flag & SI_USE_ALPHA) {
-			sima_draw_alpha_backdrop(x, y, ibuf->x, ibuf->y, zoomx, zoomy);
+			unsigned char col1[3]= {100, 100, 100}, col2[3]= {160, 160, 160};
+			sima_draw_alpha_backdrop(x, y, ibuf->x, ibuf->y, zoomx, zoomy, col1, col2);
 
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -521,7 +531,7 @@ static void draw_image_view_tool(Scene *scene)
 		if(draw) {
 			getmouseco_areawin(mval);
 
-			radius= brush->size*G.sima->zoom/2;
+			radius= brush_size(brush)*G.sima->zoom;
 			fdrawXORcirc(mval[0], mval[1], radius);
 
 			if (brush->innerradius != 1.0) {

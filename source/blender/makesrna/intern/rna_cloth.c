@@ -353,7 +353,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rest_shape_key", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "ShapeKey");
-	RNA_def_property_pointer_funcs(prop, "rna_ClothSettings_rest_shape_key_get", "rna_ClothSettings_rest_shape_key_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_ClothSettings_rest_shape_key_get", "rna_ClothSettings_rest_shape_key_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Rest Shade Key", "Shape key to use the rest spring lengths from");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 

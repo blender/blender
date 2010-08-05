@@ -1932,9 +1932,8 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	first_time = false;
 	
 	PyObjectPlus::ClearDeprecationWarning();
-	
-	PyObject* moduleobj = PyImport_AddModule("__main__");
-	return PyModule_GetDict(moduleobj);
+
+	return bpy_namespace_dict_new(NULL);
 }
 
 void exitGamePlayerPythonScripting()
@@ -1969,9 +1968,8 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	initPySysObjects(maggie);
 
 	PyObjectPlus::NullDeprecationWarning();
-	
-	PyObject* moduleobj = PyImport_AddModule("__main__");
-	return PyModule_GetDict(moduleobj);
+
+	return bpy_namespace_dict_new(NULL);
 }
 
 void exitGamePythonScripting()

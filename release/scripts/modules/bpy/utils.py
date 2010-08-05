@@ -30,7 +30,6 @@ import sys as _sys
 from _bpy import blend_paths
 from _bpy import script_paths as _bpy_script_paths
 
-
 def _test_import(module_name, loaded_modules):
     import traceback
     import time
@@ -84,9 +83,9 @@ def modules_from_path(path, loaded_modules):
             modules.append(mod)
 
     return modules
-
-_loaded = [] # store loaded modules for reloading.
-_bpy_types = __import__("bpy_types") # keep for comparisons, never ever reload this.
+            
+_global_loaded_modules = [] # store loaded module names for reloading.
+import bpy_types as _bpy_types # keep for comparisons, never ever reload this.
 
 
 def load_scripts(reload_scripts=False, refresh_scripts=False):
@@ -101,12 +100,39 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     import traceback
     import time
 
+    # must be set back to True on exits
+    _bpy_types._register_immediate = False
+
     t_main = time.time()
 
     loaded_modules = set()
 
     if refresh_scripts:
         original_modules = _sys.modules.values()
+    
+    if reload_scripts:
+        _bpy_types.TypeMap.clear()
+        _bpy_types.PropertiesMap.clear()
+
+    def register_module_call(mod):
+        _bpy_types._register_module(mod.__name__)
+        register = getattr(mod, "register", None)
+        if register:
+            try:
+                register()
+            except:
+                traceback.print_exc()
+        else:
+            print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
+
+    def unregister_module_call(mod):
+        _bpy_types._unregister_module(mod.__name__)
+        unregister = getattr(mod, "unregister", None)
+        if unregister:
+            try:
+                unregister()
+            except:
+                traceback.print_exc()
 
     def sys_path_ensure(path):
         if path not in _sys.path: # reloading would add twice
@@ -134,48 +160,23 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             mod = test_reload(mod)
 
         if mod:
-            register = getattr(mod, "register", None)
-            if register:
-                try:
-                    register()
-                except:
-                    traceback.print_exc()
-            else:
-                print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
-            _loaded.append(mod)
+            register_module_call(mod)
+            _global_loaded_modules.append(mod.__name__)
 
     if reload_scripts:
 
-        # TODO, this is broken but should work, needs looking into
-        '''
-        # reload modules that may not be directly included
-        for type_class_name in dir(_bpy.types):
-            type_class = getattr(_bpy.types, type_class_name)
-            module_name = getattr(type_class, "__module__", "")
-
-            if module_name and module_name != "bpy.types": # hard coded for C types
-                loaded_modules.add(module_name)
-
-        # sorting isnt needed but rather it be pradictable
-        for module_name in sorted(loaded_modules):
-            print("Reloading:", module_name)
-            test_reload(_sys.modules[module_name])
-        '''
+        # module names -> modules
+        _global_loaded_modules[:] = [_sys.modules[mod_name] for mod_name in _global_loaded_modules]
 
         # loop over and unload all scripts
-        _loaded.reverse()
-        for mod in _loaded:
-            unregister = getattr(mod, "unregister", None)
-            if unregister:
-                try:
-                    unregister()
-                except:
-                    traceback.print_exc()
+        _global_loaded_modules.reverse()
+        for mod in _global_loaded_modules:
+            unregister_module_call(mod)
 
-        for mod in _loaded:
-            reload(mod)
+        for mod in _global_loaded_modules:
+            test_reload(mod)
 
-        _loaded[:] = []
+        _global_loaded_modules[:] = []
 
     user_path = user_script_path()
 
@@ -197,7 +198,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     # load addons
     used_ext = {ext.module for ext in _bpy.context.user_preferences.addons}
-    paths = script_paths("addons")
+    paths = script_paths("addons") + script_paths("addons_contrib")
     for path in paths:
         sys_path_ensure(path)
 
@@ -210,7 +211,9 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         print("gc.collect() -> %d" % gc.collect())
 
     if _bpy.app.debug:
-        print("Time %.4f" % (time.time() - t_main))
+        print("Python Script Load Time %.4f" % (time.time() - t_main))
+    
+    _bpy_types._register_immediate = True
 
 
 def expandpath(path):
@@ -238,30 +241,29 @@ def relpath(path, start=None):
     return path
 
 
-_unclean_chars = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, \
-    17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, \
-    35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 46, 47, 58, 59, 60, 61, 62, 63, \
-    64, 91, 92, 93, 94, 96, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, \
-    133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, \
-    147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, \
-    161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, \
-    175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, \
-    189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, \
-    203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, \
-    217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, \
-    231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, \
-    245, 246, 247, 248, 249, 250, 251, 252, 253, 254]
-
-_unclean_chars = ''.join([chr(i) for i in _unclean_chars])
-
-
 def clean_name(name, replace="_"):
     """
     Returns a name with characters replaced that may cause problems under various circumstances, such as writing to a file.
     All characters besides A-Z/a-z, 0-9 are replaced with "_"
     or the replace argument if defined.
     """
-    for ch in _unclean_chars:
+
+    unclean_chars = \
+                 "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\
+                  \x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\
+                  \x1e\x1f\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2a\x2b\x2c\
+                  \x2e\x2f\x3a\x3b\x3c\x3d\x3e\x3f\x40\x5b\x5c\x5d\x5e\x60\x7b\
+                  \x7c\x7d\x7e\x7f\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\
+                  \x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\
+                  \x9a\x9b\x9c\x9d\x9e\x9f\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\
+                  \xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\
+                  \xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\
+                  \xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\
+                  \xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\
+                  \xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\
+                  \xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe"
+
+    for ch in unclean_chars:
         name = name.replace(ch, replace)
     return name
 
@@ -337,7 +339,7 @@ _presets = _os.path.join(_scripts[0], "presets") # FIXME - multiple paths
 
 def preset_paths(subdir):
     '''
-    Returns a list of paths for a spesific preset.
+    Returns a list of paths for a specific preset.
     '''
 
     return (_os.path.join(_presets, subdir), )

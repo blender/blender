@@ -38,12 +38,12 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_dlrbTree.h"
 
-#include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"

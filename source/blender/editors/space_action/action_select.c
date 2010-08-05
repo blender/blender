@@ -65,6 +65,7 @@
 
 #include "action_intern.h"
 
+
 /* ************************************************************************** */
 /* KEYFRAMES STUFF */
 
@@ -994,7 +995,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 			return;
 		}
 		else if (ale->type == ANIMTYPE_GPLAYER) {
-			bGPDlayer *gpl= (bGPDlayer *)ale->data;
+			struct bGPDlayer *gpl= (struct bGPDlayer *)ale->data;
 			gpl_to_keylist(ads, gpl, &anim_keys, NULL);
 		}
 		

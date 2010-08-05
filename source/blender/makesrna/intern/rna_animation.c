@@ -489,7 +489,7 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ID");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_editable_func(prop, "rna_ksPath_id_editable");
-	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_ksPath_id_typef");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_ksPath_id_typef", NULL);
 	RNA_def_property_ui_text(prop, "ID-Block", "ID-Block that keyframes for Keying Set should be added to (for Absolute Keying Sets only)");
 	
 	prop= RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
@@ -595,7 +595,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	/* KeyingSetInfo (Type Info) for Builtin Sets only  */
 	prop= RNA_def_property(srna, "type_info", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyingSetInfo");
-	RNA_def_property_pointer_funcs(prop, "rna_KeyingSet_typeinfo_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_KeyingSet_typeinfo_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Type Info", "Callback function defines for built-in Keying Sets");
 	
 	/* Paths */
@@ -609,7 +609,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "KeyingSetPath");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_editable_func(prop, "rna_KeyingSet_active_ksPath_editable");
-	RNA_def_property_pointer_funcs(prop, "rna_KeyingSet_active_ksPath_get", "rna_KeyingSet_active_ksPath_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_KeyingSet_active_ksPath_get", "rna_KeyingSet_active_ksPath_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Keying Set", "Active Keying Set used to insert/delete keyframes");
 	
 	prop= RNA_def_property(srna, "active_path_index", PROP_INT, PROP_NONE);
@@ -658,7 +658,7 @@ void rna_def_animdata(BlenderRNA *brna)
 	
 	/* Active Action */
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_AnimData_action_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_AnimData_action_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE); /* this flag as well as the dynamic test must be defined for this to be editable... */
 	RNA_def_property_editable_func(prop, "rna_AnimData_action_editable");
 	RNA_def_property_ui_text(prop, "Action", "Active Action for this datablock");

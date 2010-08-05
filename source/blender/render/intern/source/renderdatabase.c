@@ -440,10 +440,9 @@ VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 	return vlr1;
 }
 
-int RE_vlakren_get_normal(Render *re, ObjectInstanceRen *obi, VlakRen *vlr, float *nor)
+void RE_vlakren_get_normal(Render *re, ObjectInstanceRen *obi, VlakRen *vlr, float *nor)
 {
-	float v1[3], (*nmat)[3]= obi->nmat;
-	int flipped= 0;
+	float (*nmat)[3]= obi->nmat;
 
 	if(obi->flag & R_TRANSFORMED) {
 		VECCOPY(nor, vlr->n);
@@ -453,29 +452,6 @@ int RE_vlakren_get_normal(Render *re, ObjectInstanceRen *obi, VlakRen *vlr, floa
 	}
 	else
 		VECCOPY(nor, vlr->n);
-
-	if((vlr->flag & R_NOPUNOFLIP)==0) {
-		if(re->r.mode & R_ORTHO) {
-			if(nor[2] > 0.0f)
-				flipped= 1;
-		}
-		else {
-			VECCOPY(v1, vlr->v1->co);
-			if(obi->flag & R_TRANSFORMED)
-				mul_m4_v3(obi->mat, v1);
-			if(INPR(v1, nor) < 0.0f) {
-				flipped= 1;
-			}
-		}
-
-		if(flipped) {
-			nor[0]= -nor[0];
-			nor[1]= -nor[1];
-			nor[2]= -nor[2];
-		}
-	}
-
-	return flipped;
 }
 
 void RE_set_customdata_names(ObjectRen *obr, CustomData *data)

@@ -38,4 +38,3 @@ SET(INC
 )
 
 BLENDERLIB(bf_cineon "${SRC}" "${INC}")
-#env.BlenderLib ('bf_cineon', source_files, incs, defs, libtype=['core','player'], priority = [90, 200])

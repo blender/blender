@@ -86,10 +86,6 @@ int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_
 
 int pyrna_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value, const char *error_prefix);
 
-/* function for registering types */
-PyObject *pyrna_basetype_register(PyObject *self, PyObject *args);
-PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args);
-
 int pyrna_deferred_register_props(struct StructRNA *srna, PyObject *class_dict);
 
 /* called before stopping python */

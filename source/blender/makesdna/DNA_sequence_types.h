@@ -32,12 +32,11 @@
 #define DNA_SEQUENCE_TYPES_H
 
 #include "DNA_listBase.h"
-
-/* needed for sound support */
-#include "DNA_sound_types.h"
+#include "DNA_vec_types.h"
 
 struct Ipo;
 struct Scene;
+struct bSound;
 
 /* strlens; 80= FILE_MAXFILE, 160= FILE_MAXDIR */
 

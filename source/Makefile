@@ -204,7 +204,9 @@ ifeq ($(WITH_OPENJPEG), true)
     endif
 endif
 
-COMLIB += $(OCGDIR)/blender/imbuf/cineon/$(DEBUG_DIR)libcineon.a
+ifeq ($(WITH_CINEON), true)
+	COMLIB += $(OCGDIR)/blender/imbuf/cineon/$(DEBUG_DIR)libcineon.a
+endif
 
 ifeq ($(WITH_DDS), true)
     COMLIB += $(OCGDIR)/blender/imbuf/dds/$(DEBUG_DIR)libdds.a
@@ -418,7 +420,7 @@ ifeq ($(WITH_JACK),true)
 endif
 
 ifeq ($(WITH_SNDFILE),true)
-  ifeq ($(OS),$(findstring $(OS), "linux"))
+  ifeq ($(OS),$(findstring $(OS), "linux darwin"))
     NAN_SND_LIBS += $(NAN_SNDFILELIBS)
   endif
 endif

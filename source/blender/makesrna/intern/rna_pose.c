@@ -151,7 +151,7 @@ static void rna_Pose_ik_solver_update(Main *bmain, Scene *scene, PointerRNA *ptr
 	bPose *pose = ptr->data;
 
 	pose->flag |= POSE_RECALC;	// checks & sorts pose channels
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	
 	update_pose_constraint_flags(pose);
 	
@@ -632,7 +632,7 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 	/* Collection active property */
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
-	RNA_def_property_pointer_funcs(prop, "rna_PoseChannel_active_constraint_get", "rna_PoseChannel_active_constraint_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_PoseChannel_active_constraint_get", "rna_PoseChannel_active_constraint_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Constraint", "Active PoseChannel constraint");
 
@@ -970,7 +970,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bone_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "BoneGroup");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_PoseChannel_bone_group_get", "rna_PoseChannel_bone_group_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_PoseChannel_bone_group_get", "rna_PoseChannel_bone_group_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Bone Group", "Bone Group this pose channel belongs to");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
@@ -1157,7 +1157,7 @@ static void rna_def_pose(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_bone_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "BoneGroup");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_Pose_active_bone_group_get", "rna_Pose_active_bone_group_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Pose_active_bone_group_get", "rna_Pose_active_bone_group_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Bone Group", "Active bone group for this pose");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
@@ -1177,7 +1177,7 @@ static void rna_def_pose(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "ik_param", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "IKParam");
-	RNA_def_property_pointer_funcs(prop, "rna_Pose_ikparam_get", NULL, "rna_Pose_ikparam_typef");
+	RNA_def_property_pointer_funcs(prop, "rna_Pose_ikparam_get", NULL, "rna_Pose_ikparam_typef", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "IK Param", "Parameters for IK solver");
 	

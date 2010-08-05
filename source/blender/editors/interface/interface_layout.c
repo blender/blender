@@ -1111,13 +1111,29 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, ui
 			if(itemptr.data == but->rnapoin.id.data)
 				continue;
 
-		if(itemptr.type && RNA_struct_is_ID(itemptr.type))
-			iconid= ui_id_icon_get((bContext*)C, itemptr.data, 1);
-        else
+		/* use filter */
+		if(RNA_property_type(but->rnaprop)==PROP_POINTER) {
+			if(RNA_property_pointer_poll(&but->rnapoin, but->rnaprop, &itemptr)==0)
+				continue;
+		}
+
+		if(itemptr.type && RNA_struct_is_ID(itemptr.type)) {
+			ID *id= itemptr.data;
+			char name_ui[32];
+
+#if 0		/* this name is used for a string comparison and can't be modified, TODO */
+			name_uiprefix_id(name_ui, id);
+#else
+			strcpy(name_ui, id->name+2);
+#endif
+			name= BLI_strdup(name_ui);
+			iconid= ui_id_icon_get((bContext*)C, id, 1);
+        }
+		else {
+			name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
             iconid = 0;
-		
-		name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
-		
+		}
+
 		if(name) {
 			if(BLI_strcasestr(name, str)) {
 				cis = MEM_callocN(sizeof(CollItemSearch), "CollectionItemSearch");
@@ -1126,9 +1142,9 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, ui
 				cis->iconid = iconid;
 				BLI_addtail(items_list, cis);
 			}
-    		MEM_freeN(name);
-		}
-		
+			MEM_freeN(name);
+		}			
+
 		i++;
 	}
 	RNA_PROP_END;
@@ -2002,6 +2018,7 @@ uiLayout *uiLayoutRow(uiLayout *layout, int align)
 	litem->enabled= 1;
 	litem->context= layout->context;
 	litem->space= (align)? 0: layout->root->style->buttonspacex;
+	litem->w = layout->w;
 	BLI_addtail(&layout->items, litem);
 
 	uiBlockSetCurLayout(layout->root->block, litem);
@@ -2021,6 +2038,7 @@ uiLayout *uiLayoutColumn(uiLayout *layout, int align)
 	litem->enabled= 1;
 	litem->context= layout->context;
 	litem->space= (litem->align)? 0: layout->root->style->buttonspacey;
+	litem->w = layout->w;
 	BLI_addtail(&layout->items, litem);
 
 	uiBlockSetCurLayout(layout->root->block, litem);
@@ -2040,6 +2058,7 @@ uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align)
 	flow->litem.enabled= 1;
 	flow->litem.context= layout->context;
 	flow->litem.space= (flow->litem.align)? 0: layout->root->style->columnspace;
+	flow->litem.w = layout->w;
 	flow->number= number;
 	BLI_addtail(&layout->items, flow);
 
@@ -2059,6 +2078,7 @@ static uiLayoutItemBx *ui_layout_box(uiLayout *layout, int type)
 	box->litem.enabled= 1;
 	box->litem.context= layout->context;
 	box->litem.space= layout->root->style->columnspace;
+	box->litem.w = layout->w;
 	BLI_addtail(&layout->items, box);
 
 	uiBlockSetCurLayout(layout->root->block, &box->litem);
