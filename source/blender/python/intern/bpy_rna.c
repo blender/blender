@@ -4388,7 +4388,7 @@ static int rna_function_arg_count(FunctionRNA *func)
 	const ListBase *lb= RNA_function_defined_parameters(func);
 	PropertyRNA *parm;
 	Link *link;
-	int count= 1;
+	int count= (RNA_function_flag(func) & FUNC_NO_SELF) ? 0 : 1;
 
 	for(link=lb->first; link; link=link->next) {
 		parm= (PropertyRNA*)link;
@@ -4537,6 +4537,7 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 	ParameterIterator iter;
 	PointerRNA funcptr;
 	int err= 0, i, flag, ret_len=0;
+	int is_static = RNA_function_flag(func) & FUNC_NO_SELF;
 
 	PropertyRNA *pret_single= NULL;
 	void *retdata_single= NULL;
@@ -4554,52 +4555,54 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 	}
 	
 	bpy_context_set(C, &gilstate);
+
+	if (!is_static) {
+		/* exception, operators store their PyObjects for re-use */
+		if(ptr->data) {
+			if(RNA_struct_is_a(ptr->type, &RNA_Operator)) {
+				wmOperator *op= ptr->data;
+				if(op->py_instance) {
+					py_class_instance= op->py_instance;
+					Py_INCREF(py_class_instance);
+				}
+				else {
+					/* store the instance here once its created */
+					py_class_instance_store= &op->py_instance;
+				}
+			}
+		}
+		/* end exception */
 	
-	/* exception, operators store their PyObjects for re-use */
-	if(ptr->data) {
-		if(RNA_struct_is_a(ptr->type, &RNA_Operator)) {
-			wmOperator *op= ptr->data;
-			if(op->py_instance) {
-				py_class_instance= op->py_instance;
+		if(py_class_instance==NULL)
+			py_srna= pyrna_struct_CreatePyObject(ptr);
+	
+		if(py_class_instance) {
+			/* special case, instance is cached */
+		}
+		else if(py_srna == NULL) {
+			py_class_instance = NULL;
+		}
+		else if(py_srna == Py_None) { /* probably wont ever happen but possible */
+			Py_DECREF(py_srna);
+			py_class_instance = NULL;
+		}
+		else {
+			args = PyTuple_New(1);
+			PyTuple_SET_ITEM(args, 0, py_srna);
+			py_class_instance= PyObject_Call(py_class, args, NULL);
+			Py_DECREF(args);
+			
+			if(py_class_instance == NULL) {
+				err= -1; /* so the error is not overridden below */
+			}
+			else if(py_class_instance_store) {
+				*py_class_instance_store = py_class_instance;
 				Py_INCREF(py_class_instance);
 			}
-			else {
-				/* store the instance here once its created */
-				py_class_instance_store= &op->py_instance;
-			}
-		}
-	}
-	/* end exception */
-
-	if(py_class_instance==NULL)
-		py_srna= pyrna_struct_CreatePyObject(ptr);
-
-	if(py_class_instance) {
-		/* special case, instance is cached */
-	}
-	else if(py_srna == NULL) {
-		py_class_instance = NULL;
-	}
-	else if(py_srna == Py_None) { /* probably wont ever happen but possible */
-		Py_DECREF(py_srna);
-		py_class_instance = NULL;
-	}
-	else {
-		args = PyTuple_New(1);
-		PyTuple_SET_ITEM(args, 0, py_srna);
-		py_class_instance= PyObject_Call(py_class, args, NULL);
-		Py_DECREF(args);
-		
-		if(py_class_instance == NULL) {
-			err= -1; /* so the error is not overridden below */
-		}
-		else if(py_class_instance_store) {
-			*py_class_instance_store = py_class_instance;
-			Py_INCREF(py_class_instance);
 		}
 	}
 
-	if (py_class_instance) { /* Initializing the class worked, now run its invoke function */
+	if (is_static || py_class_instance) { /* Initializing the class worked, now run its invoke function */
 		PyObject *item= PyObject_GetAttrString(py_class, RNA_function_identifier(func));
 //		flag= RNA_function_flag(func);
 
@@ -4607,12 +4610,19 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 			RNA_pointer_create(NULL, &RNA_Function, func, &funcptr);
 
 			args = PyTuple_New(rna_function_arg_count(func)); /* first arg is included in 'item' */
-			PyTuple_SET_ITEM(args, 0, py_class_instance);
+
+			if(is_static) {
+				i= 0;
+			}
+			else {
+				PyTuple_SET_ITEM(args, 0, py_class_instance);
+				i= 1;
+			}
 
 			RNA_parameter_list_begin(parms, &iter);
 
 			/* parse function parameters */
-			for (i= 1; iter.valid; RNA_parameter_list_next(&iter)) {
+			for (; iter.valid; RNA_parameter_list_next(&iter)) {
 				parm= iter.parm;
 				flag= RNA_property_flag(parm);
 

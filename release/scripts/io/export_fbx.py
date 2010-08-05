@@ -3361,7 +3361,8 @@ class ExportFBX(bpy.types.Operator):
     BATCH_FILE_PREFIX = StringProperty(name="Prefix", description="Prefix each file with this name", maxlen=1024, default="")
 
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object
 
     def execute(self, context):

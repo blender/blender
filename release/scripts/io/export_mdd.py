@@ -165,7 +165,8 @@ class ExportMDD(bpy.types.Operator):
     frame_start = IntProperty(name="Start Frame", description="Start frame for baking", min=minframe, max=maxframe, default=1)
     frame_end = IntProperty(name="End Frame", description="End frame for baking", min=minframe, max=maxframe, default=250)
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         ob = context.active_object
         return (ob and ob.type == 'MESH')
 

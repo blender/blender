@@ -142,7 +142,8 @@ class USERPREF_PT_interface(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         userpref = context.user_preferences
         return (userpref.active_section == 'INTERFACE')
 
@@ -242,7 +243,8 @@ class USERPREF_PT_edit(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         userpref = context.user_preferences
         return (userpref.active_section == 'EDITING')
 
@@ -356,7 +358,8 @@ class USERPREF_PT_system(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         userpref = context.user_preferences
         return (userpref.active_section == 'SYSTEM')
 
@@ -520,7 +523,8 @@ class USERPREF_PT_theme(bpy.types.Panel):
             for i, attr in enumerate(props_ls):
                 colsub_pair[i % 2].row().prop(themedata, attr)
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         userpref = context.user_preferences
         return (userpref.active_section == 'THEMES')
 
@@ -652,7 +656,8 @@ class USERPREF_PT_file(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         userpref = context.user_preferences
         return (userpref.active_section == 'FILES')
 
@@ -723,7 +728,8 @@ class USERPREF_PT_input(InputKeyMapPanel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         userpref = context.user_preferences
         return (userpref.active_section == 'INPUT')
 
@@ -817,7 +823,8 @@ class USERPREF_PT_addons(bpy.types.Panel):
     
     _addons_fake_modules = {}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         userpref = context.user_preferences
         return (userpref.active_section == 'ADDONS')
 

@@ -1135,7 +1135,8 @@ class Export3DS(bpy.types.Operator):
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
-    def poll(self, context): # Poll isnt working yet
+    @staticmethod
+    def poll(context): # Poll isnt working yet
         return context.active_object != None
 
 # Add to a menu

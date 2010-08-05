@@ -28,7 +28,8 @@ class DataButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.meta_ball
 
 
@@ -95,7 +96,8 @@ class DATA_PT_metaball(DataButtonsPanel, bpy.types.Panel):
 class DATA_PT_metaball_element(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Active Element"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.meta_ball and context.meta_ball.active_element)
 
     def draw(self, context):

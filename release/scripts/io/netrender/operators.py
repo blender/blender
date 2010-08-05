@@ -31,7 +31,8 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
     bl_idname = "render.netslavebake"
     bl_label = "Bake all in file"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -88,7 +89,8 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
     bl_idname = "render.netclientanim"
     bl_label = "Animation on network"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -114,7 +116,8 @@ class RENDER_OT_netclientrun(bpy.types.Operator):
     bl_idname = "render.netclientstart"
     bl_label = "Start Service"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -130,7 +133,8 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
     bl_idname = "render.netclientsend"
     bl_label = "Send job"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -159,7 +163,8 @@ class RENDER_OT_netclientsendframe(bpy.types.Operator):
     bl_idname = "render.netclientsendframe"
     bl_label = "Send current frame job"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -188,7 +193,8 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
     bl_idname = "render.netclientstatus"
     bl_label = "Client Status"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -227,7 +233,8 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
     bl_idname = "render.netclientblacklistslave"
     bl_label = "Client Blacklist Slave"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -256,7 +263,8 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
     bl_idname = "render.netclientwhitelistslave"
     bl_label = "Client Whitelist Slave"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -286,7 +294,8 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
     bl_idname = "render.netclientslaves"
     bl_label = "Client Slaves"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -330,7 +339,8 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
     bl_idname = "render.netclientcancel"
     bl_label = "Client Cancel"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         netsettings = context.scene.network_render
         return netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0
 
@@ -358,7 +368,8 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
     bl_idname = "render.netclientcancelall"
     bl_label = "Client Cancel All"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -384,7 +395,8 @@ class netclientdownload(bpy.types.Operator):
     bl_idname = "render.netclientdownload"
     bl_label = "Client Download"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         netsettings = context.scene.network_render
         return netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0
 
@@ -428,7 +440,8 @@ class netclientscan(bpy.types.Operator):
     bl_idname = "render.netclientscan"
     bl_label = "Client Scan"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -450,7 +463,8 @@ class netclientweb(bpy.types.Operator):
     bl_idname = "render.netclientweb"
     bl_label = "Open Master Monitor"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         netsettings = context.scene.network_render
         return netsettings.server_address != "[default]"
 

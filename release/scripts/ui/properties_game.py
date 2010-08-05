@@ -27,15 +27,16 @@ class PhysicsButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "physics"
 
-    def poll(self, context):
-        ob = context.active_object
-        rd = context.scene.render
-        return ob and ob.game and (rd.engine in self.COMPAT_ENGINES)
-
 
 class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
     bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        ob = context.active_object
+        rd = context.scene.render
+        return ob and ob.game and (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -166,10 +167,11 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, bpy.types.Panel):
     bl_label = "Collision Bounds"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         game = context.object.game
         rd = context.scene.render
-        return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC')) and (rd.engine in self.COMPAT_ENGINES)
+        return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC')) and (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw_header(self, context):
         game = context.active_object.game
@@ -203,14 +205,15 @@ class RenderButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "render"
 
-    def poll(self, context):
-        rd = context.scene.render
-        return (rd.engine in self.COMPAT_ENGINES)
-
 
 class RENDER_PT_game(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Game"
     COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -223,6 +226,11 @@ class RENDER_PT_game(RenderButtonsPanel, bpy.types.Panel):
 class RENDER_PT_game_player(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Standalone Player"
     COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -261,6 +269,11 @@ class RENDER_PT_game_player(RenderButtonsPanel, bpy.types.Panel):
 class RENDER_PT_game_stereo(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Stereo"
     COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -322,6 +335,11 @@ class RENDER_PT_game_shading(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Shading"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
 
@@ -351,6 +369,11 @@ class RENDER_PT_game_performance(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Performance"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
 
@@ -377,6 +400,11 @@ class RENDER_PT_game_sound(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Sound"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
 
@@ -396,17 +424,14 @@ class WorldButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "world"
 
-    def poll(self, context):
-        scene = context.scene
-        return (scene.render.engine in self.COMPAT_ENGINES) and (scene.world is not None)
-
 
 class WORLD_PT_game_context_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         rd = context.scene.render
         return (context.scene) and (rd.use_game_engine)
 
@@ -435,6 +460,11 @@ class WORLD_PT_game_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "World"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        scene = context.scene
+        return (scene.world and scene.render.engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
 
@@ -454,6 +484,11 @@ class WORLD_PT_game_world(WorldButtonsPanel, bpy.types.Panel):
 class WORLD_PT_game_mist(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Mist"
     COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        scene = context.scene
+        return (scene.world and scene.render.engine in __class__.COMPAT_ENGINES)
 
     def draw_header(self, context):
         world = context.world
@@ -480,6 +515,11 @@ class WORLD_PT_game_mist(WorldButtonsPanel, bpy.types.Panel):
 class WORLD_PT_game_physics(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        scene = context.scene
+        return (scene.world and scene.render.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

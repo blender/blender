@@ -28,7 +28,8 @@ class SceneButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "scene"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.scene
 
 
@@ -118,7 +119,8 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Active Keying Set"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.scene.active_keying_set and context.scene.active_keying_set.absolute)
 
     def draw(self, context):

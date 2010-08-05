@@ -319,7 +319,8 @@ class SequencerButtonsPanel():
     def has_sequencer(self, context):
         return (context.space_data.view_type == 'SEQUENCER') or (context.space_data.view_type == 'SEQUENCER_PREVIEW')
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return self.has_sequencer(context) and (act_strip(context) is not None)
 
 
@@ -330,7 +331,8 @@ class SequencerButtonsPanel_Output():
     def has_preview(self, context):
         return (context.space_data.view_type == 'PREVIEW') or (context.space_data.view_type == 'SEQUENCER_PREVIEW')
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return self.has_preview(context)
 
 
@@ -384,7 +386,8 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
 class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Effect Strip"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         if not self.has_sequencer(context):
             return False
 
@@ -513,7 +516,8 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
 class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Strip Input"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         if not self.has_sequencer(context):
             return False
 
@@ -587,7 +591,8 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
 class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Sound"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         if not self.has_sequencer(context):
             return False
 
@@ -627,7 +632,8 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
 class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Scene"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         if not self.has_sequencer(context):
             return False
 
@@ -651,7 +657,8 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
 class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Filter"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         if not self.has_sequencer(context):
             return False
 
@@ -712,7 +719,8 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
 class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Proxy"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         if not self.has_sequencer(context):
             return False
 

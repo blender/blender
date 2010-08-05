@@ -335,7 +335,8 @@ class IMAGE_PT_image_properties(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_label = "Image"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         sima = context.space_data
         return (sima.image)
 
@@ -354,7 +355,8 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_label = "Game Properties"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         rd = context.scene.render
         sima = context.space_data
         return (sima and sima.image) and (rd.engine == 'BLENDER_GAME')
@@ -399,7 +401,8 @@ class IMAGE_PT_view_histogram(bpy.types.Panel):
     bl_region_type = 'PREVIEW'
     bl_label = "Histogram"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         sima = context.space_data
         return (sima and sima.image)
 
@@ -417,7 +420,8 @@ class IMAGE_PT_view_waveform(bpy.types.Panel):
     bl_region_type = 'PREVIEW'
     bl_label = "Waveform"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         sima = context.space_data
         return (sima and sima.image)
 
@@ -436,7 +440,8 @@ class IMAGE_PT_view_vectorscope(bpy.types.Panel):
     bl_region_type = 'PREVIEW'
     bl_label = "Vectorscope"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         sima = context.space_data
         return (sima and sima.image)
 
@@ -453,7 +458,8 @@ class IMAGE_PT_sample_line(bpy.types.Panel):
     bl_region_type = 'PREVIEW'
     bl_label = "Sample Line"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         sima = context.space_data
         return (sima and sima.image)
 
@@ -470,7 +476,8 @@ class IMAGE_PT_scope_sample(bpy.types.Panel):
     bl_region_type = 'PREVIEW'
     bl_label = "Scope Samples"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         sima = context.space_data
         return sima
 
@@ -490,7 +497,8 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_label = "Display"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         sima = context.space_data
         return (sima and (sima.image or sima.show_uvedit))
 
@@ -553,7 +561,8 @@ class IMAGE_PT_paint(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_label = "Paint"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         sima = context.space_data
         return sima.show_paint
 
@@ -598,7 +607,8 @@ class IMAGE_PT_tools_brush_texture(bpy.types.Panel):
     bl_label = "Texture"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         sima = context.space_data
         toolsettings = context.tool_settings.image_paint
         return sima.show_paint and toolsettings.brush
@@ -622,7 +632,8 @@ class IMAGE_PT_paint_stroke(bpy.types.Panel):
     bl_label = "Paint Stroke"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         sima = context.space_data
         toolsettings = context.tool_settings.image_paint
         return sima.show_paint and toolsettings.brush
@@ -653,7 +664,8 @@ class IMAGE_PT_paint_curve(bpy.types.Panel):
     bl_label = "Paint Curve"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         sima = context.space_data
         toolsettings = context.tool_settings.image_paint
         return sima.show_paint and toolsettings.brush

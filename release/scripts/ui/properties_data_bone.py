@@ -28,7 +28,8 @@ class BoneButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "bone"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.bone or context.edit_bone)
 
 
@@ -132,7 +133,8 @@ class BONE_PT_transform_locks(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Transform Locks"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.bone
 
     def draw(self, context):
@@ -209,7 +211,8 @@ class BONE_PT_relations(BoneButtonsPanel, bpy.types.Panel):
 class BONE_PT_display(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.bone
 
     def draw(self, context):
@@ -246,7 +249,8 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Inverse Kinematics"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_pose_bone
 
     def draw(self, context):

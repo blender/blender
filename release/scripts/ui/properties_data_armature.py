@@ -28,7 +28,8 @@ class DataButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.armature
 
 
@@ -127,7 +128,8 @@ class DATA_PT_display(DataButtonsPanel, bpy.types.Panel):
 class DATA_PT_bone_groups(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Bone Groups"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.object and context.object.type == 'ARMATURE' and context.object.pose)
 
     def draw(self, context):
@@ -211,7 +213,8 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel, bpy.types.Panel):
     bl_label = "iTaSC parameters"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         ob = context.object
         return (ob and ob.pose)
 
@@ -267,7 +270,8 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
     #bl_label = "Bones Motion Paths"
     bl_context = "data"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         # XXX: include posemode check?
         return (context.object) and (context.armature)
 
@@ -295,7 +299,8 @@ class DATA_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # inhe
     #bl_label = "Bones Onion Skinning"
     bl_context = "data"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         # XXX: include posemode check?
         return (context.object) and (context.armature)
 

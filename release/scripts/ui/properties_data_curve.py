@@ -28,21 +28,24 @@ class DataButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.object and context.object.type in ('CURVE', 'SURFACE', 'TEXT') and context.curve)
 
 
 class DataButtonsPanelCurve(DataButtonsPanel):
     '''Same as above but for curves only'''
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.object and context.object.type == 'CURVE' and context.curve)
 
 
 class DataButtonsPanelActive(DataButtonsPanel):
     '''Same as above but for curves only'''
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         curve = context.curve
         return (curve and type(curve) is not bpy.types.TextCurve and curve.splines.active)
 
@@ -133,7 +136,8 @@ class DATA_PT_shape_curve(DataButtonsPanel, bpy.types.Panel):
 class DATA_PT_geometry_curve(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Geometry"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         obj = context.object
         if obj and obj.type == 'SURFACE':
             return False
@@ -270,7 +274,8 @@ class DATA_PT_active_spline(DataButtonsPanelActive, bpy.types.Panel):
 class DATA_PT_font(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Font"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
 
     def draw(self, context):
@@ -332,7 +337,8 @@ class DATA_PT_font(DataButtonsPanel, bpy.types.Panel):
 class DATA_PT_paragraph(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Paragraph"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
 
     def draw(self, context):
@@ -365,7 +371,8 @@ class DATA_PT_paragraph(DataButtonsPanel, bpy.types.Panel):
 class DATA_PT_textboxes(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Text Boxes"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
 
     def draw(self, context):

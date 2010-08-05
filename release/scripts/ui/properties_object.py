@@ -308,7 +308,8 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
     #bl_label = "Object Motion Paths"
     bl_context = "object"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.object)
 
     def draw(self, context):
@@ -335,7 +336,8 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # in
     #bl_label = "Object Onion Skinning"
     bl_context = "object"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.object)
 
     def draw(self, context):

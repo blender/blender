@@ -28,15 +28,16 @@ class DataButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
-        engine = context.scene.render.engine
-        return context.camera and (engine in self.COMPAT_ENGINES)
-
 
 class DATA_PT_context_camera(DataButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        engine = context.scene.render.engine
+        return context.camera and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -65,10 +66,20 @@ class DATA_PT_custom_props_camera(DataButtonsPanel, PropertyPanel, bpy.types.Pan
     _context_path = "object.data"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        engine = context.scene.render.engine
+        return context.camera and (engine in __class__.COMPAT_ENGINES)
+
 
 class DATA_PT_camera(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Lens"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        engine = context.scene.render.engine
+        return context.camera and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -130,6 +141,11 @@ class DATA_PT_camera(DataButtonsPanel, bpy.types.Panel):
 class DATA_PT_camera_display(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        engine = context.scene.render.engine
+        return context.camera and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

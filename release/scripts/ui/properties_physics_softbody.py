@@ -35,7 +35,8 @@ class PhysicButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "physics"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         ob = context.object
         rd = context.scene.render
 #        return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
@@ -92,7 +93,8 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Cache"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.soft_body
 
     def draw(self, context):
@@ -104,7 +106,8 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Goal"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.soft_body
 
     def draw_header(self, context):
@@ -148,7 +151,8 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Edges"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.soft_body
 
     def draw_header(self, context):
@@ -203,7 +207,8 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Self Collision"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.soft_body
 
     def draw_header(self, context):
@@ -238,7 +243,8 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Solver"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.soft_body
 
     def draw(self, context):
@@ -275,7 +281,8 @@ class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Field Weights"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.soft_body)
 
     def draw(self, context):
