@@ -24,7 +24,7 @@ functions for dealing with paths in Blender.
 """
 
 import bpy as _bpy
-
+import os as _os
 
 def expand(path):
     """
@@ -84,6 +84,7 @@ def display_name(name):
     Capitalize the first letter in all lowercase names, mixed case names are kept as is.
     Intended for use with filenames and module names.
     """
+
     name_base = _os.path.splitext(name)[0]
 
     # string replacements
