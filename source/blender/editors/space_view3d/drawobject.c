@@ -2727,7 +2727,8 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	int do_alpha_pass= 0, drawlinked= 0, retval= 0, glsl, check_alpha;
 	
 	if(obedit && ob!=obedit && ob->data==obedit->data) {
-		if(ob_get_key(ob));
+		if(ob_get_key(ob) || ob_get_key(obedit));
+		else if(ob->modifiers.first || obedit->modifiers.first);
 		else drawlinked= 1;
 	}
 	
