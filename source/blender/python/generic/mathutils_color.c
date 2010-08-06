@@ -445,7 +445,7 @@ static PyGetSetDef Color_getseters[] = {
 	{"hsv", (getter)Color_getHSV, (setter)Color_setHSV, "HSV Values in [0, 1]. **type** float triplet", (void *)0},
 
 	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
-	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
+	{"owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
