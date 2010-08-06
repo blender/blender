@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 """
 This module has a similar scope to os.path, containing utility
 functions for dealing with paths in Blender.
