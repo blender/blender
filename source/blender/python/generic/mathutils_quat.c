@@ -109,7 +109,7 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 }
 //----------------------------Quaternion.toMatrix()------------------
 static char Quaternion_ToMatrix_doc[] =
-".. method:: to_matrix(other)\n"
+".. method:: to_matrix()\n"
 "\n"
 "   Return a matrix representation of the quaternion.\n"
 "\n"

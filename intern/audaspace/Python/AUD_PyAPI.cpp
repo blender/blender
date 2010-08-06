@@ -126,7 +126,7 @@ Factory_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(M_aud_Factory_sine_doc,
-			 "sine(frequency[, rate])\n\n"
+			 "sine(frequency, rate=44100)\n\n"
 			 "Creates a sine sound wave.\n\n"
 			 ":arg frequency: The frequency of the sine wave in Hz.\n"
 			 ":type frequency: float\n"
@@ -201,7 +201,7 @@ Factory_file(PyTypeObject* type, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_Factory_lowpass_doc,
-			 "lowpass(frequency[, Q])\n\n"
+			 "lowpass(frequency, Q=0.5)\n\n"
 			 "Creates a second order lowpass filter.\n\n"
 			 ":arg frequency: The cut off trequency of the lowpass.\n"
 			 ":type frequency: float\n"
@@ -326,7 +326,7 @@ Factory_join(Factory* self, PyObject* object)
 }
 
 PyDoc_STRVAR(M_aud_Factory_highpass_doc,
-			 "highpass(frequency[, Q])\n\n"
+			 "highpass(frequency, Q=0.5)\n\n"
 			 "Creates a second order highpass filter.\n\n"
 			 ":arg frequency: The cut off trequency of the highpass.\n"
 			 ":type frequency: float\n"
@@ -756,7 +756,7 @@ Factory_buffer(Factory* self)
 }
 
 PyDoc_STRVAR(M_aud_Factory_square_doc,
-			 "squre([threshold = 0])\n\n"
+			 "square(threshold = 0)\n\n"
 			 "Makes a square wave out of an audio wave.\n\n"
 			 ":arg threshold: Threshold value over which an amplitude counts non-zero.\n"
 			 ":type threshold: float\n"
@@ -795,7 +795,7 @@ Factory_square(Factory* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_Factory_filter_doc,
-			 "filter(b[, a = (1)])\n\n"
+			 "filter(b, a = (1))\n\n"
 			 "Filters a sound with the supplied IIR filter coefficients.\n\n"
 			 ":arg b: The nominator filter coefficients.\n"
 			 ":type b: sequence of float\n"
@@ -2220,7 +2220,7 @@ Device_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(M_aud_Device_play_doc,
-			 "play(sound[, keep])\n\n"
+			 "play(sound, keep=False)\n\n"
 			 "Plays a sound.\n\n"
 			 ":arg sound: The sound to play.\n"
 			 ":type sound: :class:`Factory`\n"

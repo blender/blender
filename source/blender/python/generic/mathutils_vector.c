@@ -508,7 +508,8 @@ static char Vector_angle_doc[] =
 "   :arg other: another vector to compare the angle with\n"
 "   :type other: :class:`Vector`\n"
 "   :arg fallback: return this value when the angle cant be calculated (zero length vector)\n"
-"   :return angle: angle in radians or fallback when given\n"
+"   :type fallback: any\n"
+"   :return: angle in radians or fallback when given\n"
 "   :rtype: float\n"
 "\n"
 "   .. note:: Zero length vectors raise an :exc:`AttributeError`.\n";
@@ -607,8 +608,9 @@ static char Vector_Project_doc[] =
 "\n"
 "   Return the projection of this vector onto the *other*.\n"
 "\n"
+"   :arg other: second vector.\n"
 "   :type other: :class:`Vector`\n"
-"   :return projection: the parallel projection vector\n"
+"   :return: the parallel projection vector\n"
 "   :rtype: :class:`Vector`\n";
 
 static PyObject *Vector_Project(VectorObject *self, VectorObject *value)
