@@ -106,7 +106,7 @@ static int wm_area_test_invalid_backbuf(ScrArea *sa)
 	if(sa->spacetype == SPACE_VIEW3D)
 		return (((View3D*)sa->spacedata.first)->flag & V3D_INVALID_BACKBUF);
 	else
-		return 0;
+		return 1;
 }
 
 /********************** draw all **************************/
