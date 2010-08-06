@@ -1098,37 +1098,6 @@ void mtex_image(vec3 vec, sampler2D ima, out float value, out vec4 color, out ve
 	normal = 2.0*(vec3(color.r, -color.g, color.b) - vec3(0.5, -0.5, 0.5));
 }
 
-/*
-	Helper function for on the fly normal map generation from height map.
-*/
-void mtex_h2n_rgb2float(vec4 color, out float outval)
-{
-	float scale = 1.0;
-	outval = (color.r + color.g + color .b) / 3.0 * scale;
-}
-
-/*
-	On the fly normal map generation from bump map.
-	
-	This is replacement for mtex_image which generates the normal value from a height value.
-	It is inspired by The GIMP normal map plugin. I took the explicit algorithm and
-	streamlined it to fit implicit GPU computation.
-*/
-void mtex_height_to_normal(vec3 texcoord, sampler2D image, vec2 texsize, out float value, out vec4 color, out vec3 normal)
-{
-	float down, up, right, left;
-	/*texsize.xy = textureSize2D(image, 0);*/
-	
-	mtex_h2n_rgb2float( texture2D(image, texcoord.st+vec2(0,1)/texsize.xy), down );
-	mtex_h2n_rgb2float( texture2D(image, texcoord.st+vec2(0,-1)/texsize.xy), up );
-	mtex_h2n_rgb2float( texture2D(image, texcoord.st+vec2(1,0)/texsize.xy), right );
-	mtex_h2n_rgb2float( texture2D(image, texcoord.st+vec2(-1,0)/texsize.xy), left );
-
-	normal = normalize(vec3(left - right, down - up, 1.0));
-	color = texture2D(image, texcoord.xy);
-	value = 1.0;
-}
-
 void mtex_negate_texnormal(vec3 normal, out vec3 outnormal)
 {
 	outnormal = vec3(-normal.x, -normal.y, normal.z);

@@ -48,7 +48,6 @@
 #include "BKE_colortools.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
-#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
@@ -60,9 +59,6 @@
 
 #include "GPU_extensions.h"
 #include "GPU_material.h"
-
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
 
 #include "gpu_codegen.h"
 
@@ -897,10 +893,8 @@ static void do_material_tex(GPUShadeInput *shi)
 	GPUNodeLink *texco_global, *texco_uv = NULL;
 	GPUNodeLink *newnor, *orn;
 	char *lastuvname = NULL;
-	float one = 1.0f, norfac, ofs[3], texsize[2];
+	float one = 1.0f, norfac, ofs[3];
 	int tex_nr, rgbnor, talpha;
-	void *lock;
-	ImBuf *ibuf;
 
 	GPU_link(mat, "set_value", GPU_uniform(&one), &stencil);
 
@@ -966,46 +960,7 @@ static void do_material_tex(GPUShadeInput *shi)
 			rgbnor = 0;
 
 			if(tex && tex->type == TEX_IMAGE && tex->ima) {
-				ibuf= BKE_image_acquire_ibuf(tex->ima, NULL, &lock);
-				if (ibuf) {
-					texsize[0] = ibuf->x;
-					texsize[1] = ibuf->y;
-				}
-				else 
-				{
-					texsize[0] = 0;
-					texsize[1] = 0;
-				}
-				BKE_image_release_ibuf(tex->ima, lock);
-				if(mtex->mapto & MAP_NORM && (tex->imaflag & TEX_NORMALMAP)==0) {
-					GPU_link(mat, "mtex_height_to_normal", texco, GPU_image(tex->ima, &tex->iuser), GPU_uniform(texsize), &tin, &trgb, &tnor);					
-			
-					if(mtex->norfac < 0.0f)
-						GPU_link(mat, "mtex_negate_texnormal", tnor, &tnor);
-
-					if(mtex->normapspace == MTEX_NSPACE_TANGENT)
-						GPU_link(mat, "mtex_nspace_tangent", GPU_attribute(CD_TANGENT, ""), shi->vn, tnor, &newnor);
-					else
-						newnor = tnor;		
-
-					/* norfac = MIN2(fabsf(mtex->norfac), 1.0); */
-					norfac = fabsf(mtex->norfac); /* To not limit bumps to [-1, 1]. */
-					if(norfac == 1.0f && !GPU_link_changed(stencil)) {
-						shi->vn = newnor;
-					}
-					else {
-						tnorfac = GPU_uniform(&norfac);
-
-						if(GPU_link_changed(stencil))
-							GPU_link(mat, "math_multiply", tnorfac, stencil, &tnorfac);
-
-						GPU_link(mat, "mtex_blend_normal", tnorfac, shi->vn, newnor, &shi->vn);
-					}
-				
-				}
-				else {
-					GPU_link(mat, "mtex_image", texco, GPU_image(tex->ima, &tex->iuser), &tin, &trgb, &tnor);					
-				}
+				GPU_link(mat, "mtex_image", texco, GPU_image(tex->ima, &tex->iuser), &tin, &trgb, &tnor);
 				rgbnor= TEX_RGB;
 
 				if(tex->imaflag & TEX_USEALPHA)
