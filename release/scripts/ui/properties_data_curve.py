@@ -20,8 +20,6 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -60,20 +58,15 @@ class DATA_PT_context_curve(DataButtonsPanel, bpy.types.Panel):
         ob = context.object
         curve = context.curve
         space = context.space_data
-        wide_ui = context.region.width > narrowui
 
+        split = layout.split(percentage=0.65)
 
-        if wide_ui:
-            split = layout.split(percentage=0.65)
-
-            if ob:
-                split.template_ID(ob, "data")
-                split.separator()
-            elif curve:
-                split.template_ID(space, "pin_id")
-                split.separator()
-        else:
-            layout.template_ID(ob, "data")
+        if ob:
+            split.template_ID(ob, "data")
+            split.separator()
+        elif curve:
+            split.template_ID(space, "pin_id")
+            split.separator()
 
 
 class DATA_PT_custom_props_curve(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
@@ -88,7 +81,6 @@ class DATA_PT_shape_curve(DataButtonsPanel, bpy.types.Panel):
 
         ob = context.object
         curve = context.curve
-        wide_ui = context.region.width > narrowui
         is_surf = (ob.type == 'SURFACE')
         is_curve = (ob.type == 'CURVE')
         is_text = (ob.type == 'TEXT')
@@ -112,8 +104,7 @@ class DATA_PT_shape_curve(DataButtonsPanel, bpy.types.Panel):
             col.label(text="Display:")
             col.prop(curve, "fast", text="Fast Editing")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
 
         if is_surf:
             sub = col.column(align=True)
@@ -148,7 +139,6 @@ class DATA_PT_geometry_curve(DataButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         curve = context.curve
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -159,8 +149,7 @@ class DATA_PT_geometry_curve(DataButtonsPanel, bpy.types.Panel):
         col.label(text="Taper Object:")
         col.prop(curve, "taper_object", text="")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Bevel:")
         col.prop(curve, "bevel_depth", text="Depth")
         col.prop(curve, "bevel_resolution", text="Resolution")
@@ -180,7 +169,6 @@ class DATA_PT_pathanim(DataButtonsPanelCurve, bpy.types.Panel):
         layout = self.layout
 
         curve = context.curve
-        wide_ui = context.region.width > narrowui
 
         layout.active = curve.use_path
 
@@ -195,8 +183,7 @@ class DATA_PT_pathanim(DataButtonsPanelCurve, bpy.types.Panel):
         col.prop(curve, "use_stretch")
         col.prop(curve, "use_deform_bounds")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(curve, "use_radius")
         col.prop(curve, "use_time_offset", text="Offset Children")
 
@@ -284,21 +271,16 @@ class DATA_PT_font(DataButtonsPanel, bpy.types.Panel):
 
         text = context.curve
         char = context.curve.edit_format
-        wide_ui = context.region.width > narrowui
 
         layout.template_ID(text, "font", open="font.open", unlink="font.unlink")
 
-        #if wide_ui:
-        #    layout.prop(text, "font")
-        #else:
-        #    layout.prop(text, "font", text="")
+        #layout.prop(text, "font")
 
         split = layout.split()
 
         col = split.column()
         col.prop(text, "text_size", text="Size")
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(text, "shear")
 
         split = layout.split()
@@ -307,8 +289,7 @@ class DATA_PT_font(DataButtonsPanel, bpy.types.Panel):
         col.label(text="Object Font:")
         col.prop(text, "family", text="")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Text on Curve:")
         col.prop(text, "text_on_curve", text="")
 
@@ -320,8 +301,7 @@ class DATA_PT_font(DataButtonsPanel, bpy.types.Panel):
         colsub.prop(text, "ul_position", text="Position")
         colsub.prop(text, "ul_height", text="Thickness")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Character:")
         col.prop(char, "bold")
         col.prop(char, "italic")
@@ -346,13 +326,9 @@ class DATA_PT_paragraph(DataButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         text = context.curve
-        wide_ui = context.region.width > narrowui
 
         layout.label(text="Align:")
-        if wide_ui:
-            layout.prop(text, "spacemode", expand=True)
-        else:
-            layout.prop(text, "spacemode", text="")
+        layout.prop(text, "spacemode", expand=True)
 
         split = layout.split()
 
@@ -362,8 +338,7 @@ class DATA_PT_paragraph(DataButtonsPanel, bpy.types.Panel):
         col.prop(text, "word_spacing", text="Word")
         col.prop(text, "line_dist", text="Line")
 
-        if wide_ui:
-            col = split.column(align=True)
+        col = split.column(align=True)
         col.label(text="Offset:")
         col.prop(text, "offset_x", text="X")
         col.prop(text, "offset_y", text="Y")
@@ -380,13 +355,11 @@ class DATA_PT_textboxes(DataButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         text = context.curve
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
         col = split.column()
         col.operator("font.textbox_add", icon='ZOOMIN')
-        if wide_ui:
-            col = split.column()
+        col = split.column()
 
         for i, box in enumerate(text.textboxes):
 
@@ -402,8 +375,7 @@ class DATA_PT_textboxes(DataButtonsPanel, bpy.types.Panel):
             col.prop(box, "width", text="Width")
             col.prop(box, "height", text="Height")
 
-            if wide_ui:
-                col = split.column(align=True)
+            col = split.column(align=True)
 
             col.label(text="Offset:")
             col.prop(box, "x", text="X")

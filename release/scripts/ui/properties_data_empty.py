@@ -19,8 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -39,12 +37,8 @@ class DATA_PT_empty(DataButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(ob, "empty_draw_type", text="Display")
-        else:
-            layout.prop(ob, "empty_draw_type", text="")
+        layout.prop(ob, "empty_draw_type", text="Display")
 
         layout.prop(ob, "empty_draw_size", text="Size")
 

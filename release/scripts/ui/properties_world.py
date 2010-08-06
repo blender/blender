@@ -20,8 +20,6 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class WorldButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -59,17 +57,12 @@ class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
         scene = context.scene
         world = context.world
         space = context.space_data
-        wide_ui = context.region.width > narrowui
 
-
-        if wide_ui:
-            split = layout.split(percentage=0.65)
-            if scene:
-                split.template_ID(scene, "world", new="world.new")
-            elif world:
-                split.template_ID(space, "pin_id")
-        else:
-            layout.template_ID(scene, "world", new="world.new")
+        split = layout.split(percentage=0.65)
+        if scene:
+            split.template_ID(scene, "world", new="world.new")
+        elif world:
+            split.template_ID(space, "pin_id")
 
 
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, bpy.types.Panel):
@@ -83,19 +76,12 @@ class WORLD_PT_world(WorldButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        wide_ui = context.region.width > narrowui
         world = context.world
 
-        if wide_ui:
-            row = layout.row()
-            row.prop(world, "paper_sky")
-            row.prop(world, "blend_sky")
-            row.prop(world, "real_sky")
-        else:
-            col = layout.column()
-            col.prop(world, "paper_sky")
-            col.prop(world, "blend_sky")
-            col.prop(world, "real_sky")
+        row = layout.row()
+        row.prop(world, "paper_sky")
+        row.prop(world, "blend_sky")
+        row.prop(world, "real_sky")
 
         row = layout.row()
         row.column().prop(world, "horizon_color")
@@ -117,7 +103,6 @@ class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        wide_ui = context.region.width > narrowui
         world = context.world
 
         layout.active = world.mist.use_mist
@@ -128,8 +113,7 @@ class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
         col.prop(world.mist, "intensity", slider=True)
         col.prop(world.mist, "start")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(world.mist, "depth")
         col.prop(world.mist, "height")
 
@@ -148,7 +132,6 @@ class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        wide_ui = context.region.width > narrowui
         world = context.world
 
         layout.active = world.stars.use_stars
@@ -159,8 +142,7 @@ class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
         col.prop(world.stars, "size")
         col.prop(world.stars, "color_randomization", text="Colors")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(world.stars, "min_distance", text="Min. Dist")
         col.prop(world.stars, "average_separation", text="Separation")
 

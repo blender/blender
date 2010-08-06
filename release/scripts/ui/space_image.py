@@ -19,8 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class IMAGE_MT_view(bpy.types.Menu):
     bl_label = "View"
@@ -366,7 +364,6 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 
         sima = context.space_data
         ima = sima.image
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -387,8 +384,7 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
         sub.prop(ima, "tiles_x", text="X")
         sub.prop(ima, "tiles_y", text="Y")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Clamp:")
         col.prop(ima, "clamp_x", text="X")
         col.prop(ima, "clamp_y", text="Y")
@@ -509,7 +505,6 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
         ima = sima.image
         show_uvedit = sima.show_uvedit
         uvedit = sima.uv_editor
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -517,8 +512,7 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
         if ima:
             col.prop(ima, "display_aspect", text="Aspect Ratio")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.label(text="Coordinates:")
             col.prop(sima, "draw_repeated", text="Repeat")
             if show_uvedit:
@@ -536,10 +530,7 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
             col = layout.column()
             col.label(text="UVs:")
             row = col.row()
-            if wide_ui:
-                row.prop(uvedit, "edge_draw_type", expand=True)
-            else:
-                row.prop(uvedit, "edge_draw_type", text="")
+            row.prop(uvedit, "edge_draw_type", expand=True)
 
             split = layout.split()
             col = split.column()
@@ -548,8 +539,7 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
             #col.prop(uvedit, "draw_edges")
             #col.prop(uvedit, "draw_faces")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.prop(uvedit, "draw_stretch", text="Stretch")
             sub = col.column()
             sub.active = uvedit.draw_stretch

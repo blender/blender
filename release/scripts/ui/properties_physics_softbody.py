@@ -19,8 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 from properties_physics_common import point_cache_ui
 from properties_physics_common import effector_weights_ui
@@ -52,7 +50,6 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
 
         md = context.soft_body
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -67,8 +64,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
         else:
             # add modifier
             split.operator("object.modifier_add", text="Add").type = 'SOFT_BODY'
-            if wide_ui:
-                split.column()
+            split.column()
 
         if md:
             softbody = md.settings
@@ -83,8 +79,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
             col.prop(softbody, "mass")
             col.prop_object(softbody, "mass_vertex_group", ob, "vertex_groups", text="Mass:")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.label(text="Simulation:")
             col.prop(softbody, "speed")
 
@@ -122,7 +117,6 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, bpy.types.Panel):
         md = context.soft_body
         softbody = md.settings
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
         layout.active = softbody.use_goal and softbody_panel_enabled(md)
 
@@ -138,8 +132,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, bpy.types.Panel):
         sub.prop(softbody, "goal_min", text="Minimum")
         sub.prop(softbody, "goal_max", text="Maximum")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Goal Settings:")
         col.prop(softbody, "goal_spring", text="Stiffness")
         col.prop(softbody, "goal_friction", text="Damping")
@@ -167,7 +160,6 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
         md = context.soft_body
         softbody = md.settings
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
         layout.active = softbody.use_edges and softbody_panel_enabled(md)
 
@@ -183,8 +175,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(softbody, "spring_length", text="Length")
         col.prop_object(softbody, "spring_vertex_group", ob, "vertex_groups", text="Springs:")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(softbody, "stiff_quads")
         sub = col.column()
         sub.active = softbody.stiff_quads
@@ -222,15 +213,11 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, bpy.types.Panel):
 
         md = context.soft_body
         softbody = md.settings
-        wide_ui = context.region.width > narrowui
 
         layout.active = softbody.self_collision and softbody_panel_enabled(md)
 
         layout.label(text="Collision Ball Size Calculation:")
-        if wide_ui:
-            layout.prop(softbody, "collision_type", expand=True)
-        else:
-            layout.prop(softbody, "collision_type", text="")
+        layout.prop(softbody, "collision_type", expand=True)
 
         col = layout.column(align=True)
         col.label(text="Ball:")
@@ -252,7 +239,6 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, bpy.types.Panel):
 
         md = context.soft_body
         softbody = md.settings
-        wide_ui = context.region.width > narrowui
 
         layout.active = softbody_panel_enabled(md)
 
@@ -265,8 +251,7 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(softbody, "maxstep")
         col.prop(softbody, "auto_step", text="Auto-Step")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(softbody, "error_limit")
         col.label(text="Helpers:")
         col.prop(softbody, "choke")

@@ -176,12 +176,6 @@ class USERPREF_PT_interface(bpy.types.Panel):
         sub.prop(view, "mini_axis_brightness", text="Brightness")
 
         col.separator()
-        col.separator()
-        col.separator()
-
-        col.label(text="Properties Window:")
-        col.prop(view, "properties_width_check")
-
         row.separator()
         row.separator()
 

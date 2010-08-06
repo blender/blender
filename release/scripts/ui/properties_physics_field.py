@@ -19,8 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 from properties_physics_common import basic_force_field_settings_ui
 from properties_physics_common import basic_force_field_falloff_ui
@@ -45,22 +43,15 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
 
         ob = context.object
         field = ob.field
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            split = layout.split(percentage=0.2)
-            split.label(text="Type:")
-        else:
-            split = layout.split()
+        split = layout.split(percentage=0.2)
+        split.label(text="Type:")
 
         split.prop(field, "type", text="")
 
         if field.type not in ('NONE', 'GUIDE', 'TEXTURE'):
-            if wide_ui:
-                split = layout.split(percentage=0.2)
-                split.label(text="Shape:")
-            else:
-                split = layout.split()
+            split = layout.split(percentage=0.2)
+            split.label(text="Shape:")
             split.prop(field, "shape", text="")
 
         split = layout.split()
@@ -75,8 +66,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
             col.prop(field, "guide_path_add")
             col.prop(field, "use_guide_path_weight")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.label(text="Clumping:")
             col.prop(field, "guide_clump_amount")
             col.prop(field, "guide_clump_shape")
@@ -99,8 +89,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
                 col.prop(field, "guide_kink_frequency")
                 col.prop(field, "guide_kink_shape")
 
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.prop(field, "guide_kink_amplitude")
 
         elif field.type == 'TEXTURE':
@@ -110,8 +99,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
             col.prop(field, "texture_mode", text="")
             col.prop(field, "texture_nabla")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.prop(field, "use_coordinates")
             col.prop(field, "root_coordinates")
             col.prop(field, "force_2d")
@@ -135,8 +123,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
                 col.prop(field, "use_radial_min", text="Use Minimum")
                 col.prop(field, "use_radial_max", text="Use Maximum")
 
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.prop(field, "radial_falloff", text="Power")
 
                 sub = col.column()
@@ -157,8 +144,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
                 col.prop(field, "use_radial_min", text="Use Minimum")
                 col.prop(field, "use_radial_max", text="Use Maximum")
 
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.prop(field, "radial_falloff", text="Power")
 
                 sub = col.column()
@@ -184,7 +170,6 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         md = context.collision
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -192,8 +177,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
             # remove modifier + settings
             split.set_context_pointer("modifier", md)
             split.operator("object.modifier_remove", text="Remove")
-            if wide_ui:
-                col = split.column()
+            col = split.column()
 
             #row = split.row(align=True)
             #row.prop(md, "render", text="")
@@ -204,8 +188,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
         else:
             # add modifier
             split.operator("object.modifier_add", text="Add").type = 'COLLISION'
-            if wide_ui:
-                split.label()
+            split.label()
 
             coll = None
 
@@ -231,8 +214,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
             sub.prop(settings, "friction_factor", text="Factor", slider=True)
             sub.prop(settings, "random_friction", text="Random", slider=True)
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.label(text="Soft Body and Cloth:")
             sub = col.column(align=True)
             sub.prop(settings, "outer_thickness", text="Outer", slider=True)

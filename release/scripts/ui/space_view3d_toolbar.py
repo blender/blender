@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
 
 class View3DPanel():
     bl_space_type = 'VIEW_3D'
@@ -742,7 +741,6 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
         if context.sculpt_object:
             #XXX duplicated from properties_texture.py
 
-            wide_ui = context.region.width > narrowui
 
 
             col.separator()
@@ -787,10 +785,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
             col = split.column()
             col.prop(tex_slot, "offset")
 
-            if wide_ui:
-                col = split.column()
-            else:
-                col.separator()
+            col = split.column()
 
             col.prop(tex_slot, "size")
 
@@ -991,7 +986,6 @@ class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        wide_ui = context.region.width > narrowui
 
         tool_settings = context.tool_settings
         sculpt = tool_settings.sculpt
@@ -1010,10 +1004,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
         col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
         col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
 
-        if wide_ui:
-            col = split.column()
-        else:
-            col.separator()
+        col = split.column()
 
         col.label(text="Lock:")
         row = col.row(align=True)
@@ -1032,7 +1023,6 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
         return (context.sculpt_object and context.tool_settings.sculpt)
 
     def draw(self, context):
-        wide_ui = context.region.width > narrowui
 
         layout = self.layout
 
@@ -1049,10 +1039,7 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
         col.prop(sculpt, "symmetry_y", text="Y")
         col.prop(sculpt, "symmetry_z", text="Z")
 
-        if wide_ui:
-            col = split.column()
-        else:
-            col.separator()
+        col = split.column()
 
         col.prop(sculpt, "radial_symm", text="Radial")
 
