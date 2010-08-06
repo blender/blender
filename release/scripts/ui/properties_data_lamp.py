@@ -65,6 +65,7 @@ class DATA_PT_context_lamp(DataButtonsPanel, bpy.types.Panel):
         space = context.space_data
 
         split = layout.split(percentage=0.65)
+
         if ob:
             split.template_ID(ob, "data")
             split.separator()
@@ -218,6 +219,20 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
 
         layout.prop(lamp, "shadow_method", expand=True)
 
+        if lamp.shadow_method == 'NOSHADOW' and lamp.type == 'AREA':
+            split = layout.split()
+
+            col= split.column()
+            col.label(text="Form factor sampling:")
+            
+            sub=col.row(align=True)
+
+            if lamp.shape == 'SQUARE':
+                sub.prop(lamp, "shadow_ray_samples_x", text="Samples")
+            elif lamp.shape == 'RECTANGLE':
+                sub.prop(lamp, "shadow_ray_samples_x", text="Samples X")
+                sub.prop(lamp, "shadow_ray_samples_y", text="Samples Y")
+
         if lamp.shadow_method != 'NOSHADOW':
             split = layout.split()
 
@@ -229,45 +244,41 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
             col.prop(lamp, "only_shadow")
 
         if lamp.shadow_method == 'RAY_SHADOW':
-            col = layout.column()
+            split = layout.split()
+            
+            col = split.column()
             col.label(text="Sampling:")
+            
+            if lamp.type in ('POINT', 'SUN', 'SPOT'):
+                sub = col.row()
+                
+                sub.prop(lamp, "shadow_ray_samples", text="Samples")
+                sub.prop(lamp, "shadow_soft_size", text="Soft Size")
+                
+            elif lamp.type == 'AREA':
+                sub = col.row(align=True)
+                
+                if lamp.shape == 'SQUARE':
+                    sub.prop(lamp, "shadow_ray_samples_x", text="Samples")
+                elif lamp.shape == 'RECTANGLE':
+                    sub.prop(lamp, "shadow_ray_samples_x", text="Samples X")
+                    sub.prop(lamp, "shadow_ray_samples_y", text="Samples Y")
+
             col.row().prop(lamp, "shadow_ray_sampling_method", expand=True)
 
-            if lamp.type in ('POINT', 'SUN', 'SPOT'):
-                split = layout.split()
-
+            split = layout.split()
+            col = split.column()
+            
+            if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
+                col.prop(lamp, "shadow_adaptive_threshold", text="Threshold")
                 col = split.column()
-                col.prop(lamp, "shadow_soft_size", text="Soft Size")
-
-                col.prop(lamp, "shadow_ray_samples", text="Samples")
-                if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
-                    col.prop(lamp, "shadow_adaptive_threshold", text="Threshold")
-
+            
+            if lamp.type == 'AREA' and lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
                 col = split.column()
-
-            elif lamp.type == 'AREA':
-                split = layout.split()
-
                 col = split.column()
-
-                if lamp.shape == 'SQUARE':
-                    col.prop(lamp, "shadow_ray_samples_x", text="Samples")
-                elif lamp.shape == 'RECTANGLE':
-                    col.prop(lamp, "shadow_ray_samples_x", text="Samples X")
-                    col.prop(lamp, "shadow_ray_samples_y", text="Samples Y")
-
-                if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
-                    col.prop(lamp, "shadow_adaptive_threshold", text="Threshold")
-                    col = split.column()
-
-                elif lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
-                    col = split.column()
-                    col.prop(lamp, "umbra")
-                    col.prop(lamp, "dither")
-                    col.prop(lamp, "jitter")
-                else:
-                    col = split.column()
-
+                col.prop(lamp, "umbra")
+                col.prop(lamp, "dither")
+                col.prop(lamp, "jitter")
 
         elif lamp.shadow_method == 'BUFFER_SHADOW':
             col = layout.column()
@@ -322,16 +333,16 @@ class DATA_PT_area(DataButtonsPanel, bpy.types.Panel):
         return (lamp and lamp.type == 'AREA') and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
-        layout = self.layout
-
         lamp = context.lamp
 
+        layout = self.layout
         split = layout.split()
 
         col = split.column()
+        
         col.row().prop(lamp, "shape", expand=True)
+        sub = col.row(align=True)
 
-        sub = col.column(align=True)
         if (lamp.shape == 'SQUARE'):
             sub.prop(lamp, "size")
         elif (lamp.shape == 'RECTANGLE'):
