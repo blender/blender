@@ -922,7 +922,7 @@ def make_kf_obj_node(obj, name_to_id):
 """
 
 # import BPyMessages
-def save_3ds(filename, context):
+def write(filename, context):
     '''Save the Blender scene to a 3ds file.'''
     # Time the export
 
@@ -1107,12 +1107,7 @@ def save_3ds(filename, context):
     #primary.dump()
 
 
-# if __name__=='__main__':
-#     if struct:
-#         Blender.Window.FileSelector(save_3ds, "Export 3DS", Blender.sys.makename(ext='.3ds'))
-#     else:
-#         Blender.Draw.PupMenu("Error%t|This script requires a full python installation")
-# # save_3ds('/test_b.3ds')
+# # write('/test_b.3ds')
 from bpy.props import *
 class Export3DS(bpy.types.Operator):
     '''Export to 3DS file format (.3ds)'''
@@ -1127,7 +1122,10 @@ class Export3DS(bpy.types.Operator):
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     def execute(self, context):
-        save_3ds(self.properties.filepath, context)
+        filepath = self.properties.filepath
+        filepath = bpy.path.ensure_ext(filepath, ".3ds")
+
+        write(filepath, context)
         return {'FINISHED'}
 
     def invoke(self, context, event):

@@ -280,12 +280,10 @@ class ExportPLY(bpy.types.Operator):
         return context.active_object != None
 
     def execute(self, context):
-        # print("Selected: " + context.active_object.name)
+        filepath = self.properties.filepath
+        filepath = bpy.path.ensure_ext(filepath, ".ply")
 
-        if not self.properties.filepath:
-            raise Exception("filename not set")
-
-        write(self.properties.filepath, context.scene, context.active_object,\
+        write(filepath, context.scene, context.active_object,\
             EXPORT_APPLY_MODIFIERS=self.properties.use_modifiers,
             EXPORT_NORMALS=self.properties.use_normals,
             EXPORT_UV=self.properties.use_uvs,

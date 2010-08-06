@@ -360,6 +360,7 @@ def rna2sphinx(BASEPATH):
     
     # py modules
     fw("   bpy.utils.rst\n\n")
+    fw("   bpy.path.rst\n\n")
     fw("   bpy.app.rst\n\n")
     
     # C modules
@@ -439,6 +440,9 @@ def rna2sphinx(BASEPATH):
     # python modules
     from bpy import utils as module
     pymodule2sphinx(BASEPATH, "bpy.utils", module, "Utilities (bpy.utils)")
+
+    from bpy import path as module
+    pymodule2sphinx(BASEPATH, "bpy.path", module, "Path Utilities (bpy.path)")
 
     # C modules
     from bpy import app as module

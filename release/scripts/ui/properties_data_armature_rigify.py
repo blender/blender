@@ -213,7 +213,7 @@ class Graph(bpy.types.Operator):
         import bpy
         reload(graphviz_export)
         obj = bpy.context.object
-        path = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.utils.clean_name(obj.name)
+        path = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.path.clean_name(obj.name)
         path_dot = path + ".dot"
         path_png = path + ".png"
         saved = graphviz_export.graph_armature(bpy.context.object, path_dot, CONSTRAINTS=False, DRIVERS=False)
@@ -250,7 +250,7 @@ class AsScript(bpy.types.Operator):
     def invoke(self, context, event):
         import os
         obj = context.object
-        self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.utils.clean_name(obj.name) + ".py"
+        self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.path.clean_name(obj.name) + ".py"
         wm = context.manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
@@ -307,7 +307,7 @@ class INFO_MT_armature_metarig_add(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         for submodule_type in rigify.get_submodule_types():
-            text = bpy.utils.display_name(submodule_type)
+            text = bpy.path.display_name(submodule_type)
             layout.operator("pose.metarig_sample_add", text=text, icon='OUTLINER_OB_ARMATURE').metarig_type = submodule_type
 
 menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))

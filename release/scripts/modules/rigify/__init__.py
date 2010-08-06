@@ -537,7 +537,7 @@ def generate_test_all(context, GRAPH=False):
         base_name = os.path.splitext(bpy.data.filepath)[0]
         for obj, obj_new in new_objects:
             for obj in (obj, obj_new):
-                fn = base_name + "-" + bpy.utils.clean_name(obj.name)
+                fn = base_name + "-" + bpy.path.clean_name(obj.name)
 
                 path_dot = fn + ".dot"
                 path_png = fn + ".png"

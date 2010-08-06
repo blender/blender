@@ -718,7 +718,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             if f.startswith("."):
                 continue
 
-            preset_name = bpy.utils.display_name(f)
+            preset_name = bpy.path.display_name(f)
             props = layout.operator(operator, text=preset_name)
 
             for attr, value in props_default.items():

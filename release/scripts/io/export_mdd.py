@@ -171,10 +171,17 @@ class ExportMDD(bpy.types.Operator):
         return (ob and ob.type == 'MESH')
 
     def execute(self, context):
-        if not self.properties.filepath:
-            raise Exception("filename not set")
-        write(self.properties.filepath, context.scene, context.active_object,
-            self.properties.frame_start, self.properties.frame_end, self.properties.fps)
+        filepath = self.properties.filepath
+        filepath = bpy.path.ensure_ext(filepath, ".mdd")
+        
+        write(filepath,
+              context.scene,
+              context.active_object,
+              self.properties.frame_start,
+              self.properties.frame_end,
+              self.properties.fps,
+              )
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
