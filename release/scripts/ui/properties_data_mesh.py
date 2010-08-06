@@ -302,7 +302,7 @@ class DATA_PT_uv_texture(DataButtonsPanel, bpy.types.Panel):
             layout.prop(lay, "name")
 
 
-class DATA_PT_texface(DataButtonsPanel):
+class DATA_PT_texface(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Texture Face"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
