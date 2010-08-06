@@ -241,14 +241,26 @@ bool buildPolygonsByDetailedMeshes(const int vertsPerPoly, const int npolys,
 		delete adjustedPoly;
 		nv = adjustedNv;
 
-		bool allTraversed = true;
+		bool allBorderTraversed = true;
 		for (size_t i=0; i<(size_t)dtrisNum; i++)
 		{
 			if (traversedTris[i]==0)
-				allTraversed = false;
+			{
+				//check whether it has border edges
+				int curpolytri = dtrisBase+i;
+				for (int k=0; k<3; k++)
+				{
+					unsigned short neighbortri = dtris[curpolytri*3*2+3+k];
+					if ( neighbortri==0xffff || dtrisToPolysMap[neighbortri]!=polyidx+1)
+					{
+						allBorderTraversed = false;
+						break;
+					}
+				}
+			}				
 		}
 
-		if (nv<=vertsPerPoly && allTraversed)
+		if (nv<=vertsPerPoly && allBorderTraversed)
 		{
 			for (int i=0; i<nv; i++)
 			{
