@@ -713,7 +713,18 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 	cu->flag |= (CU_PATH|CU_FOLLOW); // needed for path & bevlist
 
 	init_curve_deform(cuOb, target, &cd, (cu->flag & CU_STRETCH)==0);
-		
+
+	/* dummy bounds, keep if CU_DEFORM_BOUNDS_OFF is set */
+	if(defaxis < 3) {
+		cd.dmin[0]= cd.dmin[1]= cd.dmin[2]= 0.0f;
+		cd.dmax[0]= cd.dmax[1]= cd.dmax[2]= 1.0f;
+	}
+	else {
+		/* negative, these bounds give a good rest position */
+		cd.dmin[0]= cd.dmin[1]= cd.dmin[2]= -1.0f;
+		cd.dmax[0]= cd.dmax[1]= cd.dmax[2]=  0.0f;
+	}
+	
 	/* check whether to use vertex groups (only possible if target is a Mesh)
 	 * we want either a Mesh with no derived data, or derived data with
 	 * deformverts
@@ -735,43 +746,77 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 			MDeformVert *dvert = me->dvert;
 			float vec[3];
 			float weight;
+	
 
+			if(cu->flag & CU_DEFORM_BOUNDS_OFF) {
+				/* dummy bounds */
+				cd.dmin[0]= cd.dmin[1]= cd.dmin[2]= 0.0f;
+				cd.dmax[0]= cd.dmax[1]= cd.dmax[2]= 1.0f;
+				
+				dvert = me->dvert;
+				for(a = 0; a < numVerts; a++, dvert++) {
+					if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
+					weight= defvert_find_weight(dvert, index);
+	
+					if(weight > 0.0f) {
+						mul_m4_v3(cd.curvespace, vertexCos[a]);
+						copy_v3_v3(vec, vertexCos[a]);
+						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
+						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
+						mul_m4_v3(cd.objectspace, vertexCos[a]);
+					}
+				}
+			}
+			else {
+				/* set mesh min/max bounds */
+				INIT_MINMAX(cd.dmin, cd.dmax);
+	
+				for(a = 0; a < numVerts; a++, dvert++) {
+					if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
+					
+					if(defvert_find_weight(dvert, index) > 0.0f) {
+						mul_m4_v3(cd.curvespace, vertexCos[a]);
+						DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
+					}
+				}
+	
+				dvert = me->dvert;
+				for(a = 0; a < numVerts; a++, dvert++) {
+					if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
+					
+					weight= defvert_find_weight(dvert, index);
+	
+					if(weight > 0.0f) {
+						copy_v3_v3(vec, vertexCos[a]);
+						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
+						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
+						mul_m4_v3(cd.objectspace, vertexCos[a]);
+					}
+				}
+			}
+		}
+	}
+	else {
+		if(cu->flag & CU_DEFORM_BOUNDS_OFF) {
+			for(a = 0; a < numVerts; a++) {
+				mul_m4_v3(cd.curvespace, vertexCos[a]);
+				calc_curve_deform(scene, cuOb, vertexCos[a], defaxis, &cd, NULL);
+				mul_m4_v3(cd.objectspace, vertexCos[a]);
+			}
+		}
+		else {
+			/* set mesh min max bounds */
 			INIT_MINMAX(cd.dmin, cd.dmax);
-
-			for(a = 0; a < numVerts; a++, dvert++) {
-				if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
 				
-				if(defvert_find_weight(dvert, index) > 0.0f) {
-					mul_m4_v3(cd.curvespace, vertexCos[a]);
-					DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
-				}
+			for(a = 0; a < numVerts; a++) {
+				mul_m4_v3(cd.curvespace, vertexCos[a]);
+				DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
 			}
-
-			dvert = me->dvert;
-			for(a = 0; a < numVerts; a++, dvert++) {
-				if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
-				
-				weight= defvert_find_weight(dvert, index);
-
-				if(weight > 0.0f) {
-					copy_v3_v3(vec, vertexCos[a]);
-					calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
-					interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
-					mul_m4_v3(cd.objectspace, vertexCos[a]);
-				}
+	
+			for(a = 0; a < numVerts; a++) {
+				calc_curve_deform(scene, cuOb, vertexCos[a], defaxis, &cd, NULL);
+				mul_m4_v3(cd.objectspace, vertexCos[a]);
 			}
-		}
-	} else {
-		INIT_MINMAX(cd.dmin, cd.dmax);
-			
-		for(a = 0; a < numVerts; a++) {
-			mul_m4_v3(cd.curvespace, vertexCos[a]);
-			DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
-		}
-
-		for(a = 0; a < numVerts; a++) {
-			calc_curve_deform(scene, cuOb, vertexCos[a], defaxis, &cd, NULL);
-			mul_m4_v3(cd.objectspace, vertexCos[a]);
 		}
 	}
 	cu->flag = flag;

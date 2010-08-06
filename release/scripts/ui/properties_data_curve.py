@@ -193,6 +193,7 @@ class DATA_PT_pathanim(DataButtonsPanelCurve, bpy.types.Panel):
         col = split.column()
         col.prop(curve, "use_path_follow")
         col.prop(curve, "use_stretch")
+        col.prop(curve, "use_deform_bounds")
 
         if wide_ui:
             col = split.column()

@@ -127,7 +127,7 @@ Curve *add_curve(char *name, int type)
 	cu= alloc_libblock(&G.main->curve, ID_CU, name);
 	
 	cu->size[0]= cu->size[1]= cu->size[2]= 1.0;
-	cu->flag= CU_FRONT|CU_BACK|CU_PATH_RADIUS;
+	cu->flag= CU_FRONT|CU_BACK|CU_DEFORM_BOUNDS_OFF|CU_PATH_RADIUS;
 	cu->pathlen= 100;
 	cu->resolu= cu->resolv= 12;
 	cu->width= 1.0;
