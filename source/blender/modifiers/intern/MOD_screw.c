@@ -195,16 +195,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	axis_vec[ltmd->axis]= 1.0f;
 
 	if (ltmd->ob_axis) {
-		float mtx3_tx[3][3];
 		/* calc the matrix relative to the axis object */
 		invert_m4_m4(mtx_tmp_a, ob->obmat);
 		copy_m4_m4(mtx_tx_inv, ltmd->ob_axis->obmat);
 		mul_m4_m4m4(mtx_tx, mtx_tx_inv, mtx_tmp_a);
 
-		copy_m3_m4(mtx3_tx, mtx_tx);
-
 		/* calc the axis vec */
-		mul_m3_v3(mtx3_tx, axis_vec);
+		mul_mat3_m4_v3(mtx_tx, axis_vec); /* only rotation component */
 		normalize_v3(axis_vec);
 
 		/* screw */
@@ -226,7 +223,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 #if 0	// cant incluide this, not pradictable enough, though quite fun,.
 		if(ltmd->flag & MOD_SCREW_OBJECT_ANGLE) {
-
+			float mtx3_tx[3][3];
+			copy_m3_m4(mtx3_tx, mtx_tx);
 
 			float vec[3] = {0,1,0};
 			float cross1[3];
@@ -511,7 +509,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 							else {
 								/* not so simple to work out which edge is higher */
 								sub_v3_v3v3(tmp_vec1, tmpf1, vc_tmp->co);
-								sub_v3_v3v3(tmp_vec1, tmpf2, vc_tmp->co);
+								sub_v3_v3v3(tmp_vec2, tmpf2, vc_tmp->co);
 								normalize_v3(tmp_vec1);
 								normalize_v3(tmp_vec2);
 
@@ -673,10 +671,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	for (step=1; step < step_tot; step++) {
 		const int varray_stride= totvert * step;
 		float step_angle;
-		float no_tx[3];
+		float nor_tx[3];
 		/* Rotation Matrix */
-		if (close)		step_angle= (angle / step_tot) * step;
-		else			step_angle= (angle / (step_tot-1)) * step;
+		step_angle= (angle / (step_tot - (!close))) * step;
 
 		if (ltmd->ob_axis) {
 			axis_angle_to_mat3(mat3, axis_vec, step_angle);
@@ -700,10 +697,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		for (j=0; j<totvert; j++, mv_new_base++, mv_new++) {
 			/* set normal */
 			if(vert_connect) {
-				mul_v3_m3v3(no_tx, mat3, vert_connect[j].no);
+				mul_v3_m3v3(nor_tx, mat3, vert_connect[j].no);
 
 				/* set the normal now its transformed */
-				normal_float_to_short_v3(mv_new->no, no_tx);
+				normal_float_to_short_v3(mv_new->no, nor_tx);
 			}
 			
 			/* set location */
