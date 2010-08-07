@@ -110,7 +110,7 @@ GHOST_TSuccess GHOST_EventManager::pushEvent(GHOST_IEvent* event)
 bool GHOST_EventManager::dispatchEvent(GHOST_IEvent* event)
 {
 	// [mce] this variant switches the "handled" flag to work as described in the header
-	//       it also stops after the first consumer has handled the event
+	//       it also stops after the first consumer has handled the event (no it doesn't)
 	bool handled = false;
 	if (event) {
 		TConsumerVector::iterator iter;
@@ -322,7 +322,7 @@ GHOST_IEvent* GHOST_EventManager::popEvent()
 
 void GHOST_EventManager::disposeEvents()
 {
-	while (m_events.size() > 0) {
+	while (!m_events.empty()) {
 		GHOST_ASSERT(m_events[0], "invalid event");
 		delete m_events[0];
 		m_events.pop_front();

@@ -568,6 +568,8 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	sysctl(mib, 2, &boottime, &len, NULL, 0);
 	m_start_time = ((boottime.tv_sec*1000)+(boottime.tv_usec/1000));
 
+	m_start_time_2 = CFAbsoluteTimeGetCurrent();
+
 	//Detect multitouch trackpad
 	mib[0] = CTL_HW;
 	mib[1] = HW_MODEL;
@@ -675,6 +677,7 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 
 GHOST_TUns64 GHOST_SystemCocoa::getMilliSeconds() const
 {
+/*
 	//Cocoa equivalent exists in 10.6 ([[NSProcessInfo processInfo] systemUptime])
 	struct timeval currentTime;
 
@@ -682,6 +685,10 @@ GHOST_TUns64 GHOST_SystemCocoa::getMilliSeconds() const
 
 	//Return timestamp of system uptime
 	return ((currentTime.tv_sec*1000)+(currentTime.tv_usec/1000)-m_start_time);
+*/
+
+	double now = CFAbsoluteTimeGetCurrent();
+	return 1000 * (now - m_start_time_2);
 }
 
 
@@ -1392,7 +1399,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletProximity(void *eventPtr)
 		return GHOST_kFailure;
 	}
 
-	GHOST_TabletData& ct = window->GetCocoaTabletData();
+// don't involve the window!
+//	GHOST_TabletData& ct = window->GetCocoaTabletData();
 
 	GHOST_TTabletMode active_tool;
 	int* tool_id_ptr;
@@ -1423,26 +1431,42 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletProximity(void *eventPtr)
 		printf("entering\n");
 		*tool_id_ptr = [event deviceID];
 
-		ct.Active = active_tool;
-		ct.Pressure = (active_tool == GHOST_kTabletModeNone) ? /*mouse*/ 1 : /*pen*/ 0;
-		ct.Xtilt = 0;
-		ct.Ytilt = 0;
+		m_tablet_pen_mode = active_tool;
+
+//		ct.Active = active_tool;
+//		ct.Pressure = (active_tool == GHOST_kTabletModeNone) ? /*mouse*/ 1 : /*pen*/ 0;
+//		ct.Xtilt = 0;
+//		ct.Ytilt = 0;
 
 		// this is a good place to remember the tool's capabilities
-		// (later though, after tablet mouse is fixed and (not) coalescing is in place)
 		}
 	else {
 		printf("leaving\n");
 		*tool_id_ptr = TOOL_ID_NONE;
 
-		ct.Active = GHOST_kTabletModeNone;
-		ct.Pressure = 0;
-		ct.Xtilt = 0;
-		ct.Ytilt = 0;
+		m_tablet_pen_mode = GHOST_kTabletModeNone;
+
+//		ct.Active = GHOST_kTabletModeNone;
+//		ct.Pressure = 0;
+//		ct.Xtilt = 0;
+//		ct.Ytilt = 0;
 		}
 
 	return GHOST_kSuccess;
 }
+
+void GHOST_SystemCocoa::fillTabletData(GHOST_TabletData& tablet, void* event_ptr)
+	{
+	NSEvent* event = (NSEvent*)event_ptr;
+	NSPoint tilt = [event tilt];
+
+	tablet.Active = m_tablet_pen_mode;
+	tablet.Pressure = [event pressure];
+	tablet.Xtilt = tilt.x;
+	tablet.Ytilt = tilt.y;
+
+	printf("> pressure = %.2f   tilt = %.2f %2f\n", tablet.Pressure, tablet.Xtilt, tablet.Ytilt);
+	}
 
 GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 {
@@ -1456,35 +1480,49 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 		return GHOST_kFailure;
 	}
 
+/*
+	// don't involve the window!
 	GHOST_TabletData& ct = window->GetCocoaTabletData();
 
 	ct.Pressure = [event pressure];
 	NSPoint tilt = [event tilt];
 	ct.Xtilt = tilt.x;
 	ct.Ytilt = tilt.y;
+*/
 
 	switch ([event type])
 		{
 		case NSLeftMouseDown:
+			{
 			if (m_input_fidelity_hint == HI_FI)
 				{
 				printf("hi-fi on\n");
 				[NSEvent setMouseCoalescingEnabled:NO];
 				}
-			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonDown, window, convertButton([event buttonNumber])));
+			GHOST_EventButton* e = new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonDown, window, convertButton([event buttonNumber]));
+			GHOST_TEventButtonData* data = (GHOST_TEventButtonData*) e->getData();
+			fillTabletData(data->tablet, event);
+			pushEvent(e);
 			break;
+			}
 		case NSLeftMouseUp:
+			{
 			if (m_input_fidelity_hint == HI_FI)
 				{
 				printf("hi-fi off\n");
 				[NSEvent setMouseCoalescingEnabled:YES];
 				}
+			// no tablet data needed for 'pen up'
 			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonUp, window, convertButton([event buttonNumber])));
 			break;
+			}
 		default:
 			{
 			NSPoint pos = [event locationInWindow];
-			pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, pos.x, pos.y));
+			GHOST_EventCursor* e = new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, pos.x, pos.y);
+			GHOST_TEventCursorData* data = (GHOST_TEventCursorData*) e->getData();
+			fillTabletData(data->tablet, event);
+			pushEvent(e);
 			break;
 			}
 		}

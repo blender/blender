@@ -39,7 +39,7 @@
 #include <OpenGL/OpenGL.h>
 */
 
- 
+
 #include "GHOST_WindowCocoa.h"
 #include "GHOST_SystemCocoa.h"
 #include "GHOST_Debug.h"
@@ -161,12 +161,12 @@ extern "C" {
 {
 	NSPoint mouseLocation = [sender draggingLocation];
 	NSPasteboard *draggingPBoard = [sender draggingPasteboard];
-	
+
 	if ([[draggingPBoard types] containsObject:NSTIFFPboardType]) m_draggedObjectType = GHOST_kDragnDropTypeBitmap;
 	else if ([[draggingPBoard types] containsObject:NSFilenamesPboardType]) m_draggedObjectType = GHOST_kDragnDropTypeFilenames;
 	else if ([[draggingPBoard types] containsObject:NSStringPboardType]) m_draggedObjectType = GHOST_kDragnDropTypeString;
 	else return NSDragOperationNone;
-	
+
 	associatedWindow->setAcceptDragOperation(TRUE); //Drag operation is accepted by default
 	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingEntered, m_draggedObjectType, associatedWindow, mouseLocation.x, mouseLocation.y, nil);
 	return NSDragOperationCopy;
@@ -180,7 +180,7 @@ extern "C" {
 - (NSDragOperation)draggingUpdated:(id < NSDraggingInfo >)sender
 {
 	NSPoint mouseLocation = [sender draggingLocation];
-	
+
 	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingUpdated, m_draggedObjectType, associatedWindow, mouseLocation.x, mouseLocation.y, nil);
 	return associatedWindow->canAcceptDragOperation()?NSDragOperationCopy:NSDragOperationNone;
 }
@@ -205,7 +205,7 @@ extern "C" {
 	NSPasteboard *draggingPBoard = [sender draggingPasteboard];
 	NSImage *droppedImg;
 	id data;
-	
+
 	switch (m_draggedObjectType) {
 		case GHOST_kDragnDropTypeBitmap:
 			if([NSImage canInitWithPasteboard:draggingPBoard]) {
@@ -242,7 +242,7 @@ extern "C" {
 
 - (BOOL)acceptsFirstResponder
 {
-    return YES;
+	return YES;
 }
 
 //The trick to prevent Cocoa from complaining (beeping)
@@ -254,10 +254,10 @@ extern "C" {
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent
 {
 	NSString *chars = [theEvent charactersIgnoringModifiers];
-	
+
 	if ([chars length] <1) 
 		return NO;
-	
+
 	//Let cocoa handle menu shortcuts
 	switch ([chars characterAtIndex:0]) {
 		case 'q':
@@ -277,7 +277,7 @@ extern "C" {
 
 - (BOOL)isOpaque
 {
-    return YES;
+	return YES;
 }
 
 @end
@@ -304,22 +304,21 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[40];
 	NSOpenGLPixelFormat *pixelFormat = nil;
 	int i;
-		
+
 	m_systemCocoa = systemCocoa;
 	m_fullScreen = false;
-	
+
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
 
 	//Creates the window
 	NSRect rect;
 	NSSize	minSize;
-	
+
 	rect.origin.x = left;
 	rect.origin.y = top;
 	rect.size.width = width;
 	rect.size.height = height;
-	
+
 	m_window = [[CocoaWindow alloc] initWithContentRect:rect
 										   styleMask:NSTitledWindowMask | NSClosableWindowMask | NSResizableWindowMask | NSMiniaturizableWindowMask
 											 backing:NSBackingStoreBuffered defer:NO];
@@ -327,75 +326,75 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		[pool drain];
 		return;
 	}
-	
+
 	[m_window setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
-	
+
 	//Forbid to resize the window below the blender defined minimum one
 	minSize.width = 320;
 	minSize.height = 240;
 	[m_window setContentMinSize:minSize];
-	
+
 	setTitle(title);
-	
-	
+
+
 	// Pixel Format Attributes for the windowed NSOpenGLContext
 	i=0;
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
-	
+
 	// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object’s flushBuffer
 	// needed for 'Draw Overlap' drawing method
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore; 
-	
+
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
 	//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
 
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFADepthSize;
 	pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) 32;
-	
-	
+
+
 	if (stereoVisual) pixelFormatAttrsWindow[i++] = NSOpenGLPFAStereo;
-	
+
 	if (numOfAASamples>0) {
 		// Multisample anti-aliasing
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFAMultisample;
-		
+
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFASampleBuffers;
 		pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) 1;
-		
+
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFASamples;
 		pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) numOfAASamples;
-		
+
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFANoRecovery;
 	}
-	
+
 	pixelFormatAttrsWindow[i] = (NSOpenGLPixelFormatAttribute) 0;
-	
+
 	pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttrsWindow];
-	
-	
+
+
 	//Fall back to no multisampling if Antialiasing init failed
 	if (pixelFormat == nil) {
 		i=0;
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
-		
+
 		// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object’s flushBuffer
 		// needed for 'Draw Overlap' drawing method
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore;
-		
+
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
 		//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
-		
+
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFADepthSize;
 		pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) 32;
-		
+
 		if (stereoVisual) pixelFormatAttrsWindow[i++] = NSOpenGLPFAStereo;
-		
+
 		pixelFormatAttrsWindow[i] = (NSOpenGLPixelFormatAttribute) 0;
-		
+
 		pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttrsWindow];
-		
+
 	}
-	
+
 	if (numOfAASamples>0) { //Set m_numOfAASamples to the actual value
 		GLint gli;
 		[pixelFormat getValues:&gli forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
@@ -404,40 +403,38 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 			printf("GHOST_Window could be created with anti-aliasing of only %i samples\n",m_numOfAASamples);
 		}
 	}
-		
+
 	//Creates the OpenGL View inside the window
 	m_openGLView = [[CocoaOpenGLView alloc] initWithFrame:rect
 												 pixelFormat:pixelFormat];
-	
+
 	[pixelFormat release];
-	
+
 	m_openGLContext = [m_openGLView openGLContext]; //This context will be replaced by the proper one just after
-	
+
 	[m_window setContentView:m_openGLView];
 	[m_window setInitialFirstResponder:m_openGLView];
-	
+
 	[m_window setReleasedWhenClosed:NO]; //To avoid bad pointer exception in case of user closing the window
-	
+
 	[m_window makeKeyAndOrderFront:nil];
-	
+
 	setDrawingContextType(type);
 	updateDrawingContext();
 	activateDrawingContext();
-	
-	m_tablet.Active = GHOST_kTabletModeNone;
-	
+
 	CocoaWindowDelegate *windowDelegate = [[CocoaWindowDelegate alloc] init];
 	[windowDelegate setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
 	[m_window setDelegate:windowDelegate];
-	
+
 	[m_window setAcceptsMouseMovedEvents:YES];
-	
+
 	[m_window registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
 										  NSStringPboardType, NSTIFFPboardType, nil]];
-										  
+
 	if (state == GHOST_kWindowStateFullScreen)
 		setState(GHOST_kWindowStateFullScreen);
-		
+
 	[pool drain];
 }
 
@@ -448,14 +445,14 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	[m_openGLView release];
-	
+
 	if (m_window) {
 		[m_window close];
 		[[m_window delegate] release];
 		[m_window release];
 		m_window = nil;
 	}
-	
+
 	//Check for other blender opened windows and make the frontmost key
 	NSArray *windowsList = [NSApp orderedWindows];
 	if ([windowsList count]) {
@@ -478,7 +475,7 @@ void* GHOST_WindowCocoa::getOSWindow() const
 
 void GHOST_WindowCocoa::setTitle(const STR_String& title)
 {
-    GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setTitle(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setTitle(): window invalid")
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	NSString *windowTitle = [[NSString alloc] initWithUTF8String:title];

@@ -35,11 +35,8 @@
 #define _GHOST_SYSTEM_COCOA_H_
 
 #ifndef __APPLE__
-#error Apple OSX only!
-#endif // __APPLE__
-
-//#define __CARBONSOUND__
-
+  #error Apple OSX only!
+#endif
 
 #include "GHOST_System.h"
 
@@ -266,6 +263,11 @@ protected:
      * @return Indication whether the event was handled. 
      */
     GHOST_TSuccess handleTabletEvent(void *eventPtr);
+
+    /**
+     * Helps handleTabletEvent function.
+     */
+	void fillTabletData(GHOST_TabletData& tablet, void* event_ptr);
     
 	/**
      * Handles a tablet proximity event. Sets pen or mouse ID for later events.
@@ -307,7 +309,8 @@ protected:
 
 	/** Start time at initialization. */
 	GHOST_TUns64 m_start_time;
-	
+	double m_start_time_2;
+
 	/** Event has been processed directly by Cocoa (or NDOF manager) and has sent a ghost event to be dispatched */
 	bool m_outsideLoopEventProcessed;
 	
@@ -336,4 +339,3 @@ protected:
 };
 
 #endif // _GHOST_SYSTEM_COCOA_H_
-

@@ -29,27 +29,22 @@
 #ifndef _GHOST_TYPES_H_
 #define _GHOST_TYPES_H_
 
-typedef	char				GHOST_TInt8;
-typedef	unsigned char		GHOST_TUns8;
-typedef short				GHOST_TInt16;
-typedef unsigned short		GHOST_TUns16;
-typedef	int					GHOST_TInt32;
-typedef	unsigned int		GHOST_TUns32;
-
-#ifdef WIN32
-#define WM_BLND_NDOF_AXIS	WM_USER + 1
-#define WM_BLND_NDOF_BTN 	WM_USER + 2
-#endif
+typedef char           GHOST_TInt8;
+typedef unsigned char  GHOST_TUns8;
+typedef short          GHOST_TInt16;
+typedef unsigned short GHOST_TUns16;
+typedef int            GHOST_TInt32;
+typedef unsigned int   GHOST_TUns32;
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
-typedef __int64				GHOST_TInt64;
-typedef unsigned __int64	GHOST_TUns64;
+  typedef __int64          GHOST_TInt64;
+  typedef unsigned __int64 GHOST_TUns64;
 #else
-typedef long long			GHOST_TInt64;
-typedef unsigned long long	GHOST_TUns64;
+  typedef long long          GHOST_TInt64;
+  typedef unsigned long long GHOST_TUns64;
 #endif
 
-typedef void*				GHOST_TUserDataPtr;
+typedef void* GHOST_TUserDataPtr;
 
 typedef enum
 {
@@ -154,8 +149,7 @@ typedef enum {
 	GHOST_kEventTrackpad,		/// Trackpad event
 
 	GHOST_kEventNDOFMotion,		/// N degree of freedom device motion event
-	GHOST_kEventNDOFButtonDown,/// N degree of freedom device button events
-	GHOST_kEventNDOFButtonUp,
+	GHOST_kEventNDOFButton,
 
 	GHOST_kEventKeyDown,
 	GHOST_kEventKeyUp,
@@ -276,7 +270,6 @@ typedef enum {
 	GHOST_kKeyRightBracket = ']',
 	GHOST_kKeyBackslash    = 0x5C,
 	GHOST_kKeyAccentGrave  = '`',
-
 	
 	GHOST_kKeyLeftShift = 0x100,
 	GHOST_kKeyRightShift,
@@ -284,8 +277,8 @@ typedef enum {
 	GHOST_kKeyRightControl,
 	GHOST_kKeyLeftAlt,
 	GHOST_kKeyRightAlt,
-    GHOST_kKeyCommand,				// APPLE only!
-    GHOST_kKeyGrLess ,		// German PC only!
+	GHOST_kKeyCommand,  // APPLE only!
+	GHOST_kKeyGrLess,   // German PC only!
 
 	GHOST_kKeyCapsLock,
 	GHOST_kKeyNumLock,
@@ -365,11 +358,17 @@ typedef struct {
 	GHOST_TInt32 x;
 	/** The y-coordinate of the cursor position. */
 	GHOST_TInt32 y;
+
+	GHOST_TabletData tablet;
+
 } GHOST_TEventCursorData;
 
 typedef struct {
 	/** The mask of the mouse button. */
 	GHOST_TButtonMask button;
+
+	GHOST_TabletData tablet;
+
 } GHOST_TEventButtonData;
 
 typedef struct {
@@ -384,7 +383,6 @@ typedef enum {
 	GHOST_kTrackpadEventSwipe, /* Reserved, not used for now */
 	GHOST_kTrackpadEventMagnify
 } GHOST_TTrackpadEventSubTypes;
-	
 
 typedef struct {
 	/** The event subtype */
@@ -423,40 +421,23 @@ typedef struct {
 	GHOST_TUns8 **strings;
 } GHOST_TStringArray;
 
-
-/* original patch used floats, but the driver return ints and uns. We will calibrate in view, no sense on doing conversions twice */
-/* as all USB device controls are likely to use ints, this is also more future proof */
-//typedef struct {
-//   /** N-degree of freedom device data */
-//   float tx, ty, tz;   /** -x left, +y up, +z forward */
-//   float rx, ry, rz;
-//   float dt;
-//} GHOST_TEventNDOFData;
-
-// typedef struct {
-//    /** N-degree of freedom device data v2*/
-//    int changed;
-//    GHOST_TUns64 client;
-//    GHOST_TUns64 address;
-//    GHOST_TInt16 tx, ty, tz;   /** -x left, +y up, +z forward */
-//    GHOST_TInt16 rx, ry, rz;
-//    GHOST_TInt16 buttons;
-//    GHOST_TUns64 time;
-//    GHOST_TUns64 delta;
-// } GHOST_TEventNDOFData;
-
 typedef struct {
    /** N-degree of freedom device data v3 [GSoC 2010]*/
+   /* Each component normally ranges from -1 to +1, but can exceed that. */
+   float tx, ty, tz; /* translation: -x left, +y forward, -z up */
+   float rx, ry, rz; /* rotation:
+   	axis = (rx,ry,rz).normalized
+   	amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg] */
+   float dt; // time since previous NDOF Motion event (or zero if this is the first)
 
-   // Fairly close to raw device data.
-   // Each component normally ranges from -1 to +1, but can exceed that.
-   // rot axis = (rx,ry,rz).normalized
-   // rot amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg]
+} GHOST_TEventNDOFMotionData;
 
-   float tx, ty, tz;   /** -x left, +y forward, -z up */
-   float rx, ry, rz;
-} GHOST_TEventNDOFData;
+typedef enum { GHOST_kPress, GHOST_kRelease } GHOST_TButtonAction; // good for mouse or other buttons too, hmmm?
 
+typedef struct {
+	GHOST_TButtonAction action;
+	short button;
+} GHOST_TEventNDOFButtonData;
 
 typedef struct {
 	/** The key code. */
@@ -478,13 +459,13 @@ typedef struct {
 
 
 #ifdef _WIN32
-typedef long GHOST_TEmbedderWindowID;
+  typedef long GHOST_TEmbedderWindowID;
 #endif // _WIN32
 
 #ifndef _WIN32
-// I can't use "Window" from "<X11/Xlib.h>" because it conflits with Window defined in winlay.h
-typedef int GHOST_TEmbedderWindowID;
-#endif // _WIN32
+  // I can't use "Window" from "<X11/Xlib.h>" because it conflits with Window defined in winlay.h
+  typedef int GHOST_TEmbedderWindowID;
+#endif
 
 /**
  * A timer task callback routine.
@@ -492,12 +473,11 @@ typedef int GHOST_TEmbedderWindowID;
  * @param time The current time.
  */
 #ifdef __cplusplus
-class GHOST_ITimerTask;
-typedef void (*GHOST_TimerProcPtr)(GHOST_ITimerTask* task, GHOST_TUns64 time);
+  class GHOST_ITimerTask;
+  typedef void (*GHOST_TimerProcPtr)(GHOST_ITimerTask* task, GHOST_TUns64 time);
 #else
-struct GHOST_TimerTaskHandle__;
-typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__* task, GHOST_TUns64 time);
+  struct GHOST_TimerTaskHandle__;
+  typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__* task, GHOST_TUns64 time);
 #endif
 
 #endif // _GHOST_TYPES_H_
-

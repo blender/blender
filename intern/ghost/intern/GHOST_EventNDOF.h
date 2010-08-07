@@ -28,33 +28,31 @@
 
 
 class GHOST_EventNDOFMotion : public GHOST_Event
-{
-protected:
-	GHOST_TEventNDOFData m_axisData;
+	{
+	protected:
+		GHOST_TEventNDOFMotionData m_axisData;
+	
+	public:
+		GHOST_EventNDOFMotion(GHOST_TUns64 time, GHOST_IWindow* window)
+			: GHOST_Event(time, GHOST_kEventNDOFMotion, window)
+			{
+			m_data = &m_axisData;
+			}
+	};
 
-public:
-	GHOST_EventNDOFMotion(GHOST_TUns64 time)
-		: GHOST_Event(time, GHOST_kEventNDOFMotion, NULL)
-//		, m_data(&m_axisData)
-		{
-		m_data = &m_axisData;
-		}
-};
 
 class GHOST_EventNDOFButton : public GHOST_Event
-{
-protected:
-	GHOST_TUns16 m_buttonNumber;
-
-public:
-	GHOST_EventNDOFButton(GHOST_TUns64 time, GHOST_TUns16 buttonNumber, GHOST_TEventType upOrDown)
-		: GHOST_Event(time, upOrDown, NULL)
-		, m_buttonNumber(buttonNumber)
-//		, m_data(&m_buttonNumber)
-		{
-		m_data = &m_buttonNumber;
-		}
-};
+	{
+	protected:
+		GHOST_TEventNDOFButtonData m_buttonData;
+	
+	public:
+		GHOST_EventNDOFButton(GHOST_TUns64 time, GHOST_IWindow* window)
+			: GHOST_Event(time, GHOST_kEventNDOFButton, window)
+			{
+			m_data = &m_buttonData;
+			}
+	};
 
 
 #endif // _GHOST_EVENT_NDOF_H_

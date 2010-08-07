@@ -47,16 +47,20 @@ static void SpaceNavEvent(io_connect_t connection, natural_t messageType, void *
 		case kConnexionMsgDeviceState:
 			{
 			ConnexionDeviceState* s = (ConnexionDeviceState*)messageArgument;
+
+			GHOST_TUns64 now = system->getMilliSeconds();
+
 			switch (s->command)
 				{
 				case kConnexionCmdHandleAxis:
-					manager->updateTranslation(s->axis, s->time);
-					manager->updateRotation(s->axis + 3, s->time);
+//					manager->updateTranslation(s->axis, s->time);
+					manager->updateTranslation(s->axis, now);
+					manager->updateRotation(s->axis + 3, now);
 					system->notifyExternalEventProcessed();
 					break;
 
 				case kConnexionCmdHandleButtons:
-					manager->updateButtons(s->buttons, s->time);
+					manager->updateButtons(s->buttons, now);
 					system->notifyExternalEventProcessed();
 					break;
 				}

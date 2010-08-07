@@ -1233,6 +1233,8 @@ static int gpencil_draw_cancel (bContext *C, wmOperator *op)
 /* create a new stroke point at the point indicated by the painting context */
 static void gpencil_draw_apply (bContext *C, wmOperator *op, tGPsdata *p)
 {
+	printf("< pressure = %.2f\n", p->pressure);
+
 	/* handle drawing/erasing -> test for erasing first */
 	if (p->paintmode == GP_PAINTMODE_ERASER) {
 		/* do 'live' erasing now */
@@ -1245,6 +1247,7 @@ static void gpencil_draw_apply (bContext *C, wmOperator *op, tGPsdata *p)
 	}
 	/* only add current point to buffer if mouse moved (even though we got an event, it might be just noise) */
 	else if (gp_stroke_filtermval(p, p->mval, p->mvalo)) {
+
 		/* try to add point */
 		short ok= gp_stroke_addpoint(p, p->mval, p->pressure);
 		
@@ -1293,11 +1296,18 @@ static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *even
 		wmTabletData *wmtab= event->customdata;
 		
 		tablet= (wmtab->Active != EVT_TABLET_NONE);
-		p->pressure= wmtab->Pressure;
-		if (wmtab->Active == EVT_TABLET_ERASER)
+
+
+		if (wmtab->Active == EVT_TABLET_ERASER) {
 			// TODO... this should get caught by the keymaps which call drawing in the first place
 			// .. but until that's possible, duct tape the eraser function back on
 			p->paintmode = GP_PAINTMODE_ERASER;
+			p->pressure = wmtab->Pressure;
+		}
+		else {
+			/* 20% to 200% of normal mouse-based strength */
+			p->pressure = 1.8 * wmtab->Pressure + 0.2;
+		}
 	}
 	else
 		p->pressure= 1.0f;

@@ -71,6 +71,7 @@ void view3d_keymap(struct wmKeyConfig *keyconf);
 void VIEW3D_OT_zoom(struct wmOperatorType *ot);
 void VIEW3D_OT_move(struct wmOperatorType *ot);
 void VIEW3D_OT_rotate(struct wmOperatorType *ot);
+void VIEW3D_OT_ndof(struct wmOperatorType *ot);
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
 void VIEW3D_OT_view_selected(struct wmOperatorType *ot);
@@ -97,8 +98,6 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, struct ARegion *ar,
 			struct Object *ob, struct bPoseChannel *pchan, 
 			struct bAnimVizSettings *avs, struct bMotionPath *mpath);
 void draw_motion_paths_cleanup(Scene *scene, View3D *v3d, struct ARegion *ar);
-
-
 
 /* drawobject.c */
 void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, int flag);
@@ -192,4 +191,3 @@ void draw_volume(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, st
 
 
 #endif /* ED_VIEW3D_INTERN_H */
-

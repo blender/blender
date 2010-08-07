@@ -28,6 +28,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h> // [mce] debug, remove when finished
 
 #include "MEM_guardedalloc.h"
 
@@ -61,6 +62,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_rotate);
 	WM_operatortype_append(VIEW3D_OT_move);
 	WM_operatortype_append(VIEW3D_OT_zoom);
+	WM_operatortype_append(VIEW3D_OT_ndof);
 	WM_operatortype_append(VIEW3D_OT_view_all);
 	WM_operatortype_append(VIEW3D_OT_viewnumpad);
 	WM_operatortype_append(VIEW3D_OT_view_orbit);
@@ -155,12 +157,17 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", HOMEKEY, KM_PRESS, 0, 0)->ptr, "center", 0); /* only without camera view */
 	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", CKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "center", 1);
 
+	/* 3D mouse */
+	WM_keymap_add_item(keymap, "VIEW3D_OT_view_selected", NDOF_BUTTON1, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_ndof", NDOF_MOTION, 0, 0, 0);
+
 	/* numpad view hotkeys*/
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD0, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_CAMERA);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_FRONT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", PAD2, KM_PRESS, 0, 0)->ptr, "type", V3D_VIEW_STEPDOWN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_RIGHT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", PAD4, KM_PRESS, 0, 0)->ptr, "type", V3D_VIEW_STEPLEFT);
+
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_persportho", PAD5, KM_PRESS, 0, 0);
 	
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_view_orbit", PAD6, KM_PRESS, 0, 0)->ptr, "type", V3D_VIEW_STEPRIGHT);
@@ -300,4 +307,3 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	viewmove_modal_keymap(keyconf);
 	viewzoom_modal_keymap(keyconf);
 }
-

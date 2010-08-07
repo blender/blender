@@ -47,10 +47,10 @@ struct wmTimer;
 /* This is needed to not let VC choke on near and far... old
  * proprietary MS extensions... */
 #ifdef WIN32
-#undef near
-#undef far
-#define near clipsta
-#define far clipend
+  #undef near
+  #undef far
+  #define near clipsta
+  #define far clipend
 #endif
 
 #include "DNA_listBase.h"
@@ -137,12 +137,12 @@ typedef struct View3D {
 	float blockscale;
 	short blockhandler[8];
 	
-	float viewquat[4], dist, pad1;	/* XXX depricated */
+	float viewquat[4], dist, pad1; /* XXX deprecated */
 	
 	int lay_used; /* used while drawing */
 	
-	short persp;	/* XXX depricated */
-	short view;	/* XXX depricated */
+	short persp; /* XXX deprecated */
+	short view; /* XXX deprecated */
 	
 	struct Object *camera, *ob_centre;
 
@@ -298,5 +298,3 @@ typedef struct View3D {
 #define V3D_BGPIC_EXPANDED		2
 
 #endif
-
-

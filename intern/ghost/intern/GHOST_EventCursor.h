@@ -55,6 +55,7 @@ public:
 	{
 		m_cursorEventData.x = x;
 		m_cursorEventData.y = y;
+		m_cursorEventData.tablet.Active = GHOST_kTabletModeNone;
 		m_data = &m_cursorEventData;
 	}
 

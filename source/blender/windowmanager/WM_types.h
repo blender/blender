@@ -346,6 +346,7 @@ typedef struct wmEvent {
 } wmEvent;
 
 /* ************** custom wmEvent data ************** */
+
 typedef struct wmTabletData {
 	int Active;			/* 0=EVT_TABLET_NONE, 1=EVT_TABLET_STYLUS, 2=EVT_TABLET_ERASER */
 	float Pressure;		/* range 0.0 (not touching) to 1.0 (full pressure) */
@@ -370,6 +371,19 @@ typedef struct wmTimer {
 	double stime;			/* internal, when the timer started */
 	int sleep;				/* internal, put timers to sleep when needed */
 } wmTimer;
+
+typedef struct {
+	/* awfully similar to GHOST_TEventNDOFMotionData... */
+
+   /* Each component normally ranges from -1 to +1, but can exceed that. */
+
+   float tx, ty, tz; /* translation: -x left, +y forward, -z up */
+   float rx, ry, rz; /* rotation:
+   	axis = (rx,ry,rz).normalized
+   	amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg] */
+   
+   float dt; // time since previous NDOF Motion event (or zero if this is the first)
+} wmNDOFMotionData;
 
 
 typedef struct wmOperatorType {

@@ -55,7 +55,11 @@ protected:
 	unsigned short m_buttons;
 
 	GHOST_TUns64 m_motionTime;
+	GHOST_TUns64 m_prevMotionTime; // time of most recent Motion event sent
 	bool m_atRest;
+
+	void updateMotionTime(GHOST_TUns64 t);
+	void resetMotion();
 };
 
 

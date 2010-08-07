@@ -222,11 +222,8 @@ public:
     
 
 	const GHOST_TabletData* GetTabletData()
-	{ return &m_tablet; }
+		{ return NULL; }
 
-	GHOST_TabletData& GetCocoaTabletData()
-	{ return m_tablet; }
-	
 	/**
 	 * Sets the progress bar value displayed in the window/application icon
 	 * @param progress The progress % (0.0 to 1.0)
@@ -300,9 +297,6 @@ protected:
 	static NSOpenGLContext *s_firstOpenGLcontext;
 	
 	NSCursor*	m_customCursor;
-
-	GHOST_TabletData m_tablet;
 };
 
 #endif // _GHOST_WINDOW_COCOA_H_
-

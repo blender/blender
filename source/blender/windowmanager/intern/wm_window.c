@@ -796,8 +796,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 					}
 				}
 				
-				
-				
 				break;
 			}
 			
@@ -805,7 +803,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				wm_event_add_ghostevent(wm, win, type, time, data);
 				break;
 		}
-
 	}
 	return 1;
 }

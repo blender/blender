@@ -36,42 +36,66 @@
 #define WM_EVENT_TYPES_H
 
 /* customdata type */
-#define EVT_DATA_TABLET		1
-#define EVT_DATA_GESTURE	2
-#define EVT_DATA_TIMER		3
-#define EVT_DATA_LISTBASE	4
+#define EVT_DATA_TABLET      1
+#define EVT_DATA_GESTURE     2
+#define EVT_DATA_TIMER       3
+#define EVT_DATA_LISTBASE    4
+#define EVT_DATA_NDOF_MOTION 5
 
 /* tablet active, matches GHOST_TTabletMode */
+/* [mce] also matches my own TabletTool.type */
 #define EVT_TABLET_NONE		0
 #define EVT_TABLET_STYLUS	1
 #define EVT_TABLET_ERASER	2
 
-#define MOUSEX		0x004	
-#define MOUSEY		0x005	
+/* [mce] what are these for? */
+#define MOUSEX		0x004
+#define MOUSEY		0x005
 
 /* MOUSE : 0x00x */
-#define LEFTMOUSE		0x001	
-#define MIDDLEMOUSE		0x002	
-#define RIGHTMOUSE		0x003	
-#define MOUSEMOVE		0x004	
+#define LEFTMOUSE		0x001
+#define MIDDLEMOUSE		0x002
+#define RIGHTMOUSE		0x003
+#define MOUSEMOVE		0x004
 		/* only use if you want user option switch possible */
 #define ACTIONMOUSE		0x005
 #define SELECTMOUSE		0x006
 		/* Extra mouse buttons */
-#define BUTTON4MOUSE	0x007  
+#define BUTTON4MOUSE	0x007
 #define BUTTON5MOUSE	0x008
 		/* Extra trackpad gestures */
 #define MOUSEPAN		0x00e
 #define MOUSEZOOM		0x00f
 #define MOUSEROTATE		0x010
 		/* defaults from ghost */
-#define WHEELUPMOUSE	0x00a	
+#define WHEELUPMOUSE	0x00a
 #define WHEELDOWNMOUSE	0x00b
 		/* mapped with userdef */
 #define WHEELINMOUSE	0x00c
 #define WHEELOUTMOUSE	0x00d
 #define INBETWEEN_MOUSEMOVE	0x011
 
+/* NDOF (from SpaceNavigator & friends) */
+#define NDOF_MOTION 0x12
+enum {
+	NDOF_BUTTON_NONE = NDOF_MOTION, /* never sent, used during translation */
+	NDOF_BUTTON1,
+	NDOF_BUTTON2/*,
+	NDOF_BUTTON3,
+	NDOF_BUTTON4,
+	NDOF_BUTTON5,
+	NDOF_BUTTON6,
+	NDOF_BUTTON7,
+	NDOF_BUTTON8,
+	NDOF_BUTTON9,
+	NDOF_BUTTON10,
+	NDOF_BUTTON11,
+	NDOF_BUTTON12,
+	NDOF_BUTTON13,
+	NDOF_BUTTON14,
+	NDOF_BUTTON15,
+	NDOF_BUTTON16*/
+	};
 
 /* SYSTEM : 0x01xx */
 #define	INPUTCHANGE		0x0103	/* input connected or disconnected */
@@ -126,9 +150,9 @@
 #define CAPSLOCKKEY		211
 
 #define LEFTCTRLKEY		212
-#define LEFTALTKEY 		213
-#define	RIGHTALTKEY 	214
-#define	RIGHTCTRLKEY 	215
+#define LEFTALTKEY		213
+#define RIGHTALTKEY		214
+#define RIGHTCTRLKEY		215
 #define RIGHTSHIFTKEY	216
 #define LEFTSHIFTKEY	217
 
@@ -169,8 +193,8 @@
 
 
 #define PADPERIOD		199
-#define	PADSLASHKEY 	161
-#define PADASTERKEY 	160
+#define PADSLASHKEY	161
+#define PADASTERKEY	160
 
 #define PADMINUS		162
 #define PADENTER		163
@@ -299,4 +323,3 @@
 
 
 #endif	/* WM_EVENT_TYPES_H */
-

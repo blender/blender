@@ -55,6 +55,7 @@ public:
 		: GHOST_Event(time, type, window)
 	{
 		m_buttonEventData.button = button;
+		m_buttonEventData.tablet.Active = GHOST_kTabletModeNone;
 		m_data = &m_buttonEventData;
 	}
 
@@ -64,4 +65,3 @@ protected:
 };
 
 #endif // _GHOST_EVENT_BUTTON_H_
-

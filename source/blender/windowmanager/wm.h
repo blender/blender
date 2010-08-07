@@ -83,4 +83,3 @@ extern int circle_select_size;
 #endif
 
 #endif /* WM_H */
-

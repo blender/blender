@@ -132,7 +132,6 @@ void mul_fac_qt_fl(float *q, float fac)
 	q[1]*= si;
 	q[2]*= si;
 	q[3]*= si;
-	
 }
 
 void quat_to_mat3(float m[][3], float *q)
@@ -307,7 +306,6 @@ void mat3_to_quat_is_ok(float q[4], float wmat[3][3])
 	
 	mul_qt_qtqt(q, q1, q2);
 }
-
 
 void normalize_qt(float *q)
 {
@@ -585,7 +583,7 @@ void axis_angle_to_quat(float q[4], float axis[3], float angle)
 }
 
 /* Quaternions to Axis Angle */
-void quat_to_axis_angle(float axis[3], float *angle,float q[4])
+void quat_to_axis_angle(float axis[3], float *angle, float q[4])
 {
 	float ha, si;
 	
@@ -687,7 +685,7 @@ void mat4_to_axis_angle(float axis[3], float *angle,float mat[4][4])
 }
 
 /****************************** Vector/Rotation ******************************/
-/* TODO: the following calls should probably be depreceated sometime         */
+/* TODO: the following calls should probably be deprecated sometime         */
 
 /* 3x3 matrix to axis angle */
 void mat3_to_vec_rot(float axis[3], float *angle,float mat[3][3])
