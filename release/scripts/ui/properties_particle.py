@@ -25,40 +25,36 @@ from properties_physics_common import effector_weights_ui
 from properties_physics_common import basic_force_field_settings_ui
 from properties_physics_common import basic_force_field_falloff_ui
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 def particle_panel_enabled(context, psys):
     return (psys.point_cache.baked is False) and (not psys.edited) and (not context.particle_system_editable)
 
 
-def particle_panel_poll(panel, context):
+def particle_panel_poll(cls, context):
     psys = context.particle_system
     engine = context.scene.render.engine
     if psys is None:
         return False
     if psys.settings is None:
         return False
-    return psys.settings.type in ('EMITTER', 'REACTOR', 'HAIR') and (engine in panel.COMPAT_ENGINES)
+    return psys.settings.type in ('EMITTER', 'REACTOR', 'HAIR') and (engine in cls.COMPAT_ENGINES)
 
 
-class ParticleButtonsPanel(bpy.types.Panel):
+class ParticleButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "particle"
 
-    def poll(self, context):
-        return particle_panel_poll(self, context)
 
-
-class PARTICLE_PT_context_particles(ParticleButtonsPanel):
+class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         engine = context.scene.render.engine
-        return (context.particle_system or context.object) and (engine in self.COMPAT_ENGINES)
+        return (context.particle_system or context.object) and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -136,17 +132,22 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel):
                     split.prop(psys, "reactor_target_particle_system", text="Particle System")
 
 
-class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel):
+class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
     _context_path = "particle_system.settings"
 
+    @staticmethod
+    def poll(context):
+        return particle_panel_poll(__class__, context)
 
-class PARTICLE_PT_emission(ParticleButtonsPanel):
+
+class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Emission"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
-        if particle_panel_poll(self, context):
+    @staticmethod
+    def poll(context):
+        if particle_panel_poll(PARTICLE_PT_emission, context):
             return not context.particle_system.point_cache.external
         else:
             return False
@@ -156,7 +157,6 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
 
         psys = context.particle_system
         part = psys.settings
-        wide_ui = context.region.width > narrowui
 
         layout.enabled = particle_panel_enabled(context, psys) and not psys.multiple_caches
 
@@ -178,10 +178,8 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
         layout.row().label(text="Emit From:")
 
         row = layout.row()
-        if wide_ui:
-            row.prop(part, "emit_from", expand=True)
-        else:
-            row.prop(part, "emit_from", text="")
+        row.prop(part, "emit_from", expand=True)
+
         row = layout.row()
         row.prop(part, "trand")
         if part.distribution != 'GRID':
@@ -189,10 +187,8 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
 
         if part.emit_from == 'FACE' or part.emit_from == 'VOLUME':
             row = layout.row()
-            if wide_ui:
-                row.prop(part, "distribution", expand=True)
-            else:
-                row.prop(part, "distribution", text="")
+
+            row.prop(part, "distribution", expand=True)
 
             row = layout.row()
 
@@ -203,19 +199,20 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
                 row.prop(part, "grid_resolution")
 
 
-class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
+class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Hair dynamics"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         psys = context.particle_system
         engine = context.scene.render.engine
         if psys is None:
             return False
         if psys.settings is None:
             return False
-        return psys.settings.type == 'HAIR' and (engine in self.COMPAT_ENGINES)
+        return psys.settings.type == 'HAIR' and (engine in __class__.COMPAT_ENGINES)
 
     def draw_header(self, context):
         #cloth = context.cloth.collision_settings
@@ -260,12 +257,13 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
         col.prop(cloth, "quality", text="Steps", slider=True)
 
 
-class PARTICLE_PT_cache(ParticleButtonsPanel):
+class PARTICLE_PT_cache(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Cache"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         psys = context.particle_system
         engine = context.scene.render.engine
         if psys is None:
@@ -275,7 +273,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
         phystype = psys.settings.physics_type
         if phystype == 'NO' or phystype == 'KEYED':
             return False
-        return (psys.settings.type in ('EMITTER', 'REACTOR') or (psys.settings.type == 'HAIR' and psys.hair_dynamics)) and engine in self.COMPAT_ENGINES
+        return (psys.settings.type in ('EMITTER', 'REACTOR') or (psys.settings.type == 'HAIR' and psys.hair_dynamics)) and engine in __class__.COMPAT_ENGINES
 
     def draw(self, context):
         psys = context.particle_system
@@ -283,12 +281,13 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
         point_cache_ui(self, context, psys.point_cache, True, 'HAIR' if psys.hair_dynamics else 'PSYS')
 
 
-class PARTICLE_PT_velocity(ParticleButtonsPanel):
+class PARTICLE_PT_velocity(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Velocity"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
-        if particle_panel_poll(self, context):
+    @staticmethod
+    def poll(context):
+        if particle_panel_poll(PARTICLE_PT_velocity, context):
             psys = context.particle_system
             return psys.settings.physics_type != 'BOIDS' and not psys.point_cache.external
         else:
@@ -330,12 +329,13 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel):
         #    sub.prop(part, "reaction_shape", slider=True)
 
 
-class PARTICLE_PT_rotation(ParticleButtonsPanel):
+class PARTICLE_PT_rotation(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Rotation"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
-        if particle_panel_poll(self, context):
+    @staticmethod
+    def poll(context):
+        if particle_panel_poll(PARTICLE_PT_rotation, context):
             psys = context.particle_system
             return psys.settings.physics_type != 'BOIDS' and not psys.point_cache.external
         else:
@@ -346,7 +346,6 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel):
 
         psys = context.particle_system
         part = psys.settings
-        wide_ui = context.region.width > narrowui
 
         layout.enabled = particle_panel_enabled(context, psys)
 
@@ -364,10 +363,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel):
         sub.prop(part, "random_phase_factor", text="Random", slider=True)
 
         layout.row().label(text="Angular Velocity:")
-        if wide_ui:
-            layout.row().prop(part, "angular_velocity_mode", expand=True)
-        else:
-            layout.row().prop(part, "angular_velocity_mode", text="")
+        layout.row().prop(part, "angular_velocity_mode", expand=True)
         split = layout.split()
 
         sub = split.column()
@@ -376,12 +372,13 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel):
             sub.prop(part, "angular_velocity_factor", text="")
 
 
-class PARTICLE_PT_physics(ParticleButtonsPanel):
+class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
-        if particle_panel_poll(self, context):
+    @staticmethod
+    def poll(context):
+        if particle_panel_poll(PARTICLE_PT_physics, context):
             return not context.particle_system.point_cache.external
         else:
             return False
@@ -391,21 +388,18 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 
         psys = context.particle_system
         part = psys.settings
-        wide_ui = context.region.width > narrowui
 
         layout.enabled = particle_panel_enabled(context, psys)
 
         row = layout.row()
-        if wide_ui:
-            row.prop(part, "physics_type", expand=True)
-        else:
-            row.prop(part, "physics_type", text="")
+        row.prop(part, "physics_type", expand=True)
+
+        row = layout.row()
+        col = row.column(align=True)
+        col.prop(part, "particle_size")
+        col.prop(part, "random_size", slider=True)
 
         if part.physics_type != 'NO':
-            row = layout.row()
-            col = row.column(align=True)
-            col.prop(part, "particle_size")
-            col.prop(part, "random_size", slider=True)
             col = row.column(align=True)
             col.prop(part, "mass")
             col.prop(part, "sizemass", text="Multiply mass with size")
@@ -572,11 +566,12 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
                     sub.prop(key, "system", text="System")
 
 
-class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
+class PARTICLE_PT_boidbrain(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Boid Brain"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         psys = context.particle_system
         engine = context.scene.render.engine
         if psys is None:
@@ -585,7 +580,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
             return False
         if psys.point_cache.external:
             return False
-        return psys.settings.physics_type == 'BOIDS' and engine in self.COMPAT_ENGINES
+        return psys.settings.physics_type == 'BOIDS' and engine in __class__.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
@@ -672,25 +667,25 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
                 row.prop(rule, "flee_distance")
 
 
-class PARTICLE_PT_render(ParticleButtonsPanel):
+class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Render"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         psys = context.particle_system
         engine = context.scene.render.engine
         if psys is None:
             return False
         if psys.settings is None:
             return False
-        return engine in self.COMPAT_ENGINES
+        return engine in __class__.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
 
         psys = context.particle_system
         part = psys.settings
-        wide_ui = context.region.width > narrowui
 
         row = layout.row()
         row.prop(part, "material")
@@ -706,10 +701,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
         sub.prop(part, "died")
 
         row = layout.row()
-        if wide_ui:
-            row.prop(part, "ren_as", expand=True)
-        else:
-            row.prop(part, "ren_as", text="")
+        row.prop(part, "ren_as", expand=True)
 
         split = layout.split()
 
@@ -796,10 +788,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
             sub.label(text="Align:")
 
             row = layout.row()
-            if wide_ui:
-                row.prop(part, "billboard_align", expand=True)
-            else:
-                row.prop(part, "billboard_align", text="")
+            row.prop(part, "billboard_align", expand=True)
             row.prop(part, "billboard_lock", text="Lock")
             row = layout.row()
             row.prop(part, "billboard_object")
@@ -842,32 +831,29 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
                 col.label(text="")
 
 
-class PARTICLE_PT_draw(ParticleButtonsPanel):
+class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         psys = context.particle_system
         engine = context.scene.render.engine
         if psys is None:
             return False
         if psys.settings is None:
             return False
-        return engine in self.COMPAT_ENGINES
+        return engine in __class__.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
 
         psys = context.particle_system
         part = psys.settings
-        wide_ui = context.region.width > narrowui
 
         row = layout.row()
-        if wide_ui:
-            row.prop(part, "draw_as", expand=True)
-        else:
-            row.prop(part, "draw_as", text="")
+        row.prop(part, "draw_as", expand=True)
 
         if part.draw_as == 'NONE' or (part.ren_as == 'NONE' and part.draw_as == 'RENDER'):
             return
@@ -901,22 +887,22 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
             #sub.label(text="Override material color")
 
 
-class PARTICLE_PT_children(ParticleButtonsPanel):
+class PARTICLE_PT_children(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Children"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @staticmethod
+    def poll(context):
+        return particle_panel_poll(__class__, context)
 
     def draw(self, context):
         layout = self.layout
 
         psys = context.particle_system
         part = psys.settings
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.row().prop(part, "child_type", expand=True)
-        else:
-            layout.row().prop(part, "child_type", text="")
+        layout.row().prop(part, "child_type", expand=True)
 
         if part.child_type == 'NONE':
             return
@@ -972,10 +958,7 @@ class PARTICLE_PT_children(ParticleButtonsPanel):
         col.label(text="hair parting controls")
 
         layout.row().label(text="Kink:")
-        if wide_ui:
-            layout.row().prop(part, "kink", expand=True)
-        else:
-            layout.row().prop(part, "kink", text="")
+        layout.row().prop(part, "kink", expand=True)
 
         split = layout.split()
 
@@ -986,10 +969,14 @@ class PARTICLE_PT_children(ParticleButtonsPanel):
         col.prop(part, "kink_shape", slider=True)
 
 
-class PARTICLE_PT_field_weights(ParticleButtonsPanel):
+class PARTICLE_PT_field_weights(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Field Weights"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @staticmethod
+    def poll(context):
+        return particle_panel_poll(__class__, context)
 
     def draw(self, context):
         part = context.particle_system.settings
@@ -999,10 +986,14 @@ class PARTICLE_PT_field_weights(ParticleButtonsPanel):
             self.layout.prop(part.effector_weights, "do_growing_hair")
 
 
-class PARTICLE_PT_force_fields(ParticleButtonsPanel):
+class PARTICLE_PT_force_fields(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Force Field Settings"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @staticmethod
+    def poll(context):
+        return particle_panel_poll(__class__, context)
 
     def draw(self, context):
         layout = self.layout
@@ -1027,10 +1018,14 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel):
         basic_force_field_falloff_ui(self, context, part.force_field_2)
 
 
-class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
+class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Vertexgroups"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @staticmethod
+    def poll(context):
+        return particle_panel_poll(__class__, context)
 
     def draw(self, context):
         layout = self.layout
@@ -1095,35 +1090,12 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
         row.prop(psys, "vertex_group_field_negate", text="")
 
 
-classes = [
-    PARTICLE_PT_context_particles,
-    PARTICLE_PT_hair_dynamics,
-    PARTICLE_PT_cache,
-    PARTICLE_PT_emission,
-    PARTICLE_PT_velocity,
-    PARTICLE_PT_rotation,
-    PARTICLE_PT_physics,
-    PARTICLE_PT_boidbrain,
-    PARTICLE_PT_render,
-    PARTICLE_PT_draw,
-    PARTICLE_PT_children,
-    PARTICLE_PT_field_weights,
-    PARTICLE_PT_force_fields,
-    PARTICLE_PT_vertexgroups,
-
-    PARTICLE_PT_custom_props]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

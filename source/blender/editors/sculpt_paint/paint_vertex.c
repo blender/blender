@@ -48,6 +48,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_brush_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -386,9 +387,8 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 			int actdef= 0;
 			char name[32];
 
-			BLI_strncpy(name, defgroup->name, 32);
-			bone_flip_name(name, 0);		/* 0 = don't strip off number extensions */
-			
+			flip_side_name(name, defgroup->name, FALSE);
+
 			for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++)
 				if (!strcmp(curdef->name, name))
 					break;
@@ -1390,10 +1390,9 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 			bDeformGroup *curdef;
 			int actdef= 0;
 			char name[32];
-			
-			BLI_strncpy(name, defgroup->name, 32);
-			bone_flip_name(name, 0);		/* 0 = don't strip off number extensions */
-			
+
+			flip_side_name(name, defgroup->name, FALSE);
+
 			for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++)
 				if (!strcmp(curdef->name, name))
 					break;
@@ -1445,7 +1444,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	/* load projection matrix */
 	mul_m4_m4m4(mat, ob->obmat, vc->rv3d->persmat);
 
-	flip = RNA_boolean_get(itemptr, "flip");
+	flip = RNA_boolean_get(itemptr, "pen_flip");
 	pressure = RNA_float_get(itemptr, "pressure");
 	RNA_float_get_array(itemptr, "mouse", mval);
 	mval[0]-= vc->ar->winrct.xmin;
@@ -1860,7 +1859,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float pressure, mval[2];
 
 	RNA_float_get_array(itemptr, "mouse", mval);
-	flip = RNA_boolean_get(itemptr, "flip");
+	flip = RNA_boolean_get(itemptr, "pen_flip");
 	pressure = RNA_float_get(itemptr, "pressure");
 			
 	view3d_operator_needs_opengl(C);

@@ -20,15 +20,12 @@
 
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 #cachetype can be 'PSYS' 'HAIR' 'SMOKE' etc
 
 
 def point_cache_ui(self, context, cache, enabled, cachetype):
     layout = self.layout
 
-    wide_ui = context.region.width > narrowui
     layout.set_context_pointer("point_cache", cache)
 
     row = layout.row()
@@ -66,8 +63,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         if cachetype != 'SMOKE':
             col.prop(cache, "step")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
 
         if cachetype != 'SMOKE':
             sub = col.column()
@@ -102,8 +98,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         sub.operator("ptcache.bake_from_cache", text="Current Cache to Bake")
 
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.operator("ptcache.bake_all", text="Bake All Dynamics").bake = True
         col.operator("ptcache.free_bake_all", text="Free All Bakes")
         col.operator("ptcache.bake_all", text="Update All To Frame").bake = False
@@ -112,7 +107,6 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 def effector_weights_ui(self, context, weights):
     layout = self.layout
 
-    wide_ui = context.region.width > narrowui
 
     layout.prop(weights, "group")
 
@@ -121,8 +115,7 @@ def effector_weights_ui(self, context, weights):
     col = split.column()
     col.prop(weights, "gravity", slider=True)
 
-    if wide_ui:
-        col = split.column()
+    col = split.column()
     col.prop(weights, "all", slider=True)
 
     layout.separator()
@@ -137,8 +130,7 @@ def effector_weights_ui(self, context, weights):
     col.prop(weights, "curveguide", slider=True)
     col.prop(weights, "texture", slider=True)
 
-    if wide_ui:
-        col = split.column()
+    col = split.column()
     col.prop(weights, "harmonic", slider=True)
     col.prop(weights, "charge", slider=True)
     col.prop(weights, "lennardjones", slider=True)
@@ -150,7 +142,6 @@ def effector_weights_ui(self, context, weights):
 def basic_force_field_settings_ui(self, context, field):
     layout = self.layout
 
-    wide_ui = context.region.width > narrowui
 
     split = layout.split()
 
@@ -177,8 +168,7 @@ def basic_force_field_settings_ui(self, context, field):
     else:
         col.prop(field, "flow")
 
-    if wide_ui:
-        col = split.column()
+    col = split.column()
     col.prop(field, "noise")
     col.prop(field, "seed")
     if field.type == 'TURBULENCE':
@@ -193,8 +183,7 @@ def basic_force_field_settings_ui(self, context, field):
     col.prop(field, "do_location")
     col.prop(field, "do_rotation")
 
-    if wide_ui:
-        col = split.column()
+    col = split.column()
     col.label(text="Collision:")
     col.prop(field, "do_absorption")
 
@@ -202,12 +191,9 @@ def basic_force_field_settings_ui(self, context, field):
 def basic_force_field_falloff_ui(self, context, field):
     layout = self.layout
 
-    wide_ui = context.region.width > narrowui
 
     # XXX: This doesn't update for some reason.
-    #if wide_ui:
-    #    split = layout.split()
-    #else:
+    #split = layout.split()
     split = layout.split(percentage=0.35)
 
     if not field or field.type == 'NONE':
@@ -218,8 +204,7 @@ def basic_force_field_falloff_ui(self, context, field):
     col.prop(field, "use_min_distance", text="Use Minimum")
     col.prop(field, "use_max_distance", text="Use Maximum")
 
-    if wide_ui:
-        col = split.column()
+    col = split.column()
     col.prop(field, "falloff_power", text="Power")
 
     sub = col.column()

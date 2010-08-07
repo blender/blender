@@ -131,7 +131,7 @@ void init_render_textures(Render *re)
 {
 	Tex *tex;
 	
-	tex= G.main->tex.first;
+	tex= re->main->tex.first;
 	while(tex) {
 		if(tex->id.us) init_render_texture(re, tex);
 		tex= tex->id.next;
@@ -144,10 +144,10 @@ void end_render_texture(Tex *tex)
 		ntreeEndExecTree(tex->nodetree);
 }
 
-void end_render_textures(void)
+void end_render_textures(Render *re)
 {
 	Tex *tex;
-	for(tex= G.main->tex.first; tex; tex= tex->id.next)
+	for(tex= re->main->tex.first; tex; tex= tex->id.next)
 		if(tex->id.us)
 			end_render_texture(tex);
 }
@@ -1731,7 +1731,7 @@ void do_material_tex(ShadeInput *shi)
 				co= shi->tang; dx= shi->dxno; dy= shi->dyno;
 			}
 			else if(mtex->texco==TEXCO_GLOB) {
-				co= shi->gl; dx= shi->dxco; dy= shi->dyco;
+				co= shi->gl; dx= shi->dxgl; dy= shi->dygl;
 			}
 			else if(mtex->texco==TEXCO_UV) {
 				if(mtex->texflag & MTEX_DUPLI_MAPTO) {
@@ -2509,6 +2509,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 	if (R.r.scemode & R_NO_TEX) return;
 	
 	mtex= har->mat->mtex[0];
+	if(har->mat->septex & (1<<0)) return;
 	if(mtex->tex==NULL) return;
 	
 	/* no normal mapping */
@@ -2881,6 +2882,9 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 				if(la->type==LA_SPOT) {
 					tempvec[0]*= la->spottexfac;
 					tempvec[1]*= la->spottexfac;
+                    /* project from 3d to 2d */
+					tempvec[0] /= -tempvec[2];
+					tempvec[1] /= -tempvec[2];
 				}
 				co= tempvec; 
 				

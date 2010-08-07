@@ -382,7 +382,7 @@ static void rna_def_touch_sensor(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Material", "Only look for objects with this material");
 	/* note: custom set function is ONLY to avoid rna setting a user for this. */
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Sensor_touch_material_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Sensor_touch_material_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 

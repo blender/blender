@@ -747,11 +747,10 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 static void widget_draw_preview(BIFIconID icon, float aspect, float alpha, rcti *rect)
 {
 	int w, h, x, y, size;
-	
-	/* only display previews for actual preview images .. ? */
-	if (icon < BIFICONID_LAST)
+
+	if(!icon)
 		return;
-	
+
 	w = rect->xmax - rect->xmin;
 	h = rect->ymax - rect->ymin;
 	size = MIN2(w, h);

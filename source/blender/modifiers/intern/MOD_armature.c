@@ -33,6 +33,7 @@
 #include "string.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_lattice.h"

@@ -30,6 +30,7 @@
 *
 */
 
+#include "DNA_object_types.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"

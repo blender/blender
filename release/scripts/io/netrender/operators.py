@@ -26,13 +26,13 @@ from netrender.utils import *
 import netrender.client as client
 import netrender.model
 
-@rnaType
 class RENDER_OT_netslave_bake(bpy.types.Operator):
     '''NEED DESCRIPTION'''
     bl_idname = "render.netslavebake"
     bl_label = "Bake all in file"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -84,13 +84,13 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientanim(bpy.types.Operator):
     '''Start rendering an animation on network'''
     bl_idname = "render.netclientanim"
     bl_label = "Animation on network"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -111,13 +111,13 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientrun(bpy.types.Operator):
     '''Start network rendering service'''
     bl_idname = "render.netclientstart"
     bl_label = "Start Service"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -128,13 +128,13 @@ class RENDER_OT_netclientrun(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientsend(bpy.types.Operator):
     '''Send Render Job to the Network'''
     bl_idname = "render.netclientsend"
     bl_label = "Send job"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -158,13 +158,13 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientsendframe(bpy.types.Operator):
     '''Send Render Job with current frame to the Network'''
     bl_idname = "render.netclientsendframe"
     bl_label = "Send current frame job"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -188,13 +188,13 @@ class RENDER_OT_netclientsendframe(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientstatus(bpy.types.Operator):
     '''Refresh the status of the current jobs'''
     bl_idname = "render.netclientstatus"
     bl_label = "Client Status"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -228,13 +228,13 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
     '''Operator documentation text, will be used for the operator tooltip and python docs.'''
     bl_idname = "render.netclientblacklistslave"
     bl_label = "Client Blacklist Slave"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -258,13 +258,13 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
     '''Operator documentation text, will be used for the operator tooltip and python docs.'''
     bl_idname = "render.netclientwhitelistslave"
     bl_label = "Client Whitelist Slave"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -289,13 +289,13 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
         return self.execute(context)
 
 
-@rnaType
 class RENDER_OT_netclientslaves(bpy.types.Operator):
     '''Refresh status about available Render slaves'''
     bl_idname = "render.netclientslaves"
     bl_label = "Client Slaves"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -334,13 +334,13 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientcancel(bpy.types.Operator):
     '''Cancel the selected network rendering job.'''
     bl_idname = "render.netclientcancel"
     bl_label = "Client Cancel"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         netsettings = context.scene.network_render
         return netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0
 
@@ -363,13 +363,13 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientcancelall(bpy.types.Operator):
     '''Cancel all running network rendering jobs.'''
     bl_idname = "render.netclientcancelall"
     bl_label = "Client Cancel All"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -390,13 +390,13 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class netclientdownload(bpy.types.Operator):
     '''Download render results from the network'''
     bl_idname = "render.netclientdownload"
     bl_label = "Client Download"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         netsettings = context.scene.network_render
         return netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0
 
@@ -435,13 +435,13 @@ class netclientdownload(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class netclientscan(bpy.types.Operator):
     '''Listen on network for master server broadcasting its address and port.'''
     bl_idname = "render.netclientscan"
     bl_label = "Client Scan"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return True
 
     def execute(self, context):
@@ -458,13 +458,13 @@ class netclientscan(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class netclientweb(bpy.types.Operator):
     '''Open new window with information about running rendering jobs'''
     bl_idname = "render.netclientweb"
     bl_label = "Open Master Monitor"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         netsettings = context.scene.network_render
         return netsettings.server_address != "[default]"
 

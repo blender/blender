@@ -39,6 +39,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_material_types.h"
 
 #include "BLI_blenlib.h"
@@ -63,6 +64,7 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
+#include "ED_curve.h" /* for BKE_curve_nurbs */
 
 static void boundbox_displist(Object *ob);
 
@@ -152,7 +154,7 @@ void copy_displist(ListBase *lbn, ListBase *lb)
 	}
 }
 
-void addnormalsDispList(Object *ob, ListBase *lb)
+void addnormalsDispList(ListBase *lb)
 {
 	DispList *dl = NULL;
 	float *vdata, *ndata, nor[3];
@@ -1127,7 +1129,7 @@ float calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
 	Curve *cu;
 	DispList *dl;
 	
-	if(taperobj==NULL) return 1.0;
+	if(taperobj==NULL || taperobj->type!=OB_CURVE) return 1.0;
 	
 	cu= taperobj->data;
 	dl= cu->disp.first;
@@ -1221,7 +1223,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	ModifierData *preTesselatePoint;
 	Curve *cu= ob->data;
-	ListBase *nurb= cu->editnurb?cu->editnurb:&cu->nurb;
+	ListBase *nurb= BKE_curve_nurbs(cu);
 	int numVerts = 0;
 	int editmode = (!forRender && cu->editnurb);
 	float (*originalVerts)[3] = NULL;
@@ -1324,8 +1326,8 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	ModifierData *preTesselatePoint;
 	Curve *cu= ob->data;
-	ListBase *nurb= cu->editnurb?cu->editnurb:&cu->nurb;
-	int required_mode, totvert = 0;
+	ListBase *nurb= BKE_curve_nurbs(cu);
+	int required_mode = 0, totvert = 0;
 	int editmode = (!forRender && cu->editnurb);
 	DerivedMesh *dm= NULL, *ndm;
 	float (*vertCos)[3] = NULL;
@@ -1590,9 +1592,9 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 	int numVerts;
 	float (*originalVerts)[3];
 	float (*deformedVerts)[3];
-		
+
 	if(!forRender && cu->editnurb)
-		nubase= cu->editnurb;
+		nubase= ED_curve_editnurbs(cu);
 	else
 		nubase= &cu->nurb;
 
@@ -1680,19 +1682,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		float (*deformedVerts)[3];
 		int numVerts;
 
-		/* Bevel and taper objects should always be curves */
-		if (cu->bevobj && cu->bevobj->type != OB_CURVE) {
-			cu->bevobj = NULL;
-		}
-
-		if (cu->taperobj && cu->taperobj->type != OB_CURVE) {
-			cu->taperobj = NULL;
-		}
-
-		if(cu->editnurb)
-			nubase= cu->editnurb;
-		else
-			nubase= &cu->nurb;
+		nubase= BKE_curve_nurbs(cu);
 
 		BLI_freelistN(&(cu->bev));
 

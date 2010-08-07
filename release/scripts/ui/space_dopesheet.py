@@ -196,25 +196,12 @@ class DOPESHEET_MT_key_transform(bpy.types.Menu):
         layout.operator("transform.transform", text="Scale").mode = 'TIME_SCALE'
 
 
-classes = [
-    DOPESHEET_HT_header, # header/menu classes
-    DOPESHEET_MT_view,
-    DOPESHEET_MT_select,
-    DOPESHEET_MT_channel,
-    DOPESHEET_MT_key,
-    DOPESHEET_MT_key_transform]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

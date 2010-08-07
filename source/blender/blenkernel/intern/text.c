@@ -43,6 +43,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
+#include "DNA_userdef_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -479,7 +481,7 @@ void unlink_text(Main *bmain, Text *text)
 	for(scene=bmain->scene.first; scene; scene=scene->id.next)
 		if(scene->r.dometext == text)
 			scene->r.dometext = NULL;
-	
+
 	for(ob=bmain->object.first; ob; ob=ob->id.next) {
 		/* game controllers */
 		for(cont=ob->controllers.first; cont; cont=cont->next) {
@@ -2683,19 +2685,20 @@ void uncomment(Text *text)
 	}
 }
 
-int setcurr_tab (Text *text)
+int setcurr_tab_spaces (Text *text, int space)
 {
 	int i = 0;
 	int test = 0;
-	char *word = ":";
-	char *comm = "#";
-	char back_words[4][7] = {"return", "break", "pass", "yield"};
+	const char *word = ":";
+	const char *comm = "#";
+	const char indent= (text->flags & TXT_TABSTOSPACES) ? ' ' : '\t';
+	static char *back_words[]= {"return", "break", "continue", "pass", "yield", NULL};
 	if (!text) return 0;
 	if (!text->curl) return 0;
-	
-	while (text->curl->line[i] == '\t')
+
+	while (text->curl->line[i] == indent)
 	{
-		//we only count thos tabs that are before any text or before the curs;
+		//we only count those tabs/spaces that are before any text or before the curs;
 		if (i == text->curc)
 		{
 			return i;
@@ -2718,18 +2721,18 @@ int setcurr_tab (Text *text)
 			}
 		}
 		if (indent) {
-			i++;
+			i += space;
 		}
 	}
 
-	for(test=0; test < 4; test++)
+	for(test=0; back_words[test]; test++)
 	{
-		//if there are these 4 key words then remove a tab because we are done with the block
+		/* if there are these key words then remove a tab because we are done with the block */
 		if(strstr(text->curl->line, back_words[test]) && i > 0)
 		{
 			if(strcspn(text->curl->line, back_words[test]) < strcspn(text->curl->line, comm))
 			{
-				i--;
+				i -= space;
 			}
 		}
 	}

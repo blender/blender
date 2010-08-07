@@ -283,7 +283,7 @@ void free_object(Object *ob)
 	ob->path= 0;
 	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
-	if(ob->gpd) ob->gpd->id.us--;
+	if(ob->gpd) ((ID *)ob->gpd)->us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose)
@@ -1627,10 +1627,7 @@ float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 void object_scale_to_mat3(Object *ob, float mat[][3])
 {
 	float vec[3];
-	
-	vec[0]= ob->size[0]+ob->dsize[0];
-	vec[1]= ob->size[1]+ob->dsize[1];
-	vec[2]= ob->size[2]+ob->dsize[2];
+	add_v3_v3v3(vec, ob->size, ob->dsize);
 	size_to_mat3( mat,vec);
 }
 
@@ -1688,7 +1685,7 @@ void object_mat3_to_rot(Object *ob, float mat[][3], int use_compat)
 void object_apply_mat4(Object *ob, float mat[][4])
 {
 	float mat3[3][3];
-	VECCOPY(ob->loc, mat[3]);
+	copy_v3_v3(ob->loc, mat[3]);
 	mat4_to_size(ob->size, mat);
 	copy_m3_m4(mat3, mat);
 	object_mat3_to_rot(ob, mat3, 0);
@@ -1796,7 +1793,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 			copy_m4_m4(mat, rmat);
 		}
 
-		VECCOPY(mat[3], vec);
+		copy_v3_v3(mat[3], vec);
 		
 	}
 }
@@ -1823,7 +1820,7 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 	copy_m4_m4(mat, pchan->pose_mat);
 
 	/* but for backwards compatibility, the child has to move to the tail */
-	VECCOPY(vec, mat[1]);
+	copy_v3_v3(vec, mat[1]);
 	mul_v3_fl(vec, pchan->bone->length);
 	add_v3_v3(mat[3], vec);
 }
@@ -1837,47 +1834,38 @@ static void give_parvert(Object *par, int nr, float *vec)
 	
 	if(par->type==OB_MESH) {
 		Mesh *me= par->data;
+		DerivedMesh *dm;
+
 		em = BKE_mesh_get_editmesh(me);
-
-		if(em) {
-			EditVert *eve;
+		dm = (em)? em->derivedFinal: par->derivedFinal;
 			
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->keyindex==nr) {
-					memcpy(vec, eve->co, sizeof(float)*3);
-					break;
+		if(dm) {
+			MVert *mvert= dm->getVertArray(dm);
+			int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
+			int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
+
+			/* get the average of all verts with (original index == nr) */
+			for(i = 0; i < numVerts; i++) {
+				vindex= (index)? index[i]: i;
+
+				if(vindex == nr) {
+					add_v3_v3(vec, mvert[i].co);
+					count++;
 				}
 			}
+
+			if (count==0) {
+				/* keep as 0,0,0 */
+			} else if(count > 0) {
+				mul_v3_fl(vec, 1.0f / count);
+			} else {
+				/* use first index if its out of range */
+				dm->getVertCo(dm, 0, vec);
+			}
+		}
+
+		if(em)
 			BKE_mesh_end_editmesh(me, em);
-		}
-		else {
-			DerivedMesh *dm = par->derivedFinal;
-			
-			if(dm) {
-				MVert *mvert= dm->getVertArray(dm);
-				int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
-				int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
-
-				/* get the average of all verts with (original index == nr) */
-				for(i = 0; i < numVerts; i++) {
-					vindex= (index)? index[i]: i;
-
-					if(vindex == nr) {
-						add_v3_v3(vec, mvert[i].co);
-						count++;
-					}
-				}
-
-				if (count==0) {
-					/* keep as 0,0,0 */
-				} else if(count > 0) {
-					mul_v3_fl(vec, 1.0f / count);
-				} else {
-					/* use first index if its out of range */
-					dm->getVertCo(dm, 0, vec);
-				}
-			}
-		}
 	}
 	else if (ELEM(par->type, OB_CURVE, OB_SURF)) {
 		Nurb *nu;
@@ -1885,13 +1873,12 @@ static void give_parvert(Object *par, int nr, float *vec)
 		BPoint *bp;
 		BezTriple *bezt;
 		int found= 0;
-		
+		ListBase *nurbs;
+
 		cu= par->data;
-		if(cu->editnurb)
-			nu= cu->editnurb->first;
-		else
-			nu= cu->nurb.first;
-		
+		nurbs= BKE_curve_nurbs(cu);
+		nu= nurbs->first;
+
 		count= 0;
 		while(nu && !found) {
 			if(nu->type == CU_BEZIER) {
@@ -2325,11 +2312,9 @@ void minmax_object(Object *ob, float *min, float *max)
 		if(ob->pose) {
 			bPoseChannel *pchan;
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				VECCOPY(vec, pchan->pose_head);
-				mul_m4_v3(ob->obmat, vec);
+				mul_v3_m4v3(vec, ob->obmat, pchan->pose_head);
 				DO_MINMAX(vec, min, max);
-				VECCOPY(vec, pchan->pose_tail);
-				mul_m4_v3(ob->obmat, vec);
+				mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
 				DO_MINMAX(vec, min, max);
 			}
 			break;
@@ -2946,7 +2931,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, char *name, int from_
 	Curve *cu= ob->data;
 	Key *key= cu->key;
 	KeyBlock *kb;
-	ListBase *lb= (cu->editnurb)? cu->editnurb: &cu->nurb;
+	ListBase *lb= BKE_curve_nurbs(cu);
 	int newkey= 0;
 
 	if(key==NULL) {
@@ -2958,7 +2943,11 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, char *name, int from_
 	if(newkey || from_mix==FALSE) {
 		/* create from curve */
 		kb= add_keyblock(key, name);
-		curve_to_key(cu, kb, lb);
+		if (!newkey) {
+			KeyBlock *basekb= (KeyBlock *)key->block.first;
+			kb->data= MEM_dupallocN(basekb->data);
+			kb->totelem= basekb->totelem;
+		} else curve_to_key(cu, kb, lb);
 	}
 	else {
 		/* copy from current values */

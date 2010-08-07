@@ -22,7 +22,7 @@ import bpy
 import os
 
 
-class AddPresetBase(bpy.types.Operator):
+class AddPresetBase():
     '''Base preset class, only for subclassing
     subclasses must define
      - preset_values
@@ -91,7 +91,7 @@ class ExecutePreset(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class AddPresetRender(AddPresetBase):
+class AddPresetRender(AddPresetBase, bpy.types.Operator):
     '''Add a Render Preset'''
     bl_idname = "render.preset_add"
     bl_label = "Add Render Preset"
@@ -113,7 +113,7 @@ class AddPresetRender(AddPresetBase):
     preset_subdir = "render"
 
 
-class AddPresetSSS(AddPresetBase):
+class AddPresetSSS(AddPresetBase, bpy.types.Operator):
     '''Add a Subsurface Scattering Preset'''
     bl_idname = "material.sss_preset_add"
     bl_label = "Add SSS Preset"
@@ -138,7 +138,7 @@ class AddPresetSSS(AddPresetBase):
     preset_subdir = "sss"
 
 
-class AddPresetCloth(AddPresetBase):
+class AddPresetCloth(AddPresetBase, bpy.types.Operator):
     '''Add a Cloth Preset'''
     bl_idname = "cloth.preset_add"
     bl_label = "Add Cloth Preset"
@@ -156,7 +156,7 @@ class AddPresetCloth(AddPresetBase):
     preset_subdir = "cloth"
 
 
-class AddPresetSunSky(AddPresetBase):
+class AddPresetSunSky(AddPresetBase, bpy.types.Operator):
     '''Add a Sky & Atmosphere Preset'''
     bl_idname = "lamp.sunsky_preset_add"
     bl_label = "Add Sunsky Preset"
@@ -181,7 +181,7 @@ class AddPresetSunSky(AddPresetBase):
     preset_subdir = "sunsky"
 
 
-class AddPresetInteraction(AddPresetBase):
+class AddPresetInteraction(AddPresetBase, bpy.types.Operator):
     '''Add an Application Interaction Preset'''
     bl_idname = "wm.interaction_preset_add"
     bl_label = "Add Interaction Preset"
@@ -203,25 +203,12 @@ class AddPresetInteraction(AddPresetBase):
 
     preset_subdir = "interaction"
 
-classes = [
-    ExecutePreset,
-    AddPresetRender,
-    AddPresetSSS,
-    AddPresetCloth,
-    AddPresetSunSky,
-    AddPresetInteraction]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

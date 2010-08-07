@@ -35,6 +35,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "WM_types.h"
@@ -62,25 +63,24 @@
 #include "RE_render_ext.h" /* externtex */
 #include "RE_shader_ext.h"
 
-/* Datablock add/copy/free/make_local */
-
-Brush *add_brush(const char *name)
+static void brush_set_defaults(Brush *brush)
 {
-	Brush *brush;
+	brush->blend = 0;
+	brush->flag = 0;
 
-	brush= alloc_libblock(&G.main->brush, ID_BR, name);
+	brush->ob_mode = (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT);
 
 	/* BRUSH SCULPT TOOL SETTINGS */
-	brush->sculpt_tool = SCULPT_TOOL_DRAW; /* sculpting defaults to the draw tool for new brushes */
 	brush->size= 35; /* radius of the brush in pixels */
 	brush->alpha= 0.5f; /* brush strength/intensity probably variable should be renamed? */
 	brush->autosmooth_factor= 0.0f;
 	brush->crease_pinch_factor= 0.5f;
-	brush->sculpt_plane = SCULPT_DISP_DIR_VIEW;
+	brush->sculpt_plane = SCULPT_DISP_DIR_AREA;
 	brush->plane_offset= 0.0f; /* how far above or below the plane that is found by averaging the faces */
 	brush->plane_trim= 0.5f;
 	brush->clone.alpha= 0.5f;
 	brush->normal_weight= 0.0f;
+	brush->flag |= BRUSH_ALPHA_PRESSURE;
 
 	/* BRUSH PAINT TOOL SETTINGS */
 	brush->rgb[0]= 1.0f; /* default rgb color of the brush when painting - white */
@@ -102,6 +102,7 @@ Brush *add_brush(const char *name)
 	default_mtex(&brush->mtex);
 
 	brush->texture_sample_bias= 0; /* value to added to texture samples */
+	brush->texture_overlay_alpha= 33;
 
 	/* brush appearance  */
 
@@ -112,13 +113,25 @@ Brush *add_brush(const char *name)
 	brush->sub_col[0]= 0.39; /* subtract mode color is light blue */
 	brush->sub_col[1]= 0.39;
 	brush->sub_col[2]= 1.00;
+}
 
-	 /* the default alpha falloff curve */
-	brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
+/* Datablock add/copy/free/make_local */
+
+Brush *add_brush(const char *name)
+{
+	Brush *brush;
+
+	brush= alloc_libblock(&G.main->brush, ID_BR, name);
 
 	/* enable fake user by default */
 	brush->id.flag |= LIB_FAKEUSER;
-	brush_toggled_fake_user(brush);
+
+	brush_set_defaults(brush);
+
+	brush->sculpt_tool = SCULPT_TOOL_DRAW; /* sculpting defaults to the draw tool for new brushes */
+
+	 /* the default alpha falloff curve */
+	brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
 
 	return brush;
 }
@@ -140,7 +153,7 @@ Brush *copy_brush(Brush *brush)
 	/* enable fake user by default */
 	if (!(brushn->id.flag & LIB_FAKEUSER)) {
 		brushn->id.flag |= LIB_FAKEUSER;
-		brush_toggled_fake_user(brushn);
+		brushn->id.us++;
 	}
 	
 	return brushn;
@@ -194,7 +207,7 @@ void make_local_brush(Brush *brush)
 		/* enable fake user by default */
 		if (!(brush->id.flag & LIB_FAKEUSER)) {
 			brush->id.flag |= LIB_FAKEUSER;
-			brush_toggled_fake_user(brush);
+			brush->id.us++;
 		}
 	}
 	else if(local && lib) {
@@ -212,55 +225,176 @@ void make_local_brush(Brush *brush)
 	}
 }
 
+void brush_debug_print_state(Brush *br)
+{
+	Brush def;
+
+	/* create a fake brush and set it to the defaults */
+	memset(&def, 0, sizeof(Brush));
+	brush_set_defaults(&def);
+	
+#define BR_TEST(field, t)					\
+	if(br->field != def.field)				\
+		printf("br->" #field " = %" #t ";\n", br->field)
+
+#define BR_TEST_FLAG(_f)				\
+	if((br->flag & _f) && !(def.flag & _f))		\
+		printf("br->flag |= " #_f ";\n");	\
+	else if(!(br->flag & _f) && (def.flag & _f))	\
+		printf("br->flag &= ~" #_f ";\n")
+	
+
+	/* print out any non-default brush state */
+	BR_TEST(normal_weight, f);
+
+	BR_TEST(blend, d);
+	BR_TEST(size, d);
+
+	/* br->flag */
+	BR_TEST_FLAG(BRUSH_AIRBRUSH);
+	BR_TEST_FLAG(BRUSH_TORUS);
+	BR_TEST_FLAG(BRUSH_ALPHA_PRESSURE);
+	BR_TEST_FLAG(BRUSH_SIZE_PRESSURE);
+	BR_TEST_FLAG(BRUSH_JITTER_PRESSURE);
+	BR_TEST_FLAG(BRUSH_SPACING_PRESSURE);
+	BR_TEST_FLAG(BRUSH_FIXED_TEX);
+	BR_TEST_FLAG(BRUSH_RAKE);
+	BR_TEST_FLAG(BRUSH_ANCHORED);
+	BR_TEST_FLAG(BRUSH_DIR_IN);
+	BR_TEST_FLAG(BRUSH_SPACE);
+	BR_TEST_FLAG(BRUSH_SMOOTH_STROKE);
+	BR_TEST_FLAG(BRUSH_PERSISTENT);
+	BR_TEST_FLAG(BRUSH_ACCUMULATE);
+	BR_TEST_FLAG(BRUSH_LOCK_ALPHA);
+	BR_TEST_FLAG(BRUSH_ORIGINAL_NORMAL);
+	BR_TEST_FLAG(BRUSH_OFFSET_PRESSURE);
+	BR_TEST_FLAG(BRUSH_SPACE_ATTEN);
+	BR_TEST_FLAG(BRUSH_ADAPTIVE_SPACE);
+	BR_TEST_FLAG(BRUSH_LOCK_SIZE);
+	BR_TEST_FLAG(BRUSH_TEXTURE_OVERLAY);
+	BR_TEST_FLAG(BRUSH_EDGE_TO_EDGE);
+	BR_TEST_FLAG(BRUSH_RESTORE_MESH);
+	BR_TEST_FLAG(BRUSH_INVERSE_SMOOTH_PRESSURE);
+	BR_TEST_FLAG(BRUSH_RANDOM_ROTATION);
+	BR_TEST_FLAG(BRUSH_PLANE_TRIM);
+	BR_TEST_FLAG(BRUSH_FRONTFACE);
+	BR_TEST_FLAG(BRUSH_CUSTOM_ICON);
+
+	BR_TEST(jitter, f);
+	BR_TEST(spacing, d);
+	BR_TEST(smooth_stroke_radius, d);
+	BR_TEST(smooth_stroke_factor, f);
+	BR_TEST(rate, f);
+
+	BR_TEST(alpha, f);
+
+	BR_TEST(sculpt_plane, d);
+
+	BR_TEST(plane_offset, f);
+
+	BR_TEST(autosmooth_factor, f);
+
+	BR_TEST(crease_pinch_factor, f);
+
+	BR_TEST(plane_trim, f);
+
+	BR_TEST(texture_sample_bias, f);
+	BR_TEST(texture_overlay_alpha, d);
+
+	BR_TEST(add_col[0], f);
+	BR_TEST(add_col[1], f);
+	BR_TEST(add_col[2], f);
+	BR_TEST(sub_col[0], f);
+	BR_TEST(sub_col[1], f);
+	BR_TEST(sub_col[2], f);
+
+	printf("\n");
+	
+#undef BR_TEST
+#undef BR_TEST_FLAG
+}
+
+void brush_reset_sculpt(Brush *br)
+{
+	/* enable this to see any non-default
+	   settings used by a brush:
+
+	   brush_debug_print_state(br);
+	*/
+
+	brush_set_defaults(br);
+	brush_curve_preset(br, CURVE_PRESET_SMOOTH);
+
+	switch(br->sculpt_tool) {
+	case SCULPT_TOOL_CLAY:
+		br->flag |= BRUSH_FRONTFACE;
+		break;
+	case SCULPT_TOOL_CREASE:
+		br->flag |= BRUSH_DIR_IN;
+		br->alpha = 0.25;
+		break;
+	case SCULPT_TOOL_FILL:
+		br->add_col[1] = 1;
+		br->sub_col[0] = 0.25;
+		br->sub_col[1] = 1;
+		break;
+	case SCULPT_TOOL_FLATTEN:
+		br->add_col[1] = 1;
+		br->sub_col[0] = 0.25;
+		br->sub_col[1] = 1;
+		break;
+	case SCULPT_TOOL_INFLATE:
+		br->add_col[0] = 0.750000;
+		br->add_col[1] = 0.750000;
+		br->add_col[2] = 0.750000;
+		br->sub_col[0] = 0.250000;
+		br->sub_col[1] = 0.250000;
+		br->sub_col[2] = 0.250000;
+		break;
+	case SCULPT_TOOL_NUDGE:
+		br->add_col[0] = 0.250000;
+		br->add_col[1] = 1.000000;
+		br->add_col[2] = 0.250000;
+		break;
+	case SCULPT_TOOL_PINCH:
+		br->add_col[0] = 0.750000;
+		br->add_col[1] = 0.750000;
+		br->add_col[2] = 0.750000;
+		br->sub_col[0] = 0.250000;
+		br->sub_col[1] = 0.250000;
+		br->sub_col[2] = 0.250000;
+		break;
+	case SCULPT_TOOL_SCRAPE:
+		br->add_col[1] = 1.000000;
+		br->sub_col[0] = 0.250000;
+		br->sub_col[1] = 1.000000;
+		break;
+	case SCULPT_TOOL_ROTATE:
+		break;
+	case SCULPT_TOOL_SMOOTH:
+		br->flag &= ~BRUSH_SPACE_ATTEN;
+		br->spacing = 5;
+		br->add_col[0] = 0.750000;
+		br->add_col[1] = 0.750000;
+		br->add_col[2] = 0.750000;
+		break;
+	case SCULPT_TOOL_GRAB:
+	case SCULPT_TOOL_SNAKE_HOOK:
+	case SCULPT_TOOL_THUMB:
+		br->size = 75;
+		br->flag &= ~BRUSH_ALPHA_PRESSURE;
+		br->flag &= ~BRUSH_SPACE;
+		br->flag &= ~BRUSH_SPACE_ATTEN;
+		br->add_col[0] = 0.250000;
+		br->add_col[1] = 1.000000;
+		br->add_col[2] = 0.250000;
+		break;
+	default:
+		break;
+	}
+}
+
 /* Library Operations */
-
-int brush_set_nr(Brush **current_brush, int nr, const char *name)
-{
-	ID *idtest, *id;
-	
-	id= (ID*)(*current_brush);
-	idtest= (ID*)BLI_findlink(&G.main->brush, nr-1);
-	
-	if(idtest==0) { /* new brush */
-		if(id) idtest= (ID *)copy_brush((Brush *)id);
-		else idtest= (ID *)add_brush(name);
-		idtest->us--;
-	}
-	if(idtest!=id) {
-		brush_delete(current_brush);
-		*current_brush= (Brush *)idtest;
-		id_us_plus(idtest);
-
-		return 1;
-	}
-
-	return 0;
-}
-
-int brush_delete(Brush **current_brush)
-{
-	if (*current_brush) {
-		(*current_brush)->id.us--;
-		*current_brush= NULL;
-
-		return 1;
-	}
-
-	return 0;
-}
-
-void brush_toggled_fake_user(Brush *brush)
-{
-	ID *id= (ID*)brush;
-	if(id) {
-		if(id->flag & LIB_FAKEUSER) {
-			id_us_plus(id);
-		} else {
-			id->us--;
-		}
-	}
-}
-
 void brush_curve_preset(Brush *b, /*CurveMappingPreset*/int preset)
 {
 	CurveMap *cm = NULL;
@@ -272,7 +406,7 @@ void brush_curve_preset(Brush *b, /*CurveMappingPreset*/int preset)
 	cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 
 	b->curve->preset = preset;
-	curvemap_reset(cm, &b->curve->clipr, b->curve->preset);
+	curvemap_reset(cm, &b->curve->clipr, b->curve->preset, CURVEMAP_SLOPE_NEGATIVE);
 	curvemapping_changed(b->curve, 0);
 }
 
@@ -342,12 +476,6 @@ int brush_clone_image_delete(Brush *brush)
 	}
 
 	return 0;
-}
-
-void brush_check_exists(Brush **brush, const char *name)
-{
-	if(*brush==NULL)
-		brush_set_nr(brush, 1, name);
 }
 
 /* Brush Sampling */
@@ -862,7 +990,6 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 		float startdistance, spacing, step, paintpos[2], dmousepos[2], finalpos[2];
 		float t, len, press;
 		const int radius= brush_size(brush);
-		const int diameter= 2*radius;
 
 		/* compute brush spacing adapted to brush radius, spacing may depend
 		   on pressure, so update it */
@@ -1239,7 +1366,7 @@ void brush_set_size(Brush *brush, int size)
 	else
 		brush->size= size;
 
-	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 int brush_size(Brush *brush)
@@ -1259,7 +1386,7 @@ void brush_set_use_locked_size(Brush *brush, int value)
 			brush->flag &= ~BRUSH_LOCK_SIZE;
 	}
 
-	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 int brush_use_locked_size(Brush *brush)
@@ -1279,7 +1406,7 @@ void brush_set_use_size_pressure(Brush *brush, int value)
 			brush->flag &= ~BRUSH_SIZE_PRESSURE;
 	}
 
-	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 int brush_use_size_pressure(Brush *brush)
@@ -1299,7 +1426,7 @@ void brush_set_use_alpha_pressure(Brush *brush, int value)
 			brush->flag &= ~BRUSH_ALPHA_PRESSURE;
 	}
 
-	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 int brush_use_alpha_pressure(Brush *brush)
@@ -1314,7 +1441,7 @@ void brush_set_unprojected_radius(Brush *brush, float unprojected_radius)
 	else
 		brush->unprojected_radius= unprojected_radius;
 
-	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 float brush_unprojected_radius(Brush *brush)
@@ -1329,7 +1456,7 @@ void brush_set_alpha(Brush *brush, float alpha)
 	else
 		brush->alpha= alpha;
 
-	WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
+	//WM_main_add_notifier(NC_BRUSH|NA_EDITED, brush);
 }
 
 float brush_alpha(Brush *brush)

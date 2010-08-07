@@ -46,6 +46,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_utildefines.h"
 
@@ -122,8 +123,8 @@ wcsleninu8(wchar_t *src)
 	return len;
 }
 
-int
-static utf8slen(char *src)
+static int
+utf8slen(char *src)
 {
 	int size = 0, index = 0;
 	unsigned char c;
@@ -814,7 +815,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 		twidth = char_width(cu, che, info);
 
 		// Calculate positions
-		if((tb->w != 0.0) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+twidth)*cu->fsize) > tb->w) {
+		if((tb->w != 0.0) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+twidth)*cu->fsize) > tb->w + cu->xof*cu->fsize) {
 	//		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", mem[i], mem[i+1], mem[i+2]);
 			for (j=i; j && (mem[j] != '\n') && (mem[j] != '\r') && (chartransdata[j].dobreak==0); j--) {
 				if (mem[j]==' ' || mem[j]=='-') {
@@ -855,7 +856,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 			linedata4[lnr]= wsnr;
 			
 			if ( (tb->h != 0.0) &&
-				 ((-(yof-(tb->y/cu->fsize))) > ((tb->h/cu->fsize)-(linedist*cu->fsize))) &&
+				 ((-(yof-(tb->y/cu->fsize))) > ((tb->h/cu->fsize)-(linedist*cu->fsize)) - cu->yof) &&
 				 (cu->totbox > (curbox+1)) ) {
 				maxlen= 0;
 				tb++;
@@ -1194,18 +1195,14 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				ascii = mem[i];
 				info = &(custrinfo[i]);
 				if (cu->sepchar == (i+1)) {
-					float vecyo[3];
+					float vecyo[3]= {ct->xof, ct->yof, 0.0f};
 					
 					mem[0] = ascii;
 					mem[1] = 0;
 					custrinfo[0]= *info;
 					cu->pos = 1;
 					cu->len = 1;
-					vecyo[0] = ct->xof;
-					vecyo[1] = ct->yof;
-					vecyo[2] = 0;
-					mul_m4_v3(ob->obmat, vecyo);
-					VECCOPY(ob->loc, vecyo);
+					mul_v3_m4v3(ob->loc, ob->obmat, vecyo);
 					outta = 1;
 					cu->sepchar = 0;
 				}

@@ -31,4 +31,3 @@ SET(INC
 )
 
 BLENDERLIB(bf_readblenfile "${SRC}" "${INC}")
-#env.BlenderLib ( 'bf_readblenfile', sources, Split(incs), [], libtype=['common','player'], priority = [0, 220] )

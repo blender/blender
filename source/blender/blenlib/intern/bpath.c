@@ -43,6 +43,8 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h" /* to get the current frame */
+#include "DNA_image_types.h"
+#include "DNA_sound_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_windowmanager_types.h"

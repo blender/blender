@@ -36,7 +36,12 @@ include nan_subdirs.mk
 include nan_compile.mk
 include nan_definitions.mk
 
-DIRS = cineon
+DIRS = 
+
+ifeq ($(WITH_CINEON), true)
+	DIRS += cineon
+	CPPFLAGS += -DWITH_CINEON
+endif
 
 ifeq ($(WITH_OPENEXR), true)
     DIRS += openexr
@@ -88,4 +93,8 @@ endif
 ifeq ($(WITH_TIFF), true)
    CPPFLAGS += -DWITH_TIFF
    CPPFLAGS += -I$(NAN_TIFF)/include
+endif
+
+ifeq ($(WITH_HDR), true)
+   CPPFLAGS += -DWITH_HDR
 endif

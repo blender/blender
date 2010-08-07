@@ -1322,6 +1322,11 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 			NSArray *windowsList = [NSApp orderedWindows];
 			if ([windowsList count]) {
 				[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
+				//Handle the modifiers keyes changed state issue
+				//as recovering from the quit dialog is like application
+				//gaining focus back.
+				//Main issue fixed is Cmd modifier not being cleared
+				handleApplicationBecomeActiveEvent();
 			}
 		}
 

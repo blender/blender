@@ -648,9 +648,13 @@ static const EnumPropertyItem image_file_type_items[] = {
 #ifdef WITH_TIFF
 		{R_TIFF, "TIFF", 0, "Tiff", ""},
 #endif
+#ifdef WITH_DDS
 		{R_RADHDR, "RADIANCE_HDR", 0, "Radiance HDR", ""},
+#endif
+#ifdef WITH_CINEON
 		{R_CINEON, "CINEON", 0, "Cineon", ""},
 		{R_DPX, "DPX", 0, "DPX", ""},
+#endif
 #ifdef WITH_OPENEXR
 		{R_OPENEXR, "OPENEXR", 0, "OpenEXR", ""},
 	/* saving sequences of multilayer won't work, they copy buffers  */
@@ -2085,8 +2089,8 @@ void ED_image_update_frame(const bContext *C)
 					View3D *v3d= sa->spacedata.first;
 					BGpic *bgpic;
 					for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next)
-						if(v3d->bgpic->iuser.flag & IMA_ANIM_ALWAYS)
-							BKE_image_user_calc_frame(&v3d->bgpic->iuser, scene->r.cfra, 0);
+						if(bgpic->iuser.flag & IMA_ANIM_ALWAYS)
+							BKE_image_user_calc_frame(&bgpic->iuser, scene->r.cfra, 0);
 				}
 				else if(sa->spacetype==SPACE_IMAGE) {
 					SpaceImage *sima= sa->spacedata.first;

@@ -49,7 +49,7 @@ def addPointCache(job, ob, point_cache, default_path):
     if name == "":
         name = "".join(["%02X" % ord(c) for c in ob.name])
 
-    cache_path = bpy.utils.expandpath(point_cache.filepath) if point_cache.external else default_path
+    cache_path = bpy.path.abspath(point_cache.filepath) if point_cache.external else default_path
 
     index = "%02i" % point_cache.index
 
@@ -113,7 +113,7 @@ def clientSendJob(conn, scene, anim = False):
     # LIBRARIES
     ###########################
     for lib in bpy.data.libraries:
-        file_path = bpy.utils.expandpath(lib.filepath)
+        file_path = bpy.path.abspath(lib.filepath)
         if os.path.exists(file_path):
             job.addFile(file_path)
 
@@ -122,7 +122,7 @@ def clientSendJob(conn, scene, anim = False):
     ###########################
     for image in bpy.data.images:
         if image.source == "FILE" and not image.packed_file:
-            file_path = bpy.utils.expandpath(image.filepath)
+            file_path = bpy.path.abspath(image.filepath)
             if os.path.exists(file_path):
                 job.addFile(file_path)
                 
@@ -139,7 +139,7 @@ def clientSendJob(conn, scene, anim = False):
     for object in bpy.data.objects:
         for modifier in object.modifiers:
             if modifier.type == 'FLUID_SIMULATION' and modifier.settings.type == "DOMAIN":
-                addFluidFiles(job, bpy.utils.expandpath(modifier.settings.path))
+                addFluidFiles(job, bpy.path.abspath(modifier.settings.path))
             elif modifier.type == "CLOTH":
                 addPointCache(job, object, modifier.point_cache, default_path)
             elif modifier.type == "SOFT_BODY":
@@ -149,7 +149,7 @@ def clientSendJob(conn, scene, anim = False):
                 if modifier.domain_settings.highres:
                     addPointCache(job, object, modifier.domain_settings.point_cache_high, default_path)
             elif modifier.type == "MULTIRES" and modifier.external:
-                file_path = bpy.utils.expandpath(modifier.filepath)
+                file_path = bpy.path.abspath(modifier.filepath)
                 job.addFile(file_path)
 
         # particles modifier are stupid and don't contain data
@@ -189,7 +189,6 @@ def clientSendJob(conn, scene, anim = False):
 def requestResult(conn, job_id, frame):
     conn.request("GET", renderURL(job_id, frame))
 
-@rnaType
 class NetworkRenderEngine(bpy.types.RenderEngine):
     bl_idname = 'NET_RENDER'
     bl_label = "Network Render"

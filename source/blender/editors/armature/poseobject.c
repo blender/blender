@@ -41,6 +41,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_anim.h"
 #include "BKE_idprop.h"
@@ -897,7 +898,6 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bPoseChannel *chan, *pchan;
-	char name[32];
 	int flip= RNA_boolean_get(op->ptr, "flipped");
 	
 	/* sanity checks */
@@ -913,10 +913,12 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	for (chan= g_posebuf->chanbase.first; chan; chan=chan->next) {
 		if (chan->flag & POSE_KEY) {
 			/* get the name - if flipping, we must flip this first */
-			BLI_strncpy(name, chan->name, sizeof(name));
+			char name[32];
 			if (flip)
-				bone_flip_name(name, 0);		/* 0 = don't strip off number extensions */
-				
+				flip_side_name(name, chan->name, 0);		/* 0 = don't strip off number extensions */
+			else
+				BLI_strncpy(name, chan->name, sizeof(name));
+
 			/* only copy when channel exists, poses are not meant to add random channels to anymore */
 			pchan= get_pose_channel(ob->pose, name);
 			
@@ -1431,7 +1433,6 @@ static int pose_flip_names_exec (bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm;
-	char newname[32];
 	
 	/* paranoia checks */
 	if (ELEM(NULL, ob, ob->pose)) 
@@ -1441,8 +1442,8 @@ static int pose_flip_names_exec (bContext *C, wmOperator *op)
 	/* loop through selected bones, auto-naming them */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 	{
-		BLI_strncpy(newname, pchan->name, sizeof(newname));
-		bone_flip_name(newname, 1);	// 1 = do strip off number extensions
+		char newname[32];
+		flip_side_name(newname, pchan->name, TRUE);
 		ED_armature_bone_rename(arm, pchan->name, newname);
 	}
 	CTX_DATA_END;
@@ -1546,10 +1547,8 @@ void pose_activate_flipped_bone(Scene *scene)
 		
 		if(arm->act_bone) {
 			char name[32];
-			
-			BLI_strncpy(name, arm->act_bone->name, 32);
-			bone_flip_name(name, 1);	// 0 = do not strip off number extensions
-			
+			flip_side_name(name, arm->act_bone->name, TRUE);
+
 			pchanf= get_pose_channel(ob->pose, name);
 			if(pchanf && pchanf->bone != arm->act_bone) {
 				arm->act_bone->flag &= ~BONE_SELECTED;

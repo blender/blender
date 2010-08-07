@@ -210,14 +210,36 @@ SetOption('num_jobs', int(env['BF_NUMJOBS']))
 print B.bc.OKGREEN + "Build with parallel jobs%s: %s" % (B.bc.ENDC, GetOption('num_jobs'))
 print B.bc.OKGREEN + "Build with debug symbols%s: %s" % (B.bc.ENDC, env['BF_DEBUG'])
 
-# BLENDERPATH is a unix only option to enable typical style paths this is
-# spesifically a data-dir, which is used a lot but cant replace BF_INSTALLDIR
-# because the blender binary is installed in $BF_INSTALLDIR/bin/blender
+if 'blenderlite' in B.targets:
+	target_env_defs = {}
+	target_env_defs['WITH_BF_GAMEENGINE'] = False
+	target_env_defs['WITH_BF_OPENAL'] = False
+	target_env_defs['WITH_BF_OPENEXR'] = False
+	target_env_defs['WITH_BF_OPENMP'] = False
+	target_env_defs['WITH_BF_ICONV'] = False
+	target_env_defs['WITH_BF_INTERNATIONAL'] = False
+	target_env_defs['WITH_BF_OPENJPEG'] = False
+	target_env_defs['WITH_BF_FFMPEG'] = False
+	target_env_defs['WITH_BF_QUICKTIME'] = False
+	target_env_defs['WITH_BF_REDCODE'] = False
+	target_env_defs['WITH_BF_DDS'] = False
+	target_env_defs['WITH_BF_CINEON'] = False
+	target_env_defs['WITH_BF_HDR'] = False
+	target_env_defs['WITH_BF_ZLIB'] = False
+	target_env_defs['WITH_BF_SDL'] = False
+	target_env_defs['WITH_BF_JPEG'] = False
+	target_env_defs['WITH_BF_PNG'] = False
+	target_env_defs['WITH_BF_BULLET'] = False
+	target_env_defs['WITH_BF_BINRELOC'] = False
+	target_env_defs['BF_BUILDINFO'] = False
+	target_env_defs['BF_NO_ELBEEM'] = True
+	target_env_defs['WITH_BF_PYTHON'] = False
+	
+	# Merge blenderlite, let command line to override
+	for k,v in target_env_defs.iteritems():
+		if k not in B.arguments:
+			env[k] = v
 
-if env['WITH_BF_FHS']:
-	BLENDERPATH = os.path.join(env['BF_INSTALLDIR'], 'share', 'blender', env['BF_VERSION'])
-else:
-	BLENDERPATH = env['BF_INSTALLDIR']
 
 if env['WITH_BF_OPENMP'] == 1:
 		if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
@@ -271,34 +293,6 @@ if 'blenderplayer' in B.targets:
 if 'blendernogame' in B.targets:
 	env['WITH_BF_GAMEENGINE'] = False
 
-if 'blenderlite' in B.targets:
-	target_env_defs = {}
-	target_env_defs['WITH_BF_GAMEENGINE'] = False
-	target_env_defs['WITH_BF_OPENAL'] = False
-	target_env_defs['WITH_BF_OPENEXR'] = False
-	target_env_defs['WITH_BF_OPENMP'] = False
-	target_env_defs['WITH_BF_ICONV'] = False
-	target_env_defs['WITH_BF_INTERNATIONAL'] = False
-	target_env_defs['WITH_BF_OPENJPEG'] = False
-	target_env_defs['WITH_BF_FFMPEG'] = False
-	target_env_defs['WITH_BF_QUICKTIME'] = False
-	target_env_defs['WITH_BF_REDCODE'] = False
-	target_env_defs['WITH_BF_DDS'] = False
-	target_env_defs['WITH_BF_ZLIB'] = False
-	target_env_defs['WITH_BF_SDL'] = False
-	target_env_defs['WITH_BF_JPEG'] = False
-	target_env_defs['WITH_BF_PNG'] = False
-	target_env_defs['WITH_BF_BULLET'] = False
-	target_env_defs['WITH_BF_BINRELOC'] = False
-	target_env_defs['BF_BUILDINFO'] = False
-	target_env_defs['BF_NO_ELBEEM'] = True
-	target_env_defs['WITH_BF_PYTHON'] = False
-	
-	# Merge blenderlite, let command line to override
-	for k,v in target_env_defs.iteritems():
-		if k not in B.arguments:
-			env[k] = v
-
 # disable elbeem (fluidsim) compilation?
 if env['BF_NO_ELBEEM'] == 1:
 	env['CPPFLAGS'].append('-DDISABLE_ELBEEM')
@@ -311,7 +305,7 @@ if env['WITH_BF_SDL'] == False and env['OURPLATFORM'] in ('win32-vc', 'win32-min
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 B.root_build_dir = env['BF_BUILDDIR']
-B.doc_build_dir = os.path.join(BLENDERPATH, 'doc')
+B.doc_build_dir = os.path.join(env['BF_INSTALLDIR'], 'doc')
 if not B.root_build_dir[-1]==os.sep:
 	B.root_build_dir += os.sep
 if not B.doc_build_dir[-1]==os.sep:
@@ -366,8 +360,9 @@ if not os.path.isdir ( B.root_build_dir):
 	os.makedirs ( B.root_build_dir + 'extern' )
 	os.makedirs ( B.root_build_dir + 'lib' )
 	os.makedirs ( B.root_build_dir + 'bin' )
-if not os.path.isdir(B.doc_build_dir) and env['WITH_BF_DOCS']:
-	os.makedirs ( B.doc_build_dir )
+# # Docs not working with epy anymore
+# if not os.path.isdir(B.doc_build_dir) and env['WITH_BF_DOCS']:
+# 	os.makedirs ( B.doc_build_dir )
 
 Help(opts.GenerateHelpText(env))
 
@@ -436,10 +431,7 @@ if  env['OURPLATFORM']=='darwin':
 			source=[dp+os.sep+f for f in df]
 			blenderinstall.append(env.Install(dir=dir,source=source))
 else:
-	if env['WITH_BF_FHS']:	dir= os.path.join(env['BF_INSTALLDIR'], 'bin')
-	else:					dir= env['BF_INSTALLDIR']
-	
-	blenderinstall = env.Install(dir=dir, source=B.program_list)
+	blenderinstall = env.Install(dir=env['BF_INSTALLDIR'], source=B.program_list)
 
 #-- local path = config files in install dir: installdir\VERSION
 #- dont do config and scripts for darwin, it is already in the bundle
@@ -466,15 +458,12 @@ if  env['OURPLATFORM']!='darwin':
 				
 				if 'locale' in dp:
 					datafileslist.append(os.path.join(dp,f))
-					if env['WITH_BF_FHS']:	dir= os.path.join(*([BLENDERPATH] + ['datafiles'] + dp.split(os.sep)[2:]))	# skip bin/.blender
-					else:					dir= os.path.join(*([BLENDERPATH] + [VERSION] + ['datafiles'] + dp.split(os.sep)[1:]))	# skip bin
+					dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['datafiles'] + dp.split(os.sep)[1:]))	# skip bin
 					datafilestargetlist.append(dir + os.sep + f)
 
 				else:
 					dotblendlist.append(os.path.join(dp, f))
-					if env['WITH_BF_FHS']:	dir= os.path.join(*([BLENDERPATH] + ['config'] + dp.split(os.sep)[2:]))	# skip bin/.blender
-					else:					dir= os.path.join(*([BLENDERPATH] + [VERSION] + ['config'] + dp.split(os.sep)[1:]))	# skip bin
-					
+					dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['config'] + dp.split(os.sep)[1:]))	# skip bin
 					dottargetlist.append(dir + os.sep + f)
 					
 		dotblenderinstall = []
@@ -493,8 +482,7 @@ if  env['OURPLATFORM']!='darwin':
 					if '.svn' in dn:
 						dn.remove('.svn')
 					
-					if env['WITH_BF_FHS']:		dir = BLENDERPATH
-					else:						dir = os.path.join(env['BF_INSTALLDIR'], VERSION)				
+					dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
 					dir += os.sep + os.path.basename(scriptpath) + dp[len(scriptpath):]
 					
 					source=[os.path.join(dp, f) for f in df if f[-3:]!='pyc']
@@ -510,7 +498,7 @@ if env['OURPLATFORM']=='linux2':
 			tn.remove('.svn')
 		for f in tf:
 			iconlist.append(os.path.join(tp, f))
-			icontargetlist.append( os.path.join(*([BLENDERPATH] + tp.split(os.sep)[2:] + [f])) )
+			icontargetlist.append( os.path.join(*([env['BF_INSTALLDIR']] + tp.split(os.sep)[2:] + [f])) )
 
 	iconinstall = []
 	for targetdir,srcfile in zip(icontargetlist, iconlist):
@@ -537,24 +525,24 @@ for tp, tn, tf in os.walk('release/plugins'):
 	df = tp[8:] # remove 'release/'
 	for f in tf:
 		pluglist.append(os.path.join(tp, f))
-		plugtargetlist.append( os.path.join(BLENDERPATH, df, f) )
+		plugtargetlist.append( os.path.join(env['BF_INSTALLDIR'], df, f) )
 
 
 # header files for plugins
 pluglist.append('source/blender/blenpluginapi/documentation.h')
-plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'documentation.h'))
+plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], 'plugins', 'include', 'documentation.h'))
 pluglist.append('source/blender/blenpluginapi/externdef.h')
-plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'externdef.h'))
+plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], 'plugins', 'include', 'externdef.h'))
 pluglist.append('source/blender/blenpluginapi/floatpatch.h')
-plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'floatpatch.h'))
+plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], 'plugins', 'include', 'floatpatch.h'))
 pluglist.append('source/blender/blenpluginapi/iff.h')
-plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'iff.h'))
+plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], 'plugins', 'include', 'iff.h'))
 pluglist.append('source/blender/blenpluginapi/plugin.h')
-plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'plugin.h'))
+plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], 'plugins', 'include', 'plugin.h'))
 pluglist.append('source/blender/blenpluginapi/util.h')
-plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'util.h'))
+plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], 'plugins', 'include', 'util.h'))
 pluglist.append('source/blender/blenpluginapi/plugin.DEF')
-plugtargetlist.append(os.path.join(BLENDERPATH, 'plugins', 'include', 'plugin.def'))
+plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], 'plugins', 'include', 'plugin.def'))
 
 plugininstall = []
 for targetdir,srcfile in zip(plugtargetlist, pluglist):
@@ -569,7 +557,7 @@ for tp, tn, tf in os.walk('release/text'):
 	for f in tf:
 		textlist.append(tp+os.sep+f)
 
-textinstall = env.Install(dir=BLENDERPATH, source=textlist)
+textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
 
 if  env['OURPLATFORM']=='darwin':
 		allinstall = [blenderinstall, plugininstall, textinstall]
@@ -662,17 +650,3 @@ Default(B.program_list)
 
 if not env['WITHOUT_BF_INSTALL']:
 		Default(installtarget)
-
-#------------ EPYDOC
-if env['WITH_BF_DOCS']:
-    try:
-        import epydoc
-    except ImportError:
-        epydoc = None
-
-    if epydoc:
-        SConscript('source/gameengine/PyDoc/SConscript')
-    else:
-        print "No epydoc install detected, Python API and Gameengine API Docs will not be generated "
-
-

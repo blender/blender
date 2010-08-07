@@ -98,6 +98,10 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         st = context.space_data
 
         layout.column()
+        
+        layout.operator("sequencer.properties", icon='MENU_PANEL')
+        
+        layout.separator()
 
         """
     uiBlock *block= uiBeginBlock(C, ar, "seq_viewmenu", UI_EMBOSSP);
@@ -127,7 +131,6 @@ class SEQUENCER_MT_view(bpy.types.Menu):
              menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 
         """
-        layout.separator()
         if (st.view_type == 'SEQUENCER') or (st.view_type == 'SEQUENCER_PREVIEW'):
             layout.operator("sequencer.view_all", text='View all Sequences')
         if (st.view_type == 'PREVIEW') or (st.view_type == 'SEQUENCER_PREVIEW'):
@@ -309,29 +312,33 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator("sequencer.swap_data")
 
 
-class SequencerButtonsPanel(bpy.types.Panel):
+class SequencerButtonsPanel():
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
 
-    def has_sequencer(self, context):
+    @staticmethod
+    def has_sequencer(context):
         return (context.space_data.view_type == 'SEQUENCER') or (context.space_data.view_type == 'SEQUENCER_PREVIEW')
 
-    def poll(self, context):
-        return self.has_sequencer(context) and (act_strip(context) is not None)
+    @staticmethod
+    def poll(context):
+        return __class__.has_sequencer(context) and (act_strip(context) is not None)
 
 
-class SequencerButtonsPanel_Output(bpy.types.Panel):
+class SequencerButtonsPanel_Output():
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
 
-    def has_preview(self, context):
+    @staticmethod
+    def has_preview(context):
         return (context.space_data.view_type == 'PREVIEW') or (context.space_data.view_type == 'SEQUENCER_PREVIEW')
 
-    def poll(self, context):
-        return self.has_preview(context)
+    @staticmethod
+    def poll(context):
+        return __class__.has_preview(context)
 
 
-class SEQUENCER_PT_edit(SequencerButtonsPanel):
+class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Edit Strip"
 
     def draw(self, context):
@@ -357,7 +364,6 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         sub = row.row()
         sub.active = (not strip.mute)
         sub.prop(strip, "blend_opacity", text="Opacity", slider=True)
-        sub = row.row()
         row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON' if strip.mute else 'RESTRICT_VIEW_OFF', text="")
         row.prop(strip, "lock", toggle=True, icon='LOCKED' if strip.lock else 'UNLOCKED', text="")
 
@@ -379,35 +385,12 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         col.label(text="Frame Still %d:%d" % (strip.frame_still_start, strip.frame_still_end))
 
 
-class SEQUENCER_PT_preview(bpy.types.Panel):
-    bl_label = "Scene Preview/Render"
-    bl_space_type = 'SEQUENCE_EDITOR'
-    bl_region_type = 'UI'
-
-    def draw(self, context):
-        layout = self.layout
-        render = context.scene.render
-
-        col = layout.column()
-        col.prop(render, "use_sequencer_gl_preview", text="Open GL Preview")
-        col = layout.column()
-        col.active = render.use_sequencer_gl_preview
-        col.prop(render, "sequencer_gl_preview", text="")
-
-        '''
-        col = layout.column()
-        col.prop(render, "use_sequencer_gl_render", text="Open GL Render")
-        col = layout.column()
-        col.active = render.use_sequencer_gl_render
-        col.prop(render, "sequencer_gl_render", text="")
-        '''
-
-
-class SEQUENCER_PT_effect(SequencerButtonsPanel):
+class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Effect Strip"
 
-    def poll(self, context):
-        if not self.has_sequencer(context):
+    @staticmethod
+    def poll(context):
+        if not __class__.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -532,11 +515,12 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
         col.prop(strip, "rotation_start", text="Rotation")
 
 
-class SEQUENCER_PT_input(SequencerButtonsPanel):
+class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Strip Input"
 
-    def poll(self, context):
-        if not self.has_sequencer(context):
+    @staticmethod
+    def poll(context):
+        if not __class__.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -550,15 +534,41 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
                               'MULTICAM', 'SPEED')
 
-    def draw_filename(self, context):
-        pass
-
     def draw(self, context):
         layout = self.layout
 
         strip = act_strip(context)
 
-        self.draw_filename(context)
+        seq_type = strip.type
+
+        # draw a filename if we have one
+        if seq_type == 'IMAGE':
+            split = layout.split(percentage=0.2)
+            col = split.column()
+            col.label(text="Path:")
+            col = split.column()
+            col.prop(strip, "directory", text="")
+
+            # Current element for the filename
+
+            elem = strip.getStripElem(context.scene.frame_current)
+            if elem:
+                split = layout.split(percentage=0.2)
+                col = split.column()
+                col.label(text="File:")
+                col = split.column()
+                col.prop(elem, "filename", text="") # strip.elements[0] could be a fallback
+
+        elif seq_type == 'MOVIE':
+            split = layout.split(percentage=0.2)
+            col = split.column()
+            col.label(text="Path:")
+            col = split.column()
+            col.prop(strip, "filepath", text="")
+            col.prop(strip, "mpeg_preseek", text="MPEG Preseek")
+        # TODO, sound???
+        # end drawing filename
+
 
         layout.prop(strip, "use_translation", text="Image Offset:")
         if strip.use_translation:
@@ -576,93 +586,16 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 
         col = layout.column(align=True)
         col.label(text="Trim Duration:")
-        col.prop(strip, "animation_start_offset", text="Start")
-        col.prop(strip, "animation_end_offset", text="End")
+        col.prop(strip, "frame_offset_start", text="Start")
+        col.prop(strip, "frame_offset_end", text="End")
 
 
-class SEQUENCER_PT_input_movie(SEQUENCER_PT_input):
-    bl_label = "Strip Input"
-
-    def poll(self, context):
-        if not self.has_sequencer(context):
-            return False
-
-        strip = act_strip(context)
-        if not strip:
-            return False
-
-        return strip.type == 'MOVIE'
-
-    def draw_filename(self, context):
-        layout = self.layout
-
-        strip = act_strip(context)
-
-        split = layout.split(percentage=0.2)
-        col = split.column()
-        col.label(text="Path:")
-        col = split.column()
-        col.prop(strip, "filepath", text="")
-        col.prop(strip, "mpeg_preseek", text="MPEG Preseek")
-
-
-class SEQUENCER_PT_input_image(SEQUENCER_PT_input):
-    bl_label = "Strip Input"
-
-    def poll(self, context):
-        if not self.has_sequencer(context):
-            return False
-
-        strip = act_strip(context)
-        if not strip:
-            return False
-
-        return strip.type == 'IMAGE'
-
-    def draw_filename(self, context):
-        layout = self.layout
-
-        strip = act_strip(context)
-
-        split = layout.split(percentage=0.2)
-        col = split.column()
-        col.label(text="Path:")
-        col = split.column()
-        col.prop(strip, "directory", text="")
-
-        # Current element for the filename
-
-        elem = strip.getStripElem(context.scene.frame_current)
-        if elem:
-            split = layout.split(percentage=0.2)
-            col = split.column()
-            col.label(text="File:")
-            col = split.column()
-            col.prop(elem, "filename", text="") # strip.elements[0] could be a fallback
-
-
-class SEQUENCER_PT_input_secondary(SEQUENCER_PT_input):
-    bl_label = "Strip Input"
-
-    def poll(self, context):
-        if not self.has_sequencer(context):
-            return False
-
-        strip = act_strip(context)
-        if not strip:
-            return False
-
-        return strip.type in ('SCENE', 'META')
-
-    def draw_filename(self, context):
-        pass
-
-
-class SEQUENCER_PT_sound(SequencerButtonsPanel):
+class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Sound"
 
-    def poll(self, context):
-        if not self.has_sequencer(context):
+    @staticmethod
+    def poll(context):
+        if not __class__.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -698,11 +631,12 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         col.prop(strip, "animation_end_offset", text="End")
 
 
-class SEQUENCER_PT_scene(SequencerButtonsPanel):
+class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Scene"
 
-    def poll(self, context):
-        if not self.has_sequencer(context):
+    @staticmethod
+    def poll(context):
+        if not __class__.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -722,11 +656,12 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel):
         layout.template_ID(strip, "scene_camera")
 
 
-class SEQUENCER_PT_filter(SequencerButtonsPanel):
+class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Filter"
 
-    def poll(self, context):
-        if not self.has_sequencer(context):
+    @staticmethod
+    def poll(context):
+        if not __class__.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -783,11 +718,12 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
             col.prop(strip.color_balance, "inverse_gain", text="Inverse")
 
 
-class SEQUENCER_PT_proxy(SequencerButtonsPanel):
+class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Proxy"
 
-    def poll(self, context):
-        if not self.has_sequencer(context):
+    @staticmethod
+    def poll(context):
+        if not __class__.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -816,7 +752,31 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
                 flow.prop(strip.proxy, "filepath")
 
 
-class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
+class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, bpy.types.Panel):
+    bl_label = "Scene Preview/Render"
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'UI'
+
+    def draw(self, context):
+        layout = self.layout
+        render = context.scene.render
+
+        col = layout.column()
+        col.prop(render, "use_sequencer_gl_preview", text="Open GL Preview")
+        col = layout.column()
+        col.active = render.use_sequencer_gl_preview
+        col.prop(render, "sequencer_gl_preview", text="")
+
+        '''
+        col = layout.column()
+        col.prop(render, "use_sequencer_gl_render", text="Open GL Render")
+        col = layout.column()
+        col.active = render.use_sequencer_gl_render
+        col.prop(render, "sequencer_gl_render", text="")
+        '''
+
+
+class SEQUENCER_PT_view(SequencerButtonsPanel_Output, bpy.types.Panel):
     bl_label = "View Settings"
 
     def draw(self, context):
@@ -832,40 +792,12 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
             col.prop(st, "separate_color_preview")
         col.prop(st, "proxy_render_size")
 
-classes = [
-    SEQUENCER_HT_header, # header/menu classes
-    SEQUENCER_MT_view,
-    SEQUENCER_MT_view_toggle,
-    SEQUENCER_MT_select,
-    SEQUENCER_MT_marker,
-    SEQUENCER_MT_add,
-    SEQUENCER_MT_add_effect,
-    SEQUENCER_MT_strip,
-
-    SEQUENCER_PT_edit, # sequencer panels
-    SEQUENCER_PT_preview,
-    SEQUENCER_PT_effect,
-    SEQUENCER_PT_input_movie,
-    SEQUENCER_PT_input_image,
-    SEQUENCER_PT_input_secondary,
-    SEQUENCER_PT_sound,
-    SEQUENCER_PT_scene,
-    SEQUENCER_PT_filter,
-    SEQUENCER_PT_proxy,
-
-    SEQUENCER_PT_view] # view panels
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

@@ -19,8 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 from properties_physics_common import point_cache_ui
 from properties_physics_common import effector_weights_ui
@@ -30,12 +28,13 @@ def softbody_panel_enabled(md):
     return (md.point_cache.baked is False)
 
 
-class PhysicButtonsPanel(bpy.types.Panel):
+class PhysicButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         ob = context.object
         rd = context.scene.render
 #        return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
@@ -43,7 +42,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
         return (ob and (ob.type == 'MESH' or ob.type == 'LATTICE'or ob.type == 'CURVE')) and (not rd.use_game_engine)
 
 
-class PHYSICS_PT_softbody(PhysicButtonsPanel):
+class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body"
 
     def draw(self, context):
@@ -51,7 +50,6 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 
         md = context.soft_body
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -66,8 +64,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
         else:
             # add modifier
             split.operator("object.modifier_add", text="Add").type = 'SOFT_BODY'
-            if wide_ui:
-                split.column()
+            split.column()
 
         if md:
             softbody = md.settings
@@ -82,17 +79,17 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
             col.prop(softbody, "mass")
             col.prop_object(softbody, "mass_vertex_group", ob, "vertex_groups", text="Mass:")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.label(text="Simulation:")
             col.prop(softbody, "speed")
 
 
-class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
+class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Cache"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.soft_body
 
     def draw(self, context):
@@ -100,11 +97,12 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
         point_cache_ui(self, context, md.point_cache, softbody_panel_enabled(md), 'SOFTBODY')
 
 
-class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
+class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Goal"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.soft_body
 
     def draw_header(self, context):
@@ -119,7 +117,6 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
         md = context.soft_body
         softbody = md.settings
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
         layout.active = softbody.use_goal and softbody_panel_enabled(md)
 
@@ -135,8 +132,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
         sub.prop(softbody, "goal_min", text="Minimum")
         sub.prop(softbody, "goal_max", text="Maximum")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Goal Settings:")
         col.prop(softbody, "goal_spring", text="Stiffness")
         col.prop(softbody, "goal_friction", text="Damping")
@@ -144,11 +140,12 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
         layout.prop_object(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
 
 
-class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
+class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Edges"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.soft_body
 
     def draw_header(self, context):
@@ -163,7 +160,6 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
         md = context.soft_body
         softbody = md.settings
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
         layout.active = softbody.use_edges and softbody_panel_enabled(md)
 
@@ -179,8 +175,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
         col.prop(softbody, "spring_length", text="Length")
         col.prop_object(softbody, "spring_vertex_group", ob, "vertex_groups", text="Springs:")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(softbody, "stiff_quads")
         sub = col.column()
         sub.active = softbody.stiff_quads
@@ -199,11 +194,12 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
         col.prop(softbody, "face_collision", text="Face")
 
 
-class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
+class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Self Collision"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.soft_body
 
     def draw_header(self, context):
@@ -217,15 +213,11 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 
         md = context.soft_body
         softbody = md.settings
-        wide_ui = context.region.width > narrowui
 
         layout.active = softbody.self_collision and softbody_panel_enabled(md)
 
         layout.label(text="Collision Ball Size Calculation:")
-        if wide_ui:
-            layout.prop(softbody, "collision_type", expand=True)
-        else:
-            layout.prop(softbody, "collision_type", text="")
+        layout.prop(softbody, "collision_type", expand=True)
 
         col = layout.column(align=True)
         col.label(text="Ball:")
@@ -234,11 +226,12 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
         col.prop(softbody, "ball_damp", text="Dampening")
 
 
-class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
+class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Solver"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.soft_body
 
     def draw(self, context):
@@ -246,7 +239,6 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 
         md = context.soft_body
         softbody = md.settings
-        wide_ui = context.region.width > narrowui
 
         layout.active = softbody_panel_enabled(md)
 
@@ -259,8 +251,7 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
         col.prop(softbody, "maxstep")
         col.prop(softbody, "auto_step", text="Auto-Step")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(softbody, "error_limit")
         col.label(text="Helpers:")
         col.prop(softbody, "choke")
@@ -271,11 +262,12 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
         layout.prop(softbody, "estimate_matrix")
 
 
-class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel):
+class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Field Weights"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.soft_body)
 
     def draw(self, context):
@@ -285,26 +277,12 @@ class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel):
         effector_weights_ui(self, context, softbody.effector_weights)
 
 
-classes = [
-    PHYSICS_PT_softbody,
-    PHYSICS_PT_softbody_cache,
-    PHYSICS_PT_softbody_goal,
-    PHYSICS_PT_softbody_edge,
-    PHYSICS_PT_softbody_collision,
-    PHYSICS_PT_softbody_solver,
-    PHYSICS_PT_softbody_field_weights]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

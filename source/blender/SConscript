@@ -10,7 +10,6 @@ SConscript(['avi/SConscript',
             'gpu/SConscript',
             'editors/SConscript',
             'imbuf/SConscript',
-            'imbuf/intern/cineon/SConscript',
             'makesdna/SConscript',
             'makesrna/SConscript',
             'readblenfile/SConscript',
@@ -28,6 +27,9 @@ if env['WITH_BF_PYTHON']:
 
 if env['WITH_BF_DDS']:
     SConscript (['imbuf/intern/dds/SConscript'])
+
+if env['WITH_BF_CINEON']:
+    SConscript (['imbuf/intern/cineon/SConscript'])
 
 if env['WITH_BF_OPENEXR']:
     SConscript (['imbuf/intern/openexr/SConscript'])

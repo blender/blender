@@ -34,4 +34,3 @@ SET(INC
 )
 
 BLENDERLIB(bf_loopbacknetwork "${SRC}" "${INC}")
-#env.BlenderLib ( 'bf_loopbacknetwork', Split(sources), Split(incs), defines=[],libtype=['game2', 'player'], priority=[25, 165] )

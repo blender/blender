@@ -19,49 +19,37 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
 
-
-class DataButtonsPanel(bpy.types.Panel):
+class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.object and context.object.type == 'EMPTY')
 
 
-class DATA_PT_empty(DataButtonsPanel):
+class DATA_PT_empty(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Empty"
 
     def draw(self, context):
         layout = self.layout
 
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(ob, "empty_draw_type", text="Display")
-        else:
-            layout.prop(ob, "empty_draw_type", text="")
+        layout.prop(ob, "empty_draw_type", text="Display")
 
         layout.prop(ob, "empty_draw_size", text="Size")
 
 
-classes = [
-    DATA_PT_empty]
-
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

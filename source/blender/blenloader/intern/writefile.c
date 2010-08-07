@@ -1538,6 +1538,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 			/* direct data */
 			if (mesh->id.properties) IDP_WriteProperty(mesh->id.properties, wd);
+			if (mesh->adt) write_animdata(wd, mesh->adt);
 
 			writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
 
@@ -1769,11 +1770,6 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 	}
 }
 
-static void write_paint(WriteData *wd, Paint *p)
-{
-	if(p && p->brushes)
-		writedata(wd, DATA, p->brush_count * sizeof(Brush*), p->brushes);
-}
 
 static void write_scenes(WriteData *wd, ListBase *scebase)
 {
@@ -1808,18 +1804,15 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		writestruct(wd, DATA, "ToolSettings", 1, tos);
 		if(tos->vpaint) {
 			writestruct(wd, DATA, "VPaint", 1, tos->vpaint);
-			write_paint(wd, &tos->vpaint->paint);
 		}
 		if(tos->wpaint) {
 			writestruct(wd, DATA, "VPaint", 1, tos->wpaint);
-			write_paint(wd, &tos->wpaint->paint);
 		}
 		if(tos->sculpt) {
 			writestruct(wd, DATA, "Sculpt", 1, tos->sculpt);
-			write_paint(wd, &tos->sculpt->paint);
 		}
 
-		write_paint(wd, &tos->imapaint.paint);
+		// write_paint(wd, &tos->imapaint.paint);
 
 		ed= sce->ed;
 		if(ed) {

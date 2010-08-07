@@ -120,7 +120,8 @@ class importMDD(bpy.types.Operator):
     #fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default=25)
     frame_start = IntProperty(name="Start Frame", description="Start frame for inserting animation", min=minframe, max=maxframe, default=0)
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         ob = context.active_object
         return (ob and ob.type == 'MESH')
 
@@ -143,12 +144,10 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(importMDD)
     bpy.types.INFO_MT_file_import.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(importMDD)
     bpy.types.INFO_MT_file_import.remove(menu_func)
 
 if __name__ == "__main__":

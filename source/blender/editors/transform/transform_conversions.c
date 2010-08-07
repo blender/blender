@@ -48,7 +48,6 @@
 #include "DNA_view3d_types.h"
 #include "DNA_constraint_types.h"
 
-#include "BKE_anim.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_blender.h"
@@ -94,6 +93,7 @@
 #include "ED_mesh.h"
 #include "ED_types.h"
 #include "ED_uvedit.h"
+#include "ED_curve.h" /* for ED_curve_editnurbs */
 
 #include "UI_view2d.h"
 
@@ -1347,12 +1347,14 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 	short hide_handles = (cu->drawflag & CU_HIDE_HANDLES);
-	
+	ListBase *nurbs;
+
 	/* to be sure */
 	if(cu->editnurb==NULL) return;
 
 	/* count total of vertices, check identical as in 2nd loop for making transdata! */
-	for(nu= cu->editnurb->first; nu; nu= nu->next) {
+	nurbs= ED_curve_editnurbs(cu);
+	for(nu= nurbs->first; nu; nu= nu->next) {
 		if(nu->type == CU_BEZIER) {
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
@@ -1388,7 +1390,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	invert_m3_m3(smtx, mtx);
 
 	td = t->data;
-	for(nu= cu->editnurb->first; nu; nu= nu->next) {
+	for(nu= nurbs->first; nu; nu= nu->next) {
 		if(nu->type == CU_BEZIER) {
 			TransData *head, *tail;
 			head = tail = td;
@@ -1772,13 +1774,16 @@ static int connectivity_edge(float mtx[][3], EditVert *v1, EditVert *v2)
 	float edge_len;
 	int done = 0;
 
+	/* note: hidden verts are not being checked for, this assumes
+	 * flushing of hidden faces & edges is working right */
+	
+	if (v1->f2 + v2->f2 == 4)
+		return 0;
+	
 	sub_v3_v3v3(edge_vec, v1->co, v2->co);
 	mul_m3_v3(mtx, edge_vec);
 
 	edge_len = len_v3(edge_vec);
-
-	if (v1->f2 + v2->f2 == 4)
-		return 0;
 
 	if (v1->f2) {
 		if (v2->f2) {
@@ -1845,7 +1850,7 @@ static void editmesh_set_connectivity_distance(EditMesh *em, float mtx[][3])
 
 		/* do internal edges for quads */
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (efa->v4) {
+			if (efa->v4 && efa->h==0) {
 				done |= connectivity_edge(mtx, efa->v1, efa->v3);
 				done |= connectivity_edge(mtx, efa->v2, efa->v4);
 			}
@@ -3033,7 +3038,7 @@ static TransData *ActionFCurveToTransData(TransData *td, TransData2D **td2dv, FC
 
 	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 		/* only add selected keyframes (for now, proportional edit is not enabled) */
-		if (BEZSELECTED(bezt)) {
+		if (bezt->f2 & SELECT) { /* note this MUST match count_fcurve_keys(), so can't use BEZSELECTED() macro */
 			/* only add if on the right 'side' of the current frame */
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
 				TimeToTransData(td, bezt->vec[1], adt);
@@ -4397,7 +4402,7 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 	}
 
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-	DAG_scene_flush_update(t->scene, -1, 0);
+	DAG_scene_flush_update(G.main, t->scene, -1, 0);
 
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
@@ -4475,7 +4480,7 @@ static int count_proportional_objects(TransInfo *t)
 	
 
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-	DAG_scene_flush_update(t->scene, -1, 0);
+	DAG_scene_flush_update(G.main, t->scene, -1, 0);
 
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */

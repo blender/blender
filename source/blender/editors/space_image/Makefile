@@ -57,7 +57,20 @@ ifeq ($(WITH_OPENEXR), true)
     CPPFLAGS += -DWITH_OPENEXR
 endif
 
-ifeq ($(WHITH_TIFF), true)
+ifeq ($(WITH_TIFF), true)
     CPPFLAGS += -DWITH_TIFF
+endif
+
+ifeq ($(WITH_LCMS), true)
+    CPPFLAGS += -DWITH_LCMS
+    CPPFLAGS += -I$(BF_LCMS_INC)
+endif
+
+ifeq ($(WITH_CINEON), true)
+    CPPFLAGS += -DWITH_CINEON
+endif
+
+ifeq ($(WITH_HDR), true)
+    CPPFLAGS += -DWITH_HDR
 endif
 

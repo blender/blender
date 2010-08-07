@@ -296,17 +296,7 @@ static void logic_header_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void logic_header_area_draw(const bContext *C, ARegion *ar)
 {
-	/* clear */
-	UI_ThemeClearColor(ED_screen_area_active(C)?TH_HEADER:TH_HEADERDESEL);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	logic_header_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_header(C, ar);
 }
 
 /**************************** spacetype *****************************/

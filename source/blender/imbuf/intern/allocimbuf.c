@@ -77,7 +77,7 @@ void imb_freerectImBuf(ImBuf *ibuf)
 {
 	if(ibuf==NULL) return;
 	
-	if(ibuf->crect && ibuf->crect != ibuf->rect)
+	if(ibuf->crect)
 		MEM_freeN(ibuf->crect);
 
 	if(ibuf->rect && (ibuf->mall & IB_rect))

@@ -36,6 +36,9 @@
 // #include "WTURBULENCE.h"
 #include "VEC3.h"
 
+// timestep default value for nice appearance
+#define DT_DEFAULT 0.1f;
+
 using namespace std;
 using namespace BasicVector;
 class WTURBULENCE;
@@ -43,11 +46,11 @@ class WTURBULENCE;
 class FLUID_3D  
 {
 	public:
-		FLUID_3D(int *res, /* int amplify, */ float *p0, float dt);
+		FLUID_3D(int *res, /* int amplify, */ float *p0);
 		FLUID_3D() {};
 		virtual ~FLUID_3D();
 
-		void initBlenderRNA(float *alpha, float *beta);
+		void initBlenderRNA(float *alpha, float *beta, float *dt_factor, float *vorticity, int *border_colli);
 		
 		// create & allocate vector noise advection 
 		void initVectorNoise(int amplify);
@@ -55,7 +58,7 @@ class FLUID_3D
 		void addSmokeColumn();
 		static void addSmokeTestCase(float* field, Vec3Int res);
 
-		void step();
+		void step(float dt);
 		void addObstacle(OBSTACLE* obstacle);
 
 		const float* xVelocity() { return _xVelocity; }; 
@@ -111,11 +114,25 @@ class FLUID_3D
 
 		// simulation constants
 		float _dt;
+		float *_dtFactor;
 		float _vorticityEps;
 		float _heatDiffusion;
+		float *_vorticityRNA;	// RNA-pointer.
 		float *_alpha; // for the buoyancy density term <-- as pointer to get blender RNA in here
 		float *_beta; // was _buoyancy <-- as pointer to get blender RNA in here
 		float _tempAmb; /* ambient temperature */
+		float _constantScaling;
+
+		bool _domainBcFront;  // z
+		bool _domainBcTop;    // y
+		bool _domainBcLeft;   // x
+		bool _domainBcBack;   // DOMAIN_BC_FRONT
+		bool _domainBcBottom; // DOMAIN_BC_TOP
+		bool _domainBcRight;  // DOMAIN_BC_LEFT
+		int *_borderColli; // border collision rules <-- as pointer to get blender RNA in here
+		int _colloPrev;		// To track whether value has been changed (to not
+							// have to recalibrate borders if nothing has changed
+		void setBorderCollisions();
 
 		// WTURBULENCE object, if active
 		// WTURBULENCE* _wTurbulence;

@@ -178,7 +178,7 @@ void BKE_previewimg_free_id(ID *id)
 		Image *img  = (Image*)id;
 		BKE_previewimg_free(&img->preview);
 	} else if (GS(id->name) == ID_BR) {
-		Brush *br  = (Brush*)br;
+		Brush *br  = (Brush*)id;
 		BKE_previewimg_free(&br->preview);
 	}
 }

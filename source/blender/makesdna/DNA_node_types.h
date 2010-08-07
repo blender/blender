@@ -314,6 +314,7 @@ typedef struct NodeColorBalance {
 
 	/* temp storage for inverted lift */
 	float lift_lgg[3];
+	float gamma_inv[3];
 } NodeColorBalance;
 
 typedef struct NodeColorspill {

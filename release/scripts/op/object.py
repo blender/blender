@@ -80,7 +80,8 @@ class SelectCamera(bpy.types.Operator):
     bl_label = "Select Camera"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.scene.camera is not None
 
     def execute(self, context):
@@ -109,7 +110,8 @@ class SelectHierarchy(bpy.types.Operator):
 
     extend = BoolProperty(name="Extend", description="Extend the existing selection", default=False)
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.object
 
     def execute(self, context):
@@ -167,7 +169,8 @@ class SubdivisionSet(bpy.types.Operator):
 
     relative = BoolProperty(name="Relative", description="Apply the subsurf level as an offset relative to the current level", default=False)
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         obs = context.selected_editable_objects
         return (obs is not None)
 
@@ -379,7 +382,8 @@ class ShapeTransfer(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         obj = context.active_object
         return (obj and obj.mode != 'EDIT')
 
@@ -409,7 +413,8 @@ class JoinUVs(bpy.types.Operator):
     bl_idname = "object.join_uvs"
     bl_label = "Join as UVs"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         obj = context.active_object
         return (obj and obj.type == 'MESH')
 
@@ -467,7 +472,8 @@ class MakeDupliFace(bpy.types.Operator):
     bl_idname = "object.make_dupli_face"
     bl_label = "Make DupliFace"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         obj = context.active_object
         return (obj and obj.type == 'MESH')
 
@@ -528,9 +534,9 @@ class MakeDupliFace(bpy.types.Operator):
 
 
 class IsolateTypeRender(bpy.types.Operator):
-    '''Select object matching a naming pattern'''
+    '''Hide unselected render objects of same type as active by setting the hide render flag'''
     bl_idname = "object.isolate_type_render"
-    bl_label = "Isolate Render Selection"
+    bl_label = "Restrict Render Unselected"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -545,29 +551,25 @@ class IsolateTypeRender(bpy.types.Operator):
                     obj.hide_render = True
 
         return {'FINISHED'}
+        
+class ClearAllRestrictRender(bpy.types.Operator):
+    '''Reveal all render objects by setting the hide render flag'''
+    bl_idname = "object.hide_render_clear_all"
+    bl_label = "Clear All Restrict Render"
+    bl_options = {'REGISTER', 'UNDO'}
 
-
-classes = [
-    SelectPattern,
-    SelectCamera,
-    SelectHierarchy,
-    SubdivisionSet,
-    ShapeTransfer,
-    JoinUVs,
-    IsolateTypeRender,
-    MakeDupliFace]
+    def execute(self, context):
+        for obj in context.scene.objects:
+        	obj.hide_render = False
+        return {'FINISHED'}
 
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

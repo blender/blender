@@ -42,6 +42,7 @@
 #include "BLI_math.h"
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
+#include "BLI_ghash.h"
 
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
@@ -69,6 +70,7 @@
 #include "ED_types.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
+#include "ED_curve.h"
 
 #include "UI_interface.h"
 
@@ -79,7 +81,14 @@
 typedef struct {
 	ListBase nubase;
 	void *lastsel;
+	GHash *undoIndex;
 } UndoCurve;
+
+/* Definitions needed for shape keys */
+typedef struct {
+	void *origNode;
+	int index;
+} NodeKeyIndex;
 
 void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatus);
 static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short selstatus);
@@ -96,7 +105,7 @@ ListBase *curve_get_editcurve(Object *ob)
 {
 	if(ob && ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu= ob->data;
-		return cu->editnurb;
+		return &cu->editnurb->nurbs;
 	}
 	return NULL;
 }
@@ -108,15 +117,18 @@ void set_actNurb(Object *obedit, Nurb *nu)
 	
 	if(nu==NULL)
 		cu->actnu = -1;
-	else
-		cu->actnu = BLI_findindex(cu->editnurb, nu);
+	else {
+		ListBase *nurbs= ED_curve_editnurbs(cu);
+		cu->actnu = BLI_findindex(nurbs, nu);
+	}
 }
 
 Nurb *get_actNurb(Object *obedit)
 {
 	Curve *cu= obedit->data;
-	
-	return BLI_findlink(cu->editnurb, cu->actnu);
+	ListBase *nurbs= ED_curve_editnurbs(cu);
+
+	return BLI_findlink(nurbs, cu->actnu);
 }
 
 /* ******************* SELECTION FUNCTIONS ********************* */
@@ -258,6 +270,692 @@ void printknots(Object *obedit)
 	}
 }
 
+/* ********************* Shape keys *************** */
+
+static NodeKeyIndex *init_nodeKeyIndex(void *node, int index)
+{
+	NodeKeyIndex *nodeIndex = MEM_callocN(sizeof(NodeKeyIndex), "init_nodeKeyIndex");
+
+	nodeIndex->origNode= node;
+	nodeIndex->index= index;
+
+	return nodeIndex;
+}
+
+static void free_nodeKeyIndex(NodeKeyIndex *pointIndex)
+{
+	MEM_freeN(pointIndex);
+}
+
+static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
+{
+	Nurb *nu= editnurb->nurbs.first;
+	Nurb *orignu= origBase->first;
+	GHash *gh;
+	BezTriple *bezt, *origbezt;
+	BPoint *bp, *origbp;
+	int a, keyindex= 0;
+
+	gh= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "editNurb keyIndex");
+
+	while (orignu) {
+		if (orignu->bezt) {
+			a= orignu->pntsu;
+			bezt= nu->bezt;
+			origbezt= orignu->bezt;
+			while (a--) {
+				BLI_ghash_insert(gh, bezt, init_nodeKeyIndex(origbezt, keyindex));
+				keyindex+= 12;
+				bezt++;
+				origbezt++;
+			}
+		} else {
+			a= orignu->pntsu * orignu->pntsv;
+			bp= nu->bp;
+			origbp= orignu->bp;
+			while (a--) {
+				BLI_ghash_insert(gh, bp, init_nodeKeyIndex(origbp, keyindex));
+				keyindex+= 4;
+				bp++;
+				origbp++;
+			}
+		}
+
+		nu= nu->next;
+		orignu= orignu->next;
+	}
+
+	editnurb->keyindex= gh;
+}
+
+static void free_editNurb_keyIndex(EditNurb *editnurb)
+{
+	if (!editnurb->keyindex) {
+		return;
+	}
+	BLI_ghash_free(editnurb->keyindex, NULL, (GHashValFreeFP)free_nodeKeyIndex);
+}
+
+static NodeKeyIndex *getNodeKeyIndex(EditNurb *editnurb, void *node)
+{
+	return BLI_ghash_lookup(editnurb->keyindex, node);
+}
+
+static BezTriple *getKeyIndexOrig_bezt(EditNurb *editnurb, void *node)
+{
+	NodeKeyIndex *index= getNodeKeyIndex(editnurb, node);
+
+	if (!index) {
+		return NULL;
+	}
+
+	return (BezTriple*)index->origNode;
+}
+
+static BPoint *getKeyIndexOrig_bp(EditNurb *editnurb, void *node)
+{
+	NodeKeyIndex *index= getNodeKeyIndex(editnurb, node);
+
+	if (!index) {
+		return NULL;
+	}
+
+	return (BPoint*)index->origNode;
+}
+
+static int getKeyIndexOrig_index(EditNurb *editnurb, void *node)
+{
+	NodeKeyIndex *index= getNodeKeyIndex(editnurb, node);
+
+	if (!index) {
+		return -1;
+	}
+
+	return index->index;
+}
+
+static void keyIndex_delNode(EditNurb *editnurb, void *node)
+{
+	if (!editnurb->keyindex) {
+		return;
+	}
+
+	BLI_ghash_remove(editnurb->keyindex, node, NULL, (GHashValFreeFP)free_nodeKeyIndex);
+}
+
+static void keyIndex_delBezt(EditNurb *editnurb, BezTriple *bezt)
+{
+	keyIndex_delNode(editnurb, bezt);
+}
+
+static void keyIndex_delBP(EditNurb *editnurb, BPoint *bp)
+{
+	keyIndex_delNode(editnurb, bp);
+}
+
+static void keyIndex_delNurb(EditNurb *editnurb, Nurb *nu)
+{
+	int a;
+
+	if (!editnurb->keyindex) {
+		return;
+	}
+
+	if (nu->bezt) {
+		BezTriple *bezt= nu->bezt;
+		a= nu->pntsu;
+
+		while (a--) {
+			BLI_ghash_remove(editnurb->keyindex, bezt, NULL, (GHashValFreeFP)free_nodeKeyIndex);
+			++bezt;
+		}
+	} else {
+		BPoint *bp= nu->bp;
+		a= nu->pntsu * nu->pntsv;
+
+		while (a--) {
+			BLI_ghash_remove(editnurb->keyindex, bp, NULL, (GHashValFreeFP)free_nodeKeyIndex);
+			++bp;
+		}
+	}
+}
+
+static void keyIndex_delNurbList(EditNurb *editnurb, ListBase *nubase)
+{
+	Nurb *nu= nubase->first;
+
+	while (nu) {
+		keyIndex_delNurb(editnurb, nu);
+
+		nu= nu->next;
+	}
+}
+
+static void keyIndex_updateNode(EditNurb *editnurb, char *node,
+	char *newnode, int count, int size, int search)
+{
+	int i;
+	NodeKeyIndex *index;
+
+	if (editnurb->keyindex == NULL) {
+		/* No shape keys - updating not needed */
+		return;
+	}
+
+	for (i = 0; i < count; i++) {
+		for (;;) {
+			index= getNodeKeyIndex(editnurb, node);
+			if (!search || index) {
+				break;
+			}
+			node += size;
+		}
+
+		BLI_ghash_remove(editnurb->keyindex, node, NULL, NULL);
+
+		if (index) {
+			BLI_ghash_insert(editnurb->keyindex, newnode, index);
+		}
+
+		newnode += size;
+		node += size;
+	}
+}
+
+static void keyIndex_updateBezt(EditNurb *editnurb, BezTriple *bezt,
+	BezTriple *newbezt, int count, int search)
+{
+	keyIndex_updateNode(editnurb, (char*)bezt, (char*)newbezt, count, sizeof(BezTriple), search);
+}
+
+static void keyIndex_updateBP(EditNurb *editnurb, BPoint *bp,
+	BPoint *newbp, int count, int search)
+{
+	keyIndex_updateNode(editnurb, (char*)bp, (char*)newbp, count, sizeof(BPoint), search);
+}
+
+static void keyIndex_updateNurb(EditNurb *editnurb, Nurb *nu, Nurb *newnu)
+{
+	if (nu->bezt) {
+		keyIndex_updateBezt(editnurb, nu->bezt, newnu->bezt, newnu->pntsu, 0);
+	} else {
+		keyIndex_updateBP(editnurb, nu->bp, newnu->bp, newnu->pntsu * newnu->pntsv, 0);
+	}
+}
+
+static void keyIndex_swap(EditNurb *editnurb, void *a, void *b)
+{
+	NodeKeyIndex *index1= getNodeKeyIndex(editnurb, a);
+	NodeKeyIndex *index2= getNodeKeyIndex(editnurb, b);
+
+	BLI_ghash_remove(editnurb->keyindex, a, NULL, NULL);
+	BLI_ghash_remove(editnurb->keyindex, b, NULL, NULL);
+
+	BLI_ghash_insert(editnurb->keyindex, a, index2);
+	BLI_ghash_insert(editnurb->keyindex, b, index1);
+}
+
+static void keyIndex_switchDirection(EditNurb *editnurb, Nurb *nu)
+{
+	int a;
+
+	if (nu->bezt) {
+		BezTriple *bezt1, *bezt2;
+
+		a= nu->pntsu;
+
+		bezt1= nu->bezt;
+		bezt2= bezt1+(a-1);
+
+		if (a & 1) ++a;
+
+		a/=2;
+
+		while (a--) {
+			if (bezt1 != bezt2) {
+				keyIndex_swap(editnurb, bezt1, bezt2);
+			}
+
+			bezt1++;
+			bezt2--;
+		}
+	} else {
+		BPoint *bp1, *bp2;
+
+		if (nu->pntsv == 1) {
+			a= nu->pntsu;
+			bp1= nu->bp;
+			bp2= bp1+(a-1);
+			a/= 2;
+			while(bp1!=bp2 && a>0) {
+				if (bp1 != bp2) {
+					keyIndex_swap(editnurb, bp1, bp2);
+				}
+
+				a--;
+				bp1++;
+				bp2--;
+			}
+		} else {
+			int b;
+
+			for(b=0; b<nu->pntsv; b++) {
+
+				bp1= nu->bp+b*nu->pntsu;
+				a= nu->pntsu;
+				bp2= bp1+(a-1);
+				a/= 2;
+
+				while(bp1!=bp2 && a>0) {
+					if (bp1 != bp2) {
+						keyIndex_swap(editnurb, bp1, bp2);
+					}
+
+					a--;
+					bp1++;
+					bp2--;
+				}
+			}
+
+		}
+	}
+}
+
+static void switch_keys_direction(Curve *cu, Nurb *actnu)
+{
+	KeyBlock *currkey;
+	ListBase *nubase= &cu->editnurb->nurbs;
+	Nurb *nu;
+	float *fp;
+	int a;
+
+	currkey = cu->key->block.first;
+	while(currkey) {
+		fp= currkey->data;
+
+		nu= nubase->first;
+		while (nu) {
+			if (nu->bezt) {
+				a= nu->pntsu;
+				if (nu == actnu) {
+					while (a--) {
+						swap_v3_v3(fp, fp + 6);
+						*(fp+9) = -*(fp+9);
+						fp += 12;
+					}
+				} else fp += a * 12;
+			} else {
+				a= nu->pntsu * nu->pntsv;
+				if (nu == actnu) {
+					while (a--) {
+						*(fp+3) = -*(fp+3);
+						fp += 4;
+					}
+				} else fp += a * 4;
+			}
+
+			nu= nu->next;
+		}
+
+		currkey= currkey->next;
+	}
+}
+
+static void keyData_switchDirectionNurb(Curve *cu, Nurb *nu)
+{
+	EditNurb *editnurb= cu->editnurb;
+
+	if (!editnurb->keyindex) {
+		/* no shape keys - nothing to do */
+		return;
+	}
+
+	keyIndex_switchDirection(editnurb, nu);
+	switch_keys_direction(cu, nu);
+}
+
+static GHash *dupli_keyIndexHash(GHash *keyindex)
+{
+	GHash *gh;
+	GHashIterator *hashIter;
+
+	gh= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "dupli_keyIndex gh");
+
+	for(hashIter = BLI_ghashIterator_new(keyindex);
+				   !BLI_ghashIterator_isDone(hashIter);
+				   BLI_ghashIterator_step(hashIter)) {
+		void *node = BLI_ghashIterator_getKey(hashIter);
+		NodeKeyIndex *index = BLI_ghashIterator_getValue(hashIter);
+		NodeKeyIndex *newIndex = MEM_callocN(sizeof(NodeKeyIndex), "dupli_keyIndexHash index");
+
+		memcpy(newIndex, index, sizeof(NodeKeyIndex));
+
+		BLI_ghash_insert(gh, node, newIndex);
+	}
+
+	BLI_ghashIterator_free(hashIter);
+
+	return gh;
+}
+
+static void key_to_bezt(float *key, BezTriple *basebezt, BezTriple *bezt)
+{
+	memcpy(bezt, basebezt, sizeof(BezTriple));
+	memcpy(bezt->vec, key, sizeof(float) * 9);
+	bezt->alfa= key[9];
+}
+
+static void bezt_to_key(BezTriple *bezt, float *key)
+{
+	 memcpy(key, bezt->vec, sizeof(float) * 9);
+	 key[9] = bezt->alfa;
+}
+
+static void calc_keyHandles(ListBase *nurb, float *key)
+{
+	Nurb *nu;
+	int a;
+	float *fp= key;
+	BezTriple *bezt;
+
+	nu= nurb->first;
+	while (nu) {
+		if (nu->bezt) {
+			BezTriple *prevp, *nextp;
+			BezTriple cur, prev, next;
+			float *startfp, *prevfp, *nextfp;
+
+			bezt= nu->bezt;
+			a= nu->pntsu;
+			startfp= fp;
+
+			if(nu->flagu & CU_NURB_CYCLIC) {
+				prevp= bezt+(a-1);
+				prevfp= fp+(12 * (a-1));
+			} else {
+				prevp= NULL;
+				prevfp= NULL;
+			}
+
+			nextp= bezt + 1;
+			nextfp= fp + 12;
+
+			while (a--) {
+				key_to_bezt(fp, bezt, &cur);
+
+				if (nextp) key_to_bezt(nextfp, nextp, &next);
+				if (prevp) key_to_bezt(prevfp, prevp, &prev);
+
+				calchandleNurb(&cur, prevp ? &prev : NULL, nextp ? &next : NULL, 0);
+				bezt_to_key(&cur, fp);
+
+				prevp= bezt;
+				prevfp= fp;
+				if(a==1) {
+					if(nu->flagu & CU_NURB_CYCLIC) {
+						nextp= nu->bezt;
+						nextfp= startfp;
+					} else {
+						nextp= NULL;
+						nextfp= NULL;
+					}
+				}
+				else {
+					++nextp;
+					nextfp += 12;;
+				}
+
+				++bezt;
+				fp += 12;
+			}
+		} else {
+			a= nu->pntsu * nu->pntsv;
+			fp += a * 4;
+		}
+
+		nu= nu->next;
+	}
+}
+
+static void calc_shapeKeys(Object *obedit)
+{
+	Curve *cu= (Curve*)obedit->data;
+
+	/* are there keys? */
+	if(cu->key) {
+		int a, i, j;
+		EditNurb *editnurb= cu->editnurb;
+		KeyBlock *currkey;
+		KeyBlock *actkey= ob_get_keyblock(obedit);
+		BezTriple *bezt, *oldbezt;
+		BPoint *bp, *oldbp;
+		Nurb *nu;
+		int totvert= count_curveverts(&editnurb->nurbs);
+
+		float (*ofs)[3] = NULL;
+		float *oldkey, *newkey, *fp, *ofp;
+
+		/* editing the base key should update others */
+		if(cu->key->type==KEY_RELATIVE) {
+			int act_is_basis = 0;
+			/* find if this key is a basis for any others */
+			for(currkey = cu->key->block.first; currkey; currkey= currkey->next) {
+				if(obedit->shapenr-1 == currkey->relative) {
+					act_is_basis = 1;
+					break;
+				}
+			}
+
+			if(act_is_basis) { /* active key is a base */
+				int j;
+				int totvec= 0;
+
+				/* Calculate needed memory to store offset */
+				nu= editnurb->nurbs.first;
+				while(nu) {
+					if (nu->bezt) {
+						/* Three vects to store handles and one for alfa */
+						totvec+= nu->pntsu * 4;
+					} else {
+						totvec+= 2 * nu->pntsu * nu->pntsv;
+					}
+
+					nu= nu->next;
+				}
+
+				ofs= MEM_callocN(sizeof(float) * 3 * totvec,  "currkey->data");
+				nu= editnurb->nurbs.first;
+				i= 0;
+				while(nu) {
+					if(nu->bezt) {
+						bezt= nu->bezt;
+						a= nu->pntsu;
+						while(a--) {
+							oldbezt= getKeyIndexOrig_bezt(editnurb, bezt);
+
+							if (oldbezt) {
+								for (j= 0; j < 3; ++j) {
+									VECSUB(ofs[i], bezt->vec[j], oldbezt->vec[j]);
+									i++;
+									fp+= 3;
+								}
+								ofs[i++][0]= bezt->alfa - oldbezt->alfa;
+							} else {
+								i += 4;
+							}
+							bezt++;
+						}
+					}
+					else {
+						bp= nu->bp;
+						a= nu->pntsu*nu->pntsv;
+						while(a--) {
+							oldbp= getKeyIndexOrig_bp(editnurb, bp);
+							if (oldbp) {
+								VECSUB(ofs[i], bp->vec, oldbp->vec);
+								ofs[i+1][0]= bp->alfa - oldbp->alfa;
+							}
+							i += 2;
+							++bp;
+							fp += 4;
+						}
+					}
+
+					nu= nu->next;
+				}
+			}
+		}
+
+		currkey = cu->key->block.first;
+		while(currkey) {
+			int apply_offset = (ofs && (currkey != actkey) && (obedit->shapenr-1 == currkey->relative));
+
+			fp= newkey= MEM_callocN(cu->key->elemsize * totvert,  "currkey->data");
+			ofp= oldkey = currkey->data;
+
+			nu= editnurb->nurbs.first;
+			i = 0;
+			while(nu) {
+				if(currkey == actkey) {
+					int restore= actkey != cu->key->refkey;
+
+					if(nu->bezt) {
+						bezt= nu->bezt;
+						a= nu->pntsu;
+						while(a--) {
+							oldbezt= getKeyIndexOrig_bezt(editnurb, bezt);
+
+							for (j= 0; j < 3; ++j, ++i) {
+								VECCOPY(fp, bezt->vec[j]);
+
+								if (restore && oldbezt) {
+									VECCOPY(bezt->vec[j], oldbezt->vec[j]);
+								}
+
+								fp+= 3;
+							}
+							fp[0]= bezt->alfa;
+
+							if(restore && oldbezt) {
+								bezt->alfa= oldbezt->alfa;
+							}
+
+							fp+= 3;	++i;/* alphas */
+							++bezt;
+						}
+					}
+					else {
+						bp= nu->bp;
+						a= nu->pntsu*nu->pntsv;
+						while(a--) {
+							oldbp= getKeyIndexOrig_bp(editnurb, bp);
+
+							VECCOPY(fp, bp->vec);
+
+							fp[3]= bp->alfa;
+
+							if(restore && oldbp) {
+								VECCOPY(bp->vec, oldbp->vec);
+								bp->alfa= oldbp->alfa;
+							}
+
+							fp+= 4;
+							++bp;
+							i+=2;
+						}
+					}
+				}
+				else {
+					int index;
+					float *curofp;
+
+					if(oldkey) {
+						if(nu->bezt) {
+							bezt= nu->bezt;
+							a= nu->pntsu;
+
+							while(a--) {
+								index= getKeyIndexOrig_index(editnurb, bezt);
+								if (index >= 0) {
+									curofp= ofp + index;
+
+									for (j= 0; j < 3; ++j, ++i) {
+										VECCOPY(fp, curofp);
+
+										if(apply_offset) {
+											VECADD(fp, fp, ofs[i]);
+										}
+
+										fp+= 3; curofp+= 3;
+									}
+									fp[0]= curofp[0];
+
+									if(apply_offset) {
+										/* apply alfa offsets */
+										VECADD(fp, fp, ofs[i]);
+										++i;
+									}
+
+									fp+= 3; curofp+= 3;	/* alphas */
+								} else {
+									for (j= 0; j < 3; ++j, ++i) {
+										VECCOPY(fp, bezt->vec[j]);
+										fp+= 3;
+									}
+									fp[0]= bezt->alfa;
+
+									fp+= 3;	/* alphas */
+								}
+								++bezt;
+							}
+						}
+						else {
+							bp= nu->bp;
+							a= nu->pntsu*nu->pntsv;
+							while(a--) {
+								index= getKeyIndexOrig_index(editnurb, bp);
+
+								if (index >= 0) {
+									curofp= ofp + index;
+									VECCOPY(fp, curofp);
+									fp[3]= curofp[3];
+
+									if(apply_offset) {
+										VECADD(fp, fp, ofs[i]);
+										fp[3]+=ofs[i+1][0];
+									}
+								} else {
+									VECCOPY(fp, bp->vec);
+									fp[3]= bp->alfa;
+								}
+
+								fp+= 4;
+								++bp;
+								i+=2;
+							}
+						}
+					}
+				}
+
+				nu= nu->next;
+			}
+
+			if (apply_offset) {
+				/* handles could become malicious after offsets applying */
+				calc_keyHandles(&editnurb->nurbs, newkey);
+			}
+
+			currkey->totelem= totvert;
+			if(currkey->data) MEM_freeN(currkey->data);
+			currkey->data = newkey;
+
+			currkey= currkey->next;
+		}
+
+		if(ofs) MEM_freeN(ofs);
+	}
+}
+
 /* ********************* LOAD and MAKE *************** */
 
 /* load editNurb in object */
@@ -272,48 +970,32 @@ void load_editNurb(Object *obedit)
 	if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 		Curve *cu= obedit->data;
 		Nurb *nu, *newnu;
-		KeyBlock *actkey;
-		int totvert= count_curveverts(editnurb);
+		ListBase newnurb= {NULL, NULL}, oldnurb= cu->nurb;
 
-		/* are there keys? */
-		actkey = ob_get_keyblock(obedit);
-		if(actkey) {
-			/* active key: the vertices */
-			
-			if(totvert) {
-				if(actkey->data) MEM_freeN(actkey->data);
-			
-				actkey->data= MEM_callocN(cu->key->elemsize*totvert, "actkey->data");
-				actkey->totelem= totvert;
-		
-				curve_to_key(cu, actkey, editnurb);
+		for(nu= editnurb->first; nu; nu= nu->next) {
+			newnu= duplicateNurb(nu);
+			BLI_addtail(&newnurb, newnu);
+
+			if(nu->type == CU_NURBS) {
+				clamp_nurb_order_u(nu);
 			}
 		}
-		
-		if(cu->key && actkey!=cu->key->refkey) {
-			;
-		}
-		else {
-			freeNurblist(&(cu->nurb));
-			
-			for(nu= editnurb->first; nu; nu= nu->next) {
-				newnu= duplicateNurb(nu);
-				BLI_addtail(&(cu->nurb), newnu);
-				
-				if(nu->type == CU_NURBS) {
-					clamp_nurb_order_u(nu);
-				}
-			}
-		}
+
+		cu->nurb= newnurb;
+
+		calc_shapeKeys(obedit);
+
+		freeNurblist(&oldnurb);
 	}
-	
+
 	set_actNurb(obedit, NULL);
 }
 
 /* make copy in cu->editnurb */
 void make_editNurb(Object *obedit)
 {
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	Curve *cu= (Curve*)obedit->data;
+	EditNurb *editnurb= cu->editnurb;
 	Nurb *nu, *newnu, *nu_act= NULL;
 	KeyBlock *actkey;
 
@@ -322,20 +1004,29 @@ void make_editNurb(Object *obedit)
 	set_actNurb(obedit, NULL);
 
 	if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
-		Curve *cu= obedit->data;
-		
-		if(editnurb)
-			freeNurblist(editnurb);
-		else
-			editnurb= cu->editnurb= MEM_callocN(sizeof(ListBase), "editnurb");
-		
+		actkey = ob_get_keyblock(obedit);
+		if(actkey) {
+			// XXX strcpy(G.editModeTitleExtra, "(Key) ");
+			undo_editmode_clear();
+			key_to_curve(actkey, cu, &cu->nurb);
+		}
+
+		if(editnurb) {
+			freeNurblist(&editnurb->nurbs);
+			free_editNurb_keyIndex(editnurb);
+			editnurb->keyindex= NULL;
+		} else {
+			editnurb= MEM_callocN(sizeof(EditNurb), "editnurb");
+			cu->editnurb= editnurb;
+		}
+
 		nu= cu->nurb.first;
 		cu->lastsel= NULL;   /* for select row */
-		
+
 		while(nu) {
 			newnu= duplicateNurb(nu);
 			test2DNurb(newnu);	// after join, or any other creation of curve
-			BLI_addtail(editnurb, newnu);
+			BLI_addtail(&editnurb->nurbs, newnu);
 
 			if (nu_act == NULL && isNurbsel(nu)) {
 				nu_act= newnu;
@@ -344,12 +1035,20 @@ void make_editNurb(Object *obedit)
 
 			nu= nu->next;
 		}
-		
-		actkey = ob_get_keyblock(obedit);
+
 		if(actkey) {
-			// XXX strcpy(G.editModeTitleExtra, "(Key) ");
-			key_to_curve(actkey, cu, editnurb);
+			init_editNurb_keyIndex(editnurb, &cu->nurb);
 		}
+	}
+}
+
+void free_curve_editNurb (Curve *cu)
+{
+	if(cu->editnurb) {
+		freeNurblist(&cu->editnurb->nurbs);
+		free_editNurb_keyIndex(cu->editnurb);
+		MEM_freeN(cu->editnurb);
+		cu->editnurb= NULL;
 	}
 }
 
@@ -357,11 +1056,7 @@ void free_editNurb(Object *obedit)
 {
 	Curve *cu= obedit->data;
 
-	if(cu->editnurb) {
-		freeNurblist(cu->editnurb);
-		MEM_freeN(cu->editnurb);
-		cu->editnurb= NULL;
-	}
+	free_curve_editNurb(cu);
 }
 
 void CU_deselect_all(Object *obedit)
@@ -428,12 +1123,13 @@ void CU_select_swap(Object *obedit)
 
 static int separate_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Nurb *nu, *nu1;
 	Object *oldob, *newob;
 	Base *oldbase, *newbase;
 	Curve *oldcu, *newcu;
-	ListBase *oldedit, *newedit;
+	EditNurb *oldedit, *newedit;
 
 	oldbase= CTX_data_active_base(C);
 	oldob= oldbase->object;
@@ -448,7 +1144,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	WM_cursor_wait(1);
 	
 	/* 1. duplicate the object and data */
-	newbase= ED_object_add_duplicate(scene, oldbase, 0);	/* 0 = fully linked */
+	newbase= ED_object_add_duplicate(bmain, scene, oldbase, 0);	/* 0 = fully linked */
 	ED_base_object_select(newbase, BA_DESELECT);
 	newob= newbase->object;
 
@@ -459,15 +1155,16 @@ static int separate_exec(bContext *C, wmOperator *op)
 	/* 2. put new object in editmode and clear it */
 	make_editNurb(newob);
 	newedit= newcu->editnurb;
-	freeNurblist(newedit);
+	freeNurblist(&newedit->nurbs);
+	free_editNurb_keyIndex(newedit);
 
 	/* 3. move over parts from old object */
-	for(nu= oldedit->first; nu; nu=nu1) {
+	for(nu= oldedit->nurbs.first; nu; nu=nu1) {
 		nu1= nu->next;
 
 		if(isNurbsel(nu)) {
-			BLI_remlink(oldedit, nu);
-			BLI_addtail(newedit, nu);
+			BLI_remlink(&oldedit->nurbs, nu);
+			BLI_addtail(&newedit->nurbs, nu);
 		}
 	}
 
@@ -679,6 +1376,7 @@ static int deleteflagNurb(bContext *C, wmOperator *op, int flag)
 		}
 		if(a==0) {
 			BLI_remlink(editnurb, nu);
+			keyIndex_delNurb(cu->editnurb, nu);
 			freeNurb(nu); nu=NULL;
 		}
 		else {
@@ -707,10 +1405,13 @@ static int deleteflagNurb(bContext *C, wmOperator *op, int flag)
 					if((bp->f1 & flag)==0) {
 						memcpy(bpn, bp, nu->pntsu*sizeof(BPoint));
 						bpn+= nu->pntsu;
+					} else {
+						keyIndex_delBP(cu->editnurb, bp);
 					}
 					bp+= nu->pntsu;
 				}
 				nu->pntsv= newv;
+				keyIndex_updateBP(cu->editnurb, nu->bp, newbp, newv * nu->pntsu, 1);
 				MEM_freeN(nu->bp);
 				nu->bp= newbp;
 				clamp_nurb_order_v(nu);
@@ -744,9 +1445,12 @@ static int deleteflagNurb(bContext *C, wmOperator *op, int flag)
 							if((bp->f1 & flag)==0) {
 								*bpn= *bp;
 								bpn++;
+							} else {
+								keyIndex_delBP(cu->editnurb, bp);
 							}
 						}
 					}
+					keyIndex_updateBP(cu->editnurb, nu->bp, newbp, newu * nu->pntsv, 1);
 					MEM_freeN(nu->bp);
 					nu->bp= newbp;
 					if(newu==1 && nu->pntsv>1) {    /* make a U spline */
@@ -772,13 +1476,13 @@ static int deleteflagNurb(bContext *C, wmOperator *op, int flag)
 }
 
 /* only for OB_SURF */
-static short extrudeflagNurb(ListBase *editnurb, int flag)
+static short extrudeflagNurb(EditNurb *editnurb, int flag)
 {
 	Nurb *nu;
 	BPoint *bp, *bpn, *newbp;
 	int ok= 0, a, u, v, len;
 
-	nu= editnurb->first;
+	nu= editnurb->nurbs.first;
 	while(nu) {
 
 		if(nu->pntsv==1) {
@@ -794,9 +1498,9 @@ static short extrudeflagNurb(ListBase *editnurb, int flag)
 				ok= 1;
 				newbp =
 					(BPoint*)MEM_mallocN(2 * nu->pntsu * sizeof(BPoint), "extrudeNurb1");
-				memcpy(newbp, nu->bp, nu->pntsu*sizeof(BPoint) );
+				ED_curve_bpcpy(editnurb, newbp, nu->bp, nu->pntsu);
 				bp= newbp+ nu->pntsu;
-				memcpy(bp, nu->bp, nu->pntsu*sizeof(BPoint) );
+				ED_curve_bpcpy(editnurb, bp, nu->bp, nu->pntsu);
 				MEM_freeN(nu->bp);
 				nu->bp= newbp;
 				a= nu->pntsu;
@@ -813,7 +1517,7 @@ static short extrudeflagNurb(ListBase *editnurb, int flag)
 			}
 		}
 		else {
-			/* which row or collumn is selected */
+			/* which row or column is selected */
 
 			if( isNurbselUV(nu, &u, &v, flag) ) {
 
@@ -832,14 +1536,14 @@ static short extrudeflagNurb(ListBase *editnurb, int flag)
 										  * sizeof(BPoint), "extrudeNurb1");
 					if(u==0) {
 						len= nu->pntsv*nu->pntsu;
-						memcpy(newbp+nu->pntsu, nu->bp, len*sizeof(BPoint) );
-						memcpy(newbp, nu->bp, nu->pntsu*sizeof(BPoint) );
+						ED_curve_bpcpy(editnurb, newbp+nu->pntsu, nu->bp, len);
+						ED_curve_bpcpy(editnurb, newbp, nu->bp, nu->pntsu);
 						bp= newbp;
 					}
 					else {
 						len= nu->pntsv*nu->pntsu;
-						memcpy(newbp, nu->bp, len*sizeof(BPoint) );
-						memcpy(newbp+len, nu->bp+len-nu->pntsu, nu->pntsu*sizeof(BPoint) );
+						ED_curve_bpcpy(editnurb, newbp, nu->bp, len);
+						ED_curve_bpcpy(editnurb, newbp+len, nu->bp+len-nu->pntsu, nu->pntsu);
 						bp= newbp+len;
 					}
 
@@ -866,7 +1570,7 @@ static short extrudeflagNurb(ListBase *editnurb, int flag)
 							bpn->f1 |= flag;
 							bpn++;
 						}
-						memcpy(bpn, bp, nu->pntsu*sizeof(BPoint));
+						ED_curve_bpcpy(editnurb, bpn, bp, nu->pntsu);
 						bp+= nu->pntsu;
 						bpn+= nu->pntsu;
 						if(v== nu->pntsu-1) {
@@ -1068,13 +1772,16 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 static int switch_direction_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	Curve *cu= (Curve*)obedit->data;
+	EditNurb *editnurb= cu->editnurb;
 	Nurb *nu;
-	
-	for(nu= editnurb->first; nu; nu= nu->next)
-		if(isNurbsel(nu))
+
+	for(nu= editnurb->nurbs.first; nu; nu= nu->next)
+		if(isNurbsel(nu)) {
 			switchdirectionNurb(nu);
-	
+			keyData_switchDirectionNurb(cu, nu);
+		}
+
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
@@ -3004,7 +3711,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	/* joins 2 curves */
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *nubase= curve_get_editcurve(obedit);
 	Nurb *nu, *nu1=0, *nu2=0;
 	BezTriple *bezt;
 	BPoint *bp;
@@ -3012,7 +3719,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	int a;
 
 	/* first decide if this is a surface merge! */
-	if(obedit->type==OB_SURF) nu= editnurb->first;
+	if(obedit->type==OB_SURF) nu= nubase->first;
 	else nu= NULL;
 	
 	while(nu) {
@@ -3035,7 +3742,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 		return merge_nurb(C, op);
 	
 	/* find both nurbs and points, nu1 will be put behind nu2 */
-	for(nu= editnurb->first; nu; nu= nu->next) {
+	for(nu= nubase->first; nu; nu= nu->next) {
 		if((nu->flagu & CU_NURB_CYCLIC)==0) {    /* not cyclic */
 			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
@@ -3046,6 +3753,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 						if( BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
 							nu1= nu;
 							switchdirectionNurb(nu);
+							keyData_switchDirectionNurb(cu, nu);
 						}
 					}
 				}
@@ -3053,6 +3761,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 					if( BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
 						nu2= nu;
 						switchdirectionNurb(nu);
+						keyData_switchDirectionNurb(cu, nu);
 					}
 					else {
 						bezt= bezt+(nu->pntsu-1);
@@ -3072,6 +3781,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 						if( bp->f1 & SELECT ) {
 							nu1= nu;
 							switchdirectionNurb(nu);
+							keyData_switchDirectionNurb(cu, nu);
 						}
 					}
 				}
@@ -3079,6 +3789,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 					if( bp->f1 & SELECT ) {
 						nu2= nu;
 						switchdirectionNurb(nu);
+						keyData_switchDirectionNurb(cu, nu);
 					}
 					else {
 						bp= bp+(nu->pntsu-1);
@@ -3097,27 +3808,28 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 			if(nu1->type == CU_BEZIER) {
 				bezt =
 					(BezTriple*)MEM_mallocN((nu1->pntsu+nu2->pntsu) * sizeof(BezTriple), "addsegmentN");
-				memcpy(bezt, nu2->bezt, nu2->pntsu*sizeof(BezTriple));
-				memcpy(bezt+nu2->pntsu, nu1->bezt, nu1->pntsu*sizeof(BezTriple));
+				ED_curve_beztcpy(cu->editnurb, bezt, nu2->bezt, nu2->pntsu);
+				ED_curve_beztcpy(cu->editnurb, bezt+nu2->pntsu, nu1->bezt, nu1->pntsu);
+
 				MEM_freeN(nu1->bezt);
 				nu1->bezt= bezt;
 				nu1->pntsu+= nu2->pntsu;
-				BLI_remlink(editnurb, nu2);
+				BLI_remlink(nubase, nu2);
 				freeNurb(nu2); nu2= NULL;
 				calchandlesNurb(nu1);
 			}
 			else {
 				bp =
 					(BPoint*)MEM_mallocN((nu1->pntsu+nu2->pntsu) * sizeof(BPoint), "addsegmentN2");
-				memcpy(bp, nu2->bp, nu2->pntsu*sizeof(BPoint) );
-				memcpy(bp+nu2->pntsu, nu1->bp, nu1->pntsu*sizeof(BPoint));
+				ED_curve_bpcpy(cu->editnurb, bp, nu2->bp, nu2->pntsu);
+				ED_curve_bpcpy(cu->editnurb, bp+nu2->pntsu, nu1->bp, nu1->pntsu);
 				MEM_freeN(nu1->bp);
 				nu1->bp= bp;
 
 				a= nu1->pntsu+nu1->orderu;
 
 				nu1->pntsu+= nu2->pntsu;
-				BLI_remlink(editnurb, nu2);
+				BLI_remlink(nubase, nu2);
 
 				/* now join the knots */
 				if(nu1->type == CU_NURBS) {
@@ -3263,6 +3975,7 @@ int mouse_nurb(bContext *C, short mval[2], int extend)
 */
 static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, float *cent, short mode)
 {
+	Curve *cu= (Curve*)obedit->data;
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	Nurb *nu;
 	float si,phi,n[3],q[4],cmat[3][3],tmat[3][3],imat[3][3];
@@ -3311,7 +4024,7 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, flo
 	ok= 1;
 
 	for(a=0;a<7;a++) {
-		if(mode==0 || mode==2) ok= extrudeflagNurb(editnurb, 1);
+		if(mode==0 || mode==2) ok= extrudeflagNurb(cu->editnurb, 1);
 		else adduplicateflagNurb(obedit, 1);
 
 		if(ok==0)
@@ -3405,7 +4118,8 @@ void CURVE_OT_spin(wmOperatorType *ot)
 static int addvert_Nurb(bContext *C, short mode, float location[3])
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	Curve *cu= (Curve*)obedit->data;
+	EditNurb *editnurb= cu->editnurb;
 	Nurb *nu;
 	BezTriple *bezt, *newbezt = NULL;
 	BPoint *bp, *newbp = NULL;
@@ -3414,7 +4128,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 	copy_m3_m4(mat, obedit->obmat);
 	invert_m3_m3(imat,mat);
 
-	findselectedNurbvert(editnurb, &nu, &bezt, &bp);
+	findselectedNurbvert(&editnurb->nurbs, &nu, &bezt, &bp);
 	if(bezt==0 && bp==0) return OPERATOR_CANCELLED;
 
 	if(nu->type == CU_BEZIER) {
@@ -3423,7 +4137,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			BEZ_DESEL(bezt);
 			newbezt =
 				(BezTriple*)MEM_callocN((nu->pntsu+1) * sizeof(BezTriple), "addvert_Nurb");
-			memcpy(newbezt+1, bezt, nu->pntsu*sizeof(BezTriple));
+			ED_curve_beztcpy(editnurb, newbezt+1, bezt, nu->pntsu);
 			*newbezt= *bezt;
 			BEZ_SEL(newbezt);
 			newbezt->h2= newbezt->h1;
@@ -3436,7 +4150,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			BEZ_DESEL(bezt);
 			newbezt =
 				(BezTriple*)MEM_callocN((nu->pntsu+1) * sizeof(BezTriple), "addvert_Nurb");
-			memcpy(newbezt, nu->bezt, nu->pntsu*sizeof(BezTriple));
+			ED_curve_beztcpy(editnurb, newbezt, nu->bezt, nu->pntsu);
 			*(newbezt+nu->pntsu)= *bezt;
 			VECCOPY(temp, bezt->vec[1]);
 			MEM_freeN(nu->bezt);
@@ -3473,7 +4187,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			bp->f1= 0;
 			newbp =
 				(BPoint*)MEM_callocN((nu->pntsu+1) * sizeof(BPoint), "addvert_Nurb3");
-			memcpy(newbp+1, bp, nu->pntsu*sizeof(BPoint));
+			ED_curve_bpcpy(editnurb, newbp+1, bp, nu->pntsu);
 			*newbp= *bp;
 			newbp->f1= 1;
 			MEM_freeN(nu->bp);
@@ -3484,7 +4198,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 			bp->f1= 0;
 			newbp =
 				(BPoint*)MEM_callocN((nu->pntsu+1) * sizeof(BPoint), "addvert_Nurb4");
-			memcpy(newbp, nu->bp, nu->pntsu*sizeof(BPoint));
+			ED_curve_bpcpy(editnurb, newbp, nu->bp, nu->pntsu);
 			*(newbp+nu->pntsu)= *bp;
 			MEM_freeN(nu->bp);
 			nu->bp= newbp;
@@ -3573,11 +4287,11 @@ static int extrude_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	EditNurb *editnurb= cu->editnurb;
 	Nurb *nu;
 	
 	/* first test: curve? */
-	for(nu= editnurb->first; nu; nu= nu->next)
+	for(nu= editnurb->nurbs.first; nu; nu= nu->next)
 		if(nu->pntsv==1 && isNurbsel_count(cu, nu)==1)
 			break;
 
@@ -4333,7 +5047,7 @@ static void select_nth_bp(Nurb *nu, BPoint *bp, int nth)
 int CU_select_nth(Object *obedit, int nth)
 {
 	Curve *cu= (Curve*)obedit->data;
-	ListBase *nubase= cu->editnurb;
+	ListBase *nubase= ED_curve_editnurbs(cu);
 	Nurb *nu;
 	int ok=0;
 
@@ -4441,15 +5155,20 @@ static int delete_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	EditNurb *editnurb= cu->editnurb;
+	ListBase *nubase= &editnurb->nurbs;
 	Nurb *nu, *next, *nu1;
 	BezTriple *bezt, *bezt1, *bezt2;
 	BPoint *bp, *bp1, *bp2;
 	int a, cut= 0, type= RNA_enum_get(op->ptr, "type");
 
 	if(obedit->type==OB_SURF) {
-		if(type==0) deleteflagNurb(C, op, 1);
-		else freeNurblist(editnurb);
+		if(type==0) {
+			deleteflagNurb(C, op, 1);
+		} else {
+			keyIndex_delNurbList(editnurb, nubase);
+			freeNurblist(nubase);
+		}
 
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
@@ -4459,7 +5178,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 
 	if(type==0) {
 		/* first loop, can we remove entire pieces? */
-		nu= editnurb->first;
+		nu= nubase->first;
 		while(nu) {
 			next= nu->next;
 			if(nu->type == CU_BEZIER) {
@@ -4473,7 +5192,8 @@ static int delete_exec(bContext *C, wmOperator *op)
 						bezt++;
 					}
 					if(a==0) {
-						BLI_remlink(editnurb, nu);
+						BLI_remlink(nubase, nu);
+						keyIndex_delNurb(editnurb, nu);
 						freeNurb(nu); nu= NULL;
 					}
 				}
@@ -4489,7 +5209,8 @@ static int delete_exec(bContext *C, wmOperator *op)
 						bp++;
 					}
 					if(a==0) {
-						BLI_remlink(editnurb, nu);
+						BLI_remlink(nubase, nu);
+						keyIndex_delNurb(editnurb, nu);
 						freeNurb(nu); nu= NULL;
 					}
 				}
@@ -4505,18 +5226,21 @@ static int delete_exec(bContext *C, wmOperator *op)
 			nu= next;
 		}
 		/* 2nd loop, delete small pieces: just for curves */
-		nu= editnurb->first;
+		nu= nubase->first;
 		while(nu) {
 			next= nu->next;
 			type= 0;
 			if(nu->type == CU_BEZIER) {
+				int delta= 0;
 				bezt= nu->bezt;
 				for(a=0;a<nu->pntsu;a++) {
 					if( BEZSELECTED_HIDDENHANDLES(cu, bezt) ) {
 						memmove(bezt, bezt+1, (nu->pntsu-a-1)*sizeof(BezTriple));
+						keyIndex_delBezt(editnurb, bezt + delta);
 						nu->pntsu--;
 						a--;
 						type= 1;
+						delta++;
 					}
 					else bezt++;
 				}
@@ -4524,20 +5248,24 @@ static int delete_exec(bContext *C, wmOperator *op)
 					bezt1 =
 						(BezTriple*)MEM_mallocN((nu->pntsu) * sizeof(BezTriple), "delNurb");
 					memcpy(bezt1, nu->bezt, (nu->pntsu)*sizeof(BezTriple) );
+					keyIndex_updateBezt(editnurb, nu->bezt, bezt1, nu->pntsu, 1);
 					MEM_freeN(nu->bezt);
 					nu->bezt= bezt1;
 					calchandlesNurb(nu);
 				}
 			}
 			else if(nu->pntsv==1) {
+				int delta= 0;
 				bp= nu->bp;
 				
 				for(a=0;a<nu->pntsu;a++) {
 					if( bp->f1 & SELECT ) {
 						memmove(bp, bp+1, (nu->pntsu-a-1)*sizeof(BPoint));
+						keyIndex_delBP(editnurb, bp + delta);
 						nu->pntsu--;
 						a--;
 						type= 1;
+						delta++;
 					}
 					else {
 						bp++;
@@ -4546,6 +5274,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 				if(type) {
 					bp1 = (BPoint*)MEM_mallocN(nu->pntsu * sizeof(BPoint), "delNurb2");
 					memcpy(bp1, nu->bp, (nu->pntsu)*sizeof(BPoint) );
+					keyIndex_updateBP(editnurb, nu->bp, bp1, nu->pntsu, 1);
 					MEM_freeN(nu->bp);
 					nu->bp= bp1;
 					
@@ -4565,7 +5294,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		/* find the 2 selected points */
 		bezt1= bezt2= 0;
 		bp1= bp2= 0;
-		nu= editnurb->first;
+		nu= nubase->first;
 		nu1= 0;
 		while(nu) {
 			next= nu->next;
@@ -4628,16 +5357,17 @@ static int delete_exec(bContext *C, wmOperator *op)
 		if(nu1) {
 			if(bezt1) {
 				if(nu1->pntsu==2) {	/* remove completely */
-					BLI_remlink(editnurb, nu);
+					BLI_remlink(nubase, nu);
 					freeNurb(nu); nu = NULL;
 				}
 				else if(nu1->flagu & CU_NURB_CYCLIC) {	/* cyclic */
 					bezt =
 						(BezTriple*)MEM_mallocN((cut+1) * sizeof(BezTriple), "delNurb1");
-					memcpy(bezt, nu1->bezt,(cut+1)*sizeof(BezTriple));
+					ED_curve_beztcpy(editnurb, bezt, nu1->bezt, cut+1);
 					a= nu1->pntsu-cut-1;
-					memcpy(nu1->bezt, bezt2, a*sizeof(BezTriple));
-					memcpy(nu1->bezt+a, bezt, (cut+1)*sizeof(BezTriple));
+					ED_curve_beztcpy(editnurb, nu1->bezt, bezt2, a);
+					ED_curve_beztcpy(editnurb, nu1->bezt+a, bezt, cut+1);
+
 					nu1->flagu &= ~CU_NURB_CYCLIC;
 					MEM_freeN(bezt);
 					calchandlesNurb(nu);
@@ -4649,15 +5379,15 @@ static int delete_exec(bContext *C, wmOperator *op)
 					nu =
 						(Nurb*)MEM_mallocN(sizeof(Nurb), "delNurb2");
 					memcpy(nu, nu1, sizeof(Nurb));
-					BLI_addtail(editnurb, nu);
+					BLI_addtail(nubase, nu);
 					nu->bezt =
 						(BezTriple*)MEM_mallocN((cut+1) * sizeof(BezTriple), "delNurb3");
-					memcpy(nu->bezt, nu1->bezt,(cut+1)*sizeof(BezTriple));
+					ED_curve_beztcpy(editnurb, nu->bezt, nu1->bezt, cut+1);
 					a= nu1->pntsu-cut-1;
 					
 					bezt =
 						(BezTriple*)MEM_mallocN(a * sizeof(BezTriple), "delNurb4");
-					memcpy(bezt, nu1->bezt+cut+1,a*sizeof(BezTriple));
+					ED_curve_beztcpy(editnurb, bezt, nu1->bezt+cut+1, a);
 					MEM_freeN(nu1->bezt);
 					nu1->bezt= bezt;
 					nu1->pntsu= a;
@@ -4670,30 +5400,31 @@ static int delete_exec(bContext *C, wmOperator *op)
 			}
 			else if(bp1) {
 				if(nu1->pntsu==2) {	/* remove completely */
-					BLI_remlink(editnurb, nu);
+					BLI_remlink(nubase, nu);
 					freeNurb(nu); nu= NULL;
 				}
 				else if(nu1->flagu & CU_NURB_CYCLIC) {	/* cyclic */
 					bp =
 						(BPoint*)MEM_mallocN((cut+1) * sizeof(BPoint), "delNurb5");
-					memcpy(bp, nu1->bp,(cut+1)*sizeof(BPoint));
+					ED_curve_bpcpy(editnurb, bp, nu1->bp, cut+1);
 					a= nu1->pntsu-cut-1;
-					memcpy(nu1->bp, bp2, a*sizeof(BPoint));
-					memcpy(nu1->bp+a, bp, (cut+1)*sizeof(BPoint));
+					ED_curve_bpcpy(editnurb, nu1->bp, bp2, a);
+					ED_curve_bpcpy(editnurb, nu1->bp+a, bp, cut+1);
+
 					nu1->flagu &= ~CU_NURB_CYCLIC;
 					MEM_freeN(bp);
 				}
 				else {			/* add new curve */
 					nu = (Nurb*)MEM_mallocN(sizeof(Nurb), "delNurb6");
 					memcpy(nu, nu1, sizeof(Nurb));
-					BLI_addtail(editnurb, nu);
+					BLI_addtail(nubase, nu);
 					nu->bp =
 						(BPoint*)MEM_mallocN((cut+1) * sizeof(BPoint), "delNurb7");
-					memcpy(nu->bp, nu1->bp,(cut+1)*sizeof(BPoint));
+					ED_curve_bpcpy(editnurb, nu->bp, nu1->bp, cut+1);
 					a= nu1->pntsu-cut-1;
 					bp =
 						(BPoint*)MEM_mallocN(a * sizeof(BPoint), "delNurb8");
-					memcpy(bp, nu1->bp+cut+1,a*sizeof(BPoint));
+					ED_curve_bpcpy(editnurb, bp, nu1->bp+cut+1, a);
 					MEM_freeN(nu1->bp);
 					nu1->bp= bp;
 					nu1->pntsu= a;
@@ -4702,8 +5433,10 @@ static int delete_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	else if(type==2)
-		freeNurblist(editnurb);
+	else if(type==2) {
+		keyIndex_delNurbList(editnurb, nubase);
+		freeNurblist(nubase);
+	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
@@ -4815,6 +5548,7 @@ void CURVE_OT_shade_flat(wmOperatorType *ot)
 
 int join_curve_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	Curve *cu;
@@ -4866,7 +5600,7 @@ int join_curve_exec(bContext *C, wmOperator *op)
 					}
 				}
 			
-				ED_base_object_free_and_unlink(scene, base);
+				ED_base_object_free_and_unlink(bmain, scene, base);
 			}
 		}
 	}
@@ -4875,7 +5609,7 @@ int join_curve_exec(bContext *C, wmOperator *op)
 	cu= ob->data;
 	addlisttolist(&cu->nurb, &tempbase);
 	
-	DAG_scene_sort(scene);	// because we removed object(s), call before editmode!
+	DAG_scene_sort(bmain, scene);	// because we removed object(s), call before editmode!
 	
 	ED_object_enter_editmode(C, EM_WAITCURSOR);
 	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR|EM_DO_UNDO);
@@ -5135,6 +5869,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 		break;
 	case CU_PRIM_TUBE:	/* tube */
 		if( cutype==CU_NURBS ) {
+			Curve *cu= (Curve*)obedit->data;
 			
 			if(newname) {
 				rename_id((ID *)obedit, "SurfTube");
@@ -5149,7 +5884,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			vec[2]= -grid;
 
 			translateflagNurb(editnurb, 1, vec);
-			extrudeflagNurb(editnurb, 1);
+			extrudeflagNurb(cu->editnurb, 1);
 			vec[0]= -2*vec[0]; 
 			vec[1]= -2*vec[1]; 
 			vec[2]= -2*vec[2];
@@ -5644,11 +6379,17 @@ static void undoCurve_to_editCurve(void *ucu, void *cue)
 	Curve *cu= cue;
 	UndoCurve *undoCurve= ucu;
 	ListBase *undobase= &undoCurve->nubase;
-	ListBase *editbase= cu->editnurb;
+	ListBase *editbase= ED_curve_editnurbs(cu);
 	Nurb *nu, *newnu;
+	EditNurb *editnurb= cu->editnurb;
 	void *lastsel= NULL;
 
 	freeNurblist(editbase);
+
+	if (undoCurve->undoIndex) {
+		BLI_ghash_free(editnurb->keyindex, NULL, (GHashValFreeFP)free_nodeKeyIndex);
+		editnurb->keyindex= dupli_keyIndexHash(undoCurve->undoIndex);
+	}
 
 	/* copy  */
 	for(nu= undobase->first; nu; nu= nu->next) {
@@ -5656,6 +6397,10 @@ static void undoCurve_to_editCurve(void *ucu, void *cue)
 
 		if (lastsel == NULL) {
 			lastsel= undo_check_lastsel(undoCurve->lastsel, nu, newnu);
+		}
+
+		if (editnurb->keyindex) {
+			keyIndex_updateNurb(editnurb, nu, newnu);
 		}
 
 		BLI_addtail(editbase, newnu);
@@ -5667,12 +6412,18 @@ static void undoCurve_to_editCurve(void *ucu, void *cue)
 static void *editCurve_to_undoCurve(void *cue)
 {
 	Curve *cu= cue;
-	ListBase *nubase= cu->editnurb;
+	ListBase *nubase= ED_curve_editnurbs(cu);
 	UndoCurve *undoCurve;
+	EditNurb *editnurb= cu->editnurb, tmpEditnurb;
 	Nurb *nu, *newnu;
 	void *lastsel= NULL;
 
 	undoCurve= MEM_callocN(sizeof(UndoCurve), "undoCurve");
+
+	if (editnurb->keyindex) {
+		undoCurve->undoIndex= dupli_keyIndexHash(editnurb->keyindex);
+		tmpEditnurb.keyindex= undoCurve->undoIndex;
+	}
 
 	/* copy  */
 	for(nu= nubase->first; nu; nu= nu->next) {
@@ -5680,6 +6431,10 @@ static void *editCurve_to_undoCurve(void *cue)
 
 		if (lastsel == NULL) {
 			lastsel= undo_check_lastsel(cu->lastsel, nu, newnu);
+		}
+
+		if (undoCurve->undoIndex) {
+			keyIndex_updateNurb(&tmpEditnurb, nu, newnu);
 		}
 
 		BLI_addtail(&undoCurve->nubase, newnu);
@@ -5696,6 +6451,10 @@ static void free_undoCurve(void *ucv)
 
 	freeNurblist(&undoCurve->nubase);
 
+	if (undoCurve->undoIndex) {
+		BLI_ghash_free(undoCurve->undoIndex, NULL, (GHashValFreeFP)free_nodeKeyIndex);
+	}
+
 	MEM_freeN(undoCurve);
 }
 
@@ -5709,4 +6468,25 @@ static void *get_data(bContext *C)
 void undo_push_curve(bContext *C, char *name)
 {
 	undo_editmode_push(C, name, get_data, free_undoCurve, undoCurve_to_editCurve, editCurve_to_undoCurve, NULL);
+}
+
+/* Get list of nurbs from editnurbs structure */
+ListBase *ED_curve_editnurbs(Curve *cu)
+{
+	if (cu->editnurb) {
+		return &cu->editnurb->nurbs;
+	}
+
+	return NULL;
+}
+void ED_curve_beztcpy(EditNurb *editnurb, BezTriple *dst, BezTriple *src, int count)
+{
+	memcpy(dst, src, count*sizeof(BezTriple));
+	keyIndex_updateBezt(editnurb, src, dst, count, 0);
+}
+
+void ED_curve_bpcpy(EditNurb *editnurb, BPoint *dst, BPoint *src, int count)
+{
+	memcpy(dst, src, count*sizeof(BPoint));
+	keyIndex_updateBP(editnurb, src, dst, count, 0);
 }

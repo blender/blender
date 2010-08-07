@@ -301,17 +301,6 @@ int imb_is_a_tiff(unsigned char *mem)
 		 (memcmp(lil_endian, mem, IMB_TIFF_NCB) == 0) );
 }
 
-static void scanline_contig_8bit(unsigned char *rect, unsigned char *cbuf, int scanline_w, int spp)
-{
-	int i;
-	for (i=0; i < scanline_w; i++) {
-		rect[i*4 + 0] = cbuf[i*spp + 0];
-		rect[i*4 + 1] = cbuf[i*spp + 1];
-		rect[i*4 + 2] = cbuf[i*spp + 2];
-		rect[i*4 + 3] = (spp==4)?cbuf[i*spp + 3]:255;
-	}
-}
-
 static void scanline_contig_16bit(float *rectf, unsigned short *sbuf, int scanline_w, int spp)
 {
 	int i;
@@ -334,13 +323,6 @@ static void scanline_contig_32bit(float *rectf, float *fbuf, int scanline_w, int
 	}
 }
 
-static void scanline_separate_8bit(unsigned char *rect, unsigned char *cbuf, int scanline_w, int chan)
-{
-	int i;
-	for (i=0; i < scanline_w; i++)
-		rect[i*4 + chan] = cbuf[i];
-}
-
 static void scanline_separate_16bit(float *rectf, unsigned short *sbuf, int scanline_w, int chan)
 {
 	int i;
@@ -356,40 +338,6 @@ static void scanline_separate_32bit(float *rectf, float *fbuf, int scanline_w, i
 }
 
 
-#if 0
-/* 
- * Use the libTIFF RGBAImage API to read a TIFF image.
- * This function uses the "RGBA Image" support from libtiff, which enables
- * it to load most commonly-encountered TIFF formats.  libtiff handles format
- * conversion, color depth conversion, etc.
- */
-static int imb_read_tiff_pixels_rgba(ImBuf *ibuf, TIFF *image, int premul)
-{
-	ImBuf *tmpibuf;
-	int success;
-	
-	tmpibuf= IMB_allocImBuf(ibuf->x, ibuf->y, 32, IB_rect, 0);
-	success= TIFFReadRGBAImage(image, ibuf->x, ibuf->y, tmpibuf->rect, 0);
-
-	if(ENDIAN_ORDER == B_ENDIAN)
-	IMB_convert_rgba_to_abgr(tmpibuf);
-	if(premul) {
-		IMB_premultiply_alpha(tmpibuf);
-		ibuf->flags |= IB_premul;
-	}
-
-	/* assign rect last */
-	ibuf->rect= tmpibuf->rect;
-	ibuf->mall |= IB_rect;
-	ibuf->flags |= IB_rect;
-
-	tmpibuf->mall &= ~IB_rect;
-	IMB_freeImBuf(tmpibuf);
-
-	return success;
-}
-#endif
-
 /* 
  * Use the libTIFF scanline API to read a TIFF image.
  * This method is most flexible and can handle multiple different bit depths 
@@ -398,13 +346,12 @@ static int imb_read_tiff_pixels_rgba(ImBuf *ibuf, TIFF *image, int premul)
 static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 {
 	ImBuf *tmpibuf;
-	int success;
+	int success= 0;
 	short bitspersample, spp, config;
 	size_t scanline;
 	int ib_flag=0, row, chan;
 	float *fbuf=NULL;
 	unsigned short *sbuf=NULL;
-	unsigned char *cbuf=NULL;
 	
 	TIFFGetField(image, TIFFTAG_BITSPERSAMPLE, &bitspersample);
 	TIFFGetField(image, TIFFTAG_SAMPLESPERPIXEL, &spp);		/* number of 'channels' */
@@ -417,30 +364,28 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 	} else if (bitspersample == 16) {
 		ib_flag = IB_rectfloat;
 		sbuf = (unsigned short *)_TIFFmalloc(scanline);
-	} else if (bitspersample == 8) {
+	} else {
 		ib_flag = IB_rect;
-		cbuf = (unsigned char *)_TIFFmalloc(scanline);
 	}
 	
 	tmpibuf= IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->depth, ib_flag, 0);
 	
+	/* simple RGBA image */
+	if (!(bitspersample == 32 || bitspersample == 16)) {
+		success |= TIFFReadRGBAImage(image, ibuf->x, ibuf->y, tmpibuf->rect, 0);
+	}
 	/* contiguous channels: RGBRGBRGB */
-	if (config == PLANARCONFIG_CONTIG) {
+	else if (config == PLANARCONFIG_CONTIG) {
 		for (row = 0; row < ibuf->y; row++) {
 			int ib_offset = ibuf->x*ibuf->y*4 - ibuf->x*4 * (row+1);
 		
 			if (bitspersample == 32) {
-				success = TIFFReadScanline(image, fbuf, row, 0);
+				success |= TIFFReadScanline(image, fbuf, row, 0);
 				scanline_contig_32bit(tmpibuf->rect_float+ib_offset, fbuf, ibuf->x, spp);
 				
 			} else if (bitspersample == 16) {
-				success = TIFFReadScanline(image, sbuf, row, 0);
+				success |= TIFFReadScanline(image, sbuf, row, 0);
 				scanline_contig_16bit(tmpibuf->rect_float+ib_offset, sbuf, ibuf->x, spp);
-				
-			} else if (bitspersample == 8) {
-				unsigned char *crect = (unsigned char*)tmpibuf->rect;
-				success = TIFFReadScanline(image, cbuf, row, 0);
-				scanline_contig_8bit(crect+ib_offset, cbuf, ibuf->x, spp);
 			}
 		}
 	/* separate channels: RRRGGGBBB */
@@ -456,53 +401,47 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
 						memset(fbuf, 1.0, sizeof(fbuf));
 					else
-						success = TIFFReadScanline(image, fbuf, row, chan);
+						success |= TIFFReadScanline(image, fbuf, row, chan);
 					scanline_separate_32bit(tmpibuf->rect_float+ib_offset, fbuf, ibuf->x, chan);
 					
 				} else if (bitspersample == 16) {
 					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
 						memset(sbuf, 65535, sizeof(sbuf));
 					else
-						success = TIFFReadScanline(image, sbuf, row, chan);
+						success |= TIFFReadScanline(image, sbuf, row, chan);
 					scanline_separate_16bit(tmpibuf->rect_float+ib_offset, sbuf, ibuf->x, chan);
 					
-				} else if (bitspersample == 8) {
-					unsigned char *crect = (unsigned char*)tmpibuf->rect;
-					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
-						memset(cbuf, 255, sizeof(cbuf));
-					else
-						success = TIFFReadScanline(image, cbuf, row, chan);
-					scanline_separate_8bit(crect+ib_offset, cbuf, ibuf->x, chan);
 				}
 			}
 		}
 	}
 	
-	ibuf->profile = (bitspersample==32)?IB_PROFILE_LINEAR_RGB:IB_PROFILE_SRGB;
-	
 	if (bitspersample == 32)
 		_TIFFfree(fbuf);
 	else if (bitspersample == 16)
 		_TIFFfree(sbuf);
-	else if (bitspersample == 8)
-		_TIFFfree(cbuf);
+
+	if(success) {
+		ibuf->profile = (bitspersample==32)?IB_PROFILE_LINEAR_RGB:IB_PROFILE_SRGB;
+			
+		if(ENDIAN_ORDER == B_ENDIAN)
+			IMB_convert_rgba_to_abgr(tmpibuf);
+		if(premul) {
+			IMB_premultiply_alpha(tmpibuf);
+			ibuf->flags |= IB_premul;
+		}
 		
-	if(ENDIAN_ORDER == B_ENDIAN)
-		IMB_convert_rgba_to_abgr(tmpibuf);
-	if(premul) {
-		IMB_premultiply_alpha(tmpibuf);
-		ibuf->flags |= IB_premul;
+		/* assign rect last */
+		if (tmpibuf->rect_float)
+			ibuf->rect_float= tmpibuf->rect_float;
+		else	
+			ibuf->rect= tmpibuf->rect;
+		ibuf->mall |= ib_flag;
+		ibuf->flags |= ib_flag;
+		
+		tmpibuf->mall &= ~ib_flag;
 	}
-	
-	/* assign rect last */
-	if (tmpibuf->rect_float)
-		ibuf->rect_float= tmpibuf->rect_float;
-	else	
-		ibuf->rect= tmpibuf->rect;
-	ibuf->mall |= ib_flag;
-	ibuf->flags |= ib_flag;
-	
-	tmpibuf->mall &= ~ib_flag;
+
 	IMB_freeImBuf(tmpibuf);
 	
 	return success;

@@ -2048,13 +2048,6 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, "rna_userdef_timecode_style_set", NULL);
 	RNA_def_property_ui_text(prop, "TimeCode Style", "Format of Time Codes displayed when not displaying timing in terms of frames");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-	
-	/* Properties Window */
-	prop= RNA_def_property(srna, "properties_width_check", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "propwidth");
-	RNA_def_property_range(prop, 150, 400); 
-	RNA_def_property_ui_text(prop, "Width Check", "Dual Column layout will change to single column layout when the width of the area gets below this value (needs restart to take effect)");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_edit(BlenderRNA *brna)
@@ -2844,31 +2837,31 @@ void RNA_def_userdef(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "view", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesView");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_view_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_view_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "View & Controls", "Preferences related to viewing data");
 
 	prop= RNA_def_property(srna, "edit", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesEdit");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_edit_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_edit_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Edit Methods", "Settings for interacting with Blender data");
 	
 	prop= RNA_def_property(srna, "inputs", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesInput");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_input_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_input_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Inputs", "Settings for input devices");
 	
 	prop= RNA_def_property(srna, "filepaths", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesFilePaths");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_filepaths_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_filepaths_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "File Paths", "Default paths for external files");
 	
 	prop= RNA_def_property(srna, "system", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesSystem");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_system_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_UserDef_system_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "System & OpenGL", "Graphics driver and operating system settings");
 	
 	rna_def_userdef_view(brna);

@@ -237,7 +237,7 @@ void InputAngle(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
 
 	/* If the angle is zero, because of lack of precision close to the 1.0 value in acos
-	 * approximate the angle with the oposite side of the normalized triangle
+	 * approximate the angle with the opposite side of the normalized triangle
 	 * This is a good approximation here since the smallest acos value seems to be around
 	 * 0.02 degree and lower values don't even have a 0.01% error compared to the approximation
 	 * */

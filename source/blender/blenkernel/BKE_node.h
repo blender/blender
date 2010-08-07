@@ -36,24 +36,26 @@
 /* not very important, but the stack solver likes to know a maximum */
 #define MAX_SOCKET	64
 
-struct ID;
-struct bNodeTree;
+struct bContext;
 struct bNode;
 struct bNodeLink;
 struct bNodeSocket;
 struct bNodeStack;
-struct uiLayout;
-struct rctf;
-struct ListBase;
-struct RenderData;
-struct Scene;
-struct Main;
-struct Tex;
+struct bNodeTree;
 struct GPUMaterial;
 struct GPUNode;
 struct GPUNodeStack;
+struct ID;
+struct ListBase;
+struct Main;
+struct MTex;
 struct PointerRNA;
-struct bContext;
+struct rctf;
+struct RenderData;
+struct Scene;
+struct Tex;
+struct uiLayout;
+
 
 /* ************** NODE TYPE DEFINITIONS ***** */
 
@@ -134,6 +136,7 @@ void			ntreeMakeOwnType(struct bNodeTree *ntree);
 void			ntreeUpdateType(struct bNodeTree *ntree, struct bNodeType *ntype);
 void			ntreeFreeTree(struct bNodeTree *ntree);
 struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree, int internal_select);
+void			ntreeSwitchID(struct bNodeTree *ntree, struct ID *sce_from, struct ID *sce_to);
 void			ntreeMakeLocal(struct bNodeTree *ntree);
 
 void			ntreeSocketUseFlags(struct bNodeTree *ntree);

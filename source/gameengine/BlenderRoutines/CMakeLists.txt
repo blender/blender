@@ -50,4 +50,3 @@ ELSE(WITH_PYTHON)
 ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_blroutines "${SRC}" "${INC}")
-#env.BlenderLib ( 'bf_bloutines', sources, Split(incs), [], libtype=['game', 'game2', 'player'], priority=[0, 0, 55] , compileflags=cxxflags)

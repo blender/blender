@@ -53,6 +53,7 @@
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
@@ -77,7 +78,7 @@
 
 /******************************** API ****************************/
 
-ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, char *name, int type)
+ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *scene, Object *ob, char *name, int type)
 {
 	ModifierData *md=NULL, *new_md=NULL;
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
@@ -129,10 +130,10 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *
 				ob->pd= object_add_collision_fields(0);
 			
 			ob->pd->deflect= 1;
-			DAG_scene_sort(scene);
+			DAG_scene_sort(bmain, scene);
 		}
 		else if(type == eModifierType_Surface)
-			DAG_scene_sort(scene);
+			DAG_scene_sort(bmain, scene);
 	}
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -140,7 +141,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Scene *scene, Object *
 	return new_md;
 }
 
-int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
+int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Object *ob, ModifierData *md)
 {
 	ModifierData *obmd;
 
@@ -175,13 +176,13 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
 		if(ob->pd)
 			ob->pd->deflect= 0;
 
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 	}
 	else if(md->type == eModifierType_Surface) {
 		if(ob->pd && ob->pd->shape == PFIELD_SHAPE_SURFACE)
 			ob->pd->shape = PFIELD_SHAPE_PLANE;
 
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 	}
 	else if(md->type == eModifierType_Smoke) {
 		ob->dt = OB_TEXTURE;
@@ -243,7 +244,7 @@ int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *
 	return 1;
 }
 
-int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
+int ED_object_modifier_convert(ReportList *reports, Main *bmain, Scene *scene, Object *ob, ModifierData *md)
 {
 	Object *obn;
 	ParticleSystem *psys;
@@ -341,7 +342,7 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 		}
 	}
 
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 
 	return 1;
 }
@@ -500,11 +501,12 @@ int ED_object_modifier_copy(ReportList *reports, Object *ob, ModifierData *md)
 
 static int modifier_add_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	int type= RNA_enum_get(op->ptr, "type");
 
-	if(!ED_object_modifier_add(op->reports, scene, ob, NULL, type))
+	if(!ED_object_modifier_add(op->reports, bmain, scene, ob, NULL, type))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
@@ -626,11 +628,12 @@ static ModifierData *edit_modifier_property_get(bContext *C, wmOperator *op, Obj
 
 static int modifier_remove_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(C, op, ob, 0);
 	
-	if(!ob || !md || !ED_object_modifier_remove(op->reports, scene, ob, md))
+	if(!ob || !md || !ED_object_modifier_remove(op->reports, bmain, scene, ob, md))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
@@ -792,11 +795,12 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 
 static int modifier_convert_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(C, op, ob, 0);
 	
-	if(!ob || !md || !ED_object_modifier_convert(op->reports, scene, ob, md))
+	if(!ob || !md || !ED_object_modifier_convert(op->reports, bmain, scene, ob, md))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);

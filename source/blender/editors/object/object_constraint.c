@@ -40,6 +40,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_text_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -779,12 +780,12 @@ void ED_object_constraint_update(Object *ob)
 	else DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 }
 
-void ED_object_constraint_dependency_update(Scene *scene, Object *ob)
+void ED_object_constraint_dependency_update(Main *bmain, Scene *scene, Object *ob)
 {
 	ED_object_constraint_update(ob);
 
 	if(ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 }
 
 static int constraint_poll(bContext *C)
@@ -931,8 +932,9 @@ void CONSTRAINT_OT_move_up (wmOperatorType *ot)
 
 static int pose_constraints_clear_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_active_object(C);
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
 	
 	/* free constraints for all selected bones */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
@@ -943,7 +945,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* force depsgraph to get recalculated since relationships removed */
-	DAG_scene_sort(scene);		/* sort order of objects */	
+	DAG_scene_sort(bmain, scene);		/* sort order of objects */	
 	
 	/* do updates */
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -967,6 +969,7 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
 
 static int object_constraints_clear_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	/* do freeing */
@@ -978,7 +981,7 @@ static int object_constraints_clear_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* force depsgraph to get recalculated since relationships removed */
-	DAG_scene_sort(scene);		/* sort order of objects */	
+	DAG_scene_sort(bmain, scene);		/* sort order of objects */	
 	
 	/* do updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, NULL);
@@ -1002,8 +1005,9 @@ void OBJECT_OT_constraints_clear(wmOperatorType *ot)
 
 static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 {
-	bPoseChannel *pchan = CTX_data_active_pose_bone(C);
+	Main *bmain= CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	bPoseChannel *pchan = CTX_data_active_pose_bone(C);
 	
 	/* don't do anything if bone doesn't exist or doesn't have any constraints */
 	if (ELEM(NULL, pchan, pchan->constraints.first)) {
@@ -1021,7 +1025,7 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* force depsgraph to get recalculated since new relationships added */
-	DAG_scene_sort(scene);		/* sort order of objects/bones */
+	DAG_scene_sort(bmain, scene);		/* sort order of objects/bones */
 
 	return OPERATOR_FINISHED;
 }
@@ -1043,8 +1047,9 @@ void POSE_OT_constraints_copy(wmOperatorType *ot)
 
 static int object_constraint_copy_exec(bContext *C, wmOperator *op)
 {
-	Object *obact = ED_object_active_context(C);
+	Main *bmain= CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	Object *obact = ED_object_active_context(C);
 	
 	/* copy all constraints from active object to all selected objects */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
@@ -1056,7 +1061,7 @@ static int object_constraint_copy_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* force depsgraph to get recalculated since new relationships added */
-	DAG_scene_sort(scene);		/* sort order of objects */
+	DAG_scene_sort(bmain, scene);		/* sort order of objects */
 
 	return OPERATOR_FINISHED;
 }
@@ -1219,6 +1224,7 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 /* used by add constraint operators to add the constraint required */
 static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase *list, int type, short setTarget)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	bPoseChannel *pchan;
 	bConstraint *con;
@@ -1316,7 +1322,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	
 	
 	/* force depsgraph to get recalculated since new relationships added */
-	DAG_scene_sort(scene);		/* sort order of objects */
+	DAG_scene_sort(bmain, scene);		/* sort order of objects */
 	
 	if ((ob->type==OB_ARMATURE) && (pchan)) {
 		ob->pose->flag |= POSE_RECALC;	/* sort pose channels */

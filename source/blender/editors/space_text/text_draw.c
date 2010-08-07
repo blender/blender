@@ -174,12 +174,13 @@ void flatten_string_free(FlattenString *fs)
 static int find_builtinfunc(char *string)
 {
 	int a, i;
-	char builtinfuncs[][11] = {"and", "as", "assert", "break", "class", "continue", "def",
+	char builtinfuncs[][9] = {"and", "as", "assert", "break", "class", "continue", "def",
 								"del", "elif", "else", "except", "exec", "finally",
 								"for", "from", "global", "if", "import", "in",
 								"is", "lambda", "not", "or", "pass", "print",
-								"raise", "return", "try", "while", "yield"};
-	for(a=0; a<30; a++) {
+								"raise", "return", "try", "while", "yield", "with"};
+
+	for(a=0; a < sizeof(builtinfuncs)/sizeof(builtinfuncs[0]); a++) {
 		i = 0;
 		while(1) {
 			/* If we hit the end of a keyword... (eg. "def") */
@@ -1132,7 +1133,8 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	int viewc, viewl, offl, offc, x, y;
 	char ch;
 
-	if(!text->curl) return;
+	// showsyntax must be on or else the format string will be null
+	if(!text->curl || !st->showsyntax) return;
 
 	startl= text->curl;
 	startc= text->curc;
@@ -1146,23 +1148,29 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	endc= -1;
 	find= -b;
 	stack= 0;
+	
+	/* Dont highlight backets if syntax HL is off or bracket in string or comment. */
+	if(!linep->format || linep->format[c] == 'l' || linep->format[c] == '#')
+		return;
 
 	if(b>0) {
 		/* opening bracket, search forward for close */
 		c++;
 		while(linep) {
 			while(c<linep->len) {
-				b= text_check_bracket(linep->line[c]);
-				if(b==find) {
-					if(stack==0) {
-						endl= linep;
-						endc= c;
-						break;
+				if(linep->format && linep->format[c] != 'l' && linep->format[c] != '#') {
+					b= text_check_bracket(linep->line[c]);
+					if(b==find) {
+						if(stack==0) {
+							endl= linep;
+							endc= c;
+							break;
+						}
+						stack--;
 					}
-					stack--;
-				}
-				else if(b==-find) {
-					stack++;
+					else if(b==-find) {
+						stack++;
+					}
 				}
 				c++;
 			}
@@ -1176,17 +1184,19 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 		c--;
 		while(linep) {
 			while(c>=0) {
-				b= text_check_bracket(linep->line[c]);
-				if(b==find) {
-					if(stack==0) {
-						endl= linep;
-						endc= c;
-						break;
+				if(linep->format && linep->format[c] != 'l' && linep->format[c] != '#') {
+					b= text_check_bracket(linep->line[c]);
+					if(b==find) {
+						if(stack==0) {
+							endl= linep;
+							endc= c;
+							break;
+						}
+						stack--;
 					}
-					stack--;
-				}
-				else if(b==-find) {
-					stack++;
+					else if(b==-find) {
+						stack++;
+					}
 				}
 				c--;
 			}
@@ -1348,7 +1358,7 @@ void text_update_cursor_moved(bContext *C)
 	ARegion *ar;
 	int i, x, winx= 0;
 
-	if(!st || !st->text || st->text->curl) return;
+	if(ELEM3(NULL, st, st->text, st->text->curl)) return;
 
 	text= st->text;
 

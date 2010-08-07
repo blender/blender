@@ -57,10 +57,6 @@ FRAME_STATUS_TEXT = {
         ERROR: "Error"
         }
 
-def rnaType(rna_type):
-    if bpy: bpy.types.register(rna_type)
-    return rna_type
-
 def reporting(report, message, errorType = None):
     if errorType:
         t = 'ERROR'

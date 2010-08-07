@@ -48,6 +48,7 @@ struct VFont;
 struct AnimData;
 struct SelBox;
 struct EditFont;
+struct GHash;
 
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #
@@ -150,6 +151,14 @@ typedef struct TextBox {
 	float x, y, w, h;
 } TextBox;
 
+typedef struct EditNurb {
+	/* base of nurbs' list (old Curve->editnurb) */
+	ListBase nurbs;
+
+	/* index data for shape keys */
+	struct GHash *keyindex;
+} EditNurb;
+
 typedef struct Curve {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
@@ -159,7 +168,7 @@ typedef struct Curve {
 	ListBase nurb;		/* actual data, called splines in rna */
 	ListBase disp;
 	
-	ListBase *editnurb;	/* edited data, not in file, use pointer so we can check for it */
+	EditNurb *editnurb;	/* edited data, not in file, use pointer so we can check for it */
 	
 	struct Object *bevobj, *taperobj, *textoncurve;
 	struct Ipo *ipo;	// XXX depreceated... old animation system
@@ -236,7 +245,7 @@ typedef struct Curve {
 #define CU_PATH			8
 #define CU_FOLLOW		16
 #define CU_UV_ORCO		32
-#define CU_NOPUNOFLIP	64
+#define CU_DEFORM_BOUNDS_OFF 64 
 #define CU_STRETCH		128
 #define CU_OFFS_PATHDIST	256
 #define CU_FAST			512 /* Font: no filling inside editmode */

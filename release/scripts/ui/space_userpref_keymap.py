@@ -763,7 +763,8 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
     bl_idname = "wm.keyconfig_remove"
     bl_label = "Remove Key Config"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         wm = context.manager
         return wm.active_keyconfig.user_defined
 
@@ -784,29 +785,11 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
         wm.remove_keyconfig(keyconfig)
         return {'FINISHED'}
 
-
-classes = [
-    WM_OT_keyconfig_export,
-    WM_OT_keyconfig_import,
-    WM_OT_keyconfig_test,
-    WM_OT_keyconfig_remove,
-    WM_OT_keymap_edit,
-    WM_OT_keymap_restore,
-    WM_OT_keyitem_add,
-    WM_OT_keyitem_remove,
-    WM_OT_keyitem_restore]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
-
+    pass
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

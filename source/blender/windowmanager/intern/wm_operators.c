@@ -35,6 +35,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -1629,8 +1630,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	flag_all_listbases_ids(LIB_PRE_EXISTING, 0);
 
 	/* recreate dependency graph to include new objects */
-	DAG_scene_sort(scene);
-	DAG_ids_flush_update(0);
+	DAG_scene_sort(bmain, scene);
+	DAG_ids_flush_update(bmain, 0);
 
 	BLO_blendhandle_close(bh);
 
@@ -2612,7 +2613,7 @@ static void wm_radial_control_paint(bContext *C, int x, int y, void *customdata)
 	float r1=0.0f, r2=0.0f, r3=0.0f, angle=0.0f;
 
 	Paint *paint = paint_get_active(CTX_data_scene(C));
-	Brush *brush = paint_brush(paint);
+	struct Brush *brush = paint_brush(paint);
 
 	ViewContext vc;
 
@@ -2954,15 +2955,17 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 			redraw_timer_window_swap(C);
 		}
 		else if (type==4) {
+			Main *bmain= CTX_data_main(C);
 			Scene *scene= CTX_data_scene(C);
 			
 			if(a & 1) scene->r.cfra--;
 			else scene->r.cfra++;
-			scene_update_for_newframe(scene, scene->lay);
+			scene_update_for_newframe(bmain, scene, scene->lay);
 		}
 		else if (type==5) {
 
 			/* play anim, return on same frame as started with */
+			Main *bmain= CTX_data_main(C);
 			Scene *scene= CTX_data_scene(C);
 			int tot= (scene->r.efra - scene->r.sfra) + 1;
 
@@ -2972,7 +2975,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 				if(scene->r.cfra > scene->r.efra)
 					scene->r.cfra= scene->r.sfra;
 
-				scene_update_for_newframe(scene, scene->lay);
+				scene_update_for_newframe(bmain, scene, scene->lay);
 				redraw_timer_window_swap(C);
 			}
 		}

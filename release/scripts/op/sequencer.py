@@ -30,7 +30,8 @@ class SequencerCrossfadeSounds(bpy.types.Operator):
     bl_label = "Crossfade sounds"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         if context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip:
             return context.scene.sequence_editor.active_strip.type == 'SOUND'
         else:
@@ -83,7 +84,8 @@ class SequencerCutMulticam(bpy.types.Operator):
     camera = IntProperty(name="Camera",
             default=1, min=1, max=32, soft_min=1, soft_max=32)
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         if context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip:
             return context.scene.sequence_editor.active_strip.type == 'MULTICAM'
         else:
@@ -117,7 +119,8 @@ class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
     bl_label = "Deinterlace Movies"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         if context.scene and context.scene.sequence_editor:
             return True
         else:
@@ -132,19 +135,11 @@ class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
 
 
 def register():
-    register = bpy.types.register
-
-    register(SequencerCrossfadeSounds)
-    register(SequencerCutMulticam)
-    register(SequencerDeinterlaceSelectedMovies)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-
-    unregister(SequencerCrossfadeSounds)
-    unregister(SequencerCutMulticam)
-    unregister(SequencerDeinterlaceSelectedMovies)
+    pass
 
 
 if __name__ == "__main__":

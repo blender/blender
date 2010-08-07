@@ -115,7 +115,7 @@ struct MCol *RE_vlakren_get_mcol(struct ObjectRen *obr, VlakRen *ren, int n, cha
 float *RE_vlakren_get_surfnor(struct ObjectRen *obr, VlakRen *ren, int verify);
 float *RE_vlakren_get_nmap_tangent(struct ObjectRen *obr, VlakRen *ren, int verify);
 RadFace **RE_vlakren_get_radface(struct ObjectRen *obr, VlakRen *ren, int verify);
-int RE_vlakren_get_normal(struct Render *re, struct ObjectInstanceRen *obi, struct VlakRen *vlr, float *nor);
+void RE_vlakren_get_normal(struct Render *re, struct ObjectInstanceRen *obi, struct VlakRen *vlr, float *nor);
 
 float *RE_strandren_get_surfnor(struct ObjectRen *obr, struct StrandRen *strand, int verify);
 float *RE_strandren_get_uv(struct ObjectRen *obr, struct StrandRen *strand, int n, char **name, int verify);

@@ -36,12 +36,12 @@
 extern "C" {
 #endif
 
-#include "DNA_brush_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
 struct Object;
+struct Brush;
 struct World;
 struct Scene;
 struct Image;
@@ -345,7 +345,7 @@ typedef struct RenderData {
 	short bake_normal_space, bake_quad_split;
 	float bake_maxdist, bake_biasdist, bake_pad;
 
-	/* paths to backbufffer, output, ftype */
+	/* paths to backbufffer, output */
 	char backbuf[160], pic[160];
 
 	/* stamps flags. */
@@ -507,9 +507,7 @@ typedef struct TimeMarker {
 } TimeMarker;
 
 typedef struct Paint {
-	/* Array of brushes selected for use in this paint mode */
-	Brush **brushes;
-	int active_brush_index, brush_count;
+	struct Brush *brush;
 	
 	/* WM Paint cursor */
 	void *paint_cursor;
@@ -724,11 +722,13 @@ typedef struct ToolSettings {
 	/* Transform */
 	short snap_mode, snap_flag, snap_target;
 	short proportional, prop_mode;
+	char proportional_objects; /* proportional edit, object mode */
+	char pad[3];
 
-	int auto_normalize, intpad; /*auto normalizing mode in wpaint*/
+	int auto_normalize; /*auto normalizing mode in wpaint*/
 
 	short sculpt_paint_settings; /* user preferences for sculpt and paint */
-	short pad;
+	short pad1;
 	int sculpt_paint_unified_size; /* unified radius of brush in pixels */
 	float sculpt_paint_unified_unprojected_radius;/* unified radius of brush in Blender units */
 	float sculpt_paint_unified_alpha; /* unified strength of brush */
@@ -959,8 +959,8 @@ typedef struct Scene {
 /* imtype */
 #define R_TARGA		0
 #define R_IRIS		1
-#define R_HAMX		2
-#define R_FTYPE		3 /* ftype is nomore */
+/* #define R_HAMX		2 */ /* hamx is nomore */
+/* #define R_FTYPE		3 */ /* ftype is nomore */
 #define R_JPEG90	4
 #define R_MOVIE		5
 #define R_IRIZ		7

@@ -241,7 +241,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 
 	if(RNA_property_is_set(op->ptr, "layer")) {
 		RNA_boolean_get_array(op->ptr, "layer", layer_values);
-
+		*layer= 0;
 		for(a=0; a<20; a++) {
 			if(layer_values[a])
 				*layer |= (1 << a);
@@ -284,6 +284,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 /* for object add primitive operators */
 Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int enter_editmode, unsigned int layer)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
 	
@@ -300,8 +301,8 @@ Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int en
 	/* more editor stuff */
 	ED_object_base_init_transform(C, BASACT, loc, rot);
 
-	DAG_scene_sort(scene);
-	ED_render_id_flush_update(G.main, ob->data);
+	DAG_scene_sort(bmain, scene);
+	ED_render_id_flush_update(bmain, ob->data);
 
 	if(enter_editmode)
 		ED_object_enter_editmode(C, EM_IGNORE_LAYER);
@@ -750,13 +751,18 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if(group) {
+		Main *bmain= CTX_data_main(C);
+		Scene *scene= CTX_data_scene(C);
 		Object *ob= ED_object_add_type(C, OB_EMPTY, loc, rot, FALSE, layer);
 		rename_id(&ob->id, group->id.name+2);
 		ob->dup_group= group;
 		ob->transflag |= OB_DUPLIGROUP;
 		id_lib_extern(&group->id);
 
-		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+		/* works without this except if you try render right after, see: 22027 */
+		DAG_scene_sort(bmain, scene);
+
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, CTX_data_scene(C));
 
 		return OPERATOR_FINISHED;
 	}
@@ -794,16 +800,17 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 
 /* remove base from a specific scene */
 /* note: now unlinks constraints as well */
-void ED_base_object_free_and_unlink(Scene *scene, Base *base)
+void ED_base_object_free_and_unlink(Main *bmain, Scene *scene, Base *base)
 {
 	BLI_remlink(&scene->base, base);
-	free_libblock_us(&G.main->object, base->object);
+	free_libblock_us(&bmain->object, base->object);
 	if(scene->basact==base) scene->basact= NULL;
 	MEM_freeN(base);
 }
 
 static int object_delete_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	int islamp= 0;
 	
@@ -814,14 +821,14 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 
 		if(base->object->type==OB_LAMP) islamp= 1;
 		/* remove from current scene only */
-		ED_base_object_free_and_unlink(scene, base);
+		ED_base_object_free_and_unlink(bmain, scene, base);
 	}
 	CTX_DATA_END;
 
 	if(islamp) reshadeall_displist(scene);	/* only frees displist */
 
-	DAG_scene_sort(scene);
-	DAG_ids_flush_update(0);
+	DAG_scene_sort(bmain, scene);
+	DAG_ids_flush_update(bmain, 0);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, CTX_data_scene(C));
 	
@@ -856,6 +863,7 @@ static void copy_object__forwardModifierLinks(void *userData, Object *ob,
 /* after copying objects, copied data should get new pointers */
 static void copy_object_set_idnew(bContext *C, int dupflag)
 {
+	Main *bmain= CTX_data_main(C);
 	Material *ma, *mao;
 	ID *id;
 	int a;
@@ -878,7 +886,7 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 	
 	/* materials */
 	if( dupflag & USER_DUP_MAT) {
-		mao= G.main->mat.first;
+		mao= bmain->mat.first;
 		while(mao) {
 			if(mao->id.newid) {
 				
@@ -912,7 +920,7 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 #if 0 // XXX old animation system
 	/* lamps */
 	if( dupflag & USER_DUP_IPO) {
-		Lamp *la= G.main->lamp.first;
+		Lamp *la= bmain->lamp.first;
 		while(la) {
 			if(la->id.newid) {
 				Lamp *lan= (Lamp *)la->id.newid;
@@ -928,7 +936,7 @@ static void copy_object_set_idnew(bContext *C, int dupflag)
 	}
 	
 	/* ipos */
-	ipo= G.main->ipo.first;
+	ipo= bmain->ipo.first;
 	while(ipo) {
 		if(ipo->id.lib==NULL && ipo->id.newid) {
 			Ipo *ipon= (Ipo *)ipo->id.newid;
@@ -973,7 +981,8 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 		if(ob->mat==NULL) ob->totcol= 0;
 		
 		basen= MEM_dupallocN(base);
-		basen->flag &= ~OB_FROMDUPLI;
+		basen->flag &= ~(OB_FROMDUPLI|OB_FROMGROUP);
+		ob->flag= basen->flag;
 		basen->lay= base->lay;
 		BLI_addhead(&scene->base, basen);	/* addhead: othwise eternal loop */
 		basen->object= ob;
@@ -996,6 +1005,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 
 static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	clear_id_newpoins();
@@ -1005,8 +1015,8 @@ static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_scene_sort(scene);
-	DAG_ids_flush_update(0);
+	DAG_scene_sort(bmain, scene);
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
 	
@@ -1085,6 +1095,7 @@ static Base *duplibase_for_convert(Scene *scene, Base *base, Object *ob)
 
 static int convert_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Base *basen=NULL, *basact=NULL, *basedel=NULL;
 	Object *ob, *ob1, *newob, *obact= CTX_data_active_object(C);
@@ -1210,7 +1221,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			if (!keep_original) {
 				/* other users */
 				if(cu->id.us>1) {
-					for(ob1= G.main->object.first; ob1; ob1=ob1->id.next) {
+					for(ob1= bmain->object.first; ob1; ob1=ob1->id.next) {
 						if(ob1->data==ob->data) {
 							ob1->type= OB_CURVE;
 							ob1->recalc |= OB_RECALC_ALL;
@@ -1317,7 +1328,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 		/* delete original if needed */
 		if(basedel) {
 			if(!keep_original)
-				ED_base_object_free_and_unlink(scene, basedel);	
+				ED_base_object_free_and_unlink(bmain, scene, basedel);	
 
 			basedel = NULL;
 		}
@@ -1333,13 +1344,13 @@ static int convert_exec(bContext *C, wmOperator *op)
 				base= base->next;
 
 				if (ob->type == OB_MBALL) {
-					ED_base_object_free_and_unlink(scene, tmpbase);
+					ED_base_object_free_and_unlink(bmain, scene, tmpbase);
 				}
 			}
 		}
 
 		/* delete object should renew depsgraph */
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 	}
 
 // XXX	ED_object_enter_editmode(C, 0);
@@ -1353,7 +1364,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER|ND_DATA, BASACT->object);
 	}
 
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	WM_event_add_notifier(C, NC_SCENE|NC_OBJECT|ND_DRAW, scene); /* is NC_SCENE needed ? */
 
 	return OPERATOR_FINISHED;
@@ -1390,7 +1401,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 
 /* used below, assumes id.new is correct */
 /* leaves selection of base/object unaltered */
-static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag)
+static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base, int dupflag)
 {
 	Base *basen= NULL;
 	Material ***matarar;
@@ -1413,7 +1424,7 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 		
 		if(basen->flag & OB_FROMGROUP) {
 			Group *group;
-			for(group= G.main->group.first; group; group= group->id.next) {
+			for(group= bmain->group.first; group; group= group->id.next) {
 				if(object_in_group(ob, group))
 					add_to_group(group, obn, scene, basen);
 			}
@@ -1592,7 +1603,7 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 
 /* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
 /* leaves selection of base/object unaltered */
-Base *ED_object_add_duplicate(Scene *scene, Base *base, int dupflag)
+Base *ED_object_add_duplicate(Main *bmain, Scene *scene, Base *base, int dupflag)
 {
 	Base *basen;
 	Object *ob;
@@ -1600,15 +1611,15 @@ Base *ED_object_add_duplicate(Scene *scene, Base *base, int dupflag)
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
 
-	basen= object_add_duplicate_internal(scene, base, dupflag);
+	basen= object_add_duplicate_internal(bmain, scene, base, dupflag);
 	if (basen == NULL) {
 		return NULL;
 	}
 
 	ob= basen->object;
 
-	DAG_scene_sort(scene);
-	ED_render_id_flush_update(G.main, ob->data);
+	DAG_scene_sort(bmain, scene);
+	ED_render_id_flush_update(bmain, ob->data);
 
 	return basen;
 }
@@ -1616,6 +1627,7 @@ Base *ED_object_add_duplicate(Scene *scene, Base *base, int dupflag)
 /* contextual operator dupli */
 static int duplicate_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	int linked= RNA_boolean_get(op->ptr, "linked");
 	int dupflag= (linked)? 0: U.dupflag;
@@ -1624,7 +1636,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 	clear_sca_new_poins();	/* sensor/contr/act */
 	
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
-		Base *basen= object_add_duplicate_internal(scene, base, dupflag);
+		Base *basen= object_add_duplicate_internal(bmain, scene, base, dupflag);
 		
 		/* note that this is safe to do with this context iterator,
 		   the list is made in advance */
@@ -1638,14 +1650,14 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 		if(BASACT==base)
 			ED_base_object_activate(C, basen);
 		
-		ED_render_id_flush_update(G.main, basen->object->data);
+		ED_render_id_flush_update(bmain, basen->object->data);
 	}
 	CTX_DATA_END;
 
 	copy_object_set_idnew(C, dupflag);
 
-	DAG_scene_sort(scene);
-	DAG_ids_flush_update(0);
+	DAG_scene_sort(bmain, scene);
+	DAG_ids_flush_update(bmain, 0);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 
@@ -1693,6 +1705,7 @@ static int add_named_poll(bContext *C)
 
 static int add_named_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Base *basen, *base;
 	Object *ob;
@@ -1714,7 +1727,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
 
-	basen= object_add_duplicate_internal(scene, base, dupflag);
+	basen= object_add_duplicate_internal(bmain, scene, base, dupflag);
 
 	if (basen == NULL) {
 		MEM_freeN(base);
@@ -1728,8 +1741,8 @@ static int add_named_exec(bContext *C, wmOperator *op)
 
 	copy_object_set_idnew(C, dupflag);
 
-	DAG_scene_sort(scene);
-	DAG_ids_flush_update(0);
+	DAG_scene_sort(bmain, scene);
+	DAG_ids_flush_update(bmain, 0);
 
 	MEM_freeN(base);
 
