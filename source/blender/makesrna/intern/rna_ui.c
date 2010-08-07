@@ -545,10 +545,11 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "operator_context", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, operator_context_items);
 	RNA_def_property_enum_funcs(prop, "rna_UILayout_op_context_get", "rna_UILayout_op_context_set", NULL);
-
+	
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_enabled_get", "rna_UILayout_enabled_set");
-
+	RNA_def_property_ui_text(prop, "Enabled", "When false, this (sub)layout is greyed out.");
+	
 #if 0
 	prop= RNA_def_property(srna, "red_alert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_red_alert_get", "rna_UILayout_red_alert_set");
@@ -565,10 +566,11 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_x_get", "rna_UILayout_scale_x_set", NULL);
-
+	RNA_def_property_ui_text(prop, "Scale X", "Scale factor along the X for items in this (sub)layout.");
+	
 	prop= RNA_def_property(srna, "scale_y", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_y_get", "rna_UILayout_scale_y_set", NULL);
-
+	RNA_def_property_ui_text(prop, "Scale Y", "Scale factor along the Y for items in this (sub)layout.");
 	RNA_api_ui_layout(srna);
 }
 
@@ -710,7 +712,7 @@ static void rna_def_menu(BlenderRNA *brna)
 
 	/* poll */
 	func= RNA_def_function(srna, "poll", NULL);
-	RNA_def_function_ui_description(func, "If this method returns a non-null output, then the menu can be drawn.");
+	RNA_def_function_ui_description(func, "If this method returns a non-null output, then the menu can be drawn. This is a static method, hence it is not possible to use 'self' in it.");
 	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	parm= RNA_def_pointer(func, "context", "Context", "", "");

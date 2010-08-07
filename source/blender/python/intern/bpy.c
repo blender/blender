@@ -65,7 +65,7 @@ PyObject *bpy_script_paths(PyObject *self)
 static char bpy_blend_paths_doc[] =
 ".. function:: blend_paths(absolute=False)\n"
 "\n"
-"   Returns a list of paths associated with this blend file.\n"
+"   Returns a list of paths to external files referenced by the loaded .blend file.\n"
 "\n"
 "   :arg absolute: When true the paths returned are made absolute.\n"
 "   :type absolute: boolean\n"
