@@ -30,6 +30,8 @@ import sys as _sys
 from _bpy import blend_paths
 from _bpy import script_paths as _bpy_script_paths
 
+_TEST_XML = _bpy.app.debug
+
 def _test_import(module_name, loaded_modules):
     import traceback
     import time
@@ -51,6 +53,35 @@ def _test_import(module_name, loaded_modules):
 
     loaded_modules.add(mod.__name__) # should match mod.__name__ too
     return mod
+
+if _TEST_XML:
+    # TEST CODE
+    def _test_import_xml(path, f, loaded_modules):
+        import bpy_xml_ui
+        import traceback
+
+        f_full = _os.path.join(path, f)
+        _bpy_types._register_immediate = True
+        try:
+            classes = bpy_xml_ui.load_xml(f_full)
+        except:
+            traceback.print_exc()
+            classes = []
+        _bpy_types._register_immediate = False
+
+        if classes:
+            mod_name = f.split(".")[0]
+
+            # fake module
+            mod = type(traceback)(mod_name)
+            mod.__file__ = f_full
+            for cls in classes:
+                setattr(mod, cls.__name__, cls)
+            
+            loaded_modules.add(mod_name)
+            _sys.modules[mod_name] = mod
+            mod.register = lambda: None # quiet errors
+            return mod
 
 
 def modules_from_path(path, loaded_modules):
@@ -78,6 +109,10 @@ def modules_from_path(path, loaded_modules):
             mod = _test_import(f, loaded_modules)
         else:
             mod = None
+
+        if _TEST_XML:
+            if mod is None and f.endswith(".xml"):
+                mod = _test_import_xml(path, f, loaded_modules)
 
         if mod:
             modules.append(mod)

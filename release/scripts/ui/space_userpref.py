@@ -922,12 +922,11 @@ class USERPREF_PT_addons(bpy.types.Panel):
             return list(USERPREF_PT_addons._addons_fake_modules.values())
         
         else:
-            # never run this!, before it used ast
+            # never run this!, before it used 'ast' module
             pass
             '''
             # note, this still gets added to _bpy_types.TypeMap
             import bpy_types as _bpy_types
-            _bpy_types._register_override = True
 
             # sys.path.insert(0, None)
             for path in paths:
@@ -936,8 +935,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
             if bpy.app.debug:
                 print("Addon Script Load Time %.4f" % (time.time() - t_main))
-
-            _bpy_types._register_override = False
 
             # del sys.path[0]
             return modules
