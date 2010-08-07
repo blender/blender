@@ -171,8 +171,14 @@ extern "C" {
 				}
 			}
 			cout << endl;
+			controller->setComputeRidgesAndValleysFlag( (config->flags & FREESTYLE_RIDGES_AND_VALLEYS_FLAG) ? true : false);
+			controller->setComputeSuggestiveContoursFlag( (config->flags & FREESTYLE_SUGGESTIVE_CONTOURS_FLAG) ? true : false);
+			controller->setComputeMaterialBoundariesFlag( (config->flags & FREESTYLE_MATERIAL_BOUNDARIES_FLAG) ? true : false);
 			break;
 		case FREESTYLE_CONTROL_EDITOR_MODE:
+			int use_ridges_and_valleys = 0;
+			int use_suggestive_contours = 0;
+			int use_material_boundaries = 0;
 			cout << "Linesets:"<< endl;
 			for (FreestyleLineSet *lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
 				if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
@@ -180,25 +186,47 @@ extern "C" {
 					Text *text = create_lineset_handler(srl->name, lineset->name);
 					controller->InsertStyleModule( layer_count, lineset->name, text );
 					controller->toggleLayer(layer_count, true);
+					if (!(lineset->selection & FREESTYLE_SEL_EDGE_TYPES) || !lineset->edge_types) {
+						++use_ridges_and_valleys;
+						++use_suggestive_contours;
+						++use_material_boundaries;
+					} else if (lineset->flags & FREESTYLE_LINESET_FE_NOT) {
+						if (!(lineset->edge_types & ~FREESTYLE_FE_RIDGE) ||
+							!(lineset->edge_types & ~FREESTYLE_FE_VALLEY) ||
+							(lineset->flags & FREESTYLE_LINESET_FE_AND))
+								++use_ridges_and_valleys;
+						if (lineset->edge_types & ~FREESTYLE_FE_SUGGESTIVE_CONTOUR)
+							++use_suggestive_contours;
+						if (lineset->edge_types & ~FREESTYLE_FE_MATERIAL_BOUNDARY)
+							++use_material_boundaries;
+					} else {
+						if (lineset->edge_types & (FREESTYLE_FE_RIDGE | FREESTYLE_FE_VALLEY))
+							++use_ridges_and_valleys;
+						if (lineset->edge_types & FREESTYLE_FE_SUGGESTIVE_CONTOUR)
+							++use_suggestive_contours;
+						if (lineset->edge_types & FREESTYLE_FE_MATERIAL_BOUNDARY)
+							++use_material_boundaries;
+					}
 					layer_count++;
 				}
 			}
+			controller->setComputeRidgesAndValleysFlag( use_ridges_and_valleys > 0 );
+			controller->setComputeSuggestiveContoursFlag( use_suggestive_contours > 0 );
+			controller->setComputeMaterialBoundariesFlag( use_material_boundaries > 0 );
 			break;
 		}
 		
 		// set parameters
 		controller->setCreaseAngle( config->crease_angle );
 		controller->setSphereRadius( config->sphere_radius );
-		controller->setComputeRidgesAndValleysFlag( (config->flags & FREESTYLE_RIDGES_AND_VALLEYS_FLAG) ? true : false);
-		controller->setComputeSuggestiveContoursFlag( (config->flags & FREESTYLE_SUGGESTIVE_CONTOURS_FLAG) ? true : false);
-		controller->setComputeMaterialBoundariesFlag( (config->flags & FREESTYLE_MATERIAL_BOUNDARIES_FLAG) ? true : false);
 		controller->setSuggestiveContourKrDerivativeEpsilon( config->dkr_epsilon ) ;
 
 		cout << "Crease angle : " << controller->getCreaseAngle() << endl;
 		cout << "Sphere radius : " << controller->getSphereRadius() << endl;
 		cout << "Redges and valleys : " << (controller->getComputeRidgesAndValleysFlag() ? "enabled" : "disabled") << endl;
 		cout << "Suggestive contours : " << (controller->getComputeSuggestiveContoursFlag() ? "enabled" : "disabled") << endl;
-		cout << "Suggestive contour dkr epsilon : " << controller->getSuggestiveContourKrDerivativeEpsilon() << endl;
+		cout << "Suggestive contour Kr derivative epsilon : " << controller->getSuggestiveContourKrDerivativeEpsilon() << endl;
+		cout << "Material boundaries : " << (controller->getComputeMaterialBoundariesFlag() ? "enabled" : "disabled") << endl;
 		cout << endl;
 
         // set diffuse and z depth passes
