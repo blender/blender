@@ -108,20 +108,21 @@ static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, char *da
 
 static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *fcu)
 {
-	if(fcu->grp) {
+	if (fcu->grp) {
 		if (BLI_findindex(&act->groups, fcu->grp) == -1) {
 			BKE_reportf(reports, RPT_ERROR, "FCurve's ActionGroup '%s' not found in action '%s'", fcu->grp->name, act->id.name+2);
 			return;
 		}
-
+		
 		action_groups_remove_channel(act, fcu);
+		free_fcurve(fcu);
 	}
 	else {
-		if(BLI_findindex(&act->curves, fcu) == -1) {
+		if (BLI_findindex(&act->curves, fcu) == -1) {
 			BKE_reportf(reports, RPT_ERROR, "FCurve not found in action '%s'", act->id.name+2);
 			return;
 		}
-
+		
 		BLI_remlink(&act->curves, fcu);
 		free_fcurve(fcu);
 	}
