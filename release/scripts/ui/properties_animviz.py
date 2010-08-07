@@ -19,9 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
 
-################################################
 # Generic Panels (Independent of DataType)
 
 
@@ -31,15 +29,12 @@ class MotionPathButtonsPanel():
     bl_label = "Motion Paths"
     bl_default_closed = True
 
-    def draw_settings(self, context, avs, wide_ui, bones=False):
+    def draw_settings(self, context, avs, bones=False):
         layout = self.layout
 
         mps = avs.motion_paths
 
-        if wide_ui:
-            layout.prop(mps, "type", expand=True)
-        else:
-            layout.prop(mps, "type", text="")
+        layout.prop(mps, "type", expand=True)
 
         split = layout.split()
 
@@ -56,8 +51,7 @@ class MotionPathButtonsPanel():
         if bones:
             col.row().prop(mps, "bake_location", expand=True)
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Display:")
         col.prop(mps, "show_frame_numbers", text="Frame Numbers")
         col.prop(mps, "highlight_keyframes", text="Keyframes")
@@ -77,12 +71,8 @@ class OnionSkinButtonsPanel():
         layout = self.layout
 
         arm = context.armature
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(arm, "ghost_type", expand=True)
-        else:
-            layout.prop(arm, "ghost_type", text="")
+        layout.prop(arm, "ghost_type", expand=True)
 
         split = layout.split()
 
@@ -97,8 +87,7 @@ class OnionSkinButtonsPanel():
             sub.prop(arm, "ghost_step", text="Range")
             sub.prop(arm, "ghost_size", text="Step")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Display:")
         col.prop(arm, "ghost_only_selected", text="Selected Only")
 

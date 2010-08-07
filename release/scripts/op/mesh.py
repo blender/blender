@@ -28,7 +28,8 @@ class MeshSelectInteriorFaces(bpy.types.Operator):
     bl_label = "Select Interior Faces"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         ob = context.active_object
         return (ob and ob.type == 'MESH')
 
@@ -69,7 +70,8 @@ class MeshMirrorUV(bpy.types.Operator):
     bl_label = "Copy Mirrored UV coords"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         ob = context.active_object
         return (ob and ob.type == 'MESH')
 

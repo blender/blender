@@ -20,15 +20,14 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.meta_ball
 
 
@@ -42,21 +41,14 @@ class DATA_PT_context_metaball(DataButtonsPanel, bpy.types.Panel):
         ob = context.object
         mball = context.meta_ball
         space = context.space_data
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            split = layout.split(percentage=0.65)
-            if ob:
-                split.template_ID(ob, "data")
-                split.separator()
-            elif mball:
-                split.template_ID(space, "pin_id")
-                split.separator()
-        else:
-            if ob:
-                layout.template_ID(ob, "data")
-            elif mball:
-                layout.template_ID(space, "pin_id")
+        split = layout.split(percentage=0.65)
+        if ob:
+            split.template_ID(ob, "data")
+            split.separator()
+        elif mball:
+            split.template_ID(space, "pin_id")
+            split.separator()
 
 
 class DATA_PT_custom_props_metaball(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
@@ -70,7 +62,6 @@ class DATA_PT_metaball(DataButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         mball = context.meta_ball
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -80,34 +71,27 @@ class DATA_PT_metaball(DataButtonsPanel, bpy.types.Panel):
         sub.prop(mball, "wire_size", text="View")
         sub.prop(mball, "render_size", text="Render")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Settings:")
         col.prop(mball, "threshold", text="Threshold")
 
         layout.label(text="Update:")
-        if wide_ui:
-            layout.prop(mball, "flag", expand=True)
-        else:
-            layout.prop(mball, "flag", text="")
+        layout.prop(mball, "flag", expand=True)
 
 
 class DATA_PT_metaball_element(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Active Element"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.meta_ball and context.meta_ball.active_element)
 
     def draw(self, context):
         layout = self.layout
 
         metaelem = context.meta_ball.active_element
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(metaelem, "type")
-        else:
-            layout.prop(metaelem, "type", text="")
+        layout.prop(metaelem, "type")
 
         split = layout.split()
 
@@ -117,8 +101,7 @@ class DATA_PT_metaball_element(DataButtonsPanel, bpy.types.Panel):
         col.prop(metaelem, "negative", text="Negative")
         col.prop(metaelem, "hide", text="Hide")
 
-        if wide_ui:
-            col = split.column(align=True)
+        col = split.column(align=True)
 
         if metaelem.type in ('CUBE', 'ELLIPSOID'):
             col.label(text="Size:")

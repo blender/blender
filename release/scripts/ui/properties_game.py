@@ -19,23 +19,22 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class PhysicsButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"
 
-    def poll(self, context):
-        ob = context.active_object
-        rd = context.scene.render
-        return ob and ob.game and (rd.engine in self.COMPAT_ENGINES)
-
 
 class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
     bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        ob = context.active_object
+        rd = context.scene.render
+        return ob and ob.game and (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -43,12 +42,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
         ob = context.active_object
         game = ob.game
         soft = ob.game.soft_body
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(game, "physics_type")
-        else:
-            layout.prop(game, "physics_type", text="")
+        layout.prop(game, "physics_type")
         layout.separator()
 
         #if game.physics_type == 'DYNAMIC':
@@ -60,8 +55,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col.prop(game, "ghost")
             col.prop(ob, "hide_render", text="Invisible") # out of place but useful
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.prop(game, "material_physics")
             col.prop(game, "rotate_from_normal")
             col.prop(game, "no_sleeping")
@@ -76,8 +70,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col.prop(game, "radius")
             col.prop(game, "form_factor")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             sub = col.column()
             sub.active = (game.physics_type == 'RIGID_BODY')
             sub.prop(game, "anisotropic_friction")
@@ -93,8 +86,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             sub.prop(game, "minimum_velocity", text="Minimum")
             sub.prop(game, "maximum_velocity", text="Maximum")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.label(text="Damping:")
             sub = col.column(align=True)
             sub.prop(game, "damping", text="Translation", slider=True)
@@ -136,8 +128,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col.prop(soft, "margin", slider=True)
             col.prop(soft, "bending_const", text="Bending Constraints")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.prop(soft, "shape_match")
             sub = col.column()
             sub.active = soft.shape_match
@@ -166,10 +157,11 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, bpy.types.Panel):
     bl_label = "Collision Bounds"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         game = context.object.game
         rd = context.scene.render
-        return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC')) and (rd.engine in self.COMPAT_ENGINES)
+        return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC')) and (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw_header(self, context):
         game = context.active_object.game
@@ -180,21 +172,16 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         game = context.active_object.game
-        wide_ui = context.region.width > narrowui
 
         layout.active = game.use_collision_bounds
-        if wide_ui:
-            layout.prop(game, "collision_bounds", text="Bounds")
-        else:
-            layout.prop(game, "collision_bounds", text="")
+        layout.prop(game, "collision_bounds", text="Bounds")
 
         split = layout.split()
 
         col = split.column()
         col.prop(game, "collision_margin", text="Margin", slider=True)
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(game, "collision_compound", text="Compound")
 
 
@@ -203,14 +190,15 @@ class RenderButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "render"
 
-    def poll(self, context):
-        rd = context.scene.render
-        return (rd.engine in self.COMPAT_ENGINES)
-
 
 class RENDER_PT_game(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Game"
     COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -224,11 +212,15 @@ class RENDER_PT_game_player(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Standalone Player"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
 
         gs = context.scene.game_data
-        wide_ui = context.region.width > narrowui
 
         layout.prop(gs, "fullscreen")
 
@@ -240,8 +232,7 @@ class RENDER_PT_game_player(RenderButtonsPanel, bpy.types.Panel):
         sub.prop(gs, "resolution_x", slider=False, text="X")
         sub.prop(gs, "resolution_y", slider=False, text="Y")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Quality:")
         sub = col.column(align=True)
         sub.prop(gs, "depth", text="Bit Depth", slider=False)
@@ -250,10 +241,7 @@ class RENDER_PT_game_player(RenderButtonsPanel, bpy.types.Panel):
         # framing:
         col = layout.column()
         col.label(text="Framing:")
-        if wide_ui:
-            col.row().prop(gs, "framing_type", expand=True)
-        else:
-            col.prop(gs, "framing_type", text="")
+        col.row().prop(gs, "framing_type", expand=True)
         if gs.framing_type == 'LETTERBOX':
             col.prop(gs, "framing_color", text="")
 
@@ -262,12 +250,16 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Stereo"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
 
         gs = context.scene.game_data
         stereo_mode = gs.stereo
-        wide_ui = context.region.width > narrowui
 
         # stereo options:
         layout.prop(gs, "stereo", expand=True)
@@ -279,10 +271,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, bpy.types.Panel):
 
         # dome:
         elif stereo_mode == 'DOME':
-            if wide_ui:
-                layout.prop(gs, "dome_mode", text="Dome Type")
-            else:
-                layout.prop(gs, "dome_mode", text="")
+            layout.prop(gs, "dome_mode", text="Dome Type")
 
             dome_type = gs.dome_mode
 
@@ -296,8 +285,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, bpy.types.Panel):
                 col.prop(gs, "dome_buffer_resolution", text="Resolution", slider=True)
                 col.prop(gs, "dome_angle", slider=True)
 
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.prop(gs, "dome_tesselation", text="Tesselation")
                 col.prop(gs, "dome_tilt")
 
@@ -305,15 +293,14 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, bpy.types.Panel):
                 col = split.column()
 
                 col.prop(gs, "dome_buffer_resolution", text="Resolution", slider=True)
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.prop(gs, "dome_tesselation", text="Tesselation")
 
             else: # cube map
                 col = split.column()
                 col.prop(gs, "dome_buffer_resolution", text="Resolution", slider=True)
-                if wide_ui:
-                    col = split.column()
+
+                col = split.column()
 
             layout.prop(gs, "dome_text")
 
@@ -322,16 +309,17 @@ class RENDER_PT_game_shading(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Shading"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
 
         gs = context.scene.game_data
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(gs, "material_mode", expand=True)
-        else:
-            layout.prop(gs, "material_mode", text="")
+        layout.prop(gs, "material_mode", expand=True)
 
         if gs.material_mode == 'GLSL':
             split = layout.split()
@@ -351,11 +339,15 @@ class RENDER_PT_game_performance(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Performance"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
 
         gs = context.scene.game_data
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -366,8 +358,8 @@ class RENDER_PT_game_performance(RenderButtonsPanel, bpy.types.Panel):
         col.prop(gs, "show_physics_visualization", text="Physics Visualization")
         col.prop(gs, "use_deprecation_warnings")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
+
         col.label(text="Render:")
         col.prop(gs, "use_frame_rate")
         col.prop(gs, "use_display_lists")
@@ -377,16 +369,18 @@ class RENDER_PT_game_sound(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Sound"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(scene, "distance_model")
-        else:
-            layout.prop(scene, "distance_model", text="")
+        layout.prop(scene, "distance_model")
+
         layout.prop(scene, "speed_of_sound", text="Speed")
         layout.prop(scene, "doppler_factor")
 
@@ -396,17 +390,14 @@ class WorldButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "world"
 
-    def poll(self, context):
-        scene = context.scene
-        return (scene.render.engine in self.COMPAT_ENGINES) and (scene.world is not None)
-
 
 class WORLD_PT_game_context_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         rd = context.scene.render
         return (context.scene) and (rd.use_game_engine)
 
@@ -416,44 +407,45 @@ class WORLD_PT_game_context_world(WorldButtonsPanel, bpy.types.Panel):
         scene = context.scene
         world = context.world
         space = context.space_data
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            split = layout.split(percentage=0.65)
-            if scene:
-                split.template_ID(scene, "world", new="world.new")
-            elif world:
-                split.template_ID(space, "pin_id")
-        else:
-            if scene:
-                layout.template_ID(scene, "world", new="world.new")
-            elif world:
-                layout.template_ID(space, "pin_id")
+        split = layout.split(percentage=0.65)
+        if scene:
+            split.template_ID(scene, "world", new="world.new")
+        elif world:
+            split.template_ID(space, "pin_id")
 
 
 class WORLD_PT_game_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "World"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        scene = context.scene
+        return (scene.world and scene.render.engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
 
         world = context.world
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
         col = split.column()
         col.prop(world, "horizon_color")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(world, "ambient_color")
 
 
 class WORLD_PT_game_mist(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Mist"
     COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        scene = context.scene
+        return (scene.world and scene.render.engine in __class__.COMPAT_ENGINES)
 
     def draw_header(self, context):
         world = context.world
@@ -464,7 +456,6 @@ class WORLD_PT_game_mist(WorldButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         world = context.world
-        wide_ui = context.region.width > narrowui
 
         layout.active = world.mist.use_mist
         split = layout.split()
@@ -472,8 +463,7 @@ class WORLD_PT_game_mist(WorldButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(world.mist, "start")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(world.mist, "depth")
 
 
@@ -481,11 +471,15 @@ class WORLD_PT_game_physics(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        scene = context.scene
+        return (scene.world and scene.render.engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
 
         gs = context.scene.game_data
-        wide_ui = context.region.width > narrowui
 
         layout.prop(gs, "physics_engine")
         if gs.physics_engine != 'NONE':
@@ -500,8 +494,7 @@ class WORLD_PT_game_physics(WorldButtonsPanel, bpy.types.Panel):
             sub.prop(gs, "physics_step_sub", text="Substeps")
             col.prop(gs, "fps", text="FPS")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.label(text="Logic Steps:")
             col.prop(gs, "logic_step_max", text="Max")
 

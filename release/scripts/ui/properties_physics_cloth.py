@@ -19,8 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 from properties_physics_common import point_cache_ui
 from properties_physics_common import effector_weights_ui
@@ -45,7 +43,8 @@ class PhysicButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "physics"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         ob = context.object
         rd = context.scene.render
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
@@ -59,7 +58,6 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
 
         md = context.cloth
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -74,8 +72,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
         else:
             # add modifier
             split.operator("object.modifier_add", text="Add").type = 'CLOTH'
-            if wide_ui:
-                split.label()
+            split.label()
 
         if md:
             cloth = md.settings
@@ -99,8 +96,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
             col.prop(cloth, "structural_stiffness", text="Structural")
             col.prop(cloth, "bending_stiffness", text="Bending")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
 
             col.label(text="Damping:")
             col.prop(cloth, "spring_damping", text="Spring")
@@ -137,7 +133,8 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Cloth Cache"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.cloth
 
     def draw(self, context):
@@ -149,7 +146,8 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Cloth Collision"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.cloth
 
     def draw_header(self, context):
@@ -163,7 +161,6 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, bpy.types.Panel):
 
         cloth = context.cloth.collision_settings
         md = context.cloth
-        wide_ui = context.region.width > narrowui
 
         layout.active = cloth.enable_collision and cloth_panel_enabled(md)
 
@@ -174,8 +171,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(cloth, "min_distance", slider=True, text="Distance")
         col.prop(cloth, "friction")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(cloth, "enable_self_collision", text="Self Collision")
         sub = col.column()
         sub.active = cloth.enable_self_collision
@@ -189,7 +185,8 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Cloth Stiffness Scaling"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.cloth
 
     def draw_header(self, context):
@@ -204,7 +201,6 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, bpy.types.Panel):
         md = context.cloth
         ob = context.object
         cloth = context.cloth.settings
-        wide_ui = context.region.width > narrowui
 
         layout.active = cloth.stiffness_scaling	and cloth_panel_enabled(md)
 
@@ -215,8 +211,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, bpy.types.Panel):
         col.prop_object(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
         col.prop(cloth, "structural_stiffness_max", text="Max")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Bending Stiffness:")
         col.prop_object(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
         col.prop(cloth, "bending_stiffness_max", text="Max")
@@ -226,7 +221,8 @@ class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Cloth Field Weights"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.cloth)
 
     def draw(self, context):

@@ -20,8 +20,6 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class MESH_MT_vertex_group_specials(bpy.types.Menu):
     bl_label = "Vertex Group Specials"
@@ -54,15 +52,16 @@ class DataButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
-        engine = context.scene.render.engine
-        return context.mesh and (engine in self.COMPAT_ENGINES)
-
 
 class DATA_PT_context_mesh(DataButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        engine = context.scene.render.engine
+        return context.mesh and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -70,37 +69,39 @@ class DATA_PT_context_mesh(DataButtonsPanel, bpy.types.Panel):
         ob = context.object
         mesh = context.mesh
         space = context.space_data
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            split = layout.split(percentage=0.65)
-            if ob:
-                split.template_ID(ob, "data")
-                split.separator()
-            elif mesh:
-                split.template_ID(space, "pin_id")
-                split.separator()
-        else:
-            if ob:
-                layout.template_ID(ob, "data")
-            elif mesh:
-                layout.template_ID(space, "pin_id")
+        split = layout.split(percentage=0.65)
+        if ob:
+            split.template_ID(ob, "data")
+            split.separator()
+        elif mesh:
+            split.template_ID(space, "pin_id")
+            split.separator()
 
 
 class DATA_PT_custom_props_mesh(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
     _context_path = "object.data"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        engine = context.scene.render.engine
+        return context.mesh and (engine in __class__.COMPAT_ENGINES)
+
 
 class DATA_PT_normals(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Normals"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
+    @staticmethod
+    def poll(context):
+        engine = context.scene.render.engine
+        return context.mesh and (engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
 
         mesh = context.mesh
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -110,16 +111,19 @@ class DATA_PT_normals(DataButtonsPanel, bpy.types.Panel):
         sub.active = mesh.autosmooth
         sub.prop(mesh, "autosmooth_angle", text="Angle")
 
-        if wide_ui:
-            col = split.column()
-        else:
-            col.separator()
+        col = split.column()
+
         col.prop(mesh, "double_sided")
 
 
 class DATA_PT_settings(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Settings"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        engine = context.scene.render.engine
+        return context.mesh and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -133,9 +137,11 @@ class DATA_PT_vertex_groups(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Vertex Groups"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         engine = context.scene.render.engine
-        return (context.object and context.object.type in ('MESH', 'LATTICE') and (engine in self.COMPAT_ENGINES))
+        obj = context.object
+        return (obj and obj.type in ('MESH', 'LATTICE') and (engine in __class__.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -180,9 +186,11 @@ class DATA_PT_shape_keys(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Shape Keys"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         engine = context.scene.render.engine
-        return (context.object and context.object.type in ('MESH', 'LATTICE', 'CURVE', 'SURFACE') and (engine in self.COMPAT_ENGINES))
+        obj = context.object
+        return (obj and obj.type in ('MESH', 'LATTICE', 'CURVE', 'SURFACE') and (engine in __class__.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -190,7 +198,6 @@ class DATA_PT_shape_keys(DataButtonsPanel, bpy.types.Panel):
         ob = context.object
         key = ob.data.shape_keys
         kb = ob.active_shape_key
-        wide_ui = context.region.width > narrowui
 
         enable_edit = ob.mode != 'EDIT'
         enable_edit_value = False
@@ -223,16 +230,10 @@ class DATA_PT_shape_keys(DataButtonsPanel, bpy.types.Panel):
             split = layout.split(percentage=0.4)
             row = split.row()
             row.enabled = enable_edit
-            if wide_ui:
-                row.prop(key, "relative")
+            row.prop(key, "relative")
 
             row = split.row()
             row.alignment = 'RIGHT'
-
-            if not wide_ui:
-                layout.prop(key, "relative")
-                row = layout.row()
-
 
             sub = row.row(align=True)
             subsub = sub.row(align=True)
@@ -261,8 +262,7 @@ class DATA_PT_shape_keys(DataButtonsPanel, bpy.types.Panel):
                     col.prop(kb, "slider_min", text="Min")
                     col.prop(kb, "slider_max", text="Max")
 
-                    if wide_ui:
-                        col = split.column(align=True)
+                    col = split.column(align=True)
                     col.active = enable_edit_value
                     col.label(text="Blend:")
                     col.prop_object(kb, "vertex_group", ob, "vertex_groups", text="")
@@ -277,6 +277,11 @@ class DATA_PT_shape_keys(DataButtonsPanel, bpy.types.Panel):
 class DATA_PT_uv_texture(DataButtonsPanel, bpy.types.Panel):
     bl_label = "UV Texture"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        engine = context.scene.render.engine
+        return context.mesh and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -297,11 +302,12 @@ class DATA_PT_uv_texture(DataButtonsPanel, bpy.types.Panel):
             layout.prop(lay, "name")
 
 
-class DATA_PT_texface(DataButtonsPanel):
+class DATA_PT_texface(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Texture Face"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         ob = context.active_object
         rd = context.scene.render
 
@@ -311,7 +317,6 @@ class DATA_PT_texface(DataButtonsPanel):
         layout = self.layout
         col = layout.column()
 
-        wide_ui = context.region.width > narrowui
         me = context.mesh
 
         tf = me.faces.active_tface
@@ -329,8 +334,7 @@ class DATA_PT_texface(DataButtonsPanel):
             col.prop(tf, "twoside")
             col.prop(tf, "object_color")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
 
             col.prop(tf, "halo")
             col.prop(tf, "billboard")
@@ -347,6 +351,11 @@ class DATA_PT_texface(DataButtonsPanel):
 class DATA_PT_vertex_colors(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Vertex Colors"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    @staticmethod
+    def poll(context):
+        engine = context.scene.render.engine
+        return context.mesh and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

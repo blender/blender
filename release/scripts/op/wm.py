@@ -478,7 +478,7 @@ class WM_OT_path_open(bpy.types.Operator):
         import os
         import subprocess
 
-        filepath = bpy.utils.expandpath(self.properties.filepath)
+        filepath = bpy.path.abspath(self.properties.filepath)
         filepath = os.path.normpath(filepath)
 
         if not os.path.exists(filepath):

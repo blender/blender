@@ -20,15 +20,14 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class SceneButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.scene
 
 
@@ -38,15 +37,10 @@ class SCENE_PT_scene(SceneButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        wide_ui = context.region.width > narrowui
         scene = context.scene
 
-        if wide_ui:
-            layout.prop(scene, "camera")
-            layout.prop(scene, "set", text="Background")
-        else:
-            layout.prop(scene, "camera", text="")
-            layout.prop(scene, "set", text="")
+        layout.prop(scene, "camera")
+        layout.prop(scene, "set", text="Background")
 
 
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, bpy.types.Panel):
@@ -59,7 +53,6 @@ class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        wide_ui = context.region.width > narrowui
         unit = context.scene.unit_settings
 
         col = layout.column()
@@ -71,8 +64,7 @@ class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(unit, "scale_length", text="Scale")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(unit, "use_separate")
 
         layout.column().prop(unit, "rotation_units")
@@ -85,7 +77,6 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         scene = context.scene
-        wide_ui = context.region.width > narrowui
         row = layout.row()
 
         col = row.column()
@@ -107,8 +98,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
             op = subcol.operator("anim.keying_set_export", text="Export to File")
             op.filepath = "keyingset.py"
 
-            if wide_ui:
-                col = row.column()
+            col = row.column()
             col.label(text="Keyframing Settings:")
             col.prop(ks, "insertkey_needed", text="Needed")
             col.prop(ks, "insertkey_visual", text="Visual")
@@ -118,7 +108,8 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Active Keying Set"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.scene.active_keying_set and context.scene.active_keying_set.absolute)
 
     def draw(self, context):
@@ -126,7 +117,6 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
 
         scene = context.scene
         ks = scene.active_keying_set
-        wide_ui = context.region.width > narrowui
 
         row = layout.row()
         row.label(text="Paths:")
@@ -156,8 +146,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
             if ksp.entire_array is False:
                 col.prop(ksp, "array_index")
 
-            if wide_ui:
-                col = row.column()
+            col = row.column()
             col.label(text="F-Curve Grouping:")
             col.prop(ksp, "grouping")
             if ksp.grouping == 'NAMED':
@@ -180,14 +169,10 @@ class SCENE_PT_physics(SceneButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         scene = context.scene
-        wide_ui = context.region.width > narrowui
 
         layout.active = scene.use_gravity
 
-        if wide_ui:
-            layout.prop(scene, "gravity", text="")
-        else:
-            layout.column().prop(scene, "gravity", text="")
+        layout.prop(scene, "gravity", text="")
 
 
 class SCENE_PT_simplify(SceneButtonsPanel, bpy.types.Panel):
@@ -203,7 +188,6 @@ class SCENE_PT_simplify(SceneButtonsPanel, bpy.types.Panel):
         layout = self.layout
         scene = context.scene
         rd = scene.render
-        wide_ui = context.region.width > narrowui
 
         layout.active = rd.use_simplify
 
@@ -215,8 +199,7 @@ class SCENE_PT_simplify(SceneButtonsPanel, bpy.types.Panel):
 
         col.prop(rd, "simplify_triangulate")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
 

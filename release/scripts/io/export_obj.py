@@ -66,7 +66,7 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
     dest_dir = os.path.dirname(filepath)
 
     def copy_image(image):
-        fn = bpy.utils.expandpath(image.filepath)
+        fn = bpy.path.abspath(image.filepath)
         fn_strip = os.path.basename(fn)
         if copy_images:
             rel = fn_strip
@@ -182,7 +182,7 @@ def copy_images(dest_dir):
     copyCount = 0
 
 # 	for bImage in uniqueImages.values():
-# 		image_path = bpy.utils.expandpath(bImage.filepath)
+# 		image_path = bpy.path.abspath(bImage.filepath)
 # 		if bpy.sys.exists(image_path):
 # 			# Make a name for the target path.
 # 			dest_image_path = dest_dir + image_path.split('\\')[-1].split('/')[-1]
@@ -790,7 +790,7 @@ def write(filepath, objects, scene,
     print("OBJ Export time: %.2f" % (time.clock() - time1))
 #	print "OBJ Export time: %.2f" % (sys.time() - time1)
 
-def do_export(filepath, context,
+def write(filepath, context,
               EXPORT_APPLY_MODIFIERS = True, # not used
               EXPORT_ROTX90 = True, # wrong
               EXPORT_TRI = False, # ok
@@ -837,7 +837,7 @@ def do_export(filepath, context,
         orig_frame = scn.frame_current
 
         if EXPORT_ALL_SCENES: # Add scene name into the context_name
-            context_name[1] = '_%s' % bpy.utils.clean_name(scn.name) # WARNING, its possible that this could cause a collision. we could fix if were feeling parranoied.
+            context_name[1] = '_%s' % bpy.path.clean_name(scn.name) # WARNING, its possible that this could cause a collision. we could fix if were feeling parranoied.
 
         # Export an animation?
         if EXPORT_ANIMATION:
@@ -927,27 +927,27 @@ class ExportOBJ(bpy.types.Operator):
     def execute(self, context):
 
         filepath = self.properties.filepath
-        if not filepath.lower().endswith(".obj"):
-            filepath += ".obj"
+        filepath = bpy.path.ensure_ext(filepath, ".obj")
 
-        do_export(filepath, context,
-                  EXPORT_TRI=self.properties.use_triangles,
-                  EXPORT_EDGES=self.properties.use_edges,
-                  EXPORT_NORMALS=self.properties.use_normals,
-                  EXPORT_NORMALS_HQ=self.properties.use_hq_normals,
-                  EXPORT_UV=self.properties.use_uvs,
-                  EXPORT_MTL=self.properties.use_materials,
-                  EXPORT_COPY_IMAGES=self.properties.copy_images,
-                  EXPORT_APPLY_MODIFIERS=self.properties.use_modifiers,
-                  EXPORT_ROTX90=self.properties.use_rotate90,
-                  EXPORT_BLEN_OBS=self.properties.use_blen_objects,
-                  EXPORT_GROUP_BY_OB=self.properties.group_by_object,
-                  EXPORT_GROUP_BY_MAT=self.properties.group_by_material,
-                  EXPORT_KEEP_VERT_ORDER=self.properties.keep_vertex_order,
-                  EXPORT_POLYGROUPS=self.properties.use_vertex_groups,
-                  EXPORT_CURVE_AS_NURBS=self.properties.use_nurbs,
-                  EXPORT_SEL_ONLY=self.properties.use_selection,
-                  EXPORT_ALL_SCENES=self.properties.use_all_scenes)
+        write(filepath, context,
+              EXPORT_TRI=self.properties.use_triangles,
+              EXPORT_EDGES=self.properties.use_edges,
+              EXPORT_NORMALS=self.properties.use_normals,
+              EXPORT_NORMALS_HQ=self.properties.use_hq_normals,
+              EXPORT_UV=self.properties.use_uvs,
+              EXPORT_MTL=self.properties.use_materials,
+              EXPORT_COPY_IMAGES=self.properties.copy_images,
+              EXPORT_APPLY_MODIFIERS=self.properties.use_modifiers,
+              EXPORT_ROTX90=self.properties.use_rotate90,
+              EXPORT_BLEN_OBS=self.properties.use_blen_objects,
+              EXPORT_GROUP_BY_OB=self.properties.group_by_object,
+              EXPORT_GROUP_BY_MAT=self.properties.group_by_material,
+              EXPORT_KEEP_VERT_ORDER=self.properties.keep_vertex_order,
+              EXPORT_POLYGROUPS=self.properties.use_vertex_groups,
+              EXPORT_CURVE_AS_NURBS=self.properties.use_nurbs,
+              EXPORT_SEL_ONLY=self.properties.use_selection,
+              EXPORT_ALL_SCENES=self.properties.use_all_scenes,
+              )
 
         return {'FINISHED'}
 

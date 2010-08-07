@@ -174,12 +174,13 @@ void flatten_string_free(FlattenString *fs)
 static int find_builtinfunc(char *string)
 {
 	int a, i;
-	char builtinfuncs[][11] = {"and", "as", "assert", "break", "class", "continue", "def",
+	char builtinfuncs[][9] = {"and", "as", "assert", "break", "class", "continue", "def",
 								"del", "elif", "else", "except", "exec", "finally",
 								"for", "from", "global", "if", "import", "in",
 								"is", "lambda", "not", "or", "pass", "print",
-								"raise", "return", "try", "while", "yield"};
-	for(a=0; a<30; a++) {
+								"raise", "return", "try", "while", "yield", "with"};
+
+	for(a=0; a < sizeof(builtinfuncs)/sizeof(builtinfuncs[0]); a++) {
 		i = 0;
 		while(1) {
 			/* If we hit the end of a keyword... (eg. "def") */

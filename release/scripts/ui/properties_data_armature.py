@@ -20,15 +20,14 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.armature
 
 
@@ -42,18 +41,14 @@ class DATA_PT_context_arm(DataButtonsPanel, bpy.types.Panel):
         ob = context.object
         arm = context.armature
         space = context.space_data
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            split = layout.split(percentage=0.65)
-            if ob:
-                split.template_ID(ob, "data")
-                split.separator()
-            elif arm:
-                split.template_ID(space, "pin_id")
-                split.separator()
-        else:
-            layout.template_ID(ob, "data")
+        split = layout.split(percentage=0.65)
+        if ob:
+            split.template_ID(ob, "data")
+            split.separator()
+        elif arm:
+            split.template_ID(space, "pin_id")
+            split.separator()
 
 
 class DATA_PT_custom_props_arm(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
@@ -67,12 +62,8 @@ class DATA_PT_skeleton(DataButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         arm = context.armature
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(arm, "pose_position", expand=True)
-        else:
-            layout.prop(arm, "pose_position", text="")
+        layout.prop(arm, "pose_position", expand=True)
 
         split = layout.split()
 
@@ -90,8 +81,7 @@ class DATA_PT_skeleton(DataButtonsPanel, bpy.types.Panel):
         col.prop(arm, "deform_vertexgroups", text="Vertex Groups")
         col.prop(arm, "deform_envelope", text="Envelopes")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(arm, "deform_quaternion", text="Quaternion")
 
 
@@ -103,12 +93,8 @@ class DATA_PT_display(DataButtonsPanel, bpy.types.Panel):
 
         ob = context.object
         arm = context.armature
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.row().prop(arm, "drawtype", expand=True)
-        else:
-            layout.row().prop(arm, "drawtype", text="")
+        layout.row().prop(arm, "drawtype", expand=True)
 
         split = layout.split()
 
@@ -117,8 +103,7 @@ class DATA_PT_display(DataButtonsPanel, bpy.types.Panel):
         col.prop(arm, "draw_axes", text="Axes")
         col.prop(arm, "draw_custom_bone_shapes", text="Shapes")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(arm, "draw_group_colors", text="Colors")
         col.prop(ob, "x_ray", text="X-Ray")
         col.prop(arm, "delay_deform", text="Delay Refresh")
@@ -127,7 +112,8 @@ class DATA_PT_display(DataButtonsPanel, bpy.types.Panel):
 class DATA_PT_bone_groups(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Bone Groups"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.object and context.object.type == 'ARMATURE' and context.object.pose)
 
     def draw(self, context):
@@ -135,7 +121,6 @@ class DATA_PT_bone_groups(DataButtonsPanel, bpy.types.Panel):
 
         ob = context.object
         pose = ob.pose
-        wide_ui = context.region.width > narrowui
 
         row = layout.row()
         row.template_list(pose, "bone_groups", pose, "active_bone_group_index", rows=2)
@@ -157,8 +142,7 @@ class DATA_PT_bone_groups(DataButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.prop(group, "color_set")
             if group.color_set:
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.template_triColorSet(group, "colors")
 
         row = layout.row()
@@ -181,12 +165,8 @@ class DATA_PT_ghost(DataButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         arm = context.armature
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(arm, "ghost_type", expand=True)
-        else:
-            layout.prop(arm, "ghost_type", text="")
+        layout.prop(arm, "ghost_type", expand=True)
 
         split = layout.split()
 
@@ -201,8 +181,7 @@ class DATA_PT_ghost(DataButtonsPanel, bpy.types.Panel):
             sub.prop(arm, "ghost_step", text="Range")
             sub.prop(arm, "ghost_size", text="Step")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Display:")
         col.prop(arm, "ghost_only_selected", text="Selected Only")
 
@@ -211,7 +190,8 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel, bpy.types.Panel):
     bl_label = "iTaSC parameters"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         ob = context.object
         return (ob and ob.pose)
 
@@ -221,7 +201,6 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel, bpy.types.Panel):
         ob = context.object
 
         itasc = ob.pose.ik_param
-        wide_ui = (context.region.width > narrowui)
 
         row = layout.row()
         row.prop(ob.pose, "ik_solver")
@@ -238,8 +217,7 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.prop(itasc, "precision")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.prop(itasc, "num_iter")
 
 
@@ -267,7 +245,8 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
     #bl_label = "Bones Motion Paths"
     bl_context = "data"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         # XXX: include posemode check?
         return (context.object) and (context.armature)
 
@@ -275,9 +254,8 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
-        self.draw_settings(context, ob.pose.animation_visualisation, wide_ui, bones=True)
+        self.draw_settings(context, ob.pose.animation_visualisation, bones=True)
 
         layout.separator()
 
@@ -286,8 +264,7 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.operator("pose.paths_calculate", text="Calculate Paths")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.operator("pose.paths_clear", text="Clear Paths")
 
 
@@ -295,7 +272,8 @@ class DATA_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # inhe
     #bl_label = "Bones Onion Skinning"
     bl_context = "data"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         # XXX: include posemode check?
         return (context.object) and (context.armature)
 
@@ -303,9 +281,8 @@ class DATA_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # inhe
         layout = self.layout
 
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
-        self.draw_settings(context, ob.pose.animation_visualisation, wide_ui, bones=True)
+        self.draw_settings(context, ob.pose.animation_visualisation, bones=True)
 
 def register():
     pass

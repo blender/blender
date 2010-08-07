@@ -794,7 +794,7 @@ class x3d_class:
             pic = tex.image
 
             # using .expandpath just in case, os.path may not expect //
-            basename = os.path.basename(bpy.utils.expandpath(pic.filepath))
+            basename = os.path.basename(bpy.path.abspath(pic.filepath))
 
             pic = alltextures[i].image
             # pic = alltextures[i].getImage()
@@ -1140,7 +1140,7 @@ class x3d_class:
 # Callbacks, needed before Main
 ##########################################################
 
-def x3d_export(filename,
+def write(filename,
                context,
                EXPORT_APPLY_MODIFIERS=False,
                EXPORT_TRI=False,
@@ -1175,47 +1175,6 @@ def x3d_export(filename,
         )
 
 
-def x3d_export_ui(filename):
-    if not filename.endswith(extension):
-        filename += extension
-    #if _safeOverwrite and sys.exists(filename):
-    #	result = Draw.PupMenu("File Already Exists, Overwrite?%t|Yes%x1|No%x0")
-    #if(result != 1):
-    #	return
-
-    # Get user options
-    EXPORT_APPLY_MODIFIERS = Draw.Create(1)
-    EXPORT_TRI = Draw.Create(0)
-    EXPORT_GZIP = Draw.Create( filename.lower().endswith('.x3dz') )
-
-    # Get USER Options
-    pup_block = [\
-    ('Apply Modifiers', EXPORT_APPLY_MODIFIERS, 'Use transformed mesh data from each object.'),\
-    ('Triangulate', EXPORT_TRI, 'Triangulate quads.'),\
-    ('Compress', EXPORT_GZIP, 'GZip the resulting file, requires a full python install'),\
-    ]
-
-    if not Draw.PupBlock('Export...', pup_block):
-        return
-
-    Blender.Window.EditMode(0)
-    Blender.Window.WaitCursor(1)
-
-    x3d_export(filename,\
-        EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS.val,\
-        EXPORT_TRI = EXPORT_TRI.val,\
-        EXPORT_GZIP = EXPORT_GZIP.val\
-    )
-
-    Blender.Window.WaitCursor(0)
-
-
-
-#########################################################
-# main routine
-#########################################################
-
-
 from bpy.props import *
 
 class ExportX3D(bpy.types.Operator):
@@ -1233,7 +1192,16 @@ class ExportX3D(bpy.types.Operator):
     compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install", default=False)
 
     def execute(self, context):
-        x3d_export(self.properties.filepath, context, self.properties.apply_modifiers, self.properties.triangulate, self.properties.compress)
+        filepath = self.properties.filepath
+        filepath = bpy.path.ensure_ext(filepath, ".x3d")
+
+        write(filepath,
+                   context,
+                   self.properties.apply_modifiers,
+                   self.properties.triangulate,
+                   self.properties.compress,
+                   )
+
         return {'FINISHED'}
 
     def invoke(self, context, event):

@@ -20,8 +20,6 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class ObjectButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -53,37 +51,23 @@ class OBJECT_PT_transform(ObjectButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            row = layout.row()
+        row = layout.row()
 
-            row.column().prop(ob, "location")
-            if ob.rotation_mode == 'QUATERNION':
-                row.column().prop(ob, "rotation_quaternion", text="Rotation")
-            elif ob.rotation_mode == 'AXIS_ANGLE':
-                #row.column().label(text="Rotation")
-                #row.column().prop(pchan, "rotation_angle", text="Angle")
-                #row.column().prop(pchan, "rotation_axis", text="Axis")
-                row.column().prop(ob, "rotation_axis_angle", text="Rotation")
-            else:
-                row.column().prop(ob, "rotation_euler", text="Rotation")
-
-            row.column().prop(ob, "scale")
-
-            layout.prop(ob, "rotation_mode")
+        row.column().prop(ob, "location")
+        if ob.rotation_mode == 'QUATERNION':
+            row.column().prop(ob, "rotation_quaternion", text="Rotation")
+        elif ob.rotation_mode == 'AXIS_ANGLE':
+            #row.column().label(text="Rotation")
+            #row.column().prop(pchan, "rotation_angle", text="Angle")
+            #row.column().prop(pchan, "rotation_axis", text="Axis")
+            row.column().prop(ob, "rotation_axis_angle", text="Rotation")
         else:
-            col = layout.column()
-            col.prop(ob, "location")
-            col.label(text="Rotation:")
-            col.prop(ob, "rotation_mode", text="")
-            if ob.rotation_mode == 'QUATERNION':
-                col.prop(ob, "rotation_quaternion", text="")
-            elif ob.rotation_mode == 'AXIS_ANGLE':
-                col.prop(ob, "rotation_axis_angle", text="")
-            else:
-                col.prop(ob, "rotation_euler", text="")
-            col.prop(ob, "scale")
+            row.column().prop(ob, "rotation_euler", text="Rotation")
+
+        row.column().prop(ob, "scale")
+
+        layout.prop(ob, "rotation_mode")
 
 
 class OBJECT_PT_transform_locks(ObjectButtonsPanel, bpy.types.Panel):
@@ -94,7 +78,6 @@ class OBJECT_PT_transform_locks(ObjectButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         ob = context.object
-        # wide_ui = context.region.width > narrowui
 
         row = layout.row()
 
@@ -120,7 +103,6 @@ class OBJECT_PT_relations(ObjectButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -129,8 +111,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel, bpy.types.Panel):
         col.separator()
         col.prop(ob, "pass_index")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Parent:")
         col.prop(ob, "parent", text="")
 
@@ -149,7 +130,6 @@ class OBJECT_PT_groups(ObjectButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
         row = layout.row(align=True)
         row.operator("object.group_link", text="Add to Group")
@@ -173,8 +153,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col.prop(group, "layer", text="Dupli")
 
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.prop(group, "dupli_offset", text="")
 
                 prop = col.operator("wm.context_set_value", text="From Cursor")
@@ -190,14 +169,12 @@ class OBJECT_PT_display(ObjectButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
         col = split.column()
         col.prop(ob, "max_draw_type", text="Type")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         row = col.row()
         row.prop(ob, "draw_bounds", text="Bounds")
         sub = row.row()
@@ -212,8 +189,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, bpy.types.Panel):
         col.prop(ob, "draw_wire", text="Wire")
         col.prop(ob, "color", text="Object Color")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(ob, "draw_texture_space", text="Texture Space")
         col.prop(ob, "x_ray", text="X-Ray")
         col.prop(ob, "draw_transparent", text="Transparency")
@@ -226,12 +202,8 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(ob, "dupli_type", expand=True)
-        else:
-            layout.prop(ob, "dupli_type", text="")
+        layout.prop(ob, "dupli_type", expand=True)
 
         if ob.dupli_type == 'FRAMES':
             split = layout.split()
@@ -240,8 +212,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, bpy.types.Panel):
             col.prop(ob, "dupli_frames_start", text="Start")
             col.prop(ob, "dupli_frames_end", text="End")
 
-            if wide_ui:
-                col = split.column(align=True)
+            col = split.column(align=True)
             col.prop(ob, "dupli_frames_on", text="On")
             col.prop(ob, "dupli_frames_off", text="Off")
 
@@ -256,15 +227,12 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.prop(ob, "use_dupli_faces_scale", text="Scale")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.prop(ob, "dupli_faces_scale", text="Inherit Scale")
 
         elif ob.dupli_type == 'GROUP':
-            if wide_ui:
-                layout.prop(ob, "dupli_group", text="Group")
-            else:
-                layout.prop(ob, "dupli_group", text="")
+            layout.prop(ob, "dupli_group", text="Group")
+
 
 # XXX: the following options are all quite buggy, ancient hacks that should be dropped
 
@@ -276,7 +244,6 @@ class OBJECT_PT_animation(ObjectButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -295,8 +262,7 @@ class OBJECT_PT_animation(ObjectButtonsPanel, bpy.types.Panel):
         col.prop(ob, "time_offset", text="Offset")
 
         # XXX: these are still used for a few curve-related tracking features
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Tracking Axes:")
         col.prop(ob, "track_axis", text="Axis")
         col.prop(ob, "up_axis", text="Up Axis")
@@ -308,16 +274,16 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
     #bl_label = "Object Motion Paths"
     bl_context = "object"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.object)
 
     def draw(self, context):
         layout = self.layout
 
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
-        self.draw_settings(context, ob.animation_visualisation, wide_ui)
+        self.draw_settings(context, ob.animation_visualisation)
 
         layout.separator()
 
@@ -326,8 +292,7 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.operator("object.paths_calculate", text="Calculate Paths")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.operator("object.paths_clear", text="Clear Paths")
 
 
@@ -335,16 +300,16 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # in
     #bl_label = "Object Onion Skinning"
     bl_context = "object"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return (context.object)
 
     def draw(self, context):
         layout = self.layout
 
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
-        self.draw_settings(context, ob.animation_visualisation, wide_ui)
+        self.draw_settings(context, ob.animation_visualisation)
 
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, bpy.types.Panel):
     _context_path = "object"

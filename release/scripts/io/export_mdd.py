@@ -165,15 +165,23 @@ class ExportMDD(bpy.types.Operator):
     frame_start = IntProperty(name="Start Frame", description="Start frame for baking", min=minframe, max=maxframe, default=1)
     frame_end = IntProperty(name="End Frame", description="End frame for baking", min=minframe, max=maxframe, default=250)
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         ob = context.active_object
         return (ob and ob.type == 'MESH')
 
     def execute(self, context):
-        if not self.properties.filepath:
-            raise Exception("filename not set")
-        write(self.properties.filepath, context.scene, context.active_object,
-            self.properties.frame_start, self.properties.frame_end, self.properties.fps)
+        filepath = self.properties.filepath
+        filepath = bpy.path.ensure_ext(filepath, ".mdd")
+        
+        write(filepath,
+              context.scene,
+              context.active_object,
+              self.properties.frame_start,
+              self.properties.frame_end,
+              self.properties.fps,
+              )
+
         return {'FINISHED'}
 
     def invoke(self, context, event):

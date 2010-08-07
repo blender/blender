@@ -172,9 +172,12 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 		BLI_duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
 		BLI_duplicatelist(&(scen->r.layers), &(sce->r.layers));
 		BKE_keyingsets_copy(&(scen->keyingsets), &(sce->keyingsets));
-		
-		scen->nodetree= ntreeCopyTree(sce->nodetree, 0);
-		
+
+		if(sce->nodetree) {
+			scen->nodetree= ntreeCopyTree(sce->nodetree, 0);
+			ntreeSwitchID(scen->nodetree, &sce->id, &scen->id);
+		}
+
 		obase= sce->base.first;
 		base= scen->base.first;
 		while(base) {

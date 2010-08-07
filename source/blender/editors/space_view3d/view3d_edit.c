@@ -2396,7 +2396,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	float dx, dy, fz, *fp = NULL, dvec[3], oldcurs[3];
 	short mx, my, mval[2];
 //	short ctrl= 0; // XXX
-
+	int flip;
 	fp= give_cursor(scene, v3d);
 
 //	if(obedit && ctrl) lr_click= 1;
@@ -2404,9 +2404,18 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	mx= event->x - ar->winrct.xmin;
 	my= event->y - ar->winrct.ymin;
-	project_short_noclip(ar, fp, mval);
 
-	initgrabz(rv3d, fp[0], fp[1], fp[2]);
+	project_short_noclip(ar, fp, mval);
+	flip= initgrabz(rv3d, fp[0], fp[1], fp[2]);
+	
+	/* reset the depth based on the view offset */
+	if(flip) {
+		negate_v3_v3(fp, rv3d->ofs);
+
+		/* re initialize */
+		project_short_noclip(ar, fp, mval);
+		flip= initgrabz(rv3d, fp[0], fp[1], fp[2]);
+	}
 
 	if(mval[0]!=IS_CLIPPED) {
 		short depth_used = 0;

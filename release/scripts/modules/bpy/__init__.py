@@ -26,7 +26,7 @@ data = _bpy.data
 context = _bpy.context
 
 # python modules
-from bpy import utils
+from bpy import utils, path
 
 from bpy import ops as _ops_module
 

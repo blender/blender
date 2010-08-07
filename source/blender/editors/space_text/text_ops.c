@@ -584,8 +584,10 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 	/* api callbacks */
 	ot->poll= run_script_poll;
 	ot->exec= run_script_exec;
-}
 
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /******************* refresh pyconstraints operator *********************/
 

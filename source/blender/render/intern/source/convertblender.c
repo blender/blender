@@ -1528,6 +1528,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 	totchild=psys->totchild;
 
+	/* can happen for disconnected/global hair */
+	if(part->type==PART_HAIR && !psys->childcache)
+		totchild= 0;
+
 	if(G.rendering == 0) { /* preview render */
 		totchild = (int)((float)totchild * (float)part->disp / 100.0f);
 	}

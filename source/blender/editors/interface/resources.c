@@ -1511,11 +1511,6 @@ void init_userdef_do_versions(void)
 	if (U.v2d_min_gridsize == 0) {
 		U.v2d_min_gridsize= 35;
 	}
-	
-	/* Single Column UI Value */
-	if (U.propwidth == 0) {
-		U.propwidth = 200;
-	}
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();

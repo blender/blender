@@ -20,15 +20,14 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.lattice
 
 
@@ -42,21 +41,14 @@ class DATA_PT_context_lattice(DataButtonsPanel, bpy.types.Panel):
         ob = context.object
         lat = context.lattice
         space = context.space_data
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            split = layout.split(percentage=0.65)
-            if ob:
-                split.template_ID(ob, "data")
-                split.separator()
-            elif lat:
-                split.template_ID(space, "pin_id")
-                split.separator()
-        else:
-            if ob:
-                layout.template_ID(ob, "data")
-            elif lat:
-                layout.template_ID(space, "pin_id")
+        split = layout.split(percentage=0.65)
+        if ob:
+            split.template_ID(ob, "data")
+            split.separator()
+        elif lat:
+            split.template_ID(space, "pin_id")
+            split.separator()
 
 
 class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
@@ -70,27 +62,23 @@ class DATA_PT_lattice(DataButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         lat = context.lattice
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
         col = split.column()
         col.prop(lat, "points_u")
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(lat, "interpolation_type_u", text="")
 
         split = layout.split()
         col = split.column()
         col.prop(lat, "points_v")
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(lat, "interpolation_type_v", text="")
 
         split = layout.split()
         col = split.column()
         col.prop(lat, "points_w")
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(lat, "interpolation_type_w", text="")
 
         row = layout.row()

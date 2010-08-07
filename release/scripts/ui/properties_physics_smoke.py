@@ -19,8 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 from properties_physics_common import point_cache_ui
 from properties_physics_common import effector_weights_ui
@@ -31,7 +29,8 @@ class PhysicButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "physics"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         ob = context.object
         rd = context.scene.render
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
@@ -45,7 +44,6 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
 
         md = context.smoke
         ob = context.object
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -61,14 +59,10 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
         else:
             # add modifier
             split.operator("object.modifier_add", text="Add").type = 'SMOKE'
-            if wide_ui:
-                split.label()
+            split.label()
 
         if md:
-            if wide_ui:
-                layout.prop(md, "smoke_type", expand=True)
-            else:
-                layout.prop(md, "smoke_type", text="")
+            layout.prop(md, "smoke_type", expand=True)
 
             if md.smoke_type == 'DOMAIN':
                 domain = md.domain_settings
@@ -83,8 +77,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
                 col.label(text="Border Collisions:")
                 col.prop(domain, "smoke_domain_colli", text="")
 
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.label(text="Behavior:")
                 col.prop(domain, "alpha")
                 col.prop(domain, "beta")
@@ -114,8 +107,8 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
                 sub.active = flow.initial_velocity
                 sub.prop(flow, "velocity_multiplier", text="Multiplier")
 
-                if wide_ui:
-                    sub = split.column()
+
+                sub = split.column()
                 sub.active = not md.flow_settings.outflow
                 sub.label(text="Behavior:")
                 sub.prop(flow, "temperature")
@@ -130,7 +123,8 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke Groups"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         md = context.smoke
         return md and (md.smoke_type == 'DOMAIN')
 
@@ -138,7 +132,6 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         group = context.smoke.domain_settings
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -149,8 +142,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, bpy.types.Panel):
         #col.label(text="Effector Group:")
         #col.prop(group, "eff_group", text="")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Collision Group:")
         col.prop(group, "coll_group", text="")
 
@@ -159,7 +151,8 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke Cache"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         md = context.smoke
         return md and (md.smoke_type == 'DOMAIN')
 
@@ -179,7 +172,8 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke High Resolution"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         md = context.smoke
         return md and (md.smoke_type == 'DOMAIN')
 
@@ -192,7 +186,6 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         md = context.smoke.domain_settings
-        wide_ui = context.region.width > narrowui
 
         layout.active = md.highres
 
@@ -204,8 +197,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(md, "smoothemitter")
         col.prop(md, "viewhighres")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Noise Method:")
         col.row().prop(md, "noise_type", text="")
         col.prop(md, "strength")
@@ -215,7 +207,8 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke High Resolution Cache"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         md = context.smoke
         return md and (md.smoke_type == 'DOMAIN') and md.domain_settings.highres
 
@@ -235,7 +228,8 @@ class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke Field Weights"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         smoke = context.smoke
         return (smoke and smoke.smoke_type == 'DOMAIN')
 

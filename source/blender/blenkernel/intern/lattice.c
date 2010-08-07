@@ -175,7 +175,7 @@ void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 	bp= lt->def;
 	
 	for (i=0; i<lt->pntsu*lt->pntsv*lt->pntsw; i++,bp++) {
-		VECCOPY(bp->vec, vertexCos[i]);
+		copy_v3_v3(bp->vec, vertexCos[i]);
 	}
 
 	MEM_freeN(vertexCos);
@@ -474,7 +474,9 @@ static void init_curve_deform(Object *par, Object *ob, CurveDeform *cd, int dloc
 		invert_m4_m4(par->imat, par->obmat);
 		mul_v3_m4v3(cd->dloc, par->imat, ob->obmat[3]);
 	}
-	else cd->dloc[0]=cd->dloc[1]=cd->dloc[2]= 0.0f;
+	else {
+		cd->dloc[0]=cd->dloc[1]=cd->dloc[2]= 0.0f;
+	}
 	
 	cd->no_rot_axis= 0;
 }
@@ -507,15 +509,15 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir,
 			if(ctime < 0.0) {
 				sub_v3_v3v3(dvec, path->data[1].vec, path->data[0].vec);
 				mul_v3_fl(dvec, ctime*(float)path->len);
-				VECADD(vec, vec, dvec);
-				if(quat) QUATCOPY(quat, path->data[0].quat);
+				add_v3_v3(vec, dvec);
+				if(quat) copy_qt_qt(quat, path->data[0].quat);
 				if(radius) *radius= path->data[0].radius;
 			}
 			else if(ctime > 1.0) {
 				sub_v3_v3v3(dvec, path->data[path->len-1].vec, path->data[path->len-2].vec);
 				mul_v3_fl(dvec, (ctime-1.0)*(float)path->len);
-				VECADD(vec, vec, dvec);
-				if(quat) QUATCOPY(quat, path->data[path->len-1].quat);
+				add_v3_v3(vec, dvec);
+				if(quat) copy_qt_qt(quat, path->data[path->len-1].quat);
 				if(radius) *radius= path->data[path->len-1].radius;
 				/* weight - not used but could be added */
 			}
@@ -608,7 +610,7 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 			/* this is not exactly the same as 2.4x, since the axis is having rotation removed rather then
 			 * changing the axis before calculating the tilt but serves much the same purpose */
 			float dir_flat[3]={0,0,0}, q[4];
-			VECCOPY(dir_flat, dir);
+			copy_v3_v3(dir_flat, dir);
 			dir_flat[cd->no_rot_axis-1]= 0.0f;
 
 			normalize_v3(dir);
@@ -686,11 +688,11 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 		mul_qt_v3(quat, cent);
 
 		/* translation */
-		VECADD(co, cent, loc);
+		add_v3_v3v3(co, cent, loc);
 
 		if(quatp)
-			QUATCOPY(quatp, quat);
-		
+			copy_qt_qt(quatp, quat);
+
 		return 1;
 	}
 	return 0;
@@ -711,7 +713,18 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 	cu->flag |= (CU_PATH|CU_FOLLOW); // needed for path & bevlist
 
 	init_curve_deform(cuOb, target, &cd, (cu->flag & CU_STRETCH)==0);
-		
+
+	/* dummy bounds, keep if CU_DEFORM_BOUNDS_OFF is set */
+	if(defaxis < 3) {
+		cd.dmin[0]= cd.dmin[1]= cd.dmin[2]= 0.0f;
+		cd.dmax[0]= cd.dmax[1]= cd.dmax[2]= 1.0f;
+	}
+	else {
+		/* negative, these bounds give a good rest position */
+		cd.dmin[0]= cd.dmin[1]= cd.dmin[2]= -1.0f;
+		cd.dmax[0]= cd.dmax[1]= cd.dmax[2]=  0.0f;
+	}
+	
 	/* check whether to use vertex groups (only possible if target is a Mesh)
 	 * we want either a Mesh with no derived data, or derived data with
 	 * deformverts
@@ -726,62 +739,84 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh 
 		use_vgroups = 0;
 	
 	if(vgroup && vgroup[0] && use_vgroups) {
-		bDeformGroup *curdef;
 		Mesh *me= target->data;
-		int index;
-		
-		/* find the group (weak loop-in-loop) */
-		for(index = 0, curdef = target->defbase.first; curdef;
-			curdef = curdef->next, index++)
-			if (!strcmp(curdef->name, vgroup))
-				break;
+		int index= defgroup_name_index(target, vgroup);
 
-		if(curdef && (me->dvert || dm)) {
+		if(index != -1 && (me->dvert || dm)) {
 			MDeformVert *dvert = me->dvert;
 			float vec[3];
-			int j;
+			float weight;
+	
 
-			INIT_MINMAX(cd.dmin, cd.dmax);
-
-			for(a = 0; a < numVerts; a++, dvert++) {
-				if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
-
-				for(j = 0; j < dvert->totweight; j++) {
-					if(dvert->dw[j].def_nr == index) {
+			if(cu->flag & CU_DEFORM_BOUNDS_OFF) {
+				/* dummy bounds */
+				cd.dmin[0]= cd.dmin[1]= cd.dmin[2]= 0.0f;
+				cd.dmax[0]= cd.dmax[1]= cd.dmax[2]= 1.0f;
+				
+				dvert = me->dvert;
+				for(a = 0; a < numVerts; a++, dvert++) {
+					if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
+					weight= defvert_find_weight(dvert, index);
+	
+					if(weight > 0.0f) {
+						mul_m4_v3(cd.curvespace, vertexCos[a]);
+						copy_v3_v3(vec, vertexCos[a]);
+						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
+						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
+						mul_m4_v3(cd.objectspace, vertexCos[a]);
+					}
+				}
+			}
+			else {
+				/* set mesh min/max bounds */
+				INIT_MINMAX(cd.dmin, cd.dmax);
+	
+				for(a = 0; a < numVerts; a++, dvert++) {
+					if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
+					
+					if(defvert_find_weight(dvert, index) > 0.0f) {
 						mul_m4_v3(cd.curvespace, vertexCos[a]);
 						DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
-						break;
 					}
 				}
-			}
-
-			dvert = me->dvert;
-			for(a = 0; a < numVerts; a++, dvert++) {
-				if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
-
-				for(j = 0; j < dvert->totweight; j++) {
-					if(dvert->dw[j].def_nr == index) {
-						VECCOPY(vec, vertexCos[a]);
+	
+				dvert = me->dvert;
+				for(a = 0; a < numVerts; a++, dvert++) {
+					if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
+					
+					weight= defvert_find_weight(dvert, index);
+	
+					if(weight > 0.0f) {
+						copy_v3_v3(vec, vertexCos[a]);
 						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
-						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec,
-								 dvert->dw[j].weight);
+						interp_v3_v3v3(vertexCos[a], vertexCos[a], vec, weight);
 						mul_m4_v3(cd.objectspace, vertexCos[a]);
-						break;
 					}
 				}
 			}
 		}
-	} else {
-		INIT_MINMAX(cd.dmin, cd.dmax);
-			
-		for(a = 0; a < numVerts; a++) {
-			mul_m4_v3(cd.curvespace, vertexCos[a]);
-			DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
+	}
+	else {
+		if(cu->flag & CU_DEFORM_BOUNDS_OFF) {
+			for(a = 0; a < numVerts; a++) {
+				mul_m4_v3(cd.curvespace, vertexCos[a]);
+				calc_curve_deform(scene, cuOb, vertexCos[a], defaxis, &cd, NULL);
+				mul_m4_v3(cd.objectspace, vertexCos[a]);
+			}
 		}
-
-		for(a = 0; a < numVerts; a++) {
-			calc_curve_deform(scene, cuOb, vertexCos[a], defaxis, &cd, NULL);
-			mul_m4_v3(cd.objectspace, vertexCos[a]);
+		else {
+			/* set mesh min max bounds */
+			INIT_MINMAX(cd.dmin, cd.dmax);
+				
+			for(a = 0; a < numVerts; a++) {
+				mul_m4_v3(cd.curvespace, vertexCos[a]);
+				DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
+			}
+	
+			for(a = 0; a < numVerts; a++) {
+				calc_curve_deform(scene, cuOb, vertexCos[a], defaxis, &cd, NULL);
+				mul_m4_v3(cd.objectspace, vertexCos[a]);
+			}
 		}
 	}
 	cu->flag = flag;
@@ -803,8 +838,8 @@ void curve_deform_vector(Scene *scene, Object *cuOb, Object *target, float *orco
 	init_curve_deform(cuOb, target, &cd, 0);	/* 0 no dloc */
 	cd.no_rot_axis= no_rot_axis;				/* option to only rotate for XY, for example */
 	
-	VECCOPY(cd.dmin, orco);
-	VECCOPY(cd.dmax, orco);
+	copy_v3_v3(cd.dmin, orco);
+	copy_v3_v3(cd.dmax, orco);
 
 	mul_m4_v3(cd.curvespace, vec);
 	
@@ -973,7 +1008,7 @@ float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3]
 	vertexCos = MEM_mallocN(sizeof(*vertexCos)*numVerts,"lt_vcos");
 	
 	for (i=0; i<numVerts; i++) {
-		VECCOPY(vertexCos[i], lt->def[i].vec);
+		copy_v3_v3(vertexCos[i], lt->def[i].vec);
 	}
 
 	return vertexCos;
@@ -985,7 +1020,7 @@ void lattice_applyVertexCos(struct Object *ob, float (*vertexCos)[3])
 	int i, numVerts = lt->pntsu*lt->pntsv*lt->pntsw;
 
 	for (i=0; i<numVerts; i++) {
-		VECCOPY(lt->def[i].vec, vertexCos[i]);
+		copy_v3_v3(lt->def[i].vec, vertexCos[i]);
 	}
 }
 
