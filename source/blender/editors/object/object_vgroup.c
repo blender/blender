@@ -50,13 +50,8 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_displist.h"
 #include "BKE_global.h"
-#include "BKE_lattice.h"
 #include "BKE_mesh.h"
-#include "BKE_paint.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 
 #include "RNA_access.h"

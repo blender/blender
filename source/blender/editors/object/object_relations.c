@@ -69,7 +69,6 @@
 #include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

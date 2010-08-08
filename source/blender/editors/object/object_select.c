@@ -44,7 +44,6 @@
 #include "BLI_string.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_group.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -52,7 +51,6 @@
 #include "BKE_property.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
 #include "BKE_deform.h"
 
 #include "WM_api.h"

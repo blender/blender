@@ -47,18 +47,12 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
-#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_utildefines.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 

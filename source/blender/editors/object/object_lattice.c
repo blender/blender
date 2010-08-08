@@ -45,7 +45,6 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
-#include "BKE_utildefines.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
