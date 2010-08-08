@@ -38,6 +38,7 @@
 
 #include <stdio.h> // for debug [mce]
 
+#define _WIN32_IE 0x501 /* shipped before XP, so doesn't impose additional req'm'ts */
 #include <shlobj.h>
 
 
