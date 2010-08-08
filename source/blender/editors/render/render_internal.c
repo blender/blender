@@ -44,6 +44,7 @@
 #include "BKE_main.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"
+#include "BKE_sequencer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -413,6 +414,12 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
 	BKE_image_backup_render(scene, ima);
 
+	/* cleanup sequencer caches before starting user triggered render.
+	   otherwise, invalidated cache entries can make their way into
+	   the output rendering. We can't put that into RE_BlenderFrame,
+	   since sequence rendering can call that recursively... (peter) */
+	seq_stripelem_cache_cleanup();
+
 	if(RNA_boolean_get(op->ptr, "animation"))
 		RE_BlenderAnim(re, mainp, scene, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
 	else
@@ -632,6 +639,12 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* flush multires changes (for sculpt) */
 	multires_force_render_update(CTX_data_active_object(C));
+
+	/* cleanup sequencer caches before starting user triggered render.
+	   otherwise, invalidated cache entries can make their way into
+	   the output rendering. We can't put that into RE_BlenderFrame,
+	   since sequence rendering can call that recursively... (peter) */
+	seq_stripelem_cache_cleanup();
 
 	/* get editmode results */
 	ED_object_exit_editmode(C, 0);	/* 0 = does not exit editmode */
