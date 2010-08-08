@@ -629,7 +629,7 @@ PyObject *BaseMathObject_getOwner( BaseMathObject * self, void *type )
 	return ret;
 }
 
-char BaseMathObject_Wrapped_doc[] = "True when this object wraps external data (readonly). **type** boolean";
+char BaseMathObject_Wrapped_doc[] = "True when this object wraps external data (readonly).\n\n:type: boolean";
 PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void *type )
 {
 	return PyBool_FromLong((self->wrapped == Py_WRAP) ? 1:0);

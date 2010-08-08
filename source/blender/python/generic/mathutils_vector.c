@@ -1594,12 +1594,12 @@ static int Vector_setSwizzle(VectorObject *self, PyObject * value, void *closure
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Vector_getseters[] = {
-	{"x", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector X axis. **type** float", (void *)0},
-	{"y", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector Y axis. **type** float", (void *)1},
-	{"z", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector Z axis (3D Vectors only). **type** float", (void *)2},
-	{"w", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector W axis (4D Vectors only). **type** float", (void *)3},
-	{"length", (getter)Vector_getLength, (setter)Vector_setLength, "Vector Length. **type** float", NULL},
-	{"magnitude", (getter)Vector_getLength, (setter)Vector_setLength, "Vector Length. **type** float", NULL},
+	{"x", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector X axis.\n\n:type: float", (void *)0},
+	{"y", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector Y axis.\n\n:type: float", (void *)1},
+	{"z", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector Z axis (3D Vectors only).\n\n:type: float", (void *)2},
+	{"w", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector W axis (4D Vectors only).\n\n:type: float", (void *)3},
+	{"length", (getter)Vector_getLength, (setter)Vector_setLength, "Vector Length.\n\n:type: float", NULL},
+	{"magnitude", (getter)Vector_getLength, (setter)Vector_setLength, "Vector Length.\n\n:type: float", NULL},
 	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
 	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	
