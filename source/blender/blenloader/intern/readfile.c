@@ -47,26 +47,19 @@
 #endif
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_ID.h"
 #include "DNA_actuator_types.h"
-#include "DNA_boid_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
-#include "DNA_color_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_customdata_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_fileglobal_types.h"
 #include "DNA_genfile.h"
 #include "DNA_group_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_ipo_types.h"
-#include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_lamp_types.h"
@@ -74,16 +67,10 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h" // NT
-#include "DNA_outliner_types.h"
-#include "DNA_object_force.h"
 #include "DNA_packedFile_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
@@ -95,11 +82,8 @@
 #include "DNA_smoke_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
@@ -138,7 +122,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
-#include "BKE_ipo.h"
 #include "BKE_sound.h"
 
 //XXX #include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
