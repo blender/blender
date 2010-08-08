@@ -61,8 +61,6 @@
 //#include "BIF_drawimage.h"
 //#include "BIF_editmesh.h"
 
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_anim.h" /* for duplis */

@@ -51,15 +51,11 @@
 #include "RNA_access.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_lattice.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_utildefines.h"
 
 #include "BLI_math.h"
 #include "BLI_editVert.h"

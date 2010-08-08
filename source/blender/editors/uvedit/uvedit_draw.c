@@ -35,10 +35,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_math.h"
