@@ -983,8 +983,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			else {
 				if((seq->strip) && (seq->strip->stripdata))
 					te->name= seq->strip->stripdata->name;
-				else if((seq->strip) && (seq->strip->tstripdata) && (seq->strip->tstripdata->ibuf))
-					te->name= seq->strip->tstripdata->ibuf->name;
 				else
 					te->name= "SQ None";
 			}
