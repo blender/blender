@@ -55,7 +55,6 @@
 #define ID ID_
 #include <CoreServices/CoreServices.h>
 
-#include "BKE_utildefines.h"
 #endif
 
 #ifdef __linux__

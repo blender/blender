@@ -52,25 +52,13 @@
 #endif
 
 #include "BKE_context.h"
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BLO_readfile.h"
 
 #include "DNA_space_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_ID.h"
-#include "DNA_object_types.h"
-#include "DNA_listBase.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_world_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 
 #include "ED_datafiles.h"
 

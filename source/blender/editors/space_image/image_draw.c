@@ -45,11 +45,9 @@
 #include "IMB_imbuf_types.h"
 
 #include "BKE_context.h"
-#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_paint.h"
-#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

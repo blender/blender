@@ -34,7 +34,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_constraint_types.h"
 #include "DNA_text_types.h"
 #include "DNA_userdef_types.h"
 
@@ -42,12 +41,10 @@
 #include "PIL_time.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
-#include "BKE_suggestions.h"
 #include "BKE_text.h"
 
 #include "WM_api.h"

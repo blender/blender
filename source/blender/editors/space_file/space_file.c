@@ -43,7 +43,6 @@
 #include "BLI_rand.h"
 #include "BLI_storage_types.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 

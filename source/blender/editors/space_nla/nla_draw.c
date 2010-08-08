@@ -44,12 +44,10 @@
 #include "BLI_rand.h"
 #include "BLI_dlrbTree.h"
 
-#include "BKE_animsys.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_draw.h"

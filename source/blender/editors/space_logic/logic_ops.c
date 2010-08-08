@@ -28,7 +28,6 @@
 #include <stddef.h>
 
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_sensor_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_actuator_types.h"

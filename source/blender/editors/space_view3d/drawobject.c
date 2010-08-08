@@ -49,12 +49,10 @@
 #include "BLI_rand.h"
 
 #include "BKE_anim.h"			//for the where_on_path function
-#include "BKE_curve.h"
 #include "BKE_constraint.h" // for the get_constraint_target function
 #include "BKE_DerivedMesh.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
-#include "BKE_effect.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -68,9 +66,6 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_property.h"
-#include "BKE_softbody.h"
-#include "BKE_smoke.h"
 #include "BKE_unit.h"
 #include "BKE_utildefines.h"
 #include "smoke_API.h"

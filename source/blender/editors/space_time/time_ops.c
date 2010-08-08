@@ -36,7 +36,6 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
-#include "BKE_utildefines.h"
 
 
 #include "ED_screen.h"

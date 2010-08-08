@@ -65,7 +65,6 @@
 #include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_smoke.h"
-#include "BKE_unit.h"
 #include "BKE_utildefines.h"
 #include "smoke_API.h"
 

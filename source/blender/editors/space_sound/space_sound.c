@@ -29,7 +29,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_sound_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -38,7 +37,6 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 

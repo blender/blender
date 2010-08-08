@@ -50,14 +50,11 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_image.h"
-#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_utildefines.h"
 #include "BKE_unit.h"
 
 #include "RE_pipeline.h"	// make_stars

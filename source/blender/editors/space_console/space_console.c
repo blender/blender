@@ -40,7 +40,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 

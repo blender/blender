@@ -62,7 +62,6 @@
 #include "IMB_imbuf_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
@@ -71,14 +70,10 @@
 #include "BKE_group.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_material.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"

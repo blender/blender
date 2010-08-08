@@ -41,16 +41,11 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-#include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_object.h"
-#include "BKE_global.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 
 #include "BIF_gl.h"

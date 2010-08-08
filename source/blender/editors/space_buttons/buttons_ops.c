@@ -35,7 +35,6 @@
 #include "BLI_fileops.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h" /* G.sce only */
 
 #include "WM_api.h"
 #include "WM_types.h"
