@@ -41,11 +41,7 @@
 #include "BLI_dynstr.h"
 
 #include "BKE_context.h"
-#include "BKE_idprop.h"
 #include "BKE_library.h"
-#include "BKE_screen.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
 #include "BKE_unit.h"
 
 #include "BIF_gl.h"

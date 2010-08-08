@@ -38,9 +38,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_library.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 

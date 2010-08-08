@@ -38,17 +38,12 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_blender.h"
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"
-#include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

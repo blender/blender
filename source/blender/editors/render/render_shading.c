@@ -52,7 +52,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
 #include "BKE_world.h"
 
 #include "IMB_imbuf.h"

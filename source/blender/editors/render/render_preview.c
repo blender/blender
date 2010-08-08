@@ -64,13 +64,8 @@
 #include "BKE_icons.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_texture.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
-#include "BKE_world.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
-#include "BKE_brush.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

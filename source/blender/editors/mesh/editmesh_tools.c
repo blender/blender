@@ -59,14 +59,10 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BLI_heap.h"
 
 #include "BKE_context.h"
-#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
-#include "BKE_library.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
-#include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
 #include "BKE_report.h"
 

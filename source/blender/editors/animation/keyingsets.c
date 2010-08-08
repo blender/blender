@@ -40,22 +40,14 @@
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_main.h"
 #include "BKE_animsys.h"
-#include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
-#include "BKE_fcurve.h"
-#include "BKE_utildefines.h"
-#include "BKE_context.h"
 #include "BKE_report.h"
-#include "BKE_key.h"
-#include "BKE_material.h"
 
 #include "ED_keyframing.h"
 #include "ED_screen.h"

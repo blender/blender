@@ -42,7 +42,6 @@
 #include "BKE_node.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
