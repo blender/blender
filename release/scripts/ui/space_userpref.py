@@ -841,109 +841,85 @@ class USERPREF_PT_addons(bpy.types.Panel):
         if bpy.app.debug:
             t_main = time.time()
 
-        if 1:
-            # fake module importing
-            def fake_module(mod_name, mod_path, speedy=True):
-                if bpy.app.debug:
-                    print("fake_module", mod_name, mod_path)
-                import ast
-                ModuleType = type(ast)
-                if speedy:
-                    lines = []
-                    line_iter = iter(open(mod_path, "r"))
-                    l = ""
-                    while not l.startswith("bl_addon_info"):
-                        l = line_iter.readline()
-                        if len(l) == 0:
-                            break
-                    while l.rstrip():
-                        lines.append(l)
-                        l = line_iter.readline()
-                    del line_iter
-                    data = "".join(lines)
-
-                else:
-                    data = open(mod_path, "r").read()
-
-                ast_data = ast.parse(data, filename=mod_path)
-                body_info = None
-                for body in ast_data.body:
-                    if body.__class__ == ast.Assign:
-                        if len(body.targets) == 1:
-                            if getattr(body.targets[0], "id", "") == "bl_addon_info":
-                                body_info = body
-                                break
-
-                if body_info:
-                    mod = ModuleType(mod_name)
-                    mod.bl_addon_info = ast.literal_eval(body.value)
-                    mod.__file__ = mod_path
-                    mod.__time__ = os.path.getmtime(mod_path)
-                    return mod
-                else:
-                    return None
-
-
-            modules_stale = set(USERPREF_PT_addons._addons_fake_modules.keys())
-
-            for path in paths:
-                for f in sorted(os.listdir(path)):
-                    if f.endswith(".py"):
-                        mod_name = f[0:-3]
-                        mod_path = os.path.join(path, f)
-                    elif ("." not in f) and (os.path.isfile(os.path.join(path, f, "__init__.py"))):
-                        mod_name = f
-                        mod_path = os.path.join(path, f, "__init__.py")
-                    else:
-                        mod_name = ""
-                        mod_path = ""
-
-                    if mod_name:
-                        if mod_name in modules_stale:
-                            modules_stale.remove(mod_name)
-                        mod = USERPREF_PT_addons._addons_fake_modules.get(mod_name)
-                        if mod:
-                            if mod.__time__ != os.path.getmtime(mod_path):
-                                print("Reloading", mod_name)
-                                del USERPREF_PT_addons._addons_fake_modules[mod_name]
-                                mod = None
-
-                        if mod is None:
-                            mod = fake_module(mod_name, mod_path)
-                            if mod:
-                                USERPREF_PT_addons._addons_fake_modules[mod_name] = mod
-                        
-            
-            # just incase we get stale modules, not likely
-            for mod_stale in modules_stale:
-                del USERPREF_PT_addons._addons_fake_modules[mod_stale]
-            del modules_stale
-            
-            return list(USERPREF_PT_addons._addons_fake_modules.values())
-        
-        else:
-            # never run this!, before it used 'ast' module
-            pass
-            '''
-            # note, this still gets added to _bpy_types.TypeMap
-            import bpy_types as _bpy_types
-
-            # sys.path.insert(0, None)
-            for path in paths:
-                # sys.path[0] = path
-                modules.extend(bpy.utils.modules_from_path(path, loaded_modules))
-
+        # fake module importing
+        def fake_module(mod_name, mod_path, speedy=True):
             if bpy.app.debug:
-                print("Addon Script Load Time %.4f" % (time.time() - t_main))
+                print("fake_module", mod_name, mod_path)
+            import ast
+            ModuleType = type(ast)
+            if speedy:
+                lines = []
+                line_iter = iter(open(mod_path, "r"))
+                l = ""
+                while not l.startswith("bl_addon_info"):
+                    l = line_iter.readline()
+                    if len(l) == 0:
+                        break
+                while l.rstrip():
+                    lines.append(l)
+                    l = line_iter.readline()
+                del line_iter
+                data = "".join(lines)
 
-            # del sys.path[0]
-            return modules
-            '''
+            else:
+                data = open(mod_path, "r").read()
+
+            ast_data = ast.parse(data, filename=mod_path)
+            body_info = None
+            for body in ast_data.body:
+                if body.__class__ == ast.Assign:
+                    if len(body.targets) == 1:
+                        if getattr(body.targets[0], "id", "") == "bl_addon_info":
+                            body_info = body
+                            break
+
+            if body_info:
+                mod = ModuleType(mod_name)
+                mod.bl_addon_info = ast.literal_eval(body.value)
+                mod.__file__ = mod_path
+                mod.__time__ = os.path.getmtime(mod_path)
+                return mod
+            else:
+                return None
+
+        modules_stale = set(USERPREF_PT_addons._addons_fake_modules.keys())
+
+        for path in paths:
+            for f in sorted(os.listdir(path)):
+                if f.endswith(".py"):
+                    mod_name = f[0:-3]
+                    mod_path = os.path.join(path, f)
+                elif ("." not in f) and (os.path.isfile(os.path.join(path, f, "__init__.py"))):
+                    mod_name = f
+                    mod_path = os.path.join(path, f, "__init__.py")
+                else:
+                    mod_name = ""
+                    mod_path = ""
+
+                if mod_name:
+                    if mod_name in modules_stale:
+                        modules_stale.remove(mod_name)
+                    mod = USERPREF_PT_addons._addons_fake_modules.get(mod_name)
+                    if mod:
+                        if mod.__time__ != os.path.getmtime(mod_path):
+                            print("Reloading", mod_name)
+                            del USERPREF_PT_addons._addons_fake_modules[mod_name]
+                            mod = None
+
+                    if mod is None:
+                        mod = fake_module(mod_name, mod_path)
+                        if mod:
+                            USERPREF_PT_addons._addons_fake_modules[mod_name] = mod
+                    
         
-        
-        
-        
-        
+        # just incase we get stale modules, not likely
+        for mod_stale in modules_stale:
+            del USERPREF_PT_addons._addons_fake_modules[mod_stale]
+        del modules_stale
+
+        mod_list = list(USERPREF_PT_addons._addons_fake_modules.values())
+        mod_list.sort(key=lambda mod: (mod.bl_addon_info['category'], mod.bl_addon_info['name']))
+        return mod_list
 
     def draw(self, context):
         layout = self.layout
