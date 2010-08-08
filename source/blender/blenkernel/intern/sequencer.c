@@ -1460,8 +1460,7 @@ int input_have_to_preprocess(
 
 	mul = seq->mul;
 
-	if(seq->blend_mode == SEQ_BLEND_REPLACE &&
-	   !(seq->type & SEQ_EFFECT)) {
+	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
 		mul *= seq->blend_opacity / 100.0;
 	}
 
