@@ -357,7 +357,7 @@ bool buildNavMeshData(const int nverts, const float* verts,
 
 
 	//build adjacency info for detailed mesh triangles
-	buildMeshAdjacency(dtris, ntris, nverts, 3);
+	buildMeshAdjacency(dtris, ndtris, nverts, 3);
 
 	//create detailed mesh description for each navigation polygon
 	npolys = dtrisToPolysMap[ndtris-1];

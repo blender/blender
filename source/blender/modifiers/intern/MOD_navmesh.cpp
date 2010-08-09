@@ -129,10 +129,13 @@ static DerivedMesh *createNavMeshForVisualization(NavMeshModifierData *mmd,Deriv
 	int maxFaces = dm->getNumFaces(dm);
 
 	result = CDDM_copy(dm);
-	int *recastData = (int*)CustomData_get_layer(&dm->faceData, CD_RECAST);
-	CustomData_add_layer_named(&result->faceData, CD_RECAST, CD_DUPLICATE, 
-			recastData, maxFaces, "recastData");
-	recastData = (int*)CustomData_get_layer(&result->faceData, CD_RECAST);
+	if (!CustomData_has_layer(&result->faceData, CD_RECAST)) 
+	{
+		int *sourceRecastData = (int*)CustomData_get_layer(&dm->faceData, CD_RECAST);
+		CustomData_add_layer_named(&result->faceData, CD_RECAST, CD_DUPLICATE, 
+			sourceRecastData, maxFaces, "recastData");
+	}
+	int *recastData = (int*)CustomData_get_layer(&result->faceData, CD_RECAST);
 	result->drawFacesTex =  navDM_drawFacesTex;
 	result->drawFacesSolid = navDM_drawFacesSolid;
 	
@@ -162,8 +165,8 @@ static DerivedMesh *createNavMeshForVisualization(NavMeshModifierData *mmd,Deriv
 				{
 					unsigned short triidx = dtrisToTrisMap[tbase+ti];
 					unsigned short faceidx = trisToFacesMap[triidx];
-					if (recastData[triidx]>0)
-						recastData[triidx] = -recastData[triidx];
+					if (recastData[faceidx]>0)
+						recastData[faceidx] = -recastData[faceidx];
 				}				
 			}
 		}
@@ -218,23 +221,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		//2)add and init recast data layer
 		if (!hasRecastData)
 		{
-			int numFaces = derivedData->getNumFaces(derivedData);
-			CustomData_add_layer_named(&derivedData->faceData, CD_RECAST, CD_CALLOC, NULL, numFaces, "recastData");
-			int* recastData = (int*)CustomData_get_layer(&derivedData->faceData, CD_RECAST);
-			for (int i=0; i<numFaces; i++)
-			{
-				recastData[i] = i+1;
-			}
-
 			Mesh* obmesh = (Mesh *)ob->data;
 			if (obmesh)
 			{
+				int numFaces = obmesh->totface;
 				CustomData_add_layer_named(&obmesh->fdata, CD_RECAST, CD_CALLOC, NULL, numFaces, "recastData");
 				int* recastData = (int*)CustomData_get_layer(&obmesh->fdata, CD_RECAST);
 				for (int i=0; i<numFaces; i++)
 				{
 					recastData[i] = i+1;
 				}
+				CustomData_add_layer_named(&derivedData->faceData, CD_RECAST, CD_REFERENCE, recastData, numFaces, "recastData");
 			}
 		}
 	}
