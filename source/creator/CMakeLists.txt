@@ -53,13 +53,25 @@ IF(WITH_QUICKTIME)
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
-IF(WITH_OPENEXR)
+IF(WITH_IMAGE_OPENEXR)
 	ADD_DEFINITIONS(-DWITH_OPENEXR)
-ENDIF(WITH_OPENEXR)
+ENDIF(WITH_IMAGE_OPENEXR)
 
-IF(WITH_TIFF)
+IF(WITH_IMAGE_TIFF)
 	ADD_DEFINITIONS(-DWITH_TIFF)
-ENDIF(WITH_TIFF)
+ENDIF(WITH_IMAGE_TIFF)
+
+IF(WITH_IMAGE_DDS)
+	ADD_DEFINITIONS(-DWITH_DDS)
+ENDIF(WITH_IMAGE_DDS)
+
+IF(WITH_IMAGE_CINEON)
+	ADD_DEFINITIONS(-DWITH_CINEON)
+ENDIF(WITH_IMAGE_CINEON)
+
+IF(WITH_IMAGE_HDR)
+	ADD_DEFINITIONS(-DWITH_HDR)
+ENDIF(WITH_IMAGE_HDR)
 
 IF(WITH_PYTHON)
 	INCLUDE_DIRECTORIES(../blender/python)
@@ -124,16 +136,16 @@ IF(WITH_INSTALL)
 		
 		ADD_CUSTOM_COMMAND(
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-			COMMAND rm -Rf ${TARGETDIR}/.blender
-			COMMAND mkdir ${TARGETDIR}/.blender/
-			COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf ${TARGETDIR}/.blender/
+			COMMAND rm -Rf ${TARGETDIR}/${BLENDER_VERSION}
+			COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/
+			COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf ${TARGETDIR}/${BLENDER_VERSION}/
 		)
     
 		IF(WITH_INTERNATIONAL)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages ${TARGETDIR}/.blender/
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale ${TARGETDIR}/.blender/
+				COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages ${TARGETDIR}/${BLENDER_VERSION}/
+				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale ${TARGETDIR}/${BLENDER_VERSION}/
 			)
 		ENDIF(WITH_INTERNATIONAL)
     
@@ -141,7 +153,7 @@ IF(WITH_INSTALL)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 				COMMENT "copying blender scripts..."
-				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/.blender/
+				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/${BLENDER_VERSION}/
 				COMMAND find ${TARGETDIR} -name "*.py?" -prune -exec rm -rf {} "\;"
 			)
 			IF(WITH_PYTHON_INSTALL)
@@ -151,23 +163,23 @@ IF(WITH_INSTALL)
 					TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 					COMMENT "copying a subset of the systems python..."
 
-					COMMAND mkdir ${TARGETDIR}/.blender/python # PYTHONPATH and PYTHONHOME is set here
-					COMMAND mkdir ${TARGETDIR}/.blender/python/lib/
-					COMMAND cp -R ${PYTHON_LIBPATH}/python${PYTHON_VERSION} ${TARGETDIR}/.blender/python/lib/
+					COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/python # PYTHONPATH and PYTHONHOME is set here
+					COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/python/lib/
+					COMMAND cp -R ${PYTHON_LIBPATH}/python${PYTHON_VERSION} ${TARGETDIR}/${BLENDER_VERSION}/python/lib/
 
-					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/distutils
-					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib2to3
-					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/idlelib
-					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/tkinter
-					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/config
+					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/distutils
+					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/lib2to3
+					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/idlelib
+					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/tkinter
+					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/config
 
-					COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages
-					COMMAND mkdir ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages    # python needs it.
+					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/site-packages
+					COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/site-packages    # python needs it.
 
-					COMMAND rm -f ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib-dynload/_tkinter.so
-					COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "test" -prune -exec rm -rf {} "\;"
-					COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.py?" -exec rm -rf {} "\;"
-					COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.so"-exec strip -s {} "\;"
+					COMMAND rm -f ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/lib-dynload/_tkinter.so
+					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name "test" -prune -exec rm -rf {} "\;"
+					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name "*.py?" -exec rm -rf {} "\;"
+					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name "*.so"-exec strip -s {} "\;"
 				)
 			ENDIF(WITH_PYTHON_INSTALL)
 		ENDIF(WITH_PYTHON)
@@ -261,14 +273,10 @@ IF(WITH_INSTALL)
 		ENDIF(WITH_INTERNATIONAL)
       
 		IF(WITH_PYTHON)
-			IF(WITH_LIBS10.5)
-				SET(PYTHON_ZIP "python_${CMAKE_OSX_ARCHITECTURES}.zip")
-			ELSE(WITH_LIBS10.5)
-				SET(PYTHON_ZIP "python.zip")
-			ENDIF(WITH_LIBS10.5)
+			SET(PYTHON_ZIP "python_${CMAKE_OSX_ARCHITECTURES}.zip")
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/scripts/
+				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/
 				COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/python/
 				COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/python/
 				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${TARGETDIR}/blender.app/Contents/MacOS/python/
@@ -378,9 +386,9 @@ FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
 SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager blender_render)
 
-IF(WITH_ELBEEM)
+IF(WITH_FLUID)
 	SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} bf_elbeem)
-ENDIF(WITH_ELBEEM)
+ENDIF(WITH_FLUID)
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} extern_binreloc)

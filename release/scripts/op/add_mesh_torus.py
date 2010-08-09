@@ -137,12 +137,10 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(AddTorus)
     bpy.types.INFO_MT_mesh_add.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(AddTorus)
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
 
 if __name__ == "__main__":

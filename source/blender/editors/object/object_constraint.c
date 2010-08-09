@@ -40,6 +40,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_text_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -50,7 +51,6 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 #include "BIK_api.h"
 
 #ifndef DISABLE_PYTHON

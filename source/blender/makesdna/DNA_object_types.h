@@ -35,7 +35,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
-#include "DNA_action_types.h"
+#include "DNA_action_types.h" /* bAnimVizSettings */
 
 #ifdef __cplusplus
 extern "C" {
@@ -555,6 +555,8 @@ typedef enum ObjectMode {
 	OB_MODE_PARTICLE_EDIT = 32,
 	OB_MODE_POSE = 64
 } ObjectMode;
+
+#define MAX_DUPLI_RECUR 8
 
 #ifdef __cplusplus
 }

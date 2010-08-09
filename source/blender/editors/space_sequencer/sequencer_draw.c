@@ -39,12 +39,11 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_sound_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_plugin_types.h"
 #include "BKE_sequencer.h"
-#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 #include "BKE_sound.h"
 

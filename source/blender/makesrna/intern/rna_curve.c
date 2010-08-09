@@ -285,6 +285,20 @@ static void rna_Curve_bevelObject_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
+static int rna_Curve_otherObject_poll(PointerRNA *ptr, PointerRNA value)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	Object *ob= (Object*)value.data;
+
+	if (ob) {
+		if (ob->type == OB_CURVE && ob->data != cu) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 static PointerRNA rna_Curve_taperObject_get(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->id.data;
@@ -685,7 +699,12 @@ static void rna_def_path(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_STRETCH);
 	RNA_def_property_ui_text(prop, "Stretch", "Option for curve-deform: makes deformed child to stretch along entire path");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-	
+
+	prop= RNA_def_property(srna, "use_deform_bounds", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CU_DEFORM_BOUNDS_OFF);
+	RNA_def_property_ui_text(prop, "Bounds Clamp", "Use the mesh bounds to clamp the deformation");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");	
+
 	prop= RNA_def_property(srna, "use_time_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_OFFS_PATHDIST);
 	RNA_def_property_ui_text(prop, "Offset Path Distance", "Children will use TimeOffs value as path distance offset");
@@ -819,6 +838,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	/* pointers */
 	prop= RNA_def_property(srna, "text_on_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "textoncurve");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Curve_otherObject_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Text on Curve", "Curve deforming text object");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_deps");
@@ -1024,7 +1044,7 @@ static void rna_def_curve_splines(BlenderRNA *brna, PropertyRNA *cprop)
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_pointer_funcs(prop, "rna_Curve_active_spline_get", "rna_Curve_active_spline_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Curve_active_spline_get", "rna_Curve_active_spline_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Spline", "Active curve spline");
 	/* Could call: ED_base_object_activate(C, scene->basact);
@@ -1144,7 +1164,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bevel Object", "Curve object name that defines the bevel shape");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_deps");
-	RNA_def_property_pointer_funcs(prop, "rna_Curve_bevelObject_get", "rna_Curve_bevelObject_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Curve_bevelObject_get", "rna_Curve_bevelObject_set", NULL, "rna_Curve_otherObject_poll");
 
 	prop= RNA_def_property(srna, "taper_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
@@ -1152,7 +1172,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Taper Object", "Curve object name that defines the taper (width)");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_deps");
-	RNA_def_property_pointer_funcs(prop, "rna_Curve_taperObject_get", "rna_Curve_taperObject_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Curve_taperObject_get", "rna_Curve_taperObject_set", NULL, "rna_Curve_otherObject_poll");
 
 	/* Flags */
 

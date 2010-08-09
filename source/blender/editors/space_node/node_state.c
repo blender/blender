@@ -33,7 +33,6 @@
 
 #include "BKE_context.h"
 #include "BKE_node.h"
-#include "BKE_global.h"
 
 #include "BLI_rect.h"
 

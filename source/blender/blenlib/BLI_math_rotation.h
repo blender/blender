@@ -44,9 +44,9 @@ void copy_qt_qt(float q[4], const float a[4]);
 
 /* arithmetic */
 void mul_qt_qtqt(float q[4], const float a[4], const float b[4]);
-void mul_qt_v3(float q[4], float r[3]);
-void mul_qt_fl(float q[4], float f);
-void mul_fac_qt_fl(float q[4], float f);
+void mul_qt_v3(const float q[4], float r[3]);
+void mul_qt_fl(float q[4], const float f);
+void mul_fac_qt_fl(float q[4], const float f);
 
 void sub_qt_qtqt(float q[4], float a[4], float b[4]);
 

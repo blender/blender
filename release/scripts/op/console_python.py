@@ -44,16 +44,17 @@ def get_console(console_id):
     from code import InteractiveConsole
 
     consoles = getattr(get_console, "consoles", None)
+    hash_next = hash(bpy.context.manager)
 
     if consoles is None:
         consoles = get_console.consoles = {}
+        get_console.consoles_namespace_hash = hash_next
     else:
         # check if clearning the namespace is needed to avoid a memory leak.
         # the window manager is normally loaded with new blend files
         # so this is a reasonable way to deal with namespace clearing.
         # bpy.data hashing is reset by undo so cant be used.
         hash_prev = getattr(get_console, "consoles_namespace_hash", 0)
-        hash_next = hash(bpy.context.manager)
 
         if hash_prev != hash_next:
             get_console.consoles_namespace_hash = hash_next
@@ -205,6 +206,10 @@ def autocomplete(context):
     scrollback = ""
     scrollback_error = ""
 
+    if _BPY_MAIN_OWN:
+        main_mod_back = sys.modules["__main__"]
+        sys.modules["__main__"] = console._bpy_main_mod
+
     try:
         current_line = sc.history[-1]
         line = current_line.line
@@ -222,6 +227,9 @@ def autocomplete(context):
         # or if the api attribute access its self causes an error.
         import traceback
         scrollback_error = traceback.format_exc()
+
+    if _BPY_MAIN_OWN:
+        sys.modules["__main__"] = main_mod_back
 
     # Separate automplete output by command prompts
     if scrollback != '':

@@ -18,5 +18,3 @@ class OBJECT_PT_hello(bpy.types.Panel):
         row.label(text="Active object is: " + obj.name)
         row = layout.row()
         row.prop(obj, "name")
-
-bpy.types.register(OBJECT_PT_hello)

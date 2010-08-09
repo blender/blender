@@ -19,8 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class RENDER_MT_presets(bpy.types.Menu):
     bl_label = "Render Presets"
@@ -36,18 +34,19 @@ class RENDER_MT_ffmpeg_presets(bpy.types.Menu):
     draw = bpy.types.Menu.draw_preset
 
 
-class RenderButtonsPanel(bpy.types.Panel):
+class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         rd = context.scene.render
-        return (context.scene and rd.use_game_engine is False) and (rd.engine in self.COMPAT_ENGINES)
+        return (context.scene and rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
 
-class RENDER_PT_render(RenderButtonsPanel):
+class RENDER_PT_render(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Render"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -55,21 +54,19 @@ class RENDER_PT_render(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
         col = split.column()
         col.operator("render.render", text="Image", icon='RENDER_STILL')
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
 
         layout.prop(rd, "display_mode", text="Display")
 
 
-class RENDER_PT_layers(RenderButtonsPanel):
+class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Layers"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -79,7 +76,6 @@ class RENDER_PT_layers(RenderButtonsPanel):
 
         scene = context.scene
         rd = scene.render
-        wide_ui = context.region.width > narrowui
 
         row = layout.row()
         row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
@@ -100,8 +96,8 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.label(text="")
         col.prop(rl, "light_override", text="Light")
         col.prop(rl, "material_override", text="Material")
-        if wide_ui:
-            col = split.column()
+
+        col = split.column()
         col.prop(rl, "visible_layers", text="Layer")
         col.label(text="Mask Layers:")
         col.prop(rl, "zmask_layers", text="")
@@ -145,8 +141,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.prop(rl, "pass_object_index")
         col.prop(rl, "pass_color")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label()
         col.prop(rl, "pass_diffuse")
         row = col.row()
@@ -175,11 +170,12 @@ class RENDER_PT_layers(RenderButtonsPanel):
         row.prop(rl, "pass_refraction_exclude", text="")
 
 
-class RENDER_PT_freestyle(RenderButtonsPanel):
+class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Freestyle"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         rd = context.scene.render
         rl = rd.layers[rd.active_layer_index]
         return rl and rl.freestyle
@@ -279,11 +275,12 @@ class RENDER_PT_freestyle(RenderButtonsPanel):
                     row.operator("scene.freestyle_module_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
 
-class RENDER_PT_freestyle_linestyle(RenderButtonsPanel):
+class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Freestyle: Line Style"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         rd = context.scene.render
         rl = rd.layers[rd.active_layer_index]
         if rl and rl.freestyle:
@@ -421,7 +418,7 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel):
             pass
 
 
-class RENDER_PT_shading(RenderButtonsPanel):
+class RENDER_PT_shading(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Shading"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -429,7 +426,6 @@ class RENDER_PT_shading(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -439,14 +435,13 @@ class RENDER_PT_shading(RenderButtonsPanel):
         col.prop(rd, "use_sss", text="Subsurface Scattering")
         col.prop(rd, "use_envmaps", text="Environment Map")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(rd, "use_raytracing", text="Ray Tracing")
         col.prop(rd, "color_management")
         col.prop(rd, "alpha_mode", text="Alpha")
 
 
-class RENDER_PT_performance(RenderButtonsPanel):
+class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Performance"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -455,7 +450,6 @@ class RENDER_PT_performance(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -470,8 +464,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
         sub.prop(rd, "parts_x", text="X")
         sub.prop(rd, "parts_y", text="Y")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Memory:")
         sub = col.column()
         sub.enabled = not (rd.use_border or rd.full_sample)
@@ -490,7 +483,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
         sub.prop(rd, "use_local_coords", text="Local Coordinates")
 
 
-class RENDER_PT_post_processing(RenderButtonsPanel):
+class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Post Processing"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -499,7 +492,6 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -507,8 +499,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
         col.prop(rd, "use_compositing")
         col.prop(rd, "use_sequencer")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(rd, "dither_intensity", text="Dither", slider=True)
 
         layout.separator()
@@ -523,10 +514,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
         sub.prop(rd, "fields_still", text="Still")
 
 
-        if wide_ui:
-            col = split.column()
-        else:
-            col.separator()
+        col = split.column()
         col.prop(rd, "edge")
         sub = col.column()
         sub.active = rd.edge
@@ -540,7 +528,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
         col.prop(rd, "freestyle", text="Freestyle")
 
 
-class RENDER_PT_output(RenderButtonsPanel):
+class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Output"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -549,7 +537,6 @@ class RENDER_PT_output(RenderButtonsPanel):
 
         rd = context.scene.render
         file_format = rd.file_format
-        wide_ui = context.region.width > narrowui
 
         layout.prop(rd, "output_path", text="")
 
@@ -558,8 +545,7 @@ class RENDER_PT_output(RenderButtonsPanel):
         col.prop(rd, "file_format", text="")
         col.row().prop(rd, "color_mode", text="Color", expand=True)
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(rd, "use_file_extension")
         col.prop(rd, "use_overwrite")
         col.prop(rd, "use_placeholder")
@@ -578,8 +564,7 @@ class RENDER_PT_output(RenderButtonsPanel):
             col = split.column()
             col.label(text="Codec:")
             col.prop(rd, "exr_codec", text="")
-            if wide_ui:
-                col = split.column()
+            col = split.column()
 
         elif file_format == 'OPEN_EXR':
             split = layout.split()
@@ -588,14 +573,12 @@ class RENDER_PT_output(RenderButtonsPanel):
             col.label(text="Codec:")
             col.prop(rd, "exr_codec", text="")
 
-            if wide_ui:
-                subsplit = split.split()
-                col = subsplit.column()
+            subsplit = split.split()
+            col = subsplit.column()
             col.prop(rd, "exr_half")
             col.prop(rd, "exr_zbuf")
 
-            if wide_ui:
-                col = subsplit.column()
+            col = subsplit.column()
             col.prop(rd, "exr_preview")
 
         elif file_format == 'JPEG2000':
@@ -604,8 +587,7 @@ class RENDER_PT_output(RenderButtonsPanel):
             col.label(text="Depth:")
             col.row().prop(rd, "jpeg2k_depth", expand=True)
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.prop(rd, "jpeg2k_preset", text="")
             col.prop(rd, "jpeg2k_ycc")
 
@@ -614,8 +596,7 @@ class RENDER_PT_output(RenderButtonsPanel):
             col = split.column()
             col.prop(rd, "cineon_log", text="Convert to Log")
 
-            if wide_ui:
-                col = split.column(align=True)
+            col = split.column(align=True)
             col.active = rd.cineon_log
             col.prop(rd, "cineon_black", text="Black")
             col.prop(rd, "cineon_white", text="White")
@@ -642,30 +623,32 @@ class RENDER_PT_output(RenderButtonsPanel):
                 col = split.column()
                 if rd.quicktime_audiocodec_type == 'LPCM':
                     col.prop(rd, "quicktime_audio_bitdepth", text="")
-                if wide_ui:
-                    col = split.column()
+
+                col = split.column()
                 col.prop(rd, "quicktime_audio_samplerate", text="")
 
                 split = layout.split()
                 col = split.column()
                 if rd.quicktime_audiocodec_type == 'AAC':
                     col.prop(rd, "quicktime_audio_bitrate")
-                if wide_ui:
-                    subsplit = split.split()
-                    col = subsplit.column()
+
+                subsplit = split.split()
+                col = subsplit.column()
+
                 if rd.quicktime_audiocodec_type == 'AAC':
                     col.prop(rd, "quicktime_audio_codec_isvbr")
-                if wide_ui:
-                    col = subsplit.column()
+                    
+                col = subsplit.column()
                 col.prop(rd, "quicktime_audio_resampling_hq")
 
 
-class RENDER_PT_encoding(RenderButtonsPanel):
+class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Encoding"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         rd = context.scene.render
         return rd.file_format in ('FFMPEG', 'XVID', 'H264', 'THEORA')
 
@@ -673,7 +656,6 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render
-        wide_ui = context.region.width > narrowui
 
         layout.menu("RENDER_MT_ffmpeg_presets", text="Presets")
 
@@ -682,19 +664,17 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         col = split.column()
         col.prop(rd, "ffmpeg_format")
         if rd.ffmpeg_format in ('AVI', 'QUICKTIME', 'MKV', 'OGG'):
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.prop(rd, "ffmpeg_codec")
         else:
-            if wide_ui:
-                split.label()
+            split.label()
 
         split = layout.split()
 
         col = split.column()
         col.prop(rd, "ffmpeg_video_bitrate")
-        if wide_ui:
-            col = split.column()
+
+        col = split.column()
         col.prop(rd, "ffmpeg_gopsize")
 
         split = layout.split()
@@ -705,8 +685,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         col.prop(rd, "ffmpeg_maxrate", text="Maximum")
         col.prop(rd, "ffmpeg_buffersize", text="Buffer")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
 
         col.prop(rd, "ffmpeg_autosplit")
         col.label(text="Mux:")
@@ -727,12 +706,11 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         col.prop(rd, "ffmpeg_audio_bitrate")
         col.prop(rd, "ffmpeg_audio_mixrate")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(rd, "ffmpeg_audio_volume", slider=True)
 
 
-class RENDER_PT_antialiasing(RenderButtonsPanel):
+class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Anti-Aliasing"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -745,7 +723,6 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render
-        wide_ui = context.region.width > narrowui
         layout.active = rd.render_antialiasing
 
         split = layout.split()
@@ -756,13 +733,12 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
         sub.enabled = not rd.use_border
         sub.prop(rd, "full_sample")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(rd, "pixel_filter", text="")
         col.prop(rd, "filter_size", text="Size")
 
 
-class RENDER_PT_motion_blur(RenderButtonsPanel):
+class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Full Sample Motion Blur"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -782,8 +758,7 @@ class RENDER_PT_motion_blur(RenderButtonsPanel):
         row.prop(rd, "motion_blur_samples")
         row.prop(rd, "motion_blur_shutter")
 
-
-class RENDER_PT_dimensions(RenderButtonsPanel):
+class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Dimensions"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -792,7 +767,6 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 
         scene = context.scene
         rd = scene.render
-        wide_ui = context.region.width > narrowui
 
         row = layout.row(align=True)
         row.menu("RENDER_MT_presets", text=bpy.types.RENDER_MT_presets.bl_label)
@@ -817,8 +791,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         sub.active = rd.use_border
         sub.prop(rd, "crop_to_border", text="Crop")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         sub = col.column(align=True)
         sub.label(text="Frame Range:")
         sub.prop(scene, "frame_start", text="Start")
@@ -830,7 +803,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         sub.prop(rd, "fps_base", text="/")
 
 
-class RENDER_PT_stamp(RenderButtonsPanel):
+class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Stamp"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -844,7 +817,6 @@ class RENDER_PT_stamp(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render
-        wide_ui = context.region.width > narrowui
 
         layout.active = rd.render_stamp
 
@@ -861,8 +833,7 @@ class RENDER_PT_stamp(RenderButtonsPanel):
         col.prop(rd, "stamp_marker", text="Marker")
         col.prop(rd, "stamp_sequencer_strip", text="Seq. Strip")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.active = rd.render_stamp
         col.prop(rd, "stamp_foreground", slider=True)
         col.prop(rd, "stamp_background", slider=True)
@@ -876,7 +847,7 @@ class RENDER_PT_stamp(RenderButtonsPanel):
         sub.prop(rd, "stamp_note_text", text="")
 
 
-class RENDER_PT_bake(RenderButtonsPanel):
+class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Bake"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -885,20 +856,13 @@ class RENDER_PT_bake(RenderButtonsPanel):
         layout = self.layout
 
         rd = context.scene.render
-        wide_ui = context.region.width > narrowui
 
         layout.operator("object.bake_image", icon='RENDER_STILL')
         
-        if wide_ui:
-            layout.prop(rd, "bake_type")
-        else:
-            layout.prop(rd, "bake_type", text="")
+        layout.prop(rd, "bake_type")
         
         if rd.bake_type == 'NORMALS':
-            if wide_ui:
-                layout.prop(rd, "bake_normal_space")
-            else:
-                layout.prop(rd, "bake_normal_space", text="")
+            layout.prop(rd, "bake_normal_space")
         elif rd.bake_type in ('DISPLACEMENT', 'AO'):
             layout.prop(rd, "bake_normalized")
         
@@ -914,8 +878,7 @@ class RENDER_PT_bake(RenderButtonsPanel):
         col.prop(rd, "bake_margin")
         col.prop(rd, "bake_quad_split", text="Split")
         
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(rd, "bake_active")
         sub = col.column()
         sub.active = rd.bake_active
@@ -923,35 +886,12 @@ class RENDER_PT_bake(RenderButtonsPanel):
         sub.prop(rd, "bake_bias")
 
         
-classes = [
-    RENDER_MT_presets,
-    RENDER_MT_ffmpeg_presets,
-    RENDER_PT_render,
-    RENDER_PT_layers,
-    RENDER_PT_freestyle,
-    RENDER_PT_freestyle_linestyle,
-    RENDER_PT_dimensions,
-    RENDER_PT_antialiasing,
-    RENDER_PT_motion_blur,
-    RENDER_PT_shading,
-    RENDER_PT_output,
-    RENDER_PT_encoding,
-    RENDER_PT_performance,
-    RENDER_PT_post_processing,
-    RENDER_PT_stamp,
-    RENDER_PT_bake]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

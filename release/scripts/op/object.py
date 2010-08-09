@@ -80,7 +80,8 @@ class SelectCamera(bpy.types.Operator):
     bl_label = "Select Camera"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return context.scene.camera is not None
 
     def execute(self, context):
@@ -109,7 +110,8 @@ class SelectHierarchy(bpy.types.Operator):
 
     extend = BoolProperty(name="Extend", description="Extend the existing selection", default=False)
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return context.object
 
     def execute(self, context):
@@ -167,7 +169,8 @@ class SubdivisionSet(bpy.types.Operator):
 
     relative = BoolProperty(name="Relative", description="Apply the subsurf level as an offset relative to the current level", default=False)
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         obs = context.selected_editable_objects
         return (obs is not None)
 
@@ -379,7 +382,8 @@ class ShapeTransfer(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj and obj.mode != 'EDIT')
 
@@ -409,7 +413,8 @@ class JoinUVs(bpy.types.Operator):
     bl_idname = "object.join_uvs"
     bl_label = "Join as UVs"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj and obj.type == 'MESH')
 
@@ -467,7 +472,8 @@ class MakeDupliFace(bpy.types.Operator):
     bl_idname = "object.make_dupli_face"
     bl_label = "Make DupliFace"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj and obj.type == 'MESH')
 
@@ -558,28 +564,12 @@ class ClearAllRestrictRender(bpy.types.Operator):
         return {'FINISHED'}
 
 
-classes = [
-    SelectPattern,
-    SelectCamera,
-    SelectHierarchy,
-    SubdivisionSet,
-    ShapeTransfer,
-    JoinUVs,
-    IsolateTypeRender,
-    MakeDupliFace,
-    ClearAllRestrictRender]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

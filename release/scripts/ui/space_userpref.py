@@ -142,7 +142,8 @@ class USERPREF_PT_interface(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'INTERFACE')
 
@@ -175,12 +176,6 @@ class USERPREF_PT_interface(bpy.types.Panel):
         sub.prop(view, "mini_axis_brightness", text="Brightness")
 
         col.separator()
-        col.separator()
-        col.separator()
-
-        col.label(text="Properties Window:")
-        col.prop(view, "properties_width_check")
-
         row.separator()
         row.separator()
 
@@ -249,7 +244,8 @@ class USERPREF_PT_edit(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'EDITING')
 
@@ -363,7 +359,8 @@ class USERPREF_PT_system(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'SYSTEM')
 
@@ -527,7 +524,8 @@ class USERPREF_PT_theme(bpy.types.Panel):
             for i, attr in enumerate(props_ls):
                 colsub_pair[i % 2].row().prop(themedata, attr)
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'THEMES')
 
@@ -659,7 +657,8 @@ class USERPREF_PT_file(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'FILES')
 
@@ -730,7 +729,8 @@ class USERPREF_PT_input(InputKeyMapPanel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'INPUT')
 
@@ -821,33 +821,112 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_label = "Addons"
     bl_region_type = 'WINDOW'
     bl_show_header = False
+    
+    _addons_fake_modules = {}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'ADDONS')
 
     @staticmethod
+    def module_get(mod_name):
+        return USERPREF_PT_addons._addons_fake_modules[mod_name]
+
+    @staticmethod
     def _addon_list():
+        import os
         import sys
         import time
 
         modules = []
         loaded_modules = set()
         paths = bpy.utils.script_paths("addons")
+        # if folder addons_contrib/ exists, scripts in there will be loaded
+        paths += bpy.utils.script_paths("addons_contrib")
 
         if bpy.app.debug:
             t_main = time.time()
 
-        # sys.path.insert(0, None)
+        # fake module importing
+        def fake_module(mod_name, mod_path, speedy=True):
+            if bpy.app.debug:
+                print("fake_module", mod_name, mod_path)
+            import ast
+            ModuleType = type(ast)
+            if speedy:
+                lines = []
+                line_iter = iter(open(mod_path, "r"))
+                l = ""
+                while not l.startswith("bl_addon_info"):
+                    l = line_iter.readline()
+                    if len(l) == 0:
+                        break
+                while l.rstrip():
+                    lines.append(l)
+                    l = line_iter.readline()
+                del line_iter
+                data = "".join(lines)
+
+            else:
+                data = open(mod_path, "r").read()
+
+            ast_data = ast.parse(data, filename=mod_path)
+            body_info = None
+            for body in ast_data.body:
+                if body.__class__ == ast.Assign:
+                    if len(body.targets) == 1:
+                        if getattr(body.targets[0], "id", "") == "bl_addon_info":
+                            body_info = body
+                            break
+
+            if body_info:
+                mod = ModuleType(mod_name)
+                mod.bl_addon_info = ast.literal_eval(body.value)
+                mod.__file__ = mod_path
+                mod.__time__ = os.path.getmtime(mod_path)
+                return mod
+            else:
+                return None
+
+        modules_stale = set(USERPREF_PT_addons._addons_fake_modules.keys())
+
         for path in paths:
-            # sys.path[0] = path
-            modules.extend(bpy.utils.modules_from_path(path, loaded_modules))
+            for f in sorted(os.listdir(path)):
+                if f.endswith(".py"):
+                    mod_name = f[0:-3]
+                    mod_path = os.path.join(path, f)
+                elif ("." not in f) and (os.path.isfile(os.path.join(path, f, "__init__.py"))):
+                    mod_name = f
+                    mod_path = os.path.join(path, f, "__init__.py")
+                else:
+                    mod_name = ""
+                    mod_path = ""
 
-        if bpy.app.debug:
-            print("Addon Script Load Time %.4f" % (time.time() - t_main))
+                if mod_name:
+                    if mod_name in modules_stale:
+                        modules_stale.remove(mod_name)
+                    mod = USERPREF_PT_addons._addons_fake_modules.get(mod_name)
+                    if mod:
+                        if mod.__time__ != os.path.getmtime(mod_path):
+                            print("Reloading", mod_name)
+                            del USERPREF_PT_addons._addons_fake_modules[mod_name]
+                            mod = None
 
-        # del sys.path[0]
-        return modules
+                    if mod is None:
+                        mod = fake_module(mod_name, mod_path)
+                        if mod:
+                            USERPREF_PT_addons._addons_fake_modules[mod_name] = mod
+                    
+        
+        # just incase we get stale modules, not likely
+        for mod_stale in modules_stale:
+            del USERPREF_PT_addons._addons_fake_modules[mod_stale]
+        del modules_stale
+
+        mod_list = list(USERPREF_PT_addons._addons_fake_modules.values())
+        mod_list.sort(key=lambda mod: (mod.bl_addon_info['category'], mod.bl_addon_info['name']))
+        return mod_list
 
     def draw(self, context):
         layout = self.layout
@@ -1001,8 +1080,13 @@ class WM_OT_addon_enable(bpy.types.Operator):
     def execute(self, context):
         module_name = self.properties.module
 
+        # note, this still gets added to _bpy_types.TypeMap
+        import bpy_types as _bpy_types
+        _bpy_types._register_immediate = False
+
         try:
             mod = __import__(module_name)
+            _bpy_types._register_module(module_name)
             mod.register()
         except:
             import traceback
@@ -1017,7 +1101,9 @@ class WM_OT_addon_enable(bpy.types.Operator):
 
         if info.get("blender", (0, 0, 0)) > bpy.app.version:
             self.report("WARNING','This script was written for a newer version of Blender and might not function (correctly).\nThe script is enabled though.")
-
+        
+        _bpy_types._register_immediate = True
+        
         return {'FINISHED'}
 
 
@@ -1029,13 +1115,15 @@ class WM_OT_addon_disable(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to disable")
 
     def execute(self, context):
-        import traceback
+        import bpy_types as _bpy_types
         module_name = self.properties.module
 
         try:
             mod = __import__(module_name)
+            _bpy_types._unregister_module(module_name, free=False) # dont free because we may want to enable again.
             mod.unregister()
         except:
+            import traceback
             traceback.print_exc()
 
         addons = context.user_preferences.addons
@@ -1123,7 +1211,8 @@ class WM_OT_addon_expand(bpy.types.Operator):
 
         # unlikely to fail, module should have already been imported
         try:
-            mod = __import__(module_name)
+            # mod = __import__(module_name)
+            mod = USERPREF_PT_addons.module_get(module_name)
         except:
             import traceback
             traceback.print_exc()
@@ -1134,36 +1223,11 @@ class WM_OT_addon_expand(bpy.types.Operator):
         return {'FINISHED'}
 
 
-classes = [
-    USERPREF_HT_header,
-    USERPREF_PT_tabs,
-    USERPREF_PT_interface,
-    USERPREF_PT_theme,
-    USERPREF_PT_edit,
-    USERPREF_PT_system,
-    USERPREF_PT_file,
-    USERPREF_PT_input,
-    USERPREF_PT_addons,
-
-    USERPREF_MT_interaction_presets,
-    USERPREF_MT_splash,
-
-    WM_OT_addon_enable,
-    WM_OT_addon_disable,
-    WM_OT_addon_install,
-    WM_OT_addon_expand]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
-
+    pass
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

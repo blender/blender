@@ -887,7 +887,7 @@ static StructRNA *rna_MacroOperator_register(const bContext *C, ReportList *repo
 
 	return dummyot.ext.srna;
 }
-#endif
+#endif /* DISABLE_PYTHON */
 
 static StructRNA* rna_Operator_refine(PointerRNA *opr)
 {
@@ -961,7 +961,7 @@ static wmKeyMapItem *rna_KeyMap_add_modal_item(wmKeyMap *km, bContext *C, Report
 	return WM_modalkeymap_add_item(km, type, value, modifier, keymodifier, propvalue);
 }
 
-#else
+#else /* RNA_RUNTIME */
 
 static void rna_def_operator(BlenderRNA *brna)
 {
@@ -985,7 +985,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
-	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL, NULL);
 	
 	prop= RNA_def_property(srna, "has_reports", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* this is 'virtual' property */
@@ -1048,7 +1048,7 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
-	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL, NULL);
 
 	/* Registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
@@ -1095,7 +1095,7 @@ static void rna_def_operator_type_macro(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
-	RNA_def_property_pointer_funcs(prop, "rna_OperatorTypeMacro_properties_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_OperatorTypeMacro_properties_get", NULL, NULL, NULL);
 }
 
 static void rna_def_operator_utils(BlenderRNA *brna)
@@ -1232,7 +1232,7 @@ static void rna_def_window(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Screen");
 	RNA_def_property_ui_text(prop, "Screen", "Active screen showing in the window");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Window_screen_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Window_screen_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_Window_screen_update");
 }
@@ -1262,7 +1262,7 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_keyconfig", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "KeyConfig");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_WindowManager_active_keyconfig_get", "rna_WindowManager_active_keyconfig_set", 0);
+	RNA_def_property_pointer_funcs(prop, "rna_WindowManager_active_keyconfig_get", "rna_WindowManager_active_keyconfig_set", 0, NULL);
 	RNA_def_property_ui_text(prop, "Active Key Configuration", "");
 
 	prop= RNA_def_property(srna, "default_keyconfig", PROP_POINTER, PROP_NEVER_NULL);
@@ -1427,7 +1427,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
-	RNA_def_property_pointer_funcs(prop, "rna_KeyMapItem_properties_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_KeyMapItem_properties_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Properties", "Properties to set when the operator is called");
 
 	prop= RNA_def_property(srna, "map_type", PROP_ENUM, PROP_NONE);
@@ -1518,5 +1518,5 @@ void RNA_def_wm(BlenderRNA *brna)
 	rna_def_keyconfig(brna);
 }
 
-#endif
+#endif /* RNA_RUNTIME */
 

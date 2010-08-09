@@ -30,6 +30,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
+#include "DNA_brush_types.h"
 
 #include "BKE_paint.h"
 
@@ -88,29 +89,6 @@ static PointerRNA rna_ParticleBrush_curve_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_CurveMapping, NULL);
 }
 
-static void rna_Paint_brushes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Paint *p= (Paint*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)p->brushes, sizeof(Brush*), p->brush_count, 0, NULL);
-}
-
-static int rna_Paint_brushes_length(PointerRNA *ptr)
-{
-	Paint *p= (Paint*)ptr->data;
-
-	return p->brush_count;
-}
-
-static PointerRNA rna_Paint_active_brush_get(PointerRNA *ptr)
-{
-	return rna_pointer_inherit_refine(ptr, &RNA_Brush, paint_brush(ptr->data));
-}
-
-static void rna_Paint_active_brush_set(PointerRNA *ptr, PointerRNA value)
-{
-	paint_brush_set(ptr->data, value.data);
-}
-
 static void rna_ParticleEdit_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (scene->basact)? scene->basact->object: NULL;
@@ -133,7 +111,7 @@ static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 	ParticleEditSettings *pset= (ParticleEditSettings*)ptr->data;
 	
 	/* redraw hair completely if weight brush is/was used */
-	if(pset->brushtype == PE_BRUSH_WEIGHT || value == PE_BRUSH_WEIGHT) {
+	if((pset->brushtype == PE_BRUSH_WEIGHT || value == PE_BRUSH_WEIGHT) && pset->scene) {
 		Object *ob = (pset->scene->basact)? pset->scene->basact->object: NULL;
 		if(ob) {
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -163,63 +141,28 @@ static int rna_ParticleEdit_editable_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset= (ParticleEditSettings*)ptr->data;
 
-	return (pset->object && PE_get_current(pset->scene, pset->object));
+	return (pset->object && pset->scene && PE_get_current(pset->scene, pset->object));
 }
 static int rna_ParticleEdit_hair_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset= (ParticleEditSettings*)ptr->data;
 
-	PTCacheEdit *edit = PE_get_current(pset->scene, pset->object);
+	if(pset->scene) {
+		PTCacheEdit *edit = PE_get_current(pset->scene, pset->object);
 
-	return (edit && edit->psys);
-}
-
-static void rna_Paint_active_brush_index_set(PointerRNA *ptr, int value)
-{
-	Paint *p= ptr->data;
-	CLAMP(value, 0, p->brush_count-1);
-	p->active_brush_index= value;
-}
-
-static void rna_Paint_active_brush_index_range(PointerRNA *ptr, int *min, int *max)
-{
-	Paint *p= ptr->data;
-	*min= 0;
-	*max= MAX2(p->brush_count-1, 0);
-}
-
-static void rna_Paint_active_brush_name_get(PointerRNA *ptr, char *value)
-{
-	Paint *p= ptr->data;
-	Brush *br = paint_brush(p);
-	
-	BLI_strncpy(value, br->id.name+2, sizeof(br->id.name)-2);
-}
-
-
-static int rna_Paint_active_brush_name_length(PointerRNA *ptr)
-{
-	Paint *p= ptr->data;
-	Brush *br = paint_brush(p);
-	return strlen(br->id.name+2);
-}
-
-static void rna_Paint_active_brush_name_set(PointerRNA *ptr, const char *value)
-{
-	Paint *p= ptr->data;
-	Brush *br;
-	int i;
-	
-	for(i = 0; i < p->brush_count; ++i) {
-		br = p->brushes[i];
-
-		if (strcmp(br->id.name+2, value)==0) {
-			paint_brush_set(p, br);
-			return;
-		}
+		return (edit && edit->psys);
 	}
+	
+	return 0;
 }
 
+static int rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
+{
+	Scene *scene= (Scene *)ptr->id.data;
+	Object *ob = OBACT;
+	Brush *brush= value.id.data;
+	return ob->mode & brush->ob_mode;
+}
 #else
 
 static void rna_def_paint(BlenderRNA *brna)
@@ -230,32 +173,11 @@ static void rna_def_paint(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Paint", NULL);
 	RNA_def_struct_ui_text(srna, "Paint", "");
 
-	prop= RNA_def_property(srna, "brushes", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Brush");
-	RNA_def_property_collection_funcs(prop, "rna_Paint_brushes_begin",
-					  "rna_iterator_array_next",
-					  "rna_iterator_array_end",
-					  "rna_iterator_array_dereference_get", 
-					  "rna_Paint_brushes_length", 0, 0);
-	RNA_def_property_ui_text(prop, "Brushes", "Brushes selected for this paint mode");
-
-	prop= RNA_def_property(srna, "active_brush_index", PROP_INT, PROP_NONE);
-	RNA_def_property_int_funcs(prop, NULL, "rna_Paint_active_brush_index_set", "rna_Paint_active_brush_index_range");
-	RNA_def_property_range(prop, 0, INT_MAX);
-	RNA_def_property_update(prop, NC_BRUSH|NA_EDITED, NULL);
-	
-	prop= RNA_def_property(srna, "active_brush_name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, "rna_Paint_active_brush_name_get", "rna_Paint_active_brush_name_length", "rna_Paint_active_brush_name_set");
-	RNA_def_property_string_maxlength(prop, sizeof(((ID*)NULL)->name)-2);
-	RNA_def_property_ui_text(prop, "Active Brush Name", "");
-	RNA_def_property_update(prop, NC_BRUSH|NA_EDITED, NULL);
-
-	/* Fake property to get active brush directly, rather than integer index */
+	/* Global Settings */
 	prop= RNA_def_property(srna, "brush", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Brush");
-	RNA_def_property_pointer_funcs(prop, "rna_Paint_active_brush_get", "rna_Paint_active_brush_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Brush", "Active paint brush");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Brush_mode_poll");
+	RNA_def_property_ui_text(prop, "Brush", "Active Brush");
 	RNA_def_property_update(prop, NC_BRUSH|NA_EDITED, NULL);
 
 	prop= RNA_def_property(srna, "show_brush", PROP_BOOLEAN, PROP_NONE);
@@ -492,7 +414,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "brush", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ParticleBrush");
-	RNA_def_property_pointer_funcs(prop, "rna_ParticleEdit_brush_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_ParticleEdit_brush_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Brush", "");
 
 	prop= RNA_def_property(srna, "draw_step", PROP_INT, PROP_NONE);
@@ -569,7 +491,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	/* dummy */
 	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "CurveMapping");
-	RNA_def_property_pointer_funcs(prop, "rna_ParticleBrush_curve_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_ParticleBrush_curve_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Curve", "");
 }
 

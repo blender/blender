@@ -74,4 +74,3 @@ SET(INC
 ADD_DEFINITIONS(-DGLEW_STATIC)
 
 BLENDERLIB_NOLIST(gp_common "${SRC}" "${INC}")
-#env.BlenderLib (libname='gp_common', sources=source_files, includes=incs, defines = [], libtype='player', priority=5, compileflags=cflags)

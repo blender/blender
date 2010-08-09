@@ -660,8 +660,9 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 			return NULL;
 	}
 
-	if(quat1 && quat2) { /* QUAT*QUAT (dot product) */
-		return PyFloat_FromDouble(dot_qtqt(quat1->quat, quat2->quat));
+	if(quat1 && quat2) { /* QUAT*QUAT (cross product) */
+		mul_qt_qtqt(quat, quat1->quat, quat2->quat);
+		return newQuaternionObject(quat, Py_NEW, NULL);
 	}
 	
 	/* the only case this can happen (for a supported type is "FLOAT*QUAT" ) */
@@ -677,12 +678,19 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 	}
 	else { /* QUAT*SOMETHING */
 		if(VectorObject_Check(q2)){  /* QUAT*VEC */
+			float tvec[3];
 			vec = (VectorObject*)q2;
 			if(vec->size != 3){
 				PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: only 3D vector rotations currently supported\n");
 				return NULL;
 			}
-			return quat_rotation((PyObject*)quat1, (PyObject*)vec); /* vector updating done inside the func */
+			if(!BaseMath_ReadCallback(vec)) {
+				return NULL;
+			}
+
+			copy_v3_v3(tvec, vec->vec);
+			mul_qt_v3(quat1->quat, tvec);
+			return newVectorObject(tvec, 3, Py_NEW, NULL);
 		}
 		
 		scalar= PyFloat_AsDouble(q2);
@@ -914,13 +922,13 @@ static struct PyMethodDef Quaternion_methods[] = {
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Quaternion_getseters[] = {
-	{"w", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion W value. **type** float", (void *)0},
-	{"x", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion X axis. **type** float", (void *)1},
-	{"y", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion Y axis. **type** float", (void *)2},
-	{"z", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion Z axis. **type** float", (void *)3},
-	{"magnitude", (getter)Quaternion_getMagnitude, (setter)NULL, "Size of the quaternion (readonly). **type** float", NULL},
-	{"angle", (getter)Quaternion_getAngle, (setter)Quaternion_setAngle, "angle of the quaternion. **type** float", NULL},
-	{"axis",(getter)Quaternion_getAxisVec, (setter)Quaternion_setAxisVec, "quaternion axis as a vector. **type** :class:`Vector`", NULL},
+	{"w", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion W value.\n\n:type: float", (void *)0},
+	{"x", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion X axis.\n\n:type: float", (void *)1},
+	{"y", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion Y axis.\n\n:type: float", (void *)2},
+	{"z", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion Z axis.\n\n:type: float", (void *)3},
+	{"magnitude", (getter)Quaternion_getMagnitude, (setter)NULL, "Size of the quaternion (readonly).\n\n:type: float", NULL},
+	{"angle", (getter)Quaternion_getAngle, (setter)Quaternion_setAngle, "angle of the quaternion.\n\n:type: float", NULL},
+	{"axis",(getter)Quaternion_getAxisVec, (setter)Quaternion_setAxisVec, "quaternion axis as a vector.\n\n:type: :class:`Vector`", NULL},
 	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
 	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */

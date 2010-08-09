@@ -1136,7 +1136,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "current_orientation", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "TransformOrientation");
-	RNA_def_property_pointer_funcs(prop, "rna_CurrentOrientation_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_CurrentOrientation_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Current Transform Orientation", "Current Transformation orientation");
 
 	prop= RNA_def_property(srna, "lock_camera_and_layers", PROP_BOOLEAN, PROP_NONE);
@@ -1161,12 +1161,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "region_3d", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "RegionView3D");
-	RNA_def_property_pointer_funcs(prop, "rna_SpaceView3D_region_3d_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_SpaceView3D_region_3d_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "3D Region", "3D region in this space, in case of quad view the camera region");
 
 	prop= RNA_def_property(srna, "region_quadview", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "RegionView3D");
-	RNA_def_property_pointer_funcs(prop, "rna_SpaceView3D_region_quadview_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_SpaceView3D_region_quadview_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Quad View Region", "3D region that defines the quad view settings");
 
 	/* region */
@@ -1284,7 +1284,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "pinid");
 	RNA_def_property_struct_type(prop, "ID");
     /* note: custom set function is ONLY to avoid rna setting a user for this. */
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceProperties_pin_id_set", "rna_SpaceProperties_pin_id_typef");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceProperties_pin_id_set", "rna_SpaceProperties_pin_id_typef", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_PROPERTIES, "rna_SpaceProperties_pin_id_update");
 
@@ -1304,7 +1304,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 
 	/* image */
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceImageEditor_image_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceImageEditor_image_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Image", "Image displayed and edited in this space");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
@@ -1354,7 +1354,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "uv_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "SpaceUVEditor");
-	RNA_def_property_pointer_funcs(prop, "rna_SpaceImageEditor_uvedit_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_SpaceImageEditor_uvedit_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "UV Editor", "UV editor settings");
 	
 	/* paint */
@@ -1532,7 +1532,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Text", "Text displayed and edited in this space");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceTextEditor_text_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceTextEditor_text_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
 
 	/* display */
@@ -1617,7 +1617,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	/* data */
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceDopeSheetEditor_action_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceDopeSheetEditor_action_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Action", "Action displayed and edited in this space");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, "rna_SpaceDopeSheetEditor_action_update");
 	

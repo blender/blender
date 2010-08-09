@@ -159,6 +159,17 @@ ifndef CONFIG_GUESS
   endif
 
   export WITH_TIFF ?= true
+
+  #enable raytracing optimization (currently only for i386 and x86_64)
+  ifeq ($(CPU),powerpc)
+    export WITH_BF_RAYOPTIMIZATION ?= false
+  else
+    export WITH_BF_RAYOPTIMIZATION ?= true
+  endif
+
+  export WITH_LCMS ?= false
+  export WITH_CINEON ?= true
+  export WITH_HDR ?= true
   
   # Compare recreated .mo files with committed ones
   export BF_VERIFY_MO_FILES ?= true
@@ -621,6 +632,11 @@ ifndef CONFIG_GUESS
 
   # default tiff libs
   export NAN_TIFF_LIBS ?= $(NAN_TIFF)/lib/libtiff.a
+
+  # default path to lcms, may be overidden in platform sections above or in user-def.mk
+  export BF_LCMS ?= $(LCGDIR)/lcms
+  export BF_LCMS_INC ?= $(BF_LCMS)/include
+  export BF_LCMS_LIBS ?= $(BF_LCMS)/lib/liblcms.a
 
 endif # CONFIG_GUESS
 

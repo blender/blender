@@ -1010,13 +1010,20 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		/* VEC * MATRIX */
 		return row_vector_multiplication(vec1, (MatrixObject*)v2);
 	} else if (QuaternionObject_Check(v2)) {
-		QuaternionObject *quat = (QuaternionObject*)v2; /* quat_rotation validates */
+		/* VEC * QUAT */
+		QuaternionObject *quat2 = (QuaternionObject*)v2;
+		float tvec[4];
 
 		if(vec1->size != 3) {
 			PyErr_SetString(PyExc_TypeError, "Vector multiplication: only 3D vector rotations (with quats) currently supported\n");
 			return NULL;
 		}
-		return quat_rotation((PyObject*)vec1, (PyObject*)quat);
+		if(!BaseMath_ReadCallback(quat2)) {
+			return NULL;
+		}
+		copy_v3_v3(tvec, vec1->vec);
+		mul_qt_v3(quat2->quat, tvec);
+		return newVectorObject(tvec, 3, Py_NEW, NULL);
 	}
 	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*FLOAT */
 		int i;
@@ -1587,12 +1594,12 @@ static int Vector_setSwizzle(VectorObject *self, PyObject * value, void *closure
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Vector_getseters[] = {
-	{"x", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector X axis. **type** float", (void *)0},
-	{"y", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector Y axis. **type** float", (void *)1},
-	{"z", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector Z axis (3D Vectors only). **type** float", (void *)2},
-	{"w", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector W axis (4D Vectors only). **type** float", (void *)3},
-	{"length", (getter)Vector_getLength, (setter)Vector_setLength, "Vector Length. **type** float", NULL},
-	{"magnitude", (getter)Vector_getLength, (setter)Vector_setLength, "Vector Length. **type** float", NULL},
+	{"x", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector X axis.\n\n:type: float", (void *)0},
+	{"y", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector Y axis.\n\n:type: float", (void *)1},
+	{"z", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector Z axis (3D Vectors only).\n\n:type: float", (void *)2},
+	{"w", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector W axis (4D Vectors only).\n\n:type: float", (void *)3},
+	{"length", (getter)Vector_getLength, (setter)Vector_setLength, "Vector Length.\n\n:type: float", NULL},
+	{"magnitude", (getter)Vector_getLength, (setter)Vector_setLength, "Vector Length.\n\n:type: float", NULL},
 	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
 	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	

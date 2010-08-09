@@ -48,7 +48,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"

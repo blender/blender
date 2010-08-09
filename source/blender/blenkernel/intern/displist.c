@@ -39,6 +39,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_material_types.h"
 
 #include "BLI_blenlib.h"
@@ -153,7 +154,7 @@ void copy_displist(ListBase *lbn, ListBase *lb)
 	}
 }
 
-void addnormalsDispList(Object *ob, ListBase *lb)
+void addnormalsDispList(ListBase *lb)
 {
 	DispList *dl = NULL;
 	float *vdata, *ndata, nor[3];
@@ -1128,7 +1129,7 @@ float calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
 	Curve *cu;
 	DispList *dl;
 	
-	if(taperobj==NULL) return 1.0;
+	if(taperobj==NULL || taperobj->type!=OB_CURVE) return 1.0;
 	
 	cu= taperobj->data;
 	dl= cu->disp.first;
@@ -1680,15 +1681,6 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 		float (*originalVerts)[3];
 		float (*deformedVerts)[3];
 		int numVerts;
-
-		/* Bevel and taper objects should always be curves */
-		if (cu->bevobj && cu->bevobj->type != OB_CURVE) {
-			cu->bevobj = NULL;
-		}
-
-		if (cu->taperobj && cu->taperobj->type != OB_CURVE) {
-			cu->taperobj = NULL;
-		}
 
 		nubase= BKE_curve_nurbs(cu);
 

@@ -45,15 +45,9 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_image.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
-#include "BKE_packedFile.h"
-#include "BKE_paint.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "RE_pipeline.h"
 
@@ -792,7 +786,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 	uiLayoutSetContextPointer(layout, "edit_image", &imaptr);
 
 	if(!compact)
-		uiTemplateID(layout, C, ptr, propname, "IMAGE_OT_new", "IMAGE_OT_open", NULL, NULL);
+		uiTemplateID(layout, C, ptr, propname, "IMAGE_OT_new", "IMAGE_OT_open", NULL);
 
 	// XXX missing: reload, pack
 

@@ -31,6 +31,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_math.h"
 
@@ -138,37 +139,6 @@ static void rna_Brush_imagepaint_tool_update(Main *bmain, Scene *scene, PointerR
 	Brush *br= (Brush*)ptr->data;
 	rna_Brush_reset_icon(br, "texture_paint");
 	rna_Brush_update(bmain, scene, ptr);
-}
-
-static int rna_Brush_is_sculpt_brush(Brush *br, bContext *C)
-{
-	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-	return paint_has_brush(&sd->paint, br);
-}
-
-static int rna_Brush_is_vpaint_brush(Brush *br, bContext *C)
-{
-	VPaint *vp = CTX_data_tool_settings(C)->vpaint;
-	return paint_has_brush(&vp->paint, br);
-}
-
-static int rna_Brush_is_wpaint_brush(Brush *br, bContext *C)
-{
-	VPaint *vp = CTX_data_tool_settings(C)->wpaint;
-	return paint_has_brush(&vp->paint, br);
-}
-
-static int rna_Brush_is_imapaint_brush(Brush *me, bContext *C)
-{
-	ImagePaintSettings *data = &(CTX_data_tool_settings(C)->imapaint);
-	int i;
-
-	for (i= 0; i < data->paint.brush_count; i++) {
-		if (strcmp(me->id.name+2, data->paint.brushes[i]->id.name+2) == 0) 
-			return 1;
-	}
-
-	return 0;
 }
 
 static void rna_Brush_icon_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -395,41 +365,9 @@ static void rna_def_brush(BlenderRNA *brna)
 		{SCULPT_DISP_DIR_Z, "Z", 0, "Z Plane", ""},
 		{0, NULL, 0, NULL, NULL}};
 
-	FunctionRNA *func;
-	PropertyRNA *parm;
-
 	srna= RNA_def_struct(brna, "Brush", "ID");
 	RNA_def_struct_ui_text(srna, "Brush", "Brush datablock for storing brush settings for painting and sculpting");
 	RNA_def_struct_ui_icon(srna, ICON_BRUSH_DATA);
-
-	/* functions */
-	func= RNA_def_function(srna, "is_sculpt_brush", "rna_Brush_is_sculpt_brush");
-	RNA_def_function_ui_description(func, "Returns true if Brush can be used for sculpting");
-	parm= RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_boolean(func, "ret", 0, "", "");
-	RNA_def_function_return(func, parm);
-
-	func= RNA_def_function(srna, "is_vpaint_brush", "rna_Brush_is_vpaint_brush");
-	RNA_def_function_ui_description(func, "Returns true if Brush can be used for vertex painting");
-	parm= RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_boolean(func, "ret", 0, "", "");
-	RNA_def_function_return(func, parm);
-
-	func= RNA_def_function(srna, "is_wpaint_brush", "rna_Brush_is_wpaint_brush");
-	RNA_def_function_ui_description(func, "Returns true if Brush can be used for weight painting");
-	parm= RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_boolean(func, "ret", 0, "", "");
-	RNA_def_function_return(func, parm);
-
-	func= RNA_def_function(srna, "is_imapaint_brush", "rna_Brush_is_imapaint_brush");
-	RNA_def_function_ui_description(func, "Returns true if Brush can be used for image painting");
-	parm= RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_boolean(func, "ret", 0, "", "");
-	RNA_def_function_return(func, parm);
 
 	/* enums */
 	prop= RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
@@ -733,6 +671,23 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Curve", "Editable falloff curve");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	/* paint mode flags */
+	prop= RNA_def_property(srna, "use_paint_sculpt", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_SCULPT);
+	RNA_def_property_ui_text(prop, "Use Sculpt", "Use this brush in sculpt mode");
+
+	prop= RNA_def_property(srna, "use_paint_vertex", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_VERTEX_PAINT);
+	RNA_def_property_ui_text(prop, "Use Vertex", "Use this brush in vertex paint mode");
+
+	prop= RNA_def_property(srna, "use_paint_weight", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_WEIGHT_PAINT);
+	RNA_def_property_ui_text(prop, "Use Weight", "Use this brush in weight paint mode");	
+
+	prop= RNA_def_property(srna, "use_paint_texture", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ob_mode", OB_MODE_TEXTURE_PAINT);
+	RNA_def_property_ui_text(prop, "Use Texture", "Use this brush in texture paint mode");	
 
 	/* texture */
 	prop= RNA_def_property(srna, "texture_slot", PROP_POINTER, PROP_NONE);

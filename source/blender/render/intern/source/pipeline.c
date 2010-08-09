@@ -2755,6 +2755,7 @@ static void update_physics_cache(Render *re, Scene *scene, int anim_init)
 {
 	PTCacheBaker baker;
 
+	baker.main = re->main;
 	baker.scene = scene;
 	baker.pid = NULL;
 	baker.bake = 0;

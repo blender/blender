@@ -4388,7 +4388,7 @@ static int rna_function_arg_count(FunctionRNA *func)
 	const ListBase *lb= RNA_function_defined_parameters(func);
 	PropertyRNA *parm;
 	Link *link;
-	int count= 1;
+	int count= (RNA_function_flag(func) & FUNC_NO_SELF) ? 0 : 1;
 
 	for(link=lb->first; link; link=link->next) {
 		parm= (PropertyRNA*)link;
@@ -4409,7 +4409,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 	const char *class_type= RNA_struct_identifier(srna);
 	PyObject *py_class= (PyObject*)py_data;
 	PyObject *base_class= RNA_struct_py_type_get(srna);
-	PyObject *item, *fitem;
+	PyObject *item;
 	PyObject *py_arg_count;
 	int i, flag, arg_count, func_arg_count;
 	const char *py_class_name = ((PyTypeObject *)py_class)->tp_name; // __name__
@@ -4446,24 +4446,32 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 			PyErr_Clear();
 		}
 		else {
-			Py_DECREF(item); /* no need to keep a ref, the class owns it */
-
-			if (PyMethod_Check(item))
-				fitem= PyMethod_Function(item); /* py 2.x */
-			else
-				fitem= item; /* py 3.x */
-
-			if (PyFunction_Check(fitem)==0) {
-				PyErr_Format( PyExc_TypeError, "expected %.200s, %.200s class \"%.200s\" attribute to be a function", class_type, py_class_name, RNA_function_identifier(func));
-				return -1;
+			Py_DECREF(item); /* no need to keep a ref, the class owns it (technically we should keep a ref but...) */
+			if(flag & FUNC_NO_SELF) {
+				if (PyMethod_Check(item)==0) {
+					PyErr_Format( PyExc_TypeError, "expected %.200s, %.200s class \"%.200s\" attribute to be a method, not a %.200s", class_type, py_class_name, RNA_function_identifier(func), Py_TYPE(item)->tp_name);
+					return -1;
+				}
+				item= ((PyMethodObject *)item)->im_func;
+			}
+			else {
+				if (PyFunction_Check(item)==0) {
+					PyErr_Format( PyExc_TypeError, "expected %.200s, %.200s class \"%.200s\" attribute to be a function, not a %.200s", class_type, py_class_name, RNA_function_identifier(func), Py_TYPE(item)->tp_name);
+					return -1;
+				}
 			}
 
 			func_arg_count= rna_function_arg_count(func);
 
 			if (func_arg_count >= 0) { /* -1 if we dont care*/
-				py_arg_count = PyObject_GetAttrString(PyFunction_GET_CODE(fitem), "co_argcount");
+				py_arg_count = PyObject_GetAttrString(PyFunction_GET_CODE(item), "co_argcount");
 				arg_count = PyLong_AsSsize_t(py_arg_count);
 				Py_DECREF(py_arg_count);
+
+				/* note, the number of args we check for and the number of args we give to
+				 * @classmethods are different (quirk of python), this is why rna_function_arg_count() doesn't return the value -1*/
+				if(flag & FUNC_NO_SELF)
+					func_arg_count++;
 
 				if (arg_count != func_arg_count) {
 					PyErr_Format( PyExc_AttributeError, "expected %.200s, %.200s class \"%.200s\" function to have %d args, found %d", class_type, py_class_name, RNA_function_identifier(func), func_arg_count, arg_count);
@@ -4537,6 +4545,7 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 	ParameterIterator iter;
 	PointerRNA funcptr;
 	int err= 0, i, flag, ret_len=0;
+	int is_static = RNA_function_flag(func) & FUNC_NO_SELF;
 
 	PropertyRNA *pret_single= NULL;
 	void *retdata_single= NULL;
@@ -4544,55 +4553,64 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 	PyGILState_STATE gilstate;
 
 	bContext *C= BPy_GetContext(); // XXX - NEEDS FIXING, QUITE BAD.
-	bpy_context_set(C, &gilstate);
-
+	
 	py_class= RNA_struct_py_type_get(ptr->type);
 	
-	/* exception, operators store their PyObjects for re-use */
-	if(ptr->data) {
-		if(RNA_struct_is_a(ptr->type, &RNA_Operator)) {
-			wmOperator *op= ptr->data;
-			if(op->py_instance) {
-				py_class_instance= op->py_instance;
+	/* rare case. can happen when registering subclasses */
+	if(py_class==NULL) {
+		fprintf(stderr, "bpy_class_call(): unable to get python class for rna struct '%.200s'\n", RNA_struct_identifier(ptr->type));
+		return -1;
+	}
+	
+	bpy_context_set(C, &gilstate);
+
+	if (!is_static) {
+		/* exception, operators store their PyObjects for re-use */
+		if(ptr->data) {
+			if(RNA_struct_is_a(ptr->type, &RNA_Operator)) {
+				wmOperator *op= ptr->data;
+				if(op->py_instance) {
+					py_class_instance= op->py_instance;
+					Py_INCREF(py_class_instance);
+				}
+				else {
+					/* store the instance here once its created */
+					py_class_instance_store= &op->py_instance;
+				}
+			}
+		}
+		/* end exception */
+	
+		if(py_class_instance==NULL)
+			py_srna= pyrna_struct_CreatePyObject(ptr);
+	
+		if(py_class_instance) {
+			/* special case, instance is cached */
+		}
+		else if(py_srna == NULL) {
+			py_class_instance = NULL;
+		}
+		else if(py_srna == Py_None) { /* probably wont ever happen but possible */
+			Py_DECREF(py_srna);
+			py_class_instance = NULL;
+		}
+		else {
+			args = PyTuple_New(1);
+			PyTuple_SET_ITEM(args, 0, py_srna);
+			py_class_instance= PyObject_Call(py_class, args, NULL);
+			Py_DECREF(args);
+			
+			if(py_class_instance == NULL) {
+				err= -1; /* so the error is not overridden below */
+			}
+			else if(py_class_instance_store) {
+				*py_class_instance_store = py_class_instance;
 				Py_INCREF(py_class_instance);
 			}
-			else {
-				/* store the instance here once its created */
-				py_class_instance_store= &op->py_instance;
-			}
-		}
-	}
-	/* end exception */
-
-	if(py_class_instance==NULL)
-		py_srna= pyrna_struct_CreatePyObject(ptr);
-
-	if(py_class_instance) {
-		/* special case, instance is cached */
-	}
-	else if(py_srna == NULL) {
-		py_class_instance = NULL;
-	}
-	else if(py_srna == Py_None) { /* probably wont ever happen but possible */
-		Py_DECREF(py_srna);
-		py_class_instance = NULL;
-	}
-	else {
-		args = PyTuple_New(1);
-		PyTuple_SET_ITEM(args, 0, py_srna);
-		py_class_instance= PyObject_Call(py_class, args, NULL);
-		Py_DECREF(args);
-		
-		if(py_class_instance == NULL) {
-			err= -1; /* so the error is not overridden below */
-		}
-		else if(py_class_instance_store) {
-			*py_class_instance_store = py_class_instance;
-			Py_INCREF(py_class_instance);
 		}
 	}
 
-	if (py_class_instance) { /* Initializing the class worked, now run its invoke function */
+	if (is_static || py_class_instance) { /* Initializing the class worked, now run its invoke function */
 		PyObject *item= PyObject_GetAttrString(py_class, RNA_function_identifier(func));
 //		flag= RNA_function_flag(func);
 
@@ -4600,12 +4618,19 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 			RNA_pointer_create(NULL, &RNA_Function, func, &funcptr);
 
 			args = PyTuple_New(rna_function_arg_count(func)); /* first arg is included in 'item' */
-			PyTuple_SET_ITEM(args, 0, py_class_instance);
+	
+			if(is_static) {
+				i= 0;
+			}
+			else {
+				PyTuple_SET_ITEM(args, 0, py_class_instance);
+				i= 1;
+			}
 
 			RNA_parameter_list_begin(parms, &iter);
 
 			/* parse function parameters */
-			for (i= 1; iter.valid; RNA_parameter_list_next(&iter)) {
+			for (; iter.valid; RNA_parameter_list_next(&iter)) {
 				parm= iter.parm;
 				flag= RNA_property_flag(parm);
 
@@ -4736,7 +4761,16 @@ void pyrna_alloc_types(void)
 	prop = RNA_struct_find_property(&ptr, "structs");
 
 	RNA_PROP_BEGIN(&ptr, itemptr, prop) {
-		Py_DECREF(pyrna_struct_Subtype(&itemptr));
+		PyObject *item= pyrna_struct_Subtype(&itemptr);
+		if(item == NULL) {
+			if(PyErr_Occurred()) {
+				PyErr_Print();
+				PyErr_Clear();
+			}
+		}
+		else {
+			Py_DECREF(item);
+		}
 	}
 	RNA_PROP_END;
 
@@ -4799,6 +4833,14 @@ static PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 	if(srna==NULL)
 		return NULL;
 	
+	/* fails in cases, cant use this check but would like to :| */
+	/*
+	if(RNA_struct_py_type_get(srna)) {
+		PyErr_Format(PyExc_ValueError, "bpy.types.register(...): %.200s's parent class %.200s is alredy registered, this is not allowed.", ((PyTypeObject*)py_class)->tp_name, RNA_struct_identifier(srna));
+		return NULL;
+	}
+	*/
+
 	/* check that we have a register callback for this type */
 	reg= RNA_struct_register(srna);
 

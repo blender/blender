@@ -1064,6 +1064,7 @@ bNodeTree *ntreeAddTree(int type)
  *	- internal_select is only 1 when used for duplicating selected nodes (i.e. Shift-D duplicate operator)
  *	- this gets called when executing compositing updates (for threaded previews)
  *	- when the nodetree datablock needs to be copied (i.e. when users get copied)
+ *	- for scene duplication use ntreeSwapID() after so we dont have stale pointers.
  */
 bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 {
@@ -1140,6 +1141,18 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 	ntreeSolveOrder(newtree);
 
 	return newtree;
+}
+
+/* use when duplicating scenes */
+void ntreeSwitchID(bNodeTree *ntree, ID *id_from, ID *id_to)
+{
+	bNode *node;
+	/* for scene duplication only */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->id==id_from) {
+			node->id= id_to;
+		}
+	}
 }
 
 /* *************** preview *********** */
@@ -2651,8 +2664,9 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 			for(lsock= lnode->outputs.first; lsock; lsock= lsock->next) {
 				if(outsocket_exists(lnode->new_node, lsock->new_sock)) {
 					lsock->new_sock->ns.data= lsock->ns.data;
+					compbuf_set_node(lsock->new_sock->ns.data, lnode->new_node);
 					lsock->ns.data= NULL;
-						lsock->new_sock= NULL;
+					lsock->new_sock= NULL;
 				}
 			}
 		}

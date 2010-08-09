@@ -25,7 +25,8 @@ class LOGIC_PT_properties(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_label = "Properties"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         ob = context.active_object
         return ob and ob.game
 
@@ -88,24 +89,12 @@ class LOGIC_MT_view(bpy.types.Menu):
         layout.operator("logic.properties", icon='MENU_PANEL')
 
 
-classes = [
-    LOGIC_HT_header,
-    LOGIC_MT_view,
-    
-    LOGIC_PT_properties,
-    LOGIC_MT_logicbricks_add]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

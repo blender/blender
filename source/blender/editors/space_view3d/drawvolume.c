@@ -45,7 +45,6 @@
 #include "BLI_edgehash.h"
 #include "BLI_rand.h"
 
-#include "BKE_anim.h"			//for the where_on_path function
 #include "BKE_curve.h"
 #include "BKE_constraint.h" // for the get_constraint_target function
 #include "BKE_DerivedMesh.h"
@@ -66,7 +65,6 @@
 #include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_smoke.h"
-#include "BKE_unit.h"
 #include "BKE_utildefines.h"
 #include "smoke_API.h"
 

@@ -88,39 +88,27 @@ Any case: direct data is ALWAYS after the lib block
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_action_types.h"
 #include "DNA_actuator_types.h"
-#include "DNA_boid_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
-#include "DNA_color_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_controller_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_customdata_types.h"
-#include "DNA_effect_types.h"
 #include "DNA_genfile.h"
 #include "DNA_group_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_image_types.h"
-#include "DNA_ipo_types.h"	// XXX depreceated - animsys
 #include "DNA_fileglobal_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_listBase.h" /* for Listbase, the type of samples, ...*/
 #include "DNA_lamp_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_nla_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
-#include "DNA_outliner_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_property_types.h"
@@ -132,11 +120,9 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sound_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_world_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -147,23 +133,16 @@ Any case: direct data is ALWAYS after the lib block
 
 #include "BKE_action.h"
 #include "BKE_blender.h"
-#include "BKE_cloth.h"
 #include "BKE_curve.h"
-#include "BKE_customdata.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h" // for G
 #include "BKE_library.h" // for  set_listbasepointers
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_packedFile.h" // for packAll
-#include "BKE_pointcache.h"
 #include "BKE_report.h"
-#include "BKE_screen.h" // for waitcursor
 #include "BKE_sequencer.h"
-#include "BKE_sound.h" /* ... and for samples */
 #include "BKE_utildefines.h" // for defines
 #include "BKE_modifier.h"
-#include "BKE_idprop.h"
 #include "BKE_fcurve.h"
 
 #include "BLO_writefile.h"
@@ -1771,11 +1750,6 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 	}
 }
 
-static void write_paint(WriteData *wd, Paint *p)
-{
-	if(p && p->brushes)
-		writedata(wd, DATA, p->brush_count * sizeof(Brush*), p->brushes);
-}
 
 static void write_scenes(WriteData *wd, ListBase *scebase)
 {
@@ -1812,18 +1786,15 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		writestruct(wd, DATA, "ToolSettings", 1, tos);
 		if(tos->vpaint) {
 			writestruct(wd, DATA, "VPaint", 1, tos->vpaint);
-			write_paint(wd, &tos->vpaint->paint);
 		}
 		if(tos->wpaint) {
 			writestruct(wd, DATA, "VPaint", 1, tos->wpaint);
-			write_paint(wd, &tos->wpaint->paint);
 		}
 		if(tos->sculpt) {
 			writestruct(wd, DATA, "Sculpt", 1, tos->sculpt);
-			write_paint(wd, &tos->sculpt->paint);
 		}
 
-		write_paint(wd, &tos->imapaint.paint);
+		// write_paint(wd, &tos->imapaint.paint);
 
 		ed= sce->ed;
 		if(ed) {

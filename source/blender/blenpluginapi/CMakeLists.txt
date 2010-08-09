@@ -40,4 +40,3 @@ IF(WITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
 BLENDERLIB(bf_blenpluginapi "${SRC}" "${INC}")
-#env.BlenderLib ( libname = 'bf_blenpluginapi', sources = sources, includes = Split(incs), defines = defs, libtype=['core', 'player'], priority = [75, 35] )

@@ -186,7 +186,7 @@ void RNA_api_operator(StructRNA *srna)
 	/* poll */
 	func= RNA_def_function(srna, "poll", NULL);
 	RNA_def_function_ui_description(func, "Test if the operator can be called or not.");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	RNA_def_pointer(func, "context", "Context", "", "");
 
@@ -246,7 +246,7 @@ void RNA_api_macro(StructRNA *srna)
 	/* poll */
 	func= RNA_def_function(srna, "poll", NULL);
 	RNA_def_function_ui_description(func, "Test if the operator can be called or not.");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	RNA_def_pointer(func, "context", "Context", "", "");
 

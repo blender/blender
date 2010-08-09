@@ -581,8 +581,7 @@ static int rna_CustomDataData_numverts(PointerRNA *ptr, int type)
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomData *fdata= rna_mesh_fdata(me);
 	CustomDataLayer *cdl;
-	int a;
-	size_t b;
+	int a, b;
 
 	for(cdl=fdata->layers, a=0; a<fdata->totlayer; cdl++, a++) {
 		if(cdl->type == type) {
@@ -979,8 +978,7 @@ static char *rna_CustomDataData_path(PointerRNA *ptr, char *collection, int type
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomData *fdata= rna_mesh_fdata(me);
 	CustomDataLayer *cdl;
-	int a;
-	size_t b;
+	int a, b;
 
 	for(cdl=fdata->layers, a=0; a<fdata->totlayer; cdl++, a++) {
 		if(cdl->type == type) {
@@ -1313,7 +1311,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "tpage");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_TextureFace_image_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_TextureFace_image_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
@@ -1620,7 +1618,7 @@ static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 
 	prop= RNA_def_property(srna, "active_tface", PROP_POINTER, PROP_UNSIGNED);
 	RNA_def_property_struct_type(prop, "MeshTextureFace");
-	RNA_def_property_pointer_funcs(prop, "rna_Mesh_active_mtface_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Mesh_active_mtface_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Texture Face", "Active Texture Face");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 }
@@ -1671,7 +1669,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active_uv_texture", PROP_POINTER, PROP_UNSIGNED);
 	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");
-	RNA_def_property_pointer_funcs(prop, "rna_Mesh_active_uv_texture_get", "rna_Mesh_active_uv_texture_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Mesh_active_uv_texture_get", "rna_Mesh_active_uv_texture_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active UV Texture", "Active UV texture");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
@@ -1683,7 +1681,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "uv_texture_clone", PROP_POINTER, PROP_UNSIGNED);
 	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");
-	RNA_def_property_pointer_funcs(prop, "rna_Mesh_uv_texture_clone_get", "rna_Mesh_uv_texture_clone_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Mesh_uv_texture_clone_get", "rna_Mesh_uv_texture_clone_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Clone UV Texture", "UV texture to be used as cloning source");
 
@@ -1693,7 +1691,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "uv_texture_stencil", PROP_POINTER, PROP_UNSIGNED);
 	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");
-	RNA_def_property_pointer_funcs(prop, "rna_Mesh_uv_texture_stencil_get", "rna_Mesh_uv_texture_stencil_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Mesh_uv_texture_stencil_get", "rna_Mesh_uv_texture_stencil_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Mask UV Texture", "UV texture to mask the painted area");
 
@@ -1711,7 +1709,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active_vertex_color", PROP_POINTER, PROP_UNSIGNED);
 	RNA_def_property_struct_type(prop, "MeshColorLayer");
-	RNA_def_property_pointer_funcs(prop, "rna_Mesh_active_vertex_color_get", "rna_Mesh_active_vertex_color_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Mesh_active_vertex_color_get", "rna_Mesh_active_vertex_color_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Vertex Color Layer", "Active vertex color layer");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");

@@ -43,7 +43,6 @@
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 
-#include "BKE_action.h"
 #include "BKE_curve.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -61,7 +60,6 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_softbody.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

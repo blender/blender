@@ -29,6 +29,7 @@
 #include "rna_internal.h"
 
 #include "DNA_color_types.h"
+#include "DNA_texture_types.h"
 
 #ifdef RNA_RUNTIME
 

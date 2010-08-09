@@ -35,6 +35,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -51,8 +52,6 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_utildefines.h"
 #include "BKE_depsgraph.h" /* for fly mode updating */
 
 
@@ -587,11 +586,13 @@ void viewvector(RegionView3D *rv3d, float coord[3], float vec[3])
 	normalize_v3(vec);
 }
 
-void initgrabz(RegionView3D *rv3d, float x, float y, float z)
+int initgrabz(RegionView3D *rv3d, float x, float y, float z)
 {
-	if(rv3d==NULL) return;
+	int flip= FALSE;
+	if(rv3d==NULL) return flip;
 	rv3d->zfac= rv3d->persmat[0][3]*x+ rv3d->persmat[1][3]*y+ rv3d->persmat[2][3]*z+ rv3d->persmat[3][3];
-	
+	if (rv3d->zfac < 0.0f)
+		flip= TRUE;
 	/* if x,y,z is exactly the viewport offset, zfac is 0 and we don't want that 
 		* (accounting for near zero values)
 		* */
@@ -604,6 +605,8 @@ void initgrabz(RegionView3D *rv3d, float x, float y, float z)
 	// 	-- Aligorith, 2009Aug31
 	//if (rv3d->zfac < 0.0f) rv3d->zfac = 1.0f;
 	if (rv3d->zfac < 0.0f) rv3d->zfac= -rv3d->zfac;
+	
+	return flip;
 }
 
 /* always call initgrabz */

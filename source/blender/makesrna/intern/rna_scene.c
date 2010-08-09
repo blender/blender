@@ -106,13 +106,17 @@ EnumPropertyItem image_type_items[] = {
 	{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", ""},
 	{R_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", ""},
 	{0, "", 0, " ", NULL},
+#ifdef WITH_CINEON
 	{R_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", ""},
 	{R_DPX, "DPX",ICON_FILE_IMAGE, "DPX", ""},
+#endif
 #ifdef WITH_OPENEXR
 	{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", ""},
 	{R_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", ""},
 #endif
+#ifdef WITH_HDR
 	{R_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
+#endif
 #ifdef WITH_TIFF
 	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", ""},
 #endif
@@ -1195,7 +1199,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "skgen_template");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_skgen_etch_template_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_skgen_etch_template_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Template", "Template armature that will be retargeted to the stroke");
 
 	prop= RNA_def_property(srna, "etch_subdivision_number", PROP_INT, PROP_NONE);
@@ -1592,7 +1596,7 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "linestyle", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "FreestyleLineStyle");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
-	RNA_def_property_pointer_funcs(prop, "rna_FreestyleLineSet_linestyle_get", "rna_FreestyleLineSet_linestyle_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_FreestyleLineSet_linestyle_get", "rna_FreestyleLineSet_linestyle_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Line Style", "Line style settings");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
@@ -1771,7 +1775,7 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active_lineset", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "FreestyleLineSet");
-	RNA_def_property_pointer_funcs(prop, "rna_FreestyleSettings_active_lineset_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_FreestyleSettings_active_lineset_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Line Set", "Active line set being displayed");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
@@ -3131,7 +3135,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_object_get", "rna_Scene_active_object_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Object", "Active object for this scene");
 	/* Could call: ED_base_object_activate(C, scene->basact);
@@ -3222,6 +3226,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	/* Global Settings */
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Camera_object_poll");
 	RNA_def_property_ui_text(prop, "Camera", "Active camera used for rendering the scene");
 	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, "rna_Scene_view3d_update");
 
@@ -3229,7 +3234,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "set");
 	RNA_def_property_struct_type(prop, "Scene");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Background Scene", "Background set scene");
 	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, NULL);
 
@@ -3384,7 +3389,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_keying_set", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyingSet");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_keying_set_get", "rna_Scene_active_keying_set_set", NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_keying_set_get", "rna_Scene_active_keying_set_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Keying Set", "Active Keying Set used to insert/delete keyframes");
 	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET, NULL);
 	

@@ -38,12 +38,8 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-#include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
-#include "BKE_image.h"
 
 #include "ED_screen.h"
 #include "ED_object.h"

@@ -41,7 +41,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -243,7 +242,7 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 	col= uiLayoutColumn(layout, 0);
 		/* current Grease Pencil block */
 		// TODO: show some info about who owns this?
-		uiTemplateID(col, C, ctx_ptr, "grease_pencil", "GPENCIL_OT_data_add", NULL, "GPENCIL_OT_data_unlink", NULL); 
+		uiTemplateID(col, C, ctx_ptr, "grease_pencil", "GPENCIL_OT_data_add", NULL, "GPENCIL_OT_data_unlink"); 
 		
 		/* add new layer button - can be used even when no data, since it can add a new block too */
 		uiItemO(col, NULL, 0, "GPENCIL_OT_layer_add");

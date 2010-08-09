@@ -136,8 +136,21 @@ ifeq ($(WITH_TIFF), true)
     CPPFLAGS += -DWITH_TIFF
 endif
 
+ifeq ($(WITH_CINEON), true)
+    CPPFLAGS += -DWITH_CINEON
+endif
+
+ifeq ($(WITH_HDR), true)
+    CPPFLAGS += -DWITH_HDR
+endif
+
 ifeq ($(OS), darwin)
     ifeq ($(WITH_BF_OPENMP), true)
       CPPFLAGS += -DPARALLEL=1
     endif
+endif
+
+ifeq ($(WITH_LCMS), true)
+    CPPFLAGS += -DWITH_LCMS
+    CPPFLAGS += -I$(BF_LCMS_INC)
 endif

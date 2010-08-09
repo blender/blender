@@ -36,6 +36,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_meshdata_types.h" // Temporary, for snapping to other unselected meshes
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
@@ -60,8 +61,6 @@
 //#include "BIF_drawimage.h"
 //#include "BIF_editmesh.h"
 
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_anim.h" /* for duplis */

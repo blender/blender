@@ -138,7 +138,8 @@ class ConsoleAutocomplete(bpy.types.Operator):
     bl_idname = "console.autocomplete"
     bl_label = "Console Autocomplete"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return context.space_data.console_type != 'REPORT'
 
     def execute(self, context):
@@ -196,31 +197,12 @@ class ConsoleLanguage(bpy.types.Operator):
         return {'FINISHED'}
 
 
-classes = [
-    CONSOLE_HT_header,
-    CONSOLE_MT_console,
-    CONSOLE_MT_report,
-    CONSOLE_MT_language,
-
-    # Stubs that call the language operators
-    ConsoleExec,
-    ConsoleAutocomplete,
-    ConsoleBanner,
-
-    # Set the language and call the banner
-    ConsoleLanguage]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

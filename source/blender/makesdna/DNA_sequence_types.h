@@ -32,27 +32,17 @@
 #define DNA_SEQUENCE_TYPES_H
 
 #include "DNA_listBase.h"
-
-/* needed for sound support */
-#include "DNA_sound_types.h"
+#include "DNA_vec_types.h"
 
 struct Ipo;
 struct Scene;
+struct bSound;
 
 /* strlens; 80= FILE_MAXFILE, 160= FILE_MAXDIR */
 
 typedef struct StripElem {
 	char name[80];
 } StripElem;
-
-typedef struct TStripElem {
-	struct ImBuf *ibuf;
-	struct ImBuf *ibuf_comp;
-	struct TStripElem *se1, *se2, *se3;
-	short ok;
-	short flag;
-	int nr;
-} TStripElem;
 
 typedef struct StripCrop {
 	int top;
@@ -96,11 +86,6 @@ typedef struct Strip {
 	StripCrop *crop;
 	StripTransform *transform;
 	StripColorBalance *color_balance;
-	TStripElem *tstripdata;
-	TStripElem *tstripdata_startstill;
-	TStripElem *tstripdata_endstill;
-	struct ImBuf *ibuf_startstill;
-	struct ImBuf *ibuf_endstill;
 } Strip;
 
 

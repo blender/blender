@@ -40,19 +40,9 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
-#include "BKE_animsys.h"
 #include "BKE_nla.h"
-#include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_curve.h"
-#include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
-#include "BKE_fcurve.h"
-#include "BKE_object.h"
-#include "BKE_global.h"
-#include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 
@@ -237,7 +227,7 @@ static void nla_panel_animdata (const bContext *C, Panel *pa)
 	/* Active Action Properties ------------------------------------- */
 	/* action */
 	row= uiLayoutRow(layout, 1);
-		uiTemplateID(row, (bContext *)C, &adt_ptr, "action", "ACTION_OT_new", NULL, NULL /*"ACTION_OT_unlink"*/, NULL); // XXX: need to make these operators
+		uiTemplateID(row, (bContext *)C, &adt_ptr, "action", "ACTION_OT_new", NULL, NULL /*"ACTION_OT_unlink"*/); // XXX: need to make these operators
 	
 	/* extrapolation */
 	row= uiLayoutRow(layout, 1);

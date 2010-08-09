@@ -41,31 +41,22 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
-#include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_brush_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
-#include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
-#include "BKE_colortools.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -388,7 +379,7 @@ static int sculpt_brush_test_fast(SculptBrushTest *test, float co[3])
 
 static int sculpt_brush_test_cube(SculptBrushTest *test, float co[3], float local[4][4])
 {
-	const static float side = 0.70710678118654752440084436210485; // sqrt(.5);
+	static const float side = 0.70710678118654752440084436210485; // sqrt(.5);
 
 	float local_co[3];
 
@@ -2859,18 +2850,13 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 	if (ss->cache->alt_smooth) {
 		Paint *p= &sd->paint;
 		Brush *br;
-		int i;
 		
 		BLI_strncpy(cache->saved_active_brush_name, brush->id.name+2, sizeof(cache->saved_active_brush_name));
 
-		for(i = 0; i < p->brush_count; ++i) {
-			br = p->brushes[i];
-		
-			if (strcmp(br->id.name+2, "Smooth")==0) {
-				paint_brush_set(p, br);
-				brush = br;
-				break;
-			}
+		br= (Brush *)find_id("BR", "Smooth");
+		if(br) {
+			paint_brush_set(p, br);
+			brush = br;
 		}
 	}
 
@@ -3413,16 +3399,9 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *unused)
 		/* Alt-Smooth */
 		if (ss->cache->alt_smooth) {
 			Paint *p= &sd->paint;
-			Brush *br;
-			int i;
-
-			for(i = 0; i < p->brush_count; ++i) {
-				br = p->brushes[i];
-
-				if (strcmp(br->id.name+2, ss->cache->saved_active_brush_name)==0) {
-					paint_brush_set(p, br);
-					break;
-				}
+			Brush *br= (Brush *)find_id("BR", ss->cache->saved_active_brush_name);
+			if(br) {
+				paint_brush_set(p, br);
 			}
 		}
 

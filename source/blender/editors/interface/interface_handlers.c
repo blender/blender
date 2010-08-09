@@ -44,7 +44,6 @@
 #include "BKE_idprop.h"
 #include "BKE_report.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
 
 #include "ED_screen.h"
 #include "ED_util.h"

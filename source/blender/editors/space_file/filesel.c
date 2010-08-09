@@ -65,7 +65,6 @@
 #include "BLO_readfile.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
 #include "BKE_global.h"
 
 #include "BLF_api.h"

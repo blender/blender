@@ -71,6 +71,7 @@ private:
 	class KX_ISceneConverter*			m_sceneconverter;
 	class NG_NetworkDeviceInterface*		m_networkdevice;
 #ifndef DISABLE_PYTHON
+	/* borrowed from sys.modules["__main__"], dont manage ref's */
 	PyObject*					m_pythondictionary;
 #endif
 	class SCA_IInputDevice*				m_keyboarddevice;

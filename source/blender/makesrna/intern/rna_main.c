@@ -352,7 +352,7 @@ void RNA_def_main(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "test", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Test");
-	RNA_def_property_pointer_funcs(prop, "rna_Test_test_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Test_test_get", NULL, NULL, NULL);
 
 	RNA_define_verify_sdna(1);
 

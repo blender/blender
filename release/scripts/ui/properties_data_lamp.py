@@ -20,8 +20,6 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class LAMP_MT_sunsky_presets(bpy.types.Menu):
     bl_label = "Sun & Sky Presets"
@@ -31,25 +29,25 @@ class LAMP_MT_sunsky_presets(bpy.types.Menu):
     draw = bpy.types.Menu.draw_preset
 
 
-class DataButtonsPanel(bpy.types.Panel):
+class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         engine = context.scene.render.engine
-        return context.lamp and (engine in self.COMPAT_ENGINES)
+        return context.lamp and (engine in cls.COMPAT_ENGINES)
 
 
-class DATA_PT_preview(DataButtonsPanel):
+class DATA_PT_preview(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         self.layout.template_preview(context.lamp)
 
-
-class DATA_PT_context_lamp(DataButtonsPanel):
+class DATA_PT_context_lamp(DataButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -60,29 +58,23 @@ class DATA_PT_context_lamp(DataButtonsPanel):
         ob = context.object
         lamp = context.lamp
         space = context.space_data
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            split = layout.split(percentage=0.65)
-            if ob:
-                split.template_ID(ob, "data")
-                split.separator()
-            elif lamp:
-                split.template_ID(space, "pin_id")
-                split.separator()
-        else:
-            if ob:
-                layout.template_ID(ob, "data")
-            elif lamp:
-                layout.template_ID(space, "pin_id")
+        split = layout.split(percentage=0.65)
+
+        if ob:
+            split.template_ID(ob, "data")
+            split.separator()
+        elif lamp:
+            split.template_ID(space, "pin_id")
+            split.separator()
 
 
-class DATA_PT_custom_props_lamp(DataButtonsPanel, PropertyPanel):
-    _context_path = "object.data"
+class DATA_PT_custom_props_lamp(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "object.data"
 
 
-class DATA_PT_lamp(DataButtonsPanel):
+class DATA_PT_lamp(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Lamp"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -90,12 +82,8 @@ class DATA_PT_lamp(DataButtonsPanel):
         layout = self.layout
 
         lamp = context.lamp
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(lamp, "type", expand=True)
-        else:
-            layout.prop(lamp, "type", text="")
+        layout.prop(lamp, "type", expand=True)
 
         split = layout.split()
 
@@ -121,28 +109,27 @@ class DATA_PT_lamp(DataButtonsPanel):
             col.prop(lamp, "distance")
             col.prop(lamp, "gamma")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(lamp, "negative")
         col.prop(lamp, "layer", text="This Layer Only")
         col.prop(lamp, "specular")
         col.prop(lamp, "diffuse")
 
 
-class DATA_PT_sunsky(DataButtonsPanel):
+class DATA_PT_sunsky(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Sky & Atmosphere"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         lamp = context.lamp
         engine = context.scene.render.engine
-        return (lamp and lamp.type == 'SUN') and (engine in self.COMPAT_ENGINES)
+        return (lamp and lamp.type == 'SUN') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
 
         lamp = context.lamp.sky
-        wide_ui = context.region.width > narrowui
 
         row = layout.row(align=True)
         row.prop(lamp, "use_sky")
@@ -167,8 +154,7 @@ class DATA_PT_sunsky(DataButtonsPanel):
         sub.row().prop(lamp, "sky_color_space", expand=True)
         sub.prop(lamp, "sky_exposure", text="Exposure")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.active = lamp.use_sky
         col.label(text="Horizon:")
         sub = col.column()
@@ -193,8 +179,7 @@ class DATA_PT_sunsky(DataButtonsPanel):
         col.prop(lamp, "sun_intensity", text="Sun")
         col.prop(lamp, "atmosphere_distance_factor", text="Distance")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.active = lamp.use_atmosphere
         col.label(text="Scattering:")
         sub = col.column(align=True)
@@ -202,25 +187,36 @@ class DATA_PT_sunsky(DataButtonsPanel):
         sub.prop(lamp, "atmosphere_extinction", slider=True, text="Extinction")
 
 
-class DATA_PT_shadow(DataButtonsPanel):
+class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Shadow"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         lamp = context.lamp
         engine = context.scene.render.engine
-        return (lamp and lamp.type in ('POINT', 'SUN', 'SPOT', 'AREA')) and (engine in self.COMPAT_ENGINES)
+        return (lamp and lamp.type in ('POINT', 'SUN', 'SPOT', 'AREA')) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
 
         lamp = context.lamp
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(lamp, "shadow_method", expand=True)
-        else:
-            layout.prop(lamp, "shadow_method", text="")
+        layout.prop(lamp, "shadow_method", expand=True)
+
+        if lamp.shadow_method == 'NOSHADOW' and lamp.type == 'AREA':
+            split = layout.split()
+
+            col= split.column()
+            col.label(text="Form factor sampling:")
+            
+            sub=col.row(align=True)
+
+            if lamp.shape == 'SQUARE':
+                sub.prop(lamp, "shadow_ray_samples_x", text="Samples")
+            elif lamp.shape == 'RECTANGLE':
+                sub.prop(lamp, "shadow_ray_samples_x", text="Samples X")
+                sub.prop(lamp, "shadow_ray_samples_y", text="Samples Y")
 
         if lamp.shadow_method != 'NOSHADOW':
             split = layout.split()
@@ -228,65 +224,51 @@ class DATA_PT_shadow(DataButtonsPanel):
             col = split.column()
             col.prop(lamp, "shadow_color", text="")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.prop(lamp, "shadow_layer", text="This Layer Only")
             col.prop(lamp, "only_shadow")
 
         if lamp.shadow_method == 'RAY_SHADOW':
-            col = layout.column()
+            split = layout.split()
+            
+            col = split.column()
             col.label(text="Sampling:")
-            if wide_ui:
-                col.row().prop(lamp, "shadow_ray_sampling_method", expand=True)
-            else:
-                col.prop(lamp, "shadow_ray_sampling_method", text="")
-
+            
             if lamp.type in ('POINT', 'SUN', 'SPOT'):
-                split = layout.split()
-
-                col = split.column()
-                col.prop(lamp, "shadow_soft_size", text="Soft Size")
-
-                col.prop(lamp, "shadow_ray_samples", text="Samples")
-                if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
-                    col.prop(lamp, "shadow_adaptive_threshold", text="Threshold")
-                if wide_ui:
-                    col = split.column()
-
+                sub = col.row()
+                
+                sub.prop(lamp, "shadow_ray_samples", text="Samples")
+                sub.prop(lamp, "shadow_soft_size", text="Soft Size")
+                
             elif lamp.type == 'AREA':
-                split = layout.split()
-
-                col = split.column()
-
+                sub = col.row(align=True)
+                
                 if lamp.shape == 'SQUARE':
-                    col.prop(lamp, "shadow_ray_samples_x", text="Samples")
+                    sub.prop(lamp, "shadow_ray_samples_x", text="Samples")
                 elif lamp.shape == 'RECTANGLE':
-                    col.prop(lamp, "shadow_ray_samples_x", text="Samples X")
-                    col.prop(lamp, "shadow_ray_samples_y", text="Samples Y")
+                    sub.prop(lamp, "shadow_ray_samples_x", text="Samples X")
+                    sub.prop(lamp, "shadow_ray_samples_y", text="Samples Y")
 
-                if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
-                    col.prop(lamp, "shadow_adaptive_threshold", text="Threshold")
-                    if wide_ui:
-                        col = split.column()
+            col.row().prop(lamp, "shadow_ray_sampling_method", expand=True)
 
-                elif lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
-                    if wide_ui:
-                        col = split.column()
-                    col.prop(lamp, "umbra")
-                    col.prop(lamp, "dither")
-                    col.prop(lamp, "jitter")
-                else:
-                    if wide_ui:
-                        col = split.column()
-
+            split = layout.split()
+            col = split.column()
+            
+            if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
+                col.prop(lamp, "shadow_adaptive_threshold", text="Threshold")
+                col = split.column()
+            
+            if lamp.type == 'AREA' and lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
+                col = split.column()
+                col = split.column()
+                col.prop(lamp, "umbra")
+                col.prop(lamp, "dither")
+                col.prop(lamp, "jitter")
 
         elif lamp.shadow_method == 'BUFFER_SHADOW':
             col = layout.column()
             col.label(text="Buffer Type:")
-            if wide_ui:
-                col.row().prop(lamp, "shadow_buffer_type", expand=True)
-            else:
-                col.row().prop(lamp, "shadow_buffer_type", text="")
+            col.row().prop(lamp, "shadow_buffer_type", expand=True)
 
             if lamp.shadow_buffer_type in ('REGULAR', 'HALFWAY', 'DEEP'):
                 split = layout.split()
@@ -298,8 +280,7 @@ class DATA_PT_shadow(DataButtonsPanel):
                 sub.prop(lamp, "shadow_buffer_soft", text="Soft")
                 sub.prop(lamp, "shadow_buffer_bias", text="Bias")
 
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.label(text="Sample Buffers:")
                 col.prop(lamp, "shadow_sample_buffers", text="")
                 sub = col.column(align=True)
@@ -319,34 +300,34 @@ class DATA_PT_shadow(DataButtonsPanel):
             sub.active = not lamp.auto_clip_start
             sub.prop(lamp, "shadow_buffer_clip_start", text="Clip Start")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.prop(lamp, "auto_clip_end", text="Autoclip End")
             sub = col.column()
             sub.active = not lamp.auto_clip_end
             sub.prop(lamp, "shadow_buffer_clip_end", text=" Clip End")
 
 
-class DATA_PT_area(DataButtonsPanel):
+class DATA_PT_area(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Area Shape"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         lamp = context.lamp
         engine = context.scene.render.engine
-        return (lamp and lamp.type == 'AREA') and (engine in self.COMPAT_ENGINES)
+        return (lamp and lamp.type == 'AREA') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
-        layout = self.layout
-
         lamp = context.lamp
 
+        layout = self.layout
         split = layout.split()
 
         col = split.column()
+        
         col.row().prop(lamp, "shape", expand=True)
+        sub = col.row(align=True)
 
-        sub = col.column(align=True)
         if (lamp.shape == 'SQUARE'):
             sub.prop(lamp, "size")
         elif (lamp.shape == 'RECTANGLE'):
@@ -354,20 +335,20 @@ class DATA_PT_area(DataButtonsPanel):
             sub.prop(lamp, "size_y", text="Size Y")
 
 
-class DATA_PT_spot(DataButtonsPanel):
+class DATA_PT_spot(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Spot Shape"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         lamp = context.lamp
         engine = context.scene.render.engine
-        return (lamp and lamp.type == 'SPOT') and (engine in self.COMPAT_ENGINES)
+        return (lamp and lamp.type == 'SPOT') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
 
         lamp = context.lamp
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -378,10 +359,8 @@ class DATA_PT_spot(DataButtonsPanel):
         col.prop(lamp, "square")
         col.prop(lamp, "show_cone")
 
-        if wide_ui:
-            col = split.column()
-        else:
-            col.separator()
+        col = split.column()
+
         col.prop(lamp, "halo")
         sub = col.column(align=True)
         sub.active = lamp.halo
@@ -390,16 +369,17 @@ class DATA_PT_spot(DataButtonsPanel):
             sub.prop(lamp, "halo_step", text="Step")
 
 
-class DATA_PT_falloff_curve(DataButtonsPanel):
+class DATA_PT_falloff_curve(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Falloff Curve"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         lamp = context.lamp
         engine = context.scene.render.engine
 
-        return (lamp and lamp.type in ('POINT', 'SPOT') and lamp.falloff_type == 'CUSTOM_CURVE') and (engine in self.COMPAT_ENGINES)
+        return (lamp and lamp.type in ('POINT', 'SPOT') and lamp.falloff_type == 'CUSTOM_CURVE') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         lamp = context.lamp
@@ -407,31 +387,12 @@ class DATA_PT_falloff_curve(DataButtonsPanel):
         self.layout.template_curve_mapping(lamp, "falloff_curve")
 
 
-classes = [
-    LAMP_MT_sunsky_presets,
-
-    DATA_PT_context_lamp,
-    DATA_PT_preview,
-    DATA_PT_lamp,
-    DATA_PT_falloff_curve,
-    DATA_PT_area,
-    DATA_PT_spot,
-    DATA_PT_shadow,
-    DATA_PT_sunsky,
-
-    DATA_PT_custom_props_lamp]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

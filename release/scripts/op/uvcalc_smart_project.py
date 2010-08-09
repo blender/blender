@@ -1124,7 +1124,8 @@ class SmartProject(bpy.types.Operator):
             description="Margin to reduce bleed from adjacent islands.",
             default=0.0, min=0.0, max=1.0)
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return context.active_object != None
 
     def execute(self, context):
@@ -1138,12 +1139,10 @@ menu_func = (lambda self, context: self.layout.operator(SmartProject.bl_idname,
 
 
 def register():
-    bpy.types.register(SmartProject)
     bpy.types.VIEW3D_MT_uv_map.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(SmartProject)
     bpy.types.VIEW3D_MT_uv_map.remove(menu_func)
 
 if __name__ == "__main__":

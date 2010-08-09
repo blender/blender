@@ -1067,6 +1067,7 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "tar");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Curve_object_poll");
 	RNA_def_property_ui_text(prop, "Target", "Target Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
@@ -1273,7 +1274,8 @@ static void rna_def_constraint_clamp_to(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bClampToConstraint", "data");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "tar"); // TODO: curve only!
+	RNA_def_property_pointer_sdna(prop, NULL, "tar"); // TODO: curve only for set function!
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Curve_object_poll");
 	RNA_def_property_ui_text(prop, "Target", "Target Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
@@ -1707,7 +1709,8 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bShrinkwrapConstraint", "data");
 	
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "target");
+	RNA_def_property_pointer_sdna(prop, NULL, "target"); /* TODO, mesh type */
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Mesh_object_poll");
 	RNA_def_property_ui_text(prop, "Target", "Target Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");

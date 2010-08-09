@@ -330,7 +330,8 @@ void boundbox_mesh(Mesh *me, float *loc, float *size)
 	if (!loc) loc= mloc;
 	if (!size) size= msize;
 	
-	if(!mesh_bounds(me, min, max)) {
+	INIT_MINMAX(min, max);
+	if(!minmax_mesh(me, min, max)) {
 		min[0] = min[1] = min[2] = -1.0f;
 		max[0] = max[1] = max[2] = 1.0f;
 	}
@@ -1484,11 +1485,10 @@ void mesh_pmv_off(Object *ob, Mesh *me)
 }
 
 /* basic vertex data functions */
-int mesh_bounds(Mesh *me, float min[3], float max[3])
+int minmax_mesh(Mesh *me, float min[3], float max[3])
 {
 	int i= me->totvert;
 	MVert *mvert;
-	INIT_MINMAX(min, max);
 	for(mvert= me->mvert; i--; mvert++) {
 		DO_MINMAX(mvert->co, min, max);
 	}
@@ -1512,8 +1512,8 @@ int mesh_center_median(Mesh *me, float cent[3])
 int mesh_center_bounds(Mesh *me, float cent[3])
 {
 	float min[3], max[3];
-
-	if(mesh_bounds(me, min, max)) {
+	INIT_MINMAX(min, max);
+	if(minmax_mesh(me, min, max)) {
 		mid_v3_v3v3(cent, min, max);
 		return 1;
 	}

@@ -43,19 +43,12 @@
 #include "BLI_storage_types.h"
 
 
-#include "DNA_ipo_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
-#include "BKE_plugin_types.h"
 #include "BKE_sequencer.h"
-#include "BKE_scene.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 #include "BKE_sound.h"
 
@@ -725,8 +718,9 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 	while(seq) {
 		seqn= seq->next;
 		if((seq->flag & flag) || deleteall) {
-			if(seq->type==SEQ_SOUND && seq->sound)
-				seq->sound->id.us--;
+			if(seq->type==SEQ_SOUND && seq->sound) {
+				((ID *)seq->sound)->us--; /* TODO, could be moved into seq_free_sequence() */
+			}
 
 			BLI_remlink(lb, seq);
 			if(seq==last_seq) seq_active_set(scene, NULL);

@@ -275,16 +275,15 @@ class ExportPLY(bpy.types.Operator):
     use_uvs = BoolProperty(name="UVs", description="Exort the active UV layer", default=True)
     use_colors = BoolProperty(name="Vertex Colors", description="Exort the active vertex color layer", default=True)
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return context.active_object != None
 
     def execute(self, context):
-        # print("Selected: " + context.active_object.name)
+        filepath = self.properties.filepath
+        filepath = bpy.path.ensure_ext(filepath, ".ply")
 
-        if not self.properties.filepath:
-            raise Exception("filename not set")
-
-        write(self.properties.filepath, context.scene, context.active_object,\
+        write(filepath, context.scene, context.active_object,\
             EXPORT_APPLY_MODIFIERS=self.properties.use_modifiers,
             EXPORT_NORMALS=self.properties.use_normals,
             EXPORT_UV=self.properties.use_uvs,
@@ -317,12 +316,10 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(ExportPLY)
     bpy.types.INFO_MT_file_export.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(ExportPLY)
     bpy.types.INFO_MT_file_export.remove(menu_func)
 
 if __name__ == "__main__":

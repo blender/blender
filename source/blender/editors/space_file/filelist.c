@@ -52,25 +52,13 @@
 #endif
 
 #include "BKE_context.h"
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BLO_readfile.h"
 
 #include "DNA_space_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_ID.h"
-#include "DNA_object_types.h"
-#include "DNA_listBase.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_world_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 
 #include "ED_datafiles.h"
 
@@ -828,141 +816,13 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				file->flags |= BTXFILE;
 		} else if(BLI_testextensie(file->relname, ".dae")) {
 			file->flags |= COLLADAFILE;
-		} else if (has_quicktime){
-			if(		BLI_testextensie(file->relname, ".int")
-				||  BLI_testextensie(file->relname, ".inta")
-				||  BLI_testextensie(file->relname, ".jpg")
-#ifdef WITH_OPENJPEG
-				||  BLI_testextensie(file->relname, ".jp2")
-#endif
-				||	BLI_testextensie(file->relname, ".jpeg")
-				||	BLI_testextensie(file->relname, ".tga")
-				||	BLI_testextensie(file->relname, ".rgb")
-				||	BLI_testextensie(file->relname, ".rgba")
-				||	BLI_testextensie(file->relname, ".bmp")
-				||	BLI_testextensie(file->relname, ".png")
-				||	BLI_testextensie(file->relname, ".iff")
-				||	BLI_testextensie(file->relname, ".lbm")
-				||	BLI_testextensie(file->relname, ".gif")
-				||	BLI_testextensie(file->relname, ".psd")
-				||	BLI_testextensie(file->relname, ".tif")
-				||	BLI_testextensie(file->relname, ".tiff")
-				||	BLI_testextensie(file->relname, ".tx")
-				||	BLI_testextensie(file->relname, ".pct")
-				||	BLI_testextensie(file->relname, ".pict")
-				||	BLI_testextensie(file->relname, ".pntg") //macpaint
-				||	BLI_testextensie(file->relname, ".qtif")
-				||	BLI_testextensie(file->relname, ".sgi")
-				||	BLI_testextensie(file->relname, ".hdr")
-#ifdef WITH_DDS
-				||	BLI_testextensie(file->relname, ".dds")
-#endif
-#ifdef WITH_OPENEXR
-				||	BLI_testextensie(file->relname, ".exr")
-#endif
-				) {
+		} else if(BLI_testextensie_array(file->relname, imb_ext_image)
+					|| (has_quicktime && BLI_testextensie_array(file->relname, imb_ext_image_qt))) {
 				file->flags |= IMAGEFILE;			
-			}
-			else if(BLI_testextensie(file->relname, ".avi")
-				||	BLI_testextensie(file->relname, ".flc")
-				||	BLI_testextensie(file->relname, ".mov")
-				||	BLI_testextensie(file->relname, ".movie")
-				||	BLI_testextensie(file->relname, ".mp4")
-				||	BLI_testextensie(file->relname, ".m4v")
-				||	BLI_testextensie(file->relname, ".m2v")
-				||	BLI_testextensie(file->relname, ".m2t")
-				||	BLI_testextensie(file->relname, ".mts")
-				||	BLI_testextensie(file->relname, ".mv")
-				||	BLI_testextensie(file->relname, ".avs")
-				||	BLI_testextensie(file->relname, ".wmv")
-				||	BLI_testextensie(file->relname, ".ogv")
-				||	BLI_testextensie(file->relname, ".dv")
-				||	BLI_testextensie(file->relname, ".mpeg")
-				||	BLI_testextensie(file->relname, ".mpg")
-				||	BLI_testextensie(file->relname, ".mpg2")
-				||	BLI_testextensie(file->relname, ".vob")
-				||	BLI_testextensie(file->relname, ".mkv")
-				||	BLI_testextensie(file->relname, ".flv")
-				||	BLI_testextensie(file->relname, ".divx")
-				||	BLI_testextensie(file->relname, ".xvid")) {
-				file->flags |= MOVIEFILE;			
-			}
-			else if(BLI_testextensie(file->relname, ".wav")
-				||	BLI_testextensie(file->relname, ".ogg")
-				||	BLI_testextensie(file->relname, ".oga")
-				||	BLI_testextensie(file->relname, ".mp3")
-				||	BLI_testextensie(file->relname, ".mp2")
-				||	BLI_testextensie(file->relname, ".ac3")
-				||	BLI_testextensie(file->relname, ".aac")
-				||	BLI_testextensie(file->relname, ".flac")
-				||	BLI_testextensie(file->relname, ".wma")
-				||	BLI_testextensie(file->relname, ".eac3")) {
-				file->flags |= SOUNDFILE;
-			}
-		} else { // no quicktime
-			if(BLI_testextensie(file->relname, ".int")
-				||	BLI_testextensie(file->relname, ".inta")
-				||	BLI_testextensie(file->relname, ".jpg")
-				||  BLI_testextensie(file->relname, ".jpeg")
-#ifdef WITH_OPENJPEG
-				||  BLI_testextensie(file->relname, ".jp2")
-#endif
-				||	BLI_testextensie(file->relname, ".tga")
-				||	BLI_testextensie(file->relname, ".rgb")
-				||	BLI_testextensie(file->relname, ".rgba")
-				||	BLI_testextensie(file->relname, ".bmp")
-				||	BLI_testextensie(file->relname, ".png")
-				||	BLI_testextensie(file->relname, ".iff")
-				||	BLI_testextensie(file->relname, ".tif")
-				||	BLI_testextensie(file->relname, ".tiff")
-				||	BLI_testextensie(file->relname, ".tx")
-				||	BLI_testextensie(file->relname, ".hdr")
-#ifdef WITH_DDS
-				||	BLI_testextensie(file->relname, ".dds")
-#endif
-#ifdef WITH_OPENEXR
-				||	BLI_testextensie(file->relname, ".exr")
-#endif
-				||	BLI_testextensie(file->relname, ".lbm")
-				||	BLI_testextensie(file->relname, ".sgi")) {
-				file->flags |= IMAGEFILE;			
-			}
-			else if(BLI_testextensie(file->relname, ".avi")
-				||	BLI_testextensie(file->relname, ".flc")
-				||	BLI_testextensie(file->relname, ".mov")
-				||	BLI_testextensie(file->relname, ".movie")
-				||	BLI_testextensie(file->relname, ".mp4")
-				||	BLI_testextensie(file->relname, ".m4v")
-				||	BLI_testextensie(file->relname, ".m2v")
-				||	BLI_testextensie(file->relname, ".m2t")
-				||	BLI_testextensie(file->relname, ".mts")
-				||	BLI_testextensie(file->relname, ".mv")
-				||	BLI_testextensie(file->relname, ".avs")
-				||	BLI_testextensie(file->relname, ".wmv")
-				||	BLI_testextensie(file->relname, ".ogv")
-				||	BLI_testextensie(file->relname, ".dv")
-				||	BLI_testextensie(file->relname, ".mpeg")
-				||	BLI_testextensie(file->relname, ".mpg")
-				||	BLI_testextensie(file->relname, ".mpg2")
-				||	BLI_testextensie(file->relname, ".vob")
-				||	BLI_testextensie(file->relname, ".mkv")
-				||	BLI_testextensie(file->relname, ".flv")
-				||	BLI_testextensie(file->relname, ".divx")
-				||	BLI_testextensie(file->relname, ".xvid")) {
-				file->flags |= MOVIEFILE;			
-			}
-			else if(BLI_testextensie(file->relname, ".wav")
-				||	BLI_testextensie(file->relname, ".ogg")
-				||	BLI_testextensie(file->relname, ".oga")
-				||	BLI_testextensie(file->relname, ".mp3")
-				||	BLI_testextensie(file->relname, ".mp2")
-				||	BLI_testextensie(file->relname, ".ac3")
-				||	BLI_testextensie(file->relname, ".aac")
-				||	BLI_testextensie(file->relname, ".flac")
-				||	BLI_testextensie(file->relname, ".wma")
-				||	BLI_testextensie(file->relname, ".eac3")) {
-				file->flags |= SOUNDFILE;
-			}
+		} else if(BLI_testextensie_array(file->relname, imb_ext_movie)) {
+			file->flags |= MOVIEFILE;			
+		} else if(BLI_testextensie_array(file->relname, imb_ext_audio)) {
+			file->flags |= SOUNDFILE;
 		}
 	}
 }

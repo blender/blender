@@ -50,7 +50,6 @@
 #include "BIF_glutil.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_utildefines.h"
 
 #include "ED_image.h"

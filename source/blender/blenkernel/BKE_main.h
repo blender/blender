@@ -58,7 +58,6 @@ typedef struct Main {
 	ListBase mat;
 	ListBase tex;
 	ListBase image;
-	ListBase wave;
 	ListBase latt;
 	ListBase lamp;
 	ListBase camera;

@@ -249,7 +249,8 @@ class FollowActiveQuads(bpy.types.Operator):
                         description="Method to space UV edge loops",
                         default="LENGTH")
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj is not None and obj.type == 'MESH')
 
@@ -263,12 +264,10 @@ menu_func = (lambda self, context: self.layout.operator(FollowActiveQuads.bl_idn
 
 
 def register():
-    bpy.types.register(FollowActiveQuads)
     bpy.types.VIEW3D_MT_uv_map.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(FollowActiveQuads)
     bpy.types.VIEW3D_MT_uv_map.remove(menu_func)
 
 if __name__ == "__main__":

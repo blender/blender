@@ -56,13 +56,15 @@ class EditExternally(bpy.types.Operator):
         return image_editor
 
     def execute(self, context):
+        import os
         import subprocess
-        filepath = self.properties.filepath
-        image_editor = self._editor_guess(context)
+        filepath = bpy.path.abspath(self.properties.filepath)
 
-        cmd = []
-        cmd.extend(image_editor)
-        cmd.append(bpy.utils.expandpath(filepath))
+        if not os.path.exists(filepath):
+            self.report('ERROR', "Image path '%s' not found." % filepath)
+            return {'CANCELLED'}
+
+        cmd = self._editor_guess(context) + [filepath]
 
         subprocess.Popen(cmd)
 
@@ -91,7 +93,7 @@ class SaveDirty(bpy.types.Operator):
         unique_paths = set()
         for image in bpy.data.images:
             if image.dirty:
-                filepath = bpy.utils.expandpath(image.filepath)
+                filepath = bpy.path.abspath(image.filepath)
                 if "\\" not in filepath and "/" not in filepath:
                     self.report({'WARNING'}, "Invalid path: " + filepath)
                 elif filepath in unique_paths:
@@ -133,7 +135,7 @@ class ProjectEdit(bpy.types.Operator):
 
         filepath = os.path.basename(bpy.data.filepath)
         filepath = os.path.splitext(filepath)[0]
-        # filepath = bpy.utils.clean_name(filepath) # fixes <memory> rubbish, needs checking
+        # filepath = bpy.path.clean_name(filepath) # fixes <memory> rubbish, needs checking
 
         if filepath.startswith(".") or filepath == "":
             # TODO, have a way to check if the file is saved, assume .B25.blend
@@ -145,12 +147,12 @@ class ProjectEdit(bpy.types.Operator):
         obj = context.object
 
         if obj:
-            filepath += "_" + bpy.utils.clean_name(obj.name)
+            filepath += "_" + bpy.path.clean_name(obj.name)
 
         filepath_final = filepath + "." + EXT
         i = 0
 
-        while os.path.exists(bpy.utils.expandpath(filepath_final)):
+        while os.path.exists(bpy.path.abspath(filepath_final)):
             filepath_final = filepath + ("%.3d.%s" % (i, EXT))
             i += 1
 
@@ -186,23 +188,12 @@ class ProjectApply(bpy.types.Operator):
 
         return {'FINISHED'}
 
-classes = [
-    EditExternally,
-    SaveDirty,
-    ProjectEdit,
-    ProjectApply]
-
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
-
+    pass
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

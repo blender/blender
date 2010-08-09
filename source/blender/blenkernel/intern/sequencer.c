@@ -39,6 +39,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
+#include "DNA_sound_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_global.h"
@@ -898,7 +899,6 @@ static float give_stripelem_index(Sequence *seq, float cfra)
 {
 	float nr;
 
-	if(seq->startdisp >cfra || seq->enddisp <= cfra) return -1;
 	if(seq->len == 0) return -1;
 	if(seq->flag&SEQ_REVERSE_FRAMES) {	
 		/*reverse frame in this sequence */
@@ -1460,8 +1460,7 @@ int input_have_to_preprocess(
 
 	mul = seq->mul;
 
-	if(seq->blend_mode == SEQ_BLEND_REPLACE &&
-	   !(seq->type & SEQ_EFFECT)) {
+	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
 		mul *= seq->blend_opacity / 100.0;
 	}
 
@@ -1992,7 +1991,7 @@ static ImBuf * seq_render_strip(Scene *scene, Sequence * seq, float cfra,
 	} else if(seq->type == SEQ_IMAGE) {
 		StripElem * s_elem = give_stripelem(seq, cfra);
 
-		if(ibuf == 0) {
+		if(ibuf == 0 && s_elem) {
 			BLI_join_dirfile(name, seq->strip->dir, s_elem->name);
 			BLI_path_abs(name, G.sce);
 
@@ -2003,7 +2002,8 @@ static ImBuf * seq_render_strip(Scene *scene, Sequence * seq, float cfra,
 			ibuf = copy_from_ibuf_still(seq,nr,seqrectx,seqrecty);
 		}
 
-		if (ibuf == 0 && (ibuf=IMB_loadiffname(name, IB_rect))) {
+		if (ibuf == 0 && s_elem && 
+		    (ibuf = IMB_loadiffname(name, IB_rect))) {
 			/* we don't need both (speed reasons)! */
 			if (ibuf->rect_float && ibuf->rect)
 				imb_freerectImBuf(ibuf);
@@ -3539,12 +3539,6 @@ static Sequence *seq_dupli(struct Scene *scene, Sequence *seq, int dupe_flag)
 	seqn->strip= MEM_dupallocN(seq->strip);
 
 	// XXX: add F-Curve duplication stuff?
-
-	seqn->strip->tstripdata = 0;
-	seqn->strip->tstripdata_startstill = 0;
-	seqn->strip->tstripdata_endstill = 0;
-	seqn->strip->ibuf_startstill = 0;
-	seqn->strip->ibuf_endstill = 0;
 
 	if (seq->strip->crop) {
 		seqn->strip->crop = MEM_dupallocN(seq->strip->crop);

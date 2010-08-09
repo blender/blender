@@ -45,7 +45,6 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_utildefines.h"
 
 #include "DNA_userdef_types.h"
 

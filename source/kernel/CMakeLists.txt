@@ -35,4 +35,3 @@ FILE(GLOB SRC
 )
 
 BLENDERLIB(bf_kernel "${SRC}" "${INC}")
-#env.BlenderLib ( 'bf_kernel', Split(sources), Split(incs), [], libtype = ['common','game2', 'player'], priority = [15, 10, 150] )

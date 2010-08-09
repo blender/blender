@@ -786,6 +786,7 @@ int RNA_property_array_item_index(PropertyRNA *prop, char name)
 	return -1;
 }
 
+
 void RNA_property_int_range(PointerRNA *ptr, PropertyRNA *prop, int *hardmin, int *hardmax)
 {
 	IntPropertyRNA *iprop= (IntPropertyRNA*)rna_ensure_property(prop);
@@ -988,6 +989,22 @@ StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
 	}
 
 	return &RNA_UnknownType;
+}
+
+int RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *value)
+{
+	prop= rna_ensure_property(prop);
+
+	if(prop->type == PROP_POINTER) {
+		PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
+		if(pprop->poll)
+			return pprop->poll(ptr, *value);
+
+		return 1;
+	}
+
+	printf("RNA_property_pointer_poll %s: is not a pointer property.\n", prop->identifier);
+	return 0;
 }
 
 /* Reuse for dynamic types  */

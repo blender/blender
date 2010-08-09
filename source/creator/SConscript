@@ -35,9 +35,6 @@ if env['WITH_BF_PYTHON']:
 		defs.append('_DEBUG')
 else:
 	defs.append('DISABLE_PYTHON')
-
-if env['WITH_BF_FHS']: # /usr -> /usr/share/blender/2.5
-	defs.append('BLENDERPATH=\\"' + os.path.join(env['BF_INSTALLDIR'], 'share', 'blender', env['BF_VERSION']) + '\\"')
 	
 if env['BF_BUILDINFO']:
 	defs.append('BUILD_DATE')

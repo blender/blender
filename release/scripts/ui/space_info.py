@@ -354,34 +354,13 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
         return {'FINISHED'}
 
 
-classes = [
-    INFO_HT_header,
-    INFO_MT_file,
-    INFO_MT_file_import,
-    INFO_MT_file_export,
-    INFO_MT_file_external_data,
-    INFO_MT_add,
-    INFO_MT_mesh_add,
-    INFO_MT_curve_add,
-    INFO_MT_surface_add,
-    INFO_MT_armature_add,
-    INFO_MT_game,
-    INFO_MT_render,
-    INFO_MT_help,
-
-    HELP_OT_operator_cheat_sheet]
-
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

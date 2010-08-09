@@ -51,7 +51,6 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
 #include "BKE_mesh.h"
 
 #include "BIF_gl.h"

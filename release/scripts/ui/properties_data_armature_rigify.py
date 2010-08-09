@@ -19,8 +19,6 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class PoseTemplateSettings(bpy.types.IDPropertyGroup):
     pass
@@ -44,7 +42,8 @@ class DATA_PT_template(bpy.types.Panel):
 
     templates = []
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         if not context.armature:
             return False
         obj = context.object
@@ -212,7 +211,7 @@ class Graph(bpy.types.Operator):
         import bpy
         reload(graphviz_export)
         obj = bpy.context.object
-        path = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.utils.clean_name(obj.name)
+        path = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.path.clean_name(obj.name)
         path_dot = path + ".dot"
         path_png = path + ".png"
         saved = graphviz_export.graph_armature(bpy.context.object, path_dot, CONSTRAINTS=False, DRIVERS=False)
@@ -249,7 +248,7 @@ class AsScript(bpy.types.Operator):
     def invoke(self, context, event):
         import os
         obj = context.object
-        self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.utils.clean_name(obj.name) + ".py"
+        self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.path.clean_name(obj.name) + ".py"
         wm = context.manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
@@ -262,7 +261,8 @@ class ActiveAssign(bpy.types.Operator):
     bl_idname = "pose.metarig_assign"
     bl_label = "Assign to the active posebone"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         bone = context.active_pose_bone
         return bool(bone and bone.id_data.mode == 'POSE')
 
@@ -280,7 +280,8 @@ class ActiveClear(bpy.types.Operator):
     bl_idname = "pose.metarig_clear"
     bl_label = "Metarig Clear Type"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         bone = context.active_pose_bone
         return bool(bone and bone.id_data.mode == 'POSE')
 
@@ -304,36 +305,14 @@ class INFO_MT_armature_metarig_add(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         for submodule_type in rigify.get_submodule_types():
-            text = bpy.utils.display_name(submodule_type)
+            text = bpy.path.display_name(submodule_type)
             layout.operator("pose.metarig_sample_add", text=text, icon='OUTLINER_OB_ARMATURE').metarig_type = submodule_type
-
-classes = [
-    DATA_PT_template,
-
-    PoseTemplateSettings,
-    PoseTemplate,
-
-    Reload,
-    Generate,
-    Validate,
-    Sample,
-    Graph,
-    AsScript,
-
-    ActiveAssign,
-    ActiveClear,
-
-    INFO_MT_armature_metarig_add]
 
 menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))
 import space_info # ensure the menu is loaded first
 
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
-
     PoseTemplate.StringProperty(attr="name",
                     name="Name of the slave",
                     description="",
@@ -361,10 +340,6 @@ def register():
 
 def unregister():
     bpy.types.Scene.RemoveProperty("pose_templates")
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
-
     space_info.INFO_MT_armature_add.remove(menu_func)
 
 if __name__ == "__main__":

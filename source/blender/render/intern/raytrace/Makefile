@@ -63,3 +63,7 @@ endif
 ifeq ($(WITH_OPENEXR),true)
     CPPFLAGS += -DWITH_OPENEXR
 endif
+
+ifeq ($(WITH_BF_RAYOPTIMIZATION), true)
+    CPPFLAGS += -D__SSE__
+endif

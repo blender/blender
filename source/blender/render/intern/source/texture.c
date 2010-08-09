@@ -2509,6 +2509,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 	if (R.r.scemode & R_NO_TEX) return;
 	
 	mtex= har->mat->mtex[0];
+	if(har->mat->septex & (1<<0)) return;
 	if(mtex->tex==NULL) return;
 	
 	/* no normal mapping */

@@ -528,19 +528,19 @@ void RNA_def_world(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "lighting", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "WorldLighting");
-	RNA_def_property_pointer_funcs(prop, "rna_World_lighting_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_World_lighting_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Lighting", "World lighting settings");
 
 	prop= RNA_def_property(srna, "mist", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "WorldMistSettings");
-	RNA_def_property_pointer_funcs(prop, "rna_World_mist_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_World_mist_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Mist", "World mist settings");
 
 	prop= RNA_def_property(srna, "stars", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "WorldStarsSettings");
-	RNA_def_property_pointer_funcs(prop, "rna_World_stars_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_World_stars_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Stars", "World stars settings");
 
 	rna_def_lighting(brna);

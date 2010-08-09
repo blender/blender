@@ -80,4 +80,3 @@ IF(WITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
 BLENDERLIB(bf_ketsji "${SRC}" "${INC}")
-#env.BlenderLib ( 'bf_ketsji', sources, Split(incs), [], libtype=['game','player'], priority=[25, 72], compileflags = cflags )

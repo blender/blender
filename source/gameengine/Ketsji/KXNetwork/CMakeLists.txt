@@ -45,4 +45,3 @@ ELSE(WITH_PYTHON)
 ENDIF(WITH_PYTHON)
 
 BLENDERLIB(kx_network "${SRC}" "${INC}")
-#env.BlenderLib ( 'kx_network', Split(sources), Split(incs), defines=[],libtype=['game2', 'player'], priority=[5, 155] )

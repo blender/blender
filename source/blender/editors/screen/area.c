@@ -40,7 +40,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -48,6 +47,7 @@
 
 #include "ED_screen.h"
 #include "ED_screen_types.h"
+#include "ED_space_api.h"
 #include "ED_types.h"
 #include "ED_fileselect.h" 
 
@@ -343,6 +343,8 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	else if(at->draw) {
 		at->draw(C, ar);
 	}
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
 	
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
 	

@@ -32,7 +32,6 @@
 
 #include "BLI_math.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 
@@ -281,7 +280,7 @@ static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 	int retval = 1;
 	if (op->customdata == NULL)
 	{
-		TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
+		TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data2");
 		TransformModeItem *tmode;
 		int mode = -1;
 
@@ -303,7 +302,12 @@ static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 		G.moving = 1;
 
 		/* store data */
-		op->customdata = t;
+		if(retval) {
+			op->customdata = t;
+		}
+		else {
+			MEM_freeN(t);
+		}
 	}
 
 	return retval; /* return 0 on error */

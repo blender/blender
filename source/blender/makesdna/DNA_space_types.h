@@ -42,6 +42,7 @@
 struct ID;
 struct Text;
 struct Script;
+struct bSound;
 struct ImBuf;
 struct Image;
 struct Scopes;
@@ -549,6 +550,22 @@ typedef struct SpaceUserPref {
 	char filter[64];		/* search term for filtering in the UI */
 
 } SpaceUserPref;
+
+typedef struct SpaceSound {
+	struct SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
+	int spacetype;
+	float blockscale;
+	struct ScrArea *area;
+	
+	View2D v2d;
+	
+	struct bSound *sound;
+	short mode, sndnr;
+	short xof, yof;
+	short flag, lock;
+	int pad2;
+} SpaceSound;
 
 /* view3d  Now in DNA_view3d_types.h */
 

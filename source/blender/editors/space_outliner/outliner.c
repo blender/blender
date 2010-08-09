@@ -48,6 +48,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -61,7 +62,6 @@
 #include "IMB_imbuf_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
@@ -70,14 +70,10 @@
 #include "BKE_group.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_material.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"
@@ -987,8 +983,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			else {
 				if((seq->strip) && (seq->strip->stripdata))
 					te->name= seq->strip->stripdata->name;
-				else if((seq->strip) && (seq->strip->tstripdata) && (seq->strip->tstripdata->ibuf))
-					te->name= seq->strip->tstripdata->ibuf->name;
 				else
 					te->name= "SQ None";
 			}

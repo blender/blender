@@ -39,13 +39,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
-#include "BKE_report.h"
 #include "BKE_text.h" /* only for character utility funcs */
 
 #include "WM_api.h"

@@ -27,7 +27,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -35,13 +34,7 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
-#include "BKE_mesh.h"
-#include "BKE_node.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "ED_screen.h"
 

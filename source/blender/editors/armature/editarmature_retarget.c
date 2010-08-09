@@ -36,6 +36,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -47,8 +48,6 @@
 
 //#include "BDR_editobject.h"
 
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
 #include "BKE_constraint.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"

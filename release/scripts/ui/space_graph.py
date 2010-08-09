@@ -204,25 +204,12 @@ class GRAPH_MT_key_transform(bpy.types.Menu):
         layout.operator("transform.resize", text="Scale")
 
 
-classes = [
-    GRAPH_HT_header, # header/menu classes
-    GRAPH_MT_view,
-    GRAPH_MT_select,
-    GRAPH_MT_channel,
-    GRAPH_MT_key,
-    GRAPH_MT_key_transform]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

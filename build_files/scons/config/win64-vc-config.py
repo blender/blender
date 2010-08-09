@@ -194,8 +194,6 @@ CXX_WARN = []
 
 LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid']
 
-WITH_BF_DOCS=False
-
 BF_DEBUG=False
 BF_BSC=False
 

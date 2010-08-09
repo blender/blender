@@ -47,26 +47,19 @@
 #endif
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_ID.h"
 #include "DNA_actuator_types.h"
-#include "DNA_boid_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
-#include "DNA_color_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_customdata_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_fileglobal_types.h"
 #include "DNA_genfile.h"
 #include "DNA_group_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_ipo_types.h"
-#include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_lamp_types.h"
@@ -75,16 +68,10 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h" // NT
-#include "DNA_outliner_types.h"
-#include "DNA_object_force.h"
 #include "DNA_packedFile_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
@@ -96,11 +83,8 @@
 #include "DNA_smoke_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
@@ -139,7 +123,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
-#include "BKE_ipo.h"
 #include "BKE_sound.h"
 
 //XXX #include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
@@ -4124,10 +4107,8 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
 
 static void link_paint(FileData *fd, Scene *sce, Paint *p)
 {
-	if(p && p->brushes) {
-		int i;
-		for(i = 0; i < p->brush_count; ++i)
-			p->brushes[i]= newlibadr_us(fd, sce->id.lib, p->brushes[i]);
+	if(p && p->brush) {
+		p->brush= newlibadr_us(fd, sce->id.lib, p->brush);
 	}
 }
 
@@ -4247,13 +4228,8 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 static void direct_link_paint(FileData *fd, Paint **paint)
 {
 	Paint *p;
-
+/* TODO. is this needed */
 	p= (*paint)= newdataadr(fd, (*paint));
-	if(p) {
-		p->paint_cursor= NULL;
-		p->brushes= newdataadr(fd, p->brushes);
-		test_pointer_array(fd, (void**)&p->brushes);
-	}
 }
 
 static void direct_link_scene(FileData *fd, Scene *sce)
@@ -4290,9 +4266,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->vpaint);
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->wpaint);
 
-		sce->toolsettings->imapaint.paint.brushes= newdataadr(fd, sce->toolsettings->imapaint.paint.brushes);
-		test_pointer_array(fd, (void**)&sce->toolsettings->imapaint.paint.brushes);
-
 		sce->toolsettings->imapaint.paintcursor= NULL;
 		sce->toolsettings->particle.paintcursor= NULL;
 	}
@@ -4328,11 +4301,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			seq->strip= newdataadr(fd, seq->strip);
 			if(seq->strip && seq->strip->done==0) {
 				seq->strip->done= 1;
-				seq->strip->tstripdata = 0;
-				seq->strip->tstripdata_startstill = 0;
-				seq->strip->tstripdata_endstill = 0;
-				seq->strip->ibuf_startstill = 0;
-				seq->strip->ibuf_endstill = 0;
 
 				if(seq->type == SEQ_IMAGE ||
 				   seq->type == SEQ_MOVIE ||
@@ -9430,7 +9398,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		idproperties_fix_group_lengths(main->mat);
 		idproperties_fix_group_lengths(main->tex);
 		idproperties_fix_group_lengths(main->image);
-		idproperties_fix_group_lengths(main->wave);
 		idproperties_fix_group_lengths(main->latt);
 		idproperties_fix_group_lengths(main->lamp);
 		idproperties_fix_group_lengths(main->camera);
@@ -11259,6 +11226,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put compatibility code here until next subversion bump */
 	{
+		Brush *br;
+		for(br= main->brush.first; br; br= br->id.next) {
+			if(br->ob_mode==0)
+				br->ob_mode= (OB_MODE_SCULPT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT|OB_MODE_VERTEX_PAINT);
+		}
+		
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

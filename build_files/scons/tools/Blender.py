@@ -501,10 +501,7 @@ def AppIt(target=None, source=None, env=None):
 	installdir = env['BF_INSTALLDIR']
 	print("compiled architecture: %s"%(osxarch))
 	print("Installing to %s"%(installdir))
-	if  libdir == '../lib/darwin-9.x.universal':
-		python_zip = 'python_' + osxarch + '.zip' # set specific python_arch.zip
-	else:
-		python_zip = 'python.zip' # compatibility for darwin8 python.zip
+	python_zip = 'python_' + osxarch + '.zip' # set specific python_arch.zip
 	print("unzipping to app-bundle: %s"%(python_zip))
 	bldroot = env.Dir('.').abspath
 	binary = env['BINARYKIND']
@@ -570,10 +567,9 @@ def UnixPyBundle(target=None, source=None, env=None):
 	def run(cmd):
 		print 'Install command:', cmd
 		commands.getoutput(cmd)
-	
-	if env['WITH_BF_FHS']:	dir = os.path.join(env['BF_INSTALLDIR'], 'share', 'blender', env['BF_VERSION']) # BLENDERPATH
-	else:					dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
-	
+
+	dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
+
 	py_src =	env.subst( env['BF_PYTHON_LIBPATH'] + '/python'+env['BF_PYTHON_VERSION'] )
 	py_target =	env.subst( dir + '/python/lib/python'+env['BF_PYTHON_VERSION'] )
 	

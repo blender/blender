@@ -47,16 +47,13 @@
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_image.h"
 #include "BKE_icons.h"
-#include "BKE_brush.h"
 #include "BKE_utildefines.h"
 
 #include "IMB_imbuf.h"

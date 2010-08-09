@@ -54,6 +54,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
@@ -63,13 +64,8 @@
 #include "BKE_icons.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_texture.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
-#include "BKE_world.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
-#include "BKE_brush.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

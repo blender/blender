@@ -48,7 +48,8 @@ class DiscontFilterOp(bpy.types.Operator):
     bl_idname = "graph.euler_filter"
     bl_label = "Filter out discontinuities in the active fcurves"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return context.active_object != None
 
     def execute(self, context):
@@ -56,10 +57,10 @@ class DiscontFilterOp(bpy.types.Operator):
         return {'FINISHED'}
 
 def register():
-    bpy.types.register(DiscontFilterOp)
+    pass
 
 def unregister():
-    bpy.types.unregister(DiscontFilterOp)
+    pass
 
 if __name__ == "__main__":
     register()
