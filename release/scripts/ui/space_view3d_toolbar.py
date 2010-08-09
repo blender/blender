@@ -962,7 +962,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        settings = cls.paint_settings(context)
+        settings = self.paint_settings(context)
         brush = settings.brush
 
         layout.template_curve_mapping(brush, "curve", brush=True)
@@ -974,6 +974,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel, bpy.types.Panel):
         row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
         row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
         row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
+
 
 class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
     bl_label = "Options"
