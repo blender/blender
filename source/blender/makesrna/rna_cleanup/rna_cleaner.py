@@ -6,6 +6,9 @@ This script is used to help cleaning RNA api.
 Typical line in the input file (elements in [] are optional).
 
 [comment *] ToolSettings.snap_align_rotation -> use_snap_align_rotation:    boolean    [Align rotation with the snapping target]
+
+Geterate output format from blender run this:
+ ./blender.bin --background --python ./release/scripts/modules/rna_info.py > source/blender/makesrna/rna_cleanup/out.txt
 """
 
 
@@ -189,11 +192,14 @@ def sort(props_list, sort_priority):
     """
 
     # order based on the i-th element in lists
-    i = sort_choices.index(sort_priority)
-    if i == 0:
-        props_list = sorted(props_list, key=lambda p: p[i], reverse=True)
+    if sort_priority == "class.from":
+        props_list = sorted(props_list, key=lambda p: (p[2], p[3]))
     else:
-        props_list = sorted(props_list, key=lambda p: p[i])
+        i = sort_choices.index(sort_priority)
+        if i == 0:
+            props_list = sorted(props_list, key=lambda p: p[i], reverse=True)
+        else:
+            props_list = sorted(props_list, key=lambda p: p[i])
         
     print ('\nSorted by %s.' % font_bold(sort_priority))
     return props_list
@@ -266,8 +272,8 @@ def main():
     global sort_choices, default_sort_choice
     global kw_prefixes, kw
 
-    sort_choices = ['note','changed','class','from','to','kw']
-    default_sort_choice = sort_choices[0]
+    sort_choices = ['note','changed','class','from','to','kw', 'class.from']
+    default_sort_choice = sort_choices[-1]
     kw_prefixes = [ 'active','apply','bl','exclude','has','invert','is','lock', \
                     'pressed','show','show_only','use','use_only','layers','states']
     kw = ['active','hide','invert','select','layers','mute','states','use','lock']
