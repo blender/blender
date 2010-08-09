@@ -25,8 +25,8 @@ class PhysicButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "physics"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         ob = context.object
         rd = context.scene.render
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
@@ -203,8 +203,8 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain World"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         md = context.fluid
         return md and md.settings and (md.settings.type == 'DOMAIN')
 
@@ -253,8 +253,8 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain Boundary"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         md = context.fluid
         return md and md.settings and (md.settings.type == 'DOMAIN')
 
@@ -281,8 +281,8 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain Particles"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         md = context.fluid
         return md and md.settings and (md.settings.type == 'DOMAIN')
 

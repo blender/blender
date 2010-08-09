@@ -26,8 +26,8 @@ class DataButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return context.lattice
 
 
@@ -52,6 +52,7 @@ class DATA_PT_context_lattice(DataButtonsPanel, bpy.types.Panel):
 
 
 class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
 
 

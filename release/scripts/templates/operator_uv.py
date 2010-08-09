@@ -30,8 +30,8 @@ class UvOperator(bpy.types.Operator):
     bl_idname = "uv.simple_operator"
     bl_label = "Simple UV Operator"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj and obj.type == 'MESH')
 

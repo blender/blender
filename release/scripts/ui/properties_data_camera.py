@@ -21,21 +21,21 @@ import bpy
 from rna_prop_ui import PropertyPanel
 
 
-class DataButtonsPanel():
+class CameraButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        return context.camera and (engine in cls.COMPAT_ENGINES)
 
-class DATA_PT_context_camera(DataButtonsPanel, bpy.types.Panel):
+
+class DATA_PT_context_camera(CameraButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        engine = context.scene.render.engine
-        return context.camera and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -53,24 +53,14 @@ class DATA_PT_context_camera(DataButtonsPanel, bpy.types.Panel):
             split.separator()
 
 
-class DATA_PT_custom_props_camera(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
-    _context_path = "object.data"
+class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        engine = context.scene.render.engine
-        return context.camera and (engine in __class__.COMPAT_ENGINES)
+    _context_path = "object.data"
 
 
-class DATA_PT_camera(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
     bl_label = "Lens"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        engine = context.scene.render.engine
-        return context.camera and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -121,14 +111,9 @@ class DATA_PT_camera(DataButtonsPanel, bpy.types.Panel):
         col.prop(cam, "dof_distance", text="Distance")
 
 
-class DATA_PT_camera_display(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_camera_display(CameraButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        engine = context.scene.render.engine
-        return context.camera and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

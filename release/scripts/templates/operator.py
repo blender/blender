@@ -23,8 +23,8 @@ class ExportSomeData(bpy.types.Operator):
                         description="Choose between two items",
                         default='OPT_A')
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return context.active_object != None
 
     def execute(self, context):

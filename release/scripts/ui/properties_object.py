@@ -274,8 +274,8 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
     #bl_label = "Object Motion Paths"
     bl_context = "object"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.object)
 
     def draw(self, context):
@@ -300,8 +300,8 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # in
     #bl_label = "Object Onion Skinning"
     bl_context = "object"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.object)
 
     def draw(self, context):
@@ -311,8 +311,11 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # in
 
         self.draw_settings(context, ob.animation_visualisation)
 
+
 class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object"
+
 
 def register():
     pass

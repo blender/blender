@@ -25,8 +25,8 @@ class LOGIC_PT_properties(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_label = "Properties"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         ob = context.active_object
         return ob and ob.game
 

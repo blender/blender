@@ -263,8 +263,8 @@ class AlignObjects(bpy.types.Operator):
     align_z = BoolProperty(name="Align Z",
         description="Align in the Z axis", default=False)
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return context.mode == 'OBJECT'
 
     def execute(self, context):

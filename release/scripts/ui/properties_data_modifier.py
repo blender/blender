@@ -20,13 +20,13 @@
 import bpy
 
 
-class DataButtonsPanel():
+class ModifierButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "modifier"
 
 
-class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
     bl_label = "Modifiers"
 
     def draw(self, context):

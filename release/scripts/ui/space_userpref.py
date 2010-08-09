@@ -142,8 +142,8 @@ class USERPREF_PT_interface(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'INTERFACE')
 
@@ -237,8 +237,8 @@ class USERPREF_PT_edit(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'EDITING')
 
@@ -352,8 +352,8 @@ class USERPREF_PT_system(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'SYSTEM')
 
@@ -517,8 +517,8 @@ class USERPREF_PT_theme(bpy.types.Panel):
             for i, attr in enumerate(props_ls):
                 colsub_pair[i % 2].row().prop(themedata, attr)
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'THEMES')
 
@@ -650,8 +650,8 @@ class USERPREF_PT_file(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'FILES')
 
@@ -722,8 +722,8 @@ class USERPREF_PT_input(InputKeyMapPanel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'INPUT')
 
@@ -817,8 +817,8 @@ class USERPREF_PT_addons(bpy.types.Panel):
     
     _addons_fake_modules = {}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'ADDONS')
 

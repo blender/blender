@@ -21,17 +21,17 @@ import bpy
 from rna_prop_ui import PropertyPanel
 
 
-class DataButtonsPanel():
+class ArmatureButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return context.armature
 
 
-class DATA_PT_context_arm(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_context_arm(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
 
@@ -51,11 +51,12 @@ class DATA_PT_context_arm(DataButtonsPanel, bpy.types.Panel):
             split.separator()
 
 
-class DATA_PT_custom_props_arm(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
+class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
 
 
-class DATA_PT_skeleton(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_skeleton(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "Skeleton"
 
     def draw(self, context):
@@ -85,7 +86,7 @@ class DATA_PT_skeleton(DataButtonsPanel, bpy.types.Panel):
         col.prop(arm, "deform_quaternion", text="Quaternion")
 
 
-class DATA_PT_display(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_display(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
 
     def draw(self, context):
@@ -109,11 +110,11 @@ class DATA_PT_display(DataButtonsPanel, bpy.types.Panel):
         col.prop(arm, "delay_deform", text="Delay Refresh")
 
 
-class DATA_PT_bone_groups(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "Bone Groups"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.object and context.object.type == 'ARMATURE' and context.object.pose)
 
     def draw(self, context):
@@ -158,7 +159,7 @@ class DATA_PT_bone_groups(DataButtonsPanel, bpy.types.Panel):
 
 
 # TODO: this panel will soon be depreceated too
-class DATA_PT_ghost(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_ghost(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "Ghost"
 
     def draw(self, context):
@@ -186,12 +187,12 @@ class DATA_PT_ghost(DataButtonsPanel, bpy.types.Panel):
         col.prop(arm, "ghost_only_selected", text="Selected Only")
 
 
-class DATA_PT_iksolver_itasc(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "iTaSC parameters"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         ob = context.object
         return (ob and ob.pose)
 
@@ -245,8 +246,8 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
     #bl_label = "Bones Motion Paths"
     bl_context = "data"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         # XXX: include posemode check?
         return (context.object) and (context.armature)
 
@@ -272,8 +273,8 @@ class DATA_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # inhe
     #bl_label = "Bones Onion Skinning"
     bl_context = "data"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         # XXX: include posemode check?
         return (context.object) and (context.armature)
 
