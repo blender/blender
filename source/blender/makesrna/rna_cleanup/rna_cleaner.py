@@ -76,18 +76,21 @@ def check_commandline():
     return (inputfile, sort_priority)
 
 
-def check_prefix(prop):
+def check_prefix(prop, btype):
     # reminder: props=[comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
-    if '_' in prop:
-        prefix = prop.split('_')[0]
-        if prefix not in kw_prefixes:
-            return 'BAD-PREFIX: ' + prefix
+    if btype == "boolean":
+        if '_' in prop:
+            prefix = prop.split('_')[0]
+            if prefix not in kw_prefixes:
+                return 'BAD-PREFIX: ' + prefix
+            else:
+                return prefix + '_'
+        elif prop in kw:
+            return 'SPECIAL-KEYWORD: ' + prop
         else:
-            return prefix + '_'
-    elif prop in kw:
-        return 'SPECIAL-KEYWORD: ' + prop
+            return 'BAD-KEYWORD: ' + prop
     else:
-        return 'BAD-KEYWORD: ' + prop
+        return ""
 
 
 def check_if_changed(a,b):
@@ -144,7 +147,7 @@ def get_props_from_txt(input_filename):
             [btype, description] = [tail,'NO DESCRIPTION']
 
         # keyword-check
-        kwcheck = check_prefix(bto)
+        kwcheck = check_prefix(bto, btype)
 
         # changed
         changed = check_if_changed(bfrom, bto)
@@ -168,7 +171,7 @@ def get_props_from_py(input_filename):
     props_length_max = [0 for i in rna_api[0]] # this way if the vector will take more elements we are safe
     for index,props in enumerate(rna_api):
         comment, changed, bclass, bfrom, bto, kwcheck, btype, description = props
-        kwcheck = check_prefix(bto)   # keyword-check
+        kwcheck = check_prefix(bto, btype)   # keyword-check
         changed = check_if_changed(bfrom, bto)  # changed?
         description = repr(description)
         rna_api[index] = [comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
@@ -275,7 +278,7 @@ def main():
     sort_choices = ['note','changed','class','from','to','kw', 'class.from']
     default_sort_choice = sort_choices[-1]
     kw_prefixes = [ 'active','apply','bl','exclude','has','invert','is','lock', \
-                    'pressed','show','show_only','use','use_only','layers','states']
+                    'pressed','show','show_only','use','use_only','layers','states', 'select']
     kw = ['active','hide','invert','select','layers','mute','states','use','lock']
 
     input_filename, sort_priority = check_commandline()
