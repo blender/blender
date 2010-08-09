@@ -788,7 +788,6 @@ def write_file(filepath, objects, scene,
 #           print('\tError: "%s" could not be used as a base for an image path.' % filepath)
 
     print("OBJ Export time: %.2f" % (time.clock() - time1))
-#   print "OBJ Export time: %.2f" % (sys.time() - time1)
 
 def write(filepath, context,
               EXPORT_TRI, # ok
@@ -907,12 +906,12 @@ class ExportOBJ(bpy.types.Operator):
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     # context group
-    use_selection = BoolProperty(name="Selection Only", description="", default= False)
+    use_selection = BoolProperty(name="Selection Only", description="Export selected objects only", default= False)
     use_all_scenes = BoolProperty(name="All Scenes", description="", default= False)
-    use_animation = BoolProperty(name="All Animation", description="", default= False)
+    use_animation = BoolProperty(name="Animation", description="", default= False)
 
     # object group
-    use_modifiers = BoolProperty(name="Apply Modifiers", description="", default= True)
+    use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply modifiers (preview resolution)", default= True)
     use_rotate90 = BoolProperty(name="Rotate X90", description="", default= True)
 
     # extra data group
@@ -925,7 +924,6 @@ class ExportOBJ(bpy.types.Operator):
     use_triangles = BoolProperty(name="Triangulate", description="", default= False)
     use_vertex_groups = BoolProperty(name="Polygroups", description="", default= False)
     use_nurbs = BoolProperty(name="Nurbs", description="", default= False)
-    use_animation = BoolProperty(name="Animation", description="", default= False)
 
     # grouping group
     use_blen_objects = BoolProperty(name="Objects as OBJ Objects", description="", default= True)
