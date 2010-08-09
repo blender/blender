@@ -637,6 +637,8 @@ int BLI_path_abs(char *path, const char *basepath)
 	
 	if (path[0]!='\0') {
 		if ( path[strlen(path)-1]=='/') {
+			/* remove the '/' so we avoid BLI_cleanup_dir adding an extra \ in WIN32 */
+			path[strlen(path)-1] = '\0';
 			BLI_cleanup_dir(NULL, path);
 		} else {
 			BLI_cleanup_file(NULL, path);
