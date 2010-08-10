@@ -487,7 +487,7 @@ class PaintPanel():
         elif context.particle_edit_object:
             return ts.particle_edit
 
-        return False
+        return None
 
 
 class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
@@ -753,7 +753,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
             col.separator()
 
             col = layout.column()
-            col.active = tex_slot.map_mode in ('FIXED')
+            col.active = tex_slot.map_mode in ('FIXED', )
             col.label(text="Angle:")
             
             col = layout.column()
@@ -963,6 +963,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel, bpy.types.Panel):
         layout = self.layout
 
         settings = self.paint_settings(context)
+
         brush = settings.brush
 
         layout.template_curve_mapping(brush, "curve", brush=True)
