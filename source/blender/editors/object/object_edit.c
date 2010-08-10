@@ -43,6 +43,9 @@
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_property_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_vfont_types.h"
 
 #include "BLI_blenlib.h"
@@ -54,7 +57,6 @@
 #include "BKE_anim.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
-#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"

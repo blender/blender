@@ -51,7 +51,7 @@ struct ViewContext;
 
 /* for derivedmesh drawing callbacks, for view3d_select, .... */
 typedef struct ViewContext {
-	Scene *scene;
+	struct Scene *scene;
 	struct Object *obact;
 	struct Object *obedit;
 	struct ARegion *ar;

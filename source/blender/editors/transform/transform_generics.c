@@ -39,7 +39,11 @@
 #include "DNA_lattice_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_modifier_types.h"
 
 #include "RNA_access.h"
 
@@ -55,7 +59,6 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"

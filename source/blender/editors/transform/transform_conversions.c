@@ -47,10 +47,11 @@
 #include "DNA_sequence_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BKE_cloth.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h"

@@ -29,15 +29,20 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_cloth.h"
-
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_meshdata_types.h"
 
+#include "BLI_threads.h"
+#include "BLI_math.h"
+#include "BLI_linklist.h"
+
+#include "BKE_cloth.h"
+#include "BKE_collision.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
-
-#include "BLI_threads.h"
 
 #define CLOTH_OPENMP_LIMIT 25
 
