@@ -255,8 +255,8 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 		BPoint *bp;
 		int a;
 		
-		a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
-		bp= lt->editlatt->def;
+		a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
+		bp= lt->editlatt->latt->def;
 		while(a--) {
 			if(bp->f1 & SELECT) {
 				add_v3_v3(median, bp->vec);
@@ -457,8 +457,8 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 			BPoint *bp;
 			int a;
 			
-			a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
-			bp= lt->editlatt->def;
+			a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
+			bp= lt->editlatt->latt->def;
 			while(a--) {
 				if(bp->f1 & SELECT) {
 					add_v3_v3(bp->vec, median);

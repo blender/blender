@@ -225,8 +225,12 @@ void free_lattice(Lattice *lt)
 	if(lt->def) MEM_freeN(lt->def);
 	if(lt->dvert) free_dverts(lt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
 	if(lt->editlatt) {
-		if(lt->editlatt->def) MEM_freeN(lt->editlatt->def);
-		if(lt->editlatt->dvert) free_dverts(lt->editlatt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
+		Lattice *editlt= lt->editlatt->latt;
+
+		if(editlt->def) MEM_freeN(editlt->def);
+		if(editlt->dvert) free_dverts(editlt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
+
+		MEM_freeN(editlt);
 		MEM_freeN(lt->editlatt);
 	}
 }
@@ -295,7 +299,7 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	float fu, fv, fw;
 	int u, v, w;
 
-	if(lt->editlatt) lt= lt->editlatt;
+	if(lt->editlatt) lt= lt->editlatt->latt;
 	bp = lt->def;
 	
 	fp= lt->latticedata= MEM_mallocN(sizeof(float)*3*lt->pntsu*lt->pntsv*lt->pntsw, "latticedata");
@@ -350,7 +354,7 @@ void calc_latt_deform(Object *ob, float *co, float weight)
 	MDeformVert *dvert= lattice_get_deform_verts(ob);
 
 
-	if(lt->editlatt) lt= lt->editlatt;
+	if(lt->editlatt) lt= lt->editlatt->latt;
 	if(lt->latticedata==NULL) return;
 
 	if(lt->vgroup[0] && dvert) {
@@ -446,7 +450,7 @@ void end_latt_deform(Object *ob)
 {
 	Lattice *lt= ob->data;
 	
-	if(lt->editlatt) lt= lt->editlatt;
+	if(lt->editlatt) lt= lt->editlatt->latt;
 	
 	if(lt->latticedata)
 		MEM_freeN(lt->latticedata);
@@ -1002,7 +1006,7 @@ float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3]
 	int i, numVerts;
 	float (*vertexCos)[3];
 
-	if(lt->editlatt) lt= lt->editlatt;
+	if(lt->editlatt) lt= lt->editlatt->latt;
 	numVerts = *numVerts_r = lt->pntsu*lt->pntsv*lt->pntsw;
 	
 	vertexCos = MEM_mallocN(sizeof(*vertexCos)*numVerts,"lt_vcos");
@@ -1066,7 +1070,7 @@ struct MDeformVert* lattice_get_deform_verts(struct Object *oblatt)
 	if(oblatt->type == OB_LATTICE)
 	{
 		Lattice *lt = (Lattice*)oblatt->data;
-		if(lt->editlatt) lt= lt->editlatt;
+		if(lt->editlatt) lt= lt->editlatt->latt;
 		return lt->dvert;
 	}
 

@@ -1917,7 +1917,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 		DispList *dl = find_displist(&par->disp, DL_VERTS);
 		float *co = dl?dl->verts:NULL;
 		
-		if(latt->editlatt) latt= latt->editlatt;
+		if(latt->editlatt) latt= latt->editlatt->latt;
 		
 		a= latt->pntsu*latt->pntsv*latt->pntsw;
 		count= 0;

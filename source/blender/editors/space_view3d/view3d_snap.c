@@ -145,8 +145,8 @@ static void special_transvert_update(Scene *scene, Object *obedit)
 		else if(obedit->type==OB_LATTICE) {
 			Lattice *lt= obedit->data;
 			
-			if(lt->editlatt->flag & LT_OUTSIDE) 
-				outside_lattice(lt->editlatt);
+			if(lt->editlatt->latt->flag & LT_OUTSIDE)
+				outside_lattice(lt->editlatt->latt);
 		}
 	}
 }
@@ -372,9 +372,9 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	else if(obedit->type==OB_LATTICE) {
 		Lattice *lt= obedit->data;
 		
-		bp= lt->editlatt->def;
+		bp= lt->editlatt->latt->def;
 		
-		a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+		a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 		
 		tv=transvmain= MEM_callocN(a*sizeof(TransVert), "maketransverts curve");
 		

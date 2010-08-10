@@ -2097,12 +2097,6 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	/* list item behind label & other buttons */
 	sub= uiLayoutRow(overlap, 0);
 
-	if(itemptr->type == &RNA_ShapeKey) {
-		ob= (Object*)activeptr->data;
-		if(ob->mode == OB_MODE_EDIT && !(ob->type == OB_MESH))
-			uiLayoutSetEnabled(sub, 0);
-	}
-
 	but= uiDefButR(block, LISTROW, 0, "", 0,0, UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
 	uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
 

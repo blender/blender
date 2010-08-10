@@ -157,6 +157,11 @@ typedef struct EditNurb {
 
 	/* index data for shape keys */
 	struct GHash *keyindex;
+
+	/* shape key being edited */
+	int shapenr;
+
+	char pad[4];
 } EditNurb;
 
 typedef struct Curve {

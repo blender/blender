@@ -659,7 +659,7 @@ void recalcData(TransInfo *t)
 				Lattice *la= t->obedit->data;
 				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 	
-				if(la->editlatt->flag & LT_OUTSIDE) outside_lattice(la->editlatt);
+				if(la->editlatt->latt->flag & LT_OUTSIDE) outside_lattice(la->editlatt->latt);
 			}
 			else if (t->obedit->type == OB_MESH) {
 				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;

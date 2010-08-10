@@ -1532,7 +1532,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 
 static void createTransLatticeVerts(bContext *C, TransInfo *t)
 {
-	Lattice *latt = ((Lattice*)t->obedit->data)->editlatt;
+	Lattice *latt = ((Lattice*)t->obedit->data)->editlatt->latt;
 	TransData *td = NULL;
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];
