@@ -127,10 +127,11 @@ Factory_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 PyDoc_STRVAR(M_aud_Factory_sine_doc,
 			 "sine(frequency, rate=44100)\n\n"
-			 "Creates a sine sound wave.\n\n"
+			 "Creates a sine factory which plays a sine wave.\n\n"
 			 ":arg frequency: The frequency of the sine wave in Hz.\n"
 			 ":type frequency: float\n"
-			 ":arg rate: The sampling rate in Hz.\n"
+			 ":arg rate: The sampling rate in Hz. It's recommended to set this "
+			 "value to the playback device's samling rate to avoid resamping.\n"
 			 ":type rate: int\n"
 			 ":return: The created :class:`Factory` object.\n"
 			 ":rtype: :class:`Factory`");
@@ -166,11 +167,14 @@ Factory_sine(PyTypeObject* type, PyObject* args)
 
 PyDoc_STRVAR(M_aud_Factory_file_doc,
 			 "file(filename)\n\n"
-			 "Creates a sound object of a sound file.\n\n"
+			 "Creates a factory object of a sound file.\n\n"
 			 ":arg filename: Path of the file.\n"
 			 ":type filename: string\n"
 			 ":return: The created :class:`Factory` object.\n"
-			 ":rtype: :class:`Factory`");
+			 ":rtype: :class:`Factory`\n\n"
+			 ".. warning:: If the file doesn't exist or can't be read you will "
+			 "not get an exception immediately, but when you try to start "
+			 "playback of that factory.");
 
 static PyObject *
 Factory_file(PyTypeObject* type, PyObject* args)
@@ -202,7 +206,8 @@ Factory_file(PyTypeObject* type, PyObject* args)
 
 PyDoc_STRVAR(M_aud_Factory_lowpass_doc,
 			 "lowpass(frequency, Q=0.5)\n\n"
-			 "Creates a second order lowpass filter.\n\n"
+			 "Creates a second order lowpass filter based on the transfer "
+			 "function H(s) = 1 / (s^2 + s/Q + 1)"
 			 ":arg frequency: The cut off trequency of the lowpass.\n"
 			 ":type frequency: float\n"
 			 ":arg Q: Q factor of the lowpass.\n"
@@ -244,8 +249,10 @@ Factory_lowpass(Factory* self, PyObject* args)
 
 PyDoc_STRVAR(M_aud_Factory_delay_doc,
 			 "delay(time)\n\n"
-			 "Delays a sound by playing silence before the sound starts.\n\n"
-			 ":arg time: How many seconds of silence should be added before the sound.\n"
+			 "Delays by playing adding silence in front of the other factory's "
+			 "data.\n\n"
+			 ":arg time: How many seconds of silence should be added before "
+			 "the factory.\n"
 			 ":type time: float\n"
 			 ":return: The created :class:`Factory` object.\n"
 			 ":rtype: :class:`Factory`");
@@ -282,13 +289,13 @@ Factory_delay(Factory* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_Factory_join_doc,
-			 "join(sound)\n\n"
-			 "Plays two sounds in sequence.\n\n"
-			 ":arg sound: The sound to play second.\n"
-			 ":type sound: :class:`Factory`\n"
+			 "join(factory)\n\n"
+			 "Plays two factories in sequence.\n\n"
+			 ":arg factory: The factory to play second.\n"
+			 ":type factory: :class:`Factory`\n"
 			 ":return: The created :class:`Factory` object.\n"
 			 ":rtype: :class:`Factory`\n\n"
-			 ".. note:: The two sounds have to have the same specifications "
+			 ".. note:: The two factories have to have the same specifications "
 			 "(channels and samplerate).");
 
 static PyObject *
@@ -327,7 +334,8 @@ Factory_join(Factory* self, PyObject* object)
 
 PyDoc_STRVAR(M_aud_Factory_highpass_doc,
 			 "highpass(frequency, Q=0.5)\n\n"
-			 "Creates a second order highpass filter.\n\n"
+			 "Creates a second order highpass filter based on the transfer "
+			 "function H(s) = s^2 / (s^2 + s/Q + 1)"
 			 ":arg frequency: The cut off trequency of the highpass.\n"
 			 ":type frequency: float\n"
 			 ":arg Q: Q factor of the lowpass.\n"
@@ -369,7 +377,7 @@ Factory_highpass(Factory* self, PyObject* args)
 
 PyDoc_STRVAR(M_aud_Factory_limit_doc,
 			 "limit(start, end)\n\n"
-			 "Limits a sound within a specific start and end time.\n\n"
+			 "Limits a factory within a specific start and end time.\n\n"
 			 ":arg start: Start time in seconds.\n"
 			 ":type start: float\n"
 			 ":arg end: End time in seconds.\n"
@@ -410,16 +418,16 @@ Factory_limit(Factory* self, PyObject* args)
 
 PyDoc_STRVAR(M_aud_Factory_pitch_doc,
 			 "pitch(factor)\n\n"
-			 "Changes the pitch of a sound with a specific factor.\n\n"
+			 "Changes the pitch of a factory with a specific factor.\n\n"
 			 ":arg factor: The factor to change the pitch with.\n"
 			 ":type factor: float\n"
 			 ":return: The created :class:`Factory` object.\n"
 			 ":rtype: :class:`Factory`\n\n"
 			 ".. note:: This is done by changing the sample rate of the "
-			 "underlying sound, which has to be an integer, so the factor "
+			 "underlying factory, which has to be an integer, so the factor "
 			 "value rounded and the factor may not be 100 % accurate.\n\n"
 			 ".. note:: This is a filter function, you might consider using "
-			 "Handle.pitch instead.");
+			 ":attr:`Handle.pitch` instead.");
 
 static PyObject *
 Factory_pitch(Factory* self, PyObject* args)
@@ -454,14 +462,14 @@ Factory_pitch(Factory* self, PyObject* args)
 
 PyDoc_STRVAR(M_aud_Factory_volume_doc,
 			 "volume(volume)\n\n"
-			 "Changes the volume of a sound.\n\n"
+			 "Changes the volume of a factory.\n\n"
 			 ":arg volume: The new volume..\n"
 			 ":type volume: float\n"
 			 ":return: The created :class:`Factory` object.\n"
 			 ":rtype: :class:`Factory`\n\n"
 			 ".. note:: Should be in the range [0, 1] to avoid clipping.\n\n"
 			 ".. note:: This is a filter function, you might consider using "
-			 "Handle.volume instead.");
+			 ":attr:`Handle.volume` instead.");
 
 static PyObject *
 Factory_volume(Factory* self, PyObject* args)
@@ -496,13 +504,15 @@ Factory_volume(Factory* self, PyObject* args)
 
 PyDoc_STRVAR(M_aud_Factory_fadein_doc,
 			 "fadein(start, length)\n\n"
-			 "Fades a sound in.\n\n"
+			 "Fades a factory in by raising the volume linearly in the given "
+			 "time interval.\n\n"
 			 ":arg start: Time in seconds when the fading should start.\n"
 			 ":type start: float\n"
 			 ":arg length: Time in seconds how long the fading should last.\n"
 			 ":type length: float\n"
 			 ":return: The created :class:`Factory` object.\n"
-			 ":rtype: :class:`Factory`");
+			 ":rtype: :class:`Factory`\n\n"
+			 ".. note:: Before the fade starts it plays silence.");
 
 static PyObject *
 Factory_fadein(Factory* self, PyObject* args)
@@ -537,13 +547,16 @@ Factory_fadein(Factory* self, PyObject* args)
 
 PyDoc_STRVAR(M_aud_Factory_fadeout_doc,
 			 "fadeout(start, length)\n\n"
-			 "Fades a sound out.\n\n"
+			 "Fades a factory in by lowering the volume linearly in the given "
+			 "time interval.\n\n"
 			 ":arg start: Time in seconds when the fading should start.\n"
 			 ":type start: float\n"
 			 ":arg length: Time in seconds how long the fading should last.\n"
 			 ":type length: float\n"
 			 ":return: The created :class:`Factory` object.\n"
-			 ":rtype: :class:`Factory`");
+			 ":rtype: :class:`Factory`\n\n"
+			 ".. note:: After the fade this factory plays silence, so that "
+			 "the length of the factory is not altered.");
 
 static PyObject *
 Factory_fadeout(Factory* self, PyObject* args)
@@ -578,12 +591,14 @@ Factory_fadeout(Factory* self, PyObject* args)
 
 PyDoc_STRVAR(M_aud_Factory_loop_doc,
 			 "loop(count)\n\n"
-			 "Loops a sound.\n\n"
-			 ":arg count: How often the sound should be looped. "
+			 "Loops a factory.\n\n"
+			 ":arg count: How often the factory should be looped. "
 			 "Negative values mean endlessly.\n"
 			 ":type count: integer\n"
 			 ":return: The created :class:`Factory` object.\n"
-			 ":rtype: :class:`Factory`");
+			 ":rtype: :class:`Factory`\n\n"
+			 ".. note:: This is a filter function, you might consider using "
+			 ":attr:`Handle.loop_count` instead.");
 
 static PyObject *
 Factory_loop(Factory* self, PyObject* args)
@@ -617,13 +632,13 @@ Factory_loop(Factory* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_Factory_mix_doc,
-			 "mix(sound)\n\n"
-			 "Mixes two sounds.\n\n"
-			 ":arg sound: The sound to mix over the other.\n"
-			 ":type sound: :class:`Factory`\n"
+			 "mix(factory)\n\n"
+			 "Mixes two factories.\n\n"
+			 ":arg factory: The factory to mix over the other.\n"
+			 ":type factory: :class:`Factory`\n"
 			 ":return: The created :class:`Factory` object.\n"
 			 ":rtype: :class:`Factory`\n\n"
-			 ".. note:: The two sounds have to have the same specifications "
+			 ".. note:: The two factories have to have the same specifications "
 			 "(channels and samplerate).");
 
 static PyObject *
@@ -661,7 +676,8 @@ Factory_mix(Factory* self, PyObject* object)
 
 PyDoc_STRVAR(M_aud_Factory_pingpong_doc,
 			 "pingpong()\n\n"
-			 "Plays a sound forward and then backward.\n\n"
+			 "Plays a factory forward and then backward.\n"
+			 "This is like joining a factory with its reverse.\n\n"
 			 ":return: The created :class:`Factory` object.\n"
 			 ":rtype: :class:`Factory`");
 
@@ -693,11 +709,16 @@ Factory_pingpong(Factory* self)
 
 PyDoc_STRVAR(M_aud_Factory_reverse_doc,
 			 "reverse()\n\n"
-			 "Plays a sound reversed.\n\n"
+			 "Plays a factory reversed.\n\n"
 			 ":return: The created :class:`Factory` object.\n"
 			 ":rtype: :class:`Factory`\n\n"
-			 ".. note:: The sound has have a finite length and be seekable. "
-			 "It's recommended to buffer sounds that should be played reversed.");
+			 ".. note:: The factory has to have a finite length and has to be "
+			 "seekable. It's recommended to use this only with factories	 with "
+			 "fast and accurate seeking, which is not true for encoded audio "
+			 "files, such ones should be buffered using :meth:`buffer` before "
+			 "being played reversed.\n\n"
+			 ".. warning:: If seeking is not accurate in the underlying factory "
+			 "you'll likely hear skips/jumps/cracks.");
 
 static PyObject *
 Factory_reverse(Factory* self)
@@ -727,10 +748,15 @@ Factory_reverse(Factory* self)
 
 PyDoc_STRVAR(M_aud_Factory_buffer_doc,
 			 "buffer()\n\n"
-			 "Buffers a sound into RAM.\n\n"
+			 "Buffers a factory into RAM.\n"
+			 "This saves CPU usage needed for decoding and file access if the "
+			 "underlying factory reads from a file on the harddisk, but it "
+			 "consumes a lot of memory.\n\n"
 			 ":return: The created :class:`Factory` object.\n"
 			 ":rtype: :class:`Factory`\n\n"
-			 ".. note:: Raw PCM data needs a lot of space, only buffer short sounds.");
+			 ".. note:: Only known-length factories can be buffered.\n\n"
+			 ".. warning:: Raw PCM data needs a lot of space, only buffer "
+			 "short factories.");
 
 static PyObject *
 Factory_buffer(Factory* self)
@@ -757,8 +783,11 @@ Factory_buffer(Factory* self)
 
 PyDoc_STRVAR(M_aud_Factory_square_doc,
 			 "square(threshold = 0)\n\n"
-			 "Makes a square wave out of an audio wave.\n\n"
-			 ":arg threshold: Threshold value over which an amplitude counts non-zero.\n"
+			 "Makes a square wave out of an audio wave by setting all samples "
+			 "with a amplitude >= threshold to 1, all <= -threshold to -1 and "
+			 "all between to 0.\n\n"
+			 ":arg threshold: Threshold value over which an amplitude counts "
+			 "non-zero.\n"
 			 ":type threshold: float\n"
 			 ":return: The created :class:`Factory` object.\n"
 			 ":rtype: :class:`Factory`");
@@ -796,7 +825,13 @@ Factory_square(Factory* self, PyObject* args)
 
 PyDoc_STRVAR(M_aud_Factory_filter_doc,
 			 "filter(b, a = (1))\n\n"
-			 "Filters a sound with the supplied IIR filter coefficients.\n\n"
+			 "Filters a factory with the supplied IIR filter coefficients.\n"
+			 "Without the second parameter you'll get a FIR filter.\n"
+			 "If the first value of the a sequence is 0 it will be set to 1 "
+			 "automatically.\n"
+			 "If the first value of the a sequence is neither 0 nor 1, all "
+			 "filter coefficients will be scaled by this value so that it is 1 "
+			 "in the end, you don't have to scale yourself.\n\n"
 			 ":arg b: The nominator filter coefficients.\n"
 			 ":type b: sequence of float\n"
 			 ":arg a: The denominator filter coefficients.\n"
@@ -945,7 +980,9 @@ static PyMethodDef Factory_methods[] = {
 
 PyDoc_STRVAR(M_aud_Factory_doc,
 			 "Factory objects are immutable and represent a sound that can be "
-			 "played simultaneously multiple times.");
+			 "played simultaneously multiple times. They are called factories "
+			 "because they create reader objects internally that are used for "
+			 "playback.");
 
 static PyTypeObject FactoryType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -1055,7 +1092,8 @@ PyDoc_STRVAR(M_aud_Handle_stop_doc,
 			 "stop()\n\n"
 			 "Stops playback.\n\n"
 			 ":return: Whether the action succeeded.\n"
-			 ":rtype: bool");
+			 ":rtype: bool\n\n"
+			 ".. note:: This makes the handle invalid.");
 
 static PyObject *
 Handle_stop(Handle *self)
@@ -1092,7 +1130,7 @@ static PyMethodDef Handle_methods[] = {
 };
 
 PyDoc_STRVAR(M_aud_Handle_position_doc,
-			 "The playback position of the sound.");
+			 "The playback position of the sound in seconds.");
 
 static PyObject *
 Handle_get_position(Handle *self, void* nothing)
@@ -1135,7 +1173,13 @@ Handle_set_position(Handle *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Handle_keep_doc,
-			 "Whether the sound should be kept paused in the device when its end is reached.");
+			 "Whether the sound should be kept paused in the device when its "
+			 "end is reached.\n"
+			 "This can be used to seek the sound to some position and start "
+			 "playback again.\n\n"
+			 ".. warning:: If this is set to true and you forget stopping this "
+			 "equals a memory leak as the handle exists until the device is "
+			 "destroyed.");
 
 static PyObject *
 Handle_get_keep(Handle *self, void* nothing)
@@ -1187,7 +1231,7 @@ Handle_set_keep(Handle *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Handle_status_doc,
-			 "Whether the sound is playing, paused or stopped.");
+			 "Whether the sound is playing, paused or stopped (=invalid).");
 
 static PyObject *
 Handle_get_status(Handle *self, void* nothing)
@@ -1582,7 +1626,8 @@ Handle_set_relative(Handle *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Handle_volume_minimum_doc,
-			 "The minimum volume of the source.");
+			 "The minimum volume of the source.\n\n"
+			 ".. seealso:: :attr:`Device.distance_model`");
 
 static PyObject *
 Handle_get_volume_minimum(Handle *self, void* nothing)
@@ -1640,7 +1685,8 @@ Handle_set_volume_minimum(Handle *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Handle_volume_maximum_doc,
-			 "The maximum volume of the source.");
+			 "The maximum volume of the source.\n\n"
+			 ".. seealso:: :attr:`Device.distance_model`");
 
 static PyObject *
 Handle_get_volume_maximum(Handle *self, void* nothing)
@@ -1698,7 +1744,9 @@ Handle_set_volume_maximum(Handle *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Handle_distance_reference_doc,
-			 "The reference distance of the source.");
+			 "The reference distance of the source.\n"
+			 "At this distance the volume will be exactly :attr:`volume`.\n\n"
+			 ".. seealso:: :attr:`Device.distance_model`");
 
 static PyObject *
 Handle_get_distance_reference(Handle *self, void* nothing)
@@ -1756,7 +1804,9 @@ Handle_set_distance_reference(Handle *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Handle_distance_maximum_doc,
-			 "The maximum distance of the source.");
+			 "The maximum distance of the source.\n"
+			 "If the listener is further away the source volume will be 0.\n\n"
+			 ".. seealso:: :attr:`Device.distance_model`");
 
 static PyObject *
 Handle_get_distance_maximum(Handle *self, void* nothing)
@@ -1814,7 +1864,9 @@ Handle_set_distance_maximum(Handle *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Handle_attenuation_doc,
-			 "The attenuation of the source.");
+			 "This factor is used for distance based attenuation of the "
+			 "source.\n\n"
+			 ".. seealso:: :attr:`Device.distance_model`");
 
 static PyObject *
 Handle_get_attenuation(Handle *self, void* nothing)
@@ -1872,7 +1924,14 @@ Handle_set_attenuation(Handle *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Handle_cone_angle_inner_doc,
-			 "The cone inner angle of the source.");
+			 "The opening angle of the inner cone of the source. If the cone "
+			 "values of a source are set there are two (audible) cones with "
+			 "the apex at the :attr:`location` of the source and with infinite "
+			 "height, heading in the direction of the source's "
+			 ":attr:`orientation`.\n"
+			 "In the inner cone the volume is normal. Outside the outer cone "
+			 "the volume will be :attr:`cone_volume_outer` and in the area "
+			 "between the volume will be interpolated linearly.");
 
 static PyObject *
 Handle_get_cone_angle_inner(Handle *self, void* nothing)
@@ -1930,7 +1989,8 @@ Handle_set_cone_angle_inner(Handle *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Handle_cone_angle_outer_doc,
-			 "The cone outer angle of the source.");
+			 "The opening angle of the outer cone of the source.\n\n"
+			 ".. seealso:: :attr:`cone_angle_inner`");
 
 static PyObject *
 Handle_get_cone_angle_outer(Handle *self, void* nothing)
@@ -1988,7 +2048,8 @@ Handle_set_cone_angle_outer(Handle *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Handle_cone_volume_outer_doc,
-			 "The cone outer volume of the source.");
+			 "The volume outside the outer cone of the source.\n\n"
+			 ".. seealso:: :attr:`cone_angle_inner`");
 
 static PyObject *
 Handle_get_cone_volume_outer(Handle *self, void* nothing)
@@ -2220,13 +2281,14 @@ Device_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(M_aud_Device_play_doc,
-			 "play(sound, keep=False)\n\n"
-			 "Plays a sound.\n\n"
-			 ":arg sound: The sound to play.\n"
-			 ":type sound: :class:`Factory`\n"
-			 ":arg keep: Whether the sound should be kept paused in the device when its end is reached.\n"
+			 "play(factory, keep=False)\n\n"
+			 "Plays a factory.\n\n"
+			 ":arg factory: The factory to play.\n"
+			 ":type factory: :class:`Factory`\n"
+			 ":arg keep: See :attr:`Handle.keep`.\n"
 			 ":type keep: bool\n"
-			 ":return: The playback handle.\n"
+			 ":return: The playback handle with which playback can be "
+			 "controlled with.\n"
 			 ":rtype: :class:`Handle`");
 
 static PyObject *
@@ -2237,7 +2299,7 @@ Device_play(Device *self, PyObject *args, PyObject *kwds)
 
 	bool keep = false;
 
-	static const char *kwlist[] = {"sound", "keep", NULL};
+	static const char *kwlist[] = {"factory", "keep", NULL};
 
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "O|O:play", const_cast<char**>(kwlist), &object, &keepo))
 		return NULL;
@@ -2286,10 +2348,13 @@ Device_play(Device *self, PyObject *args, PyObject *kwds)
 PyDoc_STRVAR(M_aud_Device_lock_doc,
 			 "lock()\n\n"
 			 "Locks the device so that it's guaranteed, that no samples are "
-			 "read from the streams until the unlock is called. The device has "
-			 "to be unlocked as often as locked to be able to continue "
-			 "playback. Make sure the time between locking and unlocking is as "
-			 "short as possible to avoid clicks.");
+			 "read from the streams until :meth:`unlock` is called.\n"
+			 "This is useful if you want to do start/stop/pause/resume some "
+			 "sounds at the same time.\n\n"
+			 ".. note:: The device has to be unlocked as often as locked to be "
+			 "able to continue playback.\n\n"
+			 ".. warning:: Make sure the time between locking and unlocking is "
+			 "as short as possible to avoid clicks.");
 
 static PyObject *
 Device_lock(Device *self)
@@ -2308,7 +2373,8 @@ Device_lock(Device *self)
 
 PyDoc_STRVAR(M_aud_Device_unlock_doc,
 			 "unlock()\n\n"
-			 "Unlocks the device after a lock call, see lock() for details.");
+			 "Unlocks the device after a lock call, see :meth:`lock` for "
+			 "details.");
 
 static PyObject *
 Device_unlock(Device *self)
@@ -2595,7 +2661,8 @@ Device_set_listener_orientation(Device *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Device_speed_of_sound_doc,
-			 "The speed of sound of the device.");
+			 "The speed of sound of the device.\n"
+			 "The speed of sound in air is typically 343 m/s.");
 
 static PyObject *
 Device_get_speed_of_sound(Device *self, void* nothing)
@@ -2648,7 +2715,10 @@ Device_set_speed_of_sound(Device *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Device_doppler_factor_doc,
-			 "The doppler factor of the device.");
+			 "The doppler factor of the device.\n"
+			 "This factor is a scaling factor for the velocity vectors in "
+			 "doppler calculation. So a value bigger than 1 will exaggerate "
+			 "the effect as it raises the velocity.");
 
 static PyObject *
 Device_get_doppler_factor(Device *self, void* nothing)
@@ -2701,7 +2771,8 @@ Device_set_doppler_factor(Device *self, PyObject* args, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Device_distance_model_doc,
-			 "The distance model of the device.");
+			 "The distance model of the device.\n\n"
+			 ".. seealso:: http://connect.creativelabs.com/openal/Documentation/OpenAL%201.1%20Specification.htm#_Toc199835864");
 
 static PyObject *
 Device_get_distance_model(Device *self, void* nothing)
