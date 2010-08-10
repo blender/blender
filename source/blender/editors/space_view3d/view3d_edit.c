@@ -27,7 +27,6 @@
  */
 
 #include <string.h>
-#include <stdio.h>
 #include <math.h>
 #include <float.h>
 
@@ -879,6 +878,7 @@ static int viewndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 	}
 
+#if 0
 static int viewndof_invoke_1st_try(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
@@ -961,6 +961,7 @@ static int viewndof_invoke_2nd_try(bContext *C, wmOperator *op, wmEvent *event)
 
 	return OPERATOR_FINISHED;
 }
+#endif
 
 void VIEW3D_OT_ndof(struct wmOperatorType *ot)
 {

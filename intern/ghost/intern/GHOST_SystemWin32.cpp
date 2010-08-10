@@ -38,7 +38,7 @@
 
 #include <stdio.h> // for debug [mce]
 
-#define _WIN32_IE 0x501 /* shipped before XP, so doesn't impose additional req'm'ts */
+#define _WIN32_IE 0x501 /* shipped before XP, so doesn't impose additional requirements */
 #include <shlobj.h>
 
 
@@ -113,7 +113,7 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 	// Require COM for GHOST_DropTargetWin32 created in GHOST_WindowWin32.
 	OleInitialize(0);
 
-	m_input_fidelity_hint = HI_FI; // just for testing...
+	m_input_fidelity_hint = LO_FI; // just for testing...
 
 	// register for RawInput devices
 	RAWINPUTDEVICE devices[1];
@@ -180,10 +180,8 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 	window = new GHOST_WindowWin32 (this, title, left, top, width, height, state, type, stereoVisual, numOfAASamples);
 	if (window) {
 		if (window->getValid()) {
-			// Store the pointer to the window
-//			if (state != GHOST_kWindowStateFullScreen) {
-				m_windowManager->addWindow(window);
-//			}
+			m_windowManager->addWindow(window);
+			m_windowManager->setActiveWindow(window);
 		}
 		else {
 			// An invalid window could be one that was used to test for AA
@@ -595,7 +593,15 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, bool k
 
 GHOST_Event* GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type, GHOST_IWindow* window)
 {
-	return new GHOST_Event(getSystem()->getMilliSeconds(), type, window);
+	GHOST_System* system = (GHOST_System*)getSystem();
+
+	if (type == GHOST_kEventWindowActivate)
+		{
+		puts("activating window");
+		system->getWindowManager()->setActiveWindow(window);
+		}
+
+	return new GHOST_Event(system->getMilliSeconds(), type, window);
 }
 
 GHOST_TSuccess GHOST_SystemWin32::pushDragDropEvent(GHOST_TEventType eventType, 
@@ -645,13 +651,12 @@ vendor ID
 
 No other registered devices use the c62_ space, so a simple mask will work!
 */
-
 		// The NDOF manager sends button changes immediately, and *pretends* to
 		// send motion. Mark as 'sent' so motion will always get dispatched.
 		eventSent = true;
 
 		// multiple events per RAWHID? MSDN hints at this.
-		printf("%d events\n", (int)raw.data.hid.dwCount);
+		// printf("%d events\n", (int)raw.data.hid.dwCount);
 
 		BYTE const* data = &raw.data.hid.bRawData;
 		// MinGW's definition (below) doesn't agree with MSDN reference for bRawData:
@@ -688,6 +693,7 @@ No other registered devices use the c62_ space, so a simple mask will work!
 				{
 				unsigned short buttons;
 				memcpy(&buttons, data + 1, sizeof(buttons));
+#if 0
 				printf("buttons:");
 				if (buttons)
 					{
@@ -699,6 +705,7 @@ No other registered devices use the c62_ space, so a simple mask will work!
 					}
 				else
 					printf(" none\n");
+#endif
 				m_ndofManager->updateButtons(buttons, getMilliSeconds());
 				break;
 				}
@@ -999,8 +1006,20 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 
 		case WM_INPUT:
 			{
-			puts("WM_INPUT");
+			// Raw mouse input benefitted from the buffered method,
+			// but SpaceNav gets along fine (better, even) grabbing single events.
 
+         RAWINPUT raw;
+         RAWINPUT* raw_ptr = &raw;
+         UINT rawSize = sizeof(RAWINPUT);
+
+         GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw_ptr, &rawSize, sizeof(RAWINPUTHEADER));
+         eventSent |= processRawInput(raw, window);
+
+         // necessary?
+         // DefRawInputProc(&raw_ptr, 1, sizeof(RAWINPUTHEADER));
+
+#if 0
 			#define RAWCOUNT 10
 			// just a guess that we'll receive up to 10 event reports
 			// the following code fetches all available, 10 at a time
@@ -1028,20 +1047,20 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 						RAWINPUT const& raw = rawBuffer[i];
 						eventSent |= processRawInput(raw, window);
 						}
-		
+
 					// clear processed events from the queue
 					DefRawInputProc((RAWINPUT**)&rawBuffer, n, sizeof(RAWINPUTHEADER));
 					}
 				}
+#endif
  			break;
 			}
 		case WM_MOUSEWHEEL:
-			puts("WM_MOUSEWHEEL");
 			/* The WM_MOUSEWHEEL message is sent to the focus window
 			 * when the mouse wheel is rotated. The DefWindowProc
 			 * function propagates the message to the window's parent.
 			 * There should be no internal forwarding of the message,
-			 * since DefWindowProc propagates it up the parent chain 
+			 * since DefWindowProc propagates it up the parent chain
 			 * until it finds a window that processes it.
 			 */
 			event = processWheelEvent(window, wParam, lParam);
@@ -1102,7 +1121,7 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 		case WM_PAINT:
 			/* An application sends the WM_PAINT message when the system or another application
 			 * makes a request to paint a portion of an application's window. The message is sent
-			 * when the UpdateWindow or RedrawWindow function is called, or by the DispatchMessage 
+			 * when the UpdateWindow or RedrawWindow function is called, or by the DispatchMessage
 			 * function when the application obtains a WM_PAINT message by using the GetMessage or 
 			 * PeekMessage function. 
 			 */

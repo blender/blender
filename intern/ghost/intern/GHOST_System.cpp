@@ -37,7 +37,6 @@
 #include "GHOST_System.h"
 
 #include <time.h>
-#include <stdio.h> /* just for printf */
 
 #include "GHOST_DisplayManager.h"
 #include "GHOST_EventManager.h"
@@ -196,18 +195,16 @@ bool GHOST_System::getFullScreen(void)
 
 bool GHOST_System::dispatchEvents()
 {
-	// NDOF Motion event is sent only once per dispatch, so do it now:
-	m_ndofManager->sendMotionEvent();
+	bool handled = false;
 
-	bool handled;
+	// NDOF Motion event is sent only once per dispatch, so do it now:
+	handled |= m_ndofManager->sendMotionEvent();
+
 	if (m_eventManager) {
 		if (m_input_fidelity_hint == LO_FI)
-			handled = m_eventManager->dispatchEvents_lo_fi();
+			handled |= m_eventManager->dispatchEvents_lo_fi();
 		else
-			handled = m_eventManager->dispatchEvents();
-	}
-	else {
-		handled = false;
+			handled |= m_eventManager->dispatchEvents();
 	}
 
 	m_timerManager->fireTimers(getMilliSeconds());
@@ -276,8 +273,6 @@ GHOST_TSuccess GHOST_System::init()
 	m_timerManager = new GHOST_TimerManager ();
 	m_windowManager = new GHOST_WindowManager ();
 	m_eventManager = new GHOST_EventManager ();
-//	m_ndofManager = new GHOST_NDOFManager();
-// Each platform now has their own NDOFManager subclass
 
 #ifdef GHOST_DEBUG
 	if (m_eventManager) {

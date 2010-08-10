@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <stdio.h> // [mce] debug, remove when finished
 
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"

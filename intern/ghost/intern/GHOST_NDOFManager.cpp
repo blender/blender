@@ -55,8 +55,7 @@ void GHOST_NDOFManager::updateRotation(short r[3], GHOST_TUns64 time)
 
 void GHOST_NDOFManager::updateButtons(unsigned short buttons, GHOST_TUns64 time)
 	{
-	GHOST_System* system = (GHOST_System*) GHOST_System::getSystem();
-	GHOST_IWindow* window = system->getWindowManager()->getActiveWindow();
+	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
 
 	unsigned short diff = m_buttons ^ buttons;
 
@@ -70,10 +69,9 @@ void GHOST_NDOFManager::updateButtons(unsigned short buttons, GHOST_TUns64 time)
 			GHOST_TEventNDOFButtonData* data = (GHOST_TEventNDOFButtonData*) event->getData();
 			
 			data->action = (buttons & mask) ? GHOST_kPress : GHOST_kRelease;
-//			data->pressed = buttons & mask;
 			data->button = i + 1;
 
-//			printf("sending button %d %s\n", data->button, (data->action == GHOST_kPress) ? "pressed" : "released");
+			// printf("sending button %d %s\n", data->button, (data->action == GHOST_kPress) ? "pressed" : "released");
 
 			m_system.pushEvent(event);
 			}
@@ -87,8 +85,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
 	if (m_atRest)
 		return false;
 
-	GHOST_System* system = (GHOST_System*) GHOST_System::getSystem();
-	GHOST_IWindow* window = system->getWindowManager()->getActiveWindow();
+	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
 
 	GHOST_EventNDOFMotion* event = new GHOST_EventNDOFMotion(m_motionTime, window);
 	GHOST_TEventNDOFMotionData* data = (GHOST_TEventNDOFMotionData*) event->getData();
@@ -109,11 +106,10 @@ bool GHOST_NDOFManager::sendMotionEvent()
 
 	data->dt = 0.001f * (m_motionTime - m_prevMotionTime); // in seconds
 
-	printf("dt = %d ms\n", (int)(m_motionTime - m_prevMotionTime));
-
 	m_prevMotionTime = m_motionTime;
 
-//	printf("sending T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f)\n", data->tx, data->ty, data->tz, data->rx, data->ry, data->rz);
+//	printf("sending T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f\n",
+//		data->tx, data->ty, data->tz, data->rx, data->ry, data->rz, data->dt);
 
 	m_system.pushEvent(event);
 

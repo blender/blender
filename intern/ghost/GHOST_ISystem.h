@@ -400,4 +400,3 @@ protected:
 };
 
 #endif // _GHOST_ISYSTEM_H_
-

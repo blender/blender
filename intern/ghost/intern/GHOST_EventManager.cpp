@@ -39,14 +39,9 @@
 #include "GHOST_Debug.h"
 
 // for testing lo-fi
-#include "GHOST_EventPrinter.h"
-#include <iostream>
-using namespace std;
-
-GHOST_EventManager::GHOST_EventManager()
-{
-}
-
+// #include "GHOST_EventPrinter.h"
+// #include <iostream>
+// using namespace std;
 
 GHOST_EventManager::~GHOST_EventManager()
 {
@@ -110,14 +105,12 @@ GHOST_TSuccess GHOST_EventManager::pushEvent(GHOST_IEvent* event)
 bool GHOST_EventManager::dispatchEvent(GHOST_IEvent* event)
 {
 	// [mce] this variant switches the "handled" flag to work as described in the header
-	//       it also stops after the first consumer has handled the event (no it doesn't)
 	bool handled = false;
 	if (event) {
 		TConsumerVector::iterator iter;
 		for (iter = m_consumers.begin(); iter != m_consumers.end(); iter++) {
 			if ((*iter)->processEvent(event)) {
 				handled = true;
-				// break;
 			}
 		}
 	}
@@ -125,7 +118,7 @@ bool GHOST_EventManager::dispatchEvent(GHOST_IEvent* event)
 }
 
 #if 0 // disable to test a variant
-bool GHOST_EventManager::dispatchEvent_original(GHOST_IEvent* event)
+bool GHOST_EventManager::dispatchEvent(GHOST_IEvent* event) /* original version */
 {
 	bool handled;
 	if (event) {
@@ -190,6 +183,7 @@ bool GHOST_EventManager::dispatchEvents_lo_fi()
 
 //	cout << "\n--- lo-fi dispatch ---";
 //	cout << "\ndiscard:";
+
 	while ((event = popEvent()) != NULL) {
 		if (event->getType() == GHOST_kEventCursorMove) {
 			// just a simple (x,y) pair, nothing much to adjust
@@ -204,7 +198,7 @@ bool GHOST_EventManager::dispatchEvents_lo_fi()
 			if (!dispatchEvent(event))
 				allHandled = false;
 	}
-		
+
 	// finally dispatch the single cursor update
 	if (cursorMove) {
 //		cout << "\nsend:";
@@ -268,7 +262,7 @@ void GHOST_EventManager::removeWindowEvents(GHOST_IWindow* window)
 		GHOST_IEvent* event = *iter;
 		if (event->getWindow() == window)
 		{
-            GHOST_PRINT("GHOST_EventManager::removeWindowEvents(): removing event\n");
+         GHOST_PRINT("GHOST_EventManager::removeWindowEvents(): removing event\n");
 			/*
 			 * Found an event for this window, remove it.
 			 * The iterator will become invalid.
@@ -293,7 +287,7 @@ void GHOST_EventManager::removeTypeEvents(GHOST_TEventType type, GHOST_IWindow* 
 		GHOST_IEvent* event = *iter;
 		if ((event->getType() == type) && (!window || (event->getWindow() == window)))
 		{
-            GHOST_PRINT("GHOST_EventManager::removeTypeEvents(): removing event\n");
+         GHOST_PRINT("GHOST_EventManager::removeTypeEvents(): removing event\n");
 			/*
 			 * Found an event of this type for the window, remove it.
 			 * The iterator will become invalid.
