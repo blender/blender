@@ -75,7 +75,7 @@
 typedef struct NDOFPlatformInfo {
 	Display *display;
 	Window window;
-//	volatile GHOST_TEventNDOFData *currValues;
+	volatile GHOST_TEventNDOFMotionData *currValues;
 	Atom cmdAtom;
 	Atom motionAtom;
 	Atom btnPressAtom;
@@ -173,7 +173,7 @@ init(
 
 	if (success) {
 
-		m_ndofManager = new GHOST_NDOFManagerX11;
+		m_ndofManager = new GHOST_NDOFManagerX11(*this);
 
 		m_displayManager = new GHOST_DisplayManagerX11(this);
 
@@ -656,8 +656,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					// [mce] look into this soon, as in find out why some values
 					// are shifted and where this message originates.
 
-					m_ndofManager->updateTranslation(t, getMilliseconds);
-					m_ndofManager->updateRotation(r, getMilliseconds);
+					m_ndofManager->updateTranslation(t, getMilliSeconds());
+					m_ndofManager->updateRotation(r, getMilliSeconds());
 
 // 					g_event = new GHOST_EventNDOF(getMilliSeconds(),
 // 					                              GHOST_kEventNDOFMotion,
@@ -670,7 +670,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 // 					data.buttons = xcme.data.s[2];
 
 					unsigned short buttons = xcme.data.s[2];
-					m_ndofManager->updateButtons(buttons, getMilliseconds());
+					m_ndofManager->updateButtons(buttons, getMilliSeconds());
 
 // 					g_event = new GHOST_EventNDOF(getMilliSeconds(),
 // 					                              GHOST_kEventNDOFButton,
