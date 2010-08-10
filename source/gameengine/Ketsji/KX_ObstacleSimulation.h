@@ -76,22 +76,6 @@ struct KX_Obstacle
 	KX_GameObject* m_gameObj;
 };
 typedef std::vector<KX_Obstacle*> KX_Obstacles;
-/*
-struct RVO
-{
-	inline RVO() : ns(0) {}
-	float spos[MAX_RVO_SAMPLES*2];
-	float scs[MAX_RVO_SAMPLES];
-	float spen[MAX_RVO_SAMPLES];
-
-	float svpen[MAX_RVO_SAMPLES];
-	float svcpen[MAX_RVO_SAMPLES];
-	float sspen[MAX_RVO_SAMPLES];
-	float stpen[MAX_RVO_SAMPLES];
-
-	int ns;
-};
-*/
 
 class KX_ObstacleSimulation
 {
@@ -101,7 +85,7 @@ protected:
 	MT_Scalar m_levelHeight;
 	bool m_enableVisualization;
 
-	virtual KX_Obstacle* CreateObstacle(KX_GameObject* gameobj);
+	KX_Obstacle* CreateObstacle(KX_GameObject* gameobj);
 public:
 	KX_ObstacleSimulation(MT_Scalar levelHeight, bool enableVisualization);
 	virtual ~KX_ObstacleSimulation();
@@ -117,36 +101,45 @@ public:
 	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
 								MT_Vector3& velocity, MT_Scalar maxDeltaSpeed,MT_Scalar maxDeltaAngle);
 
-}; /* end of class KX_ObstacleSimulation*/
-
-static const int AVOID_MAX_STEPS = 128;
-struct TOICircle
-{
-	TOICircle() : n(0), minToi(0), maxToi(1) {}
-	float	toi[AVOID_MAX_STEPS];	// Time of impact (seconds)
-	float	toie[AVOID_MAX_STEPS];	// Time of exit (seconds)
-	float	dir[AVOID_MAX_STEPS];	// Direction (radians)
-	int		n;						// Number of samples
-	float	minToi, maxToi;			// Min/max TOI (seconds)
-};
-
+}; 
 class KX_ObstacleSimulationTOI: public KX_ObstacleSimulation
 {
 protected:
-	int m_avoidSteps;				// Number of sample steps
+	int m_maxSamples;				// Number of sample steps
 	float m_minToi;					// Min TOI
 	float m_maxToi;					// Max TOI
-	float m_angleWeight;			// Sample selection angle weight
+	float m_velWeight;				// Sample selection angle weight
+	float m_curVelWeight;			// Sample selection current velocity weight
 	float m_toiWeight;				// Sample selection TOI weight
 	float m_collisionWeight;		// Sample selection collision weight
 
-	std::vector<TOICircle*>	m_toiCircles; // TOI circles (one per active agent)
-	virtual KX_Obstacle* CreateObstacle(KX_GameObject* gameobj);
+	virtual void sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+							const float maxDeltaAngle) = 0;
 public:
 	KX_ObstacleSimulationTOI(MT_Scalar levelHeight, bool enableVisualization);
-	~KX_ObstacleSimulationTOI();
 	virtual void AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
-									MT_Vector3& velocity, MT_Scalar maxDeltaSpeed,MT_Scalar maxDeltaAngle);
+		MT_Vector3& velocity, MT_Scalar maxDeltaSpeed,MT_Scalar maxDeltaAngle);
+};
+
+class KX_ObstacleSimulationTOI_rays: public KX_ObstacleSimulationTOI
+{
+protected:
+	virtual void sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+							const float maxDeltaAngle);
+public:
+	KX_ObstacleSimulationTOI_rays(MT_Scalar levelHeight, bool enableVisualization);
+};
+
+class KX_ObstacleSimulationTOI_cells: public KX_ObstacleSimulationTOI
+{
+protected:
+	float m_bias;
+	bool m_adaptive;
+	int m_sampleRadius;
+	virtual void sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+							const float maxDeltaAngle);
+public:
+	KX_ObstacleSimulationTOI_cells(MT_Scalar levelHeight, bool enableVisualization);
 };
 
 #endif

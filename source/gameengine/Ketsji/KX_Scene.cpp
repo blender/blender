@@ -212,9 +212,11 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	bool showObstacleSimulation = scene->gm.flag & GAME_SHOW_OBSTACLE_SIMULATION;
 	switch (scene->gm.obstacleSimulation)
 	{
-	case OBSTSIMULATION_TOI:
-
-		m_obstacleSimulation = new KX_ObstacleSimulationTOI((MT_Scalar)scene->gm.levelHeight, showObstacleSimulation);
+	case OBSTSIMULATION_TOI_rays:
+		m_obstacleSimulation = new KX_ObstacleSimulationTOI_rays((MT_Scalar)scene->gm.levelHeight, showObstacleSimulation);
+		break;
+	case OBSTSIMULATION_TOI_cells:
+		m_obstacleSimulation = new KX_ObstacleSimulationTOI_cells((MT_Scalar)scene->gm.levelHeight, showObstacleSimulation);
 		break;
 	default:
 		m_obstacleSimulation = NULL;
@@ -1475,10 +1477,6 @@ void KX_Scene::LogicBeginFrame(double curtime)
 		}
 	}
 
-	//prepare obstacle simulation for new frame
-	if (m_obstacleSimulation)
-		m_obstacleSimulation->UpdateObstacles();
-
 	m_logicmgr->BeginFrame(curtime, 1.0/KX_KetsjiEngine::GetTicRate());
 }
 
@@ -1506,6 +1504,10 @@ void KX_Scene::LogicEndFrame()
 		obj->Release();
 		RemoveObject(obj);
 	}
+
+	//prepare obstacle simulation for new frame
+	if (m_obstacleSimulation)
+		m_obstacleSimulation->UpdateObstacles();
 }
 
 

@@ -341,7 +341,7 @@ bool buildNavMeshData(const int nverts, const float* verts,
 	{
 		memcpy(dtris+3*2*i, tris+3*dtrisToTrisMap[i], sizeof(unsigned short)*3);
 	}
-	//create new recast data corresponded to dtris and renumber for continious indices
+	//create new recast data corresponded to dtris and renumber for continuous indices
 	int prevPolyIdx=-1, curPolyIdx, newPolyIdx=0;
 	dtrisToPolysMap = new int[ndtris];
 	for (int i=0; i<ndtris; i++)

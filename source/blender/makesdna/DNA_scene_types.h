@@ -500,7 +500,8 @@ typedef struct GameData {
 
 /* obstacleSimulation */
 #define OBSTSIMULATION_NONE		0
-#define OBSTSIMULATION_TOI		1
+#define OBSTSIMULATION_TOI_rays		1
+#define OBSTSIMULATION_TOI_cells	2
 
 /* GameData.flag */
 #define GAME_ENABLE_ALL_FRAMES				(1 << 1)

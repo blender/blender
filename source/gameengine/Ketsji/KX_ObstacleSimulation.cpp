@@ -209,6 +209,20 @@ static bool inBetweenAngle(float a, float amin, float amax, float& t)
 	return false;
 }
 
+static float interpolateToi(float a, const float* dir, const float* toi, const int ntoi)
+{
+	for (int i = 0; i < ntoi; ++i)
+	{
+		int next = (i+1) % ntoi;
+		float t;
+		if (inBetweenAngle(a, dir[i], dir[next], t))
+		{
+			return lerp(toi[i], toi[next], t);
+		}
+	}
+	return 0;
+}
+
 KX_ObstacleSimulation::KX_ObstacleSimulation(MT_Scalar levelHeight, bool enableVisualization)
 :	m_levelHeight(levelHeight)
 ,	m_enableVisualization(enableVisualization)
@@ -404,51 +418,220 @@ static bool filterObstacle(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavM
 	return true;
 }
 
-KX_ObstacleSimulationTOI::KX_ObstacleSimulationTOI(MT_Scalar levelHeight, bool enableVisualization):
-	KX_ObstacleSimulation(levelHeight, enableVisualization),
-	m_avoidSteps(32),
-	m_minToi(0.5f),
-	m_maxToi(1.2f),
-	m_angleWeight(4.0f),
+///////////*********TOI_rays**********/////////////////
+KX_ObstacleSimulationTOI::KX_ObstacleSimulationTOI(MT_Scalar levelHeight, bool enableVisualization)
+:	KX_ObstacleSimulation(levelHeight, enableVisualization),
+	m_maxSamples(32),
+	m_minToi(0.0f),
+	m_maxToi(0.0f),
+	m_velWeight(1.0f),
+	m_curVelWeight(1.0f),
 	m_toiWeight(1.0f),
-	m_collisionWeight(100.0f)
+	m_collisionWeight(1.0f)
 {
-	
 }
 
-KX_ObstacleSimulationTOI::~KX_ObstacleSimulationTOI()
+
+void KX_ObstacleSimulationTOI::AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+														   MT_Vector3& velocity, MT_Scalar maxDeltaSpeed, MT_Scalar maxDeltaAngle)
 {
-	for (size_t i=0; i<m_toiCircles.size(); i++)
+	int nobs = m_obstacles.size();
+	int obstidx = std::find(m_obstacles.begin(), m_obstacles.end(), activeObst) - m_obstacles.begin();
+	if (obstidx == nobs)
+		return;
+
+	vset(activeObst->dvel, velocity.x(), velocity.y());
+
+	//apply RVO
+	sampleRVO(activeObst, activeNavMeshObj, maxDeltaAngle);
+
+	// Fake dynamic constraint.
+	float dv[2];
+	float vel[2];
+	vsub(dv, activeObst->nvel, activeObst->vel);
+	float ds = vlen(dv);
+	if (ds > maxDeltaSpeed || ds<-maxDeltaSpeed)
+		vscale(dv, dv, fabs(maxDeltaSpeed/ds));
+	vadd(vel, activeObst->vel, dv);
+
+	velocity.x() = vel[0];
+	velocity.y() = vel[1];	
+}
+
+///////////*********TOI_rays**********/////////////////
+static const int AVOID_MAX_STEPS = 128;
+struct TOICircle
+{
+	TOICircle() : n(0), minToi(0), maxToi(1) {}
+	float	toi[AVOID_MAX_STEPS];	// Time of impact (seconds)
+	float	toie[AVOID_MAX_STEPS];	// Time of exit (seconds)
+	float	dir[AVOID_MAX_STEPS];	// Direction (radians)
+	int		n;						// Number of samples
+	float	minToi, maxToi;			// Min/max TOI (seconds)
+};
+
+KX_ObstacleSimulationTOI_rays::KX_ObstacleSimulationTOI_rays(MT_Scalar levelHeight, bool enableVisualization):
+	KX_ObstacleSimulationTOI(levelHeight, enableVisualization)
+{
+	m_maxSamples = 32;
+	m_minToi = 0.5f;
+	m_maxToi = 1.2f;
+	m_velWeight = 4.0f;
+	m_toiWeight = 1.0f;
+	m_collisionWeight = 100.0f;
+}
+
+
+void KX_ObstacleSimulationTOI_rays::sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+										const float maxDeltaAngle)
+{
+	MT_Vector2 vel(activeObst->dvel[0], activeObst->dvel[1]);
+	float vmax = (float) vel.length();
+	float odir = (float) atan2(vel.y(), vel.x());
+
+	MT_Vector2 ddir = vel;
+	ddir.normalize();
+
+	float bestScore = FLT_MAX;
+	float bestDir = odir;
+	float bestToi = 0;
+
+	TOICircle tc;
+	tc.n = m_maxSamples;
+	tc.minToi = m_minToi;
+	tc.maxToi = m_maxToi;
+
+	const int iforw = m_maxSamples/2;
+	const float aoff = (float)iforw / (float)m_maxSamples;
+
+	size_t nobs = m_obstacles.size();
+	for (int iter = 0; iter < m_maxSamples; ++iter)
 	{
-		TOICircle* toi = m_toiCircles[i];
-		delete toi;
+		// Calculate sample velocity
+		const float ndir = ((float)iter/(float)m_maxSamples) - aoff;
+		const float dir = odir+ndir*M_PI*2;
+		MT_Vector2 svel;
+		svel.x() = cosf(dir) * vmax;
+		svel.y() = sinf(dir) * vmax;
+
+		// Find min time of impact and exit amongst all obstacles.
+		float tmin = m_maxToi;
+		float tmine = 0;
+		for (int i = 0; i < nobs; ++i)
+		{
+			KX_Obstacle* ob = m_obstacles[i];
+			bool res = filterObstacle(activeObst, activeNavMeshObj, ob, m_levelHeight);
+			if (!res)
+				continue;
+
+			float htmin,htmax;
+
+			if (ob->m_shape == KX_OBSTACLE_CIRCLE)
+			{
+				MT_Vector2 vab;
+				if (vlen(ob->vel) < 0.01f*0.01f)
+				{
+					// Stationary, use VO
+					vab = svel;
+				}
+				else
+				{
+					// Moving, use RVO
+					vab = 2*svel - vel - ob->vel;
+				}
+
+				if (!sweepCircleCircle(activeObst->m_pos, activeObst->m_rad, 
+					vab, ob->m_pos, ob->m_rad, htmin, htmax))
+					continue;
+			}
+			else if (ob->m_shape == KX_OBSTACLE_SEGMENT)
+			{
+				MT_Point3 p1 = ob->m_pos;
+				MT_Point3 p2 = ob->m_pos2;
+				//apply world transform
+				if (ob->m_type == KX_OBSTACLE_NAV_MESH)
+				{
+					KX_NavMeshObject* navmeshobj = static_cast<KX_NavMeshObject*>(ob->m_gameObj);
+					p1 = navmeshobj->TransformToWorldCoords(p1);
+					p2 = navmeshobj->TransformToWorldCoords(p2);
+				}
+				if (!sweepCircleSegment(activeObst->m_pos, activeObst->m_rad, svel, 
+					p1, p2, ob->m_rad, htmin, htmax))
+					continue;
+			}
+
+			if (htmin > 0.0f)
+			{
+				// The closest obstacle is somewhere ahead of us, keep track of nearest obstacle.
+				if (htmin < tmin)
+					tmin = htmin;
+			}
+			else if	(htmax > 0.0f)
+			{
+				// The agent overlaps the obstacle, keep track of first safe exit.
+				if (htmax > tmine)
+					tmine = htmax;
+			}
+		}
+
+		// Calculate sample penalties and final score.
+		const float apen = m_velWeight * fabsf(ndir);
+		const float tpen = m_toiWeight * (1.0f/(0.0001f+tmin/m_maxToi));
+		const float cpen = m_collisionWeight * (tmine/m_minToi)*(tmine/m_minToi);
+		const float score = apen + tpen + cpen;
+
+		// Update best score.
+		if (score < bestScore)
+		{
+			bestDir = dir;
+			bestToi = tmin;
+			bestScore = score;
+		}
+
+		tc.dir[iter] = dir;
+		tc.toi[iter] = tmin;
+		tc.toie[iter] = tmine;
 	}
-	m_toiCircles.clear();
+
+	if (vlen(activeObst->vel) > 0.1)
+	{
+		// Constrain max turn rate.
+		float cura = atan2(activeObst->vel[1],activeObst->vel[0]);
+		float da = bestDir - cura;
+		if (da < -M_PI) da += (float)M_PI*2;
+		if (da > M_PI) da -= (float)M_PI*2;
+		if (da < -maxDeltaAngle)
+		{
+			bestDir = cura - maxDeltaAngle;
+			bestToi = min(bestToi, interpolateToi(bestDir, tc.dir, tc.toi, tc.n));
+		}
+		else if (da > maxDeltaAngle)
+		{
+			bestDir = cura + maxDeltaAngle;
+			bestToi = min(bestToi, interpolateToi(bestDir, tc.dir, tc.toi, tc.n));
+		}
+	}
+
+	// Adjust speed when time of impact is less than min TOI.
+	if (bestToi < m_minToi)
+		vmax *= bestToi/m_minToi;
+
+	// New steering velocity.
+	activeObst->nvel[0] = cosf(bestDir) * vmax;
+	activeObst->nvel[1] = sinf(bestDir) * vmax;
 }
 
-KX_Obstacle* KX_ObstacleSimulationTOI::CreateObstacle(KX_GameObject* gameobj)
-{
-	KX_Obstacle* obstacle = KX_ObstacleSimulation::CreateObstacle(gameobj);
-	m_toiCircles.push_back(new TOICircle());
-	return obstacle;
-}
-
-static const float VEL_WEIGHT = 2.0f;
-static const float CUR_VEL_WEIGHT = 0.75f;
-static const float SIDE_WEIGHT = 0.75f;
-static const float TOI_WEIGHT = 2.5f;
+///////////********* TOI_cells**********/////////////////
 
 static void processSamples(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
 						   KX_Obstacles& obstacles,  float levelHeight, const float vmax,
-						   const float* spos, const float cs, const int nspos,
-						   float* res)
+						   const float* spos, const float cs, const int nspos, float* res, 						   
+						   float maxToi, float velWeight, float curVelWeight, float sideWeight,
+						   float toiWeight)
 {
 	vset(res, 0,0);
 
 	const float ivmax = 1.0f / vmax;
-
-	// Max time of collision to be considered.
-	const float maxToi = 1.5f;
 
 	float adir[2], adist;
 	vcpy(adir, activeObst->pvel);
@@ -583,10 +766,10 @@ static void processSamples(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavM
 		if (nside)
 			side /= nside;
 
-		const float vpen = VEL_WEIGHT * (vdist(vcand, activeObst->dvel) * ivmax);
-		const float vcpen = CUR_VEL_WEIGHT * (vdist(vcand, activeObst->vel) * ivmax);
-		const float spen = SIDE_WEIGHT * side;
-		const float tpen = TOI_WEIGHT * (1.0f/(0.1f+tmin/maxToi));
+		const float vpen = velWeight * (vdist(vcand, activeObst->dvel) * ivmax);
+		const float vcpen = curVelWeight * (vdist(vcand, activeObst->vel) * ivmax);
+		const float spen = sideWeight * side;
+		const float tpen = toiWeight * (1.0f/(0.1f+tmin/maxToi));
 
 		const float penalty = vpen + vcpen + spen + tpen;
 
@@ -598,134 +781,89 @@ static void processSamples(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavM
 	}
 }
 
-static const int RVO_SAMPLE_RAD = 15;
-static const int MAX_RVO_SAMPLES = (RVO_SAMPLE_RAD*2+1)*(RVO_SAMPLE_RAD*2+1) + 100;
-
-static void sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
-					  KX_Obstacles& obstacles, const float levelHeight,const float bias)
-{
-	float spos[2*MAX_RVO_SAMPLES];
-	int nspos = 0;
-
-	const float cvx = activeObst->dvel[0]*bias;
-	const float cvy = activeObst->dvel[1]*bias;
-	float vmax = vlen(activeObst->dvel);
-	const float vrange = vmax*(1-bias);
-	const float cs = 1.0f / (float)RVO_SAMPLE_RAD*vrange;
-
-	for (int y = -RVO_SAMPLE_RAD; y <= RVO_SAMPLE_RAD; ++y)
-	{
-		for (int x = -RVO_SAMPLE_RAD; x <= RVO_SAMPLE_RAD; ++x)
-		{
-			if (nspos < MAX_RVO_SAMPLES)
-			{
-				const float vx = cvx + (float)(x+0.5f)*cs;
-				const float vy = cvy + (float)(y+0.5f)*cs;
-				if (vx*vx+vy*vy > sqr(vmax+cs/2)) continue;
-				spos[nspos*2+0] = vx;
-				spos[nspos*2+1] = vy;
-				nspos++;
-			}
-		}
-	}
-	processSamples(activeObst, activeNavMeshObj, obstacles, levelHeight, vmax, spos, cs/2, 
-					nspos,  activeObst->nvel);
-}
-
-static void sampleRVOAdaptive(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
-					   KX_Obstacles& obstacles, const float levelHeight,const float bias)
+void KX_ObstacleSimulationTOI_cells::sampleRVO(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
+					   const float maxDeltaAngle)
 {
 	vset(activeObst->nvel, 0.f, 0.f);
 	float vmax = vlen(activeObst->dvel);
 
-	float spos[2*MAX_RVO_SAMPLES];
+	float* spos = new float[2*m_maxSamples];
 	int nspos = 0;
 
-	int rad;
-	float res[2];
-	float cs;
-
-	// First sample location.
-	rad = 4;
-	res[0] = activeObst->dvel[0]*bias;
-	res[1] = activeObst->dvel[1]*bias;
-	cs = vmax*(2-bias*2) / (float)(rad-1);
-
-	for (int k = 0; k < 5; ++k)
+	if (!m_adaptive)
 	{
-		const float half = (rad-1)*cs*0.5f;
+		const float cvx = activeObst->dvel[0]*m_bias;
+		const float cvy = activeObst->dvel[1]*m_bias;
+		float vmax = vlen(activeObst->dvel);
+		const float vrange = vmax*(1-m_bias);
+		const float cs = 1.0f / (float)m_sampleRadius*vrange;
 
-		nspos = 0;
-		for (int y = 0; y < rad; ++y)
+		for (int y = -m_sampleRadius; y <= m_sampleRadius; ++y)
 		{
-			for (int x = 0; x < rad; ++x)
+			for (int x = -m_sampleRadius; x <= m_sampleRadius; ++x)
 			{
-				const float vx = res[0] + x*cs - half;
-				const float vy = res[1] + y*cs - half;
-				if (vx*vx+vy*vy > sqr(vmax+cs/2)) continue;
-				spos[nspos*2+0] = vx;
-				spos[nspos*2+1] = vy;
-				nspos++;
+				if (nspos < m_maxSamples)
+				{
+					const float vx = cvx + (float)(x+0.5f)*cs;
+					const float vy = cvy + (float)(y+0.5f)*cs;
+					if (vx*vx+vy*vy > sqr(vmax+cs/2)) continue;
+					spos[nspos*2+0] = vx;
+					spos[nspos*2+1] = vy;
+					nspos++;
+				}
 			}
 		}
-
-		processSamples(activeObst, activeNavMeshObj, obstacles, levelHeight, vmax, spos, cs/2, 
-			nspos,  res);
-
-		cs *= 0.5f;
+		processSamples(activeObst, activeNavMeshObj, m_obstacles, m_levelHeight, vmax, spos, cs/2, 
+			nspos,  activeObst->nvel, m_maxToi, m_velWeight, m_curVelWeight, m_collisionWeight, m_toiWeight);
 	}
+	else
+	{
+		int rad;
+		float res[2];
+		float cs;
+		// First sample location.
+		rad = 4;
+		res[0] = activeObst->dvel[0]*m_bias;
+		res[1] = activeObst->dvel[1]*m_bias;
+		cs = vmax*(2-m_bias*2) / (float)(rad-1);
 
-	vcpy(activeObst->nvel, res);
+		for (int k = 0; k < 5; ++k)
+		{
+			const float half = (rad-1)*cs*0.5f;
+
+			nspos = 0;
+			for (int y = 0; y < rad; ++y)
+			{
+				for (int x = 0; x < rad; ++x)
+				{
+					const float vx = res[0] + x*cs - half;
+					const float vy = res[1] + y*cs - half;
+					if (vx*vx+vy*vy > sqr(vmax+cs/2)) continue;
+					spos[nspos*2+0] = vx;
+					spos[nspos*2+1] = vy;
+					nspos++;
+				}
+			}
+
+			processSamples(activeObst, activeNavMeshObj, m_obstacles, m_levelHeight, vmax, spos, cs/2, 
+				nspos,  res, m_maxToi, m_velWeight, m_curVelWeight, m_collisionWeight, m_toiWeight);
+
+			cs *= 0.5f;
+		}
+		vcpy(activeObst->nvel, res);
+	}
 }
 
-
-void KX_ObstacleSimulationTOI::AdjustObstacleVelocity(KX_Obstacle* activeObst, KX_NavMeshObject* activeNavMeshObj, 
-													MT_Vector3& velocity, MT_Scalar maxDeltaSpeed, MT_Scalar maxDeltaAngle)
+KX_ObstacleSimulationTOI_cells::KX_ObstacleSimulationTOI_cells(MT_Scalar levelHeight, bool enableVisualization)
+:	KX_ObstacleSimulationTOI(levelHeight, enableVisualization)
+,	m_bias(0.4f)
+,	m_adaptive(true)
+,	m_sampleRadius(15)
 {
-	int nobs = m_obstacles.size();
-	int obstidx = std::find(m_obstacles.begin(), m_obstacles.end(), activeObst) - m_obstacles.begin();
-	if (obstidx == nobs)
-		return;
-	
-	vset(activeObst->dvel, velocity.x(), velocity.y());
-
-	//apply RVO
-	const float bias = 0.4f;
-	//sampleRVO(activeObst, activeNavMeshObj, m_obstacles, m_levelHeight, bias);
-	sampleRVOAdaptive(activeObst, activeNavMeshObj, m_obstacles, m_levelHeight, bias);
-
-	// Fake dynamic constraint.
-	float dv[2];
-	float vel[2];
-	vsub(dv, activeObst->nvel, activeObst->vel);
-	float ds = vlen(dv);
-	if (ds > maxDeltaSpeed || ds<-maxDeltaSpeed)
-		vscale(dv, dv, fabs(maxDeltaSpeed/ds));
-	vadd(vel, activeObst->vel, dv);
-	
-	velocity.x() = vel[0];
-	velocity.y() = vel[1];
-/*	printf("dvel: %f, nvel: %f, vel: %f\n", vlen(activeObst->dvel), vlen(activeObst->nvel),
-											vlen(vel));*/
-
+	m_maxSamples = (m_sampleRadius*2+1)*(m_sampleRadius*2+1) + 100;
+	m_maxToi = 1.5f;
+	m_velWeight = 2.0f;
+	m_curVelWeight = 0.75f;
+	m_toiWeight = 2.5f;
+	m_collisionWeight = 0.75f; //side_weight
 }
-/*
-#include "GL/glew.h"
-void KX_ObstacleSimulation::DebugDraw()
-{
-	glDisable(GL_LIGHTING);
-	glDisable(GL_TEXTURE_2D);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0, 100.0, 0.0, 100.0, -1.0, 1.0);
-	glBegin(GL_QUADS);
-	glColor4ub(255,0,0,255);
-	glVertex2f(0.f, 0.f);
-	glVertex2f(100.f, 25.f);
-	glVertex2f(100.f, 75.f);
-	glVertex2f(25.f, 75.f);
-	glEnd(); 
-
-}*/
