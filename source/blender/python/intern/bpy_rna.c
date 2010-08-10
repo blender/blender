@@ -35,6 +35,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
+#include "BKE_idcode.h"
 #include "BKE_context.h"
 #include "BKE_global.h" /* evil G.* */
 #include "BKE_report.h"
@@ -418,25 +419,50 @@ static PyObject *pyrna_prop_richcmp(PyObject *a, PyObject *b, int op)
 }
 
 /*----------------------repr--------------------------------------------*/
-static PyObject *pyrna_struct_repr( BPy_StructRNA *self )
+static PyObject *pyrna_struct_str( BPy_StructRNA *self )
 {
-	PyObject *pyob;
+	PyObject *ret;
 	char *name;
 
 	/* print name if available */
 	name= RNA_struct_name_get_alloc(&self->ptr, NULL, FALSE);
 	if(name) {
-		pyob= PyUnicode_FromFormat( "<bpy_struct, %.200s(\"%.200s\")>", RNA_struct_identifier(self->ptr.type), name);
+		ret= PyUnicode_FromFormat( "<bpy_struct, %.200s(\"%.200s\")>", RNA_struct_identifier(self->ptr.type), name);
 		MEM_freeN(name);
-		return pyob;
+		return ret;
 	}
 
 	return PyUnicode_FromFormat( "<bpy_struct, %.200s at %p>", RNA_struct_identifier(self->ptr.type), self->ptr.data);
 }
 
-static PyObject *pyrna_prop_repr( BPy_PropertyRNA *self )
+static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
 {
-	PyObject *pyob;
+	ID *id= self->ptr.id.data;
+	if(id == NULL)
+		return pyrna_struct_str(self); /* fallback */
+	
+	if(RNA_struct_is_ID(self->ptr.type)) {
+		return PyUnicode_FromFormat( "bpy.data.%s[\"%s\"]", BKE_idcode_to_name_plural(GS(id->name)), id->name+2);
+	}
+	else {
+		PyObject *ret;
+		char *path;
+		path= RNA_path_from_ID_to_struct(&self->ptr);
+		if(path) {
+			ret= PyUnicode_FromFormat( "bpy.data.%s[\"%s\"].%s", BKE_idcode_to_name_plural(GS(id->name)), id->name+2, path);
+			MEM_freeN(path);
+		}
+		else { /* cant find, print something sane */
+			ret= PyUnicode_FromFormat( "bpy.data.%s[\"%s\"]...%s", BKE_idcode_to_name_plural(GS(id->name)), id->name+2, RNA_struct_identifier(self->ptr.type));
+		}
+		
+		return ret;
+	}
+}
+
+static PyObject *pyrna_prop_str( BPy_PropertyRNA *self )
+{
+	PyObject *ret;
 	PointerRNA ptr;
 	char *name;
 	const char *type_id= NULL;
@@ -470,13 +496,34 @@ static PyObject *pyrna_prop_repr( BPy_PropertyRNA *self )
 		name= RNA_struct_name_get_alloc(&ptr, NULL, FALSE);
 
 		if(name) {
-			pyob= PyUnicode_FromFormat( "<bpy_%.200s, %.200s.%.200s(\"%.200s\")>", type_fmt, RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop), name);
+			ret= PyUnicode_FromFormat( "<bpy_%.200s, %.200s.%.200s(\"%.200s\")>", type_fmt, RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop), name);
 			MEM_freeN(name);
-			return pyob;
+			return ret;
 		}
 	}
 
 	return PyUnicode_FromFormat( "<bpy_%.200s, %.200s.%.200s>", type_fmt, RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop));
+}
+
+static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
+{
+	ID *id= self->ptr.id.data;
+	PyObject *ret;
+	char *path;
+	
+	if(id == NULL)
+		return pyrna_prop_str(self); /* fallback */
+	
+	path= RNA_path_from_ID_to_property(&self->ptr, self->prop);
+	if(path) {
+		ret= PyUnicode_FromFormat( "bpy.data.%s[\"%s\"].%s", BKE_idcode_to_name_plural(GS(id->name)), id->name+2, path);
+		MEM_freeN(path);
+	}
+	else { /* cant find, print something sane */
+		ret= PyUnicode_FromFormat( "bpy.data.%s[\"%s\"]...%s", BKE_idcode_to_name_plural(GS(id->name)), id->name+2, RNA_property_identifier(self->prop));
+	}
+	
+	return ret;
 }
 
 static long pyrna_struct_hash( BPy_StructRNA *self )
@@ -3530,7 +3577,7 @@ PyTypeObject pyrna_struct_Type = {
 
 	( hashfunc )pyrna_struct_hash,	/* hashfunc tp_hash; */
 	NULL,						/* ternaryfunc tp_call; */
-	NULL,                       /* reprfunc tp_str; */
+	(reprfunc) pyrna_struct_str, /* reprfunc tp_str; */
 	( getattrofunc ) pyrna_struct_getattro,	/* getattrofunc tp_getattro; */
 	( setattrofunc ) pyrna_struct_setattro,	/* setattrofunc tp_setattro; */
 
@@ -3597,7 +3644,7 @@ PyTypeObject pyrna_prop_Type = {
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
 	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */
-	( reprfunc ) pyrna_prop_repr,	/* tp_repr */
+	(reprfunc) pyrna_prop_repr,	/* tp_repr */
 
 	/* Method suites for standard classes */
 
@@ -3609,7 +3656,7 @@ PyTypeObject pyrna_prop_Type = {
 
 	( hashfunc ) pyrna_prop_hash,	/* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
-	NULL,                       /* reprfunc tp_str; */
+	(reprfunc) pyrna_prop_str,  /* reprfunc tp_str; */
 
 	/* will only use these if this is a subtype of a py class */
 	NULL,						/* getattrofunc tp_getattro; */
