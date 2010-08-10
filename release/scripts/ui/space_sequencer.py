@@ -320,9 +320,9 @@ class SequencerButtonsPanel():
     def has_sequencer(context):
         return (context.space_data.view_type == 'SEQUENCER') or (context.space_data.view_type == 'SEQUENCER_PREVIEW')
 
-    @staticmethod
-    def poll(context):
-        return __class__.has_sequencer(context) and (act_strip(context) is not None)
+    @classmethod
+    def poll(cls, context):
+        return cls.has_sequencer(context) and (act_strip(context) is not None)
 
 
 class SequencerButtonsPanel_Output():
@@ -333,9 +333,9 @@ class SequencerButtonsPanel_Output():
     def has_preview(context):
         return (context.space_data.view_type == 'PREVIEW') or (context.space_data.view_type == 'SEQUENCER_PREVIEW')
 
-    @staticmethod
-    def poll(context):
-        return __class__.has_preview(context)
+    @classmethod
+    def poll(cls, context):
+        return cls.has_preview(context)
 
 
 class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
@@ -388,9 +388,9 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
 class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Effect Strip"
 
-    @staticmethod
-    def poll(context):
-        if not __class__.has_sequencer(context):
+    @classmethod
+    def poll(cls, context):
+        if not cls.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -518,9 +518,9 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
 class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Strip Input"
 
-    @staticmethod
-    def poll(context):
-        if not __class__.has_sequencer(context):
+    @classmethod
+    def poll(cls, context):
+        if not cls.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -593,9 +593,9 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
 class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Sound"
 
-    @staticmethod
-    def poll(context):
-        if not __class__.has_sequencer(context):
+    @classmethod
+    def poll(cls, context):
+        if not cls.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -634,9 +634,9 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
 class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Scene"
 
-    @staticmethod
-    def poll(context):
-        if not __class__.has_sequencer(context):
+    @classmethod
+    def poll(cls, context):
+        if not cls.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -659,9 +659,9 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
 class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Filter"
 
-    @staticmethod
-    def poll(context):
-        if not __class__.has_sequencer(context):
+    @classmethod
+    def poll(cls, context):
+        if not cls.has_sequencer(context):
             return False
 
         strip = act_strip(context)
@@ -721,9 +721,9 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
 class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Proxy"
 
-    @staticmethod
-    def poll(context):
-        if not __class__.has_sequencer(context):
+    @classmethod
+    def poll(cls, context):
+        if not cls.has_sequencer(context):
             return False
 
         strip = act_strip(context)

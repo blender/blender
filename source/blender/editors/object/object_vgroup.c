@@ -50,13 +50,8 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_displist.h"
 #include "BKE_global.h"
-#include "BKE_lattice.h"
 #include "BKE_mesh.h"
-#include "BKE_paint.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 
 #include "RNA_access.h"
@@ -78,7 +73,7 @@ static Lattice *vgroup_edit_lattice(Object *ob)
 {
 	if(ob->type==OB_LATTICE) {
 		Lattice *lt= ob->data;
-		return (lt->editlatt)? lt->editlatt: lt;
+		return (lt->editlatt)? lt->editlatt->latt: lt;
 	}
 
 	return NULL;
@@ -174,7 +169,7 @@ int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot)
 				int i=0;
 
 				Lattice *lt= (Lattice *)id;
-				lt= (lt->editlatt)? lt->editlatt: lt;
+				lt= (lt->editlatt)? lt->editlatt->latt: lt;
 
 				*dvert_tot= lt->pntsu*lt->pntsv*lt->pntsw;
 				*dvert_arr= MEM_mallocN(sizeof(void*)*(*dvert_tot), "vgroup parray from me");
@@ -208,7 +203,7 @@ int ED_vgroup_give_array(ID *id, MDeformVert **dvert_arr, int *dvert_tot)
 			case ID_LT:
 			{
 				Lattice *lt= (Lattice *)id;
-				lt= (lt->editlatt)? lt->editlatt: lt;
+				lt= (lt->editlatt)? lt->editlatt->latt: lt;
 				*dvert_arr= lt->dvert;
 				*dvert_tot= lt->pntsu*lt->pntsv*lt->pntsw;
 				return TRUE;

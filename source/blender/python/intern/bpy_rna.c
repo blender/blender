@@ -4409,7 +4409,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 	const char *class_type= RNA_struct_identifier(srna);
 	PyObject *py_class= (PyObject*)py_data;
 	PyObject *base_class= RNA_struct_py_type_get(srna);
-	PyObject *item, *fitem;
+	PyObject *item;
 	PyObject *py_arg_count;
 	int i, flag, arg_count, func_arg_count;
 	const char *py_class_name = ((PyTypeObject *)py_class)->tp_name; // __name__
@@ -4446,24 +4446,32 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 			PyErr_Clear();
 		}
 		else {
-			Py_DECREF(item); /* no need to keep a ref, the class owns it */
-
-			if (PyMethod_Check(item))
-				fitem= PyMethod_Function(item); /* py 2.x */
-			else
-				fitem= item; /* py 3.x */
-
-			if (PyFunction_Check(fitem)==0) {
-				PyErr_Format( PyExc_TypeError, "expected %.200s, %.200s class \"%.200s\" attribute to be a function", class_type, py_class_name, RNA_function_identifier(func));
-				return -1;
+			Py_DECREF(item); /* no need to keep a ref, the class owns it (technically we should keep a ref but...) */
+			if(flag & FUNC_NO_SELF) {
+				if (PyMethod_Check(item)==0) {
+					PyErr_Format( PyExc_TypeError, "expected %.200s, %.200s class \"%.200s\" attribute to be a method, not a %.200s", class_type, py_class_name, RNA_function_identifier(func), Py_TYPE(item)->tp_name);
+					return -1;
+				}
+				item= ((PyMethodObject *)item)->im_func;
+			}
+			else {
+				if (PyFunction_Check(item)==0) {
+					PyErr_Format( PyExc_TypeError, "expected %.200s, %.200s class \"%.200s\" attribute to be a function, not a %.200s", class_type, py_class_name, RNA_function_identifier(func), Py_TYPE(item)->tp_name);
+					return -1;
+				}
 			}
 
 			func_arg_count= rna_function_arg_count(func);
 
 			if (func_arg_count >= 0) { /* -1 if we dont care*/
-				py_arg_count = PyObject_GetAttrString(PyFunction_GET_CODE(fitem), "co_argcount");
+				py_arg_count = PyObject_GetAttrString(PyFunction_GET_CODE(item), "co_argcount");
 				arg_count = PyLong_AsSsize_t(py_arg_count);
 				Py_DECREF(py_arg_count);
+
+				/* note, the number of args we check for and the number of args we give to
+				 * @classmethods are different (quirk of python), this is why rna_function_arg_count() doesn't return the value -1*/
+				if(flag & FUNC_NO_SELF)
+					func_arg_count++;
 
 				if (arg_count != func_arg_count) {
 					PyErr_Format( PyExc_AttributeError, "expected %.200s, %.200s class \"%.200s\" function to have %d args, found %d", class_type, py_class_name, RNA_function_identifier(func), func_arg_count, arg_count);
@@ -4610,7 +4618,7 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 			RNA_pointer_create(NULL, &RNA_Function, func, &funcptr);
 
 			args = PyTuple_New(rna_function_arg_count(func)); /* first arg is included in 'item' */
-
+	
 			if(is_static) {
 				i= 0;
 			}

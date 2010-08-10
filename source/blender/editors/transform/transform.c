@@ -63,7 +63,6 @@
 //#include "BIF_editsima.h"
 //#include "BIF_editparticle.h"
 
-#include "BKE_action.h"
 #include "BKE_nla.h"
 //#include "BKE_bad_level_calls.h"/* popmenu and error	*/
 #include "BKE_bmesh.h"
@@ -72,8 +71,6 @@
 #include "BKE_global.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_utildefines.h"
-#include "BKE_context.h"
 #include "BKE_unit.h"
 
 //#include "BSE_view.h"

@@ -41,7 +41,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
-#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -51,8 +50,6 @@
 #include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_report.h"
-#include "BKE_scene.h"
-#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 

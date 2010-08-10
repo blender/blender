@@ -249,8 +249,8 @@ class FollowActiveQuads(bpy.types.Operator):
                         description="Method to space UV edge loops",
                         default="LENGTH")
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj is not None and obj.type == 'MESH')
 

@@ -43,11 +43,8 @@
 #include "RNA_define.h"
 #include "RNA_access.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_depsgraph.h"
-#include "BKE_object.h"
 #include "BKE_context.h"
-#include "BKE_library.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"

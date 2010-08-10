@@ -51,12 +51,9 @@
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
-#include "BKE_global.h"
 #include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

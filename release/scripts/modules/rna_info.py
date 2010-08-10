@@ -625,18 +625,23 @@ def BuildRNAInfo():
 if __name__ == "__main__":
     import rna_info
     struct = rna_info.BuildRNAInfo()[0]
-    data = ""
+    data = []
     for struct_id, v in sorted(struct.items()):
-        struct_id_str = "".join(sid for sid in struct_id if struct_id)
-        props = [(prop.identifier, prop) for prop in v.properties]
+        struct_id_str = v.identifier # "".join(sid for sid in struct_id if struct_id)
+
+        for base in v.get_bases():
+            struct_id_str = base.identifier + "|" + struct_id_str
         
+        props = [(prop.identifier, prop) for prop in v.properties]
         for prop_id, prop in sorted(props):
             # if prop.type == 'boolean':
             #     continue
-            data += "%s.%s -> %s:    %s%s    %s\n" % (struct_id_str, prop.identifier, prop.identifier, prop.type, ", (read-only)" if prop.is_readonly else "", prop.description)
+            data.append("%s.%s -> %s:    %s%s    %s" % (struct_id_str, prop.identifier, prop.identifier, prop.type, ", (read-only)" if prop.is_readonly else "", prop.description))
+        data.sort()
 
     if bpy.app.background:
-        print(data)
+        import sys
+        sys.stderr.write("\n".join(data))
     else:
         text = bpy.data.texts.new(name="api.py")
         text.from_string(data)

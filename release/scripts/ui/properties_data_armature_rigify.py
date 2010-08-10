@@ -42,8 +42,8 @@ class DATA_PT_template(bpy.types.Panel):
 
     templates = []
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         if not context.armature:
             return False
         obj = context.object
@@ -261,8 +261,8 @@ class ActiveAssign(bpy.types.Operator):
     bl_idname = "pose.metarig_assign"
     bl_label = "Assign to the active posebone"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         bone = context.active_pose_bone
         return bool(bone and bone.id_data.mode == 'POSE')
 
@@ -280,8 +280,8 @@ class ActiveClear(bpy.types.Operator):
     bl_idname = "pose.metarig_clear"
     bl_label = "Metarig Clear Type"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         bone = context.active_pose_bone
         return bool(bone and bone.id_data.mode == 'POSE')
 

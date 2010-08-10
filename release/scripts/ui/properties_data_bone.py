@@ -26,8 +26,8 @@ class BoneButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "bone"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.bone or context.edit_bone)
 
 
@@ -48,6 +48,7 @@ class BONE_PT_context_bone(BoneButtonsPanel, bpy.types.Panel):
 
 
 class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @property
     def _context_path(self):
@@ -108,8 +109,8 @@ class BONE_PT_transform_locks(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Transform Locks"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return context.bone
 
     def draw(self, context):
@@ -184,8 +185,8 @@ class BONE_PT_relations(BoneButtonsPanel, bpy.types.Panel):
 class BONE_PT_display(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return context.bone
 
     def draw(self, context):
@@ -220,8 +221,8 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Inverse Kinematics"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return context.active_pose_bone
 
     def draw(self, context):

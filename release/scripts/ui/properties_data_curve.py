@@ -21,34 +21,34 @@ import bpy
 from rna_prop_ui import PropertyPanel
 
 
-class DataButtonsPanel():
+class CurveButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.object and context.object.type in ('CURVE', 'SURFACE', 'TEXT') and context.curve)
 
 
-class DataButtonsPanelCurve(DataButtonsPanel):
+class CurveButtonsPanelCurve(CurveButtonsPanel):
     '''Same as above but for curves only'''
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.object and context.object.type == 'CURVE' and context.curve)
 
 
-class DataButtonsPanelActive(DataButtonsPanel):
+class CurveButtonsPanelActive(CurveButtonsPanel):
     '''Same as above but for curves only'''
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         curve = context.curve
         return (curve and type(curve) is not bpy.types.TextCurve and curve.splines.active)
 
 
-class DATA_PT_context_curve(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_context_curve(CurveButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
 
@@ -69,11 +69,12 @@ class DATA_PT_context_curve(DataButtonsPanel, bpy.types.Panel):
             split.separator()
 
 
-class DATA_PT_custom_props_curve(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
+class DATA_PT_custom_props_curve(CurveButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
 
 
-class DATA_PT_shape_curve(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
     bl_label = "Shape"
 
     def draw(self, context):
@@ -124,11 +125,11 @@ class DATA_PT_shape_curve(DataButtonsPanel, bpy.types.Panel):
         col.prop(curve, "auto_texspace")
 
 
-class DATA_PT_geometry_curve(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_geometry_curve(CurveButtonsPanel, bpy.types.Panel):
     bl_label = "Geometry"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         obj = context.object
         if obj and obj.type == 'SURFACE':
             return False
@@ -157,7 +158,7 @@ class DATA_PT_geometry_curve(DataButtonsPanel, bpy.types.Panel):
         col.prop(curve, "bevel_object", text="")
 
 
-class DATA_PT_pathanim(DataButtonsPanelCurve, bpy.types.Panel):
+class DATA_PT_pathanim(CurveButtonsPanelCurve, bpy.types.Panel):
     bl_label = "Path Animation"
 
     def draw_header(self, context):
@@ -188,7 +189,7 @@ class DATA_PT_pathanim(DataButtonsPanelCurve, bpy.types.Panel):
         col.prop(curve, "use_time_offset", text="Offset Children")
 
 
-class DATA_PT_active_spline(DataButtonsPanelActive, bpy.types.Panel):
+class DATA_PT_active_spline(CurveButtonsPanelActive, bpy.types.Panel):
     bl_label = "Active Spline"
 
     def draw(self, context):
@@ -259,11 +260,11 @@ class DATA_PT_active_spline(DataButtonsPanelActive, bpy.types.Panel):
             layout.prop(act_spline, "smooth")
 
 
-class DATA_PT_font(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
     bl_label = "Font"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
 
     def draw(self, context):
@@ -315,11 +316,11 @@ class DATA_PT_font(DataButtonsPanel, bpy.types.Panel):
         col.prop(char, "use_small_caps")
 
 
-class DATA_PT_paragraph(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_paragraph(CurveButtonsPanel, bpy.types.Panel):
     bl_label = "Paragraph"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
 
     def draw(self, context):
@@ -344,11 +345,11 @@ class DATA_PT_paragraph(DataButtonsPanel, bpy.types.Panel):
         col.prop(text, "offset_y", text="Y")
 
 
-class DATA_PT_textboxes(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_textboxes(CurveButtonsPanel, bpy.types.Panel):
     bl_label = "Text Boxes"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
 
     def draw(self, context):

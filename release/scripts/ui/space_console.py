@@ -138,8 +138,8 @@ class ConsoleAutocomplete(bpy.types.Operator):
     bl_idname = "console.autocomplete"
     bl_label = "Console Autocomplete"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return context.space_data.console_type != 'REPORT'
 
     def execute(self, context):

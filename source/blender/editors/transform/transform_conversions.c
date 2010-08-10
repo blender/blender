@@ -47,37 +47,26 @@
 #include "DNA_sequence_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BKE_blender.h"
-#include "BKE_cloth.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
-#include "BKE_displist.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_effect.h"
-#include "BKE_font.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_lattice.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
-#include "BKE_mball.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_sequencer.h"
 #include "BKE_pointcache.h"
-#include "BKE_softbody.h"
-#include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
-#include "BKE_context.h"
-#include "BKE_report.h"
 #include "BKE_scene.h"
 
 #include "BIF_gl.h"
@@ -1543,7 +1532,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 
 static void createTransLatticeVerts(bContext *C, TransInfo *t)
 {
-	Lattice *latt = ((Lattice*)t->obedit->data)->editlatt;
+	Lattice *latt = ((Lattice*)t->obedit->data)->editlatt->latt;
 	TransData *td = NULL;
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];

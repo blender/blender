@@ -275,8 +275,8 @@ class ExportPLY(bpy.types.Operator):
     use_uvs = BoolProperty(name="UVs", description="Exort the active UV layer", default=True)
     use_colors = BoolProperty(name="Vertex Colors", description="Exort the active vertex color layer", default=True)
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return context.active_object != None
 
     def execute(self, context):

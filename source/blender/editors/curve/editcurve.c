@@ -56,9 +56,7 @@
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -726,7 +724,7 @@ static void calc_shapeKeys(Object *obedit)
 		int a, i, j;
 		EditNurb *editnurb= cu->editnurb;
 		KeyBlock *currkey;
-		KeyBlock *actkey= ob_get_keyblock(obedit);
+		KeyBlock *actkey= BLI_findlink(&cu->key->block, editnurb->shapenr-1);
 		BezTriple *bezt, *oldbezt;
 		BPoint *bp, *oldbp;
 		Nurb *nu;
@@ -740,7 +738,7 @@ static void calc_shapeKeys(Object *obedit)
 			int act_is_basis = 0;
 			/* find if this key is a basis for any others */
 			for(currkey = cu->key->block.first; currkey; currkey= currkey->next) {
-				if(obedit->shapenr-1 == currkey->relative) {
+				if(editnurb->shapenr-1 == currkey->relative) {
 					act_is_basis = 1;
 					break;
 				}
@@ -808,7 +806,7 @@ static void calc_shapeKeys(Object *obedit)
 
 		currkey = cu->key->block.first;
 		while(currkey) {
-			int apply_offset = (ofs && (currkey != actkey) && (obedit->shapenr-1 == currkey->relative));
+			int apply_offset = (ofs && (currkey != actkey) && (editnurb->shapenr-1 == currkey->relative));
 
 			fp= newkey= MEM_callocN(cu->key->elemsize * totvert,  "currkey->data");
 			ofp= oldkey = currkey->data;
@@ -1037,6 +1035,7 @@ void make_editNurb(Object *obedit)
 		}
 
 		if(actkey) {
+			editnurb->shapenr= obedit->shapenr;
 			init_editNurb_keyIndex(editnurb, &cu->nurb);
 		}
 	}

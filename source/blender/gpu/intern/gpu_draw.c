@@ -36,7 +36,6 @@
 
 #include "BLI_math.h"
 
-#include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
@@ -45,7 +44,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
 #include "MEM_guardedalloc.h"

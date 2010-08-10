@@ -39,8 +39,8 @@ class ExportUVLayout(bpy.types.Operator):
                 description="File format to export the UV layout to",
                 default='SVG')
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj and obj.type == 'MESH')
 

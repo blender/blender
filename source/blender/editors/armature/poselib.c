@@ -48,13 +48,9 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_depsgraph.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
 
-#include "BKE_global.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

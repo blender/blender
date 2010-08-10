@@ -49,12 +49,6 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
-#include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_text.h"
 
 #include "ED_screen.h"
 

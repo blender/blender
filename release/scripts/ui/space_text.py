@@ -246,8 +246,8 @@ class TEXT_MT_edit_to3d(bpy.types.Menu):
 class TEXT_MT_edit(bpy.types.Menu):
     bl_label = "Edit"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.space_data.text)
 
     def draw(self, context):

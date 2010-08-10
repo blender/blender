@@ -47,11 +47,8 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 
 #include "WM_api.h"

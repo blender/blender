@@ -44,20 +44,13 @@
 #include "BLI_editVert.h"
 #include "BLI_linklist.h"
 
-#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_displist.h"
-#include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
-#include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -152,8 +145,8 @@ static void special_transvert_update(Scene *scene, Object *obedit)
 		else if(obedit->type==OB_LATTICE) {
 			Lattice *lt= obedit->data;
 			
-			if(lt->editlatt->flag & LT_OUTSIDE) 
-				outside_lattice(lt->editlatt);
+			if(lt->editlatt->latt->flag & LT_OUTSIDE)
+				outside_lattice(lt->editlatt->latt);
 		}
 	}
 }
@@ -379,9 +372,9 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	else if(obedit->type==OB_LATTICE) {
 		Lattice *lt= obedit->data;
 		
-		bp= lt->editlatt->def;
+		bp= lt->editlatt->latt->def;
 		
-		a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+		a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 		
 		tv=transvmain= MEM_callocN(a*sizeof(TransVert), "maketransverts curve");
 		

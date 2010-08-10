@@ -45,7 +45,6 @@
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
 
 
 #include "WM_api.h"

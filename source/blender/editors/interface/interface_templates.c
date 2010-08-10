@@ -30,18 +30,15 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_string.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_icons.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 
 #include "ED_screen.h"
@@ -631,12 +628,8 @@ void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 #include "DNA_object_force.h"
 
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_global.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
 #include "BKE_particle.h"
-#include "BKE_report.h"
 
 #include "ED_util.h"
 
@@ -1150,7 +1143,6 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr, int compact)
 
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
 #define B_MATPRV 1
@@ -1250,7 +1242,6 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent, MTex *slot)
 
 /********************** ColorRamp Template **************************/
 
-#include "BKE_texture.h"
 
 typedef struct RNAUpdateCb {
 	PointerRNA ptr;
@@ -1546,7 +1537,6 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, char *propname, in
 
 /********************* CurveMapping Template ************************/
 
-#include "BKE_colortools.h"
 
 static void curvemap_buttons_zoom_in(bContext *C, void *cumap_v, void *unused)
 {
@@ -2106,12 +2096,6 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 	/* list item behind label & other buttons */
 	sub= uiLayoutRow(overlap, 0);
-
-	if(itemptr->type == &RNA_ShapeKey) {
-		ob= (Object*)activeptr->data;
-		if(ob->mode == OB_MODE_EDIT && !(ob->type == OB_MESH))
-			uiLayoutSetEnabled(sub, 0);
-	}
 
 	but= uiDefButR(block, LISTROW, 0, "", 0,0, UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
 	uiButSetFlag(but, UI_BUT_NO_TOOLTIP);

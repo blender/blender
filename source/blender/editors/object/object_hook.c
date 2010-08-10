@@ -43,7 +43,6 @@
 
 #include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
@@ -51,7 +50,6 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -193,13 +191,14 @@ static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar
 
 static void select_editlattice_hook(Object *obedit, HookModifierData *hmd)
 {
-	Lattice *lt= obedit->data;
+	Lattice *lt= obedit->data, *editlt;
 	BPoint *bp;
 	int index=0, nr=0, a;
-	
+
+	editlt= lt->editlatt->latt;
 	/* count */
-	a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
-	bp= lt->editlatt->def;
+	a= editlt->pntsu*editlt->pntsv*editlt->pntsw;
+	bp= editlt->def;
 	while(a--) {
 		if(hmd->indexar[index]==nr) {
 			bp->f1 |= SELECT;
@@ -315,7 +314,7 @@ static int object_hook_index_array(Object *obedit, int *tot, int **indexar, char
 		case OB_LATTICE:
 		{
 			Lattice *lt= obedit->data;
-			return return_editlattice_indexar(lt->editlatt, tot, indexar, cent_r);
+			return return_editlattice_indexar(lt->editlatt->latt, tot, indexar, cent_r);
 		}
 		default:
 			return 0;

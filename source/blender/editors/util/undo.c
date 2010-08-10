@@ -38,16 +38,11 @@
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
-#include "BKE_global.h"
-#include "BKE_object.h"
-#include "BKE_text.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_dynstr.h"
 
-#include "BKE_utildefines.h"
 
 #include "ED_armature.h"
 #include "ED_particle.h"

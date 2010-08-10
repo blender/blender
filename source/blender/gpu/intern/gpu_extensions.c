@@ -32,13 +32,10 @@
 
 #include "GL/glew.h"
 
-#include "DNA_listBase.h"
 #include "DNA_image_types.h"
-#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_image.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 

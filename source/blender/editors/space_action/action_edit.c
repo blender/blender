@@ -46,15 +46,10 @@
 #include "RNA_enum_types.h"
 
 #include "BKE_action.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
-#include "BKE_key.h"
-#include "BKE_material.h"
 #include "BKE_nla.h"
-#include "BKE_object.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "UI_view2d.h"
 

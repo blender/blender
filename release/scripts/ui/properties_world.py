@@ -27,15 +27,20 @@ class WorldButtonsPanel():
     bl_context = "world"
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        return (rd.engine in cls.COMPAT_ENGINES)
+
 
 class WORLD_PT_preview(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         rd = context.scene.render
-        return (context.world) and (not rd.use_game_engine) and (rd.engine in __class__.COMPAT_ENGINES)
+        return (context.world) and (not rd.use_game_engine) and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         self.layout.template_preview(context.world)
@@ -46,10 +51,10 @@ class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
     bl_show_header = False
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         rd = context.scene.render
-        return (not rd.use_game_engine) and (rd.engine in __class__.COMPAT_ENGINES)
+        return (not rd.use_game_engine) and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -66,7 +71,7 @@ class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
 
 
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, bpy.types.Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "world"
 
 
@@ -189,8 +194,8 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Indirect Lighting"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         light = context.world.lighting
         return light.gather_method == 'APPROXIMATE'
 

@@ -46,15 +46,9 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
-#include "BKE_global.h"
-#include "BKE_key.h"
-#include "BKE_object.h"
-#include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"

@@ -31,28 +31,20 @@
 #include <stdlib.h>
 
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_action.h"
-#include "BKE_brush.h"
 #include "BKE_context.h"
-#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
-#include "BKE_displist.h"
 #include "BKE_effect.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h" /* for VECCOPY */
 
 #include "ED_mesh.h"
 #include "ED_util.h"

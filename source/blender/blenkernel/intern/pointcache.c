@@ -43,6 +43,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
+#include "BLI_math.h"
 
 #include "PIL_time.h"
 

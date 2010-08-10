@@ -763,8 +763,8 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
     bl_idname = "wm.keyconfig_remove"
     bl_label = "Remove Key Config"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         wm = context.manager
         return wm.active_keyconfig.user_defined
 

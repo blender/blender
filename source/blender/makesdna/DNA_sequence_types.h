@@ -44,15 +44,6 @@ typedef struct StripElem {
 	char name[80];
 } StripElem;
 
-typedef struct TStripElem {
-	struct ImBuf *ibuf;
-	struct ImBuf *ibuf_comp;
-	struct TStripElem *se1, *se2, *se3;
-	short ok;
-	short flag;
-	int nr;
-} TStripElem;
-
 typedef struct StripCrop {
 	int top;
 	int bottom;
@@ -95,11 +86,6 @@ typedef struct Strip {
 	StripCrop *crop;
 	StripTransform *transform;
 	StripColorBalance *color_balance;
-	TStripElem *tstripdata;
-	TStripElem *tstripdata_startstill;
-	TStripElem *tstripdata_endstill;
-	struct ImBuf *ibuf_startstill;
-	struct ImBuf *ibuf_endstill;
 } Strip;
 
 

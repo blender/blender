@@ -68,15 +68,15 @@ class TextureButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "texture"
 
+    @classmethod
+    def poll(cls, context):
+        tex = context.texture
+        return tex and (tex.type != 'NONE' or tex.use_nodes) and (context.scene.render.engine in cls.COMPAT_ENGINES)
+
 
 class TEXTURE_PT_preview(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        return tex and (tex.type != 'NONE' or tex.use_nodes) and (context.scene.render.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -96,13 +96,13 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
     bl_show_header = False
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         engine = context.scene.render.engine
         if not hasattr(context, "texture_slot"):
             return False
         return ((context.material or context.world or context.lamp or context.brush or context.texture)
-            and (engine in __class__.COMPAT_ENGINES))
+            and (engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -156,24 +156,14 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
 
 
 class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, bpy.types.Panel):
-    _context_path = "texture"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context): # use alternate poll since NONE texture type is ok
-        engine = context.scene.render.engine
-        return context.texture and (engine in __class__.COMPAT_ENGINES)
+    _context_path = "texture"
 
 
 class TEXTURE_PT_colors(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "Colors"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        return tex and (tex.type != 'NONE' or tex.use_nodes) and (context.scene.render.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -205,21 +195,21 @@ class TEXTURE_PT_colors(TextureButtonsPanel, bpy.types.Panel):
 class TextureSlotPanel(TextureButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         if not hasattr(context, "texture_slot"):
             return False
 
         engine = context.scene.render.engine
-        return TextureButtonsPanel.poll(self, context) and (engine in __class__.COMPAT_ENGINES)
+        return TextureButtonsPanel.poll(self, context) and (engine in cls.COMPAT_ENGINES)
 
 
 class TEXTURE_PT_mapping(TextureSlotPanel, bpy.types.Panel):
     bl_label = "Mapping"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         idblock = context_tex_datablock(context)
         if type(idblock) == bpy.types.Brush and not context.sculpt_object:
             return False
@@ -228,7 +218,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel, bpy.types.Panel):
             return False
 
         engine = context.scene.render.engine
-        return (engine in __class__.COMPAT_ENGINES)
+        return (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -311,8 +301,8 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
     bl_label = "Influence"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         idblock = context_tex_datablock(context)
         if type(idblock) == bpy.types.Brush:
             return False
@@ -321,7 +311,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
             return False
 
         engine = context.scene.render.engine
-        return (engine in __class__.COMPAT_ENGINES)
+        return (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
 
@@ -428,19 +418,18 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
 
 
 class TextureTypePanel(TextureButtonsPanel):
-    pass
+
+    @classmethod
+    def poll(cls, context):
+        tex = context.texture
+        engine = context.scene.render.engine
+        return tex and ((tex.type == cls.tex_type and not tex.use_nodes) and (engine in cls.COMPAT_ENGINES))
 
 
 class TEXTURE_PT_clouds(TextureTypePanel, bpy.types.Panel):
     bl_label = "Clouds"
     tex_type = 'CLOUDS'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -466,12 +455,6 @@ class TEXTURE_PT_wood(TextureTypePanel, bpy.types.Panel):
     bl_label = "Wood"
     tex_type = 'WOOD'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -503,12 +486,6 @@ class TEXTURE_PT_marble(TextureTypePanel, bpy.types.Panel):
     tex_type = 'MARBLE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
-
     def draw(self, context):
         layout = self.layout
 
@@ -536,12 +513,6 @@ class TEXTURE_PT_magic(TextureTypePanel, bpy.types.Panel):
     tex_type = 'MAGIC'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
-
     def draw(self, context):
         layout = self.layout
 
@@ -561,12 +532,6 @@ class TEXTURE_PT_blend(TextureTypePanel, bpy.types.Panel):
     tex_type = 'BLEND'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
-
     def draw(self, context):
         layout = self.layout
 
@@ -584,12 +549,6 @@ class TEXTURE_PT_stucci(TextureTypePanel, bpy.types.Panel):
     bl_label = "Stucci"
     tex_type = 'STUCCI'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -614,12 +573,6 @@ class TEXTURE_PT_image(TextureTypePanel, bpy.types.Panel):
     bl_label = "Image"
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -647,12 +600,6 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
     bl_default_closed = True
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -691,12 +638,6 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, bpy.types.Panel):
     bl_default_closed = True
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -749,12 +690,6 @@ class TEXTURE_PT_plugin(TextureTypePanel, bpy.types.Panel):
     tex_type = 'PLUGIN'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
-
     def draw(self, context):
         layout = self.layout
 
@@ -767,12 +702,6 @@ class TEXTURE_PT_envmap(TextureTypePanel, bpy.types.Panel):
     bl_label = "Environment Map"
     tex_type = 'ENVIRONMENT_MAP'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -814,12 +743,6 @@ class TEXTURE_PT_envmap_sampling(TextureTypePanel, bpy.types.Panel):
     tex_type = 'ENVIRONMENT_MAP'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
-
     def draw(self, context):
         layout = self.layout
 
@@ -832,12 +755,6 @@ class TEXTURE_PT_musgrave(TextureTypePanel, bpy.types.Panel):
     bl_label = "Musgrave"
     tex_type = 'MUSGRAVE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -877,12 +794,6 @@ class TEXTURE_PT_voronoi(TextureTypePanel, bpy.types.Panel):
     bl_label = "Voronoi"
     tex_type = 'VORONOI'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -925,12 +836,6 @@ class TEXTURE_PT_distortednoise(TextureTypePanel, bpy.types.Panel):
     tex_type = 'DISTORTED_NOISE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
-        tex = context.texture
-        engine = context.scene.render.engine
-        return tex and ((tex.type == __class__.tex_type and not tex.use_nodes) and (engine in __class__.COMPAT_ENGINES))
-
     def draw(self, context):
         layout = self.layout
 
@@ -953,11 +858,11 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "Voxel Data"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         tex = context.texture
         engine = context.scene.render.engine
-        return tex and (tex.type == 'VOXEL_DATA' and (engine in __class__.COMPAT_ENGINES))
+        return tex and (tex.type == 'VOXEL_DATA' and (engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -992,11 +897,11 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "Point Density"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         tex = context.texture
         engine = context.scene.render.engine
-        return tex and (tex.type == 'POINT_DENSITY' and (engine in __class__.COMPAT_ENGINES))
+        return tex and (tex.type == 'POINT_DENSITY' and (engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -1048,11 +953,11 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "Turbulence"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         tex = context.texture
         engine = context.scene.render.engine
-        return tex and (tex.type == 'POINT_DENSITY' and (engine in __class__.COMPAT_ENGINES))
+        return tex and (tex.type == 'POINT_DENSITY' and (engine in cls.COMPAT_ENGINES))
 
     def draw_header(self, context):
         layout = self.layout

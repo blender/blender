@@ -45,7 +45,8 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
-#include "BKE_utildefines.h"
+
+#include "BLI_listbase.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -63,12 +64,16 @@ void free_editLatt(Object *ob)
 	Lattice *lt= ob->data;
 	
 	if(lt->editlatt) {
-		if(lt->editlatt->def)
-			MEM_freeN(lt->editlatt->def);
-		if(lt->editlatt->dvert) 
-			free_dverts(lt->editlatt->dvert, lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw);
-		
+		Lattice *editlt= lt->editlatt->latt;
+
+		if(editlt->def)
+			MEM_freeN(editlt->def);
+		if(editlt->dvert)
+			free_dverts(editlt->dvert, editlt->pntsu*editlt->pntsv*editlt->pntsw);
+
+		MEM_freeN(editlt);
 		MEM_freeN(lt->editlatt);
+
 		lt->editlatt= NULL;
 	}
 }
@@ -77,47 +82,51 @@ void make_editLatt(Object *obedit)
 {
 	Lattice *lt= obedit->data;
 	KeyBlock *actkey;
-	
+
 	free_editLatt(obedit);
-	
+
 	lt= obedit->data;
 
 	actkey= ob_get_keyblock(obedit);
 	if(actkey)
 		key_to_latt(actkey, lt);
 
-	lt->editlatt= MEM_dupallocN(lt);
-	lt->editlatt->def= MEM_dupallocN(lt->def);
-	
+	lt->editlatt= MEM_callocN(sizeof(EditLatt), "editlatt");
+	lt->editlatt->latt= MEM_dupallocN(lt);
+	lt->editlatt->latt->def= MEM_dupallocN(lt->def);
+
 	if(lt->dvert) {
 		int tot= lt->pntsu*lt->pntsv*lt->pntsw;
-		lt->editlatt->dvert = MEM_mallocN (sizeof (MDeformVert)*tot, "Lattice MDeformVert");
-		copy_dverts(lt->editlatt->dvert, lt->dvert, tot);
+		lt->editlatt->latt->dvert = MEM_mallocN (sizeof (MDeformVert)*tot, "Lattice MDeformVert");
+		copy_dverts(lt->editlatt->latt->dvert, lt->dvert, tot);
 	}
+
+	if(lt->key) lt->editlatt->shapenr= obedit->shapenr;
 }
 
 void load_editLatt(Object *obedit)
 {
-	Lattice *lt;
+	Lattice *lt, *editlt;
 	KeyBlock *actkey;
 	BPoint *bp;
 	float *fp;
 	int tot;
-	
-	lt= obedit->data;
-	
-	actkey= ob_get_keyblock(obedit);
 
-	if(actkey) {
+	lt= obedit->data;
+	editlt= lt->editlatt->latt;
+
+	if(lt->editlatt->shapenr) {
+		actkey= BLI_findlink(&lt->key->block, lt->editlatt->shapenr-1);
+
 		/* active key: vertices */
-		tot= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+		tot= editlt->pntsu*editlt->pntsv*editlt->pntsw;
 		
 		if(actkey->data) MEM_freeN(actkey->data);
 		
 		fp=actkey->data= MEM_callocN(lt->key->elemsize*tot, "actkey->data");
 		actkey->totelem= tot;
-	
-		bp= lt->editlatt->def;
+
+		bp= editlt->def;
 		while(tot--) {
 			VECCOPY(fp, bp->vec);
 			fp+= 3;
@@ -126,30 +135,30 @@ void load_editLatt(Object *obedit)
 	}
 	else {
 		MEM_freeN(lt->def);
-	
-		lt->def= MEM_dupallocN(lt->editlatt->def);
 
-		lt->flag= lt->editlatt->flag;
+		lt->def= MEM_dupallocN(editlt->def);
 
-		lt->pntsu= lt->editlatt->pntsu;
-		lt->pntsv= lt->editlatt->pntsv;
-		lt->pntsw= lt->editlatt->pntsw;
+		lt->flag= editlt->flag;
+
+		lt->pntsu= editlt->pntsu;
+		lt->pntsv= editlt->pntsv;
+		lt->pntsw= editlt->pntsw;
 		
-		lt->typeu= lt->editlatt->typeu;
-		lt->typev= lt->editlatt->typev;
-		lt->typew= lt->editlatt->typew;
+		lt->typeu= editlt->typeu;
+		lt->typev= editlt->typev;
+		lt->typew= editlt->typew;
 	}
-	
+
 	if(lt->dvert) {
 		free_dverts(lt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
 		lt->dvert= NULL;
 	}
-	
-	if(lt->editlatt->dvert) {
+
+	if(editlt->dvert) {
 		int tot= lt->pntsu*lt->pntsv*lt->pntsw;
-		
+
 		lt->dvert = MEM_mallocN (sizeof (MDeformVert)*tot, "Lattice MDeformVert");
-		copy_dverts(lt->dvert, lt->editlatt->dvert, tot);
+		copy_dverts(lt->dvert, editlt->dvert, tot);
 	}
 }
 
@@ -161,9 +170,9 @@ void ED_setflagsLatt(Object *obedit, int flag)
 	BPoint *bp;
 	int a;
 	
-	bp= lt->editlatt->def;
+	bp= lt->editlatt->latt->def;
 	
-	a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+	a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 	
 	while(a--) {
 		if(bp->hide==0) {
@@ -184,8 +193,8 @@ int select_all_exec(bContext *C, wmOperator *op)
 	if (action == SEL_TOGGLE) {
 		action = SEL_SELECT;
 
-		bp= lt->editlatt->def;
-		a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+		bp= lt->editlatt->latt->def;
+		a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 
 		while(a--) {
 			if(bp->hide==0) {
@@ -206,8 +215,8 @@ int select_all_exec(bContext *C, wmOperator *op)
 		ED_setflagsLatt(obedit, 0);
 		break;
 	case SEL_INVERT:
-		bp= lt->editlatt->def;
-		a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+		bp= lt->editlatt->latt->def;
+		a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 
 		while(a--) {
 			if(bp->hide==0) {
@@ -257,7 +266,7 @@ int make_regular_exec(bContext *C, wmOperator *op)
 	
 	if(ob) {
 		lt= ob->data;
-		resizelattice(lt->editlatt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
+		resizelattice(lt->editlatt->latt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
 	}
 	else {
 		ob= CTX_data_active_object(C);
@@ -355,21 +364,21 @@ typedef struct UndoLattice {
 static void undoLatt_to_editLatt(void *data, void *edata)
 {
 	UndoLattice *ult= (UndoLattice*)data;
-	Lattice *editlatt= (Lattice *)edata;
-	int a= editlatt->pntsu*editlatt->pntsv*editlatt->pntsw;
+	EditLatt *editlatt= (EditLatt *)edata;
+	int a= editlatt->latt->pntsu*editlatt->latt->pntsv*editlatt->latt->pntsw;
 
-	memcpy(editlatt->def, ult->def, a*sizeof(BPoint));
+	memcpy(editlatt->latt->def, ult->def, a*sizeof(BPoint));
 }
 
 static void *editLatt_to_undoLatt(void *edata)
 {
 	UndoLattice *ult= MEM_callocN(sizeof(UndoLattice), "UndoLattice");
-	Lattice *editlatt= (Lattice *)edata;
+	EditLatt *editlatt= (EditLatt *)edata;
 	
-	ult->def= MEM_dupallocN(editlatt->def);
-	ult->pntsu= editlatt->pntsu;
-	ult->pntsv= editlatt->pntsv;
-	ult->pntsw= editlatt->pntsw;
+	ult->def= MEM_dupallocN(editlatt->latt->def);
+	ult->pntsu= editlatt->latt->pntsu;
+	ult->pntsv= editlatt->latt->pntsv;
+	ult->pntsw= editlatt->latt->pntsw;
 	
 	return ult;
 }
@@ -385,11 +394,11 @@ static void free_undoLatt(void *data)
 static int validate_undoLatt(void *data, void *edata)
 {
 	UndoLattice *ult= (UndoLattice*)data;
-	Lattice *editlatt= (Lattice *)edata;
+	EditLatt *editlatt= (EditLatt *)edata;
 
-	return (ult->pntsu == editlatt->pntsu &&
-			ult->pntsv == editlatt->pntsv &&
-			ult->pntsw == editlatt->pntsw);
+	return (ult->pntsu == editlatt->latt->pntsu &&
+			ult->pntsv == editlatt->latt->pntsv &&
+			ult->pntsw == editlatt->latt->pntsw);
 }
 
 static void *get_editlatt(bContext *C)

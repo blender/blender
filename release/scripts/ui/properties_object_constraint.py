@@ -678,8 +678,8 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
     bl_label = "Object Constraints"
     bl_context = "constraint"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.object)
 
     def draw(self, context):
@@ -697,8 +697,8 @@ class BONE_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
     bl_label = "Bone Constraints"
     bl_context = "bone_constraint"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.pose_bone)
 
     def draw(self, context):

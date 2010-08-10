@@ -493,9 +493,9 @@ class PaintPanel():
 class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
     bl_label = "Brush"
 
-    @staticmethod
-    def poll(context):
-        return __class__.paint_settings(context)
+    @classmethod
+    def poll(cls, context):
+        return cls.paint_settings(context)
 
     def draw(self, context):
         layout = self.layout
@@ -721,9 +721,9 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
     bl_label = "Texture"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
-        settings = __class__.paint_settings(context)
+    @classmethod
+    def poll(cls, context):
+        settings = cls.paint_settings(context)
         return (settings and settings.brush and (context.sculpt_object or
                              context.texture_paint_object))
 
@@ -820,9 +820,9 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel, bpy.types.Panel):
     bl_label = "Tool"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
-        settings = __class__.paint_settings(context)
+    @classmethod
+    def poll(cls, context):
+        settings = cls.paint_settings(context)
         return (settings and settings.brush and
             (context.sculpt_object or context.texture_paint_object or
             context.vertex_paint_object or context.weight_paint_object))
@@ -856,9 +856,9 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
     bl_label = "Stroke"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
-        settings = __class__.paint_settings(context)
+    @classmethod
+    def poll(cls, context):
+        settings = cls.paint_settings(context)
         return (settings and settings.brush and (context.sculpt_object or
                              context.vertex_paint_object or
                              context.weight_paint_object or
@@ -954,15 +954,15 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel, bpy.types.Panel):
     bl_label = "Curve"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
-        settings = __class__.paint_settings(context)
+    @classmethod
+    def poll(cls, context):
+        settings = cls.paint_settings(context)
         return (settings and settings.brush and settings.brush.curve)
 
     def draw(self, context):
         layout = self.layout
 
-        settings = __class__.paint_settings(context)
+        settings = self.paint_settings(context)
         brush = settings.brush
 
         layout.template_curve_mapping(brush, "curve", brush=True)
@@ -975,12 +975,13 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel, bpy.types.Panel):
         row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
         row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
 
+
 class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
     bl_label = "Options"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.sculpt_object and context.tool_settings.sculpt)
 
     def draw(self, context):
@@ -1018,8 +1019,8 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
     bl_label = "Symmetry"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.sculpt_object and context.tool_settings.sculpt)
 
     def draw(self, context):
@@ -1053,8 +1054,8 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
     bl_label = "Appearance"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.sculpt_object and context.tool_settings.sculpt) or (context.vertex_paint_object and context.tool_settings.vertex_paint) or (context.weight_paint_object and context.tool_settings.weight_paint) or (context.texture_paint_object and context.tool_settings.image_paint)
 
     def draw(self, context):
@@ -1173,8 +1174,8 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, bpy.types.Panel):
     bl_context = "texturepaint"
     bl_label = "Project Paint"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         brush = context.tool_settings.image_paint.brush
         return (brush and brush.imagepaint_tool != 'SMEAR')
 
@@ -1244,8 +1245,8 @@ class VIEW3D_PT_imagepaint_options(PaintPanel):
     bl_label = "Options"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.texture_paint_object and context.tool_settings.image_paint)
 
     def draw(self, context):

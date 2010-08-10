@@ -39,9 +39,6 @@
 #include "BLI_editVert.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_mesh.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 

@@ -714,8 +714,8 @@ class VIEW3D_MT_object_clear(bpy.types.Menu):
 class VIEW3D_MT_object_specials(bpy.types.Menu):
     bl_label = "Specials"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         # add more special types
         return context.object
 
@@ -1940,8 +1940,8 @@ class VIEW3D_PT_view3d_properties(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_label = "View"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         view = context.space_data
         return (view)
 
@@ -1977,8 +1977,8 @@ class VIEW3D_PT_view3d_name(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_label = "Item"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.space_data and context.active_object)
 
     def draw(self, context):
@@ -2003,8 +2003,8 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
     bl_label = "Display"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         view = context.space_data
         return (view)
 
@@ -2071,8 +2071,8 @@ class VIEW3D_PT_view3d_meshdisplay(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_label = "Mesh Display"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         # The active object check is needed because of localmode
         return (context.active_object and (context.mode == 'EDIT_MESH'))
 
@@ -2108,8 +2108,8 @@ class VIEW3D_PT_view3d_curvedisplay(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_label = "Curve Display"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         editmesh = context.mode == 'EDIT_CURVE'
         return (editmesh)
 
@@ -2131,8 +2131,8 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
     bl_label = "Background Images"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         view = context.space_data
         # bg = context.space_data.background_image
         return (view)
@@ -2181,8 +2181,8 @@ class VIEW3D_PT_transform_orientations(bpy.types.Panel):
     bl_label = "Transform Orientations"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         view = context.space_data
         return (view)
 
@@ -2209,8 +2209,8 @@ class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
     bl_label = "Skeleton Sketching"
     bl_default_closed = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         scene = context.space_data
         ob = context.active_object
         return scene and ob and ob.type == 'ARMATURE' and ob.mode == 'EDIT'
@@ -2266,9 +2266,9 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
 
         return ""
 
-    @staticmethod
-    def poll(context):
-        member = __class__._active_context_member(context)
+    @classmethod
+    def poll(cls, context):
+        member = cls._active_context_member(context)
         if member:
             context_member = getattr(context, member)
             return context_member and context_member.keys()

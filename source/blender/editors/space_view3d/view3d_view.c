@@ -52,8 +52,6 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_utildefines.h"
 #include "BKE_depsgraph.h" /* for fly mode updating */
 
 

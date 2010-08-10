@@ -53,9 +53,6 @@
 //#include "BIF_graphics.h"
 #include "BIF_gl.h"
 
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
-#include "BKE_customdata.h"
 
 //#include "blendef.h"
 

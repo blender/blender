@@ -128,6 +128,8 @@ EnumPropertyItem object_type_curve_items[] = {
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_particle.h"
+#include "ED_curve.h"
+#include "ED_lattice.h"
 
 static void rna_Object_internal_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -182,12 +184,24 @@ void rna_Object_internal_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= ptr->id.data;
-	int editmode= (scene->obedit == ob && ob->type == OB_MESH);
 
-	if(editmode) {
+	if(scene->obedit == ob) {
 		/* exit/enter editmode to get new shape */
-		load_editMesh(scene, ob);
-		make_editMesh(scene, ob);
+		switch(ob->type) {
+			case OB_MESH:
+				load_editMesh(scene, ob);
+				make_editMesh(scene, ob);
+				break;
+			case OB_CURVE:
+			case OB_SURF:
+				load_editNurb(ob);
+				make_editNurb(ob);
+				break;
+			case OB_LATTICE:
+				load_editLatt(ob);
+				make_editLatt(ob);
+				break;
+		}
 	}
 
 	rna_Object_internal_update_data(bmain, scene, ptr);

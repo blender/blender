@@ -2968,22 +2968,11 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 
 	fallback_fac = 1.0;
 	
-	/* if there is no IPO, try to make retiming easy by stretching the
+	/* if there is no fcurve, try to make retiming easy by stretching the
 	   strip */
-	// XXX old animation system - seq
 	if (!fcu && seq->seq1->enddisp != seq->seq1->start && seq->seq1->len != 0) {
 		fallback_fac = (float) seq->seq1->len / 
 			(float) (seq->seq1->enddisp - seq->seq1->start);
-		/* FIXME: this strip stretching gets screwed by stripdata
-		   handling one layer up.
-		   
-		   So it currently works by enlarging, never by shrinking!
-
-		   (IPOs still work, if used correctly)
-		*/
-		if (fallback_fac > 1.0) {
-			fallback_fac = 1.0;
-		}
 	}
 
 	if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
@@ -3006,8 +2995,8 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 
 			cursor += facf;
 
-			if (cursor >= v->length) {
-				v->frameMap[cfra] = v->length - 1;
+			if (cursor >= seq->seq1->len) {
+				v->frameMap[cfra] = seq->seq1->len - 1;
 			} else {
 				v->frameMap[cfra] = cursor;
 				v->lastValidFrame = cfra;
@@ -3033,8 +3022,8 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 				facf = (float) cfra * fallback_fac;
 			}
 			facf *= v->globalSpeed;
-			if (facf >= v->length) {
-				facf = v->length - 1;
+			if (facf >= seq->seq1->len) {
+				facf = seq->seq1->len - 1;
 			} else {
 				v->lastValidFrame = cfra;
 			}

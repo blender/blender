@@ -31,7 +31,6 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_particle_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -42,7 +41,6 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_pointcache.h"
-#include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_draw.h"

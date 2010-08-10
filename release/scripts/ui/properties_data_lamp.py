@@ -34,15 +34,15 @@ class DataButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        return context.lamp and (engine in cls.COMPAT_ENGINES)
+
 
 class DATA_PT_preview(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        engine = context.scene.render.engine
-        return context.lamp and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         self.layout.template_preview(context.lamp)
@@ -51,11 +51,6 @@ class DATA_PT_context_lamp(DataButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        engine = context.scene.render.engine
-        return context.lamp and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -75,23 +70,13 @@ class DATA_PT_context_lamp(DataButtonsPanel, bpy.types.Panel):
 
 
 class DATA_PT_custom_props_lamp(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
-    _context_path = "object.data"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        engine = context.scene.render.engine
-        return context.lamp and (engine in __class__.COMPAT_ENGINES)
+    _context_path = "object.data"
 
 
 class DATA_PT_lamp(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Lamp"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @staticmethod
-    def poll(context):
-        engine = context.scene.render.engine
-        return context.lamp and (engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -135,11 +120,11 @@ class DATA_PT_sunsky(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Sky & Atmosphere"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         lamp = context.lamp
         engine = context.scene.render.engine
-        return (lamp and lamp.type == 'SUN') and (engine in __class__.COMPAT_ENGINES)
+        return (lamp and lamp.type == 'SUN') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -206,11 +191,11 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Shadow"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         lamp = context.lamp
         engine = context.scene.render.engine
-        return (lamp and lamp.type in ('POINT', 'SUN', 'SPOT', 'AREA')) and (engine in __class__.COMPAT_ENGINES)
+        return (lamp and lamp.type in ('POINT', 'SUN', 'SPOT', 'AREA')) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -326,11 +311,11 @@ class DATA_PT_area(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Area Shape"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         lamp = context.lamp
         engine = context.scene.render.engine
-        return (lamp and lamp.type == 'AREA') and (engine in __class__.COMPAT_ENGINES)
+        return (lamp and lamp.type == 'AREA') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         lamp = context.lamp
@@ -354,11 +339,11 @@ class DATA_PT_spot(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Spot Shape"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         lamp = context.lamp
         engine = context.scene.render.engine
-        return (lamp and lamp.type == 'SPOT') and (engine in __class__.COMPAT_ENGINES)
+        return (lamp and lamp.type == 'SPOT') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -389,12 +374,12 @@ class DATA_PT_falloff_curve(DataButtonsPanel, bpy.types.Panel):
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         lamp = context.lamp
         engine = context.scene.render.engine
 
-        return (lamp and lamp.type in ('POINT', 'SPOT') and lamp.falloff_type == 'CUSTOM_CURVE') and (engine in __class__.COMPAT_ENGINES)
+        return (lamp and lamp.type in ('POINT', 'SPOT') and lamp.falloff_type == 'CUSTOM_CURVE') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         lamp = context.lamp

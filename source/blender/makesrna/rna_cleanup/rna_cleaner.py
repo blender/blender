@@ -6,6 +6,9 @@ This script is used to help cleaning RNA api.
 Typical line in the input file (elements in [] are optional).
 
 [comment *] ToolSettings.snap_align_rotation -> use_snap_align_rotation:    boolean    [Align rotation with the snapping target]
+
+Geterate output format from blender run this:
+ ./blender.bin --background --python ./release/scripts/modules/rna_info.py > source/blender/makesrna/rna_cleanup/out.txt
 """
 
 
@@ -73,18 +76,21 @@ def check_commandline():
     return (inputfile, sort_priority)
 
 
-def check_prefix(prop):
+def check_prefix(prop, btype):
     # reminder: props=[comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
-    if '_' in prop:
-        prefix = prop.split('_')[0]
-        if prefix not in kw_prefixes:
-            return 'BAD-PREFIX: ' + prefix
+    if btype == "boolean":
+        if '_' in prop:
+            prefix = prop.split('_')[0]
+            if prefix not in kw_prefixes:
+                return 'BAD-PREFIX: ' + prefix
+            else:
+                return prefix + '_'
+        elif prop in kw:
+            return 'SPECIAL-KEYWORD: ' + prop
         else:
-            return prefix + '_'
-    elif prop in kw:
-        return 'SPECIAL-KEYWORD: ' + prop
+            return 'BAD-KEYWORD: ' + prop
     else:
-        return 'BAD-KEYWORD: ' + prop
+        return ""
 
 
 def check_if_changed(a,b):
@@ -141,7 +147,7 @@ def get_props_from_txt(input_filename):
             [btype, description] = [tail,'NO DESCRIPTION']
 
         # keyword-check
-        kwcheck = check_prefix(bto)
+        kwcheck = check_prefix(bto, btype)
 
         # changed
         changed = check_if_changed(bfrom, bto)
@@ -165,7 +171,7 @@ def get_props_from_py(input_filename):
     props_length_max = [0 for i in rna_api[0]] # this way if the vector will take more elements we are safe
     for index,props in enumerate(rna_api):
         comment, changed, bclass, bfrom, bto, kwcheck, btype, description = props
-        kwcheck = check_prefix(bto)   # keyword-check
+        kwcheck = check_prefix(bto, btype)   # keyword-check
         changed = check_if_changed(bfrom, bto)  # changed?
         description = repr(description)
         rna_api[index] = [comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
@@ -189,11 +195,14 @@ def sort(props_list, sort_priority):
     """
 
     # order based on the i-th element in lists
-    i = sort_choices.index(sort_priority)
-    if i == 0:
-        props_list = sorted(props_list, key=lambda p: p[i], reverse=True)
+    if sort_priority == "class.from":
+        props_list = sorted(props_list, key=lambda p: (p[2], p[3]))
     else:
-        props_list = sorted(props_list, key=lambda p: p[i])
+        i = sort_choices.index(sort_priority)
+        if i == 0:
+            props_list = sorted(props_list, key=lambda p: p[i], reverse=True)
+        else:
+            props_list = sorted(props_list, key=lambda p: p[i])
         
     print ('\nSorted by %s.' % font_bold(sort_priority))
     return props_list
@@ -266,10 +275,10 @@ def main():
     global sort_choices, default_sort_choice
     global kw_prefixes, kw
 
-    sort_choices = ['note','changed','class','from','to','kw']
-    default_sort_choice = sort_choices[0]
+    sort_choices = ['note','changed','class','from','to','kw', 'class.from']
+    default_sort_choice = sort_choices[-1]
     kw_prefixes = [ 'active','apply','bl','exclude','has','invert','is','lock', \
-                    'pressed','show','show_only','use','use_only','layers','states']
+                    'pressed','show','show_only','use','use_only','layers','states', 'select']
     kw = ['active','hide','invert','select','layers','mute','states','use','lock']
 
     input_filename, sort_priority = check_commandline()

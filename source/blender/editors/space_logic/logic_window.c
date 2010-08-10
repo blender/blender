@@ -50,10 +50,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_property.h"
-#include "BKE_screen.h"
 #include "BKE_sca.h"
-#include "BKE_utildefines.h"
 
 #include "ED_util.h"
 

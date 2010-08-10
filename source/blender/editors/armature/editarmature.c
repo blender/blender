@@ -58,7 +58,6 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_subsurf.h"
-#include "BKE_utildefines.h"
 #include "BKE_modifier.h"
 #include "DNA_object_types.h"
 

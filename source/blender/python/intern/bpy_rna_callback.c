@@ -64,19 +64,28 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
 	char *cb_event_str= NULL;
 	int cb_event;
 
-	if (!PyArg_ParseTuple(args, "OO|s:bpy_struct.callback_add", &cb_func, &cb_args, &cb_event_str))
+	if (!PyArg_ParseTuple(args, "OO!|s:bpy_struct.callback_add", &cb_func, &PyTuple_Type, &cb_args, &cb_event_str))
 		return NULL;
+	
+	if(!PyCallable_Check(cb_func)) {
+		PyErr_SetString(PyExc_TypeError, "callback_add(): first argument isn't callable");
+		return NULL;
+	}
 
 	if(RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
-
-		static EnumPropertyItem region_draw_mode_items[] = {
-			{REGION_DRAW_POST_VIEW, "POST_VIEW", 0, "Pose View", ""},
-			{REGION_DRAW_POST_PIXEL, "POST_PIXEL", 0, "Post Pixel", ""},
-			{REGION_DRAW_PRE_VIEW, "PRE_VIEW", 0, "Pre View", ""},
-			{0, NULL, 0, NULL, NULL}};
-
-		if(pyrna_enum_value_from_id(region_draw_mode_items, cb_event_str, &cb_event, "bpy_struct.callback_add()") < 0)
-			return NULL;
+		if(cb_event_str) {
+			static EnumPropertyItem region_draw_mode_items[] = {
+				{REGION_DRAW_POST_PIXEL, "POST_PIXEL", 0, "Post Pixel", ""},
+				{REGION_DRAW_POST_VIEW, "POST_VIEW", 0, "Post View", ""},
+				{REGION_DRAW_PRE_VIEW, "PRE_VIEW", 0, "Pre View", ""},
+				{0, NULL, 0, NULL, NULL}};
+	
+			if(pyrna_enum_value_from_id(region_draw_mode_items, cb_event_str, &cb_event, "bpy_struct.callback_add()") < 0)
+				return NULL;
+		}
+		else {
+			cb_event= REGION_DRAW_POST_PIXEL;
+		}
 
 		handle= ED_region_draw_cb_activate(((ARegion *)self->ptr.data)->type, cb_region_draw, (void *)args, cb_event);
 		Py_INCREF(args);

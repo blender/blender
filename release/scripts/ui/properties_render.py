@@ -40,15 +40,15 @@ class RenderButtonsPanel():
     bl_context = "render"
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        return (context.scene and rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
+
 
 class RENDER_PT_render(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Render"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @staticmethod
-    def poll(context):
-        rd = context.scene.render
-        return (context.scene and rd.use_game_engine is False) and (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -70,11 +70,6 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Layers"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @staticmethod
-    def poll(context):
-        rd = context.scene.render
-        return (context.scene and rd.use_game_engine is False) and (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -178,11 +173,6 @@ class RENDER_PT_shading(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Shading"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    @staticmethod
-    def poll(context):
-        rd = context.scene.render
-        return (context.scene and rd.use_game_engine is False) and (rd.engine in __class__.COMPAT_ENGINES)
-
     def draw(self, context):
         layout = self.layout
 
@@ -206,11 +196,6 @@ class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Performance"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @staticmethod
-    def poll(context):
-        rd = context.scene.render
-        return (context.scene and rd.use_game_engine is False) and (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -254,11 +239,6 @@ class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    @staticmethod
-    def poll(context):
-        rd = context.scene.render
-        return (context.scene and rd.use_game_engine is False) and (rd.engine in __class__.COMPAT_ENGINES)
-
     def draw(self, context):
         layout = self.layout
 
@@ -296,11 +276,6 @@ class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
 class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Output"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @staticmethod
-    def poll(context):
-        rd = context.scene.render
-        return (context.scene and rd.use_game_engine is False) and (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -417,8 +392,8 @@ class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         rd = context.scene.render
         return rd.file_format in ('FFMPEG', 'XVID', 'H264', 'THEORA')
 
@@ -484,11 +459,6 @@ class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Anti-Aliasing"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    @staticmethod
-    def poll(context):
-        rd = context.scene.render
-        return (context.scene and rd.use_game_engine is False) and (rd.engine in __class__.COMPAT_ENGINES)
-
     def draw_header(self, context):
         rd = context.scene.render
 
@@ -518,11 +488,6 @@ class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    @staticmethod
-    def poll(context):
-        rd = context.scene.render
-        return (context.scene and rd.use_game_engine is False) and (rd.engine in __class__.COMPAT_ENGINES)
-
     def draw_header(self, context):
         rd = context.scene.render
 
@@ -541,11 +506,6 @@ class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
 class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Dimensions"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @staticmethod
-    def poll(context):
-        rd = context.scene.render
-        return (context.scene and rd.use_game_engine is False) and (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -593,11 +553,6 @@ class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    @staticmethod
-    def poll(context):
-        rd = context.scene.render
-        return (context.scene and rd.use_game_engine is False) and (rd.engine in __class__.COMPAT_ENGINES)
-
     def draw_header(self, context):
         rd = context.scene.render
 
@@ -641,11 +596,6 @@ class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Bake"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @staticmethod
-    def poll(context):
-        rd = context.scene.render
-        return (context.scene and rd.use_game_engine is False) and (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

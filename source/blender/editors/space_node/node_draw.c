@@ -44,16 +44,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_material.h"
-#include "BKE_node.h"
-#include "BKE_object.h"
-#include "BKE_texture.h"
-#include "BKE_text.h"
-#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

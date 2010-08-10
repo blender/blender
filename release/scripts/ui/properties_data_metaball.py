@@ -26,8 +26,8 @@ class DataButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return context.meta_ball
 
 
@@ -52,6 +52,7 @@ class DATA_PT_context_metaball(DataButtonsPanel, bpy.types.Panel):
 
 
 class DATA_PT_custom_props_metaball(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
 
 
@@ -82,8 +83,8 @@ class DATA_PT_metaball(DataButtonsPanel, bpy.types.Panel):
 class DATA_PT_metaball_element(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Active Element"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.meta_ball and context.meta_ball.active_element)
 
     def draw(self, context):

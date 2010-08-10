@@ -1124,8 +1124,8 @@ class SmartProject(bpy.types.Operator):
             description="Margin to reduce bleed from adjacent islands.",
             default=0.0, min=0.0, max=1.0)
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return context.active_object != None
 
     def execute(self, context):

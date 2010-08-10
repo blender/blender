@@ -26,7 +26,7 @@ functions for dealing with paths in Blender.
 import bpy as _bpy
 import os as _os
 
-def expand(path):
+def abspath(path):
     """
     Returns the absolute path relative to the current blend file using the "//" prefix.
     """

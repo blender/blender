@@ -25,8 +25,8 @@ class DataButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return (context.object and context.object.type == 'EMPTY')
 
 

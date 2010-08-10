@@ -51,15 +51,11 @@
 #include "RNA_access.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_lattice.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_utildefines.h"
 
 #include "BLI_math.h"
 #include "BLI_editVert.h"
@@ -383,9 +379,9 @@ int calc_manipulator_stats(const bContext *C)
 			BPoint *bp;
 			Lattice *lt= obedit->data;
 
-			bp= lt->editlatt->def;
+			bp= lt->editlatt->latt->def;
 
-			a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+			a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 			while(a--) {
 				if(bp->f1 & SELECT) {
 					calc_tw_center(scene, bp->vec);
