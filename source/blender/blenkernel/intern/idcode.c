@@ -1,5 +1,5 @@
 /**
- * $Id: readblenentry.c 31028 2010-08-04 04:01:27Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
