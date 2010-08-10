@@ -57,6 +57,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BLO_readfile.h"
+#include "BKE_idcode.h"
 
 #include "DNA_space_types.h"
 
@@ -881,7 +882,7 @@ static int groupname_to_code(char *group)
 	if (lslash)
 		lslash[0]= '\0';
 
-	return BLO_idcode_from_name(buf);
+	return BKE_idcode_from_name(buf);
 }
 
 void filelist_from_library(struct FileList* filelist)

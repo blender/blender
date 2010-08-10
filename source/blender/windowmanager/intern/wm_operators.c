@@ -63,6 +63,7 @@
 #include "BKE_screen.h" /* BKE_ST_MAXNAME */
 #include "BKE_utildefines.h"
 #include "BKE_brush.h" // JW
+#include "BKE_idcode.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
@@ -1586,7 +1587,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		scene_deselect_all(scene);
 
 	bh = BLO_blendhandle_from_file(libname);
-	idcode = BLO_idcode_from_name(group);
+	idcode = BKE_idcode_from_name(group);
 	
 	flag = wm_link_append_flag(op);
 
