@@ -2530,7 +2530,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 			}
 
 			//str = "Scene %t|Load game%x0|Start loaded game%x1|Restart this game%x2|Quit this game %x3";
-			str = "Scene %t|Start new game%x0|Restart this game%x2|Quit this game %x3|Save GameLogic.globalDict %x4|Load GameLogic.globalDict %x5";
+			str = "Scene %t|Start new game%x0|Restart this game%x2|Quit this game %x3|Save bge.logic.globalDict %x4|Load bge.logic.globalDict %x5";
 			uiDefButS(block, MENU, B_REDR, str, xco+40, yco-24, (width-80), 19, &gma->type, 0.0, 0.0, 0, 0, ""); 
 			
 			yco -= ysize; 

@@ -266,8 +266,8 @@ static PyObject* gPyRestartGame(PyObject*)
 }
 
 static char gPySaveGlobalDict_doc[] =
-"saveGlobalDict()\n\
-Saves GameLogic.globalDict to a file";
+	"saveGlobalDict()\n"
+	"Saves bge.logic.globalDict to a file";
 
 static PyObject* gPySaveGlobalDict(PyObject*)
 {
@@ -303,8 +303,8 @@ static PyObject* gPySaveGlobalDict(PyObject*)
 }
 
 static char gPyLoadGlobalDict_doc[] =
-"LoadGlobalDict()\n\
-Loads GameLogic.globalDict from a file";
+	"LoadGlobalDict()\n"
+	"Loads bge.logic.globalDict from a file";
 
 static PyObject* gPyLoadGlobalDict(PyObject*)
 {
@@ -1225,7 +1225,7 @@ static struct PyMethodDef rasterizer_methods[] = {
 // Initialization function for the module (*must* be called initGameLogic)
 
 static char GameLogic_module_documentation[] =
-"This is the Python API for the game engine of GameLogic"
+"This is the Python API for the game engine of bge.logic"
 ;
 
 static char Rasterizer_module_documentation[] =
@@ -1574,7 +1574,7 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	// Check for errors
 	if (PyErr_Occurred())
     {
-		Py_FatalError("can't initialize module GameLogic");
+		Py_FatalError("can't initialize module bge.logic");
     }
 
 	return m;
@@ -1971,7 +1971,6 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *
 		PyDict_SetItemString(PyModule_GetDict(*gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
 
 	*gameLogic_keys = PyDict_Keys(PyModule_GetDict(*gameLogic));
-	PyDict_SetItemString(dictionaryobject, "GameLogic", *gameLogic); // Same as importing the module.
 
 	initGameKeys();
 	initPythonConstraintBinding();
@@ -1983,7 +1982,7 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *
 	initVideoTexture();
 
 	/* could be done a lot more nicely, but for now a quick way to get bge.* working */
-	PyRun_SimpleString("sys = __import__('sys');mod = sys.modules['bge'] = type(sys)('bge');mod.__dict__.update({'logic':__import__('GameLogic'), 'render':__import__('Rasterizer'), 'events':__import__('GameKeys'), 'constraints':__import__('PhysicsConstraints'), 'types':__import__('GameTypes')})");
+	PyRun_SimpleString("sys = __import__('sys');mod = sys.modules['bge'] = type(sys)('bge');mod.__dict__.update({'logic':__import__('GameLogic'), 'render':__import__('Rasterizer'), 'events':__import__('GameKeys'), 'constraints':__import__('PhysicsConstraints'), 'types':__import__('GameTypes')});import bge");
 }
 
 static struct PyModuleDef Rasterizer_module_def = {
@@ -2331,15 +2330,15 @@ int saveGamePythonConfig( char **marshal_buffer)
 				memcpy(*marshal_buffer, marshal_cstring, marshal_length);
 				Py_DECREF(pyGlobalDictMarshal);
 			} else {
-				printf("Error, GameLogic.globalDict could not be marshal'd\n");
+				printf("Error, bge.logic.globalDict could not be marshal'd\n");
 			}
 		} else {
-			printf("Error, GameLogic.globalDict was removed\n");
+			printf("Error, bge.logic.globalDict was removed\n");
 		}
 		Py_DECREF(gameLogic);
 	} else {
 		PyErr_Clear();
-		printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
+		printf("Error, bge.logic failed to import bge.logic.globalDict will be lost\n");
 	}
 	return marshal_length;
 }
@@ -2371,7 +2370,7 @@ int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
 			}
 		} else {
 			PyErr_Clear();
-			printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
+			printf("Error, bge.logic failed to import bge.logic.globalDict will be lost\n");
 		}	
 	}
 	return 0;

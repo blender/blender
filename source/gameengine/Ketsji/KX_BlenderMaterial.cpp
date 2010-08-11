@@ -939,7 +939,7 @@ static unsigned int GL_array[11] = {
 	GL_SRC_ALPHA_SATURATE
 };
 
-KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setBlending , "setBlending( GameLogic.src, GameLogic.dest)")
+KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setBlending , "setBlending( bge.logic.src, bge.logic.dest)")
 {
 	unsigned int b[2];
 	if(PyArg_ParseTuple(args, "ii:setBlending", &b[0], &b[1]))
