@@ -1146,7 +1146,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	glColor4fv( &cbd->r );
 	glVertex2fv(v1); glVertex2fv(v2);
 	
-	for( a = 1; a < sizex; a++ ) {
+	for( a = 1; a <= sizex; a++ ) {
 		pos = ((float)a) / (sizex-1);
 		do_colorband( coba, pos, colf );
 		if (but->block->color_profile != BLI_PR_NONE)
@@ -1163,19 +1163,8 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	glDisable(GL_BLEND);
 	
 	/* outline */
-	v1[0]= x1; v1[1]= y1;
-	
-	cpack(0x0);
-	glBegin(GL_LINE_LOOP);
-	glVertex2fv(v1);
-	v1[0]+= sizex;
-	glVertex2fv(v1);
-	v1[1]+= sizey;
-	glVertex2fv(v1);
-	v1[0]-= sizex;
-	glVertex2fv(v1);
-	glEnd();
-	
+	glColor4f(0.0, 0.0, 0.0, 1.0);
+	fdrawbox(x1, y1, x1+sizex, y1+sizey);
 	
 	/* help lines */
 	v1[0]= v2[0]=v3[0]= x1;
@@ -1231,6 +1220,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		}	
 	}
 	glEnd();
+
 }
 
 void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
