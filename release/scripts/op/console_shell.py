@@ -47,7 +47,7 @@ def execute(context):
     sc = context.space_data
 
     try:
-        line = sc.history[-1].line
+        line = sc.history[-1].body
     except:
         return {'CANCELLED'}
 

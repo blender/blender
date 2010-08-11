@@ -48,9 +48,9 @@ class TEXT_HT_header(bpy.types.Header):
         layout.template_ID(st, "text", new="text.new", unlink="text.unlink")
 
         row = layout.row(align=True)
-        row.prop(st, "line_numbers", text="")
-        row.prop(st, "word_wrap", text="")
-        row.prop(st, "syntax_highlight", text="")
+        row.prop(st, "show_line_numbers", text="")
+        row.prop(st, "show_word_wrap", text="")
+        row.prop(st, "show_syntax_highlight", text="")
 
         if text:
             row = layout.row()
@@ -81,9 +81,10 @@ class TEXT_PT_properties(bpy.types.Panel):
         st = context.space_data
 
         flow = layout.column_flow()
-        flow.prop(st, "line_numbers")
-        flow.prop(st, "word_wrap")
-        flow.prop(st, "syntax_highlight")
+        flow.prop(st, "show_line_numbers")
+        flow.prop(st, "show_word_wrap")
+        flow.prop(st, "show_syntax_highlight")
+        flow.prop(st, "show_line_highlight")
         flow.prop(st, "live_edit")
 
         flow = layout.column_flow()

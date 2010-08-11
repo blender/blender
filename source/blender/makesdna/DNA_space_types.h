@@ -303,7 +303,8 @@ typedef struct SpaceText {
 	int showlinenrs;
 	int tabnumber;
 
-	int showsyntax;
+	short showsyntax;
+	short line_hlight;
 	short overwrite;
 	short live_edit; /* run python while editing, evil */
 	float pix_per_line;

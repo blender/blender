@@ -567,31 +567,30 @@ static void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
 }
 
 /* Space Console */
-static void rna_ConsoleLine_line_get(PointerRNA *ptr, char *value)
+static void rna_ConsoleLine_body_get(PointerRNA *ptr, char *value)
 {
 	ConsoleLine *ci= (ConsoleLine*)ptr->data;
 	strcpy(value, ci->line);
 }
 
-static int rna_ConsoleLine_line_length(PointerRNA *ptr)
+static int rna_ConsoleLine_body_length(PointerRNA *ptr)
 {
 	ConsoleLine *ci= (ConsoleLine*)ptr->data;
 	return ci->len;
 }
 
-static void rna_ConsoleLine_line_set(PointerRNA *ptr, const char *value)
+static void rna_ConsoleLine_body_set(PointerRNA *ptr, const char *value)
 {
 	ConsoleLine *ci= (ConsoleLine*)ptr->data;
 	int len= strlen(value);
 	
-	if(len < ci->len_alloc) { /* allocated size is enough? */
-		strcpy(ci->line, value);
-	}
-	else { /* allocate a new strnig */
+	if((len >= ci->len_alloc) || (len * 2 < ci->len_alloc) ) { /* allocate a new strnig */
 		MEM_freeN(ci->line);
-		ci->line= BLI_strdup(value);
-		ci->len_alloc= len;
+		ci->line= MEM_mallocN((len + 1) * sizeof(char), "rna_consoleline");
+		ci->len_alloc= len + 1;
 	}
+
+	memcpy(ci->line, value, len + 1);
 	ci->len= len;
 
 	if(ci->cursor > len) /* clamp the cursor */
@@ -1536,31 +1535,28 @@ static void rna_def_space_text(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
 
 	/* display */
-	prop= RNA_def_property(srna, "syntax_highlight", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "showsyntax", 0);
-	RNA_def_property_ui_text(prop, "Syntax Highlight", "Syntax highlight for scripting");
-	RNA_def_property_ui_icon(prop, ICON_SYNTAX_OFF, 1);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
-
-	prop= RNA_def_property(srna, "word_wrap", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_word_wrap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "wordwrap", 0);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_SpaceTextEditor_word_wrap_set");
 	RNA_def_property_ui_text(prop, "Word Wrap", "Wrap words if there is not enough horizontal space");
 	RNA_def_property_ui_icon(prop, ICON_WORDWRAP_OFF, 1);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
 
-	prop= RNA_def_property(srna, "line_numbers", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_line_numbers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "showlinenrs", 0);
 	RNA_def_property_ui_text(prop, "Line Numbers", "Show line numbers next to the text");
 	RNA_def_property_ui_icon(prop, ICON_LINENUMBERS_OFF, 1);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
 
-	prop= RNA_def_property(srna, "overwrite", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Overwrite", "Overwrite characters when typing rather than inserting them");
+	prop= RNA_def_property(srna, "show_syntax_highlight", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "showsyntax", 0);
+	RNA_def_property_ui_text(prop, "Syntax Highlight", "Syntax highlight for scripting");
+	RNA_def_property_ui_icon(prop, ICON_SYNTAX_OFF, 1);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
 	
-	prop= RNA_def_property(srna, "live_edit", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Live Edit", "Run python while editing");
+	prop= RNA_def_property(srna, "show_line_highlight", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "line_hlight", 0);
+	RNA_def_property_ui_text(prop, "Highlight Line", "Highlight the current line");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
 
 	prop= RNA_def_property(srna, "tab_width", PROP_INT, PROP_NONE);
@@ -1575,6 +1571,15 @@ static void rna_def_space_text(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Font Size", "Font size to use for displaying the text");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
 
+	/* functionality options */
+	prop= RNA_def_property(srna, "overwrite", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Overwrite", "Overwrite characters when typing rather than inserting them");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
+	
+	prop= RNA_def_property(srna, "live_edit", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Live Edit", "Run python while editing");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TEXT, NULL);
+	
 	/* find */
 	prop= RNA_def_property(srna, "find_all", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", ST_FIND_ALL);
@@ -1925,8 +1930,8 @@ static void rna_def_console_line(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Console Input", "Input line for the interactive console");
 	// XXX using non-inited "prop", uh? RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE, NULL);
 	
-	prop= RNA_def_property(srna, "line", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, "rna_ConsoleLine_line_get", "rna_ConsoleLine_line_length", "rna_ConsoleLine_line_set");
+	prop= RNA_def_property(srna, "body", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ConsoleLine_body_get", "rna_ConsoleLine_body_length", "rna_ConsoleLine_body_set");
 	RNA_def_property_ui_text(prop, "Line", "Text in the line");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE, NULL);
 	

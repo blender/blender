@@ -747,7 +747,6 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if (ima==NULL) {
-		 SpaceButs *sbuts= CTX_wm_space_buts(C);
 		 Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
 		 if(tex && tex->type==TEX_IMAGE)
 			 ima= tex->ima;
