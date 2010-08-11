@@ -147,7 +147,7 @@ def deform(obj, definitions, base_names, options):
 
 
 def main(obj, bone_definition, base_names, options):
-    from mathutils import Vector, RotationMatrix
+    from mathutils import Vector, Matrix
     from math import radians, pi
 
     arm = obj.data
@@ -264,7 +264,7 @@ def main(obj, bone_definition, base_names, options):
 
     # Rotate the rev chain 180 about the by the first bones center point
     pivot = (rv_chain.spine_01_e.head + rv_chain.spine_01_e.tail) * 0.5
-    matrix = RotationMatrix(radians(180), 3, 'X')
+    matrix = Matrix.Rotation(radians(180), 3, 'X')
     for i, attr in enumerate(rv_chain.attr_names): # similar to neck
         spine_e = getattr(rv_chain, attr + "_e")
         # use the first bone as the pivot

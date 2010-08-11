@@ -22,7 +22,7 @@
 
 # <pep8 compliant>
 
-from mathutils import Matrix, Vector, RotationMatrix
+from mathutils import Matrix, Vector
 import time
 import geometry
 import bpy
@@ -275,15 +275,15 @@ def testNewVecLs2DRotIsBetter(vecs, mat=-1, bestAreaSoFar = -1):
 
 # Takes a list of faces that make up a UV island and rotate
 # until they optimally fit inside a square.
-ROTMAT_2D_POS_90D = RotationMatrix( radians(90.0), 2)
-ROTMAT_2D_POS_45D = RotationMatrix( radians(45.0), 2)
+ROTMAT_2D_POS_90D = Matrix.Rotation( radians(90.0), 2)
+ROTMAT_2D_POS_45D = Matrix.Rotation( radians(45.0), 2)
 
 RotMatStepRotation = []
 rot_angle = 22.5 #45.0/2
 while rot_angle > 0.1:
     RotMatStepRotation.append([\
-     RotationMatrix( radians(rot_angle), 2),\
-     RotationMatrix( radians(-rot_angle), 2)])
+     Matrix.Rotation( radians(rot_angle), 2),\
+     Matrix.Rotation( radians(-rot_angle), 2)])
 
     rot_angle = rot_angle/2.0
 

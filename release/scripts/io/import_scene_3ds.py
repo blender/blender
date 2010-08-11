@@ -771,7 +771,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             #print contextMatrix_rot
             contextMatrix_rot.invert()
             #print contextMatrix_rot
-            #contextMatrix_tx = Blender.mathutils.TranslationMatrix(0.5 * Blender.mathutils.Vector(data[9:]))
+            #contextMatrix_tx = mathutils.Matrix.Translation(0.5 * Blender.mathutils.Vector(data[9:]))
             #contextMatrix_tx.invert()
 
             #tx.invert()

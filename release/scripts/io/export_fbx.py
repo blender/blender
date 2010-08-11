@@ -55,7 +55,7 @@ import math # math.pi
 import shutil # for file copying
 
 import bpy
-from mathutils import Vector, Euler, Matrix, RotationMatrix
+from mathutils import Vector, Euler, Matrix
 
 def copy_file(source, dest):
     # XXX - remove, can use shutil
@@ -107,19 +107,19 @@ def eulerRadToDeg(eul):
 mtx4_identity = Matrix()
 
 # testing
-mtx_x90		= RotationMatrix( math.pi/2, 3, 'X') # used
-#mtx_x90n	= RotationMatrix(-90, 3, 'x')
-#mtx_y90	= RotationMatrix( 90, 3, 'y')
-#mtx_y90n	= RotationMatrix(-90, 3, 'y')
-#mtx_z90	= RotationMatrix( 90, 3, 'z')
-#mtx_z90n	= RotationMatrix(-90, 3, 'z')
+mtx_x90		= Matrix.Rotation( math.pi/2, 3, 'X') # used
+#mtx_x90n	= Matrix.Rotation(-90, 3, 'x')
+#mtx_y90	= Matrix.Rotation( 90, 3, 'y')
+#mtx_y90n	= Matrix.Rotation(-90, 3, 'y')
+#mtx_z90	= Matrix.Rotation( 90, 3, 'z')
+#mtx_z90n	= Matrix.Rotation(-90, 3, 'z')
 
-#mtx4_x90	= RotationMatrix( 90, 4, 'x')
-mtx4_x90n	= RotationMatrix(-math.pi/2, 4, 'X') # used
-#mtx4_y90	= RotationMatrix( 90, 4, 'y')
-mtx4_y90n	= RotationMatrix(-math.pi/2, 4, 'Y') # used
-mtx4_z90	= RotationMatrix( math.pi/2, 4, 'Z') # used
-mtx4_z90n	= RotationMatrix(-math.pi/2, 4, 'Z') # used
+#mtx4_x90	= Matrix.Rotation( 90, 4, 'x')
+mtx4_x90n	= Matrix.Rotation(-math.pi/2, 4, 'X') # used
+#mtx4_y90	= Matrix.Rotation( 90, 4, 'y')
+mtx4_y90n	= Matrix.Rotation(-math.pi/2, 4, 'Y') # used
+mtx4_z90	= Matrix.Rotation( math.pi/2, 4, 'Z') # used
+mtx4_z90n	= Matrix.Rotation(-math.pi/2, 4, 'Z') # used
 
 # def strip_path(p):
 # 	return p.split('\\')[-1].split('/')[-1]
@@ -562,7 +562,7 @@ def write(filename, batch_objects = None, \
             elif type =='CAMERA':
 # 			elif ob and type =='Camera':
                 y = matrix_rot * Vector((0.0, 1.0, 0.0))
-                matrix_rot = RotationMatrix(math.pi/2, 3, y) * matrix_rot
+                matrix_rot = Matrix.Rotation(math.pi/2, 3, y) * matrix_rot
 
             return matrix_rot
 
@@ -664,7 +664,7 @@ def write(filename, batch_objects = None, \
                     rot = tuple(matrix_rot.to_euler())
                 elif ob and ob.type =='Camera':
                     y = matrix_rot * Vector((0.0, 1.0, 0.0))
-                    matrix_rot = RotationMatrix(math.pi/2, 3, y) * matrix_rot
+                    matrix_rot = Matrix.Rotation(math.pi/2, 3, y) * matrix_rot
                     rot = tuple(matrix_rot.to_euler())
                 else:
                     rot = tuple(matrix_rot.to_euler())
