@@ -237,8 +237,19 @@ void BLI_builddir(char *dirname, char *relname)
 		
 		if (newnum){
 
-			if (files) files=(struct direntry *)realloc(files,(totnum+newnum) * sizeof(struct direntry));
-			else files=(struct direntry *)malloc(newnum * sizeof(struct direntry));
+			if(files) {
+				void *tmp= realloc(files, (totnum+newnum) * sizeof(struct direntry));
+				if(tmp) {
+					files= (struct direntry *)tmp;
+				}
+				else { /* realloc fail */
+					free(files);
+					files= NULL;
+				}
+			}
+			
+			if(files==NULL)
+				files=(struct direntry *)malloc(newnum * sizeof(struct direntry));
 
 			if (files){
 				dlink = (struct dirlink *) dirbase->first;

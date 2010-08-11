@@ -269,11 +269,11 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         descr_items = [(key, descr) for key, descr in sorted(value.__dict__.items()) if not key.startswith("__")]
 
         for key, descr in descr_items:
-            if type(descr) == ClassMethodDescriptorType: # GetSetDescriptorType's are not documented yet
+            if type(descr) == ClassMethodDescriptorType:
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
 
         for key, descr in descr_items:
-            if type(descr) == MethodDescriptorType: # GetSetDescriptorType's are not documented yet
+            if type(descr) == MethodDescriptorType:
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
 
         for key, descr in descr_items:
