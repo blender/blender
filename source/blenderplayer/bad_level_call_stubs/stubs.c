@@ -264,6 +264,13 @@ struct MTFace *EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_e
 void make_editMesh(struct Scene *scene, struct Object *ob){}
 void load_editMesh(struct Scene *scene, struct Object *ob){}
 
+void make_editLatt(struct Object *obedit){}
+void load_editLatt(struct Object *obedit){}
+
+void load_editNurb	(struct Object *obedit){}
+void make_editNurb	(struct Object *obedit){}
+
+
 void uiItemR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int flag, char *name, int icon){}
 
 struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag){struct PointerRNA a; return a;}
