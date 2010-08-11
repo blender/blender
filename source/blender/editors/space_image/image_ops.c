@@ -739,7 +739,23 @@ static int open_exec(bContext *C, wmOperator *op)
 static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
-	char *path= (sima && sima->image)? sima->image->name: U.textudir;
+	char *path=U.textudir;
+	Image *ima= NULL;
+
+	if(sima) {
+		 ima= sima->image;
+	}
+
+	if (ima==NULL) {
+		 SpaceButs *sbuts= CTX_wm_space_buts(C);
+		 Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+		 if(tex && tex->type==TEX_IMAGE)
+			 ima= tex->ima;
+	}
+
+	if(ima)
+		path= ima->name;
+	
 
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);

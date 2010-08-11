@@ -32,7 +32,7 @@
 #define DNA_TEXTURE_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_image_types.h"
+#include "DNA_image_types.h" /* ImageUser */
 
 struct AnimData;
 struct Ipo;
