@@ -225,7 +225,6 @@ static void bake_update(void *bkv)
 static void bake_freejob(void *bkv)
 {
 	BakeRender *bkr= bkv;
-	BLI_end_threads(&bkr->threads);
 	finish_bake_internal(bkr);
 
 	if(bkr->tot==0) BKE_report(bkr->reports, RPT_ERROR, "No Images found to bake to");
