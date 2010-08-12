@@ -40,12 +40,16 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_smoke_types.h"
+#include "DNA_scene_types.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
+#include "BLI_math.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"

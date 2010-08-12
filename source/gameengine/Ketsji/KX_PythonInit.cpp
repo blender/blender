@@ -118,7 +118,7 @@ extern "C" {
 #include "KX_BlenderSceneConverter.h"
 #include "KX_MeshProxy.h" /* for creating a new library of mesh objects */
 extern "C" {
-	#include "BLO_readfile.h"
+	#include "BKE_idcode.h"
 }
 
 #include "NG_NetworkScene.h" //Needed for sendMessage()
@@ -666,7 +666,7 @@ static PyObject *gLibNew(PyObject*, PyObject* args)
 		return NULL;
 	}
 	
-	idcode= BLO_idcode_from_name(group);
+	idcode= BKE_idcode_from_name(group);
 	if(idcode==0) {
 		PyErr_Format(PyExc_ValueError, "invalid group given \"%s\"", group);
 		return NULL;

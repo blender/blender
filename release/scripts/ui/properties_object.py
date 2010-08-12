@@ -252,7 +252,7 @@ class OBJECT_PT_animation(ObjectButtonsPanel, bpy.types.Panel):
         col.prop(ob, "time_offset_edit", text="Edit")
         row = col.row()
         row.prop(ob, "time_offset_particle", text="Particle")
-        row.active = len(ob.particle_systems) != 0
+        row.active = bool(ob.particle_systems)
         row = col.row()
         row.prop(ob, "time_offset_parent", text="Parent")
         row.active = (ob.parent is not None)

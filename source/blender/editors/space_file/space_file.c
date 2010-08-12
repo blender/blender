@@ -232,6 +232,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 				file->flags |= EDITING;
 			}
 		}
+		BLI_strncpy(sfile->params->renameedit, sfile->params->renamefile, sizeof(sfile->params->renameedit));
 		params->renamefile[0] = '\0';
 	}
 	if (sfile->layout) sfile->layout->dirty= 1;

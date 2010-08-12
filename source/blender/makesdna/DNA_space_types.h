@@ -161,6 +161,7 @@ typedef struct FileSelectParams {
 	char dir[240]; /* directory */
 	char file[80]; /* file */
 	char renamefile[80];
+	char renameedit[80]; /* annoying but the first is only used for initialization */
 
 	short type; /* XXXXX for now store type here, should be moved to the operator */
 	short flag; /* settings for filter, hiding dots files,...  */
@@ -303,7 +304,8 @@ typedef struct SpaceText {
 	int showlinenrs;
 	int tabnumber;
 
-	int showsyntax;
+	short showsyntax;
+	short line_hlight;
 	short overwrite;
 	short live_edit; /* run python while editing, evil */
 	float pix_per_line;

@@ -82,23 +82,21 @@ def unpack_list(list_of_tuples):
 
 # same as above except that it adds 0 for triangle faces
 def unpack_face_list(list_of_tuples):
-    l = []
+    # allocate the entire list
+    flat_ls = [0] * (len(list_of_tuples) * 4)
+    i = 0
+
     for t in list_of_tuples:
-        face = [i for i in t]
+        if len(t) == 3:
+            if t[2] == 0:
+                t = t[1], t[2], t[0]
+        else: # assuem quad
+            if t[3] == 0 or t[2] == 0:
+                t = t[2], t[3], t[0], t[1]
 
-        if len(face) != 3 and len(face) != 4:
-            raise RuntimeError("{0} vertices in face.".format(len(face)))
-
-        # rotate indices if the 4th is 0
-        if len(face) == 4 and face[3] == 0:
-            face = [face[3], face[0], face[1], face[2]]
-
-        if len(face) == 3:
-            face.append(0)
-
-        l.extend(face)
-
-    return l
+        flat_ls[i:i + len(t)] = t
+        i += 4
+    return flat_ls
 
 def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
     '''
@@ -305,13 +303,14 @@ def load_image(imagepath, dirname):
     if os.path.exists(imagepath):
         return bpy.data.images.load(imagepath)
 
-    variants = [os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
+    variants = [imagepath, os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
 
-    for path in variants:
-        if os.path.exists(path):
-            return bpy.data.images.load(path)
-        else:
-            print(path, "doesn't exist")
+    for filepath in variants:
+        for nfilepath in (filepath, bpy.path.resolve_ncase(filepath)):
+            if os.path.exists(nfilepath):
+                return bpy.data.images.load(nfilepath)
+
+    print(filepath, "doesn't exist")
 
     # TODO comprehensiveImageLoad also searched in bpy.config.textureDir
     return None

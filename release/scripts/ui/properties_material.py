@@ -24,7 +24,7 @@ from rna_prop_ui import PropertyPanel
 def active_node_mat(mat):
     # TODO, 2.4x has a pipeline section, for 2.5 we need to communicate
     # which settings from node-materials are used
-    if mat:
+    if mat is not None:
         mat_node = mat.active_node_material
         if mat_node:
             return mat_node

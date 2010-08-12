@@ -695,7 +695,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
         # Audio:
         sub = layout.column()
 
-        if rd.ffmpeg_format not in ('MP3'):
+        if rd.ffmpeg_format not in ('MP3', ):
             sub.prop(rd, "ffmpeg_audio_codec", text="Audio Codec")
 
         sub.separator()

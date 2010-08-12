@@ -586,7 +586,7 @@ int BLI_path_abs(char *path, const char *basepath)
 		BLI_strncpy(tmp, path, FILE_MAX);
 	}
 #else
-	BLI_strncpy(tmp, path, FILE_MAX);
+	BLI_strncpy(tmp, path, sizeof(tmp));
 	
 	/* Check for loading a windows path on a posix system
 	 * in this case, there is no use in trying C:/ since it 
@@ -603,7 +603,7 @@ int BLI_path_abs(char *path, const char *basepath)
 	
 #endif
 
-	BLI_strncpy(base, basepath, FILE_MAX);
+	BLI_strncpy(base, basepath, sizeof(base));
 	
 	BLI_cleanup_file(NULL, base);
 	
@@ -626,17 +626,19 @@ int BLI_path_abs(char *path, const char *basepath)
 			BLI_strncpy(path, tmp+2, FILE_MAX);
 			
 			memcpy(tmp, base, baselen);
-			strcpy(tmp+baselen, path);
-			strcpy(path, tmp);
+			BLI_strncpy(tmp+baselen, path, sizeof(tmp)-baselen);
+			BLI_strncpy(path, tmp, FILE_MAX);
 		} else {
-			strcpy(path, tmp+2);
+			BLI_strncpy(path, tmp+2, FILE_MAX);
 		}
 	} else {
-		strcpy(path, tmp);
+		BLI_strncpy(path, tmp, FILE_MAX);
 	}
 	
 	if (path[0]!='\0') {
 		if ( path[strlen(path)-1]=='/') {
+			/* remove the '/' so we avoid BLI_cleanup_dir adding an extra \ in WIN32 */
+			path[strlen(path)-1] = '\0';
 			BLI_cleanup_dir(NULL, path);
 		} else {
 			BLI_cleanup_file(NULL, path);
@@ -1160,7 +1162,7 @@ void BLI_make_existing_file(char *name)
 {
 	char di[FILE_MAXDIR+FILE_MAXFILE], fi[FILE_MAXFILE];
 
-	strcpy(di, name);
+	BLI_strncpy(di, name, sizeof(di));
 	BLI_splitdirstring(di, fi);
 	
 	/* test exist */

@@ -32,6 +32,7 @@
 #include "rna_internal.h"
 
 #include "DNA_modifier_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"

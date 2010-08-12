@@ -23,7 +23,7 @@ from math import radians
 
 import bpy
 import mathutils
-from mathutils import Vector, Euler, Matrix, RotationMatrix, TranslationMatrix
+from mathutils import Vector, Euler, Matrix
 
 
 class bvh_node_class(object):
@@ -78,7 +78,7 @@ MATRIX_IDENTITY_4x4 = Matrix([1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0,
 
 def eulerRotate(x, y, z, rot_order):
     # Clamp all values between 0 and 360, values outside this raise an error.
-    mats = [RotationMatrix(x, 3, 'X'), RotationMatrix(y, 3, 'Y'), RotationMatrix(z, 3, 'Z')]
+    mats = [Matrix.Rotation(x, 3, 'X'), Matrix.Rotation(y, 3, 'Y'), Matrix.Rotation(z, 3, 'Z')]
     return (MATRIX_IDENTITY_3x3 * mats[rot_order[0]] * (mats[rot_order[1]] * (mats[rot_order[2]]))).to_euler()
 
     # Should work but doesnt!
@@ -529,7 +529,7 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
                     prev_euler[i] = euler
 
             if bvh_node.has_loc:
-                pose_bone.location = (bone_rest_matrix_inv * TranslationMatrix(Vector((lx, ly, lz)) - bvh_node.rest_head_local)).translation_part()
+                pose_bone.location = (bone_rest_matrix_inv * Matrix.Translation(Vector((lx, ly, lz)) - bvh_node.rest_head_local)).translation_part()
 
             if bvh_node.has_loc:
                 pose_bone.keyframe_insert("location")

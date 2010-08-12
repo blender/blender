@@ -76,7 +76,7 @@ static int rna_Text_modified_get(PointerRNA *ptr)
 	return text_file_modified(text);
 }
 
-static void rna_TextLine_line_get(PointerRNA *ptr, char *value)
+static void rna_TextLine_body_get(PointerRNA *ptr, char *value)
 {
 	TextLine *line= (TextLine*)ptr->data;
 
@@ -86,21 +86,23 @@ static void rna_TextLine_line_get(PointerRNA *ptr, char *value)
 		strcpy(value, "");
 }
 
-static int rna_TextLine_line_length(PointerRNA *ptr)
+static int rna_TextLine_body_length(PointerRNA *ptr)
 {
 	TextLine *line= (TextLine*)ptr->data;
 	return line->len;
 }
 
-static void rna_TextLine_line_set(PointerRNA *ptr, const char *value)
+static void rna_TextLine_body_set(PointerRNA *ptr, const char *value)
 {
 	TextLine *line= (TextLine*)ptr->data;
+	int len= strlen(value);
 
 	if(line->line)
 		MEM_freeN(line->line);
-	
-	line->line= BLI_strdup(value);
-	line->len= strlen(line->line);
+
+	line->line= MEM_mallocN((len + 1) * sizeof(char), "rna_text_body");
+	line->len= len;
+	memcpy(line->line, value, len + 1);
 
 	if(line->format) {
 		MEM_freeN(line->format);
@@ -118,8 +120,8 @@ static void rna_def_text_line(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "TextLine", NULL);
 	RNA_def_struct_ui_text(srna, "Text Line", "Line of text in a Text datablock");
 	
-	prop= RNA_def_property(srna, "line", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, "rna_TextLine_line_get", "rna_TextLine_line_length", "rna_TextLine_line_set");
+	prop= RNA_def_property(srna, "body", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_TextLine_body_get", "rna_TextLine_body_length", "rna_TextLine_body_set");
 	RNA_def_property_ui_text(prop, "Line", "Text in the line");
 	RNA_def_property_update(prop, NC_TEXT|NA_EDITED, NULL);
 }

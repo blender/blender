@@ -248,8 +248,8 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 	char tdir[FILE_MAX];
 	char temp[FILE_MAX];
 	char mtime[40]= "0"; /* incase we can't stat the file */
-	char cwidth[40];
-	char cheight[40];
+	char cwidth[40]= "0"; /* incase images have no data */
+	char cheight[40]= "0";
 	char thumb[40];
 	short tsize = 128;
 	short ex, ey;

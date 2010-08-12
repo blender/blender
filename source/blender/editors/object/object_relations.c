@@ -172,8 +172,8 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	else if(obedit->type==OB_LATTICE) {
 		Lattice *lt= obedit->data;
 		
-		a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
-		bp= lt->editlatt->def;
+		a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
+		bp= lt->editlatt->latt->def;
 		while(a--) {
 			if(bp->f1 & SELECT) {
 				if(v1==0) v1= nr;

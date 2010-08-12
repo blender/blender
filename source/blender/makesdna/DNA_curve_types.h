@@ -157,6 +157,11 @@ typedef struct EditNurb {
 
 	/* index data for shape keys */
 	struct GHash *keyindex;
+
+	/* shape key being edited */
+	int shapenr;
+
+	char pad[4];
 } EditNurb;
 
 typedef struct Curve {
@@ -340,6 +345,10 @@ typedef enum eBezTriple_KeyframeType {
 #define CU_CHINFO_WRAP			(1<<3)	/* wordwrap occurred here */
 #define CU_CHINFO_SMALLCAPS	(1<<4)
 #define CU_CHINFO_SMALLCAPS_CHECK (1<<5) /* set at runtime, checks if case switching is needed */
+
+/* mixed with KEY_LINEAR but define here since only curve supports */
+#define KEY_CU_EASE			3
+
 
 #endif
 

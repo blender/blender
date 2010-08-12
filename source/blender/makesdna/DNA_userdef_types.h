@@ -33,7 +33,7 @@
 #define DNA_USERDEF_TYPES_H
 
 #include "DNA_listBase.h"
-#include "DNA_texture_types.h"
+#include "DNA_texture_types.h" /* ColorBand */
 
 /* themes; defines in BIF_resource.h */
 struct ColorBand;

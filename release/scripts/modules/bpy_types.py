@@ -525,7 +525,7 @@ class Text(bpy_types.ID):
 
     def as_string(self):
         """Return the text as a string."""
-        return "\n".join(line.line for line in self.lines)
+        return "\n".join(line.body for line in self.lines)
 
     def from_string(self, string):
         """Replace text with this string."""

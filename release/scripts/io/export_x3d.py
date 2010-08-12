@@ -81,7 +81,7 @@ from export_3ds import create_derived_objects, free_derived_objects
 
 #
 DEG2RAD=0.017453292519943295
-MATWORLD= mathutils.RotationMatrix(-90, 4, 'X')
+MATWORLD= mathutils.Matrix.Rotation(-90, 4, 'X')
 
 ####################################
 # Global Variables

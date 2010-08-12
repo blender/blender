@@ -43,6 +43,9 @@
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_property_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_vfont_types.h"
 
 #include "BLI_blenlib.h"
@@ -54,7 +57,6 @@
 #include "BKE_anim.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
-#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
@@ -76,6 +78,7 @@
 #include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_mball.h"
+#include "ED_lattice.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -936,14 +939,15 @@ void special_editmenu(Scene *scene, View3D *v3d)
 		static float weight= 1.0f;
 		{ // XXX
 // XXX		if(fbutton(&weight, 0.0f, 1.0f, 10, 10, "Set Weight")) {
-			int a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
-			BPoint *bp= lt->editlatt->def;
+			Lattice *editlt= lt->editlatt->latt;
+			int a= editlt->pntsu*editlt->pntsv*editlt->pntsw;
+			BPoint *bp= editlt->def;
 			
 			while(a--) {
 				if(bp->f1 & SELECT)
 					bp->weight= weight;
 				bp++;
-			}	
+			}
 		}
 	}
 

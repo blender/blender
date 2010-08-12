@@ -1357,10 +1357,10 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 {
 	Object *obedit= vc->obedit;
 	Lattice *lt= obedit->data;
-	BPoint *bp = lt->editlatt->def;
+	BPoint *bp = lt->editlatt->latt->def;
 	DispList *dl = find_displist(&obedit->disp, DL_VERTS);
 	float *co = dl?dl->verts:NULL;
-	int i, N = lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+	int i, N = lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 	short s[2] = {IS_CLIPPED, 0};
 
 	ED_view3d_local_clipping(vc->rv3d, obedit->obmat); /* for local clipping lookups */
@@ -1408,7 +1408,7 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 	dl= find_displist(&ob->disp, DL_VERTS);
 	
 	if(is_edit) {
-		lt= lt->editlatt;
+		lt= lt->editlatt->latt;
 
 		cpack(0x004000);
 		

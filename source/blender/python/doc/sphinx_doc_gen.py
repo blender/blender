@@ -45,6 +45,7 @@ import rna_info
 reload(rna_info)
 
 # lame, python wont give some access
+ClassMethodDescriptorType = type(dict.__dict__['fromkeys'])
 MethodDescriptorType = type(dict.get)
 GetSetDescriptorType = type(int.real)
 StaticMethodType = type(staticmethod(lambda: None))
@@ -152,10 +153,10 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
     if type(descr) == GetSetDescriptorType:
         fw(ident + ".. attribute:: %s\n\n" % identifier)
         write_indented_lines(ident + "   ", fw, doc, False)
-    elif type(descr) == MethodDescriptorType: # GetSetDescriptorType's are not documented yet
+    elif type(descr) in (MethodDescriptorType, ClassMethodDescriptorType):
         write_indented_lines(ident, fw, doc, False)
     else:
-        raise TypeError("type was not GetSetDescriptorType or MethodDescriptorType")
+        raise TypeError("type was not GetSetDescriptorType, MethodDescriptorType or ClassMethodDescriptorType")
 
     write_example_ref(ident, fw, module_name + "." + type_name + "." + identifier)
     fw("\n")
@@ -269,7 +270,11 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         descr_items = [(key, descr) for key, descr in sorted(value.__dict__.items()) if not key.startswith("__")]
 
         for key, descr in descr_items:
-            if type(descr) == MethodDescriptorType: # GetSetDescriptorType's are not documented yet
+            if type(descr) == ClassMethodDescriptorType:
+                py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+
+        for key, descr in descr_items:
+            if type(descr) == MethodDescriptorType:
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
 
         for key, descr in descr_items:

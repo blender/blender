@@ -526,7 +526,7 @@ static void rna_def_histogram(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_mode_items[] = {
-		{HISTO_MODE_LUMA, "Luma", ICON_COLOR, "Luma", ""},
+		{HISTO_MODE_LUMA, "LUMA", ICON_COLOR, "Luma", ""},
 		{HISTO_MODE_RGB, "RGB", ICON_COLOR, "Red Green Blue", ""},
 		{HISTO_MODE_R, "R", ICON_COLOR, "Red", ""},
 		{HISTO_MODE_G, "G", ICON_COLOR, "Green", ""},

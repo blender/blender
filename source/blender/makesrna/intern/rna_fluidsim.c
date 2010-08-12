@@ -257,12 +257,12 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "start_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "animStart");
 	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_text(prop, "Start Time", "Simulation time of the first blender frame");
+	RNA_def_property_ui_text(prop, "Start Time", "Simulation time of the first blender frame (in seconds)");
 	
 	prop= RNA_def_property(srna, "end_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "animEnd");
 	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_text(prop, "End Time", "Simulation time of the last blender frame");
+	RNA_def_property_ui_text(prop, "End Time", "Simulation time of the last blender frame (in seconds)");
 	
 	prop= RNA_def_property(srna, "real_world_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "realsize");

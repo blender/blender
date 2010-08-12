@@ -183,19 +183,38 @@ MACRO(SETUP_LIBLINKS
 ENDMACRO(SETUP_LIBLINKS)
 
 MACRO(TEST_SSE_SUPPORT)
-	INCLUDE(CheckCXXSourceCompiles)
+	INCLUDE(CheckCSourceRuns)
 
 	MESSAGE(STATUS "Detecting SSE support")
 	IF(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 		SET(CMAKE_REQUIRED_FLAGS "-msse -msse2")
 	ELSEIF(MSVC)
-		SET(CMAKE_REQUIRED_FLAGS "/arch:SSE2")
+		SET(CMAKE_REQUIRED_FLAGS "/arch:SSE2") # TODO, SSE 1 ?
 	ENDIF()
 
-	CHECK_CXX_SOURCE_COMPILES("
+	CHECK_C_SOURCE_RUNS("
 		#include <xmmintrin.h>
 		int main() { __m128 v = _mm_setzero_ps(); return 0; }"
 	SUPPORT_SSE_BUILD)
+
+	CHECK_C_SOURCE_RUNS("
+		#include <emmintrin.h>
+		int main() { __m128d v = _mm_setzero_pd(); return 0; }"
+	SUPPORT_SSE2_BUILD)
+	MESSAGE(STATUS "Detecting SSE support")
+
+	IF(SUPPORT_SSE_BUILD)
+		MESSAGE(STATUS "   ...SSE support found.")
+	ELSE(SUPPORT_SSE_BUILD)
+		MESSAGE(STATUS "   ...SSE support missing.")
+	ENDIF(SUPPORT_SSE_BUILD)
+
+	IF(SUPPORT_SSE2_BUILD)
+		MESSAGE(STATUS "   ...SSE2 support found.")
+	ELSE(SUPPORT_SSE2_BUILD)
+		MESSAGE(STATUS "   ...SSE2 support missing.")
+	ENDIF(SUPPORT_SSE2_BUILD)
+
 ENDMACRO(TEST_SSE_SUPPORT)
 
 

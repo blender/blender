@@ -379,9 +379,9 @@ int calc_manipulator_stats(const bContext *C)
 			BPoint *bp;
 			Lattice *lt= obedit->data;
 
-			bp= lt->editlatt->def;
+			bp= lt->editlatt->latt->def;
 
-			a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+			a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 			while(a--) {
 				if(bp->f1 & SELECT) {
 					calc_tw_center(scene, bp->vec);

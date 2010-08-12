@@ -32,8 +32,11 @@
 
 #include "MEM_guardedalloc.h"
 
-
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_key_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -41,7 +44,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
 
-#include "BKE_cloth.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"

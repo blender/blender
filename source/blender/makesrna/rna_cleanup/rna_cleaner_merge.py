@@ -9,7 +9,7 @@ Example usage:
 def main():
 	
 	def work_line_id(line):
-		return line[2], line[3] # class/from
+		return line[2].split("|")[-1], line[3] # class/from
 	
 	
 	if not (sys.argv[-1].endswith(".py") and sys.argv[-2].endswith(".py")):
@@ -31,6 +31,12 @@ def main():
 		except:
 			# print("not found", key)
 			val = val_orig
+			
+		# always take the class from the base
+		val = list(val)
+		val[2] = val_orig[2]
+		print(val_orig[2])
+		val = tuple(val)
 
 		rna_api_new.append(val)
 	

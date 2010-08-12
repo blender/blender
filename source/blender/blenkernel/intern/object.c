@@ -1917,7 +1917,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 		DispList *dl = find_displist(&par->disp, DL_VERTS);
 		float *co = dl?dl->verts:NULL;
 		
-		if(latt->editlatt) latt= latt->editlatt;
+		if(latt->editlatt) latt= latt->editlatt->latt;
 		
 		a= latt->pntsu*latt->pntsv*latt->pntsw;
 		count= 0;
@@ -2501,7 +2501,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
-				EditMesh *em = BKE_mesh_get_editmesh(ob->data);
+				EditMesh *em = (ob == scene->obedit)? BKE_mesh_get_editmesh(ob->data): NULL;
 				
 				/* evaluate drivers */
 				// XXX: should we push this to derivedmesh instead?

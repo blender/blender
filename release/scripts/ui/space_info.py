@@ -27,7 +27,7 @@ class INFO_HT_header(bpy.types.Header):
         layout = self.layout
 
         wm = context.manager
-        if wm and len(wm.operators):
+        if wm and wm.operators:
             last_op = wm.operators[-1]
         else:
             last_op = None
@@ -131,7 +131,7 @@ class INFO_MT_file_import(bpy.types.Menu):
     bl_label = "Import"
 
     def draw(self, context):
-        if "collada_import" in dir(bpy.ops.wm):
+        if hasattr(bpy.types, "WM_OT_collada_import"):
             self.layout.operator("wm.collada_import", text="COLLADA (.dae)")
 
 
@@ -140,7 +140,7 @@ class INFO_MT_file_export(bpy.types.Menu):
     bl_label = "Export"
 
     def draw(self, context):
-        if "collada_export" in dir(bpy.ops.wm):
+        if hasattr(bpy.types, "WM_OT_collada_export"):
             self.layout.operator("wm.collada_export", text="COLLADA (.dae)")
 
 

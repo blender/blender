@@ -25,11 +25,11 @@ import mathutils
 def add_object_align_init(context, operator):
 
     if operator and operator.properties.is_property_set("location") and operator.properties.is_property_set("rotation"):
-        location = mathutils.TranslationMatrix(mathutils.Vector(operator.properties.location))
+        location = mathutils.Matrix.Translation(mathutils.Vector(operator.properties.location))
         rotation = mathutils.Euler(operator.properties.rotation).to_matrix().resize4x4()
     else:
         # TODO, local view cursor!
-        location = mathutils.TranslationMatrix(context.scene.cursor_location)
+        location = mathutils.Matrix.Translation(context.scene.cursor_location)
 
         if context.user_preferences.edit.object_align == 'VIEW' and context.space_data.type == 'VIEW_3D':
             rotation = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()

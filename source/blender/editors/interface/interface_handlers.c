@@ -4262,7 +4262,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			return WM_UI_HANDLER_BREAK;
 		}
 		/* reset to default */
-		else if(event->type == ZEROKEY && event->val == KM_PRESS) {
+		else if(ELEM(event->type, ZEROKEY,PAD0) && event->val == KM_PRESS) {
 			if (!(ELEM3(but->type, HSVCIRCLE, HSVCUBE, HISTOGRAM)))
 				ui_set_but_default(C, but);
 		}

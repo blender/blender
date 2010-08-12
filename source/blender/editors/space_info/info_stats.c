@@ -225,7 +225,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 	else if(obedit->type==OB_LATTICE) {
 		/* Lattice Edit */
 		Lattice *lt= obedit->data;
-		Lattice *editlatt= lt->editlatt;
+		Lattice *editlatt= lt->editlatt->latt;
 		BPoint *bp;
 		int a;
 

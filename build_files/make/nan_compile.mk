@@ -176,6 +176,9 @@ ifeq ($(OS),linux)
     REL_CFLAGS  += -O2
     REL_CCFLAGS += -O2
     NAN_DEPEND = true
+  ifeq ($(WITH_BF_RAYOPTIMIZATION), true) 
+    CCFLAGS += -msse
+  endif
   ifeq ($(CPU),alpha)
     CFLAGS += -mieee
   endif
