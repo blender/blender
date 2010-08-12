@@ -264,7 +264,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 			tsize = 256;
 			break;
 		case THB_FAIL:
-			tsize = 0;
+			tsize = 1;
 			break;
 		default:
 			return 0; /* unknown size */
@@ -280,7 +280,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 			return NULL;
 		}
 		if (size == THB_FAIL) {
-			img = IMB_allocImBuf(0,0,32, IB_rect | IB_metadata, 0);
+			img = IMB_allocImBuf(1,1,32, IB_rect | IB_metadata, 0);
 			if (!img) return 0;
 		} else {
 			if (THB_SOURCE_IMAGE == source || THB_SOURCE_BLEND == source) {
