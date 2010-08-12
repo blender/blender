@@ -1768,9 +1768,9 @@ static void do_render_3d(Render *re)
 	
 	/* make render verts/faces/halos/lamps */
 	if(render_scene_needs_vector(re))
-		RE_Database_FromScene_Vectors(re, re->scene, re->lay);
+		RE_Database_FromScene_Vectors(re, re->main, re->scene, re->lay);
 	else
-	   RE_Database_FromScene(re, re->scene, re->lay, 1);
+	   RE_Database_FromScene(re, re->main, re->scene, re->lay, 1);
 	
 	threaded_tile_processor(re);
 	
@@ -2142,6 +2142,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	RE_InitState(resc, re, &sce->r, NULL, winx, winy, &re->disprect);
 	
 	/* still unsure entity this... */
+	resc->main= re->main;
 	resc->scene= sce;
 	resc->lay= sce->lay;
 	

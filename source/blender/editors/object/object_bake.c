@@ -230,6 +230,7 @@ static void bake_freejob(void *bkv)
 
 	if(bkr->tot==0) BKE_report(bkr->reports, RPT_ERROR, "No Images found to bake to");
 	MEM_freeN(bkr);
+	G.rendering = 0;
 }
 
 /* catch esc */
@@ -269,6 +270,7 @@ static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *_eve
 		WM_jobs_callbacks(steve, bake_startjob, NULL, bake_update, NULL);
 
 		G.afbreek= 0;
+		G.rendering = 1;
 
 		WM_jobs_start(CTX_wm_manager(C), steve);
 
