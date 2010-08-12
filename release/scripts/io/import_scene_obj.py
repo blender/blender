@@ -305,13 +305,14 @@ def load_image(imagepath, dirname):
     if os.path.exists(imagepath):
         return bpy.data.images.load(imagepath)
 
-    variants = [os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
+    variants = [imagepath, os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
 
-    for path in variants:
-        if os.path.exists(path):
-            return bpy.data.images.load(path)
-        else:
-            print(path, "doesn't exist")
+    for filepath in variants:
+        for nfilepath in (filepath, bpy.path.resolve_ncase(filepath)):
+            if os.path.exists(nfilepath):
+                return bpy.data.images.load(nfilepath)
+
+    print(filepath, "doesn't exist")
 
     # TODO comprehensiveImageLoad also searched in bpy.config.textureDir
     return None
