@@ -57,6 +57,7 @@ class GHOST_EventWindow;
 class GHOST_EventDragnDrop;
 
 class GHOST_WindowWin32;
+class GHOST_TabletManagerWin32;
 
 /**
  * WIN32 Implementation of GHOST_System class.
@@ -236,7 +237,7 @@ protected:
 	 * Closes the system down.
 	 * @return A success value.
 	 */
-	virtual GHOST_TSuccess exit();
+//	virtual GHOST_TSuccess exit();
 	
 	/**
 	 * Converts raw WIN32 key codes from the wndproc to GHOST keys.
@@ -356,7 +357,8 @@ protected:
 	bool m_separateLeftRight;
 	/** Stores the initialization state of the member m_leftRightDistinguishable. */
 	bool m_separateLeftRightInitialized;
-	
+
+	GHOST_TabletManagerWin32* m_tabletManager;
 };
 
 inline void GHOST_SystemWin32::retrieveModifierKeys(GHOST_ModifierKeys& keys) const
@@ -370,4 +372,3 @@ inline void GHOST_SystemWin32::storeModifierKeys(const GHOST_ModifierKeys& keys)
 }
 
 #endif // _GHOST_SYSTEM_WIN32_H_
-

@@ -291,29 +291,15 @@ GHOST_TSuccess GHOST_System::init()
 
 GHOST_TSuccess GHOST_System::exit()
 {
-	if (getFullScreen()) {
+	if (getFullScreen())
 		endFullScreen();
-	}
-	if (m_displayManager) {
-		delete m_displayManager;
-		m_displayManager = 0;
-	}
-	if (m_windowManager) {
-		delete m_windowManager;
-		m_windowManager = 0;
-	}
-	if (m_timerManager) {
-		delete m_timerManager;
-		m_timerManager = 0;
-	}
-	if (m_eventManager) {
-		delete m_eventManager;
-		m_eventManager = 0;
-	}
-    if (m_ndofManager) {
-        delete m_ndofManager;
-        m_ndofManager = 0;
-    }
+
+	delete m_displayManager;
+	delete m_windowManager;
+	delete m_timerManager;
+	delete m_eventManager;
+	delete m_ndofManager;
+
 	return GHOST_kSuccess;
 }
 

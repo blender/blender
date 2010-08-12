@@ -38,9 +38,7 @@
 #include "GHOST_WindowWin32.h"
 #include "GHOST_SystemWin32.h"
 #include "GHOST_DropTargetWin32.h"
-
-//#include "wintab.h" // for tablets, naturally
-#include "Utils.c" // that's right, .c, with permission from Wacom
+#include "GHOST_TabletManagerWin32.h"
 #include <stdio.h> // for debug, remove soon [mce]
 
 // Need glew for some defines
@@ -50,19 +48,19 @@
 
 // MSVC6 still doesn't define M_PI
 #ifndef M_PI
-#define M_PI 3.1415926536
+  #define M_PI 3.1415926536
 #endif
 
 // Some more multisample defines
 #define WGL_SAMPLE_BUFERS_ARB	0x2041
-#define	WGL_SAMPLES_ARB			0x2042
+#define WGL_SAMPLES_ARB			0x2042
 
 // win64 doesn't define GWL_USERDATA
 #ifdef WIN32
-#ifndef GWL_USERDATA
-#define GWL_USERDATA GWLP_USERDATA
-#define GWL_WNDPROC GWLP_WNDPROC
-#endif
+  #ifndef GWL_USERDATA
+    #define GWL_USERDATA GWLP_USERDATA
+    #define GWL_WNDPROC GWLP_WNDPROC
+  #endif
 #endif
 
 LPCSTR GHOST_WindowWin32::s_windowClassName = "GHOST_WindowClass";
@@ -121,15 +119,16 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone,
 	stereoVisual,numOfAASamples),
 	m_system(system),
+	m_tabletManager(NULL),
 	m_hDC(0),
 	m_hGlRc(0),
 	m_hasMouseCaptured(false),
 	m_nPressedButtons(0),
 	m_customCursor(0),
-	m_wintab(false),
-	m_tabletData(NULL),
-	m_tablet(0),
-	m_maxPressure(0),
+//	m_wintab(false),
+//	m_tabletData(NULL),
+//	m_tablet(0),
+//	m_maxPressure(0),
 	m_multisample(numOfAASamples),
 	m_multisampleEnabled(msEnabled),
 	m_msPixelFormat(msPixelFormat),
@@ -175,10 +174,8 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			s_windowClassName,			// pointer to registered class name
 			title,						// pointer to window name
 			WS_OVERLAPPEDWINDOW,		// window style
-			left,					// horizontal position of window
-			top,					// vertical position of window
-			width,						// window width
-			height,						// window height
+			left, top,					// window position
+			width, height,					// window size
 			0,							// handle to parent or owner window
 			0,							// handle to menu or child-window identifier
 			::GetModuleHandle(0),		// handle to application instance
@@ -189,10 +186,8 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			s_windowClassName,			// pointer to registered class name
 			title,						// pointer to window name
 			WS_POPUP | WS_MAXIMIZE,		// window style
-			left,						// horizontal position of window
- 			top,						// vertical position of window
-			width,						// window width
-			height,						// window height
+			left,	top,						// window position
+			width, height,						// window size
 			0,							// handle to parent or owner window
 			0,							// handle to menu or child-window identifier
 			::GetModuleHandle(0),		// handle to application instance
@@ -242,6 +237,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 		}
 	}
 
+#if 0
    m_wintab = LoadWintab();
 	if (m_wintab) {
 		// let's see if we can initialize tablet here
@@ -300,11 +296,13 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			}
 		}
 	}
+#endif
 }
 
 
 GHOST_WindowWin32::~GHOST_WindowWin32()
 {
+#if 0
 	if (m_wintab) {
 		if (m_tablet)
 			gpWTClose(m_tablet);
@@ -313,6 +311,11 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
 		m_tabletData = NULL;
       UnloadWintab();
 	}
+#endif
+
+	if (m_tabletManager)
+		m_tabletManager->closeForWindow(this);
+
 	if (m_customCursor) {
 		DestroyCursor(m_customCursor);
 		m_customCursor = NULL;
@@ -913,6 +916,13 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorShape(GHOST_TStandardCursor cur
 	return GHOST_kSuccess;
 }
 
+void GHOST_WindowWin32::becomeTabletAware(GHOST_TabletManagerWin32* manager)
+{
+	m_tabletManager = manager;
+	m_tabletManager->openForWindow(this);
+}
+
+#if 0
 void GHOST_WindowWin32::processWin32TabletInitEvent()
 {
 	if (m_wintab) {
@@ -1016,6 +1026,7 @@ void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 		putchar('\n');
 	}
 }
+#endif
 
 /** Reverse the bits in a GHOST_TUns8 */
 static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)

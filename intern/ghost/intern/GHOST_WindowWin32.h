@@ -34,8 +34,8 @@
 #define _GHOST_WINDOW_WIN32_H_
 
 #ifndef WIN32
-#error WIN32 only!
-#endif // WIN32
+  #error WIN32 only!
+#endif
 
 #include "GHOST_Window.h"
 
@@ -43,13 +43,16 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+/*
 #include <wintab.h>
 #define PACKETDATA	(PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR)
 #define PACKETMODE	PK_BUTTONS
 #include <pktdef.h>
+*/
 
 class GHOST_SystemWin32;
 class GHOST_DropTargetWin32;
+class GHOST_TabletManagerWin32;
 
 /*
 // typedefs for WinTab functions to allow dynamic loading
@@ -105,7 +108,6 @@ public:
 	 * Returns the window to replace this one if it's getting replaced
 	 * @return The window replacing this one.
 	 */
-
 	GHOST_Window *getNextWindow();
 
 	/**
@@ -249,10 +251,12 @@ public:
 	void loadCursor(bool visible, GHOST_TStandardCursor cursorShape) const;
 
 	const GHOST_TabletData* GetTabletData()
-	{ return m_tabletData; }
+	{ return NULL; /*m_tabletData;*/ }
 
-	void processWin32TabletInitEvent();
-	void processWin32TabletEvent(WPARAM wParam, LPARAM lParam);
+//	void processWin32TabletInitEvent();
+//	void processWin32TabletEvent(WPARAM wParam, LPARAM lParam);
+
+	void becomeTabletAware(GHOST_TabletManagerWin32*);
 
 protected:
 	GHOST_TSuccess initMultisample(PIXELFORMATDESCRIPTOR pfd);
@@ -293,37 +297,50 @@ protected:
 	 * Sets the cursor shape on the window using
 	 * native window system calls.
 	 */
-	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2], int hotX, int hotY);
+	virtual GHOST_TSuccess setWindowCustomCursorShape(
+		GHOST_TUns8 bitmap[16][2],
+		GHOST_TUns8 mask[16][2],
+		int hotX, int hotY
+		);
 
 	virtual GHOST_TSuccess setWindowCustomCursorShape(
 		GHOST_TUns8 *bitmap, 
 		GHOST_TUns8 *mask, 
-		int sizex, 
-		int sizey,
-		int hotX, 
-		int hotY,
-		int fg_color, 
-		int bg_color
-	);
-	
+		int sizex, int sizey,
+		int hotX, int hotY,
+		int fg_color, int bg_color
+		);
+
 	/** Pointer to system */
 	GHOST_SystemWin32 * m_system;
+
 	/** Pointer to COM IDropTarget implementor */
 	GHOST_DropTargetWin32 * m_dropTarget;
+
+	/** Graphics tablet manager. System owns this, Window needs access to it. */
+	GHOST_TabletManagerWin32* m_tabletManager;
+
 	/** Window handle. */
 	HWND m_hWnd;
+
 	/** Device context handle. */
 	HDC m_hDC;
+
 	/** OpenGL rendering context. */
 	HGLRC m_hGlRc;
+
 	/** The first created OpenGL context (for sharing display lists) */
 	static HGLRC s_firsthGLRc;
+
 	/** The first created device context handle. */
 	static HDC s_firstHDC;
+
 	/** Flag for if window has captured the mouse */
 	bool m_hasMouseCaptured;
+
 	/** Count of number of pressed buttons */
 	int m_nPressedButtons;
+
 	/** HCURSOR structure of the custom cursor */
 	HCURSOR m_customCursor;
 
@@ -332,15 +349,15 @@ protected:
 
 	/** WinTab dll handle */
 //	HMODULE m_wintab;
-   bool m_wintab;
+//   bool m_wintab;
 
 	/** Tablet data for GHOST */
-	GHOST_TabletData* m_tabletData;
+//	GHOST_TabletData* m_tabletData;
 
 	/** Stores the Tablet context if detected Tablet features using WinTab.dll */
-	HCTX m_tablet;
-	LONG m_maxPressure;
-	LONG m_maxAzimuth, m_maxAltitude;
+//	HCTX m_tablet;
+//	LONG m_maxPressure;
+//	LONG m_maxAzimuth, m_maxAltitude;
 
 	/** Preferred number of samples */
 	GHOST_TUns16 m_multisample;

@@ -44,10 +44,10 @@
 
 // win64 doesn't define GWL_USERDATA
 #ifdef WIN32
-#ifndef GWL_USERDATA
-#define GWL_USERDATA GWLP_USERDATA
-#define GWL_WNDPROC GWLP_WNDPROC
-#endif
+  #ifndef GWL_USERDATA
+    #define GWL_USERDATA GWLP_USERDATA
+    #define GWL_WNDPROC GWLP_WNDPROC
+  #endif
 #endif
 
 #include "GHOST_Debug.h"
@@ -61,44 +61,45 @@
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowWin32.h"
 #include "GHOST_NDOFManagerWin32.h"
+#include "GHOST_TabletManagerWin32.h"
 
 // Key code values not found in winuser.h
 #ifndef VK_MINUS
-#define VK_MINUS 0xBD
-#endif // VK_MINUS
+  #define VK_MINUS 0xBD
+#endif
 #ifndef VK_SEMICOLON
-#define VK_SEMICOLON 0xBA
-#endif // VK_SEMICOLON
+  #define VK_SEMICOLON 0xBA
+#endif
 #ifndef VK_PERIOD
-#define VK_PERIOD 0xBE
-#endif // VK_PERIOD
+  #define VK_PERIOD 0xBE
+#endif
 #ifndef VK_COMMA
-#define VK_COMMA 0xBC
-#endif // VK_COMMA
+  #define VK_COMMA 0xBC
+#endif
 #ifndef VK_QUOTE
-#define VK_QUOTE 0xDE
-#endif // VK_QUOTE
+  #define VK_QUOTE 0xDE
+#endif
 #ifndef VK_BACK_QUOTE
-#define VK_BACK_QUOTE 0xC0
-#endif // VK_BACK_QUOTE
+  #define VK_BACK_QUOTE 0xC0
+#endif
 #ifndef VK_SLASH
-#define VK_SLASH 0xBF
-#endif // VK_SLASH
+  #define VK_SLASH 0xBF
+#endif
 #ifndef VK_BACK_SLASH
-#define VK_BACK_SLASH 0xDC
-#endif // VK_BACK_SLASH
+  #define VK_BACK_SLASH 0xDC
+#endif
 #ifndef VK_EQUALS
-#define VK_EQUALS 0xBB
-#endif // VK_EQUALS
+  #define VK_EQUALS 0xBB
+#endif
 #ifndef VK_OPEN_BRACKET
-#define VK_OPEN_BRACKET 0xDB
-#endif // VK_OPEN_BRACKET
+  #define VK_OPEN_BRACKET 0xDB
+#endif
 #ifndef VK_CLOSE_BRACKET
-#define VK_CLOSE_BRACKET 0xDD
-#endif // VK_CLOSE_BRACKET
+  #define VK_CLOSE_BRACKET 0xDD
+#endif
 #ifndef VK_GR_LESS
-#define VK_GR_LESS 0xE2
-#endif // VK_GR_LESS
+  #define VK_GR_LESS 0xE2
+#endif
 
 
 GHOST_SystemWin32::GHOST_SystemWin32()
@@ -106,14 +107,14 @@ GHOST_SystemWin32::GHOST_SystemWin32()
   m_separateLeftRight(false),
   m_separateLeftRightInitialized(false)
 {
-	m_displayManager = new GHOST_DisplayManagerWin32 ();
+	m_displayManager = new GHOST_DisplayManagerWin32;
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
 	m_displayManager->initialize();
 
 	// Require COM for GHOST_DropTargetWin32 created in GHOST_WindowWin32.
 	OleInitialize(0);
 
-	m_input_fidelity_hint = LO_FI; // just for testing...
+	m_input_fidelity_hint = HI_FI; // just for testing...
 
 	// register for RawInput devices
 	RAWINPUTDEVICE devices[1];
@@ -132,6 +133,8 @@ GHOST_SystemWin32::~GHOST_SystemWin32()
 {
 	// Shutdown COM
 	OleUninitialize();
+
+	delete m_tabletManager;
 }
 
 
@@ -176,16 +179,19 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 	GHOST_TWindowState state, GHOST_TDrawingContextType type,
 	bool stereoVisual, const GHOST_TUns16 numOfAASamples, const GHOST_TEmbedderWindowID parentWindow )
 {
-	GHOST_Window* window = 0;
-	window = new GHOST_WindowWin32 (this, title, left, top, width, height, state, type, stereoVisual, numOfAASamples);
+	GHOST_WindowWin32* window =
+		new GHOST_WindowWin32 (this, title, left, top, width, height, state, type, stereoVisual, numOfAASamples);
+
 	if (window) {
 		if (window->getValid()) {
 			m_windowManager->addWindow(window);
 			m_windowManager->setActiveWindow(window);
+			if (m_tabletManager->available())
+				window->becomeTabletAware(m_tabletManager);
 		}
 		else {
 			// An invalid window could be one that was used to test for AA
-			GHOST_Window *other_window = ((GHOST_WindowWin32*)window)->getNextWindow();
+			GHOST_WindowWin32* other_window = (GHOST_WindowWin32*) window->getNextWindow();
 
 			delete window;
 			window = 0;
@@ -329,6 +335,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 	GHOST_TSuccess success = GHOST_System::init();
 
 	m_ndofManager = new GHOST_NDOFManagerWin32(*this);
+	m_tabletManager = new GHOST_TabletManagerWin32;
 
 	/* Disable scaling on high DPI displays on Vista */
 	HMODULE user32 = ::LoadLibraryA("user32.dll");
@@ -373,14 +380,6 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 	}
 	return success;
 }
-
-
-GHOST_TSuccess GHOST_SystemWin32::exit()
-{
-	// [mce] since this duplicates its super, why bother?
-	return GHOST_System::exit();
-}
-
 
 GHOST_TKey GHOST_SystemWin32::convertKey(WPARAM wParam, LPARAM lParam) const
 {
@@ -497,9 +496,17 @@ void GHOST_SystemWin32::processModifierKeys(GHOST_IWindow *window)
 	((GHOST_SystemWin32*)getSystem())->storeModifierKeys(newModifiers);
 }
 
+bool eventIsFromTablet()
+	{
+	// bool IsFromPen = ((GetMessageExtraInfo() & 0xFF515700) == 0xFF515700); // this only works on TabletPCs
+	return GetMessageExtraInfo() & 0x7f; // true for tablet mouse, not just pen
+	}
 
 GHOST_EventButton* GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type, GHOST_IWindow *window, GHOST_TButtonMask mask)
 {
+	if (eventIsFromTablet())
+		return NULL;
+
 	return new GHOST_EventButton (getSystem()->getMilliSeconds(), type, window, mask);
 }
 
@@ -924,11 +931,13 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 		////////////////////////////////////////////////////////////////////////
 		case WT_PACKET:
 			puts("WT_PACKET");
-			window->processWin32TabletEvent(wParam, lParam);
+			// window->processWin32TabletEvent(wParam, lParam);
+			m_tabletManager->processPackets(window);
 			break;
 		case WT_CSRCHANGE:
 		case WT_PROXIMITY:
-			window->processWin32TabletInitEvent();
+			// window->processWin32TabletInitEvent();
+			m_tabletManager->changeTool(window);
 			break;
 
 		////////////////////////////////////////////////////////////////////////
@@ -977,11 +986,7 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 
 		case WM_MOUSEMOVE:
 			{
-			// bool IsFromPen = ((GetMessageExtraInfo() & 0xFF515700) == 0xFF515700); // this only works on TabletPCs
-			int tabletTool = GetMessageExtraInfo() & 0x7f; // true for tablet mouse, not just pen
-			if (tabletTool)
-				puts("(from tablet)");
-			else
+			if (!eventIsFromTablet())
 				{
 				int xPrev = mousePosX;
 				int yPrev = mousePosY;
@@ -992,7 +997,8 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 
 				if (m_input_fidelity_hint == HI_FI)
 					{
-					/* int n = */ getMoreMousePoints(mousePosX, mousePosY, xPrev, yPrev, window);
+					// int n =
+					getMoreMousePoints(mousePosX, mousePosY, xPrev, yPrev, window);
 					// printf("%d more mouse points found\n", n);
 					}
 

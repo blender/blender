@@ -854,8 +854,6 @@ GHOST_TSuccess GHOST_WindowCocoa::setModifiedState(bool isUnsavedChanges)
 	return GHOST_Window::setModifiedState(isUnsavedChanges);
 }
 
-
-
 GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 {
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
