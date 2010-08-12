@@ -111,8 +111,8 @@ static void flatten_string_append(FlattenString *fs, char c, int accum)
 		nbuf= MEM_callocN(sizeof(*fs->buf)*fs->len, "fs->buf");
 		naccum= MEM_callocN(sizeof(*fs->accum)*fs->len, "fs->accum");
 
-		memcpy(nbuf, fs->buf, fs->pos);
-		memcpy(naccum, fs->accum, fs->pos);
+		memcpy(nbuf, fs->buf, fs->pos * sizeof(*fs->buf));
+		memcpy(naccum, fs->accum, fs->pos * sizeof(*fs->accum));
 		
 		if(fs->buf != fs->fixedbuf) {
 			MEM_freeN(fs->buf);
