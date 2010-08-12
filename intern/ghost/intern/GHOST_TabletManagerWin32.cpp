@@ -1,3 +1,6 @@
+// safe & friendly WinTab wrapper
+// by Mike Erwin, July 2010
+
 #include "GHOST_TabletManagerWin32.h"
 #include "GHOST_WindowWin32.h"
 #include <stdio.h>
@@ -73,8 +76,6 @@ GHOST_TabletManagerWin32::GHOST_TabletManagerWin32()
 			// cheat by using available data from Intuos4. test on other tablets!!!
 			azimuthScale = 1.f / HIWORD(tiltRange[1].axResolution);
 			altitudeScale = 1.f / tiltRange[1].axMax;
-			printf("azi scale %f\n", azimuthScale);
-			printf("alt scale %f\n", altitudeScale);
 
 			// leave this code in place to help support tablets I haven't tested
 			const char* axisName[] = {"azimuth","altitude","twist"};
@@ -101,8 +102,8 @@ GHOST_TabletManagerWin32::GHOST_TabletManagerWin32()
 		UINT tag = 0;
 		UINT extensionCount;
 		func_Info(WTI_INTERFACE, IFC_NEXTENSIONS, &extensionCount);
-//		for (UINT i = 0; func_Info(WTI_EXTENSIONS + i, EXT_TAG, &tag); ++i)
 		for (UINT i = 0; i < extensionCount; ++i)
+//		for (UINT i = 0; func_Info(WTI_EXTENSIONS + i, EXT_TAG, &tag); ++i)
 			{
 			printf("trying extension %d\n", i);
 			func_Info(WTI_EXTENSIONS + i, EXT_TAG, &tag);
@@ -299,6 +300,8 @@ void GHOST_TabletManagerWin32::processPackets(HCTX context)
 			}
 
 		putchar('\n');
+
+		// at this point, construct a GHOST event and push it into the queue!
 		}
 	}
 
@@ -312,7 +315,7 @@ void GHOST_TabletManagerWin32::changeTool(HCTX context, UINT serialNumber)
 	func_Packet(context, serialNumber, &packet);
 	UINT cursor = (packet.pkCursor - cursorBase) % cursorCount;
 
-	printf("%d mod %d = %d\n", packet.pkCursor - cursorBase, cursorCount, cursor);
+	// printf("%d mod %d = %d\n", packet.pkCursor - cursorBase, cursorCount, cursor);
 
 	switch (cursor)
 		{

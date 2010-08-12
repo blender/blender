@@ -1,4 +1,4 @@
-// safe & friendly Wintab wrapper
+// safe & friendly WinTab wrapper
 // by Mike Erwin, July 2010
 
 #ifndef GHOST_TABLET_MANAGER_WIN32_H
@@ -95,5 +95,23 @@ public:
 	void changeTool(HCTX, UINT serialNumber);
 	void dropTool();
 	};
+
+/*
+The tablet manager is driven by the following Windows event processing code:
+
+case WT_PACKET:
+	m_tabletManager->processPackets((HCTX)lParam);
+	break;
+case WT_CSRCHANGE:
+	m_tabletManager->changeTool((HCTX)lParam, wParam);
+	break;
+case WT_PROXIMITY:
+	if (LOWORD(lParam) == 0)
+		{
+		puts("-- dropping tool --");
+		m_tabletManager->dropTool();
+		}
+	break;
+*/
 
 #endif

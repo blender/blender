@@ -932,22 +932,17 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 		// Tablet events, processed
 		////////////////////////////////////////////////////////////////////////
 		case WT_PACKET:
-			// puts("WT_PACKET");
-			// window->processWin32TabletEvent(wParam, lParam);
 			m_tabletManager->processPackets((HCTX)lParam);
 			break;
 		case WT_CSRCHANGE:
 			m_tabletManager->changeTool((HCTX)lParam, wParam);
 			break;
 		case WT_PROXIMITY:
-			// description was weird.. give me numbers!
-			// printf("prox: %d %d\n", LOWORD(lParam), HIWORD(lParam));
 			if (LOWORD(lParam) == 0)
 				{
 				puts("-- dropping tool --");
 				m_tabletManager->dropTool();
 				}
-			// window->processWin32TabletInitEvent();
 			break;
 
 		////////////////////////////////////////////////////////////////////////
