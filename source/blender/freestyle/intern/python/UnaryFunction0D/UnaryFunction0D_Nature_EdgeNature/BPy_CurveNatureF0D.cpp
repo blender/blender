@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char CurveNatureF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DEdgeNature` > :class:`CurveNatureF0D`\n"
+"\n"
 ".. method:: __init__()\n"
 "\n"
 "   Builds a CurveNatureF0D object.\n"

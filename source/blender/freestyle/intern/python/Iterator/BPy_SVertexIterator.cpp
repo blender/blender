@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char SVertexIterator___doc__[] =
+"Class hierarchy: :class:`Iterator` > :class:`SVertexIterator`\n"
+"\n"
 "Class representing an iterator over :class:`SVertex` of a\n"
 ":class:`ViewEdge`.  An instance of an SVertexIterator can be obtained\n"
 "from a ViewEdge by calling verticesBegin() or verticesEnd().\n"

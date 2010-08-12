@@ -11,6 +11,8 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 static char SVertex___doc__[] =
+"Class hierarchy: :class:`Interface0D` > :class:`SVertex`\n"
+"\n"
 "Class to define a vertex of the embedding.\n"
 "\n"
 ".. method:: __init__()\n"

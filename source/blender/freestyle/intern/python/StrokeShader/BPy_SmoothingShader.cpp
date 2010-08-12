@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char SmoothingShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`SmoothingShader`\n"
+"\n"
 "[Geometry shader]\n"
 "\n"
 ".. method:: __init__(iNbIteration, iFactorPoint, ifactorCurvature, iFactorCurvatureDifference, iAnisoPoint, iAnisNormal, iAnisoCurvature, icarricatureFactor)\n"

@@ -12,6 +12,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char FEdgeSharp___doc__[] =
+"Class hierarchy: :class:`Interface1D` > :class:`FEdge` > :class:`FEdgeSharp`\n"
+"\n"
 "Class defining a sharp FEdge.  A Sharp FEdge corresponds to an initial\n"
 "edge of the input mesh.  It can be a silhouette, a crease or a border.\n"
 "If it is a crease edge, then it is borded by two faces of the mesh.\n"

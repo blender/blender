@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char IncreasingThicknessShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`IncreasingThicknessShader`\n"
+"\n"
 "[Thickness shader]\n"
 "\n"
 ".. method:: __init__(iThicknessA, iThicknessB)\n"

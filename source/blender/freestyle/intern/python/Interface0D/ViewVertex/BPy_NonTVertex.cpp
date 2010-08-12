@@ -12,6 +12,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char NonTVertex___doc__[] =
+"Class hierarchy: :class:`Interface0D` > :class:`ViewVertex` > :class:`NonTVertex`\n"
+"\n"
 "View vertex for corners, cusps, etc. associated to a single SVertex.\n"
 "Can be associated to 2 or more view edges.\n"
 "\n"

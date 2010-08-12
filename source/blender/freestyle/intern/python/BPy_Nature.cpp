@@ -55,6 +55,8 @@ PyNumberMethods nature_as_number = {
 /*-----------------------BPy_Nature docstring ------------------------------------*/
 
 static char Nature___doc__[] =
+"Class hierarchy: int > :class:`Nature`\n"
+"\n"
 "Different possible natures of 0D and 1D elements of the ViewMap.\n"
 "\n"
 "Vertex natures:\n"

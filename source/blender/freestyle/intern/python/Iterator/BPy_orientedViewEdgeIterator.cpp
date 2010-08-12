@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char orientedViewEdgeIterator___doc__[] =
+"Class hierarchy: :class:`Iterator` > :class:`orientedViewEdgeIterator`\n"
+"\n"
 "Class representing an iterator over oriented ViewEdges around a\n"
 ":class:`ViewVertex`.  This iterator allows a CCW iteration (in the image\n"
 "plane).  An instance of an orientedViewEdgeIterator can only be\n"

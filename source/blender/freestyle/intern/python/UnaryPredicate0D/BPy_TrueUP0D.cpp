@@ -9,6 +9,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char TrueUP0D___doc__[] =
+"Class hierarchy: :class:`UnaryPredicate0D` > :class:`TrueUP0D`\n"
+"\n"
 ".. method:: __call__(it)\n"
 "\n"
 "   Always returns true.\n"

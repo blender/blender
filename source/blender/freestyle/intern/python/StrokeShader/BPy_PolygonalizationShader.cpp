@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char PolygonalizationShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`PolygonalizationShader`\n"
+"\n"
 "[Geometry shader]\n"
 "\n"
 ".. method:: __init__(iError)\n"

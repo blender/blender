@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char Curvature2DAngleF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DDouble` > :class:`Curvature2DAngleF0D`\n"
+"\n"
 ".. method:: __init__()\n"
 "\n"
 "   Builds a Curvature2DAngleF0D object.\n"

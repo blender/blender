@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetCompleteViewMapDensityF1D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`GetCompleteViewMapDensityF1D`\n"
+"\n"
 ".. method:: __init__(level, iType=IntegrationType.MEAN, sampling=2.0)\n"
 "\n"
 "   Builds a GetCompleteViewMapDensityF1D object.\n"

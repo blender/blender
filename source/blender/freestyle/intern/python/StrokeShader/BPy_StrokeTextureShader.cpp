@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char StrokeTextureShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`StrokeTextureShader`\n"
+"\n"
 "[Texture shader]\n"
 "\n"
 ".. method:: __init__(textureFile, mediumType=MediumType.OPAQUE_MEDIUM, iTips=False)\n"

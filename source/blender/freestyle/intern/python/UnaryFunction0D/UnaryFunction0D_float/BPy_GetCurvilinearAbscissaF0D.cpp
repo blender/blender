@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetCurvilinearAbscissaF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DFloat` > :class:`GetCurvilinearAbscissaF0D`\n"
+"\n"
 ".. method:: __init__()\n"
 "\n"
 "   Builds a GetCurvilinearAbscissaF0D object.\n"

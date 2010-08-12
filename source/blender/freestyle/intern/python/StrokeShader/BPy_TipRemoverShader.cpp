@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char TipRemoverShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`TipRemoverShader`\n"
+"\n"
 "[Geometry shader]\n"
 "\n"
 ".. method:: __init__(tipLength)\n"

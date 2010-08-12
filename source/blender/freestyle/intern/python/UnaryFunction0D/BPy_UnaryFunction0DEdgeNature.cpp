@@ -34,6 +34,8 @@ int UnaryFunction0DEdgeNature_Init( PyObject *module ) {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char UnaryFunction0DEdgeNature___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DEdgeNature`\n"
+"\n"
 "Base class for unary functions (functors) that work on\n"
 ":class:`Interface0DIterator` and return a :class:`Nature` object.\n"
 "\n"

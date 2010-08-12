@@ -47,6 +47,8 @@ int UnaryFunction1DVectorViewShape_Init( PyObject *module ) {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char UnaryFunction1DVectorViewShape___doc__[] =
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DVectorViewShape`\n"
+"\n"
 "Base class for unary functions (functors) that work on\n"
 ":class:`Interface1D` and return a list of :class:`ViewShape`\n"
 "objects.\n"

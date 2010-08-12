@@ -11,6 +11,8 @@ extern "C" {
 /*-----------------------BPy_MediumType type definition ------------------------------*/
 
 static char MediumType___doc__[] =
+"Class hierarchy: int > :class:`MediumType`\n"
+"\n"
 "The different blending modes available to similate the interaction\n"
 "media-medium:\n"
 "\n"

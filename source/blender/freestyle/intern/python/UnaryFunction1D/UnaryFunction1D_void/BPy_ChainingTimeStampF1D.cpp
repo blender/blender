@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ChainingTimeStampF1D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DVoid` > :class:`ChainingTimeStampF1D`\n"
+"\n"
 ".. method:: __init__()\n"
 "\n"
 "   Builds a ChainingTimeStampF1D object.\n"

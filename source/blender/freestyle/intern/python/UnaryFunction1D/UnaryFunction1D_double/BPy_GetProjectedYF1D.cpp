@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetProjectedYF1D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`GetProjectedYF1D`\n"
+"\n"
 ".. method:: __init__(iType=IntegrationType.MEAN)\n"
 "\n"
 "   Builds a GetProjectedYF1D object.\n"

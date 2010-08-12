@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ViewEdgeIterator___doc__[] =
+"Class hierarchy: :class:`Iterator` > :class:`ViewEdgeIterator`\n"
+"\n"
 "Base class for iterators over ViewEdges of the :class:`ViewMap` Graph.\n"
 "Basically the increment() operator of this class should be able to\n"
 "take the decision of \"where\" (on which ViewEdge) to go when pointing\n"

@@ -9,6 +9,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ShapeUP1D___doc__[] =
+"Class hierarchy: :class:`UnaryPredicate1D` > :class:`ShapeUP1D`\n"
+"\n"
 ".. method:: __init__(idFirst, idSecond=0)\n"
 "\n"
 "   Builds a ShapeUP1D object.\n"

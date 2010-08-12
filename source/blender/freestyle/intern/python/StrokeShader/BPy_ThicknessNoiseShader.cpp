@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ThicknessNoiseShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`ThicknessNoiseShader`\n"
+"\n"
 "[Thickness shader]\n"
 "\n"
 ".. method:: __init__(iAmplitude, iPeriod)\n"

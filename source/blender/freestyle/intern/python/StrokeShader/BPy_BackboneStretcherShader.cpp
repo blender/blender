@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char BackboneStretcherShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`BackboneStretcherShader`\n"
+"\n"
 "[Geometry shader]\n"
 "\n"
 ".. method:: __init__(iAmount=2.0)\n"

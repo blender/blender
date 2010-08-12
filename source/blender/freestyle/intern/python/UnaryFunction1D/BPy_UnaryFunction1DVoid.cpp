@@ -48,6 +48,8 @@ int UnaryFunction1DVoid_Init( PyObject *module ) {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char UnaryFunction1DVoid___doc__[] =
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DVoid`\n"
+"\n"
 "Base class for unary functions (functors) working on\n"
 ":class:`Interface1D`.\n"
 "\n"

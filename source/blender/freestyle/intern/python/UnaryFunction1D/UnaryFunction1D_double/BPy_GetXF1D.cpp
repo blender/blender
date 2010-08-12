@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetXF1D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`GetXF1D`\n"
+"\n"
 ".. method:: __init__(iType)\n"
 "\n"
 "   Builds a GetXF1D object.\n"

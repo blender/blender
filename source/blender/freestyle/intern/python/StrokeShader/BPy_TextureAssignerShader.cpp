@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char TextureAssignerShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`TextureAssignerShader`\n"
+"\n"
 "[Texture shader]\n"
 "\n"
 ".. method:: __init__(id)\n"

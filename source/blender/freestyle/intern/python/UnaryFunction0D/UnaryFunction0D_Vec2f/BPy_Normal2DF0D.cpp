@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char Normal2DF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DVec2f` > :class:`Normal2DF0D`\n"
+"\n"
 ".. method:: __init__()\n"
 "\n"
 "   Builds a Normal2DF0D object.\n"

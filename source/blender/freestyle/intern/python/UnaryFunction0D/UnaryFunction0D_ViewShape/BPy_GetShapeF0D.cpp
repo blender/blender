@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetShapeF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DViewShape` > :class:`GetShapeF0D`\n"
+"\n"
 ".. method:: __init__()\n"
 "\n"
 "   Builds a GetShapeF0D.cpp object.\n"

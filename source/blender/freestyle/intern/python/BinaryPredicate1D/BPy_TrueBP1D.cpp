@@ -9,6 +9,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char TrueBP1D___doc__[] =
+"Class hierarchy: :class:`BinaryPredicate1D` > :class:`TrueBP1D`\n"
+"\n"
 ".. method:: __call__(inter1, inter2)\n"
 "\n"
 "   Always returns true.\n"

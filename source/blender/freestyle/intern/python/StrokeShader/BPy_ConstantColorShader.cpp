@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ConstantColorShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`ConstantColorShader`\n"
+"\n"
 "[Color shader]\n"
 "\n"
 ".. method:: __init__(iR, iG, iB, iAlpha=1.0)\n"

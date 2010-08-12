@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char DensityF1D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`DensityF1D`\n"
+"\n"
 ".. method:: __init__(sigma=2.0, iType=IntegrationType.MEAN, sampling=2.0)\n"
 "\n"
 "   Builds a DensityF1D object.\n"

@@ -35,6 +35,8 @@ int UnaryFunction1DUnsigned_Init( PyObject *module ) {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char UnaryFunction1DUnsigned___doc__[] =
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DUnsigned`\n"
+"\n"
 "Base class for unary functions (functors) that work on\n"
 ":class:`Interface1D` and return an int value.\n"
 "\n"

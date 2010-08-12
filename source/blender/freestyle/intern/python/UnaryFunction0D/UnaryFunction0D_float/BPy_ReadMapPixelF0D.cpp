@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ReadMapPixelF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DFloat` > :class:`ReadMapPixelF0D`\n"
+"\n"
 ".. method:: __init__(iMapName, level)\n"
 "\n"
 "   Builds a ReadMapPixelF0D object.\n"

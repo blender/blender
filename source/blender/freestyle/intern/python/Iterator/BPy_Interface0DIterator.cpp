@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char Interface0DIterator___doc__[] =
+"Class hierarchy: :class:`Iterator` > :class:`Interface0DIterator`\n"
+"\n"
 "Class defining an iterator over Interface0D elements.  An instance of\n"
 "this iterator is always obtained from a 1D element.\n"
 "\n"

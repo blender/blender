@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char Orientation2DF1D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DVec2f` > :class:`Orientation2DF1D`\n"
+"\n"
 ".. method:: __init__(iType=IntegrationType.MEAN)\n"
 "\n"
 "   Builds an Orientation2DF1D object.\n"

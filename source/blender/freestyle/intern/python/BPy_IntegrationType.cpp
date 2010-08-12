@@ -119,6 +119,8 @@ static PyModuleDef module_definition = {
 /*-----------------------BPy_IntegrationType type definition ------------------------------*/
 
 static char IntegrationType___doc__[] =
+"Class hierarchy: int > :class:`IntegrationType`\n"
+"\n"
 "Different integration methods that can be invoked to integrate into a\n"
 "single value the set of values obtained from each 0D element of an 1D\n"
 "element:\n"

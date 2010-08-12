@@ -41,6 +41,8 @@ int UnaryFunction1DVec2f_Init( PyObject *module ) {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char UnaryFunction1DVec2f___doc__[] =
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DVec2f`\n"
+"\n"
 "Base class for unary functions (functors) that work on\n"
 ":class:`Interface1D` and return a 2D vector.\n"
 "\n"

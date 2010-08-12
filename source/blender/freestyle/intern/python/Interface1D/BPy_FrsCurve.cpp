@@ -14,6 +14,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char FrsCurve___doc__[] =
+"Class hierarchy: :class:`Interface1D` > :class:`Curve`\n"
+"\n"
 "Base class for curves made of CurvePoints.  :class:`SVertex` is the\n"
 "type of the initial curve vertices.  A :class:`Chain` is a\n"
 "specialization of a Curve.\n"

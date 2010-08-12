@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char BezierCurveShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`BezierCurveShader`\n"
+"\n"
 "[Geometry shader]\n"
 "\n"
 ".. method:: __init__(error=4.0)\n"

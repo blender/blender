@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char LocalAverageDepthF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DDouble` > :class:`LocalAverageDepthF0D`\n"
+"\n"
 ".. method:: __init__(maskSize=5.0)\n"
 "\n"
 "   Builds a LocalAverageDepthF0D object.\n"

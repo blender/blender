@@ -9,6 +9,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ContourUP1D___doc__[] =
+"Class hierarchy: :class:`UnaryPredicate1D` > :class:`ContourUP1D`\n"
+"\n"
 ".. method:: __call__(inter)\n"
 "\n"
 "   Returns true if the Interface1D is a contour.  An Interface1D is a\n"

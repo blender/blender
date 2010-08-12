@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char IncreasingColorShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`IncreasingColorShader`\n"
+"\n"
 "[Color shader]\n"
 "\n"
 ".. method:: __init__(iRm, iGm, iBm, iAlpham, iRM, iGM, iBM, iAlphaM)\n"

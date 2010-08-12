@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetOccludersF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DVectorViewShape` > :class:`GetOccludersF0D`\n"
+"\n"
 ".. method:: __init__()\n"
 "\n"
 "   Builds a GetOccludersF0D object.\n"

@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char VertexOrientation3DF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DVec3f` > :class:`VertexOrientation3DF0D`\n"
+"\n"
 ".. method:: __init__()\n"
 "\n"
 "   Builds a VertexOrientation3DF0D object.\n"

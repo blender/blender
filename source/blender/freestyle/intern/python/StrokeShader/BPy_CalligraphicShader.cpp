@@ -12,6 +12,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char CalligraphicShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`CalligraphicShader`\n"
+"\n"
 "[Thickness Shader]\n"
 "\n"
 ".. method:: __init__(iMinThickness, iMaxThickness, iOrientation, iClamp)\n"

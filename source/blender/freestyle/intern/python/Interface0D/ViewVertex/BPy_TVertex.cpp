@@ -15,6 +15,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char TVertex___doc__[] =
+"Class hierarchy: :class:`Interface0D` > :class:`ViewVertex` > :class:`TVertex`\n"
+"\n"
 "Class to define a T vertex, i.e. an intersection between two edges.\n"
 "It points towards two SVertex and four ViewEdges.  Among the\n"
 "ViewEdges, two are front and the other two are back.  Basically a\n"

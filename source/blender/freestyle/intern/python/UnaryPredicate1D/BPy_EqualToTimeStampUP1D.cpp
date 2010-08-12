@@ -9,6 +9,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char EqualToTimeStampUP1D___doc__[] =
+"Class hierarchy: :class:`UnaryPredicate1D` > :class:`EqualToTimeStampUP1D`\n"
+"\n"
 ".. method:: __init__(ts)\n"
 "\n"
 "   Builds a EqualToTimeStampUP1D object.\n"

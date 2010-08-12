@@ -9,6 +9,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char SameShapeIdBP1D___doc__[] =
+"Class hierarchy: :class:`BinaryPredicate1D` > :class:`SameShapeIdBP1D`\n"
+"\n"
 ".. method:: __call__(inter1, inter2)\n"
 "\n"
 "   Returns true if inter1 and inter2 belong to the same shape.\n"

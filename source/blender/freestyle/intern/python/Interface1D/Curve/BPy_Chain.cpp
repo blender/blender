@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char Chain___doc__[] =
+"Class hierarchy: :class:`Interface1D` > :class:`Curve` > :class:`Chain`\n"
+"\n"
 "Class to represent a 1D elements issued from the chaining process.  A\n"
 "Chain is the last step before the :class:`Stroke` and is used in the\n"
 "Splitting and Creation processes.\n"

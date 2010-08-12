@@ -12,7 +12,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char StrokeVertexIterator___doc__[] =
-
+"Class hierarchy: :class:`Iterator` > :class:`StrokeVertexIterator`\n"
+"\n"
 "Class defining an iterator designed to iterate over the\n"
 ":class:`StrokeVertex` of a :class:`Stroke`.  An instance of a\n"
 "StrokeVertexIterator can only be obtained from a Stroke by calling\n"

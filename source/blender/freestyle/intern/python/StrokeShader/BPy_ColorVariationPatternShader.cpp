@@ -12,6 +12,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ColorVariationPatternShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`ColorVariationPatternShader`\n"
+"\n"
 "[Color shader]\n"
 "\n"
 ".. method:: __init__(pattern_name, stretch=True)\n"

@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char LocalAverageDepthF1D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`LocalAverageDepthF1D`\n"
+"\n"
 ".. method:: __init__(sigma, iType=IntegrationType.MEAN)\n"
 "\n"
 "   Builds a LocalAverageDepthF1D object.\n"

@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char StrokeVertex___doc__[] =
+"Class hierarchy: :class:`Interface0D` > :class:`CurvePoint` > :class:`StrokeVertex`\n"
+"\n"
 "Class to define a stroke vertex.\n"
 "\n"
 ".. method:: __init__()\n"

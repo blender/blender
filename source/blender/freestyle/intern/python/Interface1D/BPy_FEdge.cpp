@@ -15,6 +15,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 	
 static char FEdge___doc__[] =
+"Class hierarchy: :class:`Interface1D` > :class:`FEdge`\n"
+"\n"
 "Base Class for feature edges.  This FEdge can represent a silhouette,\n"
 "a crease, a ridge/valley, a border or a suggestive contour.  For\n"
 "silhouettes, the FEdge is oriented so that the visible face lies on\n"

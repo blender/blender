@@ -9,6 +9,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char QuantitativeInvisibilityUP1D___doc__[] =
+"Class hierarchy: :class:`UnaryPredicate1D` > :class:`QuantitativeInvisibilityUP1D`\n"
+"\n"
 ".. method:: __init__(qi=0)\n"
 "\n"
 "   Builds a QuantitativeInvisibilityUP1D object.\n"

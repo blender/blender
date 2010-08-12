@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetParameterF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DFloat` > :class:`GetParameterF0D`\n"
+"\n"
 ".. method:: __init__()\n"
 "\n"
 "   Builds a GetParameterF0D object.\n"

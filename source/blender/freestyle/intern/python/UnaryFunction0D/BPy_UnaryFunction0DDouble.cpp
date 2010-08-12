@@ -90,6 +90,8 @@ int UnaryFunction0DDouble_Init( PyObject *module ) {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char UnaryFunction0DDouble___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DDouble`\n"
+"\n"
 "Base class for unary functions (functors) that work on\n"
 ":class:`Interface0DIterator` and return a float value.\n"
 "\n"

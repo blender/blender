@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetZF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DDouble` > :class:`GetZF0D`\n"
+"\n"
 ".. method:: __init__()\n"
 "\n"
 "   Builds a GetZF0D object.\n"

@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GuidingLinesShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`GuidingLinesShader`\n"
+"\n"
 "[Geometry shader]\n"
 "\n"
 ".. method:: __init__(iOffset)\n"

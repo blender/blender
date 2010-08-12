@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetViewMapGradientNormF1D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`GetViewMapGradientNormF1D`\n"
+"\n"
 ".. method:: __init__()\n"
 "\n"
 "   Builds a GetViewMapGradientNormF1D object.\n"

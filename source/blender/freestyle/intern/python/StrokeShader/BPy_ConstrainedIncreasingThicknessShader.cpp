@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ConstrainedIncreasingThicknessShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`ConstrainedIncreasingThicknessShader`\n"
+"\n"
 "[Thickness shader]\n"
 "\n"
 ".. method:: __init__(iThicknessMin, iThicknessMax, iRatio)\n"

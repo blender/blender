@@ -12,6 +12,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ThicknessVariationPatternShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`ThicknessVariationPatternShader`\n"
+"\n"
 "[Thickness shader]\n"
 "\n"
 ".. method:: __init__(pattern_name, iMinThickness, iMaxThickness, stretch)\n"

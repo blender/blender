@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char MaterialF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DMaterial` > :class:`MaterialF0D`\n"
+"\n"
 ".. method:: __init__()\n"
 "\n"
 "   Builds a MaterialF0D object.\n"

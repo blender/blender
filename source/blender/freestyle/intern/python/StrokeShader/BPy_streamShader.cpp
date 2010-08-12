@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char streamShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`streamShader`\n"
+"\n"
 "[Output shader]\n"
 "\n"
 ".. method:: __init__()\n"

@@ -14,6 +14,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ChainPredicateIterator___doc__[] =
+"Class hierarchy: :class:`Iterator` > :class:`ViewEdgeIterator` > :class:`ChainingIterator` > :class:`ChainPredicateIterator`\n"
+"\n"
 "A \"generic\" user-controlled ViewEdge iterator.  This iterator is in\n"
 "particular built from a unary predicate and a binary predicate.\n"
 "First, the unary predicate is evaluated for all potential next\n"

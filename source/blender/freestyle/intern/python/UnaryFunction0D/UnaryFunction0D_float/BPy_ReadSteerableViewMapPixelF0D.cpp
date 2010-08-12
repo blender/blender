@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ReadSteerableViewMapPixelF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DFloat` > :class:`ReadSteerableViewMapPixelF0D`\n"
+"\n"
 ".. method:: __init__(nOrientation, level)\n"
 "\n"
 "   Builds a ReadSteerableViewMapPixelF0D object.\n"

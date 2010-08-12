@@ -22,6 +22,8 @@ extern "C" {
 //     - is it even used ? not even in SWIG version
 
 static char Stroke___doc__[] =
+"Class hierarchy: :class:`Interface1D` > :class:`Stroke`\n"
+"\n"
 "Class to define a stroke.  A stroke is made of a set of 2D vertices\n"
 "(:class:`StrokeVertex`), regularly spaced out.  This set of vertices\n"
 "defines the stroke's backbone geometry.  Each of these stroke vertices\n"

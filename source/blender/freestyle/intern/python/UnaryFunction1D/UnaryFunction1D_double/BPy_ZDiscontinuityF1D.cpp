@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ZDiscontinuityF1D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`ZDiscontinuityF1D`\n"
+"\n"
 ".. method:: __init__(iType=IntegrationType.MEAN)\n"
 "\n"
 "   Builds a ZDiscontinuityF1D object.\n"

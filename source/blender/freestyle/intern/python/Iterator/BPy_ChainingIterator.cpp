@@ -14,6 +14,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ChainingIterator___doc__[] =
+"Class hierarchy: :class:`Iterator` > :class:`ViewEdgeIterator` > :class:`ChainingIterator`\n"
+"\n"
 "Base class for chaining iterators.  This class is designed to be\n"
 "overloaded in order to describe chaining rules.  It makes the\n"
 "description of chaining rules easier.  The two main methods that need\n"

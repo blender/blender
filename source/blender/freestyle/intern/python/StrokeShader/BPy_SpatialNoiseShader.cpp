@@ -12,6 +12,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char SpatialNoiseShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`SpatialNoiseShader`\n"
+"\n"
 "[Geometry shader]\n"
 "\n"
 ".. method:: __init__(iAmount, ixScale, nbOctave, smooth, pureRandom)\n"

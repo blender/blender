@@ -12,6 +12,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char AdjacencyIterator___doc__[] =
+"Class hierarchy: :class:`Iterator` > :class:`AdjacencyIterator`\n"
+"\n"
 "Class for representing adjacency iterators used in the chaining\n"
 "process.  An AdjacencyIterator is created in the increment() and\n"
 "decrement() methods of a :class:`ChainingIterator` and passed to the\n"

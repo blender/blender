@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ColorNoiseShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`ColorNoiseShader`\n"
+"\n"
 "[Color shader]\n"
 "\n"
 ".. method:: __init__(iAmplitude, iPeriod)\n"

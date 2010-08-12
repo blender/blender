@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char SamplingShader___doc__[] =
+"Class hierarchy: :class:`StrokeShader` > :class:`SamplingShader`\n"
+"\n"
 "[Geometry shader]\n"
 "\n"
 ".. method:: __init__(sampling)\n"

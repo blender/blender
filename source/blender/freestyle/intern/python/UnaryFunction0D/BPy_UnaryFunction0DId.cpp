@@ -34,6 +34,8 @@ int UnaryFunction0DId_Init( PyObject *module ) {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char UnaryFunction0DId___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DId`\n"
+"\n"
 "Base class for unary functions (functors) that work on\n"
 ":class:`Interface0DIterator` and return an :class:`Id` object.\n"
 "\n"

@@ -17,6 +17,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 	
 static char ViewEdge___doc__[] =
+"Class hierarchy: :class:`Interface1D` > :class:`ViewEdge`\n"
+"\n"
 "Class defining a ViewEdge.  A ViewEdge in an edge of the image graph.\n"
 "it connnects two :class:`ViewVertex` objects.  It is made by connecting\n"
 "a set of FEdges.\n"

@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ShapeIdF0D___doc__[] =
+"Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DId` > :class:`ShapeIdF0D`\n"
+"\n"
 ".. method:: __init__()\n"
 "\n"
 "   Builds a ShapeIdF0D object.\n"

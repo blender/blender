@@ -12,6 +12,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char CurvePointIterator___doc__[] =
+"Class hierarchy: :class:`Iterator` > :class:`CurvePointIterator`\n"
+"\n"
 "Class representing an iterator on a curve.  Allows an iterating\n"
 "outside initial vertices.  A CurvePoint is instanciated and returned\n"
 "by getObject().\n"

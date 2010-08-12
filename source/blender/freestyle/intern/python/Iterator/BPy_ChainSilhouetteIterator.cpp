@@ -15,6 +15,8 @@ extern "C" {
 // ChainSilhouetteIterator (const ChainSilhouetteIterator &brother)
 
 static char ChainSilhouetteIterator___doc__[] =
+"Class hierarchy: :class:`Iterator` > :class:`ViewEdgeIterator` > :class:`ChainingIterator` > :class:`ChainSilhouetteIterator`\n"
+"\n"
 "A ViewEdge Iterator used to follow ViewEdges the most naturally.  For\n"
 "example, it will follow visible ViewEdges of same nature.  As soon, as\n"
 "the nature or the visibility changes, the iteration stops (by setting\n"

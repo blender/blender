@@ -11,6 +11,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char DensityLowerThanUP1D___doc__[] =
+"Class hierarchy: :class:`UnaryPredicate1D` > :class:`DensityLowerThanUP1D`\n"
+"\n"
 ".. method:: __init__(threshold, sigma=2.0)\n"
 "\n"
 "   Builds a DensityLowerThanUP1D object.\n"

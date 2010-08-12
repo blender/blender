@@ -13,6 +13,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char ViewVertex___doc__[] =
+"Class hierarchy: :class:`Interface0D` > :class:`ViewVertex`\n"
+"\n"
 "Class to define a view vertex.  A view vertex is a feature vertex\n"
 "corresponding to a point of the image graph, where the characteristics\n"
 "of an edge (e.g., nature and visibility) might change.  A\n"

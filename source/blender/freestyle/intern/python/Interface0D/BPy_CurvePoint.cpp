@@ -12,6 +12,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char CurvePoint___doc__[] =
+"Class hierarchy: :class:`Interface0D` > :class:`CurvePoint`\n"
+"\n"
 "Class to represent a point of a curve.  A CurvePoint can be any point\n"
 "of a 1D curve (it doesn't have to be a vertex of the curve).  Any\n"
 ":class:`Interface1D` is built upon ViewEdges, themselves built upon\n"

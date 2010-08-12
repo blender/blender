@@ -9,6 +9,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char Length2DBP1D___doc__[] =
+"Class hierarchy: :class:`BinaryPredicate1D` > :class:`Length2DBP1D`\n"
+"\n"
 ".. method:: __call__(inter1, inter2)\n"
 "\n"
 "   Returns true if the 2D length of inter1 is less than the 2D length\n"

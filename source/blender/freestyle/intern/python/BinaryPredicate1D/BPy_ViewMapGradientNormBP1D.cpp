@@ -14,6 +14,8 @@ extern "C" {
 //ViewMapGradientNormBP1D(int level, IntegrationType iType=MEAN, float sampling=2.0) 
 
 static char ViewMapGradientNormBP1D___doc__[] =
+"Class hierarchy: :class:`BinaryPredicate1D` > :class:`ViewMapGradientNormBP1D`\n"
+"\n"
 ".. method:: __call__(inter1, inter2)\n"
 "\n"
 "   Returns true if the evaluation of the Gradient norm Function is\n"
