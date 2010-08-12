@@ -51,11 +51,6 @@ class DATA_PT_context_arm(ArmatureButtonsPanel, bpy.types.Panel):
             split.separator()
 
 
-class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, bpy.types.Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    _context_path = "object.data"
-
-
 class DATA_PT_skeleton(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "Skeleton"
 
@@ -284,6 +279,11 @@ class DATA_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # inhe
         ob = context.object
 
         self.draw_settings(context, ob.pose.animation_visualisation, bones=True)
+
+
+class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "object.data"
 
 def register():
     pass

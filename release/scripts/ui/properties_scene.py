@@ -43,11 +43,6 @@ class SCENE_PT_scene(SceneButtonsPanel, bpy.types.Panel):
         layout.prop(scene, "set", text="Background")
 
 
-class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, bpy.types.Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    _context_path = "scene"
-
-
 class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Units"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -203,6 +198,11 @@ class SCENE_PT_simplify(SceneButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
+
+
+class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "scene"
 
 
 from bpy.props import *
