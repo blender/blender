@@ -1709,6 +1709,8 @@ static int toggle_overwrite_exec(bContext *C, wmOperator *op)
 
 	st->overwrite= !st->overwrite;
 
+	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
+
 	return OPERATOR_FINISHED;
 }
 
