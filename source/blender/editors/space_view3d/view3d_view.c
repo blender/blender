@@ -306,7 +306,10 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(rv3d->smooth_timer==NULL || rv3d->smooth_timer!=event->customdata)
 		return OPERATOR_PASS_THROUGH;
 	
-	step =  (rv3d->smooth_timer->duration)/sms->time_allowed;
+	if(sms->time_allowed != 0.0f)
+		step = (rv3d->smooth_timer->duration)/sms->time_allowed;
+	else
+		step = 1.0f;
 	
 	/* end timer */
 	if(step >= 1.0f) {
