@@ -140,7 +140,9 @@ GHOST_SystemWin32::~GHOST_SystemWin32()
 
 GHOST_TUns64 GHOST_SystemWin32::getMilliSeconds() const
 {
-	// Hardware does not support high resolution timers. We will use GetTickCount instead then.
+	// If hardware does not support high resolution timers,
+	// we will use GetTickCount instead.
+
 	if (!m_hasPerformanceCounter) {
 		return ::GetTickCount();
 	}
@@ -153,7 +155,7 @@ GHOST_TUns64 GHOST_SystemWin32::getMilliSeconds() const
 	__int64 delta = 1000*(count-m_start);
 
 	GHOST_TUns64 t = (GHOST_TUns64)(delta/m_freq);
-	return t; 
+	return t;
 }
 
 
@@ -174,7 +176,7 @@ void GHOST_SystemWin32::getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns
 
 
 GHOST_IWindow* GHOST_SystemWin32::createWindow(
-	const STR_String& title, 
+	const STR_String& title,
 	GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
 	GHOST_TWindowState state, GHOST_TDrawingContextType type,
 	bool stereoVisual, const GHOST_TUns16 numOfAASamples, const GHOST_TEmbedderWindowID parentWindow )
@@ -195,7 +197,7 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 
 			delete window;
 			window = 0;
-			
+
 			// If another window is found, let the wm know about that one, but not the old one
 			if (other_window)
 			{
@@ -222,7 +224,7 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 #else
 			GHOST_TUns64 next = timerMgr->nextFireTime();
 			GHOST_TInt64 maxSleep = next - getMilliSeconds();
-			
+
 			if (next == GHOST_kFireTimeNever) {
 				::WaitMessage();
 			} else if(maxSleep >= 0.0) {
@@ -565,7 +567,7 @@ GHOST_EventWheel* GHOST_SystemWin32::processWheelEvent(GHOST_IWindow *window, WP
 {
 	// short fwKeys = LOWORD(wParam);			// key flags
 	int zDelta = (short) HIWORD(wParam);	// wheel rotation
-	
+
 	// zDelta /= WHEEL_DELTA;
 	// temporary fix below: microsoft now has added more precision, making the above division not work
 	if (zDelta <= 0 ) zDelta= -1; else zDelta= 1;	
@@ -930,14 +932,22 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 		// Tablet events, processed
 		////////////////////////////////////////////////////////////////////////
 		case WT_PACKET:
-			puts("WT_PACKET");
+			// puts("WT_PACKET");
 			// window->processWin32TabletEvent(wParam, lParam);
-			m_tabletManager->processPackets(window);
+			m_tabletManager->processPackets((HCTX)lParam);
 			break;
 		case WT_CSRCHANGE:
+			m_tabletManager->changeTool((HCTX)lParam, wParam);
+			break;
 		case WT_PROXIMITY:
+			// description was weird.. give me numbers!
+			// printf("prox: %d %d\n", LOWORD(lParam), HIWORD(lParam));
+			if (LOWORD(lParam) == 0)
+				{
+				puts("-- dropping tool --");
+				m_tabletManager->dropTool();
+				}
 			// window->processWin32TabletInitEvent();
-			m_tabletManager->changeTool(window);
 			break;
 
 		////////////////////////////////////////////////////////////////////////
@@ -997,9 +1007,15 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 
 				if (m_input_fidelity_hint == HI_FI)
 					{
-					// int n =
-					getMoreMousePoints(mousePosX, mousePosY, xPrev, yPrev, window);
-					// printf("%d more mouse points found\n", n);
+					int buttons;
+					getButtons(buttons);
+					// don't bother grabbing extra mouse motion unless we're in a stroke
+					if (buttons)
+						{
+						// int n =
+						getMoreMousePoints(mousePosX, mousePosY, xPrev, yPrev, window);
+						// printf("%d more mouse points found\n", n);
+						}
 					}
 
 				// uncomment here and in getMoreMousePoints to show effectiveness of hi-fi input

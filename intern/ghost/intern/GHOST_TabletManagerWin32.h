@@ -18,13 +18,14 @@ typedef HCTX ( API * WTOPENA ) ( HWND, LPLOGCONTEXTA, BOOL );
 typedef BOOL ( API * WTCLOSE ) ( HCTX );
 typedef BOOL ( API * WTQUEUESIZESET ) ( HCTX, int );
 typedef int  ( API * WTPACKETSGET ) ( HCTX, int, LPVOID );
+typedef BOOL ( API * WTPACKET ) ( HCTX, UINT, LPVOID );
 // END
 
 typedef enum { TABLET_NONE, TABLET_PEN, TABLET_ERASER, TABLET_MOUSE } TabletToolType;
 
 typedef struct
 	{
-	TabletToolType type : 6; // plenty of room to grow
+	TabletToolType type : 4; // plenty of room to grow
 
 	// capabilities
 	bool hasPressure : 1;
@@ -46,7 +47,7 @@ typedef struct
 class GHOST_TabletManagerWin32
 	{
 	// the Wintab library
-	HINSTANCE lib_Wintab; // or HMODULE?
+	HMODULE lib_Wintab;
 
 	// WinTab function pointers
 	WTOPENA func_Open;
@@ -54,29 +55,45 @@ class GHOST_TabletManagerWin32
 	WTINFOA func_Info;
 	WTQUEUESIZESET func_QueueSizeSet;
 	WTPACKETSGET func_PacketsGet;
+	WTPACKET func_Packet;
 
 	// tablet attributes
 	bool hasPressure;
 	float pressureScale;
 	bool hasTilt;
-	float tiltScale;
+	float azimuthScale;
+	float altitudeScale;
+//	float tiltScaleX;
+//	float tiltScaleY;
+//	UINT tiltMask;
+	UINT cursorCount;
+	UINT cursorBase;
 
-	// candidates for a base class:
+	// candidate for a base class:
 	TabletTool activeTool;
-	void resetActiveTool();
+
+	int prevMouseX;
+	int prevMouseY;
 
 	// book-keeping
 	std::map<GHOST_WindowWin32*,HCTX> contexts;
 	HCTX contextForWindow(GHOST_WindowWin32*);
 
+	void convertTilt(ORIENTATION const&, TabletToolData&);
+
 public:
 	GHOST_TabletManagerWin32();
 	~GHOST_TabletManagerWin32();
+
 	bool available(); // another base class candidate
-	void openForWindow(GHOST_WindowWin32* window);
-	void closeForWindow(GHOST_WindowWin32* window);
-	void processPackets(GHOST_WindowWin32* window);
-	void changeTool(GHOST_WindowWin32* window);
+
+	void openForWindow(GHOST_WindowWin32*);
+	void closeForWindow(GHOST_WindowWin32*);
+
+	void processPackets(HCTX);
+
+	void changeTool(HCTX, UINT serialNumber);
+	void dropTool();
 	};
 
 #endif

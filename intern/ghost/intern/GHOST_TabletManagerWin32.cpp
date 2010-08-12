@@ -2,18 +2,19 @@
 #include "GHOST_WindowWin32.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
-#define PACKETDATA	PK_CURSOR | PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE
-#define PACKETTILT 	PKEXT_ABSOLUTE
-#define PACKETMODE	PK_BUTTONS
+#define PACKETDATA PK_CURSOR | PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION
+#define PACKETMODE PK_BUTTONS
+// #define PACKETTILT PKEXT_ABSOLUTE
 
 #include "pktdef.h"
 
-#define MAX_QUEUE_SIZE 128
+#define MAX_QUEUE_SIZE 100
 
 GHOST_TabletManagerWin32::GHOST_TabletManagerWin32()
 	{
-	resetActiveTool();
+	dropTool();
 
 	// open WinTab
 	lib_Wintab = LoadLibrary("wintab32.dll");
@@ -26,11 +27,12 @@ GHOST_TabletManagerWin32::GHOST_TabletManagerWin32()
 		func_Info = (WTINFOA) GetProcAddress(lib_Wintab,"WTInfoA");
 		func_QueueSizeSet = (WTQUEUESIZESET) GetProcAddress(lib_Wintab,"WTQueueSizeSet");
 		func_PacketsGet = (WTPACKETSGET) GetProcAddress(lib_Wintab,"WTPacketsGet");
+		func_Packet = (WTPACKET) GetProcAddress(lib_Wintab,"WTPacket");
 
 		WORD specV, implV;
 		func_Info(WTI_INTERFACE, IFC_SPECVERSION, &specV);
 		func_Info(WTI_INTERFACE, IFC_IMPLVERSION, &implV);
-		printf("Wintab version %d.%d (%d.%d)\n",
+		printf("WinTab version %d.%d (%d.%d)\n",
 			HIBYTE(specV), LOBYTE(specV), HIBYTE(implV), LOBYTE(implV));
 
 		// query for overall capabilities and ranges
@@ -44,8 +46,11 @@ GHOST_TabletManagerWin32::GHOST_TabletManagerWin32()
 
 		printf("active area: %dx%d\n", xRange.axMax, yRange.axMax);
 
+		func_Info(WTI_DEVICES, DVC_NCSRTYPES, &cursorCount);
+		func_Info(WTI_DEVICES, DVC_FIRSTCSR, &cursorBase);
+
 		AXIS pressureRange;
-		hasPressure = func_Info(WTI_DEVICES, DVC_NPRESSURE, &pressureRange) && pressureRange.axMax != 0;
+		hasPressure = func_Info(WTI_DEVICES, DVC_NPRESSURE, &pressureRange);// && pressureRange.axMax != 0;
 
 		printf("pressure sensitivity: ");
 		if (hasPressure)
@@ -59,20 +64,71 @@ GHOST_TabletManagerWin32::GHOST_TabletManagerWin32()
 			pressureScale = 0.f;
 			}
 
-		AXIS tiltRange;
-		hasTilt = func_Info(WTI_DEVICES, DVC_ORIENTATION, &tiltRange) && tiltRange.axMax != 0;
+		printf("tilt sensitivity:\n");
+		AXIS tiltRange[3];
+		hasTilt = func_Info(WTI_DEVICES, DVC_ORIENTATION, tiltRange);
 
-		printf("tilt sensitivity: ");
 		if (hasTilt)
 			{
-			printf("%d to %d\n", tiltRange.axMin, tiltRange.axMax);
-			tiltScale = 1.f / tiltRange.axMax;
+			// cheat by using available data from Intuos4. test on other tablets!!!
+			azimuthScale = 1.f / HIWORD(tiltRange[1].axResolution);
+			altitudeScale = 1.f / tiltRange[1].axMax;
+			printf("azi scale %f\n", azimuthScale);
+			printf("alt scale %f\n", altitudeScale);
+
+			// leave this code in place to help support tablets I haven't tested
+			const char* axisName[] = {"azimuth","altitude","twist"};
+			const char* unitName[] = {NULL,"inch","cm","circle"};
+			for (int i = 0; i < 3; ++i)
+				{
+				AXIS const& t = tiltRange[i];
+				if (t.axResolution)
+					printf("%s: %d to %d values per %d.%d %s\n",
+						axisName[i], t.axMin, t.axMax,
+						HIWORD(t.axResolution), LOWORD(t.axResolution),
+						unitName[t.axUnits]);
+				}
 			}
 		else
 			{
 			printf("none\n");
-			tiltScale = 0.f;
 			}
+
+#if 0 // WTX_TILT -- cartesian tilt extension, no conversion needed
+		// this isn't working for [mce], so let it rest for now
+		printf("raw tilt sensitivity:\n");
+		hasTilt = false;
+		UINT tag = 0;
+		UINT extensionCount;
+		func_Info(WTI_INTERFACE, IFC_NEXTENSIONS, &extensionCount);
+//		for (UINT i = 0; func_Info(WTI_EXTENSIONS + i, EXT_TAG, &tag); ++i)
+		for (UINT i = 0; i < extensionCount; ++i)
+			{
+			printf("trying extension %d\n", i);
+			func_Info(WTI_EXTENSIONS + i, EXT_TAG, &tag);
+			if (tag == WTX_TILT)
+				{
+				hasTilt = true;
+				break;
+				}
+			}
+
+		if (hasTilt)
+			{
+			func_Info(WTI_EXTENSIONS + tag, EXT_MASK, &tiltMask);
+			AXIS tiltRange[2];
+			func_Info(WTI_EXTENSIONS + tag, EXT_AXES, tiltRange);
+			printf("%d to %d along x\n", tiltRange[0].axMin, tiltRange[0].axMax);
+			printf("%d to %d along y\n", tiltRange[1].axMin, tiltRange[1].axMax);
+			tiltScaleX = 1.f / tiltRange[0].axMax;
+			tiltScaleY = 1.f / tiltRange[1].axMax;
+			}
+		else
+			{
+			printf("none\n");
+			tiltScaleX = tiltScaleY = 0.f;
+			}
+#endif // WTX_TILT
 		}
 	}
 
@@ -86,13 +142,6 @@ bool GHOST_TabletManagerWin32::available()
 	{
 	return lib_Wintab // driver installed
 		&& func_Info(0,0,NULL); // tablet plugged in
-	}
-
-void GHOST_TabletManagerWin32::resetActiveTool()
-	{
-	activeTool.type = TABLET_NONE;
-	activeTool.hasPressure = false;
-	activeTool.hasTilt = false;
 	}
 
 HCTX GHOST_TabletManagerWin32::contextForWindow(GHOST_WindowWin32* window)
@@ -112,20 +161,20 @@ void GHOST_TabletManagerWin32::openForWindow(GHOST_WindowWin32* window)
 
 	// set up context
 	LOGCONTEXT archetype;
-	func_Info(WTI_DEFCONTEXT, 0, &archetype);
+	func_Info(WTI_DEFSYSCTX, 0, &archetype);
 
-	strcpy(archetype.lcName, "merwin special");
+	strcpy(archetype.lcName, "blender special");
 	archetype.lcPktData = PACKETDATA;
 	archetype.lcPktMode = PACKETMODE;
-	archetype.lcOptions |= CXO_SYSTEM | CXO_MESSAGES;
+	archetype.lcOptions |= CXO_MESSAGES | CXO_CSRMESSAGES;
 
-// BEGIN from Wacom's TILTTEST.c
-	/* output the data in screen coords */
-	archetype.lcOutOrgX = archetype.lcOutOrgY = 0;
-	archetype.lcOutExtX = GetSystemMetrics(SM_CXSCREEN);
-	/* move origin to upper left */
-	archetype.lcOutExtY = -GetSystemMetrics(SM_CYSCREEN);
-// END
+/*
+	if (hasTilt)
+		{
+		archetype.lcPktData |= tiltMask;
+		archetype.lcMoveMask |= tiltMask;
+		}
+*/
 
 	// open the context
 	HCTX context = func_Open(window->getHWND(), &archetype, TRUE);
@@ -151,150 +200,160 @@ void GHOST_TabletManagerWin32::closeForWindow(GHOST_WindowWin32* window)
 		}
 	}
 
-void GHOST_TabletManagerWin32::processPackets(GHOST_WindowWin32* window)
+void GHOST_TabletManagerWin32::convertTilt(ORIENTATION const& ort, TabletToolData& data)
 	{
-	HCTX context = contextForWindow(window);
+	// this code used to live in GHOST_WindowWin32
+	// now it lives here
 
-	if (context)
+	float vecLen;
+	float altRad, azmRad;	/* in radians */
+
+	/*
+	from the wintab spec:
+	orAzimuth	Specifies the clockwise rotation of the
+	cursor about the z axis through a full circular range.
+
+	orAltitude	Specifies the angle with the x-y plane
+	through a signed, semicircular range.  Positive values
+	specify an angle upward toward the positive z axis;
+	negative values specify an angle downward toward the negative z axis.
+
+	wintab.h defines .orAltitude as a UINT but documents .orAltitude
+	as positive for upward angles and negative for downward angles.
+	WACOM uses negative altitude values to show that the pen is inverted;
+	therefore we cast .orAltitude as an (int) and then use the absolute value.
+	*/
+
+	/* convert raw fixed point data to radians */
+	altRad = fabs(ort.orAltitude) * altitudeScale * M_PI/2.0;
+	azmRad = ort.orAzimuth * azimuthScale * M_PI*2.0;
+
+	/* find length of the stylus' projected vector on the XY plane */
+	vecLen = cos(altRad);
+
+	/* from there calculate X and Y components based on azimuth */
+	data.tilt_x = sin(azmRad) * vecLen;
+	data.tilt_y = sin(M_PI/2.0 - azmRad) * vecLen;
+	}
+
+void GHOST_TabletManagerWin32::processPackets(HCTX context)
+	{
+	PACKET packets[MAX_QUEUE_SIZE];
+	int n = func_PacketsGet(context, MAX_QUEUE_SIZE, packets);
+//	printf("processing %d packets\n", n);
+
+	for (int i = 0; i < n; ++i)
 		{
-		PACKET packets[MAX_QUEUE_SIZE];
-		int n = func_PacketsGet(context, MAX_QUEUE_SIZE, packets);
-		printf("processing %d packets from ", n);
+		PACKET const& packet = packets[i];
+		TabletToolData data = {activeTool};
+		int x = packet.pkX;
+		int y = packet.pkY;
+
+		if (activeTool.type == TABLET_MOUSE)
+			if (x == prevMouseX && y == prevMouseY)
+				// don't send any "mouse hasn't moved" events
+				continue;
+			else {
+				prevMouseX = x;
+				prevMouseY = y;
+				}
 
 		// every packet from a WT_PACKET message comes from the same tool
-		switch (packets[0].pkCursor) {
-			case 0: /* first device */
-			case 3: /* second device */
-				activeTool.type = TABLET_MOUSE;
-				puts("mouse");
-				break;
-			case 1:
-			case 4:
-				activeTool.type = TABLET_PEN;
-				puts("pen");
-				break;
-			case 2:
-			case 5:
-				activeTool.type = TABLET_ERASER;
-				puts("eraser");
-				break;
-		}
-
-		for (int i = 0; i < n; ++i)
+		switch (activeTool.type)
 			{
-			PACKET const& packet = packets[i];
-			TabletToolData data = {activeTool};
-			int x = packet.pkX;
-			int y = packet.pkY;
-
-			if (data.tool.hasPressure)
-				{
-				if (packet.pkNormalPressure)
-					data.pressure = pressureScale * packet.pkNormalPressure;
-				else
-					data.tool.hasPressure = false;
-				}
-
-			if (data.tool.hasTilt)
-				{
-				data.tilt_x = tiltScale * packet.pkTilt.tiltX;
-				data.tilt_y = tiltScale * packet.pkTilt.tiltY;
-				}
-
-			printf("  %.3f @ (%d,%d) /%.2f,%.2f/\n", data.pressure, x, y, data.tilt_x, data.tilt_y);
+			case TABLET_MOUSE:
+				printf("mouse");
+				break;
+			case TABLET_PEN:
+				printf("pen");
+				break;
+			case TABLET_ERASER:
+				printf("eraser");
+				break;
+			default:
+				printf("???");
 			}
+
+		printf(" (%d,%d)", x, y);
+
+		if (activeTool.hasPressure)
+			{
+			if (packet.pkNormalPressure)
+				{
+				data.pressure = pressureScale * packet.pkNormalPressure;
+				printf(" %d%%", (int)(100 * data.pressure));
+				}
+			else
+				data.tool.hasPressure = false;
+			}
+
+		if (activeTool.hasTilt)
+			{
+			// ORIENTATION const& tilt = packet.pkOrientation;
+			// printf(" /%d,%d/", tilt.orAzimuth, tilt.orAltitude);
+			convertTilt(packet.pkOrientation, data);
+
+			// data.tilt_x = tiltScaleX * packet.pkTilt.tiltX;
+			// data.tilt_y = tiltScaleY * packet.pkTilt.tiltY;
+			printf(" /%.2f,%.2f/", data.tilt_x, data.tilt_y);
+			}
+
+		putchar('\n');
 		}
 	}
 
-void GHOST_TabletManagerWin32::changeTool(GHOST_WindowWin32* window)
+void GHOST_TabletManagerWin32::changeTool(HCTX context, UINT serialNumber)
 	{
-	HCTX context = contextForWindow(window);
+	puts("-- changing tool --");
 
-	if (context)
+	dropTool();
+
+	PACKET packet;
+	func_Packet(context, serialNumber, &packet);
+	UINT cursor = (packet.pkCursor - cursorBase) % cursorCount;
+
+	printf("%d mod %d = %d\n", packet.pkCursor - cursorBase, cursorCount, cursor);
+
+	switch (cursor)
 		{
-		puts("-- changing tool --");
-
-		if (hasPressure)
-			{
-			puts(" - pressure");
-			activeTool.hasPressure = true; // not necessarily, but good enough for testing
-			}
-
-		if (hasTilt)
-			{
-			puts(" - tilt");
-			activeTool.hasTilt = true;
-			}
-
-#if 0
-#define		kTransducerDeviceIdBitMask 				0x0001
-#define		kTransducerAbsXBitMask 						0x0002
-#define		kTransducerAbsYBitMask 						0x0004
-#define		kTransducerVendor1BitMask					0x0008
-#define		kTransducerVendor2BitMask 					0x0010
-#define		kTransducerVendor3BitMask 					0x0020
-#define		kTransducerButtonsBitMask					0x0040
-#define		kTransducerTiltXBitMask 					0x0080
-#define		kTransducerTiltYBitMask 					0x0100
-#define		kTransducerAbsZBitMask 						0x0200
-#define		kTransducerPressureBitMask		 			0x0400
-#define		kTransducerTangentialPressureBitMask 	0x0800
-#define		kTransducerOrientInfoBitMask 				0x1000
-#define		kTransducerRotationBitMask	 				0x2000
-
-		// this is what I really want to know:
-//		UINT active;
-//		UINT active2 = func_Info(WTI_CURSORS, CSR_ACTIVE, &active);
-//		printf("active: %d %d\n", active, active2);
-
-		WTPKT toolData;
-		func_Info(WTI_CURSORS, CSR_PKTDATA, &toolData);
-		activeTool.hasPressure = toolData & PK_NORMAL_PRESSURE;
-		activeTool.hasTilt = toolData & PK_ORIENTATION;
-
-//		UINT cap;
-//		UINT cap2 = func_Info(WTI_CURSORS, CSR_CAPABILITIES, &cap);
-		// capabilities same as Mac tablet code? Let's see...
-		//		int cap = CGEventGetIntegerValueField(event, kCGTabletProximityEventCapabilityMask);
-		printf("cursor capabilities: %d %d\n", cap, cap2);
-
-				if (cap & kTransducerDeviceIdBitMask)
-					printf("  - device id\n");
-				if (cap & kTransducerAbsXBitMask)
-					printf("  - abs x\n");
-				if (cap & kTransducerAbsYBitMask)
-					printf("  - abs y\n");
-				if (cap & kTransducerAbsZBitMask)
-					printf("  - abs z\n");
-				if (cap & kTransducerVendor1BitMask)
-					printf("  - vendor 1\n");
-				if (cap & kTransducerVendor2BitMask)
-					printf("  - vendor 2\n");
-				if (cap & kTransducerVendor3BitMask)
-					printf("  - vendor 3\n");
-				if (cap & kTransducerButtonsBitMask)
-					printf("  - buttons\n");
-				if (cap & kTransducerTiltXBitMask)
-					{
-					printf("  - tilt x\n");
-					hasTilt = true;
-					}
-				if (cap & kTransducerTiltYBitMask)
-					{
-					printf("  - tilt y\n");
-					hasTilt = true;
-					}
-				if (cap & kTransducerPressureBitMask)
-					{
-					printf("  - pressure\n");
-					hasPressure = true;
-					}
-				if (cap & kTransducerTangentialPressureBitMask)
-					printf("  - tangential pressure\n");
-				if (cap & kTransducerOrientInfoBitMask)
-					printf("  - orientation\n");
-				if (cap & kTransducerRotationBitMask)
-					printf("  - rotation\n");
-#endif
+		case 0: // older Intuos tablets can track two cursors at once
+		case 3: // so we test for both here
+			activeTool.type = TABLET_MOUSE;
+			break;
+		case 1:
+		case 4:
+			activeTool.type = TABLET_PEN;
+			break;
+		case 2:
+		case 5:
+			activeTool.type = TABLET_ERASER;
+			break;
+		default:
+			activeTool.type = TABLET_NONE;
 		}
+
+	WTPKT toolData;
+	func_Info(WTI_CURSORS + cursor, CSR_PKTDATA, &toolData);
+	activeTool.hasPressure = toolData & PK_NORMAL_PRESSURE;
+	activeTool.hasTilt = toolData & PK_ORIENTATION;
+//	activeTool.hasTilt = toolData & tiltMask;
+
+	if (activeTool.hasPressure)
+		puts(" - pressure");
+
+	if (activeTool.hasTilt)
+		puts(" - tilt");
+
+	// and just for fun:
+	if (toolData & PK_BUTTONS)
+		puts(" - buttons");
+	}
+
+void GHOST_TabletManagerWin32::dropTool()
+	{
+	activeTool.type = TABLET_NONE;
+	activeTool.hasPressure = false;
+	activeTool.hasTilt = false;
+	
+	prevMouseX = prevMouseY = 0;
 	}
