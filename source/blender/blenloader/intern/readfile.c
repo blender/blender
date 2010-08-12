@@ -4107,8 +4107,9 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
 
 static void link_paint(FileData *fd, Scene *sce, Paint *p)
 {
-	if(p && p->brush) {
+	if(p) {
 		p->brush= newlibadr_us(fd, sce->id.lib, p->brush);
+		p->paint_cursor= NULL;
 	}
 }
 
