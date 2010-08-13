@@ -310,18 +310,21 @@ def load_image(imagepath, dirname):
             if os.path.exists(nfilepath):
                 return bpy.data.images.load(nfilepath)
 
-    print(filepath, "doesn't exist")
-
     # TODO comprehensiveImageLoad also searched in bpy.config.textureDir
     return None
 
 def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
-
     if '_' in imagepath:
         image= load_image(imagepath.replace('_', ' '), DIR)
-        if image: return image
+        if image:
+            return image
 
-    return load_image(imagepath, DIR)
+    image = load_image(imagepath, DIR)
+    if image:
+        return image
+
+    print("failed to load '%s' doesn't exist", imagepath)
+    return None
 
 # def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
 # 	'''
@@ -764,14 +767,12 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
                     blender_tface= me.uv_textures[0].data[i]
 
                     if context_material:
-                        image, has_data= unique_material_images[context_material]
+                        image, has_data = unique_material_images[context_material]
                         if image: # Can be none if the material dosnt have an image.
-                            blender_tface.image= image
-# 							blender_face.image= image
-                            if has_data:
-# 							if has_data and image.depth == 32:
+                            blender_tface.image = image
+                            blender_tface.tex = True
+                            if has_data and image.depth == 32:
                                 blender_tface.transp = 'ALPHA'
-# 								blender_face.transp |= ALPHA
 
                     # BUG - Evil eekadoodle problem where faces that have vert index 0 location at 3 or 4 are shuffled.
                     if len(face_vert_loc_indicies)==4:
