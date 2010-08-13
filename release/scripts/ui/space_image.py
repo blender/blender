@@ -575,7 +575,7 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
         col = layout.split().column()
         row = col.row()
-        col.template_ID_preview(toolsettings, "brush", new="brush.add", filter="is_imapaint_brush", rows=3, cols=8)
+        col.template_ID_preview(toolsettings, "brush", new="brush.add", rows=3, cols=8)
 
         if brush:
             col = layout.column()
