@@ -375,38 +375,32 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                 # Image has alpha
 
                 # XXX bitmask won't work?
-                blender_material.add_texture(texture, "UV", ("COLOR", "ALPHA"))
+                blender_material.add_texture(texture, 'UV', {'COLOR', 'ALPHA'})
                 texture.mipmap = True
                 texture.interpolation = True
                 texture.use_alpha = True
-                blender_material.z_transparency = True
+                blender_material.transparency = True
                 blender_material.alpha = 0.0
-
-# 				blender_material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL | Texture.MapTo.ALPHA)
-# 				texture.setImageFlags('MipMap', 'InterPol', 'UseAlpha')
-# 				blender_material.mode |= Material.Modes.ZTRANSP
-# 				blender_material.alpha = 0.0
             else:
-                blender_material.add_texture(texture, "UV", "COLOR")
-# 				blender_material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL)
+                blender_material.add_texture(texture, 'UV', 'COLOR')
 
             # adds textures to faces (Textured/Alt-Z mode)
             # Only apply the diffuse texture to the face if the image has not been set with the inline usemat func.
             unique_material_images[context_material_name]= image, has_data # set the texface image
 
         elif type == 'Ka':
-            blender_material.add_texture(texture, "UV", "AMBIENT")
+            blender_material.add_texture(texture, 'UV', 'AMBIENT')
 # 			blender_material.setTexture(1, texture, Texture.TexCo.UV, Texture.MapTo.CMIR) # TODO- Add AMB to BPY API
 
         elif type == 'Ks':
-            blender_material.add_texture(texture, "UV", "SPECULARITY")
+            blender_material.add_texture(texture, 'UV', 'SPECULARITY')
 # 			blender_material.setTexture(2, texture, Texture.TexCo.UV, Texture.MapTo.SPEC)
 
         elif type == 'Bump':
-            blender_material.add_texture(texture, "UV", "NORMAL")
+            blender_material.add_texture(texture, 'UV', 'NORMAL')
 # 			blender_material.setTexture(3, texture, Texture.TexCo.UV, Texture.MapTo.NOR)
         elif type == 'D':
-            blender_material.add_texture(texture, "UV", "ALPHA")
+            blender_material.add_texture(texture, 'UV', 'ALPHA')
             blender_material.z_transparency = True
             blender_material.alpha = 0.0
 # 			blender_material.setTexture(4, texture, Texture.TexCo.UV, Texture.MapTo.ALPHA)
@@ -415,7 +409,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
             # Todo, unset deffuse material alpha if it has an alpha channel
 
         elif type == 'refl':
-            blender_material.add_texture(texture, "UV", "REFLECTION")
+            blender_material.add_texture(texture, 'UV', 'REFLECTION')
 # 			blender_material.setTexture(5, texture, Texture.TexCo.UV, Texture.MapTo.REF)
 
 
