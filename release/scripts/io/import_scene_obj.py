@@ -1596,8 +1596,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
+        context.manager.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
 

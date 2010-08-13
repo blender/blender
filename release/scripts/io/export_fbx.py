@@ -3404,8 +3404,11 @@ class ExportFBX(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
+        import os
+        if not self.properties.is_property_set("filepath"):
+            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".fbx"
+
+        context.manager.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
 
@@ -3439,8 +3442,7 @@ class ExportFBX(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    default_path = os.path.splitext(bpy.data.filepath)[0] + ".fbx"
-    self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)").filepath = default_path
+    self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)")
 
 
 def register():
