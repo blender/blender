@@ -506,8 +506,9 @@ bool eventIsFromTablet()
 
 GHOST_EventButton* GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type, GHOST_IWindow *window, GHOST_TButtonMask mask)
 {
-	if (eventIsFromTablet())
-		return NULL;
+	puts("ghost button event");
+//	if (eventIsFromTablet())
+//		return NULL;
 
 	return new GHOST_EventButton (getSystem()->getMilliSeconds(), type, window, mask);
 }
@@ -932,7 +933,7 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 		// Tablet events, processed
 		////////////////////////////////////////////////////////////////////////
 		case WT_PACKET:
-			m_tabletManager->processPackets((HCTX)lParam);
+			m_tabletManager->processPackets(window);
 			break;
 		case WT_CSRCHANGE:
 			m_tabletManager->changeTool((HCTX)lParam, wParam);
@@ -1002,10 +1003,10 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 
 				if (m_input_fidelity_hint == HI_FI)
 					{
-					int buttons;
+					GHOST_Buttons buttons;
 					getButtons(buttons);
 					// don't bother grabbing extra mouse motion unless we're in a stroke
-					if (buttons)
+					if (buttons.anyDown())
 						{
 						// int n =
 						getMoreMousePoints(mousePosX, mousePosY, xPrev, yPrev, window);

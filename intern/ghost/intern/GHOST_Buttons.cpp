@@ -71,4 +71,9 @@ void GHOST_Buttons::clear()
     m_ButtonRight = false;
 }
 
+bool GHOST_Buttons::anyDown() const
+{
+	return m_ButtonLeft || m_ButtonMiddle || m_ButtonRight;	
+}
+
 GHOST_Buttons::~GHOST_Buttons() {}

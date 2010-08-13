@@ -90,7 +90,7 @@ public:
 	void openForWindow(GHOST_WindowWin32*);
 	void closeForWindow(GHOST_WindowWin32*);
 
-	void processPackets(HCTX);
+	void processPackets(GHOST_WindowWin32*);
 
 	void changeTool(HCTX, UINT serialNumber);
 	void dropTool();

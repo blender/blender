@@ -3,6 +3,9 @@
 
 #include "GHOST_TabletManagerWin32.h"
 #include "GHOST_WindowWin32.h"
+#include "GHOST_System.h"
+#include "GHOST_EventCursor.h"
+#include "GHOST_EventButton.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -162,20 +165,39 @@ void GHOST_TabletManagerWin32::openForWindow(GHOST_WindowWin32* window)
 
 	// set up context
 	LOGCONTEXT archetype;
-	func_Info(WTI_DEFSYSCTX, 0, &archetype);
+//	func_Info(WTI_DEFSYSCTX, 0, &archetype);
+	func_Info(WTI_DEFCONTEXT, 0, &archetype);
 
 	strcpy(archetype.lcName, "blender special");
 	archetype.lcPktData = PACKETDATA;
 	archetype.lcPktMode = PACKETMODE;
-	archetype.lcOptions |= CXO_MESSAGES | CXO_CSRMESSAGES;
+//	archetype.lcOptions |= CXO_MESSAGES | CXO_CSRMESSAGES;
+	archetype.lcOptions |= CXO_SYSTEM | CXO_MESSAGES | CXO_CSRMESSAGES;
 
-/*
-	if (hasTilt)
+	// we want first 5 buttons
+	archetype.lcBtnDnMask = 0x1f;
+	archetype.lcBtnUpMask = 0x1f;
+
+// BEGIN derived from Wacom's TILTTEST.C:
+	AXIS TabletX, TabletY;
+	func_Info(WTI_DEVICES,DVC_X,&TabletX);
+	func_Info(WTI_DEVICES,DVC_Y,&TabletY);
+	archetype.lcInOrgX = 0;
+	archetype.lcInOrgY = 0;
+	archetype.lcInExtX = TabletX.axMax;
+	archetype.lcInExtY = TabletY.axMax;
+    /* output the data in screen coords */
+	archetype.lcOutOrgX = archetype.lcOutOrgY = 0;
+	archetype.lcOutExtX = GetSystemMetrics(SM_CXSCREEN);
+    /* move origin to upper left */
+	archetype.lcOutExtY = -GetSystemMetrics(SM_CYSCREEN);
+// END
+
+/*	if (hasTilt)
 		{
 		archetype.lcPktData |= tiltMask;
 		archetype.lcMoveMask |= tiltMask;
-		}
-*/
+		} */
 
 	// open the context
 	HCTX context = func_Open(window->getHWND(), &archetype, TRUE);
@@ -237,71 +259,117 @@ void GHOST_TabletManagerWin32::convertTilt(ORIENTATION const& ort, TabletToolDat
 	data.tilt_y = sin(M_PI/2.0 - azmRad) * vecLen;
 	}
 
-void GHOST_TabletManagerWin32::processPackets(HCTX context)
+void GHOST_TabletManagerWin32::processPackets(GHOST_WindowWin32* window)
 	{
-	PACKET packets[MAX_QUEUE_SIZE];
-	int n = func_PacketsGet(context, MAX_QUEUE_SIZE, packets);
-//	printf("processing %d packets\n", n);
+	HCTX context = contextForWindow(window);
 
-	for (int i = 0; i < n; ++i)
+	if (context)
 		{
-		PACKET const& packet = packets[i];
-		TabletToolData data = {activeTool};
-		int x = packet.pkX;
-		int y = packet.pkY;
-
-		if (activeTool.type == TABLET_MOUSE)
-			if (x == prevMouseX && y == prevMouseY)
-				// don't send any "mouse hasn't moved" events
-				continue;
-			else {
-				prevMouseX = x;
-				prevMouseY = y;
-				}
-
-		// every packet from a WT_PACKET message comes from the same tool
-		switch (activeTool.type)
+		PACKET packets[MAX_QUEUE_SIZE];
+		int n = func_PacketsGet(context, MAX_QUEUE_SIZE, packets);
+	//	printf("processing %d packets\n", n);
+	
+		for (int i = 0; i < n; ++i)
 			{
-			case TABLET_MOUSE:
-				printf("mouse");
-				break;
-			case TABLET_PEN:
-				printf("pen");
-				break;
-			case TABLET_ERASER:
-				printf("eraser");
-				break;
-			default:
-				printf("???");
-			}
-
-		printf(" (%d,%d)", x, y);
-
-		if (activeTool.hasPressure)
-			{
-			if (packet.pkNormalPressure)
+			PACKET const& packet = packets[i];
+			TabletToolData data = {activeTool};
+			int x = packet.pkX;
+			int y = packet.pkY;
+	
+			if (activeTool.type == TABLET_MOUSE)
+				if (x == prevMouseX && y == prevMouseY)
+					// don't send any "mouse hasn't moved" events
+					continue;
+				else {
+					prevMouseX = x;
+					prevMouseY = y;
+					}
+	
+			// every packet from a WT_PACKET message comes from the same tool
+			switch (activeTool.type)
 				{
-				data.pressure = pressureScale * packet.pkNormalPressure;
-				printf(" %d%%", (int)(100 * data.pressure));
+				case TABLET_MOUSE:
+					printf("mouse");
+					break;
+				case TABLET_PEN:
+					printf("pen");
+					break;
+				case TABLET_ERASER:
+					printf("eraser");
+					break;
+				default:
+					printf("???");
 				}
-			else
-				data.tool.hasPressure = false;
+	
+			printf(" (%d,%d)", x, y);
+	
+			if (activeTool.hasPressure)
+				{
+				if (packet.pkNormalPressure)
+					{
+					data.pressure = pressureScale * packet.pkNormalPressure;
+					printf(" %d%%", (int)(100 * data.pressure));
+					}
+				else
+					data.tool.hasPressure = false;
+				}
+	
+			if (activeTool.hasTilt)
+				{
+				// ORIENTATION const& tilt = packet.pkOrientation;
+				// printf(" /%d,%d/", tilt.orAzimuth, tilt.orAltitude);
+				convertTilt(packet.pkOrientation, data);
+	
+				// data.tilt_x = tiltScaleX * packet.pkTilt.tiltX;
+				// data.tilt_y = tiltScaleY * packet.pkTilt.tiltY;
+				printf(" /%.2f,%.2f/", data.tilt_x, data.tilt_y);
+				}
+	
+			putchar('\n');
+
+			// at this point, construct a GHOST event and push it into the queue!
+			// (having trouble with Wacom mouse scaling, so ignore it for now)
+
+//			if (activeTool.type == TABLET_PEN || activeTool.type == TABLET_ERASER)
+				{
+				GHOST_System* system = (GHOST_System*) GHOST_ISystem::getSystem();
+
+				if (packet.pkButtons)
+					{
+					// which button?
+					GHOST_TButtonMask e_button;
+					int buttonNumber = LOWORD(packet.pkButtons);
+					e_button = (GHOST_TButtonMask) buttonNumber;
+
+					// pressed or released?
+					GHOST_TEventType e_action;
+					int buttonAction = HIWORD(packet.pkButtons);
+					if (buttonAction == TBN_DOWN)
+						e_action = GHOST_kEventButtonDown;
+					else
+						e_action = GHOST_kEventButtonUp;
+
+					printf("button %d %s\n", buttonNumber, buttonAction == TBN_DOWN ? "down" : "up");
+
+					GHOST_EventButton* e = new GHOST_EventButton(system->getMilliSeconds(), e_action, window, e_button);
+					
+//					system->pushEvent(e);
+					}
+				else
+					{
+					GHOST_EventCursor* e = new GHOST_EventCursor(system->getMilliSeconds(), GHOST_kEventCursorMove, window, x, y);
+
+					// use older TabletData struct for testing until mine is in place
+					GHOST_TabletData& e_data = ((GHOST_TEventCursorData*) e->getData())->tablet;
+					e_data.Active = (GHOST_TTabletMode) data.tool.type;
+					e_data.Pressure = data.pressure;
+					e_data.Xtilt = data.tilt_x;
+					e_data.Ytilt = data.tilt_y;
+
+//					system->pushEvent(e);
+					}
+				}
 			}
-
-		if (activeTool.hasTilt)
-			{
-			// ORIENTATION const& tilt = packet.pkOrientation;
-			// printf(" /%d,%d/", tilt.orAzimuth, tilt.orAltitude);
-			convertTilt(packet.pkOrientation, data);
-
-			// data.tilt_x = tiltScaleX * packet.pkTilt.tiltX;
-			// data.tilt_y = tiltScaleY * packet.pkTilt.tiltY;
-			printf(" /%.2f,%.2f/", data.tilt_x, data.tilt_y);
-			}
-
-		putchar('\n');
-
-		// at this point, construct a GHOST event and push it into the queue!
 		}
 	}
 

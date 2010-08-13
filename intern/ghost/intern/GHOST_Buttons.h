@@ -67,8 +67,13 @@ struct GHOST_Buttons {
     /**
      * Sets the state of all buttons to up.
      */
-    virtual void clear(); 
-    
+    virtual void clear();
+
+    /**
+     * Are any buttons currently pressed?
+     */
+    bool anyDown() const;
+
     GHOST_TUns8 m_ButtonLeft		: 1;
     GHOST_TUns8 m_ButtonMiddle		: 1;
     GHOST_TUns8 m_ButtonRight		: 1;
