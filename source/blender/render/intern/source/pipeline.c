@@ -2463,7 +2463,7 @@ static void do_render_seq(Render * re)
 
 	recurs_depth++;
 
-	ibuf= give_ibuf_seq(re->scene, rr->rectx, rr->recty, cfra, 0, 100.0);
+	ibuf= give_ibuf_seq(re->main, re->scene, rr->rectx, rr->recty, cfra, 0, 100.0);
 
 	recurs_depth--;
 	

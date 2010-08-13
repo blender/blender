@@ -2240,7 +2240,7 @@ void BKE_ptcache_remove(void)
 
 static int CONTINUE_PHYSICS = 0;
 
-void BKE_ptcache_set_continue_physics(Scene *scene, int enable)
+void BKE_ptcache_set_continue_physics(Main *bmain, Scene *scene, int enable)
 {
 	Object *ob;
 
@@ -2248,7 +2248,7 @@ void BKE_ptcache_set_continue_physics(Scene *scene, int enable)
 		CONTINUE_PHYSICS = enable;
 
 		if(CONTINUE_PHYSICS == 0) {
-			for(ob=G.main->object.first; ob; ob=ob->id.next)
+			for(ob=bmain->object.first; ob; ob=ob->id.next)
 				if(BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED))
 					DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}

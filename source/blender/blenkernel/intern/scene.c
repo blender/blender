@@ -320,11 +320,12 @@ void free_scene(Scene *sce)
 
 Scene *add_scene(char *name)
 {
+	Main *bmain= G.main;
 	Scene *sce;
 	ParticleEditSettings *pset;
 	int a;
 
-	sce= alloc_libblock(&G.main->scene, ID_SCE, name);
+	sce= alloc_libblock(&bmain->scene, ID_SCE, name);
 	sce->lay= sce->layact= 1;
 	
 	sce->r.mode= R_GAMMA|R_OSA|R_SHADOW|R_SSS|R_ENVMAP|R_RAYTRACE;
@@ -586,7 +587,7 @@ void unlink_scene(Main *bmain, Scene *sce, Scene *newsce)
 			sce1->set= NULL;
 	
 	/* check all sequences */
-	clear_scene_in_allseqs(sce);
+	clear_scene_in_allseqs(bmain, sce);
 
 	/* check render layer nodes in other scenes */
 	clear_scene_in_nodes(bmain, sce);

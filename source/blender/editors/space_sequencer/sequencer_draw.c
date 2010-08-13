@@ -695,12 +695,12 @@ void set_special_seq_update(int val)
 void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs)
 {
 	extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
+	struct Main *bmain= CTX_data_main(C);
 	struct ImBuf *ibuf = 0;
 	struct ImBuf *scope = 0;
 	struct View2D *v2d = &ar->v2d;
 	int rectx, recty;
 	float viewrectx, viewrecty;
-	static int recursive= 0;
 	float render_size = 0.0;
 	float proxy_size = 100.0;
 	GLuint texid;
@@ -740,33 +740,12 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	UI_view2d_totRect_set(v2d, viewrectx + 0.5f, viewrecty + 0.5f);
 	UI_view2d_curRect_validate(v2d);
 
-	/* BIG PROBLEM: the give_ibuf_seq() can call a rendering, which in turn calls redraws...
-	   this shouldn't belong in a window drawing....
-	   So: solve this once event based. 
-	   Now we check for recursion, space type and active area again (ton) */
-
-	if(recursive)
-		return;
-	else {
-		recursive= 1;
-		if (special_seq_update) {
-			ibuf= give_ibuf_seq_direct(scene, rectx, recty, cfra + frame_ofs, proxy_size, special_seq_update);
-		} 
-		else if (!U.prefetchframes) { // XXX || (G.f & G_PLAYANIM) == 0) {
-			ibuf= (ImBuf *)give_ibuf_seq(scene, rectx, recty, cfra + frame_ofs, sseq->chanshown, proxy_size);
-		} 
-		else {
-			ibuf= (ImBuf *)give_ibuf_seq_threaded(scene, rectx, recty, cfra + frame_ofs, sseq->chanshown, proxy_size);
-		}
-		recursive= 0;
-		
-		/* XXX HURMF! the give_ibuf_seq can call image display in this window */
-//		if(sa->spacetype!=SPACE_SEQ)
-//			return;
-//		if(sa!=curarea) {
-//			areawinset(sa->win);
-//		}
-	}
+	if (special_seq_update)
+		ibuf= give_ibuf_seq_direct(bmain, scene, rectx, recty, cfra + frame_ofs, proxy_size, special_seq_update);
+	else if (!U.prefetchframes) // XXX || (G.f & G_PLAYANIM) == 0) {
+		ibuf= (ImBuf *)give_ibuf_seq(bmain, scene, rectx, recty, cfra + frame_ofs, sseq->chanshown, proxy_size);
+	else
+		ibuf= (ImBuf *)give_ibuf_seq_threaded(bmain, scene, rectx, recty, cfra + frame_ofs, sseq->chanshown, proxy_size);
 	
 	if(ibuf==NULL) 
 		return;

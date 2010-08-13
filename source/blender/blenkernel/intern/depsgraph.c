@@ -2180,7 +2180,7 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay)
 		dag_object_time_update_flags(scene->camera);
 	
 	/* and store the info in groupobject */
-	for(group= G.main->group.first; group; group= group->id.next) {
+	for(group= bmain->group.first; group; group= group->id.next) {
 		if(group->id.flag & LIB_DOIT) {
 			for(go= group->gobject.first; go; go= go->next) {
 				go->recalc= go->ob->recalc;

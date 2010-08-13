@@ -174,10 +174,11 @@ void free_text(Text *text)
 
 Text *add_empty_text(char *name) 
 {
+	Main *bmain= G.main;
 	Text *ta;
 	TextLine *tmp;
 	
-	ta= alloc_libblock(&G.main->text, ID_TXT, name);
+	ta= alloc_libblock(&bmain->text, ID_TXT, name);
 	ta->id.us= 1;
 	
 	ta->name= NULL;
@@ -326,6 +327,7 @@ int reopen_text(Text *text)
 
 Text *add_text(char *file, const char *relpath) 
 {
+	Main *bmain= G.main;
 	FILE *fp;
 	int i, llen, len, res;
 	unsigned char *buffer;
@@ -341,7 +343,7 @@ Text *add_text(char *file, const char *relpath)
 	fp= fopen(str, "r");
 	if(fp==NULL) return NULL;
 	
-	ta= alloc_libblock(&G.main->text, ID_TXT, BLI_path_basename(str));
+	ta= alloc_libblock(&bmain->text, ID_TXT, BLI_path_basename(str));
 	ta->id.us= 1;
 
 	ta->lines.first= ta->lines.last= NULL;
