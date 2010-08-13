@@ -77,6 +77,8 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 		if (!BKE_write_ibuf(NULL, ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality)) {
 			BKE_reportf(reports, RPT_ERROR, "Couldn't write image: %s", path);
 		}
+
+		BKE_image_release_ibuf(image, lock);
 	} else {
 		BKE_reportf(reports, RPT_ERROR, "Scene not in context, couldn't get save parameters");
 	}
