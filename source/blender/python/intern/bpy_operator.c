@@ -63,7 +63,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	if (!PyArg_ParseTuple(args, "sO|O!s:_bpy.ops.call", &opname, &context_dict, &PyDict_Type, &kw, &context_str))
 		return NULL;
 
-	ot= WM_operatortype_exists(opname);
+	ot= WM_operatortype_find(opname, TRUE);
 
 	if (ot == NULL) {
 		PyErr_Format( PyExc_SystemError, "Calling operator \"bpy.ops.%s\" error, could not be found", opname);
