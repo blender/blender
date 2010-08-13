@@ -1573,7 +1573,7 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 	
 	for(a=0; a<resolu; a++, fac+= dfac) {
 		if (tilt_array) {
-			if (nu->tilt_interp==3) { /* May as well support for tilt also 2.47 ease interp */
+			if (nu->tilt_interp==KEY_CU_EASE) { /* May as well support for tilt also 2.47 ease interp */
 				*tilt_array = prevbezt->alfa + (bezt->alfa - prevbezt->alfa)*(3.0f*fac*fac - 2.0f*fac*fac*fac);
 			} else {
 				key_curve_position_weights(fac, t, nu->tilt_interp);
@@ -1584,7 +1584,7 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 		}
 		
 		if (radius_array) {
-			if (nu->radius_interp==3) {
+			if (nu->radius_interp==KEY_CU_EASE) {
 				/* Support 2.47 ease interp
 				 * Note! - this only takes the 2 points into account,
 				 * giving much more localized results to changes in radius, sometimes you want that */

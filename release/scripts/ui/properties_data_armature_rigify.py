@@ -95,12 +95,13 @@ class DATA_PT_template(bpy.types.Panel):
         subsubrow.operator("pose.metarig_assign", text="Assign")
         subsubrow.operator("pose.metarig_clear", text="Clear")
 
-        subsubrow = subrow.split(percentage=0.8)
-        subsubrow.operator("pose.metarig_sample_add", text="Sample").metarig_type = self.templates[pose_templates.active_template_index]
-        subsubrow.operator("pose.metarig_sample_add", text="All").metarig_type = "" # self.templates[pose_templates.active_template_index]
+        if self.templates:
+            subsubrow = subrow.split(percentage=0.8)
+            subsubrow.operator("pose.metarig_sample_add", text="Sample").metarig_type = self.templates[pose_templates.active_template_index]
+            subsubrow.operator("pose.metarig_sample_add", text="All").metarig_type = "" # self.templates[pose_templates.active_template_index]
 
-        sub = row.column(align=True)
-        sub.operator("pose.metarig_reload", icon="FILE_REFRESH", text="")
+            sub = row.column(align=True)
+            sub.operator("pose.metarig_reload", icon="FILE_REFRESH", text="")
 
 
 # operators

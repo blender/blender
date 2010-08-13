@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -22,7 +22,7 @@ import bpy
 from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
-from mathutils import Vector, RotationMatrix
+from mathutils import Vector, Matrix
 from math import radians, pi
 
 # not used, defined for completeness

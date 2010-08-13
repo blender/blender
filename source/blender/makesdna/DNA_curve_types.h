@@ -346,5 +346,9 @@ typedef enum eBezTriple_KeyframeType {
 #define CU_CHINFO_SMALLCAPS	(1<<4)
 #define CU_CHINFO_SMALLCAPS_CHECK (1<<5) /* set at runtime, checks if case switching is needed */
 
+/* mixed with KEY_LINEAR but define here since only curve supports */
+#define KEY_CU_EASE			3
+
+
 #endif
 

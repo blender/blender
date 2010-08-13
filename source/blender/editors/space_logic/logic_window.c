@@ -3929,7 +3929,7 @@ static void draw_actuator_filter_2d(uiLayout *layout, PointerRNA *ptr)
 			split=uiLayoutSplit(layout, 0.75, 1);
 			row= uiLayoutRow(split, 0);
 			uiLayoutSetActive(row, RNA_boolean_get(ptr, "enable_motion_blur")==1);
-			uiItemR(row, ptr, "motion_blur_value", 0, NULL, 0);
+			uiItemR(row, ptr, "motion_blur_factor", 0, NULL, 0);
 			uiItemR(split, ptr, "enable_motion_blur", UI_ITEM_R_TOGGLE, NULL, 0);
 			break;
 		default: // all other 2D Filters

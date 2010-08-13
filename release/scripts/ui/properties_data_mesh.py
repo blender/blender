@@ -79,11 +79,6 @@ class DATA_PT_context_mesh(MeshButtonsPanel, bpy.types.Panel):
             split.separator()
 
 
-class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, bpy.types.Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    _context_path = "object.data"
-
-
 class DATA_PT_normals(MeshButtonsPanel, bpy.types.Panel):
     bl_label = "Normals"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -349,6 +344,11 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, bpy.types.Panel):
         lay = me.active_vertex_color
         if lay:
             layout.prop(lay, "name")
+
+
+class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "object.data"
 
 
 def register():

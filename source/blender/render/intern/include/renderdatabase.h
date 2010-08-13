@@ -34,6 +34,7 @@ struct Object;
 struct VlakRen;
 struct VertRen;
 struct HaloRen;
+struct Main;
 struct Material;
 struct Render;
 struct MCol;
@@ -137,7 +138,7 @@ void RE_set_customdata_names(struct ObjectRen *obr, struct CustomData *data);
 
 /* convertblender.c */
 void init_render_world(Render *re);
-void RE_Database_FromScene_Vectors(Render *re, struct Scene *sce, unsigned int lay);
+void RE_Database_FromScene_Vectors(Render *re, struct Main *bmain, struct Scene *sce, unsigned int lay);
 
 
 #endif /* RENDERDATABASE_H */

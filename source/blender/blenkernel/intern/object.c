@@ -2501,7 +2501,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
-				EditMesh *em = BKE_mesh_get_editmesh(ob->data);
+				EditMesh *em = (ob == scene->obedit)? BKE_mesh_get_editmesh(ob->data): NULL;
 				
 				/* evaluate drivers */
 				// XXX: should we push this to derivedmesh instead?

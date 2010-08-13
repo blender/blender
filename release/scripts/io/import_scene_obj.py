@@ -82,23 +82,21 @@ def unpack_list(list_of_tuples):
 
 # same as above except that it adds 0 for triangle faces
 def unpack_face_list(list_of_tuples):
-    l = []
+    # allocate the entire list
+    flat_ls = [0] * (len(list_of_tuples) * 4)
+    i = 0
+
     for t in list_of_tuples:
-        face = [i for i in t]
+        if len(t) == 3:
+            if t[2] == 0:
+                t = t[1], t[2], t[0]
+        else: # assuem quad
+            if t[3] == 0 or t[2] == 0:
+                t = t[2], t[3], t[0], t[1]
 
-        if len(face) != 3 and len(face) != 4:
-            raise RuntimeError("{0} vertices in face.".format(len(face)))
-
-        # rotate indices if the 4th is 0
-        if len(face) == 4 and face[3] == 0:
-            face = [face[3], face[0], face[1], face[2]]
-
-        if len(face) == 3:
-            face.append(0)
-
-        l.extend(face)
-
-    return l
+        flat_ls[i:i + len(t)] = t
+        i += 4
+    return flat_ls
 
 def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
     '''
@@ -305,24 +303,28 @@ def load_image(imagepath, dirname):
     if os.path.exists(imagepath):
         return bpy.data.images.load(imagepath)
 
-    variants = [os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
+    variants = [imagepath, os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
 
-    for path in variants:
-        if os.path.exists(path):
-            return bpy.data.images.load(path)
-        else:
-            print(path, "doesn't exist")
+    for filepath in variants:
+        for nfilepath in (filepath, bpy.path.resolve_ncase(filepath)):
+            if os.path.exists(nfilepath):
+                return bpy.data.images.load(nfilepath)
 
     # TODO comprehensiveImageLoad also searched in bpy.config.textureDir
     return None
 
 def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
-
     if '_' in imagepath:
         image= load_image(imagepath.replace('_', ' '), DIR)
-        if image: return image
+        if image:
+            return image
 
-    return load_image(imagepath, DIR)
+    image = load_image(imagepath, DIR)
+    if image:
+        return image
+
+    print("failed to load '%s' doesn't exist", imagepath)
+    return None
 
 # def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
 # 	'''
@@ -765,14 +767,12 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
                     blender_tface= me.uv_textures[0].data[i]
 
                     if context_material:
-                        image, has_data= unique_material_images[context_material]
+                        image, has_data = unique_material_images[context_material]
                         if image: # Can be none if the material dosnt have an image.
-                            blender_tface.image= image
-# 							blender_face.image= image
-                            if has_data:
-# 							if has_data and image.depth == 32:
+                            blender_tface.image = image
+                            blender_tface.tex = True
+                            if has_data and image.depth == 32:
                                 blender_tface.transp = 'ALPHA'
-# 								blender_face.transp |= ALPHA
 
                     # BUG - Evil eekadoodle problem where faces that have vert index 0 location at 3 or 4 are shuffled.
                     if len(face_vert_loc_indicies)==4:
@@ -1596,8 +1596,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
+        context.manager.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
 

@@ -2115,10 +2115,10 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	/* RNA_def_property_pointer_funcs(prop, "rna_DupliObject_object_get", NULL, NULL, NULL); */
 	RNA_def_property_ui_text(prop, "Object", "Object being duplicated");
 
-	prop= RNA_def_property(srna, "object_matrix", PROP_FLOAT, PROP_MATRIX);
+	prop= RNA_def_property(srna, "matrix_original", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "omat");
 	RNA_def_property_array(prop, 16);
-	RNA_def_property_ui_text(prop, "Object Matrix", "Duplicated object transformation matrix");
+	RNA_def_property_ui_text(prop, "Object Matrix", "The original matrix of this object before it was duplicated");
 
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "mat");

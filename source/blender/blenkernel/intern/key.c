@@ -1850,9 +1850,12 @@ void vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 		tot= count_curveverts(&cu->nurb);
 	}
 
-	fp= kb->data= MEM_callocN(tot*elemsize, "key_to_vertcos vertCos");
+	if (tot == 0) {
+		kb->data= NULL;
+		return;
+	}
 
-	if (tot == 0) return;
+	fp= kb->data= MEM_callocN(tot*elemsize, "key_to_vertcos vertCos");
 
 	/* Copy coords to keyblock */
 

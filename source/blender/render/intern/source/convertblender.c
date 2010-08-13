@@ -4889,13 +4889,14 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 }
 
 /* used to be 'rotate scene' */
-void RE_Database_FromScene(Render *re, Scene *scene, unsigned int lay, int use_camera_view)
+void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int lay, int use_camera_view)
 {
 	extern int slurph_opt;	/* key.c */
 	Scene *sce;
 	float mat[4][4];
 	float amb[3];
 
+	re->main= bmain;
 	re->scene= scene;
 	re->lay= lay;
 	
@@ -5433,7 +5434,7 @@ static void free_dbase_object_vectors(ListBase *lb)
 	BLI_freelistN(lb);
 }
 
-void RE_Database_FromScene_Vectors(Render *re, Scene *sce, unsigned int lay)
+void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned int lay)
 {
 	ObjectInstanceRen *obi, *oldobi;
 	StrandSurface *mesh;
@@ -5475,7 +5476,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce, unsigned int lay)
 	re->strandsurface= strandsurface;
 	
 	if(!re->test_break(re->tbh))
-		RE_Database_FromScene(re, sce, lay, 1);
+		RE_Database_FromScene(re, bmain, sce, lay, 1);
 	
 	if(!re->test_break(re->tbh)) {
 		for(step= 0; step<2; step++) {

@@ -62,8 +62,6 @@
 #include "BLI_storage_types.h"
 #include "BLI_dynstr.h"
 
-#include "BLO_readfile.h"
-
 #include "BKE_context.h"
 #include "BKE_global.h"
 

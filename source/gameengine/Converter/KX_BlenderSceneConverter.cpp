@@ -100,6 +100,7 @@ extern "C"
 extern "C" {
 	#include "BKE_context.h"
 	#include "BLO_readfile.h"
+	#include "BKE_idcode.h"
 	#include "BKE_report.h"
 	#include "DNA_space_types.h"
 	#include "DNA_windowmanager_types.h" /* report api */
@@ -938,7 +939,7 @@ bool KX_BlenderSceneConverter::LinkBlendFile(const char *path, char *group, KX_S
 	Main *main_tmp= NULL; /* created only for linking, then freed */
 	LinkNode *names = NULL;
 	BlendHandle *bpy_openlib = NULL;	/* ptr to the open .blend file */	
-	int idcode= BLO_idcode_from_name(group);
+	int idcode= BKE_idcode_from_name(group);
 	short flag= 0; /* dont need any special options */
 	ReportList reports;
 	static char err_local[255];

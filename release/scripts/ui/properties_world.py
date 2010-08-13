@@ -33,19 +33,6 @@ class WorldButtonsPanel():
         return (rd.engine in cls.COMPAT_ENGINES)
 
 
-class WORLD_PT_preview(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "Preview"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @classmethod
-    def poll(cls, context):
-        rd = context.scene.render
-        return (context.world) and (not rd.use_game_engine) and (rd.engine in cls.COMPAT_ENGINES)
-
-    def draw(self, context):
-        self.layout.template_preview(context.world)
-
-
 class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
@@ -70,9 +57,23 @@ class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
             split.template_ID(space, "pin_id")
 
 
-class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, bpy.types.Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    _context_path = "world"
+class WORLD_PT_preview(WorldButtonsPanel, bpy.types.Panel):
+    bl_label = "Preview"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        return (context.world) and (not rd.use_game_engine) and (rd.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        self.layout.template_preview(context.world)
+
+
+
+
+
+
 
 
 class WORLD_PT_world(WorldButtonsPanel, bpy.types.Panel):
@@ -94,62 +95,6 @@ class WORLD_PT_world(WorldButtonsPanel, bpy.types.Panel):
         col.prop(world, "zenith_color")
         col.active = world.blend_sky
         row.column().prop(world, "ambient_color")
-
-
-class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "Mist"
-    bl_default_closed = True
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw_header(self, context):
-        world = context.world
-
-        self.layout.prop(world.mist, "use_mist", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        world = context.world
-
-        layout.active = world.mist.use_mist
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(world.mist, "intensity", slider=True)
-        col.prop(world.mist, "start")
-
-        col = split.column()
-        col.prop(world.mist, "depth")
-        col.prop(world.mist, "height")
-
-        layout.prop(world.mist, "falloff")
-
-
-class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "Stars"
-    bl_default_closed = True
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw_header(self, context):
-        world = context.world
-
-        self.layout.prop(world.stars, "use_stars", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        world = context.world
-
-        layout.active = world.stars.use_stars
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(world.stars, "size")
-        col.prop(world.stars, "color_randomization", text="Colors")
-
-        col = split.column()
-        col.prop(world.stars, "min_distance", text="Min. Dist")
-        col.prop(world.stars, "average_separation", text="Separation")
 
 
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel, bpy.types.Panel):
@@ -260,6 +205,67 @@ class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
             col.prop(light, "error_tolerance", text="Error")
             col.prop(light, "pixel_cache")
             col.prop(light, "correction")
+
+
+class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
+    bl_label = "Mist"
+    bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw_header(self, context):
+        world = context.world
+
+        self.layout.prop(world.mist, "use_mist", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        world = context.world
+
+        layout.active = world.mist.use_mist
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(world.mist, "intensity", slider=True)
+        col.prop(world.mist, "start")
+
+        col = split.column()
+        col.prop(world.mist, "depth")
+        col.prop(world.mist, "height")
+
+        layout.prop(world.mist, "falloff")
+
+
+class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
+    bl_label = "Stars"
+    bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw_header(self, context):
+        world = context.world
+
+        self.layout.prop(world.stars, "use_stars", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        world = context.world
+
+        layout.active = world.stars.use_stars
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(world.stars, "size")
+        col.prop(world.stars, "color_randomization", text="Colors")
+
+        col = split.column()
+        col.prop(world.stars, "min_distance", text="Min. Dist")
+        col.prop(world.stars, "average_separation", text="Separation")
+
+
+class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "world"
 
 
 def register():

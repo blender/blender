@@ -51,11 +51,6 @@ class DATA_PT_context_metaball(DataButtonsPanel, bpy.types.Panel):
             split.separator()
 
 
-class DATA_PT_custom_props_metaball(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    _context_path = "object.data"
-
-
 class DATA_PT_metaball(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Metaball"
 
@@ -118,6 +113,11 @@ class DATA_PT_metaball_element(DataButtonsPanel, bpy.types.Panel):
             col.label(text="Size:")
             col.prop(metaelem, "size_x", text="X")
             col.prop(metaelem, "size_y", text="Y")
+
+
+class DATA_PT_custom_props_metaball(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "object.data"
 
 
 def register():

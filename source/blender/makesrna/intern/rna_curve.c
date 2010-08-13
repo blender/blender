@@ -29,6 +29,7 @@
 #include "rna_internal.h"
 
 #include "DNA_curve_types.h"
+#include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
@@ -1252,10 +1253,10 @@ static void rna_def_curve(BlenderRNA *brna)
 static void rna_def_curve_nurb(BlenderRNA *brna)
 {
 	static EnumPropertyItem spline_interpolation_items[] = {
-		{BEZT_IPO_CONST, "LINEAR", 0, "Linear", ""},
-		{BEZT_IPO_LIN, "CARDINAL", 0, "Cardinal", ""},
-		{BEZT_IPO_BEZ, "BSPLINE", 0, "BSpline", ""},
-		{BEZT_IPO_BEZ, "EASE", 0, "Ease", ""},
+		{KEY_LINEAR, "LINEAR", 0, "Linear", ""},
+		{KEY_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
+		{KEY_BSPLINE, "BSPLINE", 0, "BSpline", ""},
+		{KEY_CU_EASE, "EASE", 0, "Ease", ""}, /* todo, define somewhere, not one of BEZT_IPO_* */
 		{0, NULL, 0, NULL, NULL}};
 
 	StructRNA *srna;

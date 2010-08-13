@@ -185,15 +185,16 @@ class ExportMDD(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
+        import os
+        if not self.properties.is_property_set("filepath"):
+            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".mdd"
+
+        context.manager.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):
-    import os
-    default_path = os.path.splitext(bpy.data.filepath)[0] + ".mdd"
-    self.layout.operator(ExportMDD.bl_idname, text="Lightwave Point Cache (.mdd)").filepath = default_path
+    self.layout.operator(ExportMDD.bl_idname, text="Lightwave Point Cache (.mdd)")
 
 
 def register():

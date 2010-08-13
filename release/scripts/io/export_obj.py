@@ -363,7 +363,7 @@ def write_file(filepath, objects, scene,
         file.write('mtllib %s\n' % ( mtlfilepath.split('\\')[-1].split('/')[-1] ))
 
     if EXPORT_ROTX90:
-        mat_xrot90= mathutils.RotationMatrix(-math.pi/2, 4, 'X')
+        mat_xrot90= mathutils.Matrix.Rotation(-math.pi/2, 4, 'X')
 
     # Initialize totals, these are updated each object
     totverts = totuvco = totno = 1
@@ -960,14 +960,16 @@ class ExportOBJ(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
+        import os
+        if not self.properties.is_property_set("filepath"):
+            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".obj"
+
+        context.manager.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):
-    default_path = os.path.splitext(bpy.data.filepath)[0] + ".obj"
-    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)").filepath = default_path
+    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)")
 
 
 def register():

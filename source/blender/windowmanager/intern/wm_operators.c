@@ -63,6 +63,7 @@
 #include "BKE_screen.h" /* BKE_ST_MAXNAME */
 #include "BKE_utildefines.h"
 #include "BKE_brush.h" // JW
+#include "BKE_idcode.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
@@ -102,11 +103,11 @@ wmOperatorType *WM_operatortype_find(const char *idname, int quiet)
 	
 	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
 	WM_operator_bl_idname(idname_bl, idname);
-	
+
 	if (idname_bl[0]) {
-		for(ot= global_ops.first; ot; ot= ot->next) {
-			if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
-			   return ot;
+		ot= BLI_findstring_ptr(&global_ops, idname_bl, offsetof(wmOperatorType, idname));
+		if(ot) {
+			return ot;
 		}
 	}
 	
@@ -1586,7 +1587,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		scene_deselect_all(scene);
 
 	bh = BLO_blendhandle_from_file(libname);
-	idcode = BLO_idcode_from_name(group);
+	idcode = BKE_idcode_from_name(group);
 	
 	flag = wm_link_append_flag(op);
 

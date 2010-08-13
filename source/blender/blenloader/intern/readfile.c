@@ -105,6 +105,7 @@
 #include "BKE_image.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for which_libbase
+#include "BKE_idcode.h"
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
@@ -4106,8 +4107,9 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
 
 static void link_paint(FileData *fd, Scene *sce, Paint *p)
 {
-	if(p && p->brush) {
+	if(p) {
 		p->brush= newlibadr_us(fd, sce->id.lib, p->brush);
+		p->paint_cursor= NULL;
 	}
 }
 
@@ -12592,8 +12594,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 								append_id_part(fd, mainptr, id, &realid);
 								if (!realid) {
-									BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
-									if(!G.background && basefd->reports) printf("LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+									BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+									if(!G.background && basefd->reports) printf("LIB ERROR: %s:'%s' missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
 								}
 								
 								change_idid_adr(mainlist, basefd, id, realid);
@@ -12628,8 +12630,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				ID *idn= id->next;
 				if(id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
-					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
-					if(!G.background && basefd->reports)printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+					if(!G.background && basefd->reports)printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
 					change_idid_adr(mainlist, basefd, id, NULL);
 
 					MEM_freeN(id);

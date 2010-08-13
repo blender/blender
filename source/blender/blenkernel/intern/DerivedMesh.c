@@ -1189,10 +1189,15 @@ static void emDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
 
 static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 {
-	EditVert *ev = ((EditMeshDerivedMesh *)dm)->em->verts.first;
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditVert *ev = emdm->em->verts.first;
+	int i;
 
-	for( ; ev; ev = ev->next, ++vert_r) {
-		VECCOPY(vert_r->co, ev->co);
+	for(i=0; ev; ev = ev->next, ++vert_r, ++i) {
+		if(emdm->vertexCos)
+			copy_v3_v3(vert_r->co, emdm->vertexCos[i]);
+		else
+			copy_v3_v3(vert_r->co, ev->co);
 
 		vert_r->no[0] = ev->no[0] * 32767.0;
 		vert_r->no[1] = ev->no[1] * 32767.0;

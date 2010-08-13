@@ -53,11 +53,6 @@ class DATA_PT_context_camera(CameraButtonsPanel, bpy.types.Panel):
             split.separator()
 
 
-class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, bpy.types.Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    _context_path = "object.data"
-
-
 class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
     bl_label = "Lens"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -135,6 +130,11 @@ class DATA_PT_camera_display(CameraButtonsPanel, bpy.types.Panel):
         sub = col.column()
         sub.active = cam.show_passepartout
         sub.prop(cam, "passepartout_alpha", text="Alpha", slider=True)
+
+
+class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "object.data"
 
 
 def register():
