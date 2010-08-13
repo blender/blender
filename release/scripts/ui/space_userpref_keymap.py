@@ -19,8 +19,8 @@
 # <pep8 compliant>
 import bpy
 import os
-import re
-import shutil
+
+KM_MOD_PREFIX = "keyconfig_"
 
 KM_HIERARCHY = [
     ('Window', 'EMPTY', 'WINDOW', []), # file save, window change, exit
@@ -384,6 +384,22 @@ class InputKeyMapPanel(bpy.types.Panel):
 from bpy.props import *
 
 
+def export_properties(prefix, properties, lines=None):
+    if lines is None:
+        lines = []
+
+    for pname in properties.keys():
+        if not properties.is_property_hidden(pname):
+            value = getattr(properties, pname)
+            if isinstance(value, bpy.types.OperatorProperties):
+                export_properties(prefix + "." + pname, value, lines)
+            elif properties.is_property_set(pname):
+                value = _string_value(value)
+                if value != "":
+                    lines.append("%s.%s = %s\n" % (prefix, pname, value))
+    return lines
+
+
 class WM_OT_keyconfig_test(bpy.types.Operator):
     "Test keyconfig for conflicts"
     bl_idname = "wm.keyconfig_test"
@@ -414,21 +430,10 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
 
             s.append(")\n")
 
-            def export_properties(prefix, properties):
-                for pname in dir(properties):
-                    if not properties.is_property_hidden(pname):
-                        value = eval("properties.%s" % pname)
-                        if isinstance(value, bpy.types.OperatorProperties):
-                            export_properties(prefix + "." + pname, value)
-                        elif properties.is_property_set(pname):
-                            value = _string_value(value)
-                            if value != "":
-                                s.append(prefix + ".%s = %s\n" % (pname, value))
-
             props = kmi.properties
 
             if props is not None:
-                export_properties("kmi.properties", props)
+                export_properties("kmi.properties", props, s)
 
             return "".join(s).strip()
 
@@ -516,6 +521,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
     keep_original = BoolProperty(name="Keep original", description="Keep original file after copying to configuration folder", default=True)
 
     def execute(self, context):
+        import shutil
         if not self.properties.filepath:
             raise Exception("Filepath not set")
 
@@ -523,18 +529,18 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
         if not f:
             raise Exception("Could not open file")
 
-        name_pattern = re.compile("^kc = wm.add_keyconfig\('(.*)'\)$")
+        config_name = None
+        for line in f:
+            if line.startswith("kc = wm.add_keyconfig("):
+                config_name = line[23:-3]
+                break
 
-        for line in f.readlines():
-            match = name_pattern.match(line)
+        if config_name is None:
+            raise Exception("config name not found")
 
-            if match:
-                config_name = match.groups()[0]
-
-        f.close()
-
-        path = os.path.split(os.path.split(__file__)[0])[0] # remove ui/space_userpref.py
-        path = os.path.join(path, "cfg")
+        path = os.path.join(__file__, "..", "..", "cfg") # remove ui/space_userpref.py
+        path = os.path.normpath(path)
+        print(path)
 
         # create config folder if needed
         if not os.path.exists(path):
@@ -547,7 +553,16 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
         else:
             shutil.move(self.properties.filepath, path)
 
-        exec("import " + config_name)
+        # sneaky way to check we're actually running the code.
+        wm = context.manager
+        while config_name in wm.keyconfigs:
+            wm.remove_keyconfig(wm.keyconfigs[config_name])
+
+        wm = context.manager
+        totmap = len(wm.keyconfigs)
+        mod = __import__(config_name)
+        if totmap == len(wm.keyconfigs):
+            reload(mod)
 
         wm = bpy.context.manager
         wm.active_keyconfig = wm.keyconfigs[config_name]
@@ -642,21 +657,10 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
                     f.write(", key_modifier='%s'" % kmi.key_modifier)
                 f.write(")\n")
 
-                def export_properties(prefix, properties):
-                    for pname in dir(properties):
-                        if not properties.is_property_hidden(pname):
-                            value = eval("properties.%s" % pname)
-                            if isinstance(value, bpy.types.OperatorProperties):
-                                export_properties(prefix + "." + pname, value)
-                            elif properties.is_property_set(pname):
-                                value = _string_value(value)
-                                if value != "":
-                                    f.write(prefix + ".%s = %s\n" % (pname, value))
-
                 props = kmi.properties
 
                 if props is not None:
-                    export_properties("kmi.properties", props)
+                    f.write("".join(export_properties("kmi.properties", props)))
 
             f.write("\n")
 
@@ -769,18 +773,22 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
         return wm.active_keyconfig.user_defined
 
     def execute(self, context):
+        import sys
         wm = context.manager
 
         keyconfig = wm.active_keyconfig
 
-        module = __import__(keyconfig.name)
+        module = sys.modules.get(keyconfig.name)
 
-        os.remove(module.__file__)
+        if module:
+            path = module.__file__
+            if os.path.exists(path):
+                os.remove(path)
 
-        compiled_path = module.__file__ + "c" # for .pyc
+            path = module.__file__ + "c" # for .pyc
 
-        if os.path.exists(compiled_path):
-            os.remove(compiled_path)
+            if os.path.exists(path):
+                os.remove(path)
 
         wm.remove_keyconfig(keyconfig)
         return {'FINISHED'}
