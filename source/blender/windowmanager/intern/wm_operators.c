@@ -103,11 +103,11 @@ wmOperatorType *WM_operatortype_find(const char *idname, int quiet)
 	
 	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
 	WM_operator_bl_idname(idname_bl, idname);
-	
+
 	if (idname_bl[0]) {
-		for(ot= global_ops.first; ot; ot= ot->next) {
-			if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
-			   return ot;
+		ot= BLI_findstring_ptr(&global_ops, idname_bl, offsetof(wmOperatorType, idname));
+		if(ot) {
+			return ot;
 		}
 	}
 	

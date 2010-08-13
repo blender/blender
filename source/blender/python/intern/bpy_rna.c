@@ -2086,12 +2086,34 @@ static char pyrna_struct_is_property_set_doc[] =
 
 static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *args)
 {
+	PropertyRNA *prop;
 	char *name;
+	int ret;
 
 	if (!PyArg_ParseTuple(args, "s:is_property_set", &name))
 		return NULL;
 
-	return PyBool_FromLong(RNA_property_is_set(&self->ptr, name));
+	if((prop= RNA_struct_find_property(&self->ptr, name)) == NULL) {
+		PyErr_Format(PyExc_TypeError, "%.200s.is_property_set(\"%.200s\") not found", RNA_struct_identifier(self->ptr.type), name);
+		return NULL;
+	}
+
+	/* double property lookup, could speed up */
+	/* return PyBool_FromLong(RNA_property_is_set(&self->ptr, name)); */
+	if(RNA_property_flag(prop) & PROP_IDPROPERTY) {
+		IDProperty *group= RNA_struct_idproperties(&self->ptr, 0);		
+		if(group) {
+			ret= IDP_GetPropertyFromGroup(group, name) ? 1:0;
+		}
+		else {
+			ret= 0;
+		}
+	}
+	else {
+		ret= 1;
+	}
+	
+	return PyBool_FromLong(ret);
 }
 
 static char pyrna_struct_is_property_hidden_doc[] =
@@ -2106,15 +2128,16 @@ static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA *self, PyObject *
 {
 	PropertyRNA *prop;
 	char *name;
-	int hidden;
 
 	if (!PyArg_ParseTuple(args, "s:is_property_hidden", &name))
 		return NULL;
-	
-	prop= RNA_struct_find_property(&self->ptr, name);
-	hidden= (prop)? (RNA_property_flag(prop) & PROP_HIDDEN): 1;
 
-	return PyBool_FromLong(hidden);
+	if((prop= RNA_struct_find_property(&self->ptr, name)) == NULL) {
+		PyErr_Format(PyExc_TypeError, "%.200s.is_property_hidden(\"%.200s\") not found", RNA_struct_identifier(self->ptr.type), name);
+		return NULL;
+	}
+
+	return PyBool_FromLong(RNA_property_flag(prop) & PROP_HIDDEN);
 }
 
 static char pyrna_struct_path_resolve_doc[] =
