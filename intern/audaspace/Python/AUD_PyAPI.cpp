@@ -207,7 +207,7 @@ Factory_file(PyTypeObject* type, PyObject* args)
 PyDoc_STRVAR(M_aud_Factory_lowpass_doc,
 			 "lowpass(frequency, Q=0.5)\n\n"
 			 "Creates a second order lowpass filter based on the transfer "
-			 "function H(s) = 1 / (s^2 + s/Q + 1)"
+			 "function H(s) = 1 / (s^2 + s/Q + 1)\n\n"
 			 ":arg frequency: The cut off trequency of the lowpass.\n"
 			 ":type frequency: float\n"
 			 ":arg Q: Q factor of the lowpass.\n"
@@ -335,7 +335,7 @@ Factory_join(Factory* self, PyObject* object)
 PyDoc_STRVAR(M_aud_Factory_highpass_doc,
 			 "highpass(frequency, Q=0.5)\n\n"
 			 "Creates a second order highpass filter based on the transfer "
-			 "function H(s) = s^2 / (s^2 + s/Q + 1)"
+			 "function H(s) = s^2 / (s^2 + s/Q + 1)\n\n"
 			 ":arg frequency: The cut off trequency of the highpass.\n"
 			 ":type frequency: float\n"
 			 ":arg Q: Q factor of the lowpass.\n"
