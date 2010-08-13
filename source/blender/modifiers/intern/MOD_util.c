@@ -30,7 +30,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "string.h"
+#include <string.h>
 
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"

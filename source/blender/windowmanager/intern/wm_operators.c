@@ -30,6 +30,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <stddef.h>
+
 
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
