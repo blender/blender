@@ -4371,7 +4371,11 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 
 			/* if parent selected, deselect */
 			while(parsel) {
-				if(parsel->flag & SELECT) break;
+				if(parsel->flag & SELECT) {
+					Base *parbase = object_in_scene(parsel, scene);
+					if TESTBASELIB_BGMODE(v3d, scene, parbase)
+							break;
+				}
 				parsel= parsel->parent;
 			}
 
