@@ -158,7 +158,7 @@ void BPy_init_modules( void )
 	mod = PyModule_New("_bpy");
 
 	/* add the module so we can import it */
-	PyDict_SetItemString(PySys_GetObject("modules"), "_bpy", mod);
+	PyDict_SetItemString(PyImport_GetModuleDict(), "_bpy", mod);
 	Py_DECREF(mod);
 
 	/* run first, initializes rna types */

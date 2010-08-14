@@ -304,7 +304,7 @@ PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", (PyCFunction)blender_reloa
 
 void bpy_text_clear_modules(int clear_all)
 {
-	PyObject *modules= PySys_GetObject("modules");
+	PyObject *modules= PyImport_GetModuleDict();
 	
 	char *fname;
 	char *file_extension;

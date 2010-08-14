@@ -394,7 +394,7 @@ PyObject *BLF_Init(void)
 	PyObject *submodule;
 
 	submodule = PyModule_Create(&BLF_module_def);
-	PyDict_SetItemString(PySys_GetObject("modules"), BLF_module_def.m_name, submodule);
+	PyDict_SetItemString(PyImport_GetModuleDict(), BLF_module_def.m_name, submodule);
 
 	PyModule_AddIntConstant(submodule, "ROTATION", BLF_ROTATION);
 	PyModule_AddIntConstant(submodule, "CLIPPING", BLF_CLIPPING);

@@ -513,7 +513,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
     bl_idname = "wm.keyconfig_import"
     bl_label = "Import Key Configuration..."
 
-    filepath = StringProperty(name="File Path", description="Filepath to write file to")
+    filepath = StringProperty(name="File Path", description="Filepath to write file to", default="keymap.py")
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
@@ -522,7 +522,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
 
     def execute(self, context):
         import shutil
-        if not self.properties.filepath:
+        if not self.properties.is_property_set("filepath"):
             raise Exception("Filepath not set")
 
         f = open(self.properties.filepath, "r")
@@ -582,14 +582,14 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
     bl_idname = "wm.keyconfig_export"
     bl_label = "Export Key Configuration..."
 
-    filepath = StringProperty(name="File Path", description="Filepath to write file to")
+    filepath = StringProperty(name="File Path", description="Filepath to write file to", default="keymap.py")
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
     kc_name = StringProperty(name="KeyConfig Name", description="Name to save the key config as")
 
     def execute(self, context):
-        if not self.properties.filepath:
+        if not self.properties.is_property_set("filepath"):
             raise Exception("Filepath not set")
 
         f = open(self.properties.filepath, "w")

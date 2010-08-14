@@ -54,7 +54,7 @@ void PyObSpit(char *name, PyObject *var) {
 }
 
 void PyLineSpit(void) {
-	char *filename;
+	const char *filename;
 	int lineno;
 
 	PyErr_Clear();
@@ -63,7 +63,7 @@ void PyLineSpit(void) {
 	fprintf(stderr, "%s:%d\n", filename, lineno);
 }
 
-void BPY_getFileAndNum(char **filename, int *lineno)
+void BPY_getFileAndNum(const char **filename, int *lineno)
 {
 	PyObject *getframe, *frame;
 	PyObject *f_lineno= NULL, *co_filename= NULL;
@@ -83,6 +83,7 @@ void BPY_getFileAndNum(char **filename, int *lineno)
 		return;
 	}
 	
+	/* when executing a script */
 	if (filename) {
 		co_filename= PyObject_GetAttrStringArgs(frame, 1, "f_code", "co_filename");
 		if (co_filename==NULL) {
@@ -94,6 +95,25 @@ void BPY_getFileAndNum(char **filename, int *lineno)
 		*filename = _PyUnicode_AsString(co_filename);
 		Py_DECREF(co_filename);
 	}
+	
+	/* when executing a module */
+	if(filename && *filename == NULL) {
+		/* try an alternative method to get the filename - module based
+		 * references below are all borrowed (double checked) */
+		PyObject *mod_name= PyDict_GetItemString(PyEval_GetGlobals(), "__name__");
+		if(mod_name) {
+			PyObject *mod= PyDict_GetItem(PyImport_GetModuleDict(), mod_name);
+			if(mod) {
+				*filename= PyModule_GetFilename(mod);
+			}
+
+			/* unlikely, fallback */
+			if(*filename == NULL) {
+				*filename= _PyUnicode_AsString(mod_name);
+			}
+		}
+	}
+		
 	
 	if (lineno) {
 		f_lineno= PyObject_GetAttrString(frame, "f_lineno");
@@ -330,7 +350,7 @@ int BPy_errors_to_report(ReportList *reports)
 	PyObject *pystring_format= NULL; // workaround, see below
 	char *cstring;
 
-	char *filename;
+	const char *filename;
 	int lineno;
 
 	if (!PyErr_Occurred())
