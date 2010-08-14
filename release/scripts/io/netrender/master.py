@@ -89,7 +89,7 @@ class MRenderJob(netrender.model.RenderJob):
 
     def save(self):
         if self.save_path:
-            f = open(self.save_path + "job.txt", "w")
+            f = open(os.path.join(self.save_path, "job.txt"), "w")
             f.write(repr(self.serialize()))
             f.close()
 
@@ -134,8 +134,8 @@ class MRenderJob(netrender.model.RenderJob):
         self.status = JOB_QUEUED
 
     def addLog(self, frames):
-        log_name = "_".join(("%04d" % f for f in frames)) + ".log"
-        log_path = self.save_path + log_name
+        log_name = "_".join(("%06d" % f for f in frames)) + ".log"
+        log_path = os.path.join(self.save_path, log_name)
 
         for number in frames:
             frame = self[number]
@@ -260,7 +260,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         elif frame.status == DONE:
                             self.server.stats("", "Sending result to client")
 
-                            filename = job.save_path + "%04d" % frame_number + ".exr"
+                            filename = os.path.join(job.save_path, "%06d.exr" % frame_number)
 
                             f = open(filename, 'rb')
                             self.send_head(content = "image/x-exr")
@@ -294,7 +294,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         if frame.status in (QUEUED, DISPATCHED):
                             self.send_head(http.client.ACCEPTED)
                         elif frame.status == DONE:
-                            filename = job.save_path + "%04d" % frame_number + ".exr"
+                            filename = os.path.join(job.save_path, "%06d.exr" % frame_number)
 
                             thumbname = thumbnail(filename)
 
@@ -716,7 +716,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         if file_index > 0:
                             file_path = prefixPath(job.save_path, render_file.filepath, main_path)
                         else:
-                            file_path = job.save_path + main_name
+                            file_path = os.path.join(job.save_path, main_name)
 
                         buf = self.rfile.read(length)
 
@@ -772,7 +772,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             if job_result == DONE:
                                 length = int(self.headers['content-length'])
                                 buf = self.rfile.read(length)
-                                f = open(job.save_path + "%04d" % job_frame + ".exr", 'wb')
+                                f = open(os.path.join(job.save_path, "%06d.exr" % job_frame), 'wb')
                                 f.write(buf)
                                 f.close()
 
@@ -822,13 +822,12 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         if job.type == netrender.model.JOB_BLENDER:
                             length = int(self.headers['content-length'])
                             buf = self.rfile.read(length)
-                            f = open(job.save_path + "%04d" % job_frame + ".jpg", 'wb')
+                            f = open(os.path.join(job.save_path, "%06d.jpg" % job_frame), 'wb')
                             f.write(buf)
                             f.close()
 
                             del buf
 
-                        self.send_head()
                     else: # frame not found
                         self.send_head(http.client.NO_CONTENT)
                 else: # job not found
@@ -880,7 +879,7 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         self.job_id = 0
 
         if subdir:
-            self.path = path + "master_" + str(os.getpid()) + os.sep
+            self.path = os.path.join(path, "master_" + str(os.getpid()))
         else:
             self.path = path
 
@@ -1007,7 +1006,7 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         self.jobs_map[job.id] = job
 
         # create job directory
-        job.save_path = self.path + "job_" + job.id + os.sep
+        job.save_path = os.path.join(self.path, "job_" + job.id)
         if not os.path.exists(job.save_path):
             os.mkdir(job.save_path)
 
