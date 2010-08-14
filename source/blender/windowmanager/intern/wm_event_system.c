@@ -1977,7 +1977,7 @@ int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 			if(evt->val==tweak_modal)
 				return 1;
 		default:
-			/* this case is when modal callcback didnt get started with a tweak */
+			/* this case is when modal callback didnt get started with a tweak */
 			if(evt->val)
 				return 1;
 	}
@@ -2062,28 +2062,6 @@ static int convert_key(GHOST_TKey key)
 	}
 }
 
-#if 0
-/* adds customdata to event */
-static void update_tablet_data(wmWindow *win, wmEvent *event)
-{
-	const GHOST_TabletData *td= GHOST_GetTabletData(win->ghostwin);
-
-	/* if there's tablet data from an active tablet device then add it */
-	if ((td != NULL) && td->Active != GHOST_kTabletModeNone) {
-		struct wmTabletData *wmtab= MEM_mallocN(sizeof(wmTabletData), "customdata tablet");
-
-		wmtab->Active = (int)td->Active;
-		wmtab->Pressure = td->Pressure;
-		wmtab->Xtilt = td->Xtilt;
-		wmtab->Ytilt = td->Ytilt;
-
-		event->custom= EVT_DATA_TABLET;
-		event->customdata= wmtab;
-		event->customdatafree= 1;
-	} 
-}
-#endif
-
 /* adds customdata to event */
 static void attach_tablet_data(wmEvent* event, const GHOST_TabletData* ghost)
 {
@@ -2100,7 +2078,7 @@ static void attach_tablet_data(wmEvent* event, const GHOST_TabletData* ghost)
 		event->customdata = data;
 		event->customdatafree = 1;
 
-		printf("+ pressure = %.2f   tilt = %.2f %2f\n", data->Pressure, data->Xtilt, data->Ytilt);
+		// printf("+ pressure = %.2f   tilt = %.2f %.2f\n", data->Pressure, data->Xtilt, data->Ytilt);
 		}
 }
 
@@ -2165,7 +2143,7 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 }
 
 /* windows store own event queues, no bContext here */
-/* time is in 1000s of seconds (or milliseconds?), from ghost */
+/* time is in milliseconds, from ghost */
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int time, void *customdata)
 {
 	wmWindow *owin;
@@ -2205,7 +2183,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 					lastevent->type = INBETWEEN_MOUSEMOVE;
 
 				attach_tablet_data(&event, &(cd->tablet));
-				// update_tablet_data(win, &event);
 				wm_event_add(win, &event);
 
 				/* also add to other window if event is there, this makes overdraws disappear nicely */
@@ -2218,7 +2195,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 					oevent.y=owin->eventstate->y= event.y;
 					oevent.type= MOUSEMOVE;
 
-					// update_tablet_data(owin, &oevent);
 					wm_event_add(owin, &oevent);
 				}
 			}
@@ -2263,7 +2239,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 		case GHOST_kEventButtonDown:
 		case GHOST_kEventButtonUp: {
 			GHOST_TEventButtonData *bd= customdata;
-			event.val= (type==GHOST_kEventButtonDown) ? KM_PRESS:KM_RELEASE; /* Note!, this starts as 0/1 but later is converted to KM_PRESS/KM_RELEASE by tweak */
+			event.val= (type==GHOST_kEventButtonDown) ? KM_PRESS:KM_RELEASE;
+				/* Note!, this starts as 0/1 but later is converted to KM_PRESS/KM_RELEASE by tweak */
 			
 			if (bd->button == GHOST_kButtonMaskLeft)
 				event.type= LEFTMOUSE;
@@ -2287,12 +2264,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 				oevent.val= event.val;
 
 				attach_tablet_data(&oevent, &(bd->tablet));
-				// update_tablet_data(owin, &oevent);
 				wm_event_add(owin, &oevent);
 			}
 			else {
 				attach_tablet_data(&event, &(bd->tablet));
-				// update_tablet_data(win, &event);
 				wm_event_add(win, &event);
 			}
 

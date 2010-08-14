@@ -35,6 +35,7 @@ GHOST_Buttons::GHOST_Buttons()
 	clear();
 }
 
+GHOST_Buttons::~GHOST_Buttons() {}
 
 bool GHOST_Buttons::get(GHOST_TButtonMask mask) const
 {
@@ -73,7 +74,5 @@ void GHOST_Buttons::clear()
 
 bool GHOST_Buttons::anyDown() const
 {
-	return m_ButtonLeft || m_ButtonMiddle || m_ButtonRight;	
+	return m_ButtonLeft || m_ButtonMiddle || m_ButtonRight;
 }
-
-GHOST_Buttons::~GHOST_Buttons() {}

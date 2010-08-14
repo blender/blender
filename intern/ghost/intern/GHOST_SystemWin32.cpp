@@ -247,6 +247,9 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 		}
 	} while (waitForEvent && !anyProcessed);
 
+	if (m_tabletManager->processPackets())
+		anyProcessed = true;
+
 	return anyProcessed;
 }
 
@@ -500,15 +503,28 @@ void GHOST_SystemWin32::processModifierKeys(GHOST_IWindow *window)
 
 bool eventIsFromTablet()
 	{
-	// bool IsFromPen = ((GetMessageExtraInfo() & 0xFF515700) == 0xFF515700); // this only works on TabletPCs
-	return GetMessageExtraInfo() & 0x7f; // true for tablet mouse, not just pen
+	// this (apparently) gives the packet serial number, which only tablet events have
+	return GetMessageExtraInfo() != 0;
+//	bool IsFromPen = ((GetMessageExtraInfo() & 0xFF515700) == 0xFF515700); // this only works on TabletPCs
+//	static int all_magic = 0;
+//	int magic = GetMessageExtraInfo();
+//	all_magic |= magic;
+//	printf("from tablet? %08x %08x\n", magic, all_magic);
+//	return magic & 0x7f; // true for tablet mouse, not just pen
 	}
 
 GHOST_EventButton* GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type, GHOST_IWindow *window, GHOST_TButtonMask mask)
 {
-	puts("ghost button event");
-//	if (eventIsFromTablet())
-//		return NULL;
+	if (eventIsFromTablet())
+		return NULL;
+
+	static GHOST_Buttons buttons;
+	if (type == GHOST_kEventButtonUp && !buttons.get(mask))
+		// discard rogue button up events (probably from tablet)
+		return NULL;
+	buttons.set(mask, type == GHOST_kEventButtonDown);
+
+	printf("system button %d %s\n", mask, (type == GHOST_kEventButtonDown) ? "down" : (type == GHOST_kEventButtonUp) ? "up" : "???");
 
 	return new GHOST_EventButton (getSystem()->getMilliSeconds(), type, window, mask);
 }
@@ -516,6 +532,8 @@ GHOST_EventButton* GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type, 
 
 GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow, int x_screen, int y_screen)
 {
+	printf("system cursor (%d,%d)\n", x_screen, y_screen);
+
 	GHOST_SystemWin32 * system = ((GHOST_SystemWin32 * ) getSystem());
 	GHOST_WindowWin32 * window = ( GHOST_WindowWin32 * ) Iwindow;
 
@@ -933,10 +951,11 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 		// Tablet events, processed
 		////////////////////////////////////////////////////////////////////////
 		case WT_PACKET:
+			puts("WT_PACKET");
 			m_tabletManager->processPackets(window);
 			break;
 		case WT_CSRCHANGE:
-			m_tabletManager->changeTool((HCTX)lParam, wParam);
+			m_tabletManager->changeTool(window, wParam);
 			break;
 		case WT_PROXIMITY:
 			if (LOWORD(lParam) == 0)
@@ -1034,8 +1053,10 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
          GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw_ptr, &rawSize, sizeof(RAWINPUTHEADER));
          eventSent |= processRawInput(raw, window);
 
-         // necessary?
-         // DefRawInputProc(&raw_ptr, 1, sizeof(RAWINPUTHEADER));
+			if (processRawInput(raw, window))
+				eventSent = true;
+//			else
+//				DefRawInputProc(&raw_ptr, 1, sizeof(RAWINPUTHEADER));
 
 #if 0
 			#define RAWCOUNT 10
@@ -1067,7 +1088,7 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 						}
 
 					// clear processed events from the queue
-					DefRawInputProc((RAWINPUT**)&rawBuffer, n, sizeof(RAWINPUTHEADER));
+					// DefRawInputProc((RAWINPUT**)&rawBuffer, n, sizeof(RAWINPUTHEADER));
 					}
 				}
 #endif

@@ -69,15 +69,16 @@ class GHOST_TabletManagerWin32
 	UINT cursorCount;
 	UINT cursorBase;
 
-	// candidate for a base class:
+	// book-keeping
+	std::map<GHOST_WindowWin32*,HCTX> contexts;
+	HCTX contextForWindow(GHOST_WindowWin32*);
+
+	GHOST_WindowWin32* activeWindow;
 	TabletTool activeTool;
 
 	int prevMouseX;
 	int prevMouseY;
-
-	// book-keeping
-	std::map<GHOST_WindowWin32*,HCTX> contexts;
-	HCTX contextForWindow(GHOST_WindowWin32*);
+	UINT prevButtons;
 
 	void convertTilt(ORIENTATION const&, TabletToolData&);
 
@@ -90,9 +91,11 @@ public:
 	void openForWindow(GHOST_WindowWin32*);
 	void closeForWindow(GHOST_WindowWin32*);
 
-	void processPackets(GHOST_WindowWin32*);
+	// returns whether any packets resulted in GHOST events
+	bool processPackets(GHOST_WindowWin32* = NULL);
+//	void processPacket(GHOST_WindowWin32*, UINT serialNumber);
 
-	void changeTool(HCTX, UINT serialNumber);
+	void changeTool(GHOST_WindowWin32*, UINT serialNumber);
 	void dropTool();
 	};
 
@@ -100,10 +103,10 @@ public:
 The tablet manager is driven by the following Windows event processing code:
 
 case WT_PACKET:
-	m_tabletManager->processPackets((HCTX)lParam);
+	m_tabletManager->processPackets(window);
 	break;
 case WT_CSRCHANGE:
-	m_tabletManager->changeTool((HCTX)lParam, wParam);
+	m_tabletManager->changeTool(window, wParam);
 	break;
 case WT_PROXIMITY:
 	if (LOWORD(lParam) == 0)
