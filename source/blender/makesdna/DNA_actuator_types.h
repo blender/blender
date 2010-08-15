@@ -224,8 +224,9 @@ typedef struct bArmatureActuator {
 } bArmatureActuator;
 
 typedef struct bSteeringActuator {
-	char pad[7];
+	char pad[5];
 	char flag;
+	short facingaxis;
 	int type;		/* 0=seek, 1=flee, 2=path following */
 	float dist;
 	float velocity;
@@ -525,6 +526,7 @@ typedef struct bActuator {
 /* steeringactuator->flag */
 #define ACT_STEERING_SELFTERMINATED   1
 #define ACT_STEERING_ENABLEVISUALIZATION   2
+#define ACT_STEERING_AUTOMATICFACING   4
 
 #endif
 

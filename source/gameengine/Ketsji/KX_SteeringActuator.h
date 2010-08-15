@@ -38,6 +38,7 @@
 
 #include "SCA_IActuator.h"
 #include "SCA_LogicManager.h"
+#include "MT_Matrix3x3.h"
 
 class KX_GameObject;
 class KX_NavMeshObject;
@@ -64,11 +65,15 @@ class KX_SteeringActuator : public SCA_IActuator
 	bool m_isActive;
 	bool m_isSelfTerminated;
 	bool m_enableVisualization;
+	short m_facingMode;
 	float m_path[MAX_PATH_LENGTH*3];
 	int m_pathLen;
 	int m_pathUpdatePeriod;
 	double m_pathUpdateTime;
 	int m_wayPointIdx;
+	MT_Matrix3x3 m_parentlocalmat;
+	MT_Vector3 m_steerVec;
+	void HandleActorFace(MT_Vector3& velocity);
 public:
 	enum KX_STEERINGACT_MODE
 	{
@@ -90,6 +95,7 @@ public:
 						bool  isSelfTerminated,
 						int pathUpdatePeriod,
 						KX_ObstacleSimulation* simulation,
+						short facingmode,
 						bool enableVisualization);
 	virtual ~KX_SteeringActuator();
 	virtual bool Update(double curtime, bool frame);
@@ -98,6 +104,7 @@ public:
 	virtual void ProcessReplica();
 	virtual void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 	virtual bool UnlinkObject(SCA_IObject* clientobj);
+	const MT_Vector3& GetSteeringVec();
 
 #ifndef DISABLE_PYTHON
 
@@ -110,6 +117,7 @@ public:
 	static int pyattr_set_target(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject* pyattr_get_navmesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_navmesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject* pyattr_get_steeringVec(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	
 
 #endif // DISABLE_PYTHON

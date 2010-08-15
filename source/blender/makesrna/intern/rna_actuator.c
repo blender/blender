@@ -1892,6 +1892,15 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 		{ACT_STEERING_PATHFOLLOWING, "PATHFOLLOWING", 0, "Path following", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem facingaxis_items[] ={
+		{1, "X", 0, "X", ""},
+		{2, "Y", 0, "Y", ""},
+		{3, "Z", 0, "Z", ""},
+		{4, "-X", 0, "-X", ""},
+		{5, "-Y", 0, "-Y", ""},
+		{6, "-Z", 0, "-Z", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "SteeringActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Steering Actuator", "");
 	RNA_def_struct_sdna_from(srna, "bSteeringActuator", "data");
@@ -1956,6 +1965,18 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "NavMesh Object", "Navigation mesh");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SteeringActuator_navmesh_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "facing", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_STEERING_AUTOMATICFACING);
+	RNA_def_property_ui_text(prop, "Facing", "Enable automatic facing");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "facingaxis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "facingaxis");
+	RNA_def_property_enum_items(prop, facingaxis_items);
+	RNA_def_property_ui_text(prop, "Axis", "Axis for automatic facing");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+	
 }
 
 void RNA_def_actuator(BlenderRNA *brna)

@@ -4348,6 +4348,12 @@ static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "acceleration", 0, NULL, 0);
 	uiItemR(row, ptr, "turnspeed", 0, NULL, 0);
 	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "facing", 0, NULL, 0);
+	if (RNA_boolean_get(ptr, "facing"))
+	{
+		uiItemR(row, ptr, "facingaxis", 0, NULL, 0);	
+	}
+	row = uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "selfterminated", 0, NULL, 0);
 	if (RNA_enum_get(ptr, "mode")==ACT_STEERING_PATHFOLLOWING)
 	{

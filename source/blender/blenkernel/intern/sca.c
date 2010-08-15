@@ -472,6 +472,8 @@ void init_actuator(bActuator *act)
 		sta->turnspeed = 120.f;
 		sta->dist = 1.f;
 		sta->velocity= 3.f;
+		sta->flag = ACT_STEERING_AUTOMATICFACING;
+		sta->facingaxis = 1;
 	default:
 		; /* this is very severe... I cannot make any memory for this        */
 		/* logic brick...                                                    */
