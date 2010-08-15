@@ -431,6 +431,10 @@
 					RelativePath="..\..\..\source\blender\python\generic\mathutils_vector.c"
 					>
 				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\noise.c"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -478,6 +482,10 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_rna.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\intern\bpy_rna_callback.h"
 					>
 				</File>
 				<File
