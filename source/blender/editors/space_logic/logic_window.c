@@ -4351,7 +4351,11 @@ static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "facing", 0, NULL, 0);
 	if (RNA_boolean_get(ptr, "facing"))
 	{
-		uiItemR(row, ptr, "facingaxis", 0, NULL, 0);	
+		uiItemR(row, ptr, "facingaxis", 0, NULL, 0);
+	}
+	if (RNA_pointer_get(ptr, "navmesh").data)
+	{
+		uiItemR(row, ptr, "normalup", 0, NULL, 0);		
 	}
 	row = uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "selfterminated", 0, NULL, 0);

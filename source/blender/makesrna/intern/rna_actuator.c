@@ -1976,7 +1976,11 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, facingaxis_items);
 	RNA_def_property_ui_text(prop, "Axis", "Axis for automatic facing");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	
+
+	prop= RNA_def_property(srna, "normalup", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_STEERING_NORMALUP);
+	RNA_def_property_ui_text(prop, "N", "Use normal of the navmesh to set \"UP\" vector");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
 void RNA_def_actuator(BlenderRNA *brna)

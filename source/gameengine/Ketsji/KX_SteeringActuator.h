@@ -66,6 +66,7 @@ class KX_SteeringActuator : public SCA_IActuator
 	bool m_isSelfTerminated;
 	bool m_enableVisualization;
 	short m_facingMode;
+	bool m_normalUp;
 	float m_path[MAX_PATH_LENGTH*3];
 	int m_pathLen;
 	int m_pathUpdatePeriod;
@@ -96,6 +97,7 @@ public:
 						int pathUpdatePeriod,
 						KX_ObstacleSimulation* simulation,
 						short facingmode,
+						bool normalup,
 						bool enableVisualization);
 	virtual ~KX_SteeringActuator();
 	virtual bool Update(double curtime, bool frame);

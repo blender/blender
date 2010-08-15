@@ -39,7 +39,7 @@
 #include "KX_ObstacleSimulation.h"
 #include "KX_PythonInit.h"
 #include "KX_PyMath.h"
-
+#include "Recast.h"
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
@@ -57,6 +57,7 @@ KX_SteeringActuator::KX_SteeringActuator(SCA_IObject *gameobj,
 									int pathUpdatePeriod,
 									KX_ObstacleSimulation* simulation,
 									short facingmode,
+									bool normalup,
 									bool enableVisualization)	 : 
 	SCA_IActuator(gameobj, KX_ACT_STEERING),
 	m_mode(mode),
@@ -72,6 +73,7 @@ KX_SteeringActuator::KX_SteeringActuator(SCA_IObject *gameobj,
 	m_simulation(simulation),	
 	m_enableVisualization(enableVisualization),
 	m_facingMode(facingmode),
+	m_normalUp(normalup),
 	m_obstacle(NULL),
 	m_pathLen(0),
 	m_wayPointIdx(-1),
@@ -309,23 +311,129 @@ bool KX_SteeringActuator::Update(double curtime, bool frame)
 
 const MT_Vector3& KX_SteeringActuator::GetSteeringVec()
 {
+	static MT_Vector3 ZERO_VECTOR(0, 0, 0);
 	if (m_isActive)
 		return m_steerVec;
 	else
-		return MT_Vector3(0, 0, 0);
+		return ZERO_VECTOR;
+}
+
+inline float vdot2(const float* a, const float* b)
+{
+	return a[0]*b[0] + a[2]*b[2];
+}
+static bool barDistSqPointToTri(const float* p, const float* a, const float* b, const float* c)
+{
+	float v0[3], v1[3], v2[3];
+	vsub(v0, c,a);
+	vsub(v1, b,a);
+	vsub(v2, p,a);
+
+	const float dot00 = vdot2(v0, v0);
+	const float dot01 = vdot2(v0, v1);
+	const float dot02 = vdot2(v0, v2);
+	const float dot11 = vdot2(v1, v1);
+	const float dot12 = vdot2(v1, v2);
+
+	// Compute barycentric coordinates
+	float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
+	float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+	float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+	float ud = u<0.f ? -u : (u>1.f ? u-1.f : 0.f);
+	float vd = v<0.f ? -v : (v>1.f ? v-1.f : 0.f);
+	return ud*ud+vd*vd ;
+}
+
+inline void flipAxes(float* vec)
+{
+	std::swap(vec[1],vec[2]);
+}
+
+static bool getNavmeshNormal(dtStatNavMesh* navmesh, const MT_Vector3& pos, MT_Vector3& normal)
+{
+	static const float polyPickExt[3] = {2, 4, 2};
+	float spos[3];
+	pos.getValue(spos);	
+	flipAxes(spos);	
+	dtStatPolyRef sPolyRef = navmesh->findNearestPoly(spos, polyPickExt);
+	if (sPolyRef == 0)
+		return false;
+	const dtStatPoly* p = navmesh->getPoly(sPolyRef-1);
+	const dtStatPolyDetail* pd = navmesh->getPolyDetail(sPolyRef-1);
+
+	float distMin = FLT_MAX;
+	int idxMin = -1;
+	for (int i = 0; i < pd->ntris; ++i)
+	{
+		const unsigned char* t = navmesh->getDetailTri(pd->tbase+i);
+		const float* v[3];
+		for (int j = 0; j < 3; ++j)
+		{
+			if (t[j] < p->nv)
+				v[j] = navmesh->getVertex(p->v[t[j]]);
+			else
+				v[j] = navmesh->getDetailVertex(pd->vbase+(t[j]-p->nv));
+		}
+		float dist = barDistSqPointToTri(spos, v[0], v[1], v[2]);
+		if (dist<distMin)
+		{
+			distMin = dist;
+			idxMin = i;
+		}			
+	}
+
+	if (idxMin>=0)
+	{
+		const unsigned char* t = navmesh->getDetailTri(pd->tbase+idxMin);
+		const float* v[3];
+		for (int j = 0; j < 3; ++j)
+		{
+			if (t[j] < p->nv)
+				v[j] = navmesh->getVertex(p->v[t[j]]);
+			else
+				v[j] = navmesh->getDetailVertex(pd->vbase+(t[j]-p->nv));
+		}
+		MT_Vector3 tri[3];
+		for (size_t j=0; j<3; j++)
+			tri[j].setValue(v[j][0],v[j][2],v[j][1]);
+		MT_Vector3 a,b;
+		a = tri[1]-tri[0];
+		b = tri[2]-tri[0];
+		normal = b.cross(a).safe_normalized();
+		return true;
+	}
+
+	return false;
 }
 
 void KX_SteeringActuator::HandleActorFace(MT_Vector3& velocity)
 {
-	if (m_facingMode==0)
+	if (m_facingMode==0 && (!m_navmesh || !m_normalUp))
 		return;
-	MT_Vector3 dir = velocity;
+	KX_GameObject* curobj = (KX_GameObject*) GetParent();
+	MT_Vector3 dir = m_facingMode==0 ?  curobj->NodeGetLocalOrientation().getColumn(1) : velocity;
 	if (dir.fuzzyZero())
 		return;	
 	dir.normalize();
 	MT_Vector3 up(0,0,1);
 	MT_Vector3 left;
 	MT_Matrix3x3 mat;
+	
+	if (m_navmesh && m_normalUp)
+	{
+		dtStatNavMesh* navmesh =  m_navmesh->GetNavMesh();
+		MT_Vector3 normal;
+		MT_Vector3 trpos = m_navmesh->TransformToLocalCoords(curobj->NodeGetWorldPosition());
+		if (getNavmeshNormal(navmesh, trpos, normal))
+		{
+
+			left = (dir.cross(up)).safe_normalized();
+			dir = (-left.cross(normal)).safe_normalized();			
+			up = normal;
+		}
+	}
+
 	switch (m_facingMode)
 	{
 	case 1: // TRACK X
@@ -370,13 +478,14 @@ void KX_SteeringActuator::HandleActorFace(MT_Vector3& velocity)
 			break;
 		}
 	}
+
 	mat.setValue (
 		left[0], dir[0],up[0], 
 		left[1], dir[1],up[1],
 		left[2], dir[2],up[2]
 	);
 
-	KX_GameObject* curobj = (KX_GameObject*) GetParent();
+	
 	
 	KX_GameObject* parentObject = curobj->GetParent();
 	if(parentObject)
