@@ -195,8 +195,8 @@ def sort(props_list, sort_priority):
     """
 
     # order based on the i-th element in lists
-    if sort_priority == "class.from":
-        props_list = sorted(props_list, key=lambda p: (p[2], p[3]))
+    if sort_priority == "class.to":
+        props_list = sorted(props_list, key=lambda p: (p[2], p[4]))
     else:
         i = sort_choices.index(sort_priority)
         if i == 0:
