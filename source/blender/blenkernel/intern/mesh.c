@@ -1236,14 +1236,10 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 		MVert *mv= &mverts[i];
 		float *no= tnorms[i];
 		
-		if (normalize_v3(no)==0.0) {
-			VECCOPY(no, mv->co);
-			normalize_v3(no);
-		}
+		if (normalize_v3(no)==0.0)
+			normalize_v3_v3(no, mv->co);
 
-		mv->no[0]= (short)(no[0]*32767.0);
-		mv->no[1]= (short)(no[1]*32767.0);
-		mv->no[2]= (short)(no[2]*32767.0);
+		normal_float_to_short_v3(mv->no, no);
 	}
 	
 	MEM_freeN(tnorms);

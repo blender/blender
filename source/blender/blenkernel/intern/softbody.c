@@ -2032,8 +2032,7 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 	VECCOPY(vel,avel);
 	if (ci) *intrusion /= ci;
 	if (deflected){
-		VECCOPY(facenormal,force);
-		normalize_v3(facenormal);
+		normalize_v3_v3(facenormal, force);
 	}
 	return deflected;
 }
