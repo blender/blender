@@ -227,13 +227,15 @@ public:
 	 * @param data The window user data.
 	 */
 	virtual void setUserData(const GHOST_TUserDataPtr userData) = 0;
-	
+
 	/**
 	 * Returns the tablet data (pressure etc).
 	 * @return The tablet data (pressure etc).
 	 */
-	virtual const GHOST_TabletData* GetTabletData() = 0;
-	
+	virtual const GHOST_TabletData* GetTabletData()
+		{ return NULL; }
+		/* this function is targeted for removal by significant-bit */
+
 	/***************************************************************************************
 	 ** Progress bar functionality
 	 ***************************************************************************************/
@@ -304,8 +306,6 @@ public:
 	 * @return	Indication of success.
 	 */
 	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds) { return GHOST_kSuccess; };
-
 };
 
 #endif // _GHOST_IWINDOW_H_
-

@@ -247,8 +247,12 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 		}
 	} while (waitForEvent && !anyProcessed);
 
-	if (m_tabletManager->processPackets())
-		anyProcessed = true;
+//	Handle tablet input either here (polling)
+// or after WT_PACKET messages (event driven)
+// -- not both!
+
+//	if (m_tabletManager->processPackets())
+//		anyProcessed = true;
 
 	return anyProcessed;
 }
@@ -951,7 +955,6 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 		// Tablet events, processed
 		////////////////////////////////////////////////////////////////////////
 		case WT_PACKET:
-			puts("WT_PACKET");
 			m_tabletManager->processPackets(window);
 			break;
 		case WT_CSRCHANGE:
@@ -1011,7 +1014,9 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 
 		case WM_MOUSEMOVE:
 			{
-			if (!eventIsFromTablet())
+			if (!eventIsFromTablet() && !m_tabletManager->anyButtonsDown())
+				// Even with careful checking, a stray cursor event sneaks through just before each
+				// tablet mouse/pen button up event. Keep clean separation between tablet and mouse!
 				{
 				int xPrev = mousePosX;
 				int yPrev = mousePosY;

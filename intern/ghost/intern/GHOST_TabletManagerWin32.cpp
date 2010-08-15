@@ -10,8 +10,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define PACKETDATA PK_CURSOR | PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION
-#define PACKETMODE 0 /*PK_BUTTONS*/
+#define PACKETDATA (PK_CURSOR | PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION)
+#define PACKETMODE (0 /*PK_BUTTONS*/)
 // #define PACKETTILT PKEXT_ABSOLUTE
 
 #include "pktdef.h"
@@ -29,6 +29,29 @@ static void print(AXIS const& t, char const* label = NULL)
 		t.axMin, t.axMax,
 		HIWORD(t.axResolution), LOWORD(t.axResolution),
 		unitName[t.axUnits]);
+	}
+
+static void print(WTPKT packet)
+	{
+	if (packet == 0)
+		puts("- nothing special");
+	else
+		{
+		if (packet & PK_CONTEXT) puts("- reporting context");
+		if (packet & PK_STATUS) puts("- status bits");
+		if (packet & PK_TIME) puts("- time stamp");
+		if (packet & PK_CHANGED) puts("- change bit vector");
+		if (packet & PK_SERIAL_NUMBER) puts("- packet serial number");
+		if (packet & PK_CURSOR) puts("- reporting cursor");
+		if (packet & PK_BUTTONS) puts("- buttons");
+		if (packet & PK_X) puts("- x axis");
+		if (packet & PK_Y) puts("- y axis");
+		if (packet & PK_Z) puts("- z axis");
+		if (packet & PK_NORMAL_PRESSURE) puts("- tip pressure");
+		if (packet & PK_TANGENT_PRESSURE) puts("- barrel pressure");
+		if (packet & PK_ORIENTATION) puts("- orientation/tilt");
+		if (packet & PK_ROTATION) puts("- rotation");
+		}
 	}
 
 GHOST_TabletManagerWin32::GHOST_TabletManagerWin32()
@@ -49,40 +72,32 @@ GHOST_TabletManagerWin32::GHOST_TabletManagerWin32()
 		func_PacketsGet = (WTPACKETSGET) GetProcAddress(lib_Wintab,"WTPacketsGet");
 		func_Packet = (WTPACKET) GetProcAddress(lib_Wintab,"WTPacket");
 
-		WORD specV, implV;
-		func_Info(WTI_INTERFACE, IFC_SPECVERSION, &specV);
-		func_Info(WTI_INTERFACE, IFC_IMPLVERSION, &implV);
-		printf("WinTab version %d.%d (%d.%d)\n",
-			HIBYTE(specV), LOBYTE(specV), HIBYTE(implV), LOBYTE(implV));
-
-		// query for overall capabilities and ranges
-		char tabletName[LC_NAMELEN];
-		if (func_Info(WTI_DEVICES, DVC_NAME, tabletName))
-			puts(tabletName);
-
-		puts("active tablet area");
-		AXIS xRange, yRange;
-		func_Info(WTI_DEVICES, DVC_X, &xRange);
-		func_Info(WTI_DEVICES, DVC_Y, &yRange);
-		print(xRange,"x"); print(yRange,"y");
-
-
+		puts("\n-- essential tablet info --");
 		func_Info(WTI_DEVICES, DVC_NCSRTYPES, &cursorCount);
 		func_Info(WTI_DEVICES, DVC_FIRSTCSR, &cursorBase);
 
-		puts("pressure sensitivity");
+		func_Info(WTI_DEVICES, DVC_PKTDATA, &allTools);
+		puts("\nall tools have"); print(allTools);
+		func_Info(WTI_DEVICES, DVC_CSRDATA, &someTools);
+		puts("some tools also have"); print(someTools);
+
+		puts("\npressure sensitivity");
 		AXIS pressureRange;
-		hasPressure = func_Info(WTI_DEVICES, DVC_NPRESSURE, &pressureRange);// && pressureRange.axMax != 0;
-		print(pressureRange);
+		hasPressure = (allTools|someTools) & PK_NORMAL_PRESSURE
+			&& func_Info(WTI_DEVICES, DVC_NPRESSURE, &pressureRange);
 
 		if (hasPressure)
+			{
+			print(pressureRange);
 			pressureScale = 1.f / pressureRange.axMax;
+			}
 		else
 			pressureScale = 0.f;
 
-		puts("tilt sensitivity");
+		puts("\ntilt sensitivity");
 		AXIS tiltRange[3];
-		hasTilt = func_Info(WTI_DEVICES, DVC_ORIENTATION, tiltRange);
+		hasTilt = (allTools|someTools) & PK_ORIENTATION
+			&& func_Info(WTI_DEVICES, DVC_ORIENTATION, &tiltRange);
 
 		if (hasTilt)
 			{
@@ -103,7 +118,7 @@ GHOST_TabletManagerWin32::GHOST_TabletManagerWin32()
 
 #if 0 // WTX_TILT -- cartesian tilt extension, no conversion needed
 		// this isn't working for [mce], so let it rest for now
-		printf("raw tilt sensitivity:\n");
+		puts("\nraw tilt sensitivity");
 		hasTilt = false;
 		UINT tag = 0;
 		UINT extensionCount;
@@ -135,6 +150,8 @@ GHOST_TabletManagerWin32::GHOST_TabletManagerWin32()
 			tiltScaleX = tiltScaleY = 0.f;
 			}
 #endif // WTX_TILT
+
+		getExtraInfo();
 		}
 	}
 
@@ -142,6 +159,83 @@ GHOST_TabletManagerWin32::~GHOST_TabletManagerWin32()
 	{
 	// close WinTab
 	FreeLibrary(lib_Wintab);
+	}
+
+void GHOST_TabletManagerWin32::getExtraInfo()
+	{
+	puts("\n-- extra tablet info --");
+
+	WORD specV, implV;
+	func_Info(WTI_INTERFACE, IFC_SPECVERSION, &specV);
+	func_Info(WTI_INTERFACE, IFC_IMPLVERSION, &implV);
+	printf("WinTab version %d.%d (%d.%d)\n",
+		HIBYTE(specV), LOBYTE(specV), HIBYTE(implV), LOBYTE(implV));
+
+	UINT ndevices, ncursors;
+      func_Info(WTI_INTERFACE, IFC_NDEVICES, &ndevices);
+      func_Info(WTI_INTERFACE, IFC_NCURSORS, &ncursors);
+
+	printf("%d tablets, %d tools\n", ndevices, ncursors);
+	if (ndevices > 1)
+		; // support this?
+
+	// query for overall capabilities and ranges
+	char tabletName[LC_NAMELEN];
+	if (func_Info(WTI_DEVICES, DVC_NAME, tabletName))
+		puts(tabletName);
+
+	puts("\nactive tablet area");
+	AXIS xRange, yRange;
+	func_Info(WTI_DEVICES, DVC_X, &xRange);
+	func_Info(WTI_DEVICES, DVC_Y, &yRange);
+	print(xRange,"x"); print(yRange,"y");
+
+	putchar('\n');
+
+	UINT extensionCount;
+	func_Info(WTI_INTERFACE, IFC_NEXTENSIONS, &extensionCount);
+	for (UINT i = 0; i < extensionCount; ++i)
+		{
+		TCHAR name[40];
+		func_Info(WTI_EXTENSIONS + i, EXT_NAME, name);
+		printf("extension %d: %s\n", i, name);
+		}
+
+//	for (int i = cursorBase; i < cursorBase + cursorCount; ++i)
+	for (UINT i = 0; i < ncursors; ++i)
+		{
+		// what can each cursor do?
+
+		UINT physID;
+		func_Info(WTI_CURSORS + i, CSR_PHYSID, &physID);
+		if (physID == 0)
+			// each 'real' cursor has a physical ID
+			//  (on Intuos at least, test on Graphire also)
+			continue;
+
+		TCHAR name[40];
+		func_Info(WTI_CURSORS + i, CSR_NAME, name);
+		printf("\ncursor %d: %s\n", i, name);
+
+		BOOL active;
+		func_Info(WTI_CURSORS + i, CSR_ACTIVE, &active);
+		printf("active: %s\n", active ? "yes" : "no");
+
+		WTPKT packet;
+		func_Info(WTI_CURSORS + i, CSR_PKTDATA, &packet);
+		// only report the 'special' bits that distinguish this cursor from the rest
+		puts("packet support"); print(packet & someTools);
+
+		puts("buttons:");
+		BYTE buttons;
+		BYTE sysButtonMap[32];
+		func_Info(WTI_CURSORS + i, CSR_BUTTONS, &buttons);
+		func_Info(WTI_CURSORS + i, CSR_SYSBTNMAP, sysButtonMap);
+		for (int i = 0; i < buttons; ++i)
+			printf("  %d -> %d\n", i, sysButtonMap[i]);
+		}
+
+	putchar('\n');
 	}
 
 bool GHOST_TabletManagerWin32::available()
@@ -169,6 +263,7 @@ void GHOST_TabletManagerWin32::openForWindow(GHOST_WindowWin32* window)
 	LOGCONTEXT archetype;
 	func_Info(WTI_DEFSYSCTX, 0, &archetype);
 //	func_Info(WTI_DEFCONTEXT, 0, &archetype);
+//	func_Info(WTI_DSCTXS, 0, &archetype);
 
 	strcpy(archetype.lcName, "blender special");
 
@@ -180,8 +275,8 @@ void GHOST_TabletManagerWin32::openForWindow(GHOST_WindowWin32* window)
 	archetype.lcPktData = packetData;
 
  	archetype.lcPktMode = PACKETMODE;
-	archetype.lcOptions |= /*CXO_MESSAGES |*/ CXO_CSRMESSAGES;
-//	archetype.lcOptions |= CXO_SYSTEM | CXO_MESSAGES | CXO_CSRMESSAGES;
+//	archetype.lcOptions |= CXO_CSRMESSAGES; // <-- lean mean version
+	archetype.lcOptions |= CXO_SYSTEM | CXO_MESSAGES | CXO_CSRMESSAGES;
 
 #if PACKETMODE & PK_BUTTONS
 	// we want first 5 buttons
@@ -220,6 +315,7 @@ void GHOST_TabletManagerWin32::openForWindow(GHOST_WindowWin32* window)
 	printf("tablet queue size: %d\n", tabletQueueSize);
 
 	contexts[window] = context;
+	activeWindow = window;
 	}
 
 void GHOST_TabletManagerWin32::closeForWindow(GHOST_WindowWin32* window)
@@ -231,6 +327,8 @@ void GHOST_TabletManagerWin32::closeForWindow(GHOST_WindowWin32* window)
 		func_Close(context);
 		// also remove it from our books:
 		contexts.erase(contexts.find(window));
+		if (activeWindow == window)
+			activeWindow = NULL;
 		}
 	}
 
@@ -270,6 +368,28 @@ void GHOST_TabletManagerWin32::convertTilt(ORIENTATION const& ort, TabletToolDat
 	data.tilt_y = sin(M_PI/2.0 - azmRad) * vecLen;
 	}
 
+bool GHOST_TabletManagerWin32::convertButton(const UINT button, GHOST_TButtonMask& ghost)
+	{
+	switch (sysButtonMap[button])
+		{
+		case 1:
+			ghost = GHOST_kButtonMaskLeft;
+			break;
+		case 4:
+			ghost = GHOST_kButtonMaskRight;
+			break;
+		case 7:
+			ghost = GHOST_kButtonMaskMiddle;
+			break;
+		// sorry, no Button4 or Button5
+		// they each map to 0 (unused)
+		default:
+			return false;
+		};
+
+	return true;
+	}
+
 bool GHOST_TabletManagerWin32::processPackets(GHOST_WindowWin32* window)
 	{
 	if (window == NULL)
@@ -305,7 +425,7 @@ bool GHOST_TabletManagerWin32::processPackets(GHOST_WindowWin32* window)
 
 			anyProcessed = true;
 
-			// Since we're using a digitizing context, we need to
+			// If we're using a digitizing context, we need to
 			// move the on-screen cursor ourselves.
 			// SetCursorPos(x, y);
 
@@ -344,8 +464,6 @@ bool GHOST_TabletManagerWin32::processPackets(GHOST_WindowWin32* window)
 				if (o.orAzimuth || o.orAltitude)
 					{
 					convertTilt(o, data);
-					printf(" /%d,%d/", o.orAzimuth, o.orAltitude);
-					printf(" /%.2f,%.2f/", data.tilt_x, data.tilt_y);
 					if (fabs(data.tilt_x) < 0.001 && fabs(data.tilt_x) < 0.001)
 						{
 						// really should fix the initial test for activeTool.hasTilt,
@@ -353,6 +471,11 @@ bool GHOST_TabletManagerWin32::processPackets(GHOST_WindowWin32* window)
 						data.tool.hasTilt = false;
 						data.tilt_x = 0.f;
 						data.tilt_y = 0.f;
+						}
+					else
+						{
+						// printf(" /%d,%d/", o.orAzimuth, o.orAltitude);
+						printf(" /%.2f,%.2f/", data.tilt_x, data.tilt_y);
 						}
 					}
 				else
@@ -367,8 +490,7 @@ bool GHOST_TabletManagerWin32::processPackets(GHOST_WindowWin32* window)
 			GHOST_System* system = (GHOST_System*) GHOST_ISystem::getSystem();
 
 			// any buttons changed?
-			#if PACKETMODE & PK_BUTTONS
-			// relative buttons mode
+			#if PACKETMODE & PK_BUTTONS // relative buttons mode
 			if (packet.pkButtons)
 				{
 				// which button?
@@ -390,8 +512,7 @@ bool GHOST_TabletManagerWin32::processPackets(GHOST_WindowWin32* window)
 				
 				system->pushEvent(e);
 				}
-			#else
-			// absolute buttons mode
+			#else // absolute buttons mode
 			UINT diff = prevButtons ^ packet.pkButtons;
 			if (diff)
 				{
@@ -401,19 +522,23 @@ bool GHOST_TabletManagerWin32::processPackets(GHOST_WindowWin32* window)
 
 					if (diff & mask)
 						{
-						GHOST_TButtonMask e_button = (GHOST_TButtonMask) i;
-						GHOST_TEventType e_action = (packet.pkButtons & mask) ? GHOST_kEventButtonDown : GHOST_kEventButtonUp;
-
-						GHOST_EventButton* e = new GHOST_EventButton(system->getMilliSeconds(), e_action, window, e_button);
-						GHOST_TabletData& e_data = ((GHOST_TEventButtonData*) e->getData())->tablet;
-						e_data.Active = (GHOST_TTabletMode) data.tool.type;
-						e_data.Pressure = data.pressure;
-						e_data.Xtilt = data.tilt_x;
-						e_data.Ytilt = data.tilt_y;
-
-						printf(" button %d %s\n", i, (e_action == GHOST_kEventButtonDown) ? "down" : "up");
-
-						system->pushEvent(e);
+						GHOST_TButtonMask e_button;
+						if (convertButton(i, e_button))
+							{
+							GHOST_TEventType e_action = (packet.pkButtons & mask) ? GHOST_kEventButtonDown : GHOST_kEventButtonUp;
+	
+							GHOST_EventButton* e = new GHOST_EventButton(system->getMilliSeconds(), e_action, window, e_button);
+							GHOST_TabletData& e_data = ((GHOST_TEventButtonData*) e->getData())->tablet;
+							e_data.Active = (GHOST_TTabletMode) data.tool.type;
+							e_data.Pressure = data.pressure;
+							e_data.Xtilt = data.tilt_x;
+							e_data.Ytilt = data.tilt_y;
+	
+							printf(" button %d %s\n", i, (e_action == GHOST_kEventButtonDown) ? "down" : "up");
+	
+							system->pushEvent(e);
+							}
+						else puts(" mystery button (discarded)");
 						}
 					}
 
@@ -451,14 +576,14 @@ void GHOST_TabletManagerWin32::changeTool(GHOST_WindowWin32* window, UINT serial
 	if (context)
 		{
 		activeWindow = window;
-	
+
 		PACKET packet;
 		func_Packet(context, serialNumber, &packet);
-		UINT cursor = (packet.pkCursor - cursorBase) % cursorCount;
-	
-		// printf("%d mod %d = %d\n", packet.pkCursor - cursorBase, cursorCount, cursor);
-	
-		switch (cursor)
+
+		// try one way to classify cursor
+		UINT cursorType = (packet.pkCursor - cursorBase) % cursorCount;
+		printf("%d mod %d = %d\n", packet.pkCursor - cursorBase, cursorCount, cursorType);
+		switch (cursorType)
 			{
 			case 0: // older Intuos tablets can track two cursors at once
 			case 3: // so we test for both here
@@ -475,22 +600,55 @@ void GHOST_TabletManagerWin32::changeTool(GHOST_WindowWin32* window, UINT serial
 			default:
 				activeTool.type = TABLET_NONE;
 			}
-	
+
+		// now try another way
+		func_Info(WTI_CURSORS + packet.pkCursor, CSR_TYPE, &cursorType);
+		switch (cursorType & 0xf06)
+			{
+			case 0x802:
+				puts("general stylus");
+				break;
+			case 0x902:
+				puts("airbrush");
+				break;
+			case 0x804:
+				puts("art pen");
+				break;
+			case 0x004:
+				puts("4D mouse");
+				break;
+			case 0x006:
+				puts("5-button puck");
+				break;
+			default:
+				puts("???");
+			}
+
 		WTPKT toolData;
 		func_Info(WTI_CURSORS + packet.pkCursor, CSR_PKTDATA, &toolData);
-		activeTool.hasPressure = toolData & PK_NORMAL_PRESSURE;
-		activeTool.hasTilt = toolData & PK_ORIENTATION;
-	//	activeTool.hasTilt = toolData & tiltMask;
-	
-		if (activeTool.hasPressure)
-			puts(" - pressure");
-	
-		if (activeTool.hasTilt)
-			puts(" - tilt");
-	
-		// and just for fun:
-		if (toolData & PK_BUTTONS)
-			puts(" - buttons");
+		// discard any stray capabilities
+		// (sometimes cursors claim to be able to do things
+		//    that their tablet doesn't support)
+		toolData &= (allTools|someTools);
+		// only report the 'special' bits that distinguish this cursor from the rest
+		puts("packet support"); print(toolData & someTools);
+		putchar('\n');
+
+		if (activeTool.type == TABLET_MOUSE)
+			{
+			// don't always trust CSR_PKTDATA!
+			activeTool.hasPressure = false;
+			activeTool.hasTilt = false;
+			}
+		else
+			{
+			activeTool.hasPressure = toolData & PK_NORMAL_PRESSURE;
+			activeTool.hasTilt = toolData & PK_ORIENTATION;
+			//	activeTool.hasTilt = toolData & tiltMask;
+			}
+
+		// remember user's custom button assignments for this tool
+		func_Info(WTI_CURSORS + packet.pkCursor, CSR_SYSBTNMAP, sysButtonMap);
 		}
 	}
 
@@ -504,4 +662,9 @@ void GHOST_TabletManagerWin32::dropTool()
 	prevButtons = 0;
 	
 	activeWindow = NULL;
+	}
+
+bool GHOST_TabletManagerWin32::anyButtonsDown()
+	{
+	return prevButtons != 0;
 	}

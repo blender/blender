@@ -125,10 +125,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_hasMouseCaptured(false),
 	m_nPressedButtons(0),
 	m_customCursor(0),
-//	m_wintab(false),
-//	m_tabletData(NULL),
-//	m_tablet(0),
-//	m_maxPressure(0),
 	m_multisample(numOfAASamples),
 	m_multisampleEnabled(msEnabled),
 	m_msPixelFormat(msPixelFormat),
@@ -236,83 +232,11 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			m_hWnd = 0;
 		}
 	}
-
-#if 0
-   m_wintab = LoadWintab();
-	if (m_wintab) {
-		// let's see if we can initialize tablet here
-		/* check if WinTab available. */
-		if (gpWTInfoA(0, 0, NULL)) {
-			// Now init the tablet
-			LOGCONTEXT lc;
-			AXIS TabletX, TabletY, Pressure, Orientation[3]; /* The maximum tablet size, pressure and orientation (tilt) */
-
-			// Open a Wintab context
-
-			// Get default context information
-			gpWTInfoA( WTI_DEFCONTEXT, 0, &lc );
-
-			// Open the context
-			lc.lcPktData = PACKETDATA;
-			lc.lcPktMode = PACKETMODE;
-			lc.lcOptions |= /* CXO_MESSAGES | */ CXO_SYSTEM;
-			lc.lcOptions &= ~CXO_MESSAGES;
-
-			/* Set the entire tablet as active */
-			gpWTInfoA(WTI_DEVICES,DVC_X,&TabletX);
-			gpWTInfoA(WTI_DEVICES,DVC_Y,&TabletY);
-
-			/* get the max pressure, to divide into a float */
-			BOOL pressureSupport = gpWTInfoA(WTI_DEVICES, DVC_NPRESSURE, &Pressure);
-			if (pressureSupport)
-				m_maxPressure = Pressure.axMax;
-			else
-				m_maxPressure = 0;
-
-			/* get the max tilt axes, to divide into floats */
-			BOOL tiltSupport = gpWTInfoA(WTI_DEVICES, DVC_ORIENTATION, &Orientation);
-			if (tiltSupport) {
-				/* does the tablet support azimuth ([0]) and altitude ([1]) */
-				if (Orientation[0].axResolution && Orientation[1].axResolution) {
-					/* all this assumes the minimum is 0 */
-					m_maxAzimuth = Orientation[0].axMax;
-					m_maxAltitude = Orientation[1].axMax;
-				}
-				else {  /* no so dont do tilt stuff */
-					m_maxAzimuth = m_maxAltitude = 0;
-				}
-			}
-
-			m_tablet = gpWTOpenA( m_hWnd, &lc, TRUE );
-			if (m_tablet) {
-				m_tabletData = new GHOST_TabletData();
-				m_tabletData->Active = GHOST_kTabletModeNone;
-
-            // request a deep queue, to capture every pen point
-            int tabletQueueSize = 128;
-            while (!gpWTQueueSizeSet(m_tablet, tabletQueueSize))
-                  --tabletQueueSize;
-            printf("tablet queue size: %d\n", tabletQueueSize);
-			}
-		}
-	}
-#endif
 }
 
 
 GHOST_WindowWin32::~GHOST_WindowWin32()
 {
-#if 0
-	if (m_wintab) {
-		if (m_tablet)
-			gpWTClose(m_tablet);
-		if (m_tabletData)
-			delete m_tabletData;
-		m_tabletData = NULL;
-      UnloadWintab();
-	}
-#endif
-
 	if (m_tabletManager)
 		m_tabletManager->closeForWindow(this);
 
@@ -921,112 +845,6 @@ void GHOST_WindowWin32::becomeTabletAware(GHOST_TabletManagerWin32* manager)
 	m_tabletManager = manager;
 	m_tabletManager->openForWindow(this);
 }
-
-#if 0
-void GHOST_WindowWin32::processWin32TabletInitEvent()
-{
-	if (m_wintab) {
-		// let's see if we can initialize tablet here
-			AXIS Pressure, Orientation[3]; /* The maximum tablet size */
-
-			BOOL pressureSupport = gpWTInfoA(WTI_DEVICES, DVC_NPRESSURE, &Pressure);
-			if (pressureSupport)
-				m_maxPressure = Pressure.axMax;
-			else
-				m_maxPressure = 0;
-
-			BOOL tiltSupport = gpWTInfoA(WTI_DEVICES, DVC_ORIENTATION, &Orientation);
-			if (tiltSupport) {
-				/* does the tablet support azimuth ([0]) and altitude ([1]) */
-				if (Orientation[0].axResolution && Orientation[1].axResolution) {
-					m_maxAzimuth = Orientation[0].axMax;
-					m_maxAltitude = Orientation[1].axMax;
-				}
-				else {  /* no so dont do tilt stuff */
-					m_maxAzimuth = m_maxAltitude = 0;
-				}
-			}
-
-			m_tabletData->Active = GHOST_kTabletModeNone;
-	}
-}
-
-void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
-{
-//	PACKET pkt;
-	if (m_wintab) {
-     printf("tablet event ");
-     		PACKET pkt_buffer[128];
-     		int n = gpWTPacketsGet((HCTX)lParam, 128, pkt_buffer);
-     		printf("(%d in queue) ", n);
-     		for (int i = 0; i < n; ++i) {
-				PACKET& pkt = pkt_buffer[i];
-     // "while" not "if" -- drain the queue!
-//			while (gpWTPacket((HCTX)lParam, wParam, &pkt)) {
-				putchar('.');
-				if (m_tabletData) {
-					switch (pkt.pkCursor) {
-						case 0: /* first device */
-						case 3: /* second device */
-							m_tabletData->Active = GHOST_kTabletModeNone; /* puck - not yet supported */
-							break;
-						case 1:
-						case 4:
-							m_tabletData->Active = GHOST_kTabletModeStylus; /* stylus */
-							break;
-						case 2:
-						case 5:
-							m_tabletData->Active = GHOST_kTabletModeEraser; /* eraser */
-							break;
-					}
-					if (m_maxPressure > 0) {
-						m_tabletData->Pressure = (float)pkt.pkNormalPressure / (float)m_maxPressure;
-					} else {
-						m_tabletData->Pressure = 1.0f;
-					}
-
-					if ((m_maxAzimuth > 0) && (m_maxAltitude > 0)) {
-						ORIENTATION ort = pkt.pkOrientation;
-						float vecLen;
-						float altRad, azmRad;	/* in radians */
-
-						/*
-						from the wintab spec:
-						orAzimuth	Specifies the clockwise rotation of the
-						cursor about the z axis through a full circular range.
-
-						orAltitude	Specifies the angle with the x-y plane
-						through a signed, semicircular range.  Positive values
-						specify an angle upward toward the positive z axis;
-						negative values specify an angle downward toward the negative z axis.
-
-						wintab.h defines .orAltitude as a UINT but documents .orAltitude
-						as positive for upward angles and negative for downward angles.
-						WACOM uses negative altitude values to show that the pen is inverted;
-						therefore we cast .orAltitude as an (int) and then use the absolute value.
-						*/
-
-						/* convert raw fixed point data to radians */
-						altRad = (float)((fabs((float)ort.orAltitude)/(float)m_maxAltitude) * M_PI/2.0);
-						azmRad = (float)(((float)ort.orAzimuth/(float)m_maxAzimuth) * M_PI*2.0);
-
-						/* find length of the stylus' projected vector on the XY plane */
-						vecLen = cos(altRad);
-
-						/* from there calculate X and Y components based on azimuth */
-						m_tabletData->Xtilt = sin(azmRad) * vecLen;
-						m_tabletData->Ytilt = (float)(sin(M_PI/2.0 - azmRad) * vecLen);
-
-					} else {
-						m_tabletData->Xtilt = 0.0f;
-						m_tabletData->Ytilt = 0.0f;
-					}
-				}
-			}
-		putchar('\n');
-	}
-}
-#endif
 
 /** Reverse the bits in a GHOST_TUns8 */
 static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)

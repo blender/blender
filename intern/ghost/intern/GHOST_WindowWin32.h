@@ -43,24 +43,9 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-/*
-#include <wintab.h>
-#define PACKETDATA	(PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR)
-#define PACKETMODE	PK_BUTTONS
-#include <pktdef.h>
-*/
-
 class GHOST_SystemWin32;
 class GHOST_DropTargetWin32;
 class GHOST_TabletManagerWin32;
-
-/*
-// typedefs for WinTab functions to allow dynamic loading
-typedef UINT (API * GHOST_WIN32_WTInfo) ( UINT, UINT, LPVOID );
-typedef HCTX (API * GHOST_WIN32_WTOpen) (HWND, LPLOGCONTEXTA, BOOL);
-typedef BOOL (API * GHOST_WIN32_WTClose) (HCTX);
-typedef BOOL (API * GHOST_WIN32_WTPacket) (HCTX, UINT, LPVOID);
-*/
 
 /**
  * GHOST window on M$ Windows OSs.
@@ -250,12 +235,6 @@ public:
 	 */
 	void loadCursor(bool visible, GHOST_TStandardCursor cursorShape) const;
 
-	const GHOST_TabletData* GetTabletData()
-	{ return NULL; /*m_tabletData;*/ }
-
-//	void processWin32TabletInitEvent();
-//	void processWin32TabletEvent(WPARAM wParam, LPARAM lParam);
-
 	void becomeTabletAware(GHOST_TabletManagerWin32*);
 
 protected:
@@ -346,18 +325,6 @@ protected:
 
 	static LPCSTR s_windowClassName;
 	static const int s_maxTitleLength;
-
-	/** WinTab dll handle */
-//	HMODULE m_wintab;
-//   bool m_wintab;
-
-	/** Tablet data for GHOST */
-//	GHOST_TabletData* m_tabletData;
-
-	/** Stores the Tablet context if detected Tablet features using WinTab.dll */
-//	HCTX m_tablet;
-//	LONG m_maxPressure;
-//	LONG m_maxAzimuth, m_maxAltitude;
 
 	/** Preferred number of samples */
 	GHOST_TUns16 m_multisample;

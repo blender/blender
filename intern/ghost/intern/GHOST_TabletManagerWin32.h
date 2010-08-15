@@ -10,6 +10,7 @@
 #include "wintab.h"
 #include <map>
 
+#include "GHOST_Types.h"
 class GHOST_WindowWin32;
 
 // BEGIN from Wacom's Utils.h
@@ -57,6 +58,8 @@ class GHOST_TabletManagerWin32
 	WTPACKETSGET func_PacketsGet;
 	WTPACKET func_Packet;
 
+	void getExtraInfo(); // to help support new/untested tablets
+
 	// tablet attributes
 	bool hasPressure;
 	float pressureScale;
@@ -68,6 +71,8 @@ class GHOST_TabletManagerWin32
 //	UINT tiltMask;
 	UINT cursorCount;
 	UINT cursorBase;
+	WTPKT allTools; // standard info available from any tool (mouse/pen/etc.)
+	WTPKT someTools; // extra info available from only some tools
 
 	// book-keeping
 	std::map<GHOST_WindowWin32*,HCTX> contexts;
@@ -75,12 +80,14 @@ class GHOST_TabletManagerWin32
 
 	GHOST_WindowWin32* activeWindow;
 	TabletTool activeTool;
+	BYTE sysButtonMap[32]; // user's custom button assignments for active tool
 
 	int prevMouseX;
 	int prevMouseY;
 	UINT prevButtons;
 
 	void convertTilt(ORIENTATION const&, TabletToolData&);
+	bool convertButton(const UINT button, GHOST_TButtonMask&);
 
 public:
 	GHOST_TabletManagerWin32();
@@ -97,24 +104,8 @@ public:
 
 	void changeTool(GHOST_WindowWin32*, UINT serialNumber);
 	void dropTool();
+
+	bool anyButtonsDown();
 	};
-
-/*
-The tablet manager is driven by the following Windows event processing code:
-
-case WT_PACKET:
-	m_tabletManager->processPackets(window);
-	break;
-case WT_CSRCHANGE:
-	m_tabletManager->changeTool(window, wParam);
-	break;
-case WT_PROXIMITY:
-	if (LOWORD(lParam) == 0)
-		{
-		puts("-- dropping tool --");
-		m_tabletManager->dropTool();
-		}
-	break;
-*/
 
 #endif
