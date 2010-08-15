@@ -823,9 +823,9 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, bContext *C, Point
 	uiItemR(col, ptr, "cutoff", 0, NULL, 0);
 	
 	col= uiLayoutColumn(layout, 1);
-	uiItemR(col, ptr, "lift", UI_ITEM_R_SLIDER, NULL, 0);
+   /*uiItemR(col, ptr, "lift", UI_ITEM_R_SLIDER, NULL, 0);  Removed for now */
 	uiItemR(col, ptr, "gain", UI_ITEM_R_SLIDER, NULL, 0);
-	uiItemR(col, ptr, "shadow_adjust", UI_ITEM_R_SLIDER, NULL, 0);
+   /*uiItemR(col, ptr, "shadow_adjust", UI_ITEM_R_SLIDER, NULL, 0);  Removed for now*/
 }
 
 static void node_composit_buts_color_matte(uiLayout *layout, bContext *C, PointerRNA *ptr)
