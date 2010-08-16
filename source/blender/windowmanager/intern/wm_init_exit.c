@@ -214,11 +214,13 @@ int WM_init_game(bContext *C)
 	ScrArea *sa;
 	ARegion *ar;
 
-	Main *main = CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 
-	if (!scene)
-		scene= main->scene.first;
+	if (!scene) {
+		// XXX, this should not be needed.
+		Main *bmain = CTX_data_main(C);
+		scene= bmain->scene.first;
+	}
 
 	win = wm->windows.first;
 
