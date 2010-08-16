@@ -60,7 +60,7 @@ if env['OURPLATFORM'] != 'linuxcross':
 	if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
 		dna.Command ('dna.c', '', "\"" + root_build_dir+os.sep+"makesdna\" $TARGET")
 	else:
-		dna.Command ('dna.c', '', root_build_dir+os.sep+"makesdna $TARGET")
+		dna.Command ('dna.c', '', "\"" + root_build_dir+os.sep+"makesdna\" $TARGET")
 else:
 	if USE_WINE:
 		dna.Command ('dna.c', '', 'wine ' + root_build_dir+os.sep+"makesdna $TARGET")
