@@ -97,7 +97,6 @@ EnumPropertyItem modifier_type_items[] ={
 #include "BKE_library.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
-#include "BKE_pointcache.h"
 
 static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
