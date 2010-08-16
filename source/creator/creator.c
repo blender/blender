@@ -1144,8 +1144,10 @@ int main(int argc, char **argv)
 
 	else {
 		if((G.fileflags & G_FILE_AUTOPLAY) && (G.f & G_SCRIPT_AUTOEXEC))
-			WM_init_game(C);
-
+		{
+			if(WM_init_game(C))
+				return 0;
+		}
 		else if(!G.file_loaded)
 			WM_init_splash(C);
 	}

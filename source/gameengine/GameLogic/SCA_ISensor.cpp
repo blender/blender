@@ -357,9 +357,8 @@ PyAttributeDef SCA_ISensor::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("triggered", SCA_ISensor, pyattr_get_triggered),
 	KX_PYATTRIBUTE_RO_FUNCTION("positive", SCA_ISensor, pyattr_get_positive),
 	KX_PYATTRIBUTE_RO_FUNCTION("status", SCA_ISensor, pyattr_get_status),
-	//KX_PYATTRIBUTE_TODO("links"),
-	//KX_PYATTRIBUTE_TODO("posTicks"),
-	//KX_PYATTRIBUTE_TODO("negTicks"),
+	KX_PYATTRIBUTE_RO_FUNCTION("pos_ticks", SCA_ISensor, pyattr_get_posTicks),
+	KX_PYATTRIBUTE_RO_FUNCTION("neg_ticks", SCA_ISensor, pyattr_get_negTicks),
 	{ NULL }	//Sentinel
 };
 
@@ -399,6 +398,18 @@ PyObject* SCA_ISensor::pyattr_get_status(void *self_v, const KX_PYATTRIBUTE_DEF 
 		status = 3;
 	}
 	return PyLong_FromSsize_t(status);
+}
+
+PyObject* SCA_ISensor::pyattr_get_posTicks(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	return PyLong_FromLong(self->GetPosTicks());
+}
+
+PyObject* SCA_ISensor::pyattr_get_negTicks(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	return PyLong_FromLong(self->GetNegTicks());
 }
 
 int SCA_ISensor::pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

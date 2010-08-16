@@ -109,7 +109,7 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 }
 //----------------------------Quaternion.toMatrix()------------------
 static char Quaternion_ToMatrix_doc[] =
-".. method:: to_matrix(other)\n"
+".. method:: to_matrix()\n"
 "\n"
 "   Return a matrix representation of the quaternion.\n"
 "\n"
@@ -930,7 +930,7 @@ static PyGetSetDef Quaternion_getseters[] = {
 	{"angle", (getter)Quaternion_getAngle, (setter)Quaternion_setAngle, "angle of the quaternion.\n\n:type: float", NULL},
 	{"axis",(getter)Quaternion_getAxisVec, (setter)Quaternion_setAxisVec, "quaternion axis as a vector.\n\n:type: :class:`Vector`", NULL},
 	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
-	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
+	{"owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
