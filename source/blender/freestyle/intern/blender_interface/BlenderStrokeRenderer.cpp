@@ -43,13 +43,38 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 	// Scene.New("FreestyleStrokes")
 	old_scene = re->scene;
 
-	ListBase lb;
 	char name[22];
 	snprintf(name, sizeof(name), "FRS%d_%s", render_count, re->scene->id.name+2);
 	freestyle_scene = add_scene(name);
-	lb = freestyle_scene->r.layers;
-	freestyle_scene->r= old_scene->r;
-	freestyle_scene->r.layers= lb;
+	freestyle_scene->r.mode= old_scene->r.mode;
+	freestyle_scene->r.xsch= old_scene->r.xsch;
+	freestyle_scene->r.ysch= old_scene->r.ysch;
+	freestyle_scene->r.xasp= old_scene->r.xasp;
+	freestyle_scene->r.yasp= old_scene->r.yasp;
+	freestyle_scene->r.xparts= old_scene->r.xparts;
+	freestyle_scene->r.yparts= old_scene->r.yparts;
+	freestyle_scene->r.size= old_scene->r.size;
+	freestyle_scene->r.maximsize= old_scene->r.maximsize;
+	freestyle_scene->r.ocres = old_scene->r.ocres;
+	freestyle_scene->r.color_mgt_flag = old_scene->r.color_mgt_flag;
+	freestyle_scene->r.scemode= old_scene->r.scemode;
+	freestyle_scene->r.flag= old_scene->r.flag;
+	freestyle_scene->r.threads= old_scene->r.threads;
+	freestyle_scene->r.border.xmin= old_scene->r.border.xmin;
+	freestyle_scene->r.border.ymin= old_scene->r.border.ymin;
+	freestyle_scene->r.border.xmax= old_scene->r.border.xmax;
+	freestyle_scene->r.border.ymax= old_scene->r.border.ymax;
+	strcpy(freestyle_scene->r.backbuf, old_scene->r.backbuf);
+	strcpy(freestyle_scene->r.pic, old_scene->r.pic);
+	freestyle_scene->r.safety.xmin= old_scene->r.safety.xmin;
+	freestyle_scene->r.safety.ymin= old_scene->r.safety.ymin;
+	freestyle_scene->r.safety.xmax= old_scene->r.safety.xmax;
+	freestyle_scene->r.safety.ymax= old_scene->r.safety.ymax;
+	freestyle_scene->r.osa= old_scene->r.osa;
+	freestyle_scene->r.filtertype= old_scene->r.filtertype;
+	freestyle_scene->r.gauss= old_scene->r.gauss;
+	freestyle_scene->r.dither_intensity= old_scene->r.dither_intensity;
+	BLI_strncpy(freestyle_scene->r.engine, old_scene->r.engine, sizeof(freestyle_scene->r.engine));
 	set_scene_bg( G.main, freestyle_scene );
 
 	// image dimensions
