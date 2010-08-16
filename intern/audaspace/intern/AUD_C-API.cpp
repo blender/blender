@@ -30,14 +30,14 @@ Device* g_device;
 bool g_pyinitialized = false;
 #endif
 
+// needed for INT64_C
+#ifndef __STDC_CONSTANT_MACROS
+#define __STDC_CONSTANT_MACROS
+#endif
+
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
-
-#ifndef __STDC_CONSTANT_MACROS
-// needed for INT64_C
-#define __STDC_CONSTANT_MACROS
-#endif
 
 #include "AUD_NULLDevice.h"
 #include "AUD_I3DDevice.h"
