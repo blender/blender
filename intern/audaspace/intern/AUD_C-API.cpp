@@ -23,16 +23,16 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
+// needed for INT64_C
+#ifndef __STDC_CONSTANT_MACROS
+#define __STDC_CONSTANT_MACROS
+#endif
+
 #ifndef DISABLE_PYTHON
 #include "AUD_PyAPI.h"
 
 Device* g_device;
 bool g_pyinitialized = false;
-#endif
-
-// needed for INT64_C
-#ifndef __STDC_CONSTANT_MACROS
-#define __STDC_CONSTANT_MACROS
 #endif
 
 #include <cstdlib>
