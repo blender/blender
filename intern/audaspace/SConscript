@@ -31,10 +31,10 @@ if env['WITH_BF_SNDFILE']:
 	incs += ' sndfile ' + env['BF_SNDFILE_INC']
 	defs.append('WITH_SNDFILE')
 
-if env['WITH_BF_FFTW3']:
-	sources += env.Glob('fftw/*.cpp')
-	incs += ' fftw ' + env['BF_FFTW3_INC']
-	defs.append('WITH_FFTW3')
+#if env['WITH_BF_FFTW3']:
+#	sources += env.Glob('fftw/*.cpp')
+#	incs += ' fftw ' + env['BF_FFTW3_INC']
+#	defs.append('WITH_FFTW3')
 
 if env['WITH_BF_PYTHON']:
 	sources += env.Glob('Python/*.cpp')

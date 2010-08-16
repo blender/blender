@@ -56,9 +56,9 @@ ifeq ($(WITH_SNDFILE),true)
   DIRS += sndfile
 endif
 
-ifeq ($(WITH_FFTW3),true)
-  DIRS += fftw
-endif
+#ifeq ($(WITH_FFTW3),true)
+#  DIRS += fftw
+#endif
 
 include nan_subdirs.mk
 
@@ -84,9 +84,9 @@ ifeq ($(WITH_SNDFILE),true)
 	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaud_sndfile.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
 endif
 
-ifeq ($(WITH_FFTW3),true)
-	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaud_fftw.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
-endif
+#ifeq ($(WITH_FFTW3),true)
+#	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaud_fftw.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
+#endif
 
 ifeq ($(OS),darwin)
 	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaudaspace.a
@@ -110,9 +110,9 @@ ifeq ($(WITH_SNDFILE),true)
 	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sndfile.a
 endif
 
-ifeq ($(WITH_FFTW3),true)
-	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fftw.a
-endif
+#ifeq ($(WITH_FFTW3),true)
+#	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fftw.a
+#endif
 
 endif
 	@../tools/cpifdiff.sh intern/*.h $(NAN_AUDASPACE)/include/
