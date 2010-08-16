@@ -1,5 +1,7 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
-# $Id: Makefile 25604 2009-12-29 09:56:11Z sgefant $
+# $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -15,14 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+# The Original Code is Copyright (C) 2010 by Blender Foundation
 # All rights reserved.
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): Ton
 #
 # ***** END GPL LICENSE BLOCK *****
 #
