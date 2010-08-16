@@ -47,7 +47,7 @@ extern "C" {
 }
 
 #define WITH_PYTHON
-#include "AUD_C-API.h"
+#include "AUD_PyInit.h"
 
 #endif
 

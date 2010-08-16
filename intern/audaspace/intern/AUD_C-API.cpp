@@ -29,6 +29,7 @@
 #endif
 
 #ifndef DISABLE_PYTHON
+#include "AUD_PyInit.h"
 #include "AUD_PyAPI.h"
 
 Device* g_device;

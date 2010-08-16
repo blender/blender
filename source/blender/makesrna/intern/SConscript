@@ -85,9 +85,7 @@ if env['WITH_BF_JACK']:
 if env['BF_UNIT_TEST']:
 	defs.append('UNIT_TEST')
 
-if env['WITH_BF_PYTHON']:
-	incs  += ' ' + env['BF_PYTHON_INC']
-else:
+if not env['WITH_BF_PYTHON']:
 	defs.append('DISABLE_PYTHON')
 
 if env['OURPLATFORM'] == 'linux2':

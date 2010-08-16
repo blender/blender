@@ -26,10 +26,6 @@
 #ifndef AUD_CAPI
 #define AUD_CAPI
 
-#ifndef DISABLE_PYTHON
-#include "Python.h"
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -83,13 +79,6 @@ extern int* AUD_enumDevices();
  * Unitinitializes an audio device.
  */
 extern void AUD_exit();
-
-#ifndef DISABLE_PYTHON
-/**
- * Initalizes the Python module.
- */
-extern PyObject* AUD_initPython();
-#endif
 
 /**
  * Locks the playback device.

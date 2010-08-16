@@ -31,7 +31,6 @@ SET(INC
 	../../makesrna
 	../../windowmanager
 	../../../../intern/audaspace/intern
-	${PYTHON_INC}
 )
 
 BLENDERLIB(bf_editor_space_sequencer "${SRC}" "${INC}")

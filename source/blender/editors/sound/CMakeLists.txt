@@ -30,7 +30,6 @@ SET(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
-	${PYTHON_INC}
 )
 
 BLENDERLIB(bf_editor_sound "${SRC}" "${INC}")

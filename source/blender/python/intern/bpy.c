@@ -41,10 +41,7 @@
 #include "../generic/blf_api.h"
 #include "../generic/IDProp.h"
 
-#ifndef DISABLE_PYTHON
-#define WITH_PYTHON
-#endif
-#include "AUD_C-API.h"
+#include "AUD_PyInit.h"
 
 static char bpy_script_paths_doc[] =
 ".. function:: script_paths()\n"
