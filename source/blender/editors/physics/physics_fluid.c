@@ -77,7 +77,6 @@
 
 #include "LBM_fluidsim.h"
 
-#include "BIF_gl.h"
 
 #include "ED_screen.h"
 

@@ -30,7 +30,7 @@
 *
 */
 
-#include "string.h"
+#include <string.h>
 
 #include "DNA_object_types.h"
 

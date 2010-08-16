@@ -1117,7 +1117,7 @@ PyObject *BGL_Init(void)
 {
 	PyObject *mod, *dict, *item;
 	mod = PyModule_Create(&BGL_module_def);
-	PyDict_SetItemString(PySys_GetObject("modules"), BGL_module_def.m_name, mod);
+	PyDict_SetItemString(PyImport_GetModuleDict(), BGL_module_def.m_name, mod);
 	dict= PyModule_GetDict(mod);
 	
 	if( PyType_Ready( &BGL_bufferType) < 0)

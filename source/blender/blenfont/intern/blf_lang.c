@@ -34,7 +34,6 @@
 #include <locale.h>
 #include "libintl.h"
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"

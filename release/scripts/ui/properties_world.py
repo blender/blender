@@ -29,8 +29,7 @@ class WorldButtonsPanel():
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
-        return (rd.engine in cls.COMPAT_ENGINES)
+        return (context.world and context.scene.render.engine in cls.COMPAT_ENGINES)
 
 
 class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
@@ -68,12 +67,6 @@ class WORLD_PT_preview(WorldButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         self.layout.template_preview(context.world)
-
-
-
-
-
-
 
 
 class WORLD_PT_world(WorldButtonsPanel, bpy.types.Panel):
@@ -141,8 +134,8 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        light = context.world.lighting
-        return light.gather_method == 'APPROXIMATE'
+        light = getattr(context.world, "lighting", None)
+        return light and light.gather_method == 'APPROXIMATE'
 
     def draw_header(self, context):
         light = context.world.lighting

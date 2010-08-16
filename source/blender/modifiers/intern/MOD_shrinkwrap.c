@@ -30,7 +30,7 @@
 *
 */
 
-#include "string.h"
+#include <string.h>
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"

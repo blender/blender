@@ -46,7 +46,6 @@
 #include "BKE_mesh.h"
 #include "BKE_screen.h"
 
-#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "ED_mesh.h"
@@ -55,7 +54,6 @@
 #include "ED_uvedit.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "RNA_access.h"
 

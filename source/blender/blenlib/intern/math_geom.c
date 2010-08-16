@@ -841,10 +841,8 @@ int isect_line_line_v3(float v1[3], float v2[3], float v3[3], float v4[3], float
 	sub_v3_v3v3(a, v2, v1);
 	sub_v3_v3v3(b, v4, v3);
 
-	copy_v3_v3(dir1, a);
-	normalize_v3(dir1);
-	copy_v3_v3(dir2, b);
-	normalize_v3(dir2);
+	normalize_v3_v3(dir1, a);
+	normalize_v3_v3(dir2, b);
 	d = dot_v3v3(dir1, dir2);
 	if (d == 1.0f || d == -1.0f) {
 		/* colinear */
@@ -908,10 +906,8 @@ int isect_line_line_strict_v3(float v1[3], float v2[3], float v3[3], float v4[3]
 	sub_v3_v3v3(a, v2, v1);
 	sub_v3_v3v3(b, v4, v3);
 
-	copy_v3_v3(dir1, a);
-	normalize_v3(dir1);
-	copy_v3_v3(dir2, b);
-	normalize_v3(dir2);
+	normalize_v3_v3(dir1, a);
+	normalize_v3_v3(dir2, b);
 	d = dot_v3v3(dir1, dir2);
 	if (d == 1.0f || d == -1.0f || d == 0) {
 		/* colinear or one vector is zero-length*/

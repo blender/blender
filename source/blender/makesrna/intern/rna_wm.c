@@ -361,7 +361,7 @@ static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 static PointerRNA rna_OperatorTypeMacro_properties_get(PointerRNA *ptr)
 {
 	wmOperatorTypeMacro *otmacro= (wmOperatorTypeMacro*)ptr->data;
-	wmOperatorType *ot = WM_operatortype_exists(otmacro->idname);
+	wmOperatorType *ot = WM_operatortype_find(otmacro->idname, TRUE);
 	return rna_pointer_inherit_refine(ptr, ot->srna, otmacro->properties);
 }
 
@@ -796,7 +796,7 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 
 	/* check if we have registered this operator type before, and remove it */
 	{
-		wmOperatorType *ot= WM_operatortype_exists(dummyot.idname);
+		wmOperatorType *ot= WM_operatortype_find(dummyot.idname, TRUE);
 		if(ot && ot->ext.srna)
 			rna_Operator_unregister(C, ot->ext.srna);
 	}
@@ -865,7 +865,7 @@ static StructRNA *rna_MacroOperator_register(const bContext *C, ReportList *repo
 
 	/* check if we have registered this operator type before, and remove it */
 	{
-		wmOperatorType *ot= WM_operatortype_exists(dummyot.idname);
+		wmOperatorType *ot= WM_operatortype_find(dummyot.idname, TRUE);
 		if(ot && ot->ext.srna)
 			rna_Operator_unregister(C, ot->ext.srna);
 	}

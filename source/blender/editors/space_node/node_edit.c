@@ -51,7 +51,6 @@
 #include "BKE_texture.h"
 #include "BKE_report.h"
 
-#include "BIF_gl.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"

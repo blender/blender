@@ -42,16 +42,6 @@ import shutil
 import bpy
 import mathutils
 
-
-# Returns a tuple - path,extension.
-# 'hello.obj' >  ('hello', '.obj')
-def splitExt(path):
-    dotidx = path.rfind('.')
-    if dotidx == -1:
-        return path, ''
-    else:
-        return path[:dotidx], path[dotidx:]
-
 def fixName(name):
     if name == None:
         return 'None'
@@ -428,8 +418,11 @@ def write_file(filepath, objects, scene,
 
             if EXPORT_UV:
                 faceuv = len(me.uv_textures) > 0
+                uv_layer = me.active_uv_texture.data[:]
             else:
                 faceuv = False
+
+            me_verts = me.verts[:]
 
             # XXX - todo, find a better way to do triangulation
             # ...removed convert_to_triface because it relies on editmesh
@@ -503,10 +496,7 @@ def write_file(filepath, objects, scene,
             if EXPORT_KEEP_VERT_ORDER:
                 pass
             elif faceuv:
-                # XXX update
-                tface = me.active_uv_texture.data
-
-                face_index_pairs.sort(key=lambda a: (a[0].material_index, hash(tface[a[1]].image), a[0].smooth))
+                face_index_pairs.sort(key=lambda a: (a[0].material_index, hash(uv_layer[a[1]].image), a[0].smooth))
             elif len(materials) > 1:
                 face_index_pairs.sort(key = lambda a: (a[0].material_index, a[0].smooth))
             else:
@@ -524,8 +514,6 @@ def write_file(filepath, objects, scene,
 #               # no materials
 #               try:    faces.sort(key = lambda a: a.smooth)
 #               except: faces.sort(lambda a,b: cmp(a.smooth, b.smooth))
-
-            faces = [pair[0] for pair in face_index_pairs]
 
             # Set the default mat to no material and no image.
             contextMat = (0, 0) # Can never be this, so we will label a new material teh first chance we get.
@@ -546,28 +534,17 @@ def write_file(filepath, objects, scene,
 
 
             # Vert
-            for v in me.verts:
+            for v in me_verts:
                 file.write('v %.6f %.6f %.6f\n' % tuple(v.co))
 
             # UV
             if faceuv:
-                uv_face_mapping = [[0,0,0,0] for f in faces] # a bit of a waste for tri's :/
+                uv_face_mapping = [[0,0,0,0] for i in range(len(face_index_pairs))] # a bit of a waste for tri's :/
 
                 uv_dict = {} # could use a set() here
-                uv_layer = me.active_uv_texture
+                uv_layer = me.active_uv_texture.data
                 for f, f_index in face_index_pairs:
-
-                    tface = uv_layer.data[f_index]
-
-                    # workaround, since tface.uv iteration is wrong atm
-                    uvs = tface.uv
-                    # uvs = [tface.uv1, tface.uv2, tface.uv3]
-
-                    # # add another UV if it's a quad
-                    # if len(f.verts) == 4:
-                    #   uvs.append(tface.uv4)
-
-                    for uv_index, uv in enumerate(uvs):
+                    for uv_index, uv in enumerate(uv_layer[f_index].uv):
                         uvkey = veckey2d(uv)
                         try:
                             uv_face_mapping[f_index][uv_index] = uv_dict[uvkey]
@@ -575,27 +552,16 @@ def write_file(filepath, objects, scene,
                             uv_face_mapping[f_index][uv_index] = uv_dict[uvkey] = len(uv_dict)
                             file.write('vt %.6f %.6f\n' % tuple(uv))
 
-#               uv_dict = {} # could use a set() here
-#               for f_index, f in enumerate(faces):
-
-#                   for uv_index, uv in enumerate(f.uv):
-#                       uvkey = veckey2d(uv)
-#                       try:
-#                           uv_face_mapping[f_index][uv_index] = uv_dict[uvkey]
-#                       except:
-#                           uv_face_mapping[f_index][uv_index] = uv_dict[uvkey] = len(uv_dict)
-#                           file.write('vt %.6f %.6f\n' % tuple(uv))
-
                 uv_unique_count = len(uv_dict)
 #               del uv, uvkey, uv_dict, f_index, uv_index
                 # Only need uv_unique_count and uv_face_mapping
 
             # NORMAL, Smooth/Non smoothed.
             if EXPORT_NORMALS:
-                for f in faces:
+                for f, f_index in face_index_pairs:
                     if f.smooth:
-                        for vIdx in f.verts:
-                            v = me.verts[vIdx]
+                        for v_idx in f.verts:
+                            v = me_verts[v_idx]
                             noKey = veckey3d(v.normal)
                             if noKey not in globalNormals:
                                 globalNormals[noKey] = totno
@@ -619,16 +585,16 @@ def write_file(filepath, objects, scene,
 
                 currentVGroup = ''
                 # Create a dictionary keyed by face id and listing, for each vertex, the vertex groups it belongs to
-                vgroupsMap = [[] for _i in range(len(me.verts))]
-#               vgroupsMap = [[] for _i in xrange(len(me.verts))]
+                vgroupsMap = [[] for _i in range(len(me_verts))]
+#               vgroupsMap = [[] for _i in xrange(len(me_verts))]
                 for g in ob.vertex_groups:
 #               for vertexGroupName in vertGroupNames:
-                    for vIdx, vWeight in getVertsFromGroup(me, g.index):
-#                   for vIdx, vWeight in me.getVertsFromGroup(vertexGroupName, 1):
-                        vgroupsMap[vIdx].append((g.name, vWeight))
+                    for v_idx, vWeight in getVertsFromGroup(me, g.index):
+#                   for v_idx, vWeight in me.getVertsFromGroup(vertexGroupName, 1):
+                        vgroupsMap[v_idx].append((g.name, vWeight))
 
             for f, f_index in face_index_pairs:
-                f_v = [{"index": index, "vertex": me.verts[index]} for index in f.verts]
+                f_v = [me_verts[v_idx] for v_idx in f.verts]
 
                 # if f.verts[3] == 0:
                 #   f_v.pop()
@@ -639,7 +605,7 @@ def write_file(filepath, objects, scene,
 #               f_mat = min(f.mat, len(materialNames)-1)
                 if faceuv:
 
-                    tface = me.active_uv_texture.data[f_index]
+                    tface = uv_layer[f_index]
 
                     f_image = tface.image
                     f_uv = tface.uv
@@ -718,21 +684,21 @@ def write_file(filepath, objects, scene,
                         if f_smooth: # Smoothed, use vertex normals
                             for vi, v in enumerate(f_v):
                                 file.write( ' %d/%d/%d' % \
-                                                (v["index"] + totverts,
+                                                (v.index + totverts,
                                                  totuvco + uv_face_mapping[f_index][vi],
-                                                 globalNormals[ veckey3d(v["vertex"].normal) ]) ) # vert, uv, normal
+                                                 globalNormals[ veckey3d(v.normal) ]) ) # vert, uv, normal
 
                         else: # No smoothing, face normals
                             no = globalNormals[ veckey3d(f.normal) ]
                             for vi, v in enumerate(f_v):
                                 file.write( ' %d/%d/%d' % \
-                                                (v["index"] + totverts,
+                                                (v.index + totverts,
                                                  totuvco + uv_face_mapping[f_index][vi],
                                                  no) ) # vert, uv, normal
                     else: # No Normals
                         for vi, v in enumerate(f_v):
                             file.write( ' %d/%d' % (\
-                              v["index"] + totverts,\
+                              v.index + totverts,\
                               totuvco + uv_face_mapping[f_index][vi])) # vert, uv
 
                     face_vert_index += len(f_v)
@@ -742,14 +708,14 @@ def write_file(filepath, objects, scene,
                         if f_smooth: # Smoothed, use vertex normals
                             for v in f_v:
                                 file.write( ' %d//%d' %
-                                            (v["index"] + totverts, globalNormals[ veckey3d(v["vertex"].normal) ]) )
+                                            (v.index + totverts, globalNormals[ veckey3d(v.normal) ]) )
                         else: # No smoothing, face normals
                             no = globalNormals[ veckey3d(f.normal) ]
                             for v in f_v:
-                                file.write( ' %d//%d' % (v["index"] + totverts, no) )
+                                file.write( ' %d//%d' % (v.index + totverts, no) )
                     else: # No Normals
                         for v in f_v:
-                            file.write( ' %d' % (v["index"] + totverts) )
+                            file.write( ' %d' % (v.index + totverts) )
 
                 file.write('\n')
 
@@ -760,7 +726,7 @@ def write_file(filepath, objects, scene,
                         file.write('f %d %d\n' % (ed.verts[0] + totverts, ed.verts[1] + totverts))
 
             # Make the indicies global rather then per mesh
-            totverts += len(me.verts)
+            totverts += len(me_verts)
             if faceuv:
                 totuvco += uv_unique_count
 
@@ -809,7 +775,7 @@ def write(filepath, context,
               EXPORT_ALL_SCENES, # XXX not working atm
               EXPORT_ANIMATION): # Not used
     
-    base_name, ext = splitExt(filepath)
+    base_name, ext = os.path.splitext(filepath)
     context_name = [base_name, '', '', ext] # Base name, scene name, frame number, extension
 
     orig_scene = context.scene

@@ -41,6 +41,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_ghash.h"
 
 #include "BKE_animsys.h"
@@ -59,13 +61,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
-#include "MEM_guardedalloc.h"
-
-#ifndef DISABLE_PYTHON
-#include "BPY_extern.h"
-#endif
-
- #include "depsgraph_private.h"
+#include "depsgraph_private.h"
  
 /* Queue and stack operations for dag traversal 
  *
@@ -2180,7 +2176,7 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay)
 		dag_object_time_update_flags(scene->camera);
 	
 	/* and store the info in groupobject */
-	for(group= G.main->group.first; group; group= group->id.next) {
+	for(group= bmain->group.first; group; group= group->id.next) {
 		if(group->id.flag & LIB_DOIT) {
 			for(go= group->gobject.first; go; go= go->next) {
 				go->recalc= go->ob->recalc;

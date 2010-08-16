@@ -40,7 +40,6 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
-#include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"

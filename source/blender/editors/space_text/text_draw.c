@@ -49,7 +49,6 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "ED_datafiles.h"
 #include "UI_interface.h"

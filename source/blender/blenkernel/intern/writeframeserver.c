@@ -45,7 +45,6 @@
 
 #include <stdlib.h>
 
-#include "MEM_guardedalloc.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_global.h"

@@ -56,7 +56,6 @@
 #include "WM_types.h"
 
 
-#include "BIF_gl.h"
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"

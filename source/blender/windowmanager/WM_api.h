@@ -201,7 +201,6 @@ void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct bContext *C);
 
 struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
-struct wmOperatorType *WM_operatortype_exists(const char *idname);
 struct wmOperatorType *WM_operatortype_first(void);
 void		WM_operatortype_append	(void (*opfunc)(struct wmOperatorType*));
 void		WM_operatortype_append_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);

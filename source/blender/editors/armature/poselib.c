@@ -1486,6 +1486,8 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 	/* properties */	
 		// TODO: make the pose_index into a proper enum instead of a cryptic int...
 	ot->prop= RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
-		// XXX: percentage vs factor?
-	RNA_def_float_factor(ot->srna, "blend_factor", 1.0f, 0.0f, 1.0f, "Blend Factor", "Amount that the pose is applied on top of the existing poses", 0.0f, 1.0f);
+	
+	// XXX: percentage vs factor?
+	/* not used yet */
+	/* RNA_def_float_factor(ot->srna, "blend_factor", 1.0f, 0.0f, 1.0f, "Blend Factor", "Amount that the pose is applied on top of the existing poses", 0.0f, 1.0f); */
 }

@@ -45,7 +45,6 @@
 #include "BKE_unit.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "BLF_api.h"
 

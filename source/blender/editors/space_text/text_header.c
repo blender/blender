@@ -54,13 +54,10 @@
 
 #include "WM_types.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 
 
 #ifndef DISABLE_PYTHON
-#include "BPY_extern.h"
 // XXX #include "BPY_menus.h"
 #endif
 

@@ -32,7 +32,6 @@
 #include <math.h>
 #include <float.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "IMB_imbuf_types.h"
 

@@ -63,11 +63,11 @@ static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_
 /* bpyrna vector/euler/quat callbacks */
 static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
 
-/* not used yet but may want to use the subtype below */
+/* subtype not used much yet */
 #define MATHUTILS_CB_SUBTYPE_EUL 0
 #define MATHUTILS_CB_SUBTYPE_VEC 1
 #define MATHUTILS_CB_SUBTYPE_QUAT 2
-#define MATHUTILS_CB_SUBTYPE_COLOR 0
+#define MATHUTILS_CB_SUBTYPE_COLOR 3
 
 static int mathutils_rna_generic_check(BaseMathObject *bmo)
 {
@@ -3130,8 +3130,6 @@ static struct PyMethodDef pyrna_prop_methods[] = {
 };
 
 static struct PyMethodDef pyrna_prop_array_methods[] = {
-	{"foreach_get", (PyCFunction)pyrna_prop_foreach_get, METH_VARARGS, NULL},
-	{"foreach_set", (PyCFunction)pyrna_prop_foreach_set, METH_VARARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 

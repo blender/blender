@@ -574,7 +574,7 @@ FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 	FunctionRNA *func;
 	StructRNA *type;
 	for(type= ptr->type; type; type= type->base) {
-		func= BLI_findstring_ptr(&type->functions, identifier, offsetof(FunctionRNA, identifier));
+		func= (FunctionRNA *)BLI_findstring_ptr(&type->functions, identifier, offsetof(FunctionRNA, identifier));
 		if(func) {
 			return func;
 		}

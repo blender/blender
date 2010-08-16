@@ -39,6 +39,8 @@
 #include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -51,8 +53,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_pointcache.h"
 #include "BKE_animsys.h"	/* <------ should this be here?, needed for sequencer update */
-
-#include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -2463,7 +2463,7 @@ static void do_render_seq(Render * re)
 
 	recurs_depth++;
 
-	ibuf= give_ibuf_seq(re->scene, rr->rectx, rr->recty, cfra, 0, 100.0);
+	ibuf= give_ibuf_seq(re->main, re->scene, rr->rectx, rr->recty, cfra, 0, 100.0);
 
 	recurs_depth--;
 	

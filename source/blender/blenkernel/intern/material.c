@@ -56,10 +56,6 @@
 #include "BKE_node.h"
 #include "BKE_utildefines.h"
 
-#ifndef DISABLE_PYTHON
-#include "BPY_extern.h"
-#endif
-
 #include "GPU_material.h"
 
 /* used in UI and render */
@@ -236,6 +232,7 @@ Material *copy_material(Material *ma)
 
 void make_local_material(Material *ma)
 {
+	Main *bmain= G.main;
 	Object *ob;
 	Mesh *me;
 	Curve *cu;
@@ -261,7 +258,7 @@ void make_local_material(Material *ma)
 	}
 	
 	/* test objects */
-	ob= G.main->object.first;
+	ob= bmain->object.first;
 	while(ob) {
 		if(ob->mat) {
 			for(a=0; a<ob->totcol; a++) {
@@ -274,7 +271,7 @@ void make_local_material(Material *ma)
 		ob= ob->id.next;
 	}
 	/* test meshes */
-	me= G.main->mesh.first;
+	me= bmain->mesh.first;
 	while(me) {
 		if(me->mat) {
 			for(a=0; a<me->totcol; a++) {
@@ -287,7 +284,7 @@ void make_local_material(Material *ma)
 		me= me->id.next;
 	}
 	/* test curves */
-	cu= G.main->curve.first;
+	cu= bmain->curve.first;
 	while(cu) {
 		if(cu->mat) {
 			for(a=0; a<cu->totcol; a++) {
@@ -300,7 +297,7 @@ void make_local_material(Material *ma)
 		cu= cu->id.next;
 	}
 	/* test mballs */
-	mb= G.main->mball.first;
+	mb= bmain->mball.first;
 	while(mb) {
 		if(mb->mat) {
 			for(a=0; a<mb->totcol; a++) {
@@ -329,7 +326,7 @@ void make_local_material(Material *ma)
 		man->id.us= 0;
 		
 		/* do objects */
-		ob= G.main->object.first;
+		ob= bmain->object.first;
 		while(ob) {
 			if(ob->mat) {
 				for(a=0; a<ob->totcol; a++) {
@@ -345,7 +342,7 @@ void make_local_material(Material *ma)
 			ob= ob->id.next;
 		}
 		/* do meshes */
-		me= G.main->mesh.first;
+		me= bmain->mesh.first;
 		while(me) {
 			if(me->mat) {
 				for(a=0; a<me->totcol; a++) {
@@ -361,7 +358,7 @@ void make_local_material(Material *ma)
 			me= me->id.next;
 		}
 		/* do curves */
-		cu= G.main->curve.first;
+		cu= bmain->curve.first;
 		while(cu) {
 			if(cu->mat) {
 				for(a=0; a<cu->totcol; a++) {
@@ -377,7 +374,7 @@ void make_local_material(Material *ma)
 			cu= cu->id.next;
 		}
 		/* do mballs */
-		mb= G.main->mball.first;
+		mb= bmain->mball.first;
 		while(mb) {
 			if(mb->mat) {
 				for(a=0; a<mb->totcol; a++) {

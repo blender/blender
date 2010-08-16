@@ -77,7 +77,6 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "ED_view3d.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "mesh_intern.h"
 

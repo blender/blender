@@ -30,7 +30,6 @@
 #include <stdio.h>
 
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 
@@ -40,8 +39,6 @@
 #include "ED_types.h"
 
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

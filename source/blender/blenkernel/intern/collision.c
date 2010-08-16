@@ -691,8 +691,7 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 
 		if ( distance <= ( epsilon1 + epsilon2 + ALMOST_ZERO ) )
 		{
-			VECCOPY ( collpair->normal, collpair->vector );
-			normalize_v3( collpair->normal );
+			normalize_v3_v3( collpair->normal, collpair->vector );
 
 			collpair->distance = distance;
 			collpair->flag = 0;

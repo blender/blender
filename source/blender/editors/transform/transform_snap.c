@@ -54,7 +54,6 @@
 //#include "editmesh.h"
 //#include "BIF_editsima.h"
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 //#include "BIF_mywindow.h"
 //#include "BIF_screen.h"
 //#include "BIF_editsima.h"
