@@ -691,13 +691,13 @@ static int modifier_can_delete(ModifierData *md)
 	return 1;
 }
 
-static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex, int compact)
+static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	PointerRNA ptr;
 	uiBut *but;
 	uiBlock *block;
-	uiLayout *box, *column, *row, *col;
+	uiLayout *box, *column, *row;
 	uiLayout *result= NULL;
 	int isVirtual = (md->mode & eModifierMode_Virtual);
 	char str[128];
@@ -725,53 +725,19 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 	}
 	else {
 		/* REAL MODIFIER */
-		uiLayout *split;
-		
-		split = uiLayoutSplit(box, 0.16, 0);
-		
-		col= uiLayoutColumn(split, 0);
-		row = uiLayoutRow(col, 1);
-		
+		row = uiLayoutRow(box, 0);
 		block = uiLayoutGetBlock(row);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		
 		/* Open/Close .................................  */
 		uiItemR(row, &ptr, "expanded", 0, "", 0);
 		
 		/* modifier-type icon */
 		uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
-		
 		uiBlockSetEmboss(block, UI_EMBOSS);
-		
-	
-		/* 'Middle Column' ............................ 
-		 *	- first row is the name of the modifier 
-		 *	- second row is the visibility settings, since the layouts were not wide enough to show all
-		 */
-		col= uiLayoutColumn(split, 0);
-		
-		row= uiLayoutRow(col, 0);
-		uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
-		
-		block = uiLayoutGetBlock(row);
 		
 		/* modifier name */
 		uiItemR(row, &ptr, "name", 0, "", 0);
-		
-		if (compact) {
-			/* insert delete button at end of top row before splitting to second line */
-			uiBlockSetEmboss(block, UI_EMBOSSN);
-			if (modifier_can_delete(md))
-				uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
-			uiBlockSetEmboss(block, UI_EMBOSS);
-			
-			split = uiLayoutSplit(box, 0.17, 0);
-			col= uiLayoutColumn(split, 0);
-			uiItemL(col, "", 0);
-			col= uiLayoutColumn(split, 0);
-			row = uiLayoutRow(col, 1);
-		}
 		
 		/* mode enabling buttons */
 		uiBlockBeginAlign(block);
@@ -801,12 +767,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		uiItemO(row, "", ICON_TRIA_DOWN, "OBJECT_OT_modifier_move_down");
 		uiBlockEndAlign(block);
 		
-		if(!compact) {
-			uiBlockSetEmboss(block, UI_EMBOSSN);
-			if (modifier_can_delete(md))
-				uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
-			uiBlockSetEmboss(block, UI_EMBOSS);
-		}
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		if (modifier_can_delete(md))
+			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
+		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 
 	
@@ -860,7 +824,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 	return result;
 }
 
-uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr, int compact)
+uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
@@ -891,7 +855,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr, int
 
 	for(i=0; vmd; i++, vmd=vmd->next) {
 		if(md == vmd)
-			return draw_modifier(layout, scene, ob, md, i, cageIndex, lastCageIndex, compact);
+			return draw_modifier(layout, scene, ob, md, i, cageIndex, lastCageIndex);
 		else if(vmd->mode & eModifierMode_Virtual)
 			i--;
 	}
@@ -957,12 +921,12 @@ static void constraint_active_func(bContext *C, void *ob_v, void *con_v)
 }
 
 /* draw panel showing settings for a constraint */
-static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con, int compact)
+static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 {
 	bPoseChannel *pchan= get_active_posechannel(ob);
 	bConstraintTypeInfo *cti;
 	uiBlock *block;
-	uiLayout *result= NULL, *col, *box, *row, *subrow;
+	uiLayout *result= NULL, *col, *box, *row;
 	PointerRNA ptr;
 	char typestr[32];
 	short proxy_protected, xco=0, yco=0;
@@ -1054,32 +1018,22 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con,
 			
 		show_upbut= ((prev_proxylock == 0) && (con->prev));
 		show_downbut= (con->next) ? 1 : 0;
-
-		/* Code for compact Constraint UI */
-		if (compact) {
-			subrow = uiLayoutRow(box, 0);
-		}
-		else {
-			subrow = row;
-		}
 		
-		uiLayoutSetOperatorContext(subrow, WM_OP_INVOKE_DEFAULT);
+		uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
 		
 		/* up/down */
 		if (show_upbut || show_downbut) {
 			uiBlockBeginAlign(block);
 			if (show_upbut)
-				uiItemO(subrow, "", ICON_TRIA_UP, "CONSTRAINT_OT_move_up");
+				uiItemO(row, "", ICON_TRIA_UP, "CONSTRAINT_OT_move_up");
 				
 			if (show_downbut)
-				uiItemO(subrow, "", ICON_TRIA_DOWN, "CONSTRAINT_OT_move_down");
+				uiItemO(row, "", ICON_TRIA_DOWN, "CONSTRAINT_OT_move_down");
 			uiBlockEndAlign(block);
 		}
 		
 		/* enabled */
-		uiItemR(subrow, &ptr, "enabled", 0, "", 0);
-		
-		uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
+		uiItemR(row, &ptr, "enabled", 0, "", 0);
 		
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -1107,7 +1061,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con,
 	return result;
 }
 
-uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr, int compact)
+uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 {
 	Object *ob;
 	bConstraint *con;
@@ -1135,7 +1089,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr, int compact)
 			return NULL;
 	}
 
-	return draw_constraint(layout, ob, con, compact);
+	return draw_constraint(layout, ob, con);
 }
 
 
