@@ -83,9 +83,9 @@ static void do_ycca_to_rgba_normalized(bNode *node, float *out, float *in)
 static void do_chroma_key(bNode *node, float *out, float *in)
 {
 	NodeChroma *c;
-   float x, z, kx, kz, alpha;
+   float x, z, alpha;
    float theta, beta, angle, angle2;
-   float kfg, newY, newCb, newCr;
+   float kfg;
 
 	c=node->storage;
 
