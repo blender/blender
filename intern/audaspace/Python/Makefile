@@ -1,5 +1,5 @@
 #
-# $Id$
+# $Id: Makefile 25604 2009-12-29 09:56:11Z sgefant $
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -28,7 +28,7 @@
 #
 #
 
-LIBNAME = audaspace
+LIBNAME = aud_python
 DIR = $(OCGDIR)/intern/audaspace
 
 include nan_compile.mk
@@ -69,6 +69,6 @@ CPPFLAGS += -I../ffmpeg
 CPPFLAGS += -I../FX
 CPPFLAGS += -I../SDL
 CPPFLAGS += -I../SRC
-CPPFLAGS += -I../Python
+CPPFLAGS += -I../intern
 CPPFLAGS += -I..
 CPPFLAGS += -I.

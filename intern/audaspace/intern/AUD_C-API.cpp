@@ -23,7 +23,7 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifdef WITH_PYTHON
+#ifndef DISABLE_PYTHON
 #include "AUD_PyAPI.h"
 
 Device* g_device;
@@ -141,7 +141,7 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 		AUD_device = dev;
 		AUD_3ddevice = dynamic_cast<AUD_I3DDevice*>(AUD_device);
 
-#ifdef WITH_PYTHON
+#ifndef DISABLE_PYTHON
 		if(g_pyinitialized)
 		{
 			g_device = (Device*)Device_empty();
@@ -178,7 +178,7 @@ int* AUD_enumDevices()
 
 void AUD_exit()
 {
-#ifdef WITH_PYTHON
+#ifndef DISABLE_PYTHON
 	if(g_device)
 	{
 		Py_XDECREF(g_device);
@@ -192,7 +192,7 @@ void AUD_exit()
 	AUD_3ddevice = NULL;
 }
 
-#ifdef WITH_PYTHON
+#ifndef DISABLE_PYTHON
 static PyObject* AUD_getCDevice(PyObject* self)
 {
 	if(g_device)

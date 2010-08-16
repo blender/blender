@@ -26,7 +26,7 @@
 #ifndef AUD_CAPI
 #define AUD_CAPI
 
-#ifdef WITH_PYTHON
+#ifndef DISABLE_PYTHON
 #include "Python.h"
 #endif
 
@@ -84,7 +84,7 @@ extern int* AUD_enumDevices();
  */
 extern void AUD_exit();
 
-#ifdef WITH_PYTHON
+#ifndef DISABLE_PYTHON
 /**
  * Initalizes the Python module.
  */
