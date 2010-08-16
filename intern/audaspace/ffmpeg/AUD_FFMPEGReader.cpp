@@ -58,10 +58,15 @@ int AUD_FFMPEGReader::decode(AVPacket* packet, AUD_Buffer& buffer)
 
 		// read samples from the packet
 		data_size = buf_size - buf_pos;
-		read_length = avcodec_decode_audio3(m_codecCtx,
+		/*read_length = avcodec_decode_audio3(m_codecCtx,
 			(int16_t*)(((data_t*)buffer.getBuffer())+buf_pos),
 			&data_size,
-			packet);
+			packet);*/
+		read_length = avcodec_decode_audio2(m_codecCtx,
+						(int16_t*)(((data_t*)buffer.getBuffer()) + buf_pos),
+						&data_size,
+						audio_pkg_data,
+						audio_pkg_size);
 
 		// read error, next packet!
 		if(read_length < 0)
