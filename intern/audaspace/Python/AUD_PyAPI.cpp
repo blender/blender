@@ -58,9 +58,6 @@
 #include "AUD_JackDevice.h"
 #endif
 
-#include <cstdlib>
-#include <unistd.h>
-
 // ====================================================================
 
 typedef enum

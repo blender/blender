@@ -244,20 +244,23 @@ AUD_SoundInfo AUD_getInfo(AUD_Sound* sound)
 {
 	assert(sound);
 
-	AUD_IReader* reader = sound->createReader();
-
 	AUD_SoundInfo info;
+	info.specs.channels = AUD_CHANNELS_INVALID;
+	info.specs.rate = AUD_RATE_INVALID;
+	info.length = 0.0f;
 
-	if(reader)
+	try
 	{
-		info.specs = reader->getSpecs();
-		info.length = reader->getLength() / (float) info.specs.rate;
+		AUD_IReader* reader = sound->createReader();
+
+		if(reader)
+		{
+			info.specs = reader->getSpecs();
+			info.length = reader->getLength() / (float) info.specs.rate;
+		}
 	}
-	else
+	catch(AUD_Exception&)
 	{
-		info.specs.channels = AUD_CHANNELS_INVALID;
-		info.specs.rate = AUD_RATE_INVALID;
-		info.length = 0.0f;
 	}
 
 	return info;
