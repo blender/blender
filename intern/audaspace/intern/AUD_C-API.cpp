@@ -474,7 +474,7 @@ int AUD_setListenerOrientation(const float* orientation)
 
 	if(AUD_3ddevice)
 	{
-		AUD_Quaternion q(orientation[0], orientation[1], orientation[2], orientation[3]);
+		AUD_Quaternion q(orientation[3], orientation[0], orientation[1], orientation[2]);
 		AUD_3ddevice->setListenerOrientation(q);
 		return true;
 	}
@@ -556,7 +556,7 @@ int AUD_setSourceOrientation(AUD_Channel* handle, const float* orientation)
 
 	if(AUD_3ddevice)
 	{
-		AUD_Quaternion q(orientation[0], orientation[1], orientation[2], orientation[3]);
+		AUD_Quaternion q(orientation[3], orientation[0], orientation[1], orientation[2]);
 		return AUD_3ddevice->setSourceOrientation(handle, q);
 	}
 

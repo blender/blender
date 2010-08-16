@@ -102,7 +102,7 @@ void KX_SoundActuator::play()
 		// sound shall be played 3D
 		m_handle = AUD_play(sound, 0);
 
-		AUD_setRelative(m_handle, true);
+		AUD_setRelative(m_handle, false);
 		AUD_setVolumeMaximum(m_handle, m_3d.max_gain);
 		AUD_setVolumeMinimum(m_handle, m_3d.min_gain);
 		AUD_setDistanceReference(m_handle, m_3d.reference_distance);
