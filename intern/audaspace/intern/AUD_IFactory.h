@@ -49,7 +49,7 @@ public:
 	 * \exception AUD_Exception An exception may be thrown if there has been
 	 *            a more unexpected error during reader creation.
 	 */
-	virtual AUD_IReader* createReader()=0;
+	virtual AUD_IReader* createReader() const=0;
 };
 
 #endif //AUD_IFACTORY

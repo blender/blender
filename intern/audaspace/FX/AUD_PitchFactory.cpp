@@ -29,20 +29,11 @@
 
 AUD_PitchFactory::AUD_PitchFactory(AUD_IFactory* factory, float pitch) :
 		AUD_EffectFactory(factory),
-		m_pitch(pitch) {}
-
-AUD_PitchFactory::AUD_PitchFactory(float pitch) :
-		AUD_EffectFactory(0),
-		m_pitch(pitch) {}
-
-AUD_IReader* AUD_PitchFactory::createReader()
+		m_pitch(pitch)
 {
-	AUD_IReader* reader = getReader();
+}
 
-	if(reader != 0)
-	{
-		reader = new AUD_PitchReader(reader, m_pitch); AUD_NEW("reader")
-	}
-
-	return reader;
+AUD_IReader* AUD_PitchFactory::createReader() const
+{
+	return new AUD_PitchReader(getReader(), m_pitch);
 }

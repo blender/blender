@@ -34,12 +34,15 @@
  */
 class AUD_SRCResampleFactory : public AUD_ResampleFactory
 {
-public:
-	AUD_SRCResampleFactory(AUD_IReader* reader, AUD_DeviceSpecs specs);
-	AUD_SRCResampleFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
-	AUD_SRCResampleFactory(AUD_DeviceSpecs specs);
+private:
+	// hide copy constructor and operator=
+	AUD_SRCResampleFactory(const AUD_SRCResampleFactory&);
+	AUD_SRCResampleFactory& operator=(const AUD_SRCResampleFactory&);
 
-	virtual AUD_IReader* createReader();
+public:
+	AUD_SRCResampleFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
+
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_SRCRESAMPLEFACTORY

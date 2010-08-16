@@ -23,61 +23,49 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_LOWPASSREADER
-#define AUD_LOWPASSREADER
+#ifndef AUD_SILENCEREADER
+#define AUD_SILENCEREADER
 
-#include "AUD_EffectReader.h"
-class AUD_Buffer;
-
-#define AUD_LOWPASS_ORDER 3
+#include "AUD_IReader.h"
+#include "AUD_Buffer.h"
 
 /**
- * This class represents a lowpass filter.
+ * This class is used for sine tone playback.
+ * The output format is in the 16 bit format and stereo, the sample rate can be
+ * specified.
+ * As the two channels both play the same the output could also be mono, but
+ * in most cases this will result in having to resample for output, so stereo
+ * sound is created directly.
  */
-class AUD_LowpassReader : public AUD_EffectReader
+class AUD_SilenceReader : public AUD_IReader
 {
 private:
 	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer *m_buffer;
-
-	/**
-	 * The last out values buffer.
-	 */
-	AUD_Buffer *m_outvalues;
-
-	/**
-	 * The last in values buffer.
-	 */
-	AUD_Buffer *m_invalues;
-
-	/**
-	 * The position for buffer cycling.
+	 * The current position in samples.
 	 */
 	int m_position;
 
 	/**
-	 * Filter coefficients.
+	 * The playback buffer.
 	 */
-	float m_coeff[2][AUD_LOWPASS_ORDER];
+	AUD_Buffer m_buffer;
+
+	// hide copy constructor and operator=
+	AUD_SilenceReader(const AUD_SilenceReader&);
+	AUD_SilenceReader& operator=(const AUD_SilenceReader&);
 
 public:
 	/**
-	 * Creates a new lowpass reader.
-	 * \param reader The reader to read from.
-	 * \param frequency The cutoff frequency.
-	 * \param Q The Q factor.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
+	 * Creates a new reader.
 	 */
-	AUD_LowpassReader(AUD_IReader* reader, float frequency, float Q);
+	AUD_SilenceReader();
 
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_LowpassReader();
-
+	virtual bool isSeekable() const;
+	virtual void seek(int position);
+	virtual int getLength() const;
+	virtual int getPosition() const;
+	virtual AUD_Specs getSpecs() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 
-#endif //AUD_LOWPASSREADER
+#endif //AUD_SILENCEREADER

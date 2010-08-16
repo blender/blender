@@ -23,19 +23,17 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_SOURCECAPS
-#define AUD_SOURCECAPS
+#include "AUD_IIRFilterFactory.h"
+#include "AUD_IIRFilterReader.h"
 
-#include "AUD_IDevice.h"
-
-/// The structure for source capabilities.
-typedef struct
+AUD_IIRFilterFactory::AUD_IIRFilterFactory(AUD_IFactory* factory,
+										   std::vector<float> b,
+										   std::vector<float> a) :
+		AUD_EffectFactory(factory), m_a(a), m_b(b)
 {
-	/// The source to apply the capability on.
-	AUD_Handle* handle;
+}
 
-	/// The value for the capability.
-	float value;
-} AUD_SourceCaps;
-
-#endif //AUD_SOURCECAPS
+AUD_IReader* AUD_IIRFilterFactory::createReader() const
+{
+	return new AUD_IIRFilterReader(getReader(), m_b, m_a);
+}

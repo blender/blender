@@ -27,7 +27,7 @@
 #define AUD_LINEARRESAMPLEREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This resampling reader uses libsamplerate for resampling.
@@ -36,9 +36,19 @@ class AUD_LinearResampleReader : public AUD_EffectReader
 {
 private:
 	/**
+	 * The sample specification of the source.
+	 */
+	const AUD_Specs m_sspecs;
+
+	/**
 	 * The resampling factor.
 	 */
-	float m_factor;
+	const float m_factor;
+
+	/**
+	 * The target specification.
+	 */
+	AUD_Specs m_tspecs;
 
 	/**
 	 * The current position.
@@ -53,41 +63,29 @@ private:
 	/**
 	 * The sound output buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The input caching buffer.
 	 */
-	AUD_Buffer *m_cache;
+	AUD_Buffer m_cache;
 
-	/**
-	 * The target specification.
-	 */
-	AUD_Specs m_tspecs;
-
-	/**
-	 * The sample specification of the source.
-	 */
-	AUD_Specs m_sspecs;
+	// hide copy constructor and operator=
+	AUD_LinearResampleReader(const AUD_LinearResampleReader&);
+	AUD_LinearResampleReader& operator=(const AUD_LinearResampleReader&);
 
 public:
 	/**
 	 * Creates a resampling reader.
 	 * \param reader The reader to mix.
 	 * \param specs The target specification.
-	 * \exception AUD_Exception Thrown if the reader is NULL.
 	 */
 	AUD_LinearResampleReader(AUD_IReader* reader, AUD_Specs specs);
 
-	/**
-	 * Destroys the reader.
-	 */
-	~AUD_LinearResampleReader();
-
 	virtual void seek(int position);
-	virtual int getLength();
-	virtual int getPosition();
-	virtual AUD_Specs getSpecs();
+	virtual int getLength() const;
+	virtual int getPosition() const;
+	virtual AUD_Specs getSpecs() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 

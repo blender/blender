@@ -39,7 +39,11 @@ private:
 	/**
 	 * The volume.
 	 */
-	float m_volume;
+	const float m_volume;
+
+	// hide copy constructor and operator=
+	AUD_VolumeFactory(const AUD_VolumeFactory&);
+	AUD_VolumeFactory& operator=(const AUD_VolumeFactory&);
 
 public:
 	/**
@@ -47,26 +51,14 @@ public:
 	 * \param factory The input factory.
 	 * \param volume The desired volume.
 	 */
-	AUD_VolumeFactory(AUD_IFactory* factory = 0, float volume = 1.0f);
-
-	/**
-	 * Creates a new volume factory.
-	 * \param volume The desired volume.
-	 */
-	AUD_VolumeFactory(float volume);
+	AUD_VolumeFactory(AUD_IFactory* factory, float volume);
 
 	/**
 	 * Returns the volume.
 	 */
-	float getVolume();
+	float getVolume() const;
 
-	/**
-	 * Sets the volume.
-	 * \param volume The new volume value. Should be between 0.0 and 1.0.
-	 */
-	void setVolume(float volume);
-
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_VOLUMEFACTORY

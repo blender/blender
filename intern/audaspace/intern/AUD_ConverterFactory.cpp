@@ -26,29 +26,18 @@
 #include "AUD_ConverterFactory.h"
 #include "AUD_ConverterReader.h"
 
-AUD_ConverterFactory::AUD_ConverterFactory(AUD_IReader* reader,
-										   AUD_DeviceSpecs specs) :
-		AUD_MixerFactory(reader, specs) {}
-
 AUD_ConverterFactory::AUD_ConverterFactory(AUD_IFactory* factory,
 										   AUD_DeviceSpecs specs) :
-		AUD_MixerFactory(factory, specs) {}
+		AUD_MixerFactory(factory, specs)
+{
+}
 
-AUD_ConverterFactory::AUD_ConverterFactory(AUD_DeviceSpecs specs) :
-		AUD_MixerFactory(specs) {}
-
-AUD_IReader* AUD_ConverterFactory::createReader()
+AUD_IReader* AUD_ConverterFactory::createReader() const
 {
 	AUD_IReader* reader = getReader();
 
-	if(reader != 0)
-	{
-		if(m_specs.format != AUD_FORMAT_FLOAT32)
-		{
-			reader = new AUD_ConverterReader(reader, m_specs);
-			AUD_NEW("reader")
-		}
-	}
+	if(m_specs.format != AUD_FORMAT_FLOAT32)
+		reader = new AUD_ConverterReader(reader, m_specs);
 
 	return reader;
 }

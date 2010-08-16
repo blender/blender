@@ -24,7 +24,6 @@
  */
 
 #include "AUD_SRCResampleReader.h"
-#include "AUD_Buffer.h"
 
 #include <cmath>
 #include <cstring>
@@ -35,16 +34,18 @@ static long src_callback(void *cb_data, float **data)
 	return ((AUD_SRCResampleReader*)cb_data)->doCallback(data);
 }
 
+static const char* state_error = "AUD_SRCResampleReader: SRC State couldn't be "
+								 "created.";
+
 AUD_SRCResampleReader::AUD_SRCResampleReader(AUD_IReader* reader,
 											 AUD_Specs specs) :
-		AUD_EffectReader(reader)
+		AUD_EffectReader(reader),
+		m_sspecs(reader->getSpecs()),
+		m_factor(double(specs.rate) / double(m_sspecs.rate)),
+		m_tspecs(specs),
+		m_position(0)
 {
-	m_sspecs = reader->getSpecs();
-
-	m_tspecs = specs;
 	m_tspecs.channels = m_sspecs.channels;
-	m_factor = (double)m_tspecs.rate / (double)m_sspecs.rate;
-	m_position = 0;
 
 	int error;
 	m_src = src_callback_new(src_callback,
@@ -56,23 +57,18 @@ AUD_SRCResampleReader::AUD_SRCResampleReader(AUD_IReader* reader,
 	if(!m_src)
 	{
 		// XXX printf("%s\n", src_strerror(error));
-		delete m_reader; AUD_DELETE("reader")
-		AUD_THROW(AUD_ERROR_READER);
+		AUD_THROW(AUD_ERROR_SRC, state_error);
 	}
-
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
 }
 
 AUD_SRCResampleReader::~AUD_SRCResampleReader()
 {
 	src_delete(m_src);
-
-	delete m_buffer; AUD_DELETE("buffer")
 }
 
 long AUD_SRCResampleReader::doCallback(float** data)
 {
-	int length = m_buffer->getSize() / AUD_SAMPLE_SIZE(m_tspecs);
+	int length = m_buffer.getSize() / AUD_SAMPLE_SIZE(m_tspecs);
 	sample_t* buffer;
 
 	m_reader->read(length, buffer);
@@ -88,17 +84,17 @@ void AUD_SRCResampleReader::seek(int position)
 	m_position = position;
 }
 
-int AUD_SRCResampleReader::getLength()
+int AUD_SRCResampleReader::getLength() const
 {
 	return m_reader->getLength() * m_factor;
 }
 
-int AUD_SRCResampleReader::getPosition()
+int AUD_SRCResampleReader::getPosition() const
 {
 	return m_position;
 }
 
-AUD_Specs AUD_SRCResampleReader::getSpecs()
+AUD_Specs AUD_SRCResampleReader::getSpecs() const
 {
 	return m_tspecs;
 }
@@ -107,10 +103,10 @@ void AUD_SRCResampleReader::read(int & length, sample_t* & buffer)
 {
 	int size = length * AUD_SAMPLE_SIZE(m_tspecs);
 
-	if(m_buffer->getSize() < size)
-		m_buffer->resize(size);
+	if(m_buffer.getSize() < size)
+		m_buffer.resize(size);
 
-	buffer = m_buffer->getBuffer();
+	buffer = m_buffer.getBuffer();
 
 	length = src_callback_read(m_src, m_factor, length, buffer);
 

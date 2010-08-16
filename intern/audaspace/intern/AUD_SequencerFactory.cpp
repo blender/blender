@@ -28,11 +28,12 @@
 
 typedef std::list<AUD_SequencerReader*>::iterator AUD_ReaderIterator;
 
-AUD_SequencerFactory::AUD_SequencerFactory(AUD_Specs specs, void* data, AUD_volumeFunction volume)
+AUD_SequencerFactory::AUD_SequencerFactory(AUD_Specs specs, void* data,
+										   AUD_volumeFunction volume) :
+	m_specs(specs),
+	m_data(data),
+	m_volume(volume)
 {
-	m_specs = specs;
-	m_data = data;
-	m_volume = volume;
 }
 
 AUD_SequencerFactory::~AUD_SequencerFactory()
@@ -51,13 +52,23 @@ AUD_SequencerFactory::~AUD_SequencerFactory()
 	{
 		entry = m_entries.front();
 		m_entries.pop_front();
-		delete entry; AUD_DELETE("seqentry")
+		delete entry;
 	}
+}
+
+AUD_IReader* AUD_SequencerFactory::newReader()
+{
+	AUD_SequencerReader* reader = new AUD_SequencerReader(this, m_entries,
+														  m_specs, m_data,
+														  m_volume);
+	m_readers.push_front(reader);
+
+	return reader;
 }
 
 AUD_SequencerEntry* AUD_SequencerFactory::add(AUD_IFactory** sound, float begin, float end, float skip, void* data)
 {
-	AUD_SequencerEntry* entry = new AUD_SequencerEntry; AUD_NEW("seqentry")
+	AUD_SequencerEntry* entry = new AUD_SequencerEntry;
 	entry->sound = sound;
 	entry->begin = begin;
 	entry->skip = skip;
@@ -80,7 +91,7 @@ void AUD_SequencerFactory::remove(AUD_SequencerEntry* entry)
 
 	m_entries.remove(entry);
 
-	delete entry; AUD_DELETE("seqentry")
+	delete entry;
 }
 
 void AUD_SequencerFactory::move(AUD_SequencerEntry* entry, float begin, float end, float skip)
@@ -95,12 +106,9 @@ void AUD_SequencerFactory::mute(AUD_SequencerEntry* entry, bool mute)
 	entry->muted = mute;
 }
 
-AUD_IReader* AUD_SequencerFactory::createReader()
+AUD_IReader* AUD_SequencerFactory::createReader() const
 {
-	AUD_SequencerReader* reader = new AUD_SequencerReader(this, m_entries, m_specs, m_data, m_volume); AUD_NEW("reader")
-	m_readers.push_front(reader);
-
-	return reader;
+	return const_cast<AUD_SequencerFactory*>(this)->newReader();
 }
 
 void AUD_SequencerFactory::removeReader(AUD_SequencerReader* reader)

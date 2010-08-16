@@ -23,33 +23,15 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#include "AUD_RectifyReader.h"
-#include "AUD_Buffer.h"
+#include "AUD_SilenceFactory.h"
+#include "AUD_SilenceReader.h"
+#include "AUD_Space.h"
 
-#include <cmath>
-
-AUD_RectifyReader::AUD_RectifyReader(AUD_IReader* reader) :
-		AUD_EffectReader(reader)
+AUD_SilenceFactory::AUD_SilenceFactory()
 {
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
 }
 
-AUD_RectifyReader::~AUD_RectifyReader()
+AUD_IReader* AUD_SilenceFactory::createReader() const
 {
-	delete m_buffer; AUD_DELETE("buffer")
-}
-
-void AUD_RectifyReader::read(int & length, sample_t* & buffer)
-{
-	sample_t* buf;
-	AUD_Specs specs = m_reader->getSpecs();
-
-	m_reader->read(length, buf);
-	if(m_buffer->getSize() < length * AUD_SAMPLE_SIZE(specs))
-		m_buffer->resize(length * AUD_SAMPLE_SIZE(specs));
-
-	buffer = m_buffer->getBuffer();
-
-	for(int i = 0; i < length * specs.channels; i++)
-		buffer[i] = fabs(buf[i]);
+	return new AUD_SilenceReader();
 }

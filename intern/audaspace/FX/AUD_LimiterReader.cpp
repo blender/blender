@@ -30,31 +30,27 @@
 
 AUD_LimiterReader::AUD_LimiterReader(AUD_IReader* reader,
 									 float start, float end) :
-		AUD_EffectReader(reader)
+		AUD_EffectReader(reader),
+		m_start(int(start * reader->getSpecs().rate)),
+		m_end(int(end * reader->getSpecs().rate))
 {
-	m_end = (int)(end * reader->getSpecs().rate);
-
-	if(start <= 0)
-		m_start = 0;
-	else
+	if(m_start > 0)
 	{
-		m_start = (int)(start * reader->getSpecs().rate);
 		if(m_reader->isSeekable())
 			m_reader->seek(m_start);
 		else
 		{
 			// skip first m_start samples by reading them
-			int length;
+			int length = AUD_DEFAULT_BUFFER_SIZE;
 			sample_t* buffer;
-			for(int i = m_start;
-				i >= AUD_DEFAULT_BUFFER_SIZE;
-				i -= AUD_DEFAULT_BUFFER_SIZE)
+			for(int len = m_start;
+				length == AUD_DEFAULT_BUFFER_SIZE;
+				len -= AUD_DEFAULT_BUFFER_SIZE)
 			{
-				length = AUD_DEFAULT_BUFFER_SIZE;
+				if(len < AUD_DEFAULT_BUFFER_SIZE)
+					length = len;
 				m_reader->read(length, buffer);
-				length = i;
 			}
-			m_reader->read(length, buffer);
 		}
 	}
 }
@@ -64,18 +60,18 @@ void AUD_LimiterReader::seek(int position)
 	m_reader->seek(position + m_start);
 }
 
-int AUD_LimiterReader::getLength()
+int AUD_LimiterReader::getLength() const
 {
 	int len = m_reader->getLength();
-	if(m_reader->getType() != AUD_TYPE_BUFFER || len < 0 ||
-	   (len > m_end && m_end >= 0))
+	if(len < 0 || (len > m_end && m_end >= 0))
 		len = m_end;
 	return len - m_start;
 }
 
-int AUD_LimiterReader::getPosition()
+int AUD_LimiterReader::getPosition() const
 {
-	return m_reader->getPosition() - m_start;
+	int pos = m_reader->getPosition();
+	return AUD_MIN(pos, m_end) - m_start;
 }
 
 void AUD_LimiterReader::read(int & length, sample_t* & buffer)
@@ -83,7 +79,7 @@ void AUD_LimiterReader::read(int & length, sample_t* & buffer)
 	if(m_end >= 0)
 	{
 		int position = m_reader->getPosition();
-		if(position+length > m_end)
+		if(position + length > m_end)
 			length = m_end - position;
 		if(length < 0)
 		{

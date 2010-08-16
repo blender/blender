@@ -27,7 +27,7 @@
 #define AUD_CHANNELMAPPERREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class maps a sound source's channels to a specific output channel count.
@@ -39,7 +39,7 @@ private:
 	/**
 	 * The sound output buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The output specification.
@@ -56,20 +56,24 @@ private:
 	 */
 	float **m_mapping;
 
+	// hide copy constructor and operator=
+	AUD_ChannelMapperReader(const AUD_ChannelMapperReader&);
+	AUD_ChannelMapperReader& operator=(const AUD_ChannelMapperReader&);
+
 public:
 	/**
 	 * Creates a channel mapper reader.
 	 * \param reader The reader to map.
 	 * \param mapping The mapping specification as two dimensional float array.
-	 * \exception AUD_Exception Thrown if the reader is NULL.
 	 */
 	AUD_ChannelMapperReader(AUD_IReader* reader, float **mapping);
+
 	/**
 	 * Destroys the reader.
 	 */
 	~AUD_ChannelMapperReader();
 
-	virtual AUD_Specs getSpecs();
+	virtual AUD_Specs getSpecs() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 

@@ -34,34 +34,37 @@
 AUD_Buffer::AUD_Buffer(int size)
 {
 	m_size = size;
-	m_buffer = (data_t*) malloc(size+16); AUD_NEW("buffer")
+	m_buffer = (data_t*) malloc(size+16);
 }
 
 AUD_Buffer::~AUD_Buffer()
 {
-	free(m_buffer); AUD_DELETE("buffer")
+	free(m_buffer);
 }
 
-sample_t* AUD_Buffer::getBuffer()
+sample_t* AUD_Buffer::getBuffer() const
 {
 	return (sample_t*) AUD_ALIGN(m_buffer);
 }
 
-int AUD_Buffer::getSize()
+int AUD_Buffer::getSize() const
 {
 	return m_size;
 }
 
 void AUD_Buffer::resize(int size, bool keep)
 {
-	data_t* buffer = (data_t*) malloc(size+16); AUD_NEW("buffer")
-
-	// copy old data over if wanted
 	if(keep)
+	{
+		data_t* buffer = (data_t*) malloc(size + 16);
+
 		memcpy(AUD_ALIGN(buffer), AUD_ALIGN(m_buffer), AUD_MIN(size, m_size));
 
-	free(m_buffer); AUD_DELETE("buffer")
+		free(m_buffer);
+		m_buffer = buffer;
+	}
+	else
+		m_buffer = (data_t*) realloc(m_buffer, size + 16);
 
-	m_buffer = buffer;
 	m_size = size;
 }

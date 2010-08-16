@@ -33,7 +33,7 @@
 /// The size of a sample in the specified format in bytes.
 #define AUD_SAMPLE_SIZE(specs) (specs.channels * sizeof(sample_t))
 /// Throws a AUD_Exception with the provided error code.
-#define AUD_THROW(exception) { AUD_Exception e; e.error = exception; throw e; }
+#define AUD_THROW(exception, errorstr) { AUD_Exception e; e.error = exception; e.str = errorstr; throw e; }
 
 /// Returns the smaller of the two values.
 #define AUD_MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -46,64 +46,6 @@
 
 /// The default playback buffer size of a device.
 #define AUD_DEFAULT_BUFFER_SIZE 1024
-
-// Capability defines
-
-/// This capability checks whether a device is a 3D device. See AUD_I3DDevice.h.
-#define AUD_CAPS_3D_DEVICE			0x0001
-
-/**
- * This capability checks whether a device is a software device. See
- * AUD_SoftwareDevice.
- */
-#define AUD_CAPS_SOFTWARE_DEVICE	0x0002
-
-/**
- * This capability enables the user to set the overall volume of the device.
- * You can set and get it with the pointer pointing to a float value between
- * 0.0 (muted) and 1.0 (maximum volume).
- */
-#define AUD_CAPS_VOLUME				0x0101
-
-/**
- * This capability enables the user to set the volume of a source.
- * You can set and get it with the pointer pointing to a AUD_SourceValue
- * structure defined in AUD_SourceCaps.h.
- */
-#define AUD_CAPS_SOURCE_VOLUME		0x1001
-
-/**
- * This capability enables the user to set the pitch of a source.
- * You can set and get it with the pointer pointing to a AUD_SourceValue
- * structure defined in AUD_SourceCaps.h.
- */
-#define AUD_CAPS_SOURCE_PITCH		0x1002
-
-/**
- * This capability enables the user to buffer a factory into the device.
- * Setting with the factory as pointer loads the factory into a device internal
- * buffer. Play function calls with the buffered factory as argument result in
- * the internal buffer being played back, so there's no reader created, what
- * also results in not being able to send messages to that handle.
- * A repeated call with the same factory doesn't do anything.
- * A set call with a NULL pointer results in all buffered factories being
- * deleted.
- * \note This is only possible with factories that create readers of the buffer
- *       type.
- */
-#define AUD_CAPS_BUFFERED_FACTORY	0x2001
-
-// Used for debugging memory leaks.
-//#define AUD_DEBUG_MEMORY
-
-#ifdef AUD_DEBUG_MEMORY
-extern int AUD_References(int count, const char* text);
-#define AUD_NEW(text) AUD_References(1, text);
-#define AUD_DELETE(text) AUD_References(-1, text);
-#else
-#define AUD_NEW(text)
-#define AUD_DELETE(text)
-#endif
 
 /**
  * The format of a sample.
@@ -154,17 +96,6 @@ typedef enum
 	AUD_RATE_192000  = 192000		/// 192000 Hz.
 } AUD_SampleRate;
 
-/**
- * Type of a reader.
- * @see AUD_IReader for details.
- */
-typedef enum
-{
-	AUD_TYPE_INVALID = 0,			/// Invalid reader type.
-	AUD_TYPE_BUFFER,				/// Reader reads from a buffer.
-	AUD_TYPE_STREAM					/// Reader reads from a stream.
-} AUD_ReaderType;
-
 /// Status of a playback handle.
 typedef enum
 {
@@ -177,22 +108,15 @@ typedef enum
 typedef enum
 {
 	AUD_NO_ERROR = 0,
-	AUD_ERROR_READER,
-	AUD_ERROR_FACTORY,
+	AUD_ERROR_SPECS,
+	AUD_ERROR_PROPS,
 	AUD_ERROR_FILE,
+	AUD_ERROR_SRC,
 	AUD_ERROR_FFMPEG,
-	AUD_ERROR_SDL,
 	AUD_ERROR_OPENAL,
-	AUD_ERROR_JACK
+	AUD_ERROR_SDL,
+	AUD_ERROR_JACK,
 } AUD_Error;
-
-/// Message codes.
-typedef enum
-{
-	AUD_MSG_INVALID = 0,			/// Invalid message.
-	AUD_MSG_LOOP,					/// Loop reader message.
-	AUD_MSG_VOLUME					/// Volume reader message.
-} AUD_MessageType;
 
 /// Fading types.
 typedef enum
@@ -201,39 +125,17 @@ typedef enum
 	AUD_FADE_OUT
 } AUD_FadeType;
 
-/// 3D device settings.
-typedef enum
-{
-	AUD_3DS_NONE,					/// No setting.
-	AUD_3DS_SPEED_OF_SOUND,			/// Speed of sound.
-	AUD_3DS_DOPPLER_FACTOR,			/// Doppler factor.
-	AUD_3DS_DISTANCE_MODEL			/// Distance model.
-} AUD_3DSetting;
-
 /// Possible distance models for the 3D device.
-#define AUD_DISTANCE_MODEL_NONE					0.0f
-#define AUD_DISTANCE_MODEL_INVERSE				1.0f
-#define AUD_DISTANCE_MODEL_INVERSE_CLAMPED		2.0f
-#define AUD_DISTANCE_MODEL_LINEAR				3.0f
-#define AUD_DISTANCE_MODEL_LINEAR_CLAMPED		4.0f
-#define AUD_DISTANCE_MODEL_EXPONENT				5.0f
-#define AUD_DISTANCE_MODEL_EXPONENT_CLAMPED		6.0f
-
-/// 3D source settings.
 typedef enum
 {
-	AUD_3DSS_NONE,					/// No setting.
-	AUD_3DSS_IS_RELATIVE,			/// > 0 tells that the sound source is
-									/// relative to the listener
-	AUD_3DSS_MIN_GAIN,				/// Minimum gain.
-	AUD_3DSS_MAX_GAIN,				/// Maximum gain.
-	AUD_3DSS_REFERENCE_DISTANCE,	/// Reference distance.
-	AUD_3DSS_MAX_DISTANCE,			/// Maximum distance.
-	AUD_3DSS_ROLLOFF_FACTOR,		/// Rolloff factor.
-	AUD_3DSS_CONE_INNER_ANGLE,		/// Cone inner angle.
-	AUD_3DSS_CONE_OUTER_ANGLE,		/// Cone outer angle.
-	AUD_3DSS_CONE_OUTER_GAIN		/// Cone outer gain.
-} AUD_3DSourceSetting;
+	AUD_DISTANCE_MODEL_INVALID = 0,
+	AUD_DISTANCE_MODEL_INVERSE,
+	AUD_DISTANCE_MODEL_INVERSE_CLAMPED,
+	AUD_DISTANCE_MODEL_LINEAR,
+	AUD_DISTANCE_MODEL_LINEAR_CLAMPED,
+	AUD_DISTANCE_MODEL_EXPONENT,
+	AUD_DISTANCE_MODEL_EXPONENT_CLAMPED,
+} AUD_DistanceModel;
 
 /// Sample type.(float samples)
 typedef float sample_t;
@@ -280,42 +182,12 @@ typedef struct
 	 */
 	AUD_Error error;
 
+	/**
+	 * Error string.
+	 */
+	const char* str;
+
 	// void* userData; - for the case it is needed someday
 } AUD_Exception;
-
-/// Message structure.
-typedef struct
-{
-	/**
-	 * The message type.
-	 */
-	AUD_MessageType type;
-
-	union
-	{
-		// loop reader
-		struct
-		{
-			int loopcount;
-			float time;
-		};
-
-		// volume reader
-		float volume;
-	};
-} AUD_Message;
-
-/// Handle structure, for inherition.
-typedef struct
-{
-	/// x, y and z coordinates of the object.
-	float position[3];
-
-	/// x, y and z coordinates telling the velocity and direction of the object.
-	float velocity[3];
-
-	/// 3x3 matrix telling the orientation of the object.
-	float orientation[9];
-} AUD_3DData;
 
 #endif //AUD_SPACE

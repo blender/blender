@@ -45,6 +45,10 @@ extern "C" {
 
 	#include "marshal.h" /* python header for loading/saving dicts */
 }
+
+#define WITH_PYTHON
+#include "AUD_C-API.h"
+
 #endif
 
 #include "KX_PythonInit.h"
@@ -262,8 +266,8 @@ static PyObject* gPyRestartGame(PyObject*)
 }
 
 static char gPySaveGlobalDict_doc[] =
-"saveGlobalDict()\n\
-Saves GameLogic.globalDict to a file";
+	"saveGlobalDict()\n"
+	"Saves bge.logic.globalDict to a file";
 
 static PyObject* gPySaveGlobalDict(PyObject*)
 {
@@ -299,8 +303,8 @@ static PyObject* gPySaveGlobalDict(PyObject*)
 }
 
 static char gPyLoadGlobalDict_doc[] =
-"LoadGlobalDict()\n\
-Loads GameLogic.globalDict from a file";
+	"LoadGlobalDict()\n"
+	"Loads bge.logic.globalDict from a file";
 
 static PyObject* gPyLoadGlobalDict(PyObject*)
 {
@@ -373,15 +377,6 @@ static PyObject* gPyGetSpectrum(PyObject*)
         }
 
 	return resultlist;
-}
-
-
-static PyObject* gPyStopDSP(PyObject*, PyObject* args)
-{
-        PyErr_SetString(PyExc_RuntimeError, "no audio device available");
-        return NULL;
-	
-	Py_RETURN_NONE;
 }
 
 static PyObject* gPySetLogicTicRate(PyObject*, PyObject* args)
@@ -752,7 +747,6 @@ static struct PyMethodDef game_methods[] = {
 	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat, METH_NOARGS, (const char *)gPyGetRandomFloat_doc},
 	{"setGravity",(PyCFunction) gPySetGravity, METH_O, (const char *)"set Gravitation"},
 	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS, (const char *)"get audio spectrum"},
-	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS, (const char *)"stop using the audio dsp (for performance reasons)"},
 	{"getMaxLogicFrame", (PyCFunction) gPyGetMaxLogicFrame, METH_NOARGS, (const char *)"Gets the max number of logic frame per render frame"},
 	{"setMaxLogicFrame", (PyCFunction) gPySetMaxLogicFrame, METH_VARARGS, (const char *)"Sets the max number of logic frame per render frame"},
 	{"getMaxPhysicsFrame", (PyCFunction) gPyGetMaxPhysicsFrame, METH_NOARGS, (const char *)"Gets the max number of physics frame per render frame"},
@@ -934,7 +928,6 @@ static PyObject* gPyDisableMist(PyObject*)
 	
 	Py_RETURN_NONE;
 }
-
 
 static PyObject* gPySetMistStart(PyObject*, PyObject* args)
 {
@@ -1232,7 +1225,7 @@ static struct PyMethodDef rasterizer_methods[] = {
 // Initialization function for the module (*must* be called initGameLogic)
 
 static char GameLogic_module_documentation[] =
-"This is the Python API for the game engine of GameLogic"
+"This is the Python API for the game engine of bge.logic"
 ;
 
 static char Rasterizer_module_documentation[] =
@@ -1313,7 +1306,6 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_PROPSENSOR_EXPRESSION, SCA_PropertySensor::KX_PROPSENSOR_EXPRESSION);
 
 	/* 3. Constraint actuator                                                  */
-	/* XXX, TODO NXBGE, move constants names from KX_ACT_CONSTRAINT_foo to KX_CONSTRAINTACT_foo */
 	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_LOCX, KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCX);
 	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_LOCY, KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCY);
 	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_LOCZ, KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCZ);
@@ -1329,18 +1321,18 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_ORIX, KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIX);
 	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_ORIY, KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIY);
 	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_ORIZ, KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIZ);
-	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_FHPX, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPX);
-	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_FHPY, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPY);
-	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_FHPZ, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPZ);
-	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_FHNX, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNX);
-	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_FHNY, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNY);
-	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_FHNZ, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNZ);
-	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_NORMAL, KX_ConstraintActuator::KX_ACT_CONSTRAINT_NORMAL);
-	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_MATERIAL, KX_ConstraintActuator::KX_ACT_CONSTRAINT_MATERIAL);
-	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_PERMANENT, KX_ConstraintActuator::KX_ACT_CONSTRAINT_PERMANENT);
-	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_DISTANCE, KX_ConstraintActuator::KX_ACT_CONSTRAINT_DISTANCE);
-	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_LOCAL, KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCAL);
-	KX_MACRO_addTypesToDict(d, KX_ACT_CONSTRAINT_DOROTFH, KX_ConstraintActuator::KX_ACT_CONSTRAINT_DOROTFH);
+	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_FHPX, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPX);
+	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_FHPY, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPY);
+	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_FHPZ, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPZ);
+	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_FHNX, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNX);
+	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_FHNY, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNY);
+	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_FHNZ, KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNZ);
+	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_NORMAL, KX_ConstraintActuator::KX_ACT_CONSTRAINT_NORMAL);
+	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_MATERIAL, KX_ConstraintActuator::KX_ACT_CONSTRAINT_MATERIAL);
+	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_PERMANENT, KX_ConstraintActuator::KX_ACT_CONSTRAINT_PERMANENT);
+	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_DISTANCE, KX_ConstraintActuator::KX_ACT_CONSTRAINT_DISTANCE);
+	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_LOCAL, KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCAL);
+	KX_MACRO_addTypesToDict(d, KX_CONSTRAINTACT_DOROTFH, KX_ConstraintActuator::KX_ACT_CONSTRAINT_DOROTFH);
 
 	/* 4. Ipo actuator, simple part                                            */
 	KX_MACRO_addTypesToDict(d, KX_IPOACT_PLAY,     KX_IpoActuator::KX_ACT_IPO_PLAY);
@@ -1582,7 +1574,7 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	// Check for errors
 	if (PyErr_Occurred())
     {
-		Py_FatalError("can't initialize module GameLogic");
+		Py_FatalError("can't initialize module bge.logic");
     }
 
 	return m;
@@ -1979,7 +1971,6 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *
 		PyDict_SetItemString(PyModule_GetDict(*gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
 
 	*gameLogic_keys = PyDict_Keys(PyModule_GetDict(*gameLogic));
-	PyDict_SetItemString(dictionaryobject, "GameLogic", *gameLogic); // Same as importing the module.
 
 	initGameKeys();
 	initPythonConstraintBinding();
@@ -1987,10 +1978,11 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *
 	initGeometry();
 	initBGL();
 	initBLF();
+	AUD_initPython();
 	initVideoTexture();
 
 	/* could be done a lot more nicely, but for now a quick way to get bge.* working */
-	PyRun_SimpleString("sys = __import__('sys');mod = sys.modules['bge'] = type(sys)('bge');mod.__dict__.update({'logic':__import__('GameLogic'), 'render':__import__('Rasterizer'), 'events':__import__('GameKeys'), 'constraints':__import__('PhysicsConstraints'), 'types':__import__('GameTypes')})");
+	PyRun_SimpleString("sys = __import__('sys');mod = sys.modules['bge'] = type(sys)('bge');mod.__dict__.update({'logic':__import__('GameLogic'), 'render':__import__('Rasterizer'), 'events':__import__('GameKeys'), 'constraints':__import__('PhysicsConstraints'), 'types':__import__('GameTypes')});import bge");
 }
 
 static struct PyModuleDef Rasterizer_module_def = {
@@ -2338,15 +2330,15 @@ int saveGamePythonConfig( char **marshal_buffer)
 				memcpy(*marshal_buffer, marshal_cstring, marshal_length);
 				Py_DECREF(pyGlobalDictMarshal);
 			} else {
-				printf("Error, GameLogic.globalDict could not be marshal'd\n");
+				printf("Error, bge.logic.globalDict could not be marshal'd\n");
 			}
 		} else {
-			printf("Error, GameLogic.globalDict was removed\n");
+			printf("Error, bge.logic.globalDict was removed\n");
 		}
 		Py_DECREF(gameLogic);
 	} else {
 		PyErr_Clear();
-		printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
+		printf("Error, bge.logic failed to import bge.logic.globalDict will be lost\n");
 	}
 	return marshal_length;
 }
@@ -2378,7 +2370,7 @@ int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
 			}
 		} else {
 			PyErr_Clear();
-			printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
+			printf("Error, bge.logic failed to import bge.logic.globalDict will be lost\n");
 		}	
 	}
 	return 0;

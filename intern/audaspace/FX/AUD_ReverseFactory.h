@@ -34,17 +34,19 @@
  */
 class AUD_ReverseFactory : public AUD_EffectFactory
 {
+private:
+	// hide copy constructor and operator=
+	AUD_ReverseFactory(const AUD_ReverseFactory&);
+	AUD_ReverseFactory& operator=(const AUD_ReverseFactory&);
+
 public:
 	/**
 	 * Creates a new reverse factory.
 	 * \param factory The input factory.
 	 */
-	AUD_ReverseFactory(AUD_IFactory* factory = 0);
+	AUD_ReverseFactory(AUD_IFactory* factory);
 
-	/**
-	 * Destroys the factory.
-	 */
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_REVERSEFACTORY

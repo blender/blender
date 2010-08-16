@@ -28,7 +28,7 @@
 
 #include "AUD_EffectReader.h"
 #include "AUD_ConverterFunctions.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class converts a sound source from one to another format.
@@ -39,7 +39,7 @@ private:
 	/**
 	 * The sound output buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The target specification.
@@ -51,20 +51,19 @@ private:
 	 */
 	AUD_convert_f m_convert;
 
+	// hide copy constructor and operator=
+	AUD_ConverterReader(const AUD_ConverterReader&);
+	AUD_ConverterReader& operator=(const AUD_ConverterReader&);
+
 public:
 	/**
 	 * Creates a converter reader.
 	 * \param reader The reader to convert.
 	 * \param specs The target specification.
-	 * \exception AUD_Exception Thrown if the reader is NULL.
 	 */
 	AUD_ConverterReader(AUD_IReader* reader, AUD_DeviceSpecs specs);
-	/**
-	 * Destroys the reader.
-	 */
-	~AUD_ConverterReader();
 
-	virtual AUD_Specs getSpecs();
+	virtual AUD_Specs getSpecs() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 

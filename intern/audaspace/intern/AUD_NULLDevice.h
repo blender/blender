@@ -33,33 +33,33 @@
  */
 class AUD_NULLDevice : public AUD_IDevice
 {
-private:
-	/**
-	 * The specs of the device.
-	 */
-	AUD_DeviceSpecs m_specs;
-
 public:
 	/**
 	 * Creates a new NULL device.
 	 */
 	AUD_NULLDevice();
 
-	virtual AUD_DeviceSpecs getSpecs();
+	virtual AUD_DeviceSpecs getSpecs() const;
 	virtual AUD_Handle* play(AUD_IFactory* factory, bool keep = false);
 	virtual bool pause(AUD_Handle* handle);
 	virtual bool resume(AUD_Handle* handle);
 	virtual bool stop(AUD_Handle* handle);
+	virtual bool getKeep(AUD_Handle* handle);
 	virtual bool setKeep(AUD_Handle* handle, bool keep);
-	virtual bool sendMessage(AUD_Handle* handle, AUD_Message &message);
 	virtual bool seek(AUD_Handle* handle, float position);
 	virtual float getPosition(AUD_Handle* handle);
 	virtual AUD_Status getStatus(AUD_Handle* handle);
 	virtual void lock();
 	virtual void unlock();
-	virtual bool checkCapability(int capability);
-	virtual bool setCapability(int capability, void *value);
-	virtual bool getCapability(int capability, void *value);
+	virtual float getVolume() const;
+	virtual void setVolume(float volume);
+	virtual float getVolume(AUD_Handle* handle);
+	virtual bool setVolume(AUD_Handle* handle, float volume);
+	virtual float getPitch(AUD_Handle* handle);
+	virtual bool setPitch(AUD_Handle* handle, float pitch);
+	virtual int getLoopCount(AUD_Handle* handle);
+	virtual bool setLoopCount(AUD_Handle* handle, int count);
+	virtual bool setStopCallback(AUD_Handle* handle, stopCallback callback = 0, void* data = 0);
 };
 
 #endif //AUD_NULLDEVICE

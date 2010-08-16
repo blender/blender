@@ -23,42 +23,52 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_SUMREADER
-#define AUD_SUMREADER
+#include "AUD_SilenceReader.h"
 
-#include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include <cstring>
 
-/**
- * This class represents an summer.
- */
-class AUD_SumReader : public AUD_EffectReader
+AUD_SilenceReader::AUD_SilenceReader() :
+	m_position(0)
 {
-private:
-	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer *m_buffer;
+}
 
-	/**
-	 * The sums of the specific channels.
-	 */
-	AUD_Buffer *m_sums;
+bool AUD_SilenceReader::isSeekable() const
+{
+	return true;
+}
 
-public:
-	/**
-	 * Creates a new sum reader.
-	 * \param reader The reader to read from.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
-	 */
-	AUD_SumReader(AUD_IReader* reader);
+void AUD_SilenceReader::seek(int position)
+{
+	m_position = position;
+}
 
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_SumReader();
+int AUD_SilenceReader::getLength() const
+{
+	return -1;
+}
 
-	virtual void read(int & length, sample_t* & buffer);
-};
+int AUD_SilenceReader::getPosition() const
+{
+	return m_position;
+}
 
-#endif //AUD_SUMREADER
+AUD_Specs AUD_SilenceReader::getSpecs() const
+{
+	AUD_Specs specs;
+	specs.rate = AUD_RATE_44100;
+	specs.channels = AUD_CHANNELS_MONO;
+	return specs;
+}
+
+void AUD_SilenceReader::read(int & length, sample_t* & buffer)
+{
+	// resize if necessary
+	if(m_buffer.getSize() < length * sizeof(sample_t))
+	{
+		m_buffer.resize(length * sizeof(sample_t));
+		memset(m_buffer.getBuffer(), 0, m_buffer.getSize());
+	}
+
+	buffer = m_buffer.getBuffer();
+	m_position += length;
+}

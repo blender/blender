@@ -37,7 +37,11 @@ private:
 	/**
 	 * The delay in samples.
 	 */
-	float m_delay;
+	const float m_delay;
+
+	// hide copy constructor and operator=
+	AUD_DelayFactory(const AUD_DelayFactory&);
+	AUD_DelayFactory& operator=(const AUD_DelayFactory&);
 
 public:
 	/**
@@ -45,26 +49,14 @@ public:
 	 * \param factory The input factory.
 	 * \param delay The desired delay in seconds.
 	 */
-	AUD_DelayFactory(AUD_IFactory* factory = 0, float delay = 0);
-
-	/**
-	 * Creates a new delay factory.
-	 * \param delay The desired delay in seconds.
-	 */
-	AUD_DelayFactory(float delay);
+	AUD_DelayFactory(AUD_IFactory* factory, float delay = 0);
 
 	/**
 	 * Returns the delay in seconds.
 	 */
-	float getDelay();
+	float getDelay() const;
 
-	/**
-	 * Sets the delay.
-	 * \param delay The new delay value in seconds.
-	 */
-	void setDelay(float delay);
-
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_DELAYFACTORY

@@ -23,41 +23,25 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#include "AUD_SquareReader.h"
-#include "AUD_Buffer.h"
+#include "AUD_CallbackIIRFilterReader.h"
 
-#include <cstring>
-
-AUD_SquareReader::AUD_SquareReader(AUD_IReader* reader, float threshold) :
-		AUD_EffectReader(reader),
-		m_threshold(threshold)
+AUD_CallbackIIRFilterReader::AUD_CallbackIIRFilterReader(AUD_IReader* reader,
+														 int in, int out,
+														 doFilterIIR doFilter,
+														 endFilterIIR endFilter,
+														 void* data) :
+	AUD_BaseIIRFilterReader(reader, in, out),
+	m_filter(doFilter), m_endFilter(endFilter), m_data(data)
 {
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
 }
 
-AUD_SquareReader::~AUD_SquareReader()
+AUD_CallbackIIRFilterReader::~AUD_CallbackIIRFilterReader()
 {
-	delete m_buffer; AUD_DELETE("buffer")
+	if(m_endFilter)
+		m_endFilter(m_data);
 }
 
-void AUD_SquareReader::read(int & length, sample_t* & buffer)
+sample_t AUD_CallbackIIRFilterReader::filter()
 {
-	sample_t* buf;
-	AUD_Specs specs = m_reader->getSpecs();
-
-	m_reader->read(length, buf);
-	if(m_buffer->getSize() < length * AUD_SAMPLE_SIZE(specs))
-		m_buffer->resize(length * AUD_SAMPLE_SIZE(specs));
-
-	buffer = m_buffer->getBuffer();
-
-	for(int i = 0; i < length * specs.channels; i++)
-	{
-		if(buf[i] >= m_threshold)
-			buffer[i] = 1.0f;
-		else if(buf[i] <= -m_threshold)
-			buffer[i] = -1.0f;
-		else
-			buffer[i] = 0.0f;
-	}
+	return m_filter(this, m_data);
 }

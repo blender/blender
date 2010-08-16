@@ -36,6 +36,7 @@ SET(INC
 	../windowmanager
 	../editors/include
 	../../../intern/guardedalloc
+	../../../intern/audaspace/intern
 	${PYTHON_INC}
 )
 

@@ -41,6 +41,11 @@
 #include "../generic/blf_api.h"
 #include "../generic/IDProp.h"
 
+#ifndef DISABLE_PYTHON
+#define WITH_PYTHON
+#endif
+#include "AUD_C-API.h"
+
 static char bpy_script_paths_doc[] =
 ".. function:: script_paths()\n"
 "\n"
@@ -153,7 +158,7 @@ void BPy_init_modules( void )
 	BGL_Init();
 	BLF_Init();
 	IDProp_Init_Types();
-
+	AUD_initPython();
 
 	mod = PyModule_New("_bpy");
 

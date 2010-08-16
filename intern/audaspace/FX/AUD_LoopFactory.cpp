@@ -28,30 +28,16 @@
 
 AUD_LoopFactory::AUD_LoopFactory(AUD_IFactory* factory, int loop) :
 		AUD_EffectFactory(factory),
-		m_loop(loop) {}
+		m_loop(loop)
+{
+}
 
-AUD_LoopFactory::AUD_LoopFactory(int loop) :
-		AUD_EffectFactory(0),
-		m_loop(loop) {}
-
-int AUD_LoopFactory::getLoop()
+int AUD_LoopFactory::getLoop() const
 {
 	return m_loop;
 }
 
-void AUD_LoopFactory::setLoop(int loop)
+AUD_IReader* AUD_LoopFactory::createReader() const
 {
-	m_loop = loop;
-}
-
-AUD_IReader* AUD_LoopFactory::createReader()
-{
-	AUD_IReader* reader = getReader();
-
-	if(reader != 0)
-	{
-		reader = new AUD_LoopReader(reader, m_loop); AUD_NEW("reader")
-	}
-
-	return reader;
+	return new AUD_LoopReader(getReader(), m_loop);
 }

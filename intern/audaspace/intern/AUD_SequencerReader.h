@@ -28,9 +28,8 @@
 
 #include "AUD_IReader.h"
 #include "AUD_SequencerFactory.h"
-#include "AUD_Mixer.h"
-
-class AUD_Buffer;
+#include "AUD_Buffer.h"
+class AUD_Mixer;
 
 struct AUD_SequencerStrip
 {
@@ -53,12 +52,12 @@ private:
 	/**
 	 * The sound output buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The target specification.
 	 */
-	AUD_Mixer m_mixer;
+	AUD_Mixer* m_mixer;
 
 	/**
 	 * Saves the SequencerFactory the reader belongs to.
@@ -70,14 +69,17 @@ private:
 	void* m_data;
 	AUD_volumeFunction m_volume;
 
+	// hide copy constructor and operator=
+	AUD_SequencerReader(const AUD_SequencerReader&);
+	AUD_SequencerReader& operator=(const AUD_SequencerReader&);
+
 public:
 	/**
 	 * Creates a resampling reader.
 	 * \param reader The reader to mix.
 	 * \param specs The target specification.
-	 * \exception AUD_Exception Thrown if the reader is NULL.
 	 */
-	AUD_SequencerReader(AUD_SequencerFactory* factory, std::list<AUD_SequencerEntry*> &entries, AUD_Specs specs, void* data, AUD_volumeFunction volume);
+	AUD_SequencerReader(AUD_SequencerFactory* factory, std::list<AUD_SequencerEntry*> &entries, const AUD_Specs specs, void* data, AUD_volumeFunction volume);
 
 	/**
 	 * Destroys the reader.
@@ -89,13 +91,11 @@ public:
 	void add(AUD_SequencerEntry* entry);
 	void remove(AUD_SequencerEntry* entry);
 
-	virtual bool isSeekable();
+	virtual bool isSeekable() const;
 	virtual void seek(int position);
-	virtual int getLength();
-	virtual int getPosition();
-	virtual AUD_Specs getSpecs();
-	virtual AUD_ReaderType getType();
-	virtual bool notify(AUD_Message &message);
+	virtual int getLength() const;
+	virtual int getPosition() const;
+	virtual AUD_Specs getSpecs() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 
