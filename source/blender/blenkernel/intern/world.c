@@ -44,10 +44,6 @@
 #include "BKE_main.h"
 #include "BKE_icons.h"
 
-#ifndef DISABLE_PYTHON
-#include "BPY_extern.h"
-#endif
-
 void free_world(World *wrld)
 {
 	MTex *mtex;

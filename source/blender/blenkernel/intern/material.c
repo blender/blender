@@ -56,10 +56,6 @@
 #include "BKE_node.h"
 #include "BKE_utildefines.h"
 
-#ifndef DISABLE_PYTHON
-#include "BPY_extern.h"
-#endif
-
 #include "GPU_material.h"
 
 /* used in UI and render */

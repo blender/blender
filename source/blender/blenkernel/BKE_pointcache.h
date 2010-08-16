@@ -33,8 +33,6 @@
 #include "DNA_object_force.h"
 #include "DNA_boid_types.h"
 
-#include "MEM_guardedalloc.h"
-
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
  * and after are non inclusive (they wont remove the cfra) */
 #define PTCACHE_CLEAR_ALL		0

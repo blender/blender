@@ -27,7 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "MEM_guardedalloc.h"
 
 #include "BIK_api.h"
 #include "BLI_blenlib.h"

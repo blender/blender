@@ -31,17 +31,8 @@
 #include <stddef.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-
-
-
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
-
-
 
 #include "gpencil_intern.h"
 

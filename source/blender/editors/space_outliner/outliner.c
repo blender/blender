@@ -59,7 +59,6 @@
 # include <fnmatch.h>
 #endif
 
-#include "IMB_imbuf_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"

@@ -64,9 +64,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "ED_screen.h"
-#include "ED_sculpt.h"
 #include "ED_view3d.h"
-#include "ED_mesh.h"
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 

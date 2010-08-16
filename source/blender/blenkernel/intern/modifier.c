@@ -44,6 +44,8 @@
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_bmesh.h"
 #include "BKE_cloth.h"
 #include "BKE_key.h"

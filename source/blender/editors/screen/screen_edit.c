@@ -51,7 +51,6 @@
 
 #include "ED_image.h"
 #include "ED_object.h"
-#include "ED_view3d.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 

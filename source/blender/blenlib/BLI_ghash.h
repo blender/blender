@@ -41,7 +41,6 @@ extern "C" {
 #include <string.h>
 
 #include "BKE_utildefines.h"
-#include "MEM_guardedalloc.h"
 
 #include "BLI_mempool.h"
 #include "BLI_blenlib.h"

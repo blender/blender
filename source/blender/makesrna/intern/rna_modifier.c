@@ -36,6 +36,8 @@
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_math.h"
 
 #include "BKE_animsys.h"

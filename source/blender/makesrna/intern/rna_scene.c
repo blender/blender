@@ -150,6 +150,8 @@ EnumPropertyItem image_type_items[] = {
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"

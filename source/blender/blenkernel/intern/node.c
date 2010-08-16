@@ -45,7 +45,6 @@
 
 #include "PIL_time.h"
 
-#include "MEM_guardedalloc.h"
 
 #include "CMP_node.h"
 #include "intern/CMP_util.h"	/* stupid include path... */

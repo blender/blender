@@ -42,6 +42,7 @@
 #include "imbuf.h"
 
 #include "MEM_CacheLimiterC-Api.h"
+#include "MEM_guardedalloc.h"
 
 void imb_freemipmapImBuf(ImBuf *ibuf)
 {

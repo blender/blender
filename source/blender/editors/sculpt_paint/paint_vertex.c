@@ -38,12 +38,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_ghash.h"
+
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
@@ -70,8 +70,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "ED_armature.h"
 #include "ED_mesh.h"

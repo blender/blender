@@ -38,7 +38,6 @@
 #else
 #include <io.h>
 #endif
-#include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_group_types.h"
@@ -46,6 +45,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
@@ -67,10 +68,6 @@
 
 //XXX #include "BIF_previewrender.h"
 //XXX #include "BIF_editseq.h"
-
-#ifndef DISABLE_PYTHON
-#include "BPY_extern.h"
-#endif
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"

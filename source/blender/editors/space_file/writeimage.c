@@ -29,7 +29,6 @@
 
 #include <string.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

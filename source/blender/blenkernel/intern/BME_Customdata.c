@@ -36,9 +36,9 @@
 
 #include <string.h>
 
+#include "MEM_guardedalloc.h"
 #include "BKE_bmeshCustomData.h"
 #include "bmesh_private.h"
-#include "MEM_guardedalloc.h"
 
 /********************* Layer type information **********************/
 typedef struct BME_LayerTypeInfo {

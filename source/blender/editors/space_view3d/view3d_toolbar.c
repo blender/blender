@@ -46,7 +46,6 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
-#include "BIF_gl.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

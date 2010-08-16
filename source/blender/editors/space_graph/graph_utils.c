@@ -45,7 +45,6 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 
-#include "BIF_gl.h"
 
 #include "WM_api.h"
 

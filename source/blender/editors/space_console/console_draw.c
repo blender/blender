@@ -33,7 +33,6 @@
 #include <sys/stat.h>
 #include <limits.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "BLF_api.h"
 

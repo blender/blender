@@ -41,7 +41,6 @@
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 
 #include "WM_api.h"

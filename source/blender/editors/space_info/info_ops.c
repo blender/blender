@@ -50,8 +50,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_interface.h"
 

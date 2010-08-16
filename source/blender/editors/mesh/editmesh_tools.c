@@ -37,8 +37,6 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include <math.h>
 #include <float.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLO_sys_types.h" // for intptr_t support
 
 #include "DNA_meshdata_types.h"
@@ -46,6 +44,8 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_key_types.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -66,8 +66,6 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BKE_bmesh.h"
 #include "BKE_report.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

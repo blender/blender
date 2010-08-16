@@ -30,12 +30,14 @@
 *
 */
 
+#include "MEM_guardedalloc.h"
+
+#include "BLI_ghash.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-
-#include "BLI_ghash.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"

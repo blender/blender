@@ -69,7 +69,6 @@
 #include "smoke_API.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "GPU_extensions.h"
 

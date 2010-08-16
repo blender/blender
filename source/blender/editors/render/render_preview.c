@@ -81,7 +81,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_datafiles.h"
 #include "ED_render.h"
 #include "ED_view3d.h"
 

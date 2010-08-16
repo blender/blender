@@ -31,7 +31,6 @@
 
 #include "DNA_scene_types.h"
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"

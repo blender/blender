@@ -54,8 +54,6 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

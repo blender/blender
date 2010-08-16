@@ -34,6 +34,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"

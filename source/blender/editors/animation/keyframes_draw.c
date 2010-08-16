@@ -61,7 +61,6 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"

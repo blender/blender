@@ -31,13 +31,14 @@
 #include <math.h> 
 #include <float.h> 
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -62,7 +63,6 @@
 #include "DNA_object_types.h"
 
 #include "BIF_gl.h"
-#include "BIF_generate.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

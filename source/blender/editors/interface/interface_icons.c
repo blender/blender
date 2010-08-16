@@ -60,7 +60,6 @@
 #include "IMB_imbuf_types.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "ED_datafiles.h"
 #include "ED_render.h"
