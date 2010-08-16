@@ -34,10 +34,10 @@ private:
 		float m_v[4];
 		struct
 		{
-			const float m_w;
-			const float m_x;
-			const float m_y;
-			const float m_z;
+			float m_w;
+			float m_x;
+			float m_y;
+			float m_z;
 		};
 	};
 
@@ -120,9 +120,9 @@ private:
 		float m_v[3];
 		struct
 		{
-			const float m_x;
-			const float m_y;
-			const float m_z;
+			float m_x;
+			float m_y;
+			float m_z;
 		};
 	};
 
