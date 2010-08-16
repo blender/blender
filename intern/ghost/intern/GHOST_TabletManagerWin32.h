@@ -9,6 +9,7 @@
 #include	<windows.h>
 #include "wintab.h"
 #include <map>
+#include <vector>
 
 #include "GHOST_Types.h"
 class GHOST_WindowWin32;
@@ -22,6 +23,10 @@ typedef int  ( API * WTPACKETSGET ) ( HCTX, int, LPVOID );
 typedef BOOL ( API * WTPACKET ) ( HCTX, UINT, LPVOID );
 // END
 
+// TabletToolData (and its components) are meant to replace GHOST_TabletData
+// and its customdata analogue in the window manager. For now it's confined to the
+// TabletManager.
+
 typedef enum { TABLET_NONE, TABLET_PEN, TABLET_ERASER, TABLET_MOUSE } TabletToolType;
 
 typedef struct
@@ -31,7 +36,7 @@ typedef struct
 	// capabilities
 	bool hasPressure : 1;
 	bool hasTilt : 1;
-	
+
 	} TabletTool;
 
 
@@ -44,6 +49,30 @@ typedef struct
 
 	} TabletToolData;
 
+
+// "Tablet" structure is not active by pencils down
+// but will be soon.
+
+struct Tablet
+	{
+	bool hasPressure;
+	float pressureScale;
+
+	bool hasTilt;
+	float azimuthScale;
+	float altitudeScale;
+
+	UINT size_x, size_y;
+
+	UINT cursorCount;
+	UINT cursorBase;
+
+	WTPKT allTools; // standard info available from any tool (mouse/pen/etc.)
+	WTPKT someTools; // extra info available from only some tools
+
+	bool ownsCursor(UINT x)
+		{ return (x - cursorBase) < cursorCount; }
+	};
 
 class GHOST_TabletManagerWin32
 	{
@@ -77,6 +106,8 @@ class GHOST_TabletManagerWin32
 	// book-keeping
 	std::map<GHOST_WindowWin32*,HCTX> contexts;
 	HCTX contextForWindow(GHOST_WindowWin32*);
+
+	std::vector<Tablet> tablets;
 
 	GHOST_WindowWin32* activeWindow;
 	TabletTool activeTool;

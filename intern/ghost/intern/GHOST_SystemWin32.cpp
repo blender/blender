@@ -841,7 +841,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 	GHOST_Event* event = NULL;
-	bool eventSent = false;
+	bool eventHandled = false;
 
 	static int mousePosX = 0, mousePosY = 0; // track mouse position between calls
 
@@ -1014,10 +1014,19 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 
 		case WM_MOUSEMOVE:
 			{
-			if (!eventIsFromTablet() && !m_tabletManager->anyButtonsDown())
+			if (!eventIsFromTablet())
+				{
 				// Even with careful checking, a stray cursor event sneaks through just before each
 				// tablet mouse/pen button up event. Keep clean separation between tablet and mouse!
-				{
+				if (m_tabletManager->anyButtonsDown())
+					{
+					// tablet manager handles all its own cursor moves.
+					// ignore 'regular' mouse while a tablet tool is being used.
+					DefWindowProc(window->getHWND(), WM_MOUSEMOVE, wParam, lParam);
+					eventHandled = true;
+					break;
+					}
+
 				int xPrev = mousePosX;
 				int yPrev = mousePosY;
 				// window coordinates are passed in via lParam
@@ -1056,10 +1065,10 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
          UINT rawSize = sizeof(RAWINPUT);
 
          GetRawInputData((HRAWINPUT)lParam, RID_INPUT, raw_ptr, &rawSize, sizeof(RAWINPUTHEADER));
-         eventSent |= processRawInput(raw, window);
+         eventHandled |= processRawInput(raw, window);
 
 			if (processRawInput(raw, window))
-				eventSent = true;
+				eventHandled = true;
 //			else
 //				DefRawInputProc(&raw_ptr, 1, sizeof(RAWINPUTHEADER));
 
@@ -1089,7 +1098,7 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 					for (int i = 0; i < n; ++i)
 						{
 						RAWINPUT const& raw = rawBuffer[i];
-						eventSent |= processRawInput(raw, window);
+						eventHandled |= processRawInput(raw, window);
 						}
 
 					// clear processed events from the queue
@@ -1290,13 +1299,13 @@ bool GHOST_SystemWin32::handleEvent(GHOST_WindowWin32* window, UINT msg, WPARAM 
 #endif // illustrative code
 	}
 
-	if (!eventSent)
+	if (!eventHandled)
 		if (event) {
 			pushEvent(event);
-			eventSent = true;
+			eventHandled = true;
 		}
 
-	return eventSent;
+	return eventHandled;
 }
 
 GHOST_TUns8* GHOST_SystemWin32::getClipboard(bool selection) const

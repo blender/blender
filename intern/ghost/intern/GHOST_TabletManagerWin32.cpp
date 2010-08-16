@@ -171,27 +171,6 @@ void GHOST_TabletManagerWin32::getExtraInfo()
 	printf("WinTab version %d.%d (%d.%d)\n",
 		HIBYTE(specV), LOBYTE(specV), HIBYTE(implV), LOBYTE(implV));
 
-	UINT ndevices, ncursors;
-      func_Info(WTI_INTERFACE, IFC_NDEVICES, &ndevices);
-      func_Info(WTI_INTERFACE, IFC_NCURSORS, &ncursors);
-
-	printf("%d tablets, %d tools\n", ndevices, ncursors);
-	if (ndevices > 1)
-		; // support this?
-
-	// query for overall capabilities and ranges
-	char tabletName[LC_NAMELEN];
-	if (func_Info(WTI_DEVICES, DVC_NAME, tabletName))
-		puts(tabletName);
-
-	puts("\nactive tablet area");
-	AXIS xRange, yRange;
-	func_Info(WTI_DEVICES, DVC_X, &xRange);
-	func_Info(WTI_DEVICES, DVC_Y, &yRange);
-	print(xRange,"x"); print(yRange,"y");
-
-	putchar('\n');
-
 	UINT extensionCount;
 	func_Info(WTI_INTERFACE, IFC_NEXTENSIONS, &extensionCount);
 	for (UINT i = 0; i < extensionCount; ++i)
@@ -201,8 +180,84 @@ void GHOST_TabletManagerWin32::getExtraInfo()
 		printf("extension %d: %s\n", i, name);
 		}
 
-//	for (int i = cursorBase; i < cursorBase + cursorCount; ++i)
-	for (UINT i = 0; i < ncursors; ++i)
+	UINT deviceCount, cursorCount;
+	func_Info(WTI_INTERFACE, IFC_NDEVICES, &deviceCount);
+	func_Info(WTI_INTERFACE, IFC_NCURSORS, &cursorCount);
+
+	printf("%d tablets, %d tools\n", deviceCount, cursorCount);
+	if (deviceCount > 1)
+		; // support this?
+
+	for (UINT i = 0; i < deviceCount; ++i)
+		{
+		Tablet tablet;
+
+		// query for overall capabilities and ranges
+		char tabletName[LC_NAMELEN];
+		if (func_Info(WTI_DEVICES, DVC_NAME, tabletName))
+			printf("tablet %d: %s\n", i, tabletName);
+	
+		puts("\nactive tablet area");
+		AXIS xRange, yRange;
+		func_Info(WTI_DEVICES + i, DVC_X, &xRange);
+		func_Info(WTI_DEVICES + i, DVC_Y, &yRange);
+		tablet.size_x = xRange.axMax;
+		tablet.size_y = yRange.axMax;
+		print(xRange,"x"); print(yRange,"y");
+
+		func_Info(WTI_DEVICES + i, DVC_NCSRTYPES, &cursorCount);
+		func_Info(WTI_DEVICES + i, DVC_FIRSTCSR, &cursorBase);
+		tablet.cursorBase = cursorBase;
+		tablet.cursorCount = cursorCount;
+		printf("owns tools %d to %d\n", cursorBase, cursorBase + cursorCount - 1);
+
+		func_Info(WTI_DEVICES + i, DVC_PKTDATA, &allTools);
+		puts("\nall tools have"); print(allTools);
+		func_Info(WTI_DEVICES + i, DVC_CSRDATA, &someTools);
+		puts("some tools also have"); print(someTools);
+
+		puts("\npressure sensitivity");
+		AXIS pressureRange;
+		hasPressure = (allTools|someTools) & PK_NORMAL_PRESSURE
+			&& func_Info(WTI_DEVICES + i, DVC_NPRESSURE, &pressureRange);
+
+		if (hasPressure)
+			{
+			print(pressureRange);
+			pressureScale = 1.f / pressureRange.axMax;
+			}
+		else
+			pressureScale = 0.f;
+
+		puts("\ntilt sensitivity");
+		AXIS tiltRange[3];
+		hasTilt = (allTools|someTools) & PK_ORIENTATION
+			&& func_Info(WTI_DEVICES + i, DVC_ORIENTATION, &tiltRange);
+
+		if (hasTilt)
+			{
+			// leave this code in place to help support tablets I haven't tested
+			const char* axisName[] = {"azimuth","altitude","twist"};
+			for (int i = 0; i < 3; ++i)
+				print(tiltRange[i], axisName[i]);
+
+			// cheat by using available data from Intuos4. test on other tablets!!!
+			// azimuthScale = 1.f / HIWORD(tiltRange[1].axResolution);
+			// altitudeScale = 1.f / tiltRange[1].axMax;
+
+			azimuthScale = 1.f / tiltRange[0].axMax;
+			altitudeScale = 1.f / tiltRange[1].axMax;
+			}
+		else
+			{
+			puts("none");
+			azimuthScale = altitudeScale = 0.f;
+			}
+		
+		tablets.push_back(tablet);
+		}
+
+	for (UINT i = 0; i < cursorCount; ++i)
 		{
 		// what can each cursor do?
 
@@ -415,6 +470,13 @@ bool GHOST_TabletManagerWin32::processPackets(GHOST_WindowWin32* window)
 			int y = packet.pkY;
 	
 			if (activeTool.type == TABLET_MOUSE)
+				{
+				// until scaling is working better, use system cursor position instead
+				POINT systemPos;
+				GetCursorPos(&systemPos);
+				x = systemPos.x;
+				y = systemPos.y;
+
 				if (x == prevMouseX && y == prevMouseY && packet.pkButtons == prevButtons)
 					// don't send any "mouse hasn't moved" events
 					continue;
@@ -422,6 +484,7 @@ bool GHOST_TabletManagerWin32::processPackets(GHOST_WindowWin32* window)
 					prevMouseX = x;
 					prevMouseY = y;
 					}
+				}
 
 			anyProcessed = true;
 
@@ -601,6 +664,7 @@ void GHOST_TabletManagerWin32::changeTool(GHOST_WindowWin32* window, UINT serial
 				activeTool.type = TABLET_NONE;
 			}
 
+//#if 0
 		// now try another way
 		func_Info(WTI_CURSORS + packet.pkCursor, CSR_TYPE, &cursorType);
 		switch (cursorType & 0xf06)
@@ -623,6 +687,7 @@ void GHOST_TabletManagerWin32::changeTool(GHOST_WindowWin32* window, UINT serial
 			default:
 				puts("???");
 			}
+//#endif
 
 		WTPKT toolData;
 		func_Info(WTI_CURSORS + packet.pkCursor, CSR_PKTDATA, &toolData);
