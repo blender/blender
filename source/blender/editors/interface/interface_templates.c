@@ -805,7 +805,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 			uiBlockClearButLock(block);
 			uiBlockSetButLock(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 			
-			if (!ELEM4(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem, eModifierType_Cloth))
+			if (!ELEM5(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem, eModifierType_Cloth, eModifierType_Smoke))
 				uiItemO(row, "Copy", 0, "OBJECT_OT_modifier_copy");
 		}
 		
