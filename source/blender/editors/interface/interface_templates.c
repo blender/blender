@@ -502,7 +502,7 @@ static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 	prop= RNA_struct_find_property(ptr, propname);
 
 	if(!prop || RNA_property_type(prop) != PROP_POINTER) {
-		printf("uiTemplateID: pointer property not found: %s\n", propname);
+		printf("uiTemplateID: pointer property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -563,11 +563,11 @@ void uiTemplateAnyID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 	propType= RNA_struct_find_property(ptr, proptypename);
 
 	if (!propID || RNA_property_type(propID) != PROP_POINTER) {
-		printf("uiTemplateAnyID: pointer property not found: %s\n", propname);
+		printf("uiTemplateAnyID: pointer property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 	if (!propType || RNA_property_type(propType) != PROP_ENUM) { 
-		printf("uiTemplateAnyID: pointer-type property not found: %s\n", proptypename);
+		printf("uiTemplateAnyID: pointer-type property not found: %s.%s\n", RNA_struct_identifier(ptr->type), proptypename);
 		return;
 	}
 	
@@ -606,7 +606,7 @@ void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 	/* check that properties are valid */
 	propPath= RNA_struct_find_property(ptr, propname);
 	if (!propPath || RNA_property_type(propPath) != PROP_STRING) {
-		printf("uiTemplatePathBuilder: path property not found: %s\n", propname);
+		printf("uiTemplatePathBuilder: path property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 	
@@ -1853,7 +1853,7 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int
 	float softmin, softmax, step, precision;
 	
 	if (!prop) {
-		printf("uiTemplateColorWheel: property not found: %s\n", propname);
+		printf("uiTemplateColorWheel: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -1894,7 +1894,7 @@ void uiTemplateTriColorSet(uiLayout *layout, PointerRNA *ptr, char *propname)
 	PointerRNA csPtr;
 
 	if (!prop) {
-		printf("uiTemplateTriColorSet: property not found: %s\n", propname);
+		printf("uiTemplateTriColorSet: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 	
@@ -1946,7 +1946,7 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
 	
 	prop= RNA_struct_find_property(ptr, propname);
 	if (!prop) {
-		printf("uiTemplateLayer: layers property not found: %s\n", propname);
+		printf("uiTemplateLayer: layers property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -1965,7 +1965,7 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
 	if(used_ptr && used_propname) {
 		used_prop= RNA_struct_find_property(used_ptr, used_propname);
 		if (!used_prop) {
-			printf("uiTemplateLayer: used layers property not found: %s\n", used_propname);
+			printf("uiTemplateLayer: used layers property not found: %s.%s\n", RNA_struct_identifier(ptr->type), used_propname);
 			return;
 		}
 
@@ -2134,14 +2134,14 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propna
 	if(ptr->data) {
 		prop= RNA_struct_find_property(ptr, propname);
 		if(!prop) {
-			printf("uiTemplateList: property not found: %s\n", propname);
+			printf("uiTemplateList: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 			return;
 		}
 	}
 
 	activeprop= RNA_struct_find_property(activeptr, activepropname);
 	if(!activeprop) {
-		printf("uiTemplateList: property not found: %s\n", activepropname);
+		printf("uiTemplateList: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), activepropname);
 		return;
 	}
 

@@ -976,7 +976,7 @@ void uiItemR(uiLayout *layout, PointerRNA *ptr, char *propname, int flag, char *
 
 	if(!prop) {
 		ui_item_disabled(layout, propname);
-		printf("uiItemR: property not found: %s\n", propname);
+		printf("uiItemR: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -989,7 +989,7 @@ void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr,
 
 	if(!prop || RNA_property_type(prop) != PROP_ENUM) {
 		ui_item_disabled(layout, propname);
-		printf("uiItemEnumR: enum property not found: %s\n", propname);
+		printf("uiItemEnumR: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -1004,7 +1004,7 @@ void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, char *propname
 
 	if(!prop || RNA_property_type(prop) != PROP_ENUM) {
 		ui_item_disabled(layout, propname);
-		printf("uiItemEnumR: enum property not found: %s\n", propname);
+		printf("uiItemEnumR_string: enum property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -1225,7 +1225,7 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, char *propname, st
 	prop= RNA_struct_find_property(ptr, propname);
 
 	if(!prop) {
-		printf("uiItemPointerR: property not found: %s\n", propname);
+		printf("uiItemPointerR: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 	
@@ -1238,7 +1238,7 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, char *propname, st
 	searchprop= RNA_struct_find_property(searchptr, searchpropname);
 
 	if(!searchprop || RNA_property_type(searchprop) != PROP_COLLECTION) {
-		printf("uiItemPointerR: search collection property not found: %s\n", searchpropname);
+		printf("uiItemPointerR: search collection property not found: %s.%s\n", RNA_struct_identifier(ptr->type), searchpropname);
 		return;
 	}
 

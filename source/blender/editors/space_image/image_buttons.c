@@ -766,7 +766,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 	
 	prop= RNA_struct_find_property(ptr, propname);
 	if(!prop) {
-		printf("uiTemplateImage: property not found: %s\n", propname);
+		printf("uiTemplateImage: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
