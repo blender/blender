@@ -1343,7 +1343,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "State", "State determining which controllers are displayed");
 	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_state_get", "rna_GameObjectSettings_state_set");
 
-	prop= RNA_def_property(srna, "used_state", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	prop= RNA_def_property(srna, "used_states", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_array(prop, OB_MAX_STATES);
 	RNA_def_property_ui_text(prop, "Used State", "States which are being used by controllers");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
