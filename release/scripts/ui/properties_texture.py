@@ -680,19 +680,6 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, bpy.types.Panel):
         col.prop(tex, "crop_max_y", text="Y")
 
 
-class TEXTURE_PT_plugin(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Plugin"
-    tex_type = 'PLUGIN'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        # tex = context.texture
-
-        layout.label(text="Nothing yet")
-
-
 class TEXTURE_PT_envmap(TextureTypePanel, bpy.types.Panel):
     bl_label = "Environment Map"
     tex_type = 'ENVIRONMENT_MAP'

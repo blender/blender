@@ -60,7 +60,7 @@ EnumPropertyItem texture_type_items[] = {
 	{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", ""},
 	{TEX_MUSGRAVE, "MUSGRAVE", ICON_TEXTURE, "Musgrave", ""},
 	{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise", ""},
-	{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""},
+	//{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""}, /* Nothing yet */
 	{TEX_POINTDENSITY, "POINT_DENSITY", ICON_TEXTURE, "Point Density", ""},
 	{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", ""},
 	{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", ""},
