@@ -42,7 +42,7 @@ class OUTLINER_HT_header(bpy.types.Header):
 
         layout.prop(space, "display_mode", text="")
 
-        layout.prop(space, "display_filter", icon='VIEWZOOM', text="")
+        layout.prop(space, "filter_text", icon='VIEWZOOM', text="")
 
         layout.separator()
 
@@ -73,7 +73,7 @@ class OUTLINER_MT_view(bpy.types.Menu):
 
         col = layout.column()
         if space.display_mode not in ('DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS'):
-            col.prop(space, "show_restriction_columns")
+            col.prop(space, "show_restrict_columns")
             col.separator()
             col.operator("outliner.show_active")
 
@@ -96,8 +96,8 @@ class OUTLINER_MT_search(bpy.types.Menu):
 
         col = layout.column()
 
-        col.prop(space, "match_case_sensitive")
-        col.prop(space, "match_complete")
+        col.prop(space, "use_filter_case_sensitive")
+        col.prop(space, "use_filter_complete")
 
 
 class OUTLINER_MT_edit_datablocks(bpy.types.Menu):

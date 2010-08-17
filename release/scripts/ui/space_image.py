@@ -48,10 +48,10 @@ class IMAGE_MT_view(bpy.types.Menu):
 
         layout.separator()
 
-        layout.prop(sima, "update_automatically")
+        layout.prop(sima, "use_realtime_update")
         if show_uvedit:
             layout.prop(toolsettings, "uv_local_view") # Numpad /
-            layout.prop(uv, "draw_other_objects")
+            layout.prop(uv, "show_other_objects")
 
         layout.separator()
 
@@ -144,7 +144,7 @@ class IMAGE_MT_image(bpy.types.Menu):
 
             layout.separator()
 
-            layout.prop(sima, "image_painting")
+            layout.prop(sima, "use_image_paint")
 
 
 class IMAGE_MT_uvs_showhide(bpy.types.Menu):
@@ -217,12 +217,12 @@ class IMAGE_MT_uvs(bpy.types.Menu):
         uv = sima.uv_editor
         toolsettings = context.tool_settings
 
-        layout.prop(uv, "snap_to_pixels")
-        layout.prop(uv, "constrain_to_image_bounds")
+        layout.prop(uv, "use_snap_to_pixels")
+        layout.prop(uv, "lock_bounds")
 
         layout.separator()
 
-        layout.prop(uv, "live_unwrap")
+        layout.prop(uv, "use_live_unwrap")
         layout.operator("uv.unwrap")
         layout.operator("uv.pin", text="Unpin").clear = True
         layout.operator("uv.pin")
@@ -288,13 +288,13 @@ class IMAGE_HT_header(bpy.types.Header):
 
         layout.template_ID(sima, "image", new="image.new")
         if not show_render:
-            layout.prop(sima, "image_pin", text="")
+            layout.prop(sima, "use_image_pin", text="")
 
         # uv editing
         if show_uvedit:
             uvedit = sima.uv_editor
 
-            layout.prop(uvedit, "pivot", text="", icon_only=True)
+            layout.prop(uvedit, "pivot_point", text="", icon_only=True)
             layout.prop(toolsettings, "uv_sync_selection", text="")
 
             if toolsettings.uv_sync_selection:
@@ -304,7 +304,7 @@ class IMAGE_HT_header(bpy.types.Header):
                 row.prop(toolsettings, "mesh_selection_mode", text="", index=2, icon='FACESEL')
             else:
                 layout.prop(toolsettings, "uv_selection_mode", text="", expand=True)
-                layout.prop(uvedit, "sticky_selection_mode", text="", icon_only=True)
+                layout.prop(uvedit, "sticky_select_mode", text="", icon_only=True)
 
             row = layout.row(align=True)
             row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
@@ -323,7 +323,7 @@ class IMAGE_HT_header(bpy.types.Header):
             layout.template_image_layers(ima, iuser)
 
             # painting
-            layout.prop(sima, "image_painting", text="")
+            layout.prop(sima, "use_image_paint", text="")
 
             # draw options
             row = layout.row(align=True)
@@ -335,8 +335,8 @@ class IMAGE_HT_header(bpy.types.Header):
             if ima.type == 'COMPOSITE' and ima.source in ('MOVIE', 'SEQUENCE'):
                 row.operator("image.play_composite", icon='PLAY')
 
-        if show_uvedit or sima.image_painting:
-            layout.prop(sima, "update_automatically", text="", icon_only=True, icon='LOCKED')
+        if show_uvedit or sima.use_image_paint:
+            layout.prop(sima, "use_realtime_update", text="", icon_only=True, icon='LOCKED')
 
 
 class IMAGE_PT_image_properties(bpy.types.Panel):
@@ -525,13 +525,13 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 
             col = split.column()
             col.label(text="Coordinates:")
-            col.prop(sima, "draw_repeated", text="Repeat")
+            col.prop(sima, "show_repeat", text="Repeat")
             if show_uvedit:
-                col.prop(uvedit, "normalized_coordinates", text="Normalized")
+                col.prop(uvedit, "show_normalized_coords", text="Normalized")
 
         elif show_uvedit:
             col.label(text="Coordinates:")
-            col.prop(uvedit, "normalized_coordinates", text="Normalized")
+            col.prop(uvedit, "show_normalized_coords", text="Normalized")
 
         if show_uvedit:
 
@@ -545,15 +545,15 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 
             split = layout.split()
             col = split.column()
-            col.prop(uvedit, "draw_smooth_edges", text="Smooth")
-            col.prop(uvedit, "draw_modified_edges", text="Modified")
+            col.prop(uvedit, "show_smooth_edges", text="Smooth")
+            col.prop(uvedit, "show_modified_edges", text="Modified")
             #col.prop(uvedit, "draw_edges")
             #col.prop(uvedit, "draw_faces")
 
             col = split.column()
-            col.prop(uvedit, "draw_stretch", text="Stretch")
+            col.prop(uvedit, "show_stretch", text="Stretch")
             sub = col.column()
-            sub.active = uvedit.draw_stretch
+            sub.active = uvedit.show_stretch
             sub.row().prop(uvedit, "draw_stretch_type", expand=True)
 
 

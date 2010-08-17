@@ -67,7 +67,7 @@ class NODE_HT_header(bpy.types.Header):
 
             layout.prop(scene, "use_nodes")
             layout.prop(scene.render, "free_unused_nodes", text="Free Unused")
-            layout.prop(snode, "backdrop")
+            layout.prop(snode, "show_backdrop")
 
         layout.separator()
 
@@ -90,7 +90,7 @@ class NODE_MT_view(bpy.types.Menu):
 
         layout.operator("node.view_all")
 
-        if context.space_data.backdrop:
+        if context.space_data.show_backdrop:
             layout.separator()
             
             layout.operator("node.backimage_move",text = "Backdrop move")

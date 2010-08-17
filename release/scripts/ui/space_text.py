@@ -85,7 +85,7 @@ class TEXT_PT_properties(bpy.types.Panel):
         flow.prop(st, "show_word_wrap")
         flow.prop(st, "show_syntax_highlight")
         flow.prop(st, "show_line_highlight")
-        flow.prop(st, "live_edit")
+        flow.prop(st, "use_live_edit")
 
         flow = layout.column_flow()
         flow.prop(st, "font_size")
@@ -125,8 +125,8 @@ class TEXT_PT_find(bpy.types.Panel):
 
         # settings
         row = layout.row()
-        row.prop(st, "find_wrap", text="Wrap")
-        row.prop(st, "find_all", text="All")
+        row.prop(st, "use_find_wrap", text="Wrap")
+        row.prop(st, "use_find_all", text="All")
 
 
 class TEXT_MT_view(bpy.types.Menu):

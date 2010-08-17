@@ -369,13 +369,13 @@ class InputKeyMapPanel(bpy.types.Panel):
         layout.set_context_pointer("keyconfig", wm.active_keyconfig)
         row.operator("wm.keyconfig_remove", text="", icon='X')
 
-        row.prop(context.space_data, "filter", icon="VIEWZOOM")
+        row.prop(context.space_data, "filter_text", icon="VIEWZOOM")
 
         col.separator()
 
         display_keymaps = _merge_keymaps(kc, defkc)
-        if context.space_data.filter != "":
-            filter = context.space_data.filter.lower()
+        if context.space_data.filter_text != "":
+            filter_text = context.space_data.filter_text.lower()
             self.draw_filtered(display_keymaps, filter, col)
         else:
             self.draw_hierarchy(display_keymaps, col)
@@ -739,8 +739,8 @@ class WM_OT_keyitem_add(bpy.types.Operator):
             km.items.add("none", 'A', 'PRESS') # kmi
 
         # clear filter and expand keymap so we can see the newly added item
-        if context.space_data.filter != '':
-            context.space_data.filter = ''
+        if context.space_data.filter_text != "":
+            context.space_data.filter_text = ""
             km.items_expanded = True
             km.children_expanded = True
 

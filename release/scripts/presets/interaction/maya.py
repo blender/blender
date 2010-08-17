@@ -7,7 +7,7 @@ kc = wm.add_keyconfig('Maya')
 # Map 3D View
 km = kc.add_keymap('3D View', space_type='VIEW_3D', region_type='WINDOW', modal=False)
 
-kmi = km.items.add('view3d.manipulator', 'LEFTMOUSE', 'PRESS', any=True)
+kmi = km.items.add('view3d.use_manipulator', 'LEFTMOUSE', 'PRESS', any=True)
 kmi.properties.release_confirm = True
 kmi = km.items.add('view3d.cursor3d', 'ACTIONMOUSE', 'PRESS')
 kmi = km.items.add('view3d.rotate', 'LEFTMOUSE', 'PRESS', alt=True)
@@ -126,11 +126,11 @@ kmi.properties.nr = 9
 kmi = km.items.add('view3d.layers', 'ZERO', 'PRESS', any=True)
 kmi.properties.nr = 10
 kmi = km.items.add('wm.context_toggle_enum', 'Z', 'PRESS')
-kmi.properties.data_path = 'space_data.viewport_shading'
+kmi.properties.data_path = 'space_data.viewport_shade'
 kmi.properties.value_1 = 'SOLID'
 kmi.properties.value_2 = 'WIREFRAME'
 kmi = km.items.add('wm.context_toggle_enum', 'Z', 'PRESS', alt=True)
-kmi.properties.data_path = 'space_data.viewport_shading'
+kmi.properties.data_path = 'space_data.viewport_shade'
 kmi.properties.value_1 = 'TEXTURED'
 kmi.properties.value_2 = 'SOLID'
 kmi = km.items.add('view3d.select', 'SELECTMOUSE', 'PRESS')
@@ -173,9 +173,9 @@ kmi = km.items.add('wm.context_set_enum', 'COMMA', 'PRESS', ctrl=True)
 kmi.properties.data_path = 'space_data.pivot_point'
 kmi.properties.value = 'MEDIAN_POINT'
 kmi = km.items.add('wm.context_toggle', 'COMMA', 'PRESS', alt=True)
-kmi.properties.data_path = 'space_data.pivot_point_align'
+kmi.properties.data_path = 'space_data.use_pivot_point_align'
 kmi = km.items.add('wm.context_toggle', 'Q', 'PRESS')
-kmi.properties.data_path = 'space_data.manipulator'
+kmi.properties.data_path = 'space_data.use_manipulator'
 kmi = km.items.add('wm.context_set_enum', 'PERIOD', 'PRESS')
 kmi.properties.data_path = 'space_data.pivot_point'
 kmi.properties.value = 'CURSOR'

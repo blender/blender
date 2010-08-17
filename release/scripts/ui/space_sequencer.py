@@ -143,12 +143,12 @@ class SEQUENCER_MT_view(bpy.types.Menu):
 
         layout.operator("sequencer.view_selected")
 
-        layout.prop(st, "draw_frames")
-        layout.prop(st, "show_cframe_indicator")
+        layout.prop(st, "show_frames")
+        layout.prop(st, "show_frame_indicator")
         if st.display_mode == 'IMAGE':
-            layout.prop(st, "draw_safe_margin")
+            layout.prop(st, "show_safe_margin")
         if st.display_mode == 'WAVEFORM':
-            layout.prop(st, "separate_color_preview")
+            layout.prop(st, "show_separate_color")
 
         layout.separator()
         layout.prop(st, "use_marker_sync")
@@ -787,9 +787,9 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, bpy.types.Panel):
         col = layout.column()
         if st.display_mode == 'IMAGE':
             col.prop(st, "draw_overexposed") # text="Zebra"
-            col.prop(st, "draw_safe_margin")
+            col.prop(st, "show_safe_margin")
         if st.display_mode == 'WAVEFORM':
-            col.prop(st, "separate_color_preview")
+            col.prop(st, "show_separate_color")
         col.prop(st, "proxy_render_size")
 
 def register():

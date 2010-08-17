@@ -3193,7 +3193,7 @@ static void draw_sensor_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *lo
 	}
 
 	subrow= uiLayoutRow(row, 0);
-	uiLayoutSetActive(subrow, ((RNA_boolean_get(logic_ptr, "sensors_show_active_states")
+	uiLayoutSetActive(subrow, ((RNA_boolean_get(logic_ptr, "show_sensors_active_states")
 							&& RNA_boolean_get(ptr, "expanded")) || RNA_boolean_get(ptr, "pinned")));
 	uiItemR(subrow, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
 
@@ -3636,7 +3636,7 @@ static void draw_actuator_header(uiLayout *layout, PointerRNA *ptr, PointerRNA *
 	}
 
 	subrow= uiLayoutRow(row, 0);
-	uiLayoutSetActive(subrow, ((RNA_boolean_get(logic_ptr, "actuators_show_active_states")
+	uiLayoutSetActive(subrow, ((RNA_boolean_get(logic_ptr, "show_actuators_active_states")
 							&& RNA_boolean_get(ptr, "expanded")) || RNA_boolean_get(ptr, "pinned")));
 	uiItemR(subrow, ptr, "pinned", UI_ITEM_R_NO_BG, "", 0);
 
@@ -4469,9 +4469,9 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	
 	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
-	uiItemR(row, &logic_ptr, "controllers_show_selected_objects", 0, "Sel", 0);
-	uiItemR(row, &logic_ptr, "controllers_show_active_objects", 0, "Act", 0);
-	uiItemR(row, &logic_ptr, "controllers_show_linked_controller", 0, "Link", 0);
+	uiItemR(row, &logic_ptr, "show_controllers_selected_objects", 0, "Sel", 0);
+	uiItemR(row, &logic_ptr, "show_controllers_active_object", 0, "Act", 0);
+	uiItemR(row, &logic_ptr, "show_controllers_linked_controller", 0, "Link", 0);
 
 	for(a=0; a<count; a++) {
 		bController *cont;
@@ -4572,10 +4572,10 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	
 	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
-	uiItemR(row, &logic_ptr, "sensors_show_selected_objects", 0, "Sel", 0);
-	uiItemR(row, &logic_ptr, "sensors_show_active_objects", 0, "Act", 0);
-	uiItemR(row, &logic_ptr, "sensors_show_linked_controller", 0, "Link", 0);
-	uiItemR(row, &logic_ptr, "sensors_show_active_states", 0, "State", 0);
+	uiItemR(row, &logic_ptr, "show_sensors_selected_objects", 0, "Sel", 0);
+	uiItemR(row, &logic_ptr, "show_sensors_active_object", 0, "Act", 0);
+	uiItemR(row, &logic_ptr, "show_sensors_linked_controller", 0, "Link", 0);
+	uiItemR(row, &logic_ptr, "show_sensors_active_states", 0, "State", 0);
 	
 	for(a=0; a<count; a++) {
 		bSensor *sens;
@@ -4638,10 +4638,10 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	
 	uiDefBlockBut(block, actuator_menu, NULL, "Actuators", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
-	uiItemR(row, &logic_ptr, "actuators_show_selected_objects", 0, "Sel", 0);
-	uiItemR(row, &logic_ptr, "actuators_show_active_objects", 0, "Act", 0);
-	uiItemR(row, &logic_ptr, "actuators_show_linked_controller", 0, "Link", 0);
-	uiItemR(row, &logic_ptr, "actuators_show_active_states", 0, "State", 0);
+	uiItemR(row, &logic_ptr, "show_actuators_selected_objects", 0, "Sel", 0);
+	uiItemR(row, &logic_ptr, "show_actuators_active_object", 0, "Act", 0);
+	uiItemR(row, &logic_ptr, "show_actuators_linked_controller", 0, "Link", 0);
+	uiItemR(row, &logic_ptr, "show_actuators_active_states", 0, "State", 0);
 	
 	for(a=0; a<count; a++) {
 		bActuator *act;

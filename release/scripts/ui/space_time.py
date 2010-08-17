@@ -95,8 +95,8 @@ class TIME_MT_view(bpy.types.Menu):
 
         layout.separator()
 
-        layout.prop(st, "show_cframe_indicator")
-        layout.prop(st, "only_selected")
+        layout.prop(st, "show_frame_indicator")
+        layout.prop(st, "show_only_selected")
 
         layout.separator()
 
@@ -166,13 +166,13 @@ class TIME_MT_playback(bpy.types.Menu):
         st = context.space_data
         scene = context.scene
 
-        layout.prop(st, "play_top_left")
-        layout.prop(st, "play_all_3d")
-        layout.prop(st, "play_anim")
-        layout.prop(st, "play_buttons")
-        layout.prop(st, "play_image")
-        layout.prop(st, "play_sequencer")
-        layout.prop(st, "play_nodes")
+        layout.prop(st, "use_play_top_left_3d_editor")
+        layout.prop(st, "use_play_3d_editors")
+        layout.prop(st, "use_play_animation_editors")
+        layout.prop(st, "use_play_properties_editors")
+        layout.prop(st, "use_play_image_editors")
+        layout.prop(st, "use_play_sequence_editors")
+        layout.prop(st, "use_play_node_editors")
 
         layout.separator()
 

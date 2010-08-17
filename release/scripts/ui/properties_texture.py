@@ -122,7 +122,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
         col = split.column()
 
         if not space.pin_id:
-            col.prop(space, "brush_texture", text="Brush", toggle=True)
+            col.prop(space, "show_brush_texture", text="Brush", toggle=True)
 
         if tex:
             split = layout.split(percentage=0.2)

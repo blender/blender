@@ -1983,7 +1983,7 @@ TODO MOVE TO COLLECTION * KeyingSet.active_path -> active_path:   pointer  "Acti
 + * KeyingSet.insertkey_needed -> use_insertkey_needed:   boolean  "Only insert keyframes where theyre needed in the relevant F-Curves"
 + * KeyingSet.insertkey_visual -> use_insertkey_visual:   boolean  "Insert keyframes based on visual transforms"
 + * KeyingSet.insertkey_xyz_to_rgb -> use_insertkey_xyz_to_rgb:   boolean  "Color for newly added transformation F-Curves (Location, Rotation, Scale) and also Color is based on the transform axis"
-+ * KeyingSet.absolute -> use_path_absolute:   boolean  "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)"
++ * KeyingSet.absolute -> is_path_absolute:   boolean  "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)"
 + * KeyingSetInfo.bl_idname -> bl_idname:   string  "NO DESCRIPTION"
 + * KeyingSetInfo.bl_label -> bl_label:   string  "NO DESCRIPTION"
 + * KeyingSetInfo.insertkey_needed -> use_insertkey_needed:   boolean  "Only insert keyframes where theyre needed in the relevant F-Curves"

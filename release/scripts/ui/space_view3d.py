@@ -71,8 +71,8 @@ class VIEW3D_HT_header(bpy.types.Header):
                 row.prop(toolsettings.particle_edit, "selection_mode", text="", expand=True, toggle=True)
 
             # Occlude geometry
-            if view.viewport_shading in ('SOLID', 'SHADED', 'TEXTURED') and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
-                row.prop(view, "occlude_geometry", text="")
+            if view.viewport_shade in ('SOLID', 'SHADED', 'TEXTURED') and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
+                row.prop(view, "use_occlude_geometry", text="")
 
             # Proportional editing
             if obj.mode in ('EDIT', 'PARTICLE_EDIT'):
@@ -2016,14 +2016,14 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
         ob = context.object
 
         col = layout.column()
-        col.prop(view, "display_render_override")
+        col.prop(view, "show_only_render")
 
         col = layout.column()
-        display_all = not view.display_render_override
+        display_all = not view.show_only_render
         col.active = display_all
-        col.prop(view, "outline_selected")
-        col.prop(view, "all_object_origins")
-        col.prop(view, "relationship_lines")
+        col.prop(view, "show_outline_selected")
+        col.prop(view, "show_all_objects_origin")
+        col.prop(view, "show_relationship_lines")
         if ob and ob.type == 'MESH':
             mesh = ob.data
             col.prop(mesh, "all_edges")
@@ -2031,15 +2031,15 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
         col = layout.column()
         col.active = display_all
         split = col.split(percentage=0.55)
-        split.prop(view, "display_floor", text="Grid Floor")
+        split.prop(view, "show_floor", text="Grid Floor")
 
         row = split.row(align=True)
-        row.prop(view, "display_x_axis", text="X", toggle=True)
-        row.prop(view, "display_y_axis", text="Y", toggle=True)
-        row.prop(view, "display_z_axis", text="Z", toggle=True)
+        row.prop(view, "show_axis_x", text="X", toggle=True)
+        row.prop(view, "show_axis_y", text="Y", toggle=True)
+        row.prop(view, "show_axis_z", text="Z", toggle=True)
 
         sub = col.column(align=True)
-        sub.active = (display_all and view.display_floor)
+        sub.active = (display_all and view.show_floor)
         sub.prop(view, "grid_lines", text="Lines")
         sub.prop(view, "grid_spacing", text="Spacing")
         sub.prop(view, "grid_subdivisions", text="Subdivisions")
@@ -2047,7 +2047,7 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
         col = layout.column()
         col.label(text="Shading:")
         col.prop(gs, "material_mode", text="")
-        col.prop(view, "textured_solid")
+        col.prop(view, "show_textured_solid")
 
         layout.separator()
 
@@ -2141,7 +2141,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
         layout = self.layout
         view = context.space_data
 
-        layout.prop(view, "display_background_images", text="")
+        layout.prop(view, "show_background_images", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -2152,7 +2152,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
         col.operator("view3d.add_background_image", text="Add Image")
 
         for i, bg in enumerate(view.background_images):
-            layout.active = view.display_background_images
+            layout.active = view.show_background_images
             box = layout.box()
             row = box.row(align=True)
             row.prop(bg, "show_expanded", text="", emboss=False)
