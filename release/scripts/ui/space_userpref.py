@@ -971,7 +971,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 colsub = box.column()
                 row = colsub.row()
 
-                row.operator("wm.addon_expand", icon='TRIA_DOWN' if info["expanded"] else 'TRIA_RIGHT', emboss=False).module = module_name
+                row.operator("wm.addon_expand", icon='TRIA_DOWN' if info["show_expanded"] else 'TRIA_RIGHT', emboss=False).module = module_name
 
                 rowsub = row.row()
                 rowsub.active = is_enabled
@@ -983,7 +983,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     row.operator("wm.addon_enable", icon='CHECKBOX_DEHLT', text="", emboss=False).module = module_name
 
                 # Expanded UI (only if additional infos are available)
-                if info["expanded"]:
+                if info["show_expanded"]:
                     if info["description"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text='Description:')
@@ -1040,7 +1040,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 from bpy.props import *
 
 
-def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "warning": "", "expanded": False}):
+def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "warning": "", "show_expanded": False}):
     addon_info = getattr(mod, "bl_addon_info", {})
 
     # avoid re-initializing
@@ -1209,7 +1209,7 @@ class WM_OT_addon_expand(bpy.types.Operator):
             return {'CANCELLED'}
 
         info = addon_info_get(mod)
-        info["expanded"] = not info["expanded"]
+        info["show_expanded"] = not info["show_expanded"]
         return {'FINISHED'}
 
 

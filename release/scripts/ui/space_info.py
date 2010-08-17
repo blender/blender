@@ -48,7 +48,7 @@ class INFO_HT_header(bpy.types.Header):
                 sub.menu("INFO_MT_render")
             sub.menu("INFO_MT_help")
 
-        if window.screen.fullscreen:
+        if window.screen.show_fullscreen:
             layout.operator("screen.back_to_previous", icon='SCREEN_BACK', text="Back to Previous")
             layout.separator()
         else:

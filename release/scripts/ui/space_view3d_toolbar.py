@@ -999,7 +999,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
         col = split.column()
 
         col.prop(sculpt, "use_openmp", text="Threaded Sculpt")
-        col.prop(sculpt, "fast_navigate")
+        col.prop(sculpt, "show_low_resolution")
         col.prop(sculpt, "show_brush")
 
         col.label(text="Unified Settings:")
@@ -1339,10 +1339,10 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, bpy.types.Panel):
         col.label(text="Draw:")
         col.prop(pe, "draw_step", text="Path Steps")
         if pe.hair:
-            col.prop(pe, "draw_particles", text="Children")
+            col.prop(pe, "show_particles", text="Children")
         else:
             if pe.type == 'PARTICLES':
-                col.prop(pe, "draw_particles", text="Particles")
+                col.prop(pe, "show_particles", text="Particles")
             col.prop(pe, "fade_time")
             sub = col.row()
             sub.active = pe.fade_time

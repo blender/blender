@@ -189,7 +189,7 @@ static void rna_def_paint(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", PAINT_SHOW_BRUSH_ON_SURFACE);
 	RNA_def_property_ui_text(prop, "Show Brush On Surface", "");
 
-	prop= RNA_def_property(srna, "fast_navigate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_low_resolution", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", PAINT_FAST_NAVIGATE);
 	RNA_def_property_ui_text(prop, "Fast Navigate", "For multires, show low resolution while navigating the view");
 }
@@ -398,7 +398,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_AUTO_VELOCITY);
 	RNA_def_property_ui_text(prop, "Auto Velocity", "Calculate point velocities automatically");
 
-	prop= RNA_def_property(srna, "draw_particles", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_particles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_DRAW_PART);
 	RNA_def_property_ui_text(prop, "Draw Particles", "Draw actual particles");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_redo");

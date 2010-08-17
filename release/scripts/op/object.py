@@ -256,7 +256,7 @@ class ShapeTransfer(bpy.types.Operator):
                 key = ob.add_shape_key(from_mix=False) # we need a rest
             key.name = name
             ob.active_shape_key_index = len(me.shape_keys.keys) - 1
-            ob.shape_key_lock = True
+            ob.show_shape_key = True
 
         from geometry import BarycentricTransform
         from mathutils import Vector

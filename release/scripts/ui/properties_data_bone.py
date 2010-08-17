@@ -194,7 +194,7 @@ class BONE_PT_display(BoneButtonsPanel, bpy.types.Panel):
             split = layout.split()
 
             col = split.column()
-            col.prop(bone, "draw_wire", text="Wireframe")
+            col.prop(bone, "show_wire", text="Wireframe")
             col.prop(bone, "hide", text="Hide")
 
             col = split.column()

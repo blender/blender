@@ -95,13 +95,13 @@ class DATA_PT_display(ArmatureButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(arm, "draw_names", text="Names")
-        col.prop(arm, "draw_axes", text="Axes")
-        col.prop(arm, "draw_custom_bone_shapes", text="Shapes")
+        col.prop(arm, "show_names", text="Names")
+        col.prop(arm, "show_axes", text="Axes")
+        col.prop(arm, "show_bone_custom_shapes", text="Shapes")
 
         col = split.column()
-        col.prop(arm, "draw_group_colors", text="Colors")
-        col.prop(ob, "x_ray", text="X-Ray")
+        col.prop(arm, "show_group_colors", text="Colors")
+        col.prop(ob, "show_x_ray", text="X-Ray")
         col.prop(arm, "delay_deform", text="Delay Refresh")
 
 
@@ -179,7 +179,7 @@ class DATA_PT_ghost(ArmatureButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Display:")
-        col.prop(arm, "ghost_only_selected", text="Selected Only")
+        col.prop(arm, "show_only_ghost_selected", text="Selected Only")
 
 
 class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, bpy.types.Panel):

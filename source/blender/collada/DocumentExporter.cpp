@@ -1735,7 +1735,7 @@ public:
 				twoSided = true;
 		}
 		if (twoSided)
-			ep.addExtraTechniqueParameter("GOOGLEEARTH", "double_sided", 1);
+			ep.addExtraTechniqueParameter("GOOGLEEARTH", "show_double_sided", 1);
 		ep.addExtraTechniques(mSW);
 
 		ep.closeProfile();

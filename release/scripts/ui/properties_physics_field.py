@@ -181,7 +181,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
 
             #row = split.row(align=True)
             #row.prop(md, "render", text="")
-            #row.prop(md, "realtime", text="")
+            #row.prop(md, "show_viewport", text="")
 
             coll = md.settings
 

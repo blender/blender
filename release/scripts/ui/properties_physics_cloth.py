@@ -68,7 +68,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
 
             row = split.row(align=True)
             row.prop(md, "render", text="")
-            row.prop(md, "realtime", text="")
+            row.prop(md, "show_viewport", text="")
         else:
             # add modifier
             split.operator("object.modifier_add", text="Add").type = 'CLOTH'

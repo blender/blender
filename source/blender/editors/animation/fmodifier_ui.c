@@ -616,7 +616,7 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* expand */
-		uiItemR(subrow, &ptr, "expanded", UI_ITEM_R_ICON_ONLY, "", 0);
+		uiItemR(subrow, &ptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", 0);
 		
 		/* checkbox for 'active' status (for now) */
 		uiItemR(subrow, &ptr, "active", UI_ITEM_R_ICON_ONLY, "", 0);

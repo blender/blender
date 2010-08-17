@@ -455,7 +455,7 @@ static void rna_def_fluidsim_particle(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSPART_FLOAT);
 	RNA_def_property_ui_text(prop, "Floats", "Show floating foam particles");
 
-	prop= RNA_def_property(srna, "tracer", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_tracer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSPART_TRACER);
 	RNA_def_property_ui_text(prop, "Tracer", "Show tracer particles");
 

@@ -50,7 +50,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
         layout.prop(sima, "use_realtime_update")
         if show_uvedit:
-            layout.prop(toolsettings, "uv_local_view") # Numpad /
+            layout.prop(toolsettings, "show_uv_local_view") # Numpad /
             layout.prop(uv, "show_other_objects")
 
         layout.separator()
@@ -547,8 +547,8 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
             col = split.column()
             col.prop(uvedit, "show_smooth_edges", text="Smooth")
             col.prop(uvedit, "show_modified_edges", text="Modified")
-            #col.prop(uvedit, "draw_edges")
-            #col.prop(uvedit, "draw_faces")
+            #col.prop(uvedit, "show_edges")
+            #col.prop(uvedit, "show_faces")
 
             col = split.column()
             col.prop(uvedit, "show_stretch", text="Stretch")

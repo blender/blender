@@ -81,52 +81,52 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	/* most 'generic' filtering options */
 	row= uiLayoutRow(layout, 1);
 	
-	uiItemR(row, ptr, "only_selected", 0, "", 0);
-	uiItemR(row, ptr, "display_hidden", 0, "", 0);
+	uiItemR(row, ptr, "show_only_selected", 0, "", 0);
+	uiItemR(row, ptr, "show_hidden", 0, "", 0);
 	
 	/* object-level filtering options */
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "display_transforms", 0, "", 0);
+	uiItemR(row, ptr, "show_transforms", 0, "", 0);
 	
 	if (nlaActive)
-		uiItemR(row, ptr, "include_missing_nla", 0, "", 0);
+		uiItemR(row, ptr, "show_missing_nla", 0, "", 0);
 	
 	/* datatype based - only available datatypes are shown */
 	row= uiLayoutRow(layout, 1);
 
-	uiItemR(row, ptr, "display_scene", 0, "", 0);
-	uiItemR(row, ptr, "display_world", 0, "", 0);
-	uiItemR(row, ptr, "display_node", 0, "", 0);
+	uiItemR(row, ptr, "show_scenes", 0, "", 0);
+	uiItemR(row, ptr, "show_worlds", 0, "", 0);
+	uiItemR(row, ptr, "show_nodes", 0, "", 0);
 	
 	if (mainptr && mainptr->mesh.first)
-		uiItemR(row, ptr, "display_mesh", 0, "", 0);
+		uiItemR(row, ptr, "show_meshes", 0, "", 0);
 	if (mainptr && mainptr->key.first)
-		uiItemR(row, ptr, "display_shapekeys", 0, "", 0);
+		uiItemR(row, ptr, "show_shapekeys", 0, "", 0);
 	if (mainptr && mainptr->mat.first)
-		uiItemR(row, ptr, "display_material", 0, "", 0);
+		uiItemR(row, ptr, "show_materials", 0, "", 0);
 	if (mainptr && mainptr->lamp.first)
-		uiItemR(row, ptr, "display_lamp", 0, "", 0);
+		uiItemR(row, ptr, "show_lamps", 0, "", 0);
 	if (mainptr && mainptr->tex.first)
-		uiItemR(row, ptr, "display_texture", 0, "", 0);
+		uiItemR(row, ptr, "show_textures", 0, "", 0);
 	if (mainptr && mainptr->camera.first)
-		uiItemR(row, ptr, "display_camera", 0, "", 0);
+		uiItemR(row, ptr, "show_cameras", 0, "", 0);
 	if (mainptr && mainptr->curve.first)
-		uiItemR(row, ptr, "display_curve", 0, "", 0);
+		uiItemR(row, ptr, "show_curves", 0, "", 0);
 	if (mainptr && mainptr->mball.first)
-		uiItemR(row, ptr, "display_metaball", 0, "", 0);
+		uiItemR(row, ptr, "show_metaballs", 0, "", 0);
 	if (mainptr && mainptr->armature.first)
-		uiItemR(row, ptr, "display_armature", 0, "", 0);
+		uiItemR(row, ptr, "show_armatures", 0, "", 0);
 	if (mainptr && mainptr->particle.first)
-		uiItemR(row, ptr, "display_particle", 0, "", 0);
+		uiItemR(row, ptr, "show_particles", 0, "", 0);
 	
 	/* group-based filtering (only when groups are available */
 	if (mainptr && mainptr->group.first) {
 		row= uiLayoutRow(layout, 1);
 		
-		uiItemR(row, ptr, "only_group_objects", 0, "", 0);
+		uiItemR(row, ptr, "show_only_group_objects", 0, "", 0);
 		
 		/* if enabled, show the group selection field too */
-		if (RNA_boolean_get(ptr, "only_group_objects"))
+		if (RNA_boolean_get(ptr, "show_only_group_objects"))
 			uiItemR(row, ptr, "filtering_group", 0, "", 0);
 	}
 }
@@ -730,7 +730,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		/* Open/Close .................................  */
-		uiItemR(row, &ptr, "expanded", 0, "", 0);
+		uiItemR(row, &ptr, "show_expanded", 0, "", 0);
 		
 		/* modifier-type icon */
 		uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
@@ -746,10 +746,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 			&& (md->type!=eModifierType_Surface) ) 
 		{
 			uiItemR(row, &ptr, "render", 0, "", 0);
-			uiItemR(row, &ptr, "realtime", 0, "", 0);
+			uiItemR(row, &ptr, "show_viewport", 0, "", 0);
 			
 			if (mti->flags & eModifierTypeFlag_SupportsEditmode)
-				uiItemR(row, &ptr, "editmode", 0, "", 0);
+				uiItemR(row, &ptr, "show_in_editmode", 0, "", 0);
 		}
 		if ((ob->type==OB_MESH) && modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) 
 		{
@@ -971,7 +971,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 
 	/* open/close */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
-	uiItemR(row, &ptr, "expanded", UI_ITEM_R_ICON_ONLY, "", 0);
+	uiItemR(row, &ptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", 0);
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* XXX if (con->flag & CONSTRAINT_DISABLE)

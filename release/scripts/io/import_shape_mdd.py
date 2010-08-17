@@ -66,7 +66,7 @@ def mdd_import(filepath, ob, scene, PREF_START_FRAME=0, PREF_JUMP=1):
 
         ob.active_shape_key_index = len(ob.data.shape_keys.keys)-1
         index = len(ob.data.shape_keys.keys)-1
-        ob.shape_key_lock = True
+        ob.show_shape_key = True
 
         verts = ob.data.shape_keys.keys[len(ob.data.shape_keys.keys)-1].data
 
@@ -74,7 +74,7 @@ def mdd_import(filepath, ob, scene, PREF_START_FRAME=0, PREF_JUMP=1):
         for v in verts: # 12 is the size of 3 floats
             v.co[:] = unpack('>3f', file.read(12))
         #me.update()
-        ob.shape_key_lock = False
+        ob.show_shape_key = False
 
 
         # insert keyframes

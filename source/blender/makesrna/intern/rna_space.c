@@ -1179,7 +1179,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock", "Lock view rotation in side views");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_RegionView3D_quadview_update");
 	
-	prop= RNA_def_property(srna, "box_preview", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_sync_view", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_BOXVIEW);
 	RNA_def_property_ui_text(prop, "Box", "Sync view position between side views");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_RegionView3D_quadview_update");
@@ -2068,8 +2068,8 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Filter Files", "Enable filtering of files");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
-	prop= RNA_def_property(srna, "hide_dot", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", FILE_HIDE_DOT);
+	prop= RNA_def_property(srna, "show_hidden", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", FILE_HIDE_DOT);
 	RNA_def_property_ui_text(prop, "Hide Dot Files", "Hide hidden dot files");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS , NULL);
 

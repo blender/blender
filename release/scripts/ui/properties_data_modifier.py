@@ -264,9 +264,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.prop(md, "split_edges")
-        col.prop(md, "unborn")
-        col.prop(md, "alive")
-        col.prop(md, "dead")
+        col.prop(md, "show_unborn")
+        col.prop(md, "show_alive")
+        col.prop(md, "show_dead")
         col.prop(md, "size")
 
         layout.operator("object.explode_refresh", text="Refresh")
@@ -403,7 +403,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.operator("object.multires_subdivide", text="Subdivide")
         col.operator("object.multires_higher_levels_delete", text="Delete Higher")
         col.operator("object.multires_reshape", text="Reshape")
-        col.prop(md, "optimal_display")
+        col.prop(md, "show_only_control_edges")
 
         layout.separator()
 
@@ -431,9 +431,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Show Particles When:")
-        col.prop(md, "alive")
-        col.prop(md, "unborn")
-        col.prop(md, "dead")
+        col.prop(md, "show_alive")
+        col.prop(md, "show_unborn")
+        col.prop(md, "show_dead")
 
         layout.separator()
 
@@ -612,7 +612,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.label(text="Options:")
         col.prop(md, "subsurf_uv")
-        col.prop(md, "optimal_display")
+        col.prop(md, "show_only_control_edges")
 
     def SURFACE(self, layout, ob, md):
         layout.label(text="See Fields panel.")

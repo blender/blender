@@ -49,7 +49,7 @@ class FILEBROWSER_HT_header(bpy.types.Header):
         layout.prop(params, "display", expand=True, text="")
         layout.prop(params, "sort", expand=True, text="")
 
-        layout.prop(params, "hide_dot", text="Hide Invisible")
+        layout.prop(params, "show_hidden", text="Hide Invisible")
         layout.prop(params, "do_filter", text="", icon='FILTER')
 
         row = layout.row(align=True)

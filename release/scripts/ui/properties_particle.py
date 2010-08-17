@@ -692,7 +692,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
         sub.prop(part, "emitter")
         sub.prop(part, "parent")
         sub = split.column()
-        sub.prop(part, "unborn")
+        sub.prop(part, "show_unborn")
         sub.prop(part, "died")
 
         row = layout.row()
@@ -866,18 +866,18 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
         col = row.column()
         col.prop(part, "show_size")
         col.prop(part, "velocity")
-        col.prop(part, "num")
+        col.prop(part, "show_number")
         if part.physics_type == 'BOIDS':
-            col.prop(part, "draw_health")
+            col.prop(part, "show_health")
 
         col = row.column()
-        col.prop(part, "material_color", text="Use material color")
+        col.prop(part, "show_material_color", text="Use material color")
 
         if (path):
             col.prop(part, "draw_step")
         else:
             sub = col.column()
-            sub.active = (part.material_color is False)
+            sub.active = (part.show_material_color is False)
             #sub.label(text="color")
             #sub.label(text="Override material color")
 

@@ -2026,7 +2026,7 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
         col.prop(view, "show_relationship_lines")
         if ob and ob.type == 'MESH':
             mesh = ob.data
-            col.prop(mesh, "all_edges")
+            col.prop(mesh, "show_all_edges")
 
         col = layout.column()
         col.active = display_all
@@ -2060,9 +2060,9 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
             col.prop(region, "lock_rotation")
             row = col.row()
             row.enabled = region.lock_rotation
-            row.prop(region, "box_preview")
+            row.prop(region, "show_sync_view")
             row = col.row()
-            row.enabled = region.lock_rotation and region.box_preview
+            row.enabled = region.lock_rotation and region.show_sync_view
             row.prop(region, "box_clip")
 
 
@@ -2083,24 +2083,24 @@ class VIEW3D_PT_view3d_meshdisplay(bpy.types.Panel):
 
         col = layout.column()
         col.label(text="Overlays:")
-        col.prop(mesh, "draw_edges", text="Edges")
-        col.prop(mesh, "draw_faces", text="Faces")
-        col.prop(mesh, "draw_creases", text="Creases")
-        col.prop(mesh, "draw_bevel_weights", text="Bevel Weights")
-        col.prop(mesh, "draw_seams", text="Seams")
-        col.prop(mesh, "draw_sharp", text="Sharp")
+        col.prop(mesh, "show_edges", text="Edges")
+        col.prop(mesh, "show_faces", text="Faces")
+        col.prop(mesh, "show_edge_crease", text="Creases")
+        col.prop(mesh, "show_edge_bevel_weight", text="Bevel Weights")
+        col.prop(mesh, "show_edge_seams", text="Seams")
+        col.prop(mesh, "show_edge_sharp", text="Sharp")
 
         col.separator()
         col.label(text="Normals:")
-        col.prop(mesh, "draw_normals", text="Face")
-        col.prop(mesh, "draw_vertex_normals", text="Vertex")
+        col.prop(mesh, "show_normal_face", text="Face")
+        col.prop(mesh, "show_normal_vertex", text="Vertex")
         col.prop(context.scene.tool_settings, "normal_size", text="Normal Size")
 
         col.separator()
         col.label(text="Numerics:")
-        col.prop(mesh, "draw_edge_length")
-        col.prop(mesh, "draw_edge_angle")
-        col.prop(mesh, "draw_face_area")
+        col.prop(mesh, "show_extra_edge_length")
+        col.prop(mesh, "show_extra_edge_angle")
+        col.prop(mesh, "show_extra_face_area")
 
 
 class VIEW3D_PT_view3d_curvedisplay(bpy.types.Panel):
@@ -2120,8 +2120,8 @@ class VIEW3D_PT_view3d_curvedisplay(bpy.types.Panel):
 
         col = layout.column()
         col.label(text="Overlays:")
-        col.prop(curve, "draw_handles", text="Handles")
-        col.prop(curve, "draw_normals", text="Normals")
+        col.prop(curve, "show_handles", text="Handles")
+        col.prop(curve, "show_normal_face", text="Normals")
         col.prop(context.scene.tool_settings, "normal_size", text="Normal Size")
 
 

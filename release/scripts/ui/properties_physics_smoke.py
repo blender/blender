@@ -54,7 +54,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
 
             row = split.row(align=True)
             row.prop(md, "render", text="")
-            row.prop(md, "realtime", text="")
+            row.prop(md, "show_viewport", text="")
 
         else:
             # add modifier
@@ -195,7 +195,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
         col.label(text="Resolution:")
         col.prop(md, "amplify", text="Divisions")
         col.prop(md, "smoothemitter")
-        col.prop(md, "viewhighres")
+        col.prop(md, "show_high_resolution")
 
         col = split.column()
         col.label(text="Noise Method:")

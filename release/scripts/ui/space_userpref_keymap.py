@@ -167,7 +167,7 @@ class InputKeyMapPanel(bpy.types.Panel):
         col = self.indented_layout(layout, level)
 
         row = col.row()
-        row.prop(km, "children_expanded", text="", emboss=False)
+        row.prop(km, "show_expanded_children", text="", emboss=False)
         row.label(text=km.name)
 
         row.label()
@@ -180,19 +180,19 @@ class InputKeyMapPanel(bpy.types.Panel):
         else:
             op = row.operator("wm.keymap_edit", text="Edit")
 
-        if km.children_expanded:
+        if km.show_expanded_children:
             if children:
                 # Put the Parent key map's entries in a 'global' sub-category
                 # equal in hierarchy to the other children categories
                 subcol = self.indented_layout(col, level + 1)
                 subrow = subcol.row()
-                subrow.prop(km, "items_expanded", text="", emboss=False)
+                subrow.prop(km, "show_expanded_items", text="", emboss=False)
                 subrow.label(text="%s (Global)" % km.name)
             else:
-                km.items_expanded = True
+                km.show_expanded_items = True
 
             # Key Map items
-            if km.items_expanded:
+            if km.show_expanded_items:
                 for kmi in km.items:
                     self.draw_kmi(display_keymaps, kc, km, kmi, col, level + 1)
 
@@ -227,7 +227,7 @@ class InputKeyMapPanel(bpy.types.Panel):
 
         # header bar
         row = split.row()
-        row.prop(kmi, "expanded", text="", emboss=False)
+        row.prop(kmi, "show_expanded", text="", emboss=False)
 
         row = split.row()
         row.enabled = km.user_defined
@@ -261,7 +261,7 @@ class InputKeyMapPanel(bpy.types.Panel):
         op.item_id = kmi.id
 
         # Expanded, additional event settings
-        if kmi.expanded:
+        if kmi.show_expanded:
             box = col.box()
 
             box.enabled = km.user_defined
@@ -741,8 +741,8 @@ class WM_OT_keyitem_add(bpy.types.Operator):
         # clear filter and expand keymap so we can see the newly added item
         if context.space_data.filter_text != "":
             context.space_data.filter_text = ""
-            km.items_expanded = True
-            km.children_expanded = True
+            km.show_expanded_items = True
+            km.show_expanded_children = True
 
         return {'FINISHED'}
 

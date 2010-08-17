@@ -48,7 +48,7 @@ class DOPESHEET_HT_header(bpy.types.Header):
                 sub.menu("DOPESHEET_MT_key")
 
         layout.prop(st, "mode", text="")
-        layout.prop(st.dopesheet, "display_summary", text="Summary")
+        layout.prop(st.dopesheet, "show_summary", text="Summary")
 
         if st.mode == 'DOPESHEET':
             layout.template_dopesheet_filter(st.dopesheet)

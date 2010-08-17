@@ -4515,7 +4515,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 
 			col= uiLayoutColumn(subsplit, 0);
 			uiItemR(col, &settings_ptr, "all_states", UI_ITEM_R_TOGGLE, NULL, 0);
-			uiItemR(col, &settings_ptr, "debug_state", 0, "", 0); 
+			uiItemR(col, &settings_ptr, "show_debug_state", 0, "", 0); 
 		}
 
 		/* End of Drawing the Controller Header common to all Selected Objects */

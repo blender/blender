@@ -465,7 +465,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
 
     # obj.hide = True
-    obj.data.draw_axes = False
+    obj.data.show_axes = False
 
     bpy.ops.object.mode_set(mode=mode_orig)
     obj_orig.data.pose_position = rest_backup
