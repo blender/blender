@@ -62,6 +62,8 @@ CurvePoint::CurvePoint(SVertex *iA, SVertex *iB, float t)
 
 CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3) 
 {
+  __A = 0;
+  __B = 0;
   float t1=iA->t2d();
   float t2=iB->t2d();
   if((iA->A() == iB->A()) && (iA->B() == iB->B()) && (iA->A() != 0) && (iA->B() != 0) && (iB->A() != 0) && (iB->B() != 0))
@@ -82,7 +84,8 @@ CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)
     __B = iB->A();
     _t2d = t3;
   }
-  else if(iA->A() == iB->A()){
+  else if(iA->A() == iB->A() || (iA->A() != 0 && iB->A() != 0 && (iA->A()->point3d() - iB->A()->point3d()).norm() < 1e-6))
+  {
     if(iA->t2d() == 0){
       __A = iB->A();
       __B = iB->B();
@@ -92,7 +95,9 @@ CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)
       __B = iA->B();
       _t2d = t3;
     }
-  }else if(iA->B() == iB->B()){
+  }
+  else if(iA->B() == iB->B() || (iA->B() != 0 && iB->B() != 0 && (iA->B()->point3d() - iB->B()->point3d()).norm() < 1e-6))
+  {
     if(iA->t2d() == 1){
       __A = iB->A();
       __B = iB->B();
@@ -103,7 +108,7 @@ CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)
       _t2d = t3;
     }
   }
-  else if(iA->B() == iB->A())
+  else if(iA->B() == iB->A() || (iA->B() != 0 && iB->A() != 0 && (iA->B()->point3d() - iB->A()->point3d()).norm() < 1e-6))
   {
     if((iA->t2d() != 1.f) && (iB->t2d() == 0.f))
     {
@@ -121,6 +126,8 @@ CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)
     }
     
   }
+  assert(__A != 0 && __B != 0);
+
   //_Point2d=__A->point2d()+_t2d*(__B->point2d()-__A->point2d());
   //_Point3d=__A->point3d()+_t2d*(__B->point3d()-__A->point3d());
 
