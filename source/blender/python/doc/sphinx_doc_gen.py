@@ -594,7 +594,7 @@ def rna2sphinx(BASEPATH):
         for func in struct.functions:
             args_str = ", ".join([prop.get_arg_default(force=False) for prop in func.args])
 
-            fw("   .. method:: %s(%s)\n\n" % (func.identifier, args_str))
+            fw("   .. %s:: %s(%s)\n\n" % ("classmethod" if func.is_classmethod else "method", func.identifier, args_str))
             fw("      %s\n\n" % func.description)
             
             for prop in func.args:

@@ -811,6 +811,12 @@ static int rna_Function_registered_optional_get(PointerRNA *ptr)
 	return func->flag & FUNC_REGISTER_OPTIONAL;
 }
 
+static int rna_Function_no_self_get(PointerRNA *ptr)
+{
+	FunctionRNA *func= (FunctionRNA*)ptr->data;
+	return func->flag & FUNC_NO_SELF;
+}
+
 /* Blender RNA */
 
 static void rna_BlenderRNA_structs_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -1049,6 +1055,11 @@ static void rna_def_function(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Function_registered_optional_get", NULL);
 	RNA_def_property_ui_text(prop, "Registered Optionally", "Function is optionally registered as callback part of type registration");
+
+	prop= RNA_def_property(srna, "no_self", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Function_no_self_get", NULL);
+	RNA_def_property_ui_text(prop, "No Self", "Function does not pass its self as an argument (becomes a class method in python)");
 }
 
 static void rna_def_number_property(StructRNA *srna, PropertyType type)
