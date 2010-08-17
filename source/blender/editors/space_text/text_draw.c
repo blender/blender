@@ -222,6 +222,18 @@ static int find_specialvar(char *string)
 	return i;
 }
 
+static int find_decorator(char *string) 
+{
+	if(string[0] == '@') {
+		int i = 1;
+		while(text_check_identifier(string[i])) {
+			i++;
+		}
+		return i;
+	}
+	return -1;
+}
+
 static int find_bool(char *string) 
 {
 	int i = 0;
@@ -375,6 +387,8 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 					prev = 'v';
 				else if((i=find_builtinfunc(str)) != -1)
 					prev = 'b';
+				else if((i=find_decorator(str)) != -1)
+					prev = 'v'; /* could have a new color for this */
 				if(i>0) {
 					while(i>1) {
 						*fmt = prev; fmt++; str++;
