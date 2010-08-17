@@ -502,6 +502,7 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Interpolation", "");
 	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
 
+#if 0 // use len(elements)
 	prop= RNA_def_property(srna, "total", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tot");
 	/* needs a function to do the right thing when adding elements like colorband_add_cb() */
@@ -509,7 +510,8 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 31); /* MAXCOLORBAND = 32 */
 	RNA_def_property_ui_text(prop, "Total", "Total number of elements");
 	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
-
+#endif
+	
 	func = RNA_def_function(srna, "evaluate", "rna_ColorRamp_eval");
 	RNA_def_function_ui_description(func, "Evaluate ColorRamp");
 	prop= RNA_def_float(func, "position", 1.0f, 0.0f, 1.0f, "Position", "Evaluate ColorRamp at position", 0.0f, 1.0f);

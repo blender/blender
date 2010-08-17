@@ -405,7 +405,7 @@ static void rna_def_common_keying_flags(StructRNA *srna, short reg)
 	RNA_def_property_ui_text(prop, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'");
 	if (reg) RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	
-	prop= RNA_def_property(srna, "insertkey_xyz_to_rgb", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_insertkey_xyz_to_rgb", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_XYZ2RGB);
 	RNA_def_property_ui_text(prop, "F-Curve Colors - XYZ to RGB", "Color for newly added transformation F-Curves (Location, Rotation, Scale) and also Color is based on the transform axis");
 	if (reg) RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);

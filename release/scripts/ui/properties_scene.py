@@ -98,7 +98,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
             col.label(text="Keyframing Settings:")
             col.prop(ks, "insertkey_needed", text="Needed")
             col.prop(ks, "insertkey_visual", text="Visual")
-            col.prop(ks, "insertkey_xyz_to_rgb", text="XYZ to RGB")
+            col.prop(ks, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
@@ -151,7 +151,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
             col.label(text="Keyframing Settings:")
             col.prop(ksp, "insertkey_needed", text="Needed")
             col.prop(ksp, "insertkey_visual", text="Visual")
-            col.prop(ksp, "insertkey_xyz_to_rgb", text="XYZ to RGB")
+            col.prop(ksp, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
 class SCENE_PT_physics(SceneButtonsPanel, bpy.types.Panel):
@@ -245,7 +245,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
 
         f.write("ks.insertkey_needed = %s\n" % ks.insertkey_needed)
         f.write("ks.insertkey_visual = %s\n" % ks.insertkey_visual)
-        f.write("ks.insertkey_xyz_to_rgb = %s\n" % ks.insertkey_xyz_to_rgb)
+        f.write("ks.use_insertkey_xyz_to_rgb = %s\n" % ks.use_insertkey_xyz_to_rgb)
         f.write("\n")
 
 

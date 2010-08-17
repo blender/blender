@@ -159,8 +159,8 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     # Not needed but catches any errors before duplicating
     validate_rig(context, obj_orig)
 
-    global_undo = context.user_preferences.edit.global_undo
-    context.user_preferences.edit.global_undo = False
+    use_global_undo = context.user_preferences.edit.use_global_undo
+    context.user_preferences.edit.use_global_undo = False
     mode_orig = context.mode
     rest_backup = obj_orig.data.pose_position
     obj_orig.data.pose_position = 'REST'
@@ -471,7 +471,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     obj_orig.data.pose_position = rest_backup
     obj.data.pose_position = 'POSE'
     obj_orig.data.pose_position = 'POSE'
-    context.user_preferences.edit.global_undo = global_undo
+    context.user_preferences.edit.use_global_undo = use_global_undo
 
     print("Done.\n")
 

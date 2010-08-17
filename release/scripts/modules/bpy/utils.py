@@ -224,7 +224,7 @@ _scripts = (_os.path.normpath(_scripts), )
 
 
 def user_script_path():
-    path = _bpy.context.user_preferences.filepaths.python_scripts_directory
+    path = _bpy.context.user_preferences.filepaths.script_directory
 
     if path:
         path = _os.path.normpath(path)
@@ -243,7 +243,7 @@ def script_paths(subdir=None, user=True):
 
     # add user scripts dir
     if user:
-        user_script_path = _bpy.context.user_preferences.filepaths.python_scripts_directory
+        user_script_path = _bpy.context.user_preferences.filepaths.script_directory
     else:
         user_script_path = None
 

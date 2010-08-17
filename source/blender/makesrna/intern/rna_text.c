@@ -199,7 +199,7 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISSCRIPT);
 	RNA_def_property_ui_text(prop, "Register", "Register this text as a module on loading, Text name must end with \".py\"");
 
-	prop= RNA_def_property(srna, "tabs_as_spaces", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_tabs_as_spaces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_TABSTOSPACES);
 	RNA_def_property_ui_text(prop, "Tabs as Spaces", "Automatically converts all new tabs into spaces");
 

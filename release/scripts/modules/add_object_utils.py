@@ -77,7 +77,7 @@ def add_object_data(context, obdata, operator=None):
         bpy.ops.object.mode_set(mode='EDIT')
     else:
         scene.objects.active = obj_new
-        if context.user_preferences.edit.enter_edit_mode:
+        if context.user_preferences.edit.use_enter_edit_mode:
             bpy.ops.object.mode_set(mode='EDIT')
 
     return base

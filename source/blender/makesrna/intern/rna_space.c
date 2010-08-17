@@ -1102,7 +1102,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_ALIGN, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "use_manipulator", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_manipulator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "twflag", V3D_USE_MANIPULATOR);
 	RNA_def_property_ui_text(prop, "Manipulator", "Use a 3D manipulator widget for controlling transforms");
 	RNA_def_property_ui_icon(prop, ICON_MANIPUL, 0);
@@ -1218,7 +1218,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
-	prop= RNA_def_property(srna, "view_rotation", PROP_FLOAT, PROP_QUATERNION);
+	prop= RNA_def_property(srna, "view_rotate_method", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "viewquat");
 	RNA_def_property_ui_text(prop, "View Rotation", "Rotation in quaternions (keep normalized)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);

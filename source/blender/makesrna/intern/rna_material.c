@@ -1221,7 +1221,7 @@ static void rna_def_material_halo(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Extreme Alpha", "Uses extreme alpha");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "shaded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_shaded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_HALO_SHADE);
 	RNA_def_property_ui_text(prop, "Shaded", "Lets halo receive light and shadows from external objects");
 	RNA_def_property_update(prop, 0, "rna_Material_update");

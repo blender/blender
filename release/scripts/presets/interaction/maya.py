@@ -7,7 +7,7 @@ kc = wm.add_keyconfig('Maya')
 # Map 3D View
 km = kc.add_keymap('3D View', space_type='VIEW_3D', region_type='WINDOW', modal=False)
 
-kmi = km.items.add('view3d.use_manipulator', 'LEFTMOUSE', 'PRESS', any=True)
+kmi = km.items.add('view3d.show_manipulator', 'LEFTMOUSE', 'PRESS', any=True)
 kmi.properties.release_confirm = True
 kmi = km.items.add('view3d.cursor3d', 'ACTIONMOUSE', 'PRESS')
 kmi = km.items.add('view3d.rotate', 'LEFTMOUSE', 'PRESS', alt=True)
@@ -175,7 +175,7 @@ kmi.properties.value = 'MEDIAN_POINT'
 kmi = km.items.add('wm.context_toggle', 'COMMA', 'PRESS', alt=True)
 kmi.properties.data_path = 'space_data.use_pivot_point_align'
 kmi = km.items.add('wm.context_toggle', 'Q', 'PRESS')
-kmi.properties.data_path = 'space_data.use_manipulator'
+kmi.properties.data_path = 'space_data.show_manipulator'
 kmi = km.items.add('wm.context_set_enum', 'PERIOD', 'PRESS')
 kmi.properties.data_path = 'space_data.pivot_point'
 kmi.properties.value = 'CURSOR'
@@ -377,10 +377,10 @@ kmi.properties.action = 'DESELECT'
 
 wm.active_keyconfig = kc
 
-bpy.context.user_preferences.edit.drag_immediately = True
-bpy.context.user_preferences.edit.insertkey_xyz_to_rgb = False
+bpy.context.user_preferences.edit.use_drag_immediately = True
+bpy.context.user_preferences.edit.use_insertkey_xyz_to_rgb = False
 bpy.context.user_preferences.inputs.select_mouse = 'LEFT'
-bpy.context.user_preferences.inputs.zoom_style = 'DOLLY'
-bpy.context.user_preferences.inputs.zoom_axis = 'HORIZONTAL'
-bpy.context.user_preferences.inputs.view_rotation = 'TURNTABLE'
-bpy.context.user_preferences.inputs.invert_zoom_direction = True
+bpy.context.user_preferences.inputs.view_zoom_method = 'DOLLY'
+bpy.context.user_preferences.inputs.view_zoom_axis = 'HORIZONTAL'
+bpy.context.user_preferences.inputs.view_rotate_method = 'TURNTABLE'
+bpy.context.user_preferences.inputs.invert_mouse_wheel_zoom = True

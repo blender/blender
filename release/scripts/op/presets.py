@@ -189,16 +189,16 @@ class AddPresetInteraction(AddPresetBase, bpy.types.Operator):
     save_keyconfig = True
 
     preset_values = [
-        "bpy.context.user_preferences.edit.drag_immediately",
-        "bpy.context.user_preferences.edit.insertkey_xyz_to_rgb",
+        "bpy.context.user_preferences.edit.use_drag_immediately",
+        "bpy.context.user_preferences.edit.use_insertkey_xyz_to_rgb",
         "bpy.context.user_preferences.inputs.select_mouse",
-        "bpy.context.user_preferences.inputs.zoom_style",
-        "bpy.context.user_preferences.inputs.zoom_axis",
-        "bpy.context.user_preferences.inputs.view_rotation",
-        "bpy.context.user_preferences.inputs.invert_zoom_direction",
-        "bpy.context.user_preferences.inputs.emulate_numpad",
-        "bpy.context.user_preferences.inputs.emulate_3_button_mouse",
-        "bpy.context.user_preferences.inputs.continuous_mouse",
+        "bpy.context.user_preferences.inputs.view_zoom_method",
+        "bpy.context.user_preferences.inputs.view_zoom_axis",
+        "bpy.context.user_preferences.inputs.view_rotate_method",
+        "bpy.context.user_preferences.inputs.invert_mouse_wheel_zoom",
+        "bpy.context.user_preferences.inputs.use_emulate_numpad",
+        "bpy.context.user_preferences.inputs.use_mouse_emulate_3_button",
+        "bpy.context.user_preferences.inputs.use_mouse_continuous",
     ]
 
     preset_subdir = "interaction"

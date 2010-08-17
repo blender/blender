@@ -492,7 +492,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		/* Transform widget / manipulators */
 		row= uiLayoutRow(layout, 1);
-		uiItemR(row, &v3dptr, "use_manipulator", UI_ITEM_R_ICON_ONLY, "", 0);
+		uiItemR(row, &v3dptr, "show_manipulator", UI_ITEM_R_ICON_ONLY, "", 0);
 		block= uiLayoutGetBlock(row);
 		
 		if(v3d->twflag & V3D_USE_MANIPULATOR) {

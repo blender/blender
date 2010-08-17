@@ -93,7 +93,7 @@ class TEXT_PT_properties(bpy.types.Panel):
 
         text = st.text
         if text:
-            flow.prop(text, "tabs_as_spaces")
+            flow.prop(text, "use_tabs_as_spaces")
 
 
 class TEXT_PT_find(bpy.types.Panel):

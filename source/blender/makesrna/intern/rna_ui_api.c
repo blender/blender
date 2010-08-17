@@ -41,7 +41,7 @@ static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, char *propname, char 
 	int flag= 0;
 
 	if(!prop) {
-		printf("rna_uiItemR: property not found: %s\n", propname);
+		printf("rna_uiItemR: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
