@@ -139,6 +139,24 @@ static void rna_Matte_t2_set(PointerRNA *ptr, float value)
 	chroma->t2 = value;
 }
 
+static void rna_Image_start_frame_set(PointerRNA *ptr, int value)
+{
+	bNode *node= (bNode*)ptr->data;
+	NodeImageFile *image = node->storage;
+	
+	CLAMP(value, MINFRAME, image->efra); 
+	image->sfra= value;
+}
+
+static void rna_Image_end_frame_set(PointerRNA *ptr, int value)
+{
+	bNode *node= (bNode*)ptr->data;
+	NodeImageFile *image = node->storage;
+
+	CLAMP(value, image->sfra, MAXFRAME);
+	image->efra= value;
+}
+
 static void node_update(Main *bmain, Scene *scene, bNodeTree *ntree, bNode *node)
 {
 	ED_node_generic_update(bmain, scene, ntree, node);
@@ -1146,16 +1164,17 @@ static void def_cmp_output_file(StructRNA *srna)
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Quality", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-		// TODO: should these be limited to the extents of the each other so that no cross-over occurs?
+
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Image_start_frame_set", NULL);
 	RNA_def_property_range(prop, MINFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "efra");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Image_end_frame_set", NULL);
 	RNA_def_property_range(prop, MINFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "End Frame", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
