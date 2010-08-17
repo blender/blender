@@ -36,6 +36,8 @@
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_math.h"
 
 #include "BKE_animsys.h"
@@ -95,7 +97,6 @@ EnumPropertyItem modifier_type_items[] ={
 #include "BKE_library.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
-#include "BKE_pointcache.h"
 
 static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {

@@ -30,6 +30,7 @@
  */
 
 #include "BKE_utildefines.h"
+#include "MEM_guardedalloc.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

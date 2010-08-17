@@ -40,13 +40,6 @@ class DataButtonsPanel():
         return context.lamp and (engine in cls.COMPAT_ENGINES)
 
 
-class DATA_PT_preview(DataButtonsPanel, bpy.types.Panel):
-    bl_label = "Preview"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    def draw(self, context):
-        self.layout.template_preview(context.lamp)
-
 class DATA_PT_context_lamp(DataButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
@@ -69,9 +62,12 @@ class DATA_PT_context_lamp(DataButtonsPanel, bpy.types.Panel):
             split.separator()
 
 
-class DATA_PT_custom_props_lamp(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
+class DATA_PT_preview(DataButtonsPanel, bpy.types.Panel):
+    bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    _context_path = "object.data"
+
+    def draw(self, context):
+        self.layout.template_preview(context.lamp)
 
 
 class DATA_PT_lamp(DataButtonsPanel, bpy.types.Panel):
@@ -385,6 +381,11 @@ class DATA_PT_falloff_curve(DataButtonsPanel, bpy.types.Panel):
         lamp = context.lamp
 
         self.layout.template_curve_mapping(lamp, "falloff_curve")
+
+
+class DATA_PT_custom_props_lamp(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "object.data"
 
 
 def register():

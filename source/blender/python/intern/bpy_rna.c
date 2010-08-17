@@ -63,11 +63,11 @@ static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_
 /* bpyrna vector/euler/quat callbacks */
 static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
 
-/* not used yet but may want to use the subtype below */
+/* subtype not used much yet */
 #define MATHUTILS_CB_SUBTYPE_EUL 0
 #define MATHUTILS_CB_SUBTYPE_VEC 1
 #define MATHUTILS_CB_SUBTYPE_QUAT 2
-#define MATHUTILS_CB_SUBTYPE_COLOR 0
+#define MATHUTILS_CB_SUBTYPE_COLOR 3
 
 static int mathutils_rna_generic_check(BaseMathObject *bmo)
 {
@@ -2086,12 +2086,34 @@ static char pyrna_struct_is_property_set_doc[] =
 
 static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *args)
 {
+	PropertyRNA *prop;
 	char *name;
+	int ret;
 
 	if (!PyArg_ParseTuple(args, "s:is_property_set", &name))
 		return NULL;
 
-	return PyBool_FromLong(RNA_property_is_set(&self->ptr, name));
+	if((prop= RNA_struct_find_property(&self->ptr, name)) == NULL) {
+		PyErr_Format(PyExc_TypeError, "%.200s.is_property_set(\"%.200s\") not found", RNA_struct_identifier(self->ptr.type), name);
+		return NULL;
+	}
+
+	/* double property lookup, could speed up */
+	/* return PyBool_FromLong(RNA_property_is_set(&self->ptr, name)); */
+	if(RNA_property_flag(prop) & PROP_IDPROPERTY) {
+		IDProperty *group= RNA_struct_idproperties(&self->ptr, 0);		
+		if(group) {
+			ret= IDP_GetPropertyFromGroup(group, name) ? 1:0;
+		}
+		else {
+			ret= 0;
+		}
+	}
+	else {
+		ret= 1;
+	}
+	
+	return PyBool_FromLong(ret);
 }
 
 static char pyrna_struct_is_property_hidden_doc[] =
@@ -2106,15 +2128,16 @@ static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA *self, PyObject *
 {
 	PropertyRNA *prop;
 	char *name;
-	int hidden;
 
 	if (!PyArg_ParseTuple(args, "s:is_property_hidden", &name))
 		return NULL;
-	
-	prop= RNA_struct_find_property(&self->ptr, name);
-	hidden= (prop)? (RNA_property_flag(prop) & PROP_HIDDEN): 1;
 
-	return PyBool_FromLong(hidden);
+	if((prop= RNA_struct_find_property(&self->ptr, name)) == NULL) {
+		PyErr_Format(PyExc_TypeError, "%.200s.is_property_hidden(\"%.200s\") not found", RNA_struct_identifier(self->ptr.type), name);
+		return NULL;
+	}
+
+	return PyBool_FromLong(RNA_property_flag(prop) & PROP_HIDDEN);
 }
 
 static char pyrna_struct_path_resolve_doc[] =
@@ -3107,8 +3130,6 @@ static struct PyMethodDef pyrna_prop_methods[] = {
 };
 
 static struct PyMethodDef pyrna_prop_array_methods[] = {
-	{"foreach_get", (PyCFunction)pyrna_prop_foreach_get, METH_VARARGS, NULL},
-	{"foreach_set", (PyCFunction)pyrna_prop_foreach_set, METH_VARARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 

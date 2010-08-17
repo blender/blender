@@ -1626,9 +1626,8 @@ static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF,
 				CalcFloat4(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],lX[mfaces[i].v4],triunnormal);
 			else
 				CalcFloat(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],triunnormal);
-			
-			VECCOPY(trinormal, triunnormal);
-			normalize_v3(trinormal);
+
+			normalize_v3_v3(trinormal, triunnormal);
 			
 			// add wind from v1
 			VECCOPY(tmp, trinormal);

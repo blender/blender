@@ -265,6 +265,7 @@ void make_local_tface(Mesh *me)
 
 void make_local_mesh(Mesh *me)
 {
+	Main *bmain= G.main;
 	Object *ob;
 	Mesh *men;
 	int local=0, lib=0;
@@ -285,7 +286,7 @@ void make_local_mesh(Mesh *me)
 		return;
 	}
 	
-	ob= G.main->object.first;
+	ob= bmain->object.first;
 	while(ob) {
 		if( me==get_mesh(ob) ) {
 			if(ob->id.lib) lib= 1;
@@ -306,7 +307,7 @@ void make_local_mesh(Mesh *me)
 		men= copy_mesh(me);
 		men->id.us= 0;
 		
-		ob= G.main->object.first;
+		ob= bmain->object.first;
 		while(ob) {
 			if( me==get_mesh(ob) ) {				
 				if(ob->id.lib==0) {
@@ -925,6 +926,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 /* this may fail replacing ob->data, be sure to check ob->type */
 void nurbs_to_mesh(Object *ob)
 {
+	Main *bmain= G.main;
 	Object *ob1;
 	DerivedMesh *dm= ob->derivedFinal;
 	Mesh *me;
@@ -967,13 +969,13 @@ void nurbs_to_mesh(Object *ob)
 	cu->totcol= 0;
 
 	if(ob->data) {
-		free_libblock(&G.main->curve, ob->data);
+		free_libblock(&bmain->curve, ob->data);
 	}
 	ob->data= me;
 	ob->type= OB_MESH;
 
 	/* other users */
-	ob1= G.main->object.first;
+	ob1= bmain->object.first;
 	while(ob1) {
 		if(ob1->data==cu) {
 			ob1->type= OB_MESH;
@@ -1234,14 +1236,10 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 		MVert *mv= &mverts[i];
 		float *no= tnorms[i];
 		
-		if (normalize_v3(no)==0.0) {
-			VECCOPY(no, mv->co);
-			normalize_v3(no);
-		}
+		if (normalize_v3(no)==0.0)
+			normalize_v3_v3(no, mv->co);
 
-		mv->no[0]= (short)(no[0]*32767.0);
-		mv->no[1]= (short)(no[1]*32767.0);
-		mv->no[2]= (short)(no[2]*32767.0);
+		normal_float_to_short_v3(mv->no, no);
 	}
 	
 	MEM_freeN(tnorms);

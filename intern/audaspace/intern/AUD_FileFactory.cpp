@@ -23,76 +23,59 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
+#ifdef WITH_FFMPEG
+// needed for INT64_C
+#ifndef __STDC_CONSTANT_MACROS
+#define __STDC_CONSTANT_MACROS
+#endif
+#include "AUD_FFMPEGReader.h"
+#endif
+
 #include "AUD_FileFactory.h"
 #include "AUD_Buffer.h"
 
 #include <cstring>
 
-#ifdef WITH_FFMPEG
-// needed for INT64_C
-#define __STDC_CONSTANT_MACROS
-
-#include "AUD_FFMPEGReader.h"
-#endif
 #ifdef WITH_SNDFILE
 #include "AUD_SndFileReader.h"
 #endif
 
-AUD_FileFactory::AUD_FileFactory(const char* filename)
+AUD_FileFactory::AUD_FileFactory(std::string filename) :
+	m_filename(filename)
 {
-	if(filename != NULL)
-	{
-		m_filename = new char[strlen(filename)+1]; AUD_NEW("string")
-		strcpy(m_filename, filename);
-	}
-	else
-		m_filename = NULL;
 }
 
-AUD_FileFactory::AUD_FileFactory(unsigned char* buffer, int size)
+AUD_FileFactory::AUD_FileFactory(const data_t* buffer, int size) :
+	m_buffer(new AUD_Buffer(size))
 {
-	m_filename = NULL;
-	m_buffer = AUD_Reference<AUD_Buffer>(new AUD_Buffer(size));
 	memcpy(m_buffer.get()->getBuffer(), buffer, size);
 }
 
-AUD_FileFactory::~AUD_FileFactory()
-{
-	if(m_filename)
-	{
-		delete[] m_filename; AUD_DELETE("string")
-	}
-}
+static const char* read_error = "AUD_FileFactory: File couldn't be read.";
 
-AUD_IReader* AUD_FileFactory::createReader()
+AUD_IReader* AUD_FileFactory::createReader() const
 {
-	AUD_IReader* reader = 0;
-
 #ifdef WITH_SNDFILE
 	try
 	{
-		if(m_filename)
-			reader = new AUD_SndFileReader(m_filename);
+		if(m_buffer.get())
+			return new AUD_SndFileReader(m_buffer);
 		else
-			reader = new AUD_SndFileReader(m_buffer);
-		AUD_NEW("reader")
-		return reader;
+			return new AUD_SndFileReader(m_filename);
 	}
-	catch(AUD_Exception e) {}
+	catch(AUD_Exception&) {}
 #endif
 
 #ifdef WITH_FFMPEG
 	try
 	{
-		if(m_filename)
-			reader = new AUD_FFMPEGReader(m_filename);
+		if(m_buffer.get())
+			return new AUD_FFMPEGReader(m_buffer);
 		else
-			reader = new AUD_FFMPEGReader(m_buffer);
-		AUD_NEW("reader")
-		return reader;
+			return new AUD_FFMPEGReader(m_filename);
 	}
-	catch(AUD_Exception e) {}
+	catch(AUD_Exception&) {}
 #endif
 
-	return reader;
+	AUD_THROW(AUD_ERROR_FILE, read_error);
 }

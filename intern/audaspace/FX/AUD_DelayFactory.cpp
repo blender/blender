@@ -29,30 +29,16 @@
 
 AUD_DelayFactory::AUD_DelayFactory(AUD_IFactory* factory, float delay) :
 		AUD_EffectFactory(factory),
-		m_delay(delay) {}
+		m_delay(delay)
+{
+}
 
-AUD_DelayFactory::AUD_DelayFactory(float delay) :
-		AUD_EffectFactory(0),
-		m_delay(delay) {}
-
-float AUD_DelayFactory::getDelay()
+float AUD_DelayFactory::getDelay() const
 {
 	return m_delay;
 }
 
-void AUD_DelayFactory::setDelay(float delay)
+AUD_IReader* AUD_DelayFactory::createReader() const
 {
-	m_delay = delay;
-}
-
-AUD_IReader* AUD_DelayFactory::createReader()
-{
-	AUD_IReader* reader = getReader();
-
-	if(reader != 0)
-	{
-		reader = new AUD_DelayReader(reader, m_delay); AUD_NEW("reader")
-	}
-
-	return reader;
+	return new AUD_DelayReader(getReader(), m_delay);
 }

@@ -31,7 +31,6 @@
 #include <string.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -48,7 +47,6 @@
 #include "BKE_action.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"

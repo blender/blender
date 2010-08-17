@@ -258,7 +258,7 @@ PyObject *Mathutils_Init(void)
 		return NULL;
 
 	submodule = PyModule_Create(&M_Mathutils_module_def);
-	PyDict_SetItemString(PySys_GetObject("modules"), M_Mathutils_module_def.m_name, submodule);
+	PyDict_SetItemString(PyImport_GetModuleDict(), M_Mathutils_module_def.m_name, submodule);
 	
 	/* each type has its own new() function */
 	PyModule_AddObject( submodule, "Vector",		(PyObject *)&vector_Type );

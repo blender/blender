@@ -73,7 +73,7 @@ static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0;
 
 /* XXX this one should correctly check for apple top header...
  done for Cocoa : returns window contents (and not frame) max size*/
-static void wm_get_screensize(int *width_r, int *height_r) 
+void wm_get_screensize(int *width_r, int *height_r)
 {
 	unsigned int uiwidth;
 	unsigned int uiheight;

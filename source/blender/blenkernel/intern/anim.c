@@ -40,7 +40,6 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_group_types.h"
@@ -49,7 +48,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 
-//(INCLUDE_LINT)#include "BKE_anim.h"
 #include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
@@ -66,7 +64,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_depsgraph.h"
 
-#include "ED_curve.h" /* for ED_curve_nurbs */
 
 // XXX bad level call...
 

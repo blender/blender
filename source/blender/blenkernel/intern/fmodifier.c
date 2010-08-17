@@ -43,10 +43,6 @@
 #include "BKE_idprop.h"
 #include "BKE_utildefines.h"
 
-#ifndef DISABLE_PYTHON
-#include "BPY_extern.h" /* for BPY_eval_driver() */
-#endif
-
 #define SMALL -1.0e-10
 #define SELECT 1
 

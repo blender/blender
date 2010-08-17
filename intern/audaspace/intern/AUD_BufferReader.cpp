@@ -28,51 +28,34 @@
 #include "AUD_Space.h"
 
 AUD_BufferReader::AUD_BufferReader(AUD_Reference<AUD_Buffer> buffer,
-								   AUD_Specs specs)
+								   AUD_Specs specs) :
+	m_position(0), m_buffer(buffer), m_specs(specs)
 {
-	m_position = 0;
-	m_buffer = buffer;
-	m_specs = specs;
 }
 
-bool AUD_BufferReader::isSeekable()
+bool AUD_BufferReader::isSeekable() const
 {
 	return true;
 }
 
 void AUD_BufferReader::seek(int position)
 {
-	if(position < 0)
-		m_position = 0;
-	else if(position > m_buffer.get()->getSize() / AUD_SAMPLE_SIZE(m_specs))
-		m_position = m_buffer.get()->getSize() / AUD_SAMPLE_SIZE(m_specs);
-	else
-		m_position = position;
+	m_position = position;
 }
 
-int AUD_BufferReader::getLength()
+int AUD_BufferReader::getLength() const
 {
-	return m_buffer.get()->getSize()/AUD_SAMPLE_SIZE(m_specs);
+	return m_buffer.get()->getSize() / AUD_SAMPLE_SIZE(m_specs);
 }
 
-int AUD_BufferReader::getPosition()
+int AUD_BufferReader::getPosition() const
 {
 	return m_position;
 }
 
-AUD_Specs AUD_BufferReader::getSpecs()
+AUD_Specs AUD_BufferReader::getSpecs() const
 {
 	return m_specs;
-}
-
-AUD_ReaderType AUD_BufferReader::getType()
-{
-	return AUD_TYPE_BUFFER;
-}
-
-bool AUD_BufferReader::notify(AUD_Message &message)
-{
-	return false;
 }
 
 void AUD_BufferReader::read(int & length, sample_t* & buffer)

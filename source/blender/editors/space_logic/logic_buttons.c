@@ -28,7 +28,6 @@
 #include <stdio.h>
 
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -38,8 +37,6 @@
 
 #include "ED_screen.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

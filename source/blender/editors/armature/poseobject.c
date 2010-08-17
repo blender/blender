@@ -54,7 +54,6 @@
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 
-#include "BIF_gl.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

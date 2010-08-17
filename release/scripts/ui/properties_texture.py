@@ -74,23 +74,6 @@ class TextureButtonsPanel():
         return tex and (tex.type != 'NONE' or tex.use_nodes) and (context.scene.render.engine in cls.COMPAT_ENGINES)
 
 
-class TEXTURE_PT_preview(TextureButtonsPanel, bpy.types.Panel):
-    bl_label = "Preview"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        tex = context.texture
-        slot = getattr(context, "texture_slot", None)
-        idblock = context_tex_datablock(context)
-
-        if idblock:
-            layout.template_preview(tex, parent=idblock, slot=slot)
-        else:
-            layout.template_preview(tex, slot=slot)
-
-
 class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
@@ -155,9 +138,21 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
                 split.prop(tex, "type", text="")
 
 
-class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, bpy.types.Panel):
+class TEXTURE_PT_preview(TextureButtonsPanel, bpy.types.Panel):
+    bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    _context_path = "texture"
+
+    def draw(self, context):
+        layout = self.layout
+
+        tex = context.texture
+        slot = getattr(context, "texture_slot", None)
+        idblock = context_tex_datablock(context)
+
+        if idblock:
+            layout.template_preview(tex, parent=idblock, slot=slot)
+        else:
+            layout.template_preview(tex, slot=slot)
 
 
 class TEXTURE_PT_colors(TextureButtonsPanel, bpy.types.Panel):
@@ -987,6 +982,11 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, bpy.types.Panel):
         col.prop(pd, "turbulence_size")
         col.prop(pd, "turbulence_depth")
         col.prop(pd, "turbulence_strength")
+
+
+class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "texture"
 
 
 def register():

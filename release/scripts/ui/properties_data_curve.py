@@ -69,11 +69,6 @@ class DATA_PT_context_curve(CurveButtonsPanel, bpy.types.Panel):
             split.separator()
 
 
-class DATA_PT_custom_props_curve(CurveButtonsPanel, PropertyPanel, bpy.types.Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    _context_path = "object.data"
-
-
 class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
     bl_label = "Shape"
 
@@ -383,6 +378,11 @@ class DATA_PT_textboxes(CurveButtonsPanel, bpy.types.Panel):
             col.prop(box, "y", text="Y")
 
             row.operator("font.textbox_remove", text='', icon='X', emboss=False).index = i
+
+
+class DATA_PT_custom_props_curve(CurveButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "object.data"
 
 
 def register():

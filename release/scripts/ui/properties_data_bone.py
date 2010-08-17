@@ -47,18 +47,6 @@ class BONE_PT_context_bone(BoneButtonsPanel, bpy.types.Panel):
         row.prop(bone, "name", text="")
 
 
-class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, bpy.types.Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @property
-    def _context_path(self):
-        obj = bpy.context.object
-        if obj and obj.mode == 'POSE':
-            return "active_pose_bone"
-        else:
-            return "active_bone"
-
-
 class BONE_PT_transform(BoneButtonsPanel, bpy.types.Panel):
     bl_label = "Transform"
 
@@ -352,6 +340,18 @@ class BONE_PT_deform(BoneButtonsPanel, bpy.types.Panel):
 
         col.label(text="Offset:")
         col.prop(bone, "cyclic_offset")
+
+
+class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    @property
+    def _context_path(self):
+        obj = bpy.context.object
+        if obj and obj.mode == 'POSE':
+            return "active_pose_bone"
+        else:
+            return "active_bone"
 
 
 def register():

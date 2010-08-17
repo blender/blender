@@ -26,84 +26,23 @@
 #include "AUD_MixerFactory.h"
 #include "AUD_IReader.h"
 
-AUD_IReader* AUD_MixerFactory::getReader()
+AUD_IReader* AUD_MixerFactory::getReader() const
 {
-	AUD_IReader* reader;
-
-	// first check for an existing reader
-	if(m_reader != 0)
-	{
-		reader = m_reader;
-		m_reader = 0;
-		return reader;
-	}
-
-	// otherwise create a reader if there is a factory
-	if(m_factory != 0)
-	{
-		reader = m_factory->createReader();
-		return reader;
-	}
-
-	return 0;
-}
-
-AUD_MixerFactory::AUD_MixerFactory(AUD_IReader* reader,
-								   AUD_DeviceSpecs specs)
-{
-	m_specs = specs;
-	m_reader = reader;
-	m_factory = 0;
+	return m_factory->createReader();
 }
 
 AUD_MixerFactory::AUD_MixerFactory(AUD_IFactory* factory,
-								   AUD_DeviceSpecs specs)
+								   AUD_DeviceSpecs specs) :
+	m_specs(specs), m_factory(factory)
 {
-	m_specs = specs;
-	m_reader = 0;
-	m_factory = factory;
 }
 
-AUD_MixerFactory::AUD_MixerFactory(AUD_DeviceSpecs specs)
-{
-	m_specs = specs;
-	m_reader = 0;
-	m_factory = 0;
-}
-
-AUD_MixerFactory::~AUD_MixerFactory()
-{
-	if(m_reader != 0)
-	{
-		delete m_reader; AUD_DELETE("reader")
-	}
-}
-
-AUD_DeviceSpecs AUD_MixerFactory::getSpecs()
+AUD_DeviceSpecs AUD_MixerFactory::getSpecs() const
 {
 	return m_specs;
 }
 
-void AUD_MixerFactory::setSpecs(AUD_DeviceSpecs specs)
-{
-	m_specs = specs;
-}
-
-void AUD_MixerFactory::setReader(AUD_IReader* reader)
-{
-	if(m_reader != 0)
-	{
-		delete m_reader; AUD_DELETE("reader")
-	}
-	m_reader = reader;
-}
-
-void AUD_MixerFactory::setFactory(AUD_IFactory* factory)
-{
-	m_factory = factory;
-}
-
-AUD_IFactory* AUD_MixerFactory::getFactory()
+AUD_IFactory* AUD_MixerFactory::getFactory() const
 {
 	return m_factory;
 }

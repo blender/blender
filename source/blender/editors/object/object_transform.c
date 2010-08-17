@@ -55,7 +55,6 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
-#include "ED_curve.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"

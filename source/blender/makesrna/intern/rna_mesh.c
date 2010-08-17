@@ -57,22 +57,29 @@ static void rna_Mesh_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
-	DAG_id_flush_update(id, OB_RECALC_DATA);
-	WM_main_add_notifier(NC_GEOM|ND_DATA, id);
+	/* cheating way for importers to avoid slow updates */
+	if(id->us > 0) {
+		DAG_id_flush_update(id, OB_RECALC_DATA);
+		WM_main_add_notifier(NC_GEOM|ND_DATA, id);
+	}
 }
 
 static void rna_Mesh_update_select(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
-
-	WM_main_add_notifier(NC_GEOM|ND_SELECT, id);
+	/* cheating way for importers to avoid slow updates */
+	if(id->us > 0) {
+		WM_main_add_notifier(NC_GEOM|ND_SELECT, id);
+	}
 }
 
 void rna_Mesh_update_draw(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
-
-	WM_main_add_notifier(NC_GEOM|ND_DATA, id);
+	/* cheating way for importers to avoid slow updates */
+	if(id->us > 0) {
+		WM_main_add_notifier(NC_GEOM|ND_DATA, id);
+	}
 }
 
 static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)

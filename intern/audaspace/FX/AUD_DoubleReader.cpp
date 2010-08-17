@@ -24,80 +24,51 @@
  */
 
 #include "AUD_DoubleReader.h"
-#include "AUD_Buffer.h"
 
 #include <cstring>
 
+static const char* specs_error = "AUD_DoubleReader: Both readers have to have "
+								 "the same specs.";
+
 AUD_DoubleReader::AUD_DoubleReader(AUD_IReader* reader1,
 								   AUD_IReader* reader2) :
-		m_reader1(reader1), m_reader2(reader2)
+		m_reader1(reader1), m_reader2(reader2), m_finished1(false)
 {
-	try
+	AUD_Specs s1, s2;
+	s1 = reader1->getSpecs();
+	s2 = reader2->getSpecs();
+	if(memcmp(&s1, &s2, sizeof(AUD_Specs)) != 0)
 	{
-		if(!reader1)
-			AUD_THROW(AUD_ERROR_READER);
-
-		if(!reader2)
-			AUD_THROW(AUD_ERROR_READER);
-
-		AUD_Specs s1, s2;
-		s1 = reader1->getSpecs();
-		s2 = reader2->getSpecs();
-		if(memcmp(&s1, &s2, sizeof(AUD_Specs)) != 0)
-			AUD_THROW(AUD_ERROR_READER);
+		delete reader1;
+		delete reader2;
+		AUD_THROW(AUD_ERROR_SPECS, specs_error);
 	}
-
-	catch(AUD_Exception)
-	{
-		if(reader1)
-		{
-			delete reader1; AUD_DELETE("reader")
-		}
-		if(reader2)
-		{
-			delete reader2; AUD_DELETE("reader")
-		}
-
-		throw;
-	}
-
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
-	m_finished1 = false;
 }
 
 AUD_DoubleReader::~AUD_DoubleReader()
 {
-	delete m_reader1; AUD_DELETE("reader")
-	delete m_reader2; AUD_DELETE("reader")
-	delete m_buffer; AUD_DELETE("buffer")
+	delete m_reader1;
+	delete m_reader2;
 }
 
-bool AUD_DoubleReader::isSeekable()
+bool AUD_DoubleReader::isSeekable() const
 {
-	return false;
+	return m_reader1->isSeekable() && m_reader2->isSeekable();
 }
 
 void AUD_DoubleReader::seek(int position)
 {
-	int length1 = m_reader1->getLength();
+	m_reader1->seek(position);
 
-	if(position < 0)
-		position = 0;
+	int pos1 = m_reader1->getPosition();
 
-	if(position < length1)
-	{
-		m_reader1->seek(position);
-		m_reader2->seek(0);
-		m_finished1 = false;
-	}
+	if((m_finished1 = (pos1 < position)))
+		m_reader2->seek(position - pos1);
 	else
-	{
-		m_reader2->seek(position-length1);
-		m_finished1 = true;
-	}
+		m_reader2->seek(0);
 }
 
-int AUD_DoubleReader::getLength()
+int AUD_DoubleReader::getLength() const
 {
 	int len1 = m_reader1->getLength();
 	int len2 = m_reader2->getLength();
@@ -106,27 +77,14 @@ int AUD_DoubleReader::getLength()
 	return len1 + len2;
 }
 
-int AUD_DoubleReader::getPosition()
+int AUD_DoubleReader::getPosition() const
 {
 	return m_reader1->getPosition() + m_reader2->getPosition();
 }
 
-AUD_Specs AUD_DoubleReader::getSpecs()
+AUD_Specs AUD_DoubleReader::getSpecs() const
 {
 	return m_reader1->getSpecs();
-}
-
-AUD_ReaderType AUD_DoubleReader::getType()
-{
-	if(m_reader1->getType() == AUD_TYPE_BUFFER &&
-	   m_reader2->getType() == AUD_TYPE_BUFFER)
-		return AUD_TYPE_BUFFER;
-	return AUD_TYPE_STREAM;
-}
-
-bool AUD_DoubleReader::notify(AUD_Message &message)
-{
-	return m_reader1->notify(message) | m_reader2->notify(message);
 }
 
 void AUD_DoubleReader::read(int & length, sample_t* & buffer)
@@ -135,20 +93,29 @@ void AUD_DoubleReader::read(int & length, sample_t* & buffer)
 	{
 		int len = length;
 		m_reader1->read(len, buffer);
+
 		if(len < length)
 		{
 			AUD_Specs specs = m_reader1->getSpecs();
 			int samplesize = AUD_SAMPLE_SIZE(specs);
-			if(m_buffer->getSize() < length * samplesize)
-				m_buffer->resize(length * samplesize);
-			memcpy(m_buffer->getBuffer(), buffer, len * samplesize);
+
+			if(m_buffer.getSize() < length * samplesize)
+				m_buffer.resize(length * samplesize);
+
+			sample_t* buf = buffer;
+			buffer = m_buffer.getBuffer();
+
+			memcpy(buffer, buf, len * samplesize);
+
 			len = length - len;
 			length -= len;
-			m_reader2->read(len, buffer);
-			memcpy(m_buffer->getBuffer() + length * specs.channels, buffer,
+			m_reader2->read(len, buf);
+
+			memcpy(buffer + length * specs.channels, buf,
 				   len * samplesize);
+
 			length += len;
-			buffer = m_buffer->getBuffer();
+
 			m_finished1 = true;
 		}
 	}

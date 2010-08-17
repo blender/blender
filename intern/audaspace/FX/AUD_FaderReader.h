@@ -27,7 +27,7 @@
 #define AUD_FADERREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class fades another reader.
@@ -38,24 +38,33 @@ class AUD_FaderReader : public AUD_EffectReader
 {
 private:
 	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer *m_buffer;
-
-	/**
 	 * The fading type.
 	 */
-	AUD_FadeType m_type;
+	const AUD_FadeType m_type;
 
 	/**
 	 * The fading start.
 	 */
-	float m_start;
+	const float m_start;
 
 	/**
 	 * The fading length.
 	 */
-	float m_length;
+	const float m_length;
+
+	/**
+	 * The playback buffer.
+	 */
+	AUD_Buffer m_buffer;
+
+	/**
+	 * Whether the buffer is empty.
+	 */
+	bool m_empty;
+
+	// hide copy constructor and operator=
+	AUD_FaderReader(const AUD_FaderReader&);
+	AUD_FaderReader& operator=(const AUD_FaderReader&);
 
 public:
 	/**
@@ -63,17 +72,10 @@ public:
 	 * \param type The fading type.
 	 * \param start The time where fading should start in seconds.
 	 * \param length How long fading should last in seconds.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_FaderReader(AUD_IReader* reader, AUD_FadeType type,
 					float start,float length);
 
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_FaderReader();
-
-	virtual bool notify(AUD_Message &message);
 	virtual void read(int & length, sample_t* & buffer);
 };
 

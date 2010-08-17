@@ -49,6 +49,7 @@
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
@@ -94,6 +95,7 @@
 
 #include "BKE_depsgraph.h"
 #include "BKE_sound.h"
+#include "GHOST_C-api.h"
 
 static void wm_init_reports(bContext *C)
 {
@@ -186,18 +188,115 @@ void WM_init_splash(bContext *C)
 	}
 }
 
-void WM_init_game(bContext *C)
+static ScrArea *biggest_view3d(bContext *C)
 {
-	//XXX copied from WM_init_splash we may not even need those "window" related code
-	//XXX not working yet, it fails at the game_start_operator pool (it needs an area)
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmWindow *prevwin= CTX_wm_window(C);
-	
-	if(wm->windows.first) {
-		CTX_wm_window_set(C, wm->windows.first);
-		WM_operator_name_call(C, "VIEW3D_OT_game_start", WM_OP_EXEC_DEFAULT, NULL);
-		CTX_wm_window_set(C, prevwin);
+	bScreen *sc= CTX_wm_screen(C);
+	ScrArea *sa, *big= NULL;
+	int size, maxsize= 0;
+
+	for(sa= sc->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_VIEW3D) {
+			size= sa->winx * sa->winy;
+			if(size > maxsize) {
+				maxsize= size;
+				big= sa;
+			}
+		}
 	}
+	return big;
+}
+
+int WM_init_game(bContext *C)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindow* win;
+
+	ScrArea *sa;
+	ARegion *ar;
+
+	Scene *scene= CTX_data_scene(C);
+
+	if (!scene) {
+		// XXX, this should not be needed.
+		Main *bmain = CTX_data_main(C);
+		scene= bmain->scene.first;
+	}
+
+	win = wm->windows.first;
+
+	//first to get a valid window
+	if(win)
+		CTX_wm_window_set(C, win);
+
+	sa = biggest_view3d(C);
+
+	if(sa)
+	{
+		for(ar=sa->regionbase.first; ar; ar=ar->next) {
+			if(ar->regiontype == RGN_TYPE_WINDOW) {
+				break;
+			}
+		}
+	}
+
+	// if we have a valid 3D view
+	if (sa && ar) {
+		ARegion *arhide;
+
+		CTX_wm_area_set(C, sa);
+		CTX_wm_region_set(C, ar);
+
+		/* disable quad view */
+		if(ar->alignment == RGN_ALIGN_QSPLIT)
+			WM_operator_name_call(C, "SCREEN_OT_region_quadview", WM_OP_EXEC_DEFAULT, NULL);
+
+		/* toolbox, properties panel and header are hidden */
+		for(arhide=sa->regionbase.first; arhide; arhide=arhide->next) {
+			if(arhide->regiontype != RGN_TYPE_WINDOW) {
+				if(!(arhide->flag & RGN_FLAG_HIDDEN)) {
+					ED_region_toggle_hidden(C, arhide);
+				}
+			}
+		}
+
+		/* full screen the area */
+		if(!sa->full) {
+			ED_screen_full_toggle(C, wm->windows.first, sa);
+		}
+
+		/* Fullscreen */
+		if(scene->gm.fullscreen) {
+			WM_operator_name_call(C, "WM_OT_window_fullscreen_toggle", WM_OP_EXEC_DEFAULT, NULL);
+			wm_get_screensize(&ar->winrct.xmax, &ar->winrct.ymax);
+		}
+		else
+		{
+			GHOST_RectangleHandle rect = GHOST_GetClientBounds(win->ghostwin);
+			ar->winrct.ymax = GHOST_GetHeightRectangle(rect);
+			ar->winrct.xmax = GHOST_GetWidthRectangle(rect);
+			GHOST_DisposeRectangle(rect);
+		}
+
+		WM_operator_name_call(C, "VIEW3D_OT_game_start", WM_OP_EXEC_DEFAULT, NULL);
+
+		return 1;
+	}
+	else
+	{
+		ReportTimerInfo *rti;
+
+		BKE_report(&wm->reports, RPT_ERROR, "No valid 3D View found. Game auto start is not possible.");
+
+		/* After adding the report to the global list, reset the report timer. */
+		WM_event_remove_timer(wm, NULL, wm->reports.reporttimer);
+
+		/* Records time since last report was added */
+		wm->reports.reporttimer = WM_event_add_timer(wm, CTX_wm_window(C), TIMER, 0.02);
+
+		rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
+		wm->reports.reporttimer->customdata = rti;
+	}
+	return 0;
 }
 
 /* free strings of open recent files */

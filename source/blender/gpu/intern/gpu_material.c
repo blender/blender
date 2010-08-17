@@ -1003,7 +1003,7 @@ static void do_material_tex(GPUShadeInput *shi)
 
 				if(tex->type==TEX_IMAGE)
 					if(mat->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-						GPU_link(mat, "srgb_to_linearrgb", tcol, tcol);
+						GPU_link(mat, "srgb_to_linearrgb", tcol, &tcol);
 				
 				if(mtex->mapto & MAP_COL) {
 					GPUNodeLink *colfac;

@@ -322,6 +322,7 @@ static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Objec
 
 void unlink_object(Scene *scene, Object *ob)
 {
+	Main *bmain= G.main;
 	Object *obt;
 	Material *mat;
 	World *wrld;
@@ -343,7 +344,7 @@ void unlink_object(Scene *scene, Object *ob)
 	
 	/* check all objects: parents en bevels and fields, also from libraries */
 	// FIXME: need to check all animation blocks (drivers)
-	obt= G.main->object.first;
+	obt= bmain->object.first;
 	while(obt) {
 		if(obt->proxy==ob)
 			obt->proxy= NULL;
@@ -517,7 +518,7 @@ void unlink_object(Scene *scene, Object *ob)
 	}
 	
 	/* materials */
-	mat= G.main->mat.first;
+	mat= bmain->mat.first;
 	while(mat) {
 	
 		for(a=0; a<MAX_MTEX; a++) {
@@ -531,7 +532,7 @@ void unlink_object(Scene *scene, Object *ob)
 	}
 	
 	/* textures */
-	tex= G.main->tex.first;
+	tex= bmain->tex.first;
 	while(tex) {
 		if(tex->env) {
 			if(tex->env->object == ob) tex->env->object= NULL;
@@ -540,7 +541,7 @@ void unlink_object(Scene *scene, Object *ob)
 	}
 
 	/* worlds */
-	wrld= G.main->world.first;
+	wrld= bmain->world.first;
 	while(wrld) {
 		if(wrld->id.lib==NULL) {
 			for(a=0; a<MAX_MTEX; a++) {
@@ -553,7 +554,7 @@ void unlink_object(Scene *scene, Object *ob)
 	}
 		
 	/* scenes */
-	sce= G.main->scene.first;
+	sce= bmain->scene.first;
 	while(sce) {
 		if(sce->id.lib==NULL) {
 			if(sce->camera==ob) sce->camera= NULL;
@@ -585,7 +586,7 @@ void unlink_object(Scene *scene, Object *ob)
 	
 #if 0 // XXX old animation system
 	/* ipos */
-	ipo= G.main->ipo.first;
+	ipo= bmain->ipo.first;
 	while(ipo) {
 		if(ipo->id.lib==NULL) {
 			IpoCurve *icu;
@@ -599,7 +600,7 @@ void unlink_object(Scene *scene, Object *ob)
 #endif // XXX old animation system
 	
 	/* screens */
-	sc= G.main->screen.first;
+	sc= bmain->screen.first;
 	while(sc) {
 		ScrArea *sa= sc->areabase.first;
 		while(sa) {
@@ -664,14 +665,14 @@ void unlink_object(Scene *scene, Object *ob)
 	}
 
 	/* groups */
-	group= G.main->group.first;
+	group= bmain->group.first;
 	while(group) {
 		rem_from_group(group, ob, NULL, NULL);
 		group= group->id.next;
 	}
 	
 	/* cameras */
-	camera= G.main->camera.first;
+	camera= bmain->camera.first;
 	while(camera) {
 		if (camera->dof_ob==ob) {
 			camera->dof_ob = NULL;
@@ -725,6 +726,7 @@ Camera *copy_camera(Camera *cam)
 
 void make_local_camera(Camera *cam)
 {
+	Main *bmain= G.main;
 	Object *ob;
 	Camera *camn;
 	int local=0, lib=0;
@@ -742,7 +744,7 @@ void make_local_camera(Camera *cam)
 		return;
 	}
 	
-	ob= G.main->object.first;
+	ob= bmain->object.first;
 	while(ob) {
 		if(ob->data==cam) {
 			if(ob->id.lib) lib= 1;
@@ -760,7 +762,7 @@ void make_local_camera(Camera *cam)
 		camn= copy_camera(cam);
 		camn->id.us= 0;
 		
-		ob= G.main->object.first;
+		ob= bmain->object.first;
 		while(ob) {
 			if(ob->data==cam) {
 				
@@ -873,6 +875,7 @@ Lamp *copy_lamp(Lamp *la)
 
 void make_local_lamp(Lamp *la)
 {
+	Main *bmain= G.main;
 	Object *ob;
 	Lamp *lan;
 	int local=0, lib=0;
@@ -890,7 +893,7 @@ void make_local_lamp(Lamp *la)
 		return;
 	}
 	
-	ob= G.main->object.first;
+	ob= bmain->object.first;
 	while(ob) {
 		if(ob->data==la) {
 			if(ob->id.lib) lib= 1;
@@ -908,7 +911,7 @@ void make_local_lamp(Lamp *la)
 		lan= copy_lamp(la);
 		lan->id.us= 0;
 		
-		ob= G.main->object.first;
+		ob= bmain->object.first;
 		while(ob) {
 			if(ob->data==la) {
 				
@@ -1366,6 +1369,7 @@ void expand_local_object(Object *ob)
 
 void make_local_object(Object *ob)
 {
+	Main *bmain= G.main;
 	Object *obn;
 	Scene *sce;
 	Base *base;
@@ -1387,7 +1391,7 @@ void make_local_object(Object *ob)
 
 	}
 	else {
-		sce= G.main->scene.first;
+		sce= bmain->scene.first;
 		while(sce) {
 			base= sce->base.first;
 			while(base) {
@@ -1410,7 +1414,7 @@ void make_local_object(Object *ob)
 			obn= copy_object(ob);
 			obn->id.us= 0;
 			
-			sce= G.main->scene.first;
+			sce= bmain->scene.first;
 			while(sce) {
 				if(sce->id.lib==0) {
 					base= sce->base.first;

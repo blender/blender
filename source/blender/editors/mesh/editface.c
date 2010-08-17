@@ -50,7 +50,6 @@
 #include "BKE_context.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 
 #ifndef DISABLE_PYTHON

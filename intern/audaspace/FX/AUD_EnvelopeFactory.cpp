@@ -24,7 +24,31 @@
  */
 
 #include "AUD_EnvelopeFactory.h"
-#include "AUD_EnvelopeReader.h"
+#include "AUD_CallbackIIRFilterReader.h"
+
+#include <cmath>
+
+struct EnvelopeParameters
+{
+	float attack;
+	float release;
+	float threshold;
+	float arthreshold;
+};
+
+sample_t envelopeFilter(AUD_CallbackIIRFilterReader* reader, EnvelopeParameters* param)
+{
+	float in = fabs(reader->x(0));
+	float out = reader->y(-1);
+	if(in < param->threshold)
+		in = 0.0f;
+	return (in > out ? param->attack : param->release) * (out - in) + in;
+}
+
+void endEnvelopeFilter(EnvelopeParameters* param)
+{
+	delete param;
+}
 
 AUD_EnvelopeFactory::AUD_EnvelopeFactory(AUD_IFactory* factory, float attack,
 										 float release, float threshold,
@@ -33,26 +57,22 @@ AUD_EnvelopeFactory::AUD_EnvelopeFactory(AUD_IFactory* factory, float attack,
 		m_attack(attack),
 		m_release(release),
 		m_threshold(threshold),
-		m_arthreshold(arthreshold) {}
+		m_arthreshold(arthreshold)
+{
+}
 
-AUD_EnvelopeFactory::AUD_EnvelopeFactory(float attack, float release,
-										 float threshold, float arthreshold) :
-		AUD_EffectFactory(0),
-		m_attack(attack),
-		m_release(release),
-		m_threshold(threshold),
-		m_arthreshold(arthreshold) {}
-
-AUD_IReader* AUD_EnvelopeFactory::createReader()
+AUD_IReader* AUD_EnvelopeFactory::createReader() const
 {
 	AUD_IReader* reader = getReader();
 
-	if(reader != 0)
-	{
-		reader = new AUD_EnvelopeReader(reader, m_attack, m_release,
-										m_threshold, m_arthreshold);
-		AUD_NEW("reader")
-	}
+	EnvelopeParameters* param = new EnvelopeParameters();
+	param->arthreshold = m_arthreshold;
+	param->attack = pow(m_arthreshold, 1.0f/(reader->getSpecs().rate * m_attack));
+	param->release = pow(m_arthreshold, 1.0f/(reader->getSpecs().rate * m_release));
+	param->threshold = m_threshold;
 
-	return reader;
+	return new AUD_CallbackIIRFilterReader(reader, 1, 2,
+										   (doFilterIIR) envelopeFilter,
+										   (endFilterIIR) endEnvelopeFilter,
+										   param);
 }

@@ -171,6 +171,7 @@ def clientSendJob(conn, scene, anim = False):
     # try to send path first
     conn.request("POST", "/job", repr(job.serialize()))
     response = conn.getresponse()
+    response.read()
 
     job_id = response.getheader("job-id")
 
@@ -181,6 +182,7 @@ def clientSendJob(conn, scene, anim = False):
             conn.request("PUT", fileURL(job_id, rfile.index), f)
             f.close()
             response = conn.getresponse()
+            response.read()
 
     # server will reply with ACCEPTED until all files are found
 
@@ -236,6 +238,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
             requestResult(conn, job_id, scene.frame_current)
             response = conn.getresponse()
+            response.read()
 
             if response.status == http.client.NO_CONTENT:
                 new_job = True
@@ -244,16 +247,19 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
                 requestResult(conn, job_id, scene.frame_current)
                 response = conn.getresponse()
+                response.read()
 
             while response.status == http.client.ACCEPTED and not self.test_break():
                 time.sleep(1)
                 requestResult(conn, job_id, scene.frame_current)
                 response = conn.getresponse()
+                response.read()
 
             # cancel new jobs (animate on network) on break
             if self.test_break() and new_job:
                 conn.request("POST", cancelURL(job_id))
                 response = conn.getresponse()
+                response.read()
                 print( response.status, response.reason )
                 netsettings.job_id = 0
 
@@ -265,7 +271,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
             x= int(r.resolution_x*r.resolution_percentage*0.01)
             y= int(r.resolution_y*r.resolution_percentage*0.01)
 
-            f = open(netsettings.path + "output.exr", "wb")
+            f = open(os.path.join(netsettings.path, "output.exr"), "wb")
             buf = response.read(1024)
 
             while buf:
@@ -275,7 +281,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
             f.close()
 
             result = self.begin_result(0, 0, x, y)
-            result.load_from_file(netsettings.path + "output.exr")
+            result.load_from_file(os.path.join(netsettings.path, "output.exr"))
             self.end_result(result)
 
             conn.close()

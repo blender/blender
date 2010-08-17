@@ -193,7 +193,7 @@ void RE_SetPixelSize(struct Render *re, float pixsize);
 void RE_SetView (struct Render *re, float mat[][4]);
 
 /* make or free the dbase */
-void RE_Database_FromScene(struct Render *re, struct Scene *scene, unsigned int lay, int use_camera_view);
+void RE_Database_FromScene(struct Render *re, struct Main *bmain, struct Scene *scene, unsigned int lay, int use_camera_view);
 void RE_Database_Free (struct Render *re);
 
 /* project dbase again, when viewplane/perspective changed */

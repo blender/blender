@@ -658,7 +658,7 @@ static struct PyModuleDef noise_module_def = {
 PyObject *Noise_Init(void)
 {
 	PyObject *submodule = PyModule_Create(&noise_module_def);
-	PyDict_SetItemString(PySys_GetObject("modules"), noise_module_def.m_name, submodule);
+	PyDict_SetItemString(PyImport_GetModuleDict(), noise_module_def.m_name, submodule);
 
 	/* use current time as seed for random number generator by default */
 	setRndSeed(0);	

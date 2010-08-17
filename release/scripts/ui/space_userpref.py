@@ -91,15 +91,12 @@ class USERPREF_HT_header(bpy.types.Header):
         layout.operator_context = 'INVOKE_DEFAULT'
 
         if userpref.active_section == 'INPUT':
-            op = layout.operator("wm.keyconfig_export")
-            op.filepath = "keymap.py"
-            op = layout.operator("wm.keyconfig_import")
-            op.filepath = "keymap.py"
+            layout.operator("wm.keyconfig_export")
+            layout.operator("wm.keyconfig_import")
         elif userpref.active_section == 'ADDONS':
-            op = layout.operator("wm.addon_install")
-            op.filepath = "*.py"
+            layout.operator("wm.addon_install")
         elif userpref.active_section == 'THEMES':
-            op = layout.operator("ui.reset_default_theme")
+            layout.operator("ui.reset_default_theme")
 
 
 class USERPREF_PT_tabs(bpy.types.Panel):

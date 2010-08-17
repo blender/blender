@@ -75,7 +75,6 @@
 #include "ED_space_api.h"
 #include "ED_screen_types.h"
 #include "ED_transform.h"
-#include "ED_gpencil.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"

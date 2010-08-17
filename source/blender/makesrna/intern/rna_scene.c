@@ -151,6 +151,8 @@ EnumPropertyItem image_type_items[] = {
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -210,7 +212,8 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 
 	ob->recalc |= OB_RECALC_ALL;
 
-	DAG_scene_sort(G.main, scene);
+	/* slows down importers too much, run scene.update() */
+	/* DAG_scene_sort(G.main, scene); */
 
 	return base;
 }
@@ -3120,7 +3123,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "Scene Objects", "Collection of scene objects");
 
 	func= RNA_def_function(srna, "link", "rna_Scene_object_link");
-	RNA_def_function_ui_description(func, "Link object to scene.");
+	RNA_def_function_ui_description(func, "Link object to scene, run scene.update() after.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add to scene.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);

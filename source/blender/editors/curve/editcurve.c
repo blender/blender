@@ -36,6 +36,11 @@
 #include <io.h>
 #endif
 #include <stdlib.h>
+
+#include "DNA_key_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -43,10 +48,6 @@
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
-
-#include "DNA_key_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"

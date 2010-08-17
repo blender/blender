@@ -45,6 +45,8 @@ endif
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I$(NAN_MEMUTIL)/include
 CPPFLAGS += -I../../../../intern/audaspace/intern

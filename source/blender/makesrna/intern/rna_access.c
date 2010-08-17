@@ -23,6 +23,7 @@
  */
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -258,14 +259,10 @@ int RNA_struct_idproperties_check(StructRNA *srna)
 static IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name)
 {
 	IDProperty *group= RNA_struct_idproperties(ptr, 0);
-	IDProperty *idprop;
 
-	if(group) {
-		for(idprop=group->data.group.first; idprop; idprop=idprop->next)
-			if(strcmp(idprop->name, name) == 0)
-				return idprop;
-	}
-	
+	if(group)
+		return IDP_GetPropertyFromGroup(group, name);
+
 	return NULL;
 }
 
@@ -577,9 +574,9 @@ FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 	FunctionRNA *func;
 	StructRNA *type;
 	for(type= ptr->type; type; type= type->base) {
-		for(func= type->functions.first; func; func= func->cont.next) {
-			if(strcmp(func->identifier, identifier)==0)
-				return func;
+		func= (FunctionRNA *)BLI_findstring_ptr(&type->functions, identifier, offsetof(FunctionRNA, identifier));
+		if(func) {
+			return func;
 		}
 	}
 	return NULL;
@@ -3592,7 +3589,8 @@ int RNA_property_is_set(PointerRNA *ptr, const char *name)
 			return 1;
 	}
 	else {
-		// printf("RNA_property_is_set: %s.%s not found.\n", ptr->type->identifier, name);
+		/* python raises an error */
+		/* printf("RNA_property_is_set: %s.%s not found.\n", ptr->type->identifier, name); */
 		return 0;
 	}
 }
@@ -3777,27 +3775,12 @@ int RNA_function_defined(FunctionRNA *func)
 
 PropertyRNA *RNA_function_get_parameter(PointerRNA *ptr, FunctionRNA *func, int index)
 {
-	PropertyRNA *parm;
-	int i;
-
-	parm= func->cont.properties.first;
-	for(i= 0; parm; parm= parm->next, i++)
-		if(i==index)
-			return parm;
-
-	return NULL;
+	return BLI_findlink(&func->cont.properties, index);
 }
 
 PropertyRNA *RNA_function_find_parameter(PointerRNA *ptr, FunctionRNA *func, const char *identifier)
 {
-	PropertyRNA *parm;
-
-	parm= func->cont.properties.first;
-	for(; parm; parm= parm->next)
-		if(strcmp(parm->identifier, identifier)==0)
-			return parm;
-
-	return NULL;
+	return BLI_findstring(&func->cont.properties, identifier, offsetof(PropertyRNA, identifier));
 }
 
 const struct ListBase *RNA_function_defined_parameters(FunctionRNA *func)
@@ -3813,18 +3796,18 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, 
 	void *data;
 	int alloc_size= 0, size;
 
-    parms->arg_count= 0;
-    parms->ret_count= 0;
-    
+	parms->arg_count= 0;
+	parms->ret_count= 0;
+
 	/* allocate data */
 	for(parm= func->cont.properties.first; parm; parm= parm->next) {
 		alloc_size += rna_parameter_size_alloc(parm);
 
-        if(parm->flag & PROP_OUTPUT)
-            parms->ret_count++;
-        else
-            parms->arg_count++;
-    }
+		if(parm->flag & PROP_OUTPUT)
+			parms->ret_count++;
+		else
+			parms->arg_count++;
+	}
 
 	parms->data= MEM_callocN(alloc_size, "RNA_parameter_list_create");
 	parms->func= func;

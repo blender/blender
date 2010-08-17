@@ -57,6 +57,7 @@ CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../windowmanager
 CPPFLAGS += -I../../render/extern/include
+CPPFLAGS += -I$(NAN_AUDASPACE)/include
 
 # path to the guarded memory allocator
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include

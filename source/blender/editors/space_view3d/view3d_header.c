@@ -58,8 +58,6 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"

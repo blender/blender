@@ -34,7 +34,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf_types.h"
+#include "BLI_blenlib.h"
+#include "BLI_math.h"
+#include "BLI_editVert.h"
+#include "BLI_ghash.h"
+#include "BLI_rand.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
@@ -48,11 +52,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_editVert.h"
-#include "BLI_ghash.h"
-#include "BLI_rand.h"
+#include "IMB_imbuf_types.h"
 
 #include "BKE_anim.h"
 #include "BKE_constraint.h"

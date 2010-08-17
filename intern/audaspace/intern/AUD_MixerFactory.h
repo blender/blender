@@ -35,9 +35,9 @@ class AUD_MixerFactory : public AUD_IFactory
 {
 protected:
 	/**
-	 * The reader that should be mixed later.
+	 * The target specification for resampling.
 	 */
-	AUD_IReader* m_reader;
+	const AUD_DeviceSpecs m_specs;
 
 	/**
 	 * If there is no reader it is created out of this factory.
@@ -45,26 +45,14 @@ protected:
 	AUD_IFactory* m_factory;
 
 	/**
-	 * The target specification for resampling.
-	 */
-	AUD_DeviceSpecs m_specs;
-
-	/**
-	 * Returns the reader created out of the factory or taken from m_reader.
+	 * Returns the reader created out of the factory.
 	 * This method can be used for the createReader function of the implementing
 	 * classes.
-	 * \return The reader to mix, or NULL if there is no reader or factory.
+	 * \return The reader to mix.
 	 */
-	AUD_IReader* getReader();
+	AUD_IReader* getReader() const;
 
 public:
-	/**
-	 * Creates a new factory.
-	 * \param reader The reader to mix.
-	 * \param specs The target specification.
-	 */
-	AUD_MixerFactory(AUD_IReader* reader, AUD_DeviceSpecs specs);
-
 	/**
 	 * Creates a new factory.
 	 * \param factory The factory to create the readers to mix out of.
@@ -73,45 +61,15 @@ public:
 	AUD_MixerFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
 
 	/**
-	 * Creates a new factory.
-	 * \param specs The target specification.
-	 */
-	AUD_MixerFactory(AUD_DeviceSpecs specs);
-
-	/**
-	 * Destroys the resampling factory.
-	 */
-	virtual ~AUD_MixerFactory();
-
-	/**
 	 * Returns the target specification for resampling.
 	 */
-	AUD_DeviceSpecs getSpecs();
-
-	/**
-	 * Sets the target specification for resampling.
-	 * \param specs The specification.
-	 */
-	void setSpecs(AUD_DeviceSpecs specs);
-
-	/**
-	 * Sets the reader for resampling.
-	 * If there has already been a reader, it will be deleted.
-	 * \param reader The reader that should be used as source for resampling.
-	 */
-	void setReader(AUD_IReader* reader);
-
-	/**
-	 * Sets the factory for resampling.
-	 * \param factory The factory that should be used as source for resampling.
-	 */
-	void setFactory(AUD_IFactory* factory);
+	AUD_DeviceSpecs getSpecs() const;
 
 	/**
 	 * Returns the saved factory.
-	 * \return The factory or NULL if there has no factory been saved.
+	 * \return The factory.
 	 */
-	AUD_IFactory* getFactory();
+	AUD_IFactory* getFactory() const;
 };
 
 #endif //AUD_MIXERFACTORY

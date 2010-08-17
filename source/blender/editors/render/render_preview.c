@@ -81,7 +81,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_datafiles.h"
 #include "ED_render.h"
 #include "ED_view3d.h"
 
@@ -791,7 +790,7 @@ void BIF_view3d_previewrender(Main *bmain, Scene *scene, ScrArea *sa)
 				lay |= v3d->lay;
 			else lay= v3d->lay;
 			
-			RE_Database_FromScene(re, scene, lay, 0);		// 0= dont use camera view
+			RE_Database_FromScene(re, bmain, scene, lay, 0);		// 0= dont use camera view
 			
 			rstats= RE_GetStats(re);
 			if(rstats->convertdone) 

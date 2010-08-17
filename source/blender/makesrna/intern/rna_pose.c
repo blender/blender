@@ -37,7 +37,6 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
-#include "BLI_ghash.h"
 
 #include "WM_types.h"
 
@@ -48,6 +47,10 @@
 #include "BKE_armature.h"
 
 #include "DNA_userdef_types.h"
+
+#include "MEM_guardedalloc.h"
+
+#include "BLI_ghash.h"
 
 #include "BKE_context.h"
 #include "BKE_constraint.h"

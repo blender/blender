@@ -109,10 +109,28 @@ COMLIB += $(NAN_JPEG)/lib/libjpeg.a
 COMLIB += $(OCGDIR)/blender/gpu/$(DEBUG_DIR)libgpu.a
 COMLIB += $(NAN_GLEW)/lib/$(DEBUG_DIR)libglew.a
 COMLIB += $(OCGDIR)/blender/blenfont/$(DEBUG_DIR)libblenfont.a
+COMLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
+COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaudaspace.a
+COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_python.a
 COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaudaspace.a
 COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_src.a
 COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fx.a
 COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sdl.a
+ifeq ($(WITH_FFMPEG),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_ffmpeg.a
+endif
+ifeq ($(WITH_OPENAL),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_openal.a
+endif
+ifeq ($(WITH_JACK),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_jack.a
+endif
+ifeq ($(WITH_SNDFILE),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sndfile.a
+endif
+ifeq ($(WITH_FFTW3),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fftw.a
+endif
 COMLIB += $(NAN_SAMPLERATE)/lib/$(DEBUG_DIR)libsamplerate.a
 COMLIB += $(NAN_LZO)/lib/$(DEBUG_DIR)libminilzo.a
 COMLIB += $(NAN_LZMA)/lib/$(DEBUG_DIR)liblzma.a
@@ -122,25 +140,6 @@ COMLIB += $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a
 COMLIB += $(NAN_DECIMATION)/lib/$(DEBUG_DIR)libdecimation.a
 COMLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 
-ifeq ($(WITH_FFMPEG),true)
-    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_ffmpeg.a
-endif
-
-ifeq ($(WITH_OPENAL),true)
-    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_openal.a
-endif
-
-ifeq ($(WITH_JACK),true)
-    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_jack.a
-endif
-
-ifeq ($(WITH_SNDFILE),true)
-    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sndfile.a
-endif
-
-ifeq ($(WITH_FFTW3),true)
-    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fftw.a
-endif
 
 ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a

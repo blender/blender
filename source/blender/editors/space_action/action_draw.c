@@ -34,7 +34,6 @@
 #include <string.h>
 #include <float.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -51,7 +50,6 @@
 /* Everything from source (BIF, BDR, BSE) ------------------------------ */ 
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

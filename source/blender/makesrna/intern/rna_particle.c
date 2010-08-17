@@ -239,12 +239,25 @@ static void rna_Particle_redo_child(Main *bmain, Scene *scene, PointerRNA *ptr)
 	particle_recalc(bmain, scene, ptr, PSYS_RECALC_CHILD);
 }
 
+static ParticleSystem *rna_particle_system_for_target(Object *ob, ParticleTarget *target)
+{
+	ParticleSystem *psys;
+	ParticleTarget *pt;
+
+	for(psys=ob->particlesystem.first; psys; psys=psys->next)
+		for(pt=psys->targets.first; pt; pt=pt->next)
+			if(pt == target)
+				return psys;
+	
+	return NULL;
+}
+
 static void rna_Particle_target_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	if(ptr->type==&RNA_ParticleTarget) {
-		ParticleTarget *pt = (ParticleTarget*)ptr->data;
 		Object *ob = (Object*)ptr->id.data;
-		ParticleSystem *kpsys=NULL, *psys=psys_get_current(ob);
+		ParticleTarget *pt = (ParticleTarget*)ptr->data;
+		ParticleSystem *kpsys=NULL, *psys=rna_particle_system_for_target(ob, pt);
 
 		if(pt->ob==ob || pt->ob==NULL) {
 			kpsys = BLI_findlink(&ob->particlesystem, pt->psys-1);
@@ -277,7 +290,8 @@ static void rna_Particle_target_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	if(ptr->type==&RNA_ParticleTarget) {
 		Object *ob = (Object*)ptr->id.data;
-		ParticleSystem *psys = psys_get_current(ob);
+		ParticleTarget *pt = (ParticleTarget*)ptr->data;
+		ParticleSystem *psys = rna_particle_system_for_target(ob, pt);
 		
 		psys->recalc = PSYS_RECALC_REDO;
 
@@ -302,16 +316,15 @@ static void rna_Particle_hair_dynamics(Main *bmain, Scene *scene, PointerRNA *pt
 }
 static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
 {
-	Object *ob= (Object*)ptr->id.data;
-	ParticleSettings *part = psys_get_current(ob)->part;
+	ParticleSystem *psys= (ParticleSystem*)ptr->data;
+	ParticleSettings *part = psys->part;
 
 	return rna_pointer_inherit_refine(ptr, &RNA_ParticleSettings, part);
 }
 
 static void rna_particle_settings_set(PointerRNA *ptr, PointerRNA value)
 {
-	Object *ob= (Object*)ptr->id.data;
-	ParticleSystem *psys = psys_get_current(ob);
+	ParticleSystem *psys= (ParticleSystem*)ptr->data;
 
 	if(psys->part)
 		psys->part->id.us--;
@@ -1059,13 +1072,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	};
 
 	//TODO: names, tooltips
+#if 0
 	static EnumPropertyItem rot_from_items[] = {
 		{PART_ROT_KEYS, "KEYS", 0, "keys", ""},
 		{PART_ROT_ZINCR, "ZINCR", 0, "zincr", ""},
 		{PART_ROT_IINCR, "IINCR", 0, "iincr", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-
+#endif
 	static EnumPropertyItem integrator_type_items[] = {
 		{PART_INT_EULER, "EULER", 0, "Euler", ""},
 		{PART_INT_VERLET, "VERLET", 0, "Verlet", ""},
@@ -1433,11 +1447,13 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 
-	//TODO: is this read only/internal?
+	// not used anywhere, why is this in DNA???
+#if 0
 	prop= RNA_def_property(srna, "rotate_from", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotfrom");
 	RNA_def_property_enum_items(prop, rot_from_items);
 	RNA_def_property_ui_text(prop, "Rotate From", "");
+#endif
 
 	prop= RNA_def_property(srna, "integrator", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, integrator_type_items);

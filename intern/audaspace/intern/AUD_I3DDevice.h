@@ -27,77 +27,288 @@
 #define AUD_I3DDEVICE
 
 #include "AUD_Space.h"
+#include "AUD_3DMath.h"
+
+struct AUD_Handle;
 
 /**
  * This class represents an output device for 3D sound.
- * Whether a normal device supports this or not can be checked with the
- * AUD_CAPS_3D_DEVICE capability.
  */
 class AUD_I3DDevice
 {
 public:
 	/**
-	 * Plays a 3D sound source.
-	 * \param factory The factory to create the reader for the sound source.
-	 * \param keep When keep is true the sound source will not be deleted but
-	 *             set to paused when its end has been reached.
-	 * \return Returns a handle with which the playback can be controlled.
-	 *         This is NULL if the sound couldn't be played back.
-	 * \exception AUD_Exception Thrown if there's an unexpected (from the
-	 *            device side) error during creation of the reader.
-	 * \note The factory must provide a mono (single channel) source otherwise
-	 *       the sound is played back normally.
+	 * Retrieves the listener location.
+	 * \return The listener location.
 	 */
-	virtual AUD_Handle* play3D(AUD_IFactory* factory, bool keep = false)=0;
+	virtual AUD_Vector3 getListenerLocation() const=0;
 
 	/**
-	 * Updates a listeners 3D data.
-	 * \param data The 3D data.
+	 * Sets the listener location.
+	 * \param location The new location.
+	 */
+	virtual void setListenerLocation(const AUD_Vector3& location)=0;
+
+	/**
+	 * Retrieves the listener velocity.
+	 * \return The listener velocity.
+	 */
+	virtual AUD_Vector3 getListenerVelocity() const=0;
+
+	/**
+	 * Sets the listener velocity.
+	 * \param velocity The new velocity.
+	 */
+	virtual void setListenerVelocity(const AUD_Vector3& velocity)=0;
+
+	/**
+	 * Retrieves the listener orientation.
+	 * \return The listener orientation as quaternion.
+	 */
+	virtual AUD_Quaternion getListenerOrientation() const=0;
+
+	/**
+	 * Sets the listener orientation.
+	 * \param orientation The new orientation as quaternion.
+	 */
+	virtual void setListenerOrientation(const AUD_Quaternion& orientation)=0;
+
+
+	/**
+	 * Retrieves the speed of sound.
+	 * This value is needed for doppler effect calculation.
+	 * \return The speed of sound.
+	 */
+	virtual float getSpeedOfSound() const=0;
+
+	/**
+	 * Sets the speed of sound.
+	 * This value is needed for doppler effect calculation.
+	 * \param speed The new speed of sound.
+	 */
+	virtual void setSpeedOfSound(float speed)=0;
+
+	/**
+	 * Retrieves the doppler factor.
+	 * This value is a scaling factor for the velocity vectors of sources and
+	 * listener which is used while calculating the doppler effect.
+	 * \return The doppler factor.
+	 */
+	virtual float getDopplerFactor() const=0;
+
+	/**
+	 * Sets the doppler factor.
+	 * This value is a scaling factor for the velocity vectors of sources and
+	 * listener which is used while calculating the doppler effect.
+	 * \param factor The new doppler factor.
+	 */
+	virtual void setDopplerFactor(float factor)=0;
+
+	/**
+	 * Retrieves the distance model.
+	 * \return The distance model.
+	 */
+	virtual AUD_DistanceModel getDistanceModel() const=0;
+
+	/**
+	 * Sets the distance model.
+	 * \param model distance model.
+	 */
+	virtual void setDistanceModel(AUD_DistanceModel model)=0;
+
+
+
+	/**
+	 * Retrieves the location of a source.
+	 * \param handle The handle of the source.
+	 * \return The location.
+	 */
+	virtual AUD_Vector3 getSourceLocation(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets the location of a source.
+	 * \param handle The handle of the source.
+	 * \param location The new location.
 	 * \return Whether the action succeeded.
 	 */
-	virtual bool updateListener(AUD_3DData &data)=0;
+	virtual bool setSourceLocation(AUD_Handle* handle, const AUD_Vector3& location)=0;
 
 	/**
-	 * Sets a 3D device setting.
-	 * \param setting The setting type.
-	 * \param value The new setting value.
+	 * Retrieves the velocity of a source.
+	 * \param handle The handle of the source.
+	 * \return The velocity.
+	 */
+	virtual AUD_Vector3 getSourceVelocity(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets the velocity of a source.
+	 * \param handle The handle of the source.
+	 * \param velocity The new velocity.
 	 * \return Whether the action succeeded.
 	 */
-	virtual bool setSetting(AUD_3DSetting setting, float value)=0;
+	virtual bool setSourceVelocity(AUD_Handle* handle, const AUD_Vector3& velocity)=0;
 
 	/**
-	 * Retrieves a 3D device setting.
-	 * \param setting The setting type.
-	 * \return The setting value.
+	 * Retrieves the orientation of a source.
+	 * \param handle The handle of the source.
+	 * \return The orientation as quaternion.
 	 */
-	virtual float getSetting(AUD_3DSetting setting)=0;
+	virtual AUD_Quaternion getSourceOrientation(AUD_Handle* handle)=0;
 
 	/**
-	 * Updates a listeners 3D data.
-	 * \param handle The source handle.
-	 * \param data The 3D data.
+	 * Sets the orientation of a source.
+	 * \param handle The handle of the source.
+	 * \param orientation The new orientation as quaternion.
 	 * \return Whether the action succeeded.
 	 */
-	virtual bool updateSource(AUD_Handle* handle, AUD_3DData &data)=0;
+	virtual bool setSourceOrientation(AUD_Handle* handle, const AUD_Quaternion& orientation)=0;
+
 
 	/**
-	 * Sets a 3D source setting.
-	 * \param handle The source handle.
-	 * \param setting The setting type.
-	 * \param value The new setting value.
+	 * Checks whether the source location, velocity and orientation are relative
+	 * to the listener.
+	 * \param handle The handle of the source.
+	 * \return Whether the source is relative.
+	 */
+	virtual bool isRelative(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets whether the source location, velocity and orientation are relative
+	 * to the listener.
+	 * \param handle The handle of the source.
+	 * \param relative Whether the source is relative.
 	 * \return Whether the action succeeded.
 	 */
-	virtual bool setSourceSetting(AUD_Handle* handle,
-								  AUD_3DSourceSetting setting, float value)=0;
+	virtual bool setRelative(AUD_Handle* handle, bool relative)=0;
 
 	/**
-	 * Retrieves a 3D source setting.
-	 * \param handle The source handle.
-	 * \param setting The setting type.
-	 * \return The setting value.
+	 * Retrieves the maximum volume of a source.
+	 * \param handle The handle of the source.
+	 * \return The maximum volume.
 	 */
-	virtual float getSourceSetting(AUD_Handle* handle,
-								   AUD_3DSourceSetting setting)=0;
+	virtual float getVolumeMaximum(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets the maximum volume of a source.
+	 * \param handle The handle of the source.
+	 * \param volume The new maximum volume.
+	 * \return Whether the action succeeded.
+	 */
+	virtual bool setVolumeMaximum(AUD_Handle* handle, float volume)=0;
+
+	/**
+	 * Retrieves the minimum volume of a source.
+	 * \param handle The handle of the source.
+	 * \return The minimum volume.
+	 */
+	virtual float getVolumeMinimum(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets the minimum volume of a source.
+	 * \param handle The handle of the source.
+	 * \param volume The new minimum volume.
+	 * \return Whether the action succeeded.
+	 */
+	virtual bool setVolumeMinimum(AUD_Handle* handle, float volume)=0;
+
+	/**
+	 * Retrieves the maximum distance of a source.
+	 * If a source is further away from the reader than this distance, the
+	 * volume will automatically be set to 0.
+	 * \param handle The handle of the source.
+	 * \return The maximum distance.
+	 */
+	virtual float getDistanceMaximum(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets the maximum distance of a source.
+	 * If a source is further away from the reader than this distance, the
+	 * volume will automatically be set to 0.
+	 * \param handle The handle of the source.
+	 * \param distance The new maximum distance.
+	 * \return Whether the action succeeded.
+	 */
+	virtual bool setDistanceMaximum(AUD_Handle* handle, float distance)=0;
+
+	/**
+	 * Retrieves the reference distance of a source.
+	 * \param handle The handle of the source.
+	 * \return The reference distance.
+	 */
+	virtual float getDistanceReference(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets the reference distance of a source.
+	 * \param handle The handle of the source.
+	 * \param distance The new reference distance.
+	 * \return Whether the action succeeded.
+	 */
+	virtual bool setDistanceReference(AUD_Handle* handle, float distance)=0;
+
+	/**
+	 * Retrieves the attenuation of a source.
+	 * \param handle The handle of the source.
+	 * \return The attenuation.
+	 */
+	virtual float getAttenuation(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets the attenuation of a source.
+	 * This value is used for distance calculation.
+	 * \param handle The handle of the source.
+	 * \param factor The new attenuation.
+	 * \return Whether the action succeeded.
+	 */
+	virtual bool setAttenuation(AUD_Handle* handle, float factor)=0;
+
+	/**
+	 * Retrieves the outer angle of the cone of a source.
+	 * \param handle The handle of the source.
+	 * \return The outer angle of the cone.
+	 */
+	virtual float getConeAngleOuter(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets the outer angle of the cone of a source.
+	 * \param handle The handle of the source.
+	 * \param angle The new outer angle of the cone.
+	 * \return Whether the action succeeded.
+	 */
+	virtual bool setConeAngleOuter(AUD_Handle* handle, float angle)=0;
+
+	/**
+	 * Retrieves the inner angle of the cone of a source.
+	 * \param handle The handle of the source.
+	 * \return The inner angle of the cone.
+	 */
+	virtual float getConeAngleInner(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets the inner angle of the cone of a source.
+	 * \param handle The handle of the source.
+	 * \param angle The new inner angle of the cone.
+	 * \return Whether the action succeeded.
+	 */
+	virtual bool setConeAngleInner(AUD_Handle* handle, float angle)=0;
+
+	/**
+	 * Retrieves the outer volume of the cone of a source.
+	 * The volume between inner and outer angle is interpolated between inner
+	 * volume and this value.
+	 * \param handle The handle of the source.
+	 * \return The outer volume of the cone.
+	 */
+	virtual float getConeVolumeOuter(AUD_Handle* handle)=0;
+
+	/**
+	 * Sets the outer volume of the cone of a source.
+	 * The volume between inner and outer angle is interpolated between inner
+	 * volume and this value.
+	 * \param handle The handle of the source.
+	 * \param volume The new outer volume of the cone.
+	 * \return Whether the action succeeded.
+	 */
+	virtual bool setConeVolumeOuter(AUD_Handle* handle, float volume)=0;
 };
 
 #endif //AUD_I3DDEVICE

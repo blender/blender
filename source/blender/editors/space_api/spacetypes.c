@@ -36,7 +36,6 @@
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
-#include "BIF_gl.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"

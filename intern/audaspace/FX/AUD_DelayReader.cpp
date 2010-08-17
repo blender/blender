@@ -24,28 +24,19 @@
  */
 
 #include "AUD_DelayReader.h"
-#include "AUD_Buffer.h"
 
 #include <cstring>
 
 AUD_DelayReader::AUD_DelayReader(AUD_IReader* reader, float delay) :
-		AUD_EffectReader(reader)
+		AUD_EffectReader(reader),
+		m_delay(int(delay * reader->getSpecs().rate)),
+		m_remdelay(int(delay * reader->getSpecs().rate)),
+		m_empty(true)
 {
-	m_delay = (int)(delay * reader->getSpecs().rate);
-	m_remdelay = m_delay;
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
-}
-
-AUD_DelayReader::~AUD_DelayReader()
-{
-	delete m_buffer; AUD_DELETE("buffer")
 }
 
 void AUD_DelayReader::seek(int position)
 {
-	if(position < 0)
-		return;
-
 	if(position < m_delay)
 	{
 		m_remdelay = m_delay - position;
@@ -58,18 +49,18 @@ void AUD_DelayReader::seek(int position)
 	}
 }
 
-int AUD_DelayReader::getLength()
+int AUD_DelayReader::getLength() const
 {
 	int len = m_reader->getLength();
 	if(len < 0)
 		return len;
-	return len+m_delay;
+	return len + m_delay;
 }
 
-int AUD_DelayReader::getPosition()
+int AUD_DelayReader::getPosition() const
 {
 	if(m_remdelay > 0)
-		return m_delay-m_remdelay;
+		return m_delay - m_remdelay;
 	return m_reader->getPosition() + m_delay;
 }
 
@@ -80,26 +71,41 @@ void AUD_DelayReader::read(int & length, sample_t* & buffer)
 		AUD_Specs specs = m_reader->getSpecs();
 		int samplesize = AUD_SAMPLE_SIZE(specs);
 
-		if(m_buffer->getSize() < length * samplesize)
-			m_buffer->resize(length * samplesize);
+		if(m_buffer.getSize() < length * samplesize)
+		{
+			m_buffer.resize(length * samplesize);
+			m_empty = false;
+		}
+
+		buffer = m_buffer.getBuffer();
 
 		if(length > m_remdelay)
 		{
-			memset(m_buffer->getBuffer(), 0, m_remdelay * samplesize);
+			if(!m_empty)
+				memset(buffer, 0, m_remdelay * samplesize);
+
 			int len = length - m_remdelay;
-			m_reader->read(len, buffer);
-			memcpy(m_buffer->getBuffer() + m_remdelay * specs.channels,
-				   buffer, len * samplesize);
+			sample_t* buf;
+			m_reader->read(len, buf);
+
+			memcpy(buffer + m_remdelay * specs.channels,
+				   buf, len * samplesize);
+
 			if(len < length-m_remdelay)
 				length = m_remdelay + len;
+
 			m_remdelay = 0;
+			m_empty = false;
 		}
 		else
 		{
-			memset(m_buffer->getBuffer(), 0, length * samplesize);
+			if(!m_empty)
+			{
+				memset(buffer, 0, length * samplesize);
+				m_empty = true;
+			}
 			m_remdelay -= length;
 		}
-		buffer = m_buffer->getBuffer();
 	}
 	else
 		m_reader->read(length, buffer);

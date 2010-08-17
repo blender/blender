@@ -28,16 +28,11 @@
 #include "AUD_Space.h"
 
 AUD_ReverseFactory::AUD_ReverseFactory(AUD_IFactory* factory) :
-		AUD_EffectFactory(factory) {}
-
-AUD_IReader* AUD_ReverseFactory::createReader()
+		AUD_EffectFactory(factory)
 {
-	AUD_IReader* reader = getReader();
+}
 
-	if(reader != 0)
-	{
-		reader = new AUD_ReverseReader(reader); AUD_NEW("reader")
-	}
-
-	return reader;
+AUD_IReader* AUD_ReverseFactory::createReader() const
+{
+	return new AUD_ReverseReader(getReader());
 }

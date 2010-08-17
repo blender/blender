@@ -1283,9 +1283,8 @@ void vec_roll_to_mat3(float *vec, float roll, float mat[][3])
 	float	nor[3], axis[3], target[3]={0,1,0};
 	float	theta;
 	float	rMatrix[3][3], bMatrix[3][3];
-	
-	VECCOPY (nor, vec);
-	normalize_v3(nor);
+
+	normalize_v3_v3(nor, vec);
 	
 	/*	Find Axis & Amount for bone matrix*/
 	cross_v3_v3v3(axis,target,nor);

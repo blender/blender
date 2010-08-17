@@ -45,7 +45,6 @@
 
 #include "PIL_time.h"
 
-#include "MEM_guardedalloc.h"
 
 #include "CMP_node.h"
 #include "intern/CMP_util.h"	/* stupid include path... */
@@ -1855,9 +1854,8 @@ static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNod
 			
 			/* for groups, only execute outputs for edited group */
 			if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
-				if(gnode->flag & NODE_GROUP_EDIT)
-					if(node->flag & NODE_DO_OUTPUT)
-						node->typeinfo->execfunc(data, node, nsin, nsout);
+				if(node->type==CMP_NODE_OUTPUT_FILE || (gnode->flag & NODE_GROUP_EDIT))
+					node->typeinfo->execfunc(data, node, nsin, nsout);
 			}
 			else
 				node->typeinfo->execfunc(data, node, nsin, nsout);

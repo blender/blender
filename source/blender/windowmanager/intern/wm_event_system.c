@@ -425,6 +425,14 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 	}
 }
 
+/* this function is mainly to check that the rules for freeing
+ * an operator are kept in sync.
+ */
+static int wm_operator_register_check(wmWindowManager *wm, wmOperatorType *ot)
+{
+	return (wm->op_undo_depth == 0) && (ot->flag & OPTYPE_REGISTER);
+}
+
 static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -445,7 +453,7 @@ static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 			MEM_freeN(buf);
 		}
 
-		if((wm->op_undo_depth == 0) && (op->type->flag & OPTYPE_REGISTER))
+		if(wm_operator_register_check(wm, op->type))
 			wm_operator_register(C, op);
 		else
 			WM_operator_free(op);
@@ -807,11 +815,11 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 */
 int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA *properties, ReportList *reports)
 {
+	wmWindowManager *wm=	CTX_wm_manager(C);
 	int retval= OPERATOR_CANCELLED;
 
 #if 0
 	wmOperator *op;
-	wmWindowManager *wm=	CTX_wm_manager(C);
 	op= wm_operator_create(wm, ot, properties, reports);
 
 	if (op->type->exec) {
@@ -830,9 +838,9 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 	retval= wm_operator_call_internal(C, ot, context, properties, reports);
 	
 	/* keep the reports around if needed later */
-	if (retval & OPERATOR_RUNNING_MODAL || ot->flag & OPTYPE_REGISTER)
+	if (retval & OPERATOR_RUNNING_MODAL || wm_operator_register_check(wm, ot))
 	{
-		reports->flag |= RPT_FREE;
+		reports->flag |= RPT_FREE; /* let blender manage freeing */
 	}
 	
 	return retval;

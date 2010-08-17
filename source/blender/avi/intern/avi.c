@@ -38,6 +38,8 @@
 #include <stdio.h>
 #include <ctype.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "AVI_avi.h"
 #include "avi_intern.h"
 

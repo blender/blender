@@ -7,7 +7,7 @@ incs = '. ../editors/include ../makesdna ../makesrna ../blenlib ../blenkernel ..
 incs += ' ../imbuf ../blenloader ../render/extern/include ../windowmanager'
 incs += ' ../freestyle/intern/python'
 incs += ' #intern/guardedalloc #intern/memutil #extern/glew/include'
-incs += ' ' + env['BF_PYTHON_INC']
+incs += ' #intern/audaspace/intern ' + env['BF_PYTHON_INC']
 
 defs = []
 

@@ -27,7 +27,7 @@
 #define AUD_SINUSREADER
 
 #include "AUD_IReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class is used for sine tone playback.
@@ -43,7 +43,7 @@ private:
 	/**
 	 * The frequency of the sine wave.
 	 */
-	double m_frequency;
+	const float m_frequency;
 
 	/**
 	 * The current position in samples.
@@ -53,12 +53,16 @@ private:
 	/**
 	 * The playback buffer.
 	 */
-	AUD_Buffer* m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The sample rate for the output.
 	 */
-	AUD_SampleRate m_sampleRate;
+	const AUD_SampleRate m_sampleRate;
+
+	// hide copy constructor and operator=
+	AUD_SinusReader(const AUD_SinusReader&);
+	AUD_SinusReader& operator=(const AUD_SinusReader&);
 
 public:
 	/**
@@ -66,20 +70,13 @@ public:
 	 * \param frequency The frequency of the sine wave.
 	 * \param sampleRate The output sample rate.
 	 */
-	AUD_SinusReader(double frequency, AUD_SampleRate sampleRate);
+	AUD_SinusReader(float frequency, AUD_SampleRate sampleRate);
 
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_SinusReader();
-
-	virtual bool isSeekable();
+	virtual bool isSeekable() const;
 	virtual void seek(int position);
-	virtual int getLength();
-	virtual int getPosition();
-	virtual AUD_Specs getSpecs();
-	virtual AUD_ReaderType getType();
-	virtual bool notify(AUD_Message &message);
+	virtual int getLength() const;
+	virtual int getPosition() const;
+	virtual AUD_Specs getSpecs() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 

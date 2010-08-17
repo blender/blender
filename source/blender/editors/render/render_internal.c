@@ -41,6 +41,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"
@@ -399,7 +400,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	Render *re= RE_NewRender(scene->id.name);
 	Image *ima;
 	View3D *v3d= CTX_wm_view3d(C);
-	Main *mainp= G.main; //BKE_undo_get_main(&scene);
+	Main *mainp= CTX_data_main(C);
 	int lay= (v3d)? v3d->lay: scene->lay;
 
 	if(re==NULL) {
@@ -425,8 +426,6 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	else
 		RE_BlenderFrame(re, mainp, scene, NULL, lay, scene->r.cfra);
 
-	//free_main(mainp);
-
 	// no redraw needed, we leave state as we entered it
 	ED_update_for_newframe(C, 1);
 
@@ -436,6 +435,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 }
 
 typedef struct RenderJob {
+	Main *main;
 	Scene *scene;
 	Render *re;
 	wmWindow *win;
@@ -560,22 +560,24 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 static void render_startjob(void *rjv, short *stop, short *do_update, float *progress)
 {
 	RenderJob *rj= rjv;
-	Main *mainp= G.main; //BKE_undo_get_main(&rj->scene);
 
 	rj->stop= stop;
 	rj->do_update= do_update;
 	rj->progress= progress;
 
 	if(rj->anim)
-		RE_BlenderAnim(rj->re, mainp, rj->scene, rj->lay, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
+		RE_BlenderAnim(rj->re, rj->main, rj->scene, rj->lay, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
 	else
-		RE_BlenderFrame(rj->re, mainp, rj->scene, rj->srl, rj->lay, rj->scene->r.cfra);
-
-	//free_main(mainp);
+		RE_BlenderFrame(rj->re, rj->main, rj->scene, rj->srl, rj->lay, rj->scene->r.cfra);
 }
 
 static void render_endjob(void *rjv)
 {
+	RenderJob *rj= rjv;
+
+	if(rj->main != G.main)
+		free_main(rj->main);
+
 	/* XXX render stability hack */
 	G.rendering = 0;
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -614,6 +616,7 @@ static int screen_render_modal(bContext *C, wmOperator *op, wmEvent *event)
 static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	/* new render clears all callbacks */
+	Main *mainp;
 	Scene *scene= CTX_data_scene(C);
 	SceneRenderLayer *srl=NULL;
 	bScreen *screen= CTX_wm_screen(C);
@@ -629,6 +632,14 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* stop all running jobs, currently previews frustrate Render */
 	WM_jobs_stop_all(CTX_wm_manager(C));
+
+	/* get main */
+	if(G.rt == 101) {
+		/* thread-safety experiment, copy main from the undo buffer */
+		mainp= BKE_undo_get_main(&scene);
+	}
+	else
+		mainp= CTX_data_main(C);
 
 	/* cancel animation playback */
 	if (screen->animtimer)
@@ -665,7 +676,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_string_get(op->ptr, "layer", rl_name);
 		RNA_string_get(op->ptr, "scene", scene_name);
 
-		scn = (Scene *)BLI_findstring(&CTX_data_main(C)->scene, scene_name, offsetof(ID, name) + 2);
+		scn = (Scene *)BLI_findstring(&mainp->scene, scene_name, offsetof(ID, name) + 2);
 		rl = (SceneRenderLayer *)BLI_findstring(&scene->r.layers, rl_name, offsetof(SceneRenderLayer, name));
 
 		if (scn && rl) {
@@ -676,6 +687,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* job custom data */
 	rj= MEM_callocN(sizeof(RenderJob), "render job");
+	rj->main= mainp;
 	rj->scene= scene;
 	rj->win= CTX_wm_window(C);
 	rj->srl = srl;

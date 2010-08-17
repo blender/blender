@@ -34,6 +34,11 @@
  */
 class AUD_EffectReader : public AUD_IReader
 {
+private:
+	// hide copy constructor and operator=
+	AUD_EffectReader(const AUD_EffectReader&);
+	AUD_EffectReader& operator=(const AUD_EffectReader&);
+
 protected:
 	/**
 	 * The reader to read from.
@@ -44,7 +49,6 @@ public:
 	/**
 	 * Creates a new effect reader.
 	 * \param reader The reader to read from.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_EffectReader(AUD_IReader* reader);
 
@@ -53,13 +57,11 @@ public:
 	 */
 	virtual ~AUD_EffectReader();
 
-	virtual bool isSeekable();
+	virtual bool isSeekable() const;
 	virtual void seek(int position);
-	virtual int getLength();
-	virtual int getPosition();
-	virtual AUD_Specs getSpecs();
-	virtual AUD_ReaderType getType();
-	virtual bool notify(AUD_Message &message);
+	virtual int getLength() const;
+	virtual int getPosition() const;
+	virtual AUD_Specs getSpecs() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 

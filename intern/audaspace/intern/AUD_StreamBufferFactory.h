@@ -47,6 +47,10 @@ private:
 	 */
 	AUD_Specs m_specs;
 
+	// hide copy constructor and operator=
+	AUD_StreamBufferFactory(const AUD_StreamBufferFactory&);
+	AUD_StreamBufferFactory& operator=(const AUD_StreamBufferFactory&);
+
 public:
 	/**
 	 * Creates the factory and reads the reader created by the factory supplied
@@ -56,7 +60,7 @@ public:
 	 */
 	AUD_StreamBufferFactory(AUD_IFactory* factory);
 
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_STREAMBUFFERFACTORY

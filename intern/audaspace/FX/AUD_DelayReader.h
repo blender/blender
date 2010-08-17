@@ -27,7 +27,7 @@
 #define AUD_DELAYREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class reads another reader and changes it's delay.
@@ -38,35 +38,38 @@ private:
 	/**
 	 * The playback buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The delay level.
 	 */
-	int m_delay;
+	const int m_delay;
 
 	/**
 	 * The remaining delay for playback.
 	 */
 	int m_remdelay;
 
+	/**
+	 * Whether the buffer is currently filled with zeros.
+	 */
+	bool m_empty;
+
+	// hide copy constructor and operator=
+	AUD_DelayReader(const AUD_DelayReader&);
+	AUD_DelayReader& operator=(const AUD_DelayReader&);
+
 public:
 	/**
 	 * Creates a new delay reader.
 	 * \param reader The reader to read from.
 	 * \param delay The delay in seconds.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_DelayReader(AUD_IReader* reader, float delay);
 
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_DelayReader();
-
 	virtual void seek(int position);
-	virtual int getLength();
-	virtual int getPosition();
+	virtual int getLength() const;
+	virtual int getPosition() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 

@@ -624,8 +624,7 @@ static float psys_render_projected_area(ParticleSystem *psys, float *center, flo
 	mul_m4_v4(data->viewmat, co);
 	
 	/* compute two vectors orthogonal to view vector */
-	VECCOPY(view, co);
-	normalize_v3(view);
+	normalize_v3_v3(view, co);
 	ortho_basis_v3v3_v3( ortho1, ortho2,view);
 
 	/* compute on screen minification */
@@ -1923,8 +1922,7 @@ static void do_prekink(ParticleKey *state, ParticleKey *par, float *par_rot, flo
 				mul_qt_v3(q2,z_vec);
 				
 				VECSUB(vec_from_par,state->co,par->co);
-				VECCOPY(vec_one,vec_from_par);
-				radius=normalize_v3(vec_one);
+				radius= normalize_v3_v3(vec_one, vec_from_par);
 
 				inp_y=dot_v3v3(y_vec,vec_one);
 				inp_z=dot_v3v3(z_vec,vec_one);
@@ -2929,8 +2927,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 			if(k == 1) {
 				/* calculate initial tangent for incremental rotations */
 				VECSUB(tangent, ca->co, (ca - 1)->co);
-				VECCOPY(prev_tangent, tangent);
-				normalize_v3(prev_tangent);
+				normalize_v3_v3(prev_tangent, tangent);
 
 				/* First rotation is based on emitting face orientation.		*/
 				/* This is way better than having flipping rotations resulting	*/
@@ -3106,8 +3103,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 					if(k == 1) {
 						/* calculate initial tangent for incremental rotations */
 						VECSUB(tangent, ca->co, (ca - 1)->co);
-						VECCOPY(prev_tangent, tangent);
-						normalize_v3(prev_tangent);
+						normalize_v3_v3(prev_tangent, tangent);
 
 						/* First rotation is based on emitting face orientation.		*/
 						/* This is way better than having flipping rotations resulting	*/
@@ -4371,20 +4367,14 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 		onevec[bb->align]=1.0f;
 
 	if(bb->lock && (bb->align == PART_BB_VIEW)) {
-		VECCOPY(xvec, bb->ob->obmat[0]);
-		normalize_v3(xvec);
-
-		VECCOPY(yvec, bb->ob->obmat[1]);
-		normalize_v3(yvec);
-
-		VECCOPY(zvec, bb->ob->obmat[2]);
-		normalize_v3(zvec);
+		normalize_v3_v3(xvec, bb->ob->obmat[0]);
+		normalize_v3_v3(yvec, bb->ob->obmat[1]);
+		normalize_v3_v3(zvec, bb->ob->obmat[2]);
 	}
 	else if(bb->align == PART_BB_VEL) {
 		float temp[3];
 
-		VECCOPY(temp, bb->vel);
-		normalize_v3(temp);
+		normalize_v3_v3(temp, bb->vel);
 
 		VECSUB(zvec, bb->ob->obmat[3], bb->vec);
 

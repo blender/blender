@@ -31,13 +31,12 @@
 #include <stdlib.h> // for qsort
 #include <float.h>
 
-
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_context.h"
-
 #include "MEM_guardedalloc.h"
+
+#include "BKE_context.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -51,7 +50,6 @@
 //#include "BIF_interface.h"
 //#include "BIF_toolbox.h"
 //#include "BIF_graphics.h"
-#include "BIF_gl.h"
 
 
 //#include "blendef.h"

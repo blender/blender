@@ -24,22 +24,21 @@
  */
 
 #include "AUD_RectifyFactory.h"
-#include "AUD_RectifyReader.h"
+#include "AUD_CallbackIIRFilterReader.h"
+
+#include <cmath>
+
+sample_t rectifyFilter(AUD_CallbackIIRFilterReader* reader, void* useless)
+{
+	return fabs(reader->x(0));
+}
 
 AUD_RectifyFactory::AUD_RectifyFactory(AUD_IFactory* factory) :
-		AUD_EffectFactory(factory) {}
-
-AUD_RectifyFactory::AUD_RectifyFactory() :
-		AUD_EffectFactory(0) {}
-
-AUD_IReader* AUD_RectifyFactory::createReader()
+		AUD_EffectFactory(factory)
 {
-	AUD_IReader* reader = getReader();
+}
 
-	if(reader != 0)
-	{
-		reader = new AUD_RectifyReader(reader); AUD_NEW("reader")
-	}
-
-	return reader;
+AUD_IReader* AUD_RectifyFactory::createReader() const
+{
+	return new AUD_CallbackIIRFilterReader(getReader(), 1, 1, rectifyFilter);
 }

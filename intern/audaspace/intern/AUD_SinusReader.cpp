@@ -24,7 +24,6 @@
  */
 
 #include "AUD_SinusReader.h"
-#include "AUD_Buffer.h"
 
 #include <cmath>
 
@@ -32,20 +31,14 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-AUD_SinusReader::AUD_SinusReader(double frequency, AUD_SampleRate sampleRate)
+AUD_SinusReader::AUD_SinusReader(float frequency, AUD_SampleRate sampleRate) :
+	m_frequency(frequency),
+	m_position(0),
+	m_sampleRate(sampleRate)
 {
-	m_frequency = frequency;
-	m_position = 0;
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
-	m_sampleRate = sampleRate;
 }
 
-AUD_SinusReader::~AUD_SinusReader()
-{
-	delete m_buffer; AUD_DELETE("buffer")
-}
-
-bool AUD_SinusReader::isSeekable()
+bool AUD_SinusReader::isSeekable() const
 {
 	return true;
 }
@@ -55,17 +48,17 @@ void AUD_SinusReader::seek(int position)
 	m_position = position;
 }
 
-int AUD_SinusReader::getLength()
+int AUD_SinusReader::getLength() const
 {
 	return -1;
 }
 
-int AUD_SinusReader::getPosition()
+int AUD_SinusReader::getPosition() const
 {
 	return m_position;
 }
 
-AUD_Specs AUD_SinusReader::getSpecs()
+AUD_Specs AUD_SinusReader::getSpecs() const
 {
 	AUD_Specs specs;
 	specs.rate = m_sampleRate;
@@ -73,27 +66,17 @@ AUD_Specs AUD_SinusReader::getSpecs()
 	return specs;
 }
 
-AUD_ReaderType AUD_SinusReader::getType()
-{
-	return AUD_TYPE_STREAM;
-}
-
-bool AUD_SinusReader::notify(AUD_Message &message)
-{
-	return false;
-}
-
 void AUD_SinusReader::read(int & length, sample_t* & buffer)
 {
 	// resize if necessary
-	if(m_buffer->getSize() < length * sizeof(sample_t))
-		m_buffer->resize(length * sizeof(sample_t));
+	if(m_buffer.getSize() < length * sizeof(sample_t))
+		m_buffer.resize(length * sizeof(sample_t));
 
 	// fill with sine data
-	buffer = m_buffer->getBuffer();
+	buffer = m_buffer.getBuffer();
 	for(int i = 0; i < length; i++)
 	{
-		buffer[i] = sin((m_position + i) * 2.0f * M_PI * m_frequency /
+		buffer[i] = sin((m_position + i) * 2 * M_PI * m_frequency /
 						(float)m_sampleRate);
 	}
 

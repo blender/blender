@@ -27,7 +27,7 @@
 #define AUD_LOOPREADER
 
 #include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This class reads another reader and loops it.
@@ -39,17 +39,21 @@ private:
 	/**
 	 * The playback buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
+
+	/**
+	 * The loop count.
+	 */
+	const int m_count;
 
 	/**
 	 * The left loop count.
 	 */
-	int m_loop;
+	int m_left;
 
-	/**
-	 * The left samples.
-	 */
-	int m_samples;
+	// hide copy constructor and operator=
+	AUD_LoopReader(const AUD_LoopReader&);
+	AUD_LoopReader& operator=(const AUD_LoopReader&);
 
 public:
 	/**
@@ -57,17 +61,12 @@ public:
 	 * \param reader The reader to read from.
 	 * \param loop The desired loop count, negative values result in endless
 	 *        looping.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_LoopReader(AUD_IReader* reader, int loop);
 
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_LoopReader();
-
-	virtual AUD_ReaderType getType();
-	virtual bool notify(AUD_Message &message);
+	virtual void seek(int position);
+	virtual int getLength() const;
+	virtual int getPosition() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 

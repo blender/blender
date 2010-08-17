@@ -24,45 +24,29 @@
  */
 
 // needed for INT64_C
+#ifndef __STDC_CONSTANT_MACROS
 #define __STDC_CONSTANT_MACROS
+#endif
 
 #include "AUD_FFMPEGFactory.h"
 #include "AUD_FFMPEGReader.h"
 #include "AUD_Buffer.h"
 
-AUD_FFMPEGFactory::AUD_FFMPEGFactory(const char* filename)
+AUD_FFMPEGFactory::AUD_FFMPEGFactory(std::string filename) :
+		m_filename(filename)
 {
-	if(filename != NULL)
-	{
-		m_filename = new char[strlen(filename)+1]; AUD_NEW("string")
-		strcpy(m_filename, filename);
-	}
-	else
-		m_filename = NULL;
 }
 
-AUD_FFMPEGFactory::AUD_FFMPEGFactory(unsigned char* buffer, int size)
+AUD_FFMPEGFactory::AUD_FFMPEGFactory(const data_t* buffer, int size) :
+		m_buffer(new AUD_Buffer(size))
 {
-	m_filename = NULL;
-	m_buffer = AUD_Reference<AUD_Buffer>(new AUD_Buffer(size));
 	memcpy(m_buffer.get()->getBuffer(), buffer, size);
 }
 
-AUD_FFMPEGFactory::~AUD_FFMPEGFactory()
+AUD_IReader* AUD_FFMPEGFactory::createReader() const
 {
-	if(m_filename)
-	{
-		delete[] m_filename; AUD_DELETE("string")
-	}
-}
-
-AUD_IReader* AUD_FFMPEGFactory::createReader()
-{
-	AUD_IReader* reader;
-	if(m_filename)
-		reader = new AUD_FFMPEGReader(m_filename);
+	if(m_buffer.get())
+		return new AUD_FFMPEGReader(m_buffer);
 	else
-		reader = new AUD_FFMPEGReader(m_buffer);
-	AUD_NEW("reader")
-	return reader;
+		return new AUD_FFMPEGReader(m_filename);
 }

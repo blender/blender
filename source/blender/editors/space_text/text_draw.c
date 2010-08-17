@@ -49,7 +49,6 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "ED_datafiles.h"
 #include "UI_interface.h"
@@ -111,8 +110,8 @@ static void flatten_string_append(FlattenString *fs, char c, int accum)
 		nbuf= MEM_callocN(sizeof(*fs->buf)*fs->len, "fs->buf");
 		naccum= MEM_callocN(sizeof(*fs->accum)*fs->len, "fs->accum");
 
-		memcpy(nbuf, fs->buf, fs->pos);
-		memcpy(naccum, fs->accum, fs->pos);
+		memcpy(nbuf, fs->buf, fs->pos * sizeof(*fs->buf));
+		memcpy(naccum, fs->accum, fs->pos * sizeof(*fs->accum));
 		
 		if(fs->buf != fs->fixedbuf) {
 			MEM_freeN(fs->buf);
@@ -1102,17 +1101,19 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 	}
 
 	if(st->line_hlight) {
-		/* TODO, dont draw if hidden */
-		int x1= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-		int x2= x1 + ar->winx;
 		y= ar->winy-2 - vsell*st->lheight;
-
-		glColor4ub(255, 255, 255, 32);
-		
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
-		glRecti(x1, y, x2, y-st->lheight+1);
-		glDisable(GL_BLEND);
+		if(!(y<0 || y > ar->winy)) { /* check we need to draw */
+			int x1= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+			int x2= x1 + ar->winx;
+			y= ar->winy-2 - vsell*st->lheight;
+	
+			glColor4ub(255, 255, 255, 32);
+			
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			glRecti(x1-4, y, x2, y-st->lheight+1);
+			glDisable(GL_BLEND);
+		}
 	}
 	
 	if(!hidden) {

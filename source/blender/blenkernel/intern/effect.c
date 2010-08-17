@@ -662,8 +662,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		where_is_object_time(eff->scene, ob, cfra);
 
 		/* use z-axis as normal*/
-		VECCOPY(efd->nor, ob->obmat[2]);
-		normalize_v3(efd->nor);
+		normalize_v3_v3(efd->nor, ob->obmat[2]);
 
 		/* for vortex the shape chooses between old / new force */
 		if(eff->pd && eff->pd->shape == PFIELD_SHAPE_PLANE) {
@@ -707,8 +706,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		else {
 			/* for some effectors we need the object center every time */
 			sub_v3_v3v3(efd->vec_to_point2, point->loc, eff->ob->obmat[3]);
-			VECCOPY(efd->nor2, eff->ob->obmat[2]);
-			normalize_v3(efd->nor2);
+			normalize_v3_v3(efd->nor2, eff->ob->obmat[2]);
 		}
 	}
 

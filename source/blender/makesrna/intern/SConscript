@@ -33,7 +33,7 @@ incs = '#/intern/guardedalloc ../../blenlib ../../blenkernel'
 incs += ' ../../imbuf ../../makesdna ../../makesrna ../../ikplugin'
 incs += ' ../../windowmanager ../../editors/include'
 incs += ' ../../render/extern/include'
-incs += ' #/intern/audaspace/intern'
+incs += ' #/intern/audaspace/intern '
 
 if env['WITH_BF_OPENEXR']:
 	defs.append('WITH_OPENEXR')
@@ -152,7 +152,7 @@ if env['OURPLATFORM'] != 'linuxcross':
 	if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
 		rna.Command (generated_files, '', "\"" + root_build_dir+os.sep+"makesrna.exe\" \""  + build_dir )
 	else:
-		rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna "  + build_dir)
+		rna.Command (generated_files, '', "\"" + root_build_dir+os.sep+"makesrna\" \""  + build_dir + '"' )
 else:
 	rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
 	

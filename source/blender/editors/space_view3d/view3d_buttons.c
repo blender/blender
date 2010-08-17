@@ -56,7 +56,6 @@
 #include "BKE_screen.h"
 #include "BKE_deform.h"
 
-#include "BIF_gl.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

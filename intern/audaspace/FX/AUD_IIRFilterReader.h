@@ -23,43 +23,44 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_SQUAREREADER
-#define AUD_SQUAREREADER
+#ifndef AUD_IIRFILTERREADER
+#define AUD_IIRFILTERREADER
 
-#include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_BaseIIRFilterReader.h"
+
+#include <vector>
 
 /**
- * This class changes another signal into a square signal.
+ * This class is for infinite impulse response filters with simple coefficients.
  */
-class AUD_SquareReader : public AUD_EffectReader
+class AUD_IIRFilterReader : public AUD_BaseIIRFilterReader
 {
 private:
 	/**
-	 * The playback buffer.
+	 * Output filter coefficients.
 	 */
-	AUD_Buffer *m_buffer;
+	std::vector<float> m_a;
 
 	/**
-	 * The threshold level.
+	 * Input filter coefficients.
 	 */
-	float m_threshold;
+	std::vector<float> m_b;
+
+	// hide copy constructor and operator=
+	AUD_IIRFilterReader(const AUD_IIRFilterReader&);
+	AUD_IIRFilterReader& operator=(const AUD_IIRFilterReader&);
 
 public:
 	/**
-	 * Creates a new square reader.
+	 * Creates a new IIR filter reader.
 	 * \param reader The reader to read from.
-	 * \param threshold The size of the buffer.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
+	 * \param b The input filter coefficients.
+	 * \param a The output filter coefficients.
 	 */
-	AUD_SquareReader(AUD_IReader* reader, float threshold);
+	AUD_IIRFilterReader(AUD_IReader* reader, std::vector<float> b,
+						std::vector<float> a);
 
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_SquareReader();
-
-	virtual void read(int & length, sample_t* & buffer);
+	virtual sample_t filter();
 };
 
-#endif //AUD_SQUAREREADER
+#endif //AUD_IIRFILTERREADER

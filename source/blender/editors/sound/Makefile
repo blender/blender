@@ -37,6 +37,8 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+
 CPPFLAGS += -I../../windowmanager
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenloader

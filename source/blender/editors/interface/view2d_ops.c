@@ -41,7 +41,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BIF_gl.h"
 
 #include "ED_screen.h"
 

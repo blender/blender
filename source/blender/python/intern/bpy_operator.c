@@ -63,7 +63,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	if (!PyArg_ParseTuple(args, "sO|O!s:_bpy.ops.call", &opname, &context_dict, &PyDict_Type, &kw, &context_str))
 		return NULL;
 
-	ot= WM_operatortype_exists(opname);
+	ot= WM_operatortype_find(opname, TRUE);
 
 	if (ot == NULL) {
 		PyErr_Format( PyExc_SystemError, "Calling operator \"bpy.ops.%s\" error, could not be found", opname);
@@ -259,7 +259,7 @@ PyObject *BPY_operator_module( void )
 	static PyMethodDef pyop_macro_def_meth ={"macro_define", (PyCFunction) PYOP_wrap_macro_define, METH_VARARGS, NULL};
 
 	PyObject *submodule = PyModule_New("_bpy.ops");
-	PyDict_SetItemString(PySys_GetObject("modules"), "_bpy.ops", submodule);
+	PyDict_SetItemString(PyImport_GetModuleDict(), "_bpy.ops", submodule);
 
 	PyModule_AddObject( submodule, "call",	PyCFunction_New(&pyop_call_meth,	NULL) );
 	PyModule_AddObject( submodule, "as_string",PyCFunction_New(&pyop_as_string_meth,NULL) );

@@ -44,10 +44,6 @@
 #include "BKE_main.h"
 #include "BKE_icons.h"
 
-#ifndef DISABLE_PYTHON
-#include "BPY_extern.h"
-#endif
-
 void free_world(World *wrld)
 {
 	MTex *mtex;
@@ -69,9 +65,10 @@ void free_world(World *wrld)
 
 World *add_world(char *name)
 {
+	Main *bmain= G.main;
 	World *wrld;
 
-	wrld= alloc_libblock(&G.main->world, ID_WO, name);
+	wrld= alloc_libblock(&bmain->world, ID_WO, name);
 	
 	wrld->horr= 0.05f;
 	wrld->horg= 0.05f;
@@ -129,6 +126,7 @@ World *copy_world(World *wrld)
 
 void make_local_world(World *wrld)
 {
+	Main *bmain= G.main;
 	Scene *sce;
 	World *wrldn;
 	int local=0, lib=0;
@@ -146,7 +144,7 @@ void make_local_world(World *wrld)
 		return;
 	}
 	
-	sce= G.main->scene.first;
+	sce= bmain->scene.first;
 	while(sce) {
 		if(sce->world==wrld) {
 			if(sce->id.lib) lib= 1;
@@ -164,7 +162,7 @@ void make_local_world(World *wrld)
 		wrldn= copy_world(wrld);
 		wrldn->id.us= 0;
 		
-		sce= G.main->scene.first;
+		sce= bmain->scene.first;
 		while(sce) {
 			if(sce->world==wrld) {
 				if(sce->id.lib==0) {

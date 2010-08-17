@@ -83,7 +83,6 @@ public:
 	 * \param reader The reader to read from.
 	 * \param low The lowest passed frequency.
 	 * \param high The highest passed frequency.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_BandPassReader(AUD_IReader* reader, float low, float high);
 

@@ -1114,12 +1114,12 @@ class Export3DS(bpy.types.Operator):
     bl_idname = "export.autodesk_3ds"
     bl_label = 'Export 3DS'
 
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
-
-
     filepath = StringProperty(name="File Path", description="Filepath used for exporting the 3DS file", maxlen= 1024, default= "")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
+
+    @classmethod
+    def poll(cls, context): # Poll isnt working yet
+        return context.active_object != None
 
     def execute(self, context):
         filepath = self.properties.filepath
@@ -1129,22 +1129,22 @@ class Export3DS(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
+        import os
+        if not self.properties.is_property_set("filepath"):
+            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".3ds"
+
+        context.manager.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
-    @classmethod
-    def poll(cls, context): # Poll isnt working yet
-        return context.active_object != None
 
 # Add to a menu
 def menu_func(self, context):
-    default_path = os.path.splitext(bpy.data.filepath)[0] + ".3ds"
-    self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)").filepath = default_path
+    self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)")
 
 
 def register():
     bpy.types.INFO_MT_file_export.append(menu_func)
+
 
 def unregister():
     bpy.types.INFO_MT_file_export.remove(menu_func)

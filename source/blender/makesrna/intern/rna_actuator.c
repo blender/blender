@@ -1557,8 +1557,8 @@ static void rna_def_game_actuator(BlenderRNA *brna)
 		{ACT_GAME_LOAD, "START", 0, "Start new game", ""},
 		{ACT_GAME_RESTART, "RESTART", 0, "Restart this game", ""},
 		{ACT_GAME_QUIT, "QUIT", 0, "Quit this game", ""},
-		{ACT_GAME_SAVECFG, "SAVECFG", 0, "Save GameLogic.globalDict", ""},
-		{ACT_GAME_LOADCFG, "LOADCFG", 0, "Load GameLogic.globalDict", ""},
+		{ACT_GAME_SAVECFG, "SAVECFG", 0, "Save bge.logic.globalDict", ""},
+		{ACT_GAME_LOADCFG, "LOADCFG", 0, "Load bge.logic.globalDict", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "GameActuator", "Actuator");

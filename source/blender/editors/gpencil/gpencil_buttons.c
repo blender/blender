@@ -30,7 +30,6 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -47,8 +46,6 @@
 
 #include "RNA_access.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "ED_gpencil.h"
 

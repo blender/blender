@@ -51,8 +51,6 @@
 #include <sys/mman.h>
 #endif
 
-#include "MEM_guardedalloc.h"
-
 #if !defined(WIN32)
 #define O_BINARY 0
 #endif

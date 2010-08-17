@@ -318,7 +318,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
-	RNA_def_boolean(func, "compact", 0, "", "Show a smaller version of the template, split on two lines.");
 
 	func= RNA_def_function(srna, "template_constraint", "uiTemplateConstraint");
 	RNA_def_function_ui_description(func, "Layout . Generates the UI layout for constraints.");
@@ -326,7 +325,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
-	RNA_def_boolean(func, "compact", 0, "", "Show a smaller version of the template, split on two lines.");
 
 	func= RNA_def_function(srna, "template_preview", "uiTemplatePreview");
 	RNA_def_function_ui_description(func, "Item. A preview window for materials, textures, lamps, etc.");

@@ -24,7 +24,6 @@
  */
 
 #include "AUD_SndFileReader.h"
-#include "AUD_Buffer.h"
 
 #include <cstring>
 
@@ -77,30 +76,31 @@ sf_count_t AUD_SndFileReader::vio_tell(void *user_data)
 	return reader->m_memoffset;
 }
 
-AUD_SndFileReader::AUD_SndFileReader(const char* filename)
+static const char* fileopen_error = "AUD_SndFileReader: File couldn't be "
+									"read.";
+
+AUD_SndFileReader::AUD_SndFileReader(std::string filename) :
+	m_position(0)
 {
 	SF_INFO sfinfo;
 
 	sfinfo.format = 0;
-	m_sndfile = sf_open(filename, SFM_READ, &sfinfo);
+	m_sndfile = sf_open(filename.c_str(), SFM_READ, &sfinfo);
 
 	if(!m_sndfile)
-		AUD_THROW(AUD_ERROR_FILE);
+		AUD_THROW(AUD_ERROR_FILE, fileopen_error);
 
 	m_specs.channels = (AUD_Channels) sfinfo.channels;
 	m_specs.rate = (AUD_SampleRate) sfinfo.samplerate;
 	m_length = sfinfo.frames;
 	m_seekable = sfinfo.seekable;
-	m_position = 0;
-
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
 }
 
-AUD_SndFileReader::AUD_SndFileReader(AUD_Reference<AUD_Buffer> buffer)
+AUD_SndFileReader::AUD_SndFileReader(AUD_Reference<AUD_Buffer> buffer) :
+	m_position(0),
+	m_membuffer(buffer),
+	m_memoffset(0)
 {
-	m_membuffer = buffer;
-	m_memoffset = 0;
-
 	m_vio.get_filelen = vio_get_filelen;
 	m_vio.read = vio_read;
 	m_vio.seek = vio_seek;
@@ -113,25 +113,20 @@ AUD_SndFileReader::AUD_SndFileReader(AUD_Reference<AUD_Buffer> buffer)
 	m_sndfile = sf_open_virtual(&m_vio, SFM_READ, &sfinfo, this);
 
 	if(!m_sndfile)
-		AUD_THROW(AUD_ERROR_FILE);
+		AUD_THROW(AUD_ERROR_FILE, fileopen_error);
 
 	m_specs.channels = (AUD_Channels) sfinfo.channels;
 	m_specs.rate = (AUD_SampleRate) sfinfo.samplerate;
 	m_length = sfinfo.frames;
 	m_seekable = sfinfo.seekable;
-	m_position = 0;
-
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
 }
 
 AUD_SndFileReader::~AUD_SndFileReader()
 {
 	sf_close(m_sndfile);
-
-	delete m_buffer; AUD_DELETE("buffer")
 }
 
-bool AUD_SndFileReader::isSeekable()
+bool AUD_SndFileReader::isSeekable() const
 {
 	return m_seekable;
 }
@@ -145,29 +140,19 @@ void AUD_SndFileReader::seek(int position)
 	}
 }
 
-int AUD_SndFileReader::getLength()
+int AUD_SndFileReader::getLength() const
 {
 	return m_length;
 }
 
-int AUD_SndFileReader::getPosition()
+int AUD_SndFileReader::getPosition() const
 {
 	return m_position;
 }
 
-AUD_Specs AUD_SndFileReader::getSpecs()
+AUD_Specs AUD_SndFileReader::getSpecs() const
 {
 	return m_specs;
-}
-
-AUD_ReaderType AUD_SndFileReader::getType()
-{
-	return AUD_TYPE_STREAM;
-}
-
-bool AUD_SndFileReader::notify(AUD_Message &message)
-{
-	return false;
 }
 
 void AUD_SndFileReader::read(int & length, sample_t* & buffer)
@@ -175,10 +160,10 @@ void AUD_SndFileReader::read(int & length, sample_t* & buffer)
 	int sample_size = AUD_SAMPLE_SIZE(m_specs);
 
 	// resize output buffer if necessary
-	if(m_buffer->getSize() < length*sample_size)
-		m_buffer->resize(length*sample_size);
+	if(m_buffer.getSize() < length*sample_size)
+		m_buffer.resize(length*sample_size);
 
-	buffer = m_buffer->getBuffer();
+	buffer = m_buffer.getBuffer();
 
 	length = sf_readf_float(m_sndfile, buffer, length);
 

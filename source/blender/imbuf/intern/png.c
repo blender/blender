@@ -31,6 +31,7 @@
 #include "png.h"
 
 #include "BLI_blenlib.h"
+#include "MEM_guardedalloc.h"
 
 #include "imbuf.h"
 

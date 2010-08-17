@@ -26,7 +26,6 @@
 #include "AUD_Mixer.h"
 #include "AUD_JackDevice.h"
 #include "AUD_IReader.h"
-#include "AUD_Buffer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,8 +42,8 @@ void AUD_JackDevice::updateRingBuffers()
 	unsigned int samplesize = AUD_SAMPLE_SIZE(m_specs);
 	unsigned int i, j;
 	unsigned int channels = m_specs.channels;
-	sample_t* buffer = m_buffer->getBuffer();
-	float* deinterleave = m_deinterleavebuf->getBuffer();
+	sample_t* buffer = m_buffer.getBuffer();
+	float* deinterleave = m_deinterleavebuf.getBuffer();
 	jack_transport_state_t state;
 	jack_position_t position;
 
@@ -173,7 +172,13 @@ void AUD_JackDevice::jack_shutdown(void *data)
 	device->m_valid = false;
 }
 
-AUD_JackDevice::AUD_JackDevice(AUD_DeviceSpecs specs, int buffersize)
+static const char* clientopen_error = "AUD_JackDevice: Couldn't connect to "
+									  "jack server.";
+static const char* port_error = "AUD_JackDevice: Couldn't create output port.";
+static const char* activate_error = "AUD_JackDevice: Couldn't activate the "
+									"client.";
+
+AUD_JackDevice::AUD_JackDevice(std::string name, AUD_DeviceSpecs specs, int buffersize)
 {
 	if(specs.channels == AUD_CHANNELS_INVALID)
 		specs.channels = AUD_CHANNELS_STEREO;
@@ -186,9 +191,9 @@ AUD_JackDevice::AUD_JackDevice(AUD_DeviceSpecs specs, int buffersize)
 	jack_status_t status;
 
 	// open client
-	m_client = jack_client_open("Blender", options, &status);
+	m_client = jack_client_open(name.c_str(), options, &status);
 	if(m_client == NULL)
-		AUD_THROW(AUD_ERROR_JACK);
+		AUD_THROW(AUD_ERROR_JACK, clientopen_error);
 
 	// set callbacks
 	jack_set_process_callback(m_client, AUD_JackDevice::jack_mix, this);
@@ -196,7 +201,7 @@ AUD_JackDevice::AUD_JackDevice(AUD_DeviceSpecs specs, int buffersize)
 	jack_set_sync_callback(m_client, AUD_JackDevice::jack_sync, this);
 
 	// register our output channels which are called ports in jack
-	m_ports = new jack_port_t*[m_specs.channels]; AUD_NEW("jack_port")
+	m_ports = new jack_port_t*[m_specs.channels];
 
 	try
 	{
@@ -208,25 +213,25 @@ AUD_JackDevice::AUD_JackDevice(AUD_DeviceSpecs specs, int buffersize)
 											JACK_DEFAULT_AUDIO_TYPE,
 											JackPortIsOutput, 0);
 			if(m_ports[i] == NULL)
-				AUD_THROW(AUD_ERROR_JACK);
+				AUD_THROW(AUD_ERROR_JACK, port_error);
 		}
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		jack_client_close(m_client);
-		delete[] m_ports; AUD_DELETE("jack_port")
+		delete[] m_ports;
 		throw;
 	}
 
 	m_specs.rate = (AUD_SampleRate)jack_get_sample_rate(m_client);
 
 	buffersize *= sizeof(sample_t);
-	m_ringbuffers = new jack_ringbuffer_t*[specs.channels]; AUD_NEW("jack_buffers")
+	m_ringbuffers = new jack_ringbuffer_t*[specs.channels];
 	for(unsigned int i = 0; i < specs.channels; i++)
 		m_ringbuffers[i] = jack_ringbuffer_create(buffersize);
 	buffersize *= specs.channels;
-	m_buffer = new AUD_Buffer(buffersize); AUD_NEW("buffer");
-	m_deinterleavebuf = new AUD_Buffer(buffersize); AUD_NEW("buffer");
+	m_deinterleavebuf.resize(buffersize);
+	m_buffer.resize(buffersize);
 
 	create();
 
@@ -238,25 +243,19 @@ AUD_JackDevice::AUD_JackDevice(AUD_DeviceSpecs specs, int buffersize)
 	pthread_mutex_init(&m_mixingLock, NULL);
 	pthread_cond_init(&m_mixingCondition, NULL);
 
-	try
-	{
-		// activate the client
-		if(jack_activate(m_client))
-			AUD_THROW(AUD_ERROR_JACK);
-	}
-	catch(AUD_Exception)
+	// activate the client
+	if(jack_activate(m_client))
 	{
 		jack_client_close(m_client);
-		delete[] m_ports; AUD_DELETE("jack_port")
-		delete m_buffer; AUD_DELETE("buffer");
-		delete m_deinterleavebuf; AUD_DELETE("buffer");
+		delete[] m_ports;
 		for(unsigned int i = 0; i < specs.channels; i++)
 			jack_ringbuffer_free(m_ringbuffers[i]);
-		delete[] m_ringbuffers; AUD_DELETE("jack_buffers")
+		delete[] m_ringbuffers;
 		pthread_mutex_destroy(&m_mixingLock);
 		pthread_cond_destroy(&m_mixingCondition);
 		destroy();
-		throw;
+
+		AUD_THROW(AUD_ERROR_JACK, activate_error);
 	}
 
 	const char** ports = jack_get_ports(m_client, NULL, NULL,
@@ -284,7 +283,7 @@ AUD_JackDevice::~AUD_JackDevice()
 		jack_client_close(m_client);
 	m_valid = false;
 
-	delete[] m_ports; AUD_DELETE("jack_port")
+	delete[] m_ports;
 
 	pthread_mutex_lock(&m_mixingLock);
 	pthread_cond_signal(&m_mixingCondition);
@@ -293,11 +292,9 @@ AUD_JackDevice::~AUD_JackDevice()
 
 	pthread_cond_destroy(&m_mixingCondition);
 	pthread_mutex_destroy(&m_mixingLock);
-	delete m_buffer; AUD_DELETE("buffer");
-	delete m_deinterleavebuf; AUD_DELETE("buffer");
 	for(unsigned int i = 0; i < m_specs.channels; i++)
 		jack_ringbuffer_free(m_ringbuffers[i]);
-	delete[] m_ringbuffers; AUD_DELETE("jack_buffers")
+	delete[] m_ringbuffers;
 
 	destroy();
 }

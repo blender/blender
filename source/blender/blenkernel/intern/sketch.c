@@ -72,8 +72,7 @@ void sk_initPoint(SK_Point *pt, SK_DrawData *dd, float *no)
 {
 	if (no)
 	{
-		VECCOPY(pt->no, no);
-		normalize_v3(pt->no);
+		normalize_v3_v3(pt->no, no);
 	}
 	else
 	{

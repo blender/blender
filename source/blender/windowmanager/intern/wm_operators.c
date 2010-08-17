@@ -30,6 +30,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <stddef.h>
+
 
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
@@ -103,33 +105,17 @@ wmOperatorType *WM_operatortype_find(const char *idname, int quiet)
 	
 	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
 	WM_operator_bl_idname(idname_bl, idname);
-	
+
 	if (idname_bl[0]) {
-		for(ot= global_ops.first; ot; ot= ot->next) {
-			if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
-			   return ot;
+		ot= (wmOperatorType *)BLI_findstring_ptr(&global_ops, idname_bl, offsetof(wmOperatorType, idname));
+		if(ot) {
+			return ot;
 		}
 	}
 	
 	if(!quiet)
 		printf("search for unknown operator %s, %s\n", idname_bl, idname);
 	
-	return NULL;
-}
-
-wmOperatorType *WM_operatortype_exists(const char *idname)
-{
-	wmOperatorType *ot;
-	
-	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
-	WM_operator_bl_idname(idname_bl, idname);
-	
-	if(idname_bl[0]) {
-		for(ot= global_ops.first; ot; ot= ot->next) {
-			if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
-			   return ot;
-		}
-	}
 	return NULL;
 }
 
@@ -333,7 +319,7 @@ wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag)
 {
 	wmOperatorType *ot;
 	
-	if(WM_operatortype_exists(idname)) {
+	if(WM_operatortype_find(idname, TRUE)) {
 		printf("Macro error: operator %s exists\n", idname);
 		return NULL;
 	}

@@ -23,53 +23,44 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_ACCUMULATORREADER
-#define AUD_ACCUMULATORREADER
+#ifndef AUD_IIRFILTERFACTORY
+#define AUD_IIRFILTERFACTORY
 
-#include "AUD_EffectReader.h"
-class AUD_Buffer;
+#include "AUD_EffectFactory.h"
+
+#include <vector>
 
 /**
- * This class represents an accumulator.
+ * This factory creates a IIR filter reader.
  */
-class AUD_AccumulatorReader : public AUD_EffectReader
+class AUD_IIRFilterFactory : public AUD_EffectFactory
 {
 private:
 	/**
-	 * The playback buffer.
+	 * Output filter coefficients.
 	 */
-	AUD_Buffer *m_buffer;
+	std::vector<float> m_a;
 
 	/**
-	 * The sums of the specific channels.
+	 * Input filter coefficients.
 	 */
-	AUD_Buffer *m_sums;
+	std::vector<float> m_b;
 
-	/**
-	 * The previous results of the specific channels.
-	 */
-	AUD_Buffer *m_prevs;
-
-	/**
-	 * Whether the accumulator is additive.
-	 */
-	bool m_additive;
+	// hide copy constructor and operator=
+	AUD_IIRFilterFactory(const AUD_IIRFilterFactory&);
+	AUD_IIRFilterFactory& operator=(const AUD_IIRFilterFactory&);
 
 public:
 	/**
-	 * Creates a new accumulator reader.
-	 * \param reader The reader to read from.
-	 * \param additive Whether the accumulator is additive.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
+	 * Creates a new IIR filter factory.
+	 * \param factory The input factory.
+	 * \param b The input filter coefficients.
+	 * \param a The output filter coefficients.
 	 */
-	AUD_AccumulatorReader(AUD_IReader* reader, bool additive);
+	AUD_IIRFilterFactory(AUD_IFactory* factory, std::vector<float> b,
+						 std::vector<float> a);
 
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_AccumulatorReader();
-
-	virtual void read(int & length, sample_t* & buffer);
+	virtual AUD_IReader* createReader() const;
 };
 
-#endif //AUD_ACCUMULATORREADER
+#endif //AUD_IIRFILTERFACTORY

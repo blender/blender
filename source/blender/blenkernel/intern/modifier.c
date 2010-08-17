@@ -34,15 +34,17 @@
 *
 */
 
-#include "stddef.h"
-#include "string.h"
-#include "stdarg.h"
-#include "math.h"
-#include "float.h"
+#include <stddef.h>
+#include <string.h>
+#include <stdarg.h>
+#include <math.h>
+#include <float.h>
 
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "BKE_bmesh.h"
 #include "BKE_cloth.h"

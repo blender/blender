@@ -1205,14 +1205,16 @@ class ExportX3D(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
+        import os
+        if not self.properties.is_property_set("filepath"):
+            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".x3d"
+
+        context.manager.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):
-    default_path = os.path.splitext(bpy.data.filepath)[0] + ".x3d"
-    self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)").filepath = default_path
+    self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)")
 
 
 def register():

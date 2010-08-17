@@ -23,37 +23,27 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_RECTIFYREADER
-#define AUD_RECTIFYREADER
+#include "AUD_SuperposeFactory.h"
+#include "AUD_SuperposeReader.h"
 
-#include "AUD_EffectReader.h"
-class AUD_Buffer;
-
-/**
- * This class reads another reader and rectifies it.
- */
-class AUD_RectifyReader : public AUD_EffectReader
+AUD_SuperposeFactory::AUD_SuperposeFactory(AUD_IFactory* factory1, AUD_IFactory* factory2) :
+		m_factory1(factory1), m_factory2(factory2)
 {
-private:
-	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer *m_buffer;
+}
 
-public:
-	/**
-	 * Creates a new rectify reader.
-	 * \param reader The reader to read from.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
-	 */
-	AUD_RectifyReader(AUD_IReader* reader);
+AUD_IReader* AUD_SuperposeFactory::createReader() const
+{
+	AUD_IReader* reader1 = m_factory1->createReader();
+	AUD_IReader* reader2;
+	try
+	{
+		reader2 = m_factory2->createReader();
+	}
+	catch(AUD_Exception&)
+	{
+		delete reader1;
+		throw;
+	}
 
-	/**
-	 * Destroys the reader.
-	 */
-	virtual ~AUD_RectifyReader();
-
-	virtual void read(int & length, sample_t* & buffer);
-};
-
-#endif //AUD_RECTIFYREADER
+	return new AUD_SuperposeReader(reader1, reader2);
+}
