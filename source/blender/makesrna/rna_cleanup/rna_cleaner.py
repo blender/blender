@@ -253,6 +253,13 @@ def write_files(basename, props_list, props_length_max):
     props_list = [['NOTE', 'CHANGED', 'CLASS', 'FROM', 'TO', 'KEYWORD-CHECK', 'TYPE', 'DESCRIPTION']] + props_list
     for props in props_list:
         #txt
+        
+        # FOR PY OUTPUT!
+        '''
+        if props[3] == props[4]: txt += "#"
+        else: txt += " "
+        '''
+    
         if props[0] != '': txt +=  '%s * ' % props[0]   # comment
         txt +=  '%s.%s -> %s:   %s  "%s"\n' % tuple(props[2:5] + props[6:])   # skipping keyword-check
         # rna_api

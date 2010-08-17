@@ -27,17 +27,16 @@ def main():
 	
 	for key, val_orig in mod_to_dict.items():
 		try:
-			val = mod_from_dict.pop(key)
+			val_new = mod_from_dict.pop(key)
 		except:
 			# print("not found", key)
-			val = val_orig
+			val_new = val_orig
 			
 		# always take the class from the base
-		val = list(val)
-		val[2] = val_orig[2]
-		print(val_orig[2])
+		val = list(val_orig)
+		val[0] = val_new[0] # comment
+		val[4] = val_new[4] # -> to
 		val = tuple(val)
-
 		rna_api_new.append(val)
 	
 	def write_work_file(file_path, rna_api):

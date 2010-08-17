@@ -636,7 +636,11 @@ if __name__ == "__main__":
         for prop_id, prop in sorted(props):
             # if prop.type == 'boolean':
             #     continue
-            data.append("%s.%s -> %s:    %s%s    %s" % (struct_id_str, prop.identifier, prop.identifier, prop.type, ", (read-only)" if prop.is_readonly else "", prop.description))
+            prop_type = prop.type
+            if prop.array_length > 0:
+                prop_type += "[%d]" % prop.array_length
+
+            data.append("%s.%s -> %s:    %s%s    %s" % (struct_id_str, prop.identifier, prop.identifier, prop_type, ", (read-only)" if prop.is_readonly else "", prop.description))
         data.sort()
 
     if bpy.app.background:
