@@ -136,11 +136,6 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
                     split.prop(psys, "reactor_target_particle_system", text="Particle System")
 
 
-class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, bpy.types.Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-    _context_path = "particle_system.settings"
-
-
 class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Emission"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -1076,6 +1071,11 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
         row = layout.row()
         row.prop_object(psys, "vertex_group_field", ob, "vertex_groups", text="Field")
         row.prop(psys, "vertex_group_field_negate", text="")
+
+
+class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    _context_path = "particle_system.settings"
 
 
 def register():
