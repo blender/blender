@@ -58,7 +58,7 @@ class INFO_HT_header(bpy.types.Header):
 
         layout.separator()
 
-        if rd.multiple_engines:
+        if rd.has_multiple_engines:
             layout.prop(rd, "engine", text="")
 
         layout.separator()

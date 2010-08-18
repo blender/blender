@@ -878,10 +878,10 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 					split= uiLayoutSplit(layout, 0, 0);
 
 					col= uiLayoutColumn(split, 0);
-					uiItemR(col, &imaptr, "fields", 0, NULL, 0);
+					uiItemR(col, &imaptr, "use_fields", 0, NULL, 0);
 					row= uiLayoutRow(col, 0);
 					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, 0);
-					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "fields"));
+					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_fields"));
 
 					col= uiLayoutColumn(split, 0);
 					uiItemR(col, &imaptr, "premultiply", 0, NULL, 0);

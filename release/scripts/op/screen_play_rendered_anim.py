@@ -79,7 +79,7 @@ class PlayRenderedAnim(bpy.types.Operator):
 
         preset = prefs.filepaths.animation_player_preset
         player_path = prefs.filepaths.animation_player
-        file_path = bpy.path.abspath(rd.output_path)
+        file_path = bpy.path.abspath(rd.filepath)
         is_movie = rd.is_movie_format
 
         # try and guess a command line if it doesn't exist

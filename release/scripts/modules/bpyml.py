@@ -163,18 +163,18 @@ if __name__ == "__main__":
          ui() [
             split() [
                 column() [
-                    prop(data='context.scene.render', property='stamp_time', text='Time'),
-                    prop(data='context.scene.render', property='stamp_date', text='Date'),
-                    prop(data='context.scene.render', property='stamp_render_time', text='RenderTime'),
-                    prop(data='context.scene.render', property='stamp_frame', text='Frame'),
-                    prop(data='context.scene.render', property='stamp_scene', text='Scene'),
-                    prop(data='context.scene.render', property='stamp_camera', text='Camera'),
-                    prop(data='context.scene.render', property='stamp_filename', text='Filename'),
-                    prop(data='context.scene.render', property='stamp_marker', text='Marker'),
-                    prop(data='context.scene.render', property='stamp_sequencer_strip', text='Seq. Strip')
+                    prop(data='context.scene.render', property='use_stamp_time', text='Time'),
+                    prop(data='context.scene.render', property='use_stamp_date', text='Date'),
+                    prop(data='context.scene.render', property='use_stamp_render_time', text='RenderTime'),
+                    prop(data='context.scene.render', property='use_stamp_frame', text='Frame'),
+                    prop(data='context.scene.render', property='use_stamp_scene', text='Scene'),
+                    prop(data='context.scene.render', property='use_stamp_camera', text='Camera'),
+                    prop(data='context.scene.render', property='use_stamp_filename', text='Filename'),
+                    prop(data='context.scene.render', property='use_stamp_marker', text='Marker'),
+                    prop(data='context.scene.render', property='use_stamp_sequencer_strip', text='Seq. Strip')
                 ],
                 column() [
-                    active(expr='context.scene.render.render_stamp'),
+                    active(expr='context.scene.render.use_stamp'),
                     prop(data='context.scene.render', property='stamp_foreground', slider=True),
                     prop(data='context.scene.render', property='stamp_background', slider=True),
                     separator(),
@@ -182,9 +182,9 @@ if __name__ == "__main__":
                 ]
             ],
             split(percentage=0.2) [
-                prop(data='context.scene.render', property='stamp_note', text='Note'),
+                prop(data='context.scene.render', property='use_stamp_note', text='Note'),
                 row() [
-                    active(expr='context.scene.render.stamp_note'),
+                    active(expr='context.scene.render.use_stamp_note'),
                     prop(data='context.scene.render', property='stamp_note_text', text='')
                 ]
             ]
