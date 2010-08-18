@@ -150,7 +150,7 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 				uiItemR(row, &sceneptr, "frame_current", 0, "Cursor X", 0);
 				uiItemEnumO(row, "GRAPH_OT_snap", "To Keys", 0, "type", GRAPHKEYS_SNAP_CFRA);
 			row= uiLayoutSplit(subcol, 0.7, 1);
-				uiItemR(row, &spaceptr, "cursor_value", 0, "Cursor Y", 0);
+				uiItemR(row, &spaceptr, "cursor_position_y", 0, "Cursor Y", 0);
 				uiItemEnumO(row, "GRAPH_OT_snap", "To Keys", 0, "type", GRAPHKEYS_SNAP_VALUE);
 }
 
