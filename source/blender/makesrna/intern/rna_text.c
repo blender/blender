@@ -219,14 +219,14 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Current Character", "Index of current character in current line, and also start index of character in selection if one exists");
 	
-	prop= RNA_def_property(srna, "selection_end_line", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "select_end_line", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "sell");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "TextLine");
 	RNA_def_property_ui_text(prop, "Selection End Line", "End line of selection");
 	
-	prop= RNA_def_property(srna, "selection_end_character", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "select_end_character", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "selc");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Selection End Character", "Index of character after end of selection in the selection end line");

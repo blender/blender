@@ -426,7 +426,7 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
             bvh_node.parent and\
             bvh_node.parent.temp.name not in ZERO_AREA_BONES and\
             bvh_node.parent.rest_tail_local == bvh_node.rest_head_local:
-                bvh_node.temp.connected = True
+                bvh_node.temp.use_connect = True
 
     # Replace the editbone with the editbone name,
     # to avoid memory errors accessing the editbone outside editmode

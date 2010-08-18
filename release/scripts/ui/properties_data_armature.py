@@ -65,7 +65,7 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Layers:")
-        col.prop(arm, "layer", text="")
+        col.prop(arm, "layers", text="")
         col.label(text="Protected Layers:")
         col.prop(arm, "layer_protection", text="")
 

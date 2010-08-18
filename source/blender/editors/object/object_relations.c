@@ -1032,7 +1032,7 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 	int values[20], a;
 	unsigned int lay= 0;
 
-	if(!RNA_property_is_set(op->ptr, "layer")) {
+	if(!RNA_property_is_set(op->ptr, "layers")) {
 		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 			lay |= base->lay;
 		}
@@ -1041,10 +1041,10 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 		for(a=0; a<20; a++)
 			values[a]= (lay & (1<<a));
 		
-		RNA_boolean_set_array(op->ptr, "layer", values);
+		RNA_boolean_set_array(op->ptr, "layers", values);
 	}
 	else {
-		RNA_boolean_get_array(op->ptr, "layer", values);
+		RNA_boolean_get_array(op->ptr, "layers", values);
 
 		for(a=0; a<20; a++)
 			if(values[a])
@@ -1130,7 +1130,7 @@ void OBJECT_OT_move_to_layer(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_layer_member(ot->srna, "layer", 20, NULL, "Layer", "");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
 }
 
 /************************** Link to Scene Operator *****************************/

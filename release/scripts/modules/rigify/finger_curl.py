@@ -35,18 +35,18 @@ def metarig_template():
     bone.head[:] = 0.0000, 0.0000, 0.0000
     bone.tail[:] = 0.0353, -0.0184, -0.0053
     bone.roll = -2.8722
-    bone.connected = False
+    bone.use_connect = False
     bone = arm.edit_bones.new('finger.02')
     bone.head[:] = 0.0353, -0.0184, -0.0053
     bone.tail[:] = 0.0702, -0.0364, -0.0146
     bone.roll = -2.7099
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['finger.01']
     bone = arm.edit_bones.new('finger.03')
     bone.head[:] = 0.0702, -0.0364, -0.0146
     bone.tail[:] = 0.0903, -0.0461, -0.0298
     bone.roll = -2.1709
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['finger.02']
 
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -84,8 +84,8 @@ def deform(obj, definitions, base_names, options):
     # Create base digit bones: two bones, each half of the base digit.
     f1a = copy_bone_simple(obj.data, definitions[0], "DEF-%s.01" % base_names[definitions[0]], parent=True)
     f1b = copy_bone_simple(obj.data, definitions[0], "DEF-%s.02" % base_names[definitions[0]], parent=True)
-    f1a.connected = False
-    f1b.connected = False
+    f1a.use_connect = False
+    f1b.use_connect = False
     f1b.parent = f1a
     center = f1a.center
     f1a.tail = center
@@ -182,7 +182,7 @@ def main(obj, bone_definition, base_names, options):
     else:
         tot_len = eb[org_f1].length + eb[org_f2].length
     control = copy_bone_simple(arm, bone_definition[0], base_name + get_side_name(base_names[bone_definition[0]]), parent=True).name
-    eb[control].connected = eb[org_f1].connected
+    eb[control].use_connect = eb[org_f1].use_connect
     eb[control].parent = eb[org_f1].parent
     eb[control].length = tot_len
 
@@ -203,12 +203,12 @@ def main(obj, bone_definition, base_names, options):
 
     # Set parents of the bones, interleaving the driver bones with the secondary control bones
     if three_digits:
-        eb[f3].connected = False
-        eb[df3].connected = False
-    eb[f2].connected = False
-    eb[df2].connected = False
-    eb[f1].connected = False
-    eb[df1].connected = eb[org_f1].connected
+        eb[f3].use_connect = False
+        eb[df3].use_connect = False
+    eb[f2].use_connect = False
+    eb[df2].use_connect = False
+    eb[f1].use_connect = False
+    eb[df1].use_connect = eb[org_f1].use_connect
 
     if three_digits:
         eb[f3].parent = eb[df3]
@@ -223,7 +223,7 @@ def main(obj, bone_definition, base_names, options):
         socket = copy_bone_simple(arm, org_f1, "MCH-socket_"+control, parent=True).name
         hinge = copy_bone_simple(arm, eb[org_f1].parent.name, "MCH-hinge_"+control).name
 
-        eb[control].connected = False
+        eb[control].use_connect = False
         eb[control].parent = eb[hinge]
 
     # Create the deform rig while we're still in edit mode
@@ -362,16 +362,16 @@ def main(obj, bone_definition, base_names, options):
     if "ex_layer" in options:
         layer = [n==options["ex_layer"] for n in range(0,32)]
     else:
-        layer = list(arm.bones[bone_definition[0]].layer)
+        layer = list(arm.bones[bone_definition[0]].layers)
     #for bone_name in [f1, f2, f3]:
-    #    arm.bones[bone_name].layer = layer
-    arm.bones[f1].layer = layer
-    arm.bones[f2].layer = layer
+    #    arm.bones[bone_name].layers = layer
+    arm.bones[f1].layers = layer
+    arm.bones[f2].layers = layer
     if three_digits:
-        arm.bones[f3].layer = layer
+        arm.bones[f3].layers = layer
 
-    layer = list(arm.bones[bone_definition[0]].layer)
-    bb[control].layer = layer
+    layer = list(arm.bones[bone_definition[0]].layers)
+    bb[control].layers = layer
 
     # no blending the result of this
     return None

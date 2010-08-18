@@ -75,7 +75,7 @@ class BONE_PT_transform(BoneButtonsPanel, bpy.types.Panel):
             row = layout.row()
             col = row.column()
             col.prop(pchan, "location")
-            col.active = not (bone.parent and bone.connected)
+            col.active = not (bone.parent and bone.use_connect)
 
             col = row.column()
             if pchan.rotation_mode == 'QUATERNION':
@@ -111,7 +111,7 @@ class BONE_PT_transform_locks(BoneButtonsPanel, bpy.types.Panel):
         row = layout.row()
         col = row.column()
         col.prop(pchan, "lock_location")
-        col.active = not (bone.parent and bone.connected)
+        col.active = not (bone.parent and bone.use_connect)
 
         col = row.column()
         if pchan.rotation_mode in ('QUATERNION', 'AXIS_ANGLE'):
@@ -145,7 +145,7 @@ class BONE_PT_relations(BoneButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Layers:")
-        col.prop(bone, "layer", text="")
+        col.prop(bone, "layers", text="")
 
         col.separator()
 
@@ -162,12 +162,12 @@ class BONE_PT_relations(BoneButtonsPanel, bpy.types.Panel):
 
         sub = col.column()
         sub.active = (bone.parent is not None)
-        sub.prop(bone, "connected")
-        sub.prop(bone, "hinge", text="Inherit Rotation")
-        sub.prop(bone, "inherit_scale", text="Inherit Scale")
+        sub.prop(bone, "use_connect")
+        sub.prop(bone, "use_hinge", text="Inherit Rotation")
+        sub.prop(bone, "use_inherit_scale", text="Inherit Scale")
         sub = col.column()
-        sub.active = (not bone.parent or not bone.connected)
-        sub.prop(bone, "local_location", text="Local Location")
+        sub.active = (not bone.parent or not bone.use_connect)
+        sub.prop(bone, "use_local_location", text="Local Location")
 
 
 class BONE_PT_display(BoneButtonsPanel, bpy.types.Panel):
@@ -303,7 +303,7 @@ class BONE_PT_deform(BoneButtonsPanel, bpy.types.Panel):
         if not bone:
             bone = context.edit_bone
 
-        self.layout.prop(bone, "deform", text="")
+        self.layout.prop(bone, "use_deform", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -313,7 +313,7 @@ class BONE_PT_deform(BoneButtonsPanel, bpy.types.Panel):
         if not bone:
             bone = context.edit_bone
 
-        layout.active = bone.deform
+        layout.active = bone.use_deform
 
         split = layout.split()
 
@@ -323,7 +323,7 @@ class BONE_PT_deform(BoneButtonsPanel, bpy.types.Panel):
         sub = col.column(align=True)
         sub.prop(bone, "envelope_distance", text="Distance")
         sub.prop(bone, "envelope_weight", text="Weight")
-        col.prop(bone, "multiply_vertexgroup_with_envelope", text="Multiply")
+        col.prop(bone, "use_envelope_multiply", text="Multiply")
 
         sub = col.column(align=True)
         sub.label(text="Radius:")
@@ -339,7 +339,7 @@ class BONE_PT_deform(BoneButtonsPanel, bpy.types.Panel):
         sub.prop(bone, "bbone_out", text="Ease Out")
 
         col.label(text="Offset:")
-        col.prop(bone, "cyclic_offset")
+        col.prop(bone, "use_cyclic_offset")
 
 
 class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, bpy.types.Panel):

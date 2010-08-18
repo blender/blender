@@ -35,7 +35,7 @@ RIG_TYPE = "track_reverse"
 #    bone.head[:] = 0.0000, 0.0000, 0.0000
 #    bone.tail[:] = 0.0000, 0.0000, 1.0000
 #    bone.roll = 0.0000
-#    bone.connected = False
+#    bone.use_connect = False
 #
 #    bpy.ops.object.mode_set(mode='OBJECT')
 #    pbone = obj.pose.bones['Bone']
@@ -78,7 +78,7 @@ def main(obj, bone_definition, base_names, options):
     mbone2 = "ORG-" + options["to"]
 
     bone_e = copy_bone_simple(obj.data, mbone2, "DEF-%s.02" % base_names[bone_definition[0]])
-    bone_e.connected = False
+    bone_e.use_connect = False
     bone_e.parent = eb[mbone1]
     bone_e.tail = eb[mbone1].head
     bone = bone_e.name

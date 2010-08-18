@@ -71,7 +71,7 @@ def metarig_template():
     bone.head[:] = 0.0000, 0.0000, 0.0000
     bone.tail[:] = 0.0000, 0.0000, 1.0000
     bone.roll = 0.0000
-    bone.connected = False
+    bone.use_connect = False
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones['Bone']

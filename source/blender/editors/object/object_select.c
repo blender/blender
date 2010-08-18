@@ -635,7 +635,7 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 	short extend;
 	
 	extend= RNA_boolean_get(op->ptr, "extend");
-	layernum = RNA_int_get(op->ptr, "layer");
+	layernum = RNA_int_get(op->ptr, "layers");
 	
 	if (extend == 0) {
 		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
@@ -673,7 +673,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
-	RNA_def_int(ot->srna, "layer", 1, 1, 20, "Layer", "", 1, 20);
+	RNA_def_int(ot->srna, "layers", 1, 1, 20, "Layer", "", 1, 20);
 }
 
 /************************** Select Inverse *************************/

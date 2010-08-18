@@ -34,18 +34,18 @@ def metarig_template():
     bone.head[:] = 0.0000, 0.0000, 0.0000
     bone.tail[:] = -0.0000, 0.7382, 0.1895
     bone.roll = -0.0000
-    bone.connected = False
+    bone.use_connect = False
     bone = arm.edit_bones.new('delta')
     bone.head[:] = -0.0497, 0.8414, 0.3530
     bone.tail[:] = -0.2511, 1.1588, 0.9653
     bone.roll = 2.6044
-    bone.connected = False
+    bone.use_connect = False
     bone.parent = arm.edit_bones['bonesker']
     bone = arm.edit_bones.new('boney')
     bone.head[:] = 0.7940, 2.5592, 0.4134
     bone.tail[:] = 0.7940, 3.3975, 0.4890
     bone.roll = 3.1416
-    bone.connected = False
+    bone.use_connect = False
     bone.parent = arm.edit_bones['delta']
 
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -67,7 +67,7 @@ def metarig_definition(obj, orig_bone_name):
     if len(children) != 1:
         raise RigifyError("only 1 child supported for delta on bone '%s'" % delta.name)
 
-    if delta.connected:
+    if delta.use_connect:
         raise RigifyError("bone cannot be connected to its parent '%s'" % delta.name)
 
     bone_definition = [delta.name, children[0].name]
