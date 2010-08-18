@@ -56,7 +56,7 @@ class TIME_HT_header(bpy.types.Header):
         row = layout.row(align=True)
         row.operator("screen.frame_jump", text="", icon='REW').end = False
         row.operator("screen.keyframe_jump", text="", icon='PREV_KEYFRAME').next = False
-        if not screen.animation_playing:
+        if not screen.is_animation_playing:
             row.operator("screen.animation_play", text="", icon='PLAY_REVERSE').reverse = True
             row.operator("screen.animation_play", text="", icon='PLAY')
         else:
@@ -68,7 +68,7 @@ class TIME_HT_header(bpy.types.Header):
 
         row = layout.row(align=True)
         row.prop(tools, "use_keyframe_insert_auto", text="", toggle=True)
-        if screen.animation_playing and tools.use_keyframe_insert_auto:
+        if screen.is_animation_playing and tools.use_keyframe_insert_auto:
             subsub = row.row()
             subsub.prop(tools, "use_record_with_nla", toggle=True)
 
