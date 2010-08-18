@@ -850,10 +850,10 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         tex = context.texture
-        vd = tex.voxeldata
+        vd = tex.voxel_data
 
         layout.prop(vd, "file_format")
-        if vd.file_format in ['BLENDER_VOXEL', 'RAW_8BIT']:
+        if vd.file_format in ('BLENDER_VOXEL', 'RAW_8BIT'):
             layout.prop(vd, "source_path")
         if vd.file_format == 'RAW_8BIT':
             layout.prop(vd, "resolution")
@@ -889,7 +889,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         tex = context.texture
-        pd = tex.pointdensity
+        pd = tex.point_density
 
         layout.prop(pd, "point_source", expand=True)
 
@@ -945,7 +945,7 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         tex = context.texture
-        pd = tex.pointdensity
+        pd = tex.point_density
 
         layout.prop(pd, "turbulence", text="")
 
@@ -953,7 +953,7 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         tex = context.texture
-        pd = tex.pointdensity
+        pd = tex.point_density
         layout.active = pd.turbulence
 
         split = layout.split()

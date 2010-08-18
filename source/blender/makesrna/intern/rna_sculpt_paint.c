@@ -434,12 +434,12 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_redo");
 
-	prop= RNA_def_property(srna, "editable", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_editable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_ParticleEdit_editable_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Editable", "A valid edit mode exists");
 
-	prop= RNA_def_property(srna, "hair", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_hair", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_ParticleEdit_hair_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Hair", "Editing hair");

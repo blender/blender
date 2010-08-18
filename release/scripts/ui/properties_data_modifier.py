@@ -687,7 +687,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         if md.texture_coordinates == 'MAP_UV' and ob.type == 'MESH':
             layout.prop_object(md, "uv_layer", ob.data, "uv_textures")
         elif md.texture_coordinates == 'OBJECT':
-            layout.prop(md, "texture_coordinates_object")
+            layout.prop(md, "texture_coords_object")
 
         layout.separator()
 

@@ -452,7 +452,7 @@ static void rna_def_constraint_python(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Targets", "Use the targets indicated in the constraint panel");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "script_error", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "has_script_error", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PYCON_SCRIPTERROR);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Script Error", "The linked Python script has thrown an error");
@@ -1972,12 +1972,12 @@ void RNA_def_constraint(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_influence_update");
 
 	/* readonly values */
-	prop= RNA_def_property(srna, "lin_error", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "error_location", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lin_error");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Lin error", "Amount of residual error in Blender space unit for constraints that work on position");
 
-	prop= RNA_def_property(srna, "rot_error", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "error_rotation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rot_error");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Rot error", "Amount of residual error in radiant for constraints that work on orientation");

@@ -727,11 +727,11 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
 	/* flags */
-	prop= RNA_def_property(srna, "baked", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_baked", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_BAKED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	prop= RNA_def_property(srna, "baking", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_baking", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_BAKING);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -740,7 +740,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Disk Cache", "Save cache files to disk (.blend file must be saved first)");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_toggle_disk_cache");
 
-	prop= RNA_def_property(srna, "outdated", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_outdated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_OUTDATED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Cache is outdated", "");
@@ -780,7 +780,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Library Path", "Use this files path when library linked into another file.");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
-	prop= RNA_def_property(srna, "point_cache_list", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "point_caches", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_funcs(prop, "rna_Cache_list_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache List", "Point cache list");

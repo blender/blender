@@ -363,13 +363,13 @@ static void rna_def_keydata(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
-	prop= RNA_def_property(srna, "handle_1_co", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "handle_left", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_handle_1_co_get", "rna_ShapeKeyBezierPoint_handle_1_co_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 1 Location", "");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
-	prop= RNA_def_property(srna, "handle_2_co", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "handle_right", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_handle_2_co_get", "rna_ShapeKeyBezierPoint_handle_2_co_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 2 Location", "");

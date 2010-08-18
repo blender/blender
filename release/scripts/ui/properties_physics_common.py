@@ -29,7 +29,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
     layout.set_context_pointer("point_cache", cache)
 
     row = layout.row()
-    row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2)
+    row.template_list(cache, "point_caches", cache, "active_point_cache_index", rows=2)
     col = row.column(align=True)
     col.operator("ptcache.add", icon='ZOOMIN', text="")
     col.operator("ptcache.remove", icon='ZOOMOUT', text="")
@@ -84,13 +84,13 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
         col = split.column()
 
-        if cache.baked == True:
+        if cache.is_baked == True:
             col.operator("ptcache.free_bake", text="Free Bake")
         else:
             col.operator("ptcache.bake", text="Bake").bake = True
 
         sub = col.row()
-        sub.enabled = (cache.frames_skipped or cache.outdated) and enabled
+        sub.enabled = (cache.frames_skipped or cache.is_outdated) and enabled
         sub.operator("ptcache.bake", text="Calculate To Frame").bake = False
 
         sub = col.column()

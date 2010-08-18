@@ -7,7 +7,7 @@ def main(context):
         keys = []
 
         for k in fcv.keyframe_points:
-            keys.append([k.handle1.copy(), k.co.copy(), k.handle2.copy()])
+            keys.append([k.handle_left.copy(), k.co.copy(), k.handle_right.copy()])
         print(keys)
 
         for i in range(len(keys)):
@@ -34,9 +34,9 @@ def main(context):
 
         for i in range(len(keys)):
             for x in range(2):
-               fcv.keyframe_points[i].handle1[x] = keys[i][0][x]
+               fcv.keyframe_points[i].handle_left[x] = keys[i][0][x]
                fcv.keyframe_points[i].co[x] = keys[i][1][x]
-               fcv.keyframe_points[i].handle2[x] = keys[i][2][x]
+               fcv.keyframe_points[i].handle_right[x] = keys[i][2][x]
 
     flist = bpy.context.active_object.animation_data.action.fcurves
     for f in flist:

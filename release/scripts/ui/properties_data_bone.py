@@ -225,68 +225,68 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
 
         split = layout.split(percentage=0.25)
         split.prop(pchan, "ik_dof_x", text="X")
-        split.active = pchan.has_ik
+        split.active = pchan.is_in_ik_chain
         row = split.row()
         row.prop(pchan, "ik_stiffness_x", text="Stiffness", slider=True)
-        row.active = pchan.ik_dof_x and pchan.has_ik
+        row.active = pchan.ik_dof_x and pchan.is_in_ik_chain
 
         split = layout.split(percentage=0.25)
         sub = split.row()
 
         sub.prop(pchan, "ik_limit_x", text="Limit")
-        sub.active = pchan.ik_dof_x and pchan.has_ik
+        sub.active = pchan.ik_dof_x and pchan.is_in_ik_chain
         sub = split.row(align=True)
         sub.prop(pchan, "ik_min_x", text="")
         sub.prop(pchan, "ik_max_x", text="")
-        sub.active = pchan.ik_dof_x and pchan.ik_limit_x and pchan.has_ik
+        sub.active = pchan.ik_dof_x and pchan.ik_limit_x and pchan.is_in_ik_chain
 
         split = layout.split(percentage=0.25)
         split.prop(pchan, "ik_dof_y", text="Y")
-        split.active = pchan.has_ik and pchan.has_ik
+        split.active = pchan.is_in_ik_chain and pchan.is_in_ik_chain
         row = split.row()
         row.prop(pchan, "ik_stiffness_y", text="Stiffness", slider=True)
-        row.active = pchan.ik_dof_y and pchan.has_ik
+        row.active = pchan.ik_dof_y and pchan.is_in_ik_chain
 
         split = layout.split(percentage=0.25)
         sub = split.row()
 
         sub.prop(pchan, "ik_limit_y", text="Limit")
-        sub.active = pchan.ik_dof_y and pchan.has_ik
+        sub.active = pchan.ik_dof_y and pchan.is_in_ik_chain
 
         sub = split.row(align=True)
         sub.prop(pchan, "ik_min_y", text="")
         sub.prop(pchan, "ik_max_y", text="")
-        sub.active = pchan.ik_dof_y and pchan.ik_limit_y and pchan.has_ik
+        sub.active = pchan.ik_dof_y and pchan.ik_limit_y and pchan.is_in_ik_chain
 
         split = layout.split(percentage=0.25)
         split.prop(pchan, "ik_dof_z", text="Z")
-        split.active = pchan.has_ik and pchan.has_ik
+        split.active = pchan.is_in_ik_chain and pchan.is_in_ik_chain
         sub = split.row()
         sub.prop(pchan, "ik_stiffness_z", text="Stiffness", slider=True)
-        sub.active = pchan.ik_dof_z and pchan.has_ik
+        sub.active = pchan.ik_dof_z and pchan.is_in_ik_chain
 
         split = layout.split(percentage=0.25)
         sub = split.row()
 
         sub.prop(pchan, "ik_limit_z", text="Limit")
-        sub.active = pchan.ik_dof_z and pchan.has_ik
+        sub.active = pchan.ik_dof_z and pchan.is_in_ik_chain
         sub = split.row(align=True)
         sub.prop(pchan, "ik_min_z", text="")
         sub.prop(pchan, "ik_max_z", text="")
-        sub.active = pchan.ik_dof_z and pchan.ik_limit_z and pchan.has_ik
+        sub.active = pchan.ik_dof_z and pchan.ik_limit_z and pchan.is_in_ik_chain
         split = layout.split()
         split.prop(pchan, "ik_stretch", text="Stretch", slider=True)
         split.label()
-        split.active = pchan.has_ik
+        split.active = pchan.is_in_ik_chain
 
         if ob.pose.ik_solver == 'ITASC':
             split = layout.split()
             col = split.column()
             col.prop(pchan, "ik_rot_control", text="Control Rotation")
-            col.active = pchan.has_ik
+            col.active = pchan.is_in_ik_chain
             col = split.column()
             col.prop(pchan, "ik_rot_weight", text="Weight", slider=True)
-            col.active = pchan.has_ik
+            col.active = pchan.is_in_ik_chain
             # not supported yet
             #row = layout.row()
             #row.prop(pchan, "ik_lin_control", text="Joint Size")

@@ -863,7 +863,7 @@ static void rna_def_particle(BlenderRNA *brna)
 
 	/* Hair & Keyed Keys */
 
-	prop= RNA_def_property(srna, "hair", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "is_hair", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "hair", "totkey");
 	RNA_def_property_struct_type(prop, "ParticleHairKey");
 	RNA_def_property_ui_text(prop, "Hair", "");
@@ -1960,7 +1960,8 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dupli Group", "Show Objects in this Group in place of particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "dupliweights", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "dupli_weights", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "dupliweights", NULL);
 	RNA_def_property_struct_type(prop, "ParticleDupliWeight");
 	RNA_def_property_ui_text(prop, "Dupli Group Weights", "Weights for all of the objects in the dupli group");
 
@@ -2105,7 +2106,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* hair */
-	prop= RNA_def_property(srna, "global_hair", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_global_hair", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PSYS_GLOBAL_HAIR);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Global Hair", "Hair keys are in global coordinate space");
@@ -2309,7 +2310,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache", "");
 
-	prop= RNA_def_property(srna, "multiple_caches", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "has_multiple_caches", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_ParticleSystem_multiple_caches_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Multiple Caches", "Particle system has multiple point caches");
@@ -2322,12 +2323,12 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	/* hair or cache editing */
-	prop= RNA_def_property(srna, "editable", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_editable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_ParticleSystem_editable_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Editable", "Particle system can be edited in particle mode");
 
-	prop= RNA_def_property(srna, "edited", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_edited", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_ParticleSystem_edited_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Edited", "Particle system has been edited in particle mode");

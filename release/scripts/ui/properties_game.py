@@ -215,7 +215,7 @@ class RENDER_PT_game_player(RenderButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        gs = context.scene.game_data
+        gs = context.scene.game_settings
 
         layout.prop(gs, "show_fullscreen")
 
@@ -248,7 +248,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        gs = context.scene.game_data
+        gs = context.scene.game_settings
         stereo_mode = gs.stereo
 
         # stereo options:
@@ -302,7 +302,7 @@ class RENDER_PT_game_shading(RenderButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        gs = context.scene.game_data
+        gs = context.scene.game_settings
 
         layout.prop(gs, "material_mode", expand=True)
 
@@ -327,7 +327,7 @@ class RENDER_PT_game_performance(RenderButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        gs = context.scene.game_data
+        gs = context.scene.game_settings
 
         split = layout.split()
 
@@ -454,7 +454,7 @@ class WORLD_PT_game_physics(WorldButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        gs = context.scene.game_data
+        gs = context.scene.game_settings
 
         layout.prop(gs, "physics_engine")
         if gs.physics_engine != 'NONE':

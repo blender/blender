@@ -152,12 +152,12 @@ static void rna_def_text_marker(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, (int)0xFFFF);
 	RNA_def_property_ui_text(prop, "Group", "");
 	
-	prop= RNA_def_property(srna, "temporary", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_temporary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TMARK_TEMP);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Temporary", "Marker is temporary");
 
-	prop= RNA_def_property(srna, "edit_all", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_edit_all", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TMARK_EDITALL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Edit All", "Edit all markers of the same group as one");

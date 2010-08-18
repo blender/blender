@@ -1004,7 +1004,7 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_never_none_get", NULL);
 	RNA_def_property_ui_text(prop, "Never None", "True when this value can't be set to None");
 
-	prop= RNA_def_property(srna, "use_output", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_output", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_use_output_get", NULL);
 	RNA_def_property_ui_text(prop, "Return", "True when this property is an output value from an RNA function");
@@ -1162,7 +1162,7 @@ static void rna_def_string_property(StructRNA *srna)
 	RNA_def_property_string_funcs(prop, "rna_StringProperty_default_get", "rna_StringProperty_default_length", NULL);
 	RNA_def_property_ui_text(prop, "Default", "string default value");
 
-	prop= RNA_def_property(srna, "max_length", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "length_max", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_StringProperty_max_length_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Maximum Length", "Maximum length of the string, 0 means unlimited");

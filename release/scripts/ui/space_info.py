@@ -265,7 +265,7 @@ class INFO_MT_game(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        gs = context.scene.game_data
+        gs = context.scene.game_settings
 
         layout.operator("view3d.game_start")
 

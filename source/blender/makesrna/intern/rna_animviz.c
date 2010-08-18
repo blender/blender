@@ -325,14 +325,14 @@ static void rna_def_animviz(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Animation Visualisation", "Settings for the visualisation of motion");
 	
 	/* onion-skinning settings (nested struct) */
-	prop= RNA_def_property(srna, "onion_skinning", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "onion_skin_frames", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "AnimVizOnionSkinning");
 	RNA_def_property_pointer_funcs(prop, "rna_AnimViz_onion_skinning_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Onion Skinning", "Onion Skinning (ghosting) settings for visualisation");
 	
 	/* motion path settings (nested struct) */
-	prop= RNA_def_property(srna, "motion_paths", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "motion_path", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "AnimVizMotionPaths");
 	RNA_def_property_pointer_funcs(prop, "rna_AnimViz_motion_paths_get", NULL, NULL, NULL);

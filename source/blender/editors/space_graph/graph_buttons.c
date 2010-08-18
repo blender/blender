@@ -272,11 +272,11 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 			
 			/* previous handle - only if previous was Bezier interpolation */
 			if ((prevbezt) && (prevbezt->ipo == BEZT_IPO_BEZ))
-				uiItemR(col, &bezt_ptr, "handle1", 0, NULL, 0);
+				uiItemR(col, &bezt_ptr, "handle_left", 0, NULL, 0);
 			
 			/* next handle - only if current is Bezier interpolation */
 			if (bezt->ipo == BEZT_IPO_BEZ)
-				uiItemR(col, &bezt_ptr, "handle2", 0, NULL, 0);
+				uiItemR(col, &bezt_ptr, "handle_right", 0, NULL, 0);
 	}
 	else
 		uiItemL(layout, "No active keyframe on F-Curve", 0);

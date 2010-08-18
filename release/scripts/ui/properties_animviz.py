@@ -32,7 +32,7 @@ class MotionPathButtonsPanel():
     def draw_settings(self, context, avs, bones=False):
         layout = self.layout
 
-        mps = avs.motion_paths
+        mps = avs.motion_path
 
         layout.prop(mps, "type", expand=True)
 

@@ -1308,37 +1308,37 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, bpy.types.Panel):
                 if md.type == pe.type:
                     ptcache = md.point_cache
 
-        if ptcache and len(ptcache.point_cache_list) > 1:
-            layout.template_list(ptcache, "point_cache_list", ptcache, "active_point_cache_index", type='ICONS')
+        if ptcache and len(ptcache.point_caches) > 1:
+            layout.template_list(ptcache, "point_caches", ptcache, "active_point_cache_index", type='ICONS')
 
 
-        if not pe.editable:
+        if not pe.is_editable:
             layout.label(text="Point cache must be baked")
             layout.label(text="to enable editing!")
 
         col = layout.column(align=True)
-        if pe.hair:
-            col.active = pe.editable
+        if pe.is_hair:
+            col.active = pe.is_editable
             col.prop(pe, "emitter_deflect", text="Deflect emitter")
             sub = col.row()
             sub.active = pe.emitter_deflect
             sub.prop(pe, "emitter_distance", text="Distance")
 
         col = layout.column(align=True)
-        col.active = pe.editable
+        col.active = pe.is_editable
         col.label(text="Keep:")
         col.prop(pe, "keep_lengths", text="Lengths")
         col.prop(pe, "keep_root", text="Root")
-        if not pe.hair:
+        if not pe.is_hair:
             col.label(text="Correct:")
             col.prop(pe, "auto_velocity", text="Velocity")
         col.prop(ob.data, "use_mirror_x")
 
         col = layout.column(align=True)
-        col.active = pe.editable
+        col.active = pe.is_editable
         col.label(text="Draw:")
         col.prop(pe, "draw_step", text="Path Steps")
-        if pe.hair:
+        if pe.is_hair:
             col.prop(pe, "show_particles", text="Children")
         else:
             if pe.type == 'PARTICLES':

@@ -287,7 +287,7 @@ class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Text on Curve:")
-        col.prop(text, "text_on_curve", text="")
+        col.prop(text, "follow_curve", text="")
 
         split = layout.split()
 
@@ -357,7 +357,7 @@ class DATA_PT_textboxes(CurveButtonsPanel, bpy.types.Panel):
         col.operator("font.textbox_add", icon='ZOOMIN')
         col = split.column()
 
-        for i, box in enumerate(text.textboxes):
+        for i, box in enumerate(text.text_boxes):
 
             boxy = layout.box()
 

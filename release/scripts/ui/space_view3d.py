@@ -2012,7 +2012,7 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
         layout = self.layout
 
         view = context.space_data
-        gs = context.scene.game_data
+        gs = context.scene.game_settings
         ob = context.object
 
         col = layout.column()

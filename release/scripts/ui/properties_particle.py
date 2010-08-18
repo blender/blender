@@ -27,7 +27,7 @@ from properties_physics_common import basic_force_field_falloff_ui
 
 
 def particle_panel_enabled(context, psys):
-    return (psys.point_cache.baked is False) and (not psys.edited) and (not context.particle_system_editable)
+    return (psys.point_cache.is_baked is False) and (not psys.edited) and (not context.particle_system_editable)
 
 
 def particle_panel_poll(cls, context):
@@ -116,15 +116,15 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
 
                 split = layout.split(percentage=0.65)
                 if part.type == 'HAIR':
-                    if psys.edited:
+                    if psys.is_edited:
                         split.operator("particle.edited_clear", text="Free Edit")
                     else:
                         split.label(text="")
                     row = split.row()
                     row.enabled = particle_panel_enabled(context, psys)
                     row.prop(part, "hair_step")
-                    if psys.edited:
-                        if psys.global_hair:
+                    if psys.is_edited:
+                        if psys.is_global_hair:
                             layout.operator("particle.connect_hair")
                             layout.label(text="Hair is disconnected.")
                         else:
@@ -153,7 +153,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
         psys = context.particle_system
         part = psys.settings
 
-        layout.enabled = particle_panel_enabled(context, psys) and not psys.multiple_caches
+        layout.enabled = particle_panel_enabled(context, psys) and not psys.has_multiple_caches
 
         row = layout.row()
         row.active = part.distribution != 'GRID'
@@ -764,7 +764,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
 
             if part.use_group_count and not part.whole_group:
                 row = layout.row()
-                row.template_list(part, "dupliweights", part, "active_dupliweight_index")
+                row.template_list(part, "dupli_weights", part, "active_dupliweight_index")
 
                 col = row.column()
                 sub = col.row()

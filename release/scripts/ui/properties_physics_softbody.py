@@ -25,7 +25,7 @@ from properties_physics_common import effector_weights_ui
 
 
 def softbody_panel_enabled(md):
-    return (md.point_cache.baked is False)
+    return (md.point_cache.is_baked is False)
 
 
 class PhysicButtonsPanel():
