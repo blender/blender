@@ -249,7 +249,7 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, bpy.types.Panel):
         col.label(text="Step Size:")
         col.prop(softbody, "minstep")
         col.prop(softbody, "maxstep")
-        col.prop(softbody, "auto_step", text="Auto-Step")
+        col.prop(softbody, "use_auto_step", text="Auto-Step")
 
         col = split.column()
         col.prop(softbody, "error_limit")

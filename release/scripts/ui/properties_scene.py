@@ -96,8 +96,8 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
 
             col = row.column()
             col.label(text="Keyframing Settings:")
-            col.prop(ks, "insertkey_needed", text="Needed")
-            col.prop(ks, "insertkey_visual", text="Visual")
+            col.prop(ks, "use_insertkey_needed", text="Needed")
+            col.prop(ks, "use_insertkey_visual", text="Visual")
             col.prop(ks, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
@@ -138,8 +138,8 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
 
             col = row.column()
             col.label(text="Array Target:")
-            col.prop(ksp, "entire_array")
-            if ksp.entire_array is False:
+            col.prop(ksp, "use_entire_array")
+            if ksp.use_entire_array is False:
                 col.prop(ksp, "array_index")
 
             col = row.column()
@@ -149,8 +149,8 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
                 col.prop(ksp, "group")
 
             col.label(text="Keyframing Settings:")
-            col.prop(ksp, "insertkey_needed", text="Needed")
-            col.prop(ksp, "insertkey_visual", text="Visual")
+            col.prop(ksp, "use_insertkey_needed", text="Needed")
+            col.prop(ksp, "use_insertkey_visual", text="Visual")
             col.prop(ksp, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
@@ -243,8 +243,8 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
             f.write("ks.is_path_absolute = False\n")
         f.write("\n")
 
-        f.write("ks.insertkey_needed = %s\n" % ks.insertkey_needed)
-        f.write("ks.insertkey_visual = %s\n" % ks.insertkey_visual)
+        f.write("ks.use_insertkey_needed = %s\n" % ks.use_insertkey_needed)
+        f.write("ks.use_insertkey_visual = %s\n" % ks.use_insertkey_visual)
         f.write("ks.use_insertkey_xyz_to_rgb = %s\n" % ks.use_insertkey_xyz_to_rgb)
         f.write("\n")
 
@@ -292,7 +292,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
             f.write("%s, '%s'" % (id_bpy_path, ksp.data_path))
 
             # array index settings (if applicable)
-            if ksp.entire_array:
+            if ksp.use_entire_array:
                 f.write(", index=-1")
             else:
                 f.write(", index=%d" % ksp.array_index)

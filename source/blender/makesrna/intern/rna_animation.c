@@ -395,12 +395,12 @@ static void rna_def_common_keying_flags(StructRNA *srna, short reg)
 {
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, "insertkey_needed", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_insertkey_needed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_NEEDED);
 	RNA_def_property_ui_text(prop, "Insert Keyframes - Only Needed", "Only insert keyframes where they're needed in the relevant F-Curves");
 	if (reg) RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	
-	prop= RNA_def_property(srna, "insertkey_visual", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_insertkey_visual", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_MATRIX);
 	RNA_def_property_ui_text(prop, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'");
 	if (reg) RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
@@ -519,7 +519,7 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific setting if applicable");
 	
 	/* Flags */
-	prop= RNA_def_property(srna, "entire_array", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_entire_array", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KSP_FLAG_WHOLE_ARRAY);
 	RNA_def_property_ui_text(prop, "Entire Array", "When an 'array/vector' type is chosen (Location, Rotation, Color, etc.), entire array is to be used");
 	

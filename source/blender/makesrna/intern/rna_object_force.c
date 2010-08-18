@@ -1630,7 +1630,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Fuzzy", "Fuzziness while on collision, high values make collsion handling faster but less stable");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
-	prop= RNA_def_property(srna, "auto_step", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_auto_step", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "solverflags", SBSO_OLDERR);
 	RNA_def_property_ui_text(prop, "V", "Use velocities for automagic step sizes");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");

@@ -206,34 +206,34 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, bpy.types.Panel):
             simulation = (itasc.mode == 'SIMULATION')
             if simulation:
                 layout.label(text="Reiteration:")
-                layout.prop(itasc, "reiteration", expand=True)
+                layout.prop(itasc, "reiteration_method", expand=True)
 
             split = layout.split()
-            split.active = not simulation or itasc.reiteration != 'NEVER'
+            split.active = not simulation or itasc.reiteration_method != 'NEVER'
             col = split.column()
             col.prop(itasc, "precision")
 
             col = split.column()
-            col.prop(itasc, "num_iter")
+            col.prop(itasc, "iterations")
 
 
             if simulation:
-                layout.prop(itasc, "auto_step")
+                layout.prop(itasc, "use_auto_step")
                 row = layout.row()
-                if itasc.auto_step:
-                    row.prop(itasc, "min_step", text="Min")
-                    row.prop(itasc, "max_step", text="Max")
+                if itasc.use_auto_step:
+                    row.prop(itasc, "step_min", text="Min")
+                    row.prop(itasc, "step_max", text="Max")
                 else:
-                    row.prop(itasc, "num_step")
+                    row.prop(itasc, "step_count")
 
             layout.prop(itasc, "solver")
             if simulation:
                 layout.prop(itasc, "feedback")
-                layout.prop(itasc, "max_velocity")
+                layout.prop(itasc, "velocity_max")
             if itasc.solver == 'DLS':
                 row = layout.row()
-                row.prop(itasc, "dampmax", text="Damp", slider=True)
-                row.prop(itasc, "dampeps", text="Eps", slider=True)
+                row.prop(itasc, "damping_max", text="Damp", slider=True)
+                row.prop(itasc, "damping_epsilon", text="Eps", slider=True)
 
 from properties_animviz import MotionPathButtonsPanel, OnionSkinButtonsPanel
 

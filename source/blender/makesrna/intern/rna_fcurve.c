@@ -1020,7 +1020,7 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "Driver variable type");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	
-	prop= RNA_def_property(srna, "use_local_space_transforms", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_local_space_transform", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", DTAR_FLAG_LOCALSPACE);
 	RNA_def_property_ui_text(prop, "Local Space", "Use transforms in Local Space (as opposed to the worldspace default)");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
@@ -1439,7 +1439,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	parm= RNA_def_float(func, "frame", 1.0f, -FLT_MAX, FLT_MAX, "Frame", "Evaluate fcurve at given frame", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return value */
-	parm= RNA_def_float(func, "position", 0, -FLT_MAX, FLT_MAX, "Position", "Fcurve position", -FLT_MAX, FLT_MAX);
+	parm= RNA_def_float(func, "position", 0, -FLT_MAX, FLT_MAX, "Position", "FCurve position", -FLT_MAX, FLT_MAX);
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "range", "rna_fcurve_range");

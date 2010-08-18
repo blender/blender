@@ -46,8 +46,8 @@ class TIME_HT_header(bpy.types.Header):
             row.prop(scene, "frame_start", text="Start")
             row.prop(scene, "frame_end", text="End")
         else:
-            row.prop(scene, "preview_range_frame_start", text="Start")
-            row.prop(scene, "preview_range_frame_end", text="End")
+            row.prop(scene, "frame_preview_start", text="Start")
+            row.prop(scene, "frame_preview_end", text="End")
 
         layout.prop(scene, "frame_current", text="")
 
@@ -176,10 +176,10 @@ class TIME_MT_playback(bpy.types.Menu):
 
         layout.separator()
 
-        layout.prop(scene, "frame_drop", text="Frame Dropping")
-        layout.prop(scene, "sync_audio", text="AV-sync", icon='SPEAKER')
+        layout.prop(scene, "use_frame_drop", text="Frame Dropping")
+        layout.prop(scene, "use_audio_sync", text="AV-sync", icon='SPEAKER')
         layout.prop(scene, "use_audio")
-        layout.prop(scene, "scrub_audio")
+        layout.prop(scene, "use_audio_scrub")
 
 
 class TIME_MT_autokey(bpy.types.Menu):

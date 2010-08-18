@@ -354,10 +354,10 @@ class RENDER_PT_game_sound(RenderButtonsPanel, bpy.types.Panel):
 
         scene = context.scene
 
-        layout.prop(scene, "distance_model")
+        layout.prop(scene, "audio_distance_model")
 
-        layout.prop(scene, "speed_of_sound", text="Speed")
-        layout.prop(scene, "doppler_factor")
+        layout.prop(scene, "audio_doppler_speed", text="Speed")
+        layout.prop(scene, "audio_doppler_factor")
 
 
 class WorldButtonsPanel():

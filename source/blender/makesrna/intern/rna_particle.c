@@ -756,12 +756,12 @@ static void rna_def_particle_hair_key(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Weight", "Weight for cloth simulation");
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Location (Object Space)", "Location of the hair key in object space");
 	RNA_def_property_float_funcs(prop, "rna_ParticleHairKey_location_object_get", "rna_ParticleHairKey_location_object_set", NULL);
 	
-	prop= RNA_def_property(srna, "location_hairspace", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "co_hair_space", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "co");
 	RNA_def_property_ui_text(prop, "Location", "Location of the hair key in its internal coordinate system, relative to the emitting face");
 }

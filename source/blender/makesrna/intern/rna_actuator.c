@@ -70,7 +70,7 @@ static StructRNA* rna_Actuator_refine(struct PointerRNA *ptr)
 		case ACT_OBJECT:
 			return &RNA_ObjectActuator;
 		case ACT_IPO:
-			return &RNA_FcurveActuator;
+			return &RNA_FCurveActuator;
 		case ACT_CAMERA:
 			return &RNA_CameraActuator;
 		case ACT_SOUND:
@@ -771,7 +771,7 @@ static void rna_def_fcurve_actuator(BlenderRNA *brna)
 		{ACT_IPO_FROM_PROP, "PROP", 0, "Property", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
-	srna= RNA_def_struct(brna, "FcurveActuator", "Actuator");
+	srna= RNA_def_struct(brna, "FCurveActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "F-Curve Actuator", "Actuator to animate the object");
 	RNA_def_struct_sdna_from(srna, "bIpoActuator", "data");
 
