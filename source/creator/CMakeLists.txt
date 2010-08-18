@@ -437,12 +437,12 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
         bf_editor_animation
         bf_editor_datafiles
 
-		bf_freestyle
 		blender_BSP 
 		blender_render 
 		blender_ONL 
 		bf_python 
 		bf_gen_python 
+		bf_freestyle
 		bf_ikplugin
 		bf_modifiers
 		bf_blenkernel
