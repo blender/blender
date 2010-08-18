@@ -51,14 +51,14 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             split = layout.split()
 
             col = split.column()
-            col.prop(game, "actor")
-            col.prop(game, "ghost")
+            col.prop(game, "use_actor")
+            col.prop(game, "use_ghost")
             col.prop(ob, "hide_render", text="Invisible") # out of place but useful
 
             col = split.column()
             col.prop(game, "material_physics")
             col.prop(game, "rotate_from_normal")
-            col.prop(game, "no_sleeping")
+            col.prop(game, "use_sleep")
 
             layout.separator()
 
@@ -110,8 +110,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
 
         elif game.physics_type == 'SOFT_BODY':
             col = layout.column()
-            col.prop(game, "actor")
-            col.prop(game, "ghost")
+            col.prop(game, "use_actor")
+            col.prop(game, "use_ghost")
             col.prop(ob, "hide_render", text="Invisible")
 
             layout.separator()
@@ -121,18 +121,18 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.label(text="Attributes:")
             col.prop(game, "mass")
-            col.prop(soft, "welding")
+            col.prop(soft, "weld_threshold")
             col.prop(soft, "position_iterations")
             col.prop(soft, "linstiff", slider=True)
             col.prop(soft, "dynamic_friction", slider=True)
-            col.prop(soft, "margin", slider=True)
+            col.prop(soft, "collision_margin", slider=True)
             col.prop(soft, "bending_const", text="Bending Constraints")
 
             col = split.column()
             col.prop(soft, "shape_match")
             sub = col.column()
             sub.active = soft.shape_match
-            sub.prop(soft, "threshold", slider=True)
+            sub.prop(soft, "shape_threshold", slider=True)
 
             col.separator()
 
@@ -145,8 +145,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
 
         elif game.physics_type == 'STATIC':
             col = layout.column()
-            col.prop(game, "actor")
-            col.prop(game, "ghost")
+            col.prop(game, "use_actor")
+            col.prop(game, "use_ghost")
             col.prop(ob, "hide_render", text="Invisible")
 
         elif game.physics_type in ('SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'):

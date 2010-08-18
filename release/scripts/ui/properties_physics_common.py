@@ -71,7 +71,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             sub.prop(cache, "quick_cache")
 
             sub = col.column()
-            sub.enabled = bpy.data.file_is_saved
+            sub.enabled = (not bpy.data.is_dirty)
             sub.prop(cache, "disk_cache")
             col.label(text=cache.info)
 

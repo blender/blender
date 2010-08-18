@@ -145,7 +145,7 @@ static void rna_def_animviz_motion_path(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // xxx
 	RNA_def_property_ui_text(prop, "Use Bone Heads", "For PoseBone paths, use the bone head location when calculating this path");
 	
-	prop= RNA_def_property(srna, "editing", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_modified", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOTIONPATH_FLAG_EDIT);
 	RNA_def_property_ui_text(prop, "Edit Path", "Path is being edited");
 }

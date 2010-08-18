@@ -1372,7 +1372,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_v");
 
 
-	prop= RNA_def_property(srna, "smooth", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_smooth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_SMOOTH);
 	RNA_def_property_ui_text(prop, "Smooth", "Smooth the normals of the surface or beveled curve");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");

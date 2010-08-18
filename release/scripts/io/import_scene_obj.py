@@ -726,7 +726,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 
 
                 if context_smooth_group:
-                    blender_face.smooth= True
+                    blender_face.use_smooth = True
 
                 if context_material:
                     if context_material_old is not context_material:
@@ -792,7 +792,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 # 		for fgon_edge in fgon_edges.keys():
 # 			for ed in me.edges:
 # 				if edges_match(fgon_edge, ed.vertices):
-# 					ed.fgon = True
+# 					ed.is_fgon = True
 
 # 	if CREATE_FGONS and fgon_edges:
 # 		FGON= Mesh.EdgeFlags.FGON
@@ -806,7 +806,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 # 		for sharp_edge in sharp_edges.keys():
 # 			for ed in me.edges:
 # 				if edges_match(sharp_edge, ed.vertices):
-# 					ed.sharp = True
+# 					ed.use_sharp = True
 
 # 	if unique_smooth_groups and sharp_edges:
 # 		SHARP= Mesh.EdgeFlags.SHARP

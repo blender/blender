@@ -302,7 +302,7 @@ class InfoFunctionRNA:
         self.identifier = rna_func.identifier
         # self.name = rna_func.name # functions have no name!
         self.description = rna_func.description.strip()
-        self.is_classmethod = rna_func.no_self
+        self.is_classmethod = not rna_func.use_self
 
         self.args = []
         self.return_values = ()

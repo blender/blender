@@ -374,7 +374,7 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         raym = active_node_mat(context.material).raytrace_mirror
 
-        self.layout.prop(raym, "enabled", text="")
+        self.layout.prop(raym, "use", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -382,7 +382,7 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel, bpy.types.Panel):
         mat = active_node_mat(context.material)
         raym = mat.raytrace_mirror
 
-        layout.active = raym.enabled
+        layout.active = raym.use
 
         split = layout.split()
 
@@ -434,7 +434,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel, bpy.types.Panel):
         sss = mat.subsurface_scattering
 
         self.layout.active = (not mat.shadeless)
-        self.layout.prop(sss, "enabled", text="")
+        self.layout.prop(sss, "use", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -442,7 +442,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel, bpy.types.Panel):
         mat = active_node_mat(context.material)
         sss = mat.subsurface_scattering
 
-        layout.active = (sss.enabled) and (not mat.shadeless)
+        layout.active = (sss.use) and (not mat.shadeless)
 
         row = layout.row().split()
         sub = row.row(align=True).split(percentage=0.75)

@@ -452,10 +452,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
             sub = row.row()
             sub.scale_x = 2.0
 
-            if not context.screen.animation_playing:
-                sub.operator("screen.animation_play", text="", icon='PLAY')
-            else:
-                sub.operator("screen.animation_play", text="", icon='PAUSE')
+            sub.operator("screen.animation_play", text="", icon='PAUSE' if context.screen.is_animation_playing else 'PLAY')
 
             row.label("Cut To")
             for i in range(1, strip.channel):
@@ -620,7 +617,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
         else:
             row.operator("sound.pack", icon='UGLYPACKAGE', text="Pack")
 
-        row.prop(strip.sound, "caching")
+        row.prop(strip.sound, "use_memory_cache")
 
         layout.prop(strip, "volume")
         layout.prop(strip, "attenuation")

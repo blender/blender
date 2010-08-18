@@ -177,10 +177,8 @@ def extend(obj, operator, EXTEND_MODE):
             except:
                 edge_faces[edkey] = [i]
 
-    #SEAM = me.edges.seam
-
     if EXTEND_MODE == 'LENGTH':
-        edge_loops = me.edge_loops_from_faces(face_sel, [ed.key for ed in me.edges if ed.seam])
+        edge_loops = me.edge_loops_from_faces(face_sel, [ed.key for ed in me.edges if ed.use_seam])
         me_verts = me.vertices
         for loop in edge_loops:
             looplen = [0.0]
@@ -192,7 +190,7 @@ def extend(obj, operator, EXTEND_MODE):
 
     # remove seams, so we dont map accross seams.
     for ed in me.edges:
-        if ed.seam:
+        if ed.use_seam:
             # remove the edge pair if we can
             try:
                 del edge_faces[ed.key]

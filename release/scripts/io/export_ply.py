@@ -156,7 +156,7 @@ def write(filename, scene, ob, \
     for i, f in enumerate(mesh.faces):
 
 
-        smooth = f.smooth
+        smooth = f.use_smooth
         if not smooth:
             normal = tuple(f.normal)
             normal_key = rvec3d(normal)

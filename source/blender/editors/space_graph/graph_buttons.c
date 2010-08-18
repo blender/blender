@@ -457,7 +457,7 @@ static void graph_panel_driverVar__locDiff(const bContext *C, uiLayout *layout, 
 			uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 		
-		uiItemR(col, &dtar_ptr, "use_local_space_transforms", 0, NULL, 0);
+		uiItemR(col, &dtar_ptr, "use_local_space_transform", 0, NULL, 0);
 	
 	col= uiLayoutColumn(layout, 1);
 		uiTemplateAnyID(col, (bContext *)C, &dtar2_ptr, "id", "id_type", "Ob/Bone 2:");
@@ -469,7 +469,7 @@ static void graph_panel_driverVar__locDiff(const bContext *C, uiLayout *layout, 
 			uiItemPointerR(col, &dtar2_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 		
-		uiItemR(col, &dtar2_ptr, "use_local_space_transforms", 0, NULL, 0);
+		uiItemR(col, &dtar2_ptr, "use_local_space_transform", 0, NULL, 0);
 }
 
 /* settings for 'transform channel' driver variable type */
@@ -496,7 +496,7 @@ static void graph_panel_driverVar__transChan(const bContext *C, uiLayout *layout
 		
 		row= uiLayoutRow(layout, 1);
 			uiItemR(row, &dtar_ptr, "transform_type", 0, "", 0);
-			uiItemR(row, &dtar_ptr, "use_local_space_transforms", 0, NULL, 0);
+			uiItemR(row, &dtar_ptr, "use_local_space_transform", 0, NULL, 0);
 }
 
 /* driver settings for active F-Curve (only for 'Drivers' mode) */

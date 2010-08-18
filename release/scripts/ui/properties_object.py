@@ -151,7 +151,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, bpy.types.Panel):
                 split = col.box().split()
 
                 col = split.column()
-                col.prop(group, "layer", text="Dupli")
+                col.prop(group, "layers", text="Dupli")
 
                 col = split.column()
                 col.prop(group, "dupli_offset", text="")

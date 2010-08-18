@@ -40,7 +40,7 @@ class TEXT_HT_header(bpy.types.Header):
                 sub.menu("TEXT_MT_edit")
                 sub.menu("TEXT_MT_format")
 
-        if text and text.modified:
+        if text and text.is_modified:
             row = layout.row()
             # row.color(redalert)
             row.operator("text.resolve_conflict", text="", icon='HELP')
@@ -62,7 +62,7 @@ class TEXT_HT_header(bpy.types.Header):
 
             row = layout.row()
             if text.filepath:
-                if text.dirty:
+                if text.is_dirty:
                     row.label(text="File: *%s (unsaved)" % text.filepath)
                 else:
                     row.label(text="File: %s" % text.filepath)

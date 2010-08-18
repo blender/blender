@@ -195,7 +195,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
         if coll:
             settings = context.object.collision
 
-            layout.active = settings.enabled
+            layout.active = settings.use
 
             split = layout.split()
 

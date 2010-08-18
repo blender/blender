@@ -185,7 +185,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_GROUP, 0);
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
-	prop= RNA_def_property(srna, "filtering_group", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "filter_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "filter_grp");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Filtering Group", "Group that included Object should be a member of");

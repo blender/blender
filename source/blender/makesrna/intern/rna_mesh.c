@@ -1174,24 +1174,22 @@ static void rna_def_medge(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Hide", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
-	prop= RNA_def_property(srna, "seam", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_seam", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SEAM);
 	RNA_def_property_ui_text(prop, "Seam", "Seam edge for UV unwrapping");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
-	prop= RNA_def_property(srna, "sharp", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_sharp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SHARP);
 	RNA_def_property_ui_text(prop, "Sharp", "Sharp edge for the EdgeSplit modifier");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
-	prop= RNA_def_property(srna, "loose", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_loose", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_LOOSEEDGE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Loose", "Loose edge");
 
-	prop= RNA_def_property(srna, "fgon", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_fgon", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_FGON);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Fgon", "Fgon edge");
 
 	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
@@ -1241,7 +1239,7 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Hide", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
-	prop= RNA_def_property(srna, "smooth", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_smooth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SMOOTH);
 	RNA_def_property_ui_text(prop, "Smooth", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");

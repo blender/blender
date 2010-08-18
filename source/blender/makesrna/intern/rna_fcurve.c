@@ -660,12 +660,12 @@ static void rna_def_fmodifier_envelope_ctrl(BlenderRNA *brna)
 	 *	- for now, these are allowed to go past each other, so that we can have inverted action
 	 *	- technically, the range is limited by the settings in the envelope-modifier data, not here...
 	 */
-	prop= RNA_def_property(srna, "minimum", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "min");
 	RNA_def_property_ui_text(prop, "Minimum Value", "Lower bound of envelope at this control-point");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
-	prop= RNA_def_property(srna, "maximum", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max");
 	RNA_def_property_ui_text(prop, "Maximum Value", "Upper bound of envelope at this control-point");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
@@ -837,14 +837,15 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Noise F-Modifier", "Gives randomness to the modified F-Curve");
 	RNA_def_struct_sdna_from(srna, "FMod_Noise", "data");
 	
-	prop= RNA_def_property(srna, "modification", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "modification");
 	RNA_def_property_enum_items(prop, prop_modification_items);
-	RNA_def_property_ui_text(prop, "Modification", "Method of modifying the existing F-Curve");
+	RNA_def_property_ui_text(prop, "Blend Type", "Method of modifying the existing F-Curve");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
-	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "size");
-	RNA_def_property_ui_text(prop, "Size", "Scaling (in time) of the noise");
+	RNA_def_property_ui_text(prop, "Scale", "Scaling (in time) of the noise");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
 	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
@@ -946,9 +947,9 @@ static void rna_def_fmodifier(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	RNA_def_property_ui_icon(prop, ICON_MUTE_IPO_OFF, 1);
 	
-	prop= RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_DISABLED);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", FMODIFIER_FLAG_DISABLED);
 	RNA_def_property_ui_text(prop, "Disabled", "F-Curve Modifier has invalid settings and will not be evaluated");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
@@ -1135,8 +1136,8 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Debug Info", "Show intermediate values for the driver calculations to allow debugging of drivers");
 	
 	/* State Info (for Debugging) */
-	prop= RNA_def_property(srna, "invalid", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", DRIVER_FLAG_INVALID);
+	prop= RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", DRIVER_FLAG_INVALID);
 	RNA_def_property_ui_text(prop, "Invalid", "Driver could not be evaluated in past, so should be skipped");
 	
 	
@@ -1399,7 +1400,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Muted", "F-Curve is not evaluated");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
-	prop= RNA_def_property(srna, "auto_clamped_handles", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_auto_handle_clamp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCURVE_AUTO_HANDLES);
 	RNA_def_property_ui_text(prop, "Auto Clamped Handles", "All auto-handles for F-Curve are clamped");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
@@ -1410,9 +1411,9 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 
 	/* State Info (for Debugging) */
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", FCURVE_DISABLED);
-	RNA_def_property_ui_text(prop, "Enabled", "False when F-Curve could not be evaluated in past, so should be skipped when evaluating");
+	RNA_def_property_ui_text(prop, "Valid", "False when F-Curve could not be evaluated in past, so should be skipped when evaluating");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	/* Collections */

@@ -488,7 +488,7 @@ static void rna_def_key(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "from");
 	RNA_def_property_ui_text(prop, "User", "Datablock using these shape keys");
 
-	prop= RNA_def_property(srna, "relative", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_relative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type", KEY_RELATIVE);
 	RNA_def_property_ui_text(prop, "Relative", "Makes shape keys relative");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");

@@ -126,7 +126,7 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
 	rna_Lattice_update_data(bmain, scene, ptr);
 }
 
-static void rna_Lattice_outside_set(PointerRNA *ptr, int value)
+static void rna_Lattice_use_outside_set(PointerRNA *ptr, int value)
 {
 	Lattice *lt= ptr->data;
 
@@ -198,7 +198,7 @@ static void rna_def_latticepoint(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_LatticePoint_co_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Location", "");
 
-	prop= RNA_def_property(srna, "deformed_co", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "co_deform", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Deformed Location", "");
@@ -267,9 +267,9 @@ static void rna_def_lattice(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Interpolation Type W", "");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
 
-	prop= RNA_def_property(srna, "outside", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_outside", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LT_OUTSIDE);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Lattice_outside_set");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Lattice_use_outside_set");
 	RNA_def_property_ui_text(prop, "Outside", "Only draw, and take into account, the outer vertices");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
 	

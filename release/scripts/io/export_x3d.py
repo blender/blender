@@ -461,7 +461,7 @@ class x3d_class:
         self.writeIndented("<Shape>\n",1)
         maters=mesh.materials
         hasImageTexture=0
-        issmooth=0
+        is_smooth = False
 
         if len(maters) > 0 or mesh.active_uv_texture:
         # if len(maters) > 0 or mesh.faceUV:
@@ -516,10 +516,10 @@ class x3d_class:
                 self.file.write("solid=\"true\" ")
 
             for face in mesh.faces:
-                if face.smooth:
-                     issmooth=1
-                     break
-            if issmooth==1:
+                if face.use_smooth:
+                    is_smooth = True
+                    break
+            if is_smooth == True:
                 creaseAngle=(mesh.autosmooth_angle)*(math.pi/180.0)
                 # creaseAngle=(mesh.degr)*(math.pi/180.0)
                 self.file.write("creaseAngle=\"%s\" " % (round(creaseAngle,self.cp)))

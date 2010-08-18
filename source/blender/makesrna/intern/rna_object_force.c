@@ -801,7 +801,7 @@ static void rna_def_collision(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_CollisionSettings_path");
 	RNA_def_struct_ui_text(srna, "Collision Settings", "Collision settings for object in physics simulation");
 	
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "deflect", 1);
 	RNA_def_property_ui_text(prop, "Enabled", "Enable this objects as a collider for physics systems");
 	RNA_def_property_update(prop, 0, "rna_CollisionSettings_dependency_update");
@@ -1372,17 +1372,17 @@ static void rna_def_game_softbody(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Friction", "Dynamic Friction");
 	
-	prop= RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "shape_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "kMT");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Threshold", "Shape matching threshold");
 	
-	prop= RNA_def_property(srna, "margin", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "collision_margin", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "margin");
 	RNA_def_property_range(prop, 0.01f, 1.0f);
 	RNA_def_property_ui_text(prop, "Margin", "Collision margin for soft body. Small value makes the algorithm unstable");
 	
-	prop= RNA_def_property(srna, "welding", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "weld_threshold", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "welding");
 	RNA_def_property_range(prop, 0.0f, 0.01f);
 	RNA_def_property_ui_text(prop, "Welding", "Welding threshold: distance between nearby vertices to be considered equal => set to 0.0 to disable welding test and speed up scene loading (ok if the mesh has no duplicates)");

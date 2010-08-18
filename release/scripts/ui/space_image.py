@@ -138,7 +138,7 @@ class IMAGE_MT_image(bpy.types.Menu):
 
                 # only for dirty && specific image types, perhaps
                 # this could be done in operator poll too
-                if ima.dirty:
+                if ima.is_dirty:
                     if ima.source in ('FILE', 'GENERATED') and ima.type != 'MULTILAYER':
                         layout.operator("image.pack", text="Pack As PNG").as_png = True
 
@@ -278,7 +278,7 @@ class IMAGE_HT_header(bpy.types.Header):
             if show_uvedit:
                 sub.menu("IMAGE_MT_select")
 
-            if ima and ima.dirty:
+            if ima and ima.is_dirty:
                 sub.menu("IMAGE_MT_image", text="Image*")
             else:
                 sub.menu("IMAGE_MT_image", text="Image")

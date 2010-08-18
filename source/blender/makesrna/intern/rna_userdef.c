@@ -1845,7 +1845,7 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SolidLight");
 	RNA_def_struct_ui_text(srna, "Solid Light", "Light used for OpenGL lighting in solid draw mode");
 	
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 1);
 	RNA_def_property_ui_text(prop, "Enabled", "Enable this OpenGL light in solid draw mode");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");

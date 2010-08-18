@@ -92,7 +92,7 @@ class SaveDirty(bpy.types.Operator):
     def execute(self, context):
         unique_paths = set()
         for image in bpy.data.images:
-            if image.dirty:
+            if image.is_dirty:
                 filepath = bpy.path.abspath(image.filepath)
                 if "\\" not in filepath and "/" not in filepath:
                     self.report({'WARNING'}, "Invalid path: " + filepath)

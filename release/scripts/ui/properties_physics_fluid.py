@@ -65,7 +65,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
             row = layout.row()
             row.prop(fluid, "type")
             if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
-                row.prop(fluid, "active", text="")
+                row.prop(fluid, "use", text="")
 
             layout = layout.column()
             if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):

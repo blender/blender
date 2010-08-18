@@ -370,7 +370,7 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "CurveMapping", NULL);
 	RNA_def_struct_ui_text(srna, "CurveMapping", "Curve mapping to map color, vector and scalar values to other values using a user defined curve");
 	
-	prop= RNA_def_property(srna, "clip", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_clip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CUMA_DO_CLIP);
 	RNA_def_property_ui_text(prop, "Clip", "Force the curve view to fit a defined boundary");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_CurveMapping_clip_set");

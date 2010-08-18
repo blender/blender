@@ -173,9 +173,9 @@ class InputKeyMapPanel(bpy.types.Panel):
         row.label()
         row.label()
 
-        if km.modal:
+        if km.is_modal:
             row.label(text="", icon='LINKED')
-        if km.user_defined:
+        if km.is_user_defined:
             op = row.operator("wm.keymap_restore", text="Restore")
         else:
             op = row.operator("wm.keymap_edit", text="Edit")
@@ -199,7 +199,7 @@ class InputKeyMapPanel(bpy.types.Panel):
                 # "Add New" at end of keymap item list
                 col = self.indented_layout(col, level + 1)
                 subcol = col.split(percentage=0.2).column()
-                subcol.enabled = km.user_defined
+                subcol.enabled = km.is_user_defined
                 op = subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
 
             col.separator()
@@ -217,7 +217,7 @@ class InputKeyMapPanel(bpy.types.Panel):
 
         col = self.indented_layout(layout, level)
 
-        if km.user_defined:
+        if km.is_user_defined:
             col = col.column(align=True)
             box = col.box()
         else:
@@ -230,16 +230,16 @@ class InputKeyMapPanel(bpy.types.Panel):
         row.prop(kmi, "show_expanded", text="", emboss=False)
 
         row = split.row()
-        row.enabled = km.user_defined
+        row.enabled = km.is_user_defined
         row.prop(kmi, "active", text="", emboss=False)
 
-        if km.modal:
+        if km.is_modal:
             row.prop(kmi, "propvalue", text="")
         else:
             row.label(text=kmi.name)
 
         row = split.row()
-        row.enabled = km.user_defined
+        row.enabled = km.is_user_defined
         row.prop(kmi, "map_type", text="")
         if map_type == 'KEYBOARD':
             row.prop(kmi, "type", text="", full_event=True)
@@ -264,13 +264,13 @@ class InputKeyMapPanel(bpy.types.Panel):
         if kmi.show_expanded:
             box = col.box()
 
-            box.enabled = km.user_defined
+            box.enabled = km.is_user_defined
 
             if map_type not in ('TEXTINPUT', 'TIMER'):
                 split = box.split(percentage=0.4)
                 sub = split.row()
 
-                if km.modal:
+                if km.is_modal:
                     sub.prop(kmi, "propvalue", text="")
                 else:
                     sub.prop(kmi, "idname", text="")
@@ -313,7 +313,7 @@ class InputKeyMapPanel(bpy.types.Panel):
                 display_properties(props)
 
             # Modal key maps attached to this operator
-            if not km.modal:
+            if not km.is_modal:
                 kmm = kc.find_keymap_modal(kmi.idname)
                 if kmm:
                     self.draw_km(display_keymaps, kc, kmm, None, layout, level + 1)
@@ -335,7 +335,7 @@ class InputKeyMapPanel(bpy.types.Panel):
                 row.label()
                 row.label()
 
-                if km.user_defined:
+                if km.is_user_defined:
                     op = row.operator("wm.keymap_restore", text="Restore")
                 else:
                     op = row.operator("wm.keymap_edit", text="Edit")
@@ -346,7 +346,7 @@ class InputKeyMapPanel(bpy.types.Panel):
                 # "Add New" at end of keymap item list
                 col = self.indented_layout(layout, 1)
                 subcol = col.split(percentage=0.2).column()
-                subcol.enabled = km.user_defined
+                subcol.enabled = km.is_user_defined
                 op = subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
 
     def draw_hierarchy(self, display_keymaps, layout):
@@ -409,7 +409,7 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
         result = False
 
         def kmistr(kmi):
-            if km.modal:
+            if km.is_modal:
                 s = ["kmi = km.items.add_modal(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value)]
             else:
                 s = ["kmi = km.items.add(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value)]
@@ -636,9 +636,9 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
             km = km.active()
 
             f.write("# Map %s\n" % km.name)
-            f.write("km = kc.add_keymap('%s', space_type='%s', region_type='%s', modal=%s)\n\n" % (km.name, km.space_type, km.region_type, km.modal))
+            f.write("km = kc.add_keymap('%s', space_type='%s', region_type='%s', modal=%s)\n\n" % (km.name, km.space_type, km.region_type, km.is_modal))
             for kmi in km.items:
-                if km.modal:
+                if km.is_modal:
                     f.write("kmi = km.items.add_modal('%s', '%s', '%s'" % (kmi.propvalue, kmi.type, kmi.value))
                 else:
                     f.write("kmi = km.items.add('%s', '%s', '%s'" % (kmi.idname, kmi.type, kmi.value))
@@ -733,7 +733,7 @@ class WM_OT_keyitem_add(bpy.types.Operator):
         km = context.keymap
         kc = wm.default_keyconfig
 
-        if km.modal:
+        if km.is_modal:
             km.items.add_modal("", 'A', 'PRESS') # kmi
         else:
             km.items.add("none", 'A', 'PRESS') # kmi
@@ -770,7 +770,7 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         wm = context.manager
-        return wm.active_keyconfig.user_defined
+        return wm.active_keyconfig.is_user_defined
 
     def execute(self, context):
         import sys

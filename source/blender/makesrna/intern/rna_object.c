@@ -1214,11 +1214,11 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Physics Type",  "Selects the type of physical representation");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "actor", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_actor", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ACTOR);
 	RNA_def_property_ui_text(prop, "Actor", "Object is detected by the Near and Radar sensor");
 
-	prop= RNA_def_property(srna, "ghost", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_ghost", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_GHOST);
 	RNA_def_property_ui_text(prop, "Ghost", "Object does not restitute collisions, like a ghost");
 
@@ -1232,7 +1232,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Radius", "Radius of bounding sphere and material physics");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "no_sleeping", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_sleep", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_COLLISION_RESPONSE);
 	RNA_def_property_ui_text(prop, "No Sleeping", "Disable auto (de)activation in physics simulation");
 
@@ -1976,7 +1976,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "DupliObject");
 	RNA_def_property_ui_text(prop, "Dupli list", "Object duplis");
 
-	prop= RNA_def_property(srna, "duplis_used", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_duplicator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLI);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 

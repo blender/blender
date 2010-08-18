@@ -127,7 +127,7 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 		
 		/* if enabled, show the group selection field too */
 		if (RNA_boolean_get(ptr, "show_only_group_objects"))
-			uiItemR(row, ptr, "filtering_group", 0, "", 0);
+			uiItemR(row, ptr, "filter_group", 0, "", 0);
 	}
 }
 
@@ -437,7 +437,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		}
 		
 		if(id->lib == NULL && !(ELEM4(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT))) {
-			uiDefButR(block, TOG, 0, "F", 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "fake_user", -1, 0, 0, -1, -1, NULL);
+			uiDefButR(block, TOG, 0, "F", 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "use_fake_user", -1, 0, 0, -1, -1, NULL);
 		}
 	}
 	
@@ -1033,7 +1033,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		}
 		
 		/* enabled */
-		uiItemR(row, &ptr, "enabled", 0, "", 0);
+		uiItemR(row, &ptr, "mute", 0, "", 0);
 		
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -2079,7 +2079,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	else if(RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer)) {
 		uiItemL(sub, name, icon);
 		uiBlockSetEmboss(block, UI_EMBOSS);
-		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "enabled", 0, 0, 0, 0, 0,  NULL);
+		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "use", 0, 0, 0, 0, 0,  NULL);
 	}
 	else if(itemptr->type == &RNA_ShapeKey) {
 		ob= (Object*)activeptr->data;

@@ -814,7 +814,7 @@ static int rna_Function_registered_optional_get(PointerRNA *ptr)
 static int rna_Function_no_self_get(PointerRNA *ptr)
 {
 	FunctionRNA *func= (FunctionRNA*)ptr->data;
-	return func->flag & FUNC_NO_SELF;
+	return !(func->flag & FUNC_NO_SELF);
 }
 
 /* Blender RNA */
@@ -1009,12 +1009,12 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_Property_use_output_get", NULL);
 	RNA_def_property_ui_text(prop, "Return", "True when this property is an output value from an RNA function");
 
-	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_registered", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_registered_get", NULL);
 	RNA_def_property_ui_text(prop, "Registered", "Property is registered as part of type registration");
 
-	prop= RNA_def_property(srna, "registered_optional", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_registered_optional", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_registered_optional_get", NULL);
 	RNA_def_property_ui_text(prop, "Registered Optionally", "Property is optionally registered as part of type registration");
@@ -1046,17 +1046,17 @@ static void rna_def_function(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, "rna_Function_parameters_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Parameters", "Parameters for the function");
 
-	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_registered", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Function_registered_get", NULL);
 	RNA_def_property_ui_text(prop, "Registered", "Function is registered as callback as part of type registration");
 
-	prop= RNA_def_property(srna, "registered_optional", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_registered_optional", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Function_registered_optional_get", NULL);
 	RNA_def_property_ui_text(prop, "Registered Optionally", "Function is optionally registered as callback part of type registration");
 
-	prop= RNA_def_property(srna, "no_self", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_self", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Function_no_self_get", NULL);
 	RNA_def_property_ui_text(prop, "No Self", "Function does not pass its self as an argument (becomes a class method in python)");

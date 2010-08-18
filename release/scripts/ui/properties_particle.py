@@ -625,8 +625,8 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, bpy.types.Panel):
             row = layout.row()
             row.prop(rule, "name", text="")
             #somebody make nice icons for boids here please! -jahka
-            row.prop(rule, "in_air", icon='MOVE_UP_VEC', text="")
-            row.prop(rule, "on_land", icon='MOVE_DOWN_VEC', text="")
+            row.prop(rule, "use_in_air", icon='MOVE_UP_VEC', text="")
+            row.prop(rule, "use_on_land", icon='MOVE_DOWN_VEC', text="")
 
             row = layout.row()
 

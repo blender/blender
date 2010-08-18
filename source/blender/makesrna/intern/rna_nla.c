@@ -463,7 +463,7 @@ static void rna_def_nlatrack(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLATRACK_ACTIVE);
 	RNA_def_property_ui_text(prop, "Active", "NLA Track is active");
 	
-	prop= RNA_def_property(srna, "solo", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_solo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* can be made editable by hooking it up to the necessary NLA API methods */
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLATRACK_SOLO);
 	RNA_def_property_ui_text(prop, "Solo", "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)");

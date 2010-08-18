@@ -52,7 +52,7 @@ class Library(bpy_types.ID):
 
         # See: readblenentry.c, IDTYPE_FLAGS_ISLINKABLE, we could make this an attribute in rna.
         attr_links = "actions", "armatures", "brushes", "cameras", \
-                "curves", "gpencil", "groups", "images", \
+                "curves", "grease_pencil", "groups", "images", \
                 "lamps", "lattices", "materials", "metaballs", \
                 "meshes", "node_groups", "objects", "scenes", \
                 "sounds", "textures", "texts", "fonts", "worlds"

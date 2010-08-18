@@ -1519,7 +1519,7 @@ def write(filename, batch_objects = None, \
 
         # write loose edges as faces.
         for ed in me.edges:
-            if ed.loose:
+            if ed.is_loose:
                 ed_val = ed.vertices[:]
                 ed_val = ed_val[0], ed_val[-1] ^ -1
 
@@ -1584,11 +1584,11 @@ def write(filename, batch_objects = None, \
         i=-1
         for f in me.faces:
             if i==-1:
-                file.write('%i' % f.smooth);	i=0
+                file.write('%i' % f.use_smooth);	i=0
             else:
                 if i==54:
                     file.write('\n			 ');	i=0
-                file.write(',%i' % f.smooth)
+                file.write(',%i' % f.use_smooth)
             i+=1
 
         file.write('\n\t\t}')
@@ -1602,21 +1602,17 @@ def write(filename, batch_objects = None, \
             ReferenceInformationType: "Direct"
             Smoothing: ''')
 
-# 		SHARP = Blender.Mesh.EdgeFlags.SHARP
         i=-1
         for ed in me.edges:
             if i==-1:
-                file.write('%i' % (ed.sharp));	i=0
-# 				file.write('%i' % ((ed.flag&SHARP)!=0));	i=0
+                file.write('%i' % (ed.use_sharp));	i=0
             else:
                 if i==54:
                     file.write('\n			 ');	i=0
-                file.write(',%i' % (ed.sharp))
-# 				file.write(',%i' % ((ed.flag&SHARP)!=0))
+                file.write(',%i' % (ed.use_sharp))
             i+=1
 
         file.write('\n\t\t}')
-# 		del SHARP
 
         # small utility function
         # returns a slice of data depending on number of face verts

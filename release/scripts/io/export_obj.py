@@ -496,24 +496,24 @@ def write_file(filepath, objects, scene,
             if EXPORT_KEEP_VERT_ORDER:
                 pass
             elif faceuv:
-                face_index_pairs.sort(key=lambda a: (a[0].material_index, hash(uv_layer[a[1]].image), a[0].smooth))
+                face_index_pairs.sort(key=lambda a: (a[0].material_index, hash(uv_layer[a[1]].image), a[0].use_smooth))
             elif len(materials) > 1:
-                face_index_pairs.sort(key = lambda a: (a[0].material_index, a[0].smooth))
+                face_index_pairs.sort(key = lambda a: (a[0].material_index, a[0].use_smooth))
             else:
                 # no materials
-                face_index_pairs.sort(key = lambda a: a[0].smooth)
+                face_index_pairs.sort(key = lambda a: a[0].use_smooth)
 #           if EXPORT_KEEP_VERT_ORDER:
 #               pass
 #           elif faceuv:
-#               try:    faces.sort(key = lambda a: (a.mat, a.image, a.smooth))
-#               except: faces.sort(lambda a,b: cmp((a.mat, a.image, a.smooth), (b.mat, b.image, b.smooth)))
+#               try:    faces.sort(key = lambda a: (a.mat, a.image, a.use_smooth))
+#               except: faces.sort(lambda a,b: cmp((a.mat, a.image, a.use_smooth), (b.mat, b.image, b.use_smooth)))
 #           elif len(materials) > 1:
-#               try:    faces.sort(key = lambda a: (a.mat, a.smooth))
-#               except: faces.sort(lambda a,b: cmp((a.mat, a.smooth), (b.mat, b.smooth)))
+#               try:    faces.sort(key = lambda a: (a.mat, a.use_smooth))
+#               except: faces.sort(lambda a,b: cmp((a.mat, a.use_smooth), (b.mat, b.use_smooth)))
 #           else:
 #               # no materials
-#               try:    faces.sort(key = lambda a: a.smooth)
-#               except: faces.sort(lambda a,b: cmp(a.smooth, b.smooth))
+#               try:    faces.sort(key = lambda a: a.use_smooth)
+#               except: faces.sort(lambda a,b: cmp(a.use_smooth, b.use_smooth))
 
             # Set the default mat to no material and no image.
             contextMat = (0, 0) # Can never be this, so we will label a new material teh first chance we get.
@@ -559,7 +559,7 @@ def write_file(filepath, objects, scene,
             # NORMAL, Smooth/Non smoothed.
             if EXPORT_NORMALS:
                 for f, f_index in face_index_pairs:
-                    if f.smooth:
+                    if f.use_smooth:
                         for v_idx in f.vertices:
                             v = me_verts[v_idx]
                             noKey = veckey3d(v.normal)
@@ -600,7 +600,7 @@ def write_file(filepath, objects, scene,
                 #   f_v.pop()
 
 #               f_v= f.v
-                f_smooth= f.smooth
+                f_smooth= f.use_smooth
                 f_mat = min(f.material_index, len(materialNames)-1)
 #               f_mat = min(f.mat, len(materialNames)-1)
                 if faceuv:
@@ -722,7 +722,7 @@ def write_file(filepath, objects, scene,
             # Write edges.
             if EXPORT_EDGES:
                 for ed in edges:
-                    if ed.loose:
+                    if ed.is_loose:
                         file.write('f %d %d\n' % (ed.vertices[0] + totverts, ed.vertices[1] + totverts))
 
             # Make the indicies global rather then per mesh

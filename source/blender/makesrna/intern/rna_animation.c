@@ -327,7 +327,7 @@ static PointerRNA rna_KeyingSet_typeinfo_get(PointerRNA *ptr)
 
 
 static KS_Path *rna_KeyingSet_paths_add(KeyingSet *keyingset, ReportList *reports, 
-		ID *id, char rna_path[], int index, int grouping_method, char group_name[])
+		ID *id, char rna_path[], int index, int group_method, char group_name[])
 {
 	KS_Path *ksp = NULL;
 	short flag = 0;
@@ -340,7 +340,7 @@ static KS_Path *rna_KeyingSet_paths_add(KeyingSet *keyingset, ReportList *report
 	
 	/* if data is valid, call the API function for this */
 	if (keyingset) {
-		ksp= BKE_keyingset_add_path(keyingset, id, group_name, rna_path, index, flag, grouping_method);
+		ksp= BKE_keyingset_add_path(keyingset, id, group_name, rna_path, index, flag, group_method);
 		keyingset->active_path= BLI_countlist(&keyingset->paths); 
 	}
 	else {
@@ -504,7 +504,7 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Group Name", "Name of Action Group to assign setting(s) for this path to");
 	
 	/* Grouping */
-	prop= RNA_def_property(srna, "grouping", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "group_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "groupmode");
 	RNA_def_property_enum_items(prop, keyingset_path_grouping_items);
 	RNA_def_property_ui_text(prop, "Grouping Method", "Method used to define which Group-name to use");
@@ -559,7 +559,7 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 		/* index (defaults to -1 for entire array) */
 	parm=RNA_def_int(func, "index", -1, -1, INT_MAX, "Index", "The index of the destination property (i.e. axis of Location/Rotation/etc.), or -1 for the entire array.", 0, INT_MAX);
 		/* grouping */
-	parm=RNA_def_enum(func, "grouping_method", keyingset_path_grouping_items, KSP_GROUP_KSNAME, "Grouping Method", "Method used to define which Group-name to use.");
+	parm=RNA_def_enum(func, "group_method", keyingset_path_grouping_items, KSP_GROUP_KSNAME, "Grouping Method", "Method used to define which Group-name to use.");
 	parm=RNA_def_string(func, "group_name", "", 64, "Group Name", "Name of Action Group to assign destination to (only if grouping mode is to use this name).");
 
 
@@ -618,7 +618,8 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Path Index", "Current Keying Set index");
 	
 	/* Flags */
-	prop= RNA_def_property(srna, "absolute", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_path_absolute", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYINGSET_ABSOLUTE);
 	RNA_def_property_ui_text(prop, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");	
 	
@@ -670,7 +671,7 @@ void rna_def_animdata(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, nla_mode_extend_items);
 	RNA_def_property_ui_text(prop, "Action Extrapolation", "Action to take for gaps past the Active Action's range (when evaluating with NLA)");
 	
-	prop= RNA_def_property(srna, "action_blending", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "action_blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "act_blendmode");
 	RNA_def_property_enum_items(prop, nla_mode_blend_items);
 	RNA_def_property_ui_text(prop, "Action Blending", "Method used for combining Active Action's result with result of NLA stack");
@@ -688,7 +689,7 @@ void rna_def_animdata(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Drivers", "The Drivers/Expressions for this datablock");
 	
 	/* General Settings */
-	prop= RNA_def_property(srna, "nla_enabled", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_nla", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ADT_NLA_EVAL_OFF);
 	RNA_def_property_ui_text(prop, "NLA Evaluation Enabled", "NLA stack is evaluated when evaluating this block");
 }

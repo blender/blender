@@ -57,10 +57,7 @@ def ui_items_general(col, context):
 def opengl_lamp_buttons(column, lamp):
     split = column.split(percentage=0.1)
 
-    if lamp.enabled == True:
-        split.prop(lamp, "enabled", text="", icon='OUTLINER_OB_LAMP')
-    else:
-        split.prop(lamp, "enabled", text="", icon='LAMP_DATA')
+    split.prop(lamp, "use", text="", icon='OUTLINER_OB_LAMP' if lamp.enabled else 'LAMP_DATA')
 
     col = split.column()
     col.active = lamp.enabled

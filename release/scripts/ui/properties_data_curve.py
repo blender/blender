@@ -203,7 +203,7 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, bpy.types.Panel):
             # poly's set aside since they use so few settings
             col = split.column()
             col.label(text="Cyclic:")
-            col.prop(act_spline, "smooth")
+            col.prop(act_spline, "use_smooth")
             col = split.column()
             col.prop(act_spline, "cyclic_u", text="U")
 
@@ -252,7 +252,7 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, bpy.types.Panel):
                 col.prop(act_spline, "tilt_interpolation", text="Tilt")
                 col.prop(act_spline, "radius_interpolation", text="Radius")
 
-            layout.prop(act_spline, "smooth")
+            layout.prop(act_spline, "use_smooth")
 
 
 class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):

@@ -604,7 +604,7 @@ def getUvIslands(faceGroups, me):
     # Get seams so we dont cross over seams
     edge_seams = {} # shoudl be a set
     for ed in me.edges:
-        if ed.seam:
+        if ed.use_seam:
             edge_seams[ed.key] = None # dummy var- use sets!
     # Done finding seams
 

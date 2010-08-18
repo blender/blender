@@ -210,7 +210,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
             split = layout.split(percentage=0.4)
             row = split.row()
             row.enabled = enable_edit
-            row.prop(key, "relative")
+            row.prop(key, "use_relative")
 
             row = split.row()
             row.alignment = 'RIGHT'
