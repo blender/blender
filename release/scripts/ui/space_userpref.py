@@ -57,10 +57,10 @@ def ui_items_general(col, context):
 def opengl_lamp_buttons(column, lamp):
     split = column.split(percentage=0.1)
 
-    split.prop(lamp, "use", text="", icon='OUTLINER_OB_LAMP' if lamp.enabled else 'LAMP_DATA')
+    split.prop(lamp, "use", text="", icon='OUTLINER_OB_LAMP' if lamp.use else 'LAMP_DATA')
 
     col = split.column()
-    col.active = lamp.enabled
+    col.active = lamp.use
     row = col.row()
     row.label(text="Diffuse:")
     row.prop(lamp, "diffuse_color", text="")
@@ -69,7 +69,7 @@ def opengl_lamp_buttons(column, lamp):
     row.prop(lamp, "specular_color", text="")
 
     col = split.column()
-    col.active = lamp.enabled
+    col.active = lamp.use
     col.prop(lamp, "direction", text="")
 
 

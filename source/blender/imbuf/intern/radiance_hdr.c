@@ -42,6 +42,9 @@
 #ifdef WIN32
 #include <io.h>
 #endif
+
+#include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
 
 #include "imbuf.h"
