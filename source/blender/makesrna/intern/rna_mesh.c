@@ -1148,7 +1148,7 @@ static void rna_def_medge(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_MeshEdge_path");
 	RNA_def_struct_ui_icon(srna, ICON_EDGESEL);
 
-	prop= RNA_def_property(srna, "verts", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "vertices", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "v1");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
@@ -1212,7 +1212,7 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL);
 
 	// XXX allows creating invalid meshes
-	prop= RNA_def_property(srna, "verts", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "vertices", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
 	RNA_def_property_dynamic_array_funcs(prop, "rna_MeshFace_verts_get_length");
@@ -1220,7 +1220,7 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
 
 	/* leaving this fixed size array for foreach_set used in import scripts */
-	prop= RNA_def_property(srna, "verts_raw", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "vertices_raw", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "v1");
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Vertices", "Fixed size vertex indices array");
@@ -1640,7 +1640,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Mesh", "Mesh datablock defining geometric surfaces");
 	RNA_def_struct_ui_icon(srna, ICON_MESH_DATA);
 
-	prop= RNA_def_property(srna, "verts", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "vertices", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mvert", "totvert");
 	RNA_def_property_struct_type(prop, "MeshVertex");
 	RNA_def_property_ui_text(prop, "Vertices", "Vertices of the mesh");

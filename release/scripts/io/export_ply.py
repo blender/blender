@@ -147,7 +147,7 @@ def write(filename, scene, ob, \
     # incase
     color = uvcoord = uvcoord_key = normal = normal_key = None
 
-    mesh_verts = mesh.verts # save a lookup
+    mesh_verts = mesh.vertices # save a lookup
     ply_verts = [] # list of dictionaries
     # vdict = {} # (index, normal, uv) -> new index
     vdict = [{} for i in range(len(mesh_verts))]
@@ -168,7 +168,7 @@ def write(filename, scene, ob, \
             col = active_col_layer[i]
             col = col.color1, col.color2, col.color3, col.color4
 
-        f_verts = f.verts
+        f_verts = f.vertices
 
         pf = ply_faces[i]
         for j, vidx in enumerate(f_verts):

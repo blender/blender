@@ -26,7 +26,7 @@ import bpy
 
 def extend(obj, operator, EXTEND_MODE):
     me = obj.data
-    me_verts = me.verts
+    me_verts = me.vertices
     # script will fail without UVs
     if not me.active_uv_texture:
         me.add_uv_texture()
@@ -54,8 +54,8 @@ def extend(obj, operator, EXTEND_MODE):
             # assume a quad
             return [(vi[0], vi[1]), (vi[1], vi[2]), (vi[2], vi[3]), (vi[3], vi[0])]
 
-        vidx_source = face_source.verts
-        vidx_target = face_target.verts
+        vidx_source = face_source.vertices
+        vidx_target = face_target.vertices
 
         faceUVsource = me.active_uv_texture.data[face_source.index]
         uvs_source = [faceUVsource.uv1, faceUVsource.uv2, faceUVsource.uv3, faceUVsource.uv4]
@@ -146,7 +146,7 @@ def extend(obj, operator, EXTEND_MODE):
         operator.report({'ERROR'}, "No active face.")
         return
 
-    face_sel = [f for f in me.faces if len(f.verts) == 4 and f.select]
+    face_sel = [f for f in me.faces if len(f.vertices) == 4 and f.select]
 
     face_act_local_index = -1
     for i, f in enumerate(face_sel):
@@ -181,7 +181,7 @@ def extend(obj, operator, EXTEND_MODE):
 
     if EXTEND_MODE == 'LENGTH':
         edge_loops = me.edge_loops_from_faces(face_sel, [ed.key for ed in me.edges if ed.seam])
-        me_verts = me.verts
+        me_verts = me.vertices
         for loop in edge_loops:
             looplen = [0.0]
             for ed in loop:

@@ -221,7 +221,7 @@ def mat4x4str(mat):
 def getVertsFromGroup(me, group_index):
     ret = []
 
-    for i, v in enumerate(me.verts):
+    for i, v in enumerate(me.vertices):
         for g in v.groups:
             if g.group == group_index:
                 ret.append((i, g.weight))
@@ -243,11 +243,11 @@ def BPyMesh_meshWeight2List(ob):
 
     if not len_groupNames:
         # no verts? return a vert aligned empty list
-        return [[] for i in range(len(me.verts))], []
+        return [[] for i in range(len(me.vertices))], []
     else:
-        vWeightList= [[0.0]*len_groupNames for i in range(len(me.verts))]
+        vWeightList= [[0.0]*len_groupNames for i in range(len(me.vertices))]
 
-    for i, v in enumerate(me.verts):
+    for i, v in enumerate(me.vertices):
         for g in v.groups:
             vWeightList[i][g.group] = g.weight
 
@@ -1398,7 +1398,7 @@ def write(filename, batch_objects = None, \
                 # TODO - this is a bit lazy, we could have a simple write loop
                 # for this case because all weights are 1.0 but for now this is ok
                 # Parent Bones arent used all that much anyway.
-                vgroup_data = [(j, 1.0) for j in range(len(my_mesh.blenData.verts))]
+                vgroup_data = [(j, 1.0) for j in range(len(my_mesh.blenData.vertices))]
             else:
                 # This bone is not a parent of this mesh object, no weights
                 vgroup_data = []
@@ -1487,7 +1487,7 @@ def write(filename, batch_objects = None, \
         file.write('\n\t\tVertices: ')
         i=-1
 
-        for v in me.verts:
+        for v in me.vertices:
             if i==-1:
                 file.write('%.6f,%.6f,%.6f' % tuple(v.co));	i=0
             else:
@@ -1499,7 +1499,7 @@ def write(filename, batch_objects = None, \
         file.write('\n\t\tPolygonVertexIndex: ')
         i=-1
         for f in me.faces:
-            fi = f.verts[:]
+            fi = f.vertices[:]
 
             # last index XORd w. -1 indicates end of face
             fi[-1] = fi[-1] ^ -1
@@ -1520,7 +1520,7 @@ def write(filename, batch_objects = None, \
         # write loose edges as faces.
         for ed in me.edges:
             if ed.loose:
-                ed_val = ed.verts[:]
+                ed_val = ed.vertices[:]
                 ed_val = ed_val[0], ed_val[-1] ^ -1
 
                 if i==-1:
@@ -1538,14 +1538,14 @@ def write(filename, batch_objects = None, \
         i=-1
         for ed in me.edges:
                 if i==-1:
-                    file.write('%i,%i' % (ed.verts[0], ed.verts[1]))
+                    file.write('%i,%i' % (ed.vertices[0], ed.vertices[1]))
 # 					file.write('%i,%i' % (ed.v1.index, ed.v2.index))
                     i=0
                 else:
                     if i==13:
                         file.write('\n\t\t')
                         i=0
-                    file.write(',%i,%i' % (ed.verts[0], ed.verts[1]))
+                    file.write(',%i,%i' % (ed.vertices[0], ed.vertices[1]))
 # 					file.write(',%i,%i' % (ed.v1.index, ed.v2.index))
                 i+=1
 
@@ -1560,7 +1560,7 @@ def write(filename, batch_objects = None, \
             Normals: ''')
 
         i=-1
-        for v in me.verts:
+        for v in me.vertices:
             if i==-1:
                 file.write('%.15f,%.15f,%.15f' % tuple(v.normal));	i=0
 # 				file.write('%.15f,%.15f,%.15f' % tuple(v.no));	i=0
@@ -1622,7 +1622,7 @@ def write(filename, batch_objects = None, \
         # returns a slice of data depending on number of face verts
         # data is either a MeshTextureFace or MeshColor
         def face_data(data, face):
-            totvert = len(f.verts)
+            totvert = len(f.vertices)
 
             return data[:totvert]
 
@@ -2072,7 +2072,7 @@ def write(filename, batch_objects = None, \
 # 								ob.copy().link(me)
 # 								# If new mesh has no vgroups we can try add if verts are teh same
 # 								if not me.getVertGroupNames(): # vgroups were not kept by the modifier
-# 									if len(me.verts) == len(orig_mesh.verts):
+# 									if len(me.vertices) == len(orig_mesh.vertices):
 # 										groupNames, vWeightDict = BPyMesh.meshWeight2Dict(orig_mesh)
 # 										BPyMesh.dict2MeshWeight(me, groupNames, vWeightDict)
 
@@ -2961,7 +2961,7 @@ Takes:  {''')
     # Clear mesh data Only when writing with modifiers applied
     for me in meshes_to_clear:
         bpy.data.meshes.remove(me)
-# 		me.verts = None
+# 		me.vertices = None
 
     # --------------------------- Footer
     if world:

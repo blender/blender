@@ -137,7 +137,7 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
         if type(from_data) in (tuple, list):
             verts= [Vector(from_data[i]) for ii, i in enumerate(indices)]
         else:
-            verts= [from_data.verts[i].co for ii, i in enumerate(indices)]
+            verts= [from_data.vertices[i].co for ii, i in enumerate(indices)]
 
         for i in range(len(verts)-1, 0, -1): # same as reversed(xrange(1, len(verts))):
             if verts[i][1]==verts[i-1][0]:
@@ -154,7 +154,7 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
         if type(from_data) in (tuple, list):
             verts= [vert_treplet(Vector(from_data[i]), ii) for ii, i in enumerate(indices)]
         else:
-            verts= [vert_treplet(from_data.verts[i].co, ii) for ii, i in enumerate(indices)]
+            verts= [vert_treplet(from_data.vertices[i].co, ii) for ii, i in enumerate(indices)]
 
         edges= [(i, i-1) for i in range(len(verts))]
         if edges:
@@ -677,18 +677,18 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     # make sure the list isnt too big
     for material in materials:
         me.add_material(material)
-    #me.verts.extend([(0,0,0)]) # dummy vert
+    #me.vertices.extend([(0,0,0)]) # dummy vert
 
     me.add_geometry(len(verts_loc), 0, len(faces))
 
     # verts_loc is a list of (x, y, z) tuples
-    me.verts.foreach_set("co", unpack_list(verts_loc))
-# 	me.verts.extend(verts_loc)
+    me.vertices.foreach_set("co", unpack_list(verts_loc))
+# 	me.vertices.extend(verts_loc)
 
     # faces is a list of (vert_indices, texco_indices, ...) tuples
     # XXX faces should contain either 3 or 4 verts
     # XXX no check for valid face indices
-    me.faces.foreach_set("verts_raw", unpack_face_list([f[0] for f in faces]))
+    me.faces.foreach_set("vertices_raw", unpack_face_list([f[0] for f in faces]))
 # 	face_mapping= me.faces.extend([f[0] for f in faces], indexList=True)
 
     if verts_tex and me.faces:
@@ -776,7 +776,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
         me.add_geometry(0, len(edges), 0)
 
         # edges should be a list of (a, b) tuples
-        me.edges.foreach_set("verts", unpack_list(edges))
+        me.edges.foreach_set("vertices", unpack_list(edges))
 # 		me_edges.extend( edges )
 
 # 	del me_edges
@@ -791,7 +791,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 # 	if CREATE_FGONS and fgon_edges:
 # 		for fgon_edge in fgon_edges.keys():
 # 			for ed in me.edges:
-# 				if edges_match(fgon_edge, ed.verts):
+# 				if edges_match(fgon_edge, ed.vertices):
 # 					ed.fgon = True
 
 # 	if CREATE_FGONS and fgon_edges:
@@ -805,7 +805,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 # 	if unique_smooth_groups and sharp_edges:
 # 		for sharp_edge in sharp_edges.keys():
 # 			for ed in me.edges:
-# 				if edges_match(sharp_edge, ed.verts):
+# 				if edges_match(sharp_edge, ed.vertices):
 # 					ed.sharp = True
 
 # 	if unique_smooth_groups and sharp_edges:

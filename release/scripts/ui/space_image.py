@@ -312,7 +312,7 @@ class IMAGE_HT_header(bpy.types.Header):
                 row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
             row = layout.row(align=True)
-            row.prop(toolsettings, "snap", text="")
+            row.prop(toolsettings, "use_snap", text="")
             row.prop(toolsettings, "snap_element", text="", icon_only=True)
 
             # mesh = context.edit_object.data

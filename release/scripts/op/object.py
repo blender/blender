@@ -269,28 +269,28 @@ class ShapeTransfer(bpy.types.Operator):
 
         orig_shape_coords = me_cos(ob_act.active_shape_key.data)
 
-        orig_normals = me_nos(me.verts)
-        # orig_coords = me_cos(me.verts) # the actual mverts location isnt as relyable as the base shape :S
+        orig_normals = me_nos(me.vertices)
+        # orig_coords = me_cos(me.vertices) # the actual mverts location isnt as relyable as the base shape :S
         orig_coords = me_cos(me.shape_keys.keys[0].data)
 
         for ob_other in objects:
             me_other = ob_other.data
-            if len(me_other.verts) != len(me.verts):
+            if len(me_other.vertices) != len(me.vertices):
                 self.report({'WARNING'}, "Skipping '%s', vertex count differs" % ob_other.name)
                 continue
 
-            target_normals = me_nos(me_other.verts)
+            target_normals = me_nos(me_other.vertices)
             if me_other.shape_keys:
                 target_coords = me_cos(me_other.shape_keys.keys[0].data)
             else:
-                target_coords = me_cos(me_other.verts)
+                target_coords = me_cos(me_other.vertices)
 
             ob_add_shape(ob_other, orig_key_name)
 
             # editing the final coords, only list that stores wrapped coords
             target_shape_coords = [v.co for v in ob_other.active_shape_key.data]
 
-            median_coords = [[] for i in range(len(me.verts))]
+            median_coords = [[] for i in range(len(me.vertices))]
 
             # Method 1, edge
             if mode == 'OFFSET':
@@ -299,7 +299,7 @@ class ShapeTransfer(bpy.types.Operator):
 
             elif mode == 'RELATIVE_FACE':
                 for face in me.faces:
-                    i1, i2, i3, i4 = face.verts_raw
+                    i1, i2, i3, i4 = face.vertices_raw
                     if i4 != 0:
                         pt = BarycentricTransform(orig_shape_coords[i1],
                             orig_coords[i4], orig_coords[i1], orig_coords[i2],
@@ -339,7 +339,7 @@ class ShapeTransfer(bpy.types.Operator):
 
             elif mode == 'RELATIVE_EDGE':
                 for ed in me.edges:
-                    i1, i2 = ed.verts
+                    i1, i2 = ed.vertices
                     v1, v2 = orig_coords[i1], orig_coords[i2]
                     edge_length = (v1 - v2).length
                     n1loc = v1 + orig_normals[i1] * edge_length
@@ -505,8 +505,8 @@ class MakeDupliFace(bpy.types.Operator):
             mesh = bpy.data.meshes.new(data.name + "_dupli")
 
             mesh.add_geometry(int(len(face_verts) / 3), 0, int(len(face_verts) / (4 * 3)))
-            mesh.verts.foreach_set("co", face_verts)
-            mesh.faces.foreach_set("verts_raw", faces)
+            mesh.vertices.foreach_set("co", face_verts)
+            mesh.faces.foreach_set("vertices_raw", faces)
             mesh.update() # generates edge data
 
             # pick an object to use

@@ -88,7 +88,7 @@ class VIEW3D_HT_header(bpy.types.Header):
 
         # Snap
         row = layout.row(align=True)
-        row.prop(toolsettings, "snap", text="")
+        row.prop(toolsettings, "use_snap", text="")
         row.prop(toolsettings, "snap_element", text="", icon_only=True)
         if toolsettings.snap_element != 'INCREMENT':
             row.prop(toolsettings, "snap_target", text="")

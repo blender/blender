@@ -308,7 +308,7 @@ def write_file(filepath, objects, scene,
         of vertices is the face's group
         """
         weightDict = {}
-        for vert_index in face.verts:
+        for vert_index in face.vertices:
 #       for vert in face:
             vWeights = vWeightMap[vert_index]
 #           vWeights = vWeightMap[vert]
@@ -326,7 +326,7 @@ def write_file(filepath, objects, scene,
     def getVertsFromGroup(me, group_index):
         ret = []
 
-        for i, v in enumerate(me.verts):
+        for i, v in enumerate(me.vertices):
             for g in v.groups:
                 if g.group == group_index:
                     ret.append((i, g.weight))
@@ -422,7 +422,7 @@ def write_file(filepath, objects, scene,
             else:
                 faceuv = False
 
-            me_verts = me.verts[:]
+            me_verts = me.vertices[:]
 
             # XXX - todo, find a better way to do triangulation
             # ...removed convert_to_triface because it relies on editmesh
@@ -432,7 +432,7 @@ def write_file(filepath, objects, scene,
                 # Add a dummy object to it.
                 has_quads = False
                 for f in me.faces:
-                    if f.verts[3] != 0:
+                    if f.vertices[3] != 0:
                         has_quads = True
                         break
 
@@ -454,7 +454,7 @@ def write_file(filepath, objects, scene,
             else:
                 edges = []
 
-            if not (len(face_index_pairs)+len(edges)+len(me.verts)): # Make sure there is somthing to write
+            if not (len(face_index_pairs)+len(edges)+len(me.vertices)): # Make sure there is somthing to write
 
                 # clean up
                 bpy.data.meshes.remove(me)
@@ -560,7 +560,7 @@ def write_file(filepath, objects, scene,
             if EXPORT_NORMALS:
                 for f, f_index in face_index_pairs:
                     if f.smooth:
-                        for v_idx in f.verts:
+                        for v_idx in f.vertices:
                             v = me_verts[v_idx]
                             noKey = veckey3d(v.normal)
                             if noKey not in globalNormals:
@@ -594,9 +594,9 @@ def write_file(filepath, objects, scene,
                         vgroupsMap[v_idx].append((g.name, vWeight))
 
             for f, f_index in face_index_pairs:
-                f_v = [me_verts[v_idx] for v_idx in f.verts]
+                f_v = [me_verts[v_idx] for v_idx in f.vertices]
 
-                # if f.verts[3] == 0:
+                # if f.vertices[3] == 0:
                 #   f_v.pop()
 
 #               f_v= f.v
@@ -610,7 +610,7 @@ def write_file(filepath, objects, scene,
                     f_image = tface.image
                     f_uv = tface.uv
                     # f_uv= [tface.uv1, tface.uv2, tface.uv3]
-                    # if len(f.verts) == 4:
+                    # if len(f.vertices) == 4:
                     #   f_uv.append(tface.uv4)
 #                   f_image = f.image
 #                   f_uv= f.uv
@@ -723,7 +723,7 @@ def write_file(filepath, objects, scene,
             if EXPORT_EDGES:
                 for ed in edges:
                     if ed.loose:
-                        file.write('f %d %d\n' % (ed.verts[0] + totverts, ed.verts[1] + totverts))
+                        file.write('f %d %d\n' % (ed.vertices[0] + totverts, ed.vertices[1] + totverts))
 
             # Make the indicies global rather then per mesh
             totverts += len(me_verts)
