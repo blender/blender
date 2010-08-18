@@ -987,7 +987,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_struct_type(prop, "Sculpt");
 	RNA_def_property_ui_text(prop, "Sculpt", "");
 	
-	prop = RNA_def_property(srna, "auto_normalize", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_auto_normalize", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "auto_normalize", 1);
 	RNA_def_property_ui_text(prop, "WPaint Auto-Normalize", 
 		"Ensure all bone-deforming vertex groups add up to 1.0 while "
@@ -1010,19 +1010,19 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Particle Edit", "");
 
 	/* Transform */
-	prop= RNA_def_property(srna, "proportional_editing", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "proportional_edit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "proportional");
 	RNA_def_property_enum_items(prop, proportional_editing_items);
 	RNA_def_property_ui_text(prop, "Proportional Editing", "Proportional editing mode");
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
-	prop= RNA_def_property(srna, "proportional_editing_objects", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_proportional_edit_objects", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "proportional_objects", 0);
 	RNA_def_property_ui_text(prop, "Proportional Editing Objects", "Proportional editing object mode");
 	RNA_def_property_ui_icon(prop, ICON_PROP_OFF, 1);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
-	prop= RNA_def_property(srna, "proportional_editing_falloff", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "proportional_edit_falloff", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "prop_mode");
 	RNA_def_property_enum_items(prop, proportional_falloff_items);
 	RNA_def_property_ui_text(prop, "Proportional Editing Falloff", "Falloff type for proportional editing mode");
@@ -1035,17 +1035,17 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_range(prop, 0.01, 10.0, 10.0, 2);
 	RNA_def_property_update(prop, NC_GEOM|ND_DATA, NULL);
 
-	prop= RNA_def_property(srna, "automerge_editing", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_mesh_automerge", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "automerge", 0);
 	RNA_def_property_ui_text(prop, "AutoMerge Editing", "Automatically merge vertices moved to the same location");
 
-	prop= RNA_def_property(srna, "snap", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_snap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP);
 	RNA_def_property_ui_text(prop, "Snap", "Snap during transform");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_OFF, 1);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
-	prop= RNA_def_property(srna, "snap_align_rotation", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_snap_align_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_ROTATE);
 	RNA_def_property_ui_text(prop, "Snap Align Rotation", "Align rotation with the snapping target");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_NORMAL, 0);
@@ -1063,41 +1063,41 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Snap Target", "Which part to snap onto the target");
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
-	prop= RNA_def_property(srna, "snap_peel_object", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_snap_peel_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PEEL_OBJECT);
 	RNA_def_property_ui_text(prop, "Snap Peel Object", "Consider objects as whole when finding volume center");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_PEEL_OBJECT, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 	
-	prop= RNA_def_property(srna, "snap_project", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_snap_project", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PROJECT);
 	RNA_def_property_ui_text(prop, "Project Individual Elements", "Project vertices on the surface of other objects");
 	RNA_def_property_ui_icon(prop, ICON_RETOPO, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	/* Auto Keying */
-	prop= RNA_def_property(srna, "use_auto_keying", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_keyframe_insert_auto", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_mode", AUTOKEY_ON);
 	RNA_def_property_ui_text(prop, "Auto Keying", "Automatic keyframe insertion for Objects and Bones");
 	RNA_def_property_ui_icon(prop, ICON_REC, 0);
 	
-	prop= RNA_def_property(srna, "autokey_mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "auto_keying_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "autokey_mode");
 	RNA_def_property_enum_items(prop, auto_key_items);
 	RNA_def_property_ui_text(prop, "Auto-Keying Mode", "Mode of automatic keyframe insertion for Objects and Bones");
 	
-	prop= RNA_def_property(srna, "record_with_nla", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_record_with_nla", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", ANIMRECORD_FLAG_WITHNLA);
 	RNA_def_property_ui_text(prop, "Layered", "Add a new NLA Track + Strip for every loop/pass made over the animation to allow non-destructive tweaking");
 
 	/* UV */
-	prop= RNA_def_property(srna, "uv_selection_mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "uv_select_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "uv_selectmode");
 	RNA_def_property_enum_items(prop, uv_select_mode_items);
 	RNA_def_property_ui_text(prop, "UV Selection Mode", "UV selection and display mode");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
-	prop= RNA_def_property(srna, "uv_sync_selection", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_uv_select_sync", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uv_flag", UV_SYNC_SELECTION);
 	RNA_def_property_ui_text(prop, "UV Sync Selection", "Keep UV and edit mode mesh selection in sync");
 	RNA_def_property_ui_icon(prop, ICON_EDIT, 0);
@@ -1109,7 +1109,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	/* Mesh */
-	prop= RNA_def_property(srna, "mesh_selection_mode", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "mesh_select_mode", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "selectmode", 1);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_editmesh_select_mode_set");
@@ -1127,20 +1127,20 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Edge Tag Mode", "The edge flag to tag when selecting the shortest path");
 
 	/* etch-a-ton */
-	prop= RNA_def_property(srna, "bone_sketching", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_bone_sketching", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bone_sketching", BONE_SKETCHING);
 	RNA_def_property_ui_text(prop, "Use Bone Sketching", "DOC BROKEN");
 //	RNA_def_property_ui_icon(prop, ICON_EDIT, 0);
 
-	prop= RNA_def_property(srna, "etch_quick", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_etch_quick", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bone_sketching", BONE_SKETCHING_QUICK);
 	RNA_def_property_ui_text(prop, "Quick Sketching", "DOC BROKEN");
 
-	prop= RNA_def_property(srna, "etch_overdraw", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_etch_overdraw", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bone_sketching", BONE_SKETCHING_ADJUST);
 	RNA_def_property_ui_text(prop, "Overdraw Sketching", "DOC BROKEN");
 	
-	prop= RNA_def_property(srna, "etch_autoname", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_etch_autoname", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skgen_retarget_options", SK_RETARGET_AUTONAME);
 	RNA_def_property_ui_text(prop, "Autoname", "DOC BROKEN");
 

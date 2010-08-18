@@ -67,10 +67,10 @@ class TIME_HT_header(bpy.types.Header):
         row.operator("screen.frame_jump", text="", icon='FF').end = True
 
         row = layout.row(align=True)
-        row.prop(tools, "use_auto_keying", text="", toggle=True)
-        if screen.animation_playing and tools.use_auto_keying:
+        row.prop(tools, "use_keyframe_insert_auto", text="", toggle=True)
+        if screen.animation_playing and tools.use_keyframe_insert_auto:
             subsub = row.row()
-            subsub.prop(tools, "record_with_nla", toggle=True)
+            subsub.prop(tools, "use_record_with_nla", toggle=True)
 
         layout.prop(scene, "sync_mode", text="")
 
@@ -189,8 +189,8 @@ class TIME_MT_autokey(bpy.types.Menu):
         layout = self.layout
         tools = context.tool_settings
 
-        layout.prop_enum(tools, "autokey_mode", 'ADD_REPLACE_KEYS')
-        layout.prop_enum(tools, "autokey_mode", 'REPLACE_KEYS')
+        layout.prop_enum(tools, "auto_keying_mode", 'ADD_REPLACE_KEYS')
+        layout.prop_enum(tools, "auto_keying_mode", 'REPLACE_KEYS')
 
 def register():
     pass

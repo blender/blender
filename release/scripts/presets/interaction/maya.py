@@ -212,9 +212,9 @@ kmi.properties.extend = True
 km = kc.add_keymap('Object Mode', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.items.add('wm.context_cycle_enum', 'O', 'PRESS', shift=True)
-kmi.properties.data_path = 'tool_settings.proportional_editing_falloff'
+kmi.properties.data_path = 'tool_settings.proportional_edit_falloff'
 kmi = km.items.add('wm.context_toggle_enum', 'O', 'PRESS')
-kmi.properties.data_path = 'tool_settings.proportional_editing'
+kmi.properties.data_path = 'tool_settings.proportional_edit'
 kmi.properties.value_1 = 'DISABLED'
 kmi.properties.value_2 = 'ENABLED'
 kmi = km.items.add('view3d.game_start', 'P', 'PRESS')
@@ -363,13 +363,13 @@ kmi.properties.name = 'VIEW3D_MT_uv_map'
 kmi = km.items.add('wm.call_menu', 'G', 'PRESS', ctrl=True)
 kmi.properties.name = 'VIEW3D_MT_vertex_group'
 kmi = km.items.add('wm.context_cycle_enum', 'O', 'PRESS', shift=True)
-kmi.properties.data_path = 'tool_settings.proportional_editing_falloff'
+kmi.properties.data_path = 'tool_settings.proportional_edit_falloff'
 kmi = km.items.add('wm.context_toggle_enum', 'O', 'PRESS')
-kmi.properties.data_path = 'tool_settings.proportional_editing'
+kmi.properties.data_path = 'tool_settings.proportional_edit'
 kmi.properties.value_1 = 'DISABLED'
 kmi.properties.value_2 = 'ENABLED'
 kmi = km.items.add('wm.context_toggle_enum', 'O', 'PRESS', alt=True)
-kmi.properties.data_path = 'tool_settings.proportional_editing'
+kmi.properties.data_path = 'tool_settings.proportional_edit'
 kmi.properties.value_1 = 'DISABLED'
 kmi.properties.value_2 = 'CONNECTED'
 kmi = km.items.add('mesh.select_all', 'SELECTMOUSE', 'CLICK')

@@ -680,7 +680,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
 
         elif context.weight_paint_object and brush:
             layout.prop(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
-            layout.prop(context.tool_settings, "auto_normalize", text="Auto Normalize")
+            layout.prop(context.tool_settings, "use_auto_normalize", text="Auto Normalize")
 
             col = layout.column()
 

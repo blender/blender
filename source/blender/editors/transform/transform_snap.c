@@ -440,9 +440,9 @@ void initSnapping(TransInfo *t, wmOperator *op)
 				normalize_v3(t->tsnap.snapNormal);
 			}
 
-			if (RNA_struct_find_property(op->ptr, "snap_project"))
+			if (RNA_struct_find_property(op->ptr, "use_snap_project"))
 			{
-				t->tsnap.project = RNA_boolean_get(op->ptr, "snap_project");
+				t->tsnap.project = RNA_boolean_get(op->ptr, "use_snap_project");
 			}
 		}
 	}

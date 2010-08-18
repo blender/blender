@@ -1392,7 +1392,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			ts->proportional_size = t->prop_size;
 		}
 			
-		if (RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && !RNA_property_is_set(op->ptr, "proportional_editing_falloff")) {
+		if (RNA_struct_find_property(op->ptr, "proportional_edit_falloff") && !RNA_property_is_set(op->ptr, "proportional_edit_falloff")) {
 			ts->prop_mode = t->prop_mode;
 		}
 		
@@ -1415,7 +1415,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	if (RNA_struct_find_property(op->ptr, "proportional"))
 	{
 		RNA_enum_set(op->ptr, "proportional", proportional);
-		RNA_enum_set(op->ptr, "proportional_editing_falloff", t->prop_mode);
+		RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
 		RNA_float_set(op->ptr, "proportional_size", t->prop_size);
 	}
 

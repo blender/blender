@@ -244,8 +244,8 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(toolsettings, "proportional_editing")
-        layout.prop_menu_enum(toolsettings, "proportional_editing_falloff")
+        layout.prop_menu_enum(toolsettings, "proportional_edit")
+        layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
 
         layout.separator()
 
@@ -295,21 +295,21 @@ class IMAGE_HT_header(bpy.types.Header):
             uvedit = sima.uv_editor
 
             layout.prop(uvedit, "pivot_point", text="", icon_only=True)
-            layout.prop(toolsettings, "uv_sync_selection", text="")
+            layout.prop(toolsettings, "use_uv_select_sync", text="")
 
-            if toolsettings.uv_sync_selection:
+            if toolsettings.use_uv_select_sync:
                 row = layout.row(align=True)
-                row.prop(toolsettings, "mesh_selection_mode", text="", index=0, icon='VERTEXSEL')
-                row.prop(toolsettings, "mesh_selection_mode", text="", index=1, icon='EDGESEL')
-                row.prop(toolsettings, "mesh_selection_mode", text="", index=2, icon='FACESEL')
+                row.prop(toolsettings, "mesh_select_mode", text="", index=0, icon='VERTEXSEL')
+                row.prop(toolsettings, "mesh_select_mode", text="", index=1, icon='EDGESEL')
+                row.prop(toolsettings, "mesh_select_mode", text="", index=2, icon='FACESEL')
             else:
-                layout.prop(toolsettings, "uv_selection_mode", text="", expand=True)
+                layout.prop(toolsettings, "uv_select_mode", text="", expand=True)
                 layout.prop(uvedit, "sticky_select_mode", text="", icon_only=True)
 
             row = layout.row(align=True)
-            row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
-            if toolsettings.proportional_editing != 'DISABLED':
-                row.prop(toolsettings, "proportional_editing_falloff", text="", icon_only=True)
+            row.prop(toolsettings, "proportional_edit", text="", icon_only=True)
+            if toolsettings.proportional_edit != 'DISABLED':
+                row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
             row = layout.row(align=True)
             row.prop(toolsettings, "snap", text="")
