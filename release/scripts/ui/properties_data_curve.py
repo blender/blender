@@ -203,7 +203,7 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, bpy.types.Panel):
             # poly's set aside since they use so few settings
             col = split.column()
             col.label(text="Cyclic:")
-            col.prop(act_spline, "smooth")
+            col.prop(act_spline, "use_smooth")
             col = split.column()
             col.prop(act_spline, "cyclic_u", text="U")
 
@@ -252,7 +252,7 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, bpy.types.Panel):
                 col.prop(act_spline, "tilt_interpolation", text="Tilt")
                 col.prop(act_spline, "radius_interpolation", text="Radius")
 
-            layout.prop(act_spline, "smooth")
+            layout.prop(act_spline, "use_smooth")
 
 
 class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
@@ -287,7 +287,7 @@ class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Text on Curve:")
-        col.prop(text, "text_on_curve", text="")
+        col.prop(text, "follow_curve", text="")
 
         split = layout.split()
 
@@ -357,7 +357,7 @@ class DATA_PT_textboxes(CurveButtonsPanel, bpy.types.Panel):
         col.operator("font.textbox_add", icon='ZOOMIN')
         col = split.column()
 
-        for i, box in enumerate(text.textboxes):
+        for i, box in enumerate(text.text_boxes):
 
             boxy = layout.box()
 

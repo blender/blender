@@ -46,23 +46,23 @@ class FILEBROWSER_HT_header(bpy.types.Header):
         row = layout.row(align=True)
         row.operator("file.directory_new", text="", icon='NEWFOLDER')
 
-        layout.prop(params, "display", expand=True, text="")
-        layout.prop(params, "sort", expand=True, text="")
+        layout.prop(params, "display_type", expand=True, text="")
+        layout.prop(params, "sort_method", expand=True, text="")
 
-        layout.prop(params, "hide_dot", text="Hide Invisible")
-        layout.prop(params, "do_filter", text="", icon='FILTER')
+        layout.prop(params, "show_hidden", text="Hide Invisible")
+        layout.prop(params, "use_filter", text="", icon='FILTER')
 
         row = layout.row(align=True)
-        row.active = params.do_filter
+        row.active = params.use_filter
 
-        row.prop(params, "filter_folder", text="")
-        row.prop(params, "filter_blender", text="")
-        row.prop(params, "filter_image", text="")
-        row.prop(params, "filter_movie", text="")
-        row.prop(params, "filter_script", text="")
-        row.prop(params, "filter_font", text="")
-        row.prop(params, "filter_sound", text="")
-        row.prop(params, "filter_text", text="")
+        row.prop(params, "use_filter_folder", text="")
+        row.prop(params, "use_filter_blender", text="")
+        row.prop(params, "use_filter_image", text="")
+        row.prop(params, "use_filter_movie", text="")
+        row.prop(params, "use_filter_script", text="")
+        row.prop(params, "use_filter_font", text="")
+        row.prop(params, "use_filter_sound", text="")
+        row.prop(params, "use_filter_text", text="")
 
 
 def register():

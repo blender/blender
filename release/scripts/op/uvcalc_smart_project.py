@@ -604,7 +604,7 @@ def getUvIslands(faceGroups, me):
     # Get seams so we dont cross over seams
     edge_seams = {} # shoudl be a set
     for ed in me.edges:
-        if ed.seam:
+        if ed.use_seam:
             edge_seams[ed.key] = None # dummy var- use sets!
     # Done finding seams
 
@@ -792,7 +792,7 @@ def VectoMat(vec):
 class thickface(object):
     __slost__= 'v', 'uv', 'no', 'area', 'edge_keys'
     def __init__(self, face, uvface, mesh_verts):
-        self.v = [mesh_verts[i] for i in face.verts]
+        self.v = [mesh_verts[i] for i in face.vertices]
         if len(self.v)==4:
             self.uv = uvface.uv1, uvface.uv2, uvface.uv3, uvface.uv4
         else:
@@ -896,7 +896,7 @@ def main(context, island_margin, projection_limit):
             me.add_uv_texture()
 
         uv_layer = me.active_uv_texture.data
-        me_verts = list(me.verts)
+        me_verts = list(me.vertices)
 
         if USER_ONLY_SELECTED_FACES:
             meshFaces = [thickface(f, uv_layer[i], me_verts) for i, f in enumerate(me.faces) if f.select]

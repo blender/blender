@@ -276,14 +276,14 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 	RNA_pointer_create(id, &RNA_FModifierNoise, fcm, &ptr);
 	
 	/* blending mode */
-	uiItemR(layout, &ptr, "modification", 0, NULL, 0);
+	uiItemR(layout, &ptr, "blend_type", 0, NULL, 0);
 	
 	/* split into 2 columns */
 	split= uiLayoutSplit(layout, 0.5f, 0);
 	
 	/* col 1 */
 	col= uiLayoutColumn(split, 0);
-		uiItemR(col, &ptr, "size", 0, NULL, 0);
+		uiItemR(col, &ptr, "scale", 0, NULL, 0);
 		uiItemR(col, &ptr, "strength", 0, NULL, 0);
 	
 	/* col 2 */
@@ -616,7 +616,7 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* expand */
-		uiItemR(subrow, &ptr, "expanded", UI_ITEM_R_ICON_ONLY, "", 0);
+		uiItemR(subrow, &ptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", 0);
 		
 		/* checkbox for 'active' status (for now) */
 		uiItemR(subrow, &ptr, "active", UI_ITEM_R_ICON_ONLY, "", 0);

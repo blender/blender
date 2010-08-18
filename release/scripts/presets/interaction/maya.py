@@ -7,7 +7,7 @@ kc = wm.add_keyconfig('Maya')
 # Map 3D View
 km = kc.add_keymap('3D View', space_type='VIEW_3D', region_type='WINDOW', modal=False)
 
-kmi = km.items.add('view3d.manipulator', 'LEFTMOUSE', 'PRESS', any=True)
+kmi = km.items.add('view3d.show_manipulator', 'LEFTMOUSE', 'PRESS', any=True)
 kmi.properties.release_confirm = True
 kmi = km.items.add('view3d.cursor3d', 'ACTIONMOUSE', 'PRESS')
 kmi = km.items.add('view3d.rotate', 'LEFTMOUSE', 'PRESS', alt=True)
@@ -126,11 +126,11 @@ kmi.properties.nr = 9
 kmi = km.items.add('view3d.layers', 'ZERO', 'PRESS', any=True)
 kmi.properties.nr = 10
 kmi = km.items.add('wm.context_toggle_enum', 'Z', 'PRESS')
-kmi.properties.data_path = 'space_data.viewport_shading'
+kmi.properties.data_path = 'space_data.viewport_shade'
 kmi.properties.value_1 = 'SOLID'
 kmi.properties.value_2 = 'WIREFRAME'
 kmi = km.items.add('wm.context_toggle_enum', 'Z', 'PRESS', alt=True)
-kmi.properties.data_path = 'space_data.viewport_shading'
+kmi.properties.data_path = 'space_data.viewport_shade'
 kmi.properties.value_1 = 'TEXTURED'
 kmi.properties.value_2 = 'SOLID'
 kmi = km.items.add('view3d.select', 'SELECTMOUSE', 'PRESS')
@@ -173,9 +173,9 @@ kmi = km.items.add('wm.context_set_enum', 'COMMA', 'PRESS', ctrl=True)
 kmi.properties.data_path = 'space_data.pivot_point'
 kmi.properties.value = 'MEDIAN_POINT'
 kmi = km.items.add('wm.context_toggle', 'COMMA', 'PRESS', alt=True)
-kmi.properties.data_path = 'space_data.pivot_point_align'
+kmi.properties.data_path = 'space_data.use_pivot_point_align'
 kmi = km.items.add('wm.context_toggle', 'Q', 'PRESS')
-kmi.properties.data_path = 'space_data.manipulator'
+kmi.properties.data_path = 'space_data.show_manipulator'
 kmi = km.items.add('wm.context_set_enum', 'PERIOD', 'PRESS')
 kmi.properties.data_path = 'space_data.pivot_point'
 kmi.properties.value = 'CURSOR'
@@ -212,9 +212,9 @@ kmi.properties.extend = True
 km = kc.add_keymap('Object Mode', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.items.add('wm.context_cycle_enum', 'O', 'PRESS', shift=True)
-kmi.properties.data_path = 'tool_settings.proportional_editing_falloff'
+kmi.properties.data_path = 'tool_settings.proportional_edit_falloff'
 kmi = km.items.add('wm.context_toggle_enum', 'O', 'PRESS')
-kmi.properties.data_path = 'tool_settings.proportional_editing'
+kmi.properties.data_path = 'tool_settings.proportional_edit'
 kmi.properties.value_1 = 'DISABLED'
 kmi.properties.value_2 = 'ENABLED'
 kmi = km.items.add('view3d.game_start', 'P', 'PRESS')
@@ -363,13 +363,13 @@ kmi.properties.name = 'VIEW3D_MT_uv_map'
 kmi = km.items.add('wm.call_menu', 'G', 'PRESS', ctrl=True)
 kmi.properties.name = 'VIEW3D_MT_vertex_group'
 kmi = km.items.add('wm.context_cycle_enum', 'O', 'PRESS', shift=True)
-kmi.properties.data_path = 'tool_settings.proportional_editing_falloff'
+kmi.properties.data_path = 'tool_settings.proportional_edit_falloff'
 kmi = km.items.add('wm.context_toggle_enum', 'O', 'PRESS')
-kmi.properties.data_path = 'tool_settings.proportional_editing'
+kmi.properties.data_path = 'tool_settings.proportional_edit'
 kmi.properties.value_1 = 'DISABLED'
 kmi.properties.value_2 = 'ENABLED'
 kmi = km.items.add('wm.context_toggle_enum', 'O', 'PRESS', alt=True)
-kmi.properties.data_path = 'tool_settings.proportional_editing'
+kmi.properties.data_path = 'tool_settings.proportional_edit'
 kmi.properties.value_1 = 'DISABLED'
 kmi.properties.value_2 = 'CONNECTED'
 kmi = km.items.add('mesh.select_all', 'SELECTMOUSE', 'CLICK')
@@ -377,10 +377,10 @@ kmi.properties.action = 'DESELECT'
 
 wm.active_keyconfig = kc
 
-bpy.context.user_preferences.edit.drag_immediately = True
-bpy.context.user_preferences.edit.insertkey_xyz_to_rgb = False
+bpy.context.user_preferences.edit.use_drag_immediately = True
+bpy.context.user_preferences.edit.use_insertkey_xyz_to_rgb = False
 bpy.context.user_preferences.inputs.select_mouse = 'LEFT'
-bpy.context.user_preferences.inputs.zoom_style = 'DOLLY'
-bpy.context.user_preferences.inputs.zoom_axis = 'HORIZONTAL'
-bpy.context.user_preferences.inputs.view_rotation = 'TURNTABLE'
-bpy.context.user_preferences.inputs.invert_zoom_direction = True
+bpy.context.user_preferences.inputs.view_zoom_method = 'DOLLY'
+bpy.context.user_preferences.inputs.view_zoom_axis = 'HORIZONTAL'
+bpy.context.user_preferences.inputs.view_rotate_method = 'TURNTABLE'
+bpy.context.user_preferences.inputs.invert_mouse_wheel_zoom = True

@@ -98,16 +98,16 @@ class AddPresetRender(AddPresetBase, bpy.types.Operator):
     name = AddPresetBase.name
 
     preset_values = [
-        "bpy.context.scene.render.resolution_x",
-        "bpy.context.scene.render.resolution_y",
-        "bpy.context.scene.render.pixel_aspect_x",
-        "bpy.context.scene.render.pixel_aspect_y",
+        "bpy.context.scene.render.field_order",
         "bpy.context.scene.render.fps",
         "bpy.context.scene.render.fps_base",
+        "bpy.context.scene.render.pixel_aspect_x",
+        "bpy.context.scene.render.pixel_aspect_y",
         "bpy.context.scene.render.resolution_percentage",
-        "bpy.context.scene.render.fields",
-        "bpy.context.scene.render.field_order",
-        "bpy.context.scene.render.fields_still",
+        "bpy.context.scene.render.resolution_x",
+        "bpy.context.scene.render.resolution_y",
+        "bpy.context.scene.render.use_fields",
+        "bpy.context.scene.render.use_fields_still",
     ]
 
     preset_subdir = "render"
@@ -145,12 +145,12 @@ class AddPresetCloth(AddPresetBase, bpy.types.Operator):
     name = AddPresetBase.name
 
     preset_values = [
-        "bpy.context.cloth.settings.quality",
-        "bpy.context.cloth.settings.mass",
-        "bpy.context.cloth.settings.structural_stiffness",
-        "bpy.context.cloth.settings.bending_stiffness",
-        "bpy.context.cloth.settings.spring_damping",
         "bpy.context.cloth.settings.air_damping",
+        "bpy.context.cloth.settings.bending_stiffness",
+        "bpy.context.cloth.settings.mass",
+        "bpy.context.cloth.settings.quality",
+        "bpy.context.cloth.settings.spring_damping",
+        "bpy.context.cloth.settings.structural_stiffness",
     ]
 
     preset_subdir = "cloth"
@@ -163,19 +163,19 @@ class AddPresetSunSky(AddPresetBase, bpy.types.Operator):
     name = AddPresetBase.name
 
     preset_values = [
+        "bpy.context.object.data.sky.atmosphere_extinction",
+        "bpy.context.object.data.sky.atmosphere_inscattering",
         "bpy.context.object.data.sky.atmosphere_turbidity",
-        "bpy.context.object.data.sky.sky_blend_type",
-        "bpy.context.object.data.sky.sky_blend",
+        "bpy.context.object.data.sky.backscattered_light",
         "bpy.context.object.data.sky.horizon_brightness",
         "bpy.context.object.data.sky.spread",
-        "bpy.context.object.data.sky.sky_color_space",
-        "bpy.context.object.data.sky.sky_exposure",
         "bpy.context.object.data.sky.sun_brightness",
-        "bpy.context.object.data.sky.sun_size",
-        "bpy.context.object.data.sky.backscattered_light",
         "bpy.context.object.data.sky.sun_intensity",
-        "bpy.context.object.data.sky.atmosphere_inscattering",
-        "bpy.context.object.data.sky.atmosphere_extinction",
+        "bpy.context.object.data.sky.sun_size",
+        "bpy.context.object.data.sky.use_sky_blend",
+        "bpy.context.object.data.sky.use_sky_blend_type",
+        "bpy.context.object.data.sky.use_sky_color_space",
+        "bpy.context.object.data.sky.use_sky_exposure",
     ]
 
     preset_subdir = "sunsky"
@@ -189,16 +189,16 @@ class AddPresetInteraction(AddPresetBase, bpy.types.Operator):
     save_keyconfig = True
 
     preset_values = [
-        "bpy.context.user_preferences.edit.drag_immediately",
-        "bpy.context.user_preferences.edit.insertkey_xyz_to_rgb",
+        "bpy.context.user_preferences.edit.use_drag_immediately",
+        "bpy.context.user_preferences.edit.use_insertkey_xyz_to_rgb",
+        "bpy.context.user_preferences.inputs.invert_mouse_wheel_zoom",
         "bpy.context.user_preferences.inputs.select_mouse",
-        "bpy.context.user_preferences.inputs.zoom_style",
-        "bpy.context.user_preferences.inputs.zoom_axis",
-        "bpy.context.user_preferences.inputs.view_rotation",
-        "bpy.context.user_preferences.inputs.invert_zoom_direction",
-        "bpy.context.user_preferences.inputs.emulate_numpad",
-        "bpy.context.user_preferences.inputs.emulate_3_button_mouse",
-        "bpy.context.user_preferences.inputs.continuous_mouse",
+        "bpy.context.user_preferences.inputs.use_emulate_numpad",
+        "bpy.context.user_preferences.inputs.use_mouse_continuous",
+        "bpy.context.user_preferences.inputs.use_mouse_emulate_3_button",
+        "bpy.context.user_preferences.inputs.view_rotate_method",
+        "bpy.context.user_preferences.inputs.view_zoom_axis",
+        "bpy.context.user_preferences.inputs.view_zoom_method",
     ]
 
     preset_subdir = "interaction"

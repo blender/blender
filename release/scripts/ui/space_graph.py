@@ -44,7 +44,7 @@ class GRAPH_HT_header(bpy.types.Header):
 
         layout.template_dopesheet_filter(st.dopesheet)
 
-        layout.prop(st, "autosnap", text="")
+        layout.prop(st, "auto_snap", text="")
         layout.prop(st, "pivot_point", text="", icon_only=True)
 
         row = layout.row(align=True)
@@ -71,19 +71,19 @@ class GRAPH_MT_view(bpy.types.Menu):
         layout.operator("graph.properties", icon='MENU_PANEL')
         layout.separator()
 
-        layout.prop(st, "realtime_updates")
-        layout.prop(st, "show_cframe_indicator")
+        layout.prop(st, "use_realtime_update")
+        layout.prop(st, "show_frame_indicator")
         layout.prop(st, "show_cursor")
         layout.prop(st, "show_sliders")
-        layout.prop(st, "automerge_keyframes")
+        layout.prop(st, "use_auto_merge_keyframes")
 
         layout.separator()
         if st.show_handles:
             layout.operator("graph.handles_view_toggle", icon='CHECKBOX_HLT', text="Show All Handles")
         else:
             layout.operator("graph.handles_view_toggle", icon='CHECKBOX_DEHLT', text="Show All Handles")
-        layout.prop(st, "only_selected_curves_handles")
-        layout.prop(st, "only_selected_keyframe_handles")
+        layout.prop(st, "use_only_selected_curves_handles")
+        layout.prop(st, "use_only_selected_keyframe_handles")
         layout.operator("anim.time_toggle")
 
         layout.separator()

@@ -727,11 +727,11 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
 	/* flags */
-	prop= RNA_def_property(srna, "baked", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_baked", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_BAKED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	prop= RNA_def_property(srna, "baking", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_baking", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_BAKING);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -740,7 +740,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Disk Cache", "Save cache files to disk (.blend file must be saved first)");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_toggle_disk_cache");
 
-	prop= RNA_def_property(srna, "outdated", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_outdated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_OUTDATED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Cache is outdated", "");
@@ -780,7 +780,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Library Path", "Use this files path when library linked into another file.");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
-	prop= RNA_def_property(srna, "point_cache_list", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "point_caches", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_funcs(prop, "rna_Cache_list_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache List", "Point cache list");
@@ -801,7 +801,7 @@ static void rna_def_collision(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_CollisionSettings_path");
 	RNA_def_struct_ui_text(srna, "Collision Settings", "Collision settings for object in physics simulation");
 	
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "deflect", 1);
 	RNA_def_property_ui_text(prop, "Enabled", "Enable this objects as a collider for physics systems");
 	RNA_def_property_update(prop, 0, "rna_CollisionSettings_dependency_update");
@@ -1372,17 +1372,17 @@ static void rna_def_game_softbody(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Friction", "Dynamic Friction");
 	
-	prop= RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "shape_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "kMT");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Threshold", "Shape matching threshold");
 	
-	prop= RNA_def_property(srna, "margin", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "collision_margin", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "margin");
 	RNA_def_property_range(prop, 0.01f, 1.0f);
 	RNA_def_property_ui_text(prop, "Margin", "Collision margin for soft body. Small value makes the algorithm unstable");
 	
-	prop= RNA_def_property(srna, "welding", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "weld_threshold", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "welding");
 	RNA_def_property_range(prop, 0.0f, 0.01f);
 	RNA_def_property_ui_text(prop, "Welding", "Welding threshold: distance between nearby vertices to be considered equal => set to 0.0 to disable welding test and speed up scene loading (ok if the mesh has no duplicates)");
@@ -1630,7 +1630,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Fuzzy", "Fuzziness while on collision, high values make collsion handling faster but less stable");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
-	prop= RNA_def_property(srna, "auto_step", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_auto_step", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "solverflags", SBSO_OLDERR);
 	RNA_def_property_ui_text(prop, "V", "Use velocities for automagic step sizes");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");

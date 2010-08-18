@@ -587,7 +587,7 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Levels", "Number of subdivisions to perform when rendering");
 
-	prop= RNA_def_property(srna, "optimal_display", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_only_control_edges", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", eSubsurfModifierFlag_ControlEdges);
 	RNA_def_property_ui_text(prop, "Optimal Display", "Skip drawing/rendering of interior subdivided edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -642,7 +642,7 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "File Path", "Path to external displacements file");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "optimal_display", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_only_control_edges", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", eMultiresModifierFlag_ControlEdges);
 	RNA_def_property_ui_text(prop, "Optimal Display", "Skip drawing/rendering of interior subdivided edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -940,7 +940,7 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WaveModifier_uvlayer_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "texture_coordinates_object", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "texture_coords_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "map_object");
 	RNA_def_property_ui_text(prop, "Texture Coordinates Object", "");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
@@ -1637,17 +1637,17 @@ static void rna_def_modifier_particleinstance(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Path", "Create instances along particle paths");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "unborn", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_unborn", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_Unborn);
 	RNA_def_property_ui_text(prop, "Unborn", "Show instances when particles are unborn");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "alive", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_alive", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_Alive);
 	RNA_def_property_ui_text(prop, "Alive", "Show instances when particles are alive");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "dead", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_dead", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_Dead);
 	RNA_def_property_ui_text(prop, "Dead", "Show instances when particles are dead");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -1699,17 +1699,17 @@ static void rna_def_modifier_explode(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Split Edges", "Split face edges for nicer shrapnel");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "unborn", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_unborn", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_Unborn);
 	RNA_def_property_ui_text(prop, "Unborn", "Show mesh when particles are unborn");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "alive", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_alive", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_Alive);
 	RNA_def_property_ui_text(prop, "Alive", "Show mesh when particles are alive");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "dead", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_dead", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_Dead);
 	RNA_def_property_ui_text(prop, "Dead", "Show mesh when particles are dead");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -2260,7 +2260,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "");
 	
 	/* flags */
-	prop= RNA_def_property(srna, "realtime", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_viewport", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Realtime);
 	RNA_def_property_ui_text(prop, "Realtime", "Realtime display of a modifier");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
@@ -2272,18 +2272,18 @@ void RNA_def_modifier(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Render", "Use modifier during rendering");
 	RNA_def_property_ui_icon(prop, ICON_SCENE, 0);
 	
-	prop= RNA_def_property(srna, "editmode", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_in_editmode", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Editmode);
 	RNA_def_property_ui_text(prop, "Editmode", "Use modifier while in the edit mode");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	RNA_def_property_ui_icon(prop, ICON_EDITMODE_HLT, 0);
 	
-	prop= RNA_def_property(srna, "on_cage", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_on_cage", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_OnCage);
 	RNA_def_property_ui_text(prop, "On Cage", "Enable direct editing of modifier control cage");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	
-	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Expanded);
 	RNA_def_property_ui_text(prop, "Expanded", "Set modifier expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);

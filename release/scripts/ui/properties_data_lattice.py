@@ -78,7 +78,7 @@ class DATA_PT_lattice(DataButtonsPanel, bpy.types.Panel):
         col.prop(lat, "interpolation_type_w", text="")
 
         row = layout.row()
-        row.prop(lat, "outside")
+        row.prop(lat, "use_outside")
         row.prop_object(lat, "vertex_group", context.object, "vertex_groups", text="")
  
 

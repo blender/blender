@@ -48,7 +48,7 @@ class DOPESHEET_HT_header(bpy.types.Header):
                 sub.menu("DOPESHEET_MT_key")
 
         layout.prop(st, "mode", text="")
-        layout.prop(st.dopesheet, "display_summary", text="Summary")
+        layout.prop(st.dopesheet, "show_summary", text="Summary")
 
         if st.mode == 'DOPESHEET':
             layout.template_dopesheet_filter(st.dopesheet)
@@ -56,7 +56,7 @@ class DOPESHEET_HT_header(bpy.types.Header):
             layout.template_ID(st, "action", new="action.new")
 
         if st.mode != 'GPENCIL':
-            layout.prop(st, "autosnap", text="")
+            layout.prop(st, "auto_snap", text="")
 
         row = layout.row(align=True)
         row.operator("action.copy", text="", icon='COPYDOWN')
@@ -73,10 +73,10 @@ class DOPESHEET_MT_view(bpy.types.Menu):
 
         layout.column()
 
-        layout.prop(st, "realtime_updates")
-        layout.prop(st, "show_cframe_indicator")
+        layout.prop(st, "use_realtime_update")
+        layout.prop(st, "show_frame_indicator")
         layout.prop(st, "show_sliders")
-        layout.prop(st, "automerge_keyframes")
+        layout.prop(st, "use_auto_merge_keyframes")
         layout.prop(st, "use_marker_sync")
 
         if st.show_seconds:

@@ -72,7 +72,7 @@ class DATA_PT_metaball(DataButtonsPanel, bpy.types.Panel):
         col.prop(mball, "threshold", text="Threshold")
 
         layout.label(text="Update:")
-        layout.prop(mball, "flag", expand=True)
+        layout.prop(mball, "update_method", expand=True)
 
 
 class DATA_PT_metaball_element(DataButtonsPanel, bpy.types.Panel):
@@ -94,7 +94,7 @@ class DATA_PT_metaball_element(DataButtonsPanel, bpy.types.Panel):
         col = split.column(align=True)
         col.label(text="Settings:")
         col.prop(metaelem, "stiffness", text="Stiffness")
-        col.prop(metaelem, "negative", text="Negative")
+        col.prop(metaelem, "use_negative", text="Negative")
         col.prop(metaelem, "hide", text="Hide")
 
         col = split.column(align=True)

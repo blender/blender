@@ -78,7 +78,7 @@ class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
         elif cam.type == 'ORTHO':
             col.prop(cam, "ortho_scale")
 
-        layout.prop(cam, "panorama")
+        layout.prop(cam, "use_panorama")
 
         split = layout.split()
 

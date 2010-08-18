@@ -74,7 +74,7 @@ static void rna_Screen_scene_update(bContext *C, PointerRNA *ptr)
 	}
 }
 
-static int rna_Screen_animation_playing_get(PointerRNA *ptr)
+static int rna_Screen_is_animation_playing_get(PointerRNA *ptr)
 {
 	bScreen *sc= (bScreen*)ptr->data;
 	return (sc->animtimer != NULL);
@@ -194,12 +194,12 @@ static void rna_def_screen(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Area");
 	RNA_def_property_ui_text(prop, "Areas", "Areas the screen is subdivided into");
 
-	prop= RNA_def_property(srna, "animation_playing", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_animation_playing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_Screen_animation_playing_get", NULL);
+	RNA_def_property_boolean_funcs(prop, "rna_Screen_is_animation_playing_get", NULL);
 	RNA_def_property_ui_text(prop, "Animation Playing", "Animation playback is active");
 	
-	prop= RNA_def_property(srna, "fullscreen", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_fullscreen", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Screen_fullscreen_get", NULL);
 	RNA_def_property_ui_text(prop, "Fullscreen", "An area is maximised, filling this screen");

@@ -151,7 +151,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, bpy.types.Panel):
                 split = col.box().split()
 
                 col = split.column()
-                col.prop(group, "layer", text="Dupli")
+                col.prop(group, "layers", text="Dupli")
 
                 col = split.column()
                 col.prop(group, "dupli_offset", text="")
@@ -176,23 +176,23 @@ class OBJECT_PT_display(ObjectButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         row = col.row()
-        row.prop(ob, "draw_bounds", text="Bounds")
+        row.prop(ob, "show_bounds", text="Bounds")
         sub = row.row()
-        sub.active = ob.draw_bounds
+        sub.active = ob.show_bounds
         sub.prop(ob, "draw_bounds_type", text="")
 
         split = layout.split()
 
         col = split.column()
-        col.prop(ob, "draw_name", text="Name")
-        col.prop(ob, "draw_axis", text="Axis")
-        col.prop(ob, "draw_wire", text="Wire")
+        col.prop(ob, "show_name", text="Name")
+        col.prop(ob, "show_axis", text="Axis")
+        col.prop(ob, "show_wire", text="Wire")
         col.prop(ob, "color", text="Object Color")
 
         col = split.column()
-        col.prop(ob, "draw_texture_space", text="Texture Space")
-        col.prop(ob, "x_ray", text="X-Ray")
-        col.prop(ob, "draw_transparent", text="Transparency")
+        col.prop(ob, "show_texture_space", text="Texture Space")
+        col.prop(ob, "show_x_ray", text="X-Ray")
+        col.prop(ob, "show_transparent", text="Transparency")
 
 
 class OBJECT_PT_duplication(ObjectButtonsPanel, bpy.types.Panel):

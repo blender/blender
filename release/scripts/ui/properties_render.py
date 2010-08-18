@@ -98,9 +98,9 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rl, "material_override", text="Material")
 
         col = split.column()
-        col.prop(rl, "visible_layers", text="Layer")
+        col.prop(rl, "layers", text="Layer")
         col.label(text="Mask Layers:")
-        col.prop(rl, "zmask_layers", text="")
+        col.prop(rl, "layers_zmask", text="")
 
 
         layout.separator()
@@ -109,21 +109,21 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(rl, "zmask")
+        col.prop(rl, "use_zmask")
         row = col.row()
-        row.prop(rl, "zmask_negate", text="Negate")
-        row.active = rl.zmask
-        col.prop(rl, "all_z")
+        row.prop(rl, "invert_zmask", text="Negate")
+        row.active = rl.use_zmask
+        col.prop(rl, "use_all_z")
 
         col = split.column()
-        col.prop(rl, "solid")
-        col.prop(rl, "halo")
-        col.prop(rl, "ztransp")
-        col.prop(rl, "sky")
+        col.prop(rl, "use_solid")
+        col.prop(rl, "use_halo")
+        col.prop(rl, "use_ztransp")
+        col.prop(rl, "use_sky")
 		
         col = split.column()
-        col.prop(rl, "edge")
-        col.prop(rl, "strand")
+        col.prop(rl, "use_edge_enhance")
+        col.prop(rl, "use_strand")
         col.prop(rl, "freestyle")
 
         layout.separator()
@@ -132,42 +132,42 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Passes:")
-        col.prop(rl, "pass_combined")
-        col.prop(rl, "pass_z")
-        col.prop(rl, "pass_vector")
-        col.prop(rl, "pass_normal")
-        col.prop(rl, "pass_uv")
-        col.prop(rl, "pass_mist")
-        col.prop(rl, "pass_object_index")
-        col.prop(rl, "pass_color")
+        col.prop(rl, "use_pass_combined")
+        col.prop(rl, "use_pass_z")
+        col.prop(rl, "use_pass_vector")
+        col.prop(rl, "use_pass_normal")
+        col.prop(rl, "use_pass_uv")
+        col.prop(rl, "use_pass_mist")
+        col.prop(rl, "use_pass_object_index")
+        col.prop(rl, "use_pass_color")
 
         col = split.column()
         col.label()
-        col.prop(rl, "pass_diffuse")
+        col.prop(rl, "use_pass_diffuse")
         row = col.row()
-        row.prop(rl, "pass_specular")
-        row.prop(rl, "pass_specular_exclude", text="")
+        row.prop(rl, "use_pass_specular")
+        row.prop(rl, "exclude_specular", text="")
         row = col.row()
-        row.prop(rl, "pass_shadow")
-        row.prop(rl, "pass_shadow_exclude", text="")
+        row.prop(rl, "use_pass_shadow")
+        row.prop(rl, "exclude_shadow", text="")
         row = col.row()
-        row.prop(rl, "pass_emit")
-        row.prop(rl, "pass_emit_exclude", text="")
+        row.prop(rl, "use_pass_emit")
+        row.prop(rl, "exclude_emit", text="")
         row = col.row()
-        row.prop(rl, "pass_ao")
-        row.prop(rl, "pass_ao_exclude", text="")
+        row.prop(rl, "use_pass_ambient_occlusion")
+        row.prop(rl, "exclude_ambient_occlusion", text="")
         row = col.row()
-        row.prop(rl, "pass_environment")
-        row.prop(rl, "pass_environment_exclude", text="")
+        row.prop(rl, "use_pass_environment")
+        row.prop(rl, "exclude_environment", text="")
         row = col.row()
-        row.prop(rl, "pass_indirect")
-        row.prop(rl, "pass_indirect_exclude", text="")
+        row.prop(rl, "use_pass_indirect")
+        row.prop(rl, "exclude_indirect", text="")
         row = col.row()
-        row.prop(rl, "pass_reflection")
-        row.prop(rl, "pass_reflection_exclude", text="")
+        row.prop(rl, "use_pass_reflection")
+        row.prop(rl, "exclude_reflection", text="")
         row = col.row()
-        row.prop(rl, "pass_refraction")
-        row.prop(rl, "pass_refraction_exclude", text="")
+        row.prop(rl, "use_pass_refraction")
+        row.prop(rl, "exclude_refraction", text="")
 
 
 class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
@@ -436,8 +436,8 @@ class RENDER_PT_shading(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rd, "use_envmaps", text="Environment Map")
 
         col = split.column()
-        col.prop(rd, "use_raytracing", text="Ray Tracing")
-        col.prop(rd, "color_management")
+        col.prop(rd, "use_raytrace", text="Ray Tracing")
+        col.prop(rd, "use_color_management")
         col.prop(rd, "alpha_mode", text="Alpha")
 
 
@@ -467,16 +467,16 @@ class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.label(text="Memory:")
         sub = col.column()
-        sub.enabled = not (rd.use_border or rd.full_sample)
-        sub.prop(rd, "save_buffers")
+        sub.enabled = not (rd.use_border or rd.use_full_sample)
+        sub.prop(rd, "use_save_buffers")
         sub = col.column()
         sub.active = rd.use_compositing
-        sub.prop(rd, "free_image_textures")
+        sub.prop(rd, "use_free_image_textures")
         sub = col.column()
-        sub.active = rd.use_raytracing
+        sub.active = rd.use_raytrace
         sub.label(text="Acceleration structure:")
-        sub.prop(rd, "raytrace_structure", text="")
-        if rd.raytrace_structure == 'OCTREE':
+        sub.prop(rd, "raytrace_method", text="")
+        if rd.raytrace_method == 'OCTREE':
             sub.prop(rd, "octree_resolution", text="Resolution")
         else:
             sub.prop(rd, "use_instances", text="Instances")
@@ -507,17 +507,17 @@ class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(rd, "fields", text="Fields")
+        col.prop(rd, "use_fields", text="Fields")
         sub = col.column()
-        sub.active = rd.fields
+        sub.active = rd.use_fields
         sub.row().prop(rd, "field_order", expand=True)
-        sub.prop(rd, "fields_still", text="Still")
+        sub.prop(rd, "use_fields_still", text="Still")
 
 
         col = split.column()
-        col.prop(rd, "edge")
+        col.prop(rd, "use_edge_enhance")
         sub = col.column()
-        sub.active = rd.edge
+        sub.active = rd.use_edge_enhance
         sub.prop(rd, "edge_threshold", text="Threshold", slider=True)
         sub.prop(rd, "edge_color", text="")
 
@@ -538,7 +538,7 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
         rd = context.scene.render
         file_format = rd.file_format
 
-        layout.prop(rd, "output_path", text="")
+        layout.prop(rd, "filepath", text="")
 
         split = layout.split()
         col = split.column()
@@ -594,17 +594,17 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
         elif file_format in ('CINEON', 'DPX'):
             split = layout.split()
             col = split.column()
-            col.prop(rd, "cineon_log", text="Convert to Log")
+            col.prop(rd, "use_cineon_log", text="Convert to Log")
 
             col = split.column(align=True)
-            col.active = rd.cineon_log
+            col.active = rd.use_cineon_log
             col.prop(rd, "cineon_black", text="Black")
             col.prop(rd, "cineon_white", text="White")
             col.prop(rd, "cineon_gamma", text="Gamma")
 
         elif file_format == 'TIFF':
             split = layout.split()
-            split.prop(rd, "tiff_bit")
+            split.prop(rd, "use_tiff_16bit")
 
         elif file_format == 'QUICKTIME_CARBON':
             split = layout.split()
@@ -717,13 +717,13 @@ class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         rd = context.scene.render
 
-        self.layout.prop(rd, "render_antialiasing", text="")
+        self.layout.prop(rd, "use_antialiasing", text="")
 
     def draw(self, context):
         layout = self.layout
 
         rd = context.scene.render
-        layout.active = rd.render_antialiasing
+        layout.active = rd.use_antialiasing
 
         split = layout.split()
 
@@ -731,10 +731,10 @@ class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
         col.row().prop(rd, "antialiasing_samples", expand=True)
         sub = col.row()
         sub.enabled = not rd.use_border
-        sub.prop(rd, "full_sample")
+        sub.prop(rd, "use_full_sample")
 
         col = split.column()
-        col.prop(rd, "pixel_filter", text="")
+        col.prop(rd, "pixel_filter_type", text="")
         col.prop(rd, "filter_size", text="Size")
 
 
@@ -746,13 +746,13 @@ class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         rd = context.scene.render
 
-        self.layout.prop(rd, "motion_blur", text="")
+        self.layout.prop(rd, "use_motion_blur", text="")
 
     def draw(self, context):
         layout = self.layout
 
         rd = context.scene.render
-        layout.active = rd.motion_blur
+        layout.active = rd.use_motion_blur
 
         row = layout.row()
         row.prop(rd, "motion_blur_samples")
@@ -789,7 +789,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
         row.prop(rd, "use_border", text="Border")
         sub = row.row()
         sub.active = rd.use_border
-        sub.prop(rd, "crop_to_border", text="Crop")
+        sub.prop(rd, "use_crop_to_border", text="Crop")
 
         col = split.column()
         sub = col.column(align=True)
@@ -811,39 +811,39 @@ class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         rd = context.scene.render
 
-        self.layout.prop(rd, "render_stamp", text="")
+        self.layout.prop(rd, "use_stamp", text="")
 
     def draw(self, context):
         layout = self.layout
 
         rd = context.scene.render
 
-        layout.active = rd.render_stamp
+        layout.active = rd.use_stamp
 
         split = layout.split()
 
         col = split.column()
-        col.prop(rd, "stamp_time", text="Time")
-        col.prop(rd, "stamp_date", text="Date")
-        col.prop(rd, "stamp_render_time", text="RenderTime")
-        col.prop(rd, "stamp_frame", text="Frame")
-        col.prop(rd, "stamp_scene", text="Scene")
-        col.prop(rd, "stamp_camera", text="Camera")
-        col.prop(rd, "stamp_filename", text="Filename")
-        col.prop(rd, "stamp_marker", text="Marker")
-        col.prop(rd, "stamp_sequencer_strip", text="Seq. Strip")
+        col.prop(rd, "use_stamp_time", text="Time")
+        col.prop(rd, "use_stamp_date", text="Date")
+        col.prop(rd, "use_stamp_render_time", text="RenderTime")
+        col.prop(rd, "use_stamp_frame", text="Frame")
+        col.prop(rd, "use_stamp_scene", text="Scene")
+        col.prop(rd, "use_stamp_camera", text="Camera")
+        col.prop(rd, "use_stamp_filename", text="Filename")
+        col.prop(rd, "use_stamp_marker", text="Marker")
+        col.prop(rd, "use_stamp_sequencer_strip", text="Seq. Strip")
 
         col = split.column()
-        col.active = rd.render_stamp
+        col.active = rd.use_stamp
         col.prop(rd, "stamp_foreground", slider=True)
         col.prop(rd, "stamp_background", slider=True)
         col.separator()
         col.prop(rd, "stamp_font_size", text="Font Size")
 
         row = layout.split(percentage=0.2)
-        row.prop(rd, "stamp_note", text="Note")
+        row.prop(rd, "use_stamp_note", text="Note")
         sub = row.row()
-        sub.active = rd.stamp_note
+        sub.active = rd.use_stamp_note
         sub.prop(rd, "stamp_note_text", text="")
 
 
@@ -864,24 +864,24 @@ class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):
         if rd.bake_type == 'NORMALS':
             layout.prop(rd, "bake_normal_space")
         elif rd.bake_type in ('DISPLACEMENT', 'AO'):
-            layout.prop(rd, "bake_normalized")
+            layout.prop(rd, "use_bake_normalize")
         
         # col.prop(rd, "bake_aa_mode")
-        # col.prop(rd, "bake_enable_aa")
+        # col.prop(rd, "use_bake_antialiasing")
         
         layout.separator()
         
         split = layout.split()
 
         col = split.column()
-        col.prop(rd, "bake_clear")
+        col.prop(rd, "use_bake_clear")
         col.prop(rd, "bake_margin")
         col.prop(rd, "bake_quad_split", text="Split")
         
         col = split.column()
-        col.prop(rd, "bake_active")
+        col.prop(rd, "use_bake_selected_to_active")
         sub = col.column()
-        sub.active = rd.bake_active
+        sub.active = rd.use_bake_selected_to_active
         sub.prop(rd, "bake_distance")
         sub.prop(rd, "bake_bias")
 

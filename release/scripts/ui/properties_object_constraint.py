@@ -532,10 +532,10 @@ class ConstraintButtonsPanel():
         split = layout.split()
 
         col = split.column()
-        col.prop(con, "disable_linked_collision", text="No Collision")
+        col.prop(con, "use_linked_collision", text="Linked Collision")
 
         col = split.column()
-        col.prop(con, "draw_pivot", text="Display Pivot")
+        col.prop(con, "show_pivot", text="Display Pivot")
 
         split = layout.split()
 

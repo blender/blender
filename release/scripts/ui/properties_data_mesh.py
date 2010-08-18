@@ -98,7 +98,7 @@ class DATA_PT_normals(MeshButtonsPanel, bpy.types.Panel):
 
         col = split.column()
 
-        col.prop(mesh, "double_sided")
+        col.prop(mesh, "show_double_sided")
 
 
 class DATA_PT_settings(MeshButtonsPanel, bpy.types.Panel):
@@ -182,7 +182,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
         enable_edit = ob.mode != 'EDIT'
         enable_edit_value = False
 
-        if ob.shape_key_lock is False:
+        if ob.show_shape_key is False:
             if enable_edit or (ob.type == 'MESH' and ob.shape_key_edit_mode):
                 enable_edit_value = True
 
@@ -210,7 +210,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
             split = layout.split(percentage=0.4)
             row = split.row()
             row.enabled = enable_edit
-            row.prop(key, "relative")
+            row.prop(key, "use_relative")
 
             row = split.row()
             row.alignment = 'RIGHT'
@@ -218,7 +218,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
             sub = row.row(align=True)
             subsub = sub.row(align=True)
             subsub.active = enable_edit_value
-            subsub.prop(ob, "shape_key_lock", text="")
+            subsub.prop(ob, "show_shape_key", text="")
             subsub.prop(kb, "mute", text="")
             sub.prop(ob, "shape_key_edit_mode", text="")
 

@@ -461,7 +461,7 @@ class x3d_class:
         self.writeIndented("<Shape>\n",1)
         maters=mesh.materials
         hasImageTexture=0
-        issmooth=0
+        is_smooth = False
 
         if len(maters) > 0 or mesh.active_uv_texture:
         # if len(maters) > 0 or mesh.faceUV:
@@ -516,10 +516,10 @@ class x3d_class:
                 self.file.write("solid=\"true\" ")
 
             for face in mesh.faces:
-                if face.smooth:
-                     issmooth=1
-                     break
-            if issmooth==1:
+                if face.use_smooth:
+                    is_smooth = True
+                    break
+            if is_smooth == True:
                 creaseAngle=(mesh.autosmooth_angle)*(math.pi/180.0)
                 # creaseAngle=(mesh.degr)*(math.pi/180.0)
                 self.file.write("creaseAngle=\"%s\" " % (round(creaseAngle,self.cp)))
@@ -581,7 +581,7 @@ class x3d_class:
         if self.writingcoords == 0:
             self.file.write('coordIndex="')
             for face in mesh.faces:
-                fv = face.verts
+                fv = face.vertices
                 # fv = face.v
 
                 if len(fv)==3:
@@ -604,7 +604,7 @@ class x3d_class:
             # mesh.transform(ob.matrix_world)
             self.writeIndented("<Coordinate DEF=\"%s%s\" \n" % ("coord_",meshName), 1)
             self.file.write("\t\t\t\tpoint=\"")
-            for v in mesh.verts:
+            for v in mesh.vertices:
                 self.file.write("%.6f %.6f %.6f, " % tuple(v.co))
             self.file.write("\" />")
             self.writeIndented("\n", -1)
@@ -618,7 +618,7 @@ class x3d_class:
         # for face in mesh.faces:
             # workaround, since tface.uv iteration is wrong atm
             uvs = face.uv
-            # uvs = [face.uv1, face.uv2, face.uv3, face.uv4] if face.verts[3] else [face.uv1, face.uv2, face.uv3]
+            # uvs = [face.uv1, face.uv2, face.uv3, face.uv4] if face.vertices[3] else [face.uv1, face.uv2, face.uv3]
 
             for uv in uvs:
             # for uv in face.uv:
@@ -912,7 +912,7 @@ class x3d_class:
 
         # if EXPORT_APPLY_MODIFIERS:
         # 	if containerMesh:
-        # 		containerMesh.verts = None
+        # 		containerMesh.vertices = None
 
         self.cleanup()
 
@@ -1030,7 +1030,7 @@ class x3d_class:
         # print("Debug: mesh.faceUV=%d" % mesh.faceUV)
         print("Debug: mesh.hasVertexColours=%d" % (len(mesh.vertex_colors) > 0))
         # print("Debug: mesh.hasVertexColours=%d" % mesh.hasVertexColours())
-        print("Debug: mesh.verts=%d" % len(mesh.verts))
+        print("Debug: mesh.vertices=%d" % len(mesh.vertices))
         print("Debug: mesh.faces=%d" % len(mesh.faces))
         print("Debug: mesh.materials=%d" % len(mesh.materials))
 

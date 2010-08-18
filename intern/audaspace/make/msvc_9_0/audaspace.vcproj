@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\sndfile;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\lib\windows\jack\include;..\..\..\..\..\lib\windows\sndfile\include;..\..\..\..\..\lib\windows\fftw3\include"
+				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\sndfile;..\..\Python;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\lib\windows\jack\include;..\..\..\..\..\lib\windows\sndfile\include;..\..\..\..\..\lib\windows\fftw3\include;..\..\..\..\..\lib\windows\python\include\python3.1"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB,WITH_FFMPEG,WITH_SDL,WITH_OPENAL"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\sndfile;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\lib\windows\jack\include;..\..\..\..\..\lib\windows\sndfile\include;..\..\..\..\..\lib\windows\fftw3\include"
+				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\sndfile;..\..\Python;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\lib\windows\jack\include;..\..\..\..\..\lib\windows\sndfile\include;..\..\..\..\..\lib\windows\fftw3\include;..\..\..\..\..\lib\windows\python\include\python3.1"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB,WITH_FFMPEG,WITH_SDL,WITH_OPENAL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -193,7 +193,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\sndfile;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\lib\windows\jack\include;..\..\..\..\..\lib\windows\sndfile\include;..\..\..\..\..\lib\windows\fftw3\include"
+				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\sndfile;..\..\Python;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\lib\windows\jack\include;..\..\..\..\..\lib\windows\sndfile\include;..\..\..\..\..\lib\windows\fftw3\include;..\..\..\..\..\lib\windows\python\include\python3.1"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB,WITH_FFMPEG,WITH_SDL,WITH_OPENAL"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -267,7 +267,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\sndfile;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\lib\windows\jack\include;..\..\..\..\..\lib\windows\sndfile\include;..\..\..\..\..\lib\windows\fftw3\include"
+				AdditionalIncludeDirectories="..\..;..\..\ffmpeg;..\..\FX;..\..\intern;..\..\OpenAL;..\..\SDL;..\..\SRC;..\..\sndfile;..\..\Python;..\..\..\..\..\lib\windows\pthreads\include;..\..\..\..\..\lib\windows\samplerate\include;..\..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\lib\windows\jack\include;..\..\..\..\..\lib\windows\sndfile\include;..\..\..\..\..\lib\windows\fftw3\include;..\..\..\..\..\lib\windows\python\include\python3.1"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB,WITH_FFMPEG,WITH_SDL,WITH_OPENAL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -321,6 +321,10 @@
 		<Filter
 			Name="intern"
 			>
+			<File
+				RelativePath="..\..\intern\AUD_3DMath.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\intern\AUD_Buffer.cpp"
 				>
@@ -383,6 +387,14 @@
 			</File>
 			<File
 				RelativePath="..\..\intern\AUD_ConverterReader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_DefaultMixer.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_DefaultMixer.h"
 				>
 			</File>
 			<File
@@ -450,6 +462,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\intern\AUD_PyInit.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\intern\AUD_ReadDevice.cpp"
 				>
 			</File>
@@ -482,6 +498,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\intern\AUD_SilenceFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_SilenceFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_SilenceReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_SilenceReader.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\intern\AUD_SinusFactory.cpp"
 				>
 			</File>
@@ -503,10 +535,6 @@
 			</File>
 			<File
 				RelativePath="..\..\intern\AUD_SoftwareDevice.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\intern\AUD_SourceCaps.h"
 				>
 			</File>
 			<File
@@ -554,11 +582,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\FX\AUD_AccumulatorReader.cpp"
+				RelativePath="..\..\FX\AUD_BaseIIRFilterReader.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\FX\AUD_AccumulatorReader.h"
+				RelativePath="..\..\FX\AUD_BaseIIRFilterReader.h"
 				>
 			</File>
 			<File
@@ -570,11 +598,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\FX\AUD_ButterworthReader.cpp"
+				RelativePath="..\..\FX\AUD_CallbackIIRFilterReader.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\FX\AUD_ButterworthReader.h"
+				RelativePath="..\..\FX\AUD_CallbackIIRFilterReader.h"
 				>
 			</File>
 			<File
@@ -591,6 +619,14 @@
 			</File>
 			<File
 				RelativePath="..\..\FX\AUD_DelayReader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_DoubleFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_DoubleFactory.h"
 				>
 			</File>
 			<File
@@ -626,14 +662,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\FX\AUD_EnvelopeReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\FX\AUD_EnvelopeReader.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\FX\AUD_FaderFactory.cpp"
 				>
 			</File>
@@ -658,11 +686,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\FX\AUD_HighpassReader.cpp"
+				RelativePath="..\..\FX\AUD_IIRFilterFactory.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\FX\AUD_HighpassReader.h"
+				RelativePath="..\..\FX\AUD_IIRFilterFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_IIRFilterReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_IIRFilterReader.h"
 				>
 			</File>
 			<File
@@ -706,14 +742,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\FX\AUD_LowpassReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\FX\AUD_LowpassReader.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\FX\AUD_PingPongFactory.cpp"
 				>
 			</File>
@@ -746,14 +774,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\FX\AUD_RectifyReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\FX\AUD_RectifyReader.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\FX\AUD_ReverseFactory.cpp"
 				>
 			</File>
@@ -778,14 +798,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\FX\AUD_SquareReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\FX\AUD_SquareReader.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\FX\AUD_SumFactory.cpp"
 				>
 			</File>
@@ -794,11 +806,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\FX\AUD_SumReader.cpp"
+				RelativePath="..\..\FX\AUD_SuperposeFactory.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\FX\AUD_SumReader.h"
+				RelativePath="..\..\FX\AUD_SuperposeFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_SuperposeReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_SuperposeReader.h"
 				>
 			</File>
 			<File
@@ -807,14 +827,6 @@
 			</File>
 			<File
 				RelativePath="..\..\FX\AUD_VolumeFactory.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\FX\AUD_VolumeReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\FX\AUD_VolumeReader.h"
 				>
 			</File>
 		</Filter>
@@ -895,22 +907,14 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="fftw"
+			Name="Python"
 			>
 			<File
-				RelativePath="..\..\fftw\AUD_BandPassFactory.cpp"
+				RelativePath="..\..\Python\AUD_PyAPI.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\fftw\AUD_BandPassFactory.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\fftw\AUD_BandPassReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\fftw\AUD_BandPassReader.h"
+				RelativePath="..\..\Python\AUD_PyAPI.h"
 				>
 			</File>
 		</Filter>

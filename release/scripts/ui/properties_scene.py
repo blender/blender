@@ -40,7 +40,7 @@ class SCENE_PT_scene(SceneButtonsPanel, bpy.types.Panel):
         scene = context.scene
 
         layout.prop(scene, "camera")
-        layout.prop(scene, "set", text="Background")
+        layout.prop(scene, "background_set", text="Background")
 
 
 class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
@@ -83,7 +83,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
         col.operator("anim.keying_set_remove", icon='ZOOMOUT', text="")
 
         ks = scene.active_keying_set
-        if ks and ks.absolute:
+        if ks and ks.is_path_absolute:
             row = layout.row()
 
             col = row.column()
@@ -96,9 +96,9 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
 
             col = row.column()
             col.label(text="Keyframing Settings:")
-            col.prop(ks, "insertkey_needed", text="Needed")
-            col.prop(ks, "insertkey_visual", text="Visual")
-            col.prop(ks, "insertkey_xyz_to_rgb", text="XYZ to RGB")
+            col.prop(ks, "use_insertkey_needed", text="Needed")
+            col.prop(ks, "use_insertkey_visual", text="Visual")
+            col.prop(ks, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
@@ -106,7 +106,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.scene.active_keying_set and context.scene.active_keying_set.absolute)
+        return (context.scene.active_keying_set and context.scene.active_keying_set.is_path_absolute)
 
     def draw(self, context):
         layout = self.layout
@@ -138,20 +138,20 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
 
             col = row.column()
             col.label(text="Array Target:")
-            col.prop(ksp, "entire_array")
-            if ksp.entire_array is False:
+            col.prop(ksp, "use_entire_array")
+            if ksp.use_entire_array is False:
                 col.prop(ksp, "array_index")
 
             col = row.column()
             col.label(text="F-Curve Grouping:")
-            col.prop(ksp, "grouping")
-            if ksp.grouping == 'NAMED':
+            col.prop(ksp, "group_method")
+            if ksp.group_method == 'NAMED':
                 col.prop(ksp, "group")
 
             col.label(text="Keyframing Settings:")
-            col.prop(ksp, "insertkey_needed", text="Needed")
-            col.prop(ksp, "insertkey_visual", text="Visual")
-            col.prop(ksp, "insertkey_xyz_to_rgb", text="XYZ to RGB")
+            col.prop(ksp, "use_insertkey_needed", text="Needed")
+            col.prop(ksp, "use_insertkey_visual", text="Visual")
+            col.prop(ksp, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
 class SCENE_PT_physics(SceneButtonsPanel, bpy.types.Panel):
@@ -193,7 +193,7 @@ class SCENE_PT_simplify(SceneButtonsPanel, bpy.types.Panel):
         col.prop(rd, "simplify_subdivision", text="Subdivision")
         col.prop(rd, "simplify_child_particles", text="Child Particles")
 
-        col.prop(rd, "simplify_triangulate")
+        col.prop(rd, "use_simplify_triangulate")
 
         col = split.column()
         col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
@@ -239,13 +239,13 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         f.write("# Keying Set Level declarations\n")
         f.write("ks= scene.add_keying_set(name=\"%s\")\n" % ks.name)
 
-        if ks.absolute is False:
-            f.write("ks.absolute = False\n")
+        if not ks.is_path_absolute:
+            f.write("ks.is_path_absolute = False\n")
         f.write("\n")
 
-        f.write("ks.insertkey_needed = %s\n" % ks.insertkey_needed)
-        f.write("ks.insertkey_visual = %s\n" % ks.insertkey_visual)
-        f.write("ks.insertkey_xyz_to_rgb = %s\n" % ks.insertkey_xyz_to_rgb)
+        f.write("ks.use_insertkey_needed = %s\n" % ks.use_insertkey_needed)
+        f.write("ks.use_insertkey_visual = %s\n" % ks.use_insertkey_visual)
+        f.write("ks.use_insertkey_xyz_to_rgb = %s\n" % ks.use_insertkey_xyz_to_rgb)
         f.write("\n")
 
 
@@ -292,17 +292,17 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
             f.write("%s, '%s'" % (id_bpy_path, ksp.data_path))
 
             # array index settings (if applicable)
-            if ksp.entire_array:
+            if ksp.use_entire_array:
                 f.write(", index=-1")
             else:
                 f.write(", index=%d" % ksp.array_index)
 
             # grouping settings (if applicable)
             # NOTE: the current default is KEYINGSET, but if this changes, change this code too
-            if ksp.grouping == 'NAMED':
-                f.write(", grouping_method='%s', group_name=\"%s\"" % (ksp.grouping, ksp.group))
-            elif ksp.grouping != 'KEYINGSET':
-                f.write(", grouping_method='%s'" % ksp.grouping)
+            if ksp.group_method == 'NAMED':
+                f.write(", group_method='%s', group_name=\"%s\"" % (ksp.group_method, ksp.group))
+            elif ksp.group_method != 'KEYINGSET':
+                f.write(", group_method='%s'" % ksp.group_method)
 
             # finish off
             f.write(")\n")

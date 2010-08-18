@@ -179,7 +179,7 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object.", -FLT_MAX, FLT_MAX);
 	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", -FLT_MAX, FLT_MAX);
 	
-	prop = RNA_def_boolean_layer_member(ot->srna, "layer", 20, NULL, "Layer", "");
+	prop = RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
@@ -196,7 +196,7 @@ static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 		RNA_float_set_array(op->ptr, "location", loc);
 	}
 	 
-	if(!RNA_property_is_set(op->ptr, "layer")) {
+	if(!RNA_property_is_set(op->ptr, "layers")) {
 		View3D *v3d = CTX_wm_view3d(C);
 		Scene *scene = CTX_data_scene(C);
 		int a, values[20], layer;
@@ -214,7 +214,7 @@ static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 				values[a]= (layer & (1<<a));
 		}
 		
-		RNA_boolean_set_array(op->ptr, "layer", values);
+		RNA_boolean_set_array(op->ptr, "layers", values);
 	}
 }
 
@@ -235,8 +235,8 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 		*enter_editmode = TRUE;
 	}
 
-	if(RNA_property_is_set(op->ptr, "layer")) {
-		RNA_boolean_get_array(op->ptr, "layer", layer_values);
+	if(RNA_property_is_set(op->ptr, "layers")) {
+		RNA_boolean_get_array(op->ptr, "layers", layer_values);
 		*layer= 0;
 		for(a=0; a<20; a++) {
 			if(layer_values[a])

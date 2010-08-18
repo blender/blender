@@ -76,7 +76,7 @@ class ExportUVLayout(bpy.types.Operator):
 
             local_image = Ellipsis
 
-            if context.tool_settings.uv_local_view:
+            if context.tool_settings.show_uv_local_view:
                 space_data = self._space_image(context)
                 if space_data:
                     local_image = space_data.image

@@ -123,7 +123,7 @@ static void rna_def_metaelement(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 	
 	/* number values */
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Location", "");
@@ -165,7 +165,7 @@ static void rna_def_metaelement(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 	
 	/* flags */
-	prop= RNA_def_property(srna, "negative", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_negative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MB_NEGATIVE);
 	RNA_def_property_ui_text(prop, "Negative", "Set metaball as negative one");
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
@@ -201,7 +201,8 @@ static void rna_def_metaball(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Last selected element.", "Last selected element");
 	
 	/* enums */
-	prop= RNA_def_property(srna, "flag", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "update_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_update_items);
 	RNA_def_property_ui_text(prop, "Update", "Metaball edit update behavior");
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");

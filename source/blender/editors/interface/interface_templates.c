@@ -81,43 +81,43 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	/* most 'generic' filtering options */
 	row= uiLayoutRow(layout, 1);
 	
-	uiItemR(row, ptr, "only_selected", 0, "", 0);
-	uiItemR(row, ptr, "display_hidden", 0, "", 0);
+	uiItemR(row, ptr, "show_only_selected", 0, "", 0);
+	uiItemR(row, ptr, "show_hidden", 0, "", 0);
 	
 	/* object-level filtering options */
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "display_transforms", 0, "", 0);
+	uiItemR(row, ptr, "show_transforms", 0, "", 0);
 	
 	if (nlaActive)
-		uiItemR(row, ptr, "include_missing_nla", 0, "", 0);
+		uiItemR(row, ptr, "show_missing_nla", 0, "", 0);
 	
 	/* datatype based - only available datatypes are shown */
 	row= uiLayoutRow(layout, 1);
 
-	uiItemR(row, ptr, "display_scene", 0, "", 0);
-	uiItemR(row, ptr, "display_world", 0, "", 0);
-	uiItemR(row, ptr, "display_node", 0, "", 0);
+	uiItemR(row, ptr, "show_scenes", 0, "", 0);
+	uiItemR(row, ptr, "show_worlds", 0, "", 0);
+	uiItemR(row, ptr, "show_nodes", 0, "", 0);
 	
 	if (mainptr && mainptr->mesh.first)
-		uiItemR(row, ptr, "display_mesh", 0, "", 0);
+		uiItemR(row, ptr, "show_meshes", 0, "", 0);
 	if (mainptr && mainptr->key.first)
-		uiItemR(row, ptr, "display_shapekeys", 0, "", 0);
+		uiItemR(row, ptr, "show_shapekeys", 0, "", 0);
 	if (mainptr && mainptr->mat.first)
-		uiItemR(row, ptr, "display_material", 0, "", 0);
+		uiItemR(row, ptr, "show_materials", 0, "", 0);
 	if (mainptr && mainptr->lamp.first)
-		uiItemR(row, ptr, "display_lamp", 0, "", 0);
+		uiItemR(row, ptr, "show_lamps", 0, "", 0);
 	if (mainptr && mainptr->tex.first)
-		uiItemR(row, ptr, "display_texture", 0, "", 0);
+		uiItemR(row, ptr, "show_textures", 0, "", 0);
 	if (mainptr && mainptr->camera.first)
-		uiItemR(row, ptr, "display_camera", 0, "", 0);
+		uiItemR(row, ptr, "show_cameras", 0, "", 0);
 	if (mainptr && mainptr->curve.first)
-		uiItemR(row, ptr, "display_curve", 0, "", 0);
+		uiItemR(row, ptr, "show_curves", 0, "", 0);
 	if (mainptr && mainptr->mball.first)
-		uiItemR(row, ptr, "display_metaball", 0, "", 0);
+		uiItemR(row, ptr, "show_metaballs", 0, "", 0);
 	if (mainptr && mainptr->armature.first)
-		uiItemR(row, ptr, "display_armature", 0, "", 0);
+		uiItemR(row, ptr, "show_armatures", 0, "", 0);
 	if (mainptr && mainptr->particle.first)
-		uiItemR(row, ptr, "display_particle", 0, "", 0);
+		uiItemR(row, ptr, "show_particles", 0, "", 0);
 	if (mainptr && mainptr->linestyle.first)
 		uiItemR(row, ptr, "display_linestyle", 0, "", 0);
 	
@@ -125,11 +125,11 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	if (mainptr && mainptr->group.first) {
 		row= uiLayoutRow(layout, 1);
 		
-		uiItemR(row, ptr, "only_group_objects", 0, "", 0);
+		uiItemR(row, ptr, "show_only_group_objects", 0, "", 0);
 		
 		/* if enabled, show the group selection field too */
-		if (RNA_boolean_get(ptr, "only_group_objects"))
-			uiItemR(row, ptr, "filtering_group", 0, "", 0);
+		if (RNA_boolean_get(ptr, "show_only_group_objects"))
+			uiItemR(row, ptr, "filter_group", 0, "", 0);
 	}
 }
 
@@ -439,7 +439,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		}
 		
 		if(id->lib == NULL && !(ELEM4(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT))) {
-			uiDefButR(block, TOG, 0, "F", 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "fake_user", -1, 0, 0, -1, -1, NULL);
+			uiDefButR(block, TOG, 0, "F", 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "use_fake_user", -1, 0, 0, -1, -1, NULL);
 		}
 	}
 	
@@ -504,7 +504,7 @@ static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 	prop= RNA_struct_find_property(ptr, propname);
 
 	if(!prop || RNA_property_type(prop) != PROP_POINTER) {
-		printf("uiTemplateID: pointer property not found: %s\n", propname);
+		printf("uiTemplateID: pointer property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -565,11 +565,11 @@ void uiTemplateAnyID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 	propType= RNA_struct_find_property(ptr, proptypename);
 
 	if (!propID || RNA_property_type(propID) != PROP_POINTER) {
-		printf("uiTemplateAnyID: pointer property not found: %s\n", propname);
+		printf("uiTemplateAnyID: pointer property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 	if (!propType || RNA_property_type(propType) != PROP_ENUM) { 
-		printf("uiTemplateAnyID: pointer-type property not found: %s\n", proptypename);
+		printf("uiTemplateAnyID: pointer-type property not found: %s.%s\n", RNA_struct_identifier(ptr->type), proptypename);
 		return;
 	}
 	
@@ -608,7 +608,7 @@ void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 	/* check that properties are valid */
 	propPath= RNA_struct_find_property(ptr, propname);
 	if (!propPath || RNA_property_type(propPath) != PROP_STRING) {
-		printf("uiTemplatePathBuilder: path property not found: %s\n", propname);
+		printf("uiTemplatePathBuilder: path property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 	
@@ -732,7 +732,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		/* Open/Close .................................  */
-		uiItemR(row, &ptr, "expanded", 0, "", 0);
+		uiItemR(row, &ptr, "show_expanded", 0, "", 0);
 		
 		/* modifier-type icon */
 		uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
@@ -748,10 +748,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 			&& (md->type!=eModifierType_Surface) ) 
 		{
 			uiItemR(row, &ptr, "render", 0, "", 0);
-			uiItemR(row, &ptr, "realtime", 0, "", 0);
+			uiItemR(row, &ptr, "show_viewport", 0, "", 0);
 			
 			if (mti->flags & eModifierTypeFlag_SupportsEditmode)
-				uiItemR(row, &ptr, "editmode", 0, "", 0);
+				uiItemR(row, &ptr, "show_in_editmode", 0, "", 0);
 		}
 		if ((ob->type==OB_MESH) && modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) 
 		{
@@ -807,7 +807,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 			uiBlockClearButLock(block);
 			uiBlockSetButLock(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 			
-			if (!ELEM4(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem, eModifierType_Cloth))
+			if (!ELEM5(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem, eModifierType_Cloth, eModifierType_Smoke))
 				uiItemO(row, "Copy", 0, "OBJECT_OT_modifier_copy");
 		}
 		
@@ -973,7 +973,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 
 	/* open/close */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
-	uiItemR(row, &ptr, "expanded", UI_ITEM_R_ICON_ONLY, "", 0);
+	uiItemR(row, &ptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", 0);
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* XXX if (con->flag & CONSTRAINT_DISABLE)
@@ -1035,7 +1035,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		}
 		
 		/* enabled */
-		uiItemR(row, &ptr, "enabled", 0, "", 0);
+		uiItemR(row, &ptr, "mute", 0, "", 0);
 		
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -1855,7 +1855,7 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int
 	float softmin, softmax, step, precision;
 	
 	if (!prop) {
-		printf("uiTemplateColorWheel: property not found: %s\n", propname);
+		printf("uiTemplateColorWheel: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -1896,7 +1896,7 @@ void uiTemplateTriColorSet(uiLayout *layout, PointerRNA *ptr, char *propname)
 	PointerRNA csPtr;
 
 	if (!prop) {
-		printf("uiTemplateTriColorSet: property not found: %s\n", propname);
+		printf("uiTemplateTriColorSet: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 	
@@ -1948,7 +1948,7 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
 	
 	prop= RNA_struct_find_property(ptr, propname);
 	if (!prop) {
-		printf("uiTemplateLayer: layers property not found: %s\n", propname);
+		printf("uiTemplateLayer: layers property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -1967,7 +1967,7 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
 	if(used_ptr && used_propname) {
 		used_prop= RNA_struct_find_property(used_ptr, used_propname);
 		if (!used_prop) {
-			printf("uiTemplateLayer: used layers property not found: %s\n", used_propname);
+			printf("uiTemplateLayer: used layers property not found: %s.%s\n", RNA_struct_identifier(ptr->type), used_propname);
 			return;
 		}
 
@@ -2081,7 +2081,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	else if(RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer) || itemptr->type == &RNA_FreestyleLineSet) {
 		uiItemL(sub, name, icon);
 		uiBlockSetEmboss(block, UI_EMBOSS);
-		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "enabled", 0, 0, 0, 0, 0,  NULL);
+		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "use", 0, 0, 0, 0, 0,  NULL);
 	}
 	else if(itemptr->type == &RNA_ShapeKey) {
 		ob= (Object*)activeptr->data;
@@ -2136,14 +2136,14 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propna
 	if(ptr->data) {
 		prop= RNA_struct_find_property(ptr, propname);
 		if(!prop) {
-			printf("uiTemplateList: property not found: %s\n", propname);
+			printf("uiTemplateList: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 			return;
 		}
 	}
 
 	activeprop= RNA_struct_find_property(activeptr, activepropname);
 	if(!activeprop) {
-		printf("uiTemplateList: property not found: %s\n", activepropname);
+		printf("uiTemplateList: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), activepropname);
 		return;
 	}
 

@@ -48,7 +48,7 @@ class CONSOLE_HT_header(bpy.types.Header):
             row.prop(sc, "show_report_debug", text="Debug")
             row.prop(sc, "show_report_info", text="Info")
             row.prop(sc, "show_report_operator", text="Operators")
-            row.prop(sc, "show_report_warn", text="Warnings")
+            row.prop(sc, "show_report_warning", text="Warnings")
             row.prop(sc, "show_report_error", text="Errors")
 
             row = layout.row()

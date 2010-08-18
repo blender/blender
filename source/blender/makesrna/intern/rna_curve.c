@@ -623,20 +623,20 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* Enums */
-	prop= RNA_def_property(srna, "handle1_type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "handle_left_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "h1");
 	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
 	RNA_def_property_ui_text(prop, "Handle 1 Type", "Handle types");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "handle2_type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "handle_right_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "h2");
 	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
 	RNA_def_property_ui_text(prop, "Handle 2 Type", "Handle types");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* Vector values */
-	prop= RNA_def_property(srna, "handle1", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "handle_left", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_BezTriple_handle1_get", "rna_BezTriple_handle1_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 1", "Coordinates of the first handle");
@@ -648,7 +648,7 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Control Point", "Coordinates of the control point");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "handle2", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "handle_right", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_BezTriple_handle2_get", "rna_BezTriple_handle2_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 2", "Coordinates of the second handle");
@@ -808,7 +808,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Underline Thickness", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
-	prop= RNA_def_property(srna, "textboxes", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "text_boxes", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "tb", "totbox");
 	RNA_def_property_struct_type(prop, "TextBox");
 	RNA_def_property_ui_text(prop, "Textboxes", "");
@@ -837,7 +837,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Character Info", "Stores the style of each character");
 	
 	/* pointers */
-	prop= RNA_def_property(srna, "text_on_curve", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "follow_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "textoncurve");
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Curve_otherObject_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -1087,12 +1087,12 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Splines", "Collection of splines in this curve data object");
 	rna_def_curve_splines(brna, prop);
 
-	prop= RNA_def_property(srna, "draw_handles", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_handles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "drawflag", CU_HIDE_HANDLES);
 	RNA_def_property_ui_text(prop, "Draw Handles", "Display bezier handles in editmode");
 	RNA_def_property_update(prop, NC_GEOM|ND_DATA, NULL);
 
-	prop= RNA_def_property(srna, "draw_normals", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_normal_face", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "drawflag", CU_HIDE_NORMALS);
 	RNA_def_property_ui_text(prop, "Draw Normals", "Display 3D curve normals in editmode");
 	RNA_def_property_update(prop, NC_GEOM|ND_DATA, NULL);
@@ -1372,7 +1372,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_v");
 
 
-	prop= RNA_def_property(srna, "smooth", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_smooth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_SMOOTH);
 	RNA_def_property_ui_text(prop, "Smooth", "Smooth the normals of the surface or beveled curve");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");

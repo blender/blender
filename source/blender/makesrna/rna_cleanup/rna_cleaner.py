@@ -120,8 +120,11 @@ def get_props_from_txt(input_filename):
         #print(line)
         
         # empty line or comment
-        if not line.strip() or line.startswith('#'):
+        if not line.strip():
             continue
+        
+        if line.startswith("#"):
+            line = line[1:]
 
         # class
         [bclass, tail] = [x.strip() for x in line.split('.', 1)]
@@ -185,6 +188,7 @@ def get_props_from_py(input_filename):
         kwcheck = check_prefix(bto, btype)   # keyword-check
         changed = check_if_changed(bfrom, bto)  # changed?
         description = repr(description)
+        description = description.replace("'", "").replace('"', "").replace("\\", "").strip()
         rna_api[index] = [comment, changed, bclass, bfrom, bto, kwcheck, btype, description]
         props_length = list(map(len,props)) # lengths
         props_length_max = list(map(max,zip(props_length_max,props_length)))    # max lengths
@@ -254,11 +258,9 @@ def write_files(basename, props_list, props_length_max):
     for props in props_list:
         #txt
         
-        # FOR PY OUTPUT!
-        '''
+        # quick way we can tell if it changed
         if props[3] == props[4]: txt += "#"
         else: txt += " "
-        '''
     
         if props[0] != '': txt +=  '%s * ' % props[0]   # comment
         txt +=  '%s.%s -> %s:   %s  "%s"\n' % tuple(props[2:5] + props[6:])   # skipping keyword-check

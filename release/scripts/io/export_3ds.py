@@ -564,14 +564,14 @@ def extract_triangles(mesh):
 
     img = None
     for i, face in enumerate(mesh.faces):
-        f_v = face.verts
+        f_v = face.vertices
 # 		f_v = face.v
 
         uf = mesh.active_uv_texture.data[i] if do_uv else None
 
         if do_uv:
             f_uv = uf.uv
-            # f_uv =  (uf.uv1, uf.uv2, uf.uv3, uf.uv4) if face.verts[3] else (uf.uv1, uf.uv2, uf.uv3)
+            # f_uv =  (uf.uv1, uf.uv2, uf.uv3, uf.uv4) if face.vertices[3] else (uf.uv1, uf.uv2, uf.uv3)
 # 			f_uv = face.uv
             img = uf.image if uf else None
 # 			img = face.image
@@ -761,18 +761,18 @@ def make_mesh_chunk(mesh, materialDict):
     if len(mesh.uv_textures):
 # 	if mesh.faceUV:
         # Remove the face UVs and convert it to vertex UV:
-        vert_array, uv_array, tri_list = remove_face_uv(mesh.verts, tri_list)
+        vert_array, uv_array, tri_list = remove_face_uv(mesh.vertices, tri_list)
     else:
         # Add the vertices to the vertex array:
         vert_array = _3ds_array()
-        for vert in mesh.verts:
+        for vert in mesh.vertices:
             vert_array.add(_3ds_point_3d(vert.co))
         # If the mesh has vertex UVs, create an array of UVs:
         if len(mesh.sticky):
 # 		if mesh.vertexUV:
             uv_array = _3ds_array()
             for uv in mesh.sticky:
-# 			for vert in mesh.verts:
+# 			for vert in mesh.vertices:
                 uv_array.add(_3ds_point_uv(uv.co))
 # 				uv_array.add(_3ds_point_uv(vert.uvco))
         else:
@@ -1065,7 +1065,7 @@ def write(filename, context):
         '''
         if not blender_mesh.users:
             bpy.data.meshes.remove(blender_mesh)
-# 		blender_mesh.verts = None
+# 		blender_mesh.vertices = None
 
         i+=i
 

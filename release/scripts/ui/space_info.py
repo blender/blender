@@ -48,7 +48,7 @@ class INFO_HT_header(bpy.types.Header):
                 sub.menu("INFO_MT_render")
             sub.menu("INFO_MT_help")
 
-        if window.screen.fullscreen:
+        if window.screen.show_fullscreen:
             layout.operator("screen.back_to_previous", icon='SCREEN_BACK', text="Back to Previous")
             layout.separator()
         else:
@@ -58,7 +58,7 @@ class INFO_HT_header(bpy.types.Header):
 
         layout.separator()
 
-        if rd.multiple_engines:
+        if rd.has_multiple_engines:
             layout.prop(rd, "engine", text="")
 
         layout.separator()
@@ -265,7 +265,7 @@ class INFO_MT_game(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        gs = context.scene.game_data
+        gs = context.scene.game_settings
 
         layout.operator("view3d.game_start")
 

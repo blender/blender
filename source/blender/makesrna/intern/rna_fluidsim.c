@@ -358,9 +358,9 @@ static void rna_def_fluidsim_active(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_FLUIDSIM_ACTIVE);
-	RNA_def_property_ui_text(prop, "Active", "Object contributes to the fluid simulation");
+	RNA_def_property_ui_text(prop, "Enabled", "Object contributes to the fluid simulation");
 }
 
 static void rna_def_fluidsim_fluid(BlenderRNA *brna)
@@ -455,7 +455,7 @@ static void rna_def_fluidsim_particle(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSPART_FLOAT);
 	RNA_def_property_ui_text(prop, "Floats", "Show floating foam particles");
 
-	prop= RNA_def_property(srna, "tracer", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_tracer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSPART_TRACER);
 	RNA_def_property_ui_text(prop, "Tracer", "Show tracer particles");
 

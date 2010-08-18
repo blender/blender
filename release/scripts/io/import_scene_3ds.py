@@ -338,12 +338,12 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
         if myContextMesh_vertls:
 
             bmesh.add_geometry(len(myContextMesh_vertls)//3, 0, len(myContextMesh_facels))
-            bmesh.verts.foreach_set("co", myContextMesh_vertls)
+            bmesh.vertices.foreach_set("co", myContextMesh_vertls)
             
             eekadoodle_faces = []
             for v1, v2, v3 in myContextMesh_facels:
                 eekadoodle_faces.extend([v3, v1, v2, 0] if v3 == 0 else [v1, v2, v3, 0])
-            bmesh.faces.foreach_set("verts_raw", eekadoodle_faces)
+            bmesh.faces.foreach_set("vertices_raw", eekadoodle_faces)
             
             if bmesh.faces and contextMeshUV:
                 bmesh.add_uv_texture()
@@ -830,7 +830,7 @@ def load_3ds(filename, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
     for ob in importedObjects:
         if ob.type == 'MESH':
             me = ob.data
-#           me.verts.delete([me.verts[0],]) # XXX, todo
+#           me.vertices.delete([me.vertices[0],]) # XXX, todo
             if not APPLY_MATRIX:
                 me.transform(ob.matrix_world.copy().invert())
 

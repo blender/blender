@@ -1025,7 +1025,7 @@ static char *rna_MeshIntPropertyLayer_path(PointerRNA *ptr)
 
 static char *rna_MeshIntProperty_path(PointerRNA *ptr)
 {
-	return rna_CustomDataData_path(ptr, "int_layers", CD_MCOL);
+	return rna_CustomDataData_path(ptr, "layers_int", CD_MCOL);
 }
 
 static char *rna_MeshFloatPropertyLayer_path(PointerRNA *ptr)
@@ -1035,7 +1035,7 @@ static char *rna_MeshFloatPropertyLayer_path(PointerRNA *ptr)
 
 static char *rna_MeshFloatProperty_path(PointerRNA *ptr)
 {
-	return rna_CustomDataData_path(ptr, "float_layers", CD_MCOL);
+	return rna_CustomDataData_path(ptr, "layers_float", CD_MCOL);
 }
 
 static char *rna_MeshStringPropertyLayer_path(PointerRNA *ptr)
@@ -1045,7 +1045,7 @@ static char *rna_MeshStringPropertyLayer_path(PointerRNA *ptr)
 
 static char *rna_MeshStringProperty_path(PointerRNA *ptr)
 {
-	return rna_CustomDataData_path(ptr, "string_layers", CD_MCOL);
+	return rna_CustomDataData_path(ptr, "layers_string", CD_MCOL);
 }
 
 static int rna_Mesh_tot_vert_get(PointerRNA *ptr)
@@ -1148,7 +1148,7 @@ static void rna_def_medge(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_MeshEdge_path");
 	RNA_def_struct_ui_icon(srna, ICON_EDGESEL);
 
-	prop= RNA_def_property(srna, "verts", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "vertices", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "v1");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
@@ -1174,24 +1174,22 @@ static void rna_def_medge(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Hide", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
-	prop= RNA_def_property(srna, "seam", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_seam", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SEAM);
 	RNA_def_property_ui_text(prop, "Seam", "Seam edge for UV unwrapping");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
-	prop= RNA_def_property(srna, "sharp", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_sharp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SHARP);
 	RNA_def_property_ui_text(prop, "Sharp", "Sharp edge for the EdgeSplit modifier");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
-	prop= RNA_def_property(srna, "loose", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_loose", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_LOOSEEDGE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Loose", "Loose edge");
 
-	prop= RNA_def_property(srna, "fgon", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_fgon", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_FGON);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Fgon", "Fgon edge");
 
 	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
@@ -1212,7 +1210,7 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL);
 
 	// XXX allows creating invalid meshes
-	prop= RNA_def_property(srna, "verts", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "vertices", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
 	RNA_def_property_dynamic_array_funcs(prop, "rna_MeshFace_verts_get_length");
@@ -1220,7 +1218,7 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
 
 	/* leaving this fixed size array for foreach_set used in import scripts */
-	prop= RNA_def_property(srna, "verts_raw", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "vertices_raw", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "v1");
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Vertices", "Fixed size vertex indices array");
@@ -1241,7 +1239,7 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Hide", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
-	prop= RNA_def_property(srna, "smooth", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_smooth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SMOOTH);
 	RNA_def_property_ui_text(prop, "Smooth", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
@@ -1640,7 +1638,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Mesh", "Mesh datablock defining geometric surfaces");
 	RNA_def_struct_ui_icon(srna, ICON_MESH_DATA);
 
-	prop= RNA_def_property(srna, "verts", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "vertices", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mvert", "totvert");
 	RNA_def_property_struct_type(prop, "MeshVertex");
 	RNA_def_property_ui_text(prop, "Vertices", "Vertices of the mesh");
@@ -1726,19 +1724,19 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Vertex Color Index", "Active vertex color index");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
-	prop= RNA_def_property(srna, "float_layers", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "layers_float", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fdata.layers", "fdata.totlayer");
 	RNA_def_property_collection_funcs(prop, "rna_Mesh_float_layers_begin", 0, 0, 0, "rna_Mesh_float_layers_length", 0, 0);
 	RNA_def_property_struct_type(prop, "MeshFloatPropertyLayer");
 	RNA_def_property_ui_text(prop, "Float Property Layers", "");
 
-	prop= RNA_def_property(srna, "int_layers", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "layers_int", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fdata.layers", "fdata.totlayer");
 	RNA_def_property_collection_funcs(prop, "rna_Mesh_int_layers_begin", 0, 0, 0, "rna_Mesh_int_layers_length", 0, 0);
 	RNA_def_property_struct_type(prop, "MeshIntPropertyLayer");
 	RNA_def_property_ui_text(prop, "Int Property Layers", "");
 
-	prop= RNA_def_property(srna, "string_layers", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "layers_string", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "fdata.layers", "fdata.totlayer");
 	RNA_def_property_collection_funcs(prop, "rna_Mesh_string_layers_begin", 0, 0, 0, "rna_Mesh_string_layers_length", 0, 0);
 	RNA_def_property_struct_type(prop, "MeshStringPropertyLayer");
@@ -1753,7 +1751,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 80);
 	RNA_def_property_ui_text(prop, "Auto Smooth Angle", "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
 
-	prop= RNA_def_property(srna, "double_sided", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_double_sided", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_TWOSIDED);
 	RNA_def_property_ui_text(prop, "Double Sided", "Render/display the mesh with double or single sided lighting");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
@@ -1801,62 +1799,62 @@ static void rna_def_mesh(BlenderRNA *brna)
 	
 	/* Mesh Draw Options for Edit Mode*/
 	
-	prop= RNA_def_property(srna, "draw_edges", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_edges", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEDGES);
 	RNA_def_property_ui_text(prop, "Draw Edges", "Displays selected edges using highlights in the 3D view and UV editor");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
-	prop= RNA_def_property(srna, "all_edges", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_all_edges", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_ALLEDGES);
 	RNA_def_property_ui_text(prop, "All Edges", "Displays all edges for wireframe in all view modes in the 3D view");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "draw_faces", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_faces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWFACES);
 	RNA_def_property_ui_text(prop, "Draw Faces", "Displays all faces as shades in the 3D view and UV editor");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
-	prop= RNA_def_property(srna, "draw_normals", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_normal_face", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWNORMALS);
 	RNA_def_property_ui_text(prop, "Draw Normals", "Displays face normals as lines");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
-	prop= RNA_def_property(srna, "draw_vertex_normals", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_normal_vertex", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_VNORMALS);
 	RNA_def_property_ui_text(prop, "Draw Vertex Normals", "Displays vertex normals as lines");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
-	prop= RNA_def_property(srna, "draw_creases", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_edge_crease", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWCREASES);
 	RNA_def_property_ui_text(prop, "Draw Creases", "Displays creases created for subsurf weighting");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
-	prop= RNA_def_property(srna, "draw_bevel_weights", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_edge_bevel_weight", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWBWEIGHTS);
 	RNA_def_property_ui_text(prop, "Draw Bevel Weights", "Displays weights created for the Bevel modifier");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
-	prop= RNA_def_property(srna, "draw_seams", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_edge_seams", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWSEAMS);
 	RNA_def_property_ui_text(prop, "Draw Seams", "Displays UV unwrapping seams");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
-	prop= RNA_def_property(srna, "draw_sharp", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_edge_sharp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWSHARP);
 	RNA_def_property_ui_text(prop, "Draw Sharp", "Displays sharp edges, used with the EdgeSplit modifier");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
-	prop= RNA_def_property(srna, "draw_edge_length", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_extra_edge_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_EDGELEN);
 	RNA_def_property_ui_text(prop, "Edge Length", "Displays selected edge lengths, Using global values when set in the transform panel");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
-	prop= RNA_def_property(srna, "draw_edge_angle", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_extra_edge_angle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_EDGEANG);
 	RNA_def_property_ui_text(prop, "Edge Angles", "Displays the angles in the selected edges in degrees, Using global values when set in the transform panel");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 	
-	prop= RNA_def_property(srna, "draw_face_area", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_extra_face_area", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_FACEAREA);
 	RNA_def_property_ui_text(prop, "Face Area", "Displays the area of selected faces, Using global values when set in the transform panel");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");

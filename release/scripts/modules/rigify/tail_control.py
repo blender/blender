@@ -40,7 +40,7 @@ def metarig_template():
     #bone.head[:] = 0.0000, -0.0306, 0.1039
     #bone.tail[:] = 0.0000, -0.0306, -0.0159
     #bone.roll = 0.0000
-    #bone.connected = False
+    #bone.use_connect = False
 
     #bpy.ops.object.mode_set(mode='OBJECT')
     #pbone = obj.pose.bones['tail.01']
@@ -85,9 +85,9 @@ def main(obj, bone_definitions, base_names, options):
     for bone_def in bone_definitions:
         bone = copy_bone_simple(arm, bone_def, base_names[bone_def], parent=True).name
         if i == 1:  # Don't change parent of first tail bone
-            eb[bone].connected = False
+            eb[bone].use_connect = False
             eb[bone].parent = eb[hinge2]
-            eb[bone].local_location = False
+            eb[bone].use_local_location = False
         i = 1
         bones += [bone]
 

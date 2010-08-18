@@ -25,7 +25,7 @@ from properties_physics_common import effector_weights_ui
 
 
 def cloth_panel_enabled(md):
-    return md.point_cache.baked is False
+    return md.point_cache.is_baked is False
 
 
 class CLOTH_MT_presets(bpy.types.Menu):
@@ -68,7 +68,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
 
             row = split.row(align=True)
             row.prop(md, "render", text="")
-            row.prop(md, "realtime", text="")
+            row.prop(md, "show_viewport", text="")
         else:
             # add modifier
             split.operator("object.modifier_add", text="Add").type = 'CLOTH'

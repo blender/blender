@@ -25,7 +25,7 @@ from properties_physics_common import effector_weights_ui
 
 
 def softbody_panel_enabled(md):
-    return (md.point_cache.baked is False)
+    return (md.point_cache.is_baked is False)
 
 
 class PhysicButtonsPanel():
@@ -60,7 +60,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
 
             row = split.row(align=True)
             row.prop(md, "render", text="")
-            row.prop(md, "realtime", text="")
+            row.prop(md, "show_viewport", text="")
         else:
             # add modifier
             split.operator("object.modifier_add", text="Add").type = 'SOFT_BODY'
@@ -249,7 +249,7 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, bpy.types.Panel):
         col.label(text="Step Size:")
         col.prop(softbody, "minstep")
         col.prop(softbody, "maxstep")
-        col.prop(softbody, "auto_step", text="Auto-Step")
+        col.prop(softbody, "use_auto_step", text="Auto-Step")
 
         col = split.column()
         col.prop(softbody, "error_limit")

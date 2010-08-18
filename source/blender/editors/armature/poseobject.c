@@ -1578,7 +1578,7 @@ static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 		
 	/* get RNA pointer to armature data to use that to retrieve the layers as ints to init the operator */
 	RNA_id_pointer_create((ID *)arm, &ptr);
-	RNA_boolean_get_array(&ptr, "layer", layers);
+	RNA_boolean_get_array(&ptr, "layers", layers);
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
 	/* part to sync with other similar operators... */
@@ -1598,7 +1598,7 @@ static int pose_armature_layers_exec (bContext *C, wmOperator *op)
 	
 	/* get pointer for armature, and write data there... */
 	RNA_id_pointer_create((ID *)arm, &ptr);
-	RNA_boolean_set_array(&ptr, "layer", layers);
+	RNA_boolean_set_array(&ptr, "layers", layers);
 	
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1690,7 +1690,7 @@ static int pose_bone_layers_exec (bContext *C, wmOperator *op)
 	{
 		/* get pointer for pchan, and write flags this way */
 		RNA_pointer_create((ID *)arm, &RNA_Bone, pchan->bone, &ptr);
-		RNA_boolean_set_array(&ptr, "layer", layers);
+		RNA_boolean_set_array(&ptr, "layers", layers);
 	}
 	CTX_DATA_END;
 	
@@ -1764,7 +1764,7 @@ static int armature_bone_layers_exec (bContext *C, wmOperator *op)
 	{
 		/* get pointer for pchan, and write flags this way */
 		RNA_pointer_create((ID *)arm, &RNA_EditBone, ebone, &ptr);
-		RNA_boolean_set_array(&ptr, "layer", layers);
+		RNA_boolean_set_array(&ptr, "layers", layers);
 	}
 	CTX_DATA_END;
 	

@@ -90,7 +90,7 @@ extern EnumPropertyItem wm_report_items[];
 extern EnumPropertyItem property_type_items[];
 extern EnumPropertyItem property_unit_items[];
 
-extern EnumPropertyItem viewport_shading_items[];
+extern EnumPropertyItem viewport_shade_items[];
 
 extern EnumPropertyItem linestyle_color_modifier_type_items[];
 extern EnumPropertyItem linestyle_alpha_modifier_type_items[];

@@ -1073,9 +1073,9 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 			t->prop_size = 1.0f;
 		}
 		
-		if (op && RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && RNA_property_is_set(op->ptr, "proportional_editing_falloff"))
+		if (op && RNA_struct_find_property(op->ptr, "proportional_edit_falloff") && RNA_property_is_set(op->ptr, "proportional_edit_falloff"))
 		{
-			t->prop_mode = RNA_enum_get(op->ptr, "proportional_editing_falloff");
+			t->prop_mode = RNA_enum_get(op->ptr, "proportional_edit_falloff");
 		}
 		else
 		{

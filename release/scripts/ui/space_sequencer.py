@@ -143,12 +143,12 @@ class SEQUENCER_MT_view(bpy.types.Menu):
 
         layout.operator("sequencer.view_selected")
 
-        layout.prop(st, "draw_frames")
-        layout.prop(st, "show_cframe_indicator")
+        layout.prop(st, "show_frames")
+        layout.prop(st, "show_frame_indicator")
         if st.display_mode == 'IMAGE':
-            layout.prop(st, "draw_safe_margin")
+            layout.prop(st, "show_safe_margin")
         if st.display_mode == 'WAVEFORM':
-            layout.prop(st, "separate_color_preview")
+            layout.prop(st, "show_separate_color")
 
         layout.separator()
         layout.prop(st, "use_marker_sync")
@@ -378,7 +378,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
         row = col.row()
         row.label(text="Final Length: %s" % bpy.utils.smpte_from_frame(strip.frame_final_length))
         row = col.row()
-        row.active = (frame_current >= strip.frame_start and frame_current <= strip.frame_start + strip.frame_length)
+        row.active = (frame_current >= strip.frame_start and frame_current <= strip.frame_start + strip.frame_duration)
         row.label(text="Playhead: %d" % (frame_current - strip.frame_start))
 
         col.label(text="Frame Offset %d:%d" % (strip.frame_offset_start, strip.frame_offset_end))
@@ -452,10 +452,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
             sub = row.row()
             sub.scale_x = 2.0
 
-            if not context.screen.animation_playing:
-                sub.operator("screen.animation_play", text="", icon='PLAY')
-            else:
-                sub.operator("screen.animation_play", text="", icon='PAUSE')
+            sub.operator("screen.animation_play", text="", icon='PAUSE' if context.screen.is_animation_playing else 'PLAY')
 
             row.label("Cut To")
             for i in range(1, strip.channel):
@@ -620,7 +617,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
         else:
             row.operator("sound.pack", icon='UGLYPACKAGE', text="Pack")
 
-        row.prop(strip.sound, "caching")
+        row.prop(strip.sound, "use_memory_cache")
 
         layout.prop(strip, "volume")
         layout.prop(strip, "attenuation")
@@ -787,9 +784,9 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, bpy.types.Panel):
         col = layout.column()
         if st.display_mode == 'IMAGE':
             col.prop(st, "draw_overexposed") # text="Zebra"
-            col.prop(st, "draw_safe_margin")
+            col.prop(st, "show_safe_margin")
         if st.display_mode == 'WAVEFORM':
-            col.prop(st, "separate_color_preview")
+            col.prop(st, "show_separate_color")
         col.prop(st, "proxy_render_size")
 
 def register():

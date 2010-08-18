@@ -234,7 +234,7 @@ static void nla_panel_animdata (const bContext *C, Panel *pa)
 	
 	/* blending */
 	row= uiLayoutRow(layout, 1);
-		uiItemR(row, &adt_ptr, "action_blending", 0, NULL, 0);	
+		uiItemR(row, &adt_ptr, "action_blend_type", 0, NULL, 0);	
 		
 	/* influence */
 	row= uiLayoutRow(layout, 1);

@@ -360,6 +360,7 @@ def rna2sphinx(BASEPATH):
     fw("      * data API, access to attributes of blender data such as mesh verts, material color, timeline frames and scene objects\n")
     fw("      * user interface functions for defining buttons, creation of menus, headers, panels\n")
     fw("      * modules: bgl, mathutils and geometry\n")
+    fw("      * game engine modules\n")
     fw("\n")
 
     fw("===================\n")
@@ -605,7 +606,7 @@ def rna2sphinx(BASEPATH):
         for func in struct.functions:
             args_str = ", ".join([prop.get_arg_default(force=False) for prop in func.args])
 
-            fw("   .. method:: %s(%s)\n\n" % (func.identifier, args_str))
+            fw("   .. %s:: %s(%s)\n\n" % ("classmethod" if func.is_classmethod else "method", func.identifier, args_str))
             fw("      %s\n\n" % func.description)
             
             for prop in func.args:

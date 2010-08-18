@@ -33,7 +33,7 @@ def metarig_template():
     bone.head[:] = 0.0000, 0.0000, 0.0000
     bone.tail[:] = 0.0000, 0.0000, 1.0000
     bone.roll = 0.0000
-    bone.connected = False
+    bone.use_connect = False
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones['Bone']
@@ -98,7 +98,7 @@ def control(obj, definitions, base_names, options):
     cp.cpy_p.lock_scale = tuple(mt.cpy_p.lock_scale)
 
     # Layers
-    cp.cpy_b.layer = list(mt.cpy_b.layer)
+    cp.cpy_b.layers = list(mt.cpy_b.layers)
 
     return (mt.cpy,)
 

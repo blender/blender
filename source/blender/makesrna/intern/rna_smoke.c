@@ -150,7 +150,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "High res", "Enable high resolution (using amplification)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
-	prop= RNA_def_property(srna, "viewhighres", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_high_resolution", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "viewsettings", MOD_SMOKE_VIEW_SHOWBIG);
 	RNA_def_property_ui_text(prop, "Show High Resolution", "Show high resolution (using amplification)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
@@ -175,7 +175,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Heat", "Higher value results in faster rising smoke");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
-	prop= RNA_def_property(srna, "coll_group", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "collision_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "coll_group");
 	RNA_def_property_struct_type(prop, "Group");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -298,7 +298,7 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Temp. Diff.", "Temperature difference to ambient temperature");
 	RNA_def_property_update(prop, 0, NULL);
 	
-	prop= RNA_def_property(srna, "psys", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "psys");
 	RNA_def_property_struct_type(prop, "ParticleSystem");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -310,7 +310,7 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Outflow", "Deletes smoke from simulation");
 	RNA_def_property_update(prop, 0, NULL);
 
-	prop= RNA_def_property(srna, "absolute", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_absolute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_FLOW_ABSOLUTE);
 	RNA_def_property_ui_text(prop, "Absolute Density", "Only allows given density value in emitter area.");
 	RNA_def_property_update(prop, 0, NULL);

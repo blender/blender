@@ -66,7 +66,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
     print("")
     for bone in bones:
         b = arm.bones[bone]
-        print(">>", bone, ["*>", "->"][b.connected], getattr(getattr(b, "parent", ""), "name", ""))
+        print(">>", bone, ["*>", "->"][b.use_connect], getattr(getattr(b, "parent", ""), "name", ""))
         label = [bone]
         bone = arm.bones[bone]
 
@@ -103,7 +103,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
         parent = bone.parent
         if parent:
             parent_name = parent.name
-            connected = bone.connected
+            connected = bone.use_connect
         elif FAKE_PARENT:
             parent_name = 'Object::%s' % obj.name
             connected = False

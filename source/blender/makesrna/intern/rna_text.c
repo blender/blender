@@ -152,12 +152,12 @@ static void rna_def_text_marker(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, (int)0xFFFF);
 	RNA_def_property_ui_text(prop, "Group", "");
 	
-	prop= RNA_def_property(srna, "temporary", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_temporary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TMARK_TEMP);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Temporary", "Marker is temporary");
 
-	prop= RNA_def_property(srna, "edit_all", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_edit_all", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TMARK_EDITALL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Edit All", "Edit all markers of the same group as one");
@@ -180,17 +180,17 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Text_filename_get", "rna_Text_filename_length", "rna_Text_filename_set");
 	RNA_def_property_ui_text(prop, "File Path", "Filename of the text file");
 
-	prop= RNA_def_property(srna, "dirty", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISDIRTY);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Dirty", "Text file has been edited since last save");
 
-	prop= RNA_def_property(srna, "modified", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_modified", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Text_modified_get", NULL);
 	RNA_def_property_ui_text(prop, "Modified", "Text file on disk is different than the one in memory");
 
-	prop= RNA_def_property(srna, "memory", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_in_memory", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISMEM);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Memory", "Text file is in memory, without a corresponding file on disk");
@@ -199,7 +199,7 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISSCRIPT);
 	RNA_def_property_ui_text(prop, "Register", "Register this text as a module on loading, Text name must end with \".py\"");
 
-	prop= RNA_def_property(srna, "tabs_as_spaces", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_tabs_as_spaces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_TABSTOSPACES);
 	RNA_def_property_ui_text(prop, "Tabs as Spaces", "Automatically converts all new tabs into spaces");
 
@@ -219,14 +219,14 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Current Character", "Index of current character in current line, and also start index of character in selection if one exists");
 	
-	prop= RNA_def_property(srna, "selection_end_line", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "select_end_line", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "sell");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "TextLine");
 	RNA_def_property_ui_text(prop, "Selection End Line", "End line of selection");
 	
-	prop= RNA_def_property(srna, "selection_end_character", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "select_end_character", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "selc");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Selection End Character", "Index of character after end of selection in the selection end line");

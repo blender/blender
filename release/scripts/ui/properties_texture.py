@@ -122,7 +122,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
         col = split.column()
 
         if not space.pin_id:
-            col.prop(space, "brush_texture", text="Brush", toggle=True)
+            col.prop(space, "show_brush_texture", text="Brush", toggle=True)
 
         if tex:
             split = layout.split(percentage=0.2)
@@ -680,19 +680,6 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, bpy.types.Panel):
         col.prop(tex, "crop_max_y", text="Y")
 
 
-class TEXTURE_PT_plugin(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Plugin"
-    tex_type = 'PLUGIN'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        # tex = context.texture
-
-        layout.label(text="Nothing yet")
-
-
 class TEXTURE_PT_envmap(TextureTypePanel, bpy.types.Panel):
     bl_label = "Environment Map"
     tex_type = 'ENVIRONMENT_MAP'
@@ -863,10 +850,10 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         tex = context.texture
-        vd = tex.voxeldata
+        vd = tex.voxel_data
 
         layout.prop(vd, "file_format")
-        if vd.file_format in ['BLENDER_VOXEL', 'RAW_8BIT']:
+        if vd.file_format in ('BLENDER_VOXEL', 'RAW_8BIT'):
             layout.prop(vd, "source_path")
         if vd.file_format == 'RAW_8BIT':
             layout.prop(vd, "resolution")
@@ -902,7 +889,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         tex = context.texture
-        pd = tex.pointdensity
+        pd = tex.point_density
 
         layout.prop(pd, "point_source", expand=True)
 
@@ -958,7 +945,7 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         tex = context.texture
-        pd = tex.pointdensity
+        pd = tex.point_density
 
         layout.prop(pd, "turbulence", text="")
 
@@ -966,7 +953,7 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         tex = context.texture
-        pd = tex.pointdensity
+        pd = tex.point_density
         layout.active = pd.turbulence
 
         split = layout.split()

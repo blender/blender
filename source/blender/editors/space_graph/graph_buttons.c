@@ -272,11 +272,11 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 			
 			/* previous handle - only if previous was Bezier interpolation */
 			if ((prevbezt) && (prevbezt->ipo == BEZT_IPO_BEZ))
-				uiItemR(col, &bezt_ptr, "handle1", 0, NULL, 0);
+				uiItemR(col, &bezt_ptr, "handle_left", 0, NULL, 0);
 			
 			/* next handle - only if current is Bezier interpolation */
 			if (bezt->ipo == BEZT_IPO_BEZ)
-				uiItemR(col, &bezt_ptr, "handle2", 0, NULL, 0);
+				uiItemR(col, &bezt_ptr, "handle_right", 0, NULL, 0);
 	}
 	else
 		uiItemL(layout, "No active keyframe on F-Curve", 0);
@@ -457,7 +457,7 @@ static void graph_panel_driverVar__locDiff(const bContext *C, uiLayout *layout, 
 			uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 		
-		uiItemR(col, &dtar_ptr, "use_local_space_transforms", 0, NULL, 0);
+		uiItemR(col, &dtar_ptr, "use_local_space_transform", 0, NULL, 0);
 	
 	col= uiLayoutColumn(layout, 1);
 		uiTemplateAnyID(col, (bContext *)C, &dtar2_ptr, "id", "id_type", "Ob/Bone 2:");
@@ -469,7 +469,7 @@ static void graph_panel_driverVar__locDiff(const bContext *C, uiLayout *layout, 
 			uiItemPointerR(col, &dtar2_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 		
-		uiItemR(col, &dtar2_ptr, "use_local_space_transforms", 0, NULL, 0);
+		uiItemR(col, &dtar2_ptr, "use_local_space_transform", 0, NULL, 0);
 }
 
 /* settings for 'transform channel' driver variable type */
@@ -496,7 +496,7 @@ static void graph_panel_driverVar__transChan(const bContext *C, uiLayout *layout
 		
 		row= uiLayoutRow(layout, 1);
 			uiItemR(row, &dtar_ptr, "transform_type", 0, "", 0);
-			uiItemR(row, &dtar_ptr, "use_local_space_transforms", 0, NULL, 0);
+			uiItemR(row, &dtar_ptr, "use_local_space_transform", 0, NULL, 0);
 }
 
 /* driver settings for active F-Curve (only for 'Drivers' mode) */

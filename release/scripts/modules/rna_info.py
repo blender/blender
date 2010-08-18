@@ -302,6 +302,7 @@ class InfoFunctionRNA:
         self.identifier = rna_func.identifier
         # self.name = rna_func.name # functions have no name!
         self.description = rna_func.description.strip()
+        self.is_classmethod = not rna_func.use_self
 
         self.args = []
         self.return_values = ()
@@ -313,7 +314,7 @@ class InfoFunctionRNA:
 
         for rna_prop in rna_func.parameters.values():
             prop = GetInfoPropertyRNA(rna_prop, parent_id)
-            if rna_prop.use_output:
+            if rna_prop.is_output:
                 self.return_values.append(prop)
             else:
                 self.args.append(prop)

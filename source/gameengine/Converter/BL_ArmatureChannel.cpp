@@ -108,7 +108,7 @@ PyAttributeDef BL_ArmatureChannel::Attributes[] = {
 /* attributes directly taken from bPoseChannel */
 PyAttributeDef BL_ArmatureChannel::AttributesPtr[] = {
 	KX_PYATTRIBUTE_CHAR_RO("name",bPoseChannel,name),
-	KX_PYATTRIBUTE_FLAG_RO("has_ik",bPoseChannel,flag, POSE_CHAIN),
+	KX_PYATTRIBUTE_FLAG_RO("is_in_ik_chain",bPoseChannel,flag, POSE_CHAIN),
 	KX_PYATTRIBUTE_FLAG_NEGATIVE_RO("ik_dof_x",bPoseChannel,ikflag, BONE_IK_NO_XDOF),
 	KX_PYATTRIBUTE_FLAG_NEGATIVE_RO("ik_dof_y",bPoseChannel,ikflag, BONE_IK_NO_YDOF),
 	KX_PYATTRIBUTE_FLAG_NEGATIVE_RO("ik_dof_z",bPoseChannel,ikflag, BONE_IK_NO_ZDOF),

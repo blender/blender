@@ -1214,11 +1214,11 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Physics Type",  "Selects the type of physical representation");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "actor", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_actor", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ACTOR);
 	RNA_def_property_ui_text(prop, "Actor", "Object is detected by the Near and Radar sensor");
 
-	prop= RNA_def_property(srna, "ghost", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_ghost", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_GHOST);
 	RNA_def_property_ui_text(prop, "Ghost", "Object does not restitute collisions, like a ghost");
 
@@ -1232,7 +1232,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Radius", "Radius of bounding sphere and material physics");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "no_sleeping", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_sleep", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_COLLISION_RESPONSE);
 	RNA_def_property_ui_text(prop, "No Sleeping", "Disable auto (de)activation in physics simulation");
 
@@ -1343,7 +1343,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "State", "State determining which controllers are displayed");
 	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_state_get", "rna_GameObjectSettings_state_set");
 
-	prop= RNA_def_property(srna, "used_state", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	prop= RNA_def_property(srna, "used_states", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_array(prop, OB_MAX_STATES);
 	RNA_def_property_ui_text(prop, "Used State", "States which are being used by controllers");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1354,7 +1354,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_array(prop, OB_MAX_STATES);
 	RNA_def_property_ui_text(prop, "Initial State", "Initial state when the game starts");
 
-	prop= RNA_def_property(srna, "debug_state", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_debug_state", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_DEBUGSTATE);
 	RNA_def_property_ui_text(prop, "Debug State", "Print state debug info in the game engine");
 	RNA_def_property_ui_icon(prop, ICON_INFO, 0);
@@ -1976,7 +1976,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "DupliObject");
 	RNA_def_property_ui_text(prop, "Dupli list", "Object duplis");
 
-	prop= RNA_def_property(srna, "duplis_used", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_duplicator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLI);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -2013,7 +2013,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Maximum Draw Type",  "Maximum draw type to display object with in viewport");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "draw_bounds", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_bounds", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_BOUNDBOX);
 	RNA_def_property_ui_text(prop, "Draw Bounds", "Displays the object's bounds");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
@@ -2024,32 +2024,32 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Bounds Type", "Object boundary display type");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
-	prop= RNA_def_property(srna, "draw_name", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_name", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWNAME);
 	RNA_def_property_ui_text(prop, "Draw Name", "Displays the object's name");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
-	prop= RNA_def_property(srna, "draw_axis", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_AXIS);
 	RNA_def_property_ui_text(prop, "Draw Axis", "Displays the object's origin and axis");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
-	prop= RNA_def_property(srna, "draw_texture_space", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_texture_space", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_TEXSPACE);
 	RNA_def_property_ui_text(prop, "Draw Texture Space", "Displays the object's texture space");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
-	prop= RNA_def_property(srna, "draw_wire", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_wire", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWWIRE);
 	RNA_def_property_ui_text(prop, "Draw Wire", "Adds the object's wireframe over solid drawing");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
-	prop= RNA_def_property(srna, "draw_transparent", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_transparent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWTRANSP);
 	RNA_def_property_ui_text(prop, "Draw Transparent", "Enables transparent materials for the object (Mesh only)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
-	prop= RNA_def_property(srna, "x_ray", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_x_ray", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWXRAY);
 	RNA_def_property_ui_text(prop, "X-Ray", "Makes the object draw in front of others");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
@@ -2073,7 +2073,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pose", "Current pose for armatures");
 
 	/* shape keys */
-	prop= RNA_def_property(srna, "shape_key_lock", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_shape_key", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shapeflag", OB_SHAPE_LOCK);
 	RNA_def_property_ui_text(prop, "Shape Key Lock", "Always show the current Shape for this Object");
 	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);

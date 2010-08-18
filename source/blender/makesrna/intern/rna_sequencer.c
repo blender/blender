@@ -890,7 +890,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_Sequence_frame_length_get", "rna_Sequence_frame_length_set",NULL);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "frame_length", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_duration", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "len");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE|PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 1, MAXFRAME);

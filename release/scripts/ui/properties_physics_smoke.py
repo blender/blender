@@ -54,7 +54,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
 
             row = split.row(align=True)
             row.prop(md, "render", text="")
-            row.prop(md, "realtime", text="")
+            row.prop(md, "show_viewport", text="")
 
         else:
             # add modifier
@@ -113,7 +113,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
                 sub.label(text="Behavior:")
                 sub.prop(flow, "temperature")
                 sub.prop(flow, "density")
-                sub.prop(flow, "absolute")
+                sub.prop(flow, "use_absolute")
 
             #elif md.smoke_type == 'COLLISION':
             #	layout.separator()
@@ -144,7 +144,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Collision Group:")
-        col.prop(group, "coll_group", text="")
+        col.prop(group, "collision_group", text="")
 
 
 class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, bpy.types.Panel):
@@ -165,7 +165,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, bpy.types.Panel):
         layout.label(text="Compression:")
         layout.prop(md, "smoke_cache_comp", expand=True)
 
-        point_cache_ui(self, context, cache, (cache.baked is False), 'SMOKE')
+        point_cache_ui(self, context, cache, (cache.is_baked is False), 'SMOKE')
 
 
 class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
@@ -195,7 +195,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
         col.label(text="Resolution:")
         col.prop(md, "amplify", text="Divisions")
         col.prop(md, "smoothemitter")
-        col.prop(md, "viewhighres")
+        col.prop(md, "show_high_resolution")
 
         col = split.column()
         col.label(text="Noise Method:")
@@ -221,7 +221,7 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel, bpy.types.Panel):
         layout.label(text="Compression:")
         layout.prop(md, "smoke_cache_high_comp", expand=True)
 
-        point_cache_ui(self, context, cache, (cache.baked is False), 'SMOKE')
+        point_cache_ui(self, context, cache, (cache.is_baked is False), 'SMOKE')
 
 
 class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, bpy.types.Panel):

@@ -391,17 +391,17 @@ static void rna_def_boidrule(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "");
 	
 	/* flags */
-	prop= RNA_def_property(srna, "in_air", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_in_air", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BOIDRULE_IN_AIR);
 	RNA_def_property_ui_text(prop, "In Air", "Use rule when boid is flying");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 	
-	prop= RNA_def_property(srna, "on_land", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_on_land", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BOIDRULE_ON_LAND);
 	RNA_def_property_ui_text(prop, "On Land", "Use rule when boid is on land");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 	
-	//prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
+	//prop= RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	//RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Expanded);
 	//RNA_def_property_ui_text(prop, "Expanded", "Set modifier expanded in the user interface");
 

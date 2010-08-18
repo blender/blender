@@ -139,6 +139,24 @@ static void rna_Matte_t2_set(PointerRNA *ptr, float value)
 	chroma->t2 = value;
 }
 
+static void rna_Image_start_frame_set(PointerRNA *ptr, int value)
+{
+	bNode *node= (bNode*)ptr->data;
+	NodeImageFile *image = node->storage;
+	
+	CLAMP(value, MINFRAME, image->efra); 
+	image->sfra= value;
+}
+
+static void rna_Image_end_frame_set(PointerRNA *ptr, int value)
+{
+	bNode *node= (bNode*)ptr->data;
+	NodeImageFile *image = node->storage;
+
+	CLAMP(value, image->sfra, MAXFRAME);
+	image->efra= value;
+}
+
 static void node_update(Main *bmain, Scene *scene, bNodeTree *ntree, bNode *node)
 {
 	ED_node_generic_update(bmain, scene, ntree, node);
@@ -968,21 +986,25 @@ static void def_cmp_vector_blur(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "samples");
+	RNA_def_property_range(prop, 1, 256);
 	RNA_def_property_ui_text(prop, "Samples", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "min_speed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "minspeed");
+	RNA_def_property_range(prop, 0, 1024);
 	RNA_def_property_ui_text(prop, "Min Speed", "Minimum speed for a pixel to be blurred; used to separate background from foreground");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 		
 	prop = RNA_def_property(srna, "max_speed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "maxspeed");
+	RNA_def_property_range(prop, 0, 1024);
 	RNA_def_property_ui_text(prop, "Max Speed", "Maximum speed, or zero for none");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fac");
+	RNA_def_property_range(prop, 0.0f, 2.0f);
 	RNA_def_property_ui_text(prop, "Blur Factor", "Scaling factor for motion vectors; actually 'shutter speed' in frames");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
@@ -1142,16 +1164,17 @@ static void def_cmp_output_file(StructRNA *srna)
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Quality", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-		// TODO: should these be limited to the extents of the each other so that no cross-over occurs?
+
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Image_start_frame_set", NULL);
 	RNA_def_property_range(prop, MINFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "efra");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Image_end_frame_set", NULL);
 	RNA_def_property_range(prop, MINFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "End Frame", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");

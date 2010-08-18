@@ -186,7 +186,7 @@ static void rna_MaterialStrand_end_size_range(PointerRNA *ptr, float *min, float
 	}
 }
 
-static int rna_MaterialTextureSlot_enabled_get(PointerRNA *ptr)
+static int rna_MaterialTextureSlot_use_get(PointerRNA *ptr)
 {
 	Material *ma= (Material*)ptr->id.data;
 	MTex *mtex= (MTex*)ptr->data;
@@ -199,7 +199,7 @@ static int rna_MaterialTextureSlot_enabled_get(PointerRNA *ptr)
 	return 0;
 }
 
-static void rna_MaterialTextureSlot_enabled_set(PointerRNA *ptr, int value)
+static void rna_MaterialTextureSlot_use_set(PointerRNA *ptr, int value)
 {
 	Material *ma= (Material*)ptr->id.data;
 	MTex *mtex= (MTex*)ptr->data;
@@ -615,8 +615,8 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	
 	/* end volume material */
 	
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_MaterialTextureSlot_enabled_get", "rna_MaterialTextureSlot_enabled_set");
+	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_MaterialTextureSlot_use_get", "rna_MaterialTextureSlot_use_set");
 	RNA_def_property_ui_text(prop, "Enabled", "Enable this material texture slot");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
@@ -823,7 +823,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Raytrace Mirror", "Raytraced reflection settings for a Material datablock");
 
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_RAYMIRROR); /* use bitflags */
 	RNA_def_property_ui_text(prop, "Enabled", "Enable raytraced reflections");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
@@ -1221,7 +1221,7 @@ static void rna_def_material_halo(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Extreme Alpha", "Uses extreme alpha");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "shaded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_shaded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_HALO_SHADE);
 	RNA_def_property_ui_text(prop, "Shaded", "Lets halo receive light and shadows from external objects");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
@@ -1296,7 +1296,7 @@ static void rna_def_material_sss(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Back", "Back scattering weight");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "sss_flag", MA_DIFF_SSS);
 	RNA_def_property_ui_text(prop, "Enabled", "Enable diffuse subsurface scatting effects in a material");
 	RNA_def_property_update(prop, 0, "rna_Material_update");

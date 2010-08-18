@@ -393,7 +393,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	/* flags */
-	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
 	RNA_def_property_array(prop, 32);
 	if(editbone) RNA_def_property_boolean_funcs(prop, NULL, "rna_EditBone_layer_set");
@@ -401,44 +401,44 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_ui_text(prop, "Layers", "Layers bone exists in");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
-	prop= RNA_def_property(srna, "connected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_connect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_CONNECTED);
 	if(editbone) RNA_def_property_boolean_funcs(prop, NULL, "rna_EditBone_connected_set");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Connected", "When bone has a parent, bone's head is struck to the parent's tail");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop= RNA_def_property(srna, "hinge", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_hinge", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_HINGE);
 	RNA_def_property_ui_text(prop, "Inherit Rotation", "Bone inherits rotation or scale from parent bone");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop= RNA_def_property(srna, "multiply_vertexgroup_with_envelope", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_envelope_multiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_MULT_VG_ENV);
 	RNA_def_property_ui_text(prop, "Multiply Vertex Group with Envelope", "When deforming bone, multiply effects of Vertex Group weights with Envelope influence");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop= RNA_def_property(srna, "deform", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_deform", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_DEFORM);
 	RNA_def_property_ui_text(prop, "Deform", "Bone does not deform any geometry");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop= RNA_def_property(srna, "inherit_scale", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_inherit_scale", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Inherit Scale", "Bone inherits scaling from parent bone");
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_SCALE);
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 
-	prop= RNA_def_property(srna, "local_location", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_local_location", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Local Location", "Bone location is set in local space");
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_LOCAL_LOCATION);
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop= RNA_def_property(srna, "draw_wire", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_wire", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_DRAWWIRE);
 	RNA_def_property_ui_text(prop, "Draw Wire", "Bone is always drawn as Wireframe regardless of viewport draw mode. Useful for non-obstructive custom bone shapes");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
-	prop= RNA_def_property(srna, "cyclic_offset", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_cyclic_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_CYCLICOFFSET);
 	RNA_def_property_ui_text(prop, "Cyclic Offset", "When bone doesn't have a parent, it receives cyclic offset effects");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
@@ -782,7 +782,7 @@ static void rna_def_armature(BlenderRNA *brna)
 
 	/* Boolean values */
 		/* layer */
-	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
 	RNA_def_property_array(prop, 32);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Armature layer visibility");
@@ -798,13 +798,13 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 		
 		/* flag */
-	prop= RNA_def_property(srna, "draw_axes", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_axes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DRAWAXES);
 	RNA_def_property_ui_text(prop, "Draw Axes", "Draw bone axes");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
-	prop= RNA_def_property(srna, "draw_names", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_names", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DRAWNAMES);
 	RNA_def_property_ui_text(prop, "Draw Names", "Draw bone names");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
@@ -827,18 +827,18 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
-	prop= RNA_def_property(srna, "draw_custom_bone_shapes", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_bone_custom_shapes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ARM_NO_CUSTOM);
 	RNA_def_property_ui_text(prop, "Draw Custom Bone Shapes", "Draw bones with their custom shapes");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
-	prop= RNA_def_property(srna, "draw_group_colors", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_group_colors", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_COL_CUSTOM);
 	RNA_def_property_ui_text(prop, "Draw Bone Group Colors", "Draw bone group colors");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
 // XXX depreceated ....... old animviz for armatures only
-	prop= RNA_def_property(srna, "ghost_only_selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_only_ghost_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_GHOST_ONLYSEL);
 	RNA_def_property_ui_text(prop, "Draw Ghosts on Selected Bones Only", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");

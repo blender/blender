@@ -60,7 +60,7 @@ EnumPropertyItem texture_type_items[] = {
 	{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", ""},
 	{TEX_MUSGRAVE, "MUSGRAVE", ICON_TEXTURE, "Musgrave", ""},
 	{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise", ""},
-	{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""},
+	//{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""}, /* Nothing yet */
 	{TEX_POINTDENSITY, "POINT_DENSITY", ICON_TEXTURE, "Point Density", ""},
 	{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", ""},
 	{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", ""},
@@ -1540,7 +1540,7 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Tex");
 	RNA_def_struct_ui_text(srna, "Point Density", "Settings for the Point Density texture");
 	
-	prop= RNA_def_property(srna, "pointdensity", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "point_density", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "pd");
 	RNA_def_property_struct_type(prop, "PointDensity");
 	RNA_def_property_ui_text(prop, "Point Density", "The point density settings associated with this texture");
@@ -1646,7 +1646,7 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "Tex");
 	RNA_def_struct_ui_text(srna, "Voxel Data", "Settings for the Voxel Data texture");
 	
-	prop= RNA_def_property(srna, "voxeldata", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "voxel_data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vd");
 	RNA_def_property_struct_type(prop, "VoxelData");
 	RNA_def_property_ui_text(prop, "Voxel Data", "The voxel data associated with this texture");

@@ -806,7 +806,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pose Tail Position", "Location of tail of the channel's bone");
 	
 	/* IK Settings */
-	prop= RNA_def_property(srna, "has_ik", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_in_ik_chain", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop,  "rna_PoseChannel_has_ik_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Has IK", "Is part of an IK chain");
@@ -1046,13 +1046,13 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Precision", "Precision of convergence in case of reiteration");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
-	prop= RNA_def_property(srna, "num_iter", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "numiter");
 	RNA_def_property_range(prop, 1.f,1000.f);
 	RNA_def_property_ui_text(prop, "Iterations", "Maximum number of iterations for convergence in case of reiteration");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
-	prop= RNA_def_property(srna, "num_step", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "step_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "numstep");
 	RNA_def_property_range(prop, 1.f, 50.f);
 	RNA_def_property_ui_text(prop, "Num steps", "Divides the frame interval into this many steps");
@@ -1064,24 +1064,24 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mode", NULL);
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update_rebuild");
 
-	prop= RNA_def_property(srna, "reiteration", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "reiteration_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_itasc_reiteration_items);
 	RNA_def_property_ui_text(prop, "Reiteration", "Defines if the solver is allowed to reiterate (converges until precision is met) on none, first or all frames");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
-	prop= RNA_def_property(srna, "auto_step", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_auto_step", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ITASC_AUTO_STEP);
 	RNA_def_property_ui_text(prop, "Auto step", "Automatically determine the optimal number of steps for best performance/accuracy trade off");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
-	prop= RNA_def_property(srna, "min_step", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "step_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "minstep");
 	RNA_def_property_range(prop, 0.0f,0.1f);
 	RNA_def_property_ui_text(prop, "Min step", "Lower bound for timestep in second in case of automatic substeps");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
-	prop= RNA_def_property(srna, "max_step", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "step_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "maxstep");
 	RNA_def_property_range(prop, 0.0f,1.0f);
 	RNA_def_property_ui_text(prop, "Max step", "Higher bound for timestep in second in case of automatic substeps");
@@ -1093,7 +1093,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Feedback", "Feedback coefficient for error correction. Average response time=1/feedback. Default=20");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
-	prop= RNA_def_property(srna, "max_velocity", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "velocity_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "maxvel");
 	RNA_def_property_range(prop, 0.0f,100.0f);
 	RNA_def_property_ui_text(prop, "Max Velocity", "Maximum joint velocity in rad/s. Default=50");
@@ -1105,13 +1105,13 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Solver", "Solving method selection: Automatic damping or manual damping");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update_rebuild");
 
-	prop= RNA_def_property(srna, "dampmax", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "damping_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dampmax");
 	RNA_def_property_range(prop, 0.0f,1.0f);
 	RNA_def_property_ui_text(prop, "Damp", "Maximum damping coefficient when singular value is nearly 0. Higher values=more stability, less reactivity. Default=0.5");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Itasc_update");
 
-	prop= RNA_def_property(srna, "dampeps", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "damping_epsilon", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dampeps");
 	RNA_def_property_range(prop, 0.0f,1.0f);
 	RNA_def_property_ui_text(prop, "Epsilon", "Singular value under which damping is progressively applied. Higher values=more stability, less reactivity. Default=0.1");

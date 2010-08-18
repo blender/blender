@@ -42,7 +42,7 @@ class NLA_HT_header(bpy.types.Header):
 
         layout.template_dopesheet_filter(st.dopesheet)
 
-        layout.prop(st, "autosnap", text="")
+        layout.prop(st, "auto_snap", text="")
 
 
 class NLA_MT_view(bpy.types.Menu):
@@ -59,8 +59,8 @@ class NLA_MT_view(bpy.types.Menu):
 
         layout.separator()
 
-        layout.prop(st, "realtime_updates")
-        layout.prop(st, "show_cframe_indicator")
+        layout.prop(st, "use_realtime_update")
+        layout.prop(st, "show_frame_indicator")
 
         layout.operator("anim.time_toggle", text="Show Frames" if st.show_seconds else "Show Seconds")
 
@@ -122,7 +122,7 @@ class NLA_MT_edit(bpy.types.Menu):
 
         layout.separator()
         # TODO: names of these tools for 'tweakmode' need changing?
-        if scene.nla_tweakmode_on:
+        if scene.is_nla_tweakmode:
             layout.operator("nla.tweakmode_exit", text="Stop Tweaking Strip Actions")
         else:
             layout.operator("nla.tweakmode_enter", text="Start Tweaking Strip Actions")

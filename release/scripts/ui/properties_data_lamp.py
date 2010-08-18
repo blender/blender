@@ -125,7 +125,7 @@ class DATA_PT_sunsky(DataButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        lamp = context.lamp.sky
+        lamp = context.lamp.use_sky
 
         row = layout.row(align=True)
         row.prop(lamp, "use_sky")
@@ -357,9 +357,9 @@ class DATA_PT_spot(DataButtonsPanel, bpy.types.Panel):
 
         col = split.column()
 
-        col.prop(lamp, "halo")
+        col.prop(lamp, "use_halo")
         sub = col.column(align=True)
-        sub.active = lamp.halo
+        sub.active = lamp.use_halo
         sub.prop(lamp, "halo_intensity", text="Intensity")
         if lamp.shadow_method == 'BUFFER_SHADOW':
             sub.prop(lamp, "halo_step", text="Step")
