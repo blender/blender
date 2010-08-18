@@ -403,7 +403,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Stroke Method", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop= RNA_def_property(srna, "texture_angle_source", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "texture_angle_source_random", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, texture_angle_source_items);
 	RNA_def_property_ui_text(prop, "Texture Angle Source", "");
@@ -516,7 +516,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Crease Brush Pinch Factor", "How much the crease brush pinches");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop= RNA_def_property(srna, "autosmooth_factor", PROP_FLOAT, PROP_FACTOR);
+	prop= RNA_def_property(srna, "auto_smooth_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "autosmooth_factor");
 	RNA_def_property_float_default(prop, 0);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
@@ -540,7 +540,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Wrap", "Enable torus wrapping while painting");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
-	prop= RNA_def_property(srna, "use_strength_pressure", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_pressure_strength", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ALPHA_PRESSURE);
 	RNA_def_property_boolean_funcs(prop, "rna_Brush_get_use_alpha_pressure", "rna_Brush_set_use_alpha_pressure");
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
@@ -553,20 +553,20 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Plane Offset Pressure", "Enable tablet pressure sensitivity for offset");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop= RNA_def_property(srna, "use_size_pressure", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_pressure_size", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SIZE_PRESSURE);
 	RNA_def_property_boolean_funcs(prop, "rna_Brush_get_use_size_pressure", "rna_Brush_set_use_size_pressure");
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Size Pressure", "Enable tablet pressure sensitivity for size");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
-	prop= RNA_def_property(srna, "use_jitter_pressure", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_pressure_jitter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_JITTER_PRESSURE);
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Jitter Pressure", "Enable tablet pressure sensitivity for jitter");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop= RNA_def_property(srna, "use_spacing_pressure", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_pressure_spacing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACING_PRESSURE);
 	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
 	RNA_def_property_ui_text(prop, "Spacing Pressure", "Enable tablet pressure sensitivity for spacing");
@@ -645,12 +645,12 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Texture Overlay", "Show texture in viewport");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop= RNA_def_property(srna, "edge_to_edge", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_edge_to_edge", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_EDGE_TO_EDGE);
 	RNA_def_property_ui_text(prop, "Edge-to-edge", "Drag anchor brush from edge-to-edge");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop= RNA_def_property(srna, "restore_mesh", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_restore_mesh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RESTORE_MESH);
 	RNA_def_property_ui_text(prop, "Restore Mesh", "Allows a single dot to be carefully positioned");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
@@ -708,13 +708,13 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Texture Overlay Alpha", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop= RNA_def_property(srna, "add_col", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "cursor_color_add", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "add_col");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Add Color", "Color of cursor when adding");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-	prop= RNA_def_property(srna, "sub_col", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "cursor_color_subtract", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "sub_col");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Subract Color", "Color of cursor when subtracting");

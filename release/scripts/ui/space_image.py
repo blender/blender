@@ -584,15 +584,15 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
             row = col.row(align=True)
             row.prop(brush, "size", slider=True)
-            row.prop(brush, "use_size_pressure", toggle=True, text="")
+            row.prop(brush, "use_pressure_size", toggle=True, text="")
 
             row = col.row(align=True)
             row.prop(brush, "strength", slider=True)
-            row.prop(brush, "use_strength_pressure", toggle=True, text="")
+            row.prop(brush, "use_pressure_strength", toggle=True, text="")
 
             row = col.row(align=True)
             row.prop(brush, "jitter", slider=True)
-            row.prop(brush, "use_jitter_pressure", toggle=True, text="")
+            row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
             col.prop(brush, "blend", text="Blend")
 
@@ -638,7 +638,7 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, bpy.types.Panel):
         row = layout.row(align=True)
         row.active = brush.use_space
         row.prop(brush, "spacing", text="Distance", slider=True)
-        row.prop(brush, "use_spacing_pressure", toggle=True, text="")
+        row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
         layout.prop(brush, "use_wrap")
 

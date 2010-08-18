@@ -552,7 +552,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                 row.prop(brush, "use_locked_size", toggle=True, text="", icon='UNLOCKED')
                 row.prop(brush, "size", text="Radius", slider=True)
 
-            row.prop(brush, "use_size_pressure", toggle=True, text="")
+            row.prop(brush, "use_pressure_size", toggle=True, text="")
 
 
             if brush.sculpt_tool not in ('SNAKE_HOOK', 'GRAB', 'ROTATE'):
@@ -567,7 +567,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                         row.prop(brush, "use_space_atten", toggle=True, text="", icon='UNLOCKED')
 
                 row.prop(brush, "strength", text="Strength", slider=True)
-                row.prop(brush, "use_strength_pressure", text="")
+                row.prop(brush, "use_pressure_strength", text="")
 
 
 
@@ -575,7 +575,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                 col.separator()
 
                 row = col.row(align=True)
-                row.prop(brush, "autosmooth_factor", slider=True)
+                row.prop(brush, "auto_smooth_factor", slider=True)
                 row.prop(brush, "use_inverse_smooth_pressure", toggle=True, text="")
 
 
@@ -659,15 +659,15 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
 
             row = col.row(align=True)
             row.prop(brush, "size", text="Radius", slider=True)
-            row.prop(brush, "use_size_pressure", toggle=True, text="")
+            row.prop(brush, "use_pressure_size", toggle=True, text="")
 
             row = col.row(align=True)
             row.prop(brush, "strength", text="Strength", slider=True)
-            row.prop(brush, "use_strength_pressure", toggle=True, text="")
+            row.prop(brush, "use_pressure_strength", toggle=True, text="")
 
             row = col.row(align=True)
             row.prop(brush, "jitter", slider=True)
-            row.prop(brush, "use_jitter_pressure", toggle=True, text="")
+            row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
             col.prop(brush, "blend", text="Blend")
 
@@ -686,15 +686,15 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
 
             row = col.row(align=True)
             row.prop(brush, "size", text="Radius", slider=True)
-            row.prop(brush, "use_size_pressure", toggle=True, text="")
+            row.prop(brush, "use_pressure_size", toggle=True, text="")
 
             row = col.row(align=True)
             row.prop(brush, "strength", text="Strength", slider=True)
-            row.prop(brush, "use_strength_pressure", toggle=True, text="")
+            row.prop(brush, "use_pressure_strength", toggle=True, text="")
 
             row = col.row(align=True)
             row.prop(brush, "jitter", slider=True)
-            row.prop(brush, "use_jitter_pressure", toggle=True, text="")
+            row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
         # Vertex Paint Mode #
 
@@ -705,16 +705,16 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
 
             row = col.row(align=True)
             row.prop(brush, "size", text="Radius", slider=True)
-            row.prop(brush, "use_size_pressure", toggle=True, text="")
+            row.prop(brush, "use_pressure_size", toggle=True, text="")
 
             row = col.row(align=True)
             row.prop(brush, "strength", text="Strength", slider=True)
-            row.prop(brush, "use_strength_pressure", toggle=True, text="")
+            row.prop(brush, "use_pressure_strength", toggle=True, text="")
 
             # XXX - TODO
             #row = col.row(align=True)
             #row.prop(brush, "jitter", slider=True)
-            #row.prop(brush, "use_jitter_pressure", toggle=True, text="")
+            #row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
 
 class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
@@ -758,7 +758,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
             
             col = layout.column()
             if not brush.use_anchor and brush.sculpt_tool not in ('GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE') and tex_slot.map_mode in ('FIXED'):
-                col.prop(brush, "texture_angle_source", text="")
+                col.prop(brush, "texture_angle_source_random", text="")
             else:
                 col.prop(brush, "texture_angle_source_no_random", text="")
 
@@ -880,7 +880,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
             if brush.use_anchor:
                 col.separator()
                 row = col.row()
-                row.prop(brush, "edge_to_edge", "Edge To Edge")
+                row.prop(brush, "use_edge_to_edge", "Edge To Edge")
 
             if brush.use_airbrush:
                 col.separator()
@@ -893,7 +893,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
                 row.active = brush.use_space
                 row.prop(brush, "spacing", text="Spacing")
 
-            if brush.sculpt_tool not in ('GRAB', 'THUMB', 'SNAKE_HOOK', 'ROTATE') and (not brush.use_anchor) and (not brush.restore_mesh):
+            if brush.sculpt_tool not in ('GRAB', 'THUMB', 'SNAKE_HOOK', 'ROTATE') and (not brush.use_anchor) and (not brush.use_restore_mesh):
                 col = layout.column()
                 col.separator()
 
@@ -908,7 +908,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
 
                 row = col.row(align=True)
                 row.prop(brush, "jitter", slider=True)
-                row.prop(brush, "use_jitter_pressure", toggle=True, text="")
+                row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
         else:
             row = col.row()
@@ -947,7 +947,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
             #col.separator()
 
             #if texture_paint:
-            #    row.prop(brush, "use_spacing_pressure", toggle=True, text="")
+            #    row.prop(brush, "use_pressure_spacing", toggle=True, text="")
 
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel, bpy.types.Panel):
@@ -1071,12 +1071,12 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
         if context.sculpt_object and context.tool_settings.sculpt:
             #if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE', 'CLAY_TUBES'):
             if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE'):
-                col.prop(brush, "add_col", text="Add Color")
-                col.prop(brush, "sub_col", text="Subtract Color")
+                col.prop(brush, "cursor_color_add", text="Add Color")
+                col.prop(brush, "cursor_color_subtract", text="Subtract Color")
             else:
-                col.prop(brush, "add_col", text="Color")
+                col.prop(brush, "cursor_color_add", text="Color")
         else:
-            col.prop(brush, "add_col", text="Color")
+            col.prop(brush, "cursor_color_add", text="Color")
 
         col = layout.column()
         col.label(text="Icon:")
