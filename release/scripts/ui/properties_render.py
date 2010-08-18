@@ -124,7 +124,7 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(rl, "use_edge_enhance")
         col.prop(rl, "use_strand")
-        col.prop(rl, "freestyle")
+        col.prop(rl, "use_freestyle")
 
         layout.separator()
 
@@ -178,7 +178,7 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         rd = context.scene.render
         rl = rd.layers[rd.active_layer_index]
-        return rl and rl.freestyle
+        return rl and rl.use_freestyle
 
     def draw(self, context):
         layout = self.layout
@@ -283,7 +283,7 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         rd = context.scene.render
         rl = rd.layers[rd.active_layer_index]
-        if rl and rl.freestyle:
+        if rl and rl.use_freestyle:
             freestyle = rl.freestyle_settings
             return freestyle.mode == "EDITOR" and freestyle.active_lineset
         return False
