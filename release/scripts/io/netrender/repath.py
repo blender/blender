@@ -69,7 +69,7 @@ def process(paths):
         point_cache.use_external = False
 
     def processFluid(fluid):
-        new_path = path_map.get(fluid.path, None)
+        new_path = path_map.get(fluid.filepath, None)
         if new_path:
             fluid.path = new_path
     

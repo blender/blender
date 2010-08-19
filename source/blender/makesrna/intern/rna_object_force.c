@@ -896,7 +896,7 @@ static void rna_def_effector_weight(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_PHYSICS);
 
 	/* Flags */
-	prop= RNA_def_property(srna, "do_growing_hair", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "apply_to_hair_growing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", EFF_WEIGHT_DO_HAIR);
 	RNA_def_property_ui_text(prop, "Use For Growing Hair", "Use force fields when growing hair");
 	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");

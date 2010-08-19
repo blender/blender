@@ -472,31 +472,31 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
 
 
             row = layout.row()
-            row.prop(boids, "allow_flight")
-            row.prop(boids, "allow_land")
-            row.prop(boids, "allow_climb")
+            row.prop(boids, "use_flight")
+            row.prop(boids, "use_land")
+            row.prop(boids, "use_climb")
 
             split = layout.split()
 
             sub = split.column()
             col = sub.column(align=True)
-            col.active = boids.allow_flight
-            col.prop(boids, "air_max_speed")
-            col.prop(boids, "air_min_speed", slider=True)
-            col.prop(boids, "air_max_acc", slider=True)
-            col.prop(boids, "air_max_ave", slider=True)
+            col.active = boids.use_flight
+            col.prop(boids, "air_speed_max")
+            col.prop(boids, "air_speed_min", slider=True)
+            col.prop(boids, "air_acc_max", slider=True)
+            col.prop(boids, "air_ave_max", slider=True)
             col.prop(boids, "air_personal_space")
             row = col.row()
-            row.active = (boids.allow_land or boids.allow_climb) and boids.allow_flight
-            row.prop(boids, "landing_smoothness")
+            row.active = (boids.use_land or boids.allow_climb) and boids.allow_flight
+            row.prop(boids, "land_smooth")
 
             sub = split.column()
             col = sub.column(align=True)
-            col.active = boids.allow_land or boids.allow_climb
-            col.prop(boids, "land_max_speed")
+            col.active = boids.use_land or boids.allow_climb
+            col.prop(boids, "land_speed_max")
             col.prop(boids, "land_jump_speed")
-            col.prop(boids, "land_max_acc", slider=True)
-            col.prop(boids, "land_max_ave", slider=True)
+            col.prop(boids, "land_acc_max", slider=True)
+            col.prop(boids, "land_ave_max", slider=True)
             col.prop(boids, "land_personal_space")
             col.prop(boids, "land_stick_force")
 
@@ -512,7 +512,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
 
             col = row.column()
             col.label(text="Misc:")
-            col.prop(boids, "banking", slider=True)
+            col.prop(boids, "bank", slider=True)
             col.prop(boids, "height", slider=True)
 
         if part.physics_type == 'KEYED' or part.physics_type == 'BOIDS' or part.physics_type == 'FLUID':
@@ -633,26 +633,26 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, bpy.types.Panel):
             if rule.type == 'GOAL':
                 row.prop(rule, "object")
                 row = layout.row()
-                row.prop(rule, "predict")
+                row.prop(rule, "use_predict")
             elif rule.type == 'AVOID':
                 row.prop(rule, "object")
                 row = layout.row()
-                row.prop(rule, "predict")
+                row.prop(rule, "use_predict")
                 row.prop(rule, "fear_factor")
             elif rule.type == 'FOLLOW_PATH':
                 row.label(text="Not yet functional.")
             elif rule.type == 'AVOID_COLLISION':
-                row.prop(rule, "boids")
-                row.prop(rule, "deflectors")
+                row.prop(rule, "use_avoid")
+                row.prop(rule, "use_avoid_collision")
                 row.prop(rule, "look_ahead")
             elif rule.type == 'FOLLOW_LEADER':
                 row.prop(rule, "object", text="")
                 row.prop(rule, "distance")
                 row = layout.row()
-                row.prop(rule, "line")
+                row.prop(rule, "use_line")
                 sub = row.row()
                 sub.active = rule.line
-                sub.prop(rule, "queue_size")
+                sub.prop(rule, "queue_count")
             elif rule.type == 'AVERAGE_SPEED':
                 row.prop(rule, "speed", slider=True)
                 row.prop(rule, "wander", slider=True)

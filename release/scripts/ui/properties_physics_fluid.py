@@ -100,7 +100,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 col.prop(fluid, "generate_speed_vectors")
                 col.prop(fluid, "reverse_frames")
 
-                layout.prop(fluid, "path", text="")
+                layout.prop(fluid, "filepath", text="")
 
             elif fluid.type == 'FLUID':
                 split = layout.split()
@@ -168,7 +168,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 col.prop(fluid, "floats")
                 col.prop(fluid, "show_tracer")
 
-                layout.prop(fluid, "path", text="")
+                layout.prop(fluid, "filepath", text="")
 
             elif fluid.type == 'CONTROL':
                 split = layout.split()
