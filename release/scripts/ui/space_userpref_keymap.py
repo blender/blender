@@ -299,9 +299,8 @@ class InputKeyMapPanel(bpy.types.Panel):
                 if title:
                     box.label(text=title)
                 flow = box.column_flow(columns=2)
-                for pname in dir(properties):
+                for pname, value in properties.items():
                     if not properties.is_property_hidden(pname):
-                        value = eval("properties." + pname)
                         if isinstance(value, bpy.types.OperatorProperties):
                             display_properties(value, title=pname)
                         else:
@@ -388,9 +387,8 @@ def export_properties(prefix, properties, lines=None):
     if lines is None:
         lines = []
 
-    for pname in properties.keys():
+    for value, pname in properties.items():
         if not properties.is_property_hidden(pname):
-            value = getattr(properties, pname)
             if isinstance(value, bpy.types.OperatorProperties):
                 export_properties(prefix + "." + pname, value, lines)
             elif properties.is_property_set(pname):
