@@ -275,7 +275,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point_align");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* new in 2.5 */
-	RNA_string_set(kmi->ptr, "data_path", "space_data.manipulator");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.show_manipulator");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");

@@ -965,7 +965,7 @@ class x3d_class:
         # if mesh.faceUV:
             for face in mesh.active_uv_texture.data:
             # for face in mesh.faces
-                sidename = "two" if face.use_twoside else "one":
+                sidename = "two" if face.use_twoside else "one"
 
                 if sidename in sided:
                     sided[sidename]+=1
