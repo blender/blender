@@ -1246,40 +1246,40 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Rotation Damping", "General rotation damping");
 
-	prop= RNA_def_property(srna, "minimum_velocity", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "velocity_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "min_vel");
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Velocity Min", "Clamp velocity to this minimum speed (except when totally still)");
 
-	prop= RNA_def_property(srna, "maximum_velocity", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "velocity_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max_vel");
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Velocity Max", "Clamp velocity to this maximum speed");
 
 	/* lock position */
-	prop= RNA_def_property(srna, "lock_x_axis", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_location_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_X_AXIS);
 	RNA_def_property_ui_text(prop, "Lock X Axis", "Disable simulation of linear motion along the X axis");
 	
-	prop= RNA_def_property(srna, "lock_y_axis", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_location_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Y_AXIS);
 	RNA_def_property_ui_text(prop, "Lock Y Axis", "Disable simulation of linear motion along the Y axis");
 	
-	prop= RNA_def_property(srna, "lock_z_axis", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_location_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Z_AXIS);
 	RNA_def_property_ui_text(prop, "Lock Z Axis", "Disable simulation of linear motion along the Z axis");
 	
 	
 	/* lock rotation */
-	prop= RNA_def_property(srna, "lock_x_rot_axis", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_rotation_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_X_ROT_AXIS);
 	RNA_def_property_ui_text(prop, "Lock X Rotation Axis", "Disable simulation of angular  motion along the X axis");
 	
-	prop= RNA_def_property(srna, "lock_y_rot_axis", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_rotation_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Y_ROT_AXIS);
 	RNA_def_property_ui_text(prop, "Lock Y Rotation Axis", "Disable simulation of angular  motion along the Y axis");
 	
-	prop= RNA_def_property(srna, "lock_z_rot_axis", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_rotation_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Z_ROT_AXIS);
 	RNA_def_property_ui_text(prop, "Lock Z Rotation Axis", "Disable simulation of angular  motion along the Z axis");
 	
@@ -1289,11 +1289,11 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock Z Rotation Axis", "Disable simulation of angular  motion along the Z axis");	
 	
 
-	prop= RNA_def_property(srna, "material_physics", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_material_physics", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_DO_FH);
 	RNA_def_property_ui_text(prop, "Use Material Physics", "Use physics settings in materials");
 
-	prop= RNA_def_property(srna, "rotate_from_normal", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_rotate_from_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ROT_FH);
 	RNA_def_property_ui_text(prop, "Rotate From Normal", "Use face normal to rotate object, so that it points away from the surface");
 
@@ -1302,7 +1302,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Form Factor", "Form factor scales the inertia tensor");
 
-	prop= RNA_def_property(srna, "anisotropic_friction", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_anisotropic_friction", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ANISOTROPIC_FRICTION);
 	RNA_def_property_ui_text(prop, "Anisotropic Friction", "Enable anisotropic friction");
 
@@ -1315,14 +1315,14 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_BOUNDS);
 	RNA_def_property_ui_text(prop, "Use Collision Bounds", "Specify a collision bounds type other than the default");
 
-	prop= RNA_def_property(srna, "collision_bounds", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "collision_bounds_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "boundtype");
 	RNA_def_property_enum_items(prop, collision_bounds_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Object_collision_bounds_itemf");
 	RNA_def_property_ui_text(prop, "Collision Bounds",  "Selects the collision type");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "collision_compound", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_collision_compound", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_CHILD);
 	RNA_def_property_ui_text(prop, "Collision Compound", "Add children to form a compound collision object");
 
@@ -1337,7 +1337,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 
 	/* state */
 
-	prop= RNA_def_property(srna, "visible_state", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	prop= RNA_def_property(srna, "states_visible", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "state", 1);
 	RNA_def_property_array(prop, OB_MAX_STATES);
 	RNA_def_property_ui_text(prop, "State", "State determining which controllers are displayed");
@@ -1349,7 +1349,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_used_state_get", NULL);
 	
-	prop= RNA_def_property(srna, "initial_state", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "states_initial", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "init_state", 1);
 	RNA_def_property_array(prop, OB_MAX_STATES);
 	RNA_def_property_ui_text(prop, "Initial State", "Initial state when the game starts");
@@ -1359,7 +1359,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Debug State", "Print state debug info in the game engine");
 	RNA_def_property_ui_icon(prop, ICON_INFO, 0);
 
-	prop= RNA_def_property(srna, "all_states", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_all_states", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_ALLSTATE);
 	RNA_def_property_ui_text(prop, "All", "Set all state bits");
 

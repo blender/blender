@@ -56,8 +56,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col.prop(ob, "hide_render", text="Invisible") # out of place but useful
 
             col = split.column()
-            col.prop(game, "material_physics")
-            col.prop(game, "rotate_from_normal")
+            col.prop(game, "use_material_physics")
+            col.prop(game, "use_rotate_from_normal")
             col.prop(game, "use_sleep")
 
             layout.separator()
@@ -73,9 +73,9 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col = split.column()
             sub = col.column()
             sub.active = (game.physics_type == 'RIGID_BODY')
-            sub.prop(game, "anisotropic_friction")
+            sub.prop(game, "use_anisotropic_friction")
             subsub = sub.column()
-            subsub.active = game.anisotropic_friction
+            subsub.active = game.use_anisotropic_friction
             subsub.prop(game, "friction_coefficients", text="", slider=True)
 
             split = layout.split()
@@ -83,8 +83,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.label(text="Velocity:")
             sub = col.column(align=True)
-            sub.prop(game, "minimum_velocity", text="Minimum")
-            sub.prop(game, "maximum_velocity", text="Maximum")
+            sub.prop(game, "velocity_min", text="Minimum")
+            sub.prop(game, "velocity_max", text="Maximum")
 
             col = split.column()
             col.label(text="Damping:")
@@ -98,15 +98,15 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
 
             col = split.column()
             col.label(text="Lock Translation:")
-            col.prop(game, "lock_x_axis", text="X")
-            col.prop(game, "lock_y_axis", text="Y")
-            col.prop(game, "lock_z_axis", text="Z")
+            col.prop(game, "lock_location_x", text="X")
+            col.prop(game, "lock_location_y", text="Y")
+            col.prop(game, "lock_location_z", text="Z")
 
             col = split.column()
             col.label(text="Lock Rotation:")
-            col.prop(game, "lock_x_rot_axis", text="X")
-            col.prop(game, "lock_y_rot_axis", text="Y")
-            col.prop(game, "lock_z_rot_axis", text="Z")
+            col.prop(game, "lock_rotation_x", text="X")
+            col.prop(game, "lock_rotation_y", text="Y")
+            col.prop(game, "lock_rotation_z", text="Z")
 
         elif game.physics_type == 'SOFT_BODY':
             col = layout.column()
@@ -174,7 +174,7 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, bpy.types.Panel):
         game = context.active_object.game
 
         layout.active = game.use_collision_bounds
-        layout.prop(game, "collision_bounds", text="Bounds")
+        layout.prop(game, "collision_bounds_type", text="Bounds")
 
         split = layout.split()
 
@@ -182,7 +182,7 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, bpy.types.Panel):
         col.prop(game, "collision_margin", text="Margin", slider=True)
 
         col = split.column()
-        col.prop(game, "collision_compound", text="Compound")
+        col.prop(game, "use_collision_compound", text="Compound")
 
 
 class RenderButtonsPanel():

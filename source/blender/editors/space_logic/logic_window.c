@@ -4508,13 +4508,13 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			subsplit= uiLayoutSplit(split, 0.85, 0);
 			col= uiLayoutColumn(subsplit, 0);
 			row= uiLayoutRow(col, 0);
-			uiLayoutSetActive(row, RNA_boolean_get(&settings_ptr, "all_states")==0);
-			uiTemplateLayers(row, &settings_ptr, "visible_state", &settings_ptr, "used_states", 0);
+			uiLayoutSetActive(row, RNA_boolean_get(&settings_ptr, "use_all_states")==0);
+			uiTemplateLayers(row, &settings_ptr, "states_visible", &settings_ptr, "used_states", 0);
 			row= uiLayoutRow(col, 0);
-			uiTemplateLayers(row, &settings_ptr, "initial_state", &settings_ptr, "used_states", 0);
+			uiTemplateLayers(row, &settings_ptr, "states_initial", &settings_ptr, "used_states", 0);
 
 			col= uiLayoutColumn(subsplit, 0);
-			uiItemR(col, &settings_ptr, "all_states", UI_ITEM_R_TOGGLE, NULL, 0);
+			uiItemR(col, &settings_ptr, "use_all_states", UI_ITEM_R_TOGGLE, NULL, 0);
 			uiItemR(col, &settings_ptr, "show_debug_state", 0, "", 0); 
 		}
 
