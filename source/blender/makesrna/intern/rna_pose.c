@@ -120,7 +120,7 @@ static void rna_BoneGroup_color_set_set(PointerRNA *ptr, int value)
 	}
 }
 
-static IDProperty *rna_PoseBone_idproperties(PointerRNA *ptr, int create)
+static IDProperty *rna_PoseBone_idprops(PointerRNA *ptr, int create)
 {
 	bPoseChannel *pchan= ptr->data;
 
@@ -685,7 +685,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "bPoseChannel");
 	RNA_def_struct_ui_text(srna, "Pose Bone", "Channel defining pose data for a bone in a Pose");
 	RNA_def_struct_path_func(srna, "rna_PoseBone_path");
-	RNA_def_struct_idproperties_func(srna, "rna_PoseBone_idproperties");
+	RNA_def_struct_idprops_func(srna, "rna_PoseBone_idprops");
 	
 	/* Bone Constraints */
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);

@@ -123,7 +123,7 @@ static char *rna_Bone_path(PointerRNA *ptr)
 	return BLI_sprintfN("bones[\"%s\"]", ((Bone*)ptr->data)->name);
 }
 
-static IDProperty *rna_Bone_idproperties(PointerRNA *ptr, int create)
+static IDProperty *rna_Bone_idprops(PointerRNA *ptr, int create)
 {
 	Bone *bone= ptr->data;
 
@@ -135,7 +135,7 @@ static IDProperty *rna_Bone_idproperties(PointerRNA *ptr, int create)
 	return bone->prop;
 }
 
-static IDProperty *rna_EditBone_idproperties(PointerRNA *ptr, int create)
+static IDProperty *rna_EditBone_idprops(PointerRNA *ptr, int create)
 {
 	EditBone *ebone= ptr->data;
 
@@ -504,7 +504,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Bone", "Bone in an Armature datablock");
 	RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
 	RNA_def_struct_path_func(srna, "rna_Bone_path");
-	RNA_def_struct_idproperties_func(srna, "rna_Bone_idproperties");
+	RNA_def_struct_idprops_func(srna, "rna_Bone_idprops");
 	
 	/* pointers/collections */
 		/* parent (pointer) */
@@ -572,7 +572,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "EditBone", NULL);
 	RNA_def_struct_sdna(srna, "EditBone");
-	RNA_def_struct_idproperties_func(srna, "rna_EditBone_idproperties");
+	RNA_def_struct_idprops_func(srna, "rna_EditBone_idprops");
 	RNA_def_struct_ui_text(srna, "Edit Bone", "Editmode bone in an Armature datablock");
 	RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
 	

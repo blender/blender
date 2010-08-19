@@ -201,7 +201,7 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 
 		/* try id properties */
 		if(!iter->valid) {
-			group= RNA_struct_idproperties(&iter->builtin_parent, 0);
+			group= RNA_struct_idprops(&iter->builtin_parent, 0);
 
 			if(group) {
 				rna_iterator_listbase_end(iter);
@@ -335,7 +335,7 @@ PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key
 	if(ptr->data) {
 		IDProperty *group, *idp;
 
-		group= RNA_struct_idproperties(ptr, 0);
+		group= RNA_struct_idprops(ptr, 0);
 
 		if(group) {
 			for(idp=group->data.group.first; idp; idp=idp->next) {

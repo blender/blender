@@ -69,7 +69,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
 
             layout = layout.column()
             if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
-                layout.active = fluid.active
+                layout.active = fluid.use
 
             if fluid.type == 'DOMAIN':
                 layout.operator("fluid.bake", text="Bake Fluid Simulation", icon='MOD_FLUIDSIM')

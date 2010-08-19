@@ -298,7 +298,8 @@ typedef enum StructFlag {
 	/* internal flags */
 	STRUCT_RUNTIME = 4,
 	STRUCT_GENERATED = 8,
-	STRUCT_FREE_POINTERS = 16
+	STRUCT_FREE_POINTERS = 16,
+	STRUCT_NO_IDPROPERTIES = 32, /* Menu's and Panels don't need properties */
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);
