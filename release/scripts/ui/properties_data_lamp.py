@@ -125,7 +125,7 @@ class DATA_PT_sunsky(DataButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        lamp = context.lamp.use_sky
+        lamp = context.lamp.sky
 
         row = layout.row(align=True)
         row.prop(lamp, "use_sky")
