@@ -41,7 +41,7 @@ def addFluidFiles(job, path):
                 job.addFile(path + fluid_file, current_frame, current_frame)
 
 def addPointCache(job, ob, point_cache, default_path):
-    if not point_cache.disk_cache:
+    if not point_cache.use_disk_cache:
         return
 
 
@@ -49,7 +49,7 @@ def addPointCache(job, ob, point_cache, default_path):
     if name == "":
         name = "".join(["%02X" % ord(c) for c in ob.name])
 
-    cache_path = bpy.path.abspath(point_cache.filepath) if point_cache.external else default_path
+    cache_path = bpy.path.abspath(point_cache.filepath) if point_cache.use_external else default_path
 
     index = "%02i" % point_cache.index
 
@@ -148,7 +148,7 @@ def clientSendJob(conn, scene, anim = False):
                 addPointCache(job, object, modifier.domain_settings.point_cache_low, default_path)
                 if modifier.domain_settings.highres:
                     addPointCache(job, object, modifier.domain_settings.point_cache_high, default_path)
-            elif modifier.type == "MULTIRES" and modifier.external:
+            elif modifier.type == "MULTIRES" and modifier.is_external:
                 file_path = bpy.path.abspath(modifier.filepath)
                 job.addFile(file_path)
 

@@ -615,7 +615,7 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Zoom", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
-	prop= RNA_def_property(srna, "ignore_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	prop= RNA_def_property(srna, "layers_ignore", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "notlay", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Ignore Layers", "Hide objects on these layers when generating the Environment Map");

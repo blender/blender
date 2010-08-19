@@ -180,7 +180,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
             col = split.column()
 
             #row = split.row(align=True)
-            #row.prop(md, "render", text="")
+            #row.prop(md, "show_render", text="")
             #row.prop(md, "show_viewport", text="")
 
             coll = md.settings

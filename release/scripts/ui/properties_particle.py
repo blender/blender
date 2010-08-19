@@ -143,7 +143,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         if particle_panel_poll(PARTICLE_PT_emission, context):
-            return not context.particle_system.point_cache.external
+            return not context.particle_system.point_cache.use_external
         else:
             return False
 
@@ -284,7 +284,7 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         if particle_panel_poll(PARTICLE_PT_velocity, context):
             psys = context.particle_system
-            return psys.settings.physics_type != 'BOIDS' and not psys.point_cache.external
+            return psys.settings.physics_type != 'BOIDS' and not psys.point_cache.use_external
         else:
             return False
 
@@ -332,7 +332,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, bpy.types.Panel):
     def poll(cls, context):
         if particle_panel_poll(PARTICLE_PT_rotation, context):
             psys = context.particle_system
-            return psys.settings.physics_type != 'BOIDS' and not psys.point_cache.external
+            return psys.settings.physics_type != 'BOIDS' and not psys.point_cache.use_external
         else:
             return False
 
@@ -374,7 +374,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         if particle_panel_poll(PARTICLE_PT_physics, context):
-            return not context.particle_system.point_cache.external
+            return not context.particle_system.point_cache.use_external
         else:
             return False
 
@@ -552,7 +552,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
                     sub.prop(key, "object", text="")
                     sub.prop(key, "system", text="System")
 
-                    layout.prop(key, "mode", expand=True)
+                    layout.prop(key, "alliance", expand=True)
                 elif part.physics_type == 'FLUID':
                     sub = row.row()
                     #doesn't work yet
@@ -573,7 +573,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, bpy.types.Panel):
             return False
         if psys.settings is None:
             return False
-        if psys.point_cache.external:
+        if psys.point_cache.use_external:
             return False
         return psys.settings.physics_type == 'BOIDS' and engine in cls.COMPAT_ENGINES
 
@@ -602,7 +602,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, bpy.types.Panel):
         row = layout.row()
         row.prop(state, "ruleset_type")
         if state.ruleset_type == 'FUZZY':
-            row.prop(state, "rule_fuzziness", slider=True)
+            row.prop(state, "rule_fuzzy", slider=True)
         else:
             row.label(text="")
 
@@ -974,7 +974,7 @@ class PARTICLE_PT_field_weights(ParticleButtonsPanel, bpy.types.Panel):
         effector_weights_ui(self, context, part.effector_weights)
 
         if part.type == 'HAIR':
-            self.layout.prop(part.effector_weights, "do_growing_hair")
+            self.layout.prop(part.effector_weights, "apply_to_hair_growing")
 
 
 class PARTICLE_PT_force_fields(ParticleButtonsPanel, bpy.types.Panel):

@@ -300,25 +300,25 @@ class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
             split = layout.split()
             col = split.column()
 
-            col.prop(tf, "tex")
-            col.prop(tf, "light")
-            col.prop(tf, "invisible")
-            col.prop(tf, "collision")
+            col.prop(tf, "use_bitmap_text")
+            col.prop(tf, "use_light")
+            col.prop(tf, "hide")
+            col.prop(tf, "use_collision")
 
-            col.prop(tf, "shared")
-            col.prop(tf, "twoside")
-            col.prop(tf, "object_color")
+            col.prop(tf, "use_blend_shared")
+            col.prop(tf, "use_twoside")
+            col.prop(tf, "use_object_color")
 
             col = split.column()
 
-            col.prop(tf, "halo")
-            col.prop(tf, "billboard")
-            col.prop(tf, "shadow")
-            col.prop(tf, "text")
-            col.prop(tf, "alpha_sort")
+            col.prop(tf, "use_halo")
+            col.prop(tf, "use_billboard")
+            col.prop(tf, "use_shadow_cast")
+            col.prop(tf, "use_bitmap_text")
+            col.prop(tf, "use_alpha_sort")
 
             col = layout.column()
-            col.prop(tf, "transp")
+            col.prop(tf, "blend_type")
         else:
             col.label(text="No UV Texture")
 

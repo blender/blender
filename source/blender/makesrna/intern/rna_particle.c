@@ -876,7 +876,7 @@ static void rna_def_particle(BlenderRNA *brna)
 //	float fuv[4], foffset;	/* coordinates on face/edge number "num" and depth along*/
 //							/* face normal for volume emission						*/
 
-	prop= RNA_def_property(srna, "birthtime", PROP_FLOAT, PROP_TIME);
+	prop= RNA_def_property(srna, "birth_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "time");
 //	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
 	RNA_def_property_ui_text(prop, "Birth Time", "");
@@ -902,7 +902,7 @@ static void rna_def_particle(BlenderRNA *brna)
 //	int totkey;
 
 	/* flag */
-	prop= RNA_def_property(srna, "is_existing", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_exist", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", PARS_UNEXIST);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Exists", "");
@@ -2055,12 +2055,13 @@ static void rna_def_particle_target(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Duration", "");
 	RNA_def_property_update(prop, 0, "rna_Particle_target_redo");
 
-	prop= RNA_def_property(srna, "valid", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTARGET_VALID);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Valid", "Keyed particles target is valid");
 
-	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "alliance", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, mode_items);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Mode", "");

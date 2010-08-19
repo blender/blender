@@ -66,7 +66,7 @@ def update(job):
 
 def process(paths):
     def processPointCache(point_cache):
-        point_cache.external = False
+        point_cache.use_external = False
 
     def processFluid(fluid):
         new_path = path_map.get(fluid.path, None)
@@ -123,7 +123,7 @@ def process(paths):
                 processPointCache(modifier.domain_settings.point_cache_low)
                 if modifier.domain_settings.highres:
                     processPointCache(modifier.domain_settings.point_cache_high)
-            elif modifier.type == "MULTIRES" and modifier.external:
+            elif modifier.type == "MULTIRES" and modifier.is_external:
                 file_path = bpy.path.abspath(modifier.filepath)
                 new_path = path_map.get(file_path, None)
                 if new_path:

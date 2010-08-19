@@ -747,7 +747,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
                             blender_tface.image = image
                             blender_tface.tex = True
                             if has_data and image.depth == 32:
-                                blender_tface.transp = 'ALPHA'
+                                blender_tface.blend_type = 'ALPHA'
 
                     # BUG - Evil eekadoodle problem where faces that have vert index 0 location at 3 or 4 are shuffled.
                     if len(face_vert_loc_indicies)==4:

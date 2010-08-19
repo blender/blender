@@ -443,7 +443,8 @@ static void rna_def_boidstate(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_BoidState_active_boid_rule_index_get", "rna_BoidState_active_boid_rule_index_set", "rna_BoidState_active_boid_rule_index_range");
 	RNA_def_property_ui_text(prop, "Active Boid Rule Index", "");
 
-	prop= RNA_def_property(srna, "rule_fuzziness", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "rule_fuzzy", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rule_fuzziness");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Rule Fuzziness", "");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");

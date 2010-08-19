@@ -59,7 +59,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
             split.operator("object.modifier_remove", text="Remove")
 
             row = split.row(align=True)
-            row.prop(md, "render", text="")
+            row.prop(md, "show_render", text="")
             row.prop(md, "show_viewport", text="")
         else:
             # add modifier

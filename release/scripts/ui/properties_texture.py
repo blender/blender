@@ -708,7 +708,7 @@ class TEXTURE_PT_envmap(TextureTypePanel, bpy.types.Panel):
             split = layout.split()
 
             col = split.column()
-            col.prop(env, "ignore_layers")
+            col.prop(env, "layers_ignore")
             col.prop(env, "resolution")
             col.prop(env, "depth")
 

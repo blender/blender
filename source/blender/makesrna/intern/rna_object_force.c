@@ -294,7 +294,7 @@ static void rna_Cache_active_point_cache_index_set(struct PointerRNA *ptr, int v
 	BLI_freelistN(&pidlist);
 }
 
-static void rna_PointCache_step_range(PointerRNA *ptr, int *min, int *max)
+static void rna_PointCache_frame_step_range(PointerRNA *ptr, int *min, int *max)
 {
 	Object *ob = ptr->id.data;
 	PointCache *cache= ptr->data;
@@ -714,9 +714,10 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_ui_text(prop, "End", "Frame on which the simulation stops");
 
-	prop= RNA_def_property(srna, "step", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_step", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "step");
 	RNA_def_property_range(prop, 1, 20);
-	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_PointCache_step_range");
+	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_PointCache_frame_step_range");
 	RNA_def_property_ui_text(prop, "Cache Step", "Number of frames between cached frames");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
 
@@ -735,7 +736,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_BAKING);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	prop= RNA_def_property(srna, "disk_cache", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_disk_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_DISK_CACHE);
 	RNA_def_property_ui_text(prop, "Disk Cache", "Save cache files to disk (.blend file must be saved first)");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_toggle_disk_cache");
@@ -760,7 +761,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "File Path", "Cache file path");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
-	prop= RNA_def_property(srna, "quick_cache", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_quick_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_QUICK_CACHE);
 	RNA_def_property_ui_text(prop, "Quick Cache", "Update simulation with cache steps");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
@@ -770,7 +771,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Cache Info", "Info on current cache status");
 
-	prop= RNA_def_property(srna, "external", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_external", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_EXTERNAL);
 	RNA_def_property_ui_text(prop, "External", "Read cache from an external location");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
@@ -949,7 +950,7 @@ static void rna_def_effector_weight(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Wind", "Wind effector weight");
 	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
 
-	prop= RNA_def_property(srna, "curveguide", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "curve_guide", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "weight[5]");
 	RNA_def_property_range(prop, -200.0f, 200.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);

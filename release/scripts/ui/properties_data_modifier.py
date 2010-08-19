@@ -409,7 +409,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = layout.column()
         row = col.row()
-        if md.external:
+        if md.is_external:
             row.operator("object.multires_external_pack", text="Pack External")
             row.label()
             row = col.row()

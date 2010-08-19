@@ -745,7 +745,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		if ( ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) 
 			&& (md->type!=eModifierType_Surface) ) 
 		{
-			uiItemR(row, &ptr, "render", 0, "", 0);
+			uiItemR(row, &ptr, "show_render", 0, "", 0);
 			uiItemR(row, &ptr, "show_viewport", 0, "", 0);
 			
 			if (mti->flags & eModifierTypeFlag_SupportsEditmode)

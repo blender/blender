@@ -406,13 +406,13 @@ class x3d_class:
         # if mesh.faceUV:
             for face in mesh.active_uv_texture.data:
             # for face in mesh.faces:
-                if face.halo and 'HALO' not in mode:
+                if face.use_halo and 'HALO' not in mode:
                     mode += ['HALO']
-                if face.billboard and 'BILLBOARD' not in mode:
+                if face.use_billboard and 'BILLBOARD' not in mode:
                     mode += ['BILLBOARD']
-                if face.object_color and 'OBJECT_COLOR' not in mode:
+                if face.use_object_color and 'OBJECT_COLOR' not in mode:
                     mode += ['OBJECT_COLOR']
-                if face.collision and 'COLLISION' not in mode:
+                if face.use_collision and 'COLLISION' not in mode:
                     mode += ['COLLISION']
                 # mode |= face.mode
 
@@ -964,13 +964,8 @@ class x3d_class:
         if mesh.active_uv_texture:
         # if mesh.faceUV:
             for face in mesh.active_uv_texture.data:
-            # for face in mesh.faces:
-                sidename='';
-                if face.twoside:
-                # if  face.mode & Mesh.FaceModes.TWOSIDE:
-                    sidename='two'
-                else:
-                    sidename='one'
+            # for face in mesh.faces
+                sidename = "two" if face.use_twoside else "one":
 
                 if sidename in sided:
                     sided[sidename]+=1
@@ -1003,8 +998,8 @@ class x3d_class:
         if face.mode & Mesh.FaceModes.TWOSIDE:
             print("Debug: face.mode twosided")
 
-        print("Debug: face.transp=0x%x (enum)" % face.transp)
-        if face.transp == Mesh.FaceTranspModes.SOLID:
+        print("Debug: face.transp=0x%x (enum)" % face.blend_type)
+        if face.blend_type == Mesh.FaceTranspModes.SOLID:
             print("Debug: face.transp.SOLID")
 
         if face.image:

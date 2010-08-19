@@ -53,7 +53,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
             split.operator("object.modifier_remove", text="Remove")
 
             row = split.row(align=True)
-            row.prop(md, "render", text="")
+            row.prop(md, "show_render", text="")
             row.prop(md, "show_viewport", text="")
 
         else:
@@ -105,7 +105,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
                 sub.prop(flow, "initial_velocity", text="Initial Velocity")
                 sub = sub.column()
                 sub.active = flow.initial_velocity
-                sub.prop(flow, "velocity_multiplier", text="Multiplier")
+                sub.prop(flow, "velocity_factor", text="Multiplier")
 
 
                 sub = split.column()

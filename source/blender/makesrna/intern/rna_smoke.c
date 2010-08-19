@@ -320,7 +320,7 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Initial Velocity", "Smoke inherits it's velocity from the emitter particle");
 	RNA_def_property_update(prop, 0, NULL);
 
-	prop= RNA_def_property(srna, "velocity_multiplier", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "velocity_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vel_multi");
 	RNA_def_property_range(prop, -2.0, 2.0);
 	RNA_def_property_ui_range(prop, -2.0, 2.0, 0.05, 5);

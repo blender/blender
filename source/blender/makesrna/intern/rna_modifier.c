@@ -2267,7 +2267,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 0);
 	
-	prop= RNA_def_property(srna, "render", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Render);
 	RNA_def_property_ui_text(prop, "Render", "Use modifier during rendering");
 	RNA_def_property_ui_icon(prop, ICON_SCENE, 0);
