@@ -4372,7 +4372,6 @@ static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key
 
 			if(*_PyUnicode_AsString(key)=='_') {
 				PyErr_Format(PyExc_ValueError, "bpy_struct \"%.200s\" registration error: %.200s could not register because the property starts with an '_'\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
-				Py_DECREF(dummy_args);
 				return -1;
 			}
 			pyfunc = PyCapsule_GetPointer(py_func_ptr, NULL);
@@ -4393,8 +4392,6 @@ static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key
 
 				// PyLineSpit();
 				PyErr_Format(PyExc_ValueError, "bpy_struct \"%.200s\" registration error: %.200s could not register\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
-
-				Py_DECREF(dummy_args);
 				return -1;
 			}
 		}
@@ -4422,9 +4419,6 @@ int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 	dummy_args = PyTuple_New(0);
 
 	order= PyDict_GetItemString(class_dict, "order");
-
-	if(order==NULL)
-		PyErr_Clear();
 
 	if(order && PyList_Check(order)) {
 		for(pos= 0; pos<PyList_GET_SIZE(order); pos++) {
