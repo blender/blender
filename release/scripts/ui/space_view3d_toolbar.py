@@ -998,7 +998,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
 
         col = split.column()
 
-        col.prop(sculpt, "use_openmp", text="Threaded Sculpt")
+        col.prop(sculpt, "use_threaded", text="Threaded Sculpt")
         col.prop(sculpt, "show_low_resolution")
         col.prop(sculpt, "show_brush")
 
@@ -1037,13 +1037,13 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
         col = split.column()
 
         col.label(text="Mirror:")
-        col.prop(sculpt, "symmetry_x", text="X")
-        col.prop(sculpt, "symmetry_y", text="Y")
-        col.prop(sculpt, "symmetry_z", text="Z")
+        col.prop(sculpt, "use_symmetry_x", text="X")
+        col.prop(sculpt, "use_symmetry_y", text="Y")
+        col.prop(sculpt, "use_symmetry_z", text="Z")
 
         col = split.column()
 
-        col.prop(sculpt, "radial_symm", text="Radial")
+        col.prop(sculpt, "radial_symmetry", text="Radial")
 
         col = layout.column()
 
@@ -1196,7 +1196,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, bpy.types.Panel):
         sub = col.column()
         sub.active = use_projection
         sub.prop(ipaint, "use_occlude")
-        sub.prop(ipaint, "use_backface_cull")
+        sub.prop(ipaint, "use_backface_culling")
 
         split = layout.split()
 

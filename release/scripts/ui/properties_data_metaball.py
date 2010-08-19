@@ -64,8 +64,8 @@ class DATA_PT_metaball(DataButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.label(text="Resolution:")
         sub = col.column(align=True)
-        sub.prop(mball, "wire_size", text="View")
-        sub.prop(mball, "render_size", text="Render")
+        sub.prop(mball, "resolution", text="View")
+        sub.prop(mball, "render_resolution", text="Render")
 
         col = split.column()
         col.label(text="Settings:")

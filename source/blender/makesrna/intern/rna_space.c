@@ -1184,7 +1184,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Box", "Sync view position between side views");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_RegionView3D_quadview_update");
 	
-	prop= RNA_def_property(srna, "box_clip", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_box_clip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_BOXCLIP);
 	RNA_def_property_ui_text(prop, "Clip", "Clip objects based on what's visible in other side views");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_RegionView3D_quadview_update");

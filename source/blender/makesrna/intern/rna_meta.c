@@ -208,13 +208,13 @@ static void rna_def_metaball(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 	
 	/* number values */
-	prop= RNA_def_property(srna, "wire_size", PROP_FLOAT, PROP_DISTANCE);
+	prop= RNA_def_property(srna, "resolution", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "wiresize");
 	RNA_def_property_range(prop, 0.050f, 1.0f);
 	RNA_def_property_ui_text(prop, "Wire Size", "Polygonization resolution in the 3D viewport");
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 	
-	prop= RNA_def_property(srna, "render_size", PROP_FLOAT, PROP_DISTANCE);
+	prop= RNA_def_property(srna, "render_resolution", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "rendersize");
 	RNA_def_property_range(prop, 0.050f, 1.0f);
 	RNA_def_property_ui_text(prop, "Render Size", "Polygonization resolution in rendering");

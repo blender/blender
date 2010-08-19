@@ -1011,9 +1011,9 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
         sculpt = tool_settings.sculpt
         brush = tool_settings.sculpt.brush
 
-        layout.prop(sculpt, "symmetry_x")
-        layout.prop(sculpt, "symmetry_y")
-        layout.prop(sculpt, "symmetry_z")
+        layout.prop(sculpt, "use_symmetry_x")
+        layout.prop(sculpt, "use_symmetry_y")
+        layout.prop(sculpt, "use_symmetry_z")
         layout.separator()
         layout.prop(sculpt, "lock_x")
         layout.prop(sculpt, "lock_y")
@@ -1038,7 +1038,7 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
                 layout.operator("sculpt.set_persistent_base")
 
         layout.separator()
-        layout.prop(sculpt, "use_openmp", text="Threaded Sculpt")
+        layout.prop(sculpt, "use_threaded", text="Threaded Sculpt")
         layout.prop(sculpt, "show_brush")
 
         # TODO, make availabel from paint menu!
@@ -2063,7 +2063,7 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
             row.prop(region, "show_sync_view")
             row = col.row()
             row.enabled = region.lock_rotation and region.show_sync_view
-            row.prop(region, "box_clip")
+            row.prop(region, "use_box_clip")
 
 
 class VIEW3D_PT_view3d_meshdisplay(bpy.types.Panel):

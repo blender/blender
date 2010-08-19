@@ -632,7 +632,7 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Total Levels", "Number of subdivisions for which displacements are stored");
 
-	prop= RNA_def_property(srna, "external", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_external", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_MultiresModifier_external_get", NULL);
 	RNA_def_property_ui_text(prop, "External", "Store multires displacements outside the .blend file, to save memory");

@@ -202,22 +202,22 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	srna= RNA_def_struct(brna, "Sculpt", "Paint");
 	RNA_def_struct_ui_text(srna, "Sculpt", "");
 
-	prop= RNA_def_property(srna, "radial_symm", PROP_INT, PROP_XYZ);
+	prop= RNA_def_property(srna, "radial_symmetry", PROP_INT, PROP_XYZ);
 	RNA_def_property_int_sdna(prop, NULL, "radial_symm");
 	RNA_def_property_int_default(prop, 1);
 	RNA_def_property_range(prop, 1, 64);
 	RNA_def_property_ui_range(prop, 0, 32, 1, 1);
 	RNA_def_property_ui_text(prop, "Radial Symmetry Count X Axis", "Number of times to copy strokes across the surface");
 
-	prop= RNA_def_property(srna, "symmetry_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_symmetry_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMM_X);
 	RNA_def_property_ui_text(prop, "Symmetry X", "Mirror brush across the X axis");
 
-	prop= RNA_def_property(srna, "symmetry_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_symmetry_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMM_Y);
 	RNA_def_property_ui_text(prop, "Symmetry Y", "Mirror brush across the Y axis");
 
-	prop= RNA_def_property(srna, "symmetry_z", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_symmetry_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMM_Z);
 	RNA_def_property_ui_text(prop, "Symmetry Z", "Mirror brush across the Z axis");
 
@@ -237,7 +237,7 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMMETRY_FEATHER);
 	RNA_def_property_ui_text(prop, "Symmetry Feathering", "Reduce the strength of the brush where it overlaps symmetrical daubs");
 
-	prop= RNA_def_property(srna, "use_openmp", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_threaded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_USE_OPENMP);
 	RNA_def_property_ui_text(prop, "Use OpenMP", "Take advantage of multiple CPU cores to improve sculpting performance");
 }
@@ -291,7 +291,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_XRAY);
 	RNA_def_property_ui_text(prop, "Occlude", "Only paint onto the faces directly under the brush (slower)");
 	
-	prop= RNA_def_property(srna, "use_backface_cull", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_backface_culling", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_BACKFACE);
 	RNA_def_property_ui_text(prop, "Cull", "Ignore faces pointing away from the view (faster)");
 	
