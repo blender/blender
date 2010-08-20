@@ -522,7 +522,7 @@ data_path_update = [
     ("MaterialTextureSlot", "from_original", "use_from_original"),
     ("MaterialTextureSlot", "map_alpha", "use_map_alpha"),
     ("MaterialTextureSlot", "map_ambient", "use_map_ambient"),
-    ("MaterialTextureSlot", "map_colordiff", "use_map_color_diff"),
+    ("MaterialTextureSlot", "map_colordiff", "use_map_color_diffuse"),
     ("MaterialTextureSlot", "map_coloremission", "use_map_color_emission"),
     ("MaterialTextureSlot", "map_colorreflection", "use_map_color_reflection"),
     ("MaterialTextureSlot", "map_colorspec", "use_map_color_spec"),

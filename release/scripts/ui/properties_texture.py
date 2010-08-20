@@ -331,7 +331,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
                 col = split.column()
                 col.label(text="Diffuse:")
                 factor_but(col, tex.use_map_diffuse, "use_map_diffuse", "diffuse_factor", "Intensity")
-                factor_but(col, tex.use_map_color_diff, "use_map_color_diff", "diffuse_color_factor", "Color")
+                factor_but(col, tex.use_map_color_diff, "use_map_color_diffuse", "diffuse_color_factor", "Color")
                 factor_but(col, tex.use_map_alpha, "use_map_alpha", "alpha_factor", "Alpha")
                 factor_but(col, tex.use_map_translucency, "use_map_translucency", "translucency_factor", "Translucency")
 

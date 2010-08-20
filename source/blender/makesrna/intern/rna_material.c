@@ -352,7 +352,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "From Original", "Dupli's derive their object coordinates from the original objects transformation");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
-	prop= RNA_def_property(srna, "use_map_color_diff", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_map_color_diffuse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_COL);
 	RNA_def_property_ui_text(prop, "Diffuse Color", "Causes the texture to affect basic color of the material");
 	RNA_def_property_update(prop, 0, "rna_Material_update");

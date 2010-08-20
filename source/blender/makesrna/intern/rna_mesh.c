@@ -1321,7 +1321,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
-	prop= RNA_def_property(srna, "use_texture", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_image", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_TEX);
 	RNA_def_property_ui_text(prop, "Tex", "Render face with texture");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");

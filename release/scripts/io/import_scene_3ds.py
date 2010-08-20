@@ -364,7 +364,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                         bmesh.faces[fidx].material_index = mat_idx
                         uf = uv_faces[fidx]
                         uf.image = img
-                        uf.tex = True
+                        uf.use_image = True
                 else:
                     for fidx in faces:
                         bmesh.faces[fidx].material_index = mat_idx
