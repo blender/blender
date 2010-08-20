@@ -1082,7 +1082,7 @@ def write(filename, batch_objects = None, \
         else:
             do_shadow = 0
 
-        if light.only_shadow or (not light.diffuse and not light.specular):
+        if light.use_only_shadow or (not light.diffuse and not light.specular):
 # 		if mode & Blender.Lamp.Modes.OnlyShadow or (mode & Blender.Lamp.Modes.NoDiffuse and mode & Blender.Lamp.Modes.NoSpecular):
             do_light = 0
         else:
@@ -1190,7 +1190,7 @@ def write(filename, batch_objects = None, \
 # 			mat_spec = mat.spec/2.0
             mat_alpha = mat.alpha
             mat_emit = mat.emit
-            mat_shadeless = mat.shadeless
+            mat_shadeless = mat.use_shadeless
 # 			mat_shadeless = mat.mode & Blender.Material.Modes.SHADELESS
             if mat_shadeless:
                 mat_shader = 'Lambert'
@@ -1327,9 +1327,9 @@ def write(filename, batch_objects = None, \
             Property: "CurrentMappingType", "enum", "",0
             Property: "UVSwap", "bool", "",0''')
 
-        file.write('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.clamp_x)
+        file.write('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.use_clamp_x)
 # 		file.write('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.clampX)
-        file.write('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.clamp_y)
+        file.write('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.use_clamp_y)
 # 		file.write('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.clampY)
 
         file.write('''
@@ -1605,11 +1605,11 @@ def write(filename, batch_objects = None, \
         i=-1
         for ed in me.edges:
             if i==-1:
-                file.write('%i' % (ed.use_sharp));	i=0
+                file.write('%i' % (ed.use_edge_sharp));	i=0
             else:
                 if i==54:
                     file.write('\n			 ');	i=0
-                file.write(',%i' % (ed.use_sharp))
+                file.write(',%i' % (ed.use_edge_sharp))
             i+=1
 
         file.write('\n\t\t}')

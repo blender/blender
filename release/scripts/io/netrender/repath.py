@@ -121,7 +121,7 @@ def process(paths):
                 processPointCache(modifier.point_cache)
             elif modifier.type == "SMOKE" and modifier.smoke_type == "TYPE_DOMAIN":
                 processPointCache(modifier.domain_settings.point_cache_low)
-                if modifier.domain_settings.highres:
+                if modifier.domain_settings.use_high_resolution:
                     processPointCache(modifier.domain_settings.point_cache_high)
             elif modifier.type == "MULTIRES" and modifier.is_external:
                 file_path = bpy.path.abspath(modifier.filepath)

@@ -146,7 +146,7 @@ def clientSendJob(conn, scene, anim = False):
                 addPointCache(job, object, modifier.point_cache, default_path)
             elif modifier.type == "SMOKE" and modifier.smoke_type == "TYPE_DOMAIN":
                 addPointCache(job, object, modifier.domain_settings.point_cache_low, default_path)
-                if modifier.domain_settings.highres:
+                if modifier.domain_settings.use_high_resolution:
                     addPointCache(job, object, modifier.domain_settings.point_cache_high, default_path)
             elif modifier.type == "MULTIRES" and modifier.is_external:
                 file_path = bpy.path.abspath(modifier.filepath)
@@ -210,7 +210,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
         address = "" if netsettings.server_address == "[default]" else netsettings.server_address
 
-        master.runMaster((address, netsettings.server_port), netsettings.master_broadcast, netsettings.master_clear, netsettings.path, self.update_stats, self.test_break)
+        master.runMaster((address, netsettings.server_port), netsettings.master_broadcast, netsettings.use_master_clear, netsettings.path, self.update_stats, self.test_break)
 
 
     def render_slave(self, scene):

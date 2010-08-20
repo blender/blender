@@ -91,10 +91,10 @@ class DATA_PT_normals(MeshButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(mesh, "autosmooth")
+        col.prop(mesh, "use_auto_smooth")
         sub = col.column()
-        sub.active = mesh.autosmooth
-        sub.prop(mesh, "autosmooth_angle", text="Angle")
+        sub.active = mesh.use_auto_smooth
+        sub.prop(mesh, "auto_smooth_angle", text="Angle")
 
         col = split.column()
 
@@ -183,7 +183,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
         enable_edit_value = False
 
         if ob.show_shape_key is False:
-            if enable_edit or (ob.type == 'MESH' and ob.shape_key_edit_mode):
+            if enable_edit or (ob.type == 'MESH' and ob.use_shape_key_edit_mode):
                 enable_edit_value = True
 
         row = layout.row()
@@ -220,7 +220,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
             subsub.active = enable_edit_value
             subsub.prop(ob, "show_shape_key", text="")
             subsub.prop(kb, "mute", text="")
-            sub.prop(ob, "shape_key_edit_mode", text="")
+            sub.prop(ob, "use_shape_key_edit_mode", text="")
 
             sub = row.row()
             sub.operator("object.shape_key_clear", icon='X', text="")

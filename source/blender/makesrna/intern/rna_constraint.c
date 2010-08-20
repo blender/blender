@@ -437,7 +437,7 @@ static void rna_def_constraint_python(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ConstraintTarget");
 	RNA_def_property_ui_text(prop, "Targets", "Target Objects");
 
-	prop= RNA_def_property(srna, "number_of_targets", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "target_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tarnum");
 	RNA_def_property_ui_text(prop, "Number of Targets", "Usually only 1-3 are needed");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
@@ -510,7 +510,7 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Orientation Weight", "For Tree-IK: Weight of orientation control for this target");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "chain_length", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "chain_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "rootbone");
 	RNA_def_property_range(prop, 0, 255);
 	RNA_def_property_ui_text(prop, "Chain Length", "How many bones are included in the IK effect - 0 uses all bones");
@@ -521,28 +521,28 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Tail", "Include bone's tail as last element in chain");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "axis_reference", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "reference_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, constraint_ik_axisref_items);
 	RNA_def_property_ui_text(prop, "Axis Reference", "Constraint axis Lock options relative to Bone or Target reference");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "use_position", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_location", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_IK_POS);
 	RNA_def_property_ui_text(prop, "Position", "Chain follows position of target");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "pos_lock_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_location_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_POS_X);
 	RNA_def_property_ui_text(prop, "Lock X Pos", "Constraint position along X axis");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "pos_lock_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_location_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_POS_Y);
 	RNA_def_property_ui_text(prop, "Lock Y Pos", "Constraint position along Y axis");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "pos_lock_z", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_location_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_POS_Z);
 	RNA_def_property_ui_text(prop, "Lock Z Pos", "Constraint position along Z axis");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
@@ -552,17 +552,17 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rotation", "Chain follows rotation of target");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "rot_lock_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_rotation_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_ROT_X);
 	RNA_def_property_ui_text(prop, "Lock X Rot", "Constraint rotation along X axis");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "rot_lock_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_rotation_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_ROT_Y);
 	RNA_def_property_ui_text(prop, "Lock Y Rot", "Constraint rotation along Y axis");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "rot_lock_z", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_rotation_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_NO_ROT_Z);
 	RNA_def_property_ui_text(prop, "Lock Z Rot", "Constraint rotation along Z axis");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Constraint_dependency_update");
@@ -650,7 +650,7 @@ static void rna_def_constraint_track_to(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Up Axis", "Axis that points upward");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "target_z", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_target_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TARGET_Z_UP);
 	RNA_def_property_ui_text(prop, "Target Z", "Target's Z axis, not World Z axis, will constraint the Up direction");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -978,14 +978,14 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "End Frame", "Last frame of the Action to use");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "maximum", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max");
 	RNA_def_property_range(prop, -1000.f, 1000.f);
 	RNA_def_property_ui_text(prop, "Maximum", "Maximum value for target channel range");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_ActionConstraint_minmax_range");
 
-	prop= RNA_def_property(srna, "minimum", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "min");
 	RNA_def_property_range(prop, -1000.f, 1000.f);
 	RNA_def_property_ui_text(prop, "Minimum", "Minimum value for target channel range");
@@ -1100,7 +1100,7 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Follow Curve", "Object will follow the heading and banking of the curve");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-	prop= RNA_def_property(srna, "use_fixed_position", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_fixed_location", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "followflag", FOLLOWPATH_STATIC);
 	RNA_def_property_ui_text(prop, "Fixed Position", "Object will stay locked to a single point somewhere along the length of the curve regardless of time");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -1161,7 +1161,7 @@ static void rna_def_constraint_stretch_to(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Keep Axis", "Axis to maintain during stretch");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "original_length", PROP_FLOAT, PROP_DISTANCE);
+	prop= RNA_def_property(srna, "rest_length", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "orglength");
 	RNA_def_property_range(prop, 0.0, 100.f);
 	RNA_def_property_ui_text(prop, "Original Length", "Length at rest position");
@@ -1354,7 +1354,7 @@ static void rna_def_constraint_transform(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Map To Z From", "The source axis constrained object's Z axis uses");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "extrapolate_motion", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_motion_extrapolate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "expo", CLAMPTO_CYCLIC);
 	RNA_def_property_ui_text(prop, "Extrapolate Motion", "Extrapolate ranges");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -1441,73 +1441,73 @@ static void rna_def_constraint_location_limit(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Limit Location Constraint", "Limits the location of the constrained object");
 	RNA_def_struct_sdna_from(srna, "bLocLimitConstraint", "data");
 
-	prop= RNA_def_property(srna, "use_minimum_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_min_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_XMIN);
 	RNA_def_property_ui_text(prop, "Minimum X", "Use the minimum X value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "use_minimum_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_min_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_YMIN);
 	RNA_def_property_ui_text(prop, "Minimum Y", "Use the minimum Y value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "use_minimum_z", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_min_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_ZMIN);
 	RNA_def_property_ui_text(prop, "Minimum Z", "Use the minimum Z value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "use_maximum_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_max_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_XMAX);
 	RNA_def_property_ui_text(prop, "Maximum X", "Use the maximum X value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "use_maximum_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_max_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_YMAX);
 	RNA_def_property_ui_text(prop, "Maximum Y", "Use the maximum Y value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "use_maximum_z", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_max_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_ZMAX);
 	RNA_def_property_ui_text(prop, "Maximum Z", "Use the maximum Z value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "minimum_x", PROP_FLOAT, PROP_DISTANCE);
+	prop= RNA_def_property(srna, "min_x", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "xmin");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Minimum X", "Lowest X value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "minimum_y", PROP_FLOAT, PROP_DISTANCE);
+	prop= RNA_def_property(srna, "min_y", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "ymin");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Minimum Y", "Lowest Y value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "minimum_z", PROP_FLOAT, PROP_DISTANCE);
+	prop= RNA_def_property(srna, "min_z", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "zmin");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Minimum Z", "Lowest Z value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "maximum_x", PROP_FLOAT, PROP_DISTANCE);
+	prop= RNA_def_property(srna, "max_x", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "xmax");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Maximum X", "Highest X value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "maximum_y", PROP_FLOAT, PROP_DISTANCE);
+	prop= RNA_def_property(srna, "max_y", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "ymax");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Maximum Y", "Highest Y value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "maximum_z", PROP_FLOAT, PROP_DISTANCE);
+	prop= RNA_def_property(srna, "max_z", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "zmax");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Maximum Z", "Highest Z value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "limit_transform", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_transform_limit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", LIMIT_TRANSFORM);
 	RNA_def_property_ui_text(prop, "For Transform", "Transforms are affected by this constraint as well");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -1537,43 +1537,43 @@ static void rna_def_constraint_rotation_limit(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Limit Z", "Use the minimum Z value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "minimum_x", PROP_FLOAT, PROP_ANGLE);
+	prop= RNA_def_property(srna, "min_x", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "xmin");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Minimum X", "Lowest X value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "minimum_y", PROP_FLOAT, PROP_ANGLE);
+	prop= RNA_def_property(srna, "min_y", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "ymin");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Minimum Y", "Lowest Y value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "minimum_z", PROP_FLOAT, PROP_ANGLE);
+	prop= RNA_def_property(srna, "min_z", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "zmin");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Minimum Z", "Lowest Z value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "maximum_x", PROP_FLOAT, PROP_ANGLE);
+	prop= RNA_def_property(srna, "max_x", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "xmax");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Maximum X", "Highest X value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "maximum_y", PROP_FLOAT, PROP_ANGLE);
+	prop= RNA_def_property(srna, "max_y", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "ymax");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Maximum Y", "Highest Y value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "maximum_z", PROP_FLOAT, PROP_ANGLE);
+	prop= RNA_def_property(srna, "max_z", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "zmax");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Maximum Z", "Highest Z value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "limit_transform", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_transform_limit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", LIMIT_TRANSFORM);
 	RNA_def_property_ui_text(prop, "For Transform", "Transforms are affected by this constraint as well");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -1588,73 +1588,73 @@ static void rna_def_constraint_size_limit(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Limit Size Constraint", "Limits the scaling of the constrained object");
 	RNA_def_struct_sdna_from(srna, "bSizeLimitConstraint", "data");
 
-	prop= RNA_def_property(srna, "use_minimum_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_min_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_XMIN);
 	RNA_def_property_ui_text(prop, "Minimum X", "Use the minimum X value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "use_minimum_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_min_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_YMIN);
 	RNA_def_property_ui_text(prop, "Minimum Y", "Use the minimum Y value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "use_minimum_z", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_min_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_ZMIN);
 	RNA_def_property_ui_text(prop, "Minimum Z", "Use the minimum Z value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "use_maximum_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_max_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_XMAX);
 	RNA_def_property_ui_text(prop, "Maximum X", "Use the maximum X value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "use_maximum_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_max_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_YMAX);
 	RNA_def_property_ui_text(prop, "Maximum Y", "Use the maximum Y value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "use_maximum_z", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_max_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMIT_ZMAX);
 	RNA_def_property_ui_text(prop, "Maximum Z", "Use the maximum Z value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "minimum_x", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "min_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xmin");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Minimum X", "Lowest X value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "minimum_y", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "min_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ymin");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Minimum Y", "Lowest Y value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "minimum_z", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "min_z", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "zmin");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Minimum Z", "Lowest Z value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "maximum_x", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "max_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xmax");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Maximum X", "Highest X value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "maximum_y", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "max_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ymax");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Maximum Y", "Highest Y value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "maximum_z", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "max_z", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "zmax");
 	RNA_def_property_range(prop, -1000.0, 1000.f);
 	RNA_def_property_ui_text(prop, "Maximum Z", "Highest Z value to allow");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "limit_transform", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_transform_limit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", LIMIT_TRANSFORM);
 	RNA_def_property_ui_text(prop, "For Transform", "Transforms are affected by this constraint as well");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -1801,7 +1801,7 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 	
-	prop= RNA_def_property(srna, "chain_length", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "chain_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "chainlen");
 	RNA_def_property_range(prop, 1, 255); // TODO: this should really check the max length of the chain the constraint is attached to
 	RNA_def_property_ui_text(prop, "Chain Length", "How many bones are included in the chain");
@@ -1818,17 +1818,17 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
 	/* settings */
-	prop= RNA_def_property(srna, "chain_offset", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_chain_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_NO_ROOT);
 	RNA_def_property_ui_text(prop, "Chain Offset", "Offset the entire chain relative to the root joint");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-	prop= RNA_def_property(srna, "even_divisions", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_even_divisions", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_EVENSPLITS);
 	RNA_def_property_ui_text(prop, "Even Divisions", "Ignore the relative lengths of the bones when fitting to the curve");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-	prop= RNA_def_property(srna, "y_stretch", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_y_stretch", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_SPLINEIK_SCALE_LIMITED);
 	RNA_def_property_ui_text(prop, "Y Stretch", "Stretch the Y axis of the bones to fit the curve");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -1838,7 +1838,7 @@ static void rna_def_constraint_spline_ik(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Curve Radius", "Average radius of the endpoints is used to tweak the X and Z Scaling of the bones, on top of XZ Scale mode");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-	prop= RNA_def_property(srna, "xz_scaling_mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "xz_scale_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "xzScaleMode");
 	RNA_def_property_enum_items(prop, splineik_xz_scale_mode);
 	RNA_def_property_ui_text(prop, "XZ Scale Mode", "Method used for determining the scaling of the X and Z axes of the bones");
@@ -1883,7 +1883,7 @@ static void rna_def_constraint_pivot(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 	
 	/* pivot offset */
-	prop= RNA_def_property(srna, "use_relative_position", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_relative_location", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", PIVOTCON_FLAG_OFFSET_ABS);
 	RNA_def_property_ui_text(prop, "Use Relative Offset", "Offset will be an absolute point in space instead of relative to the target");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -1894,7 +1894,7 @@ static void rna_def_constraint_pivot(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
 	/* rotation-based activation */
-	prop= RNA_def_property(srna, "enabled_rotation_range", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "rotation_range", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotAxis");
 	RNA_def_property_enum_items(prop, pivot_rotAxis_items);
 	RNA_def_property_ui_text(prop, "Enabled Rotation Range", "Rotation range on which pivoting should occur");
@@ -1960,7 +1960,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_ACTIVE);
 	RNA_def_property_ui_text(prop, "Active", "Constraint is the one being edited ");
 	
-	prop= RNA_def_property(srna, "proxy_local", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_proxy_local", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_PROXY_LOCAL);
 	RNA_def_property_ui_text(prop, "Proxy Local", "Constraint was added in this proxy instance (i.e. did not belong to source Armature)");
 	

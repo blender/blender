@@ -458,7 +458,7 @@ def control(obj, definitions, base_names, options):
     con.target = obj
     con.subtarget = jaw
     con.head_tail = 1.0
-    con.original_length = bb[jopent].length
+    con.rest_length = bb[jopent].length
     con.volume = 'NO_VOLUME'
 
     # Head lips to jaw lips
@@ -545,8 +545,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -563,8 +563,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -581,8 +581,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -599,8 +599,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -617,8 +617,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -635,8 +635,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -653,8 +653,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -671,8 +671,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver

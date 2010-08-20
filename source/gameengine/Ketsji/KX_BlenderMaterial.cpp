@@ -796,7 +796,7 @@ PyMethodDef KX_BlenderMaterial::Methods[] =
 PyAttributeDef KX_BlenderMaterial::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("shader", KX_BlenderMaterial, pyattr_get_shader),
 	KX_PYATTRIBUTE_RO_FUNCTION("material_index", KX_BlenderMaterial, pyattr_get_materialIndex),
-	KX_PYATTRIBUTE_RW_FUNCTION("blending", KX_BlenderMaterial, pyattr_get_blending, pyattr_set_blending),
+	KX_PYATTRIBUTE_RW_FUNCTION("blend_type", KX_BlenderMaterial, pyattr_get_blending, pyattr_set_blending),
 	{ NULL }	//Sentinel
 };
 

@@ -381,24 +381,24 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
         col = split.column()
 
         sub = col.column(align=True)
-        sub.prop(ima, "animated")
+        sub.prop(ima, "use_animation")
 
         subsub = sub.column()
-        subsub.active = ima.animated
-        subsub.prop(ima, "animation_start", text="Start")
-        subsub.prop(ima, "animation_end", text="End")
-        subsub.prop(ima, "animation_speed", text="Speed")
+        subsub.active = ima.use_animation
+        subsub.prop(ima, "frame_start", text="Start")
+        subsub.prop(ima, "frame_end", text="End")
+        subsub.prop(ima, "fps", text="Speed")
 
         col.prop(ima, "tiles")
         sub = col.column(align=True)
-        sub.active = ima.tiles or ima.animated
+        sub.active = ima.tiles or ima.use_animation
         sub.prop(ima, "tiles_x", text="X")
         sub.prop(ima, "tiles_y", text="Y")
 
         col = split.column()
         col.label(text="Clamp:")
-        col.prop(ima, "clamp_x", text="X")
-        col.prop(ima, "clamp_y", text="Y")
+        col.prop(ima, "use_clamp_x", text="X")
+        col.prop(ima, "use_clamp_y", text="Y")
         col.separator()
         col.prop(ima, "mapping", expand=True)
 

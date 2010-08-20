@@ -152,7 +152,7 @@ class InputKeyMapPanel(bpy.types.Panel):
         indentpx = 16
         if level == 0:
             level = 0.0001   # Tweak so that a percentage of 0 won't split by half
-        indent = level * indentpx / bpy.context.region.width
+        indent = level * indentpx / bpy.context.region.offset
 
         split = layout.split(percentage=indent)
         col = split.column()

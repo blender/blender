@@ -102,9 +102,9 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
             col.prop(cloth, "spring_damping", text="Spring")
             col.prop(cloth, "air_damping", text="Air")
 
-            col.prop(cloth, "pin_cloth", text="Pinning")
+            col.prop(cloth, "use_pin_cloth", text="Pinning")
             sub = col.column()
-            sub.active = cloth.pin_cloth
+            sub.active = cloth.use_pin_cloth
             sub.prop_object(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
             sub.prop(cloth, "pin_stiffness", text="Stiffness")
 
@@ -154,7 +154,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, bpy.types.Panel):
         cloth = context.cloth.collision_settings
 
         self.layout.active = cloth_panel_enabled(context.cloth)
-        self.layout.prop(cloth, "enable_collision", text="")
+        self.layout.prop(cloth, "use_collision", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -162,21 +162,21 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, bpy.types.Panel):
         cloth = context.cloth.collision_settings
         md = context.cloth
 
-        layout.active = cloth.enable_collision and cloth_panel_enabled(md)
+        layout.active = cloth.use_collision and cloth_panel_enabled(md)
 
         split = layout.split()
 
         col = split.column()
         col.prop(cloth, "collision_quality", slider=True, text="Quality")
-        col.prop(cloth, "min_distance", slider=True, text="Distance")
+        col.prop(cloth, "distance_min", slider=True, text="Distance")
         col.prop(cloth, "friction")
 
         col = split.column()
-        col.prop(cloth, "enable_self_collision", text="Self Collision")
+        col.prop(cloth, "use_self_collision", text="Self Collision")
         sub = col.column()
-        sub.active = cloth.enable_self_collision
+        sub.active = cloth.use_self_collision
         sub.prop(cloth, "self_collision_quality", slider=True, text="Quality")
-        sub.prop(cloth, "self_min_distance", slider=True, text="Distance")
+        sub.prop(cloth, "self_distance_min", slider=True, text="Distance")
 
         layout.prop(cloth, "group")
 
@@ -193,7 +193,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, bpy.types.Panel):
         cloth = context.cloth.settings
 
         self.layout.active = cloth_panel_enabled(context.cloth)
-        self.layout.prop(cloth, "stiffness_scaling", text="")
+        self.layout.prop(cloth, "use_stiffness_scale", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -202,7 +202,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, bpy.types.Panel):
         ob = context.object
         cloth = context.cloth.settings
 
-        layout.active = cloth.stiffness_scaling	and cloth_panel_enabled(md)
+        layout.active = cloth.use_stiffness_scale	and cloth_panel_enabled(md)
 
         split = layout.split()
 

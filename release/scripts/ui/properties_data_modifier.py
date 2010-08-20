@@ -70,7 +70,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.label(text="Deformation:")
         col.prop(md, "quaternion")
-        col.prop(md, "multi_modifier")
+        col.prop(md, "use_multi_modifier")
 
     def ARRAY(self, layout, ob, md):
         layout.prop(md, "fit_type")
@@ -87,30 +87,30 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(md, "constant_offset")
+        col.prop(md, "use_constant_offset")
         sub = col.column()
-        sub.active = md.constant_offset
-        sub.prop(md, "constant_offset_displacement", text="")
+        sub.active = md.use_constant_offset
+        sub.prop(md, "constant_offset_displace", text="")
 
         col.separator()
 
-        col.prop(md, "merge_adjacent_vertices", text="Merge")
+        col.prop(md, "use_merge_vertices", text="Merge")
         sub = col.column()
-        sub.active = md.merge_adjacent_vertices
-        sub.prop(md, "merge_end_vertices", text="First Last")
-        sub.prop(md, "merge_distance", text="Distance")
+        sub.active = md.use_merge_vertices
+        sub.prop(md, "use_merge_vertices_cap", text="First Last")
+        sub.prop(md, "merge_threshold", text="Distance")
 
         col = split.column()
-        col.prop(md, "relative_offset")
+        col.prop(md, "use_relative_offset")
         sub = col.column()
-        sub.active = md.relative_offset
-        sub.prop(md, "relative_offset_displacement", text="")
+        sub.active = md.use_relative_offset
+        sub.prop(md, "relative_offset_displace", text="")
 
         col.separator()
 
-        col.prop(md, "add_offset_object")
+        col.prop(md, "use_object_offset")
         sub = col.column()
-        sub.active = md.add_offset_object
+        sub.active = md.use_object_offset
         sub.prop(md, "offset_object", text="")
 
         layout.separator()
@@ -126,7 +126,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "width")
 
         col = split.column()
-        col.prop(md, "only_vertices")
+        col.prop(md, "use_only_vertices")
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)
@@ -176,7 +176,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "factor")
         col.prop(md, "radius")
         col.prop(md, "size")
-        col.prop(md, "from_radius")
+        col.prop(md, "use_radius_as_size")
 
         split = layout.split()
 
@@ -224,10 +224,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.label(text="Direction:")
         col.prop(md, "direction", text="")
         col.label(text="Texture Coordinates:")
-        col.prop(md, "texture_coordinates", text="")
-        if md.texture_coordinates == 'OBJECT':
+        col.prop(md, "texture_coords", text="")
+        if md.texture_coords == 'OBJECT':
             layout.prop(md, "texture_coordinate_object", text="Object")
-        elif md.texture_coordinates == 'UV' and ob.type == 'MESH':
+        elif md.texture_coords == 'UV' and ob.type == 'MESH':
             layout.prop_object(md, "uv_layer", ob.data, "uv_textures")
 
         layout.separator()
@@ -235,7 +235,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(md, "midlevel")
+        col.prop(md, "mid_level")
 
         col = split.column()
         col.prop(md, "strength")
@@ -250,7 +250,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         sub.prop(md, "split_angle")
 
         col = split.column()
-        col.prop(md, "use_sharp", text="Sharp Edges")
+        col.prop(md, "use_edge_sharp", text="Sharp Edges")
 
     def EXPLODE(self, layout, ob, md):
         split = layout.split()
@@ -263,7 +263,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         sub.prop(md, "protect")
 
         col = split.column()
-        col.prop(md, "split_edges")
+        col.prop(md, "use_edge_split")
         col.prop(md, "show_unborn")
         col.prop(md, "show_alive")
         col.prop(md, "show_dead")
@@ -365,7 +365,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
             col.prop(md, "dynamic")
 
     def MIRROR(self, layout, ob, md):
-        layout.prop(md, "merge_limit")
+        layout.prop(md, "merge_threshold")
         split = layout.split(percentage=0.25)
 
         col = split.column()
@@ -377,12 +377,12 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.label(text="Options:")
         col.prop(md, "clip", text="Clipping")
-        col.prop(md, "mirror_vertex_groups", text="Vertex Groups")
+        col.prop(md, "use_mirror_vertex_groups", text="Vertex Groups")
 
         col = split.column()
         col.label(text="Textures:")
-        col.prop(md, "mirror_u", text="U")
-        col.prop(md, "mirror_v", text="V")
+        col.prop(md, "use_mirror_u", text="U")
+        col.prop(md, "use_mirror_v", text="V")
 
         col = layout.column()
         col.label(text="Mirror Object:")
@@ -420,7 +420,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
     def PARTICLE_INSTANCE(self, layout, ob, md):
         layout.prop(md, "object")
-        layout.prop(md, "particle_system_number", text="Particle System")
+        layout.prop(md, "particle_system_index", text="Particle System")
 
         split = layout.split()
         col = split.column()
@@ -443,7 +443,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         split.active = md.use_path
         col = split.column()
         col.row().prop(md, "axis", expand=True)
-        col.prop(md, "keep_shape")
+        col.prop(md, "use_preserve_shape")
 
         col = split.column()
         col.prop(md, "position", slider=True)
@@ -510,14 +510,14 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
             col = split.column()
 
             col.label(text="Cull Faces:")
-            col.prop(md, "cull_front_faces", text="Front")
-            col.prop(md, "cull_back_faces", text="Back")
+            col.prop(md, "use_cull_front_faces", text="Front")
+            col.prop(md, "use_cull_back_faces", text="Back")
 
             layout.label(text="Auxiliary Target:")
             layout.prop(md, "auxiliary_target", text="")
 
         elif md.mode == 'NEAREST_SURFACEPOINT':
-            layout.prop(md, "keep_above_surface")
+            layout.prop(md, "use_keep_above_surface")
 
     def SIMPLE_DEFORM(self, layout, ob, md):
         split = layout.split()
@@ -544,8 +544,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "factor")
         col.prop(md, "limits", slider=True)
         if md.mode in ('TAPER', 'STRETCH'):
-            col.prop(md, "lock_x_axis")
-            col.prop(md, "lock_y_axis")
+            col.prop(md, "lock_x")
+            col.prop(md, "lock_y")
 
     def SMOKE(self, layout, ob, md):
         layout.label(text="See Smoke panel.")
@@ -611,7 +611,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Options:")
-        col.prop(md, "subsurf_uv")
+        col.prop(md, "use_subsurf_uv")
         col.prop(md, "show_only_control_edges")
 
     def SURFACE(self, layout, ob, md):
@@ -631,8 +631,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
             split = layout.split()
             col = split.column()
-            col.prop(md, "override_image")
-            col.prop(md, "num_projectors", text="Projectors")
+            col.prop(md, "use_image_override")
+            col.prop(md, "projector_count", text="Projectors")
             for proj in md.projectors:
                 col.prop(proj, "object", text="")
 
@@ -658,9 +658,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "normals")
         sub = col.column()
         sub.active = md.normals
-        sub.prop(md, "x_normal", text="X")
-        sub.prop(md, "y_normal", text="Y")
-        sub.prop(md, "z_normal", text="Z")
+        sub.prop(md, "use_normal_x", text="X")
+        sub.prop(md, "use_normal_y", text="Y")
+        sub.prop(md, "use_normal_z", text="Z")
 
         split = layout.split()
 
@@ -683,10 +683,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         layout.prop(md, "start_position_object")
         layout.prop_object(md, "vertex_group", ob, "vertex_groups")
         layout.prop(md, "texture")
-        layout.prop(md, "texture_coordinates")
-        if md.texture_coordinates == 'MAP_UV' and ob.type == 'MESH':
+        layout.prop(md, "texture_coords")
+        if md.texture_coords == 'MAP_UV' and ob.type == 'MESH':
             layout.prop_object(md, "uv_layer", ob.data, "uv_textures")
-        elif md.texture_coordinates == 'OBJECT':
+        elif md.texture_coords == 'OBJECT':
             layout.prop(md, "texture_coords_object")
 
         layout.separator()

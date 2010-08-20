@@ -67,18 +67,18 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, bpy.types.Panel):
         col.label(text="Layers:")
         col.prop(arm, "layers", text="")
         col.label(text="Protected Layers:")
-        col.prop(arm, "layer_protection", text="")
+        col.prop(arm, "layers_protected", text="")
 
         col.label(text="Deform:")
 
         split = layout.split()
 
         col = split.column()
-        col.prop(arm, "deform_vertexgroups", text="Vertex Groups")
-        col.prop(arm, "deform_envelope", text="Envelopes")
+        col.prop(arm, "use_deform_vertex_groups", text="Vertex Groups")
+        col.prop(arm, "use_deform_envelopes", text="Envelopes")
 
         col = split.column()
-        col.prop(arm, "deform_quaternion", text="Quaternion")
+        col.prop(arm, "use_deform_preserve_volume", text="Quaternion")
 
 
 class DATA_PT_display(ArmatureButtonsPanel, bpy.types.Panel):
@@ -90,7 +90,7 @@ class DATA_PT_display(ArmatureButtonsPanel, bpy.types.Panel):
         ob = context.object
         arm = context.armature
 
-        layout.row().prop(arm, "drawtype", expand=True)
+        layout.row().prop(arm, "draw_type", expand=True)
 
         split = layout.split()
 
@@ -102,7 +102,7 @@ class DATA_PT_display(ArmatureButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(arm, "show_group_colors", text="Colors")
         col.prop(ob, "show_x_ray", text="X-Ray")
-        col.prop(arm, "delay_deform", text="Delay Refresh")
+        col.prop(arm, "use_deform_delay", text="Delay Refresh")
 
 
 class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):

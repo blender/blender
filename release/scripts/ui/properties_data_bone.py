@@ -233,12 +233,12 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
         split = layout.split(percentage=0.25)
         sub = split.row()
 
-        sub.prop(pchan, "ik_limit_x", text="Limit")
+        sub.prop(pchan, "use_ik_limit_x", text="Limit")
         sub.active = pchan.lock_ik_x == False and pchan.is_in_ik_chain
         sub = split.row(align=True)
         sub.prop(pchan, "ik_min_x", text="")
         sub.prop(pchan, "ik_max_x", text="")
-        sub.active = pchan.lock_ik_x == False and pchan.ik_limit_x and pchan.is_in_ik_chain
+        sub.active = pchan.lock_ik_x == False and pchan.use_ik_limit_x and pchan.is_in_ik_chain
 
         split = layout.split(percentage=0.25)
         split.prop(pchan, "lock_ik_y", text="Y")
@@ -250,13 +250,13 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
         split = layout.split(percentage=0.25)
         sub = split.row()
 
-        sub.prop(pchan, "ik_limit_y", text="Limit")
+        sub.prop(pchan, "use_ik_limit_y", text="Limit")
         sub.active = pchan.lock_ik_y == False and pchan.is_in_ik_chain
 
         sub = split.row(align=True)
         sub.prop(pchan, "ik_min_y", text="")
         sub.prop(pchan, "ik_max_y", text="")
-        sub.active = pchan.lock_ik_y == False and pchan.ik_limit_y and pchan.is_in_ik_chain
+        sub.active = pchan.lock_ik_y == False and pchan.use_ik_limit_y and pchan.is_in_ik_chain
 
         split = layout.split(percentage=0.25)
         split.prop(pchan, "lock_ik_z", text="Z")
@@ -268,12 +268,12 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
         split = layout.split(percentage=0.25)
         sub = split.row()
 
-        sub.prop(pchan, "ik_limit_z", text="Limit")
+        sub.prop(pchan, "use_ik_limit_z", text="Limit")
         sub.active = pchan.lock_ik_z == False and pchan.is_in_ik_chain
         sub = split.row(align=True)
         sub.prop(pchan, "ik_min_z", text="")
         sub.prop(pchan, "ik_max_z", text="")
-        sub.active = pchan.lock_ik_z == False and pchan.ik_limit_z and pchan.is_in_ik_chain
+        sub.active = pchan.lock_ik_z == False and pchan.use_ik_limit_z and pchan.is_in_ik_chain
         split = layout.split()
         split.prop(pchan, "ik_stretch", text="Stretch", slider=True)
         split.label()
@@ -282,15 +282,15 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
         if ob.pose.ik_solver == 'ITASC':
             split = layout.split()
             col = split.column()
-            col.prop(pchan, "ik_rot_control", text="Control Rotation")
+            col.prop(pchan, "use_ik_rotation_control", text="Control Rotation")
             col.active = pchan.is_in_ik_chain
             col = split.column()
-            col.prop(pchan, "ik_rot_weight", text="Weight", slider=True)
+            col.prop(pchan, "ik_rotation_weight", text="Weight", slider=True)
             col.active = pchan.is_in_ik_chain
             # not supported yet
             #row = layout.row()
-            #row.prop(pchan, "ik_lin_control", text="Joint Size")
-            #row.prop(pchan, "ik_lin_weight", text="Weight", slider=True)
+            #row.prop(pchan, "use_ik_linear_control", text="Joint Size")
+            #row.prop(pchan, "ik_linear_weight", text="Weight", slider=True)
 
 
 class BONE_PT_deform(BoneButtonsPanel, bpy.types.Panel):

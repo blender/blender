@@ -68,7 +68,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         if obj:
             # Particle edit
             if obj.mode == 'PARTICLE_EDIT':
-                row.prop(toolsettings.particle_edit, "selection_mode", text="", expand=True, toggle=True)
+                row.prop(toolsettings.particle_edit, "select_mode", text="", expand=True, toggle=True)
 
             # Occlude geometry
             if view.viewport_shade in ('SOLID', 'SHADED', 'TEXTURED') and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
@@ -748,7 +748,7 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
 
             props = layout.operator("wm.context_modal_mouse", text="Width Size")
             props.data_path_iter = "selected_editable_objects"
-            props.data_path_item = "data.width"
+            props.data_path_item = "data.offset"
             props.input_scale = 0.01
 
         if obj.type == 'EMPTY':
@@ -1063,7 +1063,7 @@ class VIEW3D_MT_particle(bpy.types.Menu):
         layout.operator("particle.remove_doubles")
         layout.operator("particle.delete")
 
-        if particle_edit.selection_mode == 'POINT':
+        if particle_edit.select_mode == 'POINT':
             layout.operator("particle.subdivide")
 
         layout.operator("particle.rekey")
@@ -1084,7 +1084,7 @@ class VIEW3D_MT_particle_specials(bpy.types.Menu):
         layout.operator("particle.rekey")
 
         layout.separator()
-        if particle_edit.selection_mode == 'POINT':
+        if particle_edit.select_mode == 'POINT':
             layout.operator("particle.subdivide")
             layout.operator("particle.select_roots")
             layout.operator("particle.select_tips")
@@ -1108,7 +1108,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_snap")
-        if arm.drawtype in ('BBONE', 'ENVELOPE'):
+        if arm.draw_type in ('BBONE', 'ENVELOPE'):
             layout.operator("transform.transform", text="Scale Envelope Distance").mode = 'BONESIZE'
 
         layout.menu("VIEW3D_MT_pose_transform")
@@ -1843,7 +1843,7 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
         layout.menu("VIEW3D_MT_snap")
         layout.menu("VIEW3D_MT_edit_armature_roll")
 
-        if arm.drawtype == 'ENVELOPE':
+        if arm.draw_type == 'ENVELOPE':
             layout.operator("transform.transform", text="Scale Envelope Distance").mode = 'BONESIZE'
         else:
             layout.operator("transform.transform", text="Scale B-Bone Width").mode = 'BONESIZE'
@@ -1852,7 +1852,7 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
 
         layout.operator("armature.extrude_move")
 
-        if arm.x_axis_mirror:
+        if arm.use_mirror_x:
             layout.operator("armature.extrude_forked")
 
         layout.operator("armature.duplicate_move")
@@ -2167,7 +2167,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
                 if (bg.image):
                     box.template_image(bg, "image", bg.image_user, compact=True)
 
-                    box.prop(bg, "transparency", slider=True)
+                    box.prop(bg, "use_transparency", slider=True)
                     if bg.view_axis != 'CAMERA':
                         box.prop(bg, "size")
                         row = box.row(align=True)

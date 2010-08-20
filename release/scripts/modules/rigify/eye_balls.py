@@ -328,8 +328,8 @@ def control(obj, definitions, base_names, options):
         con.transform_channel = 'SCALE_X'
         con.frame_start = -20
         con.frame_end = 20
-        con.minimum = 0.0
-        con.maximum = 2.0
+        con.min = 0.0
+        con.max = 2.0
         con.target_space = 'LOCAL'
     
     

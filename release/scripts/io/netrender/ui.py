@@ -147,9 +147,9 @@ class RENDER_PT_network_slave_settings(bpy.types.Panel, RenderButtonsPanel):
         rd = scene.render
         netsettings = scene.network_render
 
-        layout.prop(netsettings, "slave_clear")
-        layout.prop(netsettings, "slave_thumb")
-        layout.prop(netsettings, "slave_outputlog")
+        layout.prop(netsettings, "use_slave_clear")
+        layout.prop(netsettings, "use_slave_thumb")
+        layout.prop(netsettings, "use_slave_output_log")
         layout.label(text="Threads:")
         layout.prop(rd, "threads_mode", expand=True)
         sub = layout.column()
@@ -171,8 +171,8 @@ class RENDER_PT_network_master_settings(bpy.types.Panel, RenderButtonsPanel):
         scene = context.scene
         netsettings = scene.network_render
 
-        layout.prop(netsettings, "master_broadcast")
-        layout.prop(netsettings, "master_clear")
+        layout.prop(netsettings, "use_master_broadcast")
+        layout.prop(netsettings, "use_master_clear")
 
 class RENDER_PT_network_job(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Job Settings"
@@ -354,27 +354,27 @@ def addProperties():
                     min=1,
                     max=65535)
     
-    NetRenderSettings.BoolProperty( attr="master_broadcast",
+    NetRenderSettings.BoolProperty( attr="use_master_broadcast",
                     name="Broadcast",
                     description="broadcast master server address on local network",
                     default = True)
     
-    NetRenderSettings.BoolProperty( attr="slave_clear",
+    NetRenderSettings.BoolProperty( attr="use_slave_clear",
                     name="Clear on exit",
                     description="delete downloaded files on exit",
                     default = True)
     
-    NetRenderSettings.BoolProperty( attr="slave_thumb",
+    NetRenderSettings.BoolProperty( attr="use_slave_thumb",
                     name="Generate thumbnails",
                     description="Generate thumbnails on slaves instead of master",
                     default = False)
     
-    NetRenderSettings.BoolProperty( attr="slave_outputlog",
+    NetRenderSettings.BoolProperty( attr="use_slave_output_log",
                     name="Output render log on console",
                     description="Output render text log to console as well as sending it to the master",
                     default = True)
     
-    NetRenderSettings.BoolProperty( attr="master_clear",
+    NetRenderSettings.BoolProperty( attr="use_master_clear",
                     name="Clear on exit",
                     description="delete saved files on exit",
                     default = False)

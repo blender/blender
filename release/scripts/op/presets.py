@@ -125,7 +125,7 @@ class AddPresetSSS(AddPresetBase, bpy.types.Operator):
         "bpy.context.material.subsurface_scattering.color[1]",
         "bpy.context.material.subsurface_scattering.color[2]",
         "bpy.context.material.subsurface_scattering.color_factor",
-        "bpy.context.material.subsurface_scattering.error_tolerance",
+        "bpy.context.material.subsurface_scattering.error_threshold",
         "bpy.context.material.subsurface_scattering.front",
         "bpy.context.material.subsurface_scattering.ior",
         "bpy.context.material.subsurface_scattering.radius[0]",

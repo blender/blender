@@ -86,7 +86,7 @@ class ConstraintButtonsPanel():
         col.prop(con, "use_stretch")
 
         col = split.column()
-        col.prop(con, "chain_length")
+        col.prop(con, "chain_count")
         col.prop(con, "use_target")
 
     def CHILD_OF(self, context, layout, con):
@@ -133,7 +133,7 @@ class ConstraintButtonsPanel():
         col.prop(con, "up", text="Up")
 
         col = split.column()
-        col.prop(con, "target_z")
+        col.prop(con, "use_target_z")
 
         self.space_template(layout, con)
 
@@ -157,7 +157,7 @@ class ConstraintButtonsPanel():
             split = layout.split()
             col = split.column()
             col.prop(con, "iterations")
-            col.prop(con, "chain_length")
+            col.prop(con, "chain_count")
 
             col.label(text="Weight:")
             col.prop(con, "weight", text="Position", slider=True)
@@ -178,20 +178,20 @@ class ConstraintButtonsPanel():
 
         row = layout.row()
         row.label(text="Axis Ref:")
-        row.prop(con, "axis_reference", expand=True)
+        row.prop(con, "reference_axis", expand=True)
         split = layout.split(percentage=0.33)
-        split.row().prop(con, "use_position")
+        split.row().prop(con, "use_location")
         row = split.row()
         row.prop(con, "weight", text="Weight", slider=True)
-        row.active = con.use_position
+        row.active = con.use_location
         split = layout.split(percentage=0.33)
         row = split.row()
         row.label(text="Lock:")
         row = split.row()
-        row.prop(con, "pos_lock_x", text="X")
-        row.prop(con, "pos_lock_y", text="Y")
-        row.prop(con, "pos_lock_z", text="Z")
-        split.active = con.use_position
+        row.prop(con, "lock_location_x", text="X")
+        row.prop(con, "lock_location_y", text="Y")
+        row.prop(con, "lock_location_z", text="Z")
+        split.active = con.use_location
 
         split = layout.split(percentage=0.33)
         split.row().prop(con, "use_rotation")
@@ -202,9 +202,9 @@ class ConstraintButtonsPanel():
         row = split.row()
         row.label(text="Lock:")
         row = split.row()
-        row.prop(con, "rot_lock_x", text="X")
-        row.prop(con, "rot_lock_y", text="Y")
-        row.prop(con, "rot_lock_z", text="Z")
+        row.prop(con, "lock_rotation_x", text="X")
+        row.prop(con, "lock_rotation_y", text="Y")
+        row.prop(con, "lock_rotation_z", text="Z")
         split.active = con.use_rotation
 
     def IK_DISTANCE(self, context, layout, con):
@@ -226,8 +226,8 @@ class ConstraintButtonsPanel():
         col.prop(con, "use_curve_radius")
 
         col = split.column()
-        col.prop(con, "use_fixed_position")
-        if con.use_fixed_position:
+        col.prop(con, "use_fixed_location")
+        if con.use_fixed_location:
             col.prop(con, "offset_factor", text="Offset")
         else:
             col.prop(con, "offset")
@@ -248,25 +248,25 @@ class ConstraintButtonsPanel():
         col.prop(con, "use_limit_x")
         sub = col.column()
         sub.active = con.use_limit_x
-        sub.prop(con, "minimum_x", text="Min")
-        sub.prop(con, "maximum_x", text="Max")
+        sub.prop(con, "min_x", text="Min")
+        sub.prop(con, "max_x", text="Max")
 
         col = split.column(align=True)
         col.prop(con, "use_limit_y")
         sub = col.column()
         sub.active = con.use_limit_y
-        sub.prop(con, "minimum_y", text="Min")
-        sub.prop(con, "maximum_y", text="Max")
+        sub.prop(con, "min_y", text="Min")
+        sub.prop(con, "max_y", text="Max")
 
         col = split.column(align=True)
         col.prop(con, "use_limit_z")
         sub = col.column()
         sub.active = con.use_limit_z
-        sub.prop(con, "minimum_z", text="Min")
-        sub.prop(con, "maximum_z", text="Max")
+        sub.prop(con, "min_z", text="Min")
+        sub.prop(con, "max_z", text="Max")
 
         row = layout.row()
-        row.prop(con, "limit_transform")
+        row.prop(con, "use_transform_limit")
         row.label()
 
         row = layout.row()
@@ -277,37 +277,37 @@ class ConstraintButtonsPanel():
         split = layout.split()
 
         col = split.column()
-        col.prop(con, "use_minimum_x")
+        col.prop(con, "use_min_x")
         sub = col.column()
-        sub.active = con.use_minimum_x
-        sub.prop(con, "minimum_x", text="")
-        col.prop(con, "use_maximum_x")
+        sub.active = con.use_min_x
+        sub.prop(con, "min_x", text="")
+        col.prop(con, "use_max_x")
         sub = col.column()
-        sub.active = con.use_maximum_x
-        sub.prop(con, "maximum_x", text="")
+        sub.active = con.use_max_x
+        sub.prop(con, "max_x", text="")
 
         col = split.column()
-        col.prop(con, "use_minimum_y")
+        col.prop(con, "use_min_y")
         sub = col.column()
-        sub.active = con.use_minimum_y
-        sub.prop(con, "minimum_y", text="")
-        col.prop(con, "use_maximum_y")
+        sub.active = con.use_min_y
+        sub.prop(con, "min_y", text="")
+        col.prop(con, "use_max_y")
         sub = col.column()
-        sub.active = con.use_maximum_y
-        sub.prop(con, "maximum_y", text="")
+        sub.active = con.use_max_y
+        sub.prop(con, "max_y", text="")
 
         col = split.column()
-        col.prop(con, "use_minimum_z")
+        col.prop(con, "use_min_z")
         sub = col.column()
-        sub.active = con.use_minimum_z
-        sub.prop(con, "minimum_z", text="")
-        col.prop(con, "use_maximum_z")
+        sub.active = con.use_min_z
+        sub.prop(con, "min_z", text="")
+        col.prop(con, "use_max_z")
         sub = col.column()
-        sub.active = con.use_maximum_z
-        sub.prop(con, "maximum_z", text="")
+        sub.active = con.use_max_z
+        sub.prop(con, "max_z", text="")
 
         row = layout.row()
-        row.prop(con, "limit_transform")
+        row.prop(con, "use_transform_limit")
         row.label()
 
         row = layout.row()
@@ -318,37 +318,37 @@ class ConstraintButtonsPanel():
         split = layout.split()
 
         col = split.column()
-        col.prop(con, "use_minimum_x")
+        col.prop(con, "use_min_x")
         sub = col.column()
-        sub.active = con.use_minimum_x
-        sub.prop(con, "minimum_x", text="")
-        col.prop(con, "use_maximum_x")
+        sub.active = con.use_min_x
+        sub.prop(con, "min_x", text="")
+        col.prop(con, "use_max_x")
         sub = col.column()
-        sub.active = con.use_maximum_x
-        sub.prop(con, "maximum_x", text="")
+        sub.active = con.use_max_x
+        sub.prop(con, "max_x", text="")
 
         col = split.column()
-        col.prop(con, "use_minimum_y")
+        col.prop(con, "use_min_y")
         sub = col.column()
-        sub.active = con.use_minimum_y
-        sub.prop(con, "minimum_y", text="")
-        col.prop(con, "use_maximum_y")
+        sub.active = con.use_min_y
+        sub.prop(con, "min_y", text="")
+        col.prop(con, "use_max_y")
         sub = col.column()
-        sub.active = con.use_maximum_y
-        sub.prop(con, "maximum_y", text="")
+        sub.active = con.use_max_y
+        sub.prop(con, "max_y", text="")
 
         col = split.column()
-        col.prop(con, "use_minimum_z")
+        col.prop(con, "use_min_z")
         sub = col.column()
-        sub.active = con.use_minimum_z
-        sub.prop(con, "minimum_z", text="")
-        col.prop(con, "use_maximum_z")
+        sub.active = con.use_min_z
+        sub.prop(con, "min_z", text="")
+        col.prop(con, "use_max_z")
         sub = col.column()
-        sub.active = con.use_maximum_z
-        sub.prop(con, "maximum_z", text="")
+        sub.active = con.use_max_z
+        sub.prop(con, "max_z", text="")
 
         row = layout.row()
-        row.prop(con, "limit_transform")
+        row.prop(con, "use_transform_limit")
         row.label()
 
         row = layout.row()
@@ -454,8 +454,8 @@ class ConstraintButtonsPanel():
 
         col = split.column(align=True)
         col.label(text="Target Range:")
-        col.prop(con, "minimum", text="Min")
-        col.prop(con, "maximum", text="Max")
+        col.prop(con, "min", text="Min")
+        col.prop(con, "max", text="Max")
 
         row = layout.row()
         row.label(text="Convert:")
@@ -489,7 +489,7 @@ class ConstraintButtonsPanel():
         split = layout.split()
 
         col = split.column()
-        col.prop(con, "original_length", text="Rest Length")
+        col.prop(con, "rest_length", text="Rest Length")
 
         col = split.column()
         col.operator("constraint.stretchto_reset", text="Reset")
@@ -566,7 +566,7 @@ class ConstraintButtonsPanel():
     def TRANSFORM(self, context, layout, con):
         self.target_template(layout, con)
 
-        layout.prop(con, "extrapolate_motion", text="Extrapolate")
+        layout.prop(con, "use_motion_extrapolate", text="Extrapolate")
 
         col = layout.column()
         col.row().label(text="Source:")
@@ -647,14 +647,14 @@ class ConstraintButtonsPanel():
 
         col = layout.column()
         col.label(text="Spline Fitting:")
-        col.prop(con, "chain_length")
-        col.prop(con, "even_divisions")
-        col.prop(con, "chain_offset")
+        col.prop(con, "chain_count")
+        col.prop(con, "use_even_divisions")
+        col.prop(con, "use_chain_offset")
 
         col = layout.column()
         col.label(text="Chain Scaling:")
-        col.prop(con, "y_stretch")
-        col.prop(con, "xz_scaling_mode")
+        col.prop(con, "use_y_stretch")
+        col.prop(con, "xz_scale_mode")
         col.prop(con, "use_curve_radius")
 
     def PIVOT(self, context, layout, con):
@@ -665,14 +665,14 @@ class ConstraintButtonsPanel():
             col.prop(con, "offset", text="Pivot Offset")
         else:
             col = layout.column()
-            col.prop(con, "use_relative_position")
-            if con.use_relative_position:
+            col.prop(con, "use_relative_location")
+            if con.use_relative_location:
                 col.prop(con, "offset", text="Relative Pivot Point")
             else:
                 col.prop(con, "offset", text="Absolute Pivot Point")
 
         col = layout.column()
-        col.prop(con, "enabled_rotation_range", text="Pivot When")
+        col.prop(con, "rotation_range", text="Pivot When")
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
     bl_label = "Object Constraints"

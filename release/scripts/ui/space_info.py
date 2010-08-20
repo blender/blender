@@ -277,7 +277,7 @@ class INFO_MT_game(bpy.types.Menu):
         layout.prop(gs, "use_deprecation_warnings")
         layout.prop(gs, "use_animation_record")
         layout.separator()
-        layout.prop(gs, "auto_start")
+        layout.prop(gs, "use_auto_start")
 
 
 class INFO_MT_render(bpy.types.Menu):

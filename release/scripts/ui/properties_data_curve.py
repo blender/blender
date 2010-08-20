@@ -140,7 +140,7 @@ class DATA_PT_geometry_curve(CurveButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Modification:")
-        col.prop(curve, "width")
+        col.prop(curve, "offset")
         col.prop(curve, "extrude")
         col.label(text="Taper Object:")
         col.prop(curve, "taper_object", text="")
@@ -299,9 +299,9 @@ class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Character:")
-        col.prop(char, "bold")
-        col.prop(char, "italic")
-        col.prop(char, "underline")
+        col.prop(char, "use_bold")
+        col.prop(char, "use_italic")
+        col.prop(char, "use_underline")
         
         split = layout.split()
         col = split.column()

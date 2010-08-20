@@ -172,20 +172,20 @@ def basic_force_field_settings_ui(self, context, field):
     col.prop(field, "noise")
     col.prop(field, "seed")
     if field.type == 'TURBULENCE':
-        col.prop(field, "global_coordinates", text="Global")
+        col.prop(field, "use_global_coords", text="Global")
     elif field.type == 'HARMONIC':
-        col.prop(field, "multiple_springs")
+        col.prop(field, "use_multiple_springs")
 
     split = layout.split()
 
     col = split.column()
     col.label(text="Effect point:")
-    col.prop(field, "do_location")
-    col.prop(field, "do_rotation")
+    col.prop(field, "apply_to_location")
+    col.prop(field, "apply_to_rotation")
 
     col = split.column()
     col.label(text="Collision:")
-    col.prop(field, "do_absorption")
+    col.prop(field, "use_absorption")
 
 
 def basic_force_field_falloff_ui(self, context, field):
@@ -209,11 +209,11 @@ def basic_force_field_falloff_ui(self, context, field):
 
     sub = col.column()
     sub.active = field.use_min_distance
-    sub.prop(field, "minimum_distance", text="Distance")
+    sub.prop(field, "distance_min", text="Distance")
 
     sub = col.column()
     sub.active = field.use_max_distance
-    sub.prop(field, "maximum_distance", text="Distance")
+    sub.prop(field, "distance_max", text="Distance")
 
 
 def register():

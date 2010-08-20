@@ -320,7 +320,7 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
 
             subsplit = split.split()
             col = subsplit.column()
-            col.prop(rd, "exr_half")
+            col.prop(rd, "use_exr_half")
             col.prop(rd, "exr_zbuf")
 
             col = subsplit.column()

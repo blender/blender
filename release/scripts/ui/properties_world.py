@@ -78,15 +78,15 @@ class WORLD_PT_world(WorldButtonsPanel, bpy.types.Panel):
         world = context.world
 
         row = layout.row()
-        row.prop(world, "paper_sky")
-        row.prop(world, "blend_sky")
-        row.prop(world, "real_sky")
+        row.prop(world, "use_sky_paper")
+        row.prop(world, "use_sky_blend")
+        row.prop(world, "use_sky_real")
 
         row = layout.row()
         row.column().prop(world, "horizon_color")
         col = row.column()
         col.prop(world, "zenith_color")
-        col.active = world.blend_sky
+        col.active = world.use_sky_blend
         row.column().prop(world, "ambient_color")
 
 
@@ -106,7 +106,7 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel, bpy.types.Panel):
 
         split = layout.split()
         split.prop(light, "ao_factor", text="Factor")
-        split.prop(light, "ao_blend_mode", text="")
+        split.prop(light, "ao_blend_type", text="")
 
 
 class WORLD_PT_environment_lighting(WorldButtonsPanel, bpy.types.Panel):
@@ -115,13 +115,13 @@ class WORLD_PT_environment_lighting(WorldButtonsPanel, bpy.types.Panel):
 
     def draw_header(self, context):
         light = context.world.lighting
-        self.layout.prop(light, "use_environment_lighting", text="")
+        self.layout.prop(light, "use_environment_light", text="")
 
     def draw(self, context):
         layout = self.layout
         light = context.world.lighting
 
-        layout.active = light.use_environment_lighting
+        layout.active = light.use_environment_light
 
         split = layout.split()
         split.prop(light, "environment_energy", text="Energy")
@@ -139,13 +139,13 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
 
     def draw_header(self, context):
         light = context.world.lighting
-        self.layout.prop(light, "use_indirect_lighting", text="")
+        self.layout.prop(light, "use_indirect_light", text="")
 
     def draw(self, context):
         layout = self.layout
         light = context.world.lighting
 
-        layout.active = light.use_indirect_lighting
+        layout.active = light.use_indirect_light
 
         split = layout.split()
         split.prop(light, "indirect_factor", text="Factor")
@@ -160,7 +160,7 @@ class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
         layout = self.layout
         light = context.world.lighting
 
-        layout.active = light.use_ambient_occlusion or light.use_environment_lighting or light.use_indirect_lighting
+        layout.active = light.use_ambient_occlusion or light.use_environment_light or light.use_indirect_light
 
         layout.prop(light, "gather_method", expand=True)
 
@@ -195,8 +195,8 @@ class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
 
             col.label(text="Sampling:")
             col.prop(light, "passes")
-            col.prop(light, "error_tolerance", text="Error")
-            col.prop(light, "pixel_cache")
+            col.prop(light, "error_threshold", text="Error")
+            col.prop(light, "use_cache")
             col.prop(light, "correction")
 
 
@@ -249,10 +249,10 @@ class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.prop(world.stars, "size")
-        col.prop(world.stars, "color_randomization", text="Colors")
+        col.prop(world.stars, "color_random", text="Colors")
 
         col = split.column()
-        col.prop(world.stars, "min_distance", text="Min. Dist")
+        col.prop(world.stars, "distance_min", text="Min. Dist")
         col.prop(world.stars, "average_separation", text="Separation")
 
 

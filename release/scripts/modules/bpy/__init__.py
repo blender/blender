@@ -48,7 +48,7 @@ def _main():
     import pydoc
     pydoc.getpager = lambda: pydoc.plainpager
     pydoc.Helper.getline = lambda self, prompt: None
-    pydoc.TextDoc.bold = lambda self, text: text
+    pydoc.TextDoc.use_bold = lambda self, text: text
 
 
     # if "-d" in sys.argv: # Enable this to measure startup speed

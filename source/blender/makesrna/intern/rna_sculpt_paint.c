@@ -251,7 +251,7 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "VPaint");
 	RNA_def_struct_ui_text(srna, "Vertex Paint", "Properties of vertex and weight paint mode");
 	
-	prop= RNA_def_property(srna, "all_faces", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_all_faces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_AREA);
 	RNA_def_property_ui_text(prop, "All Faces", "Paint on all faces inside brush");
 		
@@ -259,7 +259,7 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_NORMALS);
 	RNA_def_property_ui_text(prop, "Normals", "Applies the vertex normal before painting");
 	
-	prop= RNA_def_property(srna, "spray", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_spray", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_SPRAY);
 	RNA_def_property_ui_text(prop, "Spray", "Keep applying paint effect while holding mouse");
 }
@@ -366,21 +366,21 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, "rna_ParticleEdit_tool_set", "rna_ParticleEdit_tool_itemf");
 	RNA_def_property_ui_text(prop, "Tool", "");
 
-	prop= RNA_def_property(srna, "selection_mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "select_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "selectmode");
 	RNA_def_property_enum_items(prop, select_mode_items);
 	RNA_def_property_ui_text(prop, "Selection Mode", "Particle select and display mode");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_update");
 
-	prop= RNA_def_property(srna, "keep_lengths", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_preserve_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_KEEP_LENGTHS);
 	RNA_def_property_ui_text(prop, "Keep Lengths", "Keep path lengths constant");
 
-	prop= RNA_def_property(srna, "keep_root", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_preserve_root", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_LOCK_FIRST);
 	RNA_def_property_ui_text(prop, "Keep Root", "Keep root keys unmodified");
 
-	prop= RNA_def_property(srna, "emitter_deflect", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_emitter_deflect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_DEFLECT_EMITTER);
 	RNA_def_property_ui_text(prop, "Deflect Emitter", "Keep paths from intersecting the emitter");
 
@@ -389,12 +389,12 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Emitter Distance", "Distance to keep particles away from the emitter");
 
-	prop= RNA_def_property(srna, "fade_time", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_fade_time", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_FADE_TIME);
 	RNA_def_property_ui_text(prop, "Fade Time", "Fade paths and keys further away from current frame");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_update");
 
-	prop= RNA_def_property(srna, "auto_velocity", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_auto_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_AUTO_VELOCITY);
 	RNA_def_property_ui_text(prop, "Auto Velocity", "Calculate point velocities automatically");
 
@@ -403,11 +403,11 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Particles", "Draw actual particles");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_redo");
 
-	prop= RNA_def_property(srna, "add_interpolate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_default_interpolate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_INTERPOLATE_ADDED);
 	RNA_def_property_ui_text(prop, "Interpolate", "Interpolate new particles from the existing ones");
 
-	prop= RNA_def_property(srna, "add_keys", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "default_key_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "totaddkey");
 	RNA_def_property_range(prop, 2, INT_MAX);
 	RNA_def_property_ui_range(prop, 2, 20, 10, 3);

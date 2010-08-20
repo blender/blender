@@ -99,7 +99,7 @@ class DATA_PT_lamp(DataButtonsPanel, bpy.types.Panel):
                 sub.prop(lamp, "linear_attenuation", slider=True, text="Linear")
                 sub.prop(lamp, "quadratic_attenuation", slider=True, text="Quadratic")
 
-            col.prop(lamp, "sphere")
+            col.prop(lamp, "use_sphere")
 
         if lamp.type == 'AREA':
             col.prop(lamp, "distance")
@@ -221,8 +221,8 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
             col.prop(lamp, "shadow_color", text="")
 
             col = split.column()
-            col.prop(lamp, "shadow_layer", text="This Layer Only")
-            col.prop(lamp, "only_shadow")
+            col.prop(lamp, "use_shadow_layer", text="This Layer Only")
+            col.prop(lamp, "use_only_shadow")
 
         if lamp.shadow_method == 'RAY_SHADOW':
             split = layout.split()
@@ -245,19 +245,19 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
                     sub.prop(lamp, "shadow_ray_samples_x", text="Samples X")
                     sub.prop(lamp, "shadow_ray_samples_y", text="Samples Y")
 
-            col.row().prop(lamp, "shadow_ray_sampling_method", expand=True)
+            col.row().prop(lamp, "shadow_ray_sample_method", expand=True)
 
             split = layout.split()
             col = split.column()
             
-            if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
+            if lamp.shadow_ray_sample_method == 'ADAPTIVE_QMC':
                 col.prop(lamp, "shadow_adaptive_threshold", text="Threshold")
                 col = split.column()
             
-            if lamp.type == 'AREA' and lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
+            if lamp.type == 'AREA' and lamp.shadow_ray_sample_method == 'CONSTANT_JITTERED':
                 col = split.column()
                 col = split.column()
-                col.prop(lamp, "umbra")
+                col.prop(lamp, "use_umbra")
                 col.prop(lamp, "dither")
                 col.prop(lamp, "jitter")
 
@@ -291,15 +291,15 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
             split = layout.split()
 
             col = split.column()
-            col.prop(lamp, "auto_clip_start", text="Autoclip Start")
+            col.prop(lamp, "use_auto_clip_start", text="Autoclip Start")
             sub = col.column()
-            sub.active = not lamp.auto_clip_start
+            sub.active = not lamp.use_auto_clip_start
             sub.prop(lamp, "shadow_buffer_clip_start", text="Clip Start")
 
             col = split.column()
-            col.prop(lamp, "auto_clip_end", text="Autoclip End")
+            col.prop(lamp, "use_auto_clip_end", text="Autoclip End")
             sub = col.column()
-            sub.active = not lamp.auto_clip_end
+            sub.active = not lamp.use_auto_clip_end
             sub.prop(lamp, "shadow_buffer_clip_end", text=" Clip End")
 
 

@@ -379,7 +379,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                 texture.mipmap = True
                 texture.interpolation = True
                 texture.use_alpha = True
-                blender_material.transparency = True
+                blender_material.use_transparency = True
                 blender_material.alpha = 0.0
             else:
                 blender_material.add_texture(texture, 'UV', 'COLOR')
@@ -806,7 +806,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 # 		for sharp_edge in sharp_edges.keys():
 # 			for ed in me.edges:
 # 				if edges_match(sharp_edge, ed.vertices):
-# 					ed.use_sharp = True
+# 					ed.use_edge_sharp = True
 
 # 	if unique_smooth_groups and sharp_edges:
 # 		SHARP= Mesh.EdgeFlags.SHARP

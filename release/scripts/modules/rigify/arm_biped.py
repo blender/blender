@@ -161,7 +161,7 @@ def ik(obj, definitions, base_names, options):
     con.use_stretch = True
     con.use_target = True
     con.use_rotation = False
-    con.chain_length = 2
+    con.chain_count = 2
     con.pole_angle = -pi/2
 
     # last step setup layers

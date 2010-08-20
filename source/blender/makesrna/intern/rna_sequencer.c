@@ -764,17 +764,17 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "inverse_gain", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_gain", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_COLOR_BALANCE_INVERSE_GAIN);
 	RNA_def_property_ui_text(prop, "Inverse Gain", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "inverse_gamma", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_gamma", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_COLOR_BALANCE_INVERSE_GAMMA);
 	RNA_def_property_ui_text(prop, "Inverse Gamma", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "inverse_lift", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_lift", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_COLOR_BALANCE_INVERSE_LIFT);
 	RNA_def_property_ui_text(prop, "Inverse Lift", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
@@ -883,7 +883,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 
 	/* strip positioning */
 
-	prop= RNA_def_property(srna, "frame_final_length", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_final_duration", PROP_INT, PROP_TIME);
 	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Length", "The length of the contents of this strip before the handles are applied");
@@ -952,12 +952,13 @@ static void rna_def_sequence(BlenderRNA *brna)
 
 	/* blending */
 
-	prop= RNA_def_property(srna, "blend_mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "blend_mode");
 	RNA_def_property_enum_items(prop, blend_mode_items);
 	RNA_def_property_ui_text(prop, "Blend Mode", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "blend_opacity", PROP_FLOAT, PROP_FACTOR);
+	prop= RNA_def_property(srna, "blend_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Blend Opacity", "");
 	RNA_def_property_float_funcs(prop, "rna_Sequence_opacity_get", "rna_Sequence_opacity_set", NULL); // stupid 0-100 -> 0-1
@@ -969,7 +970,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Effect fader position", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "use_effect_default_fade", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_default_fade", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_EFFECT_DEFAULT_FADE);
 	RNA_def_property_ui_text(prop, "Use Default Fade", "Fade effect using the built-in default (usually make transition as long as effect strip)");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
@@ -1037,37 +1038,37 @@ static void rna_def_filter_video(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	prop= RNA_def_property(srna, "de_interlace", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_deinterlace", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_FILTERY);
 	RNA_def_property_ui_text(prop, "De-Interlace", "For video movies to remove fields");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update_reopen_files");
 
-	prop= RNA_def_property(srna, "premultiply", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_MAKE_PREMUL);
 	RNA_def_property_ui_text(prop, "Premultiply", "Convert RGB from key alpha to premultiplied alpha");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 
-	prop= RNA_def_property(srna, "flip_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_flip_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_FLIPX);
 	RNA_def_property_ui_text(prop, "Flip X", "Flip on the X axis");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "flip_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_flip_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_FLIPY);
 	RNA_def_property_ui_text(prop, "Flip Y", "Flip on the Y axis");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "convert_float", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_float", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_MAKE_FLOAT);
 	RNA_def_property_ui_text(prop, "Convert Float", "Convert input to float data");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "reverse_frames", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_reverse_frames", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_REVERSE_FRAMES);
 	RNA_def_property_ui_text(prop, "Flip Time", "Reverse frame order");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "multiply_colors", PROP_FLOAT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "color_multiply", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "mul");
 	RNA_def_property_range(prop, 0.0f, 20.0f);
 	RNA_def_property_ui_text(prop, "Multiply Colors", "");
@@ -1129,12 +1130,12 @@ static void rna_def_proxy(StructRNA *srna)
 	RNA_def_property_pointer_sdna(prop, NULL, "strip->proxy");
 	RNA_def_property_ui_text(prop, "Proxy", "");
 
-	prop= RNA_def_property(srna, "proxy_custom_directory", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_proxy_custom_directory", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_PROXY_CUSTOM_DIR);
 	RNA_def_property_ui_text(prop, "Proxy Custom Directory", "Use a custom directory to store data");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "proxy_custom_file", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_proxy_custom_file", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_PROXY_CUSTOM_FILE);
 	RNA_def_property_ui_text(prop, "Proxy Custom File", "Use a custom file to read proxy data from");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
@@ -1144,7 +1145,7 @@ static void rna_def_input(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	prop= RNA_def_property(srna, "animation_start_offset", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "animation_offset_start", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "anim_startofs");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_anim_startofs_final_set", NULL); // overlap tests
@@ -1152,7 +1153,7 @@ static void rna_def_input(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Animation Start Offset", "Animation start offset (trim start)");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "animation_end_offset", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "animation_offset_end", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "anim_endofs");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_anim_endofs_final_set", NULL); // overlap tests
@@ -1417,7 +1418,7 @@ static void rna_def_glow(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Boost Factor", "Brightness multiplier");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "blur_distance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "blur_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dDist");
 	RNA_def_property_range(prop, 0.5f, 20.0f);
 	RNA_def_property_ui_text(prop, "Blur Distance", "Radius of glow effect");
@@ -1429,7 +1430,7 @@ static void rna_def_glow(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Quality", "Accuracy of the blur effect");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "only_boost", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_only_boost", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bNoComp", 0);
 	RNA_def_property_ui_text(prop, "Only Boost", "Show the glow buffer only");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
@@ -1469,7 +1470,7 @@ static void rna_def_transform(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0, 10, 3, 10);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "uniform_scale", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_uniform_scale", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uniform_scale", 0);
 	RNA_def_property_ui_text(prop, "Uniform Scale", "Scale uniformly, preserving aspect ratio");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
@@ -1537,17 +1538,17 @@ static void rna_def_speed_control(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "curve_velocity", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_curve_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_INTEGRATE);
 	RNA_def_property_ui_text(prop, "F-Curve Velocity", "Interpret the F-Curve value as a velocity instead of a frame number");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "frame_blending", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_frame_blend", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_BLEND);
 	RNA_def_property_ui_text(prop, "Frame Blending", "Blend two frames into the target for a smoother result");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "curve_compress_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_curve_compress_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_COMPRESS_IPO_Y);
 	RNA_def_property_ui_text(prop, "F-Curve Compress Y", "Scale F-Curve value to get the target frame number, F-Curve value runs from 0.0 to 1.0");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");

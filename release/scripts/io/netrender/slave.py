@@ -201,7 +201,7 @@ def render_slave(engine, netsettings, threads):
                             response.read()
                             
                             # Also output on console
-                            if netsettings.slave_outputlog:
+                            if netsettings.use_slave_output_log:
                                 print(str(stdout, encoding='utf8'), end="")
 
                             stdout = bytes()
@@ -225,7 +225,7 @@ def render_slave(engine, netsettings, threads):
                 # flush the rest of the logs
                 if stdout:
                     # Also output on console
-                    if netsettings.slave_thumb:
+                    if netsettings.use_slave_thumb:
                         print(str(stdout, encoding='utf8'), end="")
                     
                     # (only need to update on one frame, they are linked
@@ -254,7 +254,7 @@ def render_slave(engine, netsettings, threads):
                             filename = os.path.join(JOB_PREFIX, "%06d.exr" % frame.number)
 
                             # thumbnail first
-                            if netsettings.slave_thumb:
+                            if netsettings.use_slave_thumb:
                                 thumbname = thumbnail(filename)
 
                                 f = open(thumbname, 'rb')
@@ -294,7 +294,7 @@ def render_slave(engine, netsettings, threads):
 
         conn.close()
 
-        if netsettings.slave_clear:
+        if netsettings.use_slave_clear:
             clearSlave(NODE_PREFIX)
 
 if __name__ == "__main__":

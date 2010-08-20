@@ -122,25 +122,25 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col.label(text="Attributes:")
             col.prop(game, "mass")
             col.prop(soft, "weld_threshold")
-            col.prop(soft, "position_iterations")
-            col.prop(soft, "linstiff", slider=True)
+            col.prop(soft, "location_iterations")
+            col.prop(soft, "linear_stiffness", slider=True)
             col.prop(soft, "dynamic_friction", slider=True)
             col.prop(soft, "collision_margin", slider=True)
-            col.prop(soft, "bending_const", text="Bending Constraints")
+            col.prop(soft, "use_bending_constraints", text="Bending Constraints")
 
             col = split.column()
-            col.prop(soft, "shape_match")
+            col.prop(soft, "use_shape_match")
             sub = col.column()
-            sub.active = soft.shape_match
+            sub.active = soft.use_shape_match
             sub.prop(soft, "shape_threshold", slider=True)
 
             col.separator()
 
             col.label(text="Cluster Collision:")
-            col.prop(soft, "cluster_rigid_to_softbody")
-            col.prop(soft, "cluster_soft_to_softbody")
+            col.prop(soft, "use_cluster_rigid_to_softbody")
+            col.prop(soft, "use_cluster_soft_to_softbody")
             sub = col.column()
-            sub.active = (soft.cluster_rigid_to_softbody or soft.cluster_soft_to_softbody)
+            sub.active = (soft.cluster_rigid_to_softbody or soft.use_cluster_soft_to_softbody)
             sub.prop(soft, "cluster_iterations", text="Iterations")
 
         elif game.physics_type == 'STATIC':
@@ -236,9 +236,9 @@ class RENDER_PT_game_player(RenderButtonsPanel, bpy.types.Panel):
         # framing:
         col = layout.column()
         col.label(text="Framing:")
-        col.row().prop(gs, "framing_type", expand=True)
-        if gs.framing_type == 'LETTERBOX':
-            col.prop(gs, "framing_color", text="")
+        col.row().prop(gs, "frame_type", expand=True)
+        if gs.frame_type == 'LETTERBOX':
+            col.prop(gs, "frame_color", text="")
 
 
 class RENDER_PT_game_stereo(RenderButtonsPanel, bpy.types.Panel):
@@ -257,7 +257,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, bpy.types.Panel):
         # stereo:
         if stereo_mode == 'STEREO':
             layout.prop(gs, "stereo_mode")
-            layout.prop(gs, "eye_separation")
+            layout.prop(gs, "stereo_eye_separation")
 
         # dome:
         elif stereo_mode == 'DOME':
@@ -310,14 +310,14 @@ class RENDER_PT_game_shading(RenderButtonsPanel, bpy.types.Panel):
             split = layout.split()
 
             col = split.column()
-            col.prop(gs, "glsl_lights", text="Lights")
-            col.prop(gs, "glsl_shaders", text="Shaders")
-            col.prop(gs, "glsl_shadows", text="Shadows")
+            col.prop(gs, "use_glsl_lights", text="Lights")
+            col.prop(gs, "use_glsl_shaders", text="Shaders")
+            col.prop(gs, "use_glsl_shadows", text="Shadows")
 
             col = split.column()
-            col.prop(gs, "glsl_ramps", text="Ramps")
-            col.prop(gs, "glsl_nodes", text="Nodes")
-            col.prop(gs, "glsl_extra_textures", text="Extra Textures")
+            col.prop(gs, "use_glsl_ramps", text="Ramps")
+            col.prop(gs, "use_glsl_nodes", text="Nodes")
+            col.prop(gs, "use_glsl_extra_textures", text="Extra Textures")
 
 
 class RENDER_PT_game_performance(RenderButtonsPanel, bpy.types.Panel):

@@ -42,7 +42,7 @@ class DataPathBuilder(object):
         str_value = '["%s"]' % key
         return DataPathBuilder(self.data_path + (str_value, ))
 
-    def resolve(self, real_base):
+    def resolve(self, real_base, rna_update_from_map=None):
         """ Return (attribute, value) pairs.
         """
         pairs = []
@@ -50,10 +50,24 @@ class DataPathBuilder(object):
         for item in self.data_path:
             if base is not Ellipsis:
                 try:
+                    # this only works when running with an old blender
+                    # where the old path will resolve 
                     base = eval("base" + item)
                 except:
-                    print("Failed to resolve data path:", self.data_path)
-                    base = Ellipsis
+                    base_new = Ellipsis
+                    # guess the new name
+                    if item.startswith("."):
+                        for item_new in rna_update_from_map.get(item[1:], ()):
+                            try:
+                                print("base." + item_new)
+                                base_new = eval("base." + item_new)
+                                break # found, dont keep looking
+                            except:
+                                pass
+
+                    if base_new is Ellipsis:
+                        print("Failed to resolve data path:", self.data_path)
+                    base = base_new
 
             pairs.append((item, base))
         return pairs
@@ -96,14 +110,14 @@ def classes_recursive(base_type, clss=None):
     return clss
 
 
-def find_path_new(id_data, data_path, rna_update_dict):
+def find_path_new(id_data, data_path, rna_update_dict, rna_update_from_map):
     # ignore ID props for now
     if data_path.startswith("["):
         return data_path
     
     # recursive path fixing, likely will be one in most cases.
     data_path_builder = eval("DataPathBuilder(tuple())." + data_path)
-    data_resolve = data_path_builder.resolve(id_data)
+    data_resolve = data_path_builder.resolve(id_data, rna_update_from_map)
 
     path_new = [pair[0] for pair in data_resolve]
     
@@ -136,6 +150,10 @@ def update_data_paths(rna_update):
     rna_update_dict = {}
     for ren_class, ren_from, ren_to in rna_update:
         rna_update_dict.setdefault(ren_class, {})[ren_from] = ren_to
+        
+    rna_update_from_map = {}
+    for ren_class, ren_from, ren_to in rna_update:
+        rna_update_from_map.setdefault(ren_from, []).append(ren_to)
 
     for id_data in id_iter():
         anim_data = getattr(id_data, "animation_data", None)
@@ -150,7 +168,7 @@ def update_data_paths(rna_update):
                         data_path = tar.data_path
                         
                         if id_data_other and data_path:
-                            data_path_new = find_path_new(id_data_other, data_path, rna_update_dict)
+                            data_path_new = find_path_new(id_data_other, data_path, rna_update_dict, rna_update_from_map)
                             # print(data_path_new)
                             if data_path_new != data_path:
                                 if not IS_TESTING:
@@ -162,22 +180,22 @@ def update_data_paths(rna_update):
         for action in anim_data_actions(anim_data):
             for fcu in action.fcurves:
                 data_path = fcu.data_path
-                data_path_new = find_path_new(id_data, data_path, rna_update_dict)
+                data_path_new = find_path_new(id_data, data_path, rna_update_dict, rna_update_from_map)
                 # print(data_path_new)
                 if data_path_new != data_path:
                     if not IS_TESTING:
                         fcu.data_path = data_path_new
                     print("fcurve (%s): %s -> %s" % (id_data.name, data_path, data_path_new))
 
-  
+
 if __name__ == "__main__":
 
     # Example, should be called externally
     # (class, from, to)
     replace_ls = [
-        ('AnimVizMotionPaths', 'after_current', 'frame_after'),
-        ('AnimVizMotionPaths', 'before_current', 'frame_before'),
-        ('AnimVizOnionSkinning', 'after_current', 'frame_after'),
+        ('AnimVizMotionPaths', 'frame_after', 'frame_after'),
+        ('AnimVizMotionPaths', 'frame_before', 'frame_before'),
+        ('AnimVizOnionSkinning', 'frame_after', 'frame_after'),
     ]
 
     update_data_paths(replace_ls)
