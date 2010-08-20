@@ -228,7 +228,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
             row = layout.row()
             row.prop(kb, "name")
 
-            if key.relative:
+            if key.use_relative:
                 if ob.active_shape_key_index != 0:
                     row = layout.row()
                     row.active = enable_edit_value
