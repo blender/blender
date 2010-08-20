@@ -305,7 +305,7 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Particle Systems", "Particle systems emitted from the object");
 	RNA_def_property_update(prop, 0, "rna_Smoke_reset_dependancy");
 
-	prop= RNA_def_property(srna, "outflow", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_outflow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type", MOD_SMOKE_FLOW_TYPE_OUTFLOW);
 	RNA_def_property_ui_text(prop, "Outflow", "Deletes smoke from simulation");
 	RNA_def_property_update(prop, 0, NULL);

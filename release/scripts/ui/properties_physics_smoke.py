@@ -95,7 +95,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
                 split = layout.split()
 
                 col = split.column()
-                col.prop(flow, "outflow")
+                col.prop(flow, "use_outflow")
                 col.label(text="Particle System:")
                 col.prop_object(flow, "psys", ob, "particle_systems", text="")
 

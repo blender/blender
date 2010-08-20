@@ -147,9 +147,9 @@ def ik(obj, definitions, base_names, options):
     ik_chain.update()
 
     # Set IK dof
-    ik_chain.forearm_p.ik_dof_x = True
-    ik_chain.forearm_p.ik_dof_y = False
-    ik_chain.forearm_p.ik_dof_z = False
+    ik_chain.forearm_p.lock_ik_x = False
+    ik_chain.forearm_p.lock_ik_y = True
+    ik_chain.forearm_p.lock_ik_z = True
 
     con = ik_chain.forearm_p.constraints.new('IK')
     con.target = obj

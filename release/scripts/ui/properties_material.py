@@ -648,7 +648,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(mat, "traceable")
         col.prop(mat, "full_oversampling")
         col.prop(mat, "use_sky")
-        col.prop(mat, "exclude_mist")
+        col.prop(mat, "use_mist")
         col.prop(mat, "invert_z")
         sub = col.row()
         sub.prop(mat, "z_offset")
@@ -883,7 +883,7 @@ class MATERIAL_PT_volume_options(VolumeButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(mat, "traceable")
         col.prop(mat, "full_oversampling")
-        col.prop(mat, "exclude_mist")
+        col.prop(mat, "use_mist")
 
         col = split.column()
         col.label(text="Light Group:")

@@ -620,9 +620,9 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Enabled", "Enable this material texture slot");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
-	prop= RNA_def_property(srna, "new_bump", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_NEW_BUMP);
-	RNA_def_property_ui_text(prop, "New Bump", "Use new, corrected bump mapping code (backwards compatibility option)");
+	prop= RNA_def_property(srna, "use_old_bump", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "texflag", MTEX_NEW_BUMP);
+	RNA_def_property_ui_text(prop, "Old Bump", "Use old bump mapping (backwards compatibility option)");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 }
 
@@ -1643,9 +1643,9 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Cast Shadows Only", "Makes objects with this material appear invisible, only casting shadows (not rendered)");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "exclude_mist", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_NOMIST);
-	RNA_def_property_ui_text(prop, "Exclude Mist", "Excludes this material from mist effects (in world settings)");
+	prop= RNA_def_property(srna, "use_mist", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "mode", MA_NOMIST);
+	RNA_def_property_ui_text(prop, "Use Mist", "Use mist with this material (in world settings)");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "receive_transparent_shadows", PROP_BOOLEAN, PROP_NONE);

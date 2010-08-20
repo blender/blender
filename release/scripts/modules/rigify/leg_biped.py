@@ -211,9 +211,9 @@ def ik(obj, bone_definition, base_names, options):
     ik_chain.update()
 
     # Set IK dof
-    ik_chain.shin_p.ik_dof_x = True
-    ik_chain.shin_p.ik_dof_y = False
-    ik_chain.shin_p.ik_dof_z = False
+    ik_chain.shin_p.lock_ik_x = False
+    ik_chain.shin_p.lock_ik_y = True
+    ik_chain.shin_p.lock_ik_z = True
 
     # Set rotation modes and axis locks
     ik.foot_roll_p.rotation_mode = 'XYZ'

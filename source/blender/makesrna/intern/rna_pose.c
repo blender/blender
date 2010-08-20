@@ -812,21 +812,21 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Has IK", "Is part of an IK chain");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_IK_update");
 
-	prop= RNA_def_property(srna, "ik_dof_x", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "ikflag", BONE_IK_NO_XDOF);
-	RNA_def_property_ui_text(prop, "IK X DoF", "Allow movement around the X axis");
+	prop= RNA_def_property(srna, "lock_ik_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ikflag", BONE_IK_NO_XDOF);
+	RNA_def_property_ui_text(prop, "IK X Lock", "Disallow movement around the X axis");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_IK_update");
 
-	prop= RNA_def_property(srna, "ik_dof_y", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "ikflag", BONE_IK_NO_YDOF);
-	RNA_def_property_ui_text(prop, "IK Y DoF", "Allow movement around the Y axis");
+	prop= RNA_def_property(srna, "lock_ik_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ikflag", BONE_IK_NO_YDOF);
+	RNA_def_property_ui_text(prop, "IK Y Lock", "Disallow movement around the Y axis");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_IK_update");
 
-	prop= RNA_def_property(srna, "ik_dof_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "ikflag", BONE_IK_NO_ZDOF);
-	RNA_def_property_ui_text(prop, "IK Z DoF", "Allow movement around the Z axis");
+	prop= RNA_def_property(srna, "lock_ik_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ikflag", BONE_IK_NO_ZDOF);
+	RNA_def_property_ui_text(prop, "IK Z Lock", "Disallow movement around the Z axis");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_IK_update");
 
