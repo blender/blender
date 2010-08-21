@@ -476,10 +476,10 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
         layout.prop(strip, "use_crop", text="Image Crop:")
         if strip.use_crop:
             col = layout.column(align=True)
-            col.prop(strip.crop, "top")
-            col.prop(strip.crop, "left")
-            col.prop(strip.crop, "bottom")
-            col.prop(strip.crop, "right")
+            col.prop(strip.crop, "max_y")
+            col.prop(strip.crop, "min_x")
+            col.prop(strip.crop, "min_y")
+            col.prop(strip.crop, "max_x")
 
     def draw_panel_transform(self, strip):
         layout = self.layout
@@ -576,10 +576,10 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
         layout.prop(strip, "use_crop", text="Image Crop:")
         if strip.use_crop:
             col = layout.column(align=True)
-            col.prop(strip.crop, "top")
-            col.prop(strip.crop, "left")
-            col.prop(strip.crop, "bottom")
-            col.prop(strip.crop, "right")
+            col.prop(strip.crop, "max_y")
+            col.prop(strip.crop, "min_x")
+            col.prop(strip.crop, "min_y")
+            col.prop(strip.crop, "max_x")
 
         col = layout.column(align=True)
         col.label(text="Trim Duration:")

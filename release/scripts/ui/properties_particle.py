@@ -157,7 +157,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
 
         row = layout.row()
         row.active = part.distribution != 'GRID'
-        row.prop(part, "amount")
+        row.prop(part, "count")
 
         if part.type != 'HAIR':
             split = layout.split()
@@ -176,7 +176,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
         row.prop(part, "emit_from", expand=True)
 
         row = layout.row()
-        row.prop(part, "trand")
+        row.prop(part, "use_emit_random")
         if part.distribution != 'GRID':
             row.prop(part, "use_even_distribution")
 
@@ -689,8 +689,8 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         sub = split.column()
-        sub.prop(part, "emitter")
-        sub.prop(part, "parent")
+        sub.prop(part, "use_render_emitter")
+        sub.prop(part, "use_parent_particles")
         sub = split.column()
         sub.prop(part, "show_unborn")
         sub.prop(part, "use_dead")
@@ -739,7 +739,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
                     row.prop(part, "simplify_rate")
                     row.prop(part, "simplify_transition")
                     row = layout.row()
-                    row.prop(part, "viewport")
+                    row.prop(part, "use_simplify_viewport")
                     sub = row.row()
                     sub.active = part.viewport == True
                     sub.prop(part, "simplify_viewport")
@@ -856,7 +856,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
         path = (part.render_type == 'PATH' and part.draw_method == 'RENDER') or part.draw_method == 'PATH'
 
         row = layout.row()
-        row.prop(part, "display", slider=True)
+        row.prop(part, "draw_percentage", slider=True)
         if part.draw_method != 'RENDER' or part.render_type == 'HALO':
             row.prop(part, "draw_size")
         else:
@@ -865,7 +865,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
         row = layout.row()
         col = row.column()
         col.prop(part, "show_size")
-        col.prop(part, "velocity")
+        col.prop(part, "show_velocity")
         col.prop(part, "show_number")
         if part.physics_type == 'BOIDS':
             col.prop(part, "show_health")

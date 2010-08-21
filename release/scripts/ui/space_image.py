@@ -389,7 +389,7 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
         subsub.prop(ima, "frame_end", text="End")
         subsub.prop(ima, "fps", text="Speed")
 
-        col.prop(ima, "tiles")
+        col.prop(ima, "use_tiles")
         sub = col.column(align=True)
         sub.active = ima.tiles or ima.use_animation
         sub.prop(ima, "tiles_x", text="X")

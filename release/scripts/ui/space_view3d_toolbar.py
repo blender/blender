@@ -1155,7 +1155,7 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel, bpy.types.Panel):
         col = layout.column()
         #col.prop(vpaint, "mode", text="")
         col.prop(vpaint, "use_all_faces")
-        col.prop(vpaint, "normals")
+        col.prop(vpaint, "use_normal")
         col.prop(vpaint, "use_spray")
 
         col.label(text="Unified Settings:")

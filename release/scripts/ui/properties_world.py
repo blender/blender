@@ -20,6 +20,8 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
+# TODO, "color_range" not in the UI
+
 
 class WorldButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -95,12 +97,12 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
-        light = context.world.lighting
+        light = context.world.light_settings
         self.layout.prop(light, "use_ambient_occlusion", text="")
 
     def draw(self, context):
         layout = self.layout
-        light = context.world.lighting
+        light = context.world.light_settings
 
         layout.active = light.use_ambient_occlusion
 
@@ -114,12 +116,12 @@ class WORLD_PT_environment_lighting(WorldButtonsPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
-        light = context.world.lighting
+        light = context.world.light_settings
         self.layout.prop(light, "use_environment_light", text="")
 
     def draw(self, context):
         layout = self.layout
-        light = context.world.lighting
+        light = context.world.light_settings
 
         layout.active = light.use_environment_light
 
@@ -134,16 +136,16 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        light = getattr(context.world, "lighting", None)
+        light = getattr(context.world, "light_settings", None)
         return light and light.gather_method == 'APPROXIMATE'
 
     def draw_header(self, context):
-        light = context.world.lighting
+        light = context.world.light_settings
         self.layout.prop(light, "use_indirect_light", text="")
 
     def draw(self, context):
         layout = self.layout
-        light = context.world.lighting
+        light = context.world.light_settings
 
         layout.active = light.use_indirect_light
 
@@ -158,7 +160,7 @@ class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        light = context.world.lighting
+        light = context.world.light_settings
 
         layout.active = light.use_ambient_occlusion or light.use_environment_light or light.use_indirect_light
 
@@ -170,9 +172,9 @@ class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
         col.label(text="Attenuation:")
         if light.gather_method == 'RAYTRACE':
             col.prop(light, "distance")
-        col.prop(light, "falloff")
+        col.prop(light, "use_falloff")
         sub = col.row()
-        sub.active = light.falloff
+        sub.active = light.use_falloff
         sub.prop(light, "falloff_strength", text="Strength")
 
         if light.gather_method == 'RAYTRACE':
@@ -208,25 +210,25 @@ class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         world = context.world
 
-        self.layout.prop(world.mist, "use_mist", text="")
+        self.layout.prop(world.mist_settings, "use_mist", text="")
 
     def draw(self, context):
         layout = self.layout
         world = context.world
 
-        layout.active = world.mist.use_mist
+        layout.active = world.mist_settings.use_mist
 
         split = layout.split()
 
         col = split.column()
-        col.prop(world.mist, "intensity", slider=True)
-        col.prop(world.mist, "start")
+        col.prop(world.mist_settings, "intensity", slider=True)
+        col.prop(world.mist_settings, "start")
 
         col = split.column()
-        col.prop(world.mist, "depth")
-        col.prop(world.mist, "height")
+        col.prop(world.mist_settings, "depth")
+        col.prop(world.mist_settings, "height")
 
-        layout.prop(world.mist, "falloff")
+        layout.prop(world.mist_settings, "falloff")
 
 
 class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
@@ -237,23 +239,23 @@ class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         world = context.world
 
-        self.layout.prop(world.stars, "use_stars", text="")
+        self.layout.prop(world.star_settings, "use_stars", text="")
 
     def draw(self, context):
         layout = self.layout
         world = context.world
 
-        layout.active = world.stars.use_stars
+        layout.active = world.star_settings.use_stars
 
         split = layout.split()
 
         col = split.column()
-        col.prop(world.stars, "size")
-        col.prop(world.stars, "color_random", text="Colors")
+        col.prop(world.star_settings, "size")
+        col.prop(world.star_settings, "color_random", text="Colors")
 
         col = split.column()
-        col.prop(world.stars, "distance_min", text="Min. Dist")
-        col.prop(world.stars, "average_separation", text="Separation")
+        col.prop(world.star_settings, "distance_min", text="Min. Dist")
+        col.prop(world.star_settings, "average_separation", text="Separation")
 
 
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, bpy.types.Panel):

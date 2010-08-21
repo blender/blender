@@ -324,7 +324,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Correction", "Ad-hoc correction for over-occlusion due to the approximation (for Approximate)");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "falloff", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_falloff", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "aomode", WO_AODIST);
 	RNA_def_property_ui_text(prop, "Falloff", "");
 	RNA_def_property_update(prop, 0, "rna_World_update");
@@ -502,7 +502,7 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Exposure", "Amount of exponential color correction for light");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "range", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "color_range", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "range");
 	RNA_def_property_range(prop, 0.2, 5.0);
 	RNA_def_property_ui_text(prop, "Range", "The color range that will be mapped to 0-1");
@@ -525,19 +525,19 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	/* nested structs */
-	prop= RNA_def_property(srna, "lighting", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "light_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "WorldLighting");
 	RNA_def_property_pointer_funcs(prop, "rna_World_lighting_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Lighting", "World lighting settings");
 
-	prop= RNA_def_property(srna, "mist", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "mist_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "WorldMistSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_World_mist_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Mist", "World mist settings");
 
-	prop= RNA_def_property(srna, "stars", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "star_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "WorldStarsSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_World_stars_get", NULL, NULL, NULL);

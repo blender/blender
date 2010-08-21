@@ -362,22 +362,22 @@ static void rna_def_lamp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Color", "Light color");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
-	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_own_layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_LAYER);
 	RNA_def_property_ui_text(prop, "Layer", "Illuminates objects only on the same layer the lamp is on");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "negative", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_negative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_NEG);
 	RNA_def_property_ui_text(prop, "Negative", "Lamp casts negative light");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "specular", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_specular", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "mode", LA_NO_SPEC);
 	RNA_def_property_ui_text(prop, "Specular", "Lamp creates specular highlights");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "diffuse", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_diffuse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "mode", LA_NO_DIFF);
 	RNA_def_property_ui_text(prop, "Diffuse", "Lamp does diffuse shading");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
@@ -546,12 +546,12 @@ static void rna_def_area_lamp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Umbra", "Emphasize parts that are fully shadowed (Constant Jittered sampling)");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "dither", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_dither", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ray_samp_type", LA_SAMP_DITHER);
 	RNA_def_property_ui_text(prop, "Dither", "Use 2x2 dithering for sampling  (Constant Jittered sampling)");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "jitter", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_jitter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ray_samp_type", LA_SAMP_JITTER);
 	RNA_def_property_ui_text(prop, "Jitter", "Use noise for sampling  (Constant Jittered sampling)");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
@@ -613,7 +613,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 	rna_def_lamp_falloff(srna);
 	rna_def_lamp_shadow(srna, 1, 0);
 
-	prop= RNA_def_property(srna, "square", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_square", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_SQUARE);
 	RNA_def_property_ui_text(prop, "Square", "Casts a square spot light shape");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");

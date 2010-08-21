@@ -169,7 +169,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
         col.label(text="Springs:")
         col.prop(softbody, "pull")
         col.prop(softbody, "push")
-        col.prop(softbody, "damp")
+        col.prop(softbody, "damping")
         col.prop(softbody, "plastic")
         col.prop(softbody, "bend")
         col.prop(softbody, "spring_length", text="Length")

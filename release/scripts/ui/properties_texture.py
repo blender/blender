@@ -180,7 +180,7 @@ class TEXTURE_PT_colors(TextureButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Adjust:")
-        col.prop(tex, "brightness")
+        col.prop(tex, "intensity")
         col.prop(tex, "contrast")
         col.prop(tex, "saturation")
 
@@ -289,7 +289,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel, bpy.types.Panel):
 
         col = split.column()
 
-        col.prop(tex, "size")
+        col.prop(tex, "scale")
 
 
 class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
@@ -331,7 +331,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
                 col = split.column()
                 col.label(text="Diffuse:")
                 factor_but(col, tex.use_map_diffuse, "use_map_diffuse", "diffuse_factor", "Intensity")
-                factor_but(col, tex.use_map_color_diff, "use_map_color_diffuse", "diffuse_color_factor", "Color")
+                factor_but(col, tex.use_map_color_diffuse, "use_map_color_diffuse", "diffuse_color_factor", "Color")
                 factor_but(col, tex.use_map_alpha, "use_map_alpha", "alpha_factor", "Alpha")
                 factor_but(col, tex.use_map_translucency, "use_map_translucency", "translucency_factor", "Translucency")
 
@@ -403,7 +403,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
         sub.prop(tex, "color", text="")
 
         col = split.column()
-        col.prop(tex, "negate", text="Negative")
+        col.prop(tex, "invert", text="Negative")
         col.prop(tex, "use_stencil")
 
         if type(idblock) in (bpy.types.Material, bpy.types.World):
@@ -431,7 +431,7 @@ class TEXTURE_PT_clouds(TextureTypePanel, bpy.types.Panel):
 
         tex = context.texture
 
-        layout.prop(tex, "stype", expand=True)
+        layout.prop(tex, "cloud_type", expand=True)
         layout.label(text="Noise:")
         layout.prop(tex, "noise_type", text="Type", expand=True)
         layout.prop(tex, "noise_basis", text="Basis")
@@ -457,16 +457,16 @@ class TEXTURE_PT_wood(TextureTypePanel, bpy.types.Panel):
         tex = context.texture
 
         layout.prop(tex, "noisebasis_2", expand=True)
-        layout.prop(tex, "stype", expand=True)
+        layout.prop(tex, "wood_type", expand=True)
 
         col = layout.column()
-        col.active = tex.stype in ('RINGNOISE', 'BANDNOISE')
+        col.active = tex.wood_type in ('RINGNOISE', 'BANDNOISE')
         col.label(text="Noise:")
         col.row().prop(tex, "noise_type", text="Type", expand=True)
         layout.prop(tex, "noise_basis", text="Basis")
 
         split = layout.split()
-        split.active = tex.stype in ('RINGNOISE', 'BANDNOISE')
+        split.active = tex.wood_type in ('RINGNOISE', 'BANDNOISE')
 
         col = split.column()
         col.prop(tex, "noise_scale", text="Size")
@@ -486,7 +486,7 @@ class TEXTURE_PT_marble(TextureTypePanel, bpy.types.Panel):
 
         tex = context.texture
 
-        layout.prop(tex, "stype", expand=True)
+        layout.prop(tex, "marble_type", expand=True)
         layout.prop(tex, "noisebasis_2", expand=True)
         layout.label(text="Noise:")
         layout.prop(tex, "noise_type", text="Type", expand=True)
@@ -550,7 +550,7 @@ class TEXTURE_PT_stucci(TextureTypePanel, bpy.types.Panel):
 
         tex = context.texture
 
-        layout.prop(tex, "stype", expand=True)
+        layout.prop(tex, "stucci_type", expand=True)
         layout.label(text="Noise:")
         layout.prop(tex, "noise_type", text="Type", expand=True)
         layout.prop(tex, "noise_basis", text="Basis")
@@ -579,8 +579,8 @@ class TEXTURE_PT_image(TextureTypePanel, bpy.types.Panel):
 
 def texture_filter_common(tex, layout):
     layout.label(text="Filter:")
-    layout.prop(tex, "filter", text="")
-    if tex.mipmap and tex.filter in ('AREA', 'EWA', 'FELINE'):
+    layout.prop(tex, "filter_type", text="")
+    if tex.use_mipmap and tex.filter_type in ('AREA', 'EWA', 'FELINE'):
         if tex.filter == 'FELINE':
             layout.prop(tex, "filter_probes", text="Probes")
         else:
@@ -619,11 +619,11 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
         row.active = tex.use_normal_map
         row.prop(tex, "normal_space", text="")
 
-        col.prop(tex, "mipmap")
+        col.prop(tex, "use_mipmap")
         row = col.row()
-        row.active = tex.mipmap
+        row.active = tex.use_mipmap
         row.prop(tex, "use_mipmap_gauss")
-        col.prop(tex, "interpolation")
+        col.prop(tex, "use_interpolation")
 
         texture_filter_common(tex, col)
 
@@ -863,11 +863,11 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel, bpy.types.Panel):
         elif vd.file_format == 'IMAGE_SEQUENCE':
             layout.template_ID(tex, "image", open="image.open")
             layout.template_image(tex, "image", tex.image_user, compact=True)
-            #layout.prop(vd, "frames")
+            #layout.prop(vd, "frame_duration")
 
-        layout.prop(vd, "still")
+        layout.prop(vd, "use_still_frame")
         row = layout.row()
-        row.active = vd.still
+        row.active = vd.use_still_frame
         row.prop(vd, "still_frame")
 
         layout.prop(vd, "interpolation")

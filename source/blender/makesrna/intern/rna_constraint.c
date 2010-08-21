@@ -638,13 +638,13 @@ static void rna_def_constraint_track_to(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sub-Target", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "track", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "track_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "reserved1");
 	RNA_def_property_enum_items(prop, track_items);
 	RNA_def_property_ui_text(prop, "Track Axis", "Axis that points to the target object");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "up", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "up_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "reserved2");
 	RNA_def_property_enum_items(prop, up_items);
 	RNA_def_property_ui_text(prop, "Up Axis", "Axis that points upward");
@@ -832,7 +832,7 @@ static void rna_def_constraint_same_volume(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Maintain Volume Constraint", "Maintains a constant volume along a single scaling axis");
 	RNA_def_struct_sdna_from(srna, "bSameVolumeConstraint", "data");
 
-	prop= RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "free_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, volume_items);
 	RNA_def_property_ui_text(prop, "Free Axis", "The free scaling axis of the object");
@@ -906,7 +906,7 @@ static void rna_def_constraint_minmax(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Floor Location", "Location of target that object will not pass through");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "sticky", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_sticky", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MINMAX_STICKY);
 	RNA_def_property_ui_text(prop, "Sticky", "Immobilize object while constrained");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -1028,13 +1028,13 @@ static void rna_def_constraint_locked_track(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sub-Target", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "track", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "track_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "trackflag");
 	RNA_def_property_enum_items(prop, locktrack_items);
 	RNA_def_property_ui_text(prop, "Track Axis", "Axis that points to the target object");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "lock", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "lockflag");
 	RNA_def_property_enum_items(prop, lock_items);
 	RNA_def_property_ui_text(prop, "Locked Axis", "Axis that points upward");
@@ -1083,13 +1083,13 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Offset Factor", "Percentage value defining target position along length of bone");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "forward", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "forward_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "trackflag");
 	RNA_def_property_enum_items(prop, forwardpath_items);
 	RNA_def_property_ui_text(prop, "Forward Axis", "Axis that points forward along the path");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "up", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "up_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "upflag");
 	RNA_def_property_enum_items(prop, pathup_items);
 	RNA_def_property_ui_text(prop, "Up Axis", "Axis that points upward");
@@ -1286,7 +1286,7 @@ static void rna_def_constraint_clamp_to(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Main Axis", "Main axis of movement");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "cyclic", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", CLAMPTO_CYCLIC);
 	RNA_def_property_ui_text(prop, "Cyclic", "Treat curve as cyclic curve (no clamping to curve bounding box");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -1772,7 +1772,7 @@ static void rna_def_constraint_damped_track(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sub-Target", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "track", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "track_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "trackflag");
 	RNA_def_property_enum_items(prop, damptrack_items);
 	RNA_def_property_ui_text(prop, "Track Axis", "Axis that points to the target object");
@@ -1950,9 +1950,9 @@ void RNA_def_constraint(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 
 		// XXX this is really an internal flag, but it may be useful for some tools to be able to access this...
-	prop= RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_DISABLE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_DISABLE);
 	RNA_def_property_ui_text(prop, "Disabled", "Constraint has invalid settings and will not be evaluated");
 	
 		// TODO: setting this to true must ensure that all others in stack are turned off too...

@@ -113,7 +113,7 @@ static void node_buts_mix_rgb(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "blend_type", 0, "", 0);
 	if(ntree->type == NTREE_COMPOSIT)
-		uiItemR(row, ptr, "alpha", 0, "", ICON_IMAGE_RGB_ALPHA);
+		uiItemR(row, ptr, "use_alpha", 0, "", ICON_IMAGE_RGB_ALPHA);
 }
 
 static void node_buts_time(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -134,8 +134,8 @@ static void node_buts_time(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	uiTemplateCurveMapping(layout, ptr, "curve", 's', 0, 0);
 
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "start", 0, "Sta", 0);
-	uiItemR(row, ptr, "end", 0, "End", 0);
+	uiItemR(row, ptr, "frame_start", 0, "Sta", 0);
+	uiItemR(row, ptr, "frame_end", 0, "End", 0);
 }
 
 static void node_buts_colorramp(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -307,8 +307,8 @@ static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA 
 	if(!node->id) return;
 	
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, ptr, "diffuse", 0, NULL, 0);
-	uiItemR(col, ptr, "specular", 0, NULL, 0);
+	uiItemR(col, ptr, "use_diffuse", 0, NULL, 0);
+	uiItemR(col, ptr, "use_specular", 0, NULL, 0);
 	uiItemR(col, ptr, "invert_normal", 0, NULL, 0);
 }
 
@@ -478,10 +478,10 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	
 	if (ELEM(RNA_enum_get(&imaptr, "source"), IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
 		col= uiLayoutColumn(layout, 1);
-		uiItemR(col, ptr, "frames", 0, NULL, 0);
-		uiItemR(col, ptr, "start", 0, NULL, 0);
-		uiItemR(col, ptr, "offset", 0, NULL, 0);
-		uiItemR(col, ptr, "cyclic", 0, NULL, 0);
+		uiItemR(col, ptr, "frame_duration", 0, NULL, 0);
+		uiItemR(col, ptr, "frame_start", 0, NULL, 0);
+		uiItemR(col, ptr, "frame_offset", 0, NULL, 0);
+		uiItemR(col, ptr, "use_cyclic", 0, NULL, 0);
 		uiItemR(col, ptr, "use_auto_refresh", UI_ITEM_R_ICON_ONLY, NULL, 0);
 	}
 
@@ -532,13 +532,13 @@ static void node_composit_buts_blur(uiLayout *layout, bContext *C, PointerRNA *p
 	
 	uiItemR(col, ptr, "filter_type", 0, "", 0);
 	if (RNA_enum_get(ptr, "filter_type")!= R_FILTER_FAST_GAUSS) {
-		uiItemR(col, ptr, "bokeh", 0, NULL, 0);
-		uiItemR(col, ptr, "gamma", 0, NULL, 0);
+		uiItemR(col, ptr, "use_bokeh", 0, NULL, 0);
+		uiItemR(col, ptr, "use_gamma_correction", 0, NULL, 0);
 	}
 	
-	uiItemR(col, ptr, "relative", 0, NULL, 0);
+	uiItemR(col, ptr, "use_relative", 0, NULL, 0);
 	col= uiLayoutColumn(layout, 1);
-	if (RNA_boolean_get(ptr, "relative")) {
+	if (RNA_boolean_get(ptr, "use_relative")) {
 		uiItemR(col, ptr, "factor_x", 0, "X", 0);
 		uiItemR(col, ptr, "factor_y", 0, "Y", 0);
 	}
@@ -672,8 +672,8 @@ static void node_composit_buts_lensdist(uiLayout *layout, bContext *C, PointerRN
 
 	col = uiLayoutColumn(col, 0);
 	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_projector")==0);
-	uiItemR(col, ptr, "jitter", 0, NULL, 0);
-	uiItemR(col, ptr, "fit", 0, NULL, 0);
+	uiItemR(col, ptr, "use_jitter", 0, NULL, 0);
+	uiItemR(col, ptr, "use_fit", 0, NULL, 0);
 }
 
 static void node_composit_buts_vecblur(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -689,7 +689,7 @@ static void node_composit_buts_vecblur(uiLayout *layout, bContext *C, PointerRNA
 	uiItemR(col, ptr, "speed_min", 0, "Min", 0);
 	uiItemR(col, ptr, "speed_max", 0, "Max", 0);
 
-	uiItemR(layout, ptr, "curved", 0, NULL, 0);
+	uiItemR(layout, ptr, "use_curved", 0, NULL, 0);
 }
 
 static void node_composit_buts_filter(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -820,7 +820,7 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, bContext *C, Point
 	
 	col= uiLayoutColumn(layout, 0);
 	uiItemR(col, ptr, "tolerance", 0, NULL, 0);
-	uiItemR(col, ptr, "cutoff", 0, NULL, 0);
+	uiItemR(col, ptr, "threshold", 0, NULL, 0);
 	
 	col= uiLayoutColumn(layout, 1);
    /*uiItemR(col, ptr, "lift", UI_ITEM_R_SLIDER, NULL, 0);  Removed for now */
@@ -833,9 +833,9 @@ static void node_composit_buts_color_matte(uiLayout *layout, bContext *C, Pointe
 	uiLayout *col;
 	
 	col= uiLayoutColumn(layout, 1);
-	uiItemR(col, ptr, "h", UI_ITEM_R_SLIDER, NULL, 0);
-	uiItemR(col, ptr, "s", UI_ITEM_R_SLIDER, NULL, 0);
-	uiItemR(col, ptr, "v", UI_ITEM_R_SLIDER, NULL, 0);
+	uiItemR(col, ptr, "color_hue", UI_ITEM_R_SLIDER, NULL, 0);
+	uiItemR(col, ptr, "color_saturation", UI_ITEM_R_SLIDER, NULL, 0);
+	uiItemR(col, ptr, "color_value", UI_ITEM_R_SLIDER, NULL, 0);
 }
 
 static void node_composit_buts_channel_matte(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -849,7 +849,7 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext *C, Poin
    col=uiLayoutColumn(layout, 0);  
    uiItemL(col, "Key Channel:", 0);
 	row= uiLayoutRow(col, 0);
-	uiItemR(row, ptr, "channel", UI_ITEM_R_EXPAND, NULL, 0);
+	uiItemR(row, ptr, "matte_channel", UI_ITEM_R_EXPAND, NULL, 0);
 
 	col =uiLayoutColumn(layout, 0);
 
@@ -860,8 +860,8 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext *C, Poin
 	  uiItemR(row, ptr, "limit_channel", UI_ITEM_R_EXPAND, NULL, 0);
    }
    
-	uiItemR(col, ptr, "high", UI_ITEM_R_SLIDER, NULL, 0);
-	uiItemR(col, ptr, "low", UI_ITEM_R_SLIDER, NULL, 0);
+	uiItemR(col, ptr, "limit_max", UI_ITEM_R_SLIDER, NULL, 0);
+	uiItemR(col, ptr, "limit_min", UI_ITEM_R_SLIDER, NULL, 0);
 }
 
 static void node_composit_buts_luma_matte(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -869,8 +869,8 @@ static void node_composit_buts_luma_matte(uiLayout *layout, bContext *C, Pointer
 	uiLayout *col;
 	
 	col= uiLayoutColumn(layout, 1);
-	uiItemR(col, ptr, "high", UI_ITEM_R_SLIDER, NULL, 0);
-	uiItemR(col, ptr, "low", UI_ITEM_R_SLIDER, NULL, 0);
+	uiItemR(col, ptr, "limit_max", UI_ITEM_R_SLIDER, NULL, 0);
+	uiItemR(col, ptr, "limit_min", UI_ITEM_R_SLIDER, NULL, 0);
 }
 
 static void node_composit_buts_map_uv(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -915,7 +915,7 @@ static void node_composit_buts_scale(uiLayout *layout, bContext *C, PointerRNA *
 
 static void node_composit_buts_rotate(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-   uiItemR(layout, ptr, "filter", 0, "", 0);
+   uiItemR(layout, ptr, "filter_type", 0, "", 0);
 }
 
 static void node_composit_buts_invert(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -923,8 +923,8 @@ static void node_composit_buts_invert(uiLayout *layout, bContext *C, PointerRNA 
 	uiLayout *col;
 	
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, ptr, "rgb", 0, NULL, 0);
-	uiItemR(col, ptr, "alpha", 0, NULL, 0);
+	uiItemR(col, ptr, "invert_rgb", 0, NULL, 0);
+	uiItemR(col, ptr, "invert_alpha", 0, NULL, 0);
 }
 
 static void node_composit_buts_premulkey(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -1209,7 +1209,7 @@ static void node_texture_buts_image(uiLayout *layout, bContext *C, PointerRNA *p
 
 static void node_texture_buts_output(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiItemR(layout, ptr, "output_name", 0, "", 0);
+	uiItemR(layout, ptr, "filepath", 0, "", 0);
 }
 
 /* only once called */

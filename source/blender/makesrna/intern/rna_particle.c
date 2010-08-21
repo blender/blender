@@ -1156,7 +1156,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Died", "Show particles after they have died");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "trand", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_emit_random", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_TRAND);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Random", "Emit in random order of elements");
@@ -1294,7 +1294,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/*draw flag*/
-	prop= RNA_def_property(srna, "velocity", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_VEL);
 	RNA_def_property_ui_text(prop, "Velocity", "Show particle velocity");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
@@ -1304,7 +1304,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Size", "Show particle size");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "emitter", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_render_emitter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_EMITTER);
 	RNA_def_property_ui_text(prop, "Emitter", "Render emitter Object also");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
@@ -1324,7 +1324,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock Billboard", "Lock the billboards align axis");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "parent", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_parent_particles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_PARENT);
 	RNA_def_property_ui_text(prop, "Parents", "Render parent particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
@@ -1434,7 +1434,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 50);
 	RNA_def_property_ui_text(prop, "Pixel", "How many pixels path has to cover to make another render segment");
 
-	prop= RNA_def_property(srna, "display", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "draw_percentage", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "disp");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Display", "Percentage of particles to display in 3D view");
@@ -1518,7 +1518,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_flag", PART_SIMPLIFY_ENABLE);
 	RNA_def_property_ui_text(prop, "Child Simplification", "Remove child strands as the object becomes smaller on the screen");
 
-	prop= RNA_def_property(srna, "viewport", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_simplify_viewport", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_flag", PART_SIMPLIFY_VIEWPORT);
 	RNA_def_property_ui_text(prop, "Viewport", "");
 
@@ -1593,7 +1593,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Stiffness", "Hair stiffness for effectors");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "amount", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "count", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "totpart");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	/* This limit is for those freaks who have the machine power to handle it. */

@@ -947,7 +947,7 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Filter", "Amount to blend in the material's diffuse color in raytraced transparency (simulating absorption)");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "limit", PROP_FLOAT, PROP_DISTANCE);
+	prop= RNA_def_property(srna, "depth_max", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "tx_limit");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Limit", "Maximum depth for light to travel through the transparent material before becoming fully filtered (0.0 is disabled)");
@@ -1191,22 +1191,22 @@ static void rna_def_material_halo(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Flares Sub", "Sets the number of subflares");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "ring", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_ring", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_HALO_RINGS);
 	RNA_def_property_ui_text(prop, "Rings", "Renders rings over halo");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "lines", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_lines", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_HALO_LINES);
 	RNA_def_property_ui_text(prop, "Lines", "Renders star shaped lines over halo");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "star", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_star", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_STAR);
 	RNA_def_property_ui_text(prop, "Star", "Renders halo as a star");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "texture", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_texture", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_HALOTEX);
 	RNA_def_property_ui_text(prop, "Texture", "Gives halo a texture");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
@@ -1221,12 +1221,12 @@ static void rna_def_material_halo(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Extreme Alpha", "Uses extreme alpha");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "show_shaded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_shaded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_HALO_SHADE);
 	RNA_def_property_ui_text(prop, "Shaded", "Lets halo receive light and shadows from external objects");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "soft", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_soft", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_HALO_SOFT);
 	RNA_def_property_ui_text(prop, "Soft", "Softens the edges of halos at intersections with other geometry");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
@@ -1465,7 +1465,7 @@ static void rna_def_material_physics(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 20);
 	RNA_def_property_ui_text(prop, "Distance", "Distance of the physics area");
 	
-	prop= RNA_def_property(srna, "damp", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "damping", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xyfrict");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Damping", "Damping of the spring force, when inside the physics distance area");
@@ -1543,7 +1543,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Translucency", "Amount of diffuse shading on the back side");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 		
-	prop= RNA_def_property(srna, "cubic", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_cubic", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shade_flag", MA_CUBIC);
 	RNA_def_property_ui_text(prop, "Cubic Interpolation", "Use cubic interpolation for diffuse values, for smoother transitions");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
@@ -1588,7 +1588,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Traceable", "Include this material and geometry that uses it in ray tracing calculations");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "shadows", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_shadows", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_SHADOW);
 	RNA_def_property_ui_text(prop, "Shadows", "Allows this material to receive shadows");
 	RNA_def_property_update(prop, 0, "rna_Material_update");

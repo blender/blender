@@ -125,12 +125,12 @@ class ConstraintButtonsPanel():
 
         row = layout.row()
         row.label(text="To:")
-        row.prop(con, "track", expand=True)
+        row.prop(con, "track_axis", expand=True)
 
         split = layout.split()
 
         col = split.column()
-        col.prop(con, "up", text="Up")
+        col.prop(con, "up_axis", text="Up")
 
         col = split.column()
         col.prop(con, "use_target_z")
@@ -234,10 +234,10 @@ class ConstraintButtonsPanel():
 
         row = layout.row()
         row.label(text="Forward:")
-        row.prop(con, "forward", expand=True)
+        row.prop(con, "forward_axis", expand=True)
 
         row = layout.row()
-        row.prop(con, "up", text="Up")
+        row.prop(con, "up_axis", text="Up")
         row.label()
 
     def LIMIT_ROTATION(self, context, layout, con):
@@ -425,7 +425,7 @@ class ConstraintButtonsPanel():
 
         row = layout.row()
         row.label(text="Free:")
-        row.prop(con, "axis", expand=True)
+        row.prop(con, "free_axis", expand=True)
 
         layout.prop(con, "volume")
 
@@ -466,11 +466,11 @@ class ConstraintButtonsPanel():
 
         row = layout.row()
         row.label(text="To:")
-        row.prop(con, "track", expand=True)
+        row.prop(con, "track_axis", expand=True)
 
         row = layout.row()
         row.label(text="Lock:")
-        row.prop(con, "lock", expand=True)
+        row.prop(con, "lock_axis", expand=True)
 
     def LIMIT_DISTANCE(self, context, layout, con):
         self.target_template(layout, con)
@@ -510,7 +510,7 @@ class ConstraintButtonsPanel():
         split = layout.split()
 
         col = split.column()
-        col.prop(con, "sticky")
+        col.prop(con, "use_sticky")
 
         col = split.column()
         col.prop(con, "use_rotation")
@@ -561,7 +561,7 @@ class ConstraintButtonsPanel():
         row.prop(con, "main_axis", expand=True)
 
         row = layout.row()
-        row.prop(con, "cyclic")
+        row.prop(con, "use_cyclic")
 
     def TRANSFORM(self, context, layout, con):
         self.target_template(layout, con)
@@ -640,7 +640,7 @@ class ConstraintButtonsPanel():
 
         row = layout.row()
         row.label(text="To:")
-        row.prop(con, "track", expand=True)
+        row.prop(con, "track_axis", expand=True)
 
     def SPLINE_IK(self, context, layout, con):
         self.target_template(layout, con)

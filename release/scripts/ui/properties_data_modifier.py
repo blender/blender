@@ -58,7 +58,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
         sub = col.column()
         sub.active = bool(md.vertex_group)
-        sub.prop(md, "invert")
+        sub.prop(md, "invert_vertex_group")
 
         split = layout.split()
 
@@ -69,7 +69,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Deformation:")
-        col.prop(md, "quaternion")
+        col.prop(md, "use_deform_preserve_volume")
         col.prop(md, "use_multi_modifier")
 
     def ARRAY(self, layout, ob, md):
@@ -78,7 +78,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         if md.fit_type == 'FIXED_COUNT':
             layout.prop(md, "count")
         elif md.fit_type == 'FIT_LENGTH':
-            layout.prop(md, "length")
+            layout.prop(md, "fit_length")
         elif md.fit_type == 'FIT_CURVE':
             layout.prop(md, "curve")
 
@@ -131,7 +131,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)
         if md.limit_method == 'ANGLE':
-            layout.prop(md, "angle")
+            layout.prop(md, "angle_limit")
         elif md.limit_method == 'WEIGHT':
             layout.row().prop(md, "edge_weight_method", expand=True)
 
@@ -151,12 +151,12 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.prop(md, "frame_start")
-        col.prop(md, "length")
+        col.prop(md, "frame_duration")
 
         col = split.column()
-        col.prop(md, "randomize")
+        col.prop(md, "use_random_order")
         sub = col.column()
-        sub.active = md.randomize
+        sub.active = md.use_random_order
         sub.prop(md, "seed")
 
     def CAST(self, layout, ob, md):
@@ -168,9 +168,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         split = layout.split(percentage=0.25)
 
         col = split.column()
-        col.prop(md, "x")
-        col.prop(md, "y")
-        col.prop(md, "z")
+        col.prop(md, "use_x")
+        col.prop(md, "use_y")
+        col.prop(md, "use_z")
 
         col = split.column()
         col.prop(md, "factor")
@@ -267,7 +267,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "show_unborn")
         col.prop(md, "show_alive")
         col.prop(md, "show_dead")
-        col.prop(md, "size")
+        col.prop(md, "use_size")
 
         layout.operator("object.explode_refresh", text="Refresh")
 
@@ -332,7 +332,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         sub = col.column()
         sub.active = bool(md.vertex_group)
-        sub.prop(md, "invert")
+        sub.prop(md, "invert_vertex_group")
 
     def MESH_DEFORM(self, layout, ob, md):
         split = layout.split()
@@ -347,7 +347,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         sub = col.column()
         sub.active = bool(md.vertex_group)
-        sub.prop(md, "invert")
+        sub.prop(md, "invert_vertex_group")
 
         layout.separator()
 
@@ -362,7 +362,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
             col.prop(md, "precision")
 
             col = split.column()
-            col.prop(md, "dynamic")
+            col.prop(md, "use_dynamic_bind")
 
     def MIRROR(self, layout, ob, md):
         layout.prop(md, "merge_threshold")
@@ -370,13 +370,13 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Axis:")
-        col.prop(md, "x")
-        col.prop(md, "y")
-        col.prop(md, "z")
+        col.prop(md, "use_x")
+        col.prop(md, "use_y")
+        col.prop(md, "use_z")
 
         col = split.column()
         col.label(text="Options:")
-        col.prop(md, "clip", text="Clipping")
+        col.prop(md, "use_clip", text="Clipping")
         col.prop(md, "use_mirror_vertex_groups", text="Vertex Groups")
 
         col = split.column()
@@ -425,9 +425,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         split = layout.split()
         col = split.column()
         col.label(text="Create From:")
-        col.prop(md, "normal")
-        col.prop(md, "children")
-        col.prop(md, "size")
+        col.prop(md, "use_normal")
+        col.prop(md, "use_children")
+        col.prop(md, "use_size")
 
         col = split.column()
         col.label(text="Show Particles When:")
@@ -490,7 +490,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Mode:")
-        col.prop(md, "mode", text="")
+        col.prop(md, "wrap_method", text="")
 
         split = layout.split(percentage=0.25)
 
@@ -498,14 +498,14 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         if md.mode == 'PROJECT':
             col.label(text="Axis:")
-            col.prop(md, "x")
-            col.prop(md, "y")
-            col.prop(md, "z")
+            col.prop(md, "use_project_x")
+            col.prop(md, "use_project_y")
+            col.prop(md, "use_project_z")
 
             col = split.column()
             col.label(text="Direction:")
-            col.prop(md, "negative")
-            col.prop(md, "positive")
+            col.prop(md, "use_negative_direction")
+            col.prop(md, "use_positive_direction")
 
             col = split.column()
 
@@ -524,7 +524,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Mode:")
-        col.prop(md, "mode", text="")
+        col.prop(md, "deform_method", text="")
 
         col = split.column()
         col.label(text="Vertex Group:")
@@ -536,8 +536,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.label(text="Origin:")
         col.prop(md, "origin", text="")
         sub = col.column()
-        sub.active = (md.origin != "")
-        sub.prop(md, "relative")
+        sub.active = (md.origin is not None)
+        sub.prop(md, "use_relative")
 
         col = split.column()
         col.label(text="Deform:")
@@ -555,13 +555,13 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Axis:")
-        col.prop(md, "x")
-        col.prop(md, "y")
-        col.prop(md, "z")
+        col.prop(md, "use_x")
+        col.prop(md, "use_y")
+        col.prop(md, "use_z")
 
         col = split.column()
         col.prop(md, "factor")
-        col.prop(md, "repeat")
+        col.prop(md, "iterations")
         col.label(text="Vertex Group:")
         col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
@@ -585,8 +585,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col.prop(md, "offset")
         colsub = col.column()
-        colsub.active = (md.vertex_group is not "")
-        colsub.prop(md, "invert", text="Invert")
+        colsub.active = bool(md.vertex_group)
+        colsub.prop(md, "invert_vertex_group", text="Invert")
 
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")
@@ -595,10 +595,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         colsub = col.column()
         colsub.active = md.use_rim
         colsub.prop(md, "use_rim_material")
-
-        # col = layout.column()
-        # col.label(text="Vertex Group:")
-        # col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
     def SUBSURF(self, layout, ob, md):
         layout.row().prop(md, "subdivision_type", expand=True)
@@ -650,12 +646,12 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Motion:")
-        col.prop(md, "x")
-        col.prop(md, "y")
-        col.prop(md, "cyclic")
+        col.prop(md, "use_x")
+        col.prop(md, "use_y")
+        col.prop(md, "use_cyclic")
 
         col = split.column()
-        col.prop(md, "normals")
+        col.prop(md, "use_normal")
         sub = col.column()
         sub.active = md.normals
         sub.prop(md, "use_normal_x", text="X")

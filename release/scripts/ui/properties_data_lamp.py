@@ -106,10 +106,10 @@ class DATA_PT_lamp(DataButtonsPanel, bpy.types.Panel):
             col.prop(lamp, "gamma")
 
         col = split.column()
-        col.prop(lamp, "negative")
-        col.prop(lamp, "layer", text="This Layer Only")
-        col.prop(lamp, "specular")
-        col.prop(lamp, "diffuse")
+        col.prop(lamp, "use_negative")
+        col.prop(lamp, "use_own_layer", text="This Layer Only")
+        col.prop(lamp, "use_specular")
+        col.prop(lamp, "use_diffuse")
 
 
 class DATA_PT_sunsky(DataButtonsPanel, bpy.types.Panel):
@@ -258,8 +258,8 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col = split.column()
                 col.prop(lamp, "use_umbra")
-                col.prop(lamp, "dither")
-                col.prop(lamp, "jitter")
+                col.prop(lamp, "use_dither")
+                col.prop(lamp, "use_jitter")
 
         elif lamp.shadow_method == 'BUFFER_SHADOW':
             col = layout.column()
@@ -352,7 +352,7 @@ class DATA_PT_spot(DataButtonsPanel, bpy.types.Panel):
         sub = col.column()
         sub.prop(lamp, "spot_size", text="Size")
         sub.prop(lamp, "spot_blend", text="Blend", slider=True)
-        col.prop(lamp, "square")
+        col.prop(lamp, "use_square")
         col.prop(lamp, "show_cone")
 
         col = split.column()

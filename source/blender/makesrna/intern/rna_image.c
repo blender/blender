@@ -229,17 +229,19 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
 	/* animation */
-	prop= RNA_def_property(srna, "cyclic", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "cycl", 0);
 	RNA_def_property_ui_text(prop, "Cyclic", "Cycle the images in the movie");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
-	prop= RNA_def_property(srna, "frames", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_duration", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "frames");
 	RNA_def_property_range(prop, 0, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Frames", "Sets the number of images of a movie to use");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
-	prop= RNA_def_property(srna, "offset", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_offset", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "offset");
 	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Offset", "Offsets the number of the frame to use in the animation");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
@@ -405,7 +407,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Animation Speed", "Speed of the animation in frames per second");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
-	prop= RNA_def_property(srna, "tiles", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_tiles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_TILES);
 	RNA_def_property_ui_text(prop, "Tiles", "Use of tilemode for faces (default shift-LMB to pick the tile for selected faces)");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
