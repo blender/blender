@@ -66,10 +66,10 @@ def update(job):
 
 def process(paths):
     def processPointCache(point_cache):
-        point_cache.external = False
+        point_cache.use_external = False
 
     def processFluid(fluid):
-        new_path = path_map.get(fluid.path, None)
+        new_path = path_map.get(fluid.filepath, None)
         if new_path:
             fluid.path = new_path
     
@@ -121,9 +121,9 @@ def process(paths):
                 processPointCache(modifier.point_cache)
             elif modifier.type == "SMOKE" and modifier.smoke_type == "TYPE_DOMAIN":
                 processPointCache(modifier.domain_settings.point_cache_low)
-                if modifier.domain_settings.highres:
+                if modifier.domain_settings.use_high_resolution:
                     processPointCache(modifier.domain_settings.point_cache_high)
-            elif modifier.type == "MULTIRES" and modifier.external:
+            elif modifier.type == "MULTIRES" and modifier.is_external:
                 file_path = bpy.path.abspath(modifier.filepath)
                 new_path = path_map.get(file_path, None)
                 if new_path:

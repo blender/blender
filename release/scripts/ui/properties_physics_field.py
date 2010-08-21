@@ -63,7 +63,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
             col.prop(field, "guide_minimum")
             col.prop(field, "guide_free")
             col.prop(field, "falloff_power")
-            col.prop(field, "guide_path_add")
+            col.prop(field, "use_guide_path_add")
             col.prop(field, "use_guide_path_weight")
 
             col = split.column()
@@ -75,7 +75,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
             row.prop(field, "use_max_distance")
             sub = row.row()
             sub.active = field.use_max_distance
-            sub.prop(field, "maximum_distance")
+            sub.prop(field, "distance_max")
 
             layout.separator()
 
@@ -100,9 +100,9 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
             col.prop(field, "texture_nabla")
 
             col = split.column()
-            col.prop(field, "use_coordinates")
-            col.prop(field, "root_coordinates")
-            col.prop(field, "force_2d")
+            col.prop(field, "use_object_coords")
+            col.prop(field, "use_root_coords")
+            col.prop(field, "use_2d_force")
         else:
             basic_force_field_settings_ui(self, context, field)
 
@@ -128,11 +128,11 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
 
                 sub = col.column()
                 sub.active = field.use_radial_min
-                sub.prop(field, "radial_minimum", text="Angle")
+                sub.prop(field, "radial_min", text="Angle")
 
                 sub = col.column()
                 sub.active = field.use_radial_max
-                sub.prop(field, "radial_maximum", text="Angle")
+                sub.prop(field, "radial_max", text="Angle")
 
             elif field.falloff_type == 'TUBE':
                 layout.separator()
@@ -149,11 +149,11 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
 
                 sub = col.column()
                 sub.active = field.use_radial_min
-                sub.prop(field, "radial_minimum", text="Distance")
+                sub.prop(field, "radial_min", text="Distance")
 
                 sub = col.column()
                 sub.active = field.use_radial_max
-                sub.prop(field, "radial_maximum", text="Distance")
+                sub.prop(field, "radial_max", text="Distance")
 
 
 class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
@@ -180,7 +180,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
             col = split.column()
 
             #row = split.row(align=True)
-            #row.prop(md, "render", text="")
+            #row.prop(md, "show_render", text="")
             #row.prop(md, "show_viewport", text="")
 
             coll = md.settings
@@ -203,22 +203,22 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, bpy.types.Panel):
             col.label(text="Particle:")
             col.prop(settings, "permeability", slider=True)
             col.prop(settings, "stickness")
-            col.prop(settings, "kill_particles")
+            col.prop(settings, "use_particle_kill")
             col.label(text="Particle Damping:")
             sub = col.column(align=True)
             sub.prop(settings, "damping_factor", text="Factor", slider=True)
-            sub.prop(settings, "random_damping", text="Random", slider=True)
+            sub.prop(settings, "damping_random", text="Random", slider=True)
 
             col.label(text="Particle Friction:")
             sub = col.column(align=True)
             sub.prop(settings, "friction_factor", text="Factor", slider=True)
-            sub.prop(settings, "random_friction", text="Random", slider=True)
+            sub.prop(settings, "friction_random", text="Random", slider=True)
 
             col = split.column()
             col.label(text="Soft Body and Cloth:")
             sub = col.column(align=True)
-            sub.prop(settings, "outer_thickness", text="Outer", slider=True)
-            sub.prop(settings, "inner_thickness", text="Inner", slider=True)
+            sub.prop(settings, "thickness_outer", text="Outer", slider=True)
+            sub.prop(settings, "thickness_inner", text="Inner", slider=True)
 
             col.label(text="Soft Body Damping:")
             col.prop(settings, "damping", text="Factor", slider=True)

@@ -59,7 +59,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
             split.operator("object.modifier_remove", text="Remove")
 
             row = split.row(align=True)
-            row.prop(md, "render", text="")
+            row.prop(md, "show_render", text="")
             row.prop(md, "show_viewport", text="")
         else:
             # add modifier
@@ -169,16 +169,16 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
         col.label(text="Springs:")
         col.prop(softbody, "pull")
         col.prop(softbody, "push")
-        col.prop(softbody, "damp")
+        col.prop(softbody, "damping")
         col.prop(softbody, "plastic")
-        col.prop(softbody, "bending")
+        col.prop(softbody, "bend")
         col.prop(softbody, "spring_length", text="Length")
         col.prop_object(softbody, "spring_vertex_group", ob, "vertex_groups", text="Springs:")
 
         col = split.column()
-        col.prop(softbody, "stiff_quads")
+        col.prop(softbody, "use_stiff_quads")
         sub = col.column()
-        sub.active = softbody.stiff_quads
+        sub.active = softbody.use_stiff_quads
         sub.prop(softbody, "shear")
 
         col.label(text="Aerodynamics:")
@@ -190,8 +190,8 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
 
 
         col.label(text="Collision:")
-        col.prop(softbody, "edge_collision", text="Edge")
-        col.prop(softbody, "face_collision", text="Face")
+        col.prop(softbody, "use_edge_collision", text="Edge")
+        col.prop(softbody, "use_face_collision", text="Face")
 
 
 class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, bpy.types.Panel):
@@ -206,7 +206,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, bpy.types.Panel):
         softbody = context.soft_body.settings
 
         self.layout.active = softbody_panel_enabled(context.soft_body)
-        self.layout.prop(softbody, "self_collision", text="")
+        self.layout.prop(softbody, "use_self_collision", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -214,7 +214,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, bpy.types.Panel):
         md = context.soft_body
         softbody = md.settings
 
-        layout.active = softbody.self_collision and softbody_panel_enabled(md)
+        layout.active = softbody.use_self_collision and softbody_panel_enabled(md)
 
         layout.label(text="Collision Ball Size Calculation:")
         layout.prop(softbody, "collision_type", expand=True)
@@ -247,19 +247,19 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, bpy.types.Panel):
 
         col = split.column(align=True)
         col.label(text="Step Size:")
-        col.prop(softbody, "minstep")
-        col.prop(softbody, "maxstep")
+        col.prop(softbody, "step_min")
+        col.prop(softbody, "step_max")
         col.prop(softbody, "use_auto_step", text="Auto-Step")
 
         col = split.column()
-        col.prop(softbody, "error_limit")
+        col.prop(softbody, "error_threshold")
         col.label(text="Helpers:")
         col.prop(softbody, "choke")
         col.prop(softbody, "fuzzy")
 
         layout.label(text="Diagnostics:")
-        layout.prop(softbody, "diagnose")
-        layout.prop(softbody, "estimate_matrix")
+        layout.prop(softbody, "use_diagnose")
+        layout.prop(softbody, "use_estimate_matrix")
 
 
 class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel, bpy.types.Panel):

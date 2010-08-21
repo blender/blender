@@ -525,7 +525,6 @@ int AUD_setDistanceModel(AUD_DistanceModel model)
 int AUD_setSourceLocation(AUD_Channel* handle, const float* location)
 {
 	assert(AUD_device);
-	assert(handle);
 
 	if(AUD_3ddevice)
 	{
@@ -539,7 +538,6 @@ int AUD_setSourceLocation(AUD_Channel* handle, const float* location)
 int AUD_setSourceVelocity(AUD_Channel* handle, const float* velocity)
 {
 	assert(AUD_device);
-	assert(handle);
 
 	if(AUD_3ddevice)
 	{
@@ -553,7 +551,6 @@ int AUD_setSourceVelocity(AUD_Channel* handle, const float* velocity)
 int AUD_setSourceOrientation(AUD_Channel* handle, const float* orientation)
 {
 	assert(AUD_device);
-	assert(handle);
 
 	if(AUD_3ddevice)
 	{
@@ -567,7 +564,6 @@ int AUD_setSourceOrientation(AUD_Channel* handle, const float* orientation)
 int AUD_setRelative(AUD_Channel* handle, int relative)
 {
 	assert(AUD_device);
-	assert(handle);
 
 	if(AUD_3ddevice)
 	{
@@ -580,7 +576,6 @@ int AUD_setRelative(AUD_Channel* handle, int relative)
 int AUD_setVolumeMaximum(AUD_Channel* handle, float volume)
 {
 	assert(AUD_device);
-	assert(handle);
 
 	if(AUD_3ddevice)
 	{
@@ -593,7 +588,6 @@ int AUD_setVolumeMaximum(AUD_Channel* handle, float volume)
 int AUD_setVolumeMinimum(AUD_Channel* handle, float volume)
 {
 	assert(AUD_device);
-	assert(handle);
 
 	if(AUD_3ddevice)
 	{
@@ -606,7 +600,6 @@ int AUD_setVolumeMinimum(AUD_Channel* handle, float volume)
 int AUD_setDistanceMaximum(AUD_Channel* handle, float distance)
 {
 	assert(AUD_device);
-	assert(handle);
 
 	if(AUD_3ddevice)
 	{
@@ -619,7 +612,6 @@ int AUD_setDistanceMaximum(AUD_Channel* handle, float distance)
 int AUD_setDistanceReference(AUD_Channel* handle, float distance)
 {
 	assert(AUD_device);
-	assert(handle);
 
 	if(AUD_3ddevice)
 	{
@@ -632,7 +624,6 @@ int AUD_setDistanceReference(AUD_Channel* handle, float distance)
 int AUD_setAttenuation(AUD_Channel* handle, float factor)
 {
 	assert(AUD_device);
-	assert(handle);
 
 	if(AUD_3ddevice)
 	{
@@ -645,7 +636,6 @@ int AUD_setAttenuation(AUD_Channel* handle, float factor)
 int AUD_setConeAngleOuter(AUD_Channel* handle, float angle)
 {
 	assert(AUD_device);
-	assert(handle);
 
 	if(AUD_3ddevice)
 	{
@@ -658,7 +648,6 @@ int AUD_setConeAngleOuter(AUD_Channel* handle, float angle)
 int AUD_setConeAngleInner(AUD_Channel* handle, float angle)
 {
 	assert(AUD_device);
-	assert(handle);
 
 	if(AUD_3ddevice)
 	{
@@ -671,7 +660,6 @@ int AUD_setConeAngleInner(AUD_Channel* handle, float angle)
 int AUD_setConeVolumeOuter(AUD_Channel* handle, float volume)
 {
 	assert(AUD_device);
-	assert(handle);
 
 	if(AUD_3ddevice)
 	{

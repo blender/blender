@@ -147,9 +147,9 @@ def ik(obj, definitions, base_names, options):
     ik_chain.update()
 
     # Set IK dof
-    ik_chain.forearm_p.ik_dof_x = True
-    ik_chain.forearm_p.ik_dof_y = False
-    ik_chain.forearm_p.ik_dof_z = False
+    ik_chain.forearm_p.lock_ik_x = False
+    ik_chain.forearm_p.lock_ik_y = True
+    ik_chain.forearm_p.lock_ik_z = True
 
     con = ik_chain.forearm_p.constraints.new('IK')
     con.target = obj
@@ -161,7 +161,7 @@ def ik(obj, definitions, base_names, options):
     con.use_stretch = True
     con.use_target = True
     con.use_rotation = False
-    con.chain_length = 2
+    con.chain_count = 2
     con.pole_angle = -pi/2
 
     # last step setup layers

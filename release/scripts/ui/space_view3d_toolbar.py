@@ -339,7 +339,7 @@ class VIEW3D_PT_tools_armatureedit_options(View3DPanel, bpy.types.Panel):
         arm = context.active_object.data
 
         col = layout.column(align=True)
-        col.prop(arm, "x_axis_mirror")
+        col.prop(arm, "use_mirror_x")
 
 # ********** default tools for editmode_mball ****************
 
@@ -462,8 +462,8 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, bpy.types.Panel):
         arm = context.active_object.data
 
         col = layout.column(align=True)
-        col.prop(arm, "x_axis_mirror")
-        col.prop(arm, "auto_ik")
+        col.prop(arm, "use_mirror_x")
+        col.prop(arm, "use_auto_ik")
 
 # ********** default tools for paint modes ****************
 
@@ -523,11 +523,11 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
             if settings.tool == 'ADD':
                 col.prop(brush, "count")
                 col = layout.column()
-                col.prop(settings, "add_interpolate")
+                col.prop(settings, "use_default_interpolate")
                 sub = col.column(align=True)
-                sub.active = settings.add_interpolate
+                sub.active = settings.use_default_interpolate
                 sub.prop(brush, "steps", slider=True)
-                sub.prop(settings, "add_keys", slider=True)
+                sub.prop(settings, "default_key_count", slider=True)
             elif settings.tool == 'LENGTH':
                 layout.prop(brush, "length_mode", expand=True)
             elif settings.tool == 'PUFF':
@@ -998,7 +998,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
 
         col = split.column()
 
-        col.prop(sculpt, "use_openmp", text="Threaded Sculpt")
+        col.prop(sculpt, "use_threaded", text="Threaded Sculpt")
         col.prop(sculpt, "show_low_resolution")
         col.prop(sculpt, "show_brush")
 
@@ -1037,13 +1037,13 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
         col = split.column()
 
         col.label(text="Mirror:")
-        col.prop(sculpt, "symmetry_x", text="X")
-        col.prop(sculpt, "symmetry_y", text="Y")
-        col.prop(sculpt, "symmetry_z", text="Z")
+        col.prop(sculpt, "use_symmetry_x", text="X")
+        col.prop(sculpt, "use_symmetry_y", text="Y")
+        col.prop(sculpt, "use_symmetry_z", text="Z")
 
         col = split.column()
 
-        col.prop(sculpt, "radial_symm", text="Radial")
+        col.prop(sculpt, "radial_symmetry", text="Radial")
 
         col = layout.column()
 
@@ -1116,9 +1116,9 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel, bpy.types.Panel):
         wpaint = tool_settings.weight_paint
 
         col = layout.column()
-        col.prop(wpaint, "all_faces")
+        col.prop(wpaint, "use_all_faces")
         col.prop(wpaint, "normals")
-        col.prop(wpaint, "spray")
+        col.prop(wpaint, "use_spray")
 
         obj = context.weight_paint_object
         if obj.type == 'MESH':
@@ -1154,9 +1154,9 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel, bpy.types.Panel):
 
         col = layout.column()
         #col.prop(vpaint, "mode", text="")
-        col.prop(vpaint, "all_faces")
-        col.prop(vpaint, "normals")
-        col.prop(vpaint, "spray")
+        col.prop(vpaint, "use_all_faces")
+        col.prop(vpaint, "use_normal")
+        col.prop(vpaint, "use_spray")
 
         col.label(text="Unified Settings:")
         col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
@@ -1196,7 +1196,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, bpy.types.Panel):
         sub = col.column()
         sub.active = use_projection
         sub.prop(ipaint, "use_occlude")
-        sub.prop(ipaint, "use_backface_cull")
+        sub.prop(ipaint, "use_backface_culling")
 
         split = layout.split()
 
@@ -1319,19 +1319,19 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, bpy.types.Panel):
         col = layout.column(align=True)
         if pe.is_hair:
             col.active = pe.is_editable
-            col.prop(pe, "emitter_deflect", text="Deflect emitter")
+            col.prop(pe, "use_emitter_deflect", text="Deflect emitter")
             sub = col.row()
-            sub.active = pe.emitter_deflect
+            sub.active = pe.use_emitter_deflect
             sub.prop(pe, "emitter_distance", text="Distance")
 
         col = layout.column(align=True)
         col.active = pe.is_editable
         col.label(text="Keep:")
-        col.prop(pe, "keep_lengths", text="Lengths")
-        col.prop(pe, "keep_root", text="Root")
+        col.prop(pe, "use_preserve_length", text="Lengths")
+        col.prop(pe, "use_preserve_root", text="Root")
         if not pe.is_hair:
             col.label(text="Correct:")
-            col.prop(pe, "auto_velocity", text="Velocity")
+            col.prop(pe, "use_auto_velocity", text="Velocity")
         col.prop(ob.data, "use_mirror_x")
 
         col = layout.column(align=True)
@@ -1343,9 +1343,9 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, bpy.types.Panel):
         else:
             if pe.type == 'PARTICLES':
                 col.prop(pe, "show_particles", text="Particles")
-            col.prop(pe, "fade_time")
+            col.prop(pe, "use_fade_time")
             sub = col.row()
-            sub.active = pe.fade_time
+            sub.active = pe.use_fade_time
             sub.prop(pe, "fade_frames", slider=True)
 
 

@@ -781,10 +781,10 @@ void RNA_def_struct_refine_func(StructRNA *srna, const char *refine)
 	if(refine) srna->refine= (StructRefineFunc)refine;
 }
 
-void RNA_def_struct_idproperties_func(StructRNA *srna, const char *idproperties)
+void RNA_def_struct_idprops_func(StructRNA *srna, const char *idproperties)
 {
 	if(!DefRNA.preprocess) {
-		fprintf(stderr, "RNA_def_struct_idproperties_func: only during preprocessing.\n");
+		fprintf(stderr, "RNA_def_struct_idprops_func: only during preprocessing.\n");
 		return;
 	}
 

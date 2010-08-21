@@ -179,7 +179,7 @@ StructRNA *rna_ID_refine(PointerRNA *ptr)
 	return ID_code_to_RNA_type(GS(id->name));
 }
 
-IDProperty *rna_ID_idproperties(PointerRNA *ptr, int create)
+IDProperty *rna_ID_idprops(PointerRNA *ptr, int create)
 {
 	return IDP_GetProperties(ptr->data, create);
 }
@@ -198,7 +198,7 @@ void rna_ID_fake_user_set(PointerRNA *ptr, int value)
 	}
 }
 
-IDProperty *rna_IDPropertyGroup_idproperties(PointerRNA *ptr, int create)
+IDProperty *rna_IDPropertyGroup_idprops(PointerRNA *ptr, int create)
 {
 	return ptr->data;
 }
@@ -320,7 +320,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	 * care of the properties here */
 	srna= RNA_def_struct(brna, "IDPropertyGroup", NULL);
 	RNA_def_struct_ui_text(srna, "ID Property Group", "Group of ID properties");
-	RNA_def_struct_idproperties_func(srna, "rna_IDPropertyGroup_idproperties");
+	RNA_def_struct_idprops_func(srna, "rna_IDPropertyGroup_idprops");
 	RNA_def_struct_register_funcs(srna, "rna_IDPropertyGroup_register", "rna_IDPropertyGroup_unregister");
 	RNA_def_struct_refine_func(srna, "rna_IDPropertyGroup_refine");
 
@@ -344,7 +344,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "ID", "Base type for datablocks, defining a unique name, linking from other libraries and garbage collection");
 	RNA_def_struct_flag(srna, STRUCT_ID|STRUCT_ID_REFCOUNT);
 	RNA_def_struct_refine_func(srna, "rna_ID_refine");
-	RNA_def_struct_idproperties_func(srna, "rna_ID_idproperties");
+	RNA_def_struct_idprops_func(srna, "rna_ID_idprops");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Unique datablock ID name");

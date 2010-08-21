@@ -548,7 +548,7 @@ def generate_test_all(context, GRAPH=False):
 
     i = 0
     for obj, obj_new in new_objects:
-        obj.data.drawtype = 'STICK'
+        obj.data.draw_type = 'STICK'
         obj.location[1] += i
         obj_new.location[1] += i
         obj_new.select = False

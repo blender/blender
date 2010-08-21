@@ -207,6 +207,7 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 	pt->ext.call= call;
 	pt->ext.free= free;
 	RNA_struct_blender_type_set(pt->ext.srna, pt);
+	RNA_def_struct_flag(pt->ext.srna, STRUCT_NO_IDPROPERTIES);
 
 	pt->poll= (have_function[0])? panel_poll: NULL;
 	pt->draw= (have_function[1])? panel_draw: NULL;
@@ -418,6 +419,7 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 	mt->ext.call= call;
 	mt->ext.free= free;
 	RNA_struct_blender_type_set(mt->ext.srna, mt);
+	RNA_def_struct_flag(mt->ext.srna, STRUCT_NO_IDPROPERTIES);
 
 	mt->poll= (have_function[0])? menu_poll: NULL;
 	mt->draw= (have_function[1])? menu_draw: NULL;

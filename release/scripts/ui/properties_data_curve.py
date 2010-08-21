@@ -98,7 +98,7 @@ class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
             col.prop(curve, "twist_smooth", text="Smooth")
         if is_text:
             col.label(text="Display:")
-            col.prop(curve, "fast", text="Fast Editing")
+            col.prop(curve, "use_fast_edit", text="Fast Editing")
 
         col = split.column()
 
@@ -111,13 +111,13 @@ class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
         if is_curve or is_text:
             sub = col.column()
             sub.label(text="Caps:")
-            sub.prop(curve, "front")
-            sub.prop(curve, "back")
-            sub.prop(curve, "use_deform_fill")
+            sub.prop(curve, "use_fill_front")
+            sub.prop(curve, "use_fill_back")
+            sub.prop(curve, "use_fill_deform")
 
         col.label(text="Textures:")
-        col.prop(curve, "map_along_length")
-        col.prop(curve, "auto_texspace")
+        col.prop(curve, "use_map_on_length")
+        col.prop(curve, "use_auto_texspace")
 
 
 class DATA_PT_geometry_curve(CurveButtonsPanel, bpy.types.Panel):
@@ -140,7 +140,7 @@ class DATA_PT_geometry_curve(CurveButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Modification:")
-        col.prop(curve, "width")
+        col.prop(curve, "offset")
         col.prop(curve, "extrude")
         col.label(text="Taper Object:")
         col.prop(curve, "taper_object", text="")
@@ -169,7 +169,7 @@ class DATA_PT_pathanim(CurveButtonsPanelCurve, bpy.types.Panel):
         layout.active = curve.use_path
 
         col = layout.column()
-        layout.prop(curve, "path_length", text="Frames")
+        layout.prop(curve, "path_duration", text="Frames")
         layout.prop(curve, "eval_time")
 
         split = layout.split()
@@ -205,7 +205,7 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, bpy.types.Panel):
             col.label(text="Cyclic:")
             col.prop(act_spline, "use_smooth")
             col = split.column()
-            col.prop(act_spline, "cyclic_u", text="U")
+            col.prop(act_spline, "use_cyclic_u", text="U")
 
         else:
             col = split.column()
@@ -218,13 +218,13 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, bpy.types.Panel):
             col.label(text="Resolution:")
 
             col = split.column()
-            col.prop(act_spline, "cyclic_u", text="U")
+            col.prop(act_spline, "use_cyclic_u", text="U")
 
             if act_spline.type == 'NURBS':
                 sub = col.column()
-                # sub.active = (not act_spline.cyclic_u)
-                sub.prop(act_spline, "bezier_u", text="U")
-                sub.prop(act_spline, "endpoint_u", text="U")
+                # sub.active = (not act_spline.use_cyclic_u)
+                sub.prop(act_spline, "use_bezier_u", text="U")
+                sub.prop(act_spline, "use_endpoint_u", text="U")
 
                 sub = col.column()
                 sub.prop(act_spline, "order_u", text="U")
@@ -232,13 +232,13 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, bpy.types.Panel):
 
             if is_surf:
                 col = split.column()
-                col.prop(act_spline, "cyclic_v", text="V")
+                col.prop(act_spline, "use_cyclic_v", text="V")
 
                 # its a surface, assume its a nurb.
                 sub = col.column()
-                sub.active = (not act_spline.cyclic_v)
-                sub.prop(act_spline, "bezier_v", text="V")
-                sub.prop(act_spline, "endpoint_v", text="V")
+                sub.active = (not act_spline.use_cyclic_v)
+                sub.prop(act_spline, "use_bezier_v", text="V")
+                sub.prop(act_spline, "use_endpoint_v", text="V")
                 sub = col.column()
                 sub.prop(act_spline, "order_v", text="V")
                 sub.prop(act_spline, "resolution_v", text="V")
@@ -275,7 +275,7 @@ class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(text, "text_size", text="Size")
+        col.prop(text, "size", text="Size")
         col = split.column()
         col.prop(text, "shear")
 
@@ -294,14 +294,14 @@ class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
         col = split.column()
         colsub = col.column(align=True)
         colsub.label(text="Underline:")
-        colsub.prop(text, "ul_position", text="Position")
-        colsub.prop(text, "ul_height", text="Thickness")
+        colsub.prop(text, "underline_position", text="Position")
+        colsub.prop(text, "underline_height", text="Thickness")
 
         col = split.column()
         col.label(text="Character:")
-        col.prop(char, "bold")
-        col.prop(char, "italic")
-        col.prop(char, "underline")
+        col.prop(char, "use_bold")
+        col.prop(char, "use_italic")
+        col.prop(char, "use_underline")
         
         split = layout.split()
         col = split.column()
@@ -324,15 +324,15 @@ class DATA_PT_paragraph(CurveButtonsPanel, bpy.types.Panel):
         text = context.curve
 
         layout.label(text="Align:")
-        layout.prop(text, "spacemode", expand=True)
+        layout.prop(text, "align", expand=True)
 
         split = layout.split()
 
         col = split.column(align=True)
         col.label(text="Spacing:")
-        col.prop(text, "spacing", text="Character")
-        col.prop(text, "word_spacing", text="Word")
-        col.prop(text, "line_dist", text="Line")
+        col.prop(text, "space_character", text="Character")
+        col.prop(text, "space_word", text="Word")
+        col.prop(text, "space_line", text="Line")
 
         col = split.column(align=True)
         col.label(text="Offset:")

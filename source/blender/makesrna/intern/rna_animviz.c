@@ -203,13 +203,13 @@ static void rna_def_animviz_ghosts(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	
 	/* Around Current Ranges */
-	prop= RNA_def_property(srna, "before_current", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_before", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghost_bc");
 	RNA_def_property_range(prop, 0, 30);
 	RNA_def_property_ui_text(prop, "Before Current", "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	
-	prop= RNA_def_property(srna, "after_current", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_after", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghost_ac");
 	RNA_def_property_range(prop, 0, 30);
 	RNA_def_property_ui_text(prop, "After Current", "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)");
@@ -290,13 +290,13 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	
 	/* Around Current Ranges */
-	prop= RNA_def_property(srna, "before_current", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_before", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "path_bc");
 	RNA_def_property_range(prop, 1, MAXFRAMEF/2);
 	RNA_def_property_ui_text(prop, "Before Current", "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	
-	prop= RNA_def_property(srna, "after_current", PROP_INT, PROP_TIME);
+	prop= RNA_def_property(srna, "frame_after", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "path_ac");
 	RNA_def_property_range(prop, 1, MAXFRAMEF/2);
 	RNA_def_property_ui_text(prop, "After Current", "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)");

@@ -358,12 +358,12 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
 
         split = layout.split(percentage=0.3)
         split.label(text="Blend:")
-        split.prop(strip, "blend_mode", text="")
+        split.prop(strip, "blend_type", text="")
 
         row = layout.row(align=True)
         sub = row.row()
         sub.active = (not strip.mute)
-        sub.prop(strip, "blend_opacity", text="Opacity", slider=True)
+        sub.prop(strip, "blend_alpha", text="Opacity", slider=True)
         row.prop(strip, "mute", toggle=True, icon='RESTRICT_VIEW_ON' if strip.mute else 'RESTRICT_VIEW_OFF', text="")
         row.prop(strip, "lock", toggle=True, icon='LOCKED' if strip.lock else 'UNLOCKED', text="")
 
@@ -372,11 +372,11 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
         sub.enabled = not strip.lock
         sub.prop(strip, "channel")
         sub.prop(strip, "frame_start")
-        sub.prop(strip, "frame_final_length")
+        sub.prop(strip, "frame_final_duration")
 
         col = layout.column(align=True)
         row = col.row()
-        row.label(text="Final Length: %s" % bpy.utils.smpte_from_frame(strip.frame_final_length))
+        row.label(text="Final Length: %s" % bpy.utils.smpte_from_frame(strip.frame_final_duration))
         row = col.row()
         row.active = (frame_current >= strip.frame_start and frame_current <= strip.frame_start + strip.frame_duration)
         row.label(text="Playhead: %d" % (frame_current - strip.frame_start))
@@ -428,19 +428,19 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
             flow.prop(strip, "threshold", slider=True)
             flow.prop(strip, "clamp", slider=True)
             flow.prop(strip, "boost_factor")
-            flow.prop(strip, "blur_distance")
+            flow.prop(strip, "blur_radius")
 
             row = layout.row()
             row.prop(strip, "quality", slider=True)
-            row.prop(strip, "only_boost")
+            row.prop(strip, "use_only_boost")
 
         elif strip.type == 'SPEED':
             layout.prop(strip, "global_speed")
 
             flow = layout.column_flow()
-            flow.prop(strip, "curve_velocity")
-            flow.prop(strip, "curve_compress_y")
-            flow.prop(strip, "frame_blending")
+            flow.prop(strip, "use_curve_velocity")
+            flow.prop(strip, "use_curve_compress_y")
+            flow.prop(strip, "use_frame_blend")
 
         elif strip.type == 'TRANSFORM':
             self.draw_panel_transform(strip)
@@ -463,8 +463,8 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
         if strip.type == 'SPEED':
             col.prop(strip, "speed_fader", text="Speed fader")
         elif strip.type in ('CROSS', 'GAMMA_CROSS', 'PLUGIN', 'WIPE'):
-                col.prop(strip, "use_effect_default_fade", "Default fade")
-                if not strip.use_effect_default_fade:
+                col.prop(strip, "use_default_fade", "Default fade")
+                if not strip.use_default_fade:
                     col.prop(strip, "effect_fader", text="Effect fader")
         
         layout.prop(strip, "use_translation", text="Image Offset:")
@@ -476,10 +476,10 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
         layout.prop(strip, "use_crop", text="Image Crop:")
         if strip.use_crop:
             col = layout.column(align=True)
-            col.prop(strip.crop, "top")
-            col.prop(strip.crop, "left")
-            col.prop(strip.crop, "bottom")
-            col.prop(strip.crop, "right")
+            col.prop(strip.crop, "max_y")
+            col.prop(strip.crop, "min_x")
+            col.prop(strip.crop, "min_y")
+            col.prop(strip.crop, "max_x")
 
     def draw_panel_transform(self, strip):
         layout = self.layout
@@ -495,8 +495,8 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
         layout.separator()
 
         col = layout.column(align=True)
-        col.prop(strip, "uniform_scale")
-        if (strip.uniform_scale):
+        col.prop(strip, "use_uniform_scale")
+        if (strip.use_uniform_scale):
             col = layout.column(align=True)
             col.prop(strip, "scale_start_x", text="Scale")
         else:
@@ -576,10 +576,10 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
         layout.prop(strip, "use_crop", text="Image Crop:")
         if strip.use_crop:
             col = layout.column(align=True)
-            col.prop(strip.crop, "top")
-            col.prop(strip.crop, "left")
-            col.prop(strip.crop, "bottom")
-            col.prop(strip.crop, "right")
+            col.prop(strip.crop, "max_y")
+            col.prop(strip.crop, "min_x")
+            col.prop(strip.crop, "min_y")
+            col.prop(strip.crop, "max_x")
 
         col = layout.column(align=True)
         col.label(text="Trim Duration:")
@@ -624,8 +624,8 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
 
         col = layout.column(align=True)
         col.label(text="Trim Duration:")
-        col.prop(strip, "animation_start_offset", text="Start")
-        col.prop(strip, "animation_end_offset", text="End")
+        col.prop(strip, "animation_offset_start", text="Start")
+        col.prop(strip, "animation_offset_end", text="End")
 
 
 class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
@@ -683,19 +683,19 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
 
         row = layout.row()
         row.label(text="Flip:")
-        row.prop(strip, "flip_x", text="X")
-        row.prop(strip, "flip_y", text="Y")
+        row.prop(strip, "use_flip_x", text="X")
+        row.prop(strip, "use_flip_y", text="Y")
 
         col = layout.column()
-        col.prop(strip, "reverse_frames", text="Backwards")
-        col.prop(strip, "de_interlace")
+        col.prop(strip, "use_reverse_frames", text="Backwards")
+        col.prop(strip, "use_deinterlace")
 
         col = layout.column()
         col.label(text="Colors:")
         col.prop(strip, "color_saturation", text="Saturation")
-        col.prop(strip, "multiply_colors", text="Multiply")
-        col.prop(strip, "premultiply")
-        col.prop(strip, "convert_float")
+        col.prop(strip, "color_multiply", text="Multiply")
+        col.prop(strip, "use_premultiply")
+        col.prop(strip, "use_float")
 
         layout.prop(strip, "use_color_balance")
         if strip.use_color_balance and strip.color_balance: # TODO - need to add this somehow
@@ -704,15 +704,15 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
             col = row.column()
             col.template_color_wheel(strip.color_balance, "lift", value_slider=False, cubic=True)
             col.row().prop(strip.color_balance, "lift")
-            col.prop(strip.color_balance, "inverse_lift", text="Inverse")
+            col.prop(strip.color_balance, "invert_lift", text="Inverse")
             col = row.column()
             col.template_color_wheel(strip.color_balance, "gamma", value_slider=False, lock_luminosity=True, cubic=True)
             col.row().prop(strip.color_balance, "gamma")
-            col.prop(strip.color_balance, "inverse_gamma", text="Inverse")
+            col.prop(strip.color_balance, "invert_gamma", text="Inverse")
             col = row.column()
             col.template_color_wheel(strip.color_balance, "gain", value_slider=False, lock_luminosity=True, cubic=True)
             col.row().prop(strip.color_balance, "gain")
-            col.prop(strip.color_balance, "inverse_gain", text="Inverse")
+            col.prop(strip.color_balance, "invert_gain", text="Inverse")
 
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
@@ -740,12 +740,12 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
         strip = act_strip(context)
 
         flow = layout.column_flow()
-        flow.prop(strip, "proxy_custom_directory")
-        flow.prop(strip, "proxy_custom_file")
+        flow.prop(strip, "use_proxy_custom_directory")
+        flow.prop(strip, "use_proxy_custom_file")
         if strip.proxy: # TODO - need to add this somehow
-            if strip.proxy_custom_directory and not strip.proxy_custom_file:
+            if strip.proxy_custom_directory and not strip.use_proxy_custom_file:
                 flow.prop(strip.proxy, "directory")
-            if strip.proxy_custom_file:
+            if strip.use_proxy_custom_file:
                 flow.prop(strip.proxy, "filepath")
 
 

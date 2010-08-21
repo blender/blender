@@ -149,16 +149,16 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(mat, "diffuse_color", text="")
         sub = col.column()
-        sub.active = (not mat.shadeless)
+        sub.active = (not mat.use_shadeless)
         sub.prop(mat, "diffuse_intensity", text="Intensity")
 
         col = split.column()
-        col.active = (not mat.shadeless)
+        col.active = (not mat.use_shadeless)
         col.prop(mat, "diffuse_shader", text="")
         col.prop(mat, "use_diffuse_ramp", text="Ramp")
 
         col = layout.column()
-        col.active = (not mat.shadeless)
+        col.active = (not mat.use_shadeless)
         if mat.diffuse_shader == 'OREN_NAYAR':
             col.prop(mat, "roughness")
         elif mat.diffuse_shader == 'MINNAERT':
@@ -211,7 +211,7 @@ class MATERIAL_PT_specular(MaterialButtonsPanel, bpy.types.Panel):
 
         mat = active_node_mat(context.material)
 
-        layout.active = (not mat.shadeless)
+        layout.active = (not mat.use_shadeless)
 
         split = layout.split()
 
@@ -281,18 +281,18 @@ class MATERIAL_PT_shading(MaterialButtonsPanel, bpy.types.Panel):
 
             col = split.column()
             sub = col.column()
-            sub.active = not mat.shadeless
+            sub.active = not mat.use_shadeless
             sub.prop(mat, "emit")
             sub.prop(mat, "ambient")
             sub = col.column()
             sub.prop(mat, "translucency")
 
             col = split.column()
-            col.prop(mat, "shadeless")
+            col.prop(mat, "use_shadeless")
             sub = col.column()
-            sub.active = not mat.shadeless
-            sub.prop(mat, "tangent_shading")
-            sub.prop(mat, "cubic")
+            sub.active = not mat.use_shadeless
+            sub.prop(mat, "use_tangent_shading")
+            sub.prop(mat, "use_cubic")
 
         elif mat.type == 'HALO':
             layout.prop(mat, "alpha")
@@ -312,7 +312,7 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         mat = active_node_mat(context.material)
 
-        self.layout.prop(mat, "transparency", text="")
+        self.layout.prop(mat, "use_transparency", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -321,7 +321,7 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
         rayt = mat.raytrace_transparency
 
         row = layout.row()
-        row.active = mat.transparency and (not mat.shadeless)
+        row.active = mat.use_transparency and (not mat.use_shadeless)
         row.prop(mat, "transparency_method", expand=True)
 
         split = layout.split()
@@ -329,11 +329,11 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(mat, "alpha")
         row = col.row()
-        row.active = mat.transparency and (not mat.shadeless)
+        row.active = mat.use_transparency and (not mat.use_shadeless)
         row.prop(mat, "specular_alpha", text="Specular")
 
         col = split.column()
-        col.active = (not mat.shadeless)
+        col.active = (not mat.use_shadeless)
         col.prop(rayt, "fresnel")
         sub = col.column()
         sub.active = rayt.fresnel > 0
@@ -342,13 +342,13 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
         if mat.transparency_method == 'RAYTRACE':
             layout.separator()
             split = layout.split()
-            split.active = mat.transparency
+            split.active = mat.use_transparency
 
             col = split.column()
             col.prop(rayt, "ior")
             col.prop(rayt, "filter")
             col.prop(rayt, "falloff")
-            col.prop(rayt, "limit")
+            col.prop(rayt, "depth_max")
             col.prop(rayt, "depth")
 
             col = split.column()
@@ -433,7 +433,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel, bpy.types.Panel):
         mat = active_node_mat(context.material)
         sss = mat.subsurface_scattering
 
-        self.layout.active = (not mat.shadeless)
+        self.layout.active = (not mat.use_shadeless)
         self.layout.prop(sss, "use", text="")
 
     def draw(self, context):
@@ -442,7 +442,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel, bpy.types.Panel):
         mat = active_node_mat(context.material)
         sss = mat.subsurface_scattering
 
-        layout.active = (sss.use) and (not mat.shadeless)
+        layout.active = (sss.use) and (not mat.use_shadeless)
 
         row = layout.row().split()
         sub = row.row(align=True).split(percentage=0.75)
@@ -466,7 +466,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel, bpy.types.Panel):
         sub.prop(sss, "front")
         sub.prop(sss, "back")
         col.separator()
-        col.prop(sss, "error_tolerance", text="Error")
+        col.prop(sss, "error_threshold", text="Error")
 
 
 class MATERIAL_PT_halo(MaterialButtonsPanel, bpy.types.Panel):
@@ -493,29 +493,29 @@ class MATERIAL_PT_halo(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(halo, "hardness")
         col.prop(halo, "add")
         col.label(text="Options:")
-        col.prop(halo, "texture")
-        col.prop(halo, "vertex_normal")
-        col.prop(halo, "xalpha")
-        col.prop(halo, "shaded")
-        col.prop(halo, "soft")
+        col.prop(halo, "use_texture")
+        col.prop(halo, "use_vertex_normal")
+        col.prop(halo, "use_extreme_alpha")
+        col.prop(halo, "use_shaded")
+        col.prop(halo, "use_soft")
 
         col = split.column()
-        col.prop(halo, "ring")
+        col.prop(halo, "use_ring")
         sub = col.column()
-        sub.active = halo.ring
-        sub.prop(halo, "rings")
+        sub.active = halo.use_ring
+        sub.prop(halo, "ring_count")
         sub.prop(mat, "mirror_color", text="")
         col.separator()
-        col.prop(halo, "lines")
+        col.prop(halo, "use_lines")
         sub = col.column()
-        sub.active = halo.lines
-        sub.prop(halo, "line_number", text="Lines")
+        sub.active = halo.use_lines
+        sub.prop(halo, "line_count", text="Lines")
         sub.prop(mat, "specular_color", text="")
         col.separator()
-        col.prop(halo, "star")
+        col.prop(halo, "use_star")
         sub = col.column()
-        sub.active = halo.star
-        sub.prop(halo, "star_tips")
+        sub.active = halo.use_star
+        sub.prop(halo, "star_tip_count")
 
 
 class MATERIAL_PT_flare(MaterialButtonsPanel, bpy.types.Panel):
@@ -531,7 +531,7 @@ class MATERIAL_PT_flare(MaterialButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         halo = context.material.halo
 
-        self.layout.prop(halo, "flare_mode", text="")
+        self.layout.prop(halo, "use_flare_mode", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -539,7 +539,7 @@ class MATERIAL_PT_flare(MaterialButtonsPanel, bpy.types.Panel):
         mat = context.material # dont use node material
         halo = mat.halo
 
-        layout.active = halo.flare_mode
+        layout.active = halo.use_flare_mode
 
         split = layout.split()
 
@@ -549,8 +549,8 @@ class MATERIAL_PT_flare(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(halo, "flare_seed", text="Seed")
 
         col = split.column()
-        col.prop(halo, "flares_sub", text="Subflares")
-        col.prop(halo, "flare_subsize", text="Subsize")
+        col.prop(halo, "flare_subflare_count", text="Subflares")
+        col.prop(halo, "flare_subflare_size", text="Subsize")
 
 
 class MATERIAL_PT_physics(MaterialButtonsPanel, bpy.types.Panel):
@@ -571,12 +571,12 @@ class MATERIAL_PT_physics(MaterialButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(phys, "distance")
         col.prop(phys, "friction")
-        col.prop(phys, "align_to_normal")
+        col.prop(phys, "use_normal_align")
 
         col = split.column()
         col.prop(phys, "force", slider=True)
         col.prop(phys, "elasticity", slider=True)
-        col.prop(phys, "damp", slider=True)
+        col.prop(phys, "damping", slider=True)
 
 
 class MATERIAL_PT_strand(MaterialButtonsPanel, bpy.types.Panel):
@@ -603,11 +603,11 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, bpy.types.Panel):
         sub.label(text="Size:")
         sub.prop(tan, "root_size", text="Root")
         sub.prop(tan, "tip_size", text="Tip")
-        sub.prop(tan, "min_size", text="Minimum")
-        sub.prop(tan, "blender_units")
+        sub.prop(tan, "size_min", text="Minimum")
+        sub.prop(tan, "use_blender_units")
         sub = col.column()
-        sub.active = (not mat.shadeless)
-        sub.prop(tan, "tangent_shading")
+        sub.active = (not mat.use_shadeless)
+        sub.prop(tan, "use_tangent_shading")
         col.prop(tan, "shape")
 
         col = split.column()
@@ -620,10 +620,10 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, bpy.types.Panel):
             col.prop(tan, "uv_layer", text="")
         col.separator()
         sub = col.column()
-        sub.active = (not mat.shadeless)
-        sub.prop(tan, "surface_diffuse")
+        sub.active = (not mat.use_shadeless)
+        sub.prop(tan, "use_surface_diffuse")
         sub = col.column()
-        sub.active = tan.surface_diffuse
+        sub.active = tan.use_surface_diffuse
         sub.prop(tan, "blend_distance", text="Distance")
 
 
@@ -645,30 +645,30 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(mat, "traceable")
-        col.prop(mat, "full_oversampling")
+        col.prop(mat, "use_raytrace")
+        col.prop(mat, "use_full_oversampling")
         col.prop(mat, "use_sky")
-        col.prop(mat, "exclude_mist")
+        col.prop(mat, "use_mist")
         col.prop(mat, "invert_z")
         sub = col.row()
-        sub.prop(mat, "z_offset")
-        sub.active = mat.transparency and mat.transparency_method == 'Z_TRANSPARENCY'
+        sub.prop(mat, "offset_z")
+        sub.active = mat.use_transparency and mat.transparency_method == 'Z_TRANSPARENCY'
         sub = col.column(align=True)
         sub.label(text="Light Group:")
         sub.prop(mat, "light_group", text="")
         row = sub.row()
         row.active = bool(mat.light_group)
-        row.prop(mat, "light_group_exclusive", text="Exclusive")
+        row.prop(mat, "use_light_group_exclusive", text="Exclusive")
 
         col = split.column()
-        col.prop(mat, "face_texture")
+        col.prop(mat, "use_face_texture")
         sub = col.column()
-        sub.active = mat.face_texture
-        sub.prop(mat, "face_texture_alpha")
+        sub.active = mat.use_face_texture
+        sub.prop(mat, "use_face_texture_alpha")
         col.separator()
-        col.prop(mat, "vertex_color_paint")
-        col.prop(mat, "vertex_color_light")
-        col.prop(mat, "object_color")
+        col.prop(mat, "use_vertex_color_paint")
+        col.prop(mat, "use_vertex_color_light")
+        col.prop(mat, "use_object_color")
 
 
 class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
@@ -690,22 +690,22 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(mat, "shadows", text="Receive")
-        col.prop(mat, "receive_transparent_shadows", text="Receive Transparent")
-        col.prop(mat, "only_shadow", text="Shadows Only")
-        col.prop(mat, "cast_shadows_only", text="Cast Only")
-        col.prop(mat, "shadow_casting_alpha", text="Casting Alpha")
+        col.prop(mat, "use_shadows", text="Receive")
+        col.prop(mat, "use_transparent_shadows", text="Receive Transparent")
+        col.prop(mat, "use_only_shadow", text="Shadows Only")
+        col.prop(mat, "use_cast_shadows_only", text="Cast Only")
+        col.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
 
         col = split.column()
-        col.prop(mat, "cast_buffer_shadows")
+        col.prop(mat, "use_cast_buffer_shadows")
         sub = col.column()
-        sub.active = mat.cast_buffer_shadows
+        sub.active = mat.use_cast_buffer_shadows
         sub.prop(mat, "shadow_buffer_bias", text="Buffer Bias")
-        col.prop(mat, "ray_shadow_bias", text="Auto Ray Bias")
+        col.prop(mat, "use_ray_shadow_bias", text="Auto Ray Bias")
         sub = col.column()
-        sub.active = (not mat.ray_shadow_bias)
+        sub.active = (not mat.use_ray_shadow_bias)
         sub.prop(mat, "shadow_ray_bias", text="Ray Bias")
-        col.prop(mat, "cast_approximate")
+        col.prop(mat, "use_cast_approximate")
 
 
 class MATERIAL_PT_transp_game(MaterialButtonsPanel, bpy.types.Panel):
@@ -722,7 +722,7 @@ class MATERIAL_PT_transp_game(MaterialButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         mat = active_node_mat(context.material)
 
-        self.layout.prop(mat, "transparency", text="")
+        self.layout.prop(mat, "use_transparency", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -731,7 +731,7 @@ class MATERIAL_PT_transp_game(MaterialButtonsPanel, bpy.types.Panel):
         rayt = mat.raytrace_transparency
 
         row = layout.row()
-        row.active = mat.transparency and (not mat.shadeless)
+        row.active = mat.use_transparency and (not mat.use_shadeless)
         row.prop(mat, "transparency_method", expand=True)
 
         split = layout.split()
@@ -810,21 +810,21 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(vol, "lighting_mode", text="")
+        col.prop(vol, "light_method", text="")
 
         col = split.column()
 
-        if vol.lighting_mode == 'SHADED':
-            col.prop(vol, "external_shadows")
-            col.prop(vol, "light_cache")
+        if vol.light_method == 'SHADED':
+            col.prop(vol, "use_external_shadows")
+            col.prop(vol, "use_light_cache")
             sub = col.column()
-            sub.active = vol.light_cache
+            sub.active = vol.use_light_cache
             sub.prop(vol, "cache_resolution")
-        elif vol.lighting_mode in ('MULTIPLE_SCATTERING', 'SHADED_PLUS_MULTIPLE_SCATTERING'):
+        elif vol.light_method in ('MULTIPLE_SCATTERING', 'SHADED_PLUS_MULTIPLE_SCATTERING'):
             sub = col.column()
             sub.enabled = True
             sub.active = False
-            sub.prop(vol, "light_cache")
+            sub.prop(vol, "use_light_cache")
             col.prop(vol, "cache_resolution")
 
             sub = col.column(align=True)
@@ -859,13 +859,13 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Step Calculation:")
-        col.prop(vol, "step_calculation", text="")
+        col.prop(vol, "step_method", text="")
         col = col.column(align=True)
         col.prop(vol, "step_size")
 
         col = split.column()
         col.label()
-        col.prop(vol, "depth_cutoff")
+        col.prop(vol, "depth_threshold")
 
 
 class MATERIAL_PT_volume_options(VolumeButtonsPanel, bpy.types.Panel):
@@ -881,16 +881,16 @@ class MATERIAL_PT_volume_options(VolumeButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(mat, "traceable")
-        col.prop(mat, "full_oversampling")
-        col.prop(mat, "exclude_mist")
+        col.prop(mat, "use_raytrace")
+        col.prop(mat, "use_full_oversampling")
+        col.prop(mat, "use_mist")
 
         col = split.column()
         col.label(text="Light Group:")
         col.prop(mat, "light_group", text="")
         row = col.row()
         row.active = bool(mat.light_group)
-        row.prop(mat, "light_group_exclusive", text="Exclusive")
+        row.prop(mat, "use_light_group_exclusive", text="Exclusive")
 
 
 class MATERIAL_PT_custom_props(MaterialButtonsPanel, PropertyPanel, bpy.types.Panel):

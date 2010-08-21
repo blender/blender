@@ -114,14 +114,17 @@ def get_props_from_txt(input_filename):
     done = 0
     tot = 0
     
-    for line in file_lines:
+    for iii, line in enumerate(file_lines):
         
         # debug
         #print(line)
-        
+        line_strip = line.strip()
         # empty line or comment
-        if not line.strip():
+        if not line_strip:
             continue
+            
+        if line_strip == "EOF":
+            break
         
         if line.startswith("#"):
             line = line[1:]

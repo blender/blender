@@ -128,7 +128,7 @@ def main(obj, bone_definition, base_names, options):
     con = pb[bone1].constraints.new('STRETCH_TO')
     con.target = obj
     con.subtarget = mid_bone
-    con.original_length = bb[bone1].length
+    con.rest_length = bb[bone1].length
     if preserve_volume:
         con.volume = 'VOLUME_XZX'
     else:
@@ -142,7 +142,7 @@ def main(obj, bone_definition, base_names, options):
     con = pb[bone2].constraints.new('STRETCH_TO')
     con.target = obj
     con.subtarget = mid_bone
-    con.original_length = bb[bone2].length
+    con.rest_length = bb[bone2].length
     if preserve_volume:
         con.volume = 'VOLUME_XZX'
     else:

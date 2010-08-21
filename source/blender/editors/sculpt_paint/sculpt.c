@@ -2726,10 +2726,24 @@ static int sculpt_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *ev
 {
 	Paint *p = paint_get_active(CTX_data_scene(C));
 	Brush *brush = paint_brush(p);
+	float col[4], tex_col[4];
 
 	WM_paint_cursor_end(CTX_wm_manager(C), p->paint_cursor);
 	p->paint_cursor = NULL;
 	brush_radial_control_invoke(op, brush, 1);
+
+	if((brush->flag & BRUSH_DIR_IN) && ELEM4(brush->sculpt_tool, SCULPT_TOOL_DRAW, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY, SCULPT_TOOL_PINCH))
+		copy_v3_v3(col, brush->sub_col);
+	else
+		copy_v3_v3(col, brush->add_col);
+	col[3]= 0.5f;
+									    
+	copy_v3_v3(tex_col, U.sculpt_paint_overlay_col);
+	tex_col[3]= (brush->texture_overlay_alpha / 100.0f);
+
+	RNA_float_set_array(op->ptr, "color", col);
+	RNA_float_set_array(op->ptr, "texture_color", tex_col);
+
 	return WM_radial_control_invoke(C, op, event);
 }
 

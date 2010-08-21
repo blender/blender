@@ -119,7 +119,7 @@ void RNA_api_material(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Add a texture to material's free texture slot.");
 	parm= RNA_def_pointer(func, "texture", "Texture", "Texture", "Texture to add."); 
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_enum(func, "texture_coordinates", prop_texture_coordinates_items, TEXCO_UV, "", "Source of texture coordinate information."); /* optional */
+	parm= RNA_def_enum(func, "texture_coords", prop_texture_coordinates_items, TEXCO_UV, "", "Source of texture coordinate information."); /* optional */
 	parm= RNA_def_enum(func, "map_to", prop_texture_mapto_items, MAP_COL, "", "Controls which material property the texture affects."); /* optional */
 	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
 }

@@ -36,9 +36,9 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
     row = layout.row()
     if cachetype in ('PSYS', 'HAIR', 'SMOKE'):
-        row.prop(cache, "external")
+        row.prop(cache, "use_external")
 
-    if cache.external:
+    if cache.use_external:
         split = layout.split(percentage=0.80)
         split.prop(cache, "name", text="File Name")
         split.prop(cache, "index", text="")
@@ -61,18 +61,18 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             col.prop(cache, "frame_start")
             col.prop(cache, "frame_end")
         if cachetype != 'SMOKE':
-            col.prop(cache, "step")
+            col.prop(cache, "frame_step")
 
         col = split.column()
 
         if cachetype != 'SMOKE':
             sub = col.column()
             sub.enabled = enabled
-            sub.prop(cache, "quick_cache")
+            sub.prop(cache, "use_quick_cache")
 
             sub = col.column()
             sub.enabled = (not bpy.data.is_dirty)
-            sub.prop(cache, "disk_cache")
+            sub.prop(cache, "use_disk_cache")
             col.label(text=cache.info)
 
             sub = col.column()
@@ -127,7 +127,7 @@ def effector_weights_ui(self, context, weights):
     col.prop(weights, "vortex", slider=True)
     col.prop(weights, "magnetic", slider=True)
     col.prop(weights, "wind", slider=True)
-    col.prop(weights, "curveguide", slider=True)
+    col.prop(weights, "curve_guide", slider=True)
     col.prop(weights, "texture", slider=True)
 
     col = split.column()
@@ -172,20 +172,20 @@ def basic_force_field_settings_ui(self, context, field):
     col.prop(field, "noise")
     col.prop(field, "seed")
     if field.type == 'TURBULENCE':
-        col.prop(field, "global_coordinates", text="Global")
+        col.prop(field, "use_global_coords", text="Global")
     elif field.type == 'HARMONIC':
-        col.prop(field, "multiple_springs")
+        col.prop(field, "use_multiple_springs")
 
     split = layout.split()
 
     col = split.column()
     col.label(text="Effect point:")
-    col.prop(field, "do_location")
-    col.prop(field, "do_rotation")
+    col.prop(field, "apply_to_location")
+    col.prop(field, "apply_to_rotation")
 
     col = split.column()
     col.label(text="Collision:")
-    col.prop(field, "do_absorption")
+    col.prop(field, "use_absorption")
 
 
 def basic_force_field_falloff_ui(self, context, field):
@@ -209,11 +209,11 @@ def basic_force_field_falloff_ui(self, context, field):
 
     sub = col.column()
     sub.active = field.use_min_distance
-    sub.prop(field, "minimum_distance", text="Distance")
+    sub.prop(field, "distance_min", text="Distance")
 
     sub = col.column()
     sub.active = field.use_max_distance
-    sub.prop(field, "maximum_distance", text="Distance")
+    sub.prop(field, "distance_max", text="Distance")
 
 
 def register():

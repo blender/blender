@@ -211,9 +211,9 @@ def ik(obj, bone_definition, base_names, options):
     ik_chain.update()
 
     # Set IK dof
-    ik_chain.shin_p.ik_dof_x = True
-    ik_chain.shin_p.ik_dof_y = False
-    ik_chain.shin_p.ik_dof_z = False
+    ik_chain.shin_p.lock_ik_x = False
+    ik_chain.shin_p.lock_ik_y = True
+    ik_chain.shin_p.lock_ik_z = True
 
     # Set rotation modes and axis locks
     ik.foot_roll_p.rotation_mode = 'XYZ'
@@ -225,7 +225,7 @@ def ik(obj, bone_definition, base_names, options):
 
     # IK
     con = ik_chain.shin_p.constraints.new('IK')
-    con.chain_length = 2
+    con.chain_count = 2
     con.iterations = 500
     con.pole_angle = -pi / 2.0
     con.use_tail = True
@@ -256,11 +256,11 @@ def ik(obj, bone_definition, base_names, options):
         con.owner_space = 'LOCAL'
 
         if con_l is cons[-1][-1]:
-            con.minimum_x = 0.0
-            con.maximum_x = 180.0 # XXX -deg
+            con.min_x = 0.0
+            con.max_x = 180.0 # XXX -deg
         else:
-            con.minimum_x = -180.0 # XXX -deg
-            con.maximum_x = 0.0
+            con.min_x = -180.0 # XXX -deg
+            con.max_x = 0.0
 
 
     # last step setup layers

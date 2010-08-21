@@ -268,7 +268,7 @@ def ik(obj, bone_definition, base_names, options):
 
     # IK
     con = ik_chain.shin_p.constraints.new('IK')
-    con.chain_length = 2
+    con.chain_count = 2
     con.iterations = 500
     con.pole_angle = -90.0 # XXX - in deg!
     con.use_tail = True

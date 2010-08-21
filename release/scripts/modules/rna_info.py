@@ -595,7 +595,7 @@ def BuildRNAInfo():
     op_mods = dir(bpy.ops)
 
     for op_mod_name in sorted(op_mods):
-        if op_mod_name.startswith('__') or op_mod_name in ("add", "remove"):
+        if op_mod_name.startswith('__'):
             continue
 
         op_mod = getattr(bpy.ops, op_mod_name)
@@ -647,6 +647,7 @@ if __name__ == "__main__":
     if bpy.app.background:
         import sys
         sys.stderr.write("\n".join(data))
+        sys.stderr.write("\n\nEOF\n")
     else:
         text = bpy.data.texts.new(name="api.py")
         text.from_string(data)

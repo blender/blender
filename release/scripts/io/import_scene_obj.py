@@ -379,7 +379,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                 texture.mipmap = True
                 texture.interpolation = True
                 texture.use_alpha = True
-                blender_material.transparency = True
+                blender_material.use_transparency = True
                 blender_material.alpha = 0.0
             else:
                 blender_material.add_texture(texture, 'UV', 'COLOR')
@@ -745,9 +745,9 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
                         image, has_data = unique_material_images[context_material]
                         if image: # Can be none if the material dosnt have an image.
                             blender_tface.image = image
-                            blender_tface.tex = True
+                            blender_tface.use_image = True
                             if has_data and image.depth == 32:
-                                blender_tface.transp = 'ALPHA'
+                                blender_tface.blend_type = 'ALPHA'
 
                     # BUG - Evil eekadoodle problem where faces that have vert index 0 location at 3 or 4 are shuffled.
                     if len(face_vert_loc_indicies)==4:
@@ -806,7 +806,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 # 		for sharp_edge in sharp_edges.keys():
 # 			for ed in me.edges:
 # 				if edges_match(sharp_edge, ed.vertices):
-# 					ed.use_sharp = True
+# 					ed.use_edge_sharp = True
 
 # 	if unique_smooth_groups and sharp_edges:
 # 		SHARP= Mesh.EdgeFlags.SHARP

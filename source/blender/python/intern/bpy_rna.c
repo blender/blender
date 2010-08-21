@@ -1663,12 +1663,12 @@ static int pyrna_struct_contains(BPy_StructRNA *self, PyObject *value)
 		return -1;
 	}
 
-	if(RNA_struct_idproperties_check(self->ptr.type)==0) {
+	if(RNA_struct_idprops_check(self->ptr.type)==0) {
 		PyErr_SetString( PyExc_TypeError, "bpy_struct: this type doesnt support IDProperties");
 		return -1;
 	}
 
-	group= RNA_struct_idproperties(&self->ptr, 0);
+	group= RNA_struct_idprops(&self->ptr, 0);
 	
 	if(!group)
 		return 0;
@@ -1721,7 +1721,7 @@ static PyObject *pyrna_struct_subscript( BPy_StructRNA *self, PyObject *key )
 	IDProperty *group, *idprop;
 	char *name= _PyUnicode_AsString(key);
 
-	if(RNA_struct_idproperties_check(self->ptr.type)==0) {
+	if(RNA_struct_idprops_check(self->ptr.type)==0) {
 		PyErr_SetString( PyExc_TypeError, "this type doesn't support IDProperties");
 		return NULL;
 	}
@@ -1731,7 +1731,7 @@ static PyObject *pyrna_struct_subscript( BPy_StructRNA *self, PyObject *key )
 		return NULL;
 	}
 
-	group= RNA_struct_idproperties(&self->ptr, 0);
+	group= RNA_struct_idprops(&self->ptr, 0);
 
 	if(group==NULL) {
 		PyErr_Format( PyExc_KeyError, "bpy_struct[key]: key \"%s\" not found", name);
@@ -1750,7 +1750,7 @@ static PyObject *pyrna_struct_subscript( BPy_StructRNA *self, PyObject *key )
 
 static int pyrna_struct_ass_subscript( BPy_StructRNA *self, PyObject *key, PyObject *value )
 {
-	IDProperty *group= RNA_struct_idproperties(&self->ptr, 1);
+	IDProperty *group= RNA_struct_idprops(&self->ptr, 1);
 
 	if(group==NULL) {
 		PyErr_SetString(PyExc_TypeError, "bpy_struct[key] = val: id properties not supported for this type");
@@ -1780,12 +1780,12 @@ static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
 {
 	IDProperty *group;
 
-	if(RNA_struct_idproperties_check(self->ptr.type)==0) {
+	if(RNA_struct_idprops_check(self->ptr.type)==0) {
 		PyErr_SetString( PyExc_TypeError, "bpy_struct.keys(): this type doesn't support IDProperties");
 		return NULL;
 	}
 
-	group= RNA_struct_idproperties(&self->ptr, 0);
+	group= RNA_struct_idprops(&self->ptr, 0);
 
 	if(group==NULL)
 		return PyList_New(0);
@@ -1807,12 +1807,12 @@ static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
 {
 	IDProperty *group;
 
-	if(RNA_struct_idproperties_check(self->ptr.type)==0) {
+	if(RNA_struct_idprops_check(self->ptr.type)==0) {
 		PyErr_SetString( PyExc_TypeError, "bpy_struct.items(): this type doesn't support IDProperties");
 		return NULL;
 	}
 
-	group= RNA_struct_idproperties(&self->ptr, 0);
+	group= RNA_struct_idprops(&self->ptr, 0);
 
 	if(group==NULL)
 		return PyList_New(0);
@@ -1834,12 +1834,12 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 {
 	IDProperty *group;
 
-	if(RNA_struct_idproperties_check(self->ptr.type)==0) {
+	if(RNA_struct_idprops_check(self->ptr.type)==0) {
 		PyErr_SetString( PyExc_TypeError, "bpy_struct.values(): this type doesn't support IDProperties");
 		return NULL;
 	}
 
-	group= RNA_struct_idproperties(&self->ptr, 0);
+	group= RNA_struct_idprops(&self->ptr, 0);
 
 	if(group==NULL)
 		return PyList_New(0);
@@ -2101,7 +2101,7 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
 	/* double property lookup, could speed up */
 	/* return PyBool_FromLong(RNA_property_is_set(&self->ptr, name)); */
 	if(RNA_property_flag(prop) & PROP_IDPROPERTY) {
-		IDProperty *group= RNA_struct_idproperties(&self->ptr, 0);		
+		IDProperty *group= RNA_struct_idprops(&self->ptr, 0);		
 		if(group) {
 			ret= IDP_GetPropertyFromGroup(group, name) ? 1:0;
 		}
@@ -2359,7 +2359,7 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 	
 	if(name[0]=='_') { // rna can't start with a "_", so for __dict__ and similar we can skip using rna lookups
 		/* annoying exception, maybe we need to have different types for this... */
-		if((strcmp(name, "__getitem__")==0 || strcmp(name, "__setitem__")==0) && !RNA_struct_idproperties_check(self->ptr.type)) {
+		if((strcmp(name, "__getitem__")==0 || strcmp(name, "__setitem__")==0) && !RNA_struct_idprops_check(self->ptr.type)) {
 			PyErr_SetString(PyExc_AttributeError, "bpy_struct: no __getitem__ support for this type");
 			ret = NULL;
 		}
@@ -2754,12 +2754,12 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 		return NULL;
 
 	/* mostly copied from BPy_IDGroup_Map_GetItem */
-	if(RNA_struct_idproperties_check(self->ptr.type)==0) {
+	if(RNA_struct_idprops_check(self->ptr.type)==0) {
 		PyErr_SetString( PyExc_TypeError, "this type doesn't support IDProperties");
 		return NULL;
 	}
 
-	group= RNA_struct_idproperties(&self->ptr, 0);
+	group= RNA_struct_idprops(&self->ptr, 0);
 	if(group) {
 		idprop= IDP_GetPropertyFromGroup(group, key);
 
@@ -4372,7 +4372,6 @@ static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key
 
 			if(*_PyUnicode_AsString(key)=='_') {
 				PyErr_Format(PyExc_ValueError, "bpy_struct \"%.200s\" registration error: %.200s could not register because the property starts with an '_'\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
-				Py_DECREF(dummy_args);
 				return -1;
 			}
 			pyfunc = PyCapsule_GetPointer(py_func_ptr, NULL);
@@ -4393,8 +4392,6 @@ static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key
 
 				// PyLineSpit();
 				PyErr_Format(PyExc_ValueError, "bpy_struct \"%.200s\" registration error: %.200s could not register\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
-
-				Py_DECREF(dummy_args);
 				return -1;
 			}
 		}
@@ -4411,7 +4408,7 @@ static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key
 	return 0;
 }
 
-int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
+static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 {
 	PyObject *item, *key;
 	PyObject *order;
@@ -4421,12 +4418,10 @@ int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 
 	dummy_args = PyTuple_New(0);
 
-	order= PyDict_GetItemString(class_dict, "order");
-
-	if(order==NULL)
-		PyErr_Clear();
-
-	if(order && PyList_Check(order)) {
+	if(	!PyDict_CheckExact(class_dict) &&
+		(order= PyDict_GetItemString(class_dict, "order")) &&
+		PyList_CheckExact(order)
+	) {
 		for(pos= 0; pos<PyList_GET_SIZE(order); pos++) {
 			key= PyList_GET_ITEM(order, pos);
 			item= PyDict_GetItem(class_dict, key);
@@ -4447,6 +4442,49 @@ int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 	Py_DECREF(dummy_args);
 
 	return 0;
+}
+
+static int pyrna_deferred_register_class_recursive(StructRNA *srna, PyTypeObject *py_class)
+{
+	const int len= PyTuple_GET_SIZE(py_class->tp_bases);
+	int i, ret;
+
+	/* first scan base classes for registerable properties */
+	for(i=0; i<len; i++) {
+		PyTypeObject *py_superclass= (PyTypeObject *)PyTuple_GET_ITEM(py_class->tp_bases, i);
+
+		/* the rules for using these base classes are not clear,
+		 * 'object' is ofcourse not worth looking into and
+		 * existing subclasses of RNA would cause a lot more dictionary
+		 * looping then is needed (SomeOperator would scan Operator.__dict__)
+		 * which is harmless but not at all useful.
+		 *
+		 * So only scan base classes which are not subclasses if blender types.
+		 * This best fits having 'mix-in' classes for operators and render engines.
+		 * */
+		if(	py_superclass != &PyBaseObject_Type &&
+			!PyObject_IsSubclass((PyObject *)py_superclass, (PyObject *)&pyrna_struct_Type)
+		) {
+			ret= pyrna_deferred_register_class_recursive(srna, py_superclass);
+			
+			if(ret != 0) {
+				return ret;
+			}
+		}
+	}
+
+	/* not register out own properties */
+	return pyrna_deferred_register_props(srna, py_class->tp_dict); /* getattr(..., "__dict__") returns a proxy */	
+}
+
+int pyrna_deferred_register_class(StructRNA *srna, PyObject *py_class)
+{
+	/* Panels and Menus dont need this
+	 * save some time and skip the checks here */
+	if(!RNA_struct_idprops_register_check(srna))
+		return 0;
+
+	return pyrna_deferred_register_class_recursive(srna, (PyTypeObject *)py_class);
 }
 
 /*-------------------- Type Registration ------------------------*/
@@ -4888,8 +4926,7 @@ static PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 	StructRegisterFunc reg;
 	StructRNA *srna;
 	StructRNA *srna_new;
-	PyObject *item;
-	const char *identifier= "";
+	const char *identifier;
 
 	if(PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "bl_rna")) {
 		PyErr_SetString(PyExc_AttributeError, "bpy.types.register(...): already registered as a subclass.");
@@ -4923,12 +4960,7 @@ static PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 	/* call the register callback with reports & identifier */
 	BKE_reports_init(&reports, RPT_STORE);
 
-	item= PyObject_GetAttrString(py_class, "__name__");
-
-	if(item) {
-		identifier= _PyUnicode_AsString(item);
-		Py_DECREF(item); /* no need to keep a ref, the class owns it */
-	}
+	identifier= ((PyTypeObject*)py_class)->tp_name;
 
 	srna_new= reg(C, &reports, py_class, identifier, bpy_class_validate, bpy_class_call, bpy_class_free);
 
@@ -4952,15 +4984,8 @@ static PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 	 *
 	 * item= PyObject_GetAttrString(py_class, "__dict__");
 	 */
-	item= ((PyTypeObject*)py_class)->tp_dict;
-	if(item) {
-		if(pyrna_deferred_register_props(srna_new, item)!=0) {
-			return NULL;
-		}
-	}
-	else {
-		PyErr_Clear();
-	}
+	if(pyrna_deferred_register_class(srna_new, py_class)!=0)
+		return NULL;
 
 	Py_RETURN_NONE;
 }

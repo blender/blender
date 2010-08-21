@@ -93,7 +93,7 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
             file.write('d %.6f\n' % mat.alpha) # Alpha (obj uses 'd' for dissolve)
 
             # 0 to disable lighting, 1 for ambient & diffuse only (specular color set to black), 2 for full lighting.
-            if mat.shadeless:
+            if mat.use_shadeless:
                 file.write('illum 0\n') # ignore lighting
             elif mat.specular_intensity == 0:
                 file.write('illum 1\n') # no specular.

@@ -67,7 +67,7 @@ def add_stretch_to(obj, from_name, to_name, name):
     con = stretch_pbone.constraints.new('STRETCH_TO')
     con.target = obj
     con.subtarget = to_name
-    con.original_length = (head - tail).length
+    con.rest_length = (head - tail).length
     con.keep_axis = 'PLANE_X'
     con.volume = 'NO_VOLUME'
 

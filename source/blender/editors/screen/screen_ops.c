@@ -1748,10 +1748,10 @@ static int area_join_init(bContext *C, wmOperator *op)
 	int x2, y2;
 	
 	/* required properties, make negative to get return 0 if not set by caller */
-	x1= RNA_int_get(op->ptr, "x1");
-	y1= RNA_int_get(op->ptr, "y1");
-	x2= RNA_int_get(op->ptr, "x2");
-	y2= RNA_int_get(op->ptr, "y2");
+	x1= RNA_int_get(op->ptr, "min_x");
+	y1= RNA_int_get(op->ptr, "min_y");
+	x2= RNA_int_get(op->ptr, "max_x");
+	y2= RNA_int_get(op->ptr, "max_y");
 	
 	sa1 = screen_areahascursor(CTX_wm_screen(C), x1, y1);
 	sa2 = screen_areahascursor(CTX_wm_screen(C), x2, y2);
@@ -1832,10 +1832,10 @@ static int area_join_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_PASS_THROUGH;
 		
 		/* prepare operator state vars */
-		RNA_int_set(op->ptr, "x1", sad->x);
-		RNA_int_set(op->ptr, "y1", sad->y);
-		RNA_int_set(op->ptr, "x2", event->x);
-		RNA_int_set(op->ptr, "y2", event->y);
+		RNA_int_set(op->ptr, "min_x", sad->x);
+		RNA_int_set(op->ptr, "min_y", sad->y);
+		RNA_int_set(op->ptr, "max_x", event->x);
+		RNA_int_set(op->ptr, "max_y", event->y);
 		
 		if(!area_join_init(C, op)) 
 			return OPERATOR_PASS_THROUGH;
@@ -1977,10 +1977,10 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING;
 	
 	/* rna */
-	RNA_def_int(ot->srna, "x1", -100, INT_MIN, INT_MAX, "X 1", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "y1", -100, INT_MIN, INT_MAX, "Y 1", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "x2", -100, INT_MIN, INT_MAX, "X 2", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "y2", -100, INT_MIN, INT_MAX, "Y 2", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "min_x", -100, INT_MIN, INT_MAX, "X 1", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "min_y", -100, INT_MIN, INT_MAX, "Y 1", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "max_x", -100, INT_MIN, INT_MAX, "X 2", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "max_y", -100, INT_MIN, INT_MAX, "Y 2", "", INT_MIN, INT_MAX);
 }
 
 /* ************** repeat last operator ***************************** */

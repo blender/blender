@@ -84,7 +84,7 @@ class DATA_PT_template(bpy.types.Panel):
         row.operator("pose.metarig_validate", text="Check")
         row.operator("pose.metarig_graph", text="Graph")
         row = layout.row()
-        row.prop(pose_templates, "generate_def_rig")
+        row.prop(pose_templates, "use_generate_deform_rig")
 
         row = layout.row()
         col = row.column()
@@ -151,7 +151,7 @@ class Generate(bpy.types.Operator):
         import rigify
         reload(rigify)
 
-        meta_def = context.scene.pose_templates.generate_def_rig
+        meta_def = context.scene.pose_templates.use_generate_deform_rig
 
         try:
             rigify.generate_rig(context, context.object, META_DEF=meta_def)
@@ -329,7 +329,7 @@ def register():
                     min=-1,
                     max=65535)
 
-    PoseTemplateSettings.BoolProperty(attr="generate_def_rig",
+    PoseTemplateSettings.BoolProperty(attr="use_generate_deform_rig",
                     name="Create Deform Rig",
                     description="Create a copy of the metarig, constrainted by the generated rig",
                     default=False)

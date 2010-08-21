@@ -139,11 +139,13 @@ static void rna_def_text_marker(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Line", "Line in which the marker is located");
 	
-	prop= RNA_def_property(srna, "start", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "character_index_start", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "start");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Start", "Start position of the marker in the line");
 
-	prop= RNA_def_property(srna, "end", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "character_index_end", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "end");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "End", "Start position of the marker in the line");
 	

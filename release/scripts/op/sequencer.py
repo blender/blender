@@ -129,7 +129,7 @@ class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
     def execute(self, context):
         for s in context.scene.sequence_editor.sequences_all:
             if s.select and s.type == 'MOVIE':
-                s.de_interlace = True
+                s.use_deinterlace = True
 
         return {'FINISHED'}
 
