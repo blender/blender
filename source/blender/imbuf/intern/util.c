@@ -77,7 +77,7 @@ const char *imb_ext_image[] = {
 #ifdef WITH_TIFF
 	".tif", ".tiff", ".tx",
 #endif
-#ifdef WITH_BF_OPENJPEG
+#ifdef WITH_OPENJPEG
 	".jp2",
 #endif
 #ifdef WITH_HDR
@@ -90,7 +90,7 @@ const char *imb_ext_image[] = {
 	".dpx",
 	".cin",
 #endif
-#ifdef WITH_BF_OPENEXR
+#ifdef WITH_OPENEXR
 	".exr",
 #endif
 	NULL};
