@@ -674,6 +674,10 @@ class ConstraintButtonsPanel():
         col = layout.column()
         col.prop(con, "rotation_range", text="Pivot When")
 
+    def SCRIPT(self, context, layout, con):
+        layout.label("blender 2.5 has no py-constraints")
+
+
 class OBJECT_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
     bl_label = "Object Constraints"
     bl_context = "constraint"

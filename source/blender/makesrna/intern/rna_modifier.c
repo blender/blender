@@ -1407,17 +1407,17 @@ static void rna_def_modifier_smooth(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SmoothModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_SMOOTH);
 
-	prop= RNA_def_property(srna, "ise_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SMOOTH_X);
 	RNA_def_property_ui_text(prop, "X", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "ise_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SMOOTH_Y);
 	RNA_def_property_ui_text(prop, "Y", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "ise_z", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SMOOTH_Z);
 	RNA_def_property_ui_text(prop, "Z", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");

@@ -496,7 +496,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
 
-        if md.mode == 'PROJECT':
+        if md.wrap_method == 'PROJECT':
             col.label(text="Axis:")
             col.prop(md, "use_project_x")
             col.prop(md, "use_project_y")
@@ -516,7 +516,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
             layout.label(text="Auxiliary Target:")
             layout.prop(md, "auxiliary_target", text="")
 
-        elif md.mode == 'NEAREST_SURFACEPOINT':
+        elif md.wrap_method == 'NEAREST_SURFACEPOINT':
             layout.prop(md, "use_keep_above_surface")
 
     def SIMPLE_DEFORM(self, layout, ob, md):
@@ -543,7 +543,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.label(text="Deform:")
         col.prop(md, "factor")
         col.prop(md, "limits", slider=True)
-        if md.mode in ('TAPER', 'STRETCH'):
+        if md.deform_method in ('TAPER', 'STRETCH'):
             col.prop(md, "lock_x")
             col.prop(md, "lock_y")
 
@@ -653,7 +653,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(md, "use_normal")
         sub = col.column()
-        sub.active = md.normals
+        sub.active = md.use_normal
         sub.prop(md, "use_normal_x", text="X")
         sub.prop(md, "use_normal_y", text="Y")
         sub.prop(md, "use_normal_z", text="Z")
