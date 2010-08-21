@@ -745,7 +745,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
                         image, has_data = unique_material_images[context_material]
                         if image: # Can be none if the material dosnt have an image.
                             blender_tface.image = image
-                            blender_tface.tex = True
+                            blender_tface.use_image = True
                             if has_data and image.depth == 32:
                                 blender_tface.blend_type = 'ALPHA'
 
