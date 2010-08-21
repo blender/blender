@@ -219,7 +219,10 @@ def render_slave(engine, netsettings, threads):
                 if cancelled:
                     # kill process if needed
                     if process.poll() == None:
-                        process.terminate()
+                        try:
+                            process.terminate()
+                        except OSError:
+                            pass
                     continue # to next frame
 
                 # flush the rest of the logs
