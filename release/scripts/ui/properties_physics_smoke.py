@@ -140,7 +140,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(group, "fluid_group", text="")
 
         #col.label(text="Effector Group:")
-        #col.prop(group, "eff_group", text="")
+        #col.prop(group, "effector_group", text="")
 
         col = split.column()
         col.label(text="Collision Group:")
