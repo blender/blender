@@ -196,7 +196,7 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
             col.label(text="Edge Detection Options:")
             col.prop(freestyle, "crease_angle")
             col.prop(freestyle, "sphere_radius")
-            col.prop(freestyle, "dkr_epsilon")
+            col.prop(freestyle, "kr_derivative_epsilon")
 
             lineset = freestyle.active_lineset
 
@@ -205,7 +205,6 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
             rows = 2
             if lineset:
                 rows = 5
-            # FIXME: scrollbar does not work correctly
             row.template_list(freestyle, "linesets", freestyle, "active_lineset_index", rows=rows)
 
             sub = row.column()
@@ -256,12 +255,12 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
 
             col.prop(freestyle, "crease_angle")
             col.prop(freestyle, "sphere_radius")
-            col.prop(freestyle, "ridges_and_valleys")
-            col.prop(freestyle, "suggestive_contours")
+            col.prop(freestyle, "use_ridges_and_valleys")
+            col.prop(freestyle, "use_suggestive_contours")
             sub = col.row()
-            sub.prop(freestyle, "dkr_epsilon")
-            sub.active = freestyle.suggestive_contours
-            col.prop(freestyle, "material_boundaries")
+            sub.prop(freestyle, "kr_derivative_epsilon")
+            sub.active = freestyle.use_suggestive_contours
+            col.prop(freestyle, "use_material_boundaries")
             col.operator("scene.freestyle_module_add")
 
             for i, module in enumerate(freestyle.modules):

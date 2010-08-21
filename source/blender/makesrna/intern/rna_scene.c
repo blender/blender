@@ -1738,17 +1738,17 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Control Mode", "Select the Freestyle control mode");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "suggestive_contours", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_suggestive_contours", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_SUGGESTIVE_CONTOURS_FLAG);
 	RNA_def_property_ui_text(prop, "Suggestive Contours", "Enable suggestive contours.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "ridges_and_valleys", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_ridges_and_valleys", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_RIDGES_AND_VALLEYS_FLAG);
 	RNA_def_property_ui_text(prop, "Ridges and Valleys", "Enable ridges and valleys.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "material_boundaries", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_material_boundaries", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_MATERIAL_BOUNDARIES_FLAG);
 	RNA_def_property_ui_text(prop, "Material Boundaries", "Enable material boundaries.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
@@ -1759,7 +1759,7 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sphere Radius", "Sphere radius for computing curvatures.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "dkr_epsilon", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "kr_derivative_epsilon", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dkr_epsilon");
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Kr Derivative Epsilon", "Kr derivative epsilon for computing suggestive contours.");
