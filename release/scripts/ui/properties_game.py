@@ -140,7 +140,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col.prop(soft, "use_cluster_rigid_to_softbody")
             col.prop(soft, "use_cluster_soft_to_softbody")
             sub = col.column()
-            sub.active = (soft.cluster_rigid_to_softbody or soft.use_cluster_soft_to_softbody)
+            sub.active = (soft.use_cluster_rigid_to_softbody or soft.use_cluster_soft_to_softbody)
             sub.prop(soft, "cluster_iterations", text="Iterations")
 
         elif game.physics_type == 'STATIC':
