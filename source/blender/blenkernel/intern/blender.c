@@ -43,6 +43,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 #include <fcntl.h> // for open
 
@@ -640,12 +641,8 @@ void BKE_undo_number(bContext *C, int nr)
 /* go back to the last occurance of name in stack */
 void BKE_undo_name(bContext *C, const char *name)
 {
-	UndoElem *uel;
-	
-	for(uel= undobase.last; uel; uel= uel->prev) {
-		if(strcmp(name, uel->name)==0)
-			break;
-	}
+	UndoElem *uel= BLI_findstring(&undobase, name, offsetof(UndoElem, name));
+
 	if(uel && uel->prev) {
 		curundo= uel->prev;
 		BKE_undo_step(C, 0);

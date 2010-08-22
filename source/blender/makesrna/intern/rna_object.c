@@ -122,6 +122,7 @@ EnumPropertyItem object_type_curve_items[] = {
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
+#include "BKE_deform.h"
 
 #include "BLI_editVert.h" /* for EditMesh->mat_nr */
 
@@ -448,32 +449,19 @@ int rna_object_vgroup_name_index_length(PointerRNA *ptr, int index)
 void rna_object_vgroup_name_index_set(PointerRNA *ptr, const char *value, short *index)
 {
 	Object *ob= (Object*)ptr->id.data;
-	bDeformGroup *dg;
-	int a;
-
-	for(a=1, dg=ob->defbase.first; dg; dg=dg->next, a++) {
-		if(strcmp(dg->name, value) == 0) {
-			*index= a;
-			return;
-		}
-	}
-
-	*index= 0;
+	*index= defgroup_name_index(ob, value) + 1;
 }
 
 void rna_object_vgroup_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
 {
 	Object *ob= (Object*)ptr->id.data;
-	bDeformGroup *dg;
-
-	for(dg=ob->defbase.first; dg; dg=dg->next) {
-		if(strcmp(dg->name, value) == 0) {
-			BLI_strncpy(result, value, maxlen);
-			return;
-		}
+	bDeformGroup *dg= defgroup_find_name(ob, value);
+	if(dg) {
+		BLI_strncpy(result, value, maxlen);
+		return;
 	}
 
-	BLI_strncpy(result, "", maxlen);
+	result[0]= '\0';
 }
 
 void rna_object_uvlayer_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)

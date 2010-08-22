@@ -486,13 +486,7 @@ void docenter_armature (Scene *scene, Object *ob, float cursor[3], int centermod
 /* checks if an EditBone with a matching name already, returning the matching bone if it exists */
 static EditBone *editbone_name_exists (ListBase *edbo, const char *name)
 {
-	EditBone *eBone;
-	
-	for (eBone=edbo->first; eBone; eBone=eBone->next) {
-		if (!strcmp(name, eBone->name))
-			return eBone;
-	}
-	return NULL;
+	return BLI_findstring(edbo, name, offsetof(EditBone, name));
 }
 
 /* note: there's a unique_bone_name() too! */
@@ -4657,7 +4651,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 	bArmature *arm= par->data;
 	Bone **bonelist, *bone;
 	bDeformGroup **dgrouplist, **dgroupflip;
-	bDeformGroup *dgroup, *curdg;
+	bDeformGroup *dgroup;
 	bPoseChannel *pchan;
 	Mesh *mesh;
 	Mat4 *bbone = NULL;
@@ -4751,13 +4745,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 
 			// 0 = don't strip off number extensions
 			flip_side_name(name, dgroup->name, FALSE);
-
-			for (curdg = ob->defbase.first; curdg; curdg=curdg->next) {
-				if (!strcmp(curdg->name, name))
-					break;
-			}
-			
-			dgroupflip[j] = curdg;
+			dgroupflip[j] = defgroup_find_name(ob, name);
 		}
 	}
 
@@ -5514,11 +5502,9 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			}
 			
 			if (modifiers_usesArmature(ob, arm)) { 
-				bDeformGroup *dg;
-				/* bone name in defgroup */
-				for (dg=ob->defbase.first; dg; dg=dg->next) {
-					if (!strcmp(dg->name, oldname))
-					   BLI_strncpy(dg->name, newname, MAXBONENAME);
+				bDeformGroup *dg= defgroup_find_name(ob, oldname);
+				if(dg) {
+					BLI_strncpy(dg->name, newname, MAXBONENAME);
 				}
 			}
 			

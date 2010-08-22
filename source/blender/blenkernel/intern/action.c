@@ -368,20 +368,12 @@ void action_groups_remove_channel (bAction *act, FCurve *fcu)
 /* Find a group with the given name */
 bActionGroup *action_groups_find_named (bAction *act, const char name[])
 {
-	bActionGroup *grp;
-	
 	/* sanity checks */
 	if (ELEM3(NULL, act, act->groups.first, name) || (name[0] == 0))
 		return NULL;
 		
 	/* do string comparisons */
-	for (grp= act->groups.first; grp; grp= grp->next) {
-		if (strcmp(grp->name, name) == 0)
-			return grp;
-	}
-	
-	/* not found */
-	return NULL;
+	return BLI_findstring(&act->groups, name, offsetof(bActionGroup, name));
 }
 
 /* *************** Pose channels *************** */
