@@ -350,6 +350,10 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 						ED_area_tag_redraw(sa);
 					break;
 			}
+		/* Listener for preview render, when doing an global undo. */
+		case NC_WINDOW:
+			ED_area_tag_redraw(sa);
+			sbuts->preview= 1;
 	}
 
 	if(wmn->data == ND_KEYS)
