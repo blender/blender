@@ -1117,7 +1117,7 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel, bpy.types.Panel):
 
         col = layout.column()
         col.prop(wpaint, "use_all_faces")
-        col.prop(wpaint, "normals")
+        col.prop(wpaint, "use_normal")
         col.prop(wpaint, "use_spray")
 
         obj = context.weight_paint_object

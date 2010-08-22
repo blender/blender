@@ -95,7 +95,7 @@ int vertex_paint_mode_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
-	return ob && ob->mode == OB_MODE_VERTEX_PAINT;
+	return ob && ob->mode == OB_MODE_VERTEX_PAINT && ((Mesh *)ob->data)->totface;
 }
 
 int vertex_paint_poll(bContext *C)
@@ -107,8 +107,8 @@ int vertex_paint_poll(bContext *C)
 			ARegion *ar= CTX_wm_region(C);
 			if(ar->regiontype==RGN_TYPE_WINDOW)
 				return 1;
+			}
 		}
-	}
 	return 0;
 }
 
@@ -116,7 +116,7 @@ int weight_paint_mode_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
-	return ob && ob->mode == OB_MODE_WEIGHT_PAINT;
+	return ob && ob->mode == OB_MODE_WEIGHT_PAINT && ((Mesh *)ob->data)->totface;
 }
 
 int weight_paint_poll(bContext *C)
