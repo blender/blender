@@ -713,10 +713,10 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
             subsub.active = (part.use_strand_primitive is False)
             subsub.prop(part, "use_render_adaptive")
             subsub = sub.column()
-            subsub.active = part.render_adaptive or part.use_strand_primitive == True
+            subsub.active = part.use_render_adaptive or part.use_strand_primitive == True
             subsub.prop(part, "adaptive_angle")
             subsub = sub.column()
-            subsub.active = (part.render_adaptive is True and part.use_strand_primitive is False)
+            subsub.active = (part.use_render_adaptive is True and part.use_strand_primitive is False)
             subsub.prop(part, "adaptive_pixel")
             sub.prop(part, "use_hair_bspline")
             sub.prop(part, "render_step", text="Steps")

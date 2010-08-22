@@ -524,7 +524,7 @@ class ConstraintButtonsPanel():
         self.space_template(layout, con)
 
     def RIGID_BODY_JOINT(self, context, layout, con):
-        self.target_template(layout, con)
+        self.target_template(layout, con, subtargets=False)
 
         layout.prop(con, "pivot_type")
         layout.prop(con, "child")
