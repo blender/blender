@@ -241,7 +241,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "environment_energy", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ao_env_energy");
-	RNA_def_property_ui_range(prop, 0, FLT_MAX, 0.1, 2);
+	RNA_def_property_ui_range(prop, 0, FLT_MAX, 1, 3);
 	RNA_def_property_ui_text(prop, "Environment Color", "Defines the strength of environment light");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 

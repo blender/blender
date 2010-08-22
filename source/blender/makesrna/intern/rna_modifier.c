@@ -811,9 +811,10 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "DecimateModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_DECIM);
 
-	prop= RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "percent");
 	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 1, 2);
 	RNA_def_property_ui_text(prop, "Ratio", "Defines the ratio of triangles to reduce to");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1356,28 +1357,28 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "aspect_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aspectx");
 	RNA_def_property_range(prop, 1, FLT_MAX);
-	RNA_def_property_ui_range(prop, 1, 1000, 0.2, 2);
+	RNA_def_property_ui_range(prop, 1, 1000, 1, 3);
 	RNA_def_property_ui_text(prop, "Horizontal Aspect Ratio", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "aspect_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aspecty");
 	RNA_def_property_range(prop, 1, FLT_MAX);
-	RNA_def_property_ui_range(prop, 1, 1000, 0.2, 2);
+	RNA_def_property_ui_range(prop, 1, 1000, 1, 3);
 	RNA_def_property_ui_text(prop, "Vertical Aspect Ratio", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	
 	prop= RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scalex");
 	RNA_def_property_range(prop, 0, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0, 1000, 0.2, 2);
+	RNA_def_property_ui_range(prop, 0, 1000, 1, 3);
 	RNA_def_property_ui_text(prop, "Horizontal Scale", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "scale_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scaley");
 	RNA_def_property_range(prop, 0, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0, 1000, 0.2, 2);
+	RNA_def_property_ui_range(prop, 0, 1000, 1, 3);
 	RNA_def_property_ui_text(prop, "Vertical Scale", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1425,7 +1426,7 @@ static void rna_def_modifier_smooth(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fac");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, -10, 10, 0.5, 2);
+	RNA_def_property_ui_range(prop, -10, 10, 1, 3);
 	RNA_def_property_ui_text(prop, "Factor", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1504,13 +1505,13 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0, 100, 10, 2);
+	RNA_def_property_ui_range(prop, 0, 100, 5, 2);
 	RNA_def_property_ui_text(prop, "Radius", "Only deform vertices within this distance from the center of the effect (leave as 0 for infinite.)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0, 100, 10, 2);
+	RNA_def_property_ui_range(prop, 0, 100, 5, 2);
 	RNA_def_property_ui_text(prop, "Size", "Size of projection shape (leave as 0 for auto.)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -2051,7 +2052,7 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, -10, 10, 0.5, 2);
+	RNA_def_property_ui_range(prop, -10, 10, 1, 3);
 	RNA_def_property_ui_text(prop, "Factor", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
