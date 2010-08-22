@@ -384,12 +384,12 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
             split = layout.split()
 
             col = split.column()
-            factor_but(col, tex.use_map_blend, "map_blend", "blend_factor", "Blend")
-            factor_but(col, tex.use_map_horizon, "map_horizon", "horizon_factor", "Horizon")
+            factor_but(col, tex.use_map_blend, "use_map_blend", "blend_factor", "Blend")
+            factor_but(col, tex.use_map_horizon, "use_map_horizon", "horizon_factor", "Horizon")
 
             col = split.column()
-            factor_but(col, tex.use_map_zenith_up, "map_zenith_up", "zenith_up_factor", "Zenith Up")
-            factor_but(col, tex.use_map_zenith_down, "map_zenith_down", "zenith_down_factor", "Zenith Down")
+            factor_but(col, tex.use_map_zenith_up, "use_map_zenith_up", "zenith_up_factor", "Zenith Up")
+            factor_but(col, tex.use_map_zenith_down, "use_map_zenith_down", "zenith_down_factor", "Zenith Down")
 
         layout.separator()
 
