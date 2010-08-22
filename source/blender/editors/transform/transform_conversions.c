@@ -647,7 +647,8 @@ static void bone_children_clear_transflag(int mode, short around, ListBase *lb)
 	}
 }
 
-/* sets transform flags in the bones, returns total */
+/* sets transform flags in the bones
+ * returns total number of bones with BONE_TRANSFORM */
 int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 {
 	bArmature *arm= ob->data;

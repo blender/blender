@@ -1130,8 +1130,8 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 		 * rather than just chopping and adding numbers, 
 		 * shave off the end chars until we have a unique name.
 		 * Check the null terminators match as well so we dont get Cube.000 -> Cube.00 */
-		if (nr==0 && name[left_len]== left[left_len]) {
-			int len = strlen(name)-1;
+		if (nr==0 && name[left_len]== '\0') {
+			int len = left_len-1;
 			idtest= is_dupid(lb, id, name);
 			
 			while (idtest && len> 1) {

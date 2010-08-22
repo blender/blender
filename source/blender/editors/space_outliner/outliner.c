@@ -1554,10 +1554,10 @@ static void outliner_set_flag(SpaceOops *soops, ListBase *lb, short flag, short 
 void object_toggle_visibility_cb(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Base *base= (Base *)te->directdata;
-	
-	if(base==NULL) base= object_in_scene((Object *)tselem->id, scene);
-	if(base) {
-		base->object->restrictflag^=OB_RESTRICT_VIEW;
+	if(base || (base= object_in_scene((Object *)tselem->id, scene))) {
+		if((base->object->restrictflag ^= OB_RESTRICT_VIEW)) {
+			ED_base_object_select(base, BA_DESELECT);
+		}
 	}
 }
 
@@ -1883,8 +1883,8 @@ static void tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	}
 	
 	/* find associated base in current scene */
-	for(base= FIRSTBASE; base; base= base->next) 
-		if(base->object==ob) break;
+	base= object_in_scene(ob, scene);
+
 	if(base) {
 		if(set==2) {
 			/* swap select */
@@ -1894,12 +1894,8 @@ static void tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 				ED_base_object_select(base, BA_SELECT);
 		}
 		else {
-			Base *b;
 			/* deleselect all */
-			for(b= FIRSTBASE; b; b= b->next) {
-				b->flag &= ~SELECT;
-				b->object->flag= b->flag;
-			}
+			scene_deselect_all(scene);
 			ED_base_object_select(base, BA_SELECT);
 		}
 		if(C)
@@ -4835,7 +4831,6 @@ static void outliner_draw_restrictcols(ARegion *ar, SpaceOops *soops)
 
 static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 {
-	Base *base;
 	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
 	Object *obedit= CTX_data_edit_object(C);
@@ -4851,15 +4846,9 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 	
 	/* deselect objects that are invisible */
 	if (ob->restrictflag & OB_RESTRICT_VIEW) {
-	
 		/* Ouch! There is no backwards pointer from Object to Base, 
 		 * so have to do loop to find it. */
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(base->object==ob) {
-				base->flag &= ~SELECT;
-				base->object->flag= base->flag;
-			}
-		}
+		ED_base_object_select(object_in_scene(ob, scene), BA_DESELECT);
 	}
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 
@@ -4867,21 +4856,14 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 
 static void restrictbutton_sel_cb(bContext *C, void *poin, void *poin2)
 {
-	Base *base;
 	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
 	
 	/* if select restriction has just been turned on */
 	if (ob->restrictflag & OB_RESTRICT_SELECT) {
-	
 		/* Ouch! There is no backwards pointer from Object to Base, 
 		 * so have to do loop to find it. */
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(base->object==ob) {
-				base->flag &= ~SELECT;
-				base->object->flag= base->flag;
-			}
-		}
+		ED_base_object_select(object_in_scene(ob, scene), BA_DESELECT);
 	}
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 
@@ -4908,9 +4890,20 @@ static void restrictbutton_modifier_cb(bContext *C, void *poin, void *poin2)
 
 static void restrictbutton_bone_cb(bContext *C, void *poin, void *poin2)
 {
+	Bone *bone= (Bone *)poin2;
+	if(bone && (bone->flag & BONE_HIDDEN_P))
+		bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
 }
 
+static void restrictbutton_ebone_cb(bContext *C, void *poin, void *poin2)
+{
+	EditBone *ebone= (EditBone *)poin2;
+	if(ebone && (ebone->flag & BONE_HIDDEN_A))
+		ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+}
 
 static int group_restrict_flag(Group *gr, int flag)
 {
@@ -5195,7 +5188,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
-				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
+				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, bone);
 				
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
@@ -5207,11 +5200,11 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
-				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
+				uiButSetFunc(bt, restrictbutton_ebone_cb, NULL, ebone);
 				
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
-				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
+				uiButSetFunc(bt, restrictbutton_ebone_cb, NULL, NULL);
 			}
 		}
 		
