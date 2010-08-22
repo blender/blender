@@ -1250,10 +1250,11 @@ static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_s
 		if(RNA_property_collection_lookup_int(&self->ptr, self->prop, keynum, &newptr)) {
 			return pyrna_struct_CreatePyObject(&newptr);
 		}
-		PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d could not be found", keynum);
-		return NULL;
+		else { /* fail's if ptr.data == NULL, valid for mesh.materials */
+			Py_RETURN_NONE;
+		}
 	}
-	PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d out of range", keynum);
+	PyErr_Format(PyExc_IndexError, "bpy_prop_collection[index]: index %d out of range, size %d", keynum, len);
 	return NULL;
 }
 

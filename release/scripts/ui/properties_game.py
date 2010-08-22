@@ -425,21 +425,21 @@ class WORLD_PT_game_mist(WorldButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         world = context.world
 
-        self.layout.prop(world.mist, "use_mist", text="")
+        self.layout.prop(world.mist_settings, "use_mist", text="")
 
     def draw(self, context):
         layout = self.layout
 
         world = context.world
 
-        layout.active = world.mist.use_mist
+        layout.active = world.mist_settings.use_mist
         split = layout.split()
 
         col = split.column()
-        col.prop(world.mist, "start")
+        col.prop(world.mist_settings, "start")
 
         col = split.column()
-        col.prop(world.mist, "depth")
+        col.prop(world.mist_settings, "depth")
 
 
 class WORLD_PT_game_physics(WorldButtonsPanel, bpy.types.Panel):
