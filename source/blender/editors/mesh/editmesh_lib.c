@@ -967,13 +967,13 @@ static void update_data_blocks(EditMesh *em, CustomData *olddata, CustomData *da
 	}
 }
 
-void EM_add_data_layer(EditMesh *em, CustomData *data, int type)
+void EM_add_data_layer(EditMesh *em, CustomData *data, int type, const char *name)
 {
 	CustomData olddata;
 
 	olddata= *data;
 	olddata.layers= (olddata.layers)? MEM_dupallocN(olddata.layers): NULL;
-	CustomData_add_layer(data, type, CD_CALLOC, NULL, 0);
+	CustomData_add_layer_named(data, type, CD_CALLOC, NULL, 0, name);
 
 	update_data_blocks(em, &olddata, data);
 	if (olddata.layers) MEM_freeN(olddata.layers);

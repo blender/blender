@@ -375,7 +375,7 @@ kmi.properties.value_2 = 'CONNECTED'
 kmi = km.items.add('mesh.select_all', 'SELECTMOUSE', 'CLICK')
 kmi.properties.action = 'DESELECT'
 
-wm.active_keyconfig = kc
+wm.keyconfigs.active = kc
 
 bpy.context.user_preferences.edit.use_drag_immediately = True
 bpy.context.user_preferences.edit.use_insertkey_xyz_to_rgb = False

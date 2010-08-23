@@ -107,7 +107,7 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 	
 	/* ensure we have a uv layer */
 	if(!CustomData_has_layer(&em->fdata, CD_MTFACE)) {
-		EM_add_data_layer(em, &em->fdata, CD_MTFACE);
+		EM_add_data_layer(em, &em->fdata, CD_MTFACE, NULL);
 		update= 1;
 	}
 

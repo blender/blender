@@ -1135,6 +1135,28 @@ static void rna_def_pose_ikparam(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "IK Solver", "IK solver for which these parameters are defined, 0 for Legacy, 1 for iTaSC");
 }
 
+/* pose.bone_groups */
+static void rna_def_bone_groups(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+//	FunctionRNA *func;
+//	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "BoneGroups");
+	srna= RNA_def_struct(brna, "BoneGroups", NULL);
+	RNA_def_struct_sdna(srna, "bPose");
+	RNA_def_struct_ui_text(srna, "Bone Groups", "Collection of bone groups");
+
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "BoneGroup");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_Pose_active_bone_group_get", "rna_Pose_active_bone_group_set", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Bone Group", "Active bone group for this pose");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
+}
+
 static void rna_def_pose(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1156,13 +1178,7 @@ static void rna_def_pose(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "agroups", NULL);
 	RNA_def_property_struct_type(prop, "BoneGroup");
 	RNA_def_property_ui_text(prop, "Bone Groups", "Groups of the bones");
-
-	prop= RNA_def_property(srna, "active_bone_group", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "BoneGroup");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_Pose_active_bone_group_get", "rna_Pose_active_bone_group_set", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Active Bone Group", "Active bone group for this pose");
-	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
+	rna_def_bone_groups(brna, prop);
 
 	prop= RNA_def_property(srna, "active_bone_group_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "active_group");

@@ -1341,7 +1341,7 @@ static void vgroup_assign_verts(Object *ob, float weight)
 		EditMesh *em = BKE_mesh_get_editmesh(me);
 
 		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT))
-			EM_add_data_layer(em, &em->vdata, CD_MDEFORMVERT);
+			EM_add_data_layer(em, &em->vdata, CD_MDEFORMVERT, NULL);
 
 		/* Go through the list of editverts and assign them */
 		for(eve=em->verts.first; eve; eve=eve->next){

@@ -402,9 +402,9 @@ class x3d_class:
         if len(mesh.faces) == 0: return
         mode = []
         # mode = 0
-        if mesh.active_uv_texture:
+        if mesh.uv_textures.active:
         # if mesh.faceUV:
-            for face in mesh.active_uv_texture.data:
+            for face in mesh.uv_textures.active.data:
             # for face in mesh.faces:
                 if face.use_halo and 'HALO' not in mode:
                     mode += ['HALO']
@@ -463,7 +463,7 @@ class x3d_class:
         hasImageTexture=0
         is_smooth = False
 
-        if len(maters) > 0 or mesh.active_uv_texture:
+        if len(maters) > 0 or mesh.uv_textures.active:
         # if len(maters) > 0 or mesh.faceUV:
             self.writeIndented("<Appearance>\n", 1)
             # right now this script can only handle a single material per mesh.
@@ -480,9 +480,9 @@ class x3d_class:
 
                 #-- textures
                 face = None
-                if mesh.active_uv_texture:
+                if mesh.uv_textures.active:
                 # if mesh.faceUV:
-                    for face in mesh.active_uv_texture.data:
+                    for face in mesh.uv_textures.active.data:
                     # for face in mesh.faces:
                         if face.image:
                         # if (hasImageTexture == 0) and (face.image):
@@ -525,7 +525,7 @@ class x3d_class:
                 self.file.write("creaseAngle=\"%s\" " % (round(creaseAngle,self.cp)))
 
             #--- output textureCoordinates if UV texture used
-            if mesh.active_uv_texture:
+            if mesh.uv_textures.active:
             # if mesh.faceUV:
                 if self.matonly == 1 and self.share == 1:
                     self.writeFaceColors(mesh)
@@ -540,7 +540,7 @@ class x3d_class:
             self.writeCoordinates(ob, mesh, meshName, EXPORT_TRI)
 
             #--- output textureCoordinates if UV texture used
-            if mesh.active_uv_texture:
+            if mesh.uv_textures.active:
             # if mesh.faceUV:
                 if hasImageTexture == 1:
                     self.writeTextureCoordinates(mesh)
@@ -614,7 +614,7 @@ class x3d_class:
         texIndexList=[]
         j=0
 
-        for face in mesh.active_uv_texture.data:
+        for face in mesh.uv_textures.active.data:
         # for face in mesh.faces:
             # workaround, since tface.uv iteration is wrong atm
             uvs = face.uv
@@ -646,10 +646,10 @@ class x3d_class:
     def writeFaceColors(self, mesh):
         if self.writingcolor == 0:
             self.file.write("colorPerVertex=\"false\" ")
-        elif mesh.active_vertex_color:
+        elif mesh.vertex_colors.active:
         # else:
             self.writeIndented("<Color color=\"", 1)
-            for face in mesh.active_vertex_color.data:
+            for face in mesh.vertex_colors.active.data:
                 c = face.color1
                 if self.verbose > 2:
                     print("Debug: face.col r=%d g=%d b=%d" % (c[0], c[1], c[2]))
@@ -961,9 +961,9 @@ class x3d_class:
         faceMap={}
         nFaceIndx=0
 
-        if mesh.active_uv_texture:
+        if mesh.uv_textures.active:
         # if mesh.faceUV:
-            for face in mesh.active_uv_texture.data:
+            for face in mesh.uv_textures.active.data:
             # for face in mesh.faces
                 sidename = "two" if face.use_twoside else "one"
 

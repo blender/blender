@@ -126,7 +126,7 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
         col.operator("pose.group_add", icon='ZOOMIN', text="")
         col.operator("pose.group_remove", icon='ZOOMOUT', text="")
 
-        group = pose.active_bone_group
+        group = pose.bone_groups.active
         if group:
             col = layout.column()
             col.active = (ob.proxy is None)

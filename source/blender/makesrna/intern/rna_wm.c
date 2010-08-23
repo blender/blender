@@ -1237,6 +1237,45 @@ static void rna_def_window(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Window_screen_update");
 }
 
+/* curve.splines */
+static void rna_def_wm_keyconfigs(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	//FunctionRNA *func;
+	//PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "KeyConfigurations");
+	srna= RNA_def_struct(brna, "KeyConfigurations", NULL);
+	RNA_def_struct_sdna(srna, "wmWindowManager");
+	RNA_def_struct_ui_text(srna, "KeyConfigs", "Collection of KeyConfigs");
+/*
+	func= RNA_def_function(srna, "new", "rna_Curve_spline_new");
+	RNA_def_function_ui_description(func, "Add a new spline to the curve.");
+	parm= RNA_def_enum(func, "type", curve_type_items, CU_POLY, "", "type for the new spline.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "spline", "Spline", "", "The newly created spline.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_Curve_spline_remove");
+	RNA_def_function_ui_description(func, "Remove a spline from a curve.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+*/
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "KeyConfig");
+	RNA_def_property_pointer_funcs(prop, "rna_WindowManager_active_keyconfig_get", "rna_WindowManager_active_keyconfig_set", NULL, NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active KeyConfig", "Active wm KeyConfig");
+	
+	prop= RNA_def_property(srna, "default", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "defaultconf");
+	RNA_def_property_struct_type(prop, "KeyConfig");
+	RNA_def_property_ui_text(prop, "Default Key Configuration", "");
+}
+
 static void rna_def_windowmanager(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1258,17 +1297,7 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "keyconfigs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyConfig");
 	RNA_def_property_ui_text(prop, "Key Configurations", "Registered key configurations");
-
-	prop= RNA_def_property(srna, "active_keyconfig", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "KeyConfig");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_WindowManager_active_keyconfig_get", "rna_WindowManager_active_keyconfig_set", 0, NULL);
-	RNA_def_property_ui_text(prop, "Active Key Configuration", "");
-
-	prop= RNA_def_property(srna, "default_keyconfig", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "defaultconf");
-	RNA_def_property_struct_type(prop, "KeyConfig");
-	RNA_def_property_ui_text(prop, "Default Key Configuration", "");
+	rna_def_wm_keyconfigs(brna, prop);
 
 	RNA_api_wm(srna);
 }

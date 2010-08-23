@@ -418,7 +418,7 @@ def write_file(filepath, objects, scene,
 
             if EXPORT_UV:
                 faceuv = len(me.uv_textures) > 0
-                uv_layer = me.active_uv_texture.data[:]
+                uv_layer = me.uv_textures.active.data[:]
             else:
                 faceuv = False
 
@@ -542,7 +542,7 @@ def write_file(filepath, objects, scene,
                 uv_face_mapping = [[0,0,0,0] for i in range(len(face_index_pairs))] # a bit of a waste for tri's :/
 
                 uv_dict = {} # could use a set() here
-                uv_layer = me.active_uv_texture.data
+                uv_layer = me.uv_textures.active.data
                 for f, f_index in face_index_pairs:
                     for uv_index, uv in enumerate(uv_layer[f_index].uv):
                         uvkey = veckey2d(uv)

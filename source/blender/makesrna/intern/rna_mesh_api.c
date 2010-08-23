@@ -37,15 +37,6 @@
 
 #ifdef RNA_RUNTIME
 
-static void rna_Mesh_uv_texture_add(struct Mesh *me, struct bContext *C)
-{
-	ED_mesh_uv_texture_add(C, NULL, NULL, me);
-}
-
-static void rna_Mesh_vertex_color_add(struct Mesh *me, struct bContext *C)
-{
-	ED_mesh_color_add(C, NULL, NULL, me);
-}
 
 #else
 
@@ -67,14 +58,6 @@ void RNA_api_mesh(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "faces", 0, 0, INT_MAX, "Number", "Number of faces to add.", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-
-	func= RNA_def_function(srna, "add_uv_texture", "rna_Mesh_uv_texture_add");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	RNA_def_function_ui_description(func, "Add a UV texture layer to Mesh.");
-
-	func= RNA_def_function(srna, "add_vertex_color", "rna_Mesh_vertex_color_add");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh.");
 
 	func= RNA_def_function(srna, "calc_normals", "ED_mesh_calc_normals");
 	RNA_def_function_ui_description(func, "Calculate vertex normals.");

@@ -536,6 +536,8 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 
 	FunctionRNA *func;
 	PropertyRNA *parm;
+	
+	PropertyRNA *prop;
 
 	RNA_def_property_srna(cprop, "KeyingSetPaths");
 	srna= RNA_def_struct(brna, "KeyingSetPaths", NULL);
@@ -576,6 +578,13 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "clear", "rna_KeyingSet_paths_clear");
 	RNA_def_function_ui_description(func, "Remove all the paths from the Keying Set.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "KeyingSetPath");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_editable_func(prop, "rna_KeyingSet_active_ksPath_editable");
+	RNA_def_property_pointer_funcs(prop, "rna_KeyingSet_active_ksPath_get", "rna_KeyingSet_active_ksPath_set", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Keying Set", "Active Keying Set used to insert/delete keyframes");
 }
 
 static void rna_def_keyingset(BlenderRNA *brna)
@@ -605,13 +614,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Paths", "Keying Set Paths to define settings that get keyframed together");
 	rna_def_keyingset_paths(brna, prop);
 	
-	prop= RNA_def_property(srna, "active_path", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "KeyingSetPath");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_editable_func(prop, "rna_KeyingSet_active_ksPath_editable");
-	RNA_def_property_pointer_funcs(prop, "rna_KeyingSet_active_ksPath_get", "rna_KeyingSet_active_ksPath_set", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Active Keying Set", "Active Keying Set used to insert/delete keyframes");
-	
+	/* TODO, move to collection */
 	prop= RNA_def_property(srna, "active_path_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "active_path");
 	RNA_def_property_int_funcs(prop, "rna_KeyingSet_active_ksPath_index_get", "rna_KeyingSet_active_ksPath_index_set", "rna_KeyingSet_active_ksPath_index_range");

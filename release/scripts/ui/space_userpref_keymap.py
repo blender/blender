@@ -20,7 +20,6 @@
 import bpy
 import os
 
-KM_MOD_PREFIX = "keyconfig_"
 
 KM_HIERARCHY = [
     ('Window', 'EMPTY', 'WINDOW', []), # file save, window change, exit
@@ -354,8 +353,8 @@ class InputKeyMapPanel(bpy.types.Panel):
 
     def draw_keymaps(self, context, layout):
         wm = context.manager
-        kc = wm.active_keyconfig
-        defkc = wm.default_keyconfig
+        kc = wm.keyconfigs.active
+        defkc = wm.keyconfigs.default
 
         col = layout.column()
         sub = col.column()
@@ -364,8 +363,8 @@ class InputKeyMapPanel(bpy.types.Panel):
         subcol = subsplit.column()
 
         row = subcol.row()
-        row.prop_search(wm, "active_keyconfig", wm, "keyconfigs", text="Key Config:")
-        layout.set_context_pointer("keyconfig", wm.active_keyconfig)
+        row.prop_search_self(wm, "active", "keyconfigs", text="Key Config:")
+        layout.set_context_pointer("keyconfig", wm.keyconfigs.active)
         row.operator("wm.keyconfig_remove", text="", icon='X')
 
         row.prop(context.space_data, "filter_text", icon="VIEWZOOM")
@@ -487,7 +486,7 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
 
     def execute(self, context):
         wm = context.manager
-        kc = wm.default_keyconfig
+        kc = wm.keyconfigs.default
 
         if self.testConfig(kc):
             print("CONFLICT")
@@ -563,7 +562,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
             reload(mod)
 
         wm = bpy.context.manager
-        wm.active_keyconfig = wm.keyconfigs[config_name]
+        wm.keyconfigs.active = wm.keyconfigs[config_name]
 
         return {'FINISHED'}
 
@@ -595,7 +594,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
             raise Exception("Could not open file")
 
         wm = context.manager
-        kc = wm.active_keyconfig
+        kc = wm.keyconfigs.active
 
         if self.properties.kc_name != '':
             name = self.properties.kc_name
@@ -624,7 +623,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         edited_kc = FakeKeyConfig()
         edited_kc.keymaps.extend(context.user_preferences.inputs.edited_keymaps)
         # merge edited keymaps with non-default keyconfig, if it exists
-        if kc != wm.default_keyconfig:
+        if kc != wm.keyconfigs.default:
             export_keymaps = _merge_keymaps(edited_kc, kc)
         else:
             export_keymaps = _merge_keymaps(edited_kc, edited_kc)
@@ -695,7 +694,7 @@ class WM_OT_keymap_restore(bpy.types.Operator):
         wm = context.manager
 
         if self.properties.all:
-            for km in wm.default_keyconfig.keymaps:
+            for km in wm.keyconfigs.default.keymaps:
                 km.restore_to_default()
         else:
             km = context.keymap
@@ -729,7 +728,7 @@ class WM_OT_keyitem_add(bpy.types.Operator):
     def execute(self, context):
         wm = context.manager
         km = context.keymap
-        kc = wm.default_keyconfig
+        kc = wm.keyconfigs.default
 
         if km.is_modal:
             km.items.add_modal("", 'A', 'PRESS') # kmi
@@ -768,13 +767,13 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         wm = context.manager
-        return wm.active_keyconfig.is_user_defined
+        return wm.keyconfigs.active.is_user_defined
 
     def execute(self, context):
         import sys
         wm = context.manager
 
-        keyconfig = wm.active_keyconfig
+        keyconfig = wm.keyconfigs.active
 
         module = sys.modules.get(keyconfig.name)
 

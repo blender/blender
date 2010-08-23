@@ -346,8 +346,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             bmesh.faces.foreach_set("vertices_raw", eekadoodle_faces)
             
             if bmesh.faces and contextMeshUV:
-                bmesh.add_uv_texture()
-                uv_faces = bmesh.active_uv_texture.data[:]
+                bmesh.uv_textures.new()
+                uv_faces = bmesh.uv_textures.active.data[:]
             else:
                 uv_faces = None
 

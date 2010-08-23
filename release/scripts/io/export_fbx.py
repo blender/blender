@@ -1630,7 +1630,7 @@ def write(filename, batch_objects = None, \
 # 		if me.vertexColors:
             collayers = me.vertex_colors
 # 			collayers = me.getColorLayerNames()
-            collayer_orig = me.active_vertex_color
+            collayer_orig = me.vertex_colors.active
 # 			collayer_orig = me.activeColorLayer
             for colindex, collayer in enumerate(collayers):
 # 				me.activeColorLayer = collayer
@@ -1700,7 +1700,7 @@ def write(filename, batch_objects = None, \
         if do_uvs:
             uvlayers = me.uv_textures
 # 			uvlayers = me.getUVLayerNames()
-            uvlayer_orig = me.active_uv_texture
+            uvlayer_orig = me.uv_textures.active
 # 			uvlayer_orig = me.activeUVLayer
             for uvindex, uvlayer in enumerate(me.uv_textures):
 # 			for uvindex, uvlayer in enumerate(uvlayers):
@@ -1834,8 +1834,8 @@ def write(filename, batch_objects = None, \
 
                 mats = my_mesh.blenMaterialList
 
-                if me.active_uv_texture:
-                    uv_faces = me.active_uv_texture.data
+                if me.uv_textures.active:
+                    uv_faces = me.uv_textures.active.data
                 else:
                     uv_faces = [None] * len(me.faces)
 
@@ -2103,7 +2103,7 @@ def write(filename, batch_objects = None, \
                     material_mapping_local = {}
                     if len(me.uv_textures) > 0:
 # 					if me.faceUV:
-                        uvlayer_orig = me.active_uv_texture
+                        uvlayer_orig = me.uv_textures.active
 # 						uvlayer_orig = me.activeUVLayer
                         for uvlayer in me.uv_textures:
 # 						for uvlayer in me.getUVLayerNames():

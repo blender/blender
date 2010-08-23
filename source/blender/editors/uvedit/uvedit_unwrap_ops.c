@@ -84,7 +84,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	}
 
 	if(em && em->faces.first)
-		EM_add_data_layer(em, &em->fdata, CD_MTFACE);
+		EM_add_data_layer(em, &em->fdata, CD_MTFACE, NULL);
 	
 	if(!ED_uvedit_test(obedit)) {
 		BKE_mesh_end_editmesh(obedit->data, em);

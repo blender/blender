@@ -82,7 +82,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
         col.operator("anim.keying_set_add", icon='ZOOMIN', text="")
         col.operator("anim.keying_set_remove", icon='ZOOMOUT', text="")
 
-        ks = scene.active_keying_set
+        ks = scene.keying_sets.active
         if ks and ks.is_path_absolute:
             row = layout.row()
 
@@ -106,13 +106,14 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.scene.active_keying_set and context.scene.active_keying_set.is_path_absolute)
+        ks = context.scene.keying_sets.active
+        return (ks and ks.is_path_absolute)
 
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
-        ks = scene.active_keying_set
+        ks = scene.keying_sets.active
 
         row = layout.row()
         row.label(text="Paths:")
@@ -126,7 +127,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
         col.operator("anim.keying_set_path_add", icon='ZOOMIN', text="")
         col.operator("anim.keying_set_path_remove", icon='ZOOMOUT', text="")
 
-        ksp = ks.active_path
+        ksp = ks.paths.active
         if ksp:
             col = layout.column()
             col.label(text="Target:")
@@ -227,7 +228,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
             raise Exception("Could not open file.")
 
         scene = context.scene
-        ks = scene.active_keying_set
+        ks = scene.keying_sets.active
 
 
         f.write("# Keying Set: %s\n" % ks.name)

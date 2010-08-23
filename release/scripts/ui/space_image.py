@@ -316,7 +316,7 @@ class IMAGE_HT_header(bpy.types.Header):
             row.prop(toolsettings, "snap_element", text="", icon_only=True)
 
             # mesh = context.edit_object.data
-            # row.prop_search(mesh, "active_uv_layer", mesh, "uv_textures")
+            # row.prop_search_self(mesh, "active", "uv_textures")
 
         if ima:
             # layers

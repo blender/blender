@@ -567,7 +567,7 @@ def extract_triangles(mesh):
         f_v = face.vertices
 # 		f_v = face.v
 
-        uf = mesh.active_uv_texture.data[i] if do_uv else None
+        uf = mesh.uv_textures.active.data[i] if do_uv else None
 
         if do_uv:
             f_uv = uf.uv
@@ -998,7 +998,7 @@ def write(filename, context):
                     if not mat_ls:
                         mat = mat_name = None
 
-                    for f, uf in zip(data.faces, data.active_uv_texture.data):
+                    for f, uf in zip(data.faces, data.uv_textures.active.data):
                         if mat_ls:
                             mat_index = f.material_index
 # 							mat_index = f.mat

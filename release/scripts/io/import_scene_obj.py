@@ -692,9 +692,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 # 	face_mapping= me.faces.extend([f[0] for f in faces], indexList=True)
 
     if verts_tex and me.faces:
-        me.add_uv_texture()
-# 		me.faceUV= 1
-        # TEXMODE= Mesh.FaceModes['TEX']
+        me.uv_textures.new()
 
     context_material_old= -1 # avoid a dict lookup
     mat= 0 # rare case it may be un-initialized.

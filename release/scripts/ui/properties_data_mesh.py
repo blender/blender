@@ -272,7 +272,7 @@ class DATA_PT_uv_texture(MeshButtonsPanel, bpy.types.Panel):
         col.operator("mesh.uv_texture_add", icon='ZOOMIN', text="")
         col.operator("mesh.uv_texture_remove", icon='ZOOMOUT', text="")
 
-        lay = me.active_uv_texture
+        lay = me.uv_textures.active
         if lay:
             layout.prop(lay, "name")
 
@@ -341,7 +341,7 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, bpy.types.Panel):
         col.operator("mesh.vertex_color_add", icon='ZOOMIN', text="")
         col.operator("mesh.vertex_color_remove", icon='ZOOMOUT', text="")
 
-        lay = me.active_vertex_color
+        lay = me.vertex_colors.active
         if lay:
             layout.prop(lay, "name")
 
