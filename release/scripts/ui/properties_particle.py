@@ -1025,51 +1025,51 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
 
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_density", ob, "vertex_groups", text="Density")
+        row.prop_search(psys, "vertex_group_density", ob, "vertex_groups", text="Density")
         row.prop(psys, "invert_vertex_group_density", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_velocity", ob, "vertex_groups", text="Velocity")
+        row.prop_search(psys, "vertex_group_velocity", ob, "vertex_groups", text="Velocity")
         row.prop(psys, "invert_vertex_group_velocity", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_length", ob, "vertex_groups", text="Length")
+        row.prop_search(psys, "vertex_group_length", ob, "vertex_groups", text="Length")
         row.prop(psys, "invert_vertex_group_length", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_clump", ob, "vertex_groups", text="Clump")
+        row.prop_search(psys, "vertex_group_clump", ob, "vertex_groups", text="Clump")
         row.prop(psys, "invert_vertex_group_clump", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_kink", ob, "vertex_groups", text="Kink")
+        row.prop_search(psys, "vertex_group_kink", ob, "vertex_groups", text="Kink")
         row.prop(psys, "invert_vertex_group_kink", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_roughness_1", ob, "vertex_groups", text="Roughness 1")
+        row.prop_search(psys, "vertex_group_roughness_1", ob, "vertex_groups", text="Roughness 1")
         row.prop(psys, "invert_vertex_group_roughness_1", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_roughness_2", ob, "vertex_groups", text="Roughness 2")
+        row.prop_search(psys, "vertex_group_roughness_2", ob, "vertex_groups", text="Roughness 2")
         row.prop(psys, "invert_vertex_group_roughness_2", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
+        row.prop_search(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
         row.prop(psys, "invert_vertex_group_roughness_end", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_size", ob, "vertex_groups", text="Size")
+        row.prop_search(psys, "vertex_group_size", ob, "vertex_groups", text="Size")
         row.prop(psys, "invert_vertex_group_size", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_tangent", ob, "vertex_groups", text="Tangent")
+        row.prop_search(psys, "vertex_group_tangent", ob, "vertex_groups", text="Tangent")
         row.prop(psys, "invert_vertex_group_tangent", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_rotation", ob, "vertex_groups", text="Rotation")
+        row.prop_search(psys, "vertex_group_rotation", ob, "vertex_groups", text="Rotation")
         row.prop(psys, "invert_vertex_group_rotation", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_field", ob, "vertex_groups", text="Field")
+        row.prop_search(psys, "vertex_group_field", ob, "vertex_groups", text="Field")
         row.prop(psys, "invert_vertex_group_field", text="")
 
 

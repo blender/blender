@@ -105,7 +105,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
             col.prop(cloth, "use_pin_cloth", text="Pinning")
             sub = col.column()
             sub.active = cloth.use_pin_cloth
-            sub.prop_object(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
+            sub.prop_search(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
             sub.prop(cloth, "pin_stiffness", text="Stiffness")
 
             col.label(text="Pre roll:")
@@ -126,7 +126,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
 
             if key:
                 col.label(text="Rest Shape Key:")
-                col.prop_object(cloth, "rest_shape_key", key, "keys", text="")
+                col.prop_search(cloth, "rest_shape_key", key, "keys", text="")
 
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, bpy.types.Panel):
@@ -208,12 +208,12 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Structural Stiffness:")
-        col.prop_object(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
         col.prop(cloth, "structural_stiffness_max", text="Max")
 
         col = split.column()
         col.label(text="Bending Stiffness:")
-        col.prop_object(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
         col.prop(cloth, "bending_stiffness_max", text="Max")
 
 

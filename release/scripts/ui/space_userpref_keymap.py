@@ -364,7 +364,7 @@ class InputKeyMapPanel(bpy.types.Panel):
         subcol = subsplit.column()
 
         row = subcol.row()
-        row.prop_object(wm, "active_keyconfig", wm, "keyconfigs", text="Key Config:")
+        row.prop_search(wm, "active_keyconfig", wm, "keyconfigs", text="Key Config:")
         layout.set_context_pointer("keyconfig", wm.active_keyconfig)
         row.operator("wm.keyconfig_remove", text="", icon='X')
 

@@ -151,14 +151,14 @@ class BONE_PT_relations(BoneButtonsPanel, bpy.types.Panel):
 
         if ob and pchan:
             col.label(text="Bone Group:")
-            col.prop_object(pchan, "bone_group", ob.pose, "bone_groups", text="")
+            col.prop_search(pchan, "bone_group", ob.pose, "bone_groups", text="")
 
         col = split.column()
         col.label(text="Parent:")
         if context.bone:
             col.prop(bone, "parent", text="")
         else:
-            col.prop_object(bone, "parent", arm, "edit_bones", text="")
+            col.prop_search(bone, "parent", arm, "edit_bones", text="")
 
         sub = col.column()
         sub.active = (bone.parent is not None)
@@ -202,7 +202,7 @@ class BONE_PT_display(BoneButtonsPanel, bpy.types.Panel):
             col.label(text="Custom Shape:")
             col.prop(pchan, "custom_shape", text="")
             if pchan.custom_shape:
-                col.prop_object(pchan, "custom_shape_transform", ob.pose, "bones", text="At")
+                col.prop_search(pchan, "custom_shape_transform", ob.pose, "bones", text="At")
 
 
 class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):

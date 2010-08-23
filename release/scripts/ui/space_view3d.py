@@ -1957,7 +1957,7 @@ class VIEW3D_PT_view3d_properties(bpy.types.Panel):
         col.label(text="Lock to Object:")
         col.prop(view, "lock_object", text="")
         if view.lock_object and view.lock_object.type == 'ARMATURE':
-            col.prop_object(view, "lock_bone", view.lock_object.data, "bones", text="")
+            col.prop_search(view, "lock_bone", view.lock_object.data, "bones", text="")
 
         col = layout.column(align=True)
         col.label(text="Clip:")

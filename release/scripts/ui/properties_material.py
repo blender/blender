@@ -615,7 +615,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(tan, "width_fade")
         ob = context.object
         if ob and ob.type == 'MESH':
-            col.prop_object(tan, "uv_layer", ob.data, "uv_textures", text="")
+            col.prop_search(tan, "uv_layer", ob.data, "uv_textures", text="")
         else:
             col.prop(tan, "uv_layer", text="")
         col.separator()

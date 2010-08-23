@@ -77,7 +77,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
             col.label(text="Object:")
             col.prop(softbody, "friction")
             col.prop(softbody, "mass")
-            col.prop_object(softbody, "mass_vertex_group", ob, "vertex_groups", text="Mass:")
+            col.prop_search(softbody, "mass_vertex_group", ob, "vertex_groups", text="Mass:")
 
             col = split.column()
             col.label(text="Simulation:")
@@ -137,7 +137,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(softbody, "goal_spring", text="Stiffness")
         col.prop(softbody, "goal_friction", text="Damping")
 
-        layout.prop_object(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
+        layout.prop_search(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
 
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
@@ -173,7 +173,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(softbody, "plastic")
         col.prop(softbody, "bend")
         col.prop(softbody, "spring_length", text="Length")
-        col.prop_object(softbody, "spring_vertex_group", ob, "vertex_groups", text="Springs:")
+        col.prop_search(softbody, "spring_vertex_group", ob, "vertex_groups", text="Springs:")
 
         col = split.column()
         col.prop(softbody, "use_stiff_quads")

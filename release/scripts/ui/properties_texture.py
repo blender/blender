@@ -243,7 +243,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel, bpy.types.Panel):
                 split.label(text="Layer:")
                 ob = context.object
                 if ob and ob.type == 'MESH':
-                    split.prop_object(tex, "uv_layer", ob.data, "uv_textures", text="")
+                    split.prop_search(tex, "uv_layer", ob.data, "uv_textures", text="")
                 else:
                     split.prop(tex, "uv_layer", text="")
 
@@ -904,7 +904,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, bpy.types.Panel):
             sub.enabled = bool(pd.object)
             if pd.object:
                 sub.label(text="System:")
-                sub.prop_object(pd, "particle_system", pd.object, "particle_systems", text="")
+                sub.prop_search(pd, "particle_system", pd.object, "particle_systems", text="")
             sub.label(text="Cache:")
             sub.prop(pd, "particle_cache_space", text="")
         else:

@@ -245,8 +245,8 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
                     col = split.column(align=True)
                     col.active = enable_edit_value
                     col.label(text="Blend:")
-                    col.prop_object(kb, "vertex_group", ob, "vertex_groups", text="")
-                    col.prop_object(kb, "relative_key", key, "keys", text="")
+                    col.prop_search(kb, "vertex_group", ob, "vertex_groups", text="")
+                    col.prop_search(kb, "relative_key", key, "keys", text="")
 
             else:
                 row = layout.row()
