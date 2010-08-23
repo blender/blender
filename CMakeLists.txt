@@ -294,9 +294,9 @@ IF(UNIX AND NOT APPLE)
 		SET(EXPAT_LIB expat)
 	ENDIF (WITH_OPENCOLLADA)
 
+	FIND_PACKAGE(X11 REQUIRED)
 
-	# Could use ${X11_Xinput_LIB} ${X11_X11_LIB} too
-	SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++ -lX11")
+	SET(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB} ${X11_Xinput_LIB}")
 
 	IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		# BSD's dont use libdl.so
