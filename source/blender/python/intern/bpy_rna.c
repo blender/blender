@@ -2645,8 +2645,9 @@ static PyObject *pyrna_prop_move(BPy_PropertyRNA *self, PyObject *args)
 	return ret;
 }
 
-static PyObject *pyrna_struct_get_id_data(BPy_StructRNA *self)
+static PyObject *pyrna_struct_get_id_data(BPy_DummyPointerRNA *self)
 {
+	/* used for struct and pointer since both have a ptr */
 	if(self->ptr.id.data) {
 		PointerRNA id_ptr;
 		RNA_id_pointer_create((ID *)self->ptr.id.data, &id_ptr);
@@ -2659,12 +2660,12 @@ static PyObject *pyrna_struct_get_id_data(BPy_StructRNA *self)
 /*****************************************************************************/
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
-#if 0
+
 static PyGetSetDef pyrna_prop_getseters[] = {
-	{"active", (getter)pyrna_prop_get_active, (setter)pyrna_prop_set_active, "", NULL},
+	{"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, "The :class:`ID` object this datablock is from or None, (not available for all data types)", NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
-#endif
+
 
 static PyGetSetDef pyrna_struct_getseters[] = {
 	{"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, "The :class:`ID` object this datablock is from or None, (not available for all data types)", NULL},
@@ -3725,7 +3726,7 @@ PyTypeObject pyrna_prop_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	pyrna_prop_methods,			/* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL /*pyrna_prop_getseters*/,      	/* struct PyGetSetDef *tp_getset; */
+	pyrna_prop_getseters,      	/* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
