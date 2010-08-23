@@ -2142,25 +2142,37 @@ static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA *self, PyObject *
 }
 
 static char pyrna_struct_path_resolve_doc[] =
-".. method:: path_resolve(path)\n"
+".. method:: path_resolve(path, coerce=True)\n"
 "\n"
-"   Returns the property from the path given or None if the property is not found.";
+"   Returns the property from the path, raise an exception when not found.\n"
+"\n"
+"   :arg path: path which this property resolves.\n"
+"   :type path: string\n"
+"   :arg coerce: optional argument, when True, the property will be converted into its python representation.\n"
+"   :type coerce: boolean\n";
 
-static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *value)
+static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
 {
-	char *path= _PyUnicode_AsString(value);
+	char *path;
+	PyObject *coerce= Py_True;
 	PointerRNA r_ptr;
 	PropertyRNA *r_prop;
 
-	if(path==NULL) {
-		PyErr_SetString(PyExc_TypeError, "bpy_struct.path_resolve(): accepts only a single string argument");
+	if (!PyArg_ParseTuple(args, "s|O!:path_resolve", &path, &PyBool_Type, &coerce))
+		return NULL;
+
+	if (RNA_path_resolve(&self->ptr, path, &r_ptr, &r_prop)) {
+		if(coerce == Py_False) {
+			return pyrna_prop_CreatePyObject(&r_ptr, r_prop);
+		}
+		else {
+			return pyrna_prop_to_py(&r_ptr, r_prop);
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError, "%.200s.path_resolve(\"%.200s\") could not be resolved", RNA_struct_identifier(self->ptr.type), path);
 		return NULL;
 	}
-
-	if (RNA_path_resolve(&self->ptr, path, &r_ptr, &r_prop))
-		return pyrna_prop_CreatePyObject(&r_ptr, r_prop);
-
-	Py_RETURN_NONE;
 }
 
 static char pyrna_struct_path_from_id_doc[] =
@@ -3112,7 +3124,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	{"driver_remove", (PyCFunction)pyrna_struct_driver_remove, METH_VARARGS, pyrna_struct_driver_remove_doc},
 	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, pyrna_struct_is_property_set_doc},
 	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, pyrna_struct_is_property_hidden_doc},
-	{"path_resolve", (PyCFunction)pyrna_struct_path_resolve, METH_O, pyrna_struct_path_resolve_doc},
+	{"path_resolve", (PyCFunction)pyrna_struct_path_resolve, METH_VARARGS, pyrna_struct_path_resolve_doc},
 	{"path_from_id", (PyCFunction)pyrna_struct_path_from_id, METH_VARARGS, pyrna_struct_path_from_id_doc},
 	{"recast_type", (PyCFunction)pyrna_struct_recast_type, METH_NOARGS, pyrna_struct_recast_type_doc},
 	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, NULL},

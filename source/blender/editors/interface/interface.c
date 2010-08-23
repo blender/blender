@@ -2528,8 +2528,10 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 			}
 		}
 	}
-	else
+	else {
+		printf("ui_def_but_rna: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		str= (char*)propname;
+	}
 
 	/* now create button */
 	but= ui_def_but(block, type, retval, str, x1, y1, x2, y2, NULL, min, max, a1, a2, tip);

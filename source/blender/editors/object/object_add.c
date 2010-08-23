@@ -501,7 +501,6 @@ static EnumPropertyItem prop_metaball_types[]= {
 static int object_metaball_add_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	MetaBall *mball;
 	MetaElem *elem;
 	int newob= 0;
 	int enter_editmode;
