@@ -2402,7 +2402,7 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 			return 1;
 		}
 		/* name and first icon */
-		else if(mval[0]>te->xs && mval[0]<te->xend) {
+		else if(mval[0]>te->xs+OL_X && mval[0]<te->xend) {
 			
 			/* always makes active object */
 			if(tselem->type!=TSE_SEQUENCE && tselem->type!=TSE_SEQ_STRIP && tselem->type!=TSE_SEQUENCE_DUP)
@@ -2599,7 +2599,7 @@ static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, T
 		TreeStoreElem *tselem= TREESTORE(te);
 		
 		/* name and first icon */
-		if(mval[0]>te->xs && mval[0]<te->xend) {
+		if(mval[0]>te->xs+OL_X && mval[0]<te->xend) {
 			
 			/* can't rename rna datablocks entries */
 			if(ELEM3(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))
