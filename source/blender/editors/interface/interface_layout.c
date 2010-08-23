@@ -1263,6 +1263,66 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, char *propname, st
 	ui_but_add_search(but, ptr, prop, searchptr, searchprop);
 }
 
+/* almost the same as uiItemPointerR except the collection is used to get the propname */
+void uiItemPointerSubR(uiLayout *layout, struct PointerRNA *ptr, char *propname, char *searchpropname, char *name, int icon)
+{
+	PropertyRNA *prop, *searchprop;
+	PropertyType type;
+	PointerRNA c_ptr;
+	uiBut *but;
+	uiBlock *block;
+	StructRNA *icontype;
+	int w, h;
+	
+	/* validate arguments */
+	searchprop= RNA_struct_find_property(ptr, searchpropname);
+
+	if(!searchprop || RNA_property_type(searchprop) != PROP_COLLECTION) {
+		printf("uiItemCollectionPointerR: search collection property not found: %s.%s\n", RNA_struct_identifier(ptr->type), searchpropname);
+		return;
+	}
+
+	if(!RNA_property_collection_type_get(ptr, searchprop, &c_ptr)) {
+		printf("uiItemCollectionPointerR: search collection sub-property not found1: %s.%s.%s\n", RNA_struct_identifier(ptr->type), searchpropname, propname);
+		return;
+	}
+
+	if ((prop = RNA_struct_find_property(&c_ptr, propname))) {
+		/* don't need this, pass */
+		/* d_ptr= RNA_property_pointer_get(ptr, prop); */
+	}
+	else {
+		printf("uiItemCollectionPointerR: search collection sub-property not found2: %s.%s.%s\n", RNA_struct_identifier(ptr->type), searchpropname, propname);
+		return;
+	}
+
+	type= RNA_property_type(prop);
+	if(!ELEM(type, PROP_POINTER, PROP_STRING)) {
+		printf("uiItemCollectionPointerR: property %s must be a pointer or string.\n", propname);
+		return;
+	}
+
+	/* get icon & name */
+	if(!icon) {
+		if(type == PROP_POINTER)
+			icontype= RNA_property_pointer_type(&c_ptr, prop);
+		else
+			icontype= RNA_property_pointer_type(ptr, searchprop);
+
+		icon= RNA_struct_ui_icon(icontype);
+	}
+	if(!name)
+		name= (char*)RNA_property_ui_name(prop);
+
+	/* create button */
+	block= uiLayoutGetBlock(layout);
+
+	ui_item_rna_size(layout, name, icon, &c_ptr, prop, 0, 0, &w, &h);
+	but= ui_item_with_label(layout, block, name, icon, &c_ptr, prop, 0, 0, 0, w, h, 0);
+
+	ui_but_add_search(but, &c_ptr, prop, ptr, searchprop);
+}
+
 /* menu item */
 static void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 {
