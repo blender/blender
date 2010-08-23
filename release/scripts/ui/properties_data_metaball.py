@@ -80,12 +80,12 @@ class DATA_PT_metaball_element(DataButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.meta_ball and context.meta_ball.active_element)
+        return (context.meta_ball and context.meta_ball.elements.active)
 
     def draw(self, context):
         layout = self.layout
 
-        metaelem = context.meta_ball.active_element
+        metaelem = context.meta_ball.elements.active
 
         layout.prop(metaelem, "type")
 

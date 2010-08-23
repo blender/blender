@@ -482,7 +482,6 @@ static Nurb *rna_Curve_spline_new(Curve *cu, int type)
 
 static void rna_Curve_spline_remove(Curve *cu, ReportList *reports, Nurb *nu)
 {
-	/* todo, check we're in the list */
 	int found= 0;
 	ListBase *nurbs= BKE_curve_nurbs(cu);
 

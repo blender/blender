@@ -523,9 +523,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 	
 	elem= (MetaElem*)add_metaball_primitive(C, mat, RNA_enum_get(op->ptr, "type"), newob);
-	mball= (MetaBall*)obedit->data;
-	BLI_addtail(mball->editelems, elem);
-	
+
 	/* userdef */
 	if (newob && !enter_editmode) {
 		ED_object_exit_editmode(C, EM_FREEDATA);
