@@ -524,7 +524,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
 
         split = layout.split()
         col = split.column()
-        col.prop(rd, "freestyle", text="Freestyle")
+        col.prop(rd, "use_freestyle", text="Freestyle")
 
 
 class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
