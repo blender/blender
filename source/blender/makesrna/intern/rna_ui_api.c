@@ -189,12 +189,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_string(func, "search_property", "", 0, "", "Identifier of search collection property.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	api_ui_item_common(func);
-	
-	func= RNA_def_function(srna, "prop_search_self", "uiItemPointerSubR");
-	api_ui_item_rna_common(func);
-	parm= RNA_def_string(func, "search_property", "", 0, "", "Identifier of search collection property.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	api_ui_item_common(func);
 
 	func= RNA_def_function(srna, "operator", "rna_uiItemO");
 	api_ui_item_op_common(func);

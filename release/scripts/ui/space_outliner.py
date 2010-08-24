@@ -53,7 +53,7 @@ class OUTLINER_HT_header(bpy.types.Header):
 
             if ks:
                 row = layout.row(align=False)
-                row.prop_search_self(scene, "active", "keying_sets", text="")
+                row.prop_search(scene.keying_sets, "active", scene, "keying_sets", text="")
 
                 row = layout.row(align=True)
                 row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
