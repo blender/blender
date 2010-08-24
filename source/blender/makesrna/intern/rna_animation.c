@@ -570,7 +570,7 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 		/* path to remove */
 	parm= RNA_def_pointer(func, "path", "KeyingSetPath", "Path", ""); 
-		RNA_def_property_flag(parm, PROP_REQUIRED);
+		RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 
 	/* Remove All Paths */

@@ -2787,7 +2787,7 @@ void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_NO_SELF);
 	RNA_def_function_ui_description(func, "Remove addon.");
 	parm= RNA_def_pointer(func, "addon", "Addon", "", "Addon to remove.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 void RNA_def_userdef(BlenderRNA *brna)

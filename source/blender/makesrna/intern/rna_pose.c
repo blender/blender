@@ -62,6 +62,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "WM_api.h"
+
 #include "RNA_access.h"
 
 static void rna_Pose_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -442,12 +444,17 @@ static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, int typ
 	return add_pose_constraint(NULL, pchan, NULL, type);
 }
 
-static int rna_PoseChannel_constraints_remove(bPoseChannel *pchan, int index)
+static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, ReportList *reports, bConstraint *con)
 {
+	if(BLI_findindex(&pchan->constraints, con) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "Constraint '%s' not found in pose bone '%s'.", con->name, pchan->name);
+		return;
+	}
+
 	// TODO
-	//ED_object_constraint_set_active(object, NULL);
-	//WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT, object);
-	return remove_constraint_index(&pchan->constraints, index);
+	//ED_object_constraint_set_active(id, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT, id);
+	remove_constraint(&pchan->constraints, con);
 }
 
 static int rna_PoseChannel_proxy_editable(PointerRNA *ptr)
@@ -652,12 +659,10 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 
 	func= RNA_def_function(srna, "remove", "rna_PoseChannel_constraints_remove");
 	RNA_def_function_ui_description(func, "Remove a constraint from this object.");
-	/* return type */
-	parm= RNA_def_boolean(func, "success", 0, "Success", "Removed the constraint successfully.");
-	RNA_def_function_return(func, parm);
-	/* object to add */
-	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS|FUNC_USE_SELF_ID); /* ID needed for refresh */
+	/* constraint to remove */
+	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "Removed constraint.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 static void rna_def_pose_channel(BlenderRNA *brna)
