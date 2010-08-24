@@ -528,7 +528,6 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 }
 
 
-
 /* keyingset.paths */
 static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 {
@@ -585,6 +584,11 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_editable_func(prop, "rna_KeyingSet_active_ksPath_editable");
 	RNA_def_property_pointer_funcs(prop, "rna_KeyingSet_active_ksPath_get", "rna_KeyingSet_active_ksPath_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Keying Set", "Active Keying Set used to insert/delete keyframes");
+
+	prop= RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "active_path");
+	RNA_def_property_int_funcs(prop, "rna_KeyingSet_active_ksPath_index_get", "rna_KeyingSet_active_ksPath_index_set", "rna_KeyingSet_active_ksPath_index_range");
+	RNA_def_property_ui_text(prop, "Active Path Index", "Current Keying Set index");
 }
 
 static void rna_def_keyingset(BlenderRNA *brna)
@@ -613,13 +617,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "KeyingSetPath");
 	RNA_def_property_ui_text(prop, "Paths", "Keying Set Paths to define settings that get keyframed together");
 	rna_def_keyingset_paths(brna, prop);
-	
-	/* TODO, move to collection */
-	prop= RNA_def_property(srna, "active_path_index", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "active_path");
-	RNA_def_property_int_funcs(prop, "rna_KeyingSet_active_ksPath_index_get", "rna_KeyingSet_active_ksPath_index_set", "rna_KeyingSet_active_ksPath_index_range");
-	RNA_def_property_ui_text(prop, "Active Path Index", "Current Keying Set index");
-	
+
 	/* Flags */
 	prop= RNA_def_property(srna, "is_path_absolute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

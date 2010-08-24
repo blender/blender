@@ -69,7 +69,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
         if ob:
             row = layout.row()
 
-            row.template_list(ob, "particle_systems", ob, "active_particle_system_index", rows=2)
+            row.template_list(ob, "particle_systems", ob.particle_systems, "active_index", rows=2)
 
             col = row.column(align=True)
             col.operator("object.particle_system_add", icon='ZOOMIN', text="")

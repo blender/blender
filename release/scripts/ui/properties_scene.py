@@ -76,7 +76,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
         row = layout.row()
 
         col = row.column()
-        col.template_list(scene, "keying_sets", scene, "active_keying_set_index", rows=2)
+        col.template_list(scene, "keying_sets", scene.keying_sets, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("anim.keying_set_add", icon='ZOOMIN', text="")
@@ -121,7 +121,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
         row = layout.row()
 
         col = row.column()
-        col.template_list(ks, "paths", ks, "active_path_index", rows=2)
+        col.template_list(ks, "paths", ks.paths, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("anim.keying_set_path_add", icon='ZOOMIN', text="")

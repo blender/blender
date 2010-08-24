@@ -1300,16 +1300,16 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, bpy.types.Panel):
         if pe.type == 'PARTICLES':
             if ob.particle_systems:
                 if len(ob.particle_systems) > 1:
-                    layout.template_list(ob, "particle_systems", ob, "active_particle_system_index", type='ICONS')
+                    layout.template_list(ob, "particle_systems", ob.particle_systems, "active_index", type='ICONS')
 
-                ptcache = ob.particle_systems[ob.active_particle_system_index].point_cache
+                ptcache = ob.particle_systems.active.point_cache
         else:
             for md in ob.modifiers:
                 if md.type == pe.type:
                     ptcache = md.point_cache
 
         if ptcache and len(ptcache.point_caches) > 1:
-            layout.template_list(ptcache, "point_caches", ptcache, "active_point_cache_index", type='ICONS')
+            layout.template_list(ptcache, "point_caches", ptcache.point_caches, "active_index", type='ICONS')
 
 
         if not pe.is_editable:

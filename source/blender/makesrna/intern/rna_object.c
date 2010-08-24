@@ -1399,7 +1399,7 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
-/* armature.bones.* */
+/* object.modifiers */
 static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
@@ -1446,6 +1446,63 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_pointer(func, "modifier", "Modifier", "", "Modifier to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
+
+/* object.particle_systems */
+static void rna_def_object_particle_systems(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	
+	PropertyRNA *prop;
+
+	// FunctionRNA *func;
+	// PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "ParticleSystems");
+	srna= RNA_def_struct(brna, "ParticleSystems", NULL);
+	RNA_def_struct_sdna(srna, "Object");
+	RNA_def_struct_ui_text(srna, "Particle Systems", "Collection of particle systems");
+
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ParticleSystem");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_particle_system_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Particle System", "Active particle system being displayed");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	
+	prop= RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_Object_active_particle_system_index_get", "rna_Object_active_particle_system_index_set", "rna_Object_active_particle_system_index_range");
+	RNA_def_property_ui_text(prop, "Active Particle System Index", "Index of active particle system slot");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_particle_update");
+}
+
+
+/* object.vertex_groups */
+static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	
+	PropertyRNA *prop;
+
+	// FunctionRNA *func;
+	// PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "VertexGroups");
+	srna= RNA_def_struct(brna, "VertexGroups", NULL);
+	RNA_def_struct_sdna(srna, "Object");
+	RNA_def_struct_ui_text(srna, "Vertex Groups", "Collection of vertex groups");
+
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "VertexGroup");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_vertex_group_get", "rna_Object_active_vertex_group_set", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Vertex Group", "Vertex groups of the object");
+	RNA_def_property_update(prop, NC_GEOM|ND_DATA, "rna_Object_internal_update_data");
+
+	prop= RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "actdef");
+	RNA_def_property_int_funcs(prop, "rna_Object_active_vertex_group_index_get", "rna_Object_active_vertex_group_index_set", "rna_Object_active_vertex_group_index_range");
+	RNA_def_property_ui_text(prop, "Active Vertex Group Index", "Active index in vertex group array");
+	RNA_def_property_update(prop, NC_GEOM|ND_DATA, "rna_Object_internal_update_data");
+}
+
 
 static void rna_def_object(BlenderRNA *brna)
 {
@@ -1796,18 +1853,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "defbase", NULL);
 	RNA_def_property_struct_type(prop, "VertexGroup");
 	RNA_def_property_ui_text(prop, "Vertex Groups", "Vertex groups of the object");
-
-	prop= RNA_def_property(srna, "active_vertex_group", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "VertexGroup");
-	RNA_def_property_pointer_funcs(prop, "rna_Object_active_vertex_group_get", "rna_Object_active_vertex_group_set", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Active Vertex Group", "Vertex groups of the object");
-	RNA_def_property_update(prop, NC_GEOM|ND_DATA, "rna_Object_internal_update_data");
-
-	prop= RNA_def_property(srna, "active_vertex_group_index", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "actdef");
-	RNA_def_property_int_funcs(prop, "rna_Object_active_vertex_group_index_get", "rna_Object_active_vertex_group_index_set", "rna_Object_active_vertex_group_index_range");
-	RNA_def_property_ui_text(prop, "Active Vertex Group Index", "Active index in vertex group array");
-	RNA_def_property_update(prop, NC_GEOM|ND_DATA, "rna_Object_internal_update_data");
+	rna_def_object_vertex_groups(brna, prop);
 
 	/* empty */
 	prop= RNA_def_property(srna, "empty_draw_type", PROP_ENUM, PROP_NONE);
@@ -1856,17 +1902,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "particlesystem", NULL);
 	RNA_def_property_struct_type(prop, "ParticleSystem");
 	RNA_def_property_ui_text(prop, "Particle Systems", "Particle systems emitted from the object");
-
-	prop= RNA_def_property(srna, "active_particle_system", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "ParticleSystem");
-	RNA_def_property_pointer_funcs(prop, "rna_Object_active_particle_system_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Active Particle System", "Active particle system being displayed");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
-
-	prop= RNA_def_property(srna, "active_particle_system_index", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_funcs(prop, "rna_Object_active_particle_system_index_get", "rna_Object_active_particle_system_index_set", "rna_Object_active_particle_system_index_range");
-	RNA_def_property_ui_text(prop, "Active Particle System Index", "Index of active particle system slot");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_particle_update");
+	rna_def_object_particle_systems(brna, prop);
 
 	/* restrict */
 	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);

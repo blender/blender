@@ -127,14 +127,14 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         ob = context.object
-        group = ob.active_vertex_group
+        group = ob.vertex_groups.active
 
         rows = 2
         if group:
             rows = 5
 
         row = layout.row()
-        row.template_list(ob, "vertex_groups", ob, "active_vertex_group_index", rows=rows)
+        row.template_list(ob, "vertex_groups", ob.vertex_groups, "active_index", rows=rows)
 
         col = row.column(align=True)
         col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
@@ -266,7 +266,7 @@ class DATA_PT_uv_texture(MeshButtonsPanel, bpy.types.Panel):
         row = layout.row()
         col = row.column()
 
-        col.template_list(me, "uv_textures", me, "active_uv_texture_index", rows=2)
+        col.template_list(me, "uv_textures", me.uv_textures, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("mesh.uv_texture_add", icon='ZOOMIN', text="")
@@ -335,7 +335,7 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, bpy.types.Panel):
         row = layout.row()
         col = row.column()
 
-        col.template_list(me, "vertex_colors", me, "active_vertex_color_index", rows=2)
+        col.template_list(me, "vertex_colors", me.vertex_colors, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("mesh.vertex_color_add", icon='ZOOMIN', text="")

@@ -966,14 +966,14 @@ class VIEW3D_MT_vertex_group(bpy.types.Menu):
 
         ob = context.active_object
         if ob.mode == 'EDIT':
-            if ob.vertex_groups and ob.active_vertex_group:
+            if ob.vertex_groups.active:
                 layout.separator()
                 layout.operator("object.vertex_group_assign", text="Assign to Active Group")
                 layout.operator("object.vertex_group_remove_from", text="Remove from Active Group")
                 layout.operator("object.vertex_group_remove_from", text="Remove from All").all = True
                 layout.separator()
 
-        if ob.vertex_groups and ob.active_vertex_group:
+        if ob.vertex_groups.active:
             layout.operator_menu_enum("object.vertex_group_set_active", "group", text="Set Active Group")
             layout.operator("object.vertex_group_remove", text="Remove Active Group")
             layout.operator("object.vertex_group_remove", text="Remove All Groups").all = True

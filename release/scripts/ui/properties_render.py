@@ -78,7 +78,7 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
         rd = scene.render
 
         row = layout.row()
-        row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
+        row.template_list(rd, "layers", rd.layers, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("scene.render_layer_add", icon='ZOOMIN', text="")

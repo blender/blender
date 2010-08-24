@@ -119,7 +119,7 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
         pose = ob.pose
 
         row = layout.row()
-        row.template_list(pose, "bone_groups", pose, "active_bone_group_index", rows=2)
+        row.template_list(pose, "bone_groups", pose.bone_groups, "active_index", rows=2)
 
         col = row.column(align=True)
         col.active = (ob.proxy is None)
