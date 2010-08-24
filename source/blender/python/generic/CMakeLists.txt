@@ -31,4 +31,4 @@ SET(INC
 	${PYTHON_INC}
 )
 
-BLENDERLIB(bf_gen_python "${SRC}" "${INC}")
+BLENDERLIB(bf_python_ext "${SRC}" "${INC}")

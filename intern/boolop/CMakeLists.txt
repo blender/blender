@@ -28,5 +28,5 @@ SET(INC . intern extern ../moto/include ../container ../memutil ../../source/ble
 
 FILE(GLOB SRC intern/*.cpp)
 
-BLENDERLIB(blender_bop "${SRC}" "${INC}")
+BLENDERLIB(bf_intern_bop "${SRC}" "${INC}")
 #, libtype='common', priority=5 )

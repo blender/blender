@@ -38,5 +38,5 @@ IF(WITH_FFTW3)
 ENDIF(WITH_FFTW3)
 
 
-BLENDERLIB(bf_smoke "${SRC}" "${INC}")
+BLENDERLIB(bf_intern_smoke "${SRC}" "${INC}")
 #, libtype='blender', priority = 0 )

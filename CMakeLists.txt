@@ -873,7 +873,7 @@ ENDIF(WITH_RAYOPTIMIZATION)
 IF(WITH_IMAGE_OPENJPEG)
 	set(OPENJPEG ${CMAKE_SOURCE_DIR}/extern/libopenjpeg)
 	set(OPENJPEG_INC ${OPENJPEG})
-	set(OPENJPEG_LIb extern_libopenjpeg)
+	set(OPENJPEG_LIb extern_openjpeg)
 ENDIF(WITH_IMAGE_OPENJPEG)
 
 #-----------------------------------------------------------------------------

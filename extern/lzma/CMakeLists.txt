@@ -28,7 +28,4 @@ SET(INC . )
 
 FILE(GLOB SRC ./*.c)
 
-
-
-BLENDERLIB(bf_lzma "${SRC}" "${INC}")
-#, libtype='blender', priority = 0 )
+BLENDERLIB(extern_lzma "${SRC}" "${INC}")

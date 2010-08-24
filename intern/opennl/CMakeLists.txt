@@ -28,6 +28,6 @@ SET(INC extern superlu)
 
 FILE(GLOB SRC intern/*.c superlu/*.c)
 
-BLENDERLIB(blender_ONL "${SRC}" "${INC}")
+BLENDERLIB(bf_intern_opennl "${SRC}" "${INC}")
 #, libtype='core', priority=55 )
 

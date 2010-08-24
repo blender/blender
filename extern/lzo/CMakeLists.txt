@@ -30,5 +30,5 @@ FILE(GLOB SRC minilzo/*.c)
 
 
 
-BLENDERLIB(bf_minilzo "${SRC}" "${INC}")
+BLENDERLIB(extern_minilzo "${SRC}" "${INC}")
 #, libtype='blender', priority = 0 )

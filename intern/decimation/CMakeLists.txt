@@ -28,5 +28,5 @@ SET(INC . ../moto/include ../container ../memutil)
 
 FILE(GLOB SRC intern/*.cpp)
 
-BLENDERLIB(bf_decimation "${SRC}" "${INC}")
+BLENDERLIB(bf_intern_decimate "${SRC}" "${INC}")
 #, libtype=['core','common','player'], priority = [10, 20, 25] )
