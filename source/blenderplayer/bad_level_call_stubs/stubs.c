@@ -283,6 +283,7 @@ void uiItemsEnumR(struct uiLayout *layout, struct PointerRNA *ptr, char *propnam
 void uiItemMenuEnumR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, char *name, int icon){}
 void uiItemEnumR_string(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, char *value, char *name, int icon){}
 void uiItemPointerR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname, char *name, int icon){}
+void uiItemPointerSubR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, char *searchpropname, char *name, int icon){}
 void uiItemsEnumO(struct uiLayout *layout, char *opname, char *propname){}
 void uiItemEnumO_string(struct uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value_str){}
 void uiItemMenuEnumO(struct uiLayout *layout, char *opname, char *propname, char *name, int icon){}
