@@ -1004,8 +1004,8 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 	
 	/* swap so vec1 is always the vector */
 	/* note: it would seem from this code that the matrix multiplication below
-	 * is non-communicative. however the matrix object will always handle the
-	 * (matrix * vector) case.
+	 * is communicative. however the matrix class will always handle the
+	 * (matrix * vector) case so we can ignore it here.
 	 * This is NOT so for Quaternions: TODO, check if communicative (vec * quat) is correct */
 	if (vec2) {
 		vec1= vec2;
