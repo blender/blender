@@ -2495,11 +2495,6 @@ static int pyrna_struct_setattro( BPy_StructRNA *self, PyObject *pyname, PyObjec
 	char *name = _PyUnicode_AsString(pyname);
 	PropertyRNA *prop= NULL;
 
-	if(value == NULL) {
-		PyErr_SetString(PyExc_AttributeError, "bpy_struct: del not supported");
-		return -1;
-	}
-
 	if (name[0] != '_' && (prop= RNA_struct_find_property(&self->ptr, name))) {
 		if (!RNA_property_editable_flag(&self->ptr, prop)) {
 			PyErr_Format( PyExc_AttributeError, "bpy_struct: attribute \"%.200s\" from \"%.200s\" is read-only", RNA_property_identifier(prop), RNA_struct_identifier(self->ptr.type) );
@@ -2531,10 +2526,16 @@ static int pyrna_struct_setattro( BPy_StructRNA *self, PyObject *pyname, PyObjec
 	}
 
 	/* pyrna_py_to_prop sets its own exceptions */
-	if(prop)
+	if(prop) {
+		if(value == NULL) {
+			PyErr_SetString(PyExc_AttributeError, "bpy_struct: del not supported");
+			return -1;
+		}
 		return pyrna_py_to_prop(&self->ptr, prop, NULL, NULL, value, "bpy_struct: item.attr = val:");
-	else
+	}
+	else {
 		return PyObject_GenericSetAttr((PyObject *)self, pyname, value);
+	}
 }
 
 static PyObject *pyrna_prop_dir(BPy_PropertyRNA *self)
