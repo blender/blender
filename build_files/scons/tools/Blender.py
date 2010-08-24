@@ -155,6 +155,8 @@ def setup_staticlibs(lenv):
 		libincs += Split(lenv['BF_FFTW3_LIBPATH'])
 	if lenv['WITH_BF_INTERNATIONAL']:
 		libincs += Split(lenv['BF_GETTEXT_LIBPATH'])
+		if lenv['WITH_BF_GETTEXT_STATIC']:
+			statlibs += Split(lenv['BF_GETTEXT_LIB_STATIC'])
 	if lenv['WITH_BF_OPENAL']:
 		libincs += Split(lenv['BF_OPENAL_LIBPATH'])
 		if lenv['WITH_BF_STATICOPENAL']:
@@ -201,7 +203,7 @@ def setup_syslibs(lenv):
 			syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
 		else:
 			syslibs.append(lenv['BF_PYTHON_LIB'])
-	if lenv['WITH_BF_INTERNATIONAL']:
+	if lenv['WITH_BF_INTERNATIONAL'] and not lenv['WITH_BF_GETTEXT_STATIC']:
 		syslibs += Split(lenv['BF_GETTEXT_LIB'])
 	if lenv['WITH_BF_OPENAL']:
 		if not lenv['WITH_BF_STATICOPENAL']:

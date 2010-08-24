@@ -46,7 +46,7 @@ def validate_arguments(args, bc):
             'WITH_BF_TIFF', 'BF_TIFF', 'BF_TIFF_INC', 'BF_TIFF_LIB', 'BF_TIFF_LIBPATH',
             'WITH_BF_ZLIB', 'BF_ZLIB', 'BF_ZLIB_INC', 'BF_ZLIB_LIB', 'BF_ZLIB_LIBPATH',
             'WITH_BF_INTERNATIONAL',
-            'BF_GETTEXT', 'BF_GETTEXT_INC', 'BF_GETTEXT_LIB', 'BF_GETTEXT_LIBPATH',
+            'BF_GETTEXT', 'BF_GETTEXT_INC', 'BF_GETTEXT_LIB', 'WITH_BF_GETTEXT_STATIC', 'BF_GETTEXT_LIB_STATIC', 'BF_GETTEXT_LIBPATH',
             'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
             'WITH_BF_GAMEENGINE', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
             'BF_WINTAB', 'BF_WINTAB_INC',
@@ -289,6 +289,8 @@ def read_opts(env, cfg, args):
         ('BF_GETTEXT', 'gettext base path', ''),
         ('BF_GETTEXT_INC', 'gettext include path', ''),
         ('BF_GETTEXT_LIB', 'gettext library', ''),
+        (BoolVariable('WITH_BF_GETTEXT_STATIC', 'Use static gettext library if true', False)),
+        ('BF_GETTEXT_LIB_STATIC', 'static gettext library', ''),
         ('BF_GETTEXT_LIBPATH', 'gettext library path', ''),
         
         (BoolVariable('WITH_BF_ICONV', 'Use iconv if true', True)),
