@@ -270,7 +270,6 @@ static void view3d_free(SpaceLink *sl)
 	if(vd->localvd) MEM_freeN(vd->localvd);
 	
 	if(vd->properties_storage) MEM_freeN(vd->properties_storage);
-	
 }
 
 
