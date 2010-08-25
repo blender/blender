@@ -1141,6 +1141,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.separator()
 
+        layout.menu("VIEW3D_MT_object_parent")
         layout.menu("VIEW3D_MT_pose_ik")
         layout.menu("VIEW3D_MT_pose_constraints")
 
