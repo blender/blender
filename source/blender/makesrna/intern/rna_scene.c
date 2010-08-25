@@ -212,6 +212,8 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 	/* slows down importers too much, run scene.update() */
 	/* DAG_scene_sort(G.main, scene); */
 
+	WM_main_add_notifier(NC_SCENE|ND_OB_ACTIVE, scene);
+
 	return base;
 }
 
