@@ -256,7 +256,9 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 	if(v3d && v3d->localvd)
 		*layer |= v3d->lay;
 
-	if (RNA_property_is_set(op->ptr, "view_align"))
+	if(RNA_property_is_set(op->ptr, "rotation"))
+		view_align = FALSE;
+	else if (RNA_property_is_set(op->ptr, "view_align"))
 		view_align = RNA_boolean_get(op->ptr, "view_align");
 	else
 		view_align = U.flag & USER_ADD_VIEWALIGNED;
