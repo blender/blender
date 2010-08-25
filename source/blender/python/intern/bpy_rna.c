@@ -2264,15 +2264,15 @@ static PyObject *pyrna_prop_path_from_id(BPy_PropertyRNA *self)
 	return ret;
 }
 
-static char pyrna_struct_recast_type_doc[] =
-".. method:: recast_type()\n"
+static char pyrna_struct_type_recast_doc[] =
+".. method:: type_recast()\n"
 "\n"
 "   Return a new instance, this is needed because types such as textures can be changed at runtime.\n"
 "\n"
 "   :return: a new instance of this object with the type initialized again.\n"
 "   :rtype: subclass of :class:`bpy_struct`";
 
-static PyObject *pyrna_struct_recast_type(BPy_StructRNA *self, PyObject *args)
+static PyObject *pyrna_struct_type_recast(BPy_StructRNA *self, PyObject *args)
 {
 	PointerRNA r_ptr;
 	RNA_pointer_recast(&self->ptr, &r_ptr);
@@ -3155,7 +3155,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, pyrna_struct_is_property_hidden_doc},
 	{"path_resolve", (PyCFunction)pyrna_struct_path_resolve, METH_VARARGS, pyrna_struct_path_resolve_doc},
 	{"path_from_id", (PyCFunction)pyrna_struct_path_from_id, METH_VARARGS, pyrna_struct_path_from_id_doc},
-	{"recast_type", (PyCFunction)pyrna_struct_recast_type, METH_NOARGS, pyrna_struct_recast_type_doc},
+	{"type_recast", (PyCFunction)pyrna_struct_type_recast, METH_NOARGS, pyrna_struct_type_recast_doc},
 	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, NULL},
 
 	/* experemental */
