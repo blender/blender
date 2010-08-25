@@ -317,12 +317,12 @@ class InputKeyMapPanel(bpy.types.Panel):
                     self.draw_km(display_keymaps, kc, kmm, None, layout, level + 1)
                     layout.set_context_pointer("keymap", km)
 
-    def draw_filtered(self, display_keymaps, filter, layout):
+    def draw_filtered(self, display_keymaps, filter_text, layout):
         for km, kc in display_keymaps:
             km = km.active()
             layout.set_context_pointer("keymap", km)
 
-            filtered_items = [kmi for kmi in km.items if filter in kmi.name.lower()]
+            filtered_items = [kmi for kmi in km.items if filter_text in kmi.name.lower()]
 
             if len(filtered_items) != 0:
                 col = layout.column()
@@ -374,7 +374,7 @@ class InputKeyMapPanel(bpy.types.Panel):
         display_keymaps = _merge_keymaps(kc, defkc)
         if context.space_data.filter_text != "":
             filter_text = context.space_data.filter_text.lower()
-            self.draw_filtered(display_keymaps, filter, col)
+            self.draw_filtered(display_keymaps, filter_text, col)
         else:
             self.draw_hierarchy(display_keymaps, col)
 
