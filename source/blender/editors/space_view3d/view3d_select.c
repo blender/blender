@@ -724,8 +724,10 @@ void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short 
 			;
 		else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT)
 			PE_lasso_select(C, mcords, moves, select);
-		else  
+		else {
 			do_lasso_select_objects(vc, mcords, moves, select);
+			WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, vc->scene);
+		}
 	}
 	else { /* Edit Mode */
 		if(vc->obedit->type==OB_MESH)
