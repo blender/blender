@@ -266,12 +266,10 @@ def read_string(file):
         s += struct.unpack('<c', file.read(1))[0]
         #print 'string: ',s
 
+    #remove the null character from the string
     s = str(s[:-1], 'ASCII')
 # 	print("read string", s)
-
-    #remove the null character from the string
     return s
-# 	return s[:-1]
 
 ######################################################
 # IMPORT
@@ -300,7 +298,6 @@ def add_texture_to_material(image, texture, material, mapto):
 
     if image:
         texture.image = image
-# 	if image: texture.setImage(image) # double check its an image.
 
     material.add_texture(texture, "UV", mapto)
 
@@ -414,9 +411,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
         return [float(col)/255 for col in struct.unpack('<3B', temp_data)] # data [0,1,2] == rgb
 
     def read_texture(new_chunk, temp_chunk, name, mapto):
-        new_texture = bpy.data.textures.new(name)
-        new_texture.type = 'IMAGE'
-        new_texture = new_texture.recast_type()
+        new_texture = bpy.data.textures.new(name, type='IMAGE')
 
         img = None
         while (new_chunk.bytes_read < new_chunk.length):

@@ -348,7 +348,7 @@ void rna_Main_fonts_remove(Main *bmain, ReportList *reports, VFont *vfont)
 	/* XXX python now has invalid pointer? */
 }
 
-Tex *rna_Main_textures_new(Main *bmain, char* name)
+Tex *rna_Main_textures_new(Main *bmain, char* name, int type)
 {
 	Tex *tex= add_texture(name);
 	tex->id.us--;
@@ -766,7 +766,7 @@ void RNA_def_main_curves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new curve to the main database");
 	parm= RNA_def_string(func, "name", "Curve", 0, "", "New name for the datablock.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_enum(func, "type", object_type_curve_items, 0, "Type", "The type of curve object to add");
+	parm= RNA_def_enum(func, "type", object_type_curve_items, 0, "Type", "The type of curve to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "curve", "Curve", "", "New curve datablock.");
@@ -840,6 +840,8 @@ void RNA_def_main_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "new", "rna_Main_textures_new");
 	RNA_def_function_ui_description(func, "Add a new texture to the main database");
 	parm= RNA_def_string(func, "name", "Texture", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "type", texture_type_items, 0, "Type", "The type of texture to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm= RNA_def_pointer(func, "texture", "Texture", "", "New texture datablock.");

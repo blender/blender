@@ -356,18 +356,15 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     #==================================================================================#
     def load_material_image(blender_material, context_material_name, imagepath, type):
 
-        texture= bpy.data.textures.new(type)
-        texture.type= 'IMAGE'
-        texture = texture.recast_type() # Workaround for limitation in rna api.
-# 		texture= bpy.data.textures.new(type)
-# 		texture.setType('Image')
+        texture= bpy.data.textures.new(name=type, type='IMAGE')
 
         # Absolute path - c:\.. etc would work here
-        image= obj_image_load(imagepath, DIR, IMAGE_SEARCH)
-        has_data = image.has_data if image else False
+        image = obj_image_load(imagepath, DIR, IMAGE_SEARCH)
+        has_data = False
 
         if image:
             texture.image = image
+            has_data = image.has_data
 
         # Adds textures for materials (rendering)
         if type == 'Kd':
