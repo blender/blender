@@ -84,7 +84,7 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
         col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
         col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
 
-        rl = rd.layers[rd.active_layer_index]
+        rl = rd.layers.active
 
         if rl:
             layout.prop(rl, "name")
