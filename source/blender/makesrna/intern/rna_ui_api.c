@@ -376,9 +376,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "lock", 0, "", "Lock the color wheel display to value 1.0 regardless of actual color");
 	RNA_def_boolean(func, "lock_luminosity", 0, "", "Keep the color at its original vector length");
 	RNA_def_boolean(func, "cubic", 1, "", "Cubic saturation for picking values close to white");
-	
-	func= RNA_def_function(srna, "template_triColorSet", "uiTemplateTriColorSet");
-	api_ui_item_rna_common(func);
 
 	func= RNA_def_function(srna, "template_image_layers", "uiTemplateImageLayers");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

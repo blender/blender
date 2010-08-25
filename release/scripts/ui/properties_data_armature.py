@@ -139,7 +139,10 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
             col.prop(group, "color_set")
             if group.color_set:
                 col = split.column()
-                col.template_triColorSet(group, "colors")
+                subrow = col.row(align=True)
+                subrow.prop(group.colors, "normal", text="")
+                subrow.prop(group.colors, "select", text="")
+                subrow.prop(group.colors, "active", text="")
 
         row = layout.row()
         row.active = (ob.proxy is None)

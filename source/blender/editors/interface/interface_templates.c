@@ -1884,31 +1884,6 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int
 		uiDefButR(block, HSVCUBE, 0, "", WHEEL_SIZE+6, 0, 14, WHEEL_SIZE, ptr, propname, -1, softmin, softmax, 9, 0, "");
 }
 
-
-/********************* TriColor (ThemeWireColorSet) Template ************************/
-
-void uiTemplateTriColorSet(uiLayout *layout, PointerRNA *ptr, char *propname)
-{
-	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
-	uiLayout *row;
-	PointerRNA csPtr;
-
-	if (!prop) {
-		printf("uiTemplateTriColorSet: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
-		return;
-	}
-	
-	/* we lay out the data in a row as 3 color swatches */
-	row= uiLayoutRow(layout, 1);
-	
-	/* nselected, selected, active color swatches */
-	csPtr= RNA_property_pointer_get(ptr, prop);
-	
-	uiItemR(row, &csPtr, "normal", 0, "", 0);
-	uiItemR(row, &csPtr, "select", 0, "", 0);
-	uiItemR(row, &csPtr, "active", 0, "", 0);
-}
-
 /********************* Layer Buttons Template ************************/
 
 static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
