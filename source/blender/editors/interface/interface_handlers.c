@@ -4777,7 +4777,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 		button_activate_state(C, but, BUTTON_STATE_WAIT_FLASH);
 }
 
-static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *but, int mousemove)
+static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *but, int mousemove, int onfree)
 {
 	uiBlock *block= but->block;
 	uiBut *bt;
@@ -4787,7 +4787,8 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 		button_activate_state(C, but, BUTTON_STATE_EXIT);
 
 	/* apply the button action or value */
-	ui_apply_button(C, block, but, data, 0);
+	if(!onfree)
+		ui_apply_button(C, block, but, data, 0);
 
 	/* if this button is in a menu, this will set the button return
 	 * value to the button value and the menu return value to ok, the
@@ -4802,7 +4803,7 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 		}
 	}
 
-	if(!data->cancel) {
+	if(!onfree && !data->cancel) {
 		/* autokey & undo push */
 		ui_apply_autokey_undo(C, but);
 
@@ -4835,7 +4836,8 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 	but->active= NULL;
 	but->flag &= ~(UI_ACTIVE|UI_SELECT);
 	but->flag |= UI_BUT_LAST_ACTIVE;
-	ui_check_but(but);
+	if(!onfree)
+		ui_check_but(but);
 
 	/* adds empty mousemove in queue for re-init handler, in case mouse is
 	 * still over a button. we cannot just check for this ourselfs because
@@ -4844,7 +4846,7 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 		WM_event_add_mousemove(C);
 }
 
-void ui_button_active_cancel(const bContext *C, uiBut *but)
+void ui_button_active_free(const bContext *C, uiBut *but)
 {
 	uiHandleButtonData *data;
 
@@ -4854,7 +4856,7 @@ void ui_button_active_cancel(const bContext *C, uiBut *but)
 	if(but->active) {
 		data= but->active;
 		data->cancel= 1;
-		button_activate_exit((bContext*)C, data, but, 0);
+		button_activate_exit((bContext*)C, data, but, 0, 1);
 	}
 }
 
@@ -4920,7 +4922,7 @@ static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiBu
 	if(oldbut) {
 		data= oldbut->active;
 		data->cancel= 1;
-		button_activate_exit(C, data, oldbut, 0);
+		button_activate_exit(C, data, oldbut, 0, 0);
 	}
 
 	button_activate_init(C, ar, but, type);
@@ -5078,7 +5080,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 		postbut= data->postbut;
 		posttype= data->posttype;
 
-		button_activate_exit(C, data, but, (postbut == NULL));
+		button_activate_exit(C, data, but, (postbut == NULL), 0);
 
 		/* for jumping to the next button with tab while text editing */
 		if(postbut)
@@ -5182,7 +5184,7 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 		if(menu->menuretval != UI_RETURN_OK)
 			data->cancel= 1;
 
-		button_activate_exit(C, data, but, 1);
+		button_activate_exit(C, data, but, 1, 0);
 	}
 	else if(menu->menuretval == UI_RETURN_OUT) {
 		if(event->type==MOUSEMOVE && ui_mouse_inside_button(data->region, but, event->x, event->y)) {
@@ -5196,7 +5198,7 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 			}
 			else {
 				data->cancel= 1;
-				button_activate_exit(C, data, but, 1);
+				button_activate_exit(C, data, but, 1, 0);
 			}
 		}
 	}
