@@ -645,7 +645,11 @@ void BKE_undo_number(bContext *C, int nr)
 /* go back to the last occurance of name in stack */
 void BKE_undo_name(bContext *C, const char *name)
 {
-	UndoElem *uel= BLI_findstring(&undobase, name, offsetof(UndoElem, name));
+	UndoElem *uel;
+
+	for(uel= undobase.last; uel; uel= uel->prev)
+		if(strcmp(name, uel->name)==0)
+			break;
 
 	if(uel && uel->prev) {
 		curundo= uel->prev;
