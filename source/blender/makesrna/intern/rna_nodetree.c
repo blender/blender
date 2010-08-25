@@ -1057,7 +1057,7 @@ static void def_cmp_image(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "frame_duration", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frames");
-	RNA_def_property_range(prop, 1, MAXFRAMEF);
+	RNA_def_property_range(prop, 0, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Frames", "Number of images used in animation");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
