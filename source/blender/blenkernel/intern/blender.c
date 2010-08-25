@@ -460,13 +460,16 @@ static UndoElem *curundo= NULL;
 
 static int read_undosave(bContext *C, UndoElem *uel)
 {
-	char scestr[FILE_MAXDIR+FILE_MAXFILE];
+	char scestr[FILE_MAXDIR+FILE_MAXFILE]; /* we should eventually just use G.main->name */
+	char mainstr[FILE_MAXDIR+FILE_MAXFILE];
 	int success=0, fileflags;
 	
 	/* This is needed so undoing/redoing doesnt crash with threaded previews going */
 	WM_jobs_stop_all(CTX_wm_manager(C));
 	
 	strcpy(scestr, G.sce);	/* temporal store */
+	strcpy(mainstr, G.main->name);	/* temporal store */
+
 	fileflags= G.fileflags;
 	G.fileflags |= G_FILE_NO_UI;
 
@@ -476,7 +479,8 @@ static int read_undosave(bContext *C, UndoElem *uel)
 		success= BKE_read_file_from_memfile(C, &uel->memfile, NULL);
 
 	/* restore */
-	strcpy(G.sce, scestr);
+	strcpy(G.sce, scestr); /* restore */
+	strcpy(G.main->name, mainstr); /* restore */
 	G.fileflags= fileflags;
 
 	if(success)

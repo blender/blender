@@ -334,6 +334,9 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'New File' */
 /* op can be NULL */
+/* note: G.sce is used to store the last saved path so backup and restore after loading
+ * G.main->name is similar to G.sce but when loading from memory set the name to startup.blend 
+ * ...this could be changed but seems better then setting to "" */
 int WM_read_homefile(bContext *C, wmOperator *op)
 {
 	ListBase wmbase;
@@ -376,7 +379,8 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	WM_check(C); /* opens window(s), checks keymaps */
 
 	strcpy(G.sce, scestr); /* restore */
-	
+	strcpy(G.main->name, tstr); /* this is wrong when loading from memory but better then leaving as-is */
+
 	wm_init_userdef(C);
 	
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
