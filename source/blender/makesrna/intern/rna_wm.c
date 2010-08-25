@@ -612,6 +612,33 @@ static int rna_wmKeyMapItem_name_length(PointerRNA *ptr)
 		return 0;
 }
 
+static void rna_wmClipboard_get(PointerRNA *ptr, char *value)
+{
+	char *pbuf;
+
+	pbuf= WM_clipboard_text_get(FALSE);
+	strcpy(value, pbuf);
+
+	MEM_freeN(pbuf);
+}
+
+static int rna_wmClipboard_length(PointerRNA *ptr)
+{
+	char *clipboard;
+	int length;
+
+	clipboard = WM_clipboard_text_get(FALSE);
+	length = (clipboard?strlen(clipboard):0);
+	MEM_freeN(clipboard);
+
+	return length;
+}
+
+static void rna_wmClipboard_set(PointerRNA *ptr, const char *value)
+{
+	WM_clipboard_text_set((void *) value, FALSE);
+}
+
 #ifndef DISABLE_PYTHON
 static void rna_Operator_unregister(const bContext *C, StructRNA *type)
 {
@@ -1298,6 +1325,10 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "KeyConfig");
 	RNA_def_property_ui_text(prop, "Key Configurations", "Registered key configurations");
 	rna_def_wm_keyconfigs(brna, prop);
+
+	prop= RNA_def_property(srna, "clipboard", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_wmClipboard_get", "rna_wmClipboard_length", "rna_wmClipboard_set");
+	RNA_def_property_ui_text(prop, "Text Clipboard", "");
 
 	RNA_api_wm(srna);
 }
