@@ -6,4 +6,4 @@ sources = env.Glob('./*.c')
 defs = ''
 incs = ' . ' 
 
-env.BlenderLib ('bf_lzma', sources, Split(incs), Split(defs), libtype=['intern'], priority=[40] )
+env.BlenderLib ('extern_lzma', sources, Split(incs), Split(defs), libtype=['intern'], priority=[40] )

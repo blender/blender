@@ -8,7 +8,7 @@ incs += ' ../../source/blender/makesdna ../../intern/guardedalloc'
 incs += ' ../../source/blender/blenlib'
 
 if (env['OURPLATFORM'] == 'win32-mingw'):
-    env.BlenderLib ('blender_bop', sources, Split(incs) , [], libtype='intern', priority = 5 )
+    env.BlenderLib ('bf_intern_bop', sources, Split(incs) , [], libtype='intern', priority = 5 )
 else:
-    env.BlenderLib ('blender_bop', sources, Split(incs) , [], libtype='intern', priority = 5 )
+    env.BlenderLib ('bf_intern_bop', sources, Split(incs) , [], libtype='intern', priority = 5 )
 
