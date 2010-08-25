@@ -57,7 +57,6 @@ BF_OPENEXR_LIB = 'Half IlmImf Iex Imath '
 BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
 # BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
 
-
 WITH_BF_DDS = True
 
 WITH_BF_JPEG = True
@@ -87,7 +86,7 @@ BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gettextlib'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_GAMEENGINE = True
+WITH_BF_GAMEENGINE = False
 WITH_BF_PLAYER = True
 
 WITH_BF_BULLET = True
@@ -100,7 +99,8 @@ BF_FREETYPE = '/usr/local'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
 
-WITH_BF_QUICKTIME = True # -DWITH_QUICKTIME
+### XXX Find what this actually wants; it doesn't want libquicktime.
+WITH_BF_QUICKTIME = False # -DWITH_QUICKTIME
 BF_QUICKTIME = '/usr/local'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/include'
 
@@ -195,7 +195,7 @@ CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
-LLIBS = ['util', 'c', 'm', 'dl', 'pthread', 'stdc++']
+LLIBS = ['util', 'c', 'm', 'pthread', 'stdc++']
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
