@@ -258,12 +258,9 @@ class x3d_class:
 
     def writeFog(self, world):
         if world:
-            mtype = world.mist.falloff
-            # mtype = world.getMistype()
-            mparam = world.mist
-            # mparam = world.getMist()
+            mtype = world.mist_settings.falloff
+            mparam = world.mist_settings
             grd = world.horizon_color
-            # grd = world.getHor()
             grd0, grd1, grd2 = grd[0], grd[1], grd[2]
         else:
             return
@@ -731,7 +728,7 @@ class x3d_class:
     def writeBackground(self, world, alltextures):
         if world:	worldname = world.name
         else:		return
-        blending = (world.blend_sky, world.paper_sky, world.use_sky_real)
+        blending = (world.use_sky_blend, world.use_sky_paper, world.use_sky_real)
         # blending = world.getSkytype()
         grd = world.horizon_color
         # grd = world.getHor()
