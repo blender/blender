@@ -707,12 +707,20 @@ static void node_composit_buts_crop(uiLayout *layout, bContext *C, PointerRNA *p
 	uiLayout *col;
 	
 	uiItemR(layout, ptr, "use_crop_size", 0, NULL, 0);
-	
+   uiItemR(layout, ptr, "relative", 0, NULL, 0);
+
 	col= uiLayoutColumn(layout, 1);
-	uiItemR(col, ptr, "min_x", 0, "Left", 0);
-	uiItemR(col, ptr, "max_x", 0, "Right", 0);
-	uiItemR(col, ptr, "min_y", 0, "Up", 0);
-	uiItemR(col, ptr, "max_y", 0, "Down", 0);
+   if (RNA_boolean_get(ptr, "relative")){
+      uiItemR(col, ptr, "rel_min_x", 0, "Left", 0);
+      uiItemR(col, ptr, "rel_max_x", 0, "Right", 0);
+      uiItemR(col, ptr, "rel_min_y", 0, "Up", 0);
+      uiItemR(col, ptr, "rel_max_y", 0, "Down", 0);
+   } else {
+      uiItemR(col, ptr, "min_x", 0, "Left", 0);
+      uiItemR(col, ptr, "max_x", 0, "Right", 0);
+      uiItemR(col, ptr, "min_y", 0, "Up", 0);
+      uiItemR(col, ptr, "max_y", 0, "Down", 0);
+   }
 }
 
 static void node_composit_buts_splitviewer(uiLayout *layout, bContext *C, PointerRNA *ptr)
