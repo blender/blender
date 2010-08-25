@@ -862,7 +862,7 @@ static void view3d_get_viewborder_size(Scene *scene, ARegion *ar, float size_r[2
 	}
 }
 
-void calc_viewborder(Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r)
+void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r)
 {
 	float zoomfac, size[2];
 	float dx= 0.0f, dy= 0.0f;
@@ -988,7 +988,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	if(v3d->camera->type==OB_CAMERA)
 		ca = v3d->camera->data;
 	
-	calc_viewborder(scene, ar, rv3d, v3d, &viewborder);
+	view3d_calc_camera_border(scene, ar, rv3d, v3d, &viewborder);
 	/* the offsets */
 	x1= viewborder.xmin;
 	y1= viewborder.ymin;
@@ -1325,7 +1325,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			if(rv3d->persp==RV3D_CAMOB) {
 				rctf vb;
 
-				calc_viewborder(scene, ar, rv3d, v3d, &vb);
+				view3d_calc_camera_border(scene, ar, rv3d, v3d, &vb);
 
 				x1= vb.xmin;
 				y1= vb.ymin;
@@ -1672,7 +1672,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	v3d->zbuf= TRUE;
 	glEnable(GL_DEPTH_TEST);
 
-	draw_gpencil_view3d_ext(scene, ar, 1);
+	draw_gpencil_view3d_ext(scene, v3d, ar, 1);
 	
 	v3d->zbuf= zbuf;
 
@@ -1976,14 +1976,22 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	Base *base;
 	float backcol[3];
 	int bwinx, bwiny;
+	rcti brect;
 
 	glPushMatrix();
 
 	/* set temporary new size */
 	bwinx= ar->winx;
 	bwiny= ar->winy;
+	brect= ar->winrct;
+	
 	ar->winx= winx;
-	ar->winy= winy;
+	ar->winy= winy;	
+	ar->winrct.xmin= 0;
+	ar->winrct.ymin= 0;
+	ar->winrct.xmax= winx;
+	ar->winrct.ymax= winy;
+	
 	
 	/* set flags */
 	G.f |= G_RENDER_OGL;
@@ -2052,12 +2060,12 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	}
 
 	/* draw grease-pencil stuff */
-	draw_gpencil_view3d_ext(scene, ar, 1);
+	draw_gpencil_view3d_ext(scene, v3d, ar, 1);
 
 	ED_region_pixelspace(ar);
 
 	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-	draw_gpencil_view3d_ext(scene, ar, 0);
+	draw_gpencil_view3d_ext(scene, v3d, ar, 0);
 
 	/* freeing the images again here could be done after the operator runs, leaving for now */
 	GPU_free_images_anim();
@@ -2065,6 +2073,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	/* restore size */
 	ar->winx= bwinx;
 	ar->winy= bwiny;
+	ar->winrct = brect;
 
 	glPopMatrix();
 
