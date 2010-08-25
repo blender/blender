@@ -94,7 +94,7 @@ public:
 	BL_ArmatureConstraint* GetConstraint(int index);
 	// for pose channel python API
 	void LoadChannels();
-	size_t GetChannelNumber() const { return m_constraintNumber; }
+	size_t GetChannelNumber() const { return m_channelNumber; }
 	BL_ArmatureChannel* GetChannel(bPoseChannel* channel);
 	BL_ArmatureChannel* GetChannel(const char* channel);
 	BL_ArmatureChannel* GetChannel(int index);
