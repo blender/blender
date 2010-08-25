@@ -1440,7 +1440,7 @@ static void view3d_draw_xray(Scene *scene, ARegion *ar, View3D *v3d, int clear)
 	int doit= 0;
 	
 	for(v3da= v3d->afterdraw.first; v3da; v3da= v3da->next)
-		if(v3da->type==V3D_XRAY) doit= 1;
+		if(v3da->type==V3D_XRAY || v3da->type==V3D_XRAYTRANSP) doit= 1;
 	
 	if(doit) {
 		if(clear && v3d->zbuf) glClear(GL_DEPTH_BUFFER_BIT);
@@ -1452,6 +1452,13 @@ static void view3d_draw_xray(Scene *scene, ARegion *ar, View3D *v3d, int clear)
 				draw_object(scene, ar, v3d, v3da->base, v3da->flag);
 				BLI_remlink(&v3d->afterdraw, v3da);
 				MEM_freeN(v3da);
+			}
+			else if(v3da->type==V3D_XRAYTRANSP){ 
+				v3d->transp= TRUE;
+				draw_object(scene, ar, v3d, v3da->base, v3da->flag);
+				BLI_remlink(&v3d->afterdraw, v3da);
+				MEM_freeN(v3da);
+				v3d->transp= FALSE;
 			}
 		}
 		v3d->xray= FALSE;
@@ -1767,6 +1774,8 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 				v3d->xray= TRUE; v3d->transp= FALSE;  
 			} else if (v3da->type==V3D_TRANSP) {
 				v3d->xray= FALSE; v3d->transp= TRUE;
+			} else if (v3da->type == V3D_XRAYTRANSP) {
+				v3d->xray= TRUE; v3d->transp= TRUE;
 			}
 			
 			draw_object(scene, ar, v3d, v3da->base, 0); /* Draw Xray or Transp objects normally */

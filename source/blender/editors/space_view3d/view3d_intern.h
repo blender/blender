@@ -56,6 +56,7 @@ struct bMotionPath;
 
 #define V3D_XRAY	1
 #define V3D_TRANSP	2
+#define V3D_XRAYTRANSP	4
 
 #define V3D_SELECT_MOUSE	1
 
