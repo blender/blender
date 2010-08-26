@@ -406,12 +406,12 @@ thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
 if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
-	env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
+	env.BlenderProg(B.root_build_dir, "blender", mainlist + thestatlibs + dobj, thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
 	playerlist = B.create_blender_liblist(env, 'player')
 	playerlist += B.create_blender_liblist(env, 'intern')
 	playerlist += B.create_blender_liblist(env, 'extern')
-	env.BlenderProg(B.root_build_dir, "blenderplayer", dobj + playerlist, [], thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
+	env.BlenderProg(B.root_build_dir, "blenderplayer",  playerlist, thestatlibs + dobj + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
 
 ##### Now define some targets
 

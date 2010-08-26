@@ -724,7 +724,7 @@ class BlenderEnvironment(SConsEnvironment):
 		# note: libs is a global
 		add_lib_to_dict(self, libs, libtype, libname, priority)
 
-	def BlenderProg(self=None, builddir=None, progname=None, sources=None, includes=None, libs=None, libpath=None, binarykind=''):
+	def BlenderProg(self=None, builddir=None, progname=None, sources=None, libs=None, libpath=None, binarykind=''):
 		global vcp
 		print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
 		lenv = self.Clone()
@@ -750,7 +750,6 @@ class BlenderEnvironment(SConsEnvironment):
 			lenv.Append(LINKFLAGS = lenv['BF_OPENGL_LINKFLAGS'])
 		if lenv['BF_PROFILE']:
 			lenv.Append(LINKFLAGS = lenv['BF_PROFILE_LINKFLAGS'])
-		lenv.Append(CPPPATH=includes)
 		if root_build_dir[0]==os.sep or root_build_dir[1]==':':
 			lenv.Append(LIBPATH=root_build_dir + '/lib')
 		lenv.Append(LIBPATH=libpath)
