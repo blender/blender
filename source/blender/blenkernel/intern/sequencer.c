@@ -1852,7 +1852,7 @@ static ImBuf * seq_render_scene_strip_impl(
 	if(sequencer_view3d_cb && BLI_thread_is_main() && doseq_gl && (seq->scene == scene || have_seq==0) && seq->scene->camera) {
 		/* opengl offscreen render */
 		scene_update_for_newframe(bmain, seq->scene, seq->scene->lay);
-		ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty, 
+		ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty, IB_rect,
 					  scene->r.seq_prev_type);
 	}
 	else {

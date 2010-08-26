@@ -144,12 +144,8 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		GPU_offscreen_unbind(oglrender->ofs); /* unbind */
 	}
 	else {
-		ImBuf *ibuf_view= ED_view3d_draw_offscreen_imbuf_simple(scene, oglrender->sizex, oglrender->sizey, OB_SOLID);
-		ibuf_view->profile = IB_PROFILE_NONE; /* ensures no conversion!, see note above */
-		IMB_float_from_rect(ibuf_view);
-
+		ImBuf *ibuf_view= ED_view3d_draw_offscreen_imbuf_simple(scene, oglrender->sizex, oglrender->sizey, IB_rectfloat, OB_SOLID);
 		memcpy(rr->rectf, ibuf_view->rect_float, sizeof(float) * 4 * oglrender->sizex * oglrender->sizey);
-
 		IMB_freeImBuf(ibuf_view);
 	}
 	

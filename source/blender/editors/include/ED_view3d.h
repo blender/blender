@@ -160,8 +160,8 @@ int ED_view3d_context_activate(struct bContext *C);
 void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct ARegion *ar,
 	int winx, int winy, float viewmat[][4], float winmat[][4]);
 
-struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey);
-struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, int drawtype);
+struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey, unsigned int flag);
+struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, unsigned int flag, int drawtype);
 
 void view3d_clipping_local(struct RegionView3D *rv3d, float mat[][4]);
 

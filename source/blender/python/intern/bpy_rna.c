@@ -4704,8 +4704,6 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 		return -1;
 	}
 
-	printf("could not find function %s in %s to execute callback.\n", RNA_function_identifier(func), RNA_struct_identifier(ptr->type));
-
 	bpy_context_set(C, &gilstate);
 
 	if (!is_static) {

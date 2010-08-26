@@ -2115,7 +2115,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 }
 
 /* utility func for ED_view3d_draw_offscreen */
-ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey)
+ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey, unsigned int flag)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	ImBuf *ibuf;
@@ -2143,9 +2143,13 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	}
 
 	/* read in pixels & stamp */
-	ibuf= IMB_allocImBuf(sizex, sizey, 24, IB_rect, 0);
-	glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	ibuf= IMB_allocImBuf(sizex, sizey, 32, flag, 0);
 
+	if(ibuf->rect_float)
+		glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, ibuf->rect_float);
+	else if(ibuf->rect)
+		glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	
 	//if((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
 	//	BKE_stamp_buf(scene, NULL, rr->rectf, rr->rectx, rr->recty, 4);
 
@@ -2153,11 +2157,14 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	GPU_offscreen_unbind(ofs);
 	GPU_offscreen_free(ofs);
 
+	if(ibuf->rect_float && ibuf->rect)
+		IMB_rect_from_float(ibuf);
+	
 	return ibuf;
 }
 
 /* creates own 3d views, used by the sequencer */
-ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, int drawtype)
+ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, unsigned int flag, int drawtype)
 {
 	View3D v3d;
 	ARegion ar;
@@ -2192,7 +2199,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height
 	mul_m4_m4m4(rv3d.persmat, rv3d.viewmat, rv3d.winmat);
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
-	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height);
+	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag);
 
 	// seq_view3d_cb(scene, cfra, render_size, seqrectx, seqrecty);
 }
