@@ -145,6 +145,9 @@ void WM_operator_stack_clear(struct bContext *C) {}
 void WM_autosave_init(struct bContext *C){}
 void WM_jobs_stop_all(struct wmWindowManager *wm){}
 
+char *WM_clipboard_text_get(int selection){return (char*)0;}
+void WM_clipboard_text_set(char *buf, int selection){}
+
 struct wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id){return (struct wmKeyMapItem *) NULL;}
 int WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event){return 0;}
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference){}
