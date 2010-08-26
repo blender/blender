@@ -118,7 +118,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	const int separator  = 4;
 
 	/* Additional locals. */
-	char  name[20];
+	char  name[32];
 	int loadbutton;
 	int fnumbuttons;
 	int min_x       = 10;
@@ -627,5 +627,4 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	uiDrawBlock(C, block);
 
 }
-
 
