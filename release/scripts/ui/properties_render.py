@@ -68,7 +68,7 @@ class RENDER_PT_render(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Layers"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -194,7 +194,7 @@ class RENDER_PT_shading(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Performance"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -236,7 +236,7 @@ class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Post Processing"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -389,7 +389,7 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Encoding"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -485,7 +485,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Full Sample Motion Blur"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -550,7 +550,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Stamp"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -594,7 +594,7 @@ class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Bake"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):

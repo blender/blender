@@ -130,7 +130,7 @@ class PropertyPanel():
     and the variable '_context_path' MUST be set.
     """
     bl_label = "Custom Properties"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):

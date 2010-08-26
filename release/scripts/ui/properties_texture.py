@@ -76,7 +76,7 @@ class TextureButtonsPanel():
 
 class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -157,7 +157,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel, bpy.types.Panel):
 
 class TEXTURE_PT_colors(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "Colors"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -592,7 +592,7 @@ def texture_filter_common(tex, layout):
 
 class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
     bl_label = "Image Sampling"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -630,7 +630,7 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
 
 class TEXTURE_PT_image_mapping(TextureTypePanel, bpy.types.Panel):
     bl_label = "Image Mapping"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -721,7 +721,7 @@ class TEXTURE_PT_envmap(TextureTypePanel, bpy.types.Panel):
 
 class TEXTURE_PT_envmap_sampling(TextureTypePanel, bpy.types.Panel):
     bl_label = "Environment Map Sampling"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'ENVIRONMENT_MAP'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 

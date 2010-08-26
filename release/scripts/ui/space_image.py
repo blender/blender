@@ -604,7 +604,7 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
 class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, bpy.types.Panel):
     bl_label = "Texture"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -621,7 +621,7 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, bpy.types.Panel):
 
 class IMAGE_PT_paint_stroke(BrushButtonsPanel, bpy.types.Panel):
     bl_label = "Paint Stroke"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -645,7 +645,7 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, bpy.types.Panel):
 
 class IMAGE_PT_paint_curve(BrushButtonsPanel, bpy.types.Panel):
     bl_label = "Paint Curve"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout

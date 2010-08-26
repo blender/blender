@@ -131,7 +131,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Cloth Cache"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -144,7 +144,7 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Cloth Collision"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -183,7 +183,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Cloth Stiffness Scaling"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -219,7 +219,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Cloth Field Weights"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):

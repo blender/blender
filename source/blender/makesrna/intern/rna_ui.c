@@ -583,6 +583,11 @@ static void rna_def_panel(BlenderRNA *brna)
 	PropertyRNA *parm;
 	FunctionRNA *func;
 	
+	static EnumPropertyItem panel_flag_items[] = {
+			{PNL_DEFAULT_CLOSED, "DEFAULT_CLOSED", 0, "Default Closed", "Defines if the panel has to be open or collapsed at the time of its creation."},
+			{PNL_NO_HEADER, "HIDE_HEADER", 0, "Show Header", "If set to True, the panel shows a header, which contains a clickable arrow to collapse the panel and the label (see bl_label)."},
+			{0, NULL, 0, NULL, NULL}};
+	
 	srna= RNA_def_struct(brna, "Panel", NULL);
 	RNA_def_struct_ui_text(srna, "Panel", "Panel containing UI elements");
 	RNA_def_struct_sdna(srna, "Panel");
@@ -646,15 +651,11 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL); /* should this be optional? - Campbell */
 	RNA_def_property_ui_text(prop, "Context", "The context in which the panel belongs to. (TODO: explain the possible combinations bl_context/bl_region_type/bl_space_type)");
 	
-	prop= RNA_def_property(srna, "bl_default_closed", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", PNL_DEFAULT_CLOSED);
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-	RNA_def_property_ui_text(prop, "Default closed", "Defines if the panel has to be open or collapsed at the time of its creation. Note that once the panel has been created with bl_default_closed = True, at reload (F8) it stays open.");
-	
-	prop= RNA_def_property(srna, "bl_show_header", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "type->flag", PNL_NO_HEADER);
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-	RNA_def_property_ui_text(prop, "Show Header", "If set to True, the panel shows a header, which contains a clickable arrow to collapse the panel and the label (see bl_label).");
+	prop= RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type->flag");
+	RNA_def_property_enum_items(prop, panel_flag_items);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL|PROP_ENUM_FLAG);
+	RNA_def_property_ui_text(prop, "Options",  "Options for this panel type");
 }
 
 static void rna_def_header(BlenderRNA *brna)

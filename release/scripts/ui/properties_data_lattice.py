@@ -33,7 +33,7 @@ class DataButtonsPanel():
 
 class DATA_PT_context_lattice(DataButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout

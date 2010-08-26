@@ -33,7 +33,7 @@ class ArmatureButtonsPanel():
 
 class DATA_PT_context_arm(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout
@@ -187,7 +187,7 @@ class DATA_PT_ghost(ArmatureButtonsPanel, bpy.types.Panel):
 
 class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "iTaSC parameters"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):

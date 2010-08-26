@@ -128,7 +128,7 @@ class InputKeyMapPanel(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     def draw_entry(self, display_keymaps, entry, col, level=0):
         idname, spaceid, regionid, children = entry

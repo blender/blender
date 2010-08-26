@@ -27,7 +27,7 @@ class MotionPathButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_label = "Motion Paths"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_settings(self, context, avs, bones=False):
         layout = self.layout
@@ -65,7 +65,7 @@ class OnionSkinButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_label = "Onion Skinning"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
