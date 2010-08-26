@@ -116,6 +116,17 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 
 	rr= RE_AcquireResultRead(oglrender->re);
 	
+	/* note on color management:
+	 * looked into how best to deal with color management here and found heres how it should work.
+	 *
+	 * OpenGL materials etc are color corrected, so a float buffer from the graphics card is
+	 * color corrected, without running any conversion functions.
+	 * 
+	 * With color correction disabled blender expects the rr->rectf to be non-color managed so
+	 * just do a direct copy from the byte array to the rectf with no conversion too.
+	 * notice IMB_float_from_rect has the profile set so no conversion is done.
+	 */
+
 	if(view_context) {
 		GPU_offscreen_bind(oglrender->ofs); /* bind */
 
@@ -134,6 +145,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	}
 	else {
 		ImBuf *ibuf_view= ED_view3d_draw_offscreen_imbuf_simple(scene, oglrender->sizex, oglrender->sizey, OB_SOLID);
+		ibuf_view->profile = IB_PROFILE_NONE; /* ensures no conversion!, see note above */
 		IMB_float_from_rect(ibuf_view);
 
 		memcpy(rr->rectf, ibuf_view->rect_float, sizeof(float) * 4 * oglrender->sizex * oglrender->sizey);
