@@ -379,7 +379,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	WM_check(C); /* opens window(s), checks keymaps */
 
 	strcpy(G.sce, scestr); /* restore */
-	strcpy(G.main->name, tstr); /* this is wrong when loading from memory but better then leaving as-is */
+	G.main->name[0]= '\0';
 
 	wm_init_userdef(C);
 	
