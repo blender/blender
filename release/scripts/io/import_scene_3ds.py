@@ -334,7 +334,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
         bmesh = bpy.data.meshes.new(contextObName)
         if myContextMesh_vertls:
 
-            bmesh.add_geometry(len(myContextMesh_vertls)//3, 0, len(myContextMesh_facels))
+            bmesh.vertices.add(len(myContextMesh_vertls)//3)
+            bmesh.faces.add(len(myContextMesh_facels))
             bmesh.vertices.foreach_set("co", myContextMesh_vertls)
             
             eekadoodle_faces = []
@@ -350,12 +351,13 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
             for mat_idx, (matName, faces) in enumerate(myContextMeshMaterials.items()):
                 if matName is None:
-                    bmesh.add_material(None)
+                    bmat = None
                 else:
                     bmat = MATDICT[matName][1]
-                    bmesh.add_material(bmat) # can be None
                     img = TEXTURE_DICT.get(bmat.name)
-                
+
+                bmesh.materials.link(bmat) # can be None
+
                 if uv_faces  and img:
                     for fidx in faces:
                         bmesh.faces[fidx].material_index = mat_idx

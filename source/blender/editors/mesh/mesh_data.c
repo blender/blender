@@ -721,6 +721,7 @@ static void mesh_add_faces(Mesh *mesh, int len)
 	mesh->totface= totface;
 }
 
+/*
 void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges, int faces)
 {
 	if(mesh->edit_mesh) {
@@ -735,22 +736,49 @@ void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges,
 	if(faces)
 		mesh_add_faces(mesh, faces);
 }
+*/
+
+void ED_mesh_faces_add(Mesh *mesh, ReportList *reports, int count)
+{
+	if(mesh->edit_mesh) {
+		BKE_report(reports, RPT_ERROR, "Can't add faces in edit mode.");
+		return;
+	}
+
+	mesh_add_faces(mesh, count);
+}
+
+void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)
+{
+	if(mesh->edit_mesh) {
+		BKE_report(reports, RPT_ERROR, "Can't add edges in edit mode.");
+		return;
+	}
+
+	mesh_add_edges(mesh, count);
+}
+
+void ED_mesh_vertices_add(Mesh *mesh, ReportList *reports, int count)
+{
+	if(mesh->edit_mesh) {
+		BKE_report(reports, RPT_ERROR, "Can't add vertices in edit mode.");
+		return;
+	}
+
+	mesh_add_verts(mesh, count);
+}
 
 void ED_mesh_calc_normals(Mesh *me)
 {
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }
 
-void ED_mesh_material_add(Mesh *me, Material *ma)
+/* always adds the material even if its linked alredy
+ * for pradictable material indicies */
+void ED_mesh_material_link(Mesh *me, Material *ma)
 {
-	int i;
 	int totcol = me->totcol + 1;
 	Material **mat;
-
-	/* don't add if mesh already has it */
-	for(i = 0; i < me->totcol; i++)
-		if(me->mat[i] == ma)
-			return;
 
 	mat= MEM_callocN(sizeof(void*)*totcol, "newmatar");
 

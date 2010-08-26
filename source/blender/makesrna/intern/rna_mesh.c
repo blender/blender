@@ -1630,14 +1630,52 @@ static void rna_def_mproperties(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 }
 
-/* scene.objects */
+/* mesh.vertices */
+static void rna_def_mesh_vertices(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+//	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "MeshVertices");
+	srna= RNA_def_struct(brna, "MeshVertices", NULL);
+	RNA_def_struct_sdna(srna, "Mesh");
+	RNA_def_struct_ui_text(srna, "Mesh Vertices", "Collection of mesh vertices");
+
+	func= RNA_def_function(srna, "add", "ED_mesh_vertices_add");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
+}
+
+/* mesh.edges */
+static void rna_def_mesh_edges(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+//	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "MeshEdges");
+	srna= RNA_def_struct(brna, "MeshEdges", NULL);
+	RNA_def_struct_sdna(srna, "Mesh");
+	RNA_def_struct_ui_text(srna, "Mesh Edges", "Collection of mesh edges");
+
+	func= RNA_def_function(srna, "add", "ED_mesh_edges_add");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
+}
+
+/* mesh.faces */
 static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-//	FunctionRNA *func;
-//	PropertyRNA *parm;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "MeshFaces");
 	srna= RNA_def_struct(brna, "MeshFaces", NULL);
@@ -1653,8 +1691,11 @@ static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_active_mtface_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Texture Face", "Active Texture Face");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-}
 
+	func= RNA_def_function(srna, "add", "ED_mesh_faces_add");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
+}
 
 /* mesh.vertex_colors */
 static void rna_def_vertex_colors(BlenderRNA *brna, PropertyRNA *cprop)
@@ -1738,6 +1779,29 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 }
 
+/* mesh.materials */
+static void rna_def_mesh_materials(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	// PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "MeshMaterials");
+	srna= RNA_def_struct(brna, "MeshMaterials", NULL);
+	RNA_def_struct_sdna(srna, "Mesh");
+	RNA_def_struct_ui_text(srna, "Mesh Materials", "Collection of materials");
+	
+	func= RNA_def_function(srna, "link", "ED_mesh_material_link");
+	RNA_def_function_ui_description(func, "Add a new material to Mesh.");
+	parm= RNA_def_pointer(func, "material", "Material", "", "Material to add.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	
+	/* TODO, unlink? */
+}
+
+
 static void rna_def_mesh(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1751,11 +1815,13 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "mvert", "totvert");
 	RNA_def_property_struct_type(prop, "MeshVertex");
 	RNA_def_property_ui_text(prop, "Vertices", "Vertices of the mesh");
+	rna_def_mesh_vertices(brna, prop);
 
 	prop= RNA_def_property(srna, "edges", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "medge", "totedge");
 	RNA_def_property_struct_type(prop, "MeshEdge");
 	RNA_def_property_ui_text(prop, "Edges", "Edges of the mesh");
+	rna_def_mesh_edges(brna, prop);
 
 	prop= RNA_def_property(srna, "faces", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mface", "totface");
@@ -1883,7 +1949,8 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_ui_text(prop, "Materials", "");
-	
+	rna_def_mesh_materials(brna, prop);
+
 	/* Mesh Draw Options for Edit Mode*/
 	
 	prop= RNA_def_property(srna, "show_edges", PROP_BOOLEAN, PROP_NONE);

@@ -209,11 +209,14 @@ int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
 short sharesFace(struct EditMesh *em, struct EditEdge *e1, struct EditEdge *e2);
 
 /* mesh_data.c */
+// void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);
+void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count);
+void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count);
+void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count);
 
-void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);
 void ED_mesh_transform(struct Mesh *me, float *mat);
 void ED_mesh_calc_normals(struct Mesh *me);
-void ED_mesh_material_add(struct Mesh *me, struct Material *ma);
+void ED_mesh_material_link(struct Mesh *me, struct Material *ma);
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, int calc_edges);
 
 int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me, const char *name, int active_set);

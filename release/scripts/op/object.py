@@ -499,11 +499,13 @@ class MakeDupliFace(bpy.types.Operator):
 
         for data, objects in linked.items():
             face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix_world) for axis in v]
-            faces = list(range(int(len(face_verts) / 3)))
+            faces = list(range(len(face_verts) // 3))
 
             mesh = bpy.data.meshes.new(data.name + "_dupli")
 
-            mesh.add_geometry(int(len(face_verts) / 3), 0, int(len(face_verts) / (4 * 3)))
+            mesh.vertices.add(len(face_verts) // 3)
+            mesh.faces.add(len(face_verts) // 12)
+
             mesh.vertices.foreach_set("co", face_verts)
             mesh.faces.foreach_set("vertices_raw", faces)
             mesh.update() # generates edge data

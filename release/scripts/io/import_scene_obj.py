@@ -673,10 +673,11 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 
     # make sure the list isnt too big
     for material in materials:
-        me.add_material(material)
+        me.materials.link(material)
     #me.vertices.extend([(0,0,0)]) # dummy vert
 
-    me.add_geometry(len(verts_loc), 0, len(faces))
+    me.vertices.add(len(verts_loc))
+    me.faces.add(len(faces))
 
     # verts_loc is a list of (x, y, z) tuples
     me.vertices.foreach_set("co", unpack_list(verts_loc))
@@ -768,7 +769,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 
     if CREATE_EDGES:
 
-        me.add_geometry(0, len(edges), 0)
+        me.edges.add(len(edges))
 
         # edges should be a list of (a, b) tuples
         me.edges.foreach_set("vertices", unpack_list(edges))
