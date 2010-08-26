@@ -97,10 +97,10 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col.prop(flow, "use_outflow")
                 col.label(text="Particle System:")
-                col.prop_search(flow, "psys", ob, "particle_systems", text="")
+                col.prop_search(flow, "particle_system", ob, "particle_systems", text="")
 
                 sub = col.column()
-                sub.active = not md.flow_settings.outflow
+                sub.active = not md.flow_settings.use_outflow
 
                 sub.prop(flow, "initial_velocity", text="Initial Velocity")
                 sub = sub.column()
@@ -109,7 +109,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
 
 
                 sub = split.column()
-                sub.active = not md.flow_settings.outflow
+                sub.active = not md.flow_settings.use_outflow
                 sub.label(text="Behavior:")
                 sub.prop(flow, "temperature")
                 sub.prop(flow, "density")
