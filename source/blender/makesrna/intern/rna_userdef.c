@@ -2376,6 +2376,11 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_range(prop, 32, 32768);
 	RNA_def_property_ui_text(prop, "Scrollback", "Maximum number of lines to store for the console buffer");
 
+	prop= RNA_def_property(srna, "author", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "author");
+	RNA_def_property_string_maxlength(prop, 80);
+	RNA_def_property_ui_text(prop, "Author", "Name that will be used in exported files when format supports such feature");
+
 	/* Language Selection */
 
 	prop= RNA_def_property(srna, "language", PROP_ENUM, PROP_NONE);
@@ -2876,4 +2881,3 @@ void RNA_def_userdef(BlenderRNA *brna)
 }
 
 #endif
-

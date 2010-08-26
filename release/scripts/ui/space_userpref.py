@@ -369,6 +369,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.prop(system, "dpi")
         col.prop(system, "frame_server_port")
         col.prop(system, "scrollback", text="Console Scrollback")
+        col.prop(system, "author", text="Author")
         col.prop(system, "use_scripts_auto_execute")
         col.prop(system, "use_tabs_as_spaces")
 
