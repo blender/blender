@@ -351,6 +351,7 @@ void rna_Main_fonts_remove(Main *bmain, ReportList *reports, VFont *vfont)
 Tex *rna_Main_textures_new(Main *bmain, char* name, int type)
 {
 	Tex *tex= add_texture(name);
+	tex_set_type(tex, type);
 	tex->id.us--;
 	return tex;
 }
