@@ -38,6 +38,7 @@ def validate_arguments(args, bc):
             'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
             'WITH_BF_DDS', 'WITH_BF_CINEON', 'WITH_BF_HDR',
             'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB','BF_FFMPEG_EXTRA', 'BF_FFMPEG',  'BF_FFMPEG_INC',
+            'WITH_BF_STATICFFMPEG', 'BF_FFMPEG_LIB_STATIC',
             'WITH_BF_OGG', 'BF_OGG', 'BF_OGG_LIB',
             'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
             'WITH_BF_OPENJPEG', 'BF_OPENJPEG', 'BF_OPENJPEG_INC', 'BF_OPENJPEG_LIB', 'BF_OPENJPEG_LIBPATH',
@@ -50,7 +51,7 @@ def validate_arguments(args, bc):
             'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
             'WITH_BF_GAMEENGINE', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
             'BF_WINTAB', 'BF_WINTAB_INC',
-            'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
+            'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH', 'BF_FREETYPE_LIB_STATIC', 'WITH_BF_FREETYPE_STATIC',
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
             'WITH_BF_FFTW3', 'BF_FFTW3', 'BF_FFTW3_INC', 'BF_FFTW3_LIB', 'BF_FFTW3_LIBPATH',
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
@@ -236,6 +237,8 @@ def read_opts(env, cfg, args):
 
         ('BF_FFMPEG_INC', 'FFMPEG includes', ''),
         ('BF_FFMPEG_LIBPATH', 'FFMPEG library path', ''),
+        (BoolVariable('WITH_BF_STATICFFMPEG', 'Use static FFMPEG if true', False)),
+        ('BF_FFMPEG_LIB_STATIC', 'Static FFMPEG libraries', ''),
         
         (BoolVariable('WITH_BF_OGG', 'Use OGG, THEORA, VORBIS in FFMPEG if true',
                     False)),
@@ -311,29 +314,14 @@ def read_opts(env, cfg, args):
         ('BF_CXX', 'c++ base path for libstdc++, only used when static linking', ''),
         (BoolVariable('WITH_BF_STATICCXX', 'static link to stdc++', False)),
         ('BF_CXX_LIB_STATIC', 'static library path for stdc++', ''),
-##
-##WITH_BF_NSPR = True
-##BF_NSPR = $(LCGDIR)/nspr
-##BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
-##BF_NSPR_LIB = 
-### Uncomment the following line to use Mozilla inplace of netscape
-##CPPFLAGS += -DMOZ_NOT_NET
-### Location of MOZILLA/Netscape header files...
-##BF_MOZILLA = $(LCGDIR)/mozilla
-##BF_MOZILLA_INC = -I$(BF_MOZILLA)/include/mozilla/nspr -I$(BF_MOZILLA)/include/mozilla -I$(BF_MOZILLA)/include/mozilla/xpcom -I$(BF_MOZILLA)/include/mozilla/idl
-##BF_MOZILLA_LIB = 
-### Will fall back to look in BF_MOZILLA_INC/nspr and BF_MOZILLA_LIB
-### if this is not set.
-##
-### Be paranoid regarding library creation (do not update archives)
-##BF_PARANOID = True
-##
-### enable freetype2 support for text objects
+
         (BoolVariable('WITH_BF_FREETYPE', 'Use FreeType2 if true', True)),
         ('BF_FREETYPE', 'Freetype base path', ''),
         ('BF_FREETYPE_INC', 'Freetype include path', ''),
         ('BF_FREETYPE_LIB', 'Freetype library', ''),
         ('BF_FREETYPE_LIBPATH', 'Freetype library path', ''),
+        (BoolVariable('WITH_BF_FREETYPE_STATIC', 'Use Static Freetype if true', False)),
+        ('BF_FREETYPE_LIB_STATIC', 'Static Freetype library', ''),
 
         (BoolVariable('WITH_BF_OPENMP', 'Use OpenMP if true', False)),
         ('BF_OPENMP', 'Base path to OpenMP (used when cross-compiling with older versions of WinGW)', ''),

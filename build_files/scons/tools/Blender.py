@@ -153,10 +153,14 @@ def setup_staticlibs(lenv):
 		libincs += Split(lenv['BF_TIFF_LIBPATH'])
 	if lenv['WITH_BF_FFTW3']:
 		libincs += Split(lenv['BF_FFTW3_LIBPATH'])
+	if lenv['WITH_BF_FFMPEG'] and lenv['WITH_BF_STATICFFMPEG']:
+		statlibs += Split(lenv['BF_FFMPEG_LIB_STATIC'])
 	if lenv['WITH_BF_INTERNATIONAL']:
 		libincs += Split(lenv['BF_GETTEXT_LIBPATH'])
 		if lenv['WITH_BF_GETTEXT_STATIC']:
 			statlibs += Split(lenv['BF_GETTEXT_LIB_STATIC'])
+		if lenv['WITH_BF_FREETYPE_STATIC']:
+			statlibs += Split(lenv['BF_FREETYPE_LIB_STATIC'])
 	if lenv['WITH_BF_OPENAL']:
 		libincs += Split(lenv['BF_OPENAL_LIBPATH'])
 		if lenv['WITH_BF_STATICOPENAL']:
@@ -197,7 +201,8 @@ def setup_syslibs(lenv):
 		lenv['BF_LIBSAMPLERATE_LIB']
 		]
 
-	syslibs += Split(lenv['BF_FREETYPE_LIB'])
+	if not lenv['WITH_BF_FREETYPE_STATIC']:
+		syslibs += Split(lenv['BF_FREETYPE_LIB'])
 	if lenv['WITH_BF_PYTHON'] and not lenv['WITH_BF_STATICPYTHON']:
 		if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
 			syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
@@ -220,7 +225,7 @@ def setup_syslibs(lenv):
 			syslibs += Split(lenv['BF_OPENEXR_LIB'])
 	if lenv['WITH_BF_TIFF']:
 			syslibs += Split(lenv['BF_TIFF_LIB'])
-	if lenv['WITH_BF_FFMPEG']:
+	if lenv['WITH_BF_FFMPEG'] and not lenv['WITH_BF_STATICFFMPEG']:
 		syslibs += Split(lenv['BF_FFMPEG_LIB'])
 		if lenv['WITH_BF_OGG']:
 			syslibs += Split(lenv['BF_OGG_LIB'])
