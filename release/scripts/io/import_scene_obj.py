@@ -30,49 +30,11 @@ Run this script from "File->Import" menu and then load the desired OBJ file.
 Note, This loads mesh objects and materials only, nurbs and curves are not supported.
 """
 
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# Script copyright (C) Campbell J Barton 2007
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-# --------------------------------------------------------------------------
-
 import os
 import time
 import bpy
 import mathutils
 from geometry import PolyFill
-
-# from Blender import Mesh, Draw, Window, Texture, Material, sys
-# # import BPyMesh
-# import BPyImage
-# import BPyMessages
-
-# try:		import os
-# except:		os= False
-
-def stripExt(name): # name is a string
-    '''Strips the prefix off the name before writing'''
-    index= name.rfind('.')
-    if index != -1:
-        return name[ : index ]
-    else:
-        return name
-# end path funcs
 
 def unpack_list(list_of_tuples):
     l = []
@@ -448,22 +410,16 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                     line_lower= line.lower().lstrip()
                     if line_lower.startswith('ka'):
                         context_material.mirror_color = (float(line_split[1]), float(line_split[2]), float(line_split[3]))
-# 						context_material.setMirCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
                     elif line_lower.startswith('kd'):
                         context_material.diffuse_color = (float(line_split[1]), float(line_split[2]), float(line_split[3]))
-# 						context_material.setRGBCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
                     elif line_lower.startswith('ks'):
                         context_material.specular_color = (float(line_split[1]), float(line_split[2]), float(line_split[3]))
-# 						context_material.setSpecCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
                     elif line_lower.startswith('ns'):
                         context_material.specular_hardness = int((float(line_split[1])*0.51))
-# 						context_material.setHardness( int((float(line_split[1])*0.51)) )
                     elif line_lower.startswith('ni'): # Refraction index
-                        context_material.raytrace_transparency.ior = max(1, min(float(line_split[1]), 3))
-# 						context_material.setIOR( max(1, min(float(line_split[1]), 3))) # Between 1 and 3
+                        context_material.raytrace_transparency.ior = max(1, min(float(line_split[1]), 3)) # Between 1 and 3
                     elif line_lower.startswith('d') or line_lower.startswith('tr'):
                         context_material.alpha = float(line_split[1])
-# 						context_material.setAlpha(float(line_split[1]))
                     elif line_lower.startswith('map_ka'):
                         img_filepath= line_value(line.split())
                         if img_filepath:
@@ -621,14 +577,14 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
             if has_ngons and len_face_vert_loc_indicies > 4:
 
                 ngon_face_indices= BPyMesh_ngon(verts_loc, face_vert_loc_indicies)
-                faces.extend(\
-                [(\
-                [face_vert_loc_indicies[ngon[0]], face_vert_loc_indicies[ngon[1]], face_vert_loc_indicies[ngon[2]] ],\
-                [face_vert_tex_indicies[ngon[0]], face_vert_tex_indicies[ngon[1]], face_vert_tex_indicies[ngon[2]] ],\
-                context_material,\
-                context_smooth_group,\
-                context_object)\
-                for ngon in ngon_face_indices]\
+                faces.extend(
+                    [(
+                    [face_vert_loc_indicies[ngon[0]], face_vert_loc_indicies[ngon[1]], face_vert_loc_indicies[ngon[2]] ],
+                    [face_vert_tex_indicies[ngon[0]], face_vert_tex_indicies[ngon[1]], face_vert_tex_indicies[ngon[2]] ],
+                    context_material,
+                    context_smooth_group,
+                    context_object)
+                    for ngon in ngon_face_indices]
                 )
 
                 # edges to make fgons
@@ -674,20 +630,17 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     # make sure the list isnt too big
     for material in materials:
         me.materials.link(material)
-    #me.vertices.extend([(0,0,0)]) # dummy vert
 
     me.vertices.add(len(verts_loc))
     me.faces.add(len(faces))
 
     # verts_loc is a list of (x, y, z) tuples
     me.vertices.foreach_set("co", unpack_list(verts_loc))
-# 	me.vertices.extend(verts_loc)
 
     # faces is a list of (vert_indices, texco_indices, ...) tuples
     # XXX faces should contain either 3 or 4 verts
     # XXX no check for valid face indices
     me.faces.foreach_set("vertices_raw", unpack_face_list([f[0] for f in faces]))
-# 	face_mapping= me.faces.extend([f[0] for f in faces], indexList=True)
 
     if verts_tex and me.faces:
         me.uv_textures.new()
@@ -695,7 +648,6 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     context_material_old= -1 # avoid a dict lookup
     mat= 0 # rare case it may be un-initialized.
     me_faces= me.faces
-# 	ALPHA= Mesh.FaceTranspModes.ALPHA
 
     for i, face in enumerate(faces):
         if len(face[0]) < 2:
@@ -704,14 +656,8 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
             if CREATE_EDGES:
                 edges.append(face[0])
         else:
-# 			face_index_map= face_mapping[i]
-
-            # since we use foreach_set to add faces, all of them are added
-            if 1:
-# 			if face_index_map!=None: # None means the face wasnt added
 
                 blender_face = me.faces[i]
-# 				blender_face= me_faces[face_index_map]
 
                 face_vert_loc_indicies,\
                 face_vert_tex_indicies,\
@@ -851,21 +797,14 @@ def create_nurbs(context_nurbs, vert_loc, new_objects):
         print('\tWarning, surfaces not supported')
         return
 
-    cu = bpy.data.curves.new(name, 'Curve')
-    cu.flag |= 1 # 3D curve
+    cu = bpy.data.curves.new(name, 'CURVE')
+    cu.dimensions = '3D'
 
-    nu = None
-    for pt in curv_idx:
+    nu = cu.splines.new('NURBS')
+    nu.points.add(len(curv_idx) - 1) # a point is added to start with
+    nu.points.foreach_set("co", [co_axis for vt_idx in curv_idx for co_axis in (vert_loc[vt_idx] + (1.0,))])
 
-        pt = vert_loc[pt]
-        pt = (pt[0], pt[1], pt[2], 1.0)
-
-        if nu == None:
-            nu = cu.appendNurb(pt)
-        else:
-            nu.append(pt)
-
-    nu.orderU = deg[0]+1
+    nu.order_u = deg[0] + 1
 
     # get for endpoint flag from the weighting
     if curv_range and len(parm_u) > deg[0]+1:
@@ -884,7 +823,7 @@ def create_nurbs(context_nurbs, vert_loc, new_objects):
         do_endpoints = False
 
     if do_endpoints:
-        nu.flagU |= 2
+        nu.use_endpoint_u = True
 
 
     # close
@@ -899,10 +838,10 @@ def create_nurbs(context_nurbs, vert_loc, new_objects):
                 break
 
     if do_closed:
-        nu.flagU |= 1
+        nu.use_cyclic_u = True
     '''
     
-    ob= bpy.data.objects.new("Mesh", me)
+    ob= bpy.data.objects.new("Nurb", cu)
 
     new_objects.append(ob)
 
@@ -1224,8 +1163,7 @@ def load_obj(filepath,
         verts_loc[:] = [(v[0], v[2], -v[1]) for v in verts_loc]
 
     # deselect all
-# 	if context.selected_objects:
-# 		bpy.ops.OBJECT_OT_select_all()
+    bpy.ops.object.select_all(action='DESELECT')
 
     scene = context.scene
 # 	scn.objects.selected = []
@@ -1241,12 +1179,13 @@ def load_obj(filepath,
         create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, vertex_groups, dataname)
 
     # nurbs support
-# 	for context_nurbs in nurbs:
-# 		create_nurbs(scn, context_nurbs, verts_loc, new_objects)
+    for context_nurbs in nurbs:
+        create_nurbs(context_nurbs, verts_loc, new_objects)
 
     # Create new obj
     for obj in new_objects:
-        scene.objects.link(obj)
+        base = scene.objects.link(obj)
+        base.select = True
 
     scene.update()
 
@@ -1449,7 +1388,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
             return
 
         for f in files:
-            scn= bpy.data.scenes.new( stripExt(f) )
+            scn= bpy.data.scenes.new(os.path.splitext(f)[0])
             scn.makeCurrent()
 
             load_obj(sys.join(filepath, f),\
@@ -1581,13 +1520,11 @@ def unregister():
 # check later: line 489
 # can convert now: edge flags, edges: lines 508-528
 # ngon (uses python module BPyMesh): 384-414
-# nurbs: 947-
 # NEXT clamp size: get bound box with RNA
 # get back to l 140 (here)
 # search image in bpy.config.textureDir - load_image
 # replaced BPyImage.comprehensiveImageLoad with a simplified version that only checks additional directory specified, but doesn't search dirs recursively (obj_image_load)
 # bitmask won't work? - 132
-# uses operator bpy.ops.OBJECT_OT_select_all() to deselect all (not necessary?)
 # uses bpy.sys.time()
 
 if __name__ == "__main__":
