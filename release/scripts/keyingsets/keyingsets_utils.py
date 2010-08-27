@@ -116,7 +116,7 @@ def RKS_GEN_rotation(ksi, context, ks, data):
     #   rotation mode affects the property used
     if data.rotation_mode == 'QUATERNION':
         path = path_add_property(base_path, "rotation_quaternion")
-    elif data.rotation_mode == 'AXISANGLE':
+    elif data.rotation_mode == 'AXIS_ANGLE':
         path = path_add_property(base_path, "rotation_axis_angle")
     else:
         path = path_add_property(base_path, "rotation_euler")
