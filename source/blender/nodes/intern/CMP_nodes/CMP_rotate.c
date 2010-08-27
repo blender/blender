@@ -71,7 +71,7 @@ static void node_composit_exec_rotate(void *data, bNode *node, bNodeStack **in, 
 	  ibuf=IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
 	  obuf=IMB_allocImBuf(stackbuf->x, stackbuf->y, 32, 0, 0);
 
-	  if(ibuf){
+	  if(ibuf && obuf){
 		 ibuf->rect_float=cbuf->rect;
 		 obuf->rect_float=stackbuf->rect;
 
@@ -103,6 +103,9 @@ static void node_composit_exec_rotate(void *data, bNode *node, bNodeStack **in, 
 		   centx= (float)cbuf->xof; centy= (float)cbuf->yof;
 		   stackbuf->xof= (int)( c*centx + s*centy);
 		   stackbuf->yof= (int)(-s*centx + c*centy);
+
+			IMB_freeImBuf(ibuf);
+			IMB_freeImBuf(obuf);
 		}
 		
 		/* pass on output and free */
