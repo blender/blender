@@ -1067,26 +1067,28 @@ static int rna_Mesh_tot_face_get(PointerRNA *ptr)
 static CustomDataLayer *rna_Mesh_vertex_color_new(struct Mesh *me, struct bContext *C, char *name)
 {
 	CustomData *fdata;
-	CustomDataLayer *cdl;
+	CustomDataLayer *cdl= NULL;
 	int index;
-	ED_mesh_color_add(C, NULL, NULL, me, name, FALSE);
 
-	fdata= rna_mesh_fdata(me);
-	index= CustomData_number_of_layers(fdata, CD_MCOL) - 1;
-	cdl= (index == -1)? NULL: &fdata->layers[index];
+	if(ED_mesh_color_add(C, NULL, NULL, me, name, FALSE)) {
+		fdata= rna_mesh_fdata(me);
+		index= CustomData_get_named_layer_index(fdata, CD_MCOL, name);
+		cdl= (index == -1)? NULL: &fdata->layers[index];
+	}
 	return cdl;
 }
 
 static CustomDataLayer *rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext *C, char *name)
 {
 	CustomData *fdata;
-	CustomDataLayer *cdl;
+	CustomDataLayer *cdl= NULL;
 	int index;
-	ED_mesh_uv_texture_add(C, NULL, NULL, me, name, FALSE);
 
-	fdata= rna_mesh_fdata(me);
-	index= CustomData_number_of_layers(fdata, CD_MTFACE) - 1;
-	cdl= (index == -1)? NULL: &fdata->layers[index];
+	if(ED_mesh_uv_texture_add(C, NULL, NULL, me, name, FALSE)) {
+		fdata= rna_mesh_fdata(me);
+		index= CustomData_get_named_layer_index(fdata, CD_MTFACE, name);
+		cdl= (index == -1)? NULL: &fdata->layers[index];
+	}
 	return cdl;
 }
 
