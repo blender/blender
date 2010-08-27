@@ -41,6 +41,9 @@
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLO_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
+#include "ED_mesh.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -1055,6 +1058,12 @@ static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 
 }
 
+static void rna_Object_add_vertex_to_group(Object *ob, int vertex_index, bDeformGroup *def, float weight, int assignmode)
+{
+	/* creates dverts if needed */
+	ED_vgroup_vert_add(ob, def, vertex_index, weight, assignmode);
+}
+
 /* generic poll functions */
 int rna_Lattice_object_poll(PointerRNA *ptr, PointerRNA value)
 {
@@ -1477,12 +1486,19 @@ static void rna_def_object_particle_systems(BlenderRNA *brna, PropertyRNA *cprop
 /* object.vertex_groups */
 static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 {
+	static EnumPropertyItem assign_mode_items[] = {
+		{WEIGHT_REPLACE, "REPLACE", 0, "Replace", "Replace"},
+		{WEIGHT_ADD, "ADD", 0, "Add", "Add"},
+		{WEIGHT_SUBTRACT, "SUBTRACT", 0, "Subtract", "Subtract"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	
 	StructRNA *srna;
 	
 	PropertyRNA *prop;
 
-	// FunctionRNA *func;
-	// PropertyRNA *parm;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "VertexGroups");
 	srna= RNA_def_struct(brna, "VertexGroups", NULL);
@@ -1500,6 +1516,25 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_int_funcs(prop, "rna_Object_active_vertex_group_index_get", "rna_Object_active_vertex_group_index_set", "rna_Object_active_vertex_group_index_range");
 	RNA_def_property_ui_text(prop, "Active Vertex Group Index", "Active index in vertex group array");
 	RNA_def_property_update(prop, NC_GEOM|ND_DATA, "rna_Object_internal_update_data");
+	
+	/* vertex groups */ // add_vertex_group
+	func= RNA_def_function(srna, "new", "ED_vgroup_add_name");
+	RNA_def_function_ui_description(func, "Add vertex group to object.");
+	parm= RNA_def_string(func, "name", "Group", 0, "", "Vertex group name."); /* optional */
+	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "New vertex group.");
+	RNA_def_function_return(func, parm);
+
+	// XXX, this will be very slow, bad API design! :S
+	func= RNA_def_function(srna, "assign", "rna_Object_add_vertex_to_group");
+	RNA_def_function_ui_description(func, "Add vertex to a vertex group.");
+	parm= RNA_def_int(func, "index", 0, 0, 0, "", "Vertex index.", 0, 0);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "Vertex group to add vertex to.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_float(func, "weight", 0, 0.0f, 1.0f, "", "Vertex weight.", 0.0f, 1.0f);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_enum(func, "type", assign_mode_items, 0, "", "Vertex assign mode.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 
