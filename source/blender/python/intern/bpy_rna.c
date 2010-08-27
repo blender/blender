@@ -1255,6 +1255,25 @@ static Py_ssize_t pyrna_prop_collection_length( BPy_PropertyRNA *self )
 	return RNA_property_collection_length(&self->ptr, self->prop);
 }
 
+/* bool funcs are for speed, so we can avoid getting the length
+ * of 1000's of items in a linked list for eg. */
+static int pyrna_prop_array_bool(BPy_PropertyRNA *self)
+{
+	return RNA_property_array_length(&self->ptr, self->prop) ? 1 : 0;
+}
+
+static int pyrna_prop_collection_bool( BPy_PropertyRNA *self )
+{
+	/* no callback defined, just iterate and find the nth item */
+	CollectionPropertyIterator iter;
+	int test;
+
+	RNA_property_collection_begin(&self->ptr, self->prop, &iter);
+	test = iter.valid;
+	RNA_property_collection_end(&iter);
+	return test;
+}
+
 /* internal use only */
 static PyObject *pyrna_prop_collection_subscript_int(BPy_PropertyRNA *self, Py_ssize_t keynum)
 {
@@ -1647,6 +1666,31 @@ static PyMappingMethods pyrna_prop_collection_as_mapping = {
 	( objobjargproc ) NULL,	/* mp_ass_subscript */
 };
 
+/* only for fast bool's, large structs, assign nb_bool on init */
+static PyNumberMethods pyrna_prop_array_as_number = {
+	NULL, /* nb_add */
+	NULL, /* nb_subtract */
+	NULL, /* nb_multiply */
+	NULL, /* nb_remainder */
+	NULL, /* nb_divmod */
+	NULL, /* nb_power */
+	NULL, /* nb_negative */
+	NULL, /* nb_positive */
+	NULL, /* nb_absolute */
+	(inquiry) pyrna_prop_array_bool, /* nb_bool */
+};
+static PyNumberMethods pyrna_prop_collection_as_number = {
+	NULL, /* nb_add */
+	NULL, /* nb_subtract */
+	NULL, /* nb_multiply */
+	NULL, /* nb_remainder */
+	NULL, /* nb_divmod */
+	NULL, /* nb_power */
+	NULL, /* nb_negative */
+	NULL, /* nb_positive */
+	NULL, /* nb_absolute */
+	(inquiry) pyrna_prop_collection_bool, /* nb_bool */
+};
 
 static int pyrna_prop_array_contains(BPy_PropertyRNA *self, PyObject *value)
 {
@@ -3805,7 +3849,7 @@ PyTypeObject pyrna_prop_array_Type = {
 
 	/* Method suites for standard classes */
 
-	NULL,                       /* PyNumberMethods *tp_as_number; */
+	&pyrna_prop_array_as_number,    /* PyNumberMethods *tp_as_number; */
 	&pyrna_prop_array_as_sequence,	/* PySequenceMethods *tp_as_sequence; */
 	&pyrna_prop_array_as_mapping,	/* PyMappingMethods *tp_as_mapping; */
 
@@ -3885,7 +3929,7 @@ PyTypeObject pyrna_prop_collection_Type = {
 
 	/* Method suites for standard classes */
 
-	NULL,                       /* PyNumberMethods *tp_as_number; */
+	&pyrna_prop_collection_as_number,   /* PyNumberMethods *tp_as_number; */
 	&pyrna_prop_collection_as_sequence,	/* PySequenceMethods *tp_as_sequence; */
 	&pyrna_prop_collection_as_mapping,	/* PyMappingMethods *tp_as_mapping; */
 

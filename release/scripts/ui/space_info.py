@@ -27,10 +27,6 @@ class INFO_HT_header(bpy.types.Header):
         layout = self.layout
 
         wm = context.manager
-        if wm and wm.operators:
-            last_op = wm.operators[-1]
-        else:
-            last_op = None
         window = context.window
         scene = context.scene
         rd = scene.render
