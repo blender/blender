@@ -470,7 +470,10 @@ def WinPyBundle(target=None, source=None, env=None):
 	py_zip= env.subst( env['LCGDIR'] )
 	if py_zip[0]=='#':
 		py_zip= py_zip[1:]
-	py_zip+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '.zip'
+	if env['BF_DEBUG']:
+		py_zip+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '_d.zip'
+	else:
+		py_zip+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '.zip'
 
 	py_target = env.subst( env['BF_INSTALLDIR'] )
 	if py_target[0]=='#':
