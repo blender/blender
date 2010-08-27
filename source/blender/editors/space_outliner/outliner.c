@@ -102,6 +102,8 @@
 #define OL_H	19
 #define OL_X	18
 
+#define OL_Y_OFFSET	2
+
 #define OL_TOG_RESTRICT_VIEWX	54
 #define OL_TOG_RESTRICT_SELECTX	36
 #define OL_TOG_RESTRICT_RENDERX	18
@@ -2498,7 +2500,7 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 		int row;
 		
 		/* get row number - 100 here is just a dummy value since we don't need the column */
-		UI_view2d_listview_view_to_cell(&ar->v2d, 1000, OL_H, 0.0f, 0.0f, 
+		UI_view2d_listview_view_to_cell(&ar->v2d, 1000, OL_H, 0.0f, OL_Y_OFFSET, 
 						fmval[0], fmval[1], NULL, &row);
 		
 		/* select relevant row */
@@ -4711,13 +4713,13 @@ static void outliner_draw_struct_marks(ARegion *ar, SpaceOops *soops, ListBase *
 		/* selection status */
 		if((tselem->flag & TSE_CLOSED)==0)
 			if(tselem->type == TSE_RNA_STRUCT)
-				glRecti(0, *starty+1, (int)ar->v2d.cur.xmax, *starty+OL_H-1);
+				glRecti(0, *starty+1, (int)ar->v2d.cur.xmax+V2D_SCROLL_WIDTH, *starty+OL_H-1);
 
 		*starty-= OL_H;
 		if((tselem->flag & TSE_CLOSED)==0) {
 			outliner_draw_struct_marks(ar, soops, &te->subtree, starty);
 			if(tselem->type == TSE_RNA_STRUCT)
-				fdrawline(0, (float)*starty+OL_H-1, ar->v2d.cur.xmax, (float)*starty+OL_H-1);
+				fdrawline(0, (float)*starty+OL_H, ar->v2d.cur.xmax+V2D_SCROLL_WIDTH, (float)*starty+OL_H);
 		}
 	}
 }
@@ -4752,24 +4754,24 @@ static void outliner_draw_tree(bContext *C, uiBlock *block, Scene *scene, ARegio
 		/* struct marks */
 		UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 		//UI_ThemeColorShade(TH_BACK, -20);
-		starty= (int)ar->v2d.tot.ymax-OL_H;
+		starty= (int)ar->v2d.tot.ymax-OL_H-OL_Y_OFFSET;
 		outliner_draw_struct_marks(ar, soops, &soops->tree, &starty);
 	}
 	
 	/* always draw selection fill before hierarchy */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glColor3f(col[0]+0.06f, col[1]+0.08f, col[2]+0.10f);
-	starty= (int)ar->v2d.tot.ymax-OL_H;
+	starty= (int)ar->v2d.tot.ymax-OL_H-OL_Y_OFFSET;
 	outliner_draw_selection(ar, soops, &soops->tree, &starty);
 	
 	// grey hierarchy lines
 	UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.2f);
-	starty= (int)ar->v2d.tot.ymax-OL_H/2;
+	starty= (int)ar->v2d.tot.ymax-OL_H/2-OL_Y_OFFSET;
 	startx= 6;
 	outliner_draw_hierarchy(soops, &soops->tree, startx, &starty);
 	
 	// items themselves
-	starty= (int)ar->v2d.tot.ymax-OL_H;
+	starty= (int)ar->v2d.tot.ymax-OL_H-OL_Y_OFFSET;
 	startx= 0;
 	for(te= soops->tree.first; te; te= te->next) {
 		outliner_draw_tree_element(C, block, scene, ar, soops, te, startx, &starty);
@@ -4783,10 +4785,10 @@ static void outliner_back(ARegion *ar, SpaceOops *soops)
 	
 	UI_ThemeColorShade(TH_BACK, 6);
 	ystart= (int)ar->v2d.tot.ymax;
-	ystart= OL_H*(ystart/(OL_H));
+	ystart= OL_H*(ystart/(OL_H))-OL_Y_OFFSET;
 	
 	while(ystart+2*OL_H > ar->v2d.cur.ymin) {
-		glRecti(0, ystart, (int)ar->v2d.cur.xmax, ystart+OL_H);
+		glRecti(0, ystart, (int)ar->v2d.cur.xmax+V2D_SCROLL_WIDTH, ystart+OL_H);
 		ystart-= 2*OL_H;
 	}
 }
@@ -4797,11 +4799,11 @@ static void outliner_draw_restrictcols(ARegion *ar, SpaceOops *soops)
 	
 	/* background underneath */
 	UI_ThemeColor(TH_BACK);
-	glRecti((int)ar->v2d.cur.xmax-OL_TOGW, (int)ar->v2d.cur.ymin, (int)ar->v2d.cur.xmax, (int)ar->v2d.cur.ymax);
+	glRecti((int)ar->v2d.cur.xmax-OL_TOGW, (int)ar->v2d.cur.ymin-V2D_SCROLL_HEIGHT-1, (int)ar->v2d.cur.xmax+V2D_SCROLL_WIDTH, (int)ar->v2d.cur.ymax);
 	
 	UI_ThemeColorShade(TH_BACK, 6);
 	ystart= (int)ar->v2d.tot.ymax;
-	ystart= OL_H*(ystart/(OL_H));
+	ystart= OL_H*(ystart/(OL_H))-OL_Y_OFFSET;
 	
 	while(ystart+2*OL_H > ar->v2d.cur.ymin) {
 		glRecti((int)ar->v2d.cur.xmax-OL_TOGW, ystart, (int)ar->v2d.cur.xmax, ystart+OL_H);
@@ -4814,19 +4816,19 @@ static void outliner_draw_restrictcols(ARegion *ar, SpaceOops *soops)
 	fdrawline(ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX,
 		ar->v2d.cur.ymax,
 		ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX,
-		ar->v2d.cur.ymin);
+		ar->v2d.cur.ymin - V2D_SCROLL_HEIGHT);
 
 	/* render */
 	fdrawline(ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX,
 		ar->v2d.cur.ymax,
 		ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX,
-		ar->v2d.cur.ymin);
+		ar->v2d.cur.ymin - V2D_SCROLL_HEIGHT);
 
 	/* render */
 	fdrawline(ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX,
 		ar->v2d.cur.ymax,
 		ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX,
-		ar->v2d.cur.ymin);
+		ar->v2d.cur.ymin - V2D_SCROLL_HEIGHT);
 }
 
 static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
@@ -5215,19 +5217,22 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 static void outliner_draw_rnacols(ARegion *ar, SpaceOops *soops, int sizex)
 {
 	View2D *v2d= &ar->v2d;
-	
+
+	float miny = v2d->cur.ymin-V2D_SCROLL_HEIGHT;
+	if(miny<v2d->tot.ymin) miny = v2d->tot.ymin;
+
 	UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 
 	/* draw column separator lines */
 	fdrawline((float)sizex,
 		v2d->cur.ymax,
 		(float)sizex,
-		v2d->cur.ymin);
+		miny);
 
 	fdrawline((float)sizex+OL_RNA_COL_SIZEX,
 		v2d->cur.ymax,
 		(float)sizex+OL_RNA_COL_SIZEX,
-		v2d->cur.ymin);
+		miny);
 }
 
 static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, int sizex, ListBase *lb)
@@ -5531,7 +5536,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 	uiBut *bt;
 	TreeElement *te;
 	TreeStoreElem *tselem;
-	int dx, len;
+	int spx, dx, len;
 	
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
@@ -5552,8 +5557,10 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 
 				dx= (int)UI_GetStringWidth(te->name);
 				if(dx<100) dx= 100;
-				
-				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "",  (short)te->xs+2*OL_X-4, (short)te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len-1, 0, 0, "");
+				spx=te->xs+2*OL_X-4;
+				if(spx+dx+10>ar->v2d.cur.xmax) dx = ar->v2d.cur.xmax-spx-10;
+
+				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (short)te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len-1, 0, 0, "");
 				uiButSetRenameFunc(bt, namebutton_cb, tselem);
 				
 				/* returns false if button got removed */
@@ -5614,19 +5621,19 @@ void draw_outliner(const bContext *C)
 	/* tweak to display last line (when list bigger than window) */
 	sizey += V2D_SCROLL_HEIGHT;
 	
+	/* adds vertical offset */
+	sizey += OL_Y_OFFSET;
+
 	/* update size of tot-rect (extents of data/viewable area) */
 	UI_view2d_totRect_set(v2d, sizex, sizey);
 
 	/* set matrix for 2d-view controls */
 	UI_view2d_view_ortho(C, v2d);
 
-	/* draw outliner stuff (background and hierachy lines) */
+	/* draw outliner stuff (background, hierachy lines and names) */
 	outliner_back(ar, soops);
 	block= uiBeginBlock(C, ar, "outliner buttons", UI_EMBOSS);
 	outliner_draw_tree((bContext *)C, block, scene, ar, soops);
-
-	/* draw icons and names */
-	outliner_buttons(C, block, ar, soops, &soops->tree);
 	
 	if(ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
 		/* draw rna buttons */
@@ -5641,7 +5648,10 @@ void draw_outliner(const bContext *C)
 		outliner_draw_restrictcols(ar, soops);
 		outliner_draw_restrictbuts(block, scene, ar, soops, &soops->tree);
 	}
-	
+
+	/* draw edit buttons if nessecery */
+	outliner_buttons(C, block, ar, soops, &soops->tree);	
+
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
 	
