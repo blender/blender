@@ -184,50 +184,48 @@ def copy_images(dest_dir):
 #   paths= bpy.util.copy_images(uniqueImages.values(), dest_dir)
 
     print('\tCopied %d images' % copyCount)
-#   print('\tCopied %d images' % copyCount)
 
-# XXX not converted
+
 def test_nurbs_compat(ob):
-    if ob.type != 'Curve':
+    if ob.type != 'CURVE':
         return False
 
-    for nu in ob.data:
-        if (not nu.knotsV) and nu.type != 1: # not a surface and not bezier
+    for nu in ob.data.splines:
+        if nu.point_count_v == 1 and nu.type != 'BEZIER': # not a surface and not bezier
             return True
 
     return False
 
 
-# XXX not converted
 def write_nurb(file, ob, ob_mat):
     tot_verts = 0
     cu = ob.data
 
     # use negative indices
-    Vector = Blender.mathutils.Vector
-    for nu in cu:
+    for nu in cu.splines:
+        if nu.type == 'POLY':
+            DEG_ORDER_U = 1
+        else:
+            DEG_ORDER_U = nu.order_u - 1  # odd but tested to be correct
 
-        if nu.type==0:      DEG_ORDER_U = 1
-        else:               DEG_ORDER_U = nu.orderU-1  # Tested to be correct
-
-        if nu.type==1:
+        if nu.type == 'BEZIER':
             print("\tWarning, bezier curve:", ob.name, "only poly and nurbs curves supported")
             continue
 
-        if nu.knotsV:
+        if nu.point_count_v > 1:
             print("\tWarning, surface:", ob.name, "only poly and nurbs curves supported")
             continue
 
-        if len(nu) <= DEG_ORDER_U:
-            print("\tWarning, orderU is lower then vert count, skipping:", ob.name)
+        if len(nu.points) <= DEG_ORDER_U:
+            print("\tWarning, order_u is lower then vert count, skipping:", ob.name)
             continue
 
         pt_num = 0
-        do_closed = (nu.flagU & 1)
-        do_endpoints = (do_closed==0) and (nu.flagU & 2)
+        do_closed = nu.use_cyclic_u
+        do_endpoints = (do_closed == 0) and nu.use_endpoint_u
 
-        for pt in nu:
-            pt = Vector(pt[0], pt[1], pt[2]) * ob_mat
+        for pt in nu.points:
+            pt = ob_mat * pt.co.copy().resize3D()
             file.write('v %.6f %.6f %.6f\n' % (pt[0], pt[1], pt[2]))
             pt_num += 1
         tot_verts += pt_num
@@ -247,7 +245,7 @@ def write_nurb(file, ob, ob_mat):
                 pt_num += DEG_ORDER_U
                 curve_ls = curve_ls + curve_ls[0:DEG_ORDER_U]
 
-        file.write('curv 0.0 1.0 %s\n' % (' '.join( [str(i) for i in curve_ls] ))) # Blender has no U and V values for the curve
+        file.write('curv 0.0 1.0 %s\n' % (' '.join([str(i) for i in curve_ls]))) # Blender has no U and V values for the curve
 
         # 'parm' keyword
         tot_parm = (DEG_ORDER_U + 1) + pt_num
@@ -390,16 +388,13 @@ def write_file(filepath, objects, scene,
 
         for ob, ob_mat in obs:
 
-            # XXX postponed
-#           # Nurbs curve support
-#           if EXPORT_CURVE_AS_NURBS and test_nurbs_compat(ob):
-#               if EXPORT_ROTX90:
-#                   ob_mat = ob_mat * mat_xrot90
-
-#               totverts += write_nurb(file, ob, ob_mat)
-
-#               continue
-#           end nurbs
+            # Nurbs curve support
+            if EXPORT_CURVE_AS_NURBS and test_nurbs_compat(ob):
+                if EXPORT_ROTX90:
+                   ob_mat = ob_mat * mat_xrot90
+                totverts += write_nurb(file, ob, ob_mat)
+                continue
+            # END NURBS
 
             if ob.type != 'MESH':
                 continue
@@ -881,15 +876,15 @@ class ExportOBJ(bpy.types.Operator):
     use_rotate90 = BoolProperty(name="Rotate X90", description="", default= True)
 
     # extra data group
-    use_edges = BoolProperty(name="Edges", description="", default= True)
-    use_normals = BoolProperty(name="Normals", description="", default= False)
-    use_hq_normals = BoolProperty(name="High Quality Normals", description="", default= True)
+    use_edges = BoolProperty(name="Edges", description="", default=True)
+    use_normals = BoolProperty(name="Normals", description="", default=False)
+    use_hq_normals = BoolProperty(name="High Quality Normals", description="", default=True)
     use_uvs = BoolProperty(name="UVs", description="", default= True)
-    use_materials = BoolProperty(name="Materials", description="", default= True)
-    copy_images = BoolProperty(name="Copy Images", description="", default= False)
-    use_triangles = BoolProperty(name="Triangulate", description="", default= False)
-    use_vertex_groups = BoolProperty(name="Polygroups", description="", default= False)
-    use_nurbs = BoolProperty(name="Nurbs", description="", default= False)
+    use_materials = BoolProperty(name="Materials", description="", default=True)
+    copy_images = BoolProperty(name="Copy Images", description="", default=False)
+    use_triangles = BoolProperty(name="Triangulate", description="", default=False)
+    use_vertex_groups = BoolProperty(name="Polygroups", description="", default=False)
+    use_nurbs = BoolProperty(name="Nurbs", description="", default=False)
 
     # grouping group
     use_blen_objects = BoolProperty(name="Objects as OBJ Objects", description="", default= True)
