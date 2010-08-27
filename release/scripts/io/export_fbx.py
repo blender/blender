@@ -2961,7 +2961,7 @@ Takes:  {''')
 
     # --------------------------- Footer
     if world:
-        m = world.mist
+        m = world.mist_settings
         has_mist = m.use_mist
         mist_intense = m.intensity
         mist_start = m.start
