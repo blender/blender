@@ -300,6 +300,7 @@ class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
             split = layout.split()
             col = split.column()
 
+            col.prop(tf, "use_image")
             col.prop(tf, "use_light")
             col.prop(tf, "hide")
             col.prop(tf, "use_collision")
