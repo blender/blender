@@ -224,7 +224,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
         row.prop(ob.pose, "ik_solver")
 
         split = layout.split(percentage=0.25)
-        split.prop(pchan, "lock_ik_x", text="Lock X")
+        split.prop(pchan, "lock_ik_x", icon='LOCKED' if pchan.lock_ik_x else 'UNLOCKED', text="X")
         split.active = pchan.is_in_ik_chain
         row = split.row()
         row.prop(pchan, "ik_stiffness_x", text="Stiffness", slider=True)
@@ -241,8 +241,8 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
         sub.active = pchan.lock_ik_x == False and pchan.use_ik_limit_x and pchan.is_in_ik_chain
 
         split = layout.split(percentage=0.25)
-        split.prop(pchan, "lock_ik_y", text="Y")
-        split.active = pchan.is_in_ik_chain and pchan.is_in_ik_chain
+        split.prop(pchan, "lock_ik_y", icon='LOCKED' if pchan.lock_ik_y else 'UNLOCKED', text="Y")
+        split.active = pchan.is_in_ik_chain
         row = split.row()
         row.prop(pchan, "ik_stiffness_y", text="Stiffness", slider=True)
         row.active = pchan.lock_ik_y == False and pchan.is_in_ik_chain
@@ -259,8 +259,8 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
         sub.active = pchan.lock_ik_y == False and pchan.use_ik_limit_y and pchan.is_in_ik_chain
 
         split = layout.split(percentage=0.25)
-        split.prop(pchan, "lock_ik_z", text="Z")
-        split.active = pchan.is_in_ik_chain and pchan.is_in_ik_chain
+        split.prop(pchan, "lock_ik_z", icon='LOCKED' if pchan.lock_ik_z else 'UNLOCKED', text="Z")
+        split.active = pchan.is_in_ik_chain
         sub = split.row()
         sub.prop(pchan, "ik_stiffness_z", text="Stiffness", slider=True)
         sub.active = pchan.lock_ik_z == False and pchan.is_in_ik_chain
@@ -274,10 +274,12 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
         sub.prop(pchan, "ik_min_z", text="")
         sub.prop(pchan, "ik_max_z", text="")
         sub.active = pchan.lock_ik_z == False and pchan.use_ik_limit_z and pchan.is_in_ik_chain
-        split = layout.split()
-        split.prop(pchan, "ik_stretch", text="Stretch", slider=True)
-        split.label()
-        split.active = pchan.is_in_ik_chain
+ 
+        split = layout.split(percentage=0.25)
+        split.label(text="Stretch:")
+        sub = split.row()
+        sub.prop(pchan, "ik_stretch", text="", slider=True)
+        sub.active = pchan.is_in_ik_chain
 
         if ob.pose.ik_solver == 'ITASC':
             split = layout.split()
