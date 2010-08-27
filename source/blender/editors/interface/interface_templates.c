@@ -69,68 +69,6 @@ void uiTemplateHeader(uiLayout *layout, bContext *C, int menus)
 	else ED_area_header_switchbutton(C, block, 0);
 }
 
-/********************** DopeSheet Filter Template *************************/
-
-void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-	Main *mainptr= CTX_data_main(C);
-	ScrArea *sa= CTX_wm_area(C);
-	uiLayout *row= layout;
-	short nlaActive= ((sa) && (sa->spacetype==SPACE_NLA));
-	
-	/* most 'generic' filtering options */
-	row= uiLayoutRow(layout, 1);
-	
-	uiItemR(row, ptr, "show_only_selected", 0, "", 0);
-	uiItemR(row, ptr, "show_hidden", 0, "", 0);
-	
-	/* object-level filtering options */
-	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "show_transforms", 0, "", 0);
-	
-	if (nlaActive)
-		uiItemR(row, ptr, "show_missing_nla", 0, "", 0);
-	
-	/* datatype based - only available datatypes are shown */
-	row= uiLayoutRow(layout, 1);
-
-	uiItemR(row, ptr, "show_scenes", 0, "", 0);
-	uiItemR(row, ptr, "show_worlds", 0, "", 0);
-	uiItemR(row, ptr, "show_nodes", 0, "", 0);
-	
-	if (mainptr && mainptr->mesh.first)
-		uiItemR(row, ptr, "show_meshes", 0, "", 0);
-	if (mainptr && mainptr->key.first)
-		uiItemR(row, ptr, "show_shapekeys", 0, "", 0);
-	if (mainptr && mainptr->mat.first)
-		uiItemR(row, ptr, "show_materials", 0, "", 0);
-	if (mainptr && mainptr->lamp.first)
-		uiItemR(row, ptr, "show_lamps", 0, "", 0);
-	if (mainptr && mainptr->tex.first)
-		uiItemR(row, ptr, "show_textures", 0, "", 0);
-	if (mainptr && mainptr->camera.first)
-		uiItemR(row, ptr, "show_cameras", 0, "", 0);
-	if (mainptr && mainptr->curve.first)
-		uiItemR(row, ptr, "show_curves", 0, "", 0);
-	if (mainptr && mainptr->mball.first)
-		uiItemR(row, ptr, "show_metaballs", 0, "", 0);
-	if (mainptr && mainptr->armature.first)
-		uiItemR(row, ptr, "show_armatures", 0, "", 0);
-	if (mainptr && mainptr->particle.first)
-		uiItemR(row, ptr, "show_particles", 0, "", 0);
-	
-	/* group-based filtering (only when groups are available */
-	if (mainptr && mainptr->group.first) {
-		row= uiLayoutRow(layout, 1);
-		
-		uiItemR(row, ptr, "show_only_group_objects", 0, "", 0);
-		
-		/* if enabled, show the group selection field too */
-		if (RNA_boolean_get(ptr, "show_only_group_objects"))
-			uiItemR(row, ptr, "filter_group", 0, "", 0);
-	}
-}
-
 /********************** Search Callbacks *************************/
 
 typedef struct TemplateID {
