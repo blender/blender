@@ -7,7 +7,7 @@ kc = wm.add_keyconfig('Maya')
 # Map 3D View
 km = kc.add_keymap('3D View', space_type='VIEW_3D', region_type='WINDOW', modal=False)
 
-kmi = km.items.add('view3d.show_manipulator', 'LEFTMOUSE', 'PRESS', any=True)
+kmi = km.items.add('view3d.manipulator', 'LEFTMOUSE', 'PRESS', any=True)
 kmi.properties.release_confirm = True
 kmi = km.items.add('view3d.cursor3d', 'ACTIONMOUSE', 'PRESS')
 kmi = km.items.add('view3d.rotate', 'LEFTMOUSE', 'PRESS', alt=True)
