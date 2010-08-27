@@ -305,24 +305,35 @@ IF(WITH_INSTALL)
 			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
 			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
 			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
-			# TODO, copy python bundle
-			# COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\windows\\extra\\python31.zip\" \"${TARGETDIR}\\\"
 		)
     
 		ADD_CUSTOM_COMMAND(TARGET blender
 			POST_BUILD
 			MAIN_DEPENDENCY blender
-			COMMAND copy /Y \"${LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\python31_d.zip\"
 			COMMAND copy /Y \"${LIBDIR}\\gettext\\lib\\gnu_gettext.dll\" \"${TARGETDIR}\\\"
 			COMMAND copy /Y \"${LIBDIR}\\png\\lib\\libpng.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
 			COMMAND copy /Y \"${LIBDIR}\\zlib\\lib\\zlib.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31_d.dll\" \"${TARGETDIR}\\\"
 			COMMAND copy /Y \"${LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
 			# COMMAND copy /Y \"${LIBDIR}\\samplerate\\lib\\libsamplerate-0.dll\" \"${TARGETDIR}\\\"
 		)
+
+		IF(WITH_PYTHON)
+			IF(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+				ADD_CUSTOM_COMMAND(TARGET blender
+					POST_BUILD
+					MAIN_DEPENDENCY blender
+					COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31_d.dll\" \"${TARGETDIR}\\\"
+					COMMAND copy /Y \"${LIBDIR}\\release\\python31_d.zip\" \"${TARGETDIR}\\\"
+				)
+			ELSE(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+				ADD_CUSTOM_COMMAND(TARGET blender
+					POST_BUILD
+					MAIN_DEPENDENCY blender
+					COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31.dll\" \"${TARGETDIR}\\\"
+					COMMAND copy /Y \"${LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\\"
+				)
+			ENDIF(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+		ENDIF(WITH_PYTHON)
 
 		IF(WITH_INTERNATIONAL)
 			ADD_CUSTOM_COMMAND(TARGET blender
@@ -375,6 +386,13 @@ IF(WITH_INSTALL)
 			)
 		ENDIF(WITH_OPENAL)
 
+		IF(WITH_SDL)
+			ADD_CUSTOM_COMMAND(TARGET blender
+				POST_BUILD
+				MAIN_DEPENDENCY blender
+				COMMAND copy /Y \"${LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
+			)
+		ENDIF(WITH_SDL)
 
 	ENDIF(WIN32)
 ENDIF(WITH_INSTALL)
