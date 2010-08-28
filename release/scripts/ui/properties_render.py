@@ -68,7 +68,7 @@ class RENDER_PT_render(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Layers"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -78,13 +78,13 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
         rd = scene.render
 
         row = layout.row()
-        row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
+        row.template_list(rd, "layers", rd.layers, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
         col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
 
-        rl = rd.layers[rd.active_layer_index]
+        rl = rd.layers.active
 
         if rl:
             layout.prop(rl, "name")
@@ -177,14 +177,14 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        rl = rd.layers[rd.active_layer_index]
+        rl = rd.layers.active
         return rl and rl.use_freestyle
 
     def draw(self, context):
         layout = self.layout
 
         rd = context.scene.render
-        rl = rd.layers[rd.active_layer_index]
+        rl = rd.layers.active
         freestyle = rl.freestyle_settings
 
         split = layout.split()
@@ -281,7 +281,7 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        rl = rd.layers[rd.active_layer_index]
+        rl = rd.layers.active
         if rl and rl.use_freestyle:
             freestyle = rl.freestyle_settings
             return freestyle.mode == "EDITOR" and freestyle.active_lineset
@@ -376,7 +376,7 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         rd = context.scene.render
-        rl = rd.layers[rd.active_layer_index]
+        rl = rd.layers.active
         lineset = rl.freestyle_settings.active_lineset
         linestyle = lineset.linestyle
 
@@ -442,7 +442,7 @@ class RENDER_PT_shading(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Performance"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -484,7 +484,7 @@ class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Post Processing"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -643,7 +643,7 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Encoding"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -739,7 +739,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Full Sample Motion Blur"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -804,7 +804,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Stamp"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -848,7 +848,7 @@ class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Bake"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):

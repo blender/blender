@@ -130,11 +130,11 @@ class PropertyPanel():
     and the variable '_context_path' MUST be set.
     """
     bl_label = "Custom Properties"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
-        bool(eval("context.%s" % cls._context_path))
+        return bool(eval("context.%s" % cls._context_path))
 
     def draw(self, context):
         draw(self.layout, context, self._context_path)

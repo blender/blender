@@ -9,11 +9,11 @@ def main(context):
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
 
-    if not mesh.active_uv_texture:
-        bpy.ops.mesh.uv_texture_add()
+    if not mesh.uv_textures:
+        uvtex = bpy.ops.mesh.uv_texture_add()
 
     # adjust UVs
-    for i, uv in enumerate(mesh.active_uv_texture.data):
+    for i, uv in enumerate(uvtex.data):
         uvs = uv.uv1, uv.uv2, uv.uv3, uv.uv4
         for j, v_idx in enumerate(mesh.faces[i].vertices):
             if uv.select_uv[j]:

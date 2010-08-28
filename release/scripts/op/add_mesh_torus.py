@@ -121,7 +121,9 @@ class AddTorus(bpy.types.Operator):
 
         mesh = bpy.data.meshes.new("Torus")
 
-        mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
+        mesh.vertices.add(len(verts_loc) // 3)
+        mesh.faces.add(len(faces) // 4)
+
         mesh.vertices.foreach_set("co", verts_loc)
         mesh.faces.foreach_set("vertices_raw", faces)
         mesh.update()

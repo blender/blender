@@ -393,6 +393,7 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a keyframe to the curve.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_string(func, "data_path", "", 0, "Data Path", "FCurve data path to use.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "array_index", 0, 0, INT_MAX, "Index", "Array index.", 0, INT_MAX);
 	parm= RNA_def_string(func, "action_group", "", 0, "Action Group", "Acton group to add this fcurve into.");
 

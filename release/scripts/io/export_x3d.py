@@ -183,7 +183,7 @@ class x3d_class:
         self.file.write("<head>\n")
         self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % os.path.basename(bfile))
         # self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % sys.basename(bfile))
-        self.file.write("\t<meta name=\"generator\" content=\"Blender %s\" />\n" % '2.5')
+        self.file.write("\t<meta name=\"generator\" content=\"Blender %s\" />\n" % bpy.app.version_string)
         # self.file.write("\t<meta name=\"generator\" content=\"Blender %s\" />\n" % Blender.Get('version'))
         self.file.write("\t<meta name=\"translator\" content=\"X3D exporter v1.55 (2006/01/17)\" />\n")
         self.file.write("</head>\n")
@@ -258,12 +258,9 @@ class x3d_class:
 
     def writeFog(self, world):
         if world:
-            mtype = world.mist.falloff
-            # mtype = world.getMistype()
-            mparam = world.mist
-            # mparam = world.getMist()
+            mtype = world.mist_settings.falloff
+            mparam = world.mist_settings
             grd = world.horizon_color
-            # grd = world.getHor()
             grd0, grd1, grd2 = grd[0], grd[1], grd[2]
         else:
             return
@@ -277,7 +274,7 @@ class x3d_class:
             return
 
     def writeNavigationInfo(self, scene):
-        self.file.write('<NavigationInfo headlight="FALSE" visibilityLimit="0.0" type=\'"EXAMINE","ANY"\' avatarSize="0.25, 1.75, 0.75" />\n')
+        self.file.write('<NavigationInfo headlight="false" visibilityLimit="0.0" type=\'"EXAMINE","ANY"\' avatarSize="0.25, 1.75, 0.75" />\n')
 
     def writeSpotLight(self, ob, mtx, lamp, world):
         safeName = self.cleanStr(ob.name)
@@ -402,9 +399,9 @@ class x3d_class:
         if len(mesh.faces) == 0: return
         mode = []
         # mode = 0
-        if mesh.active_uv_texture:
+        if mesh.uv_textures.active:
         # if mesh.faceUV:
-            for face in mesh.active_uv_texture.data:
+            for face in mesh.uv_textures.active.data:
             # for face in mesh.faces:
                 if face.use_halo and 'HALO' not in mode:
                     mode += ['HALO']
@@ -460,40 +457,38 @@ class x3d_class:
 
         self.writeIndented("<Shape>\n",1)
         maters=mesh.materials
-        hasImageTexture=0
+        hasImageTexture = False
         is_smooth = False
 
-        if len(maters) > 0 or mesh.active_uv_texture:
+        if len(maters) > 0 or mesh.uv_textures.active:
         # if len(maters) > 0 or mesh.faceUV:
             self.writeIndented("<Appearance>\n", 1)
             # right now this script can only handle a single material per mesh.
-            if len(maters) >= 1:
-                mat=maters[0]
-                # matFlags = mat.getMode()
-                if not mat.use_face_texture:
-                # if not matFlags & Blender.Material.Modes['TEXFACE']:
-                    self.writeMaterial(mat, self.cleanStr(mat.name,''), world)
-                    # self.writeMaterial(mat, self.cleanStr(maters[0].name,''), world)
-                    if len(maters) > 1:
-                        print("Warning: mesh named %s has multiple materials" % meshName)
-                        print("Warning: only one material per object handled")
+            if len(maters) >= 1 and maters[0].use_face_texture == False:
+                self.writeMaterial(mat, self.cleanStr(mat.name,''), world)
+                if len(maters) > 1:
+                    print("Warning: mesh named %s has multiple materials" % meshName)
+                    print("Warning: only one material per object handled")
 
+            if not len(maters) or maters[0].use_face_texture:
                 #-- textures
-                face = None
-                if mesh.active_uv_texture:
-                # if mesh.faceUV:
-                    for face in mesh.active_uv_texture.data:
-                    # for face in mesh.faces:
-                        if face.image:
-                        # if (hasImageTexture == 0) and (face.image):
-                            self.writeImageTexture(face.image)
-                            # hasImageTexture=1  # keep track of face texture
-                            break
-                if self.tilenode == 1 and face and face.image:
-                # if self.tilenode == 1:
-                    self.writeIndented("<TextureTransform	scale=\"%s %s\" />\n" % (face.image.xrep, face.image.yrep))
-                    self.tilenode = 0
-                self.writeIndented("</Appearance>\n", -1)
+                image = None
+                if mesh.uv_textures.active:
+                    for face in mesh.uv_textures.active.data:
+                        if face.use_image:
+                            image = face.image
+                            if image:
+                                self.writeImageTexture(image)
+                                break
+
+                if image:
+                    hasImageTexture = True
+
+                    if self.tilenode == 1:
+                        self.writeIndented("<TextureTransform	scale=\"%s %s\" />\n" % (image.xrep, image.yrep))
+                        self.tilenode = 0
+
+            self.writeIndented("</Appearance>\n", -1)
 
         #-- IndexedFaceSet or IndexedLineSet
 
@@ -525,11 +520,10 @@ class x3d_class:
                 self.file.write("creaseAngle=\"%s\" " % (round(creaseAngle,self.cp)))
 
             #--- output textureCoordinates if UV texture used
-            if mesh.active_uv_texture:
-            # if mesh.faceUV:
+            if mesh.uv_textures.active:
                 if self.matonly == 1 and self.share == 1:
                     self.writeFaceColors(mesh)
-                elif hasImageTexture == 1:
+                elif hasImageTexture == True:
                     self.writeTextureCoordinates(mesh)
             #--- output coordinates
             self.writeCoordinates(ob, mesh, meshName, EXPORT_TRI)
@@ -540,9 +534,9 @@ class x3d_class:
             self.writeCoordinates(ob, mesh, meshName, EXPORT_TRI)
 
             #--- output textureCoordinates if UV texture used
-            if mesh.active_uv_texture:
+            if mesh.uv_textures.active:
             # if mesh.faceUV:
-                if hasImageTexture == 1:
+                if hasImageTexture == True:
                     self.writeTextureCoordinates(mesh)
                 elif self.matonly == 1 and self.share == 1:
                     self.writeFaceColors(mesh)
@@ -614,7 +608,7 @@ class x3d_class:
         texIndexList=[]
         j=0
 
-        for face in mesh.active_uv_texture.data:
+        for face in mesh.uv_textures.active.data:
         # for face in mesh.faces:
             # workaround, since tface.uv iteration is wrong atm
             uvs = face.uv
@@ -646,10 +640,10 @@ class x3d_class:
     def writeFaceColors(self, mesh):
         if self.writingcolor == 0:
             self.file.write("colorPerVertex=\"false\" ")
-        elif mesh.active_vertex_color:
+        elif mesh.vertex_colors.active:
         # else:
             self.writeIndented("<Color color=\"", 1)
-            for face in mesh.active_vertex_color.data:
+            for face in mesh.vertex_colors.active.data:
                 c = face.color1
                 if self.verbose > 2:
                     print("Debug: face.col r=%d g=%d b=%d" % (c[0], c[1], c[2]))
@@ -717,21 +711,20 @@ class x3d_class:
 
     def writeImageTexture(self, image):
         name = image.name
-        filename = image.filepath.split('/')[-1].split('\\')[-1]
+        filename = os.path.basename(image.filepath)
         if name in self.texNames:
             self.writeIndented("<ImageTexture USE=\"%s\" />\n" % self.cleanStr(name))
             self.texNames[name] += 1
-            return
         else:
             self.writeIndented("<ImageTexture DEF=\"%s\" " % self.cleanStr(name), 1)
-            self.file.write("url=\"%s\" />" % name)
+            self.file.write("url=\"%s\" />" % filename)
             self.writeIndented("\n",-1)
             self.texNames[name] = 1
 
     def writeBackground(self, world, alltextures):
         if world:	worldname = world.name
         else:		return
-        blending = (world.blend_sky, world.paper_sky, world.use_sky_real)
+        blending = (world.use_sky_blend, world.use_sky_paper, world.use_sky_real)
         # blending = world.getSkytype()
         grd = world.horizon_color
         # grd = world.getHor()
@@ -961,9 +954,9 @@ class x3d_class:
         faceMap={}
         nFaceIndx=0
 
-        if mesh.active_uv_texture:
+        if mesh.uv_textures.active:
         # if mesh.faceUV:
-            for face in mesh.active_uv_texture.data:
+            for face in mesh.uv_textures.active.data:
             # for face in mesh.faces
                 sidename = "two" if face.use_twoside else "one"
 

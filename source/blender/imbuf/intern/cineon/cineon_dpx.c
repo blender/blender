@@ -53,7 +53,7 @@ static void cineon_conversion_parameters(LogImageByteConversionParameters *param
 	
 	params->blackPoint = 95;
 	params->whitePoint = 685;
-	params->gamma = 1.7f;
+	params->gamma = 1.0f;
 	params->doLogarithm = 0;
 	
 }

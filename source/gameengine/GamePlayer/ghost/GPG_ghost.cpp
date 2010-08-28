@@ -557,7 +557,7 @@ int main(int argc, char** argv)
 					
 #if 0
 					// future stuff
-					else if(!strcmp(argv[i], "use_stencil")
+					else if(!strcmp(argv[i], "stencil")
 						stereomode = RAS_STEREO_STENCIL;
 #endif
 					

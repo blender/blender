@@ -29,7 +29,7 @@ class ObjectButtonsPanel():
 
 class OBJECT_PT_context_object(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout
@@ -72,7 +72,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel, bpy.types.Panel):
 
 class OBJECT_PT_transform_locks(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Transform Locks"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -119,7 +119,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel, bpy.types.Panel):
         sub.prop(ob, "parent_type", text="")
         parent = ob.parent
         if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
-            sub.prop_object(ob, "parent_bone", parent.data, "bones", text="")
+            sub.prop_search(ob, "parent_bone", parent.data, "bones", text="")
         sub.active = (parent is not None)
 
 
@@ -238,7 +238,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, bpy.types.Panel):
 
 class OBJECT_PT_animation(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Animation Hacks"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -312,7 +312,7 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # in
         self.draw_settings(context, ob.animation_visualisation)
 
 
-class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, bpy.types.Panel):
+class OBJECT_PT_custom_props(bpy.types.Panel, PropertyPanel, ObjectButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object"
 

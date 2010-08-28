@@ -55,6 +55,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
@@ -184,12 +185,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			/* Join this object's vertex groups to the base one's */
 			for(dg=base->object->defbase.first; dg; dg=dg->next) {
 				/* See if this group exists in the object (if it doesn't, add it to the end) */
-				for(odg=ob->defbase.first; odg; odg=odg->next) {
-					if(!strcmp(odg->name, dg->name)) {
-						break;
-					}
-				}
-				if(!odg) {
+				if(!defgroup_find_name(ob, dg->name)) {
 					odg = MEM_callocN(sizeof(bDeformGroup), "join deformGroup");
 					memcpy(odg, dg, sizeof(bDeformGroup));
 					BLI_addtail(&ob->defbase, odg);

@@ -734,13 +734,7 @@ void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 /* finds a node based on its name */
 bNode *nodeFindNodebyName(bNodeTree *ntree, const char *name)
 {
-	bNode *node=NULL;
-	
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if (strcmp(name, node->name) == 0)
-			break;
-	}
-	return node;
+	return BLI_findstring(&ntree->nodes, name, offsetof(bNode, name));
 }
 
 /* finds a node based on given socket */

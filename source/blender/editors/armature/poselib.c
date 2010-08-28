@@ -278,8 +278,16 @@ static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout,
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	
 	/* add each marker to this menu */
-	for (marker= act->markers.first; marker; marker= marker->next)
-		uiItemIntO(layout, marker->name, ICON_ARMATURE_DATA, "POSELIB_OT_pose_add", "frame", marker->frame);
+	for (marker= act->markers.first; marker; marker= marker->next) {
+		PointerRNA props_ptr;
+		
+		props_ptr = uiItemFullO(layout, "POSELIB_OT_pose_add", 
+						marker->name, ICON_ARMATURE_DATA, NULL, 
+						WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+		
+		RNA_int_set(&props_ptr, "frame", marker->frame);
+		RNA_string_set(&props_ptr, "name", marker->name);
+	}
 }
 
 static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)

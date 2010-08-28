@@ -83,7 +83,7 @@ bDeformGroup *ED_vgroup_add_name(Object *ob, char *name)
 {
 	bDeformGroup *defgroup;
 	
-	if(!ob)
+	if(!ob || !ELEM(ob->type, OB_MESH, OB_LATTICE))
 		return NULL;
 	
 	defgroup = MEM_callocN(sizeof(bDeformGroup), "add deformGroup");
@@ -532,18 +532,8 @@ float ED_vgroup_vert_weight(Object *ob, bDeformGroup *dg, int vertnum)
 }
 
 void ED_vgroup_select_by_name(Object *ob, char *name)
-{
-	bDeformGroup *curdef;
-	int actdef= 1;
-	
-	for(curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++){
-		if(!strcmp(curdef->name, name)) {
-			ob->actdef= actdef;
-			return;
-		}
-	}
-
-	ob->actdef= 0;	// this signals on painting to create a new one, if a bone in posemode is selected */
+{	/* note: ob->actdef==0 signals on painting to create a new one, if a bone in posemode is selected */
+	ob->actdef= defgroup_name_index(ob, name) + 1;
 }
 
 /********************** Operator Implementations *********************/
@@ -1351,7 +1341,7 @@ static void vgroup_assign_verts(Object *ob, float weight)
 		EditMesh *em = BKE_mesh_get_editmesh(me);
 
 		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT))
-			EM_add_data_layer(em, &em->vdata, CD_MDEFORMVERT);
+			EM_add_data_layer(em, &em->vdata, CD_MDEFORMVERT, NULL);
 
 		/* Go through the list of editverts and assign them */
 		for(eve=em->verts.first; eve; eve=eve->next){

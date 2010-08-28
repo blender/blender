@@ -100,7 +100,7 @@ class USERPREF_PT_tabs(bpy.types.Panel):
     bl_label = ""
     bl_space_type = 'USER_PREFERENCES'
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout
@@ -134,7 +134,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Interface"
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
@@ -236,7 +236,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Edit"
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
@@ -351,7 +351,7 @@ class USERPREF_PT_system(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "System"
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
@@ -376,6 +376,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.prop(system, "dpi")
         col.prop(system, "frame_server_port")
         col.prop(system, "scrollback", text="Console Scrollback")
+        col.prop(system, "author", text="Author")
         col.prop(system, "use_scripts_auto_execute")
         col.prop(system, "use_tabs_as_spaces")
 
@@ -486,7 +487,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Themes"
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     @staticmethod
     def _theme_generic(split, themedata):
@@ -649,7 +650,7 @@ class USERPREF_PT_file(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Files"
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
@@ -814,7 +815,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Addons"
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     
     _addons_fake_modules = {}
 

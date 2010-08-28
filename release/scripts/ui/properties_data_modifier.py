@@ -55,7 +55,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Vertex Group::")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         sub = col.column()
         sub.active = bool(md.vertex_group)
         sub.prop(md, "invert_vertex_group")
@@ -182,7 +182,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         col = split.column()
         col.label(text="Control Object:")
         col.prop(md, "object", text="")
@@ -203,7 +203,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "object", text="")
         col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         layout.label(text="Deformation Axis:")
         layout.row().prop(md, "deform_axis", expand=True)
 
@@ -218,7 +218,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.label(text="Texture:")
         col.prop(md, "texture", text="")
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         col = split.column()
         col.label(text="Direction:")
@@ -228,7 +228,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         if md.texture_coords == 'OBJECT':
             layout.prop(md, "texture_coordinate_object", text="Object")
         elif md.texture_coords == 'UV' and ob.type == 'MESH':
-            layout.prop_object(md, "uv_layer", ob.data, "uv_textures")
+            layout.prop_search(md, "uv_layer", ob.data, "uv_textures")
 
         layout.separator()
 
@@ -257,7 +257,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Vertex group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         sub = col.column()
         sub.active = bool(md.vertex_group)
         sub.prop(md, "protect")
@@ -282,10 +282,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "object", text="")
         if md.object and md.object.type == 'ARMATURE':
             col.label(text="Bone:")
-            col.prop_object(md, "subtarget", md.object.data, "bones", text="")
+            col.prop_search(md, "subtarget", md.object.data, "bones", text="")
         col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         layout.separator()
 
@@ -314,7 +314,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
     def MASK(self, layout, ob, md):
         split = layout.split()
@@ -328,7 +328,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
             col.prop(md, "armature", text="")
         elif md.mode == 'VERTEX_GROUP':
             col.label(text="Vertex Group:")
-            col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+            col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         sub = col.column()
         sub.active = bool(md.vertex_group)
@@ -343,7 +343,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         sub.active = not md.is_bound
         col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         sub = col.column()
         sub.active = bool(md.vertex_group)
@@ -480,7 +480,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "target", text="")
         col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         split = layout.split()
 
@@ -528,7 +528,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         split = layout.split()
 
@@ -563,7 +563,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "factor")
         col.prop(md, "iterations")
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
     def SOFT_BODY(self, layout, ob, md):
         layout.label(text="See Soft Body panel.")
@@ -574,7 +574,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.prop(md, "thickness")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         col.label(text="Crease:")
         col.prop(md, "edge_crease_inner", text="Inner")
@@ -623,7 +623,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
             col = split.column()
             col.label(text="UV Layer:")
-            col.prop_object(md, "uv_layer", ob.data, "uv_textures", text="")
+            col.prop_search(md, "uv_layer", ob.data, "uv_textures", text="")
 
             split = layout.split()
             col = split.column()
@@ -677,11 +677,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         layout.separator()
 
         layout.prop(md, "start_position_object")
-        layout.prop_object(md, "vertex_group", ob, "vertex_groups")
+        layout.prop_search(md, "vertex_group", ob, "vertex_groups")
         layout.prop(md, "texture")
         layout.prop(md, "texture_coords")
         if md.texture_coords == 'MAP_UV' and ob.type == 'MESH':
-            layout.prop_object(md, "uv_layer", ob.data, "uv_textures")
+            layout.prop_search(md, "uv_layer", ob.data, "uv_textures")
         elif md.texture_coords == 'OBJECT':
             layout.prop(md, "texture_coords_object")
 

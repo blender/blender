@@ -1979,8 +1979,14 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 			ibuf= image_get_ibuf(ima, 0, frame);
 			
 			/* XXX temp stuff? */
-			if(ima->lastframe != frame)
+			if(ima->lastframe != frame) {
 				ima->tpageflag |= IMA_TPAGE_REFRESH;
+				if(ibuf) {
+					/* without this the image name only updates
+					 * on first load which is quite confusing */
+					BLI_strncpy(ima->name, ibuf->name, sizeof(ima->name));
+				}
+			}
 			ima->lastframe = frame;
 		}	
 		else if(ima->type==IMA_TYPE_MULTILAYER) {

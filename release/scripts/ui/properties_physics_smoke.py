@@ -97,10 +97,10 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col.prop(flow, "use_outflow")
                 col.label(text="Particle System:")
-                col.prop_object(flow, "psys", ob, "particle_systems", text="")
+                col.prop_search(flow, "particle_system", ob, "particle_systems", text="")
 
                 sub = col.column()
-                sub.active = not md.flow_settings.outflow
+                sub.active = not md.flow_settings.use_outflow
 
                 sub.prop(flow, "initial_velocity", text="Initial Velocity")
                 sub = sub.column()
@@ -109,7 +109,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
 
 
                 sub = split.column()
-                sub.active = not md.flow_settings.outflow
+                sub.active = not md.flow_settings.use_outflow
                 sub.label(text="Behavior:")
                 sub.prop(flow, "temperature")
                 sub.prop(flow, "density")
@@ -121,7 +121,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke Groups"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -149,7 +149,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke Cache"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -170,7 +170,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke High Resolution"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -205,7 +205,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke High Resolution Cache"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -226,7 +226,7 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Smoke Field Weights"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):

@@ -7,7 +7,7 @@ kc = wm.add_keyconfig('Maya')
 # Map 3D View
 km = kc.add_keymap('3D View', space_type='VIEW_3D', region_type='WINDOW', modal=False)
 
-kmi = km.items.add('view3d.show_manipulator', 'LEFTMOUSE', 'PRESS', any=True)
+kmi = km.items.add('view3d.manipulator', 'LEFTMOUSE', 'PRESS', any=True)
 kmi.properties.release_confirm = True
 kmi = km.items.add('view3d.cursor3d', 'ACTIONMOUSE', 'PRESS')
 kmi = km.items.add('view3d.rotate', 'LEFTMOUSE', 'PRESS', alt=True)
@@ -375,7 +375,7 @@ kmi.properties.value_2 = 'CONNECTED'
 kmi = km.items.add('mesh.select_all', 'SELECTMOUSE', 'CLICK')
 kmi.properties.action = 'DESELECT'
 
-wm.active_keyconfig = kc
+wm.keyconfigs.active = kc
 
 bpy.context.user_preferences.edit.use_drag_immediately = True
 bpy.context.user_preferences.edit.use_insertkey_xyz_to_rgb = False

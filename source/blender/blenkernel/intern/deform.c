@@ -176,7 +176,7 @@ void defvert_flip (MDeformVert *dvert, int *flip_map)
 }
 
 
-bDeformGroup *defgroup_find_name (Object *ob, char *name)
+bDeformGroup *defgroup_find_name (Object *ob, const char *name)
 {
 	/* return a pointer to the deform group with this name
 	 * or return NULL otherwise.

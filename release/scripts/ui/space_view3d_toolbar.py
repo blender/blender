@@ -719,7 +719,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
 
 class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
     bl_label = "Texture"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -818,7 +818,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
 
 class VIEW3D_PT_tools_brush_tool(PaintPanel, bpy.types.Panel):
     bl_label = "Tool"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -854,7 +854,7 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel, bpy.types.Panel):
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
     bl_label = "Stroke"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -952,7 +952,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel, bpy.types.Panel):
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel, bpy.types.Panel):
     bl_label = "Curve"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -979,7 +979,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel, bpy.types.Panel):
 
 class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
     bl_label = "Options"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1018,7 +1018,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
 		
 class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
     bl_label = "Symmetry"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1053,7 +1053,7 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
 
 class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
     bl_label = "Appearance"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1117,7 +1117,7 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel, bpy.types.Panel):
 
         col = layout.column()
         col.prop(wpaint, "use_all_faces")
-        col.prop(wpaint, "normals")
+        col.prop(wpaint, "use_normal")
         col.prop(wpaint, "use_spray")
 
         obj = context.weight_paint_object
@@ -1244,7 +1244,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, bpy.types.Panel):
 
 class VIEW3D_PT_imagepaint_options(PaintPanel):
     bl_label = "Options"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1300,16 +1300,16 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, bpy.types.Panel):
         if pe.type == 'PARTICLES':
             if ob.particle_systems:
                 if len(ob.particle_systems) > 1:
-                    layout.template_list(ob, "particle_systems", ob, "active_particle_system_index", type='ICONS')
+                    layout.template_list(ob, "particle_systems", ob.particle_systems, "active_index", type='ICONS')
 
-                ptcache = ob.particle_systems[ob.active_particle_system_index].point_cache
+                ptcache = ob.particle_systems.active.point_cache
         else:
             for md in ob.modifiers:
                 if md.type == pe.type:
                     ptcache = md.point_cache
 
         if ptcache and len(ptcache.point_caches) > 1:
-            layout.template_list(ptcache, "point_caches", ptcache, "active_point_cache_index", type='ICONS')
+            layout.template_list(ptcache, "point_caches", ptcache.point_caches, "active_index", type='ICONS')
 
 
         if not pe.is_editable:

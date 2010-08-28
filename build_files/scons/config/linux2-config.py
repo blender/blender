@@ -84,6 +84,8 @@ BF_GETTEXT = '/usr'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gettextlib'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
+#WITH_BF_GETTEXT_STATIC = True
+#BF_GETTEXT_LIB_STATIC = '${BF_GETTEXT}/lib/libgettextlib.a'
 
 WITH_BF_GAMEENGINE = True
 WITH_BF_PLAYER = False
@@ -97,6 +99,8 @@ BF_BULLET_LIB = 'extern_bullet'
 BF_FREETYPE = '/usr'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
+#WITH_BF_FREETYPE_STATIC = True
+#BF_FREETYPE_LIB_STATIC = '${BF_FREETYPE}/lib/libfreetype.a'
 
 WITH_BF_QUICKTIME = False # -DWITH_QUICKTIME
 BF_QUICKTIME = '/usr/local'
@@ -116,6 +120,8 @@ BF_FFMPEG = '/usr'
 BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
+#WITH_BF_STATICFFMPEG = True
+#BF_FFMPEG_LIB_STATIC = '${BF_FFMPEG_LIBPATH}/libavformat.a ${BF_FFMPEG_LIBPATH/libavcodec.a ${BF_FFMPEG_LIBPATH}/libswscale.a ${BF_FFMPEG_LIBPATH}/libavutil.a ${BF_FFMPEG_LIBPATH}/libavdevice.a'
 
 # enable ogg, vorbis and theora in ffmpeg
 WITH_BF_OGG = False  # -DWITH_OGG 

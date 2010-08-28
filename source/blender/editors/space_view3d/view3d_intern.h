@@ -56,6 +56,7 @@ struct bMotionPath;
 
 #define V3D_XRAY	1
 #define V3D_TRANSP	2
+#define V3D_XRAYTRANSP	4
 
 #define V3D_SELECT_MOUSE	1
 
@@ -125,8 +126,7 @@ void draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, int (* func)(void
 void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
 void view3d_clr_clipping(void);
 void view3d_set_clipping(RegionView3D *rv3d);
-void add_view3d_after(View3D *v3d, Base *base, int type, int flag);
-void calc_viewborder(Scene *scene, struct ARegion *ar, struct RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r);
+void add_view3d_after(ListBase *lb, Base *base, int flag);
 
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);

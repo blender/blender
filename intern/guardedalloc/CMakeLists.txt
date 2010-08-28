@@ -28,10 +28,10 @@ SET(INC .)
 
 FILE(GLOB SRC intern/*.c)
 
-BLENDERLIB(bf_guardedalloc "${SRC}" "${INC}")
+BLENDERLIB(bf_intern_guardedalloc "${SRC}" "${INC}")
 
 # Override C++ alloc optional
 IF(WITH_CXX_GUARDEDALLOC)
 	FILE(GLOB SRC cpp/*.cpp)
-	BLENDERLIB(bf_guardedalloc_cpp "${SRC}" "${INC}")
+	BLENDERLIB(bf_intern_guardedalloc_cpp "${SRC}" "${INC}")
 ENDIF(WITH_CXX_GUARDEDALLOC)

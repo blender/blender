@@ -60,7 +60,10 @@ int  BLI_isect_rctf(struct rctf *src1, struct rctf *src2, struct rctf *dest);
 int  BLI_isect_rcti(struct rcti *src1, struct rcti *src2, struct rcti *dest);
 void BLI_union_rctf(struct rctf *rcta, struct rctf *rctb);
 void BLI_union_rcti(struct rcti *rcti1, struct rcti *rcti2);
+void BLI_copy_rcti_rctf(struct rcti *tar, const struct rctf *src);
 
+void print_rctf(const char *str, struct rctf *rect);
+void print_rcti(const char *str, struct rcti *rect);
 
 #ifdef __cplusplus
 }

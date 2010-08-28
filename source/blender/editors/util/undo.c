@@ -163,6 +163,8 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 					BKE_undo_name(C, undoname);
 				else
 					BKE_undo_step(C, step);
+
+				WM_event_add_notifier(C, NC_SCENE|ND_LAYER_CONTENT, CTX_data_scene(C));
 			}
 			
 		}

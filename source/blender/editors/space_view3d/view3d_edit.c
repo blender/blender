@@ -1604,7 +1604,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 
 	/* calculate range */
-	calc_viewborder(scene, ar, rv3d, v3d, &vb);
+	view3d_calc_camera_border(scene, ar, rv3d, v3d, &vb);
 
 	scene->r.border.xmin= ((float)rect.xmin-vb.xmin)/(vb.xmax-vb.xmin);
 	scene->r.border.ymin= ((float)rect.ymin-vb.ymin)/(vb.ymax-vb.ymin);

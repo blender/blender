@@ -76,7 +76,7 @@ class TextureButtonsPanel():
 
 class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -157,7 +157,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel, bpy.types.Panel):
 
 class TEXTURE_PT_colors(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "Colors"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -243,7 +243,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel, bpy.types.Panel):
                 split.label(text="Layer:")
                 ob = context.object
                 if ob and ob.type == 'MESH':
-                    split.prop_object(tex, "uv_layer", ob.data, "uv_textures", text="")
+                    split.prop_search(tex, "uv_layer", ob.data, "uv_textures", text="")
                 else:
                     split.prop(tex, "uv_layer", text="")
 
@@ -384,12 +384,12 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
             split = layout.split()
 
             col = split.column()
-            factor_but(col, tex.use_map_blend, "map_blend", "blend_factor", "Blend")
-            factor_but(col, tex.use_map_horizon, "map_horizon", "horizon_factor", "Horizon")
+            factor_but(col, tex.use_map_blend, "use_map_blend", "blend_factor", "Blend")
+            factor_but(col, tex.use_map_horizon, "use_map_horizon", "horizon_factor", "Horizon")
 
             col = split.column()
-            factor_but(col, tex.use_map_zenith_up, "map_zenith_up", "zenith_up_factor", "Zenith Up")
-            factor_but(col, tex.use_map_zenith_down, "map_zenith_down", "zenith_down_factor", "Zenith Down")
+            factor_but(col, tex.use_map_zenith_up, "use_map_zenith_up", "zenith_up_factor", "Zenith Up")
+            factor_but(col, tex.use_map_zenith_down, "use_map_zenith_down", "zenith_down_factor", "Zenith Down")
 
         layout.separator()
 
@@ -581,7 +581,7 @@ def texture_filter_common(tex, layout):
     layout.label(text="Filter:")
     layout.prop(tex, "filter_type", text="")
     if tex.use_mipmap and tex.filter_type in ('AREA', 'EWA', 'FELINE'):
-        if tex.filter == 'FELINE':
+        if tex.filter_type == 'FELINE':
             layout.prop(tex, "filter_probes", text="Probes")
         else:
             layout.prop(tex, "filter_eccentricity", text="Eccentricity")
@@ -592,7 +592,7 @@ def texture_filter_common(tex, layout):
 
 class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
     bl_label = "Image Sampling"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -630,7 +630,7 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
 
 class TEXTURE_PT_image_mapping(TextureTypePanel, bpy.types.Panel):
     bl_label = "Image Mapping"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -721,7 +721,7 @@ class TEXTURE_PT_envmap(TextureTypePanel, bpy.types.Panel):
 
 class TEXTURE_PT_envmap_sampling(TextureTypePanel, bpy.types.Panel):
     bl_label = "Environment Map Sampling"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'ENVIRONMENT_MAP'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -904,7 +904,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, bpy.types.Panel):
             sub.enabled = bool(pd.object)
             if pd.object:
                 sub.label(text="System:")
-                sub.prop_object(pd, "particle_system", pd.object, "particle_systems", text="")
+                sub.prop_search(pd, "particle_system", pd.object, "particle_systems", text="")
             sub.label(text="Cache:")
             sub.prop(pd, "particle_cache_space", text="")
         else:

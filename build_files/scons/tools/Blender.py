@@ -153,8 +153,14 @@ def setup_staticlibs(lenv):
 		libincs += Split(lenv['BF_TIFF_LIBPATH'])
 	if lenv['WITH_BF_FFTW3']:
 		libincs += Split(lenv['BF_FFTW3_LIBPATH'])
+	if lenv['WITH_BF_FFMPEG'] and lenv['WITH_BF_STATICFFMPEG']:
+		statlibs += Split(lenv['BF_FFMPEG_LIB_STATIC'])
 	if lenv['WITH_BF_INTERNATIONAL']:
 		libincs += Split(lenv['BF_GETTEXT_LIBPATH'])
+		if lenv['WITH_BF_GETTEXT_STATIC']:
+			statlibs += Split(lenv['BF_GETTEXT_LIB_STATIC'])
+		if lenv['WITH_BF_FREETYPE_STATIC']:
+			statlibs += Split(lenv['BF_FREETYPE_LIB_STATIC'])
 	if lenv['WITH_BF_OPENAL']:
 		libincs += Split(lenv['BF_OPENAL_LIBPATH'])
 		if lenv['WITH_BF_STATICOPENAL']:
@@ -195,13 +201,14 @@ def setup_syslibs(lenv):
 		lenv['BF_LIBSAMPLERATE_LIB']
 		]
 
-	syslibs += Split(lenv['BF_FREETYPE_LIB'])
+	if not lenv['WITH_BF_FREETYPE_STATIC']:
+		syslibs += Split(lenv['BF_FREETYPE_LIB'])
 	if lenv['WITH_BF_PYTHON'] and not lenv['WITH_BF_STATICPYTHON']:
 		if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
 			syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
 		else:
 			syslibs.append(lenv['BF_PYTHON_LIB'])
-	if lenv['WITH_BF_INTERNATIONAL']:
+	if lenv['WITH_BF_INTERNATIONAL'] and not lenv['WITH_BF_GETTEXT_STATIC']:
 		syslibs += Split(lenv['BF_GETTEXT_LIB'])
 	if lenv['WITH_BF_OPENAL']:
 		if not lenv['WITH_BF_STATICOPENAL']:
@@ -218,7 +225,7 @@ def setup_syslibs(lenv):
 			syslibs += Split(lenv['BF_OPENEXR_LIB'])
 	if lenv['WITH_BF_TIFF']:
 			syslibs += Split(lenv['BF_TIFF_LIB'])
-	if lenv['WITH_BF_FFMPEG']:
+	if lenv['WITH_BF_FFMPEG'] and not lenv['WITH_BF_STATICFFMPEG']:
 		syslibs += Split(lenv['BF_FFMPEG_LIB'])
 		if lenv['WITH_BF_OGG']:
 			syslibs += Split(lenv['BF_OGG_LIB'])
@@ -463,7 +470,10 @@ def WinPyBundle(target=None, source=None, env=None):
 	py_zip= env.subst( env['LCGDIR'] )
 	if py_zip[0]=='#':
 		py_zip= py_zip[1:]
-	py_zip+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '.zip'
+	if env['BF_DEBUG']:
+		py_zip+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '_d.zip'
+	else:
+		py_zip+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '.zip'
 
 	py_target = env.subst( env['BF_INSTALLDIR'] )
 	if py_target[0]=='#':
@@ -722,7 +732,7 @@ class BlenderEnvironment(SConsEnvironment):
 		# note: libs is a global
 		add_lib_to_dict(self, libs, libtype, libname, priority)
 
-	def BlenderProg(self=None, builddir=None, progname=None, sources=None, includes=None, libs=None, libpath=None, binarykind=''):
+	def BlenderProg(self=None, builddir=None, progname=None, sources=None, libs=None, libpath=None, binarykind=''):
 		global vcp
 		print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
 		lenv = self.Clone()
@@ -748,7 +758,6 @@ class BlenderEnvironment(SConsEnvironment):
 			lenv.Append(LINKFLAGS = lenv['BF_OPENGL_LINKFLAGS'])
 		if lenv['BF_PROFILE']:
 			lenv.Append(LINKFLAGS = lenv['BF_PROFILE_LINKFLAGS'])
-		lenv.Append(CPPPATH=includes)
 		if root_build_dir[0]==os.sep or root_build_dir[1]==':':
 			lenv.Append(LIBPATH=root_build_dir + '/lib')
 		lenv.Append(LIBPATH=libpath)

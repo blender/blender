@@ -59,21 +59,21 @@ class ConstraintButtonsPanel():
 
         if con.target and subtargets:
             if con.target.type == 'ARMATURE':
-                layout.prop_object(con, "subtarget", con.target.data, "bones", text="Bone")
+                layout.prop_search(con, "subtarget", con.target.data, "bones", text="Bone")
 
                 if con.type in ('COPY_LOCATION', 'STRETCH_TO', 'TRACK_TO', 'PIVOT'):
                     row = layout.row()
                     row.label(text="Head/Tail:")
                     row.prop(con, "head_tail", text="")
             elif con.target.type in ('MESH', 'LATTICE'):
-                layout.prop_object(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
+                layout.prop_search(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 
     def ik_template(self, layout, con):
         # only used for iTaSC
         layout.prop(con, "pole_target")
 
         if con.pole_target and con.pole_target.type == 'ARMATURE':
-            layout.prop_object(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+            layout.prop_search(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
 
         if con.pole_target:
             row = layout.row()
@@ -147,7 +147,7 @@ class ConstraintButtonsPanel():
             layout.prop(con, "pole_target")
 
             if con.pole_target and con.pole_target.type == 'ARMATURE':
-                layout.prop_object(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
+                layout.prop_search(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
 
             if con.pole_target:
                 row = layout.row()
@@ -524,7 +524,7 @@ class ConstraintButtonsPanel():
         self.space_template(layout, con)
 
     def RIGID_BODY_JOINT(self, context, layout, con):
-        self.target_template(layout, con)
+        self.target_template(layout, con, subtargets=False)
 
         layout.prop(con, "pivot_type")
         layout.prop(con, "child")

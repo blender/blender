@@ -270,7 +270,6 @@ static void view3d_free(SpaceLink *sl)
 	if(vd->localvd) MEM_freeN(vd->localvd);
 	
 	if(vd->properties_storage) MEM_freeN(vd->properties_storage);
-	
 }
 
 
@@ -514,6 +513,37 @@ static void *view3d_main_area_duplicate(void *poin)
 	return NULL;
 }
 
+static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn)
+{
+	wmWindow *win= wmn->wm->winactive;
+	ScrArea *sa;
+
+	if (!win) return;
+
+	sa= win->screen->areabase.first;
+
+	while(sa) {
+		if(sa->spacetype == SPACE_VIEW3D)
+			if(BLI_findindex(&sa->regionbase, ar) >= 0) {
+				View3D *v3d= sa->spacedata.first;
+				Scene *scene= wmn->reference;
+				Base *base;
+
+				v3d->lay_used= 0;
+				base= scene->base.first;
+				while(base) {
+					v3d->lay_used|= base->lay;
+
+					base= base->next;
+				}
+
+				break;
+			}
+
+		sa= sa->next;
+	}
+}
+
 static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
@@ -537,6 +567,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SCENE:
 			switch(wmn->data) {
+				case ND_LAYER_CONTENT:
+					view3d_recalc_used_layers(ar, wmn);
+					ED_region_tag_redraw(ar);
+					break;
 				case ND_FRAME:
 				case ND_TRANSFORM:
 				case ND_OB_ACTIVE:
@@ -678,6 +712,7 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_MODE:
 				case ND_LAYER:
 				case ND_TOOLSETTINGS:
+				case ND_LAYER_CONTENT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -729,6 +764,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_SELECT:
 				case ND_MODE:
 				case ND_LAYER:
+				case ND_LAYER_CONTENT:
 					ED_region_tag_redraw(ar);
 					break;
 			}

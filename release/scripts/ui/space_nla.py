@@ -25,6 +25,8 @@ class NLA_HT_header(bpy.types.Header):
     bl_space_type = 'NLA_EDITOR'
 
     def draw(self, context):
+        from space_dopesheet import dopesheet_filter
+
         layout = self.layout
 
         st = context.space_data
@@ -40,7 +42,7 @@ class NLA_HT_header(bpy.types.Header):
             sub.menu("NLA_MT_edit")
             sub.menu("NLA_MT_add")
 
-        layout.template_dopesheet_filter(st.dopesheet)
+        dopesheet_filter(layout, context)
 
         layout.prop(st, "auto_snap", text="")
 

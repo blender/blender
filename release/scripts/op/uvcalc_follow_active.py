@@ -28,8 +28,8 @@ def extend(obj, operator, EXTEND_MODE):
     me = obj.data
     me_verts = me.vertices
     # script will fail without UVs
-    if not me.active_uv_texture:
-        me.add_uv_texture()
+    if not me.uv_textures:
+        me.uv_textures.new()
 
 
     # Toggle Edit mode
@@ -57,10 +57,10 @@ def extend(obj, operator, EXTEND_MODE):
         vidx_source = face_source.vertices
         vidx_target = face_target.vertices
 
-        faceUVsource = me.active_uv_texture.data[face_source.index]
+        faceUVsource = me.uv_textures.active.data[face_source.index]
         uvs_source = [faceUVsource.uv1, faceUVsource.uv2, faceUVsource.uv3, faceUVsource.uv4]
 
-        faceUVtarget = me.active_uv_texture.data[face_target.index]
+        faceUVtarget = me.uv_textures.active.data[face_target.index]
         uvs_target = [faceUVtarget.uv1, faceUVtarget.uv2, faceUVtarget.uv3, faceUVtarget.uv4]
 
         # vertex index is the key, uv is the value
@@ -138,8 +138,8 @@ def extend(obj, operator, EXTEND_MODE):
             uvs_vhash_target[edgepair_outer_target[iA]][:] = uvs_vhash_source[edgepair_inner_source[1]] + (uvs_vhash_source[edgepair_inner_source[1]] - uvs_vhash_source[edgepair_outer_source[0]])
 
 
-    if me.active_uv_texture == None:
-        me.add_uv_texture
+    if not me.uv_textures:
+        me.uv_textures.new()
 
     face_act = me.faces.active
     if face_act == -1:

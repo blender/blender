@@ -201,7 +201,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain World"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -251,7 +251,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain Boundary"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -279,7 +279,7 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_domain_particles(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain Particles"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):

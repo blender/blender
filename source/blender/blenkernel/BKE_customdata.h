@@ -88,7 +88,7 @@ void *CustomData_add_layer(struct CustomData *data, int type, int alloctype,
 						   void *layer, int totelem);
 /*same as above but accepts a name */
 void *CustomData_add_layer_named(struct CustomData *data, int type, int alloctype,
-						   void *layer, int totelem, char *name);
+						   void *layer, int totelem, const char *name);
 
 /* frees the active or first data layer with the give type.
  * returns 1 on succes, 0 if no layer with the given type is found

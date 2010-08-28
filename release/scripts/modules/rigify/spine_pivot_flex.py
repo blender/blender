@@ -353,7 +353,7 @@ def main(obj, bone_definition, base_names, options):
     fcurve = ex.ribcage_copy_p.driver_add('["bend_tot"]')
     driver = fcurve.driver
     driver.type = 'SUM'
-    fcurve.modifiers.remove(0) # grr dont need a modifier
+    fcurve.modifiers.remove(fcurve.modifiers[0]) # grr dont need a modifier
 
     for i in range(spine_chain_len - 1):
         var = driver.variables.new()
@@ -390,7 +390,7 @@ def main(obj, bone_definition, base_names, options):
         driver.type = 'SCRIPTED'
         driver.expression = "bend/bend_tot"
 
-        fcurve.modifiers.remove(0) # grr dont need a modifier
+        fcurve.modifiers.remove(fcurve.modifiers[0]) # grr dont need a modifier
 
 
         # add target

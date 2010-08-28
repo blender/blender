@@ -306,24 +306,35 @@ IF(WITH_INSTALL)
 			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
 			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
 			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
-			# TODO, copy python bundle
-			# COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\windows\\extra\\python31.zip\" \"${TARGETDIR}\\\"
 		)
     
 		ADD_CUSTOM_COMMAND(TARGET blender
 			POST_BUILD
 			MAIN_DEPENDENCY blender
-			COMMAND copy /Y \"${LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\python31_d.zip\"
 			COMMAND copy /Y \"${LIBDIR}\\gettext\\lib\\gnu_gettext.dll\" \"${TARGETDIR}\\\"
 			COMMAND copy /Y \"${LIBDIR}\\png\\lib\\libpng.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
 			COMMAND copy /Y \"${LIBDIR}\\zlib\\lib\\zlib.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31_d.dll\" \"${TARGETDIR}\\\"
 			COMMAND copy /Y \"${LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
 			# COMMAND copy /Y \"${LIBDIR}\\samplerate\\lib\\libsamplerate-0.dll\" \"${TARGETDIR}\\\"
 		)
+
+		IF(WITH_PYTHON)
+			IF(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+				ADD_CUSTOM_COMMAND(TARGET blender
+					POST_BUILD
+					MAIN_DEPENDENCY blender
+					COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31_d.dll\" \"${TARGETDIR}\\\"
+					COMMAND copy /Y \"${LIBDIR}\\release\\python31_d.zip\" \"${TARGETDIR}\\\"
+				)
+			ELSE(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+				ADD_CUSTOM_COMMAND(TARGET blender
+					POST_BUILD
+					MAIN_DEPENDENCY blender
+					COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31.dll\" \"${TARGETDIR}\\\"
+					COMMAND copy /Y \"${LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\\"
+				)
+			ENDIF(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+		ENDIF(WITH_PYTHON)
 
 		IF(WITH_INTERNATIONAL)
 			ADD_CUSTOM_COMMAND(TARGET blender
@@ -376,6 +387,13 @@ IF(WITH_INSTALL)
 			)
 		ENDIF(WITH_OPENAL)
 
+		IF(WITH_SDL)
+			ADD_CUSTOM_COMMAND(TARGET blender
+				POST_BUILD
+				MAIN_DEPENDENCY blender
+				COMMAND copy /Y \"${LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
+			)
+		ENDIF(WITH_SDL)
 
 	ENDIF(WIN32)
 ENDIF(WITH_INSTALL)
@@ -384,10 +402,10 @@ ADD_DEPENDENCIES(blender makesdna)
 
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
-SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager blender_render)
+SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager bf_render)
 
 IF(WITH_FLUID)
-	SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} bf_elbeem)
+	SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} bf_intern_elbeem)
 ENDIF(WITH_FLUID)
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -437,11 +455,11 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
         bf_editor_animation
         bf_editor_datafiles
 
-		blender_BSP 
-		blender_render 
-		blender_ONL 
+		bf_intern_bsp 
+		bf_render 
+		bf_intern_opennl 
 		bf_python 
-		bf_gen_python 
+		bf_python_ext 
 		bf_freestyle
 		bf_ikplugin
 		bf_modifiers
@@ -450,8 +468,8 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		bf_gpu
 		bf_blenloader
 		bf_blenlib
-		bf_ghost
-		bf_string
+		bf_intern_ghost
+		bf_intern_string
 		bf_blenpluginapi 
 		bf_imbuf 
 		bf_avi 
@@ -460,24 +478,24 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		bf_dds
 		bf_readblenfile
 		bf_collada
-		blender_BSP 
-		blender_bop 
+		bf_intern_bsp 
+		bf_intern_bop 
 		bf_kernel 
-		bf_decimation 
-		bf_elbeem 
-		bf_IK 
-		bf_memutil 
-		bf_guardedalloc 
-		blender_CTR 
-		bf_moto 
+		bf_intern_decimate 
+		bf_intern_elbeem 
+		bf_intern_ik 
+		bf_intern_memutil 
+		bf_intern_guardedalloc 
+		bf_intern_ctr 
+		bf_intern_moto 
 		bf_windowmanager
 		bf_blroutines 
 		bf_converter 
 		bf_dummy 
 		bf_bullet 
-		bf_smoke
-		bf_minilzo
-		bf_lzma
+		bf_intern_smoke
+		extern_minilzo
+		extern_lzma
 		bf_common 
 		bf_ketsji 
 		bf_logic 
@@ -485,32 +503,32 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		bf_oglrasterizer 
 		bf_expressions 
 		bf_scenegraph 
-		bf_moto 
+		bf_intern_moto 
 		bf_blroutines 
 		kx_network 
 		bf_kernel 
 		bf_ngnetwork 
 		extern_bullet 
 		bf_loopbacknetwork 
-		bf_ITASC
+		bf_intern_itasc
 		bf_common 
-		bf_moto 
+		bf_intern_moto 
 		bf_python
-		bf_gen_python
+		bf_python_ext
 		extern_binreloc
 		extern_glew
-		extern_libopenjpeg
+		extern_openjpeg
 		bf_videotex
 		bf_rna
 		bf_dna
 		bf_blenfont
-		bf_audaspace
-		bf_decimation
+		bf_intern_audaspace
+		bf_intern_decimate
 
 	)
 
 	IF(WITH_CXX_GUARDEDALLOC)
-		SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} bf_guardedalloc_cpp)
+		SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} bf_intern_guardedalloc_cpp)
 	ENDIF(WITH_CXX_GUARDEDALLOC)
 
 	IF(WITH_QUICKTIME)

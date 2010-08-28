@@ -482,7 +482,6 @@ static Nurb *rna_Curve_spline_new(Curve *cu, int type)
 
 static void rna_Curve_spline_remove(Curve *cu, ReportList *reports, Nurb *nu)
 {
-	/* todo, check we're in the list */
 	int found= 0;
 	ListBase *nurbs= BKE_curve_nurbs(cu);
 
@@ -751,13 +750,13 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fsize");
 	RNA_def_property_range(prop, 0.0001f, 10000.0f);
-	RNA_def_property_ui_range(prop, 0.01, 10, 1, 1);
+	RNA_def_property_ui_range(prop, 0.01, 10, 1, 3);
 	RNA_def_property_ui_text(prop, "Font size", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "small_caps_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "smallcaps_scale");
-	RNA_def_property_ui_range(prop, 0, 1.0, 0.1, 0);
+	RNA_def_property_ui_range(prop, 0, 1.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Small Caps", "Scale of small capitals");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
@@ -986,7 +985,7 @@ static void rna_def_curve_spline_points(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a spline from a curve.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	*/
 }
 
@@ -1013,7 +1012,7 @@ static void rna_def_curve_spline_bezpoints(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a spline from a curve.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	*/
 }
 
@@ -1042,7 +1041,7 @@ static void rna_def_curve_splines(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a spline from a curve.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
@@ -1110,20 +1109,20 @@ static void rna_def_curve(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "width");
-	RNA_def_property_ui_range(prop, 0, 2.0, 0.1, 0);
+	RNA_def_property_ui_range(prop, 0, 2.0, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Width", "Scale the original width (1.0) based on given factor");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "extrude", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ext1");
-	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 0);
+	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 3);
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Extrude", "Amount of curve extrusion when not using a bevel object");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "bevel_depth", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ext2");
-	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 0);
+	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Bevel Depth", "Bevel depth when not using a bevel object");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	

@@ -1108,8 +1108,14 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 		left_len= splitIDname(name, left, &nr);
 
 		/* if new name will be too long, truncate it */
-		if(nr>999 && strlen(left)>16) left[16]= 0;
-		else if(strlen(left)>17) left[17]= 0;
+		if(nr > 999 && left_len > 16) {
+			left[16]= 0;
+			left_len= 16;
+		}
+		else if(left_len > 17) {
+			left[17]= 0;
+			left_len= 17;
+		}
 
 		for(idtest= lb->first; idtest; idtest= idtest->next) {
 			if(		(id != idtest) &&
@@ -1138,8 +1144,8 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 		 * rather than just chopping and adding numbers, 
 		 * shave off the end chars until we have a unique name.
 		 * Check the null terminators match as well so we dont get Cube.000 -> Cube.00 */
-		if (nr==0 && name[left_len]== left[left_len]) {
-			int len = strlen(name)-1;
+		if (nr==0 && name[left_len]== '\0') {
+			int len = left_len-1;
 			idtest= is_dupid(lb, id, name);
 			
 			while (idtest && len> 1) {
@@ -1150,10 +1156,11 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 			/* otherwise just continue and use a number suffix */
 		}
 		
-		if(nr > 999 && strlen(left) > 16) {
+		if(nr > 999 && left_len > 16) {
 			/* this would overflow name buffer */
 			left[16] = 0;
-			strcpy( name, left );
+			/* left_len = 16; */ /* for now this isnt used again */
+			memcpy(name, left, sizeof(char) * 16);
 			continue;
 		}
 		/* this format specifier is from hell... */

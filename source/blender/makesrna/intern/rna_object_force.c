@@ -695,6 +695,26 @@ static EnumPropertyItem *rna_Effector_shape_itemf(bContext *C, PointerRNA *ptr, 
 
 #else
 
+/* ptcache.point_caches */
+static void rna_def_ptcache_point_caches(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	// FunctionRNA *func;
+	// PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "PointCaches");
+	srna= RNA_def_struct(brna, "PointCaches", NULL);
+	RNA_def_struct_sdna(srna, "PointCache");
+	RNA_def_struct_ui_text(srna, "Point Caches", "Collection of point caches");
+
+	prop= RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_Cache_active_point_cache_index_get", "rna_Cache_active_point_cache_index_set", "rna_Cache_active_point_cache_index_range");
+	RNA_def_property_ui_text(prop, "Active Point Cache Index", "");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
+}
+
 static void rna_def_pointcache(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -785,11 +805,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, "rna_Cache_list_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache List", "Point cache list");
-
-	prop= RNA_def_property(srna, "active_point_cache_index", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_funcs(prop, "rna_Cache_active_point_cache_index_get", "rna_Cache_active_point_cache_index_set", "rna_Cache_active_point_cache_index_range");
-	RNA_def_property_ui_text(prop, "Active Point Cache Index", "");
-	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
+	rna_def_ptcache_point_caches(brna, prop);
 }
 
 static void rna_def_collision(BlenderRNA *brna)

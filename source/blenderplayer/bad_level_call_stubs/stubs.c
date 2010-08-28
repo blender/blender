@@ -145,6 +145,9 @@ void WM_operator_stack_clear(struct bContext *C) {}
 void WM_autosave_init(struct bContext *C){}
 void WM_jobs_stop_all(struct wmWindowManager *wm){}
 
+char *WM_clipboard_text_get(int selection){return (char*)0;}
+void WM_clipboard_text_set(char *buf, int selection){}
+
 struct wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id){return (struct wmKeyMapItem *) NULL;}
 int WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event){return 0;}
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference){}
@@ -283,6 +286,7 @@ void uiItemsEnumR(struct uiLayout *layout, struct PointerRNA *ptr, char *propnam
 void uiItemMenuEnumR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, char *name, int icon){}
 void uiItemEnumR_string(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, char *value, char *name, int icon){}
 void uiItemPointerR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname, char *name, int icon){}
+void uiItemPointerSubR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, char *searchpropname, char *name, int icon){}
 void uiItemsEnumO(struct uiLayout *layout, char *opname, char *propname){}
 void uiItemEnumO_string(struct uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value_str){}
 void uiItemMenuEnumO(struct uiLayout *layout, char *opname, char *propname, char *name, int icon){}
@@ -309,7 +313,6 @@ void uiTemplateIDPreview(struct uiLayout *layout, struct bContext *C, struct Poi
 void uiTemplateCurveMapping(struct uiLayout *layout, struct CurveMapping *cumap, int type, int compact){}
 void uiTemplateColorRamp(struct uiLayout *layout, struct ColorBand *coba, int expand){}
 void uiTemplateLayers(struct uiLayout *layout, struct PointerRNA *ptr, char *propname){}
-void uiTemplateTriColorSet(struct uiLayout *layout, struct PointerRNA *ptr, char *propname){}
 void uiTemplateImageLayers(struct uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser){}
 ListBase uiTemplateList(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *activeptr, char *activepropname, int rows, int listtype){struct ListBase b = {0,0}; return b;}
 void uiTemplateRunningJobs(struct uiLayout *layout, struct bContext *C){}

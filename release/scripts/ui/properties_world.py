@@ -36,7 +36,7 @@ class WorldButtonsPanel():
 
 class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -204,7 +204,7 @@ class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
 
 class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Mist"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -233,7 +233,7 @@ class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
 
 class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Stars"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):

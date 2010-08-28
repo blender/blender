@@ -334,6 +334,9 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'New File' */
 /* op can be NULL */
+/* note: G.sce is used to store the last saved path so backup and restore after loading
+ * G.main->name is similar to G.sce but when loading from memory set the name to startup.blend 
+ * ...this could be changed but seems better then setting to "" */
 int WM_read_homefile(bContext *C, wmOperator *op)
 {
 	ListBase wmbase;
@@ -376,7 +379,8 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	WM_check(C); /* opens window(s), checks keymaps */
 
 	strcpy(G.sce, scestr); /* restore */
-	
+	G.main->name[0]= '\0';
+
 	wm_init_userdef(C);
 	
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
@@ -522,7 +526,7 @@ static ImBuf *blend_file_thumb(const char *path, Scene *scene, int **thumb_pt)
 		return NULL;
 
 	/* gets scaled to BLEN_THUMB_SIZE */
-	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, OB_SOLID);
+	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, IB_rect, OB_SOLID);
 	
 	if(ibuf) {		
 		float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);

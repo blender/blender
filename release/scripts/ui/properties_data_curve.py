@@ -50,7 +50,7 @@ class CurveButtonsPanelActive(CurveButtonsPanel):
 
 class DATA_PT_context_curve(CurveButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout

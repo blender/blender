@@ -5514,7 +5514,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if(w > maxsize) w= maxsize;
 	if(h > maxsize) h= maxsize;
 
-	ibuf= ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h);
+	ibuf= ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h, IB_rect);
 	image= BKE_add_image_imbuf(ibuf);
 
 	if(image) {

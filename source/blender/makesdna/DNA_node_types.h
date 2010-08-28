@@ -255,6 +255,7 @@ typedef struct NodeChroma {
 
 typedef struct NodeTwoXYs {
 	short x1, x2, y1, y2;
+   float fac_x1, fac_x2, fac_y1, fac_y2;
 } NodeTwoXYs;
 
 typedef struct NodeTwoFloats {

@@ -553,7 +553,7 @@ static void node_composit_buts_dblur(uiLayout *layout, bContext *C, PointerRNA *
 	uiLayout *col;
 	
 	uiItemR(layout, ptr, "iterations", 0, NULL, 0);
-	uiItemR(layout, ptr, "wrap", 0, NULL, 0);
+	uiItemR(layout, ptr, "use_wrap", 0, NULL, 0);
 	
 	col= uiLayoutColumn(layout, 1);
 	uiItemL(col, "Center:", 0);
@@ -601,9 +601,9 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *C, PointerRNA
 	uiItemR(layout, ptr, "threshold", 0, NULL, 0);
 
 	col = uiLayoutColumn(layout, 0);
-	uiItemR(col, ptr, "preview", 0, NULL, 0);
+	uiItemR(col, ptr, "use_preview", 0, NULL, 0);
 	sub = uiLayoutColumn(col, 0);
-	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "preview"));
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_preview"));
 	uiItemR(sub, ptr, "samples", 0, NULL, 0);
 	
 	col = uiLayoutColumn(layout, 0);
@@ -707,12 +707,20 @@ static void node_composit_buts_crop(uiLayout *layout, bContext *C, PointerRNA *p
 	uiLayout *col;
 	
 	uiItemR(layout, ptr, "use_crop_size", 0, NULL, 0);
-	
+   uiItemR(layout, ptr, "relative", 0, NULL, 0);
+
 	col= uiLayoutColumn(layout, 1);
-	uiItemR(col, ptr, "min_x", 0, "Left", 0);
-	uiItemR(col, ptr, "max_x", 0, "Right", 0);
-	uiItemR(col, ptr, "min_y", 0, "Up", 0);
-	uiItemR(col, ptr, "max_y", 0, "Down", 0);
+   if (RNA_boolean_get(ptr, "relative")){
+      uiItemR(col, ptr, "rel_min_x", 0, "Left", 0);
+      uiItemR(col, ptr, "rel_max_x", 0, "Right", 0);
+      uiItemR(col, ptr, "rel_min_y", 0, "Up", 0);
+      uiItemR(col, ptr, "rel_max_y", 0, "Down", 0);
+   } else {
+      uiItemR(col, ptr, "min_x", 0, "Left", 0);
+      uiItemR(col, ptr, "max_x", 0, "Right", 0);
+      uiItemR(col, ptr, "min_y", 0, "Up", 0);
+      uiItemR(col, ptr, "max_y", 0, "Down", 0);
+   }
 }
 
 static void node_composit_buts_splitviewer(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -760,9 +768,9 @@ static void node_composit_buts_hue_sat(uiLayout *layout, bContext *C, PointerRNA
 	uiLayout *col;
 	
 	col =uiLayoutColumn(layout, 0);
-	uiItemR(col, ptr, "hue", UI_ITEM_R_SLIDER, NULL, 0);
-	uiItemR(col, ptr, "sat", UI_ITEM_R_SLIDER, NULL, 0);
-	uiItemR(col, ptr, "val", UI_ITEM_R_SLIDER, NULL, 0);
+	uiItemR(col, ptr, "color_hue", UI_ITEM_R_SLIDER, NULL, 0);
+	uiItemR(col, ptr, "color_saturation", UI_ITEM_R_SLIDER, NULL, 0);
+	uiItemR(col, ptr, "color_value", UI_ITEM_R_SLIDER, NULL, 0);
 }
 
 static void node_composit_buts_dilateerode(uiLayout *layout, bContext *C, PointerRNA *ptr)

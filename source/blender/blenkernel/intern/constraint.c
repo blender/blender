@@ -3987,17 +3987,6 @@ int remove_constraint (ListBase *list, bConstraint *con)
 		return 0;
 }
 
-/* Remove the nth constraint from the given constraint stack */
-int remove_constraint_index (ListBase *list, int index)
-{
-	bConstraint *con= BLI_findlink(list, index);
-	
-	if (con)
-		return remove_constraint(list, con);
-	else 
-		return 0;
-}
-
 /* Remove all the constraints of the specified type from the given constraint stack */
 void remove_constraints_type (ListBase *list, short type, short last_only)
 {

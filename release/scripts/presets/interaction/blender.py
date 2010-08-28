@@ -2,7 +2,7 @@
 import bpy
 
 wm = bpy.context.manager
-wm.active_keyconfig = wm.keyconfigs['Blender']
+wm.keyconfigs.active = wm.keyconfigs['Blender']
 
 bpy.context.user_preferences.view.use_mouse_auto_depth = False
 bpy.context.user_preferences.view.use_zoom_to_mouse = False

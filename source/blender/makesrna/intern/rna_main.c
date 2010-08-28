@@ -147,13 +147,11 @@ static void rna_Main_camera_begin(CollectionPropertyIterator *iter, PointerRNA *
 	rna_iterator_listbase_begin(iter, &bmain->camera, NULL);
 }
 
-#if 0
 static void rna_Main_key_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->key, NULL);
 }
-#endif
 
 static void rna_Main_world_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -298,7 +296,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush datablocks.", RNA_def_main_brushes},
 		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World datablocks.", RNA_def_main_worlds},
 		{"groups", "Group", "rna_Main_group_begin", "Groups", "Group datablocks.", RNA_def_main_groups},
-/*		{"keys", "Key", "rna_Main_key_begin", "Keys", "Key datablocks.", NULL}, */
+		{"shape_keys", "Key", "rna_Main_key_begin", "Keys", "Key datablocks.", NULL},
 		{"scripts", "ID", "rna_Main_script_begin", "Scripts", "Script datablocks (DEPRECATED).", NULL},
 		{"texts", "Text", "rna_Main_text_begin", "Texts", "Text datablocks.", RNA_def_main_texts},
 		{"sounds", "Sound", "rna_Main_sound_begin", "Sounds", "Sound datablocks.", RNA_def_main_sounds},

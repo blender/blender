@@ -626,13 +626,28 @@ static PyObject *gLibLoad(PyObject*, PyObject* args)
 	KX_Scene *kx_scene= gp_KetsjiScene;
 	char *path;
 	char *group;
+	Py_buffer py_buffer;
+	py_buffer.buf = NULL;
 	char *err_str= NULL;
 	
-	if (!PyArg_ParseTuple(args,"ss:LibLoad",&path, &group))
+	if (!PyArg_ParseTuple(args,"ss|y*:LibLoad",&path, &group, &py_buffer))
 		return NULL;
 
-	if(kx_scene->GetSceneConverter()->LinkBlendFile(path, group, kx_scene, &err_str)) {
-		Py_RETURN_TRUE;
+	if (!py_buffer.buf)
+	{
+		if(kx_scene->GetSceneConverter()->LinkBlendFilePath(path, group, kx_scene, &err_str)) {
+			Py_RETURN_TRUE;
+		}
+	}
+	else
+	{
+
+		if(kx_scene->GetSceneConverter()->LinkBlendFileMemory(py_buffer.buf, py_buffer.len, path, group, kx_scene, &err_str))	{
+			PyBuffer_Release(&py_buffer);
+			Py_RETURN_TRUE;
+		}
+
+		PyBuffer_Release(&py_buffer);
 	}
 	
 	if(err_str) {
@@ -1982,7 +1997,7 @@ void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *
 	initVideoTexture();
 
 	/* could be done a lot more nicely, but for now a quick way to get bge.* working */
-	PyRun_SimpleString("sys = __import__('sys');mod = sys.modules['bge'] = type(sys)('bge');mod.__dict__.update({'logic':__import__('GameLogic'), 'render':__import__('Rasterizer'), 'events':__import__('GameKeys'), 'constraints':__import__('PhysicsConstraints'), 'types':__import__('GameTypes')});import bge");
+	PyRun_SimpleString("sys = __import__('sys');mod = sys.modules['bge'] = type(sys)('bge');mod.__dict__.update({'logic':__import__('GameLogic'), 'render':__import__('Rasterizer'), 'events':__import__('GameKeys'), 'constraints':__import__('PhysicsConstraints'), 'types':__import__('GameTypes')});");
 }
 
 static struct PyModuleDef Rasterizer_module_def = {

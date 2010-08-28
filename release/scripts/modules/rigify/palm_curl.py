@@ -194,7 +194,7 @@ def main(obj, bone_definition, base_names, options):
     driver.expression = "(1.0-cos(x))-s"
 
     for fcurve in driver_fcurves:
-        fcurve.modifiers.remove(0) # grr dont need a modifier
+        fcurve.modifiers.remove(fcurve.modifiers[0]) # grr dont need a modifier
 
     var = driver.variables.new()
     var.name = "x"

@@ -140,7 +140,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col.prop(soft, "use_cluster_rigid_to_softbody")
             col.prop(soft, "use_cluster_soft_to_softbody")
             sub = col.column()
-            sub.active = (soft.cluster_rigid_to_softbody or soft.use_cluster_soft_to_softbody)
+            sub.active = (soft.use_cluster_rigid_to_softbody or soft.use_cluster_soft_to_softbody)
             sub.prop(soft, "cluster_iterations", text="Iterations")
 
         elif game.physics_type == 'STATIC':
@@ -368,7 +368,7 @@ class WorldButtonsPanel():
 
 class WORLD_PT_game_context_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     @classmethod
@@ -425,21 +425,21 @@ class WORLD_PT_game_mist(WorldButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         world = context.world
 
-        self.layout.prop(world.mist, "use_mist", text="")
+        self.layout.prop(world.mist_settings, "use_mist", text="")
 
     def draw(self, context):
         layout = self.layout
 
         world = context.world
 
-        layout.active = world.mist.use_mist
+        layout.active = world.mist_settings.use_mist
         split = layout.split()
 
         col = split.column()
-        col.prop(world.mist, "start")
+        col.prop(world.mist_settings, "start")
 
         col = split.column()
-        col.prop(world.mist, "depth")
+        col.prop(world.mist_settings, "depth")
 
 
 class WORLD_PT_game_physics(WorldButtonsPanel, bpy.types.Panel):

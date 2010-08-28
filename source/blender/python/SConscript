@@ -22,4 +22,4 @@ env.BlenderLib( libname = 'bf_python', sources = Split(sources), includes = Spli
 
 # generic
 sources = env.Glob('generic/*.c')
-env.BlenderLib( libname = 'bf_gen_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [362,165]) # ketsji is 360
+env.BlenderLib( libname = 'bf_python_ext', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [362,165]) # ketsji is 360

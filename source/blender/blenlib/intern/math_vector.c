@@ -298,17 +298,17 @@ void ortho_basis_v3v3_v3(float *v1, float *v2, float *v)
 
 /*********************************** Other ***********************************/
 
-void print_v2(char *str, float v[2])
+void print_v2(const char *str, const float v[2])
 {
 	printf("%s: %.3f %.3f\n", str, v[0], v[1]);
 }
 
-void print_v3(char *str, float v[3])
+void print_v3(const char *str, const float v[3])
 {
 	printf("%s: %.3f %.3f %.3f\n", str, v[0], v[1], v[2]);
 }
 
-void print_v4(char *str, float v[4])
+void print_v4(const char *str, const float v[4])
 {
 	printf("%s: %.3f %.3f %.3f %.3f\n", str, v[0], v[1], v[2], v[3]);
 }

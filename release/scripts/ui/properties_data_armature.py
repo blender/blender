@@ -33,7 +33,7 @@ class ArmatureButtonsPanel():
 
 class DATA_PT_context_arm(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout
@@ -119,14 +119,14 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
         pose = ob.pose
 
         row = layout.row()
-        row.template_list(pose, "bone_groups", pose, "active_bone_group_index", rows=2)
+        row.template_list(pose, "bone_groups", pose.bone_groups, "active_index", rows=2)
 
         col = row.column(align=True)
         col.active = (ob.proxy is None)
         col.operator("pose.group_add", icon='ZOOMIN', text="")
         col.operator("pose.group_remove", icon='ZOOMOUT', text="")
 
-        group = pose.active_bone_group
+        group = pose.bone_groups.active
         if group:
             col = layout.column()
             col.active = (ob.proxy is None)
@@ -139,7 +139,10 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
             col.prop(group, "color_set")
             if group.color_set:
                 col = split.column()
-                col.template_triColorSet(group, "colors")
+                subrow = col.row(align=True)
+                subrow.prop(group.colors, "normal", text="")
+                subrow.prop(group.colors, "select", text="")
+                subrow.prop(group.colors, "active", text="")
 
         row = layout.row()
         row.active = (ob.proxy is None)
@@ -184,7 +187,7 @@ class DATA_PT_ghost(ArmatureButtonsPanel, bpy.types.Panel):
 
 class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "iTaSC parameters"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):

@@ -69,7 +69,7 @@ class ExportUVLayout(bpy.types.Operator):
     def _face_uv_iter(self, context):
         obj = context.active_object
         mesh = obj.data
-        uv_layer = mesh.active_uv_texture.data
+        uv_layer = mesh.uv_textures.active.data
         uv_layer_len = len(uv_layer)
 
         if not self.properties.export_all:

@@ -118,7 +118,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	const int separator  = 4;
 
 	/* Additional locals. */
-	char  name[20];
+	char  name[32];
 	int loadbutton;
 	int fnumbuttons;
 	int min_x       = 10;
@@ -177,11 +177,14 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 				 params->dir, 0.0, (float)FILE_MAX-1, 0, 0, 
 				 "File path.");
 		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
+		uiButSetFlag(but, UI_BUT_NO_UTF8);
+
 		but = uiDefBut(block, TEX, B_FS_FILENAME, "",
 				 min_x, line2_y, line2_w-chan_offs, btn_h,
 				 params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, 
 				 "File name.");
 		uiButSetCompleteFunc(but, autocomplete_file, NULL);
+		uiButSetFlag(but, UI_BUT_NO_UTF8);
 	}
 	
 	/* Filename number increment / decrement buttons. */
@@ -627,5 +630,4 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	uiDrawBlock(C, block);
 
 }
-
 

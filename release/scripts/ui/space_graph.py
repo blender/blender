@@ -25,6 +25,8 @@ class GRAPH_HT_header(bpy.types.Header):
     bl_space_type = 'GRAPH_EDITOR'
 
     def draw(self, context):
+        from space_dopesheet import dopesheet_filter
+
         layout = self.layout
 
         st = context.space_data
@@ -42,7 +44,7 @@ class GRAPH_HT_header(bpy.types.Header):
 
         layout.prop(st, "mode", text="")
 
-        layout.template_dopesheet_filter(st.dopesheet)
+        dopesheet_filter(layout, context)
 
         layout.prop(st, "auto_snap", text="")
         layout.prop(st, "pivot_point", text="", icon_only=True)

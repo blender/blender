@@ -76,6 +76,15 @@ BlendHandle *BLO_blendhandle_from_file(char *file)
 	return bh;
 }
 
+BlendHandle *BLO_blendhandle_from_memory(void *mem, int memsize)
+{
+	BlendHandle *bh;
+
+	bh= (BlendHandle*)blo_openblendermemory(mem, memsize, NULL);
+
+	return bh;
+}
+
 void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp) 
 {
 	FileData *fd= (FileData*) bh;

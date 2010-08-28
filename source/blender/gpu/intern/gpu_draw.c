@@ -861,7 +861,7 @@ void GPU_free_images_anim(void)
 
 	if(G.main)
 		for(ima=G.main->image.first; ima; ima=ima->id.next)
-			if(ELEM(ima->type, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
+			if(ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
 				GPU_free_image(ima);
 }
 

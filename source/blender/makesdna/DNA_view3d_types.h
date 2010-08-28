@@ -185,7 +185,9 @@ typedef struct View3D {
 	unsigned int customdata_mask;
 	
 	/* afterdraw, for xray & transparent */
-	struct ListBase afterdraw;
+	struct ListBase afterdraw_transp;
+	struct ListBase afterdraw_xray;
+	struct ListBase afterdraw_xraytransp;
 	
 	/* drawflags, denoting state */
 	short zbuf, transp, xray;

@@ -406,12 +406,12 @@ thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
 if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
-	env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
+	env.BlenderProg(B.root_build_dir, "blender", mainlist + thestatlibs + dobj, thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
 	playerlist = B.create_blender_liblist(env, 'player')
 	playerlist += B.create_blender_liblist(env, 'intern')
 	playerlist += B.create_blender_liblist(env, 'extern')
-	env.BlenderProg(B.root_build_dir, "blenderplayer", dobj + playerlist, [], thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
+	env.BlenderProg(B.root_build_dir, "blenderplayer",  playerlist, thestatlibs + dobj + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
 
 ##### Now define some targets
 
@@ -427,6 +427,8 @@ if  env['OURPLATFORM']=='darwin':
 		for dp, dn, df in os.walk(bundle):
 			if '.svn' in dn:
 				dn.remove('.svn')
+			if '_svn' in dn:
+				dn.remove('_svn')
 			dir=env['BF_INSTALLDIR']+dp[len(bundledir):]
 			source=[dp+os.sep+f for f in df]
 			blenderinstall.append(env.Install(dir=dir,source=source))
@@ -445,6 +447,8 @@ if  env['OURPLATFORM']!='darwin':
 		for dp, dn, df in os.walk('bin/.blender'):
 			if '.svn' in dn:
 				dn.remove('.svn')
+			if '_svn' in dn:
+				dn.remove('_svn')
 			
 			for f in df:
 				if not env['WITH_BF_INTERNATIONAL']:
@@ -481,6 +485,8 @@ if  env['OURPLATFORM']!='darwin':
 				for dp, dn, df in os.walk(scriptpath):
 					if '.svn' in dn:
 						dn.remove('.svn')
+					if '_svn' in dn:
+						dn.remove('_svn')
 					
 					dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
 					dir += os.sep + os.path.basename(scriptpath) + dp[len(scriptpath):]
@@ -496,6 +502,8 @@ if env['OURPLATFORM']=='linux2':
 	for tp, tn, tf in os.walk('release/freedesktop/icons'):
 		if '.svn' in tn:
 			tn.remove('.svn')
+		if '_svn' in tn:
+			tn.remove('_svn')
 		for f in tf:
 			iconlist.append(os.path.join(tp, f))
 			icontargetlist.append( os.path.join(*([env['BF_INSTALLDIR']] + tp.split(os.sep)[2:] + [f])) )
@@ -522,6 +530,8 @@ plugtargetlist = []
 for tp, tn, tf in os.walk('release/plugins'):
 	if '.svn' in tn:
 		tn.remove('.svn')
+	if '_svn' in tn:
+		tn.remove('_svn')
 	df = tp[8:] # remove 'release/'
 	for f in tf:
 		pluglist.append(os.path.join(tp, f))
@@ -554,6 +564,8 @@ texttargetlist = []
 for tp, tn, tf in os.walk('release/text'):
 	if '.svn' in tn:
 		tn.remove('.svn')
+	if '_svn' in tn:
+		tn.remove('_svn')
 	for f in tf:
 		textlist.append(tp+os.sep+f)
 

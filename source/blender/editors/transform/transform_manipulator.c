@@ -288,7 +288,7 @@ int calc_manipulator_stats(const bContext *C)
 			bArmature *arm= obedit->data;
 			EditBone *ebo;
 			for (ebo= arm->edbo->first; ebo; ebo=ebo->next){
-				if(ebo->layer & arm->layer) {
+				if(ebo->layer & arm->layer && !(ebo->flag & BONE_HIDDEN_A)) {
 					if (ebo->flag & BONE_TIPSEL) {
 						calc_tw_center(scene, ebo->tail);
 						totsel++;

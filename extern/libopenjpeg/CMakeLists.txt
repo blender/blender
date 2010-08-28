@@ -28,5 +28,5 @@ SET(INC . src)
 
 FILE(GLOB SRC *.c except t1_generate_luts.c)
 ADD_DEFINITIONS(-DWITH_OPENJPEG)
-BLENDERLIB(extern_libopenjpeg "${SRC}" "${INC}")
+BLENDERLIB(extern_openjpeg "${SRC}" "${INC}")
 #, libtype=['international','player'], priority=[5, 210])

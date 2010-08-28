@@ -966,14 +966,14 @@ class VIEW3D_MT_vertex_group(bpy.types.Menu):
 
         ob = context.active_object
         if ob.mode == 'EDIT':
-            if ob.vertex_groups and ob.active_vertex_group:
+            if ob.vertex_groups.active:
                 layout.separator()
                 layout.operator("object.vertex_group_assign", text="Assign to Active Group")
                 layout.operator("object.vertex_group_remove_from", text="Remove from Active Group")
                 layout.operator("object.vertex_group_remove_from", text="Remove from All").all = True
                 layout.separator()
 
-        if ob.vertex_groups and ob.active_vertex_group:
+        if ob.vertex_groups.active:
             layout.operator_menu_enum("object.vertex_group_set_active", "group", text="Set Active Group")
             layout.operator("object.vertex_group_remove", text="Remove Active Group")
             layout.operator("object.vertex_group_remove", text="Remove All Groups").all = True
@@ -1141,6 +1141,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.separator()
 
+        layout.menu("VIEW3D_MT_object_parent")
         layout.menu("VIEW3D_MT_pose_ik")
         layout.menu("VIEW3D_MT_pose_constraints")
 
@@ -1957,7 +1958,7 @@ class VIEW3D_PT_view3d_properties(bpy.types.Panel):
         col.label(text="Lock to Object:")
         col.prop(view, "lock_object", text="")
         if view.lock_object and view.lock_object.type == 'ARMATURE':
-            col.prop_object(view, "lock_bone", view.lock_object.data, "bones", text="")
+            col.prop_search(view, "lock_bone", view.lock_object.data, "bones", text="")
 
         col = layout.column(align=True)
         col.label(text="Clip:")
@@ -2001,7 +2002,7 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Display"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -2129,7 +2130,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Background Images"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -2167,7 +2168,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
                 if (bg.image):
                     box.template_image(bg, "image", bg.image_user, compact=True)
 
-                    box.prop(bg, "use_transparency", slider=True)
+                    box.prop(bg, "transparency", slider=True)
                     if bg.view_axis != 'CAMERA':
                         box.prop(bg, "size")
                         row = box.row(align=True)
@@ -2179,7 +2180,7 @@ class VIEW3D_PT_transform_orientations(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Transform Orientations"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -2207,7 +2208,7 @@ class VIEW3D_PT_etch_a_ton(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Skeleton Sketching"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -2251,7 +2252,7 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Properties"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     def _active_context_member(context):
         obj = context.object
