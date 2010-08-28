@@ -242,6 +242,20 @@ static int ui_is_a_warp_but(uiBut *but)
 	return FALSE;
 }
 
+/* file selectors are exempt from utf-8 checks */
+static int ui_is_utf8_but(uiBut *but)
+{
+	if (but->rnaprop) {
+		int subtype= RNA_property_subtype(but->rnaprop);
+		
+		if(ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
+			return TRUE;
+		}
+	}
+
+	return !(but->flag & UI_BUT_NO_UTF8);
+}
+
 /* ********************** button apply/revert ************************/
 
 static ListBase UIAfterFuncs = {NULL, NULL};
@@ -1572,6 +1586,15 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	if(but) {
+		if(ui_is_utf8_but(but)) {
+			int strip= BLI_utf8_invalid_strip(but->editstr, strlen(but->editstr));
+			/* not a file?, strip non utf-8 chars */
+			if(strip) {
+				/* wont happen often so isnt that annoying to keep it here for a while */
+				printf("invalid utf8 - stripped chars %d\n", strip);
+			}
+		}
+		
 		if(data->searchbox) {
 			if(data->cancel==0)
 				ui_searchbox_apply(but, data->searchbox);

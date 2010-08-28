@@ -348,3 +348,114 @@ size_t BLI_strnlen(const char *str, size_t maxlen)
 	const char *end = memchr(str, '\0', maxlen);
 	return end ? (size_t) (end - str) : maxlen;
 }
+
+/* from libswish3, originally called u8_isvalid(),
+ * modified to return the index of the bad character (byte index not utf).
+ * http://svn.swish-e.org/libswish3/trunk/src/libswish3/utf8.c r3044 - campbell */
+
+/* based on the valid_utf8 routine from the PCRE library by Philip Hazel
+
+   length is in bytes, since without knowing whether the string is valid
+   it's hard to know how many characters there are! */
+
+static const char trailingBytesForUTF8[256] = {
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+	2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
+};
+
+int BLI_utf8_invalid_byte(const char *str, int length)
+{
+    const unsigned char *p, *pend = (unsigned char*)str + length;
+    unsigned char c;
+    int ab;
+
+    for (p = (unsigned char*)str; p < pend; p++) {
+        c = *p;
+        if (c < 128)
+            continue;
+        if ((c & 0xc0) != 0xc0)
+            goto utf8_error;
+        ab = trailingBytesForUTF8[c];
+        if (length < ab)
+            goto utf8_error;
+        length -= ab;
+
+        p++;
+        /* Check top bits in the second byte */
+        if ((*p & 0xc0) != 0x80)
+            goto utf8_error;
+
+        /* Check for overlong sequences for each different length */
+        switch (ab) {
+            /* Check for xx00 000x */
+        case 1:
+            if ((c & 0x3e) == 0) goto utf8_error;
+            continue;   /* We know there aren't any more bytes to check */
+
+            /* Check for 1110 0000, xx0x xxxx */
+        case 2:
+            if (c == 0xe0 && (*p & 0x20) == 0) goto utf8_error;
+            break;
+
+            /* Check for 1111 0000, xx00 xxxx */
+        case 3:
+            if (c == 0xf0 && (*p & 0x30) == 0) goto utf8_error;
+            break;
+
+            /* Check for 1111 1000, xx00 0xxx */
+        case 4:
+            if (c == 0xf8 && (*p & 0x38) == 0) goto utf8_error;
+            break;
+
+            /* Check for leading 0xfe or 0xff,
+               and then for 1111 1100, xx00 00xx */
+        case 5:
+            if (c == 0xfe || c == 0xff ||
+                (c == 0xfc && (*p & 0x3c) == 0)) goto utf8_error;
+            break;
+        }
+
+        /* Check for valid bytes after the 2nd, if any; all must start 10 */
+        while (--ab > 0) {
+            if ((*(p+1) & 0xc0) != 0x80) goto utf8_error;
+			p++; /* do this after so we get usable offset - campbell */
+        }
+    }
+
+    return -1;
+
+utf8_error:
+
+	return (int)((char *)p - (char *)str) - 1;
+}
+
+int BLI_utf8_invalid_strip(char *str, int length)
+{
+	int bad_char, tot= 0;
+
+	while((bad_char= BLI_utf8_invalid_byte(str, length)) != -1) {
+		str += bad_char;
+		length -= bad_char;
+
+		if(length == 0) {
+			/* last character bad, strip it */
+			*str= '\0';
+			tot++;
+			break;
+		}
+		else {
+			/* strip, keep looking */
+			memmove(str, str + 1, length);
+			tot++;
+		}
+	}
+
+	return tot;
+}
+
