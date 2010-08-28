@@ -305,6 +305,8 @@ Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int en
 	if(enter_editmode)
 		ED_object_enter_editmode(C, EM_IGNORE_LAYER);
 
+	WM_event_add_notifier(C, NC_SCENE|ND_LAYER_CONTENT, scene);
+
 	return ob;
 }
 
@@ -825,7 +827,8 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(bmain, scene);
 	DAG_ids_flush_update(bmain, 0);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_LAYER_CONTENT, scene);
 	
 	return OPERATOR_FINISHED;
 }

@@ -257,6 +257,8 @@ static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	rna_Object_layer_update__internal(bmain, scene, base, ob);
 	ob->lay= base->lay;
+
+	WM_main_add_notifier(NC_SCENE|ND_LAYER_CONTENT, scene);
 }
 
 static void rna_Base_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -266,6 +268,8 @@ static void rna_Base_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	rna_Object_layer_update__internal(bmain, scene, base, ob);
 	ob->lay= base->lay;
+
+	WM_main_add_notifier(NC_SCENE|ND_LAYER_CONTENT, scene);
 }
 
 static int rna_Object_data_editable(PointerRNA *ptr)

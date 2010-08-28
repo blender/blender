@@ -1109,6 +1109,8 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 	/* warning, active object may be hidden now */
 	
 	WM_event_add_notifier(C, NC_SCENE|NC_OBJECT|ND_DRAW, scene); /* is NC_SCENE needed ? */
+	WM_event_add_notifier(C, NC_SCENE|ND_LAYER_CONTENT, scene);
+
 	DAG_scene_sort(bmain, scene);
 
 	return OPERATOR_FINISHED;

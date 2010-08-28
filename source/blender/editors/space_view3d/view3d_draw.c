@@ -2367,14 +2367,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		
 		/* Transp and X-ray afterdraw stuff for sets is done later */
 	}
-	
-	/* extra service in layerbuttons, showing used layers */
-	v3d->lay_used = 0;
 
 	/* then draw not selected and the duplis, but skip editmode object */
 	for(base= scene->base.first; base; base= base->next) {
-		v3d->lay_used |= base->lay;
-		
 		if(v3d->lay & base->lay) {
 			
 			/* dupli drawing */
