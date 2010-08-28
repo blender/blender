@@ -413,7 +413,8 @@ def write_file(filepath, objects, scene,
 
             if EXPORT_UV:
                 faceuv = len(me.uv_textures) > 0
-                uv_layer = me.uv_textures.active.data[:]
+                if faceuv:
+                    uv_layer = me.uv_textures.active.data[:]
             else:
                 faceuv = False
 
