@@ -123,6 +123,19 @@ BLO_blendhandle_from_file(
 	char *file);
 
 /**
+ * Open a blendhandle from memory.
+ *
+ * @param mem The data to load from.
+ * @param memsize The size of the data.
+ * @return A handle on success, or NULL on failure.
+ */
+
+	BlendHandle*
+BLO_blendhandle_from_memory(
+	void *mem,
+	int memsize);
+
+/**
  * Gets the names of all the datablocks in a file
  * of a certain type (ie. All the scene names in
  * a file).
