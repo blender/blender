@@ -1581,6 +1581,28 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
+static void rna_def_freestyle_linesets(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	RNA_def_property_srna(cprop, "Linesets");
+	srna= RNA_def_struct(brna, "Linesets", NULL);
+	RNA_def_struct_sdna(srna, "RenderData");
+	RNA_def_struct_ui_text(srna, "Line Sets", "Line sets for associating lines and style parameters");
+
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "FreestyleLineSet");
+	RNA_def_property_pointer_funcs(prop, "rna_FreestyleSettings_active_lineset_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Line Set", "Active line set being displayed");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_FreestyleSettings_active_lineset_index_get", "rna_FreestyleSettings_active_lineset_index_set", "rna_FreestyleSettings_active_lineset_index_range");
+	RNA_def_property_ui_text(prop, "Active Line Set Index", "Index of active line set slot");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+}
+
 static void rna_def_freestyle_settings(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1792,18 +1814,8 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "linesets", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "linesets", NULL);
 	RNA_def_property_struct_type(prop, "FreestyleLineSet");
-	RNA_def_property_ui_text(prop, "Line Sets", "Line sets for associating lines and style parameters");
-
-	prop= RNA_def_property(srna, "active_lineset", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "FreestyleLineSet");
-	RNA_def_property_pointer_funcs(prop, "rna_FreestyleSettings_active_lineset_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Active Line Set", "Active line set being displayed");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
-
-	prop= RNA_def_property(srna, "active_lineset_index", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_funcs(prop, "rna_FreestyleSettings_active_lineset_index_get", "rna_FreestyleSettings_active_lineset_index_set", "rna_FreestyleSettings_active_lineset_index_range");
-	RNA_def_property_ui_text(prop, "Active Line Set Index", "Index of active line set slot");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_ui_text(prop, "Line Sets", "");
+	rna_def_freestyle_linesets(brna, prop);
 }
 
 static void rna_def_scene_game_data(BlenderRNA *brna)

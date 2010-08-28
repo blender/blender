@@ -198,14 +198,14 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
             col.prop(freestyle, "sphere_radius")
             col.prop(freestyle, "kr_derivative_epsilon")
 
-            lineset = freestyle.active_lineset
+            lineset = freestyle.linesets.active
 
             col.label(text="Line Sets:")
             row = col.row()
             rows = 2
             if lineset:
                 rows = 5
-            row.template_list(freestyle, "linesets", freestyle, "active_lineset_index", rows=rows)
+            row.template_list(freestyle, "linesets", freestyle.linesets, "active_index", rows=rows)
 
             sub = row.column()
             subsub = sub.column(align=True)
@@ -284,7 +284,7 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
         rl = rd.layers.active
         if rl and rl.use_freestyle:
             freestyle = rl.freestyle_settings
-            return freestyle.mode == "EDITOR" and freestyle.active_lineset
+            return freestyle.mode == "EDITOR" and freestyle.linesets.active
         return False
 
     def draw_modifier_box_header(self, box, modifier):
@@ -377,7 +377,7 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
 
         rd = context.scene.render
         rl = rd.layers.active
-        lineset = rl.freestyle_settings.active_lineset
+        lineset = rl.freestyle_settings.linesets.active
         linestyle = lineset.linestyle
 
         split = layout.split()
