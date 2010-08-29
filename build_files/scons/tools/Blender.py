@@ -277,12 +277,16 @@ def buildinfo(lenv, build_type):
 	build_date = time.strftime ("%Y-%m-%d")
 	build_time = time.strftime ("%H:%M:%S")
 	build_rev = os.popen('svnversion').read()[:-1] # remove \n
+	if lenv['BF_DEBUG']:
+		build_type = "Debug"
+	else:
+		build_type = "Release"
 
 	obj = []
 	if lenv['BF_BUILDINFO']:
 		lenv.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
 									'BUILD_DATE=\'"%s"\''%(build_date),
-									'BUILD_TYPE=\'"dynamic"\'',
+									'BUILD_TYPE=\'"%s"\''%(build_type),
 									'BUILD_REV=\'"%s"\''%(build_rev),
 									'NAN_BUILDINFO',
 									'BUILD_PLATFORM=\'"%s %s"\''%(platform.system(), platform.architecture()[0])])
