@@ -29,7 +29,7 @@ else:
 
 if env['OURPLATFORM'] == 'linux2':
     cflags='-pthread'
-        incs += ' ../../../extern/binreloc/include'
+    incs += ' ../../../extern/binreloc/include'
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']

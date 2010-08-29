@@ -12,7 +12,7 @@ incs += ' ../../gpu ../../makesrna'
 
 if env['OURPLATFORM'] == 'linux2':
     cflags='-pthread'
-        incs += ' ../../../extern/binreloc/include'
+    incs += ' ../../../extern/binreloc/include'
 
 if env['OURPLATFORM'] == 'linuxcross':
     if env['WITH_BF_OPENMP']:
