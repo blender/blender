@@ -23,6 +23,7 @@ import sys
 import zipfile
 import shutil
 import cStringIO
+import platform
 
 from SCons.Script.SConscript import SConsEnvironment
 import SCons.Action
@@ -284,7 +285,7 @@ def buildinfo(lenv, build_type):
 									'BUILD_TYPE=\'"dynamic"\'',
 									'BUILD_REV=\'"%s"\''%(build_rev),
 									'NAN_BUILDINFO',
-									'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
+									'BUILD_PLATFORM=\'"%s %s"\''%(platform.system(), platform.architecture()[0])])
 		obj = [lenv.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type,
 						[root_build_dir+'source/creator/buildinfo.c'])]
 	return obj
