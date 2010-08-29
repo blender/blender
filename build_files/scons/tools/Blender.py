@@ -289,7 +289,7 @@ def buildinfo(lenv, build_type):
                                     'BUILD_TYPE=\'"%s"\''%(build_type),
                                     'BUILD_REV=\'"%s"\''%(build_rev),
                                     'NAN_BUILDINFO',
-                                    'BUILD_PLATFORM=\'"%s %s"\''%(platform.system(), platform.architecture()[0])])
+				    'BUILD_PLATFORM=\'"%s:%s"\''%(platform.system(), platform.architecture()[0])])
         obj = [lenv.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type,
                         [root_build_dir+'source/creator/buildinfo.c'])]
     return obj
