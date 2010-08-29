@@ -5,19 +5,19 @@ sources = env.Glob('*.c')
 defs = []
 
 incs = [
-	'../include',
-	'#extern/glew/include',
-	'#/intern/guardedalloc',
-	'../../makesdna',
-	'../../makesrna',
-	'../../blenkernel',
-	'../../blenlib',
-	'../../windowmanager',
-	'../../blenfont',
-	'../../blenloader',
+    '../include',
+    '#extern/glew/include',
+    '#/intern/guardedalloc',
+    '../../makesdna',
+    '../../makesrna',
+    '../../blenkernel',
+    '../../blenlib',
+    '../../windowmanager',
+    '../../blenfont',
+    '../../blenloader',
 ]
 
 if not env['WITH_BF_PYTHON']:
-	defs.append('DISABLE_PYTHON')
+    defs.append('DISABLE_PYTHON')
 
 env.BlenderLib ( 'bf_editors_space_console', sources, incs, defs, libtype=['core'], priority=[95] )

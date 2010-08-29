@@ -8,8 +8,8 @@ incs ='. #source/kernel/gen_system #intern/guardedalloc #intern/string #intern/m
 defs = []
 
 if env['WITH_BF_PYTHON']:
-	incs += ' ' + env['BF_PYTHON_INC']
+    incs += ' ' + env['BF_PYTHON_INC']
 else:
-	defs.append('DISABLE_PYTHON')
+    defs.append('DISABLE_PYTHON')
 
 env.BlenderLib ( 'bf_expressions', sources, Split(incs), defs, libtype=['core','player'], priority = [360,80], cxx_compileflags=env['BGE_CXXFLAGS'])

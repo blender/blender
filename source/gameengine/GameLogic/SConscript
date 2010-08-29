@@ -10,17 +10,17 @@ incs += ' #/source/gameengine/Rasterizer #/source/gameengine/SceneGraph'
 defs = []
 
 if env['WITH_BF_SDL']:
-	incs += ' ' + env['BF_SDL_INC']
+    incs += ' ' + env['BF_SDL_INC']
 else:
-	defs.append('DISABLE_SDL')
+    defs.append('DISABLE_SDL')
 
 if env['WITH_BF_PYTHON']:
-	incs += ' ' + env['BF_PYTHON_INC']
+    incs += ' ' + env['BF_PYTHON_INC']
 else:
-	defs.append('DISABLE_PYTHON')
+    defs.append('DISABLE_PYTHON')
 
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-	if env['BF_DEBUG']:
-		defs.append('_DEBUG')
+    if env['BF_DEBUG']:
+        defs.append('_DEBUG')
 
 env.BlenderLib ( 'bf_logic', sources, Split(incs), defs, libtype=['core','player'], priority=[330,65], cxx_compileflags=env['BGE_CXXFLAGS'])

@@ -13,7 +13,7 @@ incs += ' ' + env['BF_ZLIB_INC']
 defs = []
 
 if env['BF_NO_ELBEEM']:
-	defs.append('DISABLE_ELBEEM')
+    defs.append('DISABLE_ELBEEM')
 
 env.BlenderLib ( libname = 'bf_modifiers', sources = sources,
                  includes = Split(incs), defines=defs,
