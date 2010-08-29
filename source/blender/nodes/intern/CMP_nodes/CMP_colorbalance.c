@@ -43,15 +43,24 @@ static bNodeSocketType cmp_node_colorbalance_out[]={
 	{-1,0,""}
 };
 
+/* this function implements ASC-CDL according to the spec at http://www.asctech.org/
+ Slope
+       S = in * slope
+ Offset
+       O = S + offset 
+         = (in * slope) + offset
+ Power
+     out = Clamp(O) ^ power
+         = Clamp((in * slope) + offset) ^ power
+ */
 DO_INLINE float colorbalance_cdl(float in, float offset, float power, float slope)
 {
 	float x = in * slope + offset;
 	
 	/* prevent NaN */
-	if (x < 0.f) x = 0.f;
+	CLAMP(x, 0.0, 1.0);
 	
-	//powf(in * slope + offset, power)
-	return powf(x, 1.f/power);
+	return powf(x, power);
 }
 
 /* note: lift_lgg is just 2-lift, gamma_inv is 1.0/gamma */
