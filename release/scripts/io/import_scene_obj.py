@@ -882,7 +882,6 @@ def load_obj(filepath,
              CREATE_EDGES= True,
              SPLIT_OBJECTS= True,
              SPLIT_GROUPS= True,
-             SPLIT_MATERIALS= True,
              ROTATE_X90= True,
              IMAGE_SEARCH=True,
              POLYGROUPS=False):
@@ -894,7 +893,7 @@ def load_obj(filepath,
     '''
     print('\nimporting obj %r' % filepath)
 
-    if SPLIT_OBJECTS or SPLIT_GROUPS or SPLIT_MATERIALS:
+    if SPLIT_OBJECTS or SPLIT_GROUPS:
         POLYGROUPS = False
 
     time_main= time.time()
