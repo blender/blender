@@ -197,7 +197,7 @@ kmi = km.items.new('transform.create_orientation', 'SPACE', 'PRESS', ctrl=True, 
 kmi.properties.use = True
 kmi = km.items.new('transform.mirror', 'M', 'PRESS', ctrl=True)
 kmi = km.items.new('wm.context_toggle', 'TAB', 'PRESS', shift=True)
-kmi.properties.data_path = 'tool_settings.snap'
+kmi.properties.data_path = 'tool_settings.use_snap'
 kmi = km.items.new('transform.snap_type', 'TAB', 'PRESS', shift=True, ctrl=True)
 kmi = km.items.new('view3d.enable_manipulator', 'W', 'PRESS')
 kmi.properties.translate = True
