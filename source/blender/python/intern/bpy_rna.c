@@ -100,6 +100,11 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 	float min, max;
 	if(self->prop==NULL)
 		return 0;
+	
+	if (!RNA_property_editable_flag(&self->ptr, self->prop)) {
+		PyErr_Format(PyExc_AttributeError, "bpy_prop \"%.200s.%.200s\" is read-only", RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop));
+		return 0;
+	}
 
 	RNA_property_float_range(&self->ptr, self->prop, &min, &max);
 
@@ -143,6 +148,11 @@ static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int subtype, int 
 
 	if(self->prop==NULL)
 		return 0;
+	
+	if (!RNA_property_editable_flag(&self->ptr, self->prop)) {
+		PyErr_Format(PyExc_AttributeError, "bpy_prop \"%.200s.%.200s\" is read-only", RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop));
+		return 0;
+	}
 
 	RNA_property_float_clamp(&self->ptr, self->prop, &bmo->data[index]);
 	RNA_property_float_set_index(&self->ptr, self->prop, index, bmo->data[index]);
@@ -179,6 +189,12 @@ static int mathutils_rna_matrix_set(BaseMathObject *bmo, int subtype)
 	
 	if(self->prop==NULL)
 		return 0;
+	
+	if (!RNA_property_editable_flag(&self->ptr, self->prop)) {
+		PyErr_Format(PyExc_AttributeError, "bpy_prop \"%.200s.%.200s\" is read-only", RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop));
+		return 0;
+	}
+	
 	/* can ignore clamping here */
 	RNA_property_float_set_array(&self->ptr, self->prop, bmo->data);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
