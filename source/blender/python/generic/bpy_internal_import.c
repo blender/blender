@@ -35,6 +35,7 @@
 #include "BKE_global.h" /* grr, only for G.sce */
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 #include <stddef.h>
 
 static Main *bpy_import_main= NULL;
@@ -61,6 +62,12 @@ void bpy_import_main_set(struct Main *maggie)
 void bpy_text_filename_get(char *fn, Text *text)
 {
 	sprintf(fn, "%s/%s", text->id.lib ? text->id.lib->filepath : G.sce, text->id.name+2);
+	
+	/* XXX, this is a bug in python's Py_CompileString()!
+	 the string encoding should not be required to be utf-8
+	 reported: http://bugs.python.org/msg115202
+	 */
+	BLI_utf8_invalid_strip(fn, strlen(fn));
 }
 
 PyObject *bpy_text_import( Text *text )
