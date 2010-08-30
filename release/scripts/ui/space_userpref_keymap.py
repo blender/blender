@@ -714,7 +714,7 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
     def execute(self, context):
         wm = context.manager
         km = context.keymap
-        kmi = km.item_from_id(self.properties.item_id)
+        kmi = km.items.from_id(self.properties.item_id)
 
         km.restore_item_to_default(kmi)
 
@@ -755,7 +755,7 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
     def execute(self, context):
         wm = context.manager
         km = context.keymap
-        kmi = km.item_from_id(self.properties.item_id)
+        kmi = km.items.from_id(self.properties.item_id)
         km.items.remove(kmi)
         return {'FINISHED'}
 

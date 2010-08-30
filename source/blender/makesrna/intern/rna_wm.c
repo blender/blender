@@ -1406,6 +1406,13 @@ static void rna_def_keymap_items(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "remove", "WM_keymap_remove_item");
 	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "from_id", "WM_keymap_item_find_id");
+	parm= RNA_def_property(func, "id", PROP_INT, PROP_NONE);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_ui_text(parm, "id", "ID of the item");
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
+	RNA_def_function_return(func, parm);
 	
 }
 
