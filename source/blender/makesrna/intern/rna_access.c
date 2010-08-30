@@ -2993,8 +2993,10 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 		case PROP_POINTER:
 			nextptr= RNA_property_pointer_get(&curptr, prop);
 
-			if(nextptr.data)
+			if(nextptr.data) {
 				curptr= nextptr;
+				prop= NULL; /* now we have a PointerRNA, the prop is our parent so forget it */
+			}
 			else
 				return 0;
 
@@ -3033,8 +3035,10 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 					}
 				}
 
-				if(nextptr.data)
+				if(nextptr.data) {
 					curptr= nextptr;
+					prop= NULL;  /* now we have a PointerRNA, the prop is our parent so forget it */
+				}
 				else
 					return 0;
 			}

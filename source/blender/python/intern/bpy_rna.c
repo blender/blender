@@ -2306,11 +2306,16 @@ static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
 		return NULL;
 
 	if (RNA_path_resolve(&self->ptr, path, &r_ptr, &r_prop)) {
-		if(coerce == Py_False) {
-			return pyrna_prop_CreatePyObject(&r_ptr, r_prop);
+		if(r_prop) {
+			if(coerce == Py_False) {
+				return pyrna_prop_CreatePyObject(&r_ptr, r_prop);
+			}
+			else {
+				return pyrna_prop_to_py(&r_ptr, r_prop);
+			}
 		}
 		else {
-			return pyrna_prop_to_py(&r_ptr, r_prop);
+			return pyrna_struct_CreatePyObject(&r_ptr);
 		}
 	}
 	else {
