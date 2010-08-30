@@ -5460,6 +5460,8 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 		
 		/* do entire dbase - objects */
 		for (ob= G.main->object.first; ob; ob= ob->id.next) {
+			ModifierData *md;
+			
 			/* we have the object using the armature */
 			if (arm==ob->data) {
 				Object *cob;
@@ -5506,6 +5508,19 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 				bDeformGroup *dg= defgroup_find_name(ob, oldname);
 				if(dg) {
 					BLI_strncpy(dg->name, newname, MAXBONENAME);
+				}
+			}
+			
+			/* fix modifiers that might be using this name */
+			for (md= ob->modifiers.first; md; md= md->next) {
+				if (md->type == eModifierType_Hook) {
+					HookModifierData *hmd = (HookModifierData *)md;
+					
+					/* uses armature, so may use the affected bone name */
+					if (hmd->object && (hmd->object->data == arm)) {
+						if (!strcmp(hmd->subtarget, oldname))
+							BLI_strncpy(hmd->subtarget, newname, MAXBONENAME);
+					}
 				}
 			}
 			
