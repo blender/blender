@@ -71,9 +71,9 @@ Game Engine  bge.types Module
 
    .. attribute:: events
 
-      A list of pressed keys that have either been pressed, or just released, or are active this frame. (read-only).
+      A dictionary containing the status of each keyboard event or key. (read-only).
 
-      :type: list [[:ref:`keycode<keyboard-keys>`, :ref:`status<input-status>`], ...]
+      :type: dictionary {:ref:`keycode<keyboard-keys>`::ref:`status<input-status>`, ...}
 
 .. class:: SCA_PythonMouse(PyObjectPlus)
 
@@ -81,9 +81,9 @@ Game Engine  bge.types Module
 
    .. attribute:: events
 
-      a list of pressed buttons that have either been pressed, or just released, or are active this frame. (read-only).
+      a dictionary containing the status of each mouse event. (read-only).
 
-      :type: list [[:ref:`keycode<mouse-keys>`, :ref:`status<input-status>`], ...]
+      :type: dictionary {:ref:`keycode<mouse-keys>`::ref:`status<input-status>`, ...}
       
    .. attribute:: position
 

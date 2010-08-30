@@ -30,8 +30,12 @@
 class SCA_PythonMouse : public PyObjectPlus
 {
 	Py_Header;
+private:
 	class SCA_IInputDevice *m_mouse;
 	class RAS_ICanvas *m_canvas;
+#ifndef DISABLE_PYTHON
+	PyObject* m_event_dict;
+#endif
 public:
 	SCA_PythonMouse(class SCA_IInputDevice* mouse, class RAS_ICanvas* canvas);
 	virtual ~SCA_PythonMouse();
