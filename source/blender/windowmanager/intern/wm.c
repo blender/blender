@@ -195,7 +195,7 @@ void WM_keymap_init(bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 
 	if(!wm->defaultconf)
-		wm->defaultconf= WM_keyconfig_add(wm, "Blender");
+		wm->defaultconf= WM_keyconfig_new(wm, "Blender");
 	
 	if(wm && CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
 		/* create default key config */

@@ -2760,7 +2760,9 @@ Takes:  {''')
                 else:
                     file.write('\n\tTake: "%s" {' % sane_takename(blenAction))
 
-                act_start, act_end = blenAction.get_frame_range()
+                act_start, act_end = blenAction.frame_range
+                act_start = int(act_start)
+                act_end = int(act_end)
 # 				tmp = blenAction.getFrameNumbers()
 # 				if tmp:
 # 					act_start =	min(tmp)

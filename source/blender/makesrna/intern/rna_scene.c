@@ -2932,7 +2932,7 @@ static void rna_def_timeline_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "Scene");
 	RNA_def_struct_ui_text(srna, "Timeline Markers", "Collection of timeline markers");
 
-	func= RNA_def_function(srna, "add", "rna_TimeLine_add");
+	func= RNA_def_function(srna, "new", "rna_TimeLine_add");
 	RNA_def_function_ui_description(func, "Add a keyframe to the curve.");
 	parm= RNA_def_string(func, "name", "Marker", 0, "", "New name for the marker (not unique).");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
