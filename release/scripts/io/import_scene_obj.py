@@ -860,7 +860,7 @@ def strip_slash(line_split):
 def get_float_func(filepath):
     '''
     find the float function for this obj file
-    - weather to replace commas or not
+    - whether to replace commas or not
     '''
     file= open(filepath, 'rU')
     for line in file: #.xreadlines():
@@ -931,7 +931,7 @@ def load_obj(filepath,
     # when there are faces that end with \
     # it means they are multiline-
     # since we use xreadline we cant skip to the next line
-    # so we need to know weather
+    # so we need to know whether
     context_multi_line= ''
 
     print("\tparsing obj file...")
