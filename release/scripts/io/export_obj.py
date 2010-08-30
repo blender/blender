@@ -122,7 +122,7 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
                     try:
                         filepath = copy_image(mtex.texture.image)
 #                       filepath = mtex.texture.image.filepath.split('\\')[-1].split('/')[-1]
-                        file.write('map_Kd %s\n' % filepath) # Diffuse mapping image
+                        file.write('map_Kd %s\n' % repr(filepath)[1:-1]) # Diffuse mapping image
                         break
                     except:
                         # Texture has no image though its an image type, best ignore.
@@ -332,7 +332,7 @@ def write_file(filepath, objects, scene,
         return ret
 
 
-    print('OBJ Export path: "%s"' % filepath)
+    print('OBJ Export path: %r' % filepath)
     temp_mesh_name = '~tmp-mesh'
 
     time1 = time.clock()
@@ -342,13 +342,13 @@ def write_file(filepath, objects, scene,
     file = open(filepath, "w")
 
     # Write Header
-    file.write('# Blender v%s OBJ File: %s\n' % (bpy.app.version_string, bpy.data.filepath.split('/')[-1].split('\\')[-1] ))
+    file.write('# Blender v%s OBJ File: %r\n' % (bpy.app.version_string, os.path.basename(bpy.data.filepath)))
     file.write('# www.blender.org\n')
 
     # Tell the obj file what material file to use.
     if EXPORT_MTL:
-        mtlfilepath = '%s.mtl' % '.'.join(filepath.split('.')[:-1])
-        file.write('mtllib %s\n' % ( mtlfilepath.split('\\')[-1].split('/')[-1] ))
+        mtlfilepath = os.path.splitext(filepath)[0] + ".mtl"
+        file.write('mtllib %s\n' % repr(os.path.basename(mtlfilepath))[1:-1]) # filepath can contain non utf8 chars, use repr
 
     if EXPORT_ROTX90:
         mat_xrot90= mathutils.Matrix.Rotation(-math.pi/2, 4, 'X')
@@ -864,7 +864,7 @@ class ExportOBJ(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
-    filepath = StringProperty(name="File Path", description="Filepath used for exporting the OBJ file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the OBJ file", maxlen= 1024, default= "", subtype='FILE_PATH')
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     # context group

@@ -233,7 +233,7 @@ static const char *py_safe_unicode_to_byte(PyObject *py_str, PyObject **coerce)
 	}
 }
 
-static PyObject *py_safe_byte_to_unicode(char *str)
+static PyObject *py_safe_byte_to_unicode(const char *str)
 {
 	PyObject *result= PyUnicode_FromString(str);
 	if(result) {
