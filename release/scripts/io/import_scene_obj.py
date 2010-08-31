@@ -768,8 +768,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     # the following test will never run
     for group_name, group_indicies in vertex_groups.items():
         group= ob.vertex_groups.new(group_name)
-        for vertex_index in group_indicies:
-            ob.vertex_groups.assign(vertex_index, group, 1.0, 'REPLACE')
+        ob.vertex_groups.assign(group_indicies, group, 1.0, 'REPLACE')
 
 
 def create_nurbs(context_nurbs, vert_loc, new_objects):

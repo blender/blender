@@ -29,6 +29,8 @@
 #include <string.h>
 #include <stddef.h>
 
+#include "BLO_sys_types.h"
+
 #include "DNA_windowmanager_types.h"
 
 #include "GHOST_C-api.h"

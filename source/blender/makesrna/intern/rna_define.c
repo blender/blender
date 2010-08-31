@@ -2525,7 +2525,7 @@ int rna_parameter_size_alloc(PropertyRNA *parm)
 	int size = rna_parameter_size(parm);
 
 	if (parm->flag & PROP_DYNAMIC)
-		size+= sizeof(int);
+		size+= sizeof(((ParameterDynAlloc *)NULL)->array_tot);
 
 	return size;
 }

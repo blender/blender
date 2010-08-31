@@ -24,6 +24,7 @@
 
 #include "bpy_rna.h"
 #include "BKE_global.h"
+#include "MEM_guardedalloc.h"
 
 #define MAX_ARRAY_DIMENSION 10
 
@@ -144,8 +145,9 @@ static int validate_array_length(PyObject *rvalue, PointerRNA *ptr, PropertyRNA 
 				return 0;
 			}
 #else
-			PyErr_Format(PyExc_ValueError, "%s %s.%s: array length cannot be changed to %d", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), tot);
-			return 0;
+			*totitem= tot;
+			return 1;
+
 #endif
 		}
 
@@ -248,22 +250,25 @@ static int py_to_array(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, Paramet
 	}
 
 	if (totitem) {
-		if (!param_data || RNA_property_flag(prop) & PROP_DYNAMIC)
-			data= PyMem_MALLOC(item_size * totitem);
-		else
+		/* note: this code is confusing */
+		if(param_data && RNA_property_flag(prop) & PROP_DYNAMIC) {
+			/* not freeing allocated mem, RNA_parameter_list_free() will do this */
+			ParameterDynAlloc *param_alloc= (ParameterDynAlloc *)param_data;
+			param_alloc->array_tot= (int)totitem;
+			param_alloc->array= MEM_callocN(item_size * totitem, "py_to_array dyn"); /* freeing param list will free */
+
+			data= param_alloc->array;
+		}
+		else if (param_data) {
 			data= param_data;
+		}
+		else {
+			data= PyMem_MALLOC(item_size * totitem);
+		}
 
 		copy_values(py, ptr, prop, 0, data, item_size, NULL, convert_item, NULL);
 
-		if (param_data) {
-			if (RNA_property_flag(prop) & PROP_DYNAMIC) {
-				/* not freeing allocated mem, RNA_parameter_list_free will do this */
-				*(char**)param_data= data;
-
-				RNA_parameter_length_set_data(parms, prop, param_data, totitem);
-			}
-		}
-		else {
+		if (param_data==NULL) {
 			/* NULL can only pass through in case RNA property arraylength is 0 (impossible?) */
 			rna_set_array(ptr, prop, data);
 			PyMem_FREE(data);

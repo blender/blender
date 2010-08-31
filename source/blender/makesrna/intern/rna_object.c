@@ -1064,10 +1064,10 @@ static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 
 }
 
-static void rna_Object_add_vertex_to_group(Object *ob, int vertex_index, bDeformGroup *def, float weight, int assignmode)
+static void rna_Object_add_vertex_to_group(Object *ob, int index_len, int *index, bDeformGroup *def, float weight, int assignmode)
 {
-	/* creates dverts if needed */
-	ED_vgroup_vert_add(ob, def, vertex_index, weight, assignmode);
+	while(index_len--)
+		ED_vgroup_vert_add(ob, def, *index++, weight, assignmode);
 }
 
 /* generic poll functions */
@@ -1530,10 +1530,11 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "New vertex group.");
 	RNA_def_function_return(func, parm);
 
-	// XXX, this will be very slow, bad API design! :S
 	func= RNA_def_function(srna, "assign", "rna_Object_add_vertex_to_group");
 	RNA_def_function_ui_description(func, "Add vertex to a vertex group.");
-	parm= RNA_def_int(func, "index", 0, 0, 0, "", "Vertex index.", 0, 0);
+	/* TODO, see how array size of 0 works, this shouldnt be used */
+	parm= RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "Index List.", 0, 0); 	 
+	RNA_def_property_flag(parm, PROP_DYNAMIC);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "Vertex group to add vertex to.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);

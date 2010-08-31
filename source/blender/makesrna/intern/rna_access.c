@@ -3839,7 +3839,14 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, 
 	for(parm= func->cont.properties.first; parm; parm= parm->next) {
 		size= rna_parameter_size(parm);
 
-		if(!(parm->flag & PROP_REQUIRED)) {
+		/* set length to 0, these need to be set later, see bpy_array.c's py_to_array */
+		if (parm->flag & PROP_DYNAMIC) {
+			ParameterDynAlloc *data_alloc= data;
+			data_alloc->array_tot= 0;
+			data_alloc->array= NULL;
+		}
+		
+		if(!(parm->flag & PROP_REQUIRED) && !(parm->flag & PROP_DYNAMIC)) {
 			switch(parm->type) {
 				case PROP_BOOLEAN:
 					if(parm->arraydimension) memcpy(data, &((BooleanPropertyRNA*)parm)->defaultarray, size);
@@ -3868,10 +3875,6 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, 
 			}
 		}
 
-		/* set length to 0 */
-		if (parm->flag & PROP_DYNAMIC)
-			*((int *)(((char *)data) + size))= 0;
-
 		data= ((char*)data) + rna_parameter_size_alloc(parm);
 	}
 
@@ -3889,9 +3892,9 @@ void RNA_parameter_list_free(ParameterList *parms)
 			BLI_freelistN((ListBase*)((char*)parms->data+tot));
 		else if (parm->flag & PROP_DYNAMIC) {
 			/* for dynamic arrays and strings, data is a pointer to an array */
-			char *array= *(char**)((char*)parms->data+tot);
-			if(array)
-				MEM_freeN(array);
+			ParameterDynAlloc *data_alloc= (void *)(((char *)parms->data) + tot);
+			if(data_alloc->array)
+				MEM_freeN(data_alloc->array);
 		}
 
 		tot+= rna_parameter_size_alloc(parm);
@@ -4053,12 +4056,12 @@ void RNA_parameter_length_set(ParameterList *parms, PropertyRNA *parm, int lengt
 
 int RNA_parameter_length_get_data(ParameterList *parms, PropertyRNA *parm, void *data)
 {
-	return *((int *)(((char *)data) + rna_parameter_size(parm)));
+	return *((int *)((char *)data));
 }
 
 void RNA_parameter_length_set_data(ParameterList *parms, PropertyRNA *parm, void *data, int length)
 {
-	*((int *)(((char *)data) + rna_parameter_size(parm)))= length;
+	*((int *)data)= length;
 }
 
 int RNA_function_call(bContext *C, ReportList *reports, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
