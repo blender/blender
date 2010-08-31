@@ -59,6 +59,9 @@ SET(INC
 	../../../source/blender/gpu
 	../../../extern/bullet2/src
 	../../../extern/glew/include
+	../../../extern/recastnavigation/Recast/Include
+	../../../extern/recastnavigation/Detour/Include
+	../../../source/blender/editors/include
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)

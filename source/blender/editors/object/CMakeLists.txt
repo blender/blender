@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
+FILE(GLOB SRC *.c *.cpp)
 
 SET(INC
 	../include
@@ -34,6 +34,7 @@ SET(INC
 	../../windowmanager
 	../../render/extern/include
 	../../../../intern/guardedalloc
+	../../../../extern/recastnavigation/Recast/Include
 )
 
 IF(NOT WITH_PYTHON)

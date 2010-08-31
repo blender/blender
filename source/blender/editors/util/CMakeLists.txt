@@ -19,13 +19,14 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
+FILE(GLOB SRC *.c *.cpp)
 
 SET(INC
 	../../blenkernel
 	../../blenlib
 	../include
 	../../../../intern/guardedalloc
+	../../../../extern/recastnavigation/Recast/Include
 	../../makesdna
 	../../makesrna
 	../../windowmanager

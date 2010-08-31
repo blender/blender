@@ -498,6 +498,7 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		extern_binreloc
 		extern_glew
 		extern_libopenjpeg
+		extern_recastnavigation
 		bf_videotex
 		bf_rna
 		bf_dna

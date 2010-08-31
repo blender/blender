@@ -61,6 +61,7 @@ SET(INC
 	../../../source/blender/gpu
 	../../../source/blender/ikplugin
 	../../../extern/bullet2/src
+	../../../extern/recastnavigation/Detour/Include
 )
 
 IF(WITH_PYTHON)

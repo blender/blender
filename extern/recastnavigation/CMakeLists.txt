@@ -1,3 +1,4 @@
+# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -19,33 +20,13 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Jacques Beaurain
-#                 Ben Batt
+# Contributor(s): Daniel Genrich
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c intern/*.cpp)
+SET(INC Recast/Include Detour/Include)
 
-SET(INC 
-	. ./intern
-	../blenlib
-	../makesdna
-	../blenkernel
-	../blenkernel/intern
-	../render/extern/include
-	../editors/include
-	../gpu
-    ../../../intern/guardedalloc
-	../../../intern/decimation/extern
-	../../../intern/elbeem/extern
-	../../../intern/bsp/extern
-	../../../extern/recastnavigation/Recast/Include
-	${ZLIB_INC}
-)
+FILE(GLOB SRC Recast/Source/*.cpp Detour/Source/*.cpp)
 
-IF(NOT WITH_FLUID)
-	ADD_DEFINITIONS(-DDISABLE_ELBEEM)
-ENDIF(NOT WITH_FLUID)
-
-BLENDERLIB(bf_modifiers "${SRC}" "${INC}")
-
+BLENDERLIB(extern_recastnavigation "${SRC}" "${INC}")
+#, libtype='blender', priority = 0 )
