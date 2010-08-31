@@ -3666,7 +3666,7 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "use_continue_last_frame", 0, NULL, 0);
 
 	row= uiLayoutRow(layout, 0);
-	if((RNA_enum_get(ptr, "mode") == ACT_ACTION_FROM_PROP))
+	if((RNA_enum_get(ptr, "play_mode") == ACT_ACTION_FROM_PROP))
 		uiItemPointerR(row, ptr, "property", &settings_ptr, "properties", NULL, 0);
 
 	else {
