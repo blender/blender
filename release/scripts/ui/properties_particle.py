@@ -487,12 +487,12 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
             col.prop(boids, "air_ave_max", slider=True)
             col.prop(boids, "air_personal_space")
             row = col.row()
-            row.active = (boids.use_land or boids.allow_climb) and boids.allow_flight
+            row.active = (boids.use_land or boids.use_climb) and boids.use_flight
             row.prop(boids, "land_smooth")
 
             sub = split.column()
             col = sub.column(align=True)
-            col.active = boids.use_land or boids.allow_climb
+            col.active = boids.use_land or boids.use_climb
             col.prop(boids, "land_speed_max")
             col.prop(boids, "land_jump_speed")
             col.prop(boids, "land_acc_max", slider=True)
