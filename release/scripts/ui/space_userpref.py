@@ -973,7 +973,8 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
                 rowsub = row.row()
                 rowsub.active = is_enabled
-                rowsub.label(text=info["name"], icon='ERROR' if info["warning"] else 'BLENDER')
+                rowsub.label(text='%s: %s' % (info['category'], info["name"]))
+                if info["warning"]: rowsub.label(icon='ERROR')
 
                 if is_enabled:
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
@@ -997,7 +998,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     if info["version"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text='Version:')
-                        split.label(text=info["version"])
+                        split.label(text='.'.join([str(x) for x in info["version"]]))
                     if info["warning"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Warning:")
@@ -1038,7 +1039,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 from bpy.props import *
 
 
-def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "warning": "", "show_expanded": False}):
+def addon_info_get(mod, info_basis={"name": "", "author": "", "version": (), "blender": (), "api": 0, "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "warning": "", "show_expanded": False}):
     addon_info = getattr(mod, "bl_addon_info", {})
 
     # avoid re-initializing
