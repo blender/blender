@@ -3,7 +3,8 @@ Import ('env')
 
 sources = 'stubs.c'
 
-incs = '#/source/blender/makesdna'
+incs = '#/intern/guardedalloc'
+incs += ' #/source/blender/makesdna'
 incs += ' #/source/blender/makesrna'
 
 defs = ''
