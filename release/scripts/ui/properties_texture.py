@@ -362,8 +362,8 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
                 col = split.column()
                 factor_but(col, tex.use_map_density, "use_map_density", "density_factor", "Density")
                 factor_but(col, tex.use_map_emission, "use_map_emission", "emission_factor", "Emission")
-                factor_but(col, tex.use_map_scatter, "use_map_scattering", "scattering_factor", "Scattering")
-                factor_but(col, tex.use_map_reflect, "use_map_reflection", "reflection_factor", "Reflection")
+                factor_but(col, tex.use_map_scatter, "use_map_scatter", "scattering_factor", "Scattering")
+                factor_but(col, tex.use_map_reflect, "use_map_reflect", "reflection_factor", "Reflection")
 
                 col = split.column()
                 col.label(text=" ")

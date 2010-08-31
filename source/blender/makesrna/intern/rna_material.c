@@ -571,7 +571,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Reflection", "Causes the texture to affect the reflected light's brightness");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "color_emission_factor", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "emission_color_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "colemitfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Emission Color Factor", "Amount texture affects emission color");
