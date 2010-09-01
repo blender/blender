@@ -169,7 +169,7 @@ class INFO_MT_mesh_add(bpy.types.Menu):
         layout.operator("mesh.primitive_circle_add", icon='MESH_CIRCLE', text="Circle")
         layout.operator("mesh.primitive_uv_sphere_add", icon='MESH_UVSPHERE', text="UV Sphere")
         layout.operator("mesh.primitive_ico_sphere_add", icon='MESH_ICOSPHERE', text="Icosphere")
-        layout.operator("mesh.primitive_tube_add", icon='MESH_TUBE', text="Tube")
+        layout.operator("mesh.primitive_cylinder_add", icon='MESH_CYLINDER', text="Cylinder")
         layout.operator("mesh.primitive_cone_add", icon='MESH_CONE', text="Cone")
         layout.separator()
         layout.operator("mesh.primitive_grid_add", icon='MESH_GRID', text="Grid")
@@ -200,7 +200,7 @@ class INFO_MT_surface_add(bpy.types.Menu):
         layout.operator("surface.primitive_nurbs_surface_curve_add", icon='SURFACE_NCURVE', text="NURBS Curve")
         layout.operator("surface.primitive_nurbs_surface_circle_add", icon='SURFACE_NCIRCLE', text="NURBS Circle")
         layout.operator("surface.primitive_nurbs_surface_surface_add", icon='SURFACE_NSURFACE', text="NURBS Surface")
-        layout.operator("surface.primitive_nurbs_surface_tube_add", icon='SURFACE_NTUBE', text="NURBS Tube")
+        layout.operator("surface.primitive_nurbs_surface_cylinder_add", icon='SURFACE_NCYLINDER', text="NURBS Cylinder")
         layout.operator("surface.primitive_nurbs_surface_sphere_add", icon='SURFACE_NSPHERE', text="NURBS Sphere")
         layout.operator("surface.primitive_nurbs_surface_torus_add", icon='SURFACE_NTORUS', text="NURBS Torus")
 

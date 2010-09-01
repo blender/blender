@@ -105,7 +105,7 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_curve_add);
 	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_circle_add);
 	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_surface_add);
-	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_tube_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_cylinder_add);
 	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_sphere_add);
 	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_torus_add);
 	

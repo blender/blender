@@ -495,7 +495,7 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 
 static EnumPropertyItem prop_metaball_types[]= {
 	{MB_BALL, "MBALL_BALL", ICON_META_BALL, "Meta Ball", ""},
-	{MB_TUBE, "MBALL_TUBE", ICON_META_TUBE, "Meta Tube", ""},
+	{MB_TUBE, "MBALL_CAPSULE", ICON_META_CAPSULE, "Meta Capsule", ""},
 	{MB_PLANE, "MBALL_PLANE", ICON_META_PLANE, "Meta Plane", ""},
 	{MB_CUBE, "MBALL_CUBE", ICON_META_CUBE, "Meta Cube", ""},
 	{MB_ELIPSOID, "MBALL_ELLIPSOID", ICON_META_ELLIPSOID, "Meta Ellipsoid", ""},

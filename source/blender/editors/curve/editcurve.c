@@ -5867,13 +5867,13 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			makeknots(nu, 2);
 		}
 		break;
-	case CU_PRIM_TUBE:	/* tube */
+	case CU_PRIM_TUBE:	/* Cylinder */
 		if( cutype==CU_NURBS ) {
 			Curve *cu= (Curve*)obedit->data;
 			
 			if(newname) {
-				rename_id((ID *)obedit, "SurfTube");
-				rename_id((ID *)obedit->data, "SurfTube");
+				rename_id((ID *)obedit, "SurfCylinder");
+				rename_id((ID *)obedit->data, "SurfCylinder");
 			}
 			
 			nu= add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
@@ -6235,21 +6235,21 @@ void SURFACE_OT_primitive_nurbs_surface_surface_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, TRUE);
 }
 
-static int add_primitive_nurbs_surface_tube_exec(bContext *C, wmOperator *op)
+static int add_primitive_nurbs_surface_cylinder_exec(bContext *C, wmOperator *op)
 {
 	return surf_prim_add(C, op, CU_PRIM_TUBE|CU_NURBS);
 }
 
-void SURFACE_OT_primitive_nurbs_surface_tube_add(wmOperatorType *ot)
+void SURFACE_OT_primitive_nurbs_surface_cylinder_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Tube";
-	ot->description= "Construct a Nurbs surface Tube";
-	ot->idname= "SURFACE_OT_primitive_nurbs_surface_tube_add";
+	ot->name= "Add Surface Cylinder";
+	ot->description= "Construct a Nurbs surface Cylinder";
+	ot->idname= "SURFACE_OT_primitive_nurbs_surface_cylinder_add";
 	
 	/* api callbacks */
 	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_nurbs_surface_tube_exec;
+	ot->exec= add_primitive_nurbs_surface_cylinder_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
