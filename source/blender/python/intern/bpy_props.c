@@ -31,6 +31,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "../generic/py_capi_utils.h"
+
 EnumPropertyItem property_flag_items[] = {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
@@ -219,7 +221,7 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 		}
 
-		if(pydef && BPyAsPrimitiveArray(def, pydef, size, &PyBool_Type, "BoolVectorProperty(default=sequence)") < 0)
+		if(pydef && PyC_AsArray(def, pydef, size, &PyBool_Type, "BoolVectorProperty(default=sequence)") < 0)
 			return NULL;
 
 		// prop= RNA_def_boolean_array(srna, id, size, pydef ? def:NULL, name, description);
@@ -361,7 +363,7 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 		}
 
-		if(pydef && BPyAsPrimitiveArray(def, pydef, size, &PyLong_Type, "IntVectorProperty(default=sequence)") < 0)
+		if(pydef && PyC_AsArray(def, pydef, size, &PyLong_Type, "IntVectorProperty(default=sequence)") < 0)
 			return NULL;
 
 		prop= RNA_def_property(srna, id, PROP_INT, subtype);
@@ -515,7 +517,7 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 		}
 
-		if(pydef && BPyAsPrimitiveArray(def, pydef, size, &PyFloat_Type, "FloatVectorProperty(default=sequence)") < 0)
+		if(pydef && PyC_AsArray(def, pydef, size, &PyFloat_Type, "FloatVectorProperty(default=sequence)") < 0)
 			return NULL;
 
 		prop= RNA_def_property(srna, id, PROP_FLOAT, subtype);
@@ -717,7 +719,7 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 	srna= srna_from_self(value, "BoolProperty(...):");
 	if(!srna) {
 
-		PyObject *msg= BPY_exception_buffer();
+		PyObject *msg= PyC_ExceptionBuffer();
 		char *msg_char= _PyUnicode_AsString(msg);
 		PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from IDPropertyGroup, failed with: %s", error_prefix, msg_char);
 		Py_DECREF(msg);

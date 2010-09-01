@@ -27,6 +27,15 @@
 #include "IDProp.h"
 #include "MEM_guardedalloc.h"
 
+#define USE_STRING_COERCE
+
+#ifdef USE_STRING_COERCE
+#include "py_capi_utils.h"
+#endif
+
+PyObject *		PyC_UnicodeFromByte(const char *str);
+const char *	PuC_UnicodeAsByte(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
+
 /*** Function to wrap ID properties ***/
 PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop, IDProperty *parent);
 
@@ -46,7 +55,11 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 {
 	switch ( prop->type ) {
 		case IDP_STRING:
-			return PyUnicode_FromString( prop->data.pointer );
+#ifdef USE_STRING_COERCE
+			return PyC_UnicodeFromByte(prop->data.pointer);
+#else
+			return PyUnicode_FromString(prop->data.pointer);
+#endif
 		case IDP_INT:
 			return PyLong_FromLong( (long)prop->data.val );
 		case IDP_FLOAT:
@@ -105,10 +118,25 @@ int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject *value)
 				PyErr_SetString(PyExc_TypeError, "expected a string!");
 				return -1;
 			}
+#ifdef USE_STRING_COERCE
+			{
+				int alloc_len;
+				PyObject *value_coerce= NULL;
 
+				st= (char *)PuC_UnicodeAsByte(value, &value_coerce);
+				alloc_len= strlen(st) + 1;
+
+				st = _PyUnicode_AsString(value);
+				IDP_ResizeArray(prop, alloc_len);
+				memcpy(prop->data.pointer, st, alloc_len);
+				Py_XDECREF(value_coerce);
+			}
+#else
 			st = _PyUnicode_AsString(value);
 			IDP_ResizeArray(prop, strlen(st)+1);
 			strcpy(prop->data.pointer, st);
+#endif
+
 			return 0;
 		}
 
@@ -281,8 +309,15 @@ char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObje
 		val.i = (int) PyLong_AsSsize_t(ob);
 		prop = IDP_New(IDP_INT, val, name);
 	} else if (PyUnicode_Check(ob)) {
+#ifdef USE_STRING_COERCE
+		PyObject *value_coerce= NULL;
+		val.str = (char *)PuC_UnicodeAsByte(ob, &value_coerce);
+		prop = IDP_New(IDP_STRING, val, name);
+		Py_XDECREF(value_coerce);
+#else
 		val.str = _PyUnicode_AsString(ob);
 		prop = IDP_New(IDP_STRING, val, name);
+#endif
 	} else if (PySequence_Check(ob)) {
 		PyObject *item;
 		int i;
@@ -432,7 +467,11 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 {
 	switch (prop->type) {
 		case IDP_STRING:
+#ifdef USE_STRING_COERCE
+			return PyC_UnicodeFromByte(prop->data.pointer);
+#else
 			return PyUnicode_FromString(prop->data.pointer);
+#endif
 			break;
 		case IDP_FLOAT:
 			return PyFloat_FromDouble(*((float*)&prop->data.val));

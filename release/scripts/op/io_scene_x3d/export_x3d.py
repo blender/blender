@@ -136,12 +136,12 @@ class x3d_class:
 
     def writeHeader(self):
         #bfile = sys.expandpath( Blender.Get('filepath') ).replace('<', '&lt').replace('>', '&gt')
-        bfile = self.filepath.replace('<', '&lt').replace('>', '&gt') # use outfile name
+        bfile = repr(os.path.basename(self.filepath).replace('<', '&lt').replace('>', '&gt'))[1:-1] # use outfile name
         self.file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
         self.file.write("<!DOCTYPE X3D PUBLIC \"ISO//Web3D//DTD X3D 3.0//EN\" \"http://www.web3d.org/specifications/x3d-3.0.dtd\">\n")
         self.file.write("<X3D version=\"3.0\" profile=\"Immersive\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema-instance\" xsd:noNamespaceSchemaLocation=\"http://www.web3d.org/specifications/x3d-3.0.xsd\">\n")
         self.file.write("<head>\n")
-        self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % os.path.basename(bfile))
+        self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % bfile)
         # self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % sys.basename(bfile))
         self.file.write("\t<meta name=\"generator\" content=\"Blender %s\" />\n" % bpy.app.version_string)
         # self.file.write("\t<meta name=\"generator\" content=\"Blender %s\" />\n" % Blender.Get('version'))
@@ -781,7 +781,7 @@ class x3d_class:
             EXPORT_TRI=				False,\
         ):
 
-        print("Info: starting X3D export to " + self.filepath + "...")
+        print("Info: starting X3D export to %r..." % self.filepath)
         self.writeHeader()
         # self.writeScript()
         self.writeNavigationInfo(scene)
@@ -879,7 +879,7 @@ class x3d_class:
         self.texNames={}
         self.matNames={}
         self.indentLevel=0
-        print("Info: finished X3D export to %s\n" % self.filepath)
+        print("Info: finished X3D export to %r" % self.filepath)
 
     def cleanStr(self, name, prefix='rsvd_'):
         """cleanStr(name,prefix) - try to create a valid VRML DEF name from object name"""

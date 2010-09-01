@@ -54,6 +54,7 @@
 #ifdef USE_MATHUTILS
 #include "../generic/mathutils.h" /* so we can have mathutils callbacks */
 #include "../generic/IDProp.h" /* for IDprop lookups */
+#include "../generic/py_capi_utils.h"
 
 static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, void *data, PyObject *value, const char *error_prefix);
 static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyRNA *self, PointerRNA *ptr, PropertyRNA *prop, int start, int stop, int length);
@@ -208,62 +209,6 @@ Mathutils_Callback mathutils_rna_matrix_cb = {
 	NULL,
 	NULL
 };
-
-#ifdef USE_STRING_COERCE
-/* string conversion, escape non-unicode chars, coerce must be set to NULL */
-static const char *py_safe_unicode_to_byte(PyObject *py_str, PyObject **coerce)
-{
-	char *result;
-
-	result= _PyUnicode_AsString(py_str);
-
-	if(result) {
-		/* 99% of the time this is enough but we better support non unicode
-		 * chars since blender doesnt limit this */
-		return result;
-	}
-	else {
-		/* mostly copied from fileio.c's, fileio_init */
-		PyObject *stringobj;
-		PyObject *u;
-
-		PyErr_Clear();
-		
-		u= PyUnicode_FromObject(py_str); /* coerce into unicode */
-		
-		if (u == NULL)
-			return NULL;
-
-		stringobj= PyUnicode_EncodeUTF8(PyUnicode_AS_UNICODE(u), PyUnicode_GET_SIZE(u), "surrogateescape");
-		Py_DECREF(u);
-		if (stringobj == NULL)
-			return NULL;
-		if (!PyBytes_Check(stringobj)) { /* this seems wrong but it works fine */
-			// printf("encoder failed to return bytes\n");
-			Py_DECREF(stringobj);
-			return NULL;
-		}
-		*coerce= stringobj;
-
-		return PyBytes_AS_STRING(stringobj);
-	}
-}
-
-static PyObject *py_safe_byte_to_unicode(const char *str)
-{
-	PyObject *result= PyUnicode_FromString(str);
-	if(result) {
-		/* 99% of the time this is enough but we better support non unicode
-		 * chars since blender doesnt limit this */
-		return result;
-	}
-	else {
-		PyErr_Clear();
-		result= PyUnicode_DecodeUTF8(str, strlen(str), "surrogateescape");
-		return result;
-	}
-}
-#endif
 
 /* same as RNA_enum_value_from_id but raises an exception  */
 int pyrna_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value, const char *error_prefix)
@@ -847,7 +792,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 #ifdef USE_STRING_COERCE
 		/* only file paths get special treatment, they may contain non utf-8 chars */
 		if(ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
-			ret= py_safe_byte_to_unicode(buf);
+			ret= PyC_UnicodeFromByte(buf);
 		}
 		else {
 			ret= PyUnicode_FromString(buf);
@@ -1060,7 +1005,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *p
 			PyObject *value_coerce= NULL;
 			int subtype= RNA_property_subtype(prop);
 			if(ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
-				param= py_safe_unicode_to_byte(value, &value_coerce);
+				param= PuC_UnicodeAsByte(value, &value_coerce);
 			}
 			else {
 				param= _PyUnicode_AsString(value);
@@ -1239,7 +1184,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *p
 					RNA_property_collection_add(ptr, prop, &itemptr);
 
 				if(pyrna_pydict_to_props(&itemptr, item, 1, "Converting a python list to an RNA collection")==-1) {
-					PyObject *msg= BPY_exception_buffer();
+					PyObject *msg= PyC_ExceptionBuffer();
 					char *msg_char= _PyUnicode_AsString(msg);
 
 					PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s error converting a member of a collection from a dicts into an RNA collection, failed with: %s", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop), msg_char);
@@ -3487,7 +3432,7 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, ParameterList *parms, PropertyRNA *
 
 #ifdef USE_STRING_COERCE
 			if(ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
-				ret= py_safe_byte_to_unicode(data_ch);
+				ret= PyC_UnicodeFromByte(data_ch);
 			}
 			else {
 				ret= PyUnicode_FromString(data_ch);
@@ -4127,7 +4072,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	Py_INCREF(newclass);
 
 	if (RNA_struct_py_type_get(srna))
-		PyObSpit("RNA WAS SET - ", RNA_struct_py_type_get(srna));
+		PyC_ObSpit("RNA WAS SET - ", RNA_struct_py_type_get(srna));
 	
 	Py_XDECREF(((PyObject *)RNA_struct_py_type_get(srna)));
 	
@@ -4213,7 +4158,7 @@ static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
 
 			if(base_compare != base) {
 				fprintf(stderr, "pyrna_srna_ExternalType: incorrect subclassing of SRNA '%s'\nSee bpy_types.py\n", idname);
-				PyObSpit("Expected! ", base_compare);
+				PyC_ObSpit("Expected! ", base_compare);
 				newclass= NULL;
 			}
 			else {
@@ -4263,7 +4208,7 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		newclass = PyObject_CallFunction((PyObject*)&PyType_Type, "s(O){sss()}", idname, py_base, "__module__","bpy.types", "__slots__");
 		/* newclass will now have 2 ref's, ???, probably 1 is internal since decrefing here segfaults */
 
-		/* PyObSpit("new class ref", newclass); */
+		/* PyC_ObSpit("new class ref", newclass); */
 
 		if (newclass) {
 			/* srna owns one, and the other is owned by the caller */
@@ -4329,7 +4274,7 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 	pyrna->ptr= *ptr;
 	pyrna->freeptr= FALSE;
 	
-	// PyObSpit("NewStructRNA: ", (PyObject *)pyrna);
+	// PyC_ObSpit("NewStructRNA: ", (PyObject *)pyrna);
 	
 	return ( PyObject * ) pyrna;
 }
@@ -4594,7 +4539,7 @@ static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key
 				PyErr_Print();
 				PyErr_Clear();
 
-				// PyLineSpit();
+				// PyC_LineSpit();
 				PyErr_Format(PyExc_ValueError, "bpy_struct \"%.200s\" registration error: %.200s could not register\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
 				return -1;
 			}
@@ -4603,7 +4548,7 @@ static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key
 			/* Since this is a class dict, ignore args that can't be passed */
 
 			/* for testing only */
-			/* PyObSpit("Why doesn't this work??", item);
+			/* PyC_ObSpit("Why doesn't this work??", item);
 			PyErr_Print(); */
 			PyErr_Clear();
 		}
@@ -5048,7 +4993,7 @@ static void bpy_class_free(void *pyob_ptr)
 
 	if(G.f&G_DEBUG) {
 		if(self->ob_refcnt > 1) {
-			PyObSpit("zombie class - ref should be 1", self);
+			PyC_ObSpit("zombie class - ref should be 1", self);
 		}
 	}
 
