@@ -18,32 +18,34 @@
 
 # <pep8 compliant>
 
+import bpy
 from bpy.props import *
 
 class ExportHelper:
-	filepath = StringProperty(name="File Path", description="Filepath used for exporting the file", maxlen= 1024, default= "", subtype='FILE_PATH')
-	check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the file", maxlen= 1024, default= "", subtype='FILE_PATH')
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
-	def invoke(self, context, event):
-		import os
-		if not self.properties.is_property_set("filepath"):
-			self.properties.filepath = os.path.splitext(context.main.filepath)[0] + self.filename_ext
+    def invoke(self, context, event):
+        import os
+        if not self.properties.is_property_set("filepath"):
+            self.properties.filepath = os.path.splitext(context.main.filepath)[0] + self.filename_ext
 
-		context.manager.add_fileselect(self)
-		return {'RUNNING_MODAL'}
+        context.manager.add_fileselect(self)
+        return {'RUNNING_MODAL'}
 
 
 class ImportHelper:
-	filepath = StringProperty(name="File Path", description="Filepath used for importing the file", maxlen= 1024, default= "", subtype='FILE_PATH')
+    filepath = StringProperty(name="File Path", description="Filepath used for importing the file", maxlen= 1024, default= "", subtype='FILE_PATH')
 
-	def invoke(self, context, event):
-		wm = context.manager
-		wm.add_fileselect(self)
-		return {'RUNNING_MODAL'}
+    def invoke(self, context, event):
+        wm = context.manager
+        wm.add_fileselect(self)
+        return {'RUNNING_MODAL'}
 
 
 # limited replacement for BPyImage.comprehensiveImageLoad
 def load_image(imagepath, dirname):
+    import os
 
     if os.path.exists(imagepath):
         return bpy.data.images.load(imagepath)
