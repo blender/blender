@@ -18,54 +18,16 @@
 
 # <pep8 compliant>
 
+# Copyright (C) 2004, 2005: Bruce Merry, bmerry@cs.uct.ac.za
+# Contributors: Bruce Merry, Campbell Barton
+
 import bpy
 
-__author__ = "Bruce Merry"
-__version__ = "0.93"
-__bpydoc__ = """\
+"""
 This script exports Stanford PLY files from Blender. It supports normals,
 colours, and texture coordinates per face or per vertex.
 Only one mesh can be exported at a time.
 """
-
-# Copyright (C) 2004, 2005: Bruce Merry, bmerry@cs.uct.ac.za
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-# Vector rounding se we can use as keys
-#
-# Updated on Aug 11, 2008 by Campbell Barton
-#    - added 'comment' prefix to comments - Needed to comply with the PLY spec.
-#
-# Updated on Jan 1, 2007 by Gabe Ghearing
-#    - fixed normals so they are correctly smooth/flat
-#    - fixed crash when the model doesn't have uv coords or vertex colors
-#    - fixed crash when the model has vertex colors but doesn't have uv coords
-#    - changed float32 to float and uint8 to uchar for compatibility
-# Errata/Notes as of Jan 1, 2007
-#    - script exports texture coords if they exist even if TexFace isn't selected (not a big deal to me)
-#    - ST(R) should probably be renamed UV(T) like in most PLY files (importer needs to be updated to take either)
-#
-# Updated on Jan 3, 2007 by Gabe Ghearing
-#    - fixed "sticky" vertex UV exporting
-#    - added pupmenu to enable/disable exporting normals, uv coords, and colors
-# Errata/Notes as of Jan 3, 2007
-#    - ST(R) coords should probably be renamed UV(T) like in most PLY files (importer needs to be updated to take either)
-#    - edges should be exported since PLY files support them
-#    - code is getting spaghettish, it should be refactored...
-#
-
 
 def rvec3d(v):
     return round(v[0], 6), round(v[1], 6), round(v[2], 6)

@@ -27,7 +27,7 @@ class ExportHelper:
 	def invoke(self, context, event):
 		import os
 		if not self.properties.is_property_set("filepath"):
-			self.properties.filepath = os.path.splitext(context.main.filepath)[0] + self.file_extension
+			self.properties.filepath = os.path.splitext(context.main.filepath)[0] + self.filename_ext
 
 		context.manager.add_fileselect(self)
 		return {'RUNNING_MODAL'}
@@ -40,6 +40,48 @@ class ImportHelper:
 		wm = context.manager
 		wm.add_fileselect(self)
 		return {'RUNNING_MODAL'}
+
+
+# return a tuple (free, object list), free is True if memory should be freed later with free_derived_objects()
+def create_derived_objects(scene, ob):
+    if ob.parent and ob.parent.dupli_type != 'NONE':
+        return False, None
+
+    if ob.dupli_type != 'NONE':
+        ob.create_dupli_list(scene)
+        return True, [(dob.object, dob.matrix) for dob in ob.dupli_list]
+    else:
+        return False, [(ob, ob.matrix_world)]
+
+
+
+def free_derived_objects(ob):
+    ob.free_dupli_list()
+
+
+# So 3ds max can open files, limit names to 12 in length
+# this is verry annoying for filenames!
+name_unique = []
+name_mapping = {}
+def sane_name(name):
+    name_fixed = name_mapping.get(name)
+    if name_fixed != None:
+        return name_fixed
+
+    if len(name) > 12:
+        new_name = name[:12]
+    else:
+        new_name = name
+
+    i = 0
+
+    while new_name in name_unique:
+        new_name = new_name[:-4] + '.%.3d' % i
+        i+=1
+
+    name_unique.append(new_name)
+    name_mapping[name] = new_name
+    return new_name
 
 
 def unpack_list(list_of_tuples):

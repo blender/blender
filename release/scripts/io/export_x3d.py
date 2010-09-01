@@ -18,52 +18,20 @@
 
 # <pep8 compliant>
 
-__author__ = ("Bart", "Campbell Barton")
-__email__ = ["Bart, bart:neeneenee*de"]
-__url__ = ["Author's (Bart) homepage, http://www.neeneenee.de/vrml"]
-__version__ = "2006/01/17"
-__bpydoc__ = """\
+# Contributors: bart:neeneenee*de, http://www.neeneenee.de/vrml, Campbell Barton
+
+"""
 This script exports to X3D format.
 
 Usage:
-
 Run this script from "File->Export" menu.  A pop-up will ask whether you
 want to export only selected or all relevant objects.
 
-Known issues:<br>
+Known issues:
     Doesn't handle multiple materials (don't use material indices);<br>
     Doesn't handle multiple UV textures on a single mesh (create a mesh for each texture);<br>
     Can't get the texture array associated with material * not the UV ones;
 """
-
-
-# $Id$
-#
-#------------------------------------------------------------------------
-# X3D exporter for blender 2.36 or above
-#
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-#
-
-####################################
-# Library dependancies
-####################################
 
 import math
 import os
@@ -71,15 +39,8 @@ import os
 import bpy
 import mathutils
 
-from export_3ds import create_derived_objects, free_derived_objects
+from io_utils import create_derived_objects, free_derived_objects
 
-# import Blender
-# from Blender import Object, Lamp, Draw, Image, Text, sys, Mesh
-# from Blender.Scene import Render
-# import BPyObject
-# import BPyMesh
-
-#
 DEG2RAD=0.017453292519943295
 MATWORLD= mathutils.Matrix.Rotation(-90, 4, 'X')
 

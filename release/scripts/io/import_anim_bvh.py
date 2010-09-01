@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+# Script copyright (C) Campbell Barton
+
 import math
 from math import radians
 

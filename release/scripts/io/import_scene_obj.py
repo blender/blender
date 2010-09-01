@@ -18,16 +18,17 @@
 
 # <pep8 compliant>
 
-__author__= "Campbell Barton", "Jiri Hnidek", "Paolo Ciccone"
-__url__= ['http://wiki.blender.org/index.php/Scripts/Manual/Import/wavefront_obj', 'blender.org', 'blenderartists.org']
-__version__= "2.11"
+# Script copyright (C) Campbell Barton
+# Contributors: Campbell Barton, Jiri Hnidek, Paolo Ciccone
 
-__bpydoc__= """\
+"""
 This script imports a Wavefront OBJ files to Blender.
 
 Usage:
 Run this script from "File->Import" menu and then load the desired OBJ file.
 Note, This loads mesh objects and materials only, nurbs and curves are not supported.
+
+http://wiki.blender.org/index.php/Scripts/Manual/Import/wavefront_obj
 """
 
 import os

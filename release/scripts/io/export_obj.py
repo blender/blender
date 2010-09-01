@@ -18,23 +18,6 @@
 
 # <pep8 compliant>
 
-__author__ = "Campbell Barton, Jiri Hnidek, Paolo Ciccone"
-__url__ = ['http://wiki.blender.org/index.php/Scripts/Manual/Export/wavefront_obj', 'www.blender.org', 'blenderartists.org']
-__version__ = "1.21"
-
-__bpydoc__ = """\
-This script is an exporter to OBJ file format.
-
-Usage:
-
-Select the objects you wish to export and run this script from "File->Export" menu.
-Selecting the default options from the popup box will be good in most cases.
-All objects that can be represented as a mesh (mesh, curve, metaball, surface, text3d)
-will be exported as mesh data.
-"""
-
-# import math and other in functions that use them for the sake of fast Blender startup
-# import math
 import os
 import time
 import shutil

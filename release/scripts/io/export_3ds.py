@@ -1,4 +1,3 @@
-# coding: utf-8
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -19,98 +18,13 @@
 
 # <pep8 compliant>
 
-__author__ = ["Campbell Barton", "Bob Holcomb", "Richard Lärkäng", "Damien McGinnes", "Mark Stijnman"]
-__url__ = ("blenderartists.org", "www.blender.org", "www.gametutorials.com", "lib3ds.sourceforge.net/")
-__version__ = "0.90a"
-__bpydoc__ = """\
+# Script copyright (C) Bob Holcomb
+# Contributors: Campbell Barton, Bob Holcomb, Richard Lärkäng, Damien McGinnes, Mark Stijnman
 
-3ds Exporter
-
-This script Exports a 3ds file.
-
+"""
 Exporting is based on 3ds loader from www.gametutorials.com(Thanks DigiBen) and using information
 from the lib3ds project (http://lib3ds.sourceforge.net/) sourcecode.
 """
-
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# Script copyright (C) Bob Holcomb
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-# --------------------------------------------------------------------------
-
-
-######################################################
-# Importing modules
-######################################################
-
-import struct
-import os
-import time
-
-import bpy
-
-# import Blender
-# from BPyMesh import getMeshFromObject
-# from BPyObject import getDerivedObjects
-# try:
-#     import struct
-# except:
-#     struct = None
-
-# also used by X3D exporter
-# return a tuple (free, object list), free is True if memory should be freed later with free_derived_objects()
-def create_derived_objects(scene, ob):
-    if ob.parent and ob.parent.dupli_type != 'NONE':
-        return False, None
-
-    if ob.dupli_type != 'NONE':
-        ob.create_dupli_list(scene)
-        return True, [(dob.object, dob.matrix) for dob in ob.dupli_list]
-    else:
-        return False, [(ob, ob.matrix_world)]
-
-# also used by X3D exporter
-def free_derived_objects(ob):
-    ob.free_dupli_list()
-
-# So 3ds max can open files, limit names to 12 in length
-# this is verry annoying for filenames!
-name_unique = []
-name_mapping = {}
-def sane_name(name):
-    name_fixed = name_mapping.get(name)
-    if name_fixed != None:
-        return name_fixed
-
-    if len(name) > 12:
-        new_name = name[:12]
-    else:
-        new_name = name
-
-    i = 0
-
-    while new_name in name_unique:
-        new_name = new_name[:-4] + '.%.3d' % i
-        i+=1
-
-    name_unique.append(new_name)
-    name_mapping[name] = new_name
-    return new_name
 
 ######################################################
 # Data Structures
@@ -926,20 +840,14 @@ def write(filename, context):
     '''Save the Blender scene to a 3ds file.'''
     # Time the export
 
-    if not filename.lower().endswith('.3ds'):
-        filename += '.3ds'
-
     # XXX
 #	if not BPyMessages.Warning_SaveOver(filename):
 #		return
 
-    # XXX
     time1 = time.clock()
-#	time1= Blender.sys.time()
 #	Blender.Window.WaitCursor(1)
 
     sce = context.scene
-#	sce= bpy.data.scenes.active
 
     if context.object:
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -1106,9 +1014,10 @@ def write(filename, context):
     # Debugging only: dump the chunk hierarchy:
     #primary.dump()
 
-
+import bpy
 from bpy.props import *
 from io_utils import ExportHelper
+from io_utils import create_derived_objects, free_derived_objects
 
 
 class Export3DS(bpy.types.Operator, ExportHelper):
