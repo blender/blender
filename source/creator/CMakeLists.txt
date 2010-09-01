@@ -139,7 +139,7 @@ IF(WITH_INSTALL)
 			COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/
 			COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf ${TARGETDIR}/${BLENDER_VERSION}/
 		)
-    
+	
 		IF(WITH_INTERNATIONAL)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
@@ -147,7 +147,7 @@ IF(WITH_INSTALL)
 				COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale ${TARGETDIR}/${BLENDER_VERSION}/
 			)
 		ENDIF(WITH_INTERNATIONAL)
-    
+	
 		IF(WITH_PYTHON)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
@@ -173,7 +173,7 @@ IF(WITH_INSTALL)
 					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/config
 
 					COMMAND rm -rf ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/site-packages
-					COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/site-packages    # python needs it.
+					COMMAND mkdir ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/site-packages	# python needs it.
 
 					COMMAND rm -f ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION}/lib-dynload/_tkinter.so
 					COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/python${PYTHON_VERSION} -name "test" -prune -exec rm -rf {} "\;"
@@ -182,13 +182,13 @@ IF(WITH_INSTALL)
 				)
 			ENDIF(WITH_PYTHON_INSTALL)
 		ENDIF(WITH_PYTHON)
-      
+	  
 		ADD_CUSTOM_COMMAND(
 			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
 			COMMAND find ${TARGETDIR} -name .svn -prune -exec rm -rf {} "\;"
 		)
-    
-    
+	
+	
 		# Above we bundle a portable distribution in ./bin
 		# This is an optional "make install" which installs blender on the system.
 		INSTALL(
@@ -204,32 +204,32 @@ IF(WITH_INSTALL)
 		ENDIF(WITH_GAMEENGINE AND WITH_PLAYER)
 
 		INSTALL(
-            FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
-            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications
-        )
+			FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications
+		)
 		INSTALL(
-            FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/blender.svg
-            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps
-        )
+			FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/icons/scalable/blender.svg
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps
+		)
 		INSTALL(
 			PROGRAMS ${CMAKE_SOURCE_DIR}/release/bin/blender-thumbnailer.py
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 		)
 		INSTALL(
-            FILES ${CMAKE_SOURCE_DIR}/doc/blender.1
-            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
-        )
+			FILES ${CMAKE_SOURCE_DIR}/doc/blender.1
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
+		)
 		INSTALL(
-            DIRECTORY ${CMAKE_SOURCE_DIR}/release/text/
-            DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/blender
-            PATTERN ".svn" EXCLUDE
-        )
+			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text/
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/blender
+			PATTERN ".svn" EXCLUDE
+		)
 		INSTALL(
-            DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts/
-            DESTINATION ${BLENDERPATH}/scripts
-            PATTERN ".svn" EXCLUDE
+			DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts/
+			DESTINATION ${BLENDERPATH}/scripts
+			PATTERN ".svn" EXCLUDE
 			PATTERN "*.pyc" EXCLUDE
-        )
+		)
 		INSTALL(
 			DIRECTORY ${CMAKE_SOURCE_DIR}/release/datafiles/brushicons/
 			DESTINATION ${BLENDERPATH}/datafiles/brushicons
@@ -237,14 +237,14 @@ IF(WITH_INSTALL)
 		)
 		IF(WITH_INTERNATIONAL)
 			INSTALL(
-    	        DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale/
-    	        DESTINATION ${BLENDERPATH}/datafiles/locale
-    	        PATTERN ".svn" EXCLUDE
-	        )
+				DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale/
+				DESTINATION ${BLENDERPATH}/datafiles/locale
+				PATTERN ".svn" EXCLUDE
+			)
 		ENDIF(WITH_INTERNATIONAL)
-        
+		
 		# end "make install"
-    
+	
 	ENDIF(UNIX AND NOT APPLE)
 
 	IF(APPLE)
@@ -262,7 +262,7 @@ IF(WITH_INSTALL)
 			COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
 			COMMAND cp ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
 		)
-      
+	  
 		IF(WITH_INTERNATIONAL)
 			ADD_CUSTOM_COMMAND(
 				TARGET blender POST_BUILD MAIN_DEPENDENCY blender
@@ -270,7 +270,7 @@ IF(WITH_INSTALL)
 				COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/datafiles/
 			)
 		ENDIF(WITH_INTERNATIONAL)
-      
+	  
 		IF(WITH_PYTHON)
 			SET(PYTHON_ZIP "python_${CMAKE_OSX_ARCHITECTURES}.zip")
 			ADD_CUSTOM_COMMAND(
@@ -281,13 +281,13 @@ IF(WITH_INSTALL)
 				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${TARGETDIR}/blender.app/Contents/MacOS/python/
 				COMMAND find ${TARGETDIR}/blender.app -name "*.py?" -prune -exec rm -rf {} "\;"
 			)
-		ENDIF(WITH_PYTHON)      
-    
+		ENDIF(WITH_PYTHON)	  
+	
 		ADD_CUSTOM_COMMAND(
-			TARGET blender POST_BUILD MAIN_DEPENDENCY blender    
+			TARGET blender POST_BUILD MAIN_DEPENDENCY blender	
 			COMMAND find ${TARGETDIR}/blender.app -name .DS_Store -prune -exec rm -rf {} "\;"
 			COMMAND find ${TARGETDIR}/blender.app -name .svn -prune -exec rm -rf {} "\;"
-            		COMMAND find ${TARGETDIR}/blender.app -name __MACOSX -prune -exec rm -rf {} "\;"
+					COMMAND find ${TARGETDIR}/blender.app -name __MACOSX -prune -exec rm -rf {} "\;"
 		)
 	ENDIF(APPLE)
 
@@ -295,27 +295,35 @@ IF(WITH_INSTALL)
 		ADD_CUSTOM_COMMAND(TARGET blender
 			POST_BUILD
 			MAIN_DEPENDENCY blender
-			COMMAND if not exist \"${TARGETDIR}\\.blender\" mkdir \"${TARGETDIR}\\.blender\"
-			COMMAND if not exist \"${TARGETDIR}\\.blender\\locale\" mkdir \"${TARGETDIR}\\.blender\\locale\"
-			COMMAND if not exist \"${TARGETDIR}\\.blender\\scripts\" mkdir \"${TARGETDIR}\\.blender\\scripts\"
+			COMMAND if not exist \"${TARGETDIR}\\${BLENDER_VERSION}\" mkdir \"${TARGETDIR}\\${BLENDER_VERSION}\"
+			COMMAND if not exist \"${TARGETDIR}\\${BLENDER_VERSION}\\scripts\" mkdir \"${TARGETDIR}\\${BLENDER_VERSION}\\scripts\"
 			COMMAND if not exist \"${TARGETDIR}\\plugins\" mkdir \"${TARGETDIR}\\plugins\"
-			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\.blender\\\" 
-			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\.bfont.ttf\" \"${TARGETDIR}\\.blender\\\"
-			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\.blender\\locale\"
-			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
-			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
-			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
+			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\.bfont.ttf\" \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\\"
+			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\scripts\\\"
+			COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\plugins\\\"
+			COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\\\"
 		)
-    
-		ADD_CUSTOM_COMMAND(TARGET blender
-			POST_BUILD
-			MAIN_DEPENDENCY blender
-			COMMAND copy /Y \"${LIBDIR}\\gettext\\lib\\gnu_gettext.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${LIBDIR}\\png\\lib\\libpng.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${LIBDIR}\\zlib\\lib\\zlib.dll\" \"${TARGETDIR}\\\"
-			COMMAND copy /Y \"${LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
-			# COMMAND copy /Y \"${LIBDIR}\\samplerate\\lib\\libsamplerate-0.dll\" \"${TARGETDIR}\\\"
-		)
+	
+		IF(CMAKE_CL_64)
+			# gettext and png are statically linked on win64
+			ADD_CUSTOM_COMMAND(TARGET blender
+				POST_BUILD
+				MAIN_DEPENDENCY blender
+				COMMAND copy /Y \"${LIBDIR}\\zlib\\lib\\zlib.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
+				# COMMAND copy /Y \"${LIBDIR}\\samplerate\\lib\\libsamplerate-0.dll\" \"${TARGETDIR}\\\"
+			)
+		ELSE(CMAKE_CL_64)
+			ADD_CUSTOM_COMMAND(TARGET blender
+				POST_BUILD
+				MAIN_DEPENDENCY blender
+				COMMAND copy /Y \"${LIBDIR}\\gettext\\lib\\gnu_gettext.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\png\\lib\\libpng.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\zlib\\lib\\zlib.dll\" \"${TARGETDIR}\\\"
+				COMMAND copy /Y \"${LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
+				# COMMAND copy /Y \"${LIBDIR}\\samplerate\\lib\\libsamplerate-0.dll\" \"${TARGETDIR}\\\"
+			)
+		ENDIF(CMAKE_CL_64)
 
 		IF(WITH_PYTHON)
 			IF(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
@@ -336,11 +344,25 @@ IF(WITH_INSTALL)
 		ENDIF(WITH_PYTHON)
 
 		IF(WITH_INTERNATIONAL)
-			ADD_CUSTOM_COMMAND(TARGET blender
-				POST_BUILD
-				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${LIBDIR}\\iconv\\lib\\iconv.dll\" \"${TARGETDIR}\\\"
-			)
+			IF(CMAKE_CL_64)
+				# iconv is statically linked on win64
+				ADD_CUSTOM_COMMAND(TARGET blender
+					POST_BUILD
+					MAIN_DEPENDENCY blender
+					COMMAND if not exist \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\" mkdir \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\"
+					COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\\" 
+					COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\\\"
+				)
+			ELSE(CMAKE_CL_64)
+				ADD_CUSTOM_COMMAND(TARGET blender
+					POST_BUILD
+					MAIN_DEPENDENCY blender
+					COMMAND copy /Y \"${LIBDIR}\\iconv\\lib\\iconv.dll\" \"${TARGETDIR}\\\"
+					COMMAND if not exist \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\" mkdir \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\"
+					COMMAND copy /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\\" 
+					COMMAND xcopy /E /Y \"${CMAKE_SOURCE_DIR}\\release\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\${BLENDER_VERSION}\\config\\locale\\\"
+				)
+			ENDIF(CMAKE_CL_64)
 		ENDIF(WITH_INTERNATIONAL)
 
 		IF(WITH_FFMPEG)
@@ -387,11 +409,15 @@ IF(WITH_INSTALL)
 		ENDIF(WITH_OPENAL)
 
 		IF(WITH_SDL)
-			ADD_CUSTOM_COMMAND(TARGET blender
-				POST_BUILD
-				MAIN_DEPENDENCY blender
-				COMMAND copy /Y \"${LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
-			)
+			IF(CMAKE_CL_64)
+				# SDL is statically linked on win64
+			ELSE(CMAKE_CL_64)
+				ADD_CUSTOM_COMMAND(TARGET blender
+					POST_BUILD
+					MAIN_DEPENDENCY blender
+					COMMAND copy /Y \"${LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
+				)
+			ENDIF(CMAKE_CL_64)
 		ENDIF(WITH_SDL)
 
 	ENDIF(WIN32)
@@ -416,43 +442,43 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	SET(BLENDER_SORTED_LIBS
 		bf_windowmanager
 
-        bf_editor_space_api
-        bf_editor_space_action
-        bf_editor_space_buttons
-        bf_editor_space_console
-        bf_editor_space_file
-        bf_editor_space_graph
-        bf_editor_space_image
-        bf_editor_space_info
-        bf_editor_space_logic
-        bf_editor_space_nla
-        bf_editor_space_node
-        bf_editor_space_outliner
-        bf_editor_space_script
-        bf_editor_space_sequencer
-        bf_editor_space_sound
-        bf_editor_space_time
-        bf_editor_space_userpref
-        bf_editor_space_view3d
+		bf_editor_space_api
+		bf_editor_space_action
+		bf_editor_space_buttons
+		bf_editor_space_console
+		bf_editor_space_file
+		bf_editor_space_graph
+		bf_editor_space_image
+		bf_editor_space_info
+		bf_editor_space_logic
+		bf_editor_space_nla
+		bf_editor_space_node
+		bf_editor_space_outliner
+		bf_editor_space_script
+		bf_editor_space_sequencer
+		bf_editor_space_sound
+		bf_editor_space_time
+		bf_editor_space_userpref
+		bf_editor_space_view3d
 
-        bf_editor_text
-        bf_editor_transform
-        bf_editor_util
-        bf_editor_uvedit
-        bf_editor_curve
-        bf_editor_armature
-        bf_editor_gpencil
-        bf_editor_interface
-        bf_editor_mesh
-        bf_editor_metaball
-        bf_editor_object
-        bf_editor_physics
-        bf_editor_render
-        bf_editor_screen
-        bf_editor_sculpt_paint
-        bf_editor_sound
-        bf_editor_animation
-        bf_editor_datafiles
+		bf_editor_text
+		bf_editor_transform
+		bf_editor_util
+		bf_editor_uvedit
+		bf_editor_curve
+		bf_editor_armature
+		bf_editor_gpencil
+		bf_editor_interface
+		bf_editor_mesh
+		bf_editor_metaball
+		bf_editor_object
+		bf_editor_physics
+		bf_editor_render
+		bf_editor_screen
+		bf_editor_sculpt_paint
+		bf_editor_sound
+		bf_editor_animation
+		bf_editor_datafiles
 
 		bf_intern_bsp 
 		bf_render 
