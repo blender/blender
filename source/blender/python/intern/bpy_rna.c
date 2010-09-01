@@ -2909,19 +2909,16 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 static char pyrna_struct_as_pointer_doc[] =
 ".. method:: as_pointer()\n"
 "\n"
-"   Returns capsule which holds a pointer to blenders internal data\n"
+"   Returns the memory address which holds a pointer to blenders internal data\n"
 "\n"
 "   :return: capsule with a name set from the struct type.\n"
-"   :rtype: PyCapsule\n"
+"   :rtype: int\n"
 "\n"
 "   .. note:: This is intended only for advanced script writers who need to pass blender data to their own C/Python modules.\n";
 
 static PyObject *pyrna_struct_as_pointer(BPy_StructRNA *self)
 {
-	if(self->ptr.data)
-		return PyCapsule_New(self->ptr.data, RNA_struct_identifier(self->ptr.type), NULL);
-
-	Py_RETURN_NONE;
+	return PyLong_FromVoidPtr(self->ptr.data);
 }
 
 static PyObject *pyrna_prop_get(BPy_PropertyRNA *self, PyObject *args)
