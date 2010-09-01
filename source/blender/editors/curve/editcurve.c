@@ -5949,7 +5949,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			BLI_remlink(editnurb, nu);
 		}
 		break;
-	case CU_PRIM_DONUT:	/* donut */
+	case CU_PRIM_DONUT:	/* torus */
 		if( cutype==CU_NURBS ) {
 			float tmp_cent[3] = {0.f, 0.f, 0.f};
 			float tmp_vec[3] = {0.f, 0.f, 0.f};
@@ -6281,21 +6281,21 @@ void SURFACE_OT_primitive_nurbs_surface_sphere_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, TRUE);
 }
 
-static int add_primitive_nurbs_surface_donut_exec(bContext *C, wmOperator *op)
+static int add_primitive_nurbs_surface_torus_exec(bContext *C, wmOperator *op)
 {
 	return surf_prim_add(C, op, CU_PRIM_DONUT|CU_NURBS);
 }
 
-void SURFACE_OT_primitive_nurbs_surface_donut_add(wmOperatorType *ot)
+void SURFACE_OT_primitive_nurbs_surface_torus_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Donut";
-	ot->description= "Construct a Nurbs surface Donut";
-	ot->idname= "SURFACE_OT_primitive_nurbs_surface_donut_add";
+	ot->name= "Add Surface Torus";
+	ot->description= "Construct a Nurbs surface Torus";
+	ot->idname= "SURFACE_OT_primitive_nurbs_surface_torus_add";
 	
 	/* api callbacks */
 	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_nurbs_surface_donut_exec;
+	ot->exec= add_primitive_nurbs_surface_torus_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */

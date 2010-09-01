@@ -202,7 +202,7 @@ class INFO_MT_surface_add(bpy.types.Menu):
         layout.operator("surface.primitive_nurbs_surface_surface_add", icon='SURFACE_NSURFACE', text="NURBS Surface")
         layout.operator("surface.primitive_nurbs_surface_tube_add", icon='SURFACE_NTUBE', text="NURBS Tube")
         layout.operator("surface.primitive_nurbs_surface_sphere_add", icon='SURFACE_NSPHERE', text="NURBS Sphere")
-        layout.operator("surface.primitive_nurbs_surface_donut_add", icon='SURFACE_NDONUT', text="NURBS Torus")
+        layout.operator("surface.primitive_nurbs_surface_torus_add", icon='SURFACE_NTORUS', text="NURBS Torus")
 
 
 class INFO_MT_armature_add(bpy.types.Menu):
