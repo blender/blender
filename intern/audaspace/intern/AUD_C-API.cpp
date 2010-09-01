@@ -96,7 +96,6 @@ typedef AUD_Handle AUD_Channel;
 #endif
 
 static AUD_IDevice* AUD_device = NULL;
-static int AUD_available_devices[4];
 static AUD_I3DDevice* AUD_3ddevice = NULL;
 
 void AUD_initOnce()
@@ -159,22 +158,6 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 	{
 		return false;
 	}
-}
-
-int* AUD_enumDevices()
-{
-	int i = 0;
-#ifdef WITH_SDL
-	AUD_available_devices[i++] = AUD_SDL_DEVICE;
-#endif
-#ifdef WITH_OPENAL
-	AUD_available_devices[i++] = AUD_OPENAL_DEVICE;
-#endif
-#ifdef WITH_JACK
-	AUD_available_devices[i++] = AUD_JACK_DEVICE;
-#endif
-	AUD_available_devices[i++] = AUD_NULL_DEVICE;
-	return AUD_available_devices;
 }
 
 void AUD_exit()
