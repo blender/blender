@@ -48,8 +48,7 @@ MATWORLD= mathutils.Matrix.Rotation(-90, 4, 'X')
 # Global Variables
 ####################################
 
-filename = ""
-# filename = Blender.Get('filename')
+filepath = ""
 _safeOverwrite = True
 
 extension = ''
@@ -60,7 +59,7 @@ extension = ''
 
 class x3d_class:
 
-    def __init__(self, filename):
+    def __init__(self, filepath):
         #--- public you can change these ---
         self.writingcolor = 0
         self.writingtexture = 0
@@ -83,18 +82,18 @@ class x3d_class:
         self.matNames={}   # dictionary of materiaNames
         self.meshNames={}   # dictionary of meshNames
         self.indentLevel=0 # keeps track of current indenting
-        self.filename=filename
+        self.filepath=filepath
         self.file = None
-        if filename.lower().endswith('.x3dz'):
+        if filepath.lower().endswith('.x3dz'):
             try:
                 import gzip
-                self.file = gzip.open(filename, "w")
+                self.file = gzip.open(filepath, "w")
             except:
                 print("failed to import compression modules, exporting uncompressed")
-                self.filename = filename[:-1] # remove trailing z
+                self.filepath = filepath[:-1] # remove trailing z
 
         if self.file == None:
-            self.file = open(self.filename, "w")
+            self.file = open(self.filepath, "w")
 
         self.bNav=0
         self.nodeID=0
@@ -136,8 +135,8 @@ class x3d_class:
 ##########################################################
 
     def writeHeader(self):
-        #bfile = sys.expandpath( Blender.Get('filename') ).replace('<', '&lt').replace('>', '&gt')
-        bfile = self.filename.replace('<', '&lt').replace('>', '&gt') # use outfile name
+        #bfile = sys.expandpath( Blender.Get('filepath') ).replace('<', '&lt').replace('>', '&gt')
+        bfile = self.filepath.replace('<', '&lt').replace('>', '&gt') # use outfile name
         self.file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
         self.file.write("<!DOCTYPE X3D PUBLIC \"ISO//Web3D//DTD X3D 3.0//EN\" \"http://www.web3d.org/specifications/x3d-3.0.dtd\">\n")
         self.file.write("<X3D version=\"3.0\" profile=\"Immersive\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema-instance\" xsd:noNamespaceSchemaLocation=\"http://www.web3d.org/specifications/x3d-3.0.xsd\">\n")
@@ -426,6 +425,7 @@ class x3d_class:
             self.writeIndented("<Appearance>\n", 1)
             # right now this script can only handle a single material per mesh.
             if len(maters) >= 1 and maters[0].use_face_texture == False:
+                mat = maters[0]
                 self.writeMaterial(mat, self.cleanStr(mat.name,''), world)
                 if len(maters) > 1:
                     print("Warning: mesh named %s has multiple materials" % meshName)
@@ -672,13 +672,13 @@ class x3d_class:
 
     def writeImageTexture(self, image):
         name = image.name
-        filename = os.path.basename(image.filepath)
+        filepath = os.path.basename(image.filepath)
         if name in self.texNames:
             self.writeIndented("<ImageTexture USE=\"%s\" />\n" % self.cleanStr(name))
             self.texNames[name] += 1
         else:
             self.writeIndented("<ImageTexture DEF=\"%s\" " % self.cleanStr(name), 1)
-            self.file.write("url=\"%s\" />" % filename)
+            self.file.write("url=\"%s\" />" % filepath)
             self.writeIndented("\n",-1)
             self.texNames[name] = 1
 
@@ -781,7 +781,7 @@ class x3d_class:
             EXPORT_TRI=				False,\
         ):
 
-        print("Info: starting X3D export to " + self.filename + "...")
+        print("Info: starting X3D export to " + self.filepath + "...")
         self.writeHeader()
         # self.writeScript()
         self.writeNavigationInfo(scene)
@@ -879,7 +879,7 @@ class x3d_class:
         self.texNames={}
         self.matNames={}
         self.indentLevel=0
-        print("Info: finished X3D export to %s\n" % self.filename)
+        print("Info: finished X3D export to %s\n" % self.filepath)
 
     def cleanStr(self, name, prefix='rsvd_'):
         """cleanStr(name,prefix) - try to create a valid VRML DEF name from object name"""
@@ -1089,82 +1089,35 @@ class x3d_class:
 # Callbacks, needed before Main
 ##########################################################
 
-def write(filename,
-               context,
-               EXPORT_APPLY_MODIFIERS=False,
-               EXPORT_TRI=False,
-               EXPORT_GZIP=False):
+def save(operator, context, filepath="",
+          use_apply_modifiers=False,
+          use_triangulate=False,
+          use_compress=False):
 
-    if EXPORT_GZIP:
-        if not filename.lower().endswith('.x3dz'):
-            filename = '.'.join(filename.split('.')[:-1]) + '.x3dz'
+    if use_compress:
+        if not filepath.lower().endswith('.x3dz'):
+            filepath = '.'.join(filepath.split('.')[:-1]) + '.x3dz'
     else:
-        if not filename.lower().endswith('.x3d'):
-            filename = '.'.join(filename.split('.')[:-1]) + '.x3d'
-
+        if not filepath.lower().endswith('.x3d'):
+            filepath = '.'.join(filepath.split('.')[:-1]) + '.x3d'
 
     scene = context.scene
     world = scene.world
 
-    if scene.objects.active:
+    if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
     # XXX these are global textures while .Get() returned only scene's?
     alltextures = bpy.data.textures
     # alltextures = Blender.Texture.Get()
 
-    wrlexport=x3d_class(filename)
-    wrlexport.export(\
-        scene,\
-        world,\
-        alltextures,\
-        \
-        EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS,\
-        EXPORT_TRI = EXPORT_TRI,\
-        )
+    wrlexport = x3d_class(filepath)
+    wrlexport.export(scene,
+                     world,
+                     alltextures,
+                     EXPORT_APPLY_MODIFIERS=use_apply_modifiers,
+                     EXPORT_TRI=use_triangulate,
+                     )
 
+    return {'FINISHED'}
 
-from bpy.props import *
-from io_utils import ExportHelper
-
-
-class ExportX3D(bpy.types.Operator, ExportHelper):
-    '''Export selection to Extensible 3D file (.x3d)'''
-    bl_idname = "export.x3d"
-    bl_label = 'Export X3D'
-
-    filename_ext = ".x3d"
-
-    apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object", default=True)
-    triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=False)
-    compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install", default=False)
-
-    def execute(self, context):
-        filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
-
-        write(filepath,
-                   context,
-                   self.properties.apply_modifiers,
-                   self.properties.triangulate,
-                   self.properties.compress,
-                   )
-
-        return {'FINISHED'}
-
-
-def menu_func(self, context):
-    self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)")
-
-
-def register():
-    bpy.types.INFO_MT_file_export.append(menu_func)
-
-def unregister():
-    bpy.types.INFO_MT_file_export.remove(menu_func)
-
-# NOTES
-# - blender version is hardcoded
-
-if __name__ == "__main__":
-    register()

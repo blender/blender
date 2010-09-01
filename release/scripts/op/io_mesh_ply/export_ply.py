@@ -21,79 +21,64 @@
 # Copyright (C) 2004, 2005: Bruce Merry, bmerry@cs.uct.ac.za
 # Contributors: Bruce Merry, Campbell Barton
 
-import bpy
-
 """
 This script exports Stanford PLY files from Blender. It supports normals,
 colours, and texture coordinates per face or per vertex.
 Only one mesh can be exported at a time.
 """
 
-def rvec3d(v):
-    return round(v[0], 6), round(v[1], 6), round(v[2], 6)
+import bpy
+import os
 
 
-def rvec2d(v):
-    return round(v[0], 6), round(v[1], 6)
+def save(operator, context, filepath="", use_modifiers=True, use_normals=True, use_uv_coords=True, use_colors=True):
+    
+    def rvec3d(v):
+        return round(v[0], 6), round(v[1], 6), round(v[2], 6)
 
 
-def write(filename, scene, ob, \
-        EXPORT_APPLY_MODIFIERS=True,\
-        EXPORT_NORMALS=True,\
-        EXPORT_UV=True,\
-        EXPORT_COLORS=True):
+    def rvec2d(v):
+        return round(v[0], 6), round(v[1], 6)
+    
+    scene = context.scene
+    obj = context.object
 
-    if not filename.lower().endswith('.ply'):
-        filename += '.ply'
-
-    if not ob:
+    if not obj:
         raise Exception("Error, Select 1 active object")
-        return
 
-    file = open(filename, 'w')
+    file = open(filepath, 'w')
 
-
-    #EXPORT_EDGES = Draw.Create(0)
-    """
-    is_editmode = Blender.Window.EditMode()
-    if is_editmode:
-        Blender.Window.EditMode(0, '', 0)
-
-    Window.WaitCursor(1)
-    """
     if scene.objects.active:
         bpy.ops.object.mode_set(mode='OBJECT')
 
-    #mesh = BPyMesh.getMeshFromObject(ob, None, EXPORT_APPLY_MODIFIERS, False, scn) # XXX
-    if EXPORT_APPLY_MODIFIERS:
-        mesh = ob.create_mesh(scene, True, 'PREVIEW')
+    if use_modifiers:
+        mesh = obj.create_mesh(scene, True, 'PREVIEW')
     else:
-        mesh = ob.data
+        mesh = obj.data
 
     if not mesh:
-        raise ("Error, could not get mesh data from active object")
-        return
+        raise Exception("Error, could not get mesh data from active object")
 
-    # mesh.transform(ob.matrix_world) # XXX
+    # mesh.transform(obj.matrix_world) # XXX
 
     faceUV = (len(mesh.uv_textures) > 0)
     vertexUV = (len(mesh.sticky) > 0)
     vertexColors = len(mesh.vertex_colors) > 0
 
     if (not faceUV) and (not vertexUV):
-        EXPORT_UV = False
+        use_uv_coords = False
     if not vertexColors:
-        EXPORT_COLORS = False
+        use_colors = False
 
-    if not EXPORT_UV:
+    if not use_uv_coords:
         faceUV = vertexUV = False
-    if not EXPORT_COLORS:
+    if not use_colors:
         vertexColors = False
 
     if faceUV:
         active_uv_layer = mesh.uv_textures.active
         if not active_uv_layer:
-            EXPORT_UV = False
+            use_uv_coords = False
             faceUV = None
         else:
             active_uv_layer = active_uv_layer.data
@@ -101,7 +86,7 @@ def write(filename, scene, ob, \
     if vertexColors:
         active_col_layer = mesh.vertex_colors.active
         if not active_col_layer:
-            EXPORT_COLORS = False
+            use_colors = False
             vertexColors = None
         else:
             active_col_layer = active_col_layer.data
@@ -166,7 +151,7 @@ def write(filename, scene, ob, \
 
     file.write('ply\n')
     file.write('format ascii 1.0\n')
-    file.write('comment Created by Blender %s - www.blender.org, source file: %s\n' % (bpy.app.version_string, bpy.data.filepath.split('/')[-1].split('\\')[-1]))
+    file.write('comment Created by Blender %s - www.blender.org, source file: %r\n' % (bpy.app.version_string, os.path.basename(bpy.data.filepath)))
 
     file.write('element vertex %d\n' % len(ply_verts))
 
@@ -174,14 +159,14 @@ def write(filename, scene, ob, \
     file.write('property float y\n')
     file.write('property float z\n')
 
-    if EXPORT_NORMALS:
+    if use_normals:
         file.write('property float nx\n')
         file.write('property float ny\n')
         file.write('property float nz\n')
-    if EXPORT_UV:
+    if use_uv_coords:
         file.write('property float s\n')
         file.write('property float t\n')
-    if EXPORT_COLORS:
+    if use_colors:
         file.write('property uchar red\n')
         file.write('property uchar green\n')
         file.write('property uchar blue\n')
@@ -192,11 +177,11 @@ def write(filename, scene, ob, \
 
     for i, v in enumerate(ply_verts):
         file.write('%.6f %.6f %.6f ' % tuple(mesh_verts[v[0]].co)) # co
-        if EXPORT_NORMALS:
+        if use_normals:
             file.write('%.6f %.6f %.6f ' % v[1]) # no
-        if EXPORT_UV:
+        if use_uv_coords:
             file.write('%.6f %.6f ' % v[2]) # uv
-        if EXPORT_COLORS:
+        if use_colors:
             file.write('%u %u %u' % v[3]) # col
         file.write('\n')
 
@@ -207,9 +192,9 @@ def write(filename, scene, ob, \
             file.write('4 %d %d %d %d\n' % tuple(pf))
 
     file.close()
-    print("writing", filename, "done")
+    print("writing %r done" % filepath)
 
-    if EXPORT_APPLY_MODIFIERS:
+    if use_modifiers:
         bpy.data.meshes.remove(mesh)
 
     # XXX
@@ -217,65 +202,5 @@ def write(filename, scene, ob, \
     if is_editmode:
         Blender.Window.EditMode(1, '', 0)
     """
-
-from bpy.props import *
-from io_utils import ExportHelper
-
-
-class ExportPLY(bpy.types.Operator, ExportHelper):
-    '''Export a single object as a stanford PLY with normals, colours and texture coordinates.'''
-    bl_idname = "export.ply"
-    bl_label = "Export PLY"
     
-    filename_ext = ".ply"
-
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
-
-    use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default=True)
-    use_normals = BoolProperty(name="Normals", description="Export Normals for smooth and hard shaded faces", default=True)
-    use_uvs = BoolProperty(name="UVs", description="Exort the active UV layer", default=True)
-    use_colors = BoolProperty(name="Vertex Colors", description="Exort the active vertex color layer", default=True)
-
-    @classmethod
-    def poll(cls, context):
-        return context.active_object != None
-
-    def execute(self, context):
-        filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
-
-        write(filepath, context.scene, context.active_object,\
-            EXPORT_APPLY_MODIFIERS=self.properties.use_modifiers,
-            EXPORT_NORMALS=self.properties.use_normals,
-            EXPORT_UV=self.properties.use_uvs,
-            EXPORT_COLORS=self.properties.use_colors,
-        )
-
-        return {'FINISHED'}
-
-    def draw(self, context):
-        layout = self.layout
-        props = self.properties
-
-        row = layout.row()
-        row.prop(props, "use_modifiers")
-        row.prop(props, "use_normals")
-        row = layout.row()
-        row.prop(props, "use_uvs")
-        row.prop(props, "use_colors")
-
-
-def menu_func(self, context):
-    self.layout.operator(ExportPLY.bl_idname, text="Stanford (.ply)")
-
-
-def register():
-    bpy.types.INFO_MT_file_export.append(menu_func)
-
-
-def unregister():
-    bpy.types.INFO_MT_file_export.remove(menu_func)
-
-if __name__ == "__main__":
-    register()
+    return {'FINISHED'}

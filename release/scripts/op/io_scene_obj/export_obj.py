@@ -734,7 +734,8 @@ def write_file(filepath, objects, scene,
 
     print("OBJ Export time: %.2f" % (time.clock() - time1))
 
-def write(filepath, context,
+# 
+def _write(context, filepath,
               EXPORT_TRI, # ok
               EXPORT_EDGES,
               EXPORT_NORMALS, # not yet
@@ -760,7 +761,7 @@ def write(filepath, context,
     orig_scene = context.scene
 
     # Exit edit mode before exporting, so current object states are exported properly.
-    if context.object:
+    if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
 #   if EXPORT_ALL_SCENES:
@@ -831,98 +832,51 @@ def write(filepath, context,
 
 '''
 Currently the exporter lacks these features:
-* nurbs
 * multiple scene export (only active scene is written)
 * particles
 '''
 
-from bpy.props import *
-from io_utils import ExportHelper
 
+def save(operator, context, filepath="",
+         use_triangles=False,
+         use_edges=False,
+         use_normals=False,
+         use_hq_normals=False,
+         use_uvs=True,
+         use_materials=True,
+         copy_images=False,
+         use_modifiers=True,
+         use_rotate_x90=True,
+         use_blen_objects=True,
+         group_by_object=False,
+         group_by_material=False,
+         keep_vertex_order=False,
+         use_vertex_groups=False,
+         use_nurbs=True,
+         use_selection=True,
+         use_all_scenes=False,
+         use_animation=False,
+         ):
 
-class ExportOBJ(bpy.types.Operator, ExportHelper):
-    '''Save a Wavefront OBJ File'''
+    _write(context, filepath, 
+           EXPORT_TRI=use_triangles,
+           EXPORT_EDGES=use_edges,
+           EXPORT_NORMALS=use_normals,
+           EXPORT_NORMALS_HQ=use_hq_normals,
+           EXPORT_UV=use_uvs,
+           EXPORT_MTL=use_materials,
+           EXPORT_COPY_IMAGES=copy_images,
+           EXPORT_APPLY_MODIFIERS=use_modifiers,
+           EXPORT_ROTX90=use_rotate_x90,
+           EXPORT_BLEN_OBS=use_blen_objects,
+           EXPORT_GROUP_BY_OB=group_by_object,
+           EXPORT_GROUP_BY_MAT=group_by_material,
+           EXPORT_KEEP_VERT_ORDER=keep_vertex_order,
+           EXPORT_POLYGROUPS=use_vertex_groups,
+           EXPORT_CURVE_AS_NURBS=use_nurbs,
+           EXPORT_SEL_ONLY=use_selection,
+           EXPORT_ALL_SCENES=use_all_scenes,
+           EXPORT_ANIMATION=use_animation,
+           )
 
-    bl_idname = "export.obj"
-    bl_label = 'Export OBJ'
-    
-    filename_ext = ".obj"
-
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
-
-    # context group
-    use_selection = BoolProperty(name="Selection Only", description="Export selected objects only", default= False)
-    use_all_scenes = BoolProperty(name="All Scenes", description="", default= False)
-    use_animation = BoolProperty(name="Animation", description="", default= False)
-
-    # object group
-    use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply modifiers (preview resolution)", default= True)
-    use_rotate90 = BoolProperty(name="Rotate X90", description="", default= True)
-
-    # extra data group
-    use_edges = BoolProperty(name="Edges", description="", default=True)
-    use_normals = BoolProperty(name="Normals", description="", default=False)
-    use_hq_normals = BoolProperty(name="High Quality Normals", description="", default=True)
-    use_uvs = BoolProperty(name="UVs", description="", default= True)
-    use_materials = BoolProperty(name="Materials", description="", default=True)
-    copy_images = BoolProperty(name="Copy Images", description="", default=False)
-    use_triangles = BoolProperty(name="Triangulate", description="", default=False)
-    use_vertex_groups = BoolProperty(name="Polygroups", description="", default=False)
-    use_nurbs = BoolProperty(name="Nurbs", description="", default=False)
-
-    # grouping group
-    use_blen_objects = BoolProperty(name="Objects as OBJ Objects", description="", default= True)
-    group_by_object = BoolProperty(name="Objects as OBJ Groups ", description="", default= False)
-    group_by_material = BoolProperty(name="Material Groups", description="", default= False)
-    keep_vertex_order = BoolProperty(name="Keep Vertex Order", description="", default= False)
-
-
-    def execute(self, context):
-
-        filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
-
-        write(filepath, context,
-              EXPORT_TRI=self.properties.use_triangles,
-              EXPORT_EDGES=self.properties.use_edges,
-              EXPORT_NORMALS=self.properties.use_normals,
-              EXPORT_NORMALS_HQ=self.properties.use_hq_normals,
-              EXPORT_UV=self.properties.use_uvs,
-              EXPORT_MTL=self.properties.use_materials,
-              EXPORT_COPY_IMAGES=self.properties.copy_images,
-              EXPORT_APPLY_MODIFIERS=self.properties.use_modifiers,
-              EXPORT_ROTX90=self.properties.use_rotate90,
-              EXPORT_BLEN_OBS=self.properties.use_blen_objects,
-              EXPORT_GROUP_BY_OB=self.properties.group_by_object,
-              EXPORT_GROUP_BY_MAT=self.properties.group_by_material,
-              EXPORT_KEEP_VERT_ORDER=self.properties.keep_vertex_order,
-              EXPORT_POLYGROUPS=self.properties.use_vertex_groups,
-              EXPORT_CURVE_AS_NURBS=self.properties.use_nurbs,
-              EXPORT_SEL_ONLY=self.properties.use_selection,
-              EXPORT_ALL_SCENES=self.properties.use_all_scenes,
-              EXPORT_ANIMATION=self.properties.use_animation)
-
-        return {'FINISHED'}
-
-
-def menu_func(self, context):
-    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)")
-
-
-def register():
-    bpy.types.INFO_MT_file_export.append(menu_func)
-
-def unregister():
-    bpy.types.INFO_MT_file_export.remove(menu_func)
-
-
-# CONVERSION ISSUES
-# - matrix problem
-# - duplis - only tested dupliverts
-# - NURBS - needs API additions
-# - all scenes export
-# + normals calculation
-
-if __name__ == "__main__":
-    register()
+    return {'FINISHED'}

@@ -36,30 +36,8 @@ import time
 import bpy
 import mathutils
 from geometry import PolyFill
+from io_utils import load_image, unpack_list, unpack_face_list
 
-def unpack_list(list_of_tuples):
-    l = []
-    for t in list_of_tuples:
-        l.extend(t)
-    return l
-
-# same as above except that it adds 0 for triangle faces
-def unpack_face_list(list_of_tuples):
-    # allocate the entire list
-    flat_ls = [0] * (len(list_of_tuples) * 4)
-    i = 0
-
-    for t in list_of_tuples:
-        if len(t) == 3:
-            if t[2] == 0:
-                t = t[1], t[2], t[0]
-        else: # assuem quad
-            if t[3] == 0 or t[2] == 0:
-                t = t[2], t[3], t[0], t[1]
-
-        flat_ls[i:i + len(t)] = t
-        i += 4
-    return flat_ls
 
 def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
     '''
@@ -260,21 +238,6 @@ def line_value(line_split):
     elif length > 2:
         return ' '.join( line_split[1:] )
 
-# limited replacement for BPyImage.comprehensiveImageLoad
-def load_image(imagepath, dirname):
-
-    if os.path.exists(imagepath):
-        return bpy.data.images.load(imagepath)
-
-    variants = [imagepath, os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
-
-    for filepath in variants:
-        for nfilepath in (filepath, bpy.path.resolve_ncase(filepath)):
-            if os.path.exists(nfilepath):
-                return bpy.data.images.load(nfilepath)
-
-    # TODO comprehensiveImageLoad also searched in bpy.config.textureDir
-    return None
 
 def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
     if '_' in imagepath:
@@ -874,17 +837,16 @@ def get_float_func(filepath):
     # incase all vert values were ints
     return float
 
-def load_obj(filepath,
-             context,
-             CLAMP_SIZE= 0.0,
-             CREATE_FGONS= True,
-             CREATE_SMOOTH_GROUPS= True,
-             CREATE_EDGES= True,
-             SPLIT_OBJECTS= True,
-             SPLIT_GROUPS= True,
-             ROTATE_X90= True,
-             IMAGE_SEARCH=True,
-             POLYGROUPS=False):
+def load(operator, context, filepath,
+         CLAMP_SIZE= 0.0,
+         CREATE_FGONS= True,
+         CREATE_SMOOTH_GROUPS= True,
+         CREATE_EDGES= True,
+         SPLIT_OBJECTS= True,
+         SPLIT_GROUPS= True,
+         ROTATE_X90= True,
+         IMAGE_SEARCH=True,
+         POLYGROUPS=False):
     '''
     Called by the user interface or another script.
     load_obj(path) - should give acceptable results.
@@ -1218,295 +1180,8 @@ def load_obj(filepath,
     time_new= time.time()
 # 	time_new= sys.time()
 
-    print('%.4f sec' % (time_new-time_sub))
     print('finished importing: %r in %.4f sec.' % (filepath, (time_new-time_main)))
-
-
-DEBUG= True
-
-
-def load_obj_ui(filepath, BATCH_LOAD= False):
-    if BPyMessages.Error_NoFile(filepath):
-        return
-
-    global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER, ROTATE_X90
-
-    CREATE_SMOOTH_GROUPS= Draw.Create(0)
-    CREATE_FGONS= Draw.Create(1)
-    CREATE_EDGES= Draw.Create(1)
-    SPLIT_OBJECTS= Draw.Create(0)
-    SPLIT_GROUPS= Draw.Create(0)
-    CLAMP_SIZE= Draw.Create(10.0)
-    IMAGE_SEARCH= Draw.Create(1)
-    POLYGROUPS= Draw.Create(0)
-    KEEP_VERT_ORDER= Draw.Create(1)
-    ROTATE_X90= Draw.Create(1)
-
-
-    # Get USER Options
-    # Note, Works but not pretty, instead use a more complicated GUI
-    '''
-    pup_block= [\
-    'Import...',\
-    ('Smooth Groups', CREATE_SMOOTH_GROUPS, 'Surround smooth groups by sharp edges'),\
-    ('Create FGons', CREATE_FGONS, 'Import faces with more then 4 verts as fgons.'),\
-    ('Lines', CREATE_EDGES, 'Import lines and faces with 2 verts as edges'),\
-    'Separate objects from obj...',\
-    ('Object', SPLIT_OBJECTS, 'Import OBJ Objects into Blender Objects'),\
-    ('Group', SPLIT_GROUPS, 'Import OBJ Groups into Blender Objects'),\
-    'Options...',\
-    ('Keep Vert Order', KEEP_VERT_ORDER, 'Keep vert and face order, disables some other options.'),\
-    ('Clamp Scale:', CLAMP_SIZE, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)'),\
-    ('Image Search', IMAGE_SEARCH, 'Search subdirs for any assosiated images (Warning, may be slow)'),\
-    ]
-
-    if not Draw.PupBlock('Import OBJ...', pup_block):
-        return
-
-    if KEEP_VERT_ORDER.val:
-        SPLIT_OBJECTS.val = False
-        SPLIT_GROUPS.val = False
-    '''
-
-
-
-    # BEGIN ALTERNATIVE UI *******************
-    if True:
-
-        EVENT_NONE = 0
-        EVENT_EXIT = 1
-        EVENT_REDRAW = 2
-        EVENT_IMPORT = 3
-
-        GLOBALS = {}
-        GLOBALS['EVENT'] = EVENT_REDRAW
-        #GLOBALS['MOUSE'] = Window.GetMouseCoords()
-        GLOBALS['MOUSE'] = [i/2 for i in Window.GetScreenSize()]
-
-        def obj_ui_set_event(e,v):
-            GLOBALS['EVENT'] = e
-
-        def do_split(e,v):
-            global SPLIT_OBJECTS, SPLIT_GROUPS, KEEP_VERT_ORDER, POLYGROUPS
-            if SPLIT_OBJECTS.val or SPLIT_GROUPS.val:
-                KEEP_VERT_ORDER.val = 0
-                POLYGROUPS.val = 0
-            else:
-                KEEP_VERT_ORDER.val = 1
-
-        def do_vertorder(e,v):
-            global SPLIT_OBJECTS, SPLIT_GROUPS, KEEP_VERT_ORDER
-            if KEEP_VERT_ORDER.val:
-                SPLIT_OBJECTS.val = SPLIT_GROUPS.val = 0
-            else:
-                if not (SPLIT_OBJECTS.val or SPLIT_GROUPS.val):
-                    KEEP_VERT_ORDER.val = 1
-
-        def do_polygroups(e,v):
-            global SPLIT_OBJECTS, SPLIT_GROUPS, KEEP_VERT_ORDER, POLYGROUPS
-            if POLYGROUPS.val:
-                SPLIT_OBJECTS.val = SPLIT_GROUPS.val = 0
-
-        def do_help(e,v):
-            url = __url__[0]
-            print('Trying to open web browser with documentation at this address...')
-            print('\t' + url)
-
-            try:
-                import webbrowser
-                webbrowser.open(url)
-            except:
-                print('...could not open a browser window.')
-
-        def obj_ui():
-            ui_x, ui_y = GLOBALS['MOUSE']
-
-            # Center based on overall pup size
-            ui_x -= 165
-            ui_y -= 90
-
-            global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER, ROTATE_X90
-
-            Draw.Label('Import...', ui_x+9, ui_y+159, 220, 21)
-            Draw.BeginAlign()
-            CREATE_SMOOTH_GROUPS = Draw.Toggle('Smooth Groups', EVENT_NONE, ui_x+9, ui_y+139, 110, 20, CREATE_SMOOTH_GROUPS.val, 'Surround smooth groups by sharp edges')
-            CREATE_FGONS = Draw.Toggle('NGons as FGons', EVENT_NONE, ui_x+119, ui_y+139, 110, 20, CREATE_FGONS.val, 'Import faces with more then 4 verts as fgons')
-            CREATE_EDGES = Draw.Toggle('Lines as Edges', EVENT_NONE, ui_x+229, ui_y+139, 110, 20, CREATE_EDGES.val, 'Import lines and faces with 2 verts as edges')
-            Draw.EndAlign()
-
-            Draw.Label('Separate objects by OBJ...', ui_x+9, ui_y+110, 220, 20)
-            Draw.BeginAlign()
-            SPLIT_OBJECTS = Draw.Toggle('Object', EVENT_REDRAW, ui_x+9, ui_y+89, 55, 21, SPLIT_OBJECTS.val, 'Import OBJ Objects into Blender Objects', do_split)
-            SPLIT_GROUPS = Draw.Toggle('Group', EVENT_REDRAW, ui_x+64, ui_y+89, 55, 21, SPLIT_GROUPS.val, 'Import OBJ Groups into Blender Objects', do_split)
-            Draw.EndAlign()
-
-            # Only used for user feedback
-            KEEP_VERT_ORDER = Draw.Toggle('Keep Vert Order', EVENT_REDRAW, ui_x+184, ui_y+89, 113, 21, KEEP_VERT_ORDER.val, 'Keep vert and face order, disables split options, enable for morph targets', do_vertorder)
-
-            ROTATE_X90 = Draw.Toggle('-X90', EVENT_REDRAW, ui_x+302, ui_y+89, 38, 21, ROTATE_X90.val, 'Rotate X 90.')
-
-            Draw.Label('Options...', ui_x+9, ui_y+60, 211, 20)
-            CLAMP_SIZE = Draw.Number('Clamp Scale: ', EVENT_NONE, ui_x+9, ui_y+39, 130, 21, CLAMP_SIZE.val, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)')
-            POLYGROUPS = Draw.Toggle('Poly Groups', EVENT_REDRAW, ui_x+144, ui_y+39, 90, 21, POLYGROUPS.val, 'Import OBJ groups as vertex groups.', do_polygroups)
-            IMAGE_SEARCH = Draw.Toggle('Image Search', EVENT_NONE, ui_x+239, ui_y+39, 100, 21, IMAGE_SEARCH.val, 'Search subdirs for any assosiated images (Warning, may be slow)')
-            Draw.BeginAlign()
-            Draw.PushButton('Online Help', EVENT_REDRAW, ui_x+9, ui_y+9, 110, 21, 'Load the wiki page for this script', do_help)
-            Draw.PushButton('Cancel', EVENT_EXIT, ui_x+119, ui_y+9, 110, 21, '', obj_ui_set_event)
-            Draw.PushButton('Import', EVENT_IMPORT, ui_x+229, ui_y+9, 110, 21, 'Import with these settings', obj_ui_set_event)
-            Draw.EndAlign()
-
-
-        # hack so the toggle buttons redraw. this is not nice at all
-        while GLOBALS['EVENT'] not in (EVENT_EXIT, EVENT_IMPORT):
-            Draw.UIBlock(obj_ui, 0)
-
-        if GLOBALS['EVENT'] != EVENT_IMPORT:
-            return
-
-    # END ALTERNATIVE UI *********************
-
-
-
-
-
-
-
-    Window.WaitCursor(1)
-
-    if BATCH_LOAD: # load the dir
-        try:
-            files= [ f for f in os.listdir(filepath) if f.lower().endswith('.obj') ]
-        except:
-            Window.WaitCursor(0)
-            Draw.PupMenu('Error%t|Could not open path ' + filepath)
-            return
-
-        if not files:
-            Window.WaitCursor(0)
-            Draw.PupMenu('Error%t|No files at path ' + filepath)
-            return
-
-        for f in files:
-            scn= bpy.data.scenes.new(os.path.splitext(f)[0])
-            scn.makeCurrent()
-
-            load_obj(sys.join(filepath, f),\
-              CLAMP_SIZE.val,\
-              CREATE_FGONS.val,\
-              CREATE_SMOOTH_GROUPS.val,\
-              CREATE_EDGES.val,\
-              SPLIT_OBJECTS.val,\
-              SPLIT_GROUPS.val,\
-              ROTATE_X90.val,\
-              IMAGE_SEARCH.val,\
-              POLYGROUPS.val
-            )
-
-    else: # Normal load
-        load_obj(filepath,\
-          CLAMP_SIZE.val,\
-          CREATE_FGONS.val,\
-          CREATE_SMOOTH_GROUPS.val,\
-          CREATE_EDGES.val,\
-          SPLIT_OBJECTS.val,\
-          SPLIT_GROUPS.val,\
-          ROTATE_X90.val,\
-          IMAGE_SEARCH.val,\
-          POLYGROUPS.val
-        )
-
-    Window.WaitCursor(0)
-
-
-def load_obj_ui_batch(file):
-    load_obj_ui(file, True)
-
-DEBUG= False
-
-# if __name__=='__main__' and not DEBUG:
-# 	if os and Window.GetKeyQualifiers() & Window.Qual.SHIFT:
-# 		Window.FileSelector(load_obj_ui_batch, 'Import OBJ Dir', '')
-# 	else:
-# 		Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ', '*.obj')
-
-    # For testing compatibility
-'''
-else:
-    # DEBUG ONLY
-    TIME= sys.time()
-    DIR = '/fe/obj'
-    import os
-    print 'Searching for files'
-    def fileList(path):
-        for dirpath, dirnames, filenames in os.walk(path):
-            for filename in filenames:
-                yield os.path.join(dirpath, filename)
-
-    files = [f for f in fileList(DIR) if f.lower().endswith('.obj')]
-    files.sort()
-
-    for i, obj_file in enumerate(files):
-        if 0 < i < 20:
-            print 'Importing', obj_file, '\nNUMBER', i, 'of', len(files)
-            newScn= bpy.data.scenes.new(os.path.basename(obj_file))
-            newScn.makeCurrent()
-            load_obj(obj_file, False, IMAGE_SEARCH=0)
-
-    print 'TOTAL TIME: %.6f' % (sys.time() - TIME)
-'''
-
-from bpy.props import *
-from io_utils import ImportHelper
-
-
-class IMPORT_OT_obj(bpy.types.Operator, ImportHelper):
-    '''Load a Wavefront OBJ File'''
-    bl_idname = "import_scene.obj"
-    bl_label = "Import OBJ"
-
-    filename_ext = ".obj"
-
-    CREATE_SMOOTH_GROUPS = BoolProperty(name="Smooth Groups", description="Surround smooth groups by sharp edges", default= True)
-    CREATE_FGONS = BoolProperty(name="NGons as FGons", description="Import faces with more then 4 verts as fgons", default= True)
-    CREATE_EDGES = BoolProperty(name="Lines as Edges", description="Import lines and faces with 2 verts as edge", default= True)
-    SPLIT_OBJECTS = BoolProperty(name="Object", description="Import OBJ Objects into Blender Objects", default= True)
-    SPLIT_GROUPS = BoolProperty(name="Group", description="Import OBJ Groups into Blender Objects", default= True)
-    # old comment: only used for user feedback
-    # disabled this option because in old code a handler for it disabled SPLIT* params, it's not passed to load_obj
-    # KEEP_VERT_ORDER = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)
-    ROTATE_X90 = BoolProperty(name="-X90", description="Rotate X 90.", default= True)
-    CLAMP_SIZE = FloatProperty(name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0)
-    POLYGROUPS = BoolProperty(name="Poly Groups", description="Import OBJ groups as vertex groups.", default= True)
-    IMAGE_SEARCH = BoolProperty(name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default= True)
-
-
-    def execute(self, context):
-        # print("Selected: " + context.active_object.name)
-
-        load_obj(self.properties.filepath,
-                 context,
-                 self.properties.CLAMP_SIZE,
-                 self.properties.CREATE_FGONS,
-                 self.properties.CREATE_SMOOTH_GROUPS,
-                 self.properties.CREATE_EDGES,
-                 self.properties.SPLIT_OBJECTS,
-                 self.properties.SPLIT_GROUPS,
-                 self.properties.ROTATE_X90,
-                 self.properties.IMAGE_SEARCH,
-                 self.properties.POLYGROUPS)
-
-        return {'FINISHED'}
-
-
-def menu_func(self, context):
-    self.layout.operator(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)")
-
-
-def register():
-    bpy.types.INFO_MT_file_import.append(menu_func)
-
-def unregister():
-    bpy.types.INFO_MT_file_import.remove(menu_func)
+    return {'FINISHED'}
 
 
 # NOTES (all line numbers refer to 2.4x import_obj.py, not this file)

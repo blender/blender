@@ -54,19 +54,23 @@ def check_vertcount(mesh, vertcount):
         return
 
 
-def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
+def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25):
     """
     Blender.Window.WaitCursor(1)
 
     mesh_orig = Mesh.New()
-    mesh_orig.getFromObject(ob.name)
+    mesh_orig.getFromObject(obj.name)
     """
 
-    bpy.ops.object.mode_set(mode='OBJECT')
+    scene = context.scene
+    obj = context.object
 
-    orig_frame = sce.frame_current
-    sce.set_frame(PREF_STARTFRAME)
-    me = ob.create_mesh(sce, True, 'PREVIEW')
+    if bpy.ops.object.mode_set.poll():
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+    orig_frame = scene.frame_current
+    scene.set_frame(frame_start)
+    me = obj.create_mesh(scene, True, 'PREVIEW')
 
     #Flip y and z
     mat_flip = mathutils.Matrix(\
@@ -78,36 +82,36 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 
     numverts = len(me.vertices)
 
-    numframes = PREF_ENDFRAME - PREF_STARTFRAME + 1
-    PREF_FPS = float(PREF_FPS)
-    f = open(filename, 'wb') #no Errors yet:Safe to create file
+    numframes = frame_end - frame_start + 1
+    fps = float(fps)
+    f = open(filepath, 'wb') #no Errors yet:Safe to create file
 
     # Write the header
     f.write(pack(">2i", numframes, numverts))
 
     # Write the frame times (should we use the time IPO??)
-    f.write(pack(">%df" % (numframes), *[frame / PREF_FPS for frame in range(numframes)])) # seconds
+    f.write(pack(">%df" % (numframes), *[frame / fps for frame in range(numframes)])) # seconds
 
     #rest frame needed to keep frames in sync
     """
-    Blender.Set('curframe', PREF_STARTFRAME)
-    me_tmp.getFromObject(ob.name)
+    Blender.Set('curframe', frame_start)
+    me_tmp.getFromObject(obj.name)
     """
 
     check_vertcount(me, numverts)
-    me.transform(mat_flip * ob.matrix_world)
+    me.transform(mat_flip * obj.matrix_world)
     f.write(pack(">%df" % (numverts * 3), *[axis for v in me.vertices for axis in v.co]))
 
-    for frame in range(PREF_STARTFRAME, PREF_ENDFRAME + 1):#in order to start at desired frame
+    for frame in range(frame_start, frame_end + 1):#in order to start at desired frame
         """
         Blender.Set('curframe', frame)
-        me_tmp.getFromObject(ob.name)
+        me_tmp.getFromObject(obj.name)
         """
 
-        sce.set_frame(frame)
-        me = ob.create_mesh(sce, True, 'PREVIEW')
+        scene.set_frame(frame)
+        me = obj.create_mesh(scene, True, 'PREVIEW')
         check_vertcount(me, numverts)
-        me.transform(mat_flip * ob.matrix_world)
+        me.transform(mat_flip * obj.matrix_world)
 
         # Write the vertex data
         f.write(pack(">%df" % (numverts * 3), *[axis for v in me.vertices for axis in v.co]))
@@ -117,67 +121,11 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
     """
     f.close()
 
-    print('MDD Exported: %s frames:%d\n' % (filename, numframes - 1))
+    print('MDD Exported: %r frames:%d\n' % (filepath, numframes - 1))
     """
     Blender.Window.WaitCursor(0)
     Blender.Set('curframe', orig_frame)
     """
-    sce.set_frame(orig_frame)
-
-from bpy.props import *
-from io_utils import ExportHelper
-
-
-class ExportMDD(bpy.types.Operator, ExportHelper):
-    '''Animated mesh to MDD vertex keyframe file'''
-    bl_idname = "export.mdd"
-    bl_label = "Export MDD"
+    scene.set_frame(orig_frame)
     
-    filename_ext = ".mdd"
-
-    # get first scene to get min and max properties for frames, fps
-
-    minframe = 1
-    maxframe = 300000
-    minfps = 1
-    maxfps = 120
-
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
-    fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default=25)
-    frame_start = IntProperty(name="Start Frame", description="Start frame for baking", min=minframe, max=maxframe, default=1)
-    frame_end = IntProperty(name="End Frame", description="End frame for baking", min=minframe, max=maxframe, default=250)
-
-    @classmethod
-    def poll(cls, context):
-        ob = context.active_object
-        return (ob and ob.type == 'MESH')
-
-    def execute(self, context):
-        filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
-        
-        write(filepath,
-              context.scene,
-              context.active_object,
-              self.properties.frame_start,
-              self.properties.frame_end,
-              self.properties.fps,
-              )
-
-        return {'FINISHED'}
-
-
-def menu_func(self, context):
-    self.layout.operator(ExportMDD.bl_idname, text="Lightwave Point Cache (.mdd)")
-
-
-def register():
-    bpy.types.INFO_MT_file_export.append(menu_func)
-
-
-def unregister():
-    bpy.types.INFO_MT_file_export.remove(menu_func)
-
-if __name__ == "__main__":
-    register()
+    return {'FINISHED'}

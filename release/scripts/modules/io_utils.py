@@ -42,6 +42,23 @@ class ImportHelper:
 		return {'RUNNING_MODAL'}
 
 
+# limited replacement for BPyImage.comprehensiveImageLoad
+def load_image(imagepath, dirname):
+
+    if os.path.exists(imagepath):
+        return bpy.data.images.load(imagepath)
+
+    variants = [imagepath, os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
+
+    for filepath in variants:
+        for nfilepath in (filepath, bpy.path.resolve_ncase(filepath)):
+            if os.path.exists(nfilepath):
+                return bpy.data.images.load(nfilepath)
+
+    # TODO comprehensiveImageLoad also searched in bpy.config.textureDir
+    return None
+
+
 # return a tuple (free, object list), free is True if memory should be freed later with free_derived_objects()
 def create_derived_objects(scene, ob):
     if ob.parent and ob.parent.dupli_type != 'NONE':
@@ -54,34 +71,8 @@ def create_derived_objects(scene, ob):
         return False, [(ob, ob.matrix_world)]
 
 
-
 def free_derived_objects(ob):
     ob.free_dupli_list()
-
-
-# So 3ds max can open files, limit names to 12 in length
-# this is verry annoying for filenames!
-name_unique = []
-name_mapping = {}
-def sane_name(name):
-    name_fixed = name_mapping.get(name)
-    if name_fixed != None:
-        return name_fixed
-
-    if len(name) > 12:
-        new_name = name[:12]
-    else:
-        new_name = name
-
-    i = 0
-
-    while new_name in name_unique:
-        new_name = new_name[:-4] + '.%.3d' % i
-        i+=1
-
-    name_unique.append(new_name)
-    name_mapping[name] = new_name
-    return new_name
 
 
 def unpack_list(list_of_tuples):
@@ -89,7 +80,7 @@ def unpack_list(list_of_tuples):
     flat_list_extend = flat_list.extend # a tich faster
     for t in list_of_tuples:
         flat_list_extend(t)
-    return l
+    return flat_list
 
 # same as above except that it adds 0 for triangle faces
 def unpack_face_list(list_of_tuples):
