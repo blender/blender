@@ -326,8 +326,6 @@ IF(WITH_INSTALL)
 		ENDIF(CMAKE_CL_64)
 
 		IF(WITH_PYTHON)
-			MESSAGE (STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-			MESSAGE (STATUS "CMAKE_CONFIGURATION_TYPES: ${CMAKE_CONFIGURATION_TYPES}")
 			IF(NOT CMAKE_BUILD_TYPE) # hack: with multi-configuration generator this is "", so for now copy both python31.dll/zip and python31_d.dll/zip
 				ADD_CUSTOM_COMMAND(TARGET blender
 					POST_BUILD
