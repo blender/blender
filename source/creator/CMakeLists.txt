@@ -326,21 +326,34 @@ IF(WITH_INSTALL)
 		ENDIF(CMAKE_CL_64)
 
 		IF(WITH_PYTHON)
-			IF(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+			MESSAGE (STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+			MESSAGE (STATUS "CMAKE_CONFIGURATION_TYPES: ${CMAKE_CONFIGURATION_TYPES}")
+			IF(NOT CMAKE_BUILD_TYPE) # hack: with multi-configuration generator this is "", so for now copy both python31.dll/zip and python31_d.dll/zip
 				ADD_CUSTOM_COMMAND(TARGET blender
 					POST_BUILD
 					MAIN_DEPENDENCY blender
 					COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31_d.dll\" \"${TARGETDIR}\\\"
 					COMMAND copy /Y \"${LIBDIR}\\release\\python31_d.zip\" \"${TARGETDIR}\\\"
-				)
-			ELSE(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
-				ADD_CUSTOM_COMMAND(TARGET blender
-					POST_BUILD
-					MAIN_DEPENDENCY blender
 					COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31.dll\" \"${TARGETDIR}\\\"
 					COMMAND copy /Y \"${LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\\"
 				)
-			ENDIF(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+			ELSE(NOT CMAKE_BUILD_TYPE)
+				IF(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+					ADD_CUSTOM_COMMAND(TARGET blender
+						POST_BUILD
+						MAIN_DEPENDENCY blender
+						COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31_d.dll\" \"${TARGETDIR}\\\"
+						COMMAND copy /Y \"${LIBDIR}\\release\\python31_d.zip\" \"${TARGETDIR}\\\"
+					)
+				ELSE(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+					ADD_CUSTOM_COMMAND(TARGET blender
+						POST_BUILD
+						MAIN_DEPENDENCY blender
+						COMMAND copy /Y \"${LIBDIR}\\python\\lib\\python31.dll\" \"${TARGETDIR}\\\"
+						COMMAND copy /Y \"${LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\\"
+					)
+				ENDIF(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+			ENDIF(NOT CMAKE_BUILD_TYPE)
 		ENDIF(WITH_PYTHON)
 
 		IF(WITH_INTERNATIONAL)
@@ -409,15 +422,13 @@ IF(WITH_INSTALL)
 		ENDIF(WITH_OPENAL)
 
 		IF(WITH_SDL)
-			IF(CMAKE_CL_64)
-				# SDL is statically linked on win64
-			ELSE(CMAKE_CL_64)
+			IF(NOT CMAKE_CL_64)
 				ADD_CUSTOM_COMMAND(TARGET blender
 					POST_BUILD
 					MAIN_DEPENDENCY blender
 					COMMAND copy /Y \"${LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
 				)
-			ENDIF(CMAKE_CL_64)
+			ENDIF(NOT CMAKE_CL_64)
 		ENDIF(WITH_SDL)
 
 	ENDIF(WIN32)
