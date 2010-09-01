@@ -409,16 +409,31 @@ static int view3d_mat_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 
 static int view3d_ima_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 {
+	if(drag->type==WM_DRAG_ID) {
+		ID *id= (ID *)drag->poin;
+		if( GS(id->name)==ID_IM )
+			return 1;
+	}
+	else if(drag->type==WM_DRAG_PATH){
+		if(ELEM(drag->icon, 0, ICON_FILE_IMAGE))	/* rule might not work? */
+			return 1;
+	}
+	return 0;
+}
+
+
+static int view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
 	if( ED_view3d_give_base_under_cursor(C, event->mval) ) {
-		if(drag->type==WM_DRAG_ID) {
-			ID *id= (ID *)drag->poin;
-			if( GS(id->name)==ID_IM )
-				return 1;
-		}
-		else if(drag->type==WM_DRAG_PATH){
-			if(ELEM(drag->icon, 0, ICON_FILE_IMAGE))	/* rule might not work? */
-				return 1;
-		}
+		return 0;
+	}
+	return view3d_ima_drop_poll(C, drag, event);
+}
+
+static int view3d_ima_ob_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if( ED_view3d_give_base_under_cursor(C, event->mval) ) {
+		return view3d_ima_drop_poll(C, drag, event);
 	}
 	return 0;
 }
@@ -461,7 +476,8 @@ static void view3d_dropboxes(void)
 	
 	WM_dropbox_add(lb, "OBJECT_OT_add_named_cursor", view3d_ob_drop_poll, view3d_ob_drop_copy);
 	WM_dropbox_add(lb, "OBJECT_OT_drop_named_material", view3d_mat_drop_poll, view3d_id_drop_copy);
-	WM_dropbox_add(lb, "MESH_OT_drop_named_image", view3d_ima_drop_poll, view3d_id_path_drop_copy);
+	WM_dropbox_add(lb, "MESH_OT_drop_named_image", view3d_ima_ob_drop_poll, view3d_id_path_drop_copy);
+	WM_dropbox_add(lb, "VIEW3D_OT_add_background_image", view3d_ima_bg_drop_poll, view3d_id_path_drop_copy);
 }
 
 
