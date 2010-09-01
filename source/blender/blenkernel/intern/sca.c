@@ -474,6 +474,7 @@ void init_actuator(bActuator *act)
 		sta->velocity= 3.f;
 		sta->flag = ACT_STEERING_AUTOMATICFACING;
 		sta->facingaxis = 1;
+		break;
 	default:
 		; /* this is very severe... I cannot make any memory for this        */
 		/* logic brick...                                                    */
@@ -582,9 +583,27 @@ void set_sca_new_poins_ob(Object *ob)
 				bObjectActuator *oa= act->data;
 				ID_NEW(oa->reference);
 			}
-			else if(act->type==ACT_SCENE) {
-				bSceneActuator *sca= act->data;
-				ID_NEW(sca->camera);
+			else if(act->type==ACT_MESSAGE) {
+				bMessageActuator *ma= act->data;
+				ID_NEW(ma->toObject);
+			}
+			else if(act->type==ACT_PARENT) {
+				bParentActuator *para = act->data;
+				ID_NEW(para->ob);
+			}
+			else if(act->type==ACT_ARMATURE) {
+				bArmatureActuator *aa = act->data;
+				ID_NEW(aa->target);
+				ID_NEW(aa->subtarget);
+			}
+			else if(act->type==ACT_PROPERTY) {
+				bPropertyActuator *pa= act->data;
+				ID_NEW(pa->ob);
+			}
+			else if(act->type==ACT_STEERING) {
+				bSteeringActuator *sta = act->data;
+				ID_NEW(sta->navmesh);
+				ID_NEW(sta->target);
 			}
 		}
 		act= act->next;
