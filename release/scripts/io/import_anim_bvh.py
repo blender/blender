@@ -554,14 +554,16 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
 
 
 from bpy.props import *
+from io_utils import ImportHelper
 
 
-class BvhImporter(bpy.types.Operator):
+class BvhImporter(bpy.types.Operator, ImportHelper):
     '''Load a OBJ Motion Capture File'''
     bl_idname = "import_anim.bvh"
     bl_label = "Import BVH"
+    
+    filename_ext = ".bvh"
 
-    filepath = StringProperty(name="File Path", description="Filepath used for importing the OBJ file", maxlen=1024, default="")
     scale = FloatProperty(name="Scale", description="Scale the BVH by this value", min=0.0001, max=1000000.0, soft_min=0.001, soft_max=100.0, default=0.1)
     frame_start = IntProperty(name="Start Frame", description="Starting frame for the animation", default=1)
     loop = BoolProperty(name="Loop", description="Loop the animation playback", default=False)
@@ -600,11 +602,6 @@ class BvhImporter(bpy.types.Operator):
 
         print('Done in %.4f\n' % (time.time() - t1))
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
-        return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):

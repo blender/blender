@@ -854,18 +854,19 @@ Currently the exporter lacks these features:
 '''
 
 from bpy.props import *
+from io_utils import ExportHelper
 
-class ExportOBJ(bpy.types.Operator):
+
+class ExportOBJ(bpy.types.Operator, ExportHelper):
     '''Save a Wavefront OBJ File'''
 
     bl_idname = "export.obj"
     bl_label = 'Export OBJ'
+    
+    filename_ext = ".obj"
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-
-    filepath = StringProperty(name="File Path", description="Filepath used for exporting the OBJ file", maxlen= 1024, default= "", subtype='FILE_PATH')
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     # context group
     use_selection = BoolProperty(name="Selection Only", description="Export selected objects only", default= False)
@@ -897,7 +898,7 @@ class ExportOBJ(bpy.types.Operator):
     def execute(self, context):
 
         filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, ".obj")
+        filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
 
         write(filepath, context,
               EXPORT_TRI=self.properties.use_triangles,
@@ -920,14 +921,6 @@ class ExportOBJ(bpy.types.Operator):
               EXPORT_ANIMATION=self.properties.use_animation)
 
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        import os
-        if not self.properties.is_property_set("filepath"):
-            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".obj"
-
-        context.manager.add_fileselect(self)
-        return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):

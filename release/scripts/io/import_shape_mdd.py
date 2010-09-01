@@ -100,25 +100,16 @@ def mdd_import(filepath, ob, scene, PREF_START_FRAME=0, PREF_JUMP=1):
 
 
 from bpy.props import *
+from io_utils import ImportHelper
 
 
-class importMDD(bpy.types.Operator):
+class importMDD(bpy.types.Operator, ImportHelper):
     '''Import MDD vertex keyframe file to shape keys'''
     bl_idname = "import_shape.mdd"
     bl_label = "Import MDD"
 
-    # get first scene to get min and max properties for frames, fps
-
-    minframe = 1
-    maxframe = 300000
-    minfps = 1
-    maxfps = 120
-
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
-    filepath = StringProperty(name="File Path", description="Filepath used for importing the MDD file", maxlen=1024)
-    #fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default=25)
-    frame_start = IntProperty(name="Start Frame", description="Start frame for inserting animation", min=minframe, max=maxframe, default=0)
+    filename_ext = ".mdd"
+    frame_start = IntProperty(name="Start Frame", description="Start frame for inserting animation", min=-300000, max=300000, default=0)
 
     @classmethod
     def poll(cls, context):
@@ -132,11 +123,6 @@ class importMDD(bpy.types.Operator):
         mdd_import(self.properties.filepath, bpy.context.active_object, context.scene, self.properties.frame_start, 1)
 
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
-        return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):

@@ -143,12 +143,15 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
     sce.set_frame(orig_frame)
 
 from bpy.props import *
+from io_utils import ExportHelper
 
 
-class ExportMDD(bpy.types.Operator):
+class ExportMDD(bpy.types.Operator, ExportHelper):
     '''Animated mesh to MDD vertex keyframe file'''
     bl_idname = "export.mdd"
     bl_label = "Export MDD"
+    
+    filename_ext = ".mdd"
 
     # get first scene to get min and max properties for frames, fps
 
@@ -159,8 +162,6 @@ class ExportMDD(bpy.types.Operator):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    filepath = StringProperty(name="File Path", description="Filepath used for exporting the MDD file", maxlen=1024)
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
     fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default=25)
     frame_start = IntProperty(name="Start Frame", description="Start frame for baking", min=minframe, max=maxframe, default=1)
     frame_end = IntProperty(name="End Frame", description="End frame for baking", min=minframe, max=maxframe, default=250)
@@ -172,7 +173,7 @@ class ExportMDD(bpy.types.Operator):
 
     def execute(self, context):
         filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, ".mdd")
+        filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
         
         write(filepath,
               context.scene,
@@ -183,14 +184,6 @@ class ExportMDD(bpy.types.Operator):
               )
 
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        import os
-        if not self.properties.is_property_set("filepath"):
-            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".mdd"
-
-        context.manager.add_fileselect(self)
-        return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):

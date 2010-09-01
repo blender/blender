@@ -3319,18 +3319,20 @@ def write_ui():
 
 
     # GLOBALS.clear()
+
 from bpy.props import *
-class ExportFBX(bpy.types.Operator):
+from io_utils import ExportHelper
+
+
+class ExportFBX(bpy.types.Operator, ExportHelper):
     '''Selection to an ASCII Autodesk FBX'''
     bl_idname = "export.fbx"
     bl_label = "Export FBX"
+    
+    filename_ext = ".fbx"
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-
-
-    filepath = StringProperty(name="File Path", description="Filepath used for exporting the FBX file", maxlen= 1024, default="")
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
 # 	EXP_OBS_SCENE = BoolProperty(name="Scene Objects", description="Export all objects in this scene", default=True)
@@ -3368,7 +3370,7 @@ class ExportFBX(bpy.types.Operator):
             raise Exception("filepath not set")
 
         filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, ".fbx")
+        filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
 
         GLOBAL_MATRIX = mtx4_identity
         GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.properties.TX_SCALE
@@ -3400,16 +3402,6 @@ class ExportFBX(bpy.types.Operator):
               )
 
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        import os
-        if not self.properties.is_property_set("filepath"):
-            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".fbx"
-
-        context.manager.add_fileselect(self)
-        return {'RUNNING_MODAL'}
-
-
 
 
 # if __name__ == "__main__":

@@ -1164,16 +1164,15 @@ def write(filename,
 
 
 from bpy.props import *
+from io_utils import ExportHelper
 
-class ExportX3D(bpy.types.Operator):
+
+class ExportX3D(bpy.types.Operator, ExportHelper):
     '''Export selection to Extensible 3D file (.x3d)'''
     bl_idname = "export.x3d"
     bl_label = 'Export X3D'
 
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
-    filepath = StringProperty(name="File Path", description="Filepath used for exporting the X3D file", maxlen= 1024, default= "")
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
+    filename_ext = ".x3d"
 
     apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object", default=True)
     triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=False)
@@ -1181,7 +1180,7 @@ class ExportX3D(bpy.types.Operator):
 
     def execute(self, context):
         filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, ".x3d")
+        filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
 
         write(filepath,
                    context,
@@ -1191,14 +1190,6 @@ class ExportX3D(bpy.types.Operator):
                    )
 
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        import os
-        if not self.properties.is_property_set("filepath"):
-            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".x3d"
-
-        context.manager.add_fileselect(self)
-        return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):

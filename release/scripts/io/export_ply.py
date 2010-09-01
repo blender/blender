@@ -257,19 +257,19 @@ def write(filename, scene, ob, \
     """
 
 from bpy.props import *
+from io_utils import ExportHelper
 
 
-class ExportPLY(bpy.types.Operator):
+class ExportPLY(bpy.types.Operator, ExportHelper):
     '''Export a single object as a stanford PLY with normals, colours and texture coordinates.'''
     bl_idname = "export.ply"
     bl_label = "Export PLY"
+    
+    filename_ext = ".ply"
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
-
-    filepath = StringProperty(name="File Path", description="Filepath used for exporting the PLY file", maxlen=1024, default="")
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
     use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default=True)
     use_normals = BoolProperty(name="Normals", description="Export Normals for smooth and hard shaded faces", default=True)
     use_uvs = BoolProperty(name="UVs", description="Exort the active UV layer", default=True)
@@ -281,7 +281,7 @@ class ExportPLY(bpy.types.Operator):
 
     def execute(self, context):
         filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, ".ply")
+        filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
 
         write(filepath, context.scene, context.active_object,\
             EXPORT_APPLY_MODIFIERS=self.properties.use_modifiers,
@@ -291,14 +291,6 @@ class ExportPLY(bpy.types.Operator):
         )
 
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        import os
-        if not self.properties.is_property_set("filepath"):
-            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".ply"
-
-        context.manager.add_fileselect(self)
-        return {'RUNNING_MODAL'}
 
     def draw(self, context):
         layout = self.layout

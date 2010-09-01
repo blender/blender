@@ -1107,15 +1107,16 @@ def write(filename, context):
     #primary.dump()
 
 
-# # write('/test_b.3ds')
 from bpy.props import *
-class Export3DS(bpy.types.Operator):
+from io_utils import ExportHelper
+
+
+class Export3DS(bpy.types.Operator, ExportHelper):
     '''Export to 3DS file format (.3ds)'''
     bl_idname = "export.autodesk_3ds"
     bl_label = 'Export 3DS'
-
-    filepath = StringProperty(name="File Path", description="Filepath used for exporting the 3DS file", maxlen= 1024, default= "")
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
+    
+    filename_ext = ".3ds"
 
     @classmethod
     def poll(cls, context): # Poll isnt working yet
@@ -1123,18 +1124,10 @@ class Export3DS(bpy.types.Operator):
 
     def execute(self, context):
         filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, ".3ds")
+        filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
 
         write(filepath, context)
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        import os
-        if not self.properties.is_property_set("filepath"):
-            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".3ds"
-
-        context.manager.add_fileselect(self)
-        return {'RUNNING_MODAL'}
 
 
 # Add to a menu

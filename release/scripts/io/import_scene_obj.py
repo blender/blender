@@ -1455,17 +1455,15 @@ else:
 '''
 
 from bpy.props import *
+from io_utils import ImportHelper
 
-class IMPORT_OT_obj(bpy.types.Operator):
+
+class IMPORT_OT_obj(bpy.types.Operator, ImportHelper):
     '''Load a Wavefront OBJ File'''
     bl_idname = "import_scene.obj"
     bl_label = "Import OBJ"
 
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
-
-
-    filepath = StringProperty(name="File Path", description="Filepath used for importing the OBJ file", maxlen= 1024, default= "", subtype='FILE_PATH')
+    filename_ext = ".obj"
 
     CREATE_SMOOTH_GROUPS = BoolProperty(name="Smooth Groups", description="Surround smooth groups by sharp edges", default= True)
     CREATE_FGONS = BoolProperty(name="NGons as FGons", description="Import faces with more then 4 verts as fgons", default= True)
@@ -1497,10 +1495,6 @@ class IMPORT_OT_obj(bpy.types.Operator):
                  self.properties.POLYGROUPS)
 
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        context.manager.add_fileselect(self)
-        return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):
