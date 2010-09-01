@@ -4035,6 +4035,10 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 				{
 					PARTICLE_P;
 
+					/* Particles without dynamics haven't been reset yet because they don't use pointcache */
+					if(psys->recalc & PSYS_RECALC_RESET)
+						psys_reset(psys, PSYS_RESET_ALL);
+
 					if(emit_particles(&sim, NULL, cfra)) {
 						free_keyed_keys(psys);
 						distribute_particles(&sim, part->from);
