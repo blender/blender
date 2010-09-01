@@ -23,6 +23,7 @@ from _bpy import ops as ops_module
 
 # op_add = ops_module.add
 op_dir = ops_module.dir
+op_poll = ops_module.poll
 op_call = ops_module.call
 op_as_string = ops_module.as_string
 op_get_rna = ops_module.get_rna
@@ -119,6 +120,9 @@ class bpy_ops_submodule_op(object):
     def __init__(self, module, func):
         self.module = module
         self.func = func
+
+    def poll(self, context=None):
+        return op_poll(self.idname_py(), context)
 
     def idname(self):
         # submod.foo -> SUBMOD_OT_foo

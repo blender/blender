@@ -40,6 +40,45 @@
 #include "MEM_guardedalloc.h"
 #include "BKE_report.h"
 
+static PyObject *pyop_poll( PyObject * self, PyObject * args)
+{
+	wmOperatorType *ot;
+	char		*opname;
+	PyObject	*context_dict= NULL; /* optional args */
+	PyObject	*context_dict_back;
+	PyObject	*ret;
+
+	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
+	bContext *C = BPy_GetContext();
+	
+	if (!PyArg_ParseTuple(args, "s|O:_bpy.ops.poll", &opname, &context_dict))
+		return NULL;
+	
+	ot= WM_operatortype_find(opname, TRUE);
+
+	if (ot == NULL) {
+		PyErr_Format(PyExc_SystemError, "Polling operator \"bpy.ops.%s\" error, could not be found", opname);
+		return NULL;
+	}
+
+	if(!PyDict_Check(context_dict))
+		context_dict= NULL;
+
+	context_dict_back= CTX_py_dict_get(C);
+
+	CTX_py_dict_set(C, (void *)context_dict);
+	Py_XINCREF(context_dict); /* so we done loose it */
+	
+	/* main purpose of thsi function */
+	ret= WM_operator_poll((bContext*)C, ot) ? Py_True : Py_False;
+	
+	/* restore with original context dict, probably NULL but need this for nested operator calls */
+	Py_XDECREF(context_dict);
+	CTX_py_dict_set(C, (void *)context_dict_back);
+	
+	Py_INCREF(ret);
+	return ret;
+}
 
 static PyObject *pyop_call( PyObject * self, PyObject * args)
 {
@@ -66,7 +105,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	ot= WM_operatortype_find(opname, TRUE);
 
 	if (ot == NULL) {
-		PyErr_Format( PyExc_SystemError, "Calling operator \"bpy.ops.%s\" error, could not be found", opname);
+		PyErr_Format(PyExc_SystemError, "Calling operator \"bpy.ops.%s\" error, could not be found", opname);
 		return NULL;
 	}
 	
@@ -252,6 +291,7 @@ static PyObject *pyop_getrna(PyObject *self, PyObject *value)
 
 PyObject *BPY_operator_module( void )
 {
+	static PyMethodDef pyop_poll_meth =		{"poll", (PyCFunction) pyop_poll, METH_VARARGS, NULL};
 	static PyMethodDef pyop_call_meth =		{"call", (PyCFunction) pyop_call, METH_VARARGS, NULL};
 	static PyMethodDef pyop_as_string_meth ={"as_string", (PyCFunction) pyop_as_string, METH_VARARGS, NULL};
 	static PyMethodDef pyop_dir_meth =		{"dir", (PyCFunction) pyop_dir, METH_NOARGS, NULL};
@@ -261,11 +301,12 @@ PyObject *BPY_operator_module( void )
 	PyObject *submodule = PyModule_New("_bpy.ops");
 	PyDict_SetItemString(PyImport_GetModuleDict(), "_bpy.ops", submodule);
 
-	PyModule_AddObject( submodule, "call",	PyCFunction_New(&pyop_call_meth,	NULL) );
-	PyModule_AddObject( submodule, "as_string",PyCFunction_New(&pyop_as_string_meth,NULL) );
-	PyModule_AddObject( submodule, "dir",		PyCFunction_New(&pyop_dir_meth,		NULL) );
-	PyModule_AddObject( submodule, "get_rna",	PyCFunction_New(&pyop_getrna_meth,	NULL) );
-	PyModule_AddObject( submodule, "macro_define",PyCFunction_New(&pyop_macro_def_meth,		NULL) );
+	PyModule_AddObject( submodule, "poll",	PyCFunction_New(&pyop_poll_meth, NULL) );
+	PyModule_AddObject( submodule, "call",	PyCFunction_New(&pyop_call_meth, NULL) );
+	PyModule_AddObject( submodule, "as_string",PyCFunction_New(&pyop_as_string_meth, NULL) );
+	PyModule_AddObject( submodule, "dir",		PyCFunction_New(&pyop_dir_meth, NULL) );
+	PyModule_AddObject( submodule, "get_rna",	PyCFunction_New(&pyop_getrna_meth, NULL) );
+	PyModule_AddObject( submodule, "macro_define",PyCFunction_New(&pyop_macro_def_meth, NULL) );
 
 	return submodule;
 }
