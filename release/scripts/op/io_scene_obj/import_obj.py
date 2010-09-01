@@ -57,7 +57,7 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
     if not indices:
         return []
 
-    #	return []
+    #    return []
     def rvec(co): return round(co.x, 6), round(co.y, 6), round(co.z, 6)
     def mlen(co): return abs(co[0])+abs(co[1])+abs(co[2]) # manhatten length of a vector, faster then length
 
@@ -253,21 +253,21 @@ def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
     return None
 
 # def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
-# 	'''
-# 	Mainly uses comprehensiveImageLoad
-# 	but tries to replace '_' with ' ' for Max's exporter replaces spaces with underscores.
-# 	'''
+#     '''
+#     Mainly uses comprehensiveImageLoad
+#     but tries to replace '_' with ' ' for Max's exporter replaces spaces with underscores.
+#     '''
 
-# 	if '_' in imagepath:
-# 		image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
-# 		if image: return image
-# 		# Did the exporter rename the image?
-# 		image= BPyImage.comprehensiveImageLoad(imagepath.replace('_', ' '), DIR, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
-# 		if image: return image
+#     if '_' in imagepath:
+#         image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
+#         if image: return image
+#         # Did the exporter rename the image?
+#         image= BPyImage.comprehensiveImageLoad(imagepath.replace('_', ' '), DIR, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
+#         if image: return image
 
-# 	# Return an image, placeholder if it dosnt exist
-# 	image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= True, RECURSIVE= IMAGE_SEARCH)
-# 	return image
+#     # Return an image, placeholder if it dosnt exist
+#     image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= True, RECURSIVE= IMAGE_SEARCH)
+#     return image
 
 
 def create_materials(filepath, material_libs, unique_materials, unique_material_images, IMAGE_SEARCH):
@@ -313,27 +313,27 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
         elif type == 'Ka':
             blender_material.add_texture(texture, 'UV', 'AMBIENT')
-# 			blender_material.setTexture(1, texture, Texture.TexCo.UV, Texture.MapTo.CMIR) # TODO- Add AMB to BPY API
+#             blender_material.setTexture(1, texture, Texture.TexCo.UV, Texture.MapTo.CMIR) # TODO- Add AMB to BPY API
 
         elif type == 'Ks':
             blender_material.add_texture(texture, 'UV', 'SPECULARITY')
-# 			blender_material.setTexture(2, texture, Texture.TexCo.UV, Texture.MapTo.SPEC)
+#             blender_material.setTexture(2, texture, Texture.TexCo.UV, Texture.MapTo.SPEC)
 
         elif type == 'Bump':
             blender_material.add_texture(texture, 'UV', 'NORMAL')
-# 			blender_material.setTexture(3, texture, Texture.TexCo.UV, Texture.MapTo.NOR)
+#             blender_material.setTexture(3, texture, Texture.TexCo.UV, Texture.MapTo.NOR)
         elif type == 'D':
             blender_material.add_texture(texture, 'UV', 'ALPHA')
             blender_material.z_transparency = True
             blender_material.alpha = 0.0
-# 			blender_material.setTexture(4, texture, Texture.TexCo.UV, Texture.MapTo.ALPHA)
-# 			blender_material.mode |= Material.Modes.ZTRANSP
-# 			blender_material.alpha = 0.0
+#             blender_material.setTexture(4, texture, Texture.TexCo.UV, Texture.MapTo.ALPHA)
+#             blender_material.mode |= Material.Modes.ZTRANSP
+#             blender_material.alpha = 0.0
             # Todo, unset deffuse material alpha if it has an alpha channel
 
         elif type == 'refl':
             blender_material.add_texture(texture, 'UV', 'REFLECTION')
-# 			blender_material.setTexture(5, texture, Texture.TexCo.UV, Texture.MapTo.REF)
+#             blender_material.setTexture(5, texture, Texture.TexCo.UV, Texture.MapTo.REF)
 
 
     # Add an MTL with the same name as the obj if no MTLs are spesified.
@@ -640,7 +640,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
                         context_material_old= context_material
 
                     blender_face.material_index= mat
-# 					blender_face.mat= mat
+#                     blender_face.mat= mat
 
 
                 if verts_tex:
@@ -672,10 +672,10 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
                     if len(face_vert_loc_indicies)==4:
                         blender_tface.uv4= verts_tex[face_vert_tex_indicies[3]]
 
-# 					for ii, uv in enumerate(blender_face.uv):
-# 						uv.x, uv.y=  verts_tex[face_vert_tex_indicies[ii]]
+#                     for ii, uv in enumerate(blender_face.uv):
+#                         uv.x, uv.y=  verts_tex[face_vert_tex_indicies[ii]]
     del me_faces
-# 	del ALPHA
+#     del ALPHA
 
     if CREATE_EDGES:
 
@@ -683,46 +683,46 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 
         # edges should be a list of (a, b) tuples
         me.edges.foreach_set("vertices", unpack_list(edges))
-# 		me_edges.extend( edges )
+#         me_edges.extend( edges )
 
-# 	del me_edges
+#     del me_edges
 
     # Add edge faces.
-# 	me_edges= me.edges
+#     me_edges= me.edges
 
     def edges_match(e1, e2):
         return (e1[0] == e2[0] and e1[1] == e2[1]) or (e1[0] == e2[1] and e1[1] == e2[0])
 
     # XXX slow
-# 	if CREATE_FGONS and fgon_edges:
-# 		for fgon_edge in fgon_edges.keys():
-# 			for ed in me.edges:
-# 				if edges_match(fgon_edge, ed.vertices):
-# 					ed.is_fgon = True
+#     if CREATE_FGONS and fgon_edges:
+#         for fgon_edge in fgon_edges.keys():
+#             for ed in me.edges:
+#                 if edges_match(fgon_edge, ed.vertices):
+#                     ed.is_fgon = True
 
-# 	if CREATE_FGONS and fgon_edges:
-# 		FGON= Mesh.EdgeFlags.FGON
-# 		for ed in me.findEdges( fgon_edges.keys() ):
-# 			if ed!=None:
-# 				me_edges[ed].flag |= FGON
-# 		del FGON
+#     if CREATE_FGONS and fgon_edges:
+#         FGON= Mesh.EdgeFlags.FGON
+#         for ed in me.findEdges( fgon_edges.keys() ):
+#             if ed!=None:
+#                 me_edges[ed].flag |= FGON
+#         del FGON
 
     # XXX slow
-# 	if unique_smooth_groups and sharp_edges:
-# 		for sharp_edge in sharp_edges.keys():
-# 			for ed in me.edges:
-# 				if edges_match(sharp_edge, ed.vertices):
-# 					ed.use_edge_sharp = True
+#     if unique_smooth_groups and sharp_edges:
+#         for sharp_edge in sharp_edges.keys():
+#             for ed in me.edges:
+#                 if edges_match(sharp_edge, ed.vertices):
+#                     ed.use_edge_sharp = True
 
-# 	if unique_smooth_groups and sharp_edges:
-# 		SHARP= Mesh.EdgeFlags.SHARP
-# 		for ed in me.findEdges( sharp_edges.keys() ):
-# 			if ed!=None:
-# 				me_edges[ed].flag |= SHARP
-# 		del SHARP
+#     if unique_smooth_groups and sharp_edges:
+#         SHARP= Mesh.EdgeFlags.SHARP
+#         for ed in me.findEdges( sharp_edges.keys() ):
+#             if ed!=None:
+#                 me_edges[ed].flag |= SHARP
+#         del SHARP
 
     me.update()
-# 	me.calcNormals()
+#     me.calcNormals()
 
     ob= bpy.data.objects.new("Mesh", me)
     new_objects.append(ob)
@@ -859,7 +859,7 @@ def load(operator, context, filepath,
         POLYGROUPS = False
 
     time_main= time.time()
-# 	time_main= sys.time()
+#     time_main= sys.time()
 
     verts_loc= []
     verts_tex= []
@@ -898,7 +898,7 @@ def load(operator, context, filepath,
 
     print("\tparsing obj file...")
     time_sub= time.time()
-# 	time_sub= sys.time()
+#     time_sub= sys.time()
 
     file= open(filepath, 'rU')
     for line in file: #.xreadlines():
@@ -949,7 +949,7 @@ def load(operator, context, filepath,
                 vert_loc_index= int(obj_vert[0])-1
                 # Add the vertex to the current group
                 # *warning*, this wont work for files that have groups defined around verts
-                if	POLYGROUPS and context_vgroup:
+                if    POLYGROUPS and context_vgroup:
                     vertex_groups[context_vgroup].append(vert_loc_index)
 
                 # Make relative negative vert indicies absolute
@@ -1041,8 +1041,7 @@ def load(operator, context, filepath,
             context_material= line_value(line.split())
             unique_materials[context_material]= None
         elif line.startswith('mtllib'): # usemap or usemat
-            material_libs.extend( line.split()[1:] ) # can have multiple mtllib filenames per line
-
+            material_libs = list(set(material_libs) | set(line.split()[1:])) # can have multiple mtllib filenames per line, mtllib can appear more than once, so make sure only occurance of material exists
 
             # Nurbs support
         elif line.startswith('cstype '):
@@ -1107,7 +1106,7 @@ def load(operator, context, filepath,
 
     file.close()
     time_new= time.time()
-# 	time_new= sys.time()
+#     time_new= sys.time()
     print('%.4f sec' % (time_new-time_sub))
     time_sub= time_new
 
@@ -1116,7 +1115,7 @@ def load(operator, context, filepath,
     create_materials(filepath, material_libs, unique_materials, unique_material_images, IMAGE_SEARCH)
 
     time_new= time.time()
-# 	time_new= sys.time()
+#     time_new= sys.time()
     print('%.4f sec' % (time_new-time_sub))
     time_sub= time_new
 
@@ -1127,13 +1126,13 @@ def load(operator, context, filepath,
     bpy.ops.object.select_all(action='DESELECT')
 
     scene = context.scene
-# 	scn.objects.selected = []
+#     scn.objects.selected = []
     new_objects= [] # put new objects here
 
     print('\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ))
     # Split the mesh by objects/materials, may
-    if SPLIT_OBJECTS or SPLIT_GROUPS:	SPLIT_OB_OR_GROUP = True
-    else:								SPLIT_OB_OR_GROUP = False
+    if SPLIT_OBJECTS or SPLIT_GROUPS:    SPLIT_OB_OR_GROUP = True
+    else:                                SPLIT_OB_OR_GROUP = False
 
     for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
         # Create meshes from the data, warning 'vertex_groups' wont support splitting
@@ -1154,31 +1153,31 @@ def load(operator, context, filepath,
     axis_min= [ 1000000000]*3
     axis_max= [-1000000000]*3
 
-# 	if CLAMP_SIZE:
-# 		# Get all object bounds
-# 		for ob in new_objects:
-# 			for v in ob.getBoundBox():
-# 				for axis, value in enumerate(v):
-# 					if axis_min[axis] > value:	axis_min[axis]= value
-# 					if axis_max[axis] < value:	axis_max[axis]= value
+#     if CLAMP_SIZE:
+#         # Get all object bounds
+#         for ob in new_objects:
+#             for v in ob.getBoundBox():
+#                 for axis, value in enumerate(v):
+#                     if axis_min[axis] > value:    axis_min[axis]= value
+#                     if axis_max[axis] < value:    axis_max[axis]= value
 
-# 		# Scale objects
-# 		max_axis= max(axis_max[0]-axis_min[0], axis_max[1]-axis_min[1], axis_max[2]-axis_min[2])
-# 		scale= 1.0
+#         # Scale objects
+#         max_axis= max(axis_max[0]-axis_min[0], axis_max[1]-axis_min[1], axis_max[2]-axis_min[2])
+#         scale= 1.0
 
-# 		while CLAMP_SIZE < max_axis * scale:
-# 			scale= scale/10.0
+#         while CLAMP_SIZE < max_axis * scale:
+#             scale= scale/10.0
 
-# 		for ob in new_objects:
-# 			ob.setSize(scale, scale, scale)
+#         for ob in new_objects:
+#             ob.setSize(scale, scale, scale)
 
     # Better rotate the vert locations
     #if not ROTATE_X90:
-    #	for ob in new_objects:
-    #		ob.RotX = -1.570796326794896558
+    #    for ob in new_objects:
+    #        ob.RotX = -1.570796326794896558
 
     time_new= time.time()
-# 	time_new= sys.time()
+#    time_new= sys.time()
 
     print('finished importing: %r in %.4f sec.' % (filepath, (time_new-time_main)))
     return {'FINISHED'}
