@@ -2009,6 +2009,10 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 
 	LOOP_PARTICLES {
 		psys_particle_on_emitter(sim->psmd,sim->psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,state.co,0,0,0,0,0);
+		
+		mul_m4_v3(sim->ob->obmat, state.co);
+		mul_mat3_m4_v3(sim->ob->obmat, state.vel);
+		
 		pd_point_from_particle(sim, pa, &state, &point);
 
 		for(eff = effectors->first; eff; eff=eff->next) {
