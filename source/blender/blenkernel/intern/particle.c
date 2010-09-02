@@ -709,6 +709,10 @@ void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[][4], float
 	data->timeoffset= timeoffset;
 
 	psys->renderdata= data;
+
+	/* Hair can and has to be recalculated if everything isn't displayed. */
+	if(psys->part->disp != 100 && psys->part->type == PART_HAIR)
+		psys->recalc |= PSYS_RECALC_RESET;
 }
 
 void psys_render_restore(Object *ob, ParticleSystem *psys)
