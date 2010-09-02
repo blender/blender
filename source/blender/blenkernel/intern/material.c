@@ -453,7 +453,7 @@ Material *give_current_material(Object *ob, int act)
 	}
 	else {								/* in data */
 
-		/* check for inconsistancy */
+		/* check for inconsistency */
 		if(*totcolp < ob->totcol)
 			ob->totcol= *totcolp;
 		if(act>ob->totcol) act= ob->totcol;

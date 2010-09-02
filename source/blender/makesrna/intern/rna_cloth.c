@@ -253,7 +253,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mass", "Mass of cloth material");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
-	prop= RNA_def_property(srna, "mass_vertex_group", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "vertex_group_mass", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ClothSettings_mass_vgroup_get", "rna_ClothSettings_mass_vgroup_length", "rna_ClothSettings_mass_vgroup_set");
 	RNA_def_property_ui_text(prop, "Mass Vertex Group", "Vertex Group for pinning of vertices");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
@@ -316,7 +316,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Structural Stiffness Maximum", "Maximum structural stiffness value");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
-	prop= RNA_def_property(srna, "structural_stiffness_vertex_group", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "vertex_group_structural_stiffness", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ClothSettings_struct_vgroup_get", "rna_ClothSettings_struct_vgroup_length", "rna_ClothSettings_struct_vgroup_set");
 	RNA_def_property_ui_text(prop, "Structural Stiffness Vertex Group", "Vertex group for fine control over structural stiffness");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
@@ -334,7 +334,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bending Stiffness Maximum", "Maximum bending stiffness value");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
-	prop= RNA_def_property(srna, "bending_vertex_group", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "vertex_group_bending", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ClothSettings_bend_vgroup_get", "rna_ClothSettings_bend_vgroup_length", "rna_ClothSettings_bend_vgroup_set");
 	RNA_def_property_ui_text(prop, "Bending Stiffness Vertex Group", "Vertex group for fine control over bending stiffness");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");

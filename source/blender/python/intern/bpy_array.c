@@ -496,7 +496,7 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 	}
 	else {
 		index = arrayoffset + index;
-		ret= (BPy_PropertyRNA*)pyrna_array_item(ptr, prop, index);
+		ret= (BPy_PropertyArrayRNA *)pyrna_array_item(ptr, prop, index);
 	}
 
 	return (PyObject*)ret;
