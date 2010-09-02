@@ -39,7 +39,7 @@ class ViewOperator(bpy.types.Operator):
             v3d = context.space_data
             rv3d = v3d.region_3d
 
-            context.manager.add_modal_handler(self)
+            context.window_manager.add_modal_handler(self)
 
             if rv3d.view_perspective == 'CAMERA':
                 rv3d.view_perspective = 'PERSP'

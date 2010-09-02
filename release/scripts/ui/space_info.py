@@ -26,7 +26,7 @@ class INFO_HT_header(bpy.types.Header):
     def draw(self, context):
         layout = self.layout
 
-        wm = context.manager
+        wm = context.window_manager
         window = context.window
         scene = context.scene
         rd = scene.render

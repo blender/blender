@@ -789,7 +789,7 @@ class USERPREF_PT_input(InputKeyMapPanel):
         #start = time.time()
 
         userpref = context.user_preferences
-        wm = context.manager
+        wm = context.window_manager
 
         inputs = userpref.inputs
 
@@ -1183,7 +1183,7 @@ class WM_OT_addon_install(bpy.types.Operator):
             self.report({'ERROR'}, "No 'addons' path could be found in " + str(bpy.utils.script_paths()))
             return {'CANCELLED'}
 
-        wm = context.manager
+        wm = context.window_manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 

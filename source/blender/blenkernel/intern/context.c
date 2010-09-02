@@ -701,7 +701,7 @@ Main *CTX_data_main(const bContext *C)
 {
 	Main *bmain;
 
-	if(ctx_data_pointer_verify(C, "main", (void*)&bmain))
+	if(ctx_data_pointer_verify(C, "blend_data", (void*)&bmain))
 		return bmain;
 	else
 		return C->data.main;

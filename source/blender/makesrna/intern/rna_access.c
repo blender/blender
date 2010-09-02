@@ -95,7 +95,7 @@ PointerRNA PointerRNA_NULL = {{0}, 0, 0};
 void RNA_main_pointer_create(struct Main *main, PointerRNA *r_ptr)
 {
 	r_ptr->id.data= NULL;
-	r_ptr->type= &RNA_Main;
+	r_ptr->type= &RNA_BlendData;
 	r_ptr->data= main;
 }
 

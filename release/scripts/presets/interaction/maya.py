@@ -1,7 +1,7 @@
 # Configuration Maya
 import bpy
 
-wm = bpy.context.manager
+wm = bpy.context.window_manager
 kc = wm.keyconfigs.new('Maya')
 
 # Map 3D View

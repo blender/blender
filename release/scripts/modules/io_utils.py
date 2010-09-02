@@ -28,9 +28,9 @@ class ExportHelper:
     def invoke(self, context, event):
         import os
         if not self.properties.is_property_set("filepath"):
-            self.properties.filepath = os.path.splitext(context.main.filepath)[0] + self.filename_ext
+            self.properties.filepath = os.path.splitext(context.blend_data.filepath)[0] + self.filename_ext
 
-        context.manager.add_fileselect(self)
+        context.window_manager.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
 
@@ -38,8 +38,7 @@ class ImportHelper:
     filepath = StringProperty(name="File Path", description="Filepath used for importing the file", maxlen= 1024, default= "", subtype='FILE_PATH')
 
     def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
+        context.window_manager.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
 

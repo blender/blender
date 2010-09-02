@@ -250,7 +250,7 @@ class AsScript(bpy.types.Operator):
         import os
         obj = context.object
         self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.path.clean_name(obj.name) + ".py"
-        wm = context.manager
+        wm = context.window_manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
