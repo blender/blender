@@ -26,6 +26,8 @@
 #include "bpy_rna.h"
 #include "bpy_util.h"
 
+#include "BKE_utildefines.h"
+
 #include "RNA_define.h" /* for defining our own rna */
 #include "RNA_enum_types.h"
 
@@ -294,7 +296,7 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		RNA_def_property_int_default(prop, def);
 		RNA_def_property_range(prop, min, max);
 		RNA_def_property_ui_text(prop, name, description);
-		RNA_def_property_ui_range(prop, soft_min, soft_max, step, 3);
+		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, 3);
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -371,7 +373,7 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pydef) RNA_def_property_int_array_default(prop, def);
 		RNA_def_property_range(prop, min, max);
 		RNA_def_property_ui_text(prop, name, description);
-		RNA_def_property_ui_range(prop, soft_min, soft_max, step, 3);
+		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, 3);
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -448,7 +450,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		RNA_def_property_float_default(prop, def);
 		RNA_def_property_range(prop, min, max);
 		RNA_def_property_ui_text(prop, name, description);
-		RNA_def_property_ui_range(prop, soft_min, soft_max, step, precision);
+		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, precision);
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -525,7 +527,7 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pydef) RNA_def_property_float_array_default(prop, def);
 		RNA_def_property_range(prop, min, max);
 		RNA_def_property_ui_text(prop, name, description);
-		RNA_def_property_ui_range(prop, soft_min, soft_max, step, precision);
+		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, precision);
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
