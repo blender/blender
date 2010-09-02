@@ -453,6 +453,21 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
 		return 0;
 	}
+
+	/* lattice modifier can be applied to particle system too */
+	if(ob->particlesystem.first) {
+
+		ParticleSystem *psys = ob->particlesystem.first;
+
+		for(; psys; psys=psys->next) {
+			
+			if(psys->part->type != PART_HAIR)
+				continue;
+
+			psys_apply_hair_lattice(scene, ob, psys);
+		}
+	}
+
 	return 1;
 }
 

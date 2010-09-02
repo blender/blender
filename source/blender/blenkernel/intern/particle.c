@@ -4431,3 +4431,34 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 	VECADDFAC(center, center, yvec, bb->offset[1]);
 }
 
+
+void psys_apply_hair_lattice(Scene *scene, Object *ob, ParticleSystem *psys) {
+	ParticleSimulationData sim = {scene, ob, psys, psys_get_modifier(ob, psys)};
+
+	psys->lattice = psys_get_lattice(&sim);
+
+	if(psys->lattice) {
+		ParticleData *pa = psys->particles;
+		HairKey *hkey;
+		int p, h;
+		float hairmat[4][4], imat[4][4];
+
+		for(p=0; p<psys->totpart; p++, pa++) {
+			psys_mat_hair_to_global(sim.ob, sim.psmd->dm, psys->part->from, pa, hairmat);
+			invert_m4_m4(imat, hairmat);
+
+			hkey = pa->hair;
+			for(h=0; h<pa->totkey; h++, hkey++) {
+				mul_m4_v3(hairmat, hkey->co);
+				calc_latt_deform(psys->lattice, hkey->co, 1.0f);
+				mul_m4_v3(imat, hkey->co);
+			}
+		}
+		
+		end_latt_deform(psys->lattice);
+		psys->lattice= NULL;
+
+		/* protect the applied shape */
+		psys->flag |= PSYS_EDITED;
+	}
+}
