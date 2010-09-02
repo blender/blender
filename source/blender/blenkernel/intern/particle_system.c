@@ -106,19 +106,25 @@
 /*			Reacting to system events			*/
 /************************************************/
 
-static int get_current_display_percentage(ParticleSystem *psys)
+static int particles_are_dynamic(ParticleSystem *psys) {
+	if(psys->pointcache->flag & PTCACHE_BAKED)
+		return 0;
+
+	if(psys->part->type == PART_HAIR)
+		return psys->flag & PSYS_HAIR_DYNAMICS;
+	else
+		return ELEM3(psys->part->phystype, PART_PHYS_NEWTON, PART_PHYS_BOIDS, PART_PHYS_FLUID);
+}
+int psys_get_current_display_percentage(ParticleSystem *psys)
 {
 	ParticleSettings *part=psys->part;
 
-	if(psys->renderdata || (part->child_nbr && part->childtype)
-		|| (psys->pointcache->flag & PTCACHE_BAKING))
+	if((psys->renderdata && !particles_are_dynamic(psys)) /* non-dynamic particles can be rendered fully */
+		|| (part->child_nbr && part->childtype)	/* display percentage applies to children */
+		|| (psys->pointcache->flag & PTCACHE_BAKING)) /* baking is always done with full amount */
 		return 100;
 
-	if(part->phystype==PART_PHYS_KEYED){
-		return psys->part->disp;
-	}
-	else
-		return psys->part->disp;
+	return psys->part->disp;
 }
 
 void psys_reset(ParticleSystem *psys, int mode)
@@ -3250,7 +3256,7 @@ static void hair_step(ParticleSimulationData *sim, float cfra)
 	ParticleSystem *psys = sim->psys;
 /*	ParticleSettings *part = psys->part; */
 	PARTICLE_P;
-	float disp = (float)get_current_display_percentage(psys)/100.0f;
+	float disp = (float)psys_get_current_display_percentage(psys)/100.0f;
 
 	BLI_srandom(psys->seed);
 
@@ -3518,7 +3524,7 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 
 	psys_update_effectors(sim);
 	
-	disp= (float)get_current_display_percentage(psys)/100.0f;
+	disp= (float)psys_get_current_display_percentage(psys)/100.0f;
 
 	LOOP_PARTICLES {
 		pa->size = part->size;
@@ -3785,7 +3791,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 
 /* 3. do dynamics */
 	/* set particles to be not calculated TODO: can't work with pointcache */
-	disp= (float)get_current_display_percentage(psys)/100.0f;
+	disp= (float)psys_get_current_display_percentage(psys)/100.0f;
 
 	BLI_srandom(psys->seed);
 	LOOP_PARTICLES {

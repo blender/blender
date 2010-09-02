@@ -862,6 +862,15 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
         else:
             row.label(text="")
 
+        if part.draw_percentage != 100:
+            if part.type == 'HAIR':
+                if psys.hair_dynamics and psys.point_cache.is_baked == False:
+                    layout.row().label(text="Display percentage makes dynamics inaccurate without baking!")
+            else:
+                phystype = part.physics_type
+                if phystype != 'NO' and phystype != 'KEYED' and psys.point_cache.is_baked == False:
+                    layout.row().label(text="Display percentage makes dynamics inaccurate without baking!")
+
         row = layout.row()
         col = row.column()
         col.prop(part, "show_size")
