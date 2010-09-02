@@ -1804,7 +1804,7 @@ void CURVE_OT_switch_direction(wmOperatorType *ot)
 
 /****************** set weight operator *******************/
 
-static int set_weight_exec(bContext *C, wmOperator *op)
+static int set_goal_weight_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -1842,7 +1842,7 @@ void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 	ot->idname= "CURVE_OT_spline_weight_set";
 	
 	/* api callbacks */
-	ot->exec= set_weight_exec;
+	ot->exec= set_goal_weight_exec;
 	ot->invoke= WM_operator_props_popup;
 	ot->poll= ED_operator_editsurfcurve;
 
@@ -1850,7 +1850,7 @@ void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_factor(ot->srna, "weight", 1.0f, 0.0f, 100.0f, "Weight", "", 0.0f, 100.0f);
+	RNA_def_float_factor(ot->srna, "weight", 1.0f, 0.0f, 1.0f, "Weight", "", 0.0f, 1.0f);
 }
 
 /******************* set radius operator ******************/
