@@ -283,6 +283,8 @@ void psys_mat_hair_to_object(struct Object *ob, struct DerivedMesh *dm, short fr
 void psys_mat_hair_to_global(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);
 void psys_mat_hair_to_orco(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);
 
+float psys_get_dietime_from_cache(struct PointCache *cache, int index);
+
 void psys_free_pdd(struct ParticleSystem *psys);
 
 float *psys_cache_vgroup(struct DerivedMesh *dm, struct ParticleSystem *psys, int vgroup);

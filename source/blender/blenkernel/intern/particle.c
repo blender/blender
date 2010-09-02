@@ -1121,6 +1121,24 @@ static int get_pointcache_times_for_particle(PointCache *cache, int index, float
 
 	return ret == 2;
 }
+
+float psys_get_dietime_from_cache(PointCache *cache, int index) {
+	PTCacheMem *pm;
+	int dietime = 10000000; /* some max value so that we can default to pa->time+lifetime */
+
+	for(pm=cache->mem_cache.last; pm; pm=pm->prev) {
+		if(pm->index_array) {
+			if(pm->index_array[index])
+				return (float)pm->frame;
+		}
+		else {
+			return (float)pm->frame;
+		}
+	}
+
+	return (float)dietime;
+}
+
 static void init_particle_interpolation(Object *ob, ParticleSystem *psys, ParticleData *pa, ParticleInterpolationData *pind)
 {
 
