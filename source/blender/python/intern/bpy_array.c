@@ -457,10 +457,10 @@ static PyObject *pyrna_py_from_array_internal(PointerRNA *ptr, PropertyRNA *prop
 }
 #endif
 
-PyObject *pyrna_py_from_array_index(BPy_PropertyRNA *self, PointerRNA *ptr, PropertyRNA *prop, int index)
+PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr, PropertyRNA *prop, int index)
 {
 	int totdim, arraydim, arrayoffset, dimsize[MAX_ARRAY_DIMENSION], i, len;
-	BPy_PropertyRNA *ret= NULL;
+	BPy_PropertyArrayRNA *ret= NULL;
 
 	arraydim= self ? self->arraydim : 0;
 	arrayoffset = self ? self->arrayoffset : 0;
@@ -478,7 +478,7 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyRNA *self, PointerRNA *ptr, Prop
 	totdim= RNA_property_array_dimension(ptr, prop, dimsize);
 
 	if (arraydim + 1 < totdim) {
-		ret= (BPy_PropertyRNA*)pyrna_prop_CreatePyObject(ptr, prop);
+		ret= (BPy_PropertyArrayRNA*)pyrna_prop_CreatePyObject(ptr, prop);
 		ret->arraydim= arraydim + 1;
 
 		/* arr[3][4][5]
