@@ -2553,7 +2553,7 @@ void object_handle_update(Scene *scene, Object *ob)
 				while(psys) {
 					if(psys_check_enabled(ob, psys)) {
 						/* check use of dupli objects here */
-						if(psys->part && psys->part->draw_as == PART_DRAW_REND &&
+						if(psys->part && (psys->part->draw_as == PART_DRAW_REND || G.rendering) &&
 							((psys->part->ren_as == PART_DRAW_OB && psys->part->dup_ob)
 							|| (psys->part->ren_as == PART_DRAW_GR && psys->part->dup_group)))
 							ob->transflag |= OB_DUPLIPARTS;
