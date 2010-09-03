@@ -316,7 +316,7 @@ class INFO_MT_help(bpy.types.Menu):
         layout.separator()
         layout.operator("wm.url_open", text="Report a Bug", icon='URL').url = 'http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse'
         layout.separator()
-        layout.operator("wm.url_open", text="Python API Reference", icon='URL').url = 'http://www.blender.org/documentation/250PythonDoc/contents.html'
+        layout.operator("wm.url_open", text="Python API Reference", icon='URL').url = "http://www.blender.org/documentation/blender_python_api_%s/contents.html" % "_".join(str(v) for v in bpy.app.version)
         layout.operator("help.operator_cheat_sheet", icon='TEXT')
         layout.separator()
         layout.operator("anim.update_data_paths", text="FCurve/Driver 2.54 fix", icon='HELP')

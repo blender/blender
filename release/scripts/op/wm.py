@@ -505,7 +505,7 @@ class WM_OT_doc_view(bpy.types.Operator):
     bl_label = "View Documentation"
 
     doc_id = doc_id
-    _prefix = 'http://www.blender.org/documentation/250PythonDoc'
+    _prefix = "http://www.blender.org/documentation/blender_python_api_%s" % "_".join(str(v) for v in bpy.app.version)
 
     def _nested_class_string(self, class_string):
         ls = []
