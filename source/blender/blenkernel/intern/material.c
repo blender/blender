@@ -472,7 +472,7 @@ void material_append_id(ID *id, Material *ma)
 	Material ***matar;
 	if((matar= give_matarar_id(id))) {
 		short *totcol= give_totcolp_id(id);
-		Material **mat= MEM_callocN(sizeof(void *) * (*totcol) + 1, "newmatar");
+		Material **mat= MEM_callocN(sizeof(void *) * ((*totcol) + 1), "newmatar");
 		if(*totcol) memcpy(mat, *matar, sizeof(void *) * (*totcol));
 		if(*matar) MEM_freeN(*matar);
 
