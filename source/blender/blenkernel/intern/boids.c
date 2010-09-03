@@ -910,6 +910,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 
 	if(bpa->data.health <= 0.0f) {
 		pa->alive = PARS_DYING;
+		pa->dietime = bbd->cfra;
 		return;
 	}
 
