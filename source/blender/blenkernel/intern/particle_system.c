@@ -1573,8 +1573,6 @@ void initialize_particle(ParticleSimulationData *sim, ParticleData *pa, int p)
 		/* TODO: needs some work to make most blendtypes generally usefull */
 		psys_get_texture(sim,ma,pa,&ptex,MAP_PA_INIT);
 	}
-	
-	pa->lifetime= part->lifetime*ptex.life;
 
 	if(part->type==PART_HAIR)
 		pa->time= 0.0f;
@@ -1589,25 +1587,6 @@ void initialize_particle(ParticleSimulationData *sim, ParticleData *pa, int p)
 
 		pa->time= part->sta + (part->end - part->sta)*ptex.time;
 	}
-
-
-	if(part->type==PART_HAIR){
-		pa->lifetime=100.0f;
-	}
-	else{
-#if 0 // XXX old animation system
-		icu=find_ipocurve(psys->part->ipo,PART_EMIT_LIFE);
-		if(icu){
-			calc_icu(icu,100*ptex.time);
-			pa->lifetime*=icu->curval;
-		}
-#endif // XXX old animation system
-
-		if(part->randlife!=0.0)
-			pa->lifetime*= 1.0f - part->randlife * BLI_frand();
-	}
-
-	pa->dietime= pa->time+pa->lifetime;
 
 	if(part->type!=PART_HAIR && part->distr!=PART_DISTR_GRID && part->from != PART_FROM_VERT){
 		if(ptex.exist < BLI_frand())
@@ -1701,6 +1680,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	part=psys->part;
 
 	ptex.ivel=1.0;
+	ptex.life=1.0;
 
 	/* we need to get every random even if they're not used so that they don't effect eachother */
 	r_vel[0] = 2.0f * (PSYS_FRAND(p + 10) - 0.5f);
@@ -1758,7 +1738,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 			psys_particle_on_emitter(sim->psmd, part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,0,0,0,0);
 		
 		/* get possible textural influence */
-		psys_get_texture(sim, give_current_material(sim->ob,part->omat), pa, &ptex, MAP_PA_IVEL);
+		psys_get_texture(sim, give_current_material(sim->ob,part->omat), pa, &ptex, MAP_PA_IVEL|MAP_PA_LIFE);
 
 		//if(vg_vel && pa->num != -1)
 		//	ptex.ivel*=psys_particle_value_from_verts(sim->psmd->dm,part->from,pa,vg_vel);
@@ -1979,6 +1959,17 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 			//	mul_v3_fl(pa->state.ave,icu->curval);
 			//}
 		}
+	}
+
+
+	if(part->type == PART_HAIR){
+		pa->lifetime = 100.0f;
+	}
+	else{
+		pa->lifetime = part->lifetime*ptex.life;
+
+		if(part->randlife != 0.0)
+			pa->lifetime *= 1.0f - part->randlife * PSYS_FRAND(p + 21);
 	}
 
 	pa->dietime = pa->time + pa->lifetime;
