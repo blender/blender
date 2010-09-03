@@ -1965,7 +1965,7 @@ def save(operator, context, filepath="", \
                     ob_base.update(scene)
 
             # This causes the makeDisplayList command to effect the mesh
-            scene.set_frame(scene.frame_current)
+            scene.frame_set(scene.frame_current)
 # 			Blender.Set('curframe', Blender.Get('curframe'))
 
 
@@ -2138,7 +2138,7 @@ def save(operator, context, filepath="", \
                 if ob_base.type == 'ARMATURE':
                     ob_base.update(scene)
             # This causes the makeDisplayList command to effect the mesh
-            scene.set_frame(scene.frame_current)
+            scene.frame_set(scene.frame_current)
 # 			Blender.Set('curframe', Blender.Get('curframe'))
 
     del tmp_ob_type, tmp_objects
@@ -2758,7 +2758,7 @@ Takes:  {''')
             '''
             i = act_start
             while i <= act_end:
-                scene.set_frame(i)
+                scene.frame_set(i)
 # 				Blender.Set('curframe', i)
                 for ob_generic in ob_anim_lists:
                     for my_ob in ob_generic:
@@ -2898,8 +2898,7 @@ Takes:  {''')
 
         file.write('\n}')
 
-        scene.set_frame(frame_orig)
-# 		Blender.Set('curframe', frame_orig)
+        scene.frame_set(frame_orig)
 
     else:
         # no animation

@@ -325,6 +325,7 @@ static void rna_def_metaball(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_ui_text(prop, "Materials", "");
+	RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */	
 	
 	/* anim */
 	rna_def_animdata_common(srna);

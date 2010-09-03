@@ -69,7 +69,7 @@ def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25):
         bpy.ops.object.mode_set(mode='OBJECT')
 
     orig_frame = scene.frame_current
-    scene.set_frame(frame_start)
+    scene.frame_set(frame_start)
     me = obj.create_mesh(scene, True, 'PREVIEW')
 
     #Flip y and z
@@ -108,7 +108,7 @@ def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25):
         me_tmp.getFromObject(obj.name)
         """
 
-        scene.set_frame(frame)
+        scene.frame_set(frame)
         me = obj.create_mesh(scene, True, 'PREVIEW')
         check_vertcount(me, numverts)
         me.transform(mat_flip * obj.matrix_world)
@@ -126,6 +126,6 @@ def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25):
     Blender.Window.WaitCursor(0)
     Blender.Set('curframe', orig_frame)
     """
-    scene.set_frame(orig_frame)
+    scene.frame_set(orig_frame)
     
     return {'FINISHED'}

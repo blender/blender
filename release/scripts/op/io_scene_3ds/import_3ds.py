@@ -240,7 +240,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                     bmat = MATDICT[matName][1]
                     img = TEXTURE_DICT.get(bmat.name)
 
-                bmesh.materials.link(bmat) # can be None
+                bmesh.materials.append(bmat) # can be None
 
                 if uv_faces  and img:
                     for fidx in faces:

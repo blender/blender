@@ -161,7 +161,7 @@ class InputKeyMapPanel(bpy.types.Panel):
     def draw_km(self, display_keymaps, kc, km, children, layout, level):
         km = km.active()
 
-        layout.set_context_pointer("keymap", km)
+        layout.context_pointer_set("keymap", km)
 
         col = self.indented_layout(layout, level)
 
@@ -315,12 +315,12 @@ class InputKeyMapPanel(bpy.types.Panel):
                 kmm = kc.keymaps.find_modal(kmi.idname)
                 if kmm:
                     self.draw_km(display_keymaps, kc, kmm, None, layout, level + 1)
-                    layout.set_context_pointer("keymap", km)
+                    layout.context_pointer_set("keymap", km)
 
     def draw_filtered(self, display_keymaps, filter_text, layout):
         for km, kc in display_keymaps:
             km = km.active()
-            layout.set_context_pointer("keymap", km)
+            layout.context_pointer_set("keymap", km)
 
             filtered_items = [kmi for kmi in km.items if filter_text in kmi.name.lower()]
 
@@ -364,7 +364,7 @@ class InputKeyMapPanel(bpy.types.Panel):
 
         row = subcol.row()
         row.prop_search(wm.keyconfigs, "active", wm, "keyconfigs", text="Key Config:")
-        layout.set_context_pointer("keyconfig", wm.keyconfigs.active)
+        layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
         row.operator("wm.keyconfig_remove", text="", icon='X')
 
         row.prop(context.space_data, "filter_text", icon="VIEWZOOM")

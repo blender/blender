@@ -142,7 +142,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, bpy.types.Panel):
             if ob.name in group.objects:
                 col = layout.column(align=True)
 
-                col.set_context_pointer("group", group)
+                col.context_pointer_set("group", group)
 
                 row = col.box().row()
                 row.prop(group, "name", text="")

@@ -351,7 +351,7 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
     for ob in scn.objects:
         ob.select = False
 
-    scn.set_frame(IMPORT_START_FRAME)
+    scn.frame_set(IMPORT_START_FRAME)
 
     arm_data = bpy.data.armatures.new("MyBVH")
     arm_ob = bpy.data.objects.new("MyBVH", arm_data)

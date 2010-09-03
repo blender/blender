@@ -593,7 +593,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 
     # make sure the list isnt too big
     for material in materials:
-        me.materials.link(material)
+        me.materials.append(material)
 
     me.vertices.add(len(verts_loc))
     me.faces.add(len(faces))
