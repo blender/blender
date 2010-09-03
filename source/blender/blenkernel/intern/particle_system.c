@@ -3055,7 +3055,7 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 					
 					/* Stickness to surface */
 					normalize_v3(nor_vec);
-					madd_v3_v3fl(pa->state.vel, nor_vec, -pd->pdef_stickness);
+					madd_v3_v3fl(pa->state.vel, col.nor, -pd->pdef_stickness);
 				}
 
 				col.t = dt;
