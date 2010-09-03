@@ -1519,70 +1519,83 @@ static void rna_def_scene_game_recast_data(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Scene");
 	RNA_def_struct_ui_text(srna, "Recast Data", "Recast data for a Game datablock");
 
-	prop= RNA_def_property(srna, "cellsize", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "cell_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "cellsize");
 	RNA_def_property_ui_range(prop, 0.1, 1, 0.01, 2);
-	RNA_def_property_ui_text(prop, "Cell size", "Rasterized cell size");
+	RNA_def_property_ui_text(prop, "Cell Size", "Rasterized cell size");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "cellheight", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "cell_height", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "cellheight");
 	RNA_def_property_ui_range(prop, 0.1, 1, 0.01, 2);
-	RNA_def_property_ui_text(prop, "Cell height", "Rasterized cell height");
+	RNA_def_property_ui_text(prop, "Cell Height", "Rasterized cell height");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "agentheight", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "agent_height", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "agentheight");
 	RNA_def_property_ui_range(prop, 0.1, 5, 0.1, 2);
-	RNA_def_property_ui_text(prop, "Agent height", "Minimum height where the agent can still walk");
+	RNA_def_property_ui_text(prop, "Agent Height", "Minimum height where the agent can still walk");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "agentradius", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "agent_radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "agentradius");
 	RNA_def_property_ui_range(prop, 0.1, 5, 0.1, 2);
-	RNA_def_property_ui_text(prop, "Agent radius", "Radius of the agent");
+	RNA_def_property_ui_text(prop, "Agent Radius", "Radius of the agent");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "agentmaxclimb", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "max_climb", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "agentmaxclimb");
 	RNA_def_property_ui_range(prop, 0.1, 5, 0.1, 2);
-	RNA_def_property_ui_text(prop, "Max climb", "Maximum height between grid cells the agent can climb");
+	RNA_def_property_ui_text(prop, "Max Climb", "Maximum height between grid cells the agent can climb");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "agentmaxslope", PROP_FLOAT, PROP_ANGLE);
+	prop= RNA_def_property(srna, "max_slope", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "agentmaxslope");
 	RNA_def_property_range(prop, 0, M_PI/2);
-	RNA_def_property_ui_text(prop, "Max slope", "Maximum walkable slope angle in degrees");
+	RNA_def_property_ui_text(prop, "Max Slope", "Maximum walkable slope angle in degrees");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 
-	prop= RNA_def_property(srna, "regionminsize", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "region_min_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "regionminsize");
 	RNA_def_property_ui_range(prop, 0, 150, 1, 2);
-	RNA_def_property_ui_text(prop, "Min region size", "Minimum regions size. Smaller regions will be deleted");
+	RNA_def_property_ui_text(prop, "Min Region Size", "Minimum regions size. Smaller regions will be deleted");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "regionmergesize", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "region_merge_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "regionmergesize");
 	RNA_def_property_ui_range(prop, 0, 150, 1, 2);
-	RNA_def_property_ui_text(prop, "Merged region size", "Minimum regions size. Smaller regions will be merged");
+	RNA_def_property_ui_text(prop, "Merged Region Size", "Minimum regions size. Smaller regions will be merged");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "edgemaxlen", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "edge_max_len", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "edgemaxlen");
 	RNA_def_property_ui_range(prop, 0, 50, 1, 2);
-	RNA_def_property_ui_text(prop, "Max edge length", "Maximum contour edge length");
+	RNA_def_property_ui_text(prop, "Max Edge Length", "Maximum contour edge length");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "edgemaxerror", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "edge_max_error", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "edgemaxerror");
 	RNA_def_property_ui_range(prop, 0.1, 3.0, 0.1, 2);
-	RNA_def_property_ui_text(prop, "Max edge error", "Maximum distance error from contour to cells");
+	RNA_def_property_ui_text(prop, "Max Edge Error", "Maximum distance error from contour to cells");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "vertsperpoly", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "verts_per_poly", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "vertsperpoly");
 	RNA_def_property_ui_range(prop, 3, 12, 1, 0);
-	RNA_def_property_ui_text(prop, "Verts per poly", "Max number of vertices per polygon");
+	RNA_def_property_ui_text(prop, "Verts Per Poly", "Max number of vertices per polygon");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "detailsampledist", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "sample_dist", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "detailsampledist");
 	RNA_def_property_ui_range(prop, 0.0, 16.0, 1, 2);
-	RNA_def_property_ui_text(prop, "Sample distance", "Detail mesh sample spacing");
+	RNA_def_property_ui_text(prop, "Sample Distance", "Detail mesh sample spacing");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "detailsamplemaxerror", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "sample_max_error", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "detailsamplemaxerror");
 	RNA_def_property_ui_range(prop, 0.0, 16.0, 1, 2);
-	RNA_def_property_ui_text(prop, "Max sample error", "Detail mesh simplification max sample error");
+	RNA_def_property_ui_text(prop, "Max Sample Error", "Detail mesh simplification max sample error");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 }
 

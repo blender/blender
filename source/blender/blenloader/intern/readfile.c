@@ -11157,6 +11157,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 	}
 
+	// init facing axis property of steering actuators
+	{					
+		Object *ob;
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			bActuator *act;
+			for(act= ob->actuators.first; act; act= act->next) {
+				if(act->type==ACT_STEERING) {
+					bSteeringActuator* stact = act->data;
+					if (stact->facingaxis==0)
+					{
+						stact->facingaxis=1;
+					}						
+				}
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

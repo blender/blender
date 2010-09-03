@@ -4336,6 +4336,7 @@ static void draw_actuator_visibility(uiLayout *layout, PointerRNA *ptr)
 static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
 {
 	uiLayout *row;
+	uiLayout *col;
 
 	uiItemR(layout, ptr, "mode", 0, NULL, 0);
 	uiItemR(layout, ptr, "target", 0, NULL, 0);
@@ -4346,25 +4347,32 @@ static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "velocity", 0, NULL, 0);
 	row = uiLayoutRow(layout, 0);
 	uiItemR(row, ptr, "acceleration", 0, NULL, 0);
-	uiItemR(row, ptr, "turnspeed", 0, NULL, 0);
+	uiItemR(row, ptr, "turn_speed", 0, NULL, 0);
+	
 	row = uiLayoutRow(layout, 0);
-	uiItemR(row, ptr, "facing", 0, NULL, 0);
-	if (RNA_boolean_get(ptr, "facing"))
+	col = uiLayoutColumn(row, 0);
+	uiItemR(col, ptr, "facing", 0, NULL, 0);
+	col = uiLayoutColumn(row, 0);
+	uiItemR(col, ptr, "facing_axis", 0, NULL, 0);
+	if (!RNA_boolean_get(ptr, "facing"))
 	{
-		uiItemR(row, ptr, "facingaxis", 0, NULL, 0);
+		uiLayoutSetActive(col, 0);
 	}
-	if (RNA_pointer_get(ptr, "navmesh").data)
+	col = uiLayoutColumn(row, 0);
+	uiItemR(col, ptr, "normal_up", 0, NULL, 0);
+	if (!RNA_pointer_get(ptr, "navmesh").data)
 	{
-		uiItemR(row, ptr, "normalup", 0, NULL, 0);		
+		uiLayoutSetActive(col, 0);
 	}
+
 	row = uiLayoutRow(layout, 0);
-	uiItemR(row, ptr, "selfterminated", 0, NULL, 0);
+	uiItemR(row, ptr, "self_terminated", 0, NULL, 0);
 	if (RNA_enum_get(ptr, "mode")==ACT_STEERING_PATHFOLLOWING)
 	{
-		uiItemR(row, ptr, "updateperiod", 0, NULL, 0);	
+		uiItemR(row, ptr, "update_period", 0, NULL, 0);	
 		row = uiLayoutRow(layout, 0);
 	}
-	uiItemR(row, ptr, "enablevisualization", 0, NULL, 0);	
+	uiItemR(row, ptr, "show_visualization", 0, NULL, 0);	
 }
 
 

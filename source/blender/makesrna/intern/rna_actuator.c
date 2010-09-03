@@ -1923,10 +1923,10 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Acceleration", "Max acceleration");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "turnspeed", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "turn_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "turnspeed");
 	RNA_def_property_range(prop, 0.0, 720.0);
-	RNA_def_property_ui_text(prop, "Turn speed", "Max turn speed");
+	RNA_def_property_ui_text(prop, "Turn Speed", "Max turn speed");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
@@ -1942,17 +1942,17 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Target Object", "Set target object");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "selfterminated", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "self_terminated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_STEERING_SELFTERMINATED);
-	RNA_def_property_ui_text(prop, "Self terminated", "Terminate when target is reached");
+	RNA_def_property_ui_text(prop, "Self Terminated", "Terminate when target is reached");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "enablevisualization", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_visualization", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_STEERING_ENABLEVISUALIZATION);
 	RNA_def_property_ui_text(prop, "Visualize", "Enable debug visualization");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "updateperiod", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "update_period", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "updateTime");
 	RNA_def_property_ui_range(prop, -1, 100000, 1, 1);
 	RNA_def_property_ui_text(prop, "Update period", "Path update period");
@@ -1971,13 +1971,13 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Facing", "Enable automatic facing");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "facingaxis", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "facing_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "facingaxis");
 	RNA_def_property_enum_items(prop, facingaxis_items);
 	RNA_def_property_ui_text(prop, "Axis", "Axis for automatic facing");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "normalup", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "normal_up", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_STEERING_NORMALUP);
 	RNA_def_property_ui_text(prop, "N", "Use normal of the navmesh to set \"UP\" vector");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);

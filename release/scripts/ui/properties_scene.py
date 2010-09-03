@@ -350,10 +350,10 @@ class SCENE_PT_navmesh(SceneButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(rd, "cellsize")
+        col.prop(rd, "cell_size")
         if wide_ui:
             col = split.column()
-        col.prop(rd, "cellheight")
+        col.prop(rd, "cell_height")
 
         layout.separator()
 
@@ -361,25 +361,25 @@ class SCENE_PT_navmesh(SceneButtonsPanel, bpy.types.Panel):
         split = layout.split()
         col = split.column()
         row = col.row()
-        row.prop(rd, "agentheight")
+        row.prop(rd, "agent_height")
         row = col.row()
-        row.prop(rd, "agentradius")
+        row.prop(rd, "agent_radius")
         if wide_ui:
             col = split.column()
         row = col.row()
-        row.prop(rd, "agentmaxslope")
+        row.prop(rd, "max_slope")
         row = col.row()
-        row.prop(rd, "agentmaxclimb")
+        row.prop(rd, "max_climb")
 
         layout.separator()
 
         layout.label(text="Region:")
         split = layout.split()
         col = split.column()
-        col.prop(rd, "regionminsize")
+        col.prop(rd, "region_min_size")
         if wide_ui:
             col = split.column()
-        col.prop(rd, "regionmergesize")
+        col.prop(rd, "region_merge_size")
 
         layout.separator()
 
@@ -387,23 +387,23 @@ class SCENE_PT_navmesh(SceneButtonsPanel, bpy.types.Panel):
         split = layout.split()
         col = split.column()
         row = col.row()
-        row.prop(rd, "edgemaxlen")
+        row.prop(rd, "edge_max_len")
         row = col.row()
-        row.prop(rd, "edgemaxerror")
+        row.prop(rd, "edge_max_error")
         if wide_ui:
             col = split.column()
         row = col.row()
-        row.prop(rd, "vertsperpoly")
+        row.prop(rd, "verts_per_poly")
 
         layout.separator()
 
         layout.label(text="Detail Mesh:")
         split = layout.split()
         col = split.column()
-        col.prop(rd, "detailsampledist")
+        col.prop(rd, "sample_dist")
         if wide_ui:
             col = split.column()
-        col.prop(rd, "detailsamplemaxerror")
+        col.prop(rd, "sample_max_error")
 
 
 def register():
