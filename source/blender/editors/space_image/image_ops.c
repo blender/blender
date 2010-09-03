@@ -1300,7 +1300,7 @@ static int pack_test(bContext *C, wmOperator *op)
 		return 0;
 
 	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
-		BKE_report(op->reports, RPT_ERROR, "Can't pack movie or image sequence.");
+		BKE_report(op->reports, RPT_ERROR, "Packing movies or image sequences not supported.");
 		return 0;
 	}
 
@@ -1477,7 +1477,7 @@ static int unpack_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
-		BKE_report(op->reports, RPT_ERROR, "Can't unpack movie or image sequence.");
+		BKE_report(op->reports, RPT_ERROR, "Unpacking movies or image sequences not supported.");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1502,7 +1502,7 @@ static int unpack_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 
 	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
-		BKE_report(op->reports, RPT_ERROR, "Can't unpack movie or image sequence.");
+		BKE_report(op->reports, RPT_ERROR, "Unpacking movies or image sequences not supported.");
 		return OPERATOR_CANCELLED;
 	}
 
