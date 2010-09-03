@@ -443,7 +443,7 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw("   Access to blenders internal data\n")
     fw("\n")
-    fw("   :type: :class:`bpy.types.Main`\n")
+    fw("   :type: :class:`bpy.types.BlendData`\n")
     file.close()
 
     EXAMPLE_SET_USED.add("bpy.data")
@@ -655,7 +655,7 @@ def rna2sphinx(BASEPATH):
                 fw(".. rubric:: Inherited Properties\n\n")
 
                 fw(".. hlist::\n")
-                fw("   :columns: 3\n\n")
+                fw("   :columns: 2\n\n")
 
                 for line in lines:
                     fw(line)
@@ -680,7 +680,7 @@ def rna2sphinx(BASEPATH):
                 fw(".. rubric:: Inherited Functions\n\n")
 
                 fw(".. hlist::\n")
-                fw("   :columns: 3\n\n")
+                fw("   :columns: 2\n\n")
 
                 for line in lines:
                     fw(line)
@@ -694,7 +694,7 @@ def rna2sphinx(BASEPATH):
             fw(".. rubric:: References\n\n")
 
             fw(".. hlist::\n")
-            fw("   :columns: 3\n\n")
+            fw("   :columns: 2\n\n")
 
             for ref in struct.references:
                 ref_split = ref.split(".")

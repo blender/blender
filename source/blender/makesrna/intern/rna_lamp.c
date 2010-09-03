@@ -386,8 +386,8 @@ static void rna_def_lamp(BlenderRNA *brna)
 	rna_def_animdata_common(srna);
 	
 	/* textures */
-	rna_def_mtex_common(srna, "rna_Lamp_mtex_begin", "rna_Lamp_active_texture_get",
-		"rna_Lamp_active_texture_set", "LampTextureSlot", "rna_Lamp_update");
+	rna_def_mtex_common(brna, srna, "rna_Lamp_mtex_begin", "rna_Lamp_active_texture_get",
+		"rna_Lamp_active_texture_set", "LampTextureSlot", "LampTextureSlots", "rna_Lamp_update");
 }
 
 static void rna_def_lamp_falloff(StructRNA *srna)

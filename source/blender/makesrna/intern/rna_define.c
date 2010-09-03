@@ -2207,7 +2207,7 @@ PropertyRNA *RNA_def_float_vector_xyz(StructOrFunctionRNA *cont_, const char *id
 	PropertyRNA *prop;
 	
 	prop= RNA_def_float_vector(cont_, identifier, len, default_value, hardmin, hardmax, ui_name, ui_description, softmin, softmax);
-	prop->subtype = PROP_XYZ;
+	prop->subtype = PROP_XYZ_LENGTH;
 
 	return prop;
 }

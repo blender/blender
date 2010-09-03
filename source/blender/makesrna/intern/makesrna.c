@@ -1413,10 +1413,12 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	fprintf(f, "\n{\n");
 
 	/* variable definitions */
-	if((func->flag & FUNC_NO_SELF)==0) {
-		if(func->flag & FUNC_USE_SELF_ID)
-			fprintf(f, "\tstruct ID *_selfid;\n");
+	
+	if(func->flag & FUNC_USE_SELF_ID) {
+		fprintf(f, "\tstruct ID *_selfid;\n");
+	}
 
+	if((func->flag & FUNC_NO_SELF)==0) {
 		if(dsrna->dnaname) fprintf(f, "\tstruct %s *_self;\n", dsrna->dnaname);
 		else fprintf(f, "\tstruct %s *_self;\n", srna->identifier);
 	}
@@ -1455,10 +1457,11 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	fprintf(f, "\t\n");
 
 	/* assign self */
+	if(func->flag & FUNC_USE_SELF_ID) {
+		fprintf(f, "\t_selfid= (struct ID*)_ptr->id.data;\n");
+	}
+	
 	if((func->flag & FUNC_NO_SELF)==0) {
-		if(func->flag & FUNC_USE_SELF_ID)
-			fprintf(f, "\t_selfid= (struct ID*)_ptr->id.data;\n");
-
 		if(dsrna->dnaname) fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", dsrna->dnaname);
 		else fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", srna->identifier);
 	}
@@ -1521,10 +1524,13 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 		first= 1;
 
-		if((func->flag & FUNC_NO_SELF)==0) {
-			if(func->flag & FUNC_USE_SELF_ID)
-				fprintf(f, "_selfid, ");
+		if(func->flag & FUNC_USE_SELF_ID) {
+			fprintf(f, "_selfid");
+			first= 0;
+		}
 
+		if((func->flag & FUNC_NO_SELF)==0) {
+			if(!first) fprintf(f, ", ");
 			fprintf(f, "_self");
 			first= 0;
 		}
@@ -1826,10 +1832,13 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 	first= 1;
 
 	/* self, context and reports parameters */
+	if(func->flag & FUNC_USE_SELF_ID) {
+		fprintf(f, "struct ID *_selfid");
+		first= 0;		
+	}
+	
 	if((func->flag & FUNC_NO_SELF)==0) {
-		if(func->flag & FUNC_USE_SELF_ID)
-			fprintf(f, "struct ID *_selfid, ");
-
+		if(!first) fprintf(f, ", ");
 		if(dsrna->dnaname) fprintf(f, "struct %s *_self", dsrna->dnaname);
 		else fprintf(f, "struct %s *_self", srna->identifier);
 		first= 0;

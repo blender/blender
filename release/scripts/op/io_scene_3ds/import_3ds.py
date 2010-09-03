@@ -183,7 +183,19 @@ def add_texture_to_material(image, texture, material, mapto):
     if image:
         texture.image = image
 
-    material.add_texture(texture, "UV", mapto)
+    mtex = material.texture_slots.add()
+    mtex.texture = texture
+    mtex.texture_coords = 'UV'
+    mtex.use_map_color_diffuse = False
+
+    if mapto == 'COLOR':
+        mtex.use_map_color_diffuse = True
+    elif mapto == 'SPECULARITY':
+        mtex.use_map_specular = True
+    elif mapto == 'ALPHA':
+        mtex.use_map_alpha = True
+    elif mapto == 'NORMAL':
+        mtex.use_map_normal = True
 
 
 def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):

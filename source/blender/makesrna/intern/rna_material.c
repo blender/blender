@@ -276,6 +276,54 @@ static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *C, Poi
 	return item;
 }
 
+MTex *rna_mtex_texture_slots_add(ID *self_id, ReportList *reports)
+{
+	MTex *mtex= add_mtex_id(self_id, -1);
+	if (mtex == NULL) {
+		BKE_reportf(reports, RPT_ERROR, "maximum number of textures added %d", MAX_MTEX);
+		return NULL;
+	}
+
+	return mtex;
+}
+
+MTex *rna_mtex_texture_slots_create(ID *self_id, ReportList *reports, int index)
+{
+	MTex *mtex;
+
+	if(index < 0 || index >= MAX_MTEX) {
+		BKE_reportf(reports, RPT_ERROR, "index %d is invalid", index);
+		return NULL;
+	}
+
+	mtex= add_mtex_id(self_id, index);
+
+	return mtex;
+}
+
+void rna_mtex_texture_slots_clear(ID *self_id, ReportList *reports, int index)
+{
+	MTex **mtex_ar;
+	short act;
+
+	give_active_mtex(self_id, &mtex_ar, &act);
+
+	if (mtex_ar == NULL) {
+		BKE_report(reports, RPT_ERROR, "mtex not found for this type");
+		return;
+	}
+	
+	if(index < 0 || index >= MAX_MTEX) {
+		BKE_reportf(reports, RPT_ERROR, "index %d is invalid", index);
+		return;
+	}
+
+	if(mtex_ar[index]) {
+		id_us_min((ID *)mtex_ar[index]->tex);
+		MEM_freeN(mtex_ar[index]);
+		mtex_ar[index]= NULL;
+	}
+}
 
 #else
 
@@ -1741,9 +1789,9 @@ void RNA_def_material(BlenderRNA *brna)
 
 	/* common */
 	rna_def_animdata_common(srna);
-	rna_def_mtex_common(srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get",
-		"rna_Material_active_texture_set", "MaterialTextureSlot", "rna_Material_update");
-	
+	rna_def_mtex_common(brna, srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get",
+		"rna_Material_active_texture_set", "MaterialTextureSlot", "MaterialTextureSlots", "rna_Material_update");
+
 	/* only material has this one */
 	prop= RNA_def_property(srna, "use_textures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "septex", 1);
@@ -1768,7 +1816,43 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_api_material(srna);
 }
 
-void rna_def_mtex_common(StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname, const char *update)
+
+/* curve.splines */
+static void rna_def_texture_slots(BlenderRNA *brna, PropertyRNA *cprop, const char *structname, const char *structname_slots)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, structname_slots);
+	srna= RNA_def_struct(brna, structname_slots, NULL);
+	RNA_def_struct_sdna(srna, "ID");
+	RNA_def_struct_ui_text(srna, "Texture Slots", "Collection of texture slots");
+
+	/* functions */
+	func= RNA_def_function(srna, "add", "rna_mtex_texture_slots_add");
+	RNA_def_function_ui_description(func, "Add a number of points to this spline.");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_NO_SELF|FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "mtex", structname, "", "The newly initialized mtex.");
+	RNA_def_function_return(func, parm);
+	
+	func= RNA_def_function(srna, "create", "rna_mtex_texture_slots_create");
+	RNA_def_function_ui_description(func, "Add a number of points to this spline.");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_NO_SELF|FUNC_USE_REPORTS);
+	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Slot index to initialize.", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "mtex", structname, "", "The newly initialized mtex.");
+	RNA_def_function_return(func, parm);
+	
+	func= RNA_def_function(srna, "clear", "rna_mtex_texture_slots_clear");
+	RNA_def_function_ui_description(func, "Add a number of points to this spline.");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_NO_SELF|FUNC_USE_REPORTS);
+	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Slot index to clar.", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
+void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname, const char *structname_slots, const char *update)
 {
 	PropertyRNA *prop;
 
@@ -1777,6 +1861,7 @@ void rna_def_mtex_common(StructRNA *srna, const char *begin, const char *activeg
 	RNA_def_property_struct_type(prop, structname);
 	RNA_def_property_collection_funcs(prop, begin, "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Textures", "Texture slots defining the mapping and influence of textures");
+	rna_def_texture_slots(brna, prop, structname, structname_slots);
 
 	prop= RNA_def_property(srna, "active_texture", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Texture");
