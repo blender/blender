@@ -1,0 +1,8 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = 'PHY_IMotionState.cpp PHY_IController.cpp PHY_IPhysicsController.cpp PHY_IGraphicController.cpp PHY_IPhysicsEnvironment.cpp PHY_IVehicle.cpp'
+
+incs = '. ../Dummy #intern/moto/include'
+
+env.BlenderLib ( 'bf_physics_common', Split(sources), Split(incs), [], libtype=['core','player'], priority=[360,55], cxx_compileflags=env['BGE_CXXFLAGS'])

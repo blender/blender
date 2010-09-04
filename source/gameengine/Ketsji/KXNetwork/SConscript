@@ -1,0 +1,17 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.cpp')
+
+incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/Ketsji'
+incs += ' #source/gameengine/GameLogic #source/gameengine/Expressions'
+incs += ' #source/gameengine/Network #source/gameengine/SceneGraph'
+
+defs = []
+
+if env['WITH_BF_PYTHON']:
+    incs += ' ' + env['BF_PYTHON_INC']
+else:
+    defs.append('DISABLE_PYTHON')
+
+env.BlenderLib ( 'bf_network', Split(sources), Split(incs), defines=defs,libtype=['core','player'], priority=[400,125], cxx_compileflags=env['BGE_CXXFLAGS'])

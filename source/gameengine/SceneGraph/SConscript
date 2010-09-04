@@ -1,0 +1,9 @@
+#!/usr/bin/python
+
+Import ('env')
+
+sources = env.Glob('*.cpp')
+
+incs = '. #intern/moto/include'
+
+env.BlenderLib ( 'bf_scenegraph', sources, Split(incs), [], libtype=['core','player'], priority=[325,85], cxx_compileflags=env['BGE_CXXFLAGS'])
