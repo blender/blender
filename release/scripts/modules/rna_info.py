@@ -302,6 +302,7 @@ class InfoFunctionRNA:
         self.identifier = rna_func.identifier
         # self.name = rna_func.name # functions have no name!
         self.description = rna_func.description.strip()
+        self.is_classmethod = not rna_func.use_self
 
         self.args = []
         self.return_values = ()
@@ -313,7 +314,7 @@ class InfoFunctionRNA:
 
         for rna_prop in rna_func.parameters.values():
             prop = GetInfoPropertyRNA(rna_prop, parent_id)
-            if rna_prop.use_output:
+            if rna_prop.is_output:
                 self.return_values.append(prop)
             else:
                 self.args.append(prop)
@@ -594,7 +595,7 @@ def BuildRNAInfo():
     op_mods = dir(bpy.ops)
 
     for op_mod_name in sorted(op_mods):
-        if op_mod_name.startswith('__') or op_mod_name in ("add", "remove"):
+        if op_mod_name.startswith('__'):
             continue
 
         op_mod = getattr(bpy.ops, op_mod_name)
@@ -625,18 +626,28 @@ def BuildRNAInfo():
 if __name__ == "__main__":
     import rna_info
     struct = rna_info.BuildRNAInfo()[0]
-    data = ""
+    data = []
     for struct_id, v in sorted(struct.items()):
-        struct_id_str = "".join(sid for sid in struct_id if struct_id)
-        props = [(prop.identifier, prop) for prop in v.properties]
+        struct_id_str = v.identifier # "".join(sid for sid in struct_id if struct_id)
+
+        for base in v.get_bases():
+            struct_id_str = base.identifier + "|" + struct_id_str
         
+        props = [(prop.identifier, prop) for prop in v.properties]
         for prop_id, prop in sorted(props):
-            if prop.type == 'boolean':
-                continue
-            data += "%s.%s -> %s:    %s%s    %s\n" % (struct_id_str, prop.identifier, prop.identifier, prop.type, ", (read-only)" if prop.is_readonly else "", prop.description)
+            # if prop.type == 'boolean':
+            #     continue
+            prop_type = prop.type
+            if prop.array_length > 0:
+                prop_type += "[%d]" % prop.array_length
+
+            data.append("%s.%s -> %s:    %s%s    %s" % (struct_id_str, prop.identifier, prop.identifier, prop_type, ", (read-only)" if prop.is_readonly else "", prop.description))
+        data.sort()
 
     if bpy.app.background:
-        print(data)
+        import sys
+        sys.stderr.write("\n".join(data))
+        sys.stderr.write("\n\nEOF\n")
     else:
         text = bpy.data.texts.new(name="api.py")
         text.from_string(data)

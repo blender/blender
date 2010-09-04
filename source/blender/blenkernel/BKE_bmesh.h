@@ -59,7 +59,7 @@ struct BME_Loop;
 	-Remove the eflags completely, they are mostly not used
 	-Remove the selection/vis/bevel weight flag/values ect and move them to custom data
 	-Remove EID member and move to custom data
-	-Add a radial cycle length, disk cycle length and loop cycle lenght attributes to custom data and have eulers maintain/use them if present.
+	-Add a radial cycle length, disk cycle length and loop cycle length attributes to custom data and have eulers maintain/use them if present.
 	-Move data such as vertex coordinates/normals to custom data and leave pointers in structures to active layer data.
 	-Remove BME_CycleNode structure?
 */

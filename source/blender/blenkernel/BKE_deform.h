@@ -42,7 +42,7 @@ struct MDeformVert;
 
 void				 defgroup_copy_list(struct ListBase *lb1, struct ListBase *lb2);
 struct bDeformGroup *defgroup_duplicate(struct bDeformGroup *ingroup);
-struct bDeformGroup *defgroup_find_name(struct Object *ob, char *name);
+struct bDeformGroup *defgroup_find_name(struct Object *ob, const char *name);
 int					 defgroup_find_index(struct Object *ob, struct bDeformGroup *dg);
 int					*defgroup_flip_map(struct Object *ob, int use_default);
 int					 defgroup_flip_index(struct Object *ob, int index, int use_default);

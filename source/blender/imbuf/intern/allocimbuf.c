@@ -42,6 +42,7 @@
 #include "imbuf.h"
 
 #include "MEM_CacheLimiterC-Api.h"
+#include "MEM_guardedalloc.h"
 
 void imb_freemipmapImBuf(ImBuf *ibuf)
 {
@@ -77,7 +78,7 @@ void imb_freerectImBuf(ImBuf *ibuf)
 {
 	if(ibuf==NULL) return;
 	
-	if(ibuf->crect && ibuf->crect != ibuf->rect)
+	if(ibuf->crect)
 		MEM_freeN(ibuf->crect);
 
 	if(ibuf->rect && (ibuf->mall & IB_rect))

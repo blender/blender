@@ -141,7 +141,7 @@ static void node_composit_init_huecorrect(bNode* node)
 	
 	for (c=0; c<3; c++) {
 		CurveMap *cuma = &cumapping->cm[c];
-		curvemap_reset(cuma, &cumapping->clipr, cumapping->preset);
+		curvemap_reset(cuma, &cumapping->clipr, cumapping->preset, CURVEMAP_SLOPE_POSITIVE);
 	}
 	
 	/* default to showing Saturation */

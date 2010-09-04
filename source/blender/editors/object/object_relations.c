@@ -41,6 +41,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_math.h"
 #include "BLI_editVert.h"
@@ -68,7 +69,6 @@
 #include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 
 #include "WM_api.h"
@@ -98,6 +98,7 @@ static int vertex_parent_set_poll(bContext *C)
 
 static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMVert *eve;
@@ -168,8 +169,8 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	else if(obedit->type==OB_LATTICE) {
 		Lattice *lt= obedit->data;
 		
-		a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
-		bp= lt->editlatt->def;
+		a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
+		bp= lt->editlatt->latt->def;
 		while(a--) {
 			if(bp->f1 & SELECT) {
 				if(v1==0) v1= nr;
@@ -227,7 +228,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 
 	WM_event_add_notifier(C, NC_OBJECT, NULL);
 
@@ -292,6 +293,7 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int make_proxy_exec (bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Object *ob, *gob= CTX_data_active_object(C);
 	GroupObject *go;
 	Scene *scene= CTX_data_scene(C);
@@ -335,7 +337,7 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 		object_make_proxy(newob, ob, gob);
 		
 		/* depsgraph flushes are needed for the new data */
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 		DAG_id_flush_update(&newob->id, OB_RECALC_ALL);
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, newob);
 	}
@@ -410,6 +412,8 @@ static EnumPropertyItem prop_clear_parent_types[] = {
 /* note, poll should check for editable scene */
 static int parent_clear_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
 	int type= RNA_enum_get(op->ptr, "type");
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
@@ -428,8 +432,8 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	DAG_scene_sort(CTX_data_scene(C));
-	DAG_ids_flush_update(0);
+	DAG_scene_sort(bmain, scene);
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
@@ -514,6 +518,7 @@ void ED_object_parent(Object *ob, Object *par, int type, const char *substr)
 
 static int parent_set_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *par= CTX_data_active_object(C);
 	bPoseChannel *pchan= NULL;
@@ -591,15 +596,15 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 
 						switch (partype) {
 						case PAR_CURVE: /* curve deform */
-							md= ED_object_modifier_add(op->reports, scene, ob, NULL, eModifierType_Curve);
+							md= ED_object_modifier_add(op->reports, bmain, scene, ob, NULL, eModifierType_Curve);
 							((CurveModifierData *)md)->object= par;
 							break;
 						case PAR_LATTICE: /* lattice deform */
-							md= ED_object_modifier_add(op->reports, scene, ob, NULL, eModifierType_Lattice);
+							md= ED_object_modifier_add(op->reports, bmain, scene, ob, NULL, eModifierType_Lattice);
 							((LatticeModifierData *)md)->object= par;
 							break;
 						default: /* armature deform */
-							md= ED_object_modifier_add(op->reports, scene, ob, NULL, eModifierType_Armature);
+							md= ED_object_modifier_add(op->reports, bmain, scene, ob, NULL, eModifierType_Armature);
 							((ArmatureModifierData *)md)->object= par;
 							break;
 						}
@@ -654,8 +659,8 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	DAG_scene_sort(scene);
-	DAG_ids_flush_update(0);
+	DAG_scene_sort(bmain, scene);
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -716,6 +721,7 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 
 static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Object *par= CTX_data_active_object(C);
 	
 	par->recalc |= OB_RECALC_OB;
@@ -742,8 +748,8 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	DAG_scene_sort(CTX_data_scene(C));
-	DAG_ids_flush_update(0);
+	DAG_scene_sort(bmain, CTX_data_scene(C));
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -769,6 +775,7 @@ void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
 
 static int object_slow_parent_clear_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
@@ -783,7 +790,7 @@ static int object_slow_parent_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	
 	return OPERATOR_FINISHED;
@@ -810,6 +817,7 @@ void OBJECT_OT_slow_parent_clear(wmOperatorType *ot)
 
 static int object_slow_parent_set_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
@@ -821,7 +829,7 @@ static int object_slow_parent_set_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	
 	return OPERATOR_FINISHED;
@@ -855,6 +863,8 @@ static EnumPropertyItem prop_clear_track_types[] = {
 /* note, poll should check for editable scene */
 static int object_track_clear_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
 	int type= RNA_enum_get(op->ptr, "type");
 
 	if(CTX_data_edit_object(C)) {
@@ -880,8 +890,8 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_ids_flush_update(0);
-	DAG_scene_sort(CTX_data_scene(C));
+	DAG_ids_flush_update(bmain, 0);
+	DAG_scene_sort(bmain, scene);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
@@ -917,6 +927,7 @@ static EnumPropertyItem prop_make_track_types[] = {
 
 static int track_set_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obact= CTX_data_active_object(C); 
 	
@@ -984,8 +995,8 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 	
-	DAG_scene_sort(scene);
-	DAG_ids_flush_update(0);
+	DAG_scene_sort(bmain, scene);
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -1018,7 +1029,7 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 	int values[20], a;
 	unsigned int lay= 0;
 
-	if(!RNA_property_is_set(op->ptr, "layer")) {
+	if(!RNA_property_is_set(op->ptr, "layers")) {
 		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 			lay |= base->lay;
 		}
@@ -1027,10 +1038,10 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 		for(a=0; a<20; a++)
 			values[a]= (lay & (1<<a));
 		
-		RNA_boolean_set_array(op->ptr, "layer", values);
+		RNA_boolean_set_array(op->ptr, "layers", values);
 	}
 	else {
-		RNA_boolean_get_array(op->ptr, "layer", values);
+		RNA_boolean_get_array(op->ptr, "layers", values);
 
 		for(a=0; a<20; a++)
 			if(values[a])
@@ -1054,6 +1065,7 @@ static int move_to_layer_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int move_to_layer_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	unsigned int lay, local;
@@ -1094,7 +1106,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 	/* warning, active object may be hidden now */
 	
 	WM_event_add_notifier(C, NC_SCENE|NC_OBJECT|ND_DRAW, scene); /* is NC_SCENE needed ? */
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -1115,15 +1127,15 @@ void OBJECT_OT_move_to_layer(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_layer_member(ot->srna, "layer", 20, NULL, "Layer", "");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
 }
 
 /************************** Link to Scene Operator *****************************/
 
-void link_to_scene(unsigned short nr)
+void link_to_scene(Main *bmain, unsigned short nr)
 {
 #if 0
-	Scene *sce= (Scene*) BLI_findlink(&G.main->scene, G.curscreen->scenenr-1);
+	Scene *sce= (Scene*) BLI_findlink(&bmain->scene, G.curscreen->scenenr-1);
 	Base *base, *nbase;
 	
 	if(sce==0) return;
@@ -1143,6 +1155,7 @@ void link_to_scene(unsigned short nr)
 
 static int make_links_scene_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene_to= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
 
 	if(scene_to==NULL) {
@@ -1171,7 +1184,7 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 			}
 	CTX_DATA_END;
 
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 
 	/* one day multiple scenes will be visible, then we should have some update function for them */
 	return OPERATOR_FINISHED;
@@ -1211,6 +1224,7 @@ static int allow_make_links_data(int ev, Object *ob, Object *obt)
 
 static int make_links_data_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	int event = RNA_int_get(op->ptr, "type");
 	Object *ob;
 	ID *id;
@@ -1263,7 +1277,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 	return OPERATOR_FINISHED;
 }
@@ -1393,7 +1407,7 @@ void new_id_matar(Material **matar, int totcol)
 	}
 }
 
-void single_obdata_users(Scene *scene, int flag)
+void single_obdata_users(Main *bmain, Scene *scene, int flag)
 {
 	Object *ob;
 	Lamp *la;
@@ -1509,7 +1523,7 @@ void single_obdata_users(Scene *scene, int flag)
 		}
 	}
 	
-	me= G.main->mesh.first;
+	me= bmain->mesh.first;
 	while(me) {
 		ID_NEW(me->texcomesh);
 		me= me->id.next;
@@ -1607,10 +1621,9 @@ void do_single_tex_user(Tex **from)
 	}
 }
 
-void single_tex_users_expand()
+void single_tex_users_expand(Main *bmain)
 {
 	/* only when 'parent' blocks are LIB_NEW */
-	Main *bmain= G.main;
 	Material *ma;
 	Lamp *la;
 	World *wo;
@@ -1647,10 +1660,9 @@ void single_tex_users_expand()
 	}
 }
 
-static void single_mat_users_expand(void)
+static void single_mat_users_expand(Main *bmain)
 {
 	/* only when 'parent' blocks are LIB_NEW */
-	Main *bmain= G.main;
 	Object *ob;
 	Mesh *me;
 	Curve *cu;
@@ -1683,14 +1695,14 @@ static void single_mat_users_expand(void)
 }
 
 /* used for copying scenes */
-void ED_object_single_users(Scene *scene, int full)
+void ED_object_single_users(Main *bmain, Scene *scene, int full)
 {
 	single_object_users(scene, NULL, 0);
 
 	if(full) {
-		single_obdata_users(scene, 0);
-		single_mat_users_expand();
-		single_tex_users_expand();
+		single_obdata_users(bmain, scene, 0);
+		single_mat_users_expand(bmain);
+		single_tex_users_expand(bmain);
 	}
 
 	clear_id_newpoins();
@@ -1825,6 +1837,7 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 
 static int make_single_user_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C); /* ok if this is NULL */
 	int flag= RNA_enum_get(op->ptr, "type"); /* 0==ALL, SELECTED==selected objecs */
@@ -1833,7 +1846,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 		single_object_users(scene, v3d, flag);
 
 	if(RNA_boolean_get(op->ptr, "obdata"))
-		single_obdata_users(scene, flag);
+		single_obdata_users(bmain, scene, flag);
 
 	if(RNA_boolean_get(op->ptr, "material"))
 		single_mat_users(scene, flag, FALSE);
@@ -1882,6 +1895,7 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 
 static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	Main *bmain= CTX_data_main(C);
 	Base *base= ED_view3d_give_base_under_cursor(C, event->mval);
 	Material *ma;
 	char name[32];
@@ -1893,7 +1907,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	assign_material(base->object, ma, 1);
 	
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 	
 	return OPERATOR_FINISHED;

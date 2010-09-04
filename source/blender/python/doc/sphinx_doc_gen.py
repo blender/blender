@@ -45,6 +45,7 @@ import rna_info
 reload(rna_info)
 
 # lame, python wont give some access
+ClassMethodDescriptorType = type(dict.__dict__['fromkeys'])
 MethodDescriptorType = type(dict.get)
 GetSetDescriptorType = type(int.real)
 
@@ -143,7 +144,9 @@ def pyfunc2sphinx(ident, fw, identifier, py_func, is_class=True):
 
 
 def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):    
-
+    if identifier.startswith("_"):
+        return
+    
     doc = descr.__doc__
     if not doc:
         doc = undocumented_message(module_name, type_name, identifier)
@@ -151,10 +154,10 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
     if type(descr) == GetSetDescriptorType:
         fw(ident + ".. attribute:: %s\n\n" % identifier)
         write_indented_lines(ident + "   ", fw, doc, False)
-    elif type(descr) == MethodDescriptorType: # GetSetDescriptorType's are not documented yet
+    elif type(descr) in (MethodDescriptorType, ClassMethodDescriptorType):
         write_indented_lines(ident, fw, doc, False)
     else:
-        raise TypeError("type was not GetSetDescriptorType or MethodDescriptorType")
+        raise TypeError("type was not GetSetDescriptorType, MethodDescriptorType or ClassMethodDescriptorType")
 
     write_example_ref(ident, fw, module_name + "." + type_name + "." + identifier)
     fw("\n")
@@ -268,7 +271,11 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         descr_items = [(key, descr) for key, descr in sorted(value.__dict__.items()) if not key.startswith("__")]
 
         for key, descr in descr_items:
-            if type(descr) == MethodDescriptorType: # GetSetDescriptorType's are not documented yet
+            if type(descr) == ClassMethodDescriptorType:
+                py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+
+        for key, descr in descr_items:
+            if type(descr) == MethodDescriptorType:
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
 
         for key, descr in descr_items:
@@ -346,6 +353,7 @@ def rna2sphinx(BASEPATH):
     fw("      * data API, access to attributes of blender data such as mesh verts, material color, timeline frames and scene objects\n")
     fw("      * user interface functions for defining buttons, creation of menus, headers, panels\n")
     fw("      * modules: bgl, mathutils and geometry\n")
+    fw("      * game engine modules\n")
     fw("\n")
 
     fw("===================\n")
@@ -360,6 +368,7 @@ def rna2sphinx(BASEPATH):
     
     # py modules
     fw("   bpy.utils.rst\n\n")
+    fw("   bpy.path.rst\n\n")
     fw("   bpy.app.rst\n\n")
     
     # C modules
@@ -375,6 +384,7 @@ def rna2sphinx(BASEPATH):
 
     fw("   mathutils.rst\n\n")
     fw("   blf.rst\n\n")
+    fw("   aud.rst\n\n")
     
     # game engine
     fw("===================\n")
@@ -440,6 +450,9 @@ def rna2sphinx(BASEPATH):
     from bpy import utils as module
     pymodule2sphinx(BASEPATH, "bpy.utils", module, "Utilities (bpy.utils)")
 
+    from bpy import path as module
+    pymodule2sphinx(BASEPATH, "bpy.path", module, "Path Utilities (bpy.path)")
+
     # C modules
     from bpy import app as module
     pymodule2sphinx(BASEPATH, "bpy.app", module, "Application Data (bpy.app)")
@@ -453,6 +466,10 @@ def rna2sphinx(BASEPATH):
 
     import blf as module
     pymodule2sphinx(BASEPATH, "blf", module, "Font Drawing (blf)")
+    del module
+    
+    import aud as module
+    pymodule2sphinx(BASEPATH, "aud", module, "Audio System (aud)")
     del module
 
     # game engine
@@ -553,10 +570,9 @@ def rna2sphinx(BASEPATH):
         fw("   %s\n\n" % struct.description)
         
         # properties sorted in alphabetical order
-        zip_props_ids = zip(struct.properties, [prop.identifier for prop in struct.properties])
-        zip_props_ids = sorted(zip_props_ids, key=lambda p: p[1])
-        sorted_struct_properties = [x[0] for x in zip_props_ids]
-        
+        sorted_struct_properties = struct.properties[:]
+        sorted_struct_properties.sort(key=lambda prop: prop.identifier)
+
         for prop in sorted_struct_properties:
             type_descr = prop.get_type_description(class_fmt=":class:`%s`")
             # readonly properties use "data" directive, variables properties use "attribute" directive
@@ -578,7 +594,7 @@ def rna2sphinx(BASEPATH):
         for func in struct.functions:
             args_str = ", ".join([prop.get_arg_default(force=False) for prop in func.args])
 
-            fw("   .. method:: %s(%s)\n\n" % (func.identifier, args_str))
+            fw("   .. %s:: %s(%s)\n\n" % ("classmethod" if func.is_classmethod else "method", func.identifier, args_str))
             fw("      %s\n\n" % func.description)
             
             for prop in func.args:
@@ -756,7 +772,8 @@ def rna2sphinx(BASEPATH):
 
     file.close()
 
-if __name__ == '__main__':
+def main():
+    import bpy
     if 'bpy' not in dir():
         print("\nError, this script must run from inside blender2.5")
         print(script_help_msg)
@@ -826,3 +843,6 @@ if __name__ == '__main__':
 
     import sys
     sys.exit()
+
+if __name__ == '__main__':
+    main()

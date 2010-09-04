@@ -57,7 +57,7 @@ void		WM_init				(struct bContext *C, int argc, char **argv);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
-void		WM_init_game		(struct bContext *C);
+int 		WM_init_game		(struct bContext *C);
 void		WM_init_splash		(struct bContext *C);
 
 
@@ -78,7 +78,7 @@ void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
 int			WM_read_homefile	(struct bContext *C, struct wmOperator *op);
 int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
 void		WM_read_file		(struct bContext *C, char *name, struct ReportList *reports);
-int			WM_write_file		(struct bContext *C, char *target, int fileflags, struct ReportList *reports);
+int			WM_write_file		(struct bContext *C, char *target, int fileflags, struct ReportList *reports, int copy);
 void		WM_read_autosavefile(struct bContext *C);
 void		WM_autosave_init	(struct wmWindowManager *wm);
 
@@ -201,7 +201,6 @@ void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct bContext *C);
 
 struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
-struct wmOperatorType *WM_operatortype_exists(const char *idname);
 struct wmOperatorType *WM_operatortype_first(void);
 void		WM_operatortype_append	(void (*opfunc)(struct wmOperatorType*));
 void		WM_operatortype_append_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);

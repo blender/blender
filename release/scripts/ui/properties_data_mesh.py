@@ -20,8 +20,6 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class MESH_MT_vertex_group_specials(bpy.types.Menu):
     bl_label = "Vertex Group Specials"
@@ -49,17 +47,18 @@ class MESH_MT_shape_key_specials(bpy.types.Menu):
         layout.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT')
 
 
-class DataButtonsPanel(bpy.types.Panel):
+class MeshButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         engine = context.scene.render.engine
-        return context.mesh and (engine in self.COMPAT_ENGINES)
+        return context.mesh and (engine in cls.COMPAT_ENGINES)
 
 
-class DATA_PT_context_mesh(DataButtonsPanel):
+class DATA_PT_context_mesh(MeshButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -70,29 +69,17 @@ class DATA_PT_context_mesh(DataButtonsPanel):
         ob = context.object
         mesh = context.mesh
         space = context.space_data
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            split = layout.split(percentage=0.65)
-            if ob:
-                split.template_ID(ob, "data")
-                split.separator()
-            elif mesh:
-                split.template_ID(space, "pin_id")
-                split.separator()
-        else:
-            if ob:
-                layout.template_ID(ob, "data")
-            elif mesh:
-                layout.template_ID(space, "pin_id")
+        split = layout.split(percentage=0.65)
+        if ob:
+            split.template_ID(ob, "data")
+            split.separator()
+        elif mesh:
+            split.template_ID(space, "pin_id")
+            split.separator()
 
 
-class DATA_PT_custom_props_mesh(DataButtonsPanel, PropertyPanel):
-    _context_path = "object.data"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-
-class DATA_PT_normals(DataButtonsPanel):
+class DATA_PT_normals(MeshButtonsPanel, bpy.types.Panel):
     bl_label = "Normals"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -100,25 +87,21 @@ class DATA_PT_normals(DataButtonsPanel):
         layout = self.layout
 
         mesh = context.mesh
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
         col = split.column()
-        col.prop(mesh, "autosmooth")
+        col.prop(mesh, "use_auto_smooth")
         sub = col.column()
-        sub.active = mesh.autosmooth
-        sub.prop(mesh, "autosmooth_angle", text="Angle")
+        sub.active = mesh.use_auto_smooth
+        sub.prop(mesh, "auto_smooth_angle", text="Angle")
 
-        if wide_ui:
-            col = split.column()
-        else:
-            col.separator()
-        col.prop(mesh, "vertex_normal_flip")
-        col.prop(mesh, "double_sided")
+        col = split.column()
+
+        col.prop(mesh, "show_double_sided")
 
 
-class DATA_PT_settings(DataButtonsPanel):
+class DATA_PT_settings(MeshButtonsPanel, bpy.types.Panel):
     bl_label = "Settings"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -130,13 +113,15 @@ class DATA_PT_settings(DataButtonsPanel):
         layout.prop(mesh, "texture_mesh")
 
 
-class DATA_PT_vertex_groups(DataButtonsPanel):
+class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
     bl_label = "Vertex Groups"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         engine = context.scene.render.engine
-        return (context.object and context.object.type in ('MESH', 'LATTICE') and (engine in self.COMPAT_ENGINES))
+        obj = context.object
+        return (obj and obj.type in ('MESH', 'LATTICE') and (engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -177,13 +162,15 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
             layout.prop(context.tool_settings, "vertex_group_weight", text="Weight")
 
 
-class DATA_PT_shape_keys(DataButtonsPanel):
+class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
     bl_label = "Shape Keys"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         engine = context.scene.render.engine
-        return (context.object and context.object.type in ('MESH', 'LATTICE', 'CURVE', 'SURFACE') and (engine in self.COMPAT_ENGINES))
+        obj = context.object
+        return (obj and obj.type in ('MESH', 'LATTICE', 'CURVE', 'SURFACE') and (engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -191,13 +178,12 @@ class DATA_PT_shape_keys(DataButtonsPanel):
         ob = context.object
         key = ob.data.shape_keys
         kb = ob.active_shape_key
-        wide_ui = context.region.width > narrowui
 
         enable_edit = ob.mode != 'EDIT'
         enable_edit_value = False
 
-        if ob.shape_key_lock is False:
-            if enable_edit or (ob.type == 'MESH' and ob.shape_key_edit_mode):
+        if ob.show_shape_key is False:
+            if enable_edit or (ob.type == 'MESH' and ob.use_shape_key_edit_mode):
                 enable_edit_value = True
 
         row = layout.row()
@@ -224,23 +210,17 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             split = layout.split(percentage=0.4)
             row = split.row()
             row.enabled = enable_edit
-            if wide_ui:
-                row.prop(key, "relative")
+            row.prop(key, "use_relative")
 
             row = split.row()
             row.alignment = 'RIGHT'
 
-            if not wide_ui:
-                layout.prop(key, "relative")
-                row = layout.row()
-
-
             sub = row.row(align=True)
             subsub = sub.row(align=True)
             subsub.active = enable_edit_value
-            subsub.prop(ob, "shape_key_lock", text="")
+            subsub.prop(ob, "show_shape_key", text="")
             subsub.prop(kb, "mute", text="")
-            sub.prop(ob, "shape_key_edit_mode", text="")
+            sub.prop(ob, "use_shape_key_edit_mode", text="")
 
             sub = row.row()
             sub.operator("object.shape_key_clear", icon='X', text="")
@@ -248,7 +228,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             row = layout.row()
             row.prop(kb, "name")
 
-            if key.relative:
+            if key.use_relative:
                 if ob.active_shape_key_index != 0:
                     row = layout.row()
                     row.active = enable_edit_value
@@ -262,8 +242,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
                     col.prop(kb, "slider_min", text="Min")
                     col.prop(kb, "slider_max", text="Max")
 
-                    if wide_ui:
-                        col = split.column(align=True)
+                    col = split.column(align=True)
                     col.active = enable_edit_value
                     col.label(text="Blend:")
                     col.prop_object(kb, "vertex_group", ob, "vertex_groups", text="")
@@ -275,7 +254,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
                 row.prop(key, "slurph")
 
 
-class DATA_PT_uv_texture(DataButtonsPanel):
+class DATA_PT_uv_texture(MeshButtonsPanel, bpy.types.Panel):
     bl_label = "UV Texture"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -298,11 +277,12 @@ class DATA_PT_uv_texture(DataButtonsPanel):
             layout.prop(lay, "name")
 
 
-class DATA_PT_texface(DataButtonsPanel):
+class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
     bl_label = "Texture Face"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         ob = context.active_object
         rd = context.scene.render
 
@@ -312,7 +292,6 @@ class DATA_PT_texface(DataButtonsPanel):
         layout = self.layout
         col = layout.column()
 
-        wide_ui = context.region.width > narrowui
         me = context.mesh
 
         tf = me.faces.active_tface
@@ -321,31 +300,30 @@ class DATA_PT_texface(DataButtonsPanel):
             split = layout.split()
             col = split.column()
 
-            col.prop(tf, "tex")
-            col.prop(tf, "light")
-            col.prop(tf, "invisible")
-            col.prop(tf, "collision")
+            col.prop(tf, "use_bitmap_text")
+            col.prop(tf, "use_light")
+            col.prop(tf, "hide")
+            col.prop(tf, "use_collision")
 
-            col.prop(tf, "shared")
-            col.prop(tf, "twoside")
-            col.prop(tf, "object_color")
+            col.prop(tf, "use_blend_shared")
+            col.prop(tf, "use_twoside")
+            col.prop(tf, "use_object_color")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
 
-            col.prop(tf, "halo")
-            col.prop(tf, "billboard")
-            col.prop(tf, "shadow")
-            col.prop(tf, "text")
-            col.prop(tf, "alpha_sort")
+            col.prop(tf, "use_halo")
+            col.prop(tf, "use_billboard")
+            col.prop(tf, "use_shadow_cast")
+            col.prop(tf, "use_bitmap_text")
+            col.prop(tf, "use_alpha_sort")
 
             col = layout.column()
-            col.prop(tf, "transp")
+            col.prop(tf, "blend_type")
         else:
             col.label(text="No UV Texture")
 
 
-class DATA_PT_vertex_colors(DataButtonsPanel):
+class DATA_PT_vertex_colors(MeshButtonsPanel, bpy.types.Panel):
     bl_label = "Vertex Colors"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -368,32 +346,17 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
             layout.prop(lay, "name")
 
 
-classes = [
-    MESH_MT_vertex_group_specials,
-    MESH_MT_shape_key_specials,
-
-    DATA_PT_context_mesh,
-    DATA_PT_normals,
-    DATA_PT_settings,
-    DATA_PT_vertex_groups,
-    DATA_PT_shape_keys,
-    DATA_PT_uv_texture,
-    DATA_PT_texface,
-    DATA_PT_vertex_colors,
-
-    DATA_PT_custom_props_mesh]
+class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "object.data"
 
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

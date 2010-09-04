@@ -145,7 +145,7 @@ struct mem_elements {
 static void *new_mem_element(int size)
 {
 	int blocksize= 16384;
-	static int offs= 0;		/* the current free adress */
+	static int offs= 0;		/* the current free address */
 	static struct mem_elements *cur= 0, *first;
 	static ListBase lb= {0, 0};
 	void *adr;

@@ -51,15 +51,11 @@
 #include "RNA_access.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_lattice.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 
 #include "BLI_math.h"
@@ -74,6 +70,7 @@
 #include "ED_mesh.h"
 #include "ED_particle.h"
 #include "ED_view3d.h"
+#include "ED_curve.h" /* for ED_curve_editnurbs */
 
 #include "UI_resources.h"
 
@@ -294,7 +291,7 @@ int calc_manipulator_stats(const bContext *C)
 			bArmature *arm= obedit->data;
 			EditBone *ebo;
 			for (ebo= arm->edbo->first; ebo; ebo=ebo->next){
-				if(ebo->layer & arm->layer) {
+				if(ebo->layer & arm->layer && !(ebo->flag & BONE_HIDDEN_A)) {
 					if (ebo->flag & BONE_TIPSEL) {
 						calc_tw_center(scene, ebo->tail);
 						totsel++;
@@ -314,8 +311,9 @@ int calc_manipulator_stats(const bContext *C)
 			Nurb *nu;
 			BezTriple *bezt;
 			BPoint *bp;
+			ListBase *nurbs= ED_curve_editnurbs(cu);
 
-			nu= cu->editnurb->first;
+			nu= nurbs->first;
 			while(nu) {
 				if(nu->type == CU_BEZIER) {
 					bezt= nu->bezt;
@@ -384,9 +382,9 @@ int calc_manipulator_stats(const bContext *C)
 			BPoint *bp;
 			Lattice *lt= obedit->data;
 
-			bp= lt->editlatt->def;
+			bp= lt->editlatt->latt->def;
 
-			a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+			a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 			while(a--) {
 				if(bp->f1 & SELECT) {
 					calc_tw_center(scene, bp->vec);

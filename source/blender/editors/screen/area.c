@@ -40,7 +40,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -48,6 +47,7 @@
 
 #include "ED_screen.h"
 #include "ED_screen_types.h"
+#include "ED_space_api.h"
 #include "ED_types.h"
 #include "ED_fileselect.h" 
 
@@ -117,12 +117,6 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 		case NC_WINDOW:
 			ED_region_tag_redraw(ar);
 			break;
-#ifndef WM_FAST_DRAW
-		case NC_SCREEN:
-			if(note->action==NA_EDITED)
-				ED_region_tag_redraw(ar);
-			break;
-#endif
 	}
 
 	if(ar->type && ar->type->listener)
@@ -349,6 +343,8 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	else if(at->draw) {
 		at->draw(C, ar);
 	}
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
 	
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
 	
@@ -1427,7 +1423,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 
 	/* draw all headers types */
 	for(ht= ar->type->headertypes.first; ht; ht= ht->next) {
-		block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
+		block= uiBeginBlock(C, ar, ht->idname, UI_EMBOSS);
 		layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, yco, HEADERY-6, 1, style);
 
 		if(ht->draw) {

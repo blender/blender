@@ -53,7 +53,7 @@ EnumPropertyItem property_unit_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
-
+#include "MEM_guardedalloc.h"
 #include "BLI_ghash.h"
 
 /* Struct */
@@ -201,7 +201,7 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 
 		/* try id properties */
 		if(!iter->valid) {
-			group= RNA_struct_idproperties(&iter->builtin_parent, 0);
+			group= RNA_struct_idprops(&iter->builtin_parent, 0);
 
 			if(group) {
 				rna_iterator_listbase_end(iter);
@@ -335,7 +335,7 @@ PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key
 	if(ptr->data) {
 		IDProperty *group, *idp;
 
-		group= RNA_struct_idproperties(ptr, 0);
+		group= RNA_struct_idprops(ptr, 0);
 
 		if(group) {
 			for(idp=group->data.group.first; idp; idp=idp->next) {
@@ -811,6 +811,12 @@ static int rna_Function_registered_optional_get(PointerRNA *ptr)
 	return func->flag & FUNC_REGISTER_OPTIONAL;
 }
 
+static int rna_Function_no_self_get(PointerRNA *ptr)
+{
+	FunctionRNA *func= (FunctionRNA*)ptr->data;
+	return !(func->flag & FUNC_NO_SELF);
+}
+
 /* Blender RNA */
 
 static void rna_BlenderRNA_structs_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -884,19 +890,19 @@ static void rna_def_struct(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "base", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
-	RNA_def_property_pointer_funcs(prop, "rna_Struct_base_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Struct_base_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Base", "Struct definition this is derived from");
 
 	prop= RNA_def_property(srna, "nested", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
-	RNA_def_property_pointer_funcs(prop, "rna_Struct_nested_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Struct_nested_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Nested", "Struct in which this struct is always nested, and to which it logically belongs");
 
 	prop= RNA_def_property(srna, "name_property", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "StringProperty");
-	RNA_def_property_pointer_funcs(prop, "rna_Struct_name_property_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Struct_name_property_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Name Property", "Property that gives the name of the struct");
 
 	prop= RNA_def_property(srna, "properties", PROP_COLLECTION, PROP_NONE);
@@ -974,7 +980,7 @@ static void rna_def_property(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "srna", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
-	RNA_def_property_pointer_funcs(prop, "rna_Property_srna_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Property_srna_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Base", "Struct definition used for properties assigned to this item");
 
 	prop= RNA_def_property(srna, "unit", PROP_ENUM, PROP_NONE);
@@ -998,17 +1004,17 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_never_none_get", NULL);
 	RNA_def_property_ui_text(prop, "Never None", "True when this value can't be set to None");
 
-	prop= RNA_def_property(srna, "use_output", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_output", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_use_output_get", NULL);
 	RNA_def_property_ui_text(prop, "Return", "True when this property is an output value from an RNA function");
 
-	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_registered", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_registered_get", NULL);
 	RNA_def_property_ui_text(prop, "Registered", "Property is registered as part of type registration");
 
-	prop= RNA_def_property(srna, "registered_optional", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_registered_optional", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_registered_optional_get", NULL);
 	RNA_def_property_ui_text(prop, "Registered Optionally", "Property is optionally registered as part of type registration");
@@ -1040,15 +1046,20 @@ static void rna_def_function(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, "rna_Function_parameters_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Parameters", "Parameters for the function");
 
-	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_registered", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Function_registered_get", NULL);
 	RNA_def_property_ui_text(prop, "Registered", "Function is registered as callback as part of type registration");
 
-	prop= RNA_def_property(srna, "registered_optional", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_registered_optional", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Function_registered_optional_get", NULL);
 	RNA_def_property_ui_text(prop, "Registered Optionally", "Function is optionally registered as callback part of type registration");
+
+	prop= RNA_def_property(srna, "use_self", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Function_no_self_get", NULL);
+	RNA_def_property_ui_text(prop, "No Self", "Function does not pass its self as an argument (becomes a class method in python)");
 }
 
 static void rna_def_number_property(StructRNA *srna, PropertyType type)
@@ -1151,7 +1162,7 @@ static void rna_def_string_property(StructRNA *srna)
 	RNA_def_property_string_funcs(prop, "rna_StringProperty_default_get", "rna_StringProperty_default_length", NULL);
 	RNA_def_property_ui_text(prop, "Default", "string default value");
 
-	prop= RNA_def_property(srna, "max_length", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "length_max", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_StringProperty_max_length_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Maximum Length", "Maximum length of the string, 0 means unlimited");
@@ -1212,9 +1223,9 @@ static void rna_def_pointer_property(StructRNA *srna, PropertyType type)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
 	if(type == PROP_POINTER)
-		RNA_def_property_pointer_funcs(prop, "rna_PointerProperty_fixed_type_get", NULL, NULL);
+		RNA_def_property_pointer_funcs(prop, "rna_PointerProperty_fixed_type_get", NULL, NULL, NULL);
 	else
-		RNA_def_property_pointer_funcs(prop, "rna_CollectionProperty_fixed_type_get", NULL, NULL);
+		RNA_def_property_pointer_funcs(prop, "rna_CollectionProperty_fixed_type_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Pointer Type", "Fixed pointer type, empty if variable type");
 }
 

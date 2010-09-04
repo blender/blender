@@ -54,6 +54,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_math.h" /* windows needs for M_PI */
 #include "BLI_blenlib.h"
@@ -906,7 +907,7 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 			*array_index= dummy_index;
 	}
 	
-	/* append preceeding bits to path */
+	/* append preceding bits to path */
 	if ((actname && actname[0]) && (constname && constname[0])) {
 		/* Constraint in Pose-Channel */
 		sprintf(buf, "pose.bones[\"%s\"].constraints[\"%s\"]", actname, constname);

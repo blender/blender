@@ -35,7 +35,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -46,7 +45,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
@@ -385,20 +383,22 @@ static int nlaedit_add_tracks_exec (bContext *C, wmOperator *op)
 	
 	/* add tracks... */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		NlaTrack *nlt= (NlaTrack *)ale->data;
-		AnimData *adt= ale->adt;
-		
-		/* check if just adding a new track above this one,
-		 * or whether we're adding a new one to the top of the stack that this one belongs to
-		 */
-		if (above_sel) {
-			/* just add a new one above this one */
-			add_nlatrack(adt, nlt);
-		}
-		else if ((lastAdt == NULL) || (adt != lastAdt)) {
-			/* add one track to the top of the owning AnimData's stack, then don't add anymore to this stack */
-			add_nlatrack(adt, NULL);
-			lastAdt= adt;
+		if(ale->type == ANIMTYPE_NLATRACK) {
+			NlaTrack *nlt= (NlaTrack *)ale->data;
+			AnimData *adt= ale->adt;
+			
+			/* check if just adding a new track above this one,
+			 * or whether we're adding a new one to the top of the stack that this one belongs to
+			 */
+			if (above_sel) {
+				/* just add a new one above this one */
+				add_nlatrack(adt, nlt);
+			}
+			else if ((lastAdt == NULL) || (adt != lastAdt)) {
+				/* add one track to the top of the owning AnimData's stack, then don't add anymore to this stack */
+				add_nlatrack(adt, NULL);
+				lastAdt= adt;
+			}
 		}
 	}
 	
@@ -451,11 +451,13 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *op)
 	
 	/* delete tracks */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		NlaTrack *nlt= (NlaTrack *)ale->data;
-		AnimData *adt= ale->adt;
-		
-		/* call delete on this track - deletes all strips too */
-		free_nlatrack(&adt->nla_tracks, nlt);
+		if(ale->type == ANIMTYPE_NLATRACK) {
+			NlaTrack *nlt= (NlaTrack *)ale->data;
+			AnimData *adt= ale->adt;
+			
+			/* call delete on this track - deletes all strips too */
+			free_nlatrack(&adt->nla_tracks, nlt);
+		}
 	}
 	
 	/* free temp data */

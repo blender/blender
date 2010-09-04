@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
 
@@ -66,7 +66,7 @@ def mdd_import(filepath, ob, scene, PREF_START_FRAME=0, PREF_JUMP=1):
 
         ob.active_shape_key_index = len(ob.data.shape_keys.keys)-1
         index = len(ob.data.shape_keys.keys)-1
-        ob.shape_key_lock = True
+        ob.show_shape_key = True
 
         verts = ob.data.shape_keys.keys[len(ob.data.shape_keys.keys)-1].data
 
@@ -74,7 +74,7 @@ def mdd_import(filepath, ob, scene, PREF_START_FRAME=0, PREF_JUMP=1):
         for v in verts: # 12 is the size of 3 floats
             v.co[:] = unpack('>3f', file.read(12))
         #me.update()
-        ob.shape_key_lock = False
+        ob.show_shape_key = False
 
 
         # insert keyframes
@@ -120,7 +120,8 @@ class importMDD(bpy.types.Operator):
     #fps = IntProperty(name="Frames Per Second", description="Number of frames/second", min=minfps, max=maxfps, default=25)
     frame_start = IntProperty(name="Start Frame", description="Start frame for inserting animation", min=minframe, max=maxframe, default=0)
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         ob = context.active_object
         return (ob and ob.type == 'MESH')
 
@@ -143,12 +144,10 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(importMDD)
     bpy.types.INFO_MT_file_import.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(importMDD)
     bpy.types.INFO_MT_file_import.remove(menu_func)
 
 if __name__ == "__main__":

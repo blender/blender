@@ -43,27 +43,29 @@
 #include "MEM_guardedalloc.h"
 
 /* all types are needed here, in order to do memory operations */
-#include "DNA_scene_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_material_types.h"
-#include "DNA_wave_types.h"
-#include "DNA_lamp_types.h"
+#include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_group_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
-#include "DNA_world_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_vfont_types.h"
-#include "DNA_text_types.h"
-#include "DNA_sound_types.h"
-#include "DNA_group_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_node_types.h"
+#include "DNA_lamp_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_nla_types.h"
+#include "DNA_node_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_text_types.h"
+#include "DNA_vfont_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_anim_types.h"
+#include "DNA_world_types.h"
+#include "DNA_gpencil_types.h"
+
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -174,8 +176,6 @@ int id_make_local(ID *id, int test)
 			return 1;
 		case ID_IM:
 			return 0; /* not implemented */
-		case ID_WV:
-			return 0; /* deprecated */
 		case ID_LT:
 			if(!test) {
 				make_local_lattice((Lattice*)id);
@@ -262,9 +262,8 @@ int id_copy(ID *id, ID **newid, int test)
 			if(!test) *newid= (ID*)copy_texture((Tex*)id);
 			return 1;
 		case ID_IM:
-			return 0; /* not implemented */
-		case ID_WV:
-			return 0; /* deprecated */
+			if(!test) *newid= (ID*)copy_image((Image*)id);
+			return 1;
 		case ID_LT:
 			if(!test) *newid= (ID*)copy_lattice((Lattice*)id);
 			return 1;
@@ -373,8 +372,6 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->tex);
 		case ID_IM:
 			return &(mainlib->image);
-		case ID_WV:
-			return &(mainlib->wave);
 		case ID_LT:
 			return &(mainlib->latt);
 		case ID_LA:
@@ -474,7 +471,6 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++]= &(main->curve);
 	lb[a++]= &(main->mball);
 
-	lb[a++]= &(main->wave);
 	lb[a++]= &(main->latt);
 	lb[a++]= &(main->lamp);
 	lb[a++]= &(main->camera);
@@ -540,9 +536,6 @@ static ID *alloc_libblock_notest(short type)
 			break;
 		case ID_IM:
 			id= MEM_callocN(sizeof(Image), "image");
-			break;
-		case ID_WV:
-			id= MEM_callocN(sizeof(Wave), "wave");
 			break;
 		case ID_LT:
 			id= MEM_callocN(sizeof(Lattice), "latt");
@@ -744,9 +737,6 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_IM:
 			free_image((Image *)id);
-			break;
-		case ID_WV:
-			/* free_wave(id); */
 			break;
 		case ID_LT:
 			free_lattice((Lattice *)id);
@@ -995,7 +985,7 @@ void IMAnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb
 
 
 /* used by buttons.c library.c mball.c */
-void splitIDname(char *name, char *left, int *nr)
+int splitIDname(char *name, char *left, int *nr)
 {
 	int a;
 	
@@ -1003,19 +993,23 @@ void splitIDname(char *name, char *left, int *nr)
 	strncpy(left, name, 21);
 	
 	a= strlen(name);
-	if(a>1 && name[a-1]=='.') return;
+	if(a>1 && name[a-1]=='.') return a;
 	
 	while(a--) {
 		if( name[a]=='.' ) {
 			left[a]= 0;
 			*nr= atol(name+a+1);
-			return;
+			return a;
 		}
 		if( isdigit(name[a])==0 ) break;
 		
 		left[a]= 0;
 	}
-	strcpy(left, name);	
+
+	for(a= 0; name[a]; a++)
+		left[a]= name[a];
+
+	return a;
 }
 
 static void sort_alpha_id(ListBase *lb, ID *id)
@@ -1077,8 +1071,7 @@ static ID *is_dupid(ListBase *lb, ID *id, char *name)
 static int check_for_dupid(ListBase *lb, ID *id, char *name)
 {
 	ID *idtest;
-	int nr= 0, nrtest, a;
-	const int maxtest=32;
+	int nr= 0, nrtest, a, left_len;
 	char left[32], leftest[32], in_use[32];
 
 	/* make sure input name is terminated properly */
@@ -1095,31 +1088,37 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 
 		/* we have a dup; need to make a new name */
 		/* quick check so we can reuse one of first 32 ids if vacant */
-		memset(in_use, 0, maxtest);
+		memset(in_use, 0, sizeof(in_use));
 
 		/* get name portion, number portion ("name.number") */
-		splitIDname( name, left, &nr);
+		left_len= splitIDname(name, left, &nr);
 
 		/* if new name will be too long, truncate it */
-		if(nr>999 && strlen(left)>16) left[16]= 0;
-		else if(strlen(left)>17) left[17]= 0;
+		if(nr > 999 && left_len > 16) {
+			left[16]= 0;
+			left_len= 16;
+		}
+		else if(left_len > 17) {
+			left[17]= 0;
+			left_len= 17;
+		}
 
-		for( idtest = lb->first; idtest; idtest = idtest->next ) {
-			if( id != idtest && idtest->lib == NULL ) {
-				splitIDname(idtest->name+2, leftest, &nrtest);
-				/* if base names match... */
-				/* optimized */
-				if( *left == *leftest && strcmp(left, leftest)==0 ) {
-					if(nrtest < maxtest)
-						in_use[nrtest]= 1;	/* mark as used */
-					if(nr <= nrtest)
-						nr= nrtest+1;		/* track largest unused */
-				}
+		for(idtest= lb->first; idtest; idtest= idtest->next) {
+			if(		(id != idtest) &&
+					(idtest->lib == NULL) &&
+					(*name == *(idtest->name+2)) &&
+					(strncmp(name, idtest->name+2, left_len)==0) &&
+					(splitIDname(idtest->name+2, leftest, &nrtest) == left_len)
+			) {
+				if(nrtest < sizeof(in_use))
+					in_use[nrtest]= 1;	/* mark as used */
+				if(nr <= nrtest)
+					nr= nrtest+1;		/* track largest unused */
 			}
 		}
 
 		/* decide which value of nr to use */
-		for(a=0; a<maxtest; a++) {
+		for(a=0; a < sizeof(in_use); a++) {
 			if(a>=nr) break;	/* stop when we've check up to biggest */
 			if( in_use[a]==0 ) { /* found an unused value */
 				nr = a;
@@ -1129,9 +1128,10 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 
 		/* If the original name has no numeric suffix, 
 		 * rather than just chopping and adding numbers, 
-		 * shave off the end chars until we have a unique name */
-		if (nr==0) {
-			int len = strlen(name)-1;
+		 * shave off the end chars until we have a unique name.
+		 * Check the null terminators match as well so we dont get Cube.000 -> Cube.00 */
+		if (nr==0 && name[left_len]== '\0') {
+			int len = left_len-1;
 			idtest= is_dupid(lb, id, name);
 			
 			while (idtest && len> 1) {
@@ -1142,10 +1142,11 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 			/* otherwise just continue and use a number suffix */
 		}
 		
-		if(nr > 999 && strlen(left) > 16) {
+		if(nr > 999 && left_len > 16) {
 			/* this would overflow name buffer */
 			left[16] = 0;
-			strcpy( name, left );
+			/* left_len = 16; */ /* for now this isnt used again */
+			memcpy(name, left, sizeof(char) * 16);
 			continue;
 		}
 		/* this format specifier is from hell... */
@@ -1303,7 +1304,7 @@ void all_local(Library *lib, int untagged_only)
 			
 			/* The check on the second line (LIB_PRE_EXISTING) is done so its
 			 * possible to tag data you dont want to be made local, used for
-			 * appending data, so any libdata alredy linked wont become local
+			 * appending data, so any libdata already linked wont become local
 			 * (very nasty to discover all your links are lost after appending)  
 			 * */
 			if(id->flag & (LIB_EXTERN|LIB_INDIRECT|LIB_NEW) &&
@@ -1390,3 +1391,11 @@ void rename_id(ID *id, char *name)
 	new_id(lb, id, name);				
 }
 
+void name_uiprefix_id(char *name, ID *id)
+{
+	name[0] = id->lib ? 'L':' ';
+	name[1] = id->flag & LIB_FAKEUSER ? 'F':' ';
+	name[2] = ' ';
+
+	strcpy(name+3, id->name+2);
+}

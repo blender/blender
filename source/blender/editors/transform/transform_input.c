@@ -197,17 +197,17 @@ void InputCustomRatio(TransInfo *t, MouseInput *mi, short mval[2], float output[
 			mdx = (mi->precision_mval[0] + (float)(mval[0] - mi->precision_mval[0]) / 10.0f) - data[2];
 			mdy = (mi->precision_mval[1] + (float)(mval[1] - mi->precision_mval[1]) / 10.0f) - data[3];
 
-			distance = (mdx*dx + mdy*dy) / length;
+			distance = (length != 0.0f)? (mdx*dx + mdy*dy) / length: 0.0f;
 		}
 		else {
 			short mdx, mdy;
 			mdx = mval[0] - data[2];
 			mdy = mval[1] - data[3];
 
-			distance = (mdx*dx + mdy*dy) / length;
+			distance = (length != 0.0f)? (mdx*dx + mdy*dy) / length: 0.0f;
 		}
 
-		output[0] = distance / length;
+		output[0] = (length != 0.0f)? distance / length: 0.0f;
 	}
 }
 
@@ -237,7 +237,7 @@ void InputAngle(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
 
 	/* If the angle is zero, because of lack of precision close to the 1.0 value in acos
-	 * approximate the angle with the oposite side of the normalized triangle
+	 * approximate the angle with the opposite side of the normalized triangle
 	 * This is a good approximation here since the smallest acos value seems to be around
 	 * 0.02 degree and lower values don't even have a 0.01% error compared to the approximation
 	 * */

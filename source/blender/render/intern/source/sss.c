@@ -56,7 +56,6 @@
 #include "DNA_material_types.h"
 
 #include "BKE_colortools.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
@@ -993,7 +992,7 @@ void make_sss_tree(Render *re)
 	re->i.infostr= "SSS preprocessing";
 	re->stats_draw(re->sdh, &re->i);
 	
-	for(mat= G.main->mat.first; mat; mat= mat->id.next)
+	for(mat= re->main->mat.first; mat; mat= mat->id.next)
 		if(mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))
 			sss_create_tree_mat(re, mat);
 }

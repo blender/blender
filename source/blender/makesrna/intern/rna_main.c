@@ -50,9 +50,9 @@ static void rna_Main_debug_set(PointerRNA *ptr, const int value)
 		G.f &= ~G_DEBUG;
 }
 
-static int rna_Main_fileissaved_get(PointerRNA *ptr)
+static int rna_Main_is_dirty_get(PointerRNA *ptr)
 {
-	return G.relbase_valid;
+	return !G.relbase_valid;
 }
 
 static void rna_Main_filepath_get(PointerRNA *ptr, char *value)
@@ -299,7 +299,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"armatures", "Armature", "rna_Main_armature_begin", "Armatures", "Armature datablocks.", RNA_def_main_armatures},
 		{"actions", "Action", "rna_Main_action_begin", "Actions", "Action datablocks.", RNA_def_main_actions},
 		{"particles", "ParticleSettings", "rna_Main_particle_begin", "Particles", "Particle datablocks.", RNA_def_main_particles},
-		{"gpencil", "GreasePencil", "rna_Main_gpencil_begin", "Grease Pencil", "Grease Pencil datablocks.", RNA_def_main_gpencil},
+		{"grease_pencil", "GreasePencil", "rna_Main_gpencil_begin", "Grease Pencil", "Grease Pencil datablocks.", RNA_def_main_gpencil},
 		{NULL, NULL, NULL, NULL, NULL, NULL}};
 
 	int i;
@@ -314,9 +314,9 @@ void RNA_def_main(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Filename", "Path to the .blend file");
 	
-	prop= RNA_def_property(srna, "file_is_saved", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_Main_fileissaved_get", NULL);
+	RNA_def_property_boolean_funcs(prop, "rna_Main_is_dirty_get", NULL);
 	RNA_def_property_ui_text(prop, "File is Saved", "Has the current session been saved to disk as a .blend file");
 
 	prop= RNA_def_property(srna, "debug", PROP_BOOLEAN, PROP_NONE);
@@ -345,7 +345,7 @@ void RNA_def_main(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "test", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Test");
-	RNA_def_property_pointer_funcs(prop, "rna_Test_test_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Test_test_get", NULL, NULL, NULL);
 
 	RNA_define_verify_sdna(1);
 

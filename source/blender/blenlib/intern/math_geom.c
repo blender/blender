@@ -317,7 +317,7 @@ static short IsectLLPt2Df(float x0,float y0,float x1,float y1,
 		return -1; /*m2 = (float) 1e+10;*/   // close enough to infinity
 
 	if (fabs(m1-m2) < 0.000001)
-		return -1; /* paralelle lines */
+		return -1; /* parallel lines */
 	
 // compute constants
 
@@ -841,10 +841,8 @@ int isect_line_line_v3(float v1[3], float v2[3], float v3[3], float v4[3], float
 	sub_v3_v3v3(a, v2, v1);
 	sub_v3_v3v3(b, v4, v3);
 
-	copy_v3_v3(dir1, a);
-	normalize_v3(dir1);
-	copy_v3_v3(dir2, b);
-	normalize_v3(dir2);
+	normalize_v3_v3(dir1, a);
+	normalize_v3_v3(dir2, b);
 	d = dot_v3v3(dir1, dir2);
 	if (d == 1.0f || d == -1.0f) {
 		/* colinear */
@@ -908,10 +906,8 @@ int isect_line_line_strict_v3(float v1[3], float v2[3], float v3[3], float v4[3]
 	sub_v3_v3v3(a, v2, v1);
 	sub_v3_v3v3(b, v4, v3);
 
-	copy_v3_v3(dir1, a);
-	normalize_v3(dir1);
-	copy_v3_v3(dir2, b);
-	normalize_v3(dir2);
+	normalize_v3_v3(dir1, a);
+	normalize_v3_v3(dir2, b);
 	d = dot_v3v3(dir1, dir2);
 	if (d == 1.0f || d == -1.0f || d == 0) {
 		/* colinear or one vector is zero-length*/
@@ -993,14 +989,14 @@ void isect_point_quad_uv_v2(float v0[2], float v1[2], float v2[2], float v3[2], 
 {
 	float x0,y0, x1,y1, wtot, v2d[2], w1, w2;
 	
-	/* used for paralelle lines */
+	/* used for parallel lines */
 	float pt3d[3], l1[3], l2[3], pt_on_line[3];
 	
 	/* compute 2 edges  of the quad  intersection point */
 	if (IsectLLPt2Df(v0[0],v0[1],v1[0],v1[1],  v2[0],v2[1],v3[0],v3[1], &x0,&y0) == 1) {
 		/* the intersection point between the quad-edge intersection and the point in the quad we want the uv's for */
 		/* should never be paralle !! */
-		/*printf("\tnot paralelle 1\n");*/
+		/*printf("\tnot parallel 1\n");*/
 		IsectLLPt2Df(pt[0],pt[1],x0,y0,  v0[0],v0[1],v3[0],v3[1], &x1,&y1);
 		
 		/* Get the weights from the new intersection point, to each edge */
@@ -1016,8 +1012,8 @@ void isect_point_quad_uv_v2(float v0[2], float v1[2], float v2[2], float v3[2], 
 		/*w2 = w2/wtot;*/
 		uv[0] = w1/wtot;
 	} else {
-		/* lines are paralelle, lambda_cp_line_ex is 3d grrr */
-		/*printf("\tparalelle1\n");*/
+		/* lines are parallel, lambda_cp_line_ex is 3d grrr */
+		/*printf("\tparallel1\n");*/
 		pt3d[0] = pt[0];
 		pt3d[1] = pt[1];
 		pt3d[2] = l1[2] = l2[2] = 0.0f;
@@ -1043,7 +1039,7 @@ void isect_point_quad_uv_v2(float v0[2], float v1[2], float v2[2], float v3[2], 
 	
 	if (IsectLLPt2Df(v0[0],v0[1],v3[0],v3[1],  v1[0],v1[1],v2[0],v2[1], &x0,&y0) == 1) { /* was v0,v1  v2,v3  now v0,v3  v1,v2*/
 		/* never paralle if above was not */
-		/*printf("\tnot paralelle2\n");*/
+		/*printf("\tnot parallel2\n");*/
 		IsectLLPt2Df(pt[0],pt[1],x0,y0,  v0[0],v0[1],v1[0],v1[1], &x1,&y1);/* was v0,v3  now v0,v1*/
 		
 		v2d[0] = x1-v0[0];
@@ -1056,8 +1052,8 @@ void isect_point_quad_uv_v2(float v0[2], float v1[2], float v2[2], float v3[2], 
 		wtot = w1+w2;
 		uv[1] = w1/wtot;
 	} else {
-		/* lines are paralelle, lambda_cp_line_ex is 3d grrr */
-		/*printf("\tparalelle2\n");*/
+		/* lines are parallel, lambda_cp_line_ex is 3d grrr */
+		/*printf("\tparallel2\n");*/
 		pt3d[0] = pt[0];
 		pt3d[1] = pt[1];
 		pt3d[2] = l1[2] = l2[2] = 0.0f;
@@ -1225,7 +1221,7 @@ static int point_in_slice_as(float p[3],float origin[3],float normal[3])
 	return 1;
 }
 
-/*mama (knowing the squared lenght of the normal)*/
+/*mama (knowing the squared length of the normal)*/
 static int point_in_slice_m(float p[3],float origin[3],float normal[3],float lns)
 {
 	float h,rp[3];

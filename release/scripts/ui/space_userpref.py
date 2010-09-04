@@ -45,9 +45,9 @@ def ui_items_general(col, context):
     colsub = padding.column()
     colsub.row().prop(context, "text")
     colsub.row().prop(context, "text_sel")
-    colsub.prop(context, "shaded")
+    colsub.prop(context, "show_shaded")
     subsub = colsub.column(align=True)
-    subsub.active = context.shaded
+    subsub.active = context.show_shaded
     subsub.prop(context, "shadetop")
     subsub.prop(context, "shadedown")
 
@@ -57,13 +57,10 @@ def ui_items_general(col, context):
 def opengl_lamp_buttons(column, lamp):
     split = column.split(percentage=0.1)
 
-    if lamp.enabled == True:
-        split.prop(lamp, "enabled", text="", icon='OUTLINER_OB_LAMP')
-    else:
-        split.prop(lamp, "enabled", text="", icon='LAMP_DATA')
+    split.prop(lamp, "use", text="", icon='OUTLINER_OB_LAMP' if lamp.use else 'LAMP_DATA')
 
     col = split.column()
-    col.active = lamp.enabled
+    col.active = lamp.use
     row = col.row()
     row.label(text="Diffuse:")
     row.prop(lamp, "diffuse_color", text="")
@@ -72,7 +69,7 @@ def opengl_lamp_buttons(column, lamp):
     row.prop(lamp, "specular_color", text="")
 
     col = split.column()
-    col.active = lamp.enabled
+    col.active = lamp.use
     col.prop(lamp, "direction", text="")
 
 
@@ -91,15 +88,12 @@ class USERPREF_HT_header(bpy.types.Header):
         layout.operator_context = 'INVOKE_DEFAULT'
 
         if userpref.active_section == 'INPUT':
-            op = layout.operator("wm.keyconfig_export")
-            op.filepath = "keymap.py"
-            op = layout.operator("wm.keyconfig_import")
-            op.filepath = "keymap.py"
+            layout.operator("wm.keyconfig_export")
+            layout.operator("wm.keyconfig_import")
         elif userpref.active_section == 'ADDONS':
-            op = layout.operator("wm.addon_install")
-            op.filepath = "*.py"
+            layout.operator("wm.addon_install")
         elif userpref.active_section == 'THEMES':
-            op = layout.operator("ui.reset_default_theme")
+            layout.operator("ui.reset_default_theme")
 
 
 class USERPREF_PT_tabs(bpy.types.Panel):
@@ -142,7 +136,8 @@ class USERPREF_PT_interface(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'INTERFACE')
 
@@ -156,12 +151,12 @@ class USERPREF_PT_interface(bpy.types.Panel):
 
         col = row.column()
         col.label(text="Display:")
-        col.prop(view, "tooltips")
-        col.prop(view, "display_object_info", text="Object Info")
-        col.prop(view, "use_large_cursors")
+        col.prop(view, "show_tooltips")
+        col.prop(view, "show_object_info", text="Object Info")
+        col.prop(view, "show_large_cursors")
         col.prop(view, "show_view_name", text="View Name")
         col.prop(view, "show_playback_fps", text="Playback FPS")
-        col.prop(view, "global_scene")
+        col.prop(view, "use_global_scene")
         col.prop(view, "object_origin_size")
 
         col.separator()
@@ -170,30 +165,24 @@ class USERPREF_PT_interface(bpy.types.Panel):
 
         col.prop(view, "show_mini_axis", text="Display Mini Axis")
         sub = col.column()
-        sub.enabled = view.show_mini_axis
+        sub.active = view.show_mini_axis
         sub.prop(view, "mini_axis_size", text="Size")
         sub.prop(view, "mini_axis_brightness", text="Brightness")
 
         col.separator()
-        col.separator()
-        col.separator()
-
-        col.label(text="Properties Window:")
-        col.prop(view, "properties_width_check")
-
         row.separator()
         row.separator()
 
         col = row.column()
         col.label(text="View Manipulation:")
-        col.prop(view, "auto_depth")
-        col.prop(view, "zoom_to_mouse")
-        col.prop(view, "rotate_around_selection")
-        col.prop(view, "global_pivot")
+        col.prop(view, "use_mouse_auto_depth")
+        col.prop(view, "use_zoom_to_mouse")
+        col.prop(view, "use_rotate_around_active")
+        col.prop(view, "use_global_pivot")
 
         col.separator()
 
-        col.prop(view, "auto_perspective")
+        col.prop(view, "use_auto_perspective")
         col.prop(view, "smooth_view")
         col.prop(view, "rotation_angle")
 
@@ -201,7 +190,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.separator()
 
         col.label(text="2D Viewports:")
-        col.prop(view, "view2d_grid_minimum_spacing", text="Minimum Grid Spacing")
+        col.prop(view, "view2d_grid_spacing_min", text="Minimum Grid Spacing")
         col.prop(view, "timecode_style")
 
         row.separator()
@@ -210,13 +199,13 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col = row.column()
         #Toolbox doesn't exist yet
         #col.label(text="Toolbox:")
-        #col.prop(view, "use_column_layout")
+        #col.prop(view, "show_column_layout")
         #col.label(text="Open Toolbox Delay:")
         #col.prop(view, "open_left_mouse_delay", text="Hold LMB")
         #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
-        col.prop(view, "use_manipulator")
+        col.prop(view, "show_manipulator")
         sub = col.column()
-        sub.enabled = view.use_manipulator
+        sub.active = view.show_manipulator
         sub.prop(view, "manipulator_size", text="Size")
         sub.prop(view, "manipulator_handle_size", text="Handle Size")
         sub.prop(view, "manipulator_hotspot", text="Hotspot")
@@ -226,7 +215,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.separator()
 
         col.label(text="Menus:")
-        col.prop(view, "open_mouse_over")
+        col.prop(view, "use_mouse_over_open")
         col.label(text="Menu Open Delay:")
         col.prop(view, "open_toplevel_delay", text="Top Level")
         col.prop(view, "open_sublevel_delay", text="Sub Level")
@@ -242,7 +231,8 @@ class USERPREF_PT_edit(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'EDITING')
 
@@ -263,7 +253,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.separator()
 
         col.label(text="New Objects:")
-        col.prop(edit, "enter_edit_mode")
+        col.prop(edit, "use_enter_edit_mode")
         col.label(text="Align To:")
         col.prop(edit, "object_align", text="")
 
@@ -272,7 +262,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.separator()
 
         col.label(text="Undo:")
-        col.prop(edit, "global_undo")
+        col.prop(edit, "use_global_undo")
         col.prop(edit, "undo_steps", text="Steps")
         col.prop(edit, "undo_memory_limit", text="Memory Limit")
 
@@ -283,9 +273,9 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.label(text="Grease Pencil:")
         col.prop(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
         col.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
-        #col.prop(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
+        #col.prop(edit, "use_grease_pencil_simplify_stroke", text="Simplify Stroke")
         col.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
-        col.prop(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
+        col.prop(edit, "use_grease_pencil_smooth_stroke", text="Smooth Stroke")
         col.separator()
         col.separator()
         col.separator()
@@ -298,7 +288,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col = row.column()
         col.label(text="Keyframing:")
         col.prop(edit, "use_visual_keying")
-        col.prop(edit, "keyframe_insert_needed", text="Only Insert Needed")
+        col.prop(edit, "use_keyframe_insert_needed", text="Only Insert Needed")
 
         col.separator()
 
@@ -306,55 +296,48 @@ class USERPREF_PT_edit(bpy.types.Panel):
 
         sub = col.column()
 
-        # sub.active = edit.use_auto_keying # incorrect, timeline can enable
-        sub.prop(edit, "auto_keyframe_insert_keyingset", text="Only Insert for Keying Set")
-        sub.prop(edit, "auto_keyframe_insert_available", text="Only Insert Available")
+        # sub.active = edit.use_keyframe_insert_auto # incorrect, timeline can enable
+        sub.prop(edit, "use_keyframe_insert_keyingset", text="Only Insert for Keying Set")
+        sub.prop(edit, "use_keyframe_insert_available", text="Only Insert Available")
 
         col.separator()
 
         col.label(text="New F-Curve Defaults:")
         col.prop(edit, "keyframe_new_interpolation_type", text="Interpolation")
         col.prop(edit, "keyframe_new_handle_type", text="Handles")
-        col.prop(edit, "insertkey_xyz_to_rgb", text="XYZ to RGB")
+        col.prop(edit, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
 
         col.separator()
         col.separator()
         col.separator()
 
         col.label(text="Transform:")
-        col.prop(edit, "drag_immediately")
+        col.prop(edit, "use_drag_immediately")
 
         row.separator()
         row.separator()
 
-        sculpt = context.tool_settings.sculpt
         col = row.column()
-        col.label(text="Paint and Sculpt:")
-        col.prop(edit, "sculpt_paint_use_unified_size", text="Unify Size")
-        col.prop(edit, "sculpt_paint_use_unified_strength", text="Unify Strength")
         row = col.row(align=True)
-        row.label("Overlay Color:")
-        row.prop(edit, "sculpt_paint_overlay_col", text="")
-        col.prop(sculpt, "use_openmp", text="Threaded Sculpt")
-        col.prop(sculpt, "show_brush")
+        row.prop(edit, "sculpt_paint_overlay_color", text="Sculpt Overlay Color")
 
         col.separator()
         col.separator()
         col.separator()
 
         col.label(text="Duplicate Data:")
-        col.prop(edit, "duplicate_mesh", text="Mesh")
-        col.prop(edit, "duplicate_surface", text="Surface")
-        col.prop(edit, "duplicate_curve", text="Curve")
-        col.prop(edit, "duplicate_text", text="Text")
-        col.prop(edit, "duplicate_metaball", text="Metaball")
-        col.prop(edit, "duplicate_armature", text="Armature")
-        col.prop(edit, "duplicate_lamp", text="Lamp")
-        col.prop(edit, "duplicate_material", text="Material")
-        col.prop(edit, "duplicate_texture", text="Texture")
-        col.prop(edit, "duplicate_fcurve", text="F-Curve")
-        col.prop(edit, "duplicate_action", text="Action")
-        col.prop(edit, "duplicate_particle", text="Particle")
+        col.prop(edit, "use_duplicate_mesh", text="Mesh")
+        col.prop(edit, "use_duplicate_surface", text="Surface")
+        col.prop(edit, "use_duplicate_curve", text="Curve")
+        col.prop(edit, "use_duplicate_text", text="Text")
+        col.prop(edit, "use_duplicate_metaball", text="Metaball")
+        col.prop(edit, "use_duplicate_armature", text="Armature")
+        col.prop(edit, "use_duplicate_lamp", text="Lamp")
+        col.prop(edit, "use_duplicate_material", text="Material")
+        col.prop(edit, "use_duplicate_texture", text="Texture")
+        #col.prop(edit, "use_duplicate_fcurve", text="F-Curve")
+        col.prop(edit, "use_duplicate_action", text="Action")
+        col.prop(edit, "use_duplicate_particle", text="Particle")
 
 
 class USERPREF_PT_system(bpy.types.Panel):
@@ -363,7 +346,8 @@ class USERPREF_PT_system(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'SYSTEM')
 
@@ -385,8 +369,8 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.prop(system, "dpi")
         col.prop(system, "frame_server_port")
         col.prop(system, "scrollback", text="Console Scrollback")
-        col.prop(system, "auto_execute_scripts")
-        col.prop(system, "tabs_as_spaces")
+        col.prop(system, "use_scripts_auto_execute")
+        col.prop(system, "use_tabs_as_spaces")
 
         col.separator()
         col.separator()
@@ -396,7 +380,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.row().prop(system, "audio_device", expand=True)
         sub = col.column()
         sub.active = system.audio_device != 'NONE'
-        #sub.prop(system, "enable_all_codecs")
+        #sub.prop(system, "use_preview_images")
         sub.prop(system, "audio_channels", text="Channels")
         sub.prop(system, "audio_mixing_buffer", text="Mixing Buffer")
         sub.prop(system, "audio_sample_rate", text="Sample Rate")
@@ -419,9 +403,9 @@ class USERPREF_PT_system(bpy.types.Panel):
         # No translation in 2.5 yet
         #col.prop(system, "language")
         #col.label(text="Translate:")
-        #col.prop(system, "translate_tooltips", text="Tooltips")
-        #col.prop(system, "translate_buttons", text="Labels")
-        #col.prop(system, "translate_toolbox", text="Toolbox")
+        #col.prop(system, "use_translate_tooltips", text="Tooltips")
+        #col.prop(system, "use_translate_buttons", text="Labels")
+        #col.prop(system, "use_translate_toolbox", text="Toolbox")
 
         #col.separator()
 
@@ -434,9 +418,9 @@ class USERPREF_PT_system(bpy.types.Panel):
 
         col = colsplit.column()
         col.label(text="OpenGL:")
-        col.prop(system, "clip_alpha", slider=True)
+        col.prop(system, "gl_clip_alpha", slider=True)
         col.prop(system, "use_mipmaps")
-        col.prop(system, "use_vbos")
+        col.prop(system, "use_vertex_buffer_objects")
         #Anti-aliasing is disabled as it breaks broder/lasso select
         #col.prop(system, "use_antialiasing")
         col.label(text="Window Draw Method:")
@@ -527,7 +511,8 @@ class USERPREF_PT_theme(bpy.types.Panel):
             for i, attr in enumerate(props_ls):
                 colsub_pair[i % 2].row().prop(themedata, attr)
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'THEMES')
 
@@ -659,7 +644,8 @@ class USERPREF_PT_file(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'FILES')
 
@@ -690,13 +676,13 @@ class USERPREF_PT_file(bpy.types.Panel):
         sub.label(text="Animation Player:")
 
         sub = col1.column()
-        sub.prop(paths, "fonts_directory", text="")
-        sub.prop(paths, "textures_directory", text="")
+        sub.prop(paths, "font_directory", text="")
+        sub.prop(paths, "texture_directory", text="")
         sub.prop(paths, "texture_plugin_directory", text="")
         sub.prop(paths, "sequence_plugin_directory", text="")
         sub.prop(paths, "render_output_directory", text="")
-        sub.prop(paths, "python_scripts_directory", text="")
-        sub.prop(paths, "sounds_directory", text="")
+        sub.prop(paths, "script_directory", text="")
+        sub.prop(paths, "sound_directory", text="")
         sub.prop(paths, "temporary_directory", text="")
         sub.prop(paths, "image_editor", text="")
         subsplit = sub.split(percentage=0.3)
@@ -706,10 +692,10 @@ class USERPREF_PT_file(bpy.types.Panel):
         col = split.column()
         col.label(text="Save & Load:")
         col.prop(paths, "use_relative_paths")
-        col.prop(paths, "compress_file")
-        col.prop(paths, "load_ui")
-        col.prop(paths, "filter_file_extensions")
-        col.prop(paths, "hide_dot_files_datablocks")
+        col.prop(paths, "use_file_compression")
+        col.prop(paths, "use_load_ui")
+        col.prop(paths, "use_filter_files")
+        col.prop(paths, "show_hidden_files_datablocks")
 
         col.separator()
         col.separator()
@@ -717,10 +703,10 @@ class USERPREF_PT_file(bpy.types.Panel):
         col.label(text="Auto Save:")
         col.prop(paths, "save_version")
         col.prop(paths, "recent_files")
-        col.prop(paths, "save_preview_images")
-        col.prop(paths, "auto_save_temporary_files")
+        col.prop(paths, "use_save_preview_images")
+        col.prop(paths, "use_auto_save_temporary_files")
         sub = col.column()
-        sub.enabled = paths.auto_save_temporary_files
+        sub.active = paths.use_auto_save_temporary_files
         sub.prop(paths, "auto_save_time", text="Timer (mins)")
 
 from space_userpref_keymap import InputKeyMapPanel
@@ -730,7 +716,8 @@ class USERPREF_PT_input(InputKeyMapPanel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'INPUT')
 
@@ -748,38 +735,39 @@ class USERPREF_PT_input(InputKeyMapPanel):
 
         sub.label(text="Mouse:")
         sub1 = sub.column()
-        sub1.enabled = (inputs.select_mouse == 'RIGHT')
-        sub1.prop(inputs, "emulate_3_button_mouse")
-        sub.prop(inputs, "continuous_mouse")
+        sub1.active = (inputs.select_mouse == 'RIGHT')
+        sub1.prop(inputs, "use_mouse_emulate_3_button")
+        sub.prop(inputs, "use_mouse_continuous")
 
         sub.label(text="Select With:")
         sub.row().prop(inputs, "select_mouse", expand=True)
 
         sub = col.column()
         sub.label(text="Double Click:")
-        sub.prop(inputs, "double_click_time", text="Speed")
+        sub.prop(inputs, "mouse_double_click_time", text="Speed")
 
         sub.separator()
 
-        sub.prop(inputs, "emulate_numpad")
+        sub.prop(inputs, "use_emulate_numpad")
 
         sub.separator()
 
         sub.label(text="Orbit Style:")
-        sub.row().prop(inputs, "view_rotation", expand=True)
+        sub.row().prop(inputs, "view_rotate_method", expand=True)
 
         sub.label(text="Zoom Style:")
-        sub.row().prop(inputs, "zoom_style", text="")
-        if inputs.zoom_style == 'DOLLY':
-            sub.row().prop(inputs, "zoom_axis", expand=True)
-            sub.prop(inputs, "invert_zoom_direction")
+        sub.row().prop(inputs, "view_zoom_method", text="")
+        if inputs.view_zoom_method == 'DOLLY':
+            sub.row().prop(inputs, "view_zoom_axis", expand=True)
+            sub.prop(inputs, "invert_mouse_wheel_zoom")
 
-        #sub.prop(inputs, "use_middle_mouse_paste")
+        #sub.prop(inputs, "use_mouse_mmb_paste")
 
         #col.separator()
 
-        #sub = col.column()
-        #sub.label(text="Mouse Wheel:")
+        sub = col.column()
+        sub.label(text="Mouse Wheel:")
+        sub.prop(inputs, "invert_zoom_wheel", text="Invert Wheel Zoom Direction")
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
         col.separator()
@@ -820,24 +808,112 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_label = "Addons"
     bl_region_type = 'WINDOW'
     bl_show_header = False
+    
+    _addons_fake_modules = {}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'ADDONS')
 
     @staticmethod
+    def module_get(mod_name):
+        return USERPREF_PT_addons._addons_fake_modules[mod_name]
+
+    @staticmethod
     def _addon_list():
+        import os
         import sys
+        import time
+
         modules = []
         loaded_modules = set()
         paths = bpy.utils.script_paths("addons")
-        # sys.path.insert(0, None)
-        for path in paths:
-            # sys.path[0] = path
-            modules.extend(bpy.utils.modules_from_path(path, loaded_modules))
+        # if folder addons_contrib/ exists, scripts in there will be loaded
+        paths += bpy.utils.script_paths("addons_contrib")
 
-        # del sys.path[0]
-        return modules
+        if bpy.app.debug:
+            t_main = time.time()
+
+        # fake module importing
+        def fake_module(mod_name, mod_path, speedy=True):
+            if bpy.app.debug:
+                print("fake_module", mod_name, mod_path)
+            import ast
+            ModuleType = type(ast)
+            if speedy:
+                lines = []
+                line_iter = iter(open(mod_path, "r"))
+                l = ""
+                while not l.startswith("bl_addon_info"):
+                    l = line_iter.readline()
+                    if len(l) == 0:
+                        break
+                while l.rstrip():
+                    lines.append(l)
+                    l = line_iter.readline()
+                del line_iter
+                data = "".join(lines)
+
+            else:
+                data = open(mod_path, "r").read()
+
+            ast_data = ast.parse(data, filename=mod_path)
+            body_info = None
+            for body in ast_data.body:
+                if body.__class__ == ast.Assign:
+                    if len(body.targets) == 1:
+                        if getattr(body.targets[0], "id", "") == "bl_addon_info":
+                            body_info = body
+                            break
+
+            if body_info:
+                mod = ModuleType(mod_name)
+                mod.bl_addon_info = ast.literal_eval(body.value)
+                mod.__file__ = mod_path
+                mod.__time__ = os.path.getmtime(mod_path)
+                return mod
+            else:
+                return None
+
+        modules_stale = set(USERPREF_PT_addons._addons_fake_modules.keys())
+
+        for path in paths:
+            for f in sorted(os.listdir(path)):
+                if f.endswith(".py"):
+                    mod_name = f[0:-3]
+                    mod_path = os.path.join(path, f)
+                elif ("." not in f) and (os.path.isfile(os.path.join(path, f, "__init__.py"))):
+                    mod_name = f
+                    mod_path = os.path.join(path, f, "__init__.py")
+                else:
+                    mod_name = ""
+                    mod_path = ""
+
+                if mod_name:
+                    if mod_name in modules_stale:
+                        modules_stale.remove(mod_name)
+                    mod = USERPREF_PT_addons._addons_fake_modules.get(mod_name)
+                    if mod:
+                        if mod.__time__ != os.path.getmtime(mod_path):
+                            print("Reloading", mod_name)
+                            del USERPREF_PT_addons._addons_fake_modules[mod_name]
+                            mod = None
+
+                    if mod is None:
+                        mod = fake_module(mod_name, mod_path)
+                        if mod:
+                            USERPREF_PT_addons._addons_fake_modules[mod_name] = mod
+                    
+        
+        # just incase we get stale modules, not likely
+        for mod_stale in modules_stale:
+            del USERPREF_PT_addons._addons_fake_modules[mod_stale]
+        del modules_stale
+
+        mod_list = list(USERPREF_PT_addons._addons_fake_modules.values())
+        mod_list.sort(key=lambda mod: (mod.bl_addon_info['category'], mod.bl_addon_info['name']))
+        return mod_list
 
     def draw(self, context):
         layout = self.layout
@@ -892,7 +968,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 colsub = box.column()
                 row = colsub.row()
 
-                row.operator("wm.addon_expand", icon='TRIA_DOWN' if info["expanded"] else 'TRIA_RIGHT', emboss=False).module = module_name
+                row.operator("wm.addon_expand", icon='TRIA_DOWN' if info["show_expanded"] else 'TRIA_RIGHT', emboss=False).module = module_name
 
                 rowsub = row.row()
                 rowsub.active = is_enabled
@@ -904,7 +980,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     row.operator("wm.addon_enable", icon='CHECKBOX_DEHLT', text="", emboss=False).module = module_name
 
                 # Expanded UI (only if additional infos are available)
-                if info["expanded"]:
+                if info["show_expanded"]:
                     if info["description"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text='Description:')
@@ -961,7 +1037,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 from bpy.props import *
 
 
-def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "warning": "", "expanded": False}):
+def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "warning": "", "show_expanded": False}):
     addon_info = getattr(mod, "bl_addon_info", {})
 
     # avoid re-initializing
@@ -991,8 +1067,13 @@ class WM_OT_addon_enable(bpy.types.Operator):
     def execute(self, context):
         module_name = self.properties.module
 
+        # note, this still gets added to _bpy_types.TypeMap
+        import bpy_types as _bpy_types
+        _bpy_types._register_immediate = False
+
         try:
             mod = __import__(module_name)
+            _bpy_types._register_module(module_name)
             mod.register()
         except:
             import traceback
@@ -1007,7 +1088,9 @@ class WM_OT_addon_enable(bpy.types.Operator):
 
         if info.get("blender", (0, 0, 0)) > bpy.app.version:
             self.report("WARNING','This script was written for a newer version of Blender and might not function (correctly).\nThe script is enabled though.")
-
+        
+        _bpy_types._register_immediate = True
+        
         return {'FINISHED'}
 
 
@@ -1019,13 +1102,15 @@ class WM_OT_addon_disable(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to disable")
 
     def execute(self, context):
-        import traceback
+        import bpy_types as _bpy_types
         module_name = self.properties.module
 
         try:
             mod = __import__(module_name)
+            _bpy_types._unregister_module(module_name, free=False) # dont free because we may want to enable again.
             mod.unregister()
         except:
+            import traceback
             traceback.print_exc()
 
         addons = context.user_preferences.addons
@@ -1111,49 +1196,25 @@ class WM_OT_addon_expand(bpy.types.Operator):
     def execute(self, context):
         module_name = self.properties.module
 
-        # unlikely to fail, module should have alredy been imported
+        # unlikely to fail, module should have already been imported
         try:
-            mod = __import__(module_name)
+            # mod = __import__(module_name)
+            mod = USERPREF_PT_addons.module_get(module_name)
         except:
             import traceback
             traceback.print_exc()
             return {'CANCELLED'}
 
         info = addon_info_get(mod)
-        info["expanded"] = not info["expanded"]
+        info["show_expanded"] = not info["show_expanded"]
         return {'FINISHED'}
 
 
-classes = [
-    USERPREF_HT_header,
-    USERPREF_PT_tabs,
-    USERPREF_PT_interface,
-    USERPREF_PT_theme,
-    USERPREF_PT_edit,
-    USERPREF_PT_system,
-    USERPREF_PT_file,
-    USERPREF_PT_input,
-    USERPREF_PT_addons,
-
-    USERPREF_MT_interaction_presets,
-    USERPREF_MT_splash,
-
-    WM_OT_addon_enable,
-    WM_OT_addon_disable,
-    WM_OT_addon_install,
-    WM_OT_addon_expand]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
-
+    pass
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

@@ -62,7 +62,6 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 
-#include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_boids.h"
 #include "BKE_cdderivedmesh.h"
@@ -182,7 +181,7 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 	else
 		totpart=new_totpart;
 
-	if(totpart && totpart != psys->totpart) {
+	if(totpart != psys->totpart) {
 		if(psys->edit && psys->free_edit) {
 			psys->free_edit(psys->edit);
 			psys->edit = NULL;
@@ -727,7 +726,7 @@ static void psys_thread_distribute_particle(ParticleThread *thread, ParticleData
 				pa->foffset=0.0;
 			else switch(distr){
 				case PART_DISTR_JIT:
-					pa->foffset*= ctx->jit[2*(int)ctx->jitoff[i]];
+					pa->foffset*= ctx->jit[p%(2*ctx->jitlevel)];
 					break;
 				case PART_DISTR_RAND:
 					pa->foffset*=BLI_frand();
@@ -1730,8 +1729,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		mul_qt_v3(rot, vtan);
 		mul_qt_v3(rot, utan);
 
-		VECCOPY(p_vel, state.vel);
-		speed=normalize_v3(p_vel);
+		speed= normalize_v3_v3(p_vel, state.vel);
 		mul_v3_fl(p_vel, dot_v3v3(r_vel, p_vel));
 		VECSUB(p_vel, r_vel, p_vel);
 		normalize_v3(p_vel);
@@ -1872,18 +1870,15 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 
 		/*		*emitter object orientation		*/
 		if(part->ob_vel[0]!=0.0) {
-			VECCOPY(vec, ob->obmat[0]);
-			normalize_v3(vec);
+			normalize_v3_v3(vec, ob->obmat[0]);
 			VECADDFAC(vel, vel, vec, part->ob_vel[0]);
 		}
 		if(part->ob_vel[1]!=0.0) {
-			VECCOPY(vec, ob->obmat[1]);
-			normalize_v3(vec);
+			normalize_v3_v3(vec, ob->obmat[1]);
 			VECADDFAC(vel, vel, vec, part->ob_vel[1]);
 		}
 		if(part->ob_vel[2]!=0.0) {
-			VECCOPY(vec, ob->obmat[2]);
-			normalize_v3(vec);
+			normalize_v3_v3(vec, ob->obmat[2]);
 			VECADDFAC(vel, vel, vec, part->ob_vel[2]);
 		}
 
@@ -3075,18 +3070,66 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 /*			Hair								*/
 /************************************************/
 /* check if path cache or children need updating and do it if needed */
-void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
+static void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
-	
-	/* only hair, keyed and baked stuff can have paths */
-	if(part->type==PART_HAIR || psys->flag&PSYS_KEYED || psys->pointcache->mem_cache.first) {
+	ParticleEditSettings *pset = &sim->scene->toolsettings->particle;
+	int distr=0, alloc=0, skip=0;
+
+	if((psys->part->childtype && psys->totchild != get_psys_tot_child(sim->scene, psys)) || psys->recalc&PSYS_RECALC_RESET)
+		alloc=1;
+
+	if(alloc || psys->recalc&PSYS_RECALC_CHILD || (psys->vgroup[PSYS_VG_DENSITY] && (sim->ob && sim->ob->mode & OB_MODE_WEIGHT_PAINT)))
+		distr=1;
+
+	if(distr){
+		if(alloc)
+			realloc_particles(sim, sim->psys->totpart);
+
+		if(get_psys_tot_child(sim->scene, psys)) {
+			/* don't generate children while computing the hair keys */
+			if(!(psys->part->type == PART_HAIR) || (psys->flag & PSYS_HAIR_DONE)) {
+				distribute_particles(sim, PART_FROM_CHILD);
+
+				if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES && part->parents!=0.0)
+					psys_find_parents(sim);
+			}
+		}
+		else
+			psys_free_children(psys);
+	}
+
+	if((part->type==PART_HAIR || psys->flag&PSYS_KEYED || psys->pointcache->flag & PTCACHE_BAKED)==0)
+		skip = 1; /* only hair, keyed and baked stuff can have paths */
+	else if(part->ren_as != PART_DRAW_PATH && !(part->type==PART_HAIR && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)))
+		skip = 1; /* particle visualization must be set as path */
+	else if(!psys->renderdata) {
+		if(part->draw_as != PART_DRAW_REND)
+			skip = 1; /* draw visualization */
+		else if(psys->pointcache->flag & PTCACHE_BAKING)
+			skip = 1; /* no need to cache paths while baking dynamics */
+		else if(psys_in_edit_mode(sim->scene, psys)) {
+			if((pset->flag & PE_DRAW_PART)==0)
+				skip = 1;
+			else if(part->childtype==0 && (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED)==0)
+				skip = 1; /* in edit mode paths are needed for child particles and dynamic hair */
+		}
+	}
+
+	if(!skip) {
 		psys_cache_paths(sim, cfra);
 
 		/* for render, child particle paths are computed on the fly */
-		if(part->childtype && psys->totchild)
-			psys_cache_child_paths(sim, cfra, 0);
+		if(part->childtype) {
+			if(!psys->totchild)
+				skip = 1;
+			else if(psys->part->type == PART_HAIR && (psys->flag & PSYS_HAIR_DONE)==0)
+				skip = 1;
+
+			if(!skip)
+				psys_cache_child_paths(sim, cfra, 0);
+		}
 	}
 	else if(psys->pathcache)
 		psys_free_path_cache(psys, NULL);
@@ -3201,8 +3244,6 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	psys->hair_out_dm = clothModifier_do(psys->clmd, sim->scene, sim->ob, dm, 0, 0);
 
 	psys->clmd->sim_parms->effector_weights = NULL;
-
-	psys_free_path_cache(psys, NULL);
 }
 static void hair_step(ParticleSimulationData *sim, float cfra)
 {
@@ -3454,19 +3495,14 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	}
 
 	free_collider_cache(&sim->colliders);
-
-	if(psys->pathcache)
-		psys_free_path_cache(psys, NULL);
 }
-void psys_update_children(ParticleSimulationData *sim)
+static void update_children(ParticleSimulationData *sim)
 {
 	if((sim->psys->part->type == PART_HAIR) && (sim->psys->flag & PSYS_HAIR_DONE)==0)
 	/* don't generate children while growing hair - waste of time */
 		psys_free_children(sim->psys);
-	else if(sim->psys->part->childtype) {
-		if(sim->psys->totchild != get_psys_tot_child(sim->scene, sim->psys))
-			distribute_particles(sim, PART_FROM_CHILD);
-	}
+	else if(sim->psys->part->childtype && sim->psys->totchild != get_psys_tot_child(sim->scene, sim->psys))
+		distribute_particles(sim, PART_FROM_CHILD);
 	else
 		psys_free_children(sim->psys);
 }
@@ -3721,6 +3757,8 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 
 		if(ELEM(cache_result, PTCACHE_READ_EXACT, PTCACHE_READ_INTERPOLATED)) {
 			cached_step(sim, cfra);
+			update_children(sim);
+			psys_update_path_cache(sim, cfra);
 
 			BKE_ptcache_validate(cache, framenr);
 
@@ -3783,6 +3821,9 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 		if(framenr != startframe)
 			BKE_ptcache_write_cache(use_cache, framenr);
 	}
+
+	if(init)
+		update_children(sim);
 
 /* cleanup */
 	if(psys->lattice){
@@ -3946,13 +3987,6 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	/* execute drivers only, as animation has already been done */
 	BKE_animsys_evaluate_animdata(&part->id, part->adt, cfra, ADT_RECALC_DRIVERS);
 
-	/* TODO: only free child paths in case of PSYS_RECALC_CHILD */
-	if(psys->recalc & PSYS_RECALC || ob->recalc & OB_RECALC_ALL)
-		psys_free_path_cache(psys, NULL);
-
-	if(psys->recalc & PSYS_RECALC_CHILD)
-		psys_free_children(psys);
-
 	if(psys->recalc & PSYS_RECALC_TYPE)
 		psys_changed_type(&sim);
 	else if(psys->recalc & PSYS_RECALC_PHYS)
@@ -3999,16 +4033,26 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 				case PART_PHYS_NO:
 				case PART_PHYS_KEYED:
 				{
+					PARTICLE_P;
+
 					if(emit_particles(&sim, NULL, cfra)) {
 						free_keyed_keys(psys);
 						distribute_particles(&sim, part->from);
 						initialize_all_particles(&sim);
 					}
-					reset_all_particles(&sim, 0.0, cfra, 0);
+
+					LOOP_EXISTING_PARTICLES {
+						pa->size = part->size;
+						if(part->randsize > 0.0)
+							pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
+
+						reset_particle(&sim, pa, 0.0, cfra);
+					}
 
 					if(part->phystype == PART_PHYS_KEYED) {
 						psys_count_keyed_targets(&sim);
 						set_keyed_keys(&sim);
+						psys_update_path_cache(&sim,(int)cfra);
 					}
 					break;
 				}

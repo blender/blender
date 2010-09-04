@@ -309,6 +309,7 @@ void mul_v3_m4v3(float *in, float mat[][4], float *vec)
 	in[2]= x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2] + mat[3][2];
 }
 
+/* same as mul_m4_v3() but doesnt apply translation component */
 void mul_mat3_m4_v3(float mat[][4], float *vec)
 {
 	float x,y;
@@ -594,9 +595,7 @@ void transpose_m4(float mat[][4])
 void orthogonalize_m3(float mat[][3], int axis)
 {
 	float size[3];
-	size[0] = len_v3(mat[0]);
-	size[1] = len_v3(mat[1]);
-	size[2] = len_v3(mat[2]);
+	mat3_to_size(size, mat);
 	normalize_v3(mat[axis]);
 	switch(axis)
 	{
@@ -657,9 +656,7 @@ void orthogonalize_m3(float mat[][3], int axis)
 void orthogonalize_m4(float mat[][4], int axis)
 {
 	float size[3];
-	size[0] = len_v3(mat[0]);
-	size[1] = len_v3(mat[1]);
-	size[2] = len_v3(mat[2]);
+	mat4_to_size(size, mat);
 	normalize_v3(mat[axis]);
 	switch(axis)
 	{

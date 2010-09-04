@@ -45,15 +45,9 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_image.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
-#include "BKE_packedFile.h"
-#include "BKE_paint.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 
 #include "RE_pipeline.h"
@@ -66,8 +60,6 @@
 #include "ED_screen.h"
 #include "ED_uvedit.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "RNA_access.h"
 
@@ -759,7 +751,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 	
 	prop= RNA_struct_find_property(ptr, propname);
 	if(!prop) {
-		printf("uiTemplateImage: property not found: %s\n", propname);
+		printf("uiTemplateImage: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -777,7 +769,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 	uiLayoutSetContextPointer(layout, "edit_image", &imaptr);
 
 	if(!compact)
-		uiTemplateID(layout, C, ptr, propname, "IMAGE_OT_new", "IMAGE_OT_open", NULL, NULL);
+		uiTemplateID(layout, C, ptr, propname, "IMAGE_OT_new", "IMAGE_OT_open", NULL);
 
 	// XXX missing: reload, pack
 
@@ -871,13 +863,13 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 					split= uiLayoutSplit(layout, 0, 0);
 
 					col= uiLayoutColumn(split, 0);
-					uiItemR(col, &imaptr, "fields", 0, NULL, 0);
+					uiItemR(col, &imaptr, "use_fields", 0, NULL, 0);
 					row= uiLayoutRow(col, 0);
 					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, 0);
-					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "fields"));
+					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_fields"));
 
 					col= uiLayoutColumn(split, 0);
-					uiItemR(col, &imaptr, "premultiply", 0, NULL, 0);
+					uiItemR(col, &imaptr, "use_premultiply", 0, NULL, 0);
 				}
 			}
 
@@ -890,7 +882,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 				 
 				sprintf(str, "(%d) Frames", iuser->framenr);
 				row= uiLayoutRow(col, 1);
-				uiItemR(col, userptr, "frames", 0, str, 0);
+				uiItemR(col, userptr, "frame_duration", 0, str, 0);
 				if(ima->anim) {
 					block= uiLayoutGetBlock(row);
 					but= uiDefBut(block, BUT, 0, "Match Movie Length", 0, 0, UI_UNIT_X*2, UI_UNIT_Y, 0, 0, 0, 0, 0, "Set the number of frames to match the movie or sequence.");
@@ -898,12 +890,12 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 				}
 
 				uiItemR(col, userptr, "frame_start", 0, "Start", 0);
-				uiItemR(col, userptr, "offset", 0, NULL, 0);
+				uiItemR(col, userptr, "frame_offset", 0, NULL, 0);
 
 				col= uiLayoutColumn(split, 0);
 				uiItemR(col, userptr, "fields_per_frame", 0, "Fields", 0);
-				uiItemR(col, userptr, "auto_refresh", 0, NULL, 0);
-				uiItemR(col, userptr, "cyclic", 0, NULL, 0);
+				uiItemR(col, userptr, "use_auto_refresh", 0, NULL, 0);
+				uiItemR(col, userptr, "use_cyclic", 0, NULL, 0);
 			}
 			else if(ima->source==IMA_SRC_GENERATED) {
 				split= uiLayoutSplit(layout, 0, 0);

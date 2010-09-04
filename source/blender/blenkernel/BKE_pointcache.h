@@ -33,8 +33,6 @@
 #include "DNA_object_force.h"
 #include "DNA_boid_types.h"
 
-#include "MEM_guardedalloc.h"
-
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
  * and after are non inclusive (they wont remove the cfra) */
 #define PTCACHE_CLEAR_ALL		0
@@ -70,15 +68,16 @@
 #define PTCACHE_READ_OLD				3
 
 /* Structs */
-struct Object;
-struct Scene;
-struct SoftBody;
-struct ParticleSystem;
-struct ParticleKey;
 struct ClothModifierData;
-struct SmokeModifierData;
-struct PointCache;
 struct ListBase;
+struct Main;
+struct Object;
+struct ParticleKey;
+struct ParticleSystem;
+struct PointCache;
+struct Scene;
+struct SmokeModifierData;
+struct SoftBody;
 
 /* temp structure for read/write */
 typedef struct PTCacheData {
@@ -143,6 +142,7 @@ typedef struct PTCacheID {
 } PTCacheID;
 
 typedef struct PTCacheBaker {
+	struct Main *main;
 	struct Scene *scene;
 	int bake;
 	int render;
@@ -273,7 +273,7 @@ int		BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec);
 int		BKE_ptcache_write_cache(PTCacheID *pid, int cfra);
 
 /****************** Continue physics ***************/
-void BKE_ptcache_set_continue_physics(struct Scene *scene, int enable);
+void BKE_ptcache_set_continue_physics(struct Main *bmain, struct Scene *scene, int enable);
 int BKE_ptcache_get_continue_physics(void);
 
 /******************* Allocate & free ***************/
@@ -286,7 +286,7 @@ struct PointCache *BKE_ptcache_copy_list(struct ListBase *ptcaches_new, struct L
 /********************** Baking *********************/
 
 /* Bakes cache with cache_step sized jumps in time, not accurate but very fast. */
-void BKE_ptcache_quick_cache_all(struct Scene *scene);
+void BKE_ptcache_quick_cache_all(struct Main *bmain, struct Scene *scene);
 
 /* Bake cache or simulate to current frame with settings defined in the baker. */
 void BKE_ptcache_make_cache(struct PTCacheBaker* baker);

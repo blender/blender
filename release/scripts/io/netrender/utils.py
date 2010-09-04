@@ -57,9 +57,10 @@ FRAME_STATUS_TEXT = {
         ERROR: "Error"
         }
 
-def rnaType(rna_type):
-    if bpy: bpy.types.register(rna_type)
-    return rna_type
+def responseStatus(conn):
+    response = conn.getresponse()
+    response.read()
+    return response.status
 
 def reporting(report, message, errorType = None):
     if errorType:
@@ -171,20 +172,20 @@ def prefixPath(prefix_directory, file_path, prefix_path, force = False):
         # if an absolute path, make sure path exists, if it doesn't, use relative local path
         full_path = file_path
         if force or not os.path.exists(full_path):
-            p, n = os.path.split(full_path)
+            p, n = os.path.split(os.path.normpath(full_path))
 
             if prefix_path and p.startswith(prefix_path):
                 if len(prefix_path) < len(p):
-                    directory = prefix_directory + p[len(prefix_path)+1:] + os.sep # +1 to remove separator
+                    directory = os.path.join(prefix_directory, p[len(prefix_path)+1:]) # +1 to remove separator
                     if not os.path.exists(directory):
                         os.mkdir(directory)
                 else:
                     directory = prefix_directory
-                full_path = directory + n
+                full_path = os.path.join(directory, n)
             else:
-                full_path = prefix_directory + n
+                full_path = os.path.join(prefix_directory, n)
     else:
-        full_path = prefix_directory + file_path
+        full_path = (prefix_directory, file_path)
 
     return full_path
 

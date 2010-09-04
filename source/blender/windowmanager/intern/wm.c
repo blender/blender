@@ -26,7 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "string.h"
+#include <string.h>
+#include <stddef.h>
 
 #include "DNA_windowmanager_types.h"
 
@@ -149,9 +150,9 @@ MenuType *WM_menutype_find(const char *idname, int quiet)
 	MenuType* mt;
 
 	if (idname[0]) {
-		for(mt=menutypes.first; mt; mt=mt->next)
-			if(strcmp(idname, mt->idname)==0)
-				return mt;
+		mt= BLI_findstring(&menutypes, idname, offsetof(MenuType, idname));
+		if(mt)
+			return mt;
 	}
 
 	if(!quiet)

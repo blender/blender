@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 """
-This module contains utility functions spesific to blender but
+This module contains utility functions specific to blender but
 not assosiated with blenders internal data.
 """
 
@@ -27,8 +27,8 @@ import bpy as _bpy
 import os as _os
 import sys as _sys
 
-from _bpy import home_paths, blend_paths
-
+from _bpy import blend_paths
+from _bpy import script_paths as _bpy_script_paths
 
 def _test_import(module_name, loaded_modules):
     import traceback
@@ -59,7 +59,7 @@ def modules_from_path(path, loaded_modules):
 
     :arg path: this path is scanned for scripts and packages.
     :type path: string
-    :arg loaded_modules: alredy loaded module names, files matching these names will be ignored.
+    :arg loaded_modules: already loaded module names, files matching these names will be ignored.
     :type loaded_modules: set
     :return: all loaded modules.
     :rtype: list
@@ -83,9 +83,9 @@ def modules_from_path(path, loaded_modules):
             modules.append(mod)
 
     return modules
-
-_loaded = [] # store loaded modules for reloading.
-_bpy_types = __import__("bpy_types") # keep for comparisons, never ever reload this.
+            
+_global_loaded_modules = [] # store loaded module names for reloading.
+import bpy_types as _bpy_types # keep for comparisons, never ever reload this.
 
 
 def load_scripts(reload_scripts=False, refresh_scripts=False):
@@ -100,12 +100,39 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     import traceback
     import time
 
+    # must be set back to True on exits
+    _bpy_types._register_immediate = False
+
     t_main = time.time()
 
     loaded_modules = set()
 
     if refresh_scripts:
         original_modules = _sys.modules.values()
+    
+    if reload_scripts:
+        _bpy_types.TypeMap.clear()
+        _bpy_types.PropertiesMap.clear()
+
+    def register_module_call(mod):
+        _bpy_types._register_module(mod.__name__)
+        register = getattr(mod, "register", None)
+        if register:
+            try:
+                register()
+            except:
+                traceback.print_exc()
+        else:
+            print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
+
+    def unregister_module_call(mod):
+        _bpy_types._unregister_module(mod.__name__)
+        unregister = getattr(mod, "unregister", None)
+        if unregister:
+            try:
+                unregister()
+            except:
+                traceback.print_exc()
 
     def sys_path_ensure(path):
         if path not in _sys.path: # reloading would add twice
@@ -133,48 +160,23 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             mod = test_reload(mod)
 
         if mod:
-            register = getattr(mod, "register", None)
-            if register:
-                try:
-                    register()
-                except:
-                    traceback.print_exc()
-            else:
-                print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
-            _loaded.append(mod)
+            register_module_call(mod)
+            _global_loaded_modules.append(mod.__name__)
 
     if reload_scripts:
 
-        # TODO, this is broken but should work, needs looking into
-        '''
-        # reload modules that may not be directly included
-        for type_class_name in dir(_bpy.types):
-            type_class = getattr(_bpy.types, type_class_name)
-            module_name = getattr(type_class, "__module__", "")
-
-            if module_name and module_name != "bpy.types": # hard coded for C types
-                loaded_modules.add(module_name)
-
-        # sorting isnt needed but rather it be pradictable
-        for module_name in sorted(loaded_modules):
-            print("Reloading:", module_name)
-            test_reload(_sys.modules[module_name])
-        '''
+        # module names -> modules
+        _global_loaded_modules[:] = [_sys.modules[mod_name] for mod_name in _global_loaded_modules]
 
         # loop over and unload all scripts
-        _loaded.reverse()
-        for mod in _loaded:
-            unregister = getattr(mod, "unregister", None)
-            if unregister:
-                try:
-                    unregister()
-                except:
-                    traceback.print_exc()
+        _global_loaded_modules.reverse()
+        for mod in _global_loaded_modules:
+            unregister_module_call(mod)
 
-        for mod in _loaded:
-            reload(mod)
+        for mod in _global_loaded_modules:
+            test_reload(mod)
 
-        _loaded[:] = []
+        _global_loaded_modules[:] = []
 
     user_path = user_script_path()
 
@@ -196,7 +198,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     # load addons
     used_ext = {ext.module for ext in _bpy.context.user_preferences.addons}
-    paths = script_paths("addons")
+    paths = script_paths("addons") + script_paths("addons_contrib")
     for path in paths:
         sys_path_ensure(path)
 
@@ -209,79 +211,11 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         print("gc.collect() -> %d" % gc.collect())
 
     if _bpy.app.debug:
-        print("Time %.4f" % (time.time() - t_main))
+        print("Python Script Load Time %.4f" % (time.time() - t_main))
+    
+    _bpy_types._register_immediate = True
 
 
-def expandpath(path):
-    """
-    Returns the absolute path relative to the current blend file using the "//" prefix.
-    """
-    if path.startswith("//"):
-        return _os.path.join(_os.path.dirname(_bpy.data.filepath), path[2:])
-
-    return path
-
-
-def relpath(path, start=None):
-    """
-    Returns the path relative to the current blend file using the "//" prefix.
-
-    :arg start: Relative to this path, when not set the current filename is used.
-    :type start: string
-    """
-    if not path.startswith("//"):
-        if start is None:
-            start = _os.path.dirname(_bpy.data.filepath)
-        return "//" + _os.path.relpath(path, start)
-
-    return path
-
-
-_unclean_chars = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, \
-    17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, \
-    35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 46, 47, 58, 59, 60, 61, 62, 63, \
-    64, 91, 92, 93, 94, 96, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, \
-    133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, \
-    147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, \
-    161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, \
-    175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, \
-    189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, \
-    203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, \
-    217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, \
-    231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, \
-    245, 246, 247, 248, 249, 250, 251, 252, 253, 254]
-
-_unclean_chars = ''.join([chr(i) for i in _unclean_chars])
-
-
-def clean_name(name, replace="_"):
-    """
-    Returns a name with characters replaced that may cause problems under various circumstances, such as writing to a file.
-    All characters besides A-Z/a-z, 0-9 are replaced with "_"
-    or the replace argument if defined.
-    """
-    for ch in _unclean_chars:
-        name = name.replace(ch, replace)
-    return name
-
-
-def display_name(name):
-    """
-    Creates a display string from name to be used menus and the user interface.
-    Capitalize the first letter in all lowercase names, mixed case names are kept as is.
-    Intended for use with filenames and module names.
-    """
-    name_base = _os.path.splitext(name)[0]
-
-    # string replacements
-    name_base = name_base.replace("_colon_", ":")
-
-    name_base = name_base.replace("_", " ")
-
-    if name_base.islower():
-        return name_base.capitalize()
-    else:
-        return name_base
 
 
 # base scripts
@@ -290,7 +224,7 @@ _scripts = (_os.path.normpath(_scripts), )
 
 
 def user_script_path():
-    path = _bpy.context.user_preferences.filepaths.python_scripts_directory
+    path = _bpy.context.user_preferences.filepaths.script_directory
 
     if path:
         path = _os.path.normpath(path)
@@ -309,11 +243,11 @@ def script_paths(subdir=None, user=True):
 
     # add user scripts dir
     if user:
-        user_script_path = _bpy.context.user_preferences.filepaths.python_scripts_directory
+        user_script_path = _bpy.context.user_preferences.filepaths.script_directory
     else:
         user_script_path = None
 
-    for path in home_paths("scripts") + (user_script_path, ):
+    for path in _bpy_script_paths() + (user_script_path, ):
         if path:
             path = _os.path.normpath(path)
             if path not in scripts and _os.path.isdir(path):
@@ -336,7 +270,7 @@ _presets = _os.path.join(_scripts[0], "presets") # FIXME - multiple paths
 
 def preset_paths(subdir):
     '''
-    Returns a list of paths for a spesific preset.
+    Returns a list of paths for a specific preset.
     '''
 
     return (_os.path.join(_presets, subdir), )

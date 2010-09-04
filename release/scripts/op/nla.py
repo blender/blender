@@ -100,7 +100,7 @@ def bake(frame_start, frame_end, step=1, only_selected=False):
     pose_items = pose.bones.items()
 
     for name, pbone in pose_items:
-        if only_selected and not pbone.selected:
+        if only_selected and not pbone.select:
             continue
 
         for f in frame_range:
@@ -150,7 +150,7 @@ class BakeAction(bpy.types.Operator):
     def execute(self, context):
         props = self.properties
 
-        action = bake(props.frame_start, props.frame_end, props.step, props.only_selected)
+        action = bake(props.frame_start, props.frame_end, props.step, props.show_only_selected)
 
         # basic cleanup, could move elsewhere
         for fcu in action.fcurves:
@@ -178,12 +178,12 @@ class BakeAction(bpy.types.Operator):
 
 
 def register():
-    bpy.types.register(BakeAction)
+    pass
     # bpy.types.INFO_MT_mesh_add.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(BakeAction)
+    pass
     # bpy.types.INFO_MT_mesh_add.remove(menu_func)
 
 if __name__ == "__main__":

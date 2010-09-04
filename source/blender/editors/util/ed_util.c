@@ -38,7 +38,6 @@
 #include "BLI_editVert.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 
 #include "ED_armature.h"
@@ -77,13 +76,17 @@ void ED_editors_init(bContext *C)
 /* frees all editmode stuff */
 void ED_editors_exit(bContext *C)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *sce;
+
+	if(!bmain)
+		return;
 	
 	/* frees all editmode undos */
 	undo_editmode_clear();
 	ED_undo_paint_free();
 	
-	for(sce=G.main->scene.first; sce; sce= sce->id.next) {
+	for(sce=bmain->scene.first; sce; sce= sce->id.next) {
 		if(sce->obedit) {
 			Object *ob= sce->obedit;
 		

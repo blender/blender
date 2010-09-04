@@ -54,7 +54,6 @@
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 
-#include "MEM_guardedalloc.h"
 
 
 /* Util macros */

@@ -48,8 +48,6 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 
 #include "RE_pipeline.h"
@@ -94,6 +92,7 @@ static ScrArea *biggest_image_area(bScreen *screen)
 
 typedef struct BakeRender {
 	Render *re;
+	Main *main;
 	Scene *scene;
 	struct Object *actob;
 	int tot, ready;
@@ -139,6 +138,7 @@ static void init_bake_internal(BakeRender *bkr, bContext *C)
 	Scene *scene= CTX_data_scene(C);
 
 	bkr->sa= biggest_image_area(CTX_wm_screen(C)); /* can be NULL */
+	bkr->main= CTX_data_main(C);
 	bkr->scene= scene;
 	bkr->actob= (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT : NULL;
 	bkr->re= RE_NewRender("_Bake View_");
@@ -196,6 +196,7 @@ static void bake_startjob(void *bkv, short *stop, short *do_update, float *progr
 {
 	BakeRender *bkr= bkv;
 	Scene *scene= bkr->scene;
+	Main *bmain= bkr->main;
 
 	bkr->stop= stop;
 	bkr->do_update= do_update;
@@ -204,7 +205,7 @@ static void bake_startjob(void *bkv, short *stop, short *do_update, float *progr
 	RE_test_break_cb(bkr->re, NULL, thread_break);
 	G.afbreek= 0;	/* blender_test_break uses this global */
 
-	RE_Database_Baking(bkr->re, scene, scene->lay, scene->r.bake_mode, bkr->actob);
+	RE_Database_Baking(bkr->re, bmain, scene, scene->lay, scene->r.bake_mode, bkr->actob);
 
 	/* baking itself is threaded, cannot use test_break in threads. we also update optional imagewindow */
 	bkr->tot= RE_bake_shade_all_selected(bkr->re, scene->r.bake_mode, bkr->actob, bkr->do_update, bkr->progress);
@@ -224,11 +225,11 @@ static void bake_update(void *bkv)
 static void bake_freejob(void *bkv)
 {
 	BakeRender *bkr= bkv;
-	BLI_end_threads(&bkr->threads);
 	finish_bake_internal(bkr);
 
 	if(bkr->tot==0) BKE_report(bkr->reports, RPT_ERROR, "No Images found to bake to");
 	MEM_freeN(bkr);
+	G.rendering = 0;
 }
 
 /* catch esc */
@@ -268,6 +269,7 @@ static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *_eve
 		WM_jobs_callbacks(steve, bake_startjob, NULL, bake_update, NULL);
 
 		G.afbreek= 0;
+		G.rendering = 1;
 
 		WM_jobs_start(CTX_wm_manager(C), steve);
 
@@ -284,6 +286,7 @@ static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *_eve
 
 static int bake_image_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 
 
@@ -302,7 +305,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 		RE_test_break_cb(bkr.re, NULL, thread_break);
 		G.afbreek= 0;	/* blender_test_break uses this global */
 
-		RE_Database_Baking(bkr.re, scene, scene->lay, scene->r.bake_mode, (scene->r.bake_flag & R_BAKE_TO_ACTIVE)? OBACT: NULL);
+		RE_Database_Baking(bkr.re, bmain, scene, scene->lay, scene->r.bake_mode, (scene->r.bake_flag & R_BAKE_TO_ACTIVE)? OBACT: NULL);
 
 		/* baking itself is threaded, cannot use test_break in threads  */
 		BLI_init_threads(&threads, do_bake_render, 1);

@@ -33,7 +33,7 @@
 #define DNA_USERDEF_TYPES_H
 
 #include "DNA_listBase.h"
-#include "DNA_texture_types.h"
+#include "DNA_texture_types.h" /* ColorBand */
 
 /* themes; defines in BIF_resource.h */
 struct ColorBand;
@@ -344,10 +344,10 @@ typedef struct UserDef {
 	short gp_settings;
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
-	short sculpt_paint_settings; /* user preferences for sculpt and paint */
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
 	short textimeout,texcollectrate;
 	short wmdrawmethod; /* removed wmpad */
+	short pad2;
 	int memcachelimit;
 	int prefetchframes;
 	short frameserverport;
@@ -367,7 +367,7 @@ typedef struct UserDef {
 	short scrcastfps;		/* frame rate for screencast to be played back */
 	short scrcastwait;		/* milliseconds between screencast snapshots */
 	
-	short propwidth, pad[3]; /* Value for Dual/Single Column UI */
+	short pad8, pad[3]; /* Value for Dual/Single Column UI */
 
 	char versemaster[160];
 	char verseuser[160];
@@ -378,10 +378,8 @@ typedef struct UserDef {
 
 	struct ColorBand coba_weight;	/* from texture.h */
 
-	int sculpt_paint_unified_size; /* unified radius of brush in pixels */
-	float sculpt_paint_unified_unprojected_radius;/* unified radius of brush in Blender units */
-	float sculpt_paint_unified_alpha; /* unified strength of brush */
 	float sculpt_paint_overlay_col[3];
+	int pad3;
 } UserDef;
 
 extern UserDef U; /* from blenkernel blender.c */
@@ -532,11 +530,6 @@ extern UserDef U; /* from blenkernel blender.c */
 /* gp_settings (Grease Pencil Settings) */
 #define GP_PAINT_DOSMOOTH		(1<<0)
 #define GP_PAINT_DOSIMPLIFY		(1<<1)
-
-/* sculpt_paint_settings */
-#define SCULPT_PAINT_USE_UNIFIED_SIZE        (1<<0)
-#define SCULPT_PAINT_USE_UNIFIED_ALPHA       (1<<1)
-#define SCULPT_PAINT_UNIFIED_LOCK_BRUSH_SIZE (1<<2)
 
 /* color picker types */
 #define USER_CP_CIRCLE		0

@@ -39,7 +39,11 @@
 #include "DNA_lattice_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_modifier_types.h"
 
 #include "RNA_access.h"
 
@@ -54,23 +58,14 @@
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
-#include "BKE_anim.h"
 #include "BKE_armature.h"
-#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
-#include "BKE_global.h"
-#include "BKE_group.h"
 #include "BKE_lattice.h"
-#include "BKE_key.h"
 #include "BKE_mesh.h"
-#include "BKE_modifier.h"
 #include "BKE_nla.h"
-#include "BKE_object.h"
-#include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "BKE_tessmesh.h"
 
@@ -85,6 +80,7 @@
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
+#include "ED_curve.h" /* for ED_curve_editnurbs */
 
 //#include "BDR_unwrapper.h"
 
@@ -635,38 +631,38 @@ void recalcData(TransInfo *t)
 		}
 		
 		if (t->obedit) {
-		if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
-			Curve *cu= t->obedit->data;
-			Nurb *nu= cu->editnurb->first;
+			if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
+				Curve *cu= t->obedit->data;
+				ListBase *nurbs= ED_curve_editnurbs(cu);
+				Nurb *nu= nurbs->first;
 
 				if(t->state != TRANS_CANCEL) {
 					clipMirrorModifier(t, t->obedit);
 				}
-
-			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
-				
-			if (t->state == TRANS_CANCEL) {
-				while(nu) {
-					calchandlesNurb(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
-					nu= nu->next;
+#if 0 //XXX - possibly merged out? check if in trunk - joeedh
+				if (t->state == TRANS_CANCEL) {
+					while(nu) {
+						calchandlesNurb(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
+						nu= nu->next;
+					}
+				} else {
+					/* Normal updating */
+					while(nu) {
+						test2DNurb(nu);
+						calchandlesNurb(nu);
+						nu= nu->next;
+					}
 				}
-			} else {
-				/* Normal updating */
-				while(nu) {
-					test2DNurb(nu);
-					calchandlesNurb(nu);
-					nu= nu->next;
-				}
+#endif
+			} else if(t->obedit->type==OB_LATTICE) {
+				Lattice *la= t->obedit->data;
+				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+	
+				if(la->editlatt->latt->flag & LT_OUTSIDE) outside_lattice(la->editlatt->latt);
 			}
-		}
-		else if(t->obedit->type==OB_LATTICE) {
-			Lattice *la= t->obedit->data;
-			DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
-
-			if(la->editlatt->flag & LT_OUTSIDE) outside_lattice(la->editlatt);
-		}
-		else if (t->obedit->type == OB_MESH) {
+			else if (t->obedit->type == OB_MESH) {
 				BMEditMesh *em = ((Mesh*)t->obedit->data)->edit_btmesh;
+
 				/* mirror modifier clipping? */
 				if(t->state != TRANS_CANCEL) {
 					clipMirrorModifier(t, t->obedit);
@@ -759,6 +755,7 @@ void recalcData(TransInfo *t)
 			}
 			else
 				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+	
 		}
 		else if( (t->flag & T_POSE) && t->poseobj) {
 			Object *ob= t->poseobj;
@@ -1032,13 +1029,14 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	{
 		if (RNA_property_is_set(op->ptr, "proportional"))
 		{
-		switch(RNA_enum_get(op->ptr, "proportional"))
-		{
-		case 2: /* XXX connected constant */
-			t->flag |= T_PROP_CONNECTED;
-		case 1: /* XXX prop on constant */
-			t->flag |= T_PROP_EDIT;
-			break;
+			switch(RNA_enum_get(op->ptr, "proportional"))
+			{
+			case PROP_EDIT_CONNECTED:
+				t->flag |= T_PROP_CONNECTED;
+			case PROP_EDIT_ON:
+				t->flag |= T_PROP_EDIT;
+				break;
+			}
 		}
 	}
 	else
@@ -1046,45 +1044,22 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 			/* use settings from scene only if modal */
 			if (t->flag & T_MODAL)
 			{
-				if ((t->options & CTX_NO_PET) == 0 && (ts->proportional != PROP_EDIT_OFF)) {
-					t->flag |= T_PROP_EDIT;
+				if ((t->options & CTX_NO_PET) == 0)
+				{
+					if (t->obedit && ts->proportional != PROP_EDIT_OFF)
+					{
+						t->flag |= T_PROP_EDIT;
 
-					if(ts->proportional == PROP_EDIT_CONNECTED)
-						t->flag |= T_PROP_CONNECTED;
+						if(ts->proportional == PROP_EDIT_CONNECTED)
+							t->flag |= T_PROP_CONNECTED;
+					}
+					else if (t->obedit == NULL && ts->proportional_objects)
+					{
+						t->flag |= T_PROP_EDIT;
+					}
 				}
 		}
 	}
-
-	if (op && RNA_struct_find_property(op->ptr, "proportional_size") && RNA_property_is_set(op->ptr, "proportional_size"))
-	{
-		t->prop_size = RNA_float_get(op->ptr, "proportional_size");
-	}
-	else
-	{
-		t->prop_size = ts->proportional_size;
-	}
-
-		
-		/* TRANSFORM_FIX_ME rna restrictions */
-		if (t->prop_size <= 0)
-		{
-			t->prop_size = 1.0f;
-		}
-		
-	if (op && RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && RNA_property_is_set(op->ptr, "proportional_editing_falloff"))
-	{
-		t->prop_mode = RNA_enum_get(op->ptr, "proportional_editing_falloff");
-	}
-	else
-	{
-		t->prop_mode = ts->prop_mode;
-	}
-	}
-	else /* add not pet option to context when not available */
-	{
-		t->options |= CTX_NO_PET;
-	}
-
 	
 	setTransformViewMatrices(t);
 	initNumInput(&t->num);

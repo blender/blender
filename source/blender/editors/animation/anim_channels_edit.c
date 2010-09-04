@@ -33,6 +33,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_key_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -2005,7 +2006,6 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	/* delete */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_delete", DELKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 	
 	/* settings */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_setting_toggle", WKEY, KM_PRESS, KM_SHIFT, 0);

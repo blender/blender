@@ -36,14 +36,16 @@
 struct BoundBox;
 struct DispList;
 struct ListBase;
-struct EditMesh;
-struct MDeformVert;
+struct BMEditMesh;
+struct BMesh;
 struct Mesh;
+struct MPoly;
+struct MLoop;
 struct MFace;
 struct MEdge;
 struct MVert;
+struct MDeformVert;
 struct MCol;
-struct BMesh;
 struct Object;
 struct MTFace;
 struct VecNor;
@@ -167,6 +169,13 @@ void mesh_pmv_off(struct Object *ob, struct Mesh *me);
 int mesh_layers_menu_charlen(struct CustomData *data, int type); /* use this to work out how many chars to allocate */
 void mesh_layers_menu_concat(struct CustomData *data, int type, char *str);
 int mesh_layers_menu(struct CustomData *data, int type);
+
+/* vertex level transformations & checks (no derived mesh) */
+
+int minmax_mesh(struct Mesh *me, float min[3], float max[3]);
+int mesh_center_median(struct Mesh *me, float cent[3]);
+int mesh_center_bounds(struct Mesh *me, float cent[3]);
+void mesh_translate(struct Mesh *me, float offset[3], int do_keys);
 
 #ifdef __cplusplus
 }

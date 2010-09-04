@@ -26,13 +26,13 @@ from netrender.utils import *
 import netrender.client as client
 import netrender.model
 
-@rnaType
 class RENDER_OT_netslave_bake(bpy.types.Operator):
     '''NEED DESCRIPTION'''
     bl_idname = "render.netslavebake"
     bl_label = "Bake all in file"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return True
 
     def execute(self, context):
@@ -52,27 +52,27 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
                     modifier.settings.path = relative_path
                     bpy.ops.fluid.bake({"active_object": object, "scene": scene})
                 elif modifier.type == "CLOTH":
-                    modifier.point_cache.step = 1
-                    modifier.point_cache.disk_cache = True
-                    modifier.point_cache.external = False
+                    modifier.point_cache.frame_step = 1
+                    modifier.point_cache.use_disk_cache = True
+                    modifier.point_cache.use_external = False
                 elif modifier.type == "SOFT_BODY":
-                    modifier.point_cache.step = 1
-                    modifier.point_cache.disk_cache = True
-                    modifier.point_cache.external = False
+                    modifier.point_cache.frame_step = 1
+                    modifier.point_cache.use_disk_cache = True
+                    modifier.point_cache.use_external = False
                 elif modifier.type == "SMOKE" and modifier.smoke_type == "TYPE_DOMAIN":
-                    modifier.domain_settings.point_cache_low.step = 1
-                    modifier.domain_settings.point_cache_low.disk_cache = True
-                    modifier.domain_settings.point_cache_low.external = False
-                    modifier.domain_settings.point_cache_high.step = 1
-                    modifier.domain_settings.point_cache_high.disk_cache = True
-                    modifier.domain_settings.point_cache_high.external = False
+                    modifier.domain_settings.point_cache_low.use_step = 1
+                    modifier.domain_settings.point_cache_low.use_disk_cache = True
+                    modifier.domain_settings.point_cache_low.use_external = False
+                    modifier.domain_settings.point_cache_high.use_step = 1
+                    modifier.domain_settings.point_cache_high.use_disk_cache = True
+                    modifier.domain_settings.point_cache_high.use_external = False
 
             # particles modifier are stupid and don't contain data
             # we have to go through the object property
             for psys in object.particle_systems:
-                psys.point_cache.step = 1
-                psys.point_cache.disk_cache = True
-                psys.point_cache.external = False
+                psys.point_cache.use_step = 1
+                psys.point_cache.use_disk_cache = True
+                psys.point_cache.use_external = False
                 psys.point_cache.filepath = relative_path
 
         bpy.ops.ptcache.bake_all()
@@ -84,13 +84,13 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientanim(bpy.types.Operator):
     '''Start rendering an animation on network'''
     bl_idname = "render.netclientanim"
     bl_label = "Animation on network"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return True
 
     def execute(self, context):
@@ -111,13 +111,13 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientrun(bpy.types.Operator):
     '''Start network rendering service'''
     bl_idname = "render.netclientstart"
     bl_label = "Start Service"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return True
 
     def execute(self, context):
@@ -128,13 +128,13 @@ class RENDER_OT_netclientrun(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientsend(bpy.types.Operator):
     '''Send Render Job to the Network'''
     bl_idname = "render.netclientsend"
     bl_label = "Send job"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return True
 
     def execute(self, context):
@@ -158,13 +158,13 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientsendframe(bpy.types.Operator):
     '''Send Render Job with current frame to the Network'''
     bl_idname = "render.netclientsendframe"
     bl_label = "Send current frame job"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return True
 
     def execute(self, context):
@@ -188,13 +188,13 @@ class RENDER_OT_netclientsendframe(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientstatus(bpy.types.Operator):
     '''Refresh the status of the current jobs'''
     bl_idname = "render.netclientstatus"
     bl_label = "Client Status"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return True
 
     def execute(self, context):
@@ -205,6 +205,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
             conn.request("GET", "/status")
 
             response = conn.getresponse()
+            response.read()
             print( response.status, response.reason )
 
             jobs = (netrender.model.RenderJob.materialize(j) for j in eval(str(response.read(), encoding='utf8')))
@@ -228,13 +229,13 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
     '''Operator documentation text, will be used for the operator tooltip and python docs.'''
     bl_idname = "render.netclientblacklistslave"
     bl_label = "Client Blacklist Slave"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return True
 
     def execute(self, context):
@@ -258,13 +259,13 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
     '''Operator documentation text, will be used for the operator tooltip and python docs.'''
     bl_idname = "render.netclientwhitelistslave"
     bl_label = "Client Whitelist Slave"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return True
 
     def execute(self, context):
@@ -289,13 +290,13 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
         return self.execute(context)
 
 
-@rnaType
 class RENDER_OT_netclientslaves(bpy.types.Operator):
     '''Refresh status about available Render slaves'''
     bl_idname = "render.netclientslaves"
     bl_label = "Client Slaves"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return True
 
     def execute(self, context):
@@ -306,6 +307,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
             conn.request("GET", "/slaves")
 
             response = conn.getresponse()
+            response.read()
             print( response.status, response.reason )
 
             slaves = (netrender.model.RenderSlave.materialize(s) for s in eval(str(response.read(), encoding='utf8')))
@@ -334,13 +336,13 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientcancel(bpy.types.Operator):
     '''Cancel the selected network rendering job.'''
     bl_idname = "render.netclientcancel"
     bl_label = "Client Cancel"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         netsettings = context.scene.network_render
         return netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0
 
@@ -354,6 +356,7 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
             conn.request("POST", cancelURL(job.id))
 
             response = conn.getresponse()
+            response.read()
             print( response.status, response.reason )
 
             netsettings.jobs.remove(netsettings.active_job_index)
@@ -363,13 +366,13 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class RENDER_OT_netclientcancelall(bpy.types.Operator):
     '''Cancel all running network rendering jobs.'''
     bl_idname = "render.netclientcancelall"
     bl_label = "Client Cancel All"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return True
 
     def execute(self, context):
@@ -380,6 +383,7 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
             conn.request("POST", "/clear")
 
             response = conn.getresponse()
+            response.read()
             print( response.status, response.reason )
 
             while(len(netsettings.jobs) > 0):
@@ -390,13 +394,13 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class netclientdownload(bpy.types.Operator):
     '''Download render results from the network'''
     bl_idname = "render.netclientdownload"
     bl_label = "Client Download"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         netsettings = context.scene.network_render
         return netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0
 
@@ -412,6 +416,7 @@ class netclientdownload(bpy.types.Operator):
             for frame in job.frames:
                 client.requestResult(conn, job.id, frame.number)
                 response = conn.getresponse()
+                response.read()
 
                 if response.status != http.client.OK:
                     print("missing", frame.number)
@@ -419,7 +424,7 @@ class netclientdownload(bpy.types.Operator):
 
                 print("got back", frame.number)
 
-                f = open(netsettings.path + "%06d" % frame.number + ".exr", "wb")
+                f = open(os.path.join(netsettings.path, "%06d.exr" % frame.number), "wb")
                 buf = response.read(1024)
 
                 while buf:
@@ -435,13 +440,13 @@ class netclientdownload(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class netclientscan(bpy.types.Operator):
     '''Listen on network for master server broadcasting its address and port.'''
     bl_idname = "render.netclientscan"
     bl_label = "Client Scan"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return True
 
     def execute(self, context):
@@ -458,13 +463,13 @@ class netclientscan(bpy.types.Operator):
     def invoke(self, context, event):
         return self.execute(context)
 
-@rnaType
 class netclientweb(bpy.types.Operator):
     '''Open new window with information about running rendering jobs'''
     bl_idname = "render.netclientweb"
     bl_label = "Open Master Monitor"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         netsettings = context.scene.network_render
         return netsettings.server_address != "[default]"
 

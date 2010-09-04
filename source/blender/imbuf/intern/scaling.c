@@ -30,6 +30,7 @@
  */
 
 #include "BLI_blenlib.h"
+#include "MEM_guardedalloc.h"
 
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"

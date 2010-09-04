@@ -176,11 +176,11 @@ void BL_ConvertControllers(
 					/* let the controller print any warnings here when importing */
 					pyctrl->SetScriptText(STR_String(pycont->module)); 
 					pyctrl->SetScriptName(pycont->module); /* will be something like module.func so using it as the name is OK */
-				}
 
-				if(pycont->flag & CONT_PY_DEBUG) {
-					printf("\nDebuging \"%s\", module for object %s\n\texpect worse performance.\n", pycont->module, blenderobject->id.name+2);
-					pyctrl->SetDebug(true);
+					if(pycont->flag & CONT_PY_DEBUG) {
+						printf("\nDebuging \"%s\", module for object %s\n\texpect worse performance.\n", pycont->module, blenderobject->id.name+2);
+						pyctrl->SetDebug(true);
+					}
 				}
 				
 #endif // DISABLE_PYTHON

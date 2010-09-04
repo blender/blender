@@ -48,6 +48,8 @@ typedef struct CurveMapPoint {
 #define CUMA_SELECT		1
 #define CUMA_VECTOR		2
 
+struct CurveMapPoint;
+
 typedef struct CurveMap {
 	short totpoint, flag;
 	

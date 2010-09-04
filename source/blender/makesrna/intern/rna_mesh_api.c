@@ -61,7 +61,7 @@ void RNA_api_mesh(StructRNA *srna)
 
 	func= RNA_def_function(srna, "add_geometry", "ED_mesh_geometry_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_int(func, "verts", 0, 0, INT_MAX, "Number", "Number of vertices to add.", 0, INT_MAX);
+	parm= RNA_def_int(func, "vertices", 0, 0, INT_MAX, "Number", "Number of vertices to add.", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "edges", 0, 0, INT_MAX, "Number", "Number of edges to add.", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);

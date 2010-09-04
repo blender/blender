@@ -31,13 +31,14 @@
 #ifndef BKE_SEQUENCER_H
 #define BKE_SEQUENCER_H
 
+struct bContext;
 struct Editing;
+struct ImBuf;
+struct Main;
+struct Scene;
 struct Sequence;
 struct Strip;
 struct StripElem;
-struct ImBuf;
-struct Scene;
-struct bContext;
 
 #define MAXSEQ          32
 
@@ -107,15 +108,14 @@ struct SeqEffectHandle {
 	0: no early out, 
 	1: out = ibuf1, 
 	2: out = ibuf2 */
-	int (*early_out)(struct Sequence *seq,
-					 float facf0, float facf1); 
+	int (*early_out)(struct Sequence *seq, float facf0, float facf1); 
 	
 	/* stores the y-range of the effect IPO */
 	void (*store_icu_yrange)(struct Sequence * seq,
                                  short adrcode, float *ymin, float *ymax);
 	
 	/* stores the default facf0 and facf1 if no IPO is present */
-	void (*get_default_fac)(struct Sequence *seq, int cfra,
+	void (*get_default_fac)(struct Sequence *seq, float cfra,
                                 float * facf0, float * facf1);
 	
 	/* execute the effect
@@ -123,11 +123,13 @@ struct SeqEffectHandle {
            float-rects or byte-rects 
            (mixed cases are handled one layer up...) */
 	
-	void (*execute)(struct Scene *scene, struct Sequence *seq, int cfra,
-                        float facf0, float facf1,
-                        int x, int y, int preview_render_size,
-                        struct ImBuf *ibuf1, struct ImBuf *ibuf2,
-                        struct ImBuf *ibuf3, struct ImBuf *out);
+	struct ImBuf* (*execute)(
+		struct Main *bmain,
+		struct Scene *scene, struct Sequence *seq, float cfra,
+		float facf0, float facf1,
+		int x, int y, int preview_render_size,
+		struct ImBuf *ibuf1, struct ImBuf *ibuf2,
+		struct ImBuf *ibuf3);
 };
 
 /* ********************* prototypes *************** */
@@ -146,15 +148,15 @@ void seq_free_editing(struct Scene *scene);
 void seq_free_clipboard(void);
 struct Editing *seq_give_editing(struct Scene *scene, int alloc);
 char *give_seqname(struct Sequence *seq);
-struct ImBuf *give_ibuf_seq(struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
-struct ImBuf *give_ibuf_seq_threaded(struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
-struct ImBuf *give_ibuf_seq_direct(struct Scene *scene, int rectx, int recty, int cfra, int render_size, struct Sequence *seq);
-struct ImBuf *give_ibuf_seqbase(struct Scene *scene, int rectx, int recty, int cfra, int chan_shown, int render_size, struct ListBase *seqbasep);
+struct ImBuf *give_ibuf_seq(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
+struct ImBuf *give_ibuf_seq_threaded(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
+struct ImBuf *give_ibuf_seq_direct(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int render_size, struct Sequence *seq);
+struct ImBuf *give_ibuf_seqbase(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chan_shown, int render_size, struct ListBase *seqbasep);
 void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown, int render_size);
 void calc_sequence(struct Scene *scene, struct Sequence *seq);
 void calc_sequence_disp(struct Scene *scene, struct Sequence *seq);
 void new_tstripdata(struct Sequence *seq);
-void reload_sequence_new_file(struct Scene *scene, struct Sequence * seq, int lock_range);
+void reload_sequence_new_file(struct Main *bmain, struct Scene *scene, struct Sequence * seq, int lock_range);
 void sort_seq(struct Scene *scene);
 void build_seqar_cb(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq,
 					int (*test_func)(struct Sequence * seq));
@@ -163,6 +165,32 @@ struct StripElem *give_stripelem(struct Sequence *seq, int cfra);
 
 // intern?
 void update_changed_seq_and_deps(struct Scene *scene, struct Sequence *changed_seq, int len_change, int ibuf_change);
+
+int input_have_to_preprocess(
+	struct Scene *scene, struct Sequence * seq, 
+	float cfra, int seqrectx, int seqrecty);
+
+/* seqcache.c */
+
+typedef enum {
+	SEQ_STRIPELEM_IBUF,
+	SEQ_STRIPELEM_IBUF_COMP,
+	SEQ_STRIPELEM_IBUF_STARTSTILL,
+	SEQ_STRIPELEM_IBUF_ENDSTILL
+} seq_stripelem_ibuf_t;
+
+void seq_stripelem_cache_init();
+void seq_stripelem_cache_destruct();
+
+void seq_stripelem_cache_cleanup();
+
+struct ImBuf * seq_stripelem_cache_get(
+	struct Sequence * seq, int rectx, int recty, 
+	float cfra, seq_stripelem_ibuf_t type);
+void seq_stripelem_cache_put(
+	struct Sequence * seq, int rectx, int recty, 
+	float cfra, seq_stripelem_ibuf_t type, struct ImBuf * nval);
+
 
 /* seqeffects.c */
 // intern?
@@ -191,17 +219,17 @@ void seq_dupe_animdata(struct Scene *scene, char *name_from, char *name_to);
 int shuffle_seq(struct ListBase * seqbasep, struct Sequence *test, struct Scene *evil_scene);
 int shuffle_seq_time(ListBase * seqbasep, struct Scene *evil_scene);
 int seqbase_isolated_sel_check(struct ListBase *seqbase);
-void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage);
+void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage, int keep_file_handles);
 struct Sequence	*seq_dupli_recursive(struct Scene *scene, struct Sequence * seq, int dupe_flag);
 int seq_swap(struct Sequence *seq_a, struct Sequence *seq_b);
 
 void seq_update_sound(struct Scene* scene, struct Sequence *seq);
 void seq_update_muting(struct Scene* scene, struct Editing *ed);
-void seqbase_sound_reload(Scene *scene, ListBase *seqbase);
+void seqbase_sound_reload(struct Scene *scene, ListBase *seqbase);
 void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
 void seqbase_dupli_recursive(struct Scene *scene, ListBase *nseqbase, ListBase *seqbase, int dupe_flag);
 
-void clear_scene_in_allseqs(struct Scene *sce);
+void clear_scene_in_allseqs(struct Main *bmain, struct Scene *sce);
 
 struct Sequence *get_seq_by_name(struct ListBase *seqbase, const char *name, int recursive);
 

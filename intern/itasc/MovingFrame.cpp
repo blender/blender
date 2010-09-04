@@ -52,7 +52,7 @@ void MovingFrame::pushInternalFrame(CacheTS timestamp)
 	}
 }
 
-// load pose just preceeding timestamp
+// load pose just preceding timestamp
 // return false if no cache position was found
 bool MovingFrame::popInternalFrame(CacheTS timestamp)
 {

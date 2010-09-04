@@ -34,6 +34,7 @@ struct Object;
 struct VlakRen;
 struct VertRen;
 struct HaloRen;
+struct Main;
 struct Material;
 struct Render;
 struct MCol;
@@ -115,7 +116,7 @@ struct MCol *RE_vlakren_get_mcol(struct ObjectRen *obr, VlakRen *ren, int n, cha
 float *RE_vlakren_get_surfnor(struct ObjectRen *obr, VlakRen *ren, int verify);
 float *RE_vlakren_get_nmap_tangent(struct ObjectRen *obr, VlakRen *ren, int verify);
 RadFace **RE_vlakren_get_radface(struct ObjectRen *obr, VlakRen *ren, int verify);
-int RE_vlakren_get_normal(struct Render *re, struct ObjectInstanceRen *obi, struct VlakRen *vlr, float *nor);
+void RE_vlakren_get_normal(struct Render *re, struct ObjectInstanceRen *obi, struct VlakRen *vlr, float *nor);
 
 float *RE_strandren_get_surfnor(struct ObjectRen *obr, struct StrandRen *strand, int verify);
 float *RE_strandren_get_uv(struct ObjectRen *obr, struct StrandRen *strand, int n, char **name, int verify);
@@ -137,7 +138,7 @@ void RE_set_customdata_names(struct ObjectRen *obr, struct CustomData *data);
 
 /* convertblender.c */
 void init_render_world(Render *re);
-void RE_Database_FromScene_Vectors(Render *re, struct Scene *sce, unsigned int lay);
+void RE_Database_FromScene_Vectors(Render *re, struct Main *bmain, struct Scene *sce, unsigned int lay);
 
 
 #endif /* RENDERDATABASE_H */

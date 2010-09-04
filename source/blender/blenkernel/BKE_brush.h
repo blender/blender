@@ -44,11 +44,13 @@ struct Brush *copy_brush(struct Brush *brush);
 void make_local_brush(struct Brush *brush);
 void free_brush(struct Brush *brush);
 
+void brush_reset_sculpt(struct Brush *brush);
+
+/* image icon function */
+struct ImBuf *get_brush_icon(struct Brush *brush);
+
 /* brush library operations used by different paint panels */
-int brush_set_nr(struct Brush **current_brush, int nr, const char *name);
 int brush_delete(struct Brush **current_brush);
-void brush_check_exists(struct Brush **brush, const char *name);
-void brush_toggled_fake_user(struct Brush *brush);
 int brush_texture_set_nr(struct Brush *brush, int nr);
 int brush_texture_delete(struct Brush *brush);
 int brush_clone_image_set_nr(struct Brush *brush, int nr);
@@ -85,14 +87,24 @@ void brush_radial_control_invoke(struct wmOperator *op, struct Brush *br, float 
 int brush_radial_control_exec(struct wmOperator *op, struct Brush *br, float size_weight);
 
 /* unified strength and size */
-int sculpt_get_brush_size(struct Brush *brush);
-void sculpt_set_brush_size(struct Brush *brush, int size);
-int sculpt_get_lock_brush_size(struct Brush *brush);
-float sculpt_get_brush_unprojected_radius(struct Brush *brush);
-void sculpt_set_brush_unprojected_radius(struct Brush *brush, float unprojected_radius);
-float sculpt_get_brush_alpha(struct Brush *brush);
-void sculpt_set_brush_alpha(struct Brush *brush, float alpha);
 
+int  brush_size(struct Brush *brush);
+void brush_set_size(struct Brush *brush, int value);
+
+int  brush_use_locked_size(struct Brush *brush);
+void brush_set_use_locked_size(struct Brush *brush, int value);
+
+int  brush_use_alpha_pressure(struct Brush *brush);
+void brush_set_use_alpha_pressure(struct Brush *brush, int value);
+
+int  brush_use_size_pressure(struct Brush *brush);
+void brush_set_use_size_pressure(struct Brush *brush, int value);
+
+float brush_unprojected_radius(struct Brush *brush);
+void  brush_set_unprojected_radius(struct Brush *brush, float value);
+
+float brush_alpha(struct Brush *brush);
+void  brush_set_alpha(struct Brush *brush, float value);
 
 #endif
 

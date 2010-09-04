@@ -254,7 +254,8 @@ static void cdDM_drawVerts(DerivedMesh *dm)
 	else {	/* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
 		GPU_vertex_setup(dm);
 		if( !GPU_buffer_legacy(dm) ) {
-			glDrawArrays(GL_POINTS,0,dm->drawObject->nelements);
+			if(dm->drawObject->nelements)	glDrawArrays(GL_POINTS,0, dm->drawObject->nelements);
+			else							glDrawArrays(GL_POINTS,0, dm->drawObject->nlooseverts);
 		}
 		GPU_buffer_unbind();
 	}
@@ -2082,6 +2083,11 @@ DerivedMesh *CDDM_from_template(DerivedMesh *source,
 	CDDerivedMesh *cddm = cdDM_create("CDDM_from_template dest");
 	DerivedMesh *dm = &cddm->dm;
 
+	/* ensure these are created if they are made on demand */
+	source->getVertDataArray(source, CD_ORIGINDEX);
+	source->getEdgeDataArray(source, CD_ORIGINDEX);
+	source->getTessFaceDataArray(source, CD_ORIGINDEX);
+
 	/* this does a copy of all non mvert/medge/mface layers */
 	DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges, numFaces, numLoops, numPolys);
 
@@ -2199,9 +2205,7 @@ void CDDM_calc_normals(DerivedMesh *dm)
 			}
 		}
 
-		mv->no[0] = (short)(no[0] * 32767.0f);
-		mv->no[1] = (short)(no[1] * 32767.0f);
-		mv->no[2] = (short)(no[2] * 32767.0f);
+		normal_float_to_short_v3(mv->no, no);
 	}
 
 	MEM_freeN(temp_nors);

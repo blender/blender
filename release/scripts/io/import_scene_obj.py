@@ -82,23 +82,21 @@ def unpack_list(list_of_tuples):
 
 # same as above except that it adds 0 for triangle faces
 def unpack_face_list(list_of_tuples):
-    l = []
+    # allocate the entire list
+    flat_ls = [0] * (len(list_of_tuples) * 4)
+    i = 0
+
     for t in list_of_tuples:
-        face = [i for i in t]
+        if len(t) == 3:
+            if t[2] == 0:
+                t = t[1], t[2], t[0]
+        else: # assuem quad
+            if t[3] == 0 or t[2] == 0:
+                t = t[2], t[3], t[0], t[1]
 
-        if len(face) != 3 and len(face) != 4:
-            raise RuntimeError("{0} vertices in face.".format(len(face)))
-
-        # rotate indices if the 4th is 0
-        if len(face) == 4 and face[3] == 0:
-            face = [face[3], face[0], face[1], face[2]]
-
-        if len(face) == 3:
-            face.append(0)
-
-        l.extend(face)
-
-    return l
+        flat_ls[i:i + len(t)] = t
+        i += 4
+    return flat_ls
 
 def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
     '''
@@ -139,7 +137,7 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
         if type(from_data) in (tuple, list):
             verts= [Vector(from_data[i]) for ii, i in enumerate(indices)]
         else:
-            verts= [from_data.verts[i].co for ii, i in enumerate(indices)]
+            verts= [from_data.vertices[i].co for ii, i in enumerate(indices)]
 
         for i in range(len(verts)-1, 0, -1): # same as reversed(xrange(1, len(verts))):
             if verts[i][1]==verts[i-1][0]:
@@ -156,7 +154,7 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
         if type(from_data) in (tuple, list):
             verts= [vert_treplet(Vector(from_data[i]), ii) for ii, i in enumerate(indices)]
         else:
-            verts= [vert_treplet(from_data.verts[i].co, ii) for ii, i in enumerate(indices)]
+            verts= [vert_treplet(from_data.vertices[i].co, ii) for ii, i in enumerate(indices)]
 
         edges= [(i, i-1) for i in range(len(verts))]
         if edges:
@@ -305,24 +303,28 @@ def load_image(imagepath, dirname):
     if os.path.exists(imagepath):
         return bpy.data.images.load(imagepath)
 
-    variants = [os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
+    variants = [imagepath, os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
 
-    for path in variants:
-        if os.path.exists(path):
-            return bpy.data.images.load(path)
-        else:
-            print(path, "doesn't exist")
+    for filepath in variants:
+        for nfilepath in (filepath, bpy.path.resolve_ncase(filepath)):
+            if os.path.exists(nfilepath):
+                return bpy.data.images.load(nfilepath)
 
     # TODO comprehensiveImageLoad also searched in bpy.config.textureDir
     return None
 
 def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
-
     if '_' in imagepath:
         image= load_image(imagepath.replace('_', ' '), DIR)
-        if image: return image
+        if image:
+            return image
 
-    return load_image(imagepath, DIR)
+    image = load_image(imagepath, DIR)
+    if image:
+        return image
+
+    print("failed to load '%s' doesn't exist", imagepath)
+    return None
 
 # def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
 # 	'''
@@ -373,38 +375,32 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                 # Image has alpha
 
                 # XXX bitmask won't work?
-                blender_material.add_texture(texture, "UV", ("COLOR", "ALPHA"))
+                blender_material.add_texture(texture, 'UV', {'COLOR', 'ALPHA'})
                 texture.mipmap = True
                 texture.interpolation = True
                 texture.use_alpha = True
-                blender_material.z_transparency = True
+                blender_material.use_transparency = True
                 blender_material.alpha = 0.0
-
-# 				blender_material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL | Texture.MapTo.ALPHA)
-# 				texture.setImageFlags('MipMap', 'InterPol', 'UseAlpha')
-# 				blender_material.mode |= Material.Modes.ZTRANSP
-# 				blender_material.alpha = 0.0
             else:
-                blender_material.add_texture(texture, "UV", "COLOR")
-# 				blender_material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL)
+                blender_material.add_texture(texture, 'UV', 'COLOR')
 
             # adds textures to faces (Textured/Alt-Z mode)
             # Only apply the diffuse texture to the face if the image has not been set with the inline usemat func.
             unique_material_images[context_material_name]= image, has_data # set the texface image
 
         elif type == 'Ka':
-            blender_material.add_texture(texture, "UV", "AMBIENT")
+            blender_material.add_texture(texture, 'UV', 'AMBIENT')
 # 			blender_material.setTexture(1, texture, Texture.TexCo.UV, Texture.MapTo.CMIR) # TODO- Add AMB to BPY API
 
         elif type == 'Ks':
-            blender_material.add_texture(texture, "UV", "SPECULARITY")
+            blender_material.add_texture(texture, 'UV', 'SPECULARITY')
 # 			blender_material.setTexture(2, texture, Texture.TexCo.UV, Texture.MapTo.SPEC)
 
         elif type == 'Bump':
-            blender_material.add_texture(texture, "UV", "NORMAL")
+            blender_material.add_texture(texture, 'UV', 'NORMAL')
 # 			blender_material.setTexture(3, texture, Texture.TexCo.UV, Texture.MapTo.NOR)
         elif type == 'D':
-            blender_material.add_texture(texture, "UV", "ALPHA")
+            blender_material.add_texture(texture, 'UV', 'ALPHA')
             blender_material.z_transparency = True
             blender_material.alpha = 0.0
 # 			blender_material.setTexture(4, texture, Texture.TexCo.UV, Texture.MapTo.ALPHA)
@@ -413,15 +409,14 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
             # Todo, unset deffuse material alpha if it has an alpha channel
 
         elif type == 'refl':
-            blender_material.add_texture(texture, "UV", "REFLECTION")
+            blender_material.add_texture(texture, 'UV', 'REFLECTION')
 # 			blender_material.setTexture(5, texture, Texture.TexCo.UV, Texture.MapTo.REF)
 
 
     # Add an MTL with the same name as the obj if no MTLs are spesified.
     temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + '.mtl'
 
-    if os.path.exists(DIR + temp_mtl) and temp_mtl not in material_libs:
-# 	if sys.exists(DIR + temp_mtl) and temp_mtl not in material_libs:
+    if os.path.exists(os.path.join(DIR, temp_mtl)) and temp_mtl not in material_libs:
         material_libs.append( temp_mtl )
     del temp_mtl
 
@@ -435,11 +430,9 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     unique_material_images[None]= None, False
 
     for libname in material_libs:
-        mtlpath= DIR + libname
+        mtlpath= os.path.join(DIR, libname)
         if not os.path.exists(mtlpath):
-# 		if not sys.exists(mtlpath):
-            #print '\tError Missing MTL: "%s"' % mtlpath
-            pass
+            print ("\tError Missing MTL: '%s'" % mtlpath)
         else:
             #print '\t\tloading mtl: "%s"' % mtlpath
             context_material= None
@@ -504,49 +497,32 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
 
 
-def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, SPLIT_MATERIALS):
+def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
     '''
-    Takes vert_loc and faces, and seperates into multiple sets of
+    Takes vert_loc and faces, and separates into multiple sets of
     (verts_loc, faces, unique_materials, dataname)
     '''
 
     filename = os.path.splitext((os.path.basename(filepath)))[0]
 
-    if not SPLIT_OB_OR_GROUP and not SPLIT_MATERIALS:
+    if not SPLIT_OB_OR_GROUP:
         # use the filename for the object name since we arnt chopping up the mesh.
         return [(verts_loc, faces, unique_materials, filename)]
 
-
     def key_to_name(key):
         # if the key is a tuple, join it to make a string
-        if type(key) == tuple:
-            return '%s_%s' % key
-        elif not key:
+        if not key:
             return filename # assume its a string. make sure this is true if the splitting code is changed
         else:
             return key
 
     # Return a key that makes the faces unique.
-    if SPLIT_OB_OR_GROUP and not SPLIT_MATERIALS:
-        def face_key(face):
-            return face[4] # object
-
-    elif not SPLIT_OB_OR_GROUP and SPLIT_MATERIALS:
-        def face_key(face):
-            return face[2] # material
-
-    else: # Both
-        def face_key(face):
-            return face[4], face[2] # object,material
-
-
     face_split_dict= {}
 
     oldkey= -1 # initialize to a value that will never match the key
 
     for face in faces:
-
-        key= face_key(face)
+        key= face[4]
 
         if oldkey != key:
             # Check the key has changed.
@@ -571,7 +547,6 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, 
                 vert_remap[i]= new_index # set the new remapped index so we only add once and can reference next time.
                 face_vert_loc_indicies[enum] = new_index # remap to the local index
                 verts_split.append( verts_loc[i] ) # add the vert to the local verts
-
             else:
                 face_vert_loc_indicies[enum] = vert_remap[i] # remap to the local index
 
@@ -581,12 +556,11 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, 
 
         faces_split.append(face)
 
-
     # remove one of the itemas and reorder
     return [(value[0], value[1], value[2], key_to_name(key)) for key, value in list(face_split_dict.items())]
 
 
-def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups, vertex_groups, dataname):
+def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups, vertex_groups, dataname):
     '''
     Takes all the data gathered and generates a mesh, adding the new object to new_objects
     deals with fgons, sharp edges and assigning materials
@@ -703,18 +677,18 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
     # make sure the list isnt too big
     for material in materials:
         me.add_material(material)
-    #me.verts.extend([(0,0,0)]) # dummy vert
+    #me.vertices.extend([(0,0,0)]) # dummy vert
 
     me.add_geometry(len(verts_loc), 0, len(faces))
 
     # verts_loc is a list of (x, y, z) tuples
-    me.verts.foreach_set("co", unpack_list(verts_loc))
-# 	me.verts.extend(verts_loc)
+    me.vertices.foreach_set("co", unpack_list(verts_loc))
+# 	me.vertices.extend(verts_loc)
 
     # faces is a list of (vert_indices, texco_indices, ...) tuples
     # XXX faces should contain either 3 or 4 verts
     # XXX no check for valid face indices
-    me.faces.foreach_set("verts_raw", unpack_face_list([f[0] for f in faces]))
+    me.faces.foreach_set("vertices_raw", unpack_face_list([f[0] for f in faces]))
 # 	face_mapping= me.faces.extend([f[0] for f in faces], indexList=True)
 
     if verts_tex and me.faces:
@@ -752,7 +726,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 
 
                 if context_smooth_group:
-                    blender_face.smooth= True
+                    blender_face.use_smooth = True
 
                 if context_material:
                     if context_material_old is not context_material:
@@ -768,14 +742,12 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
                     blender_tface= me.uv_textures[0].data[i]
 
                     if context_material:
-                        image, has_data= unique_material_images[context_material]
+                        image, has_data = unique_material_images[context_material]
                         if image: # Can be none if the material dosnt have an image.
-                            blender_tface.image= image
-# 							blender_face.image= image
-                            if has_data:
-# 							if has_data and image.depth == 32:
-                                blender_tface.transp = 'ALPHA'
-# 								blender_face.transp |= ALPHA
+                            blender_tface.image = image
+                            blender_tface.use_image = True
+                            if has_data and image.depth == 32:
+                                blender_tface.blend_type = 'ALPHA'
 
                     # BUG - Evil eekadoodle problem where faces that have vert index 0 location at 3 or 4 are shuffled.
                     if len(face_vert_loc_indicies)==4:
@@ -804,7 +776,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
         me.add_geometry(0, len(edges), 0)
 
         # edges should be a list of (a, b) tuples
-        me.edges.foreach_set("verts", unpack_list(edges))
+        me.edges.foreach_set("vertices", unpack_list(edges))
 # 		me_edges.extend( edges )
 
 # 	del me_edges
@@ -819,8 +791,8 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 # 	if CREATE_FGONS and fgon_edges:
 # 		for fgon_edge in fgon_edges.keys():
 # 			for ed in me.edges:
-# 				if edges_match(fgon_edge, ed.verts):
-# 					ed.fgon = True
+# 				if edges_match(fgon_edge, ed.vertices):
+# 					ed.is_fgon = True
 
 # 	if CREATE_FGONS and fgon_edges:
 # 		FGON= Mesh.EdgeFlags.FGON
@@ -833,8 +805,8 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 # 	if unique_smooth_groups and sharp_edges:
 # 		for sharp_edge in sharp_edges.keys():
 # 			for ed in me.edges:
-# 				if edges_match(sharp_edge, ed.verts):
-# 					ed.sharp = True
+# 				if edges_match(sharp_edge, ed.vertices):
+# 					ed.use_edge_sharp = True
 
 # 	if unique_smooth_groups and sharp_edges:
 # 		SHARP= Mesh.EdgeFlags.SHARP
@@ -847,7 +819,6 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 # 	me.calcNormals()
 
     ob= bpy.data.objects.new("Mesh", me)
-    scn.objects.link(ob)
     new_objects.append(ob)
 
     # Create the vertex groups. No need to have the flag passed here since we test for the
@@ -861,7 +832,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 # 		me.assignVertsToGroup(group_name, group_indicies, 1.00, Mesh.AssignModes.REPLACE)
 
 
-def create_nurbs(scn, context_nurbs, vert_loc, new_objects):
+def create_nurbs(context_nurbs, vert_loc, new_objects):
     '''
     Add nurbs object to blender, only support one type at the moment
     '''
@@ -936,8 +907,9 @@ def create_nurbs(scn, context_nurbs, vert_loc, new_objects):
     if do_closed:
         nu.flagU |= 1
     '''
+    
+    ob= bpy.data.objects.new("Mesh", me)
 
-    ob = scn.objects.new(cu)
     new_objects.append(ob)
 
 
@@ -1262,7 +1234,6 @@ def load_obj(filepath,
 # 		bpy.ops.OBJECT_OT_select_all()
 
     scene = context.scene
-# 	scn = bpy.data.scenes.active
 # 	scn.objects.selected = []
     new_objects= [] # put new objects here
 
@@ -1271,13 +1242,19 @@ def load_obj(filepath,
     if SPLIT_OBJECTS or SPLIT_GROUPS:	SPLIT_OB_OR_GROUP = True
     else:								SPLIT_OB_OR_GROUP = False
 
-    for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, SPLIT_MATERIALS):
+    for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
         # Create meshes from the data, warning 'vertex_groups' wont support splitting
-        create_mesh(scene, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, vertex_groups, dataname)
+        create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, vertex_groups, dataname)
 
     # nurbs support
 # 	for context_nurbs in nurbs:
 # 		create_nurbs(scn, context_nurbs, verts_loc, new_objects)
+
+    # Create new obj
+    for obj in new_objects:
+        scene.objects.link(obj)
+
+    scene.update()
 
 
     axis_min= [ 1000000000]*3
@@ -1320,14 +1297,13 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
     if BPyMessages.Error_NoFile(filepath):
         return
 
-    global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER, ROTATE_X90
+    global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER, ROTATE_X90
 
     CREATE_SMOOTH_GROUPS= Draw.Create(0)
     CREATE_FGONS= Draw.Create(1)
     CREATE_EDGES= Draw.Create(1)
     SPLIT_OBJECTS= Draw.Create(0)
     SPLIT_GROUPS= Draw.Create(0)
-    SPLIT_MATERIALS= Draw.Create(0)
     CLAMP_SIZE= Draw.Create(10.0)
     IMAGE_SEARCH= Draw.Create(1)
     POLYGROUPS= Draw.Create(0)
@@ -1346,7 +1322,6 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
     'Separate objects from obj...',\
     ('Object', SPLIT_OBJECTS, 'Import OBJ Objects into Blender Objects'),\
     ('Group', SPLIT_GROUPS, 'Import OBJ Groups into Blender Objects'),\
-    ('Split Materials', SPLIT_MATERIALS, 'Import each material into a seperate mesh'),\
     'Options...',\
     ('Keep Vert Order', KEEP_VERT_ORDER, 'Keep vert and face order, disables some other options.'),\
     ('Clamp Scale:', CLAMP_SIZE, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)'),\
@@ -1359,7 +1334,6 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
     if KEEP_VERT_ORDER.val:
         SPLIT_OBJECTS.val = False
         SPLIT_GROUPS.val = False
-        SPLIT_MATERIALS.val = False
     '''
 
 
@@ -1381,25 +1355,25 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
             GLOBALS['EVENT'] = e
 
         def do_split(e,v):
-            global SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, KEEP_VERT_ORDER, POLYGROUPS
-            if SPLIT_OBJECTS.val or SPLIT_GROUPS.val or SPLIT_MATERIALS.val:
+            global SPLIT_OBJECTS, SPLIT_GROUPS, KEEP_VERT_ORDER, POLYGROUPS
+            if SPLIT_OBJECTS.val or SPLIT_GROUPS.val:
                 KEEP_VERT_ORDER.val = 0
                 POLYGROUPS.val = 0
             else:
                 KEEP_VERT_ORDER.val = 1
 
         def do_vertorder(e,v):
-            global SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, KEEP_VERT_ORDER
+            global SPLIT_OBJECTS, SPLIT_GROUPS, KEEP_VERT_ORDER
             if KEEP_VERT_ORDER.val:
-                SPLIT_OBJECTS.val = SPLIT_GROUPS.val = SPLIT_MATERIALS.val = 0
+                SPLIT_OBJECTS.val = SPLIT_GROUPS.val = 0
             else:
-                if not (SPLIT_OBJECTS.val or SPLIT_GROUPS.val or SPLIT_MATERIALS.val):
+                if not (SPLIT_OBJECTS.val or SPLIT_GROUPS.val):
                     KEEP_VERT_ORDER.val = 1
 
         def do_polygroups(e,v):
-            global SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, KEEP_VERT_ORDER, POLYGROUPS
+            global SPLIT_OBJECTS, SPLIT_GROUPS, KEEP_VERT_ORDER, POLYGROUPS
             if POLYGROUPS.val:
-                SPLIT_OBJECTS.val = SPLIT_GROUPS.val = SPLIT_MATERIALS.val = 0
+                SPLIT_OBJECTS.val = SPLIT_GROUPS.val = 0
 
         def do_help(e,v):
             url = __url__[0]
@@ -1419,7 +1393,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
             ui_x -= 165
             ui_y -= 90
 
-            global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER, ROTATE_X90
+            global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, CLAMP_SIZE, IMAGE_SEARCH, POLYGROUPS, KEEP_VERT_ORDER, ROTATE_X90
 
             Draw.Label('Import...', ui_x+9, ui_y+159, 220, 21)
             Draw.BeginAlign()
@@ -1432,7 +1406,6 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
             Draw.BeginAlign()
             SPLIT_OBJECTS = Draw.Toggle('Object', EVENT_REDRAW, ui_x+9, ui_y+89, 55, 21, SPLIT_OBJECTS.val, 'Import OBJ Objects into Blender Objects', do_split)
             SPLIT_GROUPS = Draw.Toggle('Group', EVENT_REDRAW, ui_x+64, ui_y+89, 55, 21, SPLIT_GROUPS.val, 'Import OBJ Groups into Blender Objects', do_split)
-            SPLIT_MATERIALS = Draw.Toggle('Split Materials', EVENT_REDRAW, ui_x+119, ui_y+89, 60, 21, SPLIT_MATERIALS.val, 'Import each material into a seperate mesh', do_split)
             Draw.EndAlign()
 
             # Only used for user feedback
@@ -1492,7 +1465,6 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
               CREATE_EDGES.val,\
               SPLIT_OBJECTS.val,\
               SPLIT_GROUPS.val,\
-              SPLIT_MATERIALS.val,\
               ROTATE_X90.val,\
               IMAGE_SEARCH.val,\
               POLYGROUPS.val
@@ -1506,7 +1478,6 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
           CREATE_EDGES.val,\
           SPLIT_OBJECTS.val,\
           SPLIT_GROUPS.val,\
-          SPLIT_MATERIALS.val,\
           ROTATE_X90.val,\
           IMAGE_SEARCH.val,\
           POLYGROUPS.val
@@ -1570,7 +1541,6 @@ class IMPORT_OT_obj(bpy.types.Operator):
     CREATE_EDGES = BoolProperty(name="Lines as Edges", description="Import lines and faces with 2 verts as edge", default= True)
     SPLIT_OBJECTS = BoolProperty(name="Object", description="Import OBJ Objects into Blender Objects", default= True)
     SPLIT_GROUPS = BoolProperty(name="Group", description="Import OBJ Groups into Blender Objects", default= True)
-    SPLIT_MATERIALS = BoolProperty(name="Split Materials", description="Import each material into a seperate mesh", default= False)
     # old comment: only used for user feedback
     # disabled this option because in old code a handler for it disabled SPLIT* params, it's not passed to load_obj
     # KEEP_VERT_ORDER = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)
@@ -1591,7 +1561,6 @@ class IMPORT_OT_obj(bpy.types.Operator):
                  self.properties.CREATE_EDGES,
                  self.properties.SPLIT_OBJECTS,
                  self.properties.SPLIT_GROUPS,
-                 self.properties.SPLIT_MATERIALS,
                  self.properties.ROTATE_X90,
                  self.properties.IMAGE_SEARCH,
                  self.properties.POLYGROUPS)
@@ -1599,8 +1568,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
+        context.manager.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
 
@@ -1609,11 +1577,9 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(IMPORT_OT_obj)
     bpy.types.INFO_MT_file_import.append(menu_func)
 
 def unregister():
-    bpy.types.unregister(IMPORT_OT_obj)
     bpy.types.INFO_MT_file_import.remove(menu_func)
 
 

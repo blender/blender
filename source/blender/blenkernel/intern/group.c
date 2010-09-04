@@ -69,21 +69,22 @@ void free_group_objects(Group *group)
 
 void unlink_group(Group *group)
 {
+	Main *bmain= G.main;
 	Material *ma;
 	Object *ob;
 	Scene *sce;
 	SceneRenderLayer *srl;
 	ParticleSystem *psys;
 	
-	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+	for(ma= bmain->mat.first; ma; ma= ma->id.next) {
 		if(ma->group==group)
 			ma->group= NULL;
 	}
-	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+	for(ma= bmain->mat.first; ma; ma= ma->id.next) {
 		if(ma->group==group)
 			ma->group= NULL;
 	}
-	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+	for (sce= bmain->scene.first; sce; sce= sce->id.next) {
 		Base *base= sce->base.first;
 		
 		/* ensure objects are not in this group */
@@ -100,7 +101,7 @@ void unlink_group(Group *group)
 		}
 	}
 	
-	for(ob= G.main->object.first; ob; ob= ob->id.next) {
+	for(ob= bmain->object.first; ob; ob= ob->id.next) {
 		bActionStrip *strip;
 		
 		if(ob->dup_group==group) {

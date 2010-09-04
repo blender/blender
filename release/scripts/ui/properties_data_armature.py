@@ -20,19 +20,18 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
 
-
-class DataButtonsPanel(bpy.types.Panel):
+class ArmatureButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return context.armature
 
 
-class DATA_PT_context_arm(DataButtonsPanel):
+class DATA_PT_context_arm(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = ""
     bl_show_header = False
 
@@ -42,60 +41,47 @@ class DATA_PT_context_arm(DataButtonsPanel):
         ob = context.object
         arm = context.armature
         space = context.space_data
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            split = layout.split(percentage=0.65)
-            if ob:
-                split.template_ID(ob, "data")
-                split.separator()
-            elif arm:
-                split.template_ID(space, "pin_id")
-                split.separator()
-        else:
-            layout.template_ID(ob, "data")
+        split = layout.split(percentage=0.65)
+        if ob:
+            split.template_ID(ob, "data")
+            split.separator()
+        elif arm:
+            split.template_ID(space, "pin_id")
+            split.separator()
 
 
-class DATA_PT_custom_props_arm(DataButtonsPanel, PropertyPanel):
-    _context_path = "object.data"
-
-
-class DATA_PT_skeleton(DataButtonsPanel):
+class DATA_PT_skeleton(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "Skeleton"
 
     def draw(self, context):
         layout = self.layout
 
         arm = context.armature
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(arm, "pose_position", expand=True)
-        else:
-            layout.prop(arm, "pose_position", text="")
+        layout.prop(arm, "pose_position", expand=True)
 
         split = layout.split()
 
         col = split.column()
         col.label(text="Layers:")
-        col.prop(arm, "layer", text="")
+        col.prop(arm, "layers", text="")
         col.label(text="Protected Layers:")
-        col.prop(arm, "layer_protection", text="")
+        col.prop(arm, "layers_protected", text="")
 
         col.label(text="Deform:")
 
         split = layout.split()
 
         col = split.column()
-        col.prop(arm, "deform_vertexgroups", text="Vertex Groups")
-        col.prop(arm, "deform_envelope", text="Envelopes")
+        col.prop(arm, "use_deform_vertex_groups", text="Vertex Groups")
+        col.prop(arm, "use_deform_envelopes", text="Envelopes")
 
-        if wide_ui:
-            col = split.column()
-        col.prop(arm, "deform_quaternion", text="Quaternion")
+        col = split.column()
+        col.prop(arm, "use_deform_preserve_volume", text="Quaternion")
 
 
-class DATA_PT_display(DataButtonsPanel):
+class DATA_PT_display(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
 
     def draw(self, context):
@@ -103,30 +89,27 @@ class DATA_PT_display(DataButtonsPanel):
 
         ob = context.object
         arm = context.armature
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.row().prop(arm, "drawtype", expand=True)
-        else:
-            layout.row().prop(arm, "drawtype", text="")
+        layout.row().prop(arm, "draw_type", expand=True)
 
         split = layout.split()
 
         col = split.column()
-        col.prop(arm, "draw_names", text="Names")
-        col.prop(arm, "draw_axes", text="Axes")
-        col.prop(arm, "draw_custom_bone_shapes", text="Shapes")
+        col.prop(arm, "show_names", text="Names")
+        col.prop(arm, "show_axes", text="Axes")
+        col.prop(arm, "show_bone_custom_shapes", text="Shapes")
 
-        if wide_ui:
-            col = split.column()
-        col.prop(arm, "draw_group_colors", text="Colors")
-        col.prop(arm, "delay_deform", text="Delay Refresh")
+        col = split.column()
+        col.prop(arm, "show_group_colors", text="Colors")
+        col.prop(ob, "show_x_ray", text="X-Ray")
+        col.prop(arm, "use_deform_delay", text="Delay Refresh")
 
 
-class DATA_PT_bone_groups(DataButtonsPanel):
+class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "Bone Groups"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return (context.object and context.object.type == 'ARMATURE' and context.object.pose)
 
     def draw(self, context):
@@ -134,7 +117,6 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 
         ob = context.object
         pose = ob.pose
-        wide_ui = context.region.width > narrowui
 
         row = layout.row()
         row.template_list(pose, "bone_groups", pose, "active_bone_group_index", rows=2)
@@ -156,8 +138,7 @@ class DATA_PT_bone_groups(DataButtonsPanel):
             col = split.column()
             col.prop(group, "color_set")
             if group.color_set:
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.template_triColorSet(group, "colors")
 
         row = layout.row()
@@ -173,21 +154,15 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 
 
 # TODO: this panel will soon be depreceated too
-
-
-class DATA_PT_ghost(DataButtonsPanel):
+class DATA_PT_ghost(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "Ghost"
 
     def draw(self, context):
         layout = self.layout
 
         arm = context.armature
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(arm, "ghost_type", expand=True)
-        else:
-            layout.prop(arm, "ghost_type", text="")
+        layout.prop(arm, "ghost_type", expand=True)
 
         split = layout.split()
 
@@ -202,17 +177,17 @@ class DATA_PT_ghost(DataButtonsPanel):
             sub.prop(arm, "ghost_step", text="Range")
             sub.prop(arm, "ghost_size", text="Step")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Display:")
-        col.prop(arm, "ghost_only_selected", text="Selected Only")
+        col.prop(arm, "show_only_ghost_selected", text="Selected Only")
 
 
-class DATA_PT_iksolver_itasc(DataButtonsPanel):
+class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "iTaSC parameters"
     bl_default_closed = True
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         ob = context.object
         return (ob and ob.pose)
 
@@ -222,7 +197,6 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel):
         ob = context.object
 
         itasc = ob.pose.ik_param
-        wide_ui = (context.region.width > narrowui)
 
         row = layout.row()
         row.prop(ob.pose, "ik_solver")
@@ -232,63 +206,91 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel):
             simulation = (itasc.mode == 'SIMULATION')
             if simulation:
                 layout.label(text="Reiteration:")
-                layout.prop(itasc, "reiteration", expand=True)
+                layout.prop(itasc, "reiteration_method", expand=True)
 
             split = layout.split()
-            split.active = not simulation or itasc.reiteration != 'NEVER'
+            split.active = not simulation or itasc.reiteration_method != 'NEVER'
             col = split.column()
             col.prop(itasc, "precision")
 
-            if wide_ui:
-                col = split.column()
-            col.prop(itasc, "num_iter")
+            col = split.column()
+            col.prop(itasc, "iterations")
 
 
             if simulation:
-                layout.prop(itasc, "auto_step")
+                layout.prop(itasc, "use_auto_step")
                 row = layout.row()
-                if itasc.auto_step:
-                    row.prop(itasc, "min_step", text="Min")
-                    row.prop(itasc, "max_step", text="Max")
+                if itasc.use_auto_step:
+                    row.prop(itasc, "step_min", text="Min")
+                    row.prop(itasc, "step_max", text="Max")
                 else:
-                    row.prop(itasc, "num_step")
+                    row.prop(itasc, "step_count")
 
             layout.prop(itasc, "solver")
             if simulation:
                 layout.prop(itasc, "feedback")
-                layout.prop(itasc, "max_velocity")
+                layout.prop(itasc, "velocity_max")
             if itasc.solver == 'DLS':
                 row = layout.row()
-                row.prop(itasc, "dampmax", text="Damp", slider=True)
-                row.prop(itasc, "dampeps", text="Eps", slider=True)
+                row.prop(itasc, "damping_max", text="Damp", slider=True)
+                row.prop(itasc, "damping_epsilon", text="Eps", slider=True)
 
-# import generic panels from other files
-from properties_animviz import DATA_PT_motion_paths, DATA_PT_onion_skinning
+from properties_animviz import MotionPathButtonsPanel, OnionSkinButtonsPanel
 
-classes = [
-    DATA_PT_context_arm,
-    DATA_PT_skeleton,
-    DATA_PT_display,
-    DATA_PT_bone_groups,
-    DATA_PT_ghost,
-    DATA_PT_iksolver_itasc,
+class DATA_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
+    #bl_label = "Bones Motion Paths"
+    bl_context = "data"
 
-    DATA_PT_motion_paths,
-    #DATA_PT_onion_skinning,
+    @classmethod
+    def poll(cls, context):
+        # XXX: include posemode check?
+        return (context.object) and (context.armature)
 
-    DATA_PT_custom_props_arm]
+    def draw(self, context):
+        layout = self.layout
 
+        ob = context.object
+
+        self.draw_settings(context, ob.pose.animation_visualisation, bones=True)
+
+        layout.separator()
+
+        split = layout.split()
+
+        col = split.column()
+        col.operator("pose.paths_calculate", text="Calculate Paths")
+
+        col = split.column()
+        col.operator("pose.paths_clear", text="Clear Paths")
+
+
+class DATA_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # inherit from panel when ready
+    #bl_label = "Bones Onion Skinning"
+    bl_context = "data"
+
+    @classmethod
+    def poll(cls, context):
+        # XXX: include posemode check?
+        return (context.object) and (context.armature)
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+
+        self.draw_settings(context, ob.pose.animation_visualisation, bones=True)
+
+
+class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "object.data"
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

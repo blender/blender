@@ -60,5 +60,7 @@ extern PyMethodDef bpy_reload_meth[];
 struct Main *bpy_import_main_get(void);
 void bpy_import_main_set(struct Main *maggie);
 
+/* name namespace function for bpy & bge */
+PyObject *bpy_namespace_dict_new(const char *filename);
 
 #endif				/* EXPP_bpy_import_h */

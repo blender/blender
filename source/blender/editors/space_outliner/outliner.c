@@ -48,6 +48,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -58,10 +59,8 @@
 # include <fnmatch.h>
 #endif
 
-#include "IMB_imbuf_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
@@ -70,14 +69,10 @@
 #include "BKE_group.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_material.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"
@@ -987,8 +982,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			else {
 				if((seq->strip) && (seq->strip->stripdata))
 					te->name= seq->strip->stripdata->name;
-				else if((seq->strip) && (seq->strip->tstripdata) && (seq->strip->tstripdata->ibuf))
-					te->name= seq->strip->tstripdata->ibuf->name;
 				else
 					te->name= "SQ None";
 			}
@@ -1561,10 +1554,10 @@ static void outliner_set_flag(SpaceOops *soops, ListBase *lb, short flag, short 
 void object_toggle_visibility_cb(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Base *base= (Base *)te->directdata;
-	
-	if(base==NULL) base= object_in_scene((Object *)tselem->id, scene);
-	if(base) {
-		base->object->restrictflag^=OB_RESTRICT_VIEW;
+	if(base || (base= object_in_scene((Object *)tselem->id, scene))) {
+		if((base->object->restrictflag ^= OB_RESTRICT_VIEW)) {
+			ED_base_object_select(base, BA_DESELECT);
+		}
 	}
 }
 
@@ -1890,8 +1883,8 @@ static void tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	}
 	
 	/* find associated base in current scene */
-	for(base= FIRSTBASE; base; base= base->next) 
-		if(base->object==ob) break;
+	base= object_in_scene(ob, scene);
+
 	if(base) {
 		if(set==2) {
 			/* swap select */
@@ -1901,12 +1894,8 @@ static void tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 				ED_base_object_select(base, BA_SELECT);
 		}
 		else {
-			Base *b;
 			/* deleselect all */
-			for(b= FIRSTBASE; b; b= b->next) {
-				b->flag &= ~SELECT;
-				b->object->flag= b->flag;
-			}
+			scene_deselect_all(scene);
 			ED_base_object_select(base, BA_SELECT);
 		}
 		if(C)
@@ -2028,6 +2017,7 @@ static int tree_element_active_texture(bContext *C, Scene *scene, SpaceOops *soo
 		}
 	}
 	
+	WM_event_add_notifier(C, NC_TEXTURE, NULL);
 	return 0;
 }
 
@@ -3186,7 +3176,7 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 		if(scene->obedit==base->object) 
 			ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
 		
-		ED_base_object_free_and_unlink(scene, base);
+		ED_base_object_free_and_unlink(CTX_data_main(C), scene, base);
 		te->directdata= NULL;
 		tselem->id= NULL;
 	}
@@ -3337,7 +3327,7 @@ void outliner_del(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops)
 		;//		del_seq();
 	else {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_delete_cb);
-		DAG_scene_sort(scene);
+		DAG_scene_sort(CTX_data_main(C), scene);
 		ED_undo_push(C, "Delete Objects");
 	}
 }
@@ -3356,6 +3346,7 @@ static EnumPropertyItem prop_object_op_types[] = {
 
 static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	int event;
@@ -3382,7 +3373,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 	}
 	else if(event==4) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_delete_cb);
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 		str= "Delete Objects";
 	}
 	else if(event==5) {	/* disabled, see above (ton) */
@@ -4840,7 +4831,6 @@ static void outliner_draw_restrictcols(ARegion *ar, SpaceOops *soops)
 
 static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 {
-	Base *base;
 	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
 	Object *obedit= CTX_data_edit_object(C);
@@ -4856,15 +4846,9 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 	
 	/* deselect objects that are invisible */
 	if (ob->restrictflag & OB_RESTRICT_VIEW) {
-	
 		/* Ouch! There is no backwards pointer from Object to Base, 
 		 * so have to do loop to find it. */
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(base->object==ob) {
-				base->flag &= ~SELECT;
-				base->object->flag= base->flag;
-			}
-		}
+		ED_base_object_select(object_in_scene(ob, scene), BA_DESELECT);
 	}
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 
@@ -4872,21 +4856,14 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 
 static void restrictbutton_sel_cb(bContext *C, void *poin, void *poin2)
 {
-	Base *base;
 	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
 	
 	/* if select restriction has just been turned on */
 	if (ob->restrictflag & OB_RESTRICT_SELECT) {
-	
 		/* Ouch! There is no backwards pointer from Object to Base, 
 		 * so have to do loop to find it. */
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(base->object==ob) {
-				base->flag &= ~SELECT;
-				base->object->flag= base->flag;
-			}
-		}
+		ED_base_object_select(object_in_scene(ob, scene), BA_DESELECT);
 	}
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 
@@ -4913,9 +4890,20 @@ static void restrictbutton_modifier_cb(bContext *C, void *poin, void *poin2)
 
 static void restrictbutton_bone_cb(bContext *C, void *poin, void *poin2)
 {
+	Bone *bone= (Bone *)poin2;
+	if(bone && (bone->flag & BONE_HIDDEN_P))
+		bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
 }
 
+static void restrictbutton_ebone_cb(bContext *C, void *poin, void *poin2)
+{
+	EditBone *ebone= (EditBone *)poin2;
+	if(ebone && (ebone->flag & BONE_HIDDEN_A))
+		ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+}
 
 static int group_restrict_flag(Group *gr, int flag)
 {
@@ -5115,17 +5103,17 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_VIEW_OFF,
 							  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1,
-							  &ptr, "restrict_view", -1, 0, 0, -1, -1, NULL);
+							  &ptr, "hide", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_view_cb, scene, ob);
 				
 				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_SELECT_OFF,
 								  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1,
-								  &ptr, "restrict_select", -1, 0, 0, -1, -1, NULL);
+								  &ptr, "hide_select", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_sel_cb, scene, ob);
 				
 				bt= uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_RENDER_OFF,
 								  (int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1,
-								  &ptr, "restrict_render", -1, 0, 0, -1, -1, NULL);
+								  &ptr, "hide_render", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_rend_cb, scene, ob);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
@@ -5200,7 +5188,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
-				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
+				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, bone);
 				
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
@@ -5212,11 +5200,11 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
-				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
+				uiButSetFunc(bt, restrictbutton_ebone_cb, NULL, ebone);
 				
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
-				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
+				uiButSetFunc(bt, restrictbutton_ebone_cb, NULL, NULL);
 			}
 		}
 		

@@ -45,7 +45,6 @@
 #include "BLI_edgehash.h"
 #include "BLI_rand.h"
 
-#include "BKE_anim.h"			//for the where_on_path function
 #include "BKE_curve.h"
 #include "BKE_constraint.h" // for the get_constraint_target function
 #include "BKE_DerivedMesh.h"
@@ -66,12 +65,10 @@
 #include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_smoke.h"
-#include "BKE_unit.h"
 #include "BKE_utildefines.h"
 #include "smoke_API.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "GPU_extensions.h"
 
@@ -450,7 +447,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	}
 
 	tend();
-	printf ( "Draw Time: %f\n",( float ) tval() );
+	// printf ( "Draw Time: %f\n",( float ) tval() );
 
 	if(tex_shadow)
 		GPU_texture_unbind(tex_shadow);

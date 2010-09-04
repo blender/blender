@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
 # All rights reserved.
@@ -136,8 +136,21 @@ ifeq ($(WITH_TIFF), true)
     CPPFLAGS += -DWITH_TIFF
 endif
 
+ifeq ($(WITH_CINEON), true)
+    CPPFLAGS += -DWITH_CINEON
+endif
+
+ifeq ($(WITH_HDR), true)
+    CPPFLAGS += -DWITH_HDR
+endif
+
 ifeq ($(OS), darwin)
     ifeq ($(WITH_BF_OPENMP), true)
       CPPFLAGS += -DPARALLEL=1
     endif
+endif
+
+ifeq ($(WITH_LCMS), true)
+    CPPFLAGS += -DWITH_LCMS
+    CPPFLAGS += -I$(BF_LCMS_INC)
 endif

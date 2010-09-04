@@ -200,7 +200,7 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
 				   &name, &globals, &locals, &fromlist, &dummy_val) )
 		return NULL;
 
-	/* import existing builtin modules or modules that have been imported alredy */
+	/* import existing builtin modules or modules that have been imported already */
 	newmodule = PyImport_ImportModuleEx( name, globals, locals, fromlist );
 	
 	if(newmodule)
@@ -304,7 +304,7 @@ PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", (PyCFunction)blender_reloa
 
 void bpy_text_clear_modules(int clear_all)
 {
-	PyObject *modules= PySys_GetObject("modules");
+	PyObject *modules= PyImport_GetModuleDict();
 	
 	char *fname;
 	char *file_extension;
@@ -350,3 +350,26 @@ void bpy_text_clear_modules(int clear_all)
 	Py_DECREF(list); /* removes all references from append */
 }
 #endif
+
+
+/*****************************************************************************
+* Description: This function creates a new Python dictionary object.
+* note: dict is owned by sys.modules["__main__"] module, reference is borrowed
+* note: important we use the dict from __main__, this is what python expects
+  for 'pickle' to work as well as strings like this...
+ >> foo = 10
+ >> print(__import__("__main__").foo)
+*****************************************************************************/
+PyObject *bpy_namespace_dict_new(const char *filename)
+{
+	PyInterpreterState *interp= PyThreadState_GET()->interp;
+	PyObject *mod_main= PyModule_New("__main__");	
+	PyDict_SetItemString(interp->modules, "__main__", mod_main);
+	Py_DECREF(mod_main); /* sys.modules owns now */
+	PyModule_AddStringConstant(mod_main, "__name__", "__main__");
+	if(filename)
+		PyModule_AddStringConstant(mod_main, "__file__", filename); /* __file__ only for nice UI'ness */
+	PyModule_AddObject(mod_main, "__builtins__", interp->builtins);
+	Py_INCREF(interp->builtins); /* AddObject steals a reference */
+	return PyModule_GetDict(mod_main);
+}

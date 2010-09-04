@@ -29,6 +29,8 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
+#ifdef WITH_HDR
+
 /* ----------------------------------------------------------------------
   Radiance High Dynamic Range image file IO
   For description and code for reading/writing of radiance hdr files 
@@ -40,6 +42,9 @@
 #ifdef WIN32
 #include <io.h>
 #endif
+
+#include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
 
 #include "imbuf.h"
@@ -358,3 +363,4 @@ int imb_savehdr(struct ImBuf *ibuf, char *name, int flags)
 	return 1;
 }
 
+#endif /* WITH_HDR */

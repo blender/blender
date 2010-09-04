@@ -63,7 +63,7 @@
 extern "C" {
 #endif
 
-	/** Returns the lenght of the allocated memory segment pointed at
+	/** Returns the length of the allocated memory segment pointed at
 	 * by vmemh. If the pointer was not previously allocated by this
 	 * module, the result is undefined.*/
 	size_t MEM_allocN_len(void *vmemh);

@@ -54,6 +54,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
@@ -63,12 +64,8 @@
 #include "BKE_icons.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_texture.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
-#include "BKE_world.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -99,6 +96,47 @@
 /* XXX */
 static int qtest() {return 0;}
 /* XXX */
+
+ImBuf* get_brush_icon(Brush *brush)
+{
+	static const int flags = IB_rect|IB_multilayer|IB_metadata;
+
+	char path[240];
+	char *folder;
+
+	if (!(brush->icon_imbuf)) {
+		if (brush->flag & BRUSH_CUSTOM_ICON) {
+
+			if (brush->icon_filepath[0]) {
+				// first use the path directly to try and load the file
+
+				BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
+				BLI_path_abs(path, G.sce);
+
+				brush->icon_imbuf= IMB_loadiffname(path, flags);
+
+				// otherwise lets try to find it in other directories
+				if (!(brush->icon_imbuf)) {
+					folder= BLI_get_folder(BLENDER_DATAFILES, "brushicons");
+
+					path[0]= 0;
+
+					BLI_make_file_string(G.sce, path, folder, brush->icon_filepath);
+
+					if (path[0])
+						brush->icon_imbuf= IMB_loadiffname(path, flags);
+				}
+			}
+		}
+	}
+
+	if (!(brush->icon_imbuf))
+		brush->id.icon_id = 0;
+	else
+		BKE_icon_changed(BKE_icon_getid(&(brush->id)));
+
+	return brush->icon_imbuf;
+}
 
 typedef struct ShaderPreview {
 	/* from wmJob */
@@ -510,8 +548,8 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 		newrect.ymax= rect->ymin;
 
 		if(parent) {
-			ok = ed_preview_draw_rect(sa, sce, parent, 1, 1, rect, &newrect);
-			ok &= ed_preview_draw_rect(sa, sce, id, 1, 0, rect, &newrect);
+			ok = ed_preview_draw_rect(sa, sce, id, 1, 1, rect, &newrect);
+			ok &= ed_preview_draw_rect(sa, sce, parent, 1, 0, rect, &newrect);
 		}
 		else
 			ok = ed_preview_draw_rect(sa, sce, id, 0, 0, rect, &newrect);
@@ -661,7 +699,7 @@ void BIF_view3d_previewrender_clear(ScrArea *sa)
 }
 
 /* afterqueue call */
-void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
+void BIF_view3d_previewrender(Main *bmain, Scene *scene, ScrArea *sa)
 {
 	View3D *v3d= sa->spacedata.first;
 	RegionView3D *rv3d= NULL; // XXX
@@ -752,7 +790,7 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 				lay |= v3d->lay;
 			else lay= v3d->lay;
 			
-			RE_Database_FromScene(re, scene, lay, 0);		// 0= dont use camera view
+			RE_Database_FromScene(re, bmain, scene, lay, 0);		// 0= dont use camera view
 			
 			rstats= RE_GetStats(re);
 			if(rstats->convertdone) 
@@ -761,7 +799,7 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 			
 			/* database can have created render-resol data... */
 			if(rstats->convertdone) 
-				DAG_scene_flush_update(scene, scene->lay, 0);
+				DAG_scene_flush_update(bmain, scene, scene->lay, 0);
 			
 			//printf("dbase update\n");
 		}
@@ -932,7 +970,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 		((Camera *)sce->camera->data)->lens *= (float)sp->sizey/(float)sizex;
 
 	/* entire cycle for render engine */
-	RE_PreviewRender(re, sce);
+	RE_PreviewRender(re, G.main, sce);
 
 	((Camera *)sce->camera->data)->lens= oldlens;
 
@@ -961,8 +999,8 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 	sp->do_update= do_update;
 
 	if(sp->parent) {
-		shader_preview_render(sp, sp->parent, 1, 1);
-		shader_preview_render(sp, sp->id, 1, 0);
+		shader_preview_render(sp, sp->id, 1, 1);
+		shader_preview_render(sp, sp->parent, 1, 0);
 	}
 	else
 		shader_preview_render(sp, sp->id, 0, 0);
@@ -1069,6 +1107,19 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 
 		*do_update= 1;
 	}
+	else if(idtype == ID_BR) {
+		Brush *br= (Brush*)id;
+
+		br->icon_imbuf= get_brush_icon(br);
+
+		if(!(br->icon_imbuf) || !(br->icon_imbuf->rect))
+			return;
+
+		memset(sp->pr_rect, 0x888888, sp->sizex*sp->sizey*sizeof(unsigned int));
+		icon_copy_rect(br->icon_imbuf, sp->sizex, sp->sizey, sp->pr_rect);
+
+		*do_update= 1;
+	}
 	else {
 		/* re-use shader job */
 		shader_preview_startjob(customdata, stop, do_update);
@@ -1100,6 +1151,14 @@ static void common_preview_startjob(void *customdata, short *stop, short *do_upd
 		shader_preview_startjob(customdata, stop, do_update);
 }
 
+static void common_preview_endjob(void *customdata)
+{
+	ShaderPreview *sp= customdata;
+
+	if(sp->id && GS(sp->id->name) == ID_BR)
+		WM_main_add_notifier(NC_BRUSH|NA_EDITED, sp->id);
+}
+
 /* exported functions */
 
 void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *rect, int sizex, int sizey)
@@ -1122,7 +1181,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);
 	WM_jobs_timer(steve, 0.1, NC_MATERIAL, NC_MATERIAL);
-	WM_jobs_callbacks(steve, common_preview_startjob, NULL, NULL, NULL);
+	WM_jobs_callbacks(steve, common_preview_startjob, NULL, NULL, common_preview_endjob);
 
 	WM_jobs_start(CTX_wm_manager(C), steve);
 }

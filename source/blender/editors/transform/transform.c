@@ -63,7 +63,6 @@
 //#include "BIF_editsima.h"
 //#include "BIF_editparticle.h"
 
-#include "BKE_action.h"
 #include "BKE_nla.h"
 //#include "BKE_bad_level_calls.h"/* popmenu and error	*/
 #include "BKE_bmesh.h"
@@ -72,8 +71,6 @@
 #include "BKE_global.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_utildefines.h"
-#include "BKE_context.h"
 #include "BKE_unit.h"
 
 //#include "BSE_view.h"
@@ -1367,17 +1364,17 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		}
 	}
 
-	/* XXX convert stupid flag to enum */
+	/* convert flag to enum */
 	switch(t->flag & (T_PROP_EDIT|T_PROP_CONNECTED))
 	{
 	case (T_PROP_EDIT|T_PROP_CONNECTED):
-		proportional = 2;
+		proportional = PROP_EDIT_CONNECTED;
 		break;
 	case T_PROP_EDIT:
-		proportional = 1;
+		proportional = PROP_EDIT_ON;
 		break;
 	default:
-		proportional = 0;
+		proportional = PROP_EDIT_OFF;
 	}
 
 	// If modal, save settings back in scene if not set as operator argument
@@ -1385,14 +1382,17 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
 		/* save settings if not set in operator */
 		if (RNA_struct_find_property(op->ptr, "proportional") && !RNA_property_is_set(op->ptr, "proportional")) {
-			ts->proportional = proportional;
+			if (t->obedit)
+				ts->proportional = proportional;
+			else
+				ts->proportional_objects = (proportional != PROP_EDIT_OFF);
 		}
 
 		if (RNA_struct_find_property(op->ptr, "proportional_size") && !RNA_property_is_set(op->ptr, "proportional_size")) {
 			ts->proportional_size = t->prop_size;
 		}
 			
-		if (RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && !RNA_property_is_set(op->ptr, "proportional_editing_falloff")) {
+		if (RNA_struct_find_property(op->ptr, "proportional_edit_falloff") && !RNA_property_is_set(op->ptr, "proportional_edit_falloff")) {
 			ts->prop_mode = t->prop_mode;
 		}
 		
@@ -1415,7 +1415,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	if (RNA_struct_find_property(op->ptr, "proportional"))
 	{
 		RNA_enum_set(op->ptr, "proportional", proportional);
-		RNA_enum_set(op->ptr, "proportional_editing_falloff", t->prop_mode);
+		RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
 		RNA_float_set(op->ptr, "proportional_size", t->prop_size);
 	}
 
@@ -1457,6 +1457,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 }
 
+/* note: caller needs to free 't' on a 0 return */
 int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int mode)
 {
 	int options = 0;
@@ -2171,21 +2172,19 @@ void initWarp(TransInfo *t)
 	/* we need min/max in view space */
 	for(i = 0; i < t->total; i++) {
 		float center[3];
-		VECCOPY(center, t->data[i].center);
+		copy_v3_v3(center, t->data[i].center);
 		mul_m3_v3(t->data[i].mtx, center);
 		mul_m4_v3(t->viewmat, center);
 		sub_v3_v3(center, t->viewmat[3]);
 		if (i)
 			minmax_v3_v3v3(min, max, center);
 		else {
-			VECCOPY(max, center);
-			VECCOPY(min, center);
+			copy_v3_v3(max, center);
+			copy_v3_v3(min, center);
 		}
 	}
-	
-	t->center[0]= (min[0]+max[0])/2.0f;
-	t->center[1]= (min[1]+max[1])/2.0f;
-	t->center[2]= (min[2]+max[2])/2.0f;
+
+	mid_v3_v3v3(t->center, min, max);
 
 	if (max[0] == min[0]) max[0] += 0.1; /* not optimal, but flipping is better than invalid garbage (i.e. division by zero!) */
 	t->val= (max[0]-min[0])/2.0f; /* t->val is X dimension projected boundbox */
@@ -5124,10 +5123,11 @@ int doEdgeSlide(TransInfo *t, float perc)
 		//Non prop code
 		look = vertlist;
 		while(look) {
-			float newlen;
+			float newlen, edgelen;
 			ev = look->link;
 			tempsv = BLI_ghash_lookup(vertgh,ev);
-			newlen = (len / len_v3v3(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co));
+			edgelen = len_v3v3(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co);
+			newlen = (edgelen != 0.0f)? (len / edgelen): 0.0f;
 			if(newlen > 1.0) {newlen = 1.0;}
 			if(newlen < 0.0) {newlen = 0.0;}
 			if(flip == 0) {

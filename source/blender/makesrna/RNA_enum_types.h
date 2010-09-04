@@ -66,6 +66,8 @@ extern EnumPropertyItem event_type_items[];
 extern EnumPropertyItem operator_return_items[];
 
 extern EnumPropertyItem brush_sculpt_tool_items[];
+extern EnumPropertyItem brush_vertexpaint_tool_items[];
+extern EnumPropertyItem brush_imagepaint_tool_items[];
 
 extern EnumPropertyItem texture_type_items[];
 
@@ -88,7 +90,7 @@ extern EnumPropertyItem wm_report_items[];
 extern EnumPropertyItem property_type_items[];
 extern EnumPropertyItem property_unit_items[];
 
-extern EnumPropertyItem viewport_shading_items[];
+extern EnumPropertyItem viewport_shade_items[];
 
 struct bContext;
 struct PointerRNA;

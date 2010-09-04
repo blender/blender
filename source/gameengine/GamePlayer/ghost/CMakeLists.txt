@@ -73,4 +73,3 @@ IF(WITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
 BLENDERLIB_NOLIST(gp_ghost "${SRC}" "${INC}")
-#env.BlenderLib (libname='gp_ghost', sources=source_files, includes = incs, defines = [], libtype='player',priority=0, compileflags=cflags)

@@ -37,25 +37,21 @@
 #include <string.h>
 
 /* types */
-#include "BLI_linklist.h"
 #include "BKE_collision.h"
-#include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
 #include "DNA_cloth_types.h"
-#include "DNA_customdata_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
 
 #include "BLI_kdopbvh.h"
 
 struct Cloth;
 struct ClothModifierData;
+struct CollisionModifierData;
 struct DerivedMesh;
 struct Group;
 struct MFace;
+struct MVert;
 struct Object;
 struct Scene;
+struct LinkNode;
 
 ////////////////////////////////////////
 // used for collisions in collision.c
@@ -122,16 +118,16 @@ FaceCollPair;
 // used in modifier.c from collision.c
 /////////////////////////////////////////////////
 
-BVHTree *bvhtree_build_from_mvert ( MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon );
-void bvhtree_update_from_mvert ( BVHTree * bvhtree, MFace *faces, int numfaces, MVert *x, MVert *xnew, int numverts, int moving );
+BVHTree *bvhtree_build_from_mvert ( struct MFace *mfaces, unsigned int numfaces, struct MVert *x, unsigned int numverts, float epsilon );
+void bvhtree_update_from_mvert ( BVHTree * bvhtree, struct MFace *faces, int numfaces, struct MVert *x, struct MVert *xnew, int numverts, int moving );
 
 /////////////////////////////////////////////////
 
-LinkNode *BLI_linklist_append_fast ( LinkNode **listp, void *ptr );
+struct LinkNode *BLI_linklist_append_fast ( struct LinkNode **listp, void *ptr );
 
 // move Collision modifier object inter-frame with step = [0,1]
 // defined in collisions.c
-void collision_move_object ( CollisionModifierData *collmd, float step, float prevstep );
+void collision_move_object ( struct CollisionModifierData *collmd, float step, float prevstep );
 
 // interface for collision functions
 void collisions_compute_barycentric ( float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3 );

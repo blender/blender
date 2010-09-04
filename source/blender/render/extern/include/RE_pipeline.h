@@ -37,13 +37,14 @@
 
 struct bNodeTree;
 struct Image;
+struct Main;
 struct NodeBlurData;
 struct Object;
-struct ReportList;
 struct RenderData;
 struct RenderEngine;
 struct RenderEngineType;
 struct RenderResult;
+struct ReportList;
 struct ReportList;
 struct Scene;
 struct SceneRenderLayer;
@@ -192,7 +193,7 @@ void RE_SetPixelSize(struct Render *re, float pixsize);
 void RE_SetView (struct Render *re, float mat[][4]);
 
 /* make or free the dbase */
-void RE_Database_FromScene(struct Render *re, struct Scene *scene, unsigned int lay, int use_camera_view);
+void RE_Database_FromScene(struct Render *re, struct Main *bmain, struct Scene *scene, unsigned int lay, int use_camera_view);
 void RE_Database_Free (struct Render *re);
 
 /* project dbase again, when viewplane/perspective changed */
@@ -208,11 +209,11 @@ void RE_init_threadcount(Render *re);
 void RE_TileProcessor(struct Render *re);
 
 /* only RE_NewRender() needed, main Blender render calls */
-void RE_BlenderFrame(struct Render *re, struct Scene *scene, struct SceneRenderLayer *srl, unsigned int lay, int frame);
-void RE_BlenderAnim(struct Render *re, struct Scene *scene, unsigned int lay, int sfra, int efra, int tfra, struct ReportList *reports);
+void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneRenderLayer *srl, unsigned int lay, int frame);
+void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, unsigned int lay, int sfra, int efra, int tfra, struct ReportList *reports);
 
 /* main preview render call */
-void RE_PreviewRender(struct Render *re, struct Scene *scene);
+void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene);
 
 void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress);
@@ -248,7 +249,7 @@ void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, 
 #define RE_BAKE_DISPLACEMENT	5
 #define RE_BAKE_SHADOW			6
 
-void RE_Database_Baking(struct Render *re, struct Scene *scene, unsigned int lay, int type, struct Object *actob);
+void RE_Database_Baking(struct Render *re, struct Main *bmain, struct Scene *scene, unsigned int lay, int type, struct Object *actob);
 
 void RE_DataBase_GetView(struct Render *re, float mat[][4]);
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[][4]);

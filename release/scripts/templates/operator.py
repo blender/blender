@@ -23,7 +23,8 @@ class ExportSomeData(bpy.types.Operator):
                         description="Choose between two items",
                         default='OPT_A')
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return context.active_object != None
 
     def execute(self, context):
@@ -53,9 +54,6 @@ class ExportSomeData(bpy.types.Operator):
         elif False:
             return self.execute(context)
 
-
-
-bpy.types.register(ExportSomeData)
 
 # Only needed if you want to add into a dynamic menu
 menu_func = lambda self, context: self.layout.operator("export.some_data", text="Example Exporter...")

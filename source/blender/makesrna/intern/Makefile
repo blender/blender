@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # Contributor(s): Blender Foundation (2008).
 #
@@ -45,7 +45,10 @@ endif
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I$(NAN_MEMUTIL)/include
 CPPFLAGS += -I../../../../intern/audaspace/intern
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenkernel
@@ -94,6 +97,18 @@ endif
 
 ifeq ($(WITH_TIFF),true)
     CPPFLAGS += -DWITH_TIFF
+endif
+
+ifeq ($(WITH_LCMS),true)
+    CPPFLAGS += -DWITH_LCMS
+endif
+
+ifeq ($(WITH_CINEON),true)
+    CPPFLAGS += -DWITH_CINEON
+endif
+
+ifeq ($(WITH_HDR),true)
+    CPPFLAGS += -DWITH_HDR
 endif
 
 ifeq ($(OS),windows)

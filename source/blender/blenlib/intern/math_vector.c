@@ -120,10 +120,8 @@ float angle_v3v3(float *v1, float *v2)
 {
 	float vec1[3], vec2[3];
 
-	copy_v3_v3(vec1, v1);
-	copy_v3_v3(vec2, v2);
-	normalize_v3(vec1);
-	normalize_v3(vec2);
+	normalize_v3_v3(vec1, v1);
+	normalize_v3_v3(vec2, v2);
 
 	return angle_normalized_v3v3(vec1, vec2);
 }

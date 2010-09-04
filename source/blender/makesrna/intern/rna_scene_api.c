@@ -39,20 +39,28 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_animsys.h"
-#include "BKE_scene.h"
-#include "BKE_image.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
+#include "BKE_image.h"
+#include "BKE_scene.h"
 #include "BKE_writeavi.h"
 
 
 
-static void rna_Scene_set_frame(Scene *scene, int frame)
+static void rna_Scene_set_frame(Scene *scene, int frame, float subframe)
 {
 	scene->r.cfra= frame;
+	scene->r.subframe= subframe;
+	
 	CLAMP(scene->r.cfra, MINAFRAME, MAXFRAME);
-	scene_update_for_newframe(scene, (1<<20) - 1);
+	scene_update_for_newframe(G.main, scene, (1<<20) - 1);
 
 	WM_main_add_notifier(NC_SCENE|ND_FRAME, scene);
+}
+
+static void rna_Scene_update_tagged(Scene *scene)
+{
+	scene_update_tagged(G.main, scene);
 }
 
 static KeyingSet *rna_Scene_add_keying_set(Scene *sce, ReportList *reports, 
@@ -101,8 +109,9 @@ void RNA_api_scene(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately.");
 	parm= RNA_def_int(func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set.", MINAFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_float(func, "subframe", 0.0, 0.0, 1.0, "", "Sub-frame time, between 0.0 and 1.0", 0.0, 1.0);
 
-	func= RNA_def_function(srna, "update", "scene_update_tagged");
+	func= RNA_def_function(srna, "update", "rna_Scene_update_tagged");
 	RNA_def_function_ui_description(func, "Update data tagged to be updated from previous access to data or operators.");
 
 	/* Add Keying Set */
@@ -117,8 +126,8 @@ void RNA_api_scene(StructRNA *srna)
 	/* flags */
 	RNA_def_boolean(func, "absolute", 1, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");
 	/* keying flags */
-	RNA_def_boolean(func, "insertkey_needed", 0, "Insert Keyframes - Only Needed", "Only insert keyframes where they're needed in the relevant F-Curves.");
-	RNA_def_boolean(func, "insertkey_visual", 0, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'.");
+	RNA_def_boolean(func, "use_insertkey_needed", 0, "Insert Keyframes - Only Needed", "Only insert keyframes where they're needed in the relevant F-Curves.");
+	RNA_def_boolean(func, "use_insertkey_visual", 0, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'.");
 }
 
 void RNA_api_scene_render(StructRNA *srna)

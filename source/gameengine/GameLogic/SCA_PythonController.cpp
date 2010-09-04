@@ -178,7 +178,7 @@ PyObject* SCA_PythonController::sPyGetCurrentController(PyObject *self)
 {
 	if(m_sCurrentController==NULL)
 	{
-		PyErr_SetString(PyExc_SystemError, "GameLogic.getCurrentController(), this function is being run outside the python controllers context, or blenders internal state is corrupt.");
+		PyErr_SetString(PyExc_SystemError, "bge.logic.getCurrentController(), this function is being run outside the python controllers context, or blenders internal state is corrupt.");
 		return NULL;
 	}
 	return m_sCurrentController->GetProxy();
@@ -264,7 +264,7 @@ void SCA_PythonController::ErrorPrint(const char *error_msg)
 	/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
 	 * their user count. Not to mention holding references to wrapped data.
 	 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
-	 * has alredy dealocated the pointer */
+	 * has already dealocated the pointer */
 	PySys_SetObject( (char *)"last_traceback", NULL);
 	PyErr_Clear(); /* just to be sure */
 }
@@ -295,49 +295,47 @@ bool SCA_PythonController::Import()
 {
 	//printf("py module modified '%s'\n", m_scriptName.Ptr());
 	m_bModified= false;
-	
+
 	/* incase we re-import */
 	Py_XDECREF(m_function);
 	m_function= NULL;
 	
-	vector<STR_String> py_function_path = m_scriptText.Explode('.');
-	
-	if(py_function_path.size() < 2) {
+	STR_String mod_path_str= m_scriptText; /* just for storage, use C style string access */
+	char *mod_path= mod_path_str.Ptr();
+	char *function_string;
+
+	function_string= strrchr(mod_path, '.');
+
+	if(function_string == NULL) {
 		printf("Python module name formatting error \"%s\":\n\texpected \"SomeModule.Func\", got \"%s\"\n", GetName().Ptr(), m_scriptText.Ptr());
 		return false;
 	}
-	
-	PyObject *mod = PyImport_ImportModule((char *)py_function_path[0].Ptr());
-	/* Dont reload yet, do this within the loop so packages reload too */
-	
-	if(mod==NULL) {
-		ErrorPrint("Python module not found");
+
+	*function_string= '\0';
+	function_string++;
+
+	// Import the module and print an error if it's not found
+	PyObject *mod = PyImport_ImportModule(mod_path);
+
+	if (mod == NULL) {
+		ErrorPrint("Python module can't be imported");
 		return false;
 	}
-	/* 'mod' will be DECREF'd as 'base' 
-	 * 'm_function' will be left holding a reference that the controller owns */
-	
-	PyObject *base= mod;
-	
-	for(unsigned int i=1; i < py_function_path.size(); i++) {
-		if(m_debug && PyModule_Check(base)) { /* base could be a class */
-			Py_DECREF(base); /* getting a new one so dont hold a ref to the old one */
-			base= PyImport_ReloadModule(base);
-			if (base==NULL) {
-				m_function= NULL;
-				break;
-			}
-		}
-		
-		m_function = PyObject_GetAttrString(base, py_function_path[i].Ptr());
-		Py_DECREF(base);
-		base = m_function; /* for the next loop if there is on */
-		
-		if(m_function==NULL) {
-			break;
-		}
+
+	if(m_debug)
+		mod = PyImport_ReloadModule(mod);
+
+	if (mod == NULL) {
+		ErrorPrint("Python module can't be reloaded");
+		return false;
 	}
-	
+
+	// Get the function object
+	m_function = PyObject_GetAttrString(mod, function_string);
+
+	// DECREF the module as we don't need it anymore
+	Py_DECREF(mod);
+
 	if(m_function==NULL) {
 		if(PyErr_Occurred())
 			ErrorPrint("Python controller found the module but could not access the function");
@@ -452,7 +450,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
 		 * their user count. Not to mention holding references to wrapped data.
 		 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
-		 * has alredy dealocated the pointer */
+		 * has already dealocated the pointer */
 		PySys_SetObject( (char *)"last_traceback", NULL);
 		PyErr_Clear(); /* just to be sure */
 	}

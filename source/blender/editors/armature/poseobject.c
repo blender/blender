@@ -41,26 +41,19 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_anim.h"
 #include "BKE_idprop.h"
-#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
-#include "BKE_displist.h"
-#include "BKE_fcurve.h"
-#include "BKE_global.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 
-#include "BIF_gl.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -897,7 +890,6 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bPoseChannel *chan, *pchan;
-	char name[32];
 	int flip= RNA_boolean_get(op->ptr, "flipped");
 	
 	/* sanity checks */
@@ -913,10 +905,12 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	for (chan= g_posebuf->chanbase.first; chan; chan=chan->next) {
 		if (chan->flag & POSE_KEY) {
 			/* get the name - if flipping, we must flip this first */
-			BLI_strncpy(name, chan->name, sizeof(name));
+			char name[32];
 			if (flip)
-				bone_flip_name(name, 0);		/* 0 = don't strip off number extensions */
-				
+				flip_side_name(name, chan->name, 0);		/* 0 = don't strip off number extensions */
+			else
+				BLI_strncpy(name, chan->name, sizeof(name));
+
 			/* only copy when channel exists, poses are not meant to add random channels to anymore */
 			pchan= get_pose_channel(ob->pose, name);
 			
@@ -1046,17 +1040,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	
 	/* Update event for pose and deformation children */
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	
-	if (IS_AUTOKEY_ON(scene)) {
-// XXX		remake_action_ipos(ob->action);
-	}
-	else {
-		/* need to trick depgraph, action is not allowed to execute on pose */
-		// XXX: this is probably not an issue anymore
-		where_is_pose(scene, ob);
-		ob->recalc= 0;
-	}
-	
+		
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 
@@ -1441,7 +1425,6 @@ static int pose_flip_names_exec (bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm;
-	char newname[32];
 	
 	/* paranoia checks */
 	if (ELEM(NULL, ob, ob->pose)) 
@@ -1451,8 +1434,8 @@ static int pose_flip_names_exec (bContext *C, wmOperator *op)
 	/* loop through selected bones, auto-naming them */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 	{
-		BLI_strncpy(newname, pchan->name, sizeof(newname));
-		bone_flip_name(newname, 1);	// 1 = do strip off number extensions
+		char newname[32];
+		flip_side_name(newname, pchan->name, TRUE);
 		ED_armature_bone_rename(arm, pchan->name, newname);
 	}
 	CTX_DATA_END;
@@ -1556,10 +1539,8 @@ void pose_activate_flipped_bone(Scene *scene)
 		
 		if(arm->act_bone) {
 			char name[32];
-			
-			BLI_strncpy(name, arm->act_bone->name, 32);
-			bone_flip_name(name, 1);	// 0 = do not strip off number extensions
-			
+			flip_side_name(name, arm->act_bone->name, TRUE);
+
 			pchanf= get_pose_channel(ob->pose, name);
 			if(pchanf && pchanf->bone != arm->act_bone) {
 				arm->act_bone->flag &= ~BONE_SELECTED;
@@ -1597,7 +1578,7 @@ static int pose_armature_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 		
 	/* get RNA pointer to armature data to use that to retrieve the layers as ints to init the operator */
 	RNA_id_pointer_create((ID *)arm, &ptr);
-	RNA_boolean_get_array(&ptr, "layer", layers);
+	RNA_boolean_get_array(&ptr, "layers", layers);
 	RNA_boolean_set_array(op->ptr, "layers", layers);
 	
 	/* part to sync with other similar operators... */
@@ -1617,7 +1598,7 @@ static int pose_armature_layers_exec (bContext *C, wmOperator *op)
 	
 	/* get pointer for armature, and write data there... */
 	RNA_id_pointer_create((ID *)arm, &ptr);
-	RNA_boolean_set_array(&ptr, "layer", layers);
+	RNA_boolean_set_array(&ptr, "layers", layers);
 	
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1709,7 +1690,7 @@ static int pose_bone_layers_exec (bContext *C, wmOperator *op)
 	{
 		/* get pointer for pchan, and write flags this way */
 		RNA_pointer_create((ID *)arm, &RNA_Bone, pchan->bone, &ptr);
-		RNA_boolean_set_array(&ptr, "layer", layers);
+		RNA_boolean_set_array(&ptr, "layers", layers);
 	}
 	CTX_DATA_END;
 	
@@ -1783,7 +1764,7 @@ static int armature_bone_layers_exec (bContext *C, wmOperator *op)
 	{
 		/* get pointer for pchan, and write flags this way */
 		RNA_pointer_create((ID *)arm, &RNA_EditBone, ebone, &ptr);
-		RNA_boolean_set_array(&ptr, "layer", layers);
+		RNA_boolean_set_array(&ptr, "layers", layers);
 	}
 	CTX_DATA_END;
 	

@@ -35,6 +35,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_path_util.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -322,7 +323,20 @@ static int sound_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	/* copy drag path to properties */
-	RNA_string_set(drop->ptr, "filepath", drag->path);
+	if(RNA_struct_find_property(drop->ptr, "filepath"))
+		RNA_string_set(drop->ptr, "filepath", drag->path);
+
+	if(RNA_struct_find_property(drop->ptr, "directory")) {
+		PointerRNA itemptr;
+		char dir[FILE_MAX], file[FILE_MAX];
+
+		BLI_split_dirfile(drag->path, dir, file);
+		
+		RNA_string_set(drop->ptr, "directory", dir);
+
+		RNA_collection_add(drop->ptr, "files", &itemptr);
+		RNA_string_set(&itemptr, "name", file);
+	}
 }
 
 /* this region dropbox definition */

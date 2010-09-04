@@ -45,7 +45,6 @@
 
 #include "PIL_time.h"
 
-#include "MEM_guardedalloc.h"
 
 #include "CMP_node.h"
 #include "intern/CMP_util.h"	/* stupid include path... */
@@ -735,13 +734,7 @@ void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 /* finds a node based on its name */
 bNode *nodeFindNodebyName(bNodeTree *ntree, const char *name)
 {
-	bNode *node=NULL;
-	
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if (strcmp(name, node->name) == 0)
-			break;
-	}
-	return node;
+	return BLI_findstring(&ntree->nodes, name, offsetof(bNode, name));
 }
 
 /* finds a node based on given socket */
@@ -1064,6 +1057,7 @@ bNodeTree *ntreeAddTree(int type)
  *	- internal_select is only 1 when used for duplicating selected nodes (i.e. Shift-D duplicate operator)
  *	- this gets called when executing compositing updates (for threaded previews)
  *	- when the nodetree datablock needs to be copied (i.e. when users get copied)
+ *	- for scene duplication use ntreeSwapID() after so we dont have stale pointers.
  */
 bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 {
@@ -1140,6 +1134,18 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 	ntreeSolveOrder(newtree);
 
 	return newtree;
+}
+
+/* use when duplicating scenes */
+void ntreeSwitchID(bNodeTree *ntree, ID *id_from, ID *id_to)
+{
+	bNode *node;
+	/* for scene duplication only */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->id==id_from) {
+			node->id= id_to;
+		}
+	}
 }
 
 /* *************** preview *********** */
@@ -1842,9 +1848,8 @@ static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNod
 			
 			/* for groups, only execute outputs for edited group */
 			if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
-				if(gnode->flag & NODE_GROUP_EDIT)
-					if(node->flag & NODE_DO_OUTPUT)
-						node->typeinfo->execfunc(data, node, nsin, nsout);
+				if(node->type==CMP_NODE_OUTPUT_FILE || (gnode->flag & NODE_GROUP_EDIT))
+					node->typeinfo->execfunc(data, node, nsin, nsout);
 			}
 			else
 				node->typeinfo->execfunc(data, node, nsin, nsout);
@@ -2565,7 +2570,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		if(ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 			if(node->id) {
 				if(node->flag & NODE_DO_OUTPUT)
-					node->new_node->id= (ID *)BKE_image_copy((Image *)node->id);
+					node->new_node->id= (ID *)copy_image((Image *)node->id);
 				else
 					node->new_node->id= NULL;
 			}
@@ -2651,8 +2656,9 @@ void ntreeLocalMerge(bNodeTree *localtree, bNodeTree *ntree)
 			for(lsock= lnode->outputs.first; lsock; lsock= lsock->next) {
 				if(outsocket_exists(lnode->new_node, lsock->new_sock)) {
 					lsock->new_sock->ns.data= lsock->ns.data;
+					compbuf_set_node(lsock->new_sock->ns.data, lnode->new_node);
 					lsock->ns.data= NULL;
-						lsock->new_sock= NULL;
+					lsock->new_sock= NULL;
 				}
 			}
 		}

@@ -34,19 +34,17 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_constraint_types.h"
 #include "DNA_text_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 #include "PIL_time.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
-#include "BKE_suggestions.h"
 #include "BKE_text.h"
 
 #include "WM_api.h"
@@ -218,7 +216,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	char str[FILE_MAX];
-	short internal = RNA_int_get(op->ptr, "internal");
+	short internal = RNA_boolean_get(op->ptr, "internal");
 
 	RNA_string_get(op->ptr, "filepath", str);
 
@@ -583,14 +581,17 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 	/* api callbacks */
 	ot->poll= run_script_poll;
 	ot->exec= run_script_exec;
-}
 
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /******************* refresh pyconstraints operator *********************/
 
 static int refresh_pyconstraints_exec(bContext *C, wmOperator *op)
 {
 #ifndef DISABLE_PYTHON
+#if 0
 	Text *text= CTX_data_edit_text(C);
 	Object *ob;
 	bConstraint *con;
@@ -624,6 +625,7 @@ static int refresh_pyconstraints_exec(bContext *C, wmOperator *op)
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
+#endif
 #endif
 
 	return OPERATOR_FINISHED;
@@ -902,15 +904,22 @@ void TEXT_OT_unindent(wmOperatorType *ot)
 
 static int line_break_exec(bContext *C, wmOperator *op)
 {
+	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= CTX_data_edit_text(C);
-	int a, curtab;
+	int a, curts;
+	int space = (text->flags & TXT_TABSTOSPACES) ? st->tabnumber : 1;
 
-	// double check tabs before splitting the line
-	curtab= setcurr_tab(text);
+	// double check tabs/spaces before splitting the line
+	curts= setcurr_tab_spaces(text, space);
 	txt_split_curline(text);
 
-	for(a=0; a < curtab; a++)
-		txt_add_char(text, '\t');
+	for(a=0; a < curts; a++) {
+		if (text->flags & TXT_TABSTOSPACES) {
+			txt_add_char(text, ' ');
+		} else {
+			txt_add_char(text, '\t');
+		}
+	}
 
 	if(text->curl) {
 		if(text->curl->prev)
@@ -1020,7 +1029,7 @@ static int convert_whitespace_exec(bContext *C, wmOperator *op)
 	
 	tmp = text->lines.first;
 	
-	//first convert to all space, this make it alot easier to convert to tabs because there is no mixtures of ' ' && '\t'
+	//first convert to all space, this make it a lot easier to convert to tabs because there is no mixtures of ' ' && '\t'
 	while(tmp) {
 		text_check_line = tmp->line;
 		number = flatten_string(st, &fs, text_check_line)+1;
@@ -1700,6 +1709,8 @@ static int toggle_overwrite_exec(bContext *C, wmOperator *op)
 
 	st->overwrite= !st->overwrite;
 
+	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2352,9 +2363,11 @@ void TEXT_OT_insert(wmOperatorType *ot)
 
 static int find_and_replace(bContext *C, wmOperator *op, short mode)
 {
+	Main *bmain= CTX_data_main(C);
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *start= NULL, *text= st->text;
 	int flags, first= 1;
+	int found = 0;
 	char *tmp;
 
 	if(!st->findstr[0] || (mode == TEXT_REPLACE && !st->replacestr[0]))
@@ -2413,16 +2426,17 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 			if(text->id.next)
 				text= st->text= text->id.next;
 			else
-				text= st->text= G.main->text.first;
+				text= st->text= bmain->text.first;
 			txt_move_toline(text, 0, 0);
 			text_update_cursor_moved(C);
 			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 			first= 1;
 		}
 		else {
-			BKE_reportf(op->reports, RPT_ERROR, "Text not found: %s", st->findstr);
+			if(!found) BKE_reportf(op->reports, RPT_ERROR, "Text not found: %s", st->findstr);
 			break;
 		}
+		found = 1;
 	} while(mode==TEXT_MARK_ALL);
 
 	return OPERATOR_FINISHED;

@@ -131,13 +131,13 @@ static void rna_def_gpencil_frame(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Frame Number", "The frame on which this sketch appears");
 	
 	/* Flags */
-	prop= RNA_def_property(srna, "paint_lock", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_edited", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_FRAME_PAINT); // XXX should it be editable?
 	RNA_def_property_ui_text(prop, "Paint Lock", "Frame is being edited (painted on)");
 	
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_FRAME_SELECT);
-	RNA_def_property_ui_text(prop, "Selected", "Frame is selected for editing in the DopeSheet");
+	RNA_def_property_ui_text(prop, "Select", "Frame is selected for editing in the DopeSheet");
 }
 
 static void rna_def_gpencil_layer(BlenderRNA *brna)
@@ -172,14 +172,14 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Color", "Color for all strokes in this layer");
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
-	prop= RNA_def_property(srna, "opacity", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "color[3]");
 	RNA_def_property_range(prop, 0.3, 1.0f);
 	RNA_def_property_ui_text(prop, "Opacity", "Layer Opacity");
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 	/* Line Thickness */
-	prop= RNA_def_property(srna, "line_thickness", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "line_width", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "thickness");
 	RNA_def_property_range(prop, 1, 10);
 	RNA_def_property_ui_text(prop, "Thickness", "Thickness of strokes (in pixels)");
@@ -191,7 +191,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Onion Skinning", "Ghost frames on either side of frame");
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
-	prop= RNA_def_property(srna, "max_ghost_range", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "ghost_range_max", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gstep");
 	RNA_def_property_range(prop, 0, 120);
 	RNA_def_property_ui_text(prop, "Max Ghost Range", "Maximum number of frames on either side of the active frame to show (0 = show the 'first' available sketch on either side)");
@@ -203,12 +203,12 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Hide", "Set layer Visibility");
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
-	prop= RNA_def_property(srna, "locked", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_LOCKED);
 	RNA_def_property_ui_text(prop, "Locked", "Protect layer from further editing and/or frame changes");
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
-	prop= RNA_def_property(srna, "frame_lock", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_frame", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_FRAMELOCK);
 	RNA_def_property_ui_text(prop, "Frame Locked", "Lock current frame displayed by layer");
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
@@ -219,9 +219,9 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active", "Set active layer for editing");
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_SELECT);
-	RNA_def_property_ui_text(prop, "Selected", "Layer is selected for editing in the DopeSheet");
+	RNA_def_property_ui_text(prop, "Select", "Layer is selected for editing in the DopeSheet");
 	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 		// XXX keep this option?

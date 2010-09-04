@@ -40,10 +40,10 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "UI_view2d.h"
 

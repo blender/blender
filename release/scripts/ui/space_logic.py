@@ -25,7 +25,8 @@ class LOGIC_PT_properties(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_label = "Properties"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         ob = context.active_object
         return ob and ob.game
 
@@ -44,7 +45,7 @@ class LOGIC_PT_properties(bpy.types.Panel):
             row.prop(prop, "name", text="")
             row.prop(prop, "type", text="")
             row.prop(prop, "value", text="", toggle=True) # we dont care about the type. rna will display correctly
-            row.prop(prop, "debug", text="", toggle=True, icon='INFO')
+            row.prop(prop, "show_debug", text="", toggle=True, icon='INFO')
             row.operator("object.game_property_remove", text="", icon='X', emboss=False).index = i
 
 
@@ -57,21 +58,43 @@ class LOGIC_MT_logicbricks_add(bpy.types.Menu):
         layout.operator_menu_enum("logic.sensor_add", "type", text="Sensor")
         layout.operator_menu_enum("logic.controller_add", "type", text="Controller")
         layout.operator_menu_enum("logic.actuator_add", "type", text="Actuator")
+        
 
-classes = [
-    LOGIC_PT_properties, LOGIC_MT_logicbricks_add]
+class LOGIC_HT_header(bpy.types.Header):
+    bl_space_type = 'LOGIC_EDITOR'
+
+    def draw(self, context):
+        layout = self.layout
+
+        st = context.space_data
+
+        row = layout.row(align=True)
+        row.template_header()
+
+        if context.area.show_menus:
+            sub = row.row(align=True)
+            sub.menu("LOGIC_MT_view")
+            #sub.menu("LOGIC_MT_select")
+            #sub.menu("LOGIC_MT_add")
+        
+
+class LOGIC_MT_view(bpy.types.Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.column()
+        
+        layout.operator("logic.properties", icon='MENU_PANEL')
 
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

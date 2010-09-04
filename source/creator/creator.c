@@ -134,14 +134,6 @@ extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
 char btempdir[FILE_MAXDIR+FILE_MAXFILE];
 
-/* unix path support.
- * defined by the compiler. eg "/usr/share/blender/2.5" "/opt/blender/2.5" */
-#ifndef BLENDERPATH
-#define BLENDERPATH ""
-#endif
- 
-char blender_path[FILE_MAXDIR+FILE_MAXFILE] = BLENDERPATH;
-
 /* Initialise callbacks for the modules that need them */
 static void setCallbacks(void); 
 
@@ -292,20 +284,22 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("\t\t\"blender --background test.blend --render-output /tmp --render-frame 1\" works as expected.\n\n");
 
 	printf ("\nEnvironment Variables:\n");
-	printf ("  $HOME\t\t\tStore files such as .blender/ .B.blend .Bfs .Blog here.\n");
-	printf ("  $BLENDERPATH  System directory to use for data files and scripts.\n");
-	printf ("                For this build of blender the default $BLENDERPATH is...\n");
-	printf ("                \"%s\"\n", blender_path);
-	printf ("                setting the $BLENDERPATH will override this\n");
+	printf ("  $BLENDER_USER_CONFIG      Directory for user configuration files.\n");
+	printf ("  $BLENDER_SYSTEM_CONFIG    Directory for system wide configuration files.\n");
+	printf ("  $BLENDER_USER_SCRIPTS     Directory for user scripts.\n");
+	printf ("  $BLENDER_SYSTEM_SCRIPTS   Directory for system wide scripts.\n");
+	printf ("  $BLENDER_USER_DATAFILES   Directory for user data files (icons, translations, ..).\n");
+	printf ("  $BLENDER_SYSTEM_DATAFILES Directory for system wide data files.\n");
+	printf ("  $BLENDER_SYSTEM_PYTHON    Directory for system python libraries.\n");
 #ifdef WIN32
-	printf ("  $TEMP         Store temporary files here.\n");
+	printf ("  $TEMP                     Store temporary files here.\n");
 #else
-	printf ("  $TMP or $TMPDIR  Store temporary files here.\n");
+	printf ("  $TMP or $TMPDIR           Store temporary files here.\n");
 #endif
 #ifndef DISABLE_SDL
-	printf ("  $SDL_AUDIODRIVER  LibSDL audio driver - alsa, esd, alsa, dma.\n");
+	printf ("  $SDL_AUDIODRIVER          LibSDL audio driver - alsa, esd, dma.\n");
 #endif
-	printf ("  $PYTHONHOME   Path to the python directory, eg. /usr/lib/python.\n\n");
+	printf ("  $PYTHONHOME               Path to the python directory, eg. /usr/lib/python.\n\n");
 
 	exit(0);
 
@@ -596,7 +590,9 @@ static int set_image_type(int argc, char **argv, void *data)
 			else if (!strcmp(imtype,"AVICODEC")) scene->r.imtype = R_AVICODEC;
 			else if (!strcmp(imtype,"QUICKTIME")) scene->r.imtype = R_QUICKTIME;
 			else if (!strcmp(imtype,"BMP")) scene->r.imtype = R_BMP;
+#ifdef WITH_HDR
 			else if (!strcmp(imtype,"HDR")) scene->r.imtype = R_RADHDR;
+#endif
 #ifdef WITH_TIFF
 			else if (!strcmp(imtype,"TIFF")) scene->r.imtype = R_TIFF;
 #endif
@@ -606,8 +602,10 @@ static int set_image_type(int argc, char **argv, void *data)
 #endif
 			else if (!strcmp(imtype,"MPEG")) scene->r.imtype = R_FFMPEG;
 			else if (!strcmp(imtype,"FRAMESERVER")) scene->r.imtype = R_FRAMESERVER;
+#ifdef WITH_CINEON
 			else if (!strcmp(imtype,"CINEON")) scene->r.imtype = R_CINEON;
 			else if (!strcmp(imtype,"DPX")) scene->r.imtype = R_DPX;
+#endif
 #if WITH_OPENJPEG
 			else if (!strcmp(imtype,"JP2")) scene->r.imtype = R_JP2;
 #endif
@@ -715,6 +713,7 @@ static int render_frame(int argc, char **argv, void *data)
 {
 	bContext *C = data;
 	if (CTX_data_scene(C)) {
+		Main *bmain= CTX_data_main(C);
 		Scene *scene= CTX_data_scene(C);
 
 		if (argc > 1) {
@@ -738,7 +737,7 @@ static int render_frame(int argc, char **argv, void *data)
 
 			frame = MIN2(MAXFRAME, MAX2(MINAFRAME, frame));
 
-			RE_BlenderAnim(re, scene, scene->lay, frame, frame, scene->r.frame_step, &reports);
+			RE_BlenderAnim(re, bmain, scene, scene->lay, frame, frame, scene->r.frame_step, &reports);
 			return 1;
 		} else {
 			printf("\nError: frame number must follow '-f / --render-frame'.\n");
@@ -754,11 +753,12 @@ static int render_animation(int argc, char **argv, void *data)
 {
 	bContext *C = data;
 	if (CTX_data_scene(C)) {
+		Main *bmain= CTX_data_main(C);
 		Scene *scene= CTX_data_scene(C);
 		Render *re= RE_NewRender(scene->id.name);
 		ReportList reports;
 		BKE_reports_init(&reports, RPT_PRINT);
-		RE_BlenderAnim(re, scene, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);
+		RE_BlenderAnim(re, bmain, scene, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);
 	} else {
 		printf("\nError: no blend loaded. cannot use '-a'.\n");
 	}
@@ -769,7 +769,7 @@ static int set_scene(int argc, char **argv, void *data)
 {
 	if(argc > 1) {
 		bContext *C= data;
-		Scene *sce= set_scene_name(argv[1]);
+		Scene *sce= set_scene_name(CTX_data_main(C), argv[1]);
 		if(sce) {
 			CTX_data_scene_set(C, sce);
 		}
@@ -1069,12 +1069,6 @@ int main(int argc, char **argv)
 
 	BLI_where_am_i(bprogname, argv[0]);
 	
-	{	/* override the hard coded blender path */
-		char *blender_path_env = getenv("BLENDERPATH");
-		if(blender_path_env)
-			BLI_strncpy(blender_path, blender_path_env, sizeof(blender_path));
-	}
-
 #ifdef BUILD_DATE	
     strip_quotes(build_date);
     strip_quotes(build_time);
@@ -1137,7 +1131,7 @@ int main(int argc, char **argv)
 		WM_init(C, argc, argv);
 		
 		/* this is properly initialized with user defs, but this is default */
-		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
+		BLI_where_is_temp( btempdir, 1 ); /* call after loading the startup.blend so we can read U.tempdir */
 
 #ifndef DISABLE_SDL
 	BLI_setenv("SDL_VIDEODRIVER", "dummy");
@@ -1155,7 +1149,7 @@ int main(int argc, char **argv)
 
 		WM_init(C, argc, argv);
 
-		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
+		BLI_where_is_temp( btempdir, 0 ); /* call after loading the startup.blend so we can read U.tempdir */
 	}
 #ifndef DISABLE_PYTHON
 	/**
@@ -1186,8 +1180,10 @@ int main(int argc, char **argv)
 
 	else {
 		if((G.fileflags & G_FILE_AUTOPLAY) && (G.f & G_SCRIPT_AUTOEXEC))
-			WM_init_game(C);
-
+		{
+			if(WM_init_game(C))
+				return 0;
+		}
 		else if(!G.file_loaded)
 			WM_init_splash(C);
 	}

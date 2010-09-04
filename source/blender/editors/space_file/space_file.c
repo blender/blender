@@ -43,7 +43,6 @@
 #include "BLI_rand.h"
 #include "BLI_storage_types.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
@@ -233,6 +232,7 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 				file->flags |= EDITING;
 			}
 		}
+		BLI_strncpy(sfile->params->renameedit, sfile->params->renamefile, sizeof(sfile->params->renameedit));
 		params->renamefile[0] = '\0';
 	}
 	if (sfile->layout) sfile->layout->dirty= 1;
@@ -393,8 +393,6 @@ void file_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "FILE_OT_directory_new", IKEY, KM_PRESS, 0, 0);  /* XXX needs button */
 	WM_keymap_add_item(keymap, "FILE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_delete", DELKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "FILE_OT_delete", BACKSPACEKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_verify_item(keymap, "FILE_OT_smoothscroll", TIMER1, KM_ANY, KM_ANY, 0);
 
 	/* keys for main area */

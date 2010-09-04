@@ -31,22 +31,8 @@
 #include <stddef.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-
-
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
-#include "BKE_blender.h"
-#include "BKE_fcurve.h"
-#include "BKE_gpencil.h"
-
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
-
-
 
 #include "gpencil_intern.h"
 

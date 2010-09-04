@@ -39,7 +39,8 @@ class ExportUVLayout(bpy.types.Operator):
                 description="File format to export the UV layout to",
                 default='SVG')
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj and obj.type == 'MESH')
 
@@ -75,7 +76,7 @@ class ExportUVLayout(bpy.types.Operator):
 
             local_image = Ellipsis
 
-            if context.tool_settings.uv_local_view:
+            if context.tool_settings.show_uv_local_view:
                 space_data = self._space_image(context)
                 if space_data:
                     local_image = space_data.image
@@ -85,9 +86,9 @@ class ExportUVLayout(bpy.types.Operator):
             for i in range(uv_layer_len):
                 uv_elem = uv_layer[i]
                 # context checks
-                if faces[i].selected and (local_image is Ellipsis or local_image == uv_elem.image):
+                if faces[i].select and (local_image is Ellipsis or local_image == uv_elem.image):
                     #~ uv = uv_elem.uv
-                    #~ if False not in uv_elem.uv_selected[:len(uv)]:
+                    #~ if False not in uv_elem.select_uv[:len(uv)]:
                     #~     yield (i, uv)
 
                     # just write what we see.
@@ -113,7 +114,9 @@ class ExportUVLayout(bpy.types.Operator):
 
         mode = self.properties.mode
 
-        file = open(self.properties.filepath, "w")
+        filepath = self.properties.filepath
+        filepath = bpy.path.ensure_ext(filepath, "." + mode.lower())
+        file = open(filepath, "w")
         fw = file.write
 
         if mode == 'SVG':
@@ -216,12 +219,10 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.types.register(ExportUVLayout)
     bpy.types.IMAGE_MT_uvs.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(ExportUVLayout)
     bpy.types.IMAGE_MT_uvs.remove(menu_func)
 
 if __name__ == "__main__":

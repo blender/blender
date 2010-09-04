@@ -50,7 +50,6 @@
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
-#include "BKE_pointcache.h"
 #include "BKE_utildefines.h"
 
 // headers for fluidsim bobj meshes

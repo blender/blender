@@ -47,16 +47,10 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "BKE_action.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
-#include "BKE_key.h"
-#include "BKE_material.h"
 #include "BKE_nla.h"
-#include "BKE_object.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
@@ -1049,7 +1043,7 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
 									  RNA_float_get(op->ptr, "release"),
 									  RNA_float_get(op->ptr, "threshold"),
 									  RNA_boolean_get(op->ptr, "accumulate"),
-									  RNA_boolean_get(op->ptr, "additive"),
+									  RNA_boolean_get(op->ptr, "use_additive"),
 									  RNA_boolean_get(op->ptr, "square"),
 									  RNA_float_get(op->ptr, "sthreshold"),
 									  FPS, &sbi.length);
@@ -1124,7 +1118,7 @@ void GRAPH_OT_sound_bake (wmOperatorType *ot)
 	RNA_def_float(ot->srna, "release", 0.2, 0.0, 5.0, "Release time", "", 0.01, 0.2);
 	RNA_def_float(ot->srna, "threshold", 0.0, 0.0, 1.0, "Threshold", "", 0.01, 0.1);
 	RNA_def_boolean(ot->srna, "accumulate", 0, "Accumulate", "");
-	RNA_def_boolean(ot->srna, "additive", 0, "Additive", "");
+	RNA_def_boolean(ot->srna, "use_additive", 0, "Additive", "");
 	RNA_def_boolean(ot->srna, "square", 0, "Square", "");
 	RNA_def_float(ot->srna, "sthreshold", 0.1, 0.0, 1.0, "Square Threshold", "", 0.01, 0.1);
 }

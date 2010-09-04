@@ -48,6 +48,7 @@ struct VFont;
 struct AnimData;
 struct SelBox;
 struct EditFont;
+struct GHash;
 
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #
@@ -150,6 +151,19 @@ typedef struct TextBox {
 	float x, y, w, h;
 } TextBox;
 
+typedef struct EditNurb {
+	/* base of nurbs' list (old Curve->editnurb) */
+	ListBase nurbs;
+
+	/* index data for shape keys */
+	struct GHash *keyindex;
+
+	/* shape key being edited */
+	int shapenr;
+
+	char pad[4];
+} EditNurb;
+
 typedef struct Curve {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
@@ -159,7 +173,7 @@ typedef struct Curve {
 	ListBase nurb;		/* actual data, called splines in rna */
 	ListBase disp;
 	
-	ListBase *editnurb;	/* edited data, not in file, use pointer so we can check for it */
+	EditNurb *editnurb;	/* edited data, not in file, use pointer so we can check for it */
 	
 	struct Object *bevobj, *taperobj, *textoncurve;
 	struct Ipo *ipo;	// XXX depreceated... old animation system
@@ -236,7 +250,7 @@ typedef struct Curve {
 #define CU_PATH			8
 #define CU_FOLLOW		16
 #define CU_UV_ORCO		32
-#define CU_NOPUNOFLIP	64
+#define CU_DEFORM_BOUNDS_OFF 64 
 #define CU_STRETCH		128
 #define CU_OFFS_PATHDIST	256
 #define CU_FAST			512 /* Font: no filling inside editmode */
@@ -328,9 +342,13 @@ typedef enum eBezTriple_KeyframeType {
 #define CU_CHINFO_BOLD			(1<<0)
 #define CU_CHINFO_ITALIC		(1<<1)
 #define CU_CHINFO_UNDERLINE	(1<<2)
-#define CU_CHINFO_WRAP			(1<<3)	/* wordwrap occured here */
+#define CU_CHINFO_WRAP			(1<<3)	/* wordwrap occurred here */
 #define CU_CHINFO_SMALLCAPS	(1<<4)
 #define CU_CHINFO_SMALLCAPS_CHECK (1<<5) /* set at runtime, checks if case switching is needed */
+
+/* mixed with KEY_LINEAR but define here since only curve supports */
+#define KEY_CU_EASE			3
+
 
 #endif
 

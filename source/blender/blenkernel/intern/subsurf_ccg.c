@@ -73,6 +73,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
                                          int useSubsurfUv,
                                          DerivedMesh *dm);
 
+static int ccgDM_use_grid_pbvh(CCGDerivedMesh *ccgdm);
+
 ///
 
 static void *arena_alloc(CCGAllocatorHDL a, int numBytes) {
@@ -1897,7 +1899,7 @@ void ccgDM_glNormalFast(float *a, float *b, float *c, float *d)
 
 static void ccgdm_pbvh_update(CCGDerivedMesh *ccgdm)
 {
-	if(ccgdm->pbvh && ccgdm->multires.mmd) {
+	if(ccgdm->pbvh && ccgDM_use_grid_pbvh(ccgdm)) {
 		CCGFace **faces;
 		int totface;
 

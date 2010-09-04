@@ -564,14 +564,14 @@ def extract_triangles(mesh):
 
     img = None
     for i, face in enumerate(mesh.faces):
-        f_v = face.verts
+        f_v = face.vertices
 # 		f_v = face.v
 
         uf = mesh.active_uv_texture.data[i] if do_uv else None
 
         if do_uv:
             f_uv = uf.uv
-            # f_uv =  (uf.uv1, uf.uv2, uf.uv3, uf.uv4) if face.verts[3] else (uf.uv1, uf.uv2, uf.uv3)
+            # f_uv =  (uf.uv1, uf.uv2, uf.uv3, uf.uv4) if face.vertices[3] else (uf.uv1, uf.uv2, uf.uv3)
 # 			f_uv = face.uv
             img = uf.image if uf else None
 # 			img = face.image
@@ -761,18 +761,18 @@ def make_mesh_chunk(mesh, materialDict):
     if len(mesh.uv_textures):
 # 	if mesh.faceUV:
         # Remove the face UVs and convert it to vertex UV:
-        vert_array, uv_array, tri_list = remove_face_uv(mesh.verts, tri_list)
+        vert_array, uv_array, tri_list = remove_face_uv(mesh.vertices, tri_list)
     else:
         # Add the vertices to the vertex array:
         vert_array = _3ds_array()
-        for vert in mesh.verts:
+        for vert in mesh.vertices:
             vert_array.add(_3ds_point_3d(vert.co))
         # If the mesh has vertex UVs, create an array of UVs:
         if len(mesh.sticky):
 # 		if mesh.vertexUV:
             uv_array = _3ds_array()
             for uv in mesh.sticky:
-# 			for vert in mesh.verts:
+# 			for vert in mesh.vertices:
                 uv_array.add(_3ds_point_uv(uv.co))
 # 				uv_array.add(_3ds_point_uv(vert.uvco))
         else:
@@ -922,7 +922,7 @@ def make_kf_obj_node(obj, name_to_id):
 """
 
 # import BPyMessages
-def save_3ds(filename, context):
+def write(filename, context):
     '''Save the Blender scene to a 3ds file.'''
     # Time the export
 
@@ -941,7 +941,8 @@ def save_3ds(filename, context):
     sce = context.scene
 #	sce= bpy.data.scenes.active
 
-    bpy.ops.object.mode_set(mode='OBJECT')
+    if context.object:
+        bpy.ops.object.mode_set(mode='OBJECT')
 
     # Initialize the main chunk (primary):
     primary = _3ds_chunk(PRIMARY)
@@ -1006,7 +1007,7 @@ def save_3ds(filename, context):
                             mat = mat_ls[mat_index]
                             if mat:	mat_name = mat.name
                             else:	mat_name = None
-                        # else there alredy set to none
+                        # else there already set to none
 
                         img = uf.image
 # 						img = f.image
@@ -1064,7 +1065,7 @@ def save_3ds(filename, context):
         '''
         if not blender_mesh.users:
             bpy.data.meshes.remove(blender_mesh)
-# 		blender_mesh.verts = None
+# 		blender_mesh.vertices = None
 
         i+=i
 
@@ -1106,50 +1107,46 @@ def save_3ds(filename, context):
     #primary.dump()
 
 
-# if __name__=='__main__':
-#     if struct:
-#         Blender.Window.FileSelector(save_3ds, "Export 3DS", Blender.sys.makename(ext='.3ds'))
-#     else:
-#         Blender.Draw.PupMenu("Error%t|This script requires a full python installation")
-# # save_3ds('/test_b.3ds')
+# # write('/test_b.3ds')
 from bpy.props import *
 class Export3DS(bpy.types.Operator):
     '''Export to 3DS file format (.3ds)'''
     bl_idname = "export.autodesk_3ds"
     bl_label = 'Export 3DS'
 
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
-
-
     filepath = StringProperty(name="File Path", description="Filepath used for exporting the 3DS file", maxlen= 1024, default= "")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
+    @classmethod
+    def poll(cls, context): # Poll isnt working yet
+        return context.active_object != None
+
     def execute(self, context):
-        save_3ds(self.properties.filepath, context)
+        filepath = self.properties.filepath
+        filepath = bpy.path.ensure_ext(filepath, ".3ds")
+
+        write(filepath, context)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
-        return {'RUNNING_MODAL'}
+        import os
+        if not self.properties.is_property_set("filepath"):
+            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".3ds"
 
-    def poll(self, context): # Poll isnt working yet
-        return context.active_object != None
+        context.manager.add_fileselect(self)
+        return {'RUNNING_MODAL'}
 
 
 # Add to a menu
 def menu_func(self, context):
-    default_path = os.path.splitext(bpy.data.filepath)[0] + ".3ds"
-    self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)").filepath = default_path
+    self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)")
 
 
 def register():
-    bpy.types.register(Export3DS)
     bpy.types.INFO_MT_file_export.append(menu_func)
 
+
 def unregister():
-    bpy.types.unregister(Export3DS)
     bpy.types.INFO_MT_file_export.remove(menu_func)
 
 if __name__ == "__main__":

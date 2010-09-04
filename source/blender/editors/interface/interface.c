@@ -41,15 +41,10 @@
 #include "BLI_dynstr.h"
 
 #include "BKE_context.h"
-#include "BKE_idprop.h"
 #include "BKE_library.h"
-#include "BKE_screen.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
 #include "BKE_unit.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "BLF_api.h"
 
@@ -1464,13 +1459,13 @@ static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double va
 	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precision, scene->unit.system, unit_type, do_split, pad);
 }
 
-static float ui_get_but_step_unit(uiBut *but, double value, float step_default)
+static float ui_get_but_step_unit(uiBut *but, float step_default)
 {
 	Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
 	int unit_type=  RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
 	float step;
 
-	step = bUnit_ClosestScalar(ui_get_but_scale_unit(but, value), scene->unit.system, unit_type);
+	step = bUnit_ClosestScalar(ui_get_but_scale_unit(but, step_default), scene->unit.system, unit_type);
 
 	if(step > 0.0) { /* -1 is an error value */
 		return (step/ui_get_but_scale_unit(but, 1.0))*100;
@@ -1644,7 +1639,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		value= atof(str);
 #endif
 
-		if(!ui_is_but_float(but)) value= (int)value;
+		if(!ui_is_but_float(but)) value= (int)floor(value + 0.5);
 		if(but->type==NUMABS) value= fabs(value);
 
 		/* not that we use hard limits here */
@@ -2563,7 +2558,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 
 	/* If this button uses units, calculate the step from this */
 	if(ui_is_but_unit(but))
-		but->a1= ui_get_but_step_unit(but, ui_get_but_val(but), but->a1);
+		but->a1= ui_get_but_step_unit(but, but->a1);
 
 	if(freestr)
 		MEM_freeN(str);

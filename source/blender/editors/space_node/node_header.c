@@ -42,14 +42,11 @@
 #include "BKE_screen.h"
 #include "BKE_node.h"
 #include "BKE_main.h"
-#include "BKE_utildefines.h"
 
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_interface.h"
 

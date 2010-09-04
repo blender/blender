@@ -81,7 +81,7 @@ from export_3ds import create_derived_objects, free_derived_objects
 
 #
 DEG2RAD=0.017453292519943295
-MATWORLD= mathutils.RotationMatrix(-90, 4, 'X')
+MATWORLD= mathutils.Matrix.Rotation(-90, 4, 'X')
 
 ####################################
 # Global Variables
@@ -406,13 +406,13 @@ class x3d_class:
         # if mesh.faceUV:
             for face in mesh.active_uv_texture.data:
             # for face in mesh.faces:
-                if face.halo and 'HALO' not in mode:
+                if face.use_halo and 'HALO' not in mode:
                     mode += ['HALO']
-                if face.billboard and 'BILLBOARD' not in mode:
+                if face.use_billboard and 'BILLBOARD' not in mode:
                     mode += ['BILLBOARD']
-                if face.object_color and 'OBJECT_COLOR' not in mode:
+                if face.use_object_color and 'OBJECT_COLOR' not in mode:
                     mode += ['OBJECT_COLOR']
-                if face.collision and 'COLLISION' not in mode:
+                if face.use_collision and 'COLLISION' not in mode:
                     mode += ['COLLISION']
                 # mode |= face.mode
 
@@ -461,7 +461,7 @@ class x3d_class:
         self.writeIndented("<Shape>\n",1)
         maters=mesh.materials
         hasImageTexture=0
-        issmooth=0
+        is_smooth = False
 
         if len(maters) > 0 or mesh.active_uv_texture:
         # if len(maters) > 0 or mesh.faceUV:
@@ -470,7 +470,7 @@ class x3d_class:
             if len(maters) >= 1:
                 mat=maters[0]
                 # matFlags = mat.getMode()
-                if not mat.face_texture:
+                if not mat.use_face_texture:
                 # if not matFlags & Blender.Material.Modes['TEXFACE']:
                     self.writeMaterial(mat, self.cleanStr(mat.name,''), world)
                     # self.writeMaterial(mat, self.cleanStr(maters[0].name,''), world)
@@ -516,11 +516,11 @@ class x3d_class:
                 self.file.write("solid=\"true\" ")
 
             for face in mesh.faces:
-                if face.smooth:
-                     issmooth=1
-                     break
-            if issmooth==1:
-                creaseAngle=(mesh.autosmooth_angle)*(math.pi/180.0)
+                if face.use_smooth:
+                    is_smooth = True
+                    break
+            if is_smooth == True:
+                creaseAngle=(mesh.auto_smooth_angle)*(math.pi/180.0)
                 # creaseAngle=(mesh.degr)*(math.pi/180.0)
                 self.file.write("creaseAngle=\"%s\" " % (round(creaseAngle,self.cp)))
 
@@ -581,7 +581,7 @@ class x3d_class:
         if self.writingcoords == 0:
             self.file.write('coordIndex="')
             for face in mesh.faces:
-                fv = face.verts
+                fv = face.vertices
                 # fv = face.v
 
                 if len(fv)==3:
@@ -604,7 +604,7 @@ class x3d_class:
             # mesh.transform(ob.matrix_world)
             self.writeIndented("<Coordinate DEF=\"%s%s\" \n" % ("coord_",meshName), 1)
             self.file.write("\t\t\t\tpoint=\"")
-            for v in mesh.verts:
+            for v in mesh.vertices:
                 self.file.write("%.6f %.6f %.6f, " % tuple(v.co))
             self.file.write("\" />")
             self.writeIndented("\n", -1)
@@ -618,7 +618,7 @@ class x3d_class:
         # for face in mesh.faces:
             # workaround, since tface.uv iteration is wrong atm
             uvs = face.uv
-            # uvs = [face.uv1, face.uv2, face.uv3, face.uv4] if face.verts[3] else [face.uv1, face.uv2, face.uv3]
+            # uvs = [face.uv1, face.uv2, face.uv3, face.uv4] if face.vertices[3] else [face.uv1, face.uv2, face.uv3]
 
             for uv in uvs:
             # for uv in face.uv:
@@ -699,7 +699,7 @@ class x3d_class:
         # specB = (mat.specCol[2]+0.001)/(1.25/(mat.spec+0.001))
         transp = 1-mat.alpha
         # matFlags = mat.getMode()
-        if mat.shadeless:
+        if mat.use_shadeless:
         # if matFlags & Blender.Material.Modes['SHADELESS']:
           ambient = 1
           shine = 1
@@ -731,7 +731,7 @@ class x3d_class:
     def writeBackground(self, world, alltextures):
         if world:	worldname = world.name
         else:		return
-        blending = (world.blend_sky, world.paper_sky, world.real_sky)
+        blending = (world.blend_sky, world.paper_sky, world.use_sky_real)
         # blending = world.getSkytype()
         grd = world.horizon_color
         # grd = world.getHor()
@@ -794,7 +794,7 @@ class x3d_class:
             pic = tex.image
 
             # using .expandpath just in case, os.path may not expect //
-            basename = os.path.basename(bpy.utils.expandpath(pic.filepath))
+            basename = os.path.basename(bpy.path.abspath(pic.filepath))
 
             pic = alltextures[i].image
             # pic = alltextures[i].getImage()
@@ -912,7 +912,7 @@ class x3d_class:
 
         # if EXPORT_APPLY_MODIFIERS:
         # 	if containerMesh:
-        # 		containerMesh.verts = None
+        # 		containerMesh.vertices = None
 
         self.cleanup()
 
@@ -964,13 +964,8 @@ class x3d_class:
         if mesh.active_uv_texture:
         # if mesh.faceUV:
             for face in mesh.active_uv_texture.data:
-            # for face in mesh.faces:
-                sidename='';
-                if face.twoside:
-                # if  face.mode & Mesh.FaceModes.TWOSIDE:
-                    sidename='two'
-                else:
-                    sidename='one'
+            # for face in mesh.faces
+                sidename = "two" if face.use_twoside else "one"
 
                 if sidename in sided:
                     sided[sidename]+=1
@@ -1003,8 +998,8 @@ class x3d_class:
         if face.mode & Mesh.FaceModes.TWOSIDE:
             print("Debug: face.mode twosided")
 
-        print("Debug: face.transp=0x%x (enum)" % face.transp)
-        if face.transp == Mesh.FaceTranspModes.SOLID:
+        print("Debug: face.transp=0x%x (enum)" % face.blend_type)
+        if face.blend_type == Mesh.FaceTranspModes.SOLID:
             print("Debug: face.transp.SOLID")
 
         if face.image:
@@ -1030,7 +1025,7 @@ class x3d_class:
         # print("Debug: mesh.faceUV=%d" % mesh.faceUV)
         print("Debug: mesh.hasVertexColours=%d" % (len(mesh.vertex_colors) > 0))
         # print("Debug: mesh.hasVertexColours=%d" % mesh.hasVertexColours())
-        print("Debug: mesh.verts=%d" % len(mesh.verts))
+        print("Debug: mesh.vertices=%d" % len(mesh.vertices))
         print("Debug: mesh.faces=%d" % len(mesh.faces))
         print("Debug: mesh.materials=%d" % len(mesh.materials))
 
@@ -1140,7 +1135,7 @@ class x3d_class:
 # Callbacks, needed before Main
 ##########################################################
 
-def x3d_export(filename,
+def write(filename,
                context,
                EXPORT_APPLY_MODIFIERS=False,
                EXPORT_TRI=False,
@@ -1156,8 +1151,9 @@ def x3d_export(filename,
 
     scene = context.scene
     world = scene.world
-    
-    bpy.ops.object.mode_set(mode='OBJECT')
+
+    if scene.objects.active:
+        bpy.ops.object.mode_set(mode='OBJECT')
 
     # XXX these are global textures while .Get() returned only scene's?
     alltextures = bpy.data.textures
@@ -1172,47 +1168,6 @@ def x3d_export(filename,
         EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS,\
         EXPORT_TRI = EXPORT_TRI,\
         )
-
-
-def x3d_export_ui(filename):
-    if not filename.endswith(extension):
-        filename += extension
-    #if _safeOverwrite and sys.exists(filename):
-    #	result = Draw.PupMenu("File Already Exists, Overwrite?%t|Yes%x1|No%x0")
-    #if(result != 1):
-    #	return
-
-    # Get user options
-    EXPORT_APPLY_MODIFIERS = Draw.Create(1)
-    EXPORT_TRI = Draw.Create(0)
-    EXPORT_GZIP = Draw.Create( filename.lower().endswith('.x3dz') )
-
-    # Get USER Options
-    pup_block = [\
-    ('Apply Modifiers', EXPORT_APPLY_MODIFIERS, 'Use transformed mesh data from each object.'),\
-    ('Triangulate', EXPORT_TRI, 'Triangulate quads.'),\
-    ('Compress', EXPORT_GZIP, 'GZip the resulting file, requires a full python install'),\
-    ]
-
-    if not Draw.PupBlock('Export...', pup_block):
-        return
-
-    Blender.Window.EditMode(0)
-    Blender.Window.WaitCursor(1)
-
-    x3d_export(filename,\
-        EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS.val,\
-        EXPORT_TRI = EXPORT_TRI.val,\
-        EXPORT_GZIP = EXPORT_GZIP.val\
-    )
-
-    Blender.Window.WaitCursor(0)
-
-
-
-#########################################################
-# main routine
-#########################################################
 
 
 from bpy.props import *
@@ -1232,26 +1187,35 @@ class ExportX3D(bpy.types.Operator):
     compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install", default=False)
 
     def execute(self, context):
-        x3d_export(self.properties.filepath, context, self.properties.apply_modifiers, self.properties.triangulate, self.properties.compress)
+        filepath = self.properties.filepath
+        filepath = bpy.path.ensure_ext(filepath, ".x3d")
+
+        write(filepath,
+                   context,
+                   self.properties.apply_modifiers,
+                   self.properties.triangulate,
+                   self.properties.compress,
+                   )
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
+        import os
+        if not self.properties.is_property_set("filepath"):
+            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".x3d"
+
+        context.manager.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):
-    default_path = os.path.splitext(bpy.data.filepath)[0] + ".x3d"
-    self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)").filepath = default_path
+    self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)")
 
 
 def register():
-    bpy.types.register(ExportX3D)
     bpy.types.INFO_MT_file_export.append(menu_func)
 
 def unregister():
-    bpy.types.unregister(ExportX3D)
     bpy.types.INFO_MT_file_export.remove(menu_func)
 
 # NOTES

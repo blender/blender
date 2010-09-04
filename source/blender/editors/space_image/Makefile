@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2007 Blender Foundation
 # All rights reserved.
@@ -58,7 +58,20 @@ ifeq ($(WITH_OPENEXR), true)
     CPPFLAGS += -DWITH_OPENEXR
 endif
 
-ifeq ($(WHITH_TIFF), true)
+ifeq ($(WITH_TIFF), true)
     CPPFLAGS += -DWITH_TIFF
+endif
+
+ifeq ($(WITH_LCMS), true)
+    CPPFLAGS += -DWITH_LCMS
+    CPPFLAGS += -I$(BF_LCMS_INC)
+endif
+
+ifeq ($(WITH_CINEON), true)
+    CPPFLAGS += -DWITH_CINEON
+endif
+
+ifeq ($(WITH_HDR), true)
+    CPPFLAGS += -DWITH_HDR
 endif
 

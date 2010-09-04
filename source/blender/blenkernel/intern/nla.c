@@ -1265,13 +1265,13 @@ void BKE_nlastrip_validate_name (AnimData *adt, NlaStrip *strip)
 		char *dot;
 		
 		/* Strip off the suffix */
-		dot = strchr(strip->name, '.');
+		dot = strrchr(strip->name, '.');
 		if (dot) *dot=0;
 		
 		/* Try different possibilities */
 		for (number = 1; number <= 999; number++) {
 			/* assemble alternative name */
-			BLI_snprintf(tempname, 128, "%s%c%03d", strip->name, ".", number);
+			BLI_snprintf(tempname, 128, "%s.%03d", strip->name, number);
 			
 			/* if hash doesn't have this, set it */
 			if (BLI_ghash_haskey(gh, tempname) == 0) {

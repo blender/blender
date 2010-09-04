@@ -33,9 +33,8 @@
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_view2d_types.h"
-#include "DNA_userdef_types.h"
+#include "DNA_userdef_types.h" /* ThemeWireColor */
 
 struct SpaceLink;
 struct Object;

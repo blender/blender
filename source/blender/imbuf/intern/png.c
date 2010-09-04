@@ -31,6 +31,7 @@
 #include "png.h"
 
 #include "BLI_blenlib.h"
+#include "MEM_guardedalloc.h"
 
 #include "imbuf.h"
 
@@ -102,6 +103,11 @@ int imb_savepng(struct ImBuf *ibuf, char *name, int flags)
 	png_bytepp row_pointers = 0;
 	int i, bytesperpixel, color_type = PNG_COLOR_TYPE_GRAY;
 	FILE *fp = 0;
+
+	/* use the jpeg quality setting for compression */
+	int compression;
+	compression= (int)(((float)(ibuf->ftype & 0xff) / 11.1111f));
+	compression= compression < 0 ? 0 : (compression > 9 ? 9 : compression);
 
 	bytesperpixel = (ibuf->depth + 7) >> 3;
 	if ((bytesperpixel > 4) || (bytesperpixel == 2)) {
@@ -201,9 +207,9 @@ int imb_savepng(struct ImBuf *ibuf, char *name, int flags)
 		PNG_FILTER_AVG   | PNG_FILTER_VALUE_AVG  |
 		PNG_FILTER_PAETH | PNG_FILTER_VALUE_PAETH|
 		PNG_ALL_FILTERS);
-
-	png_set_compression_level(png_ptr, Z_BEST_COMPRESSION);
 	*/
+
+	png_set_compression_level(png_ptr, compression);
 
 	// png image settings
 	png_set_IHDR(png_ptr,

@@ -55,11 +55,12 @@ variables on the UI for now
 #include "MEM_guardedalloc.h"
 
 /* types */
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 #include "BLI_ghash.h"
@@ -252,7 +253,7 @@ static float _final_mass(Object *ob,BodyPoint *bp)
 
 /********************
 for each target object/face the axis aligned bounding box (AABB) is stored
-faces paralell to global axes
+faces parallel to global axes
 so only simple "value" in [min,max] ckecks are used
 float operations still
 */
@@ -2032,8 +2033,7 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 	VECCOPY(vel,avel);
 	if (ci) *intrusion /= ci;
 	if (deflected){
-		VECCOPY(facenormal,force);
-		normalize_v3(facenormal);
+		normalize_v3_v3(facenormal, force);
 	}
 	return deflected;
 }
@@ -3227,7 +3227,7 @@ static void get_scalar_from_vertexgroup(Object *ob, int vertID, short groupindex
 }
 
 /* Resetting a Mesh SB object's springs */
-/* Spring lenght are caculted from'raw' mesh vertices that are NOT altered by modifier stack. */
+/* Spring length are caculted from'raw' mesh vertices that are NOT altered by modifier stack. */
 static void springs_from_mesh(Object *ob)
 {
 	SoftBody *sb;
@@ -3363,7 +3363,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 				add_2nd_order_springs(ob,sb->secondspring); /* exploits the the first run of build_bps_springlist(ob);*/
 				build_bps_springlist(ob); /* yes we need to do it again*/
 			}
-			springs_from_mesh(ob); /* write the 'rest'-lenght of the springs */
+			springs_from_mesh(ob); /* write the 'rest'-length of the springs */
 			   if (ob->softflag & OB_SB_SELF) {calculate_collision_balls(ob);}
 
 		}

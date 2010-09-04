@@ -38,12 +38,8 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-#include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
-#include "BKE_image.h"
 
 #include "ED_screen.h"
 #include "ED_object.h"
@@ -211,6 +207,7 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->far= 500.0f;
 
 	v3d->twtype= V3D_MANIP_TRANSLATE;
+	v3d->around= V3D_CENTROID;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for view3d");

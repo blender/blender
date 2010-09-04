@@ -70,4 +70,3 @@ ELSE(WITH_PYTHON)
 ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_converter "${SRC}" "${INC}")
-#env.BlenderLib ( 'bf_converter', sources, Split(incs), [], libtype=['game','player'], priority=[5,70] )

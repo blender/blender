@@ -79,7 +79,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");
 	RNA_def_property_ui_text(prop, "Packed File", "");
 
-	prop= RNA_def_property(srna, "caching", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_memory_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Sound_caching_get", "rna_Sound_caching_set");
 	RNA_def_property_ui_text(prop, "Caching", "The sound file is decoded and loaded into RAM");
 	RNA_def_property_update(prop, 0, "rna_Sound_filepath_update");

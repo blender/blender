@@ -44,13 +44,15 @@
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
 
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_object_types.h"
+#include "DNA_screen_types.h"
+
+#include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_image.h"
 #include "BKE_icons.h"
 #include "BKE_utildefines.h"
 
@@ -58,7 +60,6 @@
 #include "IMB_imbuf_types.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "ED_datafiles.h"
 #include "ED_render.h"
@@ -452,6 +453,51 @@ static void vicon_move_down_draw(int x, int y, int w, int h, float alpha)
 	glDisable(GL_LINE_SMOOTH);
 }
 
+static void init_brush_icons()
+{
+
+#define INIT_BRUSH_ICON(icon_id, name)					     \
+	bbuf = IMB_ibImageFromMemory((unsigned char*)datatoc_ ##name## _png, \
+				     datatoc_ ##name## _png_size, IB_rect);  \
+	def_internal_icon(bbuf, icon_id, 0, 0, w, ICON_TYPE_BUFFER);	     \
+	IMB_freeImBuf(bbuf);
+	// end INIT_BRUSH_ICON
+
+	ImBuf *bbuf;
+	const int w = 96;
+
+	INIT_BRUSH_ICON(ICON_BRUSH_ADD, add);
+	INIT_BRUSH_ICON(ICON_BRUSH_BLOB, blob);
+	INIT_BRUSH_ICON(ICON_BRUSH_BLUR, blur);
+	INIT_BRUSH_ICON(ICON_BRUSH_CLAY, clay);
+	INIT_BRUSH_ICON(ICON_BRUSH_CLONE, clone);
+	INIT_BRUSH_ICON(ICON_BRUSH_CREASE, crease);
+	INIT_BRUSH_ICON(ICON_BRUSH_DARKEN, darken);
+	INIT_BRUSH_ICON(ICON_BRUSH_SCULPT_DRAW, draw);
+	INIT_BRUSH_ICON(ICON_BRUSH_FILL, fill);
+	INIT_BRUSH_ICON(ICON_BRUSH_FLATTEN, flatten);
+	INIT_BRUSH_ICON(ICON_BRUSH_GRAB, grab);
+	INIT_BRUSH_ICON(ICON_BRUSH_INFLATE, inflate);
+	INIT_BRUSH_ICON(ICON_BRUSH_LAYER, layer);
+	INIT_BRUSH_ICON(ICON_BRUSH_LIGHTEN, lighten);
+	INIT_BRUSH_ICON(ICON_BRUSH_MIX, mix);
+	INIT_BRUSH_ICON(ICON_BRUSH_MULTIPLY, multiply);
+	INIT_BRUSH_ICON(ICON_BRUSH_NUDGE, nudge);
+	INIT_BRUSH_ICON(ICON_BRUSH_PINCH, pinch);
+	INIT_BRUSH_ICON(ICON_BRUSH_SCRAPE, scrape);
+	INIT_BRUSH_ICON(ICON_BRUSH_SMEAR, smear);
+	INIT_BRUSH_ICON(ICON_BRUSH_SMOOTH, smooth);
+	INIT_BRUSH_ICON(ICON_BRUSH_SNAKE_HOOK, snake_hook);
+	INIT_BRUSH_ICON(ICON_BRUSH_SOFTEN, soften);
+	INIT_BRUSH_ICON(ICON_BRUSH_SUBTRACT, subtract);
+	INIT_BRUSH_ICON(ICON_BRUSH_TEXDRAW, texdraw);
+	INIT_BRUSH_ICON(ICON_BRUSH_THUMB, thumb);
+	INIT_BRUSH_ICON(ICON_BRUSH_ROTATE, twist);
+	INIT_BRUSH_ICON(ICON_BRUSH_VERTEXDRAW, vertexdraw);
+
+#undef INIT_BRUSH_ICON
+}
+
 static void init_internal_icons()
 {
 	bTheme *btheme= U.themes.first;
@@ -739,6 +785,7 @@ void UI_icons_init(int first_dyn_id)
 	init_iconfile_list(&iconfilelist);
 	BKE_icons_init(first_dyn_id);
 	init_internal_icons();
+	init_brush_icons();
 }
 
 /* Render size for preview images at level miplevel */
@@ -962,6 +1009,43 @@ void ui_id_icon_render(bContext *C, ID *id, int preview)
 	}
 }
 
+static int ui_id_brush_get_icon(bContext *C, ID *id, int preview)
+{
+	Brush *br = (Brush*)id;
+
+	if(br->flag & BRUSH_CUSTOM_ICON) {
+		BKE_icon_getid(id);
+		ui_id_icon_render(C, id, preview);
+	}
+	else if(!id->icon_id) {
+		/* no icon found, reset it */
+		
+		/* this is not nice, should probably make
+		   brushes be strictly in one paint mode only
+		   to avoid this kind of thing */
+		Object *ob = CTX_data_active_object(C);
+		EnumPropertyItem *items;
+		int tool;
+		
+		if(ob && (ob->mode & OB_MODE_SCULPT)) {
+			items = brush_sculpt_tool_items;
+			tool = br->sculpt_tool;
+		}
+		else if(ob && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT))) {
+			items = brush_vertexpaint_tool_items;
+			tool = br->vertexpaint_tool;
+		}
+		else {
+			items = brush_imagepaint_tool_items;
+			tool = br->imagepaint_tool;
+		}
+
+		RNA_enum_icon_from_value(items, tool, &id->icon_id);
+	}
+
+	return id->icon_id;
+}
+
 int ui_id_icon_get(bContext *C, ID *id, int preview)
 {
 	int iconid= 0;
@@ -969,6 +1053,9 @@ int ui_id_icon_get(bContext *C, ID *id, int preview)
 	/* icon */
 	switch(GS(id->name))
 	{
+		case ID_BR:
+			iconid= ui_id_brush_get_icon(C, id, preview);
+			break;
 		case ID_MA: /* fall through */
 		case ID_TE: /* fall through */
 		case ID_IM: /* fall through */
@@ -977,16 +1064,6 @@ int ui_id_icon_get(bContext *C, ID *id, int preview)
 			iconid= BKE_icon_getid(id);
 			/* checks if not exists, or changed */
 			ui_id_icon_render(C, id, preview);
-			break;
-		case ID_BR:
-			{ /* use the image in the brush as the icon */
-			  /* XXX redundancy here can be reduced be rewriting this switch as an if */
-				ID* ima_id = (ID*)((Brush*)id)->image_icon;
-				id = ima_id ? ima_id : id;
-				iconid= BKE_icon_getid(id);
-				/* checks if not exists, or changed */
-				ui_id_icon_render(C, id, preview);
-			}
 			break;
 		default:
 			break;

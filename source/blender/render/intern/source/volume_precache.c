@@ -115,6 +115,47 @@ int point_inside_obi(RayObject *tree, ObjectInstanceRen *obi, float *co)
 	else return 1;
 }
 
+/* find the bounding box of an objectinstance in global space */
+void global_bounds_obi(Render *re, ObjectInstanceRen *obi, float *bbmin, float *bbmax)
+{
+	ObjectRen *obr = obi->obr;
+	VolumePrecache *vp = obi->volume_precache;
+	VertRen *ver= NULL;
+	float co[3];
+	int a;
+	
+	if (vp->bbmin != NULL && vp->bbmax != NULL) {
+		copy_v3_v3(bbmin, vp->bbmin);
+		copy_v3_v3(bbmax, vp->bbmax);
+		return;
+	}
+	
+	vp->bbmin = MEM_callocN(sizeof(float)*3, "volume precache min boundbox corner");
+	vp->bbmax = MEM_callocN(sizeof(float)*3, "volume precache max boundbox corner");
+	
+	INIT_MINMAX(bbmin, bbmax);
+	
+	for(a=0; a<obr->totvert; a++) {
+		if((a & 255)==0) ver= obr->vertnodes[a>>8].vert;
+		else ver++;
+		
+		copy_v3_v3(co, ver->co);
+		
+		/* transformed object instance in camera space */
+		if(obi->flag & R_TRANSFORMED)
+			mul_m4_v3(obi->mat, co);
+		
+		/* convert to global space */
+		mul_m4_v3(re->viewinv, co);
+		
+		DO_MINMAX(co, vp->bbmin, vp->bbmax);
+	}
+	
+	copy_v3_v3(bbmin, vp->bbmin);
+	copy_v3_v3(bbmax, vp->bbmax);
+	
+}
+
 /* *** light cache filtering *** */
 
 static float get_avg_surrounds(float *cache, int *res, int xx, int yy, int zz)
@@ -443,7 +484,7 @@ static void *vol_precache_part(void *data)
 	RayObject *tree = pa->tree;
 	ShadeInput *shi = pa->shi;
 	float scatter_col[3] = {0.f, 0.f, 0.f};
-	float co[3];
+	float co[3], cco[3];
 	int x, y, z, i;
 	const int res[3]= {pa->res[0], pa->res[1], pa->res[2]};
 
@@ -455,24 +496,29 @@ static void *vol_precache_part(void *data)
 			
 			for (x=pa->minx; x < pa->maxx; x++) {
 				co[0] = pa->bbmin[0] + (pa->voxel[0] * (x + 0.5f));
-							
+				
+				/* convert from world->camera space for shading */
+				mul_v3_m4v3(cco, pa->viewmat, co);
+				
 				i= V_I(x, y, z, res);
 				
 				// don't bother if the point is not inside the volume mesh
-				if (!point_inside_obi(tree, obi, co)) {
+				if (!point_inside_obi(tree, obi, cco)) {
 					obi->volume_precache->data_r[i] = -1.0f;
 					obi->volume_precache->data_g[i] = -1.0f;
 					obi->volume_precache->data_b[i] = -1.0f;
 					continue;
 				}
 				
-				copy_v3_v3(shi->view, co);
+				/* this view coordinate is very wrong! */
+				copy_v3_v3(shi->view, cco);
 				normalize_v3(shi->view);
-				vol_get_scattering(shi, scatter_col, co);
+				vol_get_scattering(shi, scatter_col, cco);
 			
 				obi->volume_precache->data_r[i] = scatter_col[0];
 				obi->volume_precache->data_g[i] = scatter_col[1];
 				obi->volume_precache->data_b[i] = scatter_col[2];
+				
 			}
 		}
 	}
@@ -503,7 +549,7 @@ static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, Ob
 	int i=0, x, y, z;
 	float voxel[3];
 	int sizex, sizey, sizez;
-	float *bbmin=obi->obr->boundbox[0], *bbmax=obi->obr->boundbox[1];
+	float bbmin[3], bbmax[3];
 	int *res;
 	int minx, maxx;
 	int miny, maxy;
@@ -517,11 +563,13 @@ static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, Ob
 	parts[0] = parts[1] = parts[2] = totthread;
 	res = vp->res;
 	
+	/* using boundbox in worldspace */
+	global_bounds_obi(re, obi, bbmin, bbmax);
 	sub_v3_v3v3(voxel, bbmax, bbmin);
 	
-	voxel[0] /= res[0];
-	voxel[1] /= res[1];
-	voxel[2] /= res[2];
+	voxel[0] /= (float)res[0];
+	voxel[1] /= (float)res[1];
+	voxel[2] /= (float)res[2];
 
 	for (x=0; x < parts[0]; x++) {
 		sizex = ceil(res[0] / (float)parts[0]);
@@ -550,8 +598,10 @@ static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, Ob
 				pa->tree = tree;
 				pa->shi = shi;
 				pa->obi = obi;
-				VECCOPY(pa->bbmin, bbmin);
-				VECCOPY(pa->voxel, voxel);
+				copy_m4_m4(pa->viewmat, re->viewmat);
+				
+				copy_v3_v3(pa->bbmin, bbmin);
+				copy_v3_v3(pa->voxel, voxel);
 				VECCOPY(pa->res, res);
 				
 				pa->minx = minx; pa->maxx = maxx;
@@ -582,10 +632,14 @@ static VolPrecachePart *precache_get_new_part(Render *re)
 	return nextpa;
 }
 
-static int precache_resolution(VolumePrecache *vp, float *bbmin, float *bbmax, int res)
+/* calculate resolution from bounding box in world space */
+static int precache_resolution(Render *re, VolumePrecache *vp, ObjectInstanceRen *obi, int res)
 {
 	float dim[3], div;
+	float bbmin[3], bbmax[3];
 	
+	/* bound box in global space */
+	global_bounds_obi(re, obi, bbmin, bbmax);
 	sub_v3_v3v3(dim, bbmax, bbmin);
 	
 	div = MAX3(dim[0], dim[1], dim[2]);
@@ -593,9 +647,9 @@ static int precache_resolution(VolumePrecache *vp, float *bbmin, float *bbmax, i
 	dim[1] /= div;
 	dim[2] /= div;
 	
-	vp->res[0] = dim[0] * (float)res;
-	vp->res[1] = dim[1] * (float)res;
-	vp->res[2] = dim[2] * (float)res;
+	vp->res[0] = ceil(dim[0] * res);
+	vp->res[1] = ceil(dim[1] * res);
+	vp->res[2] = ceil(dim[2] * res);
 	
 	if ((vp->res[0] < 1) || (vp->res[1] < 1) || (vp->res[2] < 1))
 		return 0;
@@ -615,7 +669,6 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	RayObject *tree;
 	ShadeInput shi;
 	ListBase threads;
-	float *bbmin=obi->obr->boundbox[0], *bbmax=obi->obr->boundbox[1];
 	int parts[3] = {1, 1, 1}, totparts;
 	
 	int caching=1, counter=0;
@@ -627,15 +680,13 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 
 	/* create a raytree with just the faces of the instanced ObjectRen, 
 	 * used for checking if the cached point is inside or outside. */
-	//tree = create_raytree_obi(obi, bbmin, bbmax);
 	tree = makeraytree_object(&R, obi);
 	if (!tree) return;
-	INIT_MINMAX(bbmin, bbmax);
-	RE_rayobject_merge_bb( tree, bbmin, bbmax);
 
 	vp = MEM_callocN(sizeof(VolumePrecache), "volume light cache");
+	obi->volume_precache = vp;
 	
-	if (!precache_resolution(vp, bbmin, bbmax, ma->vol.precache_resolution)) {
+	if (!precache_resolution(re, vp, obi, ma->vol.precache_resolution)) {
 		MEM_freeN(vp);
 		vp = NULL;
 		return;
@@ -649,7 +700,6 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 		vp = NULL;
 		return;
 	}
-	obi->volume_precache = vp;
 
 	/* Need a shadeinput to calculate scattering */
 	precache_setup_shadeinput(re, obi, ma, &shi);
@@ -749,6 +799,8 @@ void free_volume_precache(Render *re)
 			MEM_freeN(obi->volume_precache->data_r);
 			MEM_freeN(obi->volume_precache->data_g);
 			MEM_freeN(obi->volume_precache->data_b);
+			MEM_freeN(obi->volume_precache->bbmin);
+			MEM_freeN(obi->volume_precache->bbmax);
 			MEM_freeN(obi->volume_precache);
 			obi->volume_precache = NULL;
 		}

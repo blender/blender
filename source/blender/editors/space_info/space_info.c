@@ -37,10 +37,8 @@
 #include "BLI_rand.h"
 
 #include "BKE_context.h"
-#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "ED_screen.h"
 
@@ -51,6 +49,7 @@
 
 #include "UI_resources.h"
 #include "UI_interface.h"
+
 
 #include "info_intern.h"	// own include
 

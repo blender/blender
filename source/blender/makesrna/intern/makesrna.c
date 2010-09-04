@@ -628,6 +628,14 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 					fprintf(f, "	if(value.data)\n");
 					fprintf(f, "		id_us_plus((ID*)value.data);\n\n");
 				}
+				else {
+					PointerPropertyRNA *pprop= (PointerPropertyRNA*)dp->prop;
+					StructRNA *type= rna_find_struct((char*)pprop->type);
+					if(type && (type->flag & STRUCT_ID)) {
+						fprintf(f, "	if(value.data)\n");
+						fprintf(f, "		id_lib_extern((ID*)value.data);\n\n");
+					}
+				}
 
 				fprintf(f, "	data->%s= value.data;\n", dp->dnaname);
 
@@ -2080,7 +2088,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 			}
 			case PROP_POINTER: {
 				PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
-				fprintf(f, "\t%s, %s, %s, ", rna_function_string(pprop->get), rna_function_string(pprop->set), rna_function_string(pprop->typef));
+				fprintf(f, "\t%s, %s, %s, %s,", rna_function_string(pprop->get), rna_function_string(pprop->set), rna_function_string(pprop->typef), rna_function_string(pprop->poll));
 				if(pprop->type) fprintf(f, "&RNA_%s\n", (char*)pprop->type);
 				else fprintf(f, "NULL\n");
 				break;

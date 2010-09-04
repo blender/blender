@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -12,7 +11,6 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
-#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 

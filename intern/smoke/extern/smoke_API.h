@@ -38,11 +38,11 @@ struct FLUID_3D;
 void smoke_export(struct FLUID_3D *fluid, float *dt, float *dx, float **dens, float **densold, float **heat, float **heatold, float **vx, float **vy, float **vz, float **vxold, float **vyold, float **vzold, unsigned char **obstacles);
 
 // low res
-struct FLUID_3D *smoke_init(int *res, float *p0, float dt);
+struct FLUID_3D *smoke_init(int *res, float *p0);
 void smoke_free(struct FLUID_3D *fluid);
 
-void smoke_initBlenderRNA(struct FLUID_3D *fluid, float *alpha, float *beta);
-void smoke_step(struct FLUID_3D *fluid, size_t framenr);
+void smoke_initBlenderRNA(struct FLUID_3D *fluid, float *alpha, float *beta, float *dt_factor, float *vorticity, int *border_colli);
+void smoke_step(struct FLUID_3D *fluid, size_t framenr, float fps);
 
 float *smoke_get_density(struct FLUID_3D *fluid);
 float *smoke_get_heat(struct FLUID_3D *fluid);

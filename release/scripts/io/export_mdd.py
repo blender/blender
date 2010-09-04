@@ -65,7 +65,7 @@ def check_vertcount(mesh, vertcount):
     '''
     check and make sure the vertcount is consistent throughout the frame range
     '''
-    if len(mesh.verts) != vertcount:
+    if len(mesh.vertices) != vertcount:
         raise Exception('Error, number of verts has changed during animation, cannot export')
         f.close()
         zero_file(filepath)
@@ -94,7 +94,7 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
     [0.0, 0.0, 0.0, 1.0],\
     )
 
-    numverts = len(me.verts)
+    numverts = len(me.vertices)
 
     numframes = PREF_ENDFRAME - PREF_STARTFRAME + 1
     PREF_FPS = float(PREF_FPS)
@@ -114,7 +114,7 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 
     check_vertcount(me, numverts)
     me.transform(mat_flip * ob.matrix_world)
-    f.write(pack(">%df" % (numverts * 3), *[axis for v in me.verts for axis in v.co]))
+    f.write(pack(">%df" % (numverts * 3), *[axis for v in me.vertices for axis in v.co]))
 
     for frame in range(PREF_STARTFRAME, PREF_ENDFRAME + 1):#in order to start at desired frame
         """
@@ -128,10 +128,10 @@ def write(filename, sce, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
         me.transform(mat_flip * ob.matrix_world)
 
         # Write the vertex data
-        f.write(pack(">%df" % (numverts * 3), *[axis for v in me.verts for axis in v.co]))
+        f.write(pack(">%df" % (numverts * 3), *[axis for v in me.vertices for axis in v.co]))
 
     """
-    me_tmp.verts= None
+    me_tmp.vertices= None
     """
     f.close()
 
@@ -165,36 +165,43 @@ class ExportMDD(bpy.types.Operator):
     frame_start = IntProperty(name="Start Frame", description="Start frame for baking", min=minframe, max=maxframe, default=1)
     frame_end = IntProperty(name="End Frame", description="End frame for baking", min=minframe, max=maxframe, default=250)
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         ob = context.active_object
         return (ob and ob.type == 'MESH')
 
     def execute(self, context):
-        if not self.properties.filepath:
-            raise Exception("filename not set")
-        write(self.properties.filepath, context.scene, context.active_object,
-            self.properties.frame_start, self.properties.frame_end, self.properties.fps)
+        filepath = self.properties.filepath
+        filepath = bpy.path.ensure_ext(filepath, ".mdd")
+        
+        write(filepath,
+              context.scene,
+              context.active_object,
+              self.properties.frame_start,
+              self.properties.frame_end,
+              self.properties.fps,
+              )
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
+        import os
+        if not self.properties.is_property_set("filepath"):
+            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".mdd"
+
+        context.manager.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):
-    import os
-    default_path = os.path.splitext(bpy.data.filepath)[0] + ".mdd"
-    self.layout.operator(ExportMDD.bl_idname, text="Lightwave Point Cache (.mdd)").filepath = default_path
+    self.layout.operator(ExportMDD.bl_idname, text="Lightwave Point Cache (.mdd)")
 
 
 def register():
-    bpy.types.register(ExportMDD)
     bpy.types.INFO_MT_file_export.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(ExportMDD)
     bpy.types.INFO_MT_file_export.remove(menu_func)
 
 if __name__ == "__main__":

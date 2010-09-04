@@ -508,7 +508,7 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\gpu\gpu_buffers.h"
+				RelativePath="..\..\..\source\blender\gpu\GPU_buffers.h"
 				>
 			</File>
 			<File

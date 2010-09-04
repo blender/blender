@@ -37,6 +37,11 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
+#include "DNA_meshdata_types.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_math.h"
+#include "BLI_edgehash.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
@@ -591,7 +596,7 @@ int cloth_collision_response_static ( ClothModifierData *clmd, CollisionModifier
 	return result;
 }
 
-//Determines collisions on overlap, collisions are writen to collpair[i] and collision+number_collision_found is returned
+//Determines collisions on overlap, collisions are written to collpair[i] and collision+number_collision_found is returned
 CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap *overlap, CollPair *collpair )
 {
 	ClothModifierData *clmd = ( ClothModifierData * ) md1;
@@ -686,8 +691,7 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 
 		if ( distance <= ( epsilon1 + epsilon2 + ALMOST_ZERO ) )
 		{
-			VECCOPY ( collpair->normal, collpair->vector );
-			normalize_v3( collpair->normal );
+			normalize_v3_v3( collpair->normal, collpair->vector );
 
 			collpair->distance = distance;
 			collpair->flag = 0;

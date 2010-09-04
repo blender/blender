@@ -38,11 +38,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_screen.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
 
 #include "BLF_api.h"
 
@@ -429,21 +426,25 @@ static void renamebutton_cb(bContext *C, void *arg1, char *oldname)
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	ARegion* ar = CTX_wm_region(C);
 
+#if 0
 	struct direntry *file = (struct direntry *)arg1;
+#endif
 
 	BLI_make_file_string(G.sce, orgname, sfile->params->dir, oldname);
-	BLI_strncpy(filename, file->relname, sizeof(filename));
+	BLI_strncpy(filename, sfile->params->renameedit, sizeof(filename));
 	BLI_make_file_string(G.sce, newname, sfile->params->dir, filename);
 
 	if( strcmp(orgname, newname) != 0 ) {
 		if (!BLI_exists(newname)) {
 			BLI_rename(orgname, newname);
 			/* to make sure we show what is on disk */
+#if 0		/* this is cleared anyway, no need */
+			MEM_freeN(file->relname);
+			file->relname= BLI_strdup(sfile->params->renameedit);
+#endif
 			ED_fileselect_clear(C, sfile);
-		} else {
-			BLI_strncpy(file->relname, oldname, strlen(oldname)+1);
 		}
-		
+
 		ED_region_tag_redraw(ar);
 	}
 }
@@ -538,7 +539,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			int but_width = (FILE_IMGDISPLAY == params->display) ? layout->tile_w : layout->column_widths[COLUMN_NAME];
 
 			uiBut *but = uiDefBut(block, TEX, 1, "", spos, sy-layout->tile_h-3, 
-				but_width, layout->textheight*2, file->relname, 1.0f, (float)FILE_MAX,0,0,"");
+				but_width, layout->textheight*2, sfile->params->renameedit, 1.0f, (float)sizeof(sfile->params->renameedit),0,0,"");
 			uiButSetRenameFunc(but, renamebutton_cb, file);
 			if ( 0 == uiButActiveOnly(C, block, but)) {
 				file->flags &= ~EDITING;

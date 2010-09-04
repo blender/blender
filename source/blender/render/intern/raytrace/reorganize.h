@@ -269,7 +269,7 @@ void pushdown(Node *parent)
 
 /*
  * BVH refit
- * reajust nodes BB (useful if nodes childs where modified)
+ * readjust nodes BB (useful if nodes childs where modified)
  */
 template<class Node>
 float bvh_refit(Node *node)
@@ -295,7 +295,7 @@ float bvh_refit(Node *node)
 
 
 /*
- * this finds the best way to packing a tree acording to a given test cost function
+ * this finds the best way to packing a tree according to a given test cost function
  * with the purpose to reduce the expected cost (eg.: number of BB tests).
  */
 #include <vector>

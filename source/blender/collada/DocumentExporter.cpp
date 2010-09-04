@@ -1735,7 +1735,7 @@ public:
 				twoSided = true;
 		}
 		if (twoSided)
-			ep.addExtraTechniqueParameter("GOOGLEEARTH", "double_sided", 1);
+			ep.addExtraTechniqueParameter("GOOGLEEARTH", "show_double_sided", 1);
 		ep.addExtraTechniques(mSW);
 
 		ep.closeProfile();
@@ -1774,6 +1774,7 @@ public:
 
 		for (int a = 0; a < MAX_MTEX; a++) {
 			if (ma->mtex[a] &&
+				ma->mtex[a]->tex &&
 				ma->mtex[a]->tex->type == TEX_IMAGE &&
 				ma->mtex[a]->texco == TEXCO_UV){
 				indices.push_back(a);

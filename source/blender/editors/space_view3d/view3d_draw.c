@@ -33,6 +33,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_customdata_types.h"
+#include "DNA_object_types.h"
 #include "DNA_group_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
@@ -49,7 +50,6 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_image.h"
-#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
@@ -78,7 +78,6 @@
 #include "ED_space_api.h"
 #include "ED_screen_types.h"
 #include "ED_transform.h"
-#include "ED_gpencil.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -190,7 +189,7 @@ void view3d_clr_clipping(void)
 static int test_clipping(float *vec, float clip[][4])
 {
 	float view[3];
-	VECCOPY(view, vec);
+	copy_v3_v3(view, vec);
 	
 	if(0.0f < clip[0][3] + INPR(view, clip[0]))
 		if(0.0f < clip[1][3] + INPR(view, clip[1]))
@@ -212,28 +211,37 @@ int view3d_test_clipping(RegionView3D *rv3d, float *vec, int local)
 
 
 static void drawgrid_draw(ARegion *ar, float wx, float wy, float x, float y, float dx)
-{
-	float fx, fy;
-	
+{	
+	float v1[2], v2[2];
+
 	x+= (wx); 
 	y+= (wy);
-	fx= x/dx;
-	fx= x-dx*floor(fx);
+
+	v1[1]= 0.0f;
+	v2[1]= (float)ar->winy;
+
+	v1[0] = v2[0] = x-dx*floor(x/dx);
 	
-	while(fx< ar->winx) {
-		fdrawline(fx,  0.0,  fx,  (float)ar->winy); 
-		fx+= dx; 
+	glBegin(GL_LINES);
+	
+	while(v1[0] < ar->winx) {
+		glVertex2fv(v1);
+		glVertex2fv(v2);
+		v1[0] = v2[0] = v1[0] + dx;
 	}
 
-	fy= y/dx;
-	fy= y-dx*floor(fy);
-	
+	v1[0]= 0.0f;
+	v2[0]= (float)ar->winx;
 
-	while(fy< ar->winy) {
-		fdrawline(0.0,  fy,  (float)ar->winx,  fy); 
-		fy+= dx;
+	v1[1]= v2[1]= y-dx*floor(y/dx);
+
+	while(v1[1] < ar->winy) {
+		glVertex2fv(v1);
+		glVertex2fv(v2);
+		v1[1] = v2[1] = v1[1] + dx;
 	}
 
+	glEnd();
 }
 
 #define GRID_MIN_PX 6.0f
@@ -972,6 +980,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);          // interface_panel.c
 	float fac, a;
 	float x1, x2, y1, y2;
+	float x1i, x2i, y1i, y2i;
 	float x3, y3, x4, y4;
 	rctf viewborder;
 	Camera *ca= NULL;
@@ -983,10 +992,17 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		ca = v3d->camera->data;
 	
 	calc_viewborder(scene, ar, rv3d, v3d, &viewborder);
+	/* the offsets */
 	x1= viewborder.xmin;
 	y1= viewborder.ymin;
 	x2= viewborder.xmax;
 	y2= viewborder.ymax;
+	
+	/* apply offsets so the real 3D camera shows through */
+	x1i= (int)(x1 - 1.0f);
+	y1i= (int)(y1 - 1.0f);
+	x2i= (int)(x2 + 1.0f);
+	y2i= (int)(y2 + 1.0f);
 	
 	/* passepartout, specified in camera edit buttons */
 	if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT) && ca->passepartalpha > 0.000001) {
@@ -997,29 +1013,29 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			glEnable(GL_BLEND);
 			glColor4f(0, 0, 0, ca->passepartalpha);
 		}
-		if (x1 > 0.0)
-			glRectf(0.0, (float)ar->winy, x1, 0.0);
-		if (x2 < (float)ar->winx)
-			glRectf(x2, (float)ar->winy, (float)ar->winx, 0.0);
-		if (y2 < (float)ar->winy)
-			glRectf(x1, (float)ar->winy, x2, y2);
-		if (y2 > 0.0) 
-			glRectf(x1, y1, x2, 0.0);
+		if (x1i > 0.0)
+			glRectf(0.0, (float)ar->winy, x1i, 0.0);
+		if (x2i < (float)ar->winx)
+			glRectf(x2i, (float)ar->winy, (float)ar->winx, 0.0);
+		if (y2i < (float)ar->winy)
+			glRectf(x1i, (float)ar->winy, x2i, y2i);
+		if (y2i > 0.0) 
+			glRectf(x1i, y1i, x2i, 0.0);
 		
 		glDisable(GL_BLEND);
 	}
-	
+
 	/* edge */
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
-	
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	
+
 	setlinestyle(0);
 	UI_ThemeColor(TH_BACK);
-	glRectf(x1, y1, x2, y2);
+	glRectf(x1i, y1i, x2i, y2i);
 	
 	setlinestyle(3);
 	UI_ThemeColor(TH_WIRE);
-	glRectf(x1, y1, x2, y2);
-	
+	glRectf(x1i, y1i, x2i, y2i);
+
 	/* border */
 	if(scene->r.mode & R_BORDER) {
 		
@@ -1032,7 +1048,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		cpack(0x4040FF);
 		glRectf(x3,  y3,  x4,  y4); 
 	}
-	
+    
 	/* safety border */
 	if (ca && (ca->flag & CAM_SHOWTITLESAFE)) {
 		fac= 0.1;
@@ -1050,21 +1066,21 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		uiSetRoundBox(15);
 		gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 	}
-	
+
 	setlinestyle(0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	
+
 	/* camera name - draw in highlighted text color */
 	if (ca && (ca->flag & CAM_SHOWNAME)) {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(x1, y1-15, 0.0f, v3d->camera->id.name+2);
+		BLF_draw_default(x1i, y1i-15, 0.0f, v3d->camera->id.name+2);
 		UI_ThemeColor(TH_WIRE);
 	}
 }
 
 /* *********************** backdraw for selection *************** */
 
-void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
+static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	struct Base *base = scene->basact;
@@ -1117,6 +1133,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 
 	v3d->flag &= ~V3D_INVALID_BACKBUF;
+	ar->swap= 0; /* mark invalid backbuf for wm draw */
 
 	G.f &= ~G_BACKBUFSEL;
 	v3d->zbuf= FALSE; 
@@ -1729,8 +1746,12 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	if (v3d->afterdraw.first) {
 		View3DAfter *v3da, *next;
 		int num = 0;
+		int mask_orig;
 		v3d->xray= TRUE;
 		
+		/* transp materials can change the depth mask, see #21388 */
+		glGetIntegerv(GL_DEPTH_WRITEMASK, &mask_orig);
+
 		glDepthFunc(GL_ALWAYS); /* always write into the depth bufer, overwriting front z values */
 		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
 			next= v3da->next;
@@ -1757,6 +1778,8 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 		}
 		v3d->xray= FALSE;
 		v3d->transp= FALSE;
+
+		glDepthMask(mask_orig);
 	}
 	
 	if(rv3d->rflag & RV3D_CLIPPING)
@@ -1784,7 +1807,7 @@ static void gpu_render_lamp_update(Scene *scene, View3D *v3d, Object *ob, Object
 	lamp = GPU_lamp_from_blender(scene, ob, par);
 	
 	if(lamp) {
-		GPU_lamp_update(lamp, ob->lay, obmat);
+		GPU_lamp_update(lamp, ob->lay, (ob->restrictflag & OB_RESTRICT_RENDER), obmat);
 		GPU_lamp_update_colors(lamp, la->r, la->g, la->b, la->energy);
 		
 		if((ob->lay & v3d->lay) && GPU_lamp_has_shadow_buffer(lamp)) {
@@ -1931,9 +1954,9 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	{
 		float len1, len2, vec[3];
 		
-		VECCOPY(vec, rv3d->persinv[0]);
+		copy_v3_v3(vec, rv3d->persinv[0]);
 		len1= normalize_v3(vec);
-		VECCOPY(vec, rv3d->persinv[1]);
+		copy_v3_v3(vec, rv3d->persinv[1]);
 		len2= normalize_v3(vec);
 		
 		rv3d->pixsize= 2.0f*(len1>len2?len1:len2);
@@ -1954,6 +1977,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 {
 	Scene *sce;
 	Base *base;
+	float backcol[3];
 	int bwinx, bwiny;
 
 	glPushMatrix();
@@ -1973,7 +1997,11 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 
 	/* set background color, fallback on the view background color */
 	if(scene->world) {
-		glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
+		if(scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
+		else
+			copy_v3_v3(backcol, &scene->world->horr);
+		glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
 	}
 	else {
 		UI_ThemeClearColor(TH_BACK);	
@@ -2191,6 +2219,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Scene *sce;
 	Base *base;
 	Object *ob;
+	float backcol[3];
 	int retopo= 0, sculptparticle= 0;
 	Object *obact = OBACT;
 	char *grid_unit= NULL;
@@ -2209,7 +2238,16 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 	/* clear background */
-	UI_ThemeClearColor(TH_BACK);
+	if((v3d->flag2 & V3D_RENDER_OVERRIDE) && scene->world) {
+		if(scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
+		else
+			copy_v3_v3(backcol, &scene->world->horr);
+		glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
+	}
+	else
+		UI_ThemeClearColor(TH_BACK);
+
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	
 	/* setup view matrices */
@@ -2394,8 +2432,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	ob= OBACT;
 	if(U.uiflag & USER_DRAWVIEWINFO) 
 		draw_selected_name(scene, ob, v3d);
-
-	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
 	
 	/* XXX here was the blockhandlers for floating panels */
 

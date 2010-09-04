@@ -68,7 +68,8 @@ int EDBM_CallOpf(struct BMEditMesh *em, struct wmOperator *op, char *fmt, ...);
 /*calls a bmesh op, reporting errors to the user, etc.
 
   selects an output slot specified by selslot*/
-int EDBM_CallAndSelectOpf(struct BMEditMesh *em, struct wmOperator *op, char *selslot, char *fmt, ...);
+//int EDBM_CallAndSelectOpf(struct BMEditMesh *em, struct wmOperator *op, char *selslot, char *fmt, ...);
+//moved to ED_mesh.h
 
 /*same as above, but doesn't report errors.*/
 int EDBM_CallOpfSilent(struct BMEditMesh *em, char *fmt, ...);

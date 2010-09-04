@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -40,9 +39,6 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
-#include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 
@@ -83,7 +79,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_cursor3d);
 	WM_operatortype_append(VIEW3D_OT_select_lasso);
 	WM_operatortype_append(VIEW3D_OT_setcameratoview);
-	WM_operatortype_append(VIEW3D_OT_setobjectascamera);
+	WM_operatortype_append(VIEW3D_OT_object_as_camera);
 	WM_operatortype_append(VIEW3D_OT_localview);
 	WM_operatortype_append(VIEW3D_OT_game_start);
 	WM_operatortype_append(VIEW3D_OT_fly);
@@ -222,12 +218,12 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	/* drawtype */
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.viewport_shading");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.viewport_shade");
 	RNA_string_set(kmi->ptr, "value_1", "SOLID");
 	RNA_string_set(kmi->ptr, "value_2", "WIREFRAME");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", ZKEY, KM_PRESS, KM_ALT, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.viewport_shading");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.viewport_shade");
 	RNA_string_set(kmi->ptr, "value_1", "TEXTURED");
 	RNA_string_set(kmi->ptr, "value_2", "SOLID");
 
@@ -279,7 +275,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point_align");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* new in 2.5 */
-	RNA_string_set(kmi->ptr, "data_path", "space_data.manipulator");
+	RNA_string_set(kmi->ptr, "data_path", "space_data.show_manipulator");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");

@@ -34,7 +34,6 @@
 #include <string.h>
 #include <float.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -45,19 +44,12 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_action.h"
-#include "BKE_depsgraph.h"
-#include "BKE_fcurve.h"
-#include "BKE_key.h"
-#include "BKE_material.h"
-#include "BKE_object.h"
-#include "BKE_global.h" 	// XXX remove me!
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
 
 /* Everything from source (BIF, BDR, BSE) ------------------------------ */ 
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

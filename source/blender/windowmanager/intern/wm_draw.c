@@ -101,6 +101,14 @@ static void wm_area_mark_invalid_backbuf(ScrArea *sa)
 		((View3D*)sa->spacedata.first)->flag |= V3D_INVALID_BACKBUF;
 }
 
+static int wm_area_test_invalid_backbuf(ScrArea *sa)
+{
+	if(sa->spacetype == SPACE_VIEW3D)
+		return (((View3D*)sa->spacedata.first)->flag & V3D_INVALID_BACKBUF);
+	else
+		return 1;
+}
+
 /********************** draw all **************************/
 /* - reference method, draw all each time                 */
 
@@ -188,6 +196,12 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 	ScrArea *sa;
 	ARegion *ar;
 	static rcti rect= {0, 0, 0, 0};
+
+	/* after backbuffer selection draw, we need to redraw */
+	for(sa= screen->areabase.first; sa; sa= sa->next)
+		for(ar= sa->regionbase.first; ar; ar= ar->next)
+			if(ar->swinid && !wm_area_test_invalid_backbuf(sa))
+					ED_region_tag_redraw(ar);
 
 	/* flush overlapping regions */
 	if(screen->regionbase.first) {
@@ -677,13 +691,26 @@ static int wm_draw_update_test_window(wmWindow *win)
 
 static int wm_automatic_draw_method(wmWindow *win)
 {
+	/* Ideally all cards would work well with triple buffer, since if it works
+	   well gives the least redraws and is considerably faster at partial redraw
+	   for sculpting or drawing overlapping menus. For typically lower end cards
+	   copy to texture is slow though and so we use overlap instead there. */
+
 	if(win->drawmethod == USER_DRAW_AUTOMATIC) {
 		/* ATI opensource driver is known to be very slow at this */
 		if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE))
 			return USER_DRAW_OVERLAP;
+		/* also Intel drivers are slow */
+		else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_UNIX, GPU_DRIVER_ANY))
+			return USER_DRAW_OVERLAP;
+		else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY))
+			return USER_DRAW_OVERLAP_FLIP;
+		else if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY))
+			return USER_DRAW_OVERLAP_FLIP;
 		/* Windows software driver darkens color on each redraw */
 		else if(GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
 			return USER_DRAW_OVERLAP_FLIP;
+		/* drawing lower color depth again degrades colors each time */
 		else if(GPU_color_depth() < 24)
 			return USER_DRAW_OVERLAP;
 		else
@@ -779,5 +806,13 @@ void wm_draw_region_clear(wmWindow *win, ARegion *ar)
 		wm_flush_regions_down(win->screen, &ar->winrct);
 
 	win->screen->do_draw= 1;
+}
+
+void wm_draw_region_modified(wmWindow *win, ARegion *ar)
+{
+	int drawmethod= wm_automatic_draw_method(win);
+
+	if(ELEM(drawmethod, USER_DRAW_OVERLAP, USER_DRAW_OVERLAP_FLIP))
+		ED_region_tag_redraw(ar);
 }
 

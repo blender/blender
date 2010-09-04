@@ -62,10 +62,7 @@
 #include "BLI_storage_types.h"
 #include "BLI_dynstr.h"
 
-#include "BLO_readfile.h"
-
 #include "BKE_context.h"
-#include "BKE_screen.h"
 #include "BKE_global.h"
 
 #include "BLF_api.h"
@@ -76,8 +73,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "RNA_access.h"
 
@@ -207,6 +202,13 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		params->filter = 0;
 		params->sort = FILE_SORT_ALPHA;
 	}
+
+
+	/* initialize the list with previous folders */
+	if (!sfile->folders_prev)
+		sfile->folders_prev = folderlist_new();
+	folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
+
 	return 1;
 }
 

@@ -158,6 +158,48 @@ General functions
 
    Saves bge.logic.globalDict to a file.
 
+.. function:: startGame(blend)
+
+   Loads the blend file.
+   
+   :arg blend: The name of the blend file
+   :type blend: string
+
+.. function:: endGame()
+
+   Ends the current game.
+
+.. function:: restartGame()
+
+   Restarts the current game by reloading the .blend file (the last saved version, not what is currently running).
+   
+.. function:: LibLoad(blend, type)
+   
+   Converts the all of the datablocks of the given type from the given blend.
+   
+   :arg blend: The path to the blend file
+   :type blend: string
+   :arg type: The datablock type (currently only "Scene" and "Mesh" are supported)
+   :type type: string
+   
+.. function:: LibNew(name, type, data)
+
+   Uses existing datablock data and loads in as a new library.
+   
+   :arg name: A unique library name used for removal later
+   :type name: string
+   :arg type: The datablock type (currently only "Mesh" is supported)
+   :type type: string
+   :arg data: A list of names of the datablocks to load
+   :type data: list of strings
+   
+.. function:: LibFree(name)
+
+   Frees a library, removing all objects and meshes from the currently active scenes.
+
+   :arg name: The name of the library to free (the name used in LibNew)
+   :type name: string
+
 .. function:: addScene(name, overlay=1)
 
    Loads a scene into the game engine.
@@ -202,24 +244,24 @@ General functions
 
 .. function:: getMaxLogicFrame()
 
-   Gets the maximum number of logic frame per render frame.
+   Gets the maximum number of logic frames per render frame.
    
-   :return: The maximum number of logic frame per render frame
+   :return: The maximum number of logic frames per render frame
    :rtype: integer
 
 .. function:: setMaxLogicFrame(maxlogic)
 
-   Sets the maximum number of logic frame that are executed per render frame.
+   Sets the maximum number of logic frames that are executed per render frame.
    This does not affect the physic system that still runs at full frame rate.   
     
-   :arg maxlogic: The new maximum number of logic frame per render frame. Valid values: 1..5
+   :arg maxlogic: The new maximum number of logic frames per render frame. Valid values: 1..5
    :type maxlogic: integer
 
 .. function:: getMaxPhysicsFrame()
 
-   Gets the maximum number of physics frame per render frame.
+   Gets the maximum number of physics frames per render frame.
    
-   :return: The maximum number of physics frame per render frame
+   :return: The maximum number of physics frames per render frame
    :rtype: integer
 
 .. function:: setMaxPhysicsFrame(maxphysics)
@@ -269,14 +311,6 @@ General functions
    :type ticrate: float
 
    .. warning: Not implimented yet
-
-.. function:: saveGlobalDict()
-
-   Saves bge.logic.globalDict to a file.
-
-.. function:: loadGlobalDict()
-
-   Loads bge.logic.globalDict from a file.
 
 *****************
 Utility functions

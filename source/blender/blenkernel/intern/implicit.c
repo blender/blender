@@ -29,15 +29,20 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_cloth.h"
-
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_meshdata_types.h"
 
+#include "BLI_threads.h"
+#include "BLI_math.h"
+#include "BLI_linklist.h"
+
+#include "BKE_cloth.h"
+#include "BKE_collision.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
-
-#include "BLI_threads.h"
 
 #define CLOTH_OPENMP_LIMIT 25
 
@@ -1621,9 +1626,8 @@ static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF,
 				CalcFloat4(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],lX[mfaces[i].v4],triunnormal);
 			else
 				CalcFloat(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],triunnormal);
-			
-			VECCOPY(trinormal, triunnormal);
-			normalize_v3(trinormal);
+
+			normalize_v3_v3(trinormal, triunnormal);
 			
 			// add wind from v1
 			VECCOPY(tmp, trinormal);

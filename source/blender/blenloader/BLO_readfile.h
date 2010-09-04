@@ -111,38 +111,6 @@ BlendFileData *BLO_read_from_memfile(struct Main *oldmain, const char *filename,
 	void
 BLO_blendfiledata_free(
 	BlendFileData *bfd);
-
-/**
- * Convert an idcode into a name.
- * 
- * @param code The code to convert.
- * @return A static string representing the name of
- * the code.
- */
-	char*
-BLO_idcode_to_name(
-	int code);
-	
-/**
- * Convert an idcode into a name (plural).
- * 
- * @param code The code to convert.
- * @return A static string representing the name of
- * the code.
- */
-	char*
-BLO_idcode_to_name_plural(
-	int code);
-
-/**
- * Convert a name into an idcode (ie. ID_SCE)
- * 
- * @param name The name to convert.
- * @return The code for the name, or 0 if invalid.
- */
-	int
-BLO_idcode_from_name(
-	char *name);
 	
 /**
  * Open a blendhandle from a file path.

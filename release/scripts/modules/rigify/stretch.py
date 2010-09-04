@@ -35,7 +35,7 @@ RIG_TYPE = "stretch"
 #    bone.head[:] = 0.0000, 0.0000, 0.0000
 #    bone.tail[:] = 0.0000, 0.0000, 1.0000
 #    bone.roll = 0.0000
-#    bone.connected = False
+#    bone.use_connect = False
 #
 #    bpy.ops.object.mode_set(mode='OBJECT')
 #    pbone = obj.pose.bones['Bone']
@@ -84,7 +84,7 @@ def main(obj, bone_definition, base_names, options):
     mbone2 = "ORG-" + options["to"]
 
     bone_e = copy_bone_simple(obj.data, mbone1, "DEF-%s" % base_names[bone_definition[0]])
-    bone_e.connected = False
+    bone_e.use_connect = False
     bone_e.parent = eb[mbone1]
     bone_e.tail = eb[mbone2].head
     bone = bone_e.name
@@ -100,7 +100,7 @@ def main(obj, bone_definition, base_names, options):
     con = pb[bone].constraints.new('STRETCH_TO')
     con.target = obj
     con.subtarget = mbone2
-    con.original_length = bb[bone].length
+    con.rest_length = bb[bone].length
     if preserve_volume:
         con.volume = 'VOLUME_XZX'
     else:

@@ -52,9 +52,9 @@ class SelectPattern(bpy.types.Operator):
         # Can be pose bones or objects
         for item in items:
             if pattern_match(item.name, self.properties.pattern):
-                item.selected = True
+                item.select = True
             elif not self.properties.extend:
-                item.selected = False
+                item.select = False
 
         return {'FINISHED'}
 
@@ -80,7 +80,8 @@ class SelectCamera(bpy.types.Operator):
     bl_label = "Select Camera"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return context.scene.camera is not None
 
     def execute(self, context):
@@ -90,7 +91,7 @@ class SelectCamera(bpy.types.Operator):
             self.report({'WARNING'}, "Active camera is not in this scene")
 
         context.scene.objects.active = camera
-        camera.selected = True
+        camera.select = True
         return {'FINISHED'}
 
 
@@ -109,48 +110,51 @@ class SelectHierarchy(bpy.types.Operator):
 
     extend = BoolProperty(name="Extend", description="Extend the existing selection", default=False)
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return context.object
 
     def execute(self, context):
-        objs = context.selected_objects
+        select_new = []
+        act_new = None
+        
+        
+        selected_objects = context.selected_objects
         obj_act = context.object
 
-        if context.object not in objs:
-            objs.append(context.object)
-
-        if not self.properties.extend:
-            # for obj in objs:
-            #     obj.selected = False
-            bpy.ops.object.select_all(action='DESELECT')
+        if context.object not in selected_objects:
+            selected_objects.append(context.object)
 
         if self.properties.direction == 'PARENT':
-            parents = []
-            for obj in objs:
+            for obj in selected_objects:
                 parent = obj.parent
 
                 if parent:
-                    parents.append(parent)
-
                     if obj_act == obj:
-                        context.scene.objects.active = parent
+                        act_new = parent
 
-                    parent.selected = True
-                
-            if parents:
-                return {'CANCELLED'}
+                    select_new.append(parent)
 
         else:
-            children = []
-            for obj in objs:
-                children += list(obj.children)
-                for obj_iter in children:
-                    obj_iter.selected = True
+            for obj in selected_objects:
+                select_new.extend(obj.children)
 
-            children.sort(key=lambda obj_iter: obj_iter.name)
-            context.scene.objects.active = children[0]
+            if select_new:
+                select_new.sort(key=lambda obj_iter: obj_iter.name)
+                act_new = select_new[0]
 
-        return {'FINISHED'}
+        # dont edit any object settings above this
+        if select_new:
+            if not self.properties.extend:
+                bpy.ops.object.select_all(action='DESELECT')
+
+            for obj in select_new:
+                obj.select = True
+
+            context.scene.objects.active = act_new
+            return {'FINISHED'}
+            
+        return {'CANCELLED'}
 
 
 class SubdivisionSet(bpy.types.Operator):
@@ -165,7 +169,8 @@ class SubdivisionSet(bpy.types.Operator):
 
     relative = BoolProperty(name="Relative", description="Apply the subsurf level as an offset relative to the current level", default=False)
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         obs = context.selected_editable_objects
         return (obs is not None)
 
@@ -251,7 +256,7 @@ class ShapeTransfer(bpy.types.Operator):
                 key = ob.add_shape_key(from_mix=False) # we need a rest
             key.name = name
             ob.active_shape_key_index = len(me.shape_keys.keys) - 1
-            ob.shape_key_lock = True
+            ob.show_shape_key = True
 
         from geometry import BarycentricTransform
         from mathutils import Vector
@@ -264,28 +269,28 @@ class ShapeTransfer(bpy.types.Operator):
 
         orig_shape_coords = me_cos(ob_act.active_shape_key.data)
 
-        orig_normals = me_nos(me.verts)
-        # orig_coords = me_cos(me.verts) # the actual mverts location isnt as relyable as the base shape :S
+        orig_normals = me_nos(me.vertices)
+        # orig_coords = me_cos(me.vertices) # the actual mverts location isnt as relyable as the base shape :S
         orig_coords = me_cos(me.shape_keys.keys[0].data)
 
         for ob_other in objects:
             me_other = ob_other.data
-            if len(me_other.verts) != len(me.verts):
+            if len(me_other.vertices) != len(me.vertices):
                 self.report({'WARNING'}, "Skipping '%s', vertex count differs" % ob_other.name)
                 continue
 
-            target_normals = me_nos(me_other.verts)
+            target_normals = me_nos(me_other.vertices)
             if me_other.shape_keys:
                 target_coords = me_cos(me_other.shape_keys.keys[0].data)
             else:
-                target_coords = me_cos(me_other.verts)
+                target_coords = me_cos(me_other.vertices)
 
             ob_add_shape(ob_other, orig_key_name)
 
             # editing the final coords, only list that stores wrapped coords
             target_shape_coords = [v.co for v in ob_other.active_shape_key.data]
 
-            median_coords = [[] for i in range(len(me.verts))]
+            median_coords = [[] for i in range(len(me.vertices))]
 
             # Method 1, edge
             if mode == 'OFFSET':
@@ -294,7 +299,7 @@ class ShapeTransfer(bpy.types.Operator):
 
             elif mode == 'RELATIVE_FACE':
                 for face in me.faces:
-                    i1, i2, i3, i4 = face.verts_raw
+                    i1, i2, i3, i4 = face.vertices_raw
                     if i4 != 0:
                         pt = BarycentricTransform(orig_shape_coords[i1],
                             orig_coords[i4], orig_coords[i1], orig_coords[i2],
@@ -334,7 +339,7 @@ class ShapeTransfer(bpy.types.Operator):
 
             elif mode == 'RELATIVE_EDGE':
                 for ed in me.edges:
-                    i1, i2 = ed.verts
+                    i1, i2 = ed.vertices
                     v1, v2 = orig_coords[i1], orig_coords[i2]
                     edge_length = (v1 - v2).length
                     n1loc = v1 + orig_normals[i1] * edge_length
@@ -377,7 +382,8 @@ class ShapeTransfer(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj and obj.mode != 'EDIT')
 
@@ -407,7 +413,8 @@ class JoinUVs(bpy.types.Operator):
     bl_idname = "object.join_uvs"
     bl_label = "Join as UVs"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj and obj.type == 'MESH')
 
@@ -465,7 +472,8 @@ class MakeDupliFace(bpy.types.Operator):
     bl_idname = "object.make_dupli_face"
     bl_label = "Make DupliFace"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj and obj.type == 'MESH')
 
@@ -497,8 +505,8 @@ class MakeDupliFace(bpy.types.Operator):
             mesh = bpy.data.meshes.new(data.name + "_dupli")
 
             mesh.add_geometry(int(len(face_verts) / 3), 0, int(len(face_verts) / (4 * 3)))
-            mesh.verts.foreach_set("co", face_verts)
-            mesh.faces.foreach_set("verts_raw", faces)
+            mesh.vertices.foreach_set("co", face_verts)
+            mesh.faces.foreach_set("vertices_raw", faces)
             mesh.update() # generates edge data
 
             # pick an object to use
@@ -526,9 +534,9 @@ class MakeDupliFace(bpy.types.Operator):
 
 
 class IsolateTypeRender(bpy.types.Operator):
-    '''Select object matching a naming pattern'''
+    '''Hide unselected render objects of same type as active by setting the hide render flag'''
     bl_idname = "object.isolate_type_render"
-    bl_label = "Isolate Render Selection"
+    bl_label = "Restrict Render Unselected"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -536,36 +544,32 @@ class IsolateTypeRender(bpy.types.Operator):
 
         for obj in context.visible_objects:
 
-            if obj.selected:
-                obj.restrict_render = False
+            if obj.select:
+                obj.hide_render = False
             else:
                 if obj.type == act_type:
-                    obj.restrict_render = True
+                    obj.hide_render = True
 
+        return {'FINISHED'}
+        
+class ClearAllRestrictRender(bpy.types.Operator):
+    '''Reveal all render objects by setting the hide render flag'''
+    bl_idname = "object.hide_render_clear_all"
+    bl_label = "Clear All Restrict Render"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        for obj in context.scene.objects:
+        	obj.hide_render = False
         return {'FINISHED'}
 
 
-classes = [
-    SelectPattern,
-    SelectCamera,
-    SelectHierarchy,
-    SubdivisionSet,
-    ShapeTransfer,
-    JoinUVs,
-    IsolateTypeRender,
-    MakeDupliFace]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

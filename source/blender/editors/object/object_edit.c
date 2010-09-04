@@ -34,7 +34,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf_types.h"
+#include "BLI_blenlib.h"
+#include "BLI_math.h"
+#include "BLI_editVert.h"
+#include "BLI_ghash.h"
+#include "BLI_rand.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
@@ -43,51 +47,31 @@
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_property_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_editVert.h"
-#include "BLI_ghash.h"
-#include "BLI_rand.h"
+#include "IMB_imbuf_types.h"
 
-#include "BKE_action.h"
 #include "BKE_anim.h"
-#include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
-#include "BKE_customdata.h"
-#include "BKE_blender.h"
-#include "BKE_cloth.h"
 #include "BKE_curve.h"
-#include "BKE_displist.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_effect.h"
 #include "BKE_font.h"
-#include "BKE_global.h"
-#include "BKE_group.h"
 #include "BKE_image.h"
-#include "BKE_key.h"
-#include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
-#include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h"
-#include "BKE_report.h"
 #include "BKE_sca.h"
-#include "BKE_scene.h"
 #include "BKE_softbody.h"
-#include "BKE_subsurf.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
 #include "BKE_modifier.h"
 #include "BKE_tessmesh.h"
 
@@ -95,6 +79,7 @@
 #include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_mball.h"
+#include "ED_lattice.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -136,8 +121,9 @@ Object *ED_object_active_context(bContext *C)
 
 
 /* ********* clear/set restrict view *********/
-static int object_restrictview_clear_exec(bContext *C, wmOperator *op)
+static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Scene *scene= CTX_data_scene(C);
@@ -154,31 +140,32 @@ static int object_restrictview_clear_exec(bContext *C, wmOperator *op)
 		}
 	}
 	if (changed) {
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
 
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
+void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Clear Restrict View";
-	ot->description = "Reveal the object by setting the restrictview flag";
-	ot->idname= "OBJECT_OT_restrictview_clear";
+	ot->description = "Reveal the object by setting the hide flag";
+	ot->idname= "OBJECT_OT_hide_view_clear";
 	
 	/* api callbacks */
-	ot->exec= object_restrictview_clear_exec;
+	ot->exec= object_hide_view_clear_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_restrictview_set_exec(bContext *C, wmOperator *op)
+static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	short changed = 0;
 	int unselected= RNA_boolean_get(op->ptr, "unselected");
@@ -205,7 +192,7 @@ static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if (changed) {
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 		
@@ -214,15 +201,15 @@ static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_restrictview_set(wmOperatorType *ot)
+void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Restrict View";
-	ot->description = "Hide the object by setting the restrictview flag";
-	ot->idname= "OBJECT_OT_restrictview_set";
+	ot->description = "Hide the object by setting the hide flag";
+	ot->idname= "OBJECT_OT_hide_view_set";
 	
 	/* api callbacks */
-	ot->exec= object_restrictview_set_exec;
+	ot->exec= object_hide_view_set_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
@@ -233,7 +220,7 @@ void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 }
 
 /* 99% same as above except no need for scene refreshing (TODO, update render preview) */
-static int object_restrictrender_clear_exec(bContext *C, wmOperator *op)
+static int object_hide_render_clear_exec(bContext *C, wmOperator *op)
 {
 	short changed= 0;
 
@@ -252,23 +239,23 @@ static int object_restrictrender_clear_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_restrictrender_clear(wmOperatorType *ot)
+void OBJECT_OT_hide_render_clear(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "Clear Restrict Render";
-	ot->description = "Reveal the render object by setting the restrictrender flag";
-	ot->idname= "OBJECT_OT_restrictrender_clear";
+	ot->description = "Reveal the render object by setting the hide render flag";
+	ot->idname= "OBJECT_OT_hide_render_clear";
 
 	/* api callbacks */
-	ot->exec= object_restrictrender_clear_exec;
+	ot->exec= object_hide_render_clear_exec;
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_restrictrender_set_exec(bContext *C, wmOperator *op)
+static int object_hide_render_set_exec(bContext *C, wmOperator *op)
 {
 	int unselected= RNA_boolean_get(op->ptr, "unselected");
 
@@ -289,15 +276,15 @@ static int object_restrictrender_set_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_restrictrender_set(wmOperatorType *ot)
+void OBJECT_OT_hide_render_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Restrict Render";
-	ot->description = "Hide the render object by setting the restrictrender flag";
-	ot->idname= "OBJECT_OT_restrictrender_set";
+	ot->description = "Hide the render object by setting the hide render flag";
+	ot->idname= "OBJECT_OT_hide_render_set";
 
 	/* api callbacks */
-	ot->exec= object_restrictrender_set_exec;
+	ot->exec= object_hide_render_set_exec;
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
@@ -437,7 +424,12 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	if(flag & EM_WAITCURSOR) waitcursor(1);
 
 	ob->restore_mode = ob->mode;
-	ED_object_toggle_modes(C, ob->mode);
+
+	/* note, when switching scenes the object can have editmode data but
+	 * not be scene->obedit: bug 22954, this avoids calling self eternally */
+	if((ob->restore_mode & OB_MODE_EDIT)==0)
+		ED_object_toggle_modes(C, ob->mode);
+
 	ob->mode= OB_MODE_EDIT;
 	
 	if(ob->type==OB_MESH) {
@@ -949,157 +941,20 @@ void special_editmenu(Scene *scene, View3D *v3d)
 		static float weight= 1.0f;
 		{ // XXX
 // XXX		if(fbutton(&weight, 0.0f, 1.0f, 10, 10, "Set Weight")) {
-			int a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
-			BPoint *bp= lt->editlatt->def;
+			Lattice *editlt= lt->editlatt->latt;
+			int a= editlt->pntsu*editlt->pntsv*editlt->pntsw;
+			BPoint *bp= editlt->def;
 			
 			while(a--) {
 				if(bp->f1 & SELECT)
 					bp->weight= weight;
 				bp++;
-			}	
+			}
 		}
 	}
 
 }
 
-/* Change subdivision or particle properties of mesh object ob, if level==-1
- * then toggle subsurf, else set to level set allows to toggle multiple
- * selections */
-
-static void object_has_subdivision_particles(Object *ob, int *havesubdiv, int *havepart, int depth)
-{
-	if(ob->type==OB_MESH) {
-		if(modifiers_findByType(ob, eModifierType_Subsurf))
-			*havesubdiv= 1;
-		if(modifiers_findByType(ob, eModifierType_ParticleSystem))
-			*havepart= 1;
-	}
-
-	if(ob->dup_group && depth <= 4) {
-		GroupObject *go;
-
-		for(go= ob->dup_group->gobject.first; go; go= go->next)
-			object_has_subdivision_particles(go->ob, havesubdiv, havepart, depth+1);
-	}
-}
-
-static void object_flip_subdivison_particles(Scene *scene, Object *ob, int *set, int level, int mode, int particles, int depth)
-{
-	ModifierData *md;
-
-	if(ob->type==OB_MESH) {
-		if(particles) {
-			for(md=ob->modifiers.first; md; md=md->next) {
-				if(md->type == eModifierType_ParticleSystem) {
-					ParticleSystemModifierData *psmd = (ParticleSystemModifierData*)md;
-
-					if(*set == -1)
-						*set= psmd->modifier.mode&(mode);
-
-					if (*set)
-						psmd->modifier.mode &= ~(mode);
-					else
-						psmd->modifier.mode |= (mode);
-				}
-			}
-		}
-		else {
-			md = modifiers_findByType(ob, eModifierType_Subsurf);
-
-			if (md) {
-				SubsurfModifierData *smd = (SubsurfModifierData*) md;
-
-				if (level == -1) {
-					if(*set == -1) 
-						*set= smd->modifier.mode&(mode);
-
-					if (*set)
-						smd->modifier.mode &= ~(mode);
-					else
-						smd->modifier.mode |= (mode);
-				} else {
-					smd->levels = level;
-				}
-			} 
-			else if(depth == 0 && *set != 0) {
-				SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
-				
-				BLI_addtail(&ob->modifiers, smd);
-				modifier_unique_name(&ob->modifiers, (ModifierData*)smd);
-				
-				if (level!=-1) {
-					smd->levels = level;
-				}
-				
-				if(*set == -1)
-					*set= 1;
-			}
-		}
-
-		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	}
-
-	if(ob->dup_group && depth<=4) {
-		GroupObject *go;
-
-		for(go= ob->dup_group->gobject.first; go; go= go->next)
-			object_flip_subdivison_particles(scene, go->ob, set, level, mode, particles, depth+1);
-	}
-}
-
-/* Change subdivision properties of mesh object ob, if
-* level==-1 then toggle subsurf, else set to level.
-*/
-
-void flip_subdivison(Scene *scene, View3D *v3d, int level)
-{
-	Base *base;
-	int set= -1;
-	int mode, pupmode, particles= 0, havesubdiv= 0, havepart= 0;
-	int alt= 0; // XXX
-	
-	if(alt)
-		mode= eModifierMode_Realtime;
-	else
-		mode= eModifierMode_Render|eModifierMode_Realtime;
-	
-	if(level == -1) {
-		if (scene->obedit) { // XXX get from context
-			object_has_subdivision_particles(scene->obedit, &havesubdiv, &havepart, 0);			
-		} else {
-			for(base= scene->base.first; base; base= base->next) {
-				if(((level==-1) && (TESTBASE(v3d, base))) || (TESTBASELIB(v3d, base))) {
-					object_has_subdivision_particles(base->object, &havesubdiv, &havepart, 0);
-				}
-			}
-		}
-	}
-	else
-		havesubdiv= 1;
-	
-	if(havesubdiv && havepart) {
-		pupmode= pupmenu("Switch%t|Subsurf %x1|Particle Systems %x2");
-		if(pupmode <= 0)
-			return;
-		else if(pupmode == 2)
-			particles= 1;
-	}
-	else if(havepart)
-		particles= 1;
-
-	if (scene->obedit) {	 // XXX get from context
-		object_flip_subdivison_particles(scene, scene->obedit, &set, level, mode, particles, 0);
-	} else {
-		for(base= scene->base.first; base; base= base->next) {
-			if(((level==-1) && (TESTBASE(v3d, base))) || (TESTBASELIB(v3d, base))) {
-				object_flip_subdivison_particles(scene, base->object, &set, level, mode, particles, 0);
-			}
-		}
-	}
-	
-	DAG_ids_flush_update(0);
-}
- 
 static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
 {	
 //XXX no longer used - to be removed - replaced by game_properties_copy_exec
@@ -1194,7 +1049,7 @@ static void copymenu_logicbricks(Scene *scene, View3D *v3d, Object *ob)
 	}
 }
 
-static void copymenu_modifiers(Scene *scene, View3D *v3d, Object *ob)
+static void copymenu_modifiers(Main *bmain, Scene *scene, View3D *v3d, Object *ob)
 {
 	Base *base;
 	int i, event;
@@ -1293,7 +1148,7 @@ static void copymenu_modifiers(Scene *scene, View3D *v3d, Object *ob)
 	
 //	if(errorstr) notice(errorstr);
 	
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	
 }
 
@@ -1341,7 +1196,7 @@ static void copy_texture_space(Object *to, Object *ob)
 	
 }
 
-void copy_attr(Scene *scene, View3D *v3d, short event)
+void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 {
 	Object *ob;
 	Base *base;
@@ -1366,7 +1221,7 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 		return;
 	}
 	else if(event==24) {
-		copymenu_modifiers(scene, v3d, ob);
+		copymenu_modifiers(bmain, scene, v3d, ob);
 		return;
 	}
 
@@ -1584,12 +1439,12 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 	}
 	
 	if(do_scene_sort)
-		DAG_scene_sort(scene);
+		DAG_scene_sort(bmain, scene);
 
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 }
 
-void copy_attr_menu(Scene *scene, View3D *v3d)
+void copy_attr_menu(Main *bmain, Scene *scene, View3D *v3d)
 {
 	Object *ob;
 	short event;
@@ -1640,7 +1495,7 @@ void copy_attr_menu(Scene *scene, View3D *v3d)
 	event= pupmenu(str);
 	if(event<= 0) return;
 	
-	copy_attr(scene, v3d, event);
+	copy_attr(bmain, scene, v3d, event);
 }
 
 /* ********************************************** */

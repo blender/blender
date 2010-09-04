@@ -32,7 +32,6 @@
 
 #include "BLI_math.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 
@@ -281,7 +280,7 @@ static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 	int retval = 1;
 	if (op->customdata == NULL)
 	{
-		TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
+		TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data2");
 		TransformModeItem *tmode;
 		int mode = -1;
 
@@ -303,7 +302,12 @@ static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 		G.moving = 1;
 
 		/* store data */
-		op->customdata = t;
+		if(retval) {
+			op->customdata = t;
+		}
+		else {
+			MEM_freeN(t);
+		}
 	}
 
 	return retval; /* return 0 on error */
@@ -417,7 +421,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 	if (flags & P_PROPORTIONAL)
 	{
 		RNA_def_enum(ot->srna, "proportional", proportional_editing_items, 0, "Proportional Editing", "");
-		RNA_def_enum(ot->srna, "proportional_editing_falloff", proportional_falloff_items, 0, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
+		RNA_def_enum(ot->srna, "proportional_edit_falloff", proportional_falloff_items, 0, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
 		RNA_def_float(ot->srna, "proportional_size", 1, 0, FLT_MAX, "Proportional Size", "", 0, 100);
 	}
 

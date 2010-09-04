@@ -41,6 +41,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_ghash.h"
 
 #include "BKE_animsys.h"
@@ -59,13 +61,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
-#include "MEM_guardedalloc.h"
-
-#ifndef DISABLE_PYTHON
-#include "BPY_extern.h"
-#endif
-
- #include "depsgraph_private.h"
+#include "depsgraph_private.h"
  
 /* Queue and stack operations for dag traversal 
  *
@@ -658,7 +654,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		dag_add_relation(dag,scenenode,node,DAG_RL_SCENE, "Scene Relation");
 }
 
-struct DagForest *build_dag(struct Scene *sce, short mask) 
+struct DagForest *build_dag(Main *bmain, Scene *sce, short mask) 
 {
 	Base *base;
 	Object *ob;
@@ -695,7 +691,7 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 	}
 	
 	/* add groups used in current scene objects */
-	for(group= G.main->group.first; group; group= group->id.next) {
+	for(group= bmain->group.first; group; group= group->id.next) {
 		if(group->id.flag & LIB_DOIT) {
 			for(go= group->gobject.first; go; go= go->next) {
 				build_dag_object(dag, scenenode, sce, go->ob, mask);
@@ -1605,7 +1601,7 @@ static void dag_editors_update(Main *bmain, ID *id)
 }
 
 /* groups with objects in this scene need to be put in the right order as well */
-static void scene_sort_groups(Scene *sce)
+static void scene_sort_groups(Main *bmain, Scene *sce)
 {
 	Base *base;
 	Group *group;
@@ -1613,14 +1609,14 @@ static void scene_sort_groups(Scene *sce)
 	Object *ob;
 	
 	/* test; are group objects all in this scene? */
-	for(ob= G.main->object.first; ob; ob= ob->id.next) {
+	for(ob= bmain->object.first; ob; ob= ob->id.next) {
 		ob->id.flag &= ~LIB_DOIT;
 		ob->id.newid= NULL;	/* newid abuse for GroupObject */
 	}
 	for(base = sce->base.first; base; base= base->next)
 		base->object->id.flag |= LIB_DOIT;
 	
-	for(group= G.main->group.first; group; group= group->id.next) {
+	for(group= bmain->group.first; group; group= group->id.next) {
 		for(go= group->gobject.first; go; go= go->next) {
 			if((go->ob->id.flag & LIB_DOIT)==0)
 				break;
@@ -1649,7 +1645,7 @@ static void scene_sort_groups(Scene *sce)
 }
 
 /* sort the base list on dependency order */
-void DAG_scene_sort(struct Scene *sce)
+void DAG_scene_sort(Main *bmain, Scene *sce)
 {
 	DagNode *node;
 	DagNodeQueue *nqueue;
@@ -1661,7 +1657,7 @@ void DAG_scene_sort(struct Scene *sce)
 	
 	tempbase.first= tempbase.last= NULL;
 	
-	build_dag(sce, DAG_RL_ALL_BUT_DATA);
+	build_dag(bmain, sce, DAG_RL_ALL_BUT_DATA);
 	
 	dag_check_cycle(sce->theDag);
 
@@ -1731,7 +1727,7 @@ void DAG_scene_sort(struct Scene *sce)
 	queue_delete(nqueue);
 	
 	/* all groups with objects in this scene gets resorted too */
-	scene_sort_groups(sce);
+	scene_sort_groups(bmain, sce);
 	
 	if(G.f & G_DEBUG) {
 		printf("\nordered\n");
@@ -1926,7 +1922,7 @@ static void dag_scene_flush_layers(Scene *sce, int lay)
 }
 
 /* flushes all recalc flags in objects down the dependency tree */
-void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
+void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, int time)
 {
 	DagNode *firstnode;
 	DagAdjList *itA;
@@ -1935,7 +1931,7 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 	
 	if(sce->theDag==NULL) {
 		printf("DAG zero... not allowed to happen!\n");
-		DAG_scene_sort(sce);
+		DAG_scene_sort(bmain, sce);
 	}
 	
 	firstnode= sce->theDag->DagNode.first;  // always scene node
@@ -2135,7 +2131,7 @@ static void dag_object_time_update_flags(Object *ob)
 	}		
 }
 /* flag all objects that need recalc, for changes in time for example */
-void DAG_scene_update_flags(Scene *scene, unsigned int lay)
+void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay)
 {
 	Base *base;
 	Object *ob;
@@ -2157,7 +2153,7 @@ void DAG_scene_update_flags(Scene *scene, unsigned int lay)
 	}	
 	
 	/* we do groups each once */
-	for(group= G.main->group.first; group; group= group->id.next) {
+	for(group= bmain->group.first; group; group= group->id.next) {
 		if(group->id.flag & LIB_DOIT) {
 			for(go= group->gobject.first; go; go= go->next) {
 				dag_object_time_update_flags(go->ob);
@@ -2166,7 +2162,7 @@ void DAG_scene_update_flags(Scene *scene, unsigned int lay)
 	}
 	
 	for(sce= scene; sce; sce= sce->set)
-		DAG_scene_flush_update(sce, lay, 1);
+		DAG_scene_flush_update(bmain, sce, lay, 1);
 	
 	/* test: set time flag, to disable baked systems to update */
 	for(SETLOOPER(scene, base)) {
@@ -2180,7 +2176,7 @@ void DAG_scene_update_flags(Scene *scene, unsigned int lay)
 		dag_object_time_update_flags(scene->camera);
 	
 	/* and store the info in groupobject */
-	for(group= G.main->group.first; group; group= group->id.next) {
+	for(group= bmain->group.first; group; group= group->id.next) {
 		if(group->id.flag & LIB_DOIT) {
 			for(go= group->gobject.first; go; go= go->next) {
 				go->recalc= go->ob->recalc;
@@ -2223,21 +2219,19 @@ static void dag_current_scene_layers(Main *bmain, Scene **sce, unsigned int *lay
 	}
 }
 
-void DAG_ids_flush_update(int time)
+void DAG_ids_flush_update(Main *bmain, int time)
 {
-	Main *bmain= G.main;
 	Scene *sce;
 	unsigned int lay;
 
 	dag_current_scene_layers(bmain, &sce, &lay);
 
 	if(sce)
-		DAG_scene_flush_update(sce, lay, time);
+		DAG_scene_flush_update(bmain, sce, lay, time);
 }
 
-void DAG_on_load_update(void)
+void DAG_on_load_update(Main *bmain)
 {
-	Main *bmain= G.main;
 	Scene *scene, *sce;
 	Base *base;
 	Object *ob;
@@ -2268,7 +2262,7 @@ void DAG_on_load_update(void)
 			}
 		}
 
-		for(group= G.main->group.first; group; group= group->id.next) {
+		for(group= bmain->group.first; group; group= group->id.next) {
 			if(group->id.flag & LIB_DOIT) {
 				for(go= group->gobject.first; go; go= go->next) {
 					if(ELEM5(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
@@ -2282,7 +2276,7 @@ void DAG_on_load_update(void)
 		}
 
 		/* now tag update flags, to ensure deformers get calculated on redraw */
-		DAG_scene_update_flags(scene, lay);
+		DAG_scene_update_flags(bmain, scene, lay);
 	}
 }
 
@@ -2394,7 +2388,7 @@ void DAG_id_flush_update(ID *id, short flag)
 	}
 
 	/* flush to other objects that depend on this one */
-	DAG_scene_flush_update(sce, lay, 0);
+	DAG_scene_flush_update(bmain, sce, lay, 0);
 }
 
 /* recursively descends tree, each node only checked once */
@@ -2477,7 +2471,7 @@ void DAG_id_update_flags(ID *id)
 		}
 		
 		/* set recalcs and flushes */
-		DAG_scene_update_flags(sce, lay);
+		DAG_scene_update_flags(bmain, sce, lay);
 		
 		/* now we clear recalcs, unless color is set */
 		for(node = sce->theDag->DagNode.first; node; node= node->next) {

@@ -607,8 +607,9 @@ void RNA_struct_py_type_set(StructRNA *srna, void *py_type);
 void *RNA_struct_blender_type_get(StructRNA *srna);
 void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 
-struct IDProperty *RNA_struct_idproperties(PointerRNA *ptr, int create);
-int RNA_struct_idproperties_check(StructRNA *srna);
+struct IDProperty *RNA_struct_idprops(PointerRNA *ptr, int create);
+int RNA_struct_idprops_check(StructRNA *srna);
+int RNA_struct_idprops_register_check(StructRNA *type);
 
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
@@ -670,6 +671,7 @@ int RNA_property_enum_name(struct bContext *C, PointerRNA *ptr, PropertyRNA *pro
 int RNA_property_enum_bitflag_identifiers(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier);
 
 StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *value);
 
 int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index);
@@ -822,9 +824,10 @@ void RNA_enum_set(PointerRNA *ptr, const char *name, int value);
 void RNA_enum_set_identifier(PointerRNA *ptr, const char *name, const char *id);
 int RNA_enum_is_equal(struct bContext *C, PointerRNA *ptr, const char *name, const char *enumname);
 
-/* lower level functions that donr use a PointerRNA */
-int	RNA_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value);
-int	RNA_enum_id_from_value(EnumPropertyItem *item, int value, const char **identifier);
+/* lower level functions that don't use a PointerRNA */
+int RNA_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value);
+int RNA_enum_id_from_value(EnumPropertyItem *item, int value, const char **identifier);
+int RNA_enum_icon_from_value(EnumPropertyItem *item, int value, int *icon);
 
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value);
 char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen);

@@ -38,7 +38,7 @@ struct ReportList;
 
 void PyObSpit(char *name, PyObject *var);
 void PyLineSpit(void);
-void BPY_getFileAndNum(char **filename, int *lineno);
+void BPY_getFileAndNum(const char **filename, int *lineno);
 
 PyObject *BPY_exception_buffer(void);
 

@@ -36,11 +36,8 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
 
 #include "ED_screen.h"
 
@@ -48,7 +45,6 @@
 #include "WM_types.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"

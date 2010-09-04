@@ -29,7 +29,6 @@
 
 #include <string.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 
@@ -39,11 +38,9 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
-#include "BKE_scene.h"
 
 #include "ED_screen.h"
 
@@ -60,6 +57,7 @@
 
 static int objects_add_active_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= OBACT;
 	Group *group;
@@ -70,7 +68,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 	/* linking to same group requires its own loop so we can avoid
 	   looking up the active objects groups each time */
 
-	for(group= G.main->group.first; group; group=group->id.next) {
+	for(group= bmain->group.first; group; group=group->id.next) {
 		if(object_in_group(ob, group)) {
 			/* Assign groups to selected objects */
 			CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
@@ -83,7 +81,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 	
 	if(!ok) BKE_report(op->reports, RPT_ERROR, "Active Object contains no groups");
 	
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -106,6 +104,7 @@ void GROUP_OT_objects_add_active(wmOperatorType *ot)
 
 static int objects_remove_active_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= OBACT;
 	Group *group;
@@ -116,7 +115,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	/* linking to same group requires its own loop so we can avoid
 	   looking up the active objects groups each time */
 
-	for(group= G.main->group.first; group; group=group->id.next) {
+	for(group= bmain->group.first; group; group=group->id.next) {
 		if(object_in_group(ob, group)) {
 			/* Assign groups to selected objects */
 			CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
@@ -129,7 +128,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	
 	if(!ok) BKE_report(op->reports, RPT_ERROR, "Active Object contains no groups");
 	
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -152,6 +151,7 @@ void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 
 static int group_objects_remove_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Group *group= NULL;
 
@@ -162,7 +162,7 @@ static int group_objects_remove_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -185,6 +185,7 @@ void GROUP_OT_objects_remove(wmOperatorType *ot)
 
 static int group_create_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Group *group= NULL;
 	char name[32]; /* id name */
@@ -198,7 +199,7 @@ static int group_create_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;

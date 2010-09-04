@@ -35,7 +35,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
-#include "DNA_action_types.h"
+#include "DNA_action_types.h" /* bAnimVizSettings */
 
 #ifdef __cplusplus
 extern "C" {
@@ -301,7 +301,7 @@ extern Object workob;
 #define OB_LAMP			10
 #define OB_CAMERA		11
 
-#define OB_WAVE			21
+// #define OB_WAVE			21
 #define OB_LATTICE		22
 
 /* 23 and 24 are for life and sector (old file compat.) */
@@ -555,6 +555,8 @@ typedef enum ObjectMode {
 	OB_MODE_PARTICLE_EDIT = 32,
 	OB_MODE_POSE = 64
 } ObjectMode;
+
+#define MAX_DUPLI_RECUR 8
 
 #ifdef __cplusplus
 }

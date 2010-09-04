@@ -16,6 +16,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sound_types.h"
 
 #include "AUD_C-API.h"
 
@@ -122,10 +123,15 @@ struct bSound* sound_new_file(struct Main *bmain, char* filename)
 	bSound* sound = NULL;
 
 	char str[FILE_MAX];
+	char *path;
+
 	int len;
 
 	strcpy(str, filename);
-	BLI_path_abs(str, bmain->name);
+
+	path = /*bmain ? bmain->name :*/ G.sce;
+
+	BLI_path_abs(str, path);
 
 	len = strlen(filename);
 	while(len > 0 && filename[len-1] != '/' && filename[len-1] != '\\')
@@ -258,7 +264,7 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 			if(sound->id.lib)
 				path = sound->id.lib->filepath;
 			else
-				path = bmain ? bmain->name : G.sce;
+				path = /*bmain ? bmain->name :*/ G.sce;
 
 			BLI_path_abs(fullpath, path);
 
@@ -376,10 +382,8 @@ void sound_move_scene_sound(struct Scene *scene, void* handle, int startframe, i
 
 void sound_start_play_scene(struct Scene *scene)
 {
-	AUD_Sound* sound;
-	sound = AUD_loopSound(scene->sound_scene);
-	scene->sound_scene_handle = AUD_play(sound, 1);
-	AUD_unload(sound);
+	scene->sound_scene_handle = AUD_play(scene->sound_scene, 1);
+	AUD_setLoop(scene->sound_scene_handle, -1, 0);
 }
 
 void sound_play_scene(struct Scene *scene)
@@ -391,8 +395,6 @@ void sound_play_scene(struct Scene *scene)
 
 	if(status == AUD_STATUS_INVALID)
 		sound_start_play_scene(scene);
-
-	AUD_setLoop(scene->sound_scene_handle, -1, -1);
 
 	if(status != AUD_STATUS_PLAYING)
 	{
@@ -431,12 +433,16 @@ void sound_seek_scene(struct bContext *C)
 
 	if(scene->audio.flag & AUDIO_SCRUB && !CTX_wm_screen(C)->animtimer)
 	{
-		AUD_setLoop(scene->sound_scene_handle, -1, 1 / FPS);
+		// AUD_XXX TODO: fix scrubbing, it currently doesn't stop playing
 		if(scene->audio.flag & AUDIO_SYNC)
 			AUD_seekSequencer(scene->sound_scene_handle, CFRA / FPS);
 		else
 			AUD_seek(scene->sound_scene_handle, CFRA / FPS);
 		AUD_resume(scene->sound_scene_handle);
+		if(AUD_getStatus(scene->sound_scrub_handle) != AUD_STATUS_INVALID)
+			AUD_seek(scene->sound_scrub_handle, 0);
+		//XXX merge EEK! else
+			//scene->sound_scrub_handle = AUD_pauseAfter(scene->sound_scene_handle, 1 / FPS);
 	}
 	else
 	{
@@ -468,7 +474,9 @@ int sound_scene_playing(struct Scene *scene)
 		return -1;
 }
 
-int sound_read_sound_buffer(struct bSound* sound, float* buffer, int length)
+int sound_read_sound_buffer(struct bSound* sound, float* buffer, int length, float start, float end)
 {
-	return AUD_readSound(sound->cache, buffer, length);
+	AUD_Sound* limiter = AUD_limitSound(sound->cache, start, end);
+	return AUD_readSound(limiter, buffer, length);
+	AUD_unload(limiter);
 }

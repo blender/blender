@@ -42,15 +42,9 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "BKE_action.h"
-#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
-#include "BKE_key.h"
-#include "BKE_material.h"
 #include "BKE_nla.h"
-#include "BKE_object.h"
 #include "BKE_context.h"
-#include "BKE_utildefines.h"
 
 #include "UI_view2d.h"
 
@@ -64,6 +58,7 @@
 #include "WM_types.h"
 
 #include "action_intern.h"
+
 
 /* ************************************************************************** */
 /* KEYFRAMES STUFF */
@@ -994,7 +989,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 			return;
 		}
 		else if (ale->type == ANIMTYPE_GPLAYER) {
-			bGPDlayer *gpl= (bGPDlayer *)ale->data;
+			struct bGPDlayer *gpl= (struct bGPDlayer *)ale->data;
 			gpl_to_keylist(ads, gpl, &anim_keys, NULL);
 		}
 		

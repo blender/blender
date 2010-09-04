@@ -324,7 +324,7 @@ static StructRNA *rna_OperatorProperties_refine(PointerRNA *ptr)
 		return ptr->type;
 }
 
-static IDProperty *rna_OperatorProperties_idproperties(PointerRNA *ptr, int create)
+static IDProperty *rna_OperatorProperties_idprops(PointerRNA *ptr, int create)
 {
 	if(create && !ptr->data) {
 		IDPropertyTemplate val = {0};
@@ -361,7 +361,7 @@ static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 static PointerRNA rna_OperatorTypeMacro_properties_get(PointerRNA *ptr)
 {
 	wmOperatorTypeMacro *otmacro= (wmOperatorTypeMacro*)ptr->data;
-	wmOperatorType *ot = WM_operatortype_exists(otmacro->idname);
+	wmOperatorType *ot = WM_operatortype_find(otmacro->idname, TRUE);
 	return rna_pointer_inherit_refine(ptr, ot->srna, otmacro->properties);
 }
 
@@ -796,7 +796,7 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 
 	/* check if we have registered this operator type before, and remove it */
 	{
-		wmOperatorType *ot= WM_operatortype_exists(dummyot.idname);
+		wmOperatorType *ot= WM_operatortype_find(dummyot.idname, TRUE);
 		if(ot && ot->ext.srna)
 			rna_Operator_unregister(C, ot->ext.srna);
 	}
@@ -865,7 +865,7 @@ static StructRNA *rna_MacroOperator_register(const bContext *C, ReportList *repo
 
 	/* check if we have registered this operator type before, and remove it */
 	{
-		wmOperatorType *ot= WM_operatortype_exists(dummyot.idname);
+		wmOperatorType *ot= WM_operatortype_find(dummyot.idname, TRUE);
 		if(ot && ot->ext.srna)
 			rna_Operator_unregister(C, ot->ext.srna);
 	}
@@ -887,7 +887,7 @@ static StructRNA *rna_MacroOperator_register(const bContext *C, ReportList *repo
 
 	return dummyot.ext.srna;
 }
-#endif
+#endif /* DISABLE_PYTHON */
 
 static StructRNA* rna_Operator_refine(PointerRNA *opr)
 {
@@ -961,7 +961,7 @@ static wmKeyMapItem *rna_KeyMap_add_modal_item(wmKeyMap *km, bContext *C, Report
 	return WM_modalkeymap_add_item(km, type, value, modifier, keymodifier, propvalue);
 }
 
-#else
+#else /* RNA_RUNTIME */
 
 static void rna_def_operator(BlenderRNA *brna)
 {
@@ -980,13 +980,12 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Operator_name_get", "rna_Operator_name_length", NULL);
 	RNA_def_property_ui_text(prop, "Name", "");
-	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
-	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL, NULL);
 	
 	prop= RNA_def_property(srna, "has_reports", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* this is 'virtual' property */
@@ -1001,6 +1000,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
@@ -1023,7 +1023,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "OperatorProperties", NULL);
 	RNA_def_struct_ui_text(srna, "Operator Properties", "Input properties of an Operator");
 	RNA_def_struct_refine_func(srna, "rna_OperatorProperties_refine");
-	RNA_def_struct_idproperties_func(srna, "rna_OperatorProperties_idproperties");
+	RNA_def_struct_idprops_func(srna, "rna_OperatorProperties_idprops");
 }
 
 static void rna_def_macro_operator(BlenderRNA *brna)
@@ -1043,19 +1043,19 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Operator_name_get", "rna_Operator_name_length", NULL);
 	RNA_def_property_ui_text(prop, "Name", "");
-	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
-	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL, NULL);
 
 	/* Registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
@@ -1095,7 +1095,7 @@ static void rna_def_operator_type_macro(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
-	RNA_def_property_pointer_funcs(prop, "rna_OperatorTypeMacro_properties_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_OperatorTypeMacro_properties_get", NULL, NULL, NULL);
 }
 
 static void rna_def_operator_utils(BlenderRNA *brna)
@@ -1232,7 +1232,7 @@ static void rna_def_window(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Screen");
 	RNA_def_property_ui_text(prop, "Screen", "Active screen showing in the window");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Window_screen_set", NULL);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Window_screen_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_Window_screen_update");
 }
@@ -1262,7 +1262,7 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_keyconfig", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "KeyConfig");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_WindowManager_active_keyconfig_get", "rna_WindowManager_active_keyconfig_set", 0);
+	RNA_def_property_pointer_funcs(prop, "rna_WindowManager_active_keyconfig_get", "rna_WindowManager_active_keyconfig_set", 0, NULL);
 	RNA_def_property_ui_text(prop, "Active Key Configuration", "");
 
 	prop= RNA_def_property(srna, "default_keyconfig", PROP_POINTER, PROP_NEVER_NULL);
@@ -1352,7 +1352,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "KeyMap");
 	RNA_def_property_ui_text(prop, "Key Maps", "Key maps configured as part of this configuration");
 
-	prop= RNA_def_property(srna, "user_defined", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_user_defined", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYCONF_USER);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "User Defined", "Indicates that a keyconfig was defined by the user");
@@ -1387,21 +1387,21 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Items", "Items in the keymap, linking an operator to an input event");
 	rna_def_keymap_items(brna, prop);
 
-	prop= RNA_def_property(srna, "user_defined", PROP_BOOLEAN, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "is_user_defined", PROP_BOOLEAN, PROP_NEVER_NULL);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_USER);
 	RNA_def_property_ui_text(prop, "User Defined", "Keymap is defined by the user");
 
-	prop= RNA_def_property(srna, "modal", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_modal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_MODAL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Modal Keymap", "Indicates that a keymap is used for translate modal events for an operator");
 
-	prop= RNA_def_property(srna, "items_expanded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_expanded_items", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_EXPANDED);
 	RNA_def_property_ui_text(prop, "Items Expanded", "Expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 	
-	prop= RNA_def_property(srna, "children_expanded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_expanded_children", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_CHILDREN_EXPANDED);
 	RNA_def_property_ui_text(prop, "Children Expanded", "Children expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
@@ -1427,7 +1427,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
-	RNA_def_property_pointer_funcs(prop, "rna_KeyMapItem_properties_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_KeyMapItem_properties_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Properties", "Properties to set when the operator is called");
 
 	prop= RNA_def_property(srna, "map_type", PROP_ENUM, PROP_NONE);
@@ -1486,7 +1486,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, event_type_items);
 	RNA_def_property_ui_text(prop, "Key Modifier", "Regular key pressed as a modifier");
 
-	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KMI_EXPANDED);
 	RNA_def_property_ui_text(prop, "Expanded", "Show key map event and property details in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
@@ -1518,5 +1518,5 @@ void RNA_def_wm(BlenderRNA *brna)
 	rna_def_keyconfig(brna);
 }
 
-#endif
+#endif /* RNA_RUNTIME */
 

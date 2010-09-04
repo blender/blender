@@ -78,7 +78,6 @@ char *includefiles[] = {
 	"DNA_image_types.h",
 	"DNA_texture_types.h",
 	"DNA_lamp_types.h",
-	"DNA_wave_types.h",
 	"DNA_material_types.h",
 	"DNA_vfont_types.h",
 	// if you add files here, please add them at the end
@@ -138,11 +137,11 @@ int maxdata= 500000, maxnr= 50000;
 int nr_names=0;
 int nr_types=0;
 int nr_structs=0;
-char **names, *namedata;		/* at adress names[a] is string a */
-char **types, *typedata;		/* at adress types[a] is string a */
+char **names, *namedata;		/* at address names[a] is string a */
+char **types, *typedata;		/* at address types[a] is string a */
 short *typelens;				/* at typelens[a] is de length of type a */
 short *alphalens;			    /* contains sizes as they are calculated on the DEC Alpha (64 bits) */
-short **structs, *structdata;	/* at sp= structs[a] is the first adress of a struct definition
+short **structs, *structdata;	/* at sp= structs[a] is the first address of a struct definition
 								   sp[0] is type number
 								   sp[1] is amount of elements
 								   sp[2] sp[3] is typenr,  namenr (etc) */
@@ -203,7 +202,7 @@ static int calculate_structlens(int);
 void dna_write(FILE *file, void *pntr, int size);
 
 /**
- * Report all structures found so far, and print their lenghts.
+ * Report all structures found so far, and print their lengths.
  */
 void printStructLenghts(void);
 
@@ -1128,7 +1127,6 @@ int main(int argc, char ** argv)
 #include "DNA_image_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_lamp_types.h"
-#include "DNA_wave_types.h"
 #include "DNA_material_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_meta_types.h"

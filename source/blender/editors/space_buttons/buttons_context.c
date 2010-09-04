@@ -36,11 +36,11 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
+#include "DNA_brush_types.h"
 
 #include "BLI_listbase.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_action.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
@@ -49,7 +49,6 @@
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
-#include "BKE_world.h"
 
 #include "RNA_access.h"
 
@@ -342,7 +341,7 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 			br= paint_brush(paint_get_active(scene));
 
 		if(br) {
-			RNA_id_pointer_create(&br->id, &path->ptr[path->len]);
+			RNA_id_pointer_create((ID *)br, &path->ptr[path->len]);
 			path->len++;
 
 			return 1;

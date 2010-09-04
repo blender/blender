@@ -669,17 +669,17 @@ uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout);
 void uiTemplateHeader(uiLayout *layout, struct bContext *C, int menus);
 void uiTemplateDopeSheetFilter(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
-	char *newop, char *openop, char *unlinkop, char *filterop);
+	char *newop, char *openop, char *unlinkop);
 void uiTemplateIDBrowse(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
-				  char *newop, char *openop, char *unlinkop, char *filterop);
+				  char *newop, char *openop, char *unlinkop);
 void uiTemplateIDPreview(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
-	char *newop, char *openop, char *unlinkop, char *filterop, int rows, int cols);
+	char *newop, char *openop, char *unlinkop, int rows, int cols);
 void uiTemplateAnyID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, 
 	char *proptypename, char *text);
 void uiTemplatePathBuilder(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, 
 	struct PointerRNA *root_ptr, char *text);
-uiLayout *uiTemplateModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, int compact);
-uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr, int compact);
+uiLayout *uiTemplateModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
+uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot);
 void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
 void uiTemplateHistogram(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);

@@ -40,12 +40,10 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
-#include "BKE_object.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
-#include "BKE_utildefines.h"
 
 #include "ED_mesh.h"
 

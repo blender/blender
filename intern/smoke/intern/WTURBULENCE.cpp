@@ -825,13 +825,18 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
     // get LU factorization of texture jacobian and apply 
     // it to unit vectors
     sLU LU = computeLU(jacobian);
-    float xUnwarped[] = {1.0f, 0.0f, 0.0f};
-    float yUnwarped[] = {0.0f, 1.0f, 0.0f};
-    float zUnwarped[] = {0.0f, 0.0f, 1.0f};
-    float xWarped[] = {1.0f, 0.0f, 0.0f};
-    float yWarped[] = {0.0f, 1.0f, 0.0f};
-    float zWarped[] = {0.0f, 0.0f, 1.0f};
+    float xUnwarped[3], yUnwarped[3], zUnwarped[3];
+    float xWarped[3], yWarped[3], zWarped[3];
     bool nonSingular = isNonsingular(LU);
+
+	xUnwarped[0] = 1.0f; xUnwarped[1] = 0.0f; xUnwarped[2] = 0.0f;
+	yUnwarped[0] = 0.0f; yUnwarped[1] = 1.0f; yUnwarped[2] = 0.0f;
+	zUnwarped[0] = 0.0f; zUnwarped[1] = 0.0f; zUnwarped[2] = 1.0f;
+
+	xWarped[0] = 1.0f; xWarped[1] = 0.0f; xWarped[2] = 0.0f;
+	yWarped[0] = 0.0f; yWarped[1] = 1.0f; yWarped[2] = 0.0f;
+	zWarped[0] = 0.0f; zWarped[1] = 0.0f; zWarped[2] = 1.0f;
+
 #if 0
 	// UNUSED
     float eigMax = 10.0f;

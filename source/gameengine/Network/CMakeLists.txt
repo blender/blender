@@ -34,4 +34,3 @@ SET(INC
 )
 
 BLENDERLIB(bf_ngnetwork "${SRC}" "${INC}")
-#env.BlenderLib ( 'bf_ngnetwork', sources, Split(incs), [], libtype=['game2', 'player'], priority=[15, 160] )

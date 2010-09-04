@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
 # All rights reserved.
@@ -45,11 +45,11 @@ all::
 	@chmod +x $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/$(APPLICATION)
 ifeq ($(APPLICATION), blender)
 	@echo "---> copying message files"
-	@cp -R $(NANBLENDERHOME)/bin/.blender/locale $(DIR)/bin/$(APPLICATION).app/Contents/Resources
+	@cp -R $(NANBLENDERHOME)/release/bin/.blender/locale $(DIR)/bin/$(APPLICATION).app/Contents/Resources
 	@echo "---> copying .Blanguages"
-	@cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(DIR)/bin/$(APPLICATION).app/Contents/Resources
+	@cp $(NANBLENDERHOME)/release/bin/.blender/.Blanguages $(DIR)/bin/$(APPLICATION).app/Contents/Resources
 	@echo "---> copying .blender/ scripts"
-	@cp -R $(NANBLENDERHOME)/bin/.blender $(DIR)/bin/$(APPLICATION).app/Contents/MacOS
+	@cp -R $(NANBLENDERHOME)/release/bin/.blender $(DIR)/bin/$(APPLICATION).app/Contents/MacOS
 	@cp -R $(NANBLENDERHOME)/release/scripts $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/
 	@echo "---> copying python modules"
 	@mkdir $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/python

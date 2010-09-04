@@ -66,8 +66,8 @@ class NODE_HT_header(bpy.types.Header):
             scene = snode.id
 
             layout.prop(scene, "use_nodes")
-            layout.prop(scene.render, "free_unused_nodes", text="Free Unused")
-            layout.prop(snode, "backdrop")
+            layout.prop(scene.render, "use_free_unused_nodes", text="Free Unused")
+            layout.prop(snode, "show_backdrop")
 
         layout.separator()
 
@@ -90,6 +90,13 @@ class NODE_MT_view(bpy.types.Menu):
 
         layout.operator("node.view_all")
 
+        if context.space_data.show_backdrop:
+            layout.separator()
+            
+            layout.operator("node.backimage_move",text = "Backdrop move")
+            layout.operator("node.backimage_zoom",text = "Backdrop zoom in").factor = 1.2
+            layout.operator("node.backimage_zoom",text = "Backdrop zoom out").factor = 0.833
+        
         layout.separator()
 
         layout.operator("screen.area_dupli")
@@ -131,6 +138,7 @@ class NODE_MT_node(bpy.types.Menu):
         layout.separator()
         layout.operator("node.link_make")
         layout.operator("node.link_make", text="Make and Replace Links").replace = True
+        layout.operator("node.links_cut")
 
         layout.separator()
         layout.operator("node.group_edit")
@@ -152,23 +160,12 @@ class NODE_MT_node(bpy.types.Menu):
         layout.operator("node.show_cyclic_dependencies")
 
 
-classes = [
-    NODE_HT_header,
-    NODE_MT_view,
-    NODE_MT_select,
-    NODE_MT_node]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

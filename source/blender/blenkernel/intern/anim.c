@@ -40,7 +40,6 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_group_types.h"
@@ -51,7 +50,6 @@
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BKE_anim.h"
 #include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
@@ -68,6 +66,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 #include "BKE_depsgraph.h"
+
 
 // XXX bad level call...
 
@@ -290,7 +289,7 @@ static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
 	}
 	
 	/* "brew me a list that's sorted a bit faster now depsy" */
-	DAG_scene_sort(scene);
+	DAG_scene_sort(G.main, scene);
 }
 
 /* update scene for current frame */
@@ -300,7 +299,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	Base *base, *last=NULL;
 	
 	/* only stuff that moves or needs display still */
-	DAG_scene_update_flags(scene, scene->lay);
+	DAG_scene_update_flags(G.main, scene, scene->lay);
 	
 	/* find the last object with the tag 
 	 *	- all those afterwards are assumed to not be relevant for our calculations
@@ -328,7 +327,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 	 * 	  that doesn't force complete update, but for now, this is the
 	 *	  most accurate way!
 	 */
-	scene_update_for_newframe(scene, scene->lay); // XXX this is the best way we can get anything moving
+	scene_update_for_newframe(G.main, scene, scene->lay); // XXX this is the best way we can get anything moving
 #endif
 }
 
@@ -461,17 +460,17 @@ void calc_curvepath(Object *ob)
 	float *fp, *dist, *maxdist, xyz[3];
 	float fac, d=0, fac1, fac2;
 	int a, tot, cycl=0;
+	ListBase *nurbs;
 	
 	/* in a path vertices are with equal differences: path->len = number of verts */
 	/* NOW WITH BEVELCURVE!!! */
 	
 	if(ob==NULL || ob->type != OB_CURVE) return;
 	cu= ob->data;
-	if(cu->editnurb) 
-		nu= cu->editnurb->first;
-	else 
-		nu= cu->nurb.first;
-	
+
+	nurbs= BKE_curve_nurbs(cu);
+	nu= nurbs->first;
+
 	if(cu->path) free_path(cu->path);
 	cu->path= NULL;
 	

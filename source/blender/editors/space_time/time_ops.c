@@ -29,14 +29,12 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
-#include "BKE_utildefines.h"
 
 
 #include "ED_screen.h"

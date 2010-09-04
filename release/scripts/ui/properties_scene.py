@@ -20,46 +20,35 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
 
-
-class SceneButtonsPanel(bpy.types.Panel):
+class SceneButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return context.scene
 
 
-class SCENE_PT_scene(SceneButtonsPanel):
+class SCENE_PT_scene(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Scene"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
-        wide_ui = context.region.width > narrowui
         scene = context.scene
 
-        if wide_ui:
-            layout.prop(scene, "camera")
-            layout.prop(scene, "set", text="Background")
-        else:
-            layout.prop(scene, "camera", text="")
-            layout.prop(scene, "set", text="")
+        layout.prop(scene, "camera")
+        layout.prop(scene, "background_set", text="Background")
 
 
-class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel):
-    _context_path = "scene"
-
-
-class SCENE_PT_unit(SceneButtonsPanel):
+class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Units"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
-        wide_ui = context.region.width > narrowui
         unit = context.scene.unit_settings
 
         col = layout.column()
@@ -71,21 +60,19 @@ class SCENE_PT_unit(SceneButtonsPanel):
         col = split.column()
         col.prop(unit, "scale_length", text="Scale")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(unit, "use_separate")
 
         layout.column().prop(unit, "rotation_units")
 
 
-class SCENE_PT_keying_sets(SceneButtonsPanel):
+class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Keying Sets"
 
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
-        wide_ui = context.region.width > narrowui
         row = layout.row()
 
         col = row.column()
@@ -96,7 +83,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
         col.operator("anim.keying_set_remove", icon='ZOOMOUT', text="")
 
         ks = scene.active_keying_set
-        if ks and ks.absolute:
+        if ks and ks.is_path_absolute:
             row = layout.row()
 
             col = row.column()
@@ -107,26 +94,25 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
             op = subcol.operator("anim.keying_set_export", text="Export to File")
             op.filepath = "keyingset.py"
 
-            if wide_ui:
-                col = row.column()
+            col = row.column()
             col.label(text="Keyframing Settings:")
-            col.prop(ks, "insertkey_needed", text="Needed")
-            col.prop(ks, "insertkey_visual", text="Visual")
-            col.prop(ks, "insertkey_xyz_to_rgb", text="XYZ to RGB")
+            col.prop(ks, "use_insertkey_needed", text="Needed")
+            col.prop(ks, "use_insertkey_visual", text="Visual")
+            col.prop(ks, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
-class SCENE_PT_keying_set_paths(SceneButtonsPanel):
+class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Active Keying Set"
 
-    def poll(self, context):
-        return (context.scene.active_keying_set and context.scene.active_keying_set.absolute)
+    @classmethod
+    def poll(cls, context):
+        return (context.scene.active_keying_set and context.scene.active_keying_set.is_path_absolute)
 
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
         ks = scene.active_keying_set
-        wide_ui = context.region.width > narrowui
 
         row = layout.row()
         row.label(text="Paths:")
@@ -152,24 +138,23 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
 
             col = row.column()
             col.label(text="Array Target:")
-            col.prop(ksp, "entire_array")
-            if ksp.entire_array is False:
+            col.prop(ksp, "use_entire_array")
+            if ksp.use_entire_array is False:
                 col.prop(ksp, "array_index")
 
-            if wide_ui:
-                col = row.column()
+            col = row.column()
             col.label(text="F-Curve Grouping:")
-            col.prop(ksp, "grouping")
-            if ksp.grouping == 'NAMED':
+            col.prop(ksp, "group_method")
+            if ksp.group_method == 'NAMED':
                 col.prop(ksp, "group")
 
             col.label(text="Keyframing Settings:")
-            col.prop(ksp, "insertkey_needed", text="Needed")
-            col.prop(ksp, "insertkey_visual", text="Visual")
-            col.prop(ksp, "insertkey_xyz_to_rgb", text="XYZ to RGB")
+            col.prop(ksp, "use_insertkey_needed", text="Needed")
+            col.prop(ksp, "use_insertkey_visual", text="Visual")
+            col.prop(ksp, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
-class SCENE_PT_physics(SceneButtonsPanel):
+class SCENE_PT_physics(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Gravity"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -180,17 +165,13 @@ class SCENE_PT_physics(SceneButtonsPanel):
         layout = self.layout
 
         scene = context.scene
-        wide_ui = context.region.width > narrowui
 
         layout.active = scene.use_gravity
 
-        if wide_ui:
-            layout.prop(scene, "gravity", text="")
-        else:
-            layout.column().prop(scene, "gravity", text="")
+        layout.prop(scene, "gravity", text="")
 
 
-class SCENE_PT_simplify(SceneButtonsPanel):
+class SCENE_PT_simplify(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Simplify"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -203,7 +184,6 @@ class SCENE_PT_simplify(SceneButtonsPanel):
         layout = self.layout
         scene = context.scene
         rd = scene.render
-        wide_ui = context.region.width > narrowui
 
         layout.active = rd.use_simplify
 
@@ -213,12 +193,16 @@ class SCENE_PT_simplify(SceneButtonsPanel):
         col.prop(rd, "simplify_subdivision", text="Subdivision")
         col.prop(rd, "simplify_child_particles", text="Child Particles")
 
-        col.prop(rd, "simplify_triangulate")
+        col.prop(rd, "use_simplify_triangulate")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
+
+
+class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "scene"
 
 
 from bpy.props import *
@@ -255,13 +239,13 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         f.write("# Keying Set Level declarations\n")
         f.write("ks= scene.add_keying_set(name=\"%s\")\n" % ks.name)
 
-        if ks.absolute is False:
-            f.write("ks.absolute = False\n")
+        if not ks.is_path_absolute:
+            f.write("ks.is_path_absolute = False\n")
         f.write("\n")
 
-        f.write("ks.insertkey_needed = %s\n" % ks.insertkey_needed)
-        f.write("ks.insertkey_visual = %s\n" % ks.insertkey_visual)
-        f.write("ks.insertkey_xyz_to_rgb = %s\n" % ks.insertkey_xyz_to_rgb)
+        f.write("ks.use_insertkey_needed = %s\n" % ks.use_insertkey_needed)
+        f.write("ks.use_insertkey_visual = %s\n" % ks.use_insertkey_visual)
+        f.write("ks.use_insertkey_xyz_to_rgb = %s\n" % ks.use_insertkey_xyz_to_rgb)
         f.write("\n")
 
 
@@ -308,17 +292,17 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
             f.write("%s, '%s'" % (id_bpy_path, ksp.data_path))
 
             # array index settings (if applicable)
-            if ksp.entire_array:
+            if ksp.use_entire_array:
                 f.write(", index=-1")
             else:
                 f.write(", index=%d" % ksp.array_index)
 
             # grouping settings (if applicable)
             # NOTE: the current default is KEYINGSET, but if this changes, change this code too
-            if ksp.grouping == 'NAMED':
-                f.write(", grouping_method='%s', group_name=\"%s\"" % (ksp.grouping, ksp.group))
-            elif ksp.grouping != 'KEYINGSET':
-                f.write(", grouping_method='%s'" % ksp.grouping)
+            if ksp.group_method == 'NAMED':
+                f.write(", group_method='%s', group_name=\"%s\"" % (ksp.group_method, ksp.group))
+            elif ksp.group_method != 'KEYINGSET':
+                f.write(", group_method='%s'" % ksp.group_method)
 
             # finish off
             f.write(")\n")
@@ -334,29 +318,12 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-classes = [
-    SCENE_PT_scene,
-    SCENE_PT_unit,
-    SCENE_PT_keying_sets,
-    SCENE_PT_keying_set_paths,
-    SCENE_PT_physics,
-    SCENE_PT_simplify,
-
-    SCENE_PT_custom_props,
-
-    ANIM_OT_keying_set_export]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

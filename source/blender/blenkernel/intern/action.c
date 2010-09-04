@@ -37,6 +37,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -301,7 +302,7 @@ void action_groups_add_channel (bAction *act, bActionGroup *agrp, FCurve *fcurve
 		/* firstly, link this F-Curve to the group */
 		agrp->channels.first = agrp->channels.last = fcurve;
 		
-		/* step through the groups preceeding this one, finding the F-Curve there to attach this one after */
+		/* step through the groups preceding this one, finding the F-Curve there to attach this one after */
 		for (grp= agrp->prev; grp; grp= grp->prev) {
 			/* if this group has F-Curves, we want weave the given one in right after the last channel there,
 			 * but via the Action's list not this group's list
@@ -367,20 +368,12 @@ void action_groups_remove_channel (bAction *act, FCurve *fcu)
 /* Find a group with the given name */
 bActionGroup *action_groups_find_named (bAction *act, const char name[])
 {
-	bActionGroup *grp;
-	
 	/* sanity checks */
 	if (ELEM3(NULL, act, act->groups.first, name) || (name[0] == 0))
 		return NULL;
 		
 	/* do string comparisons */
-	for (grp= act->groups.first; grp; grp= grp->next) {
-		if (strcmp(grp->name, name) == 0)
-			return grp;
-	}
-	
-	/* not found */
-	return NULL;
+	return BLI_findstring(&act->groups, name, offsetof(bActionGroup, name));
 }
 
 /* *************** Pose channels *************** */

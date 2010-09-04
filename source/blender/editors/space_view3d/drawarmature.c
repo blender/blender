@@ -31,7 +31,6 @@
 #include <string.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -39,6 +38,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -47,15 +47,9 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BKE_constraint.h"
-#include "BKE_context.h"
-#include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_nla.h"
-#include "BKE_object.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -1882,15 +1876,12 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 						
 						/*	Draw additional axes on the bone tail  */
 						if ( (arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE) ) {
-							float mat[4][4];
 							glPushMatrix();
 							copy_m4_m4(bmat, pchan->pose_mat);
 							bone_matrix_translate_y(bmat, pchan->bone->length);
 							glMultMatrixf(bmat);
 							
-							mul_m4_m4m4(mat, bmat, rv3d->viewmatob);
-							
-							drawaxes(rv3d, mat, pchan->bone->length*0.25f, 0, OB_ARROWS);
+							drawaxes(pchan->bone->length*0.25f, 0, OB_ARROWS);
 
 							glPopMatrix();
 						}
@@ -2078,16 +2069,12 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 						}					
 						/*	Draw additional axes */
 						if (arm->flag & ARM_DRAWAXES) {
-							float mat[4][4];
 							glPushMatrix();
 							get_matrix_editbone(eBone, bmat);
 							bone_matrix_translate_y(bmat, eBone->length);
 							glMultMatrixf(bmat);
 							
-							mul_m4_m4m4(mat, bmat, rv3d->viewmatob);
-							
-							/* do cached text draw immediate to include transform */
-							drawaxes(rv3d, mat, eBone->length*0.25f, 0, OB_ARROWS);
+							drawaxes(eBone->length*0.25f, 0, OB_ARROWS);
 							
 							glPopMatrix();
 						}

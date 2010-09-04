@@ -35,6 +35,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -51,8 +52,6 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_utildefines.h"
 #include "BKE_depsgraph.h" /* for fly mode updating */
 
 
@@ -194,15 +193,15 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 	
 	/* initialize sms */
 	memset(&sms,0,sizeof(struct SmoothViewStore));
-	VECCOPY(sms.new_ofs, rv3d->ofs);
-	QUATCOPY(sms.new_quat, rv3d->viewquat);
+	copy_v3_v3(sms.new_ofs, rv3d->ofs);
+	copy_qt_qt(sms.new_quat, rv3d->viewquat);
 	sms.new_dist= rv3d->dist;
 	sms.new_lens= v3d->lens;
 	sms.to_camera= 0;
 	
 	/* store the options we want to end with */
-	if(ofs) VECCOPY(sms.new_ofs, ofs);
-	if(quat) QUATCOPY(sms.new_quat, quat);
+	if(ofs) copy_v3_v3(sms.new_ofs, ofs);
+	if(quat) copy_qt_qt(sms.new_quat, quat);
 	if(dist) sms.new_dist= *dist;
 	if(lens) sms.new_lens= *lens;
 	
@@ -219,46 +218,24 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 		if (sms.new_lens != v3d->lens)
 			changed = 1;
 		
-		if ((sms.new_ofs[0]!=rv3d->ofs[0]) ||
-			(sms.new_ofs[1]!=rv3d->ofs[1]) ||
-			(sms.new_ofs[2]!=rv3d->ofs[2]) )
+		if (!equals_v3v3(sms.new_ofs, rv3d->ofs))
 			changed = 1;
-		
-		if ((sms.new_quat[0]!=rv3d->viewquat[0]) ||
-			(sms.new_quat[1]!=rv3d->viewquat[1]) ||
-			(sms.new_quat[2]!=rv3d->viewquat[2]) ||
-			(sms.new_quat[3]!=rv3d->viewquat[3]) )
+
+		if (!equals_v4v4(sms.new_quat, rv3d->viewquat))
 			changed = 1;
 		
 		/* The new view is different from the old one
 			* so animate the view */
 		if (changed) {
-			
-			sms.time_allowed= (double)U.smooth_viewtx / 1000.0;
-			
-			/* if this is view rotation only
-				* we can decrease the time allowed by
-				* the angle between quats 
-				* this means small rotations wont lag */
-			if (quat && !ofs && !dist) {
-				 float vec1[3], vec2[3];
-				
-				 VECCOPY(vec1, sms.new_quat);
-				 VECCOPY(vec2, sms.orig_quat);
-				 normalize_v3(vec1);
-				 normalize_v3(vec2);
-				 /* scale the time allowed by the rotation */
-				 sms.time_allowed *= angle_normalized_v3v3(vec1, vec2)/(M_PI/2); 
-			}
-			
+
 			/* original values */
 			if (oldcamera) {
 				sms.orig_dist= rv3d->dist; // below function does weird stuff with it...
 				view3d_settings_from_ob(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
 			}
 			else {
-				VECCOPY(sms.orig_ofs, rv3d->ofs);
-				QUATCOPY(sms.orig_quat, rv3d->viewquat);
+				copy_v3_v3(sms.orig_ofs, rv3d->ofs);
+				copy_qt_qt(sms.orig_quat, rv3d->viewquat);
 				sms.orig_dist= rv3d->dist;
 				sms.orig_lens= v3d->lens;
 			}
@@ -267,6 +244,26 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 				/* use existing if exists, means multiple calls to smooth view wont loose the original 'view' setting */
 				sms.orig_view= rv3d->sms ? rv3d->sms->orig_view : rv3d->view;
 				rv3d->view= 0;
+			}
+
+			sms.time_allowed= (double)U.smooth_viewtx / 1000.0;
+			
+			/* if this is view rotation only
+				* we can decrease the time allowed by
+				* the angle between quats 
+				* this means small rotations wont lag */
+			if (quat && !ofs && !dist) {
+				float vec1[3]={0,0,1}, vec2[3]= {0,0,1};
+				float q1[4], q2[4];
+
+				invert_qt_qt(q1, sms.new_quat);
+				invert_qt_qt(q2, sms.orig_quat);
+
+				mul_qt_v3(q1, vec1);
+				mul_qt_v3(q2, vec2);
+
+				/* scale the time allowed by the rotation */
+				sms.time_allowed *= angle_v3v3(vec1, vec2) / M_PI; /* 180deg == 1.0 */
 			}
 
 			/* ensure it shows correct */
@@ -289,8 +286,8 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 	
 	/* if we get here nothing happens */
 	if(sms.to_camera==0) {
-		VECCOPY(rv3d->ofs, sms.new_ofs);
-		QUATCOPY(rv3d->viewquat, sms.new_quat);
+		copy_v3_v3(rv3d->ofs, sms.new_ofs);
+		copy_qt_qt(rv3d->viewquat, sms.new_quat);
 		rv3d->dist = sms.new_dist;
 		v3d->lens = sms.new_lens;
 	}
@@ -309,7 +306,10 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(rv3d->smooth_timer==NULL || rv3d->smooth_timer!=event->customdata)
 		return OPERATOR_PASS_THROUGH;
 	
-	step =  (rv3d->smooth_timer->duration)/sms->time_allowed;
+	if(sms->time_allowed != 0.0f)
+		step = (rv3d->smooth_timer->duration)/sms->time_allowed;
+	else
+		step = 1.0f;
 	
 	/* end timer */
 	if(step >= 1.0f) {
@@ -317,14 +317,14 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		/* if we went to camera, store the original */
 		if(sms->to_camera) {
 			rv3d->persp= RV3D_CAMOB;
-			VECCOPY(rv3d->ofs, sms->orig_ofs);
-			QUATCOPY(rv3d->viewquat, sms->orig_quat);
+			copy_v3_v3(rv3d->ofs, sms->orig_ofs);
+			copy_qt_qt(rv3d->viewquat, sms->orig_quat);
 			rv3d->dist = sms->orig_dist;
 			v3d->lens = sms->orig_lens;
 		}
 		else {
-			VECCOPY(rv3d->ofs, sms->new_ofs);
-			QUATCOPY(rv3d->viewquat, sms->new_quat);
+			copy_v3_v3(rv3d->ofs, sms->new_ofs);
+			copy_qt_qt(rv3d->viewquat, sms->new_quat);
 			rv3d->dist = sms->new_dist;
 			v3d->lens = sms->new_lens;
 		}
@@ -458,7 +458,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_setobjectascamera(wmOperatorType *ot)
+void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 {
 	
 	/* identifiers */
@@ -571,9 +571,9 @@ void viewvector(RegionView3D *rv3d, float coord[3], float vec[3])
 	{
 		float p1[4], p2[4];
 
-		VECCOPY(p1, coord);
+		copy_v3_v3(p1, coord);
 		p1[3] = 1.0f;
-		VECCOPY(p2, p1);
+		copy_v3_v3(p2, p1);
 		p2[3] = 1.0f;
 		mul_m4_v4(rv3d->viewmat, p2);
 
@@ -584,16 +584,18 @@ void viewvector(RegionView3D *rv3d, float coord[3], float vec[3])
 		sub_v3_v3v3(vec, p1, p2);
 	}
 	else {
-		VECCOPY(vec, rv3d->viewinv[2]);
+		copy_v3_v3(vec, rv3d->viewinv[2]);
 	}
 	normalize_v3(vec);
 }
 
-void initgrabz(RegionView3D *rv3d, float x, float y, float z)
+int initgrabz(RegionView3D *rv3d, float x, float y, float z)
 {
-	if(rv3d==NULL) return;
+	int flip= FALSE;
+	if(rv3d==NULL) return flip;
 	rv3d->zfac= rv3d->persmat[0][3]*x+ rv3d->persmat[1][3]*y+ rv3d->persmat[2][3]*z+ rv3d->persmat[3][3];
-	
+	if (rv3d->zfac < 0.0f)
+		flip= TRUE;
 	/* if x,y,z is exactly the viewport offset, zfac is 0 and we don't want that 
 		* (accounting for near zero values)
 		* */
@@ -606,6 +608,8 @@ void initgrabz(RegionView3D *rv3d, float x, float y, float z)
 	// 	-- Aligorith, 2009Aug31
 	//if (rv3d->zfac < 0.0f) rv3d->zfac = 1.0f;
 	if (rv3d->zfac < 0.0f) rv3d->zfac= -rv3d->zfac;
+	
+	return flip;
 }
 
 /* always call initgrabz */
@@ -687,6 +691,7 @@ void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4])
 	
 	VECCOPY(vec4, vec);
 	adr[0]= IS_CLIPPED;
+	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
 	
 	mul_m4_v4(mat, vec4);
@@ -733,7 +738,7 @@ int boundbox_clip(RegionView3D *rv3d, float obmat[][4], BoundBox *bb)
 	mul_m4_m4m4(mat, obmat, rv3d->persmat);
 	
 	for(a=0; a<8; a++) {
-		VECCOPY(vec, bb->vec[a]);
+		copy_v3_v3(vec, bb->vec[a]);
 		vec[3]= 1.0;
 		mul_m4_v4(mat, vec);
 		max= vec[3];
@@ -766,7 +771,7 @@ void project_short(ARegion *ar, float *vec, short *adr)	/* clips */
 			return;
 	}
 	
-	VECCOPY(vec4, vec);
+	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
 	mul_m4_v4(rv3d->persmat, vec4);
 	
@@ -791,7 +796,7 @@ void project_int(ARegion *ar, float *vec, int *adr)
 	float fx, fy, vec4[4];
 	
 	adr[0]= (int)2140000000.0f;
-	VECCOPY(vec4, vec);
+	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
 	
 	mul_m4_v4(rv3d->persmat, vec4);
@@ -815,7 +820,7 @@ void project_int_noclip(ARegion *ar, float *vec, int *adr)
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
 	
-	VECCOPY(vec4, vec);
+	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
 	
 	mul_m4_v4(rv3d->persmat, vec4);
@@ -840,7 +845,7 @@ void project_short_noclip(ARegion *ar, float *vec, short *adr)
 	float fx, fy, vec4[4];
 	
 	adr[0]= IS_CLIPPED;
-	VECCOPY(vec4, vec);
+	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
 	
 	mul_m4_v4(rv3d->persmat, vec4);
@@ -866,7 +871,7 @@ void project_float(ARegion *ar, float *vec, float *adr)
 	float vec4[4];
 	
 	adr[0]= IS_CLIPPED;
-	VECCOPY(vec4, vec);
+	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
 	
 	mul_m4_v4(rv3d->persmat, vec4);
@@ -882,7 +887,7 @@ void project_float_noclip(ARegion *ar, float *vec, float *adr)
 	RegionView3D *rv3d= ar->regiondata;
 	float vec4[4];
 	
-	VECCOPY(vec4, vec);
+	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
 	
 	mul_m4_v4(rv3d->persmat, vec4);
@@ -1129,7 +1134,7 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 			float orig_ofs[3];
 			float orig_dist= rv3d->dist;
 			float orig_lens= v3d->lens;
-			VECCOPY(orig_ofs, rv3d->ofs);
+			copy_v3_v3(orig_ofs, rv3d->ofs);
 			
 			/* Switch from camera view */
 			mat3_to_quat( new_quat,tmat);
@@ -1225,11 +1230,11 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 			Object *ob= v3d->ob_centre;
 			float vec[3];
 			
-			VECCOPY(vec, ob->obmat[3]);
+			copy_v3_v3(vec, ob->obmat[3]);
 			if(ob->type==OB_ARMATURE && v3d->ob_centre_bone[0]) {
 				bPoseChannel *pchan= get_pose_channel(ob->pose, v3d->ob_centre_bone);
 				if(pchan) {
-					VECCOPY(vec, pchan->pose_mat[3]);
+					copy_v3_v3(vec, pchan->pose_mat[3]);
 					mul_m4_v3(ob->obmat, vec);
 				}
 			}
@@ -1366,7 +1371,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 
 /* ********************** local view operator ******************** */
 
-static unsigned int free_localbit(void)
+static unsigned int free_localbit(Main *bmain)
 {
 	unsigned int lay;
 	ScrArea *sa;
@@ -1376,7 +1381,7 @@ static unsigned int free_localbit(void)
 	
 	/* sometimes we loose a localview: when an area is closed */
 	/* check all areas: which localviews are in use? */
-	for(sc= G.main->screen.first; sc; sc= sc->id.next) {
+	for(sc= bmain->screen.first; sc; sc= sc->id.next) {
 		for(sa= sc->areabase.first; sa; sa= sa->next) {
 			SpaceLink *sl= sa->spacedata.first;
 			for(; sl; sl= sl->next) {
@@ -1438,7 +1443,7 @@ int ED_view3d_scene_layer_set(int lay, const int *values, int *active)
 	return lay;
 }
 
-static void initlocalview(Scene *scene, ScrArea *sa)
+static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 {
 	View3D *v3d= sa->spacedata.first;
 	Base *base;
@@ -1450,7 +1455,7 @@ static void initlocalview(Scene *scene, ScrArea *sa)
 
 	INIT_MINMAX(min, max);
 
-	locallay= free_localbit();
+	locallay= free_localbit(bmain);
 
 	if(locallay==0) {
 		printf("Sorry, no more than 8 localviews\n");	// XXX error 
@@ -1563,8 +1568,8 @@ static void restore_localviewdata(ScrArea *sa, int free)
 			
 			if(rv3d->localvd) {
 				rv3d->dist= rv3d->localvd->dist;
-				VECCOPY(rv3d->ofs, rv3d->localvd->ofs);
-				QUATCOPY(rv3d->viewquat, rv3d->localvd->viewquat);
+				copy_v3_v3(rv3d->ofs, rv3d->localvd->ofs);
+				copy_qt_qt(rv3d->viewquat, rv3d->localvd->viewquat);
 				rv3d->view= rv3d->localvd->view;
 				rv3d->persp= rv3d->localvd->persp;
 				rv3d->camzoom= rv3d->localvd->camzoom;
@@ -1614,7 +1619,7 @@ static int localview_exec(bContext *C, wmOperator *unused)
 	if(v3d->localvd)
 		endlocalview(CTX_data_scene(C), CTX_wm_area(C));
 	else
-		initlocalview(CTX_data_scene(C), CTX_wm_area(C));
+		initlocalview(CTX_data_main(C), CTX_data_scene(C), CTX_wm_area(C));
 	
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
@@ -1827,8 +1832,8 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	RestoreState(C);
 
 	//XXX restore_all_scene_cfra(scene_cfra_store);
-	set_scene_bg(startscene);
-	//XXX scene_update_for_newframe(G.scene, G.scene->lay);
+	set_scene_bg(CTX_data_main(C), startscene);
+	//XXX scene_update_for_newframe(bmain, scene, scene->lay);
 	
 	ED_area_tag_redraw(CTX_wm_area(C));
 
@@ -2077,7 +2082,7 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 		/* perspective or ortho */
 		if (fly->rv3d->persp==RV3D_ORTHO)
 			fly->rv3d->persp= RV3D_PERSP; /*if ortho projection, make perspective */
-		QUATCOPY(fly->rot_backup, fly->rv3d->viewquat);
+		copy_qt_qt(fly->rot_backup, fly->rv3d->viewquat);
 		copy_v3_v3(fly->ofs_backup, fly->rv3d->ofs);
 		fly->rv3d->dist= 0.0f;
 
@@ -2121,8 +2126,8 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 			DAG_id_flush_update(&ob_back->id, OB_RECALC_OB);
 		} else {
 			/* Non Camera we need to reset the view back to the original location bacause the user canceled*/
-			QUATCOPY(rv3d->viewquat, fly->rot_backup);
-			VECCOPY(rv3d->ofs, fly->ofs_backup);
+			copy_qt_qt(rv3d->viewquat, fly->rot_backup);
+			copy_v3_v3(rv3d->ofs, fly->ofs_backup);
 			rv3d->persp= fly->persp_backup;
 		}
 	}
@@ -2242,7 +2247,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				/* impliment WASD keys */
 			case FLY_MODAL_DIR_FORWARD:
 				if (fly->speed < 0.0f) fly->speed= -fly->speed; /* flip speed rather then stopping, game like motion */
-				else fly->speed += fly->grid; /* increse like mousewheel if were alredy moving in that difection*/
+				else fly->speed += fly->grid; /* increse like mousewheel if were already moving in that difection*/
 				fly->axis= 2;
 				break;
 			case FLY_MODAL_DIR_BACKWARD:
@@ -2610,7 +2615,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 			/*were not redrawing but we need to update the time else the view will jump */
 			fly->time_lastdraw= PIL_check_seconds_timer();
 		/* end drawing */
-		VECCOPY(fly->dvec_prev, dvec);
+		copy_v3_v3(fly->dvec_prev, dvec);
 	}
 
 /* moved to flyEnd() */
@@ -2723,7 +2728,7 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 		float orig_dist= rv3d->dist;
 		float orig_lens= v3d->lens;
 		
-		VECCOPY(orig_ofs, rv3d->ofs);
+		copy_v3_v3(orig_ofs, rv3d->ofs);
 		rv3d->persp= RV3D_PERSP;
 		rv3d->dist= 0.0;
 		view3d_settings_from_ob(v3d->camera, rv3d->ofs, NULL, NULL, &v3d->lens);

@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
 # All rights reserved.
@@ -59,5 +59,5 @@ CPPFLAGS += -I..
 CPPFLAGS += -I../../blenloader -I../../imbuf/intern -I../../imbuf 
 CPPFLAGS += -I../../blenlib -I../../makesdna -I../../editors/include -I../../avi 
 CPPFLAGS += -I../../blenkernel -I../../render/extern/include -I../../windowmanager -I../../makesrna
-CPPFLAGS += -I../../../intern/audaspace/intern
+CPPFLAGS += -I$(NAN_AUDASPACE)/include
 

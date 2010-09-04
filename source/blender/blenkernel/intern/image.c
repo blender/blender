@@ -287,17 +287,25 @@ static void image_assign_ibuf(Image *ima, ImBuf *ibuf, int index, int frame)
 }
 
 /* empty image block, of similar type and filename */
-Image *BKE_image_copy(Image *ima)
+Image *copy_image(Image *ima)
 {
-	Image *new= image_alloc(ima->id.name+2, ima->source, ima->type);
+	Image *nima= image_alloc(ima->id.name+2, ima->source, ima->type);
 
-	BLI_strncpy(new->name, ima->name, sizeof(ima->name));
+	BLI_strncpy(nima->name, ima->name, sizeof(ima->name));
+
+	nima->flag= ima->flag;
+	nima->tpageflag= ima->tpageflag;
 	
-	new->gen_x= ima->gen_x;
-	new->gen_y= ima->gen_y;
-	new->gen_type= ima->gen_type;
-	
-	return new;
+	nima->gen_x= ima->gen_x;
+	nima->gen_y= ima->gen_y;
+	nima->gen_type= ima->gen_type;
+
+	nima->animspeed= ima->animspeed;
+
+	nima->aspx= ima->aspx;
+	nima->aspy= ima->aspy;
+
+	return nima;
 }
 
 void BKE_image_merge(Image *dest, Image *source)
@@ -652,8 +660,10 @@ int BKE_imtype_to_ftype(int imtype)
 		return TGA;
 	else if(imtype== R_IRIS) 
 		return IMAGIC;
+#ifdef WITH_HDR
 	else if (imtype==R_RADHDR)
 		return RADHDR;
+#endif
 	else if (imtype==R_PNG)
 		return PNG;
 #ifdef WITH_DDS
@@ -662,14 +672,18 @@ int BKE_imtype_to_ftype(int imtype)
 #endif
 	else if (imtype==R_BMP)
 		return BMP;
+#ifdef WITH_TIFF
 	else if (imtype==R_TIFF)
 		return TIF;
+#endif
 	else if (imtype==R_OPENEXR || imtype==R_MULTILAYER)
 		return OPENEXR;
+#ifdef WITH_CINEON
 	else if (imtype==R_CINEON)
 		return CINEON;
 	else if (imtype==R_DPX)
 		return DPX;
+#endif
 	else if (imtype==R_TARGA)
 		return TGA;
 	else if(imtype==R_RAWTGA)
@@ -688,8 +702,10 @@ int BKE_ftype_to_imtype(int ftype)
 		return TGA;
 	else if(ftype == IMAGIC) 
 		return R_IRIS;
+#ifdef WITH_HDR
 	else if (ftype & RADHDR)
 		return R_RADHDR;
+#endif
 	else if (ftype & PNG)
 		return R_PNG;
 #ifdef WITH_DDS
@@ -698,14 +714,18 @@ int BKE_ftype_to_imtype(int ftype)
 #endif
 	else if (ftype & BMP)
 		return R_BMP;
+#ifdef WITH_TIFF
 	else if (ftype & TIF)
 		return R_TIFF;
+#endif
 	else if (ftype & OPENEXR)
 		return R_OPENEXR;
+#ifdef WITH_CINEON
 	else if (ftype & CINEON)
 		return R_CINEON;
 	else if (ftype & DPX)
 		return R_DPX;
+#endif
 	else if (ftype & TGA)
 		return R_TARGA;
 	else if(ftype & RAWTGA)
@@ -748,10 +768,12 @@ void BKE_add_image_extension(char *string, int imtype)
 		if(!BLI_testextensie(string, ".rgb"))
 			extension= ".rgb";
 	}
+#ifdef WITH_HDR
 	else if(imtype==R_RADHDR) {
 		if(!BLI_testextensie(string, ".hdr"))
 			extension= ".hdr";
 	}
+#endif
 	else if (ELEM5(imtype, R_PNG, R_FFMPEG, R_H264, R_THEORA, R_XVID)) {
 		if(!BLI_testextensie(string, ".png"))
 			extension= ".png";
@@ -782,6 +804,7 @@ void BKE_add_image_extension(char *string, int imtype)
 			extension= ".exr";
 	}
 #endif
+#ifdef WITH_CINEON
 	else if(imtype==R_CINEON){
 		if (!BLI_testextensie(string, ".cin"))
 			extension= ".cin";
@@ -790,6 +813,7 @@ void BKE_add_image_extension(char *string, int imtype)
 		if (!BLI_testextensie(string, ".dpx"))
 			extension= ".dpx";
 	}
+#endif
 	else if(imtype==R_TARGA) {
 		if(!BLI_testextensie(string, ".tga"))
 			extension= ".tga";
@@ -1172,14 +1196,23 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 {
 	int ok;
 	
-	if(imtype==0);
-	else if(imtype== R_IRIS) 
+	if(imtype==0) {
+		/* pass */
+	}
+	else if(imtype== R_IRIS) {
 		ibuf->ftype= IMAGIC;
+	}
+#ifdef WITH_HDR
 	else if ((imtype==R_RADHDR)) {
 		ibuf->ftype= RADHDR;
 	}
+#endif
 	else if (ELEM5(imtype, R_PNG, R_FFMPEG, R_H264, R_THEORA, R_XVID)) {
 		ibuf->ftype= PNG;
+
+		if(imtype==R_PNG)
+			ibuf->ftype |= quality;  /* quality is actually compression 0-100 --> 0-9 */
+
 	}
 #ifdef WITH_DDS
 	else if ((imtype==R_DDS)) {
@@ -1209,12 +1242,14 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 		
 	}
 #endif
+#ifdef WITH_CINEON
 	else if (imtype==R_CINEON) {
 		ibuf->ftype = CINEON;
 	}
 	else if (imtype==R_DPX) {
 		ibuf->ftype = DPX;
 	}
+#endif
 	else if (imtype==R_TARGA) {
 		ibuf->ftype= TGA;
 	}

@@ -189,9 +189,9 @@ void rna_ID_name_get(struct PointerRNA *ptr, char *value);
 int rna_ID_name_length(struct PointerRNA *ptr);
 void rna_ID_name_set(struct PointerRNA *ptr, const char *value);
 struct StructRNA *rna_ID_refine(struct PointerRNA *ptr);
-struct IDProperty *rna_ID_idproperties(struct PointerRNA *ptr, int create);
+struct IDProperty *rna_ID_idprops(struct PointerRNA *ptr, int create);
 void rna_ID_fake_user_set(struct PointerRNA *ptr, int value);
-struct IDProperty *rna_IDPropertyGroup_idproperties(struct PointerRNA *ptr, int create);
+struct IDProperty *rna_IDPropertyGroup_idprops(struct PointerRNA *ptr, int create);
 void rna_IDPropertyGroup_unregister(const struct bContext *C, struct StructRNA *type);
 struct StructRNA *rna_IDPropertyGroup_register(const struct bContext *C, struct ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
 struct StructRNA* rna_IDPropertyGroup_refine(struct PointerRNA *ptr);
@@ -206,10 +206,17 @@ PointerRNA rna_object_shapekey_index_get(struct ID *id, int value);
 int rna_object_shapekey_index_set(struct ID *id, PointerRNA value, int current);
 
 /* named internal so as not to conflict with obj.update() rna func */
-void rna_Object_internal_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_Object_internal_update_data(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_Mesh_update_draw(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_TextureSlot_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+
+/* basic poll functions for object types */
+int rna_Armature_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+int rna_Camera_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+int rna_Curve_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+int rna_Lattice_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+int rna_Mesh_object_poll(struct PointerRNA *ptr, struct PointerRNA value);
+
 
 char *rna_TextureSlot_path(struct PointerRNA *ptr);
 

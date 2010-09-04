@@ -77,7 +77,6 @@
 
 #include "LBM_fluidsim.h"
 
-#include "BIF_gl.h"
 
 #include "ED_screen.h"
 
@@ -563,7 +562,6 @@ static void export_fluid_objects(ListBase *fobjects, Scene *scene, int length)
 		
 		if(verts) MEM_freeN(verts);
 		if(tris) MEM_freeN(tris);
-		if(fsmesh.channelVertices) MEM_freeN(fsmesh.channelVertices);
 	}
 }
 

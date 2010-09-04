@@ -38,12 +38,8 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 
-#include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "BLF_api.h"
 
@@ -264,7 +260,7 @@ void UI_DrawString(float x, float y, char *str)
 
 /* ************** init exit ************************ */
 
-/* called on each .B.blend read */
+/* called on each startup.blend read */
 /* reading without uifont will create one */
 void uiStyleInit(void)
 {

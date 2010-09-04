@@ -45,15 +45,16 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
+#include "BKE_main.h"
 #include "BKE_nla.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_key.h"
@@ -1060,6 +1061,7 @@ static int modify_key_op_poll(bContext *C)
 
 static int insert_key_exec (bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks= NULL;
 	int type= RNA_int_get(op->ptr, "type");
@@ -1106,7 +1108,7 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
 	
 	/* send updates */
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1202,6 +1204,7 @@ void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 
 static int delete_key_exec (bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks= NULL;	
 	int type= RNA_int_get(op->ptr, "type");
@@ -1248,7 +1251,7 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to remove any keyframes");
 	
 	/* send updates */
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1287,6 +1290,7 @@ void ANIM_OT_keyframe_delete (wmOperatorType *ot)
  
 static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
 	
@@ -1315,7 +1319,7 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* send updates */
-	DAG_ids_flush_update(0);
+	DAG_ids_flush_update(bmain, 0);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
 	
@@ -1343,6 +1347,7 @@ void ANIM_OT_keyframe_delete_v3d (wmOperatorType *ot)
 
 static int insert_key_button_exec (bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr;
 	PropertyRNA *prop= NULL;
@@ -1400,7 +1405,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		DAG_ids_flush_update(0);
+		DAG_ids_flush_update(bmain, 0);
 		
 		/* send notifiers that keyframes have been changed */
 		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
@@ -1430,6 +1435,7 @@ void ANIM_OT_keyframe_insert_button (wmOperatorType *ot)
 
 static int delete_key_button_exec (bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr;
 	PropertyRNA *prop= NULL;
@@ -1470,7 +1476,7 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		DAG_ids_flush_update(0);
+		DAG_ids_flush_update(bmain, 0);
 		
 		/* send notifiers that keyframes have been changed */
 		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);

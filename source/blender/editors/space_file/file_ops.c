@@ -333,7 +333,7 @@ static int file_select_all_exec(bContext *C, wmOperator *op)
 void FILE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select/Deselect all files";
+	ot->name= "Select/Deselect All Files";
 	ot->description= "Select/deselect all files";
 	ot->idname= "FILE_OT_select_all_toggle";
 	
@@ -945,7 +945,7 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 		if ( sfile->params->dir[0] == '~' ) {
 			char tmpstr[sizeof(sfile->params->dir)-1];
 			strncpy(tmpstr, sfile->params->dir+1, sizeof(tmpstr));
-			BLI_join_dirfile(sfile->params->dir, BLI_gethome(), tmpstr);
+			BLI_join_dirfile(sfile->params->dir, BLI_getDefaultDocumentFolder(), tmpstr);
 		}
 
 #ifdef WIN32

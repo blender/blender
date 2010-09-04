@@ -43,14 +43,13 @@
 
 #include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 
 #include "RNA_define.h"
@@ -197,13 +196,14 @@ static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar
 
 static void select_editlattice_hook(Object *obedit, HookModifierData *hmd)
 {
-	Lattice *lt= obedit->data;
+	Lattice *lt= obedit->data, *editlt;
 	BPoint *bp;
 	int index=0, nr=0, a;
-	
+
+	editlt= lt->editlatt->latt;
 	/* count */
-	a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
-	bp= lt->editlatt->def;
+	a= editlt->pntsu*editlt->pntsv*editlt->pntsw;
+	bp= editlt->def;
 	while(a--) {
 		if(hmd->indexar[index]==nr) {
 			bp->f1 |= SELECT;
@@ -317,7 +317,7 @@ static int object_hook_index_array(Object *obedit, int *tot, int **indexar, char
 		case OB_LATTICE:
 		{
 			Lattice *lt= obedit->data;
-			return return_editlattice_indexar(lt->editlatt, tot, indexar, cent_r);
+			return return_editlattice_indexar(lt->editlatt->latt, tot, indexar, cent_r);
 		}
 		default:
 			return 0;
@@ -416,7 +416,7 @@ static Object *add_hook_object_new(Scene *scene, Object *obedit)
 	return ob;
 }
 
-static void add_hook_object(Scene *scene, Object *obedit, Object *ob, int mode)
+static void add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *ob, int mode)
 {
 	ModifierData *md=NULL;
 	HookModifierData *hmd = NULL;
@@ -462,11 +462,12 @@ static void add_hook_object(Scene *scene, Object *obedit, Object *ob, int mode)
 	mul_serie_m4(hmd->parentinv, ob->imat, obedit->obmat, NULL, 
 				 NULL, NULL, NULL, NULL, NULL);
 	
-	DAG_scene_sort(scene);
+	DAG_scene_sort(bmain, scene);
 }
 
 static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obsel=NULL;
@@ -485,7 +486,7 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	add_hook_object(scene, obedit, obsel, OBJECT_ADDHOOK_SELOB);
+	add_hook_object(bmain, scene, obedit, obsel, OBJECT_ADDHOOK_SELOB);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, obedit);
 	return OPERATOR_FINISHED;
@@ -508,10 +509,11 @@ void OBJECT_OT_hook_add_selobj(wmOperatorType *ot)
 
 static int object_add_hook_newob_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 
-	add_hook_object(scene, obedit, NULL, OBJECT_ADDHOOK_NEWOB);
+	add_hook_object(bmain, scene, obedit, NULL, OBJECT_ADDHOOK_NEWOB);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, obedit);

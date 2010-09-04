@@ -31,7 +31,7 @@
 
 /* **************** VALUE ******************** */
 static bNodeSocketType sh_node_value_out[]= {
-	{	SOCK_VALUE, 0, "Value",		0.5f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f},
+	{	SOCK_VALUE, 0, "Value",		0.5f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
 	{	-1, 0, ""	}
 };
 

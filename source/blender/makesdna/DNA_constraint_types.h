@@ -33,7 +33,6 @@
 
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
-#include "DNA_object_types.h"
 
 struct Action;
 struct Text;
@@ -82,7 +81,7 @@ typedef struct bConstraint {
 typedef struct bConstraintTarget {
 	struct bConstraintTarget *next, *prev;
 
-	Object *tar;			/* object to use as target */
+	struct Object *tar;			/* object to use as target */
 	char subtarget[32];		/* subtarget - pchan or vgroup name */
 	
 	float matrix[4][4];		/* matrix used during constraint solving - should be cleared before each use */
@@ -118,7 +117,7 @@ typedef struct bPythonConstraint {
 	
 	ListBase targets;		/* a list of targets that this constraint has (bConstraintTarget-s) */
 	
-	Object *tar;			/* target from previous implementation (version-patch sets this to NULL on file-load) */
+	struct Object *tar;		/* target from previous implementation (version-patch sets this to NULL on file-load) */
 	char subtarget[32];		/* subtarger from previous implentation (version-patch sets this to "" on file-load) */
 } bPythonConstraint;
 
@@ -130,13 +129,13 @@ typedef struct bPythonConstraint {
    This is indicated in the comments for each field
  */
 typedef struct bKinematicConstraint {
-	Object		*tar;			/* All: target object in case constraint needs a target */
+	struct Object		*tar;			/* All: target object in case constraint needs a target */
 	short		iterations;		/* All: Maximum number of iterations to try */
 	short		flag;			/* All & CopyPose: some options Like CONSTRAINT_IK_TIP */
 	short		rootbone;		/* All: index to rootbone, if zero go all the way to mother bone */
 	short		max_rootbone;	/* CopyPose: for auto-ik, maximum length of chain */
 	char		subtarget[32];	/* All: String to specify sub-object target */
-	Object		*poletar;			/* All: Pole vector target */
+	struct Object		*poletar;			/* All: Pole vector target */
 	char		polesubtarget[32];	/* All: Pole vector sub-object target */
 	float		poleangle;			/* All: Pole vector rest angle */
 	float		weight;			/* All: Weight of constraint in IK tree */
@@ -160,7 +159,7 @@ typedef enum B_CONSTRAINT_IK_TYPE {
  */
 typedef struct bSplineIKConstraint {
 		/* target(s) */
-	Object 		*tar;		/* curve object (with follow path enabled) which drives the bone chain */
+	struct Object *tar;		/* curve object (with follow path enabled) which drives the bone chain */
 	
 		/* binding details */
 	float 		*points;	/* array of numpoints items, denoting parametric positions along curve that joints should follow */
@@ -177,7 +176,7 @@ typedef struct bSplineIKConstraint {
 
 /* Track To Constraint */
 typedef struct bTrackToConstraint {
-	Object		*tar;
+	struct Object		*tar;
 	int			reserved1; /* I'll be using reserved1 and reserved2 as Track and Up flags, not sure if that's what they were intented for anyway. Not sure either if it would create backward incompatibility if I were to rename them. - theeth*/
 	int			reserved2;
 	int			flags;
@@ -187,7 +186,7 @@ typedef struct bTrackToConstraint {
 
 /* Copy Rotation Constraint */
 typedef struct bRotateLikeConstraint {
-	Object		*tar;
+	struct Object		*tar;
 	int			flag;
 	int			reserved1;
 	char		subtarget[32];
@@ -195,7 +194,7 @@ typedef struct bRotateLikeConstraint {
 
 /* Copy Location Constraint */
 typedef struct bLocateLikeConstraint {
-	Object		*tar;
+	struct Object		*tar;
 	int			flag;
 	int			reserved1;
 	char		subtarget[32];
@@ -203,7 +202,7 @@ typedef struct bLocateLikeConstraint {
 
 /* Copy Scale Constraint */
 typedef struct bSizeLikeConstraint {
-	Object		*tar;
+	struct Object		*tar;
 	int			flag;
 	int			reserved1;
 	char		subtarget[32];
@@ -217,13 +216,13 @@ typedef struct bSameVolumeConstraint {
 
 /* Copy Transform Constraint */
 typedef struct bTransLikeConstraint {
-	Object 		*tar;
+	struct Object *tar;
 	char 		subtarget[32];
 } bTransLikeConstraint;
 
 /* Floor Constraint */
 typedef struct bMinMaxConstraint {
-	Object		*tar;
+	struct Object *tar;
 	int			minmaxflag;
 	float		offset;
 	int			flag;
@@ -234,7 +233,7 @@ typedef struct bMinMaxConstraint {
 
 /* Action Constraint */
 typedef struct bActionConstraint {
-	Object		*tar;
+	struct Object		*tar;
 	short		type;	/* what transform 'channel' drives the result */
 	short		local;	/* was used in versions prior to the Constraints recode */
 	int			start;
@@ -248,7 +247,7 @@ typedef struct bActionConstraint {
 
 /* Locked Axis Tracking constraint */
 typedef struct bLockTrackConstraint {
-	Object		*tar;
+	struct Object		*tar;
 	int			trackflag;
 	int			lockflag;
 	char		subtarget[32];
@@ -256,7 +255,7 @@ typedef struct bLockTrackConstraint {
 
 /* Damped Tracking constraint */
 typedef struct bDampTrackConstraint {
-	Object		*tar;
+	struct Object		*tar;
 	int			trackflag;
 	int			pad;
 	char		subtarget[32];
@@ -264,7 +263,7 @@ typedef struct bDampTrackConstraint {
 
 /* Follow Path constraints */
 typedef struct bFollowPathConstraint {
-	Object		*tar;			/* Must be path object */
+	struct Object		*tar;		/* Must be path object */
 	
 	float		offset; 		/* Offset in time on the path (in frames), when NOT using 'fixed position' */
 	float 		offset_fac;		/* Parametric offset factor defining position along path, when using 'fixed position' */
@@ -277,7 +276,7 @@ typedef struct bFollowPathConstraint {
 
 /* Stretch to constraint */
 typedef struct bStretchToConstraint {
-	Object		*tar;
+	struct Object		*tar;
 	int			volmode; 
 	int         plane;
 	float		orglength;
@@ -287,8 +286,8 @@ typedef struct bStretchToConstraint {
 
 /* Rigid Body constraint */
 typedef struct bRigidBodyJointConstraint {
-	Object		*tar;
-	Object		*child;
+	struct Object		*tar;
+	struct Object		*child;
 	int         type;
 	float       pivX;
 	float       pivY;
@@ -307,14 +306,14 @@ typedef struct bRigidBodyJointConstraint {
 
 /* Clamp-To Constraint */
 typedef struct bClampToConstraint {
-	Object 		*tar;			/* 'target' must be a curve */
+	struct Object 		*tar;			/* 'target' must be a curve */
 	int			flag;			/* which axis/plane to compare owner's location on  */
 	int			flag2;			/* for legacy reasons, this is flag2. used for any extra settings */
 } bClampToConstraint;
 
 /* Child Of Constraint */
 typedef struct bChildOfConstraint {
-	Object 		*tar;			/* object which will act as parent (or target comes from) */
+	struct Object 		*tar;			/* object which will act as parent (or target comes from) */
 	int 		flag;			/* settings */
 	int			pad;
 	float		invmat[4][4];	/* parent-inverse matrix to use */
@@ -323,7 +322,7 @@ typedef struct bChildOfConstraint {
 
 /* Generic Transform->Transform Constraint */
 typedef struct bTransformConstraint {
-	Object 		*tar;			/* target (i.e. 'driver' object/bone) */
+	struct Object 		*tar;			/* target (i.e. 'driver' object/bone) */
 	char 		subtarget[32];	
 	
 	short		from, to;		/* can be loc(0) , rot(1),  or size(2) */
@@ -342,7 +341,7 @@ typedef struct bPivotConstraint {
 	/* Pivot Point:
 	 *	Either target object + offset, or just offset is used
 	 */
-	Object 		*tar;			/* target object (optional) */
+	struct Object 		*tar;			/* target object (optional) */
 	char	 	subtarget[32];		/* subtarget name (optional) */
 	float 		offset[3];		/* offset from the target to use, regardless of whether it exists */
 	
@@ -385,7 +384,7 @@ typedef struct bSizeLimitConstraint {
 
 /* Limit Distance Constraint */
 typedef struct bDistLimitConstraint {
-	Object 		*tar;
+	struct Object 		*tar;
 	char 		subtarget[32];
 	
 	float 		dist;			/* distance (radius of clamping sphere) from target */
@@ -398,7 +397,7 @@ typedef struct bDistLimitConstraint {
 
 /* ShrinkWrap Constraint */
 typedef struct bShrinkwrapConstraint {
-	Object		*target;
+	struct Object		*target;
 	float		dist;			/* distance to kept from target */
 	short		shrinkType;		/* shrink type (look on MOD shrinkwrap for values) */
 	char		projAxis;		/* axis to project over UP_X, UP_Y, UP_Z */

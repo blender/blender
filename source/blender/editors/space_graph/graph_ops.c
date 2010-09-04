@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
 
@@ -37,7 +36,6 @@
 
 #include "BKE_context.h"
 #include "BKE_sound.h"
-#include "BKE_utildefines.h"
 
 #include "UI_view2d.h"
 
@@ -174,7 +172,7 @@ void GRAPH_OT_cursor_set(wmOperatorType *ot)
 	ot->poll= ED_operator_ipo_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_UNDO;
 
 	/* rna */
 	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
@@ -347,7 +345,6 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	WM_keymap_add_item(keymap, "GRAPH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_delete", DELKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "GRAPH_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "GRAPH_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	

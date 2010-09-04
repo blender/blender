@@ -31,16 +31,12 @@
 
 #include "DNA_scene_types.h"
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-#include "BKE_animsys.h"
-#include "BKE_nla.h"
 #include "BKE_context.h"
-#include "BKE_report.h"
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"
@@ -177,7 +173,6 @@ static void nla_keymap_channels (wmKeyConfig *keyconf, wmKeyMap *keymap)
 		/* delete tracks */
 	WM_keymap_add_item(keymap, "NLA_OT_delete_tracks", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_delete_tracks", DELKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NLA_OT_delete_tracks", BACKSPACEKEY, KM_PRESS, 0, 0);
 	
 	/* General Animation Channels keymap (see anim_channels.c) ----------------------- */
 	/* selection */
@@ -247,8 +242,7 @@ static void nla_keymap_main (wmKeyConfig *keyconf, wmKeyMap *keymap)
 		/* delete */
 	WM_keymap_add_item(keymap, "NLA_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_delete", DELKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "NLA_OT_delete", BACKSPACEKEY, KM_PRESS, 0, 0);
-	
+
 		/* split */
 	WM_keymap_add_item(keymap, "NLA_OT_split", YKEY, KM_PRESS, 0, 0);
 	

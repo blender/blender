@@ -53,7 +53,6 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
 #include "BKE_mesh.h"
 #include "BKE_tessmesh.h"
 #include "BKE_depsgraph.h"
@@ -64,7 +63,6 @@
 #include "IMB_imbuf_types.h"
 
 #include "ED_screen.h"
-#include "ED_util.h"
 #include "ED_space_api.h"
 #include "ED_view3d.h"
 #include "ED_mesh.h"

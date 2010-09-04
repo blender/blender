@@ -35,14 +35,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLO_readfile.h" /* get the ID name for dnd*/
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_idcode.h"
 
 #include "ED_screen.h"
 
@@ -178,7 +176,7 @@ static void id_drop_copy(wmDrag *drag, wmDropBox *drop)
 	char text[64];
 	ID *id= drag->poin;
 
-	snprintf(text, sizeof(text), "bpy.data.%s['%s']", BLO_idcode_to_name_plural(GS(id->name)), id->name+2);	
+	snprintf(text, sizeof(text), "bpy.data.%s['%s']", BKE_idcode_to_name_plural(GS(id->name)), id->name+2);	
 
 	/* copy drag path to properties */
 	RNA_string_set(drop->ptr, "text", text);

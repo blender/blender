@@ -41,10 +41,8 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_mesh.h"
-#include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 
 #include "BLI_math.h"

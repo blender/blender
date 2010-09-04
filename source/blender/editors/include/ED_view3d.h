@@ -54,7 +54,7 @@ struct ViewContext;
 
 /* for derivedmesh drawing callbacks, for view3d_select, .... */
 typedef struct ViewContext {
-	Scene *scene;
+	struct Scene *scene;
 	struct Object *obact;
 	struct Object *obedit;
 	struct ARegion *ar;
@@ -75,7 +75,7 @@ typedef struct ViewDepths {
 
 float *give_cursor(struct Scene *scene, struct View3D *v3d);
 
-void initgrabz(struct RegionView3D *rv3d, float x, float y, float z);
+int initgrabz(struct RegionView3D *rv3d, float x, float y, float z);
 void window_to_3d(struct ARegion *ar, float *vec, short mx, short my);
 void window_to_3d_delta(struct ARegion *ar, float *vec, short mx, short my);
 void view3d_unproject(struct bglMats *mats, float out[3], const short x, const short y, const float z);

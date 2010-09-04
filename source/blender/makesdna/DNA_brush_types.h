@@ -31,7 +31,7 @@
 #define DNA_BRUSH_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_texture_types.h"
+#include "DNA_texture_types.h" /* for MTex */
 
 //#ifndef MAX_MTEX // XXX Not used?
 //#define MAX_MTEX	18
@@ -53,11 +53,15 @@ typedef struct Brush {
 	struct BrushClone clone;
 	struct CurveMapping *curve;	/* falloff curve */
 	struct MTex mtex;
-	struct Image *image_icon;
+
+	struct ImBuf *icon_imbuf;
+	PreviewImage *preview;
+	char icon_filepath[240];
 
 	float normal_weight;
 
-	short blend, pad;		/* blend mode */
+	short blend;		/* blend mode */
+	short ob_mode;		/* & with ob->mode to see if the brush is compatible, use for display only. */
 	int size;			/* brush diameter */
 	int flag;			/* general purpose flag */	
 	float jitter;			/* jitter the position of the brush */
@@ -121,6 +125,7 @@ typedef struct Brush {
 #define BRUSH_RANDOM_ROTATION (1<<25)
 #define BRUSH_PLANE_TRIM (1<<26)
 #define BRUSH_FRONTFACE (1<<27)
+#define BRUSH_CUSTOM_ICON (1<<28)
 
 /* Brush.sculpt_tool */
 #define SCULPT_TOOL_DRAW        1

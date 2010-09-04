@@ -27,9 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
-/* This file is the Blender.BGL part of opy_draw.c, from the old
- * bpython/intern dir, with minor changes to adapt it to the new Python
- * implementation.  The BGL submodule "wraps" OpenGL functions and constants,
+/* This file is the 'bgl' module.
+ * The BGL submodule "wraps" OpenGL functions and constants,
  * allowing script writers to make OpenGL calls in their Python scripts. */
 
 #include "bgl.h" /*This must come first */
@@ -1118,7 +1117,7 @@ PyObject *BGL_Init(void)
 {
 	PyObject *mod, *dict, *item;
 	mod = PyModule_Create(&BGL_module_def);
-	PyDict_SetItemString(PySys_GetObject("modules"), BGL_module_def.m_name, mod);
+	PyDict_SetItemString(PyImport_GetModuleDict(), BGL_module_def.m_name, mod);
 	dict= PyModule_GetDict(mod);
 	
 	if( PyType_Ready( &BGL_bufferType) < 0)
@@ -1613,3 +1612,4 @@ PyObject *BGL_Init(void)
       
 	return mod;
 }
+

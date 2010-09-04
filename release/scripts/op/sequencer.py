@@ -30,7 +30,8 @@ class SequencerCrossfadeSounds(bpy.types.Operator):
     bl_label = "Crossfade sounds"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         if context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip:
             return context.scene.sequence_editor.active_strip.type == 'SOUND'
         else:
@@ -40,7 +41,7 @@ class SequencerCrossfadeSounds(bpy.types.Operator):
         seq1 = None
         seq2 = None
         for s in context.scene.sequence_editor.sequences:
-            if s.selected and s.type == 'SOUND':
+            if s.select and s.type == 'SOUND':
                 if seq1 == None:
                     seq1 = s
                 elif seq2 == None:
@@ -83,7 +84,8 @@ class SequencerCutMulticam(bpy.types.Operator):
     camera = IntProperty(name="Camera",
             default=1, min=1, max=32, soft_min=1, soft_max=32)
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         if context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip:
             return context.scene.sequence_editor.active_strip.type == 'MULTICAM'
         else:
@@ -94,16 +96,16 @@ class SequencerCutMulticam(bpy.types.Operator):
 
         s = context.scene.sequence_editor.active_strip
 
-        if s.multicam_source == camera:
+        if s.multicam_source == camera or camera >= s.channel:
             return {'FINISHED'}
 
-        if not s.selected:
-            s.selected = True
+        if not s.select:
+            s.select = True
 
         cfra = context.scene.frame_current
         bpy.ops.sequencer.cut(frame=cfra, type='SOFT', side='RIGHT')
         for s in context.scene.sequence_editor.sequences_all:
-            if s.selected and s.type == 'MULTICAM' and s.frame_final_start <= cfra and cfra < s.frame_final_end:
+            if s.select and s.type == 'MULTICAM' and s.frame_final_start <= cfra and cfra < s.frame_final_end:
                 context.scene.sequence_editor.active_strip = s
 
         context.scene.sequence_editor.active_strip.multicam_source = camera
@@ -117,7 +119,8 @@ class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
     bl_label = "Deinterlace Movies"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         if context.scene and context.scene.sequence_editor:
             return True
         else:
@@ -125,26 +128,18 @@ class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
 
     def execute(self, context):
         for s in context.scene.sequence_editor.sequences_all:
-            if s.selected and s.type == 'MOVIE':
-                s.de_interlace = True
+            if s.select and s.type == 'MOVIE':
+                s.use_deinterlace = True
 
         return {'FINISHED'}
 
 
 def register():
-    register = bpy.types.register
-
-    register(SequencerCrossfadeSounds)
-    register(SequencerCutMulticam)
-    register(SequencerDeinterlaceSelectedMovies)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-
-    unregister(SequencerCrossfadeSounds)
-    unregister(SequencerCutMulticam)
-    unregister(SequencerDeinterlaceSelectedMovies)
+    pass
 
 
 if __name__ == "__main__":

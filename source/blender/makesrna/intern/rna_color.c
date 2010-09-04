@@ -29,6 +29,7 @@
 #include "rna_internal.h"
 
 #include "DNA_color_types.h"
+#include "DNA_texture_types.h"
 
 #ifdef RNA_RUNTIME
 
@@ -42,6 +43,7 @@
 #include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_node.h"
+#include "BKE_texture.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -270,6 +272,29 @@ static void rna_ColorRamp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	}
 }
 
+static void rna_ColorRamp_eval(struct ColorBand *coba, float position, float color[4])
+{
+	do_colorband(coba, position, color);
+}
+
+static CBData *rna_ColorRampElement_new(struct ColorBand *coba, ReportList *reports, float position)
+{
+	CBData *element= colorband_element_add(coba, position);
+
+	if(element==NULL)
+		BKE_reportf(reports, RPT_ERROR, "Unable to add element to colorband (limit %d)", MAXCOLORBAND);
+
+	return element;
+}
+
+static void rna_ColorRampElement_remove(struct ColorBand *coba, ReportList *reports, CBData *element)
+{
+	int index = (int)(element - coba->data);
+	if(colorband_element_remove(coba, index) == 0)
+		BKE_report(reports, RPT_ERROR, "Element not found in element collection or last element");
+
+}
+
 static void rna_Scopes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Scopes *s= (Scopes*)ptr->data;
@@ -305,9 +330,9 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Handle Type", "Curve interpolation at this point: bezier or vector");
 
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CUMA_SELECT);
-	RNA_def_property_ui_text(prop, "Selected", "Selection state of the curve point");
+	RNA_def_property_ui_text(prop, "Select", "Selection state of the curve point");
 }
 
 static void rna_def_curvemap(BlenderRNA *brna)
@@ -345,7 +370,7 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "CurveMapping", NULL);
 	RNA_def_struct_ui_text(srna, "CurveMapping", "Curve mapping to map color, vector and scalar values to other values using a user defined curve");
 	
-	prop= RNA_def_property(srna, "clip", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_clip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CUMA_DO_CLIP);
 	RNA_def_property_ui_text(prop, "Clip", "Force the curve view to fit a defined boundary");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_CurveMapping_clip_set");
@@ -396,7 +421,7 @@ static void rna_def_color_ramp_element(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna= RNA_def_struct(brna, "ColorRampElement", NULL);
 	RNA_def_struct_sdna(srna, "CBData");
 	RNA_def_struct_path_func(srna, "rna_ColorRampElement_path");
@@ -415,11 +440,42 @@ static void rna_def_color_ramp_element(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
 }
 
+static void rna_def_color_ramp_element_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *parm;
+	FunctionRNA *func;
+
+	RNA_def_property_srna(cprop, "ColorRampElements");
+	srna= RNA_def_struct(brna, "ColorRampElements", NULL);
+	RNA_def_struct_sdna(srna, "ColorBand");
+	RNA_def_struct_path_func(srna, "rna_ColorRampElement_path");
+	RNA_def_struct_ui_text(srna, "Color Ramp Elements", "Collection of Color Ramp Elements");
+
+	/* TODO, make these functions generic in texture.c */
+	func = RNA_def_function(srna, "new", "rna_ColorRampElement_new");
+	RNA_def_function_ui_description(func, "Add element to ColorRamp");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_float(func, "position", 0.0f, 0.0f, 1.0f, "Position", "Position to add element", 0.0f, 1.0f);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "element", "ColorRampElement", "", "New element.");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "rna_ColorRampElement_remove");
+	RNA_def_function_ui_description(func, "Delete element from ColorRamp");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	//parm= RNA_def_int(func, "index", 0, 0, 31, "Index", "Element to delete.", 0, 31);
+	parm= RNA_def_pointer(func, "element", "ColorRampElement", "", "Element to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
 static void rna_def_color_ramp(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+	FunctionRNA *func;
+
 	static EnumPropertyItem prop_interpolation_items[] = {
 		{1, "EASE", 0, "Ease", ""},
 		{3, "CARDINAL", 0, "Cardinal", ""},
@@ -438,12 +494,32 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ColorRampElement");
 	RNA_def_property_ui_text(prop, "Elements", "");
 	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
-	
+	rna_def_color_ramp_element_api(brna, prop);
+
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ipotype");
 	RNA_def_property_enum_items(prop, prop_interpolation_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "");
 	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
+
+#if 0 // use len(elements)
+	prop= RNA_def_property(srna, "total", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "tot");
+	/* needs a function to do the right thing when adding elements like colorband_add_cb() */
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_range(prop, 0, 31); /* MAXCOLORBAND = 32 */
+	RNA_def_property_ui_text(prop, "Total", "Total number of elements");
+	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
+#endif
+	
+	func = RNA_def_function(srna, "evaluate", "rna_ColorRamp_eval");
+	RNA_def_function_ui_description(func, "Evaluate ColorRamp");
+	prop= RNA_def_float(func, "position", 1.0f, 0.0f, 1.0f, "Position", "Evaluate ColorRamp at position", 0.0f, 1.0f);
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	/* return */
+	prop = RNA_def_float_color(func, "color", 4, NULL, -FLT_MAX, FLT_MAX, "Color", "Color at given position", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(prop, PROP_THICK_WRAP);
+	RNA_def_function_output(func, prop);
 }
 
 static void rna_def_histogram(BlenderRNA *brna)
@@ -452,7 +528,7 @@ static void rna_def_histogram(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_mode_items[] = {
-		{HISTO_MODE_LUMA, "Luma", ICON_COLOR, "Luma", ""},
+		{HISTO_MODE_LUMA, "LUMA", ICON_COLOR, "Luma", ""},
 		{HISTO_MODE_RGB, "RGB", ICON_COLOR, "Red Green Blue", ""},
 		{HISTO_MODE_R, "R", ICON_COLOR, "Red", ""},
 		{HISTO_MODE_G, "G", ICON_COLOR, "Green", ""},

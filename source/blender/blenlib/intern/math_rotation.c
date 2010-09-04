@@ -36,7 +36,7 @@ void unit_qt(float *q)
 	q[1]= q[2]= q[3]= 0.0f;
 }
 
-void copy_qt_qt(float *q1, float *q2)
+void copy_qt_qt(float *q1, const float *q2)
 {
 	q1[0]= q2[0];
 	q1[1]= q2[1];
@@ -49,7 +49,7 @@ int is_zero_qt(float *q)
 	return (q[0] == 0 && q[1] == 0 && q[2] == 0 && q[3] == 0);
 }
 
-void mul_qt_qtqt(float *q, float *q1, float *q2)
+void mul_qt_qtqt(float *q, const float *q1, const float *q2)
 {
 	float t0,t1,t2;
 
@@ -63,7 +63,7 @@ void mul_qt_qtqt(float *q, float *q1, float *q2)
 }
 
 /* Assumes a unit quaternion */
-void mul_qt_v3(float *q, float *v)
+void mul_qt_v3(const float *q, float *v)
 {
 	float t0, t1, t2;
 
@@ -104,8 +104,14 @@ void invert_qt(float *q)
 	mul_qt_fl(q, 1.0f/f);
 }
 
+void invert_qt_qt(float *q1, const float *q2)
+{
+	copy_qt_qt(q1, q2);
+	invert_qt(q1);
+}
+
 /* simple mult */
-void mul_qt_fl(float *q, float f)
+void mul_qt_fl(float *q, const float f)
 {
 	q[0] *= f;
 	q[1] *= f;
@@ -121,7 +127,7 @@ void sub_qt_qtqt(float *q, float *q1, float *q2)
 }
 
 /* angular mult factor */
-void mul_fac_qt_fl(float *q, float fac)
+void mul_fac_qt_fl(float *q, const float fac)
 {
 	float angle= fac*saacos(q[0]);	/* quat[0]= cos(0.5*angle), but now the 0.5 and 2.0 rule out */
 	
@@ -129,10 +135,7 @@ void mul_fac_qt_fl(float *q, float fac)
 	float si= (float)sin(angle);
 	q[0]= co;
 	normalize_v3(q+1);
-	q[1]*= si;
-	q[2]*= si;
-	q[3]*= si;
-	
+	mul_v3_fl(q+1, si);
 }
 
 void quat_to_mat3(float m[][3], float *q)
@@ -335,6 +338,23 @@ void rotation_between_vecs_to_quat(float *q, const float v1[3], const float v2[3
 	
 	axis_angle_to_quat(q, axis, angle);
 }
+
+void rotation_between_quats_to_quat(float *q, const float q1[4], const float q2[4])
+{
+	float tquat[4];
+	double dot = 0.0f;
+	int x;
+
+	copy_qt_qt(tquat, q1);
+	conjugate_qt(tquat);
+	dot = 1.0f / dot_qtqt(tquat, tquat);
+
+	for(x = 0; x < 4; x++)
+		tquat[x] *= dot;
+
+	mul_qt_qtqt(q, tquat, q2);
+}
+
 
 void vec_to_quat(float *q,float *vec, short axis, short upflag)
 {
@@ -572,9 +592,8 @@ void axis_angle_to_quat(float q[4], float axis[3], float angle)
 {
 	float nor[3];
 	float si;
-	
-	copy_v3_v3(nor, axis);
-	normalize_v3(nor);
+
+	normalize_v3_v3(nor, axis);
 	
 	angle /= 2;
 	si = (float)sin(angle);
@@ -631,8 +650,7 @@ void axis_angle_to_mat3(float mat[3][3],float axis[3], float angle)
 	float nor[3], nsi[3], co, si, ico;
 	
 	/* normalise the axis first (to remove unwanted scaling) */
-	copy_v3_v3(nor, axis);
-	normalize_v3(nor);
+	normalize_v3_v3(nor, axis);
 	
 	/* now convert this to a 3x3 matrix */
 	co= (float)cos(angle);		

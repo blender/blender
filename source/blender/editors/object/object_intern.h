@@ -75,10 +75,10 @@ void OBJECT_OT_drop_named_material(struct wmOperatorType *ot);
 void OBJECT_OT_mode_set(struct wmOperatorType *ot);
 void OBJECT_OT_editmode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_posemode_toggle(struct wmOperatorType *ot);
-void OBJECT_OT_restrictview_set(struct wmOperatorType *ot);
-void OBJECT_OT_restrictview_clear(struct wmOperatorType *ot);
-void OBJECT_OT_restrictrender_set(struct wmOperatorType *ot);
-void OBJECT_OT_restrictrender_clear(struct wmOperatorType *ot);
+void OBJECT_OT_hide_view_set(struct wmOperatorType *ot);
+void OBJECT_OT_hide_view_clear(struct wmOperatorType *ot);
+void OBJECT_OT_hide_render_set(struct wmOperatorType *ot);
+void OBJECT_OT_hide_render_clear(struct wmOperatorType *ot);
 void OBJECT_OT_proxy_make(struct wmOperatorType *ot);
 void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
 void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
@@ -131,11 +131,6 @@ void OBJECT_OT_hook_reset(struct wmOperatorType *ot);
 void OBJECT_OT_hook_recenter(struct wmOperatorType *ot);
 
 /* object_lattice.c */
-void free_editLatt(Object *ob);
-void make_editLatt(Object *obedit);
-void load_editLatt(Object *obedit);
-void remake_editLatt(Object *obedit);
-
 void LATTICE_OT_select_all(struct wmOperatorType *ot);
 void LATTICE_OT_make_regular(struct wmOperatorType *ot);
 

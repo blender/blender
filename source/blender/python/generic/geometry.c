@@ -634,7 +634,7 @@ static int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )
 	boxPack *box;
 	
 	
-	/* Error checking must alredy be done */
+	/* Error checking must already be done */
 	if( !PyList_Check( value ) ) {
 		PyErr_SetString( PyExc_TypeError, "can only back a list of [x,y,x,w]" );
 		return -1;
@@ -835,7 +835,7 @@ PyObject *Geometry_Init(void)
 	PyObject *submodule;
 
 	submodule = PyModule_Create(&M_Geometry_module_def);
-	PyDict_SetItemString(PySys_GetObject("modules"), M_Geometry_module_def.m_name, submodule);
+	PyDict_SetItemString(PyImport_GetModuleDict(), M_Geometry_module_def.m_name, submodule);
 
 	return (submodule);
 }

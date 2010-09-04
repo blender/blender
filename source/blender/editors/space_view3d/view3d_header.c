@@ -31,28 +31,20 @@
 #include <stdlib.h>
 
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_action.h"
-#include "BKE_brush.h"
 #include "BKE_context.h"
-#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
-#include "BKE_displist.h"
 #include "BKE_effect.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h" /* for VECCOPY */
 #include "BKE_tessmesh.h"
 
 #include "ED_mesh.h"
@@ -67,8 +59,6 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -153,6 +143,7 @@ static void handle_view3d_lock(bContext *C)
 
 static int layers_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
@@ -214,7 +205,7 @@ static int layers_exec(bContext *C, wmOperator *op)
 	if(v3d->scenelock) handle_view3d_lock(C);
 	
 	/* new layers might need unflushed events events */
-	DAG_scene_update_flags(scene, v3d->lay);	/* tags all that moves and flushes */
+	DAG_scene_update_flags(bmain, scene, v3d->lay);	/* tags all that moves and flushes */
 
 	ED_area_tag_redraw(sa);
 	
@@ -475,7 +466,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlockEndAlign(block);
 	
 	/* Draw type */
-	uiItemR(layout, &v3dptr, "viewport_shading", UI_ITEM_R_ICON_ONLY, "", 0);
+	uiItemR(layout, &v3dptr, "viewport_shade", UI_ITEM_R_ICON_ONLY, "", 0);
 
 	if (obedit==NULL && ((ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)))) {
 		/* Manipulators aren't used in weight paint mode */
@@ -489,7 +480,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		row= uiLayoutRow(layout, 1);
 		uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", 0);
-		uiItemR(row, &v3dptr, "pivot_point_align", UI_ITEM_R_ICON_ONLY, "", 0);
+		uiItemR(row, &v3dptr, "use_pivot_point_align", UI_ITEM_R_ICON_ONLY, "", 0);
 
 		/* NDOF */
 		/* Not implemented yet
@@ -504,7 +495,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		/* Transform widget / manipulators */
 		row= uiLayoutRow(layout, 1);
-		uiItemR(row, &v3dptr, "manipulator", UI_ITEM_R_ICON_ONLY, "", 0);
+		uiItemR(row, &v3dptr, "show_manipulator", UI_ITEM_R_ICON_ONLY, "", 0);
 		block= uiLayoutGetBlock(row);
 		
 		if(v3d->twflag & V3D_USE_MANIPULATOR) {
@@ -527,9 +518,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		
 		/* Layers */
 		if (v3d->scenelock)
-			uiTemplateLayers(layout, &sceneptr, "layers", &v3dptr, "used_layers", ob_lay);
+			uiTemplateLayers(layout, &sceneptr, "layers", &v3dptr, "layers_used", ob_lay);
 		else
-			uiTemplateLayers(layout, &v3dptr, "layers", &v3dptr, "used_layers", ob_lay);
+			uiTemplateLayers(layout, &v3dptr, "layers", &v3dptr, "layers_used", ob_lay);
 
 		/* Scene lock */
 		uiItemR(layout, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY, "", 0);

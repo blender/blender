@@ -34,7 +34,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
@@ -52,6 +51,7 @@
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
+#include "ED_curve.h" /* for ED_curve_editnurbs */
 
 
 #include "RNA_define.h"
@@ -744,8 +744,9 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			Nurb *nu;
 			BezTriple *bezt;
 			int a;
-			
-			for (nu = cu->editnurb->first; nu; nu = nu->next)
+			ListBase *nurbs= ED_curve_editnurbs(cu);
+
+			for (nu = nurbs->first; nu; nu = nu->next)
 			{
 				/* only bezier has a normal */
 				if(nu->type == CU_BEZIER)

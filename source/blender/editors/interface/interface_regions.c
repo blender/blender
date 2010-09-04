@@ -38,11 +38,7 @@
 #include "BLI_ghash.h"
 
 #include "BKE_context.h"
-#include "BKE_icons.h"
-#include "BKE_report.h"
 #include "BKE_screen.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1745,11 +1741,11 @@ static void circle_picker(uiBlock *block, PointerRNA *ptr, const char *propname)
 	uiBut *bt;
 	
 	/* HS circle */
-	bt= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, PICKER_H, PICKER_W, ptr, propname, 0, 0.0, 0.0, 0, 0, "");
+	bt= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, PICKER_H, PICKER_W, ptr, propname, 0, 0.0, 0.0, 0, 0, "Color");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	bt= uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, 0, 0.0, 0.0, UI_GRAD_V_ALT, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, 0, 0.0, 0.0, UI_GRAD_V_ALT, 0, "Value");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 
@@ -1760,11 +1756,11 @@ static void square_picker(uiBlock *block, PointerRNA *ptr, const char *propname,
 	int bartype = type + 3;
 	
 	/* HS square */
-	bt= uiDefButR(block, HSVCUBE, 0, "",	0, PICKER_BAR+PICKER_SPACE, PICKER_TOTAL_W, PICKER_H, ptr, propname, 0, 0.0, 0.0, type, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "",	0, PICKER_BAR+PICKER_SPACE, PICKER_TOTAL_W, PICKER_H, ptr, propname, 0, 0.0, 0.0, type, 0, "Color");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	bt= uiDefButR(block, HSVCUBE, 0, "",		0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, propname, 0, 0.0, 0.0, bartype, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "",		0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, propname, 0, 0.0, 0.0, bartype, 0, "Value");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 
@@ -1832,11 +1828,11 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	
 	/* RGB values */
 	uiBlockBeginAlign(block);
-	bt= uiDefButR(block, NUMSLI, 0, "R ",	0, -60, butwidth, UI_UNIT_Y, ptr, propname, 0, 0.0, 0.0, 0, 3, "");
+	bt= uiDefButR(block, NUMSLI, 0, "R ",	0, -60, butwidth, UI_UNIT_Y, ptr, propname, 0, 0.0, 0.0, 0, 3, "Red");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt= uiDefButR(block, NUMSLI, 0, "G ",	0, -80, butwidth, UI_UNIT_Y, ptr, propname, 1, 0.0, 0.0, 0, 3, "");
+	bt= uiDefButR(block, NUMSLI, 0, "G ",	0, -80, butwidth, UI_UNIT_Y, ptr, propname, 1, 0.0, 0.0, 0, 3, "Green");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt= uiDefButR(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, propname, 2, 0.0, 0.0, 0, 3, "");
+	bt= uiDefButR(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, propname, 2, 0.0, 0.0, 0, 3, "Blue");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 
 	// could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", 0);
@@ -1844,16 +1840,16 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	
 	/* HSV values */
 	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUMSLI, 0, "H ",	0, -60, butwidth, UI_UNIT_Y, hsv, 0.0, 1.0, 10, 3, "");
+	bt= uiDefButF(block, NUMSLI, 0, "H ",	0, -60, butwidth, UI_UNIT_Y, hsv, 0.0, 1.0, 10, 3, "Hue");
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, 0, "S ",	0, -80, butwidth, UI_UNIT_Y, hsv+1, 0.0, 1.0, 10, 3, "");
+	bt= uiDefButF(block, NUMSLI, 0, "S ",	0, -80, butwidth, UI_UNIT_Y, hsv+1, 0.0, 1.0, 10, 3, "Saturation");
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, 0, "V ",	0, -100, butwidth, UI_UNIT_Y, hsv+2, 0.0, max, 10, 3, "");
+	bt= uiDefButF(block, NUMSLI, 0, "V ",	0, -100, butwidth, UI_UNIT_Y, hsv+2, 0.0, max, 10, 3, "Value");
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	uiBlockEndAlign(block);
 
 	if(rgb[3] != FLT_MAX) {
-		bt= uiDefButR(block, NUMSLI, 0, "A ",	0, -120, butwidth, UI_UNIT_Y, ptr, propname, 3, 0.0, 0.0, 0, 0, "");
+		bt= uiDefButR(block, NUMSLI, 0, "A ",	0, -120, butwidth, UI_UNIT_Y, ptr, propname, 3, 0.0, 0.0, 0, 0, "Alpha");
 		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	}
 	else {
