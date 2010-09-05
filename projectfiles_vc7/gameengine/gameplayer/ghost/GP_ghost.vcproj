@@ -189,7 +189,7 @@ ECHO Done
 				RelativePath="..\..\..\..\source\blender\blenkernel\bad_level_call_stubs\stubs.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\icons\winplayer.rc">
+				RelativePath="..\..\..\..\source\icons\winblender.rc">
 				<FileConfiguration
 					Name="BlenderPlayer Debug|Win32">
 					<Tool
@@ -224,7 +224,7 @@ ECHO Done
 			Name="Resource Files"
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
 			<File
-				RelativePath="..\..\..\..\source\icons\winplayer.ico">
+				RelativePath="..\..\..\..\source\icons\winblender.ico">
 			</File>
 		</Filter>
 		<File

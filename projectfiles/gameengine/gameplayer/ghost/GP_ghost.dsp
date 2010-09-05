@@ -117,7 +117,7 @@ SOURCE=..\..\..\..\source\blender\blenkernel\bad_level_call_stubs\stubs.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\source\icons\winplayer.rc
+SOURCE=..\..\..\..\source\icons\winblender.rc
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -145,7 +145,7 @@ SOURCE=..\..\..\..\source\gameengine\GamePlayer\ghost\GPG_System.h
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
-SOURCE=..\..\..\..\source\icons\winplayer.ico
+SOURCE=..\..\..\..\source\icons\winblender.ico
 # End Source File
 # End Group
 # Begin Source File
