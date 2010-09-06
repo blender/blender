@@ -781,7 +781,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, char *opname)
 	
 	/* 3D View */
 	else if (strstr(opname, "VIEW3D_OT")) {
-		km = WM_keymap_find_all(C, "View 3D", sl->spacetype, 0);
+		km = WM_keymap_find_all(C, "3D View", sl->spacetype, 0);
 	}
 	else if (strstr(opname, "OBJECT_OT")) {
 		km = WM_keymap_find_all(C, "Object Mode", 0, 0);
@@ -894,7 +894,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, char *opname)
 		/* check for relevant editor */
 		switch(sl->spacetype) {
 			case SPACE_VIEW3D:
-				km = WM_keymap_find_all(C, "View 3D", sl->spacetype, 0);
+				km = WM_keymap_find_all(C, "3D View", sl->spacetype, 0);
 				break;
 			case SPACE_IPO:
 				km = WM_keymap_find_all(C, "Graph Editor", sl->spacetype, 0);
