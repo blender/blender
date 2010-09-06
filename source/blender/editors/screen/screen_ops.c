@@ -192,13 +192,14 @@ int ED_operator_logic_active(bContext *C)
 
 int ED_operator_object_active(bContext *C)
 {
-	return NULL != ED_object_active_context(C);
+	Object *ob = ED_object_active_context(C);
+	return ((ob != NULL) && !(ob->restrictflag & OB_RESTRICT_VIEW));
 }
 
 int ED_operator_object_active_editable(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !(ob->id.lib));
+	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW));
 }
 
 int ED_operator_editmesh(bContext *C)
