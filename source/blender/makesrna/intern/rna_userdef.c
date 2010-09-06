@@ -1654,7 +1654,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	
 	static EnumPropertyItem active_theme_area[] = {
 		{0, "USER_INTERFACE", ICON_UI, "User Interface", ""},
-		{1, "VIEW_3D", ICON_VIEW3D, "3D View", ""},
+		{1, "VIEW_3D", ICON_VIEW3D, "View 3D", ""},
 		{2, "TIMELINE", ICON_TIME, "Timeline", ""},
 		{3, "GRAPH_EDITOR", ICON_IPO, "Graph Editor", ""},
 		{4, "DOPESHEET_EDITOR", ICON_ACTION, "Dopesheet", ""},
@@ -1695,7 +1695,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tv3d");
 	RNA_def_property_struct_type(prop, "ThemeView3D");
-	RNA_def_property_ui_text(prop, "3D View", "");
+	RNA_def_property_ui_text(prop, "View 3D", "");
 
 	prop= RNA_def_property(srna, "graph_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);

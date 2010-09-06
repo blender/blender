@@ -1384,9 +1384,9 @@ void init_userdef_do_versions(void)
 			if (strcmp(km->idname, "Armature_Sketch")==0)
 				strcpy(km->idname, "Armature Sketch");
 			else if (strcmp(km->idname, "View3D")==0)
-				strcpy(km->idname, "3D View");
+				strcpy(km->idname, "View 3D");
 			else if (strcmp(km->idname, "View3D Generic")==0)
-				strcpy(km->idname, "3D View Generic");
+				strcpy(km->idname, "View 3D Generic");
 			else if (strcmp(km->idname, "EditMesh")==0)
 				strcpy(km->idname, "Mesh");
 			else if (strcmp(km->idname, "TimeLine")==0)

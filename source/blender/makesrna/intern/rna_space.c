@@ -42,7 +42,7 @@
 
 EnumPropertyItem space_type_items[] = {
 	{SPACE_EMPTY, "EMPTY", 0, "Empty", ""},
-	{SPACE_VIEW3D, "VIEW_3D", 0, "3D View", ""},
+	{SPACE_VIEW3D, "VIEW_3D", 0, "View 3D", ""},
 	{SPACE_IPO, "GRAPH_EDITOR", 0, "Graph Editor", ""},
 	{SPACE_OUTLINER, "OUTLINER", 0, "Outliner", ""},
 	{SPACE_BUTS, "PROPERTIES", 0, "Properties", ""},
@@ -956,7 +956,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "SpaceView3D", "Space");
 	RNA_def_struct_sdna(srna, "View3D");
-	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
+	RNA_def_struct_ui_text(srna, "View 3D Space", "View 3D space data");
 	
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -967,12 +967,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "lock_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ob_centre");
-	RNA_def_property_ui_text(prop, "Lock Object", "3D View center is locked to this object's position");
+	RNA_def_property_ui_text(prop, "Lock Object", "View 3D center is locked to this object's position");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "lock_bone", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "ob_centre_bone");
-	RNA_def_property_ui_text(prop, "Lock Bone", "3D View center is locked to this bone's position");
+	RNA_def_property_ui_text(prop, "Lock Bone", "View 3D center is locked to this bone's position");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "viewport_shade", PROP_ENUM, PROP_NONE);
@@ -1001,13 +1001,13 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "near");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
-	RNA_def_property_ui_text(prop, "Clip Start", "3D View near clipping distance");
+	RNA_def_property_ui_text(prop, "Clip Start", "View 3D near clipping distance");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "far");
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
-	RNA_def_property_ui_text(prop, "Clip End", "3D View far clipping distance");
+	RNA_def_property_ui_text(prop, "Clip End", "View 3D far clipping distance");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 	
 	prop= RNA_def_property(srna, "grid_spacing", PROP_FLOAT, PROP_DISTANCE);
@@ -1172,7 +1172,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "RegionView3D", NULL);
 	RNA_def_struct_sdna(srna, "RegionView3D");
-	RNA_def_struct_ui_text(srna, "3D View Region", "3D View region data");
+	RNA_def_struct_ui_text(srna, "View 3D Region", "3D View region data");
 
 	prop= RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_LOCKED);
