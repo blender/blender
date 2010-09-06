@@ -957,6 +957,11 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		show_upbut= ((prev_proxylock == 0) && (con->prev));
 		show_downbut= (con->next) ? 1 : 0;
 		
+		/* enabled */
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		uiItemR(row, &ptr, "mute", 0, "", (con->flag & CONSTRAINT_OFF) ? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF);
+		uiBlockSetEmboss(block, UI_EMBOSS);
+		
 		uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
 		
 		/* up/down */
@@ -969,9 +974,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 				uiItemO(row, "", ICON_TRIA_DOWN, "CONSTRAINT_OT_move_down");
 			uiBlockEndAlign(block);
 		}
-		
-		/* enabled */
-		uiItemR(row, &ptr, "mute", 0, "", 0);
 		
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
