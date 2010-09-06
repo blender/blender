@@ -31,12 +31,10 @@ SET(INC .
 	../../../intern/guardedalloc ../../../intern/memutil
 	../blenlib ../makesdna ../makesrna ../blenkernel
 	../include ../imbuf ../render/extern/include
-	../../../intern/bsp/extern
-	../../../intern/decimation/extern ../blenloader
+	../blenloader
 	../../kernel/gen_system ../readstreamglue
 	../../../intern/elbeem/extern
 	../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include
-	../python
 	../nodes
 	../gpu
 	../blenfont

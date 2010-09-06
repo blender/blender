@@ -300,7 +300,7 @@ IF(UNIX AND NOT APPLE)
 
 	IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		# BSD's dont use libdl.so
-		SET(LLIBS "${LLIBS} -ldl")
+		LIST(APPEND LLIBS -ldl)
 
 		# binreloc is linux only
 		SET(BINRELOC ${CMAKE_SOURCE_DIR}/extern/binreloc)
@@ -308,9 +308,9 @@ IF(UNIX AND NOT APPLE)
 	ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 	IF(WITH_OPENMP)
-		SET(LLIBS "${LLIBS} -lgomp")
-		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+		LIST(APPEND LLIBS -lgomp)
+		LIST(APPEND CMAKE_C_FLAGS -fopenmp)
+		LIST(APPEND CMAKE_CXX_FLAGS -fopenmp)
 	ENDIF(WITH_OPENMP)
 
 
