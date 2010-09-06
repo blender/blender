@@ -374,6 +374,10 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 		if (wmbase.first == NULL) wm_clear_default_size(C);
 	}
 	
+	/* prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake. Screws up autosaves otherwise
+	 * can remove this eventually, only in a 2.53 and older, now its not written */
+	G.fileflags &= ~G_FILE_RELATIVE_REMAP;
+
 	/* match the read WM with current WM */
 	wm_window_match_do(C, &wmbase); 
 	WM_check(C); /* opens window(s), checks keymaps */
