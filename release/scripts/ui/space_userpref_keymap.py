@@ -285,6 +285,8 @@ class InputKeyMapPanel(bpy.types.Panel):
                 if km.is_modal:
                     sub.prop(kmi, "propvalue", text="")
                 else:
+                    # One day...
+                    # sub.prop_search(kmi, "idname", bpy.context.window_manager, "operators_all", text="")
                     sub.prop(kmi, "idname", text="")
 
                 sub = split.column()

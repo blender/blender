@@ -326,6 +326,34 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class WM_OT_context_cycle_array(bpy.types.Operator):
+    '''Set a context array value.
+    Useful for cycling the active mesh edit mode.'''
+    bl_idname = "wm.context_cycle_array"
+    bl_label = "Context Array Cycle"
+    bl_options = {'UNDO'}
+
+    data_path = rna_path_prop
+    reverse = rna_reverse_prop
+
+    def execute(self, context):
+        data_path = self.properties.data_path
+        value = context_path_validate(context, data_path)
+        if value is Ellipsis:
+            return {'PASS_THROUGH'}
+
+        def cycle(array):
+            if self.properties.reverse:
+                array.insert(0, array.pop())
+            else:
+                array.append(array.pop(0))
+            return array
+
+        exec("context.%s=cycle(context.%s[:])" % (data_path, data_path))
+
+        return {'FINISHED'}
+
+
 class WM_OT_context_set_id(bpy.types.Operator):
     '''Toggle a context value.'''
     bl_idname = "wm.context_set_id"
