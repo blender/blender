@@ -298,8 +298,8 @@ class InputKeyMapPanel(bpy.types.Panel):
                 if title:
                     box.label(text=title)
                 flow = box.column_flow(columns=2)
-                for pname, value in properties.items():
-                    if not properties.is_property_hidden(pname):
+                for pname, value in properties.bl_rna.properties.items():
+                    if pname != "rna_type" and not properties.is_property_hidden(pname):
                         if isinstance(value, bpy.types.OperatorProperties):
                             display_properties(value, title=pname)
                         else:
