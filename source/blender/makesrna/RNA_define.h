@@ -192,7 +192,7 @@ void RNA_def_struct_duplicate_pointers(StructRNA *srna);
 void RNA_def_struct_free_pointers(StructRNA *srna);
 void RNA_def_func_duplicate_pointers(FunctionRNA *func);
 void RNA_def_func_free_pointers(FunctionRNA *func);
-void RNA_def_property_duplicate_pointers(PropertyRNA *prop);
+void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA *prop);
 void RNA_def_property_free_pointers(PropertyRNA *prop);
 int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *identifier);
 
