@@ -433,7 +433,7 @@ static void rna_def_color_ramp_element(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Color", "");
 	RNA_def_property_update(prop, 0, "rna_ColorRamp_update");
 	
-	prop= RNA_def_property(srna, "position", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "position", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "pos");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Position", "");
