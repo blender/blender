@@ -309,8 +309,8 @@ void RNA_def_main(BlenderRNA *brna)
 
 	int i;
 	
-	srna= RNA_def_struct(brna, "Main", NULL);
-	RNA_def_struct_ui_text(srna, "Main", "Main data structure representing a .blend file and all its datablocks");
+	srna= RNA_def_struct(brna, "BlendData", NULL);
+	RNA_def_struct_ui_text(srna, "Blendfile Data", "Main data structure representing a .blend file and all its datablocks");
 	RNA_def_struct_ui_icon(srna, ICON_BLENDER);
 
 	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);

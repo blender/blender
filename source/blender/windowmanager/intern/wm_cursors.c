@@ -32,6 +32,8 @@
 
 #include "GHOST_C-api.h"
 
+#include "BLO_sys_types.h"
+
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h" 
 

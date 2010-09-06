@@ -293,7 +293,7 @@ extern StructRNA RNA_LineStyleThicknessModifier_DistanceFromObject;
 extern StructRNA RNA_LockedTrackConstraint;
 extern StructRNA RNA_Macro;
 extern StructRNA RNA_MagicTexture;
-extern StructRNA RNA_Main;
+extern StructRNA RNA_BlendData;
 extern StructRNA RNA_MarbleTexture;
 extern StructRNA RNA_MaskModifier;
 extern StructRNA RNA_Material;

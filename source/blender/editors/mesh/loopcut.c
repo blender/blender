@@ -278,6 +278,8 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 					em->selectmode &= ~SCE_SELECT_FACE;
 				CTX_data_tool_settings(C)->selectmode= em->selectmode;
 				EM_selectmode_set(em);
+
+				WM_event_add_notifier(C, NC_SCENE|ND_TOOLSETTINGS, CTX_data_scene(C));
 			}
 			
 			DAG_id_flush_update(lcd->ob->data, OB_RECALC_DATA);

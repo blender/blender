@@ -238,7 +238,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
 
         # Add KeyingSet and set general settings
         f.write("# Keying Set Level declarations\n")
-        f.write("ks= scene.add_keying_set(name=\"%s\")\n" % ks.name)
+        f.write("ks= scene.keying_sets.new(name=\"%s\")\n" % ks.name)
 
         if not ks.is_path_absolute:
             f.write("ks.is_path_absolute = False\n")
@@ -314,7 +314,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
+        wm = context.window_manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 

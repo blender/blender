@@ -1265,7 +1265,7 @@ static char *get_mesh_defname(int type)
 		case PRIM_PLANE: return "Plane";
 		case PRIM_CUBE: return "Cube";
 		case PRIM_CIRCLE: return "Circle";
-		case PRIM_CYLINDER: return "Tube";
+		case PRIM_CYLINDER: return "Cylinder";
 		case PRIM_CONE: return "Cone";
 		case PRIM_GRID: return "Grid";
 		case PRIM_UVSPHERE: return "Sphere";
@@ -1421,7 +1421,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, TRUE);
 }
 
-static int add_primitive_tube_exec(bContext *C, wmOperator *op)
+static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 {
 	int enter_editmode;
 	unsigned int layer;
@@ -1439,16 +1439,16 @@ static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_primitive_tube_add(wmOperatorType *ot)
+void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Tube";
-	ot->description= "Construct a tube mesh";
-	ot->idname= "MESH_OT_primitive_tube_add";
+	ot->name= "Add Cylinder";
+	ot->description= "Construct a cylinder mesh";
+	ot->idname= "MESH_OT_primitive_cylinder_add";
 	
 	/* api callbacks */
 	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_tube_exec;
+	ot->exec= add_primitive_cylinder_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */

@@ -97,9 +97,9 @@ void CURVE_OT_primitive_nurbs_path_add(struct wmOperatorType *ot);
 void SURFACE_OT_primitive_nurbs_surface_curve_add(struct wmOperatorType *ot);
 void SURFACE_OT_primitive_nurbs_surface_circle_add(struct wmOperatorType *ot);
 void SURFACE_OT_primitive_nurbs_surface_surface_add(struct wmOperatorType *ot);
-void SURFACE_OT_primitive_nurbs_surface_tube_add(struct wmOperatorType *ot);
+void SURFACE_OT_primitive_nurbs_surface_cylinder_add(struct wmOperatorType *ot);
 void SURFACE_OT_primitive_nurbs_surface_sphere_add(struct wmOperatorType *ot);
-void SURFACE_OT_primitive_nurbs_surface_donut_add(struct wmOperatorType *ot);
+void SURFACE_OT_primitive_nurbs_surface_torus_add(struct wmOperatorType *ot);
 
 void CURVE_OT_de_select_first(struct wmOperatorType *ot);
 void CURVE_OT_de_select_last(struct wmOperatorType *ot);

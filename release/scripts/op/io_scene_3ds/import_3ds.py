@@ -18,130 +18,14 @@
 
 # <pep8 compliant>
 
-__author__= ['Bob Holcomb', 'Richard L?rk?ng', 'Damien McGinnes', 'Campbell Barton', 'Mario Lapin']
-__url__ = ("blenderartists.org", "www.blender.org", "www.gametutorials.com", "lib3ds.sourceforge.net/")
-__version__= '0.996'
-__bpydoc__= '''\
-
-3ds Importer
-
-This script imports a 3ds file and the materials into Blender for editing.
-
-Loader is based on 3ds loader from www.gametutorials.com (Thanks DigiBen).
-
-0.996 by Mario Lapin (mario.lapin@gmail.com) 13/04/200 <br>
- - Implemented workaround to correct association between name, geometry and materials of
-   imported meshes.
-
-   Without this patch, version 0.995 of this importer would associate to each mesh object the
-   geometry and the materials of the previously parsed mesh object. By so, the name of the
-   first mesh object would be thrown away, and the name of the last mesh object would be
-   automatically merged with a '.001' at the end. No object would desappear, however object's
-   names and materials would be completely jumbled.
-
-0.995 by Campbell Barton<br>
-- workaround for buggy mesh vert delete
-- minor tweaks
-
-0.99 by Bob Holcomb<br>
-- added support for floating point color values that previously broke on import.
-
-0.98 by Campbell Barton<br>
-- import faces and verts to lists instead of a mesh, convert to a mesh later
-- use new index mapping feature of mesh to re-map faces that were not added.
-
-0.97 by Campbell Barton<br>
-- Strip material names of spaces
-- Added import as instance to import the 3ds into its own
-  scene and add a group instance to the current scene
-- New option to scale down imported objects so they are within a limited bounding area.
-
-0.96 by Campbell Barton<br>
-- Added workaround for bug in setting UV's for Zero vert index UV faces.
-- Removed unique name function, let blender make the names unique.
-
-0.95 by Campbell Barton<br>
-- Removed workarounds for Blender 2.41
-- Mesh objects split by material- many 3ds objects used more then 16 per mesh.
-- Removed a lot of unneeded variable creation.
-
-0.94 by Campbell Barton<br>
-- Face import tested to be about overall 16x speedup over 0.93.
-- Material importing speedup.
-- Tested with more models.
-- Support some corrupt models.
-
-0.93 by Campbell Barton<br>
-- Tested with 400 3ds files from turbosquid and samples.
-- Tactfully ignore faces that used the same verts twice.
-- Rollback to 0.83 sloppy un-reorganized code, this broke UV coord loading.
-- Converted from NMesh to Mesh.
-- Faster and cleaner new names.
-- Use external comprehensive image loader.
-- Re intergrated 0.92 and 0.9 changes
-- Fixes for 2.41 compat.
-- Non textured faces do not use a texture flag.
-
-0.92<br>
-- Added support for diffuse, alpha, spec, bump maps in a single material
-
-0.9<br>
-- Reorganized code into object/material block functions<br>
-- Use of Matrix() to copy matrix data<br>
-- added support for material transparency<br>
-
-0.83 2005-08-07: Campell Barton
--  Aggressive image finding and case insensitivy for posisx systems.
-
-0.82a 2005-07-22
-- image texture loading (both for face uv and renderer)
-
-0.82 - image texture loading (for face uv)
-
-0.81a (fork- not 0.9) Campbell Barton 2005-06-08
-- Simplified import code
-- Never overwrite data
-- Faster list handling
-- Leaves import selected
-
-0.81 Damien McGinnes 2005-01-09
-- handle missing images better
-
-0.8 Damien McGinnes 2005-01-08
-- copies sticky UV coords to face ones
-- handles images better
-- Recommend that you run 'RemoveDoubles' on each imported mesh after using this script
-
-'''
-
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
 # Script copyright (C) Bob Holcomb
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-# --------------------------------------------------------------------------
-
-# Importing modules
+# Contributors: Bob Holcomb, Richard L?rk?ng, Damien McGinnes, Campbell Barton, Mario Lapin
 
 import os
 import time
 import struct
 
-from import_scene_obj import load_image
+from io_utils import load_image
 
 import bpy
 import mathutils
@@ -158,9 +42,9 @@ BOUNDS_3DS = []
 PRIMARY = int('0x4D4D',16)
 
 #------ Main Chunks
-OBJECTINFO   =      int('0x3D3D',16);      #This gives the version of the mesh and is found right before the material and object information
-VERSION      =      int('0x0002',16);      #This gives the version of the .3ds file
-EDITKEYFRAME=      int('0xB000',16);      #This is the header for all of the key frame info
+OBJECTINFO   =     0x3D3D      #This gives the version of the mesh and is found right before the material and object information
+VERSION      =     0x0002      #This gives the version of the .3ds file
+EDITKEYFRAME=      0xB000      #This is the header for all of the key frame info
 
 #------ sub defines of OBJECTINFO
 MATERIAL = 45055		#0xAFFF				// This stored the texture info
@@ -168,62 +52,62 @@ OBJECT = 16384		#0x4000				// This stores the faces, vertices, etc...
 
 #>------ sub defines of MATERIAL
 #------ sub defines of MATERIAL_BLOCK
-MAT_NAME		=	int('0xA000',16)	# This holds the material name
-MAT_AMBIENT		=	int('0xA010',16)	# Ambient color of the object/material
-MAT_DIFFUSE		=	int('0xA020',16)	# This holds the color of the object/material
-MAT_SPECULAR	=	int('0xA030',16)	# SPecular color of the object/material
-MAT_SHINESS		=	int('0xA040',16)	# ??
-MAT_TRANSPARENCY=	int('0xA050',16)	# Transparency value of material
-MAT_SELF_ILLUM	=	int('0xA080',16)	# Self Illumination value of material
-MAT_WIRE		=	int('0xA085',16)	# Only render's wireframe
+MAT_NAME		=	0xA000	# This holds the material name
+MAT_AMBIENT		=	0xA010	# Ambient color of the object/material
+MAT_DIFFUSE		=	0xA020	# This holds the color of the object/material
+MAT_SPECULAR	=	0xA030	# SPecular color of the object/material
+MAT_SHINESS		=	0xA040	# ??
+MAT_TRANSPARENCY=	0xA050	# Transparency value of material
+MAT_SELF_ILLUM	=	0xA080	# Self Illumination value of material
+MAT_WIRE		=	0xA085	# Only render's wireframe
 
-MAT_TEXTURE_MAP	=	int('0xA200',16)	# This is a header for a new texture map
-MAT_SPECULAR_MAP=	int('0xA204',16)	# This is a header for a new specular map
-MAT_OPACITY_MAP	=	int('0xA210',16)	# This is a header for a new opacity map
-MAT_REFLECTION_MAP=	int('0xA220',16)	# This is a header for a new reflection map
-MAT_BUMP_MAP	=	int('0xA230',16)	# This is a header for a new bump map
-MAT_MAP_FILENAME =      int('0xA300',16)      # This holds the file name of the texture
+MAT_TEXTURE_MAP	=	0xA200	# This is a header for a new texture map
+MAT_SPECULAR_MAP=	0xA204	# This is a header for a new specular map
+MAT_OPACITY_MAP	=	0xA210	# This is a header for a new opacity map
+MAT_REFLECTION_MAP=	0xA220	# This is a header for a new reflection map
+MAT_BUMP_MAP	=	0xA230	# This is a header for a new bump map
+MAT_MAP_FILEPATH =  0xA300  # This holds the file name of the texture
 
-MAT_FLOAT_COLOR = int ('0x0010', 16) #color defined as 3 floats
-MAT_24BIT_COLOR	= int ('0x0011', 16) #color defined as 3 bytes
+MAT_FLOAT_COLOR = 0x0010  #color defined as 3 floats
+MAT_24BIT_COLOR	= 0x0011  #color defined as 3 bytes
 
 #>------ sub defines of OBJECT
-OBJECT_MESH  =      int('0x4100',16);      # This lets us know that we are reading a new object
-OBJECT_LAMP =      int('0x4600',16);      # This lets un know we are reading a light object
-OBJECT_LAMP_SPOT = int('0x4610',16);		# The light is a spotloght.
-OBJECT_LAMP_OFF = int('0x4620',16);		# The light off.
-OBJECT_LAMP_ATTENUATE = int('0x4625',16);
-OBJECT_LAMP_RAYSHADE = int('0x4627',16);
-OBJECT_LAMP_SHADOWED = int('0x4630',16);
-OBJECT_LAMP_LOCAL_SHADOW = int('0x4640',16);
-OBJECT_LAMP_LOCAL_SHADOW2 = int('0x4641',16);
-OBJECT_LAMP_SEE_CONE = int('0x4650',16);
-OBJECT_LAMP_SPOT_RECTANGULAR = int('0x4651',16);
-OBJECT_LAMP_SPOT_OVERSHOOT = int('0x4652',16);
-OBJECT_LAMP_SPOT_PROJECTOR = int('0x4653',16);
-OBJECT_LAMP_EXCLUDE = int('0x4654',16);
-OBJECT_LAMP_RANGE = int('0x4655',16);
-OBJECT_LAMP_ROLL = int('0x4656',16);
-OBJECT_LAMP_SPOT_ASPECT = int('0x4657',16);
-OBJECT_LAMP_RAY_BIAS = int('0x4658',16);
-OBJECT_LAMP_INNER_RANGE = int('0x4659',16);
-OBJECT_LAMP_OUTER_RANGE = int('0x465A',16);
-OBJECT_LAMP_MULTIPLIER = int('0x465B',16);
-OBJECT_LAMP_AMBIENT_LIGHT = int('0x4680',16);
+OBJECT_MESH  =      0x4100      # This lets us know that we are reading a new object
+OBJECT_LAMP =      0x4600      # This lets un know we are reading a light object
+OBJECT_LAMP_SPOT = 0x4610		# The light is a spotloght.
+OBJECT_LAMP_OFF = 0x4620		# The light off.
+OBJECT_LAMP_ATTENUATE = 0x4625
+OBJECT_LAMP_RAYSHADE = 0x4627
+OBJECT_LAMP_SHADOWED = 0x4630
+OBJECT_LAMP_LOCAL_SHADOW = 0x4640
+OBJECT_LAMP_LOCAL_SHADOW2 = 0x4641
+OBJECT_LAMP_SEE_CONE = 0x4650
+OBJECT_LAMP_SPOT_RECTANGULAR = 0x4651
+OBJECT_LAMP_SPOT_OVERSHOOT = 0x4652
+OBJECT_LAMP_SPOT_PROJECTOR = 0x4653
+OBJECT_LAMP_EXCLUDE = 0x4654
+OBJECT_LAMP_RANGE = 0x4655
+OBJECT_LAMP_ROLL = 0x4656
+OBJECT_LAMP_SPOT_ASPECT = 0x4657
+OBJECT_LAMP_RAY_BIAS = 0x4658
+OBJECT_LAMP_INNER_RANGE = 0x4659
+OBJECT_LAMP_OUTER_RANGE = 0x465A
+OBJECT_LAMP_MULTIPLIER = 0x465B
+OBJECT_LAMP_AMBIENT_LIGHT = 0x4680
 
 
 
-OBJECT_CAMERA=      int('0x4700',16);      # This lets un know we are reading a camera object
+OBJECT_CAMERA=      0x4700      # This lets un know we are reading a camera object
 
 #>------ sub defines of CAMERA
-OBJECT_CAM_RANGES=   int('0x4720',16);      # The camera range values
+OBJECT_CAM_RANGES=   0x4720      # The camera range values
 
 #>------ sub defines of OBJECT_MESH
-OBJECT_VERTICES =   int('0x4110',16);      # The objects vertices
-OBJECT_FACES    =   int('0x4120',16);      # The objects faces
-OBJECT_MATERIAL =   int('0x4130',16);      # This is found if the object has a material, either texture map or color
-OBJECT_UV       =   int('0x4140',16);      # The UV texture coordinates
-OBJECT_TRANS_MATRIX  =   int('0x4160',16); # The Object Matrix
+OBJECT_VERTICES =   0x4110      # The objects vertices
+OBJECT_FACES    =   0x4120      # The objects faces
+OBJECT_MATERIAL =   0x4130      # This is found if the object has a material, either texture map or color
+OBJECT_UV       =   0x4140      # The UV texture coordinates
+OBJECT_TRANS_MATRIX  =   0x4160 # The Object Matrix
 
 global scn
 scn = None
@@ -299,7 +183,19 @@ def add_texture_to_material(image, texture, material, mapto):
     if image:
         texture.image = image
 
-    material.add_texture(texture, "UV", mapto)
+    mtex = material.texture_slots.add()
+    mtex.texture = texture
+    mtex.texture_coords = 'UV'
+    mtex.use_map_color_diffuse = False
+
+    if mapto == 'COLOR':
+        mtex.use_map_color_diffuse = True
+    elif mapto == 'SPECULARITY':
+        mtex.use_map_specular = True
+    elif mapto == 'ALPHA':
+        mtex.use_map_alpha = True
+    elif mapto == 'NORMAL':
+        mtex.use_map_normal = True
 
 
 def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
@@ -356,7 +252,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                     bmat = MATDICT[matName][1]
                     img = TEXTURE_DICT.get(bmat.name)
 
-                bmesh.materials.link(bmat) # can be None
+                bmesh.materials.append(bmat) # can be None
 
                 if uv_faces  and img:
                     for fidx in faces:
@@ -420,7 +316,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             #print 'MAT_TEXTURE_MAP..while', new_chunk.bytes_read, new_chunk.length
             read_chunk(file, temp_chunk)
 
-            if (temp_chunk.ID == MAT_MAP_FILENAME):
+            if (temp_chunk.ID == MAT_MAP_FILEPATH):
                 texture_name = read_string(file)
                 img = TEXTURE_DICT[contextMaterial.name] = load_image(texture_name, dirname)
                 new_chunk.bytes_read += (len(texture_name)+1) #plus one for the null character that gets removed
@@ -434,7 +330,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
         if img:
             add_texture_to_material(img, new_texture, contextMaterial, mapto)
 
-    dirname = os.path.dirname(FILENAME)
+    dirname = os.path.dirname(file.name)
 
     #loop through all the data for this chunk (previous chunk) and see what it is
     while (previous_chunk.bytes_read < previous_chunk.length):
@@ -720,14 +616,14 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             #contextMatrix = contextMatrix * tx
             #contextMatrix = contextMatrix  *tx
 
-        elif  (new_chunk.ID == MAT_MAP_FILENAME):
+        elif  (new_chunk.ID == MAT_MAP_FILEPATH):
             texture_name = read_string(file)
             try:
                 TEXTURE_DICT[contextMaterial.name]
             except:
-                #img = TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
+                #img = TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILEPATH)
                 img = TEXTURE_DICT[contextMaterial.name] = load_image(texture_name, dirname)
-# 				img = TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILENAME, PLACE_HOLDER=False, RECURSIVE=IMAGE_SEARCH)
+# 				img = TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILEPATH, PLACE_HOLDER=False, RECURSIVE=IMAGE_SEARCH)
 
             new_chunk.bytes_read += len(texture_name)+1 #plus one for the null character that gets removed
 
@@ -750,30 +646,27 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
     if CreateBlenderObject:
         putContextMesh(contextMesh_vertls, contextMesh_facels, contextMeshMaterials)
 
-def load_3ds(filename, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True, APPLY_MATRIX=False):
-    global FILENAME, SCN
-# 	global FILENAME, SCN_OBJECTS
+def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True, APPLY_MATRIX=False):
+    global SCN
 
     # XXX
-# 	if BPyMessages.Error_NoFile(filename):
+# 	if BPyMessages.Error_NoFile(filepath):
 # 		return
 
-    print('\n\nImporting 3DS: "%s"' % (filename))
-# 	print('\n\nImporting 3DS: "%s"' % (Blender.sys.expandpath(filename)))
+    print('\n\nImporting 3DS: %r' % (filepath))
 
     time1 = time.clock()
 # 	time1 = Blender.sys.time()
 
-    FILENAME = filename
     current_chunk = chunk()
 
-    file = open(filename,'rb')
+    file = open(filepath, 'rb')
 
     #here we go!
     # print 'reading the first chunk'
     read_chunk(file, current_chunk)
     if (current_chunk.ID!=PRIMARY):
-        print('\tFatal Error:  Not a valid 3ds file: ', filename)
+        print('\tFatal Error:  Not a valid 3ds file: %r' % filepath)
         file.close()
         return
 
@@ -834,7 +727,7 @@ def load_3ds(filename, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
     # Done DUMMYVERT
     """
     if IMPORT_AS_INSTANCE:
-        name = filename.split('\\')[-1].split('/')[-1]
+        name = filepath.split('\\')[-1].split('/')[-1]
         # Create a group for this import.
         group_scn = Scene.New(name)
         for ob in importedObjects:
@@ -892,96 +785,10 @@ def load_3ds(filename, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
         # Done constraining to bounds.
 
     # Select all new objects.
-    print('finished importing: "%s" in %.4f sec.' % (filename, (time.clock()-time1)))
-# 	print('finished importing: "%s" in %.4f sec.' % (filename, (Blender.sys.time()-time1)))
+    print('finished importing: %r in %.4f sec.' % (filepath, (time.clock()-time1)))
     file.close()
 
 
-DEBUG = False
-# For testing compatibility
-#load_3ds('/metavr/convert/vehicle/truck_002/TruckTanker1.3DS', False)
-#load_3ds('/metavr/archive/convert/old/arranged_3ds_to_hpx-2/only-need-engine-trains/Engine2.3DS', False)
-'''
-
-else:
-    import os
-    # DEBUG ONLY
-    TIME = Blender.sys.time()
-    import os
-    print 'Searching for files'
-    os.system('find /metavr/ -iname "*.3ds" > /tmp/temp3ds_list')
-    # os.system('find /storage/ -iname "*.3ds" > /tmp/temp3ds_list')
-    print '...Done'
-    file = open('/tmp/temp3ds_list', 'r')
-    lines = file.readlines()
-    file.close()
-    # sort by filesize for faster testing
-    lines_size = [(os.path.getsize(f[:-1]), f[:-1]) for f in lines]
-    lines_size.sort()
-    lines = [f[1] for f in lines_size]
-
-
-    def between(v,a,b):
-        if v <= max(a,b) and v >= min(a,b):
-            return True
-        return False
-
-    for i, _3ds in enumerate(lines):
-        if between(i, 650,800):
-            #_3ds= _3ds[:-1]
-            print 'Importing', _3ds, '\nNUMBER', i, 'of', len(lines)
-            _3ds_file= _3ds.split('/')[-1].split('\\')[-1]
-            newScn = Blender.Scene.New(_3ds_file)
-            newScn.makeCurrent()
-            load_3ds(_3ds, False)
-
-    print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
-
-'''
-from bpy.props import *
-
-
-class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
-    '''Import from 3DS file format (.3ds)'''
-    bl_idname = "import_scene.autodesk_3ds"
-    bl_label = 'Import 3DS'
-
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
-    filepath = StringProperty(name="File Path", description="Filepath used for importing the 3DS file", maxlen= 1024, default= "")
-
-    constrain_size = FloatProperty(name="Size Constraint", description="Scale the model by 10 until it reacehs the size constraint. Zero Disables.", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=10.0)
-    search_images = BoolProperty(name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True)
-    apply_transform = BoolProperty(name="Apply Transform", description="Workaround for object transformations importing incorrectly", default=False)
-
-    def execute(self, context):
-        load_3ds(self.properties.filepath,
-                 context,
-                 IMPORT_CONSTRAIN_BOUNDS=self.properties.constrain_size,
-                 IMAGE_SEARCH=self.properties.search_images,
-                 APPLY_MATRIX=self.properties.apply_transform)
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
-        return {'RUNNING_MODAL'}
-
-
-def menu_func(self, context):
-    self.layout.operator(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)")
-
-def register():
-    bpy.types.INFO_MT_file_import.append(menu_func)
-
-def unregister():
-    bpy.types.INFO_MT_file_import.remove(menu_func)
-
-# NOTES:
-# why add 1 extra vertex? and remove it when done? - "Answer - eekadoodle - would need to re-order UV's without this since face order isnt always what we give blender, BMesh will solve :D"
-# disabled scaling to size, this requires exposing bb (easy) and understanding how it works (needs some time)
-
-if __name__ == "__main__":
-    register()
-
+def load(operator, context, filepath="", constrain_size=0.0, use_image_search=True, use_apply_transform=True):
+    load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=constrain_size, IMAGE_SEARCH=use_image_search, APPLY_MATRIX=use_apply_transform)
+    return {'FINISHED'}

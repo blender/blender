@@ -84,6 +84,8 @@ def draw(layout, context, context_member, use_edit=True):
         props.data_path = context_member
         del row
 
+    rna_properties = {prop.identifier for prop in rna_item.bl_rna.properties if prop.is_runtime} if items else None
+
     for key, val in items:
 
         if key == '_RNA_UI':
@@ -113,7 +115,10 @@ def draw(layout, context, context_member, use_edit=True):
         if convert_to_pyobject and not hasattr(val_orig, "len"):
             row.label(text=val_draw)
         else:
-            row.prop(rna_item, '["%s"]' % key, text="")
+            if key in rna_properties:
+                row.prop(rna_item, key, text="")
+            else:
+                row.prop(rna_item, '["%s"]' % key, text="")
 
         if use_edit:
             row = split.row(align=True)

@@ -53,7 +53,8 @@ typedef enum {
 	KX_BOUNDCONE,
 	KX_BOUNDMESH,
 	KX_BOUNDPOLYTOPE,
-	KX_BOUND_DYN_MESH
+	KX_BOUND_DYN_MESH,
+	KX_BOUNDCAPSULE
 } KX_BoundBoxClass;
 
 struct KX_BoxBounds
@@ -168,4 +169,3 @@ bool KX_ReInstanceBulletShapeFromMesh(KX_GameObject *gameobj, KX_GameObject *fro
 
 #endif
 #endif //KX_CONVERTPHYSICSOBJECTS
-

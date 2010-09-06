@@ -76,6 +76,7 @@ static EnumPropertyItem collision_bounds_items[] = {
 	{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
 	{OB_BOUND_POLYT, "CONVEX_HULL", 0, "Convex Hull", ""},
 	{OB_BOUND_POLYH, "TRIANGLE_MESH", 0, "Triangle Mesh", ""},
+	{OB_BOUND_CAPSULE, "CAPSULE", 0, "Capsule", ""},
 	//{OB_DYN_MESH, "DYNAMIC_MESH", 0, "Dynamic Mesh", ""},
 	{0, NULL, 0, NULL, NULL}};
 
@@ -384,6 +385,7 @@ static EnumPropertyItem *rna_Object_collision_bounds_itemf(bContext *C, PointerR
 		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_CYLINDER);
 		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_SPHERE);
 		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_BOX);
+		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_CAPSULE);
 	}
 
 	RNA_enum_item_end(&item, &totitem);
@@ -1062,10 +1064,10 @@ static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 
 }
 
-static void rna_Object_add_vertex_to_group(Object *ob, int vertex_index, bDeformGroup *def, float weight, int assignmode)
+static void rna_Object_add_vertex_to_group(Object *ob, int index_len, int *index, bDeformGroup *def, float weight, int assignmode)
 {
-	/* creates dverts if needed */
-	ED_vgroup_vert_add(ob, def, vertex_index, weight, assignmode);
+	while(index_len--)
+		ED_vgroup_vert_add(ob, def, *index++, weight, assignmode);
 }
 
 /* generic poll functions */
@@ -1528,10 +1530,11 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "New vertex group.");
 	RNA_def_function_return(func, parm);
 
-	// XXX, this will be very slow, bad API design! :S
 	func= RNA_def_function(srna, "assign", "rna_Object_add_vertex_to_group");
 	RNA_def_function_ui_description(func, "Add vertex to a vertex group.");
-	parm= RNA_def_int(func, "index", 0, 0, 0, "", "Vertex index.", 0, 0);
+	/* TODO, see how array size of 0 works, this shouldnt be used */
+	parm= RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "Index List.", 0, 0); 	 
+	RNA_def_property_flag(parm, PROP_DYNAMIC);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "Vertex group to add vertex to.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -1599,6 +1602,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
 		{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
 		{OB_BOUND_POLYH, "POLYHEDRON", 0, "Polyhedron", ""},
+		{OB_BOUND_CAPSULE, "CAPSULE", 0, "Capsule", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem dupli_items[] = {
@@ -2231,4 +2235,3 @@ void RNA_def_object(BlenderRNA *brna)
 }
 
 #endif
-

@@ -118,6 +118,12 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 	/* operators for sequence */
 	keymap= WM_keymap_find(keyconf, "Sequencer", SPACE_SEQ, 0);
+
+        WM_keymap_add_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
+        WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, KM_CTRL, 0);
+        WM_keymap_add_item(keymap, "MARKER_OT_duplicate", DKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MARKER_OT_delete", XKEY, KM_PRESS, KM_SHIFT, 0);
+ 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
@@ -242,9 +248,6 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "SequencerPreview", SPACE_SEQ, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all_preview", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
-
-
-	keymap= WM_keymap_find(keyconf, "SequencerPreview", SPACE_SEQ, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_ghost_border", OKEY, KM_PRESS, 0, 0);
 

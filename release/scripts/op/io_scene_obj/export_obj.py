@@ -18,23 +18,6 @@
 
 # <pep8 compliant>
 
-__author__ = "Campbell Barton, Jiri Hnidek, Paolo Ciccone"
-__url__ = ['http://wiki.blender.org/index.php/Scripts/Manual/Export/wavefront_obj', 'www.blender.org', 'blenderartists.org']
-__version__ = "1.21"
-
-__bpydoc__ = """\
-This script is an exporter to OBJ file format.
-
-Usage:
-
-Select the objects you wish to export and run this script from "File->Export" menu.
-Selecting the default options from the popup box will be good in most cases.
-All objects that can be represented as a mesh (mesh, curve, metaball, surface, text3d)
-will be exported as mesh data.
-"""
-
-# import math and other in functions that use them for the sake of fast Blender startup
-# import math
 import os
 import time
 import shutil
@@ -122,7 +105,7 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
                     try:
                         filepath = copy_image(mtex.texture.image)
 #                       filepath = mtex.texture.image.filepath.split('\\')[-1].split('/')[-1]
-                        file.write('map_Kd %s\n' % filepath) # Diffuse mapping image
+                        file.write('map_Kd %s\n' % repr(filepath)[1:-1]) # Diffuse mapping image
                         break
                     except:
                         # Texture has no image though its an image type, best ignore.
@@ -332,7 +315,7 @@ def write_file(filepath, objects, scene,
         return ret
 
 
-    print('OBJ Export path: "%s"' % filepath)
+    print('OBJ Export path: %r' % filepath)
     temp_mesh_name = '~tmp-mesh'
 
     time1 = time.clock()
@@ -342,13 +325,13 @@ def write_file(filepath, objects, scene,
     file = open(filepath, "w")
 
     # Write Header
-    file.write('# Blender v%s OBJ File: %s\n' % (bpy.app.version_string, bpy.data.filepath.split('/')[-1].split('\\')[-1] ))
+    file.write('# Blender v%s OBJ File: %r\n' % (bpy.app.version_string, os.path.basename(bpy.data.filepath)))
     file.write('# www.blender.org\n')
 
     # Tell the obj file what material file to use.
     if EXPORT_MTL:
-        mtlfilepath = '%s.mtl' % '.'.join(filepath.split('.')[:-1])
-        file.write('mtllib %s\n' % ( mtlfilepath.split('\\')[-1].split('/')[-1] ))
+        mtlfilepath = os.path.splitext(filepath)[0] + ".mtl"
+        file.write('mtllib %s\n' % repr(os.path.basename(mtlfilepath))[1:-1]) # filepath can contain non utf8 chars, use repr
 
     if EXPORT_ROTX90:
         mat_xrot90= mathutils.Matrix.Rotation(-math.pi/2, 4, 'X')
@@ -751,7 +734,8 @@ def write_file(filepath, objects, scene,
 
     print("OBJ Export time: %.2f" % (time.clock() - time1))
 
-def write(filepath, context,
+# 
+def _write(context, filepath,
               EXPORT_TRI, # ok
               EXPORT_EDGES,
               EXPORT_NORMALS, # not yet
@@ -777,7 +761,7 @@ def write(filepath, context,
     orig_scene = context.scene
 
     # Exit edit mode before exporting, so current object states are exported properly.
-    if context.object:
+    if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
 #   if EXPORT_ALL_SCENES:
@@ -848,105 +832,51 @@ def write(filepath, context,
 
 '''
 Currently the exporter lacks these features:
-* nurbs
 * multiple scene export (only active scene is written)
 * particles
 '''
 
-from bpy.props import *
 
-class ExportOBJ(bpy.types.Operator):
-    '''Save a Wavefront OBJ File'''
+def save(operator, context, filepath="",
+         use_triangles=False,
+         use_edges=False,
+         use_normals=False,
+         use_hq_normals=False,
+         use_uvs=True,
+         use_materials=True,
+         copy_images=False,
+         use_modifiers=True,
+         use_rotate_x90=True,
+         use_blen_objects=True,
+         group_by_object=False,
+         group_by_material=False,
+         keep_vertex_order=False,
+         use_vertex_groups=False,
+         use_nurbs=True,
+         use_selection=True,
+         use_all_scenes=False,
+         use_animation=False,
+         ):
 
-    bl_idname = "export.obj"
-    bl_label = 'Export OBJ'
+    _write(context, filepath, 
+           EXPORT_TRI=use_triangles,
+           EXPORT_EDGES=use_edges,
+           EXPORT_NORMALS=use_normals,
+           EXPORT_NORMALS_HQ=use_hq_normals,
+           EXPORT_UV=use_uvs,
+           EXPORT_MTL=use_materials,
+           EXPORT_COPY_IMAGES=copy_images,
+           EXPORT_APPLY_MODIFIERS=use_modifiers,
+           EXPORT_ROTX90=use_rotate_x90,
+           EXPORT_BLEN_OBS=use_blen_objects,
+           EXPORT_GROUP_BY_OB=group_by_object,
+           EXPORT_GROUP_BY_MAT=group_by_material,
+           EXPORT_KEEP_VERT_ORDER=keep_vertex_order,
+           EXPORT_POLYGROUPS=use_vertex_groups,
+           EXPORT_CURVE_AS_NURBS=use_nurbs,
+           EXPORT_SEL_ONLY=use_selection,
+           EXPORT_ALL_SCENES=use_all_scenes,
+           EXPORT_ANIMATION=use_animation,
+           )
 
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
-
-    filepath = StringProperty(name="File Path", description="Filepath used for exporting the OBJ file", maxlen= 1024, default= "")
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
-
-    # context group
-    use_selection = BoolProperty(name="Selection Only", description="Export selected objects only", default= False)
-    use_all_scenes = BoolProperty(name="All Scenes", description="", default= False)
-    use_animation = BoolProperty(name="Animation", description="", default= False)
-
-    # object group
-    use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply modifiers (preview resolution)", default= True)
-    use_rotate90 = BoolProperty(name="Rotate X90", description="", default= True)
-
-    # extra data group
-    use_edges = BoolProperty(name="Edges", description="", default=True)
-    use_normals = BoolProperty(name="Normals", description="", default=False)
-    use_hq_normals = BoolProperty(name="High Quality Normals", description="", default=True)
-    use_uvs = BoolProperty(name="UVs", description="", default= True)
-    use_materials = BoolProperty(name="Materials", description="", default=True)
-    copy_images = BoolProperty(name="Copy Images", description="", default=False)
-    use_triangles = BoolProperty(name="Triangulate", description="", default=False)
-    use_vertex_groups = BoolProperty(name="Polygroups", description="", default=False)
-    use_nurbs = BoolProperty(name="Nurbs", description="", default=False)
-
-    # grouping group
-    use_blen_objects = BoolProperty(name="Objects as OBJ Objects", description="", default= True)
-    group_by_object = BoolProperty(name="Objects as OBJ Groups ", description="", default= False)
-    group_by_material = BoolProperty(name="Material Groups", description="", default= False)
-    keep_vertex_order = BoolProperty(name="Keep Vertex Order", description="", default= False)
-
-
-    def execute(self, context):
-
-        filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, ".obj")
-
-        write(filepath, context,
-              EXPORT_TRI=self.properties.use_triangles,
-              EXPORT_EDGES=self.properties.use_edges,
-              EXPORT_NORMALS=self.properties.use_normals,
-              EXPORT_NORMALS_HQ=self.properties.use_hq_normals,
-              EXPORT_UV=self.properties.use_uvs,
-              EXPORT_MTL=self.properties.use_materials,
-              EXPORT_COPY_IMAGES=self.properties.copy_images,
-              EXPORT_APPLY_MODIFIERS=self.properties.use_modifiers,
-              EXPORT_ROTX90=self.properties.use_rotate90,
-              EXPORT_BLEN_OBS=self.properties.use_blen_objects,
-              EXPORT_GROUP_BY_OB=self.properties.group_by_object,
-              EXPORT_GROUP_BY_MAT=self.properties.group_by_material,
-              EXPORT_KEEP_VERT_ORDER=self.properties.keep_vertex_order,
-              EXPORT_POLYGROUPS=self.properties.use_vertex_groups,
-              EXPORT_CURVE_AS_NURBS=self.properties.use_nurbs,
-              EXPORT_SEL_ONLY=self.properties.use_selection,
-              EXPORT_ALL_SCENES=self.properties.use_all_scenes,
-              EXPORT_ANIMATION=self.properties.use_animation)
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        import os
-        if not self.properties.is_property_set("filepath"):
-            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".obj"
-
-        context.manager.add_fileselect(self)
-        return {'RUNNING_MODAL'}
-
-
-def menu_func(self, context):
-    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)")
-
-
-def register():
-    bpy.types.INFO_MT_file_export.append(menu_func)
-
-def unregister():
-    bpy.types.INFO_MT_file_export.remove(menu_func)
-
-
-# CONVERSION ISSUES
-# - matrix problem
-# - duplis - only tested dupliverts
-# - NURBS - needs API additions
-# - all scenes export
-# + normals calculation
-
-if __name__ == "__main__":
-    register()
+    return {'FINISHED'}

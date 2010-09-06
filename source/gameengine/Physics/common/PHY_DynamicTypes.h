@@ -138,6 +138,7 @@ typedef enum PHY_ShapeType {
 	PHY_SHAPE_SPHERE,
 	PHY_SHAPE_CYLINDER,
 	PHY_SHAPE_CONE,
+	PHY_SHAPE_CAPSULE,
 	PHY_SHAPE_MESH,
 	PHY_SHAPE_POLYTOPE,
 	PHY_SHAPE_COMPOUND,
@@ -148,4 +149,3 @@ typedef enum PHY_ShapeType {
 typedef float	PHY_Vector3[3];
 
 #endif //__PHY_DYNAMIC_TYPES
-

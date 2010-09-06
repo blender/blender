@@ -274,7 +274,7 @@ static void mywrite( WriteData *wd, void *adr, int len)
  * @param write_flags Write parameters
  * @warning Talks to other functions with global parameters
  */
-static WriteData *bgnwrite(int file, MemFile *compare, MemFile *current, int write_flags)
+static WriteData *bgnwrite(int file, MemFile *compare, MemFile *current)
 {
 	WriteData *wd= writedata_new(file);
 
@@ -2485,7 +2485,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	fg.curscene= screen->scene;
 	fg.displaymode= G.displaymode;
 	fg.winpos= G.winpos;
-	fg.fileflags= (fileflags & ~G_FILE_NO_UI);	// prevent to save this, is not good convention, and feature with concerns...
+	fg.fileflags= (fileflags & ~(G_FILE_NO_UI|G_FILE_RELATIVE_REMAP));	// prevent to save this, is not good convention, and feature with concerns...
 	fg.globalf= G.f;
 	BLI_strncpy(fg.filename, mainvar->name, sizeof(fg.filename));
 
@@ -2520,7 +2520,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 
 	blo_split_main(&mainlist, mainvar);
 
-	wd= bgnwrite(handle, compare, current, write_flags);
+	wd= bgnwrite(handle, compare, current);
 	
 	sprintf(buf, "BLENDER%c%c%.3d", (sizeof(void*)==8)?'-':'_', (ENDIAN_ORDER==B_ENDIAN)?'V':'v', BLENDER_VERSION);
 	mywrite(wd, buf, 12);

@@ -54,13 +54,15 @@ class DATA_PT_context_lamp(DataButtonsPanel, bpy.types.Panel):
 
         split = layout.split(percentage=0.65)
 
+        texture_count = len(lamp.texture_slots.keys())
+
         if ob:
             split.template_ID(ob, "data")
-            split.separator()
         elif lamp:
             split.template_ID(space, "pin_id")
-            split.separator()
 
+        if texture_count != 0:
+            split.label(text=str(texture_count), icon='TEXTURE')
 
 class DATA_PT_preview(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Preview"

@@ -3375,7 +3375,7 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 			add_v3_v3v3(pdd->vd, bb_center, xvec);
 			add_v3_v3(pdd->vd, yvec); pdd->vd+=3;
 
-			sub_v3_v3v3(pdd->vd, bb_center, vec);
+			sub_v3_v3v3(pdd->vd, bb_center, xvec);
 			add_v3_v3(pdd->vd, yvec); pdd->vd+=3;
 
 			sub_v3_v3v3(pdd->vd, bb_center, xvec);

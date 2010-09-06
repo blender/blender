@@ -183,7 +183,7 @@ void rna_def_animviz_common(struct StructRNA *srna);
 void rna_def_motionpath_common(struct StructRNA *srna);
 
 void rna_def_texmat_common(struct StructRNA *srna, const char *texspace_editable);
-void rna_def_mtex_common(struct StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname, const char *update);
+void rna_def_mtex_common(struct BlenderRNA *brna, struct StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname, const char *structname_slots, const char *update);
 void rna_def_render_layer_common(struct StructRNA *srna, int scene);
 
 void rna_ID_name_get(struct PointerRNA *ptr, char *value);
@@ -354,6 +354,10 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 int rna_parameter_size(struct PropertyRNA *parm);
 int rna_parameter_size_alloc(struct PropertyRNA *parm);
 
+// XXX, these should not need to be defined here~!
+struct MTex *rna_mtex_texture_slots_add(struct ID *self, struct ReportList *reports);
+struct MTex *rna_mtex_texture_slots_create(struct ID *self, struct ReportList *reports, int index);
+void rna_mtex_texture_slots_clear(struct ID *self, struct ReportList *reports, int index);
 
 #endif /* RNA_INTERNAL_H */
 

@@ -469,8 +469,8 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_WORLD_DATA);
 
 	rna_def_animdata_common(srna);
-	rna_def_mtex_common(srna, "rna_World_mtex_begin", "rna_World_active_texture_get",
-		"rna_World_active_texture_set", "WorldTextureSlot", "rna_World_update");
+	rna_def_mtex_common(brna, srna, "rna_World_mtex_begin", "rna_World_active_texture_get",
+		"rna_World_active_texture_set", "WorldTextureSlot", "WorldTextureSlots", "rna_World_update");
 
 	/* colors */
 	prop= RNA_def_property(srna, "horizon_color", PROP_FLOAT, PROP_COLOR);

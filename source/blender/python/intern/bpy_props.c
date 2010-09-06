@@ -26,10 +26,14 @@
 #include "bpy_rna.h"
 #include "bpy_util.h"
 
+#include "BKE_utildefines.h"
+
 #include "RNA_define.h" /* for defining our own rna */
 #include "RNA_enum_types.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "../generic/py_capi_utils.h"
 
 EnumPropertyItem property_flag_items[] = {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
@@ -156,7 +160,7 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
-		RNA_def_property_duplicate_pointers(prop);
+		RNA_def_property_duplicate_pointers(srna, prop);
 		Py_RETURN_NONE;
 	}
 	else { /* operators defer running this function */
@@ -219,7 +223,7 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 		}
 
-		if(pydef && BPyAsPrimitiveArray(def, pydef, size, &PyBool_Type, "BoolVectorProperty(default=sequence)") < 0)
+		if(pydef && PyC_AsArray(def, pydef, size, &PyBool_Type, "BoolVectorProperty(default=sequence)") < 0)
 			return NULL;
 
 		// prop= RNA_def_boolean_array(srna, id, size, pydef ? def:NULL, name, description);
@@ -232,7 +236,7 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
-		RNA_def_property_duplicate_pointers(prop);
+		RNA_def_property_duplicate_pointers(srna, prop);
 		Py_RETURN_NONE;
 	}
 	else { /* operators defer running this function */
@@ -292,13 +296,13 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		RNA_def_property_int_default(prop, def);
 		RNA_def_property_range(prop, min, max);
 		RNA_def_property_ui_text(prop, name, description);
-		RNA_def_property_ui_range(prop, soft_min, soft_max, step, 3);
+		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, 3);
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
-		RNA_def_property_duplicate_pointers(prop);
+		RNA_def_property_duplicate_pointers(srna, prop);
 		Py_RETURN_NONE;
 	}
 	else { /* operators defer running this function */
@@ -361,7 +365,7 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 		}
 
-		if(pydef && BPyAsPrimitiveArray(def, pydef, size, &PyLong_Type, "IntVectorProperty(default=sequence)") < 0)
+		if(pydef && PyC_AsArray(def, pydef, size, &PyLong_Type, "IntVectorProperty(default=sequence)") < 0)
 			return NULL;
 
 		prop= RNA_def_property(srna, id, PROP_INT, subtype);
@@ -369,13 +373,13 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pydef) RNA_def_property_int_array_default(prop, def);
 		RNA_def_property_range(prop, min, max);
 		RNA_def_property_ui_text(prop, name, description);
-		RNA_def_property_ui_range(prop, soft_min, soft_max, step, 3);
+		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, 3);
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
-		RNA_def_property_duplicate_pointers(prop);
+		RNA_def_property_duplicate_pointers(srna, prop);
 		Py_RETURN_NONE;
 	}
 	else { /* operators defer running this function */
@@ -446,13 +450,13 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		RNA_def_property_float_default(prop, def);
 		RNA_def_property_range(prop, min, max);
 		RNA_def_property_ui_text(prop, name, description);
-		RNA_def_property_ui_range(prop, soft_min, soft_max, step, precision);
+		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, precision);
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
-		RNA_def_property_duplicate_pointers(prop);
+		RNA_def_property_duplicate_pointers(srna, prop);
 		Py_RETURN_NONE;
 	}
 	else { /* operators defer running this function */
@@ -515,7 +519,7 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 		}
 
-		if(pydef && BPyAsPrimitiveArray(def, pydef, size, &PyFloat_Type, "FloatVectorProperty(default=sequence)") < 0)
+		if(pydef && PyC_AsArray(def, pydef, size, &PyFloat_Type, "FloatVectorProperty(default=sequence)") < 0)
 			return NULL;
 
 		prop= RNA_def_property(srna, id, PROP_FLOAT, subtype);
@@ -523,13 +527,13 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pydef) RNA_def_property_float_array_default(prop, def);
 		RNA_def_property_range(prop, min, max);
 		RNA_def_property_ui_text(prop, name, description);
-		RNA_def_property_ui_range(prop, soft_min, soft_max, step, precision);
+		RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, precision);
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
-		RNA_def_property_duplicate_pointers(prop);
+		RNA_def_property_duplicate_pointers(srna, prop);
 		Py_RETURN_NONE;
 	}
 	else { /* operators defer running this function */
@@ -594,7 +598,7 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
-		RNA_def_property_duplicate_pointers(prop);
+		RNA_def_property_duplicate_pointers(srna, prop);
 		Py_RETURN_NONE;
 	}
 	else { /* operators defer running this function */
@@ -700,7 +704,7 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
-		RNA_def_property_duplicate_pointers(prop);
+		RNA_def_property_duplicate_pointers(srna, prop);
 		MEM_freeN(eitems);
 
 		Py_RETURN_NONE;
@@ -717,7 +721,7 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 	srna= srna_from_self(value, "BoolProperty(...):");
 	if(!srna) {
 
-		PyObject *msg= BPY_exception_buffer();
+		PyObject *msg= PyC_ExceptionBuffer();
 		char *msg_char= _PyUnicode_AsString(msg);
 		PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from IDPropertyGroup, failed with: %s", error_prefix, msg_char);
 		Py_DECREF(msg);
@@ -783,7 +787,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
-		RNA_def_property_duplicate_pointers(prop);
+		RNA_def_property_duplicate_pointers(srna, prop);
 		Py_RETURN_NONE;
 	}
 	else { /* operators defer running this function */
@@ -843,7 +847,7 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
 			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
-		RNA_def_property_duplicate_pointers(prop);
+		RNA_def_property_duplicate_pointers(srna, prop);
 		Py_RETURN_NONE;
 	}
 	else { /* operators defer running this function */

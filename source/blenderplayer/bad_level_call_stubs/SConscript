@@ -3,7 +3,8 @@ Import ('env')
 
 sources = 'stubs.c'
 
-incs = '#/source/blender/makesdna'
+incs = '#/intern/guardedalloc'
+incs += ' #/source/blender/makesdna'
 incs += ' #/source/blender/makesrna'
 
 defs = ''
@@ -11,6 +12,6 @@ if env['WITH_BF_INTERNATIONAL']:
     defs += 'WITH_FREETYPE2'
 
 if env['WITH_BF_GAMEENGINE']:
-	defs += ' GAMEBLENDER=1'
+    defs += ' GAMEBLENDER=1'
 
 env.BlenderLib ('blenkernel_blc', sources = Split(sources), includes=Split(incs), defines=Split(defs), libtype=['player'],priority=[220] )

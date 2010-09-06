@@ -59,7 +59,7 @@ class SelectPattern(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
+        wm = context.window_manager
         # return wm.invoke_props_popup(self, event)
         wm.invoke_props_popup(self, event)
         return {'RUNNING_MODAL'}

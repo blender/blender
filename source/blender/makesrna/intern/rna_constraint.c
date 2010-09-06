@@ -1942,7 +1942,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	/* flags */
 	prop= RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_OFF);
-	RNA_def_property_ui_text(prop, "Enabled", "Enable/Disable Constraint");
+	RNA_def_property_ui_text(prop, "Disable", "Enable/Disable Constraint");
 	
 	prop= RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_EXPAND);

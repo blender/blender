@@ -27,7 +27,8 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-	. ../../../intern/guardedalloc
+	.
+	../../../intern/guardedalloc
 	${JPEG_INC}
 )
 

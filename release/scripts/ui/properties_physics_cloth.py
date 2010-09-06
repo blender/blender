@@ -63,7 +63,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
 
         if md:
             # remove modifier + settings
-            split.set_context_pointer("modifier", md)
+            split.context_pointer_set("modifier", md)
             split.operator("object.modifier_remove", text="Remove")
 
             row = split.row(align=True)
@@ -105,7 +105,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
             col.prop(cloth, "use_pin_cloth", text="Pinning")
             sub = col.column()
             sub.active = cloth.use_pin_cloth
-            sub.prop_search(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
+            sub.prop_search(cloth, "vertex_group_mass", ob, "vertex_groups", text="")
             sub.prop(cloth, "pin_stiffness", text="Stiffness")
 
             col.label(text="Pre roll:")
@@ -113,7 +113,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
 
             # Disabled for now
             """
-            if cloth.mass_vertex_group:
+            if cloth.vertex_group_mass:
                 layout.label(text="Goal:")
 
                 col = layout.column_flow()
@@ -208,12 +208,12 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Structural Stiffness:")
-        col.prop_search(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(cloth, "vertex_group_structural_stiffness", ob, "vertex_groups", text="")
         col.prop(cloth, "structural_stiffness_max", text="Max")
 
         col = split.column()
         col.label(text="Bending Stiffness:")
-        col.prop_search(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(cloth, "vertex_group_bending", ob, "vertex_groups", text="")
         col.prop(cloth, "bending_stiffness_max", text="Max")
 
 

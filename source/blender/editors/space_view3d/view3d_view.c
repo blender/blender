@@ -403,6 +403,10 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
+	copy_qt_qt(rv3d->lviewquat, rv3d->viewquat);
+	rv3d->lview= rv3d->view;
+	rv3d->lpersp= rv3d->persp;
+
 	setcameratoview3d(v3d, rv3d, v3d->camera);
 	rv3d->persp = RV3D_CAMOB;
 	

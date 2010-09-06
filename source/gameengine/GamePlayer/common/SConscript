@@ -42,7 +42,7 @@ incs = ['.',
         '#source/blender/misc',
         '#source/blender/blenloader',
         '#source/blender/gpu',
-		'#extern/glew/include']
+        '#extern/glew/include']
 
 #This is all plugin stuff!
 #if sys.platform=='win32':
@@ -61,9 +61,9 @@ incs = ['.',
 defs = [ 'GLEW_STATIC' ]
 
 if env['WITH_BF_PYTHON']:
-	incs += Split(env['BF_PYTHON_INC'])
+    incs += Split(env['BF_PYTHON_INC'])
 else:
-	defs.append('DISABLE_PYTHON')
+    defs.append('DISABLE_PYTHON')
 
 incs += Split(env['BF_PNG_INC'])
 incs += Split(env['BF_ZLIB_INC'])

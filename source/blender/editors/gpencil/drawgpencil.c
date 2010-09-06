@@ -32,6 +32,7 @@
 #include <math.h>
 #include <float.h>
 
+#include "BLO_sys_types.h"
 
 #include "IMB_imbuf_types.h"
 

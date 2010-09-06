@@ -22,6 +22,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "BLO_sys_types.h"
+
 #ifndef RNA_TYPES
 #define RNA_TYPES
 
@@ -264,6 +266,12 @@ typedef struct ParameterIterator {
 	PropertyRNA *parm;
 	int valid;
 } ParameterIterator;
+
+/* mainly to avoid confusing casts */
+typedef struct ParameterDynAlloc {
+	intptr_t array_tot; /* important, this breaks when set to an int */
+	void *array;
+} ParameterDynAlloc;
 
 /* Function */
 

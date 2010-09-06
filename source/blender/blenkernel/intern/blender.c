@@ -231,7 +231,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 		curscene= bfd->curscene;
 		if(curscene==NULL) curscene= bfd->main->scene.first;
 		/* and we enforce curscene to be in current screen */
-		curscreen->scene= curscene;
+		if(curscreen) curscreen->scene= curscene; /* can run in bgmode */
 
 		/* clear_global will free G.main, here we can still restore pointers */
 		lib_link_screen_restore(bfd->main, curscreen, curscene);

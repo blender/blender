@@ -1301,13 +1301,14 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 				/* correct times for rotation drivers 
 				 *	- need to go from degrees to radians...
 				 * 	- there's only really 1 target to worry about 
+				 *  - were also degrees/10
 				 */
 				if (fcu->driver && fcu->driver->variables.first) {
 					DriverVar *dvar= fcu->driver->variables.first;
 					DriverTarget *dtar= &dvar->targets[0];
 					
 					if (ELEM3(dtar->transChan, DTAR_TRANSCHAN_ROTX, DTAR_TRANSCHAN_ROTY, DTAR_TRANSCHAN_ROTZ)) {
-						const float fac= (float)M_PI / 180.0f;
+						const float fac= (float)M_PI / 18.0f;
 						
 						dst->vec[0][0] *= fac;
 						dst->vec[1][0] *= fac;

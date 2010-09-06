@@ -689,6 +689,49 @@ MTex *add_mtex()
 	return mtex;
 }
 
+/* slot -1 for first free ID */
+MTex *add_mtex_id(ID *id, int slot)
+{
+	MTex **mtex_ar;
+	short act;
+
+	give_active_mtex(id, &mtex_ar, &act);
+
+	if(mtex_ar==NULL) {
+		return NULL;
+	}
+	
+	if(slot==-1) {
+		/* find first free */
+		int i;		
+		for (i= 0; i < MAX_MTEX; i++) {
+			if (!mtex_ar[i]) {
+				slot= i;
+				break;
+			}
+		}
+		if(slot == -1) {
+			return NULL;
+		}
+	}
+	else {
+		/* make sure slot is valid */
+		if(slot < 0 || slot >= MAX_MTEX) {
+			return NULL;
+		}
+	}
+
+	if (mtex_ar[slot]) {
+		id_us_min((ID *)mtex_ar[slot]->tex);
+		MEM_freeN(mtex_ar[slot]);
+		mtex_ar[slot]= NULL;
+	}
+
+	mtex_ar[slot]= add_mtex();
+
+	return mtex_ar[slot];
+}
+
 /* ------------------------------------------------------------------------- */
 
 Tex *copy_texture(Tex *tex)

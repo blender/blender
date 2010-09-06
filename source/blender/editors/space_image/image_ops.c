@@ -846,14 +846,14 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 
 /* assumes name is FILE_MAX */
 /* ima->name and ibuf->name should end up the same */
-static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOperator *op, char *path)
+static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOperator *op, char *path, int do_newpath)
 {
 	Image *ima= ED_space_image(sima);
 	void *lock;
 	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
 
 	if (ibuf) {
-		int relative= RNA_boolean_get(op->ptr, "relative_path");
+		int relative= (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path"));
 		int save_copy= (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
 
 		BLI_path_abs(path, G.sce);
@@ -879,8 +879,10 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 					BLI_path_rel(path, G.sce); /* only after saving */
 
 				if(!save_copy) {
-					BLI_strncpy(ima->name, path, sizeof(ima->name));
-					BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
+					if(do_newpath) {
+						BLI_strncpy(ima->name, path, sizeof(ima->name));
+						BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
+					}
 
 					/* should be function? nevertheless, saving only happens here */
 					for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next)
@@ -897,9 +899,10 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 				BLI_path_rel(path, G.sce); /* only after saving */
 
 			if(!save_copy) {
-
-				BLI_strncpy(ima->name, path, sizeof(ima->name));
-				BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
+				if(do_newpath) {
+					BLI_strncpy(ima->name, path, sizeof(ima->name));
+					BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
+				}
 
 				ibuf->userflags &= ~IB_BITMAPDIRTY;
 
@@ -952,7 +955,7 @@ static int save_as_exec(bContext *C, wmOperator *op)
 	sima->imtypenr= RNA_enum_get(op->ptr, "file_type");
 	RNA_string_get(op->ptr, "filepath", str);
 
-	save_image_doit(C, sima, scene, op, str);
+	save_image_doit(C, sima, scene, op, str, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1051,7 +1054,7 @@ static int save_exec(bContext *C, wmOperator *op)
 
 	/* if exists, saves over without fileselect */
 	
-	BLI_strncpy(name, ibuf->name, FILE_MAX);
+	BLI_strncpy(name, ima->name, FILE_MAX);
 	if(name[0]==0)
 		BLI_strncpy(name, G.ima, FILE_MAX);
 	else
@@ -1068,7 +1071,7 @@ static int save_exec(bContext *C, wmOperator *op)
 		BKE_image_release_renderresult(scene, ima);
 		ED_space_image_release_buffer(sima, lock);
 		
-		save_image_doit(C, sima, scene, op, name);
+		save_image_doit(C, sima, scene, op, name, FALSE);
 	}
 	else {
 		ED_space_image_release_buffer(sima, lock);
@@ -1300,7 +1303,7 @@ static int pack_test(bContext *C, wmOperator *op)
 		return 0;
 
 	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
-		BKE_report(op->reports, RPT_ERROR, "Can't pack movie or image sequence.");
+		BKE_report(op->reports, RPT_ERROR, "Packing movies or image sequences not supported.");
 		return 0;
 	}
 
@@ -1477,7 +1480,7 @@ static int unpack_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
-		BKE_report(op->reports, RPT_ERROR, "Can't unpack movie or image sequence.");
+		BKE_report(op->reports, RPT_ERROR, "Unpacking movies or image sequences not supported.");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1502,7 +1505,7 @@ static int unpack_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 
 	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
-		BKE_report(op->reports, RPT_ERROR, "Can't unpack movie or image sequence.");
+		BKE_report(op->reports, RPT_ERROR, "Unpacking movies or image sequences not supported.");
 		return OPERATOR_CANCELLED;
 	}
 

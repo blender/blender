@@ -23,4 +23,3 @@ ADD_DEFINITIONS(-DENABLE_BINRELOC)
 FILE(GLOB SRC *.c)
 
 BLENDERLIB(extern_binreloc "${SRC}" "${INC}")
-#, libtype=['core','player'], priority = [25,15] ) 

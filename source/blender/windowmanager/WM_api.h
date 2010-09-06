@@ -97,8 +97,8 @@ void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 void		WM_cursor_warp		(struct wmWindow *win, int x, int y);
 
 			/* keyconfig and keymap */
-wmKeyConfig *WM_keyconfig_add	(struct wmWindowManager *wm, char *idname);
-wmKeyConfig *WM_keyconfig_add_user(struct wmWindowManager *wm, char *idname);
+wmKeyConfig *WM_keyconfig_new	(struct wmWindowManager *wm, char *idname);
+wmKeyConfig *WM_keyconfig_new_user(struct wmWindowManager *wm, char *idname);
 void 		WM_keyconfig_remove	(struct wmWindowManager *wm, struct wmKeyConfig *keyconf);
 void 		WM_keyconfig_free	(struct wmKeyConfig *keyconf);
 void		WM_keyconfig_userdef(struct wmWindowManager *wm);

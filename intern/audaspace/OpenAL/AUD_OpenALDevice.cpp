@@ -243,7 +243,10 @@ void AUD_OpenALDevice::updateStreams()
 							stop(sound);
 						// decrement again, so that we get the next sound in the
 						// next loop run
-						--it;
+						if(m_playingSounds->empty())
+							break;
+						else
+							--it;
 					}
 					// continue playing
 					else

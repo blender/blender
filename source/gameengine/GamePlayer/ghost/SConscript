@@ -43,9 +43,9 @@ incs = ['.',
 defs = [ 'GLEW_STATIC' ]
 
 if env['WITH_BF_PYTHON']:
-	incs += Split(env['BF_PYTHON_INC'])
+    incs += Split(env['BF_PYTHON_INC'])
 else:
-	defs.append('DISABLE_PYTHON')
+    defs.append('DISABLE_PYTHON')
 
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')

@@ -27,8 +27,13 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-	. ../makesdna ../blenkernel ../../../intern/guardedalloc ../include
-	../gpu ../../../intern/ghost
+	.
+	../makesdna
+	../blenkernel
+	../include
+	../gpu
+	../../../intern/ghost
+	../../../intern/guardedalloc
 	${FREETYPE_INCLUDE_DIRS}
 	${ZLIB_INC}
 )

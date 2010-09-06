@@ -1781,29 +1781,6 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 }
 
-/* mesh.materials */
-static void rna_def_mesh_materials(BlenderRNA *brna, PropertyRNA *cprop)
-{
-	StructRNA *srna;
-	// PropertyRNA *prop;
-
-	FunctionRNA *func;
-	PropertyRNA *parm;
-
-	RNA_def_property_srna(cprop, "MeshMaterials");
-	srna= RNA_def_struct(brna, "MeshMaterials", NULL);
-	RNA_def_struct_sdna(srna, "Mesh");
-	RNA_def_struct_ui_text(srna, "Mesh Materials", "Collection of materials");
-	
-	func= RNA_def_function(srna, "link", "ED_mesh_material_link");
-	RNA_def_function_ui_description(func, "Add a new material to Mesh.");
-	parm= RNA_def_pointer(func, "material", "Material", "", "Material to add.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	
-	/* TODO, unlink? */
-}
-
-
 static void rna_def_mesh(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1951,7 +1928,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_ui_text(prop, "Materials", "");
-	rna_def_mesh_materials(brna, prop);
+	RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
 
 	/* Mesh Draw Options for Edit Mode*/
 	

@@ -23,8 +23,8 @@ incs += ' ' + env['BF_BULLET_INC']
 defs = []
 
 if env['WITH_BF_PYTHON']:
-	incs += ' ' + env['BF_PYTHON_INC']
+    incs += ' ' + env['BF_PYTHON_INC']
 else:
-	defs.append('DISABLE_PYTHON')
+    defs.append('DISABLE_PYTHON')
 
 env.BlenderLib ( 'bf_bullet', Split(sources), Split(incs), defs, libtype=['core','player'], priority=[350,50], cxx_compileflags=env['BGE_CXXFLAGS'])

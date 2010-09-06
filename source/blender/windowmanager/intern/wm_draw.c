@@ -710,6 +710,8 @@ static int wm_automatic_draw_method(wmWindow *win)
 		/* Windows software driver darkens color on each redraw */
 		else if(GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
 			return USER_DRAW_OVERLAP_FLIP;
+		else if(GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_UNIX, GPU_DRIVER_SOFTWARE))
+			return USER_DRAW_OVERLAP;
 		/* drawing lower color depth again degrades colors each time */
 		else if(GPU_color_depth() < 24)
 			return USER_DRAW_OVERLAP;

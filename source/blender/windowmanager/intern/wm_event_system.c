@@ -1800,9 +1800,17 @@ void WM_event_fileselect_event(bContext *C, void *ophandle, int eventval)
 
 void WM_event_add_fileselect(bContext *C, wmOperator *op)
 {
-	wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "fileselect handler");
+	wmEventHandler *handler;
 	wmWindow *win= CTX_wm_window(C);
 	int full= 1;	// XXX preset?
+
+	/* only allow file selector open per window bug [#23553] */
+	for(handler= win->modalhandlers.first; handler; handler=handler->next) {
+		if(handler->type == WM_HANDLER_FILESELECT)
+			return;
+	}
+	
+	handler = MEM_callocN(sizeof(wmEventHandler), "fileselect handler");
 	
 	handler->type= WM_HANDLER_FILESELECT;
 	handler->op= op;

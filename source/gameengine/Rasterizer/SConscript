@@ -9,8 +9,8 @@ incs = '. #intern/guardedalloc #source/kernel/gen_system #intern/string #intern/
 defs = [ 'GLEW_STATIC' ]
 
 if env['WITH_BF_PYTHON']:
-	incs += ' ' + env['BF_PYTHON_INC']
+    incs += ' ' + env['BF_PYTHON_INC']
 else:
-	defs.append('DISABLE_PYTHON')
+    defs.append('DISABLE_PYTHON')
 
 env.BlenderLib ( 'bf_rasterizer', sources, Split(incs), defs, libtype=['core','player'], priority=[350,70], cxx_compileflags=env['BGE_CXXFLAGS'])

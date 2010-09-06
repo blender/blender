@@ -140,7 +140,7 @@ static void rna_MetaBall_elements_remove(MetaBall *mb, ReportList *reports, Meta
 
 static EnumPropertyItem metaelem_type_items[] = {
 	{MB_BALL, "BALL", ICON_META_BALL, "Ball", ""},
-	{MB_TUBE, "TUBE", ICON_META_TUBE, "Tube", ""},
+	{MB_TUBE, "CAPSULE", ICON_META_CAPSULE, "Capsule", ""},
 	{MB_PLANE, "PLANE", ICON_META_PLANE, "Plane", ""},
 	{MB_ELIPSOID, "ELLIPSOID", ICON_META_ELLIPSOID, "Ellipsoid", ""}, // NOTE: typo at original definition!
 	{MB_CUBE, "CUBE", ICON_META_CUBE, "Cube", ""},
@@ -325,6 +325,7 @@ static void rna_def_metaball(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_ui_text(prop, "Materials", "");
+	RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */	
 	
 	/* anim */
 	rna_def_animdata_common(srna);

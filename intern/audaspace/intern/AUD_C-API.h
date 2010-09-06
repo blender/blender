@@ -70,12 +70,6 @@ extern void AUD_initOnce();
 extern int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize);
 
 /**
- * Returns a integer list with available sound devices. The last one is always
- * AUD_NULL_DEVICE.
- */
-extern int* AUD_enumDevices();
-
-/**
  * Unitinitializes an audio device.
  */
 extern void AUD_exit();

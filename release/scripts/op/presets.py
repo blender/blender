@@ -64,7 +64,7 @@ class AddPresetBase():
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
+        wm = context.window_manager
         #crashes, TODO - fix
         #return wm.invoke_props_popup(self, event)
 

@@ -772,24 +772,3 @@ void ED_mesh_calc_normals(Mesh *me)
 {
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }
-
-/* always adds the material even if its linked alredy
- * for pradictable material indicies */
-void ED_mesh_material_link(Mesh *me, Material *ma)
-{
-	int totcol = me->totcol + 1;
-	Material **mat;
-
-	mat= MEM_callocN(sizeof(void*)*totcol, "newmatar");
-
-	if(me->totcol) memcpy(mat, me->mat, sizeof(void*) * me->totcol);
-	if(me->mat) MEM_freeN(me->mat);
-
-	me->mat = mat;
-	me->mat[me->totcol++] = ma;
-	if(ma)
-		ma->id.us++;
-
-	test_object_materials((ID*)me);
-}
-

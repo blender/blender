@@ -259,7 +259,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. Inserts empty space into the layout between items.");
 
 	/* context */
-	func= RNA_def_function(srna, "set_context_pointer", "uiLayoutSetContextPointer");
+	func= RNA_def_function(srna, "context_pointer_set", "uiLayoutSetContextPointer");
 	parm= RNA_def_string(func, "name", "", 0, "Name", "Name of entry in the context.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Pointer to put in context.");

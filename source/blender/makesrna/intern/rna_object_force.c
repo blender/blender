@@ -1474,7 +1474,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mass", "General Mass value");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
-	prop= RNA_def_property(srna, "mass_vertex_group", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "vertex_group_mass", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "namedVG_Mass");
 	RNA_def_property_ui_text(prop, "Mass Vertex Group", "Control point mass values");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SoftBodySettings_mass_vgroup_set");
@@ -1495,7 +1495,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	
 	/* Goal */
 	
-	prop= RNA_def_property(srna, "goal_vertex_group", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "vertex_group_goal", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "vertgroup");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* not impossible .. but not supported yet */
 	RNA_def_property_string_funcs(prop, "rna_SoftBodySettings_goal_vgroup_get", "rna_SoftBodySettings_goal_vgroup_length", "rna_SoftBodySettings_goal_vgroup_set");
@@ -1581,7 +1581,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Shear", "Shear Stiffness");
 	
-	prop= RNA_def_property(srna, "spring_vertex_group", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "vertex_group_spring", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "namedVG_Spring_K");
 	RNA_def_property_ui_text(prop, "Spring Vertex Group", "Control point spring strength values");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SoftBodySettings_spring_vgroup_set");

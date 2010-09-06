@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+# Script copyright (C) Campbell Barton
+
 import math
 from math import radians
 
@@ -349,7 +351,7 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
     for ob in scn.objects:
         ob.select = False
 
-    scn.set_frame(IMPORT_START_FRAME)
+    scn.frame_set(IMPORT_START_FRAME)
 
     arm_data = bpy.data.armatures.new("MyBVH")
     arm_ob = bpy.data.objects.new("MyBVH", arm_data)
@@ -553,70 +555,24 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
     return arm_ob
 
 
-from bpy.props import *
+def load(operator, context, filepath="", rotate_mode='NATIVE', scale=1.0, use_cyclic=False, frame_start=1):
+    import time
+    t1 = time.time()
+    print('\tparsing bvh %r...' % filepath, end="")
 
+    bvh_nodes = read_bvh(context, filepath,
+            ROT_MODE=rotate_mode,
+            GLOBAL_SCALE=scale)
 
-class BvhImporter(bpy.types.Operator):
-    '''Load a OBJ Motion Capture File'''
-    bl_idname = "import_anim.bvh"
-    bl_label = "Import BVH"
+    print('%.4f' % (time.time() - t1))
+    t1 = time.time()
+    print('\timporting to blender...', end="")
 
-    filepath = StringProperty(name="File Path", description="Filepath used for importing the OBJ file", maxlen=1024, default="")
-    scale = FloatProperty(name="Scale", description="Scale the BVH by this value", min=0.0001, max=1000000.0, soft_min=0.001, soft_max=100.0, default=0.1)
-    frame_start = IntProperty(name="Start Frame", description="Starting frame for the animation", default=1)
-    loop = BoolProperty(name="Loop", description="Loop the animation playback", default=False)
-    rotate_mode = EnumProperty(items=(
-            ('QUATERNION', "Quaternion", "Convert rotations to quaternions"),
-            ('NATIVE', "Euler (Native)", "Use the rotation order defined in the BVH file"),
-            ('XYZ', "Euler (XYZ)", "Convert rotations to euler XYZ"),
-            ('XZY', "Euler (XZY)", "Convert rotations to euler XZY"),
-            ('YXZ', "Euler (YXZ)", "Convert rotations to euler YXZ"),
-            ('YZX', "Euler (YZX)", "Convert rotations to euler YZX"),
-            ('ZXY', "Euler (ZXY)", "Convert rotations to euler ZXY"),
-            ('ZYX', "Euler (ZYX)", "Convert rotations to euler ZYX"),
-            ),
-                name="Rotation",
-                description="Rotation conversion.",
-                default='NATIVE')
+    bvh_node_dict2armature(context, bvh_nodes,
+            ROT_MODE=rotate_mode,
+            IMPORT_START_FRAME=frame_start,
+            IMPORT_LOOP=use_cyclic)
 
-    def execute(self, context):
-        # print("Selected: " + context.active_object.name)
-        import time
-        t1 = time.time()
-        print('\tparsing bvh...', end="")
-
-        bvh_nodes = read_bvh(context, self.properties.filepath,
-                ROT_MODE=self.properties.rotate_mode,
-                GLOBAL_SCALE=self.properties.scale)
-
-        print('%.4f' % (time.time() - t1))
-        t1 = time.time()
-        print('\timporting to blender...', end="")
-
-        bvh_node_dict2armature(context, bvh_nodes,
-                ROT_MODE=self.properties.rotate_mode,
-                IMPORT_START_FRAME=self.properties.frame_start,
-                IMPORT_LOOP=self.properties.loop)
-
-        print('Done in %.4f\n' % (time.time() - t1))
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.manager
-        wm.add_fileselect(self)
-        return {'RUNNING_MODAL'}
-
-
-def menu_func(self, context):
-    self.layout.operator(BvhImporter.bl_idname, text="Motion Capture (.bvh)")
-
-
-def register():
-    bpy.types.INFO_MT_file_import.append(menu_func)
-
-
-def unregister():
-    bpy.types.INFO_MT_file_import.remove(menu_func)
-
-if __name__ == "__main__":
-    register()
+    print('Done in %.4f\n' % (time.time() - t1))
+    
+    return {'FINISHED'}

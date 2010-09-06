@@ -42,6 +42,8 @@
 #include "BLI_rand.h"
 
 #include "BKE_context.h"
+#include "BKE_image.h"
+#include "BKE_library.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
@@ -2199,27 +2201,64 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 
 /* ******************** add background image operator **************** */
 
-static int add_background_image_exec(bContext *C, wmOperator *op)
+static BGpic *add_background_image(bContext *C)
 {
 	View3D *v3d= CTX_wm_view3d(C);
-
+	
 	BGpic *bgpic= MEM_callocN(sizeof(BGpic), "Background Image");
 	bgpic->size= 5.0;
 	bgpic->blend= 0.5;
 	bgpic->iuser.fie_ima= 2;
 	bgpic->iuser.ok= 1;
 	bgpic->view= 0; /* 0 for all */
-
+	
 	BLI_addtail(&v3d->bgpicbase, bgpic);
+	
+	return bgpic;
+}
 
-	//ED_region_tag_redraw(v3d);
+static int add_background_image_exec(bContext *C, wmOperator *op)
+{
+	add_background_image(C);
 
 	return OPERATOR_FINISHED;
 }
 
 static int add_background_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	return add_background_image_exec(C, op);
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C);
+	Image *ima= NULL;
+	BGpic *bgpic;
+	char name[32];
+	
+	/* check input variables */
+	if(RNA_property_is_set(op->ptr, "filepath")) {
+		char path[FILE_MAX];
+		
+		RNA_string_get(op->ptr, "filepath", path);
+		ima= BKE_add_image_file(path, scene ? scene->r.cfra : 1);
+	}
+	else if(RNA_property_is_set(op->ptr, "name")) {
+		RNA_string_get(op->ptr, "name", name);
+		ima= (Image *)find_id("IM", name);
+	}
+	
+	bgpic = add_background_image(C);
+	
+	if (ima) {
+		bgpic->ima = ima;
+		
+		if(ima->id.us==0) id_us_plus(&ima->id);
+		else id_lib_extern(&ima->id);
+		
+		if (!(v3d->flag & V3D_DISPBGPICS))
+			v3d->flag |= V3D_DISPBGPICS;
+	}
+	
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
+	
+	return OPERATOR_FINISHED;
 }
 
 void VIEW3D_OT_add_background_image(wmOperatorType *ot)
@@ -2236,7 +2275,12 @@ void VIEW3D_OT_add_background_image(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag   = 0;
+	
+	/* properties */
+	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Image name to assign.");
+	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, "Filepath", "Path to image file");
 }
+
 
 /* ***** remove image operator ******* */
 static int remove_background_image_exec(bContext *C, wmOperator *op)
@@ -2273,6 +2317,7 @@ void VIEW3D_OT_remove_background_image(wmOperatorType *ot)
 
 	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Background image index to remove ", 0, INT_MAX);
 }
+
 /* ********************* set clipping operator ****************** */
 
 static void calc_clipping_plane(float clip[6][4], BoundBox *clipbb)

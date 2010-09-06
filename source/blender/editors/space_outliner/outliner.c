@@ -3235,8 +3235,8 @@ static void outliner_do_object_operation(bContext *C, Scene *scene, SpaceOops *s
 				if(sce && scene != sce) {
 					ED_screen_set_scene(C, sce);
 				}
-				
-				operation_cb(C, scene, te, NULL, tselem);
+				/* important to use 'sce' not scene else deleting objects can crash */
+				operation_cb(C, sce, te, NULL, tselem);
 			}
 		}
 		if((tselem->flag & TSE_CLOSED)==0) {

@@ -755,7 +755,6 @@ class VolumeButtonsPanel():
 
 class MATERIAL_PT_volume_density(VolumeButtonsPanel, bpy.types.Panel):
     bl_label = "Density"
-    bl_default_closed = False
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -773,7 +772,6 @@ class MATERIAL_PT_volume_density(VolumeButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_volume_shading(VolumeButtonsPanel, bpy.types.Panel):
     bl_label = "Shading"
-    bl_default_closed = False
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -799,7 +797,6 @@ class MATERIAL_PT_volume_shading(VolumeButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, bpy.types.Panel):
     bl_label = "Lighting"
-    bl_default_closed = False
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -847,7 +844,6 @@ class MATERIAL_PT_volume_transp(VolumeButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_volume_integration(VolumeButtonsPanel, bpy.types.Panel):
     bl_label = "Integration"
-    bl_default_closed = False
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):

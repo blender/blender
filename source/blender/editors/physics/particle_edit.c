@@ -4151,6 +4151,13 @@ static int clear_edited_exec(bContext *C, wmOperator *op)
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
+	else { /* some operation might have protected hair from editing so let's clear the flag */
+		psys->recalc |= PSYS_RECALC_RESET;
+		psys->flag &= ~PSYS_GLOBAL_HAIR;
+		psys->flag &= ~PSYS_EDITED;
+		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	}
 
 	return OPERATOR_FINISHED;
 }

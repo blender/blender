@@ -44,7 +44,7 @@ def get_console(console_id):
     from code import InteractiveConsole
 
     consoles = getattr(get_console, "consoles", None)
-    hash_next = hash(bpy.context.manager)
+    hash_next = hash(bpy.context.window_manager)
 
     if consoles is None:
         consoles = get_console.consoles = {}

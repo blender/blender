@@ -2207,7 +2207,7 @@ PropertyRNA *RNA_def_float_vector_xyz(StructOrFunctionRNA *cont_, const char *id
 	PropertyRNA *prop;
 	
 	prop= RNA_def_float_vector(cont_, identifier, len, default_value, hardmin, hardmax, ui_name, ui_description, softmin, softmax);
-	prop->subtype = PROP_XYZ;
+	prop->subtype = PROP_XYZ_LENGTH;
 
 	return prop;
 }
@@ -2525,7 +2525,7 @@ int rna_parameter_size_alloc(PropertyRNA *parm)
 	int size = rna_parameter_size(parm);
 
 	if (parm->flag & PROP_DYNAMIC)
-		size+= sizeof(int);
+		size+= sizeof(((ParameterDynAlloc *)NULL)->array_tot);
 
 	return size;
 }
@@ -2617,14 +2617,26 @@ void RNA_def_func_free_pointers(FunctionRNA *func)
 	}
 }
 
-void RNA_def_property_duplicate_pointers(PropertyRNA *prop)
+void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA *prop)
 {
+	ContainerRNA *cont= cont_;
 	EnumPropertyItem *earray;
 	float *farray;
 	int *iarray;
 	int a;
 
-	if(prop->identifier) prop->identifier= BLI_strdup(prop->identifier);
+	/* annoying since we just added this to a hash, could make this add the correct key to the hash in the first place */
+	if(prop->identifier) {
+		if(cont->prophash) {
+			BLI_ghash_remove(cont->prophash, (void*)prop->identifier, NULL, NULL);
+			prop->identifier= BLI_strdup(prop->identifier);
+			BLI_ghash_insert(cont->prophash, (void*)prop->identifier, prop);
+		}
+		else {
+			prop->identifier= BLI_strdup(prop->identifier);
+		}
+	}
+
 	if(prop->name) prop->name= BLI_strdup(prop->name);
 	if(prop->description) prop->description= BLI_strdup(prop->description);
 
