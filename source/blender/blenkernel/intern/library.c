@@ -1146,7 +1146,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 			/* this would overflow name buffer */
 			left[16] = 0;
 			/* left_len = 16; */ /* for now this isnt used again */
-			memcpy(name, left, sizeof(char) * 16);
+			memcpy(name, left, sizeof(char) * 17);
 			continue;
 		}
 		/* this format specifier is from hell... */
