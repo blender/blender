@@ -1902,14 +1902,14 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 
 	if (rv3d->persp==RV3D_CAMOB && v3d->camera) {
 
-		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= RV3D_ORTHO;
+		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= view ? RV3D_ORTHO : RV3D_PERSP;
 		else if(rv3d->persp==RV3D_CAMOB) rv3d->persp= perspo;
 
 		smooth_view(C, v3d->camera, NULL, rv3d->ofs, new_quat, NULL, NULL);
 	}
 	else {
 
-		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= RV3D_ORTHO;
+		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= view ? RV3D_ORTHO : RV3D_PERSP;
 		else if(rv3d->persp==RV3D_CAMOB) rv3d->persp= perspo;
 
 		smooth_view(C, NULL, NULL, NULL, new_quat, NULL, NULL);
