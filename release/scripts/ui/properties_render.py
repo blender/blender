@@ -265,7 +265,7 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
 
             for i, module in enumerate(freestyle.modules):
                     box = layout.box()
-                    box.set_context_pointer("freestyle_module", module)
+                    box.context_pointer_set("freestyle_module", module)
                     row = box.row(align=True)
                     row.prop(module, "is_displayed", text="")
                     row.prop(module, "module_path", text="")
@@ -289,7 +289,7 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
 
     def draw_modifier_box_header(self, box, modifier):
         row = box.row()
-        row.set_context_pointer("modifier", modifier)
+        row.context_pointer_set("modifier", modifier)
         if modifier.expanded:
             icon = "TRIA_DOWN"
         else:
