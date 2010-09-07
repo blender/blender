@@ -1419,10 +1419,6 @@ static void widget_state(uiWidgetType *wt, int state)
 			widget_state_blend(wt->wcol.inner, wcol_state->inner_driven_sel, wcol_state->blend);
 
 		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
-		
-		if (!(state & UI_TEXTINPUT))
-			/* swap for selection - show depressed */
-			SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
 	}
 	else {
 		if(state & UI_BUT_ANIMATED_KEY)
@@ -1452,6 +1448,7 @@ static void widget_state_numslider(uiWidgetType *wt, int state)
 	/* now, set the inner-part so that it reflects state settings too */
 	// TODO: maybe we should have separate settings for the blending colors used for this case?
 	if(state & UI_SELECT) {
+		
 		if(state & UI_BUT_ANIMATED_KEY)
 			widget_state_blend(wt->wcol.item, wcol_state->inner_key_sel, blend);
 		else if(state & UI_BUT_ANIMATED)
@@ -2227,7 +2224,9 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	VECCOPY(outline, wcol->outline);
 	VECCOPY(wcol->outline, wcol->item);
 	VECCOPY(wcol->inner, wcol->item);
-	SWAP(short, wcol->shadetop, wcol->shadedown);
+
+	if(!(state & UI_SELECT))
+		SWAP(short, wcol->shadetop, wcol->shadedown);
 	
 	rect1= *rect;
 	
