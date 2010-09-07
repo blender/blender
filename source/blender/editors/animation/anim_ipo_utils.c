@@ -157,6 +157,9 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			/* icon for this should be the icon for the base ID */
 			// TODO: or should we just use the error icon?
 			icon= RNA_struct_ui_icon(id_ptr.type);
+			
+			/* tag F-Curve as disabled - as not usable path */
+			fcu->flag |= FCURVE_DISABLED;
 		}
 	}
 	

@@ -184,7 +184,7 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 		
 	/* RNA-Path Editing - only really should be enabled when things aren't working */
 	col= uiLayoutColumn(layout, 1);
-		uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED)); 
+		uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED)!=0); 
 		uiItemR(col, &fcu_ptr, "data_path", 0, "", ICON_RNA);
 		uiItemR(col, &fcu_ptr, "array_index", 0, NULL, 0);
 		
