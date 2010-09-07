@@ -35,7 +35,6 @@ SET(INC
 	../quicktime
 	../makesdna
 	../makesrna
-	../../../intern/guardedalloc
 	../blenlib
 	../blenkernel
 	../avi
@@ -46,9 +45,10 @@ SET(INC
 	../include
 	../windowmanager
 	../../../intern/audaspace/intern
+	../../../intern/guardedalloc
+	${QUICKTIME_INC}
 )
 
-SET(INC ${INC} ${QUICKTIME_INC})
 ADD_DEFINITIONS(-DWITH_QUICKTIME)
 
 BLENDERLIB(bf_quicktime "${SRC}" "${INC}")

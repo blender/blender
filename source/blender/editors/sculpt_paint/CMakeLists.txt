@@ -35,7 +35,7 @@ SET(INC
 )
 
 IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
+	LIST(APPEND INC ${PTHREADS_INC})
 ENDIF(WIN32)
 
 BLENDERLIB(bf_editor_sculpt_paint "${SRC}" "${INC}")
