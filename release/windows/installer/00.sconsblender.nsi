@@ -100,7 +100,7 @@ Function DataLocation
   ${EndIf}
   
   ${NSD_CreateLabel} 0 0 100% 12u "Please specify where you wish to install Blender's user data files."
-  ${NSD_CreateRadioButton} 0 20 100% 12u "Use the Application Data directory (Requires Windows 2000 or better)"
+  ${NSD_CreateRadioButton} 0 20 100% 12u "Use the Application Data directory"
   Pop $HWND_APPDATA
   ${NSD_CreateRadioButton} 0 50 100% 12u "Use the installation directory (ie. location chosen to install blender.exe)."
   Pop $HWND_INSTDIR
