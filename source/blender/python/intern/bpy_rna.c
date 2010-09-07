@@ -4147,7 +4147,6 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 {
 	PointerRNA ptr;
 	PyObject *item;
-	PyObject *newclass_dict= ((PyTypeObject *)newclass)->tp_dict;
 	
 	Py_INCREF(newclass);
 
@@ -4165,9 +4164,10 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	RNA_pointer_create(NULL, &RNA_Struct, srna, &ptr);
 	item = pyrna_struct_CreatePyObject(&ptr);
 
-	//item = PyCapsule_New(srna, NULL, NULL);
-	PyDict_SetItemString(newclass_dict, "bl_rna", item);
+	/* note, must set the class not the __dict__ else the internal slots are not updated correctly */
+	PyObject_SetAttrString(newclass, "bl_rna", item);
 	Py_DECREF(item);
+	
 	/* done with rna instance */
 }
 
