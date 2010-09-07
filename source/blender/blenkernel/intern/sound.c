@@ -383,7 +383,7 @@ void sound_move_scene_sound(struct Scene *scene, void* handle, int startframe, i
 void sound_start_play_scene(struct Scene *scene)
 {
 	scene->sound_scene_handle = AUD_play(scene->sound_scene, 1);
-	AUD_setLoop(scene->sound_scene_handle, -1, 0);
+	AUD_setLoop(scene->sound_scene_handle, -1);
 }
 
 void sound_play_scene(struct Scene *scene)

@@ -583,7 +583,7 @@ static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, sho
 		uiItemR(col, &ptr, "use_frame_end", 0, NULL, 0);
 		
 		subcol = uiLayoutColumn(col, 1);
-		uiLayoutSetActive(subcol, RNA_boolean_get(&ptr, "use_end_frame"));
+		uiLayoutSetActive(subcol, RNA_boolean_get(&ptr, "use_frame_end"));
 			uiItemR(subcol, &ptr, "frame_end", 0, NULL, 0);
 }
 

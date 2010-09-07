@@ -710,6 +710,10 @@ void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[][4], float
 	data->timeoffset= timeoffset;
 
 	psys->renderdata= data;
+
+	/* Hair can and has to be recalculated if everything isn't displayed. */
+	if(psys->part->disp != 100 && psys->part->type == PART_HAIR)
+		psys->recalc |= PSYS_RECALC_RESET;
 }
 
 void psys_render_restore(Object *ob, ParticleSystem *psys)
@@ -1118,6 +1122,24 @@ static int get_pointcache_times_for_particle(PointCache *cache, int index, float
 
 	return ret == 2;
 }
+
+float psys_get_dietime_from_cache(PointCache *cache, int index) {
+	PTCacheMem *pm;
+	int dietime = 10000000; /* some max value so that we can default to pa->time+lifetime */
+
+	for(pm=cache->mem_cache.last; pm; pm=pm->prev) {
+		if(pm->index_array) {
+			if(pm->index_array[index])
+				return (float)pm->frame;
+		}
+		else {
+			return (float)pm->frame;
+		}
+	}
+
+	return (float)dietime;
+}
+
 static void init_particle_interpolation(Object *ob, ParticleSystem *psys, ParticleData *pa, ParticleInterpolationData *pind)
 {
 
@@ -2010,6 +2032,10 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 
 	LOOP_PARTICLES {
 		psys_particle_on_emitter(sim->psmd,sim->psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,state.co,0,0,0,0,0);
+		
+		mul_m4_v3(sim->ob->obmat, state.co);
+		mul_mat3_m4_v3(sim->ob->obmat, state.vel);
+		
 		pd_point_from_particle(sim, pa, &state, &point);
 
 		for(eff = effectors->first; eff; eff=eff->next) {
@@ -3165,7 +3191,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 
 				/* at the moment this is only used for weight painting.
 				 * will need to move out of this check if its used elsewhere. */
-				t2 = birthtime + ((float)(k+1)/(float)steps) * (dietime - birthtime);
+				t2 = birthtime + ((float)k/(float)steps) * (dietime - birthtime);
 
 				while (pind.hkey[1]->time < t2) pind.hkey[1]++;
 				pind.hkey[0] = pind.hkey[1] - 1;
@@ -4424,3 +4450,34 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 	VECADDFAC(center, center, yvec, bb->offset[1]);
 }
 
+
+void psys_apply_hair_lattice(Scene *scene, Object *ob, ParticleSystem *psys) {
+	ParticleSimulationData sim = {scene, ob, psys, psys_get_modifier(ob, psys)};
+
+	psys->lattice = psys_get_lattice(&sim);
+
+	if(psys->lattice) {
+		ParticleData *pa = psys->particles;
+		HairKey *hkey;
+		int p, h;
+		float hairmat[4][4], imat[4][4];
+
+		for(p=0; p<psys->totpart; p++, pa++) {
+			psys_mat_hair_to_global(sim.ob, sim.psmd->dm, psys->part->from, pa, hairmat);
+			invert_m4_m4(imat, hairmat);
+
+			hkey = pa->hair;
+			for(h=0; h<pa->totkey; h++, hkey++) {
+				mul_m4_v3(hairmat, hkey->co);
+				calc_latt_deform(psys->lattice, hkey->co, 1.0f);
+				mul_m4_v3(imat, hkey->co);
+			}
+		}
+		
+		end_latt_deform(psys->lattice);
+		psys->lattice= NULL;
+
+		/* protect the applied shape */
+		psys->flag |= PSYS_EDITED;
+	}
+}

@@ -253,6 +253,7 @@ ParticleThread *psys_threads_create(struct ParticleSimulationData *sim);
 void psys_threads_free(ParticleThread *threads);
 
 void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3], float zvec[3], float center[3]);
+void psys_apply_hair_lattice(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
 
 /* particle_system.c */
 struct ParticleSystem *psys_get_target_system(struct Object *ob, struct ParticleTarget *pt);
@@ -281,6 +282,8 @@ void psys_vec_rot_to_face(struct DerivedMesh *dm, struct ParticleData *pa, float
 void psys_mat_hair_to_object(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);
 void psys_mat_hair_to_global(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);
 void psys_mat_hair_to_orco(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);
+
+float psys_get_dietime_from_cache(struct PointCache *cache, int index);
 
 void psys_free_pdd(struct ParticleSystem *psys);
 

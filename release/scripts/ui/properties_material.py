@@ -65,7 +65,7 @@ class MaterialButtonsPanel():
 
 class MATERIAL_PT_context_material(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -300,7 +300,7 @@ class MATERIAL_PT_shading(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Transparency"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -362,7 +362,7 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
             
 class MATERIAL_PT_mirror(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Mirror"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -420,7 +420,7 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_sss(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Subsurface Scattering"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -581,7 +581,7 @@ class MATERIAL_PT_physics(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_strand(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Strand"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -615,7 +615,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(tan, "width_fade")
         ob = context.object
         if ob and ob.type == 'MESH':
-            col.prop_object(tan, "uv_layer", ob.data, "uv_textures", text="")
+            col.prop_search(tan, "uv_layer", ob.data, "uv_textures", text="")
         else:
             col.prop(tan, "uv_layer", text="")
         col.separator()
@@ -673,7 +673,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Shadow"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -710,7 +710,7 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_transp_game(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Transparency"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     @classmethod
@@ -755,7 +755,6 @@ class VolumeButtonsPanel():
 
 class MATERIAL_PT_volume_density(VolumeButtonsPanel, bpy.types.Panel):
     bl_label = "Density"
-    bl_default_closed = False
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -773,7 +772,6 @@ class MATERIAL_PT_volume_density(VolumeButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_volume_shading(VolumeButtonsPanel, bpy.types.Panel):
     bl_label = "Shading"
-    bl_default_closed = False
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -799,7 +797,6 @@ class MATERIAL_PT_volume_shading(VolumeButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, bpy.types.Panel):
     bl_label = "Lighting"
-    bl_default_closed = False
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -847,7 +844,6 @@ class MATERIAL_PT_volume_transp(VolumeButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_volume_integration(VolumeButtonsPanel, bpy.types.Panel):
     bl_label = "Integration"
-    bl_default_closed = False
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -871,7 +867,7 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel, bpy.types.Panel):
 class MATERIAL_PT_volume_options(VolumeButtonsPanel, bpy.types.Panel):
     bl_label = "Options"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout

@@ -743,7 +743,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
         flow.prop(strip, "use_proxy_custom_directory")
         flow.prop(strip, "use_proxy_custom_file")
         if strip.proxy: # TODO - need to add this somehow
-            if strip.proxy_custom_directory and not strip.use_proxy_custom_file:
+            if strip.use_proxy_custom_directory and not strip.use_proxy_custom_file:
                 flow.prop(strip.proxy, "directory")
             if strip.use_proxy_custom_file:
                 flow.prop(strip.proxy, "filepath")

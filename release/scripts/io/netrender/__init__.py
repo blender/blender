@@ -19,9 +19,7 @@
 # This directory is a Python package.
 
 # To support reload properly, try to access a package var, if it's there, reload everything
-try:
-    init_data
-
+if "bpy" in locals():
     reload(model)
     reload(operators)
     reload(client)
@@ -32,7 +30,7 @@ try:
     reload(balancing)
     reload(ui)
     reload(repath)
-except:
+else:
     from netrender import model
     from netrender import operators
     from netrender import client
@@ -49,7 +47,6 @@ slaves = []
 blacklist = []
 
 init_file = ""
-init_data = True
 init_address = True
 
 def register():

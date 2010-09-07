@@ -1,4 +1,3 @@
-# coding: utf-8
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -19,74 +18,74 @@
 
 # <pep8 compliant>
 
-__author__ = ["Campbell Barton", "Bob Holcomb", "Richard Lärkäng", "Damien McGinnes", "Mark Stijnman"]
-__url__ = ("blenderartists.org", "www.blender.org", "www.gametutorials.com", "lib3ds.sourceforge.net/")
-__version__ = "0.90a"
-__bpydoc__ = """\
+# Script copyright (C) Bob Holcomb
+# Contributors: Campbell Barton, Bob Holcomb, Richard Lärkäng, Damien McGinnes, Mark Stijnman
 
-3ds Exporter
-
-This script Exports a 3ds file.
-
+"""
 Exporting is based on 3ds loader from www.gametutorials.com(Thanks DigiBen) and using information
 from the lib3ds project (http://lib3ds.sourceforge.net/) sourcecode.
 """
 
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# Script copyright (C) Bob Holcomb
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-# --------------------------------------------------------------------------
-
-
 ######################################################
-# Importing modules
+# Data Structures
 ######################################################
+
+#Some of the chunks that we will export
+#----- Primary Chunk, at the beginning of each file
+PRIMARY= 0x4D4D
+
+#------ Main Chunks
+OBJECTINFO   =      0x3D3D      #This gives the version of the mesh and is found right before the material and object information
+VERSION      =      0x0002      #This gives the version of the .3ds file
+KFDATA       =      0xB000      #This is the header for all of the key frame info
+
+#------ sub defines of OBJECTINFO
+MATERIAL=45055		#0xAFFF				// This stored the texture info
+OBJECT=16384		#0x4000				// This stores the faces, vertices, etc...
+
+#>------ sub defines of MATERIAL
+MATNAME    =      0xA000      # This holds the material name
+MATAMBIENT   =      0xA010      # Ambient color of the object/material
+MATDIFFUSE   =      0xA020      # This holds the color of the object/material
+MATSPECULAR   =      0xA030      # SPecular color of the object/material
+MATSHINESS   =      0xA040      # ??
+MATMAP       =      0xA200      # This is a header for a new material
+MATMAPFILE    =      0xA300      # This holds the file name of the texture
+
+RGB1=	0x0011
+RGB2=	0x0012
+
+#>------ sub defines of OBJECT
+OBJECT_MESH  =      0x4100      # This lets us know that we are reading a new object
+OBJECT_LIGHT =      0x4600      # This lets un know we are reading a light object
+OBJECT_CAMERA=      0x4700      # This lets un know we are reading a camera object
+
+#>------ sub defines of CAMERA
+OBJECT_CAM_RANGES=   0x4720      # The camera range values
+
+#>------ sub defines of OBJECT_MESH
+OBJECT_VERTICES =   0x4110      # The objects vertices
+OBJECT_FACES    =   0x4120      # The objects faces
+OBJECT_MATERIAL =   0x4130      # This is found if the object has a material, either texture map or color
+OBJECT_UV       =   0x4140      # The UV texture coordinates
+OBJECT_TRANS_MATRIX  =   0x4160 # The Object Matrix
+
+#>------ sub defines of KFDATA
+KFDATA_KFHDR            = 0xB00A
+KFDATA_KFSEG            = 0xB008
+KFDATA_KFCURTIME        = 0xB009
+KFDATA_OBJECT_NODE_TAG  = 0xB002
+
+#>------ sub defines of OBJECT_NODE_TAG
+OBJECT_NODE_ID          = 0xB030
+OBJECT_NODE_HDR         = 0xB010
+OBJECT_PIVOT            = 0xB013
+OBJECT_INSTANCE_NAME    = 0xB011
+POS_TRACK_TAG			= 0xB020
+ROT_TRACK_TAG			= 0xB021
+SCL_TRACK_TAG			= 0xB022
 
 import struct
-import os
-import time
-
-import bpy
-
-# import Blender
-# from BPyMesh import getMeshFromObject
-# from BPyObject import getDerivedObjects
-# try:
-#     import struct
-# except:
-#     struct = None
-
-# also used by X3D exporter
-# return a tuple (free, object list), free is True if memory should be freed later with free_derived_objects()
-def create_derived_objects(scene, ob):
-    if ob.parent and ob.parent.dupli_type != 'NONE':
-        return False, None
-
-    if ob.dupli_type != 'NONE':
-        ob.create_dupli_list(scene)
-        return True, [(dob.object, dob.matrix) for dob in ob.dupli_list]
-    else:
-        return False, [(ob, ob.matrix_world)]
-
-# also used by X3D exporter
-def free_derived_objects(ob):
-    ob.free_dupli_list()
 
 # So 3ds max can open files, limit names to 12 in length
 # this is verry annoying for filenames!
@@ -94,13 +93,10 @@ name_unique = []
 name_mapping = {}
 def sane_name(name):
     name_fixed = name_mapping.get(name)
-    if name_fixed != None:
+    if name_fixed is not None:
         return name_fixed
 
-    if len(name) > 12:
-        new_name = name[:12]
-    else:
-        new_name = name
+    new_name = name[:12]
 
     i = 0
 
@@ -111,65 +107,6 @@ def sane_name(name):
     name_unique.append(new_name)
     name_mapping[name] = new_name
     return new_name
-
-######################################################
-# Data Structures
-######################################################
-
-#Some of the chunks that we will export
-#----- Primary Chunk, at the beginning of each file
-PRIMARY= int("0x4D4D",16)
-
-#------ Main Chunks
-OBJECTINFO   =      int("0x3D3D",16);      #This gives the version of the mesh and is found right before the material and object information
-VERSION      =      int("0x0002",16);      #This gives the version of the .3ds file
-KFDATA       =      int("0xB000",16);      #This is the header for all of the key frame info
-
-#------ sub defines of OBJECTINFO
-MATERIAL=45055		#0xAFFF				// This stored the texture info
-OBJECT=16384		#0x4000				// This stores the faces, vertices, etc...
-
-#>------ sub defines of MATERIAL
-MATNAME    =      int("0xA000",16);      # This holds the material name
-MATAMBIENT   =      int("0xA010",16);      # Ambient color of the object/material
-MATDIFFUSE   =      int("0xA020",16);      # This holds the color of the object/material
-MATSPECULAR   =      int("0xA030",16);      # SPecular color of the object/material
-MATSHINESS   =      int("0xA040",16);      # ??
-MATMAP       =      int("0xA200",16);      # This is a header for a new material
-MATMAPFILE    =      int("0xA300",16);      # This holds the file name of the texture
-
-RGB1=	int("0x0011",16)
-RGB2=	int("0x0012",16)
-
-#>------ sub defines of OBJECT
-OBJECT_MESH  =      int("0x4100",16);      # This lets us know that we are reading a new object
-OBJECT_LIGHT =      int("0x4600",16);      # This lets un know we are reading a light object
-OBJECT_CAMERA=      int("0x4700",16);      # This lets un know we are reading a camera object
-
-#>------ sub defines of CAMERA
-OBJECT_CAM_RANGES=   int("0x4720",16);      # The camera range values
-
-#>------ sub defines of OBJECT_MESH
-OBJECT_VERTICES =   int("0x4110",16);      # The objects vertices
-OBJECT_FACES    =   int("0x4120",16);      # The objects faces
-OBJECT_MATERIAL =   int("0x4130",16);      # This is found if the object has a material, either texture map or color
-OBJECT_UV       =   int("0x4140",16);      # The UV texture coordinates
-OBJECT_TRANS_MATRIX  =   int("0x4160",16); # The Object Matrix
-
-#>------ sub defines of KFDATA
-KFDATA_KFHDR            = int("0xB00A",16);
-KFDATA_KFSEG            = int("0xB008",16);
-KFDATA_KFCURTIME        = int("0xB009",16);
-KFDATA_OBJECT_NODE_TAG  = int("0xB002",16);
-
-#>------ sub defines of OBJECT_NODE_TAG
-OBJECT_NODE_ID          = int("0xB030",16);
-OBJECT_NODE_HDR         = int("0xB010",16);
-OBJECT_PIVOT            = int("0xB013",16);
-OBJECT_INSTANCE_NAME    = int("0xB011",16);
-POS_TRACK_TAG			= int("0xB020",16);
-ROT_TRACK_TAG			= int("0xB021",16);
-SCL_TRACK_TAG			= int("0xB022",16);
 
 def uv_key(uv):
     return round(uv[0], 6), round(uv[1], 6)
@@ -379,7 +316,7 @@ class _3ds_named_variable(object):
         if (self.value!=None):
             spaces=""
             for i in range(indent):
-                spaces+="  ";
+                spaces += "  "
             if (self.name!=""):
                 print(spaces, self.name, " = ", self.value)
             else:
@@ -444,7 +381,7 @@ class _3ds_chunk(object):
         Uses the dump function of the named variables and the subchunks to do the actual work.'''
         spaces=""
         for i in range(indent):
-            spaces+="  ";
+            spaces += "  "
         print(spaces, "ID=", hex(self.ID.value), "size=", self.get_size())
         for variable in self.variables:
             variable.dump(indent+1)
@@ -479,11 +416,11 @@ def make_material_subchunk(id, color):
     Used for color subchunks, such as diffuse color or ambient color subchunks.'''
     mat_sub = _3ds_chunk(id)
     col1 = _3ds_chunk(RGB1)
-    col1.add_variable("color1", _3ds_rgb_color(color));
+    col1.add_variable("color1", _3ds_rgb_color(color))
     mat_sub.add_subchunk(col1)
 # optional:
 #	col2 = _3ds_chunk(RGB1)
-#	col2.add_variable("color2", _3ds_rgb_color(color));
+#	col2.add_variable("color2", _3ds_rgb_color(color))
 #	mat_sub.add_subchunk(col2)
     return mat_sub
 
@@ -567,7 +504,7 @@ def extract_triangles(mesh):
         f_v = face.vertices
 # 		f_v = face.v
 
-        uf = mesh.active_uv_texture.data[i] if do_uv else None
+        uf = mesh.uv_textures.active.data[i] if do_uv else None
 
         if do_uv:
             f_uv = uf.uv
@@ -921,27 +858,21 @@ def make_kf_obj_node(obj, name_to_id):
     return kf_obj_node
 """
 
-# import BPyMessages
-def write(filename, context):
+
+def save(operator, context, filepath=""):
+    import bpy
+    import time
+    from io_utils import create_derived_objects, free_derived_objects
+    
     '''Save the Blender scene to a 3ds file.'''
+    
     # Time the export
-
-    if not filename.lower().endswith('.3ds'):
-        filename += '.3ds'
-
-    # XXX
-#	if not BPyMessages.Warning_SaveOver(filename):
-#		return
-
-    # XXX
     time1 = time.clock()
-#	time1= Blender.sys.time()
 #	Blender.Window.WaitCursor(1)
 
     sce = context.scene
-#	sce= bpy.data.scenes.active
 
-    if context.object:
+    if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
     # Initialize the main chunk (primary):
@@ -998,7 +929,7 @@ def write(filename, context):
                     if not mat_ls:
                         mat = mat_name = None
 
-                    for f, uf in zip(data.faces, data.active_uv_texture.data):
+                    for f, uf in zip(data.faces, data.uv_textures.active.data):
                         if mat_ls:
                             mat_index = f.material_index
 # 							mat_index = f.mat
@@ -1090,7 +1021,7 @@ def write(filename, context):
     # Check the size:
     primary.get_size()
     # Open the file for writing:
-    file = open( filename, 'wb' )
+    file = open(filepath, 'wb')
 
     # Recursively write the chunks to file:
     primary.write(file)
@@ -1098,56 +1029,15 @@ def write(filename, context):
     # Close the file:
     file.close()
 
+    # Clear name mapping vars, could make locals too
+    name_unique[:] = []
+    name_mapping.clear()
+
     # Debugging only: report the exporting time:
 # 	Blender.Window.WaitCursor(0)
     print("3ds export time: %.2f" % (time.clock() - time1))
-# 	print("3ds export time: %.2f" % (Blender.sys.time() - time1))
 
     # Debugging only: dump the chunk hierarchy:
     #primary.dump()
-
-
-# # write('/test_b.3ds')
-from bpy.props import *
-class Export3DS(bpy.types.Operator):
-    '''Export to 3DS file format (.3ds)'''
-    bl_idname = "export.autodesk_3ds"
-    bl_label = 'Export 3DS'
-
-    filepath = StringProperty(name="File Path", description="Filepath used for exporting the 3DS file", maxlen= 1024, default= "")
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
-
-    @classmethod
-    def poll(cls, context): # Poll isnt working yet
-        return context.active_object != None
-
-    def execute(self, context):
-        filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, ".3ds")
-
-        write(filepath, context)
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        import os
-        if not self.properties.is_property_set("filepath"):
-            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".3ds"
-
-        context.manager.add_fileselect(self)
-        return {'RUNNING_MODAL'}
-
-
-# Add to a menu
-def menu_func(self, context):
-    self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)")
-
-
-def register():
-    bpy.types.INFO_MT_file_export.append(menu_func)
-
-
-def unregister():
-    bpy.types.INFO_MT_file_export.remove(menu_func)
-
-if __name__ == "__main__":
-    register()
+    
+    return {'FINISHED'}

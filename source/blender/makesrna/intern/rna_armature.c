@@ -108,6 +108,12 @@ void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, EditBone
 		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant remove an editbone.", arm->id.name+2);
 		return;
 	}
+
+	if(BLI_findindex(arm->edbo, ebone) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "Armature '%s' doesn't contain bone '%s'.", arm->id.name+2, ebone->name);
+		return;
+	}
+
 	ED_armature_edit_bone_remove(arm, ebone);
 }
 
@@ -712,7 +718,7 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove an existing bone from the armature");
 	/* target to remove*/
 	parm= RNA_def_pointer(func, "bone", "EditBone", "", "EditBone to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 static void rna_def_armature(BlenderRNA *brna)

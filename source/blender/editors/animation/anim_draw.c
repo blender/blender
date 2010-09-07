@@ -25,6 +25,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#include "BLO_sys_types.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"

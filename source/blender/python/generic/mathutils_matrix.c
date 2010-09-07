@@ -1526,7 +1526,6 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 		return NULL;
 	}
 	else /* if(mat1) { */ {
-		
 		if(VectorObject_Check(m2)) { /* MATRIX*VECTOR */
 			return column_vector_multiplication(mat1, (VectorObject *)m2); /* vector update done inside the function */
 		}

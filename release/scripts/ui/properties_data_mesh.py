@@ -60,7 +60,7 @@ class MeshButtonsPanel():
 
 class DATA_PT_context_mesh(MeshButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -127,14 +127,14 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         ob = context.object
-        group = ob.active_vertex_group
+        group = ob.vertex_groups.active
 
         rows = 2
         if group:
             rows = 5
 
         row = layout.row()
-        row.template_list(ob, "vertex_groups", ob, "active_vertex_group_index", rows=rows)
+        row.template_list(ob, "vertex_groups", ob.vertex_groups, "active_index", rows=rows)
 
         col = row.column(align=True)
         col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
@@ -245,8 +245,8 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
                     col = split.column(align=True)
                     col.active = enable_edit_value
                     col.label(text="Blend:")
-                    col.prop_object(kb, "vertex_group", ob, "vertex_groups", text="")
-                    col.prop_object(kb, "relative_key", key, "keys", text="")
+                    col.prop_search(kb, "vertex_group", ob, "vertex_groups", text="")
+                    col.prop_search(kb, "relative_key", key, "keys", text="")
 
             else:
                 row = layout.row()
@@ -266,13 +266,13 @@ class DATA_PT_uv_texture(MeshButtonsPanel, bpy.types.Panel):
         row = layout.row()
         col = row.column()
 
-        col.template_list(me, "uv_textures", me, "active_uv_texture_index", rows=2)
+        col.template_list(me, "uv_textures", me.uv_textures, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("mesh.uv_texture_add", icon='ZOOMIN', text="")
         col.operator("mesh.uv_texture_remove", icon='ZOOMOUT', text="")
 
-        lay = me.active_uv_texture
+        lay = me.uv_textures.active
         if lay:
             layout.prop(lay, "name")
 
@@ -300,7 +300,7 @@ class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
             split = layout.split()
             col = split.column()
 
-            col.prop(tf, "use_bitmap_text")
+            col.prop(tf, "use_image")
             col.prop(tf, "use_light")
             col.prop(tf, "hide")
             col.prop(tf, "use_collision")
@@ -335,13 +335,13 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, bpy.types.Panel):
         row = layout.row()
         col = row.column()
 
-        col.template_list(me, "vertex_colors", me, "active_vertex_color_index", rows=2)
+        col.template_list(me, "vertex_colors", me.vertex_colors, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("mesh.vertex_color_add", icon='ZOOMIN', text="")
         col.operator("mesh.vertex_color_remove", icon='ZOOMOUT', text="")
 
-        lay = me.active_vertex_color
+        lay = me.vertex_colors.active
         if lay:
             layout.prop(lay, "name")
 

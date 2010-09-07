@@ -2386,6 +2386,11 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_range(prop, 32, 32768);
 	RNA_def_property_ui_text(prop, "Scrollback", "Maximum number of lines to store for the console buffer");
 
+	prop= RNA_def_property(srna, "author", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "author");
+	RNA_def_property_string_maxlength(prop, 80);
+	RNA_def_property_ui_text(prop, "Author", "Name that will be used in exported files when format supports such feature");
+
 	/* Language Selection */
 
 	prop= RNA_def_property(srna, "language", PROP_ENUM, PROP_NONE);
@@ -2797,7 +2802,7 @@ void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_NO_SELF);
 	RNA_def_function_ui_description(func, "Remove addon.");
 	parm= RNA_def_pointer(func, "addon", "Addon", "", "Addon to remove.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 void RNA_def_userdef(BlenderRNA *brna)
@@ -2886,4 +2891,3 @@ void RNA_def_userdef(BlenderRNA *brna)
 }
 
 #endif
-

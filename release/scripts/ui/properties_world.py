@@ -36,7 +36,7 @@ class WorldButtonsPanel():
 
 class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -51,12 +51,16 @@ class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
         world = context.world
         space = context.space_data
 
+        texture_count = len(world.texture_slots.keys())
+
         split = layout.split(percentage=0.65)
         if scene:
             split.template_ID(scene, "world", new="world.new")
         elif world:
             split.template_ID(space, "pin_id")
 
+        if texture_count != 0:
+            split.label(text=str(texture_count), icon='TEXTURE')
 
 class WORLD_PT_preview(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Preview"
@@ -204,7 +208,7 @@ class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
 
 class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Mist"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -233,7 +237,7 @@ class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
 
 class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Stars"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):

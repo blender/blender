@@ -38,7 +38,7 @@ class DATA_PT_template(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     templates = []
 
@@ -250,7 +250,7 @@ class AsScript(bpy.types.Operator):
         import os
         obj = context.object
         self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + "-" + bpy.path.clean_name(obj.name) + ".py"
-        wm = context.manager
+        wm = context.window_manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 

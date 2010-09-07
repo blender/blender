@@ -28,5 +28,5 @@ SET(INC ../../extern/Eigen2)
 
 FILE(GLOB SRC *.cpp kdl/*.cpp kdl/utilities/*.cpp)
 
-BLENDERLIB(bf_ITASC "${SRC}" "${INC}")
+BLENDERLIB(bf_intern_itasc "${SRC}" "${INC}")
 #, libtype=['blender'], priority = [10] )

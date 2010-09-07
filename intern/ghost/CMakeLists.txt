@@ -90,5 +90,5 @@ ELSEIF(UNIX)
 
 ENDIF(APPLE)
 
-BLENDERLIB(bf_ghost "${SRC}" "${INC}")
+BLENDERLIB(bf_intern_ghost "${SRC}" "${INC}")
 

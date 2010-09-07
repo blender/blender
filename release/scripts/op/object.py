@@ -59,7 +59,7 @@ class SelectPattern(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
+        wm = context.window_manager
         # return wm.invoke_props_popup(self, event)
         wm.invoke_props_popup(self, event)
         return {'RUNNING_MODAL'}
@@ -427,13 +427,13 @@ class JoinUVs(bpy.types.Operator):
         if is_editmode:
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        if not mesh.active_uv_texture:
+        if not mesh.uv_textures:
             self.report({'WARNING'}, "Object: %s, Mesh: '%s' has no UVs\n" % (obj.name, mesh.name))
         else:
             len_faces = len(mesh.faces)
 
             uv_array = array.array('f', [0.0] * 8) * len_faces # seems to be the fastest way to create an array
-            mesh.active_uv_texture.data.foreach_get("uv_raw", uv_array)
+            mesh.uv_textures.active.data.foreach_get("uv_raw", uv_array)
 
             objects = context.selected_editable_objects[:]
 
@@ -451,10 +451,9 @@ class JoinUVs(bpy.types.Operator):
                             if len(mesh_other.faces) != len_faces:
                                 self.report({'WARNING'}, "Object: %s, Mesh: '%s' has %d faces, expected %d\n" % (obj_other.name, mesh_other.name, len(mesh_other.faces), len_faces))
                             else:
-                                uv_other = mesh_other.active_uv_texture
+                                uv_other = mesh_other.uv_textures.active
                                 if not uv_other:
-                                    mesh_other.add_uv_texture() # should return the texture it adds
-                                    uv_other = mesh_other.active_uv_texture
+                                    uv_other = mesh_other.uv_textures.new() # should return the texture it adds
 
                                 # finally do the copy
                                 uv_other.data.foreach_set("uv_raw", uv_array)
@@ -500,11 +499,13 @@ class MakeDupliFace(bpy.types.Operator):
 
         for data, objects in linked.items():
             face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix_world) for axis in v]
-            faces = list(range(int(len(face_verts) / 3)))
+            faces = list(range(len(face_verts) // 3))
 
             mesh = bpy.data.meshes.new(data.name + "_dupli")
 
-            mesh.add_geometry(int(len(face_verts) / 3), 0, int(len(face_verts) / (4 * 3)))
+            mesh.vertices.add(len(face_verts) // 3)
+            mesh.faces.add(len(face_verts) // 12)
+
             mesh.vertices.foreach_set("co", face_verts)
             mesh.faces.foreach_set("vertices_raw", faces)
             mesh.update() # generates edge data

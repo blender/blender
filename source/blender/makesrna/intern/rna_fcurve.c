@@ -385,9 +385,13 @@ DriverVar *rna_Driver_new_variable(ChannelDriver *driver)
 	return driver_add_new_variable(driver);
 }
 
-void rna_Driver_remove_variable(ChannelDriver *driver, DriverVar *dvar)
+void rna_Driver_remove_variable(ChannelDriver *driver, ReportList *reports, DriverVar *dvar)
 {
-	/* call the API function for this */
+	if(BLI_findindex(&driver->variables, dvar) == -1) {
+		BKE_report(reports, RPT_ERROR, "Variable does not exist in this driver.");
+		return;
+	}
+
 	driver_free_variable(driver, dvar);
 }
 
@@ -410,9 +414,13 @@ static FModifier *rna_FCurve_modifiers_new(FCurve *fcu, int type)
 	return add_fmodifier(&fcu->modifiers, type);
 }
 
-static int rna_FCurve_modifiers_remove(FCurve *fcu, int index)
+static void rna_FCurve_modifiers_remove(FCurve *fcu, ReportList *reports, FModifier *fcm)
 {
-	return remove_fmodifier_index(&fcu->modifiers, index);
+	if(BLI_findindex(&fcu->modifiers, fcm) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "FCurveModifier '%s' not found in fcurve.", fcm->name);
+		return;
+}
+	remove_fmodifier(&fcu->modifiers, fcm);
 }
 
 static void rna_FModifier_active_set(PointerRNA *ptr, int value)
@@ -1095,9 +1103,10 @@ static void rna_def_channeldriver_variables(BlenderRNA *brna, PropertyRNA *cprop
 	/* remove variable */
 	func= RNA_def_function(srna, "remove", "rna_Driver_remove_variable");
 		RNA_def_function_ui_description(func, "Remove an existing variable from the driver.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 		/* target to remove */
-	parm= RNA_def_pointer(func, "var", "DriverVariable", "", "Variable to remove from the driver.");
-		RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "variable", "DriverVariable", "", "Variable to remove from the driver.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 static void rna_def_channeldriver(BlenderRNA *brna)
@@ -1282,13 +1291,11 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "remove", "rna_FCurve_modifiers_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove a modifier from this fcurve.");
-	/* return type */
-	parm= RNA_def_boolean(func, "success", 0, "Success", "Removed the constraint successfully.");
-	RNA_def_function_return(func, parm);
-	/* object to add */
-	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* modifier to remove */
+	parm= RNA_def_pointer(func, "modifier", "FModifier", "", "Removed modifier.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 /* fcurve.keyframe_points */

@@ -136,7 +136,6 @@ struct bConstraint *add_ob_constraint(struct Object *ob, const char *name, short
 struct bConstraint *add_pose_constraint(struct Object *ob, struct bPoseChannel *pchan, const char *name, short type);
 
 int remove_constraint(ListBase *list, struct bConstraint *con);
-int remove_constraint_index(ListBase *list, int index);
 void remove_constraints_type(ListBase *list, short type, short last_only);
 
 /* Constraints + Proxies function prototypes */

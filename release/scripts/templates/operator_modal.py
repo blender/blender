@@ -25,7 +25,7 @@ class ModalOperator(bpy.types.Operator):
 
     def invoke(self, context, event):
         if context.object:
-            context.manager.add_modal_handler(self)
+            context.window_manager.add_modal_handler(self)
             self.properties.first_mouse_x = event.mouse_x
             self.properties.first_value = context.object.location.x
             return {'RUNNING_MODAL'}

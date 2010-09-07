@@ -356,6 +356,18 @@ static void rna_Curve_resolution_v_update_data(Main *bmain, Scene *scene, Pointe
 	rna_Curve_update_data(bmain, scene, ptr);
 }
 
+static float rna_Curve_offset_get(PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	return cu->width - 1.0f;
+}
+
+static void rna_Curve_offset_set(PointerRNA *ptr, float value)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	cu->width= 1.0f + value;
+}
+
 /* name functions that ignore the first two ID characters */
 void rna_Curve_body_get(PointerRNA *ptr, char *value)
 {
@@ -482,7 +494,6 @@ static Nurb *rna_Curve_spline_new(Curve *cu, int type)
 
 static void rna_Curve_spline_remove(Curve *cu, ReportList *reports, Nurb *nu)
 {
-	/* todo, check we're in the list */
 	int found= 0;
 	ListBase *nurbs= BKE_curve_nurbs(cu);
 
@@ -986,7 +997,7 @@ static void rna_def_curve_spline_points(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a spline from a curve.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	*/
 }
 
@@ -1013,7 +1024,7 @@ static void rna_def_curve_spline_bezpoints(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a spline from a curve.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	*/
 }
 
@@ -1042,7 +1053,7 @@ static void rna_def_curve_splines(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a spline from a curve.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
@@ -1110,8 +1121,9 @@ static void rna_def_curve(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "width");
-	RNA_def_property_ui_range(prop, 0, 2.0, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Width", "Scale the original width (1.0) based on given factor");
+	RNA_def_property_ui_range(prop, -1.0, 1.0, 0.1, 3);
+	RNA_def_property_float_funcs(prop, "rna_Curve_offset_get", "rna_Curve_offset_set", NULL);
+	RNA_def_property_ui_text(prop, "Offset", "Offset the curve to adjust the width of a text");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "extrude", PROP_FLOAT, PROP_NONE);
@@ -1249,6 +1261,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_ui_text(prop, "Materials", "");
+	RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */	
 }
 
 static void rna_def_curve_nurb(BlenderRNA *brna)

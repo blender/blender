@@ -74,7 +74,7 @@ void WM_keymap_properties_reset(wmKeyMapItem *kmi)
 	keymap_properties_set(kmi);
 }
 
-wmKeyConfig *WM_keyconfig_add(wmWindowManager *wm, char *idname)
+wmKeyConfig *WM_keyconfig_new(wmWindowManager *wm, char *idname)
 {
 	wmKeyConfig *keyconf;
 	
@@ -85,9 +85,9 @@ wmKeyConfig *WM_keyconfig_add(wmWindowManager *wm, char *idname)
 	return keyconf;
 }
 
-wmKeyConfig *WM_keyconfig_add_user(wmWindowManager *wm, char *idname)
+wmKeyConfig *WM_keyconfig_new_user(wmWindowManager *wm, char *idname)
 {
-	wmKeyConfig *keyconf = WM_keyconfig_add(wm, idname);
+	wmKeyConfig *keyconf = WM_keyconfig_new(wm, idname);
 
 	keyconf->flag |= KEYCONF_USER;
 

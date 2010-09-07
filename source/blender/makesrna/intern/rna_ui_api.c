@@ -182,7 +182,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	api_ui_item_common(func);
 
-	func= RNA_def_function(srna, "prop_object", "uiItemPointerR");
+	func= RNA_def_function(srna, "prop_search", "uiItemPointerR");
 	api_ui_item_rna_common(func);
 	parm= RNA_def_pointer(func, "search_data", "AnyType", "", "Data from which to take collection to search in.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
@@ -259,7 +259,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. Inserts empty space into the layout between items.");
 
 	/* context */
-	func= RNA_def_function(srna, "set_context_pointer", "uiLayoutSetContextPointer");
+	func= RNA_def_function(srna, "context_pointer_set", "uiLayoutSetContextPointer");
 	parm= RNA_def_string(func, "name", "", 0, "Name", "Name of entry in the context.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Pointer to put in context.");
@@ -269,11 +269,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "template_header", "uiTemplateHeader");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_boolean(func, "menus", 1, "", "The header has menus, and should show menu expander.");
-
-	func= RNA_def_function(srna, "template_dopesheet_filter", "uiTemplateDopeSheetFilter");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	parm= RNA_def_pointer(func, "dopesheet", "DopeSheet", "", "DopeSheet settings holding filter options.");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 
 	func= RNA_def_function(srna, "template_ID", "uiTemplateID");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
@@ -377,9 +372,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "lock_luminosity", 0, "", "Keep the color at its original vector length");
 	RNA_def_boolean(func, "cubic", 1, "", "Cubic saturation for picking values close to white");
 	
-	func= RNA_def_function(srna, "template_triColorSet", "uiTemplateTriColorSet");
-	api_ui_item_rna_common(func);
-
 	func= RNA_def_function(srna, "template_image_layers", "uiTemplateImageLayers");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm= RNA_def_pointer(func, "image", "Image", "", "");

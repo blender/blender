@@ -163,7 +163,7 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	}
 }
 
-int ED_mesh_uv_texture_add(bContext *C, Scene *scene, Object *ob, Mesh *me)
+int ED_mesh_uv_texture_add(bContext *C, Scene *scene, Object *ob, Mesh *me, const char *name, int active_set)
 {
 	BMEditMesh *em;
 	int layernum;
@@ -173,22 +173,26 @@ int ED_mesh_uv_texture_add(bContext *C, Scene *scene, Object *ob, Mesh *me)
 
 		layernum= CustomData_number_of_layers(&em->bm->pdata, CD_MTEXPOLY);
 		if(layernum >= MAX_MTFACE)
-			return OPERATOR_CANCELLED;
+			return 0;
 
-		BM_add_data_layer(em->bm, &em->bm->pdata, MAX_MTFACE);
-		CustomData_set_layer_active(&em->bm->pdata, MAX_MTFACE, layernum);
+		BM_add_data_layer(em->bm, &em->bm->pdata, CD_MTEXPOLY);
+		CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
+		if(active_set || layernum==0)
+			CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
 	}
 	else {
 		layernum= CustomData_number_of_layers(&me->pdata, MAX_MTFACE);
 		if(layernum >= MAX_MTFACE)
-			return OPERATOR_CANCELLED;
+			return 0;
 
 		if(me->mtface)
-			CustomData_add_layer(&me->pdata, MAX_MTFACE, CD_DUPLICATE, me->mtpoly, me->totpoly);
+			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DUPLICATE, me->mtpoly, me->totpoly, name);
 		else
-			CustomData_add_layer(&me->pdata, MAX_MTFACE, CD_DEFAULT, NULL, me->totpoly);
+			CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DEFAULT, NULL, me->totpoly, name);
 
-		CustomData_set_layer_active(&me->pdata, MAX_MTFACE, layernum);
+		if(active_set || layernum==0)
+			CustomData_set_layer_active(&me->pdata, CD_MTEXPOLY, layernum);
+
 		mesh_update_customdata_pointers(me);
 	}
 
@@ -216,7 +220,7 @@ int ED_mesh_uv_texture_remove(bContext *C, Object *ob, Mesh *me)
 	return 1;
 }
 
-int ED_mesh_color_add(bContext *C, Scene *scene, Object *ob, Mesh *me)
+int ED_mesh_color_add(bContext *C, Scene *scene, Object *ob, Mesh *me, const char *name, int active_set)
 {
 	BMEditMesh *em;
 	MLoopCol *mcol;
@@ -231,6 +235,10 @@ int ED_mesh_color_add(bContext *C, Scene *scene, Object *ob, Mesh *me)
 
 		BM_add_data_layer(em->bm, &em->bm->pdata, CD_MLOOPCOL);
 		CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPCOL, layernum);
+
+		if(active_set || layernum==0)
+			CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPCOL, layernum);
+
 	}
 	else {
 		layernum= CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
@@ -240,11 +248,13 @@ int ED_mesh_color_add(bContext *C, Scene *scene, Object *ob, Mesh *me)
 		mcol= me->mloopcol;
 
 		if(me->mloopcol)
-			CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_DUPLICATE, me->mloopcol, me->totloop);
+			CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DUPLICATE, me->mloopcol, me->totloop, name);
 		else
-			CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop);
+			CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop, name);
 
-		CustomData_set_layer_active(&me->ldata, CD_MLOOPCOL, layernum);
+		if(active_set || layernum==0)
+			CustomData_set_layer_active(&me->ldata, CD_MLOOPCOL, layernum);
+
 		mesh_update_customdata_pointers(me);
 
 		/*BMESH_TODO
@@ -292,7 +302,7 @@ static int uv_texture_add_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Mesh *me= ob->data;
 
-	if(!ED_mesh_uv_texture_add(C, scene, ob, me))
+	if(!ED_mesh_uv_texture_add(C, scene, ob, me, NULL, TRUE))
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;
@@ -426,7 +436,7 @@ static int vertex_color_add_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Mesh *me= ob->data;
 
-	if(!ED_mesh_color_add(C, scene, ob, me))
+	if(!ED_mesh_color_add(C, scene, ob, me, NULL, TRUE))
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;
@@ -721,6 +731,7 @@ static void mesh_add_faces(Mesh *mesh, int len)
 	mesh->totface= totface;
 }
 
+/*
 void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges, int faces)
 {
 	if(mesh->edit_btmesh) {
@@ -735,33 +746,39 @@ void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges,
 	if(faces)
 		mesh_add_faces(mesh, faces);
 }
+*/
+
+void ED_mesh_faces_add(Mesh *mesh, ReportList *reports, int count)
+{
+	if(mesh->edit_btmesh) {
+		BKE_report(reports, RPT_ERROR, "Can't add faces in edit mode.");
+		return;
+}
+
+	mesh_add_faces(mesh, count);
+}
+
+void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)
+{
+	if(mesh->edit_btmesh) {
+		BKE_report(reports, RPT_ERROR, "Can't add edges in edit mode.");
+			return;
+	}
+
+	mesh_add_edges(mesh, count);
+}
+
+void ED_mesh_vertices_add(Mesh *mesh, ReportList *reports, int count)
+{
+	if(mesh->edit_btmesh) {
+		BKE_report(reports, RPT_ERROR, "Can't add vertices in edit mode.");
+		return;
+	}
+
+	mesh_add_verts(mesh, count);
+}
 
 void ED_mesh_calc_normals(Mesh *me)
 {
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }
-
-void ED_mesh_material_add(Mesh *me, Material *ma)
-{
-	int i;
-	int totcol = me->totcol + 1;
-	Material **mat;
-
-	/* don't add if mesh already has it */
-	for(i = 0; i < me->totcol; i++)
-		if(me->mat[i] == ma)
-			return;
-
-	mat= MEM_callocN(sizeof(void*)*totcol, "newmatar");
-
-	if(me->totcol) memcpy(mat, me->mat, sizeof(void*) * me->totcol);
-	if(me->mat) MEM_freeN(me->mat);
-
-	me->mat = mat;
-	me->mat[me->totcol++] = ma;
-	if(ma)
-		ma->id.us++;
-
-	test_object_materials((ID*)me);
-}
-

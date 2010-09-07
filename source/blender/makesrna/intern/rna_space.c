@@ -2047,12 +2047,12 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Title", "Title for the file browser");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "dir");
 	RNA_def_property_ui_text(prop, "Directory", "Directory displayed in the file browser");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILENAME);
 	RNA_def_property_string_sdna(prop, NULL, "file");
 	RNA_def_property_ui_text(prop, "File Name", "Active file in the file browser");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
@@ -2070,7 +2070,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "show_hidden", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", FILE_HIDE_DOT);
-	RNA_def_property_ui_text(prop, "Hide Dot Files", "Hide hidden dot files");
+	RNA_def_property_ui_text(prop, "Show Hidden", "Show hidden dot files");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS , NULL);
 
 	prop= RNA_def_property(srna, "sort_method", PROP_ENUM, PROP_NONE);

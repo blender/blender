@@ -34,6 +34,7 @@ ENDIF(WITH_BUILDINFO)
 SET(INC 
 	.
 	.. 
+	../../../intern/guardedalloc
 	../../../source/blender/makesdna
 	../../../source/blender/makesrna  
 )

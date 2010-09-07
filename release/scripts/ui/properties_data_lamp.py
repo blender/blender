@@ -42,7 +42,7 @@ class DataButtonsPanel():
 
 class DATA_PT_context_lamp(DataButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -54,13 +54,15 @@ class DATA_PT_context_lamp(DataButtonsPanel, bpy.types.Panel):
 
         split = layout.split(percentage=0.65)
 
+        texture_count = len(lamp.texture_slots.keys())
+
         if ob:
             split.template_ID(ob, "data")
-            split.separator()
         elif lamp:
             split.template_ID(space, "pin_id")
-            split.separator()
 
+        if texture_count != 0:
+            split.label(text=str(texture_count), icon='TEXTURE')
 
 class DATA_PT_preview(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Preview"
@@ -367,7 +369,7 @@ class DATA_PT_spot(DataButtonsPanel, bpy.types.Panel):
 
 class DATA_PT_falloff_curve(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Falloff Curve"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod

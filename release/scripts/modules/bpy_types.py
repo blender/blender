@@ -306,7 +306,9 @@ class Mesh(bpy_types.ID):
         Make a mesh from a list of verts/edges/faces
         Until we have a nicer way to make geometry, use this.
         """
-        self.add_geometry(len(verts), len(edges), len(faces))
+        self.vertices.add(len(verts))
+        self.edges.add(len(edges))
+        self.faces.add(len(faces))
 
         verts_flat = [f for v in verts for f in v]
         self.vertices.foreach_set("co", verts_flat)
@@ -318,8 +320,11 @@ class Mesh(bpy_types.ID):
 
         def treat_face(f):
             if len(f) == 3:
-                return f[0], f[1], f[2], 0
-            elif f[3] == 0:
+                if f[2] == 0:
+                    return f[2], f[0], f[1], 0
+                else:
+                    return f[0], f[1], f[2], 0
+            elif f[2] == 0 or f[3] == 0:
                 return f[3], f[0], f[1], f[2]
             return f
 

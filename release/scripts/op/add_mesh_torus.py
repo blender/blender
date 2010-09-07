@@ -121,7 +121,9 @@ class AddTorus(bpy.types.Operator):
 
         mesh = bpy.data.meshes.new("Torus")
 
-        mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
+        mesh.vertices.add(len(verts_loc) // 3)
+        mesh.faces.add(len(faces) // 4)
+
         mesh.vertices.foreach_set("co", verts_loc)
         mesh.faces.foreach_set("vertices_raw", faces)
         mesh.update()
@@ -133,7 +135,7 @@ class AddTorus(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    self.layout.operator(AddTorus.bl_idname, text="Torus", icon='MESH_DONUT')
+    self.layout.operator(AddTorus.bl_idname, text="Torus", icon='MESH_TORUS')
 
 
 def register():

@@ -52,7 +52,7 @@ class ModalDrawOperator(bpy.types.Operator):
 
     def invoke(self, context, event):
         if context.area.type == 'VIEW_3D':
-            context.manager.add_modal_handler(self)
+            context.window_manager.add_modal_handler(self)
 
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'

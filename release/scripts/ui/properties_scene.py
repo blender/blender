@@ -76,13 +76,13 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
         row = layout.row()
 
         col = row.column()
-        col.template_list(scene, "keying_sets", scene, "active_keying_set_index", rows=2)
+        col.template_list(scene, "keying_sets", scene.keying_sets, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("anim.keying_set_add", icon='ZOOMIN', text="")
         col.operator("anim.keying_set_remove", icon='ZOOMOUT', text="")
 
-        ks = scene.active_keying_set
+        ks = scene.keying_sets.active
         if ks and ks.is_path_absolute:
             row = layout.row()
 
@@ -106,13 +106,14 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.scene.active_keying_set and context.scene.active_keying_set.is_path_absolute)
+        ks = context.scene.keying_sets.active
+        return (ks and ks.is_path_absolute)
 
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
-        ks = scene.active_keying_set
+        ks = scene.keying_sets.active
 
         row = layout.row()
         row.label(text="Paths:")
@@ -120,13 +121,13 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
         row = layout.row()
 
         col = row.column()
-        col.template_list(ks, "paths", ks, "active_path_index", rows=2)
+        col.template_list(ks, "paths", ks.paths, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("anim.keying_set_path_add", icon='ZOOMIN', text="")
         col.operator("anim.keying_set_path_remove", icon='ZOOMOUT', text="")
 
-        ksp = ks.active_path
+        ksp = ks.paths.active
         if ksp:
             col = layout.column()
             col.label(text="Target:")
@@ -227,7 +228,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
             raise Exception("Could not open file.")
 
         scene = context.scene
-        ks = scene.active_keying_set
+        ks = scene.keying_sets.active
 
 
         f.write("# Keying Set: %s\n" % ks.name)
@@ -237,7 +238,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
 
         # Add KeyingSet and set general settings
         f.write("# Keying Set Level declarations\n")
-        f.write("ks= scene.add_keying_set(name=\"%s\")\n" % ks.name)
+        f.write("ks= scene.keying_sets.new(name=\"%s\")\n" % ks.name)
 
         if not ks.is_path_absolute:
             f.write("ks.is_path_absolute = False\n")
@@ -313,7 +314,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
+        wm = context.window_manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 

@@ -38,7 +38,7 @@ class ExportSomeData(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
+        wm = context.window_manager
 
         if True:
             # File selector

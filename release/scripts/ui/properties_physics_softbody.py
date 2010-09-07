@@ -55,7 +55,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
 
         if md:
             # remove modifier + settings
-            split.set_context_pointer("modifier", md)
+            split.context_pointer_set("modifier", md)
             split.operator("object.modifier_remove", text="Remove")
 
             row = split.row(align=True)
@@ -77,7 +77,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
             col.label(text="Object:")
             col.prop(softbody, "friction")
             col.prop(softbody, "mass")
-            col.prop_object(softbody, "mass_vertex_group", ob, "vertex_groups", text="Mass:")
+            col.prop_search(softbody, "vertex_group_mass", ob, "vertex_groups", text="Mass:")
 
             col = split.column()
             col.label(text="Simulation:")
@@ -86,7 +86,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Cache"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -99,7 +99,7 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Goal"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -137,12 +137,12 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(softbody, "goal_spring", text="Stiffness")
         col.prop(softbody, "goal_friction", text="Damping")
 
-        layout.prop_object(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
+        layout.prop_search(softbody, "vertex_group_goal", ob, "vertex_groups", text="Vertex Group")
 
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Edges"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -173,7 +173,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(softbody, "plastic")
         col.prop(softbody, "bend")
         col.prop(softbody, "spring_length", text="Length")
-        col.prop_object(softbody, "spring_vertex_group", ob, "vertex_groups", text="Springs:")
+        col.prop_search(softbody, "vertex_group_spring", ob, "vertex_groups", text="Springs:")
 
         col = split.column()
         col.prop(softbody, "use_stiff_quads")
@@ -196,7 +196,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Self Collision"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -228,7 +228,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Solver"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -264,7 +264,7 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Soft Body Field Weights"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):

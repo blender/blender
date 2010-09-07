@@ -1087,13 +1087,6 @@ int remove_fmodifier (ListBase *modifiers, FModifier *fcm)
 	}
 }
 
-/* Remove and free the nth F-Modifier from the given stack */
-int remove_fmodifier_index (ListBase *modifiers, int index)
-{
-	FModifier *fcm= BLI_findlink(modifiers, index);
-	return remove_fmodifier(modifiers, fcm);
-}
-
 /* Remove all of a given F-Curve's modifiers */
 void free_fmodifiers (ListBase *modifiers)
 {

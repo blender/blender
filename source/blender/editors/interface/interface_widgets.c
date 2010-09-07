@@ -1638,6 +1638,10 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	float centx, centy, radius;
 	float rgb[3], hsv[3], hsvo[3], col[3], colcent[3];
 	int a, tot= 32;
+	int color_profile = but->block->color_profile;
+	
+	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+		color_profile = BLI_PR_NONE;
 	
 	radstep= 2.0f*M_PI/(float)tot;
 	centx= (float)(rect->xmin + rect->xmax)/2;
@@ -1656,7 +1660,10 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	/* exception: if 'lock' is set
 	 * lock the value of the color wheel to 1.
 	 * Useful for color correction tools where you're only interested in hue. */
-	if (but->flag & UI_BUT_COLOR_LOCK) hsv[2] = 1.f;
+	if (but->flag & UI_BUT_COLOR_LOCK)
+		hsv[2] = 1.f;
+	else if (color_profile)
+		hsv[2] = linearrgb_to_srgb(hsv[2]);
 	
 	hsv_to_rgb(0.f, 0.f, hsv[2], colcent, colcent+1, colcent+2);
 	
@@ -1884,11 +1891,8 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	float rgb[3], hsv[3], v, range;
 	int color_profile = but->block->color_profile;
 	
-	if (but->rnaprop) {
-		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
+	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
 			color_profile = BLI_PR_NONE;
-		}
-	}
 
 	ui_get_but_vectorf(but, rgb);
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);

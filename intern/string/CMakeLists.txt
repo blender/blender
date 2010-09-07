@@ -28,5 +28,5 @@ SET(INC .)
 
 FILE(GLOB SRC intern/*.cpp)
 
-BLENDERLIB(bf_string "${SRC}" "${INC}")
+BLENDERLIB(bf_intern_string "${SRC}" "${INC}")
 #, libtype=['core', 'player'], priority = [30,10] )

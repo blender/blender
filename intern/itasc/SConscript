@@ -7,5 +7,5 @@ sources += env.Glob('kdl/utilities/*.cpp')
 
 incs = '. ../../extern/Eigen2'
 
-env.BlenderLib ('bf_ITASC', sources, Split(incs), [], libtype=['intern','player'], priority=[20,100] )
+env.BlenderLib ('bf_intern_itasc', sources, Split(incs), [], libtype=['intern','player'], priority=[20,100] )
 

@@ -106,20 +106,26 @@
 /*			Reacting to system events			*/
 /************************************************/
 
-static int get_current_display_percentage(ParticleSystem *psys)
+static int particles_are_dynamic(ParticleSystem *psys) {
+	if(psys->pointcache->flag & PTCACHE_BAKED)
+		return 0;
+
+	if(psys->part->type == PART_HAIR)
+		return psys->flag & PSYS_HAIR_DYNAMICS;
+	else
+		return ELEM3(psys->part->phystype, PART_PHYS_NEWTON, PART_PHYS_BOIDS, PART_PHYS_FLUID);
+}
+int psys_get_current_display_percentage(ParticleSystem *psys)
 {
 	ParticleSettings *part=psys->part;
 
-	if(psys->renderdata || (part->child_nbr && part->childtype)
-		|| (psys->pointcache->flag & PTCACHE_BAKING))
+	if((psys->renderdata && !particles_are_dynamic(psys)) /* non-dynamic particles can be rendered fully */
+		|| (part->child_nbr && part->childtype)	/* display percentage applies to children */
+		|| (psys->pointcache->flag & PTCACHE_BAKING)) /* baking is always done with full amount */
 		return 100;
 
-	if(part->phystype==PART_PHYS_KEYED){
 		return psys->part->disp;
 	}
-	else
-		return psys->part->disp;
-}
 
 void psys_reset(ParticleSystem *psys, int mode)
 {
@@ -1568,8 +1574,6 @@ void initialize_particle(ParticleSimulationData *sim, ParticleData *pa, int p)
 		psys_get_texture(sim,ma,pa,&ptex,MAP_PA_INIT);
 	}
 	
-	pa->lifetime= part->lifetime*ptex.life;
-
 	if(part->type==PART_HAIR)
 		pa->time= 0.0f;
 	//else if(part->type==PART_REACTOR && (part->flag&PART_REACT_STA_END)==0)
@@ -1583,25 +1587,6 @@ void initialize_particle(ParticleSimulationData *sim, ParticleData *pa, int p)
 
 		pa->time= part->sta + (part->end - part->sta)*ptex.time;
 	}
-
-
-	if(part->type==PART_HAIR){
-		pa->lifetime=100.0f;
-	}
-	else{
-#if 0 // XXX old animation system
-		icu=find_ipocurve(psys->part->ipo,PART_EMIT_LIFE);
-		if(icu){
-			calc_icu(icu,100*ptex.time);
-			pa->lifetime*=icu->curval;
-		}
-#endif // XXX old animation system
-
-		if(part->randlife!=0.0)
-			pa->lifetime*= 1.0f - part->randlife * BLI_frand();
-	}
-
-	pa->dietime= pa->time+pa->lifetime;
 
 	if(part->type!=PART_HAIR && part->distr!=PART_DISTR_GRID && part->from != PART_FROM_VERT){
 		if(ptex.exist < BLI_frand())
@@ -1695,6 +1680,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	part=psys->part;
 
 	ptex.ivel=1.0;
+	ptex.life=1.0;
 
 	/* we need to get every random even if they're not used so that they don't effect eachother */
 	r_vel[0] = 2.0f * (PSYS_FRAND(p + 10) - 0.5f);
@@ -1752,7 +1738,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 			psys_particle_on_emitter(sim->psmd, part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,0,0,0,0);
 		
 		/* get possible textural influence */
-		psys_get_texture(sim, give_current_material(sim->ob,part->omat), pa, &ptex, MAP_PA_IVEL);
+		psys_get_texture(sim, give_current_material(sim->ob,part->omat), pa, &ptex, MAP_PA_IVEL|MAP_PA_LIFE);
 
 		//if(vg_vel && pa->num != -1)
 		//	ptex.ivel*=psys_particle_value_from_verts(sim->psmd->dm,part->from,pa,vg_vel);
@@ -1975,7 +1961,24 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		}
 	}
 
+
+	if(part->type == PART_HAIR){
+		pa->lifetime = 100.0f;
+	}
+	else{
+		pa->lifetime = part->lifetime*ptex.life;
+
+		if(part->randlife != 0.0)
+			pa->lifetime *= 1.0f - part->randlife * PSYS_FRAND(p + 21);
+	}
+
 	pa->dietime = pa->time + pa->lifetime;
+
+	if(sim->psys->pointcache && sim->psys->pointcache->flag & PTCACHE_BAKED &&
+		sim->psys->pointcache->mem_cache.first) {
+		float dietime = psys_get_dietime_from_cache(sim->psys->pointcache, p);
+		pa->dietime = MIN2(pa->dietime, dietime);
+	}
 
 	if(pa->time > cfra)
 		pa->alive = PARS_UNBORN;
@@ -3052,7 +3055,7 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 					
 					/* Stickness to surface */
 					normalize_v3(nor_vec);
-					madd_v3_v3fl(pa->state.vel, nor_vec, -pd->pdef_stickness);
+					madd_v3_v3fl(pa->state.vel, col.nor, -pd->pdef_stickness);
 				}
 
 				col.t = dt;
@@ -3250,7 +3253,7 @@ static void hair_step(ParticleSimulationData *sim, float cfra)
 	ParticleSystem *psys = sim->psys;
 /*	ParticleSettings *part = psys->part; */
 	PARTICLE_P;
-	float disp = (float)get_current_display_percentage(psys)/100.0f;
+	float disp = (float)psys_get_current_display_percentage(psys)/100.0f;
 
 	BLI_srandom(psys->seed);
 
@@ -3518,7 +3521,7 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 
 	psys_update_effectors(sim);
 	
-	disp= (float)get_current_display_percentage(psys)/100.0f;
+	disp= (float)psys_get_current_display_percentage(psys)/100.0f;
 
 	LOOP_PARTICLES {
 		pa->size = part->size;
@@ -3785,7 +3788,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 
 /* 3. do dynamics */
 	/* set particles to be not calculated TODO: can't work with pointcache */
-	disp= (float)get_current_display_percentage(psys)/100.0f;
+	disp= (float)psys_get_current_display_percentage(psys)/100.0f;
 
 	BLI_srandom(psys->seed);
 	LOOP_PARTICLES {
@@ -4034,6 +4037,10 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 				case PART_PHYS_KEYED:
 				{
 					PARTICLE_P;
+
+					/* Particles without dynamics haven't been reset yet because they don't use pointcache */
+					if(psys->recalc & PSYS_RECALC_RESET)
+						psys_reset(psys, PSYS_RESET_ALL);
 
 					if(emit_particles(&sim, NULL, cfra)) {
 						free_keyed_keys(psys);

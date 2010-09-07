@@ -48,10 +48,14 @@ extern "C"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
 #include "ED_keyframing.h"
+#ifdef NAN_BUILDINFO
+extern char build_rev[];
+#endif
 }
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_blender.h" // version info
 #include "BKE_scene.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -1719,11 +1723,7 @@ public:
 				// most widespread de-facto standard.
 				texture.setProfileName("FCOLLADA");
 				texture.setChildElementName("bump");				
-#ifdef WIN32	// currently, Windows builds are using revision 746 of OpenCollada while Linux and Mac are using an older revision 721
 				ep.addExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
-#else
-				ep.setExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
-#endif
 			}
 		}
 		// performs the actual writing
@@ -2536,6 +2536,15 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	// XXX ask blender devs about this?
 	asset.setUnit("decimetre", 0.1);
 	asset.setUpAxisType(COLLADASW::Asset::Z_UP);
+	// TODO: need an Author field in userpref
+	asset.getContributor().mAuthor = "Blender User";
+#ifdef NAN_BUILDINFO
+	char version_buf[128];
+	sprintf(version_buf, "Blender %d.%02d.%d r%s", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION, build_rev);
+	asset.getContributor().mAuthoringTool = version_buf;
+#else
+	asset.getContributor().mAuthoringTool = "Blender 2.5x";
+#endif
 	asset.add();
 	
 	// <library_cameras>
@@ -2596,4 +2605,3 @@ NOTES:
 * AnimationExporter::sample_animation enables all curves on armature, this is undesirable for a user
 
  */
-

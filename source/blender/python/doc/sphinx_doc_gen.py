@@ -307,6 +307,9 @@ def rna2sphinx(BASEPATH):
     if bpy.app.build_revision != "Unknown":
         version_string = version_string + " r" + bpy.app.build_revision
     
+    # for use with files
+    version_string_fp = "_".join(str(v) for v in bpy.app.version)
+    
     fw("project = 'Blender'\n")
     # fw("master_doc = 'index'\n")
     fw("copyright = u'Blender Foundation'\n")
@@ -336,7 +339,7 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw("An introduction to Blender and Python can be found at <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro>\n")
     fw("\n")
-    fw("`A PDF version of this document is also available <blender_python_reference_250.pdf>`__\n")
+    fw("`A PDF version of this document is also available <blender_python_reference_%s.pdf>`__\n" % version_string_fp)
     fw("\n")
     fw(".. warning:: The Python API in Blender is **UNSTABLE**, It should only be used for testing, any script written now may break in future releases.\n")
     fw("   \n")
@@ -440,7 +443,7 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw("   Access to blenders internal data\n")
     fw("\n")
-    fw("   :type: :class:`bpy.types.Main`\n")
+    fw("   :type: :class:`bpy.types.BlendData`\n")
     file.close()
 
     EXAMPLE_SET_USED.add("bpy.data")
@@ -650,6 +653,10 @@ def rna2sphinx(BASEPATH):
             
             if lines:
                 fw(".. rubric:: Inherited Properties\n\n")
+
+                fw(".. hlist::\n")
+                fw("   :columns: 2\n\n")
+
                 for line in lines:
                     fw(line)
                 fw("\n")
@@ -671,6 +678,10 @@ def rna2sphinx(BASEPATH):
 
             if lines:
                 fw(".. rubric:: Inherited Functions\n\n")
+
+                fw(".. hlist::\n")
+                fw("   :columns: 2\n\n")
+
                 for line in lines:
                     fw(line)
                 fw("\n")
@@ -681,6 +692,9 @@ def rna2sphinx(BASEPATH):
         if struct.references:
             # use this otherwise it gets in the index for a normal heading.
             fw(".. rubric:: References\n\n")
+
+            fw(".. hlist::\n")
+            fw("   :columns: 2\n\n")
 
             for ref in struct.references:
                 ref_split = ref.split(".")

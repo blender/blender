@@ -62,6 +62,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "WM_api.h"
+
 #include "RNA_access.h"
 
 static void rna_Pose_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -442,12 +444,17 @@ static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, int typ
 	return add_pose_constraint(NULL, pchan, NULL, type);
 }
 
-static int rna_PoseChannel_constraints_remove(bPoseChannel *pchan, int index)
+static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, ReportList *reports, bConstraint *con)
 {
+	if(BLI_findindex(&pchan->constraints, con) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "Constraint '%s' not found in pose bone '%s'.", con->name, pchan->name);
+		return;
+	}
+
 	// TODO
-	//ED_object_constraint_set_active(object, NULL);
-	//WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT, object);
-	return remove_constraint_index(&pchan->constraints, index);
+	//ED_object_constraint_set_active(id, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT, id);
+	remove_constraint(&pchan->constraints, con);
 }
 
 static int rna_PoseChannel_proxy_editable(PointerRNA *ptr)
@@ -652,12 +659,10 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 
 	func= RNA_def_function(srna, "remove", "rna_PoseChannel_constraints_remove");
 	RNA_def_function_ui_description(func, "Remove a constraint from this object.");
-	/* return type */
-	parm= RNA_def_boolean(func, "success", 0, "Success", "Removed the constraint successfully.");
-	RNA_def_function_return(func, parm);
-	/* object to add */
-	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS|FUNC_USE_SELF_ID); /* ID needed for refresh */
+	/* constraint to remove */
+	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "Removed constraint.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 static void rna_def_pose_channel(BlenderRNA *brna)
@@ -1135,6 +1140,34 @@ static void rna_def_pose_ikparam(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "IK Solver", "IK solver for which these parameters are defined, 0 for Legacy, 1 for iTaSC");
 }
 
+/* pose.bone_groups */
+static void rna_def_bone_groups(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+//	FunctionRNA *func;
+//	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "BoneGroups");
+	srna= RNA_def_struct(brna, "BoneGroups", NULL);
+	RNA_def_struct_sdna(srna, "bPose");
+	RNA_def_struct_ui_text(srna, "Bone Groups", "Collection of bone groups");
+
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "BoneGroup");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_Pose_active_bone_group_get", "rna_Pose_active_bone_group_set", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Bone Group", "Active bone group for this pose");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
+	
+	prop= RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "active_group");
+	RNA_def_property_int_funcs(prop, "rna_Pose_active_bone_group_index_get", "rna_Pose_active_bone_group_index_set", "rna_Pose_active_bone_group_index_range");
+	RNA_def_property_ui_text(prop, "Active Bone Group Index", "Active index in bone groups array");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
+}
+
 static void rna_def_pose(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1156,20 +1189,8 @@ static void rna_def_pose(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "agroups", NULL);
 	RNA_def_property_struct_type(prop, "BoneGroup");
 	RNA_def_property_ui_text(prop, "Bone Groups", "Groups of the bones");
+	rna_def_bone_groups(brna, prop);
 
-	prop= RNA_def_property(srna, "active_bone_group", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "BoneGroup");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_Pose_active_bone_group_get", "rna_Pose_active_bone_group_set", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Active Bone Group", "Active bone group for this pose");
-	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
-
-	prop= RNA_def_property(srna, "active_bone_group_index", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "active_group");
-	RNA_def_property_int_funcs(prop, "rna_Pose_active_bone_group_index_get", "rna_Pose_active_bone_group_index_set", "rna_Pose_active_bone_group_index_range");
-	RNA_def_property_ui_text(prop, "Active Bone Group Index", "Active index in bone groups array");
-	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
-	
 	/* ik solvers */
 	prop= RNA_def_property(srna, "ik_solver", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "iksolver");

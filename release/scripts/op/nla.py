@@ -87,7 +87,7 @@ def bake(frame_start, frame_end, step=1, only_selected=False):
 
     # could spped this up by applying steps here too...
     for f in frame_range:
-        scene.set_frame(f)
+        scene.frame_set(f)
 
         info = pose_info()
         info_ls.append(info)
@@ -169,7 +169,7 @@ class BakeAction(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
+        wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
 

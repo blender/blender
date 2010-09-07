@@ -29,8 +29,9 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "BLI_blenlib.h"
+#include "BLO_sys_types.h"
 
+#include "BLI_blenlib.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

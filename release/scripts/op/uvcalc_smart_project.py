@@ -892,10 +892,10 @@ def main(context, island_margin, projection_limit):
         # Tag as used
         me.tag = True
 
-        if len(me.uv_textures)==0: # Mesh has no UV Coords, dont bother.
-            me.add_uv_texture()
+        if not me.uv_textures: # Mesh has no UV Coords, dont bother.
+            me.uv_textures.new()
 
-        uv_layer = me.active_uv_texture.data
+        uv_layer = me.uv_textures.active.data
         me_verts = list(me.vertices)
 
         if USER_ONLY_SELECTED_FACES:

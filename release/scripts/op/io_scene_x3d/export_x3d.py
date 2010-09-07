@@ -18,52 +18,20 @@
 
 # <pep8 compliant>
 
-__author__ = ("Bart", "Campbell Barton")
-__email__ = ["Bart, bart:neeneenee*de"]
-__url__ = ["Author's (Bart) homepage, http://www.neeneenee.de/vrml"]
-__version__ = "2006/01/17"
-__bpydoc__ = """\
+# Contributors: bart:neeneenee*de, http://www.neeneenee.de/vrml, Campbell Barton
+
+"""
 This script exports to X3D format.
 
 Usage:
-
 Run this script from "File->Export" menu.  A pop-up will ask whether you
 want to export only selected or all relevant objects.
 
-Known issues:<br>
+Known issues:
     Doesn't handle multiple materials (don't use material indices);<br>
     Doesn't handle multiple UV textures on a single mesh (create a mesh for each texture);<br>
     Can't get the texture array associated with material * not the UV ones;
 """
-
-
-# $Id$
-#
-#------------------------------------------------------------------------
-# X3D exporter for blender 2.36 or above
-#
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-#
-
-####################################
-# Library dependancies
-####################################
 
 import math
 import os
@@ -71,15 +39,8 @@ import os
 import bpy
 import mathutils
 
-from export_3ds import create_derived_objects, free_derived_objects
+from io_utils import create_derived_objects, free_derived_objects
 
-# import Blender
-# from Blender import Object, Lamp, Draw, Image, Text, sys, Mesh
-# from Blender.Scene import Render
-# import BPyObject
-# import BPyMesh
-
-#
 DEG2RAD=0.017453292519943295
 MATWORLD= mathutils.Matrix.Rotation(-90, 4, 'X')
 
@@ -87,8 +48,7 @@ MATWORLD= mathutils.Matrix.Rotation(-90, 4, 'X')
 # Global Variables
 ####################################
 
-filename = ""
-# filename = Blender.Get('filename')
+filepath = ""
 _safeOverwrite = True
 
 extension = ''
@@ -99,7 +59,7 @@ extension = ''
 
 class x3d_class:
 
-    def __init__(self, filename):
+    def __init__(self, filepath):
         #--- public you can change these ---
         self.writingcolor = 0
         self.writingtexture = 0
@@ -122,18 +82,18 @@ class x3d_class:
         self.matNames={}   # dictionary of materiaNames
         self.meshNames={}   # dictionary of meshNames
         self.indentLevel=0 # keeps track of current indenting
-        self.filename=filename
+        self.filepath=filepath
         self.file = None
-        if filename.lower().endswith('.x3dz'):
+        if filepath.lower().endswith('.x3dz'):
             try:
                 import gzip
-                self.file = gzip.open(filename, "w")
+                self.file = gzip.open(filepath, "w")
             except:
                 print("failed to import compression modules, exporting uncompressed")
-                self.filename = filename[:-1] # remove trailing z
+                self.filepath = filepath[:-1] # remove trailing z
 
         if self.file == None:
-            self.file = open(self.filename, "w")
+            self.file = open(self.filepath, "w")
 
         self.bNav=0
         self.nodeID=0
@@ -175,15 +135,15 @@ class x3d_class:
 ##########################################################
 
     def writeHeader(self):
-        #bfile = sys.expandpath( Blender.Get('filename') ).replace('<', '&lt').replace('>', '&gt')
-        bfile = self.filename.replace('<', '&lt').replace('>', '&gt') # use outfile name
+        #bfile = sys.expandpath( Blender.Get('filepath') ).replace('<', '&lt').replace('>', '&gt')
+        bfile = repr(os.path.basename(self.filepath).replace('<', '&lt').replace('>', '&gt'))[1:-1] # use outfile name
         self.file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
         self.file.write("<!DOCTYPE X3D PUBLIC \"ISO//Web3D//DTD X3D 3.0//EN\" \"http://www.web3d.org/specifications/x3d-3.0.dtd\">\n")
         self.file.write("<X3D version=\"3.0\" profile=\"Immersive\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema-instance\" xsd:noNamespaceSchemaLocation=\"http://www.web3d.org/specifications/x3d-3.0.xsd\">\n")
         self.file.write("<head>\n")
-        self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % os.path.basename(bfile))
+        self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % bfile)
         # self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % sys.basename(bfile))
-        self.file.write("\t<meta name=\"generator\" content=\"Blender %s\" />\n" % '2.5')
+        self.file.write("\t<meta name=\"generator\" content=\"Blender %s\" />\n" % bpy.app.version_string)
         # self.file.write("\t<meta name=\"generator\" content=\"Blender %s\" />\n" % Blender.Get('version'))
         self.file.write("\t<meta name=\"translator\" content=\"X3D exporter v1.55 (2006/01/17)\" />\n")
         self.file.write("</head>\n")
@@ -258,12 +218,9 @@ class x3d_class:
 
     def writeFog(self, world):
         if world:
-            mtype = world.mist.falloff
-            # mtype = world.getMistype()
-            mparam = world.mist
-            # mparam = world.getMist()
+            mtype = world.mist_settings.falloff
+            mparam = world.mist_settings
             grd = world.horizon_color
-            # grd = world.getHor()
             grd0, grd1, grd2 = grd[0], grd[1], grd[2]
         else:
             return
@@ -277,7 +234,7 @@ class x3d_class:
             return
 
     def writeNavigationInfo(self, scene):
-        self.file.write('<NavigationInfo headlight="FALSE" visibilityLimit="0.0" type=\'"EXAMINE","ANY"\' avatarSize="0.25, 1.75, 0.75" />\n')
+        self.file.write('<NavigationInfo headlight="false" visibilityLimit="0.0" type=\'"EXAMINE","ANY"\' avatarSize="0.25, 1.75, 0.75" />\n')
 
     def writeSpotLight(self, ob, mtx, lamp, world):
         safeName = self.cleanStr(ob.name)
@@ -402,9 +359,9 @@ class x3d_class:
         if len(mesh.faces) == 0: return
         mode = []
         # mode = 0
-        if mesh.active_uv_texture:
+        if mesh.uv_textures.active:
         # if mesh.faceUV:
-            for face in mesh.active_uv_texture.data:
+            for face in mesh.uv_textures.active.data:
             # for face in mesh.faces:
                 if face.use_halo and 'HALO' not in mode:
                     mode += ['HALO']
@@ -460,40 +417,39 @@ class x3d_class:
 
         self.writeIndented("<Shape>\n",1)
         maters=mesh.materials
-        hasImageTexture=0
+        hasImageTexture = False
         is_smooth = False
 
-        if len(maters) > 0 or mesh.active_uv_texture:
+        if len(maters) > 0 or mesh.uv_textures.active:
         # if len(maters) > 0 or mesh.faceUV:
             self.writeIndented("<Appearance>\n", 1)
             # right now this script can only handle a single material per mesh.
-            if len(maters) >= 1:
-                mat=maters[0]
-                # matFlags = mat.getMode()
-                if not mat.use_face_texture:
-                # if not matFlags & Blender.Material.Modes['TEXFACE']:
-                    self.writeMaterial(mat, self.cleanStr(mat.name,''), world)
-                    # self.writeMaterial(mat, self.cleanStr(maters[0].name,''), world)
-                    if len(maters) > 1:
-                        print("Warning: mesh named %s has multiple materials" % meshName)
-                        print("Warning: only one material per object handled")
+            if len(maters) >= 1 and maters[0].use_face_texture == False:
+                mat = maters[0]
+                self.writeMaterial(mat, self.cleanStr(mat.name,''), world)
+                if len(maters) > 1:
+                    print("Warning: mesh named %s has multiple materials" % meshName)
+                    print("Warning: only one material per object handled")
 
+            if not len(maters) or maters[0].use_face_texture:
                 #-- textures
-                face = None
-                if mesh.active_uv_texture:
-                # if mesh.faceUV:
-                    for face in mesh.active_uv_texture.data:
-                    # for face in mesh.faces:
-                        if face.image:
-                        # if (hasImageTexture == 0) and (face.image):
-                            self.writeImageTexture(face.image)
-                            # hasImageTexture=1  # keep track of face texture
-                            break
-                if self.tilenode == 1 and face and face.image:
-                # if self.tilenode == 1:
-                    self.writeIndented("<TextureTransform	scale=\"%s %s\" />\n" % (face.image.xrep, face.image.yrep))
-                    self.tilenode = 0
-                self.writeIndented("</Appearance>\n", -1)
+                image = None
+                if mesh.uv_textures.active:
+                    for face in mesh.uv_textures.active.data:
+                        if face.use_image:
+                            image = face.image
+                            if image:
+                                self.writeImageTexture(image)
+                                break
+
+                if image:
+                    hasImageTexture = True
+
+                    if self.tilenode == 1:
+                        self.writeIndented("<TextureTransform	scale=\"%s %s\" />\n" % (image.xrep, image.yrep))
+                        self.tilenode = 0
+
+            self.writeIndented("</Appearance>\n", -1)
 
         #-- IndexedFaceSet or IndexedLineSet
 
@@ -525,11 +481,10 @@ class x3d_class:
                 self.file.write("creaseAngle=\"%s\" " % (round(creaseAngle,self.cp)))
 
             #--- output textureCoordinates if UV texture used
-            if mesh.active_uv_texture:
-            # if mesh.faceUV:
+            if mesh.uv_textures.active:
                 if self.matonly == 1 and self.share == 1:
                     self.writeFaceColors(mesh)
-                elif hasImageTexture == 1:
+                elif hasImageTexture == True:
                     self.writeTextureCoordinates(mesh)
             #--- output coordinates
             self.writeCoordinates(ob, mesh, meshName, EXPORT_TRI)
@@ -540,9 +495,9 @@ class x3d_class:
             self.writeCoordinates(ob, mesh, meshName, EXPORT_TRI)
 
             #--- output textureCoordinates if UV texture used
-            if mesh.active_uv_texture:
+            if mesh.uv_textures.active:
             # if mesh.faceUV:
-                if hasImageTexture == 1:
+                if hasImageTexture == True:
                     self.writeTextureCoordinates(mesh)
                 elif self.matonly == 1 and self.share == 1:
                     self.writeFaceColors(mesh)
@@ -614,7 +569,7 @@ class x3d_class:
         texIndexList=[]
         j=0
 
-        for face in mesh.active_uv_texture.data:
+        for face in mesh.uv_textures.active.data:
         # for face in mesh.faces:
             # workaround, since tface.uv iteration is wrong atm
             uvs = face.uv
@@ -646,10 +601,10 @@ class x3d_class:
     def writeFaceColors(self, mesh):
         if self.writingcolor == 0:
             self.file.write("colorPerVertex=\"false\" ")
-        elif mesh.active_vertex_color:
+        elif mesh.vertex_colors.active:
         # else:
             self.writeIndented("<Color color=\"", 1)
-            for face in mesh.active_vertex_color.data:
+            for face in mesh.vertex_colors.active.data:
                 c = face.color1
                 if self.verbose > 2:
                     print("Debug: face.col r=%d g=%d b=%d" % (c[0], c[1], c[2]))
@@ -717,21 +672,20 @@ class x3d_class:
 
     def writeImageTexture(self, image):
         name = image.name
-        filename = image.filepath.split('/')[-1].split('\\')[-1]
+        filepath = os.path.basename(image.filepath)
         if name in self.texNames:
             self.writeIndented("<ImageTexture USE=\"%s\" />\n" % self.cleanStr(name))
             self.texNames[name] += 1
-            return
         else:
             self.writeIndented("<ImageTexture DEF=\"%s\" " % self.cleanStr(name), 1)
-            self.file.write("url=\"%s\" />" % name)
+            self.file.write("url=\"%s\" />" % filepath)
             self.writeIndented("\n",-1)
             self.texNames[name] = 1
 
     def writeBackground(self, world, alltextures):
         if world:	worldname = world.name
         else:		return
-        blending = (world.blend_sky, world.paper_sky, world.use_sky_real)
+        blending = (world.use_sky_blend, world.use_sky_paper, world.use_sky_real)
         # blending = world.getSkytype()
         grd = world.horizon_color
         # grd = world.getHor()
@@ -827,7 +781,7 @@ class x3d_class:
             EXPORT_TRI=				False,\
         ):
 
-        print("Info: starting X3D export to " + self.filename + "...")
+        print("Info: starting X3D export to %r..." % self.filepath)
         self.writeHeader()
         # self.writeScript()
         self.writeNavigationInfo(scene)
@@ -925,7 +879,7 @@ class x3d_class:
         self.texNames={}
         self.matNames={}
         self.indentLevel=0
-        print("Info: finished X3D export to %s\n" % self.filename)
+        print("Info: finished X3D export to %r" % self.filepath)
 
     def cleanStr(self, name, prefix='rsvd_'):
         """cleanStr(name,prefix) - try to create a valid VRML DEF name from object name"""
@@ -961,9 +915,9 @@ class x3d_class:
         faceMap={}
         nFaceIndx=0
 
-        if mesh.active_uv_texture:
+        if mesh.uv_textures.active:
         # if mesh.faceUV:
-            for face in mesh.active_uv_texture.data:
+            for face in mesh.uv_textures.active.data:
             # for face in mesh.faces
                 sidename = "two" if face.use_twoside else "one"
 
@@ -1135,91 +1089,35 @@ class x3d_class:
 # Callbacks, needed before Main
 ##########################################################
 
-def write(filename,
-               context,
-               EXPORT_APPLY_MODIFIERS=False,
-               EXPORT_TRI=False,
-               EXPORT_GZIP=False):
+def save(operator, context, filepath="",
+          use_apply_modifiers=False,
+          use_triangulate=False,
+          use_compress=False):
 
-    if EXPORT_GZIP:
-        if not filename.lower().endswith('.x3dz'):
-            filename = '.'.join(filename.split('.')[:-1]) + '.x3dz'
+    if use_compress:
+        if not filepath.lower().endswith('.x3dz'):
+            filepath = '.'.join(filepath.split('.')[:-1]) + '.x3dz'
     else:
-        if not filename.lower().endswith('.x3d'):
-            filename = '.'.join(filename.split('.')[:-1]) + '.x3d'
-
+        if not filepath.lower().endswith('.x3d'):
+            filepath = '.'.join(filepath.split('.')[:-1]) + '.x3d'
 
     scene = context.scene
     world = scene.world
 
-    if scene.objects.active:
+    if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
     # XXX these are global textures while .Get() returned only scene's?
     alltextures = bpy.data.textures
     # alltextures = Blender.Texture.Get()
 
-    wrlexport=x3d_class(filename)
-    wrlexport.export(\
-        scene,\
-        world,\
-        alltextures,\
-        \
-        EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS,\
-        EXPORT_TRI = EXPORT_TRI,\
-        )
+    wrlexport = x3d_class(filepath)
+    wrlexport.export(scene,
+                     world,
+                     alltextures,
+                     EXPORT_APPLY_MODIFIERS=use_apply_modifiers,
+                     EXPORT_TRI=use_triangulate,
+                     )
 
+    return {'FINISHED'}
 
-from bpy.props import *
-
-class ExportX3D(bpy.types.Operator):
-    '''Export selection to Extensible 3D file (.x3d)'''
-    bl_idname = "export.x3d"
-    bl_label = 'Export X3D'
-
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
-    filepath = StringProperty(name="File Path", description="Filepath used for exporting the X3D file", maxlen= 1024, default= "")
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
-
-    apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object", default=True)
-    triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=False)
-    compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install", default=False)
-
-    def execute(self, context):
-        filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, ".x3d")
-
-        write(filepath,
-                   context,
-                   self.properties.apply_modifiers,
-                   self.properties.triangulate,
-                   self.properties.compress,
-                   )
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        import os
-        if not self.properties.is_property_set("filepath"):
-            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".x3d"
-
-        context.manager.add_fileselect(self)
-        return {'RUNNING_MODAL'}
-
-
-def menu_func(self, context):
-    self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)")
-
-
-def register():
-    bpy.types.INFO_MT_file_export.append(menu_func)
-
-def unregister():
-    bpy.types.INFO_MT_file_export.remove(menu_func)
-
-# NOTES
-# - blender version is hardcoded
-
-if __name__ == "__main__":
-    register()

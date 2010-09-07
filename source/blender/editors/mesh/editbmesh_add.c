@@ -284,7 +284,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, TRUE);
 }
 
-static int add_primitive_tube_exec(bContext *C, wmOperator *op)
+static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit;
 	Mesh *me;
@@ -310,7 +310,7 @@ static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 	make_prim_finish(C, &state, enter_editmode);
 }
 
-void MESH_OT_primitive_tube_add(wmOperatorType *ot)
+void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Tube";
@@ -319,7 +319,7 @@ void MESH_OT_primitive_tube_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_tube_exec;
+	ot->exec= add_primitive_cylinder_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */

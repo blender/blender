@@ -1185,8 +1185,15 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	 * easier to assign each time then to check if its needed */
 	name[sizeof(name)-1]= 0;
 
-	if(name[0] == '\0')
+	if(name[0] == '\0') {
+		/* disallow empty names */
 		strcpy(name, ID_FALLBACK_NAME);
+	}
+	else {
+		/* disallow non utf8 chars,
+		 * the interface checks for this but new ID's based on file names dont */
+		BLI_utf8_invalid_strip(name, strlen(name));
+	}
 
 	result = check_for_dupid(lb, id, name);
 	strcpy(id->name+2, name);
@@ -1377,8 +1384,9 @@ void text_idbutton(struct ID *id, char *text)
 			text[4]= 0;
 		}
 	}
-	else
-		strcpy(text, "");
+	else {
+		text[0]= '\0';
+}
 }
 
 void rename_id(ID *id, char *name)

@@ -100,7 +100,7 @@ class USERPREF_PT_tabs(bpy.types.Panel):
     bl_label = ""
     bl_space_type = 'USER_PREFERENCES'
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout
@@ -134,7 +134,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Interface"
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
@@ -229,7 +229,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Edit"
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
@@ -344,7 +344,7 @@ class USERPREF_PT_system(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "System"
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
@@ -369,6 +369,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.prop(system, "dpi")
         col.prop(system, "frame_server_port")
         col.prop(system, "scrollback", text="Console Scrollback")
+        col.prop(system, "author", text="Author")
         col.prop(system, "use_scripts_auto_execute")
         col.prop(system, "use_tabs_as_spaces")
 
@@ -479,7 +480,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Themes"
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     @staticmethod
     def _theme_generic(split, themedata):
@@ -642,7 +643,7 @@ class USERPREF_PT_file(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Files"
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
@@ -788,7 +789,7 @@ class USERPREF_PT_input(InputKeyMapPanel):
         #start = time.time()
 
         userpref = context.user_preferences
-        wm = context.manager
+        wm = context.window_manager
 
         inputs = userpref.inputs
 
@@ -807,7 +808,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Addons"
     bl_region_type = 'WINDOW'
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     
     _addons_fake_modules = {}
 
@@ -972,7 +973,8 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
                 rowsub = row.row()
                 rowsub.active = is_enabled
-                rowsub.label(text=info["name"], icon='ERROR' if info["warning"] else 'BLENDER')
+                rowsub.label(text='%s: %s' % (info['category'], info["name"]))
+                if info["warning"]: rowsub.label(icon='ERROR')
 
                 if is_enabled:
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
@@ -996,7 +998,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     if info["version"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text='Version:')
-                        split.label(text=info["version"])
+                        split.label(text='.'.join([str(x) for x in info["version"]]))
                     if info["warning"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Warning:")
@@ -1037,7 +1039,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 from bpy.props import *
 
 
-def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "warning": "", "show_expanded": False}):
+def addon_info_get(mod, info_basis={"name": "", "author": "", "version": (), "blender": (), "api": 0, "location": "", "description": "", "wiki_url": "", "tracker_url": "", "category": "", "warning": "", "show_expanded": False}):
     addon_info = getattr(mod, "bl_addon_info", {})
 
     # avoid re-initializing
@@ -1181,7 +1183,7 @@ class WM_OT_addon_install(bpy.types.Operator):
             self.report({'ERROR'}, "No 'addons' path could be found in " + str(bpy.utils.script_paths()))
             return {'CANCELLED'}
 
-        wm = context.manager
+        wm = context.window_manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 

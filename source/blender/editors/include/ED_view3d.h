@@ -104,13 +104,14 @@ void viewline(struct ARegion *ar, struct View3D *v3d, float mval[2], float ray_s
 void viewray(struct ARegion *ar, struct View3D *v3d, float mval[2], float ray_start[3], float ray_normal[3]);
 
 int get_view3d_cliprange(struct View3D *v3d, struct RegionView3D *rv3d, float *clipsta, float *clipend);
-int get_view3d_viewplane(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
+int get_view3d_viewplane(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, struct rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
 int get_view3d_ortho(struct View3D *v3d, struct RegionView3D *rv3d);
 void view3d_get_object_project_mat(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
 /* computes screen x/y in vec */
 void view3d_project_float(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
 /* computes z, as well as x and y */
 void view3d_project_float_v3(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
+void view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct RegionView3D *rv3d, struct View3D *v3d, struct rctf *viewborder_r);
 
 /* drawobject.c itterators */
 void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BMVert *eve, int x, int y, int index), void *userData, int clipVerts);
@@ -165,8 +166,8 @@ int ED_view3d_context_activate(struct bContext *C);
 void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct ARegion *ar,
 	int winx, int winy, float viewmat[][4], float winmat[][4]);
 
-struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey);
-struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, int drawtype);
+struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey, unsigned int flag);
+struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, unsigned int flag, int drawtype);
 
 void view3d_clipping_local(struct RegionView3D *rv3d, float mat[][4]);
 

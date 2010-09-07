@@ -45,6 +45,7 @@
 
 #include "BKE_depsgraph.h"
 #include "BKE_context.h"
+#include "BKE_mball.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -103,53 +104,11 @@ MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int new
 		ml= ml->next;
 	}
 
-	ml= MEM_callocN(sizeof(MetaElem), "metaelem");
+	ml= add_metaball_element(mball, type);
+	copy_v3_v3(&ml->x, mat[3]);
 
-	ml->x= mat[3][0];
-	ml->y= mat[3][1];
-	ml->z= mat[3][2];
-	ml->quat[0]= 1.0;
-	ml->quat[1]= 0.0;
-	ml->quat[2]= 0.0;
-	ml->quat[3]= 0.0;
-	ml->rad= 2.0;
-	ml->s= 2.0;
-	ml->flag= SELECT | MB_SCALE_RAD;
-
-	switch(type) {
-	case MB_BALL:
-		ml->type = MB_BALL;
-		ml->expx= ml->expy= ml->expz= 1.0;
-
-		break;
-	case MB_TUBE:
-		ml->type = MB_TUBE;
-		ml->expx= ml->expy= ml->expz= 1.0;
-
-		break;
-	case MB_PLANE:
-		ml->type = MB_PLANE;
-		ml->expx= ml->expy= ml->expz= 1.0;
-
-		break;
-	case MB_ELIPSOID:
-		ml->type = MB_ELIPSOID;
-		ml->expx= 1.2f;
-		ml->expy= 0.8f;
-		ml->expz= 1.0;
-		
-		break;
-	case MB_CUBE:
-		ml->type = MB_CUBE;
-		ml->expx= ml->expy= ml->expz= 1.0;
-
-		break;
-	default:
-		break;
-	}
-	
+	ml->flag |= SELECT;
 	mball->lastelem= ml;
-	
 	return ml;
 }
 

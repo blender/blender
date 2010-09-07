@@ -403,6 +403,10 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
+	copy_qt_qt(rv3d->lviewquat, rv3d->viewquat);
+	rv3d->lview= rv3d->view;
+	rv3d->lpersp= rv3d->persp;
+
 	setcameratoview3d(v3d, rv3d, v3d->camera);
 	rv3d->persp = RV3D_CAMOB;
 	
@@ -1805,7 +1809,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 
 	if(rv3d->persp==RV3D_CAMOB && startscene->gm.framing.type == SCE_GAMEFRAMING_BARS && startscene->gm.stereoflag != STEREO_DOME) { /* Letterbox */
 		rctf cam_framef;
-		calc_viewborder(startscene, ar, rv3d, CTX_wm_view3d(C), &cam_framef);
+		view3d_calc_camera_border(startscene, ar, rv3d, CTX_wm_view3d(C), &cam_framef);
 		cam_frame.xmin = cam_framef.xmin + ar->winrct.xmin;
 		cam_frame.xmax = cam_framef.xmax + ar->winrct.xmin;
 		cam_frame.ymin = cam_framef.ymin + ar->winrct.ymin;

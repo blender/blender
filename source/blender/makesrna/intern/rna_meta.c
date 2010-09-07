@@ -35,6 +35,8 @@
 
 #include "BLI_math.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
@@ -89,6 +91,8 @@ static void rna_MetaBall_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 	MetaBall *mb= ptr->id.data;
 	Object *ob;
 
+	/* cheating way for importers to avoid slow updates */
+	if(mb->id.us > 0) {
 	for(ob=bmain->object.first; ob; ob= ob->id.next)
 		if(ob->data == mb)
 			copy_mball_properties(scene, ob);
@@ -96,21 +100,57 @@ static void rna_MetaBall_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 	DAG_id_flush_update(&mb->id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_GEOM|ND_DATA, mb);
 }
+}
+
+static MetaElem *rna_MetaBall_elements_new(MetaBall *mb, int type)
+{
+	MetaElem *ml= add_metaball_element(mb, type);
+
+	/* cheating way for importers to avoid slow updates */
+	if(mb->id.us > 0) {
+		DAG_id_flush_update(&mb->id, OB_RECALC_DATA);
+		WM_main_add_notifier(NC_GEOM|ND_DATA, &mb->id);
+	}
+
+	return ml;
+}
+
+static void rna_MetaBall_elements_remove(MetaBall *mb, ReportList *reports, MetaElem *ml)
+{
+	int found= 0;
+
+	found= BLI_remlink_safe(&mb->elems, ml);
+
+	if(!found) {
+		BKE_reportf(reports, RPT_ERROR, "MetaBall \"%s\" does not contain spline given", mb->id.name+2);
+		return;
+	}
+
+	MEM_freeN(ml);
+	/* invalidate pointer!, no can do */
+
+	/* cheating way for importers to avoid slow updates */
+	if(mb->id.us > 0) {
+		DAG_id_flush_update(&mb->id, OB_RECALC_DATA);
+		WM_main_add_notifier(NC_GEOM|ND_DATA, &mb->id);
+	}
+}
 
 #else
 
-static void rna_def_metaelement(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-	static EnumPropertyItem prop_type_items[] = {
+static EnumPropertyItem metaelem_type_items[] = {
 		{MB_BALL, "BALL", ICON_META_BALL, "Ball", ""},
-		{MB_TUBE, "TUBE", ICON_META_TUBE, "Tube", ""},
+	{MB_TUBE, "CAPSULE", ICON_META_CAPSULE, "Capsule", ""},
 		{MB_PLANE, "PLANE", ICON_META_PLANE, "Plane", ""},
 		{MB_ELIPSOID, "ELLIPSOID", ICON_META_ELLIPSOID, "Ellipsoid", ""}, // NOTE: typo at original definition!
 		{MB_CUBE, "CUBE", ICON_META_CUBE, "Cube", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
+static void rna_def_metaelement(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
 	srna= RNA_def_struct(brna, "MetaElement", NULL);
 	RNA_def_struct_sdna(srna, "MetaElem");
 	RNA_def_struct_ui_text(srna, "Meta Element", "Blobby element in a MetaBall datablock");
@@ -118,7 +158,7 @@ static void rna_def_metaelement(BlenderRNA *brna)
 	
 	/* enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_enum_items(prop, metaelem_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Metaball types");
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 	
@@ -176,6 +216,37 @@ static void rna_def_metaelement(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 }
 
+/* mball.elements */
+static void rna_def_metaball_elements(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "MetaBallElements");
+	srna= RNA_def_struct(brna, "MetaBallElements", NULL);
+	RNA_def_struct_sdna(srna, "MetaBall");
+	RNA_def_struct_ui_text(srna, "Meta Elements", "Collection of metaball elements");
+
+	func= RNA_def_function(srna, "new", "rna_MetaBall_elements_new");
+	RNA_def_function_ui_description(func, "Add a new spline to the curve.");
+	parm= RNA_def_enum(func, "type", metaelem_type_items, MB_BALL, "", "type for the new meta element.");
+	parm= RNA_def_pointer(func, "element", "MetaElement", "", "The newly created metaelement.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_MetaBall_elements_remove");
+	RNA_def_function_ui_description(func, "Remove a spline from a curve.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "element", "MetaElement", "", "The element to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "lastelem");
+	RNA_def_property_ui_text(prop, "Active Element", "Last selected element");
+}
+
 static void rna_def_metaball(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -195,11 +266,8 @@ static void rna_def_metaball(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "elems", NULL);
 	RNA_def_property_struct_type(prop, "MetaElement");
 	RNA_def_property_ui_text(prop, "Elements", "Meta elements");
+	rna_def_metaball_elements(brna, prop);
 
-	prop= RNA_def_property(srna, "active_element", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "lastelem");
-	RNA_def_property_ui_text(prop, "Last selected element.", "Last selected element");
-	
 	/* enums */
 	prop= RNA_def_property(srna, "update_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "flag");
@@ -257,6 +325,7 @@ static void rna_def_metaball(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_ui_text(prop, "Materials", "");
+	RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */	
 	
 	/* anim */
 	rna_def_animdata_common(srna);

@@ -90,6 +90,7 @@ void RNA_def_enum_funcs(PropertyRNA *prop, EnumPropertyItemFunc itemfunc);
 
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont, const char *identifier, float default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_vector(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
+PropertyRNA *RNA_def_float_vector_xyz(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_color(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_matrix(StructOrFunctionRNA *cont, const char *identifier, int rows, int columns, const float *default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value,

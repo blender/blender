@@ -436,7 +436,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			vc= vert_connect;
 			for (i=0; i < totvert; i++, vc++) {
 				int v_best=-1, ed_loop_closed=0; /* vert and vert new */
-				int ed_loop_flip;
+				int ed_loop_flip= 0; /* compiler complains if not initialized, but it should be initialized below */
 				float fl= -1.0f;
 				ScrewVertIter lt_iter;
 

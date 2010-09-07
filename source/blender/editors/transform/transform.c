@@ -3524,7 +3524,7 @@ void initTilt(TransInfo *t)
 
 	t->num.increment = t->snap[1];
 
-	t->flag |= T_NO_CONSTRAINT;
+	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
 
@@ -4134,7 +4134,7 @@ void initBoneEnvelope(TransInfo *t)
 	
 	t->num.increment = t->snap[1];
 
-	t->flag |= T_NO_CONSTRAINT;
+	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
 int BoneEnvelope(TransInfo *t, short mval[2])
@@ -5229,7 +5229,7 @@ void initBoneRoll(TransInfo *t)
 
 	t->num.increment = 1.0f;
 
-	t->flag |= T_NO_CONSTRAINT;
+	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
 int BoneRoll(TransInfo *t, short mval[2])

@@ -5258,7 +5258,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					direct_link_gpencil(fd, v3d->gpd);
 				}
 				v3d->localvd= newdataadr(fd, v3d->localvd);
-				v3d->afterdraw.first= v3d->afterdraw.last= NULL;
+				v3d->afterdraw_transp.first= v3d->afterdraw_transp.last= NULL;
+				v3d->afterdraw_xray.first= v3d->afterdraw_xray.last= NULL;
+				v3d->afterdraw_xraytransp.first= v3d->afterdraw_xraytransp.last= NULL;
 				v3d->properties_storage= NULL;
 				
 				view3d_split_250(v3d, &sl->regionbase);

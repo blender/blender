@@ -1284,6 +1284,12 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				size = psys_get_child_size(psys, cpa, ctime, 0);
 			}
 
+			/* some hair paths might be non-existent so they can't be used for duplication */
+			if(hair &&
+				((a < totpart && psys->pathcache[a]->steps < 0) ||
+				(a >= totpart && psys->childcache[a-totpart]->steps < 0)))
+				continue;
+
 			if(part->ren_as==PART_DRAW_GR) {
 				/* for groups, pick the object based on settings */
 				if(part->draw&PART_DRAW_RAND_GR)

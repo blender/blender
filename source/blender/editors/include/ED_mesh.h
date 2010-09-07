@@ -194,85 +194,9 @@ void		ED_keymap_mesh(struct wmKeyConfig *keyconf);
 
 void		ED_spacetypes_init(void);
 void		ED_keymap_mesh(struct wmKeyConfig *keyconf);
-
-struct EditMesh *make_editMesh(struct Scene *scene, struct Object *ob);
-void		load_editMesh(struct Scene *scene, struct Object *ob, struct EditMesh *em);
-void		remake_editMesh(struct Scene *scene, struct Object *ob);
-void		free_editMesh(struct EditMesh *em);
-
-void		recalc_editnormals(struct EditMesh *em);
-
-void		EM_init_index_arrays(struct EditMesh *em, int forVert, int forEdge, int forFace);
-void		EM_free_index_arrays(void);
-struct EditVert	*EM_get_vert_for_index(int index);
-struct EditEdge	*EM_get_edge_for_index(int index);
-struct EditFace	*EM_get_face_for_index(int index);
-int			EM_texFaceCheck(struct EditMesh *em);
-int			EM_vertColorCheck(struct EditMesh *em);
-
-void		undo_push_mesh(struct bContext *C, char *name);
-
-
-/* editmesh_lib.c */
-
-struct EditFace	*EM_get_actFace(struct EditMesh *em, int sloppy);
-void             EM_set_actFace(struct EditMesh *em, struct EditFace *efa);
-float            EM_face_area(struct EditFace *efa);
-void             EM_add_data_layer(struct EditMesh *em, struct CustomData *data, int type);
-
-void		EM_select_edge(struct EditEdge *eed, int sel);
-void		EM_select_face(struct EditFace *efa, int sel);
-void		EM_select_face_fgon(struct EditMesh *em, struct EditFace *efa, int val);
-void		EM_select_swap(struct EditMesh *em);
-void		EM_toggle_select_all(struct EditMesh *em);
-void		EM_select_all(struct EditMesh *em);
-void		EM_deselect_all(struct EditMesh *em);
-void		EM_selectmode_flush(struct EditMesh *em);
-void		EM_deselect_flush(struct EditMesh *em);
-void		EM_selectmode_set(struct EditMesh *em);
-void		EM_select_flush(struct EditMesh *em);
-void		EM_convertsel(struct EditMesh *em, short oldmode, short selectmode);
-void		EM_validate_selections(struct EditMesh *em);
-void		EM_selectmode_to_scene(struct Scene *scene, struct Object *obedit);
-
-			/* exported to transform */
-int			EM_get_actSelection(struct EditMesh *em, struct EditSelection *ese);
-void		EM_editselection_normal(float *normal, struct EditSelection *ese);
-void		EM_editselection_plane(float *plane, struct EditSelection *ese);
-void		EM_editselection_center(float *center, struct EditSelection *ese);			
-
-struct UvVertMap *EM_make_uv_vert_map(struct EditMesh *em, int selected, int do_face_idx_array, float *limit);
-struct UvMapVert *EM_get_uv_map_vert(struct UvVertMap *vmap, unsigned int v);
-void              EM_free_uv_vert_map(struct UvVertMap *vmap);
-
-void		EM_make_hq_normals(struct EditMesh *em);
-void		EM_solidify(struct EditMesh *em, float dist);
-
-int			EM_deselect_nth(struct EditMesh *em, int nth);
-
-/* editmesh_mods.c */
+/* bmesh_mods.c */
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
-void		EM_cache_x_mirror_vert(struct Object *ob, struct EditMesh *em);
-int			mouse_mesh(struct bContext *C, short mval[2], short extend);
-int			EM_check_backbuf(unsigned int index);
-int			EM_mask_init_backbuf_border(struct ViewContext *vc, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
-void		EM_free_backbuf(void);
-int			EM_init_backbuf_border(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
-int			EM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short rads);
-
-void		EM_hide_mesh(struct EditMesh *em, int swap);
-void		EM_reveal_mesh(struct EditMesh *em);
-
-void		EM_automerge(struct Scene *scene, struct Object *obedit, int update);
-
-/* editface.c */
-struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
-int face_select(struct bContext *C, struct Object *ob, short mval[2], int extend);
-void face_borderselect(struct bContext *C, struct Object *ob, struct rcti *rect, int select, int extend);
-void selectall_tface(struct Object *ob, int action);
-void select_linked_tfaces(struct bContext *C, struct Object *ob, short mval[2], int mode);
-int minmax_tface(struct Scene *sce, float *min, float *max);
 
 /* object_vgroup.c */
 
@@ -306,25 +230,20 @@ struct BMVert *EDBM_findnearestvert(struct ViewContext *vc, int *dist, short sel
 struct BMEdge *EDBM_findnearestedge(struct ViewContext *vc, int *dist);
 struct BMFace *EDBM_findnearestface(struct ViewContext *vc, int *dist);
 
-/*needed by edge slide*/
-struct EditVert *editedge_getOtherVert(struct EditEdge *eed, struct EditVert *eve);
-struct EditVert *editedge_getSharedVert(struct EditEdge *eed, struct EditEdge *eed2);
-int editedge_containsVert(struct EditEdge *eed, struct EditVert *eve);
-int editface_containsVert(struct EditFace *efa, struct EditVert *eve);
-int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
-short sharesFace(struct EditMesh *em, struct EditEdge *e1, struct EditEdge *e2);
-
 /* mesh_data.c */
+// void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);
+void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count);
+void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count);
+void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count);
 
-void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);
 void ED_mesh_transform(struct Mesh *me, float *mat);
 void ED_mesh_calc_normals(struct Mesh *me);
-void ED_mesh_material_add(struct Mesh *me, struct Material *ma);
+void ED_mesh_material_link(struct Mesh *me, struct Material *ma);
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, int calc_edges);
 
-int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me);
+int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me, const char *name, int active_set);
 int ED_mesh_uv_texture_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
-int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me);
+int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me, const char *name, int active_set);
 int ED_mesh_color_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
 
 #endif /* ED_MESH_H */

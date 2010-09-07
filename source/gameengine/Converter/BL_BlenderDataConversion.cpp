@@ -726,16 +726,16 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 	MVert *mvert = dm->getVertArray(dm);
 	int totvert = dm->getNumVerts(dm);
 
-	MFace *mface = dm->getFaceArray(dm);
-	MTFace *tface = static_cast<MTFace*>(dm->getFaceDataArray(dm, CD_MTFACE));
-	MCol *mcol = static_cast<MCol*>(dm->getFaceDataArray(dm, CD_MCOL));
+	MFace *mface = dm->getTessFaceArray(dm);
+	MTFace *tface = static_cast<MTFace*>(dm->getTessFaceDataArray(dm, CD_MTFACE));
+	MCol *mcol = static_cast<MCol*>(dm->getTessFaceDataArray(dm, CD_MCOL));
 	float (*tangent)[3] = NULL;
-	int totface = dm->getNumFaces(dm);
+	int totface = dm->getNumTessFaces(dm);
 	const char *tfaceName = "";
 
 	if(tface) {
 		DM_add_tangent_layer(dm);
-		tangent = (float(*)[3])dm->getFaceDataArray(dm, CD_TANGENT);
+		tangent = (float(*)[3])dm->getTessFaceDataArray(dm, CD_TANGENT);
 	}
 
 	meshobj = new RAS_MeshObject(mesh);

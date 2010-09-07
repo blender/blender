@@ -1006,6 +1006,10 @@ void init_userdef_do_versions(void)
 		
 		strcpy(U.tempdir, tmp?tmp:"/tmp/");
 	}
+	if (U.autokey_mode == 0) {
+		/* 'add/replace' but not on */
+		U.autokey_mode = 2;
+	}
 	if (U.savetime <= 0) {
 		U.savetime = 1;
 // XXX		error("startup.blend is buggy, please consider removing it.\n");

@@ -368,7 +368,7 @@ class WorldButtonsPanel():
 
 class WORLD_PT_game_context_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     @classmethod

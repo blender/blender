@@ -44,7 +44,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
 
         if md:
             # remove modifier + settings
-            split.set_context_pointer("modifier", md)
+            split.context_pointer_set("modifier", md)
             split.operator("object.modifier_remove", text="Remove")
 
             row = split.row(align=True)
@@ -58,10 +58,8 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
             split.operator("object.modifier_add", text="Add").type = 'FLUID_SIMULATION'
             split.label()
 
-            fluid = None
 
-
-        if fluid:
+        if md:
             row = layout.row()
             row.prop(fluid, "type")
             if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
@@ -72,7 +70,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 layout.active = fluid.use
 
             if fluid.type == 'DOMAIN':
-                layout.operator("fluid.bake", text="Bake Fluid Simulation", icon='MOD_FLUIDSIM')
+                layout.operator("fluid.bake", text="Bake (Req. Memory: %s)" % fluid.memory_estimate, icon='MOD_FLUIDSIM')
                 split = layout.split()
 
                 col = split.column()
@@ -82,7 +80,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 col.prop(fluid, "render_display_mode", text="")
 
                 col = split.column()
-                col.label(text="Required Memory: " + fluid.memory_estimate)
+                col.label()
                 col.prop(fluid, "preview_resolution", text="Preview")
                 col.label(text="Viewport Display:")
                 col.prop(fluid, "viewport_display_mode", text="")
@@ -201,7 +199,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain World"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -251,7 +249,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain Boundary"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -279,7 +277,7 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_domain_particles(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain Particles"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):

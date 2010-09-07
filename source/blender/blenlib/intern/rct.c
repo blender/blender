@@ -36,6 +36,8 @@
  */
 
 #include "DNA_vec_types.h"
+#include <stdio.h>
+#include <math.h>
 
 int BLI_rcti_is_empty(rcti * rect)
 {
@@ -221,4 +223,22 @@ int BLI_isect_rcti(rcti *src1, rcti *src2, rcti *dest)
 		}
 		return 0;
 	}
+}
+
+void BLI_copy_rcti_rctf(rcti *tar, const rctf *src)
+{
+	tar->xmin= floor(src->xmin + 0.5);
+	tar->xmax= floor((src->xmax - src->xmin) + 0.5);
+	tar->ymin= floor(src->ymin + 0.5);
+	tar->ymax= floor((src->ymax - src->ymin) + 0.5);
+}
+
+void print_rctf(const char *str, rctf *rect)
+{
+	printf("%s: xmin %.3f, xmax %.3f, ymin %.3f, ymax %.3f\n", str, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+}
+
+void print_rcti(const char *str, rcti *rect)
+{
+	printf("%s: xmin %d, xmax %d, ymin %d, ymax %d\n", str, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
 }

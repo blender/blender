@@ -18,36 +18,13 @@
 
 # <pep8 compliant>
 
-__author__ = "Campbell Barton"
-__url__ = ['www.blender.org', 'blenderartists.org']
-__version__ = "1.2"
+# Script copyright (C) Campbell Barton
 
-__bpydoc__ = """\
+"""
 This script is an exporter to the FBX file format.
 
 http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx
 """
-# --------------------------------------------------------------------------
-# FBX Export v0.1 by Campbell Barton (AKA Ideasman)
-# --------------------------------------------------------------------------
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-# --------------------------------------------------------------------------
 
 import os
 import time
@@ -57,19 +34,10 @@ import shutil # for file copying
 import bpy
 from mathutils import Vector, Euler, Matrix
 
-def copy_file(source, dest):
-    # XXX - remove, can use shutil
-    file = open(source, 'rb')
-    data = file.read()
-    file.close()
-
-    file = open(dest, 'wb')
-    file.write(data)
-    file.close()
-
-
 # XXX not used anymore, images are copied one at a time
 def copy_images(dest_dir, textures):
+    import shutil
+    
     if not dest_dir.endswith(os.sep):
         dest_dir += os.sep
 
@@ -84,12 +52,12 @@ def copy_images(dest_dir, textures):
             # Make a name for the target path.
             dest_image_path = dest_dir + image_path.split('\\')[-1].split('/')[-1]
             if not Blender.sys.exists(dest_image_path): # Image isnt already there
-                print('\tCopying "%s" > "%s"' % (image_path, dest_image_path))
+                print("\tCopying %r > %r" % (image_path, dest_image_path))
                 try:
-                    copy_file(image_path, dest_image_path)
+                    shutil.copy(image_path, dest_image_path)
                     copyCount+=1
                 except:
-                    print('\t\tWarning, file failed to copy, skipping.')
+                    print("\t\tWarning, file failed to copy, skipping.")
 
     print('\tCopied %d images' % copyCount)
 
@@ -104,27 +72,11 @@ def eulerRadToDeg(eul):
 
     return ret
 
-mtx4_identity = Matrix()
-
-# testing
-mtx_x90		= Matrix.Rotation( math.pi/2, 3, 'X') # used
-#mtx_x90n	= Matrix.Rotation(-90, 3, 'x')
-#mtx_y90	= Matrix.Rotation( 90, 3, 'y')
-#mtx_y90n	= Matrix.Rotation(-90, 3, 'y')
-#mtx_z90	= Matrix.Rotation( 90, 3, 'z')
-#mtx_z90n	= Matrix.Rotation(-90, 3, 'z')
-
-#mtx4_x90	= Matrix.Rotation( 90, 4, 'x')
-mtx4_x90n	= Matrix.Rotation(-math.pi/2, 4, 'X') # used
-#mtx4_y90	= Matrix.Rotation( 90, 4, 'y')
-mtx4_y90n	= Matrix.Rotation(-math.pi/2, 4, 'Y') # used
-mtx4_z90	= Matrix.Rotation( math.pi/2, 4, 'Z') # used
-mtx4_z90n	= Matrix.Rotation(-math.pi/2, 4, 'Z') # used
 
 # def strip_path(p):
 # 	return p.split('\\')[-1].split('/')[-1]
 
-# Used to add the scene name into the filename without using odd chars
+# Used to add the scene name into the filepath without using odd chars
 sane_name_mapping_ob = {}
 sane_name_mapping_mat = {}
 sane_name_mapping_tex = {}
@@ -197,7 +149,7 @@ def sane_groupname(data):	return sane_name(data, sane_name_mapping_group)
 # 	'''
 # 	fname_orig - blender path, can be relative
 # 	basepath - fname_rel will be relative to this
-# 	FORCE_CWD - dont use the basepath, just add a ./ to the filename.
+# 	FORCE_CWD - dont use the basepath, just add a ./ to the filepath.
 # 		use when we know the file will be in the basepath.
 # 	'''
 # 	fname = bpy.path.abspath(fname_orig)
@@ -282,19 +234,17 @@ header_comment = \
 
 '''
 
-# This func can be called with just the filename
-def write(filename, batch_objects = None, \
-        context = None,
+# This func can be called with just the filepath
+def save(operator, context, filepath="", \
         EXP_OBS_SELECTED =			True,
         EXP_MESH =					True,
         EXP_MESH_APPLY_MOD =		True,
-# 		EXP_MESH_HQ_NORMALS =		False,
         EXP_ARMATURE =				True,
         EXP_LAMP =					True,
         EXP_CAMERA =				True,
         EXP_EMPTY =					True,
         EXP_IMAGE_COPY =			False,
-        GLOBAL_MATRIX =				Matrix(),
+        GLOBAL_MATRIX =				None,
         ANIM_ENABLE =				True,
         ANIM_OPTIMIZE =				True,
         ANIM_OPTIMIZE_PRECISSION =	6,
@@ -305,16 +255,26 @@ def write(filename, batch_objects = None, \
         BATCH_OWN_DIR =				False
     ):
 
-    if bpy.context.object:
+    #XXX, missing arg 
+    batch_objects = None
+
+    # testing
+    mtx_x90		= Matrix.Rotation( math.pi/2.0, 3, 'X') # used
+    mtx4_z90	= Matrix.Rotation( math.pi/2.0, 4, 'Z')
+
+    if GLOBAL_MATRIX is None:
+        GLOBAL_MATRIX = Matrix()
+
+    if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
     # ----------------- Batch support!
     if BATCH_ENABLE:
         if os == None:	BATCH_OWN_DIR = False
 
-        fbxpath = filename
+        fbxpath = filepath
 
-        # get the path component of filename
+        # get the path component of filepath
         tmp_exists = bpy.utils.exists(fbxpath)
 # 		tmp_exists = Blender.sys.exists(fbxpath)
 
@@ -323,7 +283,7 @@ def write(filename, batch_objects = None, \
 # 			while fbxpath and fbxpath[-1] not in ('/', '\\'):
 # 				fbxpath = fbxpath[:-1]
             if not fbxpath:
-# 			if not filename:
+# 			if not filepath:
                 # XXX
                 print('Error%t|Directory does not exist!')
 # 				Draw.PupMenu('Error%t|Directory does not exist!')
@@ -368,9 +328,9 @@ def write(filename, batch_objects = None, \
                     os.mkdir(new_fbxpath)
 
 
-            filename = new_fbxpath + newname + '.fbx'
+            filepath = new_fbxpath + newname + '.fbx'
 
-            print('\nBatch exporting %s as...\n\t"%s"' % (data, filename))
+            print('\nBatch exporting %s as...\n\t%r' % (data, filepath))
 
             # XXX don't know what to do with this, probably do the same? (Arystan)
             if BATCH_GROUP: #group
@@ -393,12 +353,11 @@ def write(filename, batch_objects = None, \
 
             # Call self with modified args
             # Dont pass batch options since we already usedt them
-            write(filename, data.objects,
+            write(filepath, data.objects,
                 context,
                 False,
                 EXP_MESH,
                 EXP_MESH_APPLY_MOD,
-# 				EXP_MESH_HQ_NORMALS,
                 EXP_ARMATURE,
                 EXP_LAMP,
                 EXP_CAMERA,
@@ -423,9 +382,9 @@ def write(filename, batch_objects = None, \
     # end batch support
 
     # Use this for working out paths relative to the export location
-    basepath = os.path.dirname(filename) or '.'
+    basepath = os.path.dirname(filepath) or '.'
     basepath += os.sep
-# 	basepath = Blender.sys.dirname(filename)
+# 	basepath = Blender.sys.dirname(filepath)
 
     # ----------------------------------------------
     # storage classes
@@ -572,11 +531,11 @@ def write(filename, batch_objects = None, \
 
 
 
-    print('\nFBX export starting...', filename)
+    print('\nFBX export starting... %r' % filepath)
     start_time = time.clock()
 # 	start_time = Blender.sys.time()
     try:
-        file = open(filename, 'w')
+        file = open(filepath, 'w')
     except:
         return False
 
@@ -1630,7 +1589,7 @@ def write(filename, batch_objects = None, \
 # 		if me.vertexColors:
             collayers = me.vertex_colors
 # 			collayers = me.getColorLayerNames()
-            collayer_orig = me.active_vertex_color
+            collayer_orig = me.vertex_colors.active
 # 			collayer_orig = me.activeColorLayer
             for colindex, collayer in enumerate(collayers):
 # 				me.activeColorLayer = collayer
@@ -1700,7 +1659,7 @@ def write(filename, batch_objects = None, \
         if do_uvs:
             uvlayers = me.uv_textures
 # 			uvlayers = me.getUVLayerNames()
-            uvlayer_orig = me.active_uv_texture
+            uvlayer_orig = me.uv_textures.active
 # 			uvlayer_orig = me.activeUVLayer
             for uvindex, uvlayer in enumerate(me.uv_textures):
 # 			for uvindex, uvlayer in enumerate(uvlayers):
@@ -1834,8 +1793,8 @@ def write(filename, batch_objects = None, \
 
                 mats = my_mesh.blenMaterialList
 
-                if me.active_uv_texture:
-                    uv_faces = me.active_uv_texture.data
+                if me.uv_textures.active:
+                    uv_faces = me.uv_textures.active.data
                 else:
                     uv_faces = [None] * len(me.faces)
 
@@ -2006,7 +1965,7 @@ def write(filename, batch_objects = None, \
                     ob_base.update(scene)
 
             # This causes the makeDisplayList command to effect the mesh
-            scene.set_frame(scene.frame_current)
+            scene.frame_set(scene.frame_current)
 # 			Blender.Set('curframe', Blender.Get('curframe'))
 
 
@@ -2103,7 +2062,7 @@ def write(filename, batch_objects = None, \
                     material_mapping_local = {}
                     if len(me.uv_textures) > 0:
 # 					if me.faceUV:
-                        uvlayer_orig = me.active_uv_texture
+                        uvlayer_orig = me.uv_textures.active
 # 						uvlayer_orig = me.activeUVLayer
                         for uvlayer in me.uv_textures:
 # 						for uvlayer in me.getUVLayerNames():
@@ -2179,7 +2138,7 @@ def write(filename, batch_objects = None, \
                 if ob_base.type == 'ARMATURE':
                     ob_base.update(scene)
             # This causes the makeDisplayList command to effect the mesh
-            scene.set_frame(scene.frame_current)
+            scene.frame_set(scene.frame_current)
 # 			Blender.Set('curframe', Blender.Get('curframe'))
 
     del tmp_ob_type, tmp_objects
@@ -2472,7 +2431,7 @@ Objects:  {''')
         file.write('\n\t\tPoseNode:  {')
         file.write('\n\t\t\tNode: "Model::%s"' % fbxName )
         if matrix:		file.write('\n\t\t\tMatrix: %s' % mat4x4str(matrix))
-        else:			file.write('\n\t\t\tMatrix: %s' % mat4x4str(mtx4_identity))
+        else:			file.write('\n\t\t\tMatrix: %s' % mat4x4str(Matrix()))
         file.write('\n\t\t}')
 
     file.write('\n\t}')
@@ -2760,7 +2719,9 @@ Takes:  {''')
                 else:
                     file.write('\n\tTake: "%s" {' % sane_takename(blenAction))
 
-                act_start, act_end = blenAction.get_frame_range()
+                act_start, act_end = blenAction.frame_range
+                act_start = int(act_start)
+                act_end = int(act_end)
 # 				tmp = blenAction.getFrameNumbers()
 # 				if tmp:
 # 					act_start =	min(tmp)
@@ -2797,7 +2758,7 @@ Takes:  {''')
             '''
             i = act_start
             while i <= act_end:
-                scene.set_frame(i)
+                scene.frame_set(i)
 # 				Blender.Set('curframe', i)
                 for ob_generic in ob_anim_lists:
                     for my_ob in ob_generic:
@@ -2937,8 +2898,7 @@ Takes:  {''')
 
         file.write('\n}')
 
-        scene.set_frame(frame_orig)
-# 		Blender.Set('curframe', frame_orig)
+        scene.frame_set(frame_orig)
 
     else:
         # no animation
@@ -2961,18 +2921,16 @@ Takes:  {''')
 
     # --------------------------- Footer
     if world:
-        m = world.mist
+        m = world.mist_settings
         has_mist = m.use_mist
         mist_intense = m.intensity
         mist_start = m.start
         mist_end = m.depth
         mist_height = m.height
-# 		mist_intense, mist_start, mist_end, mist_height = world.mist
         world_hor = world.horizon_color
-# 		world_hor = world.hor
     else:
         has_mist = mist_intense = mist_start = mist_end = mist_height = 0
-        world_hor = 0,0,0
+        world_hor = 0, 0, 0
 
     file.write('\n;Version 5 settings')
     file.write('\n;------------------------------------------------------------------')
@@ -3024,394 +2982,7 @@ Takes:  {''')
 # 		bpy.util.copy_images( [ tex[1] for tex in textures if tex[1] != None ], basepath)
 
     print('export finished in %.4f sec.' % (time.clock() - start_time))
-# 	print 'export finished in %.4f sec.' % (Blender.sys.time() - start_time)
-    return True
-
-
-# --------------------------------------------
-# UI Function - not a part of the exporter.
-# this is to separate the user interface from the rest of the exporter.
-# from Blender import Draw, Window
-EVENT_NONE = 0
-EVENT_EXIT = 1
-EVENT_REDRAW = 2
-EVENT_FILESEL = 3
-
-GLOBALS = {}
-
-# export opts
-
-def do_redraw(e,v):		GLOBALS['EVENT'] = e
-
-# toggle between these 2, only allow one on at once
-def do_obs_sel(e,v):
-    GLOBALS['EVENT'] = e
-    GLOBALS['EXP_OBS_SCENE'].val = 0
-    GLOBALS['EXP_OBS_SELECTED'].val = 1
-
-def do_obs_sce(e,v):
-    GLOBALS['EVENT'] = e
-    GLOBALS['EXP_OBS_SCENE'].val = 1
-    GLOBALS['EXP_OBS_SELECTED'].val = 0
-
-def do_batch_type_grp(e,v):
-    GLOBALS['EVENT'] = e
-    GLOBALS['BATCH_GROUP'].val = 1
-    GLOBALS['BATCH_SCENE'].val = 0
-
-def do_batch_type_sce(e,v):
-    GLOBALS['EVENT'] = e
-    GLOBALS['BATCH_GROUP'].val = 0
-    GLOBALS['BATCH_SCENE'].val = 1
-
-def do_anim_act_all(e,v):
-    GLOBALS['EVENT'] = e
-    GLOBALS['ANIM_ACTION_ALL'][0].val = 1
-    GLOBALS['ANIM_ACTION_ALL'][1].val = 0
-
-def do_anim_act_cur(e,v):
-    if GLOBALS['BATCH_ENABLE'].val and GLOBALS['BATCH_GROUP'].val:
-        Draw.PupMenu('Warning%t|Cant use this with batch export group option')
-    else:
-        GLOBALS['EVENT'] = e
-        GLOBALS['ANIM_ACTION_ALL'][0].val = 0
-        GLOBALS['ANIM_ACTION_ALL'][1].val = 1
-
-def fbx_ui_exit(e,v):
-    GLOBALS['EVENT'] = e
-
-def do_help(e,v):
-    url = 'http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx'
-    print('Trying to open web browser with documentation at this address...')
-    print('\t' + url)
-
-    try:
-        import webbrowser
-        webbrowser.open(url)
-    except:
-        Blender.Draw.PupMenu("Error%t|Opening a webbrowser requires a full python installation")
-        print('...could not open a browser window.')
-
-
-
-# run when export is pressed
-#def fbx_ui_write(e,v):
-def fbx_ui_write(filename, context):
-
-    # Dont allow overwriting files when saving normally
-    if not GLOBALS['BATCH_ENABLE'].val:
-        if not BPyMessages.Warning_SaveOver(filename):
-            return
-
-    GLOBALS['EVENT'] = EVENT_EXIT
-
-    # Keep the order the same as above for simplicity
-    # the [] is a dummy arg used for objects
-
-    Blender.Window.WaitCursor(1)
-
-    # Make the matrix
-    GLOBAL_MATRIX = mtx4_identity
-    GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = GLOBALS['_SCALE'].val
-    if GLOBALS['_XROT90'].val:	GLOBAL_MATRIX = mtx4_x90n * GLOBAL_MATRIX
-    if GLOBALS['_YROT90'].val:	GLOBAL_MATRIX = mtx4_y90n * GLOBAL_MATRIX
-    if GLOBALS['_ZROT90'].val:	GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
-
-    ret = write(\
-        filename, None,\
-        context,
-        GLOBALS['EXP_OBS_SELECTED'].val,\
-        GLOBALS['EXP_MESH'].val,\
-        GLOBALS['EXP_MESH_APPLY_MOD'].val,\
-        GLOBALS['EXP_MESH_HQ_NORMALS'].val,\
-        GLOBALS['EXP_ARMATURE'].val,\
-        GLOBALS['EXP_LAMP'].val,\
-        GLOBALS['EXP_CAMERA'].val,\
-        GLOBALS['EXP_EMPTY'].val,\
-        GLOBALS['EXP_IMAGE_COPY'].val,\
-        GLOBAL_MATRIX,\
-        GLOBALS['ANIM_ENABLE'].val,\
-        GLOBALS['ANIM_OPTIMIZE'].val,\
-        GLOBALS['ANIM_OPTIMIZE_PRECISSION'].val,\
-        GLOBALS['ANIM_ACTION_ALL'][0].val,\
-        GLOBALS['BATCH_ENABLE'].val,\
-        GLOBALS['BATCH_GROUP'].val,\
-        GLOBALS['BATCH_SCENE'].val,\
-        GLOBALS['BATCH_FILE_PREFIX'].val,\
-        GLOBALS['BATCH_OWN_DIR'].val,\
-    )
-
-    Blender.Window.WaitCursor(0)
-    GLOBALS.clear()
-
-    if ret == False:
-        Draw.PupMenu('Error%t|Path cannot be written to!')
-
-
-def fbx_ui():
-    # Only to center the UI
-    x,y = GLOBALS['MOUSE']
-    x-=180; y-=0 # offset... just to get it centered
-
-    Draw.Label('Export Objects...', x+20,y+165, 200, 20)
-
-    if not GLOBALS['BATCH_ENABLE'].val:
-        Draw.BeginAlign()
-        GLOBALS['EXP_OBS_SELECTED'] =	Draw.Toggle('Selected Objects',	EVENT_REDRAW, x+20,  y+145, 160, 20, GLOBALS['EXP_OBS_SELECTED'].val,	'Export selected objects on visible layers', do_obs_sel)
-        GLOBALS['EXP_OBS_SCENE'] =		Draw.Toggle('Scene Objects',	EVENT_REDRAW, x+180,  y+145, 160, 20, GLOBALS['EXP_OBS_SCENE'].val,		'Export all objects in this scene', do_obs_sce)
-        Draw.EndAlign()
-
-    Draw.BeginAlign()
-    GLOBALS['_SCALE'] =		Draw.Number('Scale:',	EVENT_NONE, x+20, y+120, 140, 20, GLOBALS['_SCALE'].val,	0.01, 1000.0, 'Scale all data, (Note! some imports dont support scaled armatures)')
-    GLOBALS['_XROT90'] =	Draw.Toggle('Rot X90',	EVENT_NONE, x+160, y+120, 60, 20, GLOBALS['_XROT90'].val,		'Rotate all objects 90 degrees about the X axis')
-    GLOBALS['_YROT90'] =	Draw.Toggle('Rot Y90',	EVENT_NONE, x+220, y+120, 60, 20, GLOBALS['_YROT90'].val,		'Rotate all objects 90 degrees about the Y axis')
-    GLOBALS['_ZROT90'] =	Draw.Toggle('Rot Z90',	EVENT_NONE, x+280, y+120, 60, 20, GLOBALS['_ZROT90'].val,		'Rotate all objects 90 degrees about the Z axis')
-    Draw.EndAlign()
-
-    y -= 35
-
-    Draw.BeginAlign()
-    GLOBALS['EXP_EMPTY'] =		Draw.Toggle('Empty',	EVENT_NONE, x+20, y+120, 60, 20, GLOBALS['EXP_EMPTY'].val,		'Export empty objects')
-    GLOBALS['EXP_CAMERA'] =		Draw.Toggle('Camera',	EVENT_NONE, x+80, y+120, 60, 20, GLOBALS['EXP_CAMERA'].val,		'Export camera objects')
-    GLOBALS['EXP_LAMP'] =		Draw.Toggle('Lamp',		EVENT_NONE, x+140, y+120, 60, 20, GLOBALS['EXP_LAMP'].val,		'Export lamp objects')
-    GLOBALS['EXP_ARMATURE'] =	Draw.Toggle('Armature',	EVENT_NONE, x+200,  y+120, 60, 20, GLOBALS['EXP_ARMATURE'].val,	'Export armature objects')
-    GLOBALS['EXP_MESH'] =		Draw.Toggle('Mesh',		EVENT_REDRAW, x+260,  y+120, 80, 20, GLOBALS['EXP_MESH'].val,	'Export mesh objects', do_redraw) #, do_axis_z)
-    Draw.EndAlign()
-
-    if GLOBALS['EXP_MESH'].val:
-        # below mesh but
-        Draw.BeginAlign()
-        GLOBALS['EXP_MESH_APPLY_MOD'] =		Draw.Toggle('Modifiers',	EVENT_NONE, x+260,  y+100, 80, 20, GLOBALS['EXP_MESH_APPLY_MOD'].val,		'Apply modifiers to mesh objects') #, do_axis_z)
-        GLOBALS['EXP_MESH_HQ_NORMALS'] =	Draw.Toggle('HQ Normals',		EVENT_NONE, x+260,  y+80, 80, 20, GLOBALS['EXP_MESH_HQ_NORMALS'].val,		'Generate high quality normals') #, do_axis_z)
-        Draw.EndAlign()
-
-    GLOBALS['EXP_IMAGE_COPY'] =		Draw.Toggle('Copy Image Files',	EVENT_NONE, x+20, y+80, 160, 20, GLOBALS['EXP_IMAGE_COPY'].val,		'Copy image files to the destination path') #, do_axis_z)
-
-
-    Draw.Label('Export Armature Animation...', x+20,y+45, 300, 20)
-
-    GLOBALS['ANIM_ENABLE'] =	Draw.Toggle('Enable Animation',		EVENT_REDRAW, x+20,  y+25, 160, 20, GLOBALS['ANIM_ENABLE'].val,		'Export keyframe animation', do_redraw)
-    if GLOBALS['ANIM_ENABLE'].val:
-        Draw.BeginAlign()
-        GLOBALS['ANIM_OPTIMIZE'] =				Draw.Toggle('Optimize Keyframes',	EVENT_REDRAW, x+20,  y+0, 160, 20, GLOBALS['ANIM_OPTIMIZE'].val,	'Remove double keyframes', do_redraw)
-        if GLOBALS['ANIM_OPTIMIZE'].val:
-            GLOBALS['ANIM_OPTIMIZE_PRECISSION'] =	Draw.Number('Precission: ',			EVENT_NONE, x+180,  y+0, 160, 20, GLOBALS['ANIM_OPTIMIZE_PRECISSION'].val,	1, 16, 'Tolerence for comparing double keyframes (higher for greater accuracy)')
-        Draw.EndAlign()
-
-        Draw.BeginAlign()
-        GLOBALS['ANIM_ACTION_ALL'][1] =	Draw.Toggle('Current Action',	EVENT_REDRAW, x+20, y-25, 160, 20, GLOBALS['ANIM_ACTION_ALL'][1].val,		'Use actions currently applied to the armatures (use scene start/end frame)', do_anim_act_cur)
-        GLOBALS['ANIM_ACTION_ALL'][0] =		Draw.Toggle('All Actions',	EVENT_REDRAW, x+180,y-25, 160, 20, GLOBALS['ANIM_ACTION_ALL'][0].val,		'Use all actions for armatures', do_anim_act_all)
-        Draw.EndAlign()
-
-
-    Draw.Label('Export Batch...', x+20,y-60, 300, 20)
-    GLOBALS['BATCH_ENABLE'] =	Draw.Toggle('Enable Batch',		EVENT_REDRAW, x+20,  y-80, 160, 20, GLOBALS['BATCH_ENABLE'].val,		'Automate exporting multiple scenes or groups to files', do_redraw)
-
-    if GLOBALS['BATCH_ENABLE'].val:
-        Draw.BeginAlign()
-        GLOBALS['BATCH_GROUP'] =	Draw.Toggle('Group > File',	EVENT_REDRAW, x+20,  y-105, 160, 20, GLOBALS['BATCH_GROUP'].val,		'Export each group as an FBX file', do_batch_type_grp)
-        GLOBALS['BATCH_SCENE'] =	Draw.Toggle('Scene > File',	EVENT_REDRAW, x+180,  y-105, 160, 20, GLOBALS['BATCH_SCENE'].val,	'Export each scene as an FBX file', do_batch_type_sce)
-
-        # Own dir requires OS module
-        if os:
-            GLOBALS['BATCH_OWN_DIR'] =		Draw.Toggle('Own Dir',	EVENT_NONE, x+20,  y-125, 80, 20, GLOBALS['BATCH_OWN_DIR'].val,		'Create a dir for each exported file')
-            GLOBALS['BATCH_FILE_PREFIX'] =	Draw.String('Prefix: ',	EVENT_NONE, x+100,  y-125, 240, 20, GLOBALS['BATCH_FILE_PREFIX'].val, 64,	'Prefix each file with this name ')
-        else:
-            GLOBALS['BATCH_FILE_PREFIX'] =	Draw.String('Prefix: ',	EVENT_NONE, x+20,  y-125, 320, 20, GLOBALS['BATCH_FILE_PREFIX'].val, 64,	'Prefix each file with this name ')
-
-
-        Draw.EndAlign()
-
-    #y+=80
-
-    '''
-    Draw.BeginAlign()
-    GLOBALS['FILENAME'] =	Draw.String('path: ',	EVENT_NONE, x+20,  y-170, 300, 20, GLOBALS['FILENAME'].val, 64,	'Prefix each file with this name ')
-    Draw.PushButton('..',	EVENT_FILESEL, x+320,  y-170, 20, 20,		'Select the path', do_redraw)
-    '''
-    # Until batch is added
-    #
-
-
-    #Draw.BeginAlign()
-    Draw.PushButton('Online Help',	EVENT_REDRAW, x+20, y-160, 100, 20,	'Open online help in a browser window', do_help)
-    Draw.PushButton('Cancel',		EVENT_EXIT, x+130, y-160, 100, 20,	'Exit the exporter', fbx_ui_exit)
-    Draw.PushButton('Export',		EVENT_FILESEL, x+240, y-160, 100, 20,	'Export the fbx file', do_redraw)
-
-    #Draw.PushButton('Export',	EVENT_EXIT, x+180, y-160, 160, 20,	'Export the fbx file', fbx_ui_write)
-    #Draw.EndAlign()
-
-    # exit when mouse out of the view?
-    # GLOBALS['EVENT'] = EVENT_EXIT
-
-#def write_ui(filename):
-def write_ui():
-
-    # globals
-    GLOBALS['EVENT'] = EVENT_REDRAW
-    #GLOBALS['MOUSE'] = Window.GetMouseCoords()
-    GLOBALS['MOUSE'] = [i/2 for i in Window.GetScreenSize()]
-    GLOBALS['FILENAME'] = ''
-    '''
-    # IF called from the fileselector
-    if filename == None:
-        GLOBALS['FILENAME'] = filename # Draw.Create(Blender.sys.makename(ext='.fbx'))
-    else:
-        GLOBALS['FILENAME'].val = filename
-    '''
-    GLOBALS['EXP_OBS_SELECTED'] =			Draw.Create(1) # dont need 2 variables but just do this for clarity
-    GLOBALS['EXP_OBS_SCENE'] =				Draw.Create(0)
-
-    GLOBALS['EXP_MESH'] =					Draw.Create(1)
-    GLOBALS['EXP_MESH_APPLY_MOD'] =			Draw.Create(1)
-    GLOBALS['EXP_MESH_HQ_NORMALS'] =		Draw.Create(0)
-    GLOBALS['EXP_ARMATURE'] =				Draw.Create(1)
-    GLOBALS['EXP_LAMP'] =					Draw.Create(1)
-    GLOBALS['EXP_CAMERA'] =					Draw.Create(1)
-    GLOBALS['EXP_EMPTY'] =					Draw.Create(1)
-    GLOBALS['EXP_IMAGE_COPY'] =				Draw.Create(0)
-    # animation opts
-    GLOBALS['ANIM_ENABLE'] =				Draw.Create(1)
-    GLOBALS['ANIM_OPTIMIZE'] =				Draw.Create(1)
-    GLOBALS['ANIM_OPTIMIZE_PRECISSION'] =	Draw.Create(4) # decimal places
-    GLOBALS['ANIM_ACTION_ALL'] =			[Draw.Create(0), Draw.Create(1)] # not just the current action
-
-    # batch export options
-    GLOBALS['BATCH_ENABLE'] =				Draw.Create(0)
-    GLOBALS['BATCH_GROUP'] =				Draw.Create(1) # cant have both of these enabled at once.
-    GLOBALS['BATCH_SCENE'] =				Draw.Create(0) # see above
-    GLOBALS['BATCH_FILE_PREFIX'] =			Draw.Create(Blender.sys.makename(ext='_').split('\\')[-1].split('/')[-1])
-    GLOBALS['BATCH_OWN_DIR'] =				Draw.Create(0)
-    # done setting globals
-
-    # Used by the user interface
-    GLOBALS['_SCALE'] =						Draw.Create(1.0)
-    GLOBALS['_XROT90'] =					Draw.Create(True)
-    GLOBALS['_YROT90'] =					Draw.Create(False)
-    GLOBALS['_ZROT90'] =					Draw.Create(False)
-
-    # best not do move the cursor
-    # Window.SetMouseCoords(*[i/2 for i in Window.GetScreenSize()])
-
-    # hack so the toggle buttons redraw. this is not nice at all
-    while GLOBALS['EVENT'] != EVENT_EXIT:
-
-        if GLOBALS['BATCH_ENABLE'].val and GLOBALS['BATCH_GROUP'].val and GLOBALS['ANIM_ACTION_ALL'][1].val:
-            #Draw.PupMenu("Warning%t|Cant batch export groups with 'Current Action' ")
-            GLOBALS['ANIM_ACTION_ALL'][0].val = 1
-            GLOBALS['ANIM_ACTION_ALL'][1].val = 0
-
-        if GLOBALS['EVENT'] == EVENT_FILESEL:
-            if GLOBALS['BATCH_ENABLE'].val:
-                txt = 'Batch FBX Dir'
-                name = Blender.sys.expandpath('//')
-            else:
-                txt = 'Export FBX'
-                name = Blender.sys.makename(ext='.fbx')
-
-            Blender.Window.FileSelector(fbx_ui_write, txt, name)
-            #fbx_ui_write('/test.fbx')
-            break
-
-        Draw.UIBlock(fbx_ui, 0)
-
-
-    # GLOBALS.clear()
-from bpy.props import *
-class ExportFBX(bpy.types.Operator):
-    '''Selection to an ASCII Autodesk FBX'''
-    bl_idname = "export.fbx"
-    bl_label = "Export FBX"
-
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
-
-
-    filepath = StringProperty(name="File Path", description="Filepath used for exporting the FBX file", maxlen= 1024, default="")
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
-
-    EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
-# 	EXP_OBS_SCENE = BoolProperty(name="Scene Objects", description="Export all objects in this scene", default=True)
-    TX_SCALE = FloatProperty(name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0)
-    TX_XROT90 = BoolProperty(name="Rot X90", description="Rotate all objects 90 degrees about the X axis", default=True)
-    TX_YROT90 = BoolProperty(name="Rot Y90", description="Rotate all objects 90 degrees about the Y axis", default=False)
-    TX_ZROT90 = BoolProperty(name="Rot Z90", description="Rotate all objects 90 degrees about the Z axis", default=False)
-    EXP_EMPTY = BoolProperty(name="Empties", description="Export empty objects", default=True)
-    EXP_CAMERA = BoolProperty(name="Cameras", description="Export camera objects", default=True)
-    EXP_LAMP = BoolProperty(name="Lamps", description="Export lamp objects", default=True)
-    EXP_ARMATURE = BoolProperty(name="Armatures", description="Export armature objects", default=True)
-    EXP_MESH = BoolProperty(name="Meshes", description="Export mesh objects", default=True)
-    EXP_MESH_APPLY_MOD = BoolProperty(name="Modifiers", description="Apply modifiers to mesh objects", default=True)
-    EXP_MESH_HQ_NORMALS = BoolProperty(name="HQ Normals", description="Generate high quality normals", default=True)
-    EXP_IMAGE_COPY = BoolProperty(name="Copy Image Files", description="Copy image files to the destination path", default=False)
-    # armature animation
-    ANIM_ENABLE = BoolProperty(name="Enable Animation", description="Export keyframe animation", default=True)
-    ANIM_OPTIMIZE = BoolProperty(name="Optimize Keyframes", description="Remove double keyframes", default=True)
-    ANIM_OPTIMIZE_PRECISSION = FloatProperty(name="Precision", description="Tolerence for comparing double keyframes (higher for greater accuracy)", min=1, max=16, soft_min=1, soft_max=16, default=6.0)
-# 	ANIM_ACTION_ALL = BoolProperty(name="Current Action", description="Use actions currently applied to the armatures (use scene start/end frame)", default=True)
-    ANIM_ACTION_ALL = BoolProperty(name="All Actions", description="Use all actions for armatures, if false, use current action", default=False)
-    # batch
-    BATCH_ENABLE = BoolProperty(name="Enable Batch", description="Automate exporting multiple scenes or groups to files", default=False)
-    BATCH_GROUP = BoolProperty(name="Group > File", description="Export each group as an FBX file, if false, export each scene as an FBX file", default=False)
-    BATCH_OWN_DIR = BoolProperty(name="Own Dir", description="Create a dir for each exported file", default=True)
-    BATCH_FILE_PREFIX = StringProperty(name="Prefix", description="Prefix each file with this name", maxlen=1024, default="")
-
-
-    @classmethod
-    def poll(cls, context):
-        return context.active_object
-
-    def execute(self, context):
-        if not self.properties.filepath:
-            raise Exception("filepath not set")
-
-        filepath = self.properties.filepath
-        filepath = bpy.path.ensure_ext(filepath, ".fbx")
-
-        GLOBAL_MATRIX = mtx4_identity
-        GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.properties.TX_SCALE
-        if self.properties.TX_XROT90: GLOBAL_MATRIX = mtx4_x90n * GLOBAL_MATRIX
-        if self.properties.TX_YROT90: GLOBAL_MATRIX = mtx4_y90n * GLOBAL_MATRIX
-        if self.properties.TX_ZROT90: GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
-
-        write(filepath,
-              None, # XXX
-              context,
-              self.properties.EXP_OBS_SELECTED,
-              self.properties.EXP_MESH,
-              self.properties.EXP_MESH_APPLY_MOD,
-# 			  self.properties.EXP_MESH_HQ_NORMALS,
-              self.properties.EXP_ARMATURE,
-              self.properties.EXP_LAMP,
-              self.properties.EXP_CAMERA,
-              self.properties.EXP_EMPTY,
-              self.properties.EXP_IMAGE_COPY,
-              GLOBAL_MATRIX,
-              self.properties.ANIM_ENABLE,
-              self.properties.ANIM_OPTIMIZE,
-              self.properties.ANIM_OPTIMIZE_PRECISSION,
-              self.properties.ANIM_ACTION_ALL,
-              self.properties.BATCH_ENABLE,
-              self.properties.BATCH_GROUP,
-              self.properties.BATCH_FILE_PREFIX,
-              self.properties.BATCH_OWN_DIR,
-              )
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        import os
-        if not self.properties.is_property_set("filepath"):
-            self.properties.filepath = os.path.splitext(bpy.data.filepath)[0] + ".fbx"
-
-        context.manager.add_fileselect(self)
-        return {'RUNNING_MODAL'}
-
-
-
-
-# if __name__ == "__main__":
-# 	bpy.ops.EXPORT_OT_ply(filepath="/tmp/test.ply")
+    return {'FINISHED'}
 
 
 # NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
@@ -3432,21 +3003,3 @@ class ExportFBX(bpy.types.Operator):
 # - bpy.sys.time move to bpy.sys.util?
 # - new scene creation, activation: lines 327-342, 368
 # - uses bpy.path.abspath, *.relpath - replace at least relpath
-
-# SMALL or COSMETICAL
-# - find a way to get blender version, and put it in bpy.util?, old was Blender.Get('version')
-
-
-def menu_func(self, context):
-    self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)")
-
-
-def register():
-    bpy.types.INFO_MT_file_export.append(menu_func)
-
-
-def unregister():
-    bpy.types.INFO_MT_file_export.remove(menu_func)
-
-if __name__ == "__main__":
-    register()

@@ -52,7 +52,7 @@ class ParticleButtonsPanel():
 
 class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -69,7 +69,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
         if ob:
             row = layout.row()
 
-            row.template_list(ob, "particle_systems", ob, "active_particle_system_index", rows=2)
+            row.template_list(ob, "particle_systems", ob.particle_systems, "active_index", rows=2)
 
             col = row.column(align=True)
             col.operator("object.particle_system_add", icon='ZOOMIN', text="")
@@ -196,7 +196,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
 
 class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Hair dynamics"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -254,7 +254,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, bpy.types.Panel):
 
 class PARTICLE_PT_cache(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Cache"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -487,12 +487,12 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
             col.prop(boids, "air_ave_max", slider=True)
             col.prop(boids, "air_personal_space")
             row = col.row()
-            row.active = (boids.use_land or boids.allow_climb) and boids.allow_flight
+            row.active = (boids.use_land or boids.use_climb) and boids.use_flight
             row.prop(boids, "land_smooth")
 
             sub = split.column()
             col = sub.column(align=True)
-            col.active = boids.use_land or boids.allow_climb
+            col.active = boids.use_land or boids.use_climb
             col.prop(boids, "land_speed_max")
             col.prop(boids, "land_jump_speed")
             col.prop(boids, "land_acc_max", slider=True)
@@ -828,7 +828,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
 
 class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -862,6 +862,15 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
         else:
             row.label(text="")
 
+        if part.draw_percentage != 100:
+            if part.type == 'HAIR':
+                if psys.hair_dynamics and psys.point_cache.is_baked == False:
+                    layout.row().label(text="Display percentage makes dynamics inaccurate without baking!")
+            else:
+                phystype = part.physics_type
+                if phystype != 'NO' and phystype != 'KEYED' and psys.point_cache.is_baked == False:
+                    layout.row().label(text="Display percentage makes dynamics inaccurate without baking!")
+
         row = layout.row()
         col = row.column()
         col.prop(part, "show_size")
@@ -884,7 +893,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
 
 class PARTICLE_PT_children(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Children"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -966,7 +975,7 @@ class PARTICLE_PT_children(ParticleButtonsPanel, bpy.types.Panel):
 
 class PARTICLE_PT_field_weights(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Field Weights"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -979,7 +988,7 @@ class PARTICLE_PT_field_weights(ParticleButtonsPanel, bpy.types.Panel):
 
 class PARTICLE_PT_force_fields(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Force Field Settings"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -1007,7 +1016,7 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel, bpy.types.Panel):
 
 class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
     bl_label = "Vertexgroups"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -1025,52 +1034,53 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
 
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_density", ob, "vertex_groups", text="Density")
+        row.prop_search(psys, "vertex_group_density", ob, "vertex_groups", text="Density")
         row.prop(psys, "invert_vertex_group_density", text="")
 
-        row = layout.row()
-        row.prop_object(psys, "vertex_group_velocity", ob, "vertex_groups", text="Velocity")
-        row.prop(psys, "invert_vertex_group_velocity", text="")
+        # Commented out vertex groups don't work and are still waiting for better implementation
+        # row = layout.row()
+        # row.prop_search(psys, "vertex_group_velocity", ob, "vertex_groups", text="Velocity")
+        # row.prop(psys, "invert_vertex_group_velocity", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_length", ob, "vertex_groups", text="Length")
+        row.prop_search(psys, "vertex_group_length", ob, "vertex_groups", text="Length")
         row.prop(psys, "invert_vertex_group_length", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_clump", ob, "vertex_groups", text="Clump")
+        row.prop_search(psys, "vertex_group_clump", ob, "vertex_groups", text="Clump")
         row.prop(psys, "invert_vertex_group_clump", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_kink", ob, "vertex_groups", text="Kink")
+        row.prop_search(psys, "vertex_group_kink", ob, "vertex_groups", text="Kink")
         row.prop(psys, "invert_vertex_group_kink", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_roughness_1", ob, "vertex_groups", text="Roughness 1")
+        row.prop_search(psys, "vertex_group_roughness_1", ob, "vertex_groups", text="Roughness 1")
         row.prop(psys, "invert_vertex_group_roughness_1", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_roughness_2", ob, "vertex_groups", text="Roughness 2")
+        row.prop_search(psys, "vertex_group_roughness_2", ob, "vertex_groups", text="Roughness 2")
         row.prop(psys, "invert_vertex_group_roughness_2", text="")
 
         row = layout.row()
-        row.prop_object(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
+        row.prop_search(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
         row.prop(psys, "invert_vertex_group_roughness_end", text="")
 
-        row = layout.row()
-        row.prop_object(psys, "vertex_group_size", ob, "vertex_groups", text="Size")
-        row.prop(psys, "invert_vertex_group_size", text="")
+        # row = layout.row()
+        # row.prop_search(psys, "vertex_group_size", ob, "vertex_groups", text="Size")
+        # row.prop(psys, "invert_vertex_group_size", text="")
 
-        row = layout.row()
-        row.prop_object(psys, "vertex_group_tangent", ob, "vertex_groups", text="Tangent")
-        row.prop(psys, "invert_vertex_group_tangent", text="")
+        # row = layout.row()
+        # row.prop_search(psys, "vertex_group_tangent", ob, "vertex_groups", text="Tangent")
+        # row.prop(psys, "invert_vertex_group_tangent", text="")
 
-        row = layout.row()
-        row.prop_object(psys, "vertex_group_rotation", ob, "vertex_groups", text="Rotation")
-        row.prop(psys, "invert_vertex_group_rotation", text="")
+        # row = layout.row()
+        # row.prop_search(psys, "vertex_group_rotation", ob, "vertex_groups", text="Rotation")
+        # row.prop(psys, "invert_vertex_group_rotation", text="")
 
-        row = layout.row()
-        row.prop_object(psys, "vertex_group_field", ob, "vertex_groups", text="Field")
-        row.prop(psys, "invert_vertex_group_field", text="")
+        # row = layout.row()
+        # row.prop_search(psys, "vertex_group_field", ob, "vertex_groups", text="Field")
+        # row.prop(psys, "invert_vertex_group_field", text="")
 
 
 class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, bpy.types.Panel):

@@ -2201,6 +2201,17 @@ PropertyRNA *RNA_def_float_vector(StructOrFunctionRNA *cont_, const char *identi
 	return prop;
 }
 
+PropertyRNA *RNA_def_float_vector_xyz(StructOrFunctionRNA *cont_, const char *identifier, int len, const float *default_value, 
+	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
+{
+	PropertyRNA *prop;
+	
+	prop= RNA_def_float_vector(cont_, identifier, len, default_value, hardmin, hardmax, ui_name, ui_description, softmin, softmax);
+	prop->subtype = PROP_XYZ_LENGTH;
+
+	return prop;
+}
+
 PropertyRNA *RNA_def_float_color(StructOrFunctionRNA *cont_, const char *identifier, int len, const float *default_value, 
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {
@@ -2514,7 +2525,7 @@ int rna_parameter_size_alloc(PropertyRNA *parm)
 	int size = rna_parameter_size(parm);
 
 	if (parm->flag & PROP_DYNAMIC)
-		size+= sizeof(int);
+		size+= sizeof(((ParameterDynAlloc *)NULL)->array_tot);
 
 	return size;
 }

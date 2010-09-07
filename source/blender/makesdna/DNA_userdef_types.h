@@ -380,6 +380,8 @@ typedef struct UserDef {
 
 	float sculpt_paint_overlay_col[3];
 	int pad3;
+
+	char author[80];	/* author name for file formats supporting it */
 } UserDef;
 
 extern UserDef U; /* from blenkernel blender.c */

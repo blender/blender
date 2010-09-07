@@ -509,10 +509,15 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		
 		case NC_SCENE:
+			switch (wmn->data) {
+				case ND_FRAME:
+				case ND_FRAME_RANGE:
+				case ND_KEYINGSET:
+				case ND_RENDER_OPTIONS:
 			ED_region_tag_redraw(ar);
 			break;
-		
 	}
+}
 }
 
 /* ************************ header time area region *********************** */
@@ -540,6 +545,7 @@ static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch (wmn->data) {
 				case ND_FRAME:
+				case ND_FRAME_RANGE:
 				case ND_KEYINGSET:
 				case ND_RENDER_OPTIONS:
 					ED_region_tag_redraw(ar);

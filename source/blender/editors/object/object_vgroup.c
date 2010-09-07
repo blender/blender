@@ -85,7 +85,7 @@ bDeformGroup *ED_vgroup_add_name(Object *ob, char *name)
 {
 	bDeformGroup *defgroup;
 	
-	if(!ob)
+	if(!ob || !ELEM(ob->type, OB_MESH, OB_LATTICE))
 		return NULL;
 	
 	defgroup = MEM_callocN(sizeof(bDeformGroup), "add deformGroup");

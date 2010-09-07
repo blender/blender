@@ -39,7 +39,7 @@
 #define SWIZZLE_VALID_AXIS 0x4
 #define SWIZZLE_AXIS       0x3
 
-static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat); /* utility func */
+static int row_vector_multiplication(float rvec[4], VectorObject* vec, MatrixObject * mat); /* utility func */
 static PyObject *Vector_ToTupleExt(VectorObject *self, int ndigits);
 
 //----------------------------------mathutils.Vector() ------------------
@@ -1003,6 +1003,10 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 	}
 	
 	/*swap so vec1 is always the vector */
+	/* note: it would seem from this code that the matrix multiplication below
+	 * is communicative. however the matrix class will always handle the
+	 * (matrix * vector) case so we can ignore it here.
+	 * This is NOT so for Quaternions: TODO, check if communicative (vec * quat) is correct */
 	if (vec2) {
 		vec1= vec2;
 		v2= v1;
@@ -1010,7 +1014,10 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 	
 	if (MatrixObject_Check(v2)) {
 		/* VEC * MATRIX */
-		return row_vector_multiplication(vec1, (MatrixObject*)v2);
+		float tvec[4];
+		if(row_vector_multiplication(tvec, vec1, (MatrixObject*)v2) == -1)
+			return NULL;
+		return newVectorObject(tvec, vec1->size, Py_NEW, NULL);
 	} else if (QuaternionObject_Check(v2)) {
 		/* VEC * QUAT */
 		QuaternionObject *quat2 = (QuaternionObject*)v2;
@@ -1056,43 +1063,21 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 	/* only support vec*=float and vec*=mat
 	   vec*=vec result is a float so that wont work */
 	if (MatrixObject_Check(v2)) {
-		float vecCopy[4];
-		int x,y, size = vec->size;
-		MatrixObject *mat= (MatrixObject*)v2;
-		
-		if(!BaseMath_ReadCallback(mat))
+		float tvec[4];
+		if(row_vector_multiplication(tvec, vec, (MatrixObject*)v2) == -1)
 			return NULL;
 		
-		if(mat->colSize != size){
-			if(mat->rowSize == 4 && vec->size != 3){
-				PyErr_SetString(PyExc_AttributeError, "vector * matrix: matrix column size and the vector size must be the same");
-				return NULL;
-			} else {
-				vecCopy[3] = 1.0f;
+		i= vec->size - 1;
+		do {
+			vec->vec[i] = tvec[i];
+		} while(i--);
 			}
-		}
-		
-		for(i = 0; i < size; i++){
-			vecCopy[i] = vec->vec[i];
-		}
-		
-		size = MIN2(size, mat->colSize);
-		
-		/*muliplication*/
-		for(x = 0, i = 0; x < size; x++, i++) {
-			double dot = 0.0f;
-			for(y = 0; y < mat->rowSize; y++) {
-				dot += mat->matrix[y][x] * vecCopy[y];
-			}
-			vec->vec[i] = (float)dot;
-		}
-	}
 	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*=FLOAT */
-		
-		for(i = 0; i < vec->size; i++) {
+		i= vec->size - 1;
+		do {
 			vec->vec[i] *=	scalar;
+		} while(i--);		
 		}
-	}
 	else {
 		PyErr_SetString(PyExc_TypeError, "Vector multiplication: arguments not acceptable for this operation\n");
 		return NULL;
@@ -1992,37 +1977,37 @@ if len(unique) != len(items):
 //             [2][5][8]
 //             [3][6][9]
 //vector/matrix multiplication IS NOT COMMUTATIVE!!!!
-static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat)
+static int row_vector_multiplication(float rvec[4], VectorObject* vec, MatrixObject * mat)
 {
-	float vecNew[4], vecCopy[4];
+	float vecCopy[4];
 	double dot = 0.0f;
 	int x, y, z = 0, vec_size = vec->size;
 
 	if(mat->colSize != vec_size){
 		if(mat->colSize == 4 && vec_size != 3){
 			PyErr_SetString(PyExc_AttributeError, "vector * matrix: matrix column size and the vector size must be the same");
-			return NULL;
+			return -1;
 		}else{
 			vecCopy[3] = 1.0f;
 		}
 	}
 	
 	if(!BaseMath_ReadCallback(vec) || !BaseMath_ReadCallback(mat))
-		return NULL;
+		return -1;
 	
 	for(x = 0; x < vec_size; x++){
 		vecCopy[x] = vec->vec[x];
 	}
-	vecNew[3] = 1.0f;
+	rvec[3] = 1.0f;
 	//muliplication
 	for(x = 0; x < mat->rowSize; x++) {
 		for(y = 0; y < mat->colSize; y++) {
 			dot += mat->matrix[x][y] * vecCopy[y];
 		}
-		vecNew[z++] = (float)dot;
+		rvec[z++] = (float)dot;
 		dot = 0.0f;
 	}
-	return newVectorObject(vecNew, vec_size, Py_NEW, NULL);
+	return 0;
 }
 
 /*----------------------------Vector.negate() -------------------- */

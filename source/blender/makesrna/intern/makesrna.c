@@ -49,6 +49,7 @@
 
 static int replace_if_different(char *tmpfile)
 {
+	// return 0; // use for testing had edited rna
 
 #define REN_IF_DIFF \
 	remove(orgfile); \
@@ -1412,10 +1413,12 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	fprintf(f, "\n{\n");
 
 	/* variable definitions */
-	if((func->flag & FUNC_NO_SELF)==0) {
-		if(func->flag & FUNC_USE_SELF_ID)
+	
+	if(func->flag & FUNC_USE_SELF_ID) {
 			fprintf(f, "\tstruct ID *_selfid;\n");
+	}
 
+	if((func->flag & FUNC_NO_SELF)==0) {
 		if(dsrna->dnaname) fprintf(f, "\tstruct %s *_self;\n", dsrna->dnaname);
 		else fprintf(f, "\tstruct %s *_self;\n", srna->identifier);
 	}
@@ -1441,11 +1444,11 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		else
 			ptrstr= pout ? "*" : "";
 
-		fprintf(f, "\t%s%s %s%s;\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, dparm->prop->identifier);
-
 		/* for dynamic parameters we pass an additional int for the length of the parameter */
 		if (flag & PROP_DYNAMIC)
 			fprintf(f, "\tint %s%s_len;\n", pout ? "*" : "", dparm->prop->identifier);
+		
+		fprintf(f, "\t%s%s %s%s;\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, dparm->prop->identifier);
 	}
 
 	fprintf(f, "\tchar *_data");
@@ -1454,10 +1457,11 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	fprintf(f, "\t\n");
 
 	/* assign self */
-	if((func->flag & FUNC_NO_SELF)==0) {
-		if(func->flag & FUNC_USE_SELF_ID)
+	if(func->flag & FUNC_USE_SELF_ID) {
 			fprintf(f, "\t_selfid= (struct ID*)_ptr->id.data;\n");
+	}
 
+	if((func->flag & FUNC_NO_SELF)==0) {
 		if(dsrna->dnaname) fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", dsrna->dnaname);
 		else fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", srna->identifier);
 	}
@@ -1474,6 +1478,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		if(dparm->prop==func->c_ret)
 			fprintf(f, "\t_retdata= _data;\n");
 		else  {
+			char *data_str;
 			if (cptr || (flag & PROP_DYNAMIC)) {
 				ptrstr= "**";
 				valstr= "*";
@@ -1491,16 +1496,20 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 				valstr= "*";
 			}
 
+			/* this must be kept in sync with RNA_parameter_length_get_data, we could just call the function directly, but this is faster */
+			if (flag & PROP_DYNAMIC) {
+				fprintf(f, "\t%s_len= %s((int *)_data);\n", dparm->prop->identifier, pout ? "" : "*");
+				data_str= "(&(((char *)_data)[sizeof(void *)]))";
+			}
+			else {
+				data_str= "_data";
+			}
 			fprintf(f, "\t%s= ", dparm->prop->identifier);
 
 			if (!pout)
 				fprintf(f, "%s", valstr);
 
-			fprintf(f, "((%s%s%s)_data);\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr);
-
-			/* this must be kept in sync with RNA_parameter_length_get_data, we could just call the function directly, but this is faster */
-			if (flag & PROP_DYNAMIC)
-				fprintf(f, "\t%s_len= %s((int *)(_data+%d));\n", dparm->prop->identifier, pout ? "" : "*", rna_parameter_size(dparm->prop));
+			fprintf(f, "((%s%s%s)%s);\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, data_str);
 		}
 
 		if(dparm->next)
@@ -1515,10 +1524,13 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 		first= 1;
 
-		if((func->flag & FUNC_NO_SELF)==0) {
-			if(func->flag & FUNC_USE_SELF_ID)
-				fprintf(f, "_selfid, ");
+		if(func->flag & FUNC_USE_SELF_ID) {
+			fprintf(f, "_selfid");
+			first= 0;
+		}
 
+		if((func->flag & FUNC_NO_SELF)==0) {
+			if(!first) fprintf(f, ", ");
 			fprintf(f, "_self");
 			first= 0;
 		}
@@ -1543,10 +1555,10 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 			if(!first) fprintf(f, ", ");
 			first= 0;
 
-			fprintf(f, "%s", dparm->prop->identifier);
-
 			if (dparm->prop->flag & PROP_DYNAMIC)
-				fprintf(f, ", %s_len", dparm->prop->identifier);
+				fprintf(f, "%s_len, %s", dparm->prop->identifier, dparm->prop->identifier);
+			else
+			fprintf(f, "%s", dparm->prop->identifier);
 		}
 
 		fprintf(f, ");\n");
@@ -1820,10 +1832,13 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 	first= 1;
 
 	/* self, context and reports parameters */
+	if(func->flag & FUNC_USE_SELF_ID) {
+		fprintf(f, "struct ID *_selfid");
+		first= 0;		
+	}
+	
 	if((func->flag & FUNC_NO_SELF)==0) {
-		if(func->flag & FUNC_USE_SELF_ID)
-			fprintf(f, "struct ID *_selfid, ");
-
+		if(!first) fprintf(f, ", ");
 		if(dsrna->dnaname) fprintf(f, "struct %s *_self", dsrna->dnaname);
 		else fprintf(f, "struct %s *_self", srna->identifier);
 		first= 0;
@@ -1863,13 +1878,14 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 		if(!first) fprintf(f, ", ");
 		first= 0;
 
+		if (flag & PROP_DYNAMIC)
+			fprintf(f, "int %s%s_len, ", pout ? "*" : "", dparm->prop->identifier);
+
 		if(!(flag & PROP_DYNAMIC) && dparm->prop->arraydimension)
 			fprintf(f, "%s%s %s[%d]", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), dparm->prop->identifier, dparm->prop->totarraylength);
 		else
 			fprintf(f, "%s%s %s%s", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, dparm->prop->identifier);
 
-		if (flag & PROP_DYNAMIC)
-			fprintf(f, ", int %s%s_len", pout ? "*" : "", dparm->prop->identifier);
 	}
 
 	fprintf(f, ");\n");

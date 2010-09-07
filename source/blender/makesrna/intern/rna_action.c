@@ -59,7 +59,7 @@ static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
 	iter->valid= (internal->link != NULL);
 }
 
-static bActionGroup *rna_Action_groups_add(bAction *act, char name[])
+static bActionGroup *rna_Action_groups_new(bAction *act, char name[])
 {
 	return action_groups_add_new(act, name);
 }
@@ -147,6 +147,11 @@ static void rna_Action_pose_markers_remove(bAction *act, ReportList *reports, Ti
 
 	/* XXX, invalidates PyObject */
 	MEM_freeN(marker);
+}
+
+static void rna_Action_frame_range_get(PointerRNA *ptr,float *values)
+{
+	calc_action_range(ptr->id.data, values, values+1, 1);
 }
 
 #else
@@ -361,7 +366,7 @@ static void rna_def_action_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "bAction");
 	RNA_def_struct_ui_text(srna, "Action Groups", "Collection of action groups");
 
-	func= RNA_def_function(srna, "add", "rna_Action_groups_add");
+	func= RNA_def_function(srna, "new", "rna_Action_groups_new");
 	RNA_def_function_ui_description(func, "Add a keyframe to the curve.");
 	parm= RNA_def_string(func, "name", "Group", 0, "", "New name for the action group.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -393,6 +398,7 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a keyframe to the curve.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_string(func, "data_path", "", 0, "Data Path", "FCurve data path to use.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "array_index", 0, 0, INT_MAX, "Index", "Array index.", 0, INT_MAX);
 	parm= RNA_def_string(func, "action_group", "", 0, "Action Group", "Acton group to add this fcurve into.");
 
@@ -462,6 +468,10 @@ static void rna_def_action(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "TimelineMarker");
 	RNA_def_property_ui_text(prop, "Pose Markers", "Markers specific to this Action, for labeling poses");
 	rna_def_action_pose_markers(brna, prop);
+
+	prop= RNA_def_float_vector(srna, "frame_range" , 2 , NULL , 0, 0, "Frame Range" , "The final frame range of all fcurves within this action" , 0 , 0);
+	RNA_def_property_float_funcs(prop, "rna_Action_frame_range_get" , NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	RNA_api_action(srna);
 }

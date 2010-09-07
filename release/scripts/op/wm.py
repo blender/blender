@@ -449,7 +449,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
         else:
             self.properties.initial_x = event.mouse_x
 
-            context.manager.add_modal_handler(self)
+            context.window_manager.add_modal_handler(self)
             return {'RUNNING_MODAL'}
 
 
@@ -505,7 +505,7 @@ class WM_OT_doc_view(bpy.types.Operator):
     bl_label = "View Documentation"
 
     doc_id = doc_id
-    _prefix = 'http://www.blender.org/documentation/250PythonDoc'
+    _prefix = "http://www.blender.org/documentation/blender_python_api_%s" % "_".join(str(v) for v in bpy.app.version)
 
     def _nested_class_string(self, class_string):
         ls = []
@@ -608,7 +608,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
         layout.prop(props, "doc_new", text="")
 
     def invoke(self, context, event):
-        wm = context.manager
+        wm = context.window_manager
         return wm.invoke_props_dialog(self, width=600)
 
 
@@ -692,7 +692,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
             self.properties.max = prop_ui.get("max", 1000000000)
             self.properties.description = prop_ui.get("description", "")
 
-        wm = context.manager
+        wm = context.window_manager
         # This crashes, TODO - fix
         #return wm.invoke_props_popup(self, event)
 

@@ -50,7 +50,7 @@ class AddPresetBase():
         if getattr(self, "save_keyconfig", False):
             bpy.ops.wm.keyconfig_export(filepath=filepath, kc_name=self.properties.name)
             file_preset = open(filepath, 'a')
-            file_preset.write("wm.active_keyconfig = kc\n\n")
+            file_preset.write("wm.keyconfigs.active = kc\n\n")
         else:
             file_preset = open(filepath, 'w')
             file_preset.write("import bpy\n")
@@ -64,7 +64,7 @@ class AddPresetBase():
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
+        wm = context.window_manager
         #crashes, TODO - fix
         #return wm.invoke_props_popup(self, event)
 

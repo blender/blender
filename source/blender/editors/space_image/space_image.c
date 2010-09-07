@@ -954,7 +954,7 @@ void ED_spacetype_image(void)
 	/* regions: statistics/scope buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
 	art->regionid = RGN_TYPE_PREVIEW;
-	art->minsizex= 220; // XXX
+	art->prefsizex= 220; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= image_scope_area_listener;
 	art->init= image_scope_area_init;

@@ -47,7 +47,7 @@
 
 
 
-static void rna_Scene_set_frame(Scene *scene, int frame, float subframe)
+static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 {
 	scene->r.cfra= frame;
 	scene->r.subframe= subframe;
@@ -61,33 +61,6 @@ static void rna_Scene_set_frame(Scene *scene, int frame, float subframe)
 static void rna_Scene_update_tagged(Scene *scene)
 {
 	scene_update_tagged(G.main, scene);
-}
-
-static KeyingSet *rna_Scene_add_keying_set(Scene *sce, ReportList *reports, 
-		char name[], int absolute, int insertkey_needed, int insertkey_visual)
-{
-	KeyingSet *ks= NULL;
-	short flag=0, keyingflag=0;
-	
-	/* validate flags */
-	if (absolute)
-		flag |= KEYINGSET_ABSOLUTE;
-	if (insertkey_needed)
-		keyingflag |= INSERTKEY_NEEDED;
-	if (insertkey_visual)
-		keyingflag |= INSERTKEY_MATRIX;
-		
-	/* call the API func, and set the active keyingset index */
-	ks= BKE_keyingset_add(&sce->keyingsets, name, flag, keyingflag);
-	
-	if (ks) {
-		sce->active_keyingset= BLI_countlist(&sce->keyingsets);
-		return ks;
-	}
-	else {
-		BKE_report(reports, RPT_ERROR, "Keying Set could not be added.");
-		return NULL;
-	}
 }
 
 static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name)
@@ -105,7 +78,7 @@ void RNA_api_scene(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func= RNA_def_function(srna, "set_frame", "rna_Scene_set_frame");
+	func= RNA_def_function(srna, "frame_set", "rna_Scene_frame_set");
 	RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately.");
 	parm= RNA_def_int(func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set.", MINAFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -113,21 +86,6 @@ void RNA_api_scene(StructRNA *srna)
 
 	func= RNA_def_function(srna, "update", "rna_Scene_update_tagged");
 	RNA_def_function_ui_description(func, "Update data tagged to be updated from previous access to data or operators.");
-
-	/* Add Keying Set */
-	func= RNA_def_function(srna, "add_keying_set", "rna_Scene_add_keying_set");
-	RNA_def_function_ui_description(func, "Add a new Keying Set to Scene.");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	/* returns the new KeyingSet */
-	parm= RNA_def_pointer(func, "keyingset", "KeyingSet", "", "Newly created Keying Set.");
-	RNA_def_function_return(func, parm);
-	/* name */
-	RNA_def_string(func, "name", "KeyingSet", 64, "Name", "Name of Keying Set");
-	/* flags */
-	RNA_def_boolean(func, "absolute", 1, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");
-	/* keying flags */
-	RNA_def_boolean(func, "use_insertkey_needed", 0, "Insert Keyframes - Only Needed", "Only insert keyframes where they're needed in the relevant F-Curves.");
-	RNA_def_boolean(func, "use_insertkey_visual", 0, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'.");
 }
 
 void RNA_api_scene_render(StructRNA *srna)

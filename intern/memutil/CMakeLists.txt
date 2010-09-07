@@ -28,5 +28,5 @@ SET(INC . ..)
 
 FILE(GLOB SRC intern/*.cpp)
 
-BLENDERLIB(bf_memutil "${SRC}" "${INC}")
+BLENDERLIB(bf_intern_memutil "${SRC}" "${INC}")
 #, libtype=['intern', 'player'], priority = [0, 180] )
