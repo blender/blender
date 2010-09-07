@@ -112,10 +112,10 @@ struct RenderResult *RE_GetResult(struct Render *re){return (struct RenderResult
 struct Render *RE_GetRender(const char *name){return (struct Render *) NULL;}
 
 /* blenkernel */
-char* btempdir(){return (char *) NULL;}
+char btempdir[] = "";
 void RE_FreeRenderResult(struct RenderResult *res){}
-char* datatoc_bmonofont_ttf(){return (char *) NULL;}
-int datatoc_bmonofont_ttf_size(){return 0;}
+char datatoc_bmonofont_ttf[] = "";
+int datatoc_bmonofont_ttf_size = 0;
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty){return (struct RenderResult *) NULL;}
 void RE_GetResultImage(struct Render *re, struct RenderResult *rr){}
 int RE_RenderInProgress(struct Render *re){return 0;}
