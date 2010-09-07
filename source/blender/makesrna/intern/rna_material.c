@@ -920,7 +920,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "ray_depth");
-	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_ui_range(prop, 0, 100, 1, 3);
 	RNA_def_property_ui_text(prop, "Depth", "Maximum allowed number of light inter-reflections");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
@@ -985,7 +985,7 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "ray_depth_tra");
-	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_ui_range(prop, 0, 100, 1, 3);
 	RNA_def_property_ui_text(prop, "Depth", "Maximum allowed number of light inter-refractions");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
