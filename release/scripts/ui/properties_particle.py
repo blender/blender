@@ -470,7 +470,6 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
         elif part.physics_type == 'BOIDS':
             boids = part.boids
 
-
             row = layout.row()
             row.prop(boids, "use_flight")
             row.prop(boids, "use_land")
@@ -1031,7 +1030,6 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
         row = layout.row()
         row.label(text="Vertex Group")
         row.label(text="Negate")
-
 
         row = layout.row()
         row.prop_search(psys, "vertex_group_density", ob, "vertex_groups", text="Density")

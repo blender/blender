@@ -98,7 +98,7 @@ class DATA_PT_template(bpy.types.Panel):
         if self.templates:
             subsubrow = subrow.split(percentage=0.8)
             subsubrow.operator("pose.metarig_sample_add", text="Sample").metarig_type = self.templates[pose_templates.active_template_index]
-            subsubrow.operator("pose.metarig_sample_add", text="All").metarig_type = "" # self.templates[pose_templates.active_template_index]
+            subsubrow.operator("pose.metarig_sample_add", text="All").metarig_type = ""  # self.templates[pose_templates.active_template_index]
 
             sub = row.column(align=True)
             sub.operator("pose.metarig_reload", icon="FILE_REFRESH", text="")
@@ -136,7 +136,7 @@ def rigify_report_exception(operator, exception):
         message.append("Incorrect armature for type '%s'" % fn)
     message.append(exception.message)
 
-    message.reverse() # XXX - stupid! menu's are upside down!
+    message.reverse()  # XXX - stupid! menu's are upside down!
 
     operator.report(set(['INFO']), '\n'.join(message))
 
@@ -310,7 +310,7 @@ class INFO_MT_armature_metarig_add(bpy.types.Menu):
             layout.operator("pose.metarig_sample_add", text=text, icon='OUTLINER_OB_ARMATURE').metarig_type = submodule_type
 
 menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))
-import space_info # ensure the menu is loaded first
+import space_info  # ensure the menu is loaded first
 
 
 def register():
@@ -319,7 +319,6 @@ def register():
                     description="",
                     maxlen=64,
                     default="")
-
 
     PoseTemplateSettings.CollectionProperty(attr="templates", type=PoseTemplate, name="Templates", description="")
     PoseTemplateSettings.IntProperty(attr="active_template_index",

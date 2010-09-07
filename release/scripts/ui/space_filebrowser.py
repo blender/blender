@@ -44,11 +44,11 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 
         row = layout.row(align=True)
         row.operator("file.directory_new", text="", icon='NEWFOLDER')
-        
+
         params = st.params
 
         # can be None when save/reload with a file selector open
-        if params:        
+        if params:
             layout.prop(params, "display_type", expand=True, text="")
             layout.prop(params, "sort_method", expand=True, text="")
 

@@ -143,4 +143,3 @@ class PropertyPanel():
 
     def draw(self, context):
         draw(self.layout, context, self._context_path)
-

@@ -28,13 +28,13 @@ def dopesheet_filter(layout, context):
     row = layout.row(align=True)
     row.prop(dopesheet, "show_only_selected", text="")
     row.prop(dopesheet, "show_hidden", text="")
-    
+
     row = layout.row(align=True)
     row.prop(dopesheet, "show_transforms", text="")
-    
+
     if is_nla:
         row.prop(dopesheet, "show_missing_nla", text="")
-    
+
     row = layout.row(align=True)
     row.prop(dopesheet, "show_scenes", text="")
     row.prop(dopesheet, "show_worlds", text="")

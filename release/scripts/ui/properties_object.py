@@ -296,7 +296,7 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
         col.operator("object.paths_clear", text="Clear Paths")
 
 
-class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # inherit from panel when ready
+class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # inherit from panel when ready
     #bl_label = "Object Onion Skinning"
     bl_context = "object"
 

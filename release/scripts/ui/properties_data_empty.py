@@ -43,7 +43,6 @@ class DATA_PT_empty(DataButtonsPanel, bpy.types.Panel):
         layout.prop(ob, "empty_draw_size", text="Size")
 
 
-
 def register():
     pass
 

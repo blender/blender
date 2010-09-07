@@ -691,7 +691,6 @@ class TEXTURE_PT_envmap(TextureTypePanel, bpy.types.Panel):
         tex = context.texture
         env = tex.environment_map
 
-
         row = layout.row()
         row.prop(env, "source", expand=True)
         row.menu("TEXTURE_MT_envmap_specials", icon='DOWNARROW_HLT', text="")

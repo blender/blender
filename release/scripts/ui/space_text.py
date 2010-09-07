@@ -131,12 +131,12 @@ class TEXT_PT_find(bpy.types.Panel):
 
 class TEXT_MT_view(bpy.types.Menu):
     bl_label = "View"
-    
+
     def draw(self, context):
         layout = self.layout
-        
+
         layout.operator("text.properties", icon='MENU_PANEL')
-        
+
         layout.separator()
 
         layout.operator("screen.area_dupli")
@@ -146,8 +146,8 @@ class TEXT_MT_view(bpy.types.Menu):
 
         layout.operator("text.move", text="Top of File").type = 'FILE_TOP'
         layout.operator("text.move", text="Bottom of File").type = 'FILE_BOTTOM'
-        
-        
+
+
 class TEXT_MT_text(bpy.types.Menu):
     bl_label = "Text"
 
@@ -292,6 +292,7 @@ class TEXT_MT_toolbox(bpy.types.Menu):
         layout.separator()
 
         layout.operator("text.run_script")
+
 
 def register():
     pass

@@ -57,7 +57,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         if field.type == 'NONE':
-            return # nothing to draw
+            return  # nothing to draw
         elif field.type == 'GUIDE':
             col = split.column()
             col.prop(field, "guide_minimum")

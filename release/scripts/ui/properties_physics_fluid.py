@@ -58,7 +58,6 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
             split.operator("object.modifier_add", text="Add").type = 'FLUID_SIMULATION'
             split.label()
 
-
         if md:
             row = layout.row()
             row.prop(fluid, "type")

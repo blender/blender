@@ -149,7 +149,7 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
 
         sub = row.row(align=True)
         sub.operator("pose.group_assign", text="Assign")
-        sub.operator("pose.group_unassign", text="Remove") #row.operator("pose.bone_group_remove_from", text="Remove")
+        sub.operator("pose.group_unassign", text="Remove")  # row.operator("pose.bone_group_remove_from", text="Remove")
 
         sub = row.row(align=True)
         sub.operator("pose.group_select", text="Select")
@@ -219,7 +219,6 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.prop(itasc, "iterations")
 
-
             if simulation:
                 layout.prop(itasc, "use_auto_step")
                 row = layout.row()
@@ -239,6 +238,7 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, bpy.types.Panel):
                 row.prop(itasc, "damping_epsilon", text="Eps", slider=True)
 
 from properties_animviz import MotionPathButtonsPanel, OnionSkinButtonsPanel
+
 
 class DATA_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
     #bl_label = "Bones Motion Paths"
@@ -267,7 +267,7 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
         col.operator("pose.paths_clear", text="Clear Paths")
 
 
-class DATA_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # inherit from panel when ready
+class DATA_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # inherit from panel when ready
     #bl_label = "Bones Onion Skinning"
     bl_context = "data"
 
@@ -287,6 +287,7 @@ class DATA_PT_onion_skinning(OnionSkinButtonsPanel): #, bpy.types.Panel): # inhe
 class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
+
 
 def register():
     pass

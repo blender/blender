@@ -134,7 +134,6 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
             col.template_any_ID(ksp, "id", "id_type")
             col.template_path_builder(ksp, "data_path", ksp.id)
 
-
             row = layout.row()
 
             col = row.column()
@@ -230,7 +229,6 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         scene = context.scene
         ks = scene.keying_sets.active
 
-
         f.write("# Keying Set: %s\n" % ks.name)
 
         f.write("import bpy\n\n")
@@ -249,9 +247,8 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         f.write("ks.use_insertkey_xyz_to_rgb = %s\n" % ks.use_insertkey_xyz_to_rgb)
         f.write("\n")
 
-
         # generate and write set of lookups for id's used in paths
-        id_to_paths_cache = {} # cache for syncing ID-blocks to bpy paths + shorthands
+        id_to_paths_cache = {}  # cache for syncing ID-blocks to bpy paths + shorthands
 
         for ksp in ks.paths:
             if ksp.id is None:
@@ -278,7 +275,6 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
             f.write("%s = %s\n" % (id_pair[0], id_pair[1]))
         f.write("\n")
 
-
         # write paths
         f.write("# Path Definitions\n")
         for ksp in ks.paths:
@@ -289,7 +285,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
                 # find the relevant shorthand from the cache
                 id_bpy_path = id_to_paths_cache[ksp.id][0]
             else:
-                id_bpy_path = "None" # XXX...
+                id_bpy_path = "None"  # XXX...
             f.write("%s, '%s'" % (id_bpy_path, ksp.data_path))
 
             # array index settings (if applicable)

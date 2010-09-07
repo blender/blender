@@ -26,6 +26,7 @@ language_id = 'python'
 # but python expects this in some places
 _BPY_MAIN_OWN = True
 
+
 def add_scrollback(text, text_type):
     for l in text.split('\n'):
         bpy.ops.console.scrollback_append(text=l.replace('\t', '    '),
@@ -77,13 +78,13 @@ def get_console(console_id):
             namespace = bpy_main_mod.__dict__
         else:
             namespace = {}
-        
+
         namespace["__builtins__"] = sys.modules["builtins"]
         namespace["bpy"] = bpy
         namespace["C"] = bpy.context
 
         console = InteractiveConsole(locals=namespace, filename="<blender_console>")
-        
+
         if _BPY_MAIN_OWN:
             console._bpy_main_mod = bpy_main_mod
 
@@ -127,7 +128,7 @@ def execute(context):
         sys.modules["__main__"] = console._bpy_main_mod
 
     # incase exception happens
-    line = "" # incase of encodingf error
+    line = ""  # incase of encodingf error
     is_multiline = False
 
     try:

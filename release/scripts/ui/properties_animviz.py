@@ -92,12 +92,8 @@ class OnionSkinButtonsPanel():
         col.prop(arm, "show_only_ghost_selected", text="Selected Only")
 
 
-
 # NOTE:
 # The specialised panel types are derived in their respective UI modules
-
-
-
 def register():
     pass
 

@@ -64,6 +64,7 @@ class DATA_PT_context_lamp(DataButtonsPanel, bpy.types.Panel):
         if texture_count != 0:
             split.label(text=str(texture_count), icon='TEXTURE')
 
+
 class DATA_PT_preview(DataButtonsPanel, bpy.types.Panel):
     bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -205,10 +206,10 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
         if lamp.shadow_method == 'NOSHADOW' and lamp.type == 'AREA':
             split = layout.split()
 
-            col= split.column()
+            col = split.column()
             col.label(text="Form factor sampling:")
-            
-            sub=col.row(align=True)
+
+            sub = col.row(align=True)
 
             if lamp.shape == 'SQUARE':
                 sub.prop(lamp, "shadow_ray_samples_x", text="Samples")
@@ -228,19 +229,19 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
 
         if lamp.shadow_method == 'RAY_SHADOW':
             split = layout.split()
-            
+
             col = split.column()
             col.label(text="Sampling:")
-            
+
             if lamp.type in ('POINT', 'SUN', 'SPOT'):
                 sub = col.row()
-                
+
                 sub.prop(lamp, "shadow_ray_samples", text="Samples")
                 sub.prop(lamp, "shadow_soft_size", text="Soft Size")
-                
+
             elif lamp.type == 'AREA':
                 sub = col.row(align=True)
-                
+
                 if lamp.shape == 'SQUARE':
                     sub.prop(lamp, "shadow_ray_samples_x", text="Samples")
                 elif lamp.shape == 'RECTANGLE':
@@ -251,11 +252,11 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
 
             split = layout.split()
             col = split.column()
-            
+
             if lamp.shadow_ray_sample_method == 'ADAPTIVE_QMC':
                 col.prop(lamp, "shadow_adaptive_threshold", text="Threshold")
                 col = split.column()
-            
+
             if lamp.type == 'AREA' and lamp.shadow_ray_sample_method == 'CONSTANT_JITTERED':
                 col = split.column()
                 col = split.column()
@@ -322,7 +323,7 @@ class DATA_PT_area(DataButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        
+
         col.row().prop(lamp, "shape", expand=True)
         sub = col.row(align=True)
 

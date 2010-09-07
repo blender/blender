@@ -155,7 +155,7 @@ class VIEW3D_MT_transform(bpy.types.Menu):
             layout.operator("armature.align")
         else:
             layout.operator_context = 'EXEC_REGION_WIN'
-            layout.operator("transform.transform", text="Align to Transform Orientation").mode = 'ALIGN' # XXX see alignmenu() in edit.c of b2.4x to get this working
+            layout.operator("transform.transform", text="Align to Transform Orientation").mode = 'ALIGN'  # XXX see alignmenu() in edit.c of b2.4x to get this working
 
         layout.separator()
 
@@ -608,7 +608,6 @@ class VIEW3D_MT_select_edit_armature(bpy.types.Menu):
 
         layout.operator("view3d.select_border")
 
-
         layout.separator()
 
         layout.operator("armature.select_all", text="Select/Deselect All")
@@ -632,7 +631,7 @@ class VIEW3D_MT_select_edit_armature(bpy.types.Menu):
         layout.operator("object.select_pattern", text="Select Pattern...")
 
 
-class VIEW3D_MT_select_face(bpy.types.Menu):# XXX no matching enum
+class VIEW3D_MT_select_face(bpy.types.Menu):  # XXX no matching enum
     bl_label = "Select"
 
     def draw(self, context):
@@ -738,7 +737,7 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
                 props.data_path_item = "data.dof_distance"
                 props.input_scale = 0.02
 
-        if obj.type in ('CURVE','TEXT'):
+        if obj.type in ('CURVE', 'TEXT'):
             layout.operator_context = 'INVOKE_REGION_WIN'
 
             props = layout.operator("wm.context_modal_mouse", text="Extrude Size")
@@ -798,6 +797,7 @@ class VIEW3D_MT_object_specials(bpy.types.Menu):
 
         props = layout.operator("object.isolate_type_render")
         props = layout.operator("object.hide_render_clear_all")
+
 
 class VIEW3D_MT_object_apply(bpy.types.Menu):
     bl_label = "Apply"
@@ -900,7 +900,7 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
 
         layout.operator_menu_enum("object.make_links_scene", "scene", text="Objects to Scene...")
         layout.operator_menu_enum("marker.make_links_scene", "scene", text="Markers to Scene...")
-        layout.operator_enums("object.make_links_data", "type") # inline
+        layout.operator_enums("object.make_links_data", "type")  # inline
 
 
 class VIEW3D_MT_object_game_properties(bpy.types.Menu):
@@ -1729,7 +1729,7 @@ class VIEW3D_MT_edit_text(bpy.types.Menu):
         layout.menu("VIEW3D_MT_edit_text_chars")
 
         layout.separator()
-        
+
         layout.operator("font.style_toggle", text="Toggle Bold").style = 'BOLD'
         layout.operator("font.style_toggle", text="Toggle Italic").style = 'ITALIC'
         layout.operator("font.style_toggle", text="Toggle Underline").style = 'UNDERLINE'

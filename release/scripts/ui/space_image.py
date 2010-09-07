@@ -50,7 +50,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
         layout.prop(sima, "use_realtime_update")
         if show_uvedit:
-            layout.prop(toolsettings, "show_uv_local_view") # Numpad /
+            layout.prop(toolsettings, "show_uv_local_view")
             layout.prop(uv, "show_other_objects")
 
         layout.separator()
@@ -203,8 +203,8 @@ class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("uv.weld") # W, 1
-        layout.operator_enums("uv.align", "axis") # W, 2/3/4
+        layout.operator("uv.weld")  # W, 1
+        layout.operator_enums("uv.align", "axis")  # W, 2/3/4
 
 
 class IMAGE_MT_uvs(bpy.types.Menu):
@@ -662,6 +662,7 @@ class IMAGE_PT_paint_curve(BrushButtonsPanel, bpy.types.Panel):
         row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
         row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
         row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
+
 
 def register():
     pass

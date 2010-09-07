@@ -352,7 +352,6 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
         return {'FINISHED'}
 
 
-
 def register():
     pass
 

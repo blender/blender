@@ -60,7 +60,6 @@ def guess_player_path(preset):
     elif preset == 'MPLAYER':
         player_path = "mplayer"
 
-
     return player_path
 
 
@@ -105,7 +104,7 @@ class PlayRenderedAnim(bpy.types.Operator):
             # works for movies and images
             file = rd.frame_path(frame=scene.frame_start)
 
-        file = bpy.path.abspath(file) # expand '//'
+        file = bpy.path.abspath(file)  # expand '//'
 
         cmd = [player_path]
         # extra options, fps controls etc.
@@ -130,7 +129,7 @@ class PlayRenderedAnim(bpy.types.Operator):
                 opts += ["-mf", "fps=%.4f" % (rd.fps / rd.fps_base)]
             opts += ["-loop", "0", "-really-quiet", "-fs"]
             cmd.extend(opts)
-        else: # 'CUSTOM'
+        else:  # 'CUSTOM'
             cmd.append(file)
 
         # launch it

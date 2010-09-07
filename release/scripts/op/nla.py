@@ -118,7 +118,7 @@ def bake(frame_start, frame_end, step=1, only_selected=False):
                 pbone.keyframe_insert("rotation_quaternion", -1, f, name)
             elif rotation_mode == 'AXIS_ANGLE':
                 pbone.keyframe_insert("rotation_axis_angle", -1, f, name)
-            else: # euler, XYZ, ZXY etc
+            else:  # euler, XYZ, ZXY etc
                 pbone.keyframe_insert("rotation_euler", -1, f, name)
 
             pbone.keyframe_insert("scale", -1, f, name)

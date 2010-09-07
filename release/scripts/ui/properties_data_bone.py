@@ -274,7 +274,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
         sub.prop(pchan, "ik_min_z", text="")
         sub.prop(pchan, "ik_max_z", text="")
         sub.active = pchan.lock_ik_z == False and pchan.use_ik_limit_z and pchan.is_in_ik_chain
- 
+
         split = layout.split(percentage=0.25)
         split.label(text="Stretch:")
         sub = split.row()

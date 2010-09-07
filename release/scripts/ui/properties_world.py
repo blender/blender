@@ -50,7 +50,7 @@ class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
         scene = context.scene
         world = context.world
         space = context.space_data
-        
+
         texture_count = world and len(world.texture_slots.keys())
 
         split = layout.split(percentage=0.65)
@@ -61,6 +61,7 @@ class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
 
         if texture_count:
             split.label(text=str(texture_count), icon='TEXTURE')
+
 
 class WORLD_PT_preview(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Preview"

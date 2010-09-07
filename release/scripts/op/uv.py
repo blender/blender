@@ -139,7 +139,7 @@ class ExportUVLayout(bpy.types.Operator):
                     fill_settings.append(fill_default)
 
             for i, uvs in self._face_uv_iter(context):
-                try: # rare cases material index is invalid.
+                try:  # rare cases material index is invalid.
                     fill = fill_settings[faces[i].material_index]
                 except IndexError:
                     fill = fill_default

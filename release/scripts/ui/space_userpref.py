@@ -359,7 +359,6 @@ class USERPREF_PT_system(bpy.types.Panel):
 
         split = layout.split()
 
-
         # 1. Column
         column = split.column()
         colsplit = column.split(percentage=0.85)
@@ -412,7 +411,6 @@ class USERPREF_PT_system(bpy.types.Panel):
 
         #col.prop(system, "use_textured_fonts")
 
-
         # 2. Column
         column = split.column()
         colsplit = column.split(percentage=0.85)
@@ -438,7 +436,6 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.label(text="Sequencer:")
         col.prop(system, "prefetch_frames")
         col.prop(system, "memory_cache_limit")
-
 
         # 3. Column
         column = split.column()
@@ -526,7 +523,6 @@ class USERPREF_PT_theme(bpy.types.Panel):
         split_themes.prop(theme, "theme_area", expand=True)
 
         split = layout.split(percentage=0.4)
-
 
         layout.separator()
         layout.separator()
@@ -623,7 +619,6 @@ class USERPREF_PT_theme(bpy.types.Panel):
             colsub.row().prop(ui, "inner_key")
             colsub.row().prop(ui, "inner_key_sel")
             colsub.row().prop(ui, "blend")
-
 
             ui = theme.user_interface
             col.separator()
@@ -809,7 +804,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_label = "Addons"
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
-    
+
     _addons_fake_modules = {}
 
     @classmethod
@@ -905,8 +900,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                         mod = fake_module(mod_name, mod_path)
                         if mod:
                             USERPREF_PT_addons._addons_fake_modules[mod_name] = mod
-                    
-        
+
         # just incase we get stale modules, not likely
         for mod_stale in modules_stale:
             del USERPREF_PT_addons._addons_fake_modules[mod_stale]
@@ -956,7 +950,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     (filter == "Enabled" and is_enabled) or \
                     (filter == "Disabled" and not is_enabled):
 
-
                 if search and search not in info["name"].lower():
                     if info["author"]:
                         if search not in info["author"].lower():
@@ -974,7 +967,8 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 rowsub = row.row()
                 rowsub.active = is_enabled
                 rowsub.label(text='%s: %s' % (info['category'], info["name"]))
-                if info["warning"]: rowsub.label(icon='ERROR')
+                if info["warning"]:
+                    rowsub.label(icon='ERROR')
 
                 if is_enabled:
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
@@ -1090,9 +1084,9 @@ class WM_OT_addon_enable(bpy.types.Operator):
 
         if info.get("blender", (0, 0, 0)) > bpy.app.version:
             self.report("WARNING','This script was written for a newer version of Blender and might not function (correctly).\nThe script is enabled though.")
-        
+
         _bpy_types._register_immediate = True
-        
+
         return {'FINISHED'}
 
 
@@ -1109,7 +1103,7 @@ class WM_OT_addon_disable(bpy.types.Operator):
 
         try:
             mod = __import__(module_name)
-            _bpy_types._unregister_module(module_name, free=False) # dont free because we may want to enable again.
+            _bpy_types._unregister_module(module_name, free=False)  # dont free because we may want to enable again.
             mod.unregister()
         except:
             import traceback
@@ -1117,7 +1111,7 @@ class WM_OT_addon_disable(bpy.types.Operator):
 
         addons = context.user_preferences.addons
         ok = True
-        while ok: # incase its in more then once.
+        while ok:  # incase its in more then once.
             ok = False
             for ext in addons:
                 if ext.module == module_name:
@@ -1214,6 +1208,7 @@ class WM_OT_addon_expand(bpy.types.Operator):
 
 def register():
     pass
+
 
 def unregister():
     pass

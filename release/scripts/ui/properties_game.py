@@ -53,7 +53,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.prop(game, "use_actor")
             col.prop(game, "use_ghost")
-            col.prop(ob, "hide_render", text="Invisible") # out of place but useful
+            col.prop(ob, "hide_render", text="Invisible")  # out of place but useful
 
             col = split.column()
             col.prop(game, "use_material_physics")
@@ -286,7 +286,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col.prop(gs, "dome_tesselation", text="Tesselation")
 
-            else: # cube map
+            else:  # cube map
                 col = split.column()
                 col.prop(gs, "dome_buffer_resolution", text="Resolution", slider=True)
 
