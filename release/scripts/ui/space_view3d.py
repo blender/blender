@@ -2165,7 +2165,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
             if bg.image:
                 row.prop(bg.image, "name", text="", emboss=False)
             else:
-                row.label(label="Not Set")
+                row.label(text="Not Set")
             row.operator("view3d.remove_background_image", text="", emboss=False, icon='X').index = i
 
             box.prop(bg, "view_axis", text="Axis")
