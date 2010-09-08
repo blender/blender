@@ -875,31 +875,19 @@ class USERPREF_PT_addons(bpy.types.Panel):
         modules_stale = set(USERPREF_PT_addons._addons_fake_modules.keys())
 
         for path in paths:
-            for f in sorted(os.listdir(path)):
-                if f.endswith(".py"):
-                    mod_name = f[0:-3]
-                    mod_path = os.path.join(path, f)
-                elif ("." not in f) and (os.path.isfile(os.path.join(path, f, "__init__.py"))):
-                    mod_name = f
-                    mod_path = os.path.join(path, f, "__init__.py")
-                else:
-                    mod_name = ""
-                    mod_path = ""
+            for mod_name in bpy.path.module_names(path):
+                modules_stale -= {mod_name}
+                mod = USERPREF_PT_addons._addons_fake_modules.get(mod_name)
+                if mod:
+                    if mod.__time__ != os.path.getmtime(mod_path):
+                        print("Reloading", mod_name, mod.__time__, os.path.getmtime(mod_path), mod_path)
+                        del USERPREF_PT_addons._addons_fake_modules[mod_name]
+                        mod = None
 
-                if mod_name:
-                    if mod_name in modules_stale:
-                        modules_stale.remove(mod_name)
-                    mod = USERPREF_PT_addons._addons_fake_modules.get(mod_name)
+                if mod is None:
+                    mod = fake_module(mod_name, mod_path)
                     if mod:
-                        if mod.__time__ != os.path.getmtime(mod_path):
-                            print("Reloading", mod_name)
-                            del USERPREF_PT_addons._addons_fake_modules[mod_name]
-                            mod = None
-
-                    if mod is None:
-                        mod = fake_module(mod_name, mod_path)
-                        if mod:
-                            USERPREF_PT_addons._addons_fake_modules[mod_name] = mod
+                        USERPREF_PT_addons._addons_fake_modules[mod_name] = mod
 
         # just incase we get stale modules, not likely
         for mod_stale in modules_stale:

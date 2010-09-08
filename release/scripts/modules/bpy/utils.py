@@ -70,16 +70,8 @@ def modules_from_path(path, loaded_modules):
 
     modules = []
 
-    for f in sorted(_os.listdir(path)):
-        if f.endswith(".py"):
-            # python module
-            mod = _test_import(f[0:-3], loaded_modules)
-        elif ("." not in f) and (_os.path.isfile(_os.path.join(path, f, "__init__.py"))):
-            # python package
-            mod = _test_import(f, loaded_modules)
-        else:
-            mod = None
-
+    for mod_name in _bpy.path.module_names(path):
+        mod = _test_import(mod_name, loaded_modules)
         if mod:
             modules.append(mod)
 
@@ -280,7 +272,7 @@ def smpte_from_seconds(time, fps=None):
     '''
     Returns an SMPTE formatted string from the time in seconds: "HH:MM:SS:FF".
 
-    If the fps is not given the current scene is used.
+    If the *fps* is not given the current scene is used.
     '''
     import math
 
@@ -312,7 +304,7 @@ def smpte_from_frame(frame, fps=None, fps_base=None):
     '''
     Returns an SMPTE formatted string from the frame: "HH:MM:SS:FF".
 
-    If the fps and fps_base are not given the current scene is used.
+    If *fps* and *fps_base* are not given the current scene is used.
     '''
 
     if fps is None:

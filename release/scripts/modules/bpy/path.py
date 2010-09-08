@@ -173,3 +173,33 @@ def ensure_ext(filepath, ext, case_sensitive=False):
 
     else:
         return filepath + ext
+
+
+def module_names(path, recursive=False):
+    """
+    Return a list of modules which can be imported from *path*.
+
+    :arg path: a directory to scan.
+    :type path: string
+    :arg recursive: Also return submodule names for packages.
+    :type recursive: bool
+    :return: a list of strings.
+    :rtype: list
+    """
+
+    from os.path import join, isfile
+
+    modules = []
+
+    for filename in sorted(_os.listdir(path)):
+        if filename.endswith(".py") and filename != "__init__.py":
+            modules.append(filename[0:-3])
+        elif ("." not in filename):
+            directory = join(path, filename)
+            if isfile(join(directory, "__init__.py")):
+                modules.append(filename)
+                if recursive:
+                    for mod_name in module_names(directory, True):
+                        modules.append("%s.%s" % (filename, mod_name))
+
+    return modules
