@@ -586,7 +586,8 @@ def _register_module(module):
             bpy_types.register(t)
         except:
             import traceback
-            print("bpy.utils._register_module(): Module '%s' failed to register class '%s.%s'" % (module, t.__module__, t.__name__))
+            import sys
+            print("bpy.utils._register_module(): '%s' failed to register class '%s.%s'" % (sys.modules[module].__file__, t.__module__, t.__name__))
             traceback.print_exc()
 
 

@@ -70,7 +70,7 @@ def modules_from_path(path, loaded_modules):
 
     modules = []
 
-    for mod_name in _bpy.path.module_names(path):
+    for mod_name, mod_path in _bpy.path.module_names(path):
         mod = _test_import(mod_name, loaded_modules)
         if mod:
             modules.append(mod)

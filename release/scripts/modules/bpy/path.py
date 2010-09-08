@@ -183,7 +183,7 @@ def module_names(path, recursive=False):
     :type path: string
     :arg recursive: Also return submodule names for packages.
     :type recursive: bool
-    :return: a list of strings.
+    :return: a list of string pairs (module_name, module_file).
     :rtype: list
     """
 
@@ -193,13 +193,15 @@ def module_names(path, recursive=False):
 
     for filename in sorted(_os.listdir(path)):
         if filename.endswith(".py") and filename != "__init__.py":
-            modules.append(filename[0:-3])
+            fullpath = join(path, filename)
+            modules.append((filename[0:-3], fullpath))
         elif ("." not in filename):
             directory = join(path, filename)
-            if isfile(join(directory, "__init__.py")):
-                modules.append(filename)
+            fullpath = join(directory, "__init__.py")
+            if isfile(fullpath):
+                modules.append((filename, fullpath))
                 if recursive:
-                    for mod_name in module_names(directory, True):
-                        modules.append("%s.%s" % (filename, mod_name))
+                    for mod_name, mod_path in module_names(directory, True):
+                        modules.append(("%s.%s" % (filename, mod_name), mod_path))
 
     return modules

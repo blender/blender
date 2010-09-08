@@ -875,12 +875,12 @@ class USERPREF_PT_addons(bpy.types.Panel):
         modules_stale = set(USERPREF_PT_addons._addons_fake_modules.keys())
 
         for path in paths:
-            for mod_name in bpy.path.module_names(path):
+            for mod_name, mod_path in bpy.path.module_names(path):
                 modules_stale -= {mod_name}
                 mod = USERPREF_PT_addons._addons_fake_modules.get(mod_name)
                 if mod:
                     if mod.__time__ != os.path.getmtime(mod_path):
-                        print("Reloading", mod_name, mod.__time__, os.path.getmtime(mod_path), mod_path)
+                        print("reloading addon:", mod_name, mod.__time__, os.path.getmtime(mod_path), mod_path)
                         del USERPREF_PT_addons._addons_fake_modules[mod_name]
                         mod = None
 
@@ -1052,20 +1052,66 @@ class WM_OT_addon_enable(bpy.types.Operator):
         module_name = self.properties.module
 
         # note, this still gets added to _bpy_types.TypeMap
+
+        import sys
         import bpy_types as _bpy_types
+
+
         _bpy_types._register_immediate = False
 
-        try:
-            mod = __import__(module_name)
-            _bpy_types._register_module(module_name)
-            mod.register()
-        except:
+        def handle_error():
             import traceback
             traceback.print_exc()
+            _bpy_types._register_immediate = True
+
+
+        # reload if the mtime changes
+        mod = sys.modules.get(module_name)
+        if mod:
+            mtime_orig = getattr(mod, "__time__", 0)
+            mtime_new = os.path.getmtime(mod.__file__)
+            if mtime_orig != mtime_new:
+                print("module changed on disk:", mod.__file__, "reloading...")
+
+                try:
+                    reload(mod)
+                except:
+                    handle_error()
+                    del sys.modules[module_name]
+                    return {'CANCELLED'}
+
+        # Split registering up into 3 steps so we can undo if it fails par way through
+        # 1) try import
+        try:
+            mod = __import__(module_name)
+            mod.__time__ = os.path.getmtime(mod.__file__)
+        except:
+            handle_error()
             return {'CANCELLED'}
 
-        ext = context.user_preferences.addons.new()
-        ext.module = module_name
+        # 2) try register collected modules
+        try:
+            _bpy_types._register_module(module_name)
+        except:
+            handle_error()
+            del sys.modules[module_name]
+            return {'CANCELLED'}
+
+        # 3) try run the modules register function
+        try:
+            mod.register()
+        except:
+            handle_error()
+            _bpy_types._unregister_module(module_name)
+            del sys.modules[module_name]
+            return {'CANCELLED'}
+
+        # * OK loaded successfully! *
+        # just incase its enabled alredy
+        ext = context.user_preferences.addons.get(module_name)
+        if not ext:
+            ext = context.user_preferences.addons.new()
+            ext.module = module_name
 
         # check if add-on is written for current blender version, or raise a warning
         info = addon_info_get(mod)
@@ -1097,15 +1143,13 @@ class WM_OT_addon_disable(bpy.types.Operator):
             import traceback
             traceback.print_exc()
 
+        # could be in more then once, unlikely but better do this just incase.
         addons = context.user_preferences.addons
-        ok = True
-        while ok:  # incase its in more then once.
-            ok = False
-            for ext in addons:
-                if ext.module == module_name:
-                    addons.remove(ext)
-                    ok = True
-                    break
+
+        while module_name in addons:
+            addon = addons.get(module_name)
+            if addon:
+                addons.remove(addon)
 
         return {'FINISHED'}
 
