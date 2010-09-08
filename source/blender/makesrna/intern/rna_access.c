@@ -2935,6 +2935,14 @@ static int rna_token_strip_quotes(char *token)
 			return 1;
 		}
 	}
+	else if(token[0]=='\'') {
+		int len = strlen(token);
+		if (len >= 2 && token[len-1]=='\'') {
+			/* strip away "" */
+			token[len-1]= '\0';
+			return 1;
+		}
+	}
 	return 0;
 }
 
