@@ -3220,7 +3220,7 @@ static void group_linkobs2scene_cb(bContext *C, Scene *scene, TreeElement *te, T
 	}
 }
 
-static void outliner_do_object_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
+static void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soops, ListBase *lb, 
 										 void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *))
 {
 	TreeElement *te;
@@ -3231,16 +3231,18 @@ static void outliner_do_object_operation(bContext *C, Scene *scene, SpaceOops *s
 		if(tselem->flag & TSE_SELECTED) {
 			if(tselem->type==0 && te->idcode==ID_OB) {
 				// when objects selected in other scenes... dunno if that should be allowed
-				Scene *sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
-				if(sce && scene != sce) {
-					ED_screen_set_scene(C, sce);
+				Scene *scene_owner= (Scene *)outliner_search_back(soops, te, ID_SCE);
+				if(scene_owner && scene_act != scene_owner) {
+					ED_screen_set_scene(C, scene_owner);
 				}
-				/* important to use 'sce' not scene else deleting objects can crash */
-				operation_cb(C, sce, te, NULL, tselem);
+				/* important to use 'scene_owner' not scene_act else deleting objects can crash.
+				 * only use 'scene_act' when 'scene_owner' is NULL, which can happen when the
+				 * outliner isnt showing scenes: Visible Layer draw mode for eg. */
+				operation_cb(C, scene_owner ? scene_owner : scene_act, te, NULL, tselem);
 			}
 		}
 		if((tselem->flag & TSE_CLOSED)==0) {
-			outliner_do_object_operation(C, scene, soops, &te->subtree, operation_cb);
+			outliner_do_object_operation(C, scene_act, soops, &te->subtree, operation_cb);
 		}
 	}
 }
