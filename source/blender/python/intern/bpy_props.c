@@ -90,6 +90,21 @@ static PyObject *bpy_prop_deferred_return(void *func, PyObject *kw)
 	return ret;
 }
 
+#define BPY_PROPDEF_HEAD(_func)	\
+	if (PyTuple_GET_SIZE(args) == 1) { \
+		PyObject *ret; \
+		self= PyTuple_GET_ITEM(args, 0); \
+		args= PyTuple_New(0); \
+		ret= _func(self, args, kw); \
+		Py_DECREF(args); \
+		return ret; \
+	} \
+	if (PyTuple_GET_SIZE(args) > 0) { \
+		 PyErr_SetString(PyExc_ValueError, "all args must be keywords"); \
+		return NULL; \
+	} \
+
+
 #if 0
 static int bpy_struct_id_used(StructRNA *srna, char *identifier)
 {
@@ -116,10 +131,7 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_GET_SIZE(args) > 0) {
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
-		return NULL;
-	}
+	BPY_PROPDEF_HEAD(BPy_BoolProperty)
 
 	srna= srna_from_self(self, "BoolProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
@@ -181,10 +193,7 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_GET_SIZE(args) > 0) {
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
-		return NULL;
-	}
+	BPY_PROPDEF_HEAD(BPy_BoolVectorProperty)
 
 	srna= srna_from_self(self, "BoolVectorProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
@@ -257,10 +266,7 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_GET_SIZE(args) > 0) {
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
-		return NULL;
-	}
+	BPY_PROPDEF_HEAD(BPy_IntProperty)
 
 	srna= srna_from_self(self, "IntProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
@@ -323,10 +329,7 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_GET_SIZE(args) > 0) {
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
-		return NULL;
-	}
+	BPY_PROPDEF_HEAD(BPy_IntVectorProperty)
 
 	srna= srna_from_self(self, "IntVectorProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
@@ -403,10 +406,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_GET_SIZE(args) > 0) {
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
-		return NULL;
-	}
+	BPY_PROPDEF_HEAD(BPy_FloatProperty)
 
 	srna= srna_from_self(self, "FloatProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
@@ -477,10 +477,7 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_GET_SIZE(args) > 0) {
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
-		return NULL;
-	}
+	BPY_PROPDEF_HEAD(BPy_FloatVectorProperty)
 
 	srna= srna_from_self(self, "FloatVectorProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
@@ -554,10 +551,7 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_GET_SIZE(args) > 0) {
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
-		return NULL;
-	}
+	BPY_PROPDEF_HEAD(BPy_StringProperty)
 
 	srna= srna_from_self(self, "StringProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
@@ -665,10 +659,7 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_GET_SIZE(args) > 0) {
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
-		return NULL;
-	}
+	BPY_PROPDEF_HEAD(BPy_EnumProperty)
 
 	srna= srna_from_self(self, "EnumProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
@@ -749,10 +740,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_GET_SIZE(args) > 0) {
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
-		return NULL;
-	}
+	BPY_PROPDEF_HEAD(BPy_PointerProperty)
 
 	srna= srna_from_self(self, "PointerProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
@@ -809,10 +797,7 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_GET_SIZE(args) > 0) {
-		 PyErr_SetString(PyExc_ValueError, "all args must be keywords");
-		return NULL;
-	}
+	BPY_PROPDEF_HEAD(BPy_CollectionProperty)
 
 	srna= srna_from_self(self, "CollectionProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
