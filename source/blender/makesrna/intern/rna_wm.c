@@ -617,19 +617,29 @@ static void rna_wmClipboard_get(PointerRNA *ptr, char *value)
 	char *pbuf;
 
 	pbuf= WM_clipboard_text_get(FALSE);
-	strcpy(value, pbuf);
-
-	MEM_freeN(pbuf);
+	if(pbuf) {
+		strcpy(value, pbuf);
+		MEM_freeN(pbuf);
+	}
+	else {
+		value[0]= '\0';
+	}
 }
 
 static int rna_wmClipboard_length(PointerRNA *ptr)
 {
-	char *clipboard;
+	char *pbuf;
 	int length;
 
-	clipboard = WM_clipboard_text_get(FALSE);
-	length = (clipboard?strlen(clipboard):0);
-	MEM_freeN(clipboard);
+	pbuf = WM_clipboard_text_get(FALSE);
+	if(pbuf) {
+		length = strlen(pbuf);
+		MEM_freeN(pbuf);
+	}
+	else {
+		length= 0;
+	}
+	
 
 	return length;
 }
