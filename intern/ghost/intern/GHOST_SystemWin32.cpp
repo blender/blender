@@ -207,17 +207,17 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 		}
 		else {
 			// An invalid window could be one that was used to test for AA
-			GHOST_Window *other_window = ((GHOST_WindowWin32*)window)->getNextWindow();
-
-			delete window;
-			window = 0;
+			window = ((GHOST_WindowWin32*)window)->getNextWindow();
 			
 			// If another window is found, let the wm know about that one, but not the old one
-			if (other_window)
-			{
-				m_windowManager->addWindow(other_window);
-				window = other_window;
+			if (window->getValid()) {
+				m_windowManager->addWindow(window);
 			}
+			else {
+				delete window;
+				window = 0;
+			}
+
 		}
 	}
 	return window;
