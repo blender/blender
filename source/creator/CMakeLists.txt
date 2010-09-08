@@ -222,19 +222,19 @@ IF(WITH_INSTALL)
 		)
 		INSTALL(
 			DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts/
-			DESTINATION ${BLENDERPATH}/scripts
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION}/scripts
 			PATTERN ".svn" EXCLUDE
 			PATTERN "*.pyc" EXCLUDE
 		)
 		INSTALL(
 			DIRECTORY ${CMAKE_SOURCE_DIR}/release/datafiles/brushicons/
-			DESTINATION ${BLENDERPATH}/datafiles/brushicons
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION}/datafiles/brushicons
 			PATTERN ".svn" EXCLUDE
 		)
 		IF(WITH_INTERNATIONAL)
 			INSTALL(
 				DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale/
-				DESTINATION ${BLENDERPATH}/datafiles/locale
+				DESTINATION ${CMAKE_INSTALL_PREFIX}/share/blender/${BLENDER_VERSION}/datafiles/locale
 				PATTERN ".svn" EXCLUDE
 			)
 		ENDIF(WITH_INTERNATIONAL)
