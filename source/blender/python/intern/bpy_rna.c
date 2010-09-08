@@ -2911,7 +2911,7 @@ static char pyrna_struct_as_pointer_doc[] =
 "\n"
 "   Returns the memory address which holds a pointer to blenders internal data\n"
 "\n"
-"   :return: capsule with a name set from the struct type.\n"
+"   :return: int (memory address).\n"
 "   :rtype: int\n"
 "\n"
 "   .. note:: This is intended only for advanced script writers who need to pass blender data to their own C/Python modules.\n";
@@ -4604,29 +4604,32 @@ StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
 	return pyrna_struct_as_srna(self, 0, error_prefix);
 }
 
-static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key, PyObject *dummy_args)
+static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key)
 {
 	/* We only care about results from C which
 	 * are for sure types, save some time with error */
 	if(PyTuple_CheckExact(item) && PyTuple_GET_SIZE(item)==2) {
 
-		PyObject *py_func_ptr, *py_kw, *py_srna_cobject, *py_ret;
-		PyObject *(*pyfunc)(PyObject *, PyObject *, PyObject *);
+		PyObject *py_func, *py_kw, *py_srna_cobject, *py_ret;
 
-		if(PyArg_ParseTuple(item, "O!O!", &PyCapsule_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
+		if(PyArg_ParseTuple(item, "OO!", &py_func, &PyDict_Type, &py_kw)) {
+			PyObject *args_fake;
 
 			if(*_PyUnicode_AsString(key)=='_') {
 				PyErr_Format(PyExc_ValueError, "bpy_struct \"%.200s\" registration error: %.200s could not register because the property starts with an '_'\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
 				return -1;
 			}
-			pyfunc = PyCapsule_GetPointer(py_func_ptr, NULL);
 			py_srna_cobject = PyCapsule_New(srna, NULL, NULL);
 
 			/* not 100% nice :/, modifies the dict passed, should be ok */
 			PyDict_SetItemString(py_kw, "attr", key);
+			
+			args_fake= PyTuple_New(1);
+			PyTuple_SET_ITEM(args_fake, 0, py_srna_cobject);
 
-			py_ret = pyfunc(py_srna_cobject, dummy_args, py_kw);
-			Py_DECREF(py_srna_cobject);
+			py_ret = PyObject_Call(py_func, args_fake, py_kw);
+
+			Py_DECREF(args_fake); /* free's py_srna_cobject too */
 
 			if(py_ret) {
 				Py_DECREF(py_ret);
@@ -4657,11 +4660,8 @@ static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 {
 	PyObject *item, *key;
 	PyObject *order;
-	PyObject *dummy_args;
 	Py_ssize_t pos = 0;
 	int ret;
-
-	dummy_args = PyTuple_New(0);
 
 	if(	!PyDict_CheckExact(class_dict) &&
 		(order= PyDict_GetItemString(class_dict, "order")) &&
@@ -4670,21 +4670,19 @@ static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 		for(pos= 0; pos<PyList_GET_SIZE(order); pos++) {
 			key= PyList_GET_ITEM(order, pos);
 			item= PyDict_GetItem(class_dict, key);
-			ret= deferred_register_prop(srna, item, key, dummy_args);
+			ret= deferred_register_prop(srna, item, key);
 			if(ret==-1)
 				break;
 		}
 	}
 	else {
 		while (PyDict_Next(class_dict, &pos, &key, &item)) {
-			ret= deferred_register_prop(srna, item, key, dummy_args);
+			ret= deferred_register_prop(srna, item, key);
 
 			if(ret==-1)
 				break;
 		}
 	}
-
-	Py_DECREF(dummy_args);
 
 	return 0;
 }
