@@ -912,20 +912,20 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         cats = ["All", "Enabled", "Disabled"] + sorted(cats)
 
-        bpy.types.Scene.EnumProperty(items=[(cat, cat, cat + " addons") for cat in cats],
-            name="Category", attr="addon_filter", description="Filter add-ons by category")
-        bpy.types.Scene.StringProperty(name="Search", attr="addon_search",
-            description="Search within the selected filter")
+        # use window manager ID since it wont be saved with the file
+        # defining every draw is stupid *FIXME*
+        bpy.types.WindowManager.addon_filter = bpy.props.EnumProperty(items=[(cat, cat, cat + " addons") for cat in cats], name="Category", description="Filter add-ons by category")
+        bpy.types.WindowManager.addon_search = bpy.props.StringProperty(name="Search", description="Search within the selected filter")
 
         split = layout.split(percentage=0.2)
         col = split.column()
-        col.prop(context.scene, "addon_filter", text="Filter", expand=True)
-        col.prop(context.scene, "addon_search", text="", icon='VIEWZOOM')
+        col.prop(context.window_manager, "addon_filter", text="Filter", expand=True)
+        col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
 
         col = split.column()
 
-        filter = context.scene.addon_filter
-        search = context.scene.addon_search.lower()
+        filter = context.window_manager.addon_filter
+        search = context.window_manager.addon_search.lower()
 
         for mod, info in addons:
             module_name = mod.__name__
