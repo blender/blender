@@ -522,10 +522,10 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
 
     def execute(self, context):
         import shutil
-        if not self.properties.is_property_set("filepath"):
+        if not self.filepath:
             raise Exception("Filepath not set")
 
-        f = open(self.properties.filepath, "r")
+        f = open(self.filepath, "r")
         if not f:
             raise Exception("Could not open file")
 
@@ -548,10 +548,10 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
 
         path = os.path.join(path, config_name + ".py")
 
-        if self.properties.keep_original:
-            shutil.copy(self.properties.filepath, path)
+        if self.keep_original:
+            shutil.copy(self.filepath, path)
         else:
-            shutil.move(self.properties.filepath, path)
+            shutil.move(self.filepath, path)
 
         # sneaky way to check we're actually running the code.
         wm = context.window_manager
@@ -589,20 +589,20 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
     kc_name = StringProperty(name="KeyConfig Name", description="Name to save the key config as")
 
     def execute(self, context):
-        if not self.properties.is_property_set("filepath"):
+        if not self.filepath:
             raise Exception("Filepath not set")
 
-        f = open(self.properties.filepath, "w")
+        f = open(self.filepath, "w")
         if not f:
             raise Exception("Could not open file")
 
         wm = context.window_manager
         kc = wm.keyconfigs.active
 
-        if self.properties.kc_name != '':
-            name = self.properties.kc_name
+        if self.kc_name != '':
+            name = self.kc_name
         elif kc.name == 'Blender':
-            name = os.path.splitext(os.path.basename(self.properties.filepath))[0]
+            name = os.path.splitext(os.path.basename(self.filepath))[0]
         else:
             name = kc.name
 
@@ -696,7 +696,7 @@ class WM_OT_keymap_restore(bpy.types.Operator):
     def execute(self, context):
         wm = context.window_manager
 
-        if self.properties.all:
+        if self.all:
             for km in wm.keyconfigs.default.keymaps:
                 km.restore_to_default()
         else:
@@ -716,7 +716,7 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
     def execute(self, context):
         wm = context.window_manager
         km = context.keymap
-        kmi = km.items.from_id(self.properties.item_id)
+        kmi = km.items.from_id(self.item_id)
 
         km.restore_item_to_default(kmi)
 
@@ -757,7 +757,7 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
     def execute(self, context):
         wm = context.window_manager
         km = context.keymap
-        kmi = km.items.from_id(self.properties.item_id)
+        kmi = km.items.from_id(self.item_id)
         km.items.remove(kmi)
         return {'FINISHED'}
 

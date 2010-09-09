@@ -148,9 +148,8 @@ class BakeAction(bpy.types.Operator):
             default=True)
 
     def execute(self, context):
-        props = self.properties
 
-        action = bake(props.frame_start, props.frame_end, props.step, props.show_only_selected)
+        action = bake(self.frame_start, self.frame_end, self.step, self.show_only_selected)
 
         # basic cleanup, could move elsewhere
         for fcu in action.fcurves:

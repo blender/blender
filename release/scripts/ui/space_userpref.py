@@ -1049,7 +1049,7 @@ class WM_OT_addon_enable(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to enable")
 
     def execute(self, context):
-        module_name = self.properties.module
+        module_name = self.module
 
         # note, this still gets added to _bpy_types.TypeMap
 
@@ -1133,7 +1133,7 @@ class WM_OT_addon_disable(bpy.types.Operator):
 
     def execute(self, context):
         import bpy_types as _bpy_types
-        module_name = self.properties.module
+        module_name = self.module
 
         try:
             mod = __import__(module_name)
@@ -1168,7 +1168,7 @@ class WM_OT_addon_install(bpy.types.Operator):
     def execute(self, context):
         import traceback
         import zipfile
-        pyfile = self.properties.filepath
+        pyfile = self.filepath
 
         path_addons = bpy.utils.script_paths("addons")[-1]
 
@@ -1222,7 +1222,7 @@ class WM_OT_addon_expand(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to expand")
 
     def execute(self, context):
-        module_name = self.properties.module
+        module_name = self.module
 
         # unlikely to fail, module should have already been imported
         try:

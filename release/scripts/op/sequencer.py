@@ -92,7 +92,7 @@ class SequencerCutMulticam(bpy.types.Operator):
             return False
 
     def execute(self, context):
-        camera = self.properties.camera
+        camera = self.camera
 
         s = context.scene.sequence_editor.active_strip
 

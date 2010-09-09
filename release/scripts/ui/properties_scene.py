@@ -207,6 +207,8 @@ class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, bpy.types.Panel):
 
 from bpy.props import *
 
+#  XXX, move operator to op/ dir
+
 
 class ANIM_OT_keying_set_export(bpy.types.Operator):
     "Export Keying Set to a python script."
@@ -219,10 +221,10 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
     filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
     def execute(self, context):
-        if not self.properties.filepath:
+        if not self.filepath:
             raise Exception("Filepath not set.")
 
-        f = open(self.properties.filepath, "w")
+        f = open(self.filepath, "w")
         if not f:
             raise Exception("Could not open file.")
 

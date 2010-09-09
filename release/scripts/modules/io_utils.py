@@ -28,8 +28,8 @@ class ExportHelper:
 
     def invoke(self, context, event):
         import os
-        if not self.properties.is_property_set("filepath"):
-            self.properties.filepath = os.path.splitext(context.blend_data.filepath)[0] + self.filename_ext
+        if not self.filepath:
+            self.filepath = os.path.splitext(context.blend_data.filepath)[0] + self.filename_ext
 
         context.window_manager.add_fileselect(self)
         return {'RUNNING_MODAL'}

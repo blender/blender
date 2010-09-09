@@ -58,7 +58,7 @@ class EditExternally(bpy.types.Operator):
     def execute(self, context):
         import os
         import subprocess
-        filepath = bpy.path.abspath(self.properties.filepath)
+        filepath = bpy.path.abspath(self.filepath)
 
         if not os.path.exists(filepath):
             self.report('ERROR', "Image path '%s' not found." % filepath)
@@ -77,7 +77,7 @@ class EditExternally(bpy.types.Operator):
             self.report({'ERROR'}, "Image not found on disk")
             return {'CANCELLED'}
 
-        self.properties.filepath = filepath
+        self.filepath = filepath
         self.execute(context)
 
         return {'FINISHED'}

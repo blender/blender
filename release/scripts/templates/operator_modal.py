@@ -11,14 +11,14 @@ class ModalOperator(bpy.types.Operator):
 
     def modal(self, context, event):
         if event.type == 'MOUSEMOVE':
-            delta = self.properties.first_mouse_x - event.mouse_x
-            context.object.location.x = self.properties.first_value + delta * 0.01
+            delta = self.first_mouse_x - event.mouse_x
+            context.object.location.x = self.first_value + delta * 0.01
 
         elif event.type == 'LEFTMOUSE':
             return {'FINISHED'}
 
         elif event.type in ('RIGHTMOUSE', 'ESC'):
-            context.object.location.x = self.properties.first_value
+            context.object.location.x = self.first_value
             return {'CANCELLED'}
 
         return {'RUNNING_MODAL'}
@@ -26,8 +26,8 @@ class ModalOperator(bpy.types.Operator):
     def invoke(self, context, event):
         if context.object:
             context.window_manager.add_modal_handler(self)
-            self.properties.first_mouse_x = event.mouse_x
-            self.properties.first_value = context.object.location.x
+            self.first_mouse_x = event.mouse_x
+            self.first_value = context.object.location.x
             return {'RUNNING_MODAL'}
         else:
             self.report({'WARNING'}, "No active object, could not finish")

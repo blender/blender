@@ -36,7 +36,7 @@ class SelectPattern(bpy.types.Operator):
 
         import fnmatch
 
-        if self.properties.case_sensitive:
+        if self.case_sensitive:
             pattern_match = fnmatch.fnmatchcase
         else:
             pattern_match = lambda a, b: fnmatch.fnmatchcase(a.upper(), b.upper())
@@ -51,9 +51,9 @@ class SelectPattern(bpy.types.Operator):
 
         # Can be pose bones or objects
         for item in items:
-            if pattern_match(item.name, self.properties.pattern):
+            if pattern_match(item.name, self.pattern):
                 item.select = True
-            elif not self.properties.extend:
+            elif not self.extend:
                 item.select = False
 
         return {'FINISHED'}
@@ -66,12 +66,11 @@ class SelectPattern(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        props = self.properties
 
-        layout.prop(props, "pattern")
+        layout.prop(self.properties, "pattern")
         row = layout.row()
-        row.prop(props, "case_sensitive")
-        row.prop(props, "extend")
+        row.prop(self.properties, "case_sensitive")
+        row.prop(self.properties, "extend")
 
 
 class SelectCamera(bpy.types.Operator):
@@ -124,7 +123,7 @@ class SelectHierarchy(bpy.types.Operator):
         if context.object not in selected_objects:
             selected_objects.append(context.object)
 
-        if self.properties.direction == 'PARENT':
+        if self.direction == 'PARENT':
             for obj in selected_objects:
                 parent = obj.parent
 
@@ -144,7 +143,7 @@ class SelectHierarchy(bpy.types.Operator):
 
         # dont edit any object settings above this
         if select_new:
-            if not self.properties.extend:
+            if not self.extend:
                 bpy.ops.object.select_all(action='DESELECT')
 
             for obj in select_new:
@@ -174,8 +173,8 @@ class SubdivisionSet(bpy.types.Operator):
         return (obs is not None)
 
     def execute(self, context):
-        level = self.properties.level
-        relative = self.properties.relative
+        level = self.level
+        relative = self.relative
 
         if relative and level == 0:
             return {'CANCELLED'}  # nothing to do
@@ -403,7 +402,7 @@ class ShapeTransfer(bpy.types.Operator):
         if ob_act.active_shape_key is None:
             self.report({'ERROR'}, "Other object has no shape key")
             return {'CANCELLED'}
-        return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)
+        return self._main(ob_act, objects, self.mode, self.use_clamp)
 
 
 class JoinUVs(bpy.types.Operator):

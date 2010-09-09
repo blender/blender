@@ -72,7 +72,7 @@ class ExportUVLayout(bpy.types.Operator):
         uv_layer = mesh.uv_textures.active.data
         uv_layer_len = len(uv_layer)
 
-        if not self.properties.export_all:
+        if not self.export_all:
 
             local_image = Ellipsis
 
@@ -112,9 +112,9 @@ class ExportUVLayout(bpy.types.Operator):
         mesh = obj.data
         faces = mesh.faces
 
-        mode = self.properties.mode
+        mode = self.mode
 
-        filepath = self.properties.filepath
+        filepath = self.filepath
         filepath = bpy.path.ensure_ext(filepath, "." + mode.lower())
         file = open(filepath, "w")
         fw = file.write

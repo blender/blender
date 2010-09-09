@@ -39,16 +39,16 @@ class AddPresetBase():
 
     def execute(self, context):
 
-        if not self.properties.name:
+        if not self.name:
             return {'FINISHED'}
 
-        filename = self._as_filename(self.properties.name) + ".py"
+        filename = self._as_filename(self.name) + ".py"
 
         target_path = bpy.utils.preset_paths(self.preset_subdir)[0]  # we need some way to tell the user and system preset path
 
         filepath = os.path.join(target_path, filename)
         if getattr(self, "save_keyconfig", False):
-            bpy.ops.wm.keyconfig_export(filepath=filepath, kc_name=self.properties.name)
+            bpy.ops.wm.keyconfig_export(filepath=filepath, kc_name=self.name)
             file_preset = open(filepath, 'a')
             file_preset.write("wm.keyconfigs.active = kc\n\n")
         else:
@@ -83,11 +83,11 @@ class ExecutePreset(bpy.types.Operator):
 
     def execute(self, context):
         # change the menu title to the most recently chosen option
-        preset_class = getattr(bpy.types, self.properties.menu_idname)
-        preset_class.bl_label = self.properties.preset_name
+        preset_class = getattr(bpy.types, self.menu_idname)
+        preset_class.bl_label = self.preset_name
 
         # execute the preset using script.python_file_run
-        bpy.ops.script.python_file_run(filepath=self.properties.filepath)
+        bpy.ops.script.python_file_run(filepath=self.filepath)
         return {'FINISHED'}
 
 
