@@ -48,6 +48,7 @@ blacklist = []
 
 init_file = ""
 init_address = True
+init_data = True
 
 def register():
     ui.addProperties()
