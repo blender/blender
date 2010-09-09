@@ -236,8 +236,14 @@ static std::string translate_id(const std::string &id)
 	if (id.size() == 0)
 	{ return id; }
 	std::string id_translated = id;
-	id_translated[0] = translate_start_name_map[(unsigned int)id_translated[0]];
-	for (unsigned int i=1; i < id_translated.size(); i++)
+	int offset = 0;
+	// prepend '_' if the first character is illegal and not '_' already
+	if (id[0] != '_' && translate_start_name_map[(unsigned int)id[0]] == '_')
+	{
+		id_translated.insert(0, 1, '_');
+		offset = 1;
+	}
+	for (unsigned int i=offset; i < id_translated.size(); i++)
 	{
 		id_translated[i] = translate_name_map[(unsigned int)id_translated[i]];
 	}
