@@ -318,7 +318,7 @@ def register():
 
 
 def unregister():
-    bpy.types.Scene.RemoveProperty("pose_templates")
+    del bpy.types.Scene.pose_templates
     space_info.INFO_MT_armature_add.remove(menu_func)
 
 if __name__ == "__main__":

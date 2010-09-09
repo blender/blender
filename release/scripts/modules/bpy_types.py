@@ -701,6 +701,14 @@ class OrderedMeta(RNAMeta):
 class Operator(StructRNA, metaclass=OrderedMeta):
     __slots__ = ()
 
+    @classmethod
+    def easy_getsets(cls):
+        def bypass_attr(attr):
+            setattr(cls, attr, property(lambda self: getattr(self.properties, attr), lambda self, value: setattr(self.properties, attr, value)))
+        for attr, value in list(cls.__dict__.items()):
+            if type(value) == tuple and len(value) == 2 and type(value[1]) == dict:
+                bypass_attr(attr)
+
 
 class Macro(StructRNA, metaclass=OrderedMeta):
     # bpy_types is imported before ops is defined
