@@ -143,7 +143,7 @@ static int bpy_struct_id_used(StructRNA *srna, char *identifier)
 
 /* Function that sets RNA, NOTE - self is NULL when called from python, but being abused from C so we can pass the srna allong
  * This isnt incorrect since its a python object - but be careful */
-char BPy_BoolProperty_doc[] =
+static char BPy_BoolProperty_doc[] =
 ".. function:: BoolProperty(name=\"\", description=\"\", default=False, options={'ANIMATABLE'}, subtype='NONE')\n"
 "\n"
 "   Returns a new boolean property definition.\n"
@@ -153,7 +153,7 @@ char BPy_BoolProperty_doc[] =
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
 "   :type subtype: string";
 
-PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
+static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
@@ -200,7 +200,7 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	Py_RETURN_NONE;
 }
 
-char BPy_BoolVectorProperty_doc[] =
+static char BPy_BoolVectorProperty_doc[] =
 ".. function:: BoolVectorProperty(name=\"\", description=\"\", default=(False, False, False), options={'ANIMATABLE'}, subtype='NONE', size=3)\n"
 "\n"
 "   Returns a new vector boolean property definition.\n"
@@ -209,7 +209,7 @@ char BPy_BoolVectorProperty_doc[] =
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
 "   :type subtype: string";
-PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
+static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
@@ -267,7 +267,7 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 	Py_RETURN_NONE;
 }
 
-char BPy_IntProperty_doc[] =
+static char BPy_IntProperty_doc[] =
 ".. function:: IntProperty(name=\"\", description=\"\", default=0, min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, step=1, options={'ANIMATABLE'}, subtype='NONE')\n"
 "\n"
 "   Returns a new int property definition.\n"
@@ -276,7 +276,7 @@ char BPy_IntProperty_doc[] =
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
 "   :type subtype: string";
-PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
+static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
@@ -323,7 +323,7 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 	Py_RETURN_NONE;
 }
 
-char BPy_IntVectorProperty_doc[] =
+static char BPy_IntVectorProperty_doc[] =
 ".. function:: IntVectorProperty(name=\"\", description=\"\", default=(0, 0, 0), min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, options={'ANIMATABLE'}, subtype='NONE', size=3)\n"
 "\n"
 "   Returns a new vector int property definition.\n"
@@ -332,7 +332,7 @@ char BPy_IntVectorProperty_doc[] =
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
 "   :type subtype: string";
-PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
+static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
@@ -391,7 +391,7 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 
-char BPy_FloatProperty_doc[] =
+static char BPy_FloatProperty_doc[] =
 ".. function:: FloatProperty(name=\"\", description=\"\", default=0.0, min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, options={'ANIMATABLE'}, subtype='NONE', unit='NONE')\n"
 "\n"
 "   Returns a new float property definition.\n"
@@ -402,7 +402,7 @@ char BPy_FloatProperty_doc[] =
 "   :type subtype: string\n"
 "   :arg unit: Enumerator in ['NONE', 'LENGTH', 'AREA', 'VOLUME', 'ROTATION', 'TIME', 'VELOCITY', 'ACCELERATION'].\n"
 "   :type unit: string\n";
-PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
+static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
@@ -457,7 +457,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 	Py_RETURN_NONE;
 }
 
-char BPy_FloatVectorProperty_doc[] =
+static char BPy_FloatVectorProperty_doc[] =
 ".. function:: FloatVectorProperty(name=\"\", description=\"\", default=(0.0, 0.0, 0.0), min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, options={'ANIMATABLE'}, subtype='NONE', size=3)\n"
 "\n"
 "   Returns a new vector float property definition.\n"
@@ -466,7 +466,7 @@ char BPy_FloatVectorProperty_doc[] =
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
 "   :type subtype: string";
-PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
+static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
@@ -524,7 +524,7 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 	Py_RETURN_NONE;
 }
 
-char BPy_StringProperty_doc[] =
+static char BPy_StringProperty_doc[] =
 ".. function:: StringProperty(name=\"\", description=\"\", default=\"\", maxlen=0, options={'ANIMATABLE'}, subtype='NONE')\n"
 "\n"
 "   Returns a new string property definition.\n"
@@ -533,7 +533,7 @@ char BPy_StringProperty_doc[] =
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILENAME', 'NONE'].\n"
 "   :type subtype: string";
-PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
+static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
@@ -625,7 +625,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *value, const char *def, in
 	return items;
 }
 
-char BPy_EnumProperty_doc[] =
+static char BPy_EnumProperty_doc[] =
 ".. function:: EnumProperty(items, name=\"\", description=\"\", default=\"\", options={'ANIMATABLE'})\n"
 "\n"
 "   Returns a new enumerator property definition.\n"
@@ -634,7 +634,7 @@ char BPy_EnumProperty_doc[] =
 "   :type options: set\n"
 "   :arg items: The items that make up this enumerator.\n"
 "   :type items: sequence of string triplets";
-PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
+static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
@@ -698,7 +698,7 @@ static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix
 	return srna;
 }
 
-char BPy_PointerProperty_doc[] =
+static char BPy_PointerProperty_doc[] =
 ".. function:: PointerProperty(items, type=\"\", description=\"\", default=\"\", options={'ANIMATABLE'})\n"
 "\n"
 "   Returns a new pointer property definition.\n"
@@ -707,7 +707,7 @@ char BPy_PointerProperty_doc[] =
 "   :type options: set\n"
 "   :arg type: Dynamic type from :mod:`bpy.types`.\n"
 "   :type type: class";
-PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
+static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
@@ -747,7 +747,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 	Py_RETURN_NONE;
 }
 
-char BPy_CollectionProperty_doc[] =
+static char BPy_CollectionProperty_doc[] =
 ".. function:: CollectionProperty(items, type=\"\", description=\"\", default=\"\", options={'ANIMATABLE'})\n"
 "\n"
 "   Returns a new collection property definition.\n"
@@ -756,7 +756,7 @@ char BPy_CollectionProperty_doc[] =
 "   :type options: set\n"
 "   :arg type: Dynamic type from :mod:`bpy.types`.\n"
 "   :type type: class";
-PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
+static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
@@ -796,14 +796,14 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 	Py_RETURN_NONE;
 }
 
-char BPy_RemoveProperty_doc[] =
+static char BPy_RemoveProperty_doc[] =
 ".. function:: RemoveProperty(attr)\n"
 "\n"
 "   Removes a dynamically defined property.\n"
 "\n"
 "   :arg attr: Property name.\n"
 "   :type attr: string";
-PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw)
+static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 

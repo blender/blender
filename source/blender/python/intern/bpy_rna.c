@@ -3271,21 +3271,6 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	/* experemental */
 	{"callback_add", (PyCFunction)pyrna_callback_add, METH_VARARGS, NULL},
 	{"callback_remove", (PyCFunction)pyrna_callback_remove, METH_VARARGS, NULL},
-
-	/* class methods, only valid for subclasses */
-	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS|METH_CLASS, BPy_BoolProperty_doc},
-	{"BoolVectorProperty", (PyCFunction)BPy_BoolVectorProperty, METH_VARARGS|METH_KEYWORDS|METH_CLASS, BPy_BoolVectorProperty_doc},
-	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS|METH_CLASS, BPy_IntProperty_doc},
-	{"IntVectorProperty", (PyCFunction)BPy_IntVectorProperty, METH_VARARGS|METH_KEYWORDS|METH_CLASS, BPy_IntVectorProperty_doc},
-	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS|METH_CLASS, BPy_FloatProperty_doc},
-	{"FloatVectorProperty", (PyCFunction)BPy_FloatVectorProperty, METH_VARARGS|METH_KEYWORDS|METH_CLASS, BPy_FloatVectorProperty_doc},
-	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS|METH_CLASS, BPy_StringProperty_doc},
-	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS|METH_CLASS, BPy_EnumProperty_doc},
-	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS|METH_CLASS, BPy_PointerProperty_doc},
-	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS|METH_CLASS, BPy_CollectionProperty_doc},
-	
-	{"RemoveProperty", (PyCFunction)BPy_RemoveProperty, METH_VARARGS|METH_KEYWORDS|METH_CLASS, BPy_RemoveProperty_doc},
-
 	{NULL, NULL, 0, NULL}
 };
 

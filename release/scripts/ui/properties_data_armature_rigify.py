@@ -18,14 +18,17 @@
 
 # <pep8 compliant>
 import bpy
-
-
-class PoseTemplateSettings(bpy.types.IDPropertyGroup):
-    pass
+from bpy.props import *
 
 
 class PoseTemplate(bpy.types.IDPropertyGroup):
-    pass
+    name = StringProperty(attr="name", name="Name of the slave", description="", maxlen=64, default="")
+    active_template_index = IntProperty(name="Index of the active slave", description="", default=-1, min=-1, max=65535) 
+    use_generate_deform_rig = BoolProperty(name="Create Deform Rig", description="Create a copy of the metarig, constrainted by the generated rig", default=False)
+
+
+class PoseTemplateSettings(bpy.types.IDPropertyGroup):
+    templates = CollectionProperty(type=PoseTemplate, name="Templates", description="")
 
 
 def metarig_templates():
@@ -102,10 +105,6 @@ class DATA_PT_template(bpy.types.Panel):
 
             sub = row.column(align=True)
             sub.operator("pose.metarig_reload", icon="FILE_REFRESH", text="")
-
-
-# operators
-from bpy.props import StringProperty
 
 
 class Reload(bpy.types.Operator):
@@ -314,27 +313,7 @@ import space_info  # ensure the menu is loaded first
 
 
 def register():
-    PoseTemplate.StringProperty(attr="name",
-                    name="Name of the slave",
-                    description="",
-                    maxlen=64,
-                    default="")
-
-    PoseTemplateSettings.CollectionProperty(attr="templates", type=PoseTemplate, name="Templates", description="")
-    PoseTemplateSettings.IntProperty(attr="active_template_index",
-                    name="Index of the active slave",
-                    description="",
-                    default=-1,
-                    min=-1,
-                    max=65535)
-
-    PoseTemplateSettings.BoolProperty(attr="use_generate_deform_rig",
-                    name="Create Deform Rig",
-                    description="Create a copy of the metarig, constrainted by the generated rig",
-                    default=False)
-
-    bpy.types.Scene.PointerProperty(attr="pose_templates", type=PoseTemplateSettings, name="Pose Templates", description="Pose Template Settings")
-
+    bpy.types.Scene.pose_templates = PointerProperty(type=PoseTemplateSettings, name="Pose Templates", description="Pose Template Settings")
     space_info.INFO_MT_armature_add.append(menu_func)
 
 

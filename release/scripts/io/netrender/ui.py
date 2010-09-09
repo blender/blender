@@ -339,42 +339,43 @@ class NetRenderJob(bpy.types.IDPropertyGroup):
     pass
 
 def addProperties():
-    bpy.types.Scene.PointerProperty(attr="network_render", type=NetRenderSettings, name="Network Render", description="Network Render Settings")
+    from bpy.props import PointerProperty, StringProperty, BoolProperty, EnumProperty, IntProperty, CollectionProperty
+    bpy.types.Scene.network_render = PointerProperty(type=NetRenderSettings, name="Network Render", description="Network Render Settings")
     
-    NetRenderSettings.StringProperty( attr="server_address",
+    NetRenderSettings.server_address = StringProperty(
                     name="Server address",
                     description="IP or name of the master render server",
                     maxlen = 128,
                     default = "[default]")
     
-    NetRenderSettings.IntProperty( attr="server_port",
+    NetRenderSettings.server_port = IntProperty(
                     name="Server port",
                     description="port of the master render server",
                     default = 8000,
                     min=1,
                     max=65535)
     
-    NetRenderSettings.BoolProperty( attr="use_master_broadcast",
+    NetRenderSettings.use_master_broadcast = BoolProperty(
                     name="Broadcast",
                     description="broadcast master server address on local network",
                     default = True)
     
-    NetRenderSettings.BoolProperty( attr="use_slave_clear",
+    NetRenderSettings.use_slave_clear = BoolProperty(
                     name="Clear on exit",
                     description="delete downloaded files on exit",
                     default = True)
     
-    NetRenderSettings.BoolProperty( attr="use_slave_thumb",
+    NetRenderSettings.use_slave_thumb = BoolProperty(
                     name="Generate thumbnails",
                     description="Generate thumbnails on slaves instead of master",
                     default = False)
     
-    NetRenderSettings.BoolProperty( attr="use_slave_output_log",
+    NetRenderSettings.use_slave_output_log = BoolProperty(
                     name="Output render log on console",
                     description="Output render text log to console as well as sending it to the master",
                     default = True)
     
-    NetRenderSettings.BoolProperty( attr="use_master_clear",
+    NetRenderSettings.use_master_clear = BoolProperty(
                     name="Clear on exit",
                     description="delete saved files on exit",
                     default = False)
@@ -389,67 +390,67 @@ def addProperties():
     elif not default_path.endswith(os.sep):
         default_path += os.sep
     
-    NetRenderSettings.StringProperty( attr="path",
+    NetRenderSettings.path = StringProperty(
                     name="Path",
                     description="Path for temporary files",
                     maxlen = 128,
                     default = default_path,
                     subtype='FILE_PATH')
     
-    NetRenderSettings.StringProperty( attr="job_name",
+    NetRenderSettings.job_name = StringProperty(
                     name="Job name",
                     description="Name of the job",
                     maxlen = 128,
                     default = "[default]")
     
-    NetRenderSettings.StringProperty( attr="job_category",
+    NetRenderSettings.job_category = StringProperty(
                     name="Job category",
                     description="Category of the job",
                     maxlen = 128,
                     default = "")
     
-    NetRenderSettings.IntProperty( attr="chunks",
+    NetRenderSettings.chunks = IntProperty(
                     name="Chunks",
                     description="Number of frame to dispatch to each slave in one chunk",
                     default = 5,
                     min=1,
                     max=65535)
     
-    NetRenderSettings.IntProperty( attr="priority",
+    NetRenderSettings.priority = IntProperty(
                     name="Priority",
                     description="Priority of the job",
                     default = 1,
                     min=1,
                     max=10)
     
-    NetRenderSettings.StringProperty( attr="job_id",
+    NetRenderSettings.job_id = StringProperty(
                     name="Network job id",
                     description="id of the last sent render job",
                     maxlen = 64,
                     default = "")
     
-    NetRenderSettings.IntProperty( attr="active_slave_index",
+    NetRenderSettings.active_slave_index = IntProperty(
                     name="Index of the active slave",
                     description="",
                     default = -1,
                     min= -1,
                     max=65535)
     
-    NetRenderSettings.IntProperty( attr="active_blacklisted_slave_index",
+    NetRenderSettings.active_blacklisted_slave_index = IntProperty(
                     name="Index of the active slave",
                     description="",
                     default = -1,
                     min= -1,
                     max=65535)
     
-    NetRenderSettings.IntProperty( attr="active_job_index",
+    NetRenderSettings.active_job_index = IntProperty(
                     name="Index of the active job",
                     description="",
                     default = -1,
                     min= -1,
                     max=65535)
     
-    NetRenderSettings.EnumProperty(attr="mode",
+    NetRenderSettings.mode = EnumProperty(
                             items=(
                                             ("RENDER_CLIENT", "Client", "Act as render client"),
                                             ("RENDER_MASTER", "Master", "Act as render master"),
@@ -459,17 +460,17 @@ def addProperties():
                             description="Mode of operation of this instance",
                             default="RENDER_CLIENT")
     
-    NetRenderSettings.CollectionProperty(attr="slaves", type=NetRenderSlave, name="Slaves", description="")
-    NetRenderSettings.CollectionProperty(attr="slaves_blacklist", type=NetRenderSlave, name="Slaves Blacklist", description="")
-    NetRenderSettings.CollectionProperty(attr="jobs", type=NetRenderJob, name="Job List", description="")
+    NetRenderSettings.slaves = CollectionProperty(type=NetRenderSlave, name="Slaves", description="")
+    NetRenderSettings.slaves_blacklist = CollectionProperty(type=NetRenderSlave, name="Slaves Blacklist", description="")
+    NetRenderSettings.jobs = CollectionProperty(type=NetRenderJob, name="Job List", description="")
     
-    NetRenderSlave.StringProperty( attr="name",
+    NetRenderSlave.name = StringProperty(
                     name="Name of the slave",
                     description="",
                     maxlen = 64,
                     default = "")
     
-    NetRenderJob.StringProperty( attr="name",
+    NetRenderJob.name = StringProperty(
                     name="Name of the job",
                     description="",
                     maxlen = 128,

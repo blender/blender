@@ -27,8 +27,8 @@ class RNA_IDProp_Meta(type):
     # bpy.types.Scene.myprop = bpy.props.BoolProperty()
     def __setattr__(cls, attr, value):
         if type(value) == tuple and len(value) == 2:
-            print(cls, attr, value)
-            if attr in cls.bl_rna.properties:
+            prop = cls.bl_rna.properties.get(attr)
+            if prop and prop.is_runtime:
                 _bpy.props.RemoveProperty(cls, attr=attr)
             func, kw = value
             kw["attr"] = attr
