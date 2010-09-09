@@ -1021,7 +1021,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *p
 				return -1;
 			}
 			else {
-				if(data)	*((char**)data)= param; /*XXX, this assignes a pointer, wouldnt it be better to copy??? */
+				if(data)	*((char**)data)= (char *)param; /*XXX, this is suspect but needed for function calls, need to see if theres a better way */
 				else		RNA_property_string_set(ptr, prop, param);
 			}
 #ifdef USE_STRING_COERCE
@@ -2482,7 +2482,11 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 	PropertyRNA *prop;
 	FunctionRNA *func;
 	
-	if(name[0]=='_') { // rna can't start with a "_", so for __dict__ and similar we can skip using rna lookups
+	if(name == NULL) {
+		PyErr_SetString(PyExc_AttributeError, "bpy_struct: __getattr__ must be a string");
+		ret = NULL;
+	}
+	else if(name[0]=='_') { // rna can't start with a "_", so for __dict__ and similar we can skip using rna lookups
 		/* annoying exception, maybe we need to have different types for this... */
 		if((strcmp(name, "__getitem__")==0 || strcmp(name, "__setitem__")==0) && !RNA_struct_idprops_check(self->ptr.type)) {
 			PyErr_SetString(PyExc_AttributeError, "bpy_struct: no __getitem__ support for this type");
@@ -2608,7 +2612,11 @@ static int pyrna_struct_setattro( BPy_StructRNA *self, PyObject *pyname, PyObjec
 	char *name = _PyUnicode_AsString(pyname);
 	PropertyRNA *prop= NULL;
 
-	if (name[0] != '_' && (prop= RNA_struct_find_property(&self->ptr, name))) {
+	if(name == NULL) {
+		PyErr_SetString(PyExc_AttributeError, "bpy_struct: __setattr__ must be a string");
+		return -1;
+	}
+	else if (name[0] != '_' && (prop= RNA_struct_find_property(&self->ptr, name))) {
 		if (!RNA_property_editable_flag(&self->ptr, prop)) {
 			PyErr_Format( PyExc_AttributeError, "bpy_struct: attribute \"%.200s\" from \"%.200s\" is read-only", RNA_property_identifier(prop), RNA_struct_identifier(self->ptr.type) );
 			return -1;
@@ -2680,7 +2688,11 @@ static PyObject *pyrna_prop_collection_getattro( BPy_PropertyRNA *self, PyObject
 {
 	char *name = _PyUnicode_AsString(pyname);
 
-	if(name[0] != '_') {
+	if(name == NULL) {
+		PyErr_SetString(PyExc_AttributeError, "bpy_prop_collection: __getattr__ must be a string");
+		return NULL;
+	}
+	else if(name[0] != '_') {
 		PyObject *ret;
 		PropertyRNA *prop;
 		FunctionRNA *func;
@@ -2713,12 +2725,15 @@ static int pyrna_prop_collection_setattro( BPy_PropertyRNA *self, PyObject *pyna
 	PropertyRNA *prop;
 	PointerRNA r_ptr;
 
-	if(value == NULL) {
+	if(name == NULL) {
+		PyErr_SetString(PyExc_AttributeError, "bpy_prop: __setattr__ must be a string");
+		return -1;
+	}
+	else if(value == NULL) {
 		PyErr_SetString(PyExc_AttributeError, "bpy_prop: del not supported");
 		return -1;
 	}
-	
-	if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
+	else if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
 		if ((prop = RNA_struct_find_property(&r_ptr, name))) {
 			/* pyrna_py_to_prop sets its own exceptions */
 			return pyrna_py_to_prop(&r_ptr, prop, NULL, NULL, value, "BPy_PropertyRNA - Attribute (setattr):");
@@ -4534,8 +4549,12 @@ static PyObject *pyrna_basetype_getattro( BPy_BaseTypeRNA *self, PyObject *pynam
 	PointerRNA newptr;
 	PyObject *ret;
 	char *name= _PyUnicode_AsString(pyname);
-	
-	if(strcmp(name, "register")==0) {
+
+	if(name == NULL) {
+		PyErr_SetString(PyExc_AttributeError, "bpy.types: __getattr__ must be a string");
+		ret = NULL;
+	}
+	else if(strcmp(name, "register")==0) {
 		/* this is called so often, make an exception and save a full lookup on all types */
 		ret= PyObject_GenericGetAttr((PyObject *)self, pyname);
 	}
