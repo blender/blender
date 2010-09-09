@@ -123,7 +123,7 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 		 PyErr_SetString(PyExc_ValueError, "all args must be keywords"); \
 		return NULL; \
 	} \
-	srna= srna_from_self(self, "##_func(...):"); \
+	srna= srna_from_self(self, #_func"(...):"); \
 	if(srna==NULL) { \
 		if(PyErr_Occurred()) \
 			return NULL; \

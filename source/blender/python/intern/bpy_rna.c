@@ -4276,8 +4276,8 @@ static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
 			fprintf(stderr, "pyrna_srna_ExternalType: failed to find 'bpy_types' module\n");
 			return NULL;
 		}
-#ifdef USE_PY_METACLASS
 		bpy_types_dict = PyModule_GetDict(bpy_types); // borrow
+#ifdef USE_PY_METACLASS
 		bpy_types_rna_meta_base = PyDict_GetItemString(bpy_types_dict, BPY_SRNA_IDPROP_META);
 #endif
 		Py_DECREF(bpy_types); // fairly safe to assume the dict is kept
@@ -4353,7 +4353,7 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 			metaclass= bpy_types_rna_meta_base;
 		}
 #else
-		if(RNA_struct_idprops_check(srna) && !PyObject_IsSubclass(py_base, &pyrna_struct_meta_idprop_Type)) {
+		if(RNA_struct_idprops_check(srna) && !PyObject_IsSubclass(py_base, (PyObject *)&pyrna_struct_meta_idprop_Type)) {
 			metaclass= (PyObject *)&pyrna_struct_meta_idprop_Type;
 		}
 #endif
