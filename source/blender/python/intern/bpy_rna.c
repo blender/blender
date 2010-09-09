@@ -50,6 +50,7 @@
 
 #define USE_MATHUTILS
 #define USE_STRING_COERCE
+#define USE_PY_METACLASS
 
 #ifdef USE_MATHUTILS
 #include "../generic/mathutils.h" /* so we can have mathutils callbacks */
@@ -61,6 +62,7 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 static Py_ssize_t pyrna_prop_array_length(BPy_PropertyArrayRNA *self);
 static Py_ssize_t pyrna_prop_collection_length(BPy_PropertyRNA *self);
 static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, short order_fallback);
+static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key);
 
 /* bpyrna vector/euler/quat callbacks */
 static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
@@ -2583,6 +2585,24 @@ static int pyrna_struct_pydict_contains(PyObject *self, PyObject *pyname)
 #endif
 
 //--------------- setattr-------------------------------------------
+
+#ifndef USE_PY_METACLASS
+static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *pyname, PyObject *value)
+{
+	/* check if the value is a property */
+	if(PyTuple_CheckExact(value) && PyTuple_GET_SIZE(value)==2) { /* weak */
+		StructRNA *srna= srna_from_self(cls, "struct_meta_idprop.setattr()");
+		if(srna==NULL) {
+			return -1;
+		}
+		return deferred_register_prop(srna, pyname, value);
+	}
+	else {
+		return PyType_Type.tp_setattro(cls, pyname, value);	
+	}
+}
+#endif
+		
 static int pyrna_struct_setattro( BPy_StructRNA *self, PyObject *pyname, PyObject *value )
 {
 	char *name = _PyUnicode_AsString(pyname);
@@ -3742,6 +3762,43 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 	Py_RETURN_NONE;
 }
 
+#ifndef USE_PY_METACLASS
+/* subclasses of pyrna_struct_Type which support idprop definitions use this as a metaclass */
+/* note: tp_base member is set to &PyType_Type on init */
+PyTypeObject pyrna_struct_meta_idprop_Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"bpy_struct_meta_idprop",	/* tp_name */
+	sizeof(PyTypeObject),		/* tp_basicsize */
+	0,							/* tp_itemsize */
+	/* methods */
+	NULL,						/* tp_dealloc */
+	NULL,                       /* printfunc tp_print; */
+	NULL,						/* getattrfunc tp_getattr; */
+	NULL,						/* setattrfunc tp_setattr; */
+	NULL,						/* tp_compare */ /* DEPRECATED in python 3.0! */
+	NULL,						/* tp_repr */
+
+	/* Method suites for standard classes */
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,						/* PySequenceMethods *tp_as_sequence; */
+	NULL,						/* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+	NULL,						/* hashfunc tp_hash; */
+	NULL,						/* ternaryfunc tp_call; */
+	NULL,						/* reprfunc tp_str; */
+	NULL,						/* pyrna_struct_meta_idprop_getattro*/	/* getattrofunc tp_getattro; */
+	NULL /*( setattrofunc ) pyrna_struct_meta_idprop_setattro*/,	/* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,         /* long tp_flags; */
+};
+#endif
+
+
 /*-----------------------BPy_StructRNA method def------------------------------*/
 PyTypeObject pyrna_struct_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -4199,9 +4256,14 @@ static PyObject* pyrna_srna_PyBase(StructRNA *srna) //, PyObject *bpy_types_dict
 
 /* check if we have a native python subclass, use it when it exists
  * return a borrowed reference */
+static PyObject *bpy_types_dict= NULL;
+#ifdef USE_PY_METACLASS
+#define BPY_SRNA_IDPROP_META "RNA_IDProp_Meta"
+static PyObject *bpy_types_rna_meta_base= NULL;
+#endif
+
 static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
 {
-	PyObject *bpy_types_dict= NULL;
 	const char *idname= RNA_struct_identifier(srna);
 	PyObject *newclass;
 
@@ -4214,8 +4276,10 @@ static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
 			fprintf(stderr, "pyrna_srna_ExternalType: failed to find 'bpy_types' module\n");
 			return NULL;
 		}
-
+#ifdef USE_PY_METACLASS
 		bpy_types_dict = PyModule_GetDict(bpy_types); // borrow
+		bpy_types_rna_meta_base = PyDict_GetItemString(bpy_types_dict, BPY_SRNA_IDPROP_META);
+#endif
 		Py_DECREF(bpy_types); // fairly safe to assume the dict is kept
 	}
 
@@ -4276,16 +4340,30 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 
 		/* Assume RNA_struct_py_type_get(srna) was already checked */
 		PyObject *py_base= pyrna_srna_PyBase(srna);
-
+		PyObject *metaclass;
 		const char *idname= RNA_struct_identifier(srna);
-		
+
 		/* remove __doc__ for now */
 		// const char *descr= RNA_struct_ui_description(srna);
 		// if(!descr) descr= "(no docs)";
 		// "__doc__",descr
-		
+
+#ifdef USE_PY_METACLASS 
+		if(RNA_struct_idprops_check(srna) && !PyObject_IsSubclass(py_base, bpy_types_rna_meta_base)) {
+			metaclass= bpy_types_rna_meta_base;
+		}
+#else
+		if(RNA_struct_idprops_check(srna) && !PyObject_IsSubclass(py_base, &pyrna_struct_meta_idprop_Type)) {
+			metaclass= (PyObject *)&pyrna_struct_meta_idprop_Type;
+		}
+#endif
+		else {
+			metaclass= (PyObject *)&PyType_Type;
+		}
+
 		/* always use O not N when calling, N causes refcount errors */
-		newclass = PyObject_CallFunction((PyObject*)&PyType_Type, "s(O){sss()}", idname, py_base, "__module__","bpy.types", "__slots__");
+		newclass = PyObject_CallFunction(metaclass, "s(O){sss()}", idname, py_base, "__module__","bpy.types", "__slots__");
+
 		/* newclass will now have 2 ref's, ???, probably 1 is internal since decrefing here segfaults */
 
 		/* PyC_ObSpit("new class ref", newclass); */
@@ -4299,6 +4377,7 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		}
 		else {
 			/* this should not happen */
+			printf("Error registering '%s'\n", idname);
 			PyErr_Print();
 			PyErr_Clear();
 		}
@@ -4403,7 +4482,14 @@ void BPY_rna_init(void)
 	mathutils_rna_array_cb_index= Mathutils_RegisterCallback(&mathutils_rna_array_cb);
 	mathutils_rna_matrix_cb_index= Mathutils_RegisterCallback(&mathutils_rna_matrix_cb);
 #endif
-
+	
+#ifndef USE_PY_METACLASS
+	/* metaclass */
+	pyrna_struct_meta_idprop_Type.tp_base= &PyType_Type;
+	if( PyType_Ready( &pyrna_struct_meta_idprop_Type ) < 0 )
+		return;
+#endif
+	
 	if( PyType_Ready( &pyrna_struct_Type ) < 0 )
 		return;
 
