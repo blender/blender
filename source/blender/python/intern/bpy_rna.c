@@ -404,8 +404,7 @@ static PyObject *pyrna_struct_richcmp(PyObject *a, PyObject *b, int op)
 		return NULL;
 	}
 
-	Py_INCREF(res);
-	return res;
+	return Py_INCREF(res), res;
 }
 
 static PyObject *pyrna_prop_richcmp(PyObject *a, PyObject *b, int op)
@@ -434,8 +433,7 @@ static PyObject *pyrna_prop_richcmp(PyObject *a, PyObject *b, int op)
 		return NULL;
 	}
 
-	Py_INCREF(res);
-	return res;
+	return Py_INCREF(res), res;
 }
 
 /*----------------------repr--------------------------------------------*/
@@ -2761,7 +2759,6 @@ static PyObject *pyrna_prop_collection_idprop_add(BPy_PropertyRNA *self)
 
 static PyObject *pyrna_prop_collection_idprop_remove(BPy_PropertyRNA *self, PyObject *value)
 {
-	PyObject *ret;
 	int key= PyLong_AsSsize_t(value);
 
 	if (key==-1 && PyErr_Occurred()) {
@@ -2774,15 +2771,11 @@ static PyObject *pyrna_prop_collection_idprop_remove(BPy_PropertyRNA *self, PyOb
 		return NULL;
 	}
 
-	ret = Py_None;
-	Py_INCREF(ret);
-
-	return ret;
+	Py_RETURN_NONE;
 }
 
 static PyObject *pyrna_prop_collection_idprop_move(BPy_PropertyRNA *self, PyObject *args)
 {
-	PyObject *ret;
 	int key=0, pos=0;
 
 	if (!PyArg_ParseTuple(args, "ii", &key, &pos)) {
@@ -2795,10 +2788,7 @@ static PyObject *pyrna_prop_collection_idprop_move(BPy_PropertyRNA *self, PyObje
 		return NULL;
 	}
 
-	ret = Py_None;
-	Py_INCREF(ret);
-
-	return ret;
+	Py_RETURN_NONE;
 }
 
 static PyObject *pyrna_struct_get_id_data(BPy_DummyPointerRNA *self)
@@ -2937,8 +2927,7 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 			return BPy_IDGroup_WrapData(self->ptr.id.data, idprop);
 	}
 
-	Py_INCREF(def);
-	return def;
+	return Py_INCREF(def), def;
 }
 
 static char pyrna_struct_as_pointer_doc[] =
@@ -2968,9 +2957,8 @@ static PyObject *pyrna_prop_get(BPy_PropertyRNA *self, PyObject *args)
 	
 	if(RNA_property_collection_lookup_string(&self->ptr, self->prop, key, &newptr))
 		return pyrna_struct_CreatePyObject(&newptr);
-	
-	Py_INCREF(def);
-	return def;
+
+	return Py_INCREF(def), def;
 }
 
 static void foreach_attr_type(	BPy_PropertyRNA *self, char *attr,
