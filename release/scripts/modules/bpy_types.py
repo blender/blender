@@ -18,70 +18,12 @@
 
 # <pep8 compliant>
 
-
-class RNA_IDProp_Meta(type):
-    # metaclass for all structures which can have rna prop's defined.
-    # important this class is defined first.
-
-    # setattr, so we can do this...
-    # bpy.types.Scene.myprop = bpy.props.BoolProperty()
-    def __setattr__(cls, attr, value):
-        if type(value) == tuple and len(value) == 2:
-            prop = cls.bl_rna.properties.get(attr)
-            if prop and prop.is_runtime:
-                _bpy.props.RemoveProperty(cls, attr=attr)
-            func, kw = value
-            kw["attr"] = attr
-            func(cls, **kw)
-        else:
-            # XXX, pure evil, need to find a better way
-            _setattr = RNA_IDProp_Meta.__setattr__
-            del RNA_IDProp_Meta.__setattr__
-            try:
-                setattr(cls, attr, value)
-            except Exception as exc:
-                RNA_IDProp_Meta.__setattr__ = _setattr
-                raise exc
-            
-            RNA_IDProp_Meta.__setattr__ = _setattr
-
-    def __getattr__(cls, attr):
-        if attr in cls.bl_rna.properties:
-            return cls.bl_rna.properties[attr]
-        elif attr:
-            # XXX, pure evil, need to find a better way
-            _getattr = RNA_IDProp_Meta.__getattr__
-            del RNA_IDProp_Meta.__getattr__
-            try:
-                ret = getattr(cls, attr)
-            except Exception as exc:
-                RNA_IDProp_Meta.__getattr__ = _getattr
-                raise exc
-            
-            RNA_IDProp_Meta.__getattr__ = _getattr
-            return ret
-
-    def __delattr__(cls, attr):
-        if attr in cls.bl_rna.properties:
-            _bpy.props.RemoveProperty(cls, attr=attr)
-        elif attr:
-            # XXX, pure evil, need to find a better way
-            _delattr = RNA_IDProp_Meta.__delattr__
-            del RNA_IDProp_Meta.__delattr__
-            try:
-                delattr(cls, attr, value)
-            except Exception as exc:
-                RNA_IDProp_Meta.__delattr__ = _delattr
-                raise exc
-            
-            RNA_IDProp_Meta.__delattr__ = _delattr
-
-
 from _bpy import types as bpy_types
 import _bpy
 from mathutils import Vector
 
 StructRNA = bpy_types.Struct.__bases__[0]
+StructMetaIDProp = _bpy.StructMetaIDProp
 # StructRNA = bpy_types.Struct
 
 
@@ -99,10 +41,6 @@ class Context(StructRNA):
                     new_context[attr] = value
 
         return new_context
-
-
-class ID(StructRNA, metaclass=RNA_IDProp_Meta):
-    __slots__ = ()
 
 
 class Library(bpy_types.ID):
@@ -123,7 +61,7 @@ class Library(bpy_types.ID):
         return tuple(id_block for attr in attr_links for id_block in getattr(bpy.data, attr) if id_block.library == self)
 
 
-class Texture(bpy_types.ID, metaclass=RNA_IDProp_Meta):
+class Texture(bpy_types.ID):
     __slots__ = ()
 
     @property
@@ -320,15 +258,15 @@ class _GenericBone:
         return bones
 
 
-class PoseBone(StructRNA, _GenericBone, metaclass=RNA_IDProp_Meta):
+class PoseBone(StructRNA, _GenericBone):
     __slots__ = ()
 
 
-class Bone(StructRNA, _GenericBone, metaclass=RNA_IDProp_Meta):
+class Bone(StructRNA, _GenericBone):
     __slots__ = ()
 
 
-class EditBone(StructRNA, _GenericBone, metaclass=RNA_IDProp_Meta):
+class EditBone(StructRNA, _GenericBone):
     __slots__ = ()
 
     def align_orientation(self, other):
@@ -680,11 +618,10 @@ class RNAMeta(type):
         return result
 
 
-class RNAMetaRegister(RNAMeta, RNA_IDProp_Meta):
+class RNAMetaRegister(RNAMeta, StructMetaIDProp):
     @classmethod
     def _register_immediate(cls):
         return True
-
 
 
 class OrderedMeta(RNAMeta):
