@@ -230,22 +230,56 @@ const unsigned char translate_name_map[256] = {
 241,  242,  243,  244,  245,  246,  95,  248,
 249,  250,  251,  252,  253,  254,  255};
 
+typedef std::map< std::string, std::vector<std::string> > map_string_list;
+map_string_list global_id_map;
+
 /** Look at documentation of translate_map */
 static std::string translate_id(const std::string &id)
 {
 	if (id.size() == 0)
 	{ return id; }
 	std::string id_translated = id;
-	int offset = 0;
-	// prepend '_' if the first character is illegal and not '_' already
-	if (id[0] != '_' && translate_start_name_map[(unsigned int)id[0]] == '_')
-	{
-		id_translated.insert(0, 1, '_');
-		offset = 1;
-	}
-	for (unsigned int i=offset; i < id_translated.size(); i++)
+	id_translated[0] = translate_start_name_map[(unsigned int)id_translated[0]];
+	for (unsigned int i=1; i < id_translated.size(); i++)
 	{
 		id_translated[i] = translate_name_map[(unsigned int)id_translated[i]];
+	}
+	// It's so much workload now, the if() should speed up things.
+	if (id_translated != id)
+	{
+		// Search duplicates
+		map_string_list::iterator iter = global_id_map.find(id_translated);
+		if (iter != global_id_map.end())
+		{
+			unsigned int i = 0;
+			bool found = false;
+			for (i=0; i < iter->second.size(); i++)
+			{
+				if (id == iter->second[i])
+				{ 
+					found = true;
+					break;
+				}
+			}
+			bool convert = false;
+			if (found)
+			{
+			  if (i > 0)
+			  { convert = true; }
+			}
+			else
+			{ 
+				convert = true;
+				global_id_map[id_translated].push_back(id);
+			}
+			if (convert)
+			{
+				std::stringstream out;
+				out << ++i;
+				id_translated += out.str();
+			}
+		}
+		else { global_id_map[id_translated].push_back(id); }
 	}
 	return id_translated;
 }
@@ -2567,6 +2601,8 @@ protected:
 
 void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 {
+	global_id_map.clear();
+
 	COLLADABU::NativeString native_filename =
 		COLLADABU::NativeString(std::string(filename));
 	COLLADASW::StreamWriter sw(native_filename);
