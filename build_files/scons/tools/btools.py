@@ -15,7 +15,7 @@ import sys
 Variables = SCons.Variables
 BoolVariable = SCons.Variables.BoolVariable
 
-VERSION = '2.53' # This is used in creating the local config directories
+VERSION = '2.54' # This is used in creating the local config directories
 
 def print_arguments(args, bc):
     if len(args):
