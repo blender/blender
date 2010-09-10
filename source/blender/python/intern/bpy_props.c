@@ -91,9 +91,9 @@ static PyObject *pymeth_CollectionProperty = NULL;
 static PyObject *pymeth_RemoveProperty = NULL;
 
 
-/* operators use this so it can store the args given but defer running
- * it until the operator runs where these values are used to setup the
- * default args for that operator instance */
+/* operators and classes use this so it can store the args given but defer
+ * running it until the operator runs where these values are used to setup
+ * the default args for that operator instance */
 static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 {
 	PyObject *ret = PyTuple_New(2);
@@ -110,6 +110,8 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 	return ret;
 }
 
+/* this define runs at the start of each function and deals with 
+ * returning a deferred property (to be registed later) */
 #define BPY_PROPDEF_HEAD(_func)	\
 	if (PyTuple_GET_SIZE(args) == 1) { \
 		PyObject *ret; \
@@ -350,7 +352,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOiiiiO!si:IntVectorProperty", (char **)kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &PySet_Type, &pyopts, &pysubtype, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOiiiiiO!si:IntVectorProperty", (char **)kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype, &size))
 			return NULL;
 
 		if(RNA_def_property_free_identifier(srna, id) == -1) {
@@ -856,7 +858,6 @@ static struct PyMethodDef props_methods[] = {
 	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, BPy_PointerProperty_doc},
 	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, BPy_CollectionProperty_doc},
 
-	/* only useful as a bpy_struct method */
 	{"RemoveProperty", (PyCFunction)BPy_RemoveProperty, METH_VARARGS|METH_KEYWORDS, BPy_RemoveProperty_doc},
 	{NULL, NULL, 0, NULL}
 };
