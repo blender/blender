@@ -155,7 +155,7 @@ void blf_font_buffer(FontBLF *font, char *str)
 	FT_Vector delta;
 	FT_UInt glyph_index;
 	float a, *fbuf;
-	int pen_x, y, x, yb, diff;
+	int pen_x, y, x, yb;
 	int i, has_kerning, st, chx, chy;
 
 	if (!font->glyph_cache || (!font->b_fbuf && !font->b_cbuf))
@@ -186,8 +186,6 @@ void blf_font_buffer(FontBLF *font, char *str)
 		if (!g)
 			continue;
 
-		pen_y= (int)font->pos[1];
-
 		if (has_kerning && g_prev) {
 			delta.x= 0;
 			delta.y= 0;
@@ -202,16 +200,9 @@ void blf_font_buffer(FontBLF *font, char *str)
 		}
 
 		chx= pen_x + ((int)g->pos_x);
-		diff= g->height - ((int)g->pos_y);
 
-		if (g->pitch < 0) {
-			pen_y += diff;
-			chy= pen_y - ((int)g->pos_y);
-		}
-		else {
-			pen_y -= diff;
-			chy= pen_y + ((int)g->pos_y);
-		}
+		pen_y= (int)font->pos[1] - (g->height - ((int)g->pos_y));
+		chy= pen_y - ((int)g->pos_y);
 
 		if ((chx + g->width) >= 0 && chx < font->bw && (pen_y + g->height) >= 0 && pen_y < font->bh) {
 			/* dont draw beyond the buffer bounds */
@@ -277,19 +268,6 @@ void blf_font_buffer(FontBLF *font, char *str)
 						yb--;
 				}
 			}
-		}
-
-		if (diff > 0) {
-			if (g->pitch < 0)
-				pen_x -= diff;
-			else
-				pen_y += diff;
-		}
-		else if (diff < 0) {
-			if (g->pitch < 0)
-				pen_x += diff;
-			else
-				pen_y -= diff;
 		}
 
 		pen_x += g->advance;

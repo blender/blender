@@ -22,7 +22,7 @@ from bpy.props import *
 
 
 class PoseTemplate(bpy.types.IDPropertyGroup):
-    name = StringProperty(attr="name", name="Name of the slave", description="", maxlen=64, default="")
+    name = StringProperty(name="Name of the slave", description="", maxlen=64, default="")
     active_template_index = IntProperty(name="Index of the active slave", description="", default=-1, min=-1, max=65535) 
     use_generate_deform_rig = BoolProperty(name="Create Deform Rig", description="Create a copy of the metarig, constrainted by the generated rig", default=False)
 

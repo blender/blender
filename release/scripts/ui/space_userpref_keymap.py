@@ -691,7 +691,7 @@ class WM_OT_keymap_restore(bpy.types.Operator):
     bl_idname = "wm.keymap_restore"
     bl_label = "Restore Key Map(s)"
 
-    all = BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default")
+    all = BoolProperty(name="All Keymaps", description="Restore all keymaps to default")
 
     def execute(self, context):
         wm = context.window_manager
@@ -711,7 +711,7 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
     bl_idname = "wm.keyitem_restore"
     bl_label = "Restore Key Map Item"
 
-    item_id = IntProperty(attr="item_id", name="Item Identifier", description="Identifier of the item to remove")
+    item_id = IntProperty(name="Item Identifier", description="Identifier of the item to remove")
 
     def execute(self, context):
         wm = context.window_manager
@@ -752,7 +752,7 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
     bl_idname = "wm.keyitem_remove"
     bl_label = "Remove Key Map Item"
 
-    item_id = IntProperty(attr="item_id", name="Item Identifier", description="Identifier of the item to remove")
+    item_id = IntProperty(name="Item Identifier", description="Identifier of the item to remove")
 
     def execute(self, context):
         wm = context.window_manager
