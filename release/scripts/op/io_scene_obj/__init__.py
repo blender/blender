@@ -57,17 +57,17 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
         import io_scene_obj.import_obj
         return io_scene_obj.import_obj.load(self, context, **self.properties)
         '''
-        load_obj(self.properties.filepath,
+        load_obj(self.filepath,
                  context,
-                 self.properties.CLAMP_SIZE,
-                 self.properties.CREATE_FGONS,
-                 self.properties.CREATE_SMOOTH_GROUPS,
-                 self.properties.CREATE_EDGES,
-                 self.properties.SPLIT_OBJECTS,
-                 self.properties.SPLIT_GROUPS,
-                 self.properties.ROTATE_X90,
-                 self.properties.IMAGE_SEARCH,
-                 self.properties.POLYGROUPS)
+                 self.CLAMP_SIZE,
+                 self.CREATE_FGONS,
+                 self.CREATE_SMOOTH_GROUPS,
+                 self.CREATE_EDGES,
+                 self.SPLIT_OBJECTS,
+                 self.SPLIT_GROUPS,
+                 self.ROTATE_X90,
+                 self.IMAGE_SEARCH,
+                 self.POLYGROUPS)
         '''
 
         return {'FINISHED'}
@@ -113,7 +113,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         import io_scene_obj.export_obj
-        print(self.properties.keys())
+        print(self.keys())
         return io_scene_obj.export_obj.save(self, context, **self.properties)
 
 

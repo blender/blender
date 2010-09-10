@@ -69,7 +69,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     def execute(self, context):
         import math
         from mathutils import Matrix
-        if not self.properties.filepath:
+        if not self.filepath:
             raise Exception("filepath not set")
 
         mtx4_x90n = Matrix.Rotation(-math.pi / 2.0, 4, 'X')
@@ -77,12 +77,12 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         mtx4_z90n = Matrix.Rotation(-math.pi / 2.0, 4, 'Z')
 
         GLOBAL_MATRIX = Matrix()
-        GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.properties.TX_SCALE
-        if self.properties.TX_XROT90:
+        GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.TX_SCALE
+        if self.TX_XROT90:
             GLOBAL_MATRIX = mtx4_x90n * GLOBAL_MATRIX
-        if self.properties.TX_YROT90:
+        if self.TX_YROT90:
             GLOBAL_MATRIX = mtx4_y90n * GLOBAL_MATRIX
-        if self.properties.TX_ZROT90:
+        if self.TX_ZROT90:
             GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
 
         import io_scene_fbx.export_fbx

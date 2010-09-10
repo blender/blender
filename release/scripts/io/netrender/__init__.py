@@ -56,5 +56,5 @@ def register():
 
 def unregister():
     import bpy
-    bpy.types.Scene.RemoveProperty("network_render")
+    del bpy.types.Scene.network_render
 

@@ -49,8 +49,8 @@ class ImportMDD(bpy.types.Operator, ImportHelper):
 
         # initialize from scene if unset
         scene = context.scene
-        if not self.properties.is_property_set("frame_start"):
-            self.properties.frame_start = scene.frame_current
+        if not self.frame_start:
+            self.frame_start = scene.frame_current
         
         import io_shape_mdd.import_mdd
         return io_shape_mdd.import_mdd.load(self, context, **self.properties)
@@ -83,12 +83,12 @@ class ExportMDD(bpy.types.Operator, ExportHelper):
     def execute(self, context):
         # initialize from scene if unset
         scene = context.scene
-        if not self.properties.is_property_set("frame_start"):
-            self.properties.frame_start = scene.frame_start
-        if not self.properties.is_property_set("frame_end"):
-            self.properties.frame_end = scene.frame_end
-        if not self.properties.is_property_set("fps"):
-            self.properties.fps = scene.render.fps
+        if not self.frame_start:
+            self.frame_start = scene.frame_start
+        if not self.frame_end:
+            self.frame_end = scene.frame_end
+        if not self.fps:
+            self.fps = scene.render.fps
 
         import io_shape_mdd.export_mdd
         return io_shape_mdd.export_mdd.save(self, context, **self.properties)
