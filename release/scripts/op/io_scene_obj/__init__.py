@@ -113,7 +113,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         import io_scene_obj.export_obj
-        print(self.keys())
+        print(self.properties.keys())
         return io_scene_obj.export_obj.save(self, context, **self.properties)
 
 
