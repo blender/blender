@@ -22,7 +22,7 @@
 if "bpy" in locals():
     # only reload if we alredy loaded, highly annoying
     import sys
-    reload(sys.modules.get("io_mesh_ply.export_ply", sys))
+    reload(sys.modules.get("io_anim_bvh.import_bvh", sys))
 
 
 import bpy
