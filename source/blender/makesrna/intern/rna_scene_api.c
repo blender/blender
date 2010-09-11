@@ -94,7 +94,7 @@ void RNA_api_scene_render(StructRNA *srna)
 	PropertyRNA *parm;
 
 	func= RNA_def_function(srna, "frame_path", "rna_SceneRender_get_frame_path");
-	RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately.");
+	RNA_def_function_ui_description(func, "Return the absolute path to the filename to be written for a given frame.");
 	parm= RNA_def_int(func, "frame", INT_MIN, INT_MIN, INT_MAX, "", "Frame number to use, if unset the current frame will be used.", MINAFRAME, MAXFRAME);
 	parm= RNA_def_string(func, "name", "", FILE_MAX, "File Name", "the resulting filename from the scenes render settings.");
 	RNA_def_property_flag(parm, PROP_THICK_WRAP); /* needed for string return value */
