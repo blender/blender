@@ -637,14 +637,24 @@ class OrderedMeta(RNAMeta):
 # Only defined so operators members can be used by accessing self.order
 class Operator(StructRNA, metaclass=OrderedMeta):
     __slots__ = ()
+    
+    def __getattribute__(self, attr):
+        properties = StructRNA.path_resolve(self, "properties")
+        if attr in properties.bl_rna.properties:
+            return getattr(properties, attr)
+        return super().__getattribute__(attr)
 
-    @classmethod
-    def easy_getsets(cls):
-        def bypass_attr(attr):
-            setattr(cls, attr, property(lambda self: getattr(self.properties, attr), lambda self, value: setattr(self.properties, attr, value)))
-        for attr, value in list(cls.__dict__.items()):
-            if type(value) == tuple and len(value) == 2 and type(value[1]) == dict:
-                bypass_attr(attr)
+    def __setattr__(self, attr, value):
+        properties = StructRNA.path_resolve(self, "properties")
+        if attr in properties.bl_rna.properties:
+            setattr(properties, attr, value)
+        return super().__setattr__(attr, value)
+
+    def __delattr__(self, attr):
+        properties = StructRNA.path_resolve(self, "properties")
+        if attr in properties.bl_rna.properties:
+            delattr(properties, attr)
+        return super().__delattr__(attr)
 
 
 class Macro(StructRNA, metaclass=OrderedMeta):
