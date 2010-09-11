@@ -1147,6 +1147,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	int i;
 	Menu menu= {0};
 	MenuType *mt= WM_menutype_find("USERPREF_MT_splash", TRUE);
+	char url[64];
 	
 #ifdef NAN_BUILDINFO
 	int ver_width, rev_width;
@@ -1199,10 +1200,11 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-250/");
 	uiItemStringO(col, "Manual", ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:Manual");
 	uiItemStringO(col, "Blender Website", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/");
-	uiItemStringO(col, "User Community", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community/");
-	uiItemStringO(col, "Python API Reference", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/documentation/250PythonDoc/contents.html");
+	uiItemStringO(col, "User Community", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community/"); // 
+	BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d_%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
+	uiItemStringO(col, "Python API Reference", ICON_URL, "WM_OT_url_open", "url", url);
 	uiItemL(col, "", 0);
-	
+
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Recent", 0);
 	for(recent = G.recent_files.first, i=0; (i<5) && (recent); recent = recent->next, i++) {
