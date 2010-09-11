@@ -299,6 +299,9 @@ typedef struct View3D {
 /* may want to use 1 for select ?*/
 #define V3D_BGPIC_EXPANDED		2
 
+#define RV3D_CAMZOOM_MIN -30
+#define RV3D_CAMZOOM_MAX 600
+
 #endif
 
 
