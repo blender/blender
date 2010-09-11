@@ -592,7 +592,7 @@ class AddHuman(bpy.types.Operator):
         bpy.ops.object.armature_add()
         obj = context.active_object
         mode_orig = obj.mode
-        bpy.ops.object.mode_set(mode='EDIT') # grr, remove bone
+        bpy.ops.object.mode_set(mode='EDIT')  # grr, remove bone
         bones = context.active_object.data.edit_bones
         bones.remove(bones[0])
         metarig_template()

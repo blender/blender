@@ -45,6 +45,9 @@ static void operator_properties_init(wmOperatorType *ot)
 		PyErr_Print(); /* failed to register operator props */
 		PyErr_Clear();
 	}
+	
+	// see bpy_types.py:Operator, May redo this some other way!
+	PyObject_CallMethod(py_class, "easy_getsets", NULL);
 }
 
 void operator_wrapper(wmOperatorType *ot, void *userdata)

@@ -1055,7 +1055,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int
 		
 		base= FIRSTBASE;
 		while(base) {
-			if(base->lay & v3d->lay) {
+			if(BASE_SELECTABLE(v3d, base)) {
 				if(base->selcol==selcol) break;
 			}
 			base= base->next;
@@ -1074,7 +1074,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int
 				if(base==startbase) break;
 			}
 			
-			if(base->lay & v3d->lay) {
+			if(BASE_SELECTABLE(v3d, base)) {
 				for(a=0; a<hits; a++) {
 					if(has_bones) {
 						/* skip non-bone objects */
@@ -1623,7 +1623,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			} else {
 				while(base) {
 					Base *next = base->next;
-					if(base->lay & v3d->lay) {
+					if(BASE_SELECTABLE(v3d, base)) {
 						ED_base_object_select(base, BA_DESELECT);
 					}
 					base= next;
@@ -1652,7 +1652,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			
 			while(base && hits) {
 				Base *next = base->next;
-				if(base->lay & v3d->lay) {
+				if(BASE_SELECTABLE(v3d, base)) {
 					while (base->selcol == (*col & 0xFFFF)) {	/* we got an object */
 						
 						if(*col & 0xFFFF0000) {					/* we got a bone */
@@ -2092,7 +2092,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		Base *base;
 		selecting= selecting?BA_SELECT:BA_DESELECT;
 		for(base= FIRSTBASE; base; base= base->next) {
-			if(base->lay & v3d->lay) {
+			if(BASE_SELECTABLE(v3d, base)) {
 				project_short(ar, base->object->obmat[3], &base->sx);
 				if(base->sx!=IS_CLIPPED) {
 					int dx= base->sx-x;

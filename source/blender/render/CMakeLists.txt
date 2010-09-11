@@ -27,15 +27,23 @@
 FILE(GLOB SRC intern/source/*.c intern/raytrace/*.cpp)
 
 SET(INC 
-	intern/include ../../../intern/guardedalloc ../blenlib ../makesdna
-	extern/include ../blenkernel ../imbuf
-	../include ../../kernel/gen_messaging ../blenloader ../freestyle
-	../../../intern/smoke/extern
+	intern/include
+	extern/include
+	../blenlib
+	../blenloader
+	../makesdna
 	../makesrna
+	../blenkernel
+	../imbuf
+	../include
+	../../kernel/gen_messaging
+	../../../intern/smoke/extern
+	../../../intern/guardedalloc
+	../freestyle
 )
 
 IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
+	LIST(APPEND INC ${PTHREADS_INC})
 ENDIF(WIN32)
 
 IF(WITH_IMAGE_OPENEXR)
@@ -43,7 +51,7 @@ IF(WITH_IMAGE_OPENEXR)
 ENDIF(WITH_IMAGE_OPENEXR)
 
 IF(WITH_QUICKTIME)
-	SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
+	LIST(APPEND INC ../quicktime ${QUICKTIME_INC})
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 

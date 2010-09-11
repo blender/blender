@@ -80,7 +80,7 @@ class DATA_PT_lattice(DataButtonsPanel, bpy.types.Panel):
         row = layout.row()
         row.prop(lat, "use_outside")
         row.prop_search(lat, "vertex_group", context.object, "vertex_groups", text="")
- 
+
 
 class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}

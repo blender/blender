@@ -98,9 +98,9 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         st = context.space_data
 
         layout.column()
-        
+
         layout.operator("sequencer.properties", icon='MENU_PANEL')
-        
+
         layout.separator()
 
         """
@@ -458,7 +458,6 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
             for i in range(1, strip.channel):
                 row.operator("sequencer.cut_multicam", text=str(i)).camera = i
 
-
         col = layout.column(align=True)
         if strip.type == 'SPEED':
             col.prop(strip, "speed_fader", text="Speed fader")
@@ -466,7 +465,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
                 col.prop(strip, "use_default_fade", "Default fade")
                 if not strip.use_default_fade:
                     col.prop(strip, "effect_fader", text="Effect fader")
-        
+
         layout.prop(strip, "use_translation", text="Image Offset:")
         if strip.use_translation:
             col = layout.column(align=True)
@@ -554,7 +553,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col.label(text="File:")
                 col = split.column()
-                col.prop(elem, "filename", text="") # strip.elements[0] could be a fallback
+                col.prop(elem, "filename", text="")  # strip.elements[0] could be a fallback
 
         elif seq_type == 'MOVIE':
             split = layout.split(percentage=0.2)
@@ -565,7 +564,6 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
             col.prop(strip, "mpeg_preseek", text="MPEG Preseek")
         # TODO, sound???
         # end drawing filename
-
 
         layout.prop(strip, "use_translation", text="Image Offset:")
         if strip.use_translation:
@@ -698,7 +696,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
         col.prop(strip, "use_float")
 
         layout.prop(strip, "use_color_balance")
-        if strip.use_color_balance and strip.color_balance: # TODO - need to add this somehow
+        if strip.use_color_balance and strip.color_balance:  # TODO - need to add this somehow
             row = layout.row()
             row.active = strip.use_color_balance
             col = row.column()
@@ -742,7 +740,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
         flow = layout.column_flow()
         flow.prop(strip, "use_proxy_custom_directory")
         flow.prop(strip, "use_proxy_custom_file")
-        if strip.proxy: # TODO - need to add this somehow
+        if strip.proxy:  # TODO - need to add this somehow
             if strip.use_proxy_custom_directory and not strip.use_proxy_custom_file:
                 flow.prop(strip.proxy, "directory")
             if strip.use_proxy_custom_file:
@@ -783,11 +781,12 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, bpy.types.Panel):
 
         col = layout.column()
         if st.display_mode == 'IMAGE':
-            col.prop(st, "draw_overexposed") # text="Zebra"
+            col.prop(st, "draw_overexposed")  # text="Zebra"
             col.prop(st, "show_safe_margin")
         if st.display_mode == 'WAVEFORM':
             col.prop(st, "show_separate_color")
         col.prop(st, "proxy_render_size")
+
 
 def register():
     pass

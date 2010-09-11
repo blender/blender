@@ -923,7 +923,7 @@ void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar)
 	view3d_get_viewborder_size(scene, ar, size);
 	
 	rv3d->camzoom= (sqrt(4.0*im_width/size[0]) - M_SQRT2)*50.0;
-	rv3d->camzoom= CLAMPIS(rv3d->camzoom, -30, 300);
+	rv3d->camzoom= CLAMPIS(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 }
 
 

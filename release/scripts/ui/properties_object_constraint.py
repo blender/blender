@@ -55,7 +55,7 @@ class ConstraintButtonsPanel():
                 row.prop(con, "owner_space", text="")
 
     def target_template(self, layout, con, subtargets=True):
-        layout.prop(con, "target") # XXX limiting settings for only 'curves' or some type of object
+        layout.prop(con, "target")  # XXX limiting settings for only 'curves' or some type of object
 
         if con.target and subtargets:
             if con.target.type == 'ARMATURE':

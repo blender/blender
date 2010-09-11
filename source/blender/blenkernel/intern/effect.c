@@ -667,10 +667,10 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		/* for vortex the shape chooses between old / new force */
 		if(eff->pd && eff->pd->shape == PFIELD_SHAPE_PLANE) {
 			/* efd->loc is closes point on effector xy-plane */
-			float temp[3];
+			float temp[3], translate[3];
 			sub_v3_v3v3(temp, point->loc, ob->obmat[3]);
-			project_v3_v3v3(efd->loc, temp, efd->nor);
-			sub_v3_v3v3(efd->loc, point->loc, efd->loc);
+			project_v3_v3v3(translate, temp, efd->nor);
+			add_v3_v3v3(efd->loc, ob->obmat[3], translate);
 		}
 		else {
 			VECCOPY(efd->loc, ob->obmat[3]);

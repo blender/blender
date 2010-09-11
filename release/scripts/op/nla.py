@@ -118,7 +118,7 @@ def bake(frame_start, frame_end, step=1, only_selected=False):
                 pbone.keyframe_insert("rotation_quaternion", -1, f, name)
             elif rotation_mode == 'AXIS_ANGLE':
                 pbone.keyframe_insert("rotation_axis_angle", -1, f, name)
-            else: # euler, XYZ, ZXY etc
+            else:  # euler, XYZ, ZXY etc
                 pbone.keyframe_insert("rotation_euler", -1, f, name)
 
             pbone.keyframe_insert("scale", -1, f, name)
@@ -148,9 +148,8 @@ class BakeAction(bpy.types.Operator):
             default=True)
 
     def execute(self, context):
-        props = self.properties
 
-        action = bake(props.frame_start, props.frame_end, props.step, props.show_only_selected)
+        action = bake(self.frame_start, self.frame_end, self.step, self.show_only_selected)
 
         # basic cleanup, could move elsewhere
         for fcu in action.fcurves:

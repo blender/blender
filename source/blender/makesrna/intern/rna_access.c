@@ -532,7 +532,7 @@ int RNA_struct_is_a(StructRNA *type, StructRNA *srna)
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
 {
-	if(identifier[0]=='[' && identifier[1]=='"') { // "  (dummy comment to avoid confusing some function lists in text editors)
+	if(identifier[0]=='[' && ELEM(identifier[1], '"', '\'')) { // "  (dummy comment to avoid confusing some function lists in text editors)
 		/* id prop lookup, not so common */
 		PropertyRNA *r_prop= NULL;
 		PointerRNA r_ptr; /* only support single level props */
@@ -2930,6 +2930,14 @@ static int rna_token_strip_quotes(char *token)
 	if(token[0]=='"') {
 		int len = strlen(token);
 		if (len >= 2 && token[len-1]=='"') {
+			/* strip away "" */
+			token[len-1]= '\0';
+			return 1;
+		}
+	}
+	else if(token[0]=='\'') {
+		int len = strlen(token);
+		if (len >= 2 && token[len-1]=='\'') {
 			/* strip away "" */
 			token[len-1]= '\0';
 			return 1;

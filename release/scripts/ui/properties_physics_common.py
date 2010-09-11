@@ -46,7 +46,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         row = layout.row()
         row.label(text="File Path:")
         row.prop(cache, "use_library_path", "Use Lib Path")
-        
+
         layout.prop(cache, "filepath", text="")
 
         layout.label(text=cache.info)
@@ -97,7 +97,6 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         sub.enabled = enabled
         sub.operator("ptcache.bake_from_cache", text="Current Cache to Bake")
 
-
         col = split.column()
         col.operator("ptcache.bake_all", text="Bake All Dynamics").bake = True
         col.operator("ptcache.free_bake_all", text="Free All Bakes")
@@ -106,7 +105,6 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
 def effector_weights_ui(self, context, weights):
     layout = self.layout
-
 
     layout.prop(weights, "group")
 
@@ -141,7 +139,6 @@ def effector_weights_ui(self, context, weights):
 
 def basic_force_field_settings_ui(self, context, field):
     layout = self.layout
-
 
     split = layout.split()
 
@@ -190,7 +187,6 @@ def basic_force_field_settings_ui(self, context, field):
 
 def basic_force_field_falloff_ui(self, context, field):
     layout = self.layout
-
 
     # XXX: This doesn't update for some reason.
     #split = layout.split()

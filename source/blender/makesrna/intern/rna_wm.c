@@ -617,19 +617,29 @@ static void rna_wmClipboard_get(PointerRNA *ptr, char *value)
 	char *pbuf;
 
 	pbuf= WM_clipboard_text_get(FALSE);
-	strcpy(value, pbuf);
-
-	MEM_freeN(pbuf);
+	if(pbuf) {
+		strcpy(value, pbuf);
+		MEM_freeN(pbuf);
+	}
+	else {
+		value[0]= '\0';
+	}
 }
 
 static int rna_wmClipboard_length(PointerRNA *ptr)
 {
-	char *clipboard;
+	char *pbuf;
 	int length;
 
-	clipboard = WM_clipboard_text_get(FALSE);
-	length = (clipboard?strlen(clipboard):0);
-	MEM_freeN(clipboard);
+	pbuf = WM_clipboard_text_get(FALSE);
+	if(pbuf) {
+		length = strlen(pbuf);
+		MEM_freeN(pbuf);
+	}
+	else {
+		length= 0;
+	}
+	
 
 	return length;
 }
@@ -830,6 +840,7 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 
 	/* create a new menu type */
 	dummyot.ext.srna= RNA_def_struct(&BLENDER_RNA, dummyot.idname, "Operator");
+	RNA_def_struct_flag(dummyot.ext.srna, STRUCT_NO_IDPROPERTIES); /* operator properties are registered separately */
 	dummyot.ext.data= data;
 	dummyot.ext.call= call;
 	dummyot.ext.free= free;

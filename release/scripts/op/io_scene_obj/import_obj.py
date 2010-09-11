@@ -700,8 +700,10 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     del me_faces
 #     del ALPHA
 
-    if CREATE_EDGES:
+    if CREATE_EDGES and not edges:
+        CREATE_EDGES = False
 
+    if CREATE_EDGES:
         me.edges.add(len(edges))
 
         # edges should be a list of (a, b) tuples
@@ -744,7 +746,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 #                 me_edges[ed].flag |= SHARP
 #         del SHARP
 
-    me.update()
+    me.update(calc_edges=CREATE_EDGES)
 #     me.calcNormals()
 
     ob= bpy.data.objects.new("Mesh", me)

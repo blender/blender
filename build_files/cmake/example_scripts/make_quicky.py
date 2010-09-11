@@ -20,6 +20,7 @@
 
 # <pep8 compliant>
 
+
 def print_help(targets):
     print("CMake quicky wrapper, no valid targets given.")
     print(" * targets can contain a subset of the full target name.")
@@ -36,11 +37,11 @@ def print_help(targets):
     for t in targets:
         print("    %s" % t)
     print("...exiting")
-    
+
 
 def main():
     targets = set()
-    
+
     # collect targets
     file = open("Makefile", "r")
     for line in file:
@@ -54,12 +55,11 @@ def main():
 
         line = line.split(":", 1)[0]
 
-        if "/" in line: # cmake terget options, dont need these
+        if "/" in line:  # cmake terget options, dont need these
             continue
 
         targets.add(line)
     file.close()
-
 
     # remove cmake targets
     bad = set([
@@ -75,9 +75,8 @@ def main():
         "depend",
         "cmake_check_build_system",
         ])
-        
-    targets -= set(bad)
 
+    targets -= set(bad)
 
     # parse args
     targets = list(targets)
@@ -106,7 +105,7 @@ def main():
                     print("    %s" % t)
                 print("...aborting.")
                 return
-    
+
     # execute
     cmd = "make %s %s blender/fast" % (" ".join(args), " ".join(targets_new))
     print("cmake building with targets: %s" % " ".join(targets_new))

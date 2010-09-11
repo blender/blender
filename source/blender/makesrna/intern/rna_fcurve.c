@@ -324,8 +324,10 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 	if (fcu->rna_path)
 		MEM_freeN(fcu->rna_path);
 	
-	if (strlen(value))
+	if (strlen(value)) {
 		fcu->rna_path= BLI_strdup(value);
+		fcu->flag &= ~FCURVE_DISABLED;
+	}
 	else 
 		fcu->rna_path= NULL;
 }

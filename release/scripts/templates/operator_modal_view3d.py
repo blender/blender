@@ -14,14 +14,14 @@ class ViewOperator(bpy.types.Operator):
         v3d = context.space_data
         rv3d = v3d.region_3d
 
-        rv3d.view_location = self._initial_location + Vector(self.properties.offset)
+        rv3d.view_location = self._initial_location + Vector(self.offset)
 
     def modal(self, context, event):
         v3d = context.space_data
         rv3d = v3d.region_3d
 
         if event.type == 'MOUSEMOVE':
-            self.properties.offset = (self._initial_mouse - Vector((event.mouse_x, event.mouse_y, 0.0))) * 0.02
+            self.offset = (self._initial_mouse - Vector((event.mouse_x, event.mouse_y, 0.0))) * 0.02
             self.execute(context)
 
         elif event.type == 'LEFTMOUSE':

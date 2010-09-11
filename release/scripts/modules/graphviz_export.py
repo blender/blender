@@ -43,7 +43,6 @@ def compat_str(text, line_length=0):
             text_ls.append(text)
         text = '\n  '.join(text_ls)
 
-
     #text = text.replace('.', '.\n')
     #text = text.replace(']', ']\n')
     text = text.replace("\n", "\\n")
@@ -87,7 +86,6 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
             opts.append("fillcolor=yellow")
         else:
             opts.append("fillcolor=white")
-
 
         fw('"%s" [%s];\n' % (bone.name, ','.join(opts)))
 
@@ -162,7 +160,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
                             pbone_target = rna_path_as_pbone(target.data_path)
                             rna_path_target = target.data_path
                             if pbone_target:
-                                opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"', "labelfontsize=4"] # ,
+                                opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"', "labelfontsize=4"]
                                 display_source = rna_path.replace("pose.bones", "")
                                 display_target = rna_path_target.replace("pose.bones", "")
                                 if XTRA_INFO:

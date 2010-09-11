@@ -302,11 +302,11 @@ class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
         col.prop(char, "use_bold")
         col.prop(char, "use_italic")
         col.prop(char, "use_underline")
-        
+
         split = layout.split()
         col = split.column()
         col.prop(text, "small_caps_scale", text="Small Caps")
-        
+
         col = split.column()
         col.prop(char, "use_small_caps")
 

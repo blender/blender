@@ -23,6 +23,7 @@ import _bpy
 from mathutils import Vector
 
 StructRNA = bpy_types.Struct.__bases__[0]
+StructMetaIDProp = _bpy.StructMetaIDProp
 # StructRNA = bpy_types.Struct
 
 
@@ -251,7 +252,7 @@ class _GenericBone:
             bones = id_data.pose.bones
         elif id_data_type == bpy_types.Armature:
             bones = id_data.edit_bones
-            if not bones: # not in editmode
+            if not bones:  # not in editmode
                 bones = id_data.bones
 
         return bones
@@ -368,7 +369,7 @@ class Mesh(bpy_types.ID):
         return a list of edge vertex index lists
         """
 
-        OTHER_INDEX = 2, 3, 0, 1 # opposite face index
+        OTHER_INDEX = 2, 3, 0, 1  # opposite face index
 
         if faces is None:
             faces = self.faces
@@ -389,7 +390,7 @@ class Mesh(bpy_types.ID):
         edge_loops = []
 
         for edkey, ed_adj in edges.items():
-            if 0 < len(ed_adj) < 3: # 1 or 2
+            if 0 < len(ed_adj) < 3:  # 1 or 2
                 # Seek the first edge
                 context_loop = [edkey, ed_adj[0]]
                 edge_loops.append(context_loop)
@@ -407,11 +408,11 @@ class Mesh(bpy_types.ID):
                     ed_adj = edges[context_loop[-1]]
                     if len(ed_adj) != 2:
 
-                        if other_dir and flipped == False: # the original edge had 2 other edges
-                            flipped = True # only flip the list once
+                        if other_dir and flipped == False:  # the original edge had 2 other edges
+                            flipped = True  # only flip the list once
                             context_loop.reverse()
                             ed_adj[:] = []
-                            context_loop.append(other_dir) # save 1 lookiup
+                            context_loop.append(other_dir)  # save 1 lookiup
 
                             ed_adj = edges[context_loop[-1]]
                             if len(ed_adj) != 2:
@@ -426,7 +427,6 @@ class Mesh(bpy_types.ID):
 
                     # Dont look at this again
                     ed_adj[:] = []
-
 
         return edge_loops
 
@@ -556,6 +556,7 @@ PropertiesMap = {}
 # registers moduals instantly.
 _register_immediate = True
 
+
 def _unregister_module(module, free=True):
     for t in TypeMap.get(module, ()):
         try:
@@ -567,7 +568,6 @@ def _unregister_module(module, free=True):
 
     if free == True and module in TypeMap:
         del TypeMap[module]
-
 
     for t in PropertiesMap.get(module, ()):
         try:
@@ -587,7 +587,8 @@ def _register_module(module):
             bpy_types.register(t)
         except:
             import traceback
-            print("bpy.utils._register_module(): Module '%s' failed to register class '%s.%s'" % (module, t.__module__, t.__name__))
+            import sys
+            print("bpy.utils._register_module(): '%s' failed to register class '%s.%s'" % (sys.modules[module].__file__, t.__module__, t.__name__))
             traceback.print_exc()
 
 
@@ -595,7 +596,7 @@ class RNAMeta(type):
     @classmethod
     def _register_immediate(cls):
         return _register_immediate
-    
+
     def __new__(cls, name, bases, classdict, **args):
         result = type.__new__(cls, name, bases, classdict)
         if bases and bases[0] != StructRNA:
@@ -606,20 +607,22 @@ class RNAMeta(type):
             # Register right away if needed
             if cls._register_immediate():
                 bpy_types.register(result)
-                ClassMap = PropertiesMap 
+                ClassMap = PropertiesMap
 
             # first part of packages only
             if "." in module:
                 module = module[:module.index(".")]
-            
+
             ClassMap.setdefault(module, []).append(result)
 
         return result
 
-class RNAMetaRegister(RNAMeta):
+
+class RNAMetaRegister(RNAMeta, StructMetaIDProp):
     @classmethod
     def _register_immediate(cls):
         return True
+
 
 class OrderedMeta(RNAMeta):
 
@@ -630,9 +633,18 @@ class OrderedMeta(RNAMeta):
     def __prepare__(name, bases, **kwargs):
         return collections.OrderedDict()
 
+
 # Only defined so operators members can be used by accessing self.order
 class Operator(StructRNA, metaclass=OrderedMeta):
     __slots__ = ()
+
+    @classmethod
+    def easy_getsets(cls):
+        def bypass_attr(attr):
+            setattr(cls, attr, property(lambda self: getattr(self.properties, attr), lambda self, value: setattr(self.properties, attr, value)))
+        for attr, value in list(cls.__dict__.items()):
+            if type(value) == tuple and len(value) == 2 and type(value[1]) == dict:
+                bypass_attr(attr)
 
 
 class Macro(StructRNA, metaclass=OrderedMeta):
@@ -644,12 +656,15 @@ class Macro(StructRNA, metaclass=OrderedMeta):
     def define(self, opname):
         from _bpy import ops
         return ops.macro_define(self, opname)
-    
+
+
 class IDPropertyGroup(StructRNA, metaclass=RNAMetaRegister):
         __slots__ = ()
 
+
 class RenderEngine(StructRNA, metaclass=RNAMeta):
     __slots__ = ()
+
 
 class _GenericUI:
     __slots__ = ()

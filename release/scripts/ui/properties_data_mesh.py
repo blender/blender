@@ -42,8 +42,8 @@ class MESH_MT_shape_key_specials(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.shape_key_transfer", icon='COPY_ID') # icon is not ideal
-        layout.operator("object.join_shapes", icon='COPY_ID') # icon is not ideal
+        layout.operator("object.shape_key_transfer", icon='COPY_ID')  # icon is not ideal
+        layout.operator("object.join_shapes", icon='COPY_ID')  # icon is not ideal
         layout.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT')
 
 

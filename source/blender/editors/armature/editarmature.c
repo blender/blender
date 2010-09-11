@@ -4830,8 +4830,6 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
-	
-	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
 	short autokey = 0;
 	
 	/* only clear those channels that are not locked */
@@ -4862,6 +4860,17 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 	
 	/* perform autokeying on the bones if needed */
 	if (autokey) {
+		KeyingSet *ks;
+		
+		/* get KeyingSet to use 
+		 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
+		 * 	  or otherwise key transforms only
+		 */
+		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
+			ks = ANIM_scene_get_active_keyingset(scene);
+		else 
+			ks = ANIM_builtin_keyingset_get_named(NULL, "Scaling");
+		
 		/* insert keyframes */
 		ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 		
@@ -4897,8 +4906,6 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
-	
-	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
 	short autokey = 0;
 	
 	/* only clear those channels that are not locked */
@@ -4930,6 +4937,17 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 	
 	/* perform autokeying on the bones if needed */
 	if (autokey) {
+		KeyingSet *ks;
+		
+		/* get KeyingSet to use 
+		 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
+		 * 	  or otherwise key transforms only
+		 */
+		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
+			ks = ANIM_scene_get_active_keyingset(scene);
+		else 
+			ks = ANIM_builtin_keyingset_get_named(NULL, "Location");
+		
 		/* insert keyframes */
 		ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 		
@@ -4965,8 +4983,6 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
-	
-	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
 	short autokey = 0;
 	
 	/* only clear those channels that are not locked */
@@ -5082,6 +5098,17 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 	
 	/* perform autokeying on the bones if needed */
 	if (autokey) {
+		KeyingSet *ks;
+		
+		/* get KeyingSet to use 
+		 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
+		 * 	  or otherwise key transforms only
+		 */
+		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
+			ks = ANIM_scene_get_active_keyingset(scene);
+		else 
+			ks = ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+		
 		/* insert keyframes */
 		ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 		

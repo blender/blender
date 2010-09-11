@@ -30,6 +30,7 @@ import sys as _sys
 from _bpy import blend_paths
 from _bpy import script_paths as _bpy_script_paths
 
+
 def _test_import(module_name, loaded_modules):
     import traceback
     import time
@@ -49,7 +50,7 @@ def _test_import(module_name, loaded_modules):
     if _bpy.app.debug:
         print("time %s %.4f" % (module_name, time.time() - t))
 
-    loaded_modules.add(mod.__name__) # should match mod.__name__ too
+    loaded_modules.add(mod.__name__)  # should match mod.__name__ too
     return mod
 
 
@@ -69,23 +70,16 @@ def modules_from_path(path, loaded_modules):
 
     modules = []
 
-    for f in sorted(_os.listdir(path)):
-        if f.endswith(".py"):
-            # python module
-            mod = _test_import(f[0:-3], loaded_modules)
-        elif ("." not in f) and (_os.path.isfile(_os.path.join(path, f, "__init__.py"))):
-            # python package
-            mod = _test_import(f, loaded_modules)
-        else:
-            mod = None
-
+    for mod_name, mod_path in _bpy.path.module_names(path):
+        mod = _test_import(mod_name, loaded_modules)
         if mod:
             modules.append(mod)
 
     return modules
-            
-_global_loaded_modules = [] # store loaded module names for reloading.
-import bpy_types as _bpy_types # keep for comparisons, never ever reload this.
+
+
+_global_loaded_modules = []  # store loaded module names for reloading.
+import bpy_types as _bpy_types  # keep for comparisons, never ever reload this.
 
 
 def load_scripts(reload_scripts=False, refresh_scripts=False):
@@ -109,7 +103,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     if refresh_scripts:
         original_modules = _sys.modules.values()
-    
+
     if reload_scripts:
         _bpy_types.TypeMap.clear()
         _bpy_types.PropertiesMap.clear()
@@ -135,7 +129,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 traceback.print_exc()
 
     def sys_path_ensure(path):
-        if path not in _sys.path: # reloading would add twice
+        if path not in _sys.path:  # reloading would add twice
             _sys.path.insert(0, path)
 
     def test_reload(mod):
@@ -191,7 +185,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                     continue
 
                 if user_path != base_path and path_subdir == "":
-                    continue # avoid loading 2.4x scripts
+                    continue  # avoid loading 2.4x scripts
 
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)
@@ -212,10 +206,8 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     if _bpy.app.debug:
         print("Python Script Load Time %.4f" % (time.time() - t_main))
-    
+
     _bpy_types._register_immediate = True
-
-
 
 
 # base scripts
@@ -265,7 +257,7 @@ def script_paths(subdir=None, user=True):
     return script_paths
 
 
-_presets = _os.path.join(_scripts[0], "presets") # FIXME - multiple paths
+_presets = _os.path.join(_scripts[0], "presets")  # FIXME - multiple paths
 
 
 def preset_paths(subdir):
@@ -280,7 +272,7 @@ def smpte_from_seconds(time, fps=None):
     '''
     Returns an SMPTE formatted string from the time in seconds: "HH:MM:SS:FF".
 
-    If the fps is not given the current scene is used.
+    If the *fps* is not given the current scene is used.
     '''
     import math
 
@@ -295,10 +287,10 @@ def smpte_from_seconds(time, fps=None):
     else:
         neg = ""
 
-    if time >= 3600.0: # hours
+    if time >= 3600.0:  # hours
         hours = int(time / 3600.0)
         time = time % 3600.0
-    if time >= 60.0: # mins
+    if time >= 60.0:  # mins
         minutes = int(time / 60.0)
         time = time % 60.0
 
@@ -312,7 +304,7 @@ def smpte_from_frame(frame, fps=None, fps_base=None):
     '''
     Returns an SMPTE formatted string from the frame: "HH:MM:SS:FF".
 
-    If the fps and fps_base are not given the current scene is used.
+    If *fps* and *fps_base* are not given the current scene is used.
     '''
 
     if fps is None:

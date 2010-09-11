@@ -34,6 +34,7 @@ SET(INC
 	../gpu
 	../../../intern/ghost
 	../../../intern/guardedalloc
+	${ZLIB_INC}
 	${FREETYPE_INCLUDE_DIRS}
 	${ZLIB_INC}
 )
@@ -46,7 +47,7 @@ SET(INC
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
+	LIST(APPEND INC ${PTHREADS_INC})
 ENDIF(WIN32)
 
 IF(WITH_OPENMP)

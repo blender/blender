@@ -4077,7 +4077,8 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	psys->cfra = cfra;
 	psys->recalc = 0;
 
-	/* save matrix for duplicators */
-	invert_m4_m4(psys->imat, ob->obmat);
+	/* save matrix for duplicators, at rendertime the actual dupliobject's matrix is used so don't update! */
+	if(psys->renderdata==0)
+		invert_m4_m4(psys->imat, ob->obmat);
 }
 

@@ -47,7 +47,7 @@ static void rgb_tobw(float r, float g, float b, float* out)
 	*out= r*0.35f + g*0.45f + b*0.2f;
 }
 
-static void fill_bins(bNode* node, CompBuf* in, int* bins)
+static void fill_bins(bNode* node, CompBuf* in, int* bins, int colorcor)
 {
 	float value[4];
 	int ivalue=0;
@@ -63,29 +63,39 @@ static void fill_bins(bNode* node, CompBuf* in, int* bins)
 			if(value[3] > 0.0) { /* don't count transparent pixels */
 				switch(node->custom1) {
 					case 1: { /* all colors */
+						if(colorcor)
+							linearrgb_to_srgb_v3_v3(&value[0],&value[0]);
 						rgb_tobw(value[0],value[1],value[2], &value[0]);
 						value[0]=value[0]*255; /* scale to 0-255 range */
 						ivalue=(int)value[0];
 						break;
 					}
 					case 2: { /* red channel */
+						if(colorcor)
+							value[0]=linearrgb_to_srgb(value[0]);
 						value[0]=value[0]*255; /* scale to 0-255 range */
 						ivalue=(int)value[0];
 						break;
 					}
 					case 3:  { /* green channel */
+						if(colorcor)
+							value[1]=linearrgb_to_srgb(value[1]);
 						value[1]=value[1]*255; /* scale to 0-255 range */
 						ivalue=(int)value[1];
 						break;
 					}
 					case 4: /*blue channel */
 					{
+						if(colorcor)
+							value[2]=linearrgb_to_srgb(value[2]);
 						value[2]=value[2]*255; /* scale to 0-255 range */
 						ivalue=(int)value[2];
 						break;
 					}
 					case 5: /* luminence */
 					{
+						if(colorcor)
+							linearrgb_to_srgb_v3_v3(&value[0],&value[0]);
 						rgb_to_yuv(value[0],value[1],value[2], &value[0], &value[1], &value[2]);
 						value[0]=value[0]*255; /* scale to 0-255 range */
 						ivalue=(int)value[0];
@@ -270,6 +280,7 @@ static void node_composit_exec_view_levels(void *data, bNode *node, bNodeStack *
 {
 	CompBuf* cbuf;
 	CompBuf* histogram;
+	RenderData *rd=data;
 	float mean, std_dev;
 	int bins[256];
 	int x;
@@ -286,7 +297,7 @@ static void node_composit_exec_view_levels(void *data, bNode *node, bNodeStack *
 	}
 	
 	/*fill bins */
-	fill_bins(node, in[0]->data, bins);
+	fill_bins(node, in[0]->data, bins, rd->color_mgt_flag & R_COLOR_MANAGEMENT);
 
 	/* draw the histogram chart */
 	draw_histogram(node, histogram, bins);

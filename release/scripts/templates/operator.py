@@ -33,7 +33,7 @@ class ExportSomeData(bpy.types.Operator):
         #if not self.is_property_set("filepath"):
         #    raise Exception("filename not set")
 
-        write_some_data(self.properties.filepath, context, self.properties.use_setting)
+        write_some_data(self.filepath, context, self.use_setting)
 
         return {'FINISHED'}
 

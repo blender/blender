@@ -60,7 +60,6 @@ def add_object_data(context, obdata, operator=None):
     if context.space_data and context.space_data.type == 'VIEW_3D':
         base.layers_from_view(context.space_data)
 
-
     obj_new.matrix_world = add_object_align_init(context, operator)
 
     obj_act = scene.objects.active
@@ -69,10 +68,10 @@ def add_object_data(context, obdata, operator=None):
         bpy.ops.object.mode_set(mode='OBJECT')
 
         obj_act.select = True
-        scene.update() # apply location
+        scene.update()  # apply location
         #scene.objects.active = obj_new
 
-        bpy.ops.object.join() # join into the active.
+        bpy.ops.object.join()  # join into the active.
 
         bpy.ops.object.mode_set(mode='EDIT')
     else:

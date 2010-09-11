@@ -23,6 +23,7 @@ import bpy
 from bpy.props import *
 from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 
+
 class MESH_OT_delete_edgeloop(bpy.types.Operator):
     '''Delete an edge loop by merging the faces on each side to a single face loop'''
     bl_idname = "mesh.delete_edgeloop"
@@ -62,13 +63,13 @@ def context_path_validate(context, data_path):
 
 
 def execute_context_assign(self, context):
-    if context_path_validate(context, self.properties.data_path) is Ellipsis:
+    if context_path_validate(context, self.data_path) is Ellipsis:
         return {'PASS_THROUGH'}
 
-    if getattr(self.properties, "relative", False):
-        exec("context.%s+=self.properties.value" % self.properties.data_path)
+    if getattr(self, "relative", False):
+        exec("context.%s+=self.value" % self.data_path)
     else:
-        exec("context.%s=self.properties.value" % self.properties.data_path)
+        exec("context.%s=self.value" % self.data_path)
 
     return {'FINISHED'}
 
@@ -86,7 +87,7 @@ class WM_OT_context_set_boolean(bpy.types.Operator):
     execute = execute_context_assign
 
 
-class WM_OT_context_set_int(bpy.types.Operator): # same as enum
+class WM_OT_context_set_int(bpy.types.Operator):  # same as enum
     '''Set a context value.'''
     bl_idname = "wm.context_set_int"
     bl_label = "Context Set"
@@ -99,7 +100,7 @@ class WM_OT_context_set_int(bpy.types.Operator): # same as enum
     execute = execute_context_assign
 
 
-class WM_OT_context_scale_int(bpy.types.Operator): # same as enum
+class WM_OT_context_scale_int(bpy.types.Operator):
     '''Scale an int context value.'''
     bl_idname = "wm.context_scale_int"
     bl_label = "Context Set"
@@ -112,16 +113,16 @@ class WM_OT_context_scale_int(bpy.types.Operator): # same as enum
         default=True)
 
     def execute(self, context):
-        if context_path_validate(context, self.properties.data_path) is Ellipsis:
+        if context_path_validate(context, self.data_path) is Ellipsis:
             return {'PASS_THROUGH'}
 
-        value = self.properties.value
-        data_path = self.properties.data_path
+        value = self.value
+        data_path = self.data_path
 
-        if value == 1.0: # nothing to do
+        if value == 1.0:  # nothing to do
             return {'CANCELLED'}
 
-        if getattr(self.properties, "always_step", False):
+        if getattr(self, "always_step", False):
             if value > 1.0:
                 add = "1"
                 func = "max"
@@ -130,12 +131,12 @@ class WM_OT_context_scale_int(bpy.types.Operator): # same as enum
                 func = "min"
             exec("context.%s = %s(round(context.%s * value), context.%s + %s)" % (data_path, func, data_path, data_path, add))
         else:
-            exec("context.%s *= value" % self.properties.data_path)
+            exec("context.%s *= value" % self.data_path)
 
         return {'FINISHED'}
 
 
-class WM_OT_context_set_float(bpy.types.Operator): # same as enum
+class WM_OT_context_set_float(bpy.types.Operator):  # same as enum
     '''Set a context value.'''
     bl_idname = "wm.context_set_float"
     bl_label = "Context Set Float"
@@ -149,7 +150,7 @@ class WM_OT_context_set_float(bpy.types.Operator): # same as enum
     execute = execute_context_assign
 
 
-class WM_OT_context_set_string(bpy.types.Operator): # same as enum
+class WM_OT_context_set_string(bpy.types.Operator):  # same as enum
     '''Set a context value.'''
     bl_idname = "wm.context_set_string"
     bl_label = "Context Set String"
@@ -188,9 +189,9 @@ class WM_OT_context_set_value(bpy.types.Operator):
             maxlen=1024, default="")
 
     def execute(self, context):
-        if context_path_validate(context, self.properties.data_path) is Ellipsis:
+        if context_path_validate(context, self.data_path) is Ellipsis:
             return {'PASS_THROUGH'}
-        exec("context.%s=%s" % (self.properties.data_path, self.properties.value))
+        exec("context.%s=%s" % (self.data_path, self.value))
         return {'FINISHED'}
 
 
@@ -204,11 +205,11 @@ class WM_OT_context_toggle(bpy.types.Operator):
 
     def execute(self, context):
 
-        if context_path_validate(context, self.properties.data_path) is Ellipsis:
+        if context_path_validate(context, self.data_path) is Ellipsis:
             return {'PASS_THROUGH'}
 
         exec("context.%s=not (context.%s)" %
-            (self.properties.data_path, self.properties.data_path))
+            (self.data_path, self.data_path))
 
         return {'FINISHED'}
 
@@ -228,13 +229,13 @@ class WM_OT_context_toggle_enum(bpy.types.Operator):
 
     def execute(self, context):
 
-        if context_path_validate(context, self.properties.data_path) is Ellipsis:
+        if context_path_validate(context, self.data_path) is Ellipsis:
             return {'PASS_THROUGH'}
 
         exec("context.%s = ['%s', '%s'][context.%s!='%s']" % \
-            (self.properties.data_path, self.properties.value_1,\
-             self.properties.value_2, self.properties.data_path,
-             self.properties.value_2))
+            (self.data_path, self.value_1,\
+             self.value_2, self.data_path,
+             self.value_2))
 
         return {'FINISHED'}
 
@@ -250,12 +251,12 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
     reverse = rna_reverse_prop
 
     def execute(self, context):
-        data_path = self.properties.data_path
+        data_path = self.data_path
         value = context_path_validate(context, data_path)
         if value is Ellipsis:
             return {'PASS_THROUGH'}
 
-        if self.properties.reverse:
+        if self.reverse:
             value -= 1
         else:
             value += 1
@@ -264,7 +265,7 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
 
         if value != eval("context.%s" % data_path):
             # relies on rna clamping int's out of the range
-            if self.properties.reverse:
+            if self.reverse:
                 value = (1 << 32)
             else:
                 value = - (1 << 32)
@@ -285,14 +286,14 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
 
     def execute(self, context):
 
-        value = context_path_validate(context, self.properties.data_path)
+        value = context_path_validate(context, self.data_path)
         if value is Ellipsis:
             return {'PASS_THROUGH'}
 
         orig_value = value
 
         # Have to get rna enum values
-        rna_struct_str, rna_prop_str = self.properties.data_path.rsplit('.', 1)
+        rna_struct_str, rna_prop_str = self.data_path.rsplit('.', 1)
         i = rna_prop_str.find('[')
 
         # just incse we get "context.foo.bar[0]"
@@ -310,11 +311,11 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
         orig_index = enums.index(orig_value)
 
         # Have the info we need, advance to the next item
-        if self.properties.reverse:
+        if self.reverse:
             if orig_index == 0:
                 advance_enum = enums[-1]
             else:
-                advance_enum = enums[orig_index-1]
+                advance_enum = enums[orig_index - 1]
         else:
             if orig_index == len(enums) - 1:
                 advance_enum = enums[0]
@@ -322,7 +323,35 @@ class WM_OT_context_cycle_enum(bpy.types.Operator):
                 advance_enum = enums[orig_index + 1]
 
         # set the new value
-        exec("context.%s=advance_enum" % self.properties.data_path)
+        exec("context.%s=advance_enum" % self.data_path)
+        return {'FINISHED'}
+
+
+class WM_OT_context_cycle_array(bpy.types.Operator):
+    '''Set a context array value.
+    Useful for cycling the active mesh edit mode.'''
+    bl_idname = "wm.context_cycle_array"
+    bl_label = "Context Array Cycle"
+    bl_options = {'UNDO'}
+
+    data_path = rna_path_prop
+    reverse = rna_reverse_prop
+
+    def execute(self, context):
+        data_path = self.data_path
+        value = context_path_validate(context, data_path)
+        if value is Ellipsis:
+            return {'PASS_THROUGH'}
+
+        def cycle(array):
+            if self.reverse:
+                array.insert(0, array.pop())
+            else:
+                array.append(array.pop(0))
+            return array
+
+        exec("context.%s=cycle(context.%s[:])" % (data_path, data_path))
+
         return {'FINISHED'}
 
 
@@ -337,8 +366,8 @@ class WM_OT_context_set_id(bpy.types.Operator):
             description="Assign value", maxlen=1024, default="")
 
     def execute(self, context):
-        value = self.properties.value
-        data_path = self.properties.data_path
+        value = self.value
+        data_path = self.data_path
 
         # match the pointer type from the target property to bpy.data.*
         # so we lookup the correct list.
@@ -380,8 +409,8 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
     initial_x = IntProperty(options={'HIDDEN'})
 
     def _values_store(self, context):
-        data_path_iter = self.properties.data_path_iter
-        data_path_item = self.properties.data_path_item
+        data_path_iter = self.data_path_iter
+        data_path_item = self.data_path_item
 
         self._values = values = {}
 
@@ -400,11 +429,11 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
             values[item] = value_orig
 
     def _values_delta(self, delta):
-        delta *= self.properties.input_scale
-        if self.properties.invert:
+        delta *= self.input_scale
+        if self.invert:
             delta = - delta
 
-        data_path_item = self.properties.data_path_item
+        data_path_item = self.data_path_item
         for item, value_orig in self._values.items():
             if type(value_orig) == int:
                 exec("item.%s = int(%d)" % (data_path_item, round(value_orig + delta)))
@@ -412,7 +441,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
                 exec("item.%s = %f" % (data_path_item, value_orig + delta))
 
     def _values_restore(self):
-        data_path_item = self.properties.data_path_item
+        data_path_item = self.data_path_item
         for item, value_orig in self._values.items():
             exec("item.%s = %s" % (data_path_item, value_orig))
 
@@ -425,7 +454,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
         event_type = event.type
 
         if event_type == 'MOUSEMOVE':
-            delta = event.mouse_x - self.properties.initial_x
+            delta = event.mouse_x - self.initial_x
             self._values_delta(delta)
 
         elif 'LEFTMOUSE' == event_type:
@@ -443,11 +472,11 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
 
         if not self._values:
             self.report({'WARNING'}, "Nothing to operate on: %s[ ].%s" %
-                    (self.properties.data_path_iter, self.properties.data_path_item))
+                    (self.data_path_iter, self.data_path_item))
 
             return {'CANCELLED'}
         else:
-            self.properties.initial_x = event.mouse_x
+            self.initial_x = event.mouse_x
 
             context.window_manager.add_modal_handler(self)
             return {'RUNNING_MODAL'}
@@ -462,7 +491,7 @@ class WM_OT_url_open(bpy.types.Operator):
 
     def execute(self, context):
         import webbrowser
-        webbrowser.open(self.properties.url)
+        webbrowser.open(self.url)
         return {'FINISHED'}
 
 
@@ -478,7 +507,7 @@ class WM_OT_path_open(bpy.types.Operator):
         import os
         import subprocess
 
-        filepath = bpy.path.abspath(self.properties.filepath)
+        filepath = bpy.path.abspath(self.filepath)
         filepath = os.path.normpath(filepath)
 
         if not os.path.exists(filepath):
@@ -516,10 +545,10 @@ class WM_OT_doc_view(bpy.types.Operator):
         return '.'.join([class_obj.identifier for class_obj in ls])
 
     def execute(self, context):
-        id_split = self.properties.doc_id.split('.')
-        if len(id_split) == 1: # rna, class
+        id_split = self.doc_id.split('.')
+        if len(id_split) == 1:  # rna, class
             url = '%s/bpy.types.%s.html' % (self._prefix, id_split[0])
-        elif len(id_split) == 2: # rna, class.prop
+        elif len(id_split) == 2:  # rna, class.prop
             class_name, class_prop = id_split
 
             if hasattr(bpy.types, class_name.upper() + '_OT_' + class_prop):
@@ -562,8 +591,8 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
     def execute(self, context):
 
-        doc_id = self.properties.doc_id
-        doc_new = self.properties.doc_new
+        doc_id = self.doc_id
+        doc_new = self.doc_new
 
         class_name, class_prop = doc_id.split('.')
 
@@ -603,7 +632,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        props = self.properties
+        props = self
         layout.label(text="Descriptor ID: '%s'" % props.doc_id)
         layout.prop(props, "doc_new", text="")
 
@@ -641,9 +670,9 @@ class WM_OT_properties_edit(bpy.types.Operator):
     description = StringProperty(name="Tip", default="")
 
     def execute(self, context):
-        data_path = self.properties.data_path
-        value = self.properties.value
-        prop = self.properties.property
+        data_path = self.data_path
+        value = self.value
+        prop = self.property
         prop_old = self._last_prop[0]
 
         try:
@@ -659,7 +688,6 @@ class WM_OT_properties_edit(bpy.types.Operator):
         # print(exec_str)
         exec(exec_str)
 
-
         # Reassign
         exec_str = "item['%s'] = %s" % (prop, repr(value_eval))
         # print(exec_str)
@@ -672,25 +700,25 @@ class WM_OT_properties_edit(bpy.types.Operator):
 
         if prop_type in (float, int):
 
-            prop_ui['soft_min'] = prop_ui['min'] = prop_type(self.properties.min)
-            prop_ui['soft_max'] = prop_ui['max'] = prop_type(self.properties.max)
+            prop_ui['soft_min'] = prop_ui['min'] = prop_type(self.min)
+            prop_ui['soft_max'] = prop_ui['max'] = prop_type(self.max)
 
-        prop_ui['description'] = self.properties.description
+        prop_ui['description'] = self.description
 
         return {'FINISHED'}
 
     def invoke(self, context, event):
 
-        self._last_prop = [self.properties.property]
+        self._last_prop = [self.property]
 
-        item = eval("context.%s" % self.properties.data_path)
+        item = eval("context.%s" % self.data_path)
 
         # setup defaults
-        prop_ui = rna_idprop_ui_prop_get(item, self.properties.property, False) # dont create
+        prop_ui = rna_idprop_ui_prop_get(item, self.property, False)  # dont create
         if prop_ui:
-            self.properties.min = prop_ui.get("min", -1000000000)
-            self.properties.max = prop_ui.get("max", 1000000000)
-            self.properties.description = prop_ui.get("description", "")
+            self.min = prop_ui.get("min", -1000000000)
+            self.max = prop_ui.get("max", 1000000000)
+            self.description = prop_ui.get("description", "")
 
         wm = context.window_manager
         # This crashes, TODO - fix
@@ -708,7 +736,7 @@ class WM_OT_properties_add(bpy.types.Operator):
     data_path = rna_path
 
     def execute(self, context):
-        item = eval("context.%s" % self.properties.data_path)
+        item = eval("context.%s" % self.data_path)
 
         def unique_name(names):
             prop = 'prop'
@@ -735,9 +763,10 @@ class WM_OT_properties_remove(bpy.types.Operator):
     property = rna_property
 
     def execute(self, context):
-        item = eval("context.%s" % self.properties.data_path)
-        del item[self.properties.property]
+        item = eval("context.%s" % self.data_path)
+        del item[self.property]
         return {'FINISHED'}
+
 
 def register():
     pass

@@ -1420,8 +1420,7 @@ static void widget_state(uiWidgetType *wt, int state)
 
 		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
 		
-		if (!(state & UI_TEXTINPUT))
-			/* swap for selection - show depressed */
+		if(state & UI_SELECT)
 			SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
 	}
 	else {
@@ -1452,12 +1451,16 @@ static void widget_state_numslider(uiWidgetType *wt, int state)
 	/* now, set the inner-part so that it reflects state settings too */
 	// TODO: maybe we should have separate settings for the blending colors used for this case?
 	if(state & UI_SELECT) {
+		
 		if(state & UI_BUT_ANIMATED_KEY)
 			widget_state_blend(wt->wcol.item, wcol_state->inner_key_sel, blend);
 		else if(state & UI_BUT_ANIMATED)
 			widget_state_blend(wt->wcol.item, wcol_state->inner_anim_sel, blend);
 		else if(state & UI_BUT_DRIVEN)
 			widget_state_blend(wt->wcol.item, wcol_state->inner_driven_sel, blend);
+		
+		if(state & UI_SELECT)
+			SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
 	}
 	else {
 		if(state & UI_BUT_ANIMATED_KEY)
@@ -1954,6 +1957,9 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	float rad= 0.5f*(rect->ymax - rect->ymin);
 	float textofs = rad*0.75;
 
+	if(state & UI_SELECT)
+		SWAP(short, wcol->shadetop, wcol->shadedown);
+	
 	widget_init(&wtb);
 	
 	/* fully rounded */
@@ -2227,7 +2233,9 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	VECCOPY(outline, wcol->outline);
 	VECCOPY(wcol->outline, wcol->item);
 	VECCOPY(wcol->inner, wcol->item);
-	SWAP(short, wcol->shadetop, wcol->shadedown);
+
+	if(!(state & UI_SELECT))
+		SWAP(short, wcol->shadetop, wcol->shadedown);
 	
 	rect1= *rect;
 	
@@ -2251,7 +2259,9 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	
 	widgetbase_draw(&wtb1, wcol);
 	VECCOPY(wcol->outline, outline);
-	SWAP(short, wcol->shadetop, wcol->shadedown);
+	
+	if(!(state & UI_SELECT))
+		SWAP(short, wcol->shadetop, wcol->shadedown);
 	
 	/* outline */
 	wtb.outline= 1;
@@ -2305,6 +2315,9 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
+	
+	if(state & UI_SELECT)
+		SWAP(short, wcol->shadetop, wcol->shadedown);
 	
 	widget_init(&wtb);
 	

@@ -147,6 +147,8 @@ Brush *copy_brush(Brush *brush)
 	if (brush->icon_imbuf)
 		brushn->icon_imbuf= IMB_dupImBuf(brush->icon_imbuf);
 
+	brushn->preview = NULL;
+
 	brushn->curve= curvemapping_copy(brush->curve);
 
 	/* enable fake user by default */

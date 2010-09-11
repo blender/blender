@@ -44,21 +44,20 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
         return context.active_object != None
 
     def execute(self, context):
-        filepath = self.properties.filepath
+        filepath = self.filepath
         filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
         import io_mesh_ply.export_ply
         return io_mesh_ply.export_ply.save(self, context, **self.properties)
 
     def draw(self, context):
         layout = self.layout
-        props = self.properties
 
         row = layout.row()
-        row.prop(props, "use_modifiers")
-        row.prop(props, "use_normals")
+        row.prop(self.properties, "use_modifiers")
+        row.prop(self.properties, "use_normals")
         row = layout.row()
-        row.prop(props, "use_uv_coords")
-        row.prop(props, "use_colors")
+        row.prop(self.properties, "use_uv_coords")
+        row.prop(self.properties, "use_colors")
 
 
 def menu_func(self, context):

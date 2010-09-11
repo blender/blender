@@ -44,7 +44,7 @@ class LOGIC_PT_properties(bpy.types.Panel):
             row = box.row()
             row.prop(prop, "name", text="")
             row.prop(prop, "type", text="")
-            row.prop(prop, "value", text="", toggle=True) # we dont care about the type. rna will display correctly
+            row.prop(prop, "value", text="", toggle=True)  # we dont care about the type. rna will display correctly
             row.prop(prop, "show_debug", text="", toggle=True, icon='INFO')
             row.operator("object.game_property_remove", text="", icon='X', emboss=False).index = i
 
@@ -58,7 +58,7 @@ class LOGIC_MT_logicbricks_add(bpy.types.Menu):
         layout.operator_menu_enum("logic.sensor_add", "type", text="Sensor")
         layout.operator_menu_enum("logic.controller_add", "type", text="Controller")
         layout.operator_menu_enum("logic.actuator_add", "type", text="Actuator")
-        
+
 
 class LOGIC_HT_header(bpy.types.Header):
     bl_space_type = 'LOGIC_EDITOR'
@@ -76,7 +76,7 @@ class LOGIC_HT_header(bpy.types.Header):
             sub.menu("LOGIC_MT_view")
             #sub.menu("LOGIC_MT_select")
             #sub.menu("LOGIC_MT_add")
-        
+
 
 class LOGIC_MT_view(bpy.types.Menu):
     bl_label = "View"
@@ -85,7 +85,7 @@ class LOGIC_MT_view(bpy.types.Menu):
         layout = self.layout
 
         layout.column()
-        
+
         layout.operator("logic.properties", icon='MENU_PANEL')
 
 

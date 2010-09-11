@@ -188,7 +188,6 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
         #sub = col.column()
         #sub.enabled = softbody.aero > 0
 
-
         col.label(text="Collision:")
         col.prop(softbody, "use_edge_collision", text="Edge")
         col.prop(softbody, "use_face_collision", text="Face")

@@ -595,6 +595,7 @@ static int disconnect_hair_exec(bContext *C, wmOperator *op)
 		disconnect_hair(scene, ob, psys);
 	}
 
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 
 	return OPERATOR_FINISHED;
@@ -638,7 +639,8 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	point=  edit ? edit->points : NULL;
 	
 	if(psmd->dm->deformedOnly)
-		dm= psmd->dm;
+		/* we don't want to mess up psmd->dm when converting to global coordinates below */
+		dm= CDDM_copy(psmd->dm);
 	else
 		dm= mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 
@@ -703,8 +705,7 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	}
 
 	free_bvhtree_from_mesh(&bvhtree);
-	if(!psmd->dm->deformedOnly)
-		dm->release(dm);
+	dm->release(dm);
 
 	psys_free_path_cache(psys, psys->edit);
 
@@ -734,6 +735,7 @@ static int connect_hair_exec(bContext *C, wmOperator *op)
 		connect_hair(scene, ob, psys);
 	}
 
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 
 	return OPERATOR_FINISHED;

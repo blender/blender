@@ -91,25 +91,25 @@ while lines:
     l = lines.pop(0)
     if l.startswith("Environment Variables:"):
         fw('.SH "ENVIRONMENT VARIABLES"\n')
-    elif l.endswith(":"): # one line
+    elif l.endswith(":"):  # one line
         fw('.SS "%s"\n\n' % l)
-    elif l.startswith("-") or l.startswith("/"): # can be multi line
+    elif l.startswith("-") or l.startswith("/"):  # can be multi line
 
         fw('.TP\n')
         fw('.B %s\n' % man_format(l))
 
         while lines:
             # line with no
-            if lines[0].strip() and len(lines[0].lstrip()) == len(lines[0]): # no white space
+            if lines[0].strip() and len(lines[0].lstrip()) == len(lines[0]):  # no white space
                 break
 
-            if not l: # second blank line
+            if not l:  # second blank line
                 fw('.IP\n')
             else:
                 fw('.br\n')
 
             l = lines.pop(0)
-            l = l[1:] # remove first whitespace (tab)
+            l = l[1:]  # remove first whitespace (tab)
 
             fw('%s\n' % man_format(l))
 

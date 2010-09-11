@@ -119,7 +119,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel, bpy.types.Panel):
 
         if mat:
             layout.prop(mat, "type", expand=True)
-            
+
 
 class MATERIAL_PT_preview(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Preview"
@@ -357,9 +357,9 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
             sub = col.column()
             sub.active = rayt.gloss_factor < 1.0
             sub.prop(rayt, "gloss_threshold", text="Threshold")
-            sub.prop(rayt, "gloss_samples", text="Samples")    
+            sub.prop(rayt, "gloss_samples", text="Samples")
 
-            
+
 class MATERIAL_PT_mirror(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Mirror"
     bl_options = {'DEFAULT_CLOSED'}
@@ -482,7 +482,7 @@ class MATERIAL_PT_halo(MaterialButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        mat = context.material # dont use node material
+        mat = context.material  # dont use node material
         halo = mat.halo
 
         split = layout.split()
@@ -536,7 +536,7 @@ class MATERIAL_PT_flare(MaterialButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        mat = context.material # dont use node material
+        mat = context.material  # dont use node material
         halo = mat.halo
 
         layout.active = halo.use_flare_mode
@@ -564,7 +564,7 @@ class MATERIAL_PT_physics(MaterialButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        phys = context.material.physics # dont use node material
+        phys = context.material.physics  # dont use node material
 
         split = layout.split()
 
@@ -593,7 +593,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        mat = context.material # dont use node material
+        mat = context.material  # dont use node material
         tan = mat.strand
 
         split = layout.split()
@@ -760,7 +760,7 @@ class MATERIAL_PT_volume_density(VolumeButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        vol = context.material.volume # dont use node material
+        vol = context.material.volume  # dont use node material
 
         split = layout.split()
         col = split.column()
@@ -777,7 +777,7 @@ class MATERIAL_PT_volume_shading(VolumeButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        vol = context.material.volume # dont use node material
+        vol = context.material.volume  # dont use node material
 
         split = layout.split()
 
@@ -802,7 +802,7 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        vol = context.material.volume # dont use node material
+        vol = context.material.volume  # dont use node material
 
         split = layout.split()
 
@@ -837,7 +837,7 @@ class MATERIAL_PT_volume_transp(VolumeButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        mat = context.material # dont use node material
+        mat = context.material  # dont use node material
 
         layout.prop(mat, "transparency_method", expand=True)
 
@@ -849,7 +849,7 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        vol = context.material.volume # dont use node material
+        vol = context.material.volume  # dont use node material
 
         split = layout.split()
 

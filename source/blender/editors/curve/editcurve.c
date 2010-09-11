@@ -5577,7 +5577,9 @@ int join_curve_exec(bContext *C, wmOperator *op)
 					nu= cu->nurb.first;
 					while(nu) {
 						newnu= duplicateNurb(nu);
-						CLAMP(newnu->mat_nr, 0, ob->totcol-1); /* TODO, merge material lists */
+						if(ob->totcol) { /* TODO, merge material lists */
+							CLAMP(newnu->mat_nr, 0, ob->totcol-1);
+						} else newnu->mat_nr= 0;
 						BLI_addtail(&tempbase, newnu);
 						
 						if( (bezt= newnu->bezt) ) {

@@ -854,10 +854,11 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 static void viewmove_apply(ViewOpsData *vod, int x, int y)
 {
 	if(vod->rv3d->persp==RV3D_CAMOB) {
-		float max= (float)MAX2(vod->ar->winx, vod->ar->winy);
+		float zoomfac= (M_SQRT2 + vod->rv3d->camzoom/50.0);
+		zoomfac= (zoomfac*zoomfac)*0.5;
 
-		vod->rv3d->camdx += (vod->oldx - x)/(max);
-		vod->rv3d->camdy += (vod->oldy - y)/(max);
+		vod->rv3d->camdx += (vod->oldx - x)/(vod->ar->winx * zoomfac);
+		vod->rv3d->camdy += (vod->oldy - y)/(vod->ar->winy * zoomfac);
 		CLAMP(vod->rv3d->camdx, -1.0f, 1.0f);
 		CLAMP(vod->rv3d->camdy, -1.0f, 1.0f);
 // XXX		preview3d_event= 0;
@@ -1165,7 +1166,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 		/* this min and max is also in viewmove() */
 		if(rv3d->persp==RV3D_CAMOB) {
 			rv3d->camzoom-= 10;
-			if(rv3d->camzoom<-30) rv3d->camzoom= -30;
+			if(rv3d->camzoom < RV3D_CAMZOOM_MIN) rv3d->camzoom= RV3D_CAMZOOM_MIN;
 		}
 		else if(rv3d->dist<10.0*v3d->far) {
 			view_zoom_mouseloc(CTX_wm_region(C), 1.2f, mx, my);
@@ -1174,7 +1175,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	else {
 		if(rv3d->persp==RV3D_CAMOB) {
 			rv3d->camzoom+= 10;
-			if(rv3d->camzoom>600) rv3d->camzoom= 600;
+			if(rv3d->camzoom > RV3D_CAMZOOM_MAX) rv3d->camzoom= RV3D_CAMZOOM_MAX;
 		}
 		else if(rv3d->dist> 0.001*v3d->grid) {
 			view_zoom_mouseloc(CTX_wm_region(C), .83333f, mx, my);
@@ -1902,14 +1903,14 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 
 	if (rv3d->persp==RV3D_CAMOB && v3d->camera) {
 
-		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= RV3D_ORTHO;
+		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= view ? RV3D_ORTHO : RV3D_PERSP;
 		else if(rv3d->persp==RV3D_CAMOB) rv3d->persp= perspo;
 
 		smooth_view(C, v3d->camera, NULL, rv3d->ofs, new_quat, NULL, NULL);
 	}
 	else {
 
-		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= RV3D_ORTHO;
+		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= view ? RV3D_ORTHO : RV3D_PERSP;
 		else if(rv3d->persp==RV3D_CAMOB) rv3d->persp= perspo;
 
 		smooth_view(C, NULL, NULL, NULL, new_quat, NULL, NULL);

@@ -102,7 +102,6 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
         col.label(text="Mask Layers:")
         col.prop(rl, "layers_zmask", text="")
 
-
         layout.separator()
         layout.label(text="Include:")
 
@@ -512,7 +511,6 @@ class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
         sub.row().prop(rd, "field_order", expand=True)
         sub.prop(rd, "use_fields_still", text="Still")
 
-
         col = split.column()
         col.prop(rd, "use_edge_enhance")
         sub = col.column()
@@ -552,7 +550,7 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
         if file_format in ('AVI_JPEG', 'JPEG'):
             split = layout.split()
             split.prop(rd, "file_quality", slider=True)
-        
+
         if file_format == 'PNG':
             split = layout.split()
             split.prop(rd, "file_quality", slider=True, text="Compression")
@@ -636,7 +634,7 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
 
                 if rd.quicktime_audiocodec_type == 'AAC':
                     col.prop(rd, "quicktime_audio_codec_isvbr")
-                    
+
                 col = subsplit.column()
                 col.prop(rd, "quicktime_audio_resampling_hq")
 
@@ -756,6 +754,7 @@ class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
         row = layout.row()
         row.prop(rd, "motion_blur_samples")
         row.prop(rd, "motion_blur_shutter")
+
 
 class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Dimensions"

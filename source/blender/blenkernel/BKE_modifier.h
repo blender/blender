@@ -321,6 +321,9 @@ struct LinkNode *modifiers_calcDataMasks(struct Scene *scene,
 										 int required_mode);
 struct ModifierData  *modifiers_getVirtualModifierList(struct Object *ob);
 
+/* ensure modifier correctness when changing ob->data */
+void test_object_modifiers(struct Object *ob);
+
 /* here for do_versions */
 void modifier_mdef_compact_influences(struct ModifierData *md);
 

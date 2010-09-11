@@ -32,7 +32,7 @@ _uilayout_tags = ["ui"] + \
 
 # these need to be imported directly
 # >>> from bpyml_ui.locals import *
-locals = bpyml.tag_module("%s.locals" % __name__ , _uilayout_tags)
+locals = bpyml.tag_module("%s.locals" % __name__, _uilayout_tags)
 
 
 def _parse_rna(prop, value):
@@ -72,12 +72,12 @@ def _call_recursive(context, base, py_node):
             value = eval(value, {"context": _bpy.context})
             setattr(base, py_node[TAG], value)
         else:
-            value = py_node[ARGS]['value'] # have to have this
+            value = py_node[ARGS]['value']  # have to have this
             setattr(base, name, value)
     else:
         args = _parse_rna_args(base, py_node)
         func_new = getattr(base, py_node[TAG])
-        base_new = func_new(**args) # call blender func
+        base_new = func_new(**args)  # call blender func
         if base_new is not None:
             for py_node_child in py_node[CHILDREN]:
                 _call_recursive(context, base_new, py_node_child)

@@ -87,7 +87,9 @@ Tex *rna_Main_add_texture(Main *bmain, char *name)
 
 Camera *rna_Main_cameras_new(Main *bmain, char* name)
 {
-	return add_camera(name);
+	ID *id= add_camera(name);
+	id->us--;
+	return (Camera *)id;
 }
 void rna_Main_cameras_remove(Main *bmain, ReportList *reports, struct Camera *camera)
 {
@@ -194,7 +196,9 @@ void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *ob
 
 struct Material *rna_Main_materials_new(Main *bmain, char* name)
 {
-	return add_material(name);
+	ID *id= (ID *)add_material(name);
+	id->us--;
+	return (Material *)id;
 }
 void rna_Main_materials_remove(Main *bmain, ReportList *reports, struct Material *material)
 {

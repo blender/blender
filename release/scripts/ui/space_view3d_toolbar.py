@@ -92,13 +92,11 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, bpy.types.Panel):
         col.operator("transform.resize", text="Scale")
         col.operator("transform.shrink_fatten", text="Along Normal")
 
-
         col = layout.column(align=True)
         col.label(text="Deform:")
         col.operator("transform.edge_slide")
         col.operator("mesh.rip_move")
         col.operator("mesh.vertices_smooth")
-
 
         col = layout.column(align=True)
         col.label(text="Add:")
@@ -126,7 +124,6 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, bpy.types.Panel):
         col.operator("wm.call_menu", text="Unwrap").name = "VIEW3D_MT_uv_map"
         col.operator("mesh.mark_seam")
         col.operator("mesh.mark_seam", text="Clear Seam").clear = True
-
 
         col = layout.column(align=True)
         col.label(text="Shading:")
@@ -540,7 +537,6 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
 
             col = layout.column()
 
-
             col.separator()
 
             row = col.row(align=True)
@@ -553,7 +549,6 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                 row.prop(brush, "size", text="Radius", slider=True)
 
             row.prop(brush, "use_pressure_size", toggle=True, text="")
-
 
             if brush.sculpt_tool not in ('SNAKE_HOOK', 'GRAB', 'ROTATE'):
                 col.separator()
@@ -569,8 +564,6 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                 row.prop(brush, "strength", text="Strength", slider=True)
                 row.prop(brush, "use_pressure_strength", text="")
 
-
-
             if brush.sculpt_tool not in ('SMOOTH'):
                 col.separator()
 
@@ -578,15 +571,11 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                 row.prop(brush, "auto_smooth_factor", slider=True)
                 row.prop(brush, "use_inverse_smooth_pressure", toggle=True, text="")
 
-
-
             if brush.sculpt_tool in ('GRAB', 'SNAKE_HOOK'):
                 col.separator()
 
                 row = col.row(align=True)
                 row.prop(brush, "normal_weight", slider=True)
-
-
 
             if brush.sculpt_tool in ('CREASE', 'BLOB'):
                 col.separator()
@@ -614,15 +603,15 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
 
                 col.separator()
 
-                row= col.row()
+                row = col.row()
                 row.prop(brush, "use_plane_trim", text="Trim")
-                row= col.row()
-                row.active=brush.use_plane_trim
+                row = col.row()
+                row.active = brush.use_plane_trim
                 row.prop(brush, "plane_trim", slider=True, text="Distance")
 
             col.separator()
 
-            row= col.row()
+            row = col.row()
             row.prop(brush, "use_frontface", text="Front Faces Only")
 
             col.separator()
@@ -632,8 +621,6 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
                 col.separator()
 
                 col.prop(brush, "use_accumulate")
-
-
 
             if brush.sculpt_tool == 'LAYER':
                 col.separator()
@@ -675,9 +662,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
             col.active = (brush.blend not in ('ERASE_ALPHA', 'ADD_ALPHA'))
             col.prop(brush, "use_alpha")
 
-
         # Weight Paint Mode #
-
         elif context.weight_paint_object and brush:
             layout.prop(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
             layout.prop(context.tool_settings, "use_auto_normalize", text="Auto Normalize")
@@ -697,7 +682,6 @@ class VIEW3D_PT_tools_brush(PaintPanel, bpy.types.Panel):
             row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
         # Vertex Paint Mode #
-
         elif context.vertex_paint_object and brush:
             col = layout.column()
             col.template_color_wheel(brush, "color", value_slider=True)
@@ -741,10 +725,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
         if context.sculpt_object:
             #XXX duplicated from properties_texture.py
 
-
-
             col.separator()
-
 
             col.label(text="Brush Mapping:")
             row = col.row(align=True)
@@ -755,7 +736,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
             col = layout.column()
             col.active = tex_slot.map_mode in ('FIXED', )
             col.label(text="Angle:")
-            
+
             col = layout.column()
             if not brush.use_anchor and brush.sculpt_tool not in ('GRAB', 'SNAKE_HOOK', 'THUMB', 'ROTATE') and tex_slot.map_mode in ('FIXED'):
                 col.prop(brush, "texture_angle_source_random", text="")
@@ -988,7 +969,6 @@ class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-
         tool_settings = context.tool_settings
         sculpt = tool_settings.sculpt
         settings = __class__.paint_settings(context)
@@ -1014,8 +994,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel, bpy.types.Panel):
         row.prop(sculpt, "lock_y", text="Y", toggle=True)
         row.prop(sculpt, "lock_z", text="Z", toggle=True)
 
-		
-		
+
 class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
     bl_label = "Symmetry"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1051,6 +1030,7 @@ class VIEW3D_PT_sculpt_symmetry(PaintPanel, bpy.types.Panel):
 
         col.prop(sculpt, "use_symmetry_feather", text="Feather")
 
+
 class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
     bl_label = "Appearance"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1066,7 +1046,7 @@ class VIEW3D_PT_tools_brush_appearance(PaintPanel, bpy.types.Panel):
         settings = __class__.paint_settings(context)
         brush = settings.brush
 
-        col = layout.column();
+        col = layout.column()
 
         if context.sculpt_object and context.tool_settings.sculpt:
             #if brush.sculpt_tool in ('DRAW', 'INFLATE', 'CLAY', 'PINCH', 'CREASE', 'BLOB', 'FLATTEN', 'FILL', 'SCRAPE', 'CLAY_TUBES'):
@@ -1259,7 +1239,8 @@ class VIEW3D_PT_imagepaint_options(PaintPanel):
         col.label(text="Unified Settings:")
         col.prop(tool_settings, "sculpt_paint_use_unified_size", text="Size")
         col.prop(tool_settings, "sculpt_paint_use_unified_strength", text="Strength")
-        
+
+
 class VIEW3D_MT_tools_projectpaint_clone(bpy.types.Menu):
     bl_label = "Clone Layer"
 
@@ -1310,7 +1291,6 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, bpy.types.Panel):
 
         if ptcache and len(ptcache.point_caches) > 1:
             layout.template_list(ptcache, "point_caches", ptcache.point_caches, "active_index", type='ICONS')
-
 
         if not pe.is_editable:
             layout.label(text="Point cache must be baked")

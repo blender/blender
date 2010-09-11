@@ -366,7 +366,6 @@ class USERPREF_PT_system(bpy.types.Panel):
 
         split = layout.split()
 
-
         # 1. Column
         column = split.column()
         colsplit = column.split(percentage=0.85)
@@ -419,7 +418,6 @@ class USERPREF_PT_system(bpy.types.Panel):
 
         #col.prop(system, "use_textured_fonts")
 
-
         # 2. Column
         column = split.column()
         colsplit = column.split(percentage=0.85)
@@ -445,7 +443,6 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.label(text="Sequencer:")
         col.prop(system, "prefetch_frames")
         col.prop(system, "memory_cache_limit")
-
 
         # 3. Column
         column = split.column()
@@ -533,7 +530,6 @@ class USERPREF_PT_theme(bpy.types.Panel):
         split_themes.prop(theme, "theme_area", expand=True)
 
         split = layout.split(percentage=0.4)
-
 
         layout.separator()
         layout.separator()
@@ -630,7 +626,6 @@ class USERPREF_PT_theme(bpy.types.Panel):
             colsub.row().prop(ui, "inner_key")
             colsub.row().prop(ui, "inner_key_sel")
             colsub.row().prop(ui, "blend")
-
 
             ui = theme.user_interface
             col.separator()
@@ -816,7 +811,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_label = "Addons"
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
-    
+
     _addons_fake_modules = {}
 
     @classmethod
@@ -887,33 +882,20 @@ class USERPREF_PT_addons(bpy.types.Panel):
         modules_stale = set(USERPREF_PT_addons._addons_fake_modules.keys())
 
         for path in paths:
-            for f in sorted(os.listdir(path)):
-                if f.endswith(".py"):
-                    mod_name = f[0:-3]
-                    mod_path = os.path.join(path, f)
-                elif ("." not in f) and (os.path.isfile(os.path.join(path, f, "__init__.py"))):
-                    mod_name = f
-                    mod_path = os.path.join(path, f, "__init__.py")
-                else:
-                    mod_name = ""
-                    mod_path = ""
+            for mod_name, mod_path in bpy.path.module_names(path):
+                modules_stale -= {mod_name}
+                mod = USERPREF_PT_addons._addons_fake_modules.get(mod_name)
+                if mod:
+                    if mod.__time__ != os.path.getmtime(mod_path):
+                        print("reloading addon:", mod_name, mod.__time__, os.path.getmtime(mod_path), mod_path)
+                        del USERPREF_PT_addons._addons_fake_modules[mod_name]
+                        mod = None
 
-                if mod_name:
-                    if mod_name in modules_stale:
-                        modules_stale.remove(mod_name)
-                    mod = USERPREF_PT_addons._addons_fake_modules.get(mod_name)
+                if mod is None:
+                    mod = fake_module(mod_name, mod_path)
                     if mod:
-                        if mod.__time__ != os.path.getmtime(mod_path):
-                            print("Reloading", mod_name)
-                            del USERPREF_PT_addons._addons_fake_modules[mod_name]
-                            mod = None
+                        USERPREF_PT_addons._addons_fake_modules[mod_name] = mod
 
-                    if mod is None:
-                        mod = fake_module(mod_name, mod_path)
-                        if mod:
-                            USERPREF_PT_addons._addons_fake_modules[mod_name] = mod
-                    
-        
         # just incase we get stale modules, not likely
         for mod_stale in modules_stale:
             del USERPREF_PT_addons._addons_fake_modules[mod_stale]
@@ -937,20 +919,20 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         cats = ["All", "Enabled", "Disabled"] + sorted(cats)
 
-        bpy.types.Scene.EnumProperty(items=[(cat, cat, cat + " addons") for cat in cats],
-            name="Category", attr="addon_filter", description="Filter add-ons by category")
-        bpy.types.Scene.StringProperty(name="Search", attr="addon_search",
-            description="Search within the selected filter")
+        # use window manager ID since it wont be saved with the file
+        # defining every draw is stupid *FIXME*
+        bpy.types.WindowManager.addon_filter = bpy.props.EnumProperty(items=[(cat, cat, cat + " addons") for cat in cats], name="Category", description="Filter add-ons by category")
+        bpy.types.WindowManager.addon_search = bpy.props.StringProperty(name="Search", description="Search within the selected filter")
 
         split = layout.split(percentage=0.2)
         col = split.column()
-        col.prop(context.scene, "addon_filter", text="Filter", expand=True)
-        col.prop(context.scene, "addon_search", text="", icon='VIEWZOOM')
+        col.prop(context.window_manager, "addon_filter", text="Filter", expand=True)
+        col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
 
         col = split.column()
 
-        filter = context.scene.addon_filter
-        search = context.scene.addon_search.lower()
+        filter = context.window_manager.addon_filter
+        search = context.window_manager.addon_search.lower()
 
         for mod, info in addons:
             module_name = mod.__name__
@@ -962,7 +944,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     (filter == info["category"]) or \
                     (filter == "Enabled" and is_enabled) or \
                     (filter == "Disabled" and not is_enabled):
-
 
                 if search and search not in info["name"].lower():
                     if info["author"]:
@@ -981,7 +962,8 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 rowsub = row.row()
                 rowsub.active = is_enabled
                 rowsub.label(text='%s: %s' % (info['category'], info["name"]))
-                if info["warning"]: rowsub.label(icon='ERROR')
+                if info["warning"]:
+                    rowsub.label(icon='ERROR')
 
                 if is_enabled:
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
@@ -1074,32 +1056,78 @@ class WM_OT_addon_enable(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to enable")
 
     def execute(self, context):
-        module_name = self.properties.module
+        module_name = self.module
 
         # note, this still gets added to _bpy_types.TypeMap
+
+        import sys
         import bpy_types as _bpy_types
+
+
         _bpy_types._register_immediate = False
 
-        try:
-            mod = __import__(module_name)
-            _bpy_types._register_module(module_name)
-            mod.register()
-        except:
+        def handle_error():
             import traceback
             traceback.print_exc()
+            _bpy_types._register_immediate = True
+
+
+        # reload if the mtime changes
+        mod = sys.modules.get(module_name)
+        if mod:
+            mtime_orig = getattr(mod, "__time__", 0)
+            mtime_new = os.path.getmtime(mod.__file__)
+            if mtime_orig != mtime_new:
+                print("module changed on disk:", mod.__file__, "reloading...")
+
+                try:
+                    reload(mod)
+                except:
+                    handle_error()
+                    del sys.modules[module_name]
+                    return {'CANCELLED'}
+
+        # Split registering up into 3 steps so we can undo if it fails par way through
+        # 1) try import
+        try:
+            mod = __import__(module_name)
+            mod.__time__ = os.path.getmtime(mod.__file__)
+        except:
+            handle_error()
             return {'CANCELLED'}
 
-        ext = context.user_preferences.addons.new()
-        ext.module = module_name
+        # 2) try register collected modules
+        try:
+            _bpy_types._register_module(module_name)
+        except:
+            handle_error()
+            del sys.modules[module_name]
+            return {'CANCELLED'}
+
+        # 3) try run the modules register function
+        try:
+            mod.register()
+        except:
+            handle_error()
+            _bpy_types._unregister_module(module_name)
+            del sys.modules[module_name]
+            return {'CANCELLED'}
+
+        # * OK loaded successfully! *
+        # just incase its enabled alredy
+        ext = context.user_preferences.addons.get(module_name)
+        if not ext:
+            ext = context.user_preferences.addons.new()
+            ext.module = module_name
 
         # check if add-on is written for current blender version, or raise a warning
         info = addon_info_get(mod)
 
         if info.get("blender", (0, 0, 0)) > bpy.app.version:
             self.report("WARNING','This script was written for a newer version of Blender and might not function (correctly).\nThe script is enabled though.")
-        
+
         _bpy_types._register_immediate = True
-        
+
         return {'FINISHED'}
 
 
@@ -1112,25 +1140,23 @@ class WM_OT_addon_disable(bpy.types.Operator):
 
     def execute(self, context):
         import bpy_types as _bpy_types
-        module_name = self.properties.module
+        module_name = self.module
 
         try:
             mod = __import__(module_name)
-            _bpy_types._unregister_module(module_name, free=False) # dont free because we may want to enable again.
+            _bpy_types._unregister_module(module_name, free=False)  # dont free because we may want to enable again.
             mod.unregister()
         except:
             import traceback
             traceback.print_exc()
 
+        # could be in more then once, unlikely but better do this just incase.
         addons = context.user_preferences.addons
-        ok = True
-        while ok: # incase its in more then once.
-            ok = False
-            for ext in addons:
-                if ext.module == module_name:
-                    addons.remove(ext)
-                    ok = True
-                    break
+
+        while module_name in addons:
+            addon = addons.get(module_name)
+            if addon:
+                addons.remove(addon)
 
         return {'FINISHED'}
 
@@ -1149,7 +1175,7 @@ class WM_OT_addon_install(bpy.types.Operator):
     def execute(self, context):
         import traceback
         import zipfile
-        pyfile = self.properties.filepath
+        pyfile = self.filepath
 
         path_addons = bpy.utils.script_paths("addons")[-1]
 
@@ -1203,7 +1229,7 @@ class WM_OT_addon_expand(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to expand")
 
     def execute(self, context):
-        module_name = self.properties.module
+        module_name = self.module
 
         # unlikely to fail, module should have already been imported
         try:
@@ -1221,6 +1247,7 @@ class WM_OT_addon_expand(bpy.types.Operator):
 
 def register():
     pass
+
 
 def unregister():
     pass

@@ -44,6 +44,8 @@ void multires_force_update(struct Object *ob);
 void multires_force_render_update(struct Object *ob);
 void multires_force_external_reload(struct Object *ob);
 
+void multiresModifier_set_levels_from_disps(struct MultiresModifierData *mmd, struct Object *ob);
+
 struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*,
 	int local_mmd, struct DerivedMesh*, struct Object *, int, int);
 

@@ -76,7 +76,7 @@ class MeshMirrorUV(bpy.types.Operator):
         return (ob and ob.type == 'MESH')
 
     def execute(self, context):
-        DIR = 1 # TODO, make an option
+        DIR = 1  # TODO, make an option
 
         from mathutils import Vector
 
@@ -110,7 +110,6 @@ class MeshMirrorUV(bpy.types.Operator):
                 j = mirror_b.get(nco)
                 if j is not None:
                     vmap[i] = j
-
 
         active_uv_layer = None
         for lay in mesh.uv_textures:
@@ -161,7 +160,6 @@ class MeshMirrorUV(bpy.types.Operator):
             # get the correct rotation
             v1 = faces[j].vertices[:]
             v2 = [vmap[k] for k in faces[i].vertices[:]]
-
 
             for k in range(len(uv1)):
                 k_map = v1.index(v2[k])

@@ -34,7 +34,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     '''Selection to an ASCII Autodesk FBX'''
     bl_idname = "export_scene.fbx"
     bl_label = "Export FBX"
-    
+
     filename_ext = ".fbx"
 
     # List of operator properties, the attributes will be assigned
@@ -66,22 +66,24 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     BATCH_OWN_DIR = BoolProperty(name="Own Dir", description="Create a dir for each exported file", default=True)
     BATCH_FILE_PREFIX = StringProperty(name="Prefix", description="Prefix each file with this name", maxlen=1024, default="")
 
-
     def execute(self, context):
         import math
         from mathutils import Matrix
-        if not self.properties.filepath:
+        if not self.filepath:
             raise Exception("filepath not set")
 
-        mtx4_x90n	= Matrix.Rotation(-math.pi/2.0, 4, 'X')
-        mtx4_y90n	= Matrix.Rotation(-math.pi/2.0, 4, 'Y')
-        mtx4_z90n	= Matrix.Rotation(-math.pi/2.0, 4, 'Z')
+        mtx4_x90n = Matrix.Rotation(-math.pi / 2.0, 4, 'X')
+        mtx4_y90n = Matrix.Rotation(-math.pi / 2.0, 4, 'Y')
+        mtx4_z90n = Matrix.Rotation(-math.pi / 2.0, 4, 'Z')
 
         GLOBAL_MATRIX = Matrix()
-        GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.properties.TX_SCALE
-        if self.properties.TX_XROT90: GLOBAL_MATRIX = mtx4_x90n * GLOBAL_MATRIX
-        if self.properties.TX_YROT90: GLOBAL_MATRIX = mtx4_y90n * GLOBAL_MATRIX
-        if self.properties.TX_ZROT90: GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
+        GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.TX_SCALE
+        if self.TX_XROT90:
+            GLOBAL_MATRIX = mtx4_x90n * GLOBAL_MATRIX
+        if self.TX_YROT90:
+            GLOBAL_MATRIX = mtx4_y90n * GLOBAL_MATRIX
+        if self.TX_ZROT90:
+            GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
 
         import io_scene_fbx.export_fbx
         return io_scene_fbx.export_fbx.save(self, context, GLOBAL_MATRIX=GLOBAL_MATRIX, **self.properties)

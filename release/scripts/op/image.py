@@ -39,7 +39,7 @@ class EditExternally(bpy.types.Operator):
         # use image editor in the preferences when available.
         if not image_editor:
             if system == 'Windows':
-                image_editor = ["start"] # not tested!
+                image_editor = ["start"]  # not tested!
             elif system == 'Darwin':
                 image_editor = ["open"]
             else:
@@ -58,7 +58,7 @@ class EditExternally(bpy.types.Operator):
     def execute(self, context):
         import os
         import subprocess
-        filepath = bpy.path.abspath(self.properties.filepath)
+        filepath = bpy.path.abspath(self.filepath)
 
         if not os.path.exists(filepath):
             self.report('ERROR', "Image path '%s' not found." % filepath)
@@ -77,7 +77,7 @@ class EditExternally(bpy.types.Operator):
             self.report({'ERROR'}, "Image not found on disk")
             return {'CANCELLED'}
 
-        self.properties.filepath = filepath
+        self.filepath = filepath
         self.execute(context)
 
         return {'FINISHED'}
@@ -116,7 +116,7 @@ class ProjectEdit(bpy.types.Operator):
         import os
         import subprocess
 
-        EXT = "png" # could be made an option but for now ok
+        EXT = "png"  # could be made an option but for now ok
 
         for image in bpy.data.images:
             image.tag = True
@@ -159,7 +159,7 @@ class ProjectEdit(bpy.types.Operator):
         image_new.name = os.path.basename(filepath_final)
         ProjectEdit._proj_hack[0] = image_new.name
 
-        image_new.filepath_raw = filepath_final # TODO, filepath raw is crummy
+        image_new.filepath_raw = filepath_final  # TODO, filepath raw is crummy
         image_new.file_format = 'PNG'
         image_new.save()
 
@@ -175,7 +175,7 @@ class ProjectApply(bpy.types.Operator):
     bl_options = {'REGISTER'}
 
     def execute(self, context):
-        image_name = ProjectEdit._proj_hack[0] # TODO, deal with this nicer
+        image_name = ProjectEdit._proj_hack[0]  # TODO, deal with this nicer
 
         try:
             image = bpy.data.images[image_name]
@@ -191,6 +191,7 @@ class ProjectApply(bpy.types.Operator):
 
 def register():
     pass
+
 
 def unregister():
     pass
