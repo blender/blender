@@ -1,0 +1,515 @@
+---------------------------------------------------
+Blender interface.c API toolkit notes
+(july 2003, Ton Roosendaal)
+---------------------------------------------------
+
+Contents
+
+1 General notes
+1.1 C and H files
+
+2. Windows & Blocks 
+2.1 Memory allocation
+2.2 And how it works internally
+
+3. API for uiBlock
+3.1 uiBlock Controlling functions
+3.2 Internal function to know
+
+4. API for uiButton 
+4.1 UiDefBut
+	1. BUT
+	2. TOG or TOGN or TOGR
+	   TOG|BIT|<nr>
+	3. TOG3|BIT|<nr>
+	4. ROW
+	5. SLI or NUMSLI or HSVSLI
+	6. NUM
+	7. TEX
+	8. LABEL
+	9  SEPR
+	10. MENU
+	11.	COL
+4.2 Icon buttons
+	12. ICONROW
+	13. ICONTEXTROW
+4.3 pulldown menus / block buttons
+	14. BLOCK
+4.4 specials
+	15. KEYEVT
+	16. LINK and INLINK
+	17. IDPOIN
+4.5 uiButton control fuctions
+
+
+----------------1. General notes
+
+- The API is built with Blender in mind, with some buttons acting on lists of Blender data.
+  It was not meant to be available as a separate SDK, nor to be used for other applications.
+  
+- It works with only OpenGL calls, for the full 100%. This means that it has some quirks
+  built-in to work with all OS's and OpenGL versions. Especially frontbuffer drawing is 
+  a continuous point of attention. Buttons can be drawn with any window matrix. However,
+  errors can still occor when buttons are created in windows with non-standard glViewports.
+  
+- The code was written to replace the old 1.8 button system, but under high pressure. Quite
+  some button methods from the old system were copied for that reason.
+  
+- I tried to design a unified GUI system, which equally works for pulldown menus, pop up menus,
+  and normal button layouts. Although it gives nice features and freedom in design, the code 
+  looks quite hard to understand for that reason. Not all 'normal' pulldown menu features 
+  could be hacked in easily, they just differ too much from other UI elements. Could be 
+  looked at once...
+  
+- During the past period of NaN (beginning of 2002) someone tried to make a more 'high' level
+  API for it, with less low level defines and structure info needed in calling code. I am not 
+  really sure if this was done well... or even finished. In the bottom of interface.c you can
+  see the 'new' API which is now used in Blender code. It used to be so much more simple!
+  Nevertheless, I will use that convention in this doc.
+
+- Unfinished stuff: the code was scheduled to be expanded with 'floating blocks' which can
+  serve as permanent little button-fields in Blender windows. Think for example of having
+  an (optional) extra field in the 3d window displaying object loc/rot/size.
+  After that, the existing button windows can be reorganized in such blocks as well, allowing
+  a user to configure the genereal buttons layout (make vertical for example).
+  
+
+--------------1.1 C and H files
+
+blender/source/blender/src/interface.c	/* almost all code */
+blender/source/blender/include/interface.h 	/* internals for previous code */
+blender/source/blender/include/BIF_interface.h 	/* externals for previous code */
+
+(the previous 2 include files have not been separated fully yet)
+
+Color and icons stuff has been put in: (unfinished code, under development)
+blender/source/blender/src/resources.c 
+blender/source/blender/include/BIF_resources.h
+
+Related code:
+blender/source/blender/src/toolbox.c (extra GUI elements built on top of this API)
+
+
+--------------2. Windows & Blocks 
+
+All GUI elements are collected in uiBlocks, which in turn are linked together in a list that's 
+part of a Blender Area-window.
+
+	uiBlock *block= uiNewBlock(&curarea->uiblocks, "stuff", UI_EMBOSSX, UI_HELV, curarea->win);
+
+The next code example makes a new block, and puts it in the list of blocks of the current active 
+Area:
+
+	uiDoBlocks(&curarea->uiblocks, event);
+
+This code is usually available in each area-window event queue handler. You give uiDoBlocks
+an event code, and the uiDoBlocks handles whatever is to be handled. Blocks can be 
+standard buttons or pull down menus. Can return immediately, or jump to an internal handling 
+loop.
+
+2.1 Memory allocation
+
+Important to know is that for this toolkit there's no difference in "creating blocks" or 
+"drawing blocks". In fact, for each window redraw all blocks are created again. Constructing 
+button interfaces in Blender always happens in the main drawing function itself.
+
+Memory allocation is handled as follows:
+- if in this window a uiBlock with the same name existed, it is freed
+- when you close a window (or blender) the uiBlocks get freed.
+- when you duplicate (split) a window, the uiBlocks get copied
+
+2.2 And how it works internally
+
+With a call to uiDoblocks, all blocks in the current active window are evaluated.
+It walks through the lists in a rather complex manner:
+
+- while(looping)
+
+	/* the normal buttons handling */
+	- for each block
+		- call uiDoBlock (handles buttons for single block)
+	- (end for)
+	
+	/* at this moment, a new block can be created, for a menu */
+	/* so we create a 2nd loop for it */
+	- while first block is a menu
+		- if block is a menu and not initialized: 
+			- initalize 'saveunder'
+			- draw it 
+		- get event from queue
+		- call uiDoBlock (handles buttons for single block)
+		/* here, a new block again can be created, for a sub menu */
+		- if return "end" from uiDoBlock
+			restore 'saveunder's
+			free all menu blocks
+			exit from loop
+		- do tooltip if nothing has happened
+	- (end while)
+	
+	- if there was menu, it does this loop once more
+	  (when you click outside a menu, at another button)
+	
+- (end while)
+
+- do tooltip if nothing has happened
+
+
+
+-------------3. API for uiBlock 
+
+Create a new buttons block, and link it to the window:
+
+uiBlock *uiNewBlock(ListBase *lb, char *name, short dt, short font, short win)
+	ListBase *lb	pointer to list basis, where the block will be appended to (blenlib)
+	char *name		unique name to identify the block. When the name exists in the list,
+					the old uiBlock gets freed.
+	short dt		drawtype. See below
+	short font		font id number
+	short win		blender area-window id
+
+drawtype:
+	UI_EMBOSSX		0	/* Rounded embossed button (standard in Blender) */
+	UI_EMBOSSW		1	/* Simpler embossed button */
+	UI_EMBOSSN		2	/* Button with no border */
+	UI_EMBOSSF		3	/* Square embossed button (file select) */
+	UI_EMBOSSM		4	/* Colored, for pulldown menus */
+	UI_EMBOSSP		5	/* Simple borderless coloured button (like blender sensors) */
+
+font:
+	UI_HELV			0	/* normal font */
+	UI_HELVB		1	/* bold font */
+With the new truetype option in Blender, this is used for all font families
+
+When a uiBlock is created, each uiButton that is defined gets the uiBlock properties.
+Changing Block properties inbetween will affact uiButtons defined thereafter.
+
+
+
+----------3.1 uiBlock Controlling functions:
+
+void uiDrawBlock(block)	
+	draws the block
+
+void uiBlockSetCol(uiBlock *block, int col)	
+
+col:
+	BUTGREY,
+	BUTGREEN,
+	BUTBLUE,
+	BUTSALMON,
+	MIDGREY,
+	BUTPURPLE,
+
+void uiBlockSetEmboss(uiBlock *block, int emboss)
+	changes drawtype
+
+void uiBlockSetDirection(uiBlock *block, int direction)	
+	for pop-up and pulldown menus:
+
+direction:
+	UI_TOP	
+	UI_DOWN	
+	UI_LEFT	
+	UI_RIGHT
+
+void uiBlockSetXOfs(uiBlock *block, int xofs)
+	for menus, offset from parent
+
+void uiBlockSetButmFunc(uiBlock *block, void (*menufunc)(void *arg, int event), void *arg)
+	sets function to be handled when a menu-block is marked "OK"
+	
+void uiAutoBlock(uiBlock *block, float minx, float miny, float sizex, float sizey, UI_BLOCK_ROWS)
+
+	Sets the buttons in this block to automatically align, and fit within boundaries. 
+	Internally it allows multiple collums or rows as well. Only 'row order' has been implemented.
+	The uiDefBut definitions don't need coordinates as input here, but instead:
+	- first value (x1) to indicate row number
+	- width and height values (if filled in) will be used to define a relative width/height.
+	A call to uiDrawBlock will invoke the calculus to fit in all buttons.
+
+
+
+---------- 3.2 Internal function to know:
+
+These flags used to be accessible from outside of interface.c. Currently it is only
+used elsewhere by toolbox.c, so it can be considered 'internal' somewhat.
+
+void uiBlockSetFlag(uiBlock *block, int flag)	/* block types, can be 'OR'ed */
+	UI_BLOCK_LOOP		1		a sublooping block, drawn in frontbuffer, i.e. menus
+	UI_BLOCK_REDRAW		2		block needs a redraw
+	UI_BLOCK_RET_1		4		block is closed when an event happens with value '1' (press key, not for mouse)
+	UI_BLOCK_BUSY		8		internal
+	UI_BLOCK_NUMSELECT	16		keys 1-2-...-9-0 can be used to select items
+	UI_BLOCK_ENTER_OK	32		enter key closes block with "OK"
+	
+(these values are being set within the interface.c and toolbox.c code.)
+
+
+-------------4. API for uiButton 
+
+In Blender a button can do four things:
+
+- directly visualize data, and write to it.
+- put event codes (shorts) back in the queue, to be handled
+- call a user-defined function pointer (while being pressed, etc)
+- create and call another block (i.e. menu)
+
+Internally, each button or menu item is a 'uiButton', with a generic API and handling:
+ui_def_but(block, type, retval, str, x1, y1, x2, y2, poin, min, max, a1, a2, tip);
+
+Beacause a lot of obscure generic (re-use) happens here, translation calls have been made 
+for each most button types individually.
+
+
+-----------4.1 UiDefBut
+
+uiBut *UiDefBut[CSIF](	uiBlock *block, int type, int retval, char *str, 
+				short x1, short y1, short x2, short y2, xxxx *poin, 
+				float min, float max, float a1, float a2,  char *tip)
+
+UiDefButC	operatates on char
+UiDefButS	operatates on short
+UiDefButI	operatates on int
+UiDefButF	operatates on float
+
+*block:		current uiBlock pointer
+type:		see below
+retval:		return value, which is put back in queue
+*str:		button name
+x1, y1:		coordinates of left-lower corner
+x2, y2:		width, height
+*poin:		pointer to char, short, int, float
+min, max	used for slider buttons
+a1, a2		extra info for some buttons
+*tip:		tooltip string
+
+type:
+
+1. BUT
+	Activation button. (like "Render")
+	Passing on a pointer is not needed
+	
+2. TOG or TOGN or TOGR
+	Toggle button (like "Lock")
+	The pointer value is set either at 0 or 1
+	If pressed, it calls the optional function with arguments provided.
+	Type TOGN: works negative, when pressed it sets at 0
+	Type TOGR: is part of a row, redraws automatically all buttons with same *poin
+
+	"|BIT|<nr>"
+	When added to type, it works on a single bit <nr> (lowest order bit: nr = '0')
+
+3. TOG3|BIT|<nr>
+	A toggle with 3 values!
+	Can be only used for short *poin.
+	In the third toggle setting, the bit <nr> of *( poin+1) is set.
+	
+4. ROW
+	Button that's part of a row. 
+	in "min" you set a row-id number, in "max" the value you want *poin to be
+	assigned when you press the button. Always pass on these values as floats.
+	When this button is pressed, it sets the "max" value to *poin, and redraws
+	all buttons with the same row-id number.
+
+5. SLI or NUMSLI or HSVSLI
+	Slider, number-slider or hsv-slider button.
+	"min" and "max" are to clamp the value to.
+	If you want a button type "Col" to be updated, make 'a1' equal to 'retval'
+	from the COL button.
+	
+6. NUM
+	Number button
+	Set the clamping values 'min' and 'max' always as float.
+	For UiDefButF, set a 'step' in 'a1', in 1/100's. The step value is the increment or
+	decrement when you click once on the right or left side of a button.
+	The optional button function is additionally called for each change of the *poin value.
+	
+7. TEX
+	Text string button.
+	Pointertype is standard a char. Value 'max' is length of string (pass as float).
+	When button is left with ESC, it doesn't put the 'retval' at the queue.
+	
+8. LABEL
+	Label button.
+	Only displays text. 
+	If 'min' is set at 1.0, the text is printed in white.
+	
+9  SEPR
+	A separator line, typically used within pulldown menus.
+	
+10. MENU
+	Menu button.
+	The syntax of the string in *name defines the menu items:
+		- %t means the previous text becomes the title
+		- item separator is '|'
+		- return values are indicated with %x[nr] (i.e: %x12). 
+			without returnvalues, the first item gets value 0 (incl. title!)
+	Example: "Do something %t| turn left %2| turn right %1| nothing %0"
+	
+11.	COL
+	A special button that only visualizes a RGB value
+	In 'retval' you can put a code, which is used to identify for sliders if it needs
+	redraws while using the sliders. Check button '5'.
+	As *poin you input the pointer to the 'r' value, 'g' and 'b' are supposed to be
+	next to that. 
+
+
+------------4.2 Icon buttons
+
+Instead of a 'name', all buttons as described for uiDefBut also can have an icon:
+
+uiBut *uiDefIconBut(uiBlock *block, int type, int retval, int icon, 
+			short x1, short y1, short x2, short y2, void *poin, 
+			float min, float max, float a1, float a2,  char *tip)
+
+	Same syntax and types available as previous uiDefBut, but now with an icon code 
+	instead of a name. THe icons are numbered in resources.c
+
+uiBut *uiDefIconTextButF(uiBlock *block, int type, int retval, int icon, char *str, 
+			short x1, short y1, short x2, short y2, float *poin, 
+			float min, float max, float a1, float a2,  char *tip)
+
+	Same again, but now with an icon and string as button name.
+
+Two special icon buttons are available in Blender:
+
+12. ICONROW
+	(uiDefIconBut)
+	This button pops up a vertical menu with a row of icons to choose from.
+	'max' = amount of icons. The icons are supposed to be ordered in a sequence
+	It writes in *poin which item in the menu was choosen (starting with 0).
+
+13. ICONTEXTROW
+	(uiDefIconTextBut)
+	Same as previous, but with the texts next to it.
+
+
+
+-----------4.3 pulldown menus / block buttons
+
+14. BLOCK
+void uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str, 
+	short x1, short y1, short x2, short y2, char *tip)
+
+	This button creates a new block when pressed. The function argument 'func' is called
+	to take care of this. An example func:
+	
+	static uiBlock *info_file_importmenu(void *arg_unused)
+	{
+		uiBlock *block;
+		short yco= 0, xco = 20;
+	
+		block= uiNewBlock(&curarea->uiblocks, "importmenu", UI_EMBOSSW, UI_HELV, G.curscreen->mainwin);
+		uiBlockSetXOfs(block, -40);  // offset to parent button
+	
+		/* flags are defines */
+		uiDefBut(block, LABEL, 0, "VRML 2.0 options", xco, yco, 125, 19, NULL, 0.0, 0.0, 0, 0, "");
+		uiDefButS(block, TOG|BIT|0, 0, "SepLayers", xco, yco-=20, 75, 19, &U.vrmlflag, 0.0, 0.0, 0, 0, "");
+		uiDefButS(block, TOG|BIT|1, 0, "Scale 1/100", xco, yco-=20, 75, 19, &U.vrmlflag, 0.0, 0.0, 0, 0, "");
+		uiDefButS(block, TOG|BIT|2, 0, "Two Sided", xco, yco-=20, 75, 19, &U.vrmlflag, 0.0, 0.0, 0, 0, "");
+	
+		uiBlockSetDirection(block, UI_RIGHT);
+		uiTextBoundsBlock(block, 50);	// checks for fontsize
+
+		return block;
+	}
+
+	The uiDef coordinates here are only relative. When this function is called, the interface 
+	code automatically makes sure the buttons fit in the menu nicely. 
+	
+	Inside a menu uiBlock, other uiBlocks can be invoked to make a hierarchical menu.
+
+
+
+-----------4.4 specials
+
+15. KEYEVT
+
+void uiDefKeyevtButS(uiBlock *block, int retval, char *str, 
+		short x1, short y1, short x2, short y2, short *spoin, char *tip)
+
+	A special button, which stores a keyvalue in *spoin. When the button is pressed,
+	it displays the text 'Press any Key'. A keypress then stores the value.
+	
+16. LINK and INLINK
+
+	These button present a method of linking data in Blender, by drawing a line from one
+	icon to another. It consists of two button types:
+	
+	LINK, the 'linking from' part, can be:
+	- a single pointer to data (only one line allowed)
+	- an array of pointers to data. The LINK buttons system  keeps track of allocating 
+	  space for the array, and set the correct pointers in it.
+	
+	INLINK, the 'linking to' part activates creating a link, when a user releases the mouse 
+	cursor over it, while dragging a line from the LINK button.
+	
+	These buttons are defined as follows:
+	
+		
+uiBut but= uiDefIconBut(block, LINK, 0, ICON_LINK,	x1, y1, w, h, NULL, 0, 0, 0, 0, "");
+	/* create the LINK icon */
+
+uiSetButLink(but, void **pt, void ***ppt, short *totlink, short fromcode, short tocode);
+	**pt: pointer to pointer (only one link allowed)
+	***ppt: pointer to pointerpointer (an array of pointers)
+	(Either one of these values should be NULL)
+	
+	fromcode: (currently unused)
+	tocode: a short indicating which blocks it can link to. 
+	
+	
+uiDefIconBut(block, INLINK, 0, ICON_INLINK, x1, y1, w, h, void *poin, short fromcode, 0, 0, 0, "");
+	poin: the pointer of the datablock you want to create links to
+	fromcode: a short identifying which LINK buttons can connect to it 			  
+	
+
+
+17. IDPOIN
+void uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, int retval, char *str, 
+			short x1, short y1, short x2, short y2, void *idpp, char *tip)
+
+	The ID struct is a generic part in structs like Object, Material, Mesh, etc.
+	Most linking options in Blender happens using ID's. (Mesh -> Material).
+	
+	This special button in Blender visualizes an ID pointer with its name. Typing in
+	a new name, changes the pointer. For most ID types in Blender functions have been
+	written already, needed by this button, to check validity of names, and assign the pointer.
+	
+	(BTW: the 'void *idpp' has to be a pointer to the ID pointer!)
+
+	Example function that can be put in 'func':
+	
+	void test_scriptpoin_but(char *name, ID **idpp)
+	{
+		ID *id;
+		
+		id= G.main->text.first;
+		while(id) {
+			if( strcmp(name, id->name+2)==0 ) {
+				*idpp= id;
+				return;
+			}
+			id= id->next;
+		}
+		*idpp= 0;
+	}
+
+
+------------- 4.5 uiButton control fuctions
+
+
+void uiButSetFunc(uiBut *but, void (*func)(void *arg1, void *arg2), void *arg1, void *arg2)
+	When the button is pressed and released, it calls this function, with the 2 arguments.
+
+void uiButSetFlag(uiBut *but, int flag)
+	set a flag for further control of button behaviour:
+	flag:
+	UI_TEXT_LEFT
+	
+int uiButGetRetVal(uiBut *but)
+	gives return value
+
+
+</body>
+<br><br><br>

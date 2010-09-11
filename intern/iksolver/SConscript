@@ -1,0 +1,9 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.cpp')
+
+incs = 'intern ../moto/include ../memutil'
+
+env.BlenderLib ('bf_intern_ik', sources, Split(incs), [], libtype=['intern','player'], priority=[100,90] )
+

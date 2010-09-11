@@ -1,0 +1,41 @@
+#!/usr/bin/python
+Import ('env')
+import sys
+
+SConscript(['avi/SConscript',
+            'blenkernel/SConscript',
+            'blenlib/SConscript',
+            'blenloader/SConscript',
+            'blenpluginapi/SConscript',
+            'gpu/SConscript',
+            'editors/SConscript',
+            'imbuf/SConscript',
+            'makesdna/SConscript',
+            'makesrna/SConscript',
+            'readblenfile/SConscript',
+            'render/SConscript',
+            'nodes/SConscript',
+            'modifiers/SConscript',
+            'ikplugin/SConscript',
+            'windowmanager/SConscript',
+            'blenfont/SConscript'])
+
+
+
+if env['WITH_BF_PYTHON']:
+    SConscript(['python/SConscript'])
+
+if env['WITH_BF_DDS']:
+    SConscript (['imbuf/intern/dds/SConscript'])
+
+if env['WITH_BF_CINEON']:
+    SConscript (['imbuf/intern/cineon/SConscript'])
+
+if env['WITH_BF_OPENEXR']:
+    SConscript (['imbuf/intern/openexr/SConscript'])
+
+if env['WITH_BF_QUICKTIME']:
+    SConscript (['quicktime/SConscript'])
+
+if env['WITH_BF_COLLADA']:
+    SConscript (['collada/SConscript'])

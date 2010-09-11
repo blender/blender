@@ -1,0 +1,11 @@
+#!/usr/bin/python
+Import ('env')
+
+objs = []
+
+o = SConscript('intern/SConscript')
+objs += o
+
+incs = '#/intern/guardedalloc .'
+
+env.BlenderLib ( 'bf_dna', objs, Split(incs), [], libtype=['core','player'], priority = [215,200] )

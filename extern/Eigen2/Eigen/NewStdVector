@@ -1,0 +1,168 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra.
+//
+// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009 Hauke Heibel <hauke.heibel@googlemail.com>
+//
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
+
+#ifndef EIGEN_STDVECTOR_MODULE_H
+#define EIGEN_STDVECTOR_MODULE_H
+
+#include "Core"
+#include <vector>
+
+namespace Eigen {
+
+// This one is needed to prevent reimplementing the whole std::vector.
+template <class T>
+class aligned_allocator_indirection : public aligned_allocator<T>
+{
+public:
+  typedef size_t    size_type;
+  typedef ptrdiff_t difference_type;
+  typedef T*        pointer;
+  typedef const T*  const_pointer;
+  typedef T&        reference;
+  typedef const T&  const_reference;
+  typedef T         value_type;
+
+  template<class U>
+  struct rebind
+  {
+    typedef aligned_allocator_indirection<U> other;
+  };
+
+  aligned_allocator_indirection() throw() {}
+  aligned_allocator_indirection(const aligned_allocator_indirection& ) throw() : aligned_allocator<T>() {}
+  aligned_allocator_indirection(const aligned_allocator<T>& ) throw() {}
+  template<class U>
+  aligned_allocator_indirection(const aligned_allocator_indirection<U>& ) throw() {}
+  template<class U>
+  aligned_allocator_indirection(const aligned_allocator<U>& ) throw() {}
+  ~aligned_allocator_indirection() throw() {}
+};
+
+#ifdef _MSC_VER
+
+  // sometimes, MSVC detects, at compile time, that the argument x
+  // in std::vector::resize(size_t s,T x) won't be aligned and generate an error
+  // even if this function is never called. Whence this little wrapper.
+  #define EIGEN_WORKAROUND_MSVC_STD_VECTOR(T) Eigen::ei_workaround_msvc_std_vector<T>
+  template<typename T> struct ei_workaround_msvc_std_vector : public T
+  {
+    inline ei_workaround_msvc_std_vector() : T() {}
+    inline ei_workaround_msvc_std_vector(const T& other) : T(other) {}
+    inline operator T& () { return *static_cast<T*>(this); }
+    inline operator const T& () const { return *static_cast<const T*>(this); }
+    template<typename OtherT>
+    inline T& operator=(const OtherT& other)
+    { T::operator=(other); return *this; }
+    inline ei_workaround_msvc_std_vector& operator=(const ei_workaround_msvc_std_vector& other)
+    { T::operator=(other); return *this; }
+  };
+
+#else
+
+  #define EIGEN_WORKAROUND_MSVC_STD_VECTOR(T) T
+
+#endif
+
+}
+
+namespace std {
+
+#define EIGEN_STD_VECTOR_SPECIALIZATION_BODY \
+  public:  \
+    typedef T value_type; \
+    typedef typename vector_base::allocator_type allocator_type; \
+    typedef typename vector_base::size_type size_type;  \
+    typedef typename vector_base::iterator iterator;  \
+    typedef typename vector_base::const_iterator const_iterator;  \
+    explicit vector(const allocator_type& a = allocator_type()) : vector_base(a) {}  \
+    template<typename InputIterator> \
+    vector(InputIterator first, InputIterator last, const allocator_type& a = allocator_type()) \
+    : vector_base(first, last, a) {} \
+    vector(const vector& c) : vector_base(c) {}  \
+    explicit vector(size_type num, const value_type& val = value_type()) : vector_base(num, val) {} \
+    vector(iterator start, iterator end) : vector_base(start, end) {}  \
+    vector& operator=(const vector& x) {  \
+      vector_base::operator=(x);  \
+      return *this;  \
+    }
+
+template<typename T>
+class vector<T,Eigen::aligned_allocator<T> >
+  : public vector<EIGEN_WORKAROUND_MSVC_STD_VECTOR(T),
+                  Eigen::aligned_allocator_indirection<EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> >
+{
+  typedef vector<EIGEN_WORKAROUND_MSVC_STD_VECTOR(T),
+                 Eigen::aligned_allocator_indirection<EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> > vector_base;
+  EIGEN_STD_VECTOR_SPECIALIZATION_BODY
+
+  void resize(size_type new_size)
+  { resize(new_size, T()); }
+
+#if defined(_VECTOR_)
+  // workaround MSVC std::vector implementation
+  void resize(size_type new_size, const value_type& x)
+  {
+    if (vector_base::size() < new_size)
+      vector_base::_Insert_n(vector_base::end(), new_size - vector_base::size(), x);
+    else if (new_size < vector_base::size())
+      vector_base::erase(vector_base::begin() + new_size, vector_base::end());
+  }
+  void push_back(const value_type& x)
+  { vector_base::push_back(x); } 
+  using vector_base::insert;  
+  iterator insert(const_iterator position, const value_type& x)
+  { return vector_base::insert(position,x); }
+  void insert(const_iterator position, size_type new_size, const value_type& x)
+  { vector_base::insert(position, new_size, x); }
+#elif defined(_GLIBCXX_VECTOR) && EIGEN_GNUC_AT_LEAST(4,2)
+  // workaround GCC std::vector implementation
+  void resize(size_type new_size, const value_type& x)
+  {
+    if (new_size < vector_base::size())
+      vector_base::_M_erase_at_end(this->_M_impl._M_start + new_size);
+    else
+      vector_base::insert(vector_base::end(), new_size - vector_base::size(), x);
+  }
+#elif defined(_GLIBCXX_VECTOR) && (!EIGEN_GNUC_AT_LEAST(4,1))
+  // Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&),
+  // no no need to workaround !
+  using vector_base::resize;
+#else
+  // either GCC 4.1 or non-GCC
+  // default implementation which should always work.
+  void resize(size_type new_size, const value_type& x)
+  {
+    if (new_size < vector_base::size())
+      vector_base::erase(vector_base::begin() + new_size, vector_base::end());
+    else if (new_size > vector_base::size())
+      vector_base::insert(vector_base::end(), new_size - vector_base::size(), x);
+  }
+#endif
+
+};
+
+}
+
+#endif // EIGEN_STDVECTOR_MODULE_H

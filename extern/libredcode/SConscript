@@ -1,0 +1,16 @@
+#!/usr/bin/python
+
+import sys
+import os
+import shutil
+
+Import('env')
+
+sources = env.Glob('*.c')
+incs = '. ../libopenjpeg'
+
+env.BlenderLib ( libname='extern_redcode', 
+                 sources=sources, includes=Split(incs),
+                 defines=[],
+                 libtype=['core','intern'],
+                 priority=[5, 5], compileflags = [])

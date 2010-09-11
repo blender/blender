@@ -1,0 +1,743 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "BKE_blenkernel"=.\blenkernel\BKE_blenkernel.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BLI_blenlib"=.\blenlib\BLI_blenlib.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BLO_loader"=.\loader\BLO_loader.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BLO_readblenfile"=.\BLO_readblenfile\BLO_readblenfile.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BL_avi"=.\avi\BL_avi.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BL_imbuf"=.\imbuf\BL_imbuf.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BL_src"=.\src\BL_src.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BL_src_cre"=.\src\BL_src_cre.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BPY_python"=.\BPY_python\BPY_python.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BRA_radiosity"=.\radiosity\BRA_radiosity.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BRE_render"=.\render\BRE_render.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name BRE_yafray
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "BRE_renderconverter"=.\renderconverter\BRE_renderconverter.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BRE_yafray"=.\yafray\BRE_yafray.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "Bullet"=..\..\extern\bullet\Bullet\BLI_Bullet.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BulletDynamics"=..\..\extern\bullet\BulletDynamics\BLI_BulletDynamics.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "DNA_makesdna"=.\makesdna\DNA_makesdna.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "EXP_expressions"=..\gameengine\expression\EXP_expressions.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "FTF_ftfont"=.\ftfont\FTF_ftfont.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "GP_axctl"=..\gameengine\gameplayer\axctl\GP_axctl.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name KX_converter
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name EXP_expressions
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SCA_GameLogic
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name KX_ketsji
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SG_SceneGraph
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name RAS_openglrasterizer
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name RAS_rasterizer
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SYS_system
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name GP_common
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name KX_network
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name NG_loopbacknetwork
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name NG_network
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name DNA_makesdna
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name gen_messaging
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_verify
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_decrypt
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_loader
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_readblenfile
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BKE_blenkernel
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BL_avi
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BL_imbuf
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLI_blenlib
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SND_OpenAL
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Physics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Ode
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Dummy
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "GP_common"=..\gameengine\gameplayer\common\GP_common.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "GP_ghost"=..\gameengine\gameplayer\ghost\GP_ghost.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name BKE_blenkernel
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BL_avi
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BL_imbuf
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLI_blenlib
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_loader
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name DNA_makesdna
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name EXP_expressions
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name KX_converter
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name KX_ketsji
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name KX_network
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name NG_loopbacknetwork
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name NG_network
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name RAS_openglrasterizer
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name RAS_rasterizer
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SCA_GameLogic
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SG_SceneGraph
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SYS_system
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name gen_messaging
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_readblenfile
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_decrypt
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_verify
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SND_OpenAL
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name GP_common
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Physics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Dummy
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Sumo
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "KX_blenderhook"=..\gameengine\blenderhook\KX_blenderhook.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "KX_converter"=..\gameengine\converter\KX_converter.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "KX_ketsji"=..\gameengine\ketsji\KX_ketsji.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "KX_network"=..\gameengine\ketsji\network\KX_network.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "NG_loopbacknetwork"=..\gameengine\network\loopbacknetwork\NG_loopbacknetwork.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "NG_network"=..\gameengine\network\network\NG_network.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "PHY_Dummy"=..\GAMEENGINE\PHYSICS\PHY_PHYSICS\PHY_Dummy\PHY_Dummy.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "PHY_Ode"=..\gameengine\physics\PHY_Physics\PHY_Ode\PHY_Ode.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "PHY_Physics"=..\gameengine\physics\PHY_Physics\PHY_Physics.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "PHY_Sumo"=..\gameengine\physics\PHY_Physics\PHY_Sumo\PHY_Sumo.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "RAS_openglrasterizer"=..\gameengine\rasterizer\openglrasterizer\RAS_openglrasterizer.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "RAS_rasterizer"=..\gameengine\rasterizer\RAS_rasterizer.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SCA_GameLogic"=..\gameengine\gamelogic\SCA_GameLogic.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SG_SceneGraph"=..\gameengine\scenegraph\SG_SceneGraph.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SYS_system"=..\kernel\system\SYS_system.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "blender"=.\blender.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name BKE_blenkernel
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BL_avi
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BL_imbuf
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLI_blenlib
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_decrypt
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_encrypt
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_loader
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_sign
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_verify
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BRA_radiosity
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BRE_render
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name DNA_makesdna
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name EXP_expressions
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name gen_messaging
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name NG_loopbacknetwork
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name NG_network
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name RAS_openglrasterizer
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name RAS_rasterizer
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SCA_GameLogic
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SG_SceneGraph
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SYS_system
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BL_src_pub
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name blenpluginapi
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BL_src
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SND_OpenAL
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Dummy
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Physics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name FTF_ftfont
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BPY_python
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Sumo
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_readblenfile
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name Bullet
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BulletDynamics
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "blenpluginapi"=.\blenpluginapi\blenpluginapi\blenpluginapi.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "gen_messaging"=..\KERNEL\gen_messaging\gen_messaging.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+

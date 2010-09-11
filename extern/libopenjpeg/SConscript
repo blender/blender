@@ -1,0 +1,28 @@
+#!/usr/bin/python
+
+import sys
+
+Import('env')
+
+sources = env.Glob('*.c')
+
+incs = '.'
+flags = []
+defs = []
+
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+    flags = []
+    defs.append('OPJ_STATIC')
+else:
+    flags = ['-Wall', '-O3', '-ffast-math', '-std=c99']
+
+oj_env = env.Clone()
+if not env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+    oj_env.Replace(CCFLAGS = '')
+    oj_env.Replace(BF_DEBUG_FLAGS = '')
+
+oj_env.BlenderLib ( libname='extern_openjpeg', 
+                    sources=sources, includes=Split(incs),
+                    defines=defs,
+                    libtype=['extern','player'],
+                    priority=[10,185], compileflags = flags)

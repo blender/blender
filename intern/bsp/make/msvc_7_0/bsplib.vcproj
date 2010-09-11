@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.10"
+	Name="bsplib"
+	SccProjectName=""
+	SccLocalPath="">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\bsp\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\bsp\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\container\include"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\bsp\debug\bsplib.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\bsp\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\bsp\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\bsp\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\debug\libbsp.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying BSP files library (debug target) to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\bsp\include MKDIR ..\..\..\..\..\build\msvc_7\intern\bsp\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\bsp\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\bsp"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\bsp"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\container\include"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\bsp\bsplib.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\bsp\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\bsp\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\bsp\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\libbsp.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying BSP files library to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\bsp\include MKDIR ..\..\..\..\..\build\msvc_7\intern\bsp\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\bsp\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\container\include"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\bsplib.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\libbsp.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying BSP files library to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\bsp\include MKDIR ..\..\..\..\..\build\msvc_7\intern\bsp\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\bsp\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\container\include"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\debug\bsplib.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\debug\libbsp.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying BSP files library (debug target) to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\bsp\include MKDIR ..\..\..\..\..\build\msvc_7\intern\bsp\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\bsp\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="intern"
+			Filter="">
+			<File
+				RelativePath="..\..\intern\BSP_CSGException.h">
+			</File>
+			<File
+				RelativePath="..\..\intern\BSP_CSGMesh.cpp">
+			</File>
+			<File
+				RelativePath="..\..\intern\BSP_CSGMesh.h">
+			</File>
+			<File
+				RelativePath="..\..\intern\BSP_CSGMesh_CFIterator.h">
+			</File>
+			<File
+				RelativePath="..\..\intern\BSP_MeshPrimitives.cpp">
+			</File>
+			<File
+				RelativePath="..\..\intern\BSP_MeshPrimitives.h">
+			</File>
+			<File
+				RelativePath="..\..\intern\CSG_BooleanOps.cpp">
+			</File>
+		</Filter>
+		<Filter
+			Name="extern"
+			Filter="">
+			<File
+				RelativePath="..\..\extern\CSG_BooleanOps.h">
+			</File>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

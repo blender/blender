@@ -1,0 +1,39 @@
+#!/usr/bin/python
+Import ('env')
+
+
+if env['USE_QTKIT']:
+    source_files = ['apple/qtkit_import.m',
+                'apple/qtkit_export.m']
+else:
+    source_files = ['apple/quicktime_import.c',
+                'apple/quicktime_export.c']
+
+
+incs  = ['.',
+         '../quicktime',
+         '../makesdna',
+         '../makesrna',
+         '../windowmanager',
+         '#/intern/guardedalloc',
+         '../blenlib',
+         '../blenkernel',
+         '../avi',
+         '../imbuf',
+         '../imbuf/intern',
+         '../blenloader',
+         '../render/extern/include',
+         '../editors/include',
+         '#/intern/audaspace/intern']
+
+incs.append(env['BF_QUICKTIME_INC'])
+
+types = ['core','player']
+priorities = [200,235]
+
+defs=['WITH_QUICKTIME']
+
+if env['WITH_GHOST_COCOA']:
+    defs.append('GHOST_COCOA')
+
+env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=defs, libtype=types, priority=priorities)
