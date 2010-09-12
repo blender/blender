@@ -344,11 +344,9 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_alpha = True
-            blender_material.z_transparency = True
+            blender_material.use_transparency = True
+            blender_material.transparency_method = 'Z_TRANSPARENCY'
             blender_material.alpha = 0.0
-#             blender_material.setTexture(4, texture, Texture.TexCo.UV, Texture.MapTo.ALPHA)
-#             blender_material.mode |= Material.Modes.ZTRANSP
-#             blender_material.alpha = 0.0
             # Todo, unset deffuse material alpha if it has an alpha channel
 
         elif type == 'refl':
