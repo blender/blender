@@ -57,8 +57,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "ED_screen.h"
-#include "BPY_extern.h"
 
+#ifndef DISABLE_PYTHON
+#include "BPY_extern.h"
+#endif
 
 /* ****************************************************** */
 

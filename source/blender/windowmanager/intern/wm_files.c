@@ -96,7 +96,9 @@
 
 #include "GPU_draw.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "WM_api.h"
 #include "WM_types.h"
