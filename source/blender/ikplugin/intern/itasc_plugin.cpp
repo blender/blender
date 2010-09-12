@@ -32,6 +32,7 @@
 #include <vector>
 
 // iTaSC headers
+#ifdef WITH_IK_ITASC
 #include "Armature.hpp"
 #include "MovingFrame.hpp"
 #include "CopyPose.hpp"
@@ -40,6 +41,7 @@
 #include "Scene.hpp"
 #include "Cache.hpp"
 #include "Distance.hpp"
+#endif
 
 #include "MEM_guardedalloc.h"
 
