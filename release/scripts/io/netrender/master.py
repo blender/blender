@@ -21,6 +21,7 @@ import http, http.client, http.server, urllib, socket, socketserver, threading
 import subprocess, shutil, time, hashlib
 import pickle
 import select # for select.error
+import json
 
 from netrender.utils import *
 import netrender.model
@@ -90,7 +91,7 @@ class MRenderJob(netrender.model.RenderJob):
     def save(self):
         if self.save_path:
             f = open(os.path.join(self.save_path, "job.txt"), "w")
-            f.write(repr(self.serialize()))
+            f.write(json.dumps(self.serialize()))
             f.close()
 
     def edit(self, info_map):
@@ -384,7 +385,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
             self.server.stats("", "Sending status")
             self.send_head()
-            self.wfile.write(bytes(repr(message), encoding='utf8'))
+            self.wfile.write(bytes(json.dumps(message), encoding='utf8'))
 
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/job":
@@ -410,7 +411,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
                     message = job.serialize(frames)
 
-                    self.wfile.write(bytes(repr(message), encoding='utf8'))
+                    self.wfile.write(bytes(json.dumps(message), encoding='utf8'))
 
                     self.server.stats("", "Sending job to slave")
                 else:
@@ -468,7 +469,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
             self.send_head()
 
-            self.wfile.write(bytes(repr(message), encoding='utf8'))
+            self.wfile.write(bytes(json.dumps(message), encoding='utf8'))
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         else:
             # hand over the rest to the html section
@@ -486,7 +487,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
             length = int(self.headers['content-length'])
 
-            job_info = netrender.model.RenderJob.materialize(eval(str(self.rfile.read(length), encoding='utf8')))
+            job_info = netrender.model.RenderJob.materialize(json.loads(str(self.rfile.read(length), encoding='utf8')))
 
             job_id = self.server.nextJobID()
 
@@ -657,7 +658,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
             self.server.stats("", "New slave connected")
 
-            slave_info = netrender.model.RenderSlave.materialize(eval(str(self.rfile.read(length), encoding='utf8')), cache = False)
+            slave_info = netrender.model.RenderSlave.materialize(json.loads(str(self.rfile.read(length), encoding='utf8')), cache = False)
 
             slave_id = self.server.addSlave(slave_info.name, self.client_address, slave_info.stats)
 
@@ -666,7 +667,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
         elif self.path == "/log":
             length = int(self.headers['content-length'])
 
-            log_info = netrender.model.LogFile.materialize(eval(str(self.rfile.read(length), encoding='utf8')))
+            log_info = netrender.model.LogFile.materialize(json.loads(str(self.rfile.read(length), encoding='utf8')))
 
             slave_id = log_info.slave_id
 
