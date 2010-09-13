@@ -515,6 +515,7 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	if (codec_id == CODEC_ID_XVID) {
 		/* arghhhh ... */
 		c->pix_fmt = PIX_FMT_YUV420P;
+		c->codec_tag = (('D'<<24) + ('I'<<16) + ('V'<<8) + 'X');
 	}
 
 	if (codec_id == CODEC_ID_H264) {
