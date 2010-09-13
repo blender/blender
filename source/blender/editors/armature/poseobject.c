@@ -157,7 +157,7 @@ static short pose_has_protected_selected(Object *ob, short only_selected, short 
 }
 
 /* only for real IK, not for auto-IK */
-int ED_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
+static int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan, int level)
 {
 	bConstraint *con;
 	Bone *bone;
@@ -167,16 +167,23 @@ int ED_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 	for(con= pchan->constraints.first; con; con= con->next) {
 		if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
 			bKinematicConstraint *data= con->data;
-			if((data->flag & CONSTRAINT_IK_AUTO)==0)
-				return 1;
+			if(data->rootbone == 0 || data->rootbone > level) {
+				if((data->flag & CONSTRAINT_IK_AUTO)==0)
+					return 1;
+			}
 		}
 	}
 	for(bone= pchan->bone->childbase.first; bone; bone= bone->next) {
 		pchan= get_pose_channel(ob->pose, bone->name);
-		if(pchan && ED_pose_channel_in_IK_chain(ob, pchan))
+		if(pchan && pose_channel_in_IK_chain(ob, pchan, level + 1))
 			return 1;
 	}
 	return 0;
+}
+
+int ED_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
+{
+	return pose_channel_in_IK_chain(ob, pchan, 0);
 }
 
 /* ********************************************** */
