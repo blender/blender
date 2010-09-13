@@ -479,14 +479,14 @@ int main(int argc, char** argv)
 				i++;
 				fullScreen = true;
 				fullScreenParFound = true;
-				if ((i + 2) <= argc && argv[i][0] != '-' && argv[i+1][0] != '-')
+				if ((i + 2) < argc && argv[i][0] != '-' && argv[i+1][0] != '-')
 				{
 					fullScreenWidth = atoi(argv[i++]);
 					fullScreenHeight = atoi(argv[i++]);
-					if ((i + 1) <= argc && argv[i][0] != '-')
+					if ((i + 1) < argc && argv[i][0] != '-')
 					{
 						fullScreenBpp = atoi(argv[i++]);
-						if ((i + 1) <= argc && argv[i][0] != '-')
+						if ((i + 1) < argc && argv[i][0] != '-')
 							fullScreenFrequency = atoi(argv[i++]);
 					}
 				}
@@ -497,11 +497,11 @@ int main(int argc, char** argv)
 				fullScreen = false;
 				windowParFound = true;
 
-				if ((i + 2) <= argc && argv[i][0] != '-' && argv[i+1][0] != '-')
+				if ((i + 2) < argc && argv[i][0] != '-' && argv[i+1][0] != '-')
 				{
 					windowWidth = atoi(argv[i++]);
 					windowHeight = atoi(argv[i++]);
-					if ((i +2) <= argc && argv[i][0] != '-' && argv[i+1][0] != '-')
+					if ((i + 2) < argc && argv[i][0] != '-' && argv[i+1][0] != '-')
 					{
 						windowLeft = atoi(argv[i++]);
 						windowTop = atoi(argv[i++]);
