@@ -54,6 +54,11 @@ def _test_import(module_name, loaded_modules):
     return mod
 
 
+def _sys_path_ensure(path):
+    if path not in _sys.path:  # reloading would add twice
+        _sys.path.insert(0, path)
+
+
 def modules_from_path(path, loaded_modules):
     """
     Load all modules in a path and return them as a list.
@@ -108,6 +113,12 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         _bpy_types.TypeMap.clear()
         _bpy_types.PropertiesMap.clear()
 
+        # just unload, dont change user defaults, this means we can sync to reload.
+        # note that they will only actually reload of the modification time changes.
+        # this `wont` work for packages so... its not perfect.
+        for module_name in [ext.module for ext in _bpy.context.user_preferences.addons]:
+            addon_disable(module_name, default_set)
+
     def register_module_call(mod):
         _bpy_types._register_module(mod.__name__)
         register = getattr(mod, "register", None)
@@ -127,10 +138,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 unregister()
             except:
                 traceback.print_exc()
-
-    def sys_path_ensure(path):
-        if path not in _sys.path:  # reloading would add twice
-            _sys.path.insert(0, path)
 
     def test_reload(mod):
         # reloading this causes internal errors
@@ -178,7 +185,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         for path_subdir in ("", "ui", "op", "io", "cfg", "keyingsets", "modules"):
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
-                sys_path_ensure(path)
+                _sys_path_ensure(path)
 
                 # only add this to sys.modules, dont run
                 if path_subdir == "modules":
@@ -190,15 +197,10 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)
 
-    # load addons
-    used_ext = {ext.module for ext in _bpy.context.user_preferences.addons}
-    paths = script_paths("addons") + script_paths("addons_contrib")
-    for path in paths:
-        sys_path_ensure(path)
+    _bpy_types._register_immediate = True
 
-    for module_name in sorted(used_ext):
-        mod = _test_import(module_name, loaded_modules)
-        test_register(mod)
+    # deal with addons seperately
+    addon_reset_all()
 
     if reload_scripts:
         import gc
@@ -206,8 +208,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     if _bpy.app.debug:
         print("Python Script Load Time %.4f" % (time.time() - t_main))
-
-    _bpy_types._register_immediate = True
 
 
 # base scripts
@@ -261,19 +261,19 @@ _presets = _os.path.join(_scripts[0], "presets")  # FIXME - multiple paths
 
 
 def preset_paths(subdir):
-    '''
+    """
     Returns a list of paths for a specific preset.
-    '''
+    """
 
     return (_os.path.join(_presets, subdir), )
 
 
 def smpte_from_seconds(time, fps=None):
-    '''
+    """
     Returns an SMPTE formatted string from the time in seconds: "HH:MM:SS:FF".
 
     If the *fps* is not given the current scene is used.
-    '''
+    """
     import math
 
     if fps is None:
@@ -301,11 +301,11 @@ def smpte_from_seconds(time, fps=None):
 
 
 def smpte_from_frame(frame, fps=None, fps_base=None):
-    '''
+    """
     Returns an SMPTE formatted string from the frame: "HH:MM:SS:FF".
 
     If *fps* and *fps_base* are not given the current scene is used.
-    '''
+    """
 
     if fps is None:
         fps = _bpy.context.scene.render.fps
@@ -314,3 +314,161 @@ def smpte_from_frame(frame, fps=None, fps_base=None):
         fps_base = _bpy.context.scene.render.fps_base
 
     return smpte_from_seconds((frame * fps_base) / fps, fps)
+
+
+def addon_check(module_name):
+    """
+    Returns the loaded state of the addon.
+
+    :arg module_name: The name of the addon and module.
+    :type module_name: string
+    :return: (loaded_default, loaded_state)
+    :rtype: tuple of booleans
+    """
+    loaded_default = module_name in _bpy.context.user_preferences.addons
+
+    mod = _sys.modules.get(module_name)
+    loaded_state = mod and getattr(mod, "__addon_enabled__")
+
+    return loaded_default, loaded_state
+
+
+def addon_enable(module_name, default_set=True):
+    """
+    Enables an addon by name.
+
+    :arg module_name: The name of the addon and module.
+    :type module_name: string
+    :return: the loaded module or None on failier.
+    :rtype: module
+    """
+    # note, this still gets added to _bpy_types.TypeMap
+
+    import os
+    import sys
+    import bpy_types as _bpy_types
+
+
+    _bpy_types._register_immediate = False
+
+    def handle_error():
+        import traceback
+        traceback.print_exc()
+        _bpy_types._register_immediate = True
+
+
+    # reload if the mtime changes
+    mod = sys.modules.get(module_name)
+    if mod:
+        mod.__addon_enabled__ = False
+        mtime_orig = getattr(mod, "__time__", 0)
+        mtime_new = os.path.getmtime(mod.__file__)
+        if mtime_orig != mtime_new:
+            print("module changed on disk:", mod.__file__, "reloading...")
+
+            try:
+                reload(mod)
+            except:
+                handle_error()
+                del sys.modules[module_name]
+                return None
+            mod.__addon_enabled__ = False
+
+    # Split registering up into 3 steps so we can undo if it fails par way through
+    # 1) try import
+    try:
+        mod = __import__(module_name)
+        mod.__time__ = os.path.getmtime(mod.__file__)
+        mod.__addon_enabled__ = False
+    except:
+        handle_error()
+        return None
+
+    # 2) try register collected modules
+    try:
+        _bpy_types._register_module(module_name)
+    except:
+        handle_error()
+        del sys.modules[module_name]
+        return None
+
+    # 3) try run the modules register function
+    try:
+        mod.register()
+    except:
+        handle_error()
+        _bpy_types._unregister_module(module_name)
+        del sys.modules[module_name]
+        return None
+
+    # * OK loaded successfully! *
+    if default_set:
+        # just incase its enabled alredy
+        ext = _bpy.context.user_preferences.addons.get(module_name)
+        if not ext:
+            ext = _bpy.context.user_preferences.addons.new()
+            ext.module = module_name
+    
+    _bpy_types._register_immediate = True
+
+    mod.__addon_enabled__ = True
+
+    print("\tbpy.utils.addon_enable", mod.__name__)
+
+    return mod
+
+
+def addon_disable(module_name, default_set=True):
+    """
+    Disables an addon by name.
+
+    :arg module_name: The name of the addon and module.
+    :type module_name: string
+    """
+    import traceback
+    import bpy_types as _bpy_types
+
+    mod = _sys.modules.get(module_name)
+
+    if mod is None:
+        print("addon_disable", module_name, "not loaded, nothing to do")
+        return
+
+    mod.__addon_enabled__ = False
+
+    try:
+        _bpy_types._unregister_module(module_name, free=False)  # dont free because we may want to enable again.
+        mod.unregister()
+    except:
+        traceback.print_exc()
+
+    # could be in more then once, unlikely but better do this just incase.
+    addons = _bpy.context.user_preferences.addons
+
+    if default_set:
+        while module_name in addons:
+            addon = addons.get(module_name)
+            if addon:
+                addons.remove(addon)
+    
+    print("\tbpy.utils.addon_disable", module_name)
+
+
+def addon_reset_all():
+    """
+    Sets the addon state based on the user preferences.
+    """
+
+    paths = script_paths("addons") + script_paths("addons_contrib")
+
+    for path in paths:
+        _sys_path_ensure(path)
+        for mod_name, mod_path in _bpy.path.module_names(path):
+            is_enabled, is_loaded = addon_check(mod_name)
+            if is_enabled == is_loaded:
+                pass
+            elif is_enabled:
+                addon_enable(mod_name)
+            elif is_loaded:
+                print("\taddon_reset_all unloading", mod_name)
+                addon_disable(mod_name)

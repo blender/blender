@@ -405,6 +405,13 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 
 	ED_editors_init(C);
 	DAG_on_load_update(CTX_data_main(C));
+
+#ifndef DISABLE_PYTHON
+	if(CTX_py_init_get(C)) {
+		/* sync addons, these may have changed from the defaults */
+		BPY_eval_string(C, "__import__('bpy').utils.addon_reset_all()");
+	}
+#endif
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 	CTX_wm_window_set(C, NULL); /* exits queues */

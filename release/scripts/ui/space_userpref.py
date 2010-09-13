@@ -1049,79 +1049,17 @@ class WM_OT_addon_enable(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to enable")
 
     def execute(self, context):
-        module_name = self.module
+        mod = bpy.utils.addon_enable(self.module)
 
-        # note, this still gets added to _bpy_types.TypeMap
-
-        import sys
-        import bpy_types as _bpy_types
-
-
-        _bpy_types._register_immediate = False
-
-        def handle_error():
-            import traceback
-            traceback.print_exc()
-            _bpy_types._register_immediate = True
-
-
-        # reload if the mtime changes
-        mod = sys.modules.get(module_name)
         if mod:
-            mtime_orig = getattr(mod, "__time__", 0)
-            mtime_new = os.path.getmtime(mod.__file__)
-            if mtime_orig != mtime_new:
-                print("module changed on disk:", mod.__file__, "reloading...")
+            # check if add-on is written for current blender version, or raise a warning
+            info = addon_info_get(mod)
 
-                try:
-                    reload(mod)
-                except:
-                    handle_error()
-                    del sys.modules[module_name]
-                    return {'CANCELLED'}
-
-        # Split registering up into 3 steps so we can undo if it fails par way through
-        # 1) try import
-        try:
-            mod = __import__(module_name)
-            mod.__time__ = os.path.getmtime(mod.__file__)
-        except:
-            handle_error()
+            if info.get("blender", (0, 0, 0)) > bpy.app.version:
+                self.report("WARNING','This script was written for a newer version of Blender and might not function (correctly).\nThe script is enabled though.")
+            return {'FINISHED'}
+        else:
             return {'CANCELLED'}
-
-        # 2) try register collected modules
-        try:
-            _bpy_types._register_module(module_name)
-        except:
-            handle_error()
-            del sys.modules[module_name]
-            return {'CANCELLED'}
-
-        # 3) try run the modules register function
-        try:
-            mod.register()
-        except:
-            handle_error()
-            _bpy_types._unregister_module(module_name)
-            del sys.modules[module_name]
-            return {'CANCELLED'}
-
-        # * OK loaded successfully! *
-        # just incase its enabled alredy
-        ext = context.user_preferences.addons.get(module_name)
-        if not ext:
-            ext = context.user_preferences.addons.new()
-            ext.module = module_name
-
-        # check if add-on is written for current blender version, or raise a warning
-        info = addon_info_get(mod)
-
-        if info.get("blender", (0, 0, 0)) > bpy.app.version:
-            self.report("WARNING','This script was written for a newer version of Blender and might not function (correctly).\nThe script is enabled though.")
-
-        _bpy_types._register_immediate = True
-
-        return {'FINISHED'}
 
 
 class WM_OT_addon_disable(bpy.types.Operator):
@@ -1132,25 +1070,7 @@ class WM_OT_addon_disable(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to disable")
 
     def execute(self, context):
-        import bpy_types as _bpy_types
-        module_name = self.module
-
-        try:
-            mod = __import__(module_name)
-            _bpy_types._unregister_module(module_name, free=False)  # dont free because we may want to enable again.
-            mod.unregister()
-        except:
-            import traceback
-            traceback.print_exc()
-
-        # could be in more then once, unlikely but better do this just incase.
-        addons = context.user_preferences.addons
-
-        while module_name in addons:
-            addon = addons.get(module_name)
-            if addon:
-                addons.remove(addon)
-
+        bpy.utils.addon_disable(self.module)
         return {'FINISHED'}
 
 
