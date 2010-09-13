@@ -1787,18 +1787,25 @@ void NodeTagChanged(bNodeTree *ntree, bNode *node)
 	}
 }
 
-void NodeTagIDChanged(bNodeTree *ntree, ID *id)
+int NodeTagIDChanged(bNodeTree *ntree, ID *id)
 {
+	int change = FALSE;
+
 	if(id==NULL)
-		return;
+		return change;
 	
 	if(ntree->type==NTREE_COMPOSIT) {
 		bNode *node;
 		
-		for(node= ntree->nodes.first; node; node= node->next)
-			if(node->id==id)
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(node->id==id) {
+				change= TRUE;
 				NodeTagChanged(ntree, node);
+			}
+		}
 	}
+	
+	return change;
 }
 
 

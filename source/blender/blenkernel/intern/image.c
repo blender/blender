@@ -69,6 +69,7 @@
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
+#include "BKE_node.h"
 
 //XXX #include "BIF_editseq.h"
 
@@ -1446,6 +1447,17 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			}
 		}
 		break;
+	}
+	
+	/* dont use notifiers because they are not 100% sure to succseed
+	 * this also makes sure all scenes are accounted for. */
+	{
+		Scene *scene;
+		for(scene= G.main->scene.first; scene; scene= scene->id.next) {
+			if(scene->nodetree) {
+				NodeTagIDChanged(scene->nodetree, &ima->id);
+			}
+		}
 	}
 }
 

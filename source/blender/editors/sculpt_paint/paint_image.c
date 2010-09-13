@@ -4534,29 +4534,8 @@ static void paint_redraw(bContext *C, ImagePaintState *s, int final)
 		if(s->image)
 			GPU_free_image(s->image);
 
+		/* compositor listener deals with updating */
 		WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, s->image);
-
-		// XXX node update
-#if 0
-		if(!s->sima && s->image) {
-			/* after paint, tag Image or RenderResult nodes changed */
-			if(s->scene->nodetree) {
-				imagepaint_composite_tags(s->scene->nodetree, image, &s->sima->iuser);
-			}
-			/* signal composite (hurmf, need an allqueue?) */
-			if(s->sima->lock) {
-				ScrArea *sa;
-				for(sa=s->screen->areabase.first; sa; sa= sa->next) {
-					if(sa->spacetype==SPACE_NODE) {
-						if(((SpaceNode *)sa->spacedata.first)->treetype==NTREE_COMPOSIT) {
-							addqueue(sa->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
-							break;
-						}
-					}
-				}
-			}
-		}		
-#endif
 	}
 	else {
 		if(!s->sima || !s->sima->lock)
