@@ -805,6 +805,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
+    _addons_cats = None
     _addons_fake_modules = {}
 
     @classmethod
@@ -910,12 +911,10 @@ class USERPREF_PT_addons(bpy.types.Panel):
         cats = {info["category"] for mod, info in addons}
         cats.discard("")
 
-        cats = ["All", "Enabled", "Disabled"] + sorted(cats)
-
-        # use window manager ID since it wont be saved with the file
-        # defining every draw is stupid *FIXME*
-        bpy.types.WindowManager.addon_filter = bpy.props.EnumProperty(items=[(cat, cat, cat + " addons") for cat in cats], name="Category", description="Filter add-ons by category")
-        bpy.types.WindowManager.addon_search = bpy.props.StringProperty(name="Search", description="Search within the selected filter")
+        if USERPREF_PT_addons._addons_cats != cats:
+            bpy.types.WindowManager.addon_filter = bpy.props.EnumProperty(items=[(cat, cat, "") for cat in ["All", "Enabled", "Disabled"] + sorted(cats)], name="Category", description="Filter add-ons by category")
+            bpy.types.WindowManager.addon_search = bpy.props.StringProperty(name="Search", description="Search within the selected filter")
+            USERPREF_PT_addons._addons_cats = cats
 
         split = layout.split(percentage=0.2)
         col = split.column()
