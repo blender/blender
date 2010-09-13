@@ -635,24 +635,28 @@ class OrderedMeta(RNAMeta):
 
 
 # Only defined so operators members can be used by accessing self.order
+# with doc generation 'self.properties.bl_rna.properties' can fail
 class Operator(StructRNA, metaclass=OrderedMeta):
     __slots__ = ()
     
     def __getattribute__(self, attr):
         properties = StructRNA.path_resolve(self, "properties")
-        if attr in properties.bl_rna.properties:
+        bl_rna = getattr(properties, "bl_rna", None)
+        if bl_rna and attr in bl_rna.properties:
             return getattr(properties, attr)
         return super().__getattribute__(attr)
 
     def __setattr__(self, attr, value):
         properties = StructRNA.path_resolve(self, "properties")
-        if attr in properties.bl_rna.properties:
+        bl_rna = getattr(properties, "bl_rna", None)
+        if bl_rna and attr in bl_rna.properties:
             setattr(properties, attr, value)
         return super().__setattr__(attr, value)
 
     def __delattr__(self, attr):
         properties = StructRNA.path_resolve(self, "properties")
-        if attr in properties.bl_rna.properties:
+        bl_rna = getattr(properties, "bl_rna", None)
+        if bl_rna and attr in bl_rna.properties:
             delattr(properties, attr)
         return super().__delattr__(attr)
 
