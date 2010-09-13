@@ -3107,8 +3107,8 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	/* step 2a: parent children of in-between bones to newbone */
 	for (chain= chains->first; chain; chain= chain->next) {
 		/* ick: we need to check if parent of each bone in chain is one of the bones in the */
+		short found= 0;
 		for (ebo= chain->data; ebo; ebo= ebo->parent) {
-			short found= 0;
 			
 			/* try to find which bone from the list to be removed, is the parent */
 			for (ebone= end; ebone; ebone= ebone->parent) {
@@ -3124,6 +3124,9 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 				break;
 			}
 		}
+		if (found) {
+			break;
+		}
 	}
 	
 	/* step 2b: parent child of end to newbone (child from this chain) */
@@ -3135,6 +3138,9 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 		ebone= (ebo == start) ? (NULL) : (ebo->parent);
 		bone_free(arm, ebo);
 	}
+	
+	newbone->flag |= (BONE_ROOTSEL|BONE_TIPSEL|BONE_SELECTED);
+	ED_armature_sync_selection(arm->edbo);
 }
 
 
