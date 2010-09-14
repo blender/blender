@@ -634,14 +634,8 @@ def write_file(filepath, objects, scene,
                             # First add to global dict so we can export to mtl
                             # Then write mtl
 
-                            # Make a new names from the mat and image name,
-                            # converting any spaces to underscores with fixName.
-
-                            # If none image dont bother adding it to the name
-                            if key[1] == None:
-                                mat_data = mtl_dict[key] = ('%s'%fixName(key[0])), materialItems[f_mat], f_image
-                            else:
-                                mat_data = mtl_dict[key] = ('%s_%s' % (fixName(key[0]), fixName(key[1]))), materialItems[f_mat], f_image
+                            # convert any spaces to underscores with fixName.
+                            mat_data = mtl_dict[key] = ('%s'%fixName(key[0])), materialItems[f_mat], f_image
 
                         if EXPORT_GROUP_BY_MAT:
                             file.write('g %s_%s_%s\n' % (fixName(ob.name), fixName(ob.data.name), mat_data[0]) ) # can be mat_image or (null)
