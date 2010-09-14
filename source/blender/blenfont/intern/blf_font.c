@@ -200,9 +200,14 @@ void blf_font_buffer(FontBLF *font, char *str)
 		}
 
 		chx= pen_x + ((int)g->pos_x);
+		chy= (int)font->pos[1] + g->height;
 
-		pen_y= (int)font->pos[1] - (g->height - ((int)g->pos_y));
-		chy= pen_y - ((int)g->pos_y);
+		if (g->pitch < 0) {
+			pen_y = (int)font->pos[1] + (g->height - (int)g->pos_y);
+		}
+		else {
+			pen_y = (int)font->pos[1] - (g->height - (int)g->pos_y);
+		}
 
 		if ((chx + g->width) >= 0 && chx < font->bw && (pen_y + g->height) >= 0 && pen_y < font->bh) {
 			/* dont draw beyond the buffer bounds */
