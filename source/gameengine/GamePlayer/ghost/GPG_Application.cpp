@@ -370,6 +370,7 @@ bool GPG_Application::startFullScreen(
 
 	fSystem->beginFullScreen(setting, &m_mainWindow, stereoVisual);
 	m_mainWindow->setCursorVisibility(false);
+	m_mainWindow->setState(GHOST_kWindowStateFullScreen);
 
 	success = initEngine(m_mainWindow, stereoMode);
 	if (success) {
