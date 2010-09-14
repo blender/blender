@@ -472,3 +472,20 @@ def addon_reset_all():
             elif is_loaded:
                 print("\taddon_reset_all unloading", mod_name)
                 addon_disable(mod_name)
+
+def preset_find(name, preset_path, display_name=False):
+    for directory in preset_paths(preset_path):
+        
+        if display_name:
+            filename = ""
+            for fn in _os.listdir(directory):
+                if fn.endswith(".py") and name == _bpy.path.display_name(fn):
+                    filename = fn
+                    break
+        else:
+            filename = name + ".py"
+
+        if filename:
+            filepath = _os.path.join(directory, filename)
+            if _os.path.exists(filepath):
+                return filepath\

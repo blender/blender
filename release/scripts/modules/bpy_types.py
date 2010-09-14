@@ -761,7 +761,6 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             props.filepath = filepath
             if operator == "script.execute_preset":
                 props.menu_idname = self.bl_idname
-                props.preset_name = preset_name
 
     def draw_preset(self, context):
         """Define these on the subclass

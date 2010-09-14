@@ -727,6 +727,7 @@ class USERPREF_PT_input(InputKeyMapPanel):
         subrow = sub.row(align=True)
         subrow.menu("USERPREF_MT_interaction_presets", text=bpy.types.USERPREF_MT_interaction_presets.bl_label)
         subrow.operator("wm.interaction_preset_add", text="", icon='ZOOMIN')
+        subrow.operator("wm.interaction_preset_add", text="", icon='ZOOMOUT').remove_active = True
         sub.separator()
 
         sub.label(text="Mouse:")
