@@ -182,7 +182,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     user_path = user_script_path()
 
     for base_path in script_paths():
-        for path_subdir in ("", "ui", "op", "io", "cfg", "keyingsets", "modules"):
+        for path_subdir in ("", "ui", "op", "io", "keyingsets", "modules"):
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
                 _sys_path_ensure(path)
@@ -201,6 +201,13 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     # deal with addons seperately
     addon_reset_all()
+
+
+    # run the active integration preset
+    filepath = preset_find(_bpy.context.user_preferences.inputs.active_keyconfig, "keyconfig")
+    if filepath:
+        keyconfig_set(filepath)
+
 
     if reload_scripts:
         import gc
@@ -474,6 +481,9 @@ def addon_reset_all():
                 addon_disable(mod_name)
 
 def preset_find(name, preset_path, display_name=False):
+    if not name:
+        return None
+    
     for directory in preset_paths(preset_path):
         
         if display_name:
@@ -488,4 +498,38 @@ def preset_find(name, preset_path, display_name=False):
         if filename:
             filepath = _os.path.join(directory, filename)
             if _os.path.exists(filepath):
-                return filepath\
+                return filepath
+
+
+def keyconfig_set(filepath):
+    from os.path import basename, splitext
+
+    print("loading preset:", filepath)
+    keyconfigs = _bpy.context.window_manager.keyconfigs
+    kc_orig = keyconfigs.active
+
+    keyconfigs_old = keyconfigs[:]
+
+    try:
+        exec(compile(open(filepath).read(), filepath, 'exec'), {"__file__": filepath})
+    except:
+        import traceback
+        traceback.print_exc()
+
+    kc_new = [kc for kc in keyconfigs if kc not in keyconfigs_old][0]
+
+    kc_new.name = ""
+
+    # remove duplicates
+    name = splitext(basename(filepath))[0]
+    while True:
+        kc_dupe = keyconfigs.get(name)
+        if kc_dupe:
+            keyconfigs.remove(kc_dupe)
+        else:
+            break
+    
+    kc_new.name = name
+    keyconfigs.active = kc_new
+
+

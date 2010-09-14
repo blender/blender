@@ -768,6 +768,17 @@ class WM_OT_properties_remove(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class WM_OT_keyconfig_activate(bpy.types.Operator):
+    bl_idname = "wm.keyconfig_activate"
+    bl_label = "Activate Keyconfig"
+
+    filepath = StringProperty(name="File Path", maxlen=1024)
+
+    def execute(self, context):
+        bpy.utils.keyconfig_set(self.filepath)
+        return {'FINISHED'}
+
+
 def register():
     pass
 

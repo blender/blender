@@ -33,13 +33,18 @@ class AddPresetBase():
     name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen=64, default="")
     remove_active = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
 
-    def _as_filename(self, name):  # could reuse for other presets
-        for char in " !@#$%^&*(){}:\";'[]<>,./?":
+    @staticmethod
+    def as_filename(name):  # could reuse for other presets
+        for char in " !@#$%^&*(){}:\";'[]<>,.\\/?":
             name = name.replace(char, '_')
         return name.lower().strip()
 
     def execute(self, context):
         import os
+        
+        if hasattr(self, "pre_cb"):
+            self.pre_cb(context)
+        
         preset_menu_class = getattr(bpy.types, self.preset_menu)
 
         if not self.remove_active:        
@@ -47,24 +52,23 @@ class AddPresetBase():
             if not self.name:
                 return {'FINISHED'}
 
-            filename = self._as_filename(self.name) + ".py"
+            filename = self.as_filename(self.name)
             
             target_path = bpy.utils.preset_paths(self.preset_subdir)[0]  # we need some way to tell the user and system preset path
 
-            filepath = os.path.join(target_path, filename)
-            if getattr(self, "save_keyconfig", False):
-                bpy.ops.wm.keyconfig_export(filepath=filepath, kc_name=self.name)
-                file_preset = open(filepath, 'a')
-                file_preset.write("wm.keyconfigs.active = kc\n\n")
+            filepath = os.path.join(target_path, filename) + ".py"
+            
+            if hasattr(self, "add"):
+                self.add(context, filepath)
             else:
                 file_preset = open(filepath, 'w')
                 file_preset.write("import bpy\n")
 
-            for rna_path in self.preset_values:
-                value = eval(rna_path)
-                file_preset.write("%s = %s\n" % (rna_path, repr(value)))
+                for rna_path in self.preset_values:
+                    value = eval(rna_path)
+                    file_preset.write("%s = %s\n" % (rna_path, repr(value)))
 
-            file_preset.close()
+                file_preset.close()
             
             preset_menu_class.bl_label = bpy.path.display_name(self.name)
 
@@ -73,20 +77,27 @@ class AddPresetBase():
 
             # fairly sloppy but convenient.
             filepath = bpy.utils.preset_find(preset_active, self.preset_subdir)
+
             if not filepath:
                 filepath = bpy.utils.preset_find(preset_active, self.preset_subdir, display_name=True)
 
             if not filepath:
                 return {'CANCELLED'}
 
-            try:
-                os.remove(filepath)
-            except:
-                import traceback
-                traceback.print_exc()
+            if hasattr(self, "remove"):
+                self.remove(context, filepath)
+            else:
+                try:
+                    os.remove(filepath)
+                except:
+                    import traceback
+                    traceback.print_exc()
 
             # XXX, stupid!
-            preset_menu_class.bl_label = bpy.path.display_name(self.preset_menu.replace("_MT_", " ").lower())
+            preset_menu_class.bl_label = "Presets"
+
+        if hasattr(self, "post_cb"):
+            self.post_cb(context)
 
         return {'FINISHED'}
 
@@ -218,7 +229,6 @@ class AddPresetInteraction(AddPresetBase, bpy.types.Operator):
     bl_idname = "wm.interaction_preset_add"
     bl_label = "Add Interaction Preset"
     preset_menu = "USERPREF_MT_interaction_presets"
-    save_keyconfig = True
 
     preset_values = [
         "bpy.context.user_preferences.edit.use_drag_immediately",
@@ -234,6 +244,29 @@ class AddPresetInteraction(AddPresetBase, bpy.types.Operator):
     ]
 
     preset_subdir = "interaction"
+
+
+class AddPresetKeyconfig(AddPresetBase, bpy.types.Operator):
+    '''Add a Keyconfig Preset'''
+    bl_idname = "wm.keyconfig_preset_add"
+    bl_label = "Add Keyconfig Preset"
+    preset_menu = "PREFS_MT_keyconfigs"
+    preset_subdir = "keyconfig"
+
+    def add(self, context, filepath):
+        bpy.ops.wm.keyconfig_export(filepath=filepath)
+        bpy.utils.keyconfig_set(filepath)
+
+    def pre_cb(self, context):
+        keyconfigs = bpy.context.window_manager.keyconfigs
+        if self.remove_active:
+            preset_menu_class = getattr(bpy.types, self.preset_menu)
+            preset_menu_class.bl_label = keyconfigs.active.name
+
+    def post_cb(self, context):
+        keyconfigs = bpy.context.window_manager.keyconfigs
+        if self.remove_active:
+            keyconfigs.remove(keyconfigs.active)
 
 
 def register():
