@@ -401,7 +401,8 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         context_material.raytrace_transparency.ior = max(1, min(float(line_split[1]), 3))  # between 1 and 3
                     elif line_lower.startswith('d') or line_lower.startswith('tr'):
                         context_material.alpha = float(line_split[1])
-                        context_material.z_transparency = True
+                        context_material.use_transparency = True
+                        context_material.transparency_method = 'Z_TRANSPARENCY'
                     elif line_lower.startswith('map_ka'):
                         img_filepath= line_value(line.split())
                         if img_filepath:
