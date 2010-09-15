@@ -1063,7 +1063,7 @@ static void def_cmp_image(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
-	RNA_def_property_range(prop, 1, MAXFRAMEF);
+	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
