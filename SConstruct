@@ -492,6 +492,9 @@ if  env['OURPLATFORM']!='darwin':
                     dir += os.sep + os.path.basename(scriptpath) + dp[len(scriptpath):]
                     
                     source=[os.path.join(dp, f) for f in df if f[-3:]!='pyc']
+                    # To ensure empty dirs are created too
+                    if len(source)==0:
+                        env.Execute(Mkdir(dir))
                     scriptinstall.append(env.Install(dir=dir,source=source))
 
 #-- icons
