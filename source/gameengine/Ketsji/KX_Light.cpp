@@ -26,8 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef WIN32
-
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786)
 #endif
 

@@ -29,7 +29,7 @@
 #ifndef __RAS_MESHOBJECT
 #define __RAS_MESHOBJECT
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 // disable the STL warnings ("debug information length > 255")
 #pragma warning (disable:4786)
 #endif

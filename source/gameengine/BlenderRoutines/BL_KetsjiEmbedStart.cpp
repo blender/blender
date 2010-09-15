@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 // don't show stl-warnings
 #pragma warning (disable:4786)
 #endif

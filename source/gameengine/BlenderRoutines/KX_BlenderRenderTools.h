@@ -30,7 +30,7 @@
 #ifndef __KX_BLENDERRENDERTOOLS
 #define __KX_BLENDERRENDERTOOLS
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 // don't show stl-warnings
 #pragma warning (disable:4786)
 #endif

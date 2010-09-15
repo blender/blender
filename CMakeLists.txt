@@ -315,7 +315,7 @@ IF(UNIX AND NOT APPLE)
 	ENDIF(WITH_OPENMP)
 
 
-	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -Wno-char-subscripts")
+	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
@@ -540,19 +540,12 @@ IF(WIN32)
 
 	ELSE(MSVC) # MINGW
 		SET(LLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
+		SET(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 
-		SET(CMAKE_CXX_FLAGS                "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C++ flags ")
-		SET(CMAKE_C_FLAGS                  "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C flags ")
+		# Better warnings
+		SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
+		SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
-		SET(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g" CACHE STRING "Mingw debug C++ flags ")
-		SET(CMAKE_CXX_FLAGS_RELEASE        "   -O2" CACHE STRING "Mingw release C++ flags ")
-		SET(CMAKE_CXX_FLAGS_MINSIZEREL     "   -Os" CACHE STRING "Mingw minsize release C++ flags ")
-		SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g" CACHE STRING "Mingw release, debug C++ flags ")
-
-		SET(CMAKE_C_FLAGS_DEBUG            "-O0 -g" CACHE STRING "Mingw debug C flags ")
-		SET(CMAKE_C_FLAGS_RELEASE          "-O2"    CACHE STRING "Mingw release C flags ")
-		SET(CMAKE_C_FLAGS_MINSIZEREL       "-Os"    CACHE STRING "Mingw minsize release C flags ")
-		SET(CMAKE_C_FLAGS_RELWITHDEBINFO   "-O2 -g" CACHE STRING "Mingw release, debug C++ flags ")
 		ADD_DEFINITIONS(-DFREE_WINDOWS)
 		
 		IF(WITH_OPENMP)
@@ -616,6 +609,9 @@ IF(WIN32)
 			SET(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/OpenEXR)
 			SET(OPENEXR_LIB Half IlmImf Imath IlmThread)
 			SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
+
+			# TODO, gives linking errors, force off
+			SET(WITH_IMAGE_OPENEXR OFF)
 		ENDIF(WITH_IMAGE_OPENEXR)
 
 		IF(WITH_IMAGE_TIFF)

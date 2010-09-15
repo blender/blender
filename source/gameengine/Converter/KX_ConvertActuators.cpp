@@ -28,7 +28,7 @@
 * Convert Blender actuators for use in the GameEngine
 */
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786) 
 #endif //WIN32
 
