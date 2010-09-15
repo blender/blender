@@ -78,12 +78,12 @@ typedef struct EditBone
 	short segments;
 } EditBone;
 
-#define	BONESEL_ROOT	0x10000000
-#define	BONESEL_TIP		0x20000000
-#define	BONESEL_BONE	0x40000000
+#define	BONESEL_ROOT	(1<<28)
+#define	BONESEL_TIP		(1<<29)
+#define	BONESEL_BONE	(1<<30)
 #define BONESEL_ANY		(BONESEL_TIP|BONESEL_ROOT|BONESEL_BONE)
 
-#define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */
+#define BONESEL_NOSEL	(1<<31)	/* Indicates a negative number */
 
 /* useful macros */
 #define EBONE_VISIBLE(arm, ebone) ((arm->layer & ebone->layer) && !(ebone->flag & BONE_HIDDEN_A))
