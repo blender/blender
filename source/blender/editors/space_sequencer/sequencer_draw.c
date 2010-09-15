@@ -75,19 +75,21 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 static void get_seq_color3ubv(Scene *curscene, Sequence *seq, char *col)
 {
 	char blendcol[3];
-	float hsv[3], rgb[3];
 	SolidColorVars *colvars = (SolidColorVars *)seq->effectdata;
 
 	switch(seq->type) {
 	case SEQ_IMAGE:
 		UI_GetThemeColor3ubv(TH_SEQ_IMAGE, col);
 		break;
+		
 	case SEQ_META:
 		UI_GetThemeColor3ubv(TH_SEQ_META, col);
 		break;
+		
 	case SEQ_MOVIE:
 		UI_GetThemeColor3ubv(TH_SEQ_MOVIE, col);
 		break;
+		
 	case SEQ_SCENE:
 		UI_GetThemeColor3ubv(TH_SEQ_SCENE, col);
 		
@@ -95,24 +97,17 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, char *col)
 			UI_GetColorPtrBlendShade3ubv(col, col, col, 1.0, 20);
 		}
 		break;
-
+		
 	/* transitions */
 	case SEQ_CROSS:
 	case SEQ_GAMCROSS:
 	case SEQ_WIPE:
-		/* slightly offset hue to distinguish different effects */
 		UI_GetThemeColor3ubv(TH_SEQ_TRANSITION, col);
-		
-		rgb[0] = col[0]/255.0; rgb[1] = col[1]/255.0; rgb[2] = col[2]/255.0; 
-		rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
-		
-		if (seq->type == SEQ_CROSS)		hsv[0]+= 0.04;
-		if (seq->type == SEQ_GAMCROSS)	hsv[0]+= 0.08;
-		if (seq->type == SEQ_WIPE)		hsv[0]+= 0.12;
-		
-		if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
-		hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
-		col[0] = (char)(rgb[0]*255); col[1] = (char)(rgb[1]*255); col[2] = (char)(rgb[2]*255); 
+
+		/* slightly offset hue to distinguish different effects */
+		if (seq->type == SEQ_CROSS)			rgb_byte_set_hue_float_offset(col,0.04);
+		if (seq->type == SEQ_GAMCROSS)		rgb_byte_set_hue_float_offset(col,0.08);
+		if (seq->type == SEQ_WIPE)			rgb_byte_set_hue_float_offset(col,0.12);
 		break;
 		
 	/* effects */
@@ -126,42 +121,37 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, char *col)
 	case SEQ_OVERDROP:
 	case SEQ_GLOW:
 	case SEQ_MULTICAM:
-		/* slightly offset hue to distinguish different effects */
 		UI_GetThemeColor3ubv(TH_SEQ_EFFECT, col);
 		
-		rgb[0] = col[0]/255.0; rgb[1] = col[1]/255.0; rgb[2] = col[2]/255.0; 
-		rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
-		
-		if (seq->type == SEQ_ADD)		hsv[0]+= 0.04;
-		if (seq->type == SEQ_SUB)		hsv[0]+= 0.08;
-		if (seq->type == SEQ_MUL)		hsv[0]+= 0.12;
-		if (seq->type == SEQ_ALPHAOVER)	hsv[0]+= 0.16;
-		if (seq->type == SEQ_ALPHAUNDER)	hsv[0]+= 0.20;
-		if (seq->type == SEQ_OVERDROP)	hsv[0]+= 0.24;
-		if (seq->type == SEQ_GLOW)		hsv[0]+= 0.28;
-		if (seq->type == SEQ_TRANSFORM)		hsv[0]+= 0.36;
-
-		if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
-		hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
-		col[0] = (char)(rgb[0]*255); col[1] = (char)(rgb[1]*255); col[2] = (char)(rgb[2]*255); 
+		/* slightly offset hue to distinguish different effects */
+		if (seq->type == SEQ_ADD)			rgb_byte_set_hue_float_offset(col,0.04);
+		if (seq->type == SEQ_SUB)			rgb_byte_set_hue_float_offset(col,0.08);
+		if (seq->type == SEQ_MUL)			rgb_byte_set_hue_float_offset(col,0.12);
+		if (seq->type == SEQ_ALPHAOVER)		rgb_byte_set_hue_float_offset(col,0.16);
+		if (seq->type == SEQ_ALPHAUNDER)	rgb_byte_set_hue_float_offset(col,0.20);
+		if (seq->type == SEQ_OVERDROP)		rgb_byte_set_hue_float_offset(col,0.24);
+		if (seq->type == SEQ_GLOW)			rgb_byte_set_hue_float_offset(col,0.28);
+		if (seq->type == SEQ_TRANSFORM)		rgb_byte_set_hue_float_offset(col,0.36);
 		break;
+		
 	case SEQ_COLOR:
 		if (colvars->col) {
-			col[0]= (char)(colvars->col[0]*255);
-			col[1]= (char)(colvars->col[1]*255);
-			col[2]= (char)(colvars->col[2]*255);
+			rgb_float_to_byte(colvars->col, col);
 		} else {
 			col[0] = col[1] = col[2] = 128;
 		}
 		break;
+		
 	case SEQ_PLUGIN:
 		UI_GetThemeColor3ubv(TH_SEQ_PLUGIN, col);
 		break;
+		
 	case SEQ_SOUND:
 		UI_GetThemeColor3ubv(TH_SEQ_AUDIO, col);
 		blendcol[0] = blendcol[1] = blendcol[2] = 128;
 		if(seq->flag & SEQ_MUTE) UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.5, 20);
 		break;
+		
 	default:
 		col[0] = 10; col[1] = 255; col[2] = 40;
 	}

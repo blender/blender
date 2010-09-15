@@ -464,3 +464,28 @@ void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *o
 	}
 }
 
+/* ******************************************** other ************************************************* */
+
+/* Applies an hue offset to a float rgb color */
+void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset)
+{
+	float hsv[3];
+	
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	
+	hsv[0]+= hue_offset;
+	if(hsv[0]>1.0)		hsv[0]-=1.0;
+	else if(hsv[0]<0.0)	hsv[0]+= 1.0;
+	
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
+}
+
+/* Applies an hue offset to a byte rgb color */
+void rgb_byte_set_hue_float_offset(char rgb[3], float hue_offset)
+{
+	float rgb_float[3];
+	
+	rgb_byte_to_float(rgb, rgb_float);
+	rgb_float_set_hue_float_offset(rgb_float, hue_offset);
+	rgb_float_to_byte(rgb_float, rgb);
+}

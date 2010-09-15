@@ -86,7 +86,10 @@ void linearrgb_to_srgb_rgba_rgba_buf(float *col_to, float *col_from, int tot);
 
 int constrain_rgb(float *r, float *g, float *b);
 void minmax_rgb(short c[3]);
-	
+
+void rgb_float_set_hue_float_offset(float * rgb, float hue_offset);
+void rgb_byte_set_hue_float_offset(char * rgb, float hue_offset);
+
 /***************** lift/gamma/gain / ASC-CDL conversion *****************/
 
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power);
