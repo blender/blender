@@ -842,7 +842,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
             ModuleType = type(ast)
             if speedy:
                 lines = []
-                line_iter = iter(open(mod_path, "r"))
+                line_iter = iter(open(mod_path, "r", encoding='UTF-8'))
                 l = ""
                 while not l.startswith("bl_addon_info"):
                     l = line_iter.readline()
