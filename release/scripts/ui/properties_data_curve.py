@@ -108,7 +108,7 @@ class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
             sub.prop(curve, "resolution_v", text="Preview V")
             sub.prop(curve, "render_resolution_v", text="Render V")
 
-        if (is_curve or is_text) and curve.dimensions != '3D':
+        if (is_curve or is_text):
             sub = col.column()
             sub.active = (curve.bevel_object is None)
             sub.label(text="Fill:")
