@@ -412,16 +412,13 @@ static int prefsize(int argc, char **argv, void *data)
 
 static int with_borders(int argc, char **argv, void *data)
 {
-	/* with borders XXX OLD CRUFT!*/
-
+	WM_setinitialstate_normal();
 	return 0;
 }
 
 static int without_borders(int argc, char **argv, void *data)
 {
-	/* borderless, win + linux XXX OLD CRUFT */
-	/* XXX, fixme mein, borderless on OSX */
-
+	WM_setinitialstate_fullscreen();
 	return 0;
 }
 
