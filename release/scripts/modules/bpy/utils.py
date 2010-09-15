@@ -271,8 +271,12 @@ def preset_paths(subdir):
     """
     Returns a list of paths for a specific preset.
     """
-
-    return (_os.path.join(_presets, subdir), )
+    dirs = []
+    for path in script_paths("presets"):
+        directory = _os.path.join(path, subdir)
+        if _os.path.isdir(directory):
+            dirs.append(directory)
+    return dirs
 
 
 def smpte_from_seconds(time, fps=None):

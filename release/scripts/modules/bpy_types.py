@@ -739,6 +739,9 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         import bpy.utils
 
         layout = self.layout
+        
+        if not searchpaths:
+            layout.label("* Missing Paths *")
 
         # collect paths
         files = []
