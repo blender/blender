@@ -108,12 +108,13 @@ class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
             sub.prop(curve, "resolution_v", text="Preview V")
             sub.prop(curve, "render_resolution_v", text="Render V")
 
-        if is_curve or is_text:
+        if (is_curve or is_text) and curve.dimensions != '3D':
             sub = col.column()
-            sub.label(text="Caps:")
+            sub.active = (curve.bevel_object is None)
+            sub.label(text="Fill:")
             sub.prop(curve, "use_fill_front")
             sub.prop(curve, "use_fill_back")
-            sub.prop(curve, "use_fill_deform")
+            sub.prop(curve, "use_fill_deform", text="Use Deformed")
 
         col.label(text="Textures:")
         col.prop(curve, "use_map_on_length")
