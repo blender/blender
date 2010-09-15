@@ -630,6 +630,7 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 	EditBone *ebone;
 	float vec[3];
 	short sco1[2], sco2[2], didpoint;
+	int change= FALSE;
 	
 	/* set editdata in vc */
 	
@@ -645,20 +646,27 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 			if(select) ebone->flag |= BONE_ROOTSEL;
 			else ebone->flag &= ~BONE_ROOTSEL;
 			didpoint= 1;
+			change= TRUE;
 		}
 		if(lasso_inside(mcords, moves, sco2[0], sco2[1])) {
 		   if(select) ebone->flag |= BONE_TIPSEL;
 		   else ebone->flag &= ~BONE_TIPSEL;
 		   didpoint= 1;
+		   change= TRUE;
 		}
 		/* if one of points selected, we skip the bone itself */
 		if(didpoint==0 && lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
 			if(select) ebone->flag |= BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED;
 			else ebone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+			change= TRUE;
 		}
 	}
-	ED_armature_sync_selection(arm->edbo);
-	ED_armature_validate_active(arm);
+	
+	if(change) {
+		ED_armature_sync_selection(arm->edbo);
+		ED_armature_validate_active(arm);
+		WM_main_add_notifier(NC_OBJECT|ND_BONE_SELECT, vc->obedit);
+	}
 }
 
 static void do_lasso_select_facemode(ViewContext *vc, short mcords[][2], short moves, short select)
@@ -1593,6 +1601,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			}
 			
 			ED_armature_sync_selection(arm->edbo);
+			WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, vc.obedit);
 		}
 		else if(obedit->type==OB_LATTICE) {
 			do_lattice_box_select(&vc, &rect, selecting, extend);
@@ -1985,6 +1994,7 @@ static void armature_circle_select(ViewContext *vc, int selecting, short *mval, 
 	struct {ViewContext *vc; short select, mval[2]; float radius; } data;
 	bArmature *arm= vc->obedit->data;
 	EditBone *ebone;
+	int change= FALSE;
 	
 	/* set vc->edit data */
 	data.select = selecting;
@@ -2023,10 +2033,14 @@ static void armature_circle_select(ViewContext *vc, int selecting, short *mval, 
 				ebone->flag |= BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED;
 			else 
 				ebone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+			change= TRUE;
 		}
 	}
 
-	ED_armature_validate_active(arm);
+	if(change) {
+		ED_armature_validate_active(arm);
+		WM_main_add_notifier(NC_OBJECT|ND_BONE_SELECT, vc->obedit);
+	}
 }
 
 /** Callbacks for circle selection in Editmode */
