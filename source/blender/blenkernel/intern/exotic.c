@@ -29,12 +29,14 @@
  *
  * ***** END GPL LICENSE BLOCK *****/
 
+#include <stddef.h>
 #include "BLI_storage.h"
 
+#include <stdlib.h>
 #include <ctype.h> /* isdigit, isspace */
 #include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
+
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>

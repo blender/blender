@@ -42,12 +42,13 @@
 
 struct direntry;
 
+
 void   BLI_adddirstrings(void);
 void   BLI_builddir(char *dirname, char *relname);
 int    BLI_compare(struct direntry *entry1, struct direntry *entry2);
 
-int    BLI_filesize(int file);
-int    BLI_filepathsize(const char *path);
+size_t BLI_filesize(int file);
+size_t BLI_filepathsize(const char *path);
 double BLI_diskfree(char *dir);
 char *BLI_getwdN(char *dir);
 

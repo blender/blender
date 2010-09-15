@@ -58,7 +58,7 @@ static void init_source(j_decompress_ptr cinfo);
 static boolean fill_input_buffer(j_decompress_ptr cinfo);
 static void skip_input_data(j_decompress_ptr cinfo, long num_bytes);
 static void term_source(j_decompress_ptr cinfo);
-static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, int size);
+static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t size);
 static boolean handle_app1 (j_decompress_ptr cinfo);
 static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int flags);
 
@@ -167,7 +167,7 @@ static void term_source(j_decompress_ptr cinfo)
 {
 }
 
-static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, int size)
+static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t size)
 {
 	my_src_ptr src;
 
@@ -459,7 +459,7 @@ ImBuf * imb_ibJpegImageFromFilename (const char * filename, int flags)
 	return(ibuf);
 }
 
-ImBuf * imb_load_jpeg (unsigned char * buffer, int size, int flags)
+ImBuf * imb_load_jpeg (unsigned char * buffer, size_t size, int flags)
 {
 	struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
 	struct my_error_mgr jerr;

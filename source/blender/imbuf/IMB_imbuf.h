@@ -93,7 +93,7 @@ void IMB_exit(void);
  *
  * @attention Defined in readimage.c
  */
-struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, int size, int flags);
+struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags);
 
 /**
  *

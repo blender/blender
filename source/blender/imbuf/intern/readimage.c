@@ -46,7 +46,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_filetype.h"
 
-ImBuf *IMB_ibImageFromMemory(unsigned char *mem, int size, int flags)
+ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags)
 {
 	ImBuf *ibuf;
 	ImFileType *type;
@@ -79,7 +79,7 @@ ImBuf *IMB_loadifffile(int file, int flags)
 {
 	ImBuf *ibuf;
 	unsigned char *mem;
-	int size;
+	size_t size;
 
 	if(file == -1) return 0;
 
@@ -166,7 +166,7 @@ static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, unsigned int
 {
 	ImFileType *type;
 	unsigned char *mem;
-	int size;
+	size_t size;
 
 	if(file == -1) return;
 

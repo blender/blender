@@ -90,7 +90,7 @@ void info_callback(const char *msg, void *client_data) {
 
 
 
-struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
+struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 {
 	struct ImBuf *ibuf = 0;
 	int use_float = 0; /* for precision higher then 8 use float */

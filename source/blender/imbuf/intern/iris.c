@@ -244,7 +244,7 @@ int imb_is_a_iris(unsigned char *mem)
  *
  */
 
-struct ImBuf *imb_loadiris(unsigned char *mem, int size, int flags)
+struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 {
 	unsigned int *base, *lptr = NULL;
 	float *fbase, *fptr = NULL;

@@ -286,7 +286,7 @@ int imb_savepng(struct ImBuf *ibuf, char *name, int flags)
 	return(1);
 }
 
-struct ImBuf *imb_loadpng(unsigned char *mem, int size, int flags)
+struct ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 {
 	struct ImBuf *ibuf = 0;
 	png_structp png_ptr;
@@ -317,7 +317,7 @@ struct ImBuf *imb_loadpng(unsigned char *mem, int size, int flags)
 		return 0;
 	}
 
-	ps.size = size;
+	ps.size = size; /* XXX, 4gig limit! */
 	ps.data = mem;
 	ps.seek = 0;
 
