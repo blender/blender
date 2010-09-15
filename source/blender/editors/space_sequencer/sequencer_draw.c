@@ -63,6 +63,7 @@
 /* own include */
 #include "sequencer_intern.h"
 
+
 #define SEQ_LEFTHANDLE		1
 #define SEQ_RIGHTHANDLE	2
 
@@ -587,8 +588,6 @@ so wave file sample drawing precision is zoom adjusted
 */
 static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *seq, int outline_tint, float pixelx)
 {
-	// XXX
-	extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
 	View2D *v2d= &ar->v2d;
 	float x1, x2, y1, y2;
 	char col[3], background_col[3], is_single_image;
@@ -645,7 +644,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *
 		glLineStipple(1, 0x8888);
 	}
 	
-	gl_round_box_shade(GL_LINE_LOOP, x1, y1, x2, y2, 0.0, 0.1, 0.0);
+	uiDrawBoxShade(GL_LINE_LOOP, x1, y1, x2, y2, 0.0, 0.1, 0.0);
 	
 	if (seq->flag & SEQ_MUTE) {
 		glDisable(GL_LINE_STIPPLE);
@@ -684,7 +683,6 @@ void set_special_seq_update(int val)
 
 void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs)
 {
-	extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 	struct Main *bmain= CTX_data_main(C);
 	struct ImBuf *ibuf = 0;
 	struct ImBuf *scope = 0;
@@ -845,7 +843,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 			uiSetRoundBox(15);
-			gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 

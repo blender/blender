@@ -440,10 +440,6 @@ extern void ui_draw_aligned_panel(struct ARegion *ar, struct uiStyle *style, uiB
 /* interface_draw.c */
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 
-extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
-extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
-extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight);
-
 void ui_draw_gradient(rcti *rect, float *rgb, int type, float alpha);
 
 void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);

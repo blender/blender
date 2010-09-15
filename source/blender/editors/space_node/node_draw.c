@@ -67,7 +67,6 @@
 
 // XXX interface.h
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
-extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 extern void ui_draw_tria_icon(float x, float y, char dir);
 
 void ED_node_changed_update(ID *id, bNode *node)
@@ -749,7 +748,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		glEnable(GL_BLEND);
 		glColor4ub(200, 200, 200, 140);
 		uiSetRoundBox(15-4);
-		gl_round_box(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
+		uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
 		glDisable(GL_BLEND);
 	}
 	
@@ -857,7 +856,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	if(node->flag & NODE_ACTIVE) {
 		glEnable(GL_BLEND);
 		glColor4ub(200, 200, 200, 140);
-		gl_round_box(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
+		uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
 		glDisable(GL_BLEND);
 	}
 	
@@ -1009,18 +1008,18 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	glEnable(GL_BLEND);
 	uiSetRoundBox(3);
 	UI_ThemeColorShadeAlpha(TH_NODE_GROUP, 0, -70);
-	gl_round_box(GL_POLYGON, rect.xmin, rect.ymax, rect.xmax, rect.ymax+NODE_DY, BASIS_RAD);
+	uiDrawBox(GL_POLYGON, rect.xmin, rect.ymax, rect.xmax, rect.ymax+NODE_DY, BASIS_RAD);
 	
 	/* backdrop body */
 	UI_ThemeColorShadeAlpha(TH_BACK, -8, -70);
 	uiSetRoundBox(12);
-	gl_round_box(GL_POLYGON, rect.xmin, rect.ymin, rect.xmax, rect.ymax, BASIS_RAD);
+	uiDrawBox(GL_POLYGON, rect.xmin, rect.ymin, rect.xmax, rect.ymax, BASIS_RAD);
 	
 	/* selection outline */
 	uiSetRoundBox(15);
 	glColor4ub(200, 200, 200, 140);
 	glEnable( GL_LINE_SMOOTH );
-	gl_round_box(GL_LINE_LOOP, rect.xmin, rect.ymin, rect.xmax, rect.ymax+NODE_DY, BASIS_RAD);
+	uiDrawBox(GL_LINE_LOOP, rect.xmin, rect.ymin, rect.xmax, rect.ymax+NODE_DY, BASIS_RAD);
 	glDisable( GL_LINE_SMOOTH );
 	glDisable(GL_BLEND);
 	
