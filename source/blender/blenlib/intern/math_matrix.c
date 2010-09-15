@@ -998,7 +998,7 @@ void rotate_m4(float mat[][4], const char axis, const float angle)
 void blend_m3_m3m3(float out[][3], float dst[][3], float src[][3], float srcweight)
 {
 	float squat[4], dquat[4], fquat[4];
-	float ssize[3], dsize[3], fsize[4];
+	float ssize[3], dsize[3], fsize[3];
 	float rmat[3][3], smat[3][3];
 	
 	mat3_to_quat(dquat,dst);
@@ -1020,7 +1020,7 @@ void blend_m3_m3m3(float out[][3], float dst[][3], float src[][3], float srcweig
 void blend_m4_m4m4(float out[][4], float dst[][4], float src[][4], float srcweight)
 {
 	float squat[4], dquat[4], fquat[4];
-	float ssize[3], dsize[3], fsize[4];
+	float ssize[3], dsize[3], fsize[3];
 	float sloc[3], dloc[3], floc[3];
 	
 	mat4_to_quat(dquat,dst);
