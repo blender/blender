@@ -185,11 +185,16 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 			else 
 				eBone->flag |= BONE_ROOTSEL;
 		}
-		else 
-			eBone->flag &= ~BONE_ROOTSEL;
-		
-		VECCOPY(eBone->head, curBone->arm_head);
-		VECCOPY(eBone->tail, curBone->arm_tail);		
+		else {
+			/* selecting with the mouse gives this behavior */
+			if(eBone->parent && (eBone->flag & BONE_CONNECTED) && (eBone->parent->flag & BONE_SELECTED))
+				eBone->flag |= BONE_ROOTSEL;
+			else
+				eBone->flag &= ~BONE_ROOTSEL;
+		}
+
+		copy_v3_v3(eBone->head, curBone->arm_head);
+		copy_v3_v3(eBone->tail, curBone->arm_tail);		
 		
 		eBone->roll= 0.0f;
 		
@@ -570,8 +575,8 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 		curbone= editbone_name_exists(arm->edbo, pchan->name);
 		
 		/* simply copy the head/tail values from pchan over to curbone */
-		VECCOPY(curbone->head, pchan->pose_head);
-		VECCOPY(curbone->tail, pchan->pose_tail);
+		copy_v3_v3(curbone->head, pchan->pose_head);
+		copy_v3_v3(curbone->tail, pchan->pose_tail);
 		
 		/* fix roll:
 		 *	1. find auto-calculated roll value for this bone now
@@ -2056,7 +2061,7 @@ float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3])
 	sub_v3_v3v3(nor, bone->tail, bone->head);
 	
 	vec_roll_to_mat3(nor, 0, mat);
-	VECCOPY(up_axis, mat[2]);
+	copy_v3_v3(up_axis, mat[2]);
 	
 	roll = angle_normalized_v3v3(new_up_axis, up_axis);
 	
@@ -2083,12 +2088,12 @@ static void auto_align_ebone_zaxisup(Scene *scene, View3D *v3d, EditBone *ebone)
 	vec_roll_to_mat3(delta, 0.0f, curmat);
 	
 	/* Make new matrix based on y axis & z-up */
-	VECCOPY(yaxis, curmat[1]);
+	copy_v3_v3(yaxis, curmat[1]);
 	
 	unit_m3(targetmat);
-	VECCOPY(targetmat[0], xaxis);
-	VECCOPY(targetmat[1], yaxis);
-	VECCOPY(targetmat[2], zaxis);
+	copy_v3_v3(targetmat[0], xaxis);
+	copy_v3_v3(targetmat[1], yaxis);
+	copy_v3_v3(targetmat[2], zaxis);
 	normalize_m3(targetmat);
 	
 	/* Find the difference between the two matrices */
@@ -2111,7 +2116,7 @@ void auto_align_ebone_topoint(EditBone *ebone, float *cursor)
 	sub_v3_v3v3(delta, ebone->tail, ebone->head);
 	vec_roll_to_mat3(delta, ebone->roll, curmat);
 	copy_m4_m3(mat, curmat);
-	VECCOPY(mat[3], ebone->head);
+	copy_v3_v3(mat[3], ebone->head);
 	
 	/* multiply bone-matrix by object matrix (so that bone-matrix is in WorldSpace) */
 	invert_m4_m4(imat, mat);
@@ -2416,19 +2421,19 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *op)
 		arm->act_edbone= newbone;
 		
 		if (to_root) {
-			VECCOPY(newbone->head, ebone->head);
+			copy_v3_v3(newbone->head, ebone->head);
 			newbone->rad_head= ebone->rad_tail;
 			newbone->parent= ebone->parent;
 		}
 		else {
-			VECCOPY(newbone->head, ebone->tail);
+			copy_v3_v3(newbone->head, ebone->tail);
 			newbone->rad_head= ebone->rad_tail;
 			newbone->parent= ebone;
 			newbone->flag |= BONE_CONNECTED;
 		}
 		
 		curs= give_cursor(scene, v3d);
-		VECCOPY(newbone->tail, curs);
+		copy_v3_v3(newbone->tail, curs);
 		sub_v3_v3v3(newbone->tail, newbone->tail, obedit->obmat[3]);
 		
 		if (a==1) 
@@ -2472,7 +2477,7 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 	
 	fp= give_cursor(scene, v3d);
 	
-	VECCOPY(oldcurs, fp);
+	copy_v3_v3(oldcurs, fp);
 	
 	mx= event->x - ar->winrct.xmin;
 	my= event->y - ar->winrct.ymin;
@@ -2502,7 +2507,7 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 	retv= armature_click_extrude_exec(C, op);
 
 	/* restore previous 3d cursor position */
-	VECCOPY(fp, oldcurs);
+	copy_v3_v3(fp, oldcurs);
 
 	return retv;
 }
@@ -2531,8 +2536,8 @@ static EditBone *add_points_bone (Object *obedit, float head[], float tail[])
 	
 	ebo= ED_armature_edit_bone_add(obedit->data, "Bone");
 	
-	VECCOPY(ebo->head, head);
-	VECCOPY(ebo->tail, tail);
+	copy_v3_v3(ebo->head, head);
+	copy_v3_v3(ebo->tail, tail);
 	
 	return ebo;
 }
@@ -2859,10 +2864,10 @@ static void fill_add_joint (EditBone *ebo, short eb_tail, ListBase *points)
 	short found= 0;
 	
 	if (eb_tail) {
-		VECCOPY(vec, ebo->tail);
+		copy_v3_v3(vec, ebo->tail);
 	}
 	else {
-		VECCOPY(vec, ebo->head);
+		copy_v3_v3(vec, ebo->head);
 	}
 	
 	for (ebp= points->first; ebp; ebp= ebp->next) {
@@ -2891,11 +2896,11 @@ static void fill_add_joint (EditBone *ebo, short eb_tail, ListBase *points)
 		ebp= MEM_callocN(sizeof(EditBonePoint), "EditBonePoint");
 		
 		if (eb_tail) {
-			VECCOPY(ebp->vec, ebo->tail);
+			copy_v3_v3(ebp->vec, ebo->tail);
 			ebp->tail_owner= ebo;
 		}
 		else {
-			VECCOPY(ebp->vec, ebo->head);
+			copy_v3_v3(ebp->vec, ebo->head);
 			ebp->head_owner= ebo;
 		}
 		
@@ -5694,7 +5699,7 @@ void transform_armature_mirror_update(Object *obedit)
 					/* Also move connected children, in case children's name aren't mirrored properly */
 					for (children=arm->edbo->first; children; children=children->next) {
 						if (children->parent == eboflip && children->flag & BONE_CONNECTED) {
-							VECCOPY(children->head, eboflip->tail);
+							copy_v3_v3(children->head, eboflip->tail);
 							children->rad_head = ebo->rad_tail;
 						}
 					}
@@ -5709,7 +5714,7 @@ void transform_armature_mirror_update(Object *obedit)
 					if (eboflip->parent && eboflip->flag & BONE_CONNECTED)
 					{
 						EditBone *parent = eboflip->parent;
-						VECCOPY(parent->tail, eboflip->head);
+						copy_v3_v3(parent->tail, eboflip->head);
 						parent->rad_tail = ebo->rad_head;
 					}
 				}
@@ -5750,7 +5755,7 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 		
 		parent = ED_armature_edit_bone_add(arm, "Bone");
 		parent->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-		VECCOPY(parent->head, head->p);
+		copy_v3_v3(parent->head, head->p);
 		
 		root = parent;
 		
@@ -5775,17 +5780,17 @@ EditBone * subdivideByAngle(Scene *scene, Object *obedit, ReebArc *arc, ReebNode
 
 			if (len1 > 0.0f && len2 > 0.0f && dot_v3v3(vec1, vec2) < angleLimit)
 			{
-				VECCOPY(parent->tail, previous);
+				copy_v3_v3(parent->tail, previous);
 
 				child = ED_armature_edit_bone_add(arm, "Bone");
-				VECCOPY(child->head, parent->tail);
+				copy_v3_v3(child->head, parent->tail);
 				child->parent = parent;
 				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 				
 				parent = child; /* new child is next parent */
 			}
 		}
-		VECCOPY(parent->tail, tail->p);
+		copy_v3_v3(parent->tail, tail->p);
 		
 		/* If the bone wasn't subdivided, delete it and return NULL
 		 * to let subsequent subdivision methods do their thing. 
@@ -5904,7 +5909,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	obedit= scene->basact->object;
 	
 	/* Copy orientation from source */
-	VECCOPY(dst->loc, src->obmat[3]);
+	copy_v3_v3(dst->loc, src->obmat[3]);
 	mat4_to_eul( dst->rot,src->obmat);
 	mat4_to_size( dst->size,src->obmat);
 	
@@ -5986,8 +5991,8 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 			bone = ED_armature_edit_bone_add(obedit->data, "Bone");
 			bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 			
-			VECCOPY(bone->head, head->p);
-			VECCOPY(bone->tail, tail->p);
+			copy_v3_v3(bone->head, head->p);
+			copy_v3_v3(bone->tail, tail->p);
 			
 			/* set first and last bone, since there's only one */
 			lastBone = bone;

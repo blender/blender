@@ -538,6 +538,16 @@ static void rna_def_bone(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_SELECTED);
 	RNA_def_property_ui_text(prop, "Select", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	
+	prop= RNA_def_property(srna, "select_head", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_ROOTSEL);
+	RNA_def_property_ui_text(prop, "Select Head", "");
+	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	
+	prop= RNA_def_property(srna, "select_tail", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_TIPSEL);
+	RNA_def_property_ui_text(prop, "Select Tail", "");
+	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	/* XXX better matrix descriptions possible (Arystan) */
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
