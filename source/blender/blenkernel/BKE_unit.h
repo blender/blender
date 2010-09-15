@@ -36,6 +36,9 @@ void	bUnit_AsString(char *str, int len_max, double value, int prec, int system, 
 /* replace units with values, used before python button evaluation */
 int		bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pref, int system, int type);
 
+/* make string keyboard-friendly: 10µm --> 10um */
+void bUnit_ToUnitAltName(char *str, int len_max, char *orig_str, int system, int type);
+
 /* the size of the unit used for this value (used for calculating the ckickstep) */
 double bUnit_ClosestScalar(double value, int system, int type);
 

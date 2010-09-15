@@ -1443,6 +1443,23 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
 	}
 }
 
+/* str will be overwritten */
+void ui_convert_to_unit_alt_name(uiBut *but, char *str, int maxlen)
+{
+	if(ui_is_but_unit(but)) {
+		int unit_type= RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
+		char *orig_str;
+		Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
+		
+		orig_str= MEM_callocN(sizeof(char)*maxlen + 1, "textedit sub str");
+		memcpy(orig_str, str, maxlen);
+		
+		bUnit_ToUnitAltName(str, maxlen, orig_str, scene->unit.system, unit_type);
+		
+		MEM_freeN(orig_str);
+	}
+}
+
 static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double value, int pad)
 {
 	Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);

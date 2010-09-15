@@ -1555,7 +1555,8 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 		int i;
 		for(i=0; data->str[i]; i++) {
 			if(!isascii(data->str[i])) {
-				data->str[i]= '\0';
+				/* no stripping actually: just convert to alt name */
+				ui_convert_to_unit_alt_name(but, data->str, data->maxlen);
 				break;
 			}
 		}

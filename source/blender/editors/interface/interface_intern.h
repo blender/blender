@@ -356,6 +356,7 @@ extern void ui_set_but_vectorf(uiBut *but, float *vec);
 extern void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my);
 
 extern void ui_get_but_string(uiBut *but, char *str, int maxlen);
+extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, int maxlen);
 extern int ui_set_but_string(struct bContext *C, uiBut *but, const char *str);
 extern int ui_get_but_string_max_length(uiBut *but);
 
