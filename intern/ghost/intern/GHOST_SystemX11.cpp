@@ -851,6 +851,8 @@ getModifierKeys(
 	const KeyCode control_r = XKeysymToKeycode(m_display,XK_Control_R);
 	const KeyCode alt_l = XKeysymToKeycode(m_display,XK_Alt_L);
 	const KeyCode alt_r = XKeysymToKeycode(m_display,XK_Alt_R);
+	const KeyCode super_l = XKeysymToKeycode(m_display,XK_Super_L);
+	const KeyCode super_r = XKeysymToKeycode(m_display,XK_Super_R);
 
 	// Shift
 	if ((m_keyboard_vector[shift_l >> 3] >> (shift_l & 7)) & 1) {
@@ -887,6 +889,15 @@ getModifierKeys(
 		keys.set(GHOST_kModifierKeyRightAlt,true);
 	} else {
 		keys.set(GHOST_kModifierKeyRightAlt,false);
+	}
+
+	// Super (Windows) - only one GHOST-kModifierKeyCommand, so mapping
+	// to either
+	if ( ((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) || 
+	     ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1) ) {
+		keys.set(GHOST_kModifierKeyCommand,true);
+	} else {
+		keys.set(GHOST_kModifierKeyCommand,false);
 	}
 	return GHOST_kSuccess;
 }
@@ -1095,6 +1106,8 @@ convertXKey(
 			GXMAP(type,XK_Control_R,	GHOST_kKeyRightControl);
 			GXMAP(type,XK_Alt_L,	 	GHOST_kKeyLeftAlt);
 			GXMAP(type,XK_Alt_R,	 	GHOST_kKeyRightAlt);
+			GXMAP(type,XK_Super_L,		GHOST_kKeyCommand);
+			GXMAP(type,XK_Super_R,		GHOST_kKeyCommand);
 
 			GXMAP(type,XK_Insert,	 	GHOST_kKeyInsert);
 			GXMAP(type,XK_Delete,	 	GHOST_kKeyDelete);
