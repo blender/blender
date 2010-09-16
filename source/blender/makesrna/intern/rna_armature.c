@@ -23,7 +23,8 @@
  */
 
 #include <stdlib.h>
-#include <math.h>
+
+#include "BLI_math.h"
 
 #include "RNA_define.h"
 
@@ -37,8 +38,6 @@
 #include "WM_types.h"
 
 #ifdef RNA_RUNTIME
-
-#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
