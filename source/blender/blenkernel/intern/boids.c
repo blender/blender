@@ -792,7 +792,7 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 		}
 
 		/* couldn't find below, so find upmost deflector object */
-		add_v3_v3(col.co1, pa->state.co, zvec);
+		add_v3_v3v3(col.co1, pa->state.co, zvec);
 		sub_v3_v3v3(col.co2, pa->state.co, zvec);
 		sub_v3_v3(col.co2, zvec);
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
