@@ -178,19 +178,33 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 		eBone->flag = curBone->flag;
 		
 		/* fix selection flags */
+
 		if (eBone->flag & BONE_SELECTED) {
+			/* if the bone is selected the copy its root selection to the parents tip */
 			eBone->flag |= BONE_TIPSEL;
-			if (eBone->parent && (eBone->flag & BONE_CONNECTED))
+			if (eBone->parent && (eBone->flag & BONE_CONNECTED)) {
 				eBone->parent->flag |= BONE_TIPSEL;
-			else 
+				eBone->flag &= ~BONE_ROOTSEL; /* this is ignored when there is a connected parent, so unset it */
+			}
+			else {
 				eBone->flag |= BONE_ROOTSEL;
+			}
 		}
 		else {
-			/* selecting with the mouse gives this behavior */
-			if(eBone->parent && (eBone->flag & BONE_CONNECTED) && (eBone->parent->flag & BONE_SELECTED))
-				eBone->flag |= BONE_ROOTSEL;
-			else
-				eBone->flag &= ~BONE_ROOTSEL;
+			/* if the bone is not selected, but connected to its parent
+			 *  copy the parents tip selection state */
+			if(eBone->parent &&  (eBone->flag & BONE_CONNECTED)) {
+				/* selecting with the mouse gives this behavior */
+				if(eBone->parent->flag & BONE_TIPSEL) {
+					eBone->flag |= BONE_ROOTSEL;
+				}
+				else {
+					eBone->flag &= ~BONE_ROOTSEL;
+				}
+
+				/* probably not selected but just incase */
+				eBone->flag &= ~BONE_TIPSEL;
+			}
 		}
 
 		copy_v3_v3(eBone->head, curBone->arm_head);
