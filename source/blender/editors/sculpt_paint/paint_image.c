@@ -5135,11 +5135,40 @@ static int sample_color_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ARegion *ar= CTX_wm_region(C);
 	int location[2];
 
-	location[0]= event->x - ar->winrct.xmin;
-	location[1]= event->y - ar->winrct.ymin;
-	RNA_int_set_array(op->ptr, "location", location);
+	if(ar) {
+		location[0]= event->x - ar->winrct.xmin;
+		location[1]= event->y - ar->winrct.ymin;
+		RNA_int_set_array(op->ptr, "location", location);
 
-	return sample_color_exec(C, op);
+		sample_color_exec(C, op);
+	}
+
+	WM_event_add_modal_handler(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int sample_color_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	int location[2];
+
+	switch(event->type) {
+		case LEFTMOUSE:
+		case RIGHTMOUSE: // XXX hardcoded
+			return OPERATOR_FINISHED;
+		case MOUSEMOVE:
+			if(ar) {
+				location[0]= event->x - ar->winrct.xmin;
+				location[1]= event->y - ar->winrct.ymin;
+				RNA_int_set_array(op->ptr, "location", location);
+
+				sample_color_exec(C, op);
+			}
+			break;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
 }
 
 void PAINT_OT_sample_color(wmOperatorType *ot)
@@ -5151,6 +5180,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= sample_color_exec;
 	ot->invoke= sample_color_invoke;
+	ot->modal= sample_color_modal;
 	ot->poll= image_paint_poll;
 
 	/* flags */
