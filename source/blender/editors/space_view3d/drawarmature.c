@@ -655,6 +655,26 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], int boneflag
 	mul_mat3_m4_v3(smat, dirvec);
 	/* clear zcomp */
 	dirvec[2]= 0.0f;
+
+	if(head != tail) {
+	/* correcyion when viewing along the bones axis
+	 * it pops in and out but better then artifacts, [#23841] */
+		float view_dist= len_v2(dirvec);
+
+		if(head - view_dist > tail) {
+			tailvec= headvec;
+			tail = head;
+			zero_v3(dirvec);
+			dirvec[0]= 0.00001; // XXX. weak but ok
+		}
+		else if(tail - view_dist > head) {
+			headvec= tailvec;
+			head = tail;
+			zero_v3(dirvec);
+			dirvec[0]= 0.00001; // XXX. weak but ok
+		}
+	}
+
 	/* move vector back */
 	mul_mat3_m4_v3(imat, dirvec);
 	
