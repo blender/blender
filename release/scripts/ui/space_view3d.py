@@ -1493,7 +1493,7 @@ class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.merge")
-        layout.operator("mesh.rip")
+        layout.operator("mesh.rip_move")
         layout.operator("mesh.split")
         layout.operator("mesh.separate")
 
