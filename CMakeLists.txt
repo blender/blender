@@ -364,15 +364,6 @@ IF(WIN32)
 
 	SET(WINTAB_INC ${LIBDIR}/wintab/include) 
 
-	IF(WITH_PYTHON)
-		SET(PYTHON ${LIBDIR}/python)
-		SET(PYTHON_VERSION 3.1)
-		SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
-		# SET(PYTHON_BINARY python) # not used yet
-		SET(PYTHON_LIB python31mw)
-		SET(PYTHON_LIBPATH ${PYTHON}/lib)
-	ENDIF(WITH_PYTHON)
-
 	IF(WITH_OPENAL)
 		SET(OPENAL ${LIBDIR}/openal)
 		SET(OPENAL_INCLUDE_DIR ${OPENAL}/include)
@@ -529,6 +520,15 @@ IF(WIN32)
 			SET(JACK_LIBPATH ${JACK}/lib)
 		ENDIF(WITH_JACK)
 
+		IF(WITH_PYTHON)
+			SET(PYTHON ${LIBDIR}/python)
+			SET(PYTHON_VERSION 3.1)
+			SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
+			# SET(PYTHON_BINARY python) # not used yet
+			SET(PYTHON_LIB python31)
+			SET(PYTHON_LIBPATH ${PYTHON}/lib)
+		ENDIF(WITH_PYTHON)
+
 		# MSVC only, Mingw doesnt need
 		IF(CMAKE_CL_64)
 			SET(PLATFORM_LINKFLAGS "/MACHINE:X64 /NODEFAULTLIB:libc.lib;MSVCRT.lib ")
@@ -630,6 +630,15 @@ IF(WIN32)
 			# TODO, gives linking errors, force off
 			SET(WITH_JACK OFF)
 		ENDIF(WITH_JACK)
+
+		IF(WITH_PYTHON)
+			SET(PYTHON ${LIBDIR}/python)
+			SET(PYTHON_VERSION 3.1)
+			SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
+			# SET(PYTHON_BINARY python) # not used yet
+			SET(PYTHON_LIB python31mw)
+			SET(PYTHON_LIBPATH ${PYTHON}/lib)
+		ENDIF(WITH_PYTHON)
 
 	ENDIF(MSVC)
 
