@@ -512,6 +512,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
             col = row.column()
             col.label(text="Misc:")
             col.prop(boids, "bank", slider=True)
+            col.prop(boids, "pitch", slider=True)
             col.prop(boids, "height", slider=True)
 
         if part.physics_type == 'KEYED' or part.physics_type == 'BOIDS' or part.physics_type == 'FLUID':

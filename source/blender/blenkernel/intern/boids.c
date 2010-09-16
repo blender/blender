@@ -1386,7 +1386,9 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	/* save direction to state.ave unless the boid is falling */
 	/* (boids can't effect their direction when falling) */
 	if(bpa->data.mode!=eBoidMode_Falling && len_v3(pa->state.vel) > 0.1*pa->size) {
-		normalize_v3_v3(pa->state.ave, pa->state.vel);
+		copy_v3_v3(pa->state.ave, pa->state.vel);
+		pa->state.ave[2] *= bbd->part->boids->pitch;
+		normalize_v3(pa->state.ave);
 	}
 
 	/* apply damping */
@@ -1471,6 +1473,7 @@ void boid_default_settings(BoidSettings *boids)
 
 	boids->landing_smoothness = 3.0f;
 	boids->banking = 1.0f;
+	boids->pitch = 1.0f;
 	boids->height = 1.0f;
 
 	boids->health = 1.0f;

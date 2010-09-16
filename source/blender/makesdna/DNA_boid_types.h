@@ -187,8 +187,8 @@ typedef struct BoidState {
 typedef struct BoidSettings {
 	int options, last_state_id;
 
-	float landing_smoothness, rt;
-	float banking, height;
+	float landing_smoothness, height;
+	float banking, pitch;
 
 	float health, aggression;
 	float strength, accuracy, range;

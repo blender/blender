@@ -11107,6 +11107,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		
 	}
+	{
+		ParticleSettings *part;
+		for(part = main->particle.first; part; part = part->id.next) {
+			if(part->boids)
+				part->boids->pitch = 1.0f;
+		}
+	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
