@@ -752,7 +752,7 @@ void TRANSFORM_OT_transform(struct wmOperatorType *ot)
 			{TFM_PUSHPULL, "PUSHPULL", 0, "Pushpull", ""},
 			{TFM_CREASE, "CREASE", 0, "Crease", ""},
 			{TFM_MIRROR, "MIRROR", 0, "Mirror", ""},
-			{TFM_BONESIZE, "BONESIZE", 0, "Bonesize", ""},
+			{TFM_BONESIZE, "BONE_SIZE", 0, "Bonesize", ""},
 			{TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone_Envelope", ""},
 			{TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", 0, "Curve_Shrinkfatten", ""},
 			{TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone_Roll", ""},
