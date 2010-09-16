@@ -593,7 +593,7 @@ static void def_group(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	prop = RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "NodeTree");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
