@@ -45,6 +45,9 @@ double bUnit_ClosestScalar(double value, int system, int type);
 /* base scale for these units */
 double bUnit_BaseScalar(int system, int type);
 
+/* return true is the unit system exists */
+int bUnit_IsValid(int system, int type);
+
 /* loop over scales, coudl add names later */
 //double bUnit_Iter(void **unit, char **name, int system, int type);
 
@@ -63,6 +66,7 @@ double	bUnit_GetScaler(void *usys_pt, int index);
 #define 	B_UNIT_TIME 6
 #define 	B_UNIT_VELOCITY 7
 #define 	B_UNIT_ACCELERATION 8
+#define 	B_UNIT_MAXDEF 9
 
 #ifdef __cplusplus
 }

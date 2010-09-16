@@ -1234,11 +1234,13 @@ int ui_is_but_unit(uiBut *but)
 	
 	if(but->rnaprop==NULL)
 		return 0;
-	
+
 	unit_type = RNA_SUBTYPE_UNIT(RNA_property_subtype(but->rnaprop));
-	
+
+#if 0 // removed so angle buttons get correct snapping
 	if (scene->unit.flag & USER_UNIT_ROT_RADIANS && unit_type == PROP_UNIT_ROTATION)
 		return 0;
+#endif
 	
 	/* for now disable time unit conversion */	
 	if (unit_type == PROP_UNIT_TIME)

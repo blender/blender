@@ -24,12 +24,15 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include "BKE_unit.h"
+
 #ifdef WIN32
 #define _USE_MATH_DEFINES
 #endif
 #include <math.h>
 
 #include "BLI_winstuff.h"
+
 
 #define TEMP_STR_SIZE 256
 
@@ -127,13 +130,16 @@ static struct bUnitDef buNaturalRotDef[] = {
 };
 static struct bUnitCollection buNaturalRotCollection = {buNaturalRotDef, 0, 0, sizeof(buNaturalRotDef)/sizeof(bUnitDef)};
 
-#define UNIT_SYSTEM_MAX 3
+#define UNIT_SYSTEM_TOT (((sizeof(bUnitSystems) / 8) / sizeof(void *)) - 1)
+
 static struct bUnitCollection *bUnitSystems[][8] = {
 	{0,0,0,0,0,&buNaturalRotCollection,&buNaturalTimeCollecton,0},
 	{0,&buMetricLenCollecton, 0,0,0, &buNaturalRotCollection, &buNaturalTimeCollecton,0}, /* metric */
 	{0,&buImperialLenCollecton, 0,0,0,&buNaturalRotCollection, &buNaturalTimeCollecton,0}, /* imperial */
 	{0,0,0,0,0,0,0,0}
 };
+
+
 
 /* internal, has some option not exposed */
 static bUnitCollection *unit_get_system(int system, int type)
@@ -459,7 +465,7 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 		bUnitCollection *usys_iter;
 		int system_iter;
 
-		for(system_iter= 0; system_iter<UNIT_SYSTEM_MAX; system_iter++) {
+		for(system_iter= 0; system_iter<UNIT_SYSTEM_TOT; system_iter++) {
 			if (system_iter != system) {
 				usys_iter= unit_get_system(system_iter, type);
 				if (usys_iter) {
@@ -610,6 +616,12 @@ double bUnit_BaseScalar(int system, int type)
 }
 
 /* external access */
+int bUnit_IsValid(int system, int type)
+{
+	return !(type < 0 || type >= B_UNIT_MAXDEF || system < 0 || system > UNIT_SYSTEM_TOT);
+}
+
+
 void bUnit_GetSystem(void **usys_pt, int *len, int system, int type)
 {
 	bUnitCollection *usys = unit_get_system(system, type);

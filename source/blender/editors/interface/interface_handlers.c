@@ -44,6 +44,7 @@
 #include "BKE_idprop.h"
 #include "BKE_report.h"
 #include "BKE_texture.h"
+#include "BKE_unit.h"
 
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -2195,26 +2196,47 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 }
 
 /* var names match ui_numedit_but_NUM */
-static float ui_numedit_apply_snapf(float tempf, float softmin, float softmax, float softrange, int snap)
+static float ui_numedit_apply_snapf(uiBut *but, float tempf, float softmin, float softmax, float softrange, int snap)
 {
-	if(tempf==softmin || tempf==softmax)
-		return tempf;
+	if(tempf==softmin || tempf==softmax || snap==0) {
+		/* pass */
+	}
+	else {
+		float fac= 1.0f;
+		
+		if(ui_is_but_unit(but)) {
+			Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
+			int unit_type = RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
 
-	switch(snap) {
-	case 0:
-		break;
-	case 1:
-		if(tempf==softmin || tempf==softmax) { }
-		else if(softrange < 2.10) tempf= 0.1*floor(10*tempf);
-		else if(softrange < 21.0) tempf= floor(tempf);
-		else tempf= 10.0*floor(tempf/10.0);
-		break;
-	case 2:
-		if(tempf==softmin || tempf==softmax) { }
-		else if(softrange < 2.10) tempf= 0.01*floor(100.0*tempf);
-		else if(softrange < 21.0) tempf= 0.1*floor(10.0*tempf);
-		else tempf= floor(tempf);
-		break;
+			if(bUnit_IsValid(scene->unit.system, unit_type)) {
+				fac= (float)bUnit_BaseScalar(scene->unit.system, unit_type);
+				if(ELEM3(unit_type, B_UNIT_LENGTH, B_UNIT_AREA, B_UNIT_VOLUME)) {
+					fac /= scene->unit.scale_length;
+				}
+			}
+		}
+
+		if(fac != 1.0f) {
+			/* snap in unit-space */
+			tempf /= fac;
+			softmin /= fac;
+			softmax /= fac;
+			softrange /= fac;
+		}
+
+		if(snap==1) {
+			if(softrange < 2.10) tempf= 0.1*floor(10*tempf);
+			else if(softrange < 21.0) tempf= floor(tempf);
+			else tempf= 10.0*floor(tempf/10.0);
+		}
+		else if(snap==2) {
+			if(softrange < 2.10) tempf= 0.01*floor(100.0*tempf);
+			else if(softrange < 21.0) tempf= 0.1*floor(10.0*tempf);
+			else tempf= floor(tempf);
+		}
+		
+		if(fac != 1.0f)
+			tempf *= fac;
 	}
 
 	return tempf;
@@ -2267,7 +2289,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		if(ui_is_but_float(but)) {
 			fac *= 0.01*but->a1;
 			tempf = data->startvalue + ((mx - data->dragstartx) * fac);
-			tempf= ui_numedit_apply_snapf(tempf, softmin, softmax, softrange, snap);
+			tempf= ui_numedit_apply_snapf(but, tempf, softmin, softmax, softrange, snap);
 
 #if 1		/* fake moving the click start, nicer for dragging back after passing the limit */
 			if(tempf < softmin) {
@@ -2360,7 +2382,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		}
 		else {
 			temp= 0;
-			tempf= ui_numedit_apply_snapf(tempf, softmin, softmax, softrange, snap);
+			tempf= ui_numedit_apply_snapf(but, tempf, softmin, softmax, softrange, snap);
 
 			CLAMP(tempf, softmin, softmax);
 
