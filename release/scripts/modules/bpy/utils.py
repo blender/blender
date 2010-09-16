@@ -117,7 +117,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         # note that they will only actually reload of the modification time changes.
         # this `wont` work for packages so... its not perfect.
         for module_name in [ext.module for ext in _bpy.context.user_preferences.addons]:
-            addon_disable(module_name, default_set)
+            addon_disable(module_name, default_set=False)
 
     def register_module_call(mod):
         _bpy_types._register_module(mod.__name__)
