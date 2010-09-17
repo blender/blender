@@ -632,13 +632,14 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        props = self
+        props = self.properties # XXX, this should not be needed, api problem!
         layout.label(text="Descriptor ID: '%s'" % props.doc_id)
         layout.prop(props, "doc_new", text="")
 
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=600)
+
 
 
 from bpy.props import *

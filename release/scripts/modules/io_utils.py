@@ -34,6 +34,14 @@ class ExportHelper:
         context.window_manager.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
+    def check(self, context):
+        filepath = bpy.path.ensure_ext(self.filepath, self.filename_ext)
+        if filepath != self.filepath:
+            self.filepath = filepath
+            return True
+        else:
+            return False
+
 
 class ImportHelper:
     filepath = StringProperty(name="File Path", description="Filepath used for importing the file", maxlen=1024, default="", subtype='FILE_PATH')

@@ -577,15 +577,8 @@ void write_stl(Scene *scene, char *str)
 	FILE   *fpSTL;
 	int    numfacets = 0;
 	ReportList *reports= NULL; /* XXX */
-	
-	if(BLI_testextensie(str,".blend")) str[ strlen(str)-6]= 0;
-	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
-	if(BLI_testextensie(str,".stl")==0) strcat(str, ".stl");
 
-	if (BLI_exists(str)) {
-		; //XXX if(saveover(str)==0)
-		//XXX   return;
-	}
+	/* XXX, operator needs to manage filename extension */
 
 	fpSTL= fopen(str, "wb");
 	
@@ -872,15 +865,7 @@ void write_dxf(struct Scene *scene, char *str)
 	Base *base;
 	FILE *fp;
 	
-	if(BLI_testextensie(str,".blend")) str[ strlen(str)-6]= 0;
-	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
-	if(BLI_testextensie(str,".dxf")==0) strcat(str, ".dxf");
-
-	
-	if (BLI_exists(str)) {
-		; //XXX if(saveover(str)==0)
-		//	return;
-	}
+	/* XXX, operator needs to handle overwrite & rename */
 
 	fp= fopen(str, "w");
 	

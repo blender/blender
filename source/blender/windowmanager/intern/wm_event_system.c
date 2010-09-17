@@ -1241,6 +1241,8 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				/* needed for uiPupMenuReports */
 
 				if(event->val==EVT_FILESELECT_EXEC) {
+#if 0				// use REDALERT now
+
 					/* a bit weak, might become arg for WM_event_fileselect? */
 					/* XXX also extension code in image-save doesnt work for this yet */
 					if (RNA_struct_find_property(handler->op->ptr, "check_existing") && 
@@ -1251,7 +1253,9 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 						if(path)
 							MEM_freeN(path);
 					}
-					else {
+					else
+#endif
+					{
 						int retval;
 						
 						if(handler->op->type->flag & OPTYPE_UNDO)
@@ -1820,6 +1824,12 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	
 	BLI_addhead(&win->modalhandlers, handler);
 	
+	/* check props once before invoking if check is available
+	 * ensures initial properties are valid */
+	if(op->type->check) {
+		op->type->check(C, op); /* ignore return value */
+	}
+
 	WM_event_fileselect_event(C, op, full?EVT_FILESELECT_FULL_OPEN:EVT_FILESELECT_OPEN);
 }
 

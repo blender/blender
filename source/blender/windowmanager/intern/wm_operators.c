@@ -928,6 +928,16 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 	uiPupBlockClose(C, block);
 }
 
+void dialog_check_cb(bContext *C, void *op_ptr, void *dummy2)
+{
+	wmOperator *op= op_ptr;
+	if(op->type->check) {
+		if(op->type->check(C, op)) {
+			/* refresh */
+		}
+	}
+}
+
 /* Dialogs are popups that require user verification (click OK) before exec */
 static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 {
@@ -953,6 +963,8 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, style);
 	uiItemL(layout, op->type->name, 0);
+	
+	uiBlockSetFunc(block, dialog_check_cb, op, NULL);
 
 	if (op->type->ui) {
 		op->layout= layout;
@@ -961,6 +973,8 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 	}
 	else
 		uiDefAutoButsRNA(C, layout, &ptr, columns);
+	
+	uiBlockSetFunc(block, NULL, NULL, NULL);
 
 	/* Create OK button, the callback of which will execute op */
 	btn= uiDefBut(block, BUT, 0, "OK", 0, 0, 0, 20, NULL, 0, 0, 0, 0, "");
@@ -1799,6 +1813,18 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+/* function used for WM_OT_save_mainfile too */
+static int blend_save_check(bContext *C, wmOperator *op)
+{
+	char filepath[FILE_MAX];
+	RNA_string_get(op->ptr, "filepath", filepath);
+	if(BLI_replace_extension(filepath, sizeof(filepath), ".blend")) {
+		RNA_string_set(op->ptr, "filepath", filepath);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Save As Blender File";
@@ -1807,6 +1833,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	
 	ot->invoke= wm_save_as_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
+	ot->check= blend_save_check;
 	ot->poll= WM_operator_winactive;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH);
@@ -1857,6 +1884,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	
 	ot->invoke= wm_save_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
+	ot->check= blend_save_check;
 	ot->poll= NULL;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH);
@@ -1872,9 +1900,10 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {	
 	if(!RNA_property_is_set(op->ptr, "filepath")) {
-		char *path = BLI_replacestr(G.sce, ".blend", ".dae");
-		RNA_string_set(op->ptr, "filepath", path);
-		MEM_freeN(path);
+		char *filepath[FILE_MAX];
+		BLI_strncpy(filepath, G.sce, sizeof(filepath));
+		BLI_replace_extension(filepath, sizeof(filepath), ".dae");
+		RNA_string_set(op->ptr, "filepath", filepath);
 	}
 
 	WM_event_add_fileselect(C, op);

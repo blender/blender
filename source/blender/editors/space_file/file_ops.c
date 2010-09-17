@@ -206,7 +206,11 @@ static FileSelect file_select(bContext* C, const rcti* rect, short selecting, sh
 			}
 			
 		}	
-	} 
+	}
+	
+	/* update operator for name change event */
+	file_draw_check_cb(C, NULL, NULL);
+	
 	return retval;
 }
 
@@ -541,6 +545,114 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 	ot->poll= file_operator_poll;
 }
 
+
+void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
+{
+	BLI_join_dirfile(filepath, sfile->params->dir, sfile->params->file);
+	if(RNA_struct_find_property(op->ptr, "relative_path")) {
+		if(RNA_boolean_get(op->ptr, "relative_path")) {
+			BLI_path_rel(filepath, G.sce);
+		}
+	}
+
+	if(RNA_struct_find_property(op->ptr, "filename")) {
+		RNA_string_set(op->ptr, "filename", sfile->params->file);
+	}
+	if(RNA_struct_find_property(op->ptr, "directory")) {
+		RNA_string_set(op->ptr, "directory", sfile->params->dir);
+	}
+	if(RNA_struct_find_property(op->ptr, "filepath")) {
+		RNA_string_set(op->ptr, "filepath", filepath);
+	}
+	
+	/* some ops have multiple files to select */
+	{
+		PointerRNA itemptr;
+		int i, numfiles = filelist_numfiles(sfile->files);
+		struct direntry *file;
+		if(RNA_struct_find_property(op->ptr, "files")) {
+			for (i=0; i<numfiles; i++) {
+				file = filelist_file(sfile->files, i);
+				if(file->flags & ACTIVEFILE) {
+					if ((file->type & S_IFDIR)==0) {
+						RNA_collection_add(op->ptr, "files", &itemptr);
+						RNA_string_set(&itemptr, "name", file->relname);
+					}
+				}
+			}
+		}
+		
+		if(RNA_struct_find_property(op->ptr, "dirs")) {
+			for (i=0; i<numfiles; i++) {
+				file = filelist_file(sfile->files, i);
+				if(file->flags & ACTIVEFILE) {
+					if ((file->type & S_IFDIR)) {
+						RNA_collection_add(op->ptr, "dirs", &itemptr);
+						RNA_string_set(&itemptr, "name", file->relname);
+					}
+				}
+			}
+		}
+	}
+}
+
+void file_operator_to_sfile(SpaceFile *sfile, wmOperator *op)
+{
+	int change= FALSE;
+	if(RNA_struct_find_property(op->ptr, "filename")) {
+		RNA_string_get(op->ptr, "filename", sfile->params->file);
+		change= TRUE;
+	}
+	if(RNA_struct_find_property(op->ptr, "directory")) {
+		RNA_string_get(op->ptr, "directory", sfile->params->dir);
+		change= TRUE;
+	}
+	
+	/* If neither of the above are set, split the filepath back */
+	if(RNA_struct_find_property(op->ptr, "filepath")) {
+		if(change==FALSE) {
+			char filepath[FILE_MAX];
+			RNA_string_get(op->ptr, "filepath", filepath);
+			BLI_split_dirfile(filepath, sfile->params->dir, sfile->params->file);
+		}
+	}
+	
+	/* XXX, files and dirs updates missing, not really so important though */
+}
+
+void file_draw_check_cb(bContext *C, void *dummy1, void *dummy2)
+{
+	SpaceFile *sfile= CTX_wm_space_file(C);
+	wmOperator *op= sfile->op;
+	if(op->type->check) {
+		char filepath[FILE_MAX];
+		file_sfile_to_operator(op, sfile, filepath);
+		
+		/* redraw */
+		if(op->type->check(C, op)) {
+			file_operator_to_sfile(sfile, op);
+
+			/* redraw, else the changed settings wont get updated */
+			ED_area_tag_redraw(CTX_wm_area(C));
+		}
+	}
+}
+
+int file_draw_check_exists(SpaceFile *sfile)
+{
+	if(RNA_struct_find_property(sfile->op->ptr, "check_existing")) {
+		if(RNA_boolean_get(sfile->op->ptr, "check_existing")) {
+			char filepath[FILE_MAX];
+			BLI_join_dirfile(filepath, sfile->params->dir, sfile->params->file);
+			if(BLI_exists(filepath) && !BLI_is_dir(filepath)) {
+				return TRUE;
+			}
+		}
+	}
+
+	return FALSE;
+}
+
 /* sends events now, so things get handled on windowqueue level */
 int file_exec(bContext *C, wmOperator *exec_op)
 {
@@ -568,53 +680,8 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		
 		sfile->op = NULL;
 
-		BLI_join_dirfile(filepath, sfile->params->dir, sfile->params->file);
-		if(RNA_struct_find_property(op->ptr, "relative_path")) {
-			if(RNA_boolean_get(op->ptr, "relative_path")) {
-				BLI_path_rel(filepath, G.sce);
-			}
-		}
+		file_sfile_to_operator(op, sfile, filepath);
 
-		if(RNA_struct_find_property(op->ptr, "filename")) {
-			RNA_string_set(op->ptr, "filename", sfile->params->file);
-		}
-		if(RNA_struct_find_property(op->ptr, "directory")) {
-			RNA_string_set(op->ptr, "directory", sfile->params->dir);
-		}
-		if(RNA_struct_find_property(op->ptr, "filepath")) {
-			RNA_string_set(op->ptr, "filepath", filepath);
-		}
-		
-		/* some ops have multiple files to select */
-		{
-			PointerRNA itemptr;
-			int i, numfiles = filelist_numfiles(sfile->files);
-			struct direntry *file;
-			if(RNA_struct_find_property(op->ptr, "files")) {
-				for (i=0; i<numfiles; i++) {
-					file = filelist_file(sfile->files, i);
-					if(file->flags & ACTIVEFILE) {
-						if ((file->type & S_IFDIR)==0) {
-							RNA_collection_add(op->ptr, "files", &itemptr);
-							RNA_string_set(&itemptr, "name", file->relname);
-						}
-					}
-				}
-			}
-			
-			if(RNA_struct_find_property(op->ptr, "dirs")) {
-				for (i=0; i<numfiles; i++) {
-					file = filelist_file(sfile->files, i);
-					if(file->flags & ACTIVEFILE) {
-						if ((file->type & S_IFDIR)) {
-							RNA_collection_add(op->ptr, "dirs", &itemptr);
-							RNA_string_set(&itemptr, "name", file->relname);
-						}
-					}
-				}
-			}
-		}
-		
 		folderlist_free(sfile->folders_prev);
 		folderlist_free(sfile->folders_next);
 
