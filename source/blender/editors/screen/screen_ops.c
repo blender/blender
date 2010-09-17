@@ -1415,13 +1415,17 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 					ED_region_toggle_hidden(C, rmd->ar);
 			}
 			else {
+				int maxsize=0;
 				delta= event->y - rmd->origy;
 				if(rmd->edge=='b') delta= -delta;
 				
 				rmd->ar->sizey= rmd->origval + delta;
 				CLAMP(rmd->ar->sizey, 0, rmd->maxsize);
 				
-				if(rmd->ar->sizey < 24) {
+				if(rmd->ar->regiontype == RGN_TYPE_TOOL_PROPS)
+					maxsize = rmd->maxsize - ((rmd->sa->headertype==2)?48:24) - 10;
+
+				if(rmd->ar->sizey < 24 || (maxsize > 0 && (rmd->ar->sizey > maxsize)) ) {
 					rmd->ar->sizey= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
 						ED_region_toggle_hidden(C, rmd->ar);
