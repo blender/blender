@@ -1224,17 +1224,19 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 			
 		case EVT_FILESELECT_EXEC:
 		case EVT_FILESELECT_CANCEL:
+		case EVT_FILESELECT_EXTERNAL_CANCEL:
 			{
 				/* XXX validate area and region? */
 				bScreen *screen= CTX_wm_screen(C);
-				
-				if(screen != handler->filescreen)
-					ED_screen_full_prevspace(C, CTX_wm_area(C));
-				else
-					ED_area_prevspace(C, CTX_wm_area(C));
-				
-				/* remlink now, for load file case */
+
+				/* remlink now, for load file case before removing*/
 				BLI_remlink(handlers, handler);
+				
+				if(event->val!=EVT_FILESELECT_EXTERNAL_CANCEL)
+					if(screen != handler->filescreen)
+						ED_screen_full_prevspace(C, CTX_wm_area(C));
+					else
+						ED_area_prevspace(C, CTX_wm_area(C));
 				
 				wm_handler_op_context(C, handler);
 

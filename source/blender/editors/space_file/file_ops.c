@@ -507,18 +507,11 @@ void FILE_OT_highlight(struct wmOperatorType *ot)
 int file_cancel_exec(bContext *C, wmOperator *unused)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
-
-	folderlist_free(sfile->folders_prev);
-	folderlist_free(sfile->folders_next);
-
-	WM_event_fileselect_event(C, sfile->op, EVT_FILESELECT_CANCEL);
-	sfile->op = NULL;
+	wmOperator *op = sfile->op;
 	
-	if (sfile->files) {
-		ED_fileselect_clear(C, sfile);
-		MEM_freeN(sfile->files);
-		sfile->files= NULL;
-	}
+	sfile->op = NULL;
+
+	WM_event_fileselect_event(C, op, EVT_FILESELECT_CANCEL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -686,17 +679,11 @@ int file_exec(bContext *C, wmOperator *exec_op)
 
 		file_sfile_to_operator(op, sfile, filepath);
 
-		folderlist_free(sfile->folders_prev);
-		folderlist_free(sfile->folders_next);
-
 		fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir,0, 1);
 		BLI_make_file_string(G.sce, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu_get(), filepath);
 		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
 
-		ED_fileselect_clear(C, sfile);
-		MEM_freeN(sfile->files);
-		sfile->files= NULL;
 	}
 				
 	return OPERATOR_FINISHED;

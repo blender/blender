@@ -531,5 +531,18 @@ void ED_fileselect_clear(struct bContext *C, struct SpaceFile *sfile)
 
 void ED_fileselect_exit(struct bContext *C, struct SpaceFile *sfile)
 {
-	thumbnails_stop(sfile->files, C);
+	if(!sfile) return;
+	if(sfile->op)
+		WM_event_fileselect_event(C, sfile->op, EVT_FILESELECT_EXTERNAL_CANCEL);
+	sfile->op = NULL;
+
+	folderlist_free(sfile->folders_prev);
+	folderlist_free(sfile->folders_next);
+	
+	if (sfile->files) {
+		ED_fileselect_clear(C, sfile);
+		MEM_freeN(sfile->files);
+		sfile->files= NULL;
+	}
+
 }
