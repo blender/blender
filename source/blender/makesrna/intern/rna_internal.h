@@ -224,6 +224,7 @@ char *rna_TextureSlot_path(struct PointerRNA *ptr);
 
 void RNA_api_action(StructRNA *srna);
 void RNA_api_armature_edit_bone(StructRNA *srna);
+void RNA_api_bone(StructRNA *srna);
 void RNA_api_drivers(StructRNA *srna);
 void RNA_api_image(struct StructRNA *srna);
 void RNA_api_operator(struct StructRNA *srna);
