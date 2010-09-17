@@ -120,6 +120,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 						ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
 		case NC_GROUP:
 			/* all actions now, todo: check outliner view mode? */
 			ED_region_tag_redraw(ar);

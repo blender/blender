@@ -1526,6 +1526,11 @@ static int mesh_separate_exec(bContext *C, wmOperator *op)
 	   
 	if(retval) {
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, base->object->data);
+
+		// XXX: new object was created, but selection wasn't actually changed
+		//      need this for outliner update without adding new ND. nazgul.
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+
 		return OPERATOR_FINISHED;
 	}
 	return OPERATOR_CANCELLED;
