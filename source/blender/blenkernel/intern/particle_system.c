@@ -3441,7 +3441,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 		else if(part->phystype == PART_PHYS_NO)
 			reset_particle(sim, pa, dtime, cfra);
 
-		if(dfra>0.0 && ELEM(pa->alive,PARS_ALIVE,PARS_DYING)){
+		if(pa_dfra>0.0 && ELEM(pa->alive,PARS_ALIVE,PARS_DYING)){
 			switch(part->phystype){
 				case PART_PHYS_NEWTON:
 					/* do global forces & effectors */
