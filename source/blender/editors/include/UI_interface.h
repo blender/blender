@@ -146,15 +146,16 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_ANIMATED		(1<<20)
 #define UI_BUT_ANIMATED_KEY	(1<<21)
 #define UI_BUT_DRIVEN		(1<<22)
-#define UI_BUT_INACTIVE		(1<<23)
-#define UI_BUT_LAST_ACTIVE	(1<<24)
-#define UI_BUT_UNDO			(1<<25)
-#define UI_BUT_IMMEDIATE	(1<<26)
-#define UI_BUT_NO_TOOLTIP	(1<<27)
-#define UI_BUT_NO_UTF8		(1<<28)
+#define UI_BUT_REDALERT		(1<<23)
+#define UI_BUT_INACTIVE		(1<<24)
+#define UI_BUT_LAST_ACTIVE	(1<<25)
+#define UI_BUT_UNDO			(1<<26)
+#define UI_BUT_IMMEDIATE	(1<<27)
+#define UI_BUT_NO_TOOLTIP	(1<<28)
+#define UI_BUT_NO_UTF8		(1<<29)
 
-#define UI_BUT_VEC_SIZE_LOCK (1<<29) /* used to flag if color hsv-circle should keep luminance */
-#define UI_BUT_COLOR_CUBIC	(1<<30) /* cubic saturation for the color wheel */
+#define UI_BUT_VEC_SIZE_LOCK (1<<30) /* used to flag if color hsv-circle should keep luminance */
+#define UI_BUT_COLOR_CUBIC	(1<<31) /* cubic saturation for the color wheel */
 
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160

@@ -757,9 +757,9 @@ int BKE_imtype_is_movie(int imtype)
 	return 0;
 }
 
-void BKE_add_image_extension(char *string, int imtype)
+int BKE_add_image_extension(char *string, int imtype)
 {
-	char *extension="";
+	char *extension= NULL;
 	
 	if(imtype== R_IRIS) {
 		if(!BLI_testextensie(string, ".rgb"))
@@ -830,7 +830,12 @@ void BKE_add_image_extension(char *string, int imtype)
 			extension= ".jpg";
 	}
 
-	strcat(string, extension);
+	if(extension) {
+		return BLI_replace_extension(string, FILE_MAX, extension);
+	}
+	else {
+		return FALSE;
+	}
 }
 
 /* could allow access externally - 512 is for long names, 64 is for id names */

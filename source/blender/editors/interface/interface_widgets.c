@@ -1437,6 +1437,11 @@ static void widget_state(uiWidgetType *wt, int state)
 			wt->wcol.inner[2]= wt->wcol.inner[2]>=240? 255 : wt->wcol.inner[2]+15;
 		}
 	}
+
+	if(state & UI_BUT_REDALERT) {
+		char red[4]= {255, 0, 0};
+		widget_state_blend(wt->wcol.inner, red, 0.4f);
+	}
 }
 
 /* sliders use special hack which sets 'item' as inner when drawing filling */
