@@ -1421,7 +1421,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, v
 				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 		}
 
-		if(!doDraw || (setDrawOptions && !setDrawOptions(userData, origIndex))) {
+		if(!doDraw || (setDrawOptions && (origIndex != ORIGINDEX_NONE) && !setDrawOptions(userData, origIndex))) {
 			a += gridFaces*gridFaces*numVerts;
 			continue;
 		}
