@@ -311,10 +311,17 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 	   dir[0]= '/';
 	   dir[1]= 0;
 	   return;
-	}	
+	}
+
+	/* support for odd paths: eg /../home/me --> /home/me
+	 * this is a valid path in blender but we cant handle this the useual way below
+	 * simply strip this prefix then evaluate the path as useual. pythons os.path.normpath() does this */
+	while((strncmp(dir, "/../", 4)==0)) {
+		memmove( dir, dir + 4, strlen(dir + 4) + 1 );
+	}
 
 	while ( (start = strstr(dir, "/../")) ) {
-		eind = start + strlen("/../") - 1;
+		eind = start + (4 - 1) /* strlen("/../") - 1 */;
 		a = start-dir-1;
 		while (a>0) {
 			if (dir[a] == '/') break;
@@ -328,12 +335,12 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 	}
 
 	while ( (start = strstr(dir,"/./")) ){
-		eind = start + strlen("/./") - 1;
+		eind = start + (3 - 1) /* strlen("/./") - 1 */;
 		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	while ( (start = strstr(dir,"//" )) ){
-		eind = start + strlen("//") - 1;
+		eind = start + (2 - 1) /* strlen("//") - 1 */;
 		memmove( start, eind, strlen(eind)+1 );
 	}
 

@@ -624,28 +624,32 @@ void file_draw_check_cb(bContext *C, void *dummy1, void *dummy2)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	wmOperator *op= sfile->op;
-	if(op->type->check) {
-		char filepath[FILE_MAX];
-		file_sfile_to_operator(op, sfile, filepath);
-		
-		/* redraw */
-		if(op->type->check(C, op)) {
-			file_operator_to_sfile(sfile, op);
-
-			/* redraw, else the changed settings wont get updated */
-			ED_area_tag_redraw(CTX_wm_area(C));
+	if(op) { /* fail on reload */
+		if(op->type->check) {
+			char filepath[FILE_MAX];
+			file_sfile_to_operator(op, sfile, filepath);
+			
+			/* redraw */
+			if(op->type->check(C, op)) {
+				file_operator_to_sfile(sfile, op);
+	
+				/* redraw, else the changed settings wont get updated */
+				ED_area_tag_redraw(CTX_wm_area(C));
+			}
 		}
 	}
 }
 
 int file_draw_check_exists(SpaceFile *sfile)
 {
-	if(RNA_struct_find_property(sfile->op->ptr, "check_existing")) {
-		if(RNA_boolean_get(sfile->op->ptr, "check_existing")) {
-			char filepath[FILE_MAX];
-			BLI_join_dirfile(filepath, sfile->params->dir, sfile->params->file);
-			if(BLI_exists(filepath) && !BLI_is_dir(filepath)) {
-				return TRUE;
+	if(sfile->op) { /* fails on reload */
+		if(RNA_struct_find_property(sfile->op->ptr, "check_existing")) {
+			if(RNA_boolean_get(sfile->op->ptr, "check_existing")) {
+				char filepath[FILE_MAX];
+				BLI_join_dirfile(filepath, sfile->params->dir, sfile->params->file);
+				if(BLI_exists(filepath) && !BLI_is_dir(filepath)) {
+					return TRUE;
+				}
 			}
 		}
 	}
