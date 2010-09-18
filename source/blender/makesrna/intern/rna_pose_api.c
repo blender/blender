@@ -64,7 +64,7 @@ void RNA_api_pose_channel(StructRNA *srna)
 	PropertyRNA *parm;
 	FunctionRNA *func;
 
-	func= RNA_def_function(srna, "envelope", "rna_PoseBone_do_envelope");
+	func= RNA_def_function(srna, "evaluate_envelope", "rna_PoseBone_do_envelope");
 	RNA_def_function_ui_description(func, "Calculate bone envelope at given point.");
 	parm= RNA_def_float_vector_xyz(func, "point", 3, NULL, -FLT_MAX, FLT_MAX, "Point", "Position in 3d space to evaluate", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
