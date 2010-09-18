@@ -26,7 +26,7 @@ import bpy
 import mathutils
 
 def fixName(name):
-    if name == None:
+    if name is None:
         return 'None'
     else:
         return name.replace(' ', '_')
@@ -458,7 +458,7 @@ def write_file(filepath, objects, scene,
             materialItems = [m for m in materials]
             if materials:
                 for mat in materials:
-                    if mat: # !=None
+                    if mat:
                         materialNames.append(mat.name)
                     else:
                         materialNames.append(None)
@@ -621,7 +621,7 @@ def write_file(filepath, objects, scene,
                 if key == contextMat:
                     pass # Context already switched, dont do anything
                 else:
-                    if key[0] == None and key[1] == None:
+                    if key[0] is None and key[1] is None:
                         # Write a null material, since we know the context has changed.
                         if EXPORT_GROUP_BY_MAT:
                             # can be mat_image or (null)
@@ -638,7 +638,7 @@ def write_file(filepath, objects, scene,
                             # converting any spaces to underscores with fixName.
 
                             # If none image dont bother adding it to the name
-                            if key[1] == None:
+                            if key[1] is None:
                                 mat_data = mtl_dict[key] = ('%s'%fixName(key[0])), materialItems[f_mat], f_image
                             else:
                                 mat_data = mtl_dict[key] = ('%s_%s' % (fixName(key[0]), fixName(key[1]))), materialItems[f_mat], f_image

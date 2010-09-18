@@ -177,7 +177,7 @@ def read_bvh(context, file_path, ROT_MODE='XYZ', GLOBAL_SCALE=1.0):
 
 
             # Apply the parents offset accumletivly
-            if my_parent == None:
+            if my_parent is None:
                 rest_head_world = Vector(rest_head_local)
             else:
                 rest_head_world = my_parent.rest_head_world + rest_head_local

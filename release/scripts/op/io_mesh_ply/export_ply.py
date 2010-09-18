@@ -142,7 +142,7 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
             vdict_local = vdict[vidx]
             pf_vidx = vdict_local.get(key) # Will be None initially
 
-            if pf_vidx == None: # same as vdict_local.has_key(key)
+            if pf_vidx is None: # same as vdict_local.has_key(key)
                 pf_vidx = vdict_local[key] = vert_count
                 ply_verts.append((vidx, normal, uvcoord, color))
                 vert_count += 1

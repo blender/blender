@@ -15,7 +15,7 @@ def main(context):
             prev = keys[i-1] if i > 0 else None
             next = keys[i+1] if i < len(keys)-1 else None
 
-            if prev == None:
+            if prev is None:
                 continue
 
             th = pi

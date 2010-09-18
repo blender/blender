@@ -724,7 +724,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 #     if CREATE_FGONS and fgon_edges:
 #         FGON= Mesh.EdgeFlags.FGON
 #         for ed in me.findEdges( fgon_edges.keys() ):
-#             if ed!=None:
+#             if ed is not None:
 #                 me_edges[ed].flag |= FGON
 #         del FGON
 
@@ -738,7 +738,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 #     if unique_smooth_groups and sharp_edges:
 #         SHARP= Mesh.EdgeFlags.SHARP
 #         for ed in me.findEdges( sharp_edges.keys() ):
-#             if ed!=None:
+#             if ed is not None:
 #                 me_edges[ed].flag |= SHARP
 #         del SHARP
 
@@ -768,7 +768,7 @@ def create_nurbs(context_nurbs, vert_loc, new_objects):
     name = context_nurbs.get('name', 'ObjNurb')
     cstype = context_nurbs.get('cstype')
 
-    if cstype == None:
+    if cstype is None:
         print('\tWarning, cstype not found')
         return
     if cstype != 'bspline':

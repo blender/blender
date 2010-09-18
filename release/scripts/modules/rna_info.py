@@ -381,7 +381,7 @@ class InfoOperatorRNA:
 
 def _GetInfoRNA(bl_rna, cls, parent_id=''):
 
-    if bl_rna == None:
+    if bl_rna is None:
         return None
 
     key = parent_id, bl_rna.identifier

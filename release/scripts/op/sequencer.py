@@ -42,14 +42,14 @@ class SequencerCrossfadeSounds(bpy.types.Operator):
         seq2 = None
         for s in context.scene.sequence_editor.sequences:
             if s.select and s.type == 'SOUND':
-                if seq1 == None:
+                if seq1 is None:
                     seq1 = s
-                elif seq2 == None:
+                elif seq2 is None:
                     seq2 = s
                 else:
                     seq2 = None
                     break
-        if seq2 == None:
+        if seq2 is None:
             self.report({'ERROR'}, "Select 2 sound strips.")
             return {'CANCELLED'}
         if seq1.frame_final_start > seq2.frame_final_start:

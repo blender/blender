@@ -270,8 +270,6 @@ def save(operator, context, filepath="", \
 
     # ----------------- Batch support!
     if BATCH_ENABLE:
-        if os == None:	BATCH_OWN_DIR = False
-
         fbxpath = filepath
 
         # get the path component of filepath
@@ -1262,7 +1260,7 @@ def save(operator, context, filepath="", \
 
 
     def write_texture(texname, tex, num):
-        # if tex == None then this is a dummy tex
+        # if tex is None then this is a dummy tex
         file.write('\n\tTexture: "Texture::%s", "TextureVideoClip" {' % texname)
         file.write('\n\t\tType: "TextureVideoClip"')
         file.write('\n\t\tVersion: 202')
@@ -2115,7 +2113,7 @@ def save(operator, context, filepath="", \
                     my_mesh.blenTextures =	list(texture_mapping_local.keys())
 
                     # if only 1 null texture then empty the list
-                    if len(my_mesh.blenTextures) == 1 and my_mesh.blenTextures[0] == None:
+                    if len(my_mesh.blenTextures) == 1 and my_mesh.blenTextures[0] is None:
                         my_mesh.blenTextures = []
 
                     my_mesh.fbxArm =	armob					# replace with my_object_generic armature instance later
@@ -2229,7 +2227,7 @@ def save(operator, context, filepath="", \
         for ob in blenGroup.objects:
             if ob.name in tagged_objects:
 # 			if ob.tag:
-                if fbxGroupName == None:
+                if fbxGroupName is None:
                     fbxGroupName = sane_groupname(blenGroup)
                     groups.append((fbxGroupName, blenGroup))
 
@@ -2707,7 +2705,7 @@ Takes:  {''')
                     print('\taction: "%s" has no armature using it, skipping' % blenAction.name)
                     continue
 
-            if blenAction == None:
+            if blenAction is None:
                 # Warning, this only accounts for tmp_actions being [None]
                 file.write('\n\tTake: "Default Take" {')
                 act_start =	start

@@ -124,7 +124,7 @@ class MRenderJob(netrender.model.RenderJob):
         if self.status not in {JOB_PAUSED, JOB_QUEUED}:
             return
 
-        if status == None:
+        if status is None:
             self.status = JOB_PAUSED if self.status == JOB_QUEUED else JOB_QUEUED
         elif status:
             self.status = JOB_QUEUED
