@@ -180,6 +180,7 @@ typedef struct LineStyleThicknessModifier_DistanceFromObject {
 
 typedef struct FreestyleLineStyle {
 	ID id;
+	struct AnimData *adt;
 
 	float r, g, b, alpha;
 	float thickness;

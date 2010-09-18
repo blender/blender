@@ -47,6 +47,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
@@ -719,6 +720,23 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree 
 			
 			if (adt->action) 
 				action_to_keylist(adt, adt->action, keys, blocks);
+		}
+
+		/* linestyle animdata */
+		if (sce->r.mode & R_EDGE_FRS) {
+			SceneRenderLayer *srl;
+			FreestyleLineSet *lineset;
+
+			for (srl= sce->r.layers.first; srl; srl= srl->next) {
+				if (srl->layflag & SCE_LAY_FRS) {
+					for (lineset= srl->freestyleConfig.linesets.first; lineset; lineset= lineset->next) {
+						adt= lineset->linestyle->adt;
+
+						if (adt && adt->action) 
+							action_to_keylist(adt, adt->action, keys, blocks);
+					}
+				}
+			}
 		}
 	}
 }

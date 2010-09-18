@@ -31,6 +31,7 @@
 
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -101,6 +102,21 @@ static StructRNA *rna_LineStyle_thickness_modifier_refine(struct PointerRNA *ptr
 		default:
 			return &RNA_LineStyleThicknessModifier;
 	}
+}
+
+static char *rna_LineStyle_color_modifier_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("color_modifiers[\"%s\"]", ((LineStyleModifier*)ptr->data)->name);
+}
+
+static char *rna_LineStyle_alpha_modifier_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("alpha_modifiers[\"%s\"]", ((LineStyleModifier*)ptr->data)->name);
+}
+
+static char *rna_LineStyle_thickness_modifier_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("thickness_modifiers[\"%s\"]", ((LineStyleModifier*)ptr->data)->name);
 }
 
 #else
@@ -284,6 +300,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "LineStyleColorModifier", "LineStyleModifier");
 	RNA_def_struct_sdna(srna, "LineStyleModifier");
 	RNA_def_struct_refine_func(srna, "rna_LineStyle_color_modifier_refine");
+	RNA_def_struct_path_func(srna, "rna_LineStyle_color_modifier_path");
 	RNA_def_struct_ui_text(srna, "Line Style Color Modifier", "Base type to define line color modifiers.");
 
 	srna= RNA_def_struct(brna, "LineStyleColorModifier_AlongStroke", "LineStyleColorModifier");
@@ -313,6 +330,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "LineStyleAlphaModifier", "LineStyleModifier");
 	RNA_def_struct_sdna(srna, "LineStyleModifier");
 	RNA_def_struct_refine_func(srna, "rna_LineStyle_alpha_modifier_refine");
+	RNA_def_struct_path_func(srna, "rna_LineStyle_alpha_modifier_path");
 	RNA_def_struct_ui_text(srna, "Line Style Alpha Modifier", "Base type to define alpha transparency modifiers.");
 
 	srna= RNA_def_struct(brna, "LineStyleAlphaModifier_AlongStroke", "LineStyleAlphaModifier");
@@ -342,6 +360,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "LineStyleThicknessModifier", "LineStyleModifier");
 	RNA_def_struct_sdna(srna, "LineStyleModifier");
 	RNA_def_struct_refine_func(srna, "rna_LineStyle_thickness_modifier_refine");
+	RNA_def_struct_path_func(srna, "rna_LineStyle_thickness_modifier_path");
 	RNA_def_struct_ui_text(srna, "Line Style Thickness Modifier", "Base type to define line thickness modifiers.");
 
 	srna= RNA_def_struct(brna, "LineStyleThicknessModifier_AlongStroke", "LineStyleThicknessModifier");

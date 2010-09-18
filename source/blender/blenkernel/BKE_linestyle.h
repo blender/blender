@@ -55,4 +55,7 @@ void FRS_move_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleM
 void FRS_move_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
 void FRS_move_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
 
+void FRS_list_modifier_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase);
+char *FRS_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *color_ramp);
+
 #endif

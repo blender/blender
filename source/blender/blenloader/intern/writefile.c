@@ -2462,6 +2462,8 @@ static void write_linestyles(WriteData *wd, ListBase *idbase)
 	for(linestyle=idbase->first; linestyle; linestyle= linestyle->id.next) {
 		if(linestyle->id.us>0 || wd->current) {
 			writestruct(wd, ID_LS, "FreestyleLineStyle", 1, linestyle);
+			if (linestyle->id.properties) IDP_WriteProperty(linestyle->id.properties, wd);
+			if (linestyle->adt) write_animdata(wd, linestyle->adt);
 			write_linestyle_color_modifiers(wd, &linestyle->color_modifiers);
 			write_linestyle_alpha_modifiers(wd, &linestyle->alpha_modifiers);
 			write_linestyle_thickness_modifiers(wd, &linestyle->thickness_modifiers);

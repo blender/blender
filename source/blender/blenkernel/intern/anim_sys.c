@@ -75,6 +75,7 @@ short id_type_can_have_animdata (ID *id)
 		case ID_PA:
 		case ID_MA: case ID_TE: case ID_NT:
 		case ID_LA: case ID_CA: case ID_WO:
+		case ID_LS:
 		case ID_SCE:
 		{
 			return 1;

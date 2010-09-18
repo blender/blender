@@ -5362,22 +5362,28 @@ static void lib_link_linestyle(FileData *fd, Main *main)
 
 	linestyle = main->linestyle.first;
 	while (linestyle) {
-		for (m = linestyle->color_modifiers.first; m; m = m->next) {
-			if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
-				LineStyleColorModifier_DistanceFromObject *cm = (LineStyleColorModifier_DistanceFromObject *)m;
-				cm->target = newlibadr(fd, linestyle->id.lib, cm->target);
+		if (linestyle->id.flag & LIB_NEEDLINK) {
+			linestyle->id.flag -= LIB_NEEDLINK;
+
+			if (linestyle->id.properties) IDP_LibLinkProperty(linestyle->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			if (linestyle->adt) lib_link_animdata(fd, &linestyle->id, linestyle->adt);
+			for (m = linestyle->color_modifiers.first; m; m = m->next) {
+				if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
+					LineStyleColorModifier_DistanceFromObject *cm = (LineStyleColorModifier_DistanceFromObject *)m;
+					cm->target = newlibadr(fd, linestyle->id.lib, cm->target);
+				}
 			}
-		}
-		for (m = linestyle->alpha_modifiers.first; m; m = m->next){
-			if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
-				LineStyleAlphaModifier_DistanceFromObject *am = (LineStyleAlphaModifier_DistanceFromObject *)m;
-				am->target = newlibadr(fd, linestyle->id.lib, am->target);
+			for (m = linestyle->alpha_modifiers.first; m; m = m->next){
+				if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
+					LineStyleAlphaModifier_DistanceFromObject *am = (LineStyleAlphaModifier_DistanceFromObject *)m;
+					am->target = newlibadr(fd, linestyle->id.lib, am->target);
+				}
 			}
-		}
-		for (m = linestyle->thickness_modifiers.first; m; m = m->next){
-			if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
-				LineStyleThicknessModifier_DistanceFromObject *tm = (LineStyleThicknessModifier_DistanceFromObject *)m;
-				tm->target = newlibadr(fd, linestyle->id.lib, tm->target);
+			for (m = linestyle->thickness_modifiers.first; m; m = m->next){
+				if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
+					LineStyleThicknessModifier_DistanceFromObject *tm = (LineStyleThicknessModifier_DistanceFromObject *)m;
+					tm->target = newlibadr(fd, linestyle->id.lib, tm->target);
+				}
 			}
 		}
 		linestyle = linestyle->id.next;
@@ -5466,6 +5472,8 @@ static void direct_link_linestyle(FileData *fd, FreestyleLineStyle *linestyle)
 {
 	LineStyleModifier *modifier;
 
+	linestyle->adt= newdataadr(fd, linestyle->adt);
+	direct_link_animdata(fd, linestyle->adt);
 	link_list(fd, &linestyle->color_modifiers);
 	for(modifier=linestyle->color_modifiers.first; modifier; modifier= modifier->next)
 		direct_link_linestyle_color_modifier(fd, modifier);
@@ -12207,6 +12215,8 @@ static void expand_linestyle(FileData *fd, Main *mainvar, FreestyleLineStyle *li
 {
 	LineStyleModifier *m;
 
+	if (linestyle->adt)
+		expand_animdata(fd, mainvar, linestyle->adt);
 	for (m = linestyle->color_modifiers.first; m; m = m->next) {
 		if (m->type == LS_MODIFIER_DISTANCE_FROM_OBJECT)
 			expand_doit(fd, mainvar, ((LineStyleColorModifier_DistanceFromObject *)m)->target);

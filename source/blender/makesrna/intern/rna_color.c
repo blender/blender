@@ -44,6 +44,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
+#include "BKE_linestyle.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -147,6 +148,14 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
 					return BLI_strdup("specular_ramp");
 			}
 				break;
+
+			case ID_LS:
+			{
+				char *path = FRS_path_from_ID_to_color_ramp((FreestyleLineStyle *)id, (ColorBand *)ptr->data);
+				if (path)
+					return path;
+			}
+				break;
 		}
 	}
 	
@@ -215,6 +224,20 @@ MEM_freeN(texture_path); \
 			}
 				break;
 				
+			case ID_LS:
+			{
+				ListBase listbase;
+				LinkData *link;
+
+				FRS_list_modifier_color_ramps((FreestyleLineStyle *)id, &listbase);
+				for (link = (LinkData *)listbase.first; link; link = link->next) {
+					RNA_pointer_create(id, &RNA_ColorRamp, link->data, &ramp_ptr);
+					COLRAMP_GETPATH;
+				}
+				BLI_freelistN(&listbase);
+			}
+				break;
+
 			default: /* everything else should have a "color_ramp" property */
 			{
 				/* create pointer to the ID block, and try to resolve "color_ramp" pointer */

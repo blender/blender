@@ -34,6 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_material_types.h" /* for ramp blend */
+#include "DNA_texture_types.h"
 
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -41,6 +42,7 @@
 #include "BKE_main.h"
 #include "BKE_texture.h"
 #include "BKE_colortools.h"
+#include "BKE_animsys.h"
 
 #include "BLI_blenlib.h"
 
@@ -80,6 +82,7 @@ void FRS_free_linestyle(FreestyleLineStyle *linestyle)
 {
 	LineStyleModifier *m;
 
+	BKE_free_animdata(&linestyle->id);
 	while ((m = (LineStyleModifier *)linestyle->color_modifiers.first))
 		FRS_remove_linestyle_color_modifier(linestyle, m);
 	while ((m = (LineStyleModifier *)linestyle->alpha_modifiers.first))
@@ -307,4 +310,58 @@ void FRS_move_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleM
 void FRS_move_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction)
 {
 	move_modifier(&linestyle->thickness_modifiers, modifier, direction);
+}
+
+void FRS_list_modifier_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase)
+{
+	LineStyleModifier *m;
+	ColorBand *color_ramp;
+	LinkData *link;
+
+	listbase->first = listbase->last = NULL;
+	for (m = (LineStyleModifier *)linestyle->color_modifiers.first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			color_ramp = ((LineStyleColorModifier_AlongStroke *)m)->color_ramp;
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			color_ramp = ((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp;
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			color_ramp = ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp;
+			break;
+		default:
+			continue;
+		}
+		link = (LinkData *) MEM_callocN( sizeof(LinkData), "link to color ramp");
+		link->data = color_ramp;
+		BLI_addtail(listbase, link);
+	}
+}
+
+char *FRS_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *color_ramp)
+{
+	LineStyleModifier *m;
+
+	for (m = (LineStyleModifier *)linestyle->color_modifiers.first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_ALONG_STROKE:
+			if (color_ramp == ((LineStyleColorModifier_AlongStroke *)m)->color_ramp)
+				goto found;
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			if (color_ramp == ((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp)
+				goto found;
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			if (color_ramp == ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp)
+				goto found;
+			break;
+		}
+	}
+	printf("FRS_path_from_ID_to_color_ramp: No color ramps correspond to the given pointer.\n");
+	return NULL;
+
+found:
+	return BLI_sprintfN("color_modifiers[\"%s\"].color_ramp", m->name);
 }
