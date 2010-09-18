@@ -647,13 +647,17 @@ class VIEW3D_MT_select_face(bpy.types.Menu):  # XXX no matching enum
 
 # ********** Object menu **********
 
-
 class VIEW3D_MT_object(bpy.types.Menu):
     bl_context = "objectmode"
     bl_label = "Object"
 
     def draw(self, context):
         layout = self.layout
+
+        layout.operator("ed.undo")
+        layout.operator("ed.redo")
+
+        layout.separator()
 
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_mirror")
@@ -663,9 +667,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe...")
-        layout.operator("anim.keyframe_delete_v3d", text="Delete Keyframe...")
-        layout.operator("anim.keying_set_active_set", text="Change Keying Set...")
+        layout.menu("VIEW3D_MT_object_animation")
 
         layout.separator()
 
@@ -687,8 +689,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
 
         layout.separator()
 
-        layout.menu("VIEW3D_MT_object_game_properties")
-        layout.menu("VIEW3D_MT_object_game_logicbricks")
+        layout.menu("VIEW3D_MT_object_game")
 
         layout.separator()
 
@@ -701,6 +702,18 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.menu("VIEW3D_MT_object_showhide")
 
         layout.operator_menu_enum("object.convert", "target")
+
+
+class VIEW3D_MT_object_animation(bpy.types.Menu):
+    bl_context = "objectmode"
+    bl_label = "Animation"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe...")
+        layout.operator("anim.keyframe_delete_v3d", text="Delete Keyframe...")
+        layout.operator("anim.keying_set_active_set", text="Change Keying Set...")
 
 
 class VIEW3D_MT_object_clear(bpy.types.Menu):
@@ -908,26 +921,24 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
         layout.operator_enums("object.make_links_data", "type")  # inline
 
 
-class VIEW3D_MT_object_game_properties(bpy.types.Menu):
-    bl_label = "Game Properties"
+class VIEW3D_MT_object_game(bpy.types.Menu):
+    bl_label = "Game"
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.game_property_copy", text="Replace").operation = 'REPLACE'
-        layout.operator("object.game_property_copy", text="Merge").operation = 'MERGE'
-        layout.operator_menu_enum("object.game_property_copy", "property", text="Copy...")
+        layout.operator("object.logic_bricks_copy", text="Copy Logic Bricks")
+
         layout.separator()
+
+        layout.operator("object.game_property_copy", text="Replace Properties").operation = 'REPLACE'
+        layout.operator("object.game_property_copy", text="Merge Properties").operation = 'MERGE'
+        layout.operator_menu_enum("object.game_property_copy", "property", text="Copy Properties...")
+
+        layout.separator()
+
         layout.operator("object.game_property_clear")
 
-
-class VIEW3D_MT_object_game_logicbricks(bpy.types.Menu):
-    bl_label = "Logic Bricks"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("object.logic_bricks_copy", text="Copy")
 
 # ********** Vertex paint menu **********
 
@@ -937,6 +948,11 @@ class VIEW3D_MT_paint_vertex(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
+
+        layout.operator("ed.undo")
+        layout.operator("ed.redo")
+
+        layout.separator()
 
         layout.operator("paint.vertex_color_set")
         layout.operator("paint.vertex_color_dirt")
@@ -992,6 +1008,11 @@ class VIEW3D_MT_paint_weight(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.operator("ed.undo")
+        layout.operator("ed.redo")
+
+        layout.separator()
+
         layout.operator("paint.weight_from_bones", text="Assign Automatic From Bones").type = 'AUTOMATIC'
         layout.operator("paint.weight_from_bones", text="Assign From Bone Envelopes").type = 'ENVELOPES'
 
@@ -1015,6 +1036,11 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
         tool_settings = context.tool_settings
         sculpt = tool_settings.sculpt
         brush = tool_settings.sculpt.brush
+
+        layout.operator("ed.undo")
+        layout.operator("ed.redo")
+
+        layout.separator()
 
         layout.prop(sculpt, "use_symmetry_x")
         layout.prop(sculpt, "use_symmetry_y")
@@ -1060,6 +1086,11 @@ class VIEW3D_MT_particle(bpy.types.Menu):
         layout = self.layout
 
         particle_edit = context.tool_settings.particle_edit
+
+        layout.operator("ed.undo")
+        layout.operator("ed.redo")
+
+        layout.separator()
 
         layout.operator("particle.mirror")
 
@@ -1110,6 +1141,11 @@ class VIEW3D_MT_pose(bpy.types.Menu):
         layout = self.layout
 
         arm = context.active_object.data
+
+        layout.operator("ed.undo")
+        layout.operator("ed.redo")
+
+        layout.separator()
 
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_snap")
