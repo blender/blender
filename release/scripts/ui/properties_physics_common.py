@@ -60,7 +60,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             col.enabled = enabled
             col.prop(cache, "frame_start")
             col.prop(cache, "frame_end")
-        if cachetype != 'SMOKE':
+        if cachetype not in ('SMOKE', 'CLOTH'):
             col.prop(cache, "frame_step")
 
         col = split.column()
