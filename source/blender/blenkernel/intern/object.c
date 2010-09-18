@@ -1338,6 +1338,8 @@ Object *copy_object(Object *ob)
 
 	obn->gpulamp.first = obn->gpulamp.last = NULL;
 	obn->pc_ids.first = obn->pc_ids.last = NULL;
+
+	obn->mpath= NULL;
 	
 	return obn;
 }
