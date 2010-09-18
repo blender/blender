@@ -1640,13 +1640,13 @@ public:
 		if (ma->spec_shader == MA_SPEC_BLINN) {
 			ep.setShaderType(COLLADASW::EffectProfile::BLINN);
 			// shininess
-			ep.setShininess(ma->spec);
+			ep.setShininess(ma->har);
 		}
 		else if (ma->spec_shader == MA_SPEC_PHONG) {
 			ep.setShaderType(COLLADASW::EffectProfile::PHONG);
 			// shininess
 			// XXX not sure, stolen this from previous Collada plugin
-			ep.setShininess(ma->har / 4);
+			ep.setShininess(ma->har);
 		}
 		else {
 			// XXX write warning "Current shader type is not supported" 
@@ -1663,17 +1663,19 @@ public:
 		COLLADASW::ColorOrTexture cot;
 
 		// transparency
-		// Tod: because we are in A_ONE mode transparency is calculated like this:
-		ep.setTransparency(1.0f);
-		cot = getcol(0.0f, 0.0f, 0.0f, ma->alpha);
-		ep.setTransparent(cot);
+		if (ma->mode & MA_TRANSP) {
+			// Tod: because we are in A_ONE mode transparency is calculated like this:
+			ep.setTransparency(ma->alpha);
+			// cot = getcol(1.0f, 1.0f, 1.0f, 1.0f);
+			// ep.setTransparent(cot);
+		}
 
 		// emission
 		cot=getcol(ma->emit, ma->emit, ma->emit, 1.0f);
 		ep.setEmission(cot);
 
-		// diffuse 
-		cot = getcol(ma->r, ma->g, ma->b, 1.0f);
+		// diffuse multiplied by diffuse intensity
+		cot = getcol(ma->r * ma->ref, ma->g * ma->ref, ma->b * ma->ref, 1.0f);
 		ep.setDiffuse(cot);
 
 		// ambient
@@ -1686,15 +1688,15 @@ public:
 			ep.setReflective(cot);
 			ep.setReflectivity(ma->ray_mirror);
 		}
-		else {
-			cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
-			ep.setReflective(cot);
-			ep.setReflectivity(ma->spec);
-		}
+		// else {
+		// 	cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
+		// 	ep.setReflective(cot);
+		// 	ep.setReflectivity(ma->spec);
+		// }
 
 		// specular
 		if (ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT) {
-			cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
+			cot = getcol(ma->specr * ma->spec, ma->specg * ma->spec, ma->specb * ma->spec, 1.0f);
 			ep.setSpecular(cot);
 		}	
 
@@ -1720,12 +1722,15 @@ public:
 
 			// create only one <sampler>/<surface> pair for each unique image
 			if (im_samp_map.find(key) == im_samp_map.end()) {
-				//<newparam> <surface> <init_from>
-			// 	COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
-// 										   key + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-// 				COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
-// 				sio.setImageReference(key);
-// 				surface.setInitOption(sio);
+				// //<newparam> <surface> <init_from>
+				// COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
+				// 						   key + COLLADASW::Surface::SURFACE_SID_SUFFIX);
+				// COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
+				// sio.setImageReference(key);
+				// surface.setInitOption(sio);
+
+				// COLLADASW::NewParamSurface surface(mSW);
+				// surface->setParamType(COLLADASW::CSW_SURFACE_TYPE_2D);
 				
 				//<newparam> <sampler> <source>
 				COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,

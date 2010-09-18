@@ -280,13 +280,10 @@ void fsmenu_read_bookmarks(struct FSMenu* fsmenu, const char *filename)
 void fsmenu_read_system(struct FSMenu* fsmenu)
 {
 	char line[256];
-	FILE *fp;
-
 #ifdef WIN32
 	/* Add the drive names to the listing */
 	{
 		__int64 tmp;
-		char folder[256];
 		char tmps[4];
 		int i;
 			
@@ -304,10 +301,10 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 		}
 
 		/* Adding Desktop and My Documents */
-		SHGetSpecialFolderPath(0, folder, CSIDL_PERSONAL, 0);
-		fsmenu_insert_entry(fsmenu,FS_CATEGORY_BOOKMARKS, folder, 1, 0);
-		SHGetSpecialFolderPath(0, folder, CSIDL_DESKTOPDIRECTORY, 0);
-		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, folder, 1, 0);
+		SHGetSpecialFolderPath(0, line, CSIDL_PERSONAL, 0);
+		fsmenu_insert_entry(fsmenu,FS_CATEGORY_BOOKMARKS, line, 1, 0);
+		SHGetSpecialFolderPath(0, line, CSIDL_DESKTOPDIRECTORY, 0);
+		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
 	}
 #else
 #ifdef __APPLE__
@@ -474,6 +471,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 			/* loop over mount points */
 			struct mntent *mnt;
 			int len;
+			FILE *fp;
 
 			fp = setmntent (MOUNTED, "r");
 			if (fp == NULL) {

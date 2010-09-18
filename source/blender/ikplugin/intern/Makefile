@@ -30,6 +30,9 @@ DIR = $(OCGDIR)/blender/ikplugin
 
 include nan_compile.mk
 
+CFLAGS += -DWITH_IK_ITASC
+CPPFLAGS += -DWITH_IK_ITASC
+
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 CFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CFLAGS += -I../../makesdna

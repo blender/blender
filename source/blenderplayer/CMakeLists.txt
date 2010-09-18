@@ -113,6 +113,7 @@ IF(UNIX)
 		blenkernel_blc
 		extern_binreloc
 		extern_glew
+		extern_minilzo
 	)
   
 	IF(WITH_QUICKTIME)

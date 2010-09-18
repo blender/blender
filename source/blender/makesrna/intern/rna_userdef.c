@@ -2655,6 +2655,10 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "keymaps", NULL);
 	RNA_def_property_struct_type(prop, "KeyMap");
 	RNA_def_property_ui_text(prop, "Edited Keymaps", "");
+	
+	prop= RNA_def_property(srna, "active_keyconfig", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "keyconfigstr");
+	RNA_def_property_ui_text(prop, "Key Config", "The name of the active key configuration");
 }
 
 static void rna_def_userdef_filepaths(BlenderRNA *brna)

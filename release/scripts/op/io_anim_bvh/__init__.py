@@ -22,7 +22,7 @@
 if "bpy" in locals():
     # only reload if we alredy loaded, highly annoying
     import sys
-    reload(sys.modules.get("io_mesh_ply.export_ply", sys))
+    reload(sys.modules.get("io_anim_bvh.import_bvh", sys))
 
 
 import bpy
@@ -39,7 +39,7 @@ class BvhImporter(bpy.types.Operator, ImportHelper):
 
     scale = FloatProperty(name="Scale", description="Scale the BVH by this value", min=0.0001, max=1000000.0, soft_min=0.001, soft_max=100.0, default=0.1)
     frame_start = IntProperty(name="Start Frame", description="Starting frame for the animation", default=1)
-    loop = BoolProperty(name="Loop", description="Loop the animation playback", default=False)
+    use_cyclic = BoolProperty(name="Loop", description="Loop the animation playback", default=False)
     rotate_mode = EnumProperty(items=(
             ('QUATERNION', "Quaternion", "Convert rotations to quaternions"),
             ('NATIVE', "Euler (Native)", "Use the rotation order defined in the BVH file"),
@@ -56,7 +56,13 @@ class BvhImporter(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         import io_anim_bvh.import_bvh
-        return io_anim_bvh.import_bvh.load(self, context, **self.properties)
+        return io_anim_bvh.import_bvh.load(self, context,
+                                           filepath=self.filepath,
+                                           rotate_mode=self.rotate_mode,
+                                           scale=self.scale,
+                                           use_cyclic=self.use_cyclic,
+                                           frame_start=self.frame_start,
+                                           )
 
 
 def menu_func(self, context):

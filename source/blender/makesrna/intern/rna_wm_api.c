@@ -165,6 +165,15 @@ void RNA_api_operator(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
 	RNA_def_function_return(func, parm);
 
+	/* check */
+	func= RNA_def_function(srna, "check", NULL);
+	RNA_def_function_ui_description(func, "Check the operator settings.");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_pointer(func, "context", "Context", "", "");
+
+	parm= RNA_def_boolean(func, "result", 0, "result", ""); // better name?
+	RNA_def_function_return(func, parm);
+	
 	/* invoke */
 	func= RNA_def_function(srna, "invoke", NULL);
 	RNA_def_function_ui_description(func, "Invoke the operator.");

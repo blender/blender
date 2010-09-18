@@ -384,9 +384,6 @@ void free_hair(Object *ob, ParticleSystem *psys, int dynamics)
 {
 	PARTICLE_P;
 
-	if(psys->part->type != PART_HAIR)
-		return;
-
 	LOOP_PARTICLES {
 		if(pa->hair)
 			MEM_freeN(pa->hair);

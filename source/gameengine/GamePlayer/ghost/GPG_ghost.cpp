@@ -161,17 +161,29 @@ static BOOL scr_saver_init(int argc, char **argv)
 
 #endif /* WIN32 */
 
-void usage(const char* program)
+void usage(const char* program, bool isBlenderPlayer)
 {
 	const char * consoleoption;
+	const char * filename = "";
+	const char * pathname = "";
+
 #ifdef _WIN32
 	consoleoption = "-c ";
 #else
 	consoleoption = "";
 #endif
+
+	if (isBlenderPlayer) {
+		filename = "filename.blend";
+#ifdef _WIN32
+		pathname = "c:\\";
+#else
+		pathname = "//home//user//";
+#endif
+	}
 	
 	printf("usage:   %s [-w [w h l t]] [-f [fw fh fb ff]] %s[-g gamengineoptions] "
-		"[-s stereomode] filename.blend\n", program, consoleoption);
+		"[-s stereomode] %s\n", program, consoleoption, filename);
 	printf("  -h: Prints this command summary\n\n");
 	printf("  -w: display in a window\n");
 	printf("       --Optional parameters--\n"); 
@@ -227,8 +239,8 @@ void usage(const char* program)
 	printf("\n");
 	printf("  - : all arguments after this are ignored, allowing python to access them from sys.argv\n");
 	printf("\n");
-	printf("example: %s -w 320 200 10 10 -g noaudio c:\\loadtest.blend\n", program);
-	printf("example: %s -g show_framerate = 0 c:\\loadtest.blend\n", program);
+	printf("example: %s -w 320 200 10 10 -g noaudio%s%s\n", program, pathname, filename);
+	printf("example: %s -g show_framerate = 0 %s%s\n", program, pathname, filename);
 }
 
 static void get_filename(int argc, char **argv, char *filename)
@@ -337,8 +349,8 @@ int main(int argc, char** argv)
 	int fullScreenBpp = 32;
 	int fullScreenFrequency = 60;
 	GHOST_TEmbedderWindowID parentWindow = 0;
-
-
+	bool isBlenderPlayer = false;
+	int validArguments=0;
 	
 #ifdef __linux__
 #ifdef __alpha__
@@ -412,7 +424,14 @@ int main(int argc, char** argv)
 	U.audioformat = 0x24;
 	U.audiochannels = 2;
 
-	for (i = 1; (i < argc) && !error 
+	/* if running blenderplayer the last argument can't be parsed since it has to be the filename. */
+	isBlenderPlayer = !blo_is_a_runtime(argv[0]);
+	if (isBlenderPlayer)
+		validArguments = argc - 1;
+	else
+		validArguments = argc;
+
+	for (i = 1; (i < validArguments) && !error 
 #ifdef WIN32
 		&& scr_saver_mode == SCREEN_SAVER_MODE_NONE
 #endif
@@ -436,14 +455,14 @@ int main(int argc, char** argv)
 				// Parse game options
 				{
 					i++;
-					if (i < argc)
+					if (i <= validArguments)
 					{
 						char* paramname = argv[i];
 						// Check for single value versus assignment
-						if (i+1 < argc && (*(argv[i+1]) == '='))
+						if (i+1 <= validArguments && (*(argv[i+1]) == '='))
 						{
 							i++;
-							if (i + 1 < argc)
+							if (i + 1 <= validArguments)
 							{
 								i++;
 								// Assignment
@@ -479,14 +498,14 @@ int main(int argc, char** argv)
 				i++;
 				fullScreen = true;
 				fullScreenParFound = true;
-				if ((i + 2) <= argc && argv[i][0] != '-' && argv[i+1][0] != '-')
+				if ((i + 2) <= validArguments && argv[i][0] != '-' && argv[i+1][0] != '-')
 				{
 					fullScreenWidth = atoi(argv[i++]);
 					fullScreenHeight = atoi(argv[i++]);
-					if ((i + 1) <= argc && argv[i][0] != '-')
+					if ((i + 1) <= validArguments && argv[i][0] != '-')
 					{
 						fullScreenBpp = atoi(argv[i++]);
-						if ((i + 1) <= argc && argv[i][0] != '-')
+						if ((i + 1) <= validArguments && argv[i][0] != '-')
 							fullScreenFrequency = atoi(argv[i++]);
 					}
 				}
@@ -497,11 +516,11 @@ int main(int argc, char** argv)
 				fullScreen = false;
 				windowParFound = true;
 
-				if ((i + 2) <= argc && argv[i][0] != '-' && argv[i+1][0] != '-')
+				if ((i + 2) <= validArguments && argv[i][0] != '-' && argv[i+1][0] != '-')
 				{
 					windowWidth = atoi(argv[i++]);
 					windowHeight = atoi(argv[i++]);
-					if ((i +2) <= argc && argv[i][0] != '-' && argv[i+1][0] != '-')
+					if ((i + 2) <= validArguments && argv[i][0] != '-' && argv[i+1][0] != '-')
 					{
 						windowLeft = atoi(argv[i++]);
 						windowTop = atoi(argv[i++]);
@@ -510,14 +529,19 @@ int main(int argc, char** argv)
 				break;
 					
 			case 'h':
-				usage(argv[0]);
+				usage(argv[0], isBlenderPlayer);
 				return 0;
 				break;
 #ifndef _WIN32
 			case 'i':
 				i++;
-				if ( (i + 1) < argc )
-					parentWindow = atoi(argv[i++]); 					
+				if ( (i + 1) <= validArguments )
+					parentWindow = atoi(argv[i++]); 
+				else {
+					error = true;
+					printf("error: too few options for parent window argument.\n");
+				}
+
 #ifndef NDEBUG
 				printf("XWindows ID = %d\n", parentWindow);
 #endif //NDEBUG
@@ -529,7 +553,7 @@ int main(int argc, char** argv)
 				break;
 			case 's':  // stereo
 				i++;
-				if ((i + 1) < argc)
+				if ((i + 1) <= validArguments)
 				{
 					stereomode = (RAS_IRasterizer::StereoMode) atoi(argv[i]);
 					if (stereomode < RAS_IRasterizer::RAS_STEREO_NOSTEREO || stereomode >= RAS_IRasterizer::RAS_STEREO_MAXSTEREO)
@@ -575,7 +599,7 @@ int main(int argc, char** argv)
 				stereoFlag = STEREO_DOME;
 				stereomode = RAS_IRasterizer::RAS_STEREO_DOME;
 				i++;
-				if ((i + 1) < argc)
+				if ((i + 1) <= validArguments)
 				{
 					if(!strcmp(argv[i], "angle")){
 						i++;
@@ -631,7 +655,7 @@ int main(int argc, char** argv)
 	
 	if (error )
 	{
-		usage(argv[0]);
+		usage(argv[0], isBlenderPlayer);
 		return 0;
 	}
 
@@ -714,7 +738,7 @@ int main(int argc, char** argv)
 					//::printf("game data loaded from %s\n", filename);
 					
 					if (!bfd) {
-						usage(argv[0]);
+						usage(argv[0], isBlenderPlayer);
 						error = true;
 						exitcode = KX_EXIT_REQUEST_QUIT_GAME;
 					} 

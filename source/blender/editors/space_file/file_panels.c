@@ -170,7 +170,9 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	wmOperator *op= sfile->op;
 	int empty= 1, flag;
-
+	
+	uiBlockSetFunc(uiLayoutGetBlock(pa->layout), file_draw_check_cb, NULL, NULL);
+	
 	if(op->type->ui) {
 		op->layout= pa->layout;
 		op->type->ui((bContext*)C, op);
@@ -197,6 +199,8 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 		if(empty)
 			uiItemL(pa->layout, "No properties.", 0);
 	}
+	
+	uiBlockSetFunc(uiLayoutGetBlock(pa->layout), NULL, NULL, NULL);
 }
 
 void file_panels_register(ARegionType *art)

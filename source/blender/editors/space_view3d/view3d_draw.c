@@ -974,7 +974,6 @@ static void drawviewborder_flymode(ARegion *ar)
 
 static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 {
-	extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);          // interface_panel.c
 	float fac, a;
 	float x1, x2, y1, y2;
 	float x1i, x2i, y1i, y2i;
@@ -1061,7 +1060,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
 		
 		uiSetRoundBox(15);
-		gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+		uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 	}
 
 	setlinestyle(0);

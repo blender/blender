@@ -635,16 +635,30 @@ class OrderedMeta(RNAMeta):
 
 
 # Only defined so operators members can be used by accessing self.order
+# with doc generation 'self.properties.bl_rna.properties' can fail
 class Operator(StructRNA, metaclass=OrderedMeta):
     __slots__ = ()
+    
+    def __getattribute__(self, attr):
+        properties = StructRNA.path_resolve(self, "properties")
+        bl_rna = getattr(properties, "bl_rna", None)
+        if bl_rna and attr in bl_rna.properties:
+            return getattr(properties, attr)
+        return super().__getattribute__(attr)
 
-    @classmethod
-    def easy_getsets(cls):
-        def bypass_attr(attr):
-            setattr(cls, attr, property(lambda self: getattr(self.properties, attr), lambda self, value: setattr(self.properties, attr, value)))
-        for attr, value in list(cls.__dict__.items()):
-            if type(value) == tuple and len(value) == 2 and type(value[1]) == dict:
-                bypass_attr(attr)
+    def __setattr__(self, attr, value):
+        properties = StructRNA.path_resolve(self, "properties")
+        bl_rna = getattr(properties, "bl_rna", None)
+        if bl_rna and attr in bl_rna.properties:
+            setattr(properties, attr, value)
+        return super().__setattr__(attr, value)
+
+    def __delattr__(self, attr):
+        properties = StructRNA.path_resolve(self, "properties")
+        bl_rna = getattr(properties, "bl_rna", None)
+        if bl_rna and attr in bl_rna.properties:
+            delattr(properties, attr)
+        return super().__delattr__(attr)
 
 
 class Macro(StructRNA, metaclass=OrderedMeta):
@@ -725,6 +739,9 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         import bpy.utils
 
         layout = self.layout
+        
+        if not searchpaths:
+            layout.label("* Missing Paths *")
 
         # collect paths
         files = []
@@ -747,7 +764,6 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             props.filepath = filepath
             if operator == "script.execute_preset":
                 props.menu_idname = self.bl_idname
-                props.preset_name = preset_name
 
     def draw_preset(self, context):
         """Define these on the subclass

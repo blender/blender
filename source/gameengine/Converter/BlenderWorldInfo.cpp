@@ -2,7 +2,7 @@
  * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
- * This program is free software; you can redistribute it and/or
+ * This program is free software; you can [0]istribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
@@ -55,11 +55,13 @@
 #include "DNA_world_types.h"
 #include "DNA_screen_types.h"
 
+#include "BLI_math.h"
+
 #include "BKE_global.h"
 /* end of blender include block */
 
 
-BlenderWorldInfo::BlenderWorldInfo(struct World* blenderworld)
+BlenderWorldInfo::BlenderWorldInfo(struct Scene *blenderscene, struct World* blenderworld)
 {
 	if (blenderworld)
 	{
@@ -71,27 +73,24 @@ BlenderWorldInfo::BlenderWorldInfo(struct World* blenderworld)
 			m_hasmist = true;
 			m_miststart = blenderworld->miststa;
 			m_mistdistance = blenderworld->mistdist;
-			m_mistred = blenderworld->horr;
-			m_mistgreen = blenderworld->horg;
-			m_mistblue = blenderworld->horb;
+			copy_v3_v3(m_mistcolor, &blenderworld->horr);
 		}
 		else
 		{
 			m_hasmist = false;
 			m_miststart = 0.0;
 			m_mistdistance = 0.0;
-			m_mistred = 0.0;
-			m_mistgreen = 0.0;
-			m_mistblue = 0.0;
+			zero_v3(m_mistcolor);
 		}
 
-		m_backgroundred = blenderworld->horr;
-		m_backgroundgreen = blenderworld->horg;
-		m_backgroundblue = blenderworld->horb;
-		
-		m_ambientred = blenderworld->ambr;
-		m_ambientgreen = blenderworld->ambg;
-		m_ambientblue = blenderworld->ambb;
+		copy_v3_v3(m_backgroundcolor, &blenderworld->horr);
+		copy_v3_v3(m_ambientcolor, &blenderworld->ambr);
+
+		if(blenderscene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+			linearrgb_to_srgb_v3_v3(m_mistcolor, m_mistcolor);
+			linearrgb_to_srgb_v3_v3(m_backgroundcolor, m_backgroundcolor);
+			linearrgb_to_srgb_v3_v3(m_ambientcolor, m_ambientcolor);
+		}
 	}
 	else
 	{
@@ -123,37 +122,37 @@ bool BlenderWorldInfo::hasMist()
 
 float BlenderWorldInfo::getBackColorRed()
 {
-	return m_backgroundred;
+	return m_backgroundcolor[0];
 }
 
 
 
 float BlenderWorldInfo::getBackColorGreen()
 {
-	return m_backgroundgreen;
+	return m_backgroundcolor[1];
 }  
 
 
 
 float BlenderWorldInfo::getBackColorBlue()
 {
-	return m_backgroundblue;
+	return m_backgroundcolor[2];
 }  
 
 
 float BlenderWorldInfo::getAmbientColorRed()
 {
-	return m_ambientred;
+	return m_ambientcolor[0];
 }
 
 float BlenderWorldInfo::getAmbientColorGreen()
 {
-	return m_ambientgreen;
+	return m_ambientcolor[1];
 }
 
 float BlenderWorldInfo::getAmbientColorBlue()
 {
-	return m_ambientblue;
+	return m_ambientcolor[2];
 }
 
 float BlenderWorldInfo::getMistStart()
@@ -172,21 +171,21 @@ float BlenderWorldInfo::getMistDistance()
     
 float BlenderWorldInfo::getMistColorRed()
 {
-	return m_mistred;
+	return m_mistcolor[0];
 }
 
 
 
 float BlenderWorldInfo::getMistColorGreen()
 {
-	return m_mistgreen;
+	return m_mistcolor[1];
 }   
 
 
 
 float BlenderWorldInfo::getMistColorBlue()
 {
-	return m_mistblue;
+	return m_mistcolor[2];
 }
 
 
@@ -210,7 +209,7 @@ BlenderWorldInfo::setMistDistance(
 BlenderWorldInfo::setMistColorRed(
 	float d
 ) {
-	m_mistred = d;
+	m_mistcolor[0] = d;
 }
 
 
@@ -218,7 +217,7 @@ BlenderWorldInfo::setMistColorRed(
 BlenderWorldInfo::setMistColorGreen(
 	float d
 ) {
-	m_mistgreen = d;
+	m_mistcolor[1] = d;
 }
 
 
@@ -226,5 +225,5 @@ BlenderWorldInfo::setMistColorGreen(
 BlenderWorldInfo::setMistColorBlue(
 	float d
 ) {
-	m_mistblue = d;
+	m_mistcolor[2] = d;
 }

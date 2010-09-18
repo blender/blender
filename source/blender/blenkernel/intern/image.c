@@ -69,6 +69,7 @@
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
+#include "BKE_node.h"
 
 //XXX #include "BIF_editseq.h"
 
@@ -756,9 +757,9 @@ int BKE_imtype_is_movie(int imtype)
 	return 0;
 }
 
-void BKE_add_image_extension(char *string, int imtype)
+int BKE_add_image_extension(char *string, int imtype)
 {
-	char *extension="";
+	char *extension= NULL;
 	
 	if(imtype== R_IRIS) {
 		if(!BLI_testextensie(string, ".rgb"))
@@ -829,7 +830,12 @@ void BKE_add_image_extension(char *string, int imtype)
 			extension= ".jpg";
 	}
 
-	strcat(string, extension);
+	if(extension) {
+		return BLI_replace_extension(string, FILE_MAX, extension);
+	}
+	else {
+		return FALSE;
+	}
 }
 
 /* could allow access externally - 512 is for long names, 64 is for id names */
@@ -1446,6 +1452,17 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			}
 		}
 		break;
+	}
+	
+	/* dont use notifiers because they are not 100% sure to succseed
+	 * this also makes sure all scenes are accounted for. */
+	{
+		Scene *scene;
+		for(scene= G.main->scene.first; scene; scene= scene->id.next) {
+			if(scene->nodetree) {
+				NodeTagIDChanged(scene->nodetree, &ima->id);
+			}
+		}
 	}
 }
 

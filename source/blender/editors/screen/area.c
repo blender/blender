@@ -1095,13 +1095,6 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 {
 	SpaceLink *sl = (sa) ? sa->spacedata.first : CTX_wm_space_data(C);
 
-	/* Special handling of filebrowser to stop background thread for
-	   thumbnail creation - don't want to waste cpu resources if not showing
-	   the filebrowser */
-	if (sl->spacetype == SPACE_FILE) {
-		ED_fileselect_exit(C, (SpaceFile*)sl);
-	}
-
 	if(sl->next) {
 		/* workaround for case of double prevspace, render window
 		   with a file browser on top of it */

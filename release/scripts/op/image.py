@@ -121,7 +121,8 @@ class ProjectEdit(bpy.types.Operator):
         for image in bpy.data.images:
             image.tag = True
 
-        bpy.ops.paint.image_from_view()
+        if 'FINISHED' not in bpy.ops.paint.image_from_view():
+            return {'CANCELLED'}
 
         image_new = None
         for image in bpy.data.images:

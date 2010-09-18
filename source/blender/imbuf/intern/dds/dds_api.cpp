@@ -22,6 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
 #include <dds_api.h>
 #include <Stream.h>
 #include <DirectDrawSurface.h>
@@ -64,7 +65,7 @@ int imb_is_a_dds(unsigned char *mem) // note: use at most first 32 bytes
 	return(1);
 }
 
-struct ImBuf *imb_load_dds(unsigned char *mem, int size, int flags)
+struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags)
 {
 	struct ImBuf * ibuf = 0;
 	DirectDrawSurface dds(mem, size); /* reads header */

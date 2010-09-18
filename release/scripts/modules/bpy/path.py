@@ -94,7 +94,7 @@ def display_name(name):
     name_base = name_base.replace("_", " ")
 
     if name_base.islower():
-        return name_base.capitalize()
+        return name_base.lower().title()
     else:
         return name_base
 

@@ -41,11 +41,11 @@
 #ifdef WIN32
 #include <io.h>
 #include "BLI_winstuff.h"
+#include "BLI_callbacks.h"
 #else
 #include <unistd.h> // for read close
 #include <sys/param.h>
 #endif
-
 
 #include "BLI_blenlib.h"
 

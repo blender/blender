@@ -805,6 +805,8 @@ static int constraint_delete_exec (bContext *C, wmOperator *op)
 		/* there's no active constraint now, so make sure this is the case */
 		constraints_set_active(lb, NULL);
 		
+		ED_object_constraint_update(ob); /* needed to set the flags on posebones correctly */
+
 		/* notifiers */
 		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
 		

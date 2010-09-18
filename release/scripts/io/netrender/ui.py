@@ -119,7 +119,7 @@ class RENDER_PT_network_settings(bpy.types.Panel, RenderButtonsPanel):
         split = layout.split(percentage=0.7)
 
         col = split.column()
-        col.label(text="Server Adress:")
+        col.label(text="Server Address:")
         col.prop(netsettings, "server_address", text="")
 
         col = split.column()

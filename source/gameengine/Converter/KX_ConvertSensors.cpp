@@ -30,7 +30,7 @@
 
 #include <stdio.h>
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786)
 #endif //WIN32
 
@@ -39,7 +39,7 @@
 #include "KX_ConvertSensors.h"
 
 /* This little block needed for linking to Blender... */
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #include "BLI_winstuff.h"
 #endif
 

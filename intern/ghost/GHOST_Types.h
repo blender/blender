@@ -283,8 +283,8 @@ typedef enum {
 	GHOST_kKeyRightControl,
 	GHOST_kKeyLeftAlt,
 	GHOST_kKeyRightAlt,
-    GHOST_kKeyCommand,				// APPLE only!
-    GHOST_kKeyGrLess ,		// German PC only!
+	GHOST_kKeyCommand,		// Command key on Apple, Windows key(s) on Windows
+	GHOST_kKeyGrLess ,		// German PC only!
 
 	GHOST_kKeyCapsLock,
 	GHOST_kKeyNumLock,

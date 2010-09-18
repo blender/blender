@@ -96,7 +96,9 @@
 
 #include "GPU_draw.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -403,6 +405,13 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 
 	ED_editors_init(C);
 	DAG_on_load_update(CTX_data_main(C));
+
+#ifndef DISABLE_PYTHON
+	if(CTX_py_init_get(C)) {
+		/* sync addons, these may have changed from the defaults */
+		BPY_eval_string(C, "__import__('bpy').utils.addon_reset_all()");
+	}
+#endif
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 	CTX_wm_window_set(C, NULL); /* exits queues */
@@ -576,7 +585,7 @@ int write_crash_blend(void)
 	}
 }
 
-int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports, int copy)
+int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *reports, int copy)
 {
 	Library *li;
 	int len;
@@ -597,25 +606,20 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports,
 		return -1;
 	}
  
+	BLI_strncpy(di, target, FILE_MAX);
+	BLI_replace_extension(di, FILE_MAX, ".blend");
+	/* dont use 'target' anymore */
+	
 	/* send the OnSave event */
 	for (li= G.main->library.first; li; li= li->id.next) {
-		if (BLI_streq(li->name, target)) {
-			BKE_report(reports, RPT_ERROR, "Cannot overwrite used library");
+		if (strcmp(li->filepath, di) == 0) {
+			BKE_reportf(reports, RPT_ERROR, "Can't overwrite used library '%f'", di);
 			return -1;
 		}
 	}
-	
-	if (!BLO_has_bfile_extension(target) && (len+6 < FILE_MAX)) {
-		sprintf(di, "%s.blend", target);
-	} else {
-		strcpy(di, target);
-	}
 
-//	if (BLI_exists(di)) {
-// XXX		if(!saveover(di))
-// XXX			return; 
-//	}
-	
+	/* operator now handles overwrite checks */
+
 	if (G.fileflags & G_AUTOPACK) {
 		packAll(G.main, reports);
 	}

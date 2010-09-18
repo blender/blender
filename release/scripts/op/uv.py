@@ -343,6 +343,15 @@ class ExportUVLayout(bpy.types.Operator):
 
         return {'FINISHED'}
 
+    def check(self, context):
+        filepath = bpy.path.ensure_ext(self.filepath, "." + self.mode.lower())
+        if filepath != self.filepath:
+            self.filepath = filepath
+            return True
+        else:
+            return False
+
+
     def invoke(self, context, event):
         self.size = self._image_size(context)
         wm = context.window_manager

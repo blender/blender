@@ -356,6 +356,7 @@ extern void ui_set_but_vectorf(uiBut *but, float *vec);
 extern void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my);
 
 extern void ui_get_but_string(uiBut *but, char *str, int maxlen);
+extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, int maxlen);
 extern int ui_set_but_string(struct bContext *C, uiBut *but, const char *str);
 extern int ui_get_but_string_max_length(uiBut *but);
 
@@ -439,10 +440,6 @@ extern void ui_draw_aligned_panel(struct ARegion *ar, struct uiStyle *style, uiB
 
 /* interface_draw.c */
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
-
-extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
-extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
-extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight);
 
 void ui_draw_gradient(rcti *rect, float *rgb, int type, float alpha);
 

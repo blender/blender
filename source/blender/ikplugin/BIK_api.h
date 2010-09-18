@@ -73,7 +73,6 @@ int BIK_get_solver_param(struct bPose *pose, struct bPoseChannel *pchan, int id,
 // number of solver available
 // 0 = iksolver
 // 1 = iTaSC
-#define BIK_SOLVER_COUNT		2
 
 /* for use in BIK_get_constraint_param */
 #define BIK_PARAM_CONSTRAINT_ERROR		0

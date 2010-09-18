@@ -297,7 +297,6 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
             if has_data and image.depth == 32:
                 # Image has alpha
 
-                # XXX bitmask won't work?
                 mtex = blender_material.texture_slots.add()
                 mtex.texture = texture
                 mtex.texture_coords = 'UV'
@@ -324,31 +323,27 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_ambient = True
-#             blender_material.setTexture(1, texture, Texture.TexCo.UV, Texture.MapTo.CMIR) # TODO- Add AMB to BPY API
 
         elif type == 'Ks':
             mtex = blender_material.texture_slots.add()
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_specular = True
-#           blender_material.setTexture(2, texture, Texture.TexCo.UV, Texture.MapTo.SPEC)
 
         elif type == 'Bump':
             mtex = blender_material.texture_slots.add()
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_normal = True
-#             blender_material.setTexture(3, texture, Texture.TexCo.UV, Texture.MapTo.NOR)
+
         elif type == 'D':
             mtex = blender_material.texture_slots.add()
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_alpha = True
-            blender_material.z_transparency = True
+            blender_material.use_transparency = True
+            blender_material.transparency_method = 'Z_TRANSPARENCY'
             blender_material.alpha = 0.0
-#             blender_material.setTexture(4, texture, Texture.TexCo.UV, Texture.MapTo.ALPHA)
-#             blender_material.mode |= Material.Modes.ZTRANSP
-#             blender_material.alpha = 0.0
             # Todo, unset deffuse material alpha if it has an alpha channel
 
         elif type == 'refl':
@@ -356,7 +351,6 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_reflect = True
-#             blender_material.setTexture(5, texture, Texture.TexCo.UV, Texture.MapTo.REF)
 
 
     # Add an MTL with the same name as the obj if no MTLs are spesified.
@@ -396,17 +390,19 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                     line_split= line.split()
                     line_lower= line.lower().lstrip()
                     if line_lower.startswith('ka'):
-                        context_material.mirror_color = (float(line_split[1]), float(line_split[2]), float(line_split[3]))
+                        context_material.mirror_color = float(line_split[1]), float(line_split[2]), float(line_split[3])
                     elif line_lower.startswith('kd'):
-                        context_material.diffuse_color = (float(line_split[1]), float(line_split[2]), float(line_split[3]))
+                        context_material.diffuse_color = float(line_split[1]), float(line_split[2]), float(line_split[3])
                     elif line_lower.startswith('ks'):
-                        context_material.specular_color = (float(line_split[1]), float(line_split[2]), float(line_split[3]))
+                        context_material.specular_color = float(line_split[1]), float(line_split[2]), float(line_split[3])
                     elif line_lower.startswith('ns'):
-                        context_material.specular_hardness = int((float(line_split[1])*0.51))
+                        context_material.specular_hardness = int((float(line_split[1]) * 0.51))
                     elif line_lower.startswith('ni'): # Refraction index
-                        context_material.raytrace_transparency.ior = max(1, min(float(line_split[1]), 3)) # Between 1 and 3
+                        context_material.raytrace_transparency.ior = max(1, min(float(line_split[1]), 3))  # between 1 and 3
                     elif line_lower.startswith('d') or line_lower.startswith('tr'):
                         context_material.alpha = float(line_split[1])
+                        context_material.use_transparency = True
+                        context_material.transparency_method = 'Z_TRANSPARENCY'
                     elif line_lower.startswith('map_ka'):
                         img_filepath= line_value(line.split())
                         if img_filepath:
@@ -423,12 +419,12 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         img_filepath= line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Bump')
-                    elif line_lower.startswith('map_d') or line_lower.startswith('map_tr'): # Alpha map - Dissolve
+                    elif line_lower.startswith('map_d') or line_lower.startswith('map_tr'):  # Alpha map - Dissolve
                         img_filepath= line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'D')
 
-                    elif line_lower.startswith('refl'): # Reflectionmap
+                    elif line_lower.startswith('refl'):  # reflectionmap
                         img_filepath= line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'refl')

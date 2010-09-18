@@ -24,6 +24,8 @@
 
 #include <stdlib.h>
 
+#include "BLI_math.h"
+
 #include "RNA_define.h"
 
 #include "rna_internal.h"
@@ -36,8 +38,6 @@
 #include "WM_types.h"
 
 #ifdef RNA_RUNTIME
-
-#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -468,16 +468,18 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_ui_text(prop, "Envelope Deform Weight", "Bone deformation weight (for Envelope deform only)");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop= RNA_def_property(srna, "head_radius", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "head_radius", PROP_FLOAT, PROP_UNSIGNED);
 	if(editbone) RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 	RNA_def_property_float_sdna(prop, NULL, "rad_head");
 	//RNA_def_property_range(prop, 0, 1000);  // XXX range is 0 to lim, where lim= 10000.0f*MAX2(1.0, view3d->grid);
+	RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Envelope Head Radius", "Radius of head of bone (for Envelope deform only)");
 	
-	prop= RNA_def_property(srna, "tail_radius", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "tail_radius", PROP_FLOAT, PROP_UNSIGNED);
 	if(editbone) RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 	RNA_def_property_float_sdna(prop, NULL, "rad_tail");
 	//RNA_def_property_range(prop, 0, 1000);  // XXX range is 0 to lim, where lim= 10000.0f*MAX2(1.0, view3d->grid);
+	RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Envelope Tail Radius", "Radius of tail of bone (for Envelope deform only)");
 	
 		/* b-bones deform settings */
@@ -538,6 +540,16 @@ static void rna_def_bone(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_SELECTED);
 	RNA_def_property_ui_text(prop, "Select", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	
+	prop= RNA_def_property(srna, "select_head", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_ROOTSEL);
+	RNA_def_property_ui_text(prop, "Select Head", "");
+	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	
+	prop= RNA_def_property(srna, "select_tail", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_TIPSEL);
+	RNA_def_property_ui_text(prop, "Select Tail", "");
+	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	/* XXX better matrix descriptions possible (Arystan) */
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
@@ -569,6 +581,8 @@ static void rna_def_bone(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "arm_head");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Armature-Relative Head", "Location of head end of the bone relative to armature");
+
+	RNA_api_bone(srna);
 }
 
 static void rna_def_edit_bone(BlenderRNA *brna)
@@ -591,8 +605,9 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Parent", "Parent edit bone (in same Armature)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
-	prop= RNA_def_property(srna, "roll", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "roll", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "roll");
+	RNA_def_property_ui_range(prop, -M_PI * 2, M_PI * 2, 0.1, 2);
 	RNA_def_property_ui_text(prop, "Roll", "Bone rotation around head-tail axis");
 	RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 

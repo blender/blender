@@ -512,6 +512,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
             col = row.column()
             col.label(text="Misc:")
             col.prop(boids, "bank", slider=True)
+            col.prop(boids, "pitch", slider=True)
             col.prop(boids, "height", slider=True)
 
         if part.physics_type == 'KEYED' or part.physics_type == 'BOIDS' or part.physics_type == 'FLUID':
@@ -863,7 +864,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
 
         if part.draw_percentage != 100:
             if part.type == 'HAIR':
-                if psys.hair_dynamics and psys.point_cache.is_baked == False:
+                if psys.use_hair_dynamics and psys.point_cache.is_baked == False:
                     layout.row().label(text="Display percentage makes dynamics inaccurate without baking!")
             else:
                 phystype = part.physics_type

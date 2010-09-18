@@ -697,7 +697,7 @@ static int operator_poll(bContext *C, wmOperatorType *ot)
 	return visible;
 }
 
-static int operator_exec(bContext *C, wmOperator *op)
+static int operator_execute(bContext *C, wmOperator *op)
 {
 	PointerRNA opr;
 	ParameterList list;
@@ -707,6 +707,30 @@ static int operator_exec(bContext *C, wmOperator *op)
 
 	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
 	func= RNA_struct_find_function(&opr, "execute");
+
+	RNA_parameter_list_create(&list, &opr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	op->type->ext.call(&opr, func, &list);
+
+	RNA_parameter_get_lookup(&list, "result", &ret);
+	result= *(int*)ret;
+
+	RNA_parameter_list_free(&list);
+
+	return result;
+}
+
+/* same as execute() but no return value */
+static int operator_check(bContext *C, wmOperator *op)
+{
+	PointerRNA opr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	int result;
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
+	func= RNA_struct_find_function(&opr, "check");
 
 	RNA_parameter_list_create(&list, &opr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
@@ -796,7 +820,7 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 	wmOperatorType dummyot = {0};
 	wmOperator dummyop= {0};
 	PointerRNA dummyotr;
-	int have_function[5];
+	int have_function[6];
 
 	/* setup dummy operator & operator type to store static properties in */
 	dummyop.type= &dummyot;
@@ -846,11 +870,11 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 	dummyot.ext.free= free;
 
 	dummyot.pyop_poll=	(have_function[0])? operator_poll: NULL;
-	dummyot.exec=		(have_function[1])? operator_exec: NULL;
-	dummyot.invoke=		(have_function[2])? operator_invoke: NULL;
-	dummyot.modal=		(have_function[3])? operator_modal: NULL;
-	dummyot.ui=			(have_function[4])? operator_draw: NULL;
-
+	dummyot.exec=		(have_function[1])? operator_execute: NULL;
+	dummyot.check=		(have_function[2])? operator_check: NULL;
+	dummyot.invoke=		(have_function[3])? operator_invoke: NULL;
+	dummyot.modal=		(have_function[4])? operator_modal: NULL;
+	dummyot.ui=			(have_function[5])? operator_draw: NULL;
 	WM_operatortype_append_ptr(operator_wrapper, (void *)&dummyot);
 
 	/* update while blender is running */

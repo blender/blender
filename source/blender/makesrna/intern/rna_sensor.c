@@ -156,6 +156,8 @@ static void rna_Sensor_keyboard_key_set(struct PointerRNA *ptr, int value)
 	
 	if (ISKEYBOARD(value))
 		ks->key = value;
+	else
+		ks->key = 0;
 }
 
 static void rna_Sensor_keyboard_modifier_set(struct PointerRNA *ptr, int value)
@@ -165,6 +167,8 @@ static void rna_Sensor_keyboard_modifier_set(struct PointerRNA *ptr, int value)
 	
 	if (ISKEYBOARD(value))
 		ks->qual = value;
+	else
+		ks->qual = 0;
 }
 		
 static void rna_Sensor_keyboard_modifier2_set(struct PointerRNA *ptr, int value)
@@ -174,6 +178,8 @@ static void rna_Sensor_keyboard_modifier2_set(struct PointerRNA *ptr, int value)
 	
 	if (ISKEYBOARD(value))
 		ks->qual2 = value;
+	else
+		ks->qual2 = 0;
 }
 
 static void rna_Sensor_tap_set(struct PointerRNA *ptr, int value)

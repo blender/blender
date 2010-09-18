@@ -19,6 +19,7 @@
 import sys, os, platform, shutil
 import http, http.client, http.server, urllib
 import subprocess, time
+import json
 
 from netrender.utils import *
 import netrender.model
@@ -111,7 +112,7 @@ def render_slave(engine, netsettings, threads):
     conn = clientConnection(netsettings.server_address, netsettings.server_port)
 
     if conn:
-        conn.request("POST", "/slave", repr(slave_Info().serialize()))
+        conn.request("POST", "/slave", json.dumps(slave_Info().serialize()))
         response = conn.getresponse()
         response.read()
 
@@ -130,7 +131,7 @@ def render_slave(engine, netsettings, threads):
             if response.status == http.client.OK:
                 timeout = 1 # reset timeout on new job
 
-                job = netrender.model.RenderJob.materialize(eval(str(response.read(), encoding='utf8')))
+                job = netrender.model.RenderJob.materialize(json.loads(str(response.read(), encoding='utf8')))
                 engine.update_stats("", "Network render processing job from master")
 
                 JOB_PREFIX = os.path.join(NODE_PREFIX, "job_" + job.id)
@@ -156,7 +157,7 @@ def render_slave(engine, netsettings, threads):
 
                 # announce log to master
                 logfile = netrender.model.LogFile(job.id, slave_id, [frame.number for frame in job.frames])
-                conn.request("POST", "/log", bytes(repr(logfile.serialize()), encoding='utf8'))
+                conn.request("POST", "/log", bytes(json.dumps(logfile.serialize()), encoding='utf8'))
                 response = conn.getresponse()
                 response.read()
 

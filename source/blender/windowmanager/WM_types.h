@@ -385,6 +385,12 @@ typedef struct wmOperatorType {
 	 * any interface code or input device state.
 	 * - see defines below for return values */
 	int (*exec)(struct bContext *, struct wmOperator *);
+	
+	/* this callback executes on a running operator whenever as property
+	 * is changed. It can correct its own properties or report errors for
+	 * invalid settings in exceptional cases.
+	 * Boolean return value, True denotes a change has been made and to redraw */
+	int (*check)(struct bContext *, struct wmOperator *);
 
 	/* for modal temporary operators, initially invoke is called. then
 	 * any further events are handled in modal. if the operation is

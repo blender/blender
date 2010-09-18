@@ -1454,7 +1454,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 	if(!pm && !pf) {
 		if(pid->cache->flag & PTCACHE_DISK_CACHE) {
 			pf=NULL;
-			while(cfrai > pid->cache->startframe && !pf) {
+			while(cfrai >= pid->cache->startframe && !pf) {
 				cfrai--;
 				pf= ptcache_file_open(pid, PTCACHE_FILE_READ, cfrai);
 				cfra1 = cfrai;

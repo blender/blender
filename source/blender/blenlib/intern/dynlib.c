@@ -87,7 +87,7 @@ char *PIL_dynlib_get_error_as_string(PILdynlib* lib) {
 			return buf;
 	}
 	
-	return err;
+	return NULL;
 }
 
 void PIL_dynlib_close(PILdynlib *lib) {

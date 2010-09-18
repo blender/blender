@@ -124,6 +124,19 @@ def _merge_keymaps(kc1, kc2):
     return merged_keymaps
 
 
+class PREFS_MT_keyconfigs(bpy.types.Menu):
+    bl_label = "KeyPresets"
+    preset_subdir = "keyconfig"
+    preset_operator = "wm.keyconfig_activate"
+    def draw(self, context):
+        props = self.layout.operator("wm.context_set_value", text="Blender (default)")
+        props.data_path = "window_manager.keyconfigs.active"
+        props.value = "context.window_manager.keyconfigs.default"
+
+        # now draw the presets
+        bpy.types.Menu.draw_preset(self, context)
+
+
 class InputKeyMapPanel(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
@@ -365,10 +378,18 @@ class InputKeyMapPanel(bpy.types.Panel):
         subsplit = sub.split()
         subcol = subsplit.column()
 
-        row = subcol.row()
-        row.prop_search(wm.keyconfigs, "active", wm, "keyconfigs", text="Key Config:")
-        layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
-        row.operator("wm.keyconfig_remove", text="", icon='X')
+        row = subcol.row(align=True)
+        
+        #row.prop_search(wm.keyconfigs, "active", wm, "keyconfigs", text="Key Config:")
+        text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
+        if not text:
+            text = "Blender (default)"
+        row.menu("PREFS_MT_keyconfigs", text=text)
+        row.operator("wm.keyconfig_preset_add", text="", icon="ZOOMIN")
+        row.operator("wm.keyconfig_preset_add", text="", icon="ZOOMOUT").remove_active = True
+    
+#        layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
+#        row.operator("wm.keyconfig_remove", text="", icon='X')
 
         row.prop(context.space_data, "filter_text", icon="VIEWZOOM")
 
@@ -389,8 +410,9 @@ def export_properties(prefix, properties, lines=None):
     if lines is None:
         lines = []
 
-    for pname, value in properties.items():
+    for pname in properties.keys():
         if not properties.is_property_hidden(pname):
+            value = getattr(properties, pname)
             if isinstance(value, bpy.types.OperatorProperties):
                 export_properties(prefix + "." + pname, value, lines)
             elif properties.is_property_set(pname):
@@ -501,7 +523,7 @@ def _string_value(value):
     if isinstance(value, str) or isinstance(value, bool) or isinstance(value, float) or isinstance(value, int):
         result = repr(value)
     elif getattr(value, '__len__', False):
-        repr(list(value))
+        return repr(list(value))
     else:
         print("Export key configuration: can't write ", value)
 
@@ -521,6 +543,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
     keep_original = BoolProperty(name="Keep original", description="Keep original file after copying to configuration folder", default=True)
 
     def execute(self, context):
+        from os.path import basename
         import shutil
         if not self.filepath:
             raise Exception("Filepath not set")
@@ -529,24 +552,16 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
         if not f:
             raise Exception("Could not open file")
 
-        config_name = None
-        for line in f:
-            if line.startswith("kc = wm.keyconfigs.new("):
-                config_name = line[24:-3]
-                break
+        config_name = basename(self.filepath)
 
-        if config_name is None:
-            raise Exception("config name not found")
-
-        path = os.path.join(__file__, "..", "..", "cfg")  # remove ui/space_userpref.py
-        path = os.path.normpath(path)
+        path = bpy.utils.preset_paths("keyconfig")[0]  # we need some way to tell the user and system preset path
         print(path)
 
         # create config folder if needed
         if not os.path.exists(path):
             os.mkdir(path)
 
-        path = os.path.join(path, config_name + ".py")
+        path = os.path.join(path, config_name)
 
         if self.keep_original:
             shutil.copy(self.filepath, path)
@@ -554,18 +569,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
             shutil.move(self.filepath, path)
 
         # sneaky way to check we're actually running the code.
-        wm = context.window_manager
-        while config_name in wm.keyconfigs:
-            wm.keyconfigs.remove(wm.keyconfigs[config_name])
-
-        wm = context.window_manager
-        totmap = len(wm.keyconfigs)
-        mod = __import__(config_name)
-        if totmap == len(wm.keyconfigs):
-            reload(mod)
-
-        wm = bpy.context.window_manager
-        wm.keyconfigs.active = wm.keyconfigs[config_name]
+        bpy.utils.keyconfig_set(path)
 
         return {'FINISHED'}
 
@@ -586,7 +590,6 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
     filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
-    kc_name = StringProperty(name="KeyConfig Name", description="Name to save the key config as")
 
     def execute(self, context):
         if not self.filepath:
@@ -599,18 +602,10 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         wm = context.window_manager
         kc = wm.keyconfigs.active
 
-        if self.kc_name != '':
-            name = self.kc_name
-        elif kc.name == 'Blender':
-            name = os.path.splitext(os.path.basename(self.filepath))[0]
-        else:
-            name = kc.name
-
-        f.write("# Configuration %s\n" % name)
-
-        f.write("import bpy\n\n")
+        f.write("import bpy\n")
+        f.write("import os\n\n")
         f.write("wm = bpy.context.window_manager\n")
-        f.write("kc = wm.keyconfigs.new('%s')\n\n" % name)
+        f.write("kc = wm.keyconfigs.new(os.path.splitext(os.path.basename(__file__))[0])\n\n") # keymap must be created by caller
 
         # Generate a list of keymaps to export:
         #
@@ -775,21 +770,7 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
     def execute(self, context):
         import sys
         wm = context.window_manager
-
         keyconfig = wm.keyconfigs.active
-
-        module = sys.modules.get(keyconfig.name)
-
-        if module:
-            path = module.__file__
-            if os.path.exists(path):
-                os.remove(path)
-
-            path = module.__file__ + "c"  # for .pyc
-
-            if os.path.exists(path):
-                os.remove(path)
-
         wm.keyconfigs.remove(keyconfig)
         return {'FINISHED'}
 

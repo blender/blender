@@ -57,8 +57,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "ED_screen.h"
-#include "BPY_extern.h"
 
+#ifndef DISABLE_PYTHON
+#include "BPY_extern.h"
+#endif
 
 /* ****************************************************** */
 
@@ -229,7 +231,7 @@ void WM_check(bContext *C)
 		}
 
 		/* case: no open windows at all, for old file reads */
-		wm_window_add_ghostwindows(wm);
+		wm_window_add_ghostwindows(C, wm);
 
 		/* case: fileread */
 		if((wm->initialized & WM_INIT_WINDOW) == 0) {

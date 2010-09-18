@@ -1357,18 +1357,24 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				VECCOPY(vec, obmat[3]);
 				obmat[3][0] = obmat[3][1] = obmat[3][2] = 0.0f;
 				
-				copy_m4_m4(mat, pamat);
+				/* Normal particles and cached hair live in global space so we need to
+				 * remove the real emitter's transformation before 2nd order duplication.
+				 */
+				if(par_space_mat)
+					mul_m4_m4m4(mat, pamat, psys->imat);
+				else
+					copy_m4_m4(mat, pamat);
 
 				mul_m4_m4m4(tmat, obmat, mat);
 				mul_mat3_m4_fl(tmat, size*scale);
-
-				if(part->draw & PART_DRAW_GLOBAL_OB)
-					VECADD(tmat[3], tmat[3], vec);
 
 				if(par_space_mat)
 					mul_m4_m4m4(mat, tmat, par_space_mat);
 				else
 					copy_m4_m4(mat, tmat);
+
+				if(part->draw & PART_DRAW_GLOBAL_OB)
+					VECADD(mat[3], mat[3], vec);
 
 				dob= new_dupli_object(lb, ob, mat, ob->lay, counter, OB_DUPLIPARTS, animated);
 				copy_m4_m4(dob->omat, oldobmat);

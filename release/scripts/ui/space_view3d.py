@@ -151,6 +151,11 @@ class VIEW3D_MT_transform(bpy.types.Menu):
         layout.operator("transform.shear", text="Shear")
         layout.operator("transform.warp", text="Warp")
         layout.operator("transform.push_pull", text="Push/Pull")
+
+        obj = context.object
+        if obj.type == 'ARMATURE' and obj.mode in ('EDIT', 'POSE') and obj.data.draw_type in ('BBONE', 'ENVELOPE'):
+            layout.operator("transform.transform", text="Scale Envelope/BBone").mode = 'BONE_SIZE'
+
         if context.edit_object and context.edit_object.type == 'ARMATURE':
             layout.operator("armature.align")
         else:
@@ -1108,8 +1113,6 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_snap")
-        if arm.draw_type in ('BBONE', 'ENVELOPE'):
-            layout.operator("transform.transform", text="Scale Envelope Distance").mode = 'BONESIZE'
 
         layout.menu("VIEW3D_MT_pose_transform")
 
@@ -1490,7 +1493,7 @@ class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.merge")
-        layout.operator("mesh.rip")
+        layout.operator("mesh.rip_move")
         layout.operator("mesh.split")
         layout.operator("mesh.separate")
 
@@ -1848,11 +1851,6 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_snap")
         layout.menu("VIEW3D_MT_edit_armature_roll")
-
-        if arm.draw_type == 'ENVELOPE':
-            layout.operator("transform.transform", text="Scale Envelope Distance").mode = 'BONESIZE'
-        else:
-            layout.operator("transform.transform", text="Scale B-Bone Width").mode = 'BONESIZE'
 
         layout.separator()
 

@@ -632,13 +632,14 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        props = self
+        props = self.properties # XXX, this should not be needed, api problem!
         layout.label(text="Descriptor ID: '%s'" % props.doc_id)
         layout.prop(props, "doc_new", text="")
 
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=600)
+
 
 
 from bpy.props import *
@@ -765,6 +766,17 @@ class WM_OT_properties_remove(bpy.types.Operator):
     def execute(self, context):
         item = eval("context.%s" % self.data_path)
         del item[self.property]
+        return {'FINISHED'}
+
+
+class WM_OT_keyconfig_activate(bpy.types.Operator):
+    bl_idname = "wm.keyconfig_activate"
+    bl_label = "Activate Keyconfig"
+
+    filepath = StringProperty(name="File Path", maxlen=1024)
+
+    def execute(self, context):
+        bpy.utils.keyconfig_set(self.filepath)
         return {'FINISHED'}
 
 

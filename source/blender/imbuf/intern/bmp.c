@@ -101,7 +101,7 @@ int imb_is_a_bmp(unsigned char *buf) {
 	return checkbmp(buf);
 }
 
-struct ImBuf *imb_bmp_decode(unsigned char *mem, int size, int flags)
+struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 {
 	struct ImBuf *ibuf = 0;
 	BMPINFOHEADER bmi;

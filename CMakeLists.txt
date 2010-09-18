@@ -70,6 +70,7 @@ OPTION(WITH_LCMS          "Enable color correction with lcms" OFF)
 OPTION(WITH_PYTHON        "Enable Embedded Python API" ON)
 OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_FLUID        "Enable Elbeem (Fluid Simulation)" ON)
+OPTION(WITH_IK_ITASC      "Enable ITASC IK solver" ON)
 OPTION(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" OFF)
 OPTION(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 OPTION(WITH_GAMEENGINE    "Enable Game Engine" ON)
@@ -314,7 +315,7 @@ IF(UNIX AND NOT APPLE)
 	ENDIF(WITH_OPENMP)
 
 
-	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -Wno-char-subscripts")
+	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
@@ -362,15 +363,6 @@ IF(WIN32)
 	SET(JPEG_LIBPATH ${JPEG}/lib)
 
 	SET(WINTAB_INC ${LIBDIR}/wintab/include) 
-
-	IF(WITH_PYTHON)
-		SET(PYTHON ${LIBDIR}/python)
-		SET(PYTHON_VERSION 3.1)
-		SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
-		# SET(PYTHON_BINARY python) # not used yet
-		SET(PYTHON_LIB python31)
-		SET(PYTHON_LIBPATH ${PYTHON}/lib)
-	ENDIF(WITH_PYTHON)
 
 	IF(WITH_OPENAL)
 		SET(OPENAL ${LIBDIR}/openal)
@@ -528,6 +520,15 @@ IF(WIN32)
 			SET(JACK_LIBPATH ${JACK}/lib)
 		ENDIF(WITH_JACK)
 
+		IF(WITH_PYTHON)
+			SET(PYTHON ${LIBDIR}/python)
+			SET(PYTHON_VERSION 3.1)
+			SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
+			# SET(PYTHON_BINARY python) # not used yet
+			SET(PYTHON_LIB python31)
+			SET(PYTHON_LIBPATH ${PYTHON}/lib)
+		ENDIF(WITH_PYTHON)
+
 		# MSVC only, Mingw doesnt need
 		IF(CMAKE_CL_64)
 			SET(PLATFORM_LINKFLAGS "/MACHINE:X64 /NODEFAULTLIB:libc.lib;MSVCRT.lib ")
@@ -539,19 +540,12 @@ IF(WIN32)
 
 	ELSE(MSVC) # MINGW
 		SET(LLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
+		SET(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 
-		SET(CMAKE_CXX_FLAGS                "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C++ flags ")
-		SET(CMAKE_C_FLAGS                  "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C flags ")
+		# Better warnings
+		SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
+		SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
-		SET(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g" CACHE STRING "Mingw debug C++ flags ")
-		SET(CMAKE_CXX_FLAGS_RELEASE        "   -O2" CACHE STRING "Mingw release C++ flags ")
-		SET(CMAKE_CXX_FLAGS_MINSIZEREL     "   -Os" CACHE STRING "Mingw minsize release C++ flags ")
-		SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g" CACHE STRING "Mingw release, debug C++ flags ")
-
-		SET(CMAKE_C_FLAGS_DEBUG            "-O0 -g" CACHE STRING "Mingw debug C flags ")
-		SET(CMAKE_C_FLAGS_RELEASE          "-O2"    CACHE STRING "Mingw release C flags ")
-		SET(CMAKE_C_FLAGS_MINSIZEREL       "-Os"    CACHE STRING "Mingw minsize release C flags ")
-		SET(CMAKE_C_FLAGS_RELWITHDEBINFO   "-O2 -g" CACHE STRING "Mingw release, debug C++ flags ")
 		ADD_DEFINITIONS(-DFREE_WINDOWS)
 		
 		IF(WITH_OPENMP)
@@ -615,6 +609,9 @@ IF(WIN32)
 			SET(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/OpenEXR)
 			SET(OPENEXR_LIB Half IlmImf Imath IlmThread)
 			SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
+
+			# TODO, gives linking errors, force off
+			SET(WITH_IMAGE_OPENEXR OFF)
 		ENDIF(WITH_IMAGE_OPENEXR)
 
 		IF(WITH_IMAGE_TIFF)
@@ -633,6 +630,15 @@ IF(WIN32)
 			# TODO, gives linking errors, force off
 			SET(WITH_JACK OFF)
 		ENDIF(WITH_JACK)
+
+		IF(WITH_PYTHON)
+			SET(PYTHON ${LIBDIR}/python)
+			SET(PYTHON_VERSION 3.1)
+			SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
+			# SET(PYTHON_BINARY python) # not used yet
+			SET(PYTHON_LIB python31mw)
+			SET(PYTHON_LIBPATH ${PYTHON}/lib)
+		ENDIF(WITH_PYTHON)
 
 	ENDIF(MSVC)
 

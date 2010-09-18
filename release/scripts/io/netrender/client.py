@@ -20,6 +20,7 @@ import bpy
 import sys, os, re
 import http, http.client, http.server, urllib
 import subprocess, shutil, time, hashlib
+import json
 
 import netrender
 import netrender.model
@@ -169,7 +170,7 @@ def clientSendJob(conn, scene, anim = False):
     job.priority = netsettings.priority
 
     # try to send path first
-    conn.request("POST", "/job", repr(job.serialize()))
+    conn.request("POST", "/job", json.dumps(job.serialize()))
     response = conn.getresponse()
     response.read()
 

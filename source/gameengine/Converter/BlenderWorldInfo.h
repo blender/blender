@@ -35,23 +35,17 @@
 class BlenderWorldInfo : public KX_WorldInfo
 {
 	bool			m_hasworld;
-	float			m_backgroundred;
-	float			m_backgroundgreen;
-	float			m_backgroundblue;
+	float			m_backgroundcolor[3];
 
 	bool			m_hasmist;
 	float			m_miststart;
 	float			m_mistdistance;
-	float			m_mistred;
-	float			m_mistgreen;
-	float			m_mistblue;
+	float			m_mistcolor[3];
 
-	float			m_ambientred;
-	float			m_ambientgreen;
-	float			m_ambientblue;
+	float			m_ambientcolor[3];
 
 public:
-	BlenderWorldInfo(struct World* blenderworld);
+	BlenderWorldInfo(struct Scene *blenderscene, struct World* blenderworld);
 	~BlenderWorldInfo();
 
 	bool	hasWorld();

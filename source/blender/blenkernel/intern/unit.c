@@ -24,12 +24,15 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include "BKE_unit.h"
+
 #ifdef WIN32
 #define _USE_MATH_DEFINES
 #endif
 #include <math.h>
 
 #include "BLI_winstuff.h"
+
 
 #define TEMP_STR_SIZE 256
 
@@ -44,7 +47,8 @@ typedef struct bUnitDef {
 	char *name;
 	char *name_plural;	/* abused a bit for the display name */
 	char *name_short;	/* this is used for display*/
-	char *name_alt;		/* can be NULL */
+	char *name_alt;		/* keyboard-friendly ASCII-only version of name_short, can be NULL */
+						/* if name_short has non-ASCII chars, name_alt should be present */
 	
 	char *name_display;		/* can be NULL */
 
@@ -76,7 +80,7 @@ static struct bUnitCollection buDummyCollecton = {buDummyDef, 0, 0, sizeof(buDum
 static struct bUnitDef buMetricLenDef[] = {
 	{"kilometer", "kilometers",		"km", NULL,	"Kilometers", 1000.0, 0.0,		B_UNIT_DEF_NONE},
 	{"hectometer", "hectometers",	"hm", NULL,	"100 Meters", 100.0, 0.0,			B_UNIT_DEF_SUPPRESS},
-	{"dekameter", "dekameters",		"dkm",NULL,	"10 Meters", 10.0, 0.0,			B_UNIT_DEF_SUPPRESS},
+	{"dekameter", "dekameters",		"dam",NULL,	"10 Meters", 10.0, 0.0,			B_UNIT_DEF_SUPPRESS},
 	{"meter", "meters",				"m",  NULL,	"Meters", 1.0, 0.0, 			B_UNIT_DEF_NONE}, /* base unit */
 	{"decimetre", "decimetres",		"dm", NULL,	"10 Centimeters", 0.1, 0.0,			B_UNIT_DEF_SUPPRESS},
 	{"centimeter", "centimeters",	"cm", NULL,	"Centimeters", 0.01, 0.0,			B_UNIT_DEF_NONE},
@@ -126,13 +130,16 @@ static struct bUnitDef buNaturalRotDef[] = {
 };
 static struct bUnitCollection buNaturalRotCollection = {buNaturalRotDef, 0, 0, sizeof(buNaturalRotDef)/sizeof(bUnitDef)};
 
-#define UNIT_SYSTEM_MAX 3
+#define UNIT_SYSTEM_TOT (((sizeof(bUnitSystems) / 8) / sizeof(void *)) - 1)
+
 static struct bUnitCollection *bUnitSystems[][8] = {
 	{0,0,0,0,0,&buNaturalRotCollection,&buNaturalTimeCollecton,0},
 	{0,&buMetricLenCollecton, 0,0,0, &buNaturalRotCollection, &buNaturalTimeCollecton,0}, /* metric */
 	{0,&buImperialLenCollecton, 0,0,0,&buNaturalRotCollection, &buNaturalTimeCollecton,0}, /* imperial */
 	{0,0,0,0,0,0,0,0}
 };
+
+
 
 /* internal, has some option not exposed */
 static bUnitCollection *unit_get_system(int system, int type)
@@ -458,7 +465,7 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 		bUnitCollection *usys_iter;
 		int system_iter;
 
-		for(system_iter= 0; system_iter<UNIT_SYSTEM_MAX; system_iter++) {
+		for(system_iter= 0; system_iter<UNIT_SYSTEM_TOT; system_iter++) {
 			if (system_iter != system) {
 				usys_iter= unit_get_system(system_iter, type);
 				if (usys_iter) {
@@ -543,6 +550,49 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 	return change;
 }
 
+/* 45µm --> 45um */
+void bUnit_ToUnitAltName(char *str, int len_max, char *orig_str, int system, int type)
+{
+	bUnitCollection *usys = unit_get_system(system, type);
+
+	bUnitDef *unit;
+	bUnitDef *unit_def= unit_default(usys);
+
+	/* find and substitute all units */
+	for(unit= usys->units; unit->name; unit++) {
+		if(len_max > 0 && (unit->name_alt || unit == unit_def))
+		{
+			char *found= NULL;
+
+			found= unit_find_str(orig_str, unit->name_short);
+			if(found) {
+				int offset= found - orig_str;
+				int len_name= 0;
+
+				/* copy everything before the unit */
+				offset= (offset<len_max? offset: len_max);
+				strncpy(str, orig_str, offset);
+
+				str+= offset;
+				orig_str+= offset + strlen(unit->name_short);
+				len_max-= offset;
+
+				/* print the alt_name */
+				if(unit->name_alt)
+					len_name= snprintf(str, len_max, "%s", unit->name_alt);
+				else
+					len_name= 0;
+
+				len_name= (len_name<len_max? len_name: len_max);
+				str+= len_name;
+				len_max-= len_name;
+			}
+		}
+	}
+
+	/* finally copy the rest of the string */
+	strncpy(str, orig_str, len_max);
+}
 
 double bUnit_ClosestScalar(double value, int system, int type)
 {
@@ -566,6 +616,12 @@ double bUnit_BaseScalar(int system, int type)
 }
 
 /* external access */
+int bUnit_IsValid(int system, int type)
+{
+	return !(type < 0 || type >= B_UNIT_MAXDEF || system < 0 || system > UNIT_SYSTEM_TOT);
+}
+
+
 void bUnit_GetSystem(void **usys_pt, int *len, int system, int type)
 {
 	bUnitCollection *usys = unit_get_system(system, type);

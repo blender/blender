@@ -960,6 +960,18 @@ static int save_as_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+
+static int save_as_check(bContext *C, wmOperator *op)
+{
+	char filepath[FILE_MAX];
+	RNA_string_get(op->ptr, "filepath", filepath);
+	if(BKE_add_image_extension(filepath, RNA_enum_get(op->ptr, "file_type"))) {
+		RNA_string_set(op->ptr, "filepath", filepath);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
@@ -1022,6 +1034,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= save_as_exec;
+	ot->check= save_as_check;
 	ot->invoke= save_as_invoke;
 	ot->poll= space_image_buffer_exists_poll;
 

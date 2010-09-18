@@ -262,7 +262,7 @@ static toff_t imb_tiff_SizeProc(thandle_t handle)
 	return (toff_t)(mfile->size);
 }
 
-static TIFF *imb_tiff_client_open(ImbTIFFMemFile *memFile, unsigned char *mem, int size)
+static TIFF *imb_tiff_client_open(ImbTIFFMemFile *memFile, unsigned char *mem, size_t size)
 {
 	/* open the TIFF client layer interface to the in-memory file */
 	memFile->mem = mem;
@@ -464,7 +464,7 @@ void imb_inittiff(void)
  *
  * @return: A newly allocated ImBuf structure if successful, otherwise NULL.
  */
-ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
+ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 {
 	TIFF *image = NULL;
 	ImBuf *ibuf = NULL, *hbuf;
@@ -573,7 +573,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 	return ibuf;
 }
 
-void imb_loadtiletiff(ImBuf *ibuf, unsigned char *mem, int size, int tx, int ty, unsigned int *rect)
+void imb_loadtiletiff(ImBuf *ibuf, unsigned char *mem, size_t size, int tx, int ty, unsigned int *rect)
 {
 	TIFF *image = NULL;
 	uint32 width, height;

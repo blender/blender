@@ -396,6 +396,7 @@ static void time_listener(ScrArea *sa, wmNotifier *wmn)
 	switch (wmn->category) {
 		case NC_OBJECT:
 			switch (wmn->data) {
+				case ND_BONE_ACTIVE:
 				case ND_POINTCACHE:
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);

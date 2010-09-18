@@ -310,7 +310,7 @@ static void drawsolidcube_size(float xsize, float ysize, float zsize)
 
 	if(displist==0) {
 		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		glNewList(displist, GL_COMPILE);
 
 		glBegin(GL_QUADS);
 		n[0]= -1.0;
@@ -340,19 +340,17 @@ static void drawsolidcube_size(float xsize, float ysize, float zsize)
 
 		glEndList();
 	}
-	else glCallList(displist);
-	
+
+	glCallList(displist);
 }
 
 static void drawcube_size(float xsize, float ysize, float zsize)
 {
 	static GLuint displist=0;
 	
-	glScalef(xsize, ysize, zsize);
-	
 	if(displist == 0) {
 		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		glNewList(displist, GL_COMPILE);
 		
 		glBegin(GL_LINE_STRIP);
 		glVertex3fv(cube[0]); glVertex3fv(cube[1]);glVertex3fv(cube[2]); glVertex3fv(cube[3]);
@@ -368,7 +366,9 @@ static void drawcube_size(float xsize, float ysize, float zsize)
 		
 		glEndList();
 	}
-	else glCallList(displist);
+
+	glScalef(xsize, ysize, zsize);
+	glCallList(displist);
 	
 }
 
@@ -381,7 +381,7 @@ static void draw_bonevert(void)
 		GLUquadricObj	*qobj;
 		
 		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		glNewList(displist, GL_COMPILE);
 			
 		glPushMatrix();
 		
@@ -400,8 +400,8 @@ static void draw_bonevert(void)
 		glPopMatrix();
 		glEndList();
 	}
-	else 
-		glCallList(displist);
+
+	glCallList(displist);
 }
 
 static void draw_bonevert_solid(void)
@@ -412,7 +412,7 @@ static void draw_bonevert_solid(void)
 		GLUquadricObj	*qobj;
 		
 		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		glNewList(displist, GL_COMPILE);
 		
 		qobj	= gluNewQuadric();
 		gluQuadricDrawStyle(qobj, GLU_FILL); 
@@ -423,8 +423,8 @@ static void draw_bonevert_solid(void)
 		
 		glEndList();
 	}
-	else 
-		glCallList(displist);
+
+	glCallList(displist);
 }
 
 static void draw_bone_octahedral()
@@ -435,7 +435,7 @@ static void draw_bone_octahedral()
 		float vec[6][3];	
 		
 		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		glNewList(displist, GL_COMPILE);
 		
 		vec[0][0]= vec[0][1]= vec[0][2]= 0.0f;
 		vec[5][0]= vec[5][2]= 0.0f; vec[5][1]= 1.0f;
@@ -467,8 +467,8 @@ static void draw_bone_octahedral()
 		
 		glEndList();
 	}
-	else 
-		glCallList(displist);
+
+	glCallList(displist);
 }	
 
 static void draw_bone_solid_octahedral(void)
@@ -479,7 +479,7 @@ static void draw_bone_solid_octahedral(void)
 		float vec[6][3], nor[3];	
 		
 		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		glNewList(displist, GL_COMPILE);
 		
 		vec[0][0]= vec[0][1]= vec[0][2]= 0.0f;
 		vec[5][0]= vec[5][2]= 0.0f; vec[5][1]= 1.0f;
@@ -529,8 +529,8 @@ static void draw_bone_solid_octahedral(void)
 		
 		glEndList();
 	}
-	else 
-		glCallList(displist);
+
+	glCallList(displist);
 }	
 
 /* *************** Armature drawing, bones ******************* */
@@ -655,6 +655,26 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], int boneflag
 	mul_mat3_m4_v3(smat, dirvec);
 	/* clear zcomp */
 	dirvec[2]= 0.0f;
+
+	if(head != tail) {
+	/* correcyion when viewing along the bones axis
+	 * it pops in and out but better then artifacts, [#23841] */
+		float view_dist= len_v2(dirvec);
+
+		if(head - view_dist > tail) {
+			tailvec= headvec;
+			tail = head;
+			zero_v3(dirvec);
+			dirvec[0]= 0.00001; // XXX. weak but ok
+		}
+		else if(tail - view_dist > head) {
+			headvec= tailvec;
+			head = tail;
+			zero_v3(dirvec);
+			dirvec[0]= 0.00001; // XXX. weak but ok
+		}
+	}
+
 	/* move vector back */
 	mul_mat3_m4_v3(imat, dirvec);
 	
@@ -1933,7 +1953,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 		
 		if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 
-		for (eBone=arm->edbo->first, index=0; eBone; eBone=eBone->next, index++) {
+		for (eBone=arm->edbo->first; eBone; eBone=eBone->next) {
 			if (eBone->layer & arm->layer) {
 				if ((eBone->flag & (BONE_HIDDEN_A|BONE_NO_DEFORM))==0) {
 					if (eBone->flag & (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL))
@@ -1949,7 +1969,6 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 	
 	/* if solid we draw it first */
 	if ((dt > OB_WIRE) && (arm->drawtype!=ARM_LINE)) {
-		index= 0;
 		for (eBone=arm->edbo->first, index=0; eBone; eBone=eBone->next, index++) {
 			if (eBone->layer & arm->layer) {
 				if ((eBone->flag & BONE_HIDDEN_A)==0) {
@@ -2043,6 +2062,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 	}
 	
 	/* restore */
+	if(index!=-1) glLoadName(-1);
 	if (arm->drawtype==ARM_LINE);
 	else if (dt>OB_WIRE) bglPolygonOffset(rv3d->dist, 0.0f);
 	
@@ -2054,7 +2074,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 			
 			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 			
-			for (eBone=arm->edbo->first, index=0; eBone; eBone=eBone->next, index++) {
+			for (eBone=arm->edbo->first; eBone; eBone=eBone->next) {
 				if(eBone->layer & arm->layer) {
 					if ((eBone->flag & BONE_HIDDEN_A)==0) {
 						

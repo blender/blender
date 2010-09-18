@@ -10836,6 +10836,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			SEQ_END
 		}
 
+		/* particle brush strength factor was changed from int to float */
+		for(sce= main->scene.first; sce; sce=sce->id.next) {
+			ParticleEditSettings *pset= &sce->toolsettings->particle;
+			int a;
+
+			for(a=0; a<PE_TOT_BRUSH; a++)
+				pset->brush[a].strength /= 100.0;
+		}
+
 		for(ma = main->mat.first; ma; ma=ma->id.next)
 			if(ma->mode & MA_TRACEBLE)
 				ma->shade_flag |= MA_APPROX_OCCLUSION;
@@ -11246,6 +11255,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				br->ob_mode= (OB_MODE_SCULPT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT|OB_MODE_VERTEX_PAINT);
 		}
 		
+	}
+	{
+		ParticleSettings *part;
+		for(part = main->particle.first; part; part = part->id.next) {
+			if(part->boids)
+				part->boids->pitch = 1.0f;
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
