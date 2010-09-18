@@ -15,7 +15,15 @@ import sys
 Variables = SCons.Variables
 BoolVariable = SCons.Variables.BoolVariable
 
-VERSION = '2.54' # This is used in creating the local config directories
+def get_version():
+    fname = os.path.join(os.path.dirname(__file__), "..", "..", "..", "source", "blender", "blenkernel", "BKE_blender.h")
+    for l in open(fname, "r"):
+        if "BLENDER_VERSION" in l:
+            ver = int(l.split()[-1])
+            return "%d.%d" % (ver / 100, ver % 100)
+    raise Exception("%s: missing version string" % fname)
+
+VERSION = get_version() # This is used in creating the local config directories
 
 def print_arguments(args, bc):
     if len(args):
