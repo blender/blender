@@ -52,6 +52,7 @@
 #include "BPY_extern.h"
 
 #include "../generic/bpy_internal_import.h" // our own imports
+#include "../generic/py_capi_utils.h"
 
 /* for internal use, when starting and ending python scripts */
 
@@ -306,7 +307,6 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	if (text) {
 		char fn_dummy[FILE_MAXDIR];
 		bpy_text_filename_get(fn_dummy, text);
-		py_dict = bpy_namespace_dict_new(fn_dummy);
 		
 		if( !text->compiled ) {	/* if it wasn't already compiled, do it now */
 			char *buf = txt_to_buf( text );
@@ -320,16 +320,19 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 				BPY_free_compiled_text( text );
 			}
 		}
-		if(text->compiled)
-			py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );
+
+		if(text->compiled) {
+			py_dict = PyC_DefaultNameSpace(fn_dummy);
+			py_result =  PyEval_EvalCode(text->compiled, py_dict, py_dict);
+		}
 		
 	}
 	else {
 		FILE *fp= fopen(fn, "r");
 
-		py_dict = bpy_namespace_dict_new(fn);
-
 		if(fp) {
+			py_dict = PyC_DefaultNameSpace(fn);
+
 #ifdef _WIN32
 			/* Previously we used PyRun_File to run directly the code on a FILE 
 			 * object, but as written in the Python/C API Ref Manual, chapter 2,
@@ -471,7 +474,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 	
 	gilstate = PyGILState_Ensure();
 	
-	py_dict = bpy_namespace_dict_new("<dummy>");
+	py_dict = PyC_DefaultNameSpace("<dummy>");
 	
 	PyObject *module = PyImport_ImportModule(scpt->script.filename);
 	if (module==NULL) {
@@ -523,7 +526,7 @@ int BPY_eval_button(bContext *C, const char *expr, double *value)
 
 	bpy_context_set(C, &gilstate);
 	
-	py_dict= bpy_namespace_dict_new("<blender button>");
+	py_dict= PyC_DefaultNameSpace("<blender button>");
 
 	mod = PyImport_ImportModule("math");
 	if (mod) {
@@ -594,7 +597,7 @@ int BPY_eval_string(bContext *C, const char *expr)
 
 	bpy_context_set(C, &gilstate);
 
-	py_dict= bpy_namespace_dict_new("<blender string>");
+	py_dict= PyC_DefaultNameSpace("<blender string>");
 
 	retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict);
 

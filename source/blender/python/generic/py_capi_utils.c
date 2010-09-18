@@ -269,3 +269,25 @@ PyObject *PyC_UnicodeFromByte(const char *str)
 		return result;
 	}
 }
+
+/*****************************************************************************
+* Description: This function creates a new Python dictionary object.
+* note: dict is owned by sys.modules["__main__"] module, reference is borrowed
+* note: important we use the dict from __main__, this is what python expects
+  for 'pickle' to work as well as strings like this...
+ >> foo = 10
+ >> print(__import__("__main__").foo)
+*****************************************************************************/
+PyObject *PyC_DefaultNameSpace(const char *filename)
+{
+	PyInterpreterState *interp= PyThreadState_GET()->interp;
+	PyObject *mod_main= PyModule_New("__main__");	
+	PyDict_SetItemString(interp->modules, "__main__", mod_main);
+	Py_DECREF(mod_main); /* sys.modules owns now */
+	PyModule_AddStringConstant(mod_main, "__name__", "__main__");
+	if(filename)
+		PyModule_AddStringConstant(mod_main, "__file__", filename); /* __file__ only for nice UI'ness */
+	PyModule_AddObject(mod_main, "__builtins__", interp->builtins);
+	Py_INCREF(interp->builtins); /* AddObject steals a reference */
+	return PyModule_GetDict(mod_main);
+}
