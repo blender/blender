@@ -339,15 +339,17 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 			 * 'FILE structs for different C libraries can be different and 
 			 * incompatible'.
 			 * So now we load the script file data to a buffer */
-			char *pystring;
+			{
+				char *pystring;
 
-			fclose(fp);
+				fclose(fp);
 
-			pystring= MEM_mallocN(strlen(fn) + 32, "pystring");
-			pystring[0]= '\0';
-			sprintf(pystring, "exec(open(r'%s').read())", fn);
-			py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
-			MEM_freeN(pystring);
+				pystring= MEM_mallocN(strlen(fn) + 32, "pystring");
+				pystring[0]= '\0';
+				sprintf(pystring, "exec(open(r'%s').read())", fn);
+				py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
+				MEM_freeN(pystring);
+			}
 #else
 			py_result = PyRun_File(fp, fn, Py_file_input, py_dict, py_dict);
 			fclose(fp);

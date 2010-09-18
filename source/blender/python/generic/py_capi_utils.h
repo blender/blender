@@ -25,9 +25,6 @@
 #ifndef PY_CAPI_UTILS_H
 #define PY_CAPI_UTILS_H
 
-struct PyObject;
-struct PyTypeObject;
-
 void			PyC_ObSpit(char *name, PyObject *var);
 void			PyC_LineSpit(void);
 PyObject *		PyC_ExceptionBuffer(void);
