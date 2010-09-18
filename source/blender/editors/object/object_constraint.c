@@ -808,7 +808,7 @@ static int constraint_delete_exec (bContext *C, wmOperator *op)
 		ED_object_constraint_update(ob); /* needed to set the flags on posebones correctly */
 
 		/* notifiers */
-		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, ob);
 		
 		return OPERATOR_FINISHED;
 	}

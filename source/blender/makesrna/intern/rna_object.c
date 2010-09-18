@@ -216,6 +216,7 @@ static void rna_Object_dependency_update(Main *bmain, Scene *scene, PointerRNA *
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
 	DAG_scene_sort(bmain, scene);
+	WM_main_add_notifier(NC_OBJECT|ND_PARENT, ptr->id.data);
 }
 
 /* when changing the selection flag the scene needs updating */
