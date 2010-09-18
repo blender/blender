@@ -22,14 +22,14 @@
 FILE(GLOB SRC *.c)
 
 SET(INC
+	../include
 	../../blenkernel
 	../../blenlib
-	../include
-	../../../../intern/guardedalloc
 	../../makesdna
 	../../makesrna
 	../../windowmanager
 	../../editors/interface
+	../../../../intern/guardedalloc
 )
 
 IF(WITH_GAMEENGINE)

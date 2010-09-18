@@ -24,7 +24,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC include src)
+SET(INC
+	./include
+)
 
 IF(UNIX)
 	LIST(APPEND INC ${X11_X11_INCLUDE_PATH})

@@ -18,8 +18,15 @@
 # All rights reserved.
 #
 
-SET(INC ./include )
+SET(SRC
+	binreloc.c
+)
+
+SET(INC
+	./include
+)
+
 ADD_DEFINITIONS(-DENABLE_BINRELOC)
-FILE(GLOB SRC *.c)
+
 
 BLENDERLIB(extern_binreloc "${SRC}" "${INC}")

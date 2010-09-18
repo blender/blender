@@ -27,7 +27,12 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-	. .. ../../../intern/guardedalloc ../blenlib ../imbuf ../makesdna
+	.
+	..
+	../blenlib
+	../imbuf
+	../makesdna
+	../../../intern/guardedalloc
 )
 
 IF(WIN32)

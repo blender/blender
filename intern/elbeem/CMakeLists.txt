@@ -38,4 +38,3 @@ IF(WITH_OPENMP)
 ENDIF(WITH_OPENMP)
 
 BLENDERLIB_NOLIST(bf_intern_elbeem "${SRC}" "${INC}")
-#, libtype='blender', priority=0 )

@@ -22,14 +22,14 @@
 FILE(GLOB SRC *.c)
 
 SET(INC
+	../include
 	../../blenkernel
 	../../blenlib
-	../include
-	../../../../intern/guardedalloc
-	../../../../intern/opennl/extern
 	../../makesdna
 	../../makesrna
 	../../windowmanager
+	../../../../intern/guardedalloc
+	../../../../intern/opennl/extern
 )
 
 BLENDERLIB(bf_editor_uvedit "${SRC}" "${INC}")

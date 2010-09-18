@@ -22,15 +22,15 @@
 FILE(GLOB SRC *.c)
 
 SET(INC
+	../include
 	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../blenloader
-	../include
-	../../../../intern/guardedalloc
 	../../makesdna
 	../../makesrna
 	../../windowmanager
+	../../../../intern/guardedalloc
 )
 
 IF(NOT WITH_PYTHON)

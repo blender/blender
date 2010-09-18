@@ -28,7 +28,15 @@ INCLUDE_DIRECTORIES(../../../../intern/guardedalloc ..)
 FILE(GLOB INC_FILES ../*.h)
 
 # Build makesdna executable
-SET(SRC makesdna.c ../../../../intern/guardedalloc/intern/mallocn.c ../../../../intern/guardedalloc/intern/mmap_win.c)
+SET(SRC
+	makesdna.c
+	../../../../intern/guardedalloc/intern/mallocn.c
+)
+
+IF(WIN32)
+	LIST(APPEND SRC ../../../../intern/guardedalloc/intern/mmap_win.c)
+ENDIF(WIN32)
+
 ADD_EXECUTABLE(makesdna ${SRC} ${INC_FILES})
 
 # Output dna.c
