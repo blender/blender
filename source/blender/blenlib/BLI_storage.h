@@ -42,7 +42,7 @@
 
 #ifdef WIN32
 /* for size_t, only needed on win32 for some reason */
-#include <sys/types.h>
+#include <stddef.h>
 #endif
 
 struct direntry;
