@@ -291,3 +291,148 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
 	Py_INCREF(interp->builtins); /* AddObject steals a reference */
 	return PyModule_GetDict(mod_main);
 }
+
+
+/* Would be nice if python had this built in */
+void PyC_RunQuicky(const char *filepath, int n, ...)
+{
+	FILE *fp= fopen(filepath, "r");
+
+	if(fp) {
+		PyGILState_STATE gilstate= PyGILState_Ensure();
+
+		va_list vargs;	
+
+		int *sizes= PyMem_MALLOC(sizeof(int) * (n / 2));
+		int i;
+
+		PyObject *py_dict = PyC_DefaultNameSpace(filepath);
+		PyObject *values= PyList_New(n / 2); /* namespace owns this, dont free */
+
+		PyObject *py_result, *ret;
+
+		PyObject *struct_mod= PyImport_ImportModule("struct");
+		PyObject *calcsize= PyObject_GetAttrString(struct_mod, "calcsize"); /* struct.calcsize */
+		PyObject *pack= PyObject_GetAttrString(struct_mod, "pack"); /* struct.pack */
+		PyObject *unpack= PyObject_GetAttrString(struct_mod, "unpack"); /* struct.unpack */
+
+		Py_DECREF(struct_mod);
+
+		va_start(vargs, n);
+		for (i=0; i * 2<n; i++) {
+			char *format = va_arg(vargs, char *);
+			void *ptr = va_arg(vargs, void *);
+
+			ret= PyObject_CallFunction(calcsize, "s", format);
+
+			if(ret) {
+				sizes[i]= PyLong_AsSsize_t(ret);
+				Py_DECREF(ret);
+				ret = PyObject_CallFunction(unpack, "sy#", format, (char *)ptr, sizes[i]);
+			}
+
+			if(ret == NULL) {
+				printf("PyC_InlineRun error, line:%d\n", __LINE__);
+				PyErr_Print();
+				PyErr_Clear();
+
+				PyList_SET_ITEM(values, i, Py_None); /* hold user */
+				Py_INCREF(Py_None);
+
+				sizes[i]= 0;
+			}
+			else {
+				if(PyTuple_GET_SIZE(ret) == 1) {
+					/* convenience, convert single tuples into single values */
+					PyObject *tmp= PyTuple_GET_ITEM(ret, 0);
+					Py_INCREF(tmp);
+					Py_DECREF(ret);
+					ret = tmp;
+				}
+
+				PyList_SET_ITEM(values, i, ret); /* hold user */
+			}
+		}
+		va_end(vargs);
+		
+		/* set the value so we can access it */
+		PyDict_SetItemString(py_dict, "values", values);
+
+		py_result = PyRun_File(fp, filepath, Py_file_input, py_dict, py_dict);
+
+		fclose(fp);
+
+		if(py_result) {
+
+			/* we could skip this but then only slice assignment would work
+			 * better not be so strict */
+			values= PyDict_GetItemString(py_dict, "values");
+
+			if(values && PyList_Check(values)) {
+
+				/* dont use the result */
+				Py_DECREF(py_result);
+				py_result= NULL;
+
+				/* now get the values back */
+				va_start(vargs, n);
+				for (i=0; i*2 <n; i++) {
+					char *format = va_arg(vargs, char *);
+					void *ptr = va_arg(vargs, void *);
+					
+					PyObject *item;
+					PyObject *item_new;
+					/* prepend the string formatting and remake the tuple */
+					item= PyList_GET_ITEM(values, i);
+					if(PyTuple_CheckExact(item)) {
+						int ofs= PyTuple_GET_SIZE(item);
+						item_new= PyTuple_New(ofs + 1);
+						while(ofs--) {
+							PyObject *member= PyTuple_GET_ITEM(item, ofs);
+							PyTuple_SET_ITEM(item_new, ofs + 1, member);
+							Py_INCREF(member);
+						}
+
+						PyTuple_SET_ITEM(item_new, 0, PyUnicode_FromString(format));
+					}
+					else {
+						item_new= Py_BuildValue("sO", format, item);
+					}
+
+					ret = PyObject_Call(pack, item_new, NULL);
+
+					if(ret) {
+						/* copy the bytes back into memory */
+						memcpy(ptr, PyBytes_AS_STRING(ret), sizes[i]);
+						Py_DECREF(ret);
+					}
+					else {
+						printf("PyC_InlineRun error on arg '%d', line:%d\n", i, __LINE__);
+						PyC_ObSpit("failed converting:", item_new);
+						PyErr_Print();
+						PyErr_Clear();
+					}
+
+					Py_DECREF(item_new);
+				}
+				va_end(vargs);
+			}
+			else {
+				printf("PyC_InlineRun error, 'values' not a list, line:%d\n", __LINE__);
+			}
+		}
+		else {
+			printf("PyC_InlineRun error line:%d\n", __LINE__);
+			PyErr_Print();
+			PyErr_Clear();
+		}
+
+		Py_DECREF(calcsize);
+		Py_DECREF(pack);
+		Py_DECREF(unpack);
+
+		PyMem_FREE(sizes);
+
+		PyGILState_Release(gilstate);
+	}
+}

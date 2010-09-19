@@ -38,5 +38,5 @@ const char *	PuC_UnicodeAsByte(PyObject *py_str, PyObject **coerce); /* coerce m
 
 /* name namespace function for bpy & bge */
 PyObject *		PyC_DefaultNameSpace(const char *filename);
-
+void			PyC_RunQuicky(const char *filepath, int n, ...);
 #endif // PY_CAPI_UTILS_H
