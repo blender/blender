@@ -2389,6 +2389,22 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "FPS Base", "Framerate base");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
+	/* frame mapping */
+	prop= RNA_def_property(srna, "frame_map_old", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "framapto");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_range(prop, 1, 900);
+	RNA_def_property_ui_text(prop, "Frame Map Old", "Specify old mapping value in frames");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "frame_map_new", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "images");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_range(prop, 1, 900);
+	RNA_def_property_ui_text(prop, "Frame Map New", "Specify how many frames the Map Old will last");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	
 	prop= RNA_def_property(srna, "dither_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dither_intensity");
 	RNA_def_property_range(prop, 0.0f, 2.0f);
