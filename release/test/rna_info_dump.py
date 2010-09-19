@@ -45,7 +45,7 @@ def api_dump(use_properties=True, use_functions=True):
 
         data_str = "%s.%s(%s)" % (struct_id_str, func_id, ", ".join(args))
         if func.return_values:
-            return_args = ", ".join([prop_type(arg) for arg in func.return_values])
+            return_args = ", ".join(prop_type(arg) for arg in func.return_values)
             if len(func.return_values) > 1:
                 data_str += "  -->  (%s)" % return_args
             else:

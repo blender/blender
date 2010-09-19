@@ -307,7 +307,7 @@ def bvh_node_dict2objects(context, bvh_nodes, IMPORT_START_FRAME=1, IMPORT_LOOP=
 
     # Parent the objects
     for bvh_node in bvh_nodes.values():
-        bvh_node.temp.makeParent([bvh_node_child.temp for bvh_node_child in bvh_node.children], 1, 0) # ojbs, noninverse, 1 = not fast.
+        bvh_node.temp.makeParent(bvh_node_child.temp for bvh_node_child in bvh_node.children, 1, 0) # ojbs, noninverse, 1 = not fast.
 
     # Offset
     for bvh_node in bvh_nodes.values():

@@ -510,7 +510,7 @@ def rna2sphinx(BASEPATH):
 
         type_descr = prop.get_type_description(**kwargs)
         if prop.name or prop.description:
-            fw(ident + ":%s%s: %s\n" % (id_name, identifier, ", ".join([val for val in (prop.name, prop.description) if val])))
+            fw(ident + ":%s%s: %s\n" % (id_name, identifier, ", ".join(val for val in (prop.name, prop.description) if val)))
         fw(ident + ":%s%s: %s\n" % (id_type, identifier, type_descr))
 
     def write_struct(struct):
@@ -552,12 +552,12 @@ def rna2sphinx(BASEPATH):
             else:
                 fw("base class --- ")
 
-            fw(", ".join([(":class:`%s`" % base_id) for base_id in base_ids]))
+            fw(", ".join((":class:`%s`" % base_id) for base_id in base_ids))
             fw("\n\n")
         
         subclass_ids = [s.identifier for s in structs.values() if s.base is struct if not rna_info.rna_id_ignore(s.identifier)]
         if subclass_ids:
-            fw("subclasses --- \n" + ", ".join([(":class:`%s`" % s) for s in subclass_ids]) + "\n\n")
+            fw("subclasses --- \n" + ", ".join((":class:`%s`" % s) for s in subclass_ids) + "\n\n")
         
         base_id = getattr(struct.base, "identifier", "")
         
@@ -595,7 +595,7 @@ def rna2sphinx(BASEPATH):
         del py_properties, py_prop
 
         for func in struct.functions:
-            args_str = ", ".join([prop.get_arg_default(force=False) for prop in func.args])
+            args_str = ", ".join(prop.get_arg_default(force=False) for prop in func.args)
 
             fw("   .. %s:: %s(%s)\n\n" % ("classmethod" if func.is_classmethod else "method", func.identifier, args_str))
             fw("      %s\n\n" % func.description)
@@ -606,7 +606,7 @@ def rna2sphinx(BASEPATH):
             if len(func.return_values) == 1:
                 write_param("      ", fw, func.return_values[0], is_return=True)
             elif func.return_values: # multiple return values
-                fw("      :return (%s):\n" % ", ".join([prop.identifier for prop in func.return_values]))
+                fw("      :return (%s):\n" % ", ".join(prop.identifier for prop in func.return_values))
                 for prop in func.return_values:
                     type_descr = prop.get_type_description(as_ret=True, class_fmt=":class:`%s`")
                     descr = prop.description
@@ -724,7 +724,7 @@ def rna2sphinx(BASEPATH):
 
         subclass_ids = [s.identifier for s in structs.values() if s.base is None if not rna_info.rna_id_ignore(s.identifier)]
         if subclass_ids:
-            fw("subclasses --- \n" + ", ".join([(":class:`%s`" % s) for s in sorted(subclass_ids)]) + "\n\n")
+            fw("subclasses --- \n" + ", ".join((":class:`%s`" % s) for s in sorted(subclass_ids)) + "\n\n")
 
         fw(".. class:: %s\n\n" % _BPY_STRUCT_FAKE)
         fw("   built-in base class for all classes in bpy.types.\n\n")
@@ -762,7 +762,7 @@ def rna2sphinx(BASEPATH):
                 fw(".. module:: bpy.ops.%s\n\n" % op.module_name)
                 last_mod = op.module_name
 
-            args_str = ", ".join([prop.get_arg_default(force=True) for prop in op.args])
+            args_str = ", ".join(prop.get_arg_default(force=True) for prop in op.args)
             fw(".. function:: %s(%s)\n\n" % (op.func_name, args_str))
 
             # if the description isn't valid, we output the standard warning 

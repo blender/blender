@@ -542,7 +542,7 @@ class WM_OT_doc_view(bpy.types.Operator):
         while class_obj:
             ls.insert(0, class_obj)
             class_obj = class_obj.nested
-        return '.'.join([class_obj.identifier for class_obj in ls])
+        return '.'.join(class_obj.identifier for class_obj in ls)
 
     def execute(self, context):
         id_split = self.doc_id.split('.')

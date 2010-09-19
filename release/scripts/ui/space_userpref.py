@@ -981,7 +981,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     if info["version"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text='Version:')
-                        split.label(text='.'.join([str(x) for x in info["version"]]))
+                        split.label(text='.'.join(str(x) for x in info["version"]))
                     if info["warning"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Warning:")

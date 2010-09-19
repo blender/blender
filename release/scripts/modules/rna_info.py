@@ -220,7 +220,7 @@ class InfoPropertyRNA:
             # special case for floats
             if len(self.default) > 0:
                 if self.type == "float":
-                    self.default_str = "(%s)" % ", ".join([float_as_string(f) for f in self.default])
+                    self.default_str = "(%s)" % ", ".join(float_as_string(f) for f in self.default)
             if not self.default_str:
                 self.default_str = str(self.default)
         else:
@@ -247,7 +247,7 @@ class InfoPropertyRNA:
             if self.type in ("float", "int"):
                 type_str += " in [%s, %s]" % (range_str(self.min), range_str(self.max))
             elif self.type == "enum":
-                type_str += " in [%s]" % ', '.join([("'%s'" % s) for s in self.enum_items])
+                type_str += " in [%s]" % ", ".join(("'%s'" % s) for s in self.enum_items)
 
             if not (as_arg or as_ret):
                 # write default property, ignore function args for this
