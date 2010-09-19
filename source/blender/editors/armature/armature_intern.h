@@ -66,6 +66,8 @@ void ARMATURE_OT_select_linked(struct wmOperatorType *ot);
 void ARMATURE_OT_delete(struct wmOperatorType *ot);
 void ARMATURE_OT_duplicate(struct wmOperatorType *ot);
 void ARMATURE_OT_extrude(struct wmOperatorType *ot);
+void ARMATURE_OT_hide(struct wmOperatorType *ot);
+void ARMATURE_OT_reveal(struct wmOperatorType *ot);
 void ARMATURE_OT_click_extrude(struct wmOperatorType *ot);
 void ARMATURE_OT_fill(struct wmOperatorType *ot);
 void ARMATURE_OT_merge(struct wmOperatorType *ot);

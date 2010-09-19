@@ -3264,6 +3264,83 @@ void ARMATURE_OT_merge (wmOperatorType *ot)
 /* ************** END Add/Remove stuff in editmode ************ */
 /* *************** Tools in editmode *********** */
 
+static int armature_hide_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	bArmature *arm= obedit->data;
+	EditBone *ebone;
+
+	/* cancel if nothing selected */
+	if (CTX_DATA_COUNT(C, selected_bones) == 0)
+		return OPERATOR_CANCELLED;
+
+	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
+		if (EBONE_VISIBLE(arm, ebone)) {
+			if (ebone->flag & BONE_SELECTED) {
+				ebone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL);
+				ebone->flag |= BONE_HIDDEN_A;
+			}
+		}
+	}
+	ED_armature_validate_active(arm);
+	ED_armature_sync_selection(arm->edbo);
+	BIF_undo_push("Hide Bones");
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_hide(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Hide Selected Bones";
+	ot->idname= "ARMATURE_OT_hide";
+	
+	/* api callbacks */
+	ot->exec= armature_hide_exec;
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int armature_reveal_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	bArmature *arm= obedit->data;
+	EditBone *ebone;
+	
+	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
+		if(arm->layer & ebone->layer) {
+			if (ebone->flag & BONE_HIDDEN_A) {
+				ebone->flag |= (BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL);
+				ebone->flag &= ~BONE_HIDDEN_A;
+			}
+		}
+	}
+	ED_armature_validate_active(arm);
+	ED_armature_sync_selection(arm->edbo);
+	BIF_undo_push("Reveal Bones");
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_reveal(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reveal Bones";
+	ot->idname= "ARMATURE_OT_reveal";
+	
+	/* api callbacks */
+	ot->exec= armature_reveal_exec;
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 void hide_selected_armature_bones(Scene *scene)
 {
