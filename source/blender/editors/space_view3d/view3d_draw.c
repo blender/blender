@@ -1979,20 +1979,18 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	
 	/* calculate pixelsize factor once, is used for lamps and obcenters */
 	{
-		float len1, len2, vec[3];
+		rv3d->pixsize= 2.0f;
 		
-		copy_v3_v3(vec, rv3d->persinv[0]);
-		len1= normalize_v3(vec);
-		copy_v3_v3(vec, rv3d->persinv[1]);
-		len2= normalize_v3(vec);
-		
-		rv3d->pixsize= 2.0f*(len1>len2?len1:len2);
-		
+		if(view3d_is_ortho(v3d, rv3d)) {
+			float len1= len_v3(rv3d->persinv[0]);
+			float len2= len_v3(rv3d->persinv[1]);
+			rv3d->pixsize *= MAX2(len1, len2);
+		}
+
 		/* correct for window size */
-		if(ar->winx > ar->winy) rv3d->pixsize/= (float)ar->winx;
-		else rv3d->pixsize/= (float)ar->winy;
+		rv3d->pixsize/= (float)MAX2(ar->winx, ar->winy);
 	}
-	
+
 	/* set for opengl */
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(rv3d->winmat);
