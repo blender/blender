@@ -838,8 +838,9 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 	retval= wm_operator_call_internal(C, ot, context, properties, reports);
 	
 	/* keep the reports around if needed later */
-	if (retval & OPERATOR_RUNNING_MODAL || wm_operator_register_check(wm, ot))
-	{
+	if (	(retval & OPERATOR_RUNNING_MODAL) ||
+			((retval & OPERATOR_FINISHED) && wm_operator_register_check(wm, ot))
+	) {
 		reports->flag |= RPT_FREE; /* let blender manage freeing */
 	}
 	
