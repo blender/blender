@@ -850,7 +850,14 @@ static void childof_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		 * the effect of this constraint (i.e.  owner is 'parented' to parent)
 		 */
 		copy_m4_m4(tempmat, cob->matrix);
-		mul_m4_m4m4(cob->matrix, tempmat, parmat); 
+		mul_m4_m4m4(cob->matrix, tempmat, parmat);
+
+		/* without this, changes to scale and rotation can change location
+		 * of a parentless bone or a disconnected bone. Even though its set
+		 * to zero above. */
+		if (!(data->flag & CHILDOF_LOCX)) cob->matrix[3][0]= tempmat[3][0];
+		if (!(data->flag & CHILDOF_LOCY)) cob->matrix[3][1]= tempmat[3][1];
+		if (!(data->flag & CHILDOF_LOCZ)) cob->matrix[3][2]= tempmat[3][2];	
 	}
 }
 
