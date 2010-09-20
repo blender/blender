@@ -3075,12 +3075,15 @@ static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, B
 		int glsl = draw_glsl_material(scene, ob, v3d, dt);
 		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 
-		if (!glsl)
+		if(!glsl) {
 			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
+			glEnable(GL_LIGHTING);
+			dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
+			glDisable(GL_LIGHTING);
+		}
+		else
+			dm->drawFacesGLSL(dm, GPU_enable_material);
 
-		glEnable(GL_LIGHTING);
-		dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
-		glDisable(GL_LIGHTING);
 		GPU_end_object_materials();
 	} else {
 		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_SOLID)==0)
