@@ -33,8 +33,12 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_fileops.h"
+#include "BLI_path_util.h"
+#include "BLI_storage.h"
+#include "BLI_string.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -89,12 +93,28 @@ typedef struct FileBrowseOp {
 static int file_browse_exec(bContext *C, wmOperator *op)
 {
 	FileBrowseOp *fbo= op->customdata;
-	char *str;
+	ID *id;
+	char *base, *str, path[FILE_MAX];
 	
 	if (RNA_property_is_set(op->ptr, "filepath")==0 || fbo==NULL)
 		return OPERATOR_CANCELLED;
 	
 	str= RNA_string_get_alloc(op->ptr, "filepath", 0, 0);
+
+	/* add slash for directories, important for some properties */
+	if(RNA_property_subtype(fbo->prop) == PROP_DIRPATH) {
+		id = fbo->ptr.id.data;
+		base = (id && id->lib)? id->lib->filepath: G.sce;
+
+		BLI_strncpy(path, str, FILE_MAX);
+		BLI_path_abs(path, base);
+
+		if(BLI_is_dir(path)) {
+			str = MEM_reallocN(str, strlen(str)+2);
+			BLI_add_slash(str);
+		}
+	}
+
 	RNA_property_string_set(&fbo->ptr, fbo->prop, str);
 	RNA_property_update(C, &fbo->ptr, fbo->prop);
 	MEM_freeN(str);
