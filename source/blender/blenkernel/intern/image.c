@@ -1777,8 +1777,6 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		else
 			BLI_path_abs(str, G.sce);
 		
-		BLI_path_frame(str, cfra, 0);
-		
 		/* read ibuf */
 		ibuf = IMB_loadiffname(str, flag);
 	}
