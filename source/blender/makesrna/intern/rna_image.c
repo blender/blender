@@ -123,6 +123,21 @@ static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
 }
 
+
+char *rna_ImageUser_path(PointerRNA *ptr)
+{
+	if (ptr->id.data) {
+		// ImageUser *iuser= ptr->data;
+		
+		switch(GS(((ID *)ptr->id.data)->name)) {
+		case ID_TE:
+			return BLI_strdup("image_user");
+		}
+	}
+	
+	return BLI_strdup("");
+}
+
 static EnumPropertyItem *rna_Image_source_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	Image *ima= (Image*)ptr->data;
@@ -222,6 +237,7 @@ static void rna_def_imageuser(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ImageUser", NULL);
 	RNA_def_struct_ui_text(srna, "Image User", "Parameters defining how an Image datablock is used by another datablock");
+	RNA_def_struct_path_func(srna, "rna_ImageUser_path");
 
 	prop= RNA_def_property(srna, "use_auto_refresh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANIM_ALWAYS);
