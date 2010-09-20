@@ -1397,6 +1397,14 @@ static void IDP_DirectLinkIDPArray(IDProperty *prop, int switch_endian, FileData
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 
 	array= (IDProperty*) prop->data.pointer;
+	
+	/* note!, idp-arrays didn't exist in 2.4x, so the pointer will be cleared
+	 * theres not really anything we can do to correct this, at least dont crash */
+	if(array==NULL) {
+		prop->len= 0;
+		prop->totallen= 0;
+	}
+	
 
 	for(i=0; i<prop->len; i++)
 		IDP_DirectLinkProperty(&array[i], switch_endian, fd);
