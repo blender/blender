@@ -2941,6 +2941,13 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float 
 		}
 	}
 
+	//third pass: unhide edges that have both verts visible
+	//(these were missed if all faces were hidden, bug #21976)
+	for(eed=em->edges.first; eed; eed=eed->next){
+		if(eed->v1->h == 0 && eed->v2->h == 0)
+			eed->h &= ~1;
+	}
+
 	// Free the ghash and call MEM_freeN on all the value entries to return
 	// that memory
 	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
