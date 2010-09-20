@@ -1291,19 +1291,19 @@ typedef struct RegionMoveData {
 	int bigger, smaller, origval;
 	int origx, origy;
 	int maxsize;
-	char edge;
+	AZEdge edge;
 	
 } RegionMoveData;
 
 
-static int area_max_regionsize(ScrArea *sa, ARegion *scalear, char edge)
+static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 {
 	ARegion *ar;
 	int dist;
 	
-	if(edge=='l' || edge=='r') {
+	if(edge==AE_RIGHT_TO_TOPLEFT || edge==AE_LEFT_TO_TOPRIGHT) {
 		dist = sa->totrct.xmax - sa->totrct.xmin;
-	} else {	/* t, b */
+	} else {	/* AE_BOTTOM_TO_TOPLEFT, AE_TOP_TO_BOTTOMRIGHT */
 		dist = sa->totrct.ymax - sa->totrct.ymin;
 	}
 	
@@ -1325,9 +1325,9 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, char edge)
 		
 		/* case of regions in regions, like operator properties panel */
 		/* these can sit on top of other regions such as headers, so account for this */
-		else if (edge == 'b' && scalear->alignment & RGN_ALIGN_TOP && ar->alignment == RGN_ALIGN_TOP && ar->regiontype == RGN_TYPE_HEADER)
+		else if (edge == AE_BOTTOM_TO_TOPLEFT && scalear->alignment & RGN_ALIGN_TOP && ar->alignment == RGN_ALIGN_TOP && ar->regiontype == RGN_TYPE_HEADER)
 			dist -= ar->winy;
-		else if (edge == 't' && scalear->alignment & RGN_ALIGN_BOTTOM && ar->alignment == RGN_ALIGN_BOTTOM && ar->regiontype == RGN_TYPE_HEADER)
+		else if (edge == AE_TOP_TO_BOTTOMRIGHT && scalear->alignment & RGN_ALIGN_BOTTOM && ar->alignment == RGN_ALIGN_BOTTOM && ar->regiontype == RGN_TYPE_HEADER)
 			dist -= ar->winy;
 	}
 
@@ -1367,7 +1367,7 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			rmd->ar->sizey= rmd->ar->type->prefsizey;
 		
 		/* now copy to regionmovedata */
-		if(rmd->edge=='l' || rmd->edge=='r') {
+		if(rmd->edge==AE_LEFT_TO_TOPRIGHT || rmd->edge==AE_RIGHT_TO_TOPLEFT) {
 			rmd->origval= rmd->ar->sizex;
 		} else {
 			rmd->origval= rmd->ar->sizey;
@@ -1399,9 +1399,9 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 	switch(event->type) {
 		case MOUSEMOVE:
 			
-			if(rmd->edge=='l' || rmd->edge=='r') {
+			if(rmd->edge==AE_LEFT_TO_TOPRIGHT || rmd->edge==AE_RIGHT_TO_TOPLEFT) {
 				delta= event->x - rmd->origx;
-				if(rmd->edge=='l') delta= -delta;
+				if(rmd->edge==AE_LEFT_TO_TOPRIGHT) delta= -delta;
 				
 				rmd->ar->sizex= rmd->origval + delta;
 				CLAMP(rmd->ar->sizex, 0, rmd->maxsize);
@@ -1417,7 +1417,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 			else {
 				int maxsize=0;
 				delta= event->y - rmd->origy;
-				if(rmd->edge=='b') delta= -delta;
+				if(rmd->edge==AE_BOTTOM_TO_TOPLEFT) delta= -delta;
 				
 				rmd->ar->sizey= rmd->origval + delta;
 				CLAMP(rmd->ar->sizey, 0, rmd->maxsize);
