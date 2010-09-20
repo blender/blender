@@ -1981,7 +1981,7 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	{
 		rv3d->pixsize= 2.0f;
 		
-		if(view3d_is_ortho(v3d, rv3d)) {
+		if(rv3d->persp == RV3D_ORTHO || v3d->camera) { /* camera view needs with for ortho & persp */
 			float len1= len_v3(rv3d->persinv[0]);
 			float len2= len_v3(rv3d->persinv[1]);
 			rv3d->pixsize *= MAX2(len1, len2);
