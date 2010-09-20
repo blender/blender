@@ -175,22 +175,13 @@ Object *rna_Main_objects_new(Main *bmain, ReportList *reports, char* name, ID *d
 
 void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *object)
 {
-	/*
-	  NOTE: the following example shows when this function should _not_ be called
-
-	  ob = bpy.data.add_object()
-	  scene.add_object(ob)
-
-	  # ob is freed here
-	  scene.remove_object(ob)
-
-	  # don't do this since ob is already freed!
-	  bpy.data.remove_object(ob)
-	*/
-	if(ID_REAL_USERS(object) <= 0)
+	if(ID_REAL_USERS(object) <= 0) {
+		unlink_object(NULL, object); /* needed or ID pointers to this are not cleared */
 		free_libblock(&bmain->object, object);
-	else
+	}
+	else {
 		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" must have zero users to be removed, found %d.", object->id.name+2, ID_REAL_USERS(object));
+	}
 }
 
 struct Material *rna_Main_materials_new(Main *bmain, char* name)
