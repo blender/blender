@@ -792,10 +792,26 @@ void shade_input_set_normals(ShadeInput *shi)
 {
 	float u= shi->u, v= shi->v;
 	float l= 1.0f+u+v;
+
+	shi->flippednor = 0;
+
+	/* test flip normals to viewing direction */
+	if(!(shi->vlr->flag & R_TANGENT)) {
+		if(dot_v3v3(shi->facenor, shi->view) < 0.0f) {
+			negate_v3(shi->facenor);
+			shi->flippednor= 1;
+		}
+	}
 	
 	/* calculate vertexnormals */
 	if(shi->vlr->flag & R_SMOOTH) {
 		float *n1= shi->n1, *n2= shi->n2, *n3= shi->n3;
+
+		if(shi->flippednor) {
+			negate_v3(n1);
+			negate_v3(n2);
+			negate_v3(n3);
+		}
 		
 		shi->vn[0]= l*n3[0]-u*n1[0]-v*n2[0];
 		shi->vn[1]= l*n3[1]-u*n1[1]-v*n2[1];
