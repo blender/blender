@@ -236,10 +236,7 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
 		ef->textbuf[cu->pos]= c;
 		ef->textbufinfo[cu->pos] = cu->curinfo;
 		ef->textbufinfo[cu->pos].kern = 0;
-		if(obedit->actcol>0)
-			ef->textbufinfo[cu->pos].mat_nr = obedit->actcol;
-		else
-			ef->textbufinfo[cu->pos].mat_nr = 0;
+		ef->textbufinfo[cu->pos].mat_nr = obedit->actcol;
 					
 		cu->pos++;
 		cu->len++;
@@ -257,14 +254,10 @@ static void text_update_edited(bContext *C, Scene *scene, Object *obedit, int re
 {
 	Curve *cu= obedit->data;
 	EditFont *ef= cu->editfont;
-
-	if(cu->pos)
-		cu->curinfo = ef->textbufinfo[cu->pos-1];
-	else
-		cu->curinfo = ef->textbufinfo[0];
+	cu->curinfo = ef->textbufinfo[cu->pos?cu->pos-1:0];
 	
 	if(obedit->totcol>0)
-		obedit->actcol= ef->textbufinfo[cu->pos-1].mat_nr;
+		obedit->actcol= ef->textbufinfo[cu->pos?cu->pos-1:0].mat_nr;
 
 	update_string(cu);
 	BKE_text_to_curve(scene, obedit, mode);
