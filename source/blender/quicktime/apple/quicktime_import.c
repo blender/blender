@@ -89,8 +89,8 @@ typedef struct _QuicktimeMovie {
 
 void quicktime_init(void)
 {
-#ifdef _WIN32
 	OSErr nerr;
+#ifdef _WIN32
 	QTLoadLibrary("QTCF.dll");
 	nerr = InitializeQTML(0);
 	if (nerr != noErr) {
