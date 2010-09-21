@@ -753,7 +753,10 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	/* widgets */
 	for(but= block->buttons.first; but; but= but->next) {
 		ui_but_to_pixelrect(&rect, ar, block, but);
-		if(!(but->flag & UI_HIDDEN))
+		if(!(but->flag & UI_HIDDEN) &&
+			/* XXX: figure out why invalid coordinates happen when closing render window */
+			/* and material preview is redrawn in main window (temp fix for bug #23848) */
+			rect.xmin < rect.xmax && rect.ymin < rect.ymax)
 			ui_draw_but(C, ar, &style, but, &rect);
 	}
 	
