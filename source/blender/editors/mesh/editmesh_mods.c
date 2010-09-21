@@ -2542,7 +2542,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
-	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "");
+	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "Limit selection by seam boundries (faces only)");
 }
 
 
@@ -2631,7 +2631,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "");
+	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "Limit selection by seam boundries (faces only)");
 }
 
 
