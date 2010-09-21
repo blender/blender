@@ -102,20 +102,19 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list);
 
 /* ************************** Functions *************************** */
 
-static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail) {
-	TransData pivot = *head;
+static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail, TransData *temp) {
 	TransData *ihead = head;
 	TransData *itail = tail;
-	short connected = t->flag & T_PROP_CONNECTED;
+	*temp = *head;
 
 	while (head < tail)
 	{
-		if (connected) {
-			while ((tail->dist >= pivot.dist) && (head < tail))
+		if (t->flag & T_PROP_CONNECTED) {
+			while ((tail->dist >= temp->dist) && (head < tail))
 				tail--;
 		}
 		else {
-			while ((tail->rdist >= pivot.rdist) && (head < tail))
+			while ((tail->rdist >= temp->rdist) && (head < tail))
 				tail--;
 		}
 
@@ -125,12 +124,12 @@ static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail) {
 			head++;
 		}
 
-		if (connected) {
-			while ((head->dist <= pivot.dist) && (head < tail))
+		if (t->flag & T_PROP_CONNECTED) {
+			while ((head->dist <= temp->dist) && (head < tail))
 				head++;
 		}
 		else {
-			while ((head->rdist <= pivot.rdist) && (head < tail))
+			while ((head->rdist <= temp->rdist) && (head < tail))
 				head++;
 		}
 
@@ -141,16 +140,17 @@ static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail) {
 		}
 	}
 
-	*head = pivot;
+	*head = *temp;
 	if (ihead < head) {
-		qsort_trans_data(t, ihead, head-1);
+		qsort_trans_data(t, ihead, head-1, temp);
 	}
 	if (itail > head) {
-		qsort_trans_data(t, head+1, itail);
+		qsort_trans_data(t, head+1, itail, temp);
 	}
 }
 
 void sort_trans_data_dist(TransInfo *t) {
+	TransData temp;
 	TransData *start = t->data;
 	int i = 1;
 
@@ -158,7 +158,7 @@ void sort_trans_data_dist(TransInfo *t) {
 		start++;
 		i++;
 	}
-	qsort_trans_data(t, start, t->data + t->total - 1);
+	qsort_trans_data(t, start, t->data + t->total - 1, &temp);
 }
 
 static void sort_trans_data(TransInfo *t)
