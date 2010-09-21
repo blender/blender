@@ -78,7 +78,7 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 	/* now we need a float buffer from the image
 	 * with matching color management */
 	if(rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
-		if(ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+		if(ibuf->profile != IB_PROFILE_NONE) {
 			rect= ibuf->rect_float;
 		}
 		else {
@@ -88,7 +88,7 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 		}
 	}
 	else {
-		if(ibuf->profile != IB_PROFILE_LINEAR_RGB) {
+		if(ibuf->profile == IB_PROFILE_NONE) {
 			rect= ibuf->rect_float;
 		}
 		else {
