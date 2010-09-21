@@ -4658,7 +4658,22 @@ void freeSlideVerts(TransInfo *t)
 {
 	TransDataSlideUv *suv;
 	SlideData *sld = t->customData;
+	Mesh *me = t->obedit->data;
 	int uvlay_idx;
+
+	if(me->drawflag & ME_DRAW_EDGELEN) {
+		TransDataSlideVert *tempsv;
+		LinkNode *look = sld->vertlist;
+		GHash *vertgh = sld->vhash;
+		while(look) {
+			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+			if(tempsv != NULL) {
+				tempsv->up->f &= !SELECT;
+				tempsv->down->f &= !SELECT;
+			}
+			look = look->next;
+		}
+	}
 
 	//BLI_ghash_free(edgesgh, freeGHash, NULL);
 	BLI_ghash_free(sld->vhash, NULL, (GHashValFreeFP)MEM_freeN);
