@@ -1135,6 +1135,7 @@ int file_filenum_exec(bContext *C, wmOperator *op)
 	if(sfile->params && (inc != 0)) {
 		BLI_newname(sfile->params->file, inc);
 		ED_area_tag_redraw(sa);
+		file_draw_check_cb(C, NULL, NULL);
 		// WM_event_add_notifier(C, NC_WINDOW, NULL);
 	}
 	
