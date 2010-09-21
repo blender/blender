@@ -52,6 +52,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -674,6 +675,19 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				AnimData *adt= ntree->adt;
 				
 				ale->flag= FILTER_NTREE_SCED(ntree); 
+				
+				ale->key_data= (adt) ? adt->action : NULL;
+				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
+			}
+				break;
+			case ANIMTYPE_DSLINESTYLE:
+			{
+				FreestyleLineStyle *linestyle= (FreestyleLineStyle *)data;
+				AnimData *adt= linestyle->adt;
+				
+				ale->flag= FILTER_LS_SCED(linestyle); 
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
@@ -2010,7 +2024,99 @@ static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_dat
 		)
 	}
 
-	
+	/* line styles */
+	if (!(ads->filterflag & ADS_FILTER_NOLINESTYLE)) {
+		ListBase linestyles = {NULL, NULL};
+		LinkData *link;
+		SceneRenderLayer *srl;
+		FreestyleLineSet *lineset;
+		FreestyleLineStyle *linestyle;
+
+		for (srl = (SceneRenderLayer *)sce->r.layers.first; srl; srl = srl->next) {
+			if (!(srl->layflag & SCE_LAY_FRS))
+				continue;
+			for (lineset = (FreestyleLineSet *)srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+				short ok = 0;
+
+				linestyle = lineset->linestyle;
+				if (!linestyle->adt)
+					continue;
+
+				ANIMDATA_FILTER_CASES(linestyle, 
+					{ /* AnimData blocks - do nothing... */ },
+					ok=1;, 
+					ok=1;, 
+					ok=1;)
+				if (ok == 0) continue;
+
+				/* check if the same linestyle is already in the list */
+				for (link = (LinkData *)linestyles.first; link; link = link->next) {
+					if (link->data == linestyle) {
+						ok = 0;
+						break;
+					}
+				}
+				if (ok == 0) continue;
+
+				/* add this linestyle to the list */
+				link= MEM_callocN(sizeof(LinkData), "DopeSheet LineStyle cache");
+				link->data= linestyle;
+				BLI_addtail(&linestyles, link);
+			}
+		}
+
+		if (linestyles.first) {
+
+			for (link = (LinkData *)linestyles.first; link; link = link->next) {
+				linestyle = (FreestyleLineStyle *)link->data;
+
+				/* Action, Drivers, or NLA for line styles */
+				adt= linestyle->adt;
+				ANIMDATA_FILTER_CASES(linestyle,
+					{ /* AnimData blocks - do nothing... */ },
+					{ /* nla */
+						/* add NLA tracks */
+						items += animdata_filter_nla(ac, anim_data, ads, adt, filter_mode, linestyle, ANIMTYPE_DSLINESTYLE, (ID *)linestyle);
+					},
+					{ /* drivers */
+						/* include linestyle-expand widget? */
+						if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+							ale= make_new_animlistelem(linestyle, ANIMTYPE_DSLINESTYLE, sce, ANIMTYPE_SCENE, (ID *)linestyle);
+							if (ale) {
+								BLI_addtail(anim_data, ale);
+								items++;
+							}
+						}
+						
+						/* add F-Curve channels (drivers are F-Curves) */
+						if (FILTER_LS_SCED(linestyle)/*EXPANDED_DRVD(adt)*/ || !(filter_mode & ANIMFILTER_CHANNELS)) {
+							// XXX owner info is messed up now...
+							items += animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, linestyle, ANIMTYPE_DSLINESTYLE, filter_mode, (ID *)linestyle);
+						}
+					},
+					{ /* action */
+						/* include nodetree-expand widget? */
+						if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+							ale= make_new_animlistelem(linestyle, ANIMTYPE_DSLINESTYLE, sce, ANIMTYPE_SCENE, (ID *)sce);
+							if (ale) {
+								BLI_addtail(anim_data, ale);
+								items++;
+							}
+						}
+						
+						/* add channels */
+						if (FILTER_LS_SCED(linestyle) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+							items += animdata_filter_action(ac, anim_data, ads, adt->action, filter_mode, linestyle, ANIMTYPE_DSLINESTYLE, (ID *)linestyle); 
+						}
+					}
+				)
+			}
+
+			/* free cache */
+			BLI_freelistN(&linestyles);
+		}
+	}
+
 	// TODO: scene compositing nodes (these aren't standard node-trees)
 	
 	/* return the number of items added to the list */
@@ -2044,7 +2150,7 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 	/* scene-linked animation */
 	// TODO: sequencer, composite nodes - are we to include those here too?
 	{
-		short sceOk= 0, worOk= 0, nodeOk=0;
+		short sceOk= 0, worOk= 0, nodeOk=0, lsOk = 0;
 		
 		/* check filtering-flags if ok */
 		ANIMDATA_FILTER_CASES(sce, 
@@ -2084,17 +2190,41 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 				nodeOk= !(ads->filterflag & ADS_FILTER_NONTREE);, 
 				nodeOk= !(ads->filterflag & ADS_FILTER_NONTREE);)
 		}
+
+		/* line styles */
+		{
+			SceneRenderLayer *srl;
+			FreestyleLineSet *lineset;
+
+			for (srl = (SceneRenderLayer *)sce->r.layers.first; srl; srl = srl->next) {
+				if (srl->layflag & SCE_LAY_FRS) {
+					for (lineset = (FreestyleLineSet *)srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+						ANIMDATA_FILTER_CASES(lineset->linestyle, 
+							{
+								/* for the special AnimData blocks only case, we only need to add
+								 * the block if it is valid... then other cases just get skipped (hence ok=0)
+								 */
+								ANIMDATA_ADD_ANIMDATA(lineset->linestyle);
+								lsOk=0;
+							},
+							lsOk= !(ads->filterflag & ADS_FILTER_NOLINESTYLE);, 
+							lsOk= !(ads->filterflag & ADS_FILTER_NOLINESTYLE);, 
+							lsOk= !(ads->filterflag & ADS_FILTER_NOLINESTYLE);)
+					}
+				}
+			}
+		}
 		
 		/* if only F-Curves with visible flags set can be shown, check that 
 		 * datablocks haven't been set to invisible 
 		 */
 		if (filter_mode & ANIMFILTER_CURVEVISIBLE) {
 			if ((sce->adt) && (sce->adt->flag & ADT_CURVES_NOT_VISIBLE))
-				sceOk= worOk= nodeOk= 0;
+				sceOk= worOk= nodeOk= lsOk= 0;
 		}
 		
 		/* check if not all bad (i.e. so there is something to show) */
-		if ( !(!sceOk && !worOk && !nodeOk) ) {
+		if ( !(!sceOk && !worOk && !nodeOk && !lsOk) ) {
 			/* add scene data to the list of filtered channels */
 			items += animdata_filter_dopesheet_scene(ac, anim_data, ads, sce, filter_mode);
 		}

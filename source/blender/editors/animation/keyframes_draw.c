@@ -723,7 +723,7 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree 
 		}
 
 		/* linestyle animdata */
-		if (sce->r.mode & R_EDGE_FRS) {
+		if (sce->r.mode & R_EDGE_FRS && !(filterflag & ADS_FILTER_NOLINESTYLE)) {
 			SceneRenderLayer *srl;
 			FreestyleLineSet *lineset;
 

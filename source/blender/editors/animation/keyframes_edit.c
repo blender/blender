@@ -39,6 +39,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_linestyle_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
@@ -364,6 +365,24 @@ static short scene_keyframes_loop(KeyframeEditData *ked, Scene *sce, KeyframeEdi
 			return 1;
 	}
 	
+	/* Line styles */
+	{
+		SceneRenderLayer *srl;
+		FreestyleLineSet *lineset;
+		FreestyleLineStyle *linestyle;
+
+		for (srl = (SceneRenderLayer *)sce->r.layers.first; srl; srl = srl->next) {
+			if (srl->layflag & SCE_LAY_FRS) {
+				for (lineset = (FreestyleLineSet *)srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+					linestyle = lineset->linestyle;
+					if (linestyle->adt) {
+						if (adt_keyframes_loop(ked, linestyle->adt, key_ok, key_cb, fcu_cb, filterflag))
+							return 1;
+					}
+				}
+			}
+		}
+	}
 	
 	return 0;
 }

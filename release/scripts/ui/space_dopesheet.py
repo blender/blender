@@ -60,6 +60,8 @@ def dopesheet_filter(layout, context):
         row.prop(dopesheet, "show_armatures", text="")
     if bpy.data.particles:
         row.prop(dopesheet, "show_particles", text="")
+    if bpy.data.linestyles:
+        row.prop(dopesheet, "show_linestyles", text="")
 
     if bpy.data.groups:
         row = layout.row(align=True)

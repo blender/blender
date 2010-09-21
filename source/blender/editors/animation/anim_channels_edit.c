@@ -229,6 +229,7 @@ void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, 
 				case ANIMTYPE_DSMESH:
 				case ANIMTYPE_DSNTREE:
 				case ANIMTYPE_DSTEX:
+				case ANIMTYPE_DSLINESTYLE:
 				{
 					if ((ale->adt) && (ale->adt->flag & ADT_UI_SELECTED))
 						sel= ACHANNEL_SETFLAG_CLEAR;
@@ -312,6 +313,7 @@ void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, 
 			case ANIMTYPE_DSMESH:
 			case ANIMTYPE_DSNTREE:
 			case ANIMTYPE_DSTEX:
+			case ANIMTYPE_DSLINESTYLE:
 			{
 				/* need to verify that this data is valid for now */
 				if (ale->adt) {
@@ -1733,6 +1735,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 		case ANIMTYPE_DSMESH:
 		case ANIMTYPE_DSNTREE:
 		case ANIMTYPE_DSTEX:
+		case ANIMTYPE_DSLINESTYLE:
 		{
 			/* sanity checking... */
 			if (ale->adt) {
