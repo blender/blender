@@ -2209,7 +2209,8 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "ID From", "Datablock from which the edited datablock is linked");
 
-	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Node Tree", "Node tree being displayed and edited");
 

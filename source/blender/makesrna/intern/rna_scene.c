@@ -3224,7 +3224,8 @@ void RNA_def_scene(BlenderRNA *brna)
 
 
 	/* Nodes (Compositing) */
-	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
 	RNA_def_property_ui_text(prop, "Node Tree", "Compositing node tree");
 
 	prop= RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
