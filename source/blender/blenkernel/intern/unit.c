@@ -395,8 +395,9 @@ void bUnit_AsString(char *str, int len_max, double value, int prec, int system, 
 
 	if(usys==NULL || usys->units[0].name==NULL)
 		usys= &buDummyCollecton;
-
-	if(split) {
+   
+	/* split output makes sense only for length, mass and time */
+	if(split && (type==B_UNIT_LENGTH || type==B_UNIT_MASS || type==B_UNIT_TIME)) {
 		int i;
 		bUnitDef *unit_a, *unit_b;
 		double value_a, value_b;
