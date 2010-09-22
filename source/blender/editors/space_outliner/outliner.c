@@ -1573,13 +1573,15 @@ static int outliner_toggle_visibility_exec(bContext *C, wmOperator *op)
 	
 	ED_region_tag_redraw(ar);
 	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+	
 	return OPERATOR_FINISHED;
 }
 
 void OUTLINER_OT_visibility_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Visability";
+	ot->name= "Toggle Visibility";
 	ot->idname= "OUTLINER_OT_visibility_toggle";
 	ot->description= "Toggle the visibility of selected items";
 	
