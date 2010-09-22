@@ -572,8 +572,8 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				Object workob;
 				
 				/* apply transformation of previous parenting */
-				object_apply_mat4(ob, ob->obmat);
-				
+				/* object_apply_mat4(ob, ob->obmat); */ /* removed because of bug [#23577] */
+
 				/* set the parent (except for follow-path constraint option) */
 				if(partype != PAR_PATH_CONST)
 					ob->parent= par;
