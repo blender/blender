@@ -46,7 +46,7 @@ typedef struct VFont {
 } VFont;
 
 /* *************** FONT ****************** */
-
+#define FO_EDIT			0
 #define FO_CURS			1
 #define FO_CURSUP		2
 #define FO_CURSDOWN		3

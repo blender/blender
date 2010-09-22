@@ -259,7 +259,9 @@ static void text_update_edited(bContext *C, Scene *scene, Object *obedit, int re
 	if(obedit->totcol>0)
 		obedit->actcol= ef->textbufinfo[cu->pos?cu->pos-1:0].mat_nr;
 
-	update_string(cu);
+	if(mode == FO_EDIT)
+		update_string(cu);
+
 	BKE_text_to_curve(scene, obedit, mode);
 
 	if(recalc)
@@ -364,7 +366,7 @@ static int paste_file(bContext *C, ReportList *reports, char *filename)
 	}
 	MEM_freeN(strp);
 
-	text_update_edited(C, scene, obedit, 1, 0);
+	text_update_edited(C, scene, obedit, 1, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -747,7 +749,7 @@ static int cut_text_exec(bContext *C, wmOperator *op)
 	copy_selection(obedit);
 	kill_selection(obedit, 0);
 
-	text_update_edited(C, scene, obedit, 1, 0);
+	text_update_edited(C, scene, obedit, 1, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -805,7 +807,7 @@ static int paste_text_exec(bContext *C, wmOperator *op)
 	if(!paste_selection(obedit, op->reports))
 		return OPERATOR_CANCELLED;
 
-	text_update_edited(C, scene, obedit, 1, 0);
+	text_update_edited(C, scene, obedit, 1, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -846,7 +848,7 @@ static int move_cursor(bContext *C, int type, int select)
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
 	EditFont *ef= cu->editfont;
-	int cursmove= 0;
+	int cursmove= -1;
 
 	switch(type) {
 		case LINE_BEGIN:
@@ -916,7 +918,7 @@ static int move_cursor(bContext *C, int type, int select)
 			break;
 	}
 		
-	if(!cursmove)
+	if(cursmove == -1)
 		return OPERATOR_CANCELLED;
 
 	if(select == 0) {
@@ -1010,7 +1012,7 @@ static int change_spacing_exec(bContext *C, wmOperator *op)
 
 	ef->textbufinfo[cu->pos-1].kern = kern;
 
-	text_update_edited(C, scene, obedit, 1, 0);
+	text_update_edited(C, scene, obedit, 1, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -1055,7 +1057,7 @@ static int change_character_exec(bContext *C, wmOperator *op)
 
 	ef->textbuf[cu->pos - 1]= character;
 
-	text_update_edited(C, scene, obedit, 1, 0);
+	text_update_edited(C, scene, obedit, 1, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -1098,7 +1100,7 @@ static int line_break_exec(bContext *C, wmOperator *op)
 
 	cu->selstart = cu->selend = 0;
 
-	text_update_edited(C, scene, obedit, 1, 0);
+	text_update_edited(C, scene, obedit, 1, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -1188,7 +1190,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 	}
 
-	text_update_edited(C, scene, obedit, 1, 0);
+	text_update_edited(C, scene, obedit, 1, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -1238,7 +1240,7 @@ static int insert_text_exec(bContext *C, wmOperator *op)
 	MEM_freeN(inserted_utf8);
 
 	kill_selection(obedit, 1);
-	text_update_edited(C, scene, obedit, 1, 0);
+	text_update_edited(C, scene, obedit, 1, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
@@ -1306,12 +1308,12 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 			}
 			
 			kill_selection(obedit, 1);
-			text_update_edited(C, scene, obedit, 1, 0);
+			text_update_edited(C, scene, obedit, 1, FO_EDIT);
 		}
 		else {
 			inserted_text[0]= ascii;
 			insert_into_textbuf(obedit, ascii);
-			text_update_edited(C, scene, obedit, 1, 0);
+			text_update_edited(C, scene, obedit, 1, FO_EDIT);
 		}
 	}
 	else if(val && event == BACKSPACEKEY) {
@@ -1553,7 +1555,7 @@ static int set_case(bContext *C, int ccase)
 		}
 	}
 
-	text_update_edited(C, scene, obedit, 1, 0);
+	text_update_edited(C, scene, obedit, 1, FO_EDIT);
 
 	return OPERATOR_FINISHED;
 }
