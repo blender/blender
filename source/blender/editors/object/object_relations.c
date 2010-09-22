@@ -421,6 +421,9 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
+		if(ob->parent == NULL)
+			continue;
+		
 		if(type == 0) {
 			ob->parent= NULL;
 		}			
