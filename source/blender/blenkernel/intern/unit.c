@@ -583,10 +583,6 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 
 
 	for(unit= usys->units; unit->name; unit++) {
-
-		if(unit->flag & B_UNIT_DEF_SUPPRESS)
-			continue;
-
 		/* incase there are multiple instances */
 		while(unit_replace(str, len_max, str_tmp, scale_pref, unit))
 			change= 1;
@@ -603,13 +599,10 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 				usys_iter= unit_get_system(system_iter, type);
 				if (usys_iter) {
 					for(unit= usys_iter->units; unit->name; unit++) {
-
-						if((unit->flag & B_UNIT_DEF_SUPPRESS) == 0) {
-							int ofs = 0;
-							/* incase there are multiple instances */
-							while((ofs=unit_replace(str+ofs, len_max-ofs, str_tmp, scale_pref, unit)))
-								change= 1;
-						}
+						int ofs = 0;
+						/* incase there are multiple instances */
+						while((ofs=unit_replace(str+ofs, len_max-ofs, str_tmp, scale_pref, unit)))
+							change= 1;
 					}
 				}
 			}
@@ -622,10 +615,6 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 		if(str_prev) {
 			/* see which units the original value had */
 			for(unit= usys->units; unit->name; unit++) {
-
-				if(unit->flag & B_UNIT_DEF_SUPPRESS)
-					continue;
-
 				if (unit_find(str_prev, unit))
 					break;
 			}
