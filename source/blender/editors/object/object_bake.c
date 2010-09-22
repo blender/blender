@@ -252,6 +252,10 @@ static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *_eve
 {
 	Scene *scene= CTX_data_scene(C);
 
+	/* only one render job at a time */
+	if(WM_jobs_test(CTX_wm_manager(C), scene))
+		return OPERATOR_CANCELLED;
+	
 	if(test_bake_internal(C, op->reports)==0) {
 		return OPERATOR_CANCELLED;
 	}
