@@ -2863,6 +2863,7 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
 {
 	const char *p;
 	char *buf;
+	char quote= '\0';
 	int i, j, len, escape;
 
 	len= 0;
@@ -2874,9 +2875,30 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
 
 		p= *path;
 
-		escape= 0;
-		while(*p && (*p != ']' || escape)) {
-			escape= (*p == '\\');
+		/* 2 kinds of lookups now, quoted or unquoted */
+		quote= *p;
+
+		if(quote != '\'' && quote != '"')
+			quote= 0;
+
+		if(quote==0) {
+			while(*p && (*p != ']')) {
+				len++;
+				p++;
+			}
+		}
+		else {
+			escape= 0;
+			/* skip the first quote */
+			len++;
+			p++;
+			while(*p && (*p != quote || escape)) {
+				escape= (*p == '\\');
+				len++;
+				p++;
+			}
+			
+			/* skip the last quoted char to get the ']' */
 			len++;
 			p++;
 		}
@@ -2906,7 +2928,7 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
 	/* copy string, taking into account escaped ] */
 	if(bracket) {
 		for(p=*path, i=0, j=0; i<len; i++, p++) {
-			if(*p == '\\' && *(p+1) == ']');
+			if(*p == '\\' && *(p+1) == quote);
 			else buf[j++]= *p;
 		}
 
