@@ -854,6 +854,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 				mface->v2= startvert+index[2];
 				mface->v3= startvert+index[1];
 				mface->v4= 0;
+				mface->mat_nr= (unsigned char)dl->col;
 				test_index_face(mface, NULL, 0, 3);
 
 				if(smooth) mface->flag |= ME_SMOOTH;
