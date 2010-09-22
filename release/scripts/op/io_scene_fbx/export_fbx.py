@@ -181,13 +181,11 @@ def getVertsFromGroup(me, group_index):
         return ret
 
 # ob must be OB_MESH
-def BPyMesh_meshWeight2List(ob):
+def BPyMesh_meshWeight2List(ob, me):
     ''' Takes a mesh and return its group names and a list of lists, one list per vertex.
     aligning the each vert list with the group names, each list contains float value for the weight.
     These 2 lists can be modified and then used with list2MeshWeight to apply the changes.
     '''
-
-    me = ob.data
 
     # Clear the vert group.
     groupNames= [g.name for g in ob.vertex_groups]
@@ -205,9 +203,9 @@ def BPyMesh_meshWeight2List(ob):
 
     return groupNames, vWeightList
 
-def meshNormalizedWeights(me):
+def meshNormalizedWeights(ob, me):
     try: # account for old bad BPyMesh
-        groupNames, vWeightList = BPyMesh_meshWeight2List(me)
+        groupNames, vWeightList = BPyMesh_meshWeight2List(ob, me)
 # 		groupNames, vWeightList = BPyMesh.meshWeight2List(me)
     except:
         return [],[]
@@ -235,7 +233,8 @@ header_comment = \
 '''
 
 # This func can be called with just the filepath
-def save(operator, context, filepath="", \
+def save(operator, context, filepath="",
+        GLOBAL_MATRIX =				None,
         EXP_OBS_SELECTED =			True,
         EXP_MESH =					True,
         EXP_MESH_APPLY_MOD =		True,
@@ -244,7 +243,6 @@ def save(operator, context, filepath="", \
         EXP_CAMERA =				True,
         EXP_EMPTY =					True,
         EXP_IMAGE_COPY =			False,
-        GLOBAL_MATRIX =				None,
         ANIM_ENABLE =				True,
         ANIM_OPTIMIZE =				True,
         ANIM_OPTIMIZE_PRECISSION =	6,
@@ -2404,8 +2402,7 @@ Objects:  {''')
             if my_mesh.fbxBoneParent:
                 weights = None
             else:
-                weights = meshNormalizedWeights(my_mesh.blenObject)
-# 				weights = meshNormalizedWeights(my_mesh.blenData)
+                weights = meshNormalizedWeights(my_mesh.blenObject, my_mesh.blenData)
 
             #for bonename, bone, obname, bone_mesh, armob in ob_bones:
             for my_bone in ob_bones:
