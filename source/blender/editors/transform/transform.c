@@ -298,7 +298,10 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D)
 	{
 		/* Do we need more refined tags? */
-		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+		if(t->flag & T_POSE)
+			WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+		else
+			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 		
 		/* for realtime animation record - send notifiers recognised by animation editors */
 		// XXX: is this notifier a lame duck?
