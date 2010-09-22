@@ -1169,6 +1169,8 @@ int file_rename_exec(bContext *C, wmOperator *op)
 		if ( (0<=idx) && (idx<numfiles) ) {
 			struct direntry *file= filelist_file(sfile->files, idx);
 			file->flags |= EDITING;
+			BLI_strncpy(sfile->params->renameedit, file->relname, FILE_MAXFILE);
+			sfile->params->renamefile[0]= '\0';
 		}
 		ED_area_tag_redraw(sa);
 	}
