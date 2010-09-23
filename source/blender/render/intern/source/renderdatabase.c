@@ -1019,7 +1019,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 				}
 			}
 
-			externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta);
+			externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta, 0);
 
 			yn= tin*mtex->colfac;
 			zn= tin*mtex->alphafac;
@@ -1151,7 +1151,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				VECCOPY(texvec, orco);
 			}
 
-			externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta);
+			externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta, 0);
 
 			//yn= tin*mtex->colfac;
 			//zn= tin*mtex->alphafac;

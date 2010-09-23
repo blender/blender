@@ -4450,7 +4450,7 @@ void vertexnoise(Object *obedit, EditMesh *em)
 			}
 			else {
 				float tin, dum;
-				externtex(ma->mtex[0], eve->co, &tin, &dum, &dum, &dum, &dum);
+				externtex(ma->mtex[0], eve->co, &tin, &dum, &dum, &dum, &dum, 0);
 				eve->co[2]+= 0.05*tin;
 			}
 		}

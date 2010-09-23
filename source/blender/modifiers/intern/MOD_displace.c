@@ -134,7 +134,7 @@ static void updateDepgraph(
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
 
-	if(dmd->map_object) {
+	if(dmd->map_object && dmd->texmapping == MOD_DISP_MAP_OBJECT) {
 		DagNode *curNode = dag_get_node(forest, dmd->map_object);
 
 		dag_add_relation(forest, curNode, obNode,
