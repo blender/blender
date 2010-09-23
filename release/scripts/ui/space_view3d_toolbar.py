@@ -768,7 +768,7 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, bpy.types.Panel):
 
             col = split.column()
 
-            col.prop(tex_slot, "size")
+            col.prop(tex_slot, "scale")
 
             col = layout.column()
 
