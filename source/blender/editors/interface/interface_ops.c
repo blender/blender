@@ -230,7 +230,7 @@ static int copy_data_path_button_exec(bContext *C, wmOperator *op)
 	/* try to create driver using property retrieved from UI */
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 
-	if (ptr.data && prop) {
+	if (ptr.id.data && ptr.data && prop) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
 		if (path) {
