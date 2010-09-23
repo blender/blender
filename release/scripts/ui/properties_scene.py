@@ -96,9 +96,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
 
             col = row.column()
             col.label(text="Keyframing Settings:")
-            col.prop(ks, "use_insertkey_needed", text="Needed")
-            col.prop(ks, "use_insertkey_visual", text="Visual")
-            col.prop(ks, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
+            col.prop(ks, "bl_options")
 
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
@@ -234,7 +232,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         f.write("# Keying Set: %s\n" % ks.name)
 
         f.write("import bpy\n\n")
-        f.write("scene= bpy.data.scenes[0]\n\n")
+        f.write("scene= bpy.data.scenes[0]\n\n") # XXX, why not use the current scene?
 
         # Add KeyingSet and set general settings
         f.write("# Keying Set Level declarations\n")
@@ -243,10 +241,8 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         if not ks.is_path_absolute:
             f.write("ks.is_path_absolute = False\n")
         f.write("\n")
-
-        f.write("ks.use_insertkey_needed = %s\n" % ks.use_insertkey_needed)
-        f.write("ks.use_insertkey_visual = %s\n" % ks.use_insertkey_visual)
-        f.write("ks.use_insertkey_xyz_to_rgb = %s\n" % ks.use_insertkey_xyz_to_rgb)
+    
+        f.write("ks.bl_options = %r\n" % ks.bl_options)
         f.write("\n")
 
         # generate and write set of lookups for id's used in paths

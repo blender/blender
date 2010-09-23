@@ -141,7 +141,7 @@ class BUILTIN_KSI_VisualLoc(bpy.types.KeyingSetInfo):
 class BUILTIN_KSI_VisualRot(bpy.types.KeyingSetInfo):
     bl_label = "Visual Rotation"
 
-    insertkey_visual = True
+    bl_options = {'INSERTKEY_VISUAL'}
 
     # poll - use predefined callback for selected bones/objects
     poll = RKS_POLL_selected_items
@@ -156,7 +156,7 @@ class BUILTIN_KSI_VisualRot(bpy.types.KeyingSetInfo):
 class BUILTIN_KSI_VisualLocRot(bpy.types.KeyingSetInfo):
     bl_label = "Visual LocRot"
 
-    insertkey_visual = True
+    bl_options = {'INSERTKEY_VISUAL'}
 
     # poll - use predefined callback for selected bones/objects
     poll = RKS_POLL_selected_items
