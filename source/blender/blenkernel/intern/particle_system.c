@@ -2837,11 +2837,18 @@ void particle_intersect_face(void *userdata, int index, const BVHTreeRay *ray, B
 
 	} while(t2);
 }
-/* particle - mesh collision code */
-/* in addition to basic point to surface collisions handles friction & damping,*/
-/* angular momentum <-> linear momentum and swept sphere - mesh collisions */
-/* 1. check for all possible deflectors for closest intersection on particle path */
-/* 2. if deflection was found kill the particle or calculate new coordinates */
+/* Particle - Mesh collision code
+ * Features:
+ * - point and swept sphere to mesh surface collisions
+ * - moving colliders (but not yet rotating or deforming colliders)
+ * - friction & damping
+ * - angular momentum <-> linear momentum
+ * - high accuracy by re-applying particle acceleration after collision
+ * - behaves relatively well even if limit of 10 collisions per simulation step is exceeded
+ * Main parts:
+ * 1. check for all possible deflectors for closest intersection on particle path
+ * 2. if deflection was found calculate new coordinates or kill the particle
+ */
 static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, float cfra){
 	Object *ground_ob = NULL;
 	ParticleSettings *part = sim->psys->part;
@@ -2849,19 +2856,21 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 	ParticleCollision col;
 	ColliderCache *coll;
 	BVHTreeRayHit hit;
-	float ray_dir[3], zerovec[3]={0.0,0.0,0.0};
+	float ray_dir[3], acc[3];
 	float radius = ((part->flag & PART_SIZE_DEFL)?pa->size:0.0f), boid_z = 0.0f;
-	float timestep = psys_get_timestep(sim);
+	float timestep = psys_get_timestep(sim) * dfra;
+	float inv_timestep = 1.0f/timestep;
 	int deflections=0, max_deflections=10;
 
-	VECCOPY(col.co1, pa->prev_state.co);
-	VECCOPY(col.co2, pa->state.co);
-	
-	VECCOPY(col.ve1, pa->prev_state.vel);
-	VECCOPY(col.ve2, pa->state.vel);
-	mul_v3_fl(col.ve1, timestep * dfra);
-	mul_v3_fl(col.ve2, timestep * dfra);
-	
+	/* get acceleration (from gravity, forcefields etc. to be re-applied after collision) */
+	sub_v3_v3v3(acc, pa->state.vel, pa->prev_state.vel);
+	mul_v3_fl(acc, inv_timestep);
+
+	/* set values for first iteration */
+	copy_v3_v3(col.co1, pa->prev_state.co);
+	copy_v3_v3(col.co2, pa->state.co);
+	copy_v3_v3(col.ve1, pa->prev_state.vel);
+	copy_v3_v3(col.ve2, pa->state.vel);
 	col.t = 0.0f;
 
 	/* override for boids */
@@ -2876,7 +2885,7 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 	if(sim->colliders) while(deflections < max_deflections){
 		/* 1. */
 
-		VECSUB(ray_dir, col.co2, col.co1);
+		sub_v3_v3v3(ray_dir, col.co2, col.co1);
 		hit.index = -1;
 		hit.dist = col.ray_len = len_v3(ray_dir);
 
@@ -2904,45 +2913,49 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 		/* 2. */
 		if(hit.index>=0) {
 			PartDeflect *pd = col.hit_ob->pd;
-			int through = (BLI_frand() < pd->pdef_perm) ? 1 : 0;
 			float co[3]; /* point of collision */
-			float vec[3]; /* movement through collision */
-			float acc[3]; /* acceleration */
-
 			float x = hit.dist/col.ray_len; /* location of collision between this iteration */
-			float le = len_v3(col.ve1)/col.ray_len;
-			float ac = len_v3(col.ve2)/col.ray_len - le; /* (taking acceleration into account) */
-			float t = (-le + sqrt(le*le + 2*ac*x))/ac; /* time of collision between this iteration */
-			float dt = col.t + x * (1.0f - col.t); /* time of collision between frame change*/
-			float it = 1.0 - t;
+			float df = col.t + x * (1.0f - col.t); /* time of collision between frame change*/
+			float dt1 = (df - col.t) * timestep; /* iteration time of collision (in seconds) */
+			float dt2 = (1.0f - df) * timestep; /* time left after collision (in seconds) */
+			int through = (BLI_frand() < pd->pdef_perm) ? 1 : 0; /* did particle pass through the collision surface? */
+
+			deflections++;
 			
 			interp_v3_v3v3(co, col.co1, col.co2, x);
-			VECSUB(vec, col.co2, col.co1);
-
-			VECSUB(acc, col.ve2, col.ve1);
 			
-			mul_v3_fl(col.vel, 1.0f-col.t);
+			/* make sure we don't hit the current face again */
+			/* TODO: could/should this be proportional to pa->size? */
+			madd_v3_v3fl(co, col.nor, (through ? -0.0001f : 0.0001f));
 
 			/* particle dies in collision */
 			if(through == 0 && (part->flag & PART_DIE_ON_COL || pd->flag & PDEFLE_KILL_PART)) {
 				pa->alive = PARS_DYING;
-				pa->dietime = pa->state.time + (cfra - pa->state.time) * dt;
-				
-				/* we have to add this for dying particles too so that reactors work correctly */
-				VECADDFAC(co, co, col.nor, (through ? -0.0001f : 0.0001f));
+				pa->dietime = pa->state.time + (cfra - pa->state.time) * df;
 
-				VECCOPY(pa->state.co, co);
-				interp_v3_v3v3(pa->state.vel, pa->prev_state.vel, pa->state.vel, dt);
-				interp_qt_qtqt(pa->state.rot, pa->prev_state.rot, pa->state.rot, dt);
-				interp_v3_v3v3(pa->state.ave, pa->prev_state.ave, pa->state.ave, dt);
+				copy_v3_v3(pa->state.co, co);
+				interp_v3_v3v3(pa->state.vel, pa->prev_state.vel, pa->state.vel, df);
+				interp_qt_qtqt(pa->state.rot, pa->prev_state.rot, pa->state.rot, df);
+				interp_v3_v3v3(pa->state.ave, pa->prev_state.ave, pa->state.ave, df);
 
 				/* particle is dead so we don't need to calculate further */
-				deflections=max_deflections;
+				return;
 			}
+			/* figure out velocity and other data after collision */
 			else {
-				float nor_vec[3], tan_vec[3], tan_vel[3];
+				float v0[3];	/* velocity directly before collision to be modified into velocity directly after collision */
+				float v0_nor[3];/* normal component of v0 */
+				float v0_tan[3];/* tangential component of v0 */
+				float vc_tan[3];/* tangential component of collision surface velocity */
+				float check[3];
+				float v0_dot, vc_dot, check_dot;
 				float damp, frict;
-				float inp, inp_v;
+
+				/* get exact velocity right before collision */
+				madd_v3_v3v3fl(v0, col.ve1, acc, dt1);
+				
+				/* convert collider velocity from 1/framestep to 1/s */
+				mul_v3_fl(col.vel, inv_timestep);
 				
 				/* get damping & friction factors */
 				damp = pd->pdef_damp + pd->pdef_rdamp * 2 * (BLI_frand() - 0.5f);
@@ -2952,119 +2965,118 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 				CLAMP(frict,0.0,1.0);
 
 				/* treat normal & tangent components separately */
-				inp = dot_v3v3(col.nor, vec);
-				inp_v = dot_v3v3(col.nor, col.vel);
+				v0_dot = dot_v3v3(col.nor, v0);
+				madd_v3_v3v3fl(v0_tan, v0, col.nor, -v0_dot);
 
-				VECADDFAC(tan_vec, vec, col.nor, -inp);
-				VECADDFAC(tan_vel, col.vel, col.nor, -inp_v);
-				if((part->flag & PART_ROT_DYN)==0)
-					interp_v3_v3v3(tan_vec, tan_vec, tan_vel, frict);
+				vc_dot = dot_v3v3(col.nor, col.vel);
+				madd_v3_v3v3fl(vc_tan, col.vel, col.nor, -vc_dot);
 
-				VECCOPY(nor_vec, col.nor);
-				inp *= 1.0f - damp;
+				/* handle friction effects (tangential and angular velocity) */
+				if(frict > 0.0f) {
+					/* angular <-> linear velocity */
+					if(part->flag & PART_ROT_DYN) {
+						float vr_tan[3], v1_tan[3], ave[3];
+					
+						/* linear velocity of particle surface */
+						cross_v3_v3v3(vr_tan, col.nor, pa->state.ave);
+						mul_v3_fl(vr_tan, pa->size);
 
-				if(through)
-					inp_v *= damp;
+						/* change to coordinates that move with the collision plane */
+						sub_v3_v3v3(v1_tan, v0_tan, vc_tan);
+						
+						/* The resulting velocity is a weighted average of particle cm & surface
+						 * velocity. This weight (related to particle's moment of inertia) could
+						 * be made a parameter for angular <-> linear conversion.
+						 */
+						madd_v3_v3fl(v1_tan, vr_tan, -0.4);
+						mul_v3_fl(v1_tan, 1.0f/1.4f); /* 1/(1+0.4) */
 
-				/* special case for object hitting the particle from behind */
-				if(through==0 && ((inp_v>0 && inp>0 && inp_v>inp) || (inp_v<0 && inp<0 && inp_v<inp)))
-					mul_v3_fl(nor_vec, inp_v);
-				else
-					mul_v3_fl(nor_vec, inp_v + (through ? 1.0f : -1.0f) * inp);
+						/* rolling friction is around 0.01 of sliding friction (could be made a parameter) */
+						mul_v3_fl(v1_tan, 1.0f - 0.01f * frict);
 
-				/* angular <-> linear velocity - slightly more physical and looks even nicer than before */
-				if(part->flag & PART_ROT_DYN) {
-					float surface_vel[3], rot_vel[3], friction[3], dave[3], dvel[3];
+						/* surface_velocity is opposite to cm velocity */
+						mul_v3_v3fl(vr_tan, v1_tan, -1.0f);
 
-					/* apparent velocity along collision surface */
-					VECSUB(surface_vel, tan_vec, tan_vel);
+						/* get back to global coordinates */
+						add_v3_v3(v1_tan, vc_tan);
 
-					/* direction of rolling friction */
-					cross_v3_v3v3(rot_vel, pa->state.ave, col.nor);
-					/* convert to current dt */
-					mul_v3_fl(rot_vel, (timestep*dfra) * (1.0f - col.t));
-					mul_v3_fl(rot_vel, pa->size);
+						/* convert to angular velocity*/
+						cross_v3_v3v3(ave, vr_tan, col.nor);
+						mul_v3_fl(ave, 1.0f/MAX2(pa->size, 0.001));
 
-					/* apply sliding friction */
-					VECSUB(surface_vel, surface_vel, rot_vel);
-					VECCOPY(friction, surface_vel);
-
-					mul_v3_fl(surface_vel, 1.0 - frict);
-					mul_v3_fl(friction, frict);
-
-					/* sliding changes angular velocity */
-					cross_v3_v3v3(dave, col.nor, friction);
-					mul_v3_fl(dave, 1.0f/MAX2(pa->size, 0.001));
-
-					/* we assume rolling friction is around 0.01 of sliding friction */
-					mul_v3_fl(rot_vel, 1.0 - frict*0.01);
-
-					/* change in angular velocity has to be added to the linear velocity too */
-					cross_v3_v3v3(dvel, dave, col.nor);
-					mul_v3_fl(dvel, pa->size);
-					VECADD(rot_vel, rot_vel, dvel);
-
-					VECADD(surface_vel, surface_vel, rot_vel);
-					VECADD(tan_vec, surface_vel, tan_vel);
-
-					/* convert back to normal time */
-					mul_v3_fl(dave, 1.0f/MAX2((timestep*dfra) * (1.0f - col.t), 0.00001));
-
-					mul_v3_fl(pa->state.ave, 1.0 - frict*0.01);
-					VECADD(pa->state.ave, pa->state.ave, dave);
+						/* only friction will cause change in linear & angular velocity */
+						interp_v3_v3v3(pa->state.ave, pa->state.ave, ave, frict);
+						interp_v3_v3v3(v0_tan, v0_tan, v1_tan, frict);
+					}
+					else {
+						/* just basic friction (unphysical due to the friction model used in Blender) */
+						interp_v3_v3v3(v0_tan, v0_tan, vc_tan, frict);
+					}
 				}
 
+				/* stickness was possibly added before, so cancel that before calculating new normal velocity */
+				/* otherwise particles go flying out of the surface because of high reversed sticky velocity */
+				if(v0_dot < 0.0f) {
+					v0_dot += pd->pdef_stickness;
+					if(v0_dot > 0.0f)
+						v0_dot = 0.0f;
+				}
+
+				/* damping and flipping of velocity around normal */
+				v0_dot *= 1.0f - damp;
+				vc_dot *= through ? damp : 1.0f;
+
+				/* special case for object hitting the particle from behind */
+				if(through==0 && ((vc_dot>0.0f && v0_dot>0.0f && vc_dot>v0_dot) || (vc_dot<0.0f && v0_dot<0.0f && vc_dot<v0_dot)))
+					mul_v3_v3fl(v0_nor, col.nor, vc_dot);
+				else
+					mul_v3_v3fl(v0_nor, col.nor, vc_dot + (through ? 1.0f : -1.0f) * v0_dot);
+
 				/* combine components together again */
-				VECADD(vec, nor_vec, tan_vec);
+				add_v3_v3v3(v0, v0_nor, v0_tan);
 
-				/* make sure we don't hit the current face again */
-				VECADDFAC(co, co, col.nor, (through ? -0.0001f : 0.0001f));
-
+				/* keep boids above ground */
 				if(part->phystype == PART_PHYS_BOIDS && part->boids->options & BOID_ALLOW_LAND) {
 					BoidParticle *bpa = pa->boid;
 					if(bpa->data.mode == eBoidMode_OnLand || co[2] <= boid_z) {
 						co[2] = boid_z;
-						vec[2] = 0.0f;
+						v0[2] = 0.0f;
 					}
 				}
-
-				/* set coordinates for next iteration */
 				
-				/* apply acceleration to final position, but make sure particle stays above surface */
-				madd_v3_v3v3fl(acc, vec, acc, it);
-				ac = dot_v3v3(acc, col.nor);
-				if((!through && ac < 0.0f) || (through && ac > 0.0f))
-					madd_v3_v3fl(acc, col.nor, -ac);
+				if(deflections < max_deflections) {
+					/* re-apply acceleration to final velocity and location */
+					madd_v3_v3v3fl(pa->state.vel, v0, acc, dt2);
+					madd_v3_v3v3fl(pa->state.co, co, v0, dt2);
+					madd_v3_v3fl(pa->state.co, acc, 0.5f*dt2*dt2);
 
-				VECCOPY(col.co1, co);
-				VECADDFAC(col.co2, co, acc, it);
+					/* make sure particle stays on the right side of the surface */
+					sub_v3_v3v3(check, pa->state.co, co);
+					/* (collision surface has moved during the time too) */
+					madd_v3_v3fl(check, col.vel, -dt2);
 
-				VECCOPY(col.ve1, vec);
-				VECCOPY(col.ve2, acc);
+					check_dot = dot_v3v3(check, col.nor);
+					if((!through && check_dot < 0.0f) || (through && check_dot > 0.0f))
+						madd_v3_v3fl(pa->state.co, col.nor, (through ? -0.0001f : 0.0001f) - check_dot);
 
-				if(len_v3(vec) < 0.001 && len_v3v3(pa->state.co, pa->prev_state.co) < 0.001) {
-					/* kill speed to stop slipping */
-					VECCOPY(pa->state.vel,zerovec);
-					VECCOPY(pa->state.co, co);
-					if(part->flag & PART_ROT_DYN) {
-						VECCOPY(pa->state.ave,zerovec);
-					}
+					/* Stickness to surface */
+					madd_v3_v3fl(pa->state.vel, col.nor, -pd->pdef_stickness);
+
+					/* set coordinates for next iteration */
+					copy_v3_v3(col.co1, co);
+					copy_v3_v3(col.co2, pa->state.co);
+
+					copy_v3_v3(col.ve1, v0);
+					copy_v3_v3(col.ve2, pa->state.vel);
+
+					col.t = df;
 				}
 				else {
-					VECCOPY(pa->state.co, col.co2);
-					mul_v3_v3fl(pa->state.vel, acc, 1.0f/MAX2((timestep*dfra) * (1.0f - col.t), 0.00001));
-					
-					/* Stickness to surface */
-					normalize_v3(nor_vec);
-					madd_v3_v3fl(pa->state.vel, col.nor, -pd->pdef_stickness);
+					/* final chance to prevent failure, so don't do anything fancy */
+					copy_v3_v3(pa->state.co, co);
+					copy_v3_v3(pa->state.vel, v0);
 				}
-
-				col.t = dt;
 			}
-			deflections++;
-
-			//reaction_state.time = cfra - (1.0f - dt) * dfra;
-			//push_reaction(col.ob, psys, p, PART_EVENT_COLLIDE, &reaction_state);
 		}
 		else
 			return;
@@ -3346,6 +3358,8 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	/* frame & time changes */
 	float dfra, dtime, pa_dtime, pa_dfra=0.0;
 	float birthtime, dietime;
+
+	int invalidParticles=0;
 	
 	/* where have we gone in time since last time */
 	dfra= cfra - psys->cfra;
@@ -3496,6 +3510,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 
 			//push_reaction(ob,psys,p,PART_EVENT_NEAR,&pa->state);
 		}
+		if (isnan(pa->state.co[0]) || isnan(pa->state.co[1]) || isnan(pa->state.co[2])) {invalidParticles++;}
 	}
 
 	free_collider_cache(&sim->colliders);
