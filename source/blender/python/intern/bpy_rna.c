@@ -2262,17 +2262,29 @@ static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
 	PyObject *coerce= Py_True;
 	PointerRNA r_ptr;
 	PropertyRNA *r_prop;
+	int index= -1;
 
 	if (!PyArg_ParseTuple(args, "s|O!:path_resolve", &path, &PyBool_Type, &coerce))
 		return NULL;
 
-	if (RNA_path_resolve(&self->ptr, path, &r_ptr, &r_prop)) {
+	if (RNA_path_resolve_full(&self->ptr, path, &r_ptr, &r_prop, &index)) {
 		if(r_prop) {
-			if(coerce == Py_False) {
-				return pyrna_prop_CreatePyObject(&r_ptr, r_prop);
+			if(index != -1) {
+				if(index >= RNA_property_array_length(&r_ptr, r_prop) || index < 0) {
+					PyErr_Format(PyExc_TypeError, "%.200s.path_resolve(\"%.200s\") index out of range", RNA_struct_identifier(self->ptr.type), path);
+					return NULL;
+				}
+				else {
+					return pyrna_array_index(&r_ptr, r_prop, index);
+				}
 			}
 			else {
-				return pyrna_prop_to_py(&r_ptr, r_prop);
+				if(coerce == Py_False) {
+					return pyrna_prop_CreatePyObject(&r_ptr, r_prop);
+				}
+				else {
+					return pyrna_prop_to_py(&r_ptr, r_prop);
+				}
 			}
 		}
 		else {
