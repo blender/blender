@@ -2562,10 +2562,9 @@ static void shade_tface(BakeShade *bs)
 	if (bs->usemask) {
 		if (bs->ibuf->userdata==NULL) {
 			BLI_lock_thread(LOCK_CUSTOM1);
-			if (bs->ibuf->userdata==NULL) { /* since the thread was locked, its possible another thread alloced the value */
+			if (bs->ibuf->userdata==NULL) /* since the thread was locked, its possible another thread alloced the value */
 				bs->ibuf->userdata = (void *)MEM_callocN(sizeof(char)*bs->rectx*bs->recty, "BakeMask");
-				bs->rect_mask= (char *)bs->ibuf->userdata;
-			}
+			bs->rect_mask= (char *)bs->ibuf->userdata;
 			BLI_unlock_thread(LOCK_CUSTOM1);
 		} else {
 			bs->rect_mask= (char *)bs->ibuf->userdata;
