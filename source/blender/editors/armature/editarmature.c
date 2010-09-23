@@ -5772,6 +5772,7 @@ void transform_armature_mirror_update(Object *obedit)
 					eboflip->tail[1]= ebo->tail[1];
 					eboflip->tail[2]= ebo->tail[2];
 					eboflip->rad_tail= ebo->rad_tail;
+					eboflip->roll= -ebo->roll;
 
 					/* Also move connected children, in case children's name aren't mirrored properly */
 					for (children=arm->edbo->first; children; children=children->next) {
@@ -5786,6 +5787,7 @@ void transform_armature_mirror_update(Object *obedit)
 					eboflip->head[1]= ebo->head[1];
 					eboflip->head[2]= ebo->head[2];
 					eboflip->rad_head= ebo->rad_head;
+					eboflip->roll= -ebo->roll;
 					
 					/* Also move connected parent, in case parent's name isn't mirrored properly */
 					if (eboflip->parent && eboflip->flag & BONE_CONNECTED)
