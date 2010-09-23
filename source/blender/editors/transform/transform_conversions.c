@@ -3682,6 +3682,11 @@ static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totv
 			if (bezm->bezt->f2 & SELECT) {
 				if (td->loc2d == bezm->bezt->vec[1]) {
 					td->loc2d= (bezts + bezm->newIndex)->vec[1];
+
+					/* if only control point is selected, the handle pointers need to be updated as well */
+					td->h1= (bezts + bezm->newIndex)->vec[0];
+					td->h2= (bezts + bezm->newIndex)->vec[2];
+
 					adjusted[j] = 1;
 				}
 			}
