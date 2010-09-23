@@ -2118,8 +2118,8 @@ static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElemen
 	if(set) {
 		if(!(pchan->bone->flag & BONE_HIDDEN_P)) {
 			
-			if(set==2) ED_pose_deselectall(ob, 2, 0);	// 2 = clear active tag
-			else ED_pose_deselectall(ob, 0, 0);	// 0 = deselect 
+			if(set==2) ED_pose_deselectall(ob, 2);	// 2 = clear active tag
+			else ED_pose_deselectall(ob, 0);	// 0 = deselect 
 			
 			if(set==2 && (pchan->bone->flag & BONE_SELECTED)) {
 				pchan->bone->flag &= ~BONE_SELECTED;
@@ -2149,8 +2149,8 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 	
 	if(set) {
 		if(!(bone->flag & BONE_HIDDEN_P)) {
-			if(set==2) ED_pose_deselectall(OBACT, 2, 0);	// 2 is clear active tag
-			else ED_pose_deselectall(OBACT, 0, 0);
+			if(set==2) ED_pose_deselectall(OBACT, 2);	// 2 is clear active tag
+			else ED_pose_deselectall(OBACT, 0);
 			
 			if(set==2 && (bone->flag & BONE_SELECTED)) {
 				bone->flag &= ~BONE_SELECTED;
@@ -2183,8 +2183,8 @@ static int tree_element_active_ebone(bContext *C, Scene *scene, TreeElement *te,
 	if(set) {
 		if(!(ebone->flag & BONE_HIDDEN_A)) {
 			bArmature *arm= scene->obedit->data;
-			if(set==2) ED_armature_deselectall(scene->obedit, 2, 0);	// only clear active tag
-			else ED_armature_deselectall(scene->obedit, 0, 0);	// deselect
+			if(set==2) ED_armature_deselectall(scene->obedit, 2);	// only clear active tag
+			else ED_armature_deselectall(scene->obedit, 0);	// deselect
 
 			ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL;
 			arm->act_edbone= ebone;
