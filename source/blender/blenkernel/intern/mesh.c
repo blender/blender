@@ -440,7 +440,7 @@ void transform_mesh_orco_verts(Mesh *me, float (*orco)[3], int totvert, int inve
 int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 {
 	/* first test if the face is legal */
-	if(mface->v3 && mface->v3==mface->v4) {
+	if((mface->v3 || nr==4) && mface->v3==mface->v4) {
 		mface->v4= 0;
 		nr--;
 	}
