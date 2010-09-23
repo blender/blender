@@ -2245,6 +2245,8 @@ static void undoBones_to_editBones(void *uarmv, void *armv)
 		ebo= uarm->act_edbone;
 		arm->act_edbone= ebo->temp;
 	}
+	else
+		arm->act_edbone= NULL;
 
 	/* set pointers */
 	for(newebo= arm->edbo->first; newebo; newebo= newebo->next) {
