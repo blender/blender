@@ -4409,7 +4409,7 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 			}
 		}
 		
-		/* Solve the constraint */
+		/* Solve the constraint and put result in cob->matrix */
 		cti->evaluate_constraint(con, cob, &targets);
 		
 		/* clear targets after use 
@@ -4421,22 +4421,12 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 		}
 		
 		/* Interpolate the enforcement, to blend result of constraint into final owner transform */
-		/* 1. Remove effects of original matrix from constraint solution ==> delta */
-		invert_m4_m4(imat, oldmat);
-		copy_m4_m4(solution, cob->matrix);
-		mul_m4_m4m4(delta, solution, imat);
-		
-		/* 2. If constraint influence is not full strength, then interpolate
-		 * 	identity_matrix --> delta_matrix to get the effect the constraint actually exerts
-		 */
+		/* Note: all kind of stuff here before (caused trouble), much easier to just interpolate, or did I miss something? -jahka */
 		if (enf < 1.0) {
-			float identity[4][4];
-			unit_m4(identity);
-			blend_m4_m4m4(delta, identity, delta, enf);
+			float solution[4][4];
+			copy_m4_m4(solution, cob->matrix);
+			blend_m4_m4m4(cob->matrix, oldmat, solution, enf);
 		}
-		
-		/* 3. Now multiply the delta by the matrix in use before the evaluation */
-		mul_m4_m4m4(cob->matrix, delta, oldmat);
 		
 		/* move owner back into worldspace for next constraint/other business */
 		if ((con->flag & CONSTRAINT_SPACEONCE) == 0) 
