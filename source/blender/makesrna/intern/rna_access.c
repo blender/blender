@@ -364,7 +364,8 @@ static PropertyRNA *typemap[IDP_NUMTYPES] =
 	 (PropertyRNA*)&rna_IDProperty_float,
 	 NULL, NULL, NULL,
 	 (PropertyRNA*)&rna_IDProperty_group, NULL,
-	 (PropertyRNA*)&rna_IDProperty_double};
+	 (PropertyRNA*)&rna_IDProperty_double,
+	 (PropertyRNA*)&rna_IDProperty_idp_array};
 
 static PropertyRNA *arraytypemap[IDP_NUMTYPES] =
 	{NULL, (PropertyRNA*)&rna_IDProperty_int_array,
@@ -2066,7 +2067,7 @@ void RNA_property_collection_begin(PointerRNA *ptr, PropertyRNA *prop, Collectio
 
 void RNA_property_collection_next(CollectionPropertyIterator *iter)
 {
-	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)iter->prop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)rna_ensure_property(iter->prop);
 
 	if(iter->idprop) {
 		rna_iterator_array_next(iter);
@@ -2080,7 +2081,7 @@ void RNA_property_collection_next(CollectionPropertyIterator *iter)
 
 void RNA_property_collection_end(CollectionPropertyIterator *iter)
 {
-	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)iter->prop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)rna_ensure_property(iter->prop);
 
 	if(iter->idprop)
 		rna_iterator_array_end(iter);
@@ -2272,7 +2273,7 @@ int RNA_property_collection_lookup_index(PointerRNA *ptr, PropertyRNA *prop, Poi
 
 int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int key, PointerRNA *r_ptr)
 {
-	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)rna_ensure_property(prop);
 
 	if(cprop->lookupint) {
 		/* we have a callback defined, use it */
@@ -2302,7 +2303,7 @@ int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int k
 
 int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr)
 {
-	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)rna_ensure_property(prop);
 
 	if(cprop->lookupstring) {
 		/* we have a callback defined, use it */

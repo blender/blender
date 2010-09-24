@@ -285,6 +285,7 @@ extern FloatPropertyRNA rna_IDProperty_float;
 extern FloatPropertyRNA rna_IDProperty_float_array;
 extern PointerPropertyRNA rna_IDProperty_group;
 extern CollectionPropertyRNA rna_IDProperty_collection;
+extern CollectionPropertyRNA rna_IDProperty_idp_array;
 extern FloatPropertyRNA rna_IDProperty_double;
 extern FloatPropertyRNA rna_IDProperty_double_array;
 
