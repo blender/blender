@@ -1140,6 +1140,8 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *p
 					Py_XDECREF(value_new); return -1;
 				}
 			}
+			
+			Py_XDECREF(value_new);
 
 			break;
 		}
