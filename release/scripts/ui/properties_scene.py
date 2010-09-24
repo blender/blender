@@ -146,10 +146,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
             if ksp.group_method == 'NAMED':
                 col.prop(ksp, "group")
 
-            col.label(text="Keyframing Settings:")
-            col.prop(ksp, "use_insertkey_needed", text="Needed")
-            col.prop(ksp, "use_insertkey_visual", text="Visual")
-            col.prop(ksp, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
+            col.prop(ksp, "bl_options")
 
 
 class SCENE_PT_physics(SceneButtonsPanel, bpy.types.Panel):
