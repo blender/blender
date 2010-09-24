@@ -195,9 +195,11 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 			psys->free_edit = NULL;
 		}
 
-		newpars= MEM_callocN(totpart*sizeof(ParticleData), "particles");
-		if(psys->part->phystype == PART_PHYS_BOIDS)
-			newboids= MEM_callocN(totpart*sizeof(BoidParticle), "boid particles");
+		if(totpart) {
+			newpars= MEM_callocN(totpart*sizeof(ParticleData), "particles");
+			if(psys->part->phystype == PART_PHYS_BOIDS)
+				newboids= MEM_callocN(totpart*sizeof(BoidParticle), "boid particles");
+		}
 	
 		if(psys->particles) {
 			totsaved=MIN2(psys->totpart,totpart);
