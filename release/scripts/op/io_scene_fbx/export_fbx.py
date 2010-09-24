@@ -311,7 +311,6 @@ def save(operator, context, filepath="",
         new_fbxpath = fbxpath # own dir option modifies, we need to keep an original
         for data in data_seq: # scene or group
             newname = BATCH_FILE_PREFIX + bpy.path.clean_name(data.name)
-# 			newname = BATCH_FILE_PREFIX + BPySys.bpy.path.clean_name(data.name)
 
 
             if BATCH_OWN_DIR:
@@ -368,8 +367,7 @@ def save(operator, context, filepath="",
 
             if BATCH_GROUP:
                 # remove temp group scene
-                bpy.data.remove_scene(scene)
-# 				bpy.data.scenes.unlink(scene)
+                bpy.data.scenes.unlink(scene)
 
         bpy.data.scenes.active = orig_sce
 
@@ -2327,8 +2325,7 @@ Objects:  {''')
     for fbxName, matrix in pose_items:
         file.write('\n\t\tPoseNode:  {')
         file.write('\n\t\t\tNode: "Model::%s"' % fbxName )
-        if matrix:		file.write('\n\t\t\tMatrix: %s' % mat4x4str(matrix))
-        else:			file.write('\n\t\t\tMatrix: %s' % mat4x4str(Matrix()))
+        file.write('\n\t\t\tMatrix: %s' % mat4x4str(matrix if matrix else Matrix()))
         file.write('\n\t\t}')
 
     file.write('\n\t}')
@@ -2511,7 +2508,6 @@ Connections:  {''')
 
     # Needed for scene footer as well as animation
     render = scene.render
-# 	render = scene.render
 
     # from the FBX sdk
     #define KTIME_ONE_SECOND        KTime (K_LONGLONG(46186158000))
@@ -2521,11 +2517,11 @@ Connections:  {''')
 
     fps = float(render.fps)
     start =	scene.frame_start
-# 	start =	render.sFrame
     end =	scene.frame_end
-# 	end =	render.eFrame
-    if end < start: start, end = end, start
-    if start==end: ANIM_ENABLE = False
+    if end < start: start, end = end, st
+
+    # comment the following line, otherwise we dont get the pose
+    # if start==end: ANIM_ENABLE = False
 
     # animations for these object types
     ob_anim_lists = ob_bones, ob_meshes, ob_null, ob_cameras, ob_lights, ob_arms
@@ -2533,13 +2529,12 @@ Connections:  {''')
     if ANIM_ENABLE and [tmp for tmp in ob_anim_lists if tmp]:
 
         frame_orig = scene.frame_current
-# 		frame_orig = Blender.Get('curframe')
 
         if ANIM_OPTIMIZE:
             ANIM_OPTIMIZE_PRECISSION_FLOAT = 0.1 ** ANIM_OPTIMIZE_PRECISSION
 
         # default action, when no actions are avaioable
-        tmp_actions = [None] # None is the default action
+        tmp_actions = []
         blenActionDefault = None
         action_lastcompat = None
 
@@ -2583,6 +2578,8 @@ Connections:  {''')
 
         del action_lastcompat
 
+        tmp_actions.insert(0, None) # None is the default action
+
         file.write('''
 ;Takes and animation section
 ;----------------------------------------------------
@@ -2619,16 +2616,6 @@ Takes:  {''')
                 act_start, act_end = blenAction.frame_range
                 act_start = int(act_start)
                 act_end = int(act_end)
-# 				tmp = blenAction.getFrameNumbers()
-# 				if tmp:
-# 					act_start =	min(tmp)
-# 					act_end =	max(tmp)
-# 					del tmp
-# 				else:
-# 					# Fallback on this, theres not much else we can do? :/
-# 					# when an action has no length
-# 					act_start =	start
-# 					act_end =	end
 
                 # Set the action active
                 for my_bone in ob_arms:
@@ -2701,7 +2688,6 @@ Takes:  {''')
                                     if prev_eul:	prev_eul = mtx[1].to_euler('XYZ', prev_eul)
                                     else:			prev_eul = mtx[1].to_euler()
                                     context_bone_anim_vecs.append(eulerRadToDeg(prev_eul))
-# 									context_bone_anim_vecs.append(prev_eul)
 
                             file.write('\n\t\t\t\tChannel: "%s" {' % TX_CHAN) # translation
 
@@ -2758,8 +2744,14 @@ Takes:  {''')
                                             j = len(context_bone_anim_keys)-2
 
                                     if len(context_bone_anim_keys) == 2 and context_bone_anim_keys[0][0] == context_bone_anim_keys[1][0]:
+
                                         # This axis has no moton, its okay to skip KeyCount and Keys in this case
-                                        pass
+                                        # pass
+
+                                        # better write one, otherwise we loose poses with no animation
+                                        file.write('\n\t\t\t\t\t\tKeyCount: 1')
+                                        file.write('\n\t\t\t\t\t\tKey: ')
+                                        file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(start), context_bone_anim_keys[0][0]))
                                     else:
                                         # We only need to write these if there is at least one
                                         file.write('\n\t\t\t\t\t\tKeyCount: %i' % len(context_bone_anim_keys))
