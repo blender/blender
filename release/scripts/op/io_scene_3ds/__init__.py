@@ -36,6 +36,7 @@ class Import3DS(bpy.types.Operator, ImportHelper):
     bl_label = 'Import 3DS'
 
     filename_ext = ".3ds"
+    filter_glob = StringProperty(default="*.3ds", options={'HIDDEN'})
 
     constrain_size = FloatProperty(name="Size Constraint", description="Scale the model by 10 until it reacehs the size constraint. Zero Disables.", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=10.0)
     use_image_search = BoolProperty(name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True)

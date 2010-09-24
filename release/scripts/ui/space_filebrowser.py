@@ -57,15 +57,21 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 
             row = layout.row(align=True)
             row.active = params.use_filter
-
+            
             row.prop(params, "use_filter_folder", text="")
-            row.prop(params, "use_filter_blender", text="")
-            row.prop(params, "use_filter_image", text="")
-            row.prop(params, "use_filter_movie", text="")
-            row.prop(params, "use_filter_script", text="")
-            row.prop(params, "use_filter_font", text="")
-            row.prop(params, "use_filter_sound", text="")
-            row.prop(params, "use_filter_text", text="")
+            
+            if params.filter_glob:
+                #if st.operator and hasattr(st.operator, "filter_glob"):
+                #    row.prop(params, "filter_glob", text="")
+                row.label(params.filter_glob)
+            else:
+                row.prop(params, "use_filter_blender", text="")
+                row.prop(params, "use_filter_image", text="")
+                row.prop(params, "use_filter_movie", text="")
+                row.prop(params, "use_filter_script", text="")
+                row.prop(params, "use_filter_font", text="")
+                row.prop(params, "use_filter_sound", text="")
+                row.prop(params, "use_filter_text", text="")
 
 
 def register():

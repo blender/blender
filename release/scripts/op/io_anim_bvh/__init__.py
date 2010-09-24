@@ -36,6 +36,7 @@ class BvhImporter(bpy.types.Operator, ImportHelper):
     bl_label = "Import BVH"
     
     filename_ext = ".bvh"
+    filter_glob = StringProperty(default="*.bvh", options={'HIDDEN'})
 
     scale = FloatProperty(name="Scale", description="Scale the BVH by this value", min=0.0001, max=1000000.0, soft_min=0.001, soft_max=100.0, default=0.1)
     frame_start = IntProperty(name="Start Frame", description="Starting frame for the animation", default=1)

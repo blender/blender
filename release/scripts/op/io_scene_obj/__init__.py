@@ -37,6 +37,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
     bl_label = "Import OBJ"
 
     filename_ext = ".obj"
+    filter_glob = StringProperty(default="*.obj;*.mtl", options={'HIDDEN'})
 
     CREATE_SMOOTH_GROUPS = BoolProperty(name="Smooth Groups", description="Surround smooth groups by sharp edges", default= True)
     CREATE_FGONS = BoolProperty(name="NGons as FGons", description="Import faces with more then 4 verts as fgons", default= True)

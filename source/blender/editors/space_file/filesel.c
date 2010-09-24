@@ -105,6 +105,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
 		/* set path to most recently opened .blend */
 		BLI_split_dirfile(G.sce, sfile->params->dir, sfile->params->file);
+		sfile->params->filter_glob[0] = '\0';
 	}
 
 	params = sfile->params;
@@ -168,6 +169,11 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->filter |= RNA_boolean_get(op->ptr, "filter_btx") ? BTXFILE : 0;
 		if(RNA_struct_find_property(op->ptr, "filter_collada"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_collada") ? COLLADAFILE : 0;
+		if (RNA_struct_find_property(op->ptr, "filter_glob")) {
+			RNA_string_get(op->ptr, "filter_glob", params->filter_glob);
+			params->filter |= (OPERATORFILE|FOLDERFILE);
+		}
+
 		if (params->filter != 0) {
 			if (U.uiflag & USER_FILTERFILEEXTS) {
 				params->flag |= FILE_FILTER;

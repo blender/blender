@@ -2126,6 +2126,11 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Filter Folder", "Show folders");
 	RNA_def_property_ui_icon(prop, ICON_FILE_FOLDER, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
+	
+	prop= RNA_def_property(srna, "filter_glob", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "filter_glob");
+	RNA_def_property_ui_text(prop, "Extension Filter", "");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 
 }
 
@@ -2141,6 +2146,10 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "params", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "params");
 	RNA_def_property_ui_text(prop, "Filebrowser Parameter", "Parameters and Settings for the Filebrowser");
+	
+	prop= RNA_def_property(srna, "operator", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "op");
+	RNA_def_property_ui_text(prop, "Operator", "");
 }
 
 static void rna_def_space_info(BlenderRNA *brna)

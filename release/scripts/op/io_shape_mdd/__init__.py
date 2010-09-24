@@ -37,6 +37,8 @@ class ImportMDD(bpy.types.Operator, ImportHelper):
     bl_label = "Import MDD"
 
     filename_ext = ".mdd"
+    filter_glob = StringProperty(default="*.mdd", options={'HIDDEN'})
+
     frame_start = IntProperty(name="Start Frame", description="Start frame for inserting animation", min=-300000, max=300000, default=0)
     frame_step = IntProperty(name="Step", min=1, max=1000, default=1)
 
