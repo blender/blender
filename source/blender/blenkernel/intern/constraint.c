@@ -1636,8 +1636,9 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		mat4_to_size(size, cob->matrix);
 		
 		/* to allow compatible rotations, must get both rotations in the order of the owner... */
-		mat4_to_eulO(eul, cob->rotOrder, ct->matrix);
 		mat4_to_eulO(obeul, cob->rotOrder, cob->matrix);
+		/* we must get compatible eulers from the beginning because some of them can be modified below (see bug #21875) */
+		mat4_to_compatible_eulO(eul, obeul, cob->rotOrder, ct->matrix);
 		
 		if ((data->flag & ROTLIKE_X)==0)
 			eul[0] = obeul[0];
@@ -1669,6 +1670,7 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 				eul[2] *= -1;
 		}
 		
+		/* good to make eulers compatible again, since we don't know how much they were changed above */
 		compatible_eul(eul, obeul);
 		loc_eulO_size_to_mat4(cob->matrix, loc, eul, size, cob->rotOrder);
 	}
