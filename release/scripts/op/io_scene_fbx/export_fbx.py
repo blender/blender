@@ -729,7 +729,6 @@ def save(operator, context, filepath="",
             Property: "NegativePercentShapeSupport", "bool", "",1
             Property: "DefaultAttributeIndex", "int", "",0''')
         if ob and not isinstance(ob, bpy.types.Bone):
-# 		if ob and type(ob) != Blender.Types.BoneType:
             # Only mesh objects have color
             file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8')
             file.write('\n\t\t\tProperty: "Size", "double", "",100')
@@ -1494,14 +1493,12 @@ def save(operator, context, filepath="",
         for ed in me.edges:
                 if i==-1:
                     file.write('%i,%i' % (ed.vertices[0], ed.vertices[1]))
-# 					file.write('%i,%i' % (ed.v1.index, ed.v2.index))
                     i=0
                 else:
                     if i==13:
                         file.write('\n\t\t')
                         i=0
                     file.write(',%i,%i' % (ed.vertices[0], ed.vertices[1]))
-# 					file.write(',%i,%i' % (ed.v1.index, ed.v2.index))
                 i+=1
 
         file.write('\n\t\tGeometryVersion: 124')
@@ -1518,12 +1515,10 @@ def save(operator, context, filepath="",
         for v in me.vertices:
             if i==-1:
                 file.write('%.15f,%.15f,%.15f' % tuple(v.normal));	i=0
-# 				file.write('%.15f,%.15f,%.15f' % tuple(v.no));	i=0
             else:
                 if i==2:
                     file.write('\n			 ');	i=0
                 file.write(',%.15f,%.15f,%.15f' % tuple(v.normal))
-# 				file.write(',%.15f,%.15f,%.15f' % tuple(v.no))
             i+=1
         file.write('\n\t\t}')
 
@@ -1620,19 +1615,6 @@ def save(operator, context, filepath="",
                         i+=1
                         ii+=1 # One more Color
 
-# 				for f in me.faces:
-# 					for col in f.col:
-# 						if i==-1:
-# 							file.write('%.4f,%.4f,%.4f,1' % (col[0]/255.0, col[1]/255.0, col[2]/255.0))
-# 							i=0
-# 						else:
-# 							if i==7:
-# 								file.write('\n\t\t\t\t')
-# 								i=0
-# 							file.write(',%.4f,%.4f,%.4f,1' % (col[0]/255.0, col[1]/255.0, col[2]/255.0))
-# 						i+=1
-# 						ii+=1 # One more Color
-
                 file.write('\n\t\t\tColorIndex: ')
                 i = -1
                 for j in range(ii):
@@ -1654,16 +1636,11 @@ def save(operator, context, filepath="",
         uvlayers = []
         if do_uvs:
             uvlayers = me.uv_textures
-# 			uvlayers = me.getUVLayerNames()
             uvlayer_orig = me.uv_textures.active
-# 			uvlayer_orig = me.activeUVLayer
             for uvindex, uvlayer in enumerate(me.uv_textures):
-# 			for uvindex, uvlayer in enumerate(uvlayers):
-# 				me.activeUVLayer = uvlayer
                 file.write('\n\t\tLayerElementUV: %i {' % uvindex)
                 file.write('\n\t\t\tVersion: 101')
                 file.write('\n\t\t\tName: "%s"' % uvlayer.name)
-# 				file.write('\n\t\t\tName: "%s"' % uvlayer)
 
                 file.write('''
             MappingInformationType: "ByPolygonVertex"
@@ -1674,10 +1651,8 @@ def save(operator, context, filepath="",
                 ii = 0 # Count how many UVs we write
 
                 for uf in uvlayer.data:
-#               for f in me.faces:
                     # workaround, since uf.uv iteration is wrong atm
                     for uv in uf.uv:
-#                   for uv in f.uv:
                         if i==-1:
                             file.write('%.6f,%.6f' % tuple(uv))
                             i=0
@@ -1708,7 +1683,6 @@ def save(operator, context, filepath="",
                     file.write('\n\t\tLayerElementTexture: %i {' % uvindex)
                     file.write('\n\t\t\tVersion: 101')
                     file.write('\n\t\t\tName: "%s"' % uvlayer.name)
-# 					file.write('\n\t\t\tName: "%s"' % uvlayer)
 
                     if len(my_mesh.blenTextures) == 1:
                         file.write('\n\t\t\tMappingInformationType: "AllSame"')
@@ -1733,7 +1707,6 @@ def save(operator, context, filepath="",
 
                         i=-1
                         for f in uvlayer.data:
-# 						for f in me.faces:
                             img_key = f.image
 
                             if i==-1:
@@ -1759,7 +1732,6 @@ def save(operator, context, filepath="",
             TextureId: ''')
                 file.write('\n\t\t}')
 
-# 			me.activeUVLayer = uvlayer_orig
 
         # Done with UV/textures.
 
@@ -2056,27 +2028,17 @@ def save(operator, context, filepath="",
 
                     texture_mapping_local = {}
                     material_mapping_local = {}
-                    if len(me.uv_textures) > 0:
-# 					if me.faceUV:
-                        uvlayer_orig = me.uv_textures.active
-# 						uvlayer_orig = me.activeUVLayer
+                    if me.uv_textures:
                         for uvlayer in me.uv_textures:
-# 						for uvlayer in me.getUVLayerNames():
-# 							me.activeUVLayer = uvlayer
                             for f, uf in zip(me.faces, uvlayer.data):
-# 							for f in me.faces:
                                 tex = uf.image
-# 								tex = f.image
                                 textures[tex] = texture_mapping_local[tex] = None
 
                                 try: mat = mats[f.material_index]
-# 								try: mat = mats[f.mat]
                                 except: mat = None
 
                                 materials[mat, tex] = material_mapping_local[mat, tex] = None # should use sets, wait for blender 2.5
 
-
-# 							me.activeUVLayer = uvlayer_orig
                     else:
                         for mat in mats:
                             # 2.44 use mat.lib too for uniqueness
@@ -2091,10 +2053,8 @@ def save(operator, context, filepath="",
                         # parent bone - special case
                         if (not armob) and ob.parent and ob.parent.type == 'ARMATURE' and \
                                 ob.parent_type == 'BONE':
-# 						if (not armob) and ob.parent and ob.parent.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.BONE:
                             armob = ob.parent
                             blenParentBoneName = ob.parent_bone
-# 							blenParentBoneName = ob.parentbonename
 
 
                         if armob and armob not in ob_arms:
@@ -2127,7 +2087,6 @@ def save(operator, context, filepath="",
         # now we have the meshes, restore the rest arm position
         for i, arm in enumerate(bpy.data.armatures):
             arm.pose_position = ob_arms_orig_rest[i]
-# 			arm.restPosition = ob_arms_orig_rest[i]
 
         if ob_arms_orig_rest:
             for ob_base in bpy.data.objects:
@@ -2135,7 +2094,6 @@ def save(operator, context, filepath="",
                     ob_base.update(scene)
             # This causes the makeDisplayList command to effect the mesh
             scene.frame_set(scene.frame_current)
-# 			Blender.Set('curframe', Blender.Get('curframe'))
 
     del tmp_ob_type, tmp_objects
 
@@ -2157,7 +2115,6 @@ def save(operator, context, filepath="",
         #ob_arms[i] = fbxArmObName, ob, arm_my_bones, (ob.action, [])
 
         for bone in my_arm.blenData.bones:
-# 		for bone in my_arm.blenData.bones.values():
             my_bone = my_bone_class(bone, my_arm)
             my_arm.fbxBones.append( my_bone )
             ob_bones.append( my_bone )
@@ -2206,25 +2163,22 @@ def save(operator, context, filepath="",
 
     # Build blenObject -> fbxObject mapping
     # this is needed for groups as well as fbxParenting
-# 	for ob in bpy.data.objects:	ob.tag = False
+ 	for ob in bpy.data.objects:	ob.tag = False
 # 	bpy.data.objects.tag = False
 
     # using a list of object names for tagging (Arystan)
-    tagged_objects = []
 
     tmp_obmapping = {}
     for ob_generic in ob_all_typegroups:
         for ob_base in ob_generic:
-            tagged_objects.append(ob_base.blenObject.name)
-# 			ob_base.blenObject.tag = True
+ 			ob_base.blenObject.tag = True
             tmp_obmapping[ob_base.blenObject] = ob_base
 
     # Build Groups from objects we export
     for blenGroup in bpy.data.groups:
         fbxGroupName = None
         for ob in blenGroup.objects:
-            if ob.name in tagged_objects:
-# 			if ob.tag:
+ 			if ob.tag:
                 if fbxGroupName is None:
                     fbxGroupName = sane_groupname(blenGroup)
                     groups.append((fbxGroupName, blenGroup))
@@ -2237,8 +2191,7 @@ def save(operator, context, filepath="",
     for ob_generic in ob_all_typegroups:
         for my_ob in ob_generic:
             parent = my_ob.blenObject.parent
-            if parent and parent.name in tagged_objects: # does it exist and is it in the mapping
-# 			if parent and parent.tag: # does it exist and is it in the mapping
+ 			if parent and parent.tag: # does it exist and is it in the mapping
                 my_ob.fbxParent = tmp_obmapping[parent]
 
 
