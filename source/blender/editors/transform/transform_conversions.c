@@ -4920,8 +4920,13 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			BLI_freelistN(&anim_data);
 		}
 		
-		/* make sure all F-Curves are set correctly */
-		ANIM_editkeyframes_refresh(&ac);
+		/* Make sure all F-Curves are set correctly, but not if transform was
+		 * canceled, since then curves were already restored to initial state.
+		 * Note: if the refresh is really needed after cancel then some way
+		 *       has to be added to not update handle types (see bug 22289).
+		 */
+		if(!cancelled)
+			ANIM_editkeyframes_refresh(&ac);
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		bAnimContext ac;
