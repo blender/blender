@@ -67,10 +67,10 @@ class SelectPattern(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
 
-        layout.prop(self.properties, "pattern")
+        layout.prop(self, "pattern")
         row = layout.row()
-        row.prop(self.properties, "case_sensitive")
-        row.prop(self.properties, "extend")
+        row.prop(self, "case_sensitive")
+        row.prop(self, "extend")
 
 
 class SelectCamera(bpy.types.Operator):

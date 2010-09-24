@@ -1065,6 +1065,26 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *p
 			StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
 			int flag = RNA_property_flag(prop);
 
+			/* this is really nasty!, so we can fake the operator having direct properties eg:
+			 * layout.prop(self, "filepath")
+			 * ... which infact should be
+			 * layout.prop(self.properties, "filepath")
+			 * 
+			 * we need to do this trick.
+			 * if the prop is not an operator type and the pyobject is an operator, use its properties in place of its self.
+			 * 
+			 * this is so bad that its almost a good reason to do away with fake 'self.properties -> self' class mixing
+			 * if this causes problems in the future it should be removed.
+			 */
+			if(	(ptype == &RNA_AnyType) &&
+				(BPy_StructRNA_Check(value)) &&
+				(RNA_struct_is_a(((BPy_StructRNA *)value)->ptr.type, &RNA_Operator))
+			) {
+				value= PyObject_GetAttrString(value, "properties");
+				value_new= value;
+			}
+
+
 			/* if property is an OperatorProperties pointer and value is a map, forward back to pyrna_pydict_to_props */
 			if (RNA_struct_is_a(ptype, &RNA_OperatorProperties) && PyDict_Check(value)) {
 				PointerRNA opptr = RNA_property_pointer_get(ptr, prop);

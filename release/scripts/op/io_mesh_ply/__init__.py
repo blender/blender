@@ -53,11 +53,11 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
         layout = self.layout
 
         row = layout.row()
-        row.prop(self.properties, "use_modifiers")
-        row.prop(self.properties, "use_normals")
+        row.prop(self, "use_modifiers")
+        row.prop(self, "use_normals")
         row = layout.row()
-        row.prop(self.properties, "use_uv_coords")
-        row.prop(self.properties, "use_colors")
+        row.prop(self, "use_uv_coords")
+        row.prop(self, "use_colors")
 
 
 def menu_func(self, context):
