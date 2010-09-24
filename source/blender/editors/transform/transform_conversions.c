@@ -3389,17 +3389,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
 		for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
-				if (sipo->around == V3D_LOCAL && !ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE)) {
-					/* for local-pivot we only need to count the number of selected handles only, so that centerpoints don't
-					 * don't get moved wrong
-					 */
-					if (bezt->ipo == BEZT_IPO_BEZ) {
-						if (bezt->f1 & SELECT) count++;
-						if (bezt->f3 & SELECT) count++;
-					}
-					else if (bezt->f2 & SELECT) count++; // TODO: could this cause problems?
-				}
-				else if (ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE)) {
+				if (ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE)) {
 					/* for 'normal' pivots - just include anything that is selected.
 					   this works a bit differently in translation modes */
 					if (bezt->f2 & SELECT) count++;
@@ -3408,6 +3398,17 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 						if (bezt->f3 & SELECT) count++;
 					}
 				} 
+				else if (sipo->around == V3D_LOCAL) {
+					/* for local-pivot we only need to count the number of selected handles only, so that centerpoints don't
+					 * don't get moved wrong
+					 */
+					if (bezt->ipo == BEZT_IPO_BEZ) {
+						if (bezt->f1 & SELECT) count++;
+						if (bezt->f3 & SELECT) count++;
+					}
+					/* else if (bezt->f2 & SELECT) count++; // TODO: could this cause problems? */
+					/* - yes this causes problems, because no td is created for the center point */
+				}
 				else {
 					/* for 'normal' pivots - just include anything that is selected */
 					if (bezt->f1 & SELECT) count++;
@@ -3501,34 +3502,32 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				}
 				
 				/* only include main vert if selected */
-				if (bezt->f2 & SELECT) {
+				if (bezt->f2 & SELECT && (sipo->around != V3D_LOCAL || ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE))) {
+
 					/* move handles relative to center */
 					if (ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE)) {
 						if (bezt->f1 & SELECT) td->flag |= TD_MOVEHANDLE1;
 						if (bezt->f3 & SELECT) td->flag |= TD_MOVEHANDLE2;
 					}
 					
-					/* if scaling around individuals centers, do not include keyframes */
-					if (sipo->around != V3D_LOCAL) {
-						/* if handles were not selected, store their selection status */
-						if (!(bezt->f1 & SELECT) && !(bezt->f3 & SELECT)) {
-							if (hdata == NULL)
-								hdata = initTransDataCurveHandles(td, bezt);
-						}
-						
-						bezt_to_transdata(td++, td2d++, adt, bezt, 1, 1, 0, intvals, mtx, smtx);
+					/* if handles were not selected, store their selection status */
+					if (!(bezt->f1 & SELECT) && !(bezt->f3 & SELECT)) {
+						if (hdata == NULL)
+							hdata = initTransDataCurveHandles(td, bezt);
 					}
+				
+					bezt_to_transdata(td++, td2d++, adt, bezt, 1, 1, 0, intvals, mtx, smtx);
 					
-					/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
-					 *	- Check if we've got entire BezTriple selected and we're scaling/rotating that point,
-					 *	  then check if we're using auto-handles.
-					 *	- If so, change them auto-handles to aligned handles so that handles get affected too
-					 */
-					if ((bezt->h1 == HD_AUTO) && (bezt->h2 == HD_AUTO) && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
-						if (h1 && h2) {
-							bezt->h1= HD_ALIGN;
-							bezt->h2= HD_ALIGN;
-						}
+				}
+				/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
+				 *	- Check if we've got entire BezTriple selected and we're scaling/rotating that point,
+				 *	  then check if we're using auto-handles.
+				 *	- If so, change them auto-handles to aligned handles so that handles get affected too
+				 */
+				if ((bezt->h1 == HD_AUTO) && (bezt->h2 == HD_AUTO) && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
+					if (hdata && (bezt->f1 & SELECT) && (bezt->f3 & SELECT)) {
+						bezt->h1= HD_ALIGN;
+						bezt->h2= HD_ALIGN;
 					}
 				}
 			}
