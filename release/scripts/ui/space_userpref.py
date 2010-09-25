@@ -920,8 +920,8 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         split = layout.split(percentage=0.2)
         col = split.column()
-        col.prop(context.window_manager, "addon_filter", text="Filter", expand=True)
         col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
+        col.prop(context.window_manager, "addon_filter", text="Filter", expand=True)
 
         col = split.column()
 
@@ -1010,14 +1010,18 @@ class USERPREF_PT_addons(bpy.types.Panel):
             col.column().label(text="Missing script files")
 
             module_names = {mod.__name__ for mod, info in addons}
-            for ext in sorted(missing_modules):
+            for module_name in sorted(missing_modules):
+                is_enabled = module_name in used_ext
                 # Addon UI Code
                 box = col.column().box()
                 colsub = box.column()
                 row = colsub.row()
 
-                row.label(text=ext, icon='ERROR')
-                row.operator("wm.addon_disable").module = ext
+                row.label(text=module_name, icon='ERROR')
+
+                if is_enabled:
+                    row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
+
 
 from bpy.props import *
 
@@ -1093,6 +1097,7 @@ class WM_OT_addon_install(bpy.types.Operator):
         pyfile = self.filepath
 
         path_addons = bpy.utils.script_paths("addons")[-1]
+        contents = set(os.listdir(path_addons))
 
         #check to see if the file is in compressed format (.zip)
         if zipfile.is_zipfile(pyfile):
@@ -1120,6 +1125,23 @@ class WM_OT_addon_install(bpy.types.Operator):
             except:
                 traceback.print_exc()
                 return {'CANCELLED'}
+
+        # disable any addons we may have enabled previously and removed.
+        # this is unlikely but do just incase. bug [#23978]
+        addons_new = set(os.listdir(path_addons)) - contents
+        for new_addon in addons_new:
+            bpy.utils.addon_disable(os.path.splitext(new_addon)[0])
+
+        # possible the zip contains multiple addons, we could disallow this
+        # but for now just use the first
+        for mod in USERPREF_PT_addons._addon_list():
+            if mod.__name__ in addons_new:
+                info = addon_info_get(mod)
+
+                # show the newly installed addon.
+                context.window_manager.addon_filter = 'All'
+                context.window_manager.addon_search = info["name"]
+                break
 
         # TODO, should not be a warning.
         # self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)
