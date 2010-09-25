@@ -203,7 +203,7 @@ def setup_syslibs(lenv):
         ]
 
     if not lenv['WITH_BF_FREETYPE_STATIC']:
-    syslibs += Split(lenv['BF_FREETYPE_LIB'])
+        syslibs += Split(lenv['BF_FREETYPE_LIB'])
     if lenv['WITH_BF_PYTHON'] and not lenv['WITH_BF_STATICPYTHON']:
         if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
             syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
