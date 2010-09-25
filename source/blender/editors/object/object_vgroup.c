@@ -2078,7 +2078,7 @@ static int vgroup_sort(void *def_a_ptr, void *def_b_ptr)
 	bDeformGroup *def_a= (bDeformGroup *)def_a_ptr;
 	bDeformGroup *def_b= (bDeformGroup *)def_b_ptr;
 
-	return strcmp(def_a->name, def_b->name);
+	return BLI_natstrcmp(def_a->name, def_b->name);
 }
 
 static int vertex_group_sort_exec(bContext *C, wmOperator *op)
