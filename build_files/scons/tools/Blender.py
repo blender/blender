@@ -480,7 +480,7 @@ def WinPyBundle(target=None, source=None, env=None):
     if env['BF_DEBUG']:
         py_zip+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '_d.zip'
     else:
-    py_zip+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '.zip'
+        py_zip+= '/release/python' + env['BF_PYTHON_VERSION'].replace('.','') + '.zip'
 
     py_target = env.subst( env['BF_INSTALLDIR'] )
     if py_target[0]=='#':
