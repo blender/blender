@@ -2420,12 +2420,14 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 							break;
 						}
 								
-						for (mtInd= 0; mtInd < MAX_MTEX; mtInd++) {
-							MTex *mtex= ma->mtex[mtInd];
-							
-							if (mtex && mtex->tex && ANIMDATA_HAS_KEYS(mtex->tex)) {									
-								matOk= 1; 
-								break;
+						if(ma) {
+							for (mtInd= 0; mtInd < MAX_MTEX; mtInd++) {
+								MTex *mtex= ma->mtex[mtInd];
+								
+								if (mtex && mtex->tex && ANIMDATA_HAS_KEYS(mtex->tex)) {									
+									matOk= 1; 
+									break;
+								}
 							}
 						}
 
