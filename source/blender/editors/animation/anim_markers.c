@@ -362,6 +362,7 @@ static int ed_marker_add(bContext *C, wmOperator *op)
 	BLI_addtail(markers, marker);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -511,6 +512,7 @@ static void ed_marker_move_cancel(bContext *C, wmOperator *op)
 	ed_marker_move_exit(C, op);	
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
 }
 
 
@@ -537,6 +539,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			if(WM_modal_tweak_exit(evt, mm->event_type)) {
 				ed_marker_move_exit(C, op);
 				WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+				WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
 				return OPERATOR_FINISHED;
 			}
 			
@@ -614,6 +617,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 				}
 				
 				WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+				WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
 				ED_area_headerprint(CTX_wm_area(C), str);
 			}
 	}
@@ -635,6 +639,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			ED_area_headerprint(CTX_wm_area(C), str);
 
 			WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+			WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
 		}
 	}
 
@@ -840,6 +845,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 #endif
 
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
 
 	/* allowing tweaks */
 	return OPERATOR_PASS_THROUGH;
@@ -935,6 +941,7 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 	}
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
 
 	return 1;
 }
@@ -1000,6 +1007,7 @@ static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 	}
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -1042,8 +1050,10 @@ static int ed_marker_delete_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	if (changed)
+	if (changed) {
 		WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
+	}
 	
 	return OPERATOR_FINISHED;
 }
@@ -1136,8 +1146,10 @@ static int ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (changed)
+	if (changed) {
 		WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
+	}
 
 	return OPERATOR_FINISHED;
 }

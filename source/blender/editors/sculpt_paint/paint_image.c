@@ -3757,7 +3757,7 @@ static void *do_projectpaint_thread(void *ph_v)
 
 					if (falloff > 0.0f) {
 						if (ps->is_texbrush) {
-							brush_sample_tex(ps->brush, projPixel->projCoSS, rgba);
+							brush_sample_tex(ps->brush, projPixel->projCoSS, rgba, thread_index);
 							alpha = rgba[3];
 						} else {
 							alpha = 1.0f;

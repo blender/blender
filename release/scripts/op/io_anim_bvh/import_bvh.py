@@ -177,7 +177,7 @@ def read_bvh(context, file_path, ROT_MODE='XYZ', GLOBAL_SCALE=1.0):
 
 
             # Apply the parents offset accumletivly
-            if my_parent == None:
+            if my_parent is None:
                 rest_head_world = Vector(rest_head_local)
             else:
                 rest_head_world = my_parent.rest_head_world + rest_head_local
@@ -360,11 +360,9 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
 
     arm_ob.select = True
     scn.objects.active = arm_ob
-    print(scn.objects.active)
 
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-
 
     # Get the average bone length for zero length bones, we may not use this.
     average_bone_length = 0.0
@@ -382,22 +380,14 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
         # Normal operation
         average_bone_length = average_bone_length / nonzero_count
 
-
-#XXX - sloppy operator code
-
-    bpy.ops.armature.delete()
-    bpy.ops.armature.select_all()
-    bpy.ops.armature.delete()
+    # XXX, annoying, remove bone.
+    while arm_data.edit_bones:
+        arm_ob.edit_bones.remove(arm_data.edit_bones[-1])
 
     ZERO_AREA_BONES = []
     for name, bvh_node in bvh_nodes.items():
         # New editbone
-        bpy.ops.armature.bone_primitive_add(name="Bone")
-
-        bone = bvh_node.temp = arm_data.edit_bones[-1]
-
-        bone.name = name
-#		arm_data.bones[name]= bone
+        bone = bvh_node.temp = arm_data.edit_bones.new(name)
 
         bone.head = bvh_node.rest_head_world
         bone.tail = bvh_node.rest_tail_world

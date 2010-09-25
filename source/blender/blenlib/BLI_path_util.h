@@ -100,6 +100,7 @@ int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char
 void BLI_getlastdir(const char* dir, char *last, int maxlen);
 int BLI_testextensie(const char *str, const char *ext);
 int BLI_testextensie_array(const char *str, const char **ext_array);
+int BLI_testextensie_glob(const char *str, const char *ext_fnmatch);
 int BLI_replace_extension(char *path, int maxlen, const char *ext);
 void BLI_uniquename(struct ListBase *list, void *vlink, const char defname[], char delim, short name_offs, short len);
 void BLI_newname(char * name, int add);

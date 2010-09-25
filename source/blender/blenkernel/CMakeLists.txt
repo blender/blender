@@ -31,7 +31,6 @@ SET(INC
 	../avi
 	../blenlib
 	../blenloader
-	../editors/include
 	../freestyle
 	../gpu
 	../ikplugin
@@ -40,6 +39,7 @@ SET(INC
 	../makesrna
 	../modifiers
 	../nodes
+	../editors/include
 	../render/extern/include
 	../../../extern/glew/include
 	../../../intern/audaspace/intern

@@ -2067,6 +2067,8 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 	vgroup_remap_update_users(ob, sort_map_update);
 
 	ob->actdef= sort_map_update[ob->actdef];
+	
+	MEM_freeN(sort_map_update);
 
 	return OPERATOR_FINISHED;
 }

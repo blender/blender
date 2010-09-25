@@ -1135,6 +1135,7 @@ int file_filenum_exec(bContext *C, wmOperator *op)
 	if(sfile->params && (inc != 0)) {
 		BLI_newname(sfile->params->file, inc);
 		ED_area_tag_redraw(sa);
+		file_draw_check_cb(C, NULL, NULL);
 		// WM_event_add_notifier(C, NC_WINDOW, NULL);
 	}
 	
@@ -1168,6 +1169,8 @@ int file_rename_exec(bContext *C, wmOperator *op)
 		if ( (0<=idx) && (idx<numfiles) ) {
 			struct direntry *file= filelist_file(sfile->files, idx);
 			file->flags |= EDITING;
+			BLI_strncpy(sfile->params->renameedit, file->relname, FILE_MAXFILE);
+			sfile->params->renamefile[0]= '\0';
 		}
 		ED_area_tag_redraw(sa);
 	}

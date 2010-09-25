@@ -29,12 +29,12 @@ FILE(GLOB SRC intern/*.c)
 
 SET(INC 
 	.
-	../makesdna
-	../../../intern/guardedalloc
-	../../../intern/memutil
-	../blenlib
 	../avi
+	../blenlib
 	../blenkernel
+	../makesdna
+	../../../intern/memutil
+	../../../intern/guardedalloc
 	${JPEG_INC}
 	${PNG_INC}
 	${ZLIB_INC}

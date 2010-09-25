@@ -49,6 +49,7 @@
 
 
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "node_intern.h"
 
@@ -153,6 +154,18 @@ static void node_menu_add(const bContext *C, Menu *menu)
 {
 	uiLayout *layout= menu->layout;
 	SpaceNode *snode= CTX_wm_space_node(C);
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar;
+
+	/* get location to add node at mouse */
+	for(ar=sa->regionbase.first; ar; ar=ar->next) {
+		if(ar->regiontype == RGN_TYPE_WINDOW) {
+			wmWindow *win= CTX_wm_window(C);
+			UI_view2d_region_to_view(&ar->v2d,
+				win->eventstate->x - ar->winrct.xmin, win->eventstate->y - ar->winrct.ymin, 
+				&snode->mx, &snode->my);
+		}
+	}
 
 	if(!snode->nodetree)
 		uiLayoutSetActive(layout, 0);

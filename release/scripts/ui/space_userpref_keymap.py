@@ -119,7 +119,7 @@ def _merge_keymaps(kc1, kc2):
     """
     merged_keymaps = [(km, kc1) for km in kc1.keymaps]
     if kc1 != kc2:
-        merged_keymaps.extend([(km, kc2) for km in kc2.keymaps if not _km_exists_in(km, merged_keymaps)])
+        merged_keymaps.extend((km, kc2) for km in kc2.keymaps if not _km_exists_in(km, merged_keymaps))
 
     return merged_keymaps
 

@@ -192,7 +192,7 @@ def prefixPath(prefix_directory, file_path, prefix_path, force = False):
 def getFileInfo(filepath, infos):
     process = subprocess.Popen([sys.argv[0], "-b", "-noaudio", filepath, "-P", __file__, "--"] + infos, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout = bytes()
-    while process.poll() == None:
+    while process.poll() is None:
         stdout += process.stdout.read(1024)
 
     # read leftovers if needed

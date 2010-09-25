@@ -22,16 +22,16 @@
 FILE(GLOB SRC *.c)
 
 SET(INC
+	../include
 	../../blenkernel
 	../../imbuf
 	../../gpu
 	../../blenlib
-	../include
-	../../../../intern/guardedalloc
 	../../makesdna
 	../../makesrna
 	../../windowmanager
 	../../render/extern/include
+	../../../../intern/guardedalloc
 )
 
 IF(WIN32)

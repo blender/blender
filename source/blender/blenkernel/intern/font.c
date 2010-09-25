@@ -1146,7 +1146,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 		return NULL;
 	}
 
-	if(mode==0) {
+	if(mode == FO_EDIT) {
 		/* make nurbdata */
 		unsigned long cha;
 		

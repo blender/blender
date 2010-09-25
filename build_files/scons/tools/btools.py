@@ -15,7 +15,15 @@ import sys
 Variables = SCons.Variables
 BoolVariable = SCons.Variables.BoolVariable
 
-VERSION = '2.54' # This is used in creating the local config directories
+def get_version():
+    fname = os.path.join(os.path.dirname(__file__), "..", "..", "..", "source", "blender", "blenkernel", "BKE_blender.h")
+    for l in open(fname, "r"):
+        if "BLENDER_VERSION" in l:
+            ver = int(l.split()[-1])
+            return "%d.%d" % (ver / 100, ver % 100)
+    raise Exception("%s: missing version string" % fname)
+
+VERSION = get_version() # This is used in creating the local config directories
 
 def print_arguments(args, bc):
     if len(args):
@@ -44,8 +52,8 @@ def validate_arguments(args, bc):
             'WITH_BF_OPENJPEG', 'BF_OPENJPEG', 'BF_OPENJPEG_INC', 'BF_OPENJPEG_LIB', 'BF_OPENJPEG_LIBPATH',
             'WITH_BF_REDCODE', 'BF_REDCODE', 'BF_REDCODE_INC', 'BF_REDCODE_LIB', 'BF_REDCODE_LIBPATH',
             'WITH_BF_PNG', 'BF_PNG', 'BF_PNG_INC', 'BF_PNG_LIB', 'BF_PNG_LIBPATH',
-            'WITH_BF_TIFF', 'BF_TIFF', 'BF_TIFF_INC', 'BF_TIFF_LIB', 'BF_TIFF_LIBPATH',
-            'WITH_BF_ZLIB', 'BF_ZLIB', 'BF_ZLIB_INC', 'BF_ZLIB_LIB', 'BF_ZLIB_LIBPATH',
+            'WITH_BF_TIFF', 'BF_TIFF', 'BF_TIFF_INC', 'BF_TIFF_LIB', 'BF_TIFF_LIBPATH', 'WITH_BF_STATICTIFF', 'BF_TIFF_LIB_STATIC',
+            'WITH_BF_ZLIB', 'BF_ZLIB', 'BF_ZLIB_INC', 'BF_ZLIB_LIB', 'BF_ZLIB_LIBPATH', 'WITH_BF_STATICZLIB', 'BF_ZLIB_LIB_STATIC',
             'WITH_BF_INTERNATIONAL',
             'BF_GETTEXT', 'BF_GETTEXT_INC', 'BF_GETTEXT_LIB', 'WITH_BF_GETTEXT_STATIC', 'BF_GETTEXT_LIB_STATIC', 'BF_GETTEXT_LIBPATH',
             'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
@@ -270,10 +278,12 @@ def read_opts(env, cfg, args):
         ('BF_PNG_LIBPATH', 'PNG library path', ''),
 
         (BoolVariable('WITH_BF_TIFF', 'Use TIFF if true', True)),
+        (BoolVariable('WITH_BF_STATICTIFF', 'Staticly link to TIFF', False)),
         ('BF_TIFF', 'TIFF base path', ''),
         ('BF_TIFF_INC', 'TIFF include path', ''),
         ('BF_TIFF_LIB', 'TIFF library', ''),
         ('BF_TIFF_LIBPATH', 'TIFF library path', ''),
+        ('BF_TIFF_LIB_STATIC', 'TIFF static library', ''),
 
         (BoolVariable('WITH_BF_LCMS', 'Enable color correction with lcms', False)),
         ('BF_LCMS', 'LCMS base path', ''),
@@ -282,10 +292,12 @@ def read_opts(env, cfg, args):
         ('BF_LCMS_LIBPATH', 'LCMS library path', ''),
 
         (BoolVariable('WITH_BF_ZLIB', 'Use ZLib if true', True)),
+        (BoolVariable('WITH_BF_STATICZLIB', 'Staticly link to ZLib', False)),
         ('BF_ZLIB', 'ZLib base path', ''),
         ('BF_ZLIB_INC', 'ZLib include path', ''),
         ('BF_ZLIB_LIB', 'ZLib library', ''),
         ('BF_ZLIB_LIBPATH', 'ZLib library path', ''),
+        ('BF_ZLIB_LIB_STATIC', 'ZLib static library', ''),
 
         (BoolVariable('WITH_BF_INTERNATIONAL', 'Use Gettext if true', True)),
 

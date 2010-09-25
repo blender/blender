@@ -298,7 +298,10 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D)
 	{
 		/* Do we need more refined tags? */
-		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+		if(t->flag & T_POSE)
+			WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+		else
+			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 		
 		/* for realtime animation record - send notifiers recognised by animation editors */
 		// XXX: is this notifier a lame duck?
@@ -4658,7 +4661,22 @@ void freeSlideVerts(TransInfo *t)
 {
 	TransDataSlideUv *suv;
 	SlideData *sld = t->customData;
+	Mesh *me = t->obedit->data;
 	int uvlay_idx;
+
+	if(me->drawflag & ME_DRAW_EDGELEN) {
+		TransDataSlideVert *tempsv;
+		LinkNode *look = sld->vertlist;
+		GHash *vertgh = sld->vhash;
+		while(look) {
+			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+			if(tempsv != NULL) {
+				tempsv->up->f &= !SELECT;
+				tempsv->down->f &= !SELECT;
+			}
+			look = look->next;
+		}
+	}
 
 	//BLI_ghash_free(edgesgh, freeGHash, NULL);
 	BLI_ghash_free(sld->vhash, NULL, (GHashValFreeFP)MEM_freeN);

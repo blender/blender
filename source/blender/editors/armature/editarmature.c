@@ -88,10 +88,6 @@
 #include "reeb.h"
 #endif
 
-/* ************* XXX *************** */
-static void BIF_undo_push(const char *msg) {}
-/* ************* XXX *************** */
-
 /* **************** tools on Editmode Armature **************** */
 
 /* Sync selection to parent for connected children */
@@ -1896,7 +1892,7 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
  * toggle==2: only active tag
  * toggle==3: swap (no test)
  */
-void ED_armature_deselectall(Object *obedit, int toggle, int doundo)
+void ED_armature_deselectall(Object *obedit, int toggle)
 {
 	bArmature *arm= obedit->data;
 	EditBone	*eBone;
@@ -1967,7 +1963,7 @@ int mouse_armature(bContext *C, short mval[2], int extend)
 	if (nearBone) {
 
 		if (!extend)
-			ED_armature_deselectall(obedit, 0, 0);
+			ED_armature_deselectall(obedit, 0);
 		
 		/* by definition the non-root connected bones have no root point drawn,
 		   so a root selection needs to be delivered to the parent tip */
@@ -2249,6 +2245,8 @@ static void undoBones_to_editBones(void *uarmv, void *armv)
 		ebo= uarm->act_edbone;
 		arm->act_edbone= ebo->temp;
 	}
+	else
+		arm->act_edbone= NULL;
 
 	/* set pointers */
 	for(newebo= arm->edbo->first; newebo; newebo= newebo->next) {
@@ -2362,7 +2360,7 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 	mul_m3_m3m3(totmat, obmat, viewmat);
 	invert_m3_m3(imat, totmat);
 	
-	ED_armature_deselectall(obedit, 0, 0);
+	ED_armature_deselectall(obedit, 0);
 	
 	/*	Create a bone	*/
 	bone= ED_armature_edit_bone_add(obedit->data, "Bone");
@@ -2415,7 +2413,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *op)
 		to_root= 1;
 	}
 	
-	ED_armature_deselectall(obedit, 0, 0);
+	ED_armature_deselectall(obedit, 0);
 	
 	/* we re-use code for mirror editing... */
 	flipbone= NULL;
@@ -3264,6 +3262,81 @@ void ARMATURE_OT_merge (wmOperatorType *ot)
 /* ************** END Add/Remove stuff in editmode ************ */
 /* *************** Tools in editmode *********** */
 
+static int armature_hide_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	bArmature *arm= obedit->data;
+	EditBone *ebone;
+
+	/* cancel if nothing selected */
+	if (CTX_DATA_COUNT(C, selected_bones) == 0)
+		return OPERATOR_CANCELLED;
+
+	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
+		if (EBONE_VISIBLE(arm, ebone)) {
+			if (ebone->flag & BONE_SELECTED) {
+				ebone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL);
+				ebone->flag |= BONE_HIDDEN_A;
+			}
+		}
+	}
+	ED_armature_validate_active(arm);
+	ED_armature_sync_selection(arm->edbo);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_hide(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Hide Selected Bones";
+	ot->idname= "ARMATURE_OT_hide";
+	
+	/* api callbacks */
+	ot->exec= armature_hide_exec;
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int armature_reveal_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	bArmature *arm= obedit->data;
+	EditBone *ebone;
+	
+	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
+		if(arm->layer & ebone->layer) {
+			if (ebone->flag & BONE_HIDDEN_A) {
+				ebone->flag |= (BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL);
+				ebone->flag &= ~BONE_HIDDEN_A;
+			}
+		}
+	}
+	ED_armature_validate_active(arm);
+	ED_armature_sync_selection(arm->edbo);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_reveal(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reveal Bones";
+	ot->idname= "ARMATURE_OT_reveal";
+	
+	/* api callbacks */
+	ot->exec= armature_reveal_exec;
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 void hide_selected_armature_bones(Scene *scene)
 {
@@ -3281,7 +3354,6 @@ void hide_selected_armature_bones(Scene *scene)
 	}
 	ED_armature_validate_active(arm);
 	ED_armature_sync_selection(arm->edbo);
-	BIF_undo_push("Hide Bones");
 }
 
 
@@ -3304,7 +3376,6 @@ static void hide_unselected_armature_bones(Scene *scene)
 
 	ED_armature_validate_active(arm);
 	ED_armature_sync_selection(arm->edbo);
-	BIF_undo_push("Hide Unselected Bones");
 }
 #endif
 
@@ -3325,7 +3396,6 @@ void show_all_armature_bones(Scene *scene)
 	}
 	ED_armature_validate_active(arm);
 	ED_armature_sync_selection(arm->edbo);
-	BIF_undo_push("Reveal Bones");
 }
 #endif
 
@@ -3510,7 +3580,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	mul_m3_m3m3(totmat, obmat, viewmat);
 	invert_m3_m3(imat, totmat);
 	
-	ED_armature_deselectall(obedit, 0, 0);
+	ED_armature_deselectall(obedit, 0);
 	
 	/*	Create a bone	*/
 	bone= ED_armature_edit_bone_add(obedit->data, name);
@@ -4393,7 +4463,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		
 		/* since we do unified select, we don't shift+select a bone if the armature object was not active yet */
 		if (!(extend) || (base != scene->basact)) {
-			ED_pose_deselectall(ob, 0, 0);
+			ED_pose_deselectall(ob, 0);
 			nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 			arm->act_bone= nearBone;
 			
@@ -4440,7 +4510,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
    test==2: only clear active tag
    test==3: swap select (no test / inverse selection status of all independently)
 */
-void ED_pose_deselectall (Object *ob, int test, int doundo)
+void ED_pose_deselectall (Object *ob, int test)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
@@ -4480,13 +4550,6 @@ void ED_pose_deselectall (Object *ob, int test, int doundo)
 	
 	if(arm->act_bone && (arm->act_bone->flag & BONE_SELECTED)==0)
 		arm->act_bone= NULL;
-
-	//countall(); // XXX need an equivalent to this...
-	
-	if (doundo) {
-		if (selectmode==1) BIF_undo_push("Select All");
-		else BIF_undo_push("Deselect All");
-	}
 }
 
 static int bone_skinnable(Object *ob, Bone *bone, void *datap)
@@ -5709,6 +5772,7 @@ void transform_armature_mirror_update(Object *obedit)
 					eboflip->tail[1]= ebo->tail[1];
 					eboflip->tail[2]= ebo->tail[2];
 					eboflip->rad_tail= ebo->rad_tail;
+					eboflip->roll= -ebo->roll;
 
 					/* Also move connected children, in case children's name aren't mirrored properly */
 					for (children=arm->edbo->first; children; children=children->next) {
@@ -5723,6 +5787,7 @@ void transform_armature_mirror_update(Object *obedit)
 					eboflip->head[1]= ebo->head[1];
 					eboflip->head[2]= ebo->head[2];
 					eboflip->rad_head= ebo->rad_head;
+					eboflip->roll= -ebo->roll;
 					
 					/* Also move connected parent, in case parent's name isn't mirrored properly */
 					if (eboflip->parent && eboflip->flag & BONE_CONNECTED)
@@ -6070,8 +6135,6 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	}
 	
 	BLI_ghash_free(arcBoneMap, NULL, NULL);
-	
-	BIF_undo_push("Generate Skeleton");
 }
 
 void generateSkeleton(Scene *scene)

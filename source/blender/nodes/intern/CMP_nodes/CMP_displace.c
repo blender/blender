@@ -83,7 +83,7 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 			p_dy = vec[1] * ys;
 			
 			/* if no displacement, then just copy this pixel */
-			if (p_dx < DISPLACE_EPSILON && p_dy < DISPLACE_EPSILON) {
+			if (fabsf(p_dx) < DISPLACE_EPSILON && fabsf(p_dy) < DISPLACE_EPSILON) {
 				qd_getPixel(cbuf, x-cbuf->xof, y-cbuf->yof, col);
 				qd_setPixel(stackbuf, x, y, col);
 				continue;
@@ -99,10 +99,13 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 			qd_getPixel(vecbuf, x-vecbuf->xof, y-vecbuf->yof+1, vecdy);
 			d_dx = vecdx[0] * xs;
 			d_dy = vecdy[0] * ys;
-			
+
 			/* clamp derivatives to minimum displacement distance in UV space */
-			dxt = MAX2(p_dx - d_dx, DISPLACE_EPSILON)/(float)stackbuf->x;
-			dyt = MAX2(p_dy - d_dy, DISPLACE_EPSILON)/(float)stackbuf->y;
+			dxt = p_dx - d_dx;
+			dyt = p_dy - d_dy;
+
+			dxt = signf(dxt)*maxf(fabsf(dxt), DISPLACE_EPSILON)/(float)stackbuf->x;
+			dyt = signf(dyt)*maxf(fabsf(dyt), DISPLACE_EPSILON)/(float)stackbuf->y;
 			
 			ibuf_sample(ibuf, u, v, dxt, dyt, col);
 			qd_setPixel(stackbuf, x, y, col);

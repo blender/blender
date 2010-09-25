@@ -86,7 +86,25 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
 
         import io_scene_fbx.export_fbx
-        return io_scene_fbx.export_fbx.save(self, context, GLOBAL_MATRIX=GLOBAL_MATRIX, **self.properties)
+        return io_scene_fbx.export_fbx.save(self, context, self.filepath,
+            GLOBAL_MATRIX=GLOBAL_MATRIX,
+            EXP_OBS_SELECTED=self.EXP_OBS_SELECTED,
+            EXP_MESH=self.EXP_MESH,
+            EXP_MESH_APPLY_MOD=self.EXP_MESH_APPLY_MOD,
+            EXP_ARMATURE=self.EXP_ARMATURE,
+            EXP_LAMP=self.EXP_LAMP,
+            EXP_CAMERA=self.EXP_CAMERA,
+            EXP_EMPTY=self.EXP_EMPTY,
+            EXP_IMAGE_COPY=self.EXP_IMAGE_COPY,
+            ANIM_ENABLE=self.ANIM_ENABLE,
+            ANIM_OPTIMIZE=self.ANIM_OPTIMIZE,
+            ANIM_OPTIMIZE_PRECISSION=self.ANIM_OPTIMIZE_PRECISSION,
+            ANIM_ACTION_ALL=self.ANIM_ACTION_ALL,
+            BATCH_ENABLE=self.BATCH_ENABLE,
+            BATCH_GROUP=self.BATCH_GROUP,
+            BATCH_FILE_PREFIX=self.BATCH_FILE_PREFIX,
+            BATCH_OWN_DIR=self.BATCH_OWN_DIR,
+            )
 
 
 def menu_func(self, context):

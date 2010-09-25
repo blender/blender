@@ -838,8 +838,9 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 	retval= wm_operator_call_internal(C, ot, context, properties, reports);
 	
 	/* keep the reports around if needed later */
-	if (retval & OPERATOR_RUNNING_MODAL || wm_operator_register_check(wm, ot))
-	{
+	if (	(retval & OPERATOR_RUNNING_MODAL) ||
+			((retval & OPERATOR_FINISHED) && wm_operator_register_check(wm, ot))
+	) {
 		reports->flag |= RPT_FREE; /* let blender manage freeing */
 	}
 	
@@ -1232,11 +1233,14 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				/* remlink now, for load file case before removing*/
 				BLI_remlink(handlers, handler);
 				
-				if(event->val!=EVT_FILESELECT_EXTERNAL_CANCEL)
-					if(screen != handler->filescreen)
+				if(event->val!=EVT_FILESELECT_EXTERNAL_CANCEL) {
+					if(screen != handler->filescreen) {
 						ED_screen_full_prevspace(C, CTX_wm_area(C));
-					else
+					}
+					else {
 						ED_area_prevspace(C, CTX_wm_area(C));
+					}
+				}
 				
 				wm_handler_op_context(C, handler);
 

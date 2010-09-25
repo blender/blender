@@ -393,6 +393,7 @@ void srgb_to_linearrgb_rgba_rgba_buf(float *col_to, float *col_from, int tot)
 {
 	while(tot--) {
 		srgb_to_linearrgb_v3_v3(col_to, col_from);
+		col_to[3]= col_from[3];
 		col_to += 4;
 		col_from += 4;
 	}
@@ -402,6 +403,7 @@ void linearrgb_to_srgb_rgba_rgba_buf(float *col_to, float *col_from, int tot)
 {
 	while(tot--) {
 		linearrgb_to_srgb_v3_v3(col_to, col_from);
+		col_to[3]= col_from[3];
 		col_to += 4;
 		col_from += 4;
 	}

@@ -917,8 +917,15 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	if(layout->root->type == UI_LAYOUT_MENU) {
 		if(type == PROP_BOOLEAN)
 			icon= (RNA_property_boolean_get(ptr, prop))? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
-		else if(type == PROP_ENUM && index == RNA_ENUM_VALUE)
-			icon= (RNA_property_enum_get(ptr, prop) == value)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+		else if(type == PROP_ENUM && index == RNA_ENUM_VALUE) {
+			int enum_value= RNA_property_enum_get(ptr, prop);
+			if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
+				icon= (enum_value & value)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+			}
+			else {
+				icon= (enum_value == value)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+			}
+		}
 	}
 
 	slider= (flag & UI_ITEM_R_SLIDER);
@@ -948,7 +955,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			uiDefButR(block, ROW, 0, name, 0, 0, w, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
 	}
 	/* expanded enum */
-	else if(type == PROP_ENUM && expand)
+	else if(type == PROP_ENUM && (expand || RNA_property_flag(prop) & PROP_ENUM_FLAG))
 		ui_item_enum_expand(layout, block, ptr, prop, name, 0, 0, w, h, icon_only);
 	/* property with separate label */
 	else if(type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER) {

@@ -99,7 +99,7 @@ class PlayRenderedAnim(bpy.types.Operator):
                 file_b = rd.frame_path(frame=frame_tmp)
             file_b = rd.frame_path(frame=int(frame_tmp / 10))
 
-            file = ''.join([(c if file_b[i] == c else "#") for i, c in enumerate(file_a)])
+            file = "".join((c if file_b[i] == c else "#") for i, c in enumerate(file_a))
         else:
             # works for movies and images
             file = rd.frame_path(frame=scene.frame_start)

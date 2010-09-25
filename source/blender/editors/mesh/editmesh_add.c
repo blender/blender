@@ -1300,7 +1300,7 @@ static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmod
 	scale= ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 
 	dia *= scale;
-	depth *= scale;
+	depth *= scale * 0.5f;
 
 	make_prim(obedit, type, mat, tot, seg, subdiv, dia, depth, ext, fill);
 
@@ -1359,7 +1359,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 
 	/* sqrt(2.0f) - plane (diameter of 1.41 makes it unit size) */
 	make_prim_ext(C, loc, rot, enter_editmode, layer,
-			PRIM_CUBE, 4, 0, 0, sqrt(2.0f), 1.0f, 1, 1);
+			PRIM_CUBE, 4, 0, 0, sqrt(2.0f), 2.0f, 1, 1);
 	return OPERATOR_FINISHED;
 }
 
@@ -1457,7 +1457,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
 	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_float(ot->srna, "depth", 1.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
 	RNA_def_boolean(ot->srna, "cap_ends", 1, "Cap Ends", "");
 
 	ED_object_add_generic_props(ot, TRUE);
@@ -1498,7 +1498,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	/* props */
 	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, "Vertices", "", 2, 500);
 	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, "Radius", "", 0.001, 100.00);
-	RNA_def_float(ot->srna, "depth", 1.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
+	RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, "Depth", "", 0.001, 100.00);
 	RNA_def_boolean(ot->srna, "cap_end", 0, "Cap End", "");
 
 	ED_object_add_generic_props(ot, TRUE);

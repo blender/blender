@@ -58,7 +58,7 @@ def metarig_definition(obj, orig_bone_name):
     arm = obj.data
     tail_base = arm.bones[orig_bone_name]
 
-    if tail_base.parent == None:
+    if tail_base.parent is None:
         raise RigifyError("'tail_control' rig type on bone '%s' requires a parent." % orig_bone_name)
 
     bone_definitions = [tail_base.name]

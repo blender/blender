@@ -1289,7 +1289,9 @@ void vec_roll_to_mat3(float *vec, float roll, float mat[][3])
 	/*	Find Axis & Amount for bone matrix*/
 	cross_v3_v3v3(axis,target,nor);
 
-	if (dot_v3v3(axis,axis) > 0.0000000000001) {
+	/* was 0.0000000000001, caused bug [#23954], smaller values give unstable
+	 * roll when toggling editmode */
+	if (dot_v3v3(axis,axis) > 0.00001) {
 		/* if nor is *not* a multiple of target ... */
 		normalize_v3(axis);
 		

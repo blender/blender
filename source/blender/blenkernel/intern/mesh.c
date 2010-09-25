@@ -440,7 +440,7 @@ void transform_mesh_orco_verts(Mesh *me, float (*orco)[3], int totvert, int inve
 int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 {
 	/* first test if the face is legal */
-	if(mface->v3 && mface->v3==mface->v4) {
+	if((mface->v3 || nr==4) && mface->v3==mface->v4) {
 		mface->v4= 0;
 		nr--;
 	}
@@ -854,6 +854,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 				mface->v2= startvert+index[2];
 				mface->v3= startvert+index[1];
 				mface->v4= 0;
+				mface->mat_nr= (unsigned char)dl->col;
 				test_index_face(mface, NULL, 0, 3);
 
 				if(smooth) mface->flag |= ME_SMOOTH;

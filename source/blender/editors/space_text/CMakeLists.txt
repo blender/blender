@@ -22,18 +22,18 @@
 FILE(GLOB SRC *.c)
 
 SET(INC
+	../include
 	../../blenfont
 	../../blenkernel
 	../../blenlib
-	../include
-	../../../../intern/guardedalloc
 	../../makesdna
 	../../makesrna
 	../../windowmanager
+	../../../../intern/guardedalloc
 )
 
 IF(WITH_PYTHON)
-	SET(INC ${INC} ${PYTHON_INC} ../../python)
+	LIST(APPEND INC ${PYTHON_INC} ../../python)
 ELSE(WITH_PYTHON)
 	ADD_DEFINITIONS(-DDISABLE_PYTHON)
 ENDIF(WITH_PYTHON)

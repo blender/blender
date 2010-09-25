@@ -155,6 +155,8 @@ MINLINE float interpf(float a, float b, float t);
 MINLINE float minf(float a, float b);
 MINLINE float maxf(float a, float b);
 
+MINLINE float signf(float f);
+
 MINLINE float power_of_2(float f);
 
 MINLINE float shell_angle_to_dist(float angle);

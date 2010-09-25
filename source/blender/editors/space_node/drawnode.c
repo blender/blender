@@ -74,7 +74,7 @@
 
 void node_buts_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiTemplateIDBrowse(layout, C, ptr, "nodetree", NULL, NULL, "");
+	uiTemplateIDBrowse(layout, C, ptr, "node_tree", NULL, NULL, "");
 }
 
 static void node_buts_value(uiLayout *layout, bContext *C, PointerRNA *ptr)

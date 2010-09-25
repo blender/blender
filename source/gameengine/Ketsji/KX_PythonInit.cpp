@@ -38,6 +38,7 @@
 
 extern "C" {
 	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
+	#include "py_capi_utils.h"
 	#include "mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
 	#include "geometry.h" // Blender.Geometry module copied here so the blenderlayer can use.
 	#include "bgl.h"
@@ -1920,7 +1921,7 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	
 	PyObjectPlus::ClearDeprecationWarning();
 
-	return bpy_namespace_dict_new(NULL);
+	return PyC_DefaultNameSpace(NULL);
 }
 
 void exitGamePlayerPythonScripting()
@@ -1956,7 +1957,7 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 
 	PyObjectPlus::NullDeprecationWarning();
 
-	return bpy_namespace_dict_new(NULL);
+	return PyC_DefaultNameSpace(NULL);
 }
 
 void exitGamePythonScripting()

@@ -2722,3 +2722,7 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 	}
 }
 
+int view3d_is_ortho(View3D *v3d, RegionView3D *rv3d)
+{
+	return (rv3d->persp == RV3D_ORTHO || (v3d->camera && ((Camera *)v3d->camera->data)->type == CAM_ORTHO));
+}

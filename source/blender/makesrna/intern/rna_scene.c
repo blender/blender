@@ -942,22 +942,12 @@ static void rna_TimeLine_remove(Scene *scene, ReportList *reports, TimeMarker *m
 	MEM_freeN(marker);
 }
 
-static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, 
-		char name[], int absolute, int insertkey_needed, int insertkey_visual)
+static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, char name[])
 {
 	KeyingSet *ks= NULL;
-	short flag=0, keyingflag=0;
-	
-	/* validate flags */
-	if (absolute)
-		flag |= KEYINGSET_ABSOLUTE;
-	if (insertkey_needed)
-		keyingflag |= INSERTKEY_NEEDED;
-	if (insertkey_visual)
-		keyingflag |= INSERTKEY_MATRIX;
-		
+
 	/* call the API func, and set the active keyingset index */
-	ks= BKE_keyingset_add(&sce->keyingsets, name, flag, keyingflag);
+	ks= BKE_keyingset_add(&sce->keyingsets, name, KEYINGSET_ABSOLUTE, 0);
 	
 	if (ks) {
 		sce->active_keyingset= BLI_countlist(&sce->keyingsets);
@@ -2689,6 +2679,22 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "FPS Base", "Framerate base");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
+	/* frame mapping */
+	prop= RNA_def_property(srna, "frame_map_old", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "framapto");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_range(prop, 1, 900);
+	RNA_def_property_ui_text(prop, "Frame Map Old", "Specify old mapping value in frames");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "frame_map_new", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "images");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_range(prop, 1, 900);
+	RNA_def_property_ui_text(prop, "Frame Map New", "Specify how many frames the Map Old will last");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	
 	prop= RNA_def_property(srna, "dither_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dither_intensity");
 	RNA_def_property_range(prop, 0.0f, 2.0f);
@@ -3299,17 +3305,13 @@ static void rna_def_scene_keying_sets(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "new", "rna_Scene_keying_set_new");
 	RNA_def_function_ui_description(func, "Add a new Keying Set to Scene.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	/* name */
+	RNA_def_string(func, "name", "KeyingSet", 64, "Name", "Name of Keying Set");
+
 	/* returns the new KeyingSet */
 	parm= RNA_def_pointer(func, "keyingset", "KeyingSet", "", "Newly created Keying Set.");
 	RNA_def_function_return(func, parm);
-	/* name */
-	RNA_def_string(func, "name", "KeyingSet", 64, "Name", "Name of Keying Set");
-	/* flags */
-	RNA_def_boolean(func, "absolute", 1, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");
-	/* keying flags */
-	RNA_def_boolean(func, "insertkey_needed", 0, "Insert Keyframes - Only Needed", "Only insert keyframes where they're needed in the relevant F-Curves.");
-	RNA_def_boolean(func, "insertkey_visual", 0, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'.");
-	
+
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyingSet");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -3513,7 +3515,8 @@ void RNA_def_scene(BlenderRNA *brna)
 
 
 	/* Nodes (Compositing) */
-	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
 	RNA_def_property_ui_text(prop, "Node Tree", "Compositing node tree");
 
 	prop= RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);

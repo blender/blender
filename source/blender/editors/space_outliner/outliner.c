@@ -1571,6 +1571,7 @@ static int outliner_toggle_visibility_exec(bContext *C, wmOperator *op)
 	
 	outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_visibility_cb);
 	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_VISIBLE, scene);
 	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
@@ -1579,7 +1580,7 @@ static int outliner_toggle_visibility_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_visibility_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Visability";
+	ot->name= "Toggle Visibility";
 	ot->idname= "OUTLINER_OT_visibility_toggle";
 	ot->description= "Toggle the visibility of selected items";
 	
@@ -1610,6 +1611,7 @@ static int outliner_toggle_selectability_exec(bContext *C, wmOperator *op)
 	
 	outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_selectability_cb);
 	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
@@ -1703,6 +1705,7 @@ static int outliner_toggle_selected_exec(bContext *C, wmOperator *op)
 {
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	ARegion *ar= CTX_wm_region(C);
+	Scene *scene= CTX_data_scene(C);
 	
 	if (outliner_has_one_flag(soops, &soops->tree, TSE_SELECTED, 1))
 		outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 0);
@@ -1711,6 +1714,7 @@ static int outliner_toggle_selected_exec(bContext *C, wmOperator *op)
 	
 	soops->storeflag |= SO_TREESTORE_REDRAW;
 	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
@@ -2114,8 +2118,8 @@ static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElemen
 	if(set) {
 		if(!(pchan->bone->flag & BONE_HIDDEN_P)) {
 			
-			if(set==2) ED_pose_deselectall(ob, 2, 0);	// 2 = clear active tag
-			else ED_pose_deselectall(ob, 0, 0);	// 0 = deselect 
+			if(set==2) ED_pose_deselectall(ob, 2);	// 2 = clear active tag
+			else ED_pose_deselectall(ob, 0);	// 0 = deselect 
 			
 			if(set==2 && (pchan->bone->flag & BONE_SELECTED)) {
 				pchan->bone->flag &= ~BONE_SELECTED;
@@ -2145,8 +2149,8 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 	
 	if(set) {
 		if(!(bone->flag & BONE_HIDDEN_P)) {
-			if(set==2) ED_pose_deselectall(OBACT, 2, 0);	// 2 is clear active tag
-			else ED_pose_deselectall(OBACT, 0, 0);
+			if(set==2) ED_pose_deselectall(OBACT, 2);	// 2 is clear active tag
+			else ED_pose_deselectall(OBACT, 0);
 			
 			if(set==2 && (bone->flag & BONE_SELECTED)) {
 				bone->flag &= ~BONE_SELECTED;
@@ -2179,8 +2183,8 @@ static int tree_element_active_ebone(bContext *C, Scene *scene, TreeElement *te,
 	if(set) {
 		if(!(ebone->flag & BONE_HIDDEN_A)) {
 			bArmature *arm= scene->obedit->data;
-			if(set==2) ED_armature_deselectall(scene->obedit, 2, 0);	// only clear active tag
-			else ED_armature_deselectall(scene->obedit, 0, 0);	// deselect
+			if(set==2) ED_armature_deselectall(scene->obedit, 2);	// only clear active tag
+			else ED_armature_deselectall(scene->obedit, 0);	// deselect
 
 			ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL;
 			arm->act_edbone= ebone;
@@ -3182,8 +3186,6 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 		te->directdata= NULL;
 		tselem->id= NULL;
 	}
-	
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 
 }
 
@@ -3333,6 +3335,7 @@ void outliner_del(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops)
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_delete_cb);
 		DAG_scene_sort(CTX_data_main(C), scene);
 		ED_undo_push(C, "Delete Objects");
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 	}
 }
 
@@ -3370,34 +3373,37 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		}
 		
 		str= "Select Objects";
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
 	else if(event==2) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_deselect_cb);
 		str= "Deselect Objects";
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
 	else if(event==4) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_delete_cb);
 		DAG_scene_sort(bmain, scene);
 		str= "Delete Objects";
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 	}
-	else if(event==5) {	/* disabled, see above (ton) */
+	else if(event==5) {	/* disabled, see above enum (ton) */
 		outliner_do_object_operation(C, scene, soops, &soops->tree, id_local_cb);
 		str= "Localized Objects";
 	}
 	else if(event==6) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_visibility_cb);
 		str= "Toggle Visibility";
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_VISIBLE, scene);
 	}
 	else if(event==7) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_selectability_cb);
 		str= "Toggle Selectability";
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
 	else if(event==8) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_renderability_cb);
 		str= "Toggle Renderability";
 	}
-	
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 
 	ED_undo_push(C, str);
 	

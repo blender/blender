@@ -1338,6 +1338,8 @@ Object *copy_object(Object *ob)
 
 	obn->gpulamp.first = obn->gpulamp.last = NULL;
 	obn->pc_ids.first = obn->pc_ids.last = NULL;
+
+	obn->mpath= NULL;
 	
 	return obn;
 }
@@ -1688,11 +1690,29 @@ void object_mat3_to_rot(Object *ob, float mat[][3], int use_compat)
 /* see pchan_apply_mat4() for the equivalent 'pchan' function */
 void object_apply_mat4(Object *ob, float mat[][4])
 {
-	float mat3[3][3];
+	float mat3[3][3], tmat[3][3], imat[3][3];
+
+	/* location */
 	copy_v3_v3(ob->loc, mat[3]);
-	mat4_to_size(ob->size, mat);
+	
+	/* rotation */
 	copy_m3_m4(mat3, mat);
 	object_mat3_to_rot(ob, mat3, 0);
+	
+	/* scale */
+#if 0
+	/* works fine except for neg scales */
+	mat4_to_size(ob->size, mat);
+#else
+	/* this is more complicated but works for negative scales */
+	object_rot_to_mat3(ob, tmat);
+	invert_m3_m3(imat, tmat);
+	mul_m3_m3m3(tmat, imat, mat3);
+
+	ob->size[0]= tmat[0][0];
+	ob->size[1]= tmat[1][1];
+	ob->size[2]= tmat[2][2];
+#endif
 }
 
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */

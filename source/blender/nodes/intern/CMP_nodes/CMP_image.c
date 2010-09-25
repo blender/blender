@@ -62,38 +62,56 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 	ImBuf *ibuf;
 	CompBuf *stackbuf;
 	int type;
-	
-	ibuf= BKE_image_get_ibuf(ima, iuser);
-	if(ibuf==NULL)
-		return NULL;
 
-	if (!(rd->color_mgt_flag & R_COLOR_MANAGEMENT)) {
-		int profile = IB_PROFILE_NONE;
-		
-		/* temporarily set profile to none to not disturb actual */
-		SWAP(int, ibuf->profile, profile);
-		
-		if (ibuf->rect_float != NULL) {
-			imb_freerectfloatImBuf(ibuf);
-		}
-		IMB_float_from_rect(ibuf);
-		
-		SWAP(int, ibuf->profile, profile);
+	float *rect;
+	int alloc= FALSE;
+
+	ibuf= BKE_image_get_ibuf(ima, iuser);
+	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
+		return NULL;
 	}
-	
+
 	if (ibuf->rect_float == NULL) {
 		IMB_float_from_rect(ibuf);
 	}
 
+	/* now we need a float buffer from the image
+	 * with matching color management */
+	if(rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
+		if(ibuf->profile != IB_PROFILE_NONE) {
+			rect= ibuf->rect_float;
+		}
+		else {
+			rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
+			srgb_to_linearrgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
+			alloc= TRUE;
+		}
+	}
+	else {
+		if(ibuf->profile == IB_PROFILE_NONE) {
+			rect= ibuf->rect_float;
+		}
+		else {
+			rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
+			linearrgb_to_srgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
+			alloc= TRUE;
+		}
+	}
+	/* done coercing into the correct color management */
+
+
 	type= ibuf->channels;
 	
 	if(rd->scemode & R_COMP_CROP) {
-		stackbuf= get_cropped_compbuf(&rd->disprect, ibuf->rect_float, ibuf->x, ibuf->y, type);
+		stackbuf= get_cropped_compbuf(&rd->disprect, rect, ibuf->x, ibuf->y, type);
+		if(alloc)
+			MEM_freeN(rect);
 	}
 	else {
 		/* we put imbuf copy on stack, cbuf knows rect is from other ibuf when freed! */
-		stackbuf= alloc_compbuf(ibuf->x, ibuf->y, type, 0);
-		stackbuf->rect= ibuf->rect_float;
+		stackbuf= alloc_compbuf(ibuf->x, ibuf->y, type, FALSE);
+		stackbuf->rect= rect;
+		stackbuf->malloc= alloc;
 	}
 	
 	/*code to respect the premul flag of images; I'm

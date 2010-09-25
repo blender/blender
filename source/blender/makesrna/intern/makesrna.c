@@ -395,7 +395,7 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 {
 	char *func;
 
-	if(prop->flag & PROP_IDPROPERTY)
+	if(prop->flag & PROP_IDPROPERTY && manualfunc==NULL)
 		return NULL;
 
 	if(!manualfunc) {
@@ -576,7 +576,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 
 	if(!(prop->flag & PROP_EDITABLE))
 		return NULL;
-	if(prop->flag & PROP_IDPROPERTY)
+	if(prop->flag & PROP_IDPROPERTY && manualfunc==NULL)
 		return NULL;
 
 	if(!manualfunc) {
@@ -744,7 +744,7 @@ static char *rna_def_property_length_func(FILE *f, StructRNA *srna, PropertyRNA 
 {
 	char *func= NULL;
 
-	if(prop->flag & PROP_IDPROPERTY)
+	if(prop->flag & PROP_IDPROPERTY && manualfunc==NULL)
 		return NULL;
 
 	if(prop->type == PROP_STRING) {
@@ -802,7 +802,7 @@ static char *rna_def_property_begin_func(FILE *f, StructRNA *srna, PropertyRNA *
 {
 	char *func, *getfunc;
 
-	if(prop->flag & PROP_IDPROPERTY)
+	if(prop->flag & PROP_IDPROPERTY && manualfunc==NULL)
 		return NULL;
 
 	if(!manualfunc) {
@@ -860,7 +860,7 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 {
 	char *func;
 
-	if(prop->flag & PROP_IDPROPERTY)
+	if(prop->flag & PROP_IDPROPERTY && manualfunc==NULL)
 		return NULL;
 
 	if(!manualfunc) {
@@ -952,7 +952,7 @@ static char *rna_def_property_next_func(FILE *f, StructRNA *srna, PropertyRNA *p
 {
 	char *func, *getfunc;
 
-	if(prop->flag & PROP_IDPROPERTY)
+	if(prop->flag & PROP_IDPROPERTY && manualfunc==NULL)
 		return NULL;
 
 	if(!manualfunc)
@@ -978,7 +978,7 @@ static char *rna_def_property_end_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 {
 	char *func;
 
-	if(prop->flag & PROP_IDPROPERTY)
+	if(prop->flag & PROP_IDPROPERTY && manualfunc==NULL)
 		return NULL;
 
 	func= rna_alloc_function_name(srna->identifier, prop->identifier, "end");

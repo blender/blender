@@ -562,17 +562,12 @@ void test_manipulator_axis(const bContext *C)
 
 static float screen_aligned(RegionView3D *rv3d, float mat[][4])
 {
-	float vec[3], size;
-
-	VECCOPY(vec, mat[0]);
-	size= normalize_v3(vec);
-
 	glTranslatef(mat[3][0], mat[3][1], mat[3][2]);
 
 	/* sets view screen aligned */
 	glRotatef( -360.0f*saacos(rv3d->viewquat[0])/(float)M_PI, rv3d->viewquat[1], rv3d->viewquat[2], rv3d->viewquat[3]);
 
-	return size;
+	return len_v3(mat[0]); /* draw scale */
 }
 
 

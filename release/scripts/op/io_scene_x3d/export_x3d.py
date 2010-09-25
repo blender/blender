@@ -92,7 +92,7 @@ class x3d_class:
                 print("failed to import compression modules, exporting uncompressed")
                 self.filepath = filepath[:-1] # remove trailing z
 
-        if self.file == None:
+        if self.file is None:
             self.file = open(self.filepath, "w")
 
         self.bNav=0
@@ -739,7 +739,7 @@ class x3d_class:
         for i in range(alltexture):
             tex = alltextures[i]
 
-            if tex.type != 'IMAGE' or tex.image == None:
+            if tex.type != 'IMAGE' or tex.image is None:
                 continue
 
             namemat = tex.name
@@ -811,7 +811,7 @@ class x3d_class:
 
             free, derived = create_derived_objects(scene, ob_main)
 
-            if derived == None: continue
+            if derived is None: continue
 
             for ob, ob_mat in derived:
             # for ob, ob_mat in BPyObject.getDerivedObjects(ob_main):

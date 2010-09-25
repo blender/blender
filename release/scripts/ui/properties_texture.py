@@ -94,7 +94,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
         space = context.space_data
         tex = context.texture
         idblock = context_tex_datablock(context)
-        tex_collection = space.pin_id == None and type(idblock) != bpy.types.Brush and not node
+        tex_collection = space.pin_id is None and type(idblock) != bpy.types.Brush and not node
 
         if tex_collection:
             row = layout.row()

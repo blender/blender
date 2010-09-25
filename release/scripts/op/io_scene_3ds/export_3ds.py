@@ -303,17 +303,17 @@ class _3ds_named_variable(object):
         self.value=val
 
     def get_size(self):
-        if (self.value==None):
+        if self.value is None:
             return 0
         else:
             return self.value.get_size()
 
     def write(self, file):
-        if (self.value!=None):
+        if self.value is not None:
             self.value.write(file)
 
     def dump(self,indent):
-        if (self.value!=None):
+        if self.value is not None:
             spaces=""
             for i in range(indent):
                 spaces += "  "
@@ -827,7 +827,7 @@ def make_kf_obj_node(obj, name_to_id):
 
     # Check parent-child relationships:
     parent = obj.parent
-    if (parent == None) or (parent.name not in name_to_id):
+    if (parent is None) or (parent.name not in name_to_id):
         # If no parent, or the parents name is not in the name_to_id dictionary,
         # parent id becomes -1:
         obj_node_header_chunk.add_variable("parent", _3ds_short(-1))
@@ -906,7 +906,8 @@ def save(operator, context, filepath=""):
         # get derived objects
         free, derived = create_derived_objects(scene, ob)
 
-        if derived == None: continue
+        if derived is None:
+            continue
 
         for ob_derived, mat in derived:
 # 		for ob_derived, mat in getDerivedObjects(ob, False):

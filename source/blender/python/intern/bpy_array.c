@@ -400,7 +400,7 @@ int pyrna_py_to_array_index(PointerRNA *ptr, PropertyRNA *prop, int arraydim, in
 	return ret;
 }
 
-static PyObject *pyrna_array_item(PointerRNA *ptr, PropertyRNA *prop, int index)
+PyObject *pyrna_array_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 {
 	PyObject *item;
 
@@ -441,7 +441,7 @@ static PyObject *pyrna_py_from_array_internal(PointerRNA *ptr, PropertyRNA *prop
 		if (dim + 1 < totdim)
 			item= pyrna_py_from_array_internal(ptr, prop, dim + 1, index);
 		else {
-			item= pyrna_array_item(ptr, prop, *index);
+			item= pyrna_array_index(ptr, prop, *index);
 			*index= *index + 1;
 		}
 
@@ -496,7 +496,7 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 	}
 	else {
 		index = arrayoffset + index;
-		ret= (BPy_PropertyArrayRNA *)pyrna_array_item(ptr, prop, index);
+		ret= (BPy_PropertyArrayRNA *)pyrna_array_index(ptr, prop, index);
 	}
 
 	return (PyObject*)ret;

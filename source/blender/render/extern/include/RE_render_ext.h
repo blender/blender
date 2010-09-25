@@ -51,7 +51,7 @@ struct ImBuf;
 //void    RE_zbufferall_radio(struct RadView *vw, struct RNode **rg_elem, int rg_totelem, struct Render *re);
 
 /* particle.c, effect.c, editmesh_modes.c and brush.c, returns 1 if rgb, 0 otherwise */
-int	externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta);
+int	externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta, const int thread);
 
 /* particle.c */
 void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype);

@@ -113,11 +113,21 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
+				case ND_PARENT:
 					ED_region_tag_redraw(ar);
 					break;
+				case ND_CONSTRAINT:
+					switch(wmn->action) {
+						case NA_ADDED:
+						case NA_REMOVED:
+						case NA_RENAME:
+							ED_region_tag_redraw(ar);
+							break;
+					}
+					break;
 				case ND_MODIFIER:
-					if(wmn->action == NA_RENAME)
-						ED_region_tag_redraw(ar);
+					/* all modifier actions now */
+					ED_region_tag_redraw(ar);
 					break;
 			}
 			break;

@@ -1735,7 +1735,7 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 
 	ED_preview_kill_jobs(C);
 
-	snode_autoconnect(snode, 0, replace);
+	snode_autoconnect(snode, 1, replace);
 
 	node_tree_verify_groups(snode->nodetree);
 	snode_notify(C, snode);

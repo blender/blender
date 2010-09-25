@@ -28,16 +28,16 @@ SET(INC
 	../../blenlib
 	../../gpu
 	../../imbuf
-	../../../../intern/guardedalloc
-	../../../../intern/smoke/extern
 	../../makesdna
 	../../makesrna
-	../../render/extern/include
 	../../windowmanager
+	../../render/extern/include
+	../../../../intern/guardedalloc
+	../../../../intern/smoke/extern
 )
 
 IF(WITH_GAMEENGINE)
-	SET(INC ${INC} ../../../kernel/gen_system)
+	LIST(APPEND INC ../../../kernel/gen_system)
 	ADD_DEFINITIONS(-DGAMEBLENDER)
 ENDIF(WITH_GAMEENGINE)
 

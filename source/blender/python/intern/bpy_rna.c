@@ -1065,6 +1065,26 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *p
 			StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
 			int flag = RNA_property_flag(prop);
 
+			/* this is really nasty!, so we can fake the operator having direct properties eg:
+			 * layout.prop(self, "filepath")
+			 * ... which infact should be
+			 * layout.prop(self.properties, "filepath")
+			 * 
+			 * we need to do this trick.
+			 * if the prop is not an operator type and the pyobject is an operator, use its properties in place of its self.
+			 * 
+			 * this is so bad that its almost a good reason to do away with fake 'self.properties -> self' class mixing
+			 * if this causes problems in the future it should be removed.
+			 */
+			if(	(ptype == &RNA_AnyType) &&
+				(BPy_StructRNA_Check(value)) &&
+				(RNA_struct_is_a(((BPy_StructRNA *)value)->ptr.type, &RNA_Operator))
+			) {
+				value= PyObject_GetAttrString(value, "properties");
+				value_new= value;
+			}
+
+
 			/* if property is an OperatorProperties pointer and value is a map, forward back to pyrna_pydict_to_props */
 			if (RNA_struct_is_a(ptype, &RNA_OperatorProperties) && PyDict_Check(value)) {
 				PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
@@ -1140,6 +1160,8 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *p
 					Py_XDECREF(value_new); return -1;
 				}
 			}
+			
+			Py_XDECREF(value_new);
 
 			break;
 		}
@@ -1957,26 +1979,46 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefix, const char *path,
 	char **path_full, int *index)
 {
+	const int is_idbase= RNA_struct_is_ID(ptr->type);
 	PropertyRNA *prop;
+	PointerRNA r_ptr;
 	
 	if (ptr->data==NULL) {
 		PyErr_Format(PyExc_TypeError, "%.200s this struct has no data, can't be animated", error_prefix);
 		return -1;
 	}
 	
-	prop = RNA_struct_find_property(ptr, path);
-	
+	/* full paths can only be given from ID base */
+	if(is_idbase) {
+		int r_index= -1;
+		if(RNA_path_resolve_full(ptr, path, &r_ptr, &prop, &r_index)==0) {
+			prop= NULL;
+		}
+		else if(r_index != -1) {
+			PyErr_Format(PyExc_ValueError, "%.200s path includes index, must be a separate argument", error_prefix, path);
+			return -1;
+		}
+		else if(ptr->id.data != r_ptr.id.data) {
+			PyErr_Format(PyExc_ValueError, "%.200s path spans ID blocks", error_prefix, path);
+			return -1;
+		}
+	}
+    else {
+		prop = RNA_struct_find_property(ptr, path);
+		r_ptr= *ptr;
+    }
+
 	if (prop==NULL) {
 		PyErr_Format( PyExc_TypeError, "%.200s property \"%s\" not found", error_prefix, path);
 		return -1;
 	}
 
-	if (!RNA_property_animateable(ptr, prop)) {
+	if (!RNA_property_animateable(&r_ptr, prop)) {
 		PyErr_Format(PyExc_TypeError, "%.200s property \"%s\" not animatable", error_prefix, path);
 		return -1;
 	}
 
-	if(RNA_property_array_check(ptr, prop) == 0) {
+	if(RNA_property_array_check(&r_ptr, prop) == 0) {
 		if((*index) == -1) {
 			*index= 0;
 		}
@@ -1986,18 +2028,23 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefi
 		}
 	}
 	else {
-		int array_len= RNA_property_array_length(ptr, prop);
+		int array_len= RNA_property_array_length(&r_ptr, prop);
 		if((*index) < -1 || (*index) >= array_len) {
 			PyErr_Format( PyExc_TypeError, "%.200s index out of range \"%s\", given %d, array length is %d", error_prefix, path, *index, array_len);
 			return -1;
 		}
 	}
 	
-	*path_full= RNA_path_from_ID_to_property(ptr, prop);
-
-	if (*path_full==NULL) {
-		PyErr_Format( PyExc_TypeError, "%.200s could not make path to \"%s\"", error_prefix, path);
-		return -1;
+	if(is_idbase) {
+		*path_full= BLI_strdup(path);
+	}
+	else {
+		*path_full= RNA_path_from_ID_to_property(&r_ptr, prop);
+	
+		if (*path_full==NULL) {
+			PyErr_Format( PyExc_TypeError, "%.200s could not make path to \"%s\"", error_prefix, path);
+			return -1;
+		}
 	}
 
 	return 0;
@@ -2262,17 +2309,29 @@ static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
 	PyObject *coerce= Py_True;
 	PointerRNA r_ptr;
 	PropertyRNA *r_prop;
+	int index= -1;
 
 	if (!PyArg_ParseTuple(args, "s|O!:path_resolve", &path, &PyBool_Type, &coerce))
 		return NULL;
 
-	if (RNA_path_resolve(&self->ptr, path, &r_ptr, &r_prop)) {
+	if (RNA_path_resolve_full(&self->ptr, path, &r_ptr, &r_prop, &index)) {
 		if(r_prop) {
-			if(coerce == Py_False) {
-				return pyrna_prop_CreatePyObject(&r_ptr, r_prop);
+			if(index != -1) {
+				if(index >= RNA_property_array_length(&r_ptr, r_prop) || index < 0) {
+					PyErr_Format(PyExc_TypeError, "%.200s.path_resolve(\"%.200s\") index out of range", RNA_struct_identifier(self->ptr.type), path);
+					return NULL;
+				}
+				else {
+					return pyrna_array_index(&r_ptr, r_prop, index);
+				}
 			}
 			else {
-				return pyrna_prop_to_py(&r_ptr, r_prop);
+				if(coerce == Py_False) {
+					return pyrna_prop_CreatePyObject(&r_ptr, r_prop);
+				}
+				else {
+					return pyrna_prop_to_py(&r_ptr, r_prop);
+				}
 			}
 		}
 		else {

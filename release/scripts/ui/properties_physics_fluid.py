@@ -60,6 +60,10 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
 
         if md:
             row = layout.row()
+            if fluid is None:
+                row.label("built without fluids")
+                return
+
             row.prop(fluid, "type")
             if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
                 row.prop(fluid, "use", text="")

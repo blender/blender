@@ -33,7 +33,7 @@ import re
 
 nanblenderhome = os.getenv("NANBLENDERHOME")
 
-if nanblenderhome == None:
+if nanblenderhome is None:
     nanblenderhome = os.path.dirname(os.path.abspath(sys.argv[0])) + "/.."
 
 config = nanblenderhome + "/source/blender/blenkernel/BKE_blender.h"

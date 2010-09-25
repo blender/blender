@@ -1833,61 +1833,61 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 {
 	ToolSettings *ts= vc->scene->toolsettings;
 	int bbsel;
-	Object *ob= vc->obact;
+	struct {ViewContext *vc; short select, mval[2]; float radius; } data;
 	
-	if(vc->obedit==NULL && paint_facesel_test(ob)) {
-		Mesh *me = ob?ob->data:NULL;
+	bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 
-		if (me) {
-			em_vertoffs= me->totface+1;	/* max index array */
+	vc->em= ((Mesh *)vc->obedit->data)->edit_mesh;
 
-			bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
-			EM_backbuf_checkAndSelectTFaces(me, selecting==LEFTMOUSE);
-			EM_free_backbuf();
+	data.vc = vc;
+	data.select = selecting;
+	data.mval[0] = mval[0];
+	data.mval[1] = mval[1];
+	data.radius = rad;
 
-// XXX			object_tface_flags_changed(OBACT, 0);
+	if(ts->selectmode & SCE_SELECT_VERTEX) {
+		if(bbsel) {
+			EM_backbuf_checkAndSelectVerts(vc->em, selecting==LEFTMOUSE);
+		} else {
+			mesh_foreachScreenVert(vc, mesh_circle_doSelectVert, &data, 1);
 		}
 	}
-	else {
-		struct {ViewContext *vc; short select, mval[2]; float radius; } data;
-		
+
+	if(ts->selectmode & SCE_SELECT_EDGE) {
+		if (bbsel) {
+			EM_backbuf_checkAndSelectEdges(vc->em, selecting==LEFTMOUSE);
+		} else {
+			mesh_foreachScreenEdge(vc, mesh_circle_doSelectEdge, &data, 0);
+		}
+	}
+	
+	if(ts->selectmode & SCE_SELECT_FACE) {
+		if(bbsel) {
+			EM_backbuf_checkAndSelectFaces(vc->em, selecting==LEFTMOUSE);
+		} else {
+			mesh_foreachScreenFace(vc, mesh_circle_doSelectFace, &data);
+		}
+	}
+
+	EM_free_backbuf();
+	EM_selectmode_flush(vc->em);
+}
+
+static void paint_facesel_circle_select(ViewContext *vc, int selecting, short *mval, float rad)
+{
+	Object *ob= vc->obact;
+	Mesh *me = ob?ob->data:NULL;
+	int bbsel;
+
+	if (me) {
+		em_vertoffs= me->totface+1;	/* max index array */
+
 		bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
-		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
-
-		vc->em= ((Mesh *)vc->obedit->data)->edit_mesh;
-
-		data.vc = vc;
-		data.select = selecting;
-		data.mval[0] = mval[0];
-		data.mval[1] = mval[1];
-		data.radius = rad;
-
-		if(ts->selectmode & SCE_SELECT_VERTEX) {
-			if(bbsel) {
-				EM_backbuf_checkAndSelectVerts(vc->em, selecting==LEFTMOUSE);
-			} else {
-				mesh_foreachScreenVert(vc, mesh_circle_doSelectVert, &data, 1);
-			}
-		}
-
-		if(ts->selectmode & SCE_SELECT_EDGE) {
-			if (bbsel) {
-				EM_backbuf_checkAndSelectEdges(vc->em, selecting==LEFTMOUSE);
-			} else {
-				mesh_foreachScreenEdge(vc, mesh_circle_doSelectEdge, &data, 0);
-			}
-		}
-		
-		if(ts->selectmode & SCE_SELECT_FACE) {
-			if(bbsel) {
-				EM_backbuf_checkAndSelectFaces(vc->em, selecting==LEFTMOUSE);
-			} else {
-				mesh_foreachScreenFace(vc, mesh_circle_doSelectFace, &data);
-			}
-		}
-
+		EM_backbuf_checkAndSelectTFaces(me, selecting==LEFTMOUSE);
 		EM_free_backbuf();
-		EM_selectmode_flush(vc->em);
+
+// XXX			object_tface_flags_changed(OBACT, 0);
 	}
 }
 
@@ -2082,7 +2082,8 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	
 	selecting= (gesture_mode==GESTURE_MODAL_SELECT);
     
-	if(CTX_data_edit_object(C) || (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
+	if(CTX_data_edit_object(C) || paint_facesel_test(obact) ||
+		(obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
 		ViewContext vc;
 		short mval[2];
 		
@@ -2094,6 +2095,10 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 
 		if(CTX_data_edit_object(C)) {
 			obedit_circle_select(&vc, selecting, mval, (float)radius);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
+		}
+		else if(paint_facesel_test(obact)) {
+			paint_facesel_circle_select(&vc, selecting, mval, (float)radius);
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
 		}
 		else

@@ -248,7 +248,8 @@ static void cache_pointdensity(Render *re, Tex *tex)
 	}
 	else if (pd->source == TEX_PD_OBJECT) {
 		Object *ob = pd->object;
-		if (ob)	pointdensity_cache_object(re, pd, ob);
+		if (ob && ob->type == OB_MESH)
+			pointdensity_cache_object(re, pd, ob);
 	}
 }
 

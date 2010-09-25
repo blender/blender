@@ -103,7 +103,7 @@ typedef enum {
 #define UI_PANEL_MINY	70
 
 /* uiBut->flag */
-#define UI_SELECT		1
+#define UI_SELECT		1 /* use when the button is pressed */
 #define UI_MOUSE_OVER	2
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8

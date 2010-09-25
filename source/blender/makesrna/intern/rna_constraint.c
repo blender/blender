@@ -1919,6 +1919,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Constraint_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Constraint name");
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT|NA_RENAME, NULL);
 	
 	/* enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);

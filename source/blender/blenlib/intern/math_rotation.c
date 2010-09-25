@@ -1249,6 +1249,15 @@ void mat3_to_compatible_eulO(float eul[3], float oldrot[3], short order,float ma
 		copy_v3_v3(eul, eul1);
 }
 
+void mat4_to_compatible_eulO(float eul[3], float oldrot[3], short order,float M[4][4])
+{
+	float m[3][3];
+	
+	/* for now, we'll just do this the slow way (i.e. copying matrices) */
+	copy_m3_m4(m, M);
+	normalize_m3(m);
+	mat3_to_compatible_eulO(eul, oldrot, order, m);
+}
 /* rotate the given euler by the given angle on the specified axis */
 // NOTE: is this safe to do with different axis orders?
 void rotate_eulO(float beul[3], short order, char axis, float ang)

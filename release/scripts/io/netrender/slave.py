@@ -188,7 +188,7 @@ def render_slave(engine, netsettings, threads):
                 cancelled = False
                 stdout = bytes()
                 run_t = time.time()
-                while not cancelled and process.poll() == None:
+                while not cancelled and process.poll() is None:
                     stdout += process.stdout.read(1024)
                     current_t = time.time()
                     cancelled = engine.test_break()
@@ -219,7 +219,7 @@ def render_slave(engine, netsettings, threads):
 
                 if cancelled:
                     # kill process if needed
-                    if process.poll() == None:
+                    if process.poll() is None:
                         try:
                             process.terminate()
                         except OSError:

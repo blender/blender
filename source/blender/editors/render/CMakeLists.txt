@@ -22,25 +22,24 @@
 FILE(GLOB SRC *.c)
 
 SET(INC
+	../include
 	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../blenloader
 	../../gpu
 	../../imbuf
-	../include
-	../../../../intern/guardedalloc
-	../../../../extern/glew/include
 	../../makesdna
 	../../makesrna
-	../../python
 	../../render/extern/include
 	../../windowmanager
+	../../../../intern/guardedalloc
+	../../../../extern/glew/include
 	../../freestyle
 )
 
 IF(WITH_QUICKTIME)
-	SET(INC ${INC} ../../quicktime ${QUICKTIME_INC})
+	LIST(APPEND INC ../../quicktime ${QUICKTIME_INC})
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 

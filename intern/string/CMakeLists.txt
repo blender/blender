@@ -25,8 +25,6 @@
 # ***** END GPL LICENSE BLOCK *****
 
 SET(INC .)
-
-FILE(GLOB SRC intern/*.cpp)
+SET(SRC ./intern/STR_String.cpp)
 
 BLENDERLIB(bf_intern_string "${SRC}" "${INC}")
-#, libtype=['core', 'player'], priority = [30,10] )

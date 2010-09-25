@@ -32,6 +32,7 @@
 #if defined(_WIN32) || defined(__APPLE__)
 #ifndef USE_QTKIT
 
+#include "MEM_guardedalloc.h"
 #include "IMB_anim.h"
 #include "BLO_sys_types.h"
 #include "BKE_global.h"
@@ -88,16 +89,22 @@ typedef struct _QuicktimeMovie {
 
 void quicktime_init(void)
 {
+	OSErr nerr;
 #ifdef _WIN32
-	if (InitializeQTML(0) != noErr)
+	QTLoadLibrary("QTCF.dll");
+	nerr = InitializeQTML(0);
+	if (nerr != noErr) {
 		G.have_quicktime = FALSE;
+		printf("Error initializing quicktime\n");
+	}
 	else
 		G.have_quicktime = TRUE;
 #endif /* _WIN32 */
 
 	/* Initialize QuickTime */
 #if defined(_WIN32) || defined (__APPLE__)
-	if (EnterMovies() != noErr)
+	nerr = EnterMovies();
+	if (nerr != noErr)
 		G.have_quicktime = FALSE;
 	else
 #endif /* _WIN32 || __APPLE__ */
@@ -317,7 +324,9 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 
 	ImBuf *ibuf = NULL;
 	unsigned int *rect;
+#ifdef __APPLE__
 	unsigned char *from, *to;
+#endif
 #ifdef _WIN32
 	unsigned char *crect;
 #endif
@@ -373,7 +382,7 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 	}
 #endif
 
-	ibuf->profile == IB_PROFILE_SRGB;
+	ibuf->profile = IB_PROFILE_SRGB;
 	
 	IMB_flipy(ibuf);
 	return ibuf;

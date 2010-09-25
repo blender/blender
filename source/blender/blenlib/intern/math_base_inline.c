@@ -122,5 +122,10 @@ MINLINE float maxf(float a, float b)
 	return (a > b)? a: b;
 }
 
+MINLINE float signf(float f)
+{
+	return (f < 0.f)? -1.f: 1.f;
+}
+
 #endif /* BLI_MATH_BASE_INLINE */
 

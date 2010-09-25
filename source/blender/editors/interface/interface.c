@@ -753,7 +753,10 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	/* widgets */
 	for(but= block->buttons.first; but; but= but->next) {
 		ui_but_to_pixelrect(&rect, ar, block, but);
-		if(!(but->flag & UI_HIDDEN))
+		if(!(but->flag & UI_HIDDEN) &&
+			/* XXX: figure out why invalid coordinates happen when closing render window */
+			/* and material preview is redrawn in main window (temp fix for bug #23848) */
+			rect.xmin < rect.xmax && rect.ymin < rect.ymax)
 			ui_draw_but(C, ar, &style, but, &rect);
 	}
 	
@@ -808,7 +811,13 @@ static void ui_is_but_sel(uiBut *but)
 			break;
 		case ROW:
 		case LISTROW:
-			if(value == but->hardmax) push= 1;
+			/* support for rna enum buts */
+			if(but->rnaprop && (RNA_property_flag(but->rnaprop) & PROP_ENUM_FLAG)) {
+				if((int)value & (int)but->hardmax) push= 1;
+			}
+			else {
+				if(value == but->hardmax) push= 1;
+			}
 			break;
 		case COL:
 			push= 2;
@@ -1352,7 +1361,14 @@ void ui_set_but_val(uiBut *but, double value)
 						RNA_property_float_set(&but->rnapoin, prop, value);
 					break;
 				case PROP_ENUM:
-					RNA_property_enum_set(&but->rnapoin, prop, value);
+					if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
+						int ivalue= (int)value;
+						ivalue ^= RNA_property_enum_get(&but->rnapoin, prop); /* toggle for enum/flag buttons */
+						RNA_property_enum_set(&but->rnapoin, prop, ivalue);
+					}
+					else {
+						RNA_property_enum_set(&but->rnapoin, prop, value);
+					}
 					break;
 				default:
 					break;

@@ -58,6 +58,7 @@ void				filelist_setdir(struct FileList* filelist, const char *dir);
 struct direntry *	filelist_file(struct FileList* filelist, int index);
 void				filelist_hidedot(struct FileList* filelist, short hide);
 void				filelist_setfilter(struct FileList* filelist, unsigned int filter);
+void				filelist_setfilter_types(struct FileList* filelist, const char *filter_glob);
 void				filelist_filter(struct FileList* filelist);
 void				filelist_swapselect(struct FileList* filelist);
 void				filelist_imgsize(struct FileList* filelist, short w, short h);

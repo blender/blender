@@ -36,7 +36,7 @@ def rna_idprop_ui_prop_get(item, prop, create=True):
 
     rna_ui = rna_idprop_ui_get(item, create)
 
-    if rna_ui == None:
+    if rna_ui is None:
         return None
 
     try:
@@ -49,7 +49,7 @@ def rna_idprop_ui_prop_get(item, prop, create=True):
 def rna_idprop_ui_prop_clear(item, prop):
     rna_ui = rna_idprop_ui_get(item, False)
 
-    if rna_ui == None:
+    if rna_ui is None:
         return
 
     try:

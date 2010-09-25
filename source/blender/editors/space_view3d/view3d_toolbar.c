@@ -129,7 +129,7 @@ static void view3d_panel_operator_redo_operator(const bContext *C, Panel *pa, wm
 {
 	if(op->type->flag & OPTYPE_MACRO) {
 		for(op= op->macro.first; op; op= op->next) {
-			uiItemL(pa->layout, op->idname, 0);
+			uiItemL(pa->layout, op->type->name, 0);
 			view3d_panel_operator_redo_operator(C, pa, op);
 		}
 	}

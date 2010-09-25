@@ -129,8 +129,8 @@ def setup_staticlibs(lenv):
     libincs.extend([
         lenv['BF_OPENGL_LIBPATH'],
         lenv['BF_JPEG_LIBPATH'],
-        lenv['BF_PNG_LIBPATH'],
         lenv['BF_ZLIB_LIBPATH'],
+        lenv['BF_PNG_LIBPATH'],
         lenv['BF_LIBSAMPLERATE_LIBPATH'],
         lenv['BF_ICONV_LIBPATH']
         ])
@@ -152,6 +152,10 @@ def setup_staticlibs(lenv):
         libincs += Split(lenv['BF_LCMS_LIBPATH'])
     if lenv['WITH_BF_TIFF']:
         libincs += Split(lenv['BF_TIFF_LIBPATH'])
+        if lenv['WITH_BF_STATICTIFF']:
+            statlibs += Split(lenv['BF_TIFF_LIB_STATIC'])
+    if lenv['WITH_BF_ZLIB'] and lenv['WITH_BF_STATICZLIB']:
+        statlibs += Split(lenv['BF_ZLIB_LIB_STATIC'])
     if lenv['WITH_BF_FFTW3']:
         libincs += Split(lenv['BF_FFTW3_LIBPATH'])
     if lenv['WITH_BF_FFMPEG'] and lenv['WITH_BF_STATICFFMPEG']:
@@ -198,7 +202,6 @@ def setup_syslibs(lenv):
         
         lenv['BF_JPEG_LIB'],
         lenv['BF_PNG_LIB'],
-        lenv['BF_ZLIB_LIB'],
         lenv['BF_LIBSAMPLERATE_LIB']
         ]
 
@@ -221,11 +224,12 @@ def setup_syslibs(lenv):
             syslibs += ['gomp']
     if lenv['WITH_BF_ICONV']:
         syslibs += Split(lenv['BF_ICONV_LIB'])
-    if lenv['WITH_BF_OPENEXR']:
-        if not lenv['WITH_BF_STATICOPENEXR']:
-            syslibs += Split(lenv['BF_OPENEXR_LIB'])
-    if lenv['WITH_BF_TIFF']:
-            syslibs += Split(lenv['BF_TIFF_LIB'])
+    if lenv['WITH_BF_OPENEXR'] and not lenv['WITH_BF_STATICOPENEXR']:
+        syslibs += Split(lenv['BF_OPENEXR_LIB'])
+    if lenv['WITH_BF_TIFF'] and not lenv['WITH_BF_STATICTIFF']:
+        syslibs += Split(lenv['BF_TIFF_LIB'])
+    if lenv['WITH_BF_ZLIB'] and not lenv['WITH_BF_STATICZLIB']:
+        syslibs += Split(lenv['BF_ZLIB_LIB'])
     if lenv['WITH_BF_FFMPEG'] and not lenv['WITH_BF_STATICFFMPEG']:
         syslibs += Split(lenv['BF_FFMPEG_LIB'])
         if lenv['WITH_BF_OGG']:

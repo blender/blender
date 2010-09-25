@@ -28,12 +28,12 @@ FILE (GLOB SRC *.cpp)
 
 SET(INC 
 	.
+	..
+	./intern/include
+	../../
+	../../../blenlib
 	../../../blenkernel
 	../../../makesdna
-	../../
-	..
-	../../../blenlib
-	intern/include
 	../../../../../intern/guardedalloc
 )
 
