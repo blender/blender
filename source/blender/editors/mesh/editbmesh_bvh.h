@@ -4,6 +4,7 @@ struct BMEdge;
 struct BMVert;
 struct RegionView3D;
 struct BMBVHTree;
+struct BVHTree;
 
 #ifndef IN_EDITMESHBVH
 typedef struct BMBVHTree BMBVHTree;
@@ -11,6 +12,7 @@ typedef struct BMBVHTree BMBVHTree;
 
 struct BMBVHTree *BMBVH_NewBVH(struct BMEditMesh *em);
 void BMBVH_FreeBVH(struct BMBVHTree *tree);
+struct BVHTree *BMBVH_BVHTree(struct BMBVHTree *tree);
 
 struct BMFace *BMBVH_RayCast(struct BMBVHTree *tree, float *co, float *dir, float *hitout);
 

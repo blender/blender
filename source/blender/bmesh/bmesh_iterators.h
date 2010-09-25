@@ -45,6 +45,7 @@ a different face hole boundary*/
   from the other faces in the radial cycle surrounding the
   input loop's edge.*/
 #define BM_LOOPS_OF_LOOP		12
+#define BM_LOOPS_OF_EDGE		13
 
 #define BM_ITER(ele, iter, bm, type, data) \
 	ele = BMIter_New(iter, bm, type, data); \

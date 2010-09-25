@@ -1568,7 +1568,7 @@ void interp_weights_poly_v3(float *w,float v[][3], int n, float *co)
 		t2= mean_value_half_tan(co, vmid, vnext);
 
 		len= len_v3v3(co, vmid);
-		w[i]= (t1+t2)/len;
+		w[i]= (t1+t2)/(len+FLT_EPSILON*2);
 		totweight += w[i];
 	}
 

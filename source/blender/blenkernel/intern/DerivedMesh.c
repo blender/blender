@@ -1075,7 +1075,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					index = DM_get_edge_data_layer(dm, CD_ORIGINDEX);
 					for(i=0; i<dm->numEdgeData; i++) *index++= i;
 					index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
-					for(i=0; i<dm->numFaceData; i++) *index++= i;
+					for(i=0; i<dm->numPolyData; i++) *index++= i;
 				}
 			}
 

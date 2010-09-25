@@ -210,6 +210,35 @@ static void *loop_of_vert_step(BMIter *iter)
 	return NULL;
 }
 
+
+static void loops_of_edge_begin(BMIter *iter)
+{
+	BMLoop *l;
+
+	l = iter->edata->l;
+	if (!l)
+		return;
+
+	/*note sure why this sets ldata. . .*/
+	init_iterator(iter);
+
+	iter->firstloop = iter->nextloop = l;
+}
+
+static void *loops_of_edge_step(BMIter *iter)
+{
+	BMLoop *current = iter->nextloop;
+
+	if(iter->nextloop)
+		iter->nextloop = bmesh_radial_nextloop(iter->nextloop);
+
+	if(iter->nextloop == iter->firstloop) 
+		iter->nextloop = NULL;
+
+	if(current) return current;
+	return NULL;
+}
+
 static void loops_of_loop_begin(BMIter *iter)
 {
 	BMLoop *l;
@@ -419,6 +448,14 @@ void *BMIter_New(BMIter *iter, BMesh *bm, int type, void *data)
 			iter->begin = loops_of_loop_begin;
 			iter->step = loops_of_loop_step;
 			iter->ldata = data;
+			break;
+		case BM_LOOPS_OF_EDGE:
+			if (!data)
+				return NULL;
+
+			iter->begin = loops_of_edge_begin;
+			iter->step = loops_of_edge_step;
+			iter->edata = data;
 			break;
 		default:
 			break;

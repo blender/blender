@@ -1725,6 +1725,8 @@ int mesh_recalcTesselation(CustomData *fdata,
 			mf[k].v1 = f->v1->keyindex;
 			mf[k].v2 = f->v2->keyindex;
 			mf[k].v3 = f->v3->keyindex;
+			mf[k].v4 = f->v1->tmp.l;
+			
 			mf[k].mat_nr = mp->mat_nr;
 			mf[k].flag = mp->flag;
 			origIndex[k] = use_face_origindex ? k : f->v1->tmp.l;
@@ -1766,7 +1768,9 @@ int mesh_recalcTesselation(CustomData *fdata,
 		mf->v3 = mloop[mf->v3].v;
 
 		mesh_loops_to_corners(fdata, ldata, pdata,
-			lindex, i, origIndex[i], numTex, numCol);
+			lindex, i, mf->v4, numTex, numCol);
+		
+		mf->v4 = 0;
 	}
 
 	return totface;

@@ -383,8 +383,12 @@ BMOpDefine def_contextual_create= {
 
 BMOpDefine def_edgenet_fill= {
 	"edgenet_fill",
-	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
-	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"},
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /*input edges*/
+	 {BMOP_OPSLOT_MAPPING,     "restrict"}, /*restricts edges to groups.  maps edges to integers*/
+	 {BMOP_OPSLOT_INT,         "use_restrict"},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "excludefaces"}, /*list of faces to ignore for manifold checks*/
+	 {BMOP_OPSLOT_MAPPING,     "faceout_groupmap"}, /*maps new faces to the group numbers they came from*/
+	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, /*new faces*/
 	{0, /*null-terminating sentinel*/}},
 	bmesh_edgenet_fill_exec,
 	0,

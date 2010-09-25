@@ -141,9 +141,9 @@ void BMO_Finish_Op(struct BMesh *bm, struct BMOperator *op);
   if you need to store a value per element, use a 
   ghash or a mapping slot to do it.*/
 /*flags 15 and 16 (1<<14 and 1<<15) are reserved for bmesh api use*/
-#define BMO_TestFlag(bm, element, flag) (((BMHeader*)element)->flags[bm->stackdepth-1].f & (flag))
-#define BMO_SetFlag(bm, element, flag) (((BMHeader*)element)->flags[bm->stackdepth-1].f |= (flag))
-#define BMO_ClearFlag(bm, element, flag) (((BMHeader*)element)->flags[bm->stackdepth-1].f &= ~(flag))
+#define BMO_TestFlag(bm, element, flag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f & (flag))
+#define BMO_SetFlag(bm, element, flag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f |= (flag))
+#define BMO_ClearFlag(bm, element, flag) (((BMHeader*)(element))->flags[bm->stackdepth-1].f &= ~(flag))
 
 /*profiling showed a significant amount of time spent in BMO_TestFlag
 void BMO_SetFlag(struct BMesh *bm, void *element, int flag);
@@ -398,6 +398,11 @@ BM_INLINE void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, char *slotname,
 	BLI_ghash_insert(slot->data.ghash, element, mapping);
 }
 
+BM_INLINE void BMO_Insert_MapInt(BMesh *bm, BMOperator *op, char *slotname, 
+			void *element, int val)
+{
+	BMO_Insert_Mapping(bm, op, slotname, element, &val, sizeof(int));
+}
 
 BM_INLINE void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, char *slotname, 
 			void *element, float val)
@@ -446,6 +451,15 @@ BM_INLINE float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, char *slotname,
 	if (val) return *val;
 
 	return 0.0f;
+}
+
+BM_INLINE int BMO_Get_MapInt(BMesh *bm, BMOperator *op, char *slotname,
+		       void *element)
+{
+	int *val = (int*) BMO_Get_MapData(bm, op, slotname, element);
+	if (val) return *val;
+
+	return 0;
 }
 
 BM_INLINE void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,

@@ -1,6 +1,5 @@
 /**
- * Array library
- * 
+ * Array Library
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -23,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Geoffrey Bantle.
+ * Contributor(s): Joseph Eagar.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -90,6 +89,7 @@ behaviour, though it may not be the best in practice.
 #define BLI_array_growitems(arr, num) {int _i; for (_i=0; _i<(num); _i++) {BLI_array_growone(arr);}}
 #define BLI_array_free(arr) if (arr && arr != _##arr##_static) MEM_freeN(arr)
 
+#define BLI_array_pop(arr) ((arr&&_##arr##_count) ? arr[--_##arr##_count] : NULL)
 /*resets the logical size of an array to zero, but doesn't
   free the memory.*/
 #define BLI_array_empty(arr) _##arr##_count=0

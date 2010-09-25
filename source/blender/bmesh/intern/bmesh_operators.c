@@ -130,11 +130,11 @@ void BMO_Exec_Op(BMesh *bm, BMOperator *op)
 	
 	BMO_push(bm, op);
 
-	if(bm->stackdepth == 1)
+	if(bm->stackdepth == 2)
 		bmesh_begin_edit(bm);
 	op->exec(bm, op);
 	
-	if(bm->stackdepth == 1)
+	if(bm->stackdepth == 2)
 		bmesh_end_edit(bm,0);
 	
 	BMO_pop(bm);	
@@ -792,13 +792,13 @@ static void alloc_flag_layer(BMesh *bm)
 	bm->totflags++;
 
 	/*allocate new flag pool*/
-	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, 1, 0);
+	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer)*bm->totflags, 512, 512, 0, 0);
 	
 	/*now go through and memcpy all the flags. Loops don't get a flag layer at this time...*/
 	for(v = BMIter_New(&verts, bm, BM_VERTS_OF_MESH, bm); v; v = BMIter_Step(&verts)){
 		oldflags = v->head.flags;
 		v->head.flags = BLI_mempool_calloc(bm->toolflagpool);
-		memcpy(v->head.flags, oldflags, sizeof(BMFlagLayer)*(bm->totflags-1)); /*dont know if this memcpy usage is correct*/
+		memcpy(v->head.flags, oldflags, sizeof(BMFlagLayer)*(bm->totflags-1));
 	}
 	for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)){
 		oldflags = e->head.flags;

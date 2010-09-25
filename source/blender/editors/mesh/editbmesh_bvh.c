@@ -185,7 +185,7 @@ static void raycallback(void *userdata, int index, const BVHTreeRay *ray, BVHTre
 {
 	BMBVHTree *tree = userdata;
 	BMLoop **ls = tree->em->looptris[index];
-	float dist, uv[2], co1[3], co2[3], co3[3];
+	float dist, uv[2];
 
 	dist = ray_tri_intersection(ray, hit->dist, ls[0]->v->co, ls[1]->v->co,
 	                            ls[2]->v->co, uv, tree->epsilon);
@@ -195,16 +195,10 @@ static void raycallback(void *userdata, int index, const BVHTreeRay *ray, BVHTre
 		
 		VECCOPY(hit->no, ls[0]->v->no);
 
-		VECCOPY(co1, ls[0]->v->co);
-		VECCOPY(co2, ls[1]->v->co);
-		VECCOPY(co3, ls[2]->v->co);
-
-		mul_v3_fl(co1, uv[0]);
-		mul_v3_fl(co2, uv[1]);
-		mul_v3_fl(co3, 1.0f-uv[0]-uv[1]);
-
-		add_v3_v3v3(hit->co, co1, co2);
-		add_v3_v3v3(hit->co, hit->co, co3);
+		copy_v3_v3(hit->co, ray->direction);
+		normalize_v3(hit->co);
+		mul_v3_fl(hit->co, dist);
+		add_v3_v3(hit->co, ray->origin);
 	}
 }
 
@@ -227,6 +221,10 @@ BMFace *BMBVH_RayCast(BMBVHTree *tree, float *co, float *dir, float *hitout)
 	return NULL;
 }
 
+BVHTree *BMBVH_BVHTree(BMBVHTree *tree)
+{
+	return tree->tree;
+}
 
 static void vertsearchcallback(void *userdata, int index, const float *co, BVHTreeNearest *hit)
 {

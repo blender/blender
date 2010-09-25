@@ -44,7 +44,7 @@
 
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
-
+ 
 EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_NULL, "NULL", 0, "Invalid", ""},
 	{FMODIFIER_TYPE_GENERATOR, "GENERATOR", 0, "Generator", ""},

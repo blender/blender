@@ -2883,11 +2883,13 @@ static void project_paint_begin(ProjPaintState *ps)
 		ps->dm_mvert= MEM_dupallocN(ps->dm_mvert);
 		ps->dm_mface= MEM_dupallocN(ps->dm_mface);
 		/* looks like these are ok for now.*/
-		/*
+		
 		ps->dm_mtface= MEM_dupallocN(ps->dm_mtface);
-		ps->dm_mtface_clone= MEM_dupallocN(ps->dm_mtface_clone);
-		ps->dm_mtface_stencil= MEM_dupallocN(ps->dm_mtface_stencil);
-		 */
+		if (ps->dm_mtface_clone)
+			ps->dm_mtface_clone= MEM_dupallocN(ps->dm_mtface_clone);
+		if (ps->dm_mtface_stencil)
+			ps->dm_mtface_stencil= MEM_dupallocN(ps->dm_mtface_stencil);
+		 
 	}
 	
 	ps->viewDir[0] = 0.0f;
@@ -4660,6 +4662,9 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		Mesh *me;
 
 		pop->s.ob = OBACT;
+		if (!pop->ps.ob)
+			pop->ps.ob = pop->s.ob;
+		
 		pop->s.me = get_mesh(pop->s.ob);
 		if (!pop->s.me) return 0;
 		

@@ -688,7 +688,7 @@ void view3d_unproject(bglMats *mats, float out[3], const short x, const short y,
 	out[2] = uz;
 }
 
-/* use above call to get projecting mat */
+/* use view3d_get_object_project_mat to get projecting mat */
 void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4])
 {
 	float vec4[4];
@@ -708,7 +708,7 @@ void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4])
 	}
 }
 
-/* use above call to get projecting mat */
+/* use view3d_get_object_project_mat to get projecting mat */
 void view3d_project_float_v3(ARegion *ar, float *vec, float *adr, float mat[4][4])
 {
 	float vec4[4];

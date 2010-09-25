@@ -45,7 +45,8 @@
 void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	Object *ob = BMO_Get_Pnt(op, "object");
 	Mesh *me = BMO_Get_Pnt(op, "mesh");
-	MVert *mvert;
+	MVert *mvert, **verts = NULL;
+	BLI_array_declare(verts);
 	MEdge *medge;
 	MLoop *ml;
 	MPoly *mpoly;
@@ -185,14 +186,17 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		BMLoop *l;
 
 		BLI_array_empty(fedges);
+		BLI_array_empty(verts);
 		for (j=0; j<mpoly->totloop; j++) {
 			ml = &me->mloop[mpoly->loopstart+j];
 			v = vt[ml->v];
 			e = et[ml->e];
 
 			BLI_array_growone(fedges);
+			BLI_array_growone(verts);
 
 			fedges[j] = e;
+			verts[j] = v;
 		}
 		
 		v1 = vt[me->mloop[mpoly->loopstart].v];
@@ -203,8 +207,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 			v1 = fedges[0]->v2;
 			v2 = fedges[0]->v1;
 		}
-
-		f = BM_Make_Ngon(bm, v1, v2, fedges, mpoly->totloop, 0);
+	
+		f = BM_Make_Face(bm, verts, fedges, mpoly->totloop);
 
 		if (!f) {
 			printf("Warning! Bad face in mesh"
@@ -222,9 +226,11 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		if (i == me->act_face) bm->act_face = f;
 
 		/*Copy over loop customdata*/
+		j = 0;
 		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, li, &l->head.data);
+			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, mpoly->loopstart+j, &l->head.data);
 			li++;
+			j++;
 		}
 
 		/*Copy Custom Data*/

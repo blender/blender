@@ -1357,7 +1357,7 @@ static int flip_normals(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
 	
-	if (!EDBM_CallOpf(em, op, "reversefaces facaes=%hf", BM_SELECT))
+	if (!EDBM_CallOpf(em, op, "reversefaces faces=%hf", BM_SELECT))
 		return OPERATOR_CANCELLED;
 	
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);

@@ -331,6 +331,8 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 
 	for (i=0; i<len; i++) {
 		edges2[i] = BM_Edge_Exist(verts[i], verts[(i+1)%len]);
+		if (!edges2[i])
+			return NULL;
 	}
 
 	/*check if face already exists*/
@@ -534,11 +536,13 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		}
 
 		f2 = BM_Make_Ngon(bm, v, v2, edges, f->len, 0);
+		if (!f2)
+			continue;
 		
 		BMINDEX_SET(f, i);
 		BLI_array_growone(ftable);
 		ftable[i] = f2;
-
+		
 		BM_Copy_Attributes(bmold, bm, f, f2);
 		VECCOPY(f2->no, f->no);
 

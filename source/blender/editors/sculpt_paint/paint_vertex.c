@@ -1609,7 +1609,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			for (i=0; i<mpoly->totloop; i++, ml++) {
 				if ((me->dvert+ml->v)->flag) {
 					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*ml->v, mval, pressure);
-					if(alpha) {
+					if(alpha != 0.0f) {
 						do_weight_paint_vertex(wp, ob, ml->v, 
 							alpha, paintweight, flip, wpd->vgroup_mirror, 
 							wpd->vgroup_validmap);
@@ -1882,7 +1882,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 		make_vertexcol(ob);
 	if(me->mloopcol==NULL)
 		return OPERATOR_CANCELLED;
-
+	
 	/* make mode data storage */
 	vpd= MEM_callocN(sizeof(struct VPaintData), "VPaintData");
 	paint_stroke_set_mode_data(stroke, vpd);
@@ -2019,7 +2019,8 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			MLoopCol *mlc;
 			unsigned int *lcol = ((unsigned int*)me->mloopcol) + mpoly->loopstart;
 			unsigned int *lcolorig = ((unsigned int*)vp->vpaint_prev) + mpoly->loopstart;
-			int i, j, alpha;
+			float alpha;
+			int i, j;
 					
 			if(brush->vertexpaint_tool==VP_BLUR) {
 				unsigned int blend[5] = {0};
@@ -2050,7 +2051,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			for (i=0; i<mpoly->totloop; i++, ml++) {
 				alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, 
 				           vpd->vertexcosnos+6*ml->v, mval, pressure);
-				if(alpha) vpaint_blend(vp, lcol+i, lcolorig+i, vpd->paintcol, alpha);
+				if(alpha > 0.0f) vpaint_blend(vp, lcol+i, lcolorig+i, vpd->paintcol, (int)(alpha*255.0f));
 			}
 	
 			#ifdef CPYCOL

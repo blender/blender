@@ -221,6 +221,12 @@ BMFace *BM_Join_TwoFaces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e) {
 	}
 
 	l1 = jed->l;
+	
+	if (!l1) {
+		bmesh_error();
+		return NULL;
+	}
+	
 	l2 = l1->radial_next;
 	if (l1->v == l2->v) {
 		bmesh_loop_reverse(bm, f2);

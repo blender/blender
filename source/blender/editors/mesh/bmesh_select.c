@@ -440,7 +440,7 @@ BMVert *EDBM_findnearestvert(ViewContext *vc, int *dist, short sel, short strict
 }
 
 /* returns labda for closest distance v1 to line-piece v2-v3 */
-static float labda_PdistVL2Dfl( float *v1, float *v2, float *v3) 
+float labda_PdistVL2Dfl( float *v1, float *v2, float *v3) 
 {
 	float rc[2], len;
 	
@@ -564,9 +564,14 @@ BMFace *EDBM_findnearestface(ViewContext *vc, int *dist)
 {
 
 	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
-		unsigned int index = view3d_sample_backbuf(vc, vc->mval[0], vc->mval[1]);
-		BMFace *efa = BMIter_AtIndex(vc->em->bm, BM_FACES_OF_MESH, NULL, index-1);
+		unsigned int index;
+		BMFace *efa;
 
+		view3d_validate_backbuf(vc);
+
+		index = view3d_sample_backbuf(vc, vc->mval[0], vc->mval[1]);
+		efa = BMIter_AtIndex(vc->em->bm, BM_FACES_OF_MESH, NULL, index-1);
+		
 		if (efa) {
 			struct { short mval[2]; int dist; BMFace *toFace; } data;
 

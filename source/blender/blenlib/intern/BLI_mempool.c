@@ -42,26 +42,6 @@
 
 #include <string.h> 
 
-#define FREEWORD MAKE_ID('f', 'r', 'e', 'e')
-
-typedef struct BLI_freenode{
-	struct BLI_freenode *next;
-	intptr_t freeword; /*used to identify this as a freed node*/
-}BLI_freenode;
-
-typedef struct BLI_mempool_chunk{
-	struct BLI_mempool_chunk *next, *prev;
-	void *data;
-}BLI_mempool_chunk;
-
-typedef struct BLI_mempool{
-	struct ListBase chunks;
-	int esize, csize, pchunk;		/*size of elements and chunks in bytes and number of elements per chunk*/
-	struct BLI_freenode	*free;		/*free element list. Interleaved into chunk datas.*/
-	int totalloc, totused; /*total number of elements allocated in total, and currently in use*/
-	int use_sysmalloc, allow_iter;
-}BLI_mempool;
-
 #define BLI_MEMPOOL_INTERN
 #include "BLI_mempool.h"
 
@@ -132,7 +112,7 @@ BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk,
 	curnode->next = NULL;
 	return pool;
 }
-
+#if 0
 void *BLI_mempool_alloc(BLI_mempool *pool){
 	void *retval=NULL;
 	BLI_freenode *curnode=NULL;
@@ -177,6 +157,7 @@ void *BLI_mempool_alloc(BLI_mempool *pool){
 	//memset(retval, 0, pool->esize);
 	return retval;
 }
+#endif
 
 void *BLI_mempool_calloc(BLI_mempool *pool){
 	void *retval=NULL;

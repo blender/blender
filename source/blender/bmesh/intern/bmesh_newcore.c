@@ -1,3 +1,5 @@
+#include <limits.h>
+
 #include "BLI_math_vector.h"
 
 #include "BKE_utildefines.h"
@@ -658,8 +660,17 @@ static int count_flagged_radial(BMLoop *l, int flag)
 	int i = 0;
 
 	do {
+		if (!l2) {
+			bmesh_error();
+			return 0;
+		}
+		
 		i += bmesh_api_getflag(l2->f, flag) ? 1 : 0;
 		l2 = bmesh_radial_nextloop(l2);
+		if (i >= 800000) {
+			bmesh_error();
+			return 0;
+		}
 	} while (l2 != l);
 
 	return i;

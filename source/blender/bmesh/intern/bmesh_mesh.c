@@ -129,7 +129,7 @@ BMesh *BM_Make_Mesh(int allocsize[4])
 
 	/*allocate one flag pool that we dont get rid of.*/
 	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, 0, 0);
-	bm->stackdepth = 0;
+	bm->stackdepth = 1;
 	bm->totflags = 1;
 
 	return bm;
