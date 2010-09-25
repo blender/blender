@@ -173,6 +173,9 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			RNA_string_get(op->ptr, "filter_glob", params->filter_glob);
 			params->filter |= (OPERATORFILE|FOLDERFILE);
 		}
+		else {
+			params->filter_glob[0] = '\0';
+		}
 
 		if (params->filter != 0) {
 			if (U.uiflag & USER_FILTERFILEEXTS) {
@@ -206,6 +209,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		params->flag |= FILE_HIDE_DOT;
 		params->display = FILE_SHORTDISPLAY;
 		params->filter = 0;
+		params->filter_glob[0] = '\0';
 		params->sort = FILE_SORT_ALPHA;
 	}
 
