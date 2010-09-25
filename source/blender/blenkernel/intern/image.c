@@ -2020,14 +2020,9 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 		ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
 	}
 	else if(ima->source == IMA_SRC_VIEWER) {
-		if(ima->type==IMA_TYPE_R_RESULT) {
-			/* always verify entirely, not that this shouldn't happen
-			 * during render anyway */
-		}
-		else if(ima->type==IMA_TYPE_COMPOSITE) {
-			frame= iuser?iuser->framenr:0;
-			ibuf= image_get_ibuf(ima, 0, frame);
-		}
+		/* always verify entirely, not that this shouldn't happen
+		 * as part of texture sampling in rendering anyway, so not
+		 * a big bottleneck */
 	}
 
 	*frame_r = frame;
