@@ -737,7 +737,8 @@ void uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname, c
 void UI_buttons_operatortypes(void);
 
 /* Helpers for Operators */
-void uiAnimContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);
+void uiContextActiveProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);
+void uiContextAnimUpdate(const struct bContext *C);
 void uiFileBrowseContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop);
 void uiIDContextProperty(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop);
 

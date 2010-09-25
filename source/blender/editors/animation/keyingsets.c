@@ -323,7 +323,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	
 	/* try to add to keyingset using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));
-	uiAnimContextProperty(C, &ptr, &prop, &index);
+	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
 	/* check if property is able to be added */
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
@@ -409,7 +409,7 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	
 	/* try to add to keyingset using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));
-	uiAnimContextProperty(C, &ptr, &prop, &index);
+	uiContextActiveProperty(C, &ptr, &prop, &index);
 
 	if (ptr.id.data && ptr.data && prop) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);

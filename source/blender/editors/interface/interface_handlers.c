@@ -4255,6 +4255,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 
 static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 {
+	Scene *scene= CTX_data_scene(C);
 	uiHandleButtonData *data;
 	int retval;
 
@@ -4903,6 +4904,98 @@ void ui_button_active_free(const bContext *C, uiBut *but)
 		data= but->active;
 		data->cancel= 1;
 		button_activate_exit((bContext*)C, data, but, 0, 1);
+	}
+}
+
+/* helper function for insert keyframe, reset to default, etc operators */
+void uiContextActiveProperty(const bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index)
+{
+	ARegion *ar= CTX_wm_region(C);
+	uiBlock *block;
+	uiBut *but, *activebut;
+
+	memset(ptr, 0, sizeof(*ptr));
+	*prop= NULL;
+	*index= 0;
+
+	while(ar) {
+		/* find active button */
+		activebut= NULL;
+
+		for(block=ar->uiblocks.first; block; block=block->next) {
+			for(but=block->buttons.first; but; but= but->next) {
+				if(but->active)
+					activebut= but;
+				else if(!activebut && (but->flag & UI_BUT_LAST_ACTIVE))
+					activebut= but;
+			}
+		}
+
+		if(activebut) {
+			if(activebut->rnapoin.data) {
+				/* found RNA button */
+				*ptr= activebut->rnapoin;
+				*prop= activebut->rnaprop;
+				*index= activebut->rnaindex;
+				return;
+			}
+			else {
+				/* recurse into opened menu */
+				uiHandleButtonData *data= activebut->active;
+				if(data && data->menu)
+					ar = data->menu->region;
+				else
+					return;
+			}
+		}
+		else {
+			/* no active button */
+			return;
+		}
+	}
+}
+
+/* helper function for insert keyframe, reset to default, etc operators */
+void uiContextAnimUpdate(const bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	ARegion *ar= CTX_wm_region(C);
+	uiBlock *block;
+	uiBut *but, *activebut;
+
+	while(ar) {
+		/* find active button */
+		activebut= NULL;
+
+		for(block=ar->uiblocks.first; block; block=block->next) {
+			for(but=block->buttons.first; but; but= but->next) {
+				ui_but_anim_flag(but, (scene)? scene->r.cfra: 0.0f);
+
+				if(but->active)
+					activebut= but;
+				else if(!activebut && (but->flag & UI_BUT_LAST_ACTIVE))
+					activebut= but;
+			}
+		}
+
+		if(activebut) {
+			if(activebut->rnapoin.data) {
+				/* found RNA button */
+				return;
+			}
+			else {
+				/* recurse into opened menu */
+				uiHandleButtonData *data= activebut->active;
+				if(data && data->menu)
+					ar = data->menu->region;
+				else
+					return;
+			}
+		}
+		else {
+			/* no active button */
+			return;
+		}
 	}
 }
 
