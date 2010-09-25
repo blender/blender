@@ -357,7 +357,7 @@ static int unlink_exec(bContext *C, wmOperator *op)
 
 	unlink_text(bmain, text);
 	free_libblock(&bmain->text, text);
-	WM_event_add_notifier(C, NC_TEXT|NA_REMOVED, text);
+	WM_event_add_notifier(C, NC_TEXT|NA_REMOVED, NULL);
 
 	return OPERATOR_FINISHED;
 }
