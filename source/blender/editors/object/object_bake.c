@@ -235,7 +235,7 @@ static void bake_freejob(void *bkv)
 	BakeRender *bkr= bkv;
 	finish_bake_internal(bkr);
 
-	if(bkr->tot==0) BKE_report(bkr->reports, RPT_ERROR, "No Images found to bake to");
+	if(bkr->tot==0) BKE_report(bkr->reports, RPT_ERROR, "No valid images found to bake to");
 	MEM_freeN(bkr);
 	G.rendering = 0;
 }
@@ -335,7 +335,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 		}
 		BLI_end_threads(&threads);
 
-		if(bkr.tot==0) BKE_report(op->reports, RPT_ERROR, "No Images found to bake to");
+		if(bkr.tot==0) BKE_report(op->reports, RPT_ERROR, "No valid images found to bake to");
 
 		finish_bake_internal(&bkr);
 	}
