@@ -1979,26 +1979,46 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefix, const char *path,
 	char **path_full, int *index)
 {
+	const int is_idbase= RNA_struct_is_ID(ptr->type);
 	PropertyRNA *prop;
+	PointerRNA r_ptr;
 	
 	if (ptr->data==NULL) {
 		PyErr_Format(PyExc_TypeError, "%.200s this struct has no data, can't be animated", error_prefix);
 		return -1;
 	}
 	
-	prop = RNA_struct_find_property(ptr, path);
-	
+	/* full paths can only be given from ID base */
+	if(is_idbase) {
+		int r_index= -1;
+		if(RNA_path_resolve_full(ptr, path, &r_ptr, &prop, &r_index)==0) {
+			prop= NULL;
+		}
+		else if(r_index != -1) {
+			PyErr_Format(PyExc_ValueError, "%.200s path includes index, must be a separate argument", error_prefix, path);
+			return -1;
+		}
+		else if(ptr->id.data != r_ptr.id.data) {
+			PyErr_Format(PyExc_ValueError, "%.200s path spans ID blocks", error_prefix, path);
+			return -1;
+		}
+	}
+    else {
+		prop = RNA_struct_find_property(ptr, path);
+		r_ptr= *ptr;
+    }
+
 	if (prop==NULL) {
 		PyErr_Format( PyExc_TypeError, "%.200s property \"%s\" not found", error_prefix, path);
 		return -1;
 	}
 
-	if (!RNA_property_animateable(ptr, prop)) {
+	if (!RNA_property_animateable(&r_ptr, prop)) {
 		PyErr_Format(PyExc_TypeError, "%.200s property \"%s\" not animatable", error_prefix, path);
 		return -1;
 	}
 
-	if(RNA_property_array_check(ptr, prop) == 0) {
+	if(RNA_property_array_check(&r_ptr, prop) == 0) {
 		if((*index) == -1) {
 			*index= 0;
 		}
@@ -2008,18 +2028,23 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefi
 		}
 	}
 	else {
-		int array_len= RNA_property_array_length(ptr, prop);
+		int array_len= RNA_property_array_length(&r_ptr, prop);
 		if((*index) < -1 || (*index) >= array_len) {
 			PyErr_Format( PyExc_TypeError, "%.200s index out of range \"%s\", given %d, array length is %d", error_prefix, path, *index, array_len);
 			return -1;
 		}
 	}
 	
-	*path_full= RNA_path_from_ID_to_property(ptr, prop);
-
-	if (*path_full==NULL) {
-		PyErr_Format( PyExc_TypeError, "%.200s could not make path to \"%s\"", error_prefix, path);
-		return -1;
+	if(is_idbase) {
+		*path_full= BLI_strdup(path);
+	}
+	else {
+		*path_full= RNA_path_from_ID_to_property(&r_ptr, prop);
+	
+		if (*path_full==NULL) {
+			PyErr_Format( PyExc_TypeError, "%.200s could not make path to \"%s\"", error_prefix, path);
+			return -1;
+		}
 	}
 
 	return 0;
