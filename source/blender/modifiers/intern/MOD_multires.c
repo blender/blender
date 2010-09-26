@@ -74,7 +74,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 		if(!CustomData_get_layer(&me->fdata, CD_MDISPS)) {
 			/* multires always needs a displacement layer */
 			CustomData_add_layer(&me->fdata, CD_MDISPS, CD_CALLOC, NULL, me->totface);
-			return dm;
 		}
 	}
 

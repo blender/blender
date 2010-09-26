@@ -239,6 +239,15 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 	if(!CustomData_has_layer(&tmp.fdata, CD_MFACE))
 		CustomData_add_layer(&tmp.fdata, CD_MFACE, CD_ASSIGN, dm->dupFaceArray(dm), totface);
 
+	/* object had got displacement layer, should copy this layer to save sculpted data */
+	/* NOTE: maybe some other layers should be copied? nazgul */
+	if(CustomData_has_layer(&me->fdata, CD_MDISPS)) {
+		if (totface == me->totface) {
+			MDisps *mdisps = CustomData_get_layer(&me->fdata, CD_MDISPS);
+			CustomData_add_layer(&tmp.fdata, CD_MDISPS, CD_DUPLICATE, mdisps, totface);
+		}
+	}
+
 	mesh_update_customdata_pointers(&tmp);
 
 	CustomData_free(&me->vdata, me->totvert);

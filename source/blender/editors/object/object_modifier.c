@@ -132,6 +132,9 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 		}
 		else if(type == eModifierType_Surface)
 			DAG_scene_sort(bmain, scene);
+		else if(type == eModifierType_Multires)
+			/* set totlvl from existing MDISPS layer if object already had it */
+			multiresModifier_set_levels_from_disps(new_md, ob);
 	}
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -431,6 +434,11 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 			DM_to_mesh(dm, me);
 
 			dm->release(dm);
+
+			if(md->type == eModifierType_Multires) {
+				CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
+				CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
+			}
 		}
 	} 
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
