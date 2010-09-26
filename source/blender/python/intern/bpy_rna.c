@@ -28,6 +28,7 @@
 #include "bpy_rna_callback.h"
 //#include "blendef.h"
 #include "BLI_dynstr.h"
+#include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "float.h" /* FLT_MIN/MAX */
 
