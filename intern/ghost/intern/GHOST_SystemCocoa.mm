@@ -987,6 +987,8 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 		return true;
 	}
 	
+	m_ignoreWindowSizedMessages = false;
+	
     return anyProcessed;
 }
 
@@ -1054,8 +1056,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 			case GHOST_kEventWindowSize:
 				if (!m_ignoreWindowSizedMessages)
 				{
+					//Enforce only one resize message per event loop (coalescing all the live resize messages)					
 					window->updateDrawingContext();
 					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
+					m_ignoreWindowSizedMessages = true;
 				}
 				break;
 			default:

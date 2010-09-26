@@ -280,6 +280,18 @@ extern "C" {
     return YES;
 }
 
+- (void) drawRect:(NSRect)rect
+{
+    if ([self inLiveResize])
+    {
+        //Don't redraw while in live resize
+    }
+    else
+    {
+        [super drawRect:rect];
+    }
+}
+
 @end
 
 
