@@ -466,6 +466,8 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_CANCELLED;
 	
+	CTX_wm_operator_poll_msg_set(C, NULL);
+	
 	if(op==NULL || op->type==NULL)
 		return retval;
 	
@@ -697,6 +699,8 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 	wmEvent *event;
 	
 	int retval;
+
+	CTX_wm_operator_poll_msg_set(C, NULL);
 
 	/* dummie test */
 	if(ot && C) {

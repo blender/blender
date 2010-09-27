@@ -131,7 +131,11 @@ int ED_operator_view3d_active(bContext *C)
 
 int ED_operator_region_view3d_active(bContext *C)
 {
-	return CTX_wm_region_view3d(C) != NULL;
+	if(CTX_wm_region_view3d(C))
+		return TRUE;
+	
+	CTX_wm_operator_poll_msg_set(C, "expected a view3d region");
+	return FALSE;	
 }
 
 int ED_operator_timeline_active(bContext *C)
