@@ -726,6 +726,7 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_FRAME:
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
+				case ND_OB_VISIBLE:
 				case ND_MODE:
 				case ND_LAYER:
 				case ND_TOOLSETTINGS:
@@ -779,6 +780,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_FRAME:
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
+				case ND_OB_VISIBLE:
 				case ND_MODE:
 				case ND_LAYER:
 				case ND_LAYER_CONTENT:

@@ -148,6 +148,19 @@ int ED_operator_outliner_active(bContext *C)
 	return ed_spacetype_test(C, SPACE_OUTLINER);
 }
 
+int ED_operator_outliner_active_no_editobject(bContext *C)
+{
+	if(ed_spacetype_test(C, SPACE_OUTLINER)) {
+		Object *ob = ED_object_active_context(C);
+		Object *obedit= CTX_data_edit_object(C);
+		if(ob && ob == obedit)
+			return 0;
+		else
+			return 1;
+	}
+	return 0;
+}
+
 int ED_operator_file_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_FILE);

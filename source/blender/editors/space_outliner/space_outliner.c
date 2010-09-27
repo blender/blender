@@ -97,6 +97,8 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
+				case ND_OB_VISIBLE:
+				case ND_OB_RENDER:
 				case ND_MODE:
 				case ND_KEYINGSET:
 				case ND_FRAME:
