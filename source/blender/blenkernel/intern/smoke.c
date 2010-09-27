@@ -1338,10 +1338,17 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		cache_wt = sds->point_cache[1];
 		BKE_ptcache_id_from_smoke_turbulence(&pid_wt, ob, smd);
 
-		if(!smd->domain->fluid)
+		if(!smd->domain->fluid || framenr == startframe)
 		{
 			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+			BKE_ptcache_validate(cache, framenr);
+			cache->flag &= ~PTCACHE_REDO_NEEDED;
+
 			BKE_ptcache_id_reset(scene, &pid_wt, PTCACHE_RESET_OUTDATED);
+			if(cache_wt) {
+				BKE_ptcache_validate(cache_wt, framenr);
+				cache_wt->flag &= ~PTCACHE_REDO_NEEDED;
+			}
 		}
 
 		if(framenr < startframe)
@@ -1368,6 +1375,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		if(cache_result == PTCACHE_READ_EXACT) 
 		{
 			BKE_ptcache_validate(cache, framenr);
+			smd->time = framenr;
 
 			if(sds->wt)
 			{
@@ -1388,14 +1396,21 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			else
 				return;
 		}
-
-		/* only calculate something when we advanced a frame */
-		if(framenr == smd->time)
+		/* only calculate something when we advanced a single frame */
+		else if(framenr != (int)smd->time+1)
 			return;
 
 		tstart();
 
 		smoke_calc_domain(scene, ob, smd);
+
+		/* if on second frame, write cache for first frame */
+		/* this needs to be done for smoke too so that pointcache works properly */
+		if((int)smd->time == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0)) {
+			BKE_ptcache_write_cache(&pid, startframe);
+			if(sds->wt)
+				BKE_ptcache_write_cache(&pid_wt, startframe);
+		}
 		
 		// set new time
 		smd->time = scene->r.cfra;
