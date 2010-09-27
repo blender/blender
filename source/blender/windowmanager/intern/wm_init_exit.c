@@ -134,7 +134,7 @@ void WM_init(bContext *C, int argc, char **argv)
 	WM_read_homefile(C, NULL);
 
 	/* note: there is a bug where python needs initializing before loading the
-	 * .B25.blend because it may contain PyDrivers. It also needs to be after
+	 * startup.blend because it may contain PyDrivers. It also needs to be after
 	 * initializing space types and other internal data.
 	 *
 	 * However cant redo this at the moment. Solution is to load python
