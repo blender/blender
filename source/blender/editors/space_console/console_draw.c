@@ -163,16 +163,20 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 
 	/* just advance the height */
 	if(cdc->draw==0) {
-		if(cdc->pos_pick) {
-			if((cdc->mval[1] != INT_MAX) && cdc->xy[1] <= cdc->mval[1]) {
-				if((cdc->xy[1]+cdc->lheight >= cdc->mval[1])) {
+		if(cdc->pos_pick && (cdc->mval[1] != INT_MAX)) {
+			if(cdc->xy[1] <= cdc->mval[1]) {
+				if((y_next >= cdc->mval[1])) {
 					int ofs = (int)floor(((float)cdc->mval[0] / (float)cdc->cwidth));
+
+					/* wrap */
+					if(str_len > cdc->console_width)
+						ofs += (cdc->console_width * ((int)((((float)(y_next - cdc->mval[1]) / (float)(y_next-cdc->xy[1])) * tot_lines))));
+	
 					CLAMP(ofs, 0, str_len);
 					*cdc->pos_pick += str_len - ofs;
 				} else
 					*cdc->pos_pick += str_len + 1;
 			}
-
 		}
 
 		cdc->xy[1]= y_next;
