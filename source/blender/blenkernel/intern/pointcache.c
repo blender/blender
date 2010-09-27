@@ -1876,6 +1876,9 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 		else
 			cache->flag |= PTCACHE_FRAMES_SKIPPED;
 	}
+
+	if(cache->cached_frames)
+		cache->cached_frames[cfra] = 1;
 	
 	if(pf) ptcache_file_close(pf);
 
@@ -1893,6 +1896,9 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 {
 	int len; /* store the length of the string */
+	int i;
+	int sta = pid->cache->startframe;
+	int end = pid->cache->endframe;
 
 	/* mode is same as fopen's modes */
 	DIR *dir; 
@@ -1936,6 +1942,8 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 							pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
 							BLI_join_dirfile(path_full, path, de->d_name);
 							BLI_delete(path_full, 0, 0);
+							if(pid->cache->cached_frames) for(i=0; i<end-sta+1; i++)
+								pid->cache->cached_frames[i] = 0;
 						} else {
 							/* read the number of the file */
 							int frame, len2 = (int)strlen(de->d_name);
@@ -1950,6 +1958,8 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 									
 									BLI_join_dirfile(path_full, path, de->d_name);
 									BLI_delete(path_full, 0, 0);
+									if(frame >=sta && frame <= end)
+										pid->cache->cached_frames[frame-sta] = 0;
 								}
 							}
 						}
@@ -1970,11 +1980,16 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 				for(; pm; pm=pm->next)
 					ptcache_free_data(pm);
 				BLI_freelistN(&pid->cache->mem_cache);
+
+				if(pid->cache->cached_frames) for(i=0; i<end-sta+1; i++)
+					pid->cache->cached_frames[i] = 0;
 			} else {
 				while(pm) {
 					if((mode==PTCACHE_CLEAR_BEFORE && pm->frame < cfra)	|| 
 					(mode==PTCACHE_CLEAR_AFTER && pm->frame > cfra)	) {
 						link = pm;
+						if(pm->frame >=sta && pm->frame <= end)
+							pid->cache->cached_frames[pm->frame-sta] = 0;
 						ptcache_free_data(pm);
 						pm = pm->next;
 						BLI_freelinkN(&pid->cache->mem_cache, link);
@@ -2004,6 +2019,8 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 				}
 			}
 		}
+		if(pid->cache->cached_frames && cfra>=sta && cfra<=end)
+			pid->cache->cached_frames[cfra-sta] = 0;
 		break;
 	}
 
@@ -2013,6 +2030,12 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 int BKE_ptcache_id_exist(PTCacheID *pid, int cfra)
 {
 	if(!pid->cache)
+		return 0;
+
+	if(cfra<pid->cache->startframe || cfra > pid->cache->endframe)
+		return 0;
+
+	if(pid->cache->cached_frames &&	pid->cache->cached_frames[cfra-pid->cache->startframe]==0)
 		return 0;
 	
 	if(pid->cache->flag & PTCACHE_DISK_CACHE) {
@@ -2071,6 +2094,73 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 
 			*startframe += (int)(offset+0.5f);
 			*endframe += (int)(offset+0.5f);
+		}
+	}
+
+	/* verify cached_frames array is up to date */
+	if(cache->cached_frames) {
+		if(MEM_allocN_len(cache->cached_frames) != sizeof(char) * (cache->endframe-cache->startframe+1)) {
+			MEM_freeN(cache->cached_frames);
+			cache->cached_frames = NULL;
+		}	
+	}
+
+	if(cache->cached_frames==NULL) {
+		int sta=cache->startframe;
+		int end=cache->endframe;
+		int i=0;
+
+		cache->cached_frames = MEM_callocN(sizeof(char) * (cache->endframe-cache->startframe+1), "cached frames array");
+
+		if(pid->cache->flag & PTCACHE_DISK_CACHE) {
+			/* mode is same as fopen's modes */
+			DIR *dir; 
+			struct dirent *de;
+			char path[MAX_PTCACHE_PATH];
+			char filename[MAX_PTCACHE_FILE];
+			char ext[MAX_PTCACHE_PATH];
+			int len; /* store the length of the string */
+
+			ptcache_path(pid, path);
+			
+			len = BKE_ptcache_id_filename(pid, filename, (int)cfra, 0, 0); /* no path */
+			
+			dir = opendir(path);
+			if (dir==NULL)
+				return;
+
+			snprintf(ext, sizeof(ext), "_%02d"PTCACHE_EXT, pid->stack_index);
+			
+			while ((de = readdir(dir)) != NULL) {
+				if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
+					if (strncmp(filename, de->d_name, len ) == 0) { /* do we have the right prefix */
+						/* read the number of the file */
+						int frame, len2 = (int)strlen(de->d_name);
+						char num[7];
+
+						if (len2 > 15) { /* could crash if trying to copy a string out of this range*/
+							BLI_strncpy(num, de->d_name + (strlen(de->d_name) - 15), sizeof(num));
+							frame = atoi(num);
+							
+							if(frame >= sta && frame <= end)
+								cache->cached_frames[frame-sta] = 1;
+						}
+					}
+				}
+			}
+			closedir(dir);
+		}
+		else {
+			PTCacheMem *pm= pid->cache->mem_cache.first;
+			PTCacheMem *link= NULL;
+
+			pm= pid->cache->mem_cache.first;
+
+			while(pm) {
+				if(pm->frame >= sta && pm->frame <= end)
+					cache->cached_frames[pm->frame-sta] = 1;
+				pm = pm->next;
+			}
 		}
 	}
 }
@@ -2293,6 +2383,8 @@ void BKE_ptcache_free(PointCache *cache)
 	BKE_ptcache_free_mem(&cache->mem_cache);
 	if(cache->edit && cache->free_edit)
 		cache->free_edit(cache->edit);
+	if(cache->cached_frames)
+		MEM_freeN(cache->cached_frames);
 	MEM_freeN(cache);
 }
 void BKE_ptcache_free_list(ListBase *ptcaches)

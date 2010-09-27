@@ -2937,6 +2937,7 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 	cache->simframe= 0;
 	cache->edit= NULL;
 	cache->free_edit= NULL;
+	cache->cached_frames= NULL;
 }
 
 static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointCache **ocache)
