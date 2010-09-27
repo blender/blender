@@ -4820,10 +4820,10 @@ static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 	Py_ssize_t pos = 0;
 	int ret;
 
-	if(	!PyDict_CheckExact(class_dict) &&
-		(order= PyDict_GetItemString(class_dict, "order")) &&
-		PyList_CheckExact(order)
-	) {
+	/* in both cases PyDict_CheckExact(class_dict) will be true even
+	 * though Operators have a metaclass dict namespace */
+
+	if((order= PyDict_GetItemString(class_dict, "order")) && PyList_CheckExact(order)) {
 		for(pos= 0; pos<PyList_GET_SIZE(order); pos++) {
 			key= PyList_GET_ITEM(order, pos);
 			item= PyDict_GetItem(class_dict, key);
