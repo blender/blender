@@ -126,7 +126,7 @@ typedef struct ConsoleDrawContext {
 	int ymin, ymax;
 	int *xy; // [2]
 	int *sel; // [2]
-	int *pos_pick;
+	int *pos_pick; // bottom of view == 0, top of file == combine chars, end of line is lower then start. 
 	int *mval; // [2]
 	int draw;
 } ConsoleDrawContext;
@@ -138,6 +138,7 @@ static void console_draw_sel(int sel[2], int xy[2], int str_len, int cwidth, int
 		int end = MIN2(sel[1], str_len);
 
 		/* highly confusing but draws correctly */
+#if 0
 		if(sel[0] < 0 || sel[1] > str_len) {
 			if(sel[0] > 0) {
 				end= sta;
@@ -148,6 +149,7 @@ static void console_draw_sel(int sel[2], int xy[2], int str_len, int cwidth, int
 				end= str_len;
 			}
 		}
+#endif
 		/* end confusement */
 
 		{
@@ -157,7 +159,7 @@ static void console_draw_sel(int sel[2], int xy[2], int str_len, int cwidth, int
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glColor4ub(255, 255, 255, 96);
 		}
-		glRecti(xy[0]+(cwidth*sta), xy[1]-2 + lheight, xy[0]+(cwidth*end), xy[1]-2);
+		glRecti(xy[0]+(cwidth*(str_len - sta)), xy[1]-2 + lheight, xy[0]+(cwidth*(str_len - end)), xy[1]-2);
 		{
 			glDisable(GL_POLYGON_STIPPLE);
 			glDisable( GL_BLEND );
@@ -184,7 +186,8 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 			if((cdc->mval[1] != INT_MAX) && cdc->xy[1] <= cdc->mval[1]) {
 				if((cdc->xy[1]+cdc->lheight >= cdc->mval[1])) {
 					int ofs = (int)floor(((float)cdc->mval[0] / (float)cdc->cwidth));
-					*cdc->pos_pick += MIN2(ofs, str_len);
+					CLAMP(ofs, 0, str_len);
+					*cdc->pos_pick += str_len - ofs;
 				} else
 					*cdc->pos_pick += str_len + 1;
 			}
@@ -324,7 +327,7 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 
 	if(sc->type==CONSOLE_TYPE_PYTHON) {
 		int prompt_len;
-
+		
 		if(sc->sel_start != sc->sel_end) {
 			sel[0]= sc->sel_start;
 			sel[1]= sc->sel_end;

@@ -695,29 +695,9 @@ static int copy_exec(bContext *C, wmOperator *op)
 	sel[1]= offset - sc->sel_start;
 
 	for(cl= sc->scrollback.first; cl; cl= cl->next) {
-
-		int sta= MAX2(0, sel[0]);
-		int end= MIN2(cl->len, sel[1]);
-
 		if(sel[0] <= cl->len && sel[1] >= 0) {
-			int str_len= cl->len;
-
-			/* highly confusing but draws correctly */
-			if(sel[0] < 0 || sel[1] > str_len) {
-				if(sel[0] > 0) {
-					end= sta;
-					sta= 0;
-				}
-				if (sel[1] <= str_len) {
-					sta= end;
-					end= str_len;
-				}
-			}
-			/* end confusement */
-
-			SWAP(int, sta, end);
-			end= cl->len - end;
-			sta= cl->len - sta;
+			int sta= MAX2(sel[0], 0);
+			int end= MIN2(sel[1], cl->len);
 
 			if(BLI_dynstr_get_len(buf_dyn))
 				BLI_dynstr_append(buf_dyn, "\n");
