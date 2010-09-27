@@ -69,7 +69,7 @@ class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
         col = split.column()
         if cam.type == 'PERSP':
             if cam.lens_unit == 'MILLIMETERS':
-                col.prop(cam, "lens", text="Angle")
+                col.prop(cam, "lens")
             elif cam.lens_unit == 'DEGREES':
                 col.prop(cam, "angle")
             col = split.column()

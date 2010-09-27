@@ -99,7 +99,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "lens", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lens");
 	RNA_def_property_range(prop, 1.0f, 5000.0f);
-	RNA_def_property_ui_text(prop, "Lens", "Perspective Camera lens value in millimeters");
+	RNA_def_property_ui_text(prop, "Focal Length", "Perspective Camera lens value in millimeters");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
