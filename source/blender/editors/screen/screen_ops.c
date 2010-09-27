@@ -215,6 +215,11 @@ int ED_operator_editmesh_view3d(bContext *C)
 	return ED_operator_editmesh(C) && ED_operator_view3d_active(C);
 }
 
+int ED_operator_editmesh_region_view3d(bContext *C)
+{
+	return ED_operator_editmesh(C) && CTX_wm_region_view3d(C);
+}
+
 int ED_operator_editarmature(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
