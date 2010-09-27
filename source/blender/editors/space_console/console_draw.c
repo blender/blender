@@ -131,43 +131,23 @@ typedef struct ConsoleDrawContext {
 	int draw;
 } ConsoleDrawContext;
 
-static void console_draw_sel(int sel[2], int xy[2], int str_len, int cwidth, int console_width, int lheight)
+static void console_draw_sel(int sel[2], int xy[2], int str_len_draw, int cwidth, int console_width, int lheight)
 {
-	if(sel[0] <= str_len && sel[1] >= 0) {
+	if(sel[0] <= str_len_draw && sel[1] >= 0) {
 		int sta = MAX2(sel[0], 0);
-		int end = MIN2(sel[1], str_len);
+		int end = MIN2(sel[1], str_len_draw);
 
-		/* highly confusing but draws correctly */
-#if 0
-		if(sel[0] < 0 || sel[1] > str_len) {
-			if(sel[0] > 0) {
-				end= sta;
-				sta= 0;
-			}
-			if (sel[1] <= str_len) {
-				sta= end;
-				end= str_len;
-			}
-		}
-#endif
-		/* end confusement */
+		glEnable(GL_POLYGON_STIPPLE);
+		glPolygonStipple(stipple_halftone);
+		glEnable( GL_BLEND );
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glColor4ub(255, 255, 255, 96);
 
-		{
-			glEnable(GL_POLYGON_STIPPLE);
-			glPolygonStipple(stipple_halftone);
-			glEnable( GL_BLEND );
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glColor4ub(255, 255, 255, 96);
-		}
-		glRecti(xy[0]+(cwidth*(str_len - sta)), xy[1]-2 + lheight, xy[0]+(cwidth*(str_len - end)), xy[1]-2);
-		{
-			glDisable(GL_POLYGON_STIPPLE);
-			glDisable( GL_BLEND );
-		}
+		glRecti(xy[0]+(cwidth*sta), xy[1]-2 + lheight, xy[0]+(cwidth*end), xy[1]-2);
+
+		glDisable(GL_POLYGON_STIPPLE);
+		glDisable( GL_BLEND );
 	}
-
-	sel[0] -= str_len + 1;
-	sel[1] -= str_len + 1;
 }
 
 
@@ -176,6 +156,7 @@ static void console_draw_sel(int sel[2], int xy[2], int str_len, int cwidth, int
 
 static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, unsigned char *fg, unsigned char *bg)
 {
+#define STEP_SEL(value) cdc->sel[0] += (value); cdc->sel[1] += (value)
 	int rct_ofs= cdc->lheight/4;
 	int tot_lines = (str_len/cdc->console_width)+1; /* total number of lines for wrapping */
 	int y_next = (str_len > cdc->console_width) ? cdc->xy[1]+cdc->lheight*tot_lines : cdc->xy[1]+cdc->lheight;
@@ -203,16 +184,23 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 
 		/* adjust selection even if not drawing */
 		if(cdc->sel[0] != cdc->sel[1]) {
-			cdc->sel[0] -= str_len + 1;
-			cdc->sel[1] -= str_len + 1;
+			STEP_SEL(-(str_len + 1));
 		}
 
 		return 1;
 	}
 
 	if(str_len > cdc->console_width) { /* wrap? */
-		char *line_stride= str + ((tot_lines-1) * cdc->console_width);	/* advance to the last line and draw it first */
+		const int initial_offset= ((tot_lines-1) * cdc->console_width);
+		char *line_stride= str + initial_offset;	/* advance to the last line and draw it first */
 		char eol;													/* baclup the end of wrapping */
+		
+		int sel_orig[2];
+		VECCOPY2D(sel_orig, cdc->sel);
+
+		/* invert and swap for wrapping */
+		cdc->sel[0] = str_len - sel_orig[1];
+		cdc->sel[1] = str_len - sel_orig[0];
 		
 		if(bg) {
 			glColor3ub(bg[0], bg[1], bg[2]);
@@ -226,9 +214,10 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 		BLF_draw(mono, line_stride);
 
 		if(cdc->sel[0] != cdc->sel[1]) {
-			cdc->sel[0] += str_len - (cdc->console_width % str_len);
-			cdc->sel[1] += str_len - (cdc->console_width % str_len);
-			console_draw_sel(cdc->sel, cdc->xy, cdc->console_width % str_len, cdc->cwidth, cdc->console_width, cdc->lheight);
+			STEP_SEL(-initial_offset);
+			// glColor4ub(255, 0, 0, 96); // debug
+			console_draw_sel(cdc->sel, cdc->xy, str_len % cdc->console_width, cdc->cwidth, cdc->console_width, cdc->lheight);
+			STEP_SEL(cdc->console_width);
 			glColor3ub(fg[0], fg[1], fg[2]);
 		}
 
@@ -244,7 +233,9 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 			BLF_draw(mono, line_stride);
 			
 			if(cdc->sel[0] != cdc->sel[1]) {
+				// glColor4ub(0, 255, 0, 96); // debug
 				console_draw_sel(cdc->sel, cdc->xy, cdc->console_width, cdc->cwidth, cdc->console_width, cdc->lheight);
+				STEP_SEL(cdc->console_width);
 				glColor3ub(fg[0], fg[1], fg[2]);
 			}
 
@@ -256,6 +247,9 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 			if(cdc->xy[1] > cdc->ymax)
 				return 0;
 		}
+
+		VECCOPY2D(cdc->sel, sel_orig);
+		STEP_SEL(-(str_len + 1));
 	}
 	else { /* simple, no wrap */
 
@@ -269,8 +263,12 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 		BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
 		BLF_draw(mono, str);
 		
-		if(cdc->sel[0] != cdc->sel[1])
-			console_draw_sel(cdc->sel, cdc->xy, str_len, cdc->cwidth, cdc->console_width, cdc->lheight);
+		if(cdc->sel[0] != cdc->sel[1]) {
+			int isel[2]= {str_len - cdc->sel[1], str_len - cdc->sel[0]};
+			// glColor4ub(255, 255, 0, 96); // debug
+			console_draw_sel(isel, cdc->xy, str_len, cdc->cwidth, cdc->console_width, cdc->lheight);
+			STEP_SEL(-(str_len + 1));
+		}
 
 		cdc->xy[1] += cdc->lheight;
 
@@ -279,6 +277,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 	}
 
 	return 1;
+#undef STEP_SEL
 }
 
 #define CONSOLE_DRAW_MARGIN 4
