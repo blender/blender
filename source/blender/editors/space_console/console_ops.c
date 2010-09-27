@@ -205,7 +205,11 @@ ConsoleLine *console_history_add_str(const bContext *C, char *str, int own)
 }
 ConsoleLine *console_scrollback_add_str(const bContext *C, char *str, int own)
 {
-	return console_lb_add_str__internal(&CTX_wm_space_console(C)->scrollback, C, str, own);
+	SpaceConsole *sc= CTX_wm_space_console(C);
+	ConsoleLine *ci= console_lb_add_str__internal(&sc->scrollback, C, str, own);
+	sc->sel_start += ci->len + 1;
+	sc->sel_end   += ci->len + 1;
+	return ci;
 }
 
 ConsoleLine *console_history_verify(const bContext *C)
@@ -359,13 +363,23 @@ void CONSOLE_OT_move(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, "Type", "Where to move cursor to.");
 }
 
-
+#define TAB_LENGTH 4
 static int insert_exec(bContext *C, wmOperator *op)
 {
 	ConsoleLine *ci= console_history_verify(C);
 	char *str= RNA_string_get_alloc(op->ptr, "text", NULL, 0);
-	
-	int len= console_line_insert(ci, str);
+	int len;
+
+	// XXX, alligned tab key hack
+	if(str[0]=='\t' && str[1]=='\0') {
+		int len= TAB_LENGTH - (ci->cursor % TAB_LENGTH);
+		MEM_freeN(str);
+		MEM_mallocN(len + 1, "insert_exec");
+		memset(str, ' ', len);
+		str[len]= '\0';
+	}
+
+	len= console_line_insert(ci, str);
 	
 	MEM_freeN(str);
 	

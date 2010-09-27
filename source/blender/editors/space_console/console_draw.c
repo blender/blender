@@ -207,11 +207,11 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 		cdc->sel[1] = str_len - sel_orig[0];
 		
 		if(bg) {
-			glColor3ub(bg[0], bg[1], bg[2]);
+			glColor3ubv(bg);
 			glRecti(0, cdc->xy[1]-rct_ofs, cdc->winx, (cdc->xy[1]+(cdc->lheight*tot_lines))+rct_ofs);
 		}
 
-		glColor3ub(fg[0], fg[1], fg[2]);
+		glColor3ubv(fg);
 
 		/* last part needs no clipping */
 		BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
@@ -222,7 +222,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 			// glColor4ub(255, 0, 0, 96); // debug
 			console_draw_sel(cdc->sel, cdc->xy, str_len % cdc->console_width, cdc->cwidth, cdc->console_width, cdc->lheight);
 			STEP_SEL(cdc->console_width);
-			glColor3ub(fg[0], fg[1], fg[2]);
+			glColor3ubv(fg);
 		}
 
 		cdc->xy[1] += cdc->lheight;
@@ -240,7 +240,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 				// glColor4ub(0, 255, 0, 96); // debug
 				console_draw_sel(cdc->sel, cdc->xy, cdc->console_width, cdc->cwidth, cdc->console_width, cdc->lheight);
 				STEP_SEL(cdc->console_width);
-				glColor3ub(fg[0], fg[1], fg[2]);
+				glColor3ubv(fg);
 			}
 
 			cdc->xy[1] += cdc->lheight;
@@ -258,11 +258,11 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 	else { /* simple, no wrap */
 
 		if(bg) {
-			glColor3ub(bg[0], bg[1], bg[2]);
+			glColor3ubv(bg);
 			glRecti(0, cdc->xy[1]-rct_ofs, cdc->winx, cdc->xy[1]+cdc->lheight-rct_ofs);
 		}
 
-		glColor3ub(fg[0], fg[1], fg[2]);
+		glColor3ubv(fg);
 
 		BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
 		BLF_draw(mono, str);
@@ -334,14 +334,13 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 		if(sc->sel_start != sc->sel_end) {
 			sel[0]= sc->sel_start;
 			sel[1]= sc->sel_end;
-			// printf("%d %d\n", sel[0], sel[1]);
 		}
 		
 		/* text */
 		if(draw) {
 			prompt_len= strlen(sc->prompt);
 			console_line_color(fg, CONSOLE_LINE_INPUT);
-			glColor3ub(fg[0], fg[1], fg[2]);
+			glColor3ubv(fg);
 
 			/* command line */
 			if(prompt_len) {
@@ -353,7 +352,7 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 
 			/* cursor */
 			UI_GetThemeColor3ubv(TH_CONSOLE_CURSOR, (char *)fg);
-			glColor3ub(fg[0], fg[1], fg[2]);
+			glColor3ubv(fg);
 			glRecti(xy[0]+(cwidth*cl->cursor) -1, xy[1]-2, xy[0]+(cwidth*cl->cursor) +1, xy[1]+sc->lheight-2);
 
 			xy[0]= x_orig; /* remove prompt offset */
@@ -443,11 +442,15 @@ void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList 
 	return (void *)mouse_pick;
 }
 
-// XXX - breaks with line wrap
 int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports, int mval[2])
 {
 	int pos_pick= 0;
 	void *mouse_pick= NULL;
-	console_text_main__internal(sc, ar, reports, 0, mval, &mouse_pick, &pos_pick);
+	int mval_clamp[2];
+
+	mval_clamp[0]= CLAMPIS(mval[0], CONSOLE_DRAW_MARGIN, ar->winx-(CONSOLE_DRAW_SCROLL + CONSOLE_DRAW_MARGIN));
+	mval_clamp[1]= CLAMPIS(mval[1], CONSOLE_DRAW_MARGIN, ar->winy-CONSOLE_DRAW_MARGIN);
+
+	console_text_main__internal(sc, ar, reports, 0, mval_clamp, &mouse_pick, &pos_pick);
 	return pos_pick;
 }
