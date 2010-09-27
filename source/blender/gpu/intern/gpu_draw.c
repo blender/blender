@@ -874,6 +874,7 @@ void GPU_free_images_anim(void)
 typedef struct GPUMaterialFixed {
 	float diff[4];
 	float spec[4];
+	int hard;
 } GPUMaterialFixed; 
 
 static struct GPUMaterialState {
@@ -921,7 +922,8 @@ static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, 
 		smat->spec[1]= bmat->spec * bmat->specg;
 		smat->spec[2]= bmat->spec * bmat->specb;
 		smat->spec[3]= 1.0; /* always 1 */
-		
+		smat->hard= CLAMPIS(bmat->har, 0, 128);
+
 		if(gamma) {
 			linearrgb_to_srgb_v3_v3(smat->diff, smat->diff);
 			linearrgb_to_srgb_v3_v3(smat->spec, smat->spec);
@@ -1104,6 +1106,7 @@ int GPU_enable_material(int nr, void *attribs)
 			/* or do fixed function opengl material */
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, GMS.matbuf[nr].diff);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, GMS.matbuf[nr].spec);
+			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, GMS.matbuf[nr].hard);
 		}
 
 		/* set (alpha) blending mode */
