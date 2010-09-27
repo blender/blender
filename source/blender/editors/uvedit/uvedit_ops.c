@@ -245,9 +245,9 @@ int uvedit_edge_selected(Scene *scene, EditFace *efa, MTFace *tf, int i)
 	int nvert= (efa->v4)? 4: 3;
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
-		if(ts->selectmode == SCE_SELECT_FACE)
+		if(ts->selectmode & SCE_SELECT_FACE)
 			return (efa->f & SELECT);
-		else if(ts->selectmode == SCE_SELECT_EDGE)
+		else if(ts->selectmode & SCE_SELECT_EDGE)
 			return (*(&efa->e1 + i))->f & SELECT;
 		else
 			return (((efa->v1 + i)->f & SELECT) && ((efa->v1 + (i+1)%nvert)->f & SELECT));
@@ -262,9 +262,9 @@ void uvedit_edge_select(Scene *scene, EditFace *efa, MTFace *tf, int i)
 	int nvert= (efa->v4)? 4: 3;
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
-		if(ts->selectmode == SCE_SELECT_FACE)
+		if(ts->selectmode & SCE_SELECT_FACE)
 			EM_select_face(efa, 1);
-		else if(ts->selectmode == SCE_SELECT_EDGE)
+		else if(ts->selectmode & SCE_SELECT_EDGE)
 			EM_select_edge((*(&efa->e1 + i)), 1);
 		else {
 			(efa->v1 + i)->f |= SELECT;
@@ -281,9 +281,9 @@ void uvedit_edge_deselect(Scene *scene, EditFace *efa, MTFace *tf, int i)
 	int nvert= (efa->v4)? 4: 3;
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
-		if(ts->selectmode == SCE_SELECT_FACE)
+		if(ts->selectmode & SCE_SELECT_FACE)
 			EM_select_face(efa, 0);
-		else if(ts->selectmode == SCE_SELECT_EDGE)
+		else if(ts->selectmode & SCE_SELECT_EDGE)
 			EM_select_edge((*(&efa->e1 + i)), 0);
 		else {
 			(efa->v1 + i)->f &= ~SELECT;
@@ -299,7 +299,7 @@ int uvedit_uv_selected(Scene *scene, EditFace *efa, MTFace *tf, int i)
 	ToolSettings *ts= scene->toolsettings;
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
-		if(ts->selectmode == SCE_SELECT_FACE)
+		if(ts->selectmode & SCE_SELECT_FACE)
 			return (efa->f & SELECT);
 		else
 			return (*(&efa->v1 + i))->f & SELECT;
@@ -313,7 +313,7 @@ void uvedit_uv_select(Scene *scene, EditFace *efa, MTFace *tf, int i)
 	ToolSettings *ts= scene->toolsettings;
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
-		if(ts->selectmode == SCE_SELECT_FACE)
+		if(ts->selectmode & SCE_SELECT_FACE)
 			EM_select_face(efa, 1);
 		else
 			(*(&efa->v1 + i))->f |= SELECT;
@@ -327,7 +327,7 @@ void uvedit_uv_deselect(Scene *scene, EditFace *efa, MTFace *tf, int i)
 	ToolSettings *ts= scene->toolsettings;
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
-		if(ts->selectmode == SCE_SELECT_FACE)
+		if(ts->selectmode & SCE_SELECT_FACE)
 			EM_select_face(efa, 0);
 		else
 			(*(&efa->v1 + i))->f &= ~SELECT;
