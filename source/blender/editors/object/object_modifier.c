@@ -134,7 +134,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 			DAG_scene_sort(bmain, scene);
 		else if(type == eModifierType_Multires)
 			/* set totlvl from existing MDISPS layer if object already had it */
-			multiresModifier_set_levels_from_disps(new_md, ob);
+			multiresModifier_set_levels_from_disps((MultiresModifierData *)new_md, ob);
 	}
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
