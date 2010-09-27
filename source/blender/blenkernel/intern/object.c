@@ -532,12 +532,10 @@ void unlink_object(Scene *scene, Object *ob)
 	}
 	
 	/* textures */
-	tex= bmain->tex.first;
-	while(tex) {
-		if(tex->env) {
-			if(tex->env->object == ob) tex->env->object= NULL;
-		}
-		tex= tex->id.next;
+	for(tex= bmain->tex.first; tex; tex= tex->id.next) {
+		if(tex->env && (ob==tex->env->object)) tex->env->object= NULL;
+		if(tex->pd  && (ob==tex->pd->object))  tex->pd->object= NULL;
+		if(tex->vd  && (ob==tex->vd->object))  tex->vd->object= NULL;
 	}
 
 	/* worlds */
