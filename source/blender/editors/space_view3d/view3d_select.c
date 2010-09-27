@@ -215,7 +215,7 @@ static int view3d_selectable_data(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 	
-	if (!ED_operator_view3d_active(C))
+	if (!ED_operator_region_view3d_active(C))
 		return 0;
 	
 	if (!CTX_data_edit_object(C))

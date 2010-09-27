@@ -569,7 +569,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= snap_sel_to_grid;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_region_view3d_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -732,7 +732,7 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= snap_curs_to_grid;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_region_view3d_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
