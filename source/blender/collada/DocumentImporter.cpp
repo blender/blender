@@ -3526,11 +3526,12 @@ public:
 			// XXX empty node may not mean it is empty object, not sure about this
 			else {
 				ob = add_object(sce, OB_EMPTY);
-				rename_id(&ob->id, (char*)node->getOriginalId().c_str());
 			}
 			
 			// check if object is not NULL
 			if (!ob) return;
+			
+			rename_id(&ob->id, (char*)node->getOriginalId().c_str());
 
 			object_map[node->getUniqueId()] = ob;
 			node_map[node->getUniqueId()] = node;
@@ -3836,6 +3837,75 @@ public:
 			}
 			break;
 		}
+		
+		switch(camera->getDescriptionType()) {
+		case COLLADAFW::Camera::ASPECTRATIO_AND_Y:
+			{
+				switch(cam->type) {
+					case CAM_ORTHO:
+						{
+							double ymag = camera->getYMag().getValue();
+							double aspect = camera->getAspectRatio().getValue();
+							double xmag = aspect*ymag;
+							cam->ortho_scale = (float)xmag;
+						}
+						break;
+					case CAM_PERSP:
+					default:
+						{
+							double yfov = camera->getYFov().getValue();
+							double aspect = camera->getAspectRatio().getValue();
+							double xfov = aspect*yfov;
+							// xfov is in degrees, cam->lens is in millimiters
+							cam->lens = angle_to_lens((float)xfov*(M_PI/180.0f));
+						}
+						break;
+				}
+			}
+			break;
+		/* XXX correct way to do following four is probably to get also render
+		   size and determine proper settings from that somehow */
+		case COLLADAFW::Camera::ASPECTRATIO_AND_X:
+		case COLLADAFW::Camera::SINGLE_X:
+		case COLLADAFW::Camera::X_AND_Y:
+			{
+				switch(cam->type) {
+					case CAM_ORTHO:
+						cam->ortho_scale = (float)camera->getXMag().getValue();
+						break;
+					case CAM_PERSP:
+					default:
+						{
+							double x = camera->getXFov().getValue();
+							// x is in degrees, cam->lens is in millimiters
+							cam->lens = angle_to_lens((float)x*(M_PI/180.0f));
+						}
+						break;
+				}
+			}
+			break;
+		case COLLADAFW::Camera::SINGLE_Y:
+			{
+				switch(cam->type) {
+					case CAM_ORTHO:
+						cam->ortho_scale = (float)camera->getYMag().getValue();
+						break;
+					case CAM_PERSP:
+					default:
+						{
+						double yfov = camera->getYFov().getValue();
+						// yfov is in degrees, cam->lens is in millimiters
+						cam->lens = angle_to_lens((float)yfov*(M_PI/180.0f));
+						}
+						break;
+				}
+			}
+			break;
+		case COLLADAFW::Camera::UNDEFINED:
+			// read nothing, use blender defaults.
+			break;
+		}
+		
 		this->uid_camera_map[camera->getUniqueId()] = cam;
 		// XXX import camera options
 		return true;

@@ -1905,15 +1905,15 @@ public:
 	}
 	void operator()(Object *ob, Scene *sce)
 	{
-		// XXX add other params later
+		// TODO: shiftx, shifty, YF_dofdist
 		Camera *cam = (Camera*)ob->data;
 		std::string cam_id(get_camera_id(ob));
 		std::string cam_name(id_name(cam));
 		
 		if (cam->type == CAM_PERSP) {
 			COLLADASW::PerspectiveOptic persp(mSW);
-			persp.setXFov(1.0);
-			persp.setAspectRatio(0.1);
+			persp.setXFov(lens_to_angle(cam->lens)*(180.0f/M_PI));
+			persp.setAspectRatio(1.0);
 			persp.setZFar(cam->clipend);
 			persp.setZNear(cam->clipsta);
 			COLLADASW::Camera ccam(mSW, &persp, cam_id, cam_name);
@@ -1921,8 +1921,8 @@ public:
 		}
 		else {
 			COLLADASW::OrthographicOptic ortho(mSW);
-			ortho.setXMag(1.0);
-			ortho.setAspectRatio(0.1);
+			ortho.setXMag(cam->ortho_scale);
+			ortho.setAspectRatio(1.0);
 			ortho.setZFar(cam->clipend);
 			ortho.setZNear(cam->clipsta);
 			COLLADASW::Camera ccam(mSW, &ortho, cam_id, cam_name);
