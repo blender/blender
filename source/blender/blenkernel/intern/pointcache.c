@@ -1008,11 +1008,22 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 	}
 
 	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-		if(psys->part) {
-			pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-			BKE_ptcache_id_from_particles(pid, ob, psys);
-			BLI_addtail(lb, pid);
-		}
+		if(psys->part==NULL)
+			continue;
+		
+		/* check to make sure point cache is actually used by the particles */
+		if(ELEM(psys->part->phystype, PART_PHYS_NO, PART_PHYS_KEYED))
+			continue;
+
+		if(psys->part->type == PART_HAIR && (psys->flag & PSYS_HAIR_DYNAMICS)==0)
+			continue;
+			
+		if(psys->part->type == PART_FLUID)
+			continue;
+
+		pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
+		BKE_ptcache_id_from_particles(pid, ob, psys);
+		BLI_addtail(lb, pid);
 	}
 
 	for(md=ob->modifiers.first; md; md=md->next) {
