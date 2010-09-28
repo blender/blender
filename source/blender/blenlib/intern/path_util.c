@@ -1632,7 +1632,6 @@ void BLI_where_is_temp(char *fullname, int usertemp)
 		char *tmp = getenv("TEMP"); /* Windows */
 		if (tmp && BLI_is_dir(tmp)) {
 			strcpy(fullname, tmp);
-			strcpy(U.tempdir, fullname); /* also set user pref to show %TEMP%. /tmp/ is just plain confusing for Windows users. */
 		}
 	}
 #else
@@ -1657,6 +1656,9 @@ void BLI_where_is_temp(char *fullname, int usertemp)
 	} else {
 		/* add a trailing slash if needed */
 		BLI_add_slash(fullname);
+#ifdef WIN32
+		strcpy(U.tempdir, fullname); /* also set user pref to show %TEMP%. /tmp/ is just plain confusing for Windows users. */
+#endif
 	}
 }
 
