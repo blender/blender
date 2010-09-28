@@ -1439,7 +1439,7 @@ static void scalefast_Z_ImBuf(ImBuf *ibuf, short newx, short newy)
 	}
 }
 
-struct ImBuf *IMB_scaleImBuf(struct ImBuf * ibuf, short newx, short newy)
+struct ImBuf *IMB_scaleImBuf(struct ImBuf * ibuf, unsigned int newx, unsigned int newy)
 {
 	if (ibuf==NULL) return (0);
 	if (ibuf->rect==NULL && ibuf->rect_float==NULL) return (ibuf);
@@ -1468,7 +1468,7 @@ struct imbufRGBA {
 	float r, g, b, a;
 };
 
-struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, short newx, short newy)
+struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
 	unsigned int *rect,*_newrect,*newrect;
 	struct imbufRGBA *rectf, *_newrectf, *newrectf;

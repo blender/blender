@@ -141,15 +141,14 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			TransSnapPoint *p;
 			View3D *v3d = CTX_wm_view3d(C);
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
-			float tmat[4][4], imat[4][4];
+			float imat[4][4];
 			float size;
 			
 			glDisable(GL_DEPTH_TEST);
 	
 			size = 0.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
-			
-			copy_m4_m4(tmat, rv3d->viewmat);
-			invert_m4_m4(imat, tmat);
+
+			invert_m4_m4(imat, rv3d->viewmat);
 
 			for (p = t->tsnap.points.first; p; p = p->next) {
 				drawcircball(GL_LINE_LOOP, p->co, size * get_drawsize(t->ar, p->co), imat);

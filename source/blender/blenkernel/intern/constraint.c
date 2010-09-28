@@ -4358,8 +4358,7 @@ void get_constraint_target_matrix (struct Scene *scene, bConstraint *con, int n,
 void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 {
 	bConstraint *con;
-	float solution[4][4], delta[4][4];
-	float oldmat[4][4], imat[4][4];
+	float oldmat[4][4];
 	float enf;
 
 	/* check that there is a valid constraint object to evaluate */

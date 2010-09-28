@@ -117,7 +117,7 @@ void IMB_freeImBuf(struct ImBuf *ibuf);
  *
  * @attention Defined in allocimbuf.c
  */
-struct ImBuf *IMB_allocImBuf(short x, short y,
+struct ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y,
 						 unsigned char d, unsigned int flags,
 						 unsigned char bitmap);
 
@@ -272,13 +272,13 @@ struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1);
  *
  * @attention Defined in scaling.c
  */
-struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, short newx, short newy);
+struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy);
 
 /**
  *
  * @attention Defined in scaling.c
  */
-struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, short newx, short newy);
+struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy);
 
 /**
  *

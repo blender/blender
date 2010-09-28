@@ -324,7 +324,7 @@ short imb_addtilesImBuf(ImBuf *ibuf)
 	return (ibuf->tiles != NULL);
 }
 
-ImBuf *IMB_allocImBuf(short x, short y, uchar d, unsigned int flags, uchar bitmap) /* XXX bitmap argument is deprecated */
+ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, uchar d, unsigned int flags, uchar bitmap) /* XXX bitmap argument is deprecated */
 {
 	ImBuf *ibuf;
 
