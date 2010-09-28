@@ -5498,8 +5498,8 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 							but= ui_but_find_activated(ar);
 							if(but) {
 								/* is there a situation where UI_LEFT or UI_RIGHT would also change navigation direction? */
-								/* UI_TOP and UI_DOWN are inconsistant - should be UI_UP and UI_DOWN or UI_TOP and UI_BOTTOM */
 								if(	((ELEM(event->type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_DOWN)) ||
+									((ELEM(event->type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_RIGHT)) ||
 									((ELEM(event->type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_TOP))
 								) {
 									/* the following is just a hack - uiBut->type set to BUT and BUTM have there menus built 
@@ -5522,6 +5522,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 
 							if(!but) {
 								if(	((ELEM(event->type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_DOWN)) ||
+									((ELEM(event->type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_RIGHT)) ||
 									((ELEM(event->type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_TOP))
 								) {
 									if(ui_but_first(block)->type & BUT)
@@ -5534,7 +5535,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 										bt= ui_but_first(block);
 									else
 										bt= ui_but_last(block);
-							   }
+								}
 
 								if(bt)
 									ui_handle_button_activate(C, ar, bt, BUTTON_ACTIVATE);
@@ -5546,25 +5547,25 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 
 					break;
 
-				case ONEKEY: 	case PAD1: 
+				case ONEKEY:	case PAD1:
 					act= 1;
-				case TWOKEY: 	case PAD2: 
+				case TWOKEY:	case PAD2:
 					if(act==0) act= 2;
-				case THREEKEY: 	case PAD3: 
+				case THREEKEY:	case PAD3:
 					if(act==0) act= 3;
-				case FOURKEY: 	case PAD4: 
+				case FOURKEY:	case PAD4:
 					if(act==0) act= 4;
-				case FIVEKEY: 	case PAD5: 
+				case FIVEKEY:	case PAD5:
 					if(act==0) act= 5;
-				case SIXKEY: 	case PAD6: 
+				case SIXKEY:	case PAD6:
 					if(act==0) act= 6;
-				case SEVENKEY: 	case PAD7: 
+				case SEVENKEY:	case PAD7:
 					if(act==0) act= 7;
-				case EIGHTKEY: 	case PAD8: 
+				case EIGHTKEY:	case PAD8:
 					if(act==0) act= 8;
-				case NINEKEY: 	case PAD9: 
+				case NINEKEY:	case PAD9:
 					if(act==0) act= 9;
-				case ZEROKEY: 	case PAD0: 
+				case ZEROKEY:	case PAD0:
 					if(act==0) act= 10;
 				
 					if((block->flag & UI_BLOCK_NUMSELECT) && event->val==KM_PRESS) {
