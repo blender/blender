@@ -1061,6 +1061,7 @@ int GPU_enable_material(int nr, void *attribs)
 
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
+		glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 35); /* blender default */
 
 		return 0;
 	}
@@ -1323,7 +1324,6 @@ void GPU_state_init(void)
 	/* also called when doing opengl rendering and in the game engine */
 	float mat_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
 	float mat_specular[] = { 0.5, 0.5, 0.5, 1.0 };
-	float mat_shininess[] = { 35.0 };
 	int a, x, y;
 	GLubyte pat[32*32];
 	const GLubyte *patc= pat;
@@ -1331,7 +1331,7 @@ void GPU_state_init(void)
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_specular);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
+	glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 35);
 
 	GPU_default_lights();
 	
