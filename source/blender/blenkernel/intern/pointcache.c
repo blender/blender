@@ -2116,7 +2116,7 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 		}	
 	}
 
-	if(cache->cached_frames==NULL) {
+	if(cache->cached_frames==NULL && cache->endframe > cache->startframe) {
 		int sta=cache->startframe;
 		int end=cache->endframe;
 		int i=0;
