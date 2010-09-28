@@ -374,7 +374,7 @@ static int insert_exec(bContext *C, wmOperator *op)
 	if(str[0]=='\t' && str[1]=='\0') {
 		int len= TAB_LENGTH - (ci->cursor % TAB_LENGTH);
 		MEM_freeN(str);
-		MEM_mallocN(len + 1, "insert_exec");
+		str= MEM_mallocN(len + 1, "insert_exec");
 		memset(str, ' ', len);
 		str[len]= '\0';
 	}
