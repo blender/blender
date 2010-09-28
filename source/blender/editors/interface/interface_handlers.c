@@ -4255,7 +4255,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 
 static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 {
-	Scene *scene= CTX_data_scene(C);
+//	Scene *scene= CTX_data_scene(C);
 	uiHandleButtonData *data;
 	int retval;
 

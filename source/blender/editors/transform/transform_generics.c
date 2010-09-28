@@ -1322,7 +1322,7 @@ void calculateCenterBound(TransInfo *t)
 		if (i) {
 			if (t->data[i].flag & TD_SELECTED) {
 				if (!(t->data[i].flag & TD_NOCENTER))
-					minmax_v3_v3v3(min, max, t->data[i].center);
+					minmax_v3v3_v3(min, max, t->data[i].center);
 			}
 			else {
 				/*

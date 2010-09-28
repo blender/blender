@@ -114,7 +114,7 @@ void interp_v3_v3v3v3v3(float p[3], const float v1[3], const float v2[3], const 
 void interp_v4_v4v4(float r[4], const float a[4], const float b[4], const float t);
 void interp_v4_v4v4v4(float p[4], const float v1[4], const float v2[4], const float v3[4], const float w[3]);
 
-void mid_v3_v3v3(float r[3], float a[3], float b[3]);
+void mid_v3_v3v3(float r[3], const float a[3], const float b[3]);
 
 /********************************* Comparison ********************************/
 
@@ -133,21 +133,21 @@ MINLINE int equals_v4v4(float a[4], float b[4]);
 /* - angle with 3 arguments is angle between 3 points at the middle point    */
 /* - angle_normalized_* is faster equivalent if vectors are normalized       */
 
-float angle_v2v2(float a[2], float b[2]);
-float angle_v2v2v2(float a[2], float b[2], float c[2]);
-float angle_normalized_v2v2(float a[2], float b[2]);
-float angle_v3v3(float a[2], float b[2]);
-float angle_v3v3v3(float a[2], float b[2], float c[2]);
+float angle_v2v2(const float a[2], const float b[2]);
+float angle_v2v2v2(const float a[2], const float b[2], const float c[2]);
+float angle_normalized_v2v2(const float a[2], const float b[2]);
+float angle_v3v3(const float a[3], const float b[3]);
+float angle_v3v3v3(const float a[3], const float b[3], const float c[3]);
 float angle_normalized_v3v3(const float v1[3], const float v2[3]);
 void angle_tri_v3(float angles[3], const float v1[3], const float v2[3], const float v3[3]);
 void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 
 /********************************* Geometry **********************************/
 
-void project_v3_v3v3(float r[3], float p[3], float n[3]);
-void reflect_v3_v3v3(float r[3], float v[3], float n[3]);
-void ortho_basis_v3v3_v3(float r1[3], float r2[3], float a[3]);
-void bisect_v3_v3v3v3(float r[3], float a[3], float b[3], float c[3]);
+void project_v3_v3v3(float r[3], const float p[3], const float n[3]);
+void reflect_v3_v3v3(float r[3], const float v[3], const float n[3]);
+void ortho_basis_v3v3_v3(float r1[3], float r2[3], const float a[3]);
+void bisect_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float c[3]);
 
 /*********************************** Other ***********************************/
 
@@ -158,7 +158,7 @@ void print_v4(const char *str, const float a[4]);
 MINLINE void normal_short_to_float_v3(float r[3], const short n[3]);
 MINLINE void normal_float_to_short_v3(short r[3], const float n[3]);
 
-void minmax_v3_v3v3(float r[3], float min[3], float max[3]);
+void minmax_v3v3_v3(float min[3], float max[3], const float vec[3]);
 
 #ifdef __cplusplus
 }
