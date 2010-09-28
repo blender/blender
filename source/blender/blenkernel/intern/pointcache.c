@@ -2943,7 +2943,10 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 				totframes++;
 		}
 
-		if(totframes && cache->totpoint)
+		/* smoke doesn't use frame 0 as info frame so can't check based on totpoint */
+		if(pid->type == PTCACHE_TYPE_SMOKE_DOMAIN && totframes)
+			sprintf(cache->info, "%i frames found!", totframes);
+		else if(totframes && cache->totpoint)
 			sprintf(cache->info, "%i points found!", cache->totpoint);
 		else
 			sprintf(cache->info, "No valid data to read!");
