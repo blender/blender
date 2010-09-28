@@ -68,7 +68,7 @@ typedef struct EditVert
 	unsigned char f, h, f1, f2; 
 	float bweight;
 	short fast;	/* only 0 or 1, for editmesh_fastmalloc, do not store temp data here! */
-	int hash;
+	int hash;     /* internal editmesh.c use only, don't touch! */
 	int keyindex; /* original index #, for restoring  key information */
 
 	void *data;		/* custom vertex data */
