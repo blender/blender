@@ -1976,19 +1976,17 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	mul_m4_m4m4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
 	invert_m4_m4(rv3d->persinv, rv3d->persmat);
 	invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
-	
+
 	/* calculate pixelsize factor once, is used for lamps and obcenters */
 	{
-		rv3d->pixsize= 2.0f;
-		
-		if(rv3d->persp == RV3D_ORTHO || v3d->camera) { /* camera view needs with for ortho & persp */
-			float len1= len_v3(rv3d->persinv[0]);
-			float len2= len_v3(rv3d->persinv[1]);
-			rv3d->pixsize *= MAX2(len1, len2);
-		}
+		/* note:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
+		 * because of float point precission problems at large values [#23908] */
+		float v1[3]= {rv3d->persmat[0][0], rv3d->persmat[1][0], rv3d->persmat[2][0]};
+		float v2[3]= {rv3d->persmat[0][1], rv3d->persmat[1][1], rv3d->persmat[2][1]};
+		float len1= 1.0f / len_v3(v1);
+		float len2= 1.0f / len_v3(v2);
 
-		/* correct for window size */
-		rv3d->pixsize/= (float)MAX2(ar->winx, ar->winy);
+		rv3d->pixsize = (2.0f * MAX2(len1, len2)) / (float)MAX2(ar->winx, ar->winy);
 	}
 
 	/* set for opengl */
