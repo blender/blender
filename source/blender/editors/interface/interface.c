@@ -2263,8 +2263,13 @@ static void ui_block_do_align_but(uiBlock *block, uiBut *first, int nr)
 				   flag |= UI_BUT_ALIGN_LEFT;
 				
 				if( (flag & UI_BUT_ALIGN_TOP)==0) {	/* stil top row */
-					if(prev)
-						flag= UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT;
+					if(prev) {
+						if(next && buts_are_horiz(next, but))
+							flag = UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT;
+						else {
+							flag = UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT|UI_BUT_ALIGN_RIGHT;
+						}
+					}
 					else 
 						flag |= UI_BUT_ALIGN_DOWN;
 				}
