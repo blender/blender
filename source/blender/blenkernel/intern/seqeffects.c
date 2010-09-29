@@ -2873,7 +2873,7 @@ static void init_speed_effect(Sequence *seq)
 	v = (SpeedControlVars *)seq->effectdata;
 	v->globalSpeed = 1.0;
 	v->frameMap = 0;
-	v->flags = 0;
+	v->flags |= SEQ_SPEED_INTEGRATE; /* should be default behavior */
 	v->length = 0;
 }
 
@@ -2936,9 +2936,8 @@ static void store_icu_yrange_speed(struct Sequence * seq,
 }
 void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 {
-	float ctime, div;
 	int cfra;
-	float fallback_fac;
+	float fallback_fac = 1.0f;
 	SpeedControlVars * v = (SpeedControlVars *)seq->effectdata;
 	FCurve *fcu= NULL;
 
@@ -2955,7 +2954,7 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 
 	/* XXX - new in 2.5x. should we use the animation system this way?
 	 * The fcurve is needed because many frames need evaluating at once - campbell */
-	fcu= id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_fader", 0);
+	fcu= id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_factor", 0);
 
 
 	if (!v->frameMap || v->length != seq->len) {
@@ -2966,17 +2965,12 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 		v->frameMap = MEM_callocN(sizeof(float) * v->length, 
 					  "speedcontrol frameMap");
 	}
-
-	fallback_fac = 1.0;
 	
-	/* if there is no fcurve, try to make retiming easy by stretching the
-	   strip */
-	if (!fcu && seq->seq1->enddisp != seq->seq1->start && seq->seq1->len != 0) {
-		fallback_fac = (float) seq->seq1->len / 
-			(float) (seq->seq1->enddisp - seq->seq1->start);
-	}
+	/* if there is no fcurve, use value as simple multiplier */
+	if (!fcu)
+		fallback_fac = seq->speed_fader; /* same as speed_factor in rna*/
 
-	if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
+	if (v->flags & SEQ_SPEED_INTEGRATE) {
 		float cursor = 0;
 		float facf;
 
@@ -2985,10 +2979,7 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 
 		for (cfra = 1; cfra < v->length; cfra++) {
 			if(fcu) {
-				ctime = seq->startdisp + cfra;
-				div = 1.0;
-				
-				facf = evaluate_fcurve(fcu, ctime/div);
+				facf = evaluate_fcurve(fcu, seq->startdisp + cfra);
 			} else {
 				facf = fallback_fac;
 			}
@@ -3010,19 +3001,16 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 		for (cfra = 0; cfra < v->length; cfra++) {
 
 			if(fcu) {
-				ctime = seq->startdisp + cfra;
-				div = 1.0;
-				
-				facf = evaluate_fcurve(fcu, ctime / div);
-				if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
-					facf *= v->length;
-				}
+				facf = evaluate_fcurve(fcu, seq->startdisp + cfra);
+			} else {
+				facf = fallback_fac;
 			}
-			
-			if (!fcu) {
-				facf = (float) cfra * fallback_fac;
+
+			if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
+				facf *= v->length;
 			}
 			facf *= v->globalSpeed;
+			
 			if (facf >= seq->seq1->len) {
 				facf = seq->seq1->len - 1;
 			} else {
