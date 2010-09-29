@@ -411,7 +411,7 @@ static void time_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_SCENE:
-			switch (wmn->data) {	
+			switch (wmn->data) {
 				case ND_OB_ACTIVE:
 				case ND_FRAME:
 					ED_area_tag_refresh(sa);
@@ -432,7 +432,7 @@ static void time_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 		case NC_SPACE:
-			switch (wmn->data) {	
+			switch (wmn->data) {
 				case ND_SPACE_CHANGED:
 					ED_area_tag_refresh(sa);
 					break;
@@ -518,6 +518,7 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		
 		case NC_SCENE:
 			switch (wmn->data) {
+				case ND_OB_SELECT:
 				case ND_FRAME:
 				case ND_FRAME_RANGE:
 				case ND_KEYINGSET:
@@ -552,6 +553,7 @@ static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 
 		case NC_SCENE:
 			switch (wmn->data) {
+				case ND_OB_SELECT:
 				case ND_FRAME:
 				case ND_FRAME_RANGE:
 				case ND_KEYINGSET:
