@@ -3973,6 +3973,9 @@ int mouse_nurb(bContext *C, short mval[2], int extend)
  * orientation of the global 3d view (yuck yuck!) mode==1 does the same, but doesn't bridge up
  * up the new geometry, mode==2 now does the same as 0, but aligned to world axes, not the view.
 */
+
+/* 'cent' is in object space and 'dvec' in worldspace.
+ */
 static int spin_nurb(RegionView3D *rv3d, Object *obedit, float *dvec, float *cent, short mode)
 {
 	Curve *cu= (Curve*)obedit->data;
@@ -4081,9 +4084,8 @@ static int spin_exec(bContext *C, wmOperator *op)
 	
 	invert_m4_m4(obedit->imat, obedit->obmat);
 	mul_m4_v3(obedit->imat, cent);
-	mul_mat3_m4_v3(obedit->imat, axis);
 	
-	if(!spin_nurb(ED_view3d_context_rv3d(C), obedit, axis, cent, 2)) {
+	if(!spin_nurb(ED_view3d_context_rv3d(C), obedit, axis, cent, 0)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't spin");
 		return OPERATOR_CANCELLED;
 	}
