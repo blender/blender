@@ -3973,7 +3973,7 @@ int mouse_nurb(bContext *C, short mval[2], int extend)
  * orientation of the global 3d view (yuck yuck!) mode==1 does the same, but doesn't bridge up
  * up the new geometry, mode==2 now does the same as 0, but aligned to world axes, not the view.
 */
-static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, float *cent, short mode)
+static int spin_nurb(RegionView3D *rv3d, Object *obedit, float *dvec, float *cent, short mode)
 {
 	Curve *cu= (Curve*)obedit->data;
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -3982,16 +3982,27 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, flo
 	float bmat[3][3], rotmat[3][3], scalemat1[3][3], scalemat2[3][3];
 	float persmat[3][3], persinv[3][3];
 	short a,ok, changed= 0;
-	
-	unit_m3(persmat);
+
+	if (mode != 2)	copy_m3_m4(persmat, rv3d->viewmat);
+	else			unit_m3(persmat);
 	invert_m3_m3(persinv, persmat);
 
 	/* imat and center and size */
 	copy_m3_m4(bmat, obedit->obmat);
 	invert_m3_m3(imat, bmat);
 
-	n[0]=n[1]= 0.0;
-	n[2]= 1.0;
+	if(dvec || mode==2) {
+		if(dvec) {
+			normalize_v3_v3(n, dvec);
+		}
+		else {
+			n[0]=n[1]= 0.0;
+			n[2]= 1.0;
+		}
+	}
+	else {
+		normalize_v3_v3(n, rv3d->viewinv[2]);
+	}
 	
 	phi= M_PI/8.0;
 	q[0]= cos(phi);
@@ -4044,10 +4055,6 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, flo
 				weightflagNurb(editnurb, 1, 4.0/sqrt(2.0), 1);
 			}
 		}
-		if(dvec) {
-			mul_m3_v3(bmat,dvec);
-			translateflagNurb(editnurb, 1,dvec);
-		}
 	}
 
 	if(ok) {
@@ -4072,7 +4079,11 @@ static int spin_exec(bContext *C, wmOperator *op)
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
 	
-	if(!spin_nurb(C, scene, obedit, axis, cent, 0)) {
+	invert_m4_m4(obedit->imat, obedit->obmat);
+	mul_m4_v3(obedit->imat, cent);
+	mul_mat3_m4_v3(obedit->imat, axis);
+	
+	if(!spin_nurb(ED_view3d_context_rv3d(C), obedit, axis, cent, 2)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't spin");
 		return OPERATOR_CANCELLED;
 	}
@@ -5884,6 +5895,13 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			BLI_addtail(editnurb, nu); /* temporal for extrude and translate */
 			vec[0]=vec[1]= 0.0;
 			vec[2]= -grid;
+			
+			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
+				/* pass */
+			}
+			else {
+				mul_mat3_m4_v3(mat, vec);
+			}
 
 			translateflagNurb(editnurb, 1, vec);
 			extrudeflagNurb(cu->editnurb, 1);
@@ -5936,9 +5954,9 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 
 			BLI_addtail(editnurb, nu); /* temporal for spin */
 			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)
-				spin_nurb(C, scene, obedit, tmp_vec, tmp_cent, 2);
+				spin_nurb(ED_view3d_context_rv3d(C), obedit, NULL, tmp_cent, 2);
 			else
-				spin_nurb(C, scene, obedit, tmp_vec, mat[3], 2);
+				spin_nurb(ED_view3d_context_rv3d(C), obedit, NULL, mat[3], (U.flag & USER_ADD_VIEWALIGNED) ? 0 : 2);
 
 			makeknots(nu, 2);
 
@@ -5969,9 +5987,9 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(editnurb, nu); /* temporal for extrude and translate */
 			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)
-				spin_nurb(C, scene, obedit, tmp_vec, tmp_cent, 2);
+				spin_nurb(ED_view3d_context_rv3d(C), obedit, NULL, tmp_cent, 2);
 			else
-				spin_nurb(C, scene, obedit, tmp_vec, mat[3], 2);
+				spin_nurb(ED_view3d_context_rv3d(C), obedit, NULL, mat[3], (U.flag & USER_ADD_VIEWALIGNED) ? 0 : 2);
 
 			BLI_remlink(editnurb, nu);
 
