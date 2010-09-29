@@ -296,6 +296,36 @@ void ortho_basis_v3v3_v3(float v1[3], float v2[3], const float v[3])
 	}
 }
 
+/* Rotate a point p by angle theta around an arbitrary axis r
+   http://local.wasp.uwa.edu.au/~pbourke/geometry/
+*/
+void rotate_normalized_v3_v3v3fl(float r[3], const float p[3], const float axis[3], const float angle)
+{
+	const float costheta= cos(angle);
+	const float sintheta= sin(angle);
+
+	r[0]=	((costheta + (1 - costheta) * axis[0] * axis[0]) * p[0]) +
+			(((1 - costheta) * axis[0] * axis[1] - axis[2] * sintheta) * p[1]) +
+			(((1 - costheta) * axis[0] * axis[2] + axis[1] * sintheta) * p[2]);
+
+	r[1]=	(((1 - costheta) * axis[0] * axis[1] + axis[2] * sintheta) * p[0]) +
+			((costheta + (1 - costheta) * axis[1] * axis[1]) * p[1]) +
+			(((1 - costheta) * axis[1] * axis[2] - axis[0] * sintheta) * p[2]);
+
+	r[2]=	(((1 - costheta) * axis[0] * axis[2] - axis[1] * sintheta) * p[0]) +
+			(((1 - costheta) * axis[1] * axis[2] + axis[0] * sintheta) * p[1]) +
+			((costheta + (1 - costheta) * axis[2] * axis[2]) * p[2]);
+}
+
+void rotate_v3_v3v3fl(float r[3], const float p[3], const float axis[3], const float angle)
+{
+	float axis_n[3];
+
+	normalize_v3_v3(axis_n, axis);
+
+	rotate_normalized_v3_v3v3fl(r, p, axis_n, angle);
+}
+
 /*********************************** Other ***********************************/
 
 void print_v2(const char *str, const float v[2])
