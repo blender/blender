@@ -189,6 +189,21 @@ class INFO_MT_curve_add(bpy.types.Menu):
         layout.operator("curve.primitive_nurbs_circle_add", icon='CURVE_NCIRCLE', text="Nurbs Circle")
         layout.operator("curve.primitive_nurbs_path_add", icon='CURVE_PATH', text="Path")
 
+class INFO_MT_edit_curve_add(bpy.types.Menu):
+    bl_idname = "INFO_MT_edit_curve_add"
+    bl_label = "Add"
+
+    def draw(self, context):
+        is_surf = context.active_object.type == 'SURFACE'
+
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        if is_surf:
+          INFO_MT_surface_add.draw(self, context)
+        else:
+          INFO_MT_curve_add.draw(self, context)
+
 
 class INFO_MT_surface_add(bpy.types.Menu):
     bl_idname = "INFO_MT_surface_add"
