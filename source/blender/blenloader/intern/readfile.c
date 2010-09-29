@@ -2735,7 +2735,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	cu->strinfo= newdataadr(fd, cu->strinfo);	
 	cu->tb= newdataadr(fd, cu->tb);
 
-	if(cu->vfont==0) link_list(fd, &(cu->nurb));
+	if(curve_type(cu) != OB_FONT) link_list(fd, &(cu->nurb));
 	else {
 		cu->nurb.first=cu->nurb.last= 0;
 
@@ -2766,7 +2766,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 		nu->bp= newdataadr(fd, nu->bp);
 		nu->knotsu= newdataadr(fd, nu->knotsu);
 		nu->knotsv= newdataadr(fd, nu->knotsv);
-		if (cu->vfont==0) nu->charidx= nu->mat_nr;
+		if (curve_type(cu) != OB_FONT) nu->charidx= nu->mat_nr;
 
 		if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 			switch_endian_knots(nu);
