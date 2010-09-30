@@ -800,20 +800,25 @@ static float calc_voxel_transp(float *result, float *input, int res[3], int *pix
 static int get_lamp(Scene *scene, float *light)
 {	
 	Base *base_tmp = NULL;	
-	for(base_tmp = scene->base.first; base_tmp; base_tmp= base_tmp->next) 	
-	{		
-		if(base_tmp->object->type == OB_LAMP) 		
-		{			
-			Lamp *la = (Lamp *)base_tmp->object->data;	
+	int found_lamp = 0;
 
-			if(la->type == LA_LOCAL)			
-			{				
-				VECCOPY(light, base_tmp->object->obmat[3]);				
-				return 1;			
-			}		
-		}	
-	}	
-	return 0;
+	// try to find a lamp, preferably local
+	for(base_tmp = scene->base.first; base_tmp; base_tmp= base_tmp->next) {
+		if(base_tmp->object->type == OB_LAMP) {
+			Lamp *la = base_tmp->object->data;
+
+			if(la->type == LA_LOCAL) {
+				copy_v3_v3(light, base_tmp->object->obmat[3]);
+				return 1;
+			}
+			else if(!found_lamp) {
+				copy_v3_v3(light, base_tmp->object->obmat[3]);
+				found_lamp = 1;
+			}
+		}
+	}
+
+	return found_lamp;
 }
 
 static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
