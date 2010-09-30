@@ -636,7 +636,7 @@ static void makecyclicknots(float *knots, short pnts, short order)
 
 
 
-void makeknots(Nurb *nu, short uv)
+static void makeknots(Nurb *nu, short uv)
 {
 	if(nu->type == CU_NURBS) {
 		if(uv == 1) {
@@ -666,6 +666,16 @@ void makeknots(Nurb *nu, short uv)
 			else nu->knotsv= NULL;
 		}
 	}
+}
+
+void nurbs_knot_calc_u(Nurb *nu)
+{
+	makeknots(nu, 1);
+}
+
+void nurbs_knot_calc_v(Nurb *nu)
+{
+	makeknots(nu, 2);
 }
 
 static void basisNurb(float t, short order, short pnts, float *knots, float *basis, int *start, int *end)
