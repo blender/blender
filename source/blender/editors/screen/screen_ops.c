@@ -131,9 +131,13 @@ int ED_operator_view3d_active(bContext *C)
 
 int ED_operator_region_view3d_active(bContext *C)
 {
+#if 0 // correct but messes up poll() for menu items.
 	if(CTX_wm_region_view3d(C))
 		return TRUE;
-	
+#else
+	if(ed_spacetype_test(C, SPACE_VIEW3D))
+		return TRUE;
+#endif
 	CTX_wm_operator_poll_msg_set(C, "expected a view3d region");
 	return FALSE;	
 }
