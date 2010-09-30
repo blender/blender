@@ -65,6 +65,7 @@ ModifierTypeInfo modifierType_None = {
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    0,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };

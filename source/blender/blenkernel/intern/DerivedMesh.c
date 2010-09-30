@@ -1670,6 +1670,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	DerivedMesh *dm, *orcodm, *clothorcodm, *finaldm;
 	int numVerts = me->totvert;
 	int required_mode;
+	int isPrevDeform= FALSE;
 
 	md = firstmd = (useDeform<0) ? ob->modifiers.first : modifiers_getVirtualModifierList(ob);
 
@@ -1787,6 +1788,16 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 			}
 
+			/* if this is not the last modifier in the stack then recalculate the normals
+			 * to avoid giving bogus normals to the next modifier see: [#23673] */
+			if(isPrevDeform && mti->dependsOnNormals(md)) {
+				/* XXX, this covers bug #23673, but we may need normal calc for other types */
+				if(dm->type == DM_TYPE_CDDM) {
+					CDDM_apply_vert_coords(dm, deformedVerts);
+					CDDM_calc_normals(dm);
+				}
+			}
+
 			mti->deformVerts(md, ob, dm, deformedVerts, numVerts, useRenderParams, useDeform);
 		} else {
 			DerivedMesh *ndm;
@@ -1896,6 +1907,8 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 			}
 		}
+
+		isPrevDeform= (mti->type == eModifierTypeType_OnlyDeform);
 
 		/* grab modifiers until index i */
 		if((index >= 0) && (modifiers_indexInObject(ob, md) >= index))

@@ -9,6 +9,12 @@ SSH_UPLOAD="/data/www/vhosts/www.blender.org/documentation" # blender_python_api
 
 # sed string from hell, 'Blender 2.53 (sub 1) Build' --> '2_53_1'
 # "_".join(str(v) for v in bpy.app.version)
+# custom blender vars
+blender_srcdir=$(dirname $0)/../../../../
+blender_version=$(grep BLENDER_VERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | tr -dc 0-9)
+blender_subversion=$(grep BLENDER_SUBVERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | tr -dc 0-9)
+BLENDER_VERSION=$(expr $blender_version / 100)_$(expr $blender_version % 100)_$blender_subversion
+
 BLENDER_VERSION=`$BLENDER --version | cut -f2-4 -d" " | sed 's/(//g' | sed 's/)//g' | sed 's/ sub /./g' | sed 's/\./_/g'`
 SSH_UPLOAD_FULL=$SSH_UPLOAD/"blender_python_api_"$BLENDER_VERSION
 

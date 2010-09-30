@@ -1290,6 +1290,7 @@ ModifierTypeInfo modifierType_EdgeSplit = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    0,
 	/* dependsOnTime */     0,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
 };
