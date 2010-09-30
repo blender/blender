@@ -4956,6 +4956,8 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 		 */
 		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
 			ks = ANIM_scene_get_active_keyingset(scene);
+		else if (IS_AUTOKEY_FLAG(INSERTAVAIL))
+			ks = ANIM_builtin_keyingset_get_named(NULL, "Available");
 		else 
 			ks = ANIM_builtin_keyingset_get_named(NULL, "Scaling");
 		
@@ -5033,6 +5035,8 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 		 */
 		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
 			ks = ANIM_scene_get_active_keyingset(scene);
+		else if (IS_AUTOKEY_FLAG(INSERTAVAIL))
+			ks = ANIM_builtin_keyingset_get_named(NULL, "Available");
 		else 
 			ks = ANIM_builtin_keyingset_get_named(NULL, "Location");
 		
@@ -5194,6 +5198,8 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 		 */
 		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
 			ks = ANIM_scene_get_active_keyingset(scene);
+		else if (IS_AUTOKEY_FLAG(INSERTAVAIL))
+			ks = ANIM_builtin_keyingset_get_named(NULL, "Available");
 		else 
 			ks = ANIM_builtin_keyingset_get_named(NULL, "Rotation");
 		
