@@ -3007,7 +3007,7 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 			}
 
 			if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
-				facf *= v->length;
+				facf *= seq->seq1->len;
 			}
 			facf *= v->globalSpeed;
 			
