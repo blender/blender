@@ -1762,6 +1762,9 @@ public:
 		for (a = 0; a < tex_indices.size(); a++) {
 			MTex *t = ma->mtex[tex_indices[a]];
 			Image *ima = t->tex->ima;
+			
+			// Image not set for texture
+			if(!ima) continue;
 
 			// we assume map input is always TEXCO_UV
 
