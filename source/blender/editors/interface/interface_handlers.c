@@ -4129,7 +4129,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			if (ANIM_driver_can_paste())
 				uiItemO(layout, "Paste Driver", 0, "ANIM_OT_paste_driver_button");
 		}
-		else if(but->flag & UI_BUT_ANIMATED_KEY);
+		else if(but->flag & (UI_BUT_ANIMATED_KEY|UI_BUT_ANIMATED));
 		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
 			uiItemS(layout);
 
