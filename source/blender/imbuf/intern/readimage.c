@@ -151,7 +151,7 @@ ImBuf *IMB_testiffname(char *name, int flags)
 	file = open(filename,O_BINARY|O_RDONLY);
 	if(file < 0) return 0;
 
-	ibuf=IMB_loadifffile(file, flags|IB_test);
+	ibuf=IMB_loadifffile(file, flags|IB_test|IB_multilayer);
 	if(ibuf) {
 		BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
 		BLI_strncpy(ibuf->cachename, filename, sizeof(ibuf->cachename));
