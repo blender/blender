@@ -1717,6 +1717,9 @@ public:
 			MTex *t = ma->mtex[tex_indices[a]];
 			Image *ima = t->tex->ima;
 			
+			// Image not set for texture
+			if(!ima) continue;
+			
 			std::string key(id_name(ima));
 			key = translate_id(key);
 
@@ -1804,7 +1807,7 @@ public:
 				// technique FCOLLADA, with the <bump> tag, is most likely the best understood,
 				// most widespread de-facto standard.
 				texture.setProfileName("FCOLLADA");
-				texture.setChildElementName("bump");				
+				texture.setChildElementName("bump");
 				ep.addExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
 			}
 		}
