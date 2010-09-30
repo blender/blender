@@ -773,21 +773,9 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 			if (pchan) {
 				if (autokeyframe_cfra_can_key(scene, &pld->ob->id)) {
 					ListBase dsources = {NULL, NULL};
-					KeyingSet *ks = NULL;
 					
-					/* get KeyingSet to use 
-					 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
-					 * 	  or otherwise key transforms only
-					 */
-					if (poselib_ks_locrotscale == NULL)
-						poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
-					 
-					if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
-						ks = ANIM_scene_get_active_keyingset(scene);
-					else if (IS_AUTOKEY_FLAG(INSERTAVAIL))
-						ks = ANIM_builtin_keyingset_get_named(NULL, "Available");
-					else 
-						ks = ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
+					/* get KeyingSet to use */
+					KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "LocRotScale");
 					
 					/* now insert the keyframe(s) using the Keying Set
 					 *	1) add datasource override for the PoseChannel

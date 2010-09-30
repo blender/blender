@@ -193,6 +193,9 @@ struct KeyingSet *ANIM_scene_get_active_keyingset(struct Scene *scene);
 /* Get the index of the Keying Set provided, for the given Scene */
 int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks);
 
+/* Get Keying Set to use for Auto-Keyframing some transforms */
+struct KeyingSet *ANIM_get_keyingset_for_autokeying(struct Scene *scene, const char *tranformKSName);
+
 /* Create (and show) a menu containing all the Keying Sets which can be used in the current context */
 void ANIM_keying_sets_menu_setup(struct bContext *C, char title[], char op_name[]);
 

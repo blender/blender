@@ -155,6 +155,7 @@ void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int 
 			case ANIMTYPE_DSMESH:
 			{
 				/* need to verify that this data is valid for now */
+				// XXX: ale may be null!
 				if (ale->adt)
 					ale->adt->flag |= ADT_UI_ACTIVE;
 			}
@@ -462,7 +463,7 @@ void ANIM_flush_setting_anim_channels (bAnimContext *ac, ListBase *anim_data, bA
 				break;
 			
 			/* store this level as the 'old' level now */
-			prevLevel= level;
+			prevLevel= level; // XXX: prevLevel is unused
 		}
 	}
 }
@@ -1899,7 +1900,6 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *
 		return OPERATOR_CANCELLED;
 		
 	/* get useful pointers from animation context data */
-	scene= ac.scene;
 	ar= ac.ar;
 	v2d= &ar->v2d;
 	

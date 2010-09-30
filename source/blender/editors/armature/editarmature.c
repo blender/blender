@@ -4948,18 +4948,8 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 	
 	/* perform autokeying on the bones if needed */
 	if (autokey) {
-		KeyingSet *ks;
-		
-		/* get KeyingSet to use 
-		 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
-		 * 	  or otherwise key transforms only
-		 */
-		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
-			ks = ANIM_scene_get_active_keyingset(scene);
-		else if (IS_AUTOKEY_FLAG(INSERTAVAIL))
-			ks = ANIM_builtin_keyingset_get_named(NULL, "Available");
-		else 
-			ks = ANIM_builtin_keyingset_get_named(NULL, "Scaling");
+		/* get KeyingSet to use */
+		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Scaling");
 		
 		/* insert keyframes */
 		ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
@@ -5027,18 +5017,8 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 	
 	/* perform autokeying on the bones if needed */
 	if (autokey) {
-		KeyingSet *ks;
-		
-		/* get KeyingSet to use 
-		 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
-		 * 	  or otherwise key transforms only
-		 */
-		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
-			ks = ANIM_scene_get_active_keyingset(scene);
-		else if (IS_AUTOKEY_FLAG(INSERTAVAIL))
-			ks = ANIM_builtin_keyingset_get_named(NULL, "Available");
-		else 
-			ks = ANIM_builtin_keyingset_get_named(NULL, "Location");
+		/* get KeyingSet to use */
+		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Location");
 		
 		/* insert keyframes */
 		ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
@@ -5190,18 +5170,8 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 	
 	/* perform autokeying on the bones if needed */
 	if (autokey) {
-		KeyingSet *ks;
-		
-		/* get KeyingSet to use 
-		 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
-		 * 	  or otherwise key transforms only
-		 */
-		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
-			ks = ANIM_scene_get_active_keyingset(scene);
-		else if (IS_AUTOKEY_FLAG(INSERTAVAIL))
-			ks = ANIM_builtin_keyingset_get_named(NULL, "Available");
-		else 
-			ks = ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+		/* get KeyingSet to use */
+		KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, "Rotation");
 		
 		/* insert keyframes */
 		ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);

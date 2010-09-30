@@ -676,6 +676,21 @@ int ANIM_scene_get_keyingset_index (Scene *scene, KeyingSet *ks)
 		return 0;
 }
 
+/* Get Keying Set to use for Auto-Keyframing some transforms */
+KeyingSet *ANIM_get_keyingset_for_autokeying(Scene *scene, const char *tranformKSName)
+{
+	/* get KeyingSet to use 
+	 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
+	 * 	  or otherwise key transforms only
+	 */
+	if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
+		return ANIM_scene_get_active_keyingset(scene);
+	else if (IS_AUTOKEY_FLAG(INSERTAVAIL))
+		return ANIM_builtin_keyingset_get_named(NULL, "Available");
+	else 
+		return ANIM_builtin_keyingset_get_named(NULL, tranformKSName);
+}
+
 /* Menu of All Keying Sets ----------------------------- */
 
 /* Create (and show) a menu containing all the Keying Sets which can be used in the current context */
