@@ -1620,13 +1620,6 @@ private:
 		
 		// allocate UV layers
 		unsigned int totuvset = mesh->getUVCoords().getInputInfosArray().getCount();
-
-		// for (i = 0; i < totuvset; i++) {
-		// 	if (mesh->getUVCoords().getLength(i) == 0) {
-		// 		totuvset = 0;
-		// 		break;
-		// 	}
-		// }
  
 		for (i = 0; i < totuvset; i++) {
 			if (mesh->getUVCoords().getLength(i) == 0) {
@@ -1636,7 +1629,8 @@ private:
 		}
 
 		for (i = 0; i < totuvset; i++) {
-			CustomData_add_layer(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, me->totface);
+			COLLADAFW::MeshVertexData::InputInfos *info = mesh->getUVCoords().getInputInfosArray()[i];
+			CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, me->totface, info->mName.c_str());
 			//this->set_layername_map[i] = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
 		}
 
@@ -1702,7 +1696,7 @@ private:
 #else
 					for (k = 0; k < index_list_array.getCount(); k++) {
 						int uvset_index = index_list_array[k]->getSetIndex();
-
+						
 						// get mtface by face index and uv set index
 						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, uvset_index);
 						set_face_uv(&mtface[face_index], uvs, *index_list_array[k], index, false);
@@ -1906,8 +1900,16 @@ public:
 									 Mesh *me, TexIndexTextureArrayMap& texindex_texarray_map,
 									 MTex *color_texture)
 	{
-		COLLADAFW::TextureMapId texture_index = ctexture.getTextureMapId();
-		char *uvname = CustomData_get_layer_name(&me->fdata, CD_MTFACE, ctexture.getSetIndex());
+		const COLLADAFW::TextureMapId texture_index = ctexture.getTextureMapId();
+		const size_t setindex = ctexture.getSetIndex();
+		std::string uvname = ctexture.getName();
+		
+		const CustomData *data = &me->fdata;
+		int layer_index = CustomData_get_layer_index(data, CD_MTFACE);
+		CustomDataLayer *cdl = &data->layers[layer_index+setindex];
+		
+		/* set uvname to bind_vertex_input semantic */
+		BLI_strncpy(cdl->name, uvname.c_str(), sizeof(cdl->name));
 
 		if (texindex_texarray_map.find(texture_index) == texindex_texarray_map.end()) {
 			
@@ -1924,7 +1926,7 @@ public:
 			MTex *texture = *it;
 			
 			if (texture) {
-				strcpy(texture->uvname, uvname);
+				BLI_strncpy(texture->uvname, uvname.c_str(), sizeof(texture->uvname));
 				if (texture->mapto == MAP_COL) color_texture = texture;
 			}
 		}
