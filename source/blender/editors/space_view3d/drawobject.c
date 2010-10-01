@@ -1281,17 +1281,16 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		else if (i==1 && (ob == v3d->camera)) glBegin(GL_TRIANGLES);
 		else break;
 		
-		vec[0][0]= -0.7*cam->drawsize*caspx;
-		vec[0][1]= 1.1*cam->drawsize*caspy;
-		glVertex3fv(vec[0]);
+		vec[0][0]= -0.7 * cam->drawsize;
+		vec[0][1]= cam->drawsize * (caspy + 0.1);
+		glVertex3fv(vec[0]); /* left */
 		
-		vec[0][0]= 0.0; 
-		vec[0][1]= 1.8*cam->drawsize*caspy;
-		glVertex3fv(vec[0]);
+		vec[0][0] *= -1.0;
+		glVertex3fv(vec[0]); /* right */
 		
-		vec[0][0]= 0.7*cam->drawsize*caspx; 
-		vec[0][1]= 1.1*cam->drawsize*caspy;
-		glVertex3fv(vec[0]);
+		vec[0][0]= 0.0;
+		vec[0][1]= 1.1 * cam->drawsize * (caspy + 0.7);
+		glVertex3fv(vec[0]); /* top */
 	
 		glEnd();
 	}
