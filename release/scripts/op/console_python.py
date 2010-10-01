@@ -161,6 +161,10 @@ def execute(context):
     stdout.truncate(0)
     stderr.truncate(0)
 
+    # special exception. its possible the command loaded a new user interface
+    if hash(sc) != hash(context.space_data):
+        return
+
     bpy.ops.console.scrollback_append(text=sc.prompt + line, type='INPUT')
 
     if is_multiline:
