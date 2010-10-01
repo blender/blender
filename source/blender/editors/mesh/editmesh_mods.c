@@ -284,7 +284,7 @@ int EM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot, s
 	
 	/* yah, opengl doesn't do concave... tsk! */
 	ED_region_pixelspace(vc->ar);
-	 draw_triangulated(mcords, tot);	
+	draw_triangulated(mcords, tot);
 	
 	glBegin(GL_LINE_LOOP);	/* for zero sized masks, lines */
 	for(a=0; a<tot; a++) glVertex2s(mcords[a][0], mcords[a][1]);

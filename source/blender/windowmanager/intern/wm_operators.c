@@ -2435,11 +2435,21 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 
 			{
+				short x, y;
 				short *lasso= gesture->customdata;
-				lasso += 2 * gesture->points;
-				lasso[0] = event->x - sx;
-				lasso[1] = event->y - sy;
-				gesture->points++;
+				
+				lasso += (2 * gesture->points - 2);
+				x = (event->x - sx - lasso[0]);
+				y = (event->y - sy - lasso[1]);
+				
+				/* make a simple distance check to get a smoother lasso
+				   add only when at least 2 pixels between this and previous location */
+				if((x*x+y*y) > 4) {
+					lasso += 2;
+					lasso[0] = event->x - sx;
+					lasso[1] = event->y - sy;
+					gesture->points++;
+				}
 			}
 			break;
 			
