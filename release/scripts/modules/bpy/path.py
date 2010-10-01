@@ -52,6 +52,17 @@ def relpath(path, start=None):
     return path
 
 
+def is_subdir(path, directory):
+    """
+    Returns true if *path* in a subdirectory of *directory*.
+    Both paths must be absolute.
+    """
+    from os.path import normpath, normcase
+    path = normpath(normcase(path))
+    directory = normpath(normcase(directory))
+    return path.startswith(directory)
+
+
 def clean_name(name, replace="_"):
     """
     Returns a name with characters replaced that may cause problems under various circumstances, such as writing to a file.
