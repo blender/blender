@@ -2260,7 +2260,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Base *base;
 	Object *ob;
 	float backcol[3];
-	int retopo= 0, sculptparticle= 0;
+	int retopo= 0, sculptparticle= 0, lay_used= 0;
 	Object *obact = OBACT;
 	char *grid_unit= NULL;
 
@@ -2363,8 +2363,12 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		/* Transp and X-ray afterdraw stuff for sets is done later */
 	}
 
+	lay_used= 0;
+
 	/* then draw not selected and the duplis, but skip editmode object */
 	for(base= scene->base.first; base; base= base->next) {
+		lay_used |= base->lay;
+
 		if(v3d->lay & base->lay) {
 			
 			/* dupli drawing */
@@ -2376,6 +2380,20 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 					draw_object(scene, ar, v3d, base, 0);
 			}
 		}
+	}
+
+	if(v3d->lay_used != lay_used) { /* happens when loading old files or loading with UI load */
+		ARegion *ar;
+		ScrArea *sa= CTX_wm_area(C);
+
+		/* find header and force tag redraw */
+		for(ar= sa->regionbase.first; ar; ar= ar->next)
+			if(ar->regiontype==RGN_TYPE_HEADER) {
+				ED_region_tag_redraw(ar);
+				break;
+			}
+
+		v3d->lay_used= lay_used;
 	}
 
 //	retopo= retopo_mesh_check() || retopo_curve_check();
