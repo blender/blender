@@ -1383,7 +1383,7 @@ static void rna_def_material_specularity(StructRNA *srna)
 	RNA_def_property_int_sdna(prop, NULL, "har");
 	RNA_def_property_range(prop, 1, 511);
 	RNA_def_property_ui_text(prop, "Specular Hardness", "");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	prop= RNA_def_property(srna, "specular_ior", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "refrac");

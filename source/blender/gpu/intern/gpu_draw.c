@@ -903,9 +903,7 @@ static struct GPUMaterialState {
 static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, const int gamma)
 {
 	if (bmat->mode & MA_SHLESS) {
-		smat->diff[0]= bmat->r;
-		smat->diff[1]= bmat->g;
-		smat->diff[2]= bmat->b;
+		copy_v3_v3(smat->diff, &bmat->r);
 		smat->diff[3]= 1.0;
 
 		if(gamma) {
@@ -913,14 +911,10 @@ static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, 
 		}	
 	}
 	else {
-		smat->diff[0]= (bmat->ref + bmat->emit) * bmat->r;
-		smat->diff[1]= (bmat->ref + bmat->emit) * bmat->g;
-		smat->diff[2]= (bmat->ref + bmat->emit) * bmat->b;
+		madd_v3_v3fl(smat->diff, &bmat->r, bmat->ref + bmat->emit);
 		smat->diff[3]= 1.0; /* caller may set this to bmat->alpha */
 
-		smat->spec[0]= bmat->spec * bmat->specr;
-		smat->spec[1]= bmat->spec * bmat->specg;
-		smat->spec[2]= bmat->spec * bmat->specb;
+		madd_v3_v3fl(smat->spec, &bmat->specr, bmat->spec);
 		smat->spec[3]= 1.0; /* always 1 */
 		smat->hard= CLAMPIS(bmat->har, 0, 128);
 
@@ -1049,14 +1043,10 @@ int GPU_enable_material(int nr, void *attribs)
 
 		memset(&GMS, 0, sizeof(GMS));
 
-		diff[0]= (defmaterial.ref+defmaterial.emit)*defmaterial.r;
-		diff[1]= (defmaterial.ref+defmaterial.emit)*defmaterial.g;
-		diff[2]= (defmaterial.ref+defmaterial.emit)*defmaterial.b;
+		madd_v3_v3fl(diff, &defmaterial.r, defmaterial.ref + defmaterial.emit);
 		diff[3]= 1.0;
 
-		spec[0]= defmaterial.spec*defmaterial.specr;
-		spec[1]= defmaterial.spec*defmaterial.specg;
-		spec[2]= defmaterial.spec*defmaterial.specb;
+		madd_v3_v3fl(spec, &defmaterial.specr, defmaterial.spec);
 		spec[3]= 1.0;
 
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
@@ -1269,14 +1259,14 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 		
 		if(la->type==LA_SUN) {
 			/* sun lamp */
-			VECCOPY(direction, base->object->obmat[2]);
+			copy_v3_v3(direction, base->object->obmat[2]);
 			direction[3]= 0.0;
 
 			glLightfv(GL_LIGHT0+count, GL_POSITION, direction); 
 		}
 		else {
 			/* other lamps with attenuation */
-			VECCOPY(position, base->object->obmat[3]);
+			copy_v3_v3(position, base->object->obmat[3]);
 			position[3]= 1.0f;
 
 			glLightfv(GL_LIGHT0+count, GL_POSITION, position); 
@@ -1286,9 +1276,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 			
 			if(la->type==LA_SPOT) {
 				/* spot lamp */
-				direction[0]= -base->object->obmat[2][0];
-				direction[1]= -base->object->obmat[2][1];
-				direction[2]= -base->object->obmat[2][2];
+				negate_v3_v3(direction, base->object->obmat[2]);
 				glLightfv(GL_LIGHT0+count, GL_SPOT_DIRECTION, direction);
 				glLightf(GL_LIGHT0+count, GL_SPOT_CUTOFF, la->spotsize/2.0);
 				glLightf(GL_LIGHT0+count, GL_SPOT_EXPONENT, 128.0*la->spotblend);
@@ -1298,9 +1286,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 		}
 		
 		/* setup energy */
-		energy[0]= la->energy*la->r;
-		energy[1]= la->energy*la->g;
-		energy[2]= la->energy*la->b;
+		madd_v3_v3fl(energy, &la->r, la->energy);
 		energy[3]= 1.0;
 
 		glLightfv(GL_LIGHT0+count, GL_DIFFUSE, energy); 
