@@ -1671,8 +1671,19 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	int numVerts = me->totvert;
 	int required_mode;
 	int isPrevDeform= FALSE;
+	int skipVirtualArmature = (useDeform < 0);
 
-	md = firstmd = (useDeform<0) ? ob->modifiers.first : modifiers_getVirtualModifierList(ob);
+	if(!skipVirtualArmature) {
+		firstmd = modifiers_getVirtualModifierList(ob);
+	}
+	else {
+		/* game engine exception */
+		firstmd = ob->modifiers.first;
+		if(firstmd && firstmd->type == eModifierType_Armature)
+			firstmd = firstmd->next;
+	}
+
+	md = firstmd;
 
 	modifiers_clearErrors(ob);
 
