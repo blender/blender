@@ -1363,7 +1363,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_scene_sort(bmain, scene);
-	WM_event_add_notifier(C, NC_SCENE|NC_OBJECT|ND_DRAW, scene); /* is NC_SCENE needed ? */
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, scene);
 
 	return OPERATOR_FINISHED;
 }
