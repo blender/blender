@@ -45,6 +45,8 @@
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -329,7 +331,8 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 	cdc.draw= draw;
 
 	if(sc->type==CONSOLE_TYPE_PYTHON) {
-		int prompt_len;
+		ConsoleLine cl_dummy= {0};
+		int prompt_len= strlen(sc->prompt);
 		
 		if(sc->sel_start != sc->sel_end) {
 			sel[0]= sc->sel_start;
@@ -338,28 +341,24 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 		
 		/* text */
 		if(draw) {
-			prompt_len= strlen(sc->prompt);
-			console_line_color(fg, CONSOLE_LINE_INPUT);
-			glColor3ubv(fg);
-
-			/* command line */
-			if(prompt_len) {
-				BLF_position(mono, xy[0], xy[1], 0); xy[0] += cwidth * prompt_len;
-				BLF_draw(mono, sc->prompt);
-			}
-			BLF_position(mono, xy[0], xy[1], 0);
-			BLF_draw(mono, cl->line);
-
 			/* cursor */
 			UI_GetThemeColor3ubv(TH_CONSOLE_CURSOR, (char *)fg);
 			glColor3ubv(fg);
-			glRecti(xy[0]+(cwidth*cl->cursor) -1, xy[1]-2, xy[0]+(cwidth*cl->cursor) +1, xy[1]+sc->lheight-2);
+			glRecti(xy[0]+(cwidth*(cl->cursor+prompt_len)) -1, xy[1]-2, xy[0]+(cwidth*(cl->cursor+prompt_len)) +1, xy[1]+sc->lheight-2);
 
 			xy[0]= x_orig; /* remove prompt offset */
 		}
-		
-		xy[1] += sc->lheight;
-		
+
+		/* fake the edit line being in the scroll buffer */
+		cl_dummy.type= CONSOLE_LINE_INPUT;
+		cl_dummy.len= cl_dummy.len_alloc= prompt_len + cl->len;
+		cl_dummy.len_alloc= cl_dummy.len + 1;
+		cl_dummy.line= MEM_mallocN(cl_dummy.len_alloc, "cl_dummy");
+		memcpy(cl_dummy.line, sc->prompt, (cl_dummy.len_alloc - cl->len));
+		memcpy(cl_dummy.line + ((cl_dummy.len_alloc - cl->len)) - 1, cl->line, cl->len + 1);
+		BLI_addtail(&sc->scrollback, &cl_dummy);
+
+
 		for(cl= sc->scrollback.last; cl; cl= cl->prev) {
 			y_prev= xy[1];
 
@@ -378,6 +377,10 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 				break;
 			}
 		}
+
+		/* temp line end */
+		MEM_freeN(cl_dummy.line);
+		BLI_remlink(&sc->scrollback, &cl_dummy);
 	}
 	else { 
 		Report *report;

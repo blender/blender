@@ -52,6 +52,12 @@
 
 #include "console_intern.h"
 
+static void console_select_offset(SpaceConsole *sc, const int offset)
+{
+	sc->sel_start += offset;
+	sc->sel_end += offset;
+}
+
 void console_history_free(SpaceConsole *sc, ConsoleLine *cl)
 {
 	BLI_remlink(&sc->history, cl);
@@ -207,8 +213,7 @@ ConsoleLine *console_scrollback_add_str(const bContext *C, char *str, int own)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ConsoleLine *ci= console_lb_add_str__internal(&sc->scrollback, C, str, own);
-	sc->sel_start += ci->len + 1;
-	sc->sel_end   += ci->len + 1;
+	console_select_offset(sc, ci->len + 1);
 	return ci;
 }
 
@@ -383,8 +388,13 @@ static int insert_exec(bContext *C, wmOperator *op)
 	
 	MEM_freeN(str);
 	
-	if(len==0)
+	if(len==0) {
 		return OPERATOR_CANCELLED;
+	}
+	else {
+		SpaceConsole *sc= CTX_wm_space_console(C);
+		console_select_offset(sc, len);
+	}
 		
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
@@ -456,8 +466,13 @@ static int delete_exec(bContext *C, wmOperator *op)
 		break;
 	}
 	
-	if(!done)
+	if(!done) {
 		return OPERATOR_CANCELLED;
+	}
+	else {
+		SpaceConsole *sc= CTX_wm_space_console(C);
+		console_select_offset(sc, -1);
+	}
 	
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
@@ -529,8 +544,8 @@ static int history_cycle_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ConsoleLine *ci= console_history_verify(C); /* TODO - stupid, just prevernts crashes when no command line */
-	
 	short reverse= RNA_boolean_get(op->ptr, "reverse"); /* assumes down, reverse is up */
+	int prev_len= ci->len;
 
 	/* keep a copy of the line above so when history is cycled
 	 * this is the only function that needs to know about the double-up */
@@ -559,6 +574,9 @@ static int history_cycle_exec(bContext *C, wmOperator *op)
 
 		console_history_add(C, (ConsoleLine *)sc->history.last);
 	}
+	
+	ci= sc->history.last;
+	console_select_offset(sc, ci->len - prev_len);
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 
@@ -584,10 +602,12 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 /* the python exec operator uses this */
 static int history_append_exec(bContext *C, wmOperator *op)
 {
+	SpaceConsole *sc= CTX_wm_space_console(C);
 	ConsoleLine *ci= console_history_verify(C);
 	char *str= RNA_string_get_alloc(op->ptr, "text", NULL, 0); /* own this text in the new line, dont free */
 	int cursor= RNA_int_get(op->ptr, "current_character");
 	short rem_dupes= RNA_boolean_get(op->ptr, "remove_duplicates");
+	int prev_len= ci->len;
 
 	if(rem_dupes) {
 		SpaceConsole *sc= CTX_wm_space_console(C);
@@ -603,6 +623,7 @@ static int history_append_exec(bContext *C, wmOperator *op)
 	}
 
 	ci= console_history_add_str(C, str, 1); /* own the string */
+	console_select_offset(sc, ci->len - prev_len);
 	console_line_cursor_set(ci, cursor);
 	
 	ED_area_tag_redraw(CTX_wm_area(C));
