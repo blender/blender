@@ -433,9 +433,11 @@ void sound_seek_scene(struct bContext *C)
 
 	if(scene->audio.flag & AUDIO_SCRUB && !CTX_wm_screen(C)->animtimer)
 	{
-		// AUD_XXX TODO: fix scrubbing, it currently doesn't stop playing
 		if(scene->audio.flag & AUDIO_SYNC)
+		{
+			AUD_seek(scene->sound_scene_handle, CFRA / FPS);
 			AUD_seekSequencer(scene->sound_scene_handle, CFRA / FPS);
+		}
 		else
 			AUD_seek(scene->sound_scene_handle, CFRA / FPS);
 		AUD_resume(scene->sound_scene_handle);
