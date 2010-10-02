@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <math.h>
 
+extern "C" 
+{
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
@@ -39,9 +41,8 @@
 #include "DNA_curve_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_userdef_types.h"
 
-extern "C" 
-{
 #include "BKE_DerivedMesh.h"
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
@@ -1645,7 +1646,6 @@ public:
 		else if (ma->spec_shader == MA_SPEC_PHONG) {
 			ep.setShaderType(COLLADASW::EffectProfile::PHONG);
 			// shininess
-			// XXX not sure, stolen this from previous Collada plugin
 			ep.setShininess(ma->har);
 		}
 		else {
@@ -2627,7 +2627,12 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	asset.setUnit("decimetre", 0.1);
 	asset.setUpAxisType(COLLADASW::Asset::Z_UP);
 	// TODO: need an Author field in userpref
-	asset.getContributor().mAuthor = "Blender User";
+	if(strlen(U.author) > 0) {
+		asset.getContributor().mAuthor = U.author;
+	}
+	else {
+		asset.getContributor().mAuthor = "Blender User";
+	}
 #ifdef NAN_BUILDINFO
 	char version_buf[128];
 	sprintf(version_buf, "Blender %d.%02d.%d r%s", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION, build_rev);
