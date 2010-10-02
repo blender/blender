@@ -493,10 +493,10 @@ void GHOST_WindowCocoa::setTitle(const STR_String& title)
     GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setTitle(): window invalid")
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-	NSString *windowTitle = [[NSString alloc] initWithUTF8String:title];
+	NSString *windowTitle = [[NSString alloc] initWithCString:title encoding:NSISOLatin1StringEncoding];
 	
 	//Set associated file if applicable
-	if ([windowTitle hasPrefix:@"Blender"])
+	if (windowTitle && [windowTitle hasPrefix:@"Blender"])
 	{
 		NSRange fileStrRange;
 		NSString *associatedFileName;
@@ -509,13 +509,16 @@ void GHOST_WindowCocoa::setTitle(const STR_String& title)
 		{
 			fileStrRange.length = len;
 			associatedFileName = [windowTitle substringWithRange:fileStrRange];
+			[m_window setTitle:[associatedFileName lastPathComponent]];
+
+			//Blender used file open/save functions converte file names into legal URL ones
+			associatedFileName = [associatedFileName stringByAddingPercentEscapesUsingEncoding:NSISOLatin1StringEncoding];
 			@try {
 				[m_window setRepresentedFilename:associatedFileName];
 			}
 			@catch (NSException * e) {
 				printf("\nInvalid file path given in window title");
 			}
-			[m_window setTitle:[associatedFileName lastPathComponent]];
 		}
 		else {
 			[m_window setTitle:windowTitle];
