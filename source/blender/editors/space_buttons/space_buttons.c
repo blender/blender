@@ -236,6 +236,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 				case ND_FRAME:
 					buttons_area_redraw(sa, BCONTEXT_RENDER);
+					buttons_area_redraw(sa, BCONTEXT_OBJECT);
 					buttons_area_redraw(sa, BCONTEXT_MATERIAL);
 					buttons_area_redraw(sa, BCONTEXT_TEXTURE);
 					buttons_area_redraw(sa, BCONTEXT_WORLD);
