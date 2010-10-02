@@ -1416,8 +1416,17 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_read_homefile;
 	ot->poll= WM_operator_winactive;
+}
+
+static void WM_OT_read_factory_settings(wmOperatorType *ot)
+{
+	ot->name= "Load Factory Settings";
+	ot->idname= "WM_OT_read_factory_settings";
+	ot->description="Load default file and user preferences";
 	
-	RNA_def_boolean(ot->srna, "factory", 0, "Factory Settings", "");
+	ot->invoke= WM_operator_confirm;
+	ot->exec= WM_read_homefile;
+	ot->poll= WM_operator_winactive;
 }
 
 /* *************** open file **************** */
@@ -3059,6 +3068,7 @@ void wm_operatortype_init(void)
 {
 	WM_operatortype_append(WM_OT_window_duplicate);
 	WM_operatortype_append(WM_OT_read_homefile);
+	WM_operatortype_append(WM_OT_read_factory_settings);
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
