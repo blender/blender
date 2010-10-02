@@ -1695,8 +1695,6 @@ static void ntreeSetOutput(bNodeTree *ntree)
 {
 	bNode *node;
 
-	printf("\n");
-
 	/* find the active outputs, might become tree type dependant handler */
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
@@ -1724,9 +1722,6 @@ static void ntreeSetOutput(bNodeTree *ntree)
 			}
 			if(output==0)
 				node->flag |= NODE_DO_OUTPUT;
-
-			if(node->flag & NODE_DO_OUTPUT)
-				printf("do output %s\n", node->name);
 		}
 	}
 	
@@ -2584,7 +2579,10 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		
 	}
 	/* end animdata uglyness */
-	
+
+	/* ensures only a single output node is enabled */
+	ntreeSetOutput(ntree);
+
 	/* move over the compbufs */
 	/* right after ntreeCopyTree() oldsock pointers are valid */
 	for(node= ntree->nodes.first; node; node= node->next) {
