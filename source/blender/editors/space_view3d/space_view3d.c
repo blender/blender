@@ -542,7 +542,8 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene
 	while(base) {
 		lay_used|= base->lay;
 
-		if (lay_used & (1<<20-1)) break;
+		if ((lay_used & ((1<<20)-1)) == (1<<20)-1)
+			break;
 
 		base= base->next;
 	}
