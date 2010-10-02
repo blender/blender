@@ -1886,7 +1886,6 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bAnimContext ac;
-	Scene *scene;
 	ARegion *ar;
 	View2D *v2d;
 	int mval[2], channel_index;

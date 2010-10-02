@@ -926,52 +926,6 @@ void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar)
 	rv3d->camzoom= CLAMPIS(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 }
 
-
-static void drawviewborder_flymode(ARegion *ar)	
-{
-	/* draws 4 edge brackets that frame the safe area where the
-	mouse can move during fly mode without spinning the view */
-	float x1, x2, y1, y2;
-	
-	x1= 0.45*(float)ar->winx;
-	y1= 0.45*(float)ar->winy;
-	x2= 0.55*(float)ar->winx;
-	y2= 0.55*(float)ar->winy;
-	cpack(0);
-	
-	
-	glBegin(GL_LINES);
-	/* bottom left */
-	glVertex2f(x1,y1); 
-	glVertex2f(x1,y1+5);
-	
-	glVertex2f(x1,y1); 
-	glVertex2f(x1+5,y1);
-	
-	/* top right */
-	glVertex2f(x2,y2); 
-	glVertex2f(x2,y2-5);
-	
-	glVertex2f(x2,y2); 
-	glVertex2f(x2-5,y2);
-	
-	/* top left */
-	glVertex2f(x1,y2); 
-	glVertex2f(x1,y2-5);
-	
-	glVertex2f(x1,y2); 
-	glVertex2f(x1+5,y2);
-	
-	/* bottom right */
-	glVertex2f(x2,y1); 
-	glVertex2f(x2,y1+5);
-	
-	glVertex2f(x2,y1); 
-	glVertex2f(x2-5,y1);
-	glEnd();	
-}
-
-
 static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	float fac, a;
@@ -2456,8 +2410,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	/* Draw particle edit brush XXX (removed) */
 	
 
-	if(rv3d->persp==RV3D_CAMOB) drawviewborder(scene, ar, v3d);
-	if(rv3d->rflag & RV3D_FLYMODE) drawviewborder_flymode(ar);
+	if(rv3d->persp==RV3D_CAMOB)
+		drawviewborder(scene, ar, v3d);
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */

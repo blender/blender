@@ -1647,8 +1647,7 @@ void perspective_m4(float mat[][4],float left, float right, float bottom, float 
 
 }
 
-/* translate a matrix created by orthographic_m4 or perspective_m4 in viewspace XY coords (used to jitter the view)
- * transforms in worldspace coords. */
+/* translate a matrix created by orthographic_m4 or perspective_m4 in XY coords (used to jitter the view) */
 void window_translate_m4(float winmat[][4], float perspmat[][4], float x, float y)
 {
 	if(winmat[2][3] == -1.0f) {

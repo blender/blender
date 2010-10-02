@@ -64,6 +64,7 @@
 #include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_armature.h"
+#include "ED_space_api.h"
 
 #include "GPU_draw.h"
 
@@ -1973,10 +1974,58 @@ typedef struct FlyInfo {
 	double time_lastwheel; /* used to accelerate when using the mousewheel a lot */
 	double time_lastdraw; /* time between draws */
 
+	void *draw_handle_pixel;
+
 	/* use for some lag */
 	float dvec_prev[3]; /* old for some lag */
 
 } FlyInfo;
+
+static void drawFlyPixel(const struct bContext *C, struct ARegion *ar, void *arg)
+{
+	FlyInfo *fly = arg;
+
+	/* draws 4 edge brackets that frame the safe area where the
+	mouse can move during fly mode without spinning the view */
+	float x1, x2, y1, y2;
+	
+	x1= 0.45*(float)fly->ar->winx;
+	y1= 0.45*(float)fly->ar->winy;
+	x2= 0.55*(float)fly->ar->winx;
+	y2= 0.55*(float)fly->ar->winy;
+	cpack(0);
+	
+	
+	glBegin(GL_LINES);
+	/* bottom left */
+	glVertex2f(x1,y1); 
+	glVertex2f(x1,y1+5);
+	
+	glVertex2f(x1,y1); 
+	glVertex2f(x1+5,y1);
+	
+	/* top right */
+	glVertex2f(x2,y2); 
+	glVertex2f(x2,y2-5);
+	
+	glVertex2f(x2,y2); 
+	glVertex2f(x2-5,y2);
+	
+	/* top left */
+	glVertex2f(x1,y2); 
+	glVertex2f(x1,y2-5);
+	
+	glVertex2f(x1,y2); 
+	glVertex2f(x1+5,y2);
+	
+	/* bottom right */
+	glVertex2f(x2,y1); 
+	glVertex2f(x2,y1+5);
+	
+	glVertex2f(x2,y1); 
+	glVertex2f(x2-5,y1);
+	glEnd();
+}
 
 /* FlyInfo->state */
 #define FLY_RUNNING		0
@@ -2029,7 +2078,9 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 
 	fly->time_lastdraw= fly->time_lastwheel= PIL_check_seconds_timer();
 
-	fly->rv3d->rflag |= RV3D_FLYMODE|RV3D_NAVIGATING; /* so we draw the corner margins */
+	fly->draw_handle_pixel = ED_region_draw_cb_activate(fly->ar->type, drawFlyPixel, fly, REGION_DRAW_POST_PIXEL);
+
+	fly->rv3d->rflag |= RV3D_NAVIGATING; /* so we draw the corner margins */
 
 	/* detect weather to start with Z locking */
 	upvec[0]=1.0f; upvec[1]=0.0f; upvec[2]=0.0f;
@@ -2094,6 +2145,8 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 
 	WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), fly->timer);
 
+	ED_region_draw_cb_exit(fly->ar->type, fly->draw_handle_pixel);
+
 	rv3d->dist= fly->dist_backup;
 
 	if (fly->state == FLY_CANCEL) {
@@ -2146,7 +2199,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 		/*Done with correcting for the dist */
 	}
 
-	rv3d->rflag &= ~(RV3D_FLYMODE|RV3D_NAVIGATING);
+	rv3d->rflag &= ~RV3D_NAVIGATING;
 //XXX2.5	BIF_view3d_previewrender_signal(fly->sa, PR_DBASE|PR_DISPRECT); /* not working at the moment not sure why */
 
 	if(fly->obtfm)
