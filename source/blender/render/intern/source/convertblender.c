@@ -3748,6 +3748,10 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 			/* pre-scale */
 			lar->sh_invcampos[2]*= lar->sh_zfac;
 
+			/* halfway shadow buffer doesn't work for volumetric effects */
+			if(lar->buftype == LA_SHADBUF_HALFWAY)
+				lar->buftype = LA_SHADBUF_REGULAR;
+
 		}
 	}
 	else if(la->type==LA_HEMI) {
