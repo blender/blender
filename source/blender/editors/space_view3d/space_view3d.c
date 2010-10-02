@@ -533,16 +533,16 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene
 {
 	wmWindow *win= wmn->wm->winactive;
 	ScrArea *sa;
-	int lay_used= 0;
+	unsigned int lay_used= 0;
 	Base *base;
 
 	if (!win) return;
 
 	base= scene->base.first;
 	while(base) {
-		lay_used|= base->lay;
+		lay_used |= base->lay & ((1<<20)-1); /* ignore localview */
 
-		if ((lay_used & ((1<<20)-1)) == (1<<20)-1)
+		if (lay_used == (1<<20)-1)
 			break;
 
 		base= base->next;

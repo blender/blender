@@ -2214,7 +2214,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Base *base;
 	Object *ob;
 	float backcol[3];
-	int retopo= 0, sculptparticle= 0, lay_used= 0;
+	int retopo= 0, sculptparticle= 0;
+	unsigned int lay_used;
 	Object *obact = OBACT;
 	char *grid_unit= NULL;
 
@@ -2321,7 +2322,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* then draw not selected and the duplis, but skip editmode object */
 	for(base= scene->base.first; base; base= base->next) {
-		lay_used |= base->lay;
+		lay_used |= base->lay & ((1<<20)-1);
 
 		if(v3d->lay & base->lay) {
 			

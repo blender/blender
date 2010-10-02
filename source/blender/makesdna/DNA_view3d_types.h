@@ -139,7 +139,7 @@ typedef struct View3D {
 	
 	float viewquat[4], dist, pad1;	/* XXX depricated */
 	
-	int lay_used; /* used while drawing */
+	unsigned int lay_used; /* used while drawing */
 	
 	short persp;	/* XXX depricated */
 	short view;	/* XXX depricated */
