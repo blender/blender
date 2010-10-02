@@ -1359,11 +1359,13 @@ static int convert_exec(bContext *C, wmOperator *op)
 		ED_base_object_activate(C, basact);
 		BASACT= basact;
 	} else if (BASACT->object->flag & OB_DONE) {
-		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER|ND_DATA, BASACT->object);
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, BASACT->object);
+		WM_event_add_notifier(C, NC_OBJECT|ND_DATA, BASACT->object);
 	}
 
 	DAG_scene_sort(bmain, scene);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 
 	return OPERATOR_FINISHED;
 }
