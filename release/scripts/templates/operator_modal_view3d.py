@@ -23,12 +23,15 @@ class ViewOperator(bpy.types.Operator):
         if event.type == 'MOUSEMOVE':
             self.offset = (self._initial_mouse - Vector((event.mouse_x, event.mouse_y, 0.0))) * 0.02
             self.execute(context)
+            context.area.header_text_set("Offset %.4f %.4f %.4f" % tuple(self.offset))
 
         elif event.type == 'LEFTMOUSE':
+            context.area.header_text_set()
             return {'FINISHED'}
 
         elif event.type in ('RIGHTMOUSE', 'ESC'):
             rv3d.view_location = self._initial_location
+            context.area.header_text_set()
             return {'CANCELLED'}
 
         return {'RUNNING_MODAL'}

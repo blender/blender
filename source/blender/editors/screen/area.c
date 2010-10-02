@@ -414,7 +414,7 @@ void ED_area_tag_refresh(ScrArea *sa)
 /* *************************************************************** */
 
 /* use NULL to disable it */
-void ED_area_headerprint(ScrArea *sa, const char *str)
+void ED_area_headerprint(ScrArea *sa, char *str)
 {
 	ARegion *ar;
 	
