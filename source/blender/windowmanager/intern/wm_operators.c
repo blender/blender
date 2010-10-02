@@ -1909,7 +1909,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {	
 	if(!RNA_property_is_set(op->ptr, "filepath")) {
-		char *filepath[FILE_MAX];
+		char filepath[FILE_MAX];
 		BLI_strncpy(filepath, G.sce, sizeof(filepath));
 		BLI_replace_extension(filepath, sizeof(filepath), ".dae");
 		RNA_string_set(op->ptr, "filepath", filepath);
