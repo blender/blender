@@ -1656,11 +1656,13 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 				if(point == 1) {
 					curvemapping_set_black_white(sima->cumap, NULL, info->colfp);
-					curvemapping_do_ibuf(sima->cumap, ibuf);
+					if(ibuf->rect_float)
+						curvemapping_do_ibuf(sima->cumap, ibuf);
 				}
 				else if(point == 0) {
 					curvemapping_set_black_white(sima->cumap, info->colfp, NULL);
-					curvemapping_do_ibuf(sima->cumap, ibuf);
+					if(ibuf->rect_float)
+						curvemapping_do_ibuf(sima->cumap, ibuf);
 				}
 			}
 		}

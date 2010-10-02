@@ -477,7 +477,8 @@ static void rna_SpaceImageEditor_curves_update(Main *bmain, Scene *scene, Pointe
 	void *lock;
 
 	ibuf= ED_space_image_acquire_buffer(sima, &lock);
-	curvemapping_do_ibuf(sima->cumap, ibuf);
+	if(ibuf->rect_float)
+		curvemapping_do_ibuf(sima->cumap, ibuf);
 	ED_space_image_release_buffer(sima, lock);
 
 	WM_main_add_notifier(NC_IMAGE, sima->image);

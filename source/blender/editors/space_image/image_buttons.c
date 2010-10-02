@@ -303,8 +303,15 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 static int image_panel_poll(const bContext *C, PanelType *pt)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
+	ImBuf *ibuf;
+	void *lock;
+	int result;
+
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
+	result= ibuf && ibuf->rect_float;
+	ED_space_image_release_buffer(sima, lock);
 	
-	return ED_space_image_has_buffer(sima);
+	return result;
 }
 
 static void image_panel_curves(const bContext *C, Panel *pa)
