@@ -838,7 +838,6 @@ static int get_path_local(char *targetpath, char *folder_name, char *subfolder_n
 	extern char bprogname[]; /* argv[0] from creator.c */
 	char bprogdir[FILE_MAX];
 	char relfolder[FILE_MAX];
-	char cwd[FILE_MAX];
 	
 #ifdef PATH_DEBUG2
 	printf("get_path_local...\n");
@@ -853,19 +852,7 @@ static int get_path_local(char *targetpath, char *folder_name, char *subfolder_n
 	/* use argv[0] (bprogname) to get the path to the executable */
 	BLI_split_dirfile(bprogname, bprogdir, NULL);
 	
-	/* try EXECUTABLE_DIR/folder_name */
-	if(test_path(targetpath, bprogdir, "", relfolder))
-		return 1;
-	
-	/* try CWD/release/folder_name */
-	if(test_path(targetpath, BLI_getwdN(cwd), "release", relfolder))
-		return 1;
-	
-	/* try EXECUTABLE_DIR/release/folder_name */
-	if(test_path(targetpath, bprogdir, "release", relfolder))
-		return 1;
-	
-	/* try EXECUTABLE_DIR/2.5/folder_name - new default directory for local blender installed files */
+	/* try EXECUTABLE_DIR/2.5x/folder_name - new default directory for local blender installed files */
 	if(test_path(targetpath, bprogdir, blender_version_decimal(), relfolder))
 		return 1;
 
@@ -913,6 +900,34 @@ static int get_path_system(char *targetpath, char *folder_name, char *subfolder_
 {
 	char system_path[FILE_MAX];
 	const char *system_base_path;
+
+
+	/* first allow developer only overrides to the system path
+	 * these are only used when running blender from source */
+	extern char bprogname[]; /* argv[0] from creator.c */
+	char cwd[FILE_MAX];
+	char relfolder[FILE_MAX];
+	char bprogdir[FILE_MAX];
+
+	/* use argv[0] (bprogname) to get the path to the executable */
+	BLI_split_dirfile(bprogname, bprogdir, NULL);
+
+	if (subfolder_name) {
+		BLI_join_dirfile(relfolder, folder_name, subfolder_name);
+	} else {
+		BLI_strncpy(relfolder, folder_name, FILE_MAX);
+	}
+
+	/* try CWD/release/folder_name */
+	if(test_path(targetpath, BLI_getwdN(cwd), "release", relfolder))
+		return 1;
+	
+	/* try EXECUTABLE_DIR/release/folder_name */
+	if(test_path(targetpath, bprogdir, "release", relfolder))
+		return 1;
+	/* end developer overrides */
+
+
 
 	system_path[0] = '\0';
 
