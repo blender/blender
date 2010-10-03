@@ -217,7 +217,7 @@ error_cleanup:
 
 
 /* string conversion, escape non-unicode chars, coerce must be set to NULL */
-const char *PuC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
+const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 {
 	char *result;
 
