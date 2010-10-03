@@ -926,52 +926,6 @@ void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar)
 	rv3d->camzoom= CLAMPIS(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 }
 
-
-static void drawviewborder_flymode(ARegion *ar)	
-{
-	/* draws 4 edge brackets that frame the safe area where the
-	mouse can move during fly mode without spinning the view */
-	float x1, x2, y1, y2;
-	
-	x1= 0.45*(float)ar->winx;
-	y1= 0.45*(float)ar->winy;
-	x2= 0.55*(float)ar->winx;
-	y2= 0.55*(float)ar->winy;
-	cpack(0);
-	
-	
-	glBegin(GL_LINES);
-	/* bottom left */
-	glVertex2f(x1,y1); 
-	glVertex2f(x1,y1+5);
-	
-	glVertex2f(x1,y1); 
-	glVertex2f(x1+5,y1);
-	
-	/* top right */
-	glVertex2f(x2,y2); 
-	glVertex2f(x2,y2-5);
-	
-	glVertex2f(x2,y2); 
-	glVertex2f(x2-5,y2);
-	
-	/* top left */
-	glVertex2f(x1,y2); 
-	glVertex2f(x1,y2-5);
-	
-	glVertex2f(x1,y2); 
-	glVertex2f(x1+5,y2);
-	
-	/* bottom right */
-	glVertex2f(x2,y1); 
-	glVertex2f(x2,y1+5);
-	
-	glVertex2f(x2,y1); 
-	glVertex2f(x2-5,y1);
-	glEnd();	
-}
-
-
 static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	float fac, a;
@@ -1976,19 +1930,17 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	mul_m4_m4m4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
 	invert_m4_m4(rv3d->persinv, rv3d->persmat);
 	invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
-	
+
 	/* calculate pixelsize factor once, is used for lamps and obcenters */
 	{
-		rv3d->pixsize= 2.0f;
-		
-		if(rv3d->persp == RV3D_ORTHO || v3d->camera) { /* camera view needs with for ortho & persp */
-			float len1= len_v3(rv3d->persinv[0]);
-			float len2= len_v3(rv3d->persinv[1]);
-			rv3d->pixsize *= MAX2(len1, len2);
-		}
+		/* note:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
+		 * because of float point precission problems at large values [#23908] */
+		float v1[3]= {rv3d->persmat[0][0], rv3d->persmat[1][0], rv3d->persmat[2][0]};
+		float v2[3]= {rv3d->persmat[0][1], rv3d->persmat[1][1], rv3d->persmat[2][1]};
+		float len1= 1.0f / len_v3(v1);
+		float len2= 1.0f / len_v3(v2);
 
-		/* correct for window size */
-		rv3d->pixsize/= (float)MAX2(ar->winx, ar->winy);
+		rv3d->pixsize = (2.0f * MAX2(len1, len2)) / (float)MAX2(ar->winx, ar->winy);
 	}
 
 	/* set for opengl */
@@ -2263,6 +2215,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Object *ob;
 	float backcol[3];
 	int retopo= 0, sculptparticle= 0;
+	unsigned int lay_used;
 	Object *obact = OBACT;
 	char *grid_unit= NULL;
 
@@ -2365,8 +2318,12 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		/* Transp and X-ray afterdraw stuff for sets is done later */
 	}
 
+	lay_used= 0;
+
 	/* then draw not selected and the duplis, but skip editmode object */
 	for(base= scene->base.first; base; base= base->next) {
+		lay_used |= base->lay & ((1<<20)-1);
+
 		if(v3d->lay & base->lay) {
 			
 			/* dupli drawing */
@@ -2378,6 +2335,20 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 					draw_object(scene, ar, v3d, base, 0);
 			}
 		}
+	}
+
+	if(v3d->lay_used != lay_used) { /* happens when loading old files or loading with UI load */
+		ARegion *ar;
+		ScrArea *sa= CTX_wm_area(C);
+
+		/* find header and force tag redraw */
+		for(ar= sa->regionbase.first; ar; ar= ar->next)
+			if(ar->regiontype==RGN_TYPE_HEADER) {
+				ED_region_tag_redraw(ar);
+				break;
+			}
+
+		v3d->lay_used= lay_used;
 	}
 
 //	retopo= retopo_mesh_check() || retopo_curve_check();
@@ -2440,8 +2411,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	/* Draw particle edit brush XXX (removed) */
 	
 
-	if(rv3d->persp==RV3D_CAMOB) drawviewborder(scene, ar, v3d);
-	if(rv3d->rflag & RV3D_FLYMODE) drawviewborder_flymode(ar);
+	if(rv3d->persp==RV3D_CAMOB)
+		drawviewborder(scene, ar, v3d);
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */

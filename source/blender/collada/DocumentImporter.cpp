@@ -1620,13 +1620,6 @@ private:
 		
 		// allocate UV layers
 		unsigned int totuvset = mesh->getUVCoords().getInputInfosArray().getCount();
-
-		// for (i = 0; i < totuvset; i++) {
-		// 	if (mesh->getUVCoords().getLength(i) == 0) {
-		// 		totuvset = 0;
-		// 		break;
-		// 	}
-		// }
  
 		for (i = 0; i < totuvset; i++) {
 			if (mesh->getUVCoords().getLength(i) == 0) {
@@ -1636,7 +1629,8 @@ private:
 		}
 
 		for (i = 0; i < totuvset; i++) {
-			CustomData_add_layer(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, me->totface);
+			COLLADAFW::MeshVertexData::InputInfos *info = mesh->getUVCoords().getInputInfosArray()[i];
+			CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, me->totface, info->mName.c_str());
 			//this->set_layername_map[i] = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
 		}
 
@@ -1702,7 +1696,7 @@ private:
 #else
 					for (k = 0; k < index_list_array.getCount(); k++) {
 						int uvset_index = index_list_array[k]->getSetIndex();
-
+						
 						// get mtface by face index and uv set index
 						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, uvset_index);
 						set_face_uv(&mtface[face_index], uvs, *index_list_array[k], index, false);
@@ -1906,8 +1900,16 @@ public:
 									 Mesh *me, TexIndexTextureArrayMap& texindex_texarray_map,
 									 MTex *color_texture)
 	{
-		COLLADAFW::TextureMapId texture_index = ctexture.getTextureMapId();
-		char *uvname = CustomData_get_layer_name(&me->fdata, CD_MTFACE, ctexture.getSetIndex());
+		const COLLADAFW::TextureMapId texture_index = ctexture.getTextureMapId();
+		const size_t setindex = ctexture.getSetIndex();
+		std::string uvname = ctexture.getName();
+		
+		const CustomData *data = &me->fdata;
+		int layer_index = CustomData_get_layer_index(data, CD_MTFACE);
+		CustomDataLayer *cdl = &data->layers[layer_index+setindex];
+		
+		/* set uvname to bind_vertex_input semantic */
+		BLI_strncpy(cdl->name, uvname.c_str(), sizeof(cdl->name));
 
 		if (texindex_texarray_map.find(texture_index) == texindex_texarray_map.end()) {
 			
@@ -1924,7 +1926,7 @@ public:
 			MTex *texture = *it;
 			
 			if (texture) {
-				strcpy(texture->uvname, uvname);
+				BLI_strncpy(texture->uvname, uvname.c_str(), sizeof(texture->uvname));
 				if (texture->mapto == MAP_COL) color_texture = texture;
 			}
 		}
@@ -3526,11 +3528,12 @@ public:
 			// XXX empty node may not mean it is empty object, not sure about this
 			else {
 				ob = add_object(sce, OB_EMPTY);
-				rename_id(&ob->id, (char*)node->getOriginalId().c_str());
 			}
 			
 			// check if object is not NULL
 			if (!ob) return;
+			
+			rename_id(&ob->id, (char*)node->getOriginalId().c_str());
 
 			object_map[node->getUniqueId()] = ob;
 			node_map[node->getUniqueId()] = node;
@@ -3836,6 +3839,75 @@ public:
 			}
 			break;
 		}
+		
+		switch(camera->getDescriptionType()) {
+		case COLLADAFW::Camera::ASPECTRATIO_AND_Y:
+			{
+				switch(cam->type) {
+					case CAM_ORTHO:
+						{
+							double ymag = camera->getYMag().getValue();
+							double aspect = camera->getAspectRatio().getValue();
+							double xmag = aspect*ymag;
+							cam->ortho_scale = (float)xmag;
+						}
+						break;
+					case CAM_PERSP:
+					default:
+						{
+							double yfov = camera->getYFov().getValue();
+							double aspect = camera->getAspectRatio().getValue();
+							double xfov = aspect*yfov;
+							// xfov is in degrees, cam->lens is in millimiters
+							cam->lens = angle_to_lens((float)xfov*(M_PI/180.0f));
+						}
+						break;
+				}
+			}
+			break;
+		/* XXX correct way to do following four is probably to get also render
+		   size and determine proper settings from that somehow */
+		case COLLADAFW::Camera::ASPECTRATIO_AND_X:
+		case COLLADAFW::Camera::SINGLE_X:
+		case COLLADAFW::Camera::X_AND_Y:
+			{
+				switch(cam->type) {
+					case CAM_ORTHO:
+						cam->ortho_scale = (float)camera->getXMag().getValue();
+						break;
+					case CAM_PERSP:
+					default:
+						{
+							double x = camera->getXFov().getValue();
+							// x is in degrees, cam->lens is in millimiters
+							cam->lens = angle_to_lens((float)x*(M_PI/180.0f));
+						}
+						break;
+				}
+			}
+			break;
+		case COLLADAFW::Camera::SINGLE_Y:
+			{
+				switch(cam->type) {
+					case CAM_ORTHO:
+						cam->ortho_scale = (float)camera->getYMag().getValue();
+						break;
+					case CAM_PERSP:
+					default:
+						{
+						double yfov = camera->getYFov().getValue();
+						// yfov is in degrees, cam->lens is in millimiters
+						cam->lens = angle_to_lens((float)yfov*(M_PI/180.0f));
+						}
+						break;
+				}
+			}
+			break;
+		case COLLADAFW::Camera::UNDEFINED:
+			// read nothing, use blender defaults.
+			break;
+		}
+		
 		this->uid_camera_map[camera->getUniqueId()] = cam;
 		// XXX import camera options
 		return true;

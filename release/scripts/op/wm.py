@@ -266,9 +266,9 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
         if value != eval("context.%s" % data_path):
             # relies on rna clamping int's out of the range
             if self.reverse:
-                value = (1 << 32)
+                value = (1 << 31) - 1
             else:
-                value = - (1 << 32)
+                value = -1 << 31
 
             exec("context.%s=value" % data_path)
 

@@ -71,7 +71,7 @@ typedef struct ImBuf {
 	struct ImBuf *next, *prev;	/**< allow lists of ImBufs, for caches or flipbooks */
 
 	/* dimensions */
-	short x, y;				/* width and Height of our image buffer */
+	unsigned int x, y;				/* width and Height of our image buffer */
 	unsigned char depth;	/* Active amount of bits/bitplanes */
 	int channels;			/* amount of channels in rect_float (0 = 4 channel default) */
 

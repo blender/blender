@@ -867,6 +867,7 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		Mesh *me= ob->data;
 		MEdge *medge;
 		EditMesh *em= me->edit_mesh;
+		void **eve_tmp_back= NULL; /* some of the callers are using eve->tmp so restore after */
 
 
 		/* editmode*/
@@ -889,10 +890,13 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		if(em) {
 			EditVert *eve;
 			totvert= 0;
+			eve_tmp_back=  MEM_callocN( em->totvert * sizeof(void *), "TopoMirr" );
 			for(eve= em->verts.first; eve; eve= eve->next) {
-				eve->hash = totvert++;
+				eve_tmp_back[totvert]= eve->tmp.p;
+				eve->tmp.l = totvert++;
 			}
-		} else {
+		}
+		else {
 			totvert = me->totvert;
 		}
 
@@ -901,8 +905,8 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		/* Initialize the vert-edge-user counts used to detect unique topology */
 		if(em) {
 			for(eed=em->edges.first; eed; eed= eed->next) {
-				MirrTopoHash[eed->v1->hash]++;
-				MirrTopoHash[eed->v2->hash]++;
+				MirrTopoHash[eed->v1->tmp.l]++;
+				MirrTopoHash[eed->v2->tmp.l]++;
 			}
 		} else {
 			for(a=0, medge=me->medge; a<me->totedge; a++, medge++) {
@@ -919,8 +923,8 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 
 			if(em) {
 				for(eed=em->edges.first; eed; eed= eed->next) {
-					MirrTopoHash[eed->v1->hash] += MirrTopoHash_Prev[eed->v2->hash];
-					MirrTopoHash[eed->v2->hash] += MirrTopoHash_Prev[eed->v1->hash];
+					MirrTopoHash[eed->v1->tmp.l] += MirrTopoHash_Prev[eed->v2->tmp.l];
+					MirrTopoHash[eed->v2->tmp.l] += MirrTopoHash_Prev[eed->v1->tmp.l];
 				}
 			} else {
 				for(a=0, medge=me->medge; a<me->totedge; a++, medge++) {
@@ -952,6 +956,19 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 			memcpy(MirrTopoHash_Prev, MirrTopoHash, sizeof(MIRRHASH_TYPE) * totvert);
 		}
 
+		/* restore eve->tmp.* */
+		if(eve_tmp_back) {
+			EditVert *eve;
+			totvert= 0;
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				eve->tmp.p= eve_tmp_back[totvert++];
+			}
+
+			MEM_freeN(eve_tmp_back);
+			eve_tmp_back= NULL;
+		}
+		
+		
 		/* Hash/Index pairs are needed for sorting to find index pairs */
 		MirrTopoPairs= MEM_callocN( sizeof(MirrTopoPair) * totvert, "MirrTopoPairs");
 
@@ -1074,12 +1091,13 @@ static EditVert *editmesh_get_x_mirror_vert_topo(Object *ob, struct EditMesh *em
 	if (mesh_mirrtopo_table(ob, 'u')==-1)
 		return NULL;
 
-	if (index!=-1) {
+	if (index == -1) {
 		index = BLI_findindex(&em->verts, eve);
-	}
 
-	if (index==-1)
-		return NULL;
+		if (index == -1) {
+			return NULL;
+		}
+	}
 
 	poinval= mesh_topo_lookup[ index ];
 

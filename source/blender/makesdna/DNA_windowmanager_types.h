@@ -83,6 +83,8 @@ enum ReportListFlags {
 	RPT_STORE = 2,
 	RPT_FREE = 4,
 };
+#
+#
 typedef struct Report {
 	struct Report *next, *prev;
 	short type; /* ReportType */
@@ -91,6 +93,8 @@ typedef struct Report {
 	char *typestr;
 	char *message;
 } Report;
+
+/* saved in the wm, dont remove */
 typedef struct ReportList {
 	ListBase list;
 	int printlevel; /* ReportType */
@@ -100,6 +104,8 @@ typedef struct ReportList {
 } ReportList;
 
 /* timer customdata to control reports display */
+#
+#
 typedef struct ReportTimerInfo {
 	float col[3];
 	float greyscale;

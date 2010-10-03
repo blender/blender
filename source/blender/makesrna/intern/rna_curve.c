@@ -414,7 +414,7 @@ static void rna_Nurb_update_knot_u(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Nurb *nu= (Nurb*)ptr->data;
 
 	clamp_nurb_order_u(nu);
-	makeknots(nu, 1);
+	nurbs_knot_calc_u(nu);
 
 	rna_Curve_update_data(bmain, scene, ptr);
 }
@@ -424,7 +424,7 @@ static void rna_Nurb_update_knot_v(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Nurb *nu= (Nurb*)ptr->data;
 
 	clamp_nurb_order_v(nu);
-	makeknots(nu, 2);
+	nurbs_knot_calc_v(nu);
 
 	rna_Curve_update_data(bmain, scene, ptr);
 }
@@ -441,7 +441,7 @@ static void rna_Curve_spline_points_add(ID *id, Nurb *nu, ReportList *reports, i
 		addNurbPoints(nu, number);
 
 		/* update */
-		makeknots(nu, 1);
+		nurbs_knot_calc_u(nu);
 
 		rna_Curve_update_data_id(NULL, NULL, id);
 	}
@@ -458,7 +458,7 @@ static void rna_Curve_spline_bezpoints_add(ID *id, Nurb *nu, ReportList *reports
 		addNurbPointsBezier(nu, number);
 
 		/* update */
-		makeknots(nu, 1);
+		nurbs_knot_calc_u(nu);
 
 		rna_Curve_update_data_id(NULL, NULL, id);
 	}

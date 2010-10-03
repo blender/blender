@@ -74,12 +74,22 @@ void unlink_curve(Curve *cu)
 	
 	for(a=0; a<cu->totcol; a++) {
 		if(cu->mat[a]) cu->mat[a]->id.us--;
-		cu->mat[a]= 0;
+		cu->mat[a]= NULL;
 	}
 	if(cu->vfont) cu->vfont->id.us--; 
-	cu->vfont= 0;
+	cu->vfont= NULL;
+
+	if(cu->vfontb) cu->vfontb->id.us--; 
+	cu->vfontb= NULL;
+
+	if(cu->vfonti) cu->vfonti->id.us--; 
+	cu->vfonti= NULL;
+
+	if(cu->vfontbi) cu->vfontbi->id.us--; 
+	cu->vfontbi= NULL;
+	
 	if(cu->key) cu->key->id.us--;
-	cu->key= 0;
+	cu->key= NULL;
 }
 
 /* frees editcurve entirely */
@@ -210,9 +220,12 @@ void make_local_curve(Curve *cu)
 	 */
 	
 	if(cu->id.lib==0) return;
-	
-	if(cu->vfont) cu->vfont->id.lib= 0;
-	
+
+	if(cu->vfont) cu->vfont->id.lib= NULL;
+	if(cu->vfontb) cu->vfontb->id.lib= NULL;
+	if(cu->vfonti) cu->vfonti->id.lib= NULL;
+	if(cu->vfontbi) cu->vfontbi->id.lib= NULL;
+
 	if(cu->id.us==1) {
 		cu->id.lib= 0;
 		cu->id.flag= LIB_LOCAL;
@@ -623,7 +636,7 @@ static void makecyclicknots(float *knots, short pnts, short order)
 
 
 
-void makeknots(Nurb *nu, short uv)
+static void makeknots(Nurb *nu, short uv)
 {
 	if(nu->type == CU_NURBS) {
 		if(uv == 1) {
@@ -653,6 +666,16 @@ void makeknots(Nurb *nu, short uv)
 			else nu->knotsv= NULL;
 		}
 	}
+}
+
+void nurbs_knot_calc_u(Nurb *nu)
+{
+	makeknots(nu, 1);
+}
+
+void nurbs_knot_calc_v(Nurb *nu)
+{
+	makeknots(nu, 2);
 }
 
 static void basisNurb(float t, short order, short pnts, float *knots, float *basis, int *start, int *end)

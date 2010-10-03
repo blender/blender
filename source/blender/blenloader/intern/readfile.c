@@ -2736,7 +2736,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	cu->strinfo= newdataadr(fd, cu->strinfo);	
 	cu->tb= newdataadr(fd, cu->tb);
 
-	if(cu->vfont==0) link_list(fd, &(cu->nurb));
+	if(cu->vfont == NULL) link_list(fd, &(cu->nurb));
 	else {
 		cu->nurb.first=cu->nurb.last= 0;
 
@@ -2767,7 +2767,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 		nu->bp= newdataadr(fd, nu->bp);
 		nu->knotsu= newdataadr(fd, nu->knotsu);
 		nu->knotsv= newdataadr(fd, nu->knotsv);
-		if (cu->vfont==0) nu->charidx= nu->mat_nr;
+		if (cu->vfont == NULL) nu->charidx= nu->mat_nr;
 
 		if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 			switch_endian_knots(nu);
@@ -2938,6 +2938,7 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 	cache->simframe= 0;
 	cache->edit= NULL;
 	cache->free_edit= NULL;
+	cache->cached_frames= NULL;
 }
 
 static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointCache **ocache)
@@ -4100,8 +4101,10 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->gpulamp.first= ob->gpulamp.last= NULL;
 	link_list(fd, &ob->pc_ids);
 
-	if(ob->sculpt)
+	if(ob->sculpt) {
 		ob->sculpt= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
+		ob->sculpt->ob= ob;
+	}
 }
 
 /* ************ READ SCENE ***************** */

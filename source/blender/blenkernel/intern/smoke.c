@@ -800,20 +800,25 @@ static float calc_voxel_transp(float *result, float *input, int res[3], int *pix
 static int get_lamp(Scene *scene, float *light)
 {	
 	Base *base_tmp = NULL;	
-	for(base_tmp = scene->base.first; base_tmp; base_tmp= base_tmp->next) 	
-	{		
-		if(base_tmp->object->type == OB_LAMP) 		
-		{			
-			Lamp *la = (Lamp *)base_tmp->object->data;	
+	int found_lamp = 0;
 
-			if(la->type == LA_LOCAL)			
-			{				
-				VECCOPY(light, base_tmp->object->obmat[3]);				
-				return 1;			
-			}		
-		}	
-	}	
-	return 0;
+	// try to find a lamp, preferably local
+	for(base_tmp = scene->base.first; base_tmp; base_tmp= base_tmp->next) {
+		if(base_tmp->object->type == OB_LAMP) {
+			Lamp *la = base_tmp->object->data;
+
+			if(la->type == LA_LOCAL) {
+				copy_v3_v3(light, base_tmp->object->obmat[3]);
+				return 1;
+			}
+			else if(!found_lamp) {
+				copy_v3_v3(light, base_tmp->object->obmat[3]);
+				found_lamp = 1;
+			}
+		}
+	}
+
+	return found_lamp;
 }
 
 static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
@@ -1338,10 +1343,17 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		cache_wt = sds->point_cache[1];
 		BKE_ptcache_id_from_smoke_turbulence(&pid_wt, ob, smd);
 
-		if(!smd->domain->fluid)
+		if(!smd->domain->fluid || framenr == startframe)
 		{
 			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+			BKE_ptcache_validate(cache, framenr);
+			cache->flag &= ~PTCACHE_REDO_NEEDED;
+
 			BKE_ptcache_id_reset(scene, &pid_wt, PTCACHE_RESET_OUTDATED);
+			if(cache_wt) {
+				BKE_ptcache_validate(cache_wt, framenr);
+				cache_wt->flag &= ~PTCACHE_REDO_NEEDED;
+			}
 		}
 
 		if(framenr < startframe)
@@ -1368,6 +1380,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		if(cache_result == PTCACHE_READ_EXACT) 
 		{
 			BKE_ptcache_validate(cache, framenr);
+			smd->time = framenr;
 
 			if(sds->wt)
 			{
@@ -1388,14 +1401,21 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			else
 				return;
 		}
-
-		/* only calculate something when we advanced a frame */
-		if(framenr == smd->time)
+		/* only calculate something when we advanced a single frame */
+		else if(framenr != (int)smd->time+1)
 			return;
 
 		tstart();
 
 		smoke_calc_domain(scene, ob, smd);
+
+		/* if on second frame, write cache for first frame */
+		/* this needs to be done for smoke too so that pointcache works properly */
+		if((int)smd->time == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0)) {
+			BKE_ptcache_write_cache(&pid, startframe);
+			if(sds->wt)
+				BKE_ptcache_write_cache(&pid_wt, startframe);
+		}
 		
 		// set new time
 		smd->time = scene->r.cfra;

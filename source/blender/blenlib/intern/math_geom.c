@@ -1647,6 +1647,25 @@ void perspective_m4(float mat[][4],float left, float right, float bottom, float 
 
 }
 
+/* translate a matrix created by orthographic_m4 or perspective_m4 in XY coords (used to jitter the view) */
+void window_translate_m4(float winmat[][4], float perspmat[][4], float x, float y)
+{
+	if(winmat[2][3] == -1.0f) {
+		/* in the case of a win-matrix, this means perspective always */
+		float v1[3]= {perspmat[0][0], perspmat[1][0], perspmat[2][0]};
+		float v2[3]= {perspmat[0][1], perspmat[1][1], perspmat[2][1]};
+		float len1= (1.0f / len_v3(v1));
+		float len2= (1.0f / len_v3(v2));
+		
+		winmat[2][0] += len1 * winmat[0][0] * x;
+		winmat[2][1] += len2 * winmat[1][1] * y;
+	}
+	else {
+		winmat[3][0] += x;
+		winmat[3][1] += y;
+	}
+}
+
 static void i_multmatrix(float icand[][4], float Vm[][4])
 {
 	int row, col;

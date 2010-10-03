@@ -298,9 +298,11 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 		if (flags & IB_test) {
 			jpeg_abort_decompress(cinfo);
 			ibuf = IMB_allocImBuf(x, y, 8 * depth, 0, 0);
-		} else {
-			ibuf = IMB_allocImBuf(x, y, 8 * depth, IB_rect, 0);
-
+		}
+		else if ((ibuf = IMB_allocImBuf(x, y, 8 * depth, IB_rect, 0)) == NULL) {
+			jpeg_abort_decompress(cinfo);
+		}
+		else {
 			row_stride = cinfo->output_width * depth;
 
 			row_pointer = (*cinfo->mem->alloc_sarray) ((j_common_ptr) cinfo, JPOOL_IMAGE, row_stride, 1);
@@ -421,10 +423,12 @@ next_stamp_marker:
 		}
 		
 		jpeg_destroy((j_common_ptr) cinfo);
-		ibuf->ftype = ibuf_ftype;
-		ibuf->profile = IB_PROFILE_SRGB;
+		if(ibuf) {
+			ibuf->ftype = ibuf_ftype;
+			ibuf->profile = IB_PROFILE_SRGB;
+		}
 	}
-	
+
 	return(ibuf);
 }
 

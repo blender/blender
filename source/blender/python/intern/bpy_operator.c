@@ -127,7 +127,9 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	Py_XINCREF(context_dict); /* so we done loose it */
 
 	if(WM_operator_poll((bContext*)C, ot) == FALSE) {
-		PyErr_Format( PyExc_SystemError, "Operator bpy.ops.%.200s.poll() failed, context is incorrect", opname);
+		const char *msg= CTX_wm_operator_poll_msg_get(C);
+		PyErr_Format( PyExc_SystemError, "Operator bpy.ops.%.200s.poll() %s", opname, msg ? msg : "failed, context is incorrect");
+		CTX_wm_operator_poll_msg_set(C, NULL); /* better set to NULL else it could be used again */
 		error_val= -1;
 	}
 	else {

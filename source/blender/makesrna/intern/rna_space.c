@@ -31,7 +31,10 @@
 
 #include "rna_internal.h"
 
+#include "BKE_key.h"
+
 #include "DNA_action_types.h"
+#include "DNA_key_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
@@ -474,7 +477,8 @@ static void rna_SpaceImageEditor_curves_update(Main *bmain, Scene *scene, Pointe
 	void *lock;
 
 	ibuf= ED_space_image_acquire_buffer(sima, &lock);
-	curvemapping_do_ibuf(sima->cumap, ibuf);
+	if(ibuf->rect_float)
+		curvemapping_do_ibuf(sima->cumap, ibuf);
 	ED_space_image_release_buffer(sima, lock);
 
 	WM_main_add_notifier(NC_IMAGE, sima->image);
@@ -629,12 +633,28 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *bmain, Scene *scene, Po
 	Object *obact= (scene->basact)? scene->basact->object: NULL;
 
 	/* we must set this action to be the one used by active object (if not pinned) */
-	if(obact/* && saction->pin == 0*/) {
-		AnimData *adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
+	if (obact/* && saction->pin == 0*/) {
+		AnimData *adt = NULL;
+		
+		if (saction->mode == SACTCONT_ACTION) {
+			// TODO: context selector could help decide this with more control?
+			adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
+		}
+		else if (saction->mode == SACTCONT_SHAPEKEY) {
+			Key *key = ob_get_key(obact);
+			if (key)
+				adt= BKE_id_add_animdata(&key->id); /* this only adds if non-existant */
+		}
 		
 		/* set action */
-		adt->action= saction->action;
-		id_us_plus(&adt->action->id);
+		if (adt) {
+			/* fix id-count of action we're replacing */
+			id_us_min(&adt->action->id);
+			
+			/* show new id-count of action we're replacing */
+			adt->action= saction->action;
+			id_us_plus(&adt->action->id);
+		}
 		
 		/* force depsgraph flush too */
 		DAG_id_flush_update(&obact->id, OB_RECALC_OB|OB_RECALC_DATA);
@@ -644,14 +664,33 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *bmain, Scene *scene, Po
 static void rna_SpaceDopeSheetEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SpaceAction *saction= (SpaceAction*)(ptr->data);
+	Object *obact= (scene->basact)? scene->basact->object: NULL;
 	
-	/* special exception for ShapeKey Editor mode:
-	 * 		enable 'show sliders' by default, since one of the main
-	 *		points of the ShapeKey Editor is to provide a one-stop shop
-	 *		for controlling the shapekeys, whose main control is the value
-	 */
-	if (saction->mode == SACTCONT_SHAPEKEY)
+	/* special exceptions for ShapeKey Editor mode */
+	if (saction->mode == SACTCONT_SHAPEKEY) {
+		Key *key = ob_get_key(obact);
+		
+		/* 1)	update the action stored for the editor */
+		if (key)
+			saction->action = (key->adt)? key->adt->action : NULL;
+		else
+			saction->action = NULL;
+		
+		/* 2)	enable 'show sliders' by default, since one of the main
+		 *		points of the ShapeKey Editor is to provide a one-stop shop
+		 *		for controlling the shapekeys, whose main control is the value
+		 */
 		saction->flag |= SACTION_SLIDERS;
+	}
+	/* make sure action stored is valid */
+	else if (saction->mode == SACTCONT_ACTION) {
+		/* 1)	update the action stored for the editor */
+		// TODO: context selector could help decide this with more control?
+		if (obact)
+			saction->action = (obact->adt)? obact->adt->action : NULL;
+		else
+			saction->action = NULL;
+	}
 }
 
 /* Space Graph Editor */

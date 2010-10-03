@@ -1690,6 +1690,45 @@ static int node_recurs_check(bNode *node, bNode ***nsort, int level)
 		return 0xFFF;
 }
 
+
+static void ntreeSetOutput(bNodeTree *ntree)
+{
+	bNode *node;
+
+	/* find the active outputs, might become tree type dependant handler */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
+			bNode *tnode;
+			int output= 0;
+			
+			/* we need a check for which output node should be tagged like this, below an exception */
+			if(node->type==CMP_NODE_OUTPUT_FILE)
+			   continue;
+			   
+			/* there is more types having output class, each one is checked */
+			for(tnode= ntree->nodes.first; tnode; tnode= tnode->next) {
+				if(tnode->typeinfo->nclass==NODE_CLASS_OUTPUT) {
+					/* same type, exception for viewer */
+					if(tnode->type==node->type ||
+					   (ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER) &&
+					    ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))) {
+						if(tnode->flag & NODE_DO_OUTPUT) {
+							output++;
+							if(output>1)
+								tnode->flag &= ~NODE_DO_OUTPUT;
+						}
+					}
+				}
+			}
+			if(output==0)
+				node->flag |= NODE_DO_OUTPUT;
+		}
+	}
+	
+	/* here we could recursively set which nodes have to be done,
+		might be different for editor or for "real" use... */
+}
+
 void ntreeSolveOrder(bNodeTree *ntree)
 {
 	bNode *node, **nodesort, **nsort;
@@ -1738,37 +1777,10 @@ void ntreeSolveOrder(bNodeTree *ntree)
 	}
 	
 	MEM_freeN(nodesort);
-	
-	/* find the active outputs, might become tree type dependant handler */
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
-			bNode *tnode;
-			int output= 0;
-			
-			/* we need a check for which output node should be tagged like this, below an exception */
-			if(node->type==CMP_NODE_OUTPUT_FILE)
-			   continue;
-			   
-			/* there is more types having output class, each one is checked */
-			for(tnode= ntree->nodes.first; tnode; tnode= tnode->next) {
-				if(tnode->typeinfo->nclass==NODE_CLASS_OUTPUT) {
-					if(tnode->type==node->type) {
-						if(tnode->flag & NODE_DO_OUTPUT) {
-							output++;
-							if(output>1)
-								tnode->flag &= ~NODE_DO_OUTPUT;
-						}
-					}
-				}
-			}
-			if(output==0)
-				node->flag |= NODE_DO_OUTPUT;
-		}
-	}
-	
-	/* here we could recursively set which nodes have to be done,
-		might be different for editor or for "real" use... */
+
+	ntreeSetOutput(ntree);
 }
+
 
 /* Should be callback! */
 /* Do not call execs here */
@@ -2466,6 +2478,9 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	/* fixed seed, for example noise texture */
 	BLI_srandom(rd->cfra);
 
+	/* ensures only a single output node is enabled */
+	ntreeSetOutput(ntree);
+
 	/* sets need_exec tags in nodes */
 	curnode = totnode= setExecutableNodes(ntree, &thdata);
 
@@ -2564,7 +2579,10 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		
 	}
 	/* end animdata uglyness */
-	
+
+	/* ensures only a single output node is enabled */
+	ntreeSetOutput(ntree);
+
 	/* move over the compbufs */
 	/* right after ntreeCopyTree() oldsock pointers are valid */
 	for(node= ntree->nodes.first; node; node= node->next) {

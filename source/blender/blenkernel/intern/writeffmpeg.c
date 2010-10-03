@@ -160,7 +160,7 @@ static int write_audio_frame(void)
 	pkt.stream_index = audio_stream->index;
 	pkt.flags |= PKT_FLAG_KEY;
 	if (av_interleaved_write_frame(outfile, &pkt) != 0) {
-		// XXX error("Error writing audio packet");
+		fprintf(stderr, "Error writing audio packet!\n");
 		return -1;
 	}
 	return 0;
@@ -290,7 +290,9 @@ static int write_video_frame(RenderData *rd, AVFrame* frame, ReportList *reports
 		packet.data = video_buffer;
 		packet.size = outsize;
 		ret = av_interleaved_write_frame(outfile, &packet);
-	} else ret = 0;
+	} else {
+		ret = 0;
+	}
 
 	if (ret != 0) {
 		success= 0;
@@ -778,6 +780,69 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	return 1;
 }
 
+/**
+ * Writes any delayed frames in the encoder. This function is called before 
+ * closing the encoder.
+ *
+ * <p>
+ * Since an encoder may use both past and future frames to predict 
+ * inter-frames (H.264 B-frames, for example), it can output the frames 
+ * in a different order from the one it was given.
+ * For example, when sending frames 1, 2, 3, 4 to the encoder, it may write
+ * them in the order 1, 4, 2, 3 - first the two frames used for predition, 
+ * and then the bidirectionally-predicted frames. What this means in practice 
+ * is that the encoder may not immediately produce one output frame for each 
+ * input frame. These delayed frames must be flushed before we close the 
+ * stream. We do this by calling avcodec_encode_video with NULL for the last 
+ * parameter.
+ * </p>
+ */
+void flush_ffmpeg(void)
+{
+	int outsize = 0;
+	int ret = 0;
+	
+	AVCodecContext* c = get_codec_from_stream(video_stream);
+	/* get the delayed frames */
+	while (1) {
+		AVPacket packet;
+		av_init_packet(&packet);
+		
+		outsize = avcodec_encode_video(c, video_buffer, video_buffersize, NULL);
+		if (outsize < 0) {
+			fprintf(stderr, "Error encoding delayed frame %d\n", outsize);
+			break;
+		}
+		if (outsize == 0) {
+			break;
+		}
+		if (c->coded_frame->pts != AV_NOPTS_VALUE) {
+#ifdef FFMPEG_CODEC_TIME_BASE
+			packet.pts = av_rescale_q(c->coded_frame->pts,
+						  c->time_base,
+						  video_stream->time_base);
+#else
+			packet.pts = c->coded_frame->pts;
+#endif
+			fprintf(stderr, "Video Frame PTS: %d\n", (int)packet.pts);
+		} else {
+			fprintf(stderr, "Video Frame PTS: not set\n");
+		}
+		if (c->coded_frame->key_frame) {
+			packet.flags |= PKT_FLAG_KEY;
+		}
+		packet.stream_index = video_stream->index;
+		packet.data = video_buffer;
+		packet.size = outsize;
+		ret = av_interleaved_write_frame(outfile, &packet);
+		if (ret != 0) {
+			fprintf(stderr, "Error writing delayed frame %d\n", ret);
+			break;
+		}
+	}
+	avcodec_flush_buffers(get_codec_from_stream(video_stream));
+}
+
 /* **********************************************************************
    * public interface
    ********************************************************************** */
@@ -888,7 +953,6 @@ int append_ffmpeg(RenderData *rd, int frame, int *pixels, int rectx, int recty, 
 	return success;
 }
 
-
 void end_ffmpeg(void)
 {
 	int i;
@@ -905,6 +969,11 @@ void end_ffmpeg(void)
 		audio_mixdown_device = 0;
 	}
 	
+	if (video_stream && get_codec_from_stream(video_stream)) {
+		fprintf(stderr, "Flushing delayed frames...\n");
+		flush_ffmpeg ();		
+	}
+	
 	if (outfile) {
 		av_write_trailer(outfile);
 	}
@@ -913,8 +982,8 @@ void end_ffmpeg(void)
 
 	if (video_stream && get_codec_from_stream(video_stream)) {
 		avcodec_close(get_codec_from_stream(video_stream));
-		video_stream = 0;
 		printf("zero video stream %p\n", video_stream);
+		video_stream = 0;
 	}
 
 	
@@ -1195,20 +1264,47 @@ void ffmpeg_set_preset(RenderData *rd, int preset)
 		rd->ffcodecdata.mux_packet_size = 2048;
 		rd->ffcodecdata.mux_rate = 10080000;
 
+		/*
+		 * All options here are for x264, but must be set via ffmpeg.
+		 * The names are therefore different - Search for "x264 to FFmpeg option mapping"
+		 * to get a list.
+		 */
+		
+		/*
+		 * Use CABAC coder. Using "coder:1", which should be equivalent,
+		 * crashes Blender for some reason. Either way - this is no big deal.
+		 */
 		ffmpeg_property_add_string(rd, "video", "coder:vlc");
+		
+		/* 
+		 * The other options were taken from the libx264-default.preset
+		 * included in the ffmpeg distribution.
+		 */
 		ffmpeg_property_add_string(rd, "video", "flags:loop");
 		ffmpeg_property_add_string(rd, "video", "cmp:chroma");
 		ffmpeg_property_add_string(rd, "video", "partitions:parti4x4");
 		ffmpeg_property_add_string(rd, "video", "partitions:partp8x8");
 		ffmpeg_property_add_string(rd, "video", "partitions:partb8x8");
 		ffmpeg_property_add_string(rd, "video", "me:hex");
-		ffmpeg_property_add_string(rd, "video", "subq:5");
+		ffmpeg_property_add_string(rd, "video", "subq:6");
 		ffmpeg_property_add_string(rd, "video", "me_range:16");
+		ffmpeg_property_add_string(rd, "video", "qdiff:4");
 		ffmpeg_property_add_string(rd, "video", "keyint_min:25");
 		ffmpeg_property_add_string(rd, "video", "sc_threshold:40");
 		ffmpeg_property_add_string(rd, "video", "i_qfactor:0.71");
 		ffmpeg_property_add_string(rd, "video", "b_strategy:1");
-
+		ffmpeg_property_add_string(rd, "video", "bf:3");
+		ffmpeg_property_add_string(rd, "video", "refs:2");
+		ffmpeg_property_add_string(rd, "video", "qcomp:0.6");
+		ffmpeg_property_add_string(rd, "video", "directpred:3");
+		ffmpeg_property_add_string(rd, "video", "trellis:0");
+		ffmpeg_property_add_string(rd, "video", "flags2:wpred");
+		ffmpeg_property_add_string(rd, "video", "flags2:dct8x8");
+		ffmpeg_property_add_string(rd, "video", "flags2:fastpskip");
+		ffmpeg_property_add_string(rd, "video", "wpredp:2");
+		
+		// This makes x264 output lossless. Will be a separate option later.
+		//ffmpeg_property_add_string(rd, "video", "cqp:0");
 		break;
 
 	case FFMPEG_PRESET_THEORA:

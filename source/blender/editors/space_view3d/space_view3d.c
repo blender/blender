@@ -529,30 +529,31 @@ static void *view3d_main_area_duplicate(void *poin)
 	return NULL;
 }
 
-static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn)
+static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene)
 {
 	wmWindow *win= wmn->wm->winactive;
 	ScrArea *sa;
+	unsigned int lay_used= 0;
+	Base *base;
 
 	if (!win) return;
 
-	sa= win->screen->areabase.first;
+	base= scene->base.first;
+	while(base) {
+		lay_used |= base->lay & ((1<<20)-1); /* ignore localview */
 
+		if (lay_used == (1<<20)-1)
+			break;
+
+		base= base->next;
+	}
+
+	sa= win->screen->areabase.first;
 	while(sa) {
 		if(sa->spacetype == SPACE_VIEW3D)
 			if(BLI_findindex(&sa->regionbase, ar) >= 0) {
 				View3D *v3d= sa->spacedata.first;
-				Scene *scene= wmn->reference;
-				Base *base;
-
-				v3d->lay_used= 0;
-				base= scene->base.first;
-				while(base) {
-					v3d->lay_used|= base->lay;
-
-					base= base->next;
-				}
-
+				v3d->lay_used= lay_used;
 				break;
 			}
 
@@ -562,6 +563,8 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn)
 
 static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
+	bScreen *sc;
+
 	/* context changes */
 	switch(wmn->category) {
 		case NC_ANIMATION:
@@ -584,7 +587,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_LAYER_CONTENT:
-					view3d_recalc_used_layers(ar, wmn);
+					view3d_recalc_used_layers(ar, wmn, wmn->reference);
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_FRAME:
@@ -681,10 +684,22 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SCREEN:
-			if(wmn->data == ND_GPENCIL)	
-				ED_region_tag_redraw(ar);
-			else if(wmn->data==ND_ANIMPLAY)
-				ED_region_tag_redraw(ar);
+			switch(wmn->data) {
+				case ND_GPENCIL:
+				case ND_ANIMPLAY:
+					ED_region_tag_redraw(ar);
+					break;
+				case ND_SCREENBROWSE:
+				case ND_SCREENDELETE:
+				case ND_SCREENSET:
+					/* screen was changed, need to update used layers due to NC_SCENE|ND_LAYER_CONTENT */
+					/* updates used layers only for View3D in active screen */
+					sc= wmn->reference;
+					view3d_recalc_used_layers(ar, wmn, sc->scene);
+					ED_region_tag_redraw(ar);
+					break;
+			}
+
 			break;
 	}
 }
@@ -726,6 +741,7 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_FRAME:
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
+				case ND_OB_VISIBLE:
 				case ND_MODE:
 				case ND_LAYER:
 				case ND_TOOLSETTINGS:
@@ -779,6 +795,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_FRAME:
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
+				case ND_OB_VISIBLE:
 				case ND_MODE:
 				case ND_LAYER:
 				case ND_LAYER_CONTENT:

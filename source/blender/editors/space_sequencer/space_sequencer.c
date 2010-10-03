@@ -371,6 +371,7 @@ static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_FRAME:
 				case ND_FRAME_RANGE:
 				case ND_MARKERS:
+				case ND_RENDER_OPTIONS: /* for FPS and FPS Base */
 				case ND_SEQUENCER:
 					ED_region_tag_redraw(ar);
 					break;

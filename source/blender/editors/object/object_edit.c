@@ -2196,29 +2196,28 @@ static int logicbricks_copy_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
 		if(ob != ob_iter) {
-			if (ob->data != ob_iter->data){
-				/* first: free all logic */
-				free_sensors(&ob_iter->sensors);				
-				unlink_controllers(&ob_iter->controllers);
-				free_controllers(&ob_iter->controllers);
-				unlink_actuators(&ob_iter->actuators);
-				free_actuators(&ob_iter->actuators);
-			
-				/* now copy it, this also works without logicbricks! */
-				clear_sca_new_poins_ob(ob);
-				copy_sensors(&ob_iter->sensors, &ob->sensors);
-				copy_controllers(&ob_iter->controllers, &ob->controllers);
-				copy_actuators(&ob_iter->actuators, &ob->actuators);
-				set_sca_new_poins_ob(ob_iter);
-			
-				/* some menu settings */
-				ob_iter->scavisflag= ob->scavisflag;
-				ob_iter->scaflag= ob->scaflag;
-			
-				/* set the initial state */
-				ob_iter->state= ob->state;
-				ob_iter->init_state= ob->init_state;
-			}			
+			/* first: free all logic */
+			free_sensors(&ob_iter->sensors);				
+			unlink_controllers(&ob_iter->controllers);
+			free_controllers(&ob_iter->controllers);
+			unlink_actuators(&ob_iter->actuators);
+			free_actuators(&ob_iter->actuators);
+		
+			/* now copy it, this also works without logicbricks! */
+			clear_sca_new_poins_ob(ob);
+			copy_sensors(&ob_iter->sensors, &ob->sensors);
+			copy_controllers(&ob_iter->controllers, &ob->controllers);
+			copy_actuators(&ob_iter->actuators, &ob->actuators);
+			set_sca_new_poins_ob(ob_iter);
+		
+			/* some menu settings */
+			ob_iter->scavisflag= ob->scavisflag;
+			ob_iter->scaflag= ob->scaflag;
+		
+			/* set the initial state */
+			ob_iter->state= ob->state;
+			ob_iter->init_state= ob->init_state;
+
 			if(ob_iter->totcol==ob->totcol) {
 				ob_iter->actcol= ob->actcol;
 				WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob_iter);

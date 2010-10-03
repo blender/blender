@@ -523,12 +523,11 @@ void drawcircball(int mode, float *cent, float rad, float tmat[][4])
 }
 
 /* circle for object centers, special_color is for library or ob users */
-static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, float *vec, int selstate, int special_color)
+static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, float *co, int selstate, int special_color)
 {
-	float size;
-	
-	size= rv3d->persmat[0][3]*vec[0]+ rv3d->persmat[1][3]*vec[1]+ rv3d->persmat[2][3]*vec[2]+ rv3d->persmat[3][3];
-	size*= rv3d->pixsize*((float)U.obcenter_dia*0.5f);
+	float vec[3]= {rv3d->persmat[0][3], rv3d->persmat[1][3], rv3d->persmat[2][3]};
+	float size= rv3d->pixsize*((float)U.obcenter_dia*0.5f);
+	size *= dot_v3v3(vec, co) + rv3d->persmat[3][3];
 
 	/* using gldepthfunc guarantees that it does write z values, but not checks for it, so centers remain visible independt order of drawing */
 	if(v3d->zbuf)  glDepthFunc(GL_ALWAYS);
@@ -544,10 +543,10 @@ static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, float *vec, int se
 		else if (selstate == SELECT) UI_ThemeColorShadeAlpha(TH_SELECT, 0, -80);
 		else if (selstate == DESELECT) UI_ThemeColorShadeAlpha(TH_TRANSFORM, 0, -80);
 	}
-	drawcircball(GL_POLYGON, vec, size, rv3d->viewinv);
+	drawcircball(GL_POLYGON, co, size, rv3d->viewinv);
 	
 	UI_ThemeColorShadeAlpha(TH_WIRE, 0, -30);
-	drawcircball(GL_LINE_LOOP, vec, size, rv3d->viewinv);
+	drawcircball(GL_LINE_LOOP, co, size, rv3d->viewinv);
 	
 	glDisable(GL_BLEND);
 	if(v3d->zbuf)  glDepthFunc(GL_LEQUAL);
@@ -1282,17 +1281,16 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		else if (i==1 && (ob == v3d->camera)) glBegin(GL_TRIANGLES);
 		else break;
 		
-		vec[0][0]= -0.7*cam->drawsize*caspx;
-		vec[0][1]= 1.1*cam->drawsize*caspy;
-		glVertex3fv(vec[0]);
+		vec[0][0]= -0.7 * cam->drawsize;
+		vec[0][1]= cam->drawsize * (caspy + 0.1);
+		glVertex3fv(vec[0]); /* left */
 		
-		vec[0][0]= 0.0; 
-		vec[0][1]= 1.8*cam->drawsize*caspy;
-		glVertex3fv(vec[0]);
+		vec[0][0] *= -1.0;
+		glVertex3fv(vec[0]); /* right */
 		
-		vec[0][0]= 0.7*cam->drawsize*caspx; 
-		vec[0][1]= 1.1*cam->drawsize*caspy;
-		glVertex3fv(vec[0]);
+		vec[0][0]= 0.0;
+		vec[0][1]= 1.1 * cam->drawsize * (caspy + 0.7);
+		glVertex3fv(vec[0]); /* top */
 	
 		glEnd();
 	}

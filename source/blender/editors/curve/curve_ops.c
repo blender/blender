@@ -193,7 +193,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "Curve", 0, 0);
 	keymap->poll= ED_operator_editsurfcurve;
 
-    WM_keymap_add_menu(keymap, "INFO_MT_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_menu(keymap, "INFO_MT_edit_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_vertex_add", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_select_all", AKEY, KM_PRESS, 0, 0);

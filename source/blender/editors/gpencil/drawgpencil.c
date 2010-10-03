@@ -244,9 +244,12 @@ static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thicknes
 /* ----- Fancy 2D-Stroke Drawing ------ */
 
 /* draw a given stroke in 2d */
-static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, 
+static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness_s, short dflag, short sflag, 
 							short debug, int offsx, int offsy, int winx, int winy)
 {
+	/* otherwise thickness is twice that of the 3D view */
+	float thickness= (float)thickness_s * 0.5f;
+
 	/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, 'smooth' opengl lines look better
 	 * 	- 'smooth' opengl lines are also required if Image Editor 'image-based' stroke
 	 */

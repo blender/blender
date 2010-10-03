@@ -980,9 +980,9 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 
-	prop= RNA_def_property(srna, "speed_fader", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "speed_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "speed_fader");
-	RNA_def_property_ui_text(prop, "Speed effect fader position", "");
+	RNA_def_property_ui_text(prop, "Speed factor", "Multiply the current speed of the sequence with this number or remap current frame to this frame");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	RNA_api_sequence_strip(srna);
@@ -1535,16 +1535,16 @@ static void rna_def_speed_control(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "SpeedControl Sequence", "Sequence strip to control the speed of other strips");
 	RNA_def_struct_sdna_from(srna, "SpeedControlVars", "effectdata");
 	
-	prop= RNA_def_property(srna, "global_speed", PROP_FLOAT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "multiply_speed", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "globalSpeed");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* seq->facf0 is used to animate this */
-	RNA_def_property_ui_text(prop, "Global Speed", "");
+	RNA_def_property_ui_text(prop, "Multiply Speed", "Multiply the resulting speed after the speed factor");
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "use_curve_velocity", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_as_speed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_INTEGRATE);
-	RNA_def_property_ui_text(prop, "F-Curve Velocity", "Interpret the F-Curve value as a velocity instead of a frame number");
+	RNA_def_property_ui_text(prop, "Use as speed", "Interpret the value as speed instead of a frame number");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop= RNA_def_property(srna, "use_frame_blend", PROP_BOOLEAN, PROP_NONE);
@@ -1552,9 +1552,9 @@ static void rna_def_speed_control(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Frame Blending", "Blend two frames into the target for a smoother result");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "use_curve_compress_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "scale_to_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_COMPRESS_IPO_Y);
-	RNA_def_property_ui_text(prop, "F-Curve Compress Y", "Scale F-Curve value to get the target frame number, F-Curve value runs from 0.0 to 1.0");
+	RNA_def_property_ui_text(prop, "Scale to length", "Scale values from 0.0 to 1.0 to target sequence length");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 

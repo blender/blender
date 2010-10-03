@@ -498,7 +498,7 @@ int wrap_width(SpaceText *st, ARegion *ar)
 	int x, max;
 	
 	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-	max= (winx-x)/st->cwidth;
+	max= st->cwidth ? (winx-x)/st->cwidth : 0;
 	return max>8 ? max : 8;
 }
 

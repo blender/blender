@@ -127,11 +127,10 @@ bool BL_ModifierDeformer::HasArmatureDeformer(Object *ob)
 	if (!ob->modifiers.first)
 		return false;
 
-	ModifierData* md;
-	for (md = (ModifierData*)ob->modifiers.first; md; md = (ModifierData*)md->next) {
-		if (md->type == eModifierType_Armature )
-			return true;
-	}
+	ModifierData* md = (ModifierData*)ob->modifiers.first;
+	if(md->type == eModifierType_Armature )
+		return true;
+
 	return false;
 }
 

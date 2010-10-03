@@ -45,6 +45,8 @@
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -126,46 +128,28 @@ typedef struct ConsoleDrawContext {
 	int ymin, ymax;
 	int *xy; // [2]
 	int *sel; // [2]
-	int *pos_pick;
+	int *pos_pick; // bottom of view == 0, top of file == combine chars, end of line is lower then start. 
 	int *mval; // [2]
 	int draw;
 } ConsoleDrawContext;
 
-static void console_draw_sel(int sel[2], int xy[2], int str_len, int cwidth, int console_width, int lheight)
+static void console_draw_sel(int sel[2], int xy[2], int str_len_draw, int cwidth, int console_width, int lheight)
 {
-	if(sel[0] <= str_len && sel[1] >= 0) {
+	if(sel[0] <= str_len_draw && sel[1] >= 0) {
 		int sta = MAX2(sel[0], 0);
-		int end = MIN2(sel[1], str_len);
+		int end = MIN2(sel[1], str_len_draw);
 
-		/* highly confusing but draws correctly */
-		if(sel[0] < 0 || sel[1] > str_len) {
-			if(sel[0] > 0) {
-				end= sta;
-				sta= 0;
-			}
-			if (sel[1] <= str_len) {
-				sta= end;
-				end= str_len;
-			}
-		}
-		/* end confusement */
+		glEnable(GL_POLYGON_STIPPLE);
+		glPolygonStipple(stipple_halftone);
+		glEnable( GL_BLEND );
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glColor4ub(255, 255, 255, 96);
 
-		{
-			glEnable(GL_POLYGON_STIPPLE);
-			glPolygonStipple(stipple_halftone);
-			glEnable( GL_BLEND );
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glColor4ub(255, 255, 255, 96);
-		}
 		glRecti(xy[0]+(cwidth*sta), xy[1]-2 + lheight, xy[0]+(cwidth*end), xy[1]-2);
-		{
-			glDisable(GL_POLYGON_STIPPLE);
-			glDisable( GL_BLEND );
-		}
-	}
 
-	sel[0] -= str_len + 1;
-	sel[1] -= str_len + 1;
+		glDisable(GL_POLYGON_STIPPLE);
+		glDisable( GL_BLEND );
+	}
 }
 
 
@@ -174,21 +158,27 @@ static void console_draw_sel(int sel[2], int xy[2], int str_len, int cwidth, int
 
 static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, unsigned char *fg, unsigned char *bg)
 {
+#define STEP_SEL(value) cdc->sel[0] += (value); cdc->sel[1] += (value)
 	int rct_ofs= cdc->lheight/4;
 	int tot_lines = (str_len/cdc->console_width)+1; /* total number of lines for wrapping */
 	int y_next = (str_len > cdc->console_width) ? cdc->xy[1]+cdc->lheight*tot_lines : cdc->xy[1]+cdc->lheight;
 
 	/* just advance the height */
 	if(cdc->draw==0) {
-		if(cdc->pos_pick) {
-			if((cdc->mval[1] != INT_MAX) && cdc->xy[1] <= cdc->mval[1]) {
-				if((cdc->xy[1]+cdc->lheight >= cdc->mval[1])) {
+		if(cdc->pos_pick && (cdc->mval[1] != INT_MAX)) {
+			if(cdc->xy[1] <= cdc->mval[1]) {
+				if((y_next >= cdc->mval[1])) {
 					int ofs = (int)floor(((float)cdc->mval[0] / (float)cdc->cwidth));
-					*cdc->pos_pick += MIN2(ofs, str_len);
+
+					/* wrap */
+					if(str_len > cdc->console_width)
+						ofs += (cdc->console_width * ((int)((((float)(y_next - cdc->mval[1]) / (float)(y_next-cdc->xy[1])) * tot_lines))));
+	
+					CLAMP(ofs, 0, str_len);
+					*cdc->pos_pick += str_len - ofs;
 				} else
 					*cdc->pos_pick += str_len + 1;
 			}
-
 		}
 
 		cdc->xy[1]= y_next;
@@ -200,33 +190,41 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 
 		/* adjust selection even if not drawing */
 		if(cdc->sel[0] != cdc->sel[1]) {
-			cdc->sel[0] -= str_len + 1;
-			cdc->sel[1] -= str_len + 1;
+			STEP_SEL(-(str_len + 1));
 		}
 
 		return 1;
 	}
 
 	if(str_len > cdc->console_width) { /* wrap? */
-		char *line_stride= str + ((tot_lines-1) * cdc->console_width);	/* advance to the last line and draw it first */
+		const int initial_offset= ((tot_lines-1) * cdc->console_width);
+		char *line_stride= str + initial_offset;	/* advance to the last line and draw it first */
 		char eol;													/* baclup the end of wrapping */
 		
+		int sel_orig[2];
+		VECCOPY2D(sel_orig, cdc->sel);
+
+		/* invert and swap for wrapping */
+		cdc->sel[0] = str_len - sel_orig[1];
+		cdc->sel[1] = str_len - sel_orig[0];
+		
 		if(bg) {
-			glColor3ub(bg[0], bg[1], bg[2]);
+			glColor3ubv(bg);
 			glRecti(0, cdc->xy[1]-rct_ofs, cdc->winx, (cdc->xy[1]+(cdc->lheight*tot_lines))+rct_ofs);
 		}
 
-		glColor3ub(fg[0], fg[1], fg[2]);
+		glColor3ubv(fg);
 
 		/* last part needs no clipping */
 		BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
 		BLF_draw(mono, line_stride);
 
 		if(cdc->sel[0] != cdc->sel[1]) {
-			cdc->sel[0] += str_len - (cdc->console_width % str_len);
-			cdc->sel[1] += str_len - (cdc->console_width % str_len);
-			console_draw_sel(cdc->sel, cdc->xy, cdc->console_width % str_len, cdc->cwidth, cdc->console_width, cdc->lheight);
-			glColor3ub(fg[0], fg[1], fg[2]);
+			STEP_SEL(-initial_offset);
+			// glColor4ub(255, 0, 0, 96); // debug
+			console_draw_sel(cdc->sel, cdc->xy, str_len % cdc->console_width, cdc->cwidth, cdc->console_width, cdc->lheight);
+			STEP_SEL(cdc->console_width);
+			glColor3ubv(fg);
 		}
 
 		cdc->xy[1] += cdc->lheight;
@@ -241,8 +239,10 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 			BLF_draw(mono, line_stride);
 			
 			if(cdc->sel[0] != cdc->sel[1]) {
+				// glColor4ub(0, 255, 0, 96); // debug
 				console_draw_sel(cdc->sel, cdc->xy, cdc->console_width, cdc->cwidth, cdc->console_width, cdc->lheight);
-				glColor3ub(fg[0], fg[1], fg[2]);
+				STEP_SEL(cdc->console_width);
+				glColor3ubv(fg);
 			}
 
 			cdc->xy[1] += cdc->lheight;
@@ -253,21 +253,28 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 			if(cdc->xy[1] > cdc->ymax)
 				return 0;
 		}
+
+		VECCOPY2D(cdc->sel, sel_orig);
+		STEP_SEL(-(str_len + 1));
 	}
 	else { /* simple, no wrap */
 
 		if(bg) {
-			glColor3ub(bg[0], bg[1], bg[2]);
+			glColor3ubv(bg);
 			glRecti(0, cdc->xy[1]-rct_ofs, cdc->winx, cdc->xy[1]+cdc->lheight-rct_ofs);
 		}
 
-		glColor3ub(fg[0], fg[1], fg[2]);
+		glColor3ubv(fg);
 
 		BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
 		BLF_draw(mono, str);
 		
-		if(cdc->sel[0] != cdc->sel[1])
-			console_draw_sel(cdc->sel, cdc->xy, str_len, cdc->cwidth, cdc->console_width, cdc->lheight);
+		if(cdc->sel[0] != cdc->sel[1]) {
+			int isel[2]= {str_len - cdc->sel[1], str_len - cdc->sel[0]};
+			// glColor4ub(255, 255, 0, 96); // debug
+			console_draw_sel(isel, cdc->xy, str_len, cdc->cwidth, cdc->console_width, cdc->lheight);
+			STEP_SEL(-(str_len + 1));
+		}
 
 		cdc->xy[1] += cdc->lheight;
 
@@ -276,6 +283,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 	}
 
 	return 1;
+#undef STEP_SEL
 }
 
 #define CONSOLE_DRAW_MARGIN 4
@@ -323,38 +331,34 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 	cdc.draw= draw;
 
 	if(sc->type==CONSOLE_TYPE_PYTHON) {
-		int prompt_len;
-
+		ConsoleLine cl_dummy= {0};
+		int prompt_len= strlen(sc->prompt);
+		
 		if(sc->sel_start != sc->sel_end) {
 			sel[0]= sc->sel_start;
 			sel[1]= sc->sel_end;
-			// printf("%d %d\n", sel[0], sel[1]);
 		}
 		
 		/* text */
 		if(draw) {
-			prompt_len= strlen(sc->prompt);
-			console_line_color(fg, CONSOLE_LINE_INPUT);
-			glColor3ub(fg[0], fg[1], fg[2]);
-
-			/* command line */
-			if(prompt_len) {
-				BLF_position(mono, xy[0], xy[1], 0); xy[0] += cwidth * prompt_len;
-				BLF_draw(mono, sc->prompt);
-			}
-			BLF_position(mono, xy[0], xy[1], 0);
-			BLF_draw(mono, cl->line);
-
 			/* cursor */
 			UI_GetThemeColor3ubv(TH_CONSOLE_CURSOR, (char *)fg);
-			glColor3ub(fg[0], fg[1], fg[2]);
-			glRecti(xy[0]+(cwidth*cl->cursor) -1, xy[1]-2, xy[0]+(cwidth*cl->cursor) +1, xy[1]+sc->lheight-2);
+			glColor3ubv(fg);
+			glRecti(xy[0]+(cwidth*(cl->cursor+prompt_len)) -1, xy[1]-2, xy[0]+(cwidth*(cl->cursor+prompt_len)) +1, xy[1]+sc->lheight-2);
 
 			xy[0]= x_orig; /* remove prompt offset */
 		}
-		
-		xy[1] += sc->lheight;
-		
+
+		/* fake the edit line being in the scroll buffer */
+		cl_dummy.type= CONSOLE_LINE_INPUT;
+		cl_dummy.len= cl_dummy.len_alloc= prompt_len + cl->len;
+		cl_dummy.len_alloc= cl_dummy.len + 1;
+		cl_dummy.line= MEM_mallocN(cl_dummy.len_alloc, "cl_dummy");
+		memcpy(cl_dummy.line, sc->prompt, (cl_dummy.len_alloc - cl->len));
+		memcpy(cl_dummy.line + ((cl_dummy.len_alloc - cl->len)) - 1, cl->line, cl->len + 1);
+		BLI_addtail(&sc->scrollback, &cl_dummy);
+
+
 		for(cl= sc->scrollback.last; cl; cl= cl->prev) {
 			y_prev= xy[1];
 
@@ -373,6 +377,10 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 				break;
 			}
 		}
+
+		/* temp line end */
+		MEM_freeN(cl_dummy.line);
+		BLI_remlink(&sc->scrollback, &cl_dummy);
 	}
 	else { 
 		Report *report;
@@ -437,11 +445,15 @@ void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList 
 	return (void *)mouse_pick;
 }
 
-// XXX - breaks with line wrap
 int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports, int mval[2])
 {
 	int pos_pick= 0;
 	void *mouse_pick= NULL;
-	console_text_main__internal(sc, ar, reports, 0, mval, &mouse_pick, &pos_pick);
+	int mval_clamp[2];
+
+	mval_clamp[0]= CLAMPIS(mval[0], CONSOLE_DRAW_MARGIN, ar->winx-(CONSOLE_DRAW_SCROLL + CONSOLE_DRAW_MARGIN));
+	mval_clamp[1]= CLAMPIS(mval[1], CONSOLE_DRAW_MARGIN, ar->winy-CONSOLE_DRAW_MARGIN);
+
+	console_text_main__internal(sc, ar, reports, 0, mval_clamp, &mouse_pick, &pos_pick);
 	return pos_pick;
 }

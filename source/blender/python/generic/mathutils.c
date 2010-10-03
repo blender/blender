@@ -45,6 +45,7 @@
  * - toQuat --> to_quat
  * - Vector.toTrackQuat --> Vector.to_track_quat
  * - Quaternion * Quaternion --> cross product (not dot product)
+ * - Euler.rotate(angle, axis) --> Euler.rotate_axis(axis, angle)
  *
  * moved into class functions.
  * - Mathutils.RotationMatrix -> mathutils.Matrix.Rotation

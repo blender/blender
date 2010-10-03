@@ -102,7 +102,7 @@ class DOPESHEET_HT_header(bpy.types.Header):
         if st.mode == 'DOPESHEET':
             dopesheet_filter(layout, context)
 
-        elif st.mode == 'ACTION':
+        elif st.mode in ('ACTION','SHAPEKEY'):
             layout.template_ID(st, "action", new="action.new")
 
         if st.mode != 'GPENCIL':

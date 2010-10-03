@@ -128,18 +128,65 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	 */
 
 	if(view_context) {
+		int is_ortho;
 		GPU_offscreen_bind(oglrender->ofs); /* bind */
 
 		/* render 3d view */
 		if(rv3d->persp==RV3D_CAMOB && v3d->camera) {
 			RE_GetCameraWindow(oglrender->re, v3d->camera, scene->r.cfra, winmat);
-			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat);
+			is_ortho= scene->r.mode * R_ORTHO;
+			
 		}
 		else {
-			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL);
-		}
+			rctf viewplane;
+			float clipsta, clipend;
 	
-		glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, rr->rectf);
+			is_ortho= get_view3d_viewplane(v3d, rv3d, sizex, sizey, &viewplane, &clipsta, &clipend, NULL);
+			if(is_ortho) orthographic_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, -clipend, clipend);
+			else  perspective_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
+		}
+
+		if((scene->r.mode & R_OSA) == 0) { 
+			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat);
+			glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, rr->rectf);
+		}
+		else {
+			/* simple accumulation, less hassle then FSAA FBO's */
+#			define SAMPLES 5 /* fixed, easy to have more but for now this is ok */
+			const float jit_ofs[SAMPLES][2] = {{0, 0}, {0.5f, 0.5f}, {-0.5f,-0.5f}, {-0.5f, 0.5f}, {0.5f, -0.5f}};
+			float winmat_jitter[4][4];
+			float *accum_buffer= MEM_mallocN(sizex * sizey * sizeof(float) * 4, "accum1");
+			float *accum_tmp= MEM_mallocN(sizex * sizey * sizeof(float) * 4, "accum2");
+			int j, i;
+			float *from, *to;
+
+			/* first sample buffer, also initializes 'rv3d->persmat' */
+			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat);
+			glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, accum_buffer);
+
+			/* skip the first sample */
+			for(j=1; j < SAMPLES; j++) {
+				copy_m4_m4(winmat_jitter, winmat);
+				window_translate_m4(winmat_jitter, rv3d->persmat, jit_ofs[j][0] / sizex, jit_ofs[j][1] / sizey);
+
+				ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat_jitter);
+				glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, accum_tmp);
+				
+				i= (sizex*sizey * 4) - 1;
+				from= accum_tmp;
+				to= accum_buffer;
+				do {*to++ += *from++; } while (i--);
+			}
+
+			from= accum_buffer;
+			to= rr->rectf;
+
+			i= (sizex * sizey * 4) - 1;
+			do { *to++= *from++ * (1.0/SAMPLES); } while (i--);
+			
+			MEM_freeN(accum_buffer);
+			MEM_freeN(accum_tmp);
+		}
 
 		GPU_offscreen_unbind(oglrender->ofs); /* unbind */
 	}

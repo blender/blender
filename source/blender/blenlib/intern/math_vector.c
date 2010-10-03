@@ -30,7 +30,7 @@
 
 //******************************* Interpolation *******************************/
 
-void interp_v2_v2v2(float *target, const float *a, const float *b, const float t)
+void interp_v2_v2v2(float target[2], const float a[2], const float b[2], const float t)
 {
 	float s = 1.0f-t;
 
@@ -91,7 +91,7 @@ void interp_v4_v4v4v4(float p[4], const float v1[4], const float v2[4], const fl
 	p[3] = v1[3]*w[0] + v2[3]*w[1] + v3[3]*w[2];
 }
 
-void mid_v3_v3v3(float *v, float *v1, float *v2)
+void mid_v3_v3v3(float v[3], const float v1[3], const float v2[3])
 {
 	v[0]= 0.5f*(v1[0] + v2[0]);
 	v[1]= 0.5f*(v1[1] + v2[1]);
@@ -103,7 +103,7 @@ void mid_v3_v3v3(float *v, float *v1, float *v2)
 /* Return the angle in radians between vecs 1-2 and 2-3 in radians
    If v1 is a shoulder, v2 is the elbow and v3 is the hand,
    this would return the angle at the elbow */
-float angle_v3v3v3(float *v1, float *v2, float *v3)
+float angle_v3v3v3(const float v1[3], const float v2[3], const float v3[3])
 {
 	float vec1[3], vec2[3];
 
@@ -116,7 +116,7 @@ float angle_v3v3v3(float *v1, float *v2, float *v3)
 }
 
 /* Return the shortest angle in radians between the 2 vectors */
-float angle_v3v3(float *v1, float *v2)
+float angle_v3v3(const float v1[3], const float v2[3])
 {
 	float vec1[3], vec2[3];
 
@@ -126,7 +126,7 @@ float angle_v3v3(float *v1, float *v2)
 	return angle_normalized_v3v3(vec1, vec2);
 }
 
-float angle_v2v2v2(float *v1, float *v2, float *v3)
+float angle_v2v2v2(const float v1[2], const float v2[2], const float v3[2])
 {
 	float vec1[2], vec2[2];
 
@@ -143,7 +143,7 @@ float angle_v2v2v2(float *v1, float *v2, float *v3)
 }
 
 /* Return the shortest angle in radians between the 2 vectors */
-float angle_v2v2(float *v1, float *v2)
+float angle_v2v2(const float v1[2], const float v2[2])
 {
 	float vec1[2], vec2[2];
 
@@ -175,7 +175,7 @@ float angle_normalized_v3v3(const float v1[3], const float v2[3])
 		return 2.0f*(float)saasin(len_v3v3(v2, v1)/2.0f);
 }
 
-float angle_normalized_v2v2(float *v1, float *v2)
+float angle_normalized_v2v2(const float v1[2], const float v2[2])
 {
 	/* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
 	if (dot_v2v2(v1, v2) < 0.0f) {
@@ -231,7 +231,7 @@ void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const 
 /********************************* Geometry **********************************/
 
 /* Project v1 on v2 */
-void project_v3_v3v3(float *c, float *v1, float *v2)
+void project_v3_v3v3(float c[3], const float v1[3], const float v2[3])
 {
 	float mul;
 	mul = dot_v3v3(v1, v2) / dot_v3v3(v2, v2);
@@ -242,7 +242,7 @@ void project_v3_v3v3(float *c, float *v1, float *v2)
 }
 
 /* Returns a vector bisecting the angle at v2 formed by v1, v2 and v3 */
-void bisect_v3_v3v3v3(float *out, float *v1, float *v2, float *v3)
+void bisect_v3_v3v3v3(float out[3], const float v1[3], const float v2[3], const float v3[3])
 {
 	float d_12[3], d_23[3];
 	sub_v3_v3v3(d_12, v2, v1);
@@ -256,7 +256,7 @@ void bisect_v3_v3v3v3(float *out, float *v1, float *v2, float *v3)
 /* Returns a reflection vector from a vector and a normal vector
 reflect = vec - ((2 * DotVecs(vec, mirror)) * mirror)
 */
-void reflect_v3_v3v3(float *out, float *v1, float *v2)
+void reflect_v3_v3v3(float out[3], const float v1[3], const float v2[3])
 {
 	float vec[3], normal[3];
 	float reflect[3] = {0.0f, 0.0f, 0.0f};
@@ -274,7 +274,7 @@ void reflect_v3_v3v3(float *out, float *v1, float *v2)
 	copy_v3_v3(out, reflect);
 }
 
-void ortho_basis_v3v3_v3(float *v1, float *v2, float *v)
+void ortho_basis_v3v3_v3(float v1[3], float v2[3], const float v[3])
 {
 	const float f = (float)sqrt(v[0]*v[0] + v[1]*v[1]);
 
@@ -296,6 +296,36 @@ void ortho_basis_v3v3_v3(float *v1, float *v2, float *v)
 	}
 }
 
+/* Rotate a point p by angle theta around an arbitrary axis r
+   http://local.wasp.uwa.edu.au/~pbourke/geometry/
+*/
+void rotate_normalized_v3_v3v3fl(float r[3], const float p[3], const float axis[3], const float angle)
+{
+	const float costheta= cos(angle);
+	const float sintheta= sin(angle);
+
+	r[0]=	((costheta + (1 - costheta) * axis[0] * axis[0]) * p[0]) +
+			(((1 - costheta) * axis[0] * axis[1] - axis[2] * sintheta) * p[1]) +
+			(((1 - costheta) * axis[0] * axis[2] + axis[1] * sintheta) * p[2]);
+
+	r[1]=	(((1 - costheta) * axis[0] * axis[1] + axis[2] * sintheta) * p[0]) +
+			((costheta + (1 - costheta) * axis[1] * axis[1]) * p[1]) +
+			(((1 - costheta) * axis[1] * axis[2] - axis[0] * sintheta) * p[2]);
+
+	r[2]=	(((1 - costheta) * axis[0] * axis[2] - axis[1] * sintheta) * p[0]) +
+			(((1 - costheta) * axis[1] * axis[2] + axis[0] * sintheta) * p[1]) +
+			((costheta + (1 - costheta) * axis[2] * axis[2]) * p[2]);
+}
+
+void rotate_v3_v3v3fl(float r[3], const float p[3], const float axis[3], const float angle)
+{
+	float axis_n[3];
+
+	normalize_v3_v3(axis_n, axis);
+
+	rotate_normalized_v3_v3v3fl(r, p, axis_n, angle);
+}
+
 /*********************************** Other ***********************************/
 
 void print_v2(const char *str, const float v[2])
@@ -313,7 +343,7 @@ void print_v4(const char *str, const float v[4])
 	printf("%s: %.3f %.3f %.3f %.3f\n", str, v[0], v[1], v[2], v[3]);
 }
 
-void minmax_v3_v3v3(float *min, float *max, float *vec)
+void minmax_v3v3_v3(float min[3], float max[3], const float vec[3])
 {
 	if(min[0]>vec[0]) min[0]= vec[0];
 	if(min[1]>vec[1]) min[1]= vec[1];

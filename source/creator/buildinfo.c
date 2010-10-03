@@ -27,10 +27,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#define STRINGIFY(x) XSTRINGIFY(x)
-#define XSTRINGIFY(x) #x
-
 #ifdef BUILD_DATE
+#include "BKE_utildefines.h"
+
 char build_date[]= STRINGIFY(BUILD_DATE);
 char build_time[]= STRINGIFY(BUILD_TIME);
 char build_rev[]= STRINGIFY(BUILD_REV);

@@ -2180,7 +2180,7 @@ void initWarp(TransInfo *t)
 		mul_m4_v3(t->viewmat, center);
 		sub_v3_v3(center, t->viewmat[3]);
 		if (i)
-			minmax_v3_v3v3(min, max, center);
+			minmax_v3v3_v3(min, max, center);
 		else {
 			copy_v3_v3(max, center);
 			copy_v3_v3(min, center);

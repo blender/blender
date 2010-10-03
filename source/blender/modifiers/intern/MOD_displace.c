@@ -103,6 +103,12 @@ static int dependsOnTime(ModifierData *md)
 	}
 }
 
+static int dependsOnNormals(ModifierData *md)
+{
+	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+	return (dmd->direction == MOD_DISP_DIR_NOR);
+}
+
 static void foreachObjectLink(ModifierData *md, Object *ob,
 						   ObjectWalkFunc walk, void *userData)
 {
@@ -349,6 +355,7 @@ ModifierTypeInfo modifierType_Displace = {
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */	dependsOnNormals,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
 };

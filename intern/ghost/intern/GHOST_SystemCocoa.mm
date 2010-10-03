@@ -987,6 +987,8 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 		return true;
 	}
 	
+	m_ignoreWindowSizedMessages = false;
+	
     return anyProcessed;
 }
 
@@ -1054,8 +1056,12 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 			case GHOST_kEventWindowSize:
 				if (!m_ignoreWindowSizedMessages)
 				{
+					//Enforce only one resize message per event loop (coalescing all the live resize messages)					
 					window->updateDrawingContext();
 					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
+					//Mouse up event is trapped by the resizing event loop, so send it anyway to the window manager
+					pushEvent(new GHOST_EventButton(getMilliSeconds(), GHOST_kEventButtonUp, window, convertButton(0)));
+					m_ignoreWindowSizedMessages = true;
 				}
 				break;
 			default:

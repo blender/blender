@@ -2797,8 +2797,9 @@ Game Engine  bge.types Module
 
    .. method:: instantAddObject()
 
-      :return: The last object created by this actuator. The object can then be accessed from :data:`objectLastCreated`.
-      :rtype: None
+      adds the object without needing to calling SCA_PythonController.activate()
+	  
+	  .. note:: Use objectLastCreated to get the newly created object.
 
 .. class:: KX_SCA_DynamicActuator(SCA_IActuator)
 

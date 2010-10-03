@@ -871,9 +871,15 @@ void GPU_free_images_anim(void)
 
 /* OpenGL state caching for materials */
 
+typedef struct GPUMaterialFixed {
+	float diff[4];
+	float spec[4];
+	int hard;
+} GPUMaterialFixed; 
+
 static struct GPUMaterialState {
-	float (*matbuf)[2][4];
-	float matbuf_fixed[FIXEDMAT][2][4];
+	GPUMaterialFixed (*matbuf);
+	GPUMaterialFixed matbuf_fixed[FIXEDMAT];
 	int totmat;
 
 	Material **gmatbuf;
@@ -892,6 +898,32 @@ static struct GPUMaterialState {
 	int lastmatnr, lastretval;
 	GPUBlendMode lastblendmode;
 } GMS = {NULL};
+
+/* fixed function material, alpha handed by caller */
+static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, const int gamma)
+{
+	if (bmat->mode & MA_SHLESS) {
+		copy_v3_v3(smat->diff, &bmat->r);
+		smat->diff[3]= 1.0;
+
+		if(gamma) {
+			linearrgb_to_srgb_v3_v3(smat->diff, smat->diff);
+		}	
+	}
+	else {
+		madd_v3_v3fl(smat->diff, &bmat->r, bmat->ref + bmat->emit);
+		smat->diff[3]= 1.0; /* caller may set this to bmat->alpha */
+
+		madd_v3_v3fl(smat->spec, &bmat->specr, bmat->spec);
+		smat->spec[3]= 1.0; /* always 1 */
+		smat->hard= CLAMPIS(bmat->har, 0, 128);
+
+		if(gamma) {
+			linearrgb_to_srgb_v3_v3(smat->diff, smat->diff);
+			linearrgb_to_srgb_v3_v3(smat->spec, smat->spec);
+		}	
+	}
+}
 
 Material *gpu_active_node_material(Material *ma)
 {
@@ -934,7 +966,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 		*do_alpha_pass = 0;
 	
 	if(GMS.totmat > FIXEDMAT) {
-		GMS.matbuf= MEM_callocN(sizeof(*GMS.matbuf)*GMS.totmat, "GMS.matbuf");
+		GMS.matbuf= MEM_callocN(sizeof(GPUMaterialFixed)*GMS.totmat, "GMS.matbuf");
 		GMS.gmatbuf= MEM_callocN(sizeof(*GMS.gmatbuf)*GMS.totmat, "GMS.matbuf");
 		GMS.blendmode= MEM_callocN(sizeof(*GMS.blendmode)*GMS.totmat, "GMS.matbuf");
 	}
@@ -946,19 +978,10 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 	/* no materials assigned? */
 	if(ob->totcol==0) {
-		GMS.matbuf[0][0][0]= (defmaterial.ref+defmaterial.emit)*defmaterial.r;
-		GMS.matbuf[0][0][1]= (defmaterial.ref+defmaterial.emit)*defmaterial.g;
-		GMS.matbuf[0][0][2]= (defmaterial.ref+defmaterial.emit)*defmaterial.b;
-		GMS.matbuf[0][0][3]= 1.0;
+		gpu_material_to_fixed(&GMS.matbuf[0], &defmaterial, 0);
 
-		GMS.matbuf[0][1][0]= defmaterial.spec*defmaterial.specr;
-		GMS.matbuf[0][1][1]= defmaterial.spec*defmaterial.specg;
-		GMS.matbuf[0][1][2]= defmaterial.spec*defmaterial.specb;
-		GMS.matbuf[0][1][3]= 1.0;
-		
 		/* do material 1 too, for displists! */
-		QUATCOPY(GMS.matbuf[1][0], GMS.matbuf[0][0]);
-		QUATCOPY(GMS.matbuf[1][1], GMS.matbuf[0][1]);
+		memcpy(&GMS.matbuf[1], &GMS.matbuf[0], sizeof(GPUMaterialFixed));
 
 		if(glsl) {
 			GMS.gmatbuf[0]= &defmaterial;
@@ -985,32 +1008,13 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 		}
 		else {
 			/* fixed function opengl materials */
-			if (ma->mode & MA_SHLESS) {
-				GMS.matbuf[a][0][0]= ma->r;
-				GMS.matbuf[a][0][1]= ma->g;
-				GMS.matbuf[a][0][2]= ma->b;
-				if(gamma) linearrgb_to_srgb_v3_v3(&GMS.matbuf[a][0][0], &GMS.matbuf[a][0][0]);
-			} else {
-				GMS.matbuf[a][0][0]= (ma->ref+ma->emit)*ma->r;
-				GMS.matbuf[a][0][1]= (ma->ref+ma->emit)*ma->g;
-				GMS.matbuf[a][0][2]= (ma->ref+ma->emit)*ma->b;
-
-				GMS.matbuf[a][1][0]= ma->spec*ma->specr;
-				GMS.matbuf[a][1][1]= ma->spec*ma->specg;
-				GMS.matbuf[a][1][2]= ma->spec*ma->specb;
-				GMS.matbuf[a][1][3]= 1.0;
-				
-				if(gamma) {
-					linearrgb_to_srgb_v3_v3(&GMS.matbuf[a][0][0], &GMS.matbuf[a][0][0]);
-					linearrgb_to_srgb_v3_v3(&GMS.matbuf[a][1][0], &GMS.matbuf[a][1][0]);
-				}
-			}
+			gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma);
 
 			blendmode = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
 			if(do_alpha_pass && GMS.alphapass)
-				GMS.matbuf[a][0][3]= ma->alpha;
+				GMS.matbuf[a].diff[3]= ma->alpha;
 			else
-				GMS.matbuf[a][0][3]= 1.0f;
+				GMS.matbuf[a].diff[3]= 1.0f;
 		}
 
 		/* setting do_alpha_pass = 1 indicates this object needs to be
@@ -1039,18 +1043,15 @@ int GPU_enable_material(int nr, void *attribs)
 
 		memset(&GMS, 0, sizeof(GMS));
 
-		diff[0]= (defmaterial.ref+defmaterial.emit)*defmaterial.r;
-		diff[1]= (defmaterial.ref+defmaterial.emit)*defmaterial.g;
-		diff[2]= (defmaterial.ref+defmaterial.emit)*defmaterial.b;
+		madd_v3_v3fl(diff, &defmaterial.r, defmaterial.ref + defmaterial.emit);
 		diff[3]= 1.0;
 
-		spec[0]= defmaterial.spec*defmaterial.specr;
-		spec[1]= defmaterial.spec*defmaterial.specg;
-		spec[2]= defmaterial.spec*defmaterial.specb;
+		madd_v3_v3fl(spec, &defmaterial.specr, defmaterial.spec);
 		spec[3]= 1.0;
 
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
+		glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 35); /* blender default */
 
 		return 0;
 	}
@@ -1094,8 +1095,9 @@ int GPU_enable_material(int nr, void *attribs)
 		}
 		else {
 			/* or do fixed function opengl material */
-			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, GMS.matbuf[nr][0]);
-			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, GMS.matbuf[nr][1]);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, GMS.matbuf[nr].diff);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, GMS.matbuf[nr].spec);
+			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, GMS.matbuf[nr].hard);
 		}
 
 		/* set (alpha) blending mode */
@@ -1257,14 +1259,14 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 		
 		if(la->type==LA_SUN) {
 			/* sun lamp */
-			VECCOPY(direction, base->object->obmat[2]);
+			copy_v3_v3(direction, base->object->obmat[2]);
 			direction[3]= 0.0;
 
 			glLightfv(GL_LIGHT0+count, GL_POSITION, direction); 
 		}
 		else {
 			/* other lamps with attenuation */
-			VECCOPY(position, base->object->obmat[3]);
+			copy_v3_v3(position, base->object->obmat[3]);
 			position[3]= 1.0f;
 
 			glLightfv(GL_LIGHT0+count, GL_POSITION, position); 
@@ -1274,9 +1276,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 			
 			if(la->type==LA_SPOT) {
 				/* spot lamp */
-				direction[0]= -base->object->obmat[2][0];
-				direction[1]= -base->object->obmat[2][1];
-				direction[2]= -base->object->obmat[2][2];
+				negate_v3_v3(direction, base->object->obmat[2]);
 				glLightfv(GL_LIGHT0+count, GL_SPOT_DIRECTION, direction);
 				glLightf(GL_LIGHT0+count, GL_SPOT_CUTOFF, la->spotsize/2.0);
 				glLightf(GL_LIGHT0+count, GL_SPOT_EXPONENT, 128.0*la->spotblend);
@@ -1286,9 +1286,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 		}
 		
 		/* setup energy */
-		energy[0]= la->energy*la->r;
-		energy[1]= la->energy*la->g;
-		energy[2]= la->energy*la->b;
+		madd_v3_v3fl(energy, &la->r, la->energy);
 		energy[3]= 1.0;
 
 		glLightfv(GL_LIGHT0+count, GL_DIFFUSE, energy); 
@@ -1312,7 +1310,6 @@ void GPU_state_init(void)
 	/* also called when doing opengl rendering and in the game engine */
 	float mat_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
 	float mat_specular[] = { 0.5, 0.5, 0.5, 1.0 };
-	float mat_shininess[] = { 35.0 };
 	int a, x, y;
 	GLubyte pat[32*32];
 	const GLubyte *patc= pat;
@@ -1320,7 +1317,7 @@ void GPU_state_init(void)
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_specular);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
+	glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 35);
 
 	GPU_default_lights();
 	

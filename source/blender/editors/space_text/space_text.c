@@ -123,8 +123,12 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 			if(wmn->reference && wmn->reference != st->text)
 				break;
 
-			if(wmn->data == ND_DISPLAY)
-				ED_area_tag_redraw(sa);
+			switch(wmn->data) {
+				case ND_DISPLAY:
+				case ND_CURSOR:
+					ED_area_tag_redraw(sa);
+					break;
+			}
 
 			switch(wmn->action) {
 				case NA_EDITED:

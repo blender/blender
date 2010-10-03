@@ -43,7 +43,7 @@ typedef struct vec2f {
 } vec2f;
 
 /* not used at the moment */
-#if 0
+/*
 typedef struct vec2i {
 	int x, y;
 } vec2i;
@@ -75,7 +75,7 @@ typedef struct vec4f {
 typedef struct vec4d {
 	double x, y, z, w;
 } vec4d;
-#endif
+*/
 
 typedef struct rcti {
 	int xmin, xmax;

@@ -783,7 +783,7 @@ static int view3d_camera_active_poll(bContext *C)
 
 static int view3d_rotate_poll(bContext *C)
 {
-	if (!ED_operator_view3d_active(C)) {
+	if (!ED_operator_region_view3d_active(C)) {
 		return 0;
 	} else {
 		RegionView3D *rv3d= CTX_wm_region_view3d(C);
@@ -1264,7 +1264,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	ot->invoke= viewzoom_invoke;
 	ot->exec= viewzoom_exec;
 	ot->modal= viewzoom_modal;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -1522,7 +1522,7 @@ void VIEW3D_OT_view_selected(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewselected_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag= 0;
@@ -1811,7 +1811,6 @@ static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, wmEvent *event
 
 void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 {
-
 	/* identifiers */
 	ot->name= "Border Zoom";
 	ot->description = "Zoom in the view to the nearest object contained in the border";
@@ -1822,7 +1821,7 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 	ot->exec= view3d_zoom_border_exec;
 	ot->modal= WM_border_select_modal;
 
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag= 0;
@@ -2044,7 +2043,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewnumpad_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag= 0;
@@ -2162,7 +2161,7 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewpan_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag= 0;
@@ -2194,7 +2193,7 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewpersportho_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag= 0;
@@ -2413,7 +2412,7 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 	ot->exec= view3d_clipping_exec;
 	ot->modal= WM_border_select_modal;
 
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag= 0;

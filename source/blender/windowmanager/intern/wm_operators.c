@@ -893,12 +893,6 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
 	}
 
-	// XXX - hack, only for editing docs
-	if(strcmp(op->type->idname, "WM_OT_doc_edit")==0) {
-		columns= 1;
-		width= 500;
-	}
-
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, 20, style);
 	uiItemL(layout, op->type->name, 0);
@@ -1211,7 +1205,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Links", 0);
 	uiItemStringO(col, "Donations", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment/");
-	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-250/");
+	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-254-beta/");
 	uiItemStringO(col, "Manual", ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:Manual");
 	uiItemStringO(col, "Blender Website", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/");
 	uiItemStringO(col, "User Community", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community/"); // 
@@ -1416,8 +1410,17 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_read_homefile;
 	ot->poll= WM_operator_winactive;
+}
+
+static void WM_OT_read_factory_settings(wmOperatorType *ot)
+{
+	ot->name= "Load Factory Settings";
+	ot->idname= "WM_OT_read_factory_settings";
+	ot->description="Load default file and user preferences";
 	
-	RNA_def_boolean(ot->srna, "factory", 0, "Factory Settings", "");
+	ot->invoke= WM_operator_confirm;
+	ot->exec= WM_read_homefile;
+	ot->poll= WM_operator_winactive;
 }
 
 /* *************** open file **************** */
@@ -1900,7 +1903,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {	
 	if(!RNA_property_is_set(op->ptr, "filepath")) {
-		char *filepath[FILE_MAX];
+		char filepath[FILE_MAX];
 		BLI_strncpy(filepath, G.sce, sizeof(filepath));
 		BLI_replace_extension(filepath, sizeof(filepath), ".dae");
 		RNA_string_set(op->ptr, "filepath", filepath);
@@ -2435,11 +2438,21 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 
 			{
+				short x, y;
 				short *lasso= gesture->customdata;
-				lasso += 2 * gesture->points;
-				lasso[0] = event->x - sx;
-				lasso[1] = event->y - sy;
-				gesture->points++;
+				
+				lasso += (2 * gesture->points - 2);
+				x = (event->x - sx - lasso[0]);
+				y = (event->y - sy - lasso[1]);
+				
+				/* make a simple distance check to get a smoother lasso
+				   add only when at least 2 pixels between this and previous location */
+				if((x*x+y*y) > 4) {
+					lasso += 2;
+					lasso[0] = event->x - sx;
+					lasso[1] = event->y - sy;
+					gesture->points++;
+				}
 			}
 			break;
 			
@@ -3049,6 +3062,7 @@ void wm_operatortype_init(void)
 {
 	WM_operatortype_append(WM_OT_window_duplicate);
 	WM_operatortype_append(WM_OT_read_homefile);
+	WM_operatortype_append(WM_OT_read_factory_settings);
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);

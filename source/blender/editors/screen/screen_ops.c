@@ -129,6 +129,19 @@ int ED_operator_view3d_active(bContext *C)
 	return ed_spacetype_test(C, SPACE_VIEW3D);
 }
 
+int ED_operator_region_view3d_active(bContext *C)
+{
+#if 0 // correct but messes up poll() for menu items.
+	if(CTX_wm_region_view3d(C))
+		return TRUE;
+#else
+	if(ed_spacetype_test(C, SPACE_VIEW3D))
+		return TRUE;
+#endif
+	CTX_wm_operator_poll_msg_set(C, "expected a view3d region");
+	return FALSE;	
+}
+
 int ED_operator_timeline_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_TIME);
@@ -137,6 +150,19 @@ int ED_operator_timeline_active(bContext *C)
 int ED_operator_outliner_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_OUTLINER);
+}
+
+int ED_operator_outliner_active_no_editobject(bContext *C)
+{
+	if(ed_spacetype_test(C, SPACE_OUTLINER)) {
+		Object *ob = ED_object_active_context(C);
+		Object *obedit= CTX_data_edit_object(C);
+		if(ob && ob == obedit)
+			return 0;
+		else
+			return 1;
+	}
+	return 0;
 }
 
 int ED_operator_file_active(bContext *C)
@@ -213,6 +239,11 @@ int ED_operator_editmesh(bContext *C)
 int ED_operator_editmesh_view3d(bContext *C)
 {
 	return ED_operator_editmesh(C) && ED_operator_view3d_active(C);
+}
+
+int ED_operator_editmesh_region_view3d(bContext *C)
+{
+	return ED_operator_editmesh(C) && CTX_wm_region_view3d(C);
 }
 
 int ED_operator_editarmature(bContext *C)

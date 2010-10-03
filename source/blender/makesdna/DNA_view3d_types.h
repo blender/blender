@@ -139,7 +139,7 @@ typedef struct View3D {
 	
 	float viewquat[4], dist, pad1;	/* XXX depricated */
 	
-	int lay_used; /* used while drawing */
+	unsigned int lay_used; /* used while drawing */
 	
 	short persp;	/* XXX depricated */
 	short view;	/* XXX depricated */
@@ -228,7 +228,6 @@ typedef struct View3D {
 #define RV3D_CAMOB				2
 
 /* RegionView3d->rflag */
-#define RV3D_FLYMODE				2
 #define RV3D_CLIPPING				4
 #define RV3D_NAVIGATING				8
 #define RV3D_GPULIGHT_UPDATE		16

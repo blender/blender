@@ -53,6 +53,9 @@ if env['WITH_BF_CINEON']:
 if env['WITH_BF_HDR']:
     defs.append('WITH_HDR')
 
+if env['WITH_BF_JACK']:
+    defs.append('WITH_JACK')
+
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
     incs += ' ' + env['BF_FFMPEG_INC']

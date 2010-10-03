@@ -343,7 +343,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 {
 	ListBase wmbase;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
-	int from_memory= op?RNA_boolean_get(op->ptr, "factory"):0;
+	int from_memory= op && strcmp(op->type->idname, "WM_OT_read_factory_settings")==0;
 	int success;
 	
 	free_ttfont(); /* still weird... what does it here? */

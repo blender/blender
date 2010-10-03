@@ -750,12 +750,15 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Image *ima;
 	ImBuf *ibuf;
 	int pad= 10;
+	void *lock;
 	
 	ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
-	ibuf= BKE_image_get_ibuf(ima, NULL);
+	ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
 	
-	if(ibuf == NULL)
+	if(ibuf == NULL) {
+		BKE_image_release_ibuf(ima, lock);
 		return OPERATOR_CANCELLED;
+	}
 
 	nvm= MEM_callocN(sizeof(NodeViewMove), "NodeViewMove struct");
 	op->customdata= nvm;
@@ -766,6 +769,8 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	nvm->xmax = ar->winx/2 + ibuf->x/2 - pad;
 	nvm->ymin = -(ar->winy/2) - ibuf->y/2 + pad;
 	nvm->ymax = ar->winy/2 + ibuf->y/2 - pad;
+
+	BKE_image_release_ibuf(ima, lock);
 	
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);

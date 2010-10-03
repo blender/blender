@@ -364,7 +364,7 @@ static int rna_enum_bitmask(PropertyRNA *prop)
 
 static int rna_color_quantize(PropertyRNA *prop, PropertyDefRNA *dp)
 {
-	if(prop->type == PROP_FLOAT && prop->subtype == PROP_COLOR)
+	if(prop->type == PROP_FLOAT && (prop->subtype==PROP_COLOR || prop->subtype==PROP_COLOR_GAMMA))
 		if(strcmp(dp->dnatype, "float") != 0 && strcmp(dp->dnatype, "double") != 0)
 			return 1;
 	

@@ -181,6 +181,7 @@ static void time_cache_refresh(const bContext *C, SpaceTime *stime, ARegion *ar)
 		SpaceTimeCache *stc;
 		float *fp, *array;
 		int i, len;
+		int sta, end;
 		
 		switch(pid->type) {
 			case PTCACHE_TYPE_SOFTBODY:
@@ -197,6 +198,11 @@ static void time_cache_refresh(const bContext *C, SpaceTime *stime, ARegion *ar)
 				if (!(stime->cache_display & TIME_CACHE_SMOKE))	continue;
 				break;
 		}
+
+		BKE_ptcache_id_time(pid, CTX_data_scene(C), 0, &sta, &end, NULL);
+		
+		if(pid->cache->cached_frames==NULL)
+			continue;
 		
 		stc= MEM_callocN(sizeof(SpaceTimeCache), "spacetimecache");
 		
@@ -208,14 +214,15 @@ static void time_cache_refresh(const bContext *C, SpaceTime *stime, ARegion *ar)
 			stc->flag |= PTCACHE_DISK_CACHE;
 		
 		/* first allocate with maximum number of frames needed */
-		BKE_ptcache_id_time(pid, CTX_data_scene(C), 0, &stc->startframe, &stc->endframe, NULL);
-		len = (stc->endframe - stc->startframe + 1)*4;
+		stc->startframe = sta;
+		stc->endframe = end;
+		len = (end - sta + 1)*4;
 		fp = array = MEM_callocN(len*2*sizeof(float), "temporary timeline cache array");
 		
 		/* fill the vertex array with a quad for each cached frame */
-		for (i=stc->startframe; i<=stc->endframe; i++) {
+		for (i=sta; i<=end; i++) {
 			
-			if (BKE_ptcache_id_exist(pid, i)) {
+			if (pid->cache->cached_frames[i-sta]) {
 				fp[0] = (float)i;
 				fp[1] = 0.0;
 				fp+=2;
@@ -404,7 +411,7 @@ static void time_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_SCENE:
-			switch (wmn->data) {	
+			switch (wmn->data) {
 				case ND_OB_ACTIVE:
 				case ND_FRAME:
 					ED_area_tag_refresh(sa);
@@ -425,7 +432,7 @@ static void time_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 		case NC_SPACE:
-			switch (wmn->data) {	
+			switch (wmn->data) {
 				case ND_SPACE_CHANGED:
 					ED_area_tag_refresh(sa);
 					break;
@@ -511,6 +518,7 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		
 		case NC_SCENE:
 			switch (wmn->data) {
+				case ND_OB_SELECT:
 				case ND_FRAME:
 				case ND_FRAME_RANGE:
 				case ND_KEYINGSET:
@@ -545,6 +553,7 @@ static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 
 		case NC_SCENE:
 			switch (wmn->data) {
+				case ND_OB_SELECT:
 				case ND_FRAME:
 				case ND_FRAME_RANGE:
 				case ND_KEYINGSET:

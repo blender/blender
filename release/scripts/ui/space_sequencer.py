@@ -435,12 +435,15 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
             row.prop(strip, "use_only_boost")
 
         elif strip.type == 'SPEED':
-            layout.prop(strip, "global_speed")
+            layout.prop(strip, "use_as_speed")
+            if strip.use_as_speed:
+                layout.prop(strip, "speed_factor")
+            else:
+                layout.prop(strip, "speed_factor", text="Frame number")
+                layout.prop(strip, "scale_to_length")
 
-            flow = layout.column_flow()
-            flow.prop(strip, "use_curve_velocity")
-            flow.prop(strip, "use_curve_compress_y")
-            flow.prop(strip, "use_frame_blend")
+            #doesn't work currently
+            #layout.prop(strip, "use_frame_blend")
 
         elif strip.type == 'TRANSFORM':
             self.draw_panel_transform(strip)
@@ -460,7 +463,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
 
         col = layout.column(align=True)
         if strip.type == 'SPEED':
-            col.prop(strip, "speed_fader", text="Speed fader")
+            col.prop(strip, "multiply_speed")
         elif strip.type in ('CROSS', 'GAMMA_CROSS', 'PLUGIN', 'WIPE'):
                 col.prop(strip, "use_default_fade", "Default fade")
                 if not strip.use_default_fade:

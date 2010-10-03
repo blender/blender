@@ -304,6 +304,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	medge_new =		result->getEdgeArray(result);
 	
 	origindex= result->getFaceDataArray(result, CD_ORIGINDEX);
+
+	DM_copy_vert_data(dm, result, 0, 0, totvert); /* copy first otherwise this overwrites our own vertex normals */
 	
 	/* Set the locations of the first set of verts */
 	
@@ -665,8 +667,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 	/* done with edge connectivity based normal flipping */
 	
-	DM_copy_vert_data(dm, result, 0, 0, totvert);
-	
 	/* Add Faces */
 	for (step=1; step < step_tot; step++) {
 		const int varray_stride= totvert * step;
@@ -894,6 +894,7 @@ ModifierTypeInfo modifierType_Screw = {
 	/* isDisabled */        0,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     0,
 };

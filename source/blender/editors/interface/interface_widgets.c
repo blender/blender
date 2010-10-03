@@ -2278,6 +2278,9 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	rect->xmax -= offs*0.75f;
 }
 
+/* I think 3 is sufficient border to indicate keyed status */
+#define SWATCH_KEYED_BORDER 3
+
 static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
@@ -2301,6 +2304,19 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
 		
 	ui_get_but_vectorf(but, col);
+	
+	if(state & (UI_BUT_ANIMATED|UI_BUT_ANIMATED_KEY|UI_BUT_DRIVEN|UI_BUT_REDALERT)) {
+		// draw based on state - colour for keyed etc
+		widgetbase_draw(&wtb, wcol);
+		
+		// inset to draw swatch colour
+		rect->xmin+= SWATCH_KEYED_BORDER;
+		rect->xmax-= SWATCH_KEYED_BORDER;
+		rect->ymin+= SWATCH_KEYED_BORDER;
+		rect->ymax-= SWATCH_KEYED_BORDER;
+		
+		round_box_edges(&wtb, roundboxalign, rect, 5.0f);
+	}
 	
 	if (color_profile)
 		linearrgb_to_srgb_v3_v3(col, col);

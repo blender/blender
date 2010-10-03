@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <math.h>
 
+extern "C" 
+{
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
@@ -39,9 +41,8 @@
 #include "DNA_curve_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_userdef_types.h"
 
-extern "C" 
-{
 #include "BKE_DerivedMesh.h"
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
@@ -1645,7 +1646,6 @@ public:
 		else if (ma->spec_shader == MA_SPEC_PHONG) {
 			ep.setShaderType(COLLADASW::EffectProfile::PHONG);
 			// shininess
-			// XXX not sure, stolen this from previous Collada plugin
 			ep.setShininess(ma->har);
 		}
 		else {
@@ -1717,6 +1717,9 @@ public:
 			MTex *t = ma->mtex[tex_indices[a]];
 			Image *ima = t->tex->ima;
 			
+			// Image not set for texture
+			if(!ima) continue;
+			
 			std::string key(id_name(ima));
 			key = translate_id(key);
 
@@ -1759,6 +1762,9 @@ public:
 		for (a = 0; a < tex_indices.size(); a++) {
 			MTex *t = ma->mtex[tex_indices[a]];
 			Image *ima = t->tex->ima;
+			
+			// Image not set for texture
+			if(!ima) continue;
 
 			// we assume map input is always TEXCO_UV
 
@@ -1804,7 +1810,7 @@ public:
 				// technique FCOLLADA, with the <bump> tag, is most likely the best understood,
 				// most widespread de-facto standard.
 				texture.setProfileName("FCOLLADA");
-				texture.setChildElementName("bump");				
+				texture.setChildElementName("bump");
 				ep.addExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
 			}
 		}
@@ -1905,15 +1911,15 @@ public:
 	}
 	void operator()(Object *ob, Scene *sce)
 	{
-		// XXX add other params later
+		// TODO: shiftx, shifty, YF_dofdist
 		Camera *cam = (Camera*)ob->data;
 		std::string cam_id(get_camera_id(ob));
 		std::string cam_name(id_name(cam));
 		
 		if (cam->type == CAM_PERSP) {
 			COLLADASW::PerspectiveOptic persp(mSW);
-			persp.setXFov(1.0);
-			persp.setAspectRatio(0.1);
+			persp.setXFov(lens_to_angle(cam->lens)*(180.0f/M_PI));
+			persp.setAspectRatio(1.0);
 			persp.setZFar(cam->clipend);
 			persp.setZNear(cam->clipsta);
 			COLLADASW::Camera ccam(mSW, &persp, cam_id, cam_name);
@@ -1921,8 +1927,8 @@ public:
 		}
 		else {
 			COLLADASW::OrthographicOptic ortho(mSW);
-			ortho.setXMag(1.0);
-			ortho.setAspectRatio(0.1);
+			ortho.setXMag(cam->ortho_scale);
+			ortho.setAspectRatio(1.0);
 			ortho.setZFar(cam->clipend);
 			ortho.setZNear(cam->clipsta);
 			COLLADASW::Camera ccam(mSW, &ortho, cam_id, cam_name);
@@ -2621,7 +2627,12 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	asset.setUnit("decimetre", 0.1);
 	asset.setUpAxisType(COLLADASW::Asset::Z_UP);
 	// TODO: need an Author field in userpref
-	asset.getContributor().mAuthor = "Blender User";
+	if(strlen(U.author) > 0) {
+		asset.getContributor().mAuthor = U.author;
+	}
+	else {
+		asset.getContributor().mAuthor = "Blender User";
+	}
 #ifdef NAN_BUILDINFO
 	char version_buf[128];
 	sprintf(version_buf, "Blender %d.%02d.%d r%s", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION, build_rev);

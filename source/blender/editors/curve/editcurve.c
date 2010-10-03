@@ -1280,13 +1280,9 @@ static void rotateflagNurb(ListBase *editnurb, short flag, float *cent, float ro
 
 			while(a--) {
 				if(bp->f1 & flag) {
-					bp->vec[0]-=cent[0];
-					bp->vec[1]-=cent[1];
-					bp->vec[2]-=cent[2];
+					sub_v3_v3(bp->vec, cent);
 					mul_m3_v3(rotmat, bp->vec);
-					bp->vec[0]+=cent[0];
-					bp->vec[1]+=cent[1];
-					bp->vec[2]+=cent[2];
+					add_v3_v3(bp->vec, cent);
 				}
 				bp++;
 			}
@@ -1326,7 +1322,7 @@ static void translateflagNurb(ListBase *editnurb, short flag, float *vec)
 	}
 }
 
-static void weightflagNurb(ListBase *editnurb, short flag, float w, int mode)	/* mode==0: replace, mode==1: multiply */
+static void weightflagNurb(ListBase *editnurb, short flag, float w)
 {
 	Nurb *nu;
 	BPoint *bp;
@@ -1338,8 +1334,8 @@ static void weightflagNurb(ListBase *editnurb, short flag, float w, int mode)	/*
 			bp= nu->bp;
 			while(a--) {
 				if(bp->f1 & flag) {
-					if(mode==1) bp->vec[3]*= w;
-					else bp->vec[3]= w;
+					/* a mode used to exist for replace/multiple but is was unused */
+					bp->vec[3]*= w;
 				}
 				bp++;
 			}
@@ -1416,7 +1412,7 @@ static int deleteflagNurb(bContext *C, wmOperator *op, int flag)
 				nu->bp= newbp;
 				clamp_nurb_order_v(nu);
 
-				makeknots(nu, 2);
+				nurbs_knot_calc_v(nu);
 			}
 			else {
 				/* is the nurb in V direction selected */
@@ -1465,7 +1461,7 @@ static int deleteflagNurb(bContext *C, wmOperator *op, int flag)
 						nu->pntsu= newu;
 						clamp_nurb_order_u(nu);
 					}
-					makeknots(nu, 1);
+					nurbs_knot_calc_u(nu);
 				}
 			}
 		}
@@ -1513,7 +1509,7 @@ static short extrudeflagNurb(EditNurb *editnurb, int flag)
 
 				nu->pntsv= 2;
 				nu->orderv= 2;
-				makeknots(nu, 2);
+				nurbs_knot_calc_v(nu);
 			}
 		}
 		else {
@@ -1556,7 +1552,7 @@ static short extrudeflagNurb(EditNurb *editnurb, int flag)
 					MEM_freeN(nu->bp);
 					nu->bp= newbp;
 					nu->pntsv++;
-					makeknots(nu, 2);
+					nurbs_knot_calc_v(nu);
 				}
 				else if(v==0 || v== nu->pntsu-1) {	    /* collumn in v-direction selected */
 					ok= 1;
@@ -1583,7 +1579,7 @@ static short extrudeflagNurb(EditNurb *editnurb, int flag)
 					MEM_freeN(nu->bp);
 					nu->bp= newbp;
 					nu->pntsu++;
-					makeknots(nu, 1);
+					nurbs_knot_calc_u(nu);
 				}
 			}
 		}
@@ -1681,7 +1677,7 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 
 					/* knots */
 					newnu->knotsu= NULL;
-					makeknots(newnu, 1);
+					nurbs_knot_calc_u(newnu);
 				}
 				bp++;
 			}
@@ -1746,14 +1742,14 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 						if(nu->pntsu==newnu->pntsu && nu->knotsu) {
 							newnu->knotsu= MEM_dupallocN( nu->knotsu );
 						} else {
-							makeknots(newnu, 1);
+							nurbs_knot_calc_u(newnu);
 						}
 					}
 					if (check_valid_nurb_v(newnu)) {
 						if(nu->pntsv==newnu->pntsv && nu->knotsv) {
 							newnu->knotsv= MEM_dupallocN( nu->knotsv );
 						} else {
-							makeknots(newnu, 2);
+							nurbs_knot_calc_v(newnu);
 						}
 					}
 				}
@@ -2769,7 +2765,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				nu->pntsu+= amount;
 
 				if(nu->type & CU_NURBS) {
-					makeknots(nu, 1);
+					nurbs_knot_calc_u(nu);
 				}
 			}
 		} /* End of 'else if(nu->pntsv==1)' */
@@ -2889,8 +2885,8 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				nu->bp= bpnew;
 				nu->pntsu= (number_cuts+1)*nu->pntsu-number_cuts;
 				nu->pntsv= (number_cuts+1)*nu->pntsv-number_cuts;
-				makeknots(nu, 1);
-				makeknots(nu, 2);
+				nurbs_knot_calc_u(nu);
+				nurbs_knot_calc_v(nu);
 			} /* End of 'if(sel== nu->pntsu*nu->pntsv)' (subdivide entire NURB) */
 			else {
 				/* subdivide in v direction? */
@@ -2934,7 +2930,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 					MEM_freeN(nu->bp);
 					nu->bp= bpnew;
 					nu->pntsv+= sel;
-					makeknots(nu, 2);
+					nurbs_knot_calc_v(nu);
 				}
 				else {
 					/* or in u direction? */
@@ -2974,7 +2970,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 						MEM_freeN(nu->bp);
 						nu->bp= bpnew;
 						nu->pntsu+= sel;
-						makeknots(nu, 1); /* shift knots
+						nurbs_knot_calc_u(nu); /* shift knots
 													 forward */
 					}
 				}
@@ -3171,7 +3167,7 @@ static int convertspline(short type, Nurb *nu)
 			nu->orderu= 4;
 			nu->flagu &= CU_NURB_CYCLIC; /* disable all flags except for cyclic */
 			nu->flagu |= CU_NURB_BEZIER;
-			makeknots(nu, 1);
+			nurbs_knot_calc_u(nu);
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;
 			while(a--) {
@@ -3224,7 +3220,7 @@ static int convertspline(short type, Nurb *nu)
 			if(type== CU_NURBS) {
 				nu->flagu &= CU_NURB_CYCLIC; /* disable all flags except for cyclic */
 				nu->flagu |= CU_NURB_BEZIER;
-				makeknots(nu, 1);
+				nurbs_knot_calc_u(nu);
 			}
 		}
 	}
@@ -3641,10 +3637,10 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 
 	if(nu1->type == CU_NURBS) {
 		/* merge knots */
-		makeknots(nu1, 1);
+		nurbs_knot_calc_u(nu1);
 	
 		/* make knots, for merged curved for example */
-		makeknots(nu1, 2);
+		nurbs_knot_calc_v(nu1);
 	}
 	
 	MEM_freeN(temp);
@@ -3834,7 +3830,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 				/* now join the knots */
 				if(nu1->type == CU_NURBS) {
 					if(nu1->knotsu==NULL) {
-						makeknots(nu1, 1);
+						nurbs_knot_calc_u(nu1);
 					}
 					else {
 						fp= MEM_mallocN(sizeof(float)*KNOTSU(nu1), "addsegment3");
@@ -3969,11 +3965,9 @@ int mouse_nurb(bContext *C, short mval[2], int extend)
 
 /******************** spin operator ***********************/
 
-/* from what I can gather, the mode==0 magic number spins and bridges the nurbs based on the 
- * orientation of the global 3d view (yuck yuck!) mode==1 does the same, but doesn't bridge up
- * up the new geometry, mode==2 now does the same as 0, but aligned to world axes, not the view.
-*/
-static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, float *cent, short mode)
+/* 'cent' is in object space and 'dvec' in worldspace.
+ */
+static int spin_nurb(float viewmat[][4], Object *obedit, float *axis, float *cent)
 {
 	Curve *cu= (Curve*)obedit->data;
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -3982,16 +3976,15 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, flo
 	float bmat[3][3], rotmat[3][3], scalemat1[3][3], scalemat2[3][3];
 	float persmat[3][3], persinv[3][3];
 	short a,ok, changed= 0;
-	
-	unit_m3(persmat);
+
+	copy_m3_m4(persmat, viewmat);
 	invert_m3_m3(persinv, persmat);
 
 	/* imat and center and size */
 	copy_m3_m4(bmat, obedit->obmat);
 	invert_m3_m3(imat, bmat);
-
-	n[0]=n[1]= 0.0;
-	n[2]= 1.0;
+	
+	normalize_v3_v3(n, axis);
 	
 	phi= M_PI/8.0;
 	q[0]= cos(phi);
@@ -4004,8 +3997,8 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, flo
 	mul_m3_m3m3(rotmat, imat, tmat);
 
 	unit_m3(scalemat1);
-	scalemat1[0][0]= sqrt(2.0);
-	scalemat1[1][1]= sqrt(2.0);
+	scalemat1[0][0]= M_SQRT2;
+	scalemat1[1][1]= M_SQRT2;
 
 	mul_m3_m3m3(tmat,persmat,bmat);
 	mul_m3_m3m3(cmat,scalemat1,tmat);
@@ -4013,8 +4006,8 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, flo
 	mul_m3_m3m3(scalemat1,imat,tmat);
 
 	unit_m3(scalemat2);
-	scalemat2[0][0]/= sqrt(2.0);
-	scalemat2[1][1]/= sqrt(2.0);
+	scalemat2[0][0]/= M_SQRT2;
+	scalemat2[1][1]/= M_SQRT2;
 
 	mul_m3_m3m3(tmat,persmat,bmat);
 	mul_m3_m3m3(cmat,scalemat2,tmat);
@@ -4024,29 +4017,22 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, flo
 	ok= 1;
 
 	for(a=0;a<7;a++) {
-		if(mode==0 || mode==2) ok= extrudeflagNurb(cu->editnurb, 1);
-		else adduplicateflagNurb(obedit, 1);
+		ok= extrudeflagNurb(cu->editnurb, 1);
 
 		if(ok==0)
 			return changed;
 
 		changed= 1;
 
-		rotateflagNurb(editnurb, 1,cent,rotmat);
+		rotateflagNurb(editnurb, SELECT, cent, rotmat);
 
-		if(mode==0 || mode==2) {
-			if( (a & 1)==0 ) {
-				rotateflagNurb(editnurb, 1,cent,scalemat1);
-				weightflagNurb(editnurb, 1, 0.25*sqrt(2.0), 1);
-			}
-			else {
-				rotateflagNurb(editnurb, 1,cent,scalemat2);
-				weightflagNurb(editnurb, 1, 4.0/sqrt(2.0), 1);
-			}
+		if( (a & SELECT)==0 ) {
+			rotateflagNurb(editnurb, SELECT, cent, scalemat1);
+			weightflagNurb(editnurb, SELECT, 0.25*M_SQRT2);
 		}
-		if(dvec) {
-			mul_m3_v3(bmat,dvec);
-			translateflagNurb(editnurb, 1,dvec);
+		else {
+			rotateflagNurb(editnurb, SELECT, cent, scalemat2);
+			weightflagNurb(editnurb, SELECT, 4.0/M_SQRT2);
 		}
 	}
 
@@ -4055,7 +4041,7 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, flo
 			if(isNurbsel(nu)) {
 				nu->orderv= 4;
 				nu->flagv |= CU_NURB_CYCLIC;
-				makeknots(nu, 2);
+				nurbs_knot_calc_v(nu);
 			}
 		}
 	}
@@ -4065,14 +4051,16 @@ static int spin_nurb(bContext *C, Scene *scene, Object *obedit, float *dvec, flo
 
 static int spin_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	float cent[3], axis[3];
 	
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
 	
-	if(!spin_nurb(C, scene, obedit, axis, cent, 0)) {
+	invert_m4_m4(obedit->imat, obedit->obmat);
+	mul_m4_v3(obedit->imat, cent);
+	
+	if(!spin_nurb(ED_view3d_context_rv3d(C)->viewmat, obedit, axis, cent)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't spin");
 		return OPERATOR_CANCELLED;
 	}
@@ -4211,7 +4199,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 		if(bp) {
 			nu->pntsu++;
 			
-			makeknots(nu, 1);
+			nurbs_knot_calc_u(nu);
 			
 			if(mode=='e') {
 				copy_v3_v3(newbp->vec, bp->vec);
@@ -4382,7 +4370,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 					while(a--) {
 						if( bp->f1 & SELECT ) {
 							nu->flagu ^= CU_NURB_CYCLIC;
-							makeknots(nu, 1);	/* 1==u  type is ignored for cyclic curves */
+							nurbs_knot_calc_u(nu);	/* 1==u  type is ignored for cyclic curves */
 							break;
 						}
 						bp++;
@@ -4397,11 +4385,11 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 					if( bp->f1 & SELECT) {
 						if(direction==0 && nu->pntsu>1) {
 							nu->flagu ^= CU_NURB_CYCLIC;
-							makeknots(nu, 1);   /* 1==u  type is ignored for cyclic curves */
+							nurbs_knot_calc_u(nu);   /* 1==u  type is ignored for cyclic curves */
 						}
 						if(direction==1 && nu->pntsv>1) {
 							nu->flagv ^= CU_NURB_CYCLIC;
-							makeknots(nu, 2);   /* 2==v  type is ignored for cyclic curves */
+							nurbs_knot_calc_v(nu);   /* 2==v  type is ignored for cyclic curves */
 						}
 						break;
 					}
@@ -5285,7 +5273,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 						clamp_nurb_order_u(nu);
 					}*/
 				}
-				makeknots(nu, 1);
+				nurbs_knot_calc_u(nu);
 			}
 			nu= next;
 		}
@@ -5625,10 +5613,10 @@ int join_curve_exec(bContext *C, wmOperator *op)
 Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 {
 	static int xzproj= 0;	/* this function calls itself... */
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	View3D *v3d= CTX_wm_view3d(C);
+	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
 	Nurb *nu = NULL;
 	BezTriple *bezt;
 	BPoint *bp;
@@ -5636,7 +5624,10 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	float fac, grid;
 	int a, b, cutype, stype;
 	int force_3d = ((Curve *)obedit->data)->flag & CU_3D; /* could be adding to an existing 3D curve */
-	
+
+	float umat[4][4];
+	unit_m4(umat);
+
 	cutype= type & CU_TYPE;	// poly, bezier, nurbs, etc
 	stype= type & CU_PRIMITIVE;
 	
@@ -5722,8 +5713,8 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			for(a=0;a<4;a++, bp++) mul_m4_v3(mat,bp->vec);
 
 			if(cutype==CU_NURBS) {
-				nu->knotsu= 0;	/* makeknots allocates */
-				makeknots(nu, 1);
+				nu->knotsu= NULL;	/* nurbs_knot_calc_u allocates */
+				nurbs_knot_calc_u(nu);
 			}
 
 		}
@@ -5756,8 +5747,8 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 		for(a=0;a<5;a++, bp++) mul_m4_v3(mat,bp->vec);
 
 		if(cutype==CU_NURBS) {
-			nu->knotsu= 0;	/* makeknots allocates */
-			makeknots(nu, 1);
+			nu->knotsu= NULL;	/* nurbs_knot_calc_u allocates */
+			nurbs_knot_calc_u(nu);
 		}
 
 		break;
@@ -5821,7 +5812,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 					bp->vec[0]+= 0.25*nurbcircle[a][0]*grid-.75*grid;
 					bp->vec[2]+= 0.25*nurbcircle[a][1]*grid;
 				}
-				if(a & 1) bp->vec[3]= 0.25*sqrt(2.0);
+				if(a & 1) bp->vec[3]= 0.25*M_SQRT2;
 				else bp->vec[3]= 1.0;
 				mul_m4_v3(mat,bp->vec);
 				bp->radius = bp->weight = 1.0;
@@ -5829,7 +5820,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 				bp++;
 			}
 
-			makeknots(nu, 1);
+			nurbs_knot_calc_u(nu);
 		}
 		break;
 	case CU_PRIM_PATCH:	/* 4x4 patch */
@@ -5865,8 +5856,8 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 				}
 			}
 
-			makeknots(nu, 1);
-			makeknots(nu, 2);
+			nurbs_knot_calc_u(nu);
+			nurbs_knot_calc_v(nu);
 		}
 		break;
 	case CU_PRIM_TUBE:	/* Cylinder */
@@ -5884,6 +5875,13 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			BLI_addtail(editnurb, nu); /* temporal for extrude and translate */
 			vec[0]=vec[1]= 0.0;
 			vec[2]= -grid;
+			
+			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
+				/* pass */
+			}
+			else {
+				mul_mat3_m4_v3(mat, vec);
+			}
 
 			translateflagNurb(editnurb, 1, vec);
 			extrudeflagNurb(cu->editnurb, 1);
@@ -5905,7 +5903,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	case CU_PRIM_SPHERE:	/* sphere */
 		if( cutype==CU_NURBS ) {
 			float tmp_cent[3] = {0.f, 0.f, 0.f};
-			float tmp_vec[3] = {0.f, 0.f, 0.f};
+			float tmp_vec[3] = {0.f, 0.f, 1.f};
 			
 			if(newname) {
 				rename_id((ID *)obedit, "SurfSphere");
@@ -5926,21 +5924,21 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 				bp->f1= SELECT;
 				bp->vec[0]+= nurbcircle[a][0]*grid;
 				bp->vec[2]+= nurbcircle[a][1]*grid;
-				if(a & 1) bp->vec[3]= 0.5*sqrt(2.0);
+				if(a & 1) bp->vec[3]= 0.5*M_SQRT2;
 				else bp->vec[3]= 1.0;
 				mul_m4_v3(mat,bp->vec);
 				bp++;
 			}
 			nu->flagu= CU_NURB_BEZIER;
-			makeknots(nu, 1);
+			nurbs_knot_calc_u(nu);
 
 			BLI_addtail(editnurb, nu); /* temporal for spin */
-			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)
-				spin_nurb(C, scene, obedit, tmp_vec, tmp_cent, 2);
-			else
-				spin_nurb(C, scene, obedit, tmp_vec, mat[3], 2);
 
-			makeknots(nu, 2);
+			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
+			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(rv3d->viewmat, obedit, rv3d->viewinv[2], mat[3]);
+			else												spin_nurb(umat, obedit, tmp_vec, mat[3]);
+
+			nurbs_knot_calc_v(nu);
 
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;
@@ -5954,7 +5952,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	case CU_PRIM_DONUT:	/* torus */
 		if( cutype==CU_NURBS ) {
 			float tmp_cent[3] = {0.f, 0.f, 0.f};
-			float tmp_vec[3] = {0.f, 0.f, 0.f};
+			float tmp_vec[3] = {0.f, 0.f, 1.f};
 			
 			if(newname) {
 				rename_id((ID *)obedit, "SurfTorus");
@@ -5967,11 +5965,13 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			nu->resolu= 4;
 			nu->resolv= 4;
 			nu->flag= CU_SMOOTH;
-			BLI_addtail(editnurb, nu); /* temporal for extrude and translate */
-			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)
-				spin_nurb(C, scene, obedit, tmp_vec, tmp_cent, 2);
-			else
-				spin_nurb(C, scene, obedit, tmp_vec, mat[3], 2);
+			BLI_addtail(editnurb, nu); /* temporal for spin */
+
+			/* same as above */
+			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)	spin_nurb(umat, obedit, tmp_vec, tmp_cent);
+			else if ((U.flag & USER_ADD_VIEWALIGNED))			spin_nurb(rv3d->viewmat, obedit, rv3d->viewinv[2], mat[3]);
+			else												spin_nurb(umat, obedit, tmp_vec, mat[3]);
+
 
 			BLI_remlink(editnurb, nu);
 
