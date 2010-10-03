@@ -281,8 +281,8 @@ static PyObject *blender_reload( PyObject * self, PyObject * module )
 	return newmodule;
 }
 
-PyMethodDef bpy_import_meth[] = { {"bpy_import_meth", (PyCFunction)blender_import, METH_VARARGS | METH_KEYWORDS, "blenders import"} };
-PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", (PyCFunction)blender_reload, METH_O, "blenders reload"} };
+PyMethodDef bpy_import_meth = {"bpy_import_meth", (PyCFunction)blender_import, METH_VARARGS | METH_KEYWORDS, "blenders import"};
+PyMethodDef bpy_reload_meth = {"bpy_reload_meth", (PyCFunction)blender_reload, METH_O, "blenders reload"};
 
 
 /* Clear user modules.

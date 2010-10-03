@@ -477,7 +477,7 @@ int BLI_parent_dir(char *path)
 	static char *parent_dir="../";
 #endif
 	char tmp[FILE_MAXDIR+FILE_MAXFILE+4];
-	BLI_strncpy(tmp, path, sizeof(tmp));
+	BLI_strncpy(tmp, path, sizeof(tmp)-4);
 	BLI_add_slash(tmp);
 	strcat(tmp, parent_dir);
 	BLI_cleanup_dir(NULL, tmp);
@@ -839,8 +839,6 @@ static int get_path_local(char *targetpath, char *folder_name, char *subfolder_n
 	char bprogdir[FILE_MAX];
 	char relfolder[FILE_MAX];
 	char cwd[FILE_MAX];
-	char *s;
-	int i;
 	
 #ifdef PATH_DEBUG2
 	printf("get_path_local...\n");
@@ -853,9 +851,7 @@ static int get_path_local(char *targetpath, char *folder_name, char *subfolder_n
 	}
 	
 	/* use argv[0] (bprogname) to get the path to the executable */
-	s = BLI_last_slash(bprogname);
-	i = s - bprogname + 1;
-	BLI_strncpy(bprogdir, bprogname, i);
+	BLI_split_dirfile(bprogname, bprogdir, NULL);
 	
 	/* try EXECUTABLE_DIR/folder_name */
 	if(test_path(targetpath, bprogdir, "", relfolder))
@@ -1024,7 +1020,7 @@ char *BLI_get_folder(int folder_id, char *subfolder)
 	return path;
 }
 
-static char *BLI_get_user_folder_notest(int folder_id, char *subfolder)
+char *BLI_get_user_folder_notest(int folder_id, char *subfolder)
 {
 	static char path[FILE_MAX] = "";
 
@@ -1038,6 +1034,9 @@ static char *BLI_get_user_folder_notest(int folder_id, char *subfolder)
 		case BLENDER_USER_AUTOSAVE:
 			get_path_user(path, "autosave", subfolder, "BLENDER_USER_AUTOSAVE");
 			break;
+		case BLENDER_USER_SCRIPTS:
+			get_path_user(path, "scripts", subfolder, "BLENDER_USER_SCRIPTS");
+			break;
 	}
 	if ('\0' == path[0]) {
 		return NULL;
@@ -1050,7 +1049,7 @@ char *BLI_get_folder_create(int folder_id, char *subfolder)
 	char *path;
 
 	/* only for user folders */
-	if (!ELEM3(folder_id, BLENDER_USER_DATAFILES, BLENDER_USER_CONFIG, BLENDER_USER_AUTOSAVE))
+	if (!ELEM4(folder_id, BLENDER_USER_DATAFILES, BLENDER_USER_CONFIG, BLENDER_USER_SCRIPTS, BLENDER_USER_AUTOSAVE))
 		return NULL;
 	
 	path = BLI_get_folder(folder_id, subfolder);
@@ -1205,8 +1204,7 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 		/* Get the file name, chop everything past the last slash (ie. the filename) */
 		strcpy(string, relabase);
 		
-		lslash= (strrchr(string, '/')>strrchr(string, '\\'))?strrchr(string, '/'):strrchr(string, '\\');
-		
+		lslash= BLI_last_slash(string);
 		if(lslash) *(lslash+1)= 0;
 
 		dir+=2; /* Skip over the relative reference */

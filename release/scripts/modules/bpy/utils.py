@@ -27,7 +27,7 @@ import bpy as _bpy
 import os as _os
 import sys as _sys
 
-from _bpy import blend_paths
+from _bpy import blend_paths, user_resource
 from _bpy import script_paths as _bpy_script_paths
 
 

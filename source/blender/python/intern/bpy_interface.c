@@ -248,8 +248,8 @@ void BPY_start_python( int argc, char **argv )
 		//PyObject *m = PyImport_AddModule("__builtin__");
 		//PyObject *d = PyModule_GetDict(m);
 		PyObject *d = PyEval_GetBuiltins(  );
-		PyDict_SetItemString(d, "reload",		item=PyCFunction_New(bpy_reload_meth, NULL));	Py_DECREF(item);
-		PyDict_SetItemString(d, "__import__",	item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item);
+		PyDict_SetItemString(d, "reload",		item=PyCFunction_New(&bpy_reload_meth, NULL));	Py_DECREF(item);
+		PyDict_SetItemString(d, "__import__",	item=PyCFunction_New(&bpy_import_meth, NULL));	Py_DECREF(item);
 	}
 	
 	pyrna_alloc_types();

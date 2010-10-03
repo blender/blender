@@ -112,8 +112,52 @@ static PyObject *bpy_blend_paths(PyObject * self, PyObject *args, PyObject *kw)
 	return list;
 }
 
-static PyMethodDef meth_bpy_script_paths[] = {{ "script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc}};
-static PyMethodDef meth_bpy_blend_paths[] = {{ "blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc}};
+
+static char bpy_user_resource_doc[] =
+".. function:: user_resource(type, subdir)\n"
+"\n"
+"   Returns a list of paths to external files referenced by the loaded .blend file.\n"
+"\n"
+"   :arg type: Resource type in ['DATAFILES', 'CONFIG', 'SCRIPTS', 'AUTOSAVE'].\n"
+"   :type type: string\n"
+"   :arg subdir: Optional subdirectory.\n"
+"   :type subdir: string\n"
+"   :return: a path.\n"
+"   :rtype: string\n";
+static PyObject *bpy_user_resource(PyObject * self, PyObject *args, PyObject *kw)
+{
+	char *type;
+	char *subdir= NULL;
+	int folder_id;
+	static char *kwlist[] = {"type", "subdir", NULL};
+
+	char *path;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|s:user_resource", kwlist, &type, &subdir))
+		return NULL;
+	
+	/* stupid string compare */
+	if     (!strcmp(type, "DATAFILES"))	folder_id= BLENDER_USER_DATAFILES;
+	else if(!strcmp(type, "CONFIG"))	folder_id= BLENDER_USER_CONFIG;
+	else if(!strcmp(type, "SCRIPTS"))	folder_id= BLENDER_USER_SCRIPTS;
+	else if(!strcmp(type, "AUTOSAVE"))	folder_id= BLENDER_USER_AUTOSAVE;
+	else {
+		PyErr_SetString(PyExc_ValueError, "invalid resource argument");
+		return NULL;
+	}
+	
+	/* same logic as BLI_get_folder_create(), but best leave it up to the script author to create */
+	path= BLI_get_folder(folder_id, subdir);
+
+	if (!path)
+		path = BLI_get_user_folder_notest(folder_id, subdir);
+
+	return PyUnicode_FromString(path ? path : "");
+}
+
+static PyMethodDef meth_bpy_script_paths = {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc};
+static PyMethodDef meth_bpy_blend_paths = {"blend_paths", (PyCFunction)bpy_blend_paths, METH_VARARGS|METH_KEYWORDS, bpy_blend_paths_doc};
+static PyMethodDef meth_bpy_user_resource = {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS|METH_KEYWORDS, bpy_user_resource_doc};
 
 static void bpy_import_test(char *modname)
 {
@@ -186,8 +230,9 @@ void BPy_init_modules( void )
 	PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 
 	/* utility func's that have nowhere else to go */
-	PyModule_AddObject(mod, meth_bpy_script_paths->ml_name, (PyObject *)PyCFunction_New(meth_bpy_script_paths, NULL));
-	PyModule_AddObject(mod, meth_bpy_blend_paths->ml_name, (PyObject *)PyCFunction_New(meth_bpy_blend_paths, NULL));
+	PyModule_AddObject(mod, meth_bpy_script_paths.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_script_paths, NULL));
+	PyModule_AddObject(mod, meth_bpy_blend_paths.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_blend_paths, NULL));
+	PyModule_AddObject(mod, meth_bpy_user_resource.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_user_resource, NULL));
 
 	/* add our own modules dir, this is a python package */
 	bpy_import_test("bpy");

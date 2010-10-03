@@ -1760,8 +1760,8 @@ static void setSandbox(TPythonSecurityLevel level)
 	*/
 	default:
 			/* Allow importing internal text, from bpy_internal_import.py */
-			PyDict_SetItemString(d, "reload", item=PyCFunction_New(bpy_reload_meth, NULL));		Py_DECREF(item);
-			PyDict_SetItemString(d, "__import__", item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item);
+			PyDict_SetItemString(d, "reload", item=PyCFunction_New(&bpy_reload_meth, NULL));		Py_DECREF(item);
+			PyDict_SetItemString(d, "__import__", item=PyCFunction_New(&bpy_import_meth, NULL));	Py_DECREF(item);
 		break;
 	}
 }
