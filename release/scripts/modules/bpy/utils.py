@@ -339,7 +339,14 @@ def addon_check(module_name):
     loaded_default = module_name in _bpy.context.user_preferences.addons
 
     mod = _sys.modules.get(module_name)
-    loaded_state = mod and getattr(mod, "__addon_enabled__")
+    loaded_state = mod and getattr(mod, "__addon_enabled__", Ellipsis)
+
+    if loaded_state is Ellipsis:
+        print("Warning: addon-module %r found module but without"
+               " __addon_enabled__ field, possible name collision from file: %r" %
+               (module_name, getattr(mod, "__file__", "<unknown>")))
+
+        loaded_state = False
 
     return loaded_default, loaded_state
 
