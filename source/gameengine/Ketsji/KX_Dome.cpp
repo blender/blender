@@ -18,7 +18,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 Contributor(s): Dalai Felinto
 
 This code is originally inspired on some of the ideas and codes from Paul Bourke.
-Developed as part of a Research and Development project for SAT - La Socidegtdeg des arts technologiques.
+Developed as part of a Research and Development project for SAT - La Société des arts technologiques.
 -----------------------------------------------------------------------------
 */
 
