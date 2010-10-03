@@ -147,7 +147,7 @@ struct UvVertMap *EM_make_uv_vert_map(struct EditMesh *em, int selected, int do_
 struct UvMapVert *EM_get_uv_map_vert(struct UvVertMap *vmap, unsigned int v);
 void              EM_free_uv_vert_map(struct UvVertMap *vmap);
 
-void		EM_add_data_layer(struct EditMesh *em, struct CustomData *data, int type);
+void		EM_add_data_layer(struct EditMesh *em, struct CustomData *data, int type, const char *name);
 void		EM_free_data_layer(struct EditMesh *em, struct CustomData *data, int type);
 
 void		EM_make_hq_normals(struct EditMesh *em);
@@ -209,16 +209,19 @@ int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
 short sharesFace(struct EditMesh *em, struct EditEdge *e1, struct EditEdge *e2);
 
 /* mesh_data.c */
+// void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);
+void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count);
+void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count);
+void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count);
 
-void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);
 void ED_mesh_transform(struct Mesh *me, float *mat);
 void ED_mesh_calc_normals(struct Mesh *me);
-void ED_mesh_material_add(struct Mesh *me, struct Material *ma);
+void ED_mesh_material_link(struct Mesh *me, struct Material *ma);
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, int calc_edges);
 
-int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me);
+int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me, const char *name, int active_set);
 int ED_mesh_uv_texture_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
-int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me);
+int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me, const char *name, int active_set);
 int ED_mesh_color_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
 
 #endif /* ED_MESH_H */

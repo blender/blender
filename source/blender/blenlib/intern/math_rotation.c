@@ -135,10 +135,7 @@ void mul_fac_qt_fl(float *q, const float fac)
 	float si= (float)sin(angle);
 	q[0]= co;
 	normalize_v3(q+1);
-	q[1]*= si;
-	q[2]*= si;
-	q[3]*= si;
-	
+	mul_v3_fl(q+1, si);
 }
 
 void quat_to_mat3(float m[][3], float *q)
@@ -595,9 +592,8 @@ void axis_angle_to_quat(float q[4], float axis[3], float angle)
 {
 	float nor[3];
 	float si;
-	
-	copy_v3_v3(nor, axis);
-	normalize_v3(nor);
+
+	normalize_v3_v3(nor, axis);
 	
 	angle /= 2;
 	si = (float)sin(angle);
@@ -654,8 +650,7 @@ void axis_angle_to_mat3(float mat[3][3],float axis[3], float angle)
 	float nor[3], nsi[3], co, si, ico;
 	
 	/* normalise the axis first (to remove unwanted scaling) */
-	copy_v3_v3(nor, axis);
-	normalize_v3(nor);
+	normalize_v3_v3(nor, axis);
 	
 	/* now convert this to a 3x3 matrix */
 	co= (float)cos(angle);		
@@ -1254,6 +1249,15 @@ void mat3_to_compatible_eulO(float eul[3], float oldrot[3], short order,float ma
 		copy_v3_v3(eul, eul1);
 }
 
+void mat4_to_compatible_eulO(float eul[3], float oldrot[3], short order,float M[4][4])
+{
+	float m[3][3];
+	
+	/* for now, we'll just do this the slow way (i.e. copying matrices) */
+	copy_m3_m4(m, M);
+	normalize_m3(m);
+	mat3_to_compatible_eulO(eul, oldrot, order, m);
+}
 /* rotate the given euler by the given angle on the specified axis */
 // NOTE: is this safe to do with different axis orders?
 void rotate_eulO(float beul[3], short order, char axis, float ang)

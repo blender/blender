@@ -324,7 +324,7 @@ static StructRNA *rna_OperatorProperties_refine(PointerRNA *ptr)
 		return ptr->type;
 }
 
-static IDProperty *rna_OperatorProperties_idproperties(PointerRNA *ptr, int create)
+static IDProperty *rna_OperatorProperties_idprops(PointerRNA *ptr, int create)
 {
 	if(create && !ptr->data) {
 		IDPropertyTemplate val = {0};
@@ -361,7 +361,7 @@ static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 static PointerRNA rna_OperatorTypeMacro_properties_get(PointerRNA *ptr)
 {
 	wmOperatorTypeMacro *otmacro= (wmOperatorTypeMacro*)ptr->data;
-	wmOperatorType *ot = WM_operatortype_exists(otmacro->idname);
+	wmOperatorType *ot = WM_operatortype_find(otmacro->idname, TRUE);
 	return rna_pointer_inherit_refine(ptr, ot->srna, otmacro->properties);
 }
 
@@ -612,6 +612,43 @@ static int rna_wmKeyMapItem_name_length(PointerRNA *ptr)
 		return 0;
 }
 
+static void rna_wmClipboard_get(PointerRNA *ptr, char *value)
+{
+	char *pbuf;
+
+	pbuf= WM_clipboard_text_get(FALSE);
+	if(pbuf) {
+		strcpy(value, pbuf);
+		MEM_freeN(pbuf);
+	}
+	else {
+		value[0]= '\0';
+	}
+}
+
+static int rna_wmClipboard_length(PointerRNA *ptr)
+{
+	char *pbuf;
+	int length;
+
+	pbuf = WM_clipboard_text_get(FALSE);
+	if(pbuf) {
+		length = strlen(pbuf);
+		MEM_freeN(pbuf);
+	}
+	else {
+		length= 0;
+	}
+	
+
+	return length;
+}
+
+static void rna_wmClipboard_set(PointerRNA *ptr, const char *value)
+{
+	WM_clipboard_text_set((void *) value, FALSE);
+}
+
 #ifndef DISABLE_PYTHON
 static void rna_Operator_unregister(const bContext *C, StructRNA *type)
 {
@@ -660,7 +697,7 @@ static int operator_poll(bContext *C, wmOperatorType *ot)
 	return visible;
 }
 
-static int operator_exec(bContext *C, wmOperator *op)
+static int operator_execute(bContext *C, wmOperator *op)
 {
 	PointerRNA opr;
 	ParameterList list;
@@ -670,6 +707,30 @@ static int operator_exec(bContext *C, wmOperator *op)
 
 	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
 	func= RNA_struct_find_function(&opr, "execute");
+
+	RNA_parameter_list_create(&list, &opr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	op->type->ext.call(&opr, func, &list);
+
+	RNA_parameter_get_lookup(&list, "result", &ret);
+	result= *(int*)ret;
+
+	RNA_parameter_list_free(&list);
+
+	return result;
+}
+
+/* same as execute() but no return value */
+static int operator_check(bContext *C, wmOperator *op)
+{
+	PointerRNA opr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	int result;
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
+	func= RNA_struct_find_function(&opr, "check");
 
 	RNA_parameter_list_create(&list, &opr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
@@ -759,7 +820,7 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 	wmOperatorType dummyot = {0};
 	wmOperator dummyop= {0};
 	PointerRNA dummyotr;
-	int have_function[5];
+	int have_function[6];
 
 	/* setup dummy operator & operator type to store static properties in */
 	dummyop.type= &dummyot;
@@ -796,23 +857,24 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 
 	/* check if we have registered this operator type before, and remove it */
 	{
-		wmOperatorType *ot= WM_operatortype_exists(dummyot.idname);
+		wmOperatorType *ot= WM_operatortype_find(dummyot.idname, TRUE);
 		if(ot && ot->ext.srna)
 			rna_Operator_unregister(C, ot->ext.srna);
 	}
 
 	/* create a new menu type */
 	dummyot.ext.srna= RNA_def_struct(&BLENDER_RNA, dummyot.idname, "Operator");
+	RNA_def_struct_flag(dummyot.ext.srna, STRUCT_NO_IDPROPERTIES); /* operator properties are registered separately */
 	dummyot.ext.data= data;
 	dummyot.ext.call= call;
 	dummyot.ext.free= free;
 
 	dummyot.pyop_poll=	(have_function[0])? operator_poll: NULL;
-	dummyot.exec=		(have_function[1])? operator_exec: NULL;
-	dummyot.invoke=		(have_function[2])? operator_invoke: NULL;
-	dummyot.modal=		(have_function[3])? operator_modal: NULL;
-	dummyot.ui=			(have_function[4])? operator_draw: NULL;
-
+	dummyot.exec=		(have_function[1])? operator_execute: NULL;
+	dummyot.check=		(have_function[2])? operator_check: NULL;
+	dummyot.invoke=		(have_function[3])? operator_invoke: NULL;
+	dummyot.modal=		(have_function[4])? operator_modal: NULL;
+	dummyot.ui=			(have_function[5])? operator_draw: NULL;
 	WM_operatortype_append_ptr(operator_wrapper, (void *)&dummyot);
 
 	/* update while blender is running */
@@ -865,7 +927,7 @@ static StructRNA *rna_MacroOperator_register(const bContext *C, ReportList *repo
 
 	/* check if we have registered this operator type before, and remove it */
 	{
-		wmOperatorType *ot= WM_operatortype_exists(dummyot.idname);
+		wmOperatorType *ot= WM_operatortype_find(dummyot.idname, TRUE);
 		if(ot && ot->ext.srna)
 			rna_Operator_unregister(C, ot->ext.srna);
 	}
@@ -901,7 +963,7 @@ static StructRNA* rna_MacroOperator_refine(PointerRNA *opr)
 	return (op->type && op->type->ext.srna)? op->type->ext.srna: &RNA_Macro;
 }
 
-static wmKeyMapItem *rna_KeyMap_add_item(wmKeyMap *km, ReportList *reports, char *idname, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
+static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km, ReportList *reports, char *idname, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
 {
 //	wmWindowManager *wm = CTX_wm_manager(C);
 	int modifier= 0;
@@ -922,7 +984,7 @@ static wmKeyMapItem *rna_KeyMap_add_item(wmKeyMap *km, ReportList *reports, char
 	return WM_keymap_add_item(km, idname, type, value, modifier, keymodifier);
 }
 
-static wmKeyMapItem *rna_KeyMap_add_modal_item(wmKeyMap *km, bContext *C, ReportList *reports, char* propvalue_str, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
+static wmKeyMapItem *rna_KeyMap_item_new_modal(wmKeyMap *km, bContext *C, ReportList *reports, char* propvalue_str, int type, int value, int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	int modifier= 0;
@@ -959,6 +1021,30 @@ static wmKeyMapItem *rna_KeyMap_add_modal_item(wmKeyMap *km, bContext *C, Report
 	if(any) modifier = KM_ANY;
 
 	return WM_modalkeymap_add_item(km, type, value, modifier, keymodifier, propvalue);
+}
+
+static wmKeyMap *rna_keymap_new(wmKeyConfig *keyconf, char *idname, int spaceid, int regionid, int modal)
+{
+	if (modal == 0) {
+		return WM_keymap_find(keyconf, idname, spaceid, regionid);
+	} else {
+		return WM_modalkeymap_add(keyconf, idname, NULL); /* items will be lazy init */
+	}
+}
+
+static wmKeyMap *rna_keymap_find(wmKeyConfig *keyconf, char *idname, int spaceid, int regionid)
+{
+	return WM_keymap_list_find(&keyconf->keymaps, idname, spaceid, regionid);
+}
+
+static wmKeyMap *rna_keymap_find_modal(wmKeyConfig *keyconf, char *idname)
+{
+	wmOperatorType *ot = WM_operatortype_find(idname, 0);
+
+	if (!ot)
+		return NULL;
+	else
+		return ot->modalkeymap;
 }
 
 #else /* RNA_RUNTIME */
@@ -1023,7 +1109,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "OperatorProperties", NULL);
 	RNA_def_struct_ui_text(srna, "Operator Properties", "Input properties of an Operator");
 	RNA_def_struct_refine_func(srna, "rna_OperatorProperties_refine");
-	RNA_def_struct_idproperties_func(srna, "rna_OperatorProperties_idproperties");
+	RNA_def_struct_idprops_func(srna, "rna_OperatorProperties_idprops");
 }
 
 static void rna_def_macro_operator(BlenderRNA *brna)
@@ -1237,6 +1323,43 @@ static void rna_def_window(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Window_screen_update");
 }
 
+/* curve.splines */
+static void rna_def_wm_keyconfigs(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "KeyConfigurations");
+	srna= RNA_def_struct(brna, "KeyConfigurations", NULL);
+	RNA_def_struct_sdna(srna, "wmWindowManager");
+	RNA_def_struct_ui_text(srna, "KeyConfigs", "Collection of KeyConfigs");
+
+	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "KeyConfig");
+	RNA_def_property_pointer_funcs(prop, "rna_WindowManager_active_keyconfig_get", "rna_WindowManager_active_keyconfig_set", NULL, NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active KeyConfig", "Active wm KeyConfig");
+	
+	prop= RNA_def_property(srna, "default", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "defaultconf");
+	RNA_def_property_struct_type(prop, "KeyConfig");
+	RNA_def_property_ui_text(prop, "Default Key Configuration", "");
+	
+	/* funcs */
+	func= RNA_def_function(srna, "new", "WM_keyconfig_new_user"); // add_keyconfig
+	parm= RNA_def_string(func, "name", "", 0, "Name", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "keyconfig", "KeyConfig", "Key Configuration", "Added key configuration.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "WM_keyconfig_remove"); // remove_keyconfig
+	parm= RNA_def_pointer(func, "keyconfig", "KeyConfig", "Key Configuration", "Removed key configuration.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
 static void rna_def_windowmanager(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1258,17 +1381,11 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "keyconfigs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyConfig");
 	RNA_def_property_ui_text(prop, "Key Configurations", "Registered key configurations");
+	rna_def_wm_keyconfigs(brna, prop);
 
-	prop= RNA_def_property(srna, "active_keyconfig", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "KeyConfig");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_WindowManager_active_keyconfig_get", "rna_WindowManager_active_keyconfig_set", 0, NULL);
-	RNA_def_property_ui_text(prop, "Active Key Configuration", "");
-
-	prop= RNA_def_property(srna, "default_keyconfig", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "defaultconf");
-	RNA_def_property_struct_type(prop, "KeyConfig");
-	RNA_def_property_ui_text(prop, "Default Key Configuration", "");
+	prop= RNA_def_property(srna, "clipboard", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_wmClipboard_get", "rna_wmClipboard_length", "rna_wmClipboard_set");
+	RNA_def_property_ui_text(prop, "Text Clipboard", "");
 
 	RNA_api_wm(srna);
 }
@@ -1287,7 +1404,7 @@ static void rna_def_keymap_items(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "wmKeyMap");
 	RNA_def_struct_ui_text(srna, "KeyMap Items", "Collection of keymap items");
 
-	func= RNA_def_function(srna, "add", "rna_KeyMap_add_item");
+	func= RNA_def_function(srna, "new", "rna_KeyMap_item_new");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_string(func, "idname", "", 0, "Operator Identifier", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -1304,7 +1421,7 @@ static void rna_def_keymap_items(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item.");
 	RNA_def_function_return(func, parm);
 
-	func= RNA_def_function(srna, "add_modal", "rna_KeyMap_add_modal_item");
+	func= RNA_def_function(srna, "new_modal", "rna_KeyMap_item_new_modal");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_string(func, "propvalue", "", 0, "Property Value", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -1319,6 +1436,56 @@ static void rna_def_keymap_items(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_boolean(func, "oskey", 0, "OS Key", "");
 	RNA_def_enum(func, "key_modifier", event_type_items, 0, "Key Modifier", "");
 	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item.");
+	RNA_def_function_return(func, parm);
+	
+	func= RNA_def_function(srna, "remove", "WM_keymap_remove_item");
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "from_id", "WM_keymap_item_find_id");
+	parm= RNA_def_property(func, "id", PROP_INT, PROP_NONE);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_ui_text(parm, "id", "ID of the item");
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
+	RNA_def_function_return(func, parm);
+	
+}
+
+static void rna_def_wm_keymaps(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	//PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+
+	RNA_def_property_srna(cprop, "KeyMaps");
+	srna= RNA_def_struct(brna, "KeyMaps", NULL);
+	RNA_def_struct_sdna(srna, "wmKeyConfig");
+	RNA_def_struct_ui_text(srna, "Key Maps", "Collection of keymaps");
+
+	func= RNA_def_function(srna, "new", "rna_keymap_new"); // add_keymap
+	parm= RNA_def_string(func, "name", "", 0, "Name", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_enum(func, "space_type", space_type_items, SPACE_EMPTY, "Space Type", "");
+	RNA_def_enum(func, "region_type", region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
+	RNA_def_boolean(func, "modal", 0, "Modal", "");
+	parm= RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Added key map.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "find", "rna_keymap_find"); // find_keymap
+	parm= RNA_def_string(func, "name", "", 0, "Name", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_enum(func, "space_type", space_type_items, SPACE_EMPTY, "Space Type", "");
+	RNA_def_enum(func, "region_type", region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
+	parm= RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Corresponding key map.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "find_modal", "rna_keymap_find_modal"); // find_keymap_modal
+	parm= RNA_def_string(func, "name", "", 0, "Operator Name", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Corresponding key map.");
 	RNA_def_function_return(func, parm);
 	
 }
@@ -1347,12 +1514,13 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "idname");
 	RNA_def_property_ui_text(prop, "Name", "Name of the key configuration");
 	RNA_def_struct_name_property(srna, prop);
-	
+
 	prop= RNA_def_property(srna, "keymaps", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyMap");
 	RNA_def_property_ui_text(prop, "Key Maps", "Key maps configured as part of this configuration");
+	rna_def_wm_keymaps(brna, prop);
 
-	prop= RNA_def_property(srna, "user_defined", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_user_defined", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYCONF_USER);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "User Defined", "Indicates that a keyconfig was defined by the user");
@@ -1387,21 +1555,21 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Items", "Items in the keymap, linking an operator to an input event");
 	rna_def_keymap_items(brna, prop);
 
-	prop= RNA_def_property(srna, "user_defined", PROP_BOOLEAN, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "is_user_defined", PROP_BOOLEAN, PROP_NEVER_NULL);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_USER);
 	RNA_def_property_ui_text(prop, "User Defined", "Keymap is defined by the user");
 
-	prop= RNA_def_property(srna, "modal", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_modal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_MODAL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Modal Keymap", "Indicates that a keymap is used for translate modal events for an operator");
 
-	prop= RNA_def_property(srna, "items_expanded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_expanded_items", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_EXPANDED);
 	RNA_def_property_ui_text(prop, "Items Expanded", "Expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 	
-	prop= RNA_def_property(srna, "children_expanded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_expanded_children", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYMAP_CHILDREN_EXPANDED);
 	RNA_def_property_ui_text(prop, "Children Expanded", "Children expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
@@ -1486,7 +1654,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, event_type_items);
 	RNA_def_property_ui_text(prop, "Key Modifier", "Regular key pressed as a modifier");
 
-	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KMI_EXPANDED);
 	RNA_def_property_ui_text(prop, "Expanded", "Show key map event and property details in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);

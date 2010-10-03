@@ -228,11 +228,11 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, quality_items);
 	RNA_def_property_ui_text(prop, "Render Display Mode", "How to display the mesh for rendering");
 
-	prop= RNA_def_property(srna, "reverse_frames", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_reverse_frames", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_FLUIDSIM_REVERSE);
 	RNA_def_property_ui_text(prop, "Reverse Frames", "Reverse fluid frames");
 
-	prop= RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_maxlength(prop, 240);
 	RNA_def_property_string_sdna(prop, NULL, "surfdataPath");
 	RNA_def_property_ui_text(prop, "Path", "Directory (and/or filename prefix) to store baked fluid simulation files in");
@@ -250,21 +250,21 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_range(prop, -1000.1, 1000.1);
 	RNA_def_property_ui_text(prop, "Gravity", "Gravity in X, Y and Z direction");
 	
-	prop= RNA_def_property(srna, "override_time", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_time_override", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_FLUIDSIM_OVERRIDE_TIME);
 	RNA_def_property_ui_text(prop, "Override Time", "Use a custom start and end time (in seconds) instead of the scene's timeline");
 	
 	prop= RNA_def_property(srna, "start_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "animStart");
 	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_text(prop, "Start Time", "Simulation time of the first blender frame");
+	RNA_def_property_ui_text(prop, "Start Time", "Simulation time of the first blender frame (in seconds)");
 	
 	prop= RNA_def_property(srna, "end_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "animEnd");
 	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_text(prop, "End Time", "Simulation time of the last blender frame");
+	RNA_def_property_ui_text(prop, "End Time", "Simulation time of the last blender frame (in seconds)");
 	
-	prop= RNA_def_property(srna, "real_world_size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "simulation_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "realsize");
 	RNA_def_property_range(prop, 0.001, 10);
 	RNA_def_property_ui_text(prop, "Real World Size", "Size of the simulation domain in metres");
@@ -300,7 +300,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 
 	rna_def_fluidsim_slip(srna);
 
-	prop= RNA_def_property(srna, "surface_smoothing", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "surface_smooth", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "surfaceSmoothing");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0, 5.0);
@@ -312,7 +312,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 5);
 	RNA_def_property_ui_text(prop, "Surface Subdivisions", "Number of isosurface subdivisions. This is necessary for the inclusion of particles into the surface generation. Warning - can lead to longer computation times!");
 
-	prop= RNA_def_property(srna, "generate_speed_vectors", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_speed_vectors", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "domainNovecgen", 0);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Generate Speed Vectors", "Generate speed vectors for vector blur");
@@ -348,7 +348,7 @@ static void rna_def_fluidsim_volume(StructRNA *srna)
 	RNA_def_property_enum_items(prop, volume_type_items);
 	RNA_def_property_ui_text(prop, "Volume Initialization", "Volume initialization type");
 
-	prop= RNA_def_property(srna, "export_animated_mesh", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_animated_mesh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "domainNovecgen", 0);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Export Animated Mesh", "Export this mesh as an animated one. Slower, only use if really necessary (e.g. armatures or parented objects), animated pos/rot/scale IPOs do not require it");
@@ -358,9 +358,9 @@ static void rna_def_fluidsim_active(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_FLUIDSIM_ACTIVE);
-	RNA_def_property_ui_text(prop, "Active", "Object contributes to the fluid simulation");
+	RNA_def_property_ui_text(prop, "Enabled", "Object contributes to the fluid simulation");
 }
 
 static void rna_def_fluidsim_fluid(BlenderRNA *brna)
@@ -420,7 +420,7 @@ static void rna_def_fluidsim_inflow(BlenderRNA *brna)
 	RNA_def_property_range(prop, -1000.1, 1000.1);
 	RNA_def_property_ui_text(prop, "Inflow Velocity", "Initial velocity of fluid");
 
-	prop= RNA_def_property(srna, "local_coordinates", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_local_coords", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSINFLOW_LOCALCOORD);
 	RNA_def_property_ui_text(prop, "Local Coordinates", "Use local coordinates for inflow. (e.g. for rotating objects)");
@@ -447,15 +447,15 @@ static void rna_def_fluidsim_particle(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
 	RNA_def_struct_ui_text(srna, "Particle Fluid Simulation Settings", "Fluid simulation settings for objects storing fluid particles generated by the simulation");
 
-	prop= RNA_def_property(srna, "drops", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_drops", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSPART_DROP);
 	RNA_def_property_ui_text(prop, "Drops", "Show drop particles");
 
-	prop= RNA_def_property(srna, "floats", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_floats", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSPART_FLOAT);
 	RNA_def_property_ui_text(prop, "Floats", "Show floating foam particles");
 
-	prop= RNA_def_property(srna, "tracer", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_tracer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSPART_TRACER);
 	RNA_def_property_ui_text(prop, "Tracer", "Show tracer particles");
 
@@ -469,7 +469,7 @@ static void rna_def_fluidsim_particle(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 2.0);
 	RNA_def_property_ui_text(prop, "Alpha Influence", "Amount of particle alpha change, inverse of size influence: 0=off (all same alpha), 1=full. (large particles get lower alphas, smaller ones higher values)");
 
-	prop= RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_maxlength(prop, 240);
 	RNA_def_property_string_sdna(prop, NULL, "surfdataPath");
 	RNA_def_property_ui_text(prop, "Path", "Directory (and/or filename prefix) to store and load particles from");
@@ -523,7 +523,7 @@ static void rna_def_fluidsim_control(BlenderRNA *brna)
 	RNA_def_property_range(prop, 5.0, 100.0);
 	RNA_def_property_ui_text(prop, "Quality", "Specifies the quality which is used for object sampling. (higher = better but slower)");
 
-	prop= RNA_def_property(srna, "reverse_frames", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_reverse_frames", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_FLUIDSIM_REVERSE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Reverse Frames", "Reverse control object movement");

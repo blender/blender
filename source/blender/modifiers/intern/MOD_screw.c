@@ -61,39 +61,45 @@ typedef struct ScrewVertIter {
 	MEdge *e;
 } ScrewVertIter;
 
-#define ScrewVertIter_INIT(iter, array, v_init, dir)\
-	iter.v_array = array;\
-	iter.v = v_init;\
-	if (v_init>=0) {\
-		iter.v_poin = &array[v_init];\
-		iter.v_other = iter.v_poin->v[dir];\
-		if (dir)\
-			iter.e = iter.v_poin->e[0];\
-		else\
-			iter.e = iter.v_poin->e[1];\
-	} else {\
-		iter.v_poin= NULL;\
-		iter.e= NULL;\
+
+static void screwvert_iter_init(ScrewVertIter *iter, ScrewVertConnect *array, int v_init, int dir)
+{
+	iter->v_array = array;
+	iter->v = v_init;
+
+	if (v_init >= 0) {
+		iter->v_poin = &array[v_init];
+		iter->v_other = iter->v_poin->v[dir];
+		iter->e = iter->v_poin->e[!dir];
 	}
+	else {
+		iter->v_poin= NULL;
+		iter->e= NULL;
+	}
+}	
 
 
-#define ScrewVertIter_NEXT(iter)\
-	if (iter.v_poin->v[0] == iter.v_other) {\
-		iter.v_other= iter.v;\
-		iter.v= iter.v_poin->v[1];\
-	} else if (iter.v_poin->v[1] == iter.v_other) {\
-		iter.v_other= iter.v;\
-		iter.v= iter.v_poin->v[0];\
-	}\
-	if (iter.v >=0)	{\
-		iter.v_poin= &iter.v_array[iter.v];\
-		if ( iter.v_poin->e[0] != iter.e )	iter.e= iter.v_poin->e[0];\
-		else								iter.e= iter.v_poin->e[1];\
-	} else {\
-		iter.e= NULL;\
-		iter.v_poin= NULL;\
+static void screwvert_iter_step(ScrewVertIter *iter)
+{
+	if (iter->v_poin->v[0] == iter->v_other) {
+		iter->v_other= iter->v;
+		iter->v= iter->v_poin->v[1];
 	}
-	
+	else if (iter->v_poin->v[1] == iter->v_other) {
+		iter->v_other= iter->v;
+		iter->v= iter->v_poin->v[0];
+	}
+	if (iter->v >= 0)	{
+		iter->v_poin= &iter->v_array[iter->v];
+		iter->e= iter->v_poin->e[(iter->v_poin->e[0] == iter->e)];
+	}
+	else {
+		iter->e= NULL;
+		iter->v_poin= NULL;
+	}
+}
+
+
 static void initData(ModifierData *md)
 {
 	ScrewModifierData *ltmd= (ScrewModifierData*) md;
@@ -131,9 +137,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	
 	int *origindex;
 	int mface_index=0;
+	int step;
 	int i, j;
 	int i1,i2;
-	int steps= ltmd->steps;
+	int step_tot= ltmd->steps;
+	const int do_flip = ltmd->flag & MOD_SCREW_NORMAL_FLIP ? 1 : 0;
 	int maxVerts=0, maxEdges=0, maxFaces=0;
 	int totvert= dm->getNumVerts(dm);
 	int totedge= dm->getNumEdges(dm);
@@ -167,7 +175,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	if (!totvert)
 		return CDDM_from_template(dm, 0, 0, 0);
 
-	steps= useRenderParams ? ltmd->render_steps : ltmd->steps;
+	step_tot= useRenderParams ? ltmd->render_steps : ltmd->steps;
 
 	switch(ltmd->axis) {
 	case 0:
@@ -187,16 +195,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	axis_vec[ltmd->axis]= 1.0f;
 
 	if (ltmd->ob_axis) {
-		float mtx3_tx[3][3];
 		/* calc the matrix relative to the axis object */
 		invert_m4_m4(mtx_tmp_a, ob->obmat);
 		copy_m4_m4(mtx_tx_inv, ltmd->ob_axis->obmat);
 		mul_m4_m4m4(mtx_tx, mtx_tx_inv, mtx_tmp_a);
 
-		copy_m3_m4(mtx3_tx, mtx_tx);
-
 		/* calc the axis vec */
-		mul_m3_v3(mtx3_tx, axis_vec);
+		mul_mat3_m4_v3(mtx_tx, axis_vec); /* only rotation component */
 		normalize_v3(axis_vec);
 
 		/* screw */
@@ -218,7 +223,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 #if 0	// cant incluide this, not pradictable enough, though quite fun,.
 		if(ltmd->flag & MOD_SCREW_OBJECT_ANGLE) {
-
+			float mtx3_tx[3][3];
+			copy_m3_m4(mtx3_tx, mtx_tx);
 
 			float vec[3] = {0,1,0};
 			float cross1[3];
@@ -261,30 +267,30 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	screw_ofs *= ltmd->iter;
 
 	/* multiplying the steps is a bit tricky, this works best */
-	steps = ((steps + 1) * ltmd->iter) - (ltmd->iter - 1);
+	step_tot = ((step_tot + 1) * ltmd->iter) - (ltmd->iter - 1);
 
 	/* will the screw be closed?
 	 * Note! smaller then FLT_EPSILON*100 gives problems with float precission so its never closed. */
 	if (fabs(screw_ofs) <= (FLT_EPSILON*100) && fabs(fabs(angle) - (M_PI * 2)) <= (FLT_EPSILON*100)) {
 		close= 1;
-		steps--;
-		if(steps < 2) steps= 2;
+		step_tot--;
+		if(step_tot < 2) step_tot= 2;
 	
-		maxVerts =	totvert  * steps; /* -1 because we're joining back up */
-		maxEdges =	(totvert * steps) + /* these are the edges between new verts */
-					(totedge * steps); /* -1 because vert edges join */
-		maxFaces =	totedge * steps;
+		maxVerts =	totvert  * step_tot; /* -1 because we're joining back up */
+		maxEdges =	(totvert * step_tot) + /* these are the edges between new verts */
+					(totedge * step_tot); /* -1 because vert edges join */
+		maxFaces =	totedge * step_tot;
 
 		screw_ofs= 0.0f;
 	}
 	else {
 		close= 0;
-		if(steps < 2) steps= 2;
+		if(step_tot < 2) step_tot= 2;
 
-		maxVerts =	totvert  * steps; /* -1 because we're joining back up */
-		maxEdges =	(totvert * (steps-1)) + /* these are the edges between new verts */
-					(totedge * steps); /* -1 because vert edges join */
-		maxFaces =	totedge * (steps-1);
+		maxVerts =	totvert  * step_tot; /* -1 because we're joining back up */
+		maxEdges =	(totvert * (step_tot-1)) + /* these are the edges between new verts */
+					(totedge * step_tot); /* -1 because vert edges join */
+		maxFaces =	totedge * (step_tot-1);
 	}
 	
 	result= CDDM_from_template(dm, maxVerts, maxEdges, maxFaces);
@@ -398,11 +404,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			for (i=0; i<totedge; i++, med_new++) {
 				vc= &vert_connect[med_new->v1];
 
-				if (vc->v[0]==-1) { /* unused */
+				if (vc->v[0] == -1) { /* unused */
 					vc->v[0]= med_new->v2;
 					vc->e[0]= med_new;
 				}
-				else if (vc->v[1]==-1) {
+				else if (vc->v[1] == -1) {
 					vc->v[1]= med_new->v2;
 					vc->e[1]= med_new;
 				}
@@ -413,11 +419,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				vc= &vert_connect[med_new->v2];
 
 				/* same as above but swap v1/2 */
-				if (vc->v[0]==-1) { /* unused */
+				if (vc->v[0] == -1) { /* unused */
 					vc->v[0]= med_new->v1;
 					vc->e[0]= med_new;
 				}
-				else if (vc->v[1]==-1) {
+				else if (vc->v[1] == -1) {
 					vc->v[1]= med_new->v1;
 					vc->e[1]= med_new;
 				}
@@ -429,22 +435,22 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			/* find the first vert */
 			vc= vert_connect;
 			for (i=0; i < totvert; i++, vc++) {
-				int VBEST=-1, ed_loop_closed=0; /* vert and vert new */
-				int ed_loop_flip;
+				int v_best=-1, ed_loop_closed=0; /* vert and vert new */
+				int ed_loop_flip= 0; /* compiler complains if not initialized, but it should be initialized below */
 				float fl= -1.0f;
 				ScrewVertIter lt_iter;
 
 				/* Now do search for connected verts, order all edges and flip them
 				 * so resulting faces are flipped the right way */
 				vc_tot_linked= 0; /* count the number of linked verts for this loop */
-				if (vc->flag==0) {
+				if (vc->flag == 0) {
 					/*printf("Loop on connected vert: %i\n", i);*/
 
 					for(j=0; j<2; j++) {
 						/*printf("\tSide: %i\n", j);*/
-						ScrewVertIter_INIT(lt_iter, vert_connect, i, j);
-						if (j==1) {
-							ScrewVertIter_NEXT(lt_iter);
+						screwvert_iter_init(&lt_iter, vert_connect, i, j);
+						if (j == 1) {
+							screwvert_iter_step(&lt_iter);
 						}
 						while (lt_iter.v_poin) {
 							/*printf("\t\tVERT: %i\n", lt_iter.v);*/
@@ -459,10 +465,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 							/*printf("Testing 2 floats %f : %f\n", fl, lt_iter.v_poin->dist);*/
 							if (fl <= lt_iter.v_poin->dist) {
 								fl= lt_iter.v_poin->dist;
-								VBEST= lt_iter.v;
-								/*printf("\t\t\tVERT BEST: %i\n", VBEST);*/
+								v_best= lt_iter.v;
+								/*printf("\t\t\tVERT BEST: %i\n", v_best);*/
 							}
-							ScrewVertIter_NEXT(lt_iter);
+							screwvert_iter_step(&lt_iter);
 							if (!lt_iter.v_poin) {
 								/*printf("\t\t\tFound End Also Num %i\n", j);*/
 								/*endpoints[j]= lt_iter.v_other;*/ /* other is still valid */
@@ -472,14 +478,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					}
 
 					/* now we have a collection of used edges. flip their edges the right way*/
-					/*if (VBEST !=-1) - */
+					/*if (v_best != -1) - */
 
 					/*printf("Done Looking - vc_tot_linked: %i\n", vc_tot_linked);*/
 
 					if (vc_tot_linked>1) {
 						float vf_1, vf_2, vf_best;
 
-						vc_tmp= &vert_connect[VBEST];
+						vc_tmp= &vert_connect[v_best];
 
 						tmpf1= vert_connect[vc_tmp->v[0]].co;
 						tmpf2= vert_connect[vc_tmp->v[1]].co;
@@ -503,7 +509,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 							else {
 								/* not so simple to work out which edge is higher */
 								sub_v3_v3v3(tmp_vec1, tmpf1, vc_tmp->co);
-								sub_v3_v3v3(tmp_vec1, tmpf2, vc_tmp->co);
+								sub_v3_v3v3(tmp_vec2, tmpf2, vc_tmp->co);
 								normalize_v3(tmp_vec1);
 								normalize_v3(tmp_vec2);
 
@@ -531,9 +537,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						/*printf("flip direction %i\n", ed_loop_flip);*/
 
 
-						/* switch the flip option if set */
-						if (ltmd->flag & MOD_SCREW_NORMAL_FLIP)
+						/* switch the flip option if set
+						 * note: flip is now done at face level so copying vgroup slizes is easier */
+						/*						
+						if (do_flip)
 							ed_loop_flip= !ed_loop_flip;
+						*/
 
 						if (angle < 0.0f)
 							ed_loop_flip= !ed_loop_flip;
@@ -542,7 +551,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						for(j=ed_loop_closed; j<2; j++) {
 							/*printf("Ordering Side J %i\n", j);*/
 
-							ScrewVertIter_INIT(lt_iter, vert_connect, VBEST, j);
+							screwvert_iter_init(&lt_iter, vert_connect, v_best, j);
 							/*printf("\n\nStarting - Loop\n");*/
 							lt_iter.v_poin->flag= 1; /* so a non loop will traverse the other side */
 
@@ -550,7 +559,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 							/* If this is the vert off the best vert and
 							 * the best vert has 2 edges connected too it
 							 * then swap the flip direction */
-							if (j==1 && (vc_tmp->v[0] > -1) && (vc_tmp->v[1] > -1))
+							if (j == 1 && (vc_tmp->v[0] > -1) && (vc_tmp->v[1] > -1))
 								ed_loop_flip= !ed_loop_flip;
 
 							while (lt_iter.v_poin && lt_iter.v_poin->flag != 2) {
@@ -559,7 +568,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 								lt_iter.v_poin->flag= 2;
 								if (lt_iter.e) {
 									if (lt_iter.v == lt_iter.e->v1) {
-										if (ed_loop_flip==0) {
+										if (ed_loop_flip == 0) {
 											/*printf("\t\t\tFlipping 0\n");*/
 											SWAP(int, lt_iter.e->v1, lt_iter.e->v2);
 										}/* else {
@@ -567,7 +576,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 										}*/
 									}
 									else if (lt_iter.v == lt_iter.e->v2) {
-										if (ed_loop_flip==1) {
+										if (ed_loop_flip == 1) {
 											/*printf("\t\t\tFlipping 1\n");*/
 											SWAP(int, lt_iter.e->v1, lt_iter.e->v2);
 										}/* else {
@@ -579,7 +588,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 								}/* else {
 									printf("\t\tNo Edge at this point\n");
 								}*/
-								ScrewVertIter_NEXT(lt_iter);
+								screwvert_iter_step(&lt_iter);
 							}
 						}
 					}
@@ -591,8 +600,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				 *
 				 * calculate vertex normals that can be propodated on lathing
 				 * use edge connectivity work this out */
-				if (vc->v[0]>=0) {
-					if (vc->v[1]>=0) {
+				if (vc->v[0] >= 0) {
+					if (vc->v[1] >= 0) {
 						/* 2 edges connedted */
 						/* make 2 connecting vert locations relative to the middle vert */
 						sub_v3_v3v3(tmp_vec1, mvert_new[vc->v[0]].co, mvert_new[i].co);
@@ -647,34 +656,24 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 	}
 	else {
+		mv_orig= mvert_orig;
+		mv_new= mvert_new;
 
-		if (ltmd->flag & MOD_SCREW_NORMAL_FLIP) {
-			mv_orig= mvert_orig;
-			mv_new= mvert_new + (totvert-1);
-
-			for (i=0; i < totvert; i++, mv_new--, mv_orig++) {
-				copy_v3_v3(mv_new->co, mv_orig->co);
-			}
-		}
-		else {
-			mv_orig= mvert_orig;
-			mv_new= mvert_new;
-
-			for (i=0; i < totvert; i++, mv_new++, mv_orig++) {
-				copy_v3_v3(mv_new->co, mv_orig->co);
-			}
+		for (i=0; i < totvert; i++, mv_new++, mv_orig++) {
+			copy_v3_v3(mv_new->co, mv_orig->co);
 		}
 	}
 	/* done with edge connectivity based normal flipping */
 	
+	DM_copy_vert_data(dm, result, 0, 0, totvert);
 	
 	/* Add Faces */
-	for (i=1; i < steps; i++) {
+	for (step=1; step < step_tot; step++) {
+		const int varray_stride= totvert * step;
 		float step_angle;
-		float no_tx[3];
+		float nor_tx[3];
 		/* Rotation Matrix */
-		if (close)		step_angle= (angle / steps) * i;
-		else			step_angle= (angle / (steps-1)) * i;
+		step_angle= (angle / (step_tot - (!close))) * step;
 
 		if (ltmd->ob_axis) {
 			axis_angle_to_mat3(mat3, axis_vec, step_angle);
@@ -687,18 +686,21 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 
 		if(screw_ofs)
-			madd_v3_v3fl(mat[3], axis_vec, screw_ofs * ((float)i / (float)(steps-1)));
+			madd_v3_v3fl(mat[3], axis_vec, screw_ofs * ((float)step / (float)(step_tot-1)));
 
+		/* copy a slice */
+		DM_copy_vert_data(dm, result, 0, varray_stride, totvert);
+		
 		mv_new_base= mvert_new;
-		mv_new= &mvert_new[totvert*i]; /* advance to the next slice */
+		mv_new= &mvert_new[varray_stride]; /* advance to the next slice */
 		
 		for (j=0; j<totvert; j++, mv_new_base++, mv_new++) {
 			/* set normal */
 			if(vert_connect) {
-				mul_v3_m3v3(no_tx, mat3, vert_connect[j].no);
+				mul_v3_m3v3(nor_tx, mat3, vert_connect[j].no);
 
 				/* set the normal now its transformed */
-				normal_float_to_short_v3(mv_new->no, no_tx);
+				normal_float_to_short_v3(mv_new->no, nor_tx);
 			}
 			
 			/* set location */
@@ -719,7 +721,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 			
 			/* add the new edge */
-			med_new->v1= j+(i*totvert);
+			med_new->v1= varray_stride + j;
 			med_new->v2= med_new->v1 - totvert;
 			med_new->flag= ME_EDGEDRAW|ME_EDGERENDER;
 			med_new++;
@@ -734,9 +736,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	if (close) {
 		/* last loop of edges, previous loop dosnt account for the last set of edges */
+		const int varray_stride= (step_tot - 1) * totvert;
+
 		for (i=0; i<totvert; i++) {
 			med_new->v1= i;
-			med_new->v2= i+((steps-1)*totvert);
+			med_new->v2= varray_stride + i;
 			med_new->flag= ME_EDGEDRAW|ME_EDGERENDER;
 			med_new++;
 		}
@@ -749,14 +753,22 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* for each edge, make a cylinder of quads */
 		i1= med_new_firstloop->v1;
 		i2= med_new_firstloop->v2;
-		
-		for (j=0; j < steps-1; j++) {
+
+		for (step=0; step < step_tot-1; step++) {
 			
 			/* new face */
-			mf_new->v1= i1;
-			mf_new->v2= i2;
-			mf_new->v3= i2 + totvert;
-			mf_new->v4= i1 + totvert;
+			if(do_flip) {
+				mf_new->v4= i1;
+				mf_new->v3= i2;
+				mf_new->v2= i2 + totvert;
+				mf_new->v1= i1 + totvert;
+			}
+			else {
+				mf_new->v1= i1;
+				mf_new->v2= i2;
+				mf_new->v3= i2 + totvert;
+				mf_new->v4= i1 + totvert;
+			}
 			
 			if( !mf_new->v3 || !mf_new->v4 ) {
 				SWAP(int, mf_new->v1, mf_new->v3);
@@ -768,7 +780,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			mface_index++;
 			
 			/* new vertical edge */
-			if (j) { /* The first set is already dome */
+			if (step) { /* The first set is already dome */
 				med_new->v1= i1;
 				med_new->v2= i2;
 				med_new->flag= med_new_firstloop->flag;
@@ -781,10 +793,18 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		
 		/* close the loop*/
 		if (close) { 
-			mf_new->v1= i1;
-			mf_new->v2= i2;
-			mf_new->v3= med_new_firstloop->v2;
-			mf_new->v4= med_new_firstloop->v1;
+			if(do_flip) {
+				mf_new->v4= i1;
+				mf_new->v3= i2;
+				mf_new->v2= med_new_firstloop->v2;
+				mf_new->v1= med_new_firstloop->v1;
+			}
+			else {
+				mf_new->v1= i1;
+				mf_new->v2= i2;
+				mf_new->v3= med_new_firstloop->v2;
+				mf_new->v4= med_new_firstloop->v1;
+			}
 
 			if( !mf_new->v3 || !mf_new->v4 ) {
 				SWAP(int, mf_new->v1, mf_new->v3);
@@ -804,7 +824,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		med_new++;
 	}
 	
-	if((ltmd->flag & MOD_SCREW_NORMAL_CALC)==0) {
+	if((ltmd->flag & MOD_SCREW_NORMAL_CALC) == 0) {
 		CDDM_calc_normals(result);
 	}
 

@@ -22,6 +22,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "BLO_sys_types.h"
+
 #ifndef RNA_TYPES
 #define RNA_TYPES
 
@@ -265,6 +267,12 @@ typedef struct ParameterIterator {
 	int valid;
 } ParameterIterator;
 
+/* mainly to avoid confusing casts */
+typedef struct ParameterDynAlloc {
+	intptr_t array_tot; /* important, this breaks when set to an int */
+	void *array;
+} ParameterDynAlloc;
+
 /* Function */
 
 typedef enum FunctionFlag {
@@ -298,7 +306,8 @@ typedef enum StructFlag {
 	/* internal flags */
 	STRUCT_RUNTIME = 4,
 	STRUCT_GENERATED = 8,
-	STRUCT_FREE_POINTERS = 16
+	STRUCT_FREE_POINTERS = 16,
+	STRUCT_NO_IDPROPERTIES = 32, /* Menu's and Panels don't need properties */
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);

@@ -43,7 +43,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
 
     #BPyMesh.meshCalcNormals(me)
 
-    vert_tone = [0.0] * len(me.verts)
+    vert_tone = [0.0] * len(me.vertices)
 
     min_tone = 180.0
     max_tone = 0.0
@@ -51,21 +51,21 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
     # create lookup table for each vertex's connected vertices (via edges)
     con = []
 
-    con = [[] for i in range(len(me.verts))]
+    con = [[] for i in range(len(me.vertices))]
 
     # add connected verts
     for e in me.edges:
-        con[e.verts[0]].append(e.verts[1])
-        con[e.verts[1]].append(e.verts[0])
+        con[e.vertices[0]].append(e.vertices[1])
+        con[e.vertices[1]].append(e.vertices[0])
 
-    for i, v in enumerate(me.verts):
+    for i, v in enumerate(me.vertices):
         vec = Vector()
         no = v.normal
         co = v.co
 
         # get the direction of the vectors between the vertex and it's connected vertices
         for c in con[i]:
-            vec += (me.verts[c].co - co).normalize()
+            vec += (me.vertices[c].co - co).normalize()
 
         # normalize the vector by dividing by the number of connected verts
         tot_con = len(con[i])
@@ -133,9 +133,9 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
 
             f_col = [f_col.color1, f_col.color2, f_col.color3, f_col.color4]
 
-            for j, v in enumerate(f.verts):
+            for j, v in enumerate(f.vertices):
                 col = f_col[j]
-                tone = vert_tone[me.verts[v].index]
+                tone = vert_tone[me.vertices[v].index]
                 tone = (tone - min_tone) / tone_range
 
                 if dirt_only:
@@ -172,7 +172,7 @@ class VertexPaintDirt(bpy.types.Operator):
 
         t = time.time()
 
-        applyVertexDirt(mesh, self.properties.blur_iterations, self.properties.blur_strength, math.radians(self.properties.dirt_angle), math.radians(self.properties.clean_angle), self.properties.dirt_only)
+        applyVertexDirt(mesh, self.blur_iterations, self.blur_strength, math.radians(self.dirt_angle), math.radians(self.clean_angle), self.dirt_only)
 
         print('Dirt calculated in %.6f' % (time.time() - t))
 

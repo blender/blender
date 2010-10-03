@@ -44,6 +44,10 @@ private:
 	 */
 	static void SDL_mix(void *data, Uint8* buffer, int length);
 
+	// hide copy constructor and operator=
+	AUD_SDLDevice(const AUD_SDLDevice&);
+	AUD_SDLDevice& operator=(const AUD_SDLDevice&);
+
 protected:
 	virtual void playing(bool playing);
 

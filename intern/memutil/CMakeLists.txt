@@ -26,7 +26,9 @@
 
 SET(INC . ..)
 
-FILE(GLOB SRC intern/*.cpp)
+SET(SRC
+	./intern/MEM_CacheLimiterC-Api.cpp
+	./intern/MEM_RefCountedC-Api.cpp
+)
 
-BLENDERLIB(bf_memutil "${SRC}" "${INC}")
-#, libtype=['intern', 'player'], priority = [0, 180] )
+BLENDERLIB(bf_intern_memutil "${SRC}" "${INC}")

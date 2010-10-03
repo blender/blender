@@ -40,7 +40,6 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_group_types.h"
@@ -49,7 +48,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 
-//(INCLUDE_LINT)#include "BKE_anim.h"
 #include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
@@ -66,7 +64,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_depsgraph.h"
 
-#include "ED_curve.h" /* for ED_curve_nurbs */
 
 // XXX bad level call...
 
@@ -643,29 +640,19 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, 
 	/* Need to verify the quat interpolation is correct - XXX */
 
 	if (quat) {
-		//float totfac, q1[4], q2[4];
+		float totfac, q1[4], q2[4];
 
-		/* checks for totfac are needed when 'fac' is 1.0 key_curve_position_weights can assign zero
-		 * to more then one index in data which can give divide by zero error */
-/*
-		totfac= data[0]+data[1];
-		if(totfac>0.000001)	interp_qt_qtqt(q1, p0->quat, p1->quat, data[0] / totfac);
-		else				QUATCOPY(q1, p1->quat);
+		totfac= data[0]+data[3];
+		if(totfac>FLT_EPSILON)	interp_qt_qtqt(q1, p0->quat, p3->quat, data[3] / totfac);
+		else					QUATCOPY(q1, p1->quat);
 
-		normalize_qt(q1);
-
-		totfac= data[2]+data[3];
-		if(totfac>0.000001)	interp_qt_qtqt(q2, p2->quat, p3->quat, data[2] / totfac);
-		else				QUATCOPY(q1, p3->quat);
-		normalize_qt(q2);
+		totfac= data[1]+data[2];
+		if(totfac>FLT_EPSILON)	interp_qt_qtqt(q2, p1->quat, p2->quat, data[2] / totfac);
+		else					QUATCOPY(q1, p3->quat);
 
 		totfac = data[0]+data[1]+data[2]+data[3];
-		if(totfac>0.000001)	interp_qt_qtqt(quat, q1, q2, (data[0]+data[1]) / totfac);
-		else				QUATCOPY(quat, q2);
-		normalize_qt(quat);
-		*/
-		// XXX - find some way to make quat interpolation work correctly, above code fails in rare but nasty cases.
-		QUATCOPY(quat, p1->quat);
+		if(totfac>FLT_EPSILON)	interp_qt_qtqt(quat, q1, q2, (data[1]+data[2]) / totfac);
+		else					QUATCOPY(quat, q2);
 	}
 
 	if(radius)
@@ -1288,6 +1275,12 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				size = psys_get_child_size(psys, cpa, ctime, 0);
 			}
 
+			/* some hair paths might be non-existent so they can't be used for duplication */
+			if(hair &&
+				((a < totpart && psys->pathcache[a]->steps < 0) ||
+				(a >= totpart && psys->childcache[a-totpart]->steps < 0)))
+				continue;
+
 			if(part->ren_as==PART_DRAW_GR) {
 				/* for groups, pick the object based on settings */
 				if(part->draw&PART_DRAW_RAND_GR)
@@ -1354,18 +1347,24 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				VECCOPY(vec, obmat[3]);
 				obmat[3][0] = obmat[3][1] = obmat[3][2] = 0.0f;
 				
-				copy_m4_m4(mat, pamat);
+				/* Normal particles and cached hair live in global space so we need to
+				 * remove the real emitter's transformation before 2nd order duplication.
+				 */
+				if(par_space_mat)
+					mul_m4_m4m4(mat, pamat, psys->imat);
+				else
+					copy_m4_m4(mat, pamat);
 
 				mul_m4_m4m4(tmat, obmat, mat);
 				mul_mat3_m4_fl(tmat, size*scale);
-
-				if(part->draw & PART_DRAW_GLOBAL_OB)
-					VECADD(tmat[3], tmat[3], vec);
 
 				if(par_space_mat)
 					mul_m4_m4m4(mat, tmat, par_space_mat);
 				else
 					copy_m4_m4(mat, tmat);
+
+				if(part->draw & PART_DRAW_GLOBAL_OB)
+					VECADD(mat[3], mat[3], vec);
 
 				dob= new_dupli_object(lb, ob, mat, ob->lay, counter, OB_DUPLIPARTS, animated);
 				copy_m4_m4(dob->omat, oldobmat);

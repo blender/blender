@@ -106,7 +106,7 @@ static int wm_area_test_invalid_backbuf(ScrArea *sa)
 	if(sa->spacetype == SPACE_VIEW3D)
 		return (((View3D*)sa->spacedata.first)->flag & V3D_INVALID_BACKBUF);
 	else
-		return 0;
+		return 1;
 }
 
 /********************** draw all **************************/
@@ -710,6 +710,8 @@ static int wm_automatic_draw_method(wmWindow *win)
 		/* Windows software driver darkens color on each redraw */
 		else if(GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
 			return USER_DRAW_OVERLAP_FLIP;
+		else if(GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_UNIX, GPU_DRIVER_SOFTWARE))
+			return USER_DRAW_OVERLAP;
 		/* drawing lower color depth again degrades colors each time */
 		else if(GPU_color_depth() < 24)
 			return USER_DRAW_OVERLAP;

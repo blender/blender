@@ -31,7 +31,6 @@
 #ifndef BKE_EFFECT_H
 #define BKE_EFFECT_H
 
-#include "DNA_object_types.h"
 #include "DNA_modifier_types.h"
 
 struct Object;

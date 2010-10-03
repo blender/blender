@@ -56,6 +56,7 @@
 #include "COLLADAFWVisualScene.h"
 #include "COLLADAFWFileInfo.h"
 #include "COLLADAFWArrayPrimitiveType.h"
+#include "COLLADAFWLibraryNodes.h"
 
 #include "COLLADASaxFWLLoader.h"
 
@@ -1627,6 +1628,13 @@ private:
 		// 	}
 		// }
  
+		for (i = 0; i < totuvset; i++) {
+			if (mesh->getUVCoords().getLength(i) == 0) {
+				totuvset = 0;
+				break;
+			}
+		}
+
 		for (i = 0; i < totuvset; i++) {
 			CustomData_add_layer(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, me->totface);
 			//this->set_layername_map[i] = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
@@ -3240,7 +3248,9 @@ private:
 	std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
 	std::map<Material*, TexIndexTextureArrayMap> material_texture_mapping_map;
 	std::map<COLLADAFW::UniqueId, Object*> object_map;
+	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> node_map;
 	std::vector<const COLLADAFW::VisualScene*> vscenes;
+	std::vector<Object*> libnode_ob;
 
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> root_map; // find root joint by child joint uid, for bone tree evaluation during resampling
 
@@ -3294,6 +3304,19 @@ public:
 	/** This method is called after the last write* method. No other methods will be called after this.*/
 	virtual void finish()
 	{
+		std::vector<const COLLADAFW::VisualScene*>::iterator it;
+		for (it = vscenes.begin(); it != vscenes.end(); it++) {
+			// TODO: create a new scene except the selected <visual_scene> - use current blender scene for it
+			Scene *sce = CTX_data_scene(mContext);
+			const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
+
+			for (unsigned int i = 0; i < roots.getCount(); i++) {
+				write_node(roots[i], NULL, sce, NULL, false);
+			}
+		}
+
+		armature_importer.make_armatures(mContext);
+
 #if 0
 		armature_importer.fix_animation();
 #endif
@@ -3305,6 +3328,29 @@ public:
 				translate_anim_recursive(roots[i]);
 		}
 
+		if (libnode_ob.size()) {
+			Scene *sce = CTX_data_scene(mContext);
+
+			fprintf(stderr, "got %u library nodes to free\n", libnode_ob.size());
+			// free all library_nodes
+			std::vector<Object*>::iterator it;
+			for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
+				Object *ob = *it;
+
+				Base *base = object_in_scene(ob, sce);
+				if (base) {
+					BLI_remlink(&sce->base, base);
+					free_libblock_us(&G.main->object, base->object);
+					if (sce->basact==base)
+						sce->basact= NULL;
+					MEM_freeN(base);
+				}
+			}
+			libnode_ob.clear();
+
+			DAG_scene_sort(CTX_data_main(mContext), sce);
+			DAG_ids_flush_update(CTX_data_main(mContext), 0);
+		}
 	}
 
 
@@ -3356,39 +3402,81 @@ public:
 		// XXX could store the scene id, but do nothing for now
 		return true;
 	}
-	Object *create_camera_object(COLLADAFW::InstanceCamera *camera, Object *ob, Scene *sce)
+	Object *create_camera_object(COLLADAFW::InstanceCamera *camera, Scene *sce)
 	{
 		const COLLADAFW::UniqueId& cam_uid = camera->getInstanciatedObjectId();
 		if (uid_camera_map.find(cam_uid) == uid_camera_map.end()) {	
-			fprintf(stderr, "Couldn't find camera by UID. \n");
+			fprintf(stderr, "Couldn't find camera by UID.\n");
 			return NULL;
 		}
-		ob = add_object(sce, OB_CAMERA);
+		Object *ob = add_object(sce, OB_CAMERA);
 		Camera *cam = uid_camera_map[cam_uid];
 		Camera *old_cam = (Camera*)ob->data;
-		old_cam->id.us--;
 		ob->data = cam;
-		if (old_cam->id.us == 0) free_libblock(&G.main->camera, old_cam);
+		old_cam->id.us--;
+		if (old_cam->id.us == 0)
+			free_libblock(&G.main->camera, old_cam);
 		return ob;
 	}
 	
-	Object *create_lamp_object(COLLADAFW::InstanceLight *lamp, Object *ob, Scene *sce)
+	Object *create_lamp_object(COLLADAFW::InstanceLight *lamp, Scene *sce)
 	{
 		const COLLADAFW::UniqueId& lamp_uid = lamp->getInstanciatedObjectId();
 		if (uid_lamp_map.find(lamp_uid) == uid_lamp_map.end()) {	
 			fprintf(stderr, "Couldn't find lamp by UID. \n");
 			return NULL;
 		}
-		ob = add_object(sce, OB_LAMP);
+		Object *ob = add_object(sce, OB_LAMP);
 		Lamp *la = uid_lamp_map[lamp_uid];
 		Lamp *old_lamp = (Lamp*)ob->data;
-		old_lamp->id.us--;
 		ob->data = la;
-		if (old_lamp->id.us == 0) free_libblock(&G.main->lamp, old_lamp);
+		old_lamp->id.us--;
+		if (old_lamp->id.us == 0)
+			free_libblock(&G.main->lamp, old_lamp);
 		return ob;
 	}
+
+	Object *create_instance_node(Object *source_ob, COLLADAFW::Node *source_node, COLLADAFW::Node *instance_node, Scene *sce, bool is_library_node)
+	{
+		Object *obn = copy_object(source_ob);
+		obn->recalc |= OB_RECALC_ALL;
+		scene_add_base(sce, obn);
+
+		if (instance_node)
+			anim_importer.read_node_transform(instance_node, obn);
+		else
+			anim_importer.read_node_transform(source_node, obn);
+
+		DAG_scene_sort(CTX_data_main(mContext), sce);
+		DAG_ids_flush_update(CTX_data_main(mContext), 0);
+
+		COLLADAFW::NodePointerArray &children = source_node->getChildNodes();
+		if (children.getCount()) {
+			for (unsigned int i = 0; i < children.getCount(); i++) {
+				COLLADAFW::Node *child_node = children[i];
+				const COLLADAFW::UniqueId& child_id = child_node->getUniqueId();
+				if (object_map.find(child_id) == object_map.end())
+					continue;
+				COLLADAFW::InstanceNodePointerArray &inodes = child_node->getInstanceNodes();
+				Object *new_child = NULL;
+				if (inodes.getCount()) {
+					const COLLADAFW::UniqueId& id = inodes[0]->getInstanciatedObjectId();
+					new_child = create_instance_node(object_map[id], node_map[id], child_node, sce, is_library_node);
+				}
+				else {
+					new_child = create_instance_node(object_map[child_id], child_node, NULL, sce, is_library_node);
+				}
+				set_parent(new_child, obn, mContext, true);
+
+				if (is_library_node)
+					libnode_ob.push_back(new_child);
+			}
+		}
+
+		return obn;
+	}
 	
-	void write_node (COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par)
+	void write_node (COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par, bool is_library_node)
 	{
 		Object *ob = NULL;
 		bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
@@ -3411,10 +3499,10 @@ public:
 													  material_texture_mapping_map);
 			}
 			else if (camera.getCount() != 0) {
-				ob = create_camera_object(camera[0], ob, sce);
+				ob = create_camera_object(camera[0], sce);
 			}
 			else if (lamp.getCount() != 0) {
-				ob = create_lamp_object(lamp[0], ob, sce);
+				ob = create_lamp_object(lamp[0], sce);
 			}
 			else if (controller.getCount() != 0) {
 				COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry*)controller[0];
@@ -3422,7 +3510,17 @@ public:
 			}
 			// XXX instance_node is not supported yet
 			else if (inst_node.getCount() != 0) {
-				return;
+				const COLLADAFW::UniqueId& node_id = inst_node[0]->getInstanciatedObjectId();
+				if (object_map.find(node_id) == object_map.end()) {
+					fprintf(stderr, "Cannot find node to instanciate.\n");
+					ob = NULL;
+				}
+				else {
+					Object *source_ob = object_map[node_id];
+					COLLADAFW::Node *source_node = node_map[node_id];
+
+					ob = create_instance_node(source_ob, source_node, node, sce, is_library_node);
+				}
 			}
 			// if node is empty - create empty object
 			// XXX empty node may not mean it is empty object, not sure about this
@@ -3434,7 +3532,11 @@ public:
 			// check if object is not NULL
 			if (!ob) return;
 
-			object_map[node->getUniqueId()] = ob;			
+			object_map[node->getUniqueId()] = ob;
+			node_map[node->getUniqueId()] = node;
+
+			if (is_library_node)
+				libnode_ob.push_back(ob);
 		}
 
 		anim_importer.read_node_transform(node, ob);
@@ -3448,7 +3550,7 @@ public:
 		// if node has child nodes write them
 		COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
 		for (unsigned int i = 0; i < child_nodes.getCount(); i++) {	
-			write_node(child_nodes[i], node, sce, ob);
+			write_node(child_nodes[i], node, sce, ob, is_library_node);
 		}
 	}
 
@@ -3467,17 +3569,6 @@ public:
 		// we link Objects with Meshes here
 
 		vscenes.push_back(visualScene);
-
-		// TODO: create a new scene except the selected <visual_scene> - use current blender
-		// scene for it
-		Scene *sce = CTX_data_scene(mContext);
-		const COLLADAFW::NodePointerArray& roots = visualScene->getRootNodes();
-
-		for (unsigned int i = 0; i < roots.getCount(); i++) {
-			write_node(roots[i], NULL, sce, NULL);
-		}
-
-		armature_importer.make_armatures(mContext);
 		
 		return true;
 	}
@@ -3487,6 +3578,14 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeLibraryNodes ( const COLLADAFW::LibraryNodes* libraryNodes ) 
 	{
+		Scene *sce = CTX_data_scene(mContext);
+
+		const COLLADAFW::NodePointerArray& nodes = libraryNodes->getNodes();
+
+		for (unsigned int i = 0; i < nodes.getCount(); i++) {
+			write_node(nodes[i], NULL, sce, NULL, true);
+		}
+
 		return true;
 	}
 

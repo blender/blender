@@ -52,7 +52,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
 #include "BKE_world.h"
 
 #include "IMB_imbuf.h"
@@ -817,6 +816,7 @@ static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int
 	ImBuf *ibuf=NULL;
 	int dx;
 	int retval;
+	int relative= (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path"));
 	
 	if(env->cube[1]==NULL) {
 		BKE_report(op->reports, RPT_ERROR, "There is no generated environment map available to save");
@@ -843,6 +843,9 @@ static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int
 	if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
 		ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	
+	/* to save, we first get absolute path */
+	BLI_path_abs(str, G.sce);
+	
 	if (BKE_write_ibuf(scene, ibuf, str, imtype, scene->r.subimtype, scene->r.quality)) {
 		retval = OPERATOR_FINISHED;
 	}
@@ -850,6 +853,9 @@ static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int
 		BKE_reportf(op->reports, RPT_ERROR, "Error saving environment map to %s.", str);
 		retval = OPERATOR_CANCELLED;
 	}
+	/* in case we were saving with relative paths, change back again */
+	if(relative)
+		BLI_path_rel(str, G.sce);
 	
 	IMB_freeImBuf(ibuf);
 	ibuf = NULL;

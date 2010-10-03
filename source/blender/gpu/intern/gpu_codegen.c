@@ -36,7 +36,6 @@
 
 #include "DNA_customdata_types.h"
 #include "DNA_image_types.h"
-#include "DNA_listBase.h"
 #include "DNA_material_types.h"
 
 #include "BLI_dynstr.h"
@@ -44,8 +43,6 @@
 #include "BLI_ghash.h"
 #include "BLI_heap.h"
 
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
 
 #include "GPU_material.h"
 #include "GPU_extensions.h"

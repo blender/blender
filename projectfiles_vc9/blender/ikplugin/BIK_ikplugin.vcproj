@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="BIK_ikplugin"
 	ProjectGUID="{9951A8C9-84FE-4CFE-9E18-9D01CB8E09F3}"
 	RootNamespace="BRE_ikplugin"
@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\ikplugin;..\..\..\intern\itasc;..\..\..\extern\Eigen2"
-				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				PreprocessorDefinitions="_DEBUG;WIN32;WITH_IK_ITASC"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="true"
@@ -120,7 +120,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\ikplugin;..\..\..\intern\itasc;..\..\..\extern\Eigen2"
-				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				PreprocessorDefinitions="_DEBUG;WIN32;WITH_IK_ITASC"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"

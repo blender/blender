@@ -33,8 +33,6 @@
 #include "DNA_object_force.h"
 #include "DNA_boid_types.h"
 
-#include "MEM_guardedalloc.h"
-
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
  * and after are non inclusive (they wont remove the cfra) */
 #define PTCACHE_CLEAR_ALL		0
@@ -275,7 +273,7 @@ int		BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec);
 int		BKE_ptcache_write_cache(PTCacheID *pid, int cfra);
 
 /****************** Continue physics ***************/
-void BKE_ptcache_set_continue_physics(struct Scene *scene, int enable);
+void BKE_ptcache_set_continue_physics(struct Main *bmain, struct Scene *scene, int enable);
 int BKE_ptcache_get_continue_physics(void);
 
 /******************* Allocate & free ***************/

@@ -147,6 +147,7 @@ void mat4_to_eulO(float eul[3], short order, float mat[4][4]);
 void axis_angle_to_eulO(float eul[3], short order, float axis[3], float angle);
 
 void mat3_to_compatible_eulO(float eul[3], float old[3], short order, float mat[3][3]);
+void mat4_to_compatible_eulO(float eul[3], float old[3], short order, float mat[4][4]);
 
 void rotate_eulO(float eul[3], short order, char axis, float angle);
 

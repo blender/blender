@@ -181,6 +181,438 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	return newMatrixObject(matrix, argSize, seqSize, Py_NEW, NULL);
 }
 
+/*-----------------------CLASS-METHODS----------------------------*/
+
+//----------------------------------mathutils.RotationMatrix() ----------
+//mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
+static char C_Matrix_Rotation_doc[] =
+".. classmethod:: Rotation(angle, size, axis)\n"
+"\n"
+"   Create a matrix representing a rotation.\n"
+"\n"
+"   :arg angle: The angle of rotation desired, in radians.\n"
+"   :type angle: float\n"
+"   :arg size: The size of the rotation matrix to construct [2, 4].\n"
+"   :type size: int\n"
+"   :arg axis: a string in ['X', 'Y', 'Z'] or a 3D Vector Object (optional when size is 2).\n"
+"   :type axis: string or :class:`Vector`\n"
+"   :return: A new rotation matrix.\n"
+"   :rtype: :class:`Matrix`\n";
+
+static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
+{
+	VectorObject *vec= NULL;
+	char *axis= NULL;
+	int matSize;
+	float angle = 0.0f;
+	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+	if(!PyArg_ParseTuple(args, "fi|O", &angle, &matSize, &vec)) {
+		PyErr_SetString(PyExc_TypeError, "mathutils.RotationMatrix(angle, size, axis): expected float int and a string or vector\n");
+		return NULL;
+	}
+
+	if(vec && !VectorObject_Check(vec)) {
+		axis= _PyUnicode_AsString((PyObject *)vec);
+		if(axis==NULL || axis[0]=='\0' || axis[1]!='\0' || axis[0] < 'X' || axis[0] > 'Z') {
+			PyErr_SetString(PyExc_TypeError, "mathutils.RotationMatrix(): 3rd argument axis value must be a 3D vector or a string in 'X', 'Y', 'Z'\n");
+			return NULL;
+		}
+		else {
+			/* use the string */
+			vec= NULL;
+		}
+	}
+
+	while (angle<-(Py_PI*2))
+		angle+=(Py_PI*2);
+	while (angle>(Py_PI*2))
+		angle-=(Py_PI*2);
+	
+	if(matSize != 2 && matSize != 3 && matSize != 4) {
+		PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
+		return NULL;
+	}
+	if(matSize == 2 && (vec != NULL)) {
+		PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): cannot create a 2x2 rotation matrix around arbitrary axis\n");
+		return NULL;
+	}
+	if((matSize == 3 || matSize == 4) && (axis == NULL) && (vec == NULL)) {
+		PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): please choose an axis of rotation for 3d and 4d matrices\n");
+		return NULL;
+	}
+	if(vec) {
+		if(vec->size != 3) {
+			PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): the vector axis must be a 3D vector\n");
+			return NULL;
+		}
+		
+		if(!BaseMath_ReadCallback(vec))
+			return NULL;
+		
+	}
+
+	/* check for valid vector/axis above */
+	if(vec) {
+		axis_angle_to_mat3( (float (*)[3])mat,vec->vec, angle);
+	}
+	else if(matSize == 2) {
+		//2D rotation matrix
+		mat[0] = (float) cos (angle);
+		mat[1] = (float) sin (angle);
+		mat[2] = -((float) sin(angle));
+		mat[3] = (float) cos(angle);
+	} else if(strcmp(axis, "X") == 0) {
+		//rotation around X
+		mat[0] = 1.0f;
+		mat[4] = (float) cos(angle);
+		mat[5] = (float) sin(angle);
+		mat[7] = -((float) sin(angle));
+		mat[8] = (float) cos(angle);
+	} else if(strcmp(axis, "Y") == 0) {
+		//rotation around Y
+		mat[0] = (float) cos(angle);
+		mat[2] = -((float) sin(angle));
+		mat[4] = 1.0f;
+		mat[6] = (float) sin(angle);
+		mat[8] = (float) cos(angle);
+	} else if(strcmp(axis, "Z") == 0) {
+		//rotation around Z
+		mat[0] = (float) cos(angle);
+		mat[1] = (float) sin(angle);
+		mat[3] = -((float) sin(angle));
+		mat[4] = (float) cos(angle);
+		mat[8] = 1.0f;
+	}
+	else {
+		/* should never get here */
+		PyErr_SetString(PyExc_AttributeError, "mathutils.RotationMatrix(): unknown error\n");
+		return NULL;
+	}
+
+	if(matSize == 4) {
+		//resize matrix
+		mat[10] = mat[8];
+		mat[9] = mat[7];
+		mat[8] = mat[6];
+		mat[7] = 0.0f;
+		mat[6] = mat[5];
+		mat[5] = mat[4];
+		mat[4] = mat[3];
+		mat[3] = 0.0f;
+	}
+	//pass to matrix creation
+	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
+}
+
+
+static char C_Matrix_Translation_doc[] =
+".. classmethod:: Translation(vector)\n"
+"\n"
+"   Create a matrix representing a translation.\n"
+"\n"
+"   :arg vector: The translation vector.\n"
+"   :type vector: :class:`Vector`\n"
+"   :return: An identity matrix with a translation.\n"
+"   :rtype: :class:`Matrix`\n";
+
+static PyObject *C_Matrix_Translation(PyObject *cls, VectorObject * vec)
+{
+	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	
+	if(!VectorObject_Check(vec)) {
+		PyErr_SetString(PyExc_TypeError, "mathutils.TranslationMatrix(): expected vector\n");
+		return NULL;
+	}
+	if(vec->size != 3 && vec->size != 4) {
+		PyErr_SetString(PyExc_TypeError, "mathutils.TranslationMatrix(): vector must be 3D or 4D\n");
+		return NULL;
+	}
+	
+	if(!BaseMath_ReadCallback(vec))
+		return NULL;
+	
+	//create a identity matrix and add translation
+	unit_m4((float(*)[4]) mat);
+	mat[12] = vec->vec[0];
+	mat[13] = vec->vec[1];
+	mat[14] = vec->vec[2];
+
+	return newMatrixObject(mat, 4, 4, Py_NEW, (PyTypeObject *)cls);
+}
+//----------------------------------mathutils.ScaleMatrix() -------------
+//mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
+static char C_Matrix_Scale_doc[] =
+".. classmethod:: Scale(factor, size, axis)\n"
+"\n"
+"   Create a matrix representing a scaling.\n"
+"\n"
+"   :arg factor: The factor of scaling to apply.\n"
+"   :type factor: float\n"
+"   :arg size: The size of the scale matrix to construct [2, 4].\n"
+"   :type size: int\n"
+"   :arg axis: Direction to influence scale. (optional).\n"
+"   :type axis: :class:`Vector`\n"
+"   :return: A new scale matrix.\n"
+"   :rtype: :class:`Matrix`\n";
+
+static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
+{
+	VectorObject *vec = NULL;
+	float norm = 0.0f, factor;
+	int matSize, x;
+	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+	if(!PyArg_ParseTuple(args, "fi|O!", &factor, &matSize, &vector_Type, &vec)) {
+		PyErr_SetString(PyExc_TypeError, "mathutils.ScaleMatrix(): expected float int and optional vector\n");
+		return NULL;
+	}
+	if(matSize != 2 && matSize != 3 && matSize != 4) {
+		PyErr_SetString(PyExc_AttributeError, "mathutils.ScaleMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
+		return NULL;
+	}
+	if(vec) {
+		if(vec->size > 2 && matSize == 2) {
+			PyErr_SetString(PyExc_AttributeError, "mathutils.ScaleMatrix(): please use 2D vectors when scaling in 2D\n");
+			return NULL;
+		}
+		
+		if(!BaseMath_ReadCallback(vec))
+			return NULL;
+		
+	}
+	if(vec == NULL) {	//scaling along axis
+		if(matSize == 2) {
+			mat[0] = factor;
+			mat[3] = factor;
+		} else {
+			mat[0] = factor;
+			mat[4] = factor;
+			mat[8] = factor;
+		}
+	} else { //scaling in arbitrary direction
+		//normalize arbitrary axis
+		for(x = 0; x < vec->size; x++) {
+			norm += vec->vec[x] * vec->vec[x];
+		}
+		norm = (float) sqrt(norm);
+		for(x = 0; x < vec->size; x++) {
+			vec->vec[x] /= norm;
+		}
+		if(matSize == 2) {
+			mat[0] = 1 +((factor - 1) *(vec->vec[0] * vec->vec[0]));
+			mat[1] =((factor - 1) *(vec->vec[0] * vec->vec[1]));
+			mat[2] =((factor - 1) *(vec->vec[0] * vec->vec[1]));
+			mat[3] = 1 + ((factor - 1) *(vec->vec[1] * vec->vec[1]));
+		} else {
+			mat[0] = 1 + ((factor - 1) *(vec->vec[0] * vec->vec[0]));
+			mat[1] =((factor - 1) *(vec->vec[0] * vec->vec[1]));
+			mat[2] =((factor - 1) *(vec->vec[0] * vec->vec[2]));
+			mat[3] =((factor - 1) *(vec->vec[0] * vec->vec[1]));
+			mat[4] = 1 + ((factor - 1) *(vec->vec[1] * vec->vec[1]));
+			mat[5] =((factor - 1) *(vec->vec[1] * vec->vec[2]));
+			mat[6] =((factor - 1) *(vec->vec[0] * vec->vec[2]));
+			mat[7] =((factor - 1) *(vec->vec[1] * vec->vec[2]));
+			mat[8] = 1 + ((factor - 1) *(vec->vec[2] * vec->vec[2]));
+		}
+	}
+	if(matSize == 4) {
+		//resize matrix
+		mat[10] = mat[8];
+		mat[9] = mat[7];
+		mat[8] = mat[6];
+		mat[7] = 0.0f;
+		mat[6] = mat[5];
+		mat[5] = mat[4];
+		mat[4] = mat[3];
+		mat[3] = 0.0f;
+	}
+	//pass to matrix creation
+	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
+}
+//----------------------------------mathutils.OrthoProjectionMatrix() ---
+//mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
+static char C_Matrix_OrthoProjection_doc[] =
+".. classmethod:: OrthoProjection(plane, size, axis)\n"
+"\n"
+"   Create a matrix to represent an orthographic projection.\n"
+"\n"
+"   :arg plane: Can be any of the following: ['X', 'Y', 'XY', 'XZ', 'YZ', 'R'], where a single axis is for a 2D matrix and 'R' requires axis is given.\n"
+"   :type plane: string\n"
+"   :arg size: The size of the projection matrix to construct [2, 4].\n"
+"   :type size: int\n"
+"   :arg axis: Arbitrary perpendicular plane vector (optional).\n"
+"   :type axis: :class:`Vector`\n"
+"   :return: A new projection matrix.\n"
+"   :rtype: :class:`Matrix`\n";
+static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
+{
+	VectorObject *vec = NULL;
+	char *plane;
+	int matSize, x;
+	float norm = 0.0f;
+	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	
+	if(!PyArg_ParseTuple(args, "si|O!", &plane, &matSize, &vector_Type, &vec)) {
+		PyErr_SetString(PyExc_TypeError, "mathutils.OrthoProjectionMatrix(): expected string and int and optional vector\n");
+		return NULL;
+	}
+	if(matSize != 2 && matSize != 3 && matSize != 4) {
+		PyErr_SetString(PyExc_AttributeError,"mathutils.OrthoProjectionMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
+		return NULL;
+	}
+	if(vec) {
+		if(vec->size > 2 && matSize == 2) {
+			PyErr_SetString(PyExc_AttributeError, "mathutils.OrthoProjectionMatrix(): please use 2D vectors when scaling in 2D\n");
+			return NULL;
+		}
+		
+		if(!BaseMath_ReadCallback(vec))
+			return NULL;
+		
+	}
+	if(vec == NULL) {	//ortho projection onto cardinal plane
+		if((strcmp(plane, "X") == 0) && matSize == 2) {
+			mat[0] = 1.0f;
+		} else if((strcmp(plane, "Y") == 0) && matSize == 2) {
+			mat[3] = 1.0f;
+		} else if((strcmp(plane, "XY") == 0) && matSize > 2) {
+			mat[0] = 1.0f;
+			mat[4] = 1.0f;
+		} else if((strcmp(plane, "XZ") == 0) && matSize > 2) {
+			mat[0] = 1.0f;
+			mat[8] = 1.0f;
+		} else if((strcmp(plane, "YZ") == 0) && matSize > 2) {
+			mat[4] = 1.0f;
+			mat[8] = 1.0f;
+		} else {
+			PyErr_SetString(PyExc_AttributeError, "mathutils.OrthoProjectionMatrix(): unknown plane - expected: X, Y, XY, XZ, YZ\n");
+			return NULL;
+		}
+	} else { //arbitrary plane
+		//normalize arbitrary axis
+		for(x = 0; x < vec->size; x++) {
+			norm += vec->vec[x] * vec->vec[x];
+		}
+		norm = (float) sqrt(norm);
+		for(x = 0; x < vec->size; x++) {
+			vec->vec[x] /= norm;
+		}
+		if((strcmp(plane, "R") == 0) && matSize == 2) {
+			mat[0] = 1 - (vec->vec[0] * vec->vec[0]);
+			mat[1] = -(vec->vec[0] * vec->vec[1]);
+			mat[2] = -(vec->vec[0] * vec->vec[1]);
+			mat[3] = 1 - (vec->vec[1] * vec->vec[1]);
+		} else if((strcmp(plane, "R") == 0) && matSize > 2) {
+			mat[0] = 1 - (vec->vec[0] * vec->vec[0]);
+			mat[1] = -(vec->vec[0] * vec->vec[1]);
+			mat[2] = -(vec->vec[0] * vec->vec[2]);
+			mat[3] = -(vec->vec[0] * vec->vec[1]);
+			mat[4] = 1 - (vec->vec[1] * vec->vec[1]);
+			mat[5] = -(vec->vec[1] * vec->vec[2]);
+			mat[6] = -(vec->vec[0] * vec->vec[2]);
+			mat[7] = -(vec->vec[1] * vec->vec[2]);
+			mat[8] = 1 - (vec->vec[2] * vec->vec[2]);
+		} else {
+			PyErr_SetString(PyExc_AttributeError, "mathutils.OrthoProjectionMatrix(): unknown plane - expected: 'r' expected for axis designation\n");
+			return NULL;
+		}
+	}
+	if(matSize == 4) {
+		//resize matrix
+		mat[10] = mat[8];
+		mat[9] = mat[7];
+		mat[8] = mat[6];
+		mat[7] = 0.0f;
+		mat[6] = mat[5];
+		mat[5] = mat[4];
+		mat[4] = mat[3];
+		mat[3] = 0.0f;
+	}
+	//pass to matrix creation
+	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
+}
+
+static char C_Matrix_Shear_doc[] =
+".. classmethod:: Shear(plane, factor, size)\n"
+"\n"
+"   Create a matrix to represent an shear transformation.\n"
+"\n"
+"   :arg plane: Can be any of the following: ['X', 'Y', 'XY', 'XZ', 'YZ'], where a single axis is for a 2D matrix.\n"
+"   :type plane: string\n"
+"   :arg factor: The factor of shear to apply.\n"
+"   :type factor: float\n"
+"   :arg size: The size of the shear matrix to construct [2, 4].\n"
+"   :type size: int\n"
+"   :return: A new shear matrix.\n"
+"   :rtype: :class:`Matrix`\n";
+
+static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
+{
+	int matSize;
+	char *plane;
+	float factor;
+	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+	if(!PyArg_ParseTuple(args, "sfi", &plane, &factor, &matSize)) {
+		PyErr_SetString(PyExc_TypeError,"mathutils.ShearMatrix(): expected string float and int\n");
+		return NULL;
+	}
+	if(matSize != 2 && matSize != 3 && matSize != 4) {
+		PyErr_SetString(PyExc_AttributeError,"mathutils.ShearMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
+		return NULL;
+	}
+
+	if((strcmp(plane, "X") == 0)
+		&& matSize == 2) {
+		mat[0] = 1.0f;
+		mat[2] = factor;
+		mat[3] = 1.0f;
+	} else if((strcmp(plane, "Y") == 0) && matSize == 2) {
+		mat[0] = 1.0f;
+		mat[1] = factor;
+		mat[3] = 1.0f;
+	} else if((strcmp(plane, "XY") == 0) && matSize > 2) {
+		mat[0] = 1.0f;
+		mat[4] = 1.0f;
+		mat[6] = factor;
+		mat[7] = factor;
+	} else if((strcmp(plane, "XZ") == 0) && matSize > 2) {
+		mat[0] = 1.0f;
+		mat[3] = factor;
+		mat[4] = 1.0f;
+		mat[5] = factor;
+		mat[8] = 1.0f;
+	} else if((strcmp(plane, "YZ") == 0) && matSize > 2) {
+		mat[0] = 1.0f;
+		mat[1] = factor;
+		mat[2] = factor;
+		mat[4] = 1.0f;
+		mat[8] = 1.0f;
+	} else {
+		PyErr_SetString(PyExc_AttributeError, "mathutils.ShearMatrix(): expected: x, y, xy, xz, yz or wrong matrix size for shearing plane\n");
+		return NULL;
+	}
+	if(matSize == 4) {
+		//resize matrix
+		mat[10] = mat[8];
+		mat[9] = mat[7];
+		mat[8] = mat[6];
+		mat[7] = 0.0f;
+		mat[6] = mat[5];
+		mat[5] = mat[4];
+		mat[4] = mat[3];
+		mat[3] = 0.0f;
+	}
+	//pass to matrix creation
+	return newMatrixObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
+}
+
 /* assumes rowsize == colsize is checked and the read callback has run */
 static float matrix_determinant(MatrixObject * self)
 {
@@ -1094,7 +1526,6 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 		return NULL;
 	}
 	else /* if(mat1) { */ {
-		
 		if(VectorObject_Check(m2)) { /* MATRIX*VECTOR */
 			return column_vector_multiplication(mat1, (VectorObject *)m2); /* vector update done inside the function */
 		}
@@ -1300,12 +1731,12 @@ static PyObject *Matrix_getIsNegative( MatrixObject * self, void *type )
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Matrix_getseters[] = {
-	{"row_size", (getter)Matrix_getRowSize, (setter)NULL, "The row size of the matrix (readonly). **type** int", NULL},
-	{"col_size", (getter)Matrix_getColSize, (setter)NULL, "The column size of the matrix (readonly). **type** int", NULL},
-	{"median_scale", (getter)Matrix_getMedianScale, (setter)NULL, "The average scale applied to each axis (readonly). **type** float", NULL},
-	{"is_negative", (getter)Matrix_getIsNegative, (setter)NULL, "True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly). **type** bool", NULL},
+	{"row_size", (getter)Matrix_getRowSize, (setter)NULL, "The row size of the matrix (readonly).\n\n:type: int", NULL},
+	{"col_size", (getter)Matrix_getColSize, (setter)NULL, "The column size of the matrix (readonly).\n\n:type: int", NULL},
+	{"median_scale", (getter)Matrix_getMedianScale, (setter)NULL, "The average scale applied to each axis (readonly).\n\n:type: float", NULL},
+	{"is_negative", (getter)Matrix_getIsNegative, (setter)NULL, "True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly).\n\n:type: bool", NULL},
 	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
-	{"_owner",(getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
+	{"owner",(getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -1326,6 +1757,13 @@ static struct PyMethodDef Matrix_methods[] = {
 	{"to_quat", (PyCFunction) Matrix_toQuat, METH_NOARGS, Matrix_toQuat_doc},
 	{"copy", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
 	{"__copy__", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
+	
+	/* class methods */
+	{"Rotation", (PyCFunction) C_Matrix_Rotation, METH_VARARGS | METH_CLASS, C_Matrix_Rotation_doc},
+	{"Scale", (PyCFunction) C_Matrix_Scale, METH_VARARGS | METH_CLASS, C_Matrix_Scale_doc},
+	{"Shear", (PyCFunction) C_Matrix_Shear, METH_VARARGS | METH_CLASS, C_Matrix_Shear_doc},
+	{"Translation", (PyCFunction) C_Matrix_Translation, METH_O | METH_CLASS, C_Matrix_Translation_doc},
+	{"OrthoProjection", (PyCFunction) C_Matrix_OrthoProjection,  METH_VARARGS | METH_CLASS, C_Matrix_OrthoProjection_doc},
 	{NULL, NULL, 0, NULL}
 };
 

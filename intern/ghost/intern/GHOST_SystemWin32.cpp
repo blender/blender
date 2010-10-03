@@ -207,17 +207,17 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 		}
 		else {
 			// An invalid window could be one that was used to test for AA
-			GHOST_Window *other_window = ((GHOST_WindowWin32*)window)->getNextWindow();
-
-			delete window;
-			window = 0;
+			window = ((GHOST_WindowWin32*)window)->getNextWindow();
 			
 			// If another window is found, let the wm know about that one, but not the old one
-			if (other_window)
-			{
-				m_windowManager->addWindow(other_window);
-				window = other_window;
+			if (window->getValid()) {
+				m_windowManager->addWindow(window);
 			}
+			else {
+				delete window;
+				window = 0;
+			}
+
 		}
 	}
 	return window;
@@ -287,17 +287,6 @@ GHOST_TSuccess GHOST_SystemWin32::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 
 GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys& keys) const
 {
-	/*
-	GetKeyState and GetAsyncKeyState only work with Win95, Win98, NT4,
-	Terminal Server and Windows 2000.
-	But on WinME it always returns zero. These two functions are simply
-	skipped by Millenium Edition!
-
-	Official explanation from Microsoft:
-	Intentionally disabled.
-	It didn't work all that well on some newer hardware, and worked less 
-	well with the passage of time, so it was fully disabled in ME.
-	*/
 	if (m_separateLeftRight && m_separateLeftRightInitialized) {
 		bool down = HIBYTE(::GetKeyState(VK_LSHIFT)) != 0;
 		keys.set(GHOST_kModifierKeyLeftShift, down);
@@ -311,6 +300,12 @@ GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys& keys) cons
 		keys.set(GHOST_kModifierKeyLeftControl, down);
 		down = HIBYTE(::GetKeyState(VK_RCONTROL)) != 0;
 		keys.set(GHOST_kModifierKeyRightControl, down);
+		bool lwindown = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
+		bool rwindown = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
+		if(lwindown || rwindown)
+			keys.set(GHOST_kModifierKeyCommand, true);
+		else
+			keys.set(GHOST_kModifierKeyCommand, false);
 	}
 	else {
 		bool down = HIBYTE(::GetKeyState(VK_SHIFT)) != 0;
@@ -322,6 +317,12 @@ GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys& keys) cons
 		down = HIBYTE(::GetKeyState(VK_CONTROL)) != 0;
 		keys.set(GHOST_kModifierKeyLeftControl, down);
 		keys.set(GHOST_kModifierKeyRightControl, down);
+		bool lwindown = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
+		bool rwindown = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
+		if(lwindown || rwindown)
+			keys.set(GHOST_kModifierKeyCommand, true);
+		else
+			keys.set(GHOST_kModifierKeyCommand, false);
 	}
 	return GHOST_kSuccess;
 }
@@ -376,8 +377,8 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 		wc.cbClsExtra= 0;
 		wc.cbWndExtra= 0;
 		wc.hInstance= ::GetModuleHandle(0);
-  		wc.hIcon = ::LoadIcon(wc.hInstance, "APPICON");
-  		
+		wc.hIcon = ::LoadIcon(wc.hInstance, "APPICON");
+		
 		if (!wc.hIcon) {
 			::LoadIcon(NULL, IDI_APPLICATION);
 		}
@@ -670,6 +671,8 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						case VK_SHIFT:
 						case VK_CONTROL:
 						case VK_MENU:
+						case VK_LWIN:
+						case VK_RWIN:
 							if (!system->m_separateLeftRightInitialized) {
 								// Check whether this system supports separate left and right keys
 								switch (wParam) {
@@ -690,6 +693,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 											(HIBYTE(::GetKeyState(VK_LMENU)) != 0) ||
 											(HIBYTE(::GetKeyState(VK_RMENU)) != 0) ?
 											true : false;
+										break;
+									case VK_LWIN:
+									case VK_RWIN:
+										system->m_separateLeftRight = true;
 										break;
 								}
 								system->m_separateLeftRightInitialized = true;
@@ -714,6 +721,8 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						case VK_SHIFT:
 						case VK_CONTROL:
 						case VK_MENU:
+						case VK_LWIN:
+						case VK_RWIN:
 							system->processModifierKeys(window);
 							// Bypass call to DefWindowProc
 							return 0;

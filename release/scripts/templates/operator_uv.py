@@ -9,16 +9,16 @@ def main(context):
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
 
-    if not mesh.active_uv_texture:
-        bpy.ops.mesh.uv_texture_add()
+    if not mesh.uv_textures:
+        uvtex = bpy.ops.mesh.uv_texture_add()
 
     # adjust UVs
-    for i, uv in enumerate(mesh.active_uv_texture.data):
+    for i, uv in enumerate(uvtex.data):
         uvs = uv.uv1, uv.uv2, uv.uv3, uv.uv4
-        for j, v_idx in enumerate(mesh.faces[i].verts):
+        for j, v_idx in enumerate(mesh.faces[i].vertices):
             if uv.select_uv[j]:
                 # apply the location of the vertex as a UV
-                uvs[j][:] = mesh.verts[v_idx].co.xy
+                uvs[j][:] = mesh.vertices[v_idx].co.xy
 
 
     if is_editmode:
@@ -30,7 +30,8 @@ class UvOperator(bpy.types.Operator):
     bl_idname = "uv.simple_operator"
     bl_label = "Simple UV Operator"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj and obj.type == 'MESH')
 

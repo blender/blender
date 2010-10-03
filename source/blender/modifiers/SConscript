@@ -15,8 +15,8 @@ incs += ' ' + env['BF_ZLIB_INC']
 defs = []
 
 if env['BF_NO_ELBEEM']:
-	defs.append('DISABLE_ELBEEM')
+    defs.append('DISABLE_ELBEEM')
 
-env.BlenderLib ( libname = 'modifiers', sources = sources,
+env.BlenderLib ( libname = 'bf_modifiers', sources = sources,
                  includes = Split(incs), defines=defs,
                  libtype=['core','player'], priority = [180, 20] )

@@ -19,15 +19,14 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-
 
 class PhysicButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         ob = context.object
         rd = context.scene.render
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
@@ -40,47 +39,41 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         md = context.fluid
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
         if md:
             # remove modifier + settings
-            split.set_context_pointer("modifier", md)
+            split.context_pointer_set("modifier", md)
             split.operator("object.modifier_remove", text="Remove")
 
             row = split.row(align=True)
-            row.prop(md, "render", text="")
-            row.prop(md, "realtime", text="")
+            row.prop(md, "show_render", text="")
+            row.prop(md, "show_viewport", text="")
 
             fluid = md.settings
 
         else:
             # add modifier
             split.operator("object.modifier_add", text="Add").type = 'FLUID_SIMULATION'
-            if wide_ui:
-                split.label()
+            split.label()
 
-            fluid = None
+        if md:
+            row = layout.row()
+            if fluid is None:
+                row.label("built without fluids")
+                return
 
-
-        if fluid:
-            if wide_ui:
-                row = layout.row()
-                row.prop(fluid, "type")
-                if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
-                    row.prop(fluid, "active", text="")
-            else:
-                layout.prop(fluid, "type", text="")
-                if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
-                    layout.prop(fluid, "active", text="")
+            row.prop(fluid, "type")
+            if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
+                row.prop(fluid, "use", text="")
 
             layout = layout.column()
             if fluid.type not in ('NONE', 'DOMAIN', 'PARTICLE'):
-                layout.active = fluid.active
+                layout.active = fluid.use
 
             if fluid.type == 'DOMAIN':
-                layout.operator("fluid.bake", text="Bake Fluid Simulation", icon='MOD_FLUIDSIM')
+                layout.operator("fluid.bake", text="Bake (Req. Memory: %s)" % fluid.memory_estimate, icon='MOD_FLUIDSIM')
                 split = layout.split()
 
                 col = split.column()
@@ -89,9 +82,8 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 col.label(text="Render Display:")
                 col.prop(fluid, "render_display_mode", text="")
 
-                if wide_ui:
-                    col = split.column()
-                col.label(text="Required Memory: " + fluid.memory_estimate)
+                col = split.column()
+                col.label()
                 col.prop(fluid, "preview_resolution", text="Preview")
                 col.label(text="Viewport Display:")
                 col.prop(fluid, "viewport_display_mode", text="")
@@ -104,13 +96,12 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 sub.prop(fluid, "start_time", text="Start")
                 sub.prop(fluid, "end_time", text="End")
 
-                if wide_ui:
-                    col = split.column()
-                    col.label()
-                col.prop(fluid, "generate_speed_vectors")
-                col.prop(fluid, "reverse_frames")
+                col = split.column()
+                col.label()
+                col.prop(fluid, "use_speed_vectors")
+                col.prop(fluid, "use_reverse_frames")
 
-                layout.prop(fluid, "path", text="")
+                layout.prop(fluid, "filepath", text="")
 
             elif fluid.type == 'FLUID':
                 split = layout.split()
@@ -118,10 +109,9 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col.label(text="Volume Initialization:")
                 col.prop(fluid, "volume_initialization", text="")
-                col.prop(fluid, "export_animated_mesh")
+                col.prop(fluid, "use_animated_mesh")
 
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.label(text="Initial Velocity:")
                 col.prop(fluid, "initial_velocity", text="")
 
@@ -131,10 +121,9 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col.label(text="Volume Initialization:")
                 col.prop(fluid, "volume_initialization", text="")
-                col.prop(fluid, "export_animated_mesh")
+                col.prop(fluid, "use_animated_mesh")
 
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.label(text="Slip Type:")
                 col.prop(fluid, "slip_type", text="")
                 if fluid.slip_type == 'PARTIALSLIP':
@@ -149,11 +138,10 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col.label(text="Volume Initialization:")
                 col.prop(fluid, "volume_initialization", text="")
-                col.prop(fluid, "export_animated_mesh")
-                col.prop(fluid, "local_coordinates")
+                col.prop(fluid, "use_animated_mesh")
+                col.prop(fluid, "use_local_coords")
 
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.label(text="Inflow Velocity:")
                 col.prop(fluid, "inflow_velocity", text="")
 
@@ -163,10 +151,9 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col.label(text="Volume Initialization:")
                 col.prop(fluid, "volume_initialization", text="")
-                col.prop(fluid, "export_animated_mesh")
+                col.prop(fluid, "use_animated_mesh")
 
-                if wide_ui:
-                    split.column()
+                split.column()
 
             elif fluid.type == 'PARTICLE':
                 split = layout.split()
@@ -176,14 +163,13 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 col.prop(fluid, "particle_influence", text="Size")
                 col.prop(fluid, "alpha_influence", text="Alpha")
 
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.label(text="Type:")
-                col.prop(fluid, "drops")
-                col.prop(fluid, "floats")
-                col.prop(fluid, "tracer")
+                col.prop(fluid, "use_drops")
+                col.prop(fluid, "use_floats")
+                col.prop(fluid, "show_tracer")
 
-                layout.prop(fluid, "path", text="")
+                layout.prop(fluid, "filepath", text="")
 
             elif fluid.type == 'CONTROL':
                 split = layout.split()
@@ -191,10 +177,9 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 col = split.column()
                 col.label(text="")
                 col.prop(fluid, "quality", slider=True)
-                col.prop(fluid, "reverse_frames")
+                col.prop(fluid, "use_reverse_frames")
 
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.label(text="Time:")
                 sub = col.column(align=True)
                 sub.prop(fluid, "start_time", text="Start")
@@ -208,8 +193,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 sub.prop(fluid, "attraction_strength", text="Strength")
                 sub.prop(fluid, "attraction_radius", text="Radius")
 
-                if wide_ui:
-                    col = split.column()
+                col = split.column()
                 col.label(text="Velocity Force:")
                 sub = col.column(align=True)
                 sub.prop(fluid, "velocity_strength", text="Strength")
@@ -218,18 +202,18 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain World"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         md = context.fluid
-        return md and (md.settings.type == 'DOMAIN')
+        return md and md.settings and (md.settings.type == 'DOMAIN')
 
     def draw(self, context):
         layout = self.layout
 
         fluid = context.fluid.settings
         scene = context.scene
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -247,13 +231,12 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, bpy.types.Panel):
             col.label(text="Using Scene Size Units", icon="SCENE_DATA")
             sub = col.column()
             sub.enabled = False
-            sub.prop(fluid, "real_world_size", text="Metres")
+            sub.prop(fluid, "simulation_scale", text="Metres")
         else:
             col.label(text="Real World Size:")
-            col.prop(fluid, "real_world_size", text="Metres")
+            col.prop(fluid, "simulation_scale", text="Metres")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Viscosity Presets:")
         sub = col.column(align=True)
         sub.prop(fluid, "viscosity_preset", text="")
@@ -269,17 +252,17 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, bpy.types.Panel):
 
 class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain Boundary"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         md = context.fluid
-        return md and (md.settings.type == 'DOMAIN')
+        return md and md.settings and (md.settings.type == 'DOMAIN')
 
     def draw(self, context):
         layout = self.layout
 
         fluid = context.fluid.settings
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -289,20 +272,20 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, bpy.types.Panel):
         if fluid.slip_type == 'PARTIALSLIP':
             col.prop(fluid, "partial_slip_factor", slider=True, text="Amount")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Surface:")
-        col.prop(fluid, "surface_smoothing", text="Smoothing")
+        col.prop(fluid, "surface_smooth", text="Smoothing")
         col.prop(fluid, "surface_subdivisions", text="Subdivisions")
 
 
 class PHYSICS_PT_domain_particles(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Domain Particles"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         md = context.fluid
-        return md and (md.settings.type == 'DOMAIN')
+        return md and md.settings and (md.settings.type == 'DOMAIN')
 
     def draw(self, context):
         layout = self.layout

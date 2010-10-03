@@ -41,10 +41,8 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_mesh.h"
-#include "BKE_utildefines.h"
 
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
@@ -86,7 +84,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	}
 
 	if(em && em->faces.first)
-		EM_add_data_layer(em, &em->fdata, CD_MTFACE);
+		EM_add_data_layer(em, &em->fdata, CD_MTFACE, NULL);
 	
 	if(!ED_uvedit_test(obedit)) {
 		BKE_mesh_end_editmesh(obedit->data, em);

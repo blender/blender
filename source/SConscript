@@ -2,13 +2,13 @@
 Import ('env')
 
 SConscript(['blender/SConscript',
-			'kernel/SConscript',
-			'creator/SConscript'])
+            'kernel/SConscript',
+            'creator/SConscript'])
 if env['WITH_BF_GAMEENGINE']:
-	SConscript (['gameengine/SConscript'])
+    SConscript (['gameengine/SConscript'])
 
 if env['WITH_BF_PLAYER']:
-	SConscript (['blenderplayer/bad_level_call_stubs/SConscript'])
+    SConscript (['blenderplayer/bad_level_call_stubs/SConscript'])
 
 if env['OURPLATFORM'] in ('win64-vc', 'win32-vc', 'win32-mingw', 'linuxcross'):
-	SConscript (['icons/SConscript'])
+    SConscript (['icons/SConscript'])

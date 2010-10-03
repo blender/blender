@@ -42,6 +42,9 @@
 #ifdef WIN32
 #include <io.h>
 #endif
+
+#include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
 
 #include "imbuf.h"
@@ -170,7 +173,7 @@ int imb_is_a_hdr(unsigned char *buf)
 	return 0;
 }
 
-struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
+struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags)
 {
 	struct ImBuf* ibuf;
 	RGBE* sline;

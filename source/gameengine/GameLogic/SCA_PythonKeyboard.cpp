@@ -33,11 +33,17 @@ SCA_PythonKeyboard::SCA_PythonKeyboard(SCA_IInputDevice* keyboard)
 : PyObjectPlus(),
 m_keyboard(keyboard)
 {
+#ifndef DISABLE_PYTHON
+	m_event_dict = PyDict_New();
+#endif
 }
 
 SCA_PythonKeyboard::~SCA_PythonKeyboard()
 {
-	/* intentionally empty */
+#ifndef DISABLE_PYTHON
+	PyDict_Clear(m_event_dict);
+	Py_DECREF(m_event_dict);
+#endif
 }
 
 #ifndef DISABLE_PYTHON
@@ -81,24 +87,15 @@ PyAttributeDef SCA_PythonKeyboard::Attributes[] = {
 PyObject* SCA_PythonKeyboard::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_PythonKeyboard* self = static_cast<SCA_PythonKeyboard*>(self_v);
-
-	PyObject* resultlist = PyList_New(0);
 	
 	for (int i=SCA_IInputDevice::KX_BEGINKEY; i<=SCA_IInputDevice::KX_ENDKEY; i++)
 	{
 		const SCA_InputEvent & inevent = self->m_keyboard->GetEventValue((SCA_IInputDevice::KX_EnumInputs)i);
 		
-		
-		if (inevent.m_status != SCA_InputEvent::KX_NO_INPUTSTATUS)
-		{
-			PyObject* keypair = PyTuple_New(2);
-			PyTuple_SET_ITEM(keypair, 0, PyLong_FromSsize_t(i));
-			PyTuple_SET_ITEM(keypair, 1, PyLong_FromSsize_t(inevent.m_status));
-			PyList_Append(resultlist, keypair);
-		}
+		PyDict_SetItem(self->m_event_dict, PyLong_FromSsize_t(i), PyLong_FromSsize_t(inevent.m_status));
 	}
-
-	return resultlist;
+	Py_INCREF(self->m_event_dict);
+	return self->m_event_dict;
 }
 
 #endif

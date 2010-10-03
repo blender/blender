@@ -277,11 +277,11 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "bl_preview", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_use_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_DO_PREVIEW);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
-	prop= RNA_def_property(srna, "bl_postprocess", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_use_postprocess", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "type->flag", RE_DO_ALL);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
@@ -291,8 +291,8 @@ static void rna_def_render_engine(BlenderRNA *brna)
 static void rna_def_render_result(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 	FunctionRNA *func;
+	PropertyRNA *parm;
 	
 	srna= RNA_def_struct(brna, "RenderResult", NULL);
 	RNA_def_struct_ui_text(srna, "Render Result", "Result of rendering, including all layers and passes");
@@ -300,22 +300,22 @@ static void rna_def_render_result(BlenderRNA *brna)
 	func= RNA_def_function(srna, "load_from_file", "RE_result_load_from_file");
 	RNA_def_function_ui_description(func, "Copies the pixels of this render result from an image file.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	prop= RNA_def_string(func, "filename", "", 0, "Filename", "Filename to load into this render tile, must be no smaller then the render result");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
+	parm= RNA_def_string_file_name(func, "filename", "", FILE_MAX, "File Name", "Filename to load into this render tile, must be no smaller then the render result");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	RNA_define_verify_sdna(0);
 
-	prop= RNA_def_property(srna, "resolution_x", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "rectx");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	parm= RNA_def_property(srna, "resolution_x", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(parm, NULL, "rectx");
+	RNA_def_property_clear_flag(parm, PROP_EDITABLE);
 
-	prop= RNA_def_property(srna, "resolution_y", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "recty");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	parm= RNA_def_property(srna, "resolution_y", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(parm, NULL, "recty");
+	RNA_def_property_clear_flag(parm, PROP_EDITABLE);
 
-	prop= RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_type(prop, "RenderLayer");
-	RNA_def_property_collection_funcs(prop, "rna_RenderResult_layers_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	parm= RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(parm, "RenderLayer");
+	RNA_def_property_collection_funcs(parm, "rna_RenderResult_layers_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 
 	RNA_define_verify_sdna(1);
 }

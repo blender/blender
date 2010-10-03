@@ -38,43 +38,38 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_ghash.h"
 
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "BKE_armature.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_action.h"
 #include "BKE_brush.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_cloth.h"
 #include "BKE_context.h"
-#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_deform.h"
-#include "BKE_displist.h"
-#include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
@@ -100,7 +95,7 @@ int vertex_paint_mode_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
-	return ob && ob->mode == OB_MODE_VERTEX_PAINT;
+	return ob && ob->mode == OB_MODE_VERTEX_PAINT && ((Mesh *)ob->data)->totface;
 }
 
 int vertex_paint_poll(bContext *C)
@@ -112,8 +107,8 @@ int vertex_paint_poll(bContext *C)
 			ARegion *ar= CTX_wm_region(C);
 			if(ar->regiontype==RGN_TYPE_WINDOW)
 				return 1;
+			}
 		}
-	}
 	return 0;
 }
 
@@ -121,7 +116,7 @@ int weight_paint_mode_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
-	return ob && ob->mode == OB_MODE_WEIGHT_PAINT;
+	return ob && ob->mode == OB_MODE_WEIGHT_PAINT && ((Mesh *)ob->data)->totface;
 }
 
 int weight_paint_poll(bContext *C)
@@ -1149,10 +1144,16 @@ static int vpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *ev
 {
 	Paint *p = paint_get_active(CTX_data_scene(C));
 	Brush *brush = paint_brush(p);
+	float col[4];
 	
 	WM_paint_cursor_end(CTX_wm_manager(C), p->paint_cursor);
 	p->paint_cursor = NULL;
 	brush_radial_control_invoke(op, brush, 1);
+
+	copy_v3_v3(col, brush->add_col);
+	col[3]= 0.5f;
+	RNA_float_set_array(op->ptr, "color", col);
+
 	return WM_radial_control_invoke(C, op, event);
 }
 
@@ -1178,10 +1179,16 @@ static int wpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *ev
 {
 	Paint *p = paint_get_active(CTX_data_scene(C));
 	Brush *brush = paint_brush(p);
+	float col[4];
 	
 	WM_paint_cursor_end(CTX_wm_manager(C), p->paint_cursor);
 	p->paint_cursor = NULL;
 	brush_radial_control_invoke(op, brush, 1);
+
+	copy_v3_v3(col, brush->add_col);
+	col[3]= 0.5f;
+	RNA_float_set_array(op->ptr, "color", col);
+
 	return WM_radial_control_invoke(C, op, event);
 }
 

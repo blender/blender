@@ -27,15 +27,20 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-	. .. ../../../intern/guardedalloc ../blenlib ../imbuf ../makesdna
+	.
+	..
+	../blenlib
+	../imbuf
+	../makesdna
+	../../../intern/guardedalloc
 )
 
 IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
+	LIST(APPEND INC ${PTHREADS_INC})
 ENDIF(WIN32)
 
 IF(WITH_QUICKTIME)
-	SET(INC ${INC} ${QUICKTIME_INC})
+	LIST(APPEND INC ${QUICKTIME_INC})
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 

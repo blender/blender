@@ -40,35 +40,11 @@
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 
-/* return frame range of all curves (min, max) or (0, 1) if there are no keys */
-void rna_Action_get_frame_range(bAction *act, int **frame_range, int *length_r)
-{
-	int *ret;
-	float start, end;
-
-	calc_action_range(act, &start, &end, 1);
-
-	*length_r= 2;
-	ret= MEM_callocN(*length_r * sizeof(int), "rna_Action_get_frame_range");
-
-	ret[0]= (int)start;
-	ret[1]= (int)end;
-
-	*frame_range= ret;
-}
-
 #else
 
 void RNA_api_action(StructRNA *srna)
 {
-	FunctionRNA *func;
-	PropertyRNA *parm;
-
-	func= RNA_def_function(srna, "get_frame_range", "rna_Action_get_frame_range");
-	RNA_def_function_ui_description(func, "Get action frame range as a (min, max) tuple.");
-	parm= RNA_def_int_array(func, "frame_range", 1, NULL, 0, 0, "", "Action frame range.", 0, 0);
-	RNA_def_property_flag(parm, PROP_DYNAMIC);
-	RNA_def_function_output(func, parm);
+	
 }
 
 #endif

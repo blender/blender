@@ -47,23 +47,19 @@
 #include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_image.h"
 #include "BKE_icons.h"
-#include "BKE_brush.h"
 #include "BKE_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "ED_datafiles.h"
 #include "ED_render.h"
@@ -1031,11 +1027,11 @@ static int ui_id_brush_get_icon(bContext *C, ID *id, int preview)
 		EnumPropertyItem *items;
 		int tool;
 		
-		if(ob->mode & OB_MODE_SCULPT) {
+		if(ob && (ob->mode & OB_MODE_SCULPT)) {
 			items = brush_sculpt_tool_items;
 			tool = br->sculpt_tool;
 		}
-		else if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT)) {
+		else if(ob && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT))) {
 			items = brush_vertexpaint_tool_items;
 			tool = br->vertexpaint_tool;
 		}

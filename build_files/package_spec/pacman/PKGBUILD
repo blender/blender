@@ -1,0 +1,48 @@
+# Maintainer: Campbell Barton <ideasman42 at gmail dot com>
+
+# custom blender vars
+blender_srcdir=$srcdir/../../../..
+blender_version=$(grep BLENDER_VERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | tr -dc 0-9)
+blender_subversion=$(grep BLENDER_SUBVERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | tr -dc 0-9)
+blender_ver_string=$(expr $blender_version / 100).$(expr $blender_version % 100).$blender_subversion
+
+pkgname=blender-beta
+pkgver=$blender_ver_string
+pkgrel=1
+pkgdesc="A fully integrated 3D graphics creation suite"
+arch=('i686' 'x86_64')
+url="www.blender.org"
+license=('GPL')
+groups=()
+depends=('libjpeg' 'libpng' 'openexr'  'python3>=3.1' 'gettext' 'libxi' 'libxmu' 'mesa' 'freetype2' 'openal' 'sdl' 'libsndfile' 'libsamplerate' 'ffmpeg')
+makedepends=('cmake' 'svn')
+optdepends=()
+provides=('blender')
+conflicts=('blender')
+replaces=()
+backup=()
+options=()
+install=blender.install
+# use current svn to make the package.
+# source=(http://download.blender.org/source/$pkgname-$pkgver.tar.gz)
+# md5sums=('27edb80c82c25252d43d6a01980d953a') #generate with 'makepkg -g'
+source=()
+md5sums=()
+noextract=()
+
+build() {
+  mkdir -p $srcdir/build
+  cd $srcdir/build
+  cmake $blender_srcdir \
+    -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+    -DCMAKE_BUILD_TYPE:STRING=Release \
+    -DWITH_PYTHON_INSTALL:BOOL=OFF \
+    -DWITH_OPENCOLLADA:BOOL=OFF
+
+  make
+}
+
+package() {
+  cd $srcdir/build
+  make DESTDIR="$pkgdir" install
+}

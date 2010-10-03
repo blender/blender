@@ -34,22 +34,15 @@
 static void operator_properties_init(wmOperatorType *ot)
 {
 	PyObject *py_class = ot->ext.data;
-	PyObject *item= ((PyTypeObject*)py_class)->tp_dict; /* getattr(..., "__dict__") returns a proxy */
-
 	RNA_struct_blender_type_set(ot->ext.srna, ot);
 
-	if(item) {
-		/* only call this so pyrna_deferred_register_props gives a useful error
-		 * WM_operatortype_append_ptr will call RNA_def_struct_identifier
-		 * later */
-		RNA_def_struct_identifier(ot->srna, ot->idname);
+	/* only call this so pyrna_deferred_register_class gives a useful error
+	 * WM_operatortype_append_ptr will call RNA_def_struct_identifier
+	 * later */
+	RNA_def_struct_identifier(ot->srna, ot->idname);
 
-		if(pyrna_deferred_register_props(ot->srna, item) != 0) {
-			PyErr_Print(); /* failed to register operator props */
-			PyErr_Clear();
-		}
-	}
-	else {
+	if(pyrna_deferred_register_class(ot->srna, py_class) != 0) {
+		PyErr_Print(); /* failed to register operator props */
 		PyErr_Clear();
 	}
 }
@@ -105,7 +98,7 @@ PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "Os:_bpy.ops.macro_define", &macro, &opname))
 		return NULL;
 
-	if (WM_operatortype_exists(opname) == NULL) {
+	if (WM_operatortype_find(opname, TRUE) == NULL) {
 		PyErr_Format(PyExc_ValueError, "Macro Define: '%s' is not a valid operator id", opname);
 		return NULL;
 	}
@@ -114,7 +107,7 @@ PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args)
 	srna= srna_from_self(macro, "Macro Define:");
 	macroname = RNA_struct_identifier(srna);
 
-	ot = WM_operatortype_exists(macroname);
+	ot = WM_operatortype_find(macroname, TRUE);
 
 	if (!ot) {
 		PyErr_Format(PyExc_ValueError, "Macro Define: '%s' is not a valid macro or hasn't been registered yet", macroname);

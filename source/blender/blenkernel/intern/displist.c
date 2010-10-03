@@ -930,7 +930,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 	EditFace *efa;
 	DispList *dlnew=0, *dl;
 	float *f1;
-	int colnr=0, charidx=0, cont=1, tot, a, *index;
+	int colnr=0, charidx=0, cont=1, tot, a, *index, nextcol= 0;
 	intptr_t totvert;
 	
 	if(dispbase==0) return;
@@ -938,38 +938,41 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 
 	while(cont) {
 		cont= 0;
-		totvert=0;
+		totvert= 0;
+		nextcol= 0;
 		
 		dl= dispbase->first;
 		while(dl) {
 	
 			if(dl->type==DL_POLY) {
 				if(charidx<dl->charidx) cont= 1;
-				else if(charidx==dl->charidx) {
-			
-					colnr= dl->col;
-					charidx= dl->charidx;
-		
-					/* make editverts and edges */
-					f1= dl->verts;
-					a= dl->nr;
-					eve= v1= 0;
-					
-					while(a--) {
-						vlast= eve;
+				else if(charidx==dl->charidx) { /* character with needed index */
+					if(colnr==dl->col) {
+						/* make editverts and edges */
+						f1= dl->verts;
+						a= dl->nr;
+						eve= v1= 0;
 						
-						eve= BLI_addfillvert(f1);
-						totvert++;
-						
-						if(vlast==0) v1= eve;
-						else {
-							BLI_addfilledge(vlast, eve);
+						while(a--) {
+							vlast= eve;
+
+							eve= BLI_addfillvert(f1);
+							totvert++;
+
+							if(vlast==0) v1= eve;
+							else {
+								BLI_addfilledge(vlast, eve);
+							}
+							f1+=3;
 						}
-						f1+=3;
-					}
-				
-					if(eve!=0 && v1!=0) {
-						BLI_addfilledge(eve, v1);
+
+						if(eve!=0 && v1!=0) {
+							BLI_addfilledge(eve, v1);
+						}
+					} else if (colnr<dl->col) {
+						/* got poly with next material at current char */
+						cont= 1;
+						nextcol= 1;
 					}
 				}
 			}
@@ -1032,7 +1035,14 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 		}
 		BLI_end_edgefill();
 
-		charidx++;
+		if(nextcol) {
+			/* stay at current char but fill polys with next material */
+			colnr++;
+		} else {
+			/* switch to next char and start filling from first material */
+			charidx++;
+			colnr= 0;
+		}
 	}
 	
 	/* do not free polys, needed for wireframe display */

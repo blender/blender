@@ -26,12 +26,11 @@
 #include "AUD_PitchReader.h"
 
 AUD_PitchReader::AUD_PitchReader(AUD_IReader* reader, float pitch) :
-		AUD_EffectReader(reader)
+		AUD_EffectReader(reader), m_pitch(pitch)
 {
-	m_pitch = pitch;
 }
 
-AUD_Specs AUD_PitchReader::getSpecs()
+AUD_Specs AUD_PitchReader::getSpecs() const
 {
 	AUD_Specs specs = m_reader->getSpecs();
 	specs.rate = (AUD_SampleRate)((int)(specs.rate * m_pitch));

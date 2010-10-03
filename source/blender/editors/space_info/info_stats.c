@@ -35,7 +35,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_anim.h"
-#include "BKE_context.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
@@ -226,7 +225,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 	else if(obedit->type==OB_LATTICE) {
 		/* Lattice Edit */
 		Lattice *lt= obedit->data;
-		Lattice *editlatt= lt->editlatt;
+		Lattice *editlatt= lt->editlatt->latt;
 		BPoint *bp;
 		int a;
 

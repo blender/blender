@@ -30,6 +30,8 @@
 *
 */
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
 

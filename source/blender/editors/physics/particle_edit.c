@@ -3573,7 +3573,7 @@ static void brush_edit_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 
 	RNA_float_set_array(&itemptr, "mouse", mouse);
-	RNA_boolean_set(&itemptr, "flip", event->shift != 0); // XXX hardcoded
+	RNA_boolean_set(&itemptr, "pen_flip", event->shift != 0); // XXX hardcoded
 
 	/* apply */
 	brush_edit_apply(C, op, &itemptr);
@@ -4150,6 +4150,13 @@ static int clear_edited_exec(bContext *C, wmOperator *op)
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
+	}
+	else { /* some operation might have protected hair from editing so let's clear the flag */
+		psys->recalc |= PSYS_RECALC_RESET;
+		psys->flag &= ~PSYS_GLOBAL_HAIR;
+		psys->flag &= ~PSYS_EDITED;
+		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
 
 	return OPERATOR_FINISHED;

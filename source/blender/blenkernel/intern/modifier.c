@@ -34,17 +34,22 @@
 *
 */
 
-#include "stddef.h"
-#include "string.h"
-#include "stdarg.h"
-#include "math.h"
-#include "float.h"
+#include <stddef.h>
+#include <string.h>
+#include <stdarg.h>
+#include <math.h>
+#include <float.h>
 
 #include "DNA_armature_types.h"
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "BKE_bmesh.h"
 #include "BKE_cloth.h"
 #include "BKE_key.h"
+#include "BKE_multires.h"
 
 #include "MOD_modifiertypes.h"
 
@@ -193,7 +198,7 @@ void modifier_copyData(ModifierData *md, ModifierData *target)
 		mti->copyData(md, target);
 }
 
-int modifier_couldBeCage(Scene *scene, ModifierData *md)
+int modifier_couldBeCage(struct Scene *scene, ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -233,7 +238,7 @@ void modifier_setError(ModifierData *md, char *format, ...)
  * also used in transform_conversion.c, to detect CrazySpace [tm] (2nd arg
  * then is NULL)
  */
-int modifiers_getCageIndex(Scene *scene, Object *ob, int *lastPossibleCageIndex_r, int virtual_)
+int modifiers_getCageIndex(struct Scene *scene, Object *ob, int *lastPossibleCageIndex_r, int virtual_)
 {
 	ModifierData *md = (virtual_)? modifiers_getVirtualModifierList(ob): ob->modifiers.first;
 	int i, cageIndex = -1;
@@ -283,7 +288,7 @@ int modifiers_isParticleEnabled(Object *ob)
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-int modifier_isEnabled(Scene *scene, ModifierData *md, int required_mode)
+int modifier_isEnabled(struct Scene *scene, ModifierData *md, int required_mode)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -298,7 +303,7 @@ int modifier_isEnabled(Scene *scene, ModifierData *md, int required_mode)
 	return 1;
 }
 
-LinkNode *modifiers_calcDataMasks(Scene *scene, Object *ob, ModifierData *md, CustomDataMask dataMask, int required_mode)
+LinkNode *modifiers_calcDataMasks(struct Scene *scene, Object *ob, ModifierData *md, CustomDataMask dataMask, int required_mode)
 {
 	LinkNode *dataMasks = NULL;
 	LinkNode *curr, *prev;
@@ -487,7 +492,7 @@ int modifier_isCorrectableDeformed(ModifierData *md)
 	return 0;
 }
 
-int modifiers_isCorrectableDeformed(Scene *scene, Object *ob)
+int modifiers_isCorrectableDeformed(struct Scene *scene, Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
@@ -522,5 +527,21 @@ void modifier_freeTemporaryData(ModifierData *md)
 	}
 }
 
+/* ensure modifier correctness when changing ob->data */
+void test_object_modifiers(Object *ob)
+{
+	ModifierData *md;
 
+	/* just multires checked for now, since only multires
+	   modifies mesh data */
 
+	if(ob->type != OB_MESH) return;
+
+	for(md = ob->modifiers.first; md; md = md->next) {
+		if(md->type == eModifierType_Multires) {
+			MultiresModifierData *mmd = (MultiresModifierData*)md;
+
+			multiresModifier_set_levels_from_disps(mmd, ob);
+		}
+	}
+}

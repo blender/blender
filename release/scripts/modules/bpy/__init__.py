@@ -26,7 +26,7 @@ data = _bpy.data
 context = _bpy.context
 
 # python modules
-from bpy import utils
+from bpy import utils, path
 
 from bpy import ops as _ops_module
 
@@ -48,8 +48,7 @@ def _main():
     import pydoc
     pydoc.getpager = lambda: pydoc.plainpager
     pydoc.Helper.getline = lambda self, prompt: None
-    pydoc.TextDoc.bold = lambda self, text: text
-
+    pydoc.TextDoc.use_bold = lambda self, text: text
 
     # if "-d" in sys.argv: # Enable this to measure startup speed
     if 0:

@@ -97,7 +97,7 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 		/* length */
 		bhead[1] -= sizeof(int) * 2;
 
-		/* inconsistant image size, quit early */
+		/* inconsistent image size, quit early */
 		if(bhead[1] != size[0] * size[1] * sizeof(int))
 			return NULL;
 	

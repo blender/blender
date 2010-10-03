@@ -26,12 +26,18 @@
 
 SET(INC .)
 
-FILE(GLOB SRC intern/*.c)
+SET(SRC
+	./intern/mallocn.c
+)
 
-BLENDERLIB(bf_guardedalloc "${SRC}" "${INC}")
+IF(WIN32)
+	LIST(APPEND SRC ./intern/mmap_win.c)
+ENDIF(WIN32)
 
-# Override C++ alloc optional
+BLENDERLIB(bf_intern_guardedalloc "${SRC}" "${INC}")
+
+# Override C++ alloc, optional.
 IF(WITH_CXX_GUARDEDALLOC)
-	FILE(GLOB SRC cpp/*.cpp)
-	BLENDERLIB(bf_guardedalloc_cpp "${SRC}" "${INC}")
+	SET(SRC cpp/mallocn.cpp)
+	BLENDERLIB(bf_intern_guardedalloc_cpp "${SRC}" "${INC}")
 ENDIF(WITH_CXX_GUARDEDALLOC)

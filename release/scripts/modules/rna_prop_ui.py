@@ -36,7 +36,7 @@ def rna_idprop_ui_prop_get(item, prop, create=True):
 
     rna_ui = rna_idprop_ui_get(item, create)
 
-    if rna_ui == None:
+    if rna_ui is None:
         return None
 
     try:
@@ -49,7 +49,7 @@ def rna_idprop_ui_prop_get(item, prop, create=True):
 def rna_idprop_ui_prop_clear(item, prop):
     rna_ui = rna_idprop_ui_get(item, False)
 
-    if rna_ui == None:
+    if rna_ui is None:
         return
 
     try:
@@ -84,6 +84,8 @@ def draw(layout, context, context_member, use_edit=True):
         props.data_path = context_member
         del row
 
+    rna_properties = {prop.identifier for prop in rna_item.bl_rna.properties if prop.is_runtime} if items else None
+
     for key, val in items:
 
         if key == '_RNA_UI':
@@ -113,7 +115,10 @@ def draw(layout, context, context_member, use_edit=True):
         if convert_to_pyobject and not hasattr(val_orig, "len"):
             row.label(text=val_draw)
         else:
-            row.prop(rna_item, '["%s"]' % key, text="")
+            if key in rna_properties:
+                row.prop(rna_item, key, text="")
+            else:
+                row.prop(rna_item, '["%s"]' % key, text="")
 
         if use_edit:
             row = split.row(align=True)
@@ -130,8 +135,11 @@ class PropertyPanel():
     and the variable '_context_path' MUST be set.
     """
     bl_label = "Custom Properties"
-    bl_default_closed = True
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return bool(eval("context.%s" % cls._context_path))
 
     def draw(self, context):
         draw(self.layout, context, self._context_path)
-

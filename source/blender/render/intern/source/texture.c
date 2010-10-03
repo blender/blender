@@ -2509,6 +2509,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 	if (R.r.scemode & R_NO_TEX) return;
 	
 	mtex= har->mat->mtex[0];
+	if(har->mat->septex & (1<<0)) return;
 	if(mtex->tex==NULL) return;
 	
 	/* no normal mapping */
@@ -3015,7 +3016,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 
 /* ------------------------------------------------------------------------- */
 
-int externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta)
+int externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta, const int thread)
 {
 	Tex *tex;
 	TexResult texr;
@@ -3041,7 +3042,7 @@ int externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *t
 		do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
 	}
 	
-	rgb= multitex(tex, texvec, dxt, dyt, 0, &texr, 0, mtex->which_output);
+	rgb= multitex(tex, texvec, dxt, dyt, 0, &texr, thread, mtex->which_output);
 	
 	if(rgb) {
 		texr.tin= (0.35*texr.tr+0.45*texr.tg+0.2*texr.tb);

@@ -50,13 +50,8 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_displist.h"
 #include "BKE_global.h"
-#include "BKE_lattice.h"
 #include "BKE_mesh.h"
-#include "BKE_paint.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 
 #include "RNA_access.h"
@@ -78,7 +73,7 @@ static Lattice *vgroup_edit_lattice(Object *ob)
 {
 	if(ob->type==OB_LATTICE) {
 		Lattice *lt= ob->data;
-		return (lt->editlatt)? lt->editlatt: lt;
+		return (lt->editlatt)? lt->editlatt->latt: lt;
 	}
 
 	return NULL;
@@ -88,7 +83,7 @@ bDeformGroup *ED_vgroup_add_name(Object *ob, char *name)
 {
 	bDeformGroup *defgroup;
 	
-	if(!ob)
+	if(!ob || !ELEM(ob->type, OB_MESH, OB_LATTICE))
 		return NULL;
 	
 	defgroup = MEM_callocN(sizeof(bDeformGroup), "add deformGroup");
@@ -174,7 +169,7 @@ int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot)
 				int i=0;
 
 				Lattice *lt= (Lattice *)id;
-				lt= (lt->editlatt)? lt->editlatt: lt;
+				lt= (lt->editlatt)? lt->editlatt->latt: lt;
 
 				*dvert_tot= lt->pntsu*lt->pntsv*lt->pntsw;
 				*dvert_arr= MEM_mallocN(sizeof(void*)*(*dvert_tot), "vgroup parray from me");
@@ -208,7 +203,7 @@ int ED_vgroup_give_array(ID *id, MDeformVert **dvert_arr, int *dvert_tot)
 			case ID_LT:
 			{
 				Lattice *lt= (Lattice *)id;
-				lt= (lt->editlatt)? lt->editlatt: lt;
+				lt= (lt->editlatt)? lt->editlatt->latt: lt;
 				*dvert_arr= lt->dvert;
 				*dvert_tot= lt->pntsu*lt->pntsv*lt->pntsw;
 				return TRUE;
@@ -537,18 +532,8 @@ float ED_vgroup_vert_weight(Object *ob, bDeformGroup *dg, int vertnum)
 }
 
 void ED_vgroup_select_by_name(Object *ob, char *name)
-{
-	bDeformGroup *curdef;
-	int actdef= 1;
-	
-	for(curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++){
-		if(!strcmp(curdef->name, name)) {
-			ob->actdef= actdef;
-			return;
-		}
-	}
-
-	ob->actdef= 0;	// this signals on painting to create a new one, if a bone in posemode is selected */
+{	/* note: ob->actdef==0 signals on painting to create a new one, if a bone in posemode is selected */
+	ob->actdef= defgroup_name_index(ob, name) + 1;
 }
 
 /********************** Operator Implementations *********************/
@@ -1356,7 +1341,7 @@ static void vgroup_assign_verts(Object *ob, float weight)
 		EditMesh *em = BKE_mesh_get_editmesh(me);
 
 		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT))
-			EM_add_data_layer(em, &em->vdata, CD_MDEFORMVERT);
+			EM_add_data_layer(em, &em->vdata, CD_MDEFORMVERT, NULL);
 
 		/* Go through the list of editverts and assign them */
 		for(eve=em->verts.first; eve; eve=eve->next){
@@ -2082,6 +2067,8 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 	vgroup_remap_update_users(ob, sort_map_update);
 
 	ob->actdef= sort_map_update[ob->actdef];
+	
+	MEM_freeN(sort_map_update);
 
 	return OPERATOR_FINISHED;
 }
@@ -2091,7 +2078,7 @@ static int vgroup_sort(void *def_a_ptr, void *def_b_ptr)
 	bDeformGroup *def_a= (bDeformGroup *)def_a_ptr;
 	bDeformGroup *def_b= (bDeformGroup *)def_b_ptr;
 
-	return strcmp(def_a->name, def_b->name);
+	return BLI_natstrcmp(def_a->name, def_b->name);
 }
 
 static int vertex_group_sort_exec(bContext *C, wmOperator *op)

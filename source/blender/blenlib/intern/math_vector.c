@@ -120,10 +120,8 @@ float angle_v3v3(float *v1, float *v2)
 {
 	float vec1[3], vec2[3];
 
-	copy_v3_v3(vec1, v1);
-	copy_v3_v3(vec2, v2);
-	normalize_v3(vec1);
-	normalize_v3(vec2);
+	normalize_v3_v3(vec1, v1);
+	normalize_v3_v3(vec2, v2);
 
 	return angle_normalized_v3v3(vec1, vec2);
 }
@@ -300,17 +298,17 @@ void ortho_basis_v3v3_v3(float *v1, float *v2, float *v)
 
 /*********************************** Other ***********************************/
 
-void print_v2(char *str, float v[2])
+void print_v2(const char *str, const float v[2])
 {
 	printf("%s: %.3f %.3f\n", str, v[0], v[1]);
 }
 
-void print_v3(char *str, float v[3])
+void print_v3(const char *str, const float v[3])
 {
 	printf("%s: %.3f %.3f %.3f\n", str, v[0], v[1], v[2]);
 }
 
-void print_v4(char *str, float v[4])
+void print_v4(const char *str, const float v[4])
 {
 	printf("%s: %.3f %.3f %.3f %.3f\n", str, v[0], v[1], v[2], v[3]);
 }

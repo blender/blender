@@ -237,8 +237,19 @@ void BLI_builddir(char *dirname, char *relname)
 		
 		if (newnum){
 
-			if (files) files=(struct direntry *)realloc(files,(totnum+newnum) * sizeof(struct direntry));
-			else files=(struct direntry *)malloc(newnum * sizeof(struct direntry));
+			if(files) {
+				void *tmp= realloc(files, (totnum+newnum) * sizeof(struct direntry));
+				if(tmp) {
+					files= (struct direntry *)tmp;
+				}
+				else { /* realloc fail */
+					free(files);
+					files= NULL;
+				}
+			}
+			
+			if(files==NULL)
+				files=(struct direntry *)malloc(newnum * sizeof(struct direntry));
 
 			if (files){
 				dlink = (struct dirlink *) dirbase->first;
@@ -410,7 +421,7 @@ unsigned int BLI_getdir(char *dirname,  struct direntry **filelist)
 }
 
 
-int BLI_filesize(int file)
+size_t BLI_filesize(int file)
 {
 	struct stat buf;
 
@@ -419,11 +430,11 @@ int BLI_filesize(int file)
 	return (buf.st_size);
 }
 
-int BLI_filepathsize(const char *path)
+size_t BLI_filepathsize(const char *path)
 {
 	int size, file = open(path, O_BINARY|O_RDONLY);
 	
-	if (file < 0)
+	if (file == -1)
 		return -1;
 	
 	size = BLI_filesize(file);

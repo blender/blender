@@ -10,8 +10,8 @@ incs += ' #source/gameengine/Network #source/gameengine/SceneGraph'
 defs = []
 
 if env['WITH_BF_PYTHON']:
-	incs += ' ' + env['BF_PYTHON_INC']
+    incs += ' ' + env['BF_PYTHON_INC']
 else:
-	defs.append('DISABLE_PYTHON')
+    defs.append('DISABLE_PYTHON')
 
 env.BlenderLib ( 'bf_network', Split(sources), Split(incs), defines=defs,libtype=['core','player'], priority=[400,125], cxx_compileflags=env['BGE_CXXFLAGS'])

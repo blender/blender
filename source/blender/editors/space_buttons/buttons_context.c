@@ -41,7 +41,6 @@
 #include "BLI_listbase.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_action.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
@@ -50,7 +49,6 @@
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
-#include "BKE_world.h"
 
 #include "RNA_access.h"
 

@@ -20,7 +20,7 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
+# TODO, "color_range" not in the UI
 
 
 class WorldButtonsPanel():
@@ -29,27 +29,20 @@ class WorldButtonsPanel():
     bl_context = "world"
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
-    def poll(self, context):
-        rd = context.scene.render
-        return (context.world) and (not rd.use_game_engine) and (rd.engine in self.COMPAT_ENGINES)
-
-
-class WORLD_PT_preview(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "Preview"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw(self, context):
-        self.layout.template_preview(context.world)
+    @classmethod
+    def poll(cls, context):
+        return (context.world and context.scene.render.engine in cls.COMPAT_ENGINES)
 
 
 class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         rd = context.scene.render
-        return (not rd.use_game_engine) and (rd.engine in self.COMPAT_ENGINES)
+        return (not rd.use_game_engine) and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -57,22 +50,30 @@ class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
         scene = context.scene
         world = context.world
         space = context.space_data
-        wide_ui = context.region.width > narrowui
+
+        texture_count = world and len(world.texture_slots.keys())
+
+        split = layout.split(percentage=0.65)
+        if scene:
+            split.template_ID(scene, "world", new="world.new")
+        elif world:
+            split.template_ID(space, "pin_id")
+
+        if texture_count:
+            split.label(text=str(texture_count), icon='TEXTURE')
 
 
-        if wide_ui:
-            split = layout.split(percentage=0.65)
-            if scene:
-                split.template_ID(scene, "world", new="world.new")
-            elif world:
-                split.template_ID(space, "pin_id")
-        else:
-            layout.template_ID(scene, "world", new="world.new")
-
-
-class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, bpy.types.Panel):
+class WORLD_PT_preview(WorldButtonsPanel, bpy.types.Panel):
+    bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-    _context_path = "world"
+
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        return (context.world) and (not rd.use_game_engine) and (rd.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        self.layout.template_preview(context.world)
 
 
 class WORLD_PT_world(WorldButtonsPanel, bpy.types.Panel):
@@ -81,86 +82,19 @@ class WORLD_PT_world(WorldButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        wide_ui = context.region.width > narrowui
         world = context.world
 
-        if wide_ui:
-            row = layout.row()
-            row.prop(world, "paper_sky")
-            row.prop(world, "blend_sky")
-            row.prop(world, "real_sky")
-        else:
-            col = layout.column()
-            col.prop(world, "paper_sky")
-            col.prop(world, "blend_sky")
-            col.prop(world, "real_sky")
+        row = layout.row()
+        row.prop(world, "use_sky_paper")
+        row.prop(world, "use_sky_blend")
+        row.prop(world, "use_sky_real")
 
         row = layout.row()
         row.column().prop(world, "horizon_color")
         col = row.column()
         col.prop(world, "zenith_color")
-        col.active = world.blend_sky
+        col.active = world.use_sky_blend
         row.column().prop(world, "ambient_color")
-
-
-class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "Mist"
-    bl_default_closed = True
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw_header(self, context):
-        world = context.world
-
-        self.layout.prop(world.mist, "use_mist", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        wide_ui = context.region.width > narrowui
-        world = context.world
-
-        layout.active = world.mist.use_mist
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(world.mist, "intensity", slider=True)
-        col.prop(world.mist, "start")
-
-        if wide_ui:
-            col = split.column()
-        col.prop(world.mist, "depth")
-        col.prop(world.mist, "height")
-
-        layout.prop(world.mist, "falloff")
-
-
-class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "Stars"
-    bl_default_closed = True
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw_header(self, context):
-        world = context.world
-
-        self.layout.prop(world.stars, "use_stars", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        wide_ui = context.region.width > narrowui
-        world = context.world
-
-        layout.active = world.stars.use_stars
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(world.stars, "size")
-        col.prop(world.stars, "color_randomization", text="Colors")
-
-        if wide_ui:
-            col = split.column()
-        col.prop(world.stars, "min_distance", text="Min. Dist")
-        col.prop(world.stars, "average_separation", text="Separation")
 
 
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel, bpy.types.Panel):
@@ -168,18 +102,18 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
-        light = context.world.lighting
+        light = context.world.light_settings
         self.layout.prop(light, "use_ambient_occlusion", text="")
 
     def draw(self, context):
         layout = self.layout
-        light = context.world.lighting
+        light = context.world.light_settings
 
         layout.active = light.use_ambient_occlusion
 
         split = layout.split()
         split.prop(light, "ao_factor", text="Factor")
-        split.prop(light, "ao_blend_mode", text="")
+        split.prop(light, "ao_blend_type", text="")
 
 
 class WORLD_PT_environment_lighting(WorldButtonsPanel, bpy.types.Panel):
@@ -187,14 +121,14 @@ class WORLD_PT_environment_lighting(WorldButtonsPanel, bpy.types.Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
-        light = context.world.lighting
-        self.layout.prop(light, "use_environment_lighting", text="")
+        light = context.world.light_settings
+        self.layout.prop(light, "use_environment_light", text="")
 
     def draw(self, context):
         layout = self.layout
-        light = context.world.lighting
+        light = context.world.light_settings
 
-        layout.active = light.use_environment_lighting
+        layout.active = light.use_environment_light
 
         split = layout.split()
         split.prop(light, "environment_energy", text="Energy")
@@ -205,19 +139,20 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Indirect Lighting"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
-    def poll(self, context):
-        light = context.world.lighting
-        return light.gather_method == 'APPROXIMATE'
+    @classmethod
+    def poll(cls, context):
+        light = getattr(context.world, "light_settings", None)
+        return light and light.gather_method == 'APPROXIMATE'
 
     def draw_header(self, context):
-        light = context.world.lighting
-        self.layout.prop(light, "use_indirect_lighting", text="")
+        light = context.world.light_settings
+        self.layout.prop(light, "use_indirect_light", text="")
 
     def draw(self, context):
         layout = self.layout
-        light = context.world.lighting
+        light = context.world.light_settings
 
-        layout.active = light.use_indirect_lighting
+        layout.active = light.use_indirect_light
 
         split = layout.split()
         split.prop(light, "indirect_factor", text="Factor")
@@ -230,9 +165,9 @@ class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        light = context.world.lighting
+        light = context.world.light_settings
 
-        layout.active = light.use_ambient_occlusion or light.use_environment_lighting or light.use_indirect_lighting
+        layout.active = light.use_ambient_occlusion or light.use_environment_light or light.use_indirect_light
 
         layout.prop(light, "gather_method", expand=True)
 
@@ -242,9 +177,9 @@ class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
         col.label(text="Attenuation:")
         if light.gather_method == 'RAYTRACE':
             col.prop(light, "distance")
-        col.prop(light, "falloff")
+        col.prop(light, "use_falloff")
         sub = col.row()
-        sub.active = light.falloff
+        sub.active = light.use_falloff
         sub.prop(light, "falloff_strength", text="Strength")
 
         if light.gather_method == 'RAYTRACE':
@@ -267,9 +202,70 @@ class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
 
             col.label(text="Sampling:")
             col.prop(light, "passes")
-            col.prop(light, "error_tolerance", text="Error")
-            col.prop(light, "pixel_cache")
+            col.prop(light, "error_threshold", text="Error")
+            col.prop(light, "use_cache")
             col.prop(light, "correction")
+
+
+class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
+    bl_label = "Mist"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw_header(self, context):
+        world = context.world
+
+        self.layout.prop(world.mist_settings, "use_mist", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        world = context.world
+
+        layout.active = world.mist_settings.use_mist
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(world.mist_settings, "intensity", slider=True)
+        col.prop(world.mist_settings, "start")
+
+        col = split.column()
+        col.prop(world.mist_settings, "depth")
+        col.prop(world.mist_settings, "height")
+
+        layout.prop(world.mist_settings, "falloff")
+
+
+class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
+    bl_label = "Stars"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw_header(self, context):
+        world = context.world
+
+        self.layout.prop(world.star_settings, "use_stars", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        world = context.world
+
+        layout.active = world.star_settings.use_stars
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(world.star_settings, "size")
+        col.prop(world.star_settings, "color_random", text="Colors")
+
+        col = split.column()
+        col.prop(world.star_settings, "distance_min", text="Min. Dist")
+        col.prop(world.star_settings, "average_separation", text="Separation")
+
+
+class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "world"
 
 
 def register():

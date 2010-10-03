@@ -69,7 +69,6 @@
 #include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -173,8 +172,8 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	else if(obedit->type==OB_LATTICE) {
 		Lattice *lt= obedit->data;
 		
-		a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
-		bp= lt->editlatt->def;
+		a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
+		bp= lt->editlatt->latt->def;
 		while(a--) {
 			if(bp->f1 & SELECT) {
 				if(v1==0) v1= nr;
@@ -422,6 +421,9 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
+		if(ob->parent == NULL)
+			continue;
+		
 		if(type == 0) {
 			ob->parent= NULL;
 		}			
@@ -570,8 +572,8 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				Object workob;
 				
 				/* apply transformation of previous parenting */
-				object_apply_mat4(ob, ob->obmat);
-				
+				/* object_apply_mat4(ob, ob->obmat); */ /* removed because of bug [#23577] */
+
 				/* set the parent (except for follow-path constraint option) */
 				if(partype != PAR_PATH_CONST)
 					ob->parent= par;
@@ -1033,7 +1035,7 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 	int values[20], a;
 	unsigned int lay= 0;
 
-	if(!RNA_property_is_set(op->ptr, "layer")) {
+	if(!RNA_property_is_set(op->ptr, "layers")) {
 		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 			lay |= base->lay;
 		}
@@ -1042,10 +1044,10 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 		for(a=0; a<20; a++)
 			values[a]= (lay & (1<<a));
 		
-		RNA_boolean_set_array(op->ptr, "layer", values);
+		RNA_boolean_set_array(op->ptr, "layers", values);
 	}
 	else {
-		RNA_boolean_get_array(op->ptr, "layer", values);
+		RNA_boolean_get_array(op->ptr, "layers", values);
 
 		for(a=0; a<20; a++)
 			if(values[a])
@@ -1110,6 +1112,8 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 	/* warning, active object may be hidden now */
 	
 	WM_event_add_notifier(C, NC_SCENE|NC_OBJECT|ND_DRAW, scene); /* is NC_SCENE needed ? */
+	WM_event_add_notifier(C, NC_SCENE|ND_LAYER_CONTENT, scene);
+
 	DAG_scene_sort(bmain, scene);
 
 	return OPERATOR_FINISHED;
@@ -1131,7 +1135,7 @@ void OBJECT_OT_move_to_layer(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_layer_member(ot->srna, "layer", 20, NULL, "Layer", "");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
 }
 
 /************************** Link to Scene Operator *****************************/
@@ -1888,7 +1892,7 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, SELECT, "Type", "");
 
 	RNA_def_boolean(ot->srna, "object", 0, "Object", "Make single user objects");
 	RNA_def_boolean(ot->srna, "obdata", 0, "Object Data", "Make single user object data");

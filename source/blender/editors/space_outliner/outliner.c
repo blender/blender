@@ -59,10 +59,8 @@
 # include <fnmatch.h>
 #endif
 
-#include "IMB_imbuf_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
@@ -71,14 +69,10 @@
 #include "BKE_group.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_material.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_screen.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"
@@ -107,6 +101,8 @@
 
 #define OL_H	19
 #define OL_X	18
+
+#define OL_Y_OFFSET	2
 
 #define OL_TOG_RESTRICT_VIEWX	54
 #define OL_TOG_RESTRICT_SELECTX	36
@@ -988,8 +984,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			else {
 				if((seq->strip) && (seq->strip->stripdata))
 					te->name= seq->strip->stripdata->name;
-				else if((seq->strip) && (seq->strip->tstripdata) && (seq->strip->tstripdata->ibuf))
-					te->name= seq->strip->tstripdata->ibuf->name;
 				else
 					te->name= "SQ None";
 			}
@@ -1562,10 +1556,10 @@ static void outliner_set_flag(SpaceOops *soops, ListBase *lb, short flag, short 
 void object_toggle_visibility_cb(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Base *base= (Base *)te->directdata;
-	
-	if(base==NULL) base= object_in_scene((Object *)tselem->id, scene);
-	if(base) {
-		base->object->restrictflag^=OB_RESTRICT_VIEW;
+	if(base || (base= object_in_scene((Object *)tselem->id, scene))) {
+		if((base->object->restrictflag ^= OB_RESTRICT_VIEW)) {
+			ED_base_object_select(base, BA_DESELECT);
+		}
 	}
 }
 
@@ -1577,6 +1571,7 @@ static int outliner_toggle_visibility_exec(bContext *C, wmOperator *op)
 	
 	outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_visibility_cb);
 	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_VISIBLE, scene);
 	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
@@ -1585,7 +1580,7 @@ static int outliner_toggle_visibility_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_visibility_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Toggle Visability";
+	ot->name= "Toggle Visibility";
 	ot->idname= "OUTLINER_OT_visibility_toggle";
 	ot->description= "Toggle the visibility of selected items";
 	
@@ -1616,6 +1611,7 @@ static int outliner_toggle_selectability_exec(bContext *C, wmOperator *op)
 	
 	outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_selectability_cb);
 	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
@@ -1709,6 +1705,7 @@ static int outliner_toggle_selected_exec(bContext *C, wmOperator *op)
 {
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	ARegion *ar= CTX_wm_region(C);
+	Scene *scene= CTX_data_scene(C);
 	
 	if (outliner_has_one_flag(soops, &soops->tree, TSE_SELECTED, 1))
 		outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 0);
@@ -1717,6 +1714,7 @@ static int outliner_toggle_selected_exec(bContext *C, wmOperator *op)
 	
 	soops->storeflag |= SO_TREESTORE_REDRAW;
 	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
@@ -1891,8 +1889,8 @@ static void tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	}
 	
 	/* find associated base in current scene */
-	for(base= FIRSTBASE; base; base= base->next) 
-		if(base->object==ob) break;
+	base= object_in_scene(ob, scene);
+
 	if(base) {
 		if(set==2) {
 			/* swap select */
@@ -1902,12 +1900,8 @@ static void tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 				ED_base_object_select(base, BA_SELECT);
 		}
 		else {
-			Base *b;
 			/* deleselect all */
-			for(b= FIRSTBASE; b; b= b->next) {
-				b->flag &= ~SELECT;
-				b->object->flag= b->flag;
-			}
+			scene_deselect_all(scene);
 			ED_base_object_select(base, BA_SELECT);
 		}
 		if(C)
@@ -2029,6 +2023,7 @@ static int tree_element_active_texture(bContext *C, Scene *scene, SpaceOops *soo
 		}
 	}
 	
+	WM_event_add_notifier(C, NC_TEXTURE, NULL);
 	return 0;
 }
 
@@ -2123,8 +2118,8 @@ static int tree_element_active_posechannel(bContext *C, Scene *scene, TreeElemen
 	if(set) {
 		if(!(pchan->bone->flag & BONE_HIDDEN_P)) {
 			
-			if(set==2) ED_pose_deselectall(ob, 2, 0);	// 2 = clear active tag
-			else ED_pose_deselectall(ob, 0, 0);	// 0 = deselect 
+			if(set==2) ED_pose_deselectall(ob, 2);	// 2 = clear active tag
+			else ED_pose_deselectall(ob, 0);	// 0 = deselect 
 			
 			if(set==2 && (pchan->bone->flag & BONE_SELECTED)) {
 				pchan->bone->flag &= ~BONE_SELECTED;
@@ -2154,8 +2149,8 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 	
 	if(set) {
 		if(!(bone->flag & BONE_HIDDEN_P)) {
-			if(set==2) ED_pose_deselectall(OBACT, 2, 0);	// 2 is clear active tag
-			else ED_pose_deselectall(OBACT, 0, 0);
+			if(set==2) ED_pose_deselectall(OBACT, 2);	// 2 is clear active tag
+			else ED_pose_deselectall(OBACT, 0);
 			
 			if(set==2 && (bone->flag & BONE_SELECTED)) {
 				bone->flag &= ~BONE_SELECTED;
@@ -2188,8 +2183,8 @@ static int tree_element_active_ebone(bContext *C, Scene *scene, TreeElement *te,
 	if(set) {
 		if(!(ebone->flag & BONE_HIDDEN_A)) {
 			bArmature *arm= scene->obedit->data;
-			if(set==2) ED_armature_deselectall(scene->obedit, 2, 0);	// only clear active tag
-			else ED_armature_deselectall(scene->obedit, 0, 0);	// deselect
+			if(set==2) ED_armature_deselectall(scene->obedit, 2);	// only clear active tag
+			else ED_armature_deselectall(scene->obedit, 0);	// deselect
 
 			ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL;
 			arm->act_edbone= ebone;
@@ -2413,7 +2408,7 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 			return 1;
 		}
 		/* name and first icon */
-		else if(mval[0]>te->xs && mval[0]<te->xend) {
+		else if(mval[0]>te->xs+OL_X && mval[0]<te->xend) {
 			
 			/* always makes active object */
 			if(tselem->type!=TSE_SEQUENCE && tselem->type!=TSE_SEQ_STRIP && tselem->type!=TSE_SEQUENCE_DUP)
@@ -2509,7 +2504,7 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 		int row;
 		
 		/* get row number - 100 here is just a dummy value since we don't need the column */
-		UI_view2d_listview_view_to_cell(&ar->v2d, 1000, OL_H, 0.0f, 0.0f, 
+		UI_view2d_listview_view_to_cell(&ar->v2d, 1000, OL_H, 0.0f, OL_Y_OFFSET, 
 						fmval[0], fmval[1], NULL, &row);
 		
 		/* select relevant row */
@@ -2610,7 +2605,7 @@ static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, T
 		TreeStoreElem *tselem= TREESTORE(te);
 		
 		/* name and first icon */
-		if(mval[0]>te->xs && mval[0]<te->xend) {
+		if(mval[0]>te->xs+OL_X && mval[0]<te->xend) {
 			
 			/* can't rename rna datablocks entries */
 			if(ELEM3(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))
@@ -3191,8 +3186,6 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 		te->directdata= NULL;
 		tselem->id= NULL;
 	}
-	
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 
 }
 
@@ -3229,7 +3222,7 @@ static void group_linkobs2scene_cb(bContext *C, Scene *scene, TreeElement *te, T
 	}
 }
 
-static void outliner_do_object_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
+static void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soops, ListBase *lb, 
 										 void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *))
 {
 	TreeElement *te;
@@ -3240,16 +3233,18 @@ static void outliner_do_object_operation(bContext *C, Scene *scene, SpaceOops *s
 		if(tselem->flag & TSE_SELECTED) {
 			if(tselem->type==0 && te->idcode==ID_OB) {
 				// when objects selected in other scenes... dunno if that should be allowed
-				Scene *sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
-				if(sce && scene != sce) {
-					ED_screen_set_scene(C, sce);
+				Scene *scene_owner= (Scene *)outliner_search_back(soops, te, ID_SCE);
+				if(scene_owner && scene_act != scene_owner) {
+					ED_screen_set_scene(C, scene_owner);
 				}
-				
-				operation_cb(C, scene, te, NULL, tselem);
+				/* important to use 'scene_owner' not scene_act else deleting objects can crash.
+				 * only use 'scene_act' when 'scene_owner' is NULL, which can happen when the
+				 * outliner isnt showing scenes: Visible Layer draw mode for eg. */
+				operation_cb(C, scene_owner ? scene_owner : scene_act, te, NULL, tselem);
 			}
 		}
 		if((tselem->flag & TSE_CLOSED)==0) {
-			outliner_do_object_operation(C, scene, soops, &te->subtree, operation_cb);
+			outliner_do_object_operation(C, scene_act, soops, &te->subtree, operation_cb);
 		}
 	}
 }
@@ -3340,6 +3335,7 @@ void outliner_del(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops)
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_delete_cb);
 		DAG_scene_sort(CTX_data_main(C), scene);
 		ED_undo_push(C, "Delete Objects");
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 	}
 }
 
@@ -3377,34 +3373,37 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		}
 		
 		str= "Select Objects";
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
 	else if(event==2) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_deselect_cb);
 		str= "Deselect Objects";
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
 	else if(event==4) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_delete_cb);
 		DAG_scene_sort(bmain, scene);
 		str= "Delete Objects";
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 	}
-	else if(event==5) {	/* disabled, see above (ton) */
+	else if(event==5) {	/* disabled, see above enum (ton) */
 		outliner_do_object_operation(C, scene, soops, &soops->tree, id_local_cb);
 		str= "Localized Objects";
 	}
 	else if(event==6) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_visibility_cb);
 		str= "Toggle Visibility";
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_VISIBLE, scene);
 	}
 	else if(event==7) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_selectability_cb);
 		str= "Toggle Selectability";
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
 	else if(event==8) {
 		outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_renderability_cb);
 		str= "Toggle Renderability";
 	}
-	
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 
 	ED_undo_push(C, str);
 	
@@ -4722,13 +4721,13 @@ static void outliner_draw_struct_marks(ARegion *ar, SpaceOops *soops, ListBase *
 		/* selection status */
 		if((tselem->flag & TSE_CLOSED)==0)
 			if(tselem->type == TSE_RNA_STRUCT)
-				glRecti(0, *starty+1, (int)ar->v2d.cur.xmax, *starty+OL_H-1);
+				glRecti(0, *starty+1, (int)ar->v2d.cur.xmax+V2D_SCROLL_WIDTH, *starty+OL_H-1);
 
 		*starty-= OL_H;
 		if((tselem->flag & TSE_CLOSED)==0) {
 			outliner_draw_struct_marks(ar, soops, &te->subtree, starty);
 			if(tselem->type == TSE_RNA_STRUCT)
-				fdrawline(0, (float)*starty+OL_H-1, ar->v2d.cur.xmax, (float)*starty+OL_H-1);
+				fdrawline(0, (float)*starty+OL_H, ar->v2d.cur.xmax+V2D_SCROLL_WIDTH, (float)*starty+OL_H);
 		}
 	}
 }
@@ -4763,24 +4762,24 @@ static void outliner_draw_tree(bContext *C, uiBlock *block, Scene *scene, ARegio
 		/* struct marks */
 		UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 		//UI_ThemeColorShade(TH_BACK, -20);
-		starty= (int)ar->v2d.tot.ymax-OL_H;
+		starty= (int)ar->v2d.tot.ymax-OL_H-OL_Y_OFFSET;
 		outliner_draw_struct_marks(ar, soops, &soops->tree, &starty);
 	}
 	
 	/* always draw selection fill before hierarchy */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glColor3f(col[0]+0.06f, col[1]+0.08f, col[2]+0.10f);
-	starty= (int)ar->v2d.tot.ymax-OL_H;
+	starty= (int)ar->v2d.tot.ymax-OL_H-OL_Y_OFFSET;
 	outliner_draw_selection(ar, soops, &soops->tree, &starty);
 	
 	// grey hierarchy lines
 	UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.2f);
-	starty= (int)ar->v2d.tot.ymax-OL_H/2;
+	starty= (int)ar->v2d.tot.ymax-OL_H/2-OL_Y_OFFSET;
 	startx= 6;
 	outliner_draw_hierarchy(soops, &soops->tree, startx, &starty);
 	
 	// items themselves
-	starty= (int)ar->v2d.tot.ymax-OL_H;
+	starty= (int)ar->v2d.tot.ymax-OL_H-OL_Y_OFFSET;
 	startx= 0;
 	for(te= soops->tree.first; te; te= te->next) {
 		outliner_draw_tree_element(C, block, scene, ar, soops, te, startx, &starty);
@@ -4794,10 +4793,10 @@ static void outliner_back(ARegion *ar, SpaceOops *soops)
 	
 	UI_ThemeColorShade(TH_BACK, 6);
 	ystart= (int)ar->v2d.tot.ymax;
-	ystart= OL_H*(ystart/(OL_H));
+	ystart= OL_H*(ystart/(OL_H))-OL_Y_OFFSET;
 	
 	while(ystart+2*OL_H > ar->v2d.cur.ymin) {
-		glRecti(0, ystart, (int)ar->v2d.cur.xmax, ystart+OL_H);
+		glRecti(0, ystart, (int)ar->v2d.cur.xmax+V2D_SCROLL_WIDTH, ystart+OL_H);
 		ystart-= 2*OL_H;
 	}
 }
@@ -4808,11 +4807,11 @@ static void outliner_draw_restrictcols(ARegion *ar, SpaceOops *soops)
 	
 	/* background underneath */
 	UI_ThemeColor(TH_BACK);
-	glRecti((int)ar->v2d.cur.xmax-OL_TOGW, (int)ar->v2d.cur.ymin, (int)ar->v2d.cur.xmax, (int)ar->v2d.cur.ymax);
+	glRecti((int)ar->v2d.cur.xmax-OL_TOGW, (int)ar->v2d.cur.ymin-V2D_SCROLL_HEIGHT-1, (int)ar->v2d.cur.xmax+V2D_SCROLL_WIDTH, (int)ar->v2d.cur.ymax);
 	
 	UI_ThemeColorShade(TH_BACK, 6);
 	ystart= (int)ar->v2d.tot.ymax;
-	ystart= OL_H*(ystart/(OL_H));
+	ystart= OL_H*(ystart/(OL_H))-OL_Y_OFFSET;
 	
 	while(ystart+2*OL_H > ar->v2d.cur.ymin) {
 		glRecti((int)ar->v2d.cur.xmax-OL_TOGW, ystart, (int)ar->v2d.cur.xmax, ystart+OL_H);
@@ -4825,24 +4824,23 @@ static void outliner_draw_restrictcols(ARegion *ar, SpaceOops *soops)
 	fdrawline(ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX,
 		ar->v2d.cur.ymax,
 		ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX,
-		ar->v2d.cur.ymin);
+		ar->v2d.cur.ymin - V2D_SCROLL_HEIGHT);
 
 	/* render */
 	fdrawline(ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX,
 		ar->v2d.cur.ymax,
 		ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX,
-		ar->v2d.cur.ymin);
+		ar->v2d.cur.ymin - V2D_SCROLL_HEIGHT);
 
 	/* render */
 	fdrawline(ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX,
 		ar->v2d.cur.ymax,
 		ar->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX,
-		ar->v2d.cur.ymin);
+		ar->v2d.cur.ymin - V2D_SCROLL_HEIGHT);
 }
 
 static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 {
-	Base *base;
 	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
 	Object *obedit= CTX_data_edit_object(C);
@@ -4858,15 +4856,9 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 	
 	/* deselect objects that are invisible */
 	if (ob->restrictflag & OB_RESTRICT_VIEW) {
-	
 		/* Ouch! There is no backwards pointer from Object to Base, 
 		 * so have to do loop to find it. */
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(base->object==ob) {
-				base->flag &= ~SELECT;
-				base->object->flag= base->flag;
-			}
-		}
+		ED_base_object_select(object_in_scene(ob, scene), BA_DESELECT);
 	}
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 
@@ -4874,21 +4866,14 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 
 static void restrictbutton_sel_cb(bContext *C, void *poin, void *poin2)
 {
-	Base *base;
 	Scene *scene = (Scene *)poin;
 	Object *ob = (Object *)poin2;
 	
 	/* if select restriction has just been turned on */
 	if (ob->restrictflag & OB_RESTRICT_SELECT) {
-	
 		/* Ouch! There is no backwards pointer from Object to Base, 
 		 * so have to do loop to find it. */
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(base->object==ob) {
-				base->flag &= ~SELECT;
-				base->object->flag= base->flag;
-			}
-		}
+		ED_base_object_select(object_in_scene(ob, scene), BA_DESELECT);
 	}
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 
@@ -4915,9 +4900,20 @@ static void restrictbutton_modifier_cb(bContext *C, void *poin, void *poin2)
 
 static void restrictbutton_bone_cb(bContext *C, void *poin, void *poin2)
 {
+	Bone *bone= (Bone *)poin2;
+	if(bone && (bone->flag & BONE_HIDDEN_P))
+		bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
 }
 
+static void restrictbutton_ebone_cb(bContext *C, void *poin, void *poin2)
+{
+	EditBone *ebone= (EditBone *)poin2;
+	if(ebone && (ebone->flag & BONE_HIDDEN_A))
+		ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+}
 
 static int group_restrict_flag(Group *gr, int flag)
 {
@@ -5202,7 +5198,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
-				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
+				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, bone);
 				
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
@@ -5214,11 +5210,11 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
-				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
+				uiButSetFunc(bt, restrictbutton_ebone_cb, NULL, ebone);
 				
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF, 
 						(int)ar->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
-				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
+				uiButSetFunc(bt, restrictbutton_ebone_cb, NULL, NULL);
 			}
 		}
 		
@@ -5229,19 +5225,22 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 static void outliner_draw_rnacols(ARegion *ar, SpaceOops *soops, int sizex)
 {
 	View2D *v2d= &ar->v2d;
-	
+
+	float miny = v2d->cur.ymin-V2D_SCROLL_HEIGHT;
+	if(miny<v2d->tot.ymin) miny = v2d->tot.ymin;
+
 	UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 
 	/* draw column separator lines */
 	fdrawline((float)sizex,
 		v2d->cur.ymax,
 		(float)sizex,
-		v2d->cur.ymin);
+		miny);
 
 	fdrawline((float)sizex+OL_RNA_COL_SIZEX,
 		v2d->cur.ymax,
 		(float)sizex+OL_RNA_COL_SIZEX,
-		v2d->cur.ymin);
+		miny);
 }
 
 static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, int sizex, ListBase *lb)
@@ -5545,7 +5544,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 	uiBut *bt;
 	TreeElement *te;
 	TreeStoreElem *tselem;
-	int dx, len;
+	int spx, dx, len;
 	
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
@@ -5566,8 +5565,10 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 
 				dx= (int)UI_GetStringWidth(te->name);
 				if(dx<100) dx= 100;
-				
-				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "",  (short)te->xs+2*OL_X-4, (short)te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len-1, 0, 0, "");
+				spx=te->xs+2*OL_X-4;
+				if(spx+dx+10>ar->v2d.cur.xmax) dx = ar->v2d.cur.xmax-spx-10;
+
+				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (short)te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len-1, 0, 0, "");
 				uiButSetRenameFunc(bt, namebutton_cb, tselem);
 				
 				/* returns false if button got removed */
@@ -5628,19 +5629,19 @@ void draw_outliner(const bContext *C)
 	/* tweak to display last line (when list bigger than window) */
 	sizey += V2D_SCROLL_HEIGHT;
 	
+	/* adds vertical offset */
+	sizey += OL_Y_OFFSET;
+
 	/* update size of tot-rect (extents of data/viewable area) */
 	UI_view2d_totRect_set(v2d, sizex, sizey);
 
 	/* set matrix for 2d-view controls */
 	UI_view2d_view_ortho(C, v2d);
 
-	/* draw outliner stuff (background and hierachy lines) */
+	/* draw outliner stuff (background, hierachy lines and names) */
 	outliner_back(ar, soops);
 	block= uiBeginBlock(C, ar, "outliner buttons", UI_EMBOSS);
 	outliner_draw_tree((bContext *)C, block, scene, ar, soops);
-
-	/* draw icons and names */
-	outliner_buttons(C, block, ar, soops, &soops->tree);
 	
 	if(ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
 		/* draw rna buttons */
@@ -5655,7 +5656,10 @@ void draw_outliner(const bContext *C)
 		outliner_draw_restrictcols(ar, soops);
 		outliner_draw_restrictbuts(block, scene, ar, soops, &soops->tree);
 	}
-	
+
+	/* draw edit buttons if nessecery */
+	outliner_buttons(C, block, ar, soops, &soops->tree);	
+
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
 	

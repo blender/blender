@@ -88,38 +88,26 @@ Any case: direct data is ALWAYS after the lib block
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_action_types.h"
 #include "DNA_actuator_types.h"
-#include "DNA_boid_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
-#include "DNA_color_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_controller_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_customdata_types.h"
-#include "DNA_effect_types.h"
 #include "DNA_genfile.h"
 #include "DNA_group_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_image_types.h"
-#include "DNA_ipo_types.h"	// XXX depreceated - animsys
 #include "DNA_fileglobal_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_listBase.h" /* for Listbase, the type of samples, ...*/
 #include "DNA_lamp_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_nla_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
-#include "DNA_outliner_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_property_types.h"
@@ -131,11 +119,9 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sound_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_world_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -146,23 +132,16 @@ Any case: direct data is ALWAYS after the lib block
 
 #include "BKE_action.h"
 #include "BKE_blender.h"
-#include "BKE_cloth.h"
 #include "BKE_curve.h"
-#include "BKE_customdata.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h" // for G
 #include "BKE_library.h" // for  set_listbasepointers
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_packedFile.h" // for packAll
-#include "BKE_pointcache.h"
 #include "BKE_report.h"
-#include "BKE_screen.h" // for waitcursor
 #include "BKE_sequencer.h"
-#include "BKE_sound.h" /* ... and for samples */
 #include "BKE_utildefines.h" // for defines
 #include "BKE_modifier.h"
-#include "BKE_idprop.h"
 #include "BKE_fcurve.h"
 
 #include "BLO_writefile.h"
@@ -294,7 +273,7 @@ static void mywrite( WriteData *wd, void *adr, int len)
  * @param write_flags Write parameters
  * @warning Talks to other functions with global parameters
  */
-static WriteData *bgnwrite(int file, MemFile *compare, MemFile *current, int write_flags)
+static WriteData *bgnwrite(int file, MemFile *compare, MemFile *current)
 {
 	WriteData *wd= writedata_new(file);
 
@@ -2373,7 +2352,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	fg.curscene= screen->scene;
 	fg.displaymode= G.displaymode;
 	fg.winpos= G.winpos;
-	fg.fileflags= (fileflags & ~G_FILE_NO_UI);	// prevent to save this, is not good convention, and feature with concerns...
+	fg.fileflags= (fileflags & ~(G_FILE_NO_UI|G_FILE_RELATIVE_REMAP));	// prevent to save this, is not good convention, and feature with concerns...
 	fg.globalf= G.f;
 	BLI_strncpy(fg.filename, mainvar->name, sizeof(fg.filename));
 
@@ -2408,7 +2387,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 
 	blo_split_main(&mainlist, mainvar);
 
-	wd= bgnwrite(handle, compare, current, write_flags);
+	wd= bgnwrite(handle, compare, current);
 	
 	sprintf(buf, "BLENDER%c%c%.3d", (sizeof(void*)==8)?'-':'_', (ENDIAN_ORDER==B_ENDIAN)?'V':'v', BLENDER_VERSION);
 	mywrite(wd, buf, 12);

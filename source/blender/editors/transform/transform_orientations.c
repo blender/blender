@@ -34,7 +34,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"

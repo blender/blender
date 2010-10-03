@@ -31,16 +31,12 @@
 
 #include "DNA_scene_types.h"
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-#include "BKE_animsys.h"
-#include "BKE_nla.h"
 #include "BKE_context.h"
-#include "BKE_report.h"
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"

@@ -35,6 +35,7 @@
 #include "BKE_global.h" /* grr, only for G.sce */
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 #include <stddef.h>
 
 static Main *bpy_import_main= NULL;
@@ -61,6 +62,12 @@ void bpy_import_main_set(struct Main *maggie)
 void bpy_text_filename_get(char *fn, Text *text)
 {
 	sprintf(fn, "%s/%s", text->id.lib ? text->id.lib->filepath : G.sce, text->id.name+2);
+	
+	/* XXX, this is a bug in python's Py_CompileString()!
+	 the string encoding should not be required to be utf-8
+	 reported: http://bugs.python.org/msg115202
+	 */
+	BLI_utf8_invalid_strip(fn, strlen(fn));
 }
 
 PyObject *bpy_text_import( Text *text )
@@ -304,7 +311,7 @@ PyMethodDef bpy_reload_meth[] = { {"bpy_reload_meth", (PyCFunction)blender_reloa
 
 void bpy_text_clear_modules(int clear_all)
 {
-	PyObject *modules= PySys_GetObject("modules");
+	PyObject *modules= PyImport_GetModuleDict();
 	
 	char *fname;
 	char *file_extension;
@@ -350,26 +357,3 @@ void bpy_text_clear_modules(int clear_all)
 	Py_DECREF(list); /* removes all references from append */
 }
 #endif
-
-
-/*****************************************************************************
-* Description: This function creates a new Python dictionary object.
-* note: dict is owned by sys.modules["__main__"] module, reference is borrowed
-* note: important we use the dict from __main__, this is what python expects
-  for 'pickle' to work as well as strings like this...
- >> foo = 10
- >> print(__import__("__main__").foo)
-*****************************************************************************/
-PyObject *bpy_namespace_dict_new(const char *filename)
-{
-	PyInterpreterState *interp= PyThreadState_GET()->interp;
-	PyObject *mod_main= PyModule_New("__main__");	
-	PyDict_SetItemString(interp->modules, "__main__", mod_main);
-	Py_DECREF(mod_main); /* sys.modules owns now */
-	PyModule_AddStringConstant(mod_main, "__name__", "__main__");
-	if(filename)
-		PyModule_AddStringConstant(mod_main, "__file__", filename); /* __file__ only for nice UI'ness */
-	PyModule_AddObject(mod_main, "__builtins__", interp->builtins);
-	Py_INCREF(interp->builtins); /* AddObject steals a reference */
-	return PyModule_GetDict(mod_main);
-}

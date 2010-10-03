@@ -55,14 +55,9 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BKE_context.h"
 #include "BKE_displist.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_customdata.h"
-#include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_paint.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 
 #include "IMB_imbuf_types.h"
@@ -82,7 +77,6 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "ED_view3d.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "mesh_intern.h"
 
@@ -2548,7 +2542,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
-	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "");
+	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "Limit selection by seam boundries (faces only)");
 }
 
 
@@ -2637,7 +2631,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "");
+	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "Limit selection by seam boundries (faces only)");
 }
 
 
@@ -4456,7 +4450,7 @@ void vertexnoise(Object *obedit, EditMesh *em)
 			}
 			else {
 				float tin, dum;
-				externtex(ma->mtex[0], eve->co, &tin, &dum, &dum, &dum, &dum);
+				externtex(ma->mtex[0], eve->co, &tin, &dum, &dum, &dum, &dum, 0);
 				eve->co[2]+= 0.05*tin;
 			}
 		}

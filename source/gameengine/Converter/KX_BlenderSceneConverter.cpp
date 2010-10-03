@@ -26,8 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef WIN32
-	#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
+#if defined(WIN32) && !defined(FREE_WINDOWS)
+#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 #endif
 
 #include "KX_Scene.h"
@@ -100,6 +100,7 @@ extern "C"
 extern "C" {
 	#include "BKE_context.h"
 	#include "BLO_readfile.h"
+	#include "BKE_idcode.h"
 	#include "BKE_report.h"
 	#include "DNA_space_types.h"
 	#include "DNA_windowmanager_types.h" /* report api */
@@ -931,14 +932,29 @@ Main* KX_BlenderSceneConverter::GetMainDynamicPath(const char *path)
 	return NULL;
 }
 
-bool KX_BlenderSceneConverter::LinkBlendFile(const char *path, char *group, KX_Scene *scene_merge, char **err_str)
+bool KX_BlenderSceneConverter::LinkBlendFileMemory(void *data, int length, const char *path, char *group, KX_Scene *scene_merge, char **err_str)
+{
+	BlendHandle *bpy_openlib = BLO_blendhandle_from_memory(data, length);
+
+	// Error checking is done in LinkBlendFile
+	return LinkBlendFile(bpy_openlib, path, group, scene_merge, err_str);
+}
+
+bool KX_BlenderSceneConverter::LinkBlendFilePath(const char *path, char *group, KX_Scene *scene_merge, char **err_str)
+{
+	BlendHandle *bpy_openlib = BLO_blendhandle_from_file( (char *)path );
+
+	// Error checking is done in LinkBlendFile
+	return LinkBlendFile(bpy_openlib, path, group, scene_merge, err_str);
+}
+
+bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const char *path, char *group, KX_Scene *scene_merge, char **err_str)
 {
 	bContext *C;
 	Main *main_newlib; /* stored as a dynamic 'main' until we free it */
 	Main *main_tmp= NULL; /* created only for linking, then freed */
 	LinkNode *names = NULL;
-	BlendHandle *bpy_openlib = NULL;	/* ptr to the open .blend file */	
-	int idcode= BLO_idcode_from_name(group);
+	int idcode= BKE_idcode_from_name(group);
 	short flag= 0; /* dont need any special options */
 	ReportList reports;
 	static char err_local[255];
@@ -955,7 +971,6 @@ bool KX_BlenderSceneConverter::LinkBlendFile(const char *path, char *group, KX_S
 		return false;
 	}
 
-	bpy_openlib = BLO_blendhandle_from_file( (char *)path );
 	if(bpy_openlib==NULL) {
 		snprintf(err_local, sizeof(err_local), "could not open blendfile \"%s\"\n", path);
 		*err_str= err_local;

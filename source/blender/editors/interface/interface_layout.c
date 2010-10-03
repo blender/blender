@@ -38,9 +38,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_library.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 
@@ -919,8 +917,15 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	if(layout->root->type == UI_LAYOUT_MENU) {
 		if(type == PROP_BOOLEAN)
 			icon= (RNA_property_boolean_get(ptr, prop))? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
-		else if(type == PROP_ENUM && index == RNA_ENUM_VALUE)
-			icon= (RNA_property_enum_get(ptr, prop) == value)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+		else if(type == PROP_ENUM && index == RNA_ENUM_VALUE) {
+			int enum_value= RNA_property_enum_get(ptr, prop);
+			if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
+				icon= (enum_value & value)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+			}
+			else {
+				icon= (enum_value == value)? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+			}
+		}
 	}
 
 	slider= (flag & UI_ITEM_R_SLIDER);
@@ -950,7 +955,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			uiDefButR(block, ROW, 0, name, 0, 0, w, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
 	}
 	/* expanded enum */
-	else if(type == PROP_ENUM && expand)
+	else if(type == PROP_ENUM && (expand || RNA_property_flag(prop) & PROP_ENUM_FLAG))
 		ui_item_enum_expand(layout, block, ptr, prop, name, 0, 0, w, h, icon_only);
 	/* property with separate label */
 	else if(type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER) {
@@ -978,7 +983,7 @@ void uiItemR(uiLayout *layout, PointerRNA *ptr, char *propname, int flag, char *
 
 	if(!prop) {
 		ui_item_disabled(layout, propname);
-		printf("uiItemR: property not found: %s\n", propname);
+		printf("uiItemR: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -991,7 +996,7 @@ void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr,
 
 	if(!prop || RNA_property_type(prop) != PROP_ENUM) {
 		ui_item_disabled(layout, propname);
-		printf("uiItemEnumR: enum property not found: %s\n", propname);
+		printf("uiItemEnumR: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -1006,7 +1011,7 @@ void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, char *propname
 
 	if(!prop || RNA_property_type(prop) != PROP_ENUM) {
 		ui_item_disabled(layout, propname);
-		printf("uiItemEnumR: enum property not found: %s\n", propname);
+		printf("uiItemEnumR_string: enum property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -1227,7 +1232,7 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, char *propname, st
 	prop= RNA_struct_find_property(ptr, propname);
 
 	if(!prop) {
-		printf("uiItemPointerR: property not found: %s\n", propname);
+		printf("uiItemPointerR: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 	
@@ -1240,7 +1245,7 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, char *propname, st
 	searchprop= RNA_struct_find_property(searchptr, searchpropname);
 
 	if(!searchprop || RNA_property_type(searchprop) != PROP_COLLECTION) {
-		printf("uiItemPointerR: search collection property not found: %s\n", searchpropname);
+		printf("uiItemPointerR: search collection property not found: %s.%s\n", RNA_struct_identifier(ptr->type), searchpropname);
 		return;
 	}
 

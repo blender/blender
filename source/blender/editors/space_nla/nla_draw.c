@@ -37,19 +37,16 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_dlrbTree.h"
 
-#include "BKE_animsys.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_draw.h"
@@ -67,9 +64,6 @@
 
 #include "nla_intern.h"	// own include
 
-/* XXX */
-extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
-extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
 
 /* *********************************************** */
 /* Strips */
@@ -350,7 +344,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStr
 	/* draw 'inside' of strip itself */
 	glColor3fv(color);
 	uiSetRoundBox(15); /* all corners rounded */
-	gl_round_box_shade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
+	uiDrawBoxShade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
 	
 	
 	/* draw strip's control 'curves'
@@ -376,7 +370,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStr
 		setlinestyle(4);
 		
 	/* draw outline */
-	gl_round_box_shade(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1);
+	uiDrawBoxShade(GL_LINE_LOOP, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1);
 	
 	/* if action-clip strip, draw lines delimiting repeats too (in the same color as outline) */
 	if ((strip->type == NLASTRIP_TYPE_CLIP) && IS_EQ(strip->repeat, 1.0f)==0) {
@@ -711,7 +705,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					/* draw slightly shifted up vertically to look like it has more separtion from other channels,
 					 * but we then need to slightly shorten it so that it doesn't look like it overlaps
 					 */
-					gl_round_box(GL_POLYGON, x+offset,  yminc+NLACHANNEL_SKIP, (float)v2d->cur.xmax, ymaxc+NLACHANNEL_SKIP-1, 8);
+					uiDrawBox(GL_POLYGON, x+offset,  yminc+NLACHANNEL_SKIP, (float)v2d->cur.xmax, ymaxc+NLACHANNEL_SKIP-1, 8);
 					
 					/* clear group value, otherwise we cause errors... */
 					group = 0;

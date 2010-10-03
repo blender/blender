@@ -30,18 +30,15 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_string.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_icons.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 
 #include "ED_screen.h"
@@ -70,68 +67,6 @@ void uiTemplateHeader(uiLayout *layout, bContext *C, int menus)
 	block= uiLayoutAbsoluteBlock(layout);
 	if(menus) ED_area_header_standardbuttons(C, block, 0);
 	else ED_area_header_switchbutton(C, block, 0);
-}
-
-/********************** DopeSheet Filter Template *************************/
-
-void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-	Main *mainptr= CTX_data_main(C);
-	ScrArea *sa= CTX_wm_area(C);
-	uiLayout *row= layout;
-	short nlaActive= ((sa) && (sa->spacetype==SPACE_NLA));
-	
-	/* most 'generic' filtering options */
-	row= uiLayoutRow(layout, 1);
-	
-	uiItemR(row, ptr, "only_selected", 0, "", 0);
-	uiItemR(row, ptr, "display_hidden", 0, "", 0);
-	
-	/* object-level filtering options */
-	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "display_transforms", 0, "", 0);
-	
-	if (nlaActive)
-		uiItemR(row, ptr, "include_missing_nla", 0, "", 0);
-	
-	/* datatype based - only available datatypes are shown */
-	row= uiLayoutRow(layout, 1);
-
-	uiItemR(row, ptr, "display_scene", 0, "", 0);
-	uiItemR(row, ptr, "display_world", 0, "", 0);
-	uiItemR(row, ptr, "display_node", 0, "", 0);
-	
-	if (mainptr && mainptr->mesh.first)
-		uiItemR(row, ptr, "display_mesh", 0, "", 0);
-	if (mainptr && mainptr->key.first)
-		uiItemR(row, ptr, "display_shapekeys", 0, "", 0);
-	if (mainptr && mainptr->mat.first)
-		uiItemR(row, ptr, "display_material", 0, "", 0);
-	if (mainptr && mainptr->lamp.first)
-		uiItemR(row, ptr, "display_lamp", 0, "", 0);
-	if (mainptr && mainptr->tex.first)
-		uiItemR(row, ptr, "display_texture", 0, "", 0);
-	if (mainptr && mainptr->camera.first)
-		uiItemR(row, ptr, "display_camera", 0, "", 0);
-	if (mainptr && mainptr->curve.first)
-		uiItemR(row, ptr, "display_curve", 0, "", 0);
-	if (mainptr && mainptr->mball.first)
-		uiItemR(row, ptr, "display_metaball", 0, "", 0);
-	if (mainptr && mainptr->armature.first)
-		uiItemR(row, ptr, "display_armature", 0, "", 0);
-	if (mainptr && mainptr->particle.first)
-		uiItemR(row, ptr, "display_particle", 0, "", 0);
-	
-	/* group-based filtering (only when groups are available */
-	if (mainptr && mainptr->group.first) {
-		row= uiLayoutRow(layout, 1);
-		
-		uiItemR(row, ptr, "only_group_objects", 0, "", 0);
-		
-		/* if enabled, show the group selection field too */
-		if (RNA_boolean_get(ptr, "only_group_objects"))
-			uiItemR(row, ptr, "filtering_group", 0, "", 0);
-	}
 }
 
 /********************** Search Callbacks *************************/
@@ -440,7 +375,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		}
 		
 		if(id->lib == NULL && !(ELEM4(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT))) {
-			uiDefButR(block, TOG, 0, "F", 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "fake_user", -1, 0, 0, -1, -1, NULL);
+			uiDefButR(block, TOG, 0, "F", 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "use_fake_user", -1, 0, 0, -1, -1, NULL);
 		}
 	}
 	
@@ -505,7 +440,7 @@ static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 	prop= RNA_struct_find_property(ptr, propname);
 
 	if(!prop || RNA_property_type(prop) != PROP_POINTER) {
-		printf("uiTemplateID: pointer property not found: %s\n", propname);
+		printf("uiTemplateID: pointer property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -566,11 +501,11 @@ void uiTemplateAnyID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 	propType= RNA_struct_find_property(ptr, proptypename);
 
 	if (!propID || RNA_property_type(propID) != PROP_POINTER) {
-		printf("uiTemplateAnyID: pointer property not found: %s\n", propname);
+		printf("uiTemplateAnyID: pointer property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 	if (!propType || RNA_property_type(propType) != PROP_ENUM) { 
-		printf("uiTemplateAnyID: pointer-type property not found: %s\n", proptypename);
+		printf("uiTemplateAnyID: pointer-type property not found: %s.%s\n", RNA_struct_identifier(ptr->type), proptypename);
 		return;
 	}
 	
@@ -609,7 +544,7 @@ void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 	/* check that properties are valid */
 	propPath= RNA_struct_find_property(ptr, propname);
 	if (!propPath || RNA_property_type(propPath) != PROP_STRING) {
-		printf("uiTemplatePathBuilder: path property not found: %s\n", propname);
+		printf("uiTemplatePathBuilder: path property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 	
@@ -631,12 +566,8 @@ void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 #include "DNA_object_force.h"
 
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_global.h"
 #include "BKE_modifier.h"
-#include "BKE_object.h"
 #include "BKE_particle.h"
-#include "BKE_report.h"
 
 #include "ED_util.h"
 
@@ -698,13 +629,13 @@ static int modifier_can_delete(ModifierData *md)
 	return 1;
 }
 
-static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex, int compact)
+static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	PointerRNA ptr;
 	uiBut *but;
 	uiBlock *block;
-	uiLayout *box, *column, *row, *col;
+	uiLayout *box, *column, *row;
 	uiLayout *result= NULL;
 	int isVirtual = (md->mode & eModifierMode_Virtual);
 	char str[128];
@@ -732,53 +663,19 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 	}
 	else {
 		/* REAL MODIFIER */
-		uiLayout *split;
-		
-		split = uiLayoutSplit(box, 0.16, 0);
-		
-		col= uiLayoutColumn(split, 0);
-		row = uiLayoutRow(col, 1);
-		
+		row = uiLayoutRow(box, 0);
 		block = uiLayoutGetBlock(row);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		
 		/* Open/Close .................................  */
-		uiItemR(row, &ptr, "expanded", 0, "", 0);
+		uiItemR(row, &ptr, "show_expanded", 0, "", 0);
 		
 		/* modifier-type icon */
 		uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
-		
 		uiBlockSetEmboss(block, UI_EMBOSS);
-		
-	
-		/* 'Middle Column' ............................ 
-		 *	- first row is the name of the modifier 
-		 *	- second row is the visibility settings, since the layouts were not wide enough to show all
-		 */
-		col= uiLayoutColumn(split, 0);
-		
-		row= uiLayoutRow(col, 0);
-		uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
-		
-		block = uiLayoutGetBlock(row);
 		
 		/* modifier name */
 		uiItemR(row, &ptr, "name", 0, "", 0);
-		
-		if (compact) {
-			/* insert delete button at end of top row before splitting to second line */
-			uiBlockSetEmboss(block, UI_EMBOSSN);
-			if (modifier_can_delete(md))
-				uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
-			uiBlockSetEmboss(block, UI_EMBOSS);
-			
-			split = uiLayoutSplit(box, 0.17, 0);
-			col= uiLayoutColumn(split, 0);
-			uiItemL(col, "", 0);
-			col= uiLayoutColumn(split, 0);
-			row = uiLayoutRow(col, 1);
-		}
 		
 		/* mode enabling buttons */
 		uiBlockBeginAlign(block);
@@ -786,11 +683,11 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		if ( ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) 
 			&& (md->type!=eModifierType_Surface) ) 
 		{
-			uiItemR(row, &ptr, "render", 0, "", 0);
-			uiItemR(row, &ptr, "realtime", 0, "", 0);
+			uiItemR(row, &ptr, "show_render", 0, "", 0);
+			uiItemR(row, &ptr, "show_viewport", 0, "", 0);
 			
 			if (mti->flags & eModifierTypeFlag_SupportsEditmode)
-				uiItemR(row, &ptr, "editmode", 0, "", 0);
+				uiItemR(row, &ptr, "show_in_editmode", 0, "", 0);
 		}
 		if ((ob->type==OB_MESH) && modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) 
 		{
@@ -808,12 +705,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		uiItemO(row, "", ICON_TRIA_DOWN, "OBJECT_OT_modifier_move_down");
 		uiBlockEndAlign(block);
 		
-		if(!compact) {
-			uiBlockSetEmboss(block, UI_EMBOSSN);
-			if (modifier_can_delete(md))
-				uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
-			uiBlockSetEmboss(block, UI_EMBOSS);
-		}
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		if (modifier_can_delete(md))
+			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
+		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 
 	
@@ -848,7 +743,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 			uiBlockClearButLock(block);
 			uiBlockSetButLock(block, ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 			
-			if (!ELEM4(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem, eModifierType_Cloth))
+			if (!ELEM5(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem, eModifierType_Cloth, eModifierType_Smoke))
 				uiItemO(row, "Copy", 0, "OBJECT_OT_modifier_copy");
 		}
 		
@@ -867,7 +762,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 	return result;
 }
 
-uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr, int compact)
+uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
@@ -898,7 +793,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr, int
 
 	for(i=0; vmd; i++, vmd=vmd->next) {
 		if(md == vmd)
-			return draw_modifier(layout, scene, ob, md, i, cageIndex, lastCageIndex, compact);
+			return draw_modifier(layout, scene, ob, md, i, cageIndex, lastCageIndex);
 		else if(vmd->mode & eModifierMode_Virtual)
 			i--;
 	}
@@ -964,12 +859,12 @@ static void constraint_active_func(bContext *C, void *ob_v, void *con_v)
 }
 
 /* draw panel showing settings for a constraint */
-static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con, int compact)
+static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 {
 	bPoseChannel *pchan= get_active_posechannel(ob);
 	bConstraintTypeInfo *cti;
 	uiBlock *block;
-	uiLayout *result= NULL, *col, *box, *row, *subrow;
+	uiLayout *result= NULL, *col, *box, *row;
 	PointerRNA ptr;
 	char typestr[32];
 	short proxy_protected, xco=0, yco=0;
@@ -1014,7 +909,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con,
 
 	/* open/close */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
-	uiItemR(row, &ptr, "expanded", UI_ITEM_R_ICON_ONLY, "", 0);
+	uiItemR(row, &ptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", 0);
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* XXX if (con->flag & CONSTRAINT_DISABLE)
@@ -1061,32 +956,24 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con,
 			
 		show_upbut= ((prev_proxylock == 0) && (con->prev));
 		show_downbut= (con->next) ? 1 : 0;
-
-		/* Code for compact Constraint UI */
-		if (compact) {
-			subrow = uiLayoutRow(box, 0);
-		}
-		else {
-			subrow = row;
-		}
 		
-		uiLayoutSetOperatorContext(subrow, WM_OP_INVOKE_DEFAULT);
+		/* enabled */
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		uiItemR(row, &ptr, "mute", 0, "", (con->flag & CONSTRAINT_OFF) ? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF);
+		uiBlockSetEmboss(block, UI_EMBOSS);
+		
+		uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
 		
 		/* up/down */
 		if (show_upbut || show_downbut) {
 			uiBlockBeginAlign(block);
 			if (show_upbut)
-				uiItemO(subrow, "", ICON_TRIA_UP, "CONSTRAINT_OT_move_up");
+				uiItemO(row, "", ICON_TRIA_UP, "CONSTRAINT_OT_move_up");
 				
 			if (show_downbut)
-				uiItemO(subrow, "", ICON_TRIA_DOWN, "CONSTRAINT_OT_move_down");
+				uiItemO(row, "", ICON_TRIA_DOWN, "CONSTRAINT_OT_move_down");
 			uiBlockEndAlign(block);
 		}
-		
-		/* enabled */
-		uiItemR(subrow, &ptr, "enabled", 0, "", 0);
-		
-		uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
 		
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -1114,7 +1001,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con,
 	return result;
 }
 
-uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr, int compact)
+uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 {
 	Object *ob;
 	bConstraint *con;
@@ -1142,7 +1029,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr, int compact)
 			return NULL;
 	}
 
-	return draw_constraint(layout, ob, con, compact);
+	return draw_constraint(layout, ob, con);
 }
 
 
@@ -1150,7 +1037,6 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr, int compact)
 
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
 #define B_MATPRV 1
@@ -1250,7 +1136,6 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent, MTex *slot)
 
 /********************** ColorRamp Template **************************/
 
-#include "BKE_texture.h"
 
 typedef struct RNAUpdateCb {
 	PointerRNA ptr;
@@ -1546,7 +1431,6 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, char *propname, in
 
 /********************* CurveMapping Template ************************/
 
-#include "BKE_colortools.h"
 
 static void curvemap_buttons_zoom_in(bContext *C, void *cumap_v, void *unused)
 {
@@ -1909,7 +1793,7 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int
 	float softmin, softmax, step, precision;
 	
 	if (!prop) {
-		printf("uiTemplateColorWheel: property not found: %s\n", propname);
+		printf("uiTemplateColorWheel: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -1938,31 +1822,6 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int
 	
 	if (value_slider)
 		uiDefButR(block, HSVCUBE, 0, "", WHEEL_SIZE+6, 0, 14, WHEEL_SIZE, ptr, propname, -1, softmin, softmax, 9, 0, "");
-}
-
-
-/********************* TriColor (ThemeWireColorSet) Template ************************/
-
-void uiTemplateTriColorSet(uiLayout *layout, PointerRNA *ptr, char *propname)
-{
-	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
-	uiLayout *row;
-	PointerRNA csPtr;
-
-	if (!prop) {
-		printf("uiTemplateTriColorSet: property not found: %s\n", propname);
-		return;
-	}
-	
-	/* we lay out the data in a row as 3 color swatches */
-	row= uiLayoutRow(layout, 1);
-	
-	/* nselected, selected, active color swatches */
-	csPtr= RNA_property_pointer_get(ptr, prop);
-	
-	uiItemR(row, &csPtr, "normal", 0, "", 0);
-	uiItemR(row, &csPtr, "select", 0, "", 0);
-	uiItemR(row, &csPtr, "active", 0, "", 0);
 }
 
 /********************* Layer Buttons Template ************************/
@@ -2002,7 +1861,7 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
 	
 	prop= RNA_struct_find_property(ptr, propname);
 	if (!prop) {
-		printf("uiTemplateLayer: layers property not found: %s\n", propname);
+		printf("uiTemplateLayer: layers property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
@@ -2021,7 +1880,7 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
 	if(used_ptr && used_propname) {
 		used_prop= RNA_struct_find_property(used_ptr, used_propname);
 		if (!used_prop) {
-			printf("uiTemplateLayer: used layers property not found: %s\n", used_propname);
+			printf("uiTemplateLayer: used layers property not found: %s.%s\n", RNA_struct_identifier(ptr->type), used_propname);
 			return;
 		}
 
@@ -2107,12 +1966,6 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	/* list item behind label & other buttons */
 	sub= uiLayoutRow(overlap, 0);
 
-	if(itemptr->type == &RNA_ShapeKey) {
-		ob= (Object*)activeptr->data;
-		if(ob->mode == OB_MODE_EDIT && !(ob->type == OB_MESH))
-			uiLayoutSetEnabled(sub, 0);
-	}
-
 	but= uiDefButR(block, LISTROW, 0, "", 0,0, UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
 	uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
 
@@ -2141,7 +1994,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	else if(RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer)) {
 		uiItemL(sub, name, icon);
 		uiBlockSetEmboss(block, UI_EMBOSS);
-		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "enabled", 0, 0, 0, 0, 0,  NULL);
+		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "use", 0, 0, 0, 0, 0,  NULL);
 	}
 	else if(itemptr->type == &RNA_ShapeKey) {
 		ob= (Object*)activeptr->data;
@@ -2196,14 +2049,14 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propna
 	if(ptr->data) {
 		prop= RNA_struct_find_property(ptr, propname);
 		if(!prop) {
-			printf("uiTemplateList: property not found: %s\n", propname);
+			printf("uiTemplateList: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
 			return;
 		}
 	}
 
 	activeprop= RNA_struct_find_property(activeptr, activepropname);
 	if(!activeprop) {
-		printf("uiTemplateList: property not found: %s\n", activepropname);
+		printf("uiTemplateList: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), activepropname);
 		return;
 	}
 

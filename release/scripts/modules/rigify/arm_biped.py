@@ -37,24 +37,24 @@ def metarig_template():
     bone.head[:] = 0.0000, -0.0425, 0.0000
     bone.tail[:] = 0.0942, -0.0075, 0.0333
     bone.roll = -0.2227
-    bone.connected = False
+    bone.use_connect = False
     bone = arm.edit_bones.new('upper_arm')
     bone.head[:] = 0.1066, -0.0076, -0.0010
     bone.tail[:] = 0.2855, 0.0206, -0.0104
     bone.roll = 1.6152
-    bone.connected = False
+    bone.use_connect = False
     bone.parent = arm.edit_bones['shoulder']
     bone = arm.edit_bones.new('forearm')
     bone.head[:] = 0.2855, 0.0206, -0.0104
     bone.tail[:] = 0.4550, -0.0076, -0.0023
     bone.roll = 1.5153
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['upper_arm']
     bone = arm.edit_bones.new('hand')
     bone.head[:] = 0.4550, -0.0076, -0.0023
     bone.tail[:] = 0.5423, -0.0146, -0.0131
     bone.roll = -3.0083
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['forearm']
 
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -78,7 +78,7 @@ def metarig_definition(obj, orig_bone_name):
     hands = []
     for pbone in obj.pose.bones:
         index = pbone.parent_index(mt.arm_p)
-        if index == 2 and pbone.bone.connected and pbone.bone.parent.connected:
+        if index == 2 and pbone.bone.use_connect and pbone.bone.parent.use_connect:
             hands.append(pbone)
 
     if len(hands) != 1:
@@ -106,12 +106,12 @@ def ik(obj, definitions, base_names, options):
     ik_chain = mt.copy(to_fmt="MCH-%s_ik", base_names=base_names, exclude_attrs=["shoulder"])
 
     # IK needs no parent_index
-    ik_chain.hand_e.connected = False
+    ik_chain.hand_e.use_connect = False
     ik_chain.hand_e.parent = None
-    ik_chain.hand_e.local_location = False
+    ik_chain.hand_e.use_local_location = False
     ik_chain.rename("hand", get_base_name(base_names[mt.hand]) + "_ik" + get_side_name(mt.hand))
 
-    ik_chain.arm_e.connected = False
+    ik_chain.arm_e.use_connect = False
     ik_chain.arm_e.parent = mt.shoulder_e
 
     # Add the bone used for the arms poll target
@@ -119,7 +119,7 @@ def ik(obj, definitions, base_names, options):
     ik.pole = add_pole_target_bone(obj, mt.forearm, "elbow_target" + get_side_name(mt.forearm), mode='ZAVERAGE')
 
     ik.update()
-    ik.pole_e.local_location = False
+    ik.pole_e.use_local_location = False
 
     # option: elbow_parent
     elbow_parent_name = options.get("elbow_parent", "")
@@ -147,9 +147,9 @@ def ik(obj, definitions, base_names, options):
     ik_chain.update()
 
     # Set IK dof
-    ik_chain.forearm_p.ik_dof_x = True
-    ik_chain.forearm_p.ik_dof_y = False
-    ik_chain.forearm_p.ik_dof_z = False
+    ik_chain.forearm_p.lock_ik_x = False
+    ik_chain.forearm_p.lock_ik_y = True
+    ik_chain.forearm_p.lock_ik_z = True
 
     con = ik_chain.forearm_p.constraints.new('IK')
     con.target = obj
@@ -161,18 +161,18 @@ def ik(obj, definitions, base_names, options):
     con.use_stretch = True
     con.use_target = True
     con.use_rotation = False
-    con.chain_length = 2
+    con.chain_count = 2
     con.pole_angle = -pi/2
 
     # last step setup layers
     if "ik_layer" in options:
         layer = [n==options["ik_layer"] for n in range(0,32)]
     else:
-        layer = list(mt.arm_b.layer)
-    ik_chain.hand_b.layer = layer
-    ik.hand_vis_b.layer   = layer
-    ik.pole_b.layer       = layer
-    ik.pole_vis_b.layer   = layer
+        layer = list(mt.arm_b.layers)
+    ik_chain.hand_b.layers = layer
+    ik.hand_vis_b.layers   = layer
+    ik.pole_b.layers       = layer
+    ik.pole_vis_b.layers   = layer
 
     bpy.ops.object.mode_set(mode='EDIT')
     # don't blend the shoulder
@@ -197,7 +197,7 @@ def fk(obj, definitions, base_names, options):
     # upper arm constrains to this.
     ex.socket_e = copy_bone_simple(arm, mt.arm, "MCH-%s_socket" % base_names[mt.arm])
     ex.socket = ex.socket_e.name
-    ex.socket_e.connected = False
+    ex.socket_e.use_connect = False
     ex.socket_e.parent = mt.shoulder_e
     ex.socket_e.length *= 0.5
 
@@ -206,11 +206,11 @@ def fk(obj, definitions, base_names, options):
     ex.hand_delta_e = copy_bone_simple(arm, fk_chain.hand, "MCH-delta_%s" % base_names[mt.hand], parent=True)
     ex.hand_delta = ex.hand_delta_e.name
     ex.hand_delta_e.length *= 0.5
-    ex.hand_delta_e.connected = False
+    ex.hand_delta_e.use_connect = False
     if "hand_roll" in options:
         ex.hand_delta_e.roll += radians(options["hand_roll"])
 
-    fk_chain.hand_e.connected = False
+    fk_chain.hand_e.use_connect = False
     fk_chain.hand_e.parent = ex.hand_delta_e
 
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -273,10 +273,10 @@ def fk(obj, definitions, base_names, options):
     if "fk_layer" in options:
         layer = [n==options["fk_layer"] for n in range(0,32)]
     else:
-        layer = list(mt.arm_b.layer)
-    fk_chain.arm_b.layer     = layer
-    fk_chain.forearm_b.layer = layer
-    fk_chain.hand_b.layer    = layer
+        layer = list(mt.arm_b.layers)
+    fk_chain.arm_b.layers     = layer
+    fk_chain.forearm_b.layers = layer
+    fk_chain.hand_b.layers    = layer
 
     # Forearm was getting wrong roll somehow.  Hack to fix that.
     bpy.ops.object.mode_set(mode='EDIT')
@@ -295,8 +295,8 @@ def deform(obj, definitions, base_names, options):
     # Create upper arm bones: two bones, each half of the upper arm.
     uarm1 = copy_bone_simple(obj.data, definitions[1], "DEF-%s.01" % base_names[definitions[1]], parent=True)
     uarm2 = copy_bone_simple(obj.data, definitions[1], "DEF-%s.02" % base_names[definitions[1]], parent=True)
-    uarm1.connected = False
-    uarm2.connected = False
+    uarm1.use_connect = False
+    uarm2.use_connect = False
     uarm2.parent = uarm1
     center = uarm1.center
     uarm1.tail = center
@@ -305,8 +305,8 @@ def deform(obj, definitions, base_names, options):
     # Create forearm bones: two bones, each half of the forearm.
     farm1 = copy_bone_simple(obj.data, definitions[2], "DEF-%s.01" % base_names[definitions[2]], parent=True)
     farm2 = copy_bone_simple(obj.data, definitions[2], "DEF-%s.02" % base_names[definitions[2]], parent=True)
-    farm1.connected = False
-    farm2.connected = False
+    farm1.use_connect = False
+    farm2.use_connect = False
     farm2.parent = farm1
     center = farm1.center
     farm1.tail = center
@@ -314,7 +314,7 @@ def deform(obj, definitions, base_names, options):
 
     # Create twist bone
     twist = copy_bone_simple(obj.data, definitions[2], "MCH-arm_twist")
-    twist.connected = False
+    twist.use_connect = False
     twist.parent = obj.data.edit_bones[definitions[3]]
     twist.length /= 2
 

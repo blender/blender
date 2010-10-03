@@ -40,7 +40,7 @@ class TEXT_HT_header(bpy.types.Header):
                 sub.menu("TEXT_MT_edit")
                 sub.menu("TEXT_MT_format")
 
-        if text and text.modified:
+        if text and text.is_modified:
             row = layout.row()
             # row.color(redalert)
             row.operator("text.resolve_conflict", text="", icon='HELP')
@@ -48,9 +48,9 @@ class TEXT_HT_header(bpy.types.Header):
         layout.template_ID(st, "text", new="text.new", unlink="text.unlink")
 
         row = layout.row(align=True)
-        row.prop(st, "line_numbers", text="")
-        row.prop(st, "word_wrap", text="")
-        row.prop(st, "syntax_highlight", text="")
+        row.prop(st, "show_line_numbers", text="")
+        row.prop(st, "show_word_wrap", text="")
+        row.prop(st, "show_syntax_highlight", text="")
 
         if text:
             row = layout.row()
@@ -62,7 +62,7 @@ class TEXT_HT_header(bpy.types.Header):
 
             row = layout.row()
             if text.filepath:
-                if text.dirty:
+                if text.is_dirty:
                     row.label(text="File: *%s (unsaved)" % text.filepath)
                 else:
                     row.label(text="File: %s" % text.filepath)
@@ -81,10 +81,11 @@ class TEXT_PT_properties(bpy.types.Panel):
         st = context.space_data
 
         flow = layout.column_flow()
-        flow.prop(st, "line_numbers")
-        flow.prop(st, "word_wrap")
-        flow.prop(st, "syntax_highlight")
-        flow.prop(st, "live_edit")
+        flow.prop(st, "show_line_numbers")
+        flow.prop(st, "show_word_wrap")
+        flow.prop(st, "show_syntax_highlight")
+        flow.prop(st, "show_line_highlight")
+        flow.prop(st, "use_live_edit")
 
         flow = layout.column_flow()
         flow.prop(st, "font_size")
@@ -92,7 +93,7 @@ class TEXT_PT_properties(bpy.types.Panel):
 
         text = st.text
         if text:
-            flow.prop(text, "tabs_as_spaces")
+            flow.prop(text, "use_tabs_as_spaces")
 
 
 class TEXT_PT_find(bpy.types.Panel):
@@ -124,18 +125,18 @@ class TEXT_PT_find(bpy.types.Panel):
 
         # settings
         row = layout.row()
-        row.prop(st, "find_wrap", text="Wrap")
-        row.prop(st, "find_all", text="All")
+        row.prop(st, "use_find_wrap", text="Wrap")
+        row.prop(st, "use_find_all", text="All")
 
 
 class TEXT_MT_view(bpy.types.Menu):
     bl_label = "View"
-    
+
     def draw(self, context):
         layout = self.layout
-        
+
         layout.operator("text.properties", icon='MENU_PANEL')
-        
+
         layout.separator()
 
         layout.operator("screen.area_dupli")
@@ -145,8 +146,8 @@ class TEXT_MT_view(bpy.types.Menu):
 
         layout.operator("text.move", text="Top of File").type = 'FILE_TOP'
         layout.operator("text.move", text="Bottom of File").type = 'FILE_BOTTOM'
-        
-        
+
+
 class TEXT_MT_text(bpy.types.Menu):
     bl_label = "Text"
 
@@ -246,7 +247,8 @@ class TEXT_MT_edit_to3d(bpy.types.Menu):
 class TEXT_MT_edit(bpy.types.Menu):
     bl_label = "Edit"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return (context.space_data.text)
 
     def draw(self, context):
@@ -290,6 +292,7 @@ class TEXT_MT_toolbox(bpy.types.Menu):
         layout.separator()
 
         layout.operator("text.run_script")
+
 
 def register():
     pass

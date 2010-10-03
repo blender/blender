@@ -132,6 +132,9 @@ size_t BLI_strnlen(const char *str, size_t maxlen);
 
 void BLI_timestr(double _time, char *str); /* time var is global */
 
+int BLI_utf8_invalid_byte(const char *str, int length);
+int BLI_utf8_invalid_strip(char *str, int length);
+
 #ifdef __cplusplus
 }
 #endif

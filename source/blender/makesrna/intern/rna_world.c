@@ -119,22 +119,22 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "World Texture Slot", "Texture slot for textures in a World datablock");
 
 	/* map to */
-	prop= RNA_def_property(srna, "map_blend", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_map_blend", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_BLEND);
 	RNA_def_property_ui_text(prop, "Blend", "Affect the color progression of the background");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "map_horizon", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_map_horizon", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_HORIZ);
 	RNA_def_property_ui_text(prop, "Horizon", "Affect the color of the horizon");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "map_zenith_up", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_map_zenith_up", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_ZENUP);
 	RNA_def_property_ui_text(prop, "Zenith Up", "Affect the color of the zenith above");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "map_zenith_down", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_map_zenith_down", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_ZENDOWN);
 	RNA_def_property_ui_text(prop, "Zenith Down", "Affect the color of the zenith below");
 	RNA_def_property_update(prop, 0, "rna_World_update");
@@ -144,7 +144,7 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_MIST);
 	RNA_def_property_ui_text(prop, "Mist", "Causes the texture to affect the intensity of the mist");*/
 
-	prop= RNA_def_property(srna, "texture_coordinates", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "texture_coords", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texco");
 	RNA_def_property_enum_items(prop, texco_items);
 	RNA_def_property_ui_text(prop, "Texture Coordinates", "Texture coordinates used to map the texture onto the background");
@@ -227,21 +227,21 @@ static void rna_def_lighting(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Factor", "Factor for ambient occlusion blending");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "ao_blend_mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "ao_blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "aomix");
 	RNA_def_property_enum_items(prop, blend_mode_items);
 	RNA_def_property_ui_text(prop, "Blend Mode", "Defines how AO mixes with material shading");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	/* environment lighting */
-	prop= RNA_def_property(srna, "use_environment_lighting", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_environment_light", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_ENV_LIGHT);
 	RNA_def_property_ui_text(prop, "Use Environment Lighting", "Add light coming from the environment");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "environment_energy", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ao_env_energy");
-	RNA_def_property_ui_range(prop, 0, FLT_MAX, 0.1, 2);
+	RNA_def_property_ui_range(prop, 0, FLT_MAX, 1, 3);
 	RNA_def_property_ui_text(prop, "Environment Color", "Defines the strength of environment light");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
@@ -252,7 +252,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	/* indirect lighting */
-	prop= RNA_def_property(srna, "use_indirect_lighting", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_indirect_light", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_INDIRECT_LIGHT);
 	RNA_def_property_ui_text(prop, "Use Indirect Lighting", "Add indirect light bouncing of surrounding objects");
 	RNA_def_property_update(prop, 0, "rna_World_update");
@@ -311,7 +311,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Adapt To Speed", "Use the speed vector pass to reduce AO samples in fast moving pixels. Higher values result in more aggressive sample reduction. Requires Vec pass enabled (for Raytrace Adaptive QMC)");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "error_tolerance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "error_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ao_approx_error");
 	RNA_def_property_range(prop, 0.0001, 10);
 	RNA_def_property_ui_text(prop, "Error Tolerance", "Low values are slower and higher quality (for Approximate)");
@@ -324,12 +324,12 @@ static void rna_def_lighting(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Correction", "Ad-hoc correction for over-occlusion due to the approximation (for Approximate)");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "falloff", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_falloff", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "aomode", WO_AODIST);
 	RNA_def_property_ui_text(prop, "Falloff", "");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "pixel_cache", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "aomode", WO_AOCACHE);
 	RNA_def_property_ui_text(prop, "Pixel Cache", "Cache AO results in pixels and interpolate over neighbouring pixels for speedup (for Approximate)");
 	RNA_def_property_update(prop, 0, "rna_World_update");
@@ -422,7 +422,7 @@ static void rna_def_world_stars(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Size", "Average screen dimension of stars");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "min_distance", PROP_FLOAT, PROP_DISTANCE);
+	prop= RNA_def_property(srna, "distance_min", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "starmindist");
 	RNA_def_property_range(prop, 0, 1000);
 	RNA_def_property_ui_text(prop, "Minimum Distance", "Minimum distance to the camera for stars");
@@ -434,7 +434,7 @@ static void rna_def_world_stars(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Average Separation", "Average distance between any two stars");
 	RNA_def_property_update(prop, 0, "rna_World_draw_update");
 
-	prop= RNA_def_property(srna, "color_randomization", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "color_random", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "starcolnoise");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Color Randomization", "Randomize star colors");
@@ -469,8 +469,8 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_WORLD_DATA);
 
 	rna_def_animdata_common(srna);
-	rna_def_mtex_common(srna, "rna_World_mtex_begin", "rna_World_active_texture_get",
-		"rna_World_active_texture_set", "WorldTextureSlot", "rna_World_update");
+	rna_def_mtex_common(brna, srna, "rna_World_mtex_begin", "rna_World_active_texture_get",
+		"rna_World_active_texture_set", "WorldTextureSlot", "WorldTextureSlots", "rna_World_update");
 
 	/* colors */
 	prop= RNA_def_property(srna, "horizon_color", PROP_FLOAT, PROP_COLOR);
@@ -502,42 +502,42 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Exposure", "Amount of exponential color correction for light");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "range", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "color_range", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "range");
 	RNA_def_property_range(prop, 0.2, 5.0);
 	RNA_def_property_ui_text(prop, "Range", "The color range that will be mapped to 0-1");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	/* sky type */
-	prop= RNA_def_property(srna, "blend_sky", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_sky_blend", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYBLEND);
 	RNA_def_property_ui_text(prop, "Blend Sky", "Render background with natural progression from horizon to zenith");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "paper_sky", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_sky_paper", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYPAPER);
 	RNA_def_property_ui_text(prop, "Paper Sky", "Flatten blend or texture coordinates");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "real_sky", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_sky_real", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYREAL);
 	RNA_def_property_ui_text(prop, "Real Sky", "Render background with a real horizon, relative to the camera angle");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	/* nested structs */
-	prop= RNA_def_property(srna, "lighting", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "light_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "WorldLighting");
 	RNA_def_property_pointer_funcs(prop, "rna_World_lighting_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Lighting", "World lighting settings");
 
-	prop= RNA_def_property(srna, "mist", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "mist_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "WorldMistSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_World_mist_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Mist", "World mist settings");
 
-	prop= RNA_def_property(srna, "stars", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "star_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "WorldStarsSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_World_stars_get", NULL, NULL, NULL);

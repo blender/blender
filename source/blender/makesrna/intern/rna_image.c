@@ -123,6 +123,21 @@ static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
 }
 
+
+char *rna_ImageUser_path(PointerRNA *ptr)
+{
+	if (ptr->id.data) {
+		// ImageUser *iuser= ptr->data;
+		
+		switch(GS(((ID *)ptr->id.data)->name)) {
+		case ID_TE:
+			return BLI_strdup("image_user");
+		}
+	}
+	
+	return BLI_strdup("");
+}
+
 static EnumPropertyItem *rna_Image_source_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	Image *ima= (Image*)ptr->data;
@@ -222,37 +237,40 @@ static void rna_def_imageuser(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ImageUser", NULL);
 	RNA_def_struct_ui_text(srna, "Image User", "Parameters defining how an Image datablock is used by another datablock");
+	RNA_def_struct_path_func(srna, "rna_ImageUser_path");
 
-	prop= RNA_def_property(srna, "auto_refresh", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_auto_refresh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANIM_ALWAYS);
 	RNA_def_property_ui_text(prop, "Auto Refresh", "Always refresh image on frame changes");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
 	/* animation */
-	prop= RNA_def_property(srna, "cyclic", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "cycl", 0);
 	RNA_def_property_ui_text(prop, "Cyclic", "Cycle the images in the movie");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
-	prop= RNA_def_property(srna, "frames", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_duration", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "frames");
 	RNA_def_property_range(prop, 0, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Frames", "Sets the number of images of a movie to use");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
-	prop= RNA_def_property(srna, "offset", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
+	prop= RNA_def_property(srna, "frame_offset", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "offset");
+	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Offset", "Offsets the number of the frame to use in the animation");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
 	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
-	RNA_def_property_range(prop, 1.0f, MAXFRAMEF);
+	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Start Frame", "Sets the global starting frame of the movie");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
 	prop= RNA_def_property(srna, "fields_per_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "fie_ima");
-	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
+	RNA_def_property_range(prop, 1, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Fields per Frame", "The number of fields per rendered frame (2 fields is 1 image)");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
@@ -334,17 +352,17 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 	
 	/* booleans */
-	prop= RNA_def_property(srna, "fields", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_fields", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_FIELDS);
 	RNA_def_property_ui_text(prop, "Fields", "Use fields of the image");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_fields_update");
 
-	prop= RNA_def_property(srna, "premultiply", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_DO_PREMUL);
 	RNA_def_property_ui_text(prop, "Premultiply", "Convert RGB from key alpha to premultiplied alpha");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_reload_update");
 
-	prop= RNA_def_property(srna, "dirty", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Image_dirty_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Dirty", "Image has changed and is not saved");
@@ -382,30 +400,30 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Display Aspect", "Display Aspect for this image, does not affect rendering");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
-	prop= RNA_def_property(srna, "animated", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_animation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_TWINANIM);
 	RNA_def_property_ui_text(prop, "Animated", "Use as animated texture in the game engine");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_animated_update");
 
-	prop= RNA_def_property(srna, "animation_start", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "twsta");
 	RNA_def_property_range(prop, 0, 128);
 	RNA_def_property_ui_text(prop, "Animation Start", "Start frame of an animated texture");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_animated_update");
 
-	prop= RNA_def_property(srna, "animation_end", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame_end", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "twend");
 	RNA_def_property_range(prop, 0, 128);
 	RNA_def_property_ui_text(prop, "Animation End", "End frame of an animated texture");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_animated_update");
 
-	prop= RNA_def_property(srna, "animation_speed", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "animspeed");
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Animation Speed", "Speed of the animation in frames per second");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
-	prop= RNA_def_property(srna, "tiles", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_tiles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_TILES);
 	RNA_def_property_ui_text(prop, "Tiles", "Use of tilemode for faces (default shift-LMB to pick the tile for selected faces)");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
@@ -422,12 +440,12 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Tiles Y", "Degree of repetition in the Y direction");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
-	prop= RNA_def_property(srna, "clamp_x", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_clamp_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_CLAMP_U);
 	RNA_def_property_ui_text(prop, "Clamp X", "Disable texture repeating horizontally");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
-	prop= RNA_def_property(srna, "clamp_y", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_clamp_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_CLAMP_V);
 	RNA_def_property_ui_text(prop, "Clamp Y", "Disable texture repeating vertically");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);

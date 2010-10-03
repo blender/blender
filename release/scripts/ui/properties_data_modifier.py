@@ -19,52 +19,46 @@
 # <pep8 compliant>
 import bpy
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
-narrowmod = 260
 
-
-class DataButtonsPanel():
+class ModifierButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "modifier"
 
 
-class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
     bl_label = "Modifiers"
 
     def draw(self, context):
         layout = self.layout
 
         ob = context.object
-        wide_ui = context.region.width > narrowui
-        compact_mod = context.region.width < narrowmod
 
         layout.operator_menu_enum("object.modifier_add", "type")
 
         for md in ob.modifiers:
-            box = layout.template_modifier(md, compact=compact_mod)
+            box = layout.template_modifier(md)
             if box:
                 # match enum type to our functions, avoids a lookup table.
-                getattr(self, md.type)(box, ob, md, wide_ui)
+                getattr(self, md.type)(box, ob, md)
 
     # the mt.type enum is (ab)used for a lookup on function names
     # ...to avoid lengthy if statements
     # so each type must have a function here.
 
-    def ARMATURE(self, layout, ob, md, wide_ui):
+    def ARMATURE(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
         col.label(text="Object:")
         col.prop(md, "object", text="")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Vertex Group::")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         sub = col.column()
         sub.active = bool(md.vertex_group)
-        sub.prop(md, "invert")
+        sub.prop(md, "invert_vertex_group")
 
         split = layout.split()
 
@@ -73,23 +67,18 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         col.prop(md, "use_vertex_groups", text="Vertex Groups")
         col.prop(md, "use_bone_envelopes", text="Bone Envelopes")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Deformation:")
-        col.prop(md, "quaternion")
-        col.prop(md, "multi_modifier")
+        col.prop(md, "use_deform_preserve_volume")
+        col.prop(md, "use_multi_modifier")
 
-    def ARRAY(self, layout, ob, md, wide_ui):
-        if wide_ui:
-            layout.prop(md, "fit_type")
-        else:
-            layout.prop(md, "fit_type", text="")
-
+    def ARRAY(self, layout, ob, md):
+        layout.prop(md, "fit_type")
 
         if md.fit_type == 'FIXED_COUNT':
             layout.prop(md, "count")
         elif md.fit_type == 'FIT_LENGTH':
-            layout.prop(md, "length")
+            layout.prop(md, "fit_length")
         elif md.fit_type == 'FIT_CURVE':
             layout.prop(md, "curve")
 
@@ -98,31 +87,30 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(md, "constant_offset")
+        col.prop(md, "use_constant_offset")
         sub = col.column()
-        sub.active = md.constant_offset
-        sub.prop(md, "constant_offset_displacement", text="")
+        sub.active = md.use_constant_offset
+        sub.prop(md, "constant_offset_displace", text="")
 
         col.separator()
 
-        col.prop(md, "merge_adjacent_vertices", text="Merge")
+        col.prop(md, "use_merge_vertices", text="Merge")
         sub = col.column()
-        sub.active = md.merge_adjacent_vertices
-        sub.prop(md, "merge_end_vertices", text="First Last")
-        sub.prop(md, "merge_distance", text="Distance")
+        sub.active = md.use_merge_vertices
+        sub.prop(md, "use_merge_vertices_cap", text="First Last")
+        sub.prop(md, "merge_threshold", text="Distance")
 
-        if wide_ui:
-            col = split.column()
-        col.prop(md, "relative_offset")
+        col = split.column()
+        col.prop(md, "use_relative_offset")
         sub = col.column()
-        sub.active = md.relative_offset
-        sub.prop(md, "relative_offset_displacement", text="")
+        sub.active = md.use_relative_offset
+        sub.prop(md, "relative_offset_displace", text="")
 
         col.separator()
 
-        col.prop(md, "add_offset_object")
+        col.prop(md, "use_object_offset")
         sub = col.column()
-        sub.active = md.add_offset_object
+        sub.active = md.use_object_offset
         sub.prop(md, "offset_object", text="")
 
         layout.separator()
@@ -131,138 +119,128 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         col.prop(md, "start_cap")
         col.prop(md, "end_cap")
 
-    def BEVEL(self, layout, ob, md, wide_ui):
+    def BEVEL(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
         col.prop(md, "width")
 
-        if wide_ui:
-            col = split.column()
-        col.prop(md, "only_vertices")
+        col = split.column()
+        col.prop(md, "use_only_vertices")
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)
         if md.limit_method == 'ANGLE':
-            layout.prop(md, "angle")
+            layout.prop(md, "angle_limit")
         elif md.limit_method == 'WEIGHT':
             layout.row().prop(md, "edge_weight_method", expand=True)
 
-    def BOOLEAN(self, layout, ob, md, wide_ui):
+    def BOOLEAN(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
         col.label(text="Operation:")
         col.prop(md, "operation", text="")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Object:")
         col.prop(md, "object", text="")
 
-    def BUILD(self, layout, ob, md, wide_ui):
+    def BUILD(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
         col.prop(md, "frame_start")
-        col.prop(md, "length")
+        col.prop(md, "frame_duration")
 
-        if wide_ui:
-            col = split.column()
-        col.prop(md, "randomize")
+        col = split.column()
+        col.prop(md, "use_random_order")
         sub = col.column()
-        sub.active = md.randomize
+        sub.active = md.use_random_order
         sub.prop(md, "seed")
 
-    def CAST(self, layout, ob, md, wide_ui):
+    def CAST(self, layout, ob, md):
         split = layout.split(percentage=0.25)
 
-        if wide_ui:
-            split.label(text="Cast Type:")
-            split.prop(md, "cast_type", text="")
-        else:
-            layout.prop(md, "cast_type", text="")
+        split.label(text="Cast Type:")
+        split.prop(md, "cast_type", text="")
 
         split = layout.split(percentage=0.25)
 
         col = split.column()
-        col.prop(md, "x")
-        col.prop(md, "y")
-        col.prop(md, "z")
+        col.prop(md, "use_x")
+        col.prop(md, "use_y")
+        col.prop(md, "use_z")
 
         col = split.column()
         col.prop(md, "factor")
         col.prop(md, "radius")
         col.prop(md, "size")
-        col.prop(md, "from_radius")
+        col.prop(md, "use_radius_as_size")
 
         split = layout.split()
 
         col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
-        if wide_ui:
-            col = split.column()
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        col = split.column()
         col.label(text="Control Object:")
         col.prop(md, "object", text="")
         if md.object:
             col.prop(md, "use_transform")
 
-    def CLOTH(self, layout, ob, md, wide_ui):
+    def CLOTH(self, layout, ob, md):
         layout.label(text="See Cloth panel.")
 
-    def COLLISION(self, layout, ob, md, wide_ui):
+    def COLLISION(self, layout, ob, md):
         layout.label(text="See Collision panel.")
 
-    def CURVE(self, layout, ob, md, wide_ui):
+    def CURVE(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
         col.label(text="Object:")
         col.prop(md, "object", text="")
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         layout.label(text="Deformation Axis:")
         layout.row().prop(md, "deform_axis", expand=True)
 
-    def DECIMATE(self, layout, ob, md, wide_ui):
+    def DECIMATE(self, layout, ob, md):
         layout.prop(md, "ratio")
         layout.label(text="Face Count: %s" % str(md.face_count))
 
-    def DISPLACE(self, layout, ob, md, wide_ui):
+    def DISPLACE(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
         col.label(text="Texture:")
         col.prop(md, "texture", text="")
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Direction:")
         col.prop(md, "direction", text="")
         col.label(text="Texture Coordinates:")
-        col.prop(md, "texture_coordinates", text="")
-        if md.texture_coordinates == 'OBJECT':
+        col.prop(md, "texture_coords", text="")
+        if md.texture_coords == 'OBJECT':
             layout.prop(md, "texture_coordinate_object", text="Object")
-        elif md.texture_coordinates == 'UV' and ob.type == 'MESH':
-            layout.prop_object(md, "uv_layer", ob.data, "uv_textures")
+        elif md.texture_coords == 'UV' and ob.type == 'MESH':
+            layout.prop_search(md, "uv_layer", ob.data, "uv_textures")
 
         layout.separator()
 
         split = layout.split()
 
         col = split.column()
-        col.prop(md, "midlevel")
+        col.prop(md, "mid_level")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(md, "strength")
 
-    def EDGE_SPLIT(self, layout, ob, md, wide_ui):
+    def EDGE_SPLIT(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
@@ -271,34 +249,32 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         sub.active = md.use_edge_angle
         sub.prop(md, "split_angle")
 
-        if wide_ui:
-            col = split.column()
-        col.prop(md, "use_sharp", text="Sharp Edges")
+        col = split.column()
+        col.prop(md, "use_edge_sharp", text="Sharp Edges")
 
-    def EXPLODE(self, layout, ob, md, wide_ui):
+    def EXPLODE(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
         col.label(text="Vertex group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         sub = col.column()
         sub.active = bool(md.vertex_group)
         sub.prop(md, "protect")
 
-        if wide_ui:
-            col = split.column()
-        col.prop(md, "split_edges")
-        col.prop(md, "unborn")
-        col.prop(md, "alive")
-        col.prop(md, "dead")
-        col.prop(md, "size")
+        col = split.column()
+        col.prop(md, "use_edge_split")
+        col.prop(md, "show_unborn")
+        col.prop(md, "show_alive")
+        col.prop(md, "show_dead")
+        col.prop(md, "use_size")
 
         layout.operator("object.explode_refresh", text="Refresh")
 
-    def FLUID_SIMULATION(self, layout, ob, md, wide_ui):
+    def FLUID_SIMULATION(self, layout, ob, md):
         layout.label(text="See Fluid panel.")
 
-    def HOOK(self, layout, ob, md, wide_ui):
+    def HOOK(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
@@ -306,11 +282,10 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         col.prop(md, "object", text="")
         if md.object and md.object.type == 'ARMATURE':
             col.label(text="Bone:")
-            col.prop_object(md, "subtarget", md.object.data, "bones", text="")
-        if wide_ui:
-            col = split.column()
+            col.prop_search(md, "subtarget", md.object.data, "bones", text="")
+        col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         layout.separator()
 
@@ -319,10 +294,8 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(md, "falloff")
         col.prop(md, "force", slider=True)
-        if wide_ui:
-            col = split.column()
-        else:
-            col.separator()
+
+        col = split.column()
         col.operator("object.hook_reset", text="Reset")
         col.operator("object.hook_recenter", text="Recenter")
 
@@ -332,52 +305,49 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
             row.operator("object.hook_select", text="Select")
             row.operator("object.hook_assign", text="Assign")
 
-    def LATTICE(self, layout, ob, md, wide_ui):
+    def LATTICE(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
         col.label(text="Object:")
         col.prop(md, "object", text="")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
-    def MASK(self, layout, ob, md, wide_ui):
+    def MASK(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
         col.label(text="Mode:")
         col.prop(md, "mode", text="")
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         if md.mode == 'ARMATURE':
             col.label(text="Armature:")
             col.prop(md, "armature", text="")
         elif md.mode == 'VERTEX_GROUP':
             col.label(text="Vertex Group:")
-            col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+            col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         sub = col.column()
         sub.active = bool(md.vertex_group)
-        sub.prop(md, "invert")
+        sub.prop(md, "invert_vertex_group")
 
-    def MESH_DEFORM(self, layout, ob, md, wide_ui):
+    def MESH_DEFORM(self, layout, ob, md):
         split = layout.split()
         col = split.column()
         sub = col.column()
         sub.label(text="Object:")
         sub.prop(md, "object", text="")
         sub.active = not md.is_bound
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         sub = col.column()
         sub.active = bool(md.vertex_group)
-        sub.prop(md, "invert")
+        sub.prop(md, "invert_vertex_group")
 
         layout.separator()
 
@@ -391,46 +361,43 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.prop(md, "precision")
 
-            if wide_ui:
-                col = split.column()
-            col.prop(md, "dynamic")
+            col = split.column()
+            col.prop(md, "use_dynamic_bind")
 
-    def MIRROR(self, layout, ob, md, wide_ui):
-        layout.prop(md, "merge_limit")
-        if wide_ui:
-            split = layout.split(percentage=0.25)
-        else:
-            split = layout.split(percentage=0.4)
+    def MIRROR(self, layout, ob, md):
+        layout.prop(md, "merge_threshold")
+        split = layout.split(percentage=0.25)
 
         col = split.column()
         col.label(text="Axis:")
-        col.prop(md, "x")
-        col.prop(md, "y")
-        col.prop(md, "z")
+        col.prop(md, "use_x")
+        col.prop(md, "use_y")
+        col.prop(md, "use_z")
 
-        if wide_ui:
-            col = split.column()
-        else:
-            subsplit = layout.split()
-            col = subsplit.column()
+        col = split.column()
         col.label(text="Options:")
-        col.prop(md, "clip", text="Clipping")
-        col.prop(md, "mirror_vertex_groups", text="Vertex Groups")
+        col.prop(md, "use_clip", text="Clipping")
+        col.prop(md, "use_mirror_vertex_groups", text="Vertex Groups")
 
         col = split.column()
         col.label(text="Textures:")
-        col.prop(md, "mirror_u", text="U")
-        col.prop(md, "mirror_v", text="V")
+        col.prop(md, "use_mirror_u", text="U")
+        col.prop(md, "use_mirror_v", text="V")
 
         col = layout.column()
         col.label(text="Mirror Object:")
         col.prop(md, "mirror_object", text="")
 
-    def MULTIRES(self, layout, ob, md, wide_ui):
-        if wide_ui:
-            layout.row().prop(md, "subdivision_type", expand=True)
-        else:
-            layout.row().prop(md, "subdivision_type", text="")
+    def NAVMESH(self, layout, ob, md):
+        split = layout.split()
+        if ob.mode == 'EDIT':
+            col = split.column()
+            col.operator("object.assign_navpolygon", text="Assign poly idx")
+            col = split.column()
+            col.operator("object.assign_new_navpolygon", text="Assign new poly idx")
+
+    def MULTIRES(self, layout, ob, md):
+        layout.row().prop(md, "subdivision_type", expand=True)
 
         split = layout.split()
         col = split.column()
@@ -438,20 +405,19 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         col.prop(md, "sculpt_levels", text="Sculpt")
         col.prop(md, "render_levels", text="Render")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
 
         col.enabled = ob.mode != 'EDIT'
         col.operator("object.multires_subdivide", text="Subdivide")
         col.operator("object.multires_higher_levels_delete", text="Delete Higher")
         col.operator("object.multires_reshape", text="Reshape")
-        col.prop(md, "optimal_display")
+        col.prop(md, "show_only_control_edges")
 
         layout.separator()
 
         col = layout.column()
         row = col.row()
-        if md.external:
+        if md.is_external:
             row.operator("object.multires_external_pack", text="Pack External")
             row.label()
             row = col.row()
@@ -460,31 +426,22 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
             row.operator("object.multires_external_save", text="Save External...")
             row.label()
 
-    def NAVMESH(self, layout, ob, md, wide_ui):
-        split = layout.split()
-        if ob.mode == 'EDIT':
-            col = split.column()
-            col.operator("object.assign_navpolygon", text="Assign poly idx")
-            col = split.column()
-            col.operator("object.assign_new_navpolygon", text="Assign new poly idx")
-
-    def PARTICLE_INSTANCE(self, layout, ob, md, wide_ui):
+    def PARTICLE_INSTANCE(self, layout, ob, md):
         layout.prop(md, "object")
-        layout.prop(md, "particle_system_number", text="Particle System")
+        layout.prop(md, "particle_system_index", text="Particle System")
 
         split = layout.split()
         col = split.column()
         col.label(text="Create From:")
-        col.prop(md, "normal")
-        col.prop(md, "children")
-        col.prop(md, "size")
+        col.prop(md, "use_normal")
+        col.prop(md, "use_children")
+        col.prop(md, "use_size")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Show Particles When:")
-        col.prop(md, "alive")
-        col.prop(md, "unborn")
-        col.prop(md, "dead")
+        col.prop(md, "show_alive")
+        col.prop(md, "show_unborn")
+        col.prop(md, "show_dead")
 
         layout.separator()
 
@@ -494,17 +451,16 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         split.active = md.use_path
         col = split.column()
         col.row().prop(md, "axis", expand=True)
-        col.prop(md, "keep_shape")
+        col.prop(md, "use_preserve_shape")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(md, "position", slider=True)
         col.prop(md, "random_position", text="Random", slider=True)
 
-    def PARTICLE_SYSTEM(self, layout, ob, md, wide_ui):
+    def PARTICLE_SYSTEM(self, layout, ob, md):
         layout.label(text="See Particle panel.")
 
-    def SCREW(self, layout, ob, md, wide_ui):
+    def SCREW(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
@@ -514,8 +470,7 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         col.prop(md, "steps")
         col.prop(md, "render_steps")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         row = col.row()
         row.active = (md.object is None or md.use_object_screw_offset == False)
         row.prop(md, "screw_offset")
@@ -526,15 +481,14 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         col.prop(md, "use_normal_flip")
         col.prop(md, "iterations")
 
-    def SHRINKWRAP(self, layout, ob, md, wide_ui):
+    def SHRINKWRAP(self, layout, ob, md):
         split = layout.split()
         col = split.column()
         col.label(text="Target:")
         col.prop(md, "target", text="")
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         split = layout.split()
 
@@ -542,54 +496,47 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         col.prop(md, "offset")
         col.prop(md, "subsurf_levels")
 
-        if wide_ui:
-            col = split.column()
-            col.label(text="Mode:")
-        col.prop(md, "mode", text="")
+        col = split.column()
+        col.label(text="Mode:")
+        col.prop(md, "wrap_method", text="")
 
-        if wide_ui:
-            split = layout.split(percentage=0.25)
-        else:
-            split = layout.split(percentage=0.35)
+        split = layout.split(percentage=0.25)
+
         col = split.column()
 
-        if md.mode == 'PROJECT':
+        if md.wrap_method == 'PROJECT':
             col.label(text="Axis:")
-            col.prop(md, "x")
-            col.prop(md, "y")
-            col.prop(md, "z")
+            col.prop(md, "use_project_x")
+            col.prop(md, "use_project_y")
+            col.prop(md, "use_project_z")
 
             col = split.column()
             col.label(text="Direction:")
-            col.prop(md, "negative")
-            col.prop(md, "positive")
+            col.prop(md, "use_negative_direction")
+            col.prop(md, "use_positive_direction")
 
-            if wide_ui:
-                col = split.column()
-            else:
-                subsplit = layout.split()
-                col = subsplit.column()
+            col = split.column()
+
             col.label(text="Cull Faces:")
-            col.prop(md, "cull_front_faces", text="Front")
-            col.prop(md, "cull_back_faces", text="Back")
+            col.prop(md, "use_cull_front_faces", text="Front")
+            col.prop(md, "use_cull_back_faces", text="Back")
 
             layout.label(text="Auxiliary Target:")
             layout.prop(md, "auxiliary_target", text="")
 
-        elif md.mode == 'NEAREST_SURFACEPOINT':
-            layout.prop(md, "keep_above_surface")
+        elif md.wrap_method == 'NEAREST_SURFACEPOINT':
+            layout.prop(md, "use_keep_above_surface")
 
-    def SIMPLE_DEFORM(self, layout, ob, md, wide_ui):
+    def SIMPLE_DEFORM(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
         col.label(text="Mode:")
-        col.prop(md, "mode", text="")
+        col.prop(md, "deform_method", text="")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         split = layout.split()
 
@@ -597,59 +544,57 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         col.label(text="Origin:")
         col.prop(md, "origin", text="")
         sub = col.column()
-        sub.active = (md.origin != "")
-        sub.prop(md, "relative")
+        sub.active = (md.origin is not None)
+        sub.prop(md, "use_relative")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Deform:")
         col.prop(md, "factor")
         col.prop(md, "limits", slider=True)
-        if md.mode in ('TAPER', 'STRETCH'):
-            col.prop(md, "lock_x_axis")
-            col.prop(md, "lock_y_axis")
+        if md.deform_method in ('TAPER', 'STRETCH'):
+            col.prop(md, "lock_x")
+            col.prop(md, "lock_y")
 
-    def SMOKE(self, layout, ob, md, wide_ui):
+    def SMOKE(self, layout, ob, md):
         layout.label(text="See Smoke panel.")
 
-    def SMOOTH(self, layout, ob, md, wide_ui):
+    def SMOOTH(self, layout, ob, md):
         split = layout.split(percentage=0.25)
 
         col = split.column()
         col.label(text="Axis:")
-        col.prop(md, "x")
-        col.prop(md, "y")
-        col.prop(md, "z")
+        col.prop(md, "use_x")
+        col.prop(md, "use_y")
+        col.prop(md, "use_z")
 
         col = split.column()
         col.prop(md, "factor")
-        col.prop(md, "repeat")
+        col.prop(md, "iterations")
         col.label(text="Vertex Group:")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
-    def SOFT_BODY(self, layout, ob, md, wide_ui):
+    def SOFT_BODY(self, layout, ob, md):
         layout.label(text="See Soft Body panel.")
 
-    def SOLIDIFY(self, layout, ob, md, wide_ui):
+    def SOLIDIFY(self, layout, ob, md):
 
         split = layout.split()
 
         col = split.column()
         col.prop(md, "thickness")
-        col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         col.label(text="Crease:")
         col.prop(md, "edge_crease_inner", text="Inner")
         col.prop(md, "edge_crease_outer", text="Outer")
         col.prop(md, "edge_crease_rim", text="Rim")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
 
         col.prop(md, "offset")
         colsub = col.column()
-        colsub.active = (md.vertex_group is not "")
-        colsub.prop(md, "invert", text="Invert")
+        colsub.active = bool(md.vertex_group)
+        colsub.prop(md, "invert_vertex_group", text="Invert")
 
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")
@@ -659,15 +604,8 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         colsub.active = md.use_rim
         colsub.prop(md, "use_rim_material")
 
-        # col = layout.column()
-        # col.label(text="Vertex Group:")
-        # col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
-
-    def SUBSURF(self, layout, ob, md, wide_ui):
-        if wide_ui:
-            layout.row().prop(md, "subdivision_type", expand=True)
-        else:
-            layout.row().prop(md, "subdivision_type", text="")
+    def SUBSURF(self, layout, ob, md):
+        layout.row().prop(md, "subdivision_type", expand=True)
 
         split = layout.split()
         col = split.column()
@@ -675,16 +613,15 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         col.prop(md, "levels", text="View")
         col.prop(md, "render_levels", text="Render")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Options:")
-        col.prop(md, "subsurf_uv")
-        col.prop(md, "optimal_display")
+        col.prop(md, "use_subsurf_uv")
+        col.prop(md, "show_only_control_edges")
 
-    def SURFACE(self, layout, ob, md, wide_ui):
+    def SURFACE(self, layout, ob, md):
         layout.label(text="See Fields panel.")
 
-    def UV_PROJECT(self, layout, ob, md, wide_ui):
+    def UV_PROJECT(self, layout, ob, md):
         if ob.type == 'MESH':
             split = layout.split()
 
@@ -692,20 +629,18 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
             col.label(text="Image:")
             col.prop(md, "image", text="")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.label(text="UV Layer:")
-            col.prop_object(md, "uv_layer", ob.data, "uv_textures", text="")
+            col.prop_search(md, "uv_layer", ob.data, "uv_textures", text="")
 
             split = layout.split()
             col = split.column()
-            col.prop(md, "override_image")
-            col.prop(md, "num_projectors", text="Projectors")
+            col.prop(md, "use_image_override")
+            col.prop(md, "projector_count", text="Projectors")
             for proj in md.projectors:
                 col.prop(proj, "object", text="")
 
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             sub = col.column(align=True)
             sub.prop(md, "aspect_x", text="Aspect X")
             sub.prop(md, "aspect_y", text="Aspect Y")
@@ -714,23 +649,22 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
             sub.prop(md, "scale_x", text="Scale X")
             sub.prop(md, "scale_y", text="Scale Y")
 
-    def WAVE(self, layout, ob, md, wide_ui):
+    def WAVE(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
         col.label(text="Motion:")
-        col.prop(md, "x")
-        col.prop(md, "y")
-        col.prop(md, "cyclic")
+        col.prop(md, "use_x")
+        col.prop(md, "use_y")
+        col.prop(md, "use_cyclic")
 
-        if wide_ui:
-            col = split.column()
-        col.prop(md, "normals")
+        col = split.column()
+        col.prop(md, "use_normal")
         sub = col.column()
-        sub.active = md.normals
-        sub.prop(md, "x_normal", text="X")
-        sub.prop(md, "y_normal", text="Y")
-        sub.prop(md, "z_normal", text="Z")
+        sub.active = md.use_normal
+        sub.prop(md, "use_normal_x", text="X")
+        sub.prop(md, "use_normal_y", text="Y")
+        sub.prop(md, "use_normal_z", text="Z")
 
         split = layout.split()
 
@@ -741,8 +675,7 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         sub.prop(md, "lifetime", text="Life")
         col.prop(md, "damping_time", text="Damping")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Position:")
         sub = col.column(align=True)
         sub.prop(md, "start_position_x", text="X")
@@ -752,13 +685,13 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         layout.separator()
 
         layout.prop(md, "start_position_object")
-        layout.prop_object(md, "vertex_group", ob, "vertex_groups")
+        layout.prop_search(md, "vertex_group", ob, "vertex_groups")
         layout.prop(md, "texture")
-        layout.prop(md, "texture_coordinates")
-        if md.texture_coordinates == 'MAP_UV' and ob.type == 'MESH':
-            layout.prop_object(md, "uv_layer", ob.data, "uv_textures")
-        elif md.texture_coordinates == 'OBJECT':
-            layout.prop(md, "texture_coordinates_object")
+        layout.prop(md, "texture_coords")
+        if md.texture_coords == 'MAP_UV' and ob.type == 'MESH':
+            layout.prop_search(md, "uv_layer", ob.data, "uv_textures")
+        elif md.texture_coords == 'OBJECT':
+            layout.prop(md, "texture_coords_object")
 
         layout.separator()
 
@@ -768,8 +701,7 @@ class DATA_PT_modifiers(DataButtonsPanel, bpy.types.Panel):
         col.prop(md, "speed", slider=True)
         col.prop(md, "height", slider=True)
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(md, "width", slider=True)
         col.prop(md, "narrowness", slider=True)
 

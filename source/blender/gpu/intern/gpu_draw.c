@@ -36,7 +36,6 @@
 
 #include "BLI_math.h"
 
-#include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
@@ -45,7 +44,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -863,7 +861,7 @@ void GPU_free_images_anim(void)
 
 	if(G.main)
 		for(ima=G.main->image.first; ima; ima=ima->id.next)
-			if(ELEM(ima->type, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
+			if(ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
 				GPU_free_image(ima);
 }
 

@@ -141,7 +141,7 @@ typedef struct Nurb {
 
 typedef struct CharInfo {
 	short kern;
-	short mat_nr;
+	short mat_nr; /* index start at 1, unlike mesh & nurbs */
 	char flag;
 	char pad;
 	short pad2;
@@ -157,6 +157,11 @@ typedef struct EditNurb {
 
 	/* index data for shape keys */
 	struct GHash *keyindex;
+
+	/* shape key being edited */
+	int shapenr;
+
+	char pad[4];
 } EditNurb;
 
 typedef struct Curve {
@@ -245,7 +250,7 @@ typedef struct Curve {
 #define CU_PATH			8
 #define CU_FOLLOW		16
 #define CU_UV_ORCO		32
-#define CU_DEPRECATED	64
+#define CU_DEFORM_BOUNDS_OFF 64 
 #define CU_STRETCH		128
 #define CU_OFFS_PATHDIST	256
 #define CU_FAST			512 /* Font: no filling inside editmode */
@@ -340,6 +345,10 @@ typedef enum eBezTriple_KeyframeType {
 #define CU_CHINFO_WRAP			(1<<3)	/* wordwrap occurred here */
 #define CU_CHINFO_SMALLCAPS	(1<<4)
 #define CU_CHINFO_SMALLCAPS_CHECK (1<<5) /* set at runtime, checks if case switching is needed */
+
+/* mixed with KEY_LINEAR but define here since only curve supports */
+#define KEY_CU_EASE			3
+
 
 #endif
 

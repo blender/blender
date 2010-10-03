@@ -44,20 +44,13 @@
 #include "BLI_editVert.h"
 #include "BLI_linklist.h"
 
-#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_displist.h"
-#include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
-#include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -106,6 +99,37 @@ static void special_transvert_update(Scene *scene, Object *obedit)
 			Nurb *nu= nurbs->first;
 
 			while(nu) {
+				/* keep handles' vectors unchanged */
+				if(nu->bezt) {
+					int a= nu->pntsu;
+					TransVert *tv= transvmain;
+					BezTriple *bezt= nu->bezt;
+
+					while(a--) {
+						if(bezt->f1 & SELECT) tv++;
+
+						if(bezt->f2 & SELECT) {
+							float v[3];
+
+							if(bezt->f1 & SELECT) {
+								sub_v3_v3v3(v, (tv-1)->oldloc, tv->oldloc);
+								add_v3_v3v3(bezt->vec[0], bezt->vec[1], v);
+							}
+
+							if(bezt->f3 & SELECT) {
+								sub_v3_v3v3(v, (tv+1)->oldloc, tv->oldloc);
+								add_v3_v3v3(bezt->vec[2], bezt->vec[1], v);
+							}
+
+							tv++;
+						}
+
+						if(bezt->f3 & SELECT) tv++;
+
+						bezt++;
+					}
+				}
+
 				test2DNurb(nu);
 				testhandlesNurb(nu); /* test for bezier too */
 				nu= nu->next;
@@ -152,14 +176,16 @@ static void special_transvert_update(Scene *scene, Object *obedit)
 		else if(obedit->type==OB_LATTICE) {
 			Lattice *lt= obedit->data;
 			
-			if(lt->editlatt->flag & LT_OUTSIDE) 
-				outside_lattice(lt->editlatt);
+			if(lt->editlatt->latt->flag & LT_OUTSIDE)
+				outside_lattice(lt->editlatt->latt);
 		}
 	}
 }
 
 /* copied from editobject.c, needs to be replaced with new transform code still */
-/* mode: 1 = proportional, 2 = all joints (for bones only) */
+/* mode flags: */
+#define TM_ALL_JOINTS		1 /* all joints (for bones only) */
+#define TM_SKIP_HANDLES		2 /* skip handles when control point is selected (for curves only) */
 static void make_trans_verts(Object *obedit, float *min, float *max, int mode)	
 {
 	Nurb *nu;
@@ -180,7 +206,6 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	if(obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
 		EditMesh *em= me->edit_mesh;
-		int proptrans= 0;
 		
 		// transform now requires awareness for select mode, so we tag the f1 flags in verts
 		tottrans= 0;
@@ -211,17 +236,6 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 				}
 			}
 			for(eve= em->verts.first; eve; eve= eve->next) if(eve->f1) tottrans++;
-		}
-		
-		/* proportional edit exception... */
-		if((mode & 1) && tottrans) {
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->h==0) {
-					eve->f1 |= 2;
-					proptrans++;
-				}
-			}
-			if(proptrans>tottrans) tottrans= proptrans;
 		}
 		
 		/* and now make transverts */
@@ -255,7 +269,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 				short rootok= (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && ebo->parent->flag & BONE_TIPSEL));
 				
 				if ((tipsel && rootsel) || (rootsel)) {
-					/* Don't add the tip (unless mode & 2, for getting all joints), 
+					/* Don't add the tip (unless mode & TM_ALL_JOINTS, for getting all joints),
 					 * otherwise we get zero-length bones as tips will snap to the same
 					 * location as heads. 
 					 */
@@ -268,7 +282,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 						tottrans++;
 					}	
 					
-					if ((mode & 2) && (tipsel)) {
+					if ((mode & TM_ALL_JOINTS) && (tipsel)) {
 						VECCOPY (tv->oldloc, ebo->tail);
 						tv->loc= ebo->tail;
 						tv->nor= NULL;
@@ -308,14 +322,18 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 				bezt= nu->bezt;
 				while(a--) {
 					if(bezt->hide==0) {
-						if((mode & 1) || (bezt->f1 & SELECT)) {
+						int skip_handle= 0;
+						if(bezt->f2 & SELECT)
+							skip_handle= mode & TM_SKIP_HANDLES;
+
+						if((bezt->f1 & SELECT) && !skip_handle) {
 							VECCOPY(tv->oldloc, bezt->vec[0]);
 							tv->loc= bezt->vec[0];
 							tv->flag= bezt->f1 & SELECT;
 							tv++;
 							tottrans++;
 						}
-						if((mode & 1) || (bezt->f2 & SELECT)) {
+						if(bezt->f2 & SELECT) {
 							VECCOPY(tv->oldloc, bezt->vec[1]);
 							tv->loc= bezt->vec[1];
 							tv->val= &(bezt->alfa);
@@ -324,7 +342,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 							tv++;
 							tottrans++;
 						}
-						if((mode & 1) || (bezt->f3 & SELECT)) {
+						if((bezt->f3 & SELECT) && !skip_handle) {
 							VECCOPY(tv->oldloc, bezt->vec[2]);
 							tv->loc= bezt->vec[2];
 							tv->flag= bezt->f3 & SELECT;
@@ -340,7 +358,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 				bp= nu->bp;
 				while(a--) {
 					if(bp->hide==0) {
-						if((mode & 1) || (bp->f1 & SELECT)) {
+						if(bp->f1 & SELECT) {
 							VECCOPY(tv->oldloc, bp->vec);
 							tv->loc= bp->vec;
 							tv->val= &(bp->alfa);
@@ -379,14 +397,14 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	else if(obedit->type==OB_LATTICE) {
 		Lattice *lt= obedit->data;
 		
-		bp= lt->editlatt->def;
+		bp= lt->editlatt->latt->def;
 		
-		a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+		a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 		
-		tv=transvmain= MEM_callocN(a*sizeof(TransVert), "maketransverts curve");
+		tv=transvmain= MEM_callocN(a*sizeof(TransVert), "maketransverts latt");
 		
 		while(a--) {
-			if((mode & 1) || (bp->f1 & SELECT)) {
+			if(bp->f1 & SELECT) {
 				if(bp->hide==0) {
 					copy_v3_v3(tv->oldloc, bp->vec);
 					tv->loc= bp->vec;
@@ -399,6 +417,13 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		}
 	}
 	
+	if(!tottrans && transvmain) {
+		/* prevent memory leak. happens for curves/latticies due to */
+		/* difficult condition of adding points to trans data */
+		MEM_freeN(transvmain);
+		transvmain= NULL;
+	}
+
 	/* cent etc */
 	tv= transvmain;
 	total= 0.0;
@@ -734,7 +759,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 		tottrans=0;
 		
 		if ELEM6(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
-			make_trans_verts(obedit, bmat[0], bmat[1], 2);
+			make_trans_verts(obedit, bmat[0], bmat[1], TM_ALL_JOINTS|TM_SKIP_HANDLES);
 		if(tottrans==0) return OPERATOR_CANCELLED;
 		
 		copy_m3_m4(bmat, obedit->obmat);
@@ -916,7 +941,7 @@ int minmax_verts(Object *obedit, float *min, float *max)
 
 	tottrans=0;
 	if ELEM5(obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) 
-		make_trans_verts(obedit, bmat[0], bmat[1], 2);
+		make_trans_verts(obedit, bmat[0], bmat[1], TM_ALL_JOINTS);
 	
 	if(tottrans==0) return 0;
 

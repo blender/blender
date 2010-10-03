@@ -28,5 +28,4 @@ SET(INC include)
 
 FILE(GLOB SRC intern/*.cpp)
 
-BLENDERLIB(bf_moto "${SRC}" "${INC}")
-#, libtype=['intern','game','game2','player'], priority = [15, 55, 100, 135] )
+BLENDERLIB(bf_intern_moto "${SRC}" "${INC}")

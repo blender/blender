@@ -170,13 +170,13 @@ void RNA_def_controller(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONT_SHOW);
 	RNA_def_property_ui_text(prop, "Expanded", "Set controller expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);	
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "priority", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_priority", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONT_PRIO);
 	RNA_def_property_ui_text(prop, "Priority", "Mark controller for execution before all non-marked controllers (good for startup scripts)");
 	RNA_def_property_ui_icon(prop, ICON_BOOKMARKS, 1);
@@ -185,7 +185,7 @@ void RNA_def_controller(BlenderRNA *brna)
 	/* State */
 	
 	// array of OB_MAX_STATES
-	//prop= RNA_def_property(srna, "state", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	//prop= RNA_def_property(srna, "states", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	//RNA_def_property_array(prop, OB_MAX_STATES);
 	//RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	//RNA_def_property_ui_text(prop, "", "Set Controller state index (1 to 30)");
@@ -193,7 +193,7 @@ void RNA_def_controller(BlenderRNA *brna)
 	//RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	// number of the state
-	prop= RNA_def_property(srna, "state", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "states", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "state_mask");
 	RNA_def_property_range(prop, 1, OB_MAX_STATES);
 	RNA_def_property_ui_text(prop, "", "Set Controller state index (1 to 30)");
@@ -231,7 +231,7 @@ void RNA_def_controller(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Module", "Module name and function to run e.g. \"someModule.main\". Internal texts and external python files can be used");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
-	prop= RNA_def_property(srna, "debug", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_debug", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONT_PY_DEBUG);
 	RNA_def_property_ui_text(prop, "D", "Continuously reload the module from disk for editing external modules without restarting");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);

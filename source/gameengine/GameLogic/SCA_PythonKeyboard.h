@@ -30,7 +30,11 @@
 class SCA_PythonKeyboard : public PyObjectPlus
 {
 	Py_Header;
+private:
 	class SCA_IInputDevice *m_keyboard;
+#ifndef DISABLE_PYTHON
+	PyObject* m_event_dict;
+#endif
 public:
 	SCA_PythonKeyboard(class SCA_IInputDevice* keyboard);
 	virtual ~SCA_PythonKeyboard();

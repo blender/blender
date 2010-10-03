@@ -25,6 +25,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <string.h>
+#include <stddef.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -46,8 +49,6 @@
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #endif
-
-#include <string.h>
 
 /* struct */
 
@@ -571,13 +572,12 @@ int CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListB
 static void data_dir_add(ListBase *lb, const char *member)
 {
 	LinkData *link;
-
+	
 	if(strcmp(member, "scene") == 0) /* exception */
 		return;
 
-	for(link=lb->first; link; link=link->next)
-		if(strcmp(link->data, member) == 0)
-			return;
+	if(BLI_findstring(lb, member, offsetof(LinkData, data)))
+		return;
 	
 	link= MEM_callocN(sizeof(LinkData), "LinkData");
 	link->data= (void*)member;
@@ -701,7 +701,7 @@ Main *CTX_data_main(const bContext *C)
 {
 	Main *bmain;
 
-	if(ctx_data_pointer_verify(C, "main", (void*)&bmain))
+	if(ctx_data_pointer_verify(C, "blend_data", (void*)&bmain))
 		return bmain;
 	else
 		return C->data.main;

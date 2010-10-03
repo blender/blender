@@ -48,10 +48,14 @@ extern "C"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
 #include "ED_keyframing.h"
+#ifdef NAN_BUILDINFO
+extern char build_rev[];
+#endif
 }
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_blender.h" // version info
 #include "BKE_scene.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -158,47 +162,124 @@ like special chars (e.g. micro sign), umlauts and so on.
 The COLLADA spec also allows additional chars for member access ('.'), these
 must obviously be removed too, otherwise they would be heavily misinterpreted.
 */
-const unsigned char translate_map[256] = {
-	95, 95, 95, 95, 95, 95, 95, 95,
-	95, 95, 95, 95, 95, 95, 95, 95,
-	95, 95, 95, 95, 95, 95, 95, 95,
-	95, 95, 95, 95, 95, 95, 95, 95,
-	95, 95, 95, 95, 95, 95, 95, 95,
-	95, 95, 95, 95, 95, 45, 95, 95,
-	48, 49, 50, 51, 52, 53, 54, 55,
-	56, 57, 95, 95, 95, 95, 95, 95,
-	95, 65, 66, 67, 68, 69, 70, 71,
-	72, 73, 74, 75, 76, 77, 78, 79,
-	80, 81, 82, 83, 84, 85, 86, 87,
-	88, 89, 90, 95, 95, 95, 95, 95,
-	95, 97, 98, 99, 100, 101, 102, 103,
-	104, 105, 106, 107, 108, 109, 110, 111,
-	112, 113, 114, 115, 116, 117, 118, 119,
-	120, 121, 122, 95, 95, 95, 95, 95,
-	95, 95, 95, 95, 95, 95, 95, 95,
-	95, 95, 95, 95, 95, 95, 95, 95,
-	95, 95, 95, 95, 95, 95, 95, 95,
-	95, 95, 95, 95, 95, 95, 95, 95,
-	95, 95, 95, 95, 95, 95, 95, 95,
-	95, 95, 95, 95, 95, 95, 95, 95,
-	95, 95, 95, 95, 95, 95, 95, 183,
-	95, 95, 95, 95, 95, 95, 95, 95,
-	192, 193, 194, 195, 196, 197, 198, 199,
-	200, 201, 202, 203, 204, 205, 206, 207,
-	208, 209, 210, 211, 212, 213, 214, 95,
-	216, 217, 218, 219, 220, 221, 222, 223,
-	224, 225, 226, 227, 228, 229, 230, 231,
-	232, 233, 234, 235, 236, 237, 238, 239,
-	240, 241, 242, 243, 244, 245, 246, 95,
-	248, 249, 250, 251, 252, 253, 254, 255};
+const unsigned char translate_start_name_map[256] = {
+95,  95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+65,  66,  67,  68,  69,  70,  71,  72,
+73,  74,  75,  76,  77,  78,  79,  80,
+81,  82,  83,  84,  85,  86,  87,  88,
+89,  90,  95,  95,  95,  95,  95,  95,
+97,  98,  99,  100,  101,  102,  103,  104,
+105,  106,  107,  108,  109,  110,  111,  112,
+113,  114,  115,  116,  117,  118,  119,  120,
+121,  122,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  192,
+193,  194,  195,  196,  197,  198,  199,  200,
+201,  202,  203,  204,  205,  206,  207,  208,
+209,  210,  211,  212,  213,  214,  95,  216,
+217,  218,  219,  220,  221,  222,  223,  224,
+225,  226,  227,  228,  229,  230,  231,  232,
+233,  234,  235,  236,  237,  238,  239,  240,
+241,  242,  243,  244,  245,  246,  95,  248,
+249,  250,  251,  252,  253,  254,  255};
+
+const unsigned char translate_name_map[256] = {
+95,  95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  45,  95,  95,  48,
+49,  50,  51,  52,  53,  54,  55,  56,
+57,  95,  95,  95,  95,  95,  95,  95,
+65,  66,  67,  68,  69,  70,  71,  72,
+73,  74,  75,  76,  77,  78,  79,  80,
+81,  82,  83,  84,  85,  86,  87,  88,
+89,  90,  95,  95,  95,  95,  95,  95,
+97,  98,  99,  100,  101,  102,  103,  104,
+105,  106,  107,  108,  109,  110,  111,  112,
+113,  114,  115,  116,  117,  118,  119,  120,
+121,  122,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  95,  95,
+95,  95,  95,  95,  95,  95,  183,  95,
+95,  95,  95,  95,  95,  95,  95,  192,
+193,  194,  195,  196,  197,  198,  199,  200,
+201,  202,  203,  204,  205,  206,  207,  208,
+209,  210,  211,  212,  213,  214,  95,  216,
+217,  218,  219,  220,  221,  222,  223,  224,
+225,  226,  227,  228,  229,  230,  231,  232,
+233,  234,  235,  236,  237,  238,  239,  240,
+241,  242,  243,  244,  245,  246,  95,  248,
+249,  250,  251,  252,  253,  254,  255};
+
+typedef std::map< std::string, std::vector<std::string> > map_string_list;
+map_string_list global_id_map;
 
 /** Look at documentation of translate_map */
 static std::string translate_id(const std::string &id)
 {
+	if (id.size() == 0)
+	{ return id; }
 	std::string id_translated = id;
-	for (unsigned int i=0; i < id_translated.size(); i++)
+	id_translated[0] = translate_start_name_map[(unsigned int)id_translated[0]];
+	for (unsigned int i=1; i < id_translated.size(); i++)
 	{
-		id_translated[i] = translate_map[(unsigned int)id_translated[i]];
+		id_translated[i] = translate_name_map[(unsigned int)id_translated[i]];
+	}
+	// It's so much workload now, the if() should speed up things.
+	if (id_translated != id)
+	{
+		// Search duplicates
+		map_string_list::iterator iter = global_id_map.find(id_translated);
+		if (iter != global_id_map.end())
+		{
+			unsigned int i = 0;
+			bool found = false;
+			for (i=0; i < iter->second.size(); i++)
+			{
+				if (id == iter->second[i])
+				{ 
+					found = true;
+					break;
+				}
+			}
+			bool convert = false;
+			if (found)
+			{
+			  if (i > 0)
+			  { convert = true; }
+			}
+			else
+			{ 
+				convert = true;
+				global_id_map[id_translated].push_back(id);
+			}
+			if (convert)
+			{
+				std::stringstream out;
+				out << ++i;
+				id_translated += out.str();
+			}
+		}
+		else { global_id_map[id_translated].push_back(id); }
 	}
 	return id_translated;
 }
@@ -1296,7 +1377,7 @@ private:
 		int offset = 0;
 		input.push_back(COLLADASW::Input(COLLADASW::JOINT, // constant declared in COLLADASWInputList.h
 										 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, joints_source_id), offset++));
-        input.push_back(COLLADASW::Input(COLLADASW::WEIGHT,
+		input.push_back(COLLADASW::Input(COLLADASW::WEIGHT,
 										 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, weights_source_id), offset++));
 
 		weights.setCount(me->totvert);
@@ -1559,13 +1640,13 @@ public:
 		if (ma->spec_shader == MA_SPEC_BLINN) {
 			ep.setShaderType(COLLADASW::EffectProfile::BLINN);
 			// shininess
-			ep.setShininess(ma->spec);
+			ep.setShininess(ma->har);
 		}
 		else if (ma->spec_shader == MA_SPEC_PHONG) {
 			ep.setShaderType(COLLADASW::EffectProfile::PHONG);
 			// shininess
 			// XXX not sure, stolen this from previous Collada plugin
-			ep.setShininess(ma->har / 4);
+			ep.setShininess(ma->har);
 		}
 		else {
 			// XXX write warning "Current shader type is not supported" 
@@ -1582,17 +1663,19 @@ public:
 		COLLADASW::ColorOrTexture cot;
 
 		// transparency
-		// Tod: because we are in A_ONE mode transparency is calculated like this:
-		ep.setTransparency(1.0f);
-		cot = getcol(0.0f, 0.0f, 0.0f, ma->alpha);
-		ep.setTransparent(cot);
+		if (ma->mode & MA_TRANSP) {
+			// Tod: because we are in A_ONE mode transparency is calculated like this:
+			ep.setTransparency(ma->alpha);
+			// cot = getcol(1.0f, 1.0f, 1.0f, 1.0f);
+			// ep.setTransparent(cot);
+		}
 
 		// emission
 		cot=getcol(ma->emit, ma->emit, ma->emit, 1.0f);
 		ep.setEmission(cot);
 
-		// diffuse 
-		cot = getcol(ma->r, ma->g, ma->b, 1.0f);
+		// diffuse multiplied by diffuse intensity
+		cot = getcol(ma->r * ma->ref, ma->g * ma->ref, ma->b * ma->ref, 1.0f);
 		ep.setDiffuse(cot);
 
 		// ambient
@@ -1605,15 +1688,15 @@ public:
 			ep.setReflective(cot);
 			ep.setReflectivity(ma->ray_mirror);
 		}
-		else {
-			cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
-			ep.setReflective(cot);
-			ep.setReflectivity(ma->spec);
-		}
+		// else {
+		// 	cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
+		// 	ep.setReflective(cot);
+		// 	ep.setReflectivity(ma->spec);
+		// }
 
 		// specular
 		if (ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT) {
-			cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
+			cot = getcol(ma->specr * ma->spec, ma->specg * ma->spec, ma->specb * ma->spec, 1.0f);
 			ep.setSpecular(cot);
 		}	
 
@@ -1639,12 +1722,15 @@ public:
 
 			// create only one <sampler>/<surface> pair for each unique image
 			if (im_samp_map.find(key) == im_samp_map.end()) {
-				//<newparam> <surface> <init_from>
-			// 	COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
-// 										   key + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-// 				COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
-// 				sio.setImageReference(key);
-// 				surface.setInitOption(sio);
+				// //<newparam> <surface> <init_from>
+				// COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
+				// 						   key + COLLADASW::Surface::SURFACE_SID_SUFFIX);
+				// COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
+				// sio.setImageReference(key);
+				// surface.setInitOption(sio);
+
+				// COLLADASW::NewParamSurface surface(mSW);
+				// surface->setParamType(COLLADASW::CSW_SURFACE_TYPE_2D);
 				
 				//<newparam> <sampler> <source>
 				COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
@@ -1719,11 +1805,7 @@ public:
 				// most widespread de-facto standard.
 				texture.setProfileName("FCOLLADA");
 				texture.setChildElementName("bump");				
-#ifdef WIN32	// currently, Windows builds are using revision 746 of OpenCollada while Linux and Mac are using an older revision 721
 				ep.addExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
-#else
-				ep.setExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
-#endif
 			}
 		}
 		// performs the actual writing
@@ -1735,7 +1817,7 @@ public:
 				twoSided = true;
 		}
 		if (twoSided)
-			ep.addExtraTechniqueParameter("GOOGLEEARTH", "double_sided", 1);
+			ep.addExtraTechniqueParameter("GOOGLEEARTH", "show_double_sided", 1);
 		ep.addExtraTechniques(mSW);
 
 		ep.closeProfile();
@@ -1774,6 +1856,7 @@ public:
 
 		for (int a = 0; a < MAX_MTEX; a++) {
 			if (ma->mtex[a] &&
+				ma->mtex[a]->tex &&
 				ma->mtex[a]->tex->type == TEX_IMAGE &&
 				ma->mtex[a]->texco == TEXCO_UV){
 				indices.push_back(a);
@@ -2523,6 +2606,8 @@ protected:
 
 void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 {
+	global_id_map.clear();
+
 	COLLADABU::NativeString native_filename =
 		COLLADABU::NativeString(std::string(filename));
 	COLLADASW::StreamWriter sw(native_filename);
@@ -2535,6 +2620,15 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	// XXX ask blender devs about this?
 	asset.setUnit("decimetre", 0.1);
 	asset.setUpAxisType(COLLADASW::Asset::Z_UP);
+	// TODO: need an Author field in userpref
+	asset.getContributor().mAuthor = "Blender User";
+#ifdef NAN_BUILDINFO
+	char version_buf[128];
+	sprintf(version_buf, "Blender %d.%02d.%d r%s", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION, build_rev);
+	asset.getContributor().mAuthoringTool = version_buf;
+#else
+	asset.getContributor().mAuthoringTool = "Blender 2.5x";
+#endif
 	asset.add();
 	
 	// <library_cameras>
@@ -2595,4 +2689,3 @@ NOTES:
 * AnimationExporter::sample_animation enables all curves on armature, this is undesirable for a user
 
  */
-

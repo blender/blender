@@ -32,6 +32,7 @@
 #include "rna_internal.h"
 
 #include "DNA_modifier_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
@@ -238,12 +239,25 @@ static void rna_Particle_redo_child(Main *bmain, Scene *scene, PointerRNA *ptr)
 	particle_recalc(bmain, scene, ptr, PSYS_RECALC_CHILD);
 }
 
+static ParticleSystem *rna_particle_system_for_target(Object *ob, ParticleTarget *target)
+{
+	ParticleSystem *psys;
+	ParticleTarget *pt;
+
+	for(psys=ob->particlesystem.first; psys; psys=psys->next)
+		for(pt=psys->targets.first; pt; pt=pt->next)
+			if(pt == target)
+				return psys;
+	
+	return NULL;
+}
+
 static void rna_Particle_target_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	if(ptr->type==&RNA_ParticleTarget) {
-		ParticleTarget *pt = (ParticleTarget*)ptr->data;
 		Object *ob = (Object*)ptr->id.data;
-		ParticleSystem *kpsys=NULL, *psys=psys_get_current(ob);
+		ParticleTarget *pt = (ParticleTarget*)ptr->data;
+		ParticleSystem *kpsys=NULL, *psys=rna_particle_system_for_target(ob, pt);
 
 		if(pt->ob==ob || pt->ob==NULL) {
 			kpsys = BLI_findlink(&ob->particlesystem, pt->psys-1);
@@ -276,7 +290,8 @@ static void rna_Particle_target_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	if(ptr->type==&RNA_ParticleTarget) {
 		Object *ob = (Object*)ptr->id.data;
-		ParticleSystem *psys = psys_get_current(ob);
+		ParticleTarget *pt = (ParticleTarget*)ptr->data;
+		ParticleSystem *psys = rna_particle_system_for_target(ob, pt);
 		
 		psys->recalc = PSYS_RECALC_REDO;
 
@@ -301,16 +316,15 @@ static void rna_Particle_hair_dynamics(Main *bmain, Scene *scene, PointerRNA *pt
 }
 static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
 {
-	Object *ob= (Object*)ptr->id.data;
-	ParticleSettings *part = psys_get_current(ob)->part;
+	ParticleSystem *psys= (ParticleSystem*)ptr->data;
+	ParticleSettings *part = psys->part;
 
 	return rna_pointer_inherit_refine(ptr, &RNA_ParticleSettings, part);
 }
 
 static void rna_particle_settings_set(PointerRNA *ptr, PointerRNA value)
 {
-	Object *ob= (Object*)ptr->id.data;
-	ParticleSystem *psys = psys_get_current(ob);
+	ParticleSystem *psys= (ParticleSystem*)ptr->data;
 
 	if(psys->part)
 		psys->part->id.us--;
@@ -742,12 +756,12 @@ static void rna_def_particle_hair_key(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Weight", "Weight for cloth simulation");
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Location (Object Space)", "Location of the hair key in object space");
 	RNA_def_property_float_funcs(prop, "rna_ParticleHairKey_location_object_get", "rna_ParticleHairKey_location_object_set", NULL);
 	
-	prop= RNA_def_property(srna, "location_hairspace", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "co_hair_space", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "co");
 	RNA_def_property_ui_text(prop, "Location", "Location of the hair key in its internal coordinate system, relative to the emitting face");
 }
@@ -849,7 +863,7 @@ static void rna_def_particle(BlenderRNA *brna)
 
 	/* Hair & Keyed Keys */
 
-	prop= RNA_def_property(srna, "hair", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "is_hair", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "hair", "totkey");
 	RNA_def_property_struct_type(prop, "ParticleHairKey");
 	RNA_def_property_ui_text(prop, "Hair", "");
@@ -862,7 +876,7 @@ static void rna_def_particle(BlenderRNA *brna)
 //	float fuv[4], foffset;	/* coordinates on face/edge number "num" and depth along*/
 //							/* face normal for volume emission						*/
 
-	prop= RNA_def_property(srna, "birthtime", PROP_FLOAT, PROP_TIME);
+	prop= RNA_def_property(srna, "birth_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "time");
 //	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
 	RNA_def_property_ui_text(prop, "Birth Time", "");
@@ -888,7 +902,7 @@ static void rna_def_particle(BlenderRNA *brna)
 //	int totkey;
 
 	/* flag */
-	prop= RNA_def_property(srna, "is_existing", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_exist", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", PARS_UNEXIST);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Exists", "");
@@ -936,7 +950,7 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "SPH Fluid Settings", "Settings for particle fluids physics");
 	
 	/* Fluid settings */
- 	prop= RNA_def_property(srna, "spring_k", PROP_FLOAT, PROP_NONE);
+ 	prop= RNA_def_property(srna, "spring_force", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_k");
  	RNA_def_property_range(prop, 0.0f, 1.0f);
  	RNA_def_property_ui_text(prop, "Spring", "Spring force constant");
@@ -968,13 +982,13 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
  	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* Double density relaxation */
- 	prop= RNA_def_property(srna, "stiffness_k", PROP_FLOAT, PROP_NONE);
+ 	prop= RNA_def_property(srna, "stiffness", PROP_FLOAT, PROP_NONE);
  	RNA_def_property_float_sdna(prop, NULL, "stiffness_k");
  	RNA_def_property_range(prop, 0.0f, 100.0f);
  	RNA_def_property_ui_text(prop, "Stiffness ", "Constant K - Stiffness");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
   
- 	prop= RNA_def_property(srna, "stiffness_knear", PROP_FLOAT, PROP_NONE);
+ 	prop= RNA_def_property(srna, "stiffness_near", PROP_FLOAT, PROP_NONE);
  	RNA_def_property_float_sdna(prop, NULL, "stiffness_knear");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
  	RNA_def_property_ui_text(prop, "Repulsion", "Repulsion factor: stiffness_knear");
@@ -1058,13 +1072,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	};
 
 	//TODO: names, tooltips
+#if 0
 	static EnumPropertyItem rot_from_items[] = {
 		{PART_ROT_KEYS, "KEYS", 0, "keys", ""},
 		{PART_ROT_ZINCR, "ZINCR", 0, "zincr", ""},
 		{PART_ROT_IINCR, "IINCR", 0, "iincr", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-
+#endif
 	static EnumPropertyItem integrator_type_items[] = {
 		{PART_INT_EULER, "EULER", 0, "Euler", ""},
 		{PART_INT_VERLET, "VERLET", 0, "Verlet", ""},
@@ -1119,95 +1134,95 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_PARTICLE_DATA);
 
 	/* flag */
-	prop= RNA_def_property(srna, "react_start_end", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_react_start_end", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_REACT_STA_END);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Start/End", "Give birth to unreacted particles eventually");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "react_multiple", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_react_multiple", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_REACT_MULTIPLE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Multi React", "React multiple times");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "unborn", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_unborn", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_UNBORN);
 	RNA_def_property_ui_text(prop, "Unborn", "Show particles before they are emitted");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "died", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_dead", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_DIED);
 	RNA_def_property_ui_text(prop, "Died", "Show particles after they have died");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "trand", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_emit_random", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_TRAND);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Random", "Emit in random order of elements");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "even_distribution", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_even_distribution", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_EDISTR);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Even Distribution", "Use even distribution from faces based on face areas or edge lengths");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
  
-	prop= RNA_def_property(srna, "die_on_collision", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_die_on_collision", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_DIE_ON_COL);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Die on hit", "Particles die when they collide with a deflector object");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "size_deflect", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_size_deflect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_SIZE_DEFL);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Size Deflect", "Use particle's size in deflection");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "rotation_dynamic", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_dynamic_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_ROT_DYN);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Dynamic", "Sets rotation to dynamic/constant");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "sizemass", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_multiply_size_mass", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_SIZEMASS);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Mass from Size", "Multiply mass by particle size");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "boids_2d", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_boids_to_surface", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_BOIDS_2D);
 	RNA_def_property_ui_text(prop, "Boids 2D", "Constrain boids to a surface");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "branching", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_branching", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_BRANCHING);
 	RNA_def_property_ui_text(prop, "Branching", "Branch child paths from each other");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "animate_branching", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_animate_branching", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_ANIM_BRANCHING);
 	RNA_def_property_ui_text(prop, "Animated", "Animate branching");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "symmetric_branching", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_symmetric_branching", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_SYMM_BRANCHING);
 	RNA_def_property_ui_text(prop, "Symmetric", "Start and end points are the same");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "hair_bspline", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_hair_bspline", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_HAIR_BSPLINE);
 	RNA_def_property_ui_text(prop, "B-Spline", "Interpolate hair using B-Splines");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "grid_invert", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_grid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_GRID_INVERT);
 	RNA_def_property_ui_text(prop, "Invert", "Invert what is considered object and what is not");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "child_effector", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "apply_effector_to_children", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_EFFECT);
 	RNA_def_property_ui_text(prop, "Children", "Apply effectors to children");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
@@ -1217,12 +1232,12 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	//RNA_def_property_ui_text(prop, "Use seams", "Use seams to determine parents");
 	//RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "child_guide", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "apply_guide_to_children", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_GUIDE);
-	RNA_def_property_ui_text(prop, "child_guide", "");
+	RNA_def_property_ui_text(prop, "apply_guide_to_children", "");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "self_effect", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_self_effect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_SELF_EFFECT);
 	RNA_def_property_ui_text(prop, "Self Effect", "Particle effectors effect themselves");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -1279,7 +1294,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/*draw flag*/
-	prop= RNA_def_property(srna, "velocity", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_VEL);
 	RNA_def_property_ui_text(prop, "Velocity", "Show particle velocity");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
@@ -1289,37 +1304,37 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Size", "Show particle size");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "emitter", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_render_emitter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_EMITTER);
 	RNA_def_property_ui_text(prop, "Emitter", "Render emitter Object also");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "draw_health", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_health", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_HEALTH);
 	RNA_def_property_ui_text(prop, "Health", "Draw boid health");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "abs_path_time", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_absolute_path_time", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_ABS_PATH_TIME);
 	RNA_def_property_ui_text(prop, "Absolute Path Time", "Path timing is in absolute frames");
 	RNA_def_property_update(prop, 0, "rna_Particle_abspathtime_update");
 
-	prop= RNA_def_property(srna, "billboard_lock", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "lock_billboard", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_BB_LOCK);
 	RNA_def_property_ui_text(prop, "Lock Billboard", "Lock the billboards align axis");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "parent", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_parent_particles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_PARENT);
 	RNA_def_property_ui_text(prop, "Parents", "Render parent particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "num", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_number", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_NUM);
 	RNA_def_property_ui_text(prop, "Number", "Show particle number");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "rand_group", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_group_pick_random", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_RAND_GR);
 	RNA_def_property_ui_text(prop, "Pick Random", "Pick objects from group randomly");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
@@ -1334,39 +1349,39 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Global", "Use object's global coordinates for duplication");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "render_adaptive", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_render_adaptive", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_REN_ADAPT);
 	RNA_def_property_ui_text(prop, "Adaptive render", "Draw steps of the particle path");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "velocity_length", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_velocity_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_VEL_LENGTH);
 	RNA_def_property_ui_text(prop, "Speed", "Multiply line length by particle speed");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "material_color", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_material_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_MAT_COL);
 	RNA_def_property_ui_text(prop, "Material Color", "Draw particles using material's diffuse color");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "whole_group", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_whole_group", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_WHOLE_GR);
 	RNA_def_property_ui_text(prop, "Whole Group", "Use whole group at once");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "render_strand", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_strand_primitive", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_REN_STRAND);
 	RNA_def_property_ui_text(prop, "Strand render", "Use the strand primitive for rendering");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "draw_as", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "draw_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "draw_as");
 	RNA_def_property_enum_items(prop, part_draw_as_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_draw_as_itemf");
 	RNA_def_property_ui_text(prop, "Particle Drawing", "How particles are drawn in viewport");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "ren_as", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "render_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ren_as");
 	RNA_def_property_enum_items(prop, part_ren_as_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_ren_as_itemf");
@@ -1414,12 +1429,12 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 45);
 	RNA_def_property_ui_text(prop, "Degrees", "How many degrees path has to curve to make another render segment");
 
-	prop= RNA_def_property(srna, "adaptive_pix", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "adaptive_pixel", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "adapt_pix");
 	RNA_def_property_range(prop, 0, 50);
 	RNA_def_property_ui_text(prop, "Pixel", "How many pixels path has to cover to make another render segment");
 
-	prop= RNA_def_property(srna, "display", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "draw_percentage", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "disp");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Display", "Percentage of particles to display in 3D view");
@@ -1432,11 +1447,13 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 
-	//TODO: is this read only/internal?
+	// not used anywhere, why is this in DNA???
+#if 0
 	prop= RNA_def_property(srna, "rotate_from", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotfrom");
 	RNA_def_property_enum_items(prop, rot_from_items);
 	RNA_def_property_ui_text(prop, "Rotate From", "");
+#endif
 
 	prop= RNA_def_property(srna, "integrator", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, integrator_type_items);
@@ -1471,7 +1488,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, bb_anim_items);
 	RNA_def_property_ui_text(prop, "Animate", "How to animate billboard textures");
 
-	prop= RNA_def_property(srna, "billboard_split_offset", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "billboard_offset_split", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "bb_split_offset");
 	RNA_def_property_enum_items(prop, bb_split_offset_items);
 	RNA_def_property_ui_text(prop, "Offset", "How to offset billboard textures");
@@ -1482,7 +1499,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Tilt", "Tilt of the billboards");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "billboard_random_tilt", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "billboard_tilt_random", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "bb_rand_tilt");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Random Tilt", "Random tilt of the billboards");
@@ -1497,11 +1514,11 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	/* simplification */
-	prop= RNA_def_property(srna, "enable_simplify", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_simplify", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_flag", PART_SIMPLIFY_ENABLE);
 	RNA_def_property_ui_text(prop, "Child Simplification", "Remove child strands as the object becomes smaller on the screen");
 
-	prop= RNA_def_property(srna, "viewport", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_simplify_viewport", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_flag", PART_SIMPLIFY_VIEWPORT);
 	RNA_def_property_ui_text(prop, "Viewport", "");
 
@@ -1545,7 +1562,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lifetime", "Specify the life span of the particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "random_lifetime", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "lifetime_random", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "randlife");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Random", "Give the particle life a random variation");
@@ -1576,7 +1593,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Stiffness", "Hair stiffness for effectors");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "amount", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "count", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "totpart");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	/* This limit is for those freaks who have the machine power to handle it. */
@@ -1617,7 +1634,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Object", "Let the object give the particle a starting speed");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "random_factor", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "factor_random", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "randfac");//optional if prop names are the same
 	RNA_def_property_range(prop, 0.0f, 200.0f);
 	RNA_def_property_ui_range(prop, 0, 100, 1, 3);
@@ -1650,7 +1667,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Reactor", "Let the vector away from the target particles location give the particle a starting speed");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "object_aligned_factor", PROP_FLOAT, PROP_VELOCITY);
+	prop= RNA_def_property(srna, "object_align_factor", PROP_FLOAT, PROP_VELOCITY);
 	RNA_def_property_float_sdna(prop, NULL, "ob_vel");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, -200.0f, 200.0f);
@@ -1671,13 +1688,13 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Phase", "Initial rotation phase");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "random_rotation_factor", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "rotation_factor_random", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "randrotfac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Random Rotation", "Randomize rotation");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "random_phase_factor", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "phase_factor_random", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "randphasefac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Random Phase", "Randomize rotation phase");
@@ -1697,7 +1714,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Size", "The size of the particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "random_size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "size_random", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "randsize");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Random Size", "Give the particle size a random variation");
@@ -1724,14 +1741,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Brownian", "Specify the amount of Brownian motion");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "damp_factor", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "damping", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dampfac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Damp", "Specify the amount of damping");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* random length */
-	prop= RNA_def_property(srna, "random_length", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "length_random", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "randlength");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Random Length", "Give path length a random variation");
@@ -1745,7 +1762,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Children Per Parent", "Amount of children/parent");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "rendered_child_nbr", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "rendered_child_count", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ren_child_nbr");
 	RNA_def_property_range(prop, 0, 100000);
 	RNA_def_property_ui_range(prop, 0, 10000, 1, 0);
@@ -1764,7 +1781,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Child Size", "A multiplier for the child particle size");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "child_random_size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "child_size_random", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "childrandsize");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Random Child Size", "Random variation to the size of the child particles");
@@ -1789,7 +1806,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Clump", "Amount of clumping");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "clumppow", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "clump_shape", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clumppow");
 	RNA_def_property_range(prop, -0.999f, 0.999f);
 	RNA_def_property_ui_text(prop, "Shape", "Shape of clumping");
@@ -1818,46 +1835,49 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 
 	/* rough */
-	prop= RNA_def_property(srna, "rough1", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "roughness_1", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rough1");
 	RNA_def_property_range(prop, 0.0f, 100000.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Rough1", "Amount of location dependent rough");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "rough1_size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "roughness_1_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rough1_size");
 	RNA_def_property_range(prop, 0.01f, 100000.0f);
 	RNA_def_property_ui_range(prop, 0.01f, 10.0f, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Size1", "Size of location dependent rough");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "rough2", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "roughness_2", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rough2");
 	RNA_def_property_range(prop, 0.0f, 100000.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Rough2", "Amount of random rough");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "rough2_size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "roughness_2_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rough2_size");
 	RNA_def_property_range(prop, 0.01f, 100000.0f);
 	RNA_def_property_ui_range(prop, 0.01f, 10.0f, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Size2", "Size of random rough");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "rough2_thres", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "roughness_2_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rough2_thres");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Threshold", "Amount of particles left untouched by random rough");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "rough_endpoint", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "roughness_endpoint", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rough_end");
 	RNA_def_property_range(prop, 0.0f, 100000.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Rough Endpoint", "Amount of end point rough");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "rough_end_shape", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "roughness_end_shape", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rough_end_shape");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Shape", "Shape of end point rough");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
@@ -1868,7 +1888,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Length", "Length of child paths");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "child_length_thres", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "child_length_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clength_thres");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Threshold", "Amount of particles left untouched by child path length");
@@ -1943,7 +1963,8 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dupli Group", "Show Objects in this Group in place of particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "dupliweights", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "dupli_weights", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "dupliweights", NULL);
 	RNA_def_property_struct_type(prop, "ParticleDupliWeight");
 	RNA_def_property_ui_text(prop, "Dupli Group Weights", "Weights for all of the objects in the dupli group");
 
@@ -2037,12 +2058,13 @@ static void rna_def_particle_target(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Duration", "");
 	RNA_def_property_update(prop, 0, "rna_Particle_target_redo");
 
-	prop= RNA_def_property(srna, "valid", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTARGET_VALID);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Valid", "Keyed particles target is valid");
 
-	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "alliance", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, mode_items);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Mode", "");
@@ -2088,12 +2110,12 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* hair */
-	prop= RNA_def_property(srna, "global_hair", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_global_hair", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PSYS_GLOBAL_HAIR);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Global Hair", "Hair keys are in global coordinate space");
 
-	prop= RNA_def_property(srna, "hair_dynamics", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_hair_dynamics", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PSYS_HAIR_DYNAMICS);
 	RNA_def_property_ui_text(prop, "Hair Dynamics", "Enable hair dynamics using cloth simulation");
 	RNA_def_property_update(prop, 0, "rna_Particle_hair_dynamics");
@@ -2119,7 +2141,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* keyed */
-	prop= RNA_def_property(srna, "keyed_timing", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_keyed_timing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PSYS_KEYED_TIMING);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Keyed timing", "Use key times");
@@ -2170,7 +2192,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Density", "Vertex group to control density");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "vertex_group_density_negate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_vertex_group_density", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_DENSITY));
 	RNA_def_property_ui_text(prop, "Vertex Group Density Negate", "Negate the effect of the density vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -2180,7 +2202,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Velocity", "Vertex group to control velocity");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "vertex_group_velocity_negate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_vertex_group_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_VEL));
 	RNA_def_property_ui_text(prop, "Vertex Group Velocity Negate", "Negate the effect of the velocity vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -2190,7 +2212,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Length", "Vertex group to control length");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "vertex_group_length_negate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_vertex_group_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_LENGTH));
 	RNA_def_property_ui_text(prop, "Vertex Group Length Negate", "Negate the effect of the length vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
@@ -2200,7 +2222,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Clump", "Vertex group to control clump");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "vertex_group_clump_negate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_vertex_group_clump", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_CLUMP));
 	RNA_def_property_ui_text(prop, "Vertex Group Clump Negate", "Negate the effect of the clump vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
@@ -2210,27 +2232,27 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Kink", "Vertex group to control kink");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "vertex_group_kink_negate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_vertex_group_kink", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_KINK));
 	RNA_def_property_ui_text(prop, "Vertex Group Kink Negate", "Negate the effect of the kink vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "vertex_group_roughness1", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "vertex_group_roughness_1", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_5", "rna_ParticleVGroup_name_len_5", "rna_ParticleVGroup_name_set_5");
 	RNA_def_property_ui_text(prop, "Vertex Group Roughness 1", "Vertex group to control roughness 1");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "vertex_group_roughness1_negate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_vertex_group_roughness_1", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_ROUGH1));
 	RNA_def_property_ui_text(prop, "Vertex Group Roughness 1 Negate", "Negate the effect of the roughness 1 vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "vertex_group_roughness2", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "vertex_group_roughness_2", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_6", "rna_ParticleVGroup_name_len_6", "rna_ParticleVGroup_name_set_6");
 	RNA_def_property_ui_text(prop, "Vertex Group Roughness 2", "Vertex group to control roughness 2");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "vertex_group_roughness2_negate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_vertex_group_roughness_2", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_ROUGH2));
 	RNA_def_property_ui_text(prop, "Vertex Group Roughness 2 Negate", "Negate the effect of the roughness 2 vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
@@ -2240,7 +2262,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Roughness End", "Vertex group to control roughness end");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop= RNA_def_property(srna, "vertex_group_roughness_end_negate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_vertex_group_roughness_end", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_ROUGHE));
 	RNA_def_property_ui_text(prop, "Vertex Group Roughness End Negate", "Negate the effect of the roughness end vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
@@ -2250,7 +2272,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Size", "Vertex group to control size");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "vertex_group_size_negate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_vertex_group_size", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_SIZE));
 	RNA_def_property_ui_text(prop, "Vertex Group Size Negate", "Negate the effect of the size vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -2260,7 +2282,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Tangent", "Vertex group to control tangent");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "vertex_group_tangent_negate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_vertex_group_tangent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_TAN));
 	RNA_def_property_ui_text(prop, "Vertex Group Tangent Negate", "Negate the effect of the tangent vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -2270,7 +2292,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Rotation", "Vertex group to control rotation");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "vertex_group_rotation_negate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_vertex_group_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_ROT));
 	RNA_def_property_ui_text(prop, "Vertex Group Rotation Negate", "Negate the effect of the rotation vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -2280,7 +2302,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group Field", "Vertex group to control field");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "vertex_group_field_negate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "invert_vertex_group_field", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_EFFECTOR));
 	RNA_def_property_ui_text(prop, "Vertex Group Field Negate", "Negate the effect of the field vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -2292,7 +2314,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache", "");
 
-	prop= RNA_def_property(srna, "multiple_caches", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "has_multiple_caches", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_ParticleSystem_multiple_caches_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Multiple Caches", "Particle system has multiple point caches");
@@ -2305,12 +2327,12 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	/* hair or cache editing */
-	prop= RNA_def_property(srna, "editable", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_editable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_ParticleSystem_editable_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Editable", "Particle system can be edited in particle mode");
 
-	prop= RNA_def_property(srna, "edited", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_edited", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_ParticleSystem_edited_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Edited", "Particle system has been edited in particle mode");

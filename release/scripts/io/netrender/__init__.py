@@ -19,9 +19,7 @@
 # This directory is a Python package.
 
 # To support reload properly, try to access a package var, if it's there, reload everything
-try:
-    init_data
-
+if "init_data" in locals():
     reload(model)
     reload(operators)
     reload(client)
@@ -32,7 +30,7 @@ try:
     reload(balancing)
     reload(ui)
     reload(repath)
-except:
+else:
     from netrender import model
     from netrender import operators
     from netrender import client
@@ -49,8 +47,9 @@ slaves = []
 blacklist = []
 
 init_file = ""
-init_data = True
 init_address = True
+init_data = True
+
 
 def register():
     ui.addProperties()
@@ -58,5 +57,4 @@ def register():
 
 def unregister():
     import bpy
-    bpy.types.Scene.RemoveProperty("network_render")
-
+    del bpy.types.Scene.network_render

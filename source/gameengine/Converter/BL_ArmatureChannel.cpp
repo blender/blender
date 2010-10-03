@@ -197,8 +197,7 @@ int BL_ArmatureChannel::py_attr_setattr(void *self_v, const struct KX_PYATTRIBUT
 
 PyObject* BL_ArmatureChannel::py_attr_get_joint_rotation(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
-	BL_ArmatureChannel* self= static_cast<BL_ArmatureChannel*>(self_v);
-	bPoseChannel* pchan = self->m_posechannel;
+	bPoseChannel* pchan = static_cast<bPoseChannel*>(self_v);
 	// decompose the pose matrix in euler rotation
 	float rest_mat[3][3];
 	float pose_mat[3][3];

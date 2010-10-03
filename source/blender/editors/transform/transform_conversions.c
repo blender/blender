@@ -35,8 +35,6 @@
 #include <string.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_lattice_types.h"
@@ -47,40 +45,30 @@
 #include "DNA_sequence_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_meshdata_types.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
-#include "BKE_blender.h"
-#include "BKE_cloth.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
-#include "BKE_displist.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_effect.h"
-#include "BKE_font.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_lattice.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
-#include "BKE_mball.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_sequencer.h"
 #include "BKE_pointcache.h"
-#include "BKE_softbody.h"
-#include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
-#include "BKE_context.h"
-#include "BKE_report.h"
 #include "BKE_scene.h"
 
-#include "BIF_gl.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -114,20 +102,19 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list);
 
 /* ************************** Functions *************************** */
 
-static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail) {
-	TransData pivot = *head;
+static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail, TransData *temp) {
 	TransData *ihead = head;
 	TransData *itail = tail;
-	short connected = t->flag & T_PROP_CONNECTED;
+	*temp = *head;
 
 	while (head < tail)
 	{
-		if (connected) {
-			while ((tail->dist >= pivot.dist) && (head < tail))
+		if (t->flag & T_PROP_CONNECTED) {
+			while ((tail->dist >= temp->dist) && (head < tail))
 				tail--;
 		}
 		else {
-			while ((tail->rdist >= pivot.rdist) && (head < tail))
+			while ((tail->rdist >= temp->rdist) && (head < tail))
 				tail--;
 		}
 
@@ -137,12 +124,12 @@ static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail) {
 			head++;
 		}
 
-		if (connected) {
-			while ((head->dist <= pivot.dist) && (head < tail))
+		if (t->flag & T_PROP_CONNECTED) {
+			while ((head->dist <= temp->dist) && (head < tail))
 				head++;
 		}
 		else {
-			while ((head->rdist <= pivot.rdist) && (head < tail))
+			while ((head->rdist <= temp->rdist) && (head < tail))
 				head++;
 		}
 
@@ -153,16 +140,17 @@ static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail) {
 		}
 	}
 
-	*head = pivot;
+	*head = *temp;
 	if (ihead < head) {
-		qsort_trans_data(t, ihead, head-1);
+		qsort_trans_data(t, ihead, head-1, temp);
 	}
 	if (itail > head) {
-		qsort_trans_data(t, head+1, itail);
+		qsort_trans_data(t, head+1, itail, temp);
 	}
 }
 
 void sort_trans_data_dist(TransInfo *t) {
+	TransData temp;
 	TransData *start = t->data;
 	int i = 1;
 
@@ -170,7 +158,7 @@ void sort_trans_data_dist(TransInfo *t) {
 		start++;
 		i++;
 	}
-	qsort_trans_data(t, start, t->data + t->total - 1);
+	qsort_trans_data(t, start, t->data + t->total - 1, &temp);
 }
 
 static void sort_trans_data(TransInfo *t)
@@ -659,7 +647,8 @@ static void bone_children_clear_transflag(int mode, short around, ListBase *lb)
 	}
 }
 
-/* sets transform flags in the bones, returns total */
+/* sets transform flags in the bones
+ * returns total number of bones with BONE_TRANSFORM */
 int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 {
 	bArmature *arm= ob->data;
@@ -1543,7 +1532,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 
 static void createTransLatticeVerts(bContext *C, TransInfo *t)
 {
-	Lattice *latt = ((Lattice*)t->obedit->data)->editlatt;
+	Lattice *latt = ((Lattice*)t->obedit->data)->editlatt->latt;
 	TransData *td = NULL;
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];
@@ -3400,17 +3389,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
 		for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
-				if (sipo->around == V3D_LOCAL && !ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE)) {
-					/* for local-pivot we only need to count the number of selected handles only, so that centerpoints don't
-					 * don't get moved wrong
-					 */
-					if (bezt->ipo == BEZT_IPO_BEZ) {
-						if (bezt->f1 & SELECT) count++;
-						if (bezt->f3 & SELECT) count++;
-					}
-					else if (bezt->f2 & SELECT) count++; // TODO: could this cause problems?
-				}
-				else if (ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE)) {
+				if (ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE)) {
 					/* for 'normal' pivots - just include anything that is selected.
 					   this works a bit differently in translation modes */
 					if (bezt->f2 & SELECT) count++;
@@ -3419,6 +3398,17 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 						if (bezt->f3 & SELECT) count++;
 					}
 				} 
+				else if (sipo->around == V3D_LOCAL) {
+					/* for local-pivot we only need to count the number of selected handles only, so that centerpoints don't
+					 * don't get moved wrong
+					 */
+					if (bezt->ipo == BEZT_IPO_BEZ) {
+						if (bezt->f1 & SELECT) count++;
+						if (bezt->f3 & SELECT) count++;
+					}
+					/* else if (bezt->f2 & SELECT) count++; // TODO: could this cause problems? */
+					/* - yes this causes problems, because no td is created for the center point */
+				}
 				else {
 					/* for 'normal' pivots - just include anything that is selected */
 					if (bezt->f1 & SELECT) count++;
@@ -3512,34 +3502,32 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				}
 				
 				/* only include main vert if selected */
-				if (bezt->f2 & SELECT) {
+				if (bezt->f2 & SELECT && (sipo->around != V3D_LOCAL || ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE))) {
+
 					/* move handles relative to center */
 					if (ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE)) {
 						if (bezt->f1 & SELECT) td->flag |= TD_MOVEHANDLE1;
 						if (bezt->f3 & SELECT) td->flag |= TD_MOVEHANDLE2;
 					}
 					
-					/* if scaling around individuals centers, do not include keyframes */
-					if (sipo->around != V3D_LOCAL) {
-						/* if handles were not selected, store their selection status */
-						if (!(bezt->f1 & SELECT) && !(bezt->f3 & SELECT)) {
-							if (hdata == NULL)
-								hdata = initTransDataCurveHandles(td, bezt);
-						}
-						
-						bezt_to_transdata(td++, td2d++, adt, bezt, 1, 1, 0, intvals, mtx, smtx);
+					/* if handles were not selected, store their selection status */
+					if (!(bezt->f1 & SELECT) && !(bezt->f3 & SELECT)) {
+						if (hdata == NULL)
+							hdata = initTransDataCurveHandles(td, bezt);
 					}
+				
+					bezt_to_transdata(td++, td2d++, adt, bezt, 1, 1, 0, intvals, mtx, smtx);
 					
-					/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
-					 *	- Check if we've got entire BezTriple selected and we're scaling/rotating that point,
-					 *	  then check if we're using auto-handles.
-					 *	- If so, change them auto-handles to aligned handles so that handles get affected too
-					 */
-					if ((bezt->h1 == HD_AUTO) && (bezt->h2 == HD_AUTO) && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
-						if (h1 && h2) {
-							bezt->h1= HD_ALIGN;
-							bezt->h2= HD_ALIGN;
-						}
+				}
+				/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
+				 *	- Check if we've got entire BezTriple selected and we're scaling/rotating that point,
+				 *	  then check if we're using auto-handles.
+				 *	- If so, change them auto-handles to aligned handles so that handles get affected too
+				 */
+				if ((bezt->h1 == HD_AUTO) && (bezt->h2 == HD_AUTO) && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
+					if (hdata && (bezt->f1 & SELECT) && (bezt->f3 & SELECT)) {
+						bezt->h1= HD_ALIGN;
+						bezt->h2= HD_ALIGN;
 					}
 				}
 			}
@@ -3693,6 +3681,11 @@ static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totv
 			if (bezm->bezt->f2 & SELECT) {
 				if (td->loc2d == bezm->bezt->vec[1]) {
 					td->loc2d= (bezts + bezm->newIndex)->vec[1];
+
+					/* if only control point is selected, the handle pointers need to be updated as well */
+					td->h1= (bezts + bezm->newIndex)->vec[0];
+					td->h2= (bezts + bezm->newIndex)->vec[2];
+
 					adjusted[j] = 1;
 				}
 			}
@@ -4382,7 +4375,11 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 
 			/* if parent selected, deselect */
 			while(parsel) {
-				if(parsel->flag & SELECT) break;
+				if(parsel->flag & SELECT) {
+					Base *parbase = object_in_scene(parsel, scene);
+					if TESTBASELIB_BGMODE(v3d, scene, parbase)
+							break;
+				}
 				parsel= parsel->parent;
 			}
 
@@ -4923,8 +4920,13 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			BLI_freelistN(&anim_data);
 		}
 		
-		/* make sure all F-Curves are set correctly */
-		ANIM_editkeyframes_refresh(&ac);
+		/* Make sure all F-Curves are set correctly, but not if transform was
+		 * canceled, since then curves were already restored to initial state.
+		 * Note: if the refresh is really needed after cancel then some way
+		 *       has to be added to not update handle types (see bug 22289).
+		 */
+		if(!cancelled)
+			ANIM_editkeyframes_refresh(&ac);
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		bAnimContext ac;

@@ -24,27 +24,19 @@
  */
 
 #include "AUD_ReverseReader.h"
-#include "AUD_Buffer.h"
 
 #include <cstring>
 
+static const char* props_error = "AUD_ReverseReader: The reader has to be "
+								 "seekable and a finite length.";
+
 AUD_ReverseReader::AUD_ReverseReader(AUD_IReader* reader) :
-		AUD_EffectReader(reader)
+		AUD_EffectReader(reader),
+		m_length(reader->getLength()),
+		m_position(0)
 {
-	if(reader->getType() != AUD_TYPE_BUFFER)
-		AUD_THROW(AUD_ERROR_READER);
-
-	m_length = reader->getLength();
-	if(m_length < 0)
-		AUD_THROW(AUD_ERROR_READER);
-
-	m_position = 0;
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
-}
-
-AUD_ReverseReader::~AUD_ReverseReader()
-{
-	delete m_buffer; AUD_DELETE("buffer")
+	if(m_length < 0 || !reader->isSeekable())
+		AUD_THROW(AUD_ERROR_PROPS, props_error);
 }
 
 void AUD_ReverseReader::seek(int position)
@@ -52,12 +44,12 @@ void AUD_ReverseReader::seek(int position)
 	m_position = position;
 }
 
-int AUD_ReverseReader::getLength()
+int AUD_ReverseReader::getLength() const
 {
 	return m_length;
 }
 
-int AUD_ReverseReader::getPosition()
+int AUD_ReverseReader::getPosition() const
 {
 	return m_position;
 }
@@ -66,7 +58,7 @@ void AUD_ReverseReader::read(int & length, sample_t* & buffer)
 {
 	// first correct the length
 	if(m_position + length > m_length)
-		length = m_length-m_position;
+		length = m_length - m_position;
 
 	if(length <= 0)
 	{
@@ -78,10 +70,10 @@ void AUD_ReverseReader::read(int & length, sample_t* & buffer)
 	int samplesize = AUD_SAMPLE_SIZE(specs);
 
 	// resize buffer if needed
-	if(m_buffer->getSize() < length * samplesize)
-		m_buffer->resize(length * samplesize);
+	if(m_buffer.getSize() < length * samplesize)
+		m_buffer.resize(length * samplesize);
 
-	buffer = m_buffer->getBuffer();
+	buffer = m_buffer.getBuffer();
 
 	sample_t* buf;
 	int len = length;
@@ -105,5 +97,5 @@ void AUD_ReverseReader::read(int & length, sample_t* & buffer)
 
 	m_position += length;
 
-	buffer = m_buffer->getBuffer();
+	buffer = m_buffer.getBuffer();
 }

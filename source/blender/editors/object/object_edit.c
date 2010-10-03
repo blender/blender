@@ -34,7 +34,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf_types.h"
+#include "BLI_blenlib.h"
+#include "BLI_math.h"
+#include "BLI_editVert.h"
+#include "BLI_ghash.h"
+#include "BLI_rand.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
@@ -43,57 +47,38 @@
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_property_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_editVert.h"
-#include "BLI_ghash.h"
-#include "BLI_rand.h"
+#include "IMB_imbuf_types.h"
 
-#include "BKE_action.h"
 #include "BKE_anim.h"
-#include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
-#include "BKE_customdata.h"
-#include "BKE_blender.h"
-#include "BKE_cloth.h"
 #include "BKE_curve.h"
-#include "BKE_displist.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_effect.h"
 #include "BKE_font.h"
-#include "BKE_global.h"
-#include "BKE_group.h"
 #include "BKE_image.h"
-#include "BKE_key.h"
-#include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
-#include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h"
-#include "BKE_report.h"
 #include "BKE_sca.h"
-#include "BKE_scene.h"
 #include "BKE_softbody.h"
-#include "BKE_subsurf.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
 #include "BKE_modifier.h"
 
 #include "ED_armature.h"
 #include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_mball.h"
+#include "ED_lattice.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -954,14 +939,15 @@ void special_editmenu(Scene *scene, View3D *v3d)
 		static float weight= 1.0f;
 		{ // XXX
 // XXX		if(fbutton(&weight, 0.0f, 1.0f, 10, 10, "Set Weight")) {
-			int a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
-			BPoint *bp= lt->editlatt->def;
+			Lattice *editlt= lt->editlatt->latt;
+			int a= editlt->pntsu*editlt->pntsv*editlt->pntsw;
+			BPoint *bp= editlt->def;
 			
 			while(a--) {
 				if(bp->f1 & SELECT)
 					bp->weight= weight;
 				bp++;
-			}	
+			}
 		}
 	}
 

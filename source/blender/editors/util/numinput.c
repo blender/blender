@@ -30,8 +30,6 @@
 #include <math.h>			/* fabs */
 #include <stdio.h>			/* for sprintf		*/
 
-#include "BKE_global.h"		/* for G			*/
-#include "BKE_utildefines.h"	/* ABS */
 
 #include "WM_types.h"
 

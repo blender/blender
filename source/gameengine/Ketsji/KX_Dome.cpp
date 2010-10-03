@@ -2049,11 +2049,11 @@ void KX_Dome::RenderDomeFrame(KX_Scene* scene, KX_Camera* cam, int i)
 	m_rasterizer->SetViewMatrix(viewmat, cam->NodeGetWorldOrientation(), cam->NodeGetWorldPosition(), 1.0);
 	cam->SetModelviewMatrix(viewmat);
 
-	scene->CalculateVisibleMeshes(m_rasterizer,cam);
-	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
-	
 	// restore the original orientation
 	cam->NodeSetLocalOrientation(camori);
 	cam->NodeUpdateGS(0.f);
+
+	scene->CalculateVisibleMeshes(m_rasterizer,cam);
+	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
 }
 

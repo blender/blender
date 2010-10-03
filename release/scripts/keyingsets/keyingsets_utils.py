@@ -96,14 +96,14 @@ def get_transform_generators_base_info(data):
 # Location 
 def RKS_GEN_location(ksi, context, ks, data):
     # get id-block and path info
-    id_block, base_path, grouping= get_transform_generators_base_info(data)
+    id_block, base_path, grouping = get_transform_generators_base_info(data)
     
     # add the property name to the base path
     path = path_add_property(base_path, "location")
     
     # add Keying Set entry for this...
     if grouping:
-        ks.paths.add(id_block, path, grouping_method='NAMED', group_name=grouping)
+        ks.paths.add(id_block, path, group_method='NAMED', group_name=grouping)
     else:
         ks.paths.add(id_block, path)
 
@@ -116,14 +116,14 @@ def RKS_GEN_rotation(ksi, context, ks, data):
     #   rotation mode affects the property used
     if data.rotation_mode == 'QUATERNION':
         path = path_add_property(base_path, "rotation_quaternion")
-    elif data.rotation_mode == 'AXISANGLE':
+    elif data.rotation_mode == 'AXIS_ANGLE':
         path = path_add_property(base_path, "rotation_axis_angle")
     else:
         path = path_add_property(base_path, "rotation_euler")
     
     # add Keying Set entry for this...
     if grouping:
-        ks.paths.add(id_block, path, grouping_method='NAMED', group_name=grouping)
+        ks.paths.add(id_block, path, group_method='NAMED', group_name=grouping)
     else:
         ks.paths.add(id_block, path)
 
@@ -137,7 +137,7 @@ def RKS_GEN_scaling(ksi, context, ks, data):
     
     # add Keying Set entry for this...
     if grouping:
-        ks.paths.add(id_block, path, grouping_method='NAMED', group_name=grouping)
+        ks.paths.add(id_block, path, group_method='NAMED', group_name=grouping)
     else:
         ks.paths.add(id_block, path)
 
@@ -147,15 +147,11 @@ def RKS_GEN_scaling(ksi, context, ks, data):
 classes = []
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 if __name__ == "__main__":
     register()

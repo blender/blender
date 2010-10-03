@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 // don't show stl-warnings
 #pragma warning (disable:4786)
 #endif
@@ -72,6 +72,7 @@ extern "C" {
 	/***/
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
@@ -153,6 +154,10 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 #endif
 	
 	bgl::InitExtensions(true);
+
+	// VBO code for derived mesh is not compatible with BGE (couldn't find why), so disable
+	int disableVBO = (U.gameflags & USER_DISABLE_VBO);
+	U.gameflags |= USER_DISABLE_VBO;
 
 	do
 	{
@@ -388,9 +393,15 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				ketsjiengine->InitDome(scene->gm.dome.res, scene->gm.dome.mode, scene->gm.dome.angle, scene->gm.dome.resbuf, scene->gm.dome.tilt, scene->gm.dome.warptext);
 
 			// initialize 3D Audio Settings
-			AUD_set3DSetting(AUD_3DS_SPEED_OF_SOUND, scene->audio.speed_of_sound);
-			AUD_set3DSetting(AUD_3DS_DOPPLER_FACTOR, scene->audio.doppler_factor);
-			AUD_set3DSetting(AUD_3DS_DISTANCE_MODEL, scene->audio.distance_model);
+			AUD_setSpeedOfSound(scene->audio.speed_of_sound);
+			AUD_setDopplerFactor(scene->audio.doppler_factor);
+			AUD_setDistanceModel(AUD_DistanceModel(scene->audio.distance_model));
+
+			// from see blender.c:
+			// FIXME: this version patching should really be part of the file-reading code,
+			// but we still get too many unrelated data-corruption crashes otherwise...
+			if (blenderdata->versionfile < 250)
+				do_versions_ipos_to_animato(blenderdata);
 
 			if (sceneconverter)
 			{
@@ -557,6 +568,9 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 	
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 	
+	if (!disableVBO)
+		U.gameflags &= ~USER_DISABLE_VBO;
+
 	if (bfd) BLO_blendfiledata_free(bfd);
 
 	BLI_strncpy(G.sce, oldsce, sizeof(G.sce));

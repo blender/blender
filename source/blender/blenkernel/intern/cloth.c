@@ -27,6 +27,14 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_cloth_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
+
+#include "BLI_math.h"
+#include "BLI_edgehash.h"
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_cloth.h"
 #include "BKE_effect.h"
@@ -438,7 +446,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		return dm;
 	}
 
-	if(clmd->sim_parms->reset || (framenr == (startframe - clmd->sim_parms->preroll)))
+	if(clmd->sim_parms->reset || (framenr == (startframe - clmd->sim_parms->preroll) && clmd->sim_parms->preroll != 0))
 	{
 		clmd->sim_parms->reset = 0;
 		cache->flag |= PTCACHE_OUTDATED;
@@ -504,7 +512,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	}
 
 	/* try to read from cache */
-	cache_result = BKE_ptcache_read_cache(&pid, (float)framenr, scene->r.frs_sec);
+	cache_result = BKE_ptcache_read_cache(&pid, (float)framenr+scene->r.subframe, scene->r.frs_sec);
 
 	if(cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED) {
 		implicit_set_positions(clmd);

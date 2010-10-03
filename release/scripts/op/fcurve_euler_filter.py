@@ -7,7 +7,7 @@ def main(context):
         keys = []
 
         for k in fcv.keyframe_points:
-            keys.append([k.handle1.copy(), k.co.copy(), k.handle2.copy()])
+            keys.append([k.handle_left.copy(), k.co.copy(), k.handle_right.copy()])
         print(keys)
 
         for i in range(len(keys)):
@@ -15,7 +15,7 @@ def main(context):
             prev = keys[i-1] if i > 0 else None
             next = keys[i+1] if i < len(keys)-1 else None
 
-            if prev == None:
+            if prev is None:
                 continue
 
             th = pi
@@ -34,9 +34,9 @@ def main(context):
 
         for i in range(len(keys)):
             for x in range(2):
-               fcv.keyframe_points[i].handle1[x] = keys[i][0][x]
+               fcv.keyframe_points[i].handle_left[x] = keys[i][0][x]
                fcv.keyframe_points[i].co[x] = keys[i][1][x]
-               fcv.keyframe_points[i].handle2[x] = keys[i][2][x]
+               fcv.keyframe_points[i].handle_right[x] = keys[i][2][x]
 
     flist = bpy.context.active_object.animation_data.action.fcurves
     for f in flist:
@@ -48,7 +48,8 @@ class DiscontFilterOp(bpy.types.Operator):
     bl_idname = "graph.euler_filter"
     bl_label = "Filter out discontinuities in the active fcurves"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return context.active_object != None
 
     def execute(self, context):

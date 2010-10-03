@@ -276,7 +276,7 @@ extern StructRNA RNA_LimitScaleConstraint;
 extern StructRNA RNA_LockedTrackConstraint;
 extern StructRNA RNA_Macro;
 extern StructRNA RNA_MagicTexture;
-extern StructRNA RNA_Main;
+extern StructRNA RNA_BlendData;
 extern StructRNA RNA_MarbleTexture;
 extern StructRNA RNA_MaskModifier;
 extern StructRNA RNA_Material;
@@ -607,8 +607,9 @@ void RNA_struct_py_type_set(StructRNA *srna, void *py_type);
 void *RNA_struct_blender_type_get(StructRNA *srna);
 void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 
-struct IDProperty *RNA_struct_idproperties(PointerRNA *ptr, int create);
-int RNA_struct_idproperties_check(StructRNA *srna);
+struct IDProperty *RNA_struct_idprops(PointerRNA *ptr, int create);
+int RNA_struct_idprops_check(StructRNA *srna);
+int RNA_struct_idprops_register_check(StructRNA *type);
 
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);

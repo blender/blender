@@ -41,8 +41,6 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
-#include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -51,22 +49,14 @@
 #include "BKE_brush.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
-#include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
-#include "BKE_colortools.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -74,9 +64,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "ED_screen.h"
-#include "ED_sculpt.h"
 #include "ED_view3d.h"
-#include "ED_mesh.h"
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
@@ -736,7 +724,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float *point, const floa
 		/* Get strength by feeding the vertex 
 		   location directly into a texture */
 		externtex(mtex, point, &avg,
-			  &jnk, &jnk, &jnk, &jnk);
+			  &jnk, &jnk, &jnk, &jnk, 0);
 	}
 	else if(ss->texcache) {
 		float rotation = -mtex->rot;
@@ -2738,10 +2726,24 @@ static int sculpt_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *ev
 {
 	Paint *p = paint_get_active(CTX_data_scene(C));
 	Brush *brush = paint_brush(p);
+	float col[4], tex_col[4];
 
 	WM_paint_cursor_end(CTX_wm_manager(C), p->paint_cursor);
 	p->paint_cursor = NULL;
 	brush_radial_control_invoke(op, brush, 1);
+
+	if((brush->flag & BRUSH_DIR_IN) && ELEM4(brush->sculpt_tool, SCULPT_TOOL_DRAW, SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY, SCULPT_TOOL_PINCH))
+		copy_v3_v3(col, brush->sub_col);
+	else
+		copy_v3_v3(col, brush->add_col);
+	col[3]= 0.5f;
+									    
+	copy_v3_v3(tex_col, U.sculpt_paint_overlay_col);
+	tex_col[3]= (brush->texture_overlay_alpha / 100.0f);
+
+	RNA_float_set_array(op->ptr, "color", col);
+	RNA_float_set_array(op->ptr, "texture_color", tex_col);
+
 	return WM_radial_control_invoke(C, op, event);
 }
 

@@ -42,21 +42,12 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
-#include "BKE_action.h"
-#include "BKE_animsys.h"
 #include "BKE_context.h"
-#include "BKE_curve.h"
-#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
-#include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
-#include "BIF_gl.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -159,7 +150,7 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 				uiItemR(row, &sceneptr, "frame_current", 0, "Cursor X", 0);
 				uiItemEnumO(row, "GRAPH_OT_snap", "To Keys", 0, "type", GRAPHKEYS_SNAP_CFRA);
 			row= uiLayoutSplit(subcol, 0.7, 1);
-				uiItemR(row, &spaceptr, "cursor_value", 0, "Cursor Y", 0);
+				uiItemR(row, &spaceptr, "cursor_position_y", 0, "Cursor Y", 0);
 				uiItemEnumO(row, "GRAPH_OT_snap", "To Keys", 0, "type", GRAPHKEYS_SNAP_VALUE);
 }
 
@@ -193,7 +184,7 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 		
 	/* RNA-Path Editing - only really should be enabled when things aren't working */
 	col= uiLayoutColumn(layout, 1);
-		uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED)); 
+		uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED)!=0); 
 		uiItemR(col, &fcu_ptr, "data_path", 0, "", ICON_RNA);
 		uiItemR(col, &fcu_ptr, "array_index", 0, NULL, 0);
 		
@@ -281,11 +272,11 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 			
 			/* previous handle - only if previous was Bezier interpolation */
 			if ((prevbezt) && (prevbezt->ipo == BEZT_IPO_BEZ))
-				uiItemR(col, &bezt_ptr, "handle1", 0, NULL, 0);
+				uiItemR(col, &bezt_ptr, "handle_left", 0, NULL, 0);
 			
 			/* next handle - only if current is Bezier interpolation */
 			if (bezt->ipo == BEZT_IPO_BEZ)
-				uiItemR(col, &bezt_ptr, "handle2", 0, NULL, 0);
+				uiItemR(col, &bezt_ptr, "handle_right", 0, NULL, 0);
 	}
 	else
 		uiItemL(layout, "No active keyframe on F-Curve", 0);
@@ -466,7 +457,7 @@ static void graph_panel_driverVar__locDiff(const bContext *C, uiLayout *layout, 
 			uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 		
-		uiItemR(col, &dtar_ptr, "use_local_space_transforms", 0, NULL, 0);
+		uiItemR(col, &dtar_ptr, "use_local_space_transform", 0, NULL, 0);
 	
 	col= uiLayoutColumn(layout, 1);
 		uiTemplateAnyID(col, (bContext *)C, &dtar2_ptr, "id", "id_type", "Ob/Bone 2:");
@@ -478,7 +469,7 @@ static void graph_panel_driverVar__locDiff(const bContext *C, uiLayout *layout, 
 			uiItemPointerR(col, &dtar2_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 		}
 		
-		uiItemR(col, &dtar2_ptr, "use_local_space_transforms", 0, NULL, 0);
+		uiItemR(col, &dtar2_ptr, "use_local_space_transform", 0, NULL, 0);
 }
 
 /* settings for 'transform channel' driver variable type */
@@ -505,7 +496,7 @@ static void graph_panel_driverVar__transChan(const bContext *C, uiLayout *layout
 		
 		row= uiLayoutRow(layout, 1);
 			uiItemR(row, &dtar_ptr, "transform_type", 0, "", 0);
-			uiItemR(row, &dtar_ptr, "use_local_space_transforms", 0, NULL, 0);
+			uiItemR(row, &dtar_ptr, "use_local_space_transform", 0, NULL, 0);
 }
 
 /* driver settings for active F-Curve (only for 'Drivers' mode) */

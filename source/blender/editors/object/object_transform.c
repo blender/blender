@@ -43,12 +43,10 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -57,7 +55,6 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
-#include "ED_curve.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -71,7 +68,16 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+	KeyingSet *ks;
+	
+	/* get KeyingSet to use 
+	 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
+	 * 	  or otherwise key transforms only
+	 */
+	if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
+		ks = ANIM_scene_get_active_keyingset(scene);
+	else 
+		ks = ANIM_builtin_keyingset_get_named(NULL, "Location");
 	
 	/* clear location of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
@@ -130,7 +136,16 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+	KeyingSet *ks;
+	
+	/* get KeyingSet to use 
+	 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
+	 * 	  or otherwise key transforms only
+	 */
+	if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
+		ks = ANIM_scene_get_active_keyingset(scene);
+	else 
+		ks = ANIM_builtin_keyingset_get_named(NULL, "Rotation");
 	
 	/* clear rotation of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
@@ -273,7 +288,16 @@ static int object_scale_clear_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
+	KeyingSet *ks;
+	
+	/* get KeyingSet to use 
+	 *	- use the active KeyingSet if defined (and user wants to use it for all autokeying), 
+	 * 	  or otherwise key transforms only
+	 */
+	if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (scene->active_keyingset))
+		ks = ANIM_scene_get_active_keyingset(scene);
+	else 
+		ks = ANIM_builtin_keyingset_get_named(NULL, "Scaling");
 	
 	/* clear scales of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {

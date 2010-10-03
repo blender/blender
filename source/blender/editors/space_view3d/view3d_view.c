@@ -52,8 +52,6 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_utildefines.h"
 #include "BKE_depsgraph.h" /* for fly mode updating */
 
 
@@ -308,7 +306,10 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(rv3d->smooth_timer==NULL || rv3d->smooth_timer!=event->customdata)
 		return OPERATOR_PASS_THROUGH;
 	
-	step =  (rv3d->smooth_timer->duration)/sms->time_allowed;
+	if(sms->time_allowed != 0.0f)
+		step = (rv3d->smooth_timer->duration)/sms->time_allowed;
+	else
+		step = 1.0f;
 	
 	/* end timer */
 	if(step >= 1.0f) {
@@ -401,6 +402,10 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *op)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+
+	copy_qt_qt(rv3d->lviewquat, rv3d->viewquat);
+	rv3d->lview= rv3d->view;
+	rv3d->lpersp= rv3d->persp;
 
 	setcameratoview3d(v3d, rv3d, v3d->camera);
 	rv3d->persp = RV3D_CAMOB;
@@ -588,11 +593,13 @@ void viewvector(RegionView3D *rv3d, float coord[3], float vec[3])
 	normalize_v3(vec);
 }
 
-void initgrabz(RegionView3D *rv3d, float x, float y, float z)
+int initgrabz(RegionView3D *rv3d, float x, float y, float z)
 {
-	if(rv3d==NULL) return;
+	int flip= FALSE;
+	if(rv3d==NULL) return flip;
 	rv3d->zfac= rv3d->persmat[0][3]*x+ rv3d->persmat[1][3]*y+ rv3d->persmat[2][3]*z+ rv3d->persmat[3][3];
-	
+	if (rv3d->zfac < 0.0f)
+		flip= TRUE;
 	/* if x,y,z is exactly the viewport offset, zfac is 0 and we don't want that 
 		* (accounting for near zero values)
 		* */
@@ -605,6 +612,8 @@ void initgrabz(RegionView3D *rv3d, float x, float y, float z)
 	// 	-- Aligorith, 2009Aug31
 	//if (rv3d->zfac < 0.0f) rv3d->zfac = 1.0f;
 	if (rv3d->zfac < 0.0f) rv3d->zfac= -rv3d->zfac;
+	
+	return flip;
 }
 
 /* always call initgrabz */
@@ -1779,7 +1788,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 
 	if(rv3d->persp==RV3D_CAMOB && startscene->gm.framing.type == SCE_GAMEFRAMING_BARS && startscene->gm.stereoflag != STEREO_DOME) { /* Letterbox */
 		rctf cam_framef;
-		calc_viewborder(startscene, ar, rv3d, CTX_wm_view3d(C), &cam_framef);
+		view3d_calc_camera_border(startscene, ar, rv3d, CTX_wm_view3d(C), &cam_framef);
 		cam_frame.xmin = cam_framef.xmin + ar->winrct.xmin;
 		cam_frame.xmax = cam_framef.xmax + ar->winrct.xmin;
 		cam_frame.ymin = cam_framef.ymin + ar->winrct.ymin;
@@ -2713,3 +2722,7 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 	}
 }
 
+int view3d_is_ortho(View3D *v3d, RegionView3D *rv3d)
+{
+	return (rv3d->persp == RV3D_ORTHO || (v3d->camera && ((Camera *)v3d->camera->data)->type == CAM_ORTHO));
+}

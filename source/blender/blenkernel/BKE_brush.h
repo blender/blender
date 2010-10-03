@@ -62,7 +62,7 @@ float brush_curve_strength_clamp(struct Brush *br, float p, const float len);
 float brush_curve_strength(struct Brush *br, float p, const float len); /* used for sculpt */
 
 /* sampling */
-void brush_sample_tex(struct Brush *brush, float *xy, float *rgba);
+void brush_sample_tex(struct Brush *brush, float *xy, float *rgba, const int thread);
 void brush_imbuf_new(struct Brush *brush, short flt, short texfalloff, int size,
 	struct ImBuf **imbuf);
 

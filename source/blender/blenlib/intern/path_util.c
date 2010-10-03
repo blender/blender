@@ -48,6 +48,12 @@
 
 #include "GHOST_Path-api.h"
 
+#if defined WIN32 && !defined _LIBC
+# include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
+#else
+# define _GNU_SOURCE
+# include <fnmatch.h>
+#endif
 
 #ifdef WIN32
 #include <io.h>
@@ -311,10 +317,17 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 	   dir[0]= '/';
 	   dir[1]= 0;
 	   return;
-	}	
+	}
+
+	/* support for odd paths: eg /../home/me --> /home/me
+	 * this is a valid path in blender but we cant handle this the useual way below
+	 * simply strip this prefix then evaluate the path as useual. pythons os.path.normpath() does this */
+	while((strncmp(dir, "/../", 4)==0)) {
+		memmove( dir, dir + 4, strlen(dir + 4) + 1 );
+	}
 
 	while ( (start = strstr(dir, "/../")) ) {
-		eind = start + strlen("/../") - 1;
+		eind = start + (4 - 1) /* strlen("/../") - 1 */;
 		a = start-dir-1;
 		while (a>0) {
 			if (dir[a] == '/') break;
@@ -328,12 +341,12 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 	}
 
 	while ( (start = strstr(dir,"/./")) ){
-		eind = start + strlen("/./") - 1;
+		eind = start + (3 - 1) /* strlen("/./") - 1 */;
 		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	while ( (start = strstr(dir,"//" )) ){
-		eind = start + strlen("//") - 1;
+		eind = start + (2 - 1) /* strlen("//") - 1 */;
 		memmove( start, eind, strlen(eind)+1 );
 	}
 
@@ -586,7 +599,7 @@ int BLI_path_abs(char *path, const char *basepath)
 		BLI_strncpy(tmp, path, FILE_MAX);
 	}
 #else
-	BLI_strncpy(tmp, path, FILE_MAX);
+	BLI_strncpy(tmp, path, sizeof(tmp));
 	
 	/* Check for loading a windows path on a posix system
 	 * in this case, there is no use in trying C:/ since it 
@@ -603,7 +616,7 @@ int BLI_path_abs(char *path, const char *basepath)
 	
 #endif
 
-	BLI_strncpy(base, basepath, FILE_MAX);
+	BLI_strncpy(base, basepath, sizeof(base));
 	
 	BLI_cleanup_file(NULL, base);
 	
@@ -626,17 +639,19 @@ int BLI_path_abs(char *path, const char *basepath)
 			BLI_strncpy(path, tmp+2, FILE_MAX);
 			
 			memcpy(tmp, base, baselen);
-			strcpy(tmp+baselen, path);
-			strcpy(path, tmp);
+			BLI_strncpy(tmp+baselen, path, sizeof(tmp)-baselen);
+			BLI_strncpy(path, tmp, FILE_MAX);
 		} else {
-			strcpy(path, tmp+2);
+			BLI_strncpy(path, tmp+2, FILE_MAX);
 		}
 	} else {
-		strcpy(path, tmp);
+		BLI_strncpy(path, tmp, FILE_MAX);
 	}
 	
 	if (path[0]!='\0') {
 		if ( path[strlen(path)-1]=='/') {
+			/* remove the '/' so we avoid BLI_cleanup_dir adding an extra \ in WIN32 */
+			path[strlen(path)-1] = '\0';
 			BLI_cleanup_dir(NULL, path);
 		} else {
 			BLI_cleanup_file(NULL, path);
@@ -1160,7 +1175,7 @@ void BLI_make_existing_file(char *name)
 {
 	char di[FILE_MAXDIR+FILE_MAXFILE], fi[FILE_MAXFILE];
 
-	strcpy(di, name);
+	BLI_strncpy(di, name, sizeof(di));
 	BLI_splitdirstring(di, fi);
 	
 	/* test exist */
@@ -1275,6 +1290,36 @@ int BLI_testextensie_array(const char *str, const char **ext_array)
 	}
 	return 0;
 }
+
+/* semicolon separated wildcards, eg:
+ *  '*.zip;*.py;*.exe' */
+int BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
+{
+	const char *ext_step= ext_fnmatch;
+	char pattern[16];
+
+	while(ext_step[0]) {
+		char *ext_next;
+		int len_ext;
+
+		if((ext_next=strchr(ext_step, ';'))) {
+			len_ext= (int)(ext_next - ext_step) + 1;
+		}
+		else {
+			len_ext= sizeof(pattern);
+		}
+
+		BLI_strncpy(pattern, ext_step, len_ext);
+
+		if(fnmatch(pattern, str, FNM_CASEFOLD)==0) {
+			return 1;
+		}
+		ext_step += len_ext;
+	}
+
+	return 0;
+}
+
 
 int BLI_replace_extension(char *path, int maxlen, const char *ext)
 {

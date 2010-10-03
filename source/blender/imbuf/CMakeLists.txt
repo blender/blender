@@ -29,19 +29,19 @@ FILE(GLOB SRC intern/*.c)
 
 SET(INC 
 	.
-	../makesdna
-	../../../intern/guardedalloc
-	../../../intern/memutil
-	../blenlib
 	../avi
+	../blenlib
 	../blenkernel
+	../makesdna
+	../../../intern/memutil
+	../../../intern/guardedalloc
 	${JPEG_INC}
 	${PNG_INC}
 	${ZLIB_INC}
 )
 
 IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
+	LIST(APPEND INC ${PTHREADS_INC})
 ENDIF(WIN32)
 
 IF(WITH_IMAGE_OPENEXR)

@@ -23,6 +23,8 @@
 
 #ifdef WITH_OPENJPEG
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
@@ -88,7 +90,7 @@ void info_callback(const char *msg, void *client_data) {
 
 
 
-struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
+struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 {
 	struct ImBuf *ibuf = 0;
 	int use_float = 0; /* for precision higher then 8 use float */
@@ -287,7 +289,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, int size, int flags)
 
 
 /*
-2048x1080 (2K) at 24 fps or 48 fps, or 4096x2160 (4K) at 24 fps; 3×12 bits per pixel, XYZ color space
+2048x1080 (2K) at 24 fps or 48 fps, or 4096x2160 (4K) at 24 fps; 3x12 bits per pixel, XYZ color space
 
 	* In 2K, for Scope (2.39:1) presentation 2048x858 pixels of the imager is used
 	* In 2K, for Flat (1.85:1) presentation 1998x1080 pixels of the imager is used

@@ -32,7 +32,7 @@
 #include <math.h>
 #include <float.h>
 
-#include "MEM_guardedalloc.h"
+#include "BLO_sys_types.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -43,12 +43,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_view3d_types.h"
 
-#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
-#include "BKE_sequencer.h"
 #include "BKE_utildefines.h"
 
 
@@ -59,6 +58,7 @@
 
 #include "ED_gpencil.h"
 #include "ED_sequencer.h"
+#include "ED_view3d.h"
 
 
 #include "gpencil_intern.h"
@@ -167,8 +167,8 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sfl
 			co[1]= (points->y * winy) + offsy;
 		}
 		else {
-			co[0]= (points->x / 100 * winx);
-			co[1]= (points->y / 100 * winy);
+			co[0]= (points->x / 100 * winx) + offsx;
+			co[1]= (points->y / 100 * winy) + offsy;
 		}
 		
 		/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, simple dot looks ok
@@ -268,8 +268,8 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				glVertex2f(x, y);
 			}
 			else {
-				const float x= (pt->x / 100 * winx);
-				const float y= (pt->y / 100 * winy);
+				const float x= (pt->x / 100 * winx) + offsx;
+				const float y= (pt->y / 100 * winy) + offsy;
 				
 				glVertex2f(x, y);
 			}
@@ -308,10 +308,10 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				s1[1]= (pt2->y * winy) + offsy;
 			}
 			else {
-				s0[0]= (pt1->x / 100 * winx);
-				s0[1]= (pt1->y / 100 * winy);
-				s1[0]= (pt2->x / 100 * winx);
-				s1[1]= (pt2->y / 100 * winy);
+				s0[0]= (pt1->x / 100 * winx) + offsx;
+				s0[1]= (pt1->y / 100 * winy) + offsy;
+				s1[0]= (pt2->x / 100 * winx) + offsx;
+				s1[1]= (pt2->y / 100 * winy) + offsy;
 			}		
 			
 			/* calculate gradient and normal - 'angle'=(ny/nx) */
@@ -456,8 +456,8 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				glVertex2f(x, y);
 			}
 			else {
-				const float x= (float)(pt->x / 100 * winx);
-				const float y= (float)(pt->y / 100 * winy);
+				const float x= (float)(pt->x / 100 * winx) + offsx;
+				const float y= (float)(pt->y / 100 * winy) + offsy;
 				
 				glVertex2f(x, y);
 			}
@@ -735,25 +735,44 @@ void draw_gpencil_view2d (bContext *C, short onlyv2d)
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly 
  * Note: this gets called twice - first time with only3d=1 to draw 3d-strokes, second time with only3d=0 for screen-aligned strokes
  */
-void draw_gpencil_view3d_ext (Scene *scene, ARegion *ar, short only3d)
+
+void draw_gpencil_view3d_ext (Scene *scene, View3D *v3d, ARegion *ar, short only3d)
 {
 	bGPdata *gpd;
 	int dflag = 0;
+	rcti rect;
+	RegionView3D *rv3d= ar->regiondata;
 
 	/* check that we have grease-pencil stuff to draw */
 	gpd= gpencil_data_get_active_v3d(scene); // XXX
 	if(gpd == NULL) return;
 
+	/* when rendering to the offscreen buffer we dont want to
+	 * deal with the camera border, otherwise map the coords to the camera border. */
+	if(rv3d->persp == RV3D_CAMOB && !(G.f & G_RENDER_OGL)) {
+		rctf rectf;
+		view3d_calc_camera_border(scene, ar, rv3d, v3d, &rectf);
+		BLI_copy_rcti_rctf(&rect, &rectf);
+	}
+	else {
+		rect.xmin= 0;
+		rect.ymin= 0;
+		rect.xmax= ar->winx;
+		rect.ymax= ar->winy;
+	}
+	
 	/* draw it! */
 	if (only3d) dflag |= (GP_DRAWDATA_ONLY3D|GP_DRAWDATA_NOSTATUS);
-	gp_draw_data(gpd, 0, 0, ar->winx, ar->winy, CFRA, dflag);
+
+	gp_draw_data(gpd, rect.xmin, rect.ymin, rect.xmax, rect.ymax, CFRA, dflag);
 }
 
 void draw_gpencil_view3d (bContext *C, short only3d)
 {
 	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
-	draw_gpencil_view3d_ext(scene, ar, only3d);
+	draw_gpencil_view3d_ext(scene, v3d, ar, only3d);
 }
 
 /* ************************************************** */

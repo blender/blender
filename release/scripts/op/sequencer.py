@@ -30,7 +30,8 @@ class SequencerCrossfadeSounds(bpy.types.Operator):
     bl_label = "Crossfade sounds"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         if context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip:
             return context.scene.sequence_editor.active_strip.type == 'SOUND'
         else:
@@ -41,14 +42,14 @@ class SequencerCrossfadeSounds(bpy.types.Operator):
         seq2 = None
         for s in context.scene.sequence_editor.sequences:
             if s.select and s.type == 'SOUND':
-                if seq1 == None:
+                if seq1 is None:
                     seq1 = s
-                elif seq2 == None:
+                elif seq2 is None:
                     seq2 = s
                 else:
                     seq2 = None
                     break
-        if seq2 == None:
+        if seq2 is None:
             self.report({'ERROR'}, "Select 2 sound strips.")
             return {'CANCELLED'}
         if seq1.frame_final_start > seq2.frame_final_start:
@@ -83,14 +84,15 @@ class SequencerCutMulticam(bpy.types.Operator):
     camera = IntProperty(name="Camera",
             default=1, min=1, max=32, soft_min=1, soft_max=32)
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         if context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip:
             return context.scene.sequence_editor.active_strip.type == 'MULTICAM'
         else:
             return False
 
     def execute(self, context):
-        camera = self.properties.camera
+        camera = self.camera
 
         s = context.scene.sequence_editor.active_strip
 
@@ -117,7 +119,8 @@ class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
     bl_label = "Deinterlace Movies"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         if context.scene and context.scene.sequence_editor:
             return True
         else:
@@ -126,7 +129,7 @@ class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
     def execute(self, context):
         for s in context.scene.sequence_editor.sequences_all:
             if s.select and s.type == 'MOVIE':
-                s.de_interlace = True
+                s.use_deinterlace = True
 
         return {'FINISHED'}
 

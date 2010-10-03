@@ -38,7 +38,6 @@
 #else
 #include <io.h>
 #endif
-#include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_group_types.h"
@@ -46,6 +45,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
@@ -67,10 +68,6 @@
 
 //XXX #include "BIF_previewrender.h"
 //XXX #include "BIF_editseq.h"
-
-#ifndef DISABLE_PYTHON
-#include "BPY_extern.h"
-#endif
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -320,11 +317,12 @@ void free_scene(Scene *sce)
 
 Scene *add_scene(char *name)
 {
+	Main *bmain= G.main;
 	Scene *sce;
 	ParticleEditSettings *pset;
 	int a;
 
-	sce= alloc_libblock(&G.main->scene, ID_SCE, name);
+	sce= alloc_libblock(&bmain->scene, ID_SCE, name);
 	sce->lay= sce->layact= 1;
 	
 	sce->r.mode= R_GAMMA|R_OSA|R_SHADOW|R_SSS|R_ENVMAP|R_RAYTRACE;
@@ -603,7 +601,7 @@ void unlink_scene(Main *bmain, Scene *sce, Scene *newsce)
 			sce1->set= NULL;
 	
 	/* check all sequences */
-	clear_scene_in_allseqs(sce);
+	clear_scene_in_allseqs(bmain, sce);
 
 	/* check render layer nodes in other scenes */
 	clear_scene_in_nodes(bmain, sce);

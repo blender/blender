@@ -27,17 +27,15 @@
 
 AUD_EffectReader::AUD_EffectReader(AUD_IReader* reader)
 {
-	if(!reader)
-		AUD_THROW(AUD_ERROR_READER);
 	m_reader = reader;
 }
 
 AUD_EffectReader::~AUD_EffectReader()
 {
-	delete m_reader; AUD_DELETE("reader")
+	delete m_reader;
 }
 
-bool AUD_EffectReader::isSeekable()
+bool AUD_EffectReader::isSeekable() const
 {
 	return m_reader->isSeekable();
 }
@@ -47,29 +45,19 @@ void AUD_EffectReader::seek(int position)
 	m_reader->seek(position);
 }
 
-int AUD_EffectReader::getLength()
+int AUD_EffectReader::getLength() const
 {
 	return m_reader->getLength();
 }
 
-int AUD_EffectReader::getPosition()
+int AUD_EffectReader::getPosition() const
 {
 	return m_reader->getPosition();
 }
 
-AUD_Specs AUD_EffectReader::getSpecs()
+AUD_Specs AUD_EffectReader::getSpecs() const
 {
 	return m_reader->getSpecs();
-}
-
-AUD_ReaderType AUD_EffectReader::getType()
-{
-	return m_reader->getType();
-}
-
-bool AUD_EffectReader::notify(AUD_Message &message)
-{
-	return m_reader->notify(message);
 }
 
 void AUD_EffectReader::read(int & length, sample_t* & buffer)

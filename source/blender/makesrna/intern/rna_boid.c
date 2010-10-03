@@ -238,7 +238,7 @@ static void rna_def_boidrule_goal(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Object", "Goal object");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset_deps");
 
-	prop= RNA_def_property(srna, "predict", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_predict", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "options", BRULE_GOAL_AVOID_PREDICT);
 	RNA_def_property_ui_text(prop, "Predict", "Predict target movement");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
@@ -259,7 +259,7 @@ static void rna_def_boidrule_avoid(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Object", "Object to avoid");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset_deps");
 
-	prop= RNA_def_property(srna, "predict", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_predict", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "options", BRULE_GOAL_AVOID_PREDICT);
 	RNA_def_property_ui_text(prop, "Predict", "Predict target movement");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
@@ -278,12 +278,12 @@ static void rna_def_boidrule_avoid_collision(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "BoidRuleAvoidCollision", "BoidRule");
 	RNA_def_struct_ui_text(srna, "Avoid Collision", "");
 
-	prop= RNA_def_property(srna, "boids", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_avoid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "options", BRULE_ACOLL_WITH_BOIDS);
 	RNA_def_property_ui_text(prop, "Boids", "Avoid collision with other boids");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
-	prop= RNA_def_property(srna, "deflectors", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_avoid_collision", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "options", BRULE_ACOLL_WITH_DEFLECTORS);
 	RNA_def_property_ui_text(prop, "Deflectors", "Avoid collision with deflector objects");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
@@ -313,12 +313,13 @@ static void rna_def_boidrule_follow_leader(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Distance", "Distance behind leader to follow");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
-	prop= RNA_def_property(srna, "queue_size", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "queue_count", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "queue_size");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Queue Size", "How many boids in a line");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
-	prop= RNA_def_property(srna, "line", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_line", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "options", BRULE_LEADER_IN_LINE);
 	RNA_def_property_ui_text(prop, "Line", "Follow leader in a line");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
@@ -391,17 +392,17 @@ static void rna_def_boidrule(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "");
 	
 	/* flags */
-	prop= RNA_def_property(srna, "in_air", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_in_air", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BOIDRULE_IN_AIR);
 	RNA_def_property_ui_text(prop, "In Air", "Use rule when boid is flying");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 	
-	prop= RNA_def_property(srna, "on_land", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_on_land", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BOIDRULE_ON_LAND);
 	RNA_def_property_ui_text(prop, "On Land", "Use rule when boid is on land");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 	
-	//prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
+	//prop= RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	//RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Expanded);
 	//RNA_def_property_ui_text(prop, "Expanded", "Set modifier expanded in the user interface");
 
@@ -443,7 +444,8 @@ static void rna_def_boidstate(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_BoidState_active_boid_rule_index_get", "rna_BoidState_active_boid_rule_index_set", "rna_BoidState_active_boid_rule_index_range");
 	RNA_def_property_ui_text(prop, "Active Boid Rule Index", "");
 
-	prop= RNA_def_property(srna, "rule_fuzziness", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "rule_fuzzy", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rule_fuzziness");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Rule Fuzziness", "");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
@@ -466,14 +468,22 @@ static void rna_def_boid_settings(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "BoidSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Boid Settings", "Settings for boid physics");
 
-	prop= RNA_def_property(srna, "landing_smoothness", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "land_smooth", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "landing_smoothness");
 	RNA_def_property_range(prop, 0.0, 10.0);
 	RNA_def_property_ui_text(prop, "Landing Smoothness", "How smoothly the boids land");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
-	prop= RNA_def_property(srna, "banking", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "bank", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "banking");
 	RNA_def_property_range(prop, 0.0, 2.0);
 	RNA_def_property_ui_text(prop, "Banking", "Amount of rotation around velocity vector on turns");
+	RNA_def_property_update(prop, 0, "rna_Boids_reset");
+
+	prop= RNA_def_property(srna, "pitch", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "pitch");
+	RNA_def_property_range(prop, 0.0, 2.0);
+	RNA_def_property_ui_text(prop, "Pitch", "Amount of rotation around side vector");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
 	prop= RNA_def_property(srna, "height", PROP_FLOAT, PROP_NONE);
@@ -522,22 +532,26 @@ static void rna_def_boid_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
 	/* physical properties */
-	prop= RNA_def_property(srna, "air_min_speed", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "air_speed_min", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "air_min_speed");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Min Air Speed", "Minimum speed in air (relative to maximum speed)");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
-	prop= RNA_def_property(srna, "air_max_speed", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "air_speed_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "air_max_speed");
 	RNA_def_property_range(prop, 0.0, 100.0);
 	RNA_def_property_ui_text(prop, "Max Air Speed", "Maximum speed in air");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
-	prop= RNA_def_property(srna, "air_max_acc", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "air_acc_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "air_max_acc");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Max Air Acceleration", "Maximum acceleration in air (relative to maximum speed)");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
-	prop= RNA_def_property(srna, "air_max_ave", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "air_ave_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "air_max_ave");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Max Air Angular Velocity", "Maximum angular velocity in air (relative to 180 degrees)");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
@@ -552,17 +566,20 @@ static void rna_def_boid_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Jump Speed", "Maximum speed for jumping");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
-	prop= RNA_def_property(srna, "land_max_speed", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "land_speed_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "land_max_speed");
 	RNA_def_property_range(prop, 0.0, 100.0);
 	RNA_def_property_ui_text(prop, "Max Land Speed", "Maximum speed on land");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
-	prop= RNA_def_property(srna, "land_max_acc", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "land_acc_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "land_max_acc");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Max Land Acceleration", "Maximum acceleration on land (relative to maximum speed)");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
-	prop= RNA_def_property(srna, "land_max_ave", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "land_ave_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "land_max_ave");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Max Land Angular Velocity", "Maximum angular velocity on land (relative to 180 degrees)");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
@@ -578,17 +595,17 @@ static void rna_def_boid_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
 	/* options */
-	prop= RNA_def_property(srna, "allow_flight", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_flight", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "options", BOID_ALLOW_FLIGHT);
 	RNA_def_property_ui_text(prop, "Allow Flight", "Allow boids to move in air");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
-	prop= RNA_def_property(srna, "allow_land", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_land", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "options", BOID_ALLOW_LAND);
 	RNA_def_property_ui_text(prop, "Allow Land", "Allow boids to move on land");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 
-	prop= RNA_def_property(srna, "allow_climb", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_climb", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "options", BOID_ALLOW_CLIMB);
 	RNA_def_property_ui_text(prop, "Allow Climbing", "Allow boids to climb goal objects");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");

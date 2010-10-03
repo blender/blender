@@ -43,6 +43,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
+#include "BLI_math.h"
 
 #include "PIL_time.h"
 
@@ -1453,7 +1454,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 	if(!pm && !pf) {
 		if(pid->cache->flag & PTCACHE_DISK_CACHE) {
 			pf=NULL;
-			while(cfrai > pid->cache->startframe && !pf) {
+			while(cfrai >= pid->cache->startframe && !pf) {
 				cfrai--;
 				pf= ptcache_file_open(pid, PTCACHE_FILE_READ, cfrai);
 				cfra1 = cfrai;
@@ -2239,7 +2240,7 @@ void BKE_ptcache_remove(void)
 
 static int CONTINUE_PHYSICS = 0;
 
-void BKE_ptcache_set_continue_physics(Scene *scene, int enable)
+void BKE_ptcache_set_continue_physics(Main *bmain, Scene *scene, int enable)
 {
 	Object *ob;
 
@@ -2247,7 +2248,7 @@ void BKE_ptcache_set_continue_physics(Scene *scene, int enable)
 		CONTINUE_PHYSICS = enable;
 
 		if(CONTINUE_PHYSICS == 0) {
-			for(ob=G.main->object.first; ob; ob=ob->id.next)
+			for(ob=bmain->object.first; ob; ob=ob->id.next)
 				if(BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED))
 					DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}

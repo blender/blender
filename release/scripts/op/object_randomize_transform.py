@@ -30,16 +30,16 @@ def randomize_selected(seed, loc, rot, scale, scale_even, scale_min):
     random.seed(seed)
 
     def rand_vec(vec_range):
-        return Vector([uniform(-val, val) for val in vec_range])
+        return Vector(uniform(-val, val) for val in vec_range)
 
     for obj in bpy.context.selected_objects:
 
         if loc:
             obj.location += rand_vec(loc)
-        else: # otherwise the values change under us
+        else:  # otherwise the values change under us
             uniform(0.0, 0.0), uniform(0.0, 0.0), uniform(0.0, 0.0)
 
-        if rot: # TODO, non euler's
+        if rot:  # TODO, non euler's
             vec = rand_vec(rot)
             obj.rotation_euler[0] += vec[0]
             obj.rotation_euler[1] += vec[1]
@@ -119,14 +119,14 @@ class RandomizeLocRotSize(bpy.types.Operator):
 
     def execute(self, context):
         from math import radians
-        seed = self.properties.random_seed
+        seed = self.random_seed
 
-        loc = None if not self.properties.use_loc else self.properties.loc
-        rot = None if not self.properties.use_rot else self.properties.rot * radians(1.0)
-        scale = None if not self.properties.use_scale else self.properties.scale
+        loc = None if not self.use_loc else self.loc
+        rot = None if not self.use_rot else self.rot * radians(1.0)
+        scale = None if not self.use_scale else self.scale
 
-        scale_even = self.properties.scale_even
-        scale_min = self.properties.scale_min
+        scale_even = self.scale_even
+        scale_min = self.scale_min
 
         randomize_selected(seed, loc, rot, scale, scale_even, scale_min)
 

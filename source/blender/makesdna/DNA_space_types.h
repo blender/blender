@@ -161,6 +161,9 @@ typedef struct FileSelectParams {
 	char dir[240]; /* directory */
 	char file[80]; /* file */
 	char renamefile[80];
+	char renameedit[80]; /* annoying but the first is only used for initialization */
+
+	char filter_glob[64]; /* list of filetypes to filter */
 
 	short type; /* XXXXX for now store type here, should be moved to the operator */
 	short flag; /* settings for filter, hiding dots files,...  */
@@ -303,7 +306,8 @@ typedef struct SpaceText {
 	int showlinenrs;
 	int tabnumber;
 
-	int showsyntax;
+	short showsyntax;
+	short line_hlight;
 	short overwrite;
 	short live_edit; /* run python while editing, evil */
 	float pix_per_line;
@@ -723,6 +727,7 @@ enum FileSortTypeE {
 #define FOLDERFILE			(1<<11) /* represents folders for filtering */
 #define BTXFILE				(1<<12)
 #define COLLADAFILE			(1<<13)
+#define OPERATORFILE		(1<<14) /* from filter_glob operator property */
 
 /* SpaceImage->dt_uv */
 #define SI_UVDT_OUTLINE	0

@@ -41,21 +41,11 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
-#include "BKE_action.h"
-#include "BKE_brush.h"
 #include "BKE_context.h"
-#include "BKE_curve.h"
-#include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
-#include "BKE_mesh.h"
-#include "BKE_object.h"
 #include "BKE_global.h"
-#include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
-#include "BIF_gl.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -139,7 +129,7 @@ static void view3d_panel_operator_redo_operator(const bContext *C, Panel *pa, wm
 {
 	if(op->type->flag & OPTYPE_MACRO) {
 		for(op= op->macro.first; op; op= op->next) {
-			uiItemL(pa->layout, op->idname, 0);
+			uiItemL(pa->layout, op->type->name, 0);
 			view3d_panel_operator_redo_operator(C, pa, op);
 		}
 	}

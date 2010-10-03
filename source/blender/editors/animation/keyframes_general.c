@@ -40,9 +40,7 @@
 #include "DNA_scene_types.h"
 
 
-#include "BKE_action.h"
 #include "BKE_fcurve.h"
-#include "BKE_key.h"
 #include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
@@ -84,6 +82,12 @@ void delete_fcurve_key(FCurve *fcu, int index, short do_recalc)
 	/* Delete this keyframe */
 	memmove(&fcu->bezt[index], &fcu->bezt[index+1], sizeof(BezTriple)*(fcu->totvert-index-1));
 	fcu->totvert--;
+
+	if (fcu->totvert == 0) {
+		if (fcu->bezt)
+			MEM_freeN(fcu->bezt);
+		fcu->bezt= NULL;
+	}
 	
 	/* recalc handles - only if it won't cause problems */
 	if (do_recalc)

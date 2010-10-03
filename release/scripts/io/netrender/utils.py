@@ -57,6 +57,11 @@ FRAME_STATUS_TEXT = {
         ERROR: "Error"
         }
 
+def responseStatus(conn):
+    response = conn.getresponse()
+    response.read()
+    return response.status
+
 def reporting(report, message, errorType = None):
     if errorType:
         t = 'ERROR'
@@ -171,23 +176,23 @@ def prefixPath(prefix_directory, file_path, prefix_path, force = False):
 
             if prefix_path and p.startswith(prefix_path):
                 if len(prefix_path) < len(p):
-                    directory = prefix_directory + p[len(prefix_path)+1:] + os.sep # +1 to remove separator
+                    directory = os.path.join(prefix_directory, p[len(prefix_path)+1:]) # +1 to remove separator
                     if not os.path.exists(directory):
                         os.mkdir(directory)
                 else:
                     directory = prefix_directory
-                full_path = directory + n
+                full_path = os.path.join(directory, n)
             else:
-                full_path = prefix_directory + n
+                full_path = os.path.join(prefix_directory, n)
     else:
-        full_path = prefix_directory + file_path
+        full_path = (prefix_directory, file_path)
 
     return full_path
 
 def getFileInfo(filepath, infos):
     process = subprocess.Popen([sys.argv[0], "-b", "-noaudio", filepath, "-P", __file__, "--"] + infos, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout = bytes()
-    while process.poll() == None:
+    while process.poll() is None:
         stdout += process.stdout.read(1024)
 
     # read leftovers if needed

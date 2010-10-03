@@ -22,14 +22,14 @@
 FILE(GLOB SRC *.c)
 
 SET(INC
+	../include
 	../../blenkernel
 	../../blenlib
-	../include
-	../../../../intern/guardedalloc
-	../../../../intern/audaspace/intern
 	../../makesdna
 	../../makesrna
 	../../windowmanager
+	../../../../intern/guardedalloc
+	../../../../intern/audaspace/intern
 )
 
 BLENDERLIB(bf_editor_sound "${SRC}" "${INC}")

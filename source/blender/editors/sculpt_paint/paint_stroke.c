@@ -53,7 +53,6 @@
 #include "paint_intern.h"
 #include "sculpt_intern.h" // XXX, for expedience in getting this working, refactor later (or this just shows that this needs unification)
 
-#include "BKE_image.h"
 
 #include <float.h>
 #include <math.h>

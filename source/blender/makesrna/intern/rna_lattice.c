@@ -79,8 +79,8 @@ static void rna_Lattice_points_begin(CollectionPropertyIterator *iter, PointerRN
 	Lattice *lt= (Lattice*)ptr->data;
 	int tot= lt->pntsu*lt->pntsv*lt->pntsw;
 
-	if(lt->editlatt && lt->editlatt->def)
-		rna_iterator_array_begin(iter, (void*)lt->editlatt->def, sizeof(BPoint), tot, 0, NULL);
+	if(lt->editlatt && lt->editlatt->latt->def)
+		rna_iterator_array_begin(iter, (void*)lt->editlatt->latt->def, sizeof(BPoint), tot, 0, NULL);
 	else if(lt->def)
 		rna_iterator_array_begin(iter, (void*)lt->def, sizeof(BPoint), tot, 0, NULL);
 	else
@@ -111,7 +111,7 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
 		if(ob->data == lt) {
 			resizelattice(lt, newu, newv, neww, ob);
 			if(lt->editlatt)
-				resizelattice(lt->editlatt, newu, newv, neww, ob);
+				resizelattice(lt->editlatt->latt, newu, newv, neww, ob);
 			break;
 		}
 	}
@@ -120,13 +120,13 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
 	if(!ob) {
 		resizelattice(lt, newu, newv, neww, NULL);
 		if(lt->editlatt)
-			resizelattice(lt->editlatt, newu, newv, neww, NULL);
+			resizelattice(lt->editlatt->latt, newu, newv, neww, NULL);
 	}
 
 	rna_Lattice_update_data(bmain, scene, ptr);
 }
 
-static void rna_Lattice_outside_set(PointerRNA *ptr, int value)
+static void rna_Lattice_use_outside_set(PointerRNA *ptr, int value)
 {
 	Lattice *lt= ptr->data;
 
@@ -136,26 +136,39 @@ static void rna_Lattice_outside_set(PointerRNA *ptr, int value)
 	outside_lattice(lt);
 
 	if(lt->editlatt) {
-		if(value) lt->editlatt->flag |= LT_OUTSIDE;
-		else lt->editlatt->flag &= ~LT_OUTSIDE;
+		if(value) lt->editlatt->latt->flag |= LT_OUTSIDE;
+		else lt->editlatt->latt->flag &= ~LT_OUTSIDE;
 
-		outside_lattice(lt->editlatt);
+		outside_lattice(lt->editlatt->latt);
 	}
+}
+
+static int rna_Lattice_size_editable(PointerRNA *ptr)
+{
+	Lattice *lt= (Lattice*)ptr->data;
+
+	return lt->key == NULL;
 }
 
 static void rna_Lattice_points_u_set(PointerRNA *ptr, int value)
 {
-	((Lattice*)ptr->data)->opntsu= CLAMPIS(value, 1, 64);
+	Lattice *lt= (Lattice*)ptr->data;
+
+	lt->opntsu= CLAMPIS(value, 1, 64);
 }
 
 static void rna_Lattice_points_v_set(PointerRNA *ptr, int value)
 {
-	((Lattice*)ptr->data)->opntsv= CLAMPIS(value, 1, 64);
+	Lattice *lt= (Lattice*)ptr->data;
+
+	lt->opntsv= CLAMPIS(value, 1, 64);
 }
 
 static void rna_Lattice_points_w_set(PointerRNA *ptr, int value)
 {
-	((Lattice*)ptr->data)->opntsw= CLAMPIS(value, 1, 64);
+	Lattice *lt= (Lattice*)ptr->data;
+
+	lt->opntsw= CLAMPIS(value, 1, 64);
 }
 
 static void rna_Lattice_vg_name_set(PointerRNA *ptr, const char *value)
@@ -164,7 +177,7 @@ static void rna_Lattice_vg_name_set(PointerRNA *ptr, const char *value)
 	strcpy(lt->vgroup, value);
 
 	if(lt->editlatt)
-		strcpy(lt->editlatt->vgroup, value);
+		strcpy(lt->editlatt->latt->vgroup, value);
 }
 
 
@@ -185,7 +198,7 @@ static void rna_def_latticepoint(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_LatticePoint_co_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Location", "");
 
-	prop= RNA_def_property(srna, "deformed_co", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "co_deform", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Deformed Location", "");
@@ -216,22 +229,25 @@ static void rna_def_lattice(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "pntsu");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Lattice_points_u_set", NULL);
 	RNA_def_property_range(prop, 1, 64);
-	RNA_def_property_ui_text(prop, "U", "Points in U direction");
+	RNA_def_property_ui_text(prop, "U", "Points in U direction (can't be changed when there are shape keys)");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_size");
+	RNA_def_property_editable_func(prop, "rna_Lattice_size_editable");
 
 	prop= RNA_def_property(srna, "points_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pntsv");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Lattice_points_v_set", NULL);
 	RNA_def_property_range(prop, 1, 64);
-	RNA_def_property_ui_text(prop, "V", "Points in V direction");
+	RNA_def_property_ui_text(prop, "V", "Points in V direction (can't be changed when there are shape keys)");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_size");
+	RNA_def_property_editable_func(prop, "rna_Lattice_size_editable");
 
 	prop= RNA_def_property(srna, "points_w", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pntsw");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Lattice_points_w_set", NULL);
 	RNA_def_property_range(prop, 1, 64);
-	RNA_def_property_ui_text(prop, "W", "Points in W direction");
+	RNA_def_property_ui_text(prop, "W", "Points in W direction (can't be changed when there are shape keys)");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_size");
+	RNA_def_property_editable_func(prop, "rna_Lattice_size_editable");
 
 	prop= RNA_def_property(srna, "interpolation_type_u", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typeu");
@@ -251,9 +267,9 @@ static void rna_def_lattice(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Interpolation Type W", "");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
 
-	prop= RNA_def_property(srna, "outside", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_outside", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LT_OUTSIDE);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Lattice_outside_set");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Lattice_use_outside_set");
 	RNA_def_property_ui_text(prop, "Outside", "Only draw, and take into account, the outer vertices");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
 	

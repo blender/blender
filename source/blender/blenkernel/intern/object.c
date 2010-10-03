@@ -322,6 +322,7 @@ static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Objec
 
 void unlink_object(Scene *scene, Object *ob)
 {
+	Main *bmain= G.main;
 	Object *obt;
 	Material *mat;
 	World *wrld;
@@ -343,7 +344,7 @@ void unlink_object(Scene *scene, Object *ob)
 	
 	/* check all objects: parents en bevels and fields, also from libraries */
 	// FIXME: need to check all animation blocks (drivers)
-	obt= G.main->object.first;
+	obt= bmain->object.first;
 	while(obt) {
 		if(obt->proxy==ob)
 			obt->proxy= NULL;
@@ -517,7 +518,7 @@ void unlink_object(Scene *scene, Object *ob)
 	}
 	
 	/* materials */
-	mat= G.main->mat.first;
+	mat= bmain->mat.first;
 	while(mat) {
 	
 		for(a=0; a<MAX_MTEX; a++) {
@@ -531,7 +532,7 @@ void unlink_object(Scene *scene, Object *ob)
 	}
 	
 	/* textures */
-	tex= G.main->tex.first;
+	tex= bmain->tex.first;
 	while(tex) {
 		if(tex->env) {
 			if(tex->env->object == ob) tex->env->object= NULL;
@@ -540,7 +541,7 @@ void unlink_object(Scene *scene, Object *ob)
 	}
 
 	/* worlds */
-	wrld= G.main->world.first;
+	wrld= bmain->world.first;
 	while(wrld) {
 		if(wrld->id.lib==NULL) {
 			for(a=0; a<MAX_MTEX; a++) {
@@ -553,7 +554,7 @@ void unlink_object(Scene *scene, Object *ob)
 	}
 		
 	/* scenes */
-	sce= G.main->scene.first;
+	sce= bmain->scene.first;
 	while(sce) {
 		if(sce->id.lib==NULL) {
 			if(sce->camera==ob) sce->camera= NULL;
@@ -585,7 +586,7 @@ void unlink_object(Scene *scene, Object *ob)
 	
 #if 0 // XXX old animation system
 	/* ipos */
-	ipo= G.main->ipo.first;
+	ipo= bmain->ipo.first;
 	while(ipo) {
 		if(ipo->id.lib==NULL) {
 			IpoCurve *icu;
@@ -599,7 +600,7 @@ void unlink_object(Scene *scene, Object *ob)
 #endif // XXX old animation system
 	
 	/* screens */
-	sc= G.main->screen.first;
+	sc= bmain->screen.first;
 	while(sc) {
 		ScrArea *sa= sc->areabase.first;
 		while(sa) {
@@ -664,14 +665,14 @@ void unlink_object(Scene *scene, Object *ob)
 	}
 
 	/* groups */
-	group= G.main->group.first;
+	group= bmain->group.first;
 	while(group) {
 		rem_from_group(group, ob, NULL, NULL);
 		group= group->id.next;
 	}
 	
 	/* cameras */
-	camera= G.main->camera.first;
+	camera= bmain->camera.first;
 	while(camera) {
 		if (camera->dof_ob==ob) {
 			camera->dof_ob = NULL;
@@ -725,6 +726,7 @@ Camera *copy_camera(Camera *cam)
 
 void make_local_camera(Camera *cam)
 {
+	Main *bmain= G.main;
 	Object *ob;
 	Camera *camn;
 	int local=0, lib=0;
@@ -742,7 +744,7 @@ void make_local_camera(Camera *cam)
 		return;
 	}
 	
-	ob= G.main->object.first;
+	ob= bmain->object.first;
 	while(ob) {
 		if(ob->data==cam) {
 			if(ob->id.lib) lib= 1;
@@ -760,7 +762,7 @@ void make_local_camera(Camera *cam)
 		camn= copy_camera(cam);
 		camn->id.us= 0;
 		
-		ob= G.main->object.first;
+		ob= bmain->object.first;
 		while(ob) {
 			if(ob->data==cam) {
 				
@@ -873,6 +875,7 @@ Lamp *copy_lamp(Lamp *la)
 
 void make_local_lamp(Lamp *la)
 {
+	Main *bmain= G.main;
 	Object *ob;
 	Lamp *lan;
 	int local=0, lib=0;
@@ -890,7 +893,7 @@ void make_local_lamp(Lamp *la)
 		return;
 	}
 	
-	ob= G.main->object.first;
+	ob= bmain->object.first;
 	while(ob) {
 		if(ob->data==la) {
 			if(ob->id.lib) lib= 1;
@@ -908,7 +911,7 @@ void make_local_lamp(Lamp *la)
 		lan= copy_lamp(la);
 		lan->id.us= 0;
 		
-		ob= G.main->object.first;
+		ob= bmain->object.first;
 		while(ob) {
 			if(ob->data==la) {
 				
@@ -1336,6 +1339,8 @@ Object *copy_object(Object *ob)
 
 	obn->gpulamp.first = obn->gpulamp.last = NULL;
 	obn->pc_ids.first = obn->pc_ids.last = NULL;
+
+	obn->mpath= NULL;
 	
 	return obn;
 }
@@ -1367,6 +1372,7 @@ void expand_local_object(Object *ob)
 
 void make_local_object(Object *ob)
 {
+	Main *bmain= G.main;
 	Object *obn;
 	Scene *sce;
 	Base *base;
@@ -1388,7 +1394,7 @@ void make_local_object(Object *ob)
 
 	}
 	else {
-		sce= G.main->scene.first;
+		sce= bmain->scene.first;
 		while(sce) {
 			base= sce->base.first;
 			while(base) {
@@ -1411,7 +1417,7 @@ void make_local_object(Object *ob)
 			obn= copy_object(ob);
 			obn->id.us= 0;
 			
-			sce= G.main->scene.first;
+			sce= bmain->scene.first;
 			while(sce) {
 				if(sce->id.lib==0) {
 					base= sce->base.first;
@@ -1628,10 +1634,7 @@ float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 void object_scale_to_mat3(Object *ob, float mat[][3])
 {
 	float vec[3];
-	
-	vec[0]= ob->size[0]+ob->dsize[0];
-	vec[1]= ob->size[1]+ob->dsize[1];
-	vec[2]= ob->size[2]+ob->dsize[2];
+	add_v3_v3v3(vec, ob->size, ob->dsize);
 	size_to_mat3( mat,vec);
 }
 
@@ -1688,11 +1691,29 @@ void object_mat3_to_rot(Object *ob, float mat[][3], int use_compat)
 /* see pchan_apply_mat4() for the equivalent 'pchan' function */
 void object_apply_mat4(Object *ob, float mat[][4])
 {
-	float mat3[3][3];
-	VECCOPY(ob->loc, mat[3]);
-	mat4_to_size(ob->size, mat);
+	float mat3[3][3], tmat[3][3], imat[3][3];
+
+	/* location */
+	copy_v3_v3(ob->loc, mat[3]);
+	
+	/* rotation */
 	copy_m3_m4(mat3, mat);
 	object_mat3_to_rot(ob, mat3, 0);
+	
+	/* scale */
+#if 0
+	/* works fine except for neg scales */
+	mat4_to_size(ob->size, mat);
+#else
+	/* this is more complicated but works for negative scales */
+	object_rot_to_mat3(ob, tmat);
+	invert_m3_m3(imat, tmat);
+	mul_m3_m3m3(tmat, imat, mat3);
+
+	ob->size[0]= tmat[0][0];
+	ob->size[1]= tmat[1][1];
+	ob->size[2]= tmat[2][2];
+#endif
 }
 
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
@@ -1797,7 +1818,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 			copy_m4_m4(mat, rmat);
 		}
 
-		VECCOPY(mat[3], vec);
+		copy_v3_v3(mat[3], vec);
 		
 	}
 }
@@ -1824,7 +1845,7 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 	copy_m4_m4(mat, pchan->pose_mat);
 
 	/* but for backwards compatibility, the child has to move to the tail */
-	VECCOPY(vec, mat[1]);
+	copy_v3_v3(vec, mat[1]);
 	mul_v3_fl(vec, pchan->bone->length);
 	add_v3_v3(mat[3], vec);
 }
@@ -1921,7 +1942,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 		DispList *dl = find_displist(&par->disp, DL_VERTS);
 		float *co = dl?dl->verts:NULL;
 		
-		if(latt->editlatt) latt= latt->editlatt;
+		if(latt->editlatt) latt= latt->editlatt->latt;
 		
 		a= latt->pntsu*latt->pntsv*latt->pntsw;
 		count= 0;
@@ -2505,7 +2526,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
-				EditMesh *em = BKE_mesh_get_editmesh(ob->data);
+				EditMesh *em = (ob == scene->obedit)? BKE_mesh_get_editmesh(ob->data): NULL;
 				
 				/* evaluate drivers */
 				// XXX: should we push this to derivedmesh instead?
@@ -2553,7 +2574,7 @@ void object_handle_update(Scene *scene, Object *ob)
 				while(psys) {
 					if(psys_check_enabled(ob, psys)) {
 						/* check use of dupli objects here */
-						if(psys->part && psys->part->draw_as == PART_DRAW_REND &&
+						if(psys->part && (psys->part->draw_as == PART_DRAW_REND || G.rendering) &&
 							((psys->part->ren_as == PART_DRAW_OB && psys->part->dup_ob)
 							|| (psys->part->ren_as == PART_DRAW_GR && psys->part->dup_group)))
 							ob->transflag |= OB_DUPLIPARTS;

@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -22,7 +22,7 @@ import bpy
 from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
-from mathutils import Vector, RotationMatrix
+from mathutils import Vector, Matrix
 from math import radians, pi
 
 # not used, defined for completeness
@@ -40,7 +40,7 @@ def metarig_template():
     #bone.head[:] = 0.0000, -0.0306, 0.1039
     #bone.tail[:] = 0.0000, -0.0306, -0.0159
     #bone.roll = 0.0000
-    #bone.connected = False
+    #bone.use_connect = False
 
     #bpy.ops.object.mode_set(mode='OBJECT')
     #pbone = obj.pose.bones['tail.01']
@@ -58,7 +58,7 @@ def metarig_definition(obj, orig_bone_name):
     arm = obj.data
     tail_base = arm.bones[orig_bone_name]
 
-    if tail_base.parent == None:
+    if tail_base.parent is None:
         raise RigifyError("'tail_control' rig type on bone '%s' requires a parent." % orig_bone_name)
 
     bone_definitions = [tail_base.name]
@@ -85,9 +85,9 @@ def main(obj, bone_definitions, base_names, options):
     for bone_def in bone_definitions:
         bone = copy_bone_simple(arm, bone_def, base_names[bone_def], parent=True).name
         if i == 1:  # Don't change parent of first tail bone
-            eb[bone].connected = False
+            eb[bone].use_connect = False
             eb[bone].parent = eb[hinge2]
-            eb[bone].local_location = False
+            eb[bone].use_local_location = False
         i = 1
         bones += [bone]
 

@@ -36,42 +36,42 @@ def metarig_template():
     bone.head[:] = 0.0000, -0.0276, -0.1328
     bone.tail[:] = 0.0000, -0.0170, -0.0197
     bone.roll = 0.0000
-    bone.connected = False
+    bone.use_connect = False
     bone = arm.edit_bones.new('head')
     bone.head[:] = 0.0000, -0.0170, -0.0197
     bone.tail[:] = 0.0000, 0.0726, 0.1354
     bone.roll = 0.0000
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['body']
     bone = arm.edit_bones.new('neck.01')
     bone.head[:] = 0.0000, -0.0170, -0.0197
     bone.tail[:] = 0.0000, -0.0099, 0.0146
     bone.roll = 0.0000
-    bone.connected = False
+    bone.use_connect = False
     bone.parent = arm.edit_bones['head']
     bone = arm.edit_bones.new('neck.02')
     bone.head[:] = 0.0000, -0.0099, 0.0146
     bone.tail[:] = 0.0000, -0.0242, 0.0514
     bone.roll = 0.0000
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['neck.01']
     bone = arm.edit_bones.new('neck.03')
     bone.head[:] = 0.0000, -0.0242, 0.0514
     bone.tail[:] = 0.0000, -0.0417, 0.0868
     bone.roll = 0.0000
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['neck.02']
     bone = arm.edit_bones.new('neck.04')
     bone.head[:] = 0.0000, -0.0417, 0.0868
     bone.tail[:] = 0.0000, -0.0509, 0.1190
     bone.roll = 0.0000
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['neck.03']
     bone = arm.edit_bones.new('neck.05')
     bone.head[:] = 0.0000, -0.0509, 0.1190
     bone.tail[:] = 0.0000, -0.0537, 0.1600
     bone.roll = 0.0000
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['neck.04']
 
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -156,7 +156,7 @@ def main(obj, bone_definition, base_names, options):
 
     # Copy the head bone and offset
     ex.head_e = copy_bone_simple(arm, mt.head, "MCH-%s" % base_names[mt.head], parent=True)
-    ex.head_e.connected = False
+    ex.head_e.use_connect = False
     ex.head = ex.head_e.name
     # offset
     head_length = ex.head_e.length
@@ -165,7 +165,7 @@ def main(obj, bone_definition, base_names, options):
 
     # Yes, use the body bone but call it a head hinge
     ex.head_hinge_e = copy_bone_simple(arm, mt.body, "MCH-%s_hinge" % base_names[mt.head], parent=False)
-    ex.head_hinge_e.connected = False
+    ex.head_hinge_e.use_connect = False
     ex.head_hinge = ex.head_hinge_e.name
     ex.head_hinge_e.head.y += head_length / 4.0
     ex.head_hinge_e.tail.y += head_length / 4.0
@@ -173,7 +173,7 @@ def main(obj, bone_definition, base_names, options):
     # Insert the neck socket, the head copys this loation
     ex.neck_socket_e = arm.edit_bones.new("MCH-%s_socked" % neck_chain_basename)
     ex.neck_socket = ex.neck_socket_e.name
-    ex.neck_socket_e.connected = False
+    ex.neck_socket_e.use_connect = False
     ex.neck_socket_e.parent = mt.body_e
     ex.neck_socket_e.head = mt.head_e.head
     ex.neck_socket_e.tail = mt.head_e.head - Vector((0.0, neck_chain_segment_length / 2.0, 0.0))
@@ -195,9 +195,9 @@ def main(obj, bone_definition, base_names, options):
         neck_e_parent.roll = mt.head_e.roll
 
         orig_parent = neck_e.parent
-        neck_e.connected = False
+        neck_e.use_connect = False
         neck_e.parent = neck_e_parent
-        neck_e_parent.connected = False
+        neck_e_parent.use_connect = False
 
         if i == 0:
             neck_e_parent.parent = mt.body_e
@@ -262,7 +262,7 @@ def main(obj, bone_definition, base_names, options):
     fcurve = ex.head_ctrl_p.driver_add('["bend_tot"]')
     driver = fcurve.driver
     driver.type = 'SUM'
-    fcurve.modifiers.remove(0) # grr dont need a modifier
+    fcurve.modifiers.remove(fcurve.modifiers[0]) # grr dont need a modifier
 
     for i in range(len(neck_chain)):
         var = driver.variables.new()
@@ -301,7 +301,7 @@ def main(obj, bone_definition, base_names, options):
         driver.type = 'SCRIPTED'
         driver.expression = "bend/bend_tot"
 
-        fcurve.modifiers.remove(0) # grr dont need a modifier
+        fcurve.modifiers.remove(fcurve.modifiers[0]) # grr dont need a modifier
 
 
         # add target
@@ -334,14 +334,14 @@ def main(obj, bone_definition, base_names, options):
     if "ex_layer" in options:
         layer = [n == options["ex_layer"] for n in range(0, 32)]
     else:
-        layer = list(arm.bones[bone_definition[1]].layer)
+        layer = list(arm.bones[bone_definition[1]].layers)
     for attr in ex_chain.attr_names:
-        getattr(ex_chain, attr + "_b").layer = layer
+        getattr(ex_chain, attr + "_b").layers = layer
     for attr in ex.attr_names:
-        getattr(ex, attr + "_b").layer = layer
+        getattr(ex, attr + "_b").layers = layer
 
-    layer = list(arm.bones[bone_definition[1]].layer)
-    ex.head_ctrl_b.layer = layer
+    layer = list(arm.bones[bone_definition[1]].layers)
+    ex.head_ctrl_b.layers = layer
 
 
     # no blending the result of this

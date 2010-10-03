@@ -31,13 +31,14 @@
 #ifndef BKE_SEQUENCER_H
 #define BKE_SEQUENCER_H
 
+struct bContext;
 struct Editing;
+struct ImBuf;
+struct Main;
+struct Scene;
 struct Sequence;
 struct Strip;
 struct StripElem;
-struct ImBuf;
-struct Scene;
-struct bContext;
 
 #define MAXSEQ          32
 
@@ -123,6 +124,7 @@ struct SeqEffectHandle {
            (mixed cases are handled one layer up...) */
 	
 	struct ImBuf* (*execute)(
+		struct Main *bmain,
 		struct Scene *scene, struct Sequence *seq, float cfra,
 		float facf0, float facf1,
 		int x, int y, int preview_render_size,
@@ -146,15 +148,15 @@ void seq_free_editing(struct Scene *scene);
 void seq_free_clipboard(void);
 struct Editing *seq_give_editing(struct Scene *scene, int alloc);
 char *give_seqname(struct Sequence *seq);
-struct ImBuf *give_ibuf_seq(struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
-struct ImBuf *give_ibuf_seq_threaded(struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
-struct ImBuf *give_ibuf_seq_direct(struct Scene *scene, int rectx, int recty, int cfra, int render_size, struct Sequence *seq);
-struct ImBuf *give_ibuf_seqbase(struct Scene *scene, int rectx, int recty, int cfra, int chan_shown, int render_size, struct ListBase *seqbasep);
+struct ImBuf *give_ibuf_seq(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
+struct ImBuf *give_ibuf_seq_threaded(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
+struct ImBuf *give_ibuf_seq_direct(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int render_size, struct Sequence *seq);
+struct ImBuf *give_ibuf_seqbase(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chan_shown, int render_size, struct ListBase *seqbasep);
 void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown, int render_size);
 void calc_sequence(struct Scene *scene, struct Sequence *seq);
 void calc_sequence_disp(struct Scene *scene, struct Sequence *seq);
 void new_tstripdata(struct Sequence *seq);
-void reload_sequence_new_file(struct Scene *scene, struct Sequence * seq, int lock_range);
+void reload_sequence_new_file(struct Main *bmain, struct Scene *scene, struct Sequence * seq, int lock_range);
 void sort_seq(struct Scene *scene);
 void build_seqar_cb(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq,
 					int (*test_func)(struct Sequence * seq));
@@ -227,7 +229,7 @@ void seqbase_sound_reload(struct Scene *scene, ListBase *seqbase);
 void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
 void seqbase_dupli_recursive(struct Scene *scene, ListBase *nseqbase, ListBase *seqbase, int dupe_flag);
 
-void clear_scene_in_allseqs(struct Scene *sce);
+void clear_scene_in_allseqs(struct Main *bmain, struct Scene *sce);
 
 struct Sequence *get_seq_by_name(struct ListBase *seqbase, const char *name, int recursive);
 
@@ -274,7 +276,7 @@ struct Sequence *sequencer_add_sound_strip(struct bContext *C, ListBase *seqbase
 struct Sequence *sequencer_add_movie_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 
 /* view3d draw callback, run when not in background view */
-typedef struct ImBuf *(*SequencerDrawView)(struct Scene *, int, int, int);
+typedef struct ImBuf *(*SequencerDrawView)(struct Scene *, int, int, unsigned int, int);
 extern SequencerDrawView sequencer_view3d_cb;
 
 /* copy/paste */

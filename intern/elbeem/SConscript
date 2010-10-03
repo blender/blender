@@ -19,4 +19,4 @@ if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
 incs += ' ' + env['BF_PNG_INC'] + ' ' + env['BF_ZLIB_INC'] 
 incs += ' extern '
 
-env.BlenderLib ('bf_elbeem', sources, Split(incs), Split(defs), libtype='intern', priority=0 )
+env.BlenderLib ('bf_intern_elbeem', sources, Split(incs), Split(defs), libtype='intern', priority=0 )

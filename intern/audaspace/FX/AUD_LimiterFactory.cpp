@@ -31,37 +31,21 @@ AUD_LimiterFactory::AUD_LimiterFactory(AUD_IFactory* factory,
 									   float start, float end) :
 		AUD_EffectFactory(factory),
 		m_start(start),
-		m_end(end) {}
+		m_end(end)
+{
+}
 
-float AUD_LimiterFactory::getStart()
+float AUD_LimiterFactory::getStart() const
 {
 	return m_start;
 }
 
-void AUD_LimiterFactory::setStart(float start)
-{
-	m_start = start;
-}
-
-float AUD_LimiterFactory::getEnd()
+float AUD_LimiterFactory::getEnd() const
 {
 	return m_end;
 }
 
-void AUD_LimiterFactory::setEnd(float end)
+AUD_IReader* AUD_LimiterFactory::createReader() const
 {
-	m_end = end;
-}
-
-AUD_IReader* AUD_LimiterFactory::createReader()
-{
-	AUD_IReader* reader = getReader();
-
-	if(reader != 0)
-	{
-		reader = new AUD_LimiterReader(reader, m_start, m_end);
-		AUD_NEW("reader")
-	}
-
-	return reader;
+	return new AUD_LimiterReader(getReader(), m_start, m_end);
 }

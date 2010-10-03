@@ -55,18 +55,12 @@
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
 
-#include "BKE_action.h"
-#include "BKE_depsgraph.h"
-#include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
-#include "BKE_object.h"
 #include "BKE_global.h" 	// XXX remove me!
-#include "BKE_context.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"

@@ -265,13 +265,11 @@ static PackedFile *get_builtin_packedfile(void)
 void free_ttfont(void)
 {
 	struct TmpFont *tf;
-	
-	tf= ttfdata.first;
-	while(tf) {
-		freePackedFile(tf->pf);
+
+	for(tf= ttfdata.first; tf; tf= tf->next) {
+		if(tf->pf) freePackedFile(tf->pf); /* NULL when the font file can't be found on disk */
 		tf->pf= NULL;
 		tf->vfont= NULL;
-		tf= tf->next;
 	}
 	BLI_freelistN(&ttfdata);
 }
@@ -1148,7 +1146,7 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 		return NULL;
 	}
 
-	if(mode==0) {
+	if(mode == FO_EDIT) {
 		/* make nurbdata */
 		unsigned long cha;
 		

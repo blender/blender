@@ -207,6 +207,7 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 	pt->ext.call= call;
 	pt->ext.free= free;
 	RNA_struct_blender_type_set(pt->ext.srna, pt);
+	RNA_def_struct_flag(pt->ext.srna, STRUCT_NO_IDPROPERTIES);
 
 	pt->poll= (have_function[0])? panel_poll: NULL;
 	pt->draw= (have_function[1])? panel_draw: NULL;
@@ -418,6 +419,7 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 	mt->ext.call= call;
 	mt->ext.free= free;
 	RNA_struct_blender_type_set(mt->ext.srna, mt);
+	RNA_def_struct_flag(mt->ext.srna, STRUCT_NO_IDPROPERTIES);
 
 	mt->poll= (have_function[0])? menu_poll: NULL;
 	mt->draw= (have_function[1])? menu_draw: NULL;
@@ -545,10 +547,11 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "operator_context", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, operator_context_items);
 	RNA_def_property_enum_funcs(prop, "rna_UILayout_op_context_get", "rna_UILayout_op_context_set", NULL);
-
+	
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_enabled_get", "rna_UILayout_enabled_set");
-
+	RNA_def_property_ui_text(prop, "Enabled", "When false, this (sub)layout is greyed out.");
+	
 #if 0
 	prop= RNA_def_property(srna, "red_alert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_red_alert_get", "rna_UILayout_red_alert_set");
@@ -565,10 +568,11 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_x_get", "rna_UILayout_scale_x_set", NULL);
-
+	RNA_def_property_ui_text(prop, "Scale X", "Scale factor along the X for items in this (sub)layout.");
+	
 	prop= RNA_def_property(srna, "scale_y", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_y_get", "rna_UILayout_scale_y_set", NULL);
-
+	RNA_def_property_ui_text(prop, "Scale Y", "Scale factor along the Y for items in this (sub)layout.");
 	RNA_api_ui_layout(srna);
 }
 
@@ -579,6 +583,11 @@ static void rna_def_panel(BlenderRNA *brna)
 	PropertyRNA *parm;
 	FunctionRNA *func;
 	
+	static EnumPropertyItem panel_flag_items[] = {
+			{PNL_DEFAULT_CLOSED, "DEFAULT_CLOSED", 0, "Default Closed", "Defines if the panel has to be open or collapsed at the time of its creation."},
+			{PNL_NO_HEADER, "HIDE_HEADER", 0, "Show Header", "If set to True, the panel shows a header, which contains a clickable arrow to collapse the panel and the label (see bl_label)."},
+			{0, NULL, 0, NULL, NULL}};
+	
 	srna= RNA_def_struct(brna, "Panel", NULL);
 	RNA_def_struct_ui_text(srna, "Panel", "Panel containing UI elements");
 	RNA_def_struct_sdna(srna, "Panel");
@@ -588,7 +597,7 @@ static void rna_def_panel(BlenderRNA *brna)
 	/* poll */
 	func= RNA_def_function(srna, "poll", NULL);
 	RNA_def_function_ui_description(func, "If this method returns a non-null output, then the panel can be drawn.");
-	RNA_def_function_flag(func, FUNC_REGISTER|FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -642,15 +651,11 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL); /* should this be optional? - Campbell */
 	RNA_def_property_ui_text(prop, "Context", "The context in which the panel belongs to. (TODO: explain the possible combinations bl_context/bl_region_type/bl_space_type)");
 	
-	prop= RNA_def_property(srna, "bl_default_closed", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", PNL_DEFAULT_CLOSED);
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-	RNA_def_property_ui_text(prop, "Default closed", "Defines if the panel has to be open or collapsed at the time of its creation. Note that once the panel has been created with bl_default_closed = True, at reload (F8) it stays open.");
-	
-	prop= RNA_def_property(srna, "bl_show_header", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "type->flag", PNL_NO_HEADER);
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-	RNA_def_property_ui_text(prop, "Show Header", "If set to True, the panel shows a header, which contains a clickable arrow to collapse the panel and the label (see bl_label).");
+	prop= RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type->flag");
+	RNA_def_property_enum_items(prop, panel_flag_items);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL|PROP_ENUM_FLAG);
+	RNA_def_property_ui_text(prop, "Options",  "Options for this panel type");
 }
 
 static void rna_def_header(BlenderRNA *brna)
@@ -711,7 +716,7 @@ static void rna_def_menu(BlenderRNA *brna)
 	/* poll */
 	func= RNA_def_function(srna, "poll", NULL);
 	RNA_def_function_ui_description(func, "If this method returns a non-null output, then the menu can be drawn.");
-	RNA_def_function_flag(func, FUNC_REGISTER|FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);

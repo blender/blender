@@ -26,115 +26,13 @@
 #include "BLI_dynstr.h"
 #include "MEM_guardedalloc.h"
 #include "BKE_report.h"
-
-
 #include "BKE_context.h"
+
+#include "../generic/py_capi_utils.h"
+
 bContext*	__py_context = NULL;
 bContext*	BPy_GetContext(void) { return __py_context; };
 void		BPy_SetContext(bContext *C) { __py_context= C; };
-
-/* for debugging */
-void PyObSpit(char *name, PyObject *var) {
-	fprintf(stderr, "<%s> : ", name);
-	if (var==NULL) {
-		fprintf(stderr, "<NIL>");
-	}
-	else {
-		PyObject_Print(var, stderr, 0);
-		fprintf(stderr, " ref:%d ", (int)var->ob_refcnt);
-		fprintf(stderr, " ptr:%p", (void *)var);
-		
-		fprintf(stderr, " type:");
-		if(Py_TYPE(var))
-			fprintf(stderr, "%s", Py_TYPE(var)->tp_name);
-		else
-			fprintf(stderr, "<NIL>");
-	}
-	fprintf(stderr, "\n");
-}
-
-void PyLineSpit(void) {
-	char *filename;
-	int lineno;
-
-	PyErr_Clear();
-	BPY_getFileAndNum(&filename, &lineno);
-	
-	fprintf(stderr, "%s:%d\n", filename, lineno);
-}
-
-void BPY_getFileAndNum(char **filename, int *lineno)
-{
-	PyObject *getframe, *frame;
-	PyObject *f_lineno= NULL, *co_filename= NULL;
-	
-	if (filename)	*filename= NULL;
-	if (lineno)		*lineno = -1;
-	
-	getframe = PySys_GetObject("_getframe"); // borrowed
-	if (getframe==NULL) {
-		PyErr_Clear();
-		return;
-	}
-	
-	frame = PyObject_CallObject(getframe, NULL);
-	if (frame==NULL) {
-		PyErr_Clear();
-		return;
-	}
-	
-	if (filename) {
-		co_filename= PyObject_GetAttrStringArgs(frame, 1, "f_code", "co_filename");
-		if (co_filename==NULL) {
-			PyErr_SetString(PyExc_SystemError, "Could not access sys._getframe().f_code.co_filename");
-			Py_DECREF(frame);
-			return;
-		}
-		
-		*filename = _PyUnicode_AsString(co_filename);
-		Py_DECREF(co_filename);
-	}
-	
-	if (lineno) {
-		f_lineno= PyObject_GetAttrString(frame, "f_lineno");
-		if (f_lineno==NULL) {
-			PyErr_SetString(PyExc_SystemError, "Could not access sys._getframe().f_lineno");
-			Py_DECREF(frame);
-			return;
-		}
-		
-		*lineno = (int)PyLong_AsSsize_t(f_lineno);
-		Py_DECREF(f_lineno);
-	}
-
-	Py_DECREF(frame);
-}
-
-/* Would be nice if python had this built in */
-PyObject *PyObject_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
-{
-	Py_ssize_t i;
-	PyObject *item= o;
-	char *attr;
-	
-	va_list vargs;
-
-	va_start(vargs, n);
-	for (i=0; i<n; i++) {
-		attr = va_arg(vargs, char *);
-		item = PyObject_GetAttrString(item, attr);
-		
-		if (item) 
-			Py_DECREF(item);
-		else /* python will set the error value here */
-			break;
-		
-	}
-	va_end(vargs);
-	
-	Py_XINCREF(item); /* final value has is increfed, to match PyObject_GetAttrString */
-	return item;
-}
 
 int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_class, BPY_class_attr_check* class_attrs, PyObject **py_class_attrs)
 {
@@ -224,75 +122,6 @@ int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_c
 
 
 
-/* returns the exception string as a new PyUnicode object, depends on external StringIO module */
-PyObject *BPY_exception_buffer(void)
-{
-	PyObject *stdout_backup = PySys_GetObject("stdout"); /* borrowed */
-	PyObject *stderr_backup = PySys_GetObject("stderr"); /* borrowed */
-	PyObject *string_io = NULL;
-	PyObject *string_io_buf = NULL;
-	PyObject *string_io_mod= NULL;
-	PyObject *string_io_getvalue= NULL;
-	
-	PyObject *error_type, *error_value, *error_traceback;
-	
-	if (!PyErr_Occurred())
-		return NULL;
-	
-	PyErr_Fetch(&error_type, &error_value, &error_traceback);
-	
-	PyErr_Clear();
-	
-	/* import io
-	 * string_io = io.StringIO()
-	 */
-	
-	if(! (string_io_mod= PyImport_ImportModule("io")) ) {
-		goto error_cleanup;
-	} else if (! (string_io = PyObject_CallMethod(string_io_mod, "StringIO", NULL))) {
-		goto error_cleanup;
-	} else if (! (string_io_getvalue= PyObject_GetAttrString(string_io, "getvalue"))) {
-		goto error_cleanup;
-	}
-	
-	Py_INCREF(stdout_backup); // since these were borrowed we dont want them freed when replaced.
-	Py_INCREF(stderr_backup);
-	
-	PySys_SetObject("stdout", string_io); // both of these are free'd when restoring
-	PySys_SetObject("stderr", string_io);
-	
-	PyErr_Restore(error_type, error_value, error_traceback);
-	PyErr_Print(); /* print the error */
-	PyErr_Clear();
-	
-	string_io_buf = PyObject_CallObject(string_io_getvalue, NULL);
-	
-	PySys_SetObject("stdout", stdout_backup);
-	PySys_SetObject("stderr", stderr_backup);
-	
-	Py_DECREF(stdout_backup); /* now sys owns the ref again */
-	Py_DECREF(stderr_backup);
-	
-	Py_DECREF(string_io_mod);
-	Py_DECREF(string_io_getvalue);
-	Py_DECREF(string_io); /* free the original reference */
-	
-	PyErr_Clear();
-	return string_io_buf;
-	
-	
-error_cleanup:
-	/* could not import the module so print the error and close */
-	Py_XDECREF(string_io_mod);
-	Py_XDECREF(string_io);
-	
-	PyErr_Restore(error_type, error_value, error_traceback);
-	PyErr_Print(); /* print the error */
-	PyErr_Clear();
-	
-	return NULL;
-}
-
 char *BPy_enum_as_string(EnumPropertyItem *item)
 {
 	DynStr *dynstr= BLI_dynstr_new();
@@ -330,7 +159,7 @@ int BPy_errors_to_report(ReportList *reports)
 	PyObject *pystring_format= NULL; // workaround, see below
 	char *cstring;
 
-	char *filename;
+	const char *filename;
 	int lineno;
 
 	if (!PyErr_Occurred())
@@ -343,14 +172,14 @@ int BPy_errors_to_report(ReportList *reports)
 		return 1;
 	}
 	
-	pystring= BPY_exception_buffer();
+	pystring= PyC_ExceptionBuffer();
 	
 	if(pystring==NULL) {
 		BKE_report(reports, RPT_ERROR, "unknown py-exception, could not convert");
 		return 0;
 	}
 	
-	BPY_getFileAndNum(&filename, &lineno);
+	PyC_FileAndNum(&filename, &lineno);
 	if(filename==NULL)
 		filename= "<unknown location>";
 	
@@ -372,7 +201,7 @@ int BPy_errors_to_report(ReportList *reports)
 }
 
 /* array utility function */
-int BPyAsPrimitiveArray(void *array, PyObject *value, int length, PyTypeObject *type, char *error_prefix)
+int PyC_AsArray(void *array, PyObject *value, int length, PyTypeObject *type, char *error_prefix)
 {
 	PyObject *value_fast;
 	int value_len;

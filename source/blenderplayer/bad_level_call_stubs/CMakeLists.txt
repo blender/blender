@@ -34,8 +34,9 @@ ENDIF(WITH_BUILDINFO)
 SET(INC 
 	.
 	.. 
+	../../../intern/guardedalloc
 	../../../source/blender/makesdna
-	../../../source/blender/makesrna  
+	../../../source/blender/makesrna
 )
 
 IF(WITH_GAMEENGINE)

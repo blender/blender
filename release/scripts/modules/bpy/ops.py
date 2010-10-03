@@ -23,6 +23,7 @@ from _bpy import ops as ops_module
 
 # op_add = ops_module.add
 op_dir = ops_module.dir
+op_poll = ops_module.poll
 op_call = ops_module.call
 op_as_string = ops_module.as_string
 op_get_rna = ops_module.get_rna
@@ -120,6 +121,9 @@ class bpy_ops_submodule_op(object):
         self.module = module
         self.func = func
 
+    def poll(self, context=None):
+        return op_poll(self.idname_py(), context)
+
     def idname(self):
         # submod.foo -> SUBMOD_OT_foo
         return self.module.upper() + "_OT_" + self.func
@@ -160,7 +164,7 @@ class bpy_ops_submodule_op(object):
         if 'FINISHED' in ret:
             import bpy
             scene = bpy.context.scene
-            if scene: # None in backgroud mode
+            if scene:  # None in backgroud mode
                 scene.update()
             else:
                 for scene in bpy.data.scenes:
@@ -174,14 +178,14 @@ class bpy_ops_submodule_op(object):
         '''
         return op_get_rna(self.idname())
 
-    def __repr__(self): # useful display, repr(op)
+    def __repr__(self):  # useful display, repr(op)
         import bpy
         idname = self.idname()
         as_string = op_as_string(idname)
         descr = getattr(bpy.types, idname).bl_rna.description
         return as_string + "\n" + descr
 
-    def __str__(self): # used for print(...)
+    def __str__(self):  # used for print(...)
         return "<function bpy.ops.%s.%s at 0x%x'>" % \
                 (self.module, self.func, id(self))
 

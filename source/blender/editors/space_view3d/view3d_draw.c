@@ -50,14 +50,11 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_image.h"
-#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_utildefines.h"
 #include "BKE_unit.h"
 
 #include "RE_pipeline.h"	// make_stars
@@ -78,7 +75,6 @@
 #include "ED_space_api.h"
 #include "ED_screen_types.h"
 #include "ED_transform.h"
-#include "ED_gpencil.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -866,7 +862,7 @@ static void view3d_get_viewborder_size(Scene *scene, ARegion *ar, float size_r[2
 	}
 }
 
-void calc_viewborder(Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r)
+void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r)
 {
 	float zoomfac, size[2];
 	float dx= 0.0f, dy= 0.0f;
@@ -927,7 +923,7 @@ void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar)
 	view3d_get_viewborder_size(scene, ar, size);
 	
 	rv3d->camzoom= (sqrt(4.0*im_width/size[0]) - M_SQRT2)*50.0;
-	rv3d->camzoom= CLAMPIS(rv3d->camzoom, -30, 300);
+	rv3d->camzoom= CLAMPIS(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 }
 
 
@@ -978,7 +974,6 @@ static void drawviewborder_flymode(ARegion *ar)
 
 static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 {
-	extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);          // interface_panel.c
 	float fac, a;
 	float x1, x2, y1, y2;
 	float x1i, x2i, y1i, y2i;
@@ -992,7 +987,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	if(v3d->camera->type==OB_CAMERA)
 		ca = v3d->camera->data;
 	
-	calc_viewborder(scene, ar, rv3d, v3d, &viewborder);
+	view3d_calc_camera_border(scene, ar, rv3d, v3d, &viewborder);
 	/* the offsets */
 	x1= viewborder.xmin;
 	y1= viewborder.ymin;
@@ -1065,7 +1060,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
 		
 		uiSetRoundBox(15);
-		gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+		uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 	}
 
 	setlinestyle(0);
@@ -1329,7 +1324,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			if(rv3d->persp==RV3D_CAMOB) {
 				rctf vb;
 
-				calc_viewborder(scene, ar, rv3d, v3d, &vb);
+				view3d_calc_camera_border(scene, ar, rv3d, v3d, &vb);
 
 				x1= vb.xmin;
 				y1= vb.ymin;
@@ -1423,43 +1418,16 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 typedef struct View3DAfter {
 	struct View3DAfter *next, *prev;
 	struct Base *base;
-	int type, flag;
+	int flag;
 } View3DAfter;
 
 /* temp storage of Objects that need to be drawn as last */
-void add_view3d_after(View3D *v3d, Base *base, int type, int flag)
+void add_view3d_after(ListBase *lb, Base *base, int flag)
 {
 	View3DAfter *v3da= MEM_callocN(sizeof(View3DAfter), "View 3d after");
-	
-	BLI_addtail(&v3d->afterdraw, v3da);
+	BLI_addtail(lb, v3da);
 	v3da->base= base;
-	v3da->type= type;
 	v3da->flag= flag;
-}
-
-/* clears zbuffer and draws it over */
-static void view3d_draw_xray(Scene *scene, ARegion *ar, View3D *v3d, int clear)
-{
-	View3DAfter *v3da, *next;
-	int doit= 0;
-	
-	for(v3da= v3d->afterdraw.first; v3da; v3da= v3da->next)
-		if(v3da->type==V3D_XRAY) doit= 1;
-	
-	if(doit) {
-		if(clear && v3d->zbuf) glClear(GL_DEPTH_BUFFER_BIT);
-		v3d->xray= TRUE;
-		
-		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
-			next= v3da->next;
-			if(v3da->type==V3D_XRAY) {
-				draw_object(scene, ar, v3d, v3da->base, v3da->flag);
-				BLI_remlink(&v3d->afterdraw, v3da);
-				MEM_freeN(v3da);
-			}
-		}
-		v3d->xray= FALSE;
-	}
 }
 
 /* disables write in zbuffer and draws it over */
@@ -1470,18 +1438,58 @@ static void view3d_draw_transp(Scene *scene, ARegion *ar, View3D *v3d)
 	glDepthMask(0);
 	v3d->transp= TRUE;
 	
-	for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
+	for(v3da= v3d->afterdraw_transp.first; v3da; v3da= next) {
 		next= v3da->next;
-		if(v3da->type==V3D_TRANSP) {
-			draw_object(scene, ar, v3d, v3da->base, v3da->flag);
-			BLI_remlink(&v3d->afterdraw, v3da);
-			MEM_freeN(v3da);
-		}
+		draw_object(scene, ar, v3d, v3da->base, v3da->flag);
+		BLI_remlink(&v3d->afterdraw_transp, v3da);
+		MEM_freeN(v3da);
 	}
 	v3d->transp= FALSE;
 	
 	glDepthMask(1);
 	
+}
+
+/* clears zbuffer and draws it over */
+static void view3d_draw_xray(Scene *scene, ARegion *ar, View3D *v3d, int clear)
+{
+	View3DAfter *v3da, *next;
+
+	if(clear && v3d->zbuf)
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+	v3d->xray= TRUE;
+	for(v3da= v3d->afterdraw_xray.first; v3da; v3da= next) {
+		next= v3da->next;
+		draw_object(scene, ar, v3d, v3da->base, v3da->flag);
+		BLI_remlink(&v3d->afterdraw_xray, v3da);
+		MEM_freeN(v3da);
+	}
+	v3d->xray= FALSE;
+}
+
+
+/* clears zbuffer and draws it over */
+static void view3d_draw_xraytransp(Scene *scene, ARegion *ar, View3D *v3d, int clear)
+{
+	View3DAfter *v3da, *next;
+
+	if(clear && v3d->zbuf)
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+	v3d->xray= TRUE;
+	v3d->transp= TRUE;
+	
+	for(v3da= v3d->afterdraw_xraytransp.first; v3da; v3da= next) {
+		next= v3da->next;
+		draw_object(scene, ar, v3d, v3da->base, v3da->flag);
+		BLI_remlink(&v3d->afterdraw_xraytransp, v3da);
+		MEM_freeN(v3da);
+	}
+
+	v3d->transp= FALSE;
+	v3d->xray= FALSE;
+
 }
 
 /* *********************** */
@@ -1676,7 +1684,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	v3d->zbuf= TRUE;
 	glEnable(GL_DEPTH_TEST);
 
-	draw_gpencil_view3d_ext(scene, ar, 1);
+	draw_gpencil_view3d_ext(scene, v3d, ar, 1);
 	
 	v3d->zbuf= zbuf;
 
@@ -1744,39 +1752,57 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	}
 	
 	/* this isnt that nice, draw xray objects as if they are normal */
-	if (v3d->afterdraw.first) {
+	if (	v3d->afterdraw_transp.first ||
+			v3d->afterdraw_xray.first || 
+			v3d->afterdraw_xraytransp.first
+	) {
 		View3DAfter *v3da, *next;
-		int num = 0;
 		int mask_orig;
+
 		v3d->xray= TRUE;
 		
 		/* transp materials can change the depth mask, see #21388 */
 		glGetIntegerv(GL_DEPTH_WRITEMASK, &mask_orig);
 
-		glDepthFunc(GL_ALWAYS); /* always write into the depth bufer, overwriting front z values */
-		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
-			next= v3da->next;
-			if(v3da->type==V3D_XRAY) {
+
+		if(v3d->afterdraw_xray.first || v3d->afterdraw_xraytransp.first) {
+			glDepthFunc(GL_ALWAYS); /* always write into the depth bufer, overwriting front z values */
+			for(v3da= v3d->afterdraw_xray.first; v3da; v3da= next) {
+				next= v3da->next;
 				draw_object(scene, ar, v3d, v3da->base, 0);
-				num++;
 			}
-			/* dont remove this time */
+			glDepthFunc(GL_LEQUAL); /* Now write the depth buffer normally */
 		}
+
+		/* draw 3 passes, transp/xray/xraytransp */
 		v3d->xray= FALSE;
-		
-		glDepthFunc(GL_LEQUAL); /* Now write the depth buffer normally */
-		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
+		v3d->transp= TRUE;
+		for(v3da= v3d->afterdraw_transp.first; v3da; v3da= next) {
 			next= v3da->next;
-			if(v3da->type==V3D_XRAY) {
-				v3d->xray= TRUE; v3d->transp= FALSE;  
-			} else if (v3da->type==V3D_TRANSP) {
-				v3d->xray= FALSE; v3d->transp= TRUE;
-			}
-			
-			draw_object(scene, ar, v3d, v3da->base, 0); /* Draw Xray or Transp objects normally */
-			BLI_remlink(&v3d->afterdraw, v3da);
+			draw_object(scene, ar, v3d, v3da->base, 0);
+			BLI_remlink(&v3d->afterdraw_transp, v3da);
 			MEM_freeN(v3da);
 		}
+
+		v3d->xray= TRUE;
+		v3d->transp= FALSE;  
+		for(v3da= v3d->afterdraw_xray.first; v3da; v3da= next) {
+			next= v3da->next;
+			draw_object(scene, ar, v3d, v3da->base, 0);
+			BLI_remlink(&v3d->afterdraw_xray, v3da);
+			MEM_freeN(v3da);
+		}
+
+		v3d->xray= TRUE;
+		v3d->transp= TRUE;
+		for(v3da= v3d->afterdraw_xraytransp.first; v3da; v3da= next) {
+			next= v3da->next;
+			draw_object(scene, ar, v3d, v3da->base, 0);
+			BLI_remlink(&v3d->afterdraw_xraytransp, v3da);
+			MEM_freeN(v3da);
+		}
+
+		
 		v3d->xray= FALSE;
 		v3d->transp= FALSE;
 
@@ -1953,20 +1979,18 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	
 	/* calculate pixelsize factor once, is used for lamps and obcenters */
 	{
-		float len1, len2, vec[3];
+		rv3d->pixsize= 2.0f;
 		
-		copy_v3_v3(vec, rv3d->persinv[0]);
-		len1= normalize_v3(vec);
-		copy_v3_v3(vec, rv3d->persinv[1]);
-		len2= normalize_v3(vec);
-		
-		rv3d->pixsize= 2.0f*(len1>len2?len1:len2);
-		
+		if(rv3d->persp == RV3D_ORTHO || v3d->camera) { /* camera view needs with for ortho & persp */
+			float len1= len_v3(rv3d->persinv[0]);
+			float len2= len_v3(rv3d->persinv[1]);
+			rv3d->pixsize *= MAX2(len1, len2);
+		}
+
 		/* correct for window size */
-		if(ar->winx > ar->winy) rv3d->pixsize/= (float)ar->winx;
-		else rv3d->pixsize/= (float)ar->winy;
+		rv3d->pixsize/= (float)MAX2(ar->winx, ar->winy);
 	}
-	
+
 	/* set for opengl */
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(rv3d->winmat);
@@ -1980,14 +2004,22 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	Base *base;
 	float backcol[3];
 	int bwinx, bwiny;
+	rcti brect;
 
 	glPushMatrix();
 
 	/* set temporary new size */
 	bwinx= ar->winx;
 	bwiny= ar->winy;
+	brect= ar->winrct;
+	
 	ar->winx= winx;
-	ar->winy= winy;
+	ar->winy= winy;	
+	ar->winrct.xmin= 0;
+	ar->winrct.ymin= 0;
+	ar->winrct.xmax= winx;
+	ar->winrct.ymax= winy;
+	
 	
 	/* set flags */
 	G.f |= G_RENDER_OGL;
@@ -2046,8 +2078,9 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	}
 
 	/* transp and X-ray afterdraw stuff */
-	view3d_draw_transp(scene, ar, v3d);
-	view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
+	if(v3d->afterdraw_transp.first)		view3d_draw_transp(scene, ar, v3d);
+	if(v3d->afterdraw_xray.first)		view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
+	if(v3d->afterdraw_xraytransp.first)	view3d_draw_xraytransp(scene, ar, v3d, 1);
 
 	/* cleanup */
 	if(v3d->zbuf) {
@@ -2056,12 +2089,12 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	}
 
 	/* draw grease-pencil stuff */
-	draw_gpencil_view3d_ext(scene, ar, 1);
+	draw_gpencil_view3d_ext(scene, v3d, ar, 1);
 
 	ED_region_pixelspace(ar);
 
 	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-	draw_gpencil_view3d_ext(scene, ar, 0);
+	draw_gpencil_view3d_ext(scene, v3d, ar, 0);
 
 	/* freeing the images again here could be done after the operator runs, leaving for now */
 	GPU_free_images_anim();
@@ -2069,6 +2102,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	/* restore size */
 	ar->winx= bwinx;
 	ar->winy= bwiny;
+	ar->winrct = brect;
 
 	glPopMatrix();
 
@@ -2078,7 +2112,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 }
 
 /* utility func for ED_view3d_draw_offscreen */
-ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey)
+ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey, unsigned int flag)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	ImBuf *ibuf;
@@ -2106,9 +2140,13 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	}
 
 	/* read in pixels & stamp */
-	ibuf= IMB_allocImBuf(sizex, sizey, 24, IB_rect, 0);
-	glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	ibuf= IMB_allocImBuf(sizex, sizey, 32, flag, 0);
 
+	if(ibuf->rect_float)
+		glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, ibuf->rect_float);
+	else if(ibuf->rect)
+		glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	
 	//if((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
 	//	BKE_stamp_buf(scene, NULL, rr->rectf, rr->rectx, rr->recty, 4);
 
@@ -2116,11 +2154,14 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	GPU_offscreen_unbind(ofs);
 	GPU_offscreen_free(ofs);
 
+	if(ibuf->rect_float && ibuf->rect)
+		IMB_rect_from_float(ibuf);
+	
 	return ibuf;
 }
 
 /* creates own 3d views, used by the sequencer */
-ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, int drawtype)
+ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, unsigned int flag, int drawtype)
 {
 	View3D v3d;
 	ARegion ar;
@@ -2155,7 +2196,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height
 	mul_m4_m4m4(rv3d.persmat, rv3d.viewmat, rv3d.winmat);
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
-	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height);
+	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag);
 
 	// seq_view3d_cb(scene, cfra, render_size, seqrectx, seqrecty);
 }
@@ -2323,14 +2364,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		
 		/* Transp and X-ray afterdraw stuff for sets is done later */
 	}
-	
-	/* extra service in layerbuttons, showing used layers */
-	v3d->lay_used = 0;
 
 	/* then draw not selected and the duplis, but skip editmode object */
 	for(base= scene->base.first; base; base= base->next) {
-		v3d->lay_used |= base->lay;
-		
 		if(v3d->lay & base->lay) {
 			
 			/* dupli drawing */
@@ -2364,8 +2400,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 //	REEB_draw();
 	
 	/* Transp and X-ray afterdraw stuff */
-	view3d_draw_transp(scene, ar, v3d);
-	view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
+	if(v3d->afterdraw_transp.first)		view3d_draw_transp(scene, ar, v3d);
+	if(v3d->afterdraw_xray.first)		view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
+	if(v3d->afterdraw_xraytransp.first)	view3d_draw_xraytransp(scene, ar, v3d, 1);
 	
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	
@@ -2433,8 +2470,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	ob= OBACT;
 	if(U.uiflag & USER_DRAWVIEWINFO) 
 		draw_selected_name(scene, ob, v3d);
-
-	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
 	
 	/* XXX here was the blockhandlers for floating panels */
 

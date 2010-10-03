@@ -43,9 +43,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_plugin_types.h"
 #include "BKE_sequencer.h"
-#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 #include "BKE_sound.h"
 
@@ -65,6 +63,7 @@
 /* own include */
 #include "sequencer_intern.h"
 
+
 #define SEQ_LEFTHANDLE		1
 #define SEQ_RIGHTHANDLE	2
 
@@ -77,19 +76,21 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 static void get_seq_color3ubv(Scene *curscene, Sequence *seq, char *col)
 {
 	char blendcol[3];
-	float hsv[3], rgb[3];
 	SolidColorVars *colvars = (SolidColorVars *)seq->effectdata;
 
 	switch(seq->type) {
 	case SEQ_IMAGE:
 		UI_GetThemeColor3ubv(TH_SEQ_IMAGE, col);
 		break;
+		
 	case SEQ_META:
 		UI_GetThemeColor3ubv(TH_SEQ_META, col);
 		break;
+		
 	case SEQ_MOVIE:
 		UI_GetThemeColor3ubv(TH_SEQ_MOVIE, col);
 		break;
+		
 	case SEQ_SCENE:
 		UI_GetThemeColor3ubv(TH_SEQ_SCENE, col);
 		
@@ -97,24 +98,17 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, char *col)
 			UI_GetColorPtrBlendShade3ubv(col, col, col, 1.0, 20);
 		}
 		break;
-
+		
 	/* transitions */
 	case SEQ_CROSS:
 	case SEQ_GAMCROSS:
 	case SEQ_WIPE:
-		/* slightly offset hue to distinguish different effects */
 		UI_GetThemeColor3ubv(TH_SEQ_TRANSITION, col);
-		
-		rgb[0] = col[0]/255.0; rgb[1] = col[1]/255.0; rgb[2] = col[2]/255.0; 
-		rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
-		
-		if (seq->type == SEQ_CROSS)		hsv[0]+= 0.04;
-		if (seq->type == SEQ_GAMCROSS)	hsv[0]+= 0.08;
-		if (seq->type == SEQ_WIPE)		hsv[0]+= 0.12;
-		
-		if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
-		hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
-		col[0] = (char)(rgb[0]*255); col[1] = (char)(rgb[1]*255); col[2] = (char)(rgb[2]*255); 
+
+		/* slightly offset hue to distinguish different effects */
+		if (seq->type == SEQ_CROSS)			rgb_byte_set_hue_float_offset(col,0.04);
+		if (seq->type == SEQ_GAMCROSS)		rgb_byte_set_hue_float_offset(col,0.08);
+		if (seq->type == SEQ_WIPE)			rgb_byte_set_hue_float_offset(col,0.12);
 		break;
 		
 	/* effects */
@@ -128,42 +122,37 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, char *col)
 	case SEQ_OVERDROP:
 	case SEQ_GLOW:
 	case SEQ_MULTICAM:
-		/* slightly offset hue to distinguish different effects */
 		UI_GetThemeColor3ubv(TH_SEQ_EFFECT, col);
 		
-		rgb[0] = col[0]/255.0; rgb[1] = col[1]/255.0; rgb[2] = col[2]/255.0; 
-		rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
-		
-		if (seq->type == SEQ_ADD)		hsv[0]+= 0.04;
-		if (seq->type == SEQ_SUB)		hsv[0]+= 0.08;
-		if (seq->type == SEQ_MUL)		hsv[0]+= 0.12;
-		if (seq->type == SEQ_ALPHAOVER)	hsv[0]+= 0.16;
-		if (seq->type == SEQ_ALPHAUNDER)	hsv[0]+= 0.20;
-		if (seq->type == SEQ_OVERDROP)	hsv[0]+= 0.24;
-		if (seq->type == SEQ_GLOW)		hsv[0]+= 0.28;
-		if (seq->type == SEQ_TRANSFORM)		hsv[0]+= 0.36;
-
-		if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
-		hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
-		col[0] = (char)(rgb[0]*255); col[1] = (char)(rgb[1]*255); col[2] = (char)(rgb[2]*255); 
+		/* slightly offset hue to distinguish different effects */
+		if (seq->type == SEQ_ADD)			rgb_byte_set_hue_float_offset(col,0.04);
+		if (seq->type == SEQ_SUB)			rgb_byte_set_hue_float_offset(col,0.08);
+		if (seq->type == SEQ_MUL)			rgb_byte_set_hue_float_offset(col,0.12);
+		if (seq->type == SEQ_ALPHAOVER)		rgb_byte_set_hue_float_offset(col,0.16);
+		if (seq->type == SEQ_ALPHAUNDER)	rgb_byte_set_hue_float_offset(col,0.20);
+		if (seq->type == SEQ_OVERDROP)		rgb_byte_set_hue_float_offset(col,0.24);
+		if (seq->type == SEQ_GLOW)			rgb_byte_set_hue_float_offset(col,0.28);
+		if (seq->type == SEQ_TRANSFORM)		rgb_byte_set_hue_float_offset(col,0.36);
 		break;
+		
 	case SEQ_COLOR:
 		if (colvars->col) {
-			col[0]= (char)(colvars->col[0]*255);
-			col[1]= (char)(colvars->col[1]*255);
-			col[2]= (char)(colvars->col[2]*255);
+			rgb_float_to_byte(colvars->col, col);
 		} else {
 			col[0] = col[1] = col[2] = 128;
 		}
 		break;
+		
 	case SEQ_PLUGIN:
 		UI_GetThemeColor3ubv(TH_SEQ_PLUGIN, col);
 		break;
+		
 	case SEQ_SOUND:
 		UI_GetThemeColor3ubv(TH_SEQ_AUDIO, col);
 		blendcol[0] = blendcol[1] = blendcol[2] = 128;
 		if(seq->flag & SEQ_MUTE) UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.5, 20);
 		break;
+		
 	default:
 		col[0] = 10; col[1] = 255; col[2] = 40;
 	}
@@ -599,8 +588,6 @@ so wave file sample drawing precision is zoom adjusted
 */
 static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *seq, int outline_tint, float pixelx)
 {
-	// XXX
-	extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
 	View2D *v2d= &ar->v2d;
 	float x1, x2, y1, y2;
 	char col[3], background_col[3], is_single_image;
@@ -657,7 +644,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *
 		glLineStipple(1, 0x8888);
 	}
 	
-	gl_round_box_shade(GL_LINE_LOOP, x1, y1, x2, y2, 0.0, 0.1, 0.0);
+	uiDrawBoxShade(GL_LINE_LOOP, x1, y1, x2, y2, 0.0, 0.1, 0.0);
 	
 	if (seq->flag & SEQ_MUTE) {
 		glDisable(GL_LINE_STIPPLE);
@@ -696,13 +683,12 @@ void set_special_seq_update(int val)
 
 void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs)
 {
-	extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
+	struct Main *bmain= CTX_data_main(C);
 	struct ImBuf *ibuf = 0;
 	struct ImBuf *scope = 0;
 	struct View2D *v2d = &ar->v2d;
 	int rectx, recty;
 	float viewrectx, viewrecty;
-	static int recursive= 0;
 	float render_size = 0.0;
 	float proxy_size = 100.0;
 	GLuint texid;
@@ -742,33 +728,12 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	UI_view2d_totRect_set(v2d, viewrectx + 0.5f, viewrecty + 0.5f);
 	UI_view2d_curRect_validate(v2d);
 
-	/* BIG PROBLEM: the give_ibuf_seq() can call a rendering, which in turn calls redraws...
-	   this shouldn't belong in a window drawing....
-	   So: solve this once event based. 
-	   Now we check for recursion, space type and active area again (ton) */
-
-	if(recursive)
-		return;
-	else {
-		recursive= 1;
-		if (special_seq_update) {
-			ibuf= give_ibuf_seq_direct(scene, rectx, recty, cfra + frame_ofs, proxy_size, special_seq_update);
-		} 
-		else if (!U.prefetchframes) { // XXX || (G.f & G_PLAYANIM) == 0) {
-			ibuf= (ImBuf *)give_ibuf_seq(scene, rectx, recty, cfra + frame_ofs, sseq->chanshown, proxy_size);
-		} 
-		else {
-			ibuf= (ImBuf *)give_ibuf_seq_threaded(scene, rectx, recty, cfra + frame_ofs, sseq->chanshown, proxy_size);
-		}
-		recursive= 0;
-		
-		/* XXX HURMF! the give_ibuf_seq can call image display in this window */
-//		if(sa->spacetype!=SPACE_SEQ)
-//			return;
-//		if(sa!=curarea) {
-//			areawinset(sa->win);
-//		}
-	}
+	if (special_seq_update)
+		ibuf= give_ibuf_seq_direct(bmain, scene, rectx, recty, cfra + frame_ofs, proxy_size, special_seq_update);
+	else if (!U.prefetchframes) // XXX || (G.f & G_PLAYANIM) == 0) {
+		ibuf= (ImBuf *)give_ibuf_seq(bmain, scene, rectx, recty, cfra + frame_ofs, sseq->chanshown, proxy_size);
+	else
+		ibuf= (ImBuf *)give_ibuf_seq_threaded(bmain, scene, rectx, recty, cfra + frame_ofs, sseq->chanshown, proxy_size);
 	
 	if(ibuf==NULL) 
 		return;
@@ -878,7 +843,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 			uiSetRoundBox(15);
-			gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 

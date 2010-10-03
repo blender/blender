@@ -40,6 +40,45 @@
 #include "MEM_guardedalloc.h"
 #include "BKE_report.h"
 
+static PyObject *pyop_poll( PyObject * self, PyObject * args)
+{
+	wmOperatorType *ot;
+	char		*opname;
+	PyObject	*context_dict= NULL; /* optional args */
+	PyObject	*context_dict_back;
+	PyObject	*ret;
+
+	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
+	bContext *C = BPy_GetContext();
+	
+	if (!PyArg_ParseTuple(args, "s|O:_bpy.ops.poll", &opname, &context_dict))
+		return NULL;
+	
+	ot= WM_operatortype_find(opname, TRUE);
+
+	if (ot == NULL) {
+		PyErr_Format(PyExc_SystemError, "Polling operator \"bpy.ops.%s\" error, could not be found", opname);
+		return NULL;
+	}
+
+	if(!PyDict_Check(context_dict))
+		context_dict= NULL;
+
+	context_dict_back= CTX_py_dict_get(C);
+
+	CTX_py_dict_set(C, (void *)context_dict);
+	Py_XINCREF(context_dict); /* so we done loose it */
+	
+	/* main purpose of thsi function */
+	ret= WM_operator_poll((bContext*)C, ot) ? Py_True : Py_False;
+	
+	/* restore with original context dict, probably NULL but need this for nested operator calls */
+	Py_XDECREF(context_dict);
+	CTX_py_dict_set(C, (void *)context_dict_back);
+	
+	Py_INCREF(ret);
+	return ret;
+}
 
 static PyObject *pyop_call( PyObject * self, PyObject * args)
 {
@@ -63,10 +102,10 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	if (!PyArg_ParseTuple(args, "sO|O!s:_bpy.ops.call", &opname, &context_dict, &PyDict_Type, &kw, &context_str))
 		return NULL;
 
-	ot= WM_operatortype_exists(opname);
+	ot= WM_operatortype_find(opname, TRUE);
 
 	if (ot == NULL) {
-		PyErr_Format( PyExc_SystemError, "Calling operator \"bpy.ops.%s\" error, could not be found", opname);
+		PyErr_Format(PyExc_SystemError, "Calling operator \"bpy.ops.%s\" error, could not be found", opname);
 		return NULL;
 	}
 	
@@ -250,22 +289,36 @@ static PyObject *pyop_getrna(PyObject *self, PyObject *value)
 	return (PyObject *)pyrna;
 }
 
-PyObject *BPY_operator_module( void )
+static struct PyMethodDef bpy_ops_methods[] = {
+	{"poll", (PyCFunction) pyop_poll, METH_VARARGS, NULL},
+	{"call", (PyCFunction) pyop_call, METH_VARARGS, NULL},
+	{"as_string", (PyCFunction) pyop_as_string, METH_VARARGS, NULL},
+	{"dir", (PyCFunction) pyop_dir, METH_NOARGS, NULL},
+	{"get_rna", (PyCFunction) pyop_getrna, METH_O, NULL},
+	{"macro_define", (PyCFunction) PYOP_wrap_macro_define, METH_VARARGS, NULL},
+	{NULL, NULL, 0, NULL}
+};
+
+static struct PyModuleDef bpy_ops_module = {
+	PyModuleDef_HEAD_INIT,
+	"_bpy.ops",
+	NULL,
+	-1,/* multiple "initialization" just copies the module dict. */
+	bpy_ops_methods,
+	NULL, NULL, NULL, NULL
+};
+
+PyObject *BPY_operator_module(void)
 {
-	static PyMethodDef pyop_call_meth =		{"call", (PyCFunction) pyop_call, METH_VARARGS, NULL};
-	static PyMethodDef pyop_as_string_meth ={"as_string", (PyCFunction) pyop_as_string, METH_VARARGS, NULL};
-	static PyMethodDef pyop_dir_meth =		{"dir", (PyCFunction) pyop_dir, METH_NOARGS, NULL};
-	static PyMethodDef pyop_getrna_meth =	{"get_rna", (PyCFunction) pyop_getrna, METH_O, NULL};
-	static PyMethodDef pyop_macro_def_meth ={"macro_define", (PyCFunction) PYOP_wrap_macro_define, METH_VARARGS, NULL};
+	PyObject *submodule;
+	
+	submodule= PyModule_Create(&bpy_ops_module);
+	PyDict_SetItemString(PyImport_GetModuleDict(), bpy_ops_module.m_name, submodule);
 
-	PyObject *submodule = PyModule_New("_bpy.ops");
-	PyDict_SetItemString(PySys_GetObject("modules"), "_bpy.ops", submodule);
-
-	PyModule_AddObject( submodule, "call",	PyCFunction_New(&pyop_call_meth,	NULL) );
-	PyModule_AddObject( submodule, "as_string",PyCFunction_New(&pyop_as_string_meth,NULL) );
-	PyModule_AddObject( submodule, "dir",		PyCFunction_New(&pyop_dir_meth,		NULL) );
-	PyModule_AddObject( submodule, "get_rna",	PyCFunction_New(&pyop_getrna_meth,	NULL) );
-	PyModule_AddObject( submodule, "macro_define",PyCFunction_New(&pyop_macro_def_meth,		NULL) );
+	/* INCREF since its its assumed that all these functions return the
+	 * module with a new ref like PyDict_New, since they are passed to
+	  * PyModule_AddObject which steals a ref */
+	Py_INCREF(submodule);
 
 	return submodule;
 }

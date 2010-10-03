@@ -531,6 +531,7 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 	MFace *mface, *mf;
 	MEdge *medge, *me;
 	MVert *mvert, *mv;
+	int *origindex;
 	int totface,totedge,totvert,i,bmeshok,len, numTex, numCol;
 
 	BME_Vert *v1=NULL;
@@ -577,13 +578,16 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 
 	/*Make Verts*/
 	mvert = CDDM_get_verts(result);
+	origindex = result->getVertDataArray(result, CD_ORIGINDEX);
 	for(i=0,v1=bm->verts.first,mv=mvert;v1;v1=v1->next,i++,mv++){
 		VECCOPY(mv->co,v1->co);
 		mv->flag = (unsigned char)v1->flag;
 		mv->bweight = (char)(255.0*v1->bweight);
 		CustomData_from_bmesh_block(&bm->vdata, &result->vertData, &v1->data, i);
+		origindex[i] = ORIGINDEX_NONE;
 	}
 	medge = CDDM_get_edges(result);
+	origindex = result->getEdgeDataArray(result, CD_ORIGINDEX);
 	i=0;
 	for(e=bm->edges.first,me=medge;e;e=e->next){
 		if(e->tflag2){
@@ -600,12 +604,14 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 			me->bweight = (char)(255.0*e->bweight);
 			me->flag = e->flag;
 			CustomData_from_bmesh_block(&bm->edata, &result->edgeData, &e->data, i);
+			origindex[i] = ORIGINDEX_NONE;
 			me++;
 			i++;
 		}
 	}
 	if(totface){
 		mface = CDDM_get_faces(result);
+		origindex = result->getFaceDataArray(result, CD_ORIGINDEX);
 		/*make faces*/
 		for(i=0,f=bm->polys.first;f;f=f->next){
 			mf = &mface[i];
@@ -625,6 +631,7 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 				mf->flag = (unsigned char)f->flag;
 				CustomData_from_bmesh_block(&bm->pdata, &result->faceData, &f->data, i);
 				BME_DMloops_to_corners(bm, &result->faceData, i, f,numCol,numTex);
+				origindex[i] = ORIGINDEX_NONE;
 				i++;
 			}
 		}

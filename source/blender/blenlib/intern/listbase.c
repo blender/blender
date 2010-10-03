@@ -374,6 +374,27 @@ void *BLI_findstring(ListBase *listbase, const char *id, int offset)
 	return NULL;
 }
 
+void *BLI_findstring_ptr(ListBase *listbase, const char *id, int offset)
+{
+	Link *link= NULL;
+	const char *id_iter;
+
+	if (listbase == NULL) return NULL;
+
+	link= listbase->first;
+	while (link) {
+		/* exact copy of BLI_findstring(), except for this line */
+		id_iter= *((const char **)(((const char *)link) + offset));
+
+		if(id[0] == id_iter[0] && strcmp(id, id_iter)==0)
+			return link;
+
+		link= link->next;
+	}
+
+	return NULL;
+}
+
 int BLI_findstringindex(ListBase *listbase, const char *id, int offset)
 {
 	Link *link= NULL;

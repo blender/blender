@@ -39,7 +39,7 @@ static char py_blf_position_doc[] =
 "   :arg y: Y axis position to draw the text.\n"
 "   :type y: float\n"
 "   :arg z: Z axis position to draw the text.\n"
-"   :type x: float\n";
+"   :type z: float\n";
 
 static PyObject *py_blf_position(PyObject *self, PyObject *args)
 {
@@ -261,7 +261,7 @@ static char py_blf_rotation_doc[] =
 "   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default font use 0.\n"
 "   :type fontid: int\n"
 "   :arg angle: The angle for text drawing to use.\n"
-"   :type aspect: float\n";
+"   :type angle: float\n";
 
 static PyObject *py_blf_rotation(PyObject *self, PyObject *args)
 {
@@ -394,7 +394,7 @@ PyObject *BLF_Init(void)
 	PyObject *submodule;
 
 	submodule = PyModule_Create(&BLF_module_def);
-	PyDict_SetItemString(PySys_GetObject("modules"), BLF_module_def.m_name, submodule);
+	PyDict_SetItemString(PyImport_GetModuleDict(), BLF_module_def.m_name, submodule);
 
 	PyModule_AddIntConstant(submodule, "ROTATION", BLF_ROTATION);
 	PyModule_AddIntConstant(submodule, "CLIPPING", BLF_CLIPPING);

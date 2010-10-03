@@ -314,7 +314,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, nla_mode_extend_items);
 	RNA_def_property_ui_text(prop, "Extrapolation", "Action to take for gaps past the strip extents");
 	
-	prop= RNA_def_property(srna, "blending", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "blendmode");
 	RNA_def_property_enum_items(prop, nla_mode_blend_items);
 	RNA_def_property_ui_text(prop, "Blending", "Method used for combining strip's result with accumulated result");
@@ -343,7 +343,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_blend_out_set", NULL);
 	RNA_def_property_ui_text(prop, "Blend Out", "");
 	
-	prop= RNA_def_property(srna, "auto_blending", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_auto_blend", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_AUTO_BLENDS);
 	RNA_def_property_ui_text(prop, "Auto Blend In/Out", "Number of frames for Blending In/Out is automatically determined from overlapping strips");
 	
@@ -401,17 +401,17 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Strip Time", "Frame of referenced Action to evaluate");
 	
 		// TODO: should the animated_influence/time settings be animatable themselves?
-	prop= RNA_def_property(srna, "animated_influence", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_animated_influence", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_USR_INFLUENCE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_NlaStrip_animated_influence_set");
 	RNA_def_property_ui_text(prop, "Animated Influence", "Influence setting is controlled by an F-Curve rather than automatically determined");
 	
-	prop= RNA_def_property(srna, "animated_time", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_animated_time", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_USR_TIME);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_NlaStrip_animated_time_set");
 	RNA_def_property_ui_text(prop, "Animated Strip Time", "Strip time is controlled by an F-Curve rather than automatically determined");
 
-	prop= RNA_def_property(srna, "animated_time_cyclic", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_animated_time_cyclic", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_USR_TIME_CYCLIC);
 	RNA_def_property_ui_text(prop, "Cyclic Strip Time", "Cycle the animated time within the action start & end");
 	RNA_def_property_update(prop, 0, "rna_NlaStrip_transform_update"); // is there a better update flag?
@@ -430,7 +430,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_MUTED);
 	RNA_def_property_ui_text(prop, "Muted", "NLA Strip is not evaluated");
 	
-	prop= RNA_def_property(srna, "reversed", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_reverse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLASTRIP_FLAG_REVERSE);
 	RNA_def_property_ui_text(prop, "Reversed", "NLA Strip is played back in reverse order (only when timing is automatically determined)");
 	
@@ -463,7 +463,7 @@ static void rna_def_nlatrack(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLATRACK_ACTIVE);
 	RNA_def_property_ui_text(prop, "Active", "NLA Track is active");
 	
-	prop= RNA_def_property(srna, "solo", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "is_solo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* can be made editable by hooking it up to the necessary NLA API methods */
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NLATRACK_SOLO);
 	RNA_def_property_ui_text(prop, "Solo", "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)");

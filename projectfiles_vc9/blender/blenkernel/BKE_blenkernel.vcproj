@@ -635,6 +635,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\idcode.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\idprop.c"
 				>
 			</File>
@@ -960,11 +964,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_gpencil.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_group.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_icons.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_idcode.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_idprop.h"
 				>
 			</File>
 			<File
@@ -1153,10 +1169,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\depsgraph_private.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenkernel\Makefile"
 				>
 			</File>
 			<File

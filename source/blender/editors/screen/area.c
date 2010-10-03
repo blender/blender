@@ -40,7 +40,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -48,6 +47,7 @@
 
 #include "ED_screen.h"
 #include "ED_screen_types.h"
+#include "ED_space_api.h"
 #include "ED_types.h"
 #include "ED_fileselect.h" 
 
@@ -343,6 +343,8 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	else if(at->draw) {
 		at->draw(C, ar);
 	}
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
 	
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
 	
@@ -467,29 +469,31 @@ static void area_azone_initialize(ScrArea *sa)
 #define AZONEPAD_ICON	8
 static void region_azone_edge(AZone *az, ARegion *ar)
 {
-	if(az->edge=='t') {
-		az->x1= ar->winrct.xmin;
-		az->y1= ar->winrct.ymax - AZONEPAD_EDGE;
-		az->x2= ar->winrct.xmax;
-		az->y2= ar->winrct.ymax;
-	}
-	else if(az->edge=='b') {
-		az->x1= ar->winrct.xmin;
-		az->y1= ar->winrct.ymin + AZONEPAD_EDGE;
-		az->x2= ar->winrct.xmax;
-		az->y2= ar->winrct.ymin;
-	}
-	else if(az->edge=='l') {
-		az->x1= ar->winrct.xmin;
-		az->y1= ar->winrct.ymin;
-		az->x2= ar->winrct.xmin + AZONEPAD_EDGE;
-		az->y2= ar->winrct.ymax;
-	}
-	else { // if(az->edge=='r') {
-		az->x1= ar->winrct.xmax;
-		az->y1= ar->winrct.ymin;
-		az->x2= ar->winrct.xmax - AZONEPAD_EDGE;
-		az->y2= ar->winrct.ymax;
+	switch(az->edge) {
+		case AE_TOP_TO_BOTTOMRIGHT:
+			az->x1= ar->winrct.xmin;
+			az->y1= ar->winrct.ymax - AZONEPAD_EDGE;
+			az->x2= ar->winrct.xmax;
+			az->y2= ar->winrct.ymax;
+			break;
+		case AE_BOTTOM_TO_TOPLEFT:
+			az->x1= ar->winrct.xmin;
+			az->y1= ar->winrct.ymin + AZONEPAD_EDGE;
+			az->x2= ar->winrct.xmax;
+			az->y2= ar->winrct.ymin;
+			break;
+		case AE_LEFT_TO_TOPRIGHT:
+			az->x1= ar->winrct.xmin;
+			az->y1= ar->winrct.ymin;
+			az->x2= ar->winrct.xmin + AZONEPAD_EDGE;
+			az->y2= ar->winrct.ymax;
+			break;
+		case AE_RIGHT_TO_TOPLEFT:
+			az->x1= ar->winrct.xmax;
+			az->y1= ar->winrct.ymin;
+			az->x2= ar->winrct.xmax - AZONEPAD_EDGE;
+			az->y2= ar->winrct.ymax;
+			break;
 	}
 
 	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
@@ -500,33 +504,38 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 	AZone *azt;
 	int tot=0;
 	
+	/* count how many actionzones with along same edge are available.
+	   This allows for adding more action zones in the future without
+	   having to worry about correct offset */
 	for(azt= sa->actionzones.first; azt; azt= azt->next) {
 		if(azt->edge == az->edge) tot++;
 	}
 	
-	if(az->edge=='t') {
-		az->x1= ar->winrct.xmax - tot*2*AZONEPAD_ICON;
-		az->y1= ar->winrct.ymax + AZONEPAD_ICON;
-		az->x2= ar->winrct.xmax - tot*AZONEPAD_ICON;
-		az->y2= ar->winrct.ymax + 2*AZONEPAD_ICON;
-	}
-	else if(az->edge=='b') {
-		az->x1= ar->winrct.xmin + AZONEPAD_ICON;
-		az->y1= ar->winrct.ymin - 2*AZONEPAD_ICON;
-		az->x2= ar->winrct.xmin + 2*AZONEPAD_ICON;
-		az->y2= ar->winrct.ymin - AZONEPAD_ICON;
-	}
-	else if(az->edge=='l') {
-		az->x1= ar->winrct.xmin - 2*AZONEPAD_ICON;
-		az->y1= ar->winrct.ymax - tot*2*AZONEPAD_ICON;
-		az->x2= ar->winrct.xmin - AZONEPAD_ICON;
-		az->y2= ar->winrct.ymax - tot*AZONEPAD_ICON;
-	}
-	else { // if(az->edge=='r') {
-		az->x1= ar->winrct.xmax + AZONEPAD_ICON;
-		az->y1= ar->winrct.ymax - tot*2*AZONEPAD_ICON;
-		az->x2= ar->winrct.xmax + 2*AZONEPAD_ICON;
-		az->y2= ar->winrct.ymax - tot*AZONEPAD_ICON;
+	switch(az->edge) {
+		case AE_TOP_TO_BOTTOMRIGHT:
+			az->x1= ar->winrct.xmax - tot*2*AZONEPAD_ICON;
+			az->y1= ar->winrct.ymax + AZONEPAD_ICON;
+			az->x2= ar->winrct.xmax - tot*AZONEPAD_ICON;
+			az->y2= ar->winrct.ymax + 2*AZONEPAD_ICON;
+			break;
+		case AE_BOTTOM_TO_TOPLEFT:
+			az->x1= ar->winrct.xmin + AZONEPAD_ICON;
+			az->y1= ar->winrct.ymin - 2*AZONEPAD_ICON;
+			az->x2= ar->winrct.xmin + 2*AZONEPAD_ICON;
+			az->y2= ar->winrct.ymin - AZONEPAD_ICON;
+			break;
+		case AE_LEFT_TO_TOPRIGHT:
+			az->x1= ar->winrct.xmin - 2*AZONEPAD_ICON;
+			az->y1= ar->winrct.ymax - tot*2*AZONEPAD_ICON;
+			az->x2= ar->winrct.xmin - AZONEPAD_ICON;
+			az->y2= ar->winrct.ymax - tot*AZONEPAD_ICON;
+			break;
+		case AE_RIGHT_TO_TOPLEFT:
+			az->x1= ar->winrct.xmax + AZONEPAD_ICON;
+			az->y1= ar->winrct.ymax - tot*2*AZONEPAD_ICON;
+			az->x2= ar->winrct.xmax + 2*AZONEPAD_ICON;
+			az->y2= ar->winrct.ymax - tot*AZONEPAD_ICON;
+			break;
 	}
 
 	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
@@ -535,22 +544,21 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 	for(azt= sa->actionzones.first; azt; azt= azt->next) {
 		if(az!=azt) {
 			if( ABS(az->x1-azt->x1) < 2 && ABS(az->y1-azt->y1) < 2) {
-				if(az->edge=='t' || az->edge=='b') {
+				if(az->edge==AE_TOP_TO_BOTTOMRIGHT || az->edge==AE_BOTTOM_TO_TOPLEFT) {
 					az->x1+= AZONESPOT;
 					az->x2+= AZONESPOT;
-					BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
 				}
-				else {
+				else{
 					az->y1-= AZONESPOT;
 					az->y2-= AZONESPOT;
-					BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
 				}
+				BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
 			}
 		}
 	}
 }
 
-static void region_azone_initialize(ScrArea *sa, ARegion *ar, char edge) 
+static void region_azone_initialize(ScrArea *sa, ARegion *ar, AZEdge edge) 
 {
 	AZone *az;
 	
@@ -573,17 +581,16 @@ static void region_azone_initialize(ScrArea *sa, ARegion *ar, char edge)
 
 static void region_azone_add(ScrArea *sa, ARegion *ar, int alignment)
 {
-	 /* edge code (t b l r) is where azone will be drawn */
+	 /* edge code (t b l r) is along which area edge azone will be drawn */
 	
 	if(alignment==RGN_ALIGN_TOP)
-		region_azone_initialize(sa, ar, 'b');
+		region_azone_initialize(sa, ar, AE_BOTTOM_TO_TOPLEFT);
 	else if(alignment==RGN_ALIGN_BOTTOM)
-		region_azone_initialize(sa, ar, 't');
+		region_azone_initialize(sa, ar, AE_TOP_TO_BOTTOMRIGHT);
 	else if(ELEM(alignment, RGN_ALIGN_RIGHT, RGN_OVERLAP_RIGHT))
-		region_azone_initialize(sa, ar, 'l');
+		region_azone_initialize(sa, ar, AE_LEFT_TO_TOPRIGHT);
 	else if(ELEM(alignment, RGN_ALIGN_LEFT, RGN_OVERLAP_LEFT))
-		region_azone_initialize(sa, ar, 'r');
-								
+		region_azone_initialize(sa, ar, AE_RIGHT_TO_TOPLEFT);
 }
 
 /* dir is direction to check, not the splitting edge direction! */
@@ -1092,13 +1099,6 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 void ED_area_prevspace(bContext *C, ScrArea *sa)
 {
 	SpaceLink *sl = (sa) ? sa->spacedata.first : CTX_wm_space_data(C);
-
-	/* Special handling of filebrowser to stop background thread for
-	   thumbnail creation - don't want to waste cpu resources if not showing
-	   the filebrowser */
-	if (sl->spacetype == SPACE_FILE) {
-		ED_fileselect_exit(C, (SpaceFile*)sl);
-	}
 
 	if(sl->next) {
 		/* workaround for case of double prevspace, render window

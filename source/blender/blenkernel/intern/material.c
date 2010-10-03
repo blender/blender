@@ -56,10 +56,6 @@
 #include "BKE_node.h"
 #include "BKE_utildefines.h"
 
-#ifndef DISABLE_PYTHON
-#include "BPY_extern.h"
-#endif
-
 #include "GPU_material.h"
 
 /* used in UI and render */
@@ -236,6 +232,7 @@ Material *copy_material(Material *ma)
 
 void make_local_material(Material *ma)
 {
+	Main *bmain= G.main;
 	Object *ob;
 	Mesh *me;
 	Curve *cu;
@@ -261,7 +258,7 @@ void make_local_material(Material *ma)
 	}
 	
 	/* test objects */
-	ob= G.main->object.first;
+	ob= bmain->object.first;
 	while(ob) {
 		if(ob->mat) {
 			for(a=0; a<ob->totcol; a++) {
@@ -274,7 +271,7 @@ void make_local_material(Material *ma)
 		ob= ob->id.next;
 	}
 	/* test meshes */
-	me= G.main->mesh.first;
+	me= bmain->mesh.first;
 	while(me) {
 		if(me->mat) {
 			for(a=0; a<me->totcol; a++) {
@@ -287,7 +284,7 @@ void make_local_material(Material *ma)
 		me= me->id.next;
 	}
 	/* test curves */
-	cu= G.main->curve.first;
+	cu= bmain->curve.first;
 	while(cu) {
 		if(cu->mat) {
 			for(a=0; a<cu->totcol; a++) {
@@ -300,7 +297,7 @@ void make_local_material(Material *ma)
 		cu= cu->id.next;
 	}
 	/* test mballs */
-	mb= G.main->mball.first;
+	mb= bmain->mball.first;
 	while(mb) {
 		if(mb->mat) {
 			for(a=0; a<mb->totcol; a++) {
@@ -329,7 +326,7 @@ void make_local_material(Material *ma)
 		man->id.us= 0;
 		
 		/* do objects */
-		ob= G.main->object.first;
+		ob= bmain->object.first;
 		while(ob) {
 			if(ob->mat) {
 				for(a=0; a<ob->totcol; a++) {
@@ -345,7 +342,7 @@ void make_local_material(Material *ma)
 			ob= ob->id.next;
 		}
 		/* do meshes */
-		me= G.main->mesh.first;
+		me= bmain->mesh.first;
 		while(me) {
 			if(me->mat) {
 				for(a=0; a<me->totcol; a++) {
@@ -361,7 +358,7 @@ void make_local_material(Material *ma)
 			me= me->id.next;
 		}
 		/* do curves */
-		cu= G.main->curve.first;
+		cu= bmain->curve.first;
 		while(cu) {
 			if(cu->mat) {
 				for(a=0; a<cu->totcol; a++) {
@@ -377,7 +374,7 @@ void make_local_material(Material *ma)
 			cu= cu->id.next;
 		}
 		/* do mballs */
-		mb= G.main->mball.first;
+		mb= bmain->mball.first;
 		while(mb) {
 			if(mb->mat) {
 				for(a=0; a<mb->totcol; a++) {
@@ -437,6 +434,90 @@ short *give_totcolp(Object *ob)
 	return NULL;
 }
 
+/* same as above but for ID's */
+Material ***give_matarar_id(ID *id)
+{
+	switch(GS(id->name)) {
+	case ID_ME:
+		return &(((Mesh *)id)->mat);
+		break;
+	case ID_CU:
+		return &(((Curve *)id)->mat);
+		break;
+	case ID_MB:
+		return &(((Curve *)id)->mat);
+		break;
+	}
+	return NULL;
+}
+
+short *give_totcolp_id(ID *id)
+{
+	switch(GS(id->name)) {
+	case ID_ME:
+		return &(((Mesh *)id)->totcol);
+		break;
+	case ID_CU:
+		return &(((Curve *)id)->totcol);
+		break;
+	case ID_MB:
+		return &(((Curve *)id)->totcol);
+		break;
+	}
+	return NULL;
+}
+
+void material_append_id(ID *id, Material *ma)
+{
+	Material ***matar;
+	if((matar= give_matarar_id(id))) {
+		short *totcol= give_totcolp_id(id);
+		Material **mat= MEM_callocN(sizeof(void *) * ((*totcol) + 1), "newmatar");
+		if(*totcol) memcpy(mat, *matar, sizeof(void *) * (*totcol));
+		if(*matar) MEM_freeN(*matar);
+
+		*matar= mat;
+		(*matar)[(*totcol)++]= ma;
+
+		id_us_plus((ID *)ma);
+		test_object_materials(id);
+	}
+}
+
+Material *material_pop_id(ID *id, int index)
+{
+	Material *ret= NULL;
+	Material ***matar;
+	if((matar= give_matarar_id(id))) {
+		short *totcol= give_totcolp_id(id);
+		if(index >= 0 && index < (*totcol)) {
+			ret= (*matar)[index];
+			if(*totcol <= 1) {
+				*totcol= 0;
+				MEM_freeN(*matar);
+				*matar= NULL;
+			}
+			else {
+				Material **mat;
+
+				if(index + 1 != (*totcol))
+					memmove((*matar), (*matar) + 1, (*totcol) - (index + 1));
+
+				(*totcol)--;
+				
+				mat= MEM_callocN(sizeof(void *) * (*totcol), "newmatar");
+				memcpy(mat, *matar, sizeof(void *) * (*totcol));
+				MEM_freeN(*matar);
+
+				*matar= mat;
+				test_object_materials(id);
+			}
+		}
+	}
+	
+	return ret;
+}
+
 Material *give_current_material(Object *ob, int act)
 {
 	Material ***matarar, *ma;
@@ -456,7 +537,7 @@ Material *give_current_material(Object *ob, int act)
 	}
 	else {								/* in data */
 
-		/* check for inconsistancy */
+		/* check for inconsistency */
 		if(*totcolp < ob->totcol)
 			ob->totcol= *totcolp;
 		if(act>ob->totcol) act= ob->totcol;

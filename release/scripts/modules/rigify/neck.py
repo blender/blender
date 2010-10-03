@@ -35,42 +35,42 @@ def metarig_template():
     #bone.head[:] = 0.0000, -0.0276, -0.1328
     #bone.tail[:] = 0.0000, -0.0170, -0.0197
     #bone.roll = 0.0000
-    #bone.connected = False
+    #bone.use_connect = False
     #bone = arm.edit_bones.new('head')
     #bone.head[:] = 0.0000, -0.0170, -0.0197
     #bone.tail[:] = 0.0000, 0.0726, 0.1354
     #bone.roll = 0.0000
-    #bone.connected = True
+    #bone.use_connect = True
     #bone.parent = arm.edit_bones['body']
     #bone = arm.edit_bones.new('neck.01')
     #bone.head[:] = 0.0000, -0.0170, -0.0197
     #bone.tail[:] = 0.0000, -0.0099, 0.0146
     #bone.roll = 0.0000
-    #bone.connected = False
+    #bone.use_connect = False
     #bone.parent = arm.edit_bones['head']
     #bone = arm.edit_bones.new('neck.02')
     #bone.head[:] = 0.0000, -0.0099, 0.0146
     #bone.tail[:] = 0.0000, -0.0242, 0.0514
     #bone.roll = 0.0000
-    #bone.connected = True
+    #bone.use_connect = True
     #bone.parent = arm.edit_bones['neck.01']
     #bone = arm.edit_bones.new('neck.03')
     #bone.head[:] = 0.0000, -0.0242, 0.0514
     #bone.tail[:] = 0.0000, -0.0417, 0.0868
     #bone.roll = 0.0000
-    #bone.connected = True
+    #bone.use_connect = True
     #bone.parent = arm.edit_bones['neck.02']
     #bone = arm.edit_bones.new('neck.04')
     #bone.head[:] = 0.0000, -0.0417, 0.0868
     #bone.tail[:] = 0.0000, -0.0509, 0.1190
     #bone.roll = 0.0000
-    #bone.connected = True
+    #bone.use_connect = True
     #bone.parent = arm.edit_bones['neck.03']
     #bone = arm.edit_bones.new('neck.05')
     #bone.head[:] = 0.0000, -0.0509, 0.1190
     #bone.tail[:] = 0.0000, -0.0537, 0.1600
     #bone.roll = 0.0000
-    #bone.connected = True
+    #bone.use_connect = True
     #bone.parent = arm.edit_bones['neck.04']
     #
     #bpy.ops.object.mode_set(mode='OBJECT')
@@ -330,13 +330,13 @@ def main(obj, bone_definition, base_names, options):
     if "ex_layer" in options:
         layer = [n==options["ex_layer"] for n in range(0,32)]
     else:
-        layer = list(arm.bones[bone_definition[1]].layer)
+        layer = list(arm.bones[bone_definition[1]].layers)
     for bone in neck:
-        bb[bone].layer = layer
+        bb[bone].layers = layer
 
-    layer = list(arm.bones[bone_definition[1]].layer)
-    bb[neck_ctrl].layer = layer
-    bb[head_ctrl].layer = layer
+    layer = list(arm.bones[bone_definition[1]].layers)
+    bb[neck_ctrl].layers = layer
+    bb[head_ctrl].layers = layer
 
 
     # no blending the result of this

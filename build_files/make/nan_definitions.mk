@@ -161,7 +161,11 @@ ifndef CONFIG_GUESS
   export WITH_TIFF ?= true
 
   #enable raytracing optimization (currently only for i386 and x86_64)
-  export WITH_BF_RAYOPTIMIZATION ?= true
+  ifeq ($(CPU),powerpc)
+    export WITH_BF_RAYOPTIMIZATION ?= false
+  else
+    export WITH_BF_RAYOPTIMIZATION ?= true
+  endif
 
   export WITH_LCMS ?= false
   export WITH_CINEON ?= true

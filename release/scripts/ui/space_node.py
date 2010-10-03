@@ -66,8 +66,8 @@ class NODE_HT_header(bpy.types.Header):
             scene = snode.id
 
             layout.prop(scene, "use_nodes")
-            layout.prop(scene.render, "free_unused_nodes", text="Free Unused")
-            layout.prop(snode, "backdrop")
+            layout.prop(scene.render, "use_free_unused_nodes", text="Free Unused")
+            layout.prop(snode, "show_backdrop")
 
         layout.separator()
 
@@ -90,13 +90,13 @@ class NODE_MT_view(bpy.types.Menu):
 
         layout.operator("node.view_all")
 
-        if context.space_data.backdrop:
+        if context.space_data.show_backdrop:
             layout.separator()
-            
-            layout.operator("node.backimage_move",text = "Backdrop move")
-            layout.operator("node.backimage_zoom",text = "Backdrop zoom in").factor = 1.2
-            layout.operator("node.backimage_zoom",text = "Backdrop zoom out").factor = 0.833
-        
+
+            layout.operator("node.backimage_move", text="Backdrop move")
+            layout.operator("node.backimage_zoom", text="Backdrop zoom in").factor = 1.2
+            layout.operator("node.backimage_zoom", text="Backdrop zoom out").factor = 0.833
+
         layout.separator()
 
         layout.operator("screen.area_dupli")

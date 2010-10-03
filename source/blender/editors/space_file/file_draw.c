@@ -38,11 +38,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_screen.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
 
 #include "BLF_api.h"
 
@@ -121,7 +118,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	const int separator  = 4;
 
 	/* Additional locals. */
-	char  name[20];
+	char  name[32];
 	int loadbutton;
 	int fnumbuttons;
 	int min_x       = 10;
@@ -175,16 +172,31 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	
 	/* Text input fields for directory and file. */
 	if (available_w > 0) {
+		int overwrite_alert= file_draw_check_exists(sfile);
+		/* callbacks for operator check functions */
+		uiBlockSetFunc(block, file_draw_check_cb, NULL, NULL);
+
 		but = uiDefBut(block, TEX, B_FS_DIRNAME, "",
 				 min_x, line1_y, line1_w-chan_offs, btn_h, 
 				 params->dir, 0.0, (float)FILE_MAX-1, 0, 0, 
 				 "File path.");
 		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
+		uiButSetFlag(but, UI_BUT_NO_UTF8);
+
 		but = uiDefBut(block, TEX, B_FS_FILENAME, "",
 				 min_x, line2_y, line2_w-chan_offs, btn_h,
 				 params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, 
-				 "File name.");
+				 overwrite_alert ?"File name, overwrite existing." : "File name.");
 		uiButSetCompleteFunc(but, autocomplete_file, NULL);
+		uiButSetFlag(but, UI_BUT_NO_UTF8);
+		
+		/* check if this overrides a file and if the operator option is used */
+		if(overwrite_alert) {
+			uiButSetFlag(but, UI_BUT_REDALERT);
+		}
+		
+		/* clear func */
+		uiBlockSetFunc(block, NULL, NULL, NULL);
 	}
 	
 	/* Filename number increment / decrement buttons. */
@@ -429,21 +441,25 @@ static void renamebutton_cb(bContext *C, void *arg1, char *oldname)
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	ARegion* ar = CTX_wm_region(C);
 
+#if 0
 	struct direntry *file = (struct direntry *)arg1;
+#endif
 
 	BLI_make_file_string(G.sce, orgname, sfile->params->dir, oldname);
-	BLI_strncpy(filename, file->relname, sizeof(filename));
+	BLI_strncpy(filename, sfile->params->renameedit, sizeof(filename));
 	BLI_make_file_string(G.sce, newname, sfile->params->dir, filename);
 
 	if( strcmp(orgname, newname) != 0 ) {
 		if (!BLI_exists(newname)) {
 			BLI_rename(orgname, newname);
 			/* to make sure we show what is on disk */
+#if 0		/* this is cleared anyway, no need */
+			MEM_freeN(file->relname);
+			file->relname= BLI_strdup(sfile->params->renameedit);
+#endif
 			ED_fileselect_clear(C, sfile);
-		} else {
-			BLI_strncpy(file->relname, oldname, strlen(oldname)+1);
 		}
-		
+
 		ED_region_tag_redraw(ar);
 	}
 }
@@ -538,8 +554,9 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			int but_width = (FILE_IMGDISPLAY == params->display) ? layout->tile_w : layout->column_widths[COLUMN_NAME];
 
 			uiBut *but = uiDefBut(block, TEX, 1, "", spos, sy-layout->tile_h-3, 
-				but_width, layout->textheight*2, file->relname, 1.0f, (float)FILE_MAX,0,0,"");
+				but_width, layout->textheight*2, sfile->params->renameedit, 1.0f, (float)sizeof(sfile->params->renameedit),0,0,"");
 			uiButSetRenameFunc(but, renamebutton_cb, file);
+			uiButSetFlag(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
 			if ( 0 == uiButActiveOnly(C, block, but)) {
 				file->flags &= ~EDITING;
 			}
@@ -626,5 +643,4 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	uiDrawBlock(C, block);
 
 }
-
 

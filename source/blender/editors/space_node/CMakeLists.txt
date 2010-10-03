@@ -22,21 +22,21 @@
 FILE(GLOB SRC *.c)
 
 SET(INC
+	../include
 	../../blenkernel
 	../../blenlib
 	../../imbuf
-	../include
-	../../../../intern/guardedalloc
-	../../../../intern/opennl/extern
 	../../makesdna
 	../../makesrna
 	../../nodes
-	../../render/extern/include
 	../../windowmanager
+	../../render/extern/include
+	../../../../intern/guardedalloc
+	../../../../intern/opennl/extern
 )
 
 IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
+	LIST(APPEND INC ${PTHREADS_INC})
 ENDIF(WIN32)
 
 BLENDERLIB(bf_editor_space_node "${SRC}" "${INC}")

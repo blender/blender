@@ -24,7 +24,6 @@
  */
 
 #include "AUD_ConverterReader.h"
-#include "AUD_Buffer.h"
 
 AUD_ConverterReader::AUD_ConverterReader(AUD_IReader* reader,
 										 AUD_DeviceSpecs specs) :
@@ -63,16 +62,9 @@ AUD_ConverterReader::AUD_ConverterReader(AUD_IReader* reader,
 	}
 
 	m_specs.format = specs.format;
-
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
 }
 
-AUD_ConverterReader::~AUD_ConverterReader()
-{
-	delete m_buffer; AUD_DELETE("buffer")
-}
-
-AUD_Specs AUD_ConverterReader::getSpecs()
+AUD_Specs AUD_ConverterReader::getSpecs() const
 {
 	return m_specs.specs;
 }
@@ -83,11 +75,11 @@ void AUD_ConverterReader::read(int & length, sample_t* & buffer)
 
 	int samplesize = AUD_SAMPLE_SIZE(m_specs);
 
-	if(m_buffer->getSize() < length*samplesize)
-		m_buffer->resize(length*samplesize);
+	if(m_buffer.getSize() < length * samplesize)
+		m_buffer.resize(length * samplesize);
 
-	m_convert((data_t*)m_buffer->getBuffer(), (data_t*)buffer,
+	m_convert((data_t*)m_buffer.getBuffer(), (data_t*)buffer,
 			  length * m_specs.channels);
 
-	buffer = m_buffer->getBuffer();
+	buffer = m_buffer.getBuffer();
 }

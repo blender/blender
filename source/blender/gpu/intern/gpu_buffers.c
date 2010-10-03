@@ -45,7 +45,6 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_utildefines.h"
 
 #include "DNA_userdef_types.h"
 
@@ -149,6 +148,9 @@ void GPU_buffer_pool_free(GPUBufferPool *pool)
 
 	MEM_freeN(pool->buffers);
 	MEM_freeN(pool);
+	/* if we are releasing the global pool, stop keeping a reference to it */
+	if (pool == globalPool)
+		globalPool = NULL;
 }
 
 void GPU_buffer_pool_free_unused(GPUBufferPool *pool)

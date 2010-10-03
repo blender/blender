@@ -40,12 +40,16 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_smoke_types.h"
+#include "DNA_scene_types.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
+#include "BLI_math.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
@@ -380,9 +384,6 @@ void free_hair(Object *ob, ParticleSystem *psys, int dynamics)
 {
 	PARTICLE_P;
 
-	if(psys->part->type != PART_HAIR)
-		return;
-
 	LOOP_PARTICLES {
 		if(pa->hair)
 			MEM_freeN(pa->hair);
@@ -620,8 +621,7 @@ static float psys_render_projected_area(ParticleSystem *psys, float *center, flo
 	mul_m4_v4(data->viewmat, co);
 	
 	/* compute two vectors orthogonal to view vector */
-	VECCOPY(view, co);
-	normalize_v3(view);
+	normalize_v3_v3(view, co);
 	ortho_basis_v3v3_v3( ortho1, ortho2,view);
 
 	/* compute on screen minification */
@@ -706,6 +706,10 @@ void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[][4], float
 	data->timeoffset= timeoffset;
 
 	psys->renderdata= data;
+
+	/* Hair can and has to be recalculated if everything isn't displayed. */
+	if(psys->part->disp != 100 && psys->part->type == PART_HAIR)
+		psys->recalc |= PSYS_RECALC_RESET;
 }
 
 void psys_render_restore(Object *ob, ParticleSystem *psys)
@@ -1114,6 +1118,24 @@ static int get_pointcache_times_for_particle(PointCache *cache, int index, float
 
 	return ret == 2;
 }
+
+float psys_get_dietime_from_cache(PointCache *cache, int index) {
+	PTCacheMem *pm;
+	int dietime = 10000000; /* some max value so that we can default to pa->time+lifetime */
+
+	for(pm=cache->mem_cache.last; pm; pm=pm->prev) {
+		if(pm->index_array) {
+			if(pm->index_array[index])
+				return (float)pm->frame;
+		}
+		else {
+			return (float)pm->frame;
+		}
+	}
+
+	return (float)dietime;
+}
+
 static void init_particle_interpolation(Object *ob, ParticleSystem *psys, ParticleData *pa, ParticleInterpolationData *pind)
 {
 
@@ -1919,8 +1941,7 @@ static void do_prekink(ParticleKey *state, ParticleKey *par, float *par_rot, flo
 				mul_qt_v3(q2,z_vec);
 				
 				VECSUB(vec_from_par,state->co,par->co);
-				VECCOPY(vec_one,vec_from_par);
-				radius=normalize_v3(vec_one);
+				radius= normalize_v3_v3(vec_one, vec_from_par);
 
 				inp_y=dot_v3v3(y_vec,vec_one);
 				inp_z=dot_v3v3(z_vec,vec_one);
@@ -2007,6 +2028,10 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 
 	LOOP_PARTICLES {
 		psys_particle_on_emitter(sim->psmd,sim->psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,state.co,0,0,0,0,0);
+		
+		mul_m4_v3(sim->ob->obmat, state.co);
+		mul_mat3_m4_v3(sim->ob->obmat, state.vel);
+		
 		pd_point_from_particle(sim, pa, &state, &point);
 
 		for(eff = effectors->first; eff; eff=eff->next) {
@@ -2925,8 +2950,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 			if(k == 1) {
 				/* calculate initial tangent for incremental rotations */
 				VECSUB(tangent, ca->co, (ca - 1)->co);
-				VECCOPY(prev_tangent, tangent);
-				normalize_v3(prev_tangent);
+				normalize_v3_v3(prev_tangent, tangent);
 
 				/* First rotation is based on emitting face orientation.		*/
 				/* This is way better than having flipping rotations resulting	*/
@@ -3102,8 +3126,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 					if(k == 1) {
 						/* calculate initial tangent for incremental rotations */
 						VECSUB(tangent, ca->co, (ca - 1)->co);
-						VECCOPY(prev_tangent, tangent);
-						normalize_v3(prev_tangent);
+						normalize_v3_v3(prev_tangent, tangent);
 
 						/* First rotation is based on emitting face orientation.		*/
 						/* This is way better than having flipping rotations resulting	*/
@@ -3164,7 +3187,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 
 				/* at the moment this is only used for weight painting.
 				 * will need to move out of this check if its used elsewhere. */
-				t2 = birthtime + ((float)(k+1)/(float)steps) * (dietime - birthtime);
+				t2 = birthtime + ((float)k/(float)steps) * (dietime - birthtime);
 
 				while (pind.hkey[1]->time < t2) pind.hkey[1]++;
 				pind.hkey[0] = pind.hkey[1] - 1;
@@ -3663,7 +3686,7 @@ static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index, float
 			else
 				VECCOPY(texco,orco);
 
-			externtex(mtex, texco, &value, rgba, rgba+1, rgba+2, rgba+3);
+			externtex(mtex, texco, &value, rgba, rgba+1, rgba+2, rgba+3, 0);
 			if((event & mtex->pmapto) & MAP_PA_TIME){
 				if((setvars&MAP_PA_TIME)==0){
 					ptex->time=0.0;
@@ -3717,7 +3740,7 @@ void psys_get_texture(ParticleSimulationData *sim, Material *ma, ParticleData *p
 				psys_particle_on_emitter(sim->psmd,sim->psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,texco, 0);
 			}
 
-			externtex(mtex, texco, &value, rgba, rgba+1, rgba+2, rgba+3);
+			externtex(mtex, texco, &value, rgba, rgba+1, rgba+2, rgba+3, 0);
 
 			if((event & mtex->pmapto) & MAP_PA_TIME){
 				/* the first time has to set the base value for time regardless of blend mode */
@@ -4367,20 +4390,14 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 		onevec[bb->align]=1.0f;
 
 	if(bb->lock && (bb->align == PART_BB_VIEW)) {
-		VECCOPY(xvec, bb->ob->obmat[0]);
-		normalize_v3(xvec);
-
-		VECCOPY(yvec, bb->ob->obmat[1]);
-		normalize_v3(yvec);
-
-		VECCOPY(zvec, bb->ob->obmat[2]);
-		normalize_v3(zvec);
+		normalize_v3_v3(xvec, bb->ob->obmat[0]);
+		normalize_v3_v3(yvec, bb->ob->obmat[1]);
+		normalize_v3_v3(zvec, bb->ob->obmat[2]);
 	}
 	else if(bb->align == PART_BB_VEL) {
 		float temp[3];
 
-		VECCOPY(temp, bb->vel);
-		normalize_v3(temp);
+		normalize_v3_v3(temp, bb->vel);
 
 		VECSUB(zvec, bb->ob->obmat[3], bb->vec);
 
@@ -4429,3 +4446,34 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 	VECADDFAC(center, center, yvec, bb->offset[1]);
 }
 
+
+void psys_apply_hair_lattice(Scene *scene, Object *ob, ParticleSystem *psys) {
+	ParticleSimulationData sim = {scene, ob, psys, psys_get_modifier(ob, psys)};
+
+	psys->lattice = psys_get_lattice(&sim);
+
+	if(psys->lattice) {
+		ParticleData *pa = psys->particles;
+		HairKey *hkey;
+		int p, h;
+		float hairmat[4][4], imat[4][4];
+
+		for(p=0; p<psys->totpart; p++, pa++) {
+			psys_mat_hair_to_global(sim.ob, sim.psmd->dm, psys->part->from, pa, hairmat);
+			invert_m4_m4(imat, hairmat);
+
+			hkey = pa->hair;
+			for(h=0; h<pa->totkey; h++, hkey++) {
+				mul_m4_v3(hairmat, hkey->co);
+				calc_latt_deform(psys->lattice, hkey->co, 1.0f);
+				mul_m4_v3(imat, hkey->co);
+			}
+		}
+		
+		end_latt_deform(psys->lattice);
+		psys->lattice= NULL;
+
+		/* protect the applied shape */
+		psys->flag |= PSYS_EDITED;
+	}
+}

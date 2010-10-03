@@ -34,6 +34,11 @@
  */
 class AUD_EffectFactory : public AUD_IFactory
 {
+private:
+	// hide copy constructor and operator=
+	AUD_EffectFactory(const AUD_EffectFactory&);
+	AUD_EffectFactory& operator=(const AUD_EffectFactory&);
+
 protected:
 	/**
 	 * If there is no reader it is created out of this factory.
@@ -44,9 +49,12 @@ protected:
 	 * Returns the reader created out of the factory.
 	 * This method can be used for the createReader function of the implementing
 	 * classes.
-	 * \return The reader created out of the factory or NULL if there is none.
+	 * \return The reader created out of the factory.
 	 */
-	AUD_IReader* getReader();
+	inline AUD_IReader* getReader() const
+	{
+		return m_factory->createReader();
+	}
 
 public:
 	/**
@@ -58,19 +66,13 @@ public:
 	/**
 	 * Destroys the factory.
 	 */
-	virtual ~AUD_EffectFactory() {}
-
-	/**
-	 * Sets the input factory.
-	 * \param factory The input factory.
-	 */
-	void setFactory(AUD_IFactory* factory);
+	virtual ~AUD_EffectFactory();
 
 	/**
 	 * Returns the saved factory.
 	 * \return The factory or NULL if there has no factory been saved.
 	 */
-	AUD_IFactory* getFactory();
+	AUD_IFactory* getFactory() const;
 };
 
 #endif //AUD_EFFECTFACTORY

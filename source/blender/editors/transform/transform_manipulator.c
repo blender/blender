@@ -51,15 +51,11 @@
 #include "RNA_access.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_lattice.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_utildefines.h"
 
 #include "BLI_math.h"
 #include "BLI_editVert.h"
@@ -292,7 +288,7 @@ int calc_manipulator_stats(const bContext *C)
 			bArmature *arm= obedit->data;
 			EditBone *ebo;
 			for (ebo= arm->edbo->first; ebo; ebo=ebo->next){
-				if(ebo->layer & arm->layer) {
+				if(ebo->layer & arm->layer && !(ebo->flag & BONE_HIDDEN_A)) {
 					if (ebo->flag & BONE_TIPSEL) {
 						calc_tw_center(scene, ebo->tail);
 						totsel++;
@@ -383,9 +379,9 @@ int calc_manipulator_stats(const bContext *C)
 			BPoint *bp;
 			Lattice *lt= obedit->data;
 
-			bp= lt->editlatt->def;
+			bp= lt->editlatt->latt->def;
 
-			a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+			a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 			while(a--) {
 				if(bp->f1 & SELECT) {
 					calc_tw_center(scene, bp->vec);
@@ -566,17 +562,12 @@ void test_manipulator_axis(const bContext *C)
 
 static float screen_aligned(RegionView3D *rv3d, float mat[][4])
 {
-	float vec[3], size;
-
-	VECCOPY(vec, mat[0]);
-	size= normalize_v3(vec);
-
 	glTranslatef(mat[3][0], mat[3][1], mat[3][2]);
 
 	/* sets view screen aligned */
 	glRotatef( -360.0f*saacos(rv3d->viewquat[0])/(float)M_PI, rv3d->viewquat[1], rv3d->viewquat[2], rv3d->viewquat[3]);
 
-	return size;
+	return len_v3(mat[0]); /* draw scale */
 }
 
 

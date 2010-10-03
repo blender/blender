@@ -20,6 +20,7 @@ import bpy
 import sys, os, re
 import http, http.client, http.server, urllib
 import subprocess, shutil, time, hashlib
+import json
 
 import netrender
 import netrender.model
@@ -41,7 +42,7 @@ def addFluidFiles(job, path):
                 job.addFile(path + fluid_file, current_frame, current_frame)
 
 def addPointCache(job, ob, point_cache, default_path):
-    if not point_cache.disk_cache:
+    if not point_cache.use_disk_cache:
         return
 
 
@@ -49,7 +50,7 @@ def addPointCache(job, ob, point_cache, default_path):
     if name == "":
         name = "".join(["%02X" % ord(c) for c in ob.name])
 
-    cache_path = bpy.utils.expandpath(point_cache.filepath) if point_cache.external else default_path
+    cache_path = bpy.path.abspath(point_cache.filepath) if point_cache.use_external else default_path
 
     index = "%02i" % point_cache.index
 
@@ -113,7 +114,7 @@ def clientSendJob(conn, scene, anim = False):
     # LIBRARIES
     ###########################
     for lib in bpy.data.libraries:
-        file_path = bpy.utils.expandpath(lib.filepath)
+        file_path = bpy.path.abspath(lib.filepath)
         if os.path.exists(file_path):
             job.addFile(file_path)
 
@@ -122,7 +123,7 @@ def clientSendJob(conn, scene, anim = False):
     ###########################
     for image in bpy.data.images:
         if image.source == "FILE" and not image.packed_file:
-            file_path = bpy.utils.expandpath(image.filepath)
+            file_path = bpy.path.abspath(image.filepath)
             if os.path.exists(file_path):
                 job.addFile(file_path)
                 
@@ -139,17 +140,17 @@ def clientSendJob(conn, scene, anim = False):
     for object in bpy.data.objects:
         for modifier in object.modifiers:
             if modifier.type == 'FLUID_SIMULATION' and modifier.settings.type == "DOMAIN":
-                addFluidFiles(job, bpy.utils.expandpath(modifier.settings.path))
+                addFluidFiles(job, bpy.path.abspath(modifier.settings.path))
             elif modifier.type == "CLOTH":
                 addPointCache(job, object, modifier.point_cache, default_path)
             elif modifier.type == "SOFT_BODY":
                 addPointCache(job, object, modifier.point_cache, default_path)
             elif modifier.type == "SMOKE" and modifier.smoke_type == "TYPE_DOMAIN":
                 addPointCache(job, object, modifier.domain_settings.point_cache_low, default_path)
-                if modifier.domain_settings.highres:
+                if modifier.domain_settings.use_high_resolution:
                     addPointCache(job, object, modifier.domain_settings.point_cache_high, default_path)
-            elif modifier.type == "MULTIRES" and modifier.external:
-                file_path = bpy.utils.expandpath(modifier.filepath)
+            elif modifier.type == "MULTIRES" and modifier.is_external:
+                file_path = bpy.path.abspath(modifier.filepath)
                 job.addFile(file_path)
 
         # particles modifier are stupid and don't contain data
@@ -169,8 +170,9 @@ def clientSendJob(conn, scene, anim = False):
     job.priority = netsettings.priority
 
     # try to send path first
-    conn.request("POST", "/job", repr(job.serialize()))
+    conn.request("POST", "/job", json.dumps(job.serialize()))
     response = conn.getresponse()
+    response.read()
 
     job_id = response.getheader("job-id")
 
@@ -181,6 +183,7 @@ def clientSendJob(conn, scene, anim = False):
             conn.request("PUT", fileURL(job_id, rfile.index), f)
             f.close()
             response = conn.getresponse()
+            response.read()
 
     # server will reply with ACCEPTED until all files are found
 
@@ -208,7 +211,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
         address = "" if netsettings.server_address == "[default]" else netsettings.server_address
 
-        master.runMaster((address, netsettings.server_port), netsettings.master_broadcast, netsettings.master_clear, netsettings.path, self.update_stats, self.test_break)
+        master.runMaster((address, netsettings.server_port), netsettings.use_master_broadcast, netsettings.use_master_clear, netsettings.path, self.update_stats, self.test_break)
 
 
     def render_slave(self, scene):
@@ -236,6 +239,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
             requestResult(conn, job_id, scene.frame_current)
             response = conn.getresponse()
+            response.read()
 
             if response.status == http.client.NO_CONTENT:
                 new_job = True
@@ -244,16 +248,19 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
                 requestResult(conn, job_id, scene.frame_current)
                 response = conn.getresponse()
+                response.read()
 
             while response.status == http.client.ACCEPTED and not self.test_break():
                 time.sleep(1)
                 requestResult(conn, job_id, scene.frame_current)
                 response = conn.getresponse()
+                response.read()
 
             # cancel new jobs (animate on network) on break
             if self.test_break() and new_job:
                 conn.request("POST", cancelURL(job_id))
                 response = conn.getresponse()
+                response.read()
                 print( response.status, response.reason )
                 netsettings.job_id = 0
 
@@ -265,7 +272,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
             x= int(r.resolution_x*r.resolution_percentage*0.01)
             y= int(r.resolution_y*r.resolution_percentage*0.01)
 
-            f = open(netsettings.path + "output.exr", "wb")
+            f = open(os.path.join(netsettings.path, "output.exr"), "wb")
             buf = response.read(1024)
 
             while buf:
@@ -275,7 +282,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
             f.close()
 
             result = self.begin_result(0, 0, x, y)
-            result.load_from_file(netsettings.path + "output.exr")
+            result.load_from_file(os.path.join(netsettings.path, "output.exr"))
             self.end_result(result)
 
             conn.close()

@@ -56,7 +56,7 @@ def addget_shape_key_driver(obj, name="Key"):
         for driver_s in obj.data.shape_keys.animation_data.drivers:
             if driver_s.data_path == driver_path:
                 fcurve = driver_s
-    if fcurve == None:
+    if fcurve is None:
         fcurve = obj.data.shape_keys.keys[name].driver_add("value")
         fcurve.driver.type = 'AVERAGE'
         new = True
@@ -134,7 +134,7 @@ def metarig_template():
     bone.head[:] = 0.0000, 0.0000, 0.0000
     bone.tail[:] = 0.0000, 0.0000, 1.0000
     bone.roll = 0.0000
-    bone.connected = False
+    bone.use_connect = False
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones['Bone']
@@ -328,8 +328,8 @@ def control(obj, definitions, base_names, options):
         con.transform_channel = 'SCALE_X'
         con.frame_start = -20
         con.frame_end = 20
-        con.minimum = 0.0
-        con.maximum = 2.0
+        con.min = 0.0
+        con.max = 2.0
         con.target_space = 'LOCAL'
     
     
@@ -379,15 +379,15 @@ def control(obj, definitions, base_names, options):
 
 
     # Set layers
-    #layer = list(bb[definitions[2]].layer)
-    #bb[lid1].layer = layer
-    #bb[lid2].layer = layer
-    #bb[lid3].layer = layer
-    #bb[lid4].layer = layer
-    #bb[lid5].layer = layer
-    #bb[lid6].layer = layer
-    #bb[lid7].layer = layer
-    #bb[lid8].layer = layer
+    #layer = list(bb[definitions[2]].layers)
+    #bb[lid1].layers = layer
+    #bb[lid2].layers = layer
+    #bb[lid3].layers = layer
+    #bb[lid4].layers = layer
+    #bb[lid5].layers = layer
+    #bb[lid6].layers = layer
+    #bb[lid7].layers = layer
+    #bb[lid8].layers = layer
 
 
     return (None,)

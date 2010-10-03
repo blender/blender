@@ -24,20 +24,18 @@
  */
 
 #include "AUD_SumFactory.h"
-#include "AUD_SumReader.h"
+#include "AUD_IIRFilterReader.h"
 
 AUD_SumFactory::AUD_SumFactory(AUD_IFactory* factory) :
-		AUD_EffectFactory(factory) {}
-
-AUD_IReader* AUD_SumFactory::createReader()
+		AUD_EffectFactory(factory)
 {
-	AUD_IReader* reader = getReader();
+}
 
-	if(reader != 0)
-	{
-		reader = new AUD_SumReader(reader);
-		AUD_NEW("reader")
-	}
-
-	return reader;
+AUD_IReader* AUD_SumFactory::createReader() const
+{
+	std::vector<float> a, b;
+	a.push_back(1);
+	a.push_back(-1);
+	b.push_back(1);
+	return new AUD_IIRFilterReader(getReader(), b, a);
 }

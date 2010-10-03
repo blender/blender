@@ -38,12 +38,8 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 
-#include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "BLF_api.h"
 

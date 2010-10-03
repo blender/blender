@@ -166,7 +166,7 @@ typedef struct TransDataCurveHandleFlags {
 typedef struct TransDataSeq {
 	struct Sequence *seq;
 	int flag;		/* a copy of seq->flag that may be modified for nested strips */
-	short start_offset; /* use this so we can have transform data at the strips start, but apply correctly to the start frame  */
+	int start_offset; /* use this so we can have transform data at the strips start, but apply correctly to the start frame  */
 	short sel_flag; /* one of SELECT, SEQ_LEFTSEL and SEQ_RIGHTSEL */
 
 } TransDataSeq;

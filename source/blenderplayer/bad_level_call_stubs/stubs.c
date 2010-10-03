@@ -112,10 +112,10 @@ struct RenderResult *RE_GetResult(struct Render *re){return (struct RenderResult
 struct Render *RE_GetRender(const char *name){return (struct Render *) NULL;}
 
 /* blenkernel */
-char* btempdir(){return (char *) NULL;}
+char btempdir[] = "";
 void RE_FreeRenderResult(struct RenderResult *res){}
-char* datatoc_bmonofont_ttf(){return (char *) NULL;}
-int datatoc_bmonofont_ttf_size(){return 0;}
+char datatoc_bmonofont_ttf[] = "";
+int datatoc_bmonofont_ttf_size = 0;
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty){return (struct RenderResult *) NULL;}
 void RE_GetResultImage(struct Render *re, struct RenderResult *rr){}
 int RE_RenderInProgress(struct Render *re){return 0;}
@@ -144,6 +144,9 @@ void WM_operator_stack_clear(struct bContext *C) {}
 
 void WM_autosave_init(struct bContext *C){}
 void WM_jobs_stop_all(struct wmWindowManager *wm){}
+
+char *WM_clipboard_text_get(int selection){return (char*)0;}
+void WM_clipboard_text_set(char *buf, int selection){}
 
 struct wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id){return (struct wmKeyMapItem *) NULL;}
 int WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event){return 0;}
@@ -182,8 +185,8 @@ struct wmKeyMap *WM_keymap_find(struct wmKeyConfig *keyconf, char *idname, int s
 struct wmKeyMap *WM_keymap_add_item(struct wmKeyMap *keymap, char *idname, int type, int val, int modifier, int keymodifier){return (struct wmKeyMap *) NULL;}
 struct wmKeyMap *WM_keymap_copy_to_user(struct wmKeyMap *kemap){return (struct wmKeyMap *) NULL;} 
 struct wmKeyMap *WM_keymap_list_find(struct ListBase *lb, char *idname, int spaceid, int regionid){return (struct wmKeyMap *) NULL;}
-struct wmKeyConfig *WM_keyconfig_add(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
-struct wmKeyConfig *WM_keyconfig_add_user(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
+struct wmKeyConfig *WM_keyconfig_new(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
+struct wmKeyConfig *WM_keyconfig_new_user(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
 void WM_keyconfig_remove(struct wmWindowManager *wm, char *idname){}
 void WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi){}
 void WM_keymap_restore_to_default(struct wmKeyMap *keymap){}
@@ -245,6 +248,10 @@ void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int ver
 void ED_mesh_material_add(struct Mesh *me, struct Material *ma){}
 void ED_mesh_transform(struct Mesh *me, float *mat){}
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C){}
+void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count){}
+void ED_mesh_material_link(struct Mesh *mesh, struct Material *ma){}
 int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
 int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
 void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob){}
@@ -264,6 +271,13 @@ struct MTFace *EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_e
 void make_editMesh(struct Scene *scene, struct Object *ob){}
 void load_editMesh(struct Scene *scene, struct Object *ob){}
 
+void make_editLatt(struct Object *obedit){}
+void load_editLatt(struct Object *obedit){}
+
+void load_editNurb	(struct Object *obedit){}
+void make_editNurb	(struct Object *obedit){}
+
+
 void uiItemR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int flag, char *name, int icon){}
 
 struct PointerRNA uiItemFullO(struct uiLayout *layout, char *idname, char *name, int icon, struct IDProperty *properties, int context, int flag){struct PointerRNA a; return a;}
@@ -276,6 +290,7 @@ void uiItemsEnumR(struct uiLayout *layout, struct PointerRNA *ptr, char *propnam
 void uiItemMenuEnumR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, char *name, int icon){}
 void uiItemEnumR_string(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, char *value, char *name, int icon){}
 void uiItemPointerR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname, char *name, int icon){}
+void uiItemPointerSubR(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, char *searchpropname, char *name, int icon){}
 void uiItemsEnumO(struct uiLayout *layout, char *opname, char *propname){}
 void uiItemEnumO_string(struct uiLayout *layout, char *name, int icon, char *opname, char *propname, char *value_str){}
 void uiItemMenuEnumO(struct uiLayout *layout, char *opname, char *propname, char *name, int icon){}
@@ -302,7 +317,6 @@ void uiTemplateIDPreview(struct uiLayout *layout, struct bContext *C, struct Poi
 void uiTemplateCurveMapping(struct uiLayout *layout, struct CurveMapping *cumap, int type, int compact){}
 void uiTemplateColorRamp(struct uiLayout *layout, struct ColorBand *coba, int expand){}
 void uiTemplateLayers(struct uiLayout *layout, struct PointerRNA *ptr, char *propname){}
-void uiTemplateTriColorSet(struct uiLayout *layout, struct PointerRNA *ptr, char *propname){}
 void uiTemplateImageLayers(struct uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser){}
 ListBase uiTemplateList(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *activeptr, char *activepropname, int rows, int listtype){struct ListBase b = {0,0}; return b;}
 void uiTemplateRunningJobs(struct uiLayout *layout, struct bContext *C){}

@@ -38,11 +38,7 @@
 #include "BLI_ghash.h"
 
 #include "BKE_context.h"
-#include "BKE_icons.h"
-#include "BKE_report.h"
 #include "BKE_screen.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

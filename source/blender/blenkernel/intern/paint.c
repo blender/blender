@@ -25,7 +25,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */ 
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"

@@ -29,16 +29,12 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
-#include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 
@@ -109,9 +105,9 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_curve_add);
 	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_circle_add);
 	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_surface_add);
-	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_tube_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_cylinder_add);
 	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_sphere_add);
-	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_donut_add);
+	WM_operatortype_append(SURFACE_OT_primitive_nurbs_surface_torus_add);
 	
 	WM_operatortype_append(CURVE_OT_smooth);
 	WM_operatortype_append(CURVE_OT_smooth_radius);

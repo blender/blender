@@ -30,7 +30,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
-#include "BKE_node.h"
 
 #include "ED_screen.h"
 #include "ED_transform.h"

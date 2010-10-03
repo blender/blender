@@ -37,22 +37,26 @@ private:
 	/**
 	 * The attack value in seconds.
 	 */
-	float m_attack;
+	const float m_attack;
 
 	/**
 	 * The release value in seconds.
 	 */
-	float m_release;
+	const float m_release;
 
 	/**
 	 * The threshold value.
 	 */
-	float m_threshold;
+	const float m_threshold;
 
 	/**
 	 * The attack/release threshold value.
 	 */
-	float m_arthreshold;
+	const float m_arthreshold;
+
+	// hide copy constructor and operator=
+	AUD_EnvelopeFactory(const AUD_EnvelopeFactory&);
+	AUD_EnvelopeFactory& operator=(const AUD_EnvelopeFactory&);
 
 public:
 	/**
@@ -66,17 +70,7 @@ public:
 	AUD_EnvelopeFactory(AUD_IFactory* factory, float attack, float release,
 						float threshold, float arthreshold);
 
-	/**
-	 * Creates a new envelope factory.
-	 * \param attack The attack value in seconds.
-	 * \param release The release value in seconds.
-	 * \param threshold The threshold value.
-	 * \param arthreshold The attack/release threshold value.
-	 */
-	AUD_EnvelopeFactory(float attack, float release, float threshold,
-						float arthreshold);
-
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_ENVELOPEFACTORY

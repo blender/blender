@@ -50,6 +50,7 @@
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
+#include "BKE_deform.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -1003,7 +1004,6 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 
 static float *get_weights_array(Object *ob, char *vgroup)
 {
-	bDeformGroup *curdef;
 	MDeformVert *dvert= NULL;
 	EditMesh *em= NULL;
 	EditVert *eve;
@@ -1030,11 +1030,8 @@ static float *get_weights_array(Object *ob, char *vgroup)
 	if(dvert==NULL) return NULL;
 	
 	/* find the group (weak loop-in-loop) */
-	for (curdef = ob->defbase.first; curdef; curdef=curdef->next, index++)
-		if (!strcmp(curdef->name, vgroup))
-			break;
-
-	if(curdef) {
+	index= defgroup_name_index(ob, vgroup);
+	if(index >= 0) {
 		float *weights;
 		int i, j;
 		
@@ -1539,14 +1536,8 @@ KeyBlock *key_get_keyblock(Key *key, int index)
 /* get the appropriate KeyBlock given a name to search for */
 KeyBlock *key_get_named_keyblock(Key *key, const char name[])
 {
-	KeyBlock *kb;
-	
-	if (key && name) {
-		for (kb= key->block.first; kb; kb= kb->next) {
-			if (strcmp(name, kb->name)==0)
-				return kb;
-		}
-	}
+	if (key && name)
+		return BLI_findstring(&key->block, name, offsetof(KeyBlock, name));
 	
 	return NULL;
 }
@@ -1850,9 +1841,12 @@ void vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 		tot= count_curveverts(&cu->nurb);
 	}
 
-	fp= kb->data= MEM_callocN(tot*elemsize, "key_to_vertcos vertCos");
+	if (tot == 0) {
+		kb->data= NULL;
+		return;
+	}
 
-	if (tot == 0) return;
+	fp= kb->data= MEM_callocN(tot*elemsize, "key_to_vertcos vertCos");
 
 	/* Copy coords to keyblock */
 

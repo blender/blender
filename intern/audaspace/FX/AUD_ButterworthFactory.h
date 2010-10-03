@@ -37,7 +37,11 @@ private:
 	/**
 	 * The attack value in seconds.
 	 */
-	float m_frequency;
+	const float m_frequency;
+
+	// hide copy constructor and operator=
+	AUD_ButterworthFactory(const AUD_ButterworthFactory&);
+	AUD_ButterworthFactory& operator=(const AUD_ButterworthFactory&);
 
 public:
 	/**
@@ -47,13 +51,7 @@ public:
 	 */
 	AUD_ButterworthFactory(AUD_IFactory* factory, float frequency);
 
-	/**
-	 * Creates a new butterworth factory.
-	 * \param frequency The cutoff frequency.
-	 */
-	AUD_ButterworthFactory(float frequency);
-
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_BUTTERWORTHFACTORY

@@ -53,6 +53,10 @@ private:
 	 */
 	AUD_Specs m_specs;
 
+	// hide copy constructor and operator=
+	AUD_BufferReader(const AUD_BufferReader&);
+	AUD_BufferReader& operator=(const AUD_BufferReader&);
+
 public:
 	/**
 	 * Creates a new buffer reader.
@@ -61,13 +65,11 @@ public:
 	 */
 	AUD_BufferReader(AUD_Reference<AUD_Buffer> buffer, AUD_Specs specs);
 
-	virtual bool isSeekable();
+	virtual bool isSeekable() const;
 	virtual void seek(int position);
-	virtual int getLength();
-	virtual int getPosition();
-	virtual AUD_Specs getSpecs();
-	virtual AUD_ReaderType getType();
-	virtual bool notify(AUD_Message &message);
+	virtual int getLength() const;
+	virtual int getPosition() const;
+	virtual AUD_Specs getSpecs() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 

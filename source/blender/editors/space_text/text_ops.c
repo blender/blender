@@ -34,7 +34,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_constraint_types.h"
 #include "DNA_text_types.h"
 #include "DNA_userdef_types.h"
 
@@ -42,12 +41,10 @@
 #include "PIL_time.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
-#include "BKE_suggestions.h"
 #include "BKE_text.h"
 
 #include "WM_api.h"
@@ -360,7 +357,7 @@ static int unlink_exec(bContext *C, wmOperator *op)
 
 	unlink_text(bmain, text);
 	free_libblock(&bmain->text, text);
-	WM_event_add_notifier(C, NC_TEXT|NA_REMOVED, text);
+	WM_event_add_notifier(C, NC_TEXT|NA_REMOVED, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -584,8 +581,10 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 	/* api callbacks */
 	ot->poll= run_script_poll;
 	ot->exec= run_script_exec;
-}
 
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /******************* refresh pyconstraints operator *********************/
 
@@ -1709,6 +1708,8 @@ static int toggle_overwrite_exec(bContext *C, wmOperator *op)
 	SpaceText *st= CTX_wm_space_text(C);
 
 	st->overwrite= !st->overwrite;
+
+	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
 
 	return OPERATOR_FINISHED;
 }

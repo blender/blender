@@ -425,6 +425,14 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 	}
 }
 
+/* this function is mainly to check that the rules for freeing
+ * an operator are kept in sync.
+ */
+static int wm_operator_register_check(wmWindowManager *wm, wmOperatorType *ot)
+{
+	return (wm->op_undo_depth == 0) && (ot->flag & OPTYPE_REGISTER);
+}
+
 static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -445,7 +453,7 @@ static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 			MEM_freeN(buf);
 		}
 
-		if((wm->op_undo_depth == 0) && (op->type->flag & OPTYPE_REGISTER))
+		if(wm_operator_register_check(wm, op->type))
 			wm_operator_register(C, op);
 		else
 			WM_operator_free(op);
@@ -807,11 +815,11 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 */
 int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA *properties, ReportList *reports)
 {
+	wmWindowManager *wm=	CTX_wm_manager(C);
 	int retval= OPERATOR_CANCELLED;
 
 #if 0
 	wmOperator *op;
-	wmWindowManager *wm=	CTX_wm_manager(C);
 	op= wm_operator_create(wm, ot, properties, reports);
 
 	if (op->type->exec) {
@@ -830,9 +838,10 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 	retval= wm_operator_call_internal(C, ot, context, properties, reports);
 	
 	/* keep the reports around if needed later */
-	if (retval & OPERATOR_RUNNING_MODAL || ot->flag & OPTYPE_REGISTER)
-	{
-		reports->flag |= RPT_FREE;
+	if (	(retval & OPERATOR_RUNNING_MODAL) ||
+			((retval & OPERATOR_FINISHED) && wm_operator_register_check(wm, ot))
+	) {
+		reports->flag |= RPT_FREE; /* let blender manage freeing */
 	}
 	
 	return retval;
@@ -1216,23 +1225,30 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 			
 		case EVT_FILESELECT_EXEC:
 		case EVT_FILESELECT_CANCEL:
+		case EVT_FILESELECT_EXTERNAL_CANCEL:
 			{
 				/* XXX validate area and region? */
 				bScreen *screen= CTX_wm_screen(C);
-				
-				if(screen != handler->filescreen)
-					ED_screen_full_prevspace(C, CTX_wm_area(C));
-				else
-					ED_area_prevspace(C, CTX_wm_area(C));
-				
-				/* remlink now, for load file case */
+
+				/* remlink now, for load file case before removing*/
 				BLI_remlink(handlers, handler);
+				
+				if(event->val!=EVT_FILESELECT_EXTERNAL_CANCEL) {
+					if(screen != handler->filescreen) {
+						ED_screen_full_prevspace(C, CTX_wm_area(C));
+					}
+					else {
+						ED_area_prevspace(C, CTX_wm_area(C));
+					}
+				}
 				
 				wm_handler_op_context(C, handler);
 
 				/* needed for uiPupMenuReports */
 
 				if(event->val==EVT_FILESELECT_EXEC) {
+#if 0				// use REDALERT now
+
 					/* a bit weak, might become arg for WM_event_fileselect? */
 					/* XXX also extension code in image-save doesnt work for this yet */
 					if (RNA_struct_find_property(handler->op->ptr, "check_existing") && 
@@ -1243,7 +1259,9 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 						if(path)
 							MEM_freeN(path);
 					}
-					else {
+					else
+#endif
+					{
 						int retval;
 						
 						if(handler->op->type->flag & OPTYPE_UNDO)
@@ -1792,9 +1810,17 @@ void WM_event_fileselect_event(bContext *C, void *ophandle, int eventval)
 
 void WM_event_add_fileselect(bContext *C, wmOperator *op)
 {
-	wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "fileselect handler");
+	wmEventHandler *handler;
 	wmWindow *win= CTX_wm_window(C);
 	int full= 1;	// XXX preset?
+
+	/* only allow file selector open per window bug [#23553] */
+	for(handler= win->modalhandlers.first; handler; handler=handler->next) {
+		if(handler->type == WM_HANDLER_FILESELECT)
+			return;
+	}
+	
+	handler = MEM_callocN(sizeof(wmEventHandler), "fileselect handler");
 	
 	handler->type= WM_HANDLER_FILESELECT;
 	handler->op= op;
@@ -1804,6 +1830,12 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	
 	BLI_addhead(&win->modalhandlers, handler);
 	
+	/* check props once before invoking if check is available
+	 * ensures initial properties are valid */
+	if(op->type->check) {
+		op->type->check(C, op); /* ignore return value */
+	}
+
 	WM_event_fileselect_event(C, op, full?EVT_FILESELECT_FULL_OPEN:EVT_FILESELECT_OPEN);
 }
 

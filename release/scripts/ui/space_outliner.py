@@ -28,7 +28,7 @@ class OUTLINER_HT_header(bpy.types.Header):
 
         space = context.space_data
         scene = context.scene
-        ks = context.scene.active_keying_set
+        ks = context.scene.keying_sets.active
 
         row = layout.row(align=True)
         row.template_header()
@@ -42,7 +42,7 @@ class OUTLINER_HT_header(bpy.types.Header):
 
         layout.prop(space, "display_mode", text="")
 
-        layout.prop(space, "display_filter", icon='VIEWZOOM', text="")
+        layout.prop(space, "filter_text", icon='VIEWZOOM', text="")
 
         layout.separator()
 
@@ -53,7 +53,7 @@ class OUTLINER_HT_header(bpy.types.Header):
 
             if ks:
                 row = layout.row(align=False)
-                row.prop_object(scene, "active_keying_set", scene, "keying_sets", text="")
+                row.prop_search(scene.keying_sets, "active", scene, "keying_sets", text="")
 
                 row = layout.row(align=True)
                 row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
@@ -73,7 +73,7 @@ class OUTLINER_MT_view(bpy.types.Menu):
 
         col = layout.column()
         if space.display_mode not in ('DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS'):
-            col.prop(space, "show_restriction_columns")
+            col.prop(space, "show_restrict_columns")
             col.separator()
             col.operator("outliner.show_active")
 
@@ -96,8 +96,8 @@ class OUTLINER_MT_search(bpy.types.Menu):
 
         col = layout.column()
 
-        col.prop(space, "match_case_sensitive")
-        col.prop(space, "match_complete")
+        col.prop(space, "use_filter_case_sensitive")
+        col.prop(space, "use_filter_complete")
 
 
 class OUTLINER_MT_edit_datablocks(bpy.types.Menu):

@@ -835,7 +835,7 @@ PyObject *Geometry_Init(void)
 	PyObject *submodule;
 
 	submodule = PyModule_Create(&M_Geometry_module_def);
-	PyDict_SetItemString(PySys_GetObject("modules"), M_Geometry_module_def.m_name, submodule);
+	PyDict_SetItemString(PyImport_GetModuleDict(), M_Geometry_module_def.m_name, submodule);
 
 	return (submodule);
 }

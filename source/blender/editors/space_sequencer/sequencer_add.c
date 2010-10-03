@@ -47,17 +47,10 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_plugin_types.h"
 #include "BKE_sequencer.h"
-#include "BKE_scene.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -140,6 +133,7 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, w
 
 static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 {
+	int relative= RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path");
 	int is_file= -1;
 	memset(seq_load, 0, sizeof(SeqLoadInfo));
 
@@ -157,6 +151,10 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 		is_file= 0;
 	}
 
+	if((is_file != -1) && relative)
+		BLI_path_rel(seq_load->path, G.sce);
+
+	
 	if (RNA_struct_find_property(op->ptr, "frame_end")) {
 		seq_load->end_frame = RNA_int_get(op->ptr, "frame_end");
 	}

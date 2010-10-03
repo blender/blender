@@ -47,20 +47,13 @@
 #include "DNA_view3d_types.h"
 #include "DNA_gpencil_types.h"
 
-#include "BKE_armature.h"
-#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_global.h"
 #include "BKE_gpencil.h"
-#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

@@ -40,7 +40,6 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_node.h"
@@ -48,7 +47,6 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 
-#include "BIF_gl.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -161,7 +159,10 @@ static void node_init(struct wmWindowManager *wm, ScrArea *sa)
 
 static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 {
-	
+	/* note, ED_area_tag_refresh will re-execute compositor */
+	/* XXX, should edit some to check for the nodeTree type, especially  NC_NODE|NA_EDITED which refreshes all types */
+	SpaceNode *snode= sa->spacedata.first;
+
 	/* preview renders */
 	switch(wmn->category) {
 		case NC_SCENE:
@@ -202,6 +203,20 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_NODE:
 			if (wmn->action == NA_EDITED)
 				ED_area_tag_refresh(sa);
+			break;
+
+		case NC_IMAGE:
+			if (wmn->action == NA_EDITED) {
+				if(snode->treetype==NTREE_COMPOSIT) {
+					Scene *scene= wmn->window->screen->scene;
+					
+					/* note that NodeTagIDChanged is alredy called by BKE_image_signal() on all
+					 * scenes so really this is just to know if the images is used in the compo else
+					 * painting on images could become very slow when the compositor is open. */
+					if(NodeTagIDChanged(scene->nodetree, wmn->reference))
+						ED_area_tag_refresh(sa);
+				}
+			}
 			break;
 	}
 }

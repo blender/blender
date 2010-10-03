@@ -29,7 +29,9 @@
 #include "AUD_ConverterFunctions.h"
 #include "AUD_IReader.h"
 #include "AUD_Reference.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
+
+#include <string>
 
 struct AVCodecContext;
 extern "C" {
@@ -55,7 +57,7 @@ private:
 	/**
 	 * The playback buffer.
 	 */
-	AUD_Buffer *m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The specification of the audio data.
@@ -65,7 +67,7 @@ private:
 	/**
 	 * The buffer for package reading.
 	 */
-	AUD_Buffer *m_pkgbuf;
+	AUD_Buffer m_pkgbuf;
 
 	/**
 	 * The count of samples still available from the last read package.
@@ -108,12 +110,16 @@ private:
 	 * \param buffer The target buffer.
 	 * \return The count of read bytes.
 	 */
-	int decode(AVPacket* packet, AUD_Buffer* buffer);
+	int decode(AVPacket* packet, AUD_Buffer& buffer);
 
 	/**
 	 * Initializes the object.
 	 */
 	void init();
+
+	// hide copy constructor and operator=
+	AUD_FFMPEGReader(const AUD_FFMPEGReader&);
+	AUD_FFMPEGReader& operator=(const AUD_FFMPEGReader&);
 
 public:
 	/**
@@ -122,7 +128,7 @@ public:
 	 * \exception AUD_Exception Thrown if the file specified does not exist or
 	 *            cannot be read with ffmpeg.
 	 */
-	AUD_FFMPEGReader(const char* filename);
+	AUD_FFMPEGReader(std::string filename);
 
 	/**
 	 * Creates a new reader.
@@ -137,13 +143,11 @@ public:
 	 */
 	virtual ~AUD_FFMPEGReader();
 
-	virtual bool isSeekable();
+	virtual bool isSeekable() const;
 	virtual void seek(int position);
-	virtual int getLength();
-	virtual int getPosition();
-	virtual AUD_Specs getSpecs();
-	virtual AUD_ReaderType getType();
-	virtual bool notify(AUD_Message &message);
+	virtual int getLength() const;
+	virtual int getPosition() const;
+	virtual AUD_Specs getSpecs() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 

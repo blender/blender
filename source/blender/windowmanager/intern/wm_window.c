@@ -67,13 +67,13 @@
 GHOST_SystemHandle g_system= NULL;
 
 /* set by commandline */
-static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0;
+static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0, initialstate= GHOST_kWindowStateNormal;
 
 /* ******** win open & close ************ */
 
 /* XXX this one should correctly check for apple top header...
  done for Cocoa : returns window contents (and not frame) max size*/
-static void wm_get_screensize(int *width_r, int *height_r) 
+void wm_get_screensize(int *width_r, int *height_r)
 {
 	unsigned int uiwidth;
 	unsigned int uiheight;
@@ -289,18 +289,20 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 }
 
 /* belongs to below */
-static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow *win)
+static void wm_window_add_ghostwindow(bContext *C, wmWindowManager *wm, char *title, wmWindow *win)
 {
 	GHOST_WindowHandle ghostwin;
-	GHOST_TWindowState inital_state;
 	int scr_w, scr_h, posy;
+	GHOST_TWindowState initial_state;
+
+	/* when there is no window open uses the initial state */
+	if(!CTX_wm_window(C))
+		initial_state= initialstate;
+	else
+		initial_state= GHOST_kWindowStateNormal;
 	
 	wm_get_screensize(&scr_w, &scr_h);
 	posy= (scr_h - win->posy - win->sizey);
-	
-	//		inital_state = GHOST_kWindowStateFullScreen;
-	//		inital_state = GHOST_kWindowStateMaximized;
-	inital_state = GHOST_kWindowStateNormal;
 	
 #if defined(__APPLE__) && !defined(GHOST_COCOA)
 	{
@@ -312,13 +314,16 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 	 doesn't work well when AA is initialized, even if not used. */
 	ghostwin= GHOST_CreateWindow(g_system, title, 
 								 win->posx, posy, win->sizex, win->sizey, 
-								 inital_state, 
+								 initial_state, 
 								 GHOST_kDrawingContextTypeOpenGL,
 								 0 /* no stereo */,
 								 0 /* no AA */);
 	
 	if (ghostwin) {
 		
+		/* set the state*/
+		GHOST_SetWindowState(ghostwin, initial_state);
+
 		win->ghostwin= ghostwin;
 		GHOST_SetWindowUserData(ghostwin, win);	/* pointer back */
 		
@@ -342,7 +347,7 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 /* for wmWindows without ghostwin, open these and clear */
 /* window size is read from window, if 0 it uses prefsize */
 /* called in WM_check, also inits stuff after file read */
-void wm_window_add_ghostwindows(wmWindowManager *wm)
+void wm_window_add_ghostwindows(bContext* C, wmWindowManager *wm)
 {
 	wmKeyMap *keymap;
 	wmWindow *win;
@@ -372,9 +377,9 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 				win->posy= prefstay;
 				win->sizex= prefsizx;
 				win->sizey= prefsizy;
-				win->windowstate= 0;
+				win->windowstate= initialstate;
 			}
-			wm_window_add_ghostwindow(wm, "Blender", win);
+			wm_window_add_ghostwindow(C, wm, "Blender", win);
 		}
 		/* happens after fileread */
 		if(win->eventstate==NULL)
@@ -1104,6 +1109,17 @@ void WM_setprefsize(int stax, int stay, int sizx, int sizy)
 	prefstay= stay;
 	prefsizx= sizx;
 	prefsizy= sizy;
+}
+
+/* for borderless and border windows set from command-line */
+void WM_setinitialstate_fullscreen()
+{
+	initialstate= GHOST_kWindowStateFullScreen;
+}
+
+void WM_setinitialstate_normal()
+{
+	initialstate= GHOST_kWindowStateNormal;
 }
 
 /* This function requires access to the GHOST_SystemHandle (g_system) */

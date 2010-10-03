@@ -442,11 +442,11 @@ static DerivedMesh *applyModifier(ModifierData *md,
 				j= 2;
 			}
 
-			for(; j>=0; j--) {
+			do {
 				vidx = *(&mf->v1 + j);
 				vert_accum[vidx] += face_angles[j];
 				vert_angles[vidx]+= shell_angle_to_dist(angle_normalized_v3v3(vert_nors[vidx], face_nors[i])) * face_angles[j];
-			}
+			} while(j--);
 		}
 
 		/* vertex group support */

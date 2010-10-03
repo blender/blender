@@ -41,20 +41,13 @@
 #include "DNA_scene_types.h"
 #include "DNA_meta_types.h"
 
-#include "BKE_blender.h"
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_global.h"
-#include "BKE_idprop.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
-#include "BKE_multires.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 #include "BKE_sound.h"
 
 #include "WM_api.h"
@@ -199,13 +192,14 @@ int ED_operator_logic_active(bContext *C)
 
 int ED_operator_object_active(bContext *C)
 {
-	return NULL != ED_object_active_context(C);
+	Object *ob = ED_object_active_context(C);
+	return ((ob != NULL) && !(ob->restrictflag & OB_RESTRICT_VIEW));
 }
 
 int ED_operator_object_active_editable(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !(ob->id.lib));
+	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW));
 }
 
 int ED_operator_editmesh(bContext *C)
@@ -1297,19 +1291,19 @@ typedef struct RegionMoveData {
 	int bigger, smaller, origval;
 	int origx, origy;
 	int maxsize;
-	char edge;
+	AZEdge edge;
 	
 } RegionMoveData;
 
 
-static int area_max_regionsize(ScrArea *sa, ARegion *scalear, char edge)
+static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 {
 	ARegion *ar;
 	int dist;
 	
-	if(edge=='l' || edge=='r') {
+	if(edge==AE_RIGHT_TO_TOPLEFT || edge==AE_LEFT_TO_TOPRIGHT) {
 		dist = sa->totrct.xmax - sa->totrct.xmin;
-	} else {	/* t, b */
+	} else {	/* AE_BOTTOM_TO_TOPLEFT, AE_TOP_TO_BOTTOMRIGHT */
 		dist = sa->totrct.ymax - sa->totrct.ymin;
 	}
 	
@@ -1331,9 +1325,9 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, char edge)
 		
 		/* case of regions in regions, like operator properties panel */
 		/* these can sit on top of other regions such as headers, so account for this */
-		else if (edge == 'b' && scalear->alignment & RGN_ALIGN_TOP && ar->alignment == RGN_ALIGN_TOP && ar->regiontype == RGN_TYPE_HEADER)
+		else if (edge == AE_BOTTOM_TO_TOPLEFT && scalear->alignment & RGN_ALIGN_TOP && ar->alignment == RGN_ALIGN_TOP && ar->regiontype == RGN_TYPE_HEADER)
 			dist -= ar->winy;
-		else if (edge == 't' && scalear->alignment & RGN_ALIGN_BOTTOM && ar->alignment == RGN_ALIGN_BOTTOM && ar->regiontype == RGN_TYPE_HEADER)
+		else if (edge == AE_TOP_TO_BOTTOMRIGHT && scalear->alignment & RGN_ALIGN_BOTTOM && ar->alignment == RGN_ALIGN_BOTTOM && ar->regiontype == RGN_TYPE_HEADER)
 			dist -= ar->winy;
 	}
 
@@ -1373,7 +1367,7 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			rmd->ar->sizey= rmd->ar->type->prefsizey;
 		
 		/* now copy to regionmovedata */
-		if(rmd->edge=='l' || rmd->edge=='r') {
+		if(rmd->edge==AE_LEFT_TO_TOPRIGHT || rmd->edge==AE_RIGHT_TO_TOPLEFT) {
 			rmd->origval= rmd->ar->sizex;
 		} else {
 			rmd->origval= rmd->ar->sizey;
@@ -1405,9 +1399,9 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 	switch(event->type) {
 		case MOUSEMOVE:
 			
-			if(rmd->edge=='l' || rmd->edge=='r') {
+			if(rmd->edge==AE_LEFT_TO_TOPRIGHT || rmd->edge==AE_RIGHT_TO_TOPLEFT) {
 				delta= event->x - rmd->origx;
-				if(rmd->edge=='l') delta= -delta;
+				if(rmd->edge==AE_LEFT_TO_TOPRIGHT) delta= -delta;
 				
 				rmd->ar->sizex= rmd->origval + delta;
 				CLAMP(rmd->ar->sizex, 0, rmd->maxsize);
@@ -1421,13 +1415,17 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 					ED_region_toggle_hidden(C, rmd->ar);
 			}
 			else {
+				int maxsize=0;
 				delta= event->y - rmd->origy;
-				if(rmd->edge=='b') delta= -delta;
+				if(rmd->edge==AE_BOTTOM_TO_TOPLEFT) delta= -delta;
 				
 				rmd->ar->sizey= rmd->origval + delta;
 				CLAMP(rmd->ar->sizey, 0, rmd->maxsize);
 				
-				if(rmd->ar->sizey < 24) {
+				if(rmd->ar->regiontype == RGN_TYPE_TOOL_PROPS)
+					maxsize = rmd->maxsize - ((rmd->sa->headertype==2)?48:24) - 10;
+
+				if(rmd->ar->sizey < 24 || (maxsize > 0 && (rmd->ar->sizey > maxsize)) ) {
 					rmd->ar->sizey= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
 						ED_region_toggle_hidden(C, rmd->ar);
@@ -1755,10 +1753,10 @@ static int area_join_init(bContext *C, wmOperator *op)
 	int x2, y2;
 	
 	/* required properties, make negative to get return 0 if not set by caller */
-	x1= RNA_int_get(op->ptr, "x1");
-	y1= RNA_int_get(op->ptr, "y1");
-	x2= RNA_int_get(op->ptr, "x2");
-	y2= RNA_int_get(op->ptr, "y2");
+	x1= RNA_int_get(op->ptr, "min_x");
+	y1= RNA_int_get(op->ptr, "min_y");
+	x2= RNA_int_get(op->ptr, "max_x");
+	y2= RNA_int_get(op->ptr, "max_y");
 	
 	sa1 = screen_areahascursor(CTX_wm_screen(C), x1, y1);
 	sa2 = screen_areahascursor(CTX_wm_screen(C), x2, y2);
@@ -1839,10 +1837,10 @@ static int area_join_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_PASS_THROUGH;
 		
 		/* prepare operator state vars */
-		RNA_int_set(op->ptr, "x1", sad->x);
-		RNA_int_set(op->ptr, "y1", sad->y);
-		RNA_int_set(op->ptr, "x2", event->x);
-		RNA_int_set(op->ptr, "y2", event->y);
+		RNA_int_set(op->ptr, "min_x", sad->x);
+		RNA_int_set(op->ptr, "min_y", sad->y);
+		RNA_int_set(op->ptr, "max_x", event->x);
+		RNA_int_set(op->ptr, "max_y", event->y);
 		
 		if(!area_join_init(C, op)) 
 			return OPERATOR_PASS_THROUGH;
@@ -1984,10 +1982,10 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING;
 	
 	/* rna */
-	RNA_def_int(ot->srna, "x1", -100, INT_MIN, INT_MAX, "X 1", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "y1", -100, INT_MIN, INT_MAX, "Y 1", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "x2", -100, INT_MIN, INT_MAX, "X 2", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "y2", -100, INT_MIN, INT_MAX, "Y 2", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "min_x", -100, INT_MIN, INT_MAX, "X 1", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "min_y", -100, INT_MIN, INT_MAX, "Y 1", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "max_x", -100, INT_MIN, INT_MAX, "X 2", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "max_y", -100, INT_MIN, INT_MAX, "Y 2", "", INT_MIN, INT_MAX);
 }
 
 /* ************** repeat last operator ***************************** */

@@ -76,7 +76,7 @@ def addget_shape_key_driver(obj, name="Key"):
         for driver_s in obj.data.shape_keys.animation_data.drivers:
             if driver_s.data_path == driver_path:
                 fcurve = driver_s
-    if fcurve == None:
+    if fcurve is None:
         fcurve = obj.data.shape_keys.keys[name].driver_add("value")
         fcurve.driver.type = 'AVERAGE'
         new = True
@@ -93,7 +93,7 @@ def metarig_template():
     bone.head[:] = 0.0000, 0.0000, 0.0000
     bone.tail[:] = 0.0000, 0.0000, 1.0000
     bone.roll = 0.0000
-    bone.connected = False
+    bone.use_connect = False
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones['Bone']
@@ -151,8 +151,8 @@ def deform(obj, definitions, base_names, options):
     eb[spread_l_2].tail = eb[definitions[5]].head
     eb[spread_l_1].roll = 0
     eb[spread_l_2].roll = 0
-    eb[spread_l_1].connected = False
-    eb[spread_l_2].connected = False
+    eb[spread_l_1].use_connect = False
+    eb[spread_l_2].use_connect = False
     eb[spread_l_1].parent = eb[definitions[6]]
     eb[spread_l_2].parent = eb[definitions[6]]
 
@@ -162,8 +162,8 @@ def deform(obj, definitions, base_names, options):
     eb[spread_r_2].tail = eb[definitions[3]].head
     eb[spread_r_1].roll = 0
     eb[spread_r_2].roll = 0
-    eb[spread_r_1].connected = False
-    eb[spread_r_2].connected = False
+    eb[spread_r_1].use_connect = False
+    eb[spread_r_2].use_connect = False
     eb[spread_r_1].parent = eb[definitions[2]]
     eb[spread_r_2].parent = eb[definitions[2]]
 
@@ -171,7 +171,7 @@ def deform(obj, definitions, base_names, options):
 
     # Jaw open bones (for driving corrective shape keys)
     jopen1 = copy_bone_simple(obj.data, jaw, "MCH-"+base_names[jaw]+".track1", parent=True).name
-    eb[jopen1].connected = False
+    eb[jopen1].use_connect = False
     eb[jopen1].head = eb[jaw].tail
     eb[jopen1].tail = eb[jopen1].head + Vector((0, 0, eb[jaw].length/4))
 
@@ -426,7 +426,7 @@ def control(obj, definitions, base_names, options):
 
     # Jaw open tracker
     jopent = copy_bone_simple(obj.data, jaw_e.name, "MCH-"+base_names[jaw_e.name]+".track", parent=True).name
-    eb[jopent].connected = False
+    eb[jopent].use_connect = False
     eb[jopent].tail = jaw_e.tail + Vector((0.0, 0.0, jaw_e.length))
     eb[jopent].head = jaw_e.tail
 
@@ -458,7 +458,7 @@ def control(obj, definitions, base_names, options):
     con.target = obj
     con.subtarget = jaw
     con.head_tail = 1.0
-    con.original_length = bb[jopent].length
+    con.rest_length = bb[jopent].length
     con.volume = 'NO_VOLUME'
 
     # Head lips to jaw lips
@@ -545,8 +545,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -563,8 +563,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -581,8 +581,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -599,8 +599,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -617,8 +617,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -635,8 +635,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -653,8 +653,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -671,8 +671,8 @@ def control(obj, definitions, base_names, options):
     con.transform_channel = 'SCALE_Y'
     con.frame_start = 0
     con.frame_end = 60
-    con.minimum = 0.0
-    con.maximum = 1.0
+    con.min = 0.0
+    con.max = 1.0
     con.target_space = 'LOCAL'
     fcurve = con.driver_add("influence")
     driver = fcurve.driver
@@ -684,15 +684,15 @@ def control(obj, definitions, base_names, options):
 
 
     # Set layers
-    layer = list(bb[definitions[2]].layer)
-    bb[lip1].layer = layer
-    bb[lip2].layer = layer
-    bb[lip3].layer = layer
-    bb[lip4].layer = layer
-    bb[lip5].layer = layer
-    bb[lip6].layer = layer
-    bb[lip7].layer = layer
-    bb[lip8].layer = layer
+    layer = list(bb[definitions[2]].layers)
+    bb[lip1].layers = layer
+    bb[lip2].layers = layer
+    bb[lip3].layers = layer
+    bb[lip4].layers = layer
+    bb[lip5].layers = layer
+    bb[lip6].layers = layer
+    bb[lip7].layers = layer
+    bb[lip8].layers = layer
 
 
     return (None,)
@@ -717,7 +717,7 @@ def make_lip_stretch_bone(obj, name, bone1, bone2, roll_alpha):
 
     # Create the bone, pointing from bone1 to bone2
     bone_e = copy_bone_simple(obj.data, bone1, name, parent=True)
-    bone_e.connected = False
+    bone_e.use_connect = False
     bone_e.tail = eb[bone2].head
     bone = bone_e.name
 

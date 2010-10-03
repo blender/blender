@@ -1,9 +1,11 @@
 #!/usr/bin/python
 Import ('env')
-
+defs = []
 sources = env.Glob('intern/*.c') + env.Glob('intern/*.cpp')
 
 incs = '#/intern/guardedalloc #/intern/iksolver/extern ../makesdna ../blenlib'
 incs += ' ../blenkernel ../include ../ikplugin #/intern/itasc #/extern/Eigen2'
 
-env.BlenderLib ( 'bf_ikplugin', sources, Split(incs), [], libtype=['core','player'], priority=[180, 190] )
+defs.append('WITH_IK_ITASC')
+
+env.BlenderLib ( 'bf_ikplugin', sources, Split(incs), defs, libtype=['core','player'], priority=[180, 190] )

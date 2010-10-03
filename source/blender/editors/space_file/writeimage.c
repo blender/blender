@@ -29,7 +29,6 @@
 
 #include <string.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -43,7 +42,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_utildefines.h"
 
 #include "RE_pipeline.h"
 

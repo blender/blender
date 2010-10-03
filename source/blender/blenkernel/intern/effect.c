@@ -29,6 +29,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
 #include "BLI_storage.h" /* _LARGEFILE_SOURCE */
 
 #include <math.h>
@@ -85,7 +86,6 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
 #include "RE_render_ext.h"
@@ -662,16 +662,15 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		where_is_object_time(eff->scene, ob, cfra);
 
 		/* use z-axis as normal*/
-		VECCOPY(efd->nor, ob->obmat[2]);
-		normalize_v3(efd->nor);
+		normalize_v3_v3(efd->nor, ob->obmat[2]);
 
 		/* for vortex the shape chooses between old / new force */
 		if(eff->pd && eff->pd->shape == PFIELD_SHAPE_PLANE) {
 			/* efd->loc is closes point on effector xy-plane */
-			float temp[3];
+			float temp[3], translate[3];
 			sub_v3_v3v3(temp, point->loc, ob->obmat[3]);
-			project_v3_v3v3(efd->loc, temp, efd->nor);
-			sub_v3_v3v3(efd->loc, point->loc, efd->loc);
+			project_v3_v3v3(translate, temp, efd->nor);
+			add_v3_v3v3(efd->loc, ob->obmat[3], translate);
 		}
 		else {
 			VECCOPY(efd->loc, ob->obmat[3]);
@@ -707,8 +706,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		else {
 			/* for some effectors we need the object center every time */
 			sub_v3_v3v3(efd->vec_to_point2, point->loc, eff->ob->obmat[3]);
-			VECCOPY(efd->nor2, eff->ob->obmat[2]);
-			normalize_v3(efd->nor2);
+			normalize_v3_v3(efd->nor2, eff->ob->obmat[2]);
 		}
 	}
 

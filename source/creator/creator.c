@@ -131,6 +131,8 @@ extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
 char btempdir[FILE_MAXDIR+FILE_MAXFILE];
 
+#define BLEND_VERSION_STRING_FMT "Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION
+
 /* Initialise callbacks for the modules that need them */
 static void setCallbacks(void); 
 
@@ -175,17 +177,14 @@ static void strip_quotes(char *str)
 
 static int print_version(int argc, char **argv, void *data)
 {
+	printf (BLEND_VERSION_STRING_FMT);
 #ifdef BUILD_DATE
-	printf ("Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 	printf ("\tbuild date: %s\n", build_date);
 	printf ("\tbuild time: %s\n", build_time);
 	printf ("\tbuild revision: %s\n", build_rev);
 	printf ("\tbuild platform: %s\n", build_platform);
 	printf ("\tbuild type: %s\n", build_type);
-#else
-	printf ("Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 #endif
-
 	exit(0);
 
 	return 0;
@@ -195,7 +194,7 @@ static int print_help(int argc, char **argv, void *data)
 {
 	bArgs *ba = (bArgs*)data;
 
-	printf ("Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
+	printf (BLEND_VERSION_STRING_FMT);
 	printf ("Usage: blender [args ...] [file] [args ...]\n\n");
 
 	printf ("Render Options:\n");
@@ -344,7 +343,7 @@ static int background_mode(int argc, char **argv, void *data)
 static int debug_mode(int argc, char **argv, void *data)
 {
 	G.f |= G_DEBUG;		/* std output printf's */
-	printf ("Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
+	printf(BLEND_VERSION_STRING_FMT);
 	MEM_set_memory_debug();
 
 #ifdef NAN_BUILDINFO
@@ -413,16 +412,13 @@ static int prefsize(int argc, char **argv, void *data)
 
 static int with_borders(int argc, char **argv, void *data)
 {
-	/* with borders XXX OLD CRUFT!*/
-
+	WM_setinitialstate_normal();
 	return 0;
 }
 
 static int without_borders(int argc, char **argv, void *data)
 {
-	/* borderless, win + linux XXX OLD CRUFT */
-	/* XXX, fixme mein, borderless on OSX */
-
+	WM_setinitialstate_fullscreen();
 	return 0;
 }
 
@@ -1144,8 +1140,10 @@ int main(int argc, char **argv)
 
 	else {
 		if((G.fileflags & G_FILE_AUTOPLAY) && (G.f & G_SCRIPT_AUTOEXEC))
-			WM_init_game(C);
-
+		{
+			if(WM_init_game(C))
+				return 0;
+		}
 		else if(!G.file_loaded)
 			WM_init_splash(C);
 	}

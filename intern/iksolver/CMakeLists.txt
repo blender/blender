@@ -24,9 +24,12 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC intern ../moto/include ../memutil)
+SET(INC
+	intern
+	../memutil
+	../moto/include
+)
 
 FILE(GLOB SRC intern/*.cpp)
 
-BLENDERLIB(bf_IK "${SRC}" "${INC}")
-#, libtype=['blender'], priority = [10] )
+BLENDERLIB(bf_intern_ik "${SRC}" "${INC}")

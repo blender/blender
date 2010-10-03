@@ -69,6 +69,7 @@
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
+#include "BKE_node.h"
 
 //XXX #include "BIF_editseq.h"
 
@@ -756,9 +757,9 @@ int BKE_imtype_is_movie(int imtype)
 	return 0;
 }
 
-void BKE_add_image_extension(char *string, int imtype)
+int BKE_add_image_extension(char *string, int imtype)
 {
-	char *extension="";
+	char *extension= NULL;
 	
 	if(imtype== R_IRIS) {
 		if(!BLI_testextensie(string, ".rgb"))
@@ -829,7 +830,12 @@ void BKE_add_image_extension(char *string, int imtype)
 			extension= ".jpg";
 	}
 
-	strcat(string, extension);
+	if(extension) {
+		return BLI_replace_extension(string, FILE_MAX, extension);
+	}
+	else {
+		return FALSE;
+	}
 }
 
 /* could allow access externally - 512 is for long names, 64 is for id names */
@@ -1447,6 +1453,17 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 		}
 		break;
 	}
+	
+	/* dont use notifiers because they are not 100% sure to succseed
+	 * this also makes sure all scenes are accounted for. */
+	{
+		Scene *scene;
+		for(scene= G.main->scene.first; scene; scene= scene->id.next) {
+			if(scene->nodetree) {
+				NodeTagIDChanged(scene->nodetree, &ima->id);
+			}
+		}
+	}
 }
 
 /* if layer or pass changes, we need an index for the imbufs list */
@@ -1760,8 +1777,6 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		else
 			BLI_path_abs(str, G.sce);
 		
-		BLI_path_frame(str, cfra, 0);
-		
 		/* read ibuf */
 		ibuf = IMB_loadiffname(str, flag);
 	}
@@ -1979,8 +1994,14 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 			ibuf= image_get_ibuf(ima, 0, frame);
 			
 			/* XXX temp stuff? */
-			if(ima->lastframe != frame)
+			if(ima->lastframe != frame) {
 				ima->tpageflag |= IMA_TPAGE_REFRESH;
+				if(ibuf) {
+					/* without this the image name only updates
+					 * on first load which is quite confusing */
+					BLI_strncpy(ima->name, ibuf->name, sizeof(ima->name));
+				}
+			}
 			ima->lastframe = frame;
 		}	
 		else if(ima->type==IMA_TYPE_MULTILAYER) {
@@ -1999,14 +2020,9 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 		ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
 	}
 	else if(ima->source == IMA_SRC_VIEWER) {
-		if(ima->type==IMA_TYPE_R_RESULT) {
-			/* always verify entirely, not that this shouldn't happen
-			 * during render anyway */
-		}
-		else if(ima->type==IMA_TYPE_COMPOSITE) {
-			frame= iuser?iuser->framenr:0;
-			ibuf= image_get_ibuf(ima, 0, frame);
-		}
+		/* always verify entirely, not that this shouldn't happen
+		 * as part of texture sampling in rendering anyway, so not
+		 * a big bottleneck */
 	}
 
 	*frame_r = frame;
@@ -2123,10 +2139,15 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 						BLI_lock_thread(LOCK_VIEWER);
 						*lock_r= ima;
 
-						/* Composite Viewer, all handled in compositor */
-						/* fake ibuf, will be filled in compositor */
-						ibuf= IMB_allocImBuf(256, 256, 32, IB_rect, 0);
-						image_assign_ibuf(ima, ibuf, 0, frame);
+						frame= iuser?iuser->framenr:0;
+						ibuf= image_get_ibuf(ima, 0, frame);
+
+						if(!ibuf) {
+							/* Composite Viewer, all handled in compositor */
+							/* fake ibuf, will be filled in compositor */
+							ibuf= IMB_allocImBuf(256, 256, 32, IB_rect, 0);
+							image_assign_ibuf(ima, ibuf, 0, frame);
+						}
 					}
 				}
 			}

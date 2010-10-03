@@ -159,8 +159,8 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     # Not needed but catches any errors before duplicating
     validate_rig(context, obj_orig)
 
-    global_undo = context.user_preferences.edit.global_undo
-    context.user_preferences.edit.global_undo = False
+    use_global_undo = context.user_preferences.edit.use_global_undo
+    context.user_preferences.edit.use_global_undo = False
     mode_orig = context.mode
     rest_backup = obj_orig.data.pose_position
     obj_orig.data.pose_position = 'REST'
@@ -282,7 +282,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     edit_bone.head = (0.0, 0.0, 0.0)
     edit_bone.tail = (0.0, 1.0, 0.0)
     edit_bone.roll = 0.0
-    edit_bone.layer = ROOT_LAYERS
+    edit_bone.layers = ROOT_LAYERS
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # key: bone name
@@ -412,7 +412,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
                 else:
                     root_ebone_tmp = root_ebone
 
-                ebone.connected = False
+                ebone.use_connect = False
                 ebone.parent = root_ebone_tmp
             '''
 
@@ -429,7 +429,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
             con.target = obj
             con.subtarget = bone_name
 
-            if not pbone.bone.connected:
+            if not pbone.bone.use_connect:
                 con = pbone.constraints.new('COPY_LOCATION')
                 con.target = obj
                 con.subtarget = bone_name
@@ -445,33 +445,33 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     layer_second_last[30] = True
 
     for bone_name, bone in arm.bones.items():
-        bone.deform = False  # Non DEF bones shouldn't deform
+        bone.use_deform = False  # Non DEF bones shouldn't deform
         if bone_name.startswith(ORG_PREFIX):
-            bone.layer = ORG_LAYERS
+            bone.layers = ORG_LAYERS
         elif bone_name.startswith(MCH_PREFIX): # XXX fixme
-            bone.layer = MCH_LAYERS
+            bone.layers = MCH_LAYERS
         elif bone_name.startswith(DEF_PREFIX): # XXX fixme
-            bone.layer = DEF_LAYERS
-            bone.deform = True
+            bone.layers = DEF_LAYERS
+            bone.use_deform = True
         else:
             # Assign bone appearance if there is a widget for it
             obj.pose.bones[bone_name].custom_shape = context.scene.objects.get(WGT_PREFIX + bone_name)
 
-        layer_tot[:] = [max(lay) for lay in zip(layer_tot, bone.layer)]
+        layer_tot[:] = [max(lay) for lay in zip(layer_tot, bone.layers)]
 
     # Only for demo'ing
     layer_show = [a and not (b or c or d) for a, b, c, d in zip(layer_tot, ORG_LAYERS, MCH_LAYERS, DEF_LAYERS)]
-    arm.layer = layer_show
+    arm.layers = layer_show
 
 
     # obj.hide = True
-    obj.data.draw_axes = False
+    obj.data.show_axes = False
 
     bpy.ops.object.mode_set(mode=mode_orig)
     obj_orig.data.pose_position = rest_backup
     obj.data.pose_position = 'POSE'
     obj_orig.data.pose_position = 'POSE'
-    context.user_preferences.edit.global_undo = global_undo
+    context.user_preferences.edit.use_global_undo = use_global_undo
 
     print("Done.\n")
 
@@ -537,7 +537,7 @@ def generate_test_all(context, GRAPH=False):
         base_name = os.path.splitext(bpy.data.filepath)[0]
         for obj, obj_new in new_objects:
             for obj in (obj, obj_new):
-                fn = base_name + "-" + bpy.utils.clean_name(obj.name)
+                fn = base_name + "-" + bpy.path.clean_name(obj.name)
 
                 path_dot = fn + ".dot"
                 path_png = fn + ".png"
@@ -548,7 +548,7 @@ def generate_test_all(context, GRAPH=False):
 
     i = 0
     for obj, obj_new in new_objects:
-        obj.data.drawtype = 'STICK'
+        obj.data.draw_type = 'STICK'
         obj.location[1] += i
         obj_new.location[1] += i
         obj_new.select = False

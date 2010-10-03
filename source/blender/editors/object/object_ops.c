@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -38,8 +37,6 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -393,25 +390,25 @@ void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keym
 	if(do_pet) {
 		/* context ops */
 		kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_enum", OKEY, KM_PRESS, KM_SHIFT, 0);
-		RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_editing_falloff");
+		RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_edit_falloff");
 
 		// Object mode
 		if (do_pet == 1) {
 
 			kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", OKEY, KM_PRESS, 0, 0);
-			RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_editing_objects");
+			RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_proportional_edit_objects");
 
 		} else { // Edit mode
 
 			kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, 0, 0);
-			RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_editing");
+			RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_edit");
 			RNA_string_set(kmi->ptr, "value_1", "DISABLED");
 			RNA_string_set(kmi->ptr, "value_2", "ENABLED");
 
 			/* for modes/object types that allow 'connected' mode, add the Alt O key */
 			if (do_pet == 3) {
 				kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, KM_ALT, 0);
-				RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_editing");
+				RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_edit");
 				RNA_string_set(kmi->ptr, "value_1", "DISABLED");
 				RNA_string_set(kmi->ptr, "value_2", "CONNECTED");
 			}

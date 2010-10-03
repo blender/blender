@@ -46,6 +46,9 @@ void file_calc_previews(const bContext *C, ARegion *ar);
 void file_draw_previews(const bContext *C, ARegion *ar);
 void file_draw_list(const bContext *C, ARegion *ar);
 
+void file_draw_check_cb(bContext *C, void *arg1, void *arg2);
+int file_draw_check_exists(SpaceFile *sfile);
+
 /* file_ops.h */
 struct wmOperatorType;
 struct wmOperator;
@@ -83,6 +86,9 @@ int file_directory_new_exec(bContext *C,struct wmOperator *unused);
 int file_delete_exec(bContext *C, struct wmOperator *unused);
 
 int file_hilight_set(struct SpaceFile *sfile, struct ARegion *ar, int mx, int my);
+
+void file_sfile_to_operator(struct wmOperator *op, struct SpaceFile *sfile, char *filepath);
+void file_operator_to_sfile(struct SpaceFile *sfile, struct wmOperator *op);
 
 
 /* filesel.c */

@@ -37,30 +37,30 @@ def metarig_template():
     bone.head[:] = -0.0728, -0.2427, 0.0000
     bone.tail[:] = -0.0728, -0.2427, 0.2427
     bone.roll = 0.0000
-    bone.connected = False
+    bone.use_connect = False
     bone = arm.edit_bones.new('thigh')
     bone.head[:] = 0.0000, 0.0000, -0.0000
     bone.tail[:] = 0.0813, -0.2109, -0.3374
     bone.roll = -0.4656
-    bone.connected = False
+    bone.use_connect = False
     bone.parent = arm.edit_bones['body']
     bone = arm.edit_bones.new('shin')
     bone.head[:] = 0.0813, -0.2109, -0.3374
     bone.tail[:] = 0.0714, -0.0043, -0.5830
     bone.roll = -0.2024
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['thigh']
     bone = arm.edit_bones.new('foot')
     bone.head[:] = 0.0714, -0.0043, -0.5830
     bone.tail[:] = 0.0929, -0.0484, -0.7652
     bone.roll = -0.3766
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['shin']
     bone = arm.edit_bones.new('toe')
     bone.head[:] = 0.0929, -0.0484, -0.7652
     bone.tail[:] = 0.1146, -0.1244, -0.7652
     bone.roll = -0.0000
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['foot']
 
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -120,7 +120,7 @@ def ik(obj, bone_definition, base_names, options):
 
     ik_chain = mt_chain.copy(to_fmt="MCH-%s.ik", base_names=base_names)
 
-    ik_chain.thigh_e.connected = False
+    ik_chain.thigh_e.use_connect = False
     ik_chain.thigh_e.parent = mt.hips_e
 
     ik_chain.foot_e.parent = None
@@ -128,10 +128,10 @@ def ik(obj, bone_definition, base_names, options):
     ik_chain.rename("toe", get_base_name(base_names[bone_definition[4]]) + "_ik" + get_side_name(base_names[bone_definition[4]]))
 
     # keep the foot_ik as the parent
-    ik_chain.toe_e.connected = False
+    ik_chain.toe_e.use_connect = False
 
     # Foot uses pose space, not local space, for translation
-    ik_chain.foot_e.local_location = False
+    ik_chain.foot_e.use_local_location = False
 
     # must be after disconnecting the toe
     ik_chain.foot_e.align_orientation(mt_chain.toe_e)
@@ -141,7 +141,7 @@ def ik(obj, bone_definition, base_names, options):
 
     # knee rotator
     knee_rotator = copy_bone_simple(arm, mt_chain.toe, "knee_rotator" + get_side_name(base_names[mt_chain.foot]), parent=True).name
-    eb[knee_rotator].connected = False
+    eb[knee_rotator].use_connect = False
     eb[knee_rotator].parent = eb[mt.hips]
     eb[knee_rotator].head = eb[ik_chain.thigh].head
     eb[knee_rotator].tail = eb[knee_rotator].head + eb[mt_chain.toe].vector
@@ -156,7 +156,7 @@ def ik(obj, bone_definition, base_names, options):
     # then align it with the foot but reverse direction.
     ik.foot_roll_e = copy_bone_simple(arm, mt_chain.toe, get_base_name(base_names[mt_chain.foot]) + "_roll" + get_side_name(base_names[mt_chain.foot]))
     ik.foot_roll = ik.foot_roll_e.name
-    ik.foot_roll_e.connected = False
+    ik.foot_roll_e.use_connect = False
     ik.foot_roll_e.parent = ik_chain.foot_e
     ik.foot_roll_e.head -= mt_chain.toe_e.vector.normalize() * mt_chain.foot_e.length
     ik.foot_roll_e.tail = ik.foot_roll_e.head - (mt_chain.foot_e.vector.normalize() * mt_chain.toe_e.length)
@@ -175,7 +175,7 @@ def ik(obj, bone_definition, base_names, options):
     ik.foot_target_e.parent = ik.foot_roll_01_e
     ik.foot_target_e.align_orientation(ik_chain.foot_e)
     ik.foot_target_e.length = ik_chain.foot_e.length / 2.0
-    ik.foot_target_e.connected = True
+    ik.foot_target_e.use_connect = True
 
     # MCH-foot.02 child of MCH-foot
     ik.foot_roll_02_e = copy_bone_simple(arm, mt_chain.foot, "MCH-%s_02" % base_names[mt_chain.foot])
@@ -268,7 +268,7 @@ def ik(obj, bone_definition, base_names, options):
 
     # IK
     con = ik_chain.shin_p.constraints.new('IK')
-    con.chain_length = 2
+    con.chain_count = 2
     con.iterations = 500
     con.pole_angle = -90.0 # XXX - in deg!
     con.use_tail = True
@@ -289,12 +289,12 @@ def ik(obj, bone_definition, base_names, options):
     if "ik_layer" in options:
         layer = [n==options["ik_layer"] for n in range(0,32)]
     else:
-        layer = list(mt_chain.thigh_b.layer)
+        layer = list(mt_chain.thigh_b.layers)
     for attr in ik_chain.attr_names:
-        obj.data.bones[getattr(ik_chain, attr)].layer = layer
+        obj.data.bones[getattr(ik_chain, attr)].layers = layer
     for attr in ik.attr_names:
-        obj.data.bones[getattr(ik, attr)].layer = layer
-    obj.data.bones[knee_rotator].layer = layer
+        obj.data.bones[getattr(ik, attr)].layers = layer
+    obj.data.bones[knee_rotator].layers = layer
 
     return None, ik_chain.thigh, ik_chain.shin, ik_chain.foot, ik_chain.toe
 
@@ -325,7 +325,7 @@ def fk(obj, bone_definition, base_names, options):
     eb[hinge].length = eb[mt.hips].length / 2
 
     # Make leg child of hinge
-    eb[fk_chain.thigh].connected = False
+    eb[fk_chain.thigh].use_connect = False
     eb[fk_chain.thigh].parent = eb[hinge]
 
 
@@ -396,8 +396,8 @@ def deform(obj, definitions, base_names, options):
     # Create upper leg bones: two bones, each half of the upper leg.
     uleg1 = copy_bone_simple(obj.data, definitions[1], "DEF-%s.01" % base_names[definitions[1]], parent=True)
     uleg2 = copy_bone_simple(obj.data, definitions[1], "DEF-%s.02" % base_names[definitions[1]], parent=True)
-    uleg1.connected = False
-    uleg2.connected = False
+    uleg1.use_connect = False
+    uleg2.use_connect = False
     uleg2.parent = uleg1
     center = uleg1.center
     uleg1.tail = center
@@ -406,8 +406,8 @@ def deform(obj, definitions, base_names, options):
     # Create lower leg bones: two bones, each half of the lower leg.
     lleg1 = copy_bone_simple(obj.data, definitions[2], "DEF-%s.01" % base_names[definitions[2]], parent=True)
     lleg2 = copy_bone_simple(obj.data, definitions[2], "DEF-%s.02" % base_names[definitions[2]], parent=True)
-    lleg1.connected = False
-    lleg2.connected = False
+    lleg1.use_connect = False
+    lleg2.use_connect = False
     lleg2.parent = lleg1
     center = lleg1.center
     lleg1.tail = center
@@ -416,7 +416,7 @@ def deform(obj, definitions, base_names, options):
     # Create a bone for the second lower leg deform bone to twist with
     twist = copy_bone_simple(obj.data, lleg2.name, "MCH-leg_twist")
     twist.length /= 4
-    twist.connected = False
+    twist.use_connect = False
     twist.parent = obj.data.edit_bones[definitions[3]]
 
     # Create foot bone

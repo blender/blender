@@ -22,19 +22,19 @@
 FILE(GLOB SRC *.c)
 
 SET(INC
+	../include
 	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../imbuf
-	../include
-	../../../../intern/guardedalloc
 	../../makesdna
 	../../makesrna
 	../../windowmanager
+	../../../../intern/guardedalloc
 )
 
 IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
+	LIST(APPEND INC ${PTHREADS_INC})
 ENDIF(WIN32)
 
 BLENDERLIB(bf_editor_screen "${SRC}" "${INC}")

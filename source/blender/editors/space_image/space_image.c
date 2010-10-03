@@ -45,9 +45,7 @@
 #include "BKE_image.h"
 #include "BKE_mesh.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
-#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "ED_mesh.h"
@@ -56,7 +54,6 @@
 #include "ED_uvedit.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "RNA_access.h"
 
@@ -776,8 +773,6 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* draw Grease Pencil - screen space only */
 	draw_image_grease_pencil((bContext *)C, 0);
-
-	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
 	
 	/* scrollers? */
 	/*scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_UNIT_VALUES, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
@@ -962,7 +957,7 @@ void ED_spacetype_image(void)
 	/* regions: statistics/scope buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
 	art->regionid = RGN_TYPE_PREVIEW;
-	art->minsizex= 220; // XXX
+	art->prefsizex= 220; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= image_scope_area_listener;
 	art->init= image_scope_area_init;

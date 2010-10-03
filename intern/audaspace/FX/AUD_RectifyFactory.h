@@ -33,19 +33,19 @@
  */
 class AUD_RectifyFactory : public AUD_EffectFactory
 {
+private:
+	// hide copy constructor and operator=
+	AUD_RectifyFactory(const AUD_RectifyFactory&);
+	AUD_RectifyFactory& operator=(const AUD_RectifyFactory&);
+
 public:
 	/**
 	 * Creates a new rectify factory.
 	 * \param factory The input factory.
 	 */
-	AUD_RectifyFactory(AUD_IFactory* factory = 0);
+	AUD_RectifyFactory(AUD_IFactory* factory);
 
-	/**
-	 * Creates a new rectify factory.
-	 */
-	AUD_RectifyFactory();
-
-	virtual AUD_IReader* createReader();
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_RECTIFYFACTORY

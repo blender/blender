@@ -29,15 +29,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
-
+#include "BLO_sys_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
-#include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 
@@ -76,6 +72,8 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_delete);
 	WM_operatortype_append(ARMATURE_OT_duplicate);
 	WM_operatortype_append(ARMATURE_OT_extrude);
+	WM_operatortype_append(ARMATURE_OT_hide);
+	WM_operatortype_append(ARMATURE_OT_reveal);
 	WM_operatortype_append(ARMATURE_OT_click_extrude);
 	WM_operatortype_append(ARMATURE_OT_fill);
 	WM_operatortype_append(ARMATURE_OT_merge);
@@ -207,7 +205,8 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "snap", 1);
 
 	/* only set in editmode armature, by space_view3d listener */
-//	WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_align", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_calculate_roll", NKEY, KM_PRESS, KM_CTRL, 0);
 	

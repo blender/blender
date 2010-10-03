@@ -27,13 +27,29 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-	. ../../../intern/guardedalloc ../../../intern/memutil ../editors/include ../blenlib ../makesdna ../modifiers
-	../render/extern/include ../../../intern/decimation/extern
-	../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
-	../../../intern/iksolver/extern ../blenloader ../ikplugin
-	../nodes ../../../extern/glew/include ../gpu ../makesrna ../../../intern/smoke/extern
-	../../../intern/bsp/extern ../blenfont
+	.
+	../avi
+	../blenlib
+	../blenloader
+	../gpu
+	../ikplugin
+	../imbuf
+	../makesdna
+	../makesrna
+	../modifiers
+	../nodes
+	../editors/include
+	../render/extern/include
+	../../../extern/glew/include
 	../../../intern/audaspace/intern
+	../../../intern/bsp/extern ../blenfont
+	../../../intern/decimation/extern
+	../../../intern/elbeem/extern
+	../../../intern/guardedalloc
+	../../../intern/iksolver/extern
+	../../../intern/memutil
+	../../../intern/opennl/extern
+	../../../intern/smoke/extern
     ../../../source/blender/windowmanager # XXX - BAD LEVEL CALL WM_api.h
 	${ZLIB_INC}
 )
@@ -42,7 +58,7 @@ SET(INC
 ADD_DEFINITIONS(-DGLEW_STATIC)
 
 IF(WITH_BULLET)
-	SET(INC ${INC} ../../../extern/bullet2/src)
+	LIST(APPEND INC ../../../extern/bullet2/src)
 	ADD_DEFINITIONS(-DUSE_BULLET)
 ENDIF(WITH_BULLET)
 
@@ -71,28 +87,28 @@ IF(WITH_IMAGE_HDR)
 ENDIF(WITH_IMAGE_HDR)
 
 IF(WITH_QUICKTIME)
-	SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
+	LIST(APPEND INC ../quicktime ${QUICKTIME_INC})
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
 IF(WITH_FFMPEG)
-	SET(INC ${INC} ${FFMPEG_INC})
+	LIST(APPEND INC ${FFMPEG_INC})
 	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
 IF(WITH_LCMS)
-	SET(INC ${INC} ${LCMS_INCLUDE_DIR})
+	LIST(APPEND INC ${LCMS_INCLUDE_DIR})
 	ADD_DEFINITIONS(-DWITH_LCMS)
 ENDIF(WITH_LCMS)
 
 IF(WITH_PYTHON)
-	SET(INC ${INC} ../python ${PYTHON_INC})
+	LIST(APPEND INC ../python ${PYTHON_INC})
 ELSE(WITH_PYTHON)
 	ADD_DEFINITIONS(-DDISABLE_PYTHON)
 ENDIF(WITH_PYTHON)
 
 IF(WITH_OPENMP)
-		ADD_DEFINITIONS(-DPARALLEL=1)
+	ADD_DEFINITIONS(-DPARALLEL=1)
 ENDIF(WITH_OPENMP)
 
 IF(NOT WITH_FLUID)
@@ -100,18 +116,17 @@ IF(NOT WITH_FLUID)
 ENDIF(NOT WITH_FLUID)
 
 IF(WITH_LZO)
-	SET(INC ${INC} ../../../extern/lzo/minilzo)
+	LIST(APPEND INC ../../../extern/lzo/minilzo)
 	ADD_DEFINITIONS(-DWITH_LZO)
 ENDIF(WITH_LZO)
 
 IF(WITH_LZMA)
-	SET(INC ${INC} ../../../extern/lzma)
+	LIST(APPEND INC ../../../extern/lzma)
 	ADD_DEFINITIONS(-DWITH_LZMA)
 ENDIF(WITH_LZMA)
 
 IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
+	LIST(APPEND INC ${PTHREADS_INC})
 ENDIF(WIN32)
 
 BLENDERLIB(bf_blenkernel "${SRC}" "${INC}")
-

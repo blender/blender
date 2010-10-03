@@ -52,12 +52,14 @@ typedef struct wmJob wmJob;
 
 /* general API */
 void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
+void		WM_setinitialstate_fullscreen();
+void		WM_setinitialstate_normal();
 
 void		WM_init				(struct bContext *C, int argc, char **argv);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
-void		WM_init_game		(struct bContext *C);
+int 		WM_init_game		(struct bContext *C);
 void		WM_init_splash		(struct bContext *C);
 
 
@@ -78,7 +80,7 @@ void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
 int			WM_read_homefile	(struct bContext *C, struct wmOperator *op);
 int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
 void		WM_read_file		(struct bContext *C, char *name, struct ReportList *reports);
-int			WM_write_file		(struct bContext *C, char *target, int fileflags, struct ReportList *reports, int copy);
+int			WM_write_file		(struct bContext *C, const char *target, int fileflags, struct ReportList *reports, int copy);
 void		WM_read_autosavefile(struct bContext *C);
 void		WM_autosave_init	(struct wmWindowManager *wm);
 
@@ -97,8 +99,8 @@ void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 void		WM_cursor_warp		(struct wmWindow *win, int x, int y);
 
 			/* keyconfig and keymap */
-wmKeyConfig *WM_keyconfig_add	(struct wmWindowManager *wm, char *idname);
-wmKeyConfig *WM_keyconfig_add_user(struct wmWindowManager *wm, char *idname);
+wmKeyConfig *WM_keyconfig_new	(struct wmWindowManager *wm, char *idname);
+wmKeyConfig *WM_keyconfig_new_user(struct wmWindowManager *wm, char *idname);
 void 		WM_keyconfig_remove	(struct wmWindowManager *wm, struct wmKeyConfig *keyconf);
 void 		WM_keyconfig_free	(struct wmKeyConfig *keyconf);
 void		WM_keyconfig_userdef(struct wmWindowManager *wm);
@@ -201,7 +203,6 @@ void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct bContext *C);
 
 struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
-struct wmOperatorType *WM_operatortype_exists(const char *idname);
 struct wmOperatorType *WM_operatortype_first(void);
 void		WM_operatortype_append	(void (*opfunc)(struct wmOperatorType*));
 void		WM_operatortype_append_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);

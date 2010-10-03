@@ -64,8 +64,8 @@ IF(UNIX)
 	SET(BLENDER_SORTED_LIBS
 		gp_ghost 
 		gp_common 
-		bf_string 
-		bf_ghost 
+		bf_intern_string 
+		bf_intern_ghost 
 		bf_rna
 		bf_blenkernel
 		bf_blenloader 
@@ -82,11 +82,11 @@ IF(UNIX)
 		bf_expressions 
 		bf_scenegraph
         	bf_ikplugin
-        	bf_ITASC
-        	bf_IK
-        	bf_smoke
+        	bf_intern_itasc
+        	bf_intern_ik
+        	bf_intern_smoke
 		bf_modifiers
-		bf_moto 
+		bf_intern_moto 
 		bf_kernel 
 		bf_nodes
 		bf_gpu
@@ -96,23 +96,24 @@ IF(UNIX)
 		bf_ngnetwork 
 		bf_loopbacknetwork 
 		extern_bullet 
-		bf_guardedalloc 
-		bf_memutil 
+		bf_intern_guardedalloc 
+		bf_intern_memutil 
 		bf_python
-		bf_gen_python
+		bf_python_ext
 		bf_blenlib 
 		bf_cineon
 		bf_openexr 
-		extern_libopenjpeg 
+		extern_openjpeg 
 		bf_dds
 		bf_readblenfile 
 		bf_dna
 		bf_videotex
 		bf_blenfont
-		bf_audaspace
+		bf_intern_audaspace
 		blenkernel_blc
 		extern_binreloc
 		extern_glew
+		extern_minilzo
 	)
   
 	IF(WITH_QUICKTIME)
@@ -120,7 +121,7 @@ IF(UNIX)
 	ENDIF(WITH_QUICKTIME)
 
 	IF(WITH_CXX_GUARDEDALLOC)
-		SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} bf_guardedalloc_cpp)
+		SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} bf_intern_guardedalloc_cpp)
 	ENDIF(WITH_CXX_GUARDEDALLOC)
 
 	FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})

@@ -78,12 +78,12 @@ typedef struct EditBone
 	short segments;
 } EditBone;
 
-#define	BONESEL_ROOT	0x10000000
-#define	BONESEL_TIP		0x20000000
-#define	BONESEL_BONE	0x40000000
+#define	BONESEL_ROOT	(1<<28)
+#define	BONESEL_TIP		(1<<29)
+#define	BONESEL_BONE	(1<<30)
 #define BONESEL_ANY		(BONESEL_TIP|BONESEL_ROOT|BONESEL_BONE)
 
-#define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */
+#define BONESEL_NOSEL	(1<<31)	/* Indicates a negative number */
 
 /* useful macros */
 #define EBONE_VISIBLE(arm, ebone) ((arm->layer & ebone->layer) && !(ebone->flag & BONE_HIDDEN_A))
@@ -102,7 +102,7 @@ void ED_keymap_armature(struct wmKeyConfig *keyconf);
 void ED_armature_from_edit(struct Object *obedit);
 void ED_armature_to_edit(struct Object *ob);
 void ED_armature_edit_free(struct Object *ob);
-void ED_armature_deselectall(struct Object *obedit, int toggle, int doundo);
+void ED_armature_deselectall(struct Object *obedit, int toggle);
 
 int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer, 
 							short hits, short extend);
@@ -140,7 +140,7 @@ void undo_push_armature(struct bContext *C, char *name);
 void ED_armature_exit_posemode(struct bContext *C, struct Base *base);
 void ED_armature_enter_posemode(struct bContext *C, struct Base *base);
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan);
-void ED_pose_deselectall(struct Object *ob, int test, int doundo);
+void ED_pose_deselectall(struct Object *ob, int test);
 void ED_pose_recalculate_paths(struct bContext *C, struct Scene *scene, struct Object *ob);
 
 /* sketch */

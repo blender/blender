@@ -22,15 +22,15 @@
 FILE(GLOB SRC *.c)
 
 SET(INC
+	../include
 	../../blenkernel
 	../../blenlib
 	../../imbuf
-	../include
-	../../../../intern/guardedalloc
 	../../makesdna
 	../../makesrna
-	../../render/extern/include
 	../../windowmanager
+	../../render/extern/include
+	../../../../intern/guardedalloc
 )
 
 IF(WITH_IMAGE_OPENEXR)
@@ -47,7 +47,7 @@ IF(WITH_LCMS)
 ENDIF(WITH_LCMS)
 
 IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
+	LIST(APPEND INC ${PTHREADS_INC})
 ENDIF(WIN32)
 
 BLENDERLIB(bf_editor_space_image "${SRC}" "${INC}")

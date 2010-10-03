@@ -33,12 +33,15 @@
  */
 class AUD_LinearResampleFactory : public AUD_ResampleFactory
 {
-public:
-	AUD_LinearResampleFactory(AUD_IReader* reader, AUD_DeviceSpecs specs);
-	AUD_LinearResampleFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
-	AUD_LinearResampleFactory(AUD_DeviceSpecs specs);
+private:
+	// hide copy constructor and operator=
+	AUD_LinearResampleFactory(const AUD_LinearResampleFactory&);
+	AUD_LinearResampleFactory& operator=(const AUD_LinearResampleFactory&);
 
-	virtual AUD_IReader* createReader();
+public:
+	AUD_LinearResampleFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
+
+	virtual AUD_IReader* createReader() const;
 };
 
 #endif //AUD_LINEARRESAMPLEFACTORY

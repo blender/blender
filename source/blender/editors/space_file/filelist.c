@@ -52,25 +52,14 @@
 #endif
 
 #include "BKE_context.h"
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BLO_readfile.h"
+#include "BKE_idcode.h"
 
 #include "DNA_space_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_ID.h"
-#include "DNA_object_types.h"
-#include "DNA_listBase.h"
-#include "DNA_lamp_types.h"
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_world_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 
 #include "ED_datafiles.h"
 
@@ -119,6 +108,7 @@ typedef struct FileList
 	short prv_h;
 	short hide_dot;
 	unsigned int filter;
+	char filter_glob[64];
 	short changed;
 
 	struct BlendHandle *libfiledata;
@@ -558,6 +548,7 @@ void filelist_free(struct FileList* filelist)
 	free(filelist->filelist);
 	filelist->filelist = 0;	
 	filelist->filter = 0;
+	filelist->filter_glob[0] = '\0';
 	filelist->numfiltered =0;
 	filelist->hide_dot =0;
 }
@@ -724,6 +715,11 @@ void filelist_setfilter(struct FileList* filelist, unsigned int filter)
 	filelist->filter = filter;
 }
 
+void filelist_setfilter_types(struct FileList* filelist, const char *filter_glob)
+{
+	BLI_strncpy(filelist->filter_glob, filter_glob, sizeof(filelist->filter_glob));
+}
+
 static void filelist_read_dir(struct FileList* filelist)
 {
 	char wdir[FILE_MAX];
@@ -835,6 +831,9 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 			file->flags |= MOVIEFILE;			
 		} else if(BLI_testextensie_array(file->relname, imb_ext_audio)) {
 			file->flags |= SOUNDFILE;
+		} else if(filelist->filter_glob
+					&& BLI_testextensie_glob(file->relname, filelist->filter_glob)) {
+			file->flags |= OPERATORFILE;
 		}
 	}
 }
@@ -893,7 +892,7 @@ static int groupname_to_code(char *group)
 	if (lslash)
 		lslash[0]= '\0';
 
-	return BLO_idcode_from_name(buf);
+	return BKE_idcode_from_name(buf);
 }
 
 void filelist_from_library(struct FileList* filelist)

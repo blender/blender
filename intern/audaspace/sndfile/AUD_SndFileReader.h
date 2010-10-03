@@ -28,8 +28,9 @@
 
 #include "AUD_IReader.h"
 #include "AUD_Reference.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
+#include <string>
 #include <sndfile.h>
 
 typedef sf_count_t (*sf_read_f)(SNDFILE *sndfile, void *ptr, sf_count_t frames);
@@ -63,7 +64,7 @@ private:
 	/**
 	 * The playback buffer.
 	 */
-	AUD_Buffer* m_buffer;
+	AUD_Buffer m_buffer;
 
 	/**
 	 * The sndfile.
@@ -91,6 +92,10 @@ private:
 	static sf_count_t vio_read(void *ptr, sf_count_t count, void *user_data);
 	static sf_count_t vio_tell(void *user_data);
 
+	// hide copy constructor and operator=
+	AUD_SndFileReader(const AUD_SndFileReader&);
+	AUD_SndFileReader& operator=(const AUD_SndFileReader&);
+
 public:
 	/**
 	 * Creates a new reader.
@@ -98,7 +103,7 @@ public:
 	 * \exception AUD_Exception Thrown if the file specified does not exist or
 	 *            cannot be read with libsndfile.
 	 */
-	AUD_SndFileReader(const char* filename);
+	AUD_SndFileReader(std::string filename);
 
 	/**
 	 * Creates a new reader.
@@ -113,13 +118,11 @@ public:
 	 */
 	virtual ~AUD_SndFileReader();
 
-	virtual bool isSeekable();
+	virtual bool isSeekable() const;
 	virtual void seek(int position);
-	virtual int getLength();
-	virtual int getPosition();
-	virtual AUD_Specs getSpecs();
-	virtual AUD_ReaderType getType();
-	virtual bool notify(AUD_Message &message);
+	virtual int getLength() const;
+	virtual int getPosition() const;
+	virtual AUD_Specs getSpecs() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 

@@ -49,12 +49,10 @@
 #include "BLI_rand.h"
 
 #include "BKE_anim.h"			//for the where_on_path function
-#include "BKE_curve.h"
 #include "BKE_constraint.h" // for the get_constraint_target function
 #include "BKE_DerivedMesh.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
-#include "BKE_effect.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -68,9 +66,6 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_property.h"
-#include "BKE_softbody.h"
-#include "BKE_smoke.h"
 #include "BKE_unit.h"
 #include "BKE_utildefines.h"
 #include "smoke_API.h"
@@ -906,7 +901,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	
 	if(drawcone && !v3d->transp) {
 		/* in this case we need to draw delayed */
-		add_view3d_after(v3d, base, V3D_TRANSP, flag);
+		add_view3d_after(&v3d->afterdraw_transp, base, flag);
 		return;
 	}
 	
@@ -1362,10 +1357,10 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 {
 	Object *obedit= vc->obedit;
 	Lattice *lt= obedit->data;
-	BPoint *bp = lt->editlatt->def;
+	BPoint *bp = lt->editlatt->latt->def;
 	DispList *dl = find_displist(&obedit->disp, DL_VERTS);
 	float *co = dl?dl->verts:NULL;
-	int i, N = lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+	int i, N = lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 	short s[2] = {IS_CLIPPED, 0};
 
 	ED_view3d_local_clipping(vc->rv3d, obedit->obmat); /* for local clipping lookups */
@@ -1413,7 +1408,7 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 	dl= find_displist(&ob->disp, DL_VERTS);
 	
 	if(is_edit) {
-		lt= lt->editlatt;
+		lt= lt->editlatt->latt;
 
 		cpack(0x004000);
 		
@@ -2727,7 +2722,8 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	int do_alpha_pass= 0, drawlinked= 0, retval= 0, glsl, check_alpha;
 	
 	if(obedit && ob!=obedit && ob->data==obedit->data) {
-		if(ob_get_key(ob));
+		if(ob_get_key(ob) || ob_get_key(obedit));
+		else if(ob->modifiers.first || obedit->modifiers.first);
 		else drawlinked= 1;
 	}
 	
@@ -2773,7 +2769,20 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	}
 	
 	/* GPU_begin_object_materials checked if this is needed */
-	if(do_alpha_pass) add_view3d_after(v3d, base, V3D_TRANSP, flag);
+	if(do_alpha_pass) {
+		if(ob->dtx & OB_DRAWXRAY) {
+			add_view3d_after(&v3d->afterdraw_xraytransp, base, flag);
+		}
+		else {
+			add_view3d_after(&v3d->afterdraw_transp, base, flag);
+		}
+	}
+	else if(ob->dtx & OB_DRAWXRAY && ob->dtx & OB_DRAWTRANSP) {
+		/* special case xray+transp when alpha is 1.0, without this the object vanishes */
+		if(v3d->xray == 0 && v3d->transp == 0) {
+			add_view3d_after(&v3d->afterdraw_xray, base, flag);
+		}
+	}
 	
 	return retval;
 }
@@ -3066,12 +3075,15 @@ static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, B
 		int glsl = draw_glsl_material(scene, ob, v3d, dt);
 		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 
-		if (!glsl)
+		if(!glsl) {
 			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
+			glEnable(GL_LIGHTING);
+			dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
+			glDisable(GL_LIGHTING);
+		}
+		else
+			dm->drawFacesGLSL(dm, GPU_enable_material);
 
-		glEnable(GL_LIGHTING);
-		dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
-		glDisable(GL_LIGHTING);
 		GPU_end_object_materials();
 	} else {
 		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_SOLID)==0)
@@ -3366,7 +3378,7 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 			add_v3_v3v3(pdd->vd, bb_center, xvec);
 			add_v3_v3(pdd->vd, yvec); pdd->vd+=3;
 
-			sub_v3_v3v3(pdd->vd, bb_center, vec);
+			sub_v3_v3v3(pdd->vd, bb_center, xvec);
 			add_v3_v3(pdd->vd, yvec); pdd->vd+=3;
 
 			sub_v3_v3v3(pdd->vd, bb_center, xvec);
@@ -4763,7 +4775,7 @@ static void draw_empty_sphere (float size)
 		GLUquadricObj	*qobj;
 		
 		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		glNewList(displist, GL_COMPILE);
 		
 		glPushMatrix();
 		
@@ -4784,8 +4796,8 @@ static void draw_empty_sphere (float size)
 	}
 	
 	glScalef(size, size, size);
-		glCallList(displist);
-	glScalef(1/size, 1/size, 1/size);
+	glCallList(displist);
+	glScalef(1.0f/size, 1.0f/size, 1.0f/size);
 }
 
 /* draw a cone for use as an empty drawtype */
@@ -5474,10 +5486,9 @@ static void draw_hooks(Object *ob)
 //<rcruiz>
 void drawRBpivot(bRigidBodyJointConstraint *data)
 {
-	float radsPerDeg = 6.283185307179586232f / 360.f;
 	int axis;
 	float v1[3]= {data->pivX, data->pivY, data->pivZ};
-	float eu[3]= {radsPerDeg*data->axX, radsPerDeg*data->axY, radsPerDeg*data->axZ};
+	float eu[3]= {data->axX, data->axY, data->axZ};
 	float mat[4][4];
 
 	eul_to_mat4(mat,eu);
@@ -5543,7 +5554,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		if(!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 			/* xray and transp are set when it is drawing the 2nd/3rd pass */
 			if(!v3d->xray && !v3d->transp && (ob->dtx & OB_DRAWXRAY) && !(ob->dtx & OB_DRAWTRANSP)) {
-				add_view3d_after(v3d, base, V3D_XRAY, flag);
+				add_view3d_after(&v3d->afterdraw_xray, base, flag);
 				return;
 			}
 		}

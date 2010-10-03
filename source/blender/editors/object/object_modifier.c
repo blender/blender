@@ -43,7 +43,6 @@
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 
-#include "BKE_action.h"
 #include "BKE_curve.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -61,7 +60,6 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_softbody.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -144,6 +142,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Object *ob, ModifierData *md)
 {
 	ModifierData *obmd;
+	int sort_depsgraph = 0;
 
 	/* It seems on rapid delete it is possible to
 	 * get called twice on same modifier, so make
@@ -176,13 +175,13 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 		if(ob->pd)
 			ob->pd->deflect= 0;
 
-		DAG_scene_sort(bmain, scene);
+		sort_depsgraph = 1;
 	}
 	else if(md->type == eModifierType_Surface) {
 		if(ob->pd && ob->pd->shape == PFIELD_SHAPE_SURFACE)
 			ob->pd->shape = PFIELD_SHAPE_PLANE;
 
-		DAG_scene_sort(bmain, scene);
+		sort_depsgraph = 1;
 	}
 	else if(md->type == eModifierType_Smoke) {
 		ob->dt = OB_TEXTURE;
@@ -198,6 +197,10 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 	modifier_free(md);
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+
+	/* sorting has to be done after the update so that dynamic systems can react properly */
+	if(sort_depsgraph)
+		DAG_scene_sort(bmain, scene);
 
 	return 1;
 }
@@ -455,6 +458,21 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
 		return 0;
 	}
+
+	/* lattice modifier can be applied to particle system too */
+	if(ob->particlesystem.first) {
+
+		ParticleSystem *psys = ob->particlesystem.first;
+
+		for(; psys; psys=psys->next) {
+			
+			if(psys->part->type != PART_HAIR)
+				continue;
+
+			psys_apply_hair_lattice(scene, ob, psys);
+		}
+	}
+
 	return 1;
 }
 

@@ -24,9 +24,9 @@
  */
 
 #include "AUD_OpenALDevice.h"
+#include "AUD_IFactory.h"
 #include "AUD_IReader.h"
-#include "AUD_ConverterFactory.h"
-#include "AUD_SourceCaps.h"
+#include "AUD_ConverterReader.h"
 
 #include <cstring>
 #include <limits>
@@ -65,6 +65,15 @@ struct AUD_OpenALHandle : AUD_Handle
 
 	/// Whether the stream doesn't return any more data.
 	bool data_end;
+
+	/// The loop count of the source.
+	int loopcount;
+
+	/// The stop callback.
+	stopCallback stop;
+
+	/// Stop callback data.
+	void* stop_data;
 };
 
 struct AUD_OpenALBufferedFactory
@@ -128,13 +137,9 @@ void AUD_OpenALDevice::updateStreams()
 
 		{
 			// for all sounds
-			AUD_HandleIterator it = m_playingSounds->begin();
-			while(it != m_playingSounds->end())
+			for(AUD_HandleIterator it = m_playingSounds->begin(); it != m_playingSounds->end(); it++)
 			{
 				sound = *it;
-				// increment the iterator to make sure it's valid,
-				// in case the sound gets deleted after stopping
-				++it;
 
 				// is it a streamed sound?
 				if(!sound->isBuffered)
@@ -155,6 +160,18 @@ void AUD_OpenALDevice::updateStreams()
 								// read data
 								length = m_buffersize;
 								sound->reader->read(length, buffer);
+
+								// looping necessary?
+								if(length == 0 && sound->loopcount)
+								{
+									if(sound->loopcount > 0)
+										sound->loopcount--;
+
+									sound->reader->seek(0);
+
+									length = m_buffersize;
+									sound->reader->read(length, buffer);
+								}
 
 								// read nothing?
 								if(length == 0)
@@ -212,12 +229,24 @@ void AUD_OpenALDevice::updateStreams()
 					// if it really stopped
 					if(sound->data_end)
 					{
+						if(sound->stop)
+							sound->stop(sound->stop_data);
+
+						// increment the iterator to the next value,
+						// because the sound gets deleted in the list here.
+						++it;
 						// pause or
 						if(sound->keep)
 							pause(sound);
 						// stop
 						else
 							stop(sound);
+						// decrement again, so that we get the next sound in the
+						// next loop run
+						if(m_playingSounds->empty())
+							break;
+						else
+							--it;
 					}
 					// continue playing
 					else
@@ -263,6 +292,8 @@ bool AUD_OpenALDevice::isValid(AUD_Handle* handle)
 	return false;
 }
 
+static const char* open_error = "AUD_OpenALDevice: Device couldn't be opened.";
+
 AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 {
 	// cannot determine how many channels or which format OpenAL uses, but
@@ -287,7 +318,7 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 	m_device = alcOpenDevice(NULL);
 
 	if(!m_device)
-		AUD_THROW(AUD_ERROR_OPENAL);
+		AUD_THROW(AUD_ERROR_OPENAL, open_error);
 
 	// at least try to set the frequency
 	ALCint attribs[] = { ALC_FREQUENCY, specs.rate, 0 };
@@ -302,12 +333,7 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 
 	// check for specific formats and channel counts to be played back
 	if(alIsExtensionPresent("AL_EXT_FLOAT32") == AL_TRUE)
-	{
 		specs.format = AUD_FORMAT_FLOAT32;
-		m_converter = NULL;
-	}
-	else
-		m_converter = new AUD_ConverterFactory(specs); AUD_NEW("factory")
 
 	m_useMC = alIsExtensionPresent("AL_EXT_MCFORMATS") == AL_TRUE;
 
@@ -317,10 +343,9 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 	m_buffersize = buffersize;
 	m_playing = false;
 
-	m_playingSounds = new std::list<AUD_OpenALHandle*>(); AUD_NEW("list")
-	m_pausedSounds = new std::list<AUD_OpenALHandle*>(); AUD_NEW("list")
+	m_playingSounds = new std::list<AUD_OpenALHandle*>();
+	m_pausedSounds = new std::list<AUD_OpenALHandle*>();
 	m_bufferedFactories = new std::list<AUD_OpenALBufferedFactory*>();
-	AUD_NEW("list")
 
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
@@ -345,10 +370,10 @@ AUD_OpenALDevice::~AUD_OpenALDevice()
 		alDeleteSources(1, &sound->source);
 		if(!sound->isBuffered)
 		{
-			delete sound->reader; AUD_DELETE("reader")
+			delete sound->reader;
 			alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 		}
-		delete sound; AUD_DELETE("handle")
+		delete sound;
 		m_playingSounds->erase(m_playingSounds->begin());
 	}
 
@@ -359,10 +384,10 @@ AUD_OpenALDevice::~AUD_OpenALDevice()
 		alDeleteSources(1, &sound->source);
 		if(!sound->isBuffered)
 		{
-			delete sound->reader; AUD_DELETE("reader")
+			delete sound->reader;
 			alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 		}
-		delete sound; AUD_DELETE("handle")
+		delete sound;
 		m_pausedSounds->erase(m_pausedSounds->begin());
 	}
 
@@ -370,7 +395,7 @@ AUD_OpenALDevice::~AUD_OpenALDevice()
 	while(!m_bufferedFactories->empty())
 	{
 		alDeleteBuffers(1, &(*(m_bufferedFactories->begin()))->buffer);
-		delete *m_bufferedFactories->begin(); AUD_DELETE("bufferedfactory");
+		delete *m_bufferedFactories->begin();
 		m_bufferedFactories->erase(m_bufferedFactories->begin());
 	}
 
@@ -385,22 +410,19 @@ AUD_OpenALDevice::~AUD_OpenALDevice()
 	else
 		unlock();
 
-	delete m_playingSounds; AUD_DELETE("list")
-	delete m_pausedSounds; AUD_DELETE("list")
-	delete m_bufferedFactories; AUD_DELETE("list")
+	delete m_playingSounds;
+	delete m_pausedSounds;
+	delete m_bufferedFactories;
 
 	// quit OpenAL
 	alcMakeContextCurrent(NULL);
 	alcDestroyContext(m_context);
 	alcCloseDevice(m_device);
 
-	if(m_converter)
-		delete m_converter; AUD_DELETE("factory")
-
 	pthread_mutex_destroy(&m_mutex);
 }
 
-AUD_DeviceSpecs AUD_OpenALDevice::getSpecs()
+AUD_DeviceSpecs AUD_OpenALDevice::getSpecs() const
 {
 	return m_specs;
 }
@@ -496,6 +518,15 @@ bool AUD_OpenALDevice::getFormat(ALenum &format, AUD_Specs specs)
 	return valid;
 }
 
+static const char* genbuffer_error = "AUD_OpenALDevice: Buffer couldn't be "
+									 "generated.";
+static const char* gensource_error = "AUD_OpenALDevice: Source couldn't be "
+									 "generated.";
+static const char* queue_error = "AUD_OpenALDevice: Buffer couldn't be "
+								 "queued to the source.";
+static const char* bufferdata_error = "AUD_OpenALDevice: Buffer couldn't be "
+									  "filled with data.";
+
 AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 {
 	lock();
@@ -511,11 +542,14 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 			if((*i)->factory == factory)
 			{
 				// create the handle
-				sound = new AUD_OpenALHandle; AUD_NEW("handle")
+				sound = new AUD_OpenALHandle;
 				sound->keep = keep;
 				sound->current = -1;
 				sound->isBuffered = true;
 				sound->data_end = true;
+				sound->loopcount = 0;
+				sound->stop = NULL;
+				sound->stop_data = NULL;
 
 				alcSuspendContext(m_context);
 
@@ -524,23 +558,23 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 				{
 					alGenSources(1, &sound->source);
 					if(alGetError() != AL_NO_ERROR)
-						AUD_THROW(AUD_ERROR_OPENAL);
+						AUD_THROW(AUD_ERROR_OPENAL, gensource_error);
 
 					try
 					{
 						alSourcei(sound->source, AL_BUFFER, (*i)->buffer);
 						if(alGetError() != AL_NO_ERROR)
-							AUD_THROW(AUD_ERROR_OPENAL);
+							AUD_THROW(AUD_ERROR_OPENAL, queue_error);
 					}
-					catch(AUD_Exception)
+					catch(AUD_Exception&)
 					{
 						alDeleteSources(1, &sound->source);
 						throw;
 					}
 				}
-				catch(AUD_Exception)
+				catch(AUD_Exception&)
 				{
-					delete sound; AUD_DELETE("handle")
+					delete sound;
 					alcProcessContext(m_context);
 					throw;
 				}
@@ -555,7 +589,7 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 			}
 		}
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
 		unlock();
 		throw;
@@ -568,35 +602,32 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 
 	AUD_IReader* reader = factory->createReader();
 
-	if(reader == NULL)
-		AUD_THROW(AUD_ERROR_READER);
-
 	AUD_DeviceSpecs specs = m_specs;
 	specs.specs = reader->getSpecs();
 
 	// check format
 	bool valid = specs.channels != AUD_CHANNELS_INVALID;
 
-	if(m_converter)
-	{
-		m_converter->setReader(reader);
-		reader = m_converter->createReader();
-	}
+	if(m_specs.format != AUD_FORMAT_FLOAT32)
+		reader = new AUD_ConverterReader(reader, m_specs);
 
 	// create the handle
-	sound = new AUD_OpenALHandle; AUD_NEW("handle")
+	sound = new AUD_OpenALHandle;
 	sound->keep = keep;
 	sound->reader = reader;
 	sound->current = 0;
 	sound->isBuffered = false;
 	sound->data_end = false;
+	sound->loopcount = 0;
+	sound->stop = NULL;
+	sound->stop_data = NULL;
 
 	valid &= getFormat(sound->format, specs.specs);
 
 	if(!valid)
 	{
-		delete sound; AUD_DELETE("handle")
-		delete reader; AUD_DELETE("reader")
+		delete sound;
+		delete reader;
 		return NULL;
 	}
 
@@ -608,7 +639,7 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 	{
 		alGenBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 		if(alGetError() != AL_NO_ERROR)
-			AUD_THROW(AUD_ERROR_OPENAL);
+			AUD_THROW(AUD_ERROR_OPENAL, genbuffer_error);
 
 		try
 		{
@@ -623,36 +654,36 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 							 length * AUD_DEVICE_SAMPLE_SIZE(specs),
 							 specs.rate);
 				if(alGetError() != AL_NO_ERROR)
-					AUD_THROW(AUD_ERROR_OPENAL);
+					AUD_THROW(AUD_ERROR_OPENAL, bufferdata_error);
 			}
 
 			alGenSources(1, &sound->source);
 			if(alGetError() != AL_NO_ERROR)
-				AUD_THROW(AUD_ERROR_OPENAL);
+				AUD_THROW(AUD_ERROR_OPENAL, gensource_error);
 
 			try
 			{
 				alSourceQueueBuffers(sound->source, AUD_OPENAL_CYCLE_BUFFERS,
 									 sound->buffers);
 				if(alGetError() != AL_NO_ERROR)
-					AUD_THROW(AUD_ERROR_OPENAL);
+					AUD_THROW(AUD_ERROR_OPENAL, queue_error);
 			}
-			catch(AUD_Exception)
+			catch(AUD_Exception&)
 			{
 				alDeleteSources(1, &sound->source);
 				throw;
 			}
 		}
-		catch(AUD_Exception)
+		catch(AUD_Exception&)
 		{
 			alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 			throw;
 		}
 	}
-	catch(AUD_Exception)
+	catch(AUD_Exception&)
 	{
-		delete sound; AUD_DELETE("handle")
-		delete reader; AUD_DELETE("reader")
+		delete sound;
+		delete reader;
 		alcProcessContext(m_context);
 		unlock();
 		throw;
@@ -737,10 +768,10 @@ bool AUD_OpenALDevice::stop(AUD_Handle* handle)
 			alDeleteSources(1, &sound->source);
 			if(!sound->isBuffered)
 			{
-				delete sound->reader; AUD_DELETE("reader")
+				delete sound->reader;
 				alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 			}
-			delete *i; AUD_DELETE("handle")
+			delete *i;
 			m_playingSounds->erase(i);
 			result = true;
 			break;
@@ -757,16 +788,30 @@ bool AUD_OpenALDevice::stop(AUD_Handle* handle)
 				alDeleteSources(1, &sound->source);
 				if(!sound->isBuffered)
 				{
-					delete sound->reader; AUD_DELETE("reader")
+					delete sound->reader;
 					alDeleteBuffers(AUD_OPENAL_CYCLE_BUFFERS, sound->buffers);
 				}
-				delete *i; AUD_DELETE("handle")
+				delete *i;
 				m_pausedSounds->erase(i);
 				result = true;
 				break;
 			}
 		}
 	}
+
+	unlock();
+
+	return result;
+}
+
+bool AUD_OpenALDevice::getKeep(AUD_Handle* handle)
+{
+	bool result = false;
+
+	lock();
+
+	if(isValid(handle))
+		result = ((AUD_OpenALHandle*)handle)->keep;
 
 	unlock();
 
@@ -784,32 +829,6 @@ bool AUD_OpenALDevice::setKeep(AUD_Handle* handle, bool keep)
 		((AUD_OpenALHandle*)handle)->keep = keep;
 		result = true;
 	}
-
-	unlock();
-
-	return result;
-}
-
-bool AUD_OpenALDevice::sendMessage(AUD_Handle* handle, AUD_Message &message)
-{
-	bool result = false;
-
-	lock();
-
-	if(handle == 0)
-	{
-		for(AUD_HandleIterator i = m_playingSounds->begin();
-			i != m_playingSounds->end(); i++)
-			if(!(*i)->isBuffered)
-				result |= (*i)->reader->notify(message);
-		for(AUD_HandleIterator i = m_pausedSounds->begin();
-			i != m_pausedSounds->end(); i++)
-			if(!(*i)->isBuffered)
-				result |= (*i)->reader->notify(message);
-	}
-	else if(isValid(handle))
-		if(!((AUD_OpenALHandle*)handle)->isBuffered)
-			result = ((AUD_OpenALHandle*)handle)->reader->notify(message);
 
 	unlock();
 
@@ -947,440 +966,657 @@ void AUD_OpenALDevice::unlock()
 	pthread_mutex_unlock(&m_mutex);
 }
 
-/******************************************************************************/
-/**************************** Capabilities Code *******************************/
-/******************************************************************************/
-
-bool AUD_OpenALDevice::checkCapability(int capability)
+float AUD_OpenALDevice::getVolume() const
 {
-	return capability == AUD_CAPS_3D_DEVICE ||
-		   capability == AUD_CAPS_VOLUME ||
-		   capability == AUD_CAPS_SOURCE_VOLUME ||
-		   capability == AUD_CAPS_SOURCE_PITCH ||
-		   capability == AUD_CAPS_BUFFERED_FACTORY;
-}
-
-bool AUD_OpenALDevice::setCapability(int capability, void *value)
-{
-	bool result = false;
-	switch(capability)
-	{
-	case AUD_CAPS_VOLUME:
-		alListenerf(AL_GAIN, *((float*)value));
-		return true;
-	case AUD_CAPS_SOURCE_VOLUME:
-		{
-			AUD_SourceCaps* caps = (AUD_SourceCaps*) value;
-			lock();
-			if(isValid(caps->handle))
-			{
-				alSourcef(((AUD_OpenALHandle*)caps->handle)->source,
-						  AL_GAIN, caps->value);
-				result = true;
-			}
-			unlock();
-		}
-		break;
-	case AUD_CAPS_SOURCE_PITCH:
-		{
-			AUD_SourceCaps* caps = (AUD_SourceCaps*) value;
-			lock();
-			if(isValid(caps->handle))
-			{
-				alSourcef(((AUD_OpenALHandle*)caps->handle)->source,
-						  AL_PITCH, caps->value);
-				result = true;
-			}
-			unlock();
-		}
-		break;
-	case AUD_CAPS_BUFFERED_FACTORY:
-		{
-			AUD_IFactory* factory = (AUD_IFactory*) value;
-
-			// load the factory into an OpenAL buffer
-			if(factory)
-			{
-				// check if the factory is already buffered
-				lock();
-				for(AUD_BFIterator i = m_bufferedFactories->begin();
-					i != m_bufferedFactories->end(); i++)
-				{
-					if((*i)->factory == factory)
-					{
-						result = true;
-						break;
-					}
-				}
-				unlock();
-				if(result)
-					return result;
-
-				AUD_IReader* reader = factory->createReader();
-
-				if(reader == NULL)
-					return false;
-
-				AUD_DeviceSpecs specs = m_specs;
-				specs.specs = reader->getSpecs();
-
-				// determine format
-				bool valid = reader->getType() == AUD_TYPE_BUFFER;
-
-				if(valid)
-				{
-					if(m_converter)
-					{
-						m_converter->setReader(reader);
-						reader = m_converter->createReader();
-					}
-				}
-
-				ALenum format;
-
-				if(valid)
-					valid = getFormat(format, specs.specs);
-
-				if(!valid)
-				{
-					delete reader; AUD_DELETE("reader")
-					return false;
-				}
-
-				// load into a buffer
-				lock();
-				alcSuspendContext(m_context);
-
-				AUD_OpenALBufferedFactory* bf = new AUD_OpenALBufferedFactory;
-				AUD_NEW("bufferedfactory");
-				bf->factory = factory;
-
-				try
-				{
-					alGenBuffers(1, &bf->buffer);
-					if(alGetError() != AL_NO_ERROR)
-						AUD_THROW(AUD_ERROR_OPENAL);
-
-					try
-					{
-						sample_t* buf;
-						int length = reader->getLength();
-
-						reader->read(length, buf);
-						alBufferData(bf->buffer, format, buf,
-									 length * AUD_DEVICE_SAMPLE_SIZE(specs),
-									 specs.rate);
-						if(alGetError() != AL_NO_ERROR)
-							AUD_THROW(AUD_ERROR_OPENAL);
-					}
-					catch(AUD_Exception)
-					{
-						alDeleteBuffers(1, &bf->buffer);
-						throw;
-					}
-				}
-				catch(AUD_Exception)
-				{
-					delete bf; AUD_DELETE("bufferedfactory")
-					delete reader; AUD_DELETE("reader")
-					alcProcessContext(m_context);
-					unlock();
-					return false;
-				}
-
-				m_bufferedFactories->push_back(bf);
-
-				alcProcessContext(m_context);
-				unlock();
-			}
-			else
-			{
-				// stop all playing and paused buffered sources
-				lock();
-				alcSuspendContext(m_context);
-
-				AUD_OpenALHandle* sound;
-				AUD_HandleIterator it = m_playingSounds->begin();
-				while(it != m_playingSounds->end())
-				{
-					sound = *it;
-					++it;
-
-					if(sound->isBuffered)
-						stop(sound);
-				}
-				alcProcessContext(m_context);
-
-				while(!m_bufferedFactories->empty())
-				{
-					alDeleteBuffers(1,
-									&(*(m_bufferedFactories->begin()))->buffer);
-					delete *m_bufferedFactories->begin();
-					AUD_DELETE("bufferedfactory");
-					m_bufferedFactories->erase(m_bufferedFactories->begin());
-				}
-				unlock();
-			}
-
-			return true;
-		}
-		break;
-	}
+	float result;
+	alGetListenerf(AL_GAIN, &result);
 	return result;
 }
 
-bool AUD_OpenALDevice::getCapability(int capability, void *value)
+void AUD_OpenALDevice::setVolume(float volume)
 {
-	bool result = false;
+	alListenerf(AL_GAIN, volume);
+}
 
-	switch(capability)
-	{
-	case AUD_CAPS_VOLUME:
-		alGetListenerf(AL_GAIN, (float*)value);
-		return true;
-	case AUD_CAPS_SOURCE_VOLUME:
-		{
-			AUD_SourceCaps* caps = (AUD_SourceCaps*) value;
-			lock();
-			if(isValid(caps->handle))
-			{
-				alGetSourcef(((AUD_OpenALHandle*)caps->handle)->source,
-						  AL_GAIN, &caps->value);
-				result = true;
-			}
-			unlock();
-		}
-		break;
-	case AUD_CAPS_SOURCE_PITCH:
-		{
-			AUD_SourceCaps* caps = (AUD_SourceCaps*) value;
-			lock();
-			if(isValid(caps->handle))
-			{
-				alGetSourcef(((AUD_OpenALHandle*)caps->handle)->source,
-						  AL_PITCH, &caps->value);
-				result = true;
-			}
-			unlock();
-		}
-		break;
-	}
-
+float AUD_OpenALDevice::getVolume(AUD_Handle* handle)
+{
+	lock();
+	float result = std::numeric_limits<float>::quiet_NaN();
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source,AL_GAIN, &result);
+	unlock();
 	return result;
 }
+
+bool AUD_OpenALDevice::setVolume(AUD_Handle* handle, float volume)
+{
+	lock();
+	bool result = isValid(handle);
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_GAIN, volume);
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getPitch(AUD_Handle* handle)
+{
+	lock();
+	float result = std::numeric_limits<float>::quiet_NaN();
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source,AL_PITCH, &result);
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setPitch(AUD_Handle* handle, float pitch)
+{
+	lock();
+	bool result = isValid(handle);
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_PITCH, pitch);
+	unlock();
+	return result;
+}
+
+int AUD_OpenALDevice::getLoopCount(AUD_Handle* handle)
+{
+	lock();
+	int result = 0;
+	if(isValid(handle))
+		result = ((AUD_OpenALHandle*)handle)->loopcount;
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setLoopCount(AUD_Handle* handle, int count)
+{
+	lock();
+	bool result = isValid(handle);
+	if(result)
+		((AUD_OpenALHandle*)handle)->loopcount = count;
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setStopCallback(AUD_Handle* handle, stopCallback callback, void* data)
+{
+	lock();
+	bool result = isValid(handle);
+	if(result)
+	{
+		AUD_OpenALHandle* h = (AUD_OpenALHandle*)handle;
+		h->stop = callback;
+		h->stop_data = data;
+	}
+	unlock();
+	return result;
+}
+
+/* AUD_XXX Temorary disabled
+
+bool AUD_OpenALDevice::bufferFactory(void *value)
+{
+	bool result = false;
+	AUD_IFactory* factory = (AUD_IFactory*) value;
+
+	// load the factory into an OpenAL buffer
+	if(factory)
+	{
+		// check if the factory is already buffered
+		lock();
+		for(AUD_BFIterator i = m_bufferedFactories->begin();
+			i != m_bufferedFactories->end(); i++)
+		{
+			if((*i)->factory == factory)
+			{
+				result = true;
+				break;
+			}
+		}
+		unlock();
+		if(result)
+			return result;
+
+		AUD_IReader* reader = factory->createReader();
+
+		if(reader == NULL)
+			return false;
+
+		AUD_DeviceSpecs specs = m_specs;
+		specs.specs = reader->getSpecs();
+
+		if(m_specs.format != AUD_FORMAT_FLOAT32)
+			reader = new AUD_ConverterReader(reader, m_specs);
+
+		ALenum format;
+
+		if(!getFormat(format, specs.specs))
+		{
+			delete reader;
+			return false;
+		}
+
+		// load into a buffer
+		lock();
+		alcSuspendContext(m_context);
+
+		AUD_OpenALBufferedFactory* bf = new AUD_OpenALBufferedFactory;
+		bf->factory = factory;
+
+		try
+		{
+			alGenBuffers(1, &bf->buffer);
+			if(alGetError() != AL_NO_ERROR)
+				AUD_THROW(AUD_ERROR_OPENAL);
+
+			try
+			{
+				sample_t* buf;
+				int length = reader->getLength();
+
+				reader->read(length, buf);
+				alBufferData(bf->buffer, format, buf,
+							 length * AUD_DEVICE_SAMPLE_SIZE(specs),
+							 specs.rate);
+				if(alGetError() != AL_NO_ERROR)
+					AUD_THROW(AUD_ERROR_OPENAL);
+			}
+			catch(AUD_Exception&)
+			{
+				alDeleteBuffers(1, &bf->buffer);
+				throw;
+			}
+		}
+		catch(AUD_Exception&)
+		{
+			delete bf;
+			delete reader;
+			alcProcessContext(m_context);
+			unlock();
+			return false;
+		}
+
+		m_bufferedFactories->push_back(bf);
+
+		alcProcessContext(m_context);
+		unlock();
+	}
+	else
+	{
+		// stop all playing and paused buffered sources
+		lock();
+		alcSuspendContext(m_context);
+
+		AUD_OpenALHandle* sound;
+		AUD_HandleIterator it = m_playingSounds->begin();
+		while(it != m_playingSounds->end())
+		{
+			sound = *it;
+			++it;
+
+			if(sound->isBuffered)
+				stop(sound);
+		}
+		alcProcessContext(m_context);
+
+		while(!m_bufferedFactories->empty())
+		{
+			alDeleteBuffers(1,
+							&(*(m_bufferedFactories->begin()))->buffer);
+			delete *m_bufferedFactories->begin();
+			m_bufferedFactories->erase(m_bufferedFactories->begin());
+		}
+		unlock();
+	}
+
+	return true;
+}*/
 
 /******************************************************************************/
 /**************************** 3D Device Code **********************************/
 /******************************************************************************/
 
-AUD_Handle* AUD_OpenALDevice::play3D(AUD_IFactory* factory, bool keep)
+AUD_Vector3 AUD_OpenALDevice::getListenerLocation() const
 {
-	AUD_OpenALHandle* handle = (AUD_OpenALHandle*)play(factory, keep);
-	if(handle)
-		alSourcei(handle->source, AL_SOURCE_RELATIVE, 0);
-	return handle;
+	ALfloat p[3];
+	alGetListenerfv(AL_POSITION, p);
+	return AUD_Vector3(p[0], p[1], p[2]);
 }
 
-bool AUD_OpenALDevice::updateListener(AUD_3DData &data)
+void AUD_OpenALDevice::setListenerLocation(const AUD_Vector3& location)
 {
-	alListenerfv(AL_POSITION, (ALfloat*)data.position);
-	alListenerfv(AL_VELOCITY, (ALfloat*)data.velocity);
-	alListenerfv(AL_ORIENTATION, (ALfloat*)&(data.orientation[3]));
-
-	return true;
+	alListenerfv(AL_POSITION, (ALfloat*)location.get());
 }
 
-bool AUD_OpenALDevice::setSetting(AUD_3DSetting setting, float value)
+AUD_Vector3 AUD_OpenALDevice::getListenerVelocity() const
 {
-	switch(setting)
+	ALfloat v[3];
+	alGetListenerfv(AL_VELOCITY, v);
+	return AUD_Vector3(v[0], v[1], v[2]);
+}
+
+void AUD_OpenALDevice::setListenerVelocity(const AUD_Vector3& velocity)
+{
+	alListenerfv(AL_VELOCITY, (ALfloat*)velocity.get());
+}
+
+AUD_Quaternion AUD_OpenALDevice::getListenerOrientation() const
+{
+	// AUD_XXX not implemented yet
+	return AUD_Quaternion(0, 0, 0, 0);
+}
+
+void AUD_OpenALDevice::setListenerOrientation(const AUD_Quaternion& orientation)
+{
+	ALfloat direction[6];
+	direction[0] = -2 * (orientation.w() * orientation.y() +
+						 orientation.x() * orientation.z());
+	direction[1] = 2 * (orientation.x() * orientation.w() -
+						orientation.z() * orientation.y());
+	direction[2] = 2 * (orientation.x() * orientation.x() +
+						orientation.y() * orientation.y()) - 1;
+	direction[3] = 2 * (orientation.x() * orientation.y() -
+						orientation.w() * orientation.z());
+	direction[4] = 1 - 2 * (orientation.x() * orientation.x() +
+							orientation.z() * orientation.z());
+	direction[5] = 2 * (orientation.w() * orientation.x() +
+						orientation.y() * orientation.z());
+	alListenerfv(AL_ORIENTATION, direction);
+}
+
+float AUD_OpenALDevice::getSpeedOfSound() const
+{
+	return alGetFloat(AL_SPEED_OF_SOUND);
+}
+
+void AUD_OpenALDevice::setSpeedOfSound(float speed)
+{
+	alSpeedOfSound(speed);
+}
+
+float AUD_OpenALDevice::getDopplerFactor() const
+{
+	return alGetFloat(AL_DOPPLER_FACTOR);
+}
+
+void AUD_OpenALDevice::setDopplerFactor(float factor)
+{
+	alDopplerFactor(factor);
+}
+
+AUD_DistanceModel AUD_OpenALDevice::getDistanceModel() const
+{
+	switch(alGetInteger(AL_DISTANCE_MODEL))
 	{
-	case AUD_3DS_DISTANCE_MODEL:
-		if(value == AUD_DISTANCE_MODEL_NONE)
-			alDistanceModel(AL_NONE);
-		else if(value == AUD_DISTANCE_MODEL_INVERSE)
-			alDistanceModel(AL_INVERSE_DISTANCE);
-		else if(value == AUD_DISTANCE_MODEL_INVERSE_CLAMPED)
-			alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
-		else if(value == AUD_DISTANCE_MODEL_LINEAR)
-			alDistanceModel(AL_LINEAR_DISTANCE);
-		else if(value == AUD_DISTANCE_MODEL_LINEAR_CLAMPED)
-			alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
-		else if(value == AUD_DISTANCE_MODEL_EXPONENT)
-			alDistanceModel(AL_EXPONENT_DISTANCE);
-		else if(value == AUD_DISTANCE_MODEL_EXPONENT_CLAMPED)
-			alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
-		else
-			return false;
-		return true;
-	case AUD_3DS_DOPPLER_FACTOR:
-		alDopplerFactor(value);
-		return true;
-	case AUD_3DS_SPEED_OF_SOUND:
-		alSpeedOfSound(value);
-		return true;
+	case AL_INVERSE_DISTANCE:
+		return AUD_DISTANCE_MODEL_INVERSE;
+	case AL_INVERSE_DISTANCE_CLAMPED:
+		return AUD_DISTANCE_MODEL_INVERSE_CLAMPED;
+	case AL_LINEAR_DISTANCE:
+		return AUD_DISTANCE_MODEL_LINEAR;
+	case AL_LINEAR_DISTANCE_CLAMPED:
+		return AUD_DISTANCE_MODEL_LINEAR_CLAMPED;
+	case AL_EXPONENT_DISTANCE:
+		return AUD_DISTANCE_MODEL_EXPONENT;
+	case AL_EXPONENT_DISTANCE_CLAMPED:
+		return AUD_DISTANCE_MODEL_EXPONENT_CLAMPED;
 	default:
-		return false;
+		return AUD_DISTANCE_MODEL_INVALID;
 	}
 }
 
-float AUD_OpenALDevice::getSetting(AUD_3DSetting setting)
+void AUD_OpenALDevice::setDistanceModel(AUD_DistanceModel model)
 {
-	switch(setting)
+	switch(model)
 	{
-	case AUD_3DS_DISTANCE_MODEL:
-		switch(alGetInteger(AL_DISTANCE_MODEL))
-		{
-			case AL_NONE:
-				return AUD_DISTANCE_MODEL_NONE;
-			case AL_INVERSE_DISTANCE:
-				return AUD_DISTANCE_MODEL_INVERSE;
-			case AL_INVERSE_DISTANCE_CLAMPED:
-				return AUD_DISTANCE_MODEL_INVERSE_CLAMPED;
-			case AL_LINEAR_DISTANCE:
-				return AUD_DISTANCE_MODEL_LINEAR;
-			case AL_LINEAR_DISTANCE_CLAMPED:
-				return AUD_DISTANCE_MODEL_LINEAR_CLAMPED;
-			case AL_EXPONENT_DISTANCE:
-				return AUD_DISTANCE_MODEL_EXPONENT;
-			case AL_EXPONENT_DISTANCE_CLAMPED:
-				return AUD_DISTANCE_MODEL_EXPONENT_CLAMPED;
-		}
-	case AUD_3DS_DOPPLER_FACTOR:
-		return alGetFloat(AL_DOPPLER_FACTOR);
-	case AUD_3DS_SPEED_OF_SOUND:
-		return alGetFloat(AL_SPEED_OF_SOUND);
+	case AUD_DISTANCE_MODEL_INVERSE:
+		alDistanceModel(AL_INVERSE_DISTANCE);
+		break;
+	case AUD_DISTANCE_MODEL_INVERSE_CLAMPED:
+		alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
+		break;
+	case AUD_DISTANCE_MODEL_LINEAR:
+		alDistanceModel(AL_LINEAR_DISTANCE);
+		break;
+	case AUD_DISTANCE_MODEL_LINEAR_CLAMPED:
+		alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
+		break;
+	case AUD_DISTANCE_MODEL_EXPONENT:
+		alDistanceModel(AL_EXPONENT_DISTANCE);
+		break;
+	case AUD_DISTANCE_MODEL_EXPONENT_CLAMPED:
+		alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
+		break;
 	default:
-		return std::numeric_limits<float>::quiet_NaN();
+		alDistanceModel(AL_NONE);
 	}
 }
 
-bool AUD_OpenALDevice::updateSource(AUD_Handle* handle, AUD_3DData &data)
+AUD_Vector3 AUD_OpenALDevice::getSourceLocation(AUD_Handle* handle)
 {
-	bool result = false;
-
+	AUD_Vector3 result = AUD_Vector3(0, 0, 0);
+	ALfloat p[3];
 	lock();
 
 	if(isValid(handle))
 	{
-		int source = ((AUD_OpenALHandle*)handle)->source;
-		alSourcefv(source, AL_POSITION, (ALfloat*)data.position);
-		alSourcefv(source, AL_VELOCITY, (ALfloat*)data.velocity);
-		alSourcefv(source, AL_DIRECTION, (ALfloat*)&(data.orientation[3]));
-		result = true;
-	}
-
-	unlock();
-
-	return result;
-}
-
-bool AUD_OpenALDevice::setSourceSetting(AUD_Handle* handle,
-										AUD_3DSourceSetting setting,
-										float value)
-{
-	lock();
-
-	bool result = false;
-
-	if(isValid(handle))
-	{
-		int source = ((AUD_OpenALHandle*)handle)->source;
-
-		switch(setting)
-		{
-		case AUD_3DSS_CONE_INNER_ANGLE:
-			alSourcef(source, AL_CONE_INNER_ANGLE, value);
-			result = true;
-			break;
-		case AUD_3DSS_CONE_OUTER_ANGLE:
-			alSourcef(source, AL_CONE_OUTER_ANGLE, value);
-			result = true;
-			break;
-		case AUD_3DSS_CONE_OUTER_GAIN:
-			alSourcef(source, AL_CONE_OUTER_GAIN, value);
-			result = true;
-			break;
-		case AUD_3DSS_IS_RELATIVE:
-			alSourcei(source, AL_SOURCE_RELATIVE, value > 0.0f);
-			result = true;
-			break;
-		case AUD_3DSS_MAX_DISTANCE:
-			alSourcef(source, AL_MAX_DISTANCE, value);
-			result = true;
-			break;
-		case AUD_3DSS_MAX_GAIN:
-			alSourcef(source, AL_MAX_GAIN, value);
-			result = true;
-			break;
-		case AUD_3DSS_MIN_GAIN:
-			alSourcef(source, AL_MIN_GAIN, value);
-			result = true;
-			break;
-		case AUD_3DSS_REFERENCE_DISTANCE:
-			alSourcef(source, AL_REFERENCE_DISTANCE, value);
-			result = true;
-			break;
-		case AUD_3DSS_ROLLOFF_FACTOR:
-			alSourcef(source, AL_ROLLOFF_FACTOR, value);
-			result = true;
-			break;
-		default:
-			break;
-		}
+		alGetSourcefv(((AUD_OpenALHandle*)handle)->source, AL_POSITION, p);
+		result = AUD_Vector3(p[0], p[1], p[2]);
 	}
 
 	unlock();
 	return result;
 }
 
-float AUD_OpenALDevice::getSourceSetting(AUD_Handle* handle,
-										 AUD_3DSourceSetting setting)
+bool AUD_OpenALDevice::setSourceLocation(AUD_Handle* handle, const AUD_Vector3& location)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcefv(((AUD_OpenALHandle*)handle)->source, AL_POSITION,
+				   (ALfloat*)location.get());
+
+	unlock();
+	return result;
+}
+
+AUD_Vector3 AUD_OpenALDevice::getSourceVelocity(AUD_Handle* handle)
+{
+	AUD_Vector3 result = AUD_Vector3(0, 0, 0);
+	ALfloat v[3];
+	lock();
+
+	if(isValid(handle))
+	{
+		alGetSourcefv(((AUD_OpenALHandle*)handle)->source, AL_VELOCITY, v);
+		result = AUD_Vector3(v[0], v[1], v[2]);
+	}
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setSourceVelocity(AUD_Handle* handle, const AUD_Vector3& velocity)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcefv(((AUD_OpenALHandle*)handle)->source, AL_VELOCITY,
+				   (ALfloat*)velocity.get());
+
+	unlock();
+	return result;
+}
+
+AUD_Quaternion AUD_OpenALDevice::getSourceOrientation(AUD_Handle* handle)
+{
+	// AUD_XXX not implemented yet
+	return AUD_Quaternion(0, 0, 0, 0);
+}
+
+bool AUD_OpenALDevice::setSourceOrientation(AUD_Handle* handle, const AUD_Quaternion& orientation)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+	{
+		ALfloat direction[3];
+		direction[0] = -2 * (orientation.w() * orientation.y() +
+							 orientation.x() * orientation.z());
+		direction[1] = 2 * (orientation.x() * orientation.w() -
+							orientation.z() * orientation.y());
+		direction[2] = 2 * (orientation.x() * orientation.x() +
+							orientation.y() * orientation.y()) - 1;
+		alSourcefv(((AUD_OpenALHandle*)handle)->source, AL_DIRECTION,
+				   direction);
+	}
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::isRelative(AUD_Handle* handle)
+{
+	int result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcei(((AUD_OpenALHandle*)handle)->source, AL_SOURCE_RELATIVE,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setRelative(AUD_Handle* handle, bool relative)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcei(((AUD_OpenALHandle*)handle)->source, AL_SOURCE_RELATIVE,
+				  relative);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getVolumeMaximum(AUD_Handle* handle)
 {
 	float result = std::numeric_limits<float>::quiet_NaN();;
 
 	lock();
 
 	if(isValid(handle))
-	{
-		int source = ((AUD_OpenALHandle*)handle)->source;
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_MAX_GAIN,
+					 &result);
 
-		switch(setting)
-		{
-		case AUD_3DSS_CONE_INNER_ANGLE:
-			alGetSourcef(source, AL_CONE_INNER_ANGLE, &result);
-			break;
-		case AUD_3DSS_CONE_OUTER_ANGLE:
-			alGetSourcef(source, AL_CONE_OUTER_ANGLE, &result);
-			break;
-		case AUD_3DSS_CONE_OUTER_GAIN:
-			alGetSourcef(source, AL_CONE_OUTER_GAIN, &result);
-			break;
-		case AUD_3DSS_IS_RELATIVE:
-			{
-				ALint i;
-				alGetSourcei(source, AL_SOURCE_RELATIVE, &i);
-				result = i ? 1.0f : 0.0f;
-				break;
-			}
-		case AUD_3DSS_MAX_DISTANCE:
-			alGetSourcef(source, AL_MAX_DISTANCE, &result);
-			break;
-		case AUD_3DSS_MAX_GAIN:
-			alGetSourcef(source, AL_MAX_GAIN, &result);
-			break;
-		case AUD_3DSS_MIN_GAIN:
-			alGetSourcef(source, AL_MIN_GAIN, &result);
-			break;
-		case AUD_3DSS_REFERENCE_DISTANCE:
-			alGetSourcef(source, AL_REFERENCE_DISTANCE, &result);
-			break;
-		case AUD_3DSS_ROLLOFF_FACTOR:
-			alGetSourcef(source, AL_ROLLOFF_FACTOR, &result);
-			break;
-		default:
-			break;
-		}
-	}
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setVolumeMaximum(AUD_Handle* handle, float volume)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_MAX_GAIN,
+				  volume);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getVolumeMinimum(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_MIN_GAIN,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setVolumeMinimum(AUD_Handle* handle, float volume)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_MIN_GAIN,
+				  volume);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getDistanceMaximum(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_MAX_DISTANCE,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setDistanceMaximum(AUD_Handle* handle, float distance)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_MAX_DISTANCE,
+				  distance);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getDistanceReference(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_REFERENCE_DISTANCE,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setDistanceReference(AUD_Handle* handle, float distance)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_REFERENCE_DISTANCE,
+				  distance);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getAttenuation(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_ROLLOFF_FACTOR,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setAttenuation(AUD_Handle* handle, float factor)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_ROLLOFF_FACTOR,
+				  factor);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getConeAngleOuter(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_CONE_OUTER_ANGLE,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setConeAngleOuter(AUD_Handle* handle, float angle)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_CONE_OUTER_ANGLE,
+				  angle);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getConeAngleInner(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_CONE_INNER_ANGLE,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setConeAngleInner(AUD_Handle* handle, float angle)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_CONE_INNER_ANGLE,
+				  angle);
+
+	unlock();
+	return result;
+}
+
+float AUD_OpenALDevice::getConeVolumeOuter(AUD_Handle* handle)
+{
+	float result = std::numeric_limits<float>::quiet_NaN();;
+
+	lock();
+
+	if(isValid(handle))
+		alGetSourcef(((AUD_OpenALHandle*)handle)->source, AL_CONE_OUTER_GAIN,
+					 &result);
+
+	unlock();
+	return result;
+}
+
+bool AUD_OpenALDevice::setConeVolumeOuter(AUD_Handle* handle, float volume)
+{
+	lock();
+	bool result = isValid(handle);
+
+	if(result)
+		alSourcef(((AUD_OpenALHandle*)handle)->source, AL_CONE_OUTER_GAIN,
+				  volume);
 
 	unlock();
 	return result;

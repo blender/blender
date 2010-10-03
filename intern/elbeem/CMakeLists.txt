@@ -37,5 +37,4 @@ IF(WITH_OPENMP)
 		ADD_DEFINITIONS(-DPARALLEL=1)
 ENDIF(WITH_OPENMP)
 
-BLENDERLIB_NOLIST(bf_elbeem "${SRC}" "${INC}")
-#, libtype='blender', priority=0 )
+BLENDERLIB_NOLIST(bf_intern_elbeem "${SRC}" "${INC}")

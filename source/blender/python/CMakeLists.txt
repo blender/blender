@@ -36,6 +36,7 @@ SET(INC
 	../windowmanager
 	../editors/include
 	../../../intern/guardedalloc
+	../../../intern/audaspace/intern
 	${PYTHON_INC}
 )
 
@@ -45,4 +46,3 @@ IF(WITH_BUILDINFO)
 ENDIF(WITH_BUILDINFO)
 
 BLENDERLIB(bf_python "${SRC}" "${INC}")
-

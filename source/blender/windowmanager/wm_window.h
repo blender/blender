@@ -36,12 +36,14 @@ struct wmOperator;
 void		wm_ghost_init			(bContext *C);
 void		wm_ghost_exit(void);
 
+void wm_get_screensize(int *width_r, int *height_r);
+
 wmWindow	*wm_window_new			(bContext *C);
 void		wm_window_free			(bContext *C, wmWindowManager *wm, wmWindow *win);
 void		wm_window_close			(bContext *C, wmWindowManager *wm, wmWindow *win);
 
 void		wm_window_title				(wmWindowManager *wm, wmWindow *win);
-void		wm_window_add_ghostwindows	(wmWindowManager *wm);
+void		wm_window_add_ghostwindows	(bContext *C, wmWindowManager *wm);
 void		wm_window_process_events	(const bContext *C);
 void		wm_window_process_events_nosleep(const bContext *C);
 

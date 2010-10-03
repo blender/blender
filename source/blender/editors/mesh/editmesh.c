@@ -32,8 +32,11 @@
 
 #include "MEM_guardedalloc.h"
 
-
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_key_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -41,24 +44,15 @@
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
 
-#include "BKE_cloth.h"
-#include "BKE_context.h"
-#include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
-#include "BKE_modifier.h"
-#include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_pointcache.h"
-#include "BKE_softbody.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
 
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -1532,6 +1526,11 @@ static int mesh_separate_exec(bContext *C, wmOperator *op)
 	   
 	if(retval) {
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, base->object->data);
+
+		// XXX: new object was created, but selection wasn't actually changed
+		//      need this for outliner update without adding new ND. nazgul.
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+
 		return OPERATOR_FINISHED;
 	}
 	return OPERATOR_CANCELLED;

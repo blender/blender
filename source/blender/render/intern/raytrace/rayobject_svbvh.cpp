@@ -26,6 +26,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#include "MEM_guardedalloc.h"
+
 #include "vbvh.h"
 #include "svbvh.h"
 #include "reorganize.h"

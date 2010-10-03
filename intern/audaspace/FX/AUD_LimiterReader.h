@@ -37,12 +37,16 @@ private:
 	/**
 	 * The start sample: inclusive.
 	 */
-	int m_start;
+	const int m_start;
 
 	/**
 	 * The end sample: exlusive.
 	 */
-	int m_end;
+	const int m_end;
+
+	// hide copy constructor and operator=
+	AUD_LimiterReader(const AUD_LimiterReader&);
+	AUD_LimiterReader& operator=(const AUD_LimiterReader&);
 
 public:
 	/**
@@ -51,13 +55,12 @@ public:
 	 * \param start The desired start sample (inclusive).
 	 * \param end The desired end sample (exklusive), a negative value signals
 	 *            that it should play to the end.
-	 * \exception AUD_Exception Thrown if the reader specified is NULL.
 	 */
 	AUD_LimiterReader(AUD_IReader* reader, float start = 0, float end = -1);
 
 	virtual void seek(int position);
-	virtual int getLength();
-	virtual int getPosition();
+	virtual int getLength() const;
+	virtual int getPosition() const;
 	virtual void read(int & length, sample_t* & buffer);
 };
 

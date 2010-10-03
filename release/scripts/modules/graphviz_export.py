@@ -43,7 +43,6 @@ def compat_str(text, line_length=0):
             text_ls.append(text)
         text = '\n  '.join(text_ls)
 
-
     #text = text.replace('.', '.\n')
     #text = text.replace(']', ']\n')
     text = text.replace("\n", "\\n")
@@ -66,7 +65,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
     print("")
     for bone in bones:
         b = arm.bones[bone]
-        print(">>", bone, ["*>", "->"][b.connected], getattr(getattr(b, "parent", ""), "name", ""))
+        print(">>", bone, ["*>", "->"][b.use_connect], getattr(getattr(b, "parent", ""), "name", ""))
         label = [bone]
         bone = arm.bones[bone]
 
@@ -88,7 +87,6 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
         else:
             opts.append("fillcolor=white")
 
-
         fw('"%s" [%s];\n' % (bone.name, ','.join(opts)))
 
     fw('\n\n# Hierarchy:\n')
@@ -103,7 +101,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
         parent = bone.parent
         if parent:
             parent_name = parent.name
-            connected = bone.connected
+            connected = bone.use_connect
         elif FAKE_PARENT:
             parent_name = 'Object::%s' % obj.name
             connected = False
@@ -162,7 +160,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
                             pbone_target = rna_path_as_pbone(target.data_path)
                             rna_path_target = target.data_path
                             if pbone_target:
-                                opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"', "labelfontsize=4"] # ,
+                                opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"', "labelfontsize=4"]
                                 display_source = rna_path.replace("pose.bones", "")
                                 display_target = rna_path_target.replace("pose.bones", "")
                                 if XTRA_INFO:

@@ -998,6 +998,10 @@ void init_userdef_do_versions(void)
 		
 		strcpy(U.tempdir, tmp?tmp:"/tmp/");
 	}
+	if (U.autokey_mode == 0) {
+		/* 'add/replace' but not on */
+		U.autokey_mode = 2;
+	}
 	if (U.savetime <= 0) {
 		U.savetime = 1;
 // XXX		error("startup.blend is buggy, please consider removing it.\n");
@@ -1510,11 +1514,6 @@ void init_userdef_do_versions(void)
 	}
 	if (U.v2d_min_gridsize == 0) {
 		U.v2d_min_gridsize= 35;
-	}
-	
-	/* Single Column UI Value */
-	if (U.propwidth == 0) {
-		U.propwidth = 200;
 	}
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */

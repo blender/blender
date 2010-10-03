@@ -66,7 +66,11 @@ typedef enum ModifierType {
 	eModifierType_ShapeKey,
 	eModifierType_Solidify,
 	eModifierType_Screw,
+	/* placeholder, keep this so durian files load in
+	 * trunk with the correct modifier once its merged */
 	eModifierType_NavMesh,
+	eModifierType_Warp,
+
 	NUM_MODIFIER_TYPES
 } ModifierType;
 

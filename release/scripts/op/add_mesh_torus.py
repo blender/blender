@@ -107,23 +107,24 @@ class AddTorus(bpy.types.Operator):
     rotation = FloatVectorProperty(name="Rotation")
 
     def execute(self, context):
-        props = self.properties
 
-        if props.use_abso == True:
-            extra_helper = (props.abso_major_rad - props.abso_minor_rad) * 0.5
-            props.major_radius = props.abso_minor_rad + extra_helper
-            props.minor_radius = extra_helper
+        if self.use_abso == True:
+            extra_helper = (self.abso_major_rad - self.abso_minor_rad) * 0.5
+            self.major_radius = self.abso_minor_rad + extra_helper
+            self.minor_radius = extra_helper
 
-        verts_loc, faces = add_torus(props.major_radius,
-                                    props.minor_radius,
-                                    props.major_segments,
-                                    props.minor_segments)
+        verts_loc, faces = add_torus(self.major_radius,
+                                    self.minor_radius,
+                                    self.major_segments,
+                                    self.minor_segments)
 
         mesh = bpy.data.meshes.new("Torus")
 
-        mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
-        mesh.verts.foreach_set("co", verts_loc)
-        mesh.faces.foreach_set("verts_raw", faces)
+        mesh.vertices.add(len(verts_loc) // 3)
+        mesh.faces.add(len(faces) // 4)
+
+        mesh.vertices.foreach_set("co", verts_loc)
+        mesh.faces.foreach_set("vertices_raw", faces)
         mesh.update()
 
         import add_object_utils
@@ -133,7 +134,7 @@ class AddTorus(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    self.layout.operator(AddTorus.bl_idname, text="Torus", icon='MESH_DONUT')
+    self.layout.operator(AddTorus.bl_idname, text="Torus", icon='MESH_TORUS')
 
 
 def register():

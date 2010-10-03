@@ -63,7 +63,6 @@
 //#include "BIF_editsima.h"
 //#include "BIF_editparticle.h"
 
-#include "BKE_action.h"
 #include "BKE_nla.h"
 //#include "BKE_bad_level_calls.h"/* popmenu and error	*/
 #include "BKE_bmesh.h"
@@ -72,8 +71,6 @@
 #include "BKE_global.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_utildefines.h"
-#include "BKE_context.h"
 #include "BKE_unit.h"
 
 //#include "BSE_view.h"
@@ -301,7 +298,10 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D)
 	{
 		/* Do we need more refined tags? */
-		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+		if(t->flag & T_POSE)
+			WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
+		else
+			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 		
 		/* for realtime animation record - send notifiers recognised by animation editors */
 		// XXX: is this notifier a lame duck?
@@ -1395,7 +1395,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			ts->proportional_size = t->prop_size;
 		}
 			
-		if (RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && !RNA_property_is_set(op->ptr, "proportional_editing_falloff")) {
+		if (RNA_struct_find_property(op->ptr, "proportional_edit_falloff") && !RNA_property_is_set(op->ptr, "proportional_edit_falloff")) {
 			ts->prop_mode = t->prop_mode;
 		}
 		
@@ -1418,7 +1418,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	if (RNA_struct_find_property(op->ptr, "proportional"))
 	{
 		RNA_enum_set(op->ptr, "proportional", proportional);
-		RNA_enum_set(op->ptr, "proportional_editing_falloff", t->prop_mode);
+		RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
 		RNA_float_set(op->ptr, "proportional_size", t->prop_size);
 	}
 
@@ -3527,7 +3527,7 @@ void initTilt(TransInfo *t)
 
 	t->num.increment = t->snap[1];
 
-	t->flag |= T_NO_CONSTRAINT;
+	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
 
@@ -4137,7 +4137,7 @@ void initBoneEnvelope(TransInfo *t)
 	
 	t->num.increment = t->snap[1];
 
-	t->flag |= T_NO_CONSTRAINT;
+	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
 int BoneEnvelope(TransInfo *t, short mval[2])
@@ -4661,7 +4661,22 @@ void freeSlideVerts(TransInfo *t)
 {
 	TransDataSlideUv *suv;
 	SlideData *sld = t->customData;
+	Mesh *me = t->obedit->data;
 	int uvlay_idx;
+
+	if(me->drawflag & ME_DRAW_EDGELEN) {
+		TransDataSlideVert *tempsv;
+		LinkNode *look = sld->vertlist;
+		GHash *vertgh = sld->vhash;
+		while(look) {
+			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+			if(tempsv != NULL) {
+				tempsv->up->f &= !SELECT;
+				tempsv->down->f &= !SELECT;
+			}
+			look = look->next;
+		}
+	}
 
 	//BLI_ghash_free(edgesgh, freeGHash, NULL);
 	BLI_ghash_free(sld->vhash, NULL, (GHashValFreeFP)MEM_freeN);
@@ -4887,7 +4902,7 @@ void initBoneRoll(TransInfo *t)
 
 	t->num.increment = 1.0f;
 
-	t->flag |= T_NO_CONSTRAINT;
+	t->flag |= T_NO_CONSTRAINT|T_NO_PROJECT;
 }
 
 int BoneRoll(TransInfo *t, short mval[2])

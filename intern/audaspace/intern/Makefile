@@ -35,6 +35,8 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+
 ifeq ($(WITH_SDL),true)
 	CPPFLAGS += -DWITH_SDL
 	CPPFLAGS += $(NAN_SDLCFLAGS)
@@ -67,5 +69,6 @@ CPPFLAGS += -I../ffmpeg
 CPPFLAGS += -I../FX
 CPPFLAGS += -I../SDL
 CPPFLAGS += -I../SRC
+CPPFLAGS += -I../Python
 CPPFLAGS += -I..
 CPPFLAGS += -I.

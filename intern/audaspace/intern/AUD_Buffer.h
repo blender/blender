@@ -41,6 +41,10 @@ private:
 	/// The pointer to the buffer memory.
 	data_t* m_buffer;
 
+	// hide copy constructor and operator=
+	AUD_Buffer(const AUD_Buffer&);
+	AUD_Buffer& operator=(const AUD_Buffer&);
+
 public:
 	/**
 	 * Creates a new buffer.
@@ -56,12 +60,12 @@ public:
 	/**
 	 * Returns the pointer to the buffer in memory.
 	 */
-	sample_t* getBuffer();
+	sample_t* getBuffer() const;
 
 	/**
 	 * Returns the size of the buffer in bytes.
 	 */
-	int getSize();
+	int getSize() const;
 
 	/**
 	 * Resizes the buffer.

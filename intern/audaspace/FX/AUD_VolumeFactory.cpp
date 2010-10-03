@@ -24,34 +24,23 @@
  */
 
 #include "AUD_VolumeFactory.h"
-#include "AUD_VolumeReader.h"
+#include "AUD_IIRFilterReader.h"
 
 AUD_VolumeFactory::AUD_VolumeFactory(AUD_IFactory* factory, float volume) :
 		AUD_EffectFactory(factory),
-		m_volume(volume) {}
+		m_volume(volume)
+{
+}
 
-AUD_VolumeFactory::AUD_VolumeFactory(float volume) :
-		AUD_EffectFactory(0),
-		m_volume(volume) {}
-
-float AUD_VolumeFactory::getVolume()
+float AUD_VolumeFactory::getVolume() const
 {
 	return m_volume;
 }
 
-void AUD_VolumeFactory::setVolume(float volume)
+AUD_IReader* AUD_VolumeFactory::createReader() const
 {
-	m_volume = volume;
-}
-
-AUD_IReader* AUD_VolumeFactory::createReader()
-{
-	AUD_IReader* reader = getReader();
-
-	if(reader != 0)
-	{
-		reader = new AUD_VolumeReader(reader, m_volume); AUD_NEW("reader")
-	}
-
-	return reader;
+	std::vector<float> a, b;
+	a.push_back(1);
+	b.push_back(m_volume);
+	return new AUD_IIRFilterReader(getReader(), b, a);
 }

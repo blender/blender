@@ -26,16 +26,21 @@
 FILE(GLOB SRC intern/*.c intern/CMP_nodes/*.c intern/SHD_nodes/*.c intern/TEX_nodes/*.c)
 
 SET(INC 
-	. ../../../intern/guardedalloc ../editors/include ../blenlib ../makesdna
-	../render/extern/include ../../../intern/decimation/extern ../makesrna
-	../imbuf ../avi ../../../intern/elbeem/extern
-	../../../intern/iksolver/extern ../blenloader
-	../blenkernel ../../../extern/glew/include ../gpu
-	${ZLIB_INC}
+	.
+	../blenkernel
+	../blenlib
+	../blenloader
+	../gpu
+	../imbuf
+	../makesdna
+	../makesrna
+	../render/extern/include
+	../../../intern/guardedalloc
+	../../../extern/glew/include
 )
 
 IF(WIN32)
-	SET(INC ${INC} ${PTHREADS_INC})
+	LIST(APPEND INC ${PTHREADS_INC})
 ENDIF(WIN32)
 
 IF(WITH_PYTHON)

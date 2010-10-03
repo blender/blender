@@ -30,7 +30,10 @@
  */
 
 #include <string.h>
+
 #include "BLI_blenlib.h"
+#include "MEM_guardedalloc.h"
+
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -241,7 +244,7 @@ int imb_is_a_iris(unsigned char *mem)
  *
  */
 
-struct ImBuf *imb_loadiris(unsigned char *mem, int size, int flags)
+struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 {
 	unsigned int *base, *lptr = NULL;
 	float *fbase, *fptr = NULL;

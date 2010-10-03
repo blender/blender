@@ -24,9 +24,18 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC . intern extern ../moto/include ../container ../memutil ../../source/blender/makesdna ../guardedalloc ../../source/blender/blenlib)
+SET(INC	
+	.
+	./intern
+	./extern
+	../memutil
+	../container
+	../guardedalloc
+	../moto/include
+	../../source/blender/blenlib
+	../../source/blender/makesdna
+)
 
 FILE(GLOB SRC intern/*.cpp)
 
-BLENDERLIB(blender_bop "${SRC}" "${INC}")
-#, libtype='common', priority=5 )
+BLENDERLIB(bf_intern_bop "${SRC}" "${INC}")

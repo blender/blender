@@ -41,6 +41,8 @@
 #include "../generic/blf_api.h"
 #include "../generic/IDProp.h"
 
+#include "AUD_PyInit.h"
+
 static char bpy_script_paths_doc[] =
 ".. function:: script_paths()\n"
 "\n"
@@ -65,7 +67,7 @@ PyObject *bpy_script_paths(PyObject *self)
 static char bpy_blend_paths_doc[] =
 ".. function:: blend_paths(absolute=False)\n"
 "\n"
-"   Returns a list of paths associated with this blend file.\n"
+"   Returns a list of paths to external files referenced by the loaded .blend file.\n"
 "\n"
 "   :arg absolute: When true the paths returned are made absolute.\n"
 "   :type absolute: boolean\n"
@@ -153,18 +155,20 @@ void BPy_init_modules( void )
 	BGL_Init();
 	BLF_Init();
 	IDProp_Init_Types();
-
+	AUD_initPython();
 
 	mod = PyModule_New("_bpy");
 
 	/* add the module so we can import it */
-	PyDict_SetItemString(PySys_GetObject("modules"), "_bpy", mod);
+	PyDict_SetItemString(PyImport_GetModuleDict(), "_bpy", mod);
 	Py_DECREF(mod);
 
 	/* run first, initializes rna types */
 	BPY_rna_init();
 
 	PyModule_AddObject( mod, "types", BPY_rna_types() ); /* needs to be first so bpy_types can run */
+	PyModule_AddObject(mod, "StructMetaIDProp", (PyObject *)&pyrna_struct_meta_idprop_Type); /* metaclass for idprop types, bpy_types.py needs access */
+			
 	bpy_import_test("bpy_types");
 	PyModule_AddObject( mod, "data", BPY_rna_module() ); /* imports bpy_types by running this */
 	bpy_import_test("bpy_types");

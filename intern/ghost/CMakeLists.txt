@@ -33,35 +33,35 @@ SET(INC
 )
 
 SET(SRC
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_Buttons.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_CallbackEventConsumer.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_C-api.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManager.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_EventManager.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_EventPrinter.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_ISystem.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_ModifierKeys.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_NDOFManager.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_Path-api.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_Rect.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_System.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_TimerManager.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_Window.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowManager.cpp
+	./intern/GHOST_Buttons.cpp
+	./intern/GHOST_CallbackEventConsumer.cpp
+	./intern/GHOST_C-api.cpp
+	./intern/GHOST_DisplayManager.cpp
+	./intern/GHOST_EventManager.cpp
+	./intern/GHOST_EventPrinter.cpp
+	./intern/GHOST_ISystem.cpp
+	./intern/GHOST_ModifierKeys.cpp
+	./intern/GHOST_NDOFManager.cpp
+	./intern/GHOST_Path-api.cpp
+	./intern/GHOST_Rect.cpp
+	./intern/GHOST_System.cpp
+	./intern/GHOST_TimerManager.cpp
+	./intern/GHOST_Window.cpp
+	./intern/GHOST_WindowManager.cpp
 )
 
 IF(APPLE)
 	IF(WITH_COCOA)
-		SET(SRC ${SRC}
-			${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerCocoa.mm
-			${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemCocoa.mm
-			${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowCocoa.mm
+		LIST(APPEND SRC
+			./intern/GHOST_DisplayManagerCocoa.mm
+			./intern/GHOST_SystemCocoa.mm
+			./intern/GHOST_WindowCocoa.mm
 		)
 	ELSE(WITH_COCOA)
-		SET(SRC ${SRC}
-			${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerCarbon.cpp
-			${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemCarbon.cpp
-			${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowCarbon.cpp
+		LIST(APPEND SRC
+			./intern/GHOST_DisplayManagerCarbon.cpp
+			./intern/GHOST_SystemCarbon.cpp
+			./intern/GHOST_WindowCarbon.cpp
 		)
 	ENDIF(WITH_COCOA)
 
@@ -69,26 +69,26 @@ IF(APPLE)
 		ADD_DEFINITIONS(-DWITH_QUICKTIME)
 	ENDIF(WITH_QUICKTIME)
 ELSEIF(WIN32)
-	SET(INC ${INC} ${WINTAB_INC})
+	LIST(APPEND INC ${WINTAB_INC})
 
-	SET(SRC ${SRC}
-		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerWin32.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemWin32.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowWin32.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DropTargetWin32.cpp
+	LIST(APPEND SRC
+		./intern/GHOST_DisplayManagerWin32.cpp
+		./intern/GHOST_SystemWin32.cpp
+		./intern/GHOST_WindowWin32.cpp
+		./intern/GHOST_DropTargetWin32.cpp
 	)
 ELSEIF(UNIX)
-	SET(INC ${INC} ${X11_X11_INCLUDE_PATH})
+	LIST(APPEND INC ${X11_X11_INCLUDE_PATH})
 
-	SET(SRC ${SRC}
-		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_DisplayManagerX11.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_SystemX11.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/intern/GHOST_WindowX11.cpp
+	LIST(APPEND SRC
+		./intern/GHOST_DisplayManagerX11.cpp
+		./intern/GHOST_SystemX11.cpp
+		./intern/GHOST_WindowX11.cpp
 	)
 
 	ADD_DEFINITIONS(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
 
 ENDIF(APPLE)
 
-BLENDERLIB(bf_ghost "${SRC}" "${INC}")
+BLENDERLIB(bf_intern_ghost "${SRC}" "${INC}")
 

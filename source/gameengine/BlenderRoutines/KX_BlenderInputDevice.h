@@ -29,7 +29,7 @@
 #ifndef __KX_BLENDERINPUTDEVICE
 #define __KX_BLENDERINPUTDEVICE
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning(disable : 4786)  // shut off 255 char limit debug template warning
 #endif
 

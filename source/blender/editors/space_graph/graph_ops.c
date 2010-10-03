@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
 
@@ -37,7 +36,6 @@
 
 #include "BKE_context.h"
 #include "BKE_sound.h"
-#include "BKE_utildefines.h"
 
 #include "UI_view2d.h"
 

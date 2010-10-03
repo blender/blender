@@ -30,6 +30,7 @@
 #include "RNA_types.h"
 #include "BKE_idprop.h"
 
+extern PyTypeObject pyrna_struct_meta_idprop_Type;
 extern PyTypeObject pyrna_struct_Type;
 extern PyTypeObject pyrna_prop_Type;
 extern PyTypeObject pyrna_prop_array_Type;
@@ -55,11 +56,17 @@ typedef struct {
 	PyObject_HEAD /* required python macro   */
 	PointerRNA ptr;
 	PropertyRNA *prop;
+} BPy_PropertyRNA;
+
+typedef struct {
+	PyObject_HEAD /* required python macro   */
+	PointerRNA ptr;
+	PropertyRNA *prop;
 
 	/* Arystan: this is a hack to allow sub-item r/w access like: face.uv[n][m] */
 	int arraydim; /* array dimension, e.g: 0 for face.uv, 2 for face.uv[n][m], etc. */
 	int arrayoffset; /* array first item offset, e.g. if face.uv is [4][2], arrayoffset for face.uv[n] is 2n */
-} BPy_PropertyRNA;
+} BPy_PropertyArrayRNA;
 
 /* cheap trick */
 #define BPy_BaseTypeRNA BPy_PropertyRNA
@@ -77,7 +84,6 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr );
 PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop );
 
 /* operators also need this to set args */
-int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, void *data, PyObject *value, const char *error_prefix);
 int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const char *error_prefix);
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 
@@ -86,7 +92,7 @@ int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_
 
 int pyrna_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value, const char *error_prefix);
 
-int pyrna_deferred_register_props(struct StructRNA *srna, PyObject *class_dict);
+int pyrna_deferred_register_class(struct StructRNA *srna, PyObject *py_class);
 
 /* called before stopping python */
 void pyrna_alloc_types(void);
@@ -95,9 +101,10 @@ void pyrna_free_types(void);
 /* primitive type conversion */
 int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, char *param_data, PyObject *py, const char *error_prefix);
 int pyrna_py_to_array_index(PointerRNA *ptr, PropertyRNA *prop, int arraydim, int arrayoffset, int index, PyObject *py, const char *error_prefix);
+PyObject *pyrna_array_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 
 PyObject *pyrna_py_from_array(PointerRNA *ptr, PropertyRNA *prop);
-PyObject *pyrna_py_from_array_index(BPy_PropertyRNA *self, PointerRNA *ptr, PropertyRNA *prop, int index);
+PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr, PropertyRNA *prop, int index);
 PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop);
 int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
 

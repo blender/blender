@@ -33,6 +33,10 @@ void AUD_SDLDevice::SDL_mix(void *data, Uint8* buffer, int length)
 	device->mix((data_t*)buffer,length/AUD_DEVICE_SAMPLE_SIZE(device->m_specs));
 }
 
+static const char* open_error = "AUD_SDLDevice: Device couldn't be opened.";
+static const char* format_error = "AUD_SDLDevice: Obtained unsupported sample "
+								  "format.";
+
 AUD_SDLDevice::AUD_SDLDevice(AUD_DeviceSpecs specs, int buffersize)
 {
 	if(specs.channels == AUD_CHANNELS_INVALID)
@@ -57,7 +61,7 @@ AUD_SDLDevice::AUD_SDLDevice(AUD_DeviceSpecs specs, int buffersize)
 	format.userdata = this;
 
 	if(SDL_OpenAudio(&format, &obtained) != 0)
-		AUD_THROW(AUD_ERROR_SDL);
+		AUD_THROW(AUD_ERROR_SDL, open_error);
 
 	m_specs.rate = (AUD_SampleRate)obtained.freq;
 	m_specs.channels = (AUD_Channels)obtained.channels;
@@ -66,7 +70,10 @@ AUD_SDLDevice::AUD_SDLDevice(AUD_DeviceSpecs specs, int buffersize)
 	else if(obtained.format == AUDIO_S16LSB || obtained.format == AUDIO_S16MSB)
 		m_specs.format = AUD_FORMAT_S16;
 	else
-		AUD_THROW(AUD_ERROR_SDL);
+	{
+		SDL_CloseAudio();
+		AUD_THROW(AUD_ERROR_SDL, format_error);
+	}
 
 	create();
 }

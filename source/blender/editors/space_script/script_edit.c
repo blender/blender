@@ -30,15 +30,10 @@
 #include <stdio.h>
 
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_screen.h"
-#include "BKE_utildefines.h"
-#include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

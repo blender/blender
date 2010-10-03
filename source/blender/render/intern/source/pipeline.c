@@ -39,6 +39,8 @@
 #include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -51,8 +53,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_pointcache.h"
 #include "BKE_animsys.h"	/* <------ should this be here?, needed for sequencer update */
-
-#include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -1768,9 +1768,9 @@ static void do_render_3d(Render *re)
 	
 	/* make render verts/faces/halos/lamps */
 	if(render_scene_needs_vector(re))
-		RE_Database_FromScene_Vectors(re, re->scene, re->lay);
+		RE_Database_FromScene_Vectors(re, re->main, re->scene, re->lay);
 	else
-	   RE_Database_FromScene(re, re->scene, re->lay, 1);
+	   RE_Database_FromScene(re, re->main, re->scene, re->lay, 1);
 	
 	threaded_tile_processor(re);
 	
@@ -2142,6 +2142,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	RE_InitState(resc, re, &sce->r, NULL, winx, winy, &re->disprect);
 	
 	/* still unsure entity this... */
+	resc->main= re->main;
 	resc->scene= sce;
 	resc->lay= sce->lay;
 	
@@ -2462,7 +2463,7 @@ static void do_render_seq(Render * re)
 
 	recurs_depth++;
 
-	ibuf= give_ibuf_seq(re->scene, rr->rectx, rr->recty, cfra, 0, 100.0);
+	ibuf= give_ibuf_seq(re->main, re->scene, rr->rectx, rr->recty, cfra, 0, 100.0);
 
 	recurs_depth--;
 	
@@ -2472,20 +2473,21 @@ static void do_render_seq(Render * re)
 		if(ibuf->rect_float) {
 			if (!rr->rectf)
 				rr->rectf= MEM_mallocN(4*sizeof(float)*rr->rectx*rr->recty, "render_seq rectf");
-
-			memcpy(rr->rectf, ibuf->rect_float, 4*sizeof(float)*rr->rectx*rr->recty);
-
-			/* sequencer float buffer is not in linear color space, convert
-			 * should always be true, use a fake ibuf for the colorspace conversion */
-			if(ibuf->profile != IB_PROFILE_LINEAR_RGB) {
-				ImBuf ibuf_dummy;
-				memset(&ibuf_dummy, 0, sizeof(ImBuf));
-				ibuf_dummy.profile= ibuf->profile;
-				ibuf_dummy.x= rr->rectx;
-				ibuf_dummy.y= rr->recty;
-				ibuf_dummy.rect_float= rr->rectf;
-				/* only touch the rr->rectf */
-				IMB_convert_profile(&ibuf_dummy, IB_PROFILE_LINEAR_RGB);
+			
+			/* color management: when off ensure rectf is non-lin, since thats what the internal
+			 * render engine delivers */
+			if(re->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+				if(ibuf->profile == IB_PROFILE_LINEAR_RGB)
+					memcpy(rr->rectf, ibuf->rect_float, 4*sizeof(float)*rr->rectx*rr->recty);
+				else
+					srgb_to_linearrgb_rgba_rgba_buf(rr->rectf, ibuf->rect_float, rr->rectx*rr->recty);
+					
+			}
+			else {
+				if(ibuf->profile != IB_PROFILE_LINEAR_RGB)
+					memcpy(rr->rectf, ibuf->rect_float, 4*sizeof(float)*rr->rectx*rr->recty);
+				else
+					linearrgb_to_srgb_rgba_rgba_buf(rr->rectf, ibuf->rect_float, rr->rectx*rr->recty);
 			}
 			
 			/* TSK! Since sequence render doesn't free the *rr render result, the old rect32

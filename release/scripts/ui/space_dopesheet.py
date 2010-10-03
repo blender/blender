@@ -20,6 +20,53 @@
 
 import bpy
 
+# used for DopeSheet, NLA, and Graph Editors
+def dopesheet_filter(layout, context):
+    dopesheet = context.space_data.dopesheet
+    is_nla = context.area.type == 'NLA_EDITOR'
+
+    row = layout.row(align=True)
+    row.prop(dopesheet, "show_only_selected", text="")
+    row.prop(dopesheet, "show_hidden", text="")
+
+    row = layout.row(align=True)
+    row.prop(dopesheet, "show_transforms", text="")
+
+    if is_nla:
+        row.prop(dopesheet, "show_missing_nla", text="")
+
+    row = layout.row(align=True)
+    row.prop(dopesheet, "show_scenes", text="")
+    row.prop(dopesheet, "show_worlds", text="")
+    row.prop(dopesheet, "show_nodes", text="")
+
+    if bpy.data.meshes:
+        row.prop(dopesheet, "show_meshes", text="")
+    if bpy.data.shape_keys:
+        row.prop(dopesheet, "show_shapekeys", text="")
+    if bpy.data.materials:
+        row.prop(dopesheet, "show_materials", text="")
+    if bpy.data.lamps:
+        row.prop(dopesheet, "show_lamps", text="")
+    if bpy.data.textures:
+        row.prop(dopesheet, "show_textures", text="")
+    if bpy.data.cameras:
+        row.prop(dopesheet, "show_cameras", text="")
+    if bpy.data.curves:
+        row.prop(dopesheet, "show_curves", text="")
+    if bpy.data.metaballs:
+        row.prop(dopesheet, "show_metaballs", text="")
+    if bpy.data.armatures:
+        row.prop(dopesheet, "show_armatures", text="")
+    if bpy.data.particles:
+        row.prop(dopesheet, "show_particles", text="")
+
+    if bpy.data.groups:
+        row = layout.row(align=True)
+        row.prop(dopesheet, "show_only_group_objects", text="")
+        if dopesheet.show_only_group_objects:
+            row.prop(dopesheet, "filter_group", text="")
+
 
 class DOPESHEET_HT_header(bpy.types.Header):
     bl_space_type = 'DOPESHEET_EDITOR'
@@ -48,15 +95,16 @@ class DOPESHEET_HT_header(bpy.types.Header):
                 sub.menu("DOPESHEET_MT_key")
 
         layout.prop(st, "mode", text="")
-        layout.prop(st.dopesheet, "display_summary", text="Summary")
+        layout.prop(st.dopesheet, "show_summary", text="Summary")
 
         if st.mode == 'DOPESHEET':
-            layout.template_dopesheet_filter(st.dopesheet)
+            dopesheet_filter(layout, context)
+
         elif st.mode == 'ACTION':
             layout.template_ID(st, "action", new="action.new")
 
         if st.mode != 'GPENCIL':
-            layout.prop(st, "autosnap", text="")
+            layout.prop(st, "auto_snap", text="")
 
         row = layout.row(align=True)
         row.operator("action.copy", text="", icon='COPYDOWN')
@@ -73,10 +121,10 @@ class DOPESHEET_MT_view(bpy.types.Menu):
 
         layout.column()
 
-        layout.prop(st, "realtime_updates")
-        layout.prop(st, "show_cframe_indicator")
+        layout.prop(st, "use_realtime_update")
+        layout.prop(st, "show_frame_indicator")
         layout.prop(st, "show_sliders")
-        layout.prop(st, "automerge_keyframes")
+        layout.prop(st, "use_auto_merge_keyframes")
         layout.prop(st, "use_marker_sync")
 
         if st.show_seconds:
@@ -137,6 +185,9 @@ class DOPESHEET_MT_channel(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
         layout.column()
+        layout.operator("anim.channels_delete")
+
+        layout.separator()
         layout.operator("anim.channels_setting_toggle")
         layout.operator("anim.channels_setting_enable")
         layout.operator("anim.channels_setting_disable")

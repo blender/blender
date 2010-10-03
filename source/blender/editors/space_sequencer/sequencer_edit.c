@@ -43,19 +43,13 @@
 #include "BLI_storage_types.h"
 
 
-#include "DNA_ipo_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_plugin_types.h"
 #include "BKE_sequencer.h"
-#include "BKE_scene.h"
-#include "BKE_utildefines.h"
 #include "BKE_report.h"
 #include "BKE_sound.h"
 
@@ -741,7 +735,7 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 }
 
 
-static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
+static Sequence *cut_seq_hard(Main *bmain, Scene *scene, Sequence * seq, int cutframe)
 {
 	TransSeq ts;
 	Sequence *seqn = 0;
@@ -788,7 +782,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 		}
 	}
 	
-	reload_sequence_new_file(scene, seq, FALSE);
+	reload_sequence_new_file(bmain, scene, seq, FALSE);
 	calc_sequence(scene, seq);
 	new_tstripdata(seq); 
 
@@ -828,14 +822,14 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 			seqn->startstill = 0;
 		}
 		
-		reload_sequence_new_file(scene, seqn, FALSE);
+		reload_sequence_new_file(bmain, scene, seqn, FALSE);
 		calc_sequence(scene, seqn);
 		new_tstripdata(seqn);
 	}
 	return seqn;
 }
 
-static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
+static Sequence *cut_seq_soft(Main *bmain, Scene *scene, Sequence * seq, int cutframe)
 {
 	TransSeq ts;
 	Sequence *seqn = 0;
@@ -925,8 +919,8 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 
 /* like duplicate, but only duplicate and cut overlapping strips,
  * strips to the left of the cutframe are ignored and strips to the right are moved into the new list */
-static int cut_seq_list(Scene *scene, ListBase *old, ListBase *new, int cutframe,
-			Sequence * (*cut_seq)(Scene *, Sequence *, int))
+static int cut_seq_list(Main *bmain, Scene *scene, ListBase *old, ListBase *new, int cutframe,
+			Sequence * (*cut_seq)(Main *, Scene *, Sequence *, int))
 {
 	int did_something = FALSE;
 	Sequence *seq, *seq_next;
@@ -940,7 +934,7 @@ static int cut_seq_list(Scene *scene, ListBase *old, ListBase *new, int cutframe
 		if(seq->flag & SELECT) {
 			if(cutframe > seq->startdisp && 
 			   cutframe < seq->enddisp) {
-				Sequence * seqn = cut_seq(scene, seq, cutframe);
+				Sequence * seqn = cut_seq(bmain, scene, seq, cutframe);
 				if (seqn) {
 					BLI_addtail(new, seqn);
 				}
@@ -1010,7 +1004,7 @@ void touch_seq_files(Scene *scene)
 	waitcursor(0);
 }
 
-void set_filter_seq(Scene *scene)
+void set_filter_seq(Main *bmain, Scene *scene)
 {
 	Sequence *seq;
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -1024,7 +1018,7 @@ void set_filter_seq(Scene *scene)
 		if(seq->flag & SELECT) {
 			if(seq->type==SEQ_MOVIE) {
 				seq->flag |= SEQ_FILTERY;
-				reload_sequence_new_file(scene, seq, FALSE);
+				reload_sequence_new_file(bmain, scene, seq, FALSE);
 				calc_sequence(scene, seq);
 			}
 
@@ -1512,6 +1506,7 @@ static EnumPropertyItem prop_cut_types[] = {
 
 static int sequencer_cut_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
 	int cut_side, cut_hard, cut_frame;
@@ -1526,10 +1521,10 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 	newlist.first= newlist.last= NULL;
 
 	if (cut_hard==SEQ_CUT_HARD) {
-		changed = cut_seq_list(scene,
+		changed = cut_seq_list(bmain, scene,
 			ed->seqbasep, &newlist, cut_frame, cut_seq_hard);
 	} else {
-		changed = cut_seq_list(scene,
+		changed = cut_seq_list(bmain, scene,
 			ed->seqbasep, &newlist, cut_frame, cut_seq_soft);
 	}
 	

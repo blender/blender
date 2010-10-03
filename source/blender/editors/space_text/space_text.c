@@ -38,7 +38,6 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
@@ -118,12 +117,29 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_TEXT:
-			if(!wmn->reference || wmn->reference == st->text || wmn->data == ND_DISPLAY || wmn->action == NA_EDITED) {
-				ED_area_tag_redraw(sa);
+			/* check if active text was changed, no need to redraw if text isn't active
+			   reference==NULL means text was unlinked, should update anyway for this
+			   case -- no way to know was text active before unlinking or not */
+			if(wmn->reference && wmn->reference != st->text)
+				break;
 
-				if(wmn->action == NA_EDITED)
+			switch(wmn->data) {
+				case ND_DISPLAY:
+				case ND_CURSOR:
+					ED_area_tag_redraw(sa);
+					break;
+			}
+
+			switch(wmn->action) {
+				case NA_EDITED:
 					if(st->text)
 						text_update_edited(st->text);
+					ED_area_tag_redraw(sa);
+					/* no break -- fall down to tag redraw */
+				case NA_ADDED:
+				case NA_REMOVED:
+					ED_area_tag_redraw(sa);
+					break;
 			}
 
 			break;

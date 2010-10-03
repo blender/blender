@@ -131,11 +131,6 @@ void OBJECT_OT_hook_reset(struct wmOperatorType *ot);
 void OBJECT_OT_hook_recenter(struct wmOperatorType *ot);
 
 /* object_lattice.c */
-void free_editLatt(struct Object *ob);
-void make_editLatt(struct Object *obedit);
-void load_editLatt(struct Object *obedit);
-void remake_editLatt(struct Object *obedit);
-
 void LATTICE_OT_select_all(struct wmOperatorType *ot);
 void LATTICE_OT_make_regular(struct wmOperatorType *ot);
 

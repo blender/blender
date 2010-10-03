@@ -31,7 +31,6 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_particle_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -42,7 +41,6 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_pointcache.h"
-#include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_draw.h"
@@ -398,6 +396,7 @@ static void time_listener(ScrArea *sa, wmNotifier *wmn)
 	switch (wmn->category) {
 		case NC_OBJECT:
 			switch (wmn->data) {
+				case ND_BONE_ACTIVE:
 				case ND_POINTCACHE:
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
@@ -511,9 +510,14 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		
 		case NC_SCENE:
-			ED_region_tag_redraw(ar);
-			break;
-		
+			switch (wmn->data) {
+				case ND_FRAME:
+				case ND_FRAME_RANGE:
+				case ND_KEYINGSET:
+				case ND_RENDER_OPTIONS:
+					ED_region_tag_redraw(ar);
+				break;
+			}
 	}
 }
 
@@ -542,6 +546,7 @@ static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch (wmn->data) {
 				case ND_FRAME:
+				case ND_FRAME_RANGE:
 				case ND_KEYINGSET:
 				case ND_RENDER_OPTIONS:
 					ED_region_tag_redraw(ar);

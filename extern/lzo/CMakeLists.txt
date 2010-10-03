@@ -25,10 +25,6 @@
 # ***** END GPL LICENSE BLOCK *****
 
 SET(INC include)
+SET(SRC minilzo/minilzo.c)
 
-FILE(GLOB SRC minilzo/*.c)
-
-
-
-BLENDERLIB(bf_minilzo "${SRC}" "${INC}")
-#, libtype='blender', priority = 0 )
+BLENDERLIB(extern_minilzo "${SRC}" "${INC}")

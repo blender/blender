@@ -26,25 +26,16 @@
 #include "AUD_EffectFactory.h"
 #include "AUD_IReader.h"
 
-AUD_IReader* AUD_EffectFactory::getReader()
-{
-	if(m_factory != 0)
-		return m_factory->createReader();
-
-	return 0;
-}
-
 AUD_EffectFactory::AUD_EffectFactory(AUD_IFactory* factory)
 {
 	m_factory = factory;
 }
 
-void AUD_EffectFactory::setFactory(AUD_IFactory* factory)
+AUD_EffectFactory::~AUD_EffectFactory()
 {
-	m_factory = factory;
 }
 
-AUD_IFactory* AUD_EffectFactory::getFactory()
+AUD_IFactory* AUD_EffectFactory::getFactory() const
 {
 	return m_factory;
 }

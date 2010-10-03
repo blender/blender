@@ -36,6 +36,11 @@
 #include <io.h>
 #endif
 #include <stdlib.h>
+
+#include "DNA_key_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -43,10 +48,6 @@
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
-
-#include "DNA_key_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -56,9 +57,7 @@
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -726,7 +725,7 @@ static void calc_shapeKeys(Object *obedit)
 		int a, i, j;
 		EditNurb *editnurb= cu->editnurb;
 		KeyBlock *currkey;
-		KeyBlock *actkey= ob_get_keyblock(obedit);
+		KeyBlock *actkey= BLI_findlink(&cu->key->block, editnurb->shapenr-1);
 		BezTriple *bezt, *oldbezt;
 		BPoint *bp, *oldbp;
 		Nurb *nu;
@@ -740,7 +739,7 @@ static void calc_shapeKeys(Object *obedit)
 			int act_is_basis = 0;
 			/* find if this key is a basis for any others */
 			for(currkey = cu->key->block.first; currkey; currkey= currkey->next) {
-				if(obedit->shapenr-1 == currkey->relative) {
+				if(editnurb->shapenr-1 == currkey->relative) {
 					act_is_basis = 1;
 					break;
 				}
@@ -808,7 +807,7 @@ static void calc_shapeKeys(Object *obedit)
 
 		currkey = cu->key->block.first;
 		while(currkey) {
-			int apply_offset = (ofs && (currkey != actkey) && (obedit->shapenr-1 == currkey->relative));
+			int apply_offset = (ofs && (currkey != actkey) && (editnurb->shapenr-1 == currkey->relative));
 
 			fp= newkey= MEM_callocN(cu->key->elemsize * totvert,  "currkey->data");
 			ofp= oldkey = currkey->data;
@@ -1037,6 +1036,7 @@ void make_editNurb(Object *obedit)
 		}
 
 		if(actkey) {
+			editnurb->shapenr= obedit->shapenr;
 			init_editNurb_keyIndex(editnurb, &cu->nurb);
 		}
 	}
@@ -1804,7 +1804,7 @@ void CURVE_OT_switch_direction(wmOperatorType *ot)
 
 /****************** set weight operator *******************/
 
-static int set_weight_exec(bContext *C, wmOperator *op)
+static int set_goal_weight_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -1842,7 +1842,7 @@ void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 	ot->idname= "CURVE_OT_spline_weight_set";
 	
 	/* api callbacks */
-	ot->exec= set_weight_exec;
+	ot->exec= set_goal_weight_exec;
 	ot->invoke= WM_operator_props_popup;
 	ot->poll= ED_operator_editsurfcurve;
 
@@ -4109,7 +4109,7 @@ void CURVE_OT_spin(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_float_vector(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector_xyz(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
 	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
 }
 
@@ -4278,7 +4278,7 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location to add new vertex at.", -1e4, 1e4);
+	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location to add new vertex at.", -1e4, 1e4);
 }
 
 /***************** extrude operator **********************/
@@ -5577,7 +5577,9 @@ int join_curve_exec(bContext *C, wmOperator *op)
 					nu= cu->nurb.first;
 					while(nu) {
 						newnu= duplicateNurb(nu);
-						CLAMP(newnu->mat_nr, 0, ob->totcol-1); /* TODO, merge material lists */
+						if(ob->totcol) { /* TODO, merge material lists */
+							CLAMP(newnu->mat_nr, 0, ob->totcol-1);
+						} else newnu->mat_nr= 0;
 						BLI_addtail(&tempbase, newnu);
 						
 						if( (bezt= newnu->bezt) ) {
@@ -5867,13 +5869,13 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			makeknots(nu, 2);
 		}
 		break;
-	case CU_PRIM_TUBE:	/* tube */
+	case CU_PRIM_TUBE:	/* Cylinder */
 		if( cutype==CU_NURBS ) {
 			Curve *cu= (Curve*)obedit->data;
 			
 			if(newname) {
-				rename_id((ID *)obedit, "SurfTube");
-				rename_id((ID *)obedit->data, "SurfTube");
+				rename_id((ID *)obedit, "SurfCylinder");
+				rename_id((ID *)obedit->data, "SurfCylinder");
 			}
 			
 			nu= add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
@@ -5949,7 +5951,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			BLI_remlink(editnurb, nu);
 		}
 		break;
-	case CU_PRIM_DONUT:	/* donut */
+	case CU_PRIM_DONUT:	/* torus */
 		if( cutype==CU_NURBS ) {
 			float tmp_cent[3] = {0.f, 0.f, 0.f};
 			float tmp_vec[3] = {0.f, 0.f, 0.f};
@@ -6235,21 +6237,21 @@ void SURFACE_OT_primitive_nurbs_surface_surface_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, TRUE);
 }
 
-static int add_primitive_nurbs_surface_tube_exec(bContext *C, wmOperator *op)
+static int add_primitive_nurbs_surface_cylinder_exec(bContext *C, wmOperator *op)
 {
 	return surf_prim_add(C, op, CU_PRIM_TUBE|CU_NURBS);
 }
 
-void SURFACE_OT_primitive_nurbs_surface_tube_add(wmOperatorType *ot)
+void SURFACE_OT_primitive_nurbs_surface_cylinder_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Tube";
-	ot->description= "Construct a Nurbs surface Tube";
-	ot->idname= "SURFACE_OT_primitive_nurbs_surface_tube_add";
+	ot->name= "Add Surface Cylinder";
+	ot->description= "Construct a Nurbs surface Cylinder";
+	ot->idname= "SURFACE_OT_primitive_nurbs_surface_cylinder_add";
 	
 	/* api callbacks */
 	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_nurbs_surface_tube_exec;
+	ot->exec= add_primitive_nurbs_surface_cylinder_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
@@ -6281,21 +6283,21 @@ void SURFACE_OT_primitive_nurbs_surface_sphere_add(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, TRUE);
 }
 
-static int add_primitive_nurbs_surface_donut_exec(bContext *C, wmOperator *op)
+static int add_primitive_nurbs_surface_torus_exec(bContext *C, wmOperator *op)
 {
 	return surf_prim_add(C, op, CU_PRIM_DONUT|CU_NURBS);
 }
 
-void SURFACE_OT_primitive_nurbs_surface_donut_add(wmOperatorType *ot)
+void SURFACE_OT_primitive_nurbs_surface_torus_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Surface Donut";
-	ot->description= "Construct a Nurbs surface Donut";
-	ot->idname= "SURFACE_OT_primitive_nurbs_surface_donut_add";
+	ot->name= "Add Surface Torus";
+	ot->description= "Construct a Nurbs surface Torus";
+	ot->idname= "SURFACE_OT_primitive_nurbs_surface_torus_add";
 	
 	/* api callbacks */
 	ot->invoke= ED_object_add_generic_invoke;
-	ot->exec= add_primitive_nurbs_surface_donut_exec;
+	ot->exec= add_primitive_nurbs_surface_torus_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */

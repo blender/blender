@@ -33,9 +33,9 @@ import platform as pltfrm
 
 # Need a better way to do this. Automagical maybe is not the best thing, maybe it is.
 if pltfrm.architecture()[0] == '64bit':
-	bitness = 64
+    bitness = 64
 else:
-	bitness = 32
+    bitness = 32
 
 import sys
 import os
@@ -79,15 +79,15 @@ B.binarykind = ['blender' , 'blenderplayer']
 # XX cheating for BF_FANCY, we check for BF_FANCY before args are validated
 use_color = ARGUMENTS.get('BF_FANCY', '1')
 if platform=='win32':
-	use_color = None
+    use_color = None
 
 if not use_color=='1':
-	B.bc.disable()
-	
+    B.bc.disable()
+    
  #on defaut white Os X terminal, some colors are totally unlegible
 if platform=='darwin':
-	B.bc.OKGREEN = '\033[34m'
-	B.bc.WARNING = '\033[36m'
+    B.bc.OKGREEN = '\033[34m'
+    B.bc.WARNING = '\033[36m'
 
 # arguments
 print B.bc.HEADER+'Command-line arguments'+B.bc.ENDC
@@ -110,100 +110,100 @@ quickie = B.arguments.get('BF_QUICK', None)
 quickdebug = B.arguments.get('BF_QUICKDEBUG', None)
 
 if quickdebug:
-	B.quickdebug=string.split(quickdebug, ',')
+    B.quickdebug=string.split(quickdebug, ',')
 else:
-	B.quickdebug=[]
+    B.quickdebug=[]
 
 if quickie:
-	B.quickie=string.split(quickie,',')
+    B.quickie=string.split(quickie,',')
 else:
-	B.quickie=[]
-	
+    B.quickie=[]
+    
 toolset = B.arguments.get('BF_TOOLSET', None)
 if toolset:
-	print "Using " + toolset
-	if toolset=='mstoolkit':
-		env = BlenderEnvironment(ENV = os.environ)
-		env.Tool('mstoolkit', [toolpath])
-	else:
-		env = BlenderEnvironment(tools=[toolset], ENV = os.environ)
-		# xxx commented out, as was supressing warnings under mingw..
-		#if env:
-		#	btools.SetupSpawn(env)
+    print "Using " + toolset
+    if toolset=='mstoolkit':
+        env = BlenderEnvironment(ENV = os.environ)
+        env.Tool('mstoolkit', [toolpath])
+    else:
+        env = BlenderEnvironment(tools=[toolset], ENV = os.environ)
+        # xxx commented out, as was supressing warnings under mingw..
+        #if env:
+        #    btools.SetupSpawn(env)
 else:
-	if bitness==64 and platform=='win32':
-		env = BlenderEnvironment(ENV = os.environ, MSVS_ARCH='amd64')
-	else:
-		env = BlenderEnvironment(ENV = os.environ)
+    if bitness==64 and platform=='win32':
+        env = BlenderEnvironment(ENV = os.environ, MSVS_ARCH='amd64')
+    else:
+        env = BlenderEnvironment(ENV = os.environ)
 
 if not env:
-	print "Could not create a build environment"
-	Exit()
+    print "Could not create a build environment"
+    Exit()
 
 
 cc = B.arguments.get('CC', None)
 cxx = B.arguments.get('CXX', None)
 if cc:
-	env['CC'] = cc
+    env['CC'] = cc
 if cxx:
-	env['CXX'] = cxx
+    env['CXX'] = cxx
 
 if env['CC'] in ['cl', 'cl.exe'] and sys.platform=='win32':
-	if bitness == 64:
-		platform = 'win64-vc'
-	else:
-		platform = 'win32-vc'
+    if bitness == 64:
+        platform = 'win64-vc'
+    else:
+        platform = 'win32-vc'
 elif env['CC'] in ['gcc'] and sys.platform=='win32':
-	platform = 'win32-mingw'
+    platform = 'win32-mingw'
 
 env.SConscriptChdir(0)
 
 crossbuild = B.arguments.get('BF_CROSS', None)
 if crossbuild and platform not in ('win32-vc', 'win64-vc'):
-	platform = 'linuxcross'
+    platform = 'linuxcross'
 
 env['OURPLATFORM'] = platform
 
 configfile = os.path.join("build_files", "scons", "config", platform + "-config.py")
 
 if os.path.exists(configfile):
-	print B.bc.OKGREEN + "Using config file: " + B.bc.ENDC + configfile
+    print B.bc.OKGREEN + "Using config file: " + B.bc.ENDC + configfile
 else:
-	print B.bc.FAIL + configfile + " doesn't exist" + B.bc.ENDC
+    print B.bc.FAIL + configfile + " doesn't exist" + B.bc.ENDC
 
 if crossbuild and env['PLATFORM'] != 'win32':
-	print B.bc.HEADER+"Preparing for crossbuild"+B.bc.ENDC
-	env.Tool('crossmingw', [toolpath])
-	# todo: determine proper libs/includes etc.
-	# Needed for gui programs, console programs should do without it
+    print B.bc.HEADER+"Preparing for crossbuild"+B.bc.ENDC
+    env.Tool('crossmingw', [toolpath])
+    # todo: determine proper libs/includes etc.
+    # Needed for gui programs, console programs should do without it
 
-	# Now we don't need this option to have console window
-	# env.Append(LINKFLAGS=['-mwindows'])
+    # Now we don't need this option to have console window
+    # env.Append(LINKFLAGS=['-mwindows'])
 
 userconfig = B.arguments.get('BF_CONFIG', 'user-config.py')
 # first read platform config. B.arguments will override
 optfiles = [configfile]
 if os.path.exists(userconfig):
-	print B.bc.OKGREEN + "Using user-config file: " + B.bc.ENDC + userconfig
-	optfiles += [userconfig]
+    print B.bc.OKGREEN + "Using user-config file: " + B.bc.ENDC + userconfig
+    optfiles += [userconfig]
 else:
-	print B.bc.WARNING + userconfig + " not found, no user overrides" + B.bc.ENDC
+    print B.bc.WARNING + userconfig + " not found, no user overrides" + B.bc.ENDC
 
 opts = btools.read_opts(env, optfiles, B.arguments)
 opts.Update(env)
 
 if not env['BF_FANCY']:
-	B.bc.disable()
+    B.bc.disable()
 
 
 # remove install dir so old and new files are not mixed.
 # NOTE: only do the scripts directory for now, otherwise is too disruptive for developers
 # TODO: perhaps we need an option (off by default) to not do this altogether...
 if not env['WITHOUT_BF_INSTALL'] and not env['WITHOUT_BF_OVERWRITE_INSTALL']:
-	scriptsDir = os.path.join(env['BF_INSTALLDIR'], VERSION, 'scripts')
-	if os.path.isdir(scriptsDir):
-		print B.bc.OKGREEN + "Clearing installation directory%s: %s" % (B.bc.ENDC, os.path.abspath(scriptsDir))
-		shutil.rmtree(scriptsDir)
+    scriptsDir = os.path.join(env['BF_INSTALLDIR'], VERSION, 'scripts')
+    if os.path.isdir(scriptsDir):
+        print B.bc.OKGREEN + "Clearing installation directory%s: %s" % (B.bc.ENDC, os.path.abspath(scriptsDir))
+        shutil.rmtree(scriptsDir)
 
 
 SetOption('num_jobs', int(env['BF_NUMJOBS']))
@@ -211,158 +211,158 @@ print B.bc.OKGREEN + "Build with parallel jobs%s: %s" % (B.bc.ENDC, GetOption('n
 print B.bc.OKGREEN + "Build with debug symbols%s: %s" % (B.bc.ENDC, env['BF_DEBUG'])
 
 if 'blenderlite' in B.targets:
-	target_env_defs = {}
-	target_env_defs['WITH_BF_GAMEENGINE'] = False
-	target_env_defs['WITH_BF_OPENAL'] = False
-	target_env_defs['WITH_BF_OPENEXR'] = False
-	target_env_defs['WITH_BF_OPENMP'] = False
-	target_env_defs['WITH_BF_ICONV'] = False
-	target_env_defs['WITH_BF_INTERNATIONAL'] = False
-	target_env_defs['WITH_BF_OPENJPEG'] = False
-	target_env_defs['WITH_BF_FFMPEG'] = False
-	target_env_defs['WITH_BF_QUICKTIME'] = False
-	target_env_defs['WITH_BF_REDCODE'] = False
-	target_env_defs['WITH_BF_DDS'] = False
-	target_env_defs['WITH_BF_CINEON'] = False
-	target_env_defs['WITH_BF_HDR'] = False
-	target_env_defs['WITH_BF_ZLIB'] = False
-	target_env_defs['WITH_BF_SDL'] = False
-	target_env_defs['WITH_BF_JPEG'] = False
-	target_env_defs['WITH_BF_PNG'] = False
-	target_env_defs['WITH_BF_BULLET'] = False
-	target_env_defs['WITH_BF_BINRELOC'] = False
-	target_env_defs['BF_BUILDINFO'] = False
-	target_env_defs['BF_NO_ELBEEM'] = True
-	target_env_defs['WITH_BF_PYTHON'] = False
-	
-	# Merge blenderlite, let command line to override
-	for k,v in target_env_defs.iteritems():
-		if k not in B.arguments:
-			env[k] = v
+    target_env_defs = {}
+    target_env_defs['WITH_BF_GAMEENGINE'] = False
+    target_env_defs['WITH_BF_OPENAL'] = False
+    target_env_defs['WITH_BF_OPENEXR'] = False
+    target_env_defs['WITH_BF_OPENMP'] = False
+    target_env_defs['WITH_BF_ICONV'] = False
+    target_env_defs['WITH_BF_INTERNATIONAL'] = False
+    target_env_defs['WITH_BF_OPENJPEG'] = False
+    target_env_defs['WITH_BF_FFMPEG'] = False
+    target_env_defs['WITH_BF_QUICKTIME'] = False
+    target_env_defs['WITH_BF_REDCODE'] = False
+    target_env_defs['WITH_BF_DDS'] = False
+    target_env_defs['WITH_BF_CINEON'] = False
+    target_env_defs['WITH_BF_HDR'] = False
+    target_env_defs['WITH_BF_ZLIB'] = False
+    target_env_defs['WITH_BF_SDL'] = False
+    target_env_defs['WITH_BF_JPEG'] = False
+    target_env_defs['WITH_BF_PNG'] = False
+    target_env_defs['WITH_BF_BULLET'] = False
+    target_env_defs['WITH_BF_BINRELOC'] = False
+    target_env_defs['BF_BUILDINFO'] = False
+    target_env_defs['BF_NO_ELBEEM'] = True
+    target_env_defs['WITH_BF_PYTHON'] = False
+    
+    # Merge blenderlite, let command line to override
+    for k,v in target_env_defs.iteritems():
+        if k not in B.arguments:
+            env[k] = v
 
 
 if env['WITH_BF_OPENMP'] == 1:
-		if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-				env['CCFLAGS'].append('/openmp')
-				env['CPPFLAGS'].append('/openmp')
-				env['CXXFLAGS'].append('/openmp')
-		else:
-			if env['CC'].endswith('icc'): # to be able to handle CC=/opt/bla/icc case
-				env.Append(LINKFLAGS=['-openmp', '-static-intel'])
-				env['CCFLAGS'].append('-openmp')
-				env['CPPFLAGS'].append('-openmp')
-				env['CXXFLAGS'].append('-openmp')
-			else:
-				env.Append(CCFLAGS=['-fopenmp']) 
-				env.Append(CPPFLAGS=['-fopenmp'])
-				env.Append(CXXFLAGS=['-fopenmp'])
+        if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+                env['CCFLAGS'].append('/openmp')
+                env['CPPFLAGS'].append('/openmp')
+                env['CXXFLAGS'].append('/openmp')
+        else:
+            if env['CC'].endswith('icc'): # to be able to handle CC=/opt/bla/icc case
+                env.Append(LINKFLAGS=['-openmp', '-static-intel'])
+                env['CCFLAGS'].append('-openmp')
+                env['CPPFLAGS'].append('-openmp')
+                env['CXXFLAGS'].append('-openmp')
+            else:
+                env.Append(CCFLAGS=['-fopenmp']) 
+                env.Append(CPPFLAGS=['-fopenmp'])
+                env.Append(CXXFLAGS=['-fopenmp'])
 
 if env['WITH_GHOST_COCOA'] == True:
-	env.Append(CFLAGS=['-DGHOST_COCOA']) 
-	env.Append(CXXFLAGS=['-DGHOST_COCOA'])
-	env.Append(CPPFLAGS=['-DGHOST_COCOA'])
+    env.Append(CFLAGS=['-DGHOST_COCOA']) 
+    env.Append(CXXFLAGS=['-DGHOST_COCOA'])
+    env.Append(CPPFLAGS=['-DGHOST_COCOA'])
     
 if env['USE_QTKIT'] == True:
-	env.Append(CFLAGS=['-DUSE_QTKIT']) 
-	env.Append(CXXFLAGS=['-DUSE_QTKIT'])
-	env.Append(CPPFLAGS=['-DUSE_QTKIT'])
+    env.Append(CFLAGS=['-DUSE_QTKIT']) 
+    env.Append(CXXFLAGS=['-DUSE_QTKIT'])
+    env.Append(CPPFLAGS=['-DUSE_QTKIT'])
 
 #check for additional debug libnames
 
 if env.has_key('BF_DEBUG_LIBS'):
-	B.quickdebug += env['BF_DEBUG_LIBS']
+    B.quickdebug += env['BF_DEBUG_LIBS']
 
 printdebug = B.arguments.get('BF_LISTDEBUG', 0)
 
 if len(B.quickdebug) > 0 and printdebug != 0:
-	print B.bc.OKGREEN + "Buildings these libs with debug symbols:" + B.bc.ENDC
-	for l in B.quickdebug:
-		print "\t" + l
+    print B.bc.OKGREEN + "Buildings these libs with debug symbols:" + B.bc.ENDC
+    for l in B.quickdebug:
+        print "\t" + l
 
 # remove stdc++ from LLIBS if we are building a statc linked CXXFLAGS
 if env['WITH_BF_STATICCXX']:
-	if 'stdc++' in env['LLIBS']:
-		env['LLIBS'].remove('stdc++')
-	else:
-		print '\tcould not remove stdc++ library from LLIBS, WITH_BF_STATICCXX may not work for your platform'
+    if 'stdc++' in env['LLIBS']:
+        env['LLIBS'].remove('stdc++')
+    else:
+        print '\tcould not remove stdc++ library from LLIBS, WITH_BF_STATICCXX may not work for your platform'
 
 # check target for blenderplayer. Set WITH_BF_PLAYER if found on cmdline
 if 'blenderplayer' in B.targets:
-	env['WITH_BF_PLAYER'] = True
+    env['WITH_BF_PLAYER'] = True
 
 if 'blendernogame' in B.targets:
-	env['WITH_BF_GAMEENGINE'] = False
+    env['WITH_BF_GAMEENGINE'] = False
 
 # disable elbeem (fluidsim) compilation?
 if env['BF_NO_ELBEEM'] == 1:
-	env['CPPFLAGS'].append('-DDISABLE_ELBEEM')
-	env['CXXFLAGS'].append('-DDISABLE_ELBEEM')
-	env['CCFLAGS'].append('-DDISABLE_ELBEEM')
+    env['CPPFLAGS'].append('-DDISABLE_ELBEEM')
+    env['CXXFLAGS'].append('-DDISABLE_ELBEEM')
+    env['CCFLAGS'].append('-DDISABLE_ELBEEM')
 
 if env['WITH_BF_SDL'] == False and env['OURPLATFORM'] in ('win32-vc', 'win32-ming', 'win64-vc'):
-	env['PLATFORM_LINKFLAGS'].remove('/ENTRY:mainCRTStartup')
-	env['PLATFORM_LINKFLAGS'].append('/ENTRY:main')
+    env['PLATFORM_LINKFLAGS'].remove('/ENTRY:mainCRTStartup')
+    env['PLATFORM_LINKFLAGS'].append('/ENTRY:main')
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 B.root_build_dir = env['BF_BUILDDIR']
 B.doc_build_dir = os.path.join(env['BF_INSTALLDIR'], 'doc')
 if not B.root_build_dir[-1]==os.sep:
-	B.root_build_dir += os.sep
+    B.root_build_dir += os.sep
 if not B.doc_build_dir[-1]==os.sep:
-	B.doc_build_dir += os.sep
-	
+    B.doc_build_dir += os.sep
+    
 # We do a shortcut for clean when no quicklist is given: just delete
 # builddir without reading in SConscripts
 do_clean = None
 if 'clean' in B.targets:
-	do_clean = True
+    do_clean = True
 
 if not quickie and do_clean:
-	if os.path.exists(B.doc_build_dir):
-		print B.bc.HEADER+'Cleaning doc dir...'+B.bc.ENDC
-		dirs = os.listdir(B.doc_build_dir)
-		for entry in dirs:
-			if os.path.isdir(B.doc_build_dir + entry) == 1:
-				print "clean dir %s"%(B.doc_build_dir+entry)
-				shutil.rmtree(B.doc_build_dir+entry)
-			else: # remove file
-				print "remove file %s"%(B.doc_build_dir+entry)
-				os.remove(B.root_build_dir+entry)
-	if os.path.exists(B.root_build_dir):
-		print B.bc.HEADER+'Cleaning build dir...'+B.bc.ENDC
-		dirs = os.listdir(B.root_build_dir)
-		for entry in dirs:
-			if os.path.isdir(B.root_build_dir + entry) == 1:
-				print "clean dir %s"%(B.root_build_dir+entry)
-				shutil.rmtree(B.root_build_dir+entry)
-			else: # remove file
-				print "remove file %s"%(B.root_build_dir+entry)
-				os.remove(B.root_build_dir+entry)
-		for confile in ['extern/ffmpeg/config.mak', 'extern/x264/config.mak',
-				'extern/xvidcore/build/generic/platform.inc', 'extern/ffmpeg/include']:
-			if os.path.exists(confile):
-				print "clean file %s"%confile
-				if os.path.isdir(confile):
-					for root, dirs, files in os.walk(confile):
-						for name in files:
-							os.remove(os.path.join(root, name))
-				else:
-					os.remove(confile)
-		print B.bc.OKGREEN+'...done'+B.bc.ENDC
-	else:
-		print B.bc.HEADER+'Already Clean, nothing to do.'+B.bc.ENDC
-	Exit()
+    if os.path.exists(B.doc_build_dir):
+        print B.bc.HEADER+'Cleaning doc dir...'+B.bc.ENDC
+        dirs = os.listdir(B.doc_build_dir)
+        for entry in dirs:
+            if os.path.isdir(B.doc_build_dir + entry) == 1:
+                print "clean dir %s"%(B.doc_build_dir+entry)
+                shutil.rmtree(B.doc_build_dir+entry)
+            else: # remove file
+                print "remove file %s"%(B.doc_build_dir+entry)
+                os.remove(B.root_build_dir+entry)
+    if os.path.exists(B.root_build_dir):
+        print B.bc.HEADER+'Cleaning build dir...'+B.bc.ENDC
+        dirs = os.listdir(B.root_build_dir)
+        for entry in dirs:
+            if os.path.isdir(B.root_build_dir + entry) == 1:
+                print "clean dir %s"%(B.root_build_dir+entry)
+                shutil.rmtree(B.root_build_dir+entry)
+            else: # remove file
+                print "remove file %s"%(B.root_build_dir+entry)
+                os.remove(B.root_build_dir+entry)
+        for confile in ['extern/ffmpeg/config.mak', 'extern/x264/config.mak',
+                'extern/xvidcore/build/generic/platform.inc', 'extern/ffmpeg/include']:
+            if os.path.exists(confile):
+                print "clean file %s"%confile
+                if os.path.isdir(confile):
+                    for root, dirs, files in os.walk(confile):
+                        for name in files:
+                            os.remove(os.path.join(root, name))
+                else:
+                    os.remove(confile)
+        print B.bc.OKGREEN+'...done'+B.bc.ENDC
+    else:
+        print B.bc.HEADER+'Already Clean, nothing to do.'+B.bc.ENDC
+    Exit()
 
 if not os.path.isdir ( B.root_build_dir):
-	os.makedirs ( B.root_build_dir )
-	os.makedirs ( B.root_build_dir + 'source' )
-	os.makedirs ( B.root_build_dir + 'intern' )
-	os.makedirs ( B.root_build_dir + 'extern' )
-	os.makedirs ( B.root_build_dir + 'lib' )
-	os.makedirs ( B.root_build_dir + 'bin' )
+    os.makedirs ( B.root_build_dir )
+    os.makedirs ( B.root_build_dir + 'source' )
+    os.makedirs ( B.root_build_dir + 'intern' )
+    os.makedirs ( B.root_build_dir + 'extern' )
+    os.makedirs ( B.root_build_dir + 'lib' )
+    os.makedirs ( B.root_build_dir + 'bin' )
 # # Docs not working with epy anymore
 # if not os.path.isdir(B.doc_build_dir) and env['WITH_BF_DOCS']:
-# 	os.makedirs ( B.doc_build_dir )
+#     os.makedirs ( B.doc_build_dir )
 
 Help(opts.GenerateHelpText(env))
 
@@ -370,10 +370,10 @@ Help(opts.GenerateHelpText(env))
 # commands, do 'scons BF_QUIET=0'
 bf_quietoutput = B.arguments.get('BF_QUIET', '1')
 if env['BF_QUIET']:
-	B.set_quiet_output(env)
+    B.set_quiet_output(env)
 else:
-	if toolset=='msvc':
-		B.msvc_hack(env)
+    if toolset=='msvc':
+        B.msvc_hack(env)
 
 print B.bc.HEADER+'Building in: ' + B.bc.ENDC + os.path.abspath(B.root_build_dir)
 env.SConsignFile(B.root_build_dir+'scons-signatures')
@@ -395,23 +395,23 @@ SConscript(B.root_build_dir+'/source/SConscript')
 # libraries to give as objects to linking phase
 mainlist = []
 for tp in B.possible_types:
-	if not tp == 'player':
-		mainlist += B.create_blender_liblist(env, tp)
+    if not tp == 'player':
+        mainlist += B.create_blender_liblist(env, tp)
 
 if B.arguments.get('BF_PRIORITYLIST', '0')=='1':
-	B.propose_priorities()
+    B.propose_priorities()
 
 dobj = B.buildinfo(env, "dynamic") + B.resources
 thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
 if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
-	env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
+    env.BlenderProg(B.root_build_dir, "blender", mainlist + thestatlibs + dobj, thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
-	playerlist = B.create_blender_liblist(env, 'player')
-	playerlist += B.create_blender_liblist(env, 'intern')
-	playerlist += B.create_blender_liblist(env, 'extern')
-	env.BlenderProg(B.root_build_dir, "blenderplayer", dobj + playerlist, [], thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
+    playerlist = B.create_blender_liblist(env, 'player')
+    playerlist += B.create_blender_liblist(env, 'intern')
+    playerlist += B.create_blender_liblist(env, 'extern')
+    env.BlenderProg(B.root_build_dir, "blenderplayer",  playerlist, thestatlibs + dobj + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
 
 ##### Now define some targets
 
@@ -421,17 +421,19 @@ if env['WITH_BF_PLAYER']:
 #-- binaries
 blenderinstall = []
 if  env['OURPLATFORM']=='darwin':
-	for prg in B.program_list:
-		bundle = '%s.app' % prg[0]
-		bundledir = os.path.dirname(bundle)
-		for dp, dn, df in os.walk(bundle):
-			if '.svn' in dn:
-				dn.remove('.svn')
-			dir=env['BF_INSTALLDIR']+dp[len(bundledir):]
-			source=[dp+os.sep+f for f in df]
-			blenderinstall.append(env.Install(dir=dir,source=source))
+    for prg in B.program_list:
+        bundle = '%s.app' % prg[0]
+        bundledir = os.path.dirname(bundle)
+        for dp, dn, df in os.walk(bundle):
+            if '.svn' in dn:
+                dn.remove('.svn')
+            if '_svn' in dn:
+                dn.remove('_svn')
+            dir=env['BF_INSTALLDIR']+dp[len(bundledir):]
+            source=[dp+os.sep+f for f in df]
+            blenderinstall.append(env.Install(dir=dir,source=source))
 else:
-	blenderinstall = env.Install(dir=env['BF_INSTALLDIR'], source=B.program_list)
+    blenderinstall = env.Install(dir=env['BF_INSTALLDIR'], source=B.program_list)
 
 #-- local path = config files in install dir: installdir\VERSION
 #- dont do config and scripts for darwin, it is already in the bundle
@@ -442,90 +444,101 @@ dottargetlist = []
 scriptinstall = []
 
 if  env['OURPLATFORM']!='darwin':
-		for dp, dn, df in os.walk('bin/.blender'):
-			if '.svn' in dn:
-				dn.remove('.svn')
-			
-			for f in df:
-				if not env['WITH_BF_INTERNATIONAL']:
-					if 'locale' in dp:
-						continue
-					if f == '.Blanguages':
-						continue
-				if not env['WITH_BF_FREETYPE']:
-					if f.endswith('.ttf'):
-						continue
-				
-				if 'locale' in dp:
-					datafileslist.append(os.path.join(dp,f))
-					dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['datafiles'] + dp.split(os.sep)[1:]))	# skip bin
-					datafilestargetlist.append(dir + os.sep + f)
+        for dp, dn, df in os.walk('bin/.blender'):
+            if '.svn' in dn:
+                dn.remove('.svn')
+            if '_svn' in dn:
+                dn.remove('_svn')
+            
+            for f in df:
+                if not env['WITH_BF_INTERNATIONAL']:
+                    if 'locale' in dp:
+                        continue
+                    if f == '.Blanguages':
+                        continue
+                if not env['WITH_BF_FREETYPE']:
+                    if f.endswith('.ttf'):
+                        continue
+                
+                if 'locale' in dp:
+                    datafileslist.append(os.path.join(dp,f))
+                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['datafiles'] + dp.split(os.sep)[1:]))    # skip bin
+                    datafilestargetlist.append(dir + os.sep + f)
 
-				else:
-					dotblendlist.append(os.path.join(dp, f))
-					dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['config'] + dp.split(os.sep)[1:]))	# skip bin
-					dottargetlist.append(dir + os.sep + f)
-					
-		dotblenderinstall = []
-		for targetdir,srcfile in zip(dottargetlist, dotblendlist):
-			td, tf = os.path.split(targetdir)
-			dotblenderinstall.append(env.Install(dir=td, source=srcfile))
-		for targetdir,srcfile in zip(datafilestargetlist, datafileslist):
-			td, tf = os.path.split(targetdir)
-			dotblenderinstall.append(env.Install(dir=td, source=srcfile))
-		
-		if env['WITH_BF_PYTHON']:
-			#-- local/VERSION/scripts
-			scriptpaths=['release/scripts']
-			for scriptpath in scriptpaths:
-				for dp, dn, df in os.walk(scriptpath):
-					if '.svn' in dn:
-						dn.remove('.svn')
-					
-					dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
-					dir += os.sep + os.path.basename(scriptpath) + dp[len(scriptpath):]
-					
-					source=[os.path.join(dp, f) for f in df if f[-3:]!='pyc']
-					scriptinstall.append(env.Install(dir=dir,source=source))
+                else:
+                    dotblendlist.append(os.path.join(dp, f))
+                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['config'] + dp.split(os.sep)[1:]))    # skip bin
+                    dottargetlist.append(dir + os.sep + f)
+                    
+        dotblenderinstall = []
+        for targetdir,srcfile in zip(dottargetlist, dotblendlist):
+            td, tf = os.path.split(targetdir)
+            dotblenderinstall.append(env.Install(dir=td, source=srcfile))
+        for targetdir,srcfile in zip(datafilestargetlist, datafileslist):
+            td, tf = os.path.split(targetdir)
+            dotblenderinstall.append(env.Install(dir=td, source=srcfile))
+        
+        if env['WITH_BF_PYTHON']:
+            #-- local/VERSION/scripts
+            scriptpaths=['release/scripts']
+            for scriptpath in scriptpaths:
+                for dp, dn, df in os.walk(scriptpath):
+                    if '.svn' in dn:
+                        dn.remove('.svn')
+                    if '_svn' in dn:
+                        dn.remove('_svn')
+                    
+                    dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
+                    dir += os.sep + os.path.basename(scriptpath) + dp[len(scriptpath):]
+                    
+                    source=[os.path.join(dp, f) for f in df if f[-3:]!='pyc']
+                    # To ensure empty dirs are created too
+                    if len(source)==0:
+                        env.Execute(Mkdir(dir))
+                    scriptinstall.append(env.Install(dir=dir,source=source))
 
 #-- icons
 if env['OURPLATFORM']=='linux2':
-	iconlist = []
-	icontargetlist = []
+    iconlist = []
+    icontargetlist = []
 
-	for tp, tn, tf in os.walk('release/freedesktop/icons'):
-		if '.svn' in tn:
-			tn.remove('.svn')
-		for f in tf:
-			iconlist.append(os.path.join(tp, f))
-			icontargetlist.append( os.path.join(*([env['BF_INSTALLDIR']] + tp.split(os.sep)[2:] + [f])) )
+    for tp, tn, tf in os.walk('release/freedesktop/icons'):
+        if '.svn' in tn:
+            tn.remove('.svn')
+        if '_svn' in tn:
+            tn.remove('_svn')
+        for f in tf:
+            iconlist.append(os.path.join(tp, f))
+            icontargetlist.append( os.path.join(*([env['BF_INSTALLDIR']] + tp.split(os.sep)[2:] + [f])) )
 
-	iconinstall = []
-	for targetdir,srcfile in zip(icontargetlist, iconlist):
-		td, tf = os.path.split(targetdir)
-		iconinstall.append(env.Install(dir=td, source=srcfile))
+    iconinstall = []
+    for targetdir,srcfile in zip(icontargetlist, iconlist):
+        td, tf = os.path.split(targetdir)
+        iconinstall.append(env.Install(dir=td, source=srcfile))
 
 # dlls for linuxcross
 # TODO - add more libs, for now this lets blenderlite run
 if env['OURPLATFORM']=='linuxcross':
-	dir=env['BF_INSTALLDIR']
-	source = []
+    dir=env['BF_INSTALLDIR']
+    source = []
 
-	if env['WITH_BF_OPENMP']:
-		source += ['../lib/windows/pthreads/lib/pthreadGC2.dll']
+    if env['WITH_BF_OPENMP']:
+        source += ['../lib/windows/pthreads/lib/pthreadGC2.dll']
 
-	scriptinstall.append(env.Install(dir=dir, source=source))
+    scriptinstall.append(env.Install(dir=dir, source=source))
 
 #-- plugins
 pluglist = []
 plugtargetlist = []
 for tp, tn, tf in os.walk('release/plugins'):
-	if '.svn' in tn:
-		tn.remove('.svn')
-	df = tp[8:] # remove 'release/'
-	for f in tf:
-		pluglist.append(os.path.join(tp, f))
-		plugtargetlist.append( os.path.join(env['BF_INSTALLDIR'], df, f) )
+    if '.svn' in tn:
+        tn.remove('.svn')
+    if '_svn' in tn:
+        tn.remove('_svn')
+    df = tp[8:] # remove 'release/'
+    for f in tf:
+        pluglist.append(os.path.join(tp, f))
+        plugtargetlist.append( os.path.join(env['BF_INSTALLDIR'], df, f) )
 
 
 # header files for plugins
@@ -546,80 +559,82 @@ plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], 'plugins', 'include', '
 
 plugininstall = []
 for targetdir,srcfile in zip(plugtargetlist, pluglist):
-	td, tf = os.path.split(targetdir)
-	plugininstall.append(env.Install(dir=td, source=srcfile))
+    td, tf = os.path.split(targetdir)
+    plugininstall.append(env.Install(dir=td, source=srcfile))
 
 textlist = []
 texttargetlist = []
 for tp, tn, tf in os.walk('release/text'):
-	if '.svn' in tn:
-		tn.remove('.svn')
-	for f in tf:
-		textlist.append(tp+os.sep+f)
+    if '.svn' in tn:
+        tn.remove('.svn')
+    if '_svn' in tn:
+        tn.remove('_svn')
+    for f in tf:
+        textlist.append(tp+os.sep+f)
 
 textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
 
 if  env['OURPLATFORM']=='darwin':
-		allinstall = [blenderinstall, plugininstall, textinstall]
+        allinstall = [blenderinstall, plugininstall, textinstall]
 elif env['OURPLATFORM']=='linux2':
-		allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall, iconinstall]
+        allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall, iconinstall]
 else:
-		allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]
+        allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
-	dllsources = []
+    dllsources = []
 
-	if not env['OURPLATFORM'] in ('win32-mingw', 'win64-vc', 'linuxcross'):
-		# For MinGW and linuxcross static linking will be used
-		dllsources += ['${LCGDIR}/gettext/lib/gnu_gettext.dll']
+    if not env['OURPLATFORM'] in ('win32-mingw', 'win64-vc', 'linuxcross'):
+        # For MinGW and linuxcross static linking will be used
+        dllsources += ['${LCGDIR}/gettext/lib/gnu_gettext.dll']
 
-	#currently win64-vc doesn't appear to have libpng.dll
-	if env['OURPLATFORM'] != 'win64-vc':
-		dllsources += ['${BF_PNG_LIBPATH}/libpng.dll']
+    #currently win64-vc doesn't appear to have libpng.dll
+    if env['OURPLATFORM'] != 'win64-vc':
+        dllsources += ['${BF_PNG_LIBPATH}/libpng.dll']
 
-	dllsources += ['${BF_ZLIB_LIBPATH}/zlib.dll']
-	# Used when linking to libtiff was dynamic
-	# keep it here until compilation on all platform would be ok
-	# dllsources += ['${BF_TIFF_LIBPATH}/${BF_TIFF_LIB}.dll']
+    dllsources += ['${BF_ZLIB_LIBPATH}/zlib.dll']
+    # Used when linking to libtiff was dynamic
+    # keep it here until compilation on all platform would be ok
+    # dllsources += ['${BF_TIFF_LIBPATH}/${BF_TIFF_LIB}.dll']
 
-	if env['OURPLATFORM'] != 'linuxcross':
-		# pthreads library is already added
-		dllsources += ['${BF_PTHREADS_LIBPATH}/${BF_PTHREADS_LIB}.dll']
+    if env['OURPLATFORM'] != 'linuxcross':
+        # pthreads library is already added
+        dllsources += ['${BF_PTHREADS_LIBPATH}/${BF_PTHREADS_LIB}.dll']
 
-	if env['WITH_BF_SDL']:
-		if env['OURPLATFORM'] == 'win64-vc':
-			pass # we link statically already to SDL on win64
-		else:
-			dllsources.append('${BF_SDL_LIBPATH}/SDL.dll')
+    if env['WITH_BF_SDL']:
+        if env['OURPLATFORM'] == 'win64-vc':
+            pass # we link statically already to SDL on win64
+        else:
+            dllsources.append('${BF_SDL_LIBPATH}/SDL.dll')
 
-	if env['WITH_BF_PYTHON']:
-		if env['BF_DEBUG']:
-			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}_d.dll')
-		else:
-			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}.dll')
+    if env['WITH_BF_PYTHON']:
+        if env['BF_DEBUG']:
+            dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}_d.dll')
+        else:
+            dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_DLL}.dll')
 
-	if env['WITH_BF_ICONV']:
-		if env['OURPLATFORM'] == 'win64-vc':
-			pass # we link statically to iconv on win64
-		elif not env['OURPLATFORM'] in ('win32-mingw', 'linuxcross'):
-			#gettext for MinGW and cross-compilation is compiled staticly
-			dllsources += ['${BF_ICONV_LIBPATH}/iconv.dll']
+    if env['WITH_BF_ICONV']:
+        if env['OURPLATFORM'] == 'win64-vc':
+            pass # we link statically to iconv on win64
+        elif not env['OURPLATFORM'] in ('win32-mingw', 'linuxcross'):
+            #gettext for MinGW and cross-compilation is compiled staticly
+            dllsources += ['${BF_ICONV_LIBPATH}/iconv.dll']
 
-	if env['WITH_BF_OPENAL']:
-		dllsources.append('${LCGDIR}/openal/lib/OpenAL32.dll')
-		dllsources.append('${LCGDIR}/openal/lib/wrap_oal.dll')
+    if env['WITH_BF_OPENAL']:
+        dllsources.append('${LCGDIR}/openal/lib/OpenAL32.dll')
+        dllsources.append('${LCGDIR}/openal/lib/wrap_oal.dll')
 
-	if env['WITH_BF_SNDFILE']:
-		dllsources.append('${LCGDIR}/sndfile/lib/libsndfile-1.dll')
+    if env['WITH_BF_SNDFILE']:
+        dllsources.append('${LCGDIR}/sndfile/lib/libsndfile-1.dll')
 
-	if env['WITH_BF_FFMPEG']:
-		dllsources += ['${BF_FFMPEG_LIBPATH}/avcodec-52.dll',
-					'${BF_FFMPEG_LIBPATH}/avformat-52.dll',
-					'${BF_FFMPEG_LIBPATH}/avdevice-52.dll',
-					'${BF_FFMPEG_LIBPATH}/avutil-50.dll',
-					'${BF_FFMPEG_LIBPATH}/swscale-0.dll']
-	windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
-	allinstall += windlls
+    if env['WITH_BF_FFMPEG']:
+        dllsources += ['${BF_FFMPEG_LIBPATH}/avcodec-52.dll',
+                    '${BF_FFMPEG_LIBPATH}/avformat-52.dll',
+                    '${BF_FFMPEG_LIBPATH}/avdevice-52.dll',
+                    '${BF_FFMPEG_LIBPATH}/avutil-50.dll',
+                    '${BF_FFMPEG_LIBPATH}/swscale-0.dll']
+    windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
+    allinstall += windlls
 
 installtarget = env.Alias('install', allinstall)
 bininstalltarget = env.Alias('install-bin', blenderinstall)
@@ -629,24 +644,24 @@ nsiscmd = env.Command('nsisinstaller', None, nsisaction)
 nsisalias = env.Alias('nsis', nsiscmd)
 
 if 'blender' in B.targets:
-	blenderexe= env.Alias('blender', B.program_list)
-	Depends(blenderexe,installtarget)
+    blenderexe= env.Alias('blender', B.program_list)
+    Depends(blenderexe,installtarget)
 
 if env['WITH_BF_PLAYER']:
-	blenderplayer = env.Alias('blenderplayer', B.program_list)
-	Depends(blenderplayer,installtarget)
+    blenderplayer = env.Alias('blenderplayer', B.program_list)
+    Depends(blenderplayer,installtarget)
 
 if not env['WITH_BF_GAMEENGINE']:
-	blendernogame = env.Alias('blendernogame', B.program_list)
-	Depends(blendernogame,installtarget)
+    blendernogame = env.Alias('blendernogame', B.program_list)
+    Depends(blendernogame,installtarget)
 
 if 'blenderlite' in B.targets:
-	blenderlite = env.Alias('blenderlite', B.program_list)
-	Depends(blenderlite,installtarget)
+    blenderlite = env.Alias('blenderlite', B.program_list)
+    Depends(blenderlite,installtarget)
 
 Depends(nsiscmd, allinstall)
 
 Default(B.program_list)
 
 if not env['WITHOUT_BF_INSTALL']:
-		Default(installtarget)
+        Default(installtarget)

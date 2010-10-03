@@ -20,22 +20,21 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
 
-
-class DataButtonsPanel():
+class CameraButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         engine = context.scene.render.engine
-        return context.camera and (engine in self.COMPAT_ENGINES)
+        return context.camera and (engine in cls.COMPAT_ENGINES)
 
 
-class DATA_PT_context_camera(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_context_camera(CameraButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -44,29 +43,17 @@ class DATA_PT_context_camera(DataButtonsPanel, bpy.types.Panel):
         ob = context.object
         cam = context.camera
         space = context.space_data
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            split = layout.split(percentage=0.65)
-            if ob:
-                split.template_ID(ob, "data")
-                split.separator()
-            elif cam:
-                split.template_ID(space, "pin_id")
-                split.separator()
-        else:
-            if ob:
-                layout.template_ID(ob, "data")
-            elif cam:
-                layout.template_ID(space, "pin_id")
+        split = layout.split(percentage=0.65)
+        if ob:
+            split.template_ID(ob, "data")
+            split.separator()
+        elif cam:
+            split.template_ID(space, "pin_id")
+            split.separator()
 
 
-class DATA_PT_custom_props_camera(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
-    _context_path = "object.data"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-
-class DATA_PT_camera(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
     bl_label = "Lens"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -74,12 +61,8 @@ class DATA_PT_camera(DataButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         cam = context.camera
-        wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(cam, "type", expand=True)
-        else:
-            layout.prop(cam, "type", text="")
+        layout.prop(cam, "type", expand=True)
 
         split = layout.split()
 
@@ -89,14 +72,13 @@ class DATA_PT_camera(DataButtonsPanel, bpy.types.Panel):
                 col.prop(cam, "lens", text="Angle")
             elif cam.lens_unit == 'DEGREES':
                 col.prop(cam, "angle")
-            if wide_ui:
-                col = split.column()
+            col = split.column()
             col.prop(cam, "lens_unit", text="")
 
         elif cam.type == 'ORTHO':
             col.prop(cam, "ortho_scale")
 
-        layout.prop(cam, "panorama")
+        layout.prop(cam, "use_panorama")
 
         split = layout.split()
 
@@ -105,8 +87,7 @@ class DATA_PT_camera(DataButtonsPanel, bpy.types.Panel):
         col.prop(cam, "shift_x", text="X")
         col.prop(cam, "shift_y", text="Y")
 
-        if wide_ui:
-            col = split.column(align=True)
+        col = split.column(align=True)
         col.label(text="Clipping:")
         col.prop(cam, "clip_start", text="Start")
         col.prop(cam, "clip_end", text="End")
@@ -118,16 +99,14 @@ class DATA_PT_camera(DataButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(cam, "dof_object", text="")
 
-        if wide_ui:
-            col = split.column()
-        else:
-            col = col.column()
+        col = split.column()
+
         if cam.dof_object != None:
             col.enabled = False
         col.prop(cam, "dof_distance", text="Distance")
 
 
-class DATA_PT_camera_display(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_camera_display(CameraButtonsPanel, bpy.types.Panel):
     bl_label = "Display"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -135,7 +114,6 @@ class DATA_PT_camera_display(DataButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         cam = context.camera
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
@@ -145,14 +123,18 @@ class DATA_PT_camera_display(DataButtonsPanel, bpy.types.Panel):
         col.prop(cam, "show_title_safe", text="Title Safe")
         col.prop(cam, "show_name", text="Name")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(cam, "draw_size", text="Size")
         col.separator()
         col.prop(cam, "show_passepartout", text="Passepartout")
         sub = col.column()
         sub.active = cam.show_passepartout
         sub.prop(cam, "passepartout_alpha", text="Alpha", slider=True)
+
+
+class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "object.data"
 
 
 def register():

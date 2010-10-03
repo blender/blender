@@ -36,17 +36,6 @@
 struct EnumPropertyItem;
 struct ReportList;
 
-void PyObSpit(char *name, PyObject *var);
-void PyLineSpit(void);
-void BPY_getFileAndNum(char **filename, int *lineno);
-
-PyObject *BPY_exception_buffer(void);
-
-/* own python like utility function */
-PyObject *PyObject_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
-
-
-
 /* Class type checking, use for checking classes can be added as operators, panels etc */
 typedef struct BPY_class_attr_check {
 	const char	*name;		/* name of the class attribute */
@@ -77,6 +66,4 @@ void BPy_SetContext(struct bContext *C);
 
 extern void bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate);
 extern void bpy_context_clear(struct bContext *C, PyGILState_STATE *gilstate);
-
-int BPyAsPrimitiveArray(void *array, PyObject *value, int length, PyTypeObject *type, char *error_prefix);
 #endif

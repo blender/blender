@@ -27,25 +27,18 @@
 #include "AUD_SinusReader.h"
 #include "AUD_Space.h"
 
-AUD_SinusFactory::AUD_SinusFactory(double frequency, AUD_SampleRate sampleRate)
+AUD_SinusFactory::AUD_SinusFactory(float frequency, AUD_SampleRate sampleRate) :
+	m_frequency(frequency),
+	m_sampleRate(sampleRate)
 {
-	m_frequency = frequency;
-	m_sampleRate = sampleRate;
 }
 
-AUD_IReader* AUD_SinusFactory::createReader()
-{
-	AUD_IReader* reader = new AUD_SinusReader(m_frequency, m_sampleRate);
-	AUD_NEW("reader")
-	return reader;
-}
-
-double AUD_SinusFactory::getFrequency()
+float AUD_SinusFactory::getFrequency() const
 {
 	return m_frequency;
 }
 
-void AUD_SinusFactory::setFrequency(double frequency)
+AUD_IReader* AUD_SinusFactory::createReader() const
 {
-	m_frequency = frequency;
+	return new AUD_SinusReader(m_frequency, m_sampleRate);
 }

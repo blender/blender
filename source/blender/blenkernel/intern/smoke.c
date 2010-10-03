@@ -37,8 +37,8 @@
 
 #include <float.h>
 #include <math.h>
-#include "stdio.h"
-#include "string.h" /* memset */
+#include <stdio.h>
+#include <string.h> /* memset */
 
 #include "BLI_linklist.h"
 #include "BLI_rand.h"
@@ -1350,7 +1350,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		if(framenr > endframe)
 			return;
 
-		if(!smd->domain->fluid && (framenr != startframe))
+		if(!smd->domain->fluid && (framenr != startframe) && (cache->flag & PTCACHE_BAKED)==0)
 			return;
 
 		// printf("startframe: %d, framenr: %d\n", startframe, framenr);

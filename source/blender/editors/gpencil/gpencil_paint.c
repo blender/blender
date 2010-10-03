@@ -40,7 +40,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -69,6 +68,9 @@ typedef struct tGPsdata {
 	ScrArea *sa;		/* area where painting originated */
 	ARegion *ar;        /* region where painting originated */
 	View2D *v2d;		/* needed for GP_STROKE_2DSPACE */
+	rctf *subrect;		/* for using the camera rect within the 3d view */
+	rctf subrect_data;
+	
 	
 #if 0 // XXX review this 2d image stuff...
 	ImBuf *ibuf;		/* needed for GP_STROKE_2DIMAGE */
@@ -272,8 +274,14 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[], flo
 	
 	/* 2d - relative to screen (viewport area) */
 	else {
-		out[0] = (float)(mval[0]) / (float)(p->ar->winx) * 100;
-		out[1] = (float)(mval[1]) / (float)(p->ar->winy) * 100;
+		if(p->subrect == NULL) { /* normal 3D view */
+			out[0] = (float)(mval[0]) / (float)(p->ar->winx) * 100;
+			out[1] = (float)(mval[1]) / (float)(p->ar->winy) * 100;
+		}
+		else { /* camera view, use subrect */
+			out[0]= ((mval[0] - p->subrect->xmin) / ((p->subrect->xmax - p->subrect->xmin))) * 100;
+			out[1]= ((mval[1] - p->subrect->ymin) / ((p->subrect->ymax - p->subrect->ymin))) * 100;
+		}
 	}
 }
 
@@ -705,8 +713,14 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], sho
 		}
 #endif
 		else {
-			x0= (int)(gps->points->x / 100 * p->ar->winx);
-			y0= (int)(gps->points->y / 100 * p->ar->winy);
+			if(p->subrect == NULL) { /* normal 3D view */
+				x0= (int)(gps->points->x / 100 * p->ar->winx);
+				y0= (int)(gps->points->y / 100 * p->ar->winy);
+			}
+			else { /* camera view, use subrect */
+				x0= (int)((gps->points->x / 100) * (p->subrect->xmax - p->subrect->xmin)) + p->subrect->xmin;
+				y0= (int)((gps->points->y / 100) * (p->subrect->ymax - p->subrect->ymin)) + p->subrect->ymin;
+			}
 		}
 		
 		/* do boundbox check first */
@@ -762,10 +776,18 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], sho
 			}
 #endif
 			else {
-				x0= (int)(pt1->x / 100 * p->ar->winx);
-				y0= (int)(pt1->y / 100 * p->ar->winy);
-				x1= (int)(pt2->x / 100 * p->ar->winx);
-				y1= (int)(pt2->y / 100 * p->ar->winy);
+				if(p->subrect == NULL) { /* normal 3D view */
+					x0= (int)(pt1->x / 100 * p->ar->winx);
+					y0= (int)(pt1->y / 100 * p->ar->winy);
+					x1= (int)(pt2->x / 100 * p->ar->winx);
+					y1= (int)(pt2->y / 100 * p->ar->winy);
+				}
+				else { /* camera view, use subrect */ 
+					x0= (int)((pt1->x / 100) * (p->subrect->xmax - p->subrect->xmin)) + p->subrect->xmin;
+					y0= (int)((pt1->y / 100) * (p->subrect->ymax - p->subrect->ymin)) + p->subrect->ymin;
+					x1= (int)((pt2->x / 100) * (p->subrect->xmax - p->subrect->xmin)) + p->subrect->xmin;
+					y1= (int)((pt2->y / 100) * (p->subrect->ymax - p->subrect->ymin)) + p->subrect->ymin;
+				}
 			}
 			
 			/* check that point segment of the boundbox of the eraser stroke */
@@ -850,7 +872,8 @@ static tGPsdata *gp_session_initpaint (bContext *C)
 		/* supported views first */
 		case SPACE_VIEW3D:
 		{
-			//View3D *v3d= curarea->spacedata.first;
+			View3D *v3d= curarea->spacedata.first;
+			RegionView3D *rv3d= ar->regiondata;
 			
 			/* set current area 
 			 *	- must verify that region data is 3D-view (and not something else)
@@ -865,6 +888,12 @@ static tGPsdata *gp_session_initpaint (bContext *C)
 				return p;
 			}
 			
+			/* for camera view set the subrect */
+			if(rv3d->persp == RV3D_CAMOB) {
+				view3d_calc_camera_border(p->scene, p->ar, NULL, v3d, &p->subrect_data);
+				p->subrect= &p->subrect_data;
+			}
+
 #if 0 // XXX will this sort of antiquated stuff be restored?
 			/* check that gpencil data is allowed to be drawn */
 			if ((v3d->flag2 & V3D_DISPGP)==0) {

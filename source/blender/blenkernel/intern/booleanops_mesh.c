@@ -30,7 +30,6 @@
  */
 #include "CSG_BooleanOps.h"
 
-#include "MEM_guardedalloc.h"
 
 
 

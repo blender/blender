@@ -51,6 +51,8 @@
 #include "BKE_displist.h"
 #include "BKE_library.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
+#include "BKE_multires.h"
 #include "BKE_key.h"
 /* these 2 are only used by conversion functions */
 #include "BKE_curve.h"
@@ -265,6 +267,7 @@ void make_local_tface(Mesh *me)
 
 void make_local_mesh(Mesh *me)
 {
+	Main *bmain= G.main;
 	Object *ob;
 	Mesh *men;
 	int local=0, lib=0;
@@ -285,7 +288,7 @@ void make_local_mesh(Mesh *me)
 		return;
 	}
 	
-	ob= G.main->object.first;
+	ob= bmain->object.first;
 	while(ob) {
 		if( me==get_mesh(ob) ) {
 			if(ob->id.lib) lib= 1;
@@ -306,7 +309,7 @@ void make_local_mesh(Mesh *me)
 		men= copy_mesh(me);
 		men->id.us= 0;
 		
-		ob= G.main->object.first;
+		ob= bmain->object.first;
 		while(ob) {
 			if( me==get_mesh(ob) ) {				
 				if(ob->id.lib==0) {
@@ -437,7 +440,7 @@ void transform_mesh_orco_verts(Mesh *me, float (*orco)[3], int totvert, int inve
 int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 {
 	/* first test if the face is legal */
-	if(mface->v3 && mface->v3==mface->v4) {
+	if((mface->v3 || nr==4) && mface->v3==mface->v4) {
 		mface->v4= 0;
 		nr--;
 	}
@@ -491,6 +494,8 @@ Mesh *get_mesh(Object *ob)
 void set_mesh(Object *ob, Mesh *me)
 {
 	Mesh *old=0;
+
+	multires_force_update(ob);
 	
 	if(ob==0) return;
 	
@@ -503,6 +508,8 @@ void set_mesh(Object *ob, Mesh *me)
 	}
 	
 	test_object_materials((ID *)me);
+
+	test_object_modifiers(ob);
 }
 
 /* ************** make edges in a Mesh, for outside of editmode */
@@ -847,6 +854,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 				mface->v2= startvert+index[2];
 				mface->v3= startvert+index[1];
 				mface->v4= 0;
+				mface->mat_nr= (unsigned char)dl->col;
 				test_index_face(mface, NULL, 0, 3);
 
 				if(smooth) mface->flag |= ME_SMOOTH;
@@ -925,6 +933,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 /* this may fail replacing ob->data, be sure to check ob->type */
 void nurbs_to_mesh(Object *ob)
 {
+	Main *bmain= G.main;
 	Object *ob1;
 	DerivedMesh *dm= ob->derivedFinal;
 	Mesh *me;
@@ -967,13 +976,13 @@ void nurbs_to_mesh(Object *ob)
 	cu->totcol= 0;
 
 	if(ob->data) {
-		free_libblock(&G.main->curve, ob->data);
+		free_libblock(&bmain->curve, ob->data);
 	}
 	ob->data= me;
 	ob->type= OB_MESH;
 
 	/* other users */
-	ob1= G.main->object.first;
+	ob1= bmain->object.first;
 	while(ob1) {
 		if(ob1->data==cu) {
 			ob1->type= OB_MESH;
@@ -1234,14 +1243,10 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 		MVert *mv= &mverts[i];
 		float *no= tnorms[i];
 		
-		if (normalize_v3(no)==0.0) {
-			VECCOPY(no, mv->co);
-			normalize_v3(no);
-		}
+		if (normalize_v3(no)==0.0)
+			normalize_v3_v3(no, mv->co);
 
-		mv->no[0]= (short)(no[0]*32767.0);
-		mv->no[1]= (short)(no[1]*32767.0);
-		mv->no[2]= (short)(no[2]*32767.0);
+		normal_float_to_short_v3(mv->no, no);
 	}
 	
 	MEM_freeN(tnorms);

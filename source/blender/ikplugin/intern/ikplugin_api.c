@@ -27,7 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "MEM_guardedalloc.h"
 
 #include "BIK_api.h"
 #include "BLI_blenlib.h"
@@ -43,10 +42,12 @@
 
 #include "ikplugin_api.h"
 #include "iksolver_plugin.h"
+
+#ifdef WITH_IK_ITASC
 #include "itasc_plugin.h"
+#endif
 
-
-static IKPlugin ikplugin_tab[BIK_SOLVER_COUNT] = {
+static IKPlugin ikplugin_tab[] = {
 	/* Legacy IK solver */
 	{
 		iksolver_initialize_tree,
@@ -56,6 +57,7 @@ static IKPlugin ikplugin_tab[BIK_SOLVER_COUNT] = {
 		NULL,
 		NULL,
 		NULL,
+#ifdef WITH_IK_ITASC
 	},
 	/* iTaSC IK solver */
 	{
@@ -66,13 +68,13 @@ static IKPlugin ikplugin_tab[BIK_SOLVER_COUNT] = {
 		itasc_clear_cache,
 		itasc_update_param,
 		itasc_test_constraint,
+#endif
 	}
 };
 
-
 static IKPlugin *get_plugin(bPose *pose)
 {
-	if (!pose || pose->iksolver < 0 || pose->iksolver >= BIK_SOLVER_COUNT)
+	if (!pose || pose->iksolver < 0 || pose->iksolver >= (sizeof(ikplugin_tab) / sizeof(IKPlugin)))
 		return NULL;
 
 	return &ikplugin_tab[pose->iksolver];
@@ -136,3 +138,4 @@ void BIK_test_constraint(struct Object *ob, struct bConstraint *cons)
 	if (plugin && plugin->test_constraint)
 		plugin->test_constraint(ob, cons);
 }
+

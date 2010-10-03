@@ -20,36 +20,37 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-narrowui = bpy.context.user_preferences.view.properties_width_check
 
-
-class DataButtonsPanel():
+class CurveButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return (context.object and context.object.type in ('CURVE', 'SURFACE', 'TEXT') and context.curve)
 
 
-class DataButtonsPanelCurve(DataButtonsPanel):
+class CurveButtonsPanelCurve(CurveButtonsPanel):
     '''Same as above but for curves only'''
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return (context.object and context.object.type == 'CURVE' and context.curve)
 
 
-class DataButtonsPanelActive(DataButtonsPanel):
+class CurveButtonsPanelActive(CurveButtonsPanel):
     '''Same as above but for curves only'''
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         curve = context.curve
         return (curve and type(curve) is not bpy.types.TextCurve and curve.splines.active)
 
 
-class DATA_PT_context_curve(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_context_curve(CurveButtonsPanel, bpy.types.Panel):
     bl_label = ""
-    bl_show_header = False
+    bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout
@@ -57,27 +58,18 @@ class DATA_PT_context_curve(DataButtonsPanel, bpy.types.Panel):
         ob = context.object
         curve = context.curve
         space = context.space_data
-        wide_ui = context.region.width > narrowui
+
+        split = layout.split(percentage=0.65)
+
+        if ob:
+            split.template_ID(ob, "data")
+            split.separator()
+        elif curve:
+            split.template_ID(space, "pin_id")
+            split.separator()
 
 
-        if wide_ui:
-            split = layout.split(percentage=0.65)
-
-            if ob:
-                split.template_ID(ob, "data")
-                split.separator()
-            elif curve:
-                split.template_ID(space, "pin_id")
-                split.separator()
-        else:
-            layout.template_ID(ob, "data")
-
-
-class DATA_PT_custom_props_curve(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
-    _context_path = "object.data"
-
-
-class DATA_PT_shape_curve(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
     bl_label = "Shape"
 
     def draw(self, context):
@@ -85,7 +77,6 @@ class DATA_PT_shape_curve(DataButtonsPanel, bpy.types.Panel):
 
         ob = context.object
         curve = context.curve
-        wide_ui = context.region.width > narrowui
         is_surf = (ob.type == 'SURFACE')
         is_curve = (ob.type == 'CURVE')
         is_text = (ob.type == 'TEXT')
@@ -107,10 +98,9 @@ class DATA_PT_shape_curve(DataButtonsPanel, bpy.types.Panel):
             col.prop(curve, "twist_smooth", text="Smooth")
         if is_text:
             col.label(text="Display:")
-            col.prop(curve, "fast", text="Fast Editing")
+            col.prop(curve, "use_fast_edit", text="Fast Editing")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
 
         if is_surf:
             sub = col.column(align=True)
@@ -118,22 +108,24 @@ class DATA_PT_shape_curve(DataButtonsPanel, bpy.types.Panel):
             sub.prop(curve, "resolution_v", text="Preview V")
             sub.prop(curve, "render_resolution_v", text="Render V")
 
-        if is_curve or is_text:
+        if (is_curve or is_text):
             sub = col.column()
-            sub.label(text="Caps:")
-            sub.prop(curve, "front")
-            sub.prop(curve, "back")
-            sub.prop(curve, "use_deform_fill")
+            sub.active = (curve.bevel_object is None)
+            sub.label(text="Fill:")
+            sub.prop(curve, "use_fill_front")
+            sub.prop(curve, "use_fill_back")
+            sub.prop(curve, "use_fill_deform", text="Use Deformed")
 
         col.label(text="Textures:")
-        col.prop(curve, "map_along_length")
-        col.prop(curve, "auto_texspace")
+        col.prop(curve, "use_map_on_length")
+        col.prop(curve, "use_auto_texspace")
 
 
-class DATA_PT_geometry_curve(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_geometry_curve(CurveButtonsPanel, bpy.types.Panel):
     bl_label = "Geometry"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         obj = context.object
         if obj and obj.type == 'SURFACE':
             return False
@@ -144,19 +136,17 @@ class DATA_PT_geometry_curve(DataButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         curve = context.curve
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
 
         col = split.column()
         col.label(text="Modification:")
-        col.prop(curve, "width")
+        col.prop(curve, "offset")
         col.prop(curve, "extrude")
         col.label(text="Taper Object:")
         col.prop(curve, "taper_object", text="")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Bevel:")
         col.prop(curve, "bevel_depth", text="Depth")
         col.prop(curve, "bevel_resolution", text="Resolution")
@@ -164,7 +154,7 @@ class DATA_PT_geometry_curve(DataButtonsPanel, bpy.types.Panel):
         col.prop(curve, "bevel_object", text="")
 
 
-class DATA_PT_pathanim(DataButtonsPanelCurve, bpy.types.Panel):
+class DATA_PT_pathanim(CurveButtonsPanelCurve, bpy.types.Panel):
     bl_label = "Path Animation"
 
     def draw_header(self, context):
@@ -176,12 +166,11 @@ class DATA_PT_pathanim(DataButtonsPanelCurve, bpy.types.Panel):
         layout = self.layout
 
         curve = context.curve
-        wide_ui = context.region.width > narrowui
 
         layout.active = curve.use_path
 
         col = layout.column()
-        layout.prop(curve, "path_length", text="Frames")
+        layout.prop(curve, "path_duration", text="Frames")
         layout.prop(curve, "eval_time")
 
         split = layout.split()
@@ -189,14 +178,14 @@ class DATA_PT_pathanim(DataButtonsPanelCurve, bpy.types.Panel):
         col = split.column()
         col.prop(curve, "use_path_follow")
         col.prop(curve, "use_stretch")
+        col.prop(curve, "use_deform_bounds")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.prop(curve, "use_radius")
         col.prop(curve, "use_time_offset", text="Offset Children")
 
 
-class DATA_PT_active_spline(DataButtonsPanelActive, bpy.types.Panel):
+class DATA_PT_active_spline(CurveButtonsPanelActive, bpy.types.Panel):
     bl_label = "Active Spline"
 
     def draw(self, context):
@@ -215,9 +204,9 @@ class DATA_PT_active_spline(DataButtonsPanelActive, bpy.types.Panel):
             # poly's set aside since they use so few settings
             col = split.column()
             col.label(text="Cyclic:")
-            col.prop(act_spline, "smooth")
+            col.prop(act_spline, "use_smooth")
             col = split.column()
-            col.prop(act_spline, "cyclic_u", text="U")
+            col.prop(act_spline, "use_cyclic_u", text="U")
 
         else:
             col = split.column()
@@ -230,13 +219,13 @@ class DATA_PT_active_spline(DataButtonsPanelActive, bpy.types.Panel):
             col.label(text="Resolution:")
 
             col = split.column()
-            col.prop(act_spline, "cyclic_u", text="U")
+            col.prop(act_spline, "use_cyclic_u", text="U")
 
             if act_spline.type == 'NURBS':
                 sub = col.column()
-                # sub.active = (not act_spline.cyclic_u)
-                sub.prop(act_spline, "bezier_u", text="U")
-                sub.prop(act_spline, "endpoint_u", text="U")
+                # sub.active = (not act_spline.use_cyclic_u)
+                sub.prop(act_spline, "use_bezier_u", text="U")
+                sub.prop(act_spline, "use_endpoint_u", text="U")
 
                 sub = col.column()
                 sub.prop(act_spline, "order_u", text="U")
@@ -244,13 +233,13 @@ class DATA_PT_active_spline(DataButtonsPanelActive, bpy.types.Panel):
 
             if is_surf:
                 col = split.column()
-                col.prop(act_spline, "cyclic_v", text="V")
+                col.prop(act_spline, "use_cyclic_v", text="V")
 
                 # its a surface, assume its a nurb.
                 sub = col.column()
-                sub.active = (not act_spline.cyclic_v)
-                sub.prop(act_spline, "bezier_v", text="V")
-                sub.prop(act_spline, "endpoint_v", text="V")
+                sub.active = (not act_spline.use_cyclic_v)
+                sub.prop(act_spline, "use_bezier_v", text="V")
+                sub.prop(act_spline, "use_endpoint_v", text="V")
                 sub = col.column()
                 sub.prop(act_spline, "order_v", text="V")
                 sub.prop(act_spline, "resolution_v", text="V")
@@ -264,13 +253,14 @@ class DATA_PT_active_spline(DataButtonsPanelActive, bpy.types.Panel):
                 col.prop(act_spline, "tilt_interpolation", text="Tilt")
                 col.prop(act_spline, "radius_interpolation", text="Radius")
 
-            layout.prop(act_spline, "smooth")
+            layout.prop(act_spline, "use_smooth")
 
 
-class DATA_PT_font(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
     bl_label = "Font"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
 
     def draw(self, context):
@@ -278,21 +268,16 @@ class DATA_PT_font(DataButtonsPanel, bpy.types.Panel):
 
         text = context.curve
         char = context.curve.edit_format
-        wide_ui = context.region.width > narrowui
 
         layout.template_ID(text, "font", open="font.open", unlink="font.unlink")
 
-        #if wide_ui:
-        #    layout.prop(text, "font")
-        #else:
-        #    layout.prop(text, "font", text="")
+        #layout.prop(text, "font")
 
         split = layout.split()
 
         col = split.column()
-        col.prop(text, "text_size", text="Size")
-        if wide_ui:
-            col = split.column()
+        col.prop(text, "size", text="Size")
+        col = split.column()
         col.prop(text, "shear")
 
         split = layout.split()
@@ -301,86 +286,79 @@ class DATA_PT_font(DataButtonsPanel, bpy.types.Panel):
         col.label(text="Object Font:")
         col.prop(text, "family", text="")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Text on Curve:")
-        col.prop(text, "text_on_curve", text="")
+        col.prop(text, "follow_curve", text="")
 
         split = layout.split()
 
         col = split.column()
         colsub = col.column(align=True)
         colsub.label(text="Underline:")
-        colsub.prop(text, "ul_position", text="Position")
-        colsub.prop(text, "ul_height", text="Thickness")
+        colsub.prop(text, "underline_position", text="Position")
+        colsub.prop(text, "underline_height", text="Thickness")
 
-        if wide_ui:
-            col = split.column()
+        col = split.column()
         col.label(text="Character:")
-        col.prop(char, "bold")
-        col.prop(char, "italic")
-        col.prop(char, "underline")
-        
+        col.prop(char, "use_bold")
+        col.prop(char, "use_italic")
+        col.prop(char, "use_underline")
+
         split = layout.split()
         col = split.column()
         col.prop(text, "small_caps_scale", text="Small Caps")
-        
+
         col = split.column()
         col.prop(char, "use_small_caps")
 
 
-class DATA_PT_paragraph(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_paragraph(CurveButtonsPanel, bpy.types.Panel):
     bl_label = "Paragraph"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
 
     def draw(self, context):
         layout = self.layout
 
         text = context.curve
-        wide_ui = context.region.width > narrowui
 
         layout.label(text="Align:")
-        if wide_ui:
-            layout.prop(text, "spacemode", expand=True)
-        else:
-            layout.prop(text, "spacemode", text="")
+        layout.prop(text, "align", expand=True)
 
         split = layout.split()
 
         col = split.column(align=True)
         col.label(text="Spacing:")
-        col.prop(text, "spacing", text="Character")
-        col.prop(text, "word_spacing", text="Word")
-        col.prop(text, "line_dist", text="Line")
+        col.prop(text, "space_character", text="Character")
+        col.prop(text, "space_word", text="Word")
+        col.prop(text, "space_line", text="Line")
 
-        if wide_ui:
-            col = split.column(align=True)
+        col = split.column(align=True)
         col.label(text="Offset:")
         col.prop(text, "offset_x", text="X")
         col.prop(text, "offset_y", text="Y")
 
 
-class DATA_PT_textboxes(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_textboxes(CurveButtonsPanel, bpy.types.Panel):
     bl_label = "Text Boxes"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return (context.object and context.object.type == 'TEXT' and context.curve)
 
     def draw(self, context):
         layout = self.layout
 
         text = context.curve
-        wide_ui = context.region.width > narrowui
 
         split = layout.split()
         col = split.column()
         col.operator("font.textbox_add", icon='ZOOMIN')
-        if wide_ui:
-            col = split.column()
+        col = split.column()
 
-        for i, box in enumerate(text.textboxes):
+        for i, box in enumerate(text.text_boxes):
 
             boxy = layout.box()
 
@@ -394,14 +372,18 @@ class DATA_PT_textboxes(DataButtonsPanel, bpy.types.Panel):
             col.prop(box, "width", text="Width")
             col.prop(box, "height", text="Height")
 
-            if wide_ui:
-                col = split.column(align=True)
+            col = split.column(align=True)
 
             col.label(text="Offset:")
             col.prop(box, "x", text="X")
             col.prop(box, "y", text="Y")
 
             row.operator("font.textbox_remove", text='', icon='X', emboss=False).index = i
+
+
+class DATA_PT_custom_props_curve(CurveButtonsPanel, PropertyPanel, bpy.types.Panel):
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    _context_path = "object.data"
 
 
 def register():

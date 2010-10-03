@@ -31,8 +31,6 @@
 
 #include <stdio.h> /* for FILE */
 
-#include "MEM_guardedalloc.h"
-
 unsigned int GET_FCC (FILE *fp);
 unsigned int GET_TCC (FILE *fp);
 

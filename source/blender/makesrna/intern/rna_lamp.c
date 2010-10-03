@@ -159,7 +159,7 @@ static void rna_def_lamp_mtex(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "MTex");
 	RNA_def_struct_ui_text(srna, "Lamp Texture Slot", "Texture slot for textures in a Lamp datablock");
 
-	prop= RNA_def_property(srna, "texture_coordinates", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "texture_coords", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texco");
 	RNA_def_property_enum_items(prop, prop_texture_coordinates_items);
 	RNA_def_property_ui_text(prop, "Texture Coordinates", "");
@@ -170,12 +170,12 @@ static void rna_def_lamp_mtex(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object", "Object to use for mapping with Object texture coordinates");
 
-	prop= RNA_def_property(srna, "map_color", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_map_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", LAMAP_COL);
 	RNA_def_property_ui_text(prop, "Color", "Lets the texture affect the basic color of the lamp");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "map_shadow", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_map_shadow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", LAMAP_SHAD);
 	RNA_def_property_ui_text(prop, "Shadow", "Lets the texture affect the shadow color of the lamp");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
@@ -362,22 +362,22 @@ static void rna_def_lamp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Color", "Light color");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
-	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_own_layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_LAYER);
 	RNA_def_property_ui_text(prop, "Layer", "Illuminates objects only on the same layer the lamp is on");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "negative", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_negative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_NEG);
 	RNA_def_property_ui_text(prop, "Negative", "Lamp casts negative light");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "specular", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_specular", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "mode", LA_NO_SPEC);
 	RNA_def_property_ui_text(prop, "Specular", "Lamp creates specular highlights");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "diffuse", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_diffuse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "mode", LA_NO_DIFF);
 	RNA_def_property_ui_text(prop, "Diffuse", "Lamp does diffuse shading");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
@@ -386,8 +386,8 @@ static void rna_def_lamp(BlenderRNA *brna)
 	rna_def_animdata_common(srna);
 	
 	/* textures */
-	rna_def_mtex_common(srna, "rna_Lamp_mtex_begin", "rna_Lamp_active_texture_get",
-		"rna_Lamp_active_texture_set", "LampTextureSlot", "rna_Lamp_update");
+	rna_def_mtex_common(brna, srna, "rna_Lamp_mtex_begin", "rna_Lamp_active_texture_get",
+		"rna_Lamp_active_texture_set", "LampTextureSlot", "LampTextureSlots", "rna_Lamp_update");
 }
 
 static void rna_def_lamp_falloff(StructRNA *srna)
@@ -412,7 +412,7 @@ static void rna_def_lamp_falloff(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom Lamp Falloff Curve");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "sphere", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_sphere", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_SPHERE);
 	RNA_def_property_ui_text(prop, "Sphere", "Sets light intensity to zero beyond lamp distance");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
@@ -468,12 +468,12 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 	RNA_def_property_ui_text(prop, "Shadow Color", "Color of shadows cast by the lamp");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "only_shadow", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_only_shadow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_ONLYSHADOW);
 	RNA_def_property_ui_text(prop, "Only Shadow", "Causes light to cast shadows only without illuminating objects");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "shadow_ray_sampling_method", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "shadow_ray_sample_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ray_samp_method");
 	RNA_def_property_enum_items(prop, (area)? prop_spot_ray_sampling_method_items: prop_ray_sampling_method_items);
 	RNA_def_property_ui_text(prop, "Shadow Ray Sampling Method", "Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower");
@@ -505,7 +505,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 	RNA_def_property_ui_text(prop, "Shadow Soft Size", "Light size for ray shadow sampling (Raytraced shadows)");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "shadow_layer", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_shadow_layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_LAYER_SHADOW);
 	RNA_def_property_ui_text(prop, "Shadow Layer", "Causes only objects on the same layer to cast shadows");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
@@ -541,17 +541,17 @@ static void rna_def_area_lamp(BlenderRNA *brna)
 
 	rna_def_lamp_shadow(srna, 0, 1);
 
-	prop= RNA_def_property(srna, "umbra", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_umbra", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ray_samp_type", LA_SAMP_UMBRA);
 	RNA_def_property_ui_text(prop, "Umbra", "Emphasize parts that are fully shadowed (Constant Jittered sampling)");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "dither", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_dither", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ray_samp_type", LA_SAMP_DITHER);
 	RNA_def_property_ui_text(prop, "Dither", "Use 2x2 dithering for sampling  (Constant Jittered sampling)");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "jitter", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_jitter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ray_samp_type", LA_SAMP_JITTER);
 	RNA_def_property_ui_text(prop, "Jitter", "Use noise for sampling  (Constant Jittered sampling)");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
@@ -613,12 +613,12 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 	rna_def_lamp_falloff(srna);
 	rna_def_lamp_shadow(srna, 1, 0);
 
-	prop= RNA_def_property(srna, "square", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_square", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_SQUARE);
 	RNA_def_property_ui_text(prop, "Square", "Casts a square spot light shape");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
-	prop= RNA_def_property(srna, "halo", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_halo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_HALO);
 	RNA_def_property_ui_text(prop, "Halo", "Renders spotlight with a volumetric halo (Buffer Shadows)");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
@@ -708,12 +708,12 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shadow Buffer Type", "Type of shadow buffer");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop= RNA_def_property(srna, "auto_clip_start", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_auto_clip_start", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bufflag", LA_SHADBUF_AUTO_START);
 	RNA_def_property_ui_text(prop, "Autoclip Start",  "Automatic calculation of clipping-start, based on visible vertices");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
-	prop= RNA_def_property(srna, "auto_clip_end", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_auto_clip_end", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bufflag", LA_SHADBUF_AUTO_END);
 	RNA_def_property_ui_text(prop, "Autoclip End", "Automatic calculation of clipping-end, based on visible vertices");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");

@@ -24,72 +24,13 @@
  */
 
 #include "AUD_Mixer.h"
-#include "AUD_SRCResampleFactory.h"
-#include "AUD_LinearResampleFactory.h"
-#include "AUD_ChannelMapperFactory.h"
 #include "AUD_IReader.h"
-#include "AUD_Buffer.h"
 
 #include <cstring>
 
-AUD_Mixer::AUD_Mixer()
+AUD_Mixer::AUD_Mixer(AUD_DeviceSpecs specs) :
+	m_specs(specs)
 {
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
-
-	m_resampler = NULL;
-	m_mapper = NULL;
-}
-
-AUD_Mixer::~AUD_Mixer()
-{
-	delete m_buffer; AUD_DELETE("buffer")
-
-
-	if(m_resampler)
-	{
-		delete m_resampler; AUD_DELETE("factory")
-	}
-	if(m_mapper)
-	{
-		delete m_mapper; AUD_DELETE("factory")
-	}
-}
-
-AUD_IReader* AUD_Mixer::prepare(AUD_IReader* reader)
-{
-	m_resampler->setReader(reader);
-	reader = m_resampler->createReader();
-
-	if(reader != NULL && reader->getSpecs().channels != m_specs.channels)
-	{
-		m_mapper->setReader(reader);
-		reader = m_mapper->createReader();
-	}
-
-	return reader;
-}
-
-AUD_DeviceSpecs AUD_Mixer::getSpecs()
-{
-	return m_specs;
-}
-
-void AUD_Mixer::setSpecs(AUD_DeviceSpecs specs)
-{
-	m_specs = specs;
-
-	if(m_resampler)
-	{
-		delete m_resampler; AUD_DELETE("factory")
-	}
-	if(m_mapper)
-	{
-		delete m_mapper; AUD_DELETE("factory")
-	}
-
-	m_resampler = new AUD_MIXER_RESAMPLER(specs); AUD_NEW("factory")
-	m_mapper = new AUD_ChannelMapperFactory(specs); AUD_NEW("factory")
-
 	int bigendian = 1;
 	bigendian = (((char*)&bigendian)[0]) ? 0: 1; // 1 if Big Endian
 
@@ -121,6 +62,11 @@ void AUD_Mixer::setSpecs(AUD_DeviceSpecs specs)
 	}
 }
 
+AUD_DeviceSpecs AUD_Mixer::getSpecs() const
+{
+	return m_specs;
+}
+
 void AUD_Mixer::add(sample_t* buffer, int start, int length, float volume)
 {
 	AUD_MixerBuffer buf;
@@ -137,10 +83,10 @@ void AUD_Mixer::superpose(data_t* buffer, int length, float volume)
 
 	int channels = m_specs.channels;
 
-	if(m_buffer->getSize() < length * channels * 4)
-		m_buffer->resize(length * channels * 4);
+	if(m_buffer.getSize() < length * channels * 4)
+		m_buffer.resize(length * channels * 4);
 
-	sample_t* out = m_buffer->getBuffer();
+	sample_t* out = m_buffer.getBuffer();
 	sample_t* in;
 
 	memset(out, 0, length * channels * 4);

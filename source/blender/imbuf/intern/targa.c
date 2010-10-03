@@ -31,6 +31,7 @@
 #include <io.h>
 #endif
 #include "BLI_blenlib.h"
+#include "MEM_guardedalloc.h"
 
 #include "imbuf.h"
 
@@ -358,7 +359,7 @@ static void complete_partial_load(struct ImBuf *ibuf, unsigned int *rect)
 	}
 }
 
-static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, int mem_size, int psize)
+static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, size_t mem_size, int psize)
 {
 	unsigned char *mem_end = mem+mem_size;
 	int count, col, size;
@@ -469,7 +470,7 @@ partial_load:
 	complete_partial_load(ibuf, rect);
 }
 
-static void ldtarga(struct ImBuf * ibuf,unsigned char * mem, int mem_size, int psize)
+static void ldtarga(struct ImBuf * ibuf,unsigned char * mem, size_t mem_size, int psize)
 {
 	unsigned char *mem_end = mem+mem_size;
 	int col,size;
@@ -526,7 +527,7 @@ partial_load:
 }
 
 
-struct ImBuf *imb_loadtarga(unsigned char *mem, int mem_size, int flags)
+struct ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags)
 {
 	TARGA tga;
 	struct ImBuf * ibuf;

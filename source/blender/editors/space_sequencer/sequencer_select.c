@@ -35,7 +35,6 @@
 #endif
 #include <sys/types.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -43,12 +42,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_sequencer.h"
-#include "BKE_scene.h"
-#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

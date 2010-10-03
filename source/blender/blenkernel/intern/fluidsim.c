@@ -28,6 +28,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
 #include "BLI_storage.h" /* _LARGEFILE_SOURCE */
 
 #include "MEM_guardedalloc.h"
@@ -50,7 +51,6 @@
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
-#include "BKE_pointcache.h"
 #include "BKE_utildefines.h"
 
 // headers for fluidsim bobj meshes

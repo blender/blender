@@ -29,39 +29,21 @@
 
 #include <cstring>
 
-AUD_SndFileFactory::AUD_SndFileFactory(const char* filename)
+AUD_SndFileFactory::AUD_SndFileFactory(std::string filename) :
+	m_filename(filename)
 {
-	if(filename != NULL)
-	{
-		m_filename = new char[strlen(filename)+1]; AUD_NEW("string")
-		strcpy(m_filename, filename);
-	}
-	else
-		m_filename = NULL;
 }
 
-AUD_SndFileFactory::AUD_SndFileFactory(unsigned char* buffer, int size)
+AUD_SndFileFactory::AUD_SndFileFactory(const data_t* buffer, int size) :
+	m_buffer(new AUD_Buffer(size))
 {
-	m_filename = NULL;
-	m_buffer = AUD_Reference<AUD_Buffer>(new AUD_Buffer(size));
 	memcpy(m_buffer.get()->getBuffer(), buffer, size);
 }
 
-AUD_SndFileFactory::~AUD_SndFileFactory()
+AUD_IReader* AUD_SndFileFactory::createReader() const
 {
-	if(m_filename)
-	{
-		delete[] m_filename; AUD_DELETE("string")
-	}
-}
-
-AUD_IReader* AUD_SndFileFactory::createReader()
-{
-	AUD_IReader* reader;
-	if(m_filename)
-		reader = new AUD_SndFileReader(m_filename);
+	if(m_buffer.get())
+		return new AUD_SndFileReader(m_buffer);
 	else
-		reader = new AUD_SndFileReader(m_buffer);
-	AUD_NEW("reader")
-	return reader;
+		return new AUD_SndFileReader(m_filename);
 }

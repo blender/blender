@@ -28,6 +28,7 @@
  * .blend file reading entry point
  */
 
+#include <stddef.h>
 #include "BLI_storage.h" /* _LARGEFILE_SOURCE */
 
 #include <stdlib.h>
@@ -46,6 +47,7 @@
 
 #include "BKE_main.h"
 #include "BKE_library.h" // for free_main
+#include "BKE_idcode.h"
 #include "BKE_report.h"
 
 #include "BLO_readfile.h"
@@ -61,110 +63,8 @@
 #include "BLI_winstuff.h"
 #endif
 
-	/**
-	 * IDType stuff, I plan to move this
-	 * out into its own file + prefix, and
-	 * make sure all IDType handling goes through
-	 * these routines.
-	 */
-
-typedef struct {
-	unsigned short code;
-	char *name, *plural;
-	
-	int flags;
-#define IDTYPE_FLAGS_ISLINKABLE	(1<<0)
-} IDType;
-
-/* plural need to match rna_main.c's MainCollectionDef */
-static IDType idtypes[]= {
-	{ ID_AC,		"Action",	"actions",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_AR,		"Armature", "armatures",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_BR,		"Brush",	"brushes",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_CA,		"Camera",	"cameras",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_CU,		"Curve",	"curves",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_GD,		"GPencil",	"gpencil",		IDTYPE_FLAGS_ISLINKABLE},  /* rename gpencil */
-	{ ID_GR,		"Group",	"groups",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_ID,		"ID",		"ids",			0}, /* plural is fake */
-	{ ID_IM,		"Image",	"images",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_IP,		"Ipo",		"ipos",			IDTYPE_FLAGS_ISLINKABLE},  /* deprecated */
-	{ ID_KE,		"Key",		"keys",			0}, 
-	{ ID_LA,		"Lamp",		"lamps",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_LI,		"Library",	"libraries",	0}, 
-	{ ID_LT,		"Lattice",	"lattices",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_MA,		"Material", "materials",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_MB,		"Metaball", "metaballs",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_ME,		"Mesh",		"meshes",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_NT,		"NodeTree",	"node_groups",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_OB,		"Object",	"objects",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_PA,		"ParticleSettings",	"particles", 0},
-	{ ID_SCE,		"Scene",	"scenes",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_SCR,		"Screen",	"screens",		0}, 
-	{ ID_SEQ,		"Sequence",	"sequences",	0}, /* not actually ID data */
-	{ ID_SO,		"Sound",	"sounds",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_TE,		"Texture",	"textures",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_TXT,		"Text",		"texts",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_VF,		"VFont",	"fonts",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_WO,		"World",	"worlds",		IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_WM,		"WindowManager", "window_managers",	0}, 
-};
-static int nidtypes= sizeof(idtypes)/sizeof(idtypes[0]);
-
 /* local prototypes --------------------- */
 void BLO_blendhandle_print_sizes(BlendHandle *, void *); 
-
-
-static IDType *idtype_from_name(char *str) 
-{
-	int i= nidtypes;
-	
-	while (i--)
-		if (BLI_streq(str, idtypes[i].name))
-			return &idtypes[i];
-	
-	return NULL;
-}
-static IDType *idtype_from_code(int code) 
-{
-	int i= nidtypes;
-	
-	while (i--)
-		if (code==idtypes[i].code)
-			return &idtypes[i];
-	
-	return NULL;
-}
-
-static int bheadcode_is_idcode(int code) 
-{
-	return idtype_from_code(code)?1:0;
-}
-
-static int idcode_is_linkable(int code) {
-	IDType *idt= idtype_from_code(code);
-	return idt?(idt->flags&IDTYPE_FLAGS_ISLINKABLE):0;
-}
-
-char *BLO_idcode_to_name(int code) 
-{
-	IDType *idt= idtype_from_code(code);
-	
-	return idt?idt->name:NULL;
-}
-
-int BLO_idcode_from_name(char *name) 
-{
-	IDType *idt= idtype_from_name(name);
-	
-	return idt?idt->code:0;
-}
-
-char *BLO_idcode_to_name_plural(int code) 
-{
-	IDType *idt= idtype_from_code(code);
-	
-	return idt?idt->plural:NULL;
-}
 
 	/* Access routines used by filesel. */
 	 
@@ -173,6 +73,15 @@ BlendHandle *BLO_blendhandle_from_file(char *file)
 	BlendHandle *bh;
 
 	bh= (BlendHandle*)blo_openblenderfile(file, NULL);
+
+	return bh;
+}
+
+BlendHandle *BLO_blendhandle_from_memory(void *mem, int memsize)
+{
+	BlendHandle *bh;
+
+	bh= (BlendHandle*)blo_openblendermemory(mem, memsize, NULL);
 
 	return bh;
 }
@@ -308,13 +217,13 @@ LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code==ENDB) {
 			break;
-		} else if (bheadcode_is_idcode(bhead->code)) {
-			if (idcode_is_linkable(bhead->code)) {
-				char *str= BLO_idcode_to_name(bhead->code);
+		} else if (BKE_idcode_is_valid(bhead->code)) {
+			if (BKE_idcode_is_linkable(bhead->code)) {
+				const char *str= BKE_idcode_to_name(bhead->code);
 				
-				if (!BLI_ghash_haskey(gathered, str)) {
+				if (!BLI_ghash_haskey(gathered, (void *)str)) {
 					BLI_linklist_prepend(&names, strdup(str));
-					BLI_ghash_insert(gathered, str, NULL);
+					BLI_ghash_insert(gathered, (void *)str, NULL);
 				}
 			}
 		}

@@ -40,21 +40,10 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
-#include "BKE_animsys.h"
 #include "BKE_nla.h"
-#include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_curve.h"
-#include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
-#include "BKE_fcurve.h"
-#include "BKE_object.h"
-#include "BKE_global.h"
-#include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
-#include "BIF_gl.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -245,7 +234,7 @@ static void nla_panel_animdata (const bContext *C, Panel *pa)
 	
 	/* blending */
 	row= uiLayoutRow(layout, 1);
-		uiItemR(row, &adt_ptr, "action_blending", 0, NULL, 0);	
+		uiItemR(row, &adt_ptr, "action_blend_type", 0, NULL, 0);	
 		
 	/* influence */
 	row= uiLayoutRow(layout, 1);
@@ -304,26 +293,26 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 	
 	/* blending */
 	row= uiLayoutRow(layout, 1);
-		uiItemR(row, &strip_ptr, "blending", 0, NULL, 0);
+		uiItemR(row, &strip_ptr, "blend_type", 0, NULL, 0);
 		
 	/* blend in/out + autoblending
 	 *	- blend in/out can only be set when autoblending is off
 	 */
 	column= uiLayoutColumn(layout, 1);
-		uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "animated_influence")==0); 
-		uiItemR(column, &strip_ptr, "auto_blending", 0, NULL, 0); // XXX as toggle?
+		uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "use_animated_influence")==0); 
+		uiItemR(column, &strip_ptr, "use_auto_blend", 0, NULL, 0); // XXX as toggle?
 		
 		subcol= uiLayoutColumn(column, 1);
-			uiLayoutSetActive(subcol, RNA_boolean_get(&strip_ptr, "auto_blending")==0); 
+			uiLayoutSetActive(subcol, RNA_boolean_get(&strip_ptr, "use_auto_blend")==0); 
 			uiItemR(subcol, &strip_ptr, "blend_in", 0, NULL, 0);
 			uiItemR(subcol, &strip_ptr, "blend_out", 0, NULL, 0);
 		
 	/* settings */
 	column= uiLayoutColumn(layout, 1);
-		uiLayoutSetActive(column, !(RNA_boolean_get(&strip_ptr, "animated_influence") || RNA_boolean_get(&strip_ptr, "animated_time"))); 
+		uiLayoutSetActive(column, !(RNA_boolean_get(&strip_ptr, "use_animated_influence") || RNA_boolean_get(&strip_ptr, "use_animated_time"))); 
 		uiItemL(column, "Playback Settings:", 0);
 		uiItemR(column, &strip_ptr, "mute", 0, NULL, 0);
-		uiItemR(column, &strip_ptr, "reversed", 0, NULL, 0);
+		uiItemR(column, &strip_ptr, "use_reverse", 0, NULL, 0);
 }
 
 
@@ -357,7 +346,7 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
 		
 	/* action usage */
 	column= uiLayoutColumn(layout, 1);
-		uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "animated_time")==0); 
+		uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "use_animated_time")==0); 
 		uiItemL(column, "Playback Settings:", 0);
 		uiItemR(column, &strip_ptr, "scale", 0, NULL, 0);
 		uiItemR(column, &strip_ptr, "repeat", 0, NULL, 0);
@@ -379,21 +368,21 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
 		
 	column= uiLayoutColumn(layout, 1);
-		uiItemR(column, &strip_ptr, "animated_influence", 0, NULL, 0);
+		uiItemR(column, &strip_ptr, "use_animated_influence", 0, NULL, 0);
 		
 		subcolumn= uiLayoutColumn(column, 1);
-		uiLayoutSetEnabled(subcolumn, RNA_boolean_get(&strip_ptr, "animated_influence"));	
+		uiLayoutSetEnabled(subcolumn, RNA_boolean_get(&strip_ptr, "use_animated_influence"));	
 			uiItemR(subcolumn, &strip_ptr, "influence", 0, NULL, 0);
 		
 	
 	column= uiLayoutColumn(layout, 1);
 		subrow= uiLayoutRow(column, 0);
-		uiItemR(subrow, &strip_ptr, "animated_time", 0, NULL, 0);
-		uiItemR(subrow, &strip_ptr, "animated_time_cyclic", 0, NULL, 0);
+		uiItemR(subrow, &strip_ptr, "use_animated_time", 0, NULL, 0);
+		uiItemR(subrow, &strip_ptr, "use_animated_time_cyclic", 0, NULL, 0);
 
 		subcolumn= uiLayoutColumn(column, 1);
 		subrow= uiLayoutRow(subcolumn, 0);
-		uiLayoutSetEnabled(subrow, RNA_boolean_get(&strip_ptr, "animated_time"));
+		uiLayoutSetEnabled(subrow, RNA_boolean_get(&strip_ptr, "use_animated_time"));
 			uiItemR(subcolumn, &strip_ptr, "strip_time", 0, NULL, 0);
 }
 

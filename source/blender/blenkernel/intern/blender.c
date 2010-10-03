@@ -43,6 +43,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 #include <fcntl.h> // for open
 
@@ -230,7 +231,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 		curscene= bfd->curscene;
 		if(curscene==NULL) curscene= bfd->main->scene.first;
 		/* and we enforce curscene to be in current screen */
-		curscreen->scene= curscene;
+		if(curscreen) curscreen->scene= curscene; /* can run in bgmode */
 
 		/* clear_global will free G.main, here we can still restore pointers */
 		lib_link_screen_restore(bfd->main, curscreen, curscene);
@@ -459,13 +460,16 @@ static UndoElem *curundo= NULL;
 
 static int read_undosave(bContext *C, UndoElem *uel)
 {
-	char scestr[FILE_MAXDIR+FILE_MAXFILE];
+	char scestr[FILE_MAXDIR+FILE_MAXFILE]; /* we should eventually just use G.main->name */
+	char mainstr[FILE_MAXDIR+FILE_MAXFILE];
 	int success=0, fileflags;
 	
 	/* This is needed so undoing/redoing doesnt crash with threaded previews going */
 	WM_jobs_stop_all(CTX_wm_manager(C));
 	
 	strcpy(scestr, G.sce);	/* temporal store */
+	strcpy(mainstr, G.main->name);	/* temporal store */
+
 	fileflags= G.fileflags;
 	G.fileflags |= G_FILE_NO_UI;
 
@@ -475,7 +479,8 @@ static int read_undosave(bContext *C, UndoElem *uel)
 		success= BKE_read_file_from_memfile(C, &uel->memfile, NULL);
 
 	/* restore */
-	strcpy(G.sce, scestr);
+	strcpy(G.sce, scestr); /* restore */
+	strcpy(G.main->name, mainstr); /* restore */
 	G.fileflags= fileflags;
 
 	if(success)
@@ -641,11 +646,11 @@ void BKE_undo_number(bContext *C, int nr)
 void BKE_undo_name(bContext *C, const char *name)
 {
 	UndoElem *uel;
-	
-	for(uel= undobase.last; uel; uel= uel->prev) {
+
+	for(uel= undobase.last; uel; uel= uel->prev)
 		if(strcmp(name, uel->name)==0)
 			break;
-	}
+
 	if(uel && uel->prev) {
 		curundo= uel->prev;
 		BKE_undo_step(C, 0);

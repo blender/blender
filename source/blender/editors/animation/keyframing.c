@@ -55,7 +55,6 @@
 #include "BKE_main.h"
 #include "BKE_nla.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_key.h"
@@ -1363,9 +1362,9 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	
 	/* try to insert keyframe using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));
-	uiAnimContextProperty(C, &ptr, &prop, &index);
+	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
-	if ((ptr.data && prop) && RNA_property_animateable(&ptr, prop)) {
+	if ((ptr.id.data && ptr.data && prop) && RNA_property_animateable(&ptr, prop)) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
 		if (path) {
@@ -1406,6 +1405,8 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
+		uiContextAnimUpdate(C);
+
 		DAG_ids_flush_update(bmain, 0);
 		
 		/* send notifiers that keyframes have been changed */
@@ -1447,9 +1448,9 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 	
 	/* try to insert keyframe using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));
-	uiAnimContextProperty(C, &ptr, &prop, &index);
+	uiContextActiveProperty(C, &ptr, &prop, &index);
 
-	if (ptr.data && prop) {
+	if (ptr.id.data && ptr.data && prop) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
 		if (path) {
@@ -1477,6 +1478,8 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
+		uiContextAnimUpdate(C);
+
 		DAG_ids_flush_update(bmain, 0);
 		
 		/* send notifiers that keyframes have been changed */

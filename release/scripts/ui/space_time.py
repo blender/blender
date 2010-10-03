@@ -46,8 +46,8 @@ class TIME_HT_header(bpy.types.Header):
             row.prop(scene, "frame_start", text="Start")
             row.prop(scene, "frame_end", text="End")
         else:
-            row.prop(scene, "preview_range_frame_start", text="Start")
-            row.prop(scene, "preview_range_frame_end", text="End")
+            row.prop(scene, "frame_preview_start", text="Start")
+            row.prop(scene, "frame_preview_end", text="End")
 
         layout.prop(scene, "frame_current", text="")
 
@@ -56,7 +56,7 @@ class TIME_HT_header(bpy.types.Header):
         row = layout.row(align=True)
         row.operator("screen.frame_jump", text="", icon='REW').end = False
         row.operator("screen.keyframe_jump", text="", icon='PREV_KEYFRAME').next = False
-        if not screen.animation_playing:
+        if not screen.is_animation_playing:
             row.operator("screen.animation_play", text="", icon='PLAY_REVERSE').reverse = True
             row.operator("screen.animation_play", text="", icon='PLAY')
         else:
@@ -67,17 +67,17 @@ class TIME_HT_header(bpy.types.Header):
         row.operator("screen.frame_jump", text="", icon='FF').end = True
 
         row = layout.row(align=True)
-        row.prop(tools, "use_auto_keying", text="", toggle=True)
-        if screen.animation_playing and tools.use_auto_keying:
+        row.prop(tools, "use_keyframe_insert_auto", text="", toggle=True)
+        if screen.is_animation_playing and tools.use_keyframe_insert_auto:
             subsub = row.row()
-            subsub.prop(tools, "record_with_nla", toggle=True)
+            subsub.prop(tools, "use_record_with_nla", toggle=True)
 
         layout.prop(scene, "sync_mode", text="")
 
         layout.separator()
 
         row = layout.row(align=True)
-        row.prop_object(scene, "active_keying_set", scene, "all_keying_sets", text="")
+        row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
         row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
         row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
 
@@ -95,8 +95,8 @@ class TIME_MT_view(bpy.types.Menu):
 
         layout.separator()
 
-        layout.prop(st, "show_cframe_indicator")
-        layout.prop(st, "only_selected")
+        layout.prop(st, "show_frame_indicator")
+        layout.prop(st, "show_only_selected")
 
         layout.separator()
 
@@ -166,20 +166,20 @@ class TIME_MT_playback(bpy.types.Menu):
         st = context.space_data
         scene = context.scene
 
-        layout.prop(st, "play_top_left")
-        layout.prop(st, "play_all_3d")
-        layout.prop(st, "play_anim")
-        layout.prop(st, "play_buttons")
-        layout.prop(st, "play_image")
-        layout.prop(st, "play_sequencer")
-        layout.prop(st, "play_nodes")
+        layout.prop(st, "use_play_top_left_3d_editor")
+        layout.prop(st, "use_play_3d_editors")
+        layout.prop(st, "use_play_animation_editors")
+        layout.prop(st, "use_play_properties_editors")
+        layout.prop(st, "use_play_image_editors")
+        layout.prop(st, "use_play_sequence_editors")
+        layout.prop(st, "use_play_node_editors")
 
         layout.separator()
 
-        layout.prop(scene, "frame_drop", text="Frame Dropping")
-        layout.prop(scene, "sync_audio", text="AV-sync", icon='SPEAKER')
-        layout.prop(scene, "mute_audio")
-        layout.prop(scene, "scrub_audio")
+        layout.prop(scene, "use_frame_drop", text="Frame Dropping")
+        layout.prop(scene, "use_audio_sync", text="AV-sync", icon='SPEAKER')
+        layout.prop(scene, "use_audio")
+        layout.prop(scene, "use_audio_scrub")
 
 
 class TIME_MT_autokey(bpy.types.Menu):
@@ -189,8 +189,9 @@ class TIME_MT_autokey(bpy.types.Menu):
         layout = self.layout
         tools = context.tool_settings
 
-        layout.prop_enum(tools, "autokey_mode", 'ADD_REPLACE_KEYS')
-        layout.prop_enum(tools, "autokey_mode", 'REPLACE_KEYS')
+        layout.prop_enum(tools, "auto_keying_mode", 'ADD_REPLACE_KEYS')
+        layout.prop_enum(tools, "auto_keying_mode", 'REPLACE_KEYS')
+
 
 def register():
     pass

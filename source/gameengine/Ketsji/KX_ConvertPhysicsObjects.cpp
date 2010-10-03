@@ -26,7 +26,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786)
 #endif
 
@@ -181,6 +181,14 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	case KX_BOUNDPOLYTOPE:
 		{
 			shapeInfo->SetMesh(meshobj, dm,true);
+			bm = shapeInfo->CreateBulletShape(ci.m_margin);
+			break;
+		}
+	case KX_BOUNDCAPSULE:
+		{
+			shapeInfo->m_radius = objprop->m_boundobject.c.m_radius;
+			shapeInfo->m_height = objprop->m_boundobject.c.m_height;
+			shapeInfo->m_shapeType = PHY_SHAPE_CAPSULE;
 			bm = shapeInfo->CreateBulletShape(ci.m_margin);
 			break;
 		}

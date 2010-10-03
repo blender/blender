@@ -40,22 +40,14 @@
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_main.h"
 #include "BKE_animsys.h"
-#include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
-#include "BKE_fcurve.h"
-#include "BKE_utildefines.h"
-#include "BKE_context.h"
 #include "BKE_report.h"
-#include "BKE_key.h"
-#include "BKE_material.h"
 
 #include "ED_keyframing.h"
 #include "ED_screen.h"
@@ -331,10 +323,10 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	
 	/* try to add to keyingset using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));
-	uiAnimContextProperty(C, &ptr, &prop, &index);
+	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
 	/* check if property is able to be added */
-	if (ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
+	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
 		if (path) {
@@ -417,9 +409,9 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	
 	/* try to add to keyingset using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));
-	uiAnimContextProperty(C, &ptr, &prop, &index);
+	uiContextActiveProperty(C, &ptr, &prop, &index);
 
-	if (ptr.data && prop) {
+	if (ptr.id.data && ptr.data && prop) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
 		if (path) {
@@ -530,20 +522,12 @@ ListBase builtin_keyingsets = {NULL, NULL};
 /* Find KeyingSet type info given a name */
 KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[])
 {
-	KeyingSetInfo *ksi;
-	
 	/* sanity checks */
 	if ((name == NULL) || (name[0] == 0))
 		return NULL;
 		
 	/* search by comparing names */
-	for (ksi = keyingset_type_infos.first; ksi; ksi = ksi->next) {
-		if (strcmp(ksi->idname, name) == 0)
-			return ksi;
-	}
-	
-	/* no matches found */
-	return NULL;
+	return BLI_findstring(&keyingset_type_infos, name, offsetof(KeyingSetInfo, idname));
 }
 
 /* Find builtin KeyingSet by name */

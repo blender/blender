@@ -48,7 +48,7 @@ class CONSOLE_HT_header(bpy.types.Header):
             row.prop(sc, "show_report_debug", text="Debug")
             row.prop(sc, "show_report_info", text="Info")
             row.prop(sc, "show_report_operator", text="Operators")
-            row.prop(sc, "show_report_warn", text="Warnings")
+            row.prop(sc, "show_report_warning", text="Warnings")
             row.prop(sc, "show_report_error", text="Errors")
 
             row = layout.row()
@@ -138,7 +138,8 @@ class ConsoleAutocomplete(bpy.types.Operator):
     bl_idname = "console.autocomplete"
     bl_label = "Console Autocomplete"
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         return context.space_data.console_type != 'REPORT'
 
     def execute(self, context):
@@ -185,7 +186,7 @@ class ConsoleLanguage(bpy.types.Operator):
         sc = context.space_data
 
         # defailt to python
-        sc.language = self.properties.language
+        sc.language = self.language
 
         bpy.ops.console.banner()
 

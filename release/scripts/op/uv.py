@@ -21,6 +21,218 @@
 import bpy
 from bpy.props import *
 
+def write_svg(fw, mesh, image_width, image_height, face_iter):
+    # for making an XML compatible string
+    from xml.sax.saxutils import escape
+    from os.path import basename
+    
+    fw('<?xml version="1.0" standalone="no"?>\n')
+    fw('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" \n')
+    fw('  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n')
+    fw('<svg width="%dpx" height="%dpx" viewBox="0px 0px %dpx %dpx"\n' % (image_width, image_height, image_width, image_height))
+    fw('     xmlns="http://www.w3.org/2000/svg" version="1.1">\n')
+    desc = "%r, %s, (Blender %s)" % (basename(bpy.data.filepath), mesh.name, bpy.app.version_string)
+    fw('<desc>%s</desc>\n' % escape(desc))
+
+    # svg colors
+    fill_settings = []
+    fill_default = 'fill="grey"'
+    for mat in mesh.materials if mesh.materials else [None]:
+        if mat:
+            fill_settings.append('fill="rgb(%d, %d, %d)"' % tuple(int(c * 255) for c in mat.diffuse_color))
+        else:
+            fill_settings.append(fill_default)
+
+    faces = mesh.faces
+    for i, uvs in face_iter:
+        try:  # rare cases material index is invalid.
+            fill = fill_settings[faces[i].material_index]
+        except IndexError:
+            fill = fill_default
+
+        fw('<polygon %s fill-opacity="0.5" stroke="black" stroke-width="1px" \n' % fill)
+        fw('  points="')
+
+        for j, uv in enumerate(uvs):
+            x, y = uv[0], 1.0 - uv[1]
+            fw('%.3f,%.3f ' % (x * image_width, y * image_height))
+        fw('" />\n')
+    fw('\n')
+    fw('</svg>\n')
+
+
+def write_eps(fw, mesh, image_width, image_height, face_iter):
+    fw('%!PS-Adobe-3.0 EPSF-3.0\n')
+    fw("%%%%Creator: Blender %s\n" % bpy.app.version_string)
+    fw('%%Pages: 1\n')
+    fw('%%Orientation: Portrait\n')
+    fw("%%%%BoundingBox: 0 0 %d %d\n" % (image_width, image_height))
+    fw("%%%%HiResBoundingBox: 0.0 0.0 %.4f %.4f\n" % (image_width, image_height))
+    fw('%%EndComments\n')
+    fw('%%Page: 1 1\n')
+    fw('0 0 translate\n')
+    fw('1.0 1.0 scale\n')
+    fw('0 0 0 setrgbcolor\n')
+    fw('[] 0 setdash\n')
+    fw('1 setlinewidth\n')
+    fw('1 setlinejoin\n')
+    fw('1 setlinecap\n')
+    fw('/DRAW {')
+    # can remove from here to next comment to disable filling, aparently alpha is not supported
+    fw('gsave\n')
+    fw('0.7 setgray\n')
+    fw('fill\n')
+    fw('grestore\n')
+    fw('0 setgray\n')
+    # remove to here
+    fw('stroke\n')
+    fw('} def\n')
+    fw('newpath\n')
+
+    firstline = True
+    for i, uvs in face_iter:
+        for j, uv in enumerate(uvs):
+            x, y = uv[0], uv[1]
+            if j == 0:
+                if not firstline:
+                    fw('closepath\n')
+                    fw('DRAW\n')
+                    fw('newpath\n')
+                firstline = False
+                fw('%.5f %.5f moveto\n' % (x * image_width, y * image_height))
+            else:
+                fw('%.5f %.5f lineto\n' % (x * image_width, y * image_height))
+
+    fw('closepath\n')
+    fw('DRAW\n')
+    fw('showpage\n')
+    fw('%%EOF\n')
+
+
+def write_png(fw, mesh_source, image_width, image_height, face_iter):
+    filepath = fw.__self__.name
+    fw.__self__.close()
+
+    material_solids = [bpy.data.materials.new("uv_temp_solid") for i in range(len(mesh_source.materials))]
+    material_wire = bpy.data.materials.new("uv_temp_wire")
+
+    scene = bpy.data.scenes.new("uv_temp")
+    mesh = bpy.data.meshes.new("uv_temp")
+    for mat_solid in material_solids:
+        mesh.materials.append(mat_solid)
+
+    tot_verts = 0
+    face_lens = []
+    for f in mesh_source.faces:
+        tot_verts += len(f.vertices)
+
+    # now set the faces coords and locations
+    # build mesh data
+    mesh_new_vertices = []
+    mesh_new_materials = []
+    mesh_new_face_vertices = []
+    
+    
+    current_vert = 0
+    faces_source = mesh_source.faces
+    for i, uv in face_iter:
+        if len(uv) == 3:
+            mesh_new_vertices.extend([uv[0][0], uv[0][1], 0.0, uv[1][0], uv[1][1], 0.0, uv[2][0], uv[2][1], 0.0])
+            mesh_new_face_vertices.extend([current_vert, current_vert + 1, current_vert + 2, 0])
+            current_vert += 3
+        else:
+            mesh_new_vertices.extend([uv[0][0], uv[0][1], 0.0, uv[1][0], uv[1][1], 0.0, uv[2][0], uv[2][1], 0.0, uv[3][0], uv[3][1], 0.0])
+            mesh_new_face_vertices.extend([current_vert, current_vert + 1, current_vert + 2, current_vert + 3])
+            current_vert += 4
+
+        mesh_new_materials.append(faces_source[i].material_index)
+    
+    mesh.vertices.add(len(mesh_new_vertices) // 3)
+    mesh.faces.add(len(mesh_new_face_vertices) // 4)
+
+    mesh.vertices.foreach_set("co", mesh_new_vertices)
+    mesh.faces.foreach_set("vertices_raw", mesh_new_face_vertices)
+    mesh.faces.foreach_set("material_index", mesh_new_materials)
+
+    mesh.update(calc_edges=True)
+    
+    obj_solid = bpy.data.objects.new("uv_temp_solid", mesh)
+    obj_wire = bpy.data.objects.new("uv_temp_wire", mesh)
+    base_solid = scene.objects.link(obj_solid)
+    base_wire = scene.objects.link(obj_wire)
+    base_solid.layers[0] = True
+    base_wire.layers[0] = True
+
+    # place behind the wire
+    obj_solid.location = 0, 0, -1
+    
+    obj_wire.material_slots[0].link = 'OBJECT'
+    obj_wire.material_slots[0].material = material_wire
+    
+    
+    # setup the camera
+    cam = bpy.data.cameras.new("uv_temp")
+    cam.type = 'ORTHO'
+    cam.ortho_scale = 1.0
+    obj_cam = bpy.data.objects.new("uv_temp_cam", cam)
+    obj_cam.location = 0.5, 0.5, 1.0
+    scene.objects.link(obj_cam)
+    scene.camera = obj_cam
+
+    # setup materials
+    for i, mat_solid in enumerate(material_solids):
+        mat_solid.diffuse_color = mesh_source.materials[i].diffuse_color
+        mat_solid.use_shadeless = True
+        mat_solid.use_transparency = True
+        mat_solid.alpha = 0.25
+
+    material_wire.type = 'WIRE'
+    material_wire.use_shadeless = True
+    material_wire.diffuse_color = 0, 0, 0
+
+
+    # scene render settings
+    scene.render.use_raytrace = False
+    scene.render.alpha_mode = 'STRAIGHT'
+    scene.render.color_mode = 'RGBA'
+
+    scene.render.resolution_x = image_width
+    scene.render.resolution_y = image_height
+    scene.render.resolution_percentage = 100
+
+    if image_width > image_height:
+        scene.render.pixel_aspect_y = image_width / image_height
+    elif image_width < image_height:
+        scene.render.pixel_aspect_x = image_height /image_width
+        
+    scene.frame_start = 1
+    scene.frame_end = 1
+    
+    scene.render.file_format = 'PNG'
+    scene.render.filepath = filepath
+
+    data_context = {"blend_data": bpy.context.blend_data, "scene": scene}
+    bpy.ops.render.render(data_context, animation=True)
+    
+    # stupid
+    import os
+    animpath = scene.render.frame_path(1)
+    os.rename(animpath, os.path.abspath(filepath))
+    
+    # cleanup
+    bpy.data.scenes.remove(scene)
+    bpy.data.objects.remove(obj_cam)
+    bpy.data.objects.remove(obj_solid)
+    bpy.data.objects.remove(obj_wire)
+
+    bpy.data.cameras.remove(cam)
+    bpy.data.meshes.remove(mesh)
+    
+    bpy.data.materials.remove(material_wire)
+    for mat_solid in material_solids:
+        bpy.data.materials.remove(mat_solid)
+
+
 
 class ExportUVLayout(bpy.types.Operator):
     '''Export the Mesh as SVG'''
@@ -29,17 +241,20 @@ class ExportUVLayout(bpy.types.Operator):
     bl_label = "Export UV Layout"
     bl_options = {'REGISTER', 'UNDO'}
 
-    filepath = StringProperty(name="File Path", description="File path used for exporting the SVG file", maxlen=1024, default="")
+    filepath = StringProperty(name="File Path", description="File path used for exporting the SVG file", maxlen=1024, default="", subtype='FILE_PATH')
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
     export_all = BoolProperty(name="All UV's", description="Export all UVs in this mesh (not just the visible ones)", default=False)
     mode = EnumProperty(items=(
                         ('SVG', "Scalable Vector Graphic (.svg)", "Export the UV layout to a vector SVG file"),
-                        ('EPS', "Encapsulate PostScript (.eps)", "Export the UV layout to a vector EPS file")),
+                        ('EPS', "Encapsulate PostScript (.eps)", "Export the UV layout to a vector EPS file"),
+                        ('PNG', "PNG Image (.png)", "Export the UV layout a bitmap image")),
                 name="Format",
                 description="File format to export the UV layout to",
-                default='SVG')
+                default='PNG')
+    size = IntVectorProperty(size=2, default=(1024, 1024), min=8, max=32768)
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj and obj.type == 'MESH')
 
@@ -68,14 +283,14 @@ class ExportUVLayout(bpy.types.Operator):
     def _face_uv_iter(self, context):
         obj = context.active_object
         mesh = obj.data
-        uv_layer = mesh.active_uv_texture.data
+        uv_layer = mesh.uv_textures.active.data
         uv_layer_len = len(uv_layer)
 
-        if not self.properties.export_all:
+        if not self.export_all:
 
             local_image = Ellipsis
 
-            if context.tool_settings.uv_local_view:
+            if context.tool_settings.show_uv_local_view:
                 space_data = self._space_image(context)
                 if space_data:
                     local_image = space_data.image
@@ -98,121 +313,54 @@ class ExportUVLayout(bpy.types.Operator):
                 yield (i, uv_layer[i].uv)
 
     def execute(self, context):
-        # for making an XML compatible string
-        from xml.sax.saxutils import escape
-        from os.path import basename
 
         obj = context.active_object
         is_editmode = (obj.mode == 'EDIT')
         if is_editmode:
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        image_width, image_height = self._image_size(context)
+        
         mesh = obj.data
-        faces = mesh.faces
 
-        mode = self.properties.mode
+        mode = self.mode
 
-        file = open(self.properties.filepath, "w")
+        filepath = self.filepath
+        filepath = bpy.path.ensure_ext(filepath, "." + mode.lower())
+        file = open(filepath, "w")
         fw = file.write
 
         if mode == 'SVG':
-
-            fw('<?xml version="1.0" standalone="no"?>\n')
-            fw('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" \n')
-            fw('  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n')
-            fw('<svg width="%dpx" height="%dpx" viewBox="0px 0px %dpx %dpx"\n' % (image_width, image_height, image_width, image_height))
-            fw('     xmlns="http://www.w3.org/2000/svg" version="1.1">\n')
-            desc = "%s, %s, %s (Blender %s)" % (basename(bpy.data.filepath), obj.name, mesh.name, bpy.app.version_string)
-            fw('<desc>%s</desc>\n' % escape(desc))
-
-            # svg colors
-            fill_settings = []
-            fill_default = 'fill="grey"'
-            for mat in mesh.materials if mesh.materials else [None]:
-                if mat:
-                    fill_settings.append('fill="rgb(%d, %d, %d)"' % tuple(int(c * 255) for c in mat.diffuse_color))
-                else:
-                    fill_settings.append(fill_default)
-
-            for i, uvs in self._face_uv_iter(context):
-                try: # rare cases material index is invalid.
-                    fill = fill_settings[faces[i].material_index]
-                except IndexError:
-                    fill = fill_default
-
-                fw('<polygon %s fill-opacity="0.5" stroke="black" stroke-width="1px" \n' % fill)
-                fw('  points="')
-
-                for j, uv in enumerate(uvs):
-                    x, y = uv[0], 1.0 - uv[1]
-                    fw('%.3f,%.3f ' % (x * image_width, y * image_height))
-                fw('" />\n')
-            fw('\n')
-            fw('</svg>\n')
-
+            func = write_svg
         elif mode == 'EPS':
-            fw('%!PS-Adobe-3.0 EPSF-3.0\n')
-            fw("%%%%Creator: Blender %s\n" % bpy.app.version_string)
-            fw('%%Pages: 1\n')
-            fw('%%Orientation: Portrait\n')
-            fw("%%%%BoundingBox: 0 0 %d %d\n" % (image_width, image_height))
-            fw("%%%%HiResBoundingBox: 0.0 0.0 %.4f %.4f\n" % (image_width, image_height))
-            fw('%%EndComments\n')
-            fw('%%Page: 1 1\n')
-            fw('0 0 translate\n')
-            fw('1.0 1.0 scale\n')
-            fw('0 0 0 setrgbcolor\n')
-            fw('[] 0 setdash\n')
-            fw('1 setlinewidth\n')
-            fw('1 setlinejoin\n')
-            fw('1 setlinecap\n')
-            fw('/DRAW {')
-            # can remove from here to next comment to disable filling, aparently alpha is not supported
-            fw('gsave\n')
-            fw('0.7 setgray\n')
-            fw('fill\n')
-            fw('grestore\n')
-            fw('0 setgray\n')
-            # remove to here
-            fw('stroke\n')
-            fw('} def\n')
-            fw('newpath\n')
+            func = write_eps
+        elif mode == 'PNG':
+            func = write_png
 
-            firstline = True
-            for i, uvs in self._face_uv_iter(context):
-                for j, uv in enumerate(uvs):
-                    x, y = uv[0], uv[1]
-                    if j == 0:
-                        if not firstline:
-                            fw('closepath\n')
-                            fw('DRAW\n')
-                            fw('newpath\n')
-                        firstline = False
-                        fw('%.5f %.5f moveto\n' % (x * image_width, y * image_height))
-                    else:
-                        fw('%.5f %.5f lineto\n' % (x * image_width, y * image_height))
-
-            fw('closepath\n')
-            fw('DRAW\n')
-            fw('showpage\n')
-            fw('%%EOF\n')
+        func(fw, mesh, self.size[0], self.size[1], self._face_uv_iter(context))
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
         return {'FINISHED'}
 
+    def check(self, context):
+        filepath = bpy.path.ensure_ext(self.filepath, "." + self.mode.lower())
+        if filepath != self.filepath:
+            self.filepath = filepath
+            return True
+        else:
+            return False
+
+
     def invoke(self, context, event):
-        wm = context.manager
+        self.size = self._image_size(context)
+        wm = context.window_manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):
-    import os
-    default_path = os.path.splitext(bpy.data.filepath)[0] + ".svg"
-    self.layout.operator(ExportUVLayout.bl_idname).filepath = default_path
+    self.layout.operator(ExportUVLayout.bl_idname)
 
 
 def register():

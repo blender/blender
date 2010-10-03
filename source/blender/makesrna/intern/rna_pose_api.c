@@ -41,8 +41,16 @@
 
 /* #include "DNA_anim_types.h" */
 #include "DNA_action_types.h" /* bPose */
+#include "BKE_armature.h"
 
+static float rna_PoseBone_do_envelope(bPoseChannel *chan, float *vec)
+{
+	Bone *bone = chan->bone;
 
+	float scale = (bone->flag & BONE_MULT_VG_ENV) == BONE_MULT_VG_ENV ? bone->weight : 1.0f;
+
+	return distfactor_to_bone(vec, chan->pose_head, chan->pose_tail, bone->rad_head * scale, bone->rad_tail * scale, bone->dist * scale);
+}
 #else
 
 void RNA_api_pose(StructRNA *srna)
@@ -53,8 +61,16 @@ void RNA_api_pose(StructRNA *srna)
 
 void RNA_api_pose_channel(StructRNA *srna)
 {
-//	FunctionRNA *func;
-//	PropertyRNA *parm;
+	PropertyRNA *parm;
+	FunctionRNA *func;
+
+	func= RNA_def_function(srna, "evaluate_envelope", "rna_PoseBone_do_envelope");
+	RNA_def_function_ui_description(func, "Calculate bone envelope at given point.");
+	parm= RNA_def_float_vector_xyz(func, "point", 3, NULL, -FLT_MAX, FLT_MAX, "Point", "Position in 3d space to evaluate", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return value */
+	parm= RNA_def_float(func, "factor", 0, -FLT_MAX, FLT_MAX, "Factor", "Envelope factor", -FLT_MAX, FLT_MAX);
+	RNA_def_function_return(func, parm);
 }
 
 

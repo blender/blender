@@ -36,11 +36,8 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
 
 #include "ED_screen.h"
 
@@ -48,7 +45,6 @@
 #include "WM_types.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -117,13 +113,24 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
+				case ND_PARENT:
 					ED_region_tag_redraw(ar);
 					break;
+				case ND_CONSTRAINT:
+					switch(wmn->action) {
+						case NA_ADDED:
+						case NA_REMOVED:
+						case NA_RENAME:
+							ED_region_tag_redraw(ar);
+							break;
+					}
+					break;
 				case ND_MODIFIER:
-					if(wmn->action == NA_RENAME)
-						ED_region_tag_redraw(ar);
+					/* all modifier actions now */
+					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
 		case NC_GROUP:
 			/* all actions now, todo: check outliner view mode? */
 			ED_region_tag_redraw(ar);

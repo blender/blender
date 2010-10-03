@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
@@ -28,12 +28,15 @@
 Import ('env')
 
 sources = env.Glob('*.cpp')
+defs = []
 
 # relative paths to include dirs, space-separated, string
 if  env['OURPLATFORM']=='darwin':
-	incs = '../blenlib ../blenkernel ../windowmanager ../makesdna ../makesrna ../editors/include ../../../intern/guardedalloc [OPENCOLLADA]/COLLADAStreamWriter [OPENCOLLADA]/COLLADABaseUtils [OPENCOLLADA]/COLLADAFramework [OPENCOLLADA]/COLLADASaxFrameworkLoader '.replace('[OPENCOLLADA]', env['BF_OPENCOLLADA_INC'])
+    incs = '../blenlib ../blenkernel ../windowmanager ../makesdna ../makesrna ../editors/include ../../../intern/guardedalloc [OPENCOLLADA]/COLLADAStreamWriter [OPENCOLLADA]/COLLADABaseUtils [OPENCOLLADA]/COLLADAFramework [OPENCOLLADA]/COLLADASaxFrameworkLoader '.replace('[OPENCOLLADA]', env['BF_OPENCOLLADA_INC'])
 else:
-	incs = '../blenlib ../blenkernel ../windowmanager ../makesdna ../makesrna ../editors/include ../../../intern/guardedalloc [OPENCOLLADA]/COLLADAStreamWriter/include [OPENCOLLADA]/COLLADABaseUtils/include [OPENCOLLADA]/COLLADAFramework/include [OPENCOLLADA]/COLLADASaxFrameworkLoader/include '.replace('[OPENCOLLADA]', env['BF_OPENCOLLADA_INC'])
+    incs = '../blenlib ../blenkernel ../windowmanager ../makesdna ../makesrna ../editors/include ../../../intern/guardedalloc [OPENCOLLADA]/COLLADAStreamWriter/include [OPENCOLLADA]/COLLADABaseUtils/include [OPENCOLLADA]/COLLADAFramework/include [OPENCOLLADA]/COLLADASaxFrameworkLoader/include '.replace('[OPENCOLLADA]', env['BF_OPENCOLLADA_INC'])
 
-env.BlenderLib ('bf_collada', sources, Split(incs), [], libtype='core', priority=200 )
+if env['BF_BUILDINFO']:
+    defs.append('NAN_BUILDINFO')
 
+env.BlenderLib ('bf_collada', sources, Split(incs), defs, libtype='core', priority=200 )

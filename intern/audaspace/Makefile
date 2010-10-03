@@ -39,6 +39,7 @@ DIRS = intern
 DIRS += FX
 DIRS += SDL
 DIRS += SRC
+DIRS += Python
 
 ifeq ($(WITH_FFMPEG),true)
   DIRS += ffmpeg
@@ -56,9 +57,9 @@ ifeq ($(WITH_SNDFILE),true)
   DIRS += sndfile
 endif
 
-ifeq ($(WITH_FFTW3),true)
-  DIRS += fftw
-endif
+#ifeq ($(WITH_FFTW3),true)
+#  DIRS += fftw
+#endif
 
 include nan_subdirs.mk
 
@@ -66,7 +67,7 @@ install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_AUDASPACE) ] || mkdir $(NAN_AUDASPACE)
 	@[ -d $(NAN_AUDASPACE)/include ] || mkdir $(NAN_AUDASPACE)/include
 	@[ -d $(NAN_AUDASPACE)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
-	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaudaspace.a $(DIR)/$(DEBUG_DIR)libaud_sdl.a $(DIR)/$(DEBUG_DIR)libaud_fx.a $(DIR)/$(DEBUG_DIR)libaud_src.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaudaspace.a $(DIR)/$(DEBUG_DIR)libaud_sdl.a $(DIR)/$(DEBUG_DIR)libaud_python.a $(DIR)/$(DEBUG_DIR)libaud_fx.a $(DIR)/$(DEBUG_DIR)libaud_src.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
 
 ifeq ($(WITH_FFMPEG),true)
 	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaud_ffmpeg.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
@@ -84,9 +85,9 @@ ifeq ($(WITH_SNDFILE),true)
 	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaud_sndfile.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
 endif
 
-ifeq ($(WITH_FFTW3),true)
-	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaud_fftw.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
-endif
+#ifeq ($(WITH_FFTW3),true)
+#	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaud_fftw.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
+#endif
 
 ifeq ($(OS),darwin)
 	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaudaspace.a
@@ -110,9 +111,9 @@ ifeq ($(WITH_SNDFILE),true)
 	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sndfile.a
 endif
 
-ifeq ($(WITH_FFTW3),true)
-	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fftw.a
-endif
+#ifeq ($(WITH_FFTW3),true)
+#	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fftw.a
+#endif
 
 endif
 	@../tools/cpifdiff.sh intern/*.h $(NAN_AUDASPACE)/include/

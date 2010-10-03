@@ -70,6 +70,7 @@ OPTION(WITH_LCMS          "Enable color correction with lcms" OFF)
 OPTION(WITH_PYTHON        "Enable Embedded Python API" ON)
 OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_FLUID        "Enable Elbeem (Fluid Simulation)" ON)
+OPTION(WITH_IK_ITASC      "Enable ITASC IK solver" ON)
 OPTION(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" OFF)
 OPTION(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 OPTION(WITH_GAMEENGINE    "Enable Game Engine" ON)
@@ -294,13 +295,13 @@ IF(UNIX AND NOT APPLE)
 		SET(EXPAT_LIB expat)
 	ENDIF (WITH_OPENCOLLADA)
 
+	FIND_PACKAGE(X11 REQUIRED)
 
-	# Could use ${X11_Xinput_LIB} ${X11_X11_LIB} too
-	SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++ -lX11")
+	SET(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB} ${X11_Xinput_LIB}")
 
 	IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		# BSD's dont use libdl.so
-		SET(LLIBS "${LLIBS} -ldl")
+		LIST(APPEND LLIBS -ldl)
 
 		# binreloc is linux only
 		SET(BINRELOC ${CMAKE_SOURCE_DIR}/extern/binreloc)
@@ -308,19 +309,13 @@ IF(UNIX AND NOT APPLE)
 	ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 	IF(WITH_OPENMP)
-		SET(LLIBS "${LLIBS} -lgomp")
+		LIST(APPEND LLIBS -lgomp)
 		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 	ENDIF(WITH_OPENMP)
 
 
-	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -Wno-char-subscripts")
-
-	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
-		SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
-		ADD_DEFINITIONS(-D__SSE__)
-		ADD_DEFINITIONS(-D__MMX__)
-	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
@@ -369,15 +364,6 @@ IF(WIN32)
 
 	SET(WINTAB_INC ${LIBDIR}/wintab/include) 
 
-	IF(WITH_PYTHON)
-		SET(PYTHON ${LIBDIR}/python)
-		SET(PYTHON_VERSION 3.1)
-		SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
-		# SET(PYTHON_BINARY python) # not used yet
-		SET(PYTHON_LIB python31)
-		SET(PYTHON_LIBPATH ${PYTHON}/lib)
-	ENDIF(WITH_PYTHON)
-
 	IF(WITH_OPENAL)
 		SET(OPENAL ${LIBDIR}/openal)
 		SET(OPENAL_INCLUDE_DIR ${OPENAL}/include)
@@ -407,8 +393,7 @@ IF(WIN32)
 	ENDIF(WITH_QUICKTIME)
 
 	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
-		ADD_DEFINITIONS(-D__SSE__)
-		ADD_DEFINITIONS(-D__MMX__)
+		ADD_DEFINITIONS(-D__SSE__ -D__MMX__)
 	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
 
 	IF(MSVC)
@@ -421,11 +406,19 @@ IF(WIN32)
 		SET(CMAKE_CXX_FLAGS "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /wd4800 /wd4244 /wd4305" CACHE STRING "MSVC MT C++ flags " FORCE)
 		SET(CMAKE_C_FLAGS   "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /wd4800 /wd4244 /wd4305" CACHE STRING "MSVC MT C++ flags " FORCE)
 
-		SET(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /ZI /J" CACHE STRING "MSVC MT flags " FORCE)
+		IF(CMAKE_CL_64)
+			SET(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
+		ELSE(CMAKE_CL_64)
+			SET(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /ZI /J" CACHE STRING "MSVC MT flags " FORCE)
+		ENDIF(CMAKE_CL_64)
 		SET(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob2 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
 		SET(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
 		SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
-		SET(CMAKE_C_FLAGS_DEBUG "/D_DEBUG /Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /ZI /J" CACHE STRING "MSVC MT flags " FORCE)
+		IF(CMAKE_CL_64)
+			SET(CMAKE_C_FLAGS_DEBUG "/D_DEBUG /Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
+		ELSE(CMAKE_CL_64)
+			SET(CMAKE_C_FLAGS_DEBUG "/D_DEBUG /Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /ZI /J" CACHE STRING "MSVC MT flags " FORCE)
+		ENDIF(CMAKE_CL_64)
 		SET(CMAKE_C_FLAGS_RELEASE "/O2 /Ob2 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
 		SET(CMAKE_C_FLAGS_MINSIZEREL "/O1 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
 		SET(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
@@ -527,6 +520,15 @@ IF(WIN32)
 			SET(JACK_LIBPATH ${JACK}/lib)
 		ENDIF(WITH_JACK)
 
+		IF(WITH_PYTHON)
+			SET(PYTHON ${LIBDIR}/python)
+			SET(PYTHON_VERSION 3.1)
+			SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
+			# SET(PYTHON_BINARY python) # not used yet
+			SET(PYTHON_LIB python31)
+			SET(PYTHON_LIBPATH ${PYTHON}/lib)
+		ENDIF(WITH_PYTHON)
+
 		# MSVC only, Mingw doesnt need
 		IF(CMAKE_CL_64)
 			SET(PLATFORM_LINKFLAGS "/MACHINE:X64 /NODEFAULTLIB:libc.lib;MSVCRT.lib ")
@@ -538,19 +540,12 @@ IF(WIN32)
 
 	ELSE(MSVC) # MINGW
 		SET(LLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
+		SET(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 
-		SET(CMAKE_CXX_FLAGS                "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C++ flags ")
-		SET(CMAKE_C_FLAGS                  "-pipe -funsigned-char -fno-strict-aliasing" CACHE STRING "Mingw C flags ")
+		# Better warnings
+		SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
+		SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
-		SET(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g" CACHE STRING "Mingw debug C++ flags ")
-		SET(CMAKE_CXX_FLAGS_RELEASE        "   -O2" CACHE STRING "Mingw release C++ flags ")
-		SET(CMAKE_CXX_FLAGS_MINSIZEREL     "   -Os" CACHE STRING "Mingw minsize release C++ flags ")
-		SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g" CACHE STRING "Mingw release, debug C++ flags ")
-
-		SET(CMAKE_C_FLAGS_DEBUG            "-O0 -g" CACHE STRING "Mingw debug C flags ")
-		SET(CMAKE_C_FLAGS_RELEASE          "-O2"    CACHE STRING "Mingw release C flags ")
-		SET(CMAKE_C_FLAGS_MINSIZEREL       "-Os"    CACHE STRING "Mingw minsize release C flags ")
-		SET(CMAKE_C_FLAGS_RELWITHDEBINFO   "-O2 -g" CACHE STRING "Mingw release, debug C++ flags ")
 		ADD_DEFINITIONS(-DFREE_WINDOWS)
 		
 		IF(WITH_OPENMP)
@@ -614,6 +609,9 @@ IF(WIN32)
 			SET(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/OpenEXR)
 			SET(OPENEXR_LIB Half IlmImf Imath IlmThread)
 			SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
+
+			# TODO, gives linking errors, force off
+			SET(WITH_IMAGE_OPENEXR OFF)
 		ENDIF(WITH_IMAGE_OPENEXR)
 
 		IF(WITH_IMAGE_TIFF)
@@ -633,11 +631,14 @@ IF(WIN32)
 			SET(WITH_JACK OFF)
 		ENDIF(WITH_JACK)
 
-		IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
-			SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
-			ADD_DEFINITIONS(-D__SSE__)
-			ADD_DEFINITIONS(-D__MMX__)
-		ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
+		IF(WITH_PYTHON)
+			SET(PYTHON ${LIBDIR}/python)
+			SET(PYTHON_VERSION 3.1)
+			SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
+			# SET(PYTHON_BINARY python) # not used yet
+			SET(PYTHON_LIB python31mw)
+			SET(PYTHON_LIBPATH ${PYTHON}/lib)
+		ENDIF(WITH_PYTHON)
 
 	ENDIF(MSVC)
 
@@ -819,12 +820,6 @@ IF(APPLE)
 		SET(TIFF_LIBPATH ${TIFF}/lib)
 	ENDIF(WITH_IMAGE_TIFF)
 
-	IF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
-		SET(PLATFORM_CFLAGS " -msse -msse2 ${PLATFORM_CFLAGS}")
-		ADD_DEFINITIONS(-D__SSE__)
-		ADD_DEFINITIONS(-D__MMX__)
-	ENDIF(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)
-
 	SET(EXETYPE MACOSX_BUNDLE)
 
 	SET(CMAKE_C_FLAGS_DEBUG "-fno-strict-aliasing -g")
@@ -868,13 +863,29 @@ IF(WITH_BUILDINFO)
 		ENDIF(BUILD_REV_RETURN)
 	ENDIF(WIN32)
 ENDIF(WITH_BUILDINFO)
-	
 #-----------------------------------------------------------------------------
 # Common.
+
+IF(WITH_RAYOPTIMIZATION)
+	IF(CMAKE_COMPILER_IS_GNUCC)
+		IF(SUPPORT_SSE_BUILD)
+			SET(PLATFORM_CFLAGS " -msse ${PLATFORM_CFLAGS}")
+			ADD_DEFINITIONS(-D__SSE__ -D__MMX__)
+		ENDIF(SUPPORT_SSE_BUILD)
+		IF(SUPPORT_SSE2_BUILD)
+			SET(PLATFORM_CFLAGS " -msse2 ${PLATFORM_CFLAGS}")
+			ADD_DEFINITIONS(-D__SSE2__)
+			IF(NOT SUPPORT_SSE_BUILD) # dont double up
+				ADD_DEFINITIONS(-D__MMX__)
+			ENDIF(NOT SUPPORT_SSE_BUILD)
+		ENDIF(SUPPORT_SSE2_BUILD)
+	ENDIF(CMAKE_COMPILER_IS_GNUCC)
+ENDIF(WITH_RAYOPTIMIZATION)
+
 IF(WITH_IMAGE_OPENJPEG)
 	set(OPENJPEG ${CMAKE_SOURCE_DIR}/extern/libopenjpeg)
 	set(OPENJPEG_INC ${OPENJPEG})
-	set(OPENJPEG_LIb extern_libopenjpeg)
+	set(OPENJPEG_LIb extern_openjpeg)
 ENDIF(WITH_IMAGE_OPENJPEG)
 
 #-----------------------------------------------------------------------------

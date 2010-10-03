@@ -28,7 +28,7 @@
  * The engine ties all game modules together. 
  */
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable : 4786)
 #endif //WIN32
 
@@ -237,7 +237,7 @@ void KX_KetsjiEngine::SetRasterizer(RAS_IRasterizer* rasterizer)
 
 #ifndef DISABLE_PYTHON
 /*
- * At the moment the GameLogic module is imported into 'pythondictionary' after this function is called.
+ * At the moment the bge.logic module is imported into 'pythondictionary' after this function is called.
  * if this function ever changes to assign a copy, make sure the game logic module is imported into this dictionary before hand.
  */
 void KX_KetsjiEngine::SetPyNamespace(PyObject* pythondictionary)
@@ -968,44 +968,17 @@ void KX_KetsjiEngine::DoSound(KX_Scene* scene)
 	KX_Camera* cam = scene->GetActiveCamera();
 	if (!cam)
 		return;
-	MT_Point3 listenerposition = cam->NodeGetWorldPosition();
-	MT_Vector3 listenervelocity = cam->GetLinearVelocity();
-	MT_Matrix3x3 listenerorientation = cam->NodeGetWorldOrientation();
 
-	{
-		AUD_3DData data;
-		float f;
+	float f[4];
 
-		listenerorientation.getValue3x3(data.orientation);
-		listenerposition.getValue(data.position);
-		listenervelocity.getValue(data.velocity);
+	cam->NodeGetWorldPosition().getValue(f);
+	AUD_setListenerLocation(f);
 
-		f = data.position[1];
-		data.position[1] = data.position[2];
-		data.position[2] = -f;
+	cam->GetLinearVelocity().getValue(f);
+	AUD_setListenerVelocity(f);
 
-		f = data.velocity[1];
-		data.velocity[1] = data.velocity[2];
-		data.velocity[2] = -f;
-
-		f = data.orientation[1];
-		data.orientation[1] = data.orientation[2];
-		data.orientation[2] = -f;
-
-		f = data.orientation[3];
-		data.orientation[3] = -data.orientation[6];
-		data.orientation[6] = f;
-
-		f = data.orientation[4];
-		data.orientation[4] = -data.orientation[8];
-		data.orientation[8] = -f;
-
-		f = data.orientation[5];
-		data.orientation[5] = data.orientation[7];
-		data.orientation[7] = f;
-
-		AUD_updateListener(&data);
-	}
+	cam->NodeGetWorldOrientation().getRotation().getValue(f);
+	AUD_setListenerOrientation(f);
 }
 
 

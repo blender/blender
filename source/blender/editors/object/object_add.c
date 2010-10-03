@@ -49,12 +49,10 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
-#include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -67,9 +65,7 @@
 #include "BKE_particle.h"
 #include "BKE_report.h"
 #include "BKE_sca.h"
-#include "BKE_scene.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -180,10 +176,10 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 		RNA_def_property_flag(prop, PROP_HIDDEN);
 	}
 	
-	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object.", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object.", -FLT_MAX, FLT_MAX);
 	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", -FLT_MAX, FLT_MAX);
 	
-	prop = RNA_def_boolean_layer_member(ot->srna, "layer", 20, NULL, "Layer", "");
+	prop = RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
@@ -200,7 +196,7 @@ static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 		RNA_float_set_array(op->ptr, "location", loc);
 	}
 	 
-	if(!RNA_property_is_set(op->ptr, "layer")) {
+	if(!RNA_property_is_set(op->ptr, "layers")) {
 		View3D *v3d = CTX_wm_view3d(C);
 		Scene *scene = CTX_data_scene(C);
 		int a, values[20], layer;
@@ -218,7 +214,7 @@ static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 				values[a]= (layer & (1<<a));
 		}
 		
-		RNA_boolean_set_array(op->ptr, "layer", values);
+		RNA_boolean_set_array(op->ptr, "layers", values);
 	}
 }
 
@@ -239,8 +235,8 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 		*enter_editmode = TRUE;
 	}
 
-	if(RNA_property_is_set(op->ptr, "layer")) {
-		RNA_boolean_get_array(op->ptr, "layer", layer_values);
+	if(RNA_property_is_set(op->ptr, "layers")) {
+		RNA_boolean_get_array(op->ptr, "layers", layer_values);
 		*layer= 0;
 		for(a=0; a<20; a++) {
 			if(layer_values[a])
@@ -260,7 +256,9 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 	if(v3d && v3d->localvd)
 		*layer |= v3d->lay;
 
-	if (RNA_property_is_set(op->ptr, "view_align"))
+	if(RNA_property_is_set(op->ptr, "rotation"))
+		view_align = FALSE;
+	else if (RNA_property_is_set(op->ptr, "view_align"))
 		view_align = RNA_boolean_get(op->ptr, "view_align");
 	else
 		view_align = U.flag & USER_ADD_VIEWALIGNED;
@@ -306,6 +304,8 @@ Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int en
 
 	if(enter_editmode)
 		ED_object_enter_editmode(C, EM_IGNORE_LAYER);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_LAYER_CONTENT, scene);
 
 	return ob;
 }
@@ -495,7 +495,7 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 
 static EnumPropertyItem prop_metaball_types[]= {
 	{MB_BALL, "MBALL_BALL", ICON_META_BALL, "Meta Ball", ""},
-	{MB_TUBE, "MBALL_TUBE", ICON_META_TUBE, "Meta Tube", ""},
+	{MB_TUBE, "MBALL_CAPSULE", ICON_META_CAPSULE, "Meta Capsule", ""},
 	{MB_PLANE, "MBALL_PLANE", ICON_META_PLANE, "Meta Plane", ""},
 	{MB_CUBE, "MBALL_CUBE", ICON_META_CUBE, "Meta Cube", ""},
 	{MB_ELIPSOID, "MBALL_ELLIPSOID", ICON_META_ELLIPSOID, "Meta Ellipsoid", ""},
@@ -505,7 +505,6 @@ static EnumPropertyItem prop_metaball_types[]= {
 static int object_metaball_add_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	MetaBall *mball;
 	MetaElem *elem;
 	int newob= 0;
 	int enter_editmode;
@@ -527,9 +526,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 	
 	elem= (MetaElem*)add_metaball_primitive(C, mat, RNA_enum_get(op->ptr, "type"), newob);
-	mball= (MetaBall*)obedit->data;
-	BLI_addtail(mball->editelems, elem);
-	
+
 	/* userdef */
 	if (newob && !enter_editmode) {
 		ED_object_exit_editmode(C, EM_FREEDATA);
@@ -830,7 +827,8 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(bmain, scene);
 	DAG_ids_flush_update(bmain, 0);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_LAYER_CONTENT, scene);
 	
 	return OPERATOR_FINISHED;
 }

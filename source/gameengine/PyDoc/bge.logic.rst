@@ -173,14 +173,16 @@ General functions
 
    Restarts the current game by reloading the .blend file (the last saved version, not what is currently running).
    
-.. function:: LibLoad(blend, type)
+.. function:: LibLoad(blend, type, data)
    
    Converts the all of the datablocks of the given type from the given blend.
    
-   :arg blend: The path to the blend file
+   :arg blend: The path to the blend file (or the name to use for the library if data is supplied)
    :type blend: string
    :arg type: The datablock type (currently only "Scene" and "Mesh" are supported)
    :type type: string
+   :arg data: Binary data from a blend file (optional)
+   :type data: bytes
    
 .. function:: LibNew(name, type, data)
 

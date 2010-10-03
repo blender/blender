@@ -76,18 +76,24 @@ static PointerRNA rna_Context_region_get(PointerRNA *ptr)
 	return newptr;
 }
 
-/*static PointerRNA rna_Context_region_data_get(PointerRNA *ptr)
+static PointerRNA rna_Context_region_data_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
-	PointerRNA newptr;
-	RNA_pointer_create((ID*)CTX_wm_screen(C), &RNA_RegionData, CTX_wm_region_data(C), &newptr);
-	return newptr;
-}*/
+
+	/* only exists for one space still, no generic system yet */
+	if(CTX_wm_view3d(C)) {
+		PointerRNA newptr;
+		RNA_pointer_create((ID*)CTX_wm_screen(C), &RNA_RegionView3D, CTX_wm_region_data(C), &newptr);
+		return newptr;
+	}
+
+	return PointerRNA_NULL;
+}
 
 static PointerRNA rna_Context_main_get(PointerRNA *ptr)
 {
 	bContext *C= (bContext*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_Main, CTX_data_main(C));
+	return rna_pointer_inherit_refine(ptr, &RNA_BlendData, CTX_data_main(C));
 }
 
 static PointerRNA rna_Context_scene_get(PointerRNA *ptr)
@@ -145,7 +151,7 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "bContext");
 
 	/* WM */
-	prop= RNA_def_property(srna, "manager", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "window_manager", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "WindowManager");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_manager_get", NULL, NULL, NULL);
@@ -175,15 +181,15 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Region");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_region_get", NULL, NULL, NULL);
 
-	/*prop= RNA_def_property(srna, "region_data", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "region_data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_struct_type(prop, "RegionData");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_region_data_get", NULL, NULL, NULL);*/
+	RNA_def_property_struct_type(prop, "RegionView3D");
+	RNA_def_property_pointer_funcs(prop, "rna_Context_region_data_get", NULL, NULL, NULL);
 
 	/* Data */
-	prop= RNA_def_property(srna, "main", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "blend_data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_struct_type(prop, "Main");
+	RNA_def_property_struct_type(prop, "BlendData");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_main_get", NULL, NULL, NULL);
 
 	prop= RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);

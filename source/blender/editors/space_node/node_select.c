@@ -32,9 +32,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
-#include "BKE_node.h"
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
 
 #include "BLI_rect.h"
 

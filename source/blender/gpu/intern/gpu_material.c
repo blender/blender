@@ -34,14 +34,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
-#include "DNA_listBase.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
 #include "BKE_anim.h"
@@ -1007,7 +1003,7 @@ static void do_material_tex(GPUShadeInput *shi)
 
 				if(tex->type==TEX_IMAGE)
 					if(mat->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-						GPU_link(mat, "srgb_to_linearrgb", tcol, tcol);
+						GPU_link(mat, "srgb_to_linearrgb", tcol, &tcol);
 				
 				if(mtex->mapto & MAP_COL) {
 					GPUNodeLink *colfac;

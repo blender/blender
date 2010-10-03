@@ -47,26 +47,19 @@
 #endif
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_ID.h"
 #include "DNA_actuator_types.h"
-#include "DNA_boid_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
-#include "DNA_color_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_customdata_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_fileglobal_types.h"
 #include "DNA_genfile.h"
 #include "DNA_group_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_ipo_types.h"
-#include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_lamp_types.h"
@@ -74,16 +67,10 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h" // NT
-#include "DNA_outliner_types.h"
-#include "DNA_object_force.h"
 #include "DNA_packedFile_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
@@ -95,13 +82,11 @@
 #include "DNA_smoke_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
@@ -121,6 +106,7 @@
 #include "BKE_image.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for which_libbase
+#include "BKE_idcode.h"
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
@@ -138,7 +124,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
-#include "BKE_ipo.h"
 #include "BKE_sound.h"
 
 //XXX #include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
@@ -1412,6 +1397,14 @@ static void IDP_DirectLinkIDPArray(IDProperty *prop, int switch_endian, FileData
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 
 	array= (IDProperty*) prop->data.pointer;
+	
+	/* note!, idp-arrays didn't exist in 2.4x, so the pointer will be cleared
+	 * theres not really anything we can do to correct this, at least dont crash */
+	if(array==NULL) {
+		prop->len= 0;
+		prop->totallen= 0;
+	}
+	
 
 	for(i=0; i<prop->len; i++)
 		IDP_DirectLinkProperty(&array[i], switch_endian, fd);
@@ -3155,6 +3148,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 			psys->clmd->clothObject = NULL;
 			
 			psys->clmd->sim_parms= newdataadr(fd, psys->clmd->sim_parms);
+			psys->clmd->sim_parms->effector_weights = NULL;
 			psys->clmd->coll_parms= newdataadr(fd, psys->clmd->coll_parms);
 			
 			if(psys->clmd->sim_parms) {
@@ -4128,8 +4122,9 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
 
 static void link_paint(FileData *fd, Scene *sce, Paint *p)
 {
-	if(p && p->brush) {
+	if(p) {
 		p->brush= newlibadr_us(fd, sce->id.lib, p->brush);
+		p->paint_cursor= NULL;
 	}
 }
 
@@ -4317,11 +4312,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			seq->strip= newdataadr(fd, seq->strip);
 			if(seq->strip && seq->strip->done==0) {
 				seq->strip->done= 1;
-				seq->strip->tstripdata = 0;
-				seq->strip->tstripdata_startstill = 0;
-				seq->strip->tstripdata_endstill = 0;
-				seq->strip->ibuf_startstill = 0;
-				seq->strip->ibuf_endstill = 0;
 
 				if(seq->type == SEQ_IMAGE ||
 				   seq->type == SEQ_MOVIE ||
@@ -5103,7 +5093,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					direct_link_gpencil(fd, v3d->gpd);
 				}
 				v3d->localvd= newdataadr(fd, v3d->localvd);
-				v3d->afterdraw.first= v3d->afterdraw.last= NULL;
+				v3d->afterdraw_transp.first= v3d->afterdraw_transp.last= NULL;
+				v3d->afterdraw_xray.first= v3d->afterdraw_xray.last= NULL;
+				v3d->afterdraw_xraytransp.first= v3d->afterdraw_xraytransp.last= NULL;
 				v3d->properties_storage= NULL;
 				
 				view3d_split_250(v3d, &sl->regionbase);
@@ -10708,6 +10700,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			SEQ_END
 		}
 
+		/* particle brush strength factor was changed from int to float */
+		for(sce= main->scene.first; sce; sce=sce->id.next) {
+			ParticleEditSettings *pset= &sce->toolsettings->particle;
+			int a;
+
+			for(a=0; a<PE_TOT_BRUSH; a++)
+				pset->brush[a].strength /= 100.0;
+		}
+
 		for(ma = main->mat.first; ma; ma=ma->id.next)
 			if(ma->mode & MA_TRACEBLE)
 				ma->shade_flag |= MA_APPROX_OCCLUSION;
@@ -11155,6 +11156,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				br->ob_mode= (OB_MODE_SCULPT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT|OB_MODE_VERTEX_PAINT);
 		}
 		
+	}
+	{
+		ParticleSettings *part;
+		for(part = main->particle.first; part; part = part->id.next) {
+			if(part->boids)
+				part->boids->pitch = 1.0f;
+		}
 	}
 
 	// init facing axis property of steering actuators
@@ -12678,8 +12686,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 								append_id_part(fd, mainptr, id, &realid);
 								if (!realid) {
-									BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
-									if(!G.background && basefd->reports) printf("LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+									BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+									if(!G.background && basefd->reports) printf("LIB ERROR: %s:'%s' missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
 								}
 								
 								change_idid_adr(mainlist, basefd, id, realid);
@@ -12714,8 +12722,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				ID *idn= id->next;
 				if(id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
-					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
-					if(!G.background && basefd->reports)printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+					if(!G.background && basefd->reports)printf("LIB ERROR: %s:'%s' unread libblock missing from '%s'\n", BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
 					change_idid_adr(mainlist, basefd, id, NULL);
 
 					MEM_freeN(id);

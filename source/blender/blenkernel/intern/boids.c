@@ -240,6 +240,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 			mul_v3_fl(bbd->wanted_co, (1.0f - t) * val->personal_space * pa->size);
 
 			bbd->wanted_speed = sqrt(t) * len_v3(pa->prev_state.vel);
+			bbd->wanted_speed = MAX2(bbd->wanted_speed, val->min_speed);
 
 			return 1;
 		}
@@ -659,9 +660,9 @@ static int rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 		/* attack if in range */
 		if(closest_dist <= bbd->part->boids->range + pa->size + enemy_pa->size) {
 			float damage = BLI_frand();
-			float enemy_dir[3] = {bbd->wanted_co[0],bbd->wanted_co[1],bbd->wanted_co[2]};
+			float enemy_dir[3];
 
-			normalize_v3(enemy_dir);
+			normalize_v3_v3(enemy_dir, bbd->wanted_co);
 
 			/* fight mode */
 			bbd->wanted_speed = 0.0f;
@@ -736,6 +737,7 @@ static void set_boid_values(BoidValues *val, BoidSettings *boids, ParticleData *
 		val->jump_speed = 0.0f; /* no jumping in air */
 	}
 }
+
 static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *ground_co, float *ground_nor)
 {
 	BoidParticle *bpa = pa->boid;
@@ -765,16 +767,15 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 		if(!bbd->sim->colliders)
 			return NULL;
 
+		/* first try to find below boid */
 		copy_v3_v3(col.co1, pa->state.co);
-		copy_v3_v3(col.co2, pa->state.co);
-		add_v3_v3(col.co1, zvec);
+		sub_v3_v3v3(col.co2, pa->state.co, zvec);
 		sub_v3_v3(col.co2, zvec);
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
 		col.t = 0.0f;
 		hit.index = -1;
 		hit.dist = col.ray_len = len_v3(ray_dir);
 
-		/* find out upmost deflector object */
 		for(coll = bbd->sim->colliders->first; coll; coll = coll->next){
 			col.ob = coll->ob;
 			col.md = coll->collmd;
@@ -786,18 +787,40 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 		if(hit.index>=0) {
 			t = hit.dist/col.ray_len;
 			interp_v3_v3v3(ground_co, col.co1, col.co2, t);
-			VECCOPY(ground_nor, col.nor);
-			normalize_v3(ground_nor);
+			normalize_v3_v3(ground_nor, col.nor);
 			return col.hit_ob;
 		}
-		else {
-			/* default to z=0 */
-			VECCOPY(ground_co, pa->state.co);
-			ground_co[2] = 0;
-			ground_nor[0] = ground_nor[1] = 0.0f;
-			ground_nor[2] = 1.0f;
-			return NULL;
+
+		/* couldn't find below, so find upmost deflector object */
+		add_v3_v3v3(col.co1, pa->state.co, zvec);
+		sub_v3_v3v3(col.co2, pa->state.co, zvec);
+		sub_v3_v3(col.co2, zvec);
+		sub_v3_v3v3(ray_dir, col.co2, col.co1);
+		col.t = 0.0f;
+		hit.index = -1;
+		hit.dist = col.ray_len = len_v3(ray_dir);
+
+		for(coll = bbd->sim->colliders->first; coll; coll = coll->next){
+			col.ob = coll->ob;
+			col.md = coll->collmd;
+
+			if(col.md && col.md->bvhtree)
+				BLI_bvhtree_ray_cast(col.md->bvhtree, col.co1, ray_dir, radius, &hit, particle_intersect_face, &col);
 		}
+		/* then use that object */
+		if(hit.index>=0) {
+			t = hit.dist/col.ray_len;
+			interp_v3_v3v3(ground_co, col.co1, col.co2, t);
+			normalize_v3_v3(ground_nor, col.nor);
+			return col.hit_ob;
+		}
+
+		/* default to z=0 */
+		VECCOPY(ground_co, pa->state.co);
+		ground_co[2] = 0;
+		ground_nor[0] = ground_nor[1] = 0.0f;
+		ground_nor[2] = 1.0f;
+		return NULL;
 	}
 }
 static int boid_rule_applies(ParticleData *pa, BoidSettings *boids, BoidRule *rule)
@@ -911,6 +934,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 
 	if(bpa->data.health <= 0.0f) {
 		pa->alive = PARS_DYING;
+		pa->dietime = bbd->cfra;
 		return;
 	}
 
@@ -1115,8 +1139,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		}
 
 		VECCOPY(old_dir, pa->prev_state.ave);
-		VECCOPY(wanted_dir, bbd->wanted_co);
-		new_speed = normalize_v3(wanted_dir);
+		new_speed = normalize_v3_v3(wanted_dir, bbd->wanted_co);
 
 		/* first check if we have valid direction we want to go towards */
 		if(new_speed == 0.0f) {
@@ -1227,8 +1250,8 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 
 	VECADDFAC(pa->state.vel, pa->state.vel, acc, dtime);
 
-	if(bpa->data.mode != eBoidMode_InAir)
-		bpa->ground = boid_find_ground(bbd, pa, ground_co, ground_nor);
+	//if(bpa->data.mode != eBoidMode_InAir)
+	bpa->ground = boid_find_ground(bbd, pa, ground_co, ground_nor);
 
 	/* change modes, constrain movement & keep track of down vector */
 	switch(bpa->data.mode) {
@@ -1256,11 +1279,18 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 				boid_find_ground(bbd, pa, ground_co, ground_nor);
 				boid_climb(boids, pa, ground_co, ground_nor);
 			}
-			/* land boid when belowg ground */
-			else if(boids->options & BOID_ALLOW_LAND && pa->state.co[2] <= ground_co[2] + pa->size * boids->height) {
-				pa->state.co[2] = ground_co[2] + pa->size * boids->height;
-				pa->state.vel[2] = 0.0f;
-				bpa->data.mode = eBoidMode_OnLand;
+			else if(pa->state.co[2] <= ground_co[2] + pa->size * boids->height) {
+				/* land boid when below ground */
+				if(boids->options & BOID_ALLOW_LAND) {
+					pa->state.co[2] = ground_co[2] + pa->size * boids->height;
+					pa->state.vel[2] = 0.0f;
+					bpa->data.mode = eBoidMode_OnLand;
+				}
+				/* fly above ground */
+				else {
+					pa->state.co[2] = ground_co[2] + pa->size * boids->height;
+					pa->state.vel[2] = 0.0f;
+				}
 			}
 			break;
 		}
@@ -1356,7 +1386,8 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	/* save direction to state.ave unless the boid is falling */
 	/* (boids can't effect their direction when falling) */
 	if(bpa->data.mode!=eBoidMode_Falling && len_v3(pa->state.vel) > 0.1*pa->size) {
-		VECCOPY(pa->state.ave, pa->state.vel);
+		copy_v3_v3(pa->state.ave, pa->state.vel);
+		pa->state.ave[2] *= bbd->part->boids->pitch;
 		normalize_v3(pa->state.ave);
 	}
 
@@ -1442,6 +1473,7 @@ void boid_default_settings(BoidSettings *boids)
 
 	boids->landing_smoothness = 3.0f;
 	boids->banking = 1.0f;
+	boids->pitch = 1.0f;
 	boids->height = 1.0f;
 
 	boids->health = 1.0f;

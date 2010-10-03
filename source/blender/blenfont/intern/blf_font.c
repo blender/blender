@@ -38,10 +38,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
-#include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"	/* linknode */
@@ -157,7 +155,7 @@ void blf_font_buffer(FontBLF *font, char *str)
 	FT_Vector delta;
 	FT_UInt glyph_index;
 	float a, *fbuf;
-	int pen_x, pen_y, y, x, yb, diff;
+	int pen_x, y, x, yb;
 	int i, has_kerning, st, chx, chy;
 
 	if (!font->glyph_cache || (!font->b_fbuf && !font->b_cbuf))
@@ -165,7 +163,6 @@ void blf_font_buffer(FontBLF *font, char *str)
 	
 	i= 0;
 	pen_x= (int)font->pos[0];
-	pen_y= (int)font->pos[1];
 	has_kerning= FT_HAS_KERNING(font->face);
 	g_prev= NULL;
 	
@@ -174,6 +171,7 @@ void blf_font_buffer(FontBLF *font, char *str)
 	b_col_char[2]= font->b_col[2] * 255;
 
 	while (str[i]) {
+		int pen_y;
 		c= blf_utf8_next((unsigned char *)str, &i);
 		if (c == 0)
 			break;
@@ -202,24 +200,14 @@ void blf_font_buffer(FontBLF *font, char *str)
 		}
 
 		chx= pen_x + ((int)g->pos_x);
-		diff= g->height - ((int)g->pos_y);
-		if (diff > 0) {
-			if (g->pitch < 0)
-				pen_y += diff;
-			else
-				pen_y -= diff;
-		}
-		else if (diff < 0) {
-			if (g->pitch < 0)
-				pen_y -= diff;
-			else
-				pen_y += diff;
-		}
+		chy= (int)font->pos[1] + g->height;
 
-		if (g->pitch < 0)
-			chy= pen_y - ((int)g->pos_y);
-		else
-			chy= pen_y + ((int)g->pos_y);
+		if (g->pitch < 0) {
+			pen_y = (int)font->pos[1] + (g->height - (int)g->pos_y);
+		}
+		else {
+			pen_y = (int)font->pos[1] - (g->height - (int)g->pos_y);
+		}
 
 		if ((chx + g->width) >= 0 && chx < font->bw && (pen_y + g->height) >= 0 && pen_y < font->bh) {
 			/* dont draw beyond the buffer bounds */
@@ -285,19 +273,6 @@ void blf_font_buffer(FontBLF *font, char *str)
 						yb--;
 				}
 			}
-		}
-
-		if (diff > 0) {
-			if (g->pitch < 0)
-				pen_x -= diff;
-			else
-				pen_y += diff;
-		}
-		else if (diff < 0) {
-			if (g->pitch < 0)
-				pen_x += diff;
-			else
-				pen_y -= diff;
 		}
 
 		pen_x += g->advance;

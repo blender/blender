@@ -31,7 +31,6 @@
 #include <string.h>
 #include <math.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -46,20 +45,8 @@
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
-#include "BKE_armature.h"
-#include "BKE_constraint.h"
-#include "BKE_context.h"
-#include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
-#include "BKE_modifier.h"
-#include "BKE_nla.h"
-#include "BKE_object.h"
-#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"

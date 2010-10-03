@@ -65,12 +65,10 @@
 #include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_smoke.h"
-#include "BKE_unit.h"
 #include "BKE_utildefines.h"
 #include "smoke_API.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "GPU_extensions.h"
 
@@ -118,6 +116,7 @@ static void tend ( void )
 {
 	gettimeofday ( &_tend,&tz );
 }
+  #if 0
 static double tval()
 {
 	double t1, t2;
@@ -125,6 +124,7 @@ static double tval()
 	t2 = ( double ) _tend.tv_sec*1000 + ( double ) _tend.tv_usec/ ( 1000 );
 	return t2-t1;
 }
+  #endif
 #endif
 
 struct GPUTexture;

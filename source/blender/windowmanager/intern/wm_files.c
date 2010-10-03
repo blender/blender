@@ -96,7 +96,9 @@
 
 #include "GPU_draw.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -334,6 +336,9 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'New File' */
 /* op can be NULL */
+/* note: G.sce is used to store the last saved path so backup and restore after loading
+ * G.main->name is similar to G.sce but when loading from memory set the name to startup.blend 
+ * ...this could be changed but seems better then setting to "" */
 int WM_read_homefile(bContext *C, wmOperator *op)
 {
 	ListBase wmbase;
@@ -371,12 +376,17 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 		if (wmbase.first == NULL) wm_clear_default_size(C);
 	}
 	
+	/* prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake. Screws up autosaves otherwise
+	 * can remove this eventually, only in a 2.53 and older, now its not written */
+	G.fileflags &= ~G_FILE_RELATIVE_REMAP;
+
 	/* match the read WM with current WM */
 	wm_window_match_do(C, &wmbase); 
 	WM_check(C); /* opens window(s), checks keymaps */
 
 	strcpy(G.sce, scestr); /* restore */
-	
+	G.main->name[0]= '\0';
+
 	wm_init_userdef(C);
 	
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
@@ -395,6 +405,13 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 
 	ED_editors_init(C);
 	DAG_on_load_update(CTX_data_main(C));
+
+#ifndef DISABLE_PYTHON
+	if(CTX_py_init_get(C)) {
+		/* sync addons, these may have changed from the defaults */
+		BPY_eval_string(C, "__import__('bpy').utils.addon_reset_all()");
+	}
+#endif
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 	CTX_wm_window_set(C, NULL); /* exits queues */
@@ -522,7 +539,7 @@ static ImBuf *blend_file_thumb(const char *path, Scene *scene, int **thumb_pt)
 		return NULL;
 
 	/* gets scaled to BLEN_THUMB_SIZE */
-	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, OB_SOLID);
+	ibuf= ED_view3d_draw_offscreen_imbuf_simple(scene, BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2, IB_rect, OB_SOLID);
 	
 	if(ibuf) {		
 		float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
@@ -568,7 +585,7 @@ int write_crash_blend(void)
 	}
 }
 
-int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports, int copy)
+int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *reports, int copy)
 {
 	Library *li;
 	int len;
@@ -589,25 +606,20 @@ int WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports,
 		return -1;
 	}
  
+	BLI_strncpy(di, target, FILE_MAX);
+	BLI_replace_extension(di, FILE_MAX, ".blend");
+	/* dont use 'target' anymore */
+	
 	/* send the OnSave event */
 	for (li= G.main->library.first; li; li= li->id.next) {
-		if (BLI_streq(li->name, target)) {
-			BKE_report(reports, RPT_ERROR, "Cannot overwrite used library");
+		if (strcmp(li->filepath, di) == 0) {
+			BKE_reportf(reports, RPT_ERROR, "Can't overwrite used library '%f'", di);
 			return -1;
 		}
 	}
-	
-	if (!BLO_has_bfile_extension(target) && (len+6 < FILE_MAX)) {
-		sprintf(di, "%s.blend", target);
-	} else {
-		strcpy(di, target);
-	}
 
-//	if (BLI_exists(di)) {
-// XXX		if(!saveover(di))
-// XXX			return; 
-//	}
-	
+	/* operator now handles overwrite checks */
+
 	if (G.fileflags & G_AUTOPACK) {
 		packAll(G.main, reports);
 	}

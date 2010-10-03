@@ -70,6 +70,7 @@ struct Tex *add_texture(const char *name);
 void tex_set_type(struct Tex *tex, int type);
 void default_mtex(struct MTex *mtex);
 struct MTex *add_mtex(void);
+struct MTex *add_mtex_id(struct ID *id, int slot);
 struct Tex *copy_texture(struct Tex *tex);
 void make_local_texture(struct Tex *tex);
 void autotexname(struct Tex *tex);

@@ -29,6 +29,7 @@
 * ***** END GPL LICENSE BLOCK *****
 *
 */
+#include "MEM_guardedalloc.h"
 
 #include "BKE_bmesh.h"
 #include "BKE_cdderivedmesh.h"

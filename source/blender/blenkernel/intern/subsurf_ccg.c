@@ -69,6 +69,8 @@ static int ccgDM_getVertMapIndex(CCGSubSurf *ss, CCGVert *v);
 static int ccgDM_getEdgeMapIndex(CCGSubSurf *ss, CCGEdge *e);
 static int ccgDM_getFaceMapIndex(CCGSubSurf *ss, CCGFace *f);
 
+static int ccgDM_use_grid_pbvh(CCGDerivedMesh *ccgdm);
+
 ///
 
 static void *arena_alloc(CCGAllocatorHDL a, int numBytes) {
@@ -1249,7 +1251,7 @@ static void ccgDM_glNormalFast(float *a, float *b, float *c, float *d)
 
 static void ccgdm_pbvh_update(CCGDerivedMesh *ccgdm)
 {
-	if(ccgdm->pbvh && ccgdm->multires.mmd) {
+	if(ccgdm->pbvh && ccgDM_use_grid_pbvh(ccgdm)) {
 		CCGFace **faces;
 		int totface;
 
@@ -1419,7 +1421,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, v
 				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 		}
 
-		if(!doDraw || (setDrawOptions && !setDrawOptions(userData, origIndex))) {
+		if(!doDraw || (setDrawOptions && (origIndex != ORIGINDEX_NONE) && !setDrawOptions(userData, origIndex))) {
 			a += gridFaces*gridFaces*numVerts;
 			continue;
 		}

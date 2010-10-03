@@ -48,7 +48,7 @@ static bNodeSocketType cmp_node_displace_out[]= {
  * in order to take effect */
 #define DISPLACE_EPSILON	0.01
 
-static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float *veccol, float *xscale, float *yscale)
+static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float *veccol, CompBuf *xbuf,  CompBuf *ybuf, float *xscale, float *yscale)
 {
 	ImBuf *ibuf;
 	int x, y;
@@ -56,6 +56,7 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 	float d_dx, d_dy;
 	float dxt, dyt;
 	float u, v;
+	float xs, ys;
 	float vec[3], vecdx[3], vecdy[3];
 	float col[3];
 	
@@ -66,11 +67,23 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 		for(x=0; x < stackbuf->x; x++) {
 			/* calc pixel coordinates */
 			qd_getPixel(vecbuf, x-vecbuf->xof, y-vecbuf->yof, vec);
-			p_dx = vec[0] * xscale[0];
-			p_dy = vec[1] * yscale[0];
+			
+			if (xbuf)
+				qd_getPixel(xbuf, x-xbuf->xof, y-xbuf->yof, &xs);
+			else
+				xs = xscale[0];
+			
+			if (ybuf)
+				qd_getPixel(ybuf, x-ybuf->xof, y-ybuf->yof, &ys);
+			else
+				ys = yscale[0];
+
+			
+			p_dx = vec[0] * xs;
+			p_dy = vec[1] * ys;
 			
 			/* if no displacement, then just copy this pixel */
-			if (p_dx < DISPLACE_EPSILON && p_dy < DISPLACE_EPSILON) {
+			if (fabsf(p_dx) < DISPLACE_EPSILON && fabsf(p_dy) < DISPLACE_EPSILON) {
 				qd_getPixel(cbuf, x-cbuf->xof, y-cbuf->yof, col);
 				qd_setPixel(stackbuf, x, y, col);
 				continue;
@@ -84,12 +97,15 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 			/* calc derivatives */
 			qd_getPixel(vecbuf, x-vecbuf->xof+1, y-vecbuf->yof, vecdx);
 			qd_getPixel(vecbuf, x-vecbuf->xof, y-vecbuf->yof+1, vecdy);
-			d_dx = vecdx[0] * xscale[0];
-			d_dy = vecdy[0] * yscale[0];
-			
+			d_dx = vecdx[0] * xs;
+			d_dy = vecdy[0] * ys;
+
 			/* clamp derivatives to minimum displacement distance in UV space */
-			dxt = MAX2(p_dx - d_dx, DISPLACE_EPSILON)/(float)stackbuf->x;
-			dyt = MAX2(p_dy - d_dy, DISPLACE_EPSILON)/(float)stackbuf->y;
+			dxt = p_dx - d_dx;
+			dyt = p_dy - d_dy;
+
+			dxt = signf(dxt)*maxf(fabsf(dxt), DISPLACE_EPSILON)/(float)stackbuf->x;
+			dyt = signf(dyt)*maxf(fabsf(dyt), DISPLACE_EPSILON)/(float)stackbuf->y;
 			
 			ibuf_sample(ibuf, u, v, dxt, dyt, col);
 			qd_setPixel(stackbuf, x, y, col);
@@ -132,13 +148,18 @@ static void node_composit_exec_displace(void *data, bNode *node, bNodeStack **in
 	if(in[0]->data && in[1]->data) {
 		CompBuf *cbuf= in[0]->data;
 		CompBuf *vecbuf= in[1]->data;
+		CompBuf *xbuf= in[2]->data;
+		CompBuf *ybuf= in[3]->data;
 		CompBuf *stackbuf;
 		
 		cbuf= typecheck_compbuf(cbuf, CB_RGBA);
 		vecbuf= typecheck_compbuf(vecbuf, CB_VEC3);
+		xbuf= typecheck_compbuf(xbuf, CB_VAL);
+		ybuf= typecheck_compbuf(ybuf, CB_VAL);
+		
 		stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 
-		do_displace(stackbuf, cbuf, vecbuf, in[1]->vec, in[2]->vec, in[3]->vec);
+		do_displace(stackbuf, cbuf, vecbuf, in[1]->vec, xbuf, ybuf, in[2]->vec, in[3]->vec);
 		
 		out[0]->data= stackbuf;
 		

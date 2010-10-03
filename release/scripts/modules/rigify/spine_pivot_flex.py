@@ -36,54 +36,54 @@ def metarig_template():
     bone.head[:] = 0.0000, -0.0306, 0.1039
     bone.tail[:] = 0.0000, -0.0306, -0.0159
     bone.roll = 0.0000
-    bone.connected = False
+    bone.use_connect = False
     bone = arm.edit_bones.new('rib_cage')
     bone.head[:] = 0.0000, -0.0306, 0.1039
     bone.tail[:] = 0.0000, -0.0306, 0.2236
     bone.roll = -0.0000
-    bone.connected = False
+    bone.use_connect = False
     bone.parent = arm.edit_bones['pelvis']
     bone = arm.edit_bones.new('spine.01')
     bone.head[:] = 0.0000, 0.0000, -0.0000
     bone.tail[:] = 0.0000, -0.0306, 0.1039
     bone.roll = -0.0000
-    bone.connected = False
+    bone.use_connect = False
     bone.parent = arm.edit_bones['rib_cage']
     bone = arm.edit_bones.new('spine.02')
     bone.head[:] = 0.0000, -0.0306, 0.1039
     bone.tail[:] = -0.0000, -0.0398, 0.2045
     bone.roll = -0.0000
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['spine.01']
     bone = arm.edit_bones.new('spine.03')
     bone.head[:] = -0.0000, -0.0398, 0.2045
     bone.tail[:] = -0.0000, -0.0094, 0.2893
     bone.roll = -0.0000
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['spine.02']
     bone = arm.edit_bones.new('spine.04')
     bone.head[:] = -0.0000, -0.0094, 0.2893
     bone.tail[:] = -0.0000, 0.0335, 0.3595
     bone.roll = -0.0000
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['spine.03']
     bone = arm.edit_bones.new('spine.05')
     bone.head[:] = -0.0000, 0.0335, 0.3595
     bone.tail[:] = -0.0000, 0.0555, 0.4327
     bone.roll = -0.0000
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['spine.04']
     bone = arm.edit_bones.new('spine.06')
     bone.head[:] = -0.0000, 0.0555, 0.4327
     bone.tail[:] = -0.0000, 0.0440, 0.5207
     bone.roll = -0.0000
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['spine.05']
     bone = arm.edit_bones.new('spine.07')
     bone.head[:] = -0.0000, 0.0440, 0.5207
     bone.tail[:] = -0.0000, 0.0021, 0.5992
     bone.roll = -0.0000
-    bone.connected = True
+    bone.use_connect = True
     bone.parent = arm.edit_bones['spine.06']
 
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -147,7 +147,7 @@ def deform(obj, definitions, base_names, options):
 
 
 def main(obj, bone_definition, base_names, options):
-    from mathutils import Vector, RotationMatrix
+    from mathutils import Vector, Matrix
     from math import radians, pi
 
     arm = obj.data
@@ -172,7 +172,7 @@ def main(obj, bone_definition, base_names, options):
 
     ex.pelvis_copy_e = copy_bone_simple(arm, mt.pelvis, base_names[mt.pelvis]) # no parent
     ex.pelvis_copy = ex.pelvis_copy_e.name
-    ex.pelvis_copy_e.local_location = False
+    ex.pelvis_copy_e.use_local_location = False
 
     # copy the pelvis, offset to make MCH-spine_rotate and MCH-ribcage_hinge
     ex.ribcage_hinge_e = copy_bone_simple(arm, mt.pelvis, "MCH-%s_hinge" % base_names[mt.ribcage])
@@ -182,7 +182,7 @@ def main(obj, bone_definition, base_names, options):
     ex.spine_rotate_e = copy_bone_simple(arm, mt.ribcage, "MCH-%s_rotate" % spine_chain_basename)
     ex.spine_rotate = ex.spine_rotate_e.name
     ex.spine_rotate_e.translate(Vector((0.0, spine_chain_segment_length / 2.0, 0.0)))
-    ex.spine_rotate_e.connected = False
+    ex.spine_rotate_e.use_connect = False
     ex.spine_rotate_e.parent = ex.pelvis_copy_e
 
 
@@ -191,7 +191,7 @@ def main(obj, bone_definition, base_names, options):
 
     ex.ribcage_copy_e = copy_bone_simple(arm, mt.ribcage, base_names[mt.ribcage])
     ex.ribcage_copy = ex.ribcage_copy_e.name
-    ex.ribcage_copy_e.connected = False
+    ex.ribcage_copy_e.use_connect = False
     ex.ribcage_copy_e.parent = ex.ribcage_hinge_e
 
     spine_chain = [child.name for child in spine_chain]
@@ -219,7 +219,7 @@ def main(obj, bone_definition, base_names, options):
 
         ebone = copy_bone_simple(arm, child_name, "MCH-rev_%s" % child_name_orig)
         setattr(rv_chain, attr, ebone.name)
-        ebone.connected = False
+        ebone.use_connect = False
 
     mt_chain.update()
     ex_chain.update()
@@ -230,7 +230,7 @@ def main(obj, bone_definition, base_names, options):
         attr = ex_chain.attr_names[i] + "_e"
         ebone = getattr(ex_chain, attr)
         if i == 0:
-            ebone.connected = False
+            ebone.use_connect = False
             ebone.parent = ex.pelvis_copy_e
         else:
             attr_parent = ex_chain.attr_names[i - 1] + "_e"
@@ -255,16 +255,16 @@ def main(obj, bone_definition, base_names, options):
 
         spine_e = getattr(ex_chain, ex_chain.attr_names[i] + "_e")
         orig_parent = spine_e.parent
-        spine_e.connected = False
+        spine_e.use_connect = False
         spine_e.parent = spine_e_parent
-        spine_e_parent.connected = False
+        spine_e_parent.use_connect = False
 
         spine_e_parent.parent = orig_parent
 
 
     # Rotate the rev chain 180 about the by the first bones center point
     pivot = (rv_chain.spine_01_e.head + rv_chain.spine_01_e.tail) * 0.5
-    matrix = RotationMatrix(radians(180), 3, 'X')
+    matrix = Matrix.Rotation(radians(180), 3, 'X')
     for i, attr in enumerate(rv_chain.attr_names): # similar to neck
         spine_e = getattr(rv_chain, attr + "_e")
         # use the first bone as the pivot
@@ -353,7 +353,7 @@ def main(obj, bone_definition, base_names, options):
     fcurve = ex.ribcage_copy_p.driver_add('["bend_tot"]')
     driver = fcurve.driver
     driver.type = 'SUM'
-    fcurve.modifiers.remove(0) # grr dont need a modifier
+    fcurve.modifiers.remove(fcurve.modifiers[0]) # grr dont need a modifier
 
     for i in range(spine_chain_len - 1):
         var = driver.variables.new()
@@ -390,7 +390,7 @@ def main(obj, bone_definition, base_names, options):
         driver.type = 'SCRIPTED'
         driver.expression = "bend/bend_tot"
 
-        fcurve.modifiers.remove(0) # grr dont need a modifier
+        fcurve.modifiers.remove(fcurve.modifiers[0]) # grr dont need a modifier
 
 
         # add target
@@ -465,17 +465,17 @@ def main(obj, bone_definition, base_names, options):
     if "ex_layer" in options:
         layer = [n == options["ex_layer"] for n in range(0, 32)]
     else:
-        layer = list(arm.bones[bone_definition[1]].layer)
+        layer = list(arm.bones[bone_definition[1]].layers)
     for attr in ex.attr_names:
-        getattr(ex, attr + "_b").layer = layer
+        getattr(ex, attr + "_b").layers = layer
     for attr in ex_chain.attr_names:
-        getattr(ex_chain, attr + "_b").layer = layer
+        getattr(ex_chain, attr + "_b").layers = layer
     for attr in rv_chain.attr_names:
-        getattr(rv_chain, attr + "_b").layer = layer
+        getattr(rv_chain, attr + "_b").layers = layer
 
-    layer = list(arm.bones[bone_definition[1]].layer)
-    arm.bones[ex.pelvis_copy].layer = layer
-    arm.bones[ex.ribcage_copy].layer = layer
+    layer = list(arm.bones[bone_definition[1]].layers)
+    arm.bones[ex.pelvis_copy].layers = layer
+    arm.bones[ex.ribcage_copy].layers = layer
 
     # no support for blending chains
     return None

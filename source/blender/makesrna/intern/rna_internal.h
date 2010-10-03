@@ -182,16 +182,16 @@ void rna_def_animviz_common(struct StructRNA *srna);
 void rna_def_motionpath_common(struct StructRNA *srna);
 
 void rna_def_texmat_common(struct StructRNA *srna, const char *texspace_editable);
-void rna_def_mtex_common(struct StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname, const char *update);
+void rna_def_mtex_common(struct BlenderRNA *brna, struct StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname, const char *structname_slots, const char *update);
 void rna_def_render_layer_common(struct StructRNA *srna, int scene);
 
 void rna_ID_name_get(struct PointerRNA *ptr, char *value);
 int rna_ID_name_length(struct PointerRNA *ptr);
 void rna_ID_name_set(struct PointerRNA *ptr, const char *value);
 struct StructRNA *rna_ID_refine(struct PointerRNA *ptr);
-struct IDProperty *rna_ID_idproperties(struct PointerRNA *ptr, int create);
+struct IDProperty *rna_ID_idprops(struct PointerRNA *ptr, int create);
 void rna_ID_fake_user_set(struct PointerRNA *ptr, int value);
-struct IDProperty *rna_IDPropertyGroup_idproperties(struct PointerRNA *ptr, int create);
+struct IDProperty *rna_IDPropertyGroup_idprops(struct PointerRNA *ptr, int create);
 void rna_IDPropertyGroup_unregister(const struct bContext *C, struct StructRNA *type);
 struct StructRNA *rna_IDPropertyGroup_register(const struct bContext *C, struct ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
 struct StructRNA* rna_IDPropertyGroup_refine(struct PointerRNA *ptr);
@@ -224,6 +224,7 @@ char *rna_TextureSlot_path(struct PointerRNA *ptr);
 
 void RNA_api_action(StructRNA *srna);
 void RNA_api_armature_edit_bone(StructRNA *srna);
+void RNA_api_bone(StructRNA *srna);
 void RNA_api_drivers(StructRNA *srna);
 void RNA_api_image(struct StructRNA *srna);
 void RNA_api_operator(struct StructRNA *srna);
@@ -284,6 +285,7 @@ extern FloatPropertyRNA rna_IDProperty_float;
 extern FloatPropertyRNA rna_IDProperty_float_array;
 extern PointerPropertyRNA rna_IDProperty_group;
 extern CollectionPropertyRNA rna_IDProperty_collection;
+extern CollectionPropertyRNA rna_IDProperty_idp_array;
 extern FloatPropertyRNA rna_IDProperty_double;
 extern FloatPropertyRNA rna_IDProperty_double_array;
 
@@ -352,6 +354,10 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 int rna_parameter_size(struct PropertyRNA *parm);
 int rna_parameter_size_alloc(struct PropertyRNA *parm);
 
+// XXX, these should not need to be defined here~!
+struct MTex *rna_mtex_texture_slots_add(struct ID *self, struct ReportList *reports);
+struct MTex *rna_mtex_texture_slots_create(struct ID *self, struct ReportList *reports, int index);
+void rna_mtex_texture_slots_clear(struct ID *self, struct ReportList *reports, int index);
 
 #endif /* RNA_INTERNAL_H */
 

@@ -28,7 +28,8 @@ class MeshSelectInteriorFaces(bpy.types.Operator):
     bl_label = "Select Interior Faces"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         ob = context.active_object
         return (ob and ob.type == 'MESH')
 
@@ -69,12 +70,13 @@ class MeshMirrorUV(bpy.types.Operator):
     bl_label = "Copy Mirrored UV coords"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @classmethod
+    def poll(cls, context):
         ob = context.active_object
         return (ob and ob.type == 'MESH')
 
     def execute(self, context):
-        DIR = 1 # TODO, make an option
+        DIR = 1  # TODO, make an option
 
         from mathutils import Vector
 
@@ -89,7 +91,7 @@ class MeshMirrorUV(bpy.types.Operator):
         mirror_gt = {}
         mirror_lt = {}
 
-        vcos = [v.co.to_tuple(5) for v in mesh.verts]
+        vcos = [v.co.to_tuple(5) for v in mesh.vertices]
 
         for i, co in enumerate(vcos):
             if co[0] > 0.0:
@@ -100,7 +102,7 @@ class MeshMirrorUV(bpy.types.Operator):
                 mirror_gt[co] = i
                 mirror_lt[co] = i
 
-        #for i, v in enumerate(mesh.verts):
+        #for i, v in enumerate(mesh.vertices):
         vmap = {}
         for mirror_a, mirror_b in (mirror_gt, mirror_lt), (mirror_lt, mirror_gt):
             for co, i in mirror_a.items():
@@ -108,7 +110,6 @@ class MeshMirrorUV(bpy.types.Operator):
                 j = mirror_b.get(nco)
                 if j is not None:
                     vmap[i] = j
-
 
         active_uv_layer = None
         for lay in mesh.uv_textures:
@@ -128,14 +129,14 @@ class MeshMirrorUV(bpy.types.Operator):
         # find mirror faces
         mirror_fm = {}
         for i, f in enumerate(faces):
-            verts = f.verts[:]
+            verts = f.vertices[:]
             verts.sort()
             verts = tuple(verts)
             mirror_fm[verts] = i
 
         fmap = {}
         for i, f in enumerate(faces):
-            verts = [vmap.get(j) for j in f.verts]
+            verts = [vmap.get(j) for j in f.vertices]
             if None not in verts:
                 verts.sort()
                 j = mirror_fm.get(tuple(verts))
@@ -157,9 +158,8 @@ class MeshMirrorUV(bpy.types.Operator):
             uv2 = fuvs_cpy[j]
 
             # get the correct rotation
-            v1 = faces[j].verts[:]
-            v2 = [vmap[k] for k in faces[i].verts[:]]
-
+            v1 = faces[j].vertices[:]
+            v2 = [vmap[k] for k in faces[i].vertices[:]]
 
             for k in range(len(uv1)):
                 k_map = v1.index(v2[k])

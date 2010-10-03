@@ -28,5 +28,4 @@ SET(INC .)
 
 FILE(GLOB SRC intern/*.cpp)
 
-BLENDERLIB(blender_CTR "${SRC}" "${INC}")
-#, libtype=['intern'], priority = 10 )
+BLENDERLIB(bf_intern_ctr "${SRC}" "${INC}")

@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include "BKE_unit.h"
+
 #ifdef WIN32
 #define _USE_MATH_DEFINES
 #endif
@@ -31,20 +33,51 @@
 
 #include "BLI_winstuff.h"
 
+
 #define TEMP_STR_SIZE 256
 
 #define SEP_CHR		'#'
 #define SEP_STR		"#"
 
-#define EPS 0.000001
+#define EPS 0.00001
 
+#define UN_SC_KM	1000.0f
+#define UN_SC_HM	100.0f
+#define UN_SC_DAM	10.0f
+#define UN_SC_M		1.0f
+#define UN_SC_DM	0.1f
+#define UN_SC_CM	0.01f
+#define UN_SC_MM	0.001f
+#define UN_SC_UM	0.000001f
+
+#define UN_SC_MI	1609.344f
+#define UN_SC_FUR	201.168f
+#define UN_SC_CH	20.1168f
+#define UN_SC_YD	0.9144f
+#define UN_SC_FT	0.3048f
+#define UN_SC_IN	0.0254f
+#define UN_SC_MIL	0.0000254f
+
+#define UN_SC_MTON	1000.0f /* metric ton */
+#define UN_SC_QL	100.0f
+#define UN_SC_KG	1.0f
+#define UN_SC_HG	0.1f
+#define UN_SC_DAG	0.01f
+#define UN_SC_G		0.001f
+
+#define UN_SC_ITON	907.18474f /* imperial ton */
+#define UN_SC_CWT	45.359237f
+#define UN_SC_ST	6.35029318f
+#define UN_SC_LB	0.45359237f
+#define UN_SC_OZ	0.028349523125f
 
 /* define a single unit */
 typedef struct bUnitDef {
 	char *name;
 	char *name_plural;	/* abused a bit for the display name */
 	char *name_short;	/* this is used for display*/
-	char *name_alt;		/* can be NULL */
+	char *name_alt;		/* keyboard-friendly ASCII-only version of name_short, can be NULL */
+						/* if name_short has non-ASCII chars, name_alt should be present */
 	
 	char *name_display;		/* can be NULL */
 
@@ -59,7 +92,7 @@ typedef struct bUnitDef {
 /* define a single unit */
 typedef struct bUnitCollection {
 	struct bUnitDef *units;
-	int base_unit;				/* use for 0.0, or none given */
+	int base_unit;				/* basic unit index (when user desn't specify unit explicitly) */
 	int flag;					/* options for this system */
 	int length;					/* to quickly find the last item */
 } bUnitCollection;
@@ -74,14 +107,14 @@ static struct bUnitCollection buDummyCollecton = {buDummyDef, 0, 0, sizeof(buDum
 
 /* Lengths */
 static struct bUnitDef buMetricLenDef[] = {
-	{"kilometer", "kilometers",		"km", NULL,	"Kilometers", 1000.0, 0.0,		B_UNIT_DEF_NONE},
-	{"hectometer", "hectometers",	"hm", NULL,	"100 Meters", 100.0, 0.0,			B_UNIT_DEF_SUPPRESS},
-	{"dekameter", "dekameters",		"dkm",NULL,	"10 Meters", 10.0, 0.0,			B_UNIT_DEF_SUPPRESS},
-	{"meter", "meters",				"m",  NULL,	"Meters", 1.0, 0.0, 			B_UNIT_DEF_NONE}, /* base unit */
-	{"decimetre", "decimetres",		"dm", NULL,	"10 Centimeters", 0.1, 0.0,			B_UNIT_DEF_SUPPRESS},
-	{"centimeter", "centimeters",	"cm", NULL,	"Centimeters", 0.01, 0.0,			B_UNIT_DEF_NONE},
-	{"millimeter", "millimeters",	"mm", NULL,	"Millimeters", 0.001, 0.0,			B_UNIT_DEF_NONE},
-	{"micrometer", "micrometers",	"µm", "um",	"Micrometers", 0.000001, 0.0,		B_UNIT_DEF_NONE}, // micron too?
+	{"kilometer", "kilometers",		"km", NULL,	"Kilometers", UN_SC_KM, 0.0,	B_UNIT_DEF_NONE},
+	{"hectometer", "hectometers",	"hm", NULL,	"100 Meters", UN_SC_HM, 0.0,	B_UNIT_DEF_SUPPRESS},
+	{"dekameter", "dekameters",		"dam",NULL,	"10 Meters",  UN_SC_DAM, 0.0,	B_UNIT_DEF_SUPPRESS},
+	{"meter", "meters",				"m",  NULL,	"Meters",     UN_SC_M, 0.0, 	B_UNIT_DEF_NONE}, /* base unit */
+	{"decimetre", "decimetres",		"dm", NULL,	"10 Centimeters", UN_SC_DM, 0.0,	B_UNIT_DEF_SUPPRESS},
+	{"centimeter", "centimeters",	"cm", NULL,	"Centimeters", UN_SC_CM, 0.0,	B_UNIT_DEF_NONE},
+	{"millimeter", "millimeters",	"mm", NULL,	"Millimeters", UN_SC_MM, 0.0,	B_UNIT_DEF_NONE},
+	{"micrometer", "micrometers",	"µm", "um",	"Micrometers", UN_SC_UM, 0.0,	B_UNIT_DEF_NONE}, // micron too?
 
 	/* These get displayed because of float precision problems in the transform header,
 	 * could work around, but for now probably people wont use these */
@@ -94,17 +127,121 @@ static struct bUnitDef buMetricLenDef[] = {
 static struct bUnitCollection buMetricLenCollecton = {buMetricLenDef, 3, 0, sizeof(buMetricLenDef)/sizeof(bUnitDef)};
 
 static struct bUnitDef buImperialLenDef[] = {
-	{"mile", "miles",		"mi", "m", "Miles",		1609.344, 0.0,	B_UNIT_DEF_NONE},
-	{"furlong", "furlongs",	"fur", NULL, "Furlongs",201.168, 0.0,	B_UNIT_DEF_SUPPRESS},
-	{"chain", "chains",		"ch", NULL, "Chains",	0.9144*22.0, 0.0,	B_UNIT_DEF_SUPPRESS},
-	{"yard", "yards",		"yd", NULL, "Yards",	0.9144, 0.0,	B_UNIT_DEF_NONE},
-	{"foot", "feet",		"'", "ft", "Feet",		0.3048, 0.0,	B_UNIT_DEF_NONE},
-	{"inch", "inches",		"\"", "in", "Inches",	0.0254, 0.0,	B_UNIT_DEF_NONE}, /* base unit */
-	{"thou", "thous",		"mil", NULL, "Thous",	0.0000254, 0.0,	B_UNIT_DEF_NONE},
+	{"mile", "miles",		"mi", "m", "Miles",		UN_SC_MI, 0.0,	B_UNIT_DEF_NONE},
+	{"furlong", "furlongs",	"fur", NULL, "Furlongs",UN_SC_FUR, 0.0,	B_UNIT_DEF_SUPPRESS},
+	{"chain", "chains",		"ch", NULL, "Chains",	UN_SC_CH, 0.0,	B_UNIT_DEF_SUPPRESS},
+	{"yard", "yards",		"yd", NULL, "Yards",	UN_SC_YD, 0.0,	B_UNIT_DEF_NONE},
+	{"foot", "feet",		"'", "ft", "Feet",		UN_SC_FT, 0.0,	B_UNIT_DEF_NONE}, /* base unit */
+	{"inch", "inches",		"\"", "in", "Inches",	UN_SC_IN, 0.0,	B_UNIT_DEF_NONE},
+	{"thou", "thous",		"mil", NULL, "Thous",	UN_SC_MIL, 0.0,	B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
 static struct bUnitCollection buImperialLenCollecton = {buImperialLenDef, 4, 0, sizeof(buImperialLenDef)/sizeof(bUnitDef)};
 
+/* Areas */
+static struct bUnitDef buMetricAreaDef[] = {
+	{"square kilometer", "square kilometers",	"km²", "km2",	"Square Kilometers", UN_SC_KM*UN_SC_KM, 0.0,	B_UNIT_DEF_NONE},
+	{"square hectometer","square hectometers",	"hm²", "hm2",	"Square Hectometers", UN_SC_HM*UN_SC_HM, 0.0,	B_UNIT_DEF_NONE}, /* hectare */
+	{"square dekameter", "square dekameters",	"dam²","dam2",	"Square Dekameters", UN_SC_DAM*UN_SC_DAM, 0.0,	B_UNIT_DEF_SUPPRESS}, /* are */
+	{"square meter", "square meters",			"m²",  "m2",	"Square Meters", UN_SC_M*UN_SC_M, 0.0, 			B_UNIT_DEF_NONE}, /* base unit */
+	{"square decimetre", "square decimetres",	"dm²", "dm2",	"Square Decimetres", UN_SC_DM*UN_SC_DM, 0.0,	B_UNIT_DEF_SUPPRESS},
+	{"square centimeter", "square centimeters",	"cm²", "cm2",	"Square Centimeters", UN_SC_CM*UN_SC_CM, 0.0,	B_UNIT_DEF_NONE},
+	{"square millimeter", "square millimeters",	"mm²", "mm2",	"Square Millimeters", UN_SC_MM*UN_SC_MM, 0.0,	B_UNIT_DEF_NONE},
+	{"square micrometer", "square micrometers",	"µm²", "um2",	"Square Micrometers", UN_SC_UM*UN_SC_UM, 0.0,	B_UNIT_DEF_NONE},
+	{NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0}
+};
+static struct bUnitCollection buMetricAreaCollecton = {buMetricAreaDef, 3, 0, sizeof(buMetricAreaDef)/sizeof(bUnitDef)};
+
+static struct bUnitDef buImperialAreaDef[] = {
+	{"square mile", "square miles",			"sq mi", "sq m","Square Miles", UN_SC_MI*UN_SC_MI, 0.0,		B_UNIT_DEF_NONE},
+	{"square furlong", "square furlongs",	"sq fur",NULL,	"Square Furlongs", UN_SC_FUR*UN_SC_FUR, 0.0,B_UNIT_DEF_SUPPRESS},
+	{"square chain", "square chains",		"sq ch", NULL,	"Square Chains", UN_SC_CH*UN_SC_CH, 0.0,	B_UNIT_DEF_SUPPRESS},
+	{"square yard", "square yards",			"sq yd", NULL,	"Square Yards", UN_SC_YD*UN_SC_YD, 0.0,		B_UNIT_DEF_NONE},
+	{"square foot", "square feet",			"sq ft", NULL,	"Square Feet", UN_SC_FT*UN_SC_FT, 0.0,		B_UNIT_DEF_NONE}, /* base unit */
+	{"square inch", "square inches",		"sq in", NULL,	"Square Inches", UN_SC_IN*UN_SC_IN, 0.0,	B_UNIT_DEF_NONE},
+	{"square thou", "square thous",			"sq mil",NULL,	"Square Thous", UN_SC_MIL*UN_SC_MIL, 0.0,	B_UNIT_DEF_NONE},
+	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
+};
+static struct bUnitCollection buImperialAreaCollecton = {buImperialAreaDef, 4, 0, sizeof(buImperialAreaDef)/sizeof(bUnitDef)};
+
+/* Volumes */
+static struct bUnitDef buMetricVolDef[] = {
+	{"cubic kilometer", "cubic kilometers",		"km³", "km3",	"Cubic Kilometers", UN_SC_KM*UN_SC_KM*UN_SC_KM, 0.0,	B_UNIT_DEF_NONE},
+	{"cubic hectometer","cubic hectometers",	"hm³", "hm3",	"Cubic Hectometers", UN_SC_HM*UN_SC_HM*UN_SC_HM, 0.0,	B_UNIT_DEF_NONE},
+	{"cubic dekameter", "cubic dekameters",		"dam³","dam3",	"Cubic Dekameters", UN_SC_DAM*UN_SC_DAM*UN_SC_DAM, 0.0,	B_UNIT_DEF_SUPPRESS},
+	{"cubic meter", "cubic meters",				"m³",  "m3",	"Cubic Meters", UN_SC_M*UN_SC_M*UN_SC_M, 0.0, 			B_UNIT_DEF_NONE}, /* base unit */
+	{"cubic decimetre", "cubic decimetres",		"dm³", "dm3",	"Cubic Decimetres", UN_SC_DM*UN_SC_DM*UN_SC_DM, 0.0,	B_UNIT_DEF_SUPPRESS},
+	{"cubic centimeter", "cubic centimeters",	"cm³", "cm3",	"Cubic Centimeters", UN_SC_CM*UN_SC_CM*UN_SC_CM, 0.0,	B_UNIT_DEF_NONE},
+	{"cubic millimeter", "cubic millimeters",	"mm³", "mm3",	"Cubic Millimeters", UN_SC_MM*UN_SC_MM*UN_SC_MM, 0.0,	B_UNIT_DEF_NONE},
+	{"cubic micrometer", "cubic micrometers",	"µm³", "um3",	"Cubic Micrometers", UN_SC_UM*UN_SC_UM*UN_SC_UM, 0.0,	B_UNIT_DEF_NONE},
+	{NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0}
+};
+static struct bUnitCollection buMetricVolCollecton = {buMetricVolDef, 3, 0, sizeof(buMetricVolDef)/sizeof(bUnitDef)};
+
+static struct bUnitDef buImperialVolDef[] = {
+	{"cubic mile", "cubic miles",		"cu mi", "cu m","Cubic Miles", UN_SC_MI*UN_SC_MI*UN_SC_MI, 0.0,		B_UNIT_DEF_NONE},
+	{"cubic furlong", "cubic furlongs",	"cu fur",NULL,	"Cubic Furlongs", UN_SC_FUR*UN_SC_FUR*UN_SC_FUR, 0.0,B_UNIT_DEF_SUPPRESS},
+	{"cubic chain", "cubic chains",		"cu ch", NULL,	"Cubic Chains", UN_SC_CH*UN_SC_CH*UN_SC_CH, 0.0,	B_UNIT_DEF_SUPPRESS},
+	{"cubic yard", "cubic yards",		"cu yd", NULL,	"Cubic Yards", UN_SC_YD*UN_SC_YD*UN_SC_YD, 0.0,		B_UNIT_DEF_NONE},
+	{"cubic foot", "cubic feet",		"cu ft", NULL,	"Cubic Feet", UN_SC_FT*UN_SC_FT*UN_SC_FT, 0.0,		B_UNIT_DEF_NONE}, /* base unit */
+	{"cubic inch", "cubic inches",		"cu in", NULL,	"Cubic Inches", UN_SC_IN*UN_SC_IN*UN_SC_IN, 0.0,	B_UNIT_DEF_NONE},
+	{"cubic thou", "cubic thous",		"cu mil",NULL,	"Cubic Thous", UN_SC_MIL*UN_SC_MIL*UN_SC_MIL, 0.0,	B_UNIT_DEF_NONE},
+	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
+};
+static struct bUnitCollection buImperialVolCollecton = {buImperialVolDef, 4, 0, sizeof(buImperialVolDef)/sizeof(bUnitDef)};
+
+/* Mass */
+static struct bUnitDef buMetricMassDef[] = {
+	{"ton", "tonnes",			"ton", "t", "1000 Kilograms", UN_SC_MTON, 0.0,	B_UNIT_DEF_NONE},
+	{"quintal", "quintals",		"ql", "q",	"100 Kilograms", UN_SC_QL, 0.0,		B_UNIT_DEF_NONE},
+	{"kilogram", "kilograms",	"kg", NULL,	"Kilograms", UN_SC_KG, 0.0,			B_UNIT_DEF_NONE}, /* base unit */
+	{"hectogram", "hectograms",	"hg", NULL,	"Hectograms", UN_SC_HG, 0.0,		B_UNIT_DEF_NONE},
+	{"dekagram", "dekagrams",	"dag",NULL,	"10 Grams", UN_SC_DAG, 0.0,			B_UNIT_DEF_SUPPRESS},
+	{"gram", "grams",			"g",  NULL,	"Grams", UN_SC_G, 0.0,				B_UNIT_DEF_NONE},
+	{NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0}
+};
+static struct bUnitCollection buMetricMassCollecton = {buMetricMassDef, 2, 0, sizeof(buMetricMassDef)/sizeof(bUnitDef)};
+
+static struct bUnitDef buImperialMassDef[] = {
+	{"ton", "tonnes",	"ton", "t",	"Tonnes", UN_SC_ITON, 0.0,		B_UNIT_DEF_NONE},
+	{"centum weight", "centum weights", "cwt", NULL, "Centum weights", UN_SC_CWT, 0.0, B_UNIT_DEF_NONE},
+	{"stone", "stones",	"st", NULL,		"Stones", UN_SC_ST, 0.0,	B_UNIT_DEF_NONE},
+	{"pound", "pounds",	"lb", NULL,		"Pounds", UN_SC_LB, 0.0,	B_UNIT_DEF_NONE}, /* base unit */
+	{"ounce", "ounces",	"oz", NULL,		"Ounces", UN_SC_OZ, 0.0,	B_UNIT_DEF_NONE},
+	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
+};
+static struct bUnitCollection buImperialMassCollecton = {buImperialMassDef, 3, 0, sizeof(buImperialMassDef)/sizeof(bUnitDef)};
+
+/* Even if user scales the system to a point where km^3 is used, velocity and
+ * acceleration aren't scaled: that's why we have so few units for them */
+
+/* Velocity */
+static struct bUnitDef buMetricVelDef[] = {
+	{"meter per second", "meters per second",		"m/s",  NULL,	"Meters per second", UN_SC_M, 0.0,			  B_UNIT_DEF_NONE}, /* base unit */
+	{"kilometer per hour", "kilometers per hour",	"km/h", NULL,	"Kilometers per hour", UN_SC_KM/3600.0f, 0.0, B_UNIT_DEF_SUPPRESS},
+	{NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0}
+};
+static struct bUnitCollection buMetricVelCollecton = {buMetricVelDef, 0, 0, sizeof(buMetricVelDef)/sizeof(bUnitDef)};
+
+static struct bUnitDef buImperialVelDef[] = {
+	{"foot per second", "feet per second",	"ft/s", "fps",	"Feet per second", UN_SC_FT, 0.0,		B_UNIT_DEF_NONE}, /* base unit */
+	{"mile per hour", "miles per hour",		"mph", NULL,	"Miles per hour", UN_SC_MI/3600.0f, 0.0,B_UNIT_DEF_SUPPRESS},
+	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
+};
+static struct bUnitCollection buImperialVelCollecton = {buImperialVelDef, 0, 0, sizeof(buImperialVelDef)/sizeof(bUnitDef)};
+
+/* Acceleration */
+static struct bUnitDef buMetricAclDef[] = {
+	{"meter per second squared", "meters per second squared", "m/s²", "m/s2", "Meters per second squared", UN_SC_M, 0.0, B_UNIT_DEF_NONE}, /* base unit */
+	{NULL, NULL, NULL,	NULL, NULL, 0.0, 0.0}
+};
+static struct bUnitCollection buMetricAclCollecton = {buMetricAclDef, 0, 0, sizeof(buMetricAclDef)/sizeof(bUnitDef)};
+
+static struct bUnitDef buImperialAclDef[] = {
+	{"foot per second squared", "feet per second squared", "ft/s²", "ft/s2", "Feet per second squared", UN_SC_FT, 0.0, B_UNIT_DEF_NONE}, /* base unit */
+	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
+};
+static struct bUnitCollection buImperialAclCollecton = {buImperialAclDef, 0, 0, sizeof(buImperialAclDef)/sizeof(bUnitDef)};
 
 /* Time */
 static struct bUnitDef buNaturalTimeDef[] = {
@@ -114,7 +251,7 @@ static struct bUnitDef buNaturalTimeDef[] = {
 	{"minute", "minutes",			"min", "m",	"Minutes",		60.0, 0.0,		B_UNIT_DEF_NONE},
 	{"second", "seconds",			"sec", "s",	"Seconds",		1.0, 0.0,		B_UNIT_DEF_NONE}, /* base unit */
 	{"millisecond", "milliseconds",	"ms", NULL,	"Milliseconds",	0.001, 0.0	,	B_UNIT_DEF_NONE},
-	{"microsecond", "microseconds",	"us", NULL,	"Microseconds",	0.000001, 0.0,	B_UNIT_DEF_NONE},
+	{"microsecond", "microseconds",	"µs", "us",	"Microseconds",	0.000001, 0.0,	B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
 static struct bUnitCollection buNaturalTimeCollecton = {buNaturalTimeDef, 3, 0, sizeof(buNaturalTimeDef)/sizeof(bUnitDef)};
@@ -126,13 +263,15 @@ static struct bUnitDef buNaturalRotDef[] = {
 };
 static struct bUnitCollection buNaturalRotCollection = {buNaturalRotDef, 0, 0, sizeof(buNaturalRotDef)/sizeof(bUnitDef)};
 
-#define UNIT_SYSTEM_MAX 3
-static struct bUnitCollection *bUnitSystems[][8] = {
-	{0,0,0,0,0,&buNaturalRotCollection,&buNaturalTimeCollecton,0},
-	{0,&buMetricLenCollecton, 0,0,0, &buNaturalRotCollection, &buNaturalTimeCollecton,0}, /* metric */
-	{0,&buImperialLenCollecton, 0,0,0,&buNaturalRotCollection, &buNaturalTimeCollecton,0}, /* imperial */
-	{0,0,0,0,0,0,0,0}
+#define UNIT_SYSTEM_TOT (((sizeof(bUnitSystems) / 9) / sizeof(void *)) - 1)
+static struct bUnitCollection *bUnitSystems[][9] = {
+	{0, 0, 0, 0, 0, &buNaturalRotCollection, &buNaturalTimeCollecton, 0, 0},
+	{0, &buMetricLenCollecton, &buMetricAreaCollecton, &buMetricVolCollecton, &buMetricMassCollecton, &buNaturalRotCollection, &buNaturalTimeCollecton, &buMetricVelCollecton, &buMetricAclCollecton}, /* metric */
+	{0, &buImperialLenCollecton, &buImperialAreaCollecton, &buImperialVolCollecton, &buImperialMassCollecton, &buNaturalRotCollection, &buNaturalTimeCollecton, &buImperialVelCollecton, &buImperialAclCollecton}, /* imperial */
+	{0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
+
+
 
 /* internal, has some option not exposed */
 static bUnitCollection *unit_get_system(int system, int type)
@@ -256,8 +395,9 @@ void bUnit_AsString(char *str, int len_max, double value, int prec, int system, 
 
 	if(usys==NULL || usys->units[0].name==NULL)
 		usys= &buDummyCollecton;
-
-	if(split) {
+   
+	/* split output makes sense only for length, mass and time */
+	if(split && (type==B_UNIT_LENGTH || type==B_UNIT_MASS || type==B_UNIT_TIME)) {
 		int i;
 		bUnitDef *unit_a, *unit_b;
 		double value_a, value_b;
@@ -443,10 +583,6 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 
 
 	for(unit= usys->units; unit->name; unit++) {
-
-		if(unit->flag & B_UNIT_DEF_SUPPRESS)
-			continue;
-
 		/* incase there are multiple instances */
 		while(unit_replace(str, len_max, str_tmp, scale_pref, unit))
 			change= 1;
@@ -458,18 +594,15 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 		bUnitCollection *usys_iter;
 		int system_iter;
 
-		for(system_iter= 0; system_iter<UNIT_SYSTEM_MAX; system_iter++) {
+		for(system_iter= 0; system_iter<UNIT_SYSTEM_TOT; system_iter++) {
 			if (system_iter != system) {
 				usys_iter= unit_get_system(system_iter, type);
 				if (usys_iter) {
 					for(unit= usys_iter->units; unit->name; unit++) {
-
-						if((unit->flag & B_UNIT_DEF_SUPPRESS) == 0) {
-							int ofs = 0;
-							/* incase there are multiple instances */
-							while((ofs=unit_replace(str+ofs, len_max-ofs, str_tmp, scale_pref, unit)))
-								change= 1;
-						}
+						int ofs = 0;
+						/* incase there are multiple instances */
+						while((ofs=unit_replace(str+ofs, len_max-ofs, str_tmp, scale_pref, unit)))
+							change= 1;
 					}
 				}
 			}
@@ -482,10 +615,6 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 		if(str_prev) {
 			/* see which units the original value had */
 			for(unit= usys->units; unit->name; unit++) {
-
-				if(unit->flag & B_UNIT_DEF_SUPPRESS)
-					continue;
-
 				if (unit_find(str_prev, unit))
 					break;
 			}
@@ -543,6 +672,49 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 	return change;
 }
 
+/* 45µm --> 45um */
+void bUnit_ToUnitAltName(char *str, int len_max, char *orig_str, int system, int type)
+{
+	bUnitCollection *usys = unit_get_system(system, type);
+
+	bUnitDef *unit;
+	bUnitDef *unit_def= unit_default(usys);
+
+	/* find and substitute all units */
+	for(unit= usys->units; unit->name; unit++) {
+		if(len_max > 0 && (unit->name_alt || unit == unit_def))
+		{
+			char *found= NULL;
+
+			found= unit_find_str(orig_str, unit->name_short);
+			if(found) {
+				int offset= found - orig_str;
+				int len_name= 0;
+
+				/* copy everything before the unit */
+				offset= (offset<len_max? offset: len_max);
+				strncpy(str, orig_str, offset);
+
+				str+= offset;
+				orig_str+= offset + strlen(unit->name_short);
+				len_max-= offset;
+
+				/* print the alt_name */
+				if(unit->name_alt)
+					len_name= snprintf(str, len_max, "%s", unit->name_alt);
+				else
+					len_name= 0;
+
+				len_name= (len_name<len_max? len_name: len_max);
+				str+= len_name;
+				len_max-= len_name;
+			}
+		}
+	}
+
+	/* finally copy the rest of the string */
+	strncpy(str, orig_str, len_max);
+}
 
 double bUnit_ClosestScalar(double value, int system, int type)
 {
@@ -566,6 +738,12 @@ double bUnit_BaseScalar(int system, int type)
 }
 
 /* external access */
+int bUnit_IsValid(int system, int type)
+{
+	return !(type < 0 || type >= B_UNIT_MAXDEF || system < 0 || system > UNIT_SYSTEM_TOT);
+}
+
+
 void bUnit_GetSystem(void **usys_pt, int *len, int system, int type)
 {
 	bUnitCollection *usys = unit_get_system(system, type);

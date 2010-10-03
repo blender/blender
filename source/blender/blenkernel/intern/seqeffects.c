@@ -41,6 +41,7 @@
 #include "DNA_anim_types.h"
 
 #include "BKE_fcurve.h"
+#include "BKE_main.h"
 #include "BKE_plugin_types.h"
 #include "BKE_sequencer.h"
 #include "BKE_texture.h"
@@ -272,7 +273,7 @@ static ImBuf * IMB_cast_away_list(ImBuf * i)
 }
 
 static struct ImBuf * do_plugin_effect(
-	Scene *scene, Sequence *seq, float cfra,
+	Main *bmain, Scene *scene, Sequence *seq, float cfra,
 	float facf0, float facf1, int x, int y, 
 	int preview_render_size,
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -523,7 +524,7 @@ static void do_alphaover_effect_float(float facf0, float facf1, int x, int y,
 }
 
 static struct ImBuf * do_alphaover_effect(
-	Scene *scene, Sequence *seq, float cfra,
+	Main *bmain, Scene *scene, Sequence *seq, float cfra,
 	float facf0, float facf1, int x, int y, 
 	int preview_render_size,
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -695,7 +696,7 @@ static void do_alphaunder_effect_float(float facf0, float facf1, int x, int y,
 }
 
 static struct ImBuf* do_alphaunder_effect(
-	Scene *scene, Sequence *seq, float cfra,
+	Main *bmain, Scene *scene, Sequence *seq, float cfra,
 	float facf0, float facf1, int x, int y, 
 	int preview_render_size,
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -820,7 +821,7 @@ void do_cross_effect_float(float facf0, float facf1, int x, int y,
 /* carefull: also used by speed effect! */
 
 static struct ImBuf* do_cross_effect(
-	Scene *scene, Sequence *seq, float cfra,
+	Main *bmain, Scene *scene, Sequence *seq, float cfra,
 	float facf0, float facf1, int x, int y, 
 	int preview_render_size,
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -1087,7 +1088,7 @@ static void do_gammacross_effect_float(float facf0, float facf1,
 }
 
 static struct ImBuf * do_gammacross_effect(
-	Scene *scene, Sequence *seq, float cfra,
+	Main *bmain, Scene *scene, Sequence *seq, float cfra,
 	float facf0, float facf1, int x, int y, 
 	int preview_render_size,
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -1205,7 +1206,7 @@ static void do_add_effect_float(float facf0, float facf1, int x, int y,
 	}
 }
 
-static struct ImBuf * do_add_effect(Scene *scene, Sequence *seq, float cfra,
+static struct ImBuf * do_add_effect(Main *bmain, Scene *scene, Sequence *seq, float cfra,
 				    float facf0, float facf1, int x, int y, 
 				    int preview_render_size,
 				    struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -1322,7 +1323,7 @@ static void do_sub_effect_float(float facf0, float facf1, int x, int y,
 }
 
 static struct ImBuf * do_sub_effect(
-	Scene *scene, Sequence *seq, float cfra,
+	Main *bmain, Scene *scene, Sequence *seq, float cfra,
 	float facf0, float facf1, int x, int y,
 	int preview_render_size,
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -1536,7 +1537,7 @@ static void do_mul_effect_float(float facf0, float facf1, int x, int y,
 }
 
 static struct ImBuf * do_mul_effect(
-	Scene *scene, Sequence *seq, float cfra,
+	Main *bmain, Scene *scene, Sequence *seq, float cfra,
 	float facf0, float facf1, int x, int y, 
 	int preview_render_size,
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -1992,7 +1993,7 @@ static void do_wipe_effect_float(Sequence *seq, float facf0, float facf1,
 }
 
 static struct ImBuf * do_wipe_effect(
-	Scene *scene, Sequence *seq, float cfra,
+	Main *bmain, Scene *scene, Sequence *seq, float cfra,
 	float facf0, float facf1, int x, int y, 
 	int preview_render_size,
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -2143,7 +2144,7 @@ static void do_transform(Scene *scene, Sequence *seq, float facf0, int x, int y,
 
 
 static struct ImBuf * do_transform_effect(
-	Scene *scene, Sequence *seq,float cfra,
+	Main *bmain, Scene *scene, Sequence *seq,float cfra,
 	float facf0, float facf1, int x, int y, 
 	int preview_render_size,
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -2661,7 +2662,7 @@ static void do_glow_effect_float(Sequence *seq, float facf0, float facf1,
 }
 
 static struct ImBuf * do_glow_effect(
-	Scene *scene, Sequence *seq, float cfra,
+	Main *bmain, Scene *scene, Sequence *seq, float cfra,
 	float facf0, float facf1, int x, int y, 
 	int preview_render_size,
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -2722,7 +2723,7 @@ static int early_out_color(struct Sequence *seq,
 }
 
 static struct ImBuf * do_solid_color(
-	Scene *scene, Sequence *seq, float cfra,
+	Main *bmain, Scene *scene, Sequence *seq, float cfra,
 	float facf0, float facf1, int x, int y, 
 	int preview_render_size,
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -2818,7 +2819,7 @@ static int early_out_multicam(struct Sequence *seq, float facf0, float facf1)
 }
 
 static struct ImBuf * do_multicam(
-	Scene *scene, Sequence *seq, float cfra,
+	Main *bmain, Scene *scene, Sequence *seq, float cfra,
 	float facf0, float facf1, int x, int y, 
 	int preview_render_size,
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -2842,7 +2843,7 @@ static struct ImBuf * do_multicam(
 		return 0;
 	}
 
-	i = give_ibuf_seqbase(scene, x, y, cfra, seq->multicam_source, 
+	i = give_ibuf_seqbase(bmain, scene, x, y, cfra, seq->multicam_source, 
 			      preview_render_size, seqbasep);
 	if (!i) {
 		return 0;
@@ -2968,22 +2969,11 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 
 	fallback_fac = 1.0;
 	
-	/* if there is no IPO, try to make retiming easy by stretching the
+	/* if there is no fcurve, try to make retiming easy by stretching the
 	   strip */
-	// XXX old animation system - seq
 	if (!fcu && seq->seq1->enddisp != seq->seq1->start && seq->seq1->len != 0) {
 		fallback_fac = (float) seq->seq1->len / 
 			(float) (seq->seq1->enddisp - seq->seq1->start);
-		/* FIXME: this strip stretching gets screwed by stripdata
-		   handling one layer up.
-		   
-		   So it currently works by enlarging, never by shrinking!
-
-		   (IPOs still work, if used correctly)
-		*/
-		if (fallback_fac > 1.0) {
-			fallback_fac = 1.0;
-		}
 	}
 
 	if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
@@ -3006,8 +2996,8 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 
 			cursor += facf;
 
-			if (cursor >= v->length) {
-				v->frameMap[cfra] = v->length - 1;
+			if (cursor >= seq->seq1->len) {
+				v->frameMap[cfra] = seq->seq1->len - 1;
 			} else {
 				v->frameMap[cfra] = cursor;
 				v->lastValidFrame = cfra;
@@ -3033,8 +3023,8 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 				facf = (float) cfra * fallback_fac;
 			}
 			facf *= v->globalSpeed;
-			if (facf >= v->length) {
-				facf = v->length - 1;
+			if (facf >= seq->seq1->len) {
+				facf = seq->seq1->len - 1;
 			} else {
 				v->lastValidFrame = cfra;
 			}
@@ -3133,7 +3123,7 @@ static void get_default_fac_fade(struct Sequence *seq, float cfra,
 	*facf1 /= seq->len;
 }
 
-static struct ImBuf * do_overdrop_effect(Scene *scene, Sequence *seq, float cfra,
+static struct ImBuf * do_overdrop_effect(Main *bmain, Scene *scene, Sequence *seq, float cfra,
 					 float facf0, float facf1, 
 					 int x, int y, 
 					 int preview_render_size,

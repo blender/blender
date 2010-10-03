@@ -30,6 +30,8 @@
  */
 #ifdef WITH_QUICKTIME
 
+#include "MEM_guardedalloc.h"
+
 #include "IMB_anim.h"
 #include "BLO_sys_types.h"
 #include "BKE_global.h"
@@ -113,6 +115,8 @@ int anim_is_quicktime (char *name)
 
 
 void free_anim_quicktime (struct anim *anim) {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
 	if (anim == NULL) return;
 	if (anim->qtime == NULL) return;
 
@@ -122,11 +126,15 @@ void free_anim_quicktime (struct anim *anim) {
 	[anim->qtime->media release];
 	[anim->qtime->movie release];
 
+	[QTMovie exitQTKitOnThread];
+
 	if(anim->qtime) MEM_freeN (anim->qtime);
 
 	anim->qtime = NULL;
 
 	anim->duration = 0;
+
+	[pool drain];
 }
 
 static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
@@ -302,6 +310,8 @@ int startquicktime (struct anim *anim)
 
 	pool = [[NSAutoreleasePool alloc] init];
 	
+	[QTMovie enterQTKitOnThread];		
+
 	attributes = [NSDictionary dictionaryWithObjectsAndKeys:
 				  [NSString stringWithCString:anim->name 
 									 encoding:[NSString defaultCStringEncoding]], QTMovieFileNameAttribute,
@@ -314,6 +324,7 @@ int startquicktime (struct anim *anim)
 		if(QTIME_DEBUG) printf("qt: bad movie %s\n", anim->name);
 		MEM_freeN(anim->qtime);
 		if(QTIME_DEBUG) printf("qt: can't load %s\n", anim->name);
+		[QTMovie exitQTKitOnThread];
 		[pool drain];
 		return -1;
 	}
@@ -328,6 +339,7 @@ int startquicktime (struct anim *anim)
 		[anim->qtime->movie release];
 		MEM_freeN(anim->qtime);
 		if(QTIME_DEBUG) printf("qt: can't load %s\n", anim->name);
+		[QTMovie exitQTKitOnThread];
 		[pool drain];
 		return -1;
 	}

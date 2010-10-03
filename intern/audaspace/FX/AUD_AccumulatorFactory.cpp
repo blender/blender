@@ -24,26 +24,37 @@
  */
 
 #include "AUD_AccumulatorFactory.h"
-#include "AUD_AccumulatorReader.h"
+#include "AUD_CallbackIIRFilterReader.h"
+
+sample_t accumulatorFilterAdditive(AUD_CallbackIIRFilterReader* reader, void* useless)
+{
+	float in = reader->x(0);
+	float lastin = reader->x(-1);
+	float out = reader->y(-1) + in - lastin;
+	if(in > lastin)
+		out += in - lastin;
+	return out;
+}
+
+sample_t accumulatorFilter(AUD_CallbackIIRFilterReader* reader, void* useless)
+{
+	float in = reader->x(0);
+	float lastin = reader->x(-1);
+	float out = reader->y(-1);
+	if(in > lastin)
+		out += in - lastin;
+	return out;
+}
 
 AUD_AccumulatorFactory::AUD_AccumulatorFactory(AUD_IFactory* factory,
 											   bool additive) :
 		AUD_EffectFactory(factory),
-		m_additive(additive) {}
-
-AUD_AccumulatorFactory::AUD_AccumulatorFactory(bool additive) :
-		AUD_EffectFactory(0),
-		m_additive(additive) {}
-
-AUD_IReader* AUD_AccumulatorFactory::createReader()
+		m_additive(additive)
 {
-	AUD_IReader* reader = getReader();
+}
 
-	if(reader != 0)
-	{
-		reader = new AUD_AccumulatorReader(reader, m_additive);
-		AUD_NEW("reader")
-	}
-
-	return reader;
+AUD_IReader* AUD_AccumulatorFactory::createReader() const
+{
+	return new AUD_CallbackIIRFilterReader(getReader(), 2, 2,
+							m_additive ? accumulatorFilterAdditive : accumulatorFilter);
 }

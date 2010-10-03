@@ -26,11 +26,7 @@ class INFO_HT_header(bpy.types.Header):
     def draw(self, context):
         layout = self.layout
 
-        wm = context.manager
-        if wm and len(wm.operators):
-            last_op = wm.operators[-1]
-        else:
-            last_op = None
+        wm = context.window_manager
         window = context.window
         scene = context.scene
         rd = scene.render
@@ -48,7 +44,7 @@ class INFO_HT_header(bpy.types.Header):
                 sub.menu("INFO_MT_render")
             sub.menu("INFO_MT_help")
 
-        if window.screen.fullscreen:
+        if window.screen.show_fullscreen:
             layout.operator("screen.back_to_previous", icon='SCREEN_BACK', text="Back to Previous")
             layout.separator()
         else:
@@ -58,7 +54,7 @@ class INFO_HT_header(bpy.types.Header):
 
         layout.separator()
 
-        if rd.multiple_engines:
+        if rd.has_multiple_engines:
             layout.prop(rd, "engine", text="")
 
         layout.separator()
@@ -131,7 +127,7 @@ class INFO_MT_file_import(bpy.types.Menu):
     bl_label = "Import"
 
     def draw(self, context):
-        if "collada_import" in dir(bpy.ops.wm):
+        if hasattr(bpy.types, "WM_OT_collada_import"):
             self.layout.operator("wm.collada_import", text="COLLADA (.dae)")
 
 
@@ -140,7 +136,7 @@ class INFO_MT_file_export(bpy.types.Menu):
     bl_label = "Export"
 
     def draw(self, context):
-        if "collada_export" in dir(bpy.ops.wm):
+        if hasattr(bpy.types, "WM_OT_collada_export"):
             self.layout.operator("wm.collada_export", text="COLLADA (.dae)")
 
 
@@ -173,7 +169,7 @@ class INFO_MT_mesh_add(bpy.types.Menu):
         layout.operator("mesh.primitive_circle_add", icon='MESH_CIRCLE', text="Circle")
         layout.operator("mesh.primitive_uv_sphere_add", icon='MESH_UVSPHERE', text="UV Sphere")
         layout.operator("mesh.primitive_ico_sphere_add", icon='MESH_ICOSPHERE', text="Icosphere")
-        layout.operator("mesh.primitive_tube_add", icon='MESH_TUBE', text="Tube")
+        layout.operator("mesh.primitive_cylinder_add", icon='MESH_CYLINDER', text="Cylinder")
         layout.operator("mesh.primitive_cone_add", icon='MESH_CONE', text="Cone")
         layout.separator()
         layout.operator("mesh.primitive_grid_add", icon='MESH_GRID', text="Grid")
@@ -204,9 +200,9 @@ class INFO_MT_surface_add(bpy.types.Menu):
         layout.operator("surface.primitive_nurbs_surface_curve_add", icon='SURFACE_NCURVE', text="NURBS Curve")
         layout.operator("surface.primitive_nurbs_surface_circle_add", icon='SURFACE_NCIRCLE', text="NURBS Circle")
         layout.operator("surface.primitive_nurbs_surface_surface_add", icon='SURFACE_NSURFACE', text="NURBS Surface")
-        layout.operator("surface.primitive_nurbs_surface_tube_add", icon='SURFACE_NTUBE', text="NURBS Tube")
+        layout.operator("surface.primitive_nurbs_surface_cylinder_add", icon='SURFACE_NCYLINDER', text="NURBS Cylinder")
         layout.operator("surface.primitive_nurbs_surface_sphere_add", icon='SURFACE_NSPHERE', text="NURBS Sphere")
-        layout.operator("surface.primitive_nurbs_surface_donut_add", icon='SURFACE_NDONUT', text="NURBS Torus")
+        layout.operator("surface.primitive_nurbs_surface_torus_add", icon='SURFACE_NTORUS', text="NURBS Torus")
 
 
 class INFO_MT_armature_add(bpy.types.Menu):
@@ -265,7 +261,7 @@ class INFO_MT_game(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        gs = context.scene.game_data
+        gs = context.scene.game_settings
 
         layout.operator("view3d.game_start")
 
@@ -277,7 +273,7 @@ class INFO_MT_game(bpy.types.Menu):
         layout.prop(gs, "use_deprecation_warnings")
         layout.prop(gs, "use_animation_record")
         layout.separator()
-        layout.prop(gs, "auto_start")
+        layout.prop(gs, "use_auto_start")
 
 
 class INFO_MT_render(bpy.types.Menu):
@@ -320,8 +316,10 @@ class INFO_MT_help(bpy.types.Menu):
         layout.separator()
         layout.operator("wm.url_open", text="Report a Bug", icon='URL').url = 'http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse'
         layout.separator()
-        layout.operator("wm.url_open", text="Python API Reference", icon='URL').url = 'http://www.blender.org/documentation/250PythonDoc/contents.html'
-        layout.operator("help.operator_cheat_sheet")
+        layout.operator("wm.url_open", text="Python API Reference", icon='URL').url = "http://www.blender.org/documentation/blender_python_api_%s/contents.html" % "_".join(str(v) for v in bpy.app.version)
+        layout.operator("help.operator_cheat_sheet", icon='TEXT')
+        layout.separator()
+        layout.operator("anim.update_data_paths", text="FCurve/Driver 2.54 fix", icon='HELP')
         layout.separator()
         layout.operator("wm.splash")
 
@@ -352,7 +350,6 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
         textblock.write('\n'.join(op_strings))
         self.report({'INFO'}, "See OperatorList.txt textblock")
         return {'FINISHED'}
-
 
 
 def register():

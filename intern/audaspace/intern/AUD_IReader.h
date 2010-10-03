@@ -46,7 +46,7 @@ public:
 	 * \return Always returns true for readers of the buffer type.
 	 * \see getType
 	 */
-	virtual bool isSeekable()=0;
+	virtual bool isSeekable() const=0;
 
 	/**
 	 * Seeks to a specific position in the source.
@@ -65,7 +65,7 @@ public:
 	 * \return The length as sample count. May be negative if unknown.
 	 * \see getType
 	 */
-	virtual int getLength()=0;
+	virtual int getLength() const=0;
 
 	/**
 	 * Returns the position of the source as a sample count value.
@@ -76,30 +76,13 @@ public:
 	 *          the buffer ones.
 	 * \see getType
 	 */
-	virtual int getPosition()=0;
+	virtual int getPosition() const=0;
 
 	/**
 	 * Returns the specification of the reader.
 	 * \return The AUD_Specs structure.
 	 */
-	virtual AUD_Specs getSpecs()=0;
-
-	/**
-	 * Returns the type of the reader. There are special conditions for the
-	 * readers of the buffer type. Those have to return correct position and
-	 * length values as well as they must be seekable.
-	 * \return AUD_TYPE_BUFFER or AUD_TYPE_STREAM.
-	 */
-	virtual AUD_ReaderType getType()=0;
-
-	/**
-	 * Sends a message to this reader and if it has subreaders it broadcasts
-	 * the message to them.
-	 * \param message The message.
-	 * \return Whether the message has been read by the reader or one of his
-	 *         subreaders.
-	 */
-	virtual bool notify(AUD_Message &message)=0;
+	virtual AUD_Specs getSpecs() const=0;
 
 	/**
 	 * Request to read the next length samples out of the source.
