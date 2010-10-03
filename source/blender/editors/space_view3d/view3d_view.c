@@ -2177,15 +2177,6 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 			object_mat3_to_rot(v3d->camera, mat3, TRUE);
 			DAG_id_flush_update(&v3d->camera->id, OB_RECALC_OB);
 		}
-
-#if 0 //XXX2.5
-		if (IS_AUTOKEY_MODE(NORMAL)) {
-			allqueue(REDRAWIPO, 0);
-			allspace(REMAKEIPO, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWTIME, 0);
-		}
-#endif
 	}
 	else { /* not camera */
 		/* Apply the fly mode view */

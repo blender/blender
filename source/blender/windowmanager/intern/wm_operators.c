@@ -893,12 +893,6 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
 	}
 
-	// XXX - hack, only for editing docs
-	if(strcmp(op->type->idname, "WM_OT_doc_edit")==0) {
-		columns= 1;
-		width= 500;
-	}
-
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, 20, style);
 	uiItemL(layout, op->type->name, 0);

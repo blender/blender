@@ -515,15 +515,12 @@ static void init(void)
 {
 	memset(nodes, 0, sizeof nodes);
 	
-	#define Str(x) #x
-	
 	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-		reg_node(ID, Category_##Category, EnumName, Str(Category##StructName), #Category, UIName, UIDesc);
+		reg_node(ID, Category_##Category, EnumName, STRINGIFY_ARG(Category##StructName), #Category, UIName, UIDesc);
 		
 	#include "rna_nodetree_types.h"
 	
 	#undef DefNode
-	#undef Str
 	
 	reg_node(NODE_GROUP, Category_GroupNode, "GROUP", "NodeGroup", "Node", "Group", "");
 }

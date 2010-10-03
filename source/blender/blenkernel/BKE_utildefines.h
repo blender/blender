@@ -38,8 +38,11 @@
 #define TRUE 1
 #endif
 
-/* Macro to convert a value to string in the preprocessor */
-#define QUOTE(x) #x
+/* Macro to convert a value to string in the preprocessor
+ * STRINGIFY_ARG: gives the defined name in the string
+ * STRINGIFY: gives the defined value. */
+#define STRINGIFY_ARG(x) #x
+#define STRINGIFY(x) STRINGIFY_ARG(x)
 
 /* these values need to be hardcoded in structs, dna does not recognize defines */
 /* also defined in DNA_space_types.h */

@@ -962,7 +962,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *p
 			if(RNA_property_flag(prop) & PROP_OUTPUT)
 				param = PyObject_IsTrue( value );
 			else
-				param = PyLong_AsSsize_t( value );
+				param = PyLong_AsLong( value );
 			
 			if( param < 0 || param > 1) {
 				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s expected True/False or 0/1", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
@@ -975,14 +975,20 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *p
 		}
 		case PROP_INT:
 		{
-			int param = PyLong_AsSsize_t(value);
-			if (param==-1 && PyErr_Occurred()) {
+			int overflow;
+			long param= PyLong_AsLongAndOverflow(value, &overflow);
+			if(overflow || (param > INT_MAX) || (param < INT_MIN)) {
+				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s value not in 'int' range (" STRINGIFY(INT_MIN) ", " STRINGIFY(INT_MAX) ")", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
+				return -1;
+			}
+			else if (param==-1 && PyErr_Occurred()) {
 				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s expected an int type", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
 				return -1;
 			} else {
-				RNA_property_int_clamp(ptr, prop, &param);
-				if(data)	*((int*)data)= param;
-				else		RNA_property_int_set(ptr, prop, param);
+				int param_i= (int)param;
+				RNA_property_int_clamp(ptr, prop, &param_i);
+				if(data)	*((int*)data)= param_i;
+				else		RNA_property_int_set(ptr, prop, param_i);
 			}
 			break;
 		}
@@ -1261,7 +1267,7 @@ static int pyrna_py_to_prop_array_index(BPy_PropertyArrayRNA *self, int index, P
 		switch (type) {
 		case PROP_BOOLEAN:
 			{
-				int param = PyLong_AsSsize_t( value );
+				int param = PyLong_AsLong( value );
 		
 				if( param < 0 || param > 1) {
 					PyErr_SetString(PyExc_TypeError, "expected True/False or 0/1");
@@ -1273,7 +1279,7 @@ static int pyrna_py_to_prop_array_index(BPy_PropertyArrayRNA *self, int index, P
 			}
 		case PROP_INT:
 			{
-				int param = PyLong_AsSsize_t(value);
+				int param = PyLong_AsLong(value);
 				if (param==-1 && PyErr_Occurred()) {
 					PyErr_SetString(PyExc_TypeError, "expected an int type");
 					ret = -1;
@@ -1529,7 +1535,7 @@ static PyObject *pyrna_prop_array_subscript(BPy_PropertyArrayRNA *self, PyObject
 		Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
 		if (i == -1 && PyErr_Occurred())
 			return NULL;
-		return pyrna_prop_array_subscript_int(self, PyLong_AsSsize_t(key));
+		return pyrna_prop_array_subscript_int(self, PyLong_AsLong(key));
 	}
 	else if (PySlice_Check(key)) {
 		Py_ssize_t start, stop, step, slicelength;
@@ -1613,7 +1619,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop, in
 				RNA_property_boolean_get_array(ptr, prop, values);
 	
 			for(count=start; count<stop; count++)
-				values[count] = PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, count-start));
+				values[count] = PyLong_AsLong(PySequence_Fast_GET_ITEM(value, count-start));
 
 			if(PyErr_Occurred())	ret= -1;
 			else					RNA_property_boolean_set_array(ptr, prop, values);
@@ -1634,7 +1640,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop, in
 				RNA_property_int_get_array(ptr, prop, values);
 
 			for(count=start; count<stop; count++) {
-				ival = PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, count-start));
+				ival = PyLong_AsLong(PySequence_Fast_GET_ITEM(value, count-start));
 				CLAMP(ival, min, max);
 				values[count] = ival;
 			}
@@ -2854,7 +2860,7 @@ static PyObject *pyrna_prop_collection_idprop_add(BPy_PropertyRNA *self)
 
 static PyObject *pyrna_prop_collection_idprop_remove(BPy_PropertyRNA *self, PyObject *value)
 {
-	int key= PyLong_AsSsize_t(value);
+	int key= PyLong_AsLong(value);
 
 	if (key==-1 && PyErr_Occurred()) {
 		PyErr_SetString( PyExc_TypeError, "bpy_prop_collection.remove(): expected one int argument");
@@ -3201,13 +3207,13 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 				item= PySequence_GetItem(seq, i);
 				switch(raw_type) {
 				case PROP_RAW_CHAR:
-					((char *)array)[i]= (char)PyLong_AsSsize_t(item);
+					((char *)array)[i]= (char)PyLong_AsLong(item);
 					break;
 				case PROP_RAW_SHORT:
-					((short *)array)[i]= (short)PyLong_AsSsize_t(item);
+					((short *)array)[i]= (short)PyLong_AsLong(item);
 					break;
 				case PROP_RAW_INT:
-					((int *)array)[i]= (int)PyLong_AsSsize_t(item);
+					((int *)array)[i]= (int)PyLong_AsLong(item);
 					break;
 				case PROP_RAW_FLOAT:
 					((float *)array)[i]= (float)PyFloat_AsDouble(item);
@@ -4971,7 +4977,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 
 			if (func_arg_count >= 0) { /* -1 if we dont care*/
 				py_arg_count = PyObject_GetAttrString(PyFunction_GET_CODE(item), "co_argcount");
-				arg_count = PyLong_AsSsize_t(py_arg_count);
+				arg_count = PyLong_AsLong(py_arg_count);
 				Py_DECREF(py_arg_count);
 
 				/* note, the number of args we check for and the number of args we give to

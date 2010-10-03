@@ -246,7 +246,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 		}
 
 		if(size < 1 || size > PYRNA_STACK_ARRAY) {
-			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(size=%d): size must be between 0 and %d.", size, PYRNA_STACK_ARRAY);
+			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(size=%d): size must be between 0 and " STRINGIFY(PYRNA_STACK_ARRAY), size);
 			return NULL;
 		}
 
@@ -369,7 +369,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 		}
 
 		if(size < 1 || size > PYRNA_STACK_ARRAY) {
-			PyErr_Format(PyExc_TypeError, "IntVectorProperty(size=%d): size must be between 0 and %d.", size, PYRNA_STACK_ARRAY);
+			PyErr_Format(PyExc_TypeError, "IntVectorProperty(size=%d): size must be between 0 and " STRINGIFY(PYRNA_STACK_ARRAY), size);
 			return NULL;
 		}
 
@@ -503,7 +503,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 		}
 
 		if(size < 1 || size > PYRNA_STACK_ARRAY) {
-			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(size=%d): size must be between 0 and %d.", size, PYRNA_STACK_ARRAY);
+			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(size=%d): size must be between 0 and " STRINGIFY(PYRNA_STACK_ARRAY), size);
 			return NULL;
 		}
 
