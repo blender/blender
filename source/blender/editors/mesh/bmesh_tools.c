@@ -60,6 +60,7 @@
 #include "BLI_heap.h"
 #include "BLI_array.h"
 
+#include "BKE_material.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -71,6 +72,7 @@
 #include "BKE_bmesh.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
+#include "BKE_main.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -83,6 +85,7 @@
 #include "ED_util.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
+#include "ED_object.h"
 
 #include "UI_interface.h"
 
@@ -1653,7 +1656,7 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 	BMIter iter;
 	BMHeader *ele;
 	int i, types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
-	int sels[3] = {1, !(em->selectmode & SCE_SELECT_VERTEX), !(em->selectmode & SCE_SELECT_VERTEX | SCE_SELECT_EDGE)};
+	int sels[3] = {1, !(em->selectmode & SCE_SELECT_VERTEX), !(em->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE))};
 
 	for (i=0; i<3; i++) {
 		BM_ITER(ele, &iter, em->bm, types[i], NULL) {
@@ -2347,8 +2350,6 @@ static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *ptr, int *fre
 
 void MESH_OT_merge(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "Merge";
 	ot->idname= "MESH_OT_merge";
@@ -3720,26 +3721,98 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }
 
+static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmOperator *wmop)
+{
+	Base *basenew;
+	BMIter iter;
+	BMVert *v;
+	BMEdge *e;
+	Object *obedit = editbase->object;
+	Mesh *me = obedit->data;
+	BMEditMesh *em = me->edit_btmesh;
+	BMesh *bmnew;
+	int allocsize[] = {512, 512, 2048, 512};
+	
+	if (!em)
+		return OPERATOR_CANCELLED;
+		
+	bmnew = BM_Make_Mesh(allocsize);
+	CustomData_copy(&bmnew->vdata, &em->bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bmnew->edata, &em->bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bmnew->ldata, &em->bm->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bmnew->pdata, &em->bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+
+	CustomData_bmesh_init_pool(&bmnew->vdata, allocsize[0]);
+	CustomData_bmesh_init_pool(&bmnew->edata, allocsize[1]);
+	CustomData_bmesh_init_pool(&bmnew->ldata, allocsize[2]);
+	CustomData_bmesh_init_pool(&bmnew->pdata, allocsize[3]);
+		
+	basenew= ED_object_add_duplicate(bmain, scene, editbase, USER_DUP_MESH);	/* 0 = fully linked */
+	assign_matarar(basenew->object, give_matarar(obedit), *give_totcolp(obedit)); /* new in 2.5 */
+
+	ED_base_object_select(basenew, BA_DESELECT);
+	
+	EDBM_CallOpf(em, wmop, "dupe geom=%hvef dest=%p", BM_SELECT, bmnew);
+	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_SELECT, DEL_FACES);
+	
+	/*clean up any loose edges*/
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (BM_TestHFlag(e, BM_HIDDEN))
+			continue;
+
+		if (BM_Edge_FaceCount(e) != 0)
+			BM_Select(em->bm, e, 0); /*deselect*/
+	}
+	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_SELECT, DEL_EDGES);
+
+	/*clean up any loose verts*/
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (BM_TestHFlag(v, BM_HIDDEN))
+			continue;
+
+		if (BM_Vert_EdgeCount(v) != 0)
+			BM_Select(em->bm, v, 0); /*deselect*/
+	}
+	
+	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_SELECT, DEL_VERTS);
+	
+	BM_Compute_Normals(bmnew);
+	BMO_CallOpf(bmnew, "bmesh_to_mesh mesh=%p object=%p", basenew->object->data, basenew->object);
+		
+	BM_Free_Mesh(bmnew);
+	
+	return 1;
+}
+
+static int mesh_separate_material(Main *bmain, Scene *scene, Base *editbase, wmOperator *wmop)
+{
+	return 0;
+}
+
+static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOperator *wmop)
+{
+	return 0;
+}
+
 static int mesh_separate_exec(bContext *C, wmOperator *op)
 {
-#if 0
+	Main *bmain = CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Base *base= CTX_data_active_base(C);
 	int retval= 0, type= RNA_enum_get(op->ptr, "type");
 	
 	if(type == 0)
-		retval= mesh_separate_selected(scene, base);
+		retval= mesh_separate_selected(bmain, scene, base, op);
 	else if(type == 1)
-		retval= mesh_separate_material (scene, base);
+		retval= mesh_separate_material (bmain, scene, base, op);
 	else if(type == 2)
-		retval= mesh_separate_loose(scene, base);
+		retval= mesh_separate_loose(bmain, scene, base, op);
 	   
 	if(retval) {
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, base->object->data);
 		return OPERATOR_FINISHED;
 	}
 
-#endif
 	return OPERATOR_CANCELLED;
 }
 
@@ -3767,7 +3840,7 @@ void MESH_OT_separate(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_separate_types, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_separate_types, 0, "Type", "");
 }
 
 

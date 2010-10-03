@@ -1250,7 +1250,6 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, char *fmt, va_list vlist)
 	return 1;
 error:
 	BMO_Finish_Op(bm, op);
-	free(fmt);
 	return 0;
 }
 

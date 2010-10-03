@@ -115,11 +115,12 @@ typedef struct KnifeEdge {
 #define DEL			8
 
 typedef struct BMEdgeHit {
-	BMEdge *e;
+	KnifeEdge *kfe;
 	float hit[3];
 	float shit[3];
 	float l; /*lambda along line*/
 	BMVert *v; //set if snapped to a vert
+	BMFace *f;
 } BMEdgeHit;
 
 /* struct for properties used while drawing */
@@ -495,18 +496,20 @@ static void knife_add_cut(knifetool_opdata *kcd)
 		lh = kcd->linehits;
 		lastlh = firstlh = NULL;
 		for (i=0; i<kcd->totlinehit; i++, (lastlh=lh), lh++) {
+			BMFace *f = lastlh ? lastlh->f : lh->f;
+			
 			if (lastlh && len_v3v3(lastlh->hit, lh->hit) == 0.0f) {
 				if (!firstlh)
 					firstlh = lastlh;
 				continue;
 			} else if (lastlh && firstlh) {
 				if (firstlh->v || lastlh->v) {
-					BMVert *bmv = firstlh->v ? firstlh->v : lastlh->v;
+					KnifeVert *kfv = firstlh->v ? firstlh->v : lastlh->v;
 					
-					kcd->prevvert = get_bm_knife_vert(kcd, bmv);
+					kcd->prevvert = kfv;
 					copy_v3_v3(kcd->prevco, firstlh->hit);
 					kcd->prevedge = NULL;
-					kcd->prevbmface = firstlh->e->l ? firstlh->e->l->f : NULL;
+					kcd->prevbmface = f;
 				}
 				lastlh = firstlh = NULL;
 			}
@@ -514,9 +517,9 @@ static void knife_add_cut(knifetool_opdata *kcd)
 			if (!lastlh && len_v3v3(kcd->prevco, lh->hit) < FLT_EPSILON*10)
 				continue;
 			
-			kcd->curedge = get_bm_knife_edge(kcd, lh->e);
-			kcd->curbmface = kcd->curedge->e->l ? kcd->curedge->e->l->f : NULL;
-			kcd->curvert = lh->v ? get_bm_knife_vert(kcd, lh->v) : NULL;
+			kcd->curedge = lh->kfe;
+			kcd->curbmface = lh->f;
+			kcd->curvert = lh->v;
 			copy_v3_v3(kcd->vertco, lh->hit);
 
 			knife_add_single_cut(kcd);
@@ -607,17 +610,17 @@ static void knifetool_draw(const bContext *C, ARegion *ar, void *arg)
 		for (i=0; i<kcd->totlinehit; i++, lh++) {
 			float sv1[3], sv2[3];
 
-			view3d_project_float_v3(kcd->ar, lh->e->v1->co, sv1, kcd->projmat);
-			view3d_project_float_v3(kcd->ar, lh->e->v2->co, sv2, kcd->projmat);
+			view3d_project_float_v3(kcd->ar, lh->kfe->v1->co, sv1, kcd->projmat);
+			view3d_project_float_v3(kcd->ar, lh->kfe->v2->co, sv2, kcd->projmat);
 			
 			if (len_v2v2(lh->shit, sv1) < kcd->vthresh/4) {
-				copy_v3_v3(lh->hit, lh->e->v1->co);
+				copy_v3_v3(lh->hit, lh->kfe->v1->co);
 				glVertex3fv(lh->hit);
-				lh->v = lh->e->v1;
+				lh->v = lh->kfe->v1;
 			} else if (len_v2v2(lh->shit, sv2) < kcd->vthresh/4) {
-				copy_v3_v3(lh->hit, lh->e->v2->co);
+				copy_v3_v3(lh->hit, lh->kfe->v2->co);
 				glVertex3fv(lh->hit);
-				lh->v = lh->e->v2;
+				lh->v = lh->kfe->v2;
 			}
 		}
 		glEnd();
@@ -709,34 +712,45 @@ BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float 
 		ls = (BMLoop**)kcd->em->looptris[result->indexA];
 		
 		for (j=0; j<3; j++) {
-			if (isect_line_tri_v3(ls[j]->e->v1->co, ls[j]->e->v2->co, v1, v2, v3, &lambda, uv)) {
-				float no[3], view[3], sp[3];
+			ListBase *lst = knife_get_face_kedges(kcd, ls[j]->f);
+			Ref *ref;
 				
-				sub_v3_v3v3(p, ls[j]->e->v2->co, ls[j]->e->v1->co);
-				mul_v3_fl(p, lambda);
-				add_v3_v3(p, ls[j]->e->v1->co);
+			for (ref=lst->first; ref; ref=ref->next) {			
+				KnifeEdge *kfe = ref->ref;
 				
-				view3d_project_float_v3(kcd->ar, p, sp, kcd->projmat);
-				view3d_unproject(mats, view, sp[0], sp[1], 0.0f);
-				sub_v3_v3v3(view, p, view);
-				normalize_v3(view);
-
-				copy_v3_v3(no, view);
-				mul_v3_fl(no, -0.00001);
-				
-				/*go backwards toward view a bit*/
-				add_v3_v3(p, no);
-				
-				if (!BMBVH_RayCast(bmtree, p, no, NULL) && !BLI_smallhash_haskey(ehash, (intptr_t)ls[j]->e)) {
-					BMEdgeHit hit;
+				if (isect_line_tri_v3(kfe->v1->co, kfe->v2->co, v1, v2, v3, &lambda, uv)) {
+					float no[3], view[3], sp[3];
 					
-					hit.e = ls[j]->e;
-					hit.v = NULL;
-					copy_v3_v3(hit.hit, p);
-					view3d_project_float_v3(kcd->ar, hit.hit, hit.shit, kcd->projmat);
+					sub_v3_v3v3(p, kfe->v2->co, kfe->v1->co);
+					mul_v3_fl(p, lambda);
+					add_v3_v3(p, kfe->v1->co);
 					
-					BLI_array_append(edges, hit);
-					BLI_smallhash_insert(ehash, (intptr_t)ls[j]->e, NULL);
+					view3d_project_float_v3(kcd->ar, p, sp, kcd->projmat);
+					view3d_unproject(mats, view, sp[0], sp[1], 0.0f);
+					sub_v3_v3v3(view, p, view);
+					normalize_v3(view);
+	
+					copy_v3_v3(no, view);
+					mul_v3_fl(no, -0.00001);
+					
+					/*go backwards toward view a bit*/
+					add_v3_v3(p, no);
+					
+					if (!BMBVH_RayCast(bmtree, p, no, NULL) && !BLI_smallhash_haskey(ehash, (intptr_t)kfe)) {
+						BMEdgeHit hit;
+						
+						hit.kfe = kfe;
+						hit.v = NULL;
+						
+						knife_find_basef(kcd, kfe);
+						hit.f = kfe->basef;
+						
+						copy_v3_v3(hit.hit, p);
+						view3d_project_float_v3(kcd->ar, hit.hit, hit.shit, kcd->projmat);
+						
+						BLI_array_append(edges, hit);
+						BLI_smallhash_insert(ehash, (intptr_t)kfe, NULL);
+					}
 				}
 			}
 		}
@@ -1484,13 +1498,18 @@ static int knifetool_modal (bContext *C, wmOperator *op, wmEvent *event)
 		case ESCKEY:
 		case RETKEY: /* confirm */ // XXX hardcoded
 			if (event->val == KM_RELEASE) {
-				/* finish */
-				ED_region_tag_redraw(kcd->ar);
-				
-				knifetool_finish(C, op);
-				knifetool_exit(C, op);
-				
-				return OPERATOR_FINISHED;
+				if (kcd->mode == MODE_DRAGGING && event->type == ESCKEY) {
+					kcd->mode = MODE_IDLE;
+					ED_region_tag_redraw(kcd->ar);					
+				} else {				
+					/* finish */
+					ED_region_tag_redraw(kcd->ar);
+					
+					knifetool_finish(C, op);
+					knifetool_exit(C, op);
+					
+					return OPERATOR_FINISHED;
+				}
 			}
 			
 			ED_region_tag_redraw(kcd->ar);

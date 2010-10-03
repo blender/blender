@@ -156,7 +156,6 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 
 	BMVert *v = NULL, *v2;
 	BMEdge *e = NULL, **edar = NULL;
-	BMLoop *l = NULL;
 	BMFace *f = NULL;
 	
 	BMIter verts;
@@ -314,12 +313,16 @@ BMesh *bmesh_make_mesh_from_mesh(BMesh *bm, int allocsize[4])
 void dupeop_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator *dupeop = op;
+	BMesh *bm2 = BMO_Get_Pnt(op, "dest");
 	
+	if (!bm2)
+		bm2 = bm;
+		
 	/*flag input*/
 	BMO_Flag_Buffer(bm, dupeop, "geom", DUPE_INPUT, BM_ALL);
 
 	/*use the internal copy function*/
-	copy_mesh(dupeop, bm, bm);
+	copy_mesh(dupeop, bm, bm2);
 	
 	/*Output*/
 	/*First copy the input buffers to output buffers - original data*/

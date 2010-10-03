@@ -693,6 +693,7 @@ BMOpDefine def_dupeop = {
 	{BMOP_OPSLOT_MAPPING, "facemap"},
 	{BMOP_OPSLOT_MAPPING, "boundarymap"},
 	{BMOP_OPSLOT_MAPPING, "isovertmap"},
+	{BMOP_OPSLOT_PNT, "dest"}, /*destination bmesh, if NULL will use current one*/
 	{0} /*null-terminating sentinel*/},
 	dupeop_exec,
 	0
@@ -704,6 +705,7 @@ BMOpDefine def_splitop = {
 	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
 	{BMOP_OPSLOT_MAPPING, "boundarymap"},
 	{BMOP_OPSLOT_MAPPING, "isovertmap"},
+	{BMOP_OPSLOT_PNT, "dest"}, /*destination bmesh, if NULL will use current one*/
 	{0} /*null-terminating sentinel*/},
 	splitop_exec,
 	0

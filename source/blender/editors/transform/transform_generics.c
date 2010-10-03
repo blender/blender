@@ -1024,7 +1024,6 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	/* setting PET flag only if property exist in operator. Otherwise, assume it's not supported */
 	if (op && RNA_struct_find_property(op->ptr, "proportional"))
 	{
 		if (RNA_property_is_set(op->ptr, "proportional"))
@@ -1038,9 +1037,8 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 				break;
 			}
 		}
-	}
-	else
-	{
+		else
+		{
 			/* use settings from scene only if modal */
 			if (t->flag & T_MODAL)
 			{
@@ -1058,7 +1056,37 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 						t->flag |= T_PROP_EDIT;
 					}
 				}
+			}
 		}
+		
+		if (op && RNA_struct_find_property(op->ptr, "proportional_size") && RNA_property_is_set(op->ptr, "proportional_size"))
+		{
+			t->prop_size = RNA_float_get(op->ptr, "proportional_size");
+		}
+		else
+		{
+			t->prop_size = ts->proportional_size;
+		}
+		
+		
+		/* TRANSFORM_FIX_ME rna restrictions */
+		if (t->prop_size <= 0)
+		{
+			t->prop_size = 1.0f;
+		}
+		
+		if (op && RNA_struct_find_property(op->ptr, "proportional_edit_falloff") && RNA_property_is_set(op->ptr, "proportional_edit_falloff"))
+		{
+			t->prop_mode = RNA_enum_get(op->ptr, "proportional_edit_falloff");
+		}
+		else
+		{
+			t->prop_mode = ts->prop_mode;
+		}
+	}
+	else /* add not pet option to context when not available */
+	{
+		t->options |= CTX_NO_PET;
 	}
 	
 	setTransformViewMatrices(t);
