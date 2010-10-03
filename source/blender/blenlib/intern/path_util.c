@@ -873,10 +873,6 @@ static int get_path_local(char *targetpath, char *folder_name, char *subfolder_n
 	if(test_path(targetpath, bprogdir, blender_version_decimal(), relfolder))
 		return 1;
 
-	/* try ./.blender/folder_name -- DEPRECATED, need to update build systems */
-	if(test_path(targetpath, bprogdir, ".blender", relfolder))
-		return 1;
-
 	return 0;
 }
 
