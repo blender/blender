@@ -297,7 +297,7 @@ IF(UNIX AND NOT APPLE)
 
 	FIND_PACKAGE(X11 REQUIRED)
 
-	SET(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB} ${X11_Xinput_LIB}")
+	SET(LLIBS "-lc -lm -lpthread -lstdc++ ${X11_X11_LIB} ${X11_Xinput_LIB}")
 
 	IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		# BSD's dont use libdl.so
