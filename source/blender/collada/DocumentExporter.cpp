@@ -497,13 +497,11 @@ public:
 		// XXX slow		
 		if (ob->totcol) {
 			for(int a = 0; a < ob->totcol; a++)	{
-				// account for NULL materials, this should not normally happen?
-				Material *ma = give_current_material(ob, a + 1);
-				createPolylist(ma != NULL, a, has_uvs, has_color, ob, geom_id, norind);
+				createPolylist(a, has_uvs, has_color, ob, geom_id, norind);
 			}
 		}
 		else {
-			createPolylist(false, 0, has_uvs, has_color, ob, geom_id, norind);
+			createPolylist(0, has_uvs, has_color, ob, geom_id, norind);
 		}
 		
 		closeMesh();
@@ -515,8 +513,7 @@ public:
 	}
 
 	// powerful because it handles both cases when there is material and when there's not
-	void createPolylist(bool has_material,
-						int material_index,
+	void createPolylist(int material_index,
 						bool has_uvs,
 						bool has_color,
 						Object *ob,
@@ -536,7 +533,7 @@ public:
 		for (i = 0; i < totfaces; i++) {
 			MFace *f = &mfaces[i];
 			
-			if ((has_material && f->mat_nr == material_index) || !has_material) {
+			if (f->mat_nr == material_index) {
 				faces_in_polylist++;
 				if (f->v4 == 0) {
 					vcount_list.push_back(3);
@@ -549,17 +546,18 @@ public:
 
 		// no faces using this material
 		if (faces_in_polylist == 0) {
+			fprintf(stderr, "%s: no faces use material %d\n", id_name(ob).c_str(), material_index);
 			return;
 		}
 			
-		Material *ma = has_material ? give_current_material(ob, material_index + 1) : NULL;
+		Material *ma = ob->totcol ? give_current_material(ob, material_index + 1) : NULL;
 		COLLADASW::Polylist polylist(mSW);
 			
 		// sets count attribute in <polylist>
 		polylist.setCount(faces_in_polylist);
 			
 		// sets material name
-		if (has_material) {
+		if (ma) {
 			polylist.setMaterial(translate_id(id_name(ma)));
 		}
 				
@@ -603,7 +601,7 @@ public:
 		for (i = 0; i < totfaces; i++) {
 			MFace *f = &mfaces[i];
 
-			if ((has_material && f->mat_nr == material_index) || !has_material) {
+			if (f->mat_nr == material_index) {
 
 				unsigned int *v = &f->v1;
 				unsigned int *n = &norind[i].v1;
