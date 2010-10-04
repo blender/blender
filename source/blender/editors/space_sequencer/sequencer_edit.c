@@ -788,7 +788,7 @@ static Sequence *cut_seq_hard(Main *bmain, Scene *scene, Sequence * seq, int cut
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
-		seqn = seq_dupli_recursive(scene, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
+		seqn = seq_dupli_recursive(scene, NULL, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 	
 	if (seqn) { 
@@ -879,7 +879,7 @@ static Sequence *cut_seq_soft(Main *bmain, Scene *scene, Sequence * seq, int cut
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
-		seqn = seq_dupli_recursive(scene, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
+		seqn = seq_dupli_recursive(scene, NULL, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 	
 	if (seqn) { 
@@ -1619,7 +1619,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	seqbase_dupli_recursive(scene, &nseqbase, ed->seqbasep, SEQ_DUPE_CONTEXT);
+	seqbase_dupli_recursive(scene, NULL, &nseqbase, ed->seqbasep, SEQ_DUPE_CONTEXT);
 
 	if(nseqbase.first) {
 		Sequence * seq= nseqbase.first;
@@ -2595,7 +2595,7 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	seqbase_dupli_recursive(scene, &seqbase_clipboard, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME);
+	seqbase_dupli_recursive(scene, NULL, &seqbase_clipboard, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME);
 	seqbase_clipboard_frame= scene->r.cfra;
 
 	/* Need to remove anything that references the current scene */
@@ -2649,7 +2649,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
 	deselect_all_seq(scene);
 	ofs = scene->r.cfra - seqbase_clipboard_frame;
 
-	seqbase_dupli_recursive(scene, &nseqbase, &seqbase_clipboard, SEQ_DUPE_UNIQUE_NAME);
+	seqbase_dupli_recursive(scene, NULL, &nseqbase, &seqbase_clipboard, SEQ_DUPE_UNIQUE_NAME);
 
 	/* transform pasted strips before adding */
 	if(ofs) {

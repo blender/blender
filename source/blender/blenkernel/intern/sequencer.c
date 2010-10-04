@@ -3531,8 +3531,9 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 }
 
 
-static Sequence *seq_dupli(struct Scene *scene, Sequence *seq, int dupe_flag)
+static Sequence *seq_dupli(struct Scene *scene, struct Scene *scene_to, Sequence *seq, int dupe_flag)
 {
+	Scene *sce_audio= scene_to ? scene_to : scene;
 	Sequence *seqn = MEM_dupallocN(seq);
 
 	seq->tmp = seqn;
@@ -3566,7 +3567,7 @@ static Sequence *seq_dupli(struct Scene *scene, Sequence *seq, int dupe_flag)
 	} else if(seq->type == SEQ_SCENE) {
 		seqn->strip->stripdata = 0;
 		if(seq->scene_sound)
-			seqn->scene_sound = sound_scene_add_scene_sound(scene, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+			seqn->scene_sound = sound_scene_add_scene_sound(sce_audio, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
 	} else if(seq->type == SEQ_MOVIE) {
 		seqn->strip->stripdata =
 				MEM_dupallocN(seq->strip->stripdata);
@@ -3575,7 +3576,7 @@ static Sequence *seq_dupli(struct Scene *scene, Sequence *seq, int dupe_flag)
 		seqn->strip->stripdata =
 				MEM_dupallocN(seq->strip->stripdata);
 		if(seq->scene_sound)
-			seqn->scene_sound = sound_add_scene_sound(scene, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
+			seqn->scene_sound = sound_add_scene_sound(sce_audio, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
 
 		seqn->sound->id.us++;
 	} else if(seq->type == SEQ_IMAGE) {
@@ -3610,13 +3611,13 @@ static Sequence *seq_dupli(struct Scene *scene, Sequence *seq, int dupe_flag)
 	return seqn;
 }
 
-Sequence * seq_dupli_recursive(struct Scene *scene, Sequence * seq, int dupe_flag)
+Sequence * seq_dupli_recursive(struct Scene *scene, struct Scene *scene_to, Sequence * seq, int dupe_flag)
 {
-	Sequence * seqn = seq_dupli(scene, seq, dupe_flag);
+	Sequence * seqn = seq_dupli(scene, scene_to, seq, dupe_flag);
 	if (seq->type == SEQ_META) {
 		Sequence *s;
 		for(s= seq->seqbase.first; s; s = s->next) {
-			Sequence *n = seq_dupli_recursive(scene, s, dupe_flag);
+			Sequence *n = seq_dupli_recursive(scene, scene_to, s, dupe_flag);
 			if (n) {
 				BLI_addtail(&seqn->seqbase, n);
 			}
@@ -3625,7 +3626,7 @@ Sequence * seq_dupli_recursive(struct Scene *scene, Sequence * seq, int dupe_fla
 	return seqn;
 }
 
-void seqbase_dupli_recursive(Scene *scene, ListBase *nseqbase, ListBase *seqbase, int dupe_flag)
+void seqbase_dupli_recursive(Scene *scene, Scene *scene_to, ListBase *nseqbase, ListBase *seqbase, int dupe_flag)
 {
 	Sequence *seq;
 	Sequence *seqn = 0;
@@ -3634,7 +3635,7 @@ void seqbase_dupli_recursive(Scene *scene, ListBase *nseqbase, ListBase *seqbase
 	for(seq= seqbase->first; seq; seq= seq->next) {
 		seq->tmp= NULL;
 		if((seq->flag & SELECT) || (dupe_flag & SEQ_DUPE_ALL)) {
-			seqn = seq_dupli(scene, seq, dupe_flag);
+			seqn = seq_dupli(scene, scene_to, seq, dupe_flag);
 			if (seqn) { /*should never fail */
 				if(dupe_flag & SEQ_DUPE_CONTEXT) {
 					seq->flag &= ~SEQ_ALLSEL;
@@ -3643,7 +3644,7 @@ void seqbase_dupli_recursive(Scene *scene, ListBase *nseqbase, ListBase *seqbase
 
 				BLI_addtail(nseqbase, seqn);
 				if(seq->type==SEQ_META)
-					seqbase_dupli_recursive(scene, &seqn->seqbase, &seq->seqbase, dupe_flag);
+					seqbase_dupli_recursive(scene, scene_to, &seqn->seqbase, &seq->seqbase, dupe_flag);
 
 				if(dupe_flag & SEQ_DUPE_CONTEXT) {
 					if (seq == last_seq) {
