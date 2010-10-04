@@ -37,6 +37,7 @@ SET(INC
 	../../../intern/guardedalloc
 	../../../source/blender/makesdna
 	../../../source/blender/makesrna
+	../../../source/blender/blenkernel
 )
 
 IF(WITH_GAMEENGINE)
