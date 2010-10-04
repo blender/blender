@@ -1015,8 +1015,9 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 		if(ELEM(psys->part->phystype, PART_PHYS_NO, PART_PHYS_KEYED))
 			continue;
 
-		if(psys->part->type == PART_HAIR && (psys->flag & PSYS_HAIR_DYNAMICS)==0)
-			continue;
+		/* hair needs to be included in id-list for cache edit mode to work */
+		/* if(psys->part->type == PART_HAIR && (psys->flag & PSYS_HAIR_DYNAMICS)==0) */
+		/*	continue; */
 			
 		if(psys->part->type == PART_FLUID)
 			continue;
