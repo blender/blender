@@ -186,7 +186,10 @@ static void raycallback(void *userdata, int index, const BVHTreeRay *ray, BVHTre
 	BMBVHTree *tree = userdata;
 	BMLoop **ls = tree->em->looptris[index];
 	float dist, uv[2];
-
+	 
+	if (!ls[0] || !ls[1] || !ls[2])
+		return;
+	
 	dist = ray_tri_intersection(ray, hit->dist, ls[0]->v->co, ls[1]->v->co,
 	                            ls[2]->v->co, uv, tree->epsilon);
 	if (dist < hit->dist) {

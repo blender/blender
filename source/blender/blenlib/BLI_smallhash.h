@@ -55,10 +55,11 @@ typedef struct SmallHash {
   
   no chance of anyone shoving INT32_MAX-2 into a *val pointer, I
   imagine.  hopefully. */
-#define CELL_UNUSED	((void*)0x7FFFFFFD)
+#define CELL_UNUSED	((void*)0x7FFFFFFF)
 #define CELL_FREE	((void*)0x7FFFFFFD)
 
-#define HASHNEXT(h) (((h) + ((h)==0))*2)
+#define NONZERO(n) ((n) + !(n))
+#define HASHNEXT(h, hoff) ((h) + ((hoff=NONZERO(hoff*2)+1), hoff))
 
 BM_INLINE void BLI_smallhash_init(SmallHash *hash)
 {
@@ -90,7 +91,7 @@ BM_INLINE void BLI_smallhash_release(SmallHash *hash)
 
 BM_INLINE void BLI_smallhash_insert(SmallHash *hash, intptr_t key, void *item) 
 {
-	int h;
+	int h, hoff=1;
 	
 	if (hash->size < hash->used*3) {
 		int newsize = hashsizes[++hash->curhash];
@@ -116,9 +117,9 @@ BM_INLINE void BLI_smallhash_insert(SmallHash *hash, intptr_t key, void *item)
 			if (ELEM(tmp[i].val, CELL_UNUSED, CELL_FREE))
 				continue;
 			
-			h = tmp[i].key;
+			h = tmp[i].key; hoff = 1;
 			while (!ELEM(hash->table[h % newsize].val, CELL_UNUSED, CELL_FREE))
-				h = HASHNEXT(h);
+				h = HASHNEXT(h, hoff);
 			
 			h %= newsize;
 			
@@ -131,9 +132,9 @@ BM_INLINE void BLI_smallhash_insert(SmallHash *hash, intptr_t key, void *item)
 		}
 	}
 	
-	h = key;
+	h = key; hoff = 1;
 	while (!ELEM(hash->table[h % hash->size].val, CELL_UNUSED, CELL_FREE))
-		h = HASHNEXT(h);
+		h = HASHNEXT(h, hoff);
 	
 	h %= hash->size;
 	hash->table[h].key = key;
@@ -144,14 +145,14 @@ BM_INLINE void BLI_smallhash_insert(SmallHash *hash, intptr_t key, void *item)
 
 BM_INLINE void BLI_smallhash_remove(SmallHash *hash, intptr_t key)
 {
-	int h = key;
+	int h = key, hoff=1;
 	
 	while (hash->table[h % hash->size].key != key 
 	      || hash->table[h % hash->size].val == CELL_UNUSED)
 	{
 		if (hash->table[h % hash->size].val == CELL_FREE)
 			return;
-		h = HASHNEXT(h);
+		h = HASHNEXT(h, hoff);
 	}
 	
 	h %= hash->size;
@@ -161,7 +162,7 @@ BM_INLINE void BLI_smallhash_remove(SmallHash *hash, intptr_t key)
 
 BM_INLINE void *BLI_smallhash_lookup(SmallHash *hash, intptr_t key)
 {
-	int h = key;
+	int h = key, hoff=1;
 	
 	if (!hash->table)
 		return NULL;
@@ -171,7 +172,7 @@ BM_INLINE void *BLI_smallhash_lookup(SmallHash *hash, intptr_t key)
 	{
 		if (hash->table[h % hash->size].val == CELL_FREE)
 			return NULL;
-		h = HASHNEXT(h);
+		h = HASHNEXT(h, hoff);
 	}
 	
 	return hash->table[h % hash->size].val;
@@ -180,7 +181,7 @@ BM_INLINE void *BLI_smallhash_lookup(SmallHash *hash, intptr_t key)
 
 BM_INLINE int BLI_smallhash_haskey(SmallHash *hash, intptr_t key)
 {
-	int h = key;
+	int h = key, hoff=1;
 	
 	if (!hash->table)
 		return 0;
@@ -190,7 +191,7 @@ BM_INLINE int BLI_smallhash_haskey(SmallHash *hash, intptr_t key)
 	{
 		if (hash->table[h % hash->size].val == CELL_FREE)
 			return 0;
-		h = HASHNEXT(h);
+		h = HASHNEXT(h, hoff);
 	}
 	
 	return 1;

@@ -1,4 +1,3 @@
-#if 1
 /**
  * $Id$
  *
@@ -683,19 +682,45 @@ static void knifetool_draw(const bContext *C, ARegion *ar, void *arg)
 	glEnable(GL_DEPTH_TEST);
 }
 
+void _print_smhash(SmallHash *hash)
+{
+	int i, linecol=79, c=0;
+	
+	printf("{");
+	for (i=0; i<hash->size; i++) {
+		if (hash->table[i].val == CELL_UNUSED) {
+			printf("--u-");
+		} else if (hash->table[i].val == CELL_FREE) {
+			printf("--f-");
+		} else	{
+			printf("%2x", (intptr_t)hash->table[i].key);
+		}
+		
+		if (i != hash->size-1)
+			printf(", ");
+		
+		c += 6;
+		
+		if (c >= linecol) {
+			printf("\n ");
+			c = 0;
+		}
+	}
+	
+	fflush(stdout);
+}
+
 BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float v1[3], 
-                              float v2[3], float v3[3], bglMats *mats, int *count)
+                              float v2[3], float v3[3], SmallHash *ehash, bglMats *mats, int *count)
 {
 	BVHTree *tree2 = BLI_bvhtree_new(3, FLT_EPSILON*4, 8, 8), *tree = BMBVH_BVHTree(bmtree);
 	BMEdgeHit *edges = NULL;
 	BLI_array_declare(edges);
-	SmallHash hash, *ehash = &hash;
 	BVHTreeOverlap *results, *result;
 	BMLoop *l, **ls;
+	BMIter iter;
 	float cos[9], uv[3], lambda;
 	int tot=0, i, j;
-	
-	BLI_smallhash_init(ehash);
 	
 	copy_v3_v3(cos, v1);
 	copy_v3_v3(cos+3, v2);
@@ -712,9 +737,10 @@ BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float 
 		ls = (BMLoop**)kcd->em->looptris[result->indexA];
 		
 		for (j=0; j<3; j++) {
-			ListBase *lst = knife_get_face_kedges(kcd, ls[j]->f);
+			BMLoop *l1 = ls[j];	
+			ListBase *lst = knife_get_face_kedges(kcd, l1->f);
 			Ref *ref;
-				
+			
 			for (ref=lst->first; ref; ref=ref->next) {			
 				KnifeEdge *kfe = ref->ref;
 				
@@ -731,7 +757,7 @@ BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float 
 					normalize_v3(view);
 	
 					copy_v3_v3(no, view);
-					mul_v3_fl(no, -0.00001);
+					mul_v3_fl(no, -0.003);
 					
 					/*go backwards toward view a bit*/
 					add_v3_v3(p, no);
@@ -756,8 +782,6 @@ BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float 
 		}
 	}
 	
-	BLI_smallhash_release(ehash);
-	
 	if (results)
 		MEM_freeN(results);
 	
@@ -770,6 +794,7 @@ static void knife_find_line_hits(knifetool_opdata *kcd)
 {
 	bglMats mats;
 	BMEdgeHit *e1, *e2;
+	SmallHash hash, *ehash = &hash;
 	float v1[3], v2[3], v3[3], v4[4], s1[3], s2[3], view[3];
 	int i, c1, c2;
 	
@@ -802,9 +827,11 @@ static void knife_find_line_hits(knifetool_opdata *kcd)
 	sub_v3_v3v3(view, v4, v1);
 	normalize_v3(view);
 	
+	BLI_smallhash_init(ehash);
+	
 	/*test two triangles of sceen line's plane*/
-	e1 = knife_edge_tri_isect(kcd, kcd->bmbvh, v1, v2, v3, &mats, &c1);
-	e2 = knife_edge_tri_isect(kcd, kcd->bmbvh, v1, v3, v4, &mats, &c2);
+	e1 = knife_edge_tri_isect(kcd, kcd->bmbvh, v1, v2, v3, ehash, &mats, &c1);
+	e2 = knife_edge_tri_isect(kcd, kcd->bmbvh, v1, v3, v4, ehash, &mats, &c2);
 	if (c1 && c2) {
 		e1 = MEM_reallocN(e1, sizeof(BMEdgeHit)*(c1+c2));
 		memcpy(e1+c1, e2, sizeof(BMEdgeHit)*c2);
@@ -822,6 +849,8 @@ static void knife_find_line_hits(knifetool_opdata *kcd)
 		
 		lh->l = len_v2v2(lh->shit, s1) / len_v2v2(s2, s1);
 	}
+	
+	BLI_smallhash_release(ehash);
 }
 
 static BMFace *knife_find_closest_face(knifetool_opdata *kcd, float co[3])
@@ -1556,7 +1585,10 @@ static int knifetool_modal (bContext *C, wmOperator *op, wmEvent *event)
 		case ZKEY:
 			if (event->ctrl)
 				return OPERATOR_RUNNING_MODAL;
-		}			
+		}	
+		case KKEY:
+			if (!event->ctrl && !event->alt && !event->shift)
+				return OPERATOR_RUNNING_MODAL;
 	}
 	
 	/* keep going until the user confirms */
@@ -1579,64 +1611,3 @@ void MESH_OT_knifetool (wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
-#endif
-
-/*
-	if (0) {
-		ListBase fgroups[30];
-		BMEdge *e;
-		
-		memset(fgroups, 0, sizeof(fgroups));
-		BM_ITER(f, &bmiter, kcd->em->bm, BM_FACES_OF_MESH, NULL) {
-			Ref *ref = BLI_mempool_alloc(kcd->refs);
-			int i;
-			
-			ref->ref = f;
-			for (i=0; i<30; i++) {
-				if ((1<<i) == BMINDEX_GET(f))
-					break;
-			}
-			
-			BLI_addtail(&fgroups[i], ref);
-		}
-		
-		BM_ITER(e, &bmiter, kcd->em->bm, BM_EDGES_OF_MESH, NULL) {
-			Ref *ref;
-			int group = 0;
-			
-			if (!BMO_InMap(kcd->em->bm, &bmop, "restrict", e))
-					continue;
-			
-			group = BMO_Get_MapInt(kcd->em->bm, &bmop, "restrict", e);
-			
-			for (i=0; i<30; i++) {
-				if ((1<<i) & group) {
-					float co[3];
-					BMVert *v1, *v2;
-
-					add_v3_v3v3(co, e->v1->co, e->v2->co);
-					mul_v3_fl(co, 0.5f);
-					
-					v1 = BM_Make_Vert(kcd->em->bm, co, NULL);
-					
-					for (ref=fgroups[i].first; ref; ref=ref->next) {
-						BMFace *f = ref->ref;
-						BMLoop *l;
-						BMIter liter;
-						BMEdge *e2;
-						
-						zero_v3(co);
-						BM_ITER(l, &liter, kcd->em->bm, BM_LOOPS_OF_FACE, f) {
-							add_v3_v3(co, l->v->co);
-						}
-						mul_v3_fl(co, 1.0f/(float)f->len);
-						
-						v2 = BM_Make_Vert(kcd->em->bm, co, NULL);
-						e2 = BM_Make_Edge(kcd->em->bm, v1, v2, NULL, 0);
-					}
-				}
-			}
-		}
-	}
- 
-  */
