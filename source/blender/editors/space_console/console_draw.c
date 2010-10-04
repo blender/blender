@@ -286,6 +286,24 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 #undef STEP_SEL
 }
 
+void console_scrollback_prompt_begin(struct SpaceConsole *sc, ConsoleLine *cl_dummy)
+{
+	/* fake the edit line being in the scroll buffer */
+	ConsoleLine *cl= sc->history.last;
+	cl_dummy->type= CONSOLE_LINE_INPUT;
+	cl_dummy->len= cl_dummy->len_alloc= strlen(sc->prompt) + cl->len;
+	cl_dummy->len_alloc= cl_dummy->len + 1;
+	cl_dummy->line= MEM_mallocN(cl_dummy->len_alloc, "cl_dummy");
+	memcpy(cl_dummy->line, sc->prompt, (cl_dummy->len_alloc - cl->len));
+	memcpy(cl_dummy->line + ((cl_dummy->len_alloc - cl->len)) - 1, cl->line, cl->len + 1);
+	BLI_addtail(&sc->scrollback, cl_dummy);
+}
+void console_scrollback_prompt_end(struct SpaceConsole *sc, ConsoleLine *cl_dummy) 
+{
+	MEM_freeN(cl_dummy->line);
+	BLI_remlink(&sc->scrollback, cl_dummy);
+}
+
 #define CONSOLE_DRAW_MARGIN 4
 #define CONSOLE_DRAW_SCROLL 16
 
@@ -349,15 +367,7 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 			xy[0]= x_orig; /* remove prompt offset */
 		}
 
-		/* fake the edit line being in the scroll buffer */
-		cl_dummy.type= CONSOLE_LINE_INPUT;
-		cl_dummy.len= cl_dummy.len_alloc= prompt_len + cl->len;
-		cl_dummy.len_alloc= cl_dummy.len + 1;
-		cl_dummy.line= MEM_mallocN(cl_dummy.len_alloc, "cl_dummy");
-		memcpy(cl_dummy.line, sc->prompt, (cl_dummy.len_alloc - cl->len));
-		memcpy(cl_dummy.line + ((cl_dummy.len_alloc - cl->len)) - 1, cl->line, cl->len + 1);
-		BLI_addtail(&sc->scrollback, &cl_dummy);
-
+		console_scrollback_prompt_begin(sc, &cl_dummy);
 
 		for(cl= sc->scrollback.last; cl; cl= cl->prev) {
 			y_prev= xy[1];
@@ -378,9 +388,7 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 			}
 		}
 
-		/* temp line end */
-		MEM_freeN(cl_dummy.line);
-		BLI_remlink(&sc->scrollback, &cl_dummy);
+		console_scrollback_prompt_end(sc, &cl_dummy);
 	}
 	else { 
 		Report *report;

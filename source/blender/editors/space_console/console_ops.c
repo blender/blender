@@ -705,6 +705,8 @@ static int copy_exec(bContext *C, wmOperator *op)
 	int sel[2];
 	int offset= 0;
 
+	ConsoleLine cl_dummy= {0};
+
 #if 0
 	/* copy whole file */
 	for(cl= sc->scrollback.first; cl; cl= cl->next) {
@@ -716,14 +718,16 @@ static int copy_exec(bContext *C, wmOperator *op)
 	if(sc->sel_start == sc->sel_end)
 		return OPERATOR_CANCELLED;
 
+	console_scrollback_prompt_begin(sc, &cl_dummy);
 
 	for(cl= sc->scrollback.first; cl; cl= cl->next) {
 		offset += cl->len + 1;
 	}
 
-	if(offset==0)
+	if(offset==0) {
+		console_scrollback_prompt_end(sc, &cl_dummy);
 		return OPERATOR_CANCELLED;
-
+	}
 
 	offset -= 1;
 	sel[0]= offset - sc->sel_end;
@@ -750,6 +754,9 @@ static int copy_exec(bContext *C, wmOperator *op)
 	WM_clipboard_text_set(buf_str, 0);
 
 	MEM_freeN(buf_str);
+
+	console_scrollback_prompt_end(sc, &cl_dummy);
+
 	return OPERATOR_FINISHED;
 }
 
