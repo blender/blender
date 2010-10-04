@@ -297,7 +297,8 @@ IF(UNIX AND NOT APPLE)
 
 	FIND_PACKAGE(X11 REQUIRED)
 
-	SET(LLIBS "-lc -lm -lpthread -lstdc++ ${X11_X11_LIB} ${X11_Xinput_LIB}")
+	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
+	SET(LLIBS "-lutil -lc -lm -lpthread -lstdc++ ${X11_X11_LIB} ${X11_Xinput_LIB}")
 
 	IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		# BSD's dont use libdl.so
