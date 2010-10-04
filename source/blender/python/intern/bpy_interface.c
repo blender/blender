@@ -213,25 +213,10 @@ void BPY_start_python( int argc, char **argv )
 	/* sigh, why do python guys not have a char** version anymore? :( */
 	{
 		int i;
-#if 0
 		PyObject *py_argv= PyList_New(argc);
 		for (i=0; i<argc; i++)
-			PyList_SET_ITEM(py_argv, i, PyUnicode_FromString(argv[i]));
+			PyList_SET_ITEM(py_argv, i, PyC_UnicodeFromByte(argv[i])); /* should fix bug #20021 - utf path name problems, by replacing PyUnicode_FromString */
 
-#else	// should fix bug #20021 - utf path name problems
-		PyObject *py_argv= PyList_New(0);
-		for (i=0; i<argc; i++) {
-			PyObject *item= PyUnicode_Decode(argv[i], strlen(argv[i]), Py_FileSystemDefaultEncoding, NULL);
-			if(item==NULL) { // should never happen
-				PyErr_Print();
-				PyErr_Clear();
-			}
-			else {
-				PyList_Append(py_argv, item);
-				Py_DECREF(item);
-			}
-		}
-#endif
 		PySys_SetObject("argv", py_argv);
 		Py_DECREF(py_argv);
 	}
