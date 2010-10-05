@@ -280,7 +280,8 @@ struct DerivedMesh {
 	void (*drawMappedFaces)(DerivedMesh *dm,
 							int (*setDrawOptions)(void *userData, int index,
 												  int *drawSmooth_r),
-							void *userData, int useColors);
+							void *userData, int useColors,
+							int (*setMaterial)(int, void *attribs));
 
 	/* Draw mapped faces using MTFace 
 	 *  o Drawing options too complicated to enumerate, look at code.

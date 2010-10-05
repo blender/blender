@@ -1867,7 +1867,7 @@ static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned 
 	data.cols[2] = actCol;
 	data.efa_act = efa_act;
 
-	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, &data, 0);
+	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, &data, 0, GPU_enable_material);
 }
 
 static int draw_dm_creases__setDrawOptions(void *userData, int index)
@@ -2287,7 +2287,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			glEnable(GL_LIGHTING);
 			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, 0, 0);
+			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, 0, 0, GPU_enable_material);
 
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
@@ -2517,7 +2517,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			/* weight paint in solid mode, special case. focus on making the weights clear
 			 * rather then the shading, this is also forced in wire view */
 			GPU_enable_material(0, NULL);
-			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1);
+			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1, GPU_enable_material);
 
 			bglPolygonOffset(rv3d->dist, 1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
@@ -2599,7 +2599,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				glEnable(GL_LIGHTING);
 				glEnable(GL_COLOR_MATERIAL);
 
-				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1);
+				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1, GPU_enable_material);
 				glDisable(GL_COLOR_MATERIAL);
 				glDisable(GL_LIGHTING);
 
@@ -2607,10 +2607,10 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			}
 			else if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_TEXTURE_PAINT)) {
 				if(me->mcol)
-					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1);
+					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1, GPU_enable_material);
 				else {
 					glColor3f(1.0f, 1.0f, 1.0f);
-					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 0);
+					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 0, GPU_enable_material);
 				}
 			}
 			else do_draw= 1;
@@ -6328,7 +6328,7 @@ static void bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh
 	cpack(0);
 
 	if (facecol) {
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*)(intptr_t) 1, 0);
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*)(intptr_t) 1, 0, GPU_enable_material);
 
 		if(check_ob_drawface_dot(scene, v3d, ob->dt)) {
 			glPointSize(UI_GetThemeValuef(TH_FACEDOT_SIZE));
@@ -6339,7 +6339,7 @@ static void bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh
 		}
 
 	} else {
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 0, 0);
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 0, 0, GPU_enable_material);
 	}
 }
 
@@ -6369,8 +6369,8 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 	
 	glColor3ub(0, 0, 0);
 		
-	if(face_sel_mode)	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, me, 0);
-	else				dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, me, 0);
+	if(face_sel_mode)	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, me, 0, GPU_enable_material);
+	else				dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, me, 0, GPU_enable_material);
 
 	dm->release(dm);
 }
@@ -6477,7 +6477,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 			GPU_end_object_materials();
 		}
 		else if(edm)
-			edm->drawMappedFaces(edm, NULL, NULL, 0);
+			edm->drawMappedFaces(edm, NULL, NULL, 0, GPU_enable_material);
 		
 		glDisable(GL_LIGHTING);
 	}
