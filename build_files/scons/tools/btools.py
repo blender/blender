@@ -408,7 +408,7 @@ def read_opts(env, cfg, args):
         ('BF_DEBUG_CCFLAGS', 'C and C++ debug flags', ''),
         ('BF_DEBUG_CXXFLAGS', 'C++ only debug flags', ''),
 
-        (BoolVariable('BF_BSC', 'Create .bsc files (msvc only)', True)),
+        (BoolVariable('BF_BSC', 'Create .bsc files (msvc only)', False)),
 
         ('BF_BUILDDIR', 'Build dir', ''),
         ('BF_INSTALLDIR', 'Installation dir', ''),

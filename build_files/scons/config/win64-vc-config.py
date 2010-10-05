@@ -107,23 +107,6 @@ BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
 WITH_BF_BINRELOC = False
 
-#WITH_BF_NSPR = True
-#BF_NSPR = $(LIBDIR)/nspr
-#BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
-#BF_NSPR_LIB = 
-
-# Uncomment the following line to use Mozilla inplace of netscape
-#CPPFLAGS += -DMOZ_NOT_NET
-# Location of MOZILLA/Netscape header files...
-#BF_MOZILLA = $(LIBDIR)/mozilla
-#BF_MOZILLA_INC = -I$(BF_MOZILLA)/include/mozilla/nspr -I$(BF_MOZILLA)/include/mozilla -I$(BF_MOZILLA)/include/mozilla/xpcom -I$(BF_MOZILLA)/include/mozilla/idl
-#BF_MOZILLA_LIB =
-# Will fall back to look in BF_MOZILLA_INC/nspr and BF_MOZILLA_LIB
-# if this is not set.
-#
-# Be paranoid regarding library creation (do not update archives)
-#BF_PARANOID = True
-
 # enable freetype2 support for text objects
 BF_WITH_FREETYPE = True
 BF_FREETYPE = LIBDIR + '/freetype'
@@ -162,6 +145,12 @@ BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
 BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser MathMLSolver xml2 pcre buffer ftoa'
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 
+WITH_BF_LCMS = True
+BF_LCMS = LIBDIR + '/lcms'
+BF_LCMS_INC = '${BF_LCMS}/include'
+BF_LCMS_LIB = 'lcms'
+BF_LCMS_LIBPATH = '${BF_LCMS}/lib'
+
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['/arch:SSE','/arch:SSE2']
@@ -194,9 +183,6 @@ CXX_WARN = []
 
 LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid']
 
-BF_DEBUG=False
-BF_BSC=False
-
 if BF_DEBUG:
 	BF_NUMJOBS=1
 else:
@@ -206,11 +192,4 @@ PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/INCREMENTAL:NO','/NO
 
 BF_BUILDDIR = '..\\build\\blender25-win64-vc'
 BF_INSTALLDIR='..\\install\\blender25-win64-vc'
-
-
-
-######################### MERGE WITH ABOVE ################################
-
-
-
 
