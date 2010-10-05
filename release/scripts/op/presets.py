@@ -63,6 +63,7 @@ class AddPresetBase():
             else:
                 file_preset = open(filepath, 'w')
                 file_preset.write("import bpy\n")
+                file_preset.write("from mathutils import *\n")
 
                 for rna_path in self.preset_values:
                     value = eval(rna_path)
