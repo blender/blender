@@ -398,7 +398,6 @@ void bUnit_AsString(char *str, int len_max, double value, int prec, int system, 
    
 	/* split output makes sense only for length, mass and time */
 	if(split && (type==B_UNIT_LENGTH || type==B_UNIT_MASS || type==B_UNIT_TIME)) {
-		int i;
 		bUnitDef *unit_a, *unit_b;
 		double value_a, value_b;
 
@@ -406,7 +405,7 @@ void bUnit_AsString(char *str, int len_max, double value, int prec, int system, 
 
 		/* check the 2 is a smaller unit */
 		if(unit_b > unit_a) {
-			i= unit_as_string(str, len_max, value_a, prec, usys,  unit_a, '\0');
+			int i= unit_as_string(str, len_max, value_a, prec, usys,  unit_a, '\0');
 
 			/* is there enough space for at least 1 char of the next unit? */
 			if(i+2 < len_max) {

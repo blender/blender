@@ -3459,10 +3459,9 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, ParameterList *parms, PropertyRNA *
 	PyObject *ret;
 	int type = RNA_property_type(prop);
 	int flag = RNA_property_flag(prop);
-	int a;
 
 	if(RNA_property_array_check(ptr, prop)) {
-		int len;
+		int a, len;
 
 		if (flag & PROP_DYNAMIC) {
 			ParameterDynAlloc *data_alloc= data;
