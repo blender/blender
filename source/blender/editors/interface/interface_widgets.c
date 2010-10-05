@@ -284,8 +284,10 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	float facxi= (maxxi!=minxi) ? 1.0f/(maxxi-minxi) : 0.0f; /* for uv, can divide by zero */
 	float facyi= (maxyi!=minyi) ? 1.0f/(maxyi-minyi) : 0.0f;
 	int a, tot= 0, minsize;
+	const int hnum= ((roundboxalign & (1|2))==(1|2) || (roundboxalign & (4|8))==(4|8)) ? 1 : 2;
+	const int vnum= ((roundboxalign & (1|8))==(1|8) || (roundboxalign & (2|4))==(2|4)) ? 1 : 2;
 
-	minsize= MIN2(rect->xmax-rect->xmin, rect->ymax-rect->ymin);
+	minsize= MIN2((rect->xmax-rect->xmin)*hnum, (rect->ymax-rect->ymin)*vnum);
 	
 	if(2.0f*rad > minsize)
 		rad= 0.5f*minsize;
@@ -2219,7 +2221,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	uiWidgetBase wtb, wtb1;
 	rcti rect1;
 	double value;
-	float offs, fac;
+	float offs, toffs, fac;
 	char outline[3];
 	
 	widget_init(&wtb);
@@ -2229,6 +2231,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	
 	/* fully rounded */
 	offs= 0.5f*(rect->ymax - rect->ymin);
+	toffs = offs*0.75f;
 	round_box_edges(&wtb, roundboxalign, rect, offs);
 
 	wtb.outline= 0;
@@ -2274,8 +2277,8 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	widgetbase_draw(&wtb, wcol);
 	
 	/* text space */
-	rect->xmin += offs*0.75f;
-	rect->xmax -= offs*0.75f;
+	rect->xmin += toffs;
+	rect->xmax -= toffs;
 }
 
 /* I think 3 is sufficient border to indicate keyed status */
