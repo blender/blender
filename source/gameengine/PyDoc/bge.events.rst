@@ -18,7 +18,7 @@ This module holds key constants for the SCA_KeyboardSensor.
 	co = bge.logic.getCurrentController()
 	# 'Keyboard' is a keyboard sensor
 	sensor = co.sensors["Keyboard"]
-	sensor.key = bge.keys.F1KEY
+	sensor.key = bge.events.F1KEY
 
 .. code-block:: python
 
@@ -30,16 +30,36 @@ This module holds key constants for the SCA_KeyboardSensor.
 	sensor = co.sensors["Keyboard"]
 
 	for key,status in sensor.events:
-		# key[0] == bge.keys.keycode, key[1] = status
+		# key[0] == bge.events.keycode, key[1] = status
 		if status == bge.logic.KX_INPUT_JUST_ACTIVATED:
-			if key == bge.keys.WKEY:
+			if key == bge.events.WKEY:
 				# Activate Forward!
-			if key == bge.keys.SKEY:
+			if key == bge.events.SKEY:
 				# Activate Backward!
-			if key == bge.keys.AKEY:
+			if key == bge.events.AKEY:
 				# Activate Left!
-			if key == bge.keys.DKEY:
+			if key == bge.events.DKEY:
 				# Activate Right!
+
+.. code-block:: python
+
+	# The all keys thing without a keyboard sensor (but you will
+	# need an always sensor with pulse mode on)
+	import bge
+	
+	# Just shortening names here
+	keyboard = bge.logic.keyboard
+	JUST_ACTIVATED = bge.logic.KX_INPUT_JUST_ACTIVATED
+	
+	if keyboard.events[bge.events.WKEY] == JUST_ACTIVATED:
+		print("Activate Forward!")
+	if keyboard.events[bge.events.SKEY] == JUST_ACTIVATED:
+		print("Activate Backward!")	
+	if keyboard.events[bge.events.AKEY] == JUST_ACTIVATED:
+		print("Activate Left!")	
+	if keyboard.events[bge.events.DKEY] == JUST_ACTIVATED:
+		print("Activate Right!")
+		
 
 *********
 Functions
@@ -222,7 +242,9 @@ Other Keys
 .. data:: PERIODKEY
 .. data:: QUOTEKEY
 .. data:: RIGHTBRACKETKEY
-.. data:: RETKEY
+.. data:: RETKEY (Deprecated: use bge.events.ENTERKEY or bge.events.RETURNKEY)
+.. data:: ENTERKEY
+.. data:: RETURNKEY
 .. data:: SEMICOLONKEY
 .. data:: SLASHKEY
 .. data:: SPACEKEY

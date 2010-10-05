@@ -2214,6 +2214,8 @@ PyObject* initGameKeys()
 	KX_MACRO_addTypesToDict(d, ESCKEY, SCA_IInputDevice::KX_ESCKEY);
 	KX_MACRO_addTypesToDict(d, TABKEY, SCA_IInputDevice::KX_TABKEY);
 	KX_MACRO_addTypesToDict(d, RETKEY, SCA_IInputDevice::KX_RETKEY);
+	KX_MACRO_addTypesToDict(d, ENTERKEY, SCA_IInputDevice::KX_RETKEY);
+	KX_MACRO_addTypesToDict(d, RETURNKEY, SCA_IInputDevice::KX_RETKEY);
 	KX_MACRO_addTypesToDict(d, SPACEKEY, SCA_IInputDevice::KX_SPACEKEY);
 	KX_MACRO_addTypesToDict(d, LINEFEEDKEY, SCA_IInputDevice::KX_LINEFEEDKEY);		
 	KX_MACRO_addTypesToDict(d, BACKSPACEKEY, SCA_IInputDevice::KX_BACKSPACEKEY);
