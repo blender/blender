@@ -700,7 +700,7 @@ MTex *MeshImporter::assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBindi
 {
 	const COLLADAFW::TextureMapId texture_index = ctexture.getTextureMapId();
 	const size_t setindex = ctexture.getSetIndex();
-	std::string uvname = ctexture.getName();
+	std::string uvname = ctexture.getSemantic();
 	
 	const CustomData *data = &me->fdata;
 	int layer_index = CustomData_get_layer_index(data, CD_MTFACE);
