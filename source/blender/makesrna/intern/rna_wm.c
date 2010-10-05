@@ -175,7 +175,7 @@ EnumPropertyItem event_type_items[] = {
 	{RIGHTCTRLKEY,	"RIGHT_CTRL",	0, "Right Ctrl", ""},
 	{RIGHTSHIFTKEY,	"RIGHT_SHIFT",	0, "Right Shift", ""},
 	{0, "", 0, NULL, NULL},
-	{COMMANDKEY,	"COMMAND",	0, "Command", ""},
+	{OSKEY,	"OSKEY",	0, "OS Key", ""},
 	{0, "", 0, NULL, NULL},
 	{ESCKEY, "ESC", 0, "Esc", ""},
 	{TABKEY, "TAB", 0, "Tab", ""},

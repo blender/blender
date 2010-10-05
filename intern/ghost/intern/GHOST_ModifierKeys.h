@@ -96,8 +96,8 @@ struct GHOST_ModifierKeys
     GHOST_TUns8 m_LeftControl : 1;
     /** Bitfield that stores the appropriate key state. */
     GHOST_TUns8 m_RightControl : 1;
-    /** Bitfield that stores the appropriate key state. APPLE only! */
-    GHOST_TUns8 m_Command : 1;
+    /** Bitfield that stores the appropriate key state. */
+    GHOST_TUns8 m_OS : 1;
 };
 
 #endif // _GHOST_MODIFIER_KEYS_H_

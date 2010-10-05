@@ -182,7 +182,7 @@ static void confirm_suggestion(Text *text, int skipleft)
 #define LR_SHIFTKEY 0
 #define LR_ALTKEY 0
 #define LR_CTRLKEY 0
-#define LR_COMMANDKEY 0
+#define LR_OSKEY 0
 
 // XXX
 static int doc_scroll= 0;

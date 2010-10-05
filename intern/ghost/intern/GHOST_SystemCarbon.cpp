@@ -553,7 +553,7 @@ GHOST_TSuccess GHOST_SystemCarbon::getModifierKeys(GHOST_ModifierKeys& keys) con
 {
     UInt32 modifiers = ::GetCurrentKeyModifiers();
 
-    keys.set(GHOST_kModifierKeyCommand, (modifiers & cmdKey) ? true : false);
+    keys.set(GHOST_kModifierKeyOS, (modifiers & cmdKey) ? true : false);
     keys.set(GHOST_kModifierKeyLeftAlt, (modifiers & optionKey) ? true : false);
     keys.set(GHOST_kModifierKeyLeftShift, (modifiers & shiftKey) ? true : false);
     keys.set(GHOST_kModifierKeyLeftControl, (modifiers & controlKey) ? true : false);
@@ -941,7 +941,7 @@ OSStatus GHOST_SystemCarbon::handleKeyEvent(EventRef event)
 				pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & optionKey)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftAlt) );
 			}
 			if ((modifiers & cmdKey) != (m_modifierMask & cmdKey)) {
-				pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & cmdKey)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyCommand) );
+				pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & cmdKey)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyOS) );
 			}
 			
 			m_modifierMask = modifiers;

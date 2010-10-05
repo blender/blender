@@ -303,9 +303,9 @@ GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys& keys) cons
 		bool lwindown = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
 		bool rwindown = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
 		if(lwindown || rwindown)
-			keys.set(GHOST_kModifierKeyCommand, true);
+			keys.set(GHOST_kModifierKeyOS, true);
 		else
-			keys.set(GHOST_kModifierKeyCommand, false);
+			keys.set(GHOST_kModifierKeyOS, false);
 	}
 	else {
 		bool down = HIBYTE(::GetKeyState(VK_SHIFT)) != 0;
@@ -320,9 +320,9 @@ GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys& keys) cons
 		bool lwindown = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
 		bool rwindown = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
 		if(lwindown || rwindown)
-			keys.set(GHOST_kModifierKeyCommand, true);
+			keys.set(GHOST_kModifierKeyOS, true);
 		else
-			keys.set(GHOST_kModifierKeyCommand, false);
+			keys.set(GHOST_kModifierKeyOS, false);
 	}
 	return GHOST_kSuccess;
 }
