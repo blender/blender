@@ -40,6 +40,10 @@
 
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Library;
 
 typedef struct Main {
@@ -79,6 +83,10 @@ typedef struct Main {
 	ListBase gpencil;
 } Main;
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

@@ -27,6 +27,8 @@
 #include "COLLADAFWFileInfo.h"
 #include "Math/COLLADABUMathMatrix4.h"
 
+#include "BLI_math.h"
+
 class UnitConverter
 {
 private:
@@ -35,6 +37,7 @@ private:
 
 public:
 
+	// Initialize with Z_UP, since Blender uses right-handed, z-up
 	UnitConverter() : unit(), up_axis(COLLADAFW::FileInfo::Z_UP) {}
 
 	void read_asset(const COLLADAFW::FileInfo* asset)
@@ -49,7 +52,7 @@ public:
 		
 	// TODO need also for angle conversion, time conversion...
 
-	void dae_matrix_to_mat4(float out[][4], const COLLADABU::Math::Matrix4& in)
+	void dae_matrix_to_mat4_(float out[][4], const COLLADABU::Math::Matrix4& in)
 	{
 		// in DAE, matrices use columns vectors, (see comments in COLLADABUMathMatrix4.h)
 		// so here, to make a blender matrix, we swap columns and rows
@@ -84,10 +87,12 @@ public:
 	void decompose(float mat[][4], float *loc, float eul[3], float quat[4], float *size)
 	{
 		mat4_to_size(size, mat);
-		if (eul)
+		if (eul) {
 			mat4_to_eul(eul, mat);
-		if (quat)
+		}
+		if (quat) {
 			mat4_to_quat(quat, mat);
+		}
 		copy_v3_v3(loc, mat[3]);
 	}
 };

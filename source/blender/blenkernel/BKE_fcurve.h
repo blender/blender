@@ -28,6 +28,10 @@
 #ifndef BKE_FCURVE_H
 #define BKE_FCURVE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct FCurve;
 struct FModifier;
 struct ChannelDriver;
@@ -247,5 +251,9 @@ float fcurve_samplingcb_evalcurve(struct FCurve *fcu, void *data, float evaltime
  * used to retrieve the values to store.
  */
 void fcurve_store_samples(struct FCurve *fcu, void *data, int start, int end, FcuSampleFunc sample_cb);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BKE_FCURVE_H*/

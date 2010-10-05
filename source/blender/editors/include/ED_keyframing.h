@@ -28,6 +28,10 @@
 #ifndef ED_KEYFRAMING_H
 #define ED_KEYFRAMING_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ListBase;
 struct ID;
 struct Scene;
@@ -279,5 +283,9 @@ typedef enum eAnimFilterFlags {
 	ANIMFILTER_KEYS_NOMAT		= (1<<9),		/* don't include material keyframes */
 	ANIMFILTER_KEYS_NOSKEY		= (1<<10),		/* don't include shape keys (for geometry) */
 } eAnimFilterFlags;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*  ED_KEYFRAMING_H */

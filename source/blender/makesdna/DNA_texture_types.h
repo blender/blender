@@ -34,6 +34,10 @@
 #include "DNA_ID.h"
 #include "DNA_image_types.h" /* ImageUser */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AnimData;
 struct Ipo;
 struct PluginTex;
@@ -553,6 +557,10 @@ typedef struct TexMapping {
 #define TEX_VD_SMOKEDENSITY		0
 #define TEX_VD_SMOKEHEAT		1
 #define TEX_VD_SMOKEVEL			2
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

@@ -33,6 +33,10 @@
 #ifndef BKE_LIBRARY_TYPES_H
 #define BKE_LIBRARY_TYPES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ListBase;
 struct ID;
 struct Main;
@@ -84,5 +88,9 @@ void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowMa
 
 /* use when "" is given to new_id() */
 #define ID_FALLBACK_NAME "Untitled"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -28,6 +28,10 @@
 #ifndef DEPSGRAPH_API
 #define DEPSGRAPH_API
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
 #define DEPS_DEBUG
 */
@@ -120,5 +124,9 @@ void	DAG_pose_sort(struct Object *ob);
 
 		/* callback for editors module to do updates */
 void	DAG_editors_update_cb(void (*func)(struct Main *bmain, struct ID *id));
+
+#ifdef __cplusplus
+}
+#endif
 		
 #endif

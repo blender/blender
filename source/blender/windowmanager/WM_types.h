@@ -28,6 +28,10 @@
 #ifndef WM_TYPES_H
 #define WM_TYPES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bContext;
 struct wmEvent;
 struct wmWindowManager;
@@ -510,6 +514,10 @@ typedef struct RecentFile {
 	char *filepath;
 } RecentFile;
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* WM_TYPES_H */
 

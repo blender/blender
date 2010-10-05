@@ -27,6 +27,10 @@
 #ifndef ED_ARMATURE_H
 #define ED_ARMATURE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bArmature;
 struct Base;
 struct bContext;
@@ -168,6 +172,10 @@ int BDR_drawSketchNames(struct ViewContext *vc);
 void mesh_deform_bind(struct Scene *scene,
 	struct MeshDeformModifierData *mmd,
 	float *vertexcos, int totvert, float cagemat[][4]);
+	
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ED_ARMATURE_H */
 

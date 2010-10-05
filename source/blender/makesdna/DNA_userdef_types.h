@@ -35,6 +35,10 @@
 #include "DNA_listBase.h"
 #include "DNA_texture_types.h" /* ColorBand */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* themes; defines in BIF_resource.h */
 struct ColorBand;
 
@@ -557,5 +561,9 @@ extern UserDef U; /* from blenkernel blender.c */
 #define TH_ROUNDED  	2
 #define TH_OLDSKOOL 	3
 #define TH_SHADED   	4
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

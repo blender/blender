@@ -44,9 +44,9 @@ EnumPropertyItem region_type_items[] = {
 	{RGN_TYPE_PREVIEW, "PREVIEW", 0, "Preview", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-#ifdef RNA_RUNTIME
-
 #include "ED_screen.h"
+
+#ifdef RNA_RUNTIME
 
 
 #include "WM_api.h"

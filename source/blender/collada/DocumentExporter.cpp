@@ -91,7 +91,6 @@ extern char build_rev[];
 #include "COLLADASWSurfaceInitOption.h"
 #include "COLLADASWSampler.h"
 #include "COLLADASWScene.h"
-//#include "COLLADASWSurface.h"
 #include "COLLADASWTechnique.h"
 #include "COLLADASWTexture.h"
 #include "COLLADASWLibraryMaterials.h"
@@ -111,31 +110,6 @@ extern char build_rev[];
 
 #include <vector>
 #include <algorithm> // std::find
-
-// arithb.c now has QuatToAxisAngle too
-#if 0
-// This function assumes that quat is normalized.
-// The following document was used as reference:
-// http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
-void quat_to_axis_angle( float *axis, float *angle,float *q)
-{
-	// quat to axis angle
-	*angle = 2 * acos(q[0]);
-	float divisor = sqrt(1 - q[0] * q[0]);
-
-	// test to avoid divide by zero, divisor is always positive
-	if (divisor < 0.001f ) {
-		axis[0] = 1.0f;
-		axis[1] = 0.0f;
-		axis[2] = 0.0f;
-	}
-	else {
-		axis[0] = q[1] / divisor;
-		axis[1] = q[2] / divisor;
-		axis[2] = q[3] / divisor;
-	}
-}
-#endif
 
 char *CustomData_get_layer_name(const struct CustomData *data, int type, int n)
 {
@@ -2580,8 +2554,8 @@ protected:
 			find_frames(ob, fra, prefix, "rotation_euler");
 		else if (rotmode == ROT_MODE_QUAT)
 			find_frames(ob, fra, prefix, "rotation_quaternion");
-		else if (rotmode == ROT_MODE_AXISANGLE)
-			;
+		/*else if (rotmode == ROT_MODE_AXISANGLE)
+			;*/
 	}
 
 	// enable fcurves driving a specific bone, disable all the rest

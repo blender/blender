@@ -28,6 +28,10 @@
 #ifndef ED_MESH_H
 #define ED_MESH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ID;
 struct View3D;
 struct ARegion;
@@ -223,6 +227,10 @@ int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Objec
 int ED_mesh_uv_texture_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
 int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me, const char *name, int active_set);
 int ED_mesh_color_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ED_MESH_H */
 

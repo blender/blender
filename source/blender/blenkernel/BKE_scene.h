@@ -31,6 +31,10 @@
 #ifndef BKE_SCENE_H
 #define BKE_SCENE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AviCodecData;
 struct Base;
 struct bglMats;
@@ -92,6 +96,10 @@ int get_render_subsurf_level(struct RenderData *r, int level);
 int get_render_child_particle_number(struct RenderData *r, int num);
 int get_render_shadow_samples(struct RenderData *r, int samples);
 float get_render_aosss_error(struct RenderData *r, float error);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
