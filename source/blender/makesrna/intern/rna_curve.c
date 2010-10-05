@@ -1373,7 +1373,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_cyclic_v", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flagv", CU_NURB_CYCLIC);
 	RNA_def_property_ui_text(prop, "Cyclic V", "Make this surface a closed loop in the V direction");
-	RNA_def_property_update(prop, 0, "rna_Nurb_update_cyclic_u");
+	RNA_def_property_update(prop, 0, "rna_Nurb_update_cyclic_v");
 
 
 	/* Note, endpoint and bezier flags should never be on at the same time! */
