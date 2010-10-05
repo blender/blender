@@ -2050,7 +2050,9 @@ static int tree_element_active_texture(bContext *C, Scene *scene, SpaceOops *soo
 		}
 	}
 	
-	WM_event_add_notifier(C, NC_TEXTURE, NULL);
+	if(set)
+		WM_event_add_notifier(C, NC_TEXTURE, NULL);
+
 	return 0;
 }
 
