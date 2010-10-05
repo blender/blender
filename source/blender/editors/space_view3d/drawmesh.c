@@ -523,7 +523,7 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 	MCol *mcol;
 	int matnr;
 
-	if (efa==NULL || efa->h)
+	if (efa->h)
 		return 0;
 
 	tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);

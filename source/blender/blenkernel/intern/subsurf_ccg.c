@@ -1619,8 +1619,10 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 
 		if(drawParams)
 			flag = drawParams(tf, mcol, mat_nr);
-		else
+		else if(index != ORIGINDEX_NONE)
 			flag= (drawParamsMapped)? drawParamsMapped(userData, index): 1;
+		else
+			flag= 1;
 		
 		if (flag == 0) { /* flag 0 == the face is hidden or invisible */
 			if(tf) tf += gridFaces*gridFaces*numVerts;
