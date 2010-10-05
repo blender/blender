@@ -1,5 +1,5 @@
 /**
- * $Id: DocumentImporter.cpp 32235 2010-10-01 19:46:42Z jesterking $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
