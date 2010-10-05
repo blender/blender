@@ -28,12 +28,10 @@ from properties_physics_common import basic_force_field_falloff_ui
 
 def particle_panel_enabled(context, psys):
     phystype = psys.settings.physics_type
-    if phystype == 'NO' or phystype == 'KEYED':
+    if psys.settings.type in ('EMITTER', 'REACTOR') and phystype in ('NO', 'KEYED'):
         return True
-    if psys.settings.type in ('EMITTER', 'REACTOR') or (psys.settings.type == 'HAIR' and psys.use_hair_dynamics):
-        return (psys.point_cache.is_baked is False) and (not psys.is_edited) and (not context.particle_system_editable)
     else:
-        return True
+        return (psys.point_cache.is_baked is False) and (not psys.is_edited) and (not context.particle_system_editable)
 
 
 def particle_panel_poll(cls, context):
