@@ -23,9 +23,11 @@ WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
 BF_LIBSAMPLERATE = '/usr'
+WITH_BF_STATICLIBSAMPLERATE = False
 BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
 BF_LIBSAMPLERATE_LIB = 'samplerate'
 BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
+BF_LIBSAMPLERATE_LIB_STATIC = '${BF_LIBSAMPLERATE}/lib/libsamplerate.a'
 
 WITH_BF_JACK = False
 BF_JACK = '/usr'
@@ -34,10 +36,12 @@ BF_JACK_LIB = 'jack'
 BF_JACK_LIBPATH = '${BF_JACK}/lib'
 
 WITH_BF_SNDFILE = False
+WITH_BF_STATICSNDFILE = False
 BF_SNDFILE = '/usr'
 BF_SNDFILE_INC = '${BF_SNDFILE}/include/sndfile'
 BF_SNDFILE_LIB = 'sndfile'
 BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
+BF_SNDFILE_LIB_STATIC = '${BF_SNDFILE}/lib/libsndfile.a ${BF_OGG}/lib/libvorbis.a ${BF_OGG}/lib/libFLAC.a ${BF_OGG}/lib/libvorbisenc.a ${BF_OGG}/lib/libogg.a'
 
 WITH_BF_SDL = True
 BF_SDL = '/usr' #$(shell sdl-config --prefix)
@@ -136,10 +140,12 @@ BF_OPENJPEG_INC = '${BF_OPENJPEG}'
 BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
 
 WITH_BF_FFTW3 = False
-BF_FFTW3 = LIBDIR + '/usr'
+WITH_BF_STATICFFTW3 = False
+BF_FFTW3 = '/usr'
 BF_FFTW3_INC = '${BF_FFTW3}/include'
 BF_FFTW3_LIB = 'fftw3'
 BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
+BF_FFTW3_LIB_STATIC = '${BF_FFTW3_LIBPATH}/libfftw3.a'
 
 WITH_BF_REDCODE = False  
 BF_REDCODE = '#extern/libredcode'
