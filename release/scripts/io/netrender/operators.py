@@ -417,7 +417,7 @@ class netclientdownload(bpy.types.Operator):
             for frame in job.frames:
                 client.requestResult(conn, job.id, frame.number)
                 response = conn.getresponse()
-                response.read()
+                buf = response.read()
 
                 if response.status != http.client.OK:
                     print("missing", frame.number)
@@ -425,12 +425,9 @@ class netclientdownload(bpy.types.Operator):
 
                 print("got back", frame.number)
 
-                f = open(os.path.join(netsettings.path, "%06d.exr" % frame.number), "wb")
-                buf = response.read(1024)
+                f = open(os.path.join(bpy.path.abspath(netsettings.path), "%06d.exr" % frame.number), "wb")
 
-                while buf:
-                    f.write(buf)
-                    buf = response.read(1024)
+                f.write(buf)
 
                 f.close()
 
