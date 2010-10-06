@@ -1861,6 +1861,15 @@ static ImBuf * seq_render_scene_strip_impl(
 		
 		if(rendering)
 			re= RE_NewRender(" do_build_seq_ibuf");
+		/* If the top level scene that does the sequencer rendering is included 
+		 * as a strip the default render name for the strip will conflict with
+		 * the original render, so override the name in this case.
+		 * See bugs #22236 and #24160 for examples.
+		 * XXX: Somebody with deeper insight to the rendering pipeline should
+		 *      probably check if this is the best way to handle this. -jahka
+		 */
+		else if(seq->scene == scene)
+			re= RE_NewRender("scene_conflict_render");
 		else
 			re= RE_NewRender(sce->id.name);
 		
