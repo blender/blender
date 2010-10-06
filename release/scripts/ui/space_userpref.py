@@ -127,7 +127,11 @@ class USERPREF_MT_splash(bpy.types.Menu):
         row.label("")
         row = split.row()
         row.label("Interaction:")
-        row.menu("USERPREF_MT_interaction_presets", text=bpy.types.USERPREF_MT_interaction_presets.bl_label)
+        # XXX, no redraws
+        # text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
+        # if not text:
+        #     text = "Blender (default)"
+        row.menu("USERPREF_MT_keyconfigs", text="Preset")
 
 
 class USERPREF_PT_interface(bpy.types.Panel):

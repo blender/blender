@@ -256,7 +256,7 @@ class AddPresetKeyconfig(AddPresetBase, bpy.types.Operator):
     '''Add a Keyconfig Preset'''
     bl_idname = "wm.keyconfig_preset_add"
     bl_label = "Add Keyconfig Preset"
-    preset_menu = "PREFS_MT_keyconfigs"
+    preset_menu = "USERPREF_MT_keyconfigs"
     preset_subdir = "keyconfig"
 
     def add(self, context, filepath):
