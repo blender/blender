@@ -25,8 +25,6 @@
 
 #include "COLLADABUUtils.h"
 
-#include "BKE_material.h"
-
 #include "MaterialExporter.h"
 #include "collada_internal.h"
 

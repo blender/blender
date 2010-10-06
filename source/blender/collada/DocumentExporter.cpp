@@ -102,15 +102,16 @@ extern char build_rev[];
 #include "collada_internal.h"
 #include "DocumentExporter.h"
 
+// can probably go after refactor is complete
+#include "InstanceWriter.h"
+#include "TransformWriter.h"
+
 #include "ArmatureExporter.h"
 #include "CameraExporter.h"
 #include "GeometryExporter.h"
 #include "LightExporter.h"
 #include "MaterialExporter.h"
 
-// can probably go after refactor is complete
-#include "InstanceWriter.h"
-#include "TransformWriter.h"
 
 #include <vector>
 #include <algorithm> // std::find
