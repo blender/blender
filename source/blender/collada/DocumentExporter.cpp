@@ -186,7 +186,7 @@ void forEachMaterialInScene(Scene *sce, Functor &f)
 {
 	ForEachMaterialFunctor<Functor> matfunc(&f);
 	GeometryFunctor gf;
-	gf.forEachMeshObjectInScene<ForEachMaterialFunctor<Functor>>(sce, matfunc);
+	gf.forEachMeshObjectInScene<ForEachMaterialFunctor<Functor> >(sce, matfunc);
 }
 
 // OB_MESH is assumed

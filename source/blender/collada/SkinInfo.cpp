@@ -24,6 +24,10 @@
 
 #include <algorithm>
 
+#ifndef WIN32
+#include <stdint.h>
+#endif
+
 #include "BKE_object.h"
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"

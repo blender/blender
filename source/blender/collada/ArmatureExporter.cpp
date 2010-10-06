@@ -35,7 +35,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 
-#include "BLI_listBase.h"
+#include "BLI_listbase.h"
 
 #include "GeometryExporter.h"
 #include "ArmatureExporter.h"

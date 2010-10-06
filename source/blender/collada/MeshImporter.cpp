@@ -24,6 +24,10 @@
 
 #include <algorithm>
 
+#ifndef WIN32
+#include <iostream>
+#endif
+
 #include "COLLADAFWMeshPrimitive.h"
 #include "COLLADAFWMeshVertexData.h"
 #include "COLLADAFWPolygons.h"
