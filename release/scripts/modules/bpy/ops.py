@@ -182,8 +182,15 @@ class bpy_ops_submodule_op(object):
         import bpy
         idname = self.idname()
         as_string = op_as_string(idname)
-        descr = getattr(bpy.types, idname).bl_rna.description
-        return as_string + "\n" + descr
+        op_class = getattr(bpy.types, idname)
+        descr = op_class.bl_rna.description
+        # XXX, workaround for not registering every __doc__ to save time on load.
+        if not descr:
+            descr = op_class.__doc__
+            if not descr:
+                descr = ""
+
+        return "# %s\n%s" % (descr, as_string)
 
     def __str__(self):  # used for print(...)
         return "<function bpy.ops.%s.%s at 0x%x'>" % \
