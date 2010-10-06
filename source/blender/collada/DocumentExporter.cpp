@@ -109,9 +109,9 @@ extern char build_rev[];
 #include "ArmatureExporter.h"
 #include "CameraExporter.h"
 #include "GeometryExporter.h"
+#include "ImageExporter.h"
 #include "LightExporter.h"
 #include "MaterialExporter.h"
-
 
 #include <vector>
 #include <algorithm> // std::find
@@ -296,67 +296,6 @@ public:
 
 		if (ob->type != OB_ARMATURE)
 			node.end();
-	}
-};
-
-class ImagesExporter: COLLADASW::LibraryImages
-{
-	const char *mfilename;
-	std::vector<std::string> mImages; // contains list of written images, to avoid duplicates
-public:
-	ImagesExporter(COLLADASW::StreamWriter *sw, const char* filename) : COLLADASW::LibraryImages(sw), mfilename(filename)
-	{}
-	
-	void exportImages(Scene *sce)
-	{
-		openLibrary();
-		MaterialFunctor mf;
-		mf.forEachMaterialInScene<ImagesExporter>(sce, *this);
-
-		closeLibrary();
-	}
-
-	void operator()(Material *ma, Object *ob)
-	{
-		int a;
-		for (a = 0; a < MAX_MTEX; a++) {
-			MTex *mtex = ma->mtex[a];
-			if (mtex && mtex->tex && mtex->tex->ima) {
-
-				Image *image = mtex->tex->ima;
-				std::string name(id_name(image));
-				name = translate_id(name);
-				char rel[FILE_MAX];
-				char abs[FILE_MAX];
-				char src[FILE_MAX];
-				char dir[FILE_MAX];
-				
-				BLI_split_dirfile(mfilename, dir, NULL);
-
-				BKE_rebase_path(abs, sizeof(abs), rel, sizeof(rel), G.sce, image->name, dir);
-
-				if (abs[0] != '\0') {
-
-					// make absolute source path
-					BLI_strncpy(src, image->name, sizeof(src));
-					BLI_path_abs(src, G.sce);
-
-					// make dest directory if it doesn't exist
-					BLI_make_existing_file(abs);
-				
-					if (BLI_copy_fileops(src, abs) != 0) {
-						fprintf(stderr, "Cannot copy image to file's directory. \n");
-					}
-				} 
-				
-				if (find(mImages.begin(), mImages.end(), name) == mImages.end()) {
-					COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(rel)), name);
-					img.add(mSW);
-
-					mImages.push_back(name);
-				}
-			}
-		}
 	}
 };
 

@@ -36,6 +36,10 @@
 #ifndef BLI_FILEOPS_H
 #define BLI_FILEOPS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void  BLI_recurdir_fileops(char *dirname);
 int BLI_link(char *file, char *to);
 int BLI_is_writable(char *filename);
@@ -58,6 +62,10 @@ char *first_slash(char *string);
 /* only for the sane unix world: direct calls to system functions :( */
 #ifndef WIN32
 void BLI_setCmdCallBack(int (*f)(char*));
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif
