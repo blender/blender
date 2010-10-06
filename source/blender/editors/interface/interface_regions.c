@@ -1116,6 +1116,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	if(but) {
 		int left=0, right=0, top=0, down=0;
 		int winx, winy;
+		int offscreen;
 
 		wm_window_get_size(window, &winx, &winy);
 
@@ -1206,6 +1207,12 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		// apply requested offset in the block
 		xof += block->xofs/block->aspect;
 		yof += block->yofs/block->aspect;
+
+		/* clamp to window bounds, could be made into an option if its ever annoying */
+		if(     (offscreen= (block->miny+yof)) < 0)      yof -= offscreen; /* bottom */
+		else if((offscreen= (block->maxy+yof)-winy) > 0) yof -= offscreen; /* top */
+		if(     (offscreen= (block->minx+xof)) < 0)      xof -= offscreen; /* left */
+		else if((offscreen= (block->maxx+xof)-winx) > 0) xof -= offscreen; /* right */
 	}
 	
 	/* apply */
