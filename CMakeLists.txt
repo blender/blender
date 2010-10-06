@@ -483,7 +483,7 @@ IF(WIN32)
 		
 		IF(WITH_LCMS)
 			SET(LCMS ${LIBDIR}/lcms)
-			SET(LCMS_INC ${LCMS}/include)
+			SET(LCMS_INCLUDE_DIR ${LCMS}/include)
 			SET(LCMS_LIBPATH ${LCMS}/lib)
 			SET(LCMS_LIB lcms)
 		ENDIF(WITH_LCMS)

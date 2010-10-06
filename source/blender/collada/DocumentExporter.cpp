@@ -95,11 +95,11 @@ extern char build_rev[];
 #include "COLLADASWTexture.h"
 #include "COLLADASWLibraryMaterials.h"
 #include "COLLADASWBindMaterial.h"
-#include "COLLADASWLibraryCameras.h"
+//#include "COLLADASWLibraryCameras.h"
 #include "COLLADASWLibraryLights.h"
 #include "COLLADASWInstanceCamera.h"
 #include "COLLADASWInstanceLight.h"
-#include "COLLADASWCameraOptic.h"
+//#include "COLLADASWCameraOptic.h"
 #include "COLLADASWConstants.h"
 #include "COLLADASWLibraryControllers.h"
 #include "COLLADASWInstanceController.h"
@@ -107,6 +107,9 @@ extern char build_rev[];
 
 #include "collada_internal.h"
 #include "DocumentExporter.h"
+
+#include "CameraExporter.h"
+#include "LightExporter.h"
 
 #include <vector>
 #include <algorithm> // std::find
@@ -128,161 +131,6 @@ char *CustomData_get_active_layer_name(const CustomData *data, int type)
 	return data->layers[layer_index].name;
 }
 
-/**
-Translation map.
-Used to translate every COLLADA id to a valid id, no matter what "wrong" letters may be
-included. Look at the IDREF XSD declaration for more.
-Follows strictly the COLLADA XSD declaration which explicitly allows non-english chars,
-like special chars (e.g. micro sign), umlauts and so on.
-The COLLADA spec also allows additional chars for member access ('.'), these
-must obviously be removed too, otherwise they would be heavily misinterpreted.
-*/
-const unsigned char translate_start_name_map[256] = {
-95,  95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-65,  66,  67,  68,  69,  70,  71,  72,
-73,  74,  75,  76,  77,  78,  79,  80,
-81,  82,  83,  84,  85,  86,  87,  88,
-89,  90,  95,  95,  95,  95,  95,  95,
-97,  98,  99,  100,  101,  102,  103,  104,
-105,  106,  107,  108,  109,  110,  111,  112,
-113,  114,  115,  116,  117,  118,  119,  120,
-121,  122,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  192,
-193,  194,  195,  196,  197,  198,  199,  200,
-201,  202,  203,  204,  205,  206,  207,  208,
-209,  210,  211,  212,  213,  214,  95,  216,
-217,  218,  219,  220,  221,  222,  223,  224,
-225,  226,  227,  228,  229,  230,  231,  232,
-233,  234,  235,  236,  237,  238,  239,  240,
-241,  242,  243,  244,  245,  246,  95,  248,
-249,  250,  251,  252,  253,  254,  255};
-
-const unsigned char translate_name_map[256] = {
-95,  95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  45,  95,  95,  48,
-49,  50,  51,  52,  53,  54,  55,  56,
-57,  95,  95,  95,  95,  95,  95,  95,
-65,  66,  67,  68,  69,  70,  71,  72,
-73,  74,  75,  76,  77,  78,  79,  80,
-81,  82,  83,  84,  85,  86,  87,  88,
-89,  90,  95,  95,  95,  95,  95,  95,
-97,  98,  99,  100,  101,  102,  103,  104,
-105,  106,  107,  108,  109,  110,  111,  112,
-113,  114,  115,  116,  117,  118,  119,  120,
-121,  122,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  95,  95,
-95,  95,  95,  95,  95,  95,  183,  95,
-95,  95,  95,  95,  95,  95,  95,  192,
-193,  194,  195,  196,  197,  198,  199,  200,
-201,  202,  203,  204,  205,  206,  207,  208,
-209,  210,  211,  212,  213,  214,  95,  216,
-217,  218,  219,  220,  221,  222,  223,  224,
-225,  226,  227,  228,  229,  230,  231,  232,
-233,  234,  235,  236,  237,  238,  239,  240,
-241,  242,  243,  244,  245,  246,  95,  248,
-249,  250,  251,  252,  253,  254,  255};
-
-typedef std::map< std::string, std::vector<std::string> > map_string_list;
-map_string_list global_id_map;
-
-/** Look at documentation of translate_map */
-static std::string translate_id(const std::string &id)
-{
-	if (id.size() == 0)
-	{ return id; }
-	std::string id_translated = id;
-	id_translated[0] = translate_start_name_map[(unsigned int)id_translated[0]];
-	for (unsigned int i=1; i < id_translated.size(); i++)
-	{
-		id_translated[i] = translate_name_map[(unsigned int)id_translated[i]];
-	}
-	// It's so much workload now, the if() should speed up things.
-	if (id_translated != id)
-	{
-		// Search duplicates
-		map_string_list::iterator iter = global_id_map.find(id_translated);
-		if (iter != global_id_map.end())
-		{
-			unsigned int i = 0;
-			bool found = false;
-			for (i=0; i < iter->second.size(); i++)
-			{
-				if (id == iter->second[i])
-				{ 
-					found = true;
-					break;
-				}
-			}
-			bool convert = false;
-			if (found)
-			{
-			  if (i > 0)
-			  { convert = true; }
-			}
-			else
-			{ 
-				convert = true;
-				global_id_map[id_translated].push_back(id);
-			}
-			if (convert)
-			{
-				std::stringstream out;
-				out << ++i;
-				id_translated += out.str();
-			}
-		}
-		else { global_id_map[id_translated].push_back(id); }
-	}
-	return id_translated;
-}
-
-static std::string id_name(void *id)
-{
-	return ((ID*)id)->name + 2;
-}
-
-static std::string get_geometry_id(Object *ob)
-{
-	return translate_id(id_name(ob)) + "-mesh";
-}
-
-static std::string get_light_id(Object *ob)
-{
-	return translate_id(id_name(ob)) + "-light";
-}
-
-static std::string get_camera_id(Object *ob)
-{
-	return translate_id(id_name(ob)) + "-camera";
-}
-
-std::string get_joint_id(Bone *bone, Object *ob_arm)
-{
-	return translate_id(id_name(ob_arm) + "_" + bone->name);
-}
 
 
 /*
@@ -317,34 +165,6 @@ void forEachObjectInScene(Scene *sce, Functor &f)
 			
 		f(ob);
 
-		base= base->next;
-	}
-}
-
-template<class Functor>
-void forEachCameraObjectInScene(Scene *sce, Functor &f)
-{
-	Base *base= (Base*) sce->base.first;
-	while(base) {
-		Object *ob = base->object;
-			
-		if (ob->type == OB_CAMERA && ob->data) {
-			f(ob, sce);
-		}
-		base= base->next;
-	}
-}
-
-template<class Functor>
-void forEachLampObjectInScene(Scene *sce, Functor &f)
-{
-	Base *base= (Base*) sce->base.first;
-	while(base) {
-		Object *ob = base->object;
-			
-		if (ob->type == OB_LAMP && ob->data) {
-			f(ob);
-		}
 		base= base->next;
 	}
 }
@@ -1869,108 +1689,6 @@ public:
 	}
 };
 
-class CamerasExporter: COLLADASW::LibraryCameras
-{
-public:
-	CamerasExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryCameras(sw){}
-	void exportCameras(Scene *sce)
-	{
-		openLibrary();
-		
-		forEachCameraObjectInScene(sce, *this);
-		
-		closeLibrary();
-	}
-	void operator()(Object *ob, Scene *sce)
-	{
-		// TODO: shiftx, shifty, YF_dofdist
-		Camera *cam = (Camera*)ob->data;
-		std::string cam_id(get_camera_id(ob));
-		std::string cam_name(id_name(cam));
-		
-		if (cam->type == CAM_PERSP) {
-			COLLADASW::PerspectiveOptic persp(mSW);
-			persp.setXFov(lens_to_angle(cam->lens)*(180.0f/M_PI));
-			persp.setAspectRatio(1.0);
-			persp.setZFar(cam->clipend);
-			persp.setZNear(cam->clipsta);
-			COLLADASW::Camera ccam(mSW, &persp, cam_id, cam_name);
-			addCamera(ccam);
-		}
-		else {
-			COLLADASW::OrthographicOptic ortho(mSW);
-			ortho.setXMag(cam->ortho_scale);
-			ortho.setAspectRatio(1.0);
-			ortho.setZFar(cam->clipend);
-			ortho.setZNear(cam->clipsta);
-			COLLADASW::Camera ccam(mSW, &ortho, cam_id, cam_name);
-			addCamera(ccam);
-		}
-	}	
-};
-
-class LightsExporter: COLLADASW::LibraryLights
-{
-public:
-	LightsExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryLights(sw){}
-	void exportLights(Scene *sce)
-	{
-		openLibrary();
-		
-		forEachLampObjectInScene(sce, *this);
-		
-		closeLibrary();
-	}
-	void operator()(Object *ob)
-	{
-		Lamp *la = (Lamp*)ob->data;
-		std::string la_id(get_light_id(ob));
-		std::string la_name(id_name(la));
-		COLLADASW::Color col(la->r, la->g, la->b);
-		float e = la->energy;
-		
-		// sun
-		if (la->type == LA_SUN) {
-			COLLADASW::DirectionalLight cla(mSW, la_id, la_name, e);
-			cla.setColor(col);
-			addLight(cla);
-		}
-		// hemi
-		else if (la->type == LA_HEMI) {
-			COLLADASW::AmbientLight cla(mSW, la_id, la_name, e);
-			cla.setColor(col);
-			addLight(cla);
-		}
-		// spot
-		else if (la->type == LA_SPOT) {
-			COLLADASW::SpotLight cla(mSW, la_id, la_name, e);
-			cla.setColor(col);
-			cla.setFallOffAngle(la->spotsize);
-			cla.setFallOffExponent(la->spotblend);
-			cla.setLinearAttenuation(la->att1);
-			cla.setQuadraticAttenuation(la->att2);
-			addLight(cla);
-		}
-		// lamp
-		else if (la->type == LA_LOCAL) {
-			COLLADASW::PointLight cla(mSW, la_id, la_name, e);
-			cla.setColor(col);
-			cla.setLinearAttenuation(la->att1);
-			cla.setQuadraticAttenuation(la->att2);
-			addLight(cla);
-		}
-		// area lamp is not supported
-		// it will be exported as a local lamp
-		else {
-			COLLADASW::PointLight cla(mSW, la_id, la_name, e);
-			cla.setColor(col);
-			cla.setLinearAttenuation(la->att1);
-			cla.setQuadraticAttenuation(la->att2);
-			addLight(cla);
-		}
-	}
-};
-
 // TODO: it would be better to instantiate animations rather than create a new one per object
 // COLLADA allows this through multiple <channel>s in <animation>.
 // For this to work, we need to know objects that use a certain action.
@@ -2584,8 +2302,8 @@ protected:
 
 void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 {
-	global_id_map.clear();
-
+	clear_global_id_map();
+	
 	COLLADABU::NativeString native_filename =
 		COLLADABU::NativeString(std::string(filename));
 	COLLADASW::StreamWriter sw(native_filename);
