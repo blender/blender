@@ -34,8 +34,8 @@ extern "C"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_lamp_types.h"
+//#include "DNA_camera_types.h"
+//#include "DNA_lamp_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
@@ -74,7 +74,7 @@ extern char build_rev[];
 #include "COLLADASWAsset.h"
 #include "COLLADASWLibraryVisualScenes.h"
 #include "COLLADASWNode.h"
-#include "COLLADASWLibraryGeometries.h"
+//#include "COLLADASWLibraryGeometries.h"
 #include "COLLADASWSource.h"
 #include "COLLADASWInstanceGeometry.h"
 #include "COLLADASWInputList.h"
@@ -96,7 +96,7 @@ extern char build_rev[];
 #include "COLLADASWLibraryMaterials.h"
 #include "COLLADASWBindMaterial.h"
 //#include "COLLADASWLibraryCameras.h"
-#include "COLLADASWLibraryLights.h"
+//#include "COLLADASWLibraryLights.h"
 #include "COLLADASWInstanceCamera.h"
 #include "COLLADASWInstanceLight.h"
 //#include "COLLADASWCameraOptic.h"
@@ -110,6 +110,7 @@ extern char build_rev[];
 
 #include "CameraExporter.h"
 #include "LightExporter.h"
+#include "GeometryExporter.h"
 
 #include <vector>
 #include <algorithm> // std::find
@@ -138,23 +139,6 @@ char *CustomData_get_active_layer_name(const CustomData *data, int type)
   Definition can take some time to understand, but they should be useful.
 */
 
-// f should have
-// void operator()(Object* ob)
-template<class Functor>
-void forEachMeshObjectInScene(Scene *sce, Functor &f)
-{
-	
-	Base *base= (Base*) sce->base.first;
-	while(base) {
-		Object *ob = base->object;
-		
-		if (ob->type == OB_MESH && ob->data) {
-			f(ob);
-		}
-		base= base->next;
-		
-	}
-}
 
 template<class Functor>
 void forEachObjectInScene(Scene *sce, Functor &f)
@@ -203,7 +187,8 @@ template<class Functor>
 void forEachMaterialInScene(Scene *sce, Functor &f)
 {
 	ForEachMaterialFunctor<Functor> matfunc(&f);
-	forEachMeshObjectInScene(sce, matfunc);
+	GeometryFunctor gf;
+	gf.forEachMeshObjectInScene<ForEachMaterialFunctor<Functor>>(sce, matfunc);
 }
 
 // OB_MESH is assumed
@@ -218,454 +203,6 @@ std::string getActiveUVLayerName(Object *ob)
 	return "";
 }
 
-// TODO: optimize UV sets by making indexed list with duplicates removed
-class GeometryExporter : COLLADASW::LibraryGeometries
-{
-	struct Face
-	{
-		unsigned int v1, v2, v3, v4;
-	};
-
-	struct Normal
-	{
-		float x, y, z;
-	};
-
-	Scene *mScene;
-
-public:
-	GeometryExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryGeometries(sw) {}
-
-	void exportGeom(Scene *sce)
-	{
-		openLibrary();
-
-		mScene = sce;
-		forEachMeshObjectInScene(sce, *this);
-
-		closeLibrary();
-	}
-
-	void operator()(Object *ob)
-	{
-		// XXX don't use DerivedMesh, Mesh instead?
-
-#if 0		
-		DerivedMesh *dm = mesh_get_derived_final(mScene, ob, CD_MASK_BAREMESH);
-#endif
-		Mesh *me = (Mesh*)ob->data;
-		std::string geom_id = get_geometry_id(ob);
-		std::vector<Normal> nor;
-		std::vector<Face> norind;
-
-		bool has_color = (bool)CustomData_has_layer(&me->fdata, CD_MCOL);
-
-		create_normals(nor, norind, me);
-
-		// openMesh(geoId, geoName, meshId)
-		openMesh(geom_id);
-		
-		// writes <source> for vertex coords
-		createVertsSource(geom_id, me);
-		
-		// writes <source> for normal coords
-		createNormalsSource(geom_id, me, nor);
-
-		bool has_uvs = (bool)CustomData_has_layer(&me->fdata, CD_MTFACE);
-		
-		// writes <source> for uv coords if mesh has uv coords
-		if (has_uvs)
-			createTexcoordsSource(geom_id, me);
-
-		if (has_color)
-			createVertexColorSource(geom_id, me);
-
-		// <vertices>
-		COLLADASW::Vertices verts(mSW);
-		verts.setId(getIdBySemantics(geom_id, COLLADASW::VERTEX));
-		COLLADASW::InputList &input_list = verts.getInputList();
-		COLLADASW::Input input(COLLADASW::POSITION, getUrlBySemantics(geom_id, COLLADASW::POSITION));
-		input_list.push_back(input);
-		verts.add();
-
-		// XXX slow		
-		if (ob->totcol) {
-			for(int a = 0; a < ob->totcol; a++)	{
-				createPolylist(a, has_uvs, has_color, ob, geom_id, norind);
-			}
-		}
-		else {
-			createPolylist(0, has_uvs, has_color, ob, geom_id, norind);
-		}
-		
-		closeMesh();
-		closeGeometry();
-		
-#if 0
-		dm->release(dm);
-#endif
-	}
-
-	// powerful because it handles both cases when there is material and when there's not
-	void createPolylist(int material_index,
-						bool has_uvs,
-						bool has_color,
-						Object *ob,
-						std::string& geom_id,
-						std::vector<Face>& norind)
-	{
-		Mesh *me = (Mesh*)ob->data;
-		MFace *mfaces = me->mface;
-		int totfaces = me->totface;
-
-		// <vcount>
-		int i;
-		int faces_in_polylist = 0;
-		std::vector<unsigned long> vcount_list;
-
-		// count faces with this material
-		for (i = 0; i < totfaces; i++) {
-			MFace *f = &mfaces[i];
-			
-			if (f->mat_nr == material_index) {
-				faces_in_polylist++;
-				if (f->v4 == 0) {
-					vcount_list.push_back(3);
-				}
-				else {
-					vcount_list.push_back(4);
-				}
-			}
-		}
-
-		// no faces using this material
-		if (faces_in_polylist == 0) {
-			fprintf(stderr, "%s: no faces use material %d\n", id_name(ob).c_str(), material_index);
-			return;
-		}
-			
-		Material *ma = ob->totcol ? give_current_material(ob, material_index + 1) : NULL;
-		COLLADASW::Polylist polylist(mSW);
-			
-		// sets count attribute in <polylist>
-		polylist.setCount(faces_in_polylist);
-			
-		// sets material name
-		if (ma) {
-			polylist.setMaterial(translate_id(id_name(ma)));
-		}
-				
-		COLLADASW::InputList &til = polylist.getInputList();
-			
-		// creates <input> in <polylist> for vertices 
-		COLLADASW::Input input1(COLLADASW::VERTEX, getUrlBySemantics(geom_id, COLLADASW::VERTEX), 0);
-			
-		// creates <input> in <polylist> for normals
-		COLLADASW::Input input2(COLLADASW::NORMAL, getUrlBySemantics(geom_id, COLLADASW::NORMAL), 1);
-			
-		til.push_back(input1);
-		til.push_back(input2);
-			
-		// if mesh has uv coords writes <input> for TEXCOORD
-		int num_layers = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
-
-		for (i = 0; i < num_layers; i++) {
-			// char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
-			COLLADASW::Input input3(COLLADASW::TEXCOORD,
-									makeUrl(makeTexcoordSourceId(geom_id, i)),
-									2, // offset always 2, this is only until we have optimized UV sets
-									i  // set number equals UV layer index
-									);
-			til.push_back(input3);
-		}
-
-		if (has_color) {
-			COLLADASW::Input input4(COLLADASW::COLOR, getUrlBySemantics(geom_id, COLLADASW::COLOR), has_uvs ? 3 : 2);
-			til.push_back(input4);
-		}
-			
-		// sets <vcount>
-		polylist.setVCountList(vcount_list);
-			
-		// performs the actual writing
-		polylist.prepareToAppendValues();
-			
-		// <p>
-		int texindex = 0;
-		for (i = 0; i < totfaces; i++) {
-			MFace *f = &mfaces[i];
-
-			if (f->mat_nr == material_index) {
-
-				unsigned int *v = &f->v1;
-				unsigned int *n = &norind[i].v1;
-				for (int j = 0; j < (f->v4 == 0 ? 3 : 4); j++) {
-					polylist.appendValues(v[j]);
-					polylist.appendValues(n[j]);
-
-					if (has_uvs)
-						polylist.appendValues(texindex + j);
-
-					if (has_color)
-						polylist.appendValues(texindex + j);
-				}
-			}
-
-			texindex += 3;
-			if (f->v4 != 0)
-				texindex++;
-		}
-			
-		polylist.finish();
-	}
-	
-	// creates <source> for positions
-	void createVertsSource(std::string geom_id, Mesh *me)
-	{
-#if 0
-		int totverts = dm->getNumVerts(dm);
-		MVert *verts = dm->getVertArray(dm);
-#endif
-		int totverts = me->totvert;
-		MVert *verts = me->mvert;
-		
-		COLLADASW::FloatSourceF source(mSW);
-		source.setId(getIdBySemantics(geom_id, COLLADASW::POSITION));
-		source.setArrayId(getIdBySemantics(geom_id, COLLADASW::POSITION) +
-						  ARRAY_ID_SUFFIX);
-		source.setAccessorCount(totverts);
-		source.setAccessorStride(3);
-		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		param.push_back("X");
-		param.push_back("Y");
-		param.push_back("Z");
-		/*main function, it creates <source id = "">, <float_array id = ""
-		  count = ""> */
-		source.prepareToAppendValues();
-		//appends data to <float_array>
-		int i = 0;
-		for (i = 0; i < totverts; i++) {
-			source.appendValues(verts[i].co[0], verts[i].co[1], verts[i].co[2]);			
-		}
-		
-		source.finish();
-	
-	}
-
-	void createVertexColorSource(std::string geom_id, Mesh *me)
-	{
-		if (!CustomData_has_layer(&me->fdata, CD_MCOL))
-			return;
-
-		MFace *f;
-		int totcolor = 0, i, j;
-
-		for (i = 0, f = me->mface; i < me->totface; i++, f++)
-			totcolor += f->v4 ? 4 : 3;
-
-		COLLADASW::FloatSourceF source(mSW);
-		source.setId(getIdBySemantics(geom_id, COLLADASW::COLOR));
-		source.setArrayId(getIdBySemantics(geom_id, COLLADASW::COLOR) + ARRAY_ID_SUFFIX);
-		source.setAccessorCount(totcolor);
-		source.setAccessorStride(3);
-
-		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		param.push_back("R");
-		param.push_back("G");
-		param.push_back("B");
-
-		source.prepareToAppendValues();
-
-		int index = CustomData_get_active_layer_index(&me->fdata, CD_MCOL);
-
-		MCol *mcol = (MCol*)me->fdata.layers[index].data;
-		MCol *c = mcol;
-
-		for (i = 0, f = me->mface; i < me->totface; i++, c += 4, f++)
-			for (j = 0; j < (f->v4 ? 4 : 3); j++)
-				source.appendValues(c[j].b / 255.0f, c[j].g / 255.0f, c[j].r / 255.0f);
-		
-		source.finish();
-	}
-
-	std::string makeTexcoordSourceId(std::string& geom_id, int layer_index)
-	{
-		char suffix[20];
-		sprintf(suffix, "-%d", layer_index);
-		return getIdBySemantics(geom_id, COLLADASW::TEXCOORD) + suffix;
-	}
-
-	//creates <source> for texcoords
-	void createTexcoordsSource(std::string geom_id, Mesh *me)
-	{
-#if 0
-		int totfaces = dm->getNumFaces(dm);
-		MFace *mfaces = dm->getFaceArray(dm);
-#endif
-		int totfaces = me->totface;
-		MFace *mfaces = me->mface;
-
-		int totuv = 0;
-		int i;
-
-		// count totuv
-		for (i = 0; i < totfaces; i++) {
-			MFace *f = &mfaces[i];
-			if (f->v4 == 0) {
-				totuv+=3;
-			}
-			else {
-				totuv+=4;
-			}
-		}
-
-		int num_layers = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
-
-		// write <source> for each layer
-		// each <source> will get id like meshName + "map-channel-1"
-		for (int a = 0; a < num_layers; a++) {
-			MTFace *tface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, a);
-			// char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, a);
-			
-			COLLADASW::FloatSourceF source(mSW);
-			std::string layer_id = makeTexcoordSourceId(geom_id, a);
-			source.setId(layer_id);
-			source.setArrayId(layer_id + ARRAY_ID_SUFFIX);
-			
-			source.setAccessorCount(totuv);
-			source.setAccessorStride(2);
-			COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-			param.push_back("S");
-			param.push_back("T");
-			
-			source.prepareToAppendValues();
-			
-			for (i = 0; i < totfaces; i++) {
-				MFace *f = &mfaces[i];
-				
-				for (int j = 0; j < (f->v4 == 0 ? 3 : 4); j++) {
-					source.appendValues(tface[i].uv[j][0],
-										tface[i].uv[j][1]);
-				}
-			}
-			
-			source.finish();
-		}
-	}
-
-
-	//creates <source> for normals
-	void createNormalsSource(std::string geom_id, Mesh *me, std::vector<Normal>& nor)
-	{
-#if 0
-		int totverts = dm->getNumVerts(dm);
-		MVert *verts = dm->getVertArray(dm);
-#endif
-
-		COLLADASW::FloatSourceF source(mSW);
-		source.setId(getIdBySemantics(geom_id, COLLADASW::NORMAL));
-		source.setArrayId(getIdBySemantics(geom_id, COLLADASW::NORMAL) +
-						  ARRAY_ID_SUFFIX);
-		source.setAccessorCount(nor.size());
-		source.setAccessorStride(3);
-		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		param.push_back("X");
-		param.push_back("Y");
-		param.push_back("Z");
-		
-		source.prepareToAppendValues();
-
-		std::vector<Normal>::iterator it;
-		for (it = nor.begin(); it != nor.end(); it++) {
-			Normal& n = *it;
-			source.appendValues(n.x, n.y, n.z);
-		}
-
-		source.finish();
-	}
-
-	void create_normals(std::vector<Normal> &nor, std::vector<Face> &ind, Mesh *me)
-	{
-		int i, j, v;
-		MVert *vert = me->mvert;
-		std::map<unsigned int, unsigned int> nshar;
-
-		for (i = 0; i < me->totface; i++) {
-			MFace *fa = &me->mface[i];
-			Face f;
-			unsigned int *nn = &f.v1;
-			unsigned int *vv = &fa->v1;
-
-			memset(&f, 0, sizeof(f));
-			v = fa->v4 == 0 ? 3 : 4;
-
-			if (!(fa->flag & ME_SMOOTH)) {
-				Normal n;
-				if (v == 4)
-					normal_quad_v3(&n.x, vert[fa->v1].co, vert[fa->v2].co, vert[fa->v3].co, vert[fa->v4].co);
-				else
-					normal_tri_v3(&n.x, vert[fa->v1].co, vert[fa->v2].co, vert[fa->v3].co);
-				nor.push_back(n);
-			}
-
-			for (j = 0; j < v; j++) {
-				if (fa->flag & ME_SMOOTH) {
-					if (nshar.find(*vv) != nshar.end())
-						*nn = nshar[*vv];
-					else {
-						Normal n = {
-							vert[*vv].no[0]/32767.0,
-							vert[*vv].no[1]/32767.0,
-							vert[*vv].no[2]/32767.0
-						};
-						nor.push_back(n);
-						*nn = nor.size() - 1;
-						nshar[*vv] = *nn;
-					}
-					vv++;
-				}
-				else {
-					*nn = nor.size() - 1;
-				}
-				nn++;
-			}
-
-			ind.push_back(f);
-		}
-	}
-	
-	std::string getIdBySemantics(std::string geom_id, COLLADASW::Semantics type, std::string other_suffix = "") {
-		return geom_id + getSuffixBySemantic(type) + other_suffix;
-	}
-	
-	
-	COLLADASW::URI getUrlBySemantics(std::string geom_id, COLLADASW::Semantics type, std::string other_suffix = "") {
-		
-		std::string id(getIdBySemantics(geom_id, type, other_suffix));
-		return COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, id);
-		
-	}
-
-	COLLADASW::URI makeUrl(std::string id)
-	{
-		return COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, id);
-	}
-	
-
-	/*	int getTriCount(MFace *faces, int totface) {
-		int i;
-		int tris = 0;
-		for (i = 0; i < totface; i++) {
-			// if quad
-			if (faces[i].v4 != 0)
-				tris += 2;
-			else
-				tris++;
-		}
-
-		return tris;
-		}*/
-};
 
 class TransformWriter : protected TransformBase
 {
@@ -828,7 +365,8 @@ public:
 
 		openLibrary();
 
-		forEachMeshObjectInScene(sce, *this);
+		GeometryFunctor gf;
+		gf.forEachMeshObjectInScene<ArmatureExporter>(sce, *this);
 
 		closeLibrary();
 	}
