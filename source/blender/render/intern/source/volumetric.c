@@ -743,7 +743,6 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	float tr[3] = {1.0,1.0,1.0};
 	Isect is;
 	float *startco, *endco;
-	float density=0.f;
 
 	memset(shr, 0, sizeof(ShadeResult));
 	
@@ -764,8 +763,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 		shr->alpha = shr->combined[3] = 1.f;
 		return;
 	}
-	
-	density = vol_get_density(shi, startco);
+
 	vol_get_transmittance(shi, tr, startco, endco);
 	
 	copy_v3_v3(shr->combined, tr);
