@@ -660,7 +660,7 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "select by layer";
+	ot->name= "Select by Layer";
 	ot->description = "Select all visible objects on a layer";
 	ot->idname= "OBJECT_OT_select_by_layer";
 	
@@ -809,7 +809,7 @@ void OBJECT_OT_select_same_group(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "select same group";
+	ot->name= "Select Same Group";
 	ot->description = "Select object in the same group";
 	ot->idname= "OBJECT_OT_select_same_group";
 	
