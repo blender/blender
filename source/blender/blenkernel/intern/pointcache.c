@@ -1890,7 +1890,7 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 	}
 
 	if(cache->cached_frames)
-		cache->cached_frames[cfra] = 1;
+		cache->cached_frames[cfra-cache->startframe] = 1;
 	
 	if(pf) ptcache_file_close(pf);
 
