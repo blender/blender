@@ -106,6 +106,7 @@ extern char build_rev[];
 #include "CameraExporter.h"
 #include "GeometryExporter.h"
 #include "LightExporter.h"
+#include "MaterialExporter.h"
 
 // can probably go after refactor is complete
 #include "InstanceWriter.h"
@@ -151,43 +152,7 @@ void forEachObjectInScene(Scene *sce, Functor &f)
 	}
 }
 
-// used in forEachMaterialInScene
-template <class MaterialFunctor>
-class ForEachMaterialFunctor
-{
-	std::vector<std::string> mMat; // contains list of material names, to avoid duplicate calling of f
-	MaterialFunctor *f;
-public:
-	ForEachMaterialFunctor(MaterialFunctor *f) : f(f) { }
-	void operator ()(Object *ob)
-	{
-		int a;
-		for(a = 0; a < ob->totcol; a++) {
 
-			Material *ma = give_current_material(ob, a+1);
-
-			if (!ma) continue;
-
-			std::string translated_id = translate_id(id_name(ma));
-			if (find(mMat.begin(), mMat.end(), translated_id) == mMat.end()) {
-				(*this->f)(ma, ob);
-
-				mMat.push_back(translated_id);
-			}
-		}
-	}
-};
-
-// calls f for each unique material linked to each object in sce
-// f should have
-// void operator()(Material* ma)
-template<class Functor>
-void forEachMaterialInScene(Scene *sce, Functor &f)
-{
-	ForEachMaterialFunctor<Functor> matfunc(&f);
-	GeometryFunctor gf;
-	gf.forEachMeshObjectInScene<ForEachMaterialFunctor<Functor> >(sce, matfunc);
-}
 
 // OB_MESH is assumed
 std::string getActiveUVLayerName(Object *ob)
@@ -344,8 +309,8 @@ public:
 	void exportImages(Scene *sce)
 	{
 		openLibrary();
-
-		forEachMaterialInScene(sce, *this);
+		MaterialFunctor mf;
+		mf.forEachMaterialInScene<ImagesExporter>(sce, *this);
 
 		closeLibrary();
 	}
@@ -401,8 +366,8 @@ public:
 	void exportEffects(Scene *sce)
 	{
 		openLibrary();
-
-		forEachMaterialInScene(sce, *this);
+		MaterialFunctor mf;
+		mf.forEachMaterialInScene<EffectsExporter>(sce, *this);
 
 		closeLibrary();
 	}
@@ -652,31 +617,6 @@ public:
 	}
 };
 
-class MaterialsExporter: COLLADASW::LibraryMaterials
-{
-public:
-	MaterialsExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryMaterials(sw){}
-	void exportMaterials(Scene *sce)
-	{
-		openLibrary();
-
-		forEachMaterialInScene(sce, *this);
-
-		closeLibrary();
-	}
-
-	void operator()(Material *ma, Object *ob)
-	{
-		std::string name(id_name(ma));
-
-		openMaterial(translate_id(name), name);
-
-		std::string efid = translate_id(name) + "-effect";
-		addInstanceEffect(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, efid));
-
-		closeMaterial();
-	}
-};
 
 // TODO: it would be better to instantiate animations rather than create a new one per object
 // COLLADA allows this through multiple <channel>s in <animation>.
