@@ -1,5 +1,5 @@
 /**
- * $Id: collada_internal.h 32309 2010-10-05 00:05:14Z jesterking $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
