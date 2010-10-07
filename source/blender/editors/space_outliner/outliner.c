@@ -1931,15 +1931,14 @@ static void tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 			scene_deselect_all(scene);
 			ED_base_object_select(base, BA_SELECT);
 		}
-		if(C)
+		if(C) {
 			ED_base_object_activate(C, base); /* adds notifier */
+			WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+		}
 	}
 	
 	if(ob!=scene->obedit) 
 		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
-	
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
-
 }
 
 static int tree_element_active_material(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, int set)
