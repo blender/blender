@@ -1301,15 +1301,18 @@ int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, E
 					BVHTreeRayHit hit;
 					BVHTreeFromMesh treeData;
 
+					/* local scale in normal direction */
+					float local_scale = len_v3(ray_normal_local);
+
 					bvhtree_from_mesh_faces(&treeData, dm, 0.0f, 4, 6);
 
 					hit.index = -1;
-					hit.dist = *depth;
+					hit.dist = *depth * (*depth == FLT_MAX ? 1.0f : local_scale);
 
 					if(treeData.tree && BLI_bvhtree_ray_cast(treeData.tree, ray_start_local, ray_normal_local, 0.0f, &hit, treeData.raycast_callback, &treeData) != -1)
 					{
-						if(hit.dist<=*depth) {
-							*depth= hit.dist;
+						if(hit.dist/local_scale <= *depth) {
+							*depth= hit.dist/local_scale;
 							copy_v3_v3(loc, hit.co);
 							copy_v3_v3(no, hit.no);
 
