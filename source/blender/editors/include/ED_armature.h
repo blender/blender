@@ -141,6 +141,7 @@ void ED_armature_bone_rename(struct bArmature *arm, char *oldnamep, char *newnam
 void undo_push_armature(struct bContext *C, char *name);
 
 /* poseobject.c */
+struct Object *ED_object_pose_armature(struct Object *ob);
 void ED_armature_exit_posemode(struct bContext *C, struct Base *base);
 void ED_armature_enter_posemode(struct bContext *C, struct Base *base);
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan);

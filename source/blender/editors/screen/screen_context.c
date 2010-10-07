@@ -209,14 +209,15 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "visible_pose_bones")) {
-		bArmature *arm= (obact) ? obact->data : NULL;
+		Object *obpose= ED_object_pose_armature(obact);
+		bArmature *arm= (obpose) ? obpose->data : NULL;
 		bPoseChannel *pchan;
 		
-		if (obact && obact->pose && arm) {
-			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (obpose && obpose->pose && arm) {
+			for (pchan= obpose->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-					CTX_data_list_add(result, &obact->id, &RNA_PoseBone, pchan);
+					CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
 				}
 			}
 			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
@@ -224,15 +225,16 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		}
 	}
 	else if(CTX_data_equals(member, "selected_pose_bones")) {
-		bArmature *arm= (obact) ? obact->data : NULL;
+		Object *obpose= ED_object_pose_armature(obact);
+		bArmature *arm= (obpose) ? obpose->data : NULL;
 		bPoseChannel *pchan;
 		
-		if (obact && obact->pose && arm) {
-			for (pchan= obact->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (obpose && obpose->pose && arm) {
+			for (pchan= obpose->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
 					if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone)
-						CTX_data_list_add(result, &obact->id, &RNA_PoseBone, pchan);
+						CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
 				}
 			}
 			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
@@ -258,10 +260,11 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if(CTX_data_equals(member, "active_pose_bone")) {
 		bPoseChannel *pchan;
+		Object *obpose= ED_object_pose_armature(obact);
 		
-		pchan= get_active_posechannel(obact);
+		pchan= get_active_posechannel(obpose);
 		if (pchan) {
-			CTX_data_pointer_set(result, &obact->id, &RNA_PoseBone, pchan);
+			CTX_data_pointer_set(result, &obpose->id, &RNA_PoseBone, pchan);
 			return 1;
 		}
 	}

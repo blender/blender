@@ -56,6 +56,7 @@
 #include "ED_util.h"
 #include "ED_screen.h"
 #include "ED_object.h"
+#include "ED_armature.h"
 #include "ED_screen_types.h"
 #include "ED_keyframes_draw.h"
 
@@ -259,8 +260,8 @@ int ED_operator_posemode(bContext *C)
 	Object *obact= CTX_data_active_object(C);
 	Object *obedit= CTX_data_edit_object(C);
 	
-	if ((obact != obedit) && (obact) && (obact->type==OB_ARMATURE))
-		return (obact->mode & OB_MODE_POSE)!=0;
+	if ((obact != obedit) && ED_object_pose_armature(obact))
+		return 1;
 	
 	return 0;
 }
