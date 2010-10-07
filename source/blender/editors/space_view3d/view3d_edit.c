@@ -2121,14 +2121,11 @@ static int viewpan_exec(bContext *C, wmOperator *op)
 	pandir = RNA_enum_get(op->ptr, "type");
 
 	initgrabz(rv3d, 0.0, 0.0, 0.0);
-
 	if(pandir == V3D_VIEW_PANRIGHT) window_to_3d_delta(ar, vec, -32, 0);
 	else if(pandir == V3D_VIEW_PANLEFT) window_to_3d_delta(ar, vec, 32, 0);
 	else if(pandir == V3D_VIEW_PANUP) window_to_3d_delta(ar, vec, 0, -25);
 	else if(pandir == V3D_VIEW_PANDOWN) window_to_3d_delta(ar, vec, 0, 25);
-	rv3d->ofs[0]+= vec[0];
-	rv3d->ofs[1]+= vec[1];
-	rv3d->ofs[2]+= vec[2];
+	add_v3_v3(rv3d->ofs, vec);
 
 	if(rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(CTX_wm_area(C), ar);

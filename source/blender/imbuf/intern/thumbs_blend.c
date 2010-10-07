@@ -161,11 +161,11 @@ void IMB_overlayblend_thumb(unsigned int *thumb, int width, int height, float as
 
 	{	
 		int x, y;
-		int hline, vline;
 		int stride_x= (margin_r - margin_l) - 2;
 		
 		for(y=0; y < height; y++) {
 			for(x=0; x < width; x++, px+=4) {
+				int hline= 0, vline= 0;
 				if((x > margin_l && x < margin_r) && (y > margin_b && y < margin_t)) {
 					/* interior. skip */
 					x  += stride_x;

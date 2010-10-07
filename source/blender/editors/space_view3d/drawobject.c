@@ -917,6 +917,9 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	copy_m4_m4(imat, rv3d->viewinv);
 	normalize_v3(imat[0]);
 	normalize_v3(imat[1]);
+
+	/* lamp center */
+	copy_v3_v3(vec, ob->obmat[3]);
 	
 	/* for AA effects */
 	glGetFloatv(GL_CURRENT_COLOR, curcol);
@@ -931,7 +934,6 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 		}
 		
 		/* Inner Circle */
-		copy_v3_v3(vec, ob->obmat[3]);
 		glEnable(GL_BLEND);
 		drawcircball(GL_LINE_LOOP, vec, lampsize, imat);
 		glDisable(GL_BLEND);

@@ -648,7 +648,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, 
 
 		totfac= data[1]+data[2];
 		if(totfac>FLT_EPSILON)	interp_qt_qtqt(q2, p1->quat, p2->quat, data[2] / totfac);
-		else					QUATCOPY(q1, p3->quat);
+		else					QUATCOPY(q2, p3->quat);
 
 		totfac = data[0]+data[1]+data[2]+data[3];
 		if(totfac>FLT_EPSILON)	interp_qt_qtqt(quat, q1, q2, (data[1]+data[2]) / totfac);

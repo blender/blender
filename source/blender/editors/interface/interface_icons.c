@@ -622,20 +622,30 @@ static void init_iconfile_list(struct ListBase *list)
 			char *filename = dir[i].relname;
 			
 			if(BLI_testextensie(filename, ".png")) {
-			
+
 				/* check to see if the image is the right size, continue if not */
 				/* copying strings here should go ok, assuming that we never get back
 				   a complete path to file longer than 256 chars */
 				sprintf(iconfilestr, "%s/%s", icondirstr, filename);
-				if(BLI_exists(iconfilestr)) bbuf = IMB_loadiffname(iconfilestr, IB_rect);
+				if(BLI_exists(iconfilestr))
+					bbuf= IMB_loadiffname(iconfilestr, IB_rect);
+				else
+					bbuf= NULL;
+
+
+				if(bbuf) {
+					ifilex = bbuf->x;
+					ifiley = bbuf->y;
+					IMB_freeImBuf(bbuf);
+				}
+				else {
+					ifilex= ifiley= 0;
+				}
 				
-				ifilex = bbuf->x;
-				ifiley = bbuf->y;
-				IMB_freeImBuf(bbuf);
-				
+				/* bad size or failed to load */
 				if ((ifilex != ICON_IMAGE_W) || (ifiley != ICON_IMAGE_H))
 					continue;
-			
+
 				/* found a potential icon file, so make an entry for it in the cache list */
 				ifile = MEM_callocN(sizeof(IconFile), "IconFile");
 				

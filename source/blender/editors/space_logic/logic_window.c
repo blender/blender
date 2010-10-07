@@ -3712,7 +3712,7 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 			break;
 		case ACT_ARM_ENABLE:
 		case ACT_ARM_DISABLE:
-			if (&pose_ptr.data) {
+			if (ob->pose) {
 				uiItemPointerR(layout, ptr, "bone", &pose_ptr, "bones", NULL, ICON_BONE_DATA);
 
 				if (RNA_property_collection_lookup_string(&pose_ptr, bones_prop, aa->posechannel, &pchan_ptr))
@@ -3720,7 +3720,7 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 			}
 			break;
 		case ACT_ARM_SETTARGET:
-			if (&pose_ptr.data) {
+			if (ob->pose) {
 				uiItemPointerR(layout, ptr, "bone", &pose_ptr, "bones", NULL, ICON_BONE_DATA);
 				
 				if (RNA_property_collection_lookup_string(&pose_ptr, bones_prop, aa->posechannel, &pchan_ptr))
@@ -3731,7 +3731,7 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(layout, ptr, "secondary_target", 0, NULL, 0);
 			break;
 		case ACT_ARM_SETWEIGHT:
-			if (&pose_ptr.data) {
+			if (ob->pose) {
 				uiItemPointerR(layout, ptr, "bone", &pose_ptr, "bones", NULL, ICON_BONE_DATA);
 				
 				if (RNA_property_collection_lookup_string(&pose_ptr, bones_prop, aa->posechannel, &pchan_ptr))

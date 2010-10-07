@@ -536,12 +536,13 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = (Mesh*)userData;
-	MTFace *tface = (me->mtface)? &me->mtface[index]: NULL;
-	MFace *mface = (me->mface)? &me->mface[index]: NULL;
-	
-	if ((mface->flag&ME_HIDE) || (tface && (tface->mode&TF_INVISIBLE))) 
-			return 0;
-	
+
+	if (	(me->mface && me->mface[index].flag & ME_HIDE) ||
+			(me->mtface && (me->mtface[index].mode & TF_INVISIBLE))
+	) {
+		return 0;
+	}
+
 	*drawSmooth_r = 1;
 	return 1;
 }

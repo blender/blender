@@ -2341,7 +2341,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	VertRen *ver;
 	VlakRen *vlr, *vlr1;
 	Material *ma;
-	float *data, *nors, *orco, mat[4][4], imat[3][3], xn, yn, zn;
+	float *data, *nors, *orco=NULL, mat[4][4], imat[3][3], xn, yn, zn;
 	int a, need_orco, vlakindex, *index;
 	ListBase dispbase= {NULL, NULL};
 
@@ -2375,7 +2375,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		}
 	}
 
-	for(a=0; a<dl->nr; a++, data+=3, nors+=3, orco+=3) {
+	for(a=0; a<dl->nr; a++, data+=3, nors+=3) {
 
 		ver= RE_findOrAddVert(obr, obr->totvert++);
 		VECCOPY(ver->co, data);
@@ -2393,7 +2393,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		normalize_v3(ver->n);
 		//if(ob->transflag & OB_NEG_SCALE) negate_v3(ver->n);
 		
-		if(need_orco) ver->orco= orco;
+		if(need_orco) ver->orco= orco+=3;
 	}
 
 	index= dl->index;

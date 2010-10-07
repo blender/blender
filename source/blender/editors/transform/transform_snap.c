@@ -784,6 +784,10 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			if (dist != FLT_MAX)
 			{
 				VECCOPY(loc, p);
+				/* XXX, is there a correct normal in this case ???, for now just z up */
+				no[0]= 0.0;
+				no[1]= 0.0;
+				no[2]= 1.0;
 				found = 1;
 			}
 			

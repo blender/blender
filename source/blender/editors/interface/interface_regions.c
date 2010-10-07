@@ -1008,7 +1008,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 				x2= winx;
 			}
 		}
-		if(y1 < 0) {
+		if(y1 < 0) { /* XXX butregion NULL check?, there is one above */
 			int newy1;
 			UI_view2d_to_region_no_clip(&butregion->v2d, 0, but->y2 + ofsy, 0, &newy1);
 			newy1 += butregion->winrct.ymin;

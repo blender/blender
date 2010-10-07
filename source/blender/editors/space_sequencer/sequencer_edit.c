@@ -159,7 +159,7 @@ static void change_plugin_seq(Scene *scene, char *str)	/* called from fileselect
 	struct SeqEffectHandle sh;
 	Sequence *last_seq= seq_active_get(scene);
 
-	if(last_seq && last_seq->type != SEQ_PLUGIN) return;
+	if(last_seq==NULL || last_seq->type != SEQ_PLUGIN) return;
 
 	sh = get_sequence_effect(last_seq);
 	sh.free(last_seq);
