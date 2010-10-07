@@ -1010,6 +1010,9 @@ static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 		
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		make_object_duplilist_real(C, scene, base);
+
+		/* dependencies were changed */
+		WM_event_add_notifier(C, NC_OBJECT|ND_PARENT, base->object);
 	}
 	CTX_DATA_END;
 
