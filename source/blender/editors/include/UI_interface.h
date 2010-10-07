@@ -77,17 +77,18 @@ typedef struct uiLayout uiLayout;
 #define UI_EMBOSST		3	/* Table */
 
 /* uiBlock->direction */
+#define UI_DIRECTION	(UI_TOP|UI_DOWN|UI_LEFT|UI_RIGHT)
 #define UI_TOP		1
 #define UI_DOWN		2
 #define UI_LEFT		4
 #define UI_RIGHT	8
-#define UI_DIRECTION	15
+
 #define UI_CENTER		16
 #define UI_SHIFT_FLIPPED	32
 
 /* uiBlock->autofill (not yet used) */
-#define UI_BLOCK_COLLUMNS	1
-#define UI_BLOCK_ROWS		2
+// #define UI_BLOCK_COLLUMNS	1
+// #define UI_BLOCK_ROWS		2
 
 /* uiBlock->flag (controls) */
 #define UI_BLOCK_LOOP			1
@@ -316,7 +317,7 @@ void uiDrawBlock(const struct bContext *C, struct uiBlock *block);
 
 uiBlock *uiGetBlock(char *name, struct ARegion *ar);
 
-void uiBlockSetEmboss(uiBlock *block, short dt);
+void uiBlockSetEmboss(uiBlock *block, char dt);
 
 void uiFreeBlock(const struct bContext *C, uiBlock *block);
 void uiFreeBlocks(const struct bContext *C, struct ListBase *lb);
