@@ -92,6 +92,7 @@ def validate_arguments(args, bc):
             'WITH_BF_RAYOPTIMIZATION',
             'BF_RAYOPTIMIZATION_SSE_FLAGS',
             'BF_NO_ELBEEM',
+	    'WITH_BF_CXX_GUARDEDALLOC',
             'BF_VCREDIST' # Windows-only, and useful only when creating installer
             ]
     
@@ -453,6 +454,7 @@ def read_opts(env, cfg, args):
         
         (BoolVariable('WITH_BF_RAYOPTIMIZATION', 'Enable raytracer SSE/SIMD optimization.', False)),
         ('BF_RAYOPTIMIZATION_SSE_FLAGS', 'SSE flags', ''),
+        (BoolVariable('WITH_BF_CXX_GUARDEDALLOC', 'Enable GuardedAlloc for C++ memory allocation tracking.', False)),
         ('BF_VCREDIST', 'Full path to vcredist', '')
     ) # end of opts.AddOptions()
 

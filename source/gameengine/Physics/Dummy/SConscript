@@ -5,4 +5,10 @@ sources = 'DummyPhysicsEnvironment.cpp'
 
 incs = '. ../common'
 
-env.BlenderLib ( 'bf_dummy', Split(sources), Split(incs), [], libtype=['core','player'], priority=[350,60] )
+defs = []
+
+if env['WITH_BF_CXX_GUARDEDALLOC']:
+    defs.append('WITH_CXX_GUARDEDALLOC')
+    incs += ' #intern/guardedalloc'
+
+env.BlenderLib ( 'bf_dummy', Split(sources), Split(incs), defs, libtype=['core','player'], priority=[350,60] )
