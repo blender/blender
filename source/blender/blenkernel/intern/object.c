@@ -1791,9 +1791,10 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 	
 	
 	/* vec: 4 items! */
-	 if( where_on_path(par, ctime, vec, dir, NULL, &radius, NULL) ) {
+	if( where_on_path(par, ctime, vec, dir, cu->flag & CU_FOLLOW ? quat:NULL, &radius, NULL) ) {
 
 		if(cu->flag & CU_FOLLOW) {
+#if 0
 			vec_to_quat( quat,dir, ob->trackflag, ob->upflag);
 			
 			/* the tilt */
@@ -1804,8 +1805,11 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 			q[2]= -x1*dir[1];
 			q[3]= -x1*dir[2];
 			mul_qt_qtqt(quat, q, quat);
-			
-			quat_to_mat4( mat,quat);
+#else
+			quat_apply_track(quat, ob->trackflag, ob->upflag);
+#endif
+
+			quat_to_mat4(mat,quat);			
 		}
 		
 		if(cu->flag & CU_PATH_RADIUS) {

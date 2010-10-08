@@ -1531,25 +1531,27 @@ void copy_dq_dq(DualQuat *dq1, DualQuat *dq2)
 }
 
 /* axis matches eTrackToAxis_Modes */
-void quat_apply_track(float quat[4], short axis)
-{
-	/* axis calculated as follows */	
-	/* float axis[3]= {1,0,0}; axis_angle_to_quat(q, axis, 90 * (M_PI / 180));   
-	   float axis[3]= {0,1,0}; axis_angle_to_quat(q, axis, 90 * (M_PI / 180));   
-	   float axis[3]= {0,0,2}; axis_angle_to_quat(q, axis, 90 * (M_PI / 180));   
-	   float axis[3]= {1,0,0}; axis_angle_to_quat(q, axis, -90 * (M_PI / 180));  
-	   float axis[3]= {0,1,0}; axis_angle_to_quat(q, axis, -90 * (M_PI / 180));  
-	   float axis[3]= {0,0,2}; axis_angle_to_quat(q, axis, -90 * (M_PI / 180)); */
+void quat_apply_track(float quat[4], short axis, short upflag)
+{	
+	/* rotations are hard coded to match vec_to_quat */
+	const float quat_track[][4]= {{0.70710676908493, 0.0, -0.70710676908493, 0.0},  /* pos-y90 */ 
+	                              {0.5, 0.5, 0.5, 0.5},  /* Quaternion((1,0,0), radians(90)) * Quaternion((0,1,0), radians(90)) */ 
+	                              {0.70710676908493, 0.0, 0.0, 0.70710676908493},  /* pos-z90 */ 
+	                              {0.70710676908493, 0.0, 0.70710676908493, 0.0}, /* neg-y90 */ 
+	                              {0.5, -0.5, -0.5, 0.5}, /* Quaternion((1,0,0), radians(-90)) * Quaternion((0,1,0), radians(-90)) */ 
+	                              {1, 0, 0, 0}};/* no rotation */ 
 
-	/* notice x/y flipped intentionally */
-	const float quat_track[][4]= {{0.70710676908493, 0.0, -0.70710676908493, 0.0},  /* pos-y */ 
-	                              {0.70710676908493, 0.70710676908493, 0.0, 0.0},  /* pos-x */ 
-	                              {0.70710676908493, 0.0, 0.0, 0.70710676908493},  /* pos-z */ 
-	                              {0.70710676908493, 0.0, 0.70710676908493, 0.0}, /* neg-y */ 
-	                              {0.70710676908493, -0.70710676908493, 0.0, 0.0}, /* neg-x */ 
-	                              {0.70710676908493, 0.0, 0.0, -0.70710676908493}};/* neg-z */ 
-	
 	mul_qt_qtqt(quat, quat, quat_track[axis]);
+
+	if(axis>2)
+		axis= axis-3;
+
+	/* 90d rotation when the second */
+	if(upflag != (2-axis)>>1) { // [0->1, 1->0, 2->0]
+		float q[4]= {0.70710676908493, 0, 0, 0};
+		q[axis+1] = ((axis==1)) ? 0.70710676908493 : -0.70710676908493; /* flip non Y axis */
+		mul_qt_qtqt(quat, quat, q);
+	}
 }
 
 void vec_apply_track(float vec[3], short axis)
@@ -1565,9 +1567,9 @@ void vec_apply_track(float vec[3], short axis)
 		vec[2]=  -tvec[1];
 		break;
 	case 1: /* pos-y */
-		vec[0]=  tvec[2];
+		/* vec[0]= tvec[0]; */
 		/* vec[1]=  0.0; */
-		vec[2]= -tvec[0];
+		/* vec[2]= tvec[2]; */ 
 		break;
 	case 2: /* pos-z */
 		vec[0]=  tvec[1];
@@ -1580,12 +1582,12 @@ void vec_apply_track(float vec[3], short axis)
 		vec[2]= -tvec[2];
 		break;
 	case 4: /* neg-y */
-		vec[0]= -tvec[0];
+		vec[0]= -tvec[2];
 		/* vec[1]=  0.0; */
-		vec[2]= -tvec[2];
+		vec[2]= tvec[0];
 		break;
 	case 5: /* neg-z */
-		vec[0]=  tvec[0];
+		vec[0]= -tvec[0];
 		vec[1]= -tvec[1];
 		/* vec[2]=  0.0; */
 		break;

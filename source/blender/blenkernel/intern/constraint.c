@@ -1201,7 +1201,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 	
 	if (VALID_CONS_TARGET(ct)) {
 		Curve *cu= ct->tar->data;
-		float q[4], vec[4], dir[3], quat[4], radius, x1;
+		float vec[4], dir[3], radius;
 		float totmat[4][4];
 		float curvetime;
 		
@@ -1217,7 +1217,8 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			makeDispListCurveTypes(cob->scene, ct->tar, 0);
 		
 		if (cu->path && cu->path->data) {
-			if ((data->followflag & FOLLOWPATH_STATIC) == 0) { 
+			float quat[4];
+			if ((data->followflag & FOLLOWPATH_STATIC) == 0) {
 				/* animated position along curve depending on time */
 				if (cob->scene)
 					curvetime= bsystem_time(cob->scene, ct->tar, cu->ctime, 0.0) - data->offset;
@@ -1238,8 +1239,10 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 				curvetime= data->offset_fac;
 			}
 			
-			if ( where_on_path(ct->tar, curvetime, vec, dir, NULL, &radius, NULL) ) {
+			if ( where_on_path(ct->tar, curvetime, vec, dir, (data->followflag & FOLLOWPATH_FOLLOW) ? quat : NULL, &radius, NULL) ) { /* quat_pt is quat or NULL*/
 				if (data->followflag & FOLLOWPATH_FOLLOW) {
+#if 0
+					float x1, q[4];
 					vec_to_quat(quat, dir, (short)data->trackflag, (short)data->upflag);
 					
 					normalize_v3(dir);
@@ -1249,10 +1252,13 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 					q[2]= -x1*dir[1];
 					q[3]= -x1*dir[2];
 					mul_qt_qtqt(quat, q, quat);
-					
+#else
+					quat_apply_track(quat, data->trackflag, data->upflag);
+#endif
+
 					quat_to_mat4(totmat, quat);
 				}
-				
+
 				if (data->followflag & FOLLOWPATH_RADIUS) {
 					float tmat[4][4], rmat[4][4];
 					scale_m4_fl(tmat, radius);

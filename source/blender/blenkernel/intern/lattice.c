@@ -633,7 +633,7 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 
 		/* zero the axis which is not used,
 		 * the big block of text above now applies to these 3 lines */
-		quat_apply_track(quat, axis-1);
+		quat_apply_track(quat, axis-1, (axis==1 || axis==3) ? 1:0); /* up flag is a dummy, set so no rotation is done */
 		vec_apply_track(cent, axis-1);
 		cent[axis < 4 ? axis-1 : axis-4]= 0.0f;
 
