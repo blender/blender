@@ -864,10 +864,11 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel, bpy.types.Panel):
             layout.template_image(tex, "image", tex.image_user, compact=True)
             #layout.prop(vd, "frame_duration")
 
-        layout.prop(vd, "use_still_frame")
-        row = layout.row()
-        row.active = vd.use_still_frame
-        row.prop(vd, "still_frame")
+        if vd.file_format in ('BLENDER_VOXEL', 'RAW_8BIT'):
+            layout.prop(vd, "use_still_frame")
+            row = layout.row()
+            row.active = vd.use_still_frame
+            row.prop(vd, "still_frame")
 
         layout.prop(vd, "interpolation")
         layout.prop(vd, "extension")
