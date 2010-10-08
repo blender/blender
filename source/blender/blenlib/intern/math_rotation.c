@@ -1530,6 +1530,68 @@ void copy_dq_dq(DualQuat *dq1, DualQuat *dq2)
 	memcpy(dq1, dq2, sizeof(DualQuat));
 }
 
+/* axis matches eTrackToAxis_Modes */
+void quat_apply_track(float quat[4], short axis)
+{
+	/* axis calculated as follows */	
+	/* float axis[3]= {1,0,0}; axis_angle_to_quat(q, axis, 90 * (M_PI / 180));   
+	   float axis[3]= {0,1,0}; axis_angle_to_quat(q, axis, 90 * (M_PI / 180));   
+	   float axis[3]= {0,0,2}; axis_angle_to_quat(q, axis, 90 * (M_PI / 180));   
+	   float axis[3]= {1,0,0}; axis_angle_to_quat(q, axis, -90 * (M_PI / 180));  
+	   float axis[3]= {0,1,0}; axis_angle_to_quat(q, axis, -90 * (M_PI / 180));  
+	   float axis[3]= {0,0,2}; axis_angle_to_quat(q, axis, -90 * (M_PI / 180)); */
+
+	/* notice x/y flipped intentionally */
+	const float quat_track[][4]= {{0.70710676908493, 0.0, 0.70710676908493, 0.0},  /* pos-y */ 
+	                              {0.70710676908493, 0.70710676908493, 0.0, 0.0},  /* pos-x */ 
+	                              {0.70710676908493, 0.0, 0.0, 0.70710676908493},  /* pos-z */ 
+	                              {0.70710676908493, 0.0, -0.70710676908493, 0.0}, /* neg-y */ 
+	                              {0.70710676908493, -0.70710676908493, 0.0, 0.0}, /* neg-x */ 
+	                              {0.70710676908493, 0.0, 0.0, -0.70710676908493}};/* neg-z */ 
+	
+	mul_qt_qtqt(quat, quat, quat_track[axis]);
+}
+
+void vec_apply_track(float vec[3], short axis)
+{
+	float tvec[3];
+
+	copy_v3_v3(tvec, vec);
+
+	switch(axis) {
+	case 0: /* pos-x */
+		/* vec[0]=  0.0; */
+		vec[1]=  tvec[2];
+		vec[2]=  tvec[1];
+		break;
+	case 1: /* pos-y */
+		vec[0]=  tvec[2];
+		/* vec[1]=  0.0; */
+		vec[2]= -tvec[0];
+		break;
+	case 2: /* pos-z */
+		vec[0]=  tvec[1];
+		vec[1]= -tvec[0];
+		// vec[2]=  0.0; */
+		break;
+	case 3: /* neg-x */
+		/* vec[0]=  0.0; */
+		vec[1]= -tvec[1];
+		vec[2]=  tvec[2];
+		break;
+	case 4: /* neg-y */
+		vec[0]= -tvec[0];
+		/* vec[1]=  0.0; */
+		vec[2]= -tvec[2];
+		break;
+	case 5: /* neg-z */
+		vec[0]=  tvec[0];
+		vec[1]= -tvec[1];
+		/* vec[2]=  0.0; */
+		break;
+	}
+}
+
 /* lense/angle conversion (radians) */
 float lens_to_angle(float lens)
 {
