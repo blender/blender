@@ -782,6 +782,7 @@ void CONSOLE_OT_copy(wmOperatorType *ot)
 
 static int paste_exec(bContext *C, wmOperator *op)
 {
+	SpaceConsole *sc= CTX_wm_space_console(C);
 	ConsoleLine *ci= console_history_verify(C);
 
 	char *buf_str= WM_clipboard_text_get(0);
@@ -805,7 +806,7 @@ static int paste_exec(bContext *C, wmOperator *op)
 			ci= console_history_verify(C);
 		}
 
-		console_line_insert(ci, buf_next);
+		console_select_offset(sc, console_line_insert(ci, buf_next));
 	}
 
 	MEM_freeN(buf_str);
