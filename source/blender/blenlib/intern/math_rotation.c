@@ -1542,10 +1542,10 @@ void quat_apply_track(float quat[4], short axis)
 	   float axis[3]= {0,0,2}; axis_angle_to_quat(q, axis, -90 * (M_PI / 180)); */
 
 	/* notice x/y flipped intentionally */
-	const float quat_track[][4]= {{0.70710676908493, 0.0, 0.70710676908493, 0.0},  /* pos-y */ 
+	const float quat_track[][4]= {{0.70710676908493, 0.0, -0.70710676908493, 0.0},  /* pos-y */ 
 	                              {0.70710676908493, 0.70710676908493, 0.0, 0.0},  /* pos-x */ 
 	                              {0.70710676908493, 0.0, 0.0, 0.70710676908493},  /* pos-z */ 
-	                              {0.70710676908493, 0.0, -0.70710676908493, 0.0}, /* neg-y */ 
+	                              {0.70710676908493, 0.0, 0.70710676908493, 0.0}, /* neg-y */ 
 	                              {0.70710676908493, -0.70710676908493, 0.0, 0.0}, /* neg-x */ 
 	                              {0.70710676908493, 0.0, 0.0, -0.70710676908493}};/* neg-z */ 
 	
@@ -1562,7 +1562,7 @@ void vec_apply_track(float vec[3], short axis)
 	case 0: /* pos-x */
 		/* vec[0]=  0.0; */
 		vec[1]=  tvec[2];
-		vec[2]=  tvec[1];
+		vec[2]=  -tvec[1];
 		break;
 	case 1: /* pos-y */
 		vec[0]=  tvec[2];
@@ -1577,7 +1577,7 @@ void vec_apply_track(float vec[3], short axis)
 	case 3: /* neg-x */
 		/* vec[0]=  0.0; */
 		vec[1]= -tvec[1];
-		vec[2]=  tvec[2];
+		vec[2]= -tvec[2];
 		break;
 	case 4: /* neg-y */
 		vec[0]= -tvec[0];
