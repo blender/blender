@@ -27,6 +27,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -300,7 +301,7 @@ typedef struct uiTooltipData {
 	rcti bbox;
 	uiFontStyle fstyle;
 	char lines[MAX_TOOLTIP_LINES][512];
-	int linedark[MAX_TOOLTIP_LINES];
+	unsigned int color[MAX_TOOLTIP_LINES];
 	int totline;
 	int toth, spaceh, lineh;
 } uiTooltipData;
@@ -320,9 +321,7 @@ static void ui_tooltip_region_draw(const bContext *C, ARegion *ar)
 	bbox.ymin= bbox.ymax - data->lineh;
 
 	for(a=0; a<data->totline; a++) {
-		if(!data->linedark[a]) glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		else glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-
+		cpack(data->color[a]);
 		uiStyleFontDraw(&data->fstyle, &bbox, data->lines[a]);
 		bbox.ymin -= data->lineh + data->spaceh;
 		bbox.ymax -= data->lineh + data->spaceh;
@@ -358,6 +357,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	if(but->tip && strlen(but->tip)) {
 		BLI_strncpy(data->lines[data->totline], but->tip, sizeof(data->lines[0]));
+		data->color[data->totline]= 0xFFFFFF;
 		data->totline++;
 	}
 
@@ -367,7 +367,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Shortcut: %s", buf);
-			data->linedark[data->totline]= 1;
+			data->color[data->totline]= 0x888888;
 			data->totline++;
 		}
 	}
@@ -377,7 +377,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		ui_get_but_string(but, buf, sizeof(buf));
 		if(buf[0]) {
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Value: %s", buf);
-			data->linedark[data->totline]= 1;
+			data->color[data->totline]= 0x888888;
 			data->totline++;
 		}
 	}
@@ -388,7 +388,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		if (unit_type == PROP_UNIT_ROTATION) {
 			if (RNA_property_type(but->rnaprop) == PROP_FLOAT) {
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Radians: %f", RNA_property_float_get_index(&but->rnapoin, but->rnaprop, but->rnaindex));
-				data->linedark[data->totline]= 1;
+				data->color[data->totline]= 0x888888;
 				data->totline++;
 			}
 		}
@@ -397,21 +397,21 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			if(ui_but_anim_expression_get(but, buf, sizeof(buf))) {
 				/* expression */
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Expression: %s", buf);
-				data->linedark[data->totline]= 1;
+				data->color[data->totline]= 0x888888;
 				data->totline++;
 			}
 		}
 
 		/* rna info */
 		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
-		data->linedark[data->totline]= 1;
+		data->color[data->totline]= 0x888888;
 		data->totline++;
 		
 		if(but->rnapoin.id.data) {
 			ID *id= but->rnapoin.id.data;
 			if(id->lib && id->lib->name) {
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Library: %s", id->lib->name);
-				data->linedark[data->totline]= 1;
+				data->color[data->totline]= 0x888888;
 				data->totline++;
 			}
 		}
@@ -425,12 +425,27 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		/* operator info */
 		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s", str);
-		data->linedark[data->totline]= 1;
+		data->color[data->totline]= 0x888888;
 		data->totline++;
 
 		MEM_freeN(str);
+
+		/* second check if we are disabled - why */
+		if(but->flag & UI_BUT_DISABLED) {
+			const char *poll_msg;
+			CTX_wm_operator_poll_msg_set(C, NULL);
+			WM_operator_poll(C, but->optype);
+			poll_msg= CTX_wm_operator_poll_msg_get(C);
+			if(poll_msg) {
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Disabled: %s", poll_msg);
+				data->color[data->totline]= 0x6666ff; /* alert */
+				data->totline++;			
+			}
+		}
 	}
 
+	assert(data->totline < MAX_TOOLTIP_LINES);
+	
 	if(data->totline == 0) {
 		MEM_freeN(data);
 		return NULL;

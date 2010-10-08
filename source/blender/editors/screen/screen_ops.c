@@ -244,7 +244,11 @@ int ED_operator_editmesh_view3d(bContext *C)
 
 int ED_operator_editmesh_region_view3d(bContext *C)
 {
-	return ED_operator_editmesh(C) && CTX_wm_region_view3d(C);
+	if(ED_operator_editmesh(C) && CTX_wm_region_view3d(C))
+		return 1;
+
+	CTX_wm_operator_poll_msg_set(C, "expected a view3d region & editmesh");
+	return 0;
 }
 
 int ED_operator_editarmature(bContext *C)
