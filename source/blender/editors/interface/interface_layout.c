@@ -2169,6 +2169,7 @@ uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, int align)
 	split->litem.enabled= 1;
 	split->litem.context= layout->context;
 	split->litem.space= layout->root->style->columnspace;
+	split->litem.w= layout->w;
 	split->percentage= percentage;
 	BLI_addtail(&layout->items, split);
 
