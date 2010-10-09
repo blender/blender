@@ -24,7 +24,7 @@
 
 #include <algorithm>
 
-#ifndef WIN32
+#if !defined(WIN32) || defined(FREE_WINDOWS)
 #include <stdint.h>
 #endif
 
