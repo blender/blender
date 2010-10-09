@@ -1031,9 +1031,14 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	else
 		BLI_strncpy(showname, ngroup->id.name+2, sizeof(showname));
 
-	// XXX this shows some scaling artifacts
-	UI_DrawString(rect.xmin+8.0f, rect.ymax+5.0f, showname);
-	
+
+	uiDefBut(gnode->block, LABEL, 0, showname, (short)(rect.xmin+15), (short)(rect.ymax), 
+			 (int)(rect.xmax - rect.xmin-18.0f), NODE_DY,  NULL, 0, 0, 0, 0, "");
+	uiEndBlock(C, gnode->block);
+	uiDrawBlock(C, gnode->block);
+	gnode->block= NULL;
+
+
 	/* links from groupsockets to the internal nodes */
 	node_draw_group_links(&ar->v2d, snode, gnode);
 	
@@ -1045,6 +1050,8 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
 			socket_circle_draw(sock, NODE_SOCKSIZE);
 
+
+	
 	/* and finally the whole tree */
 	node_draw_nodetree(C, ar, snode, ngroup);
 }

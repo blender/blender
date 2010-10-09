@@ -403,8 +403,14 @@ static int insert_exec(bContext *C, wmOperator *op)
 
 static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if(!RNA_property_is_set(op->ptr, "text")) {
+	// if(!RNA_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
+	if(!RNA_string_length(op->ptr, "text")) {
 		char str[2] = {event->ascii, '\0'};
+
+		/* if alt/ctrl/super are pressed pass through */
+		if(event->alt || event->ctrl || event->oskey)
+			return OPERATOR_PASS_THROUGH;
+
 		RNA_string_set(op->ptr, "text", str);
 	}
 	return insert_exec(C, op);
@@ -705,6 +711,8 @@ static int copy_exec(bContext *C, wmOperator *op)
 	int sel[2];
 	int offset= 0;
 
+	ConsoleLine cl_dummy= {0};
+
 #if 0
 	/* copy whole file */
 	for(cl= sc->scrollback.first; cl; cl= cl->next) {
@@ -716,14 +724,16 @@ static int copy_exec(bContext *C, wmOperator *op)
 	if(sc->sel_start == sc->sel_end)
 		return OPERATOR_CANCELLED;
 
+	console_scrollback_prompt_begin(sc, &cl_dummy);
 
 	for(cl= sc->scrollback.first; cl; cl= cl->next) {
 		offset += cl->len + 1;
 	}
 
-	if(offset==0)
+	if(offset==0) {
+		console_scrollback_prompt_end(sc, &cl_dummy);
 		return OPERATOR_CANCELLED;
-
+	}
 
 	offset -= 1;
 	sel[0]= offset - sc->sel_end;
@@ -750,6 +760,9 @@ static int copy_exec(bContext *C, wmOperator *op)
 	WM_clipboard_text_set(buf_str, 0);
 
 	MEM_freeN(buf_str);
+
+	console_scrollback_prompt_end(sc, &cl_dummy);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -769,6 +782,7 @@ void CONSOLE_OT_copy(wmOperatorType *ot)
 
 static int paste_exec(bContext *C, wmOperator *op)
 {
+	SpaceConsole *sc= CTX_wm_space_console(C);
 	ConsoleLine *ci= console_history_verify(C);
 
 	char *buf_str= WM_clipboard_text_get(0);
@@ -792,7 +806,7 @@ static int paste_exec(bContext *C, wmOperator *op)
 			ci= console_history_verify(C);
 		}
 
-		console_line_insert(ci, buf_next);
+		console_select_offset(sc, console_line_insert(ci, buf_next));
 	}
 
 	MEM_freeN(buf_str);

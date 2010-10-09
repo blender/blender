@@ -2317,18 +2317,19 @@ static int insert_exec(bContext *C, wmOperator *op)
 
 static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	char str[2];
 	int ret;
-	/* XXX old code from winqreadtextspace, is it still needed somewhere? */
-	/* smartass code to prevent the CTRL/ALT events below from not working! */
-	/*if(qual & (LR_ALTKEY|LR_CTRLKEY))
-		if(!ispunct(ascii)) 
-			ascii= 0;*/
 
-	str[0]= event->ascii;
-	str[1]= '\0';
+	// if(!RNA_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
+	if(!RNA_string_length(op->ptr, "text")) {
+		char str[2] = {event->ascii, '\0'};
 
-	RNA_string_set(op->ptr, "text", str);
+		/* if alt/ctrl/super are pressed pass through */
+		if(event->alt || event->ctrl || event->oskey)
+			return OPERATOR_PASS_THROUGH;
+
+		RNA_string_set(op->ptr, "text", str);
+	}
+
 	ret = insert_exec(C, op);
 	
 	/* run the script while editing, evil but useful */

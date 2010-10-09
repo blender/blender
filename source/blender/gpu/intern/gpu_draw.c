@@ -911,10 +911,10 @@ static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, 
 		}	
 	}
 	else {
-		madd_v3_v3fl(smat->diff, &bmat->r, bmat->ref + bmat->emit);
+		mul_v3_v3fl(smat->diff, &bmat->r, bmat->ref + bmat->emit);
 		smat->diff[3]= 1.0; /* caller may set this to bmat->alpha */
 
-		madd_v3_v3fl(smat->spec, &bmat->specr, bmat->spec);
+		mul_v3_v3fl(smat->spec, &bmat->specr, bmat->spec);
 		smat->spec[3]= 1.0; /* always 1 */
 		smat->hard= CLAMPIS(bmat->har, 0, 128);
 
@@ -1043,10 +1043,10 @@ int GPU_enable_material(int nr, void *attribs)
 
 		memset(&GMS, 0, sizeof(GMS));
 
-		madd_v3_v3fl(diff, &defmaterial.r, defmaterial.ref + defmaterial.emit);
+		mul_v3_v3fl(diff, &defmaterial.r, defmaterial.ref + defmaterial.emit);
 		diff[3]= 1.0;
 
-		madd_v3_v3fl(spec, &defmaterial.specr, defmaterial.spec);
+		mul_v3_v3fl(spec, &defmaterial.specr, defmaterial.spec);
 		spec[3]= 1.0;
 
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
@@ -1286,7 +1286,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 		}
 		
 		/* setup energy */
-		madd_v3_v3fl(energy, &la->r, la->energy);
+		mul_v3_v3fl(energy, &la->r, la->energy);
 		energy[3]= 1.0;
 
 		glLightfv(GL_LIGHT0+count, GL_DIFFUSE, energy); 

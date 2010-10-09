@@ -558,7 +558,7 @@ static void applyarmature_fix_boneparents (Scene *scene, Object *armob)
 static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C); // must be active object, not edit-object
+	Object *ob= ED_object_pose_armature(CTX_data_active_object(C)); // must be active object, not edit-object
 	bArmature *arm= get_armature(ob);
 	bPose *pose;
 	bPoseChannel *pchan;
@@ -658,7 +658,7 @@ void POSE_OT_armature_apply (wmOperatorType *ot)
 static int pose_visual_transform_apply_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C); // must be active object, not edit-object
+	Object *ob= ED_object_pose_armature(CTX_data_active_object(C)); // must be active object, not edit-object
 
 	/* don't check if editmode (should be done by caller) */
 	if (ob->type!=OB_ARMATURE)
@@ -1389,7 +1389,7 @@ static int pose_setflag_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, CTX_data_active_object(C));
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ED_object_pose_armature(CTX_data_active_object(C)));
 	
 	return OPERATOR_FINISHED;
 }
@@ -4917,7 +4917,7 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mod
 static int pose_clear_scale_exec(bContext *C, wmOperator *op) 
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	short autokey = 0;
 	
 	/* only clear those channels that are not locked */
@@ -4985,7 +4985,7 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 static int pose_clear_loc_exec(bContext *C, wmOperator *op) 
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	short autokey = 0;
 	
 	/* only clear those channels that are not locked */
@@ -5054,7 +5054,7 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 static int pose_clear_rot_exec(bContext *C, wmOperator *op) 
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	short autokey = 0;
 	
 	/* only clear those channels that are not locked */
@@ -5306,7 +5306,7 @@ void POSE_OT_select_all(wmOperatorType *ot)
 
 static int pose_select_parent_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bPoseChannel *pchan,*parent;
 
 	/*	Determine if there is an active bone */
@@ -5381,7 +5381,7 @@ static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr)
 /* active object is armature in posemode, poll checked */
 static int pose_hide_exec(bContext *C, wmOperator *op) 
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bArmature *arm= ob->data;
 
 	if(RNA_boolean_get(op->ptr, "unselected"))
@@ -5431,7 +5431,7 @@ static int show_pose_bone(Object *ob, Bone *bone, void *ptr)
 /* active object is armature in posemode, poll checked */
 static int pose_reveal_exec(bContext *C, wmOperator *op) 
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bArmature *arm= ob->data;
 	
 	bone_looper(ob, arm->bonebase.first, NULL, show_pose_bone);

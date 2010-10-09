@@ -514,11 +514,12 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 	float *fp, fsize, shear, x, si, co;
 	VFontData *vfd = NULL;
 	VChar *che = NULL;
-	int i, sel=0;
+	int i;
 
 	vfd= vfont_get_data(which_vfont(cu, info));	
 	if (!vfd) return;
 
+	/*
 	if (cu->selend < cu->selstart) {
 		if ((charidx >= (cu->selend)) && (charidx <= (cu->selstart-2)))
 			sel= 1;
@@ -527,6 +528,7 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 		if ((charidx >= (cu->selstart-1)) && (charidx <= (cu->selend-1)))
 			sel= 1;
 	}
+	*/
 
 	/* make a copy at distance ofsx,ofsy with shear*/
 	fsize= cu->fsize;
@@ -1148,14 +1150,12 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 
 	if(mode == FO_EDIT) {
 		/* make nurbdata */
-		unsigned long cha;
-		
 		freeNurblist(&cu->nurb);
 		
 		ct= chartransdata;
 		if (cu->sepchar==0) {
 			for (i= 0; i<slen; i++) {
-				cha = (uintptr_t) mem[i];
+				unsigned long cha = (uintptr_t) mem[i];
 				info = &(custrinfo[i]);
 				if (info->mat_nr > (ob->totcol)) {
 					/* printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr); */

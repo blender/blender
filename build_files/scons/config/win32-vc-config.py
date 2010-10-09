@@ -149,6 +149,12 @@ BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
 BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser MathMLSolver xml2 pcre buffer ftoa'
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 
+WITH_BF_LCMS = True
+BF_LCMS = LIBDIR + '/lcms'
+BF_LCMS_INC = '${BF_LCMS}/include'
+BF_LCMS_LIB = 'lcms'
+BF_LCMS_LIBPATH = '${BF_LCMS}/lib'
+
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['/arch:SSE']
@@ -188,7 +194,6 @@ PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/INCREMENTAL:NO','/N
 # BF_PROFILE_LINKFLAGS = ['-pg']
 # BF_PROFILE = False
 
-#turn off makebsc by default ( as 64 bit version does ) .. takes ages to build .. for nothing ( well some M$ addicts may disagree )
 BF_BSC=False
 
 BF_BUILDDIR = '..\\build\\win32-vc'

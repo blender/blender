@@ -49,6 +49,10 @@
 #include "BKE_image.h"
 #include "BKE_paint.h"
 
+#ifdef WITH_LCMS
+#include "BKE_colortools.h"
+#endif
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 

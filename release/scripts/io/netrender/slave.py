@@ -21,6 +21,8 @@ import http, http.client, http.server, urllib
 import subprocess, time
 import json
 
+import bpy
+
 from netrender.utils import *
 import netrender.model
 import netrender.repath
@@ -118,7 +120,7 @@ def render_slave(engine, netsettings, threads):
 
         slave_id = response.getheader("slave-id")
 
-        NODE_PREFIX = os.path.join(netsettings.path, "slave_" + slave_id)
+        NODE_PREFIX = os.path.join(bpy.path.abspath(netsettings.path), "slave_" + slave_id)
         if not os.path.exists(NODE_PREFIX):
             os.mkdir(NODE_PREFIX)
 

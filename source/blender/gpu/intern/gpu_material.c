@@ -605,7 +605,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 	Material *ma= shi->mat;
 	GPUMaterial *mat= shi->gpumat;
 	GPUNodeLink *lv, *dist, *visifac, *is, *inp, *i, *vn, *view;
-	GPUNodeLink *outcol, *specfac, *t, *shadfac;
+	GPUNodeLink *outcol, *specfac, *t, *shadfac= NULL;
 	float one = 1.0f;
 
 	if((lamp->mode & LA_ONLYSHADOW) && !(ma->mode & MA_SHADOW))

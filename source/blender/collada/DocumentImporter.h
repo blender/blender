@@ -21,6 +21,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+#ifndef __DOCUMENTIMPORTER_H__
+#define __DOCUMENTIMPORTER_H__
 struct Main;
 struct bContext;
 
@@ -29,3 +32,5 @@ class DocumentImporter
  public:
 	void import(bContext *C, const char *filename);
 };
+
+#endif

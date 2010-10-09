@@ -124,7 +124,7 @@ def _merge_keymaps(kc1, kc2):
     return merged_keymaps
 
 
-class PREFS_MT_keyconfigs(bpy.types.Menu):
+class USERPREF_MT_keyconfigs(bpy.types.Menu):
     bl_label = "KeyPresets"
     preset_subdir = "keyconfig"
     preset_operator = "wm.keyconfig_activate"
@@ -384,7 +384,7 @@ class InputKeyMapPanel(bpy.types.Panel):
         text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
         if not text:
             text = "Blender (default)"
-        row.menu("PREFS_MT_keyconfigs", text=text)
+        row.menu("USERPREF_MT_keyconfigs", text=text)
         row.operator("wm.keyconfig_preset_add", text="", icon="ZOOMIN")
         row.operator("wm.keyconfig_preset_add", text="", icon="ZOOMOUT").remove_active = True
     

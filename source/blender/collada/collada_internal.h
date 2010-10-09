@@ -24,8 +24,16 @@
 #ifndef BLENDER_COLLADA_H
 #define BLENDER_COLLADA_H
 
+#include <string>
+#include <vector>
+#include <map>
+
 #include "COLLADAFWFileInfo.h"
 #include "Math/COLLADABUMathMatrix4.h"
+
+#include "DNA_armature_types.h"
+#include "DNA_object_types.h"
+#include "BLI_math.h"
 
 class UnitConverter
 {
@@ -35,61 +43,50 @@ private:
 
 public:
 
-	UnitConverter() : unit(), up_axis(COLLADAFW::FileInfo::Z_UP) {}
+	enum UnitSystem {
+		None,
+		Metric,
+		Imperial
+	};
 
-	void read_asset(const COLLADAFW::FileInfo* asset)
-	{
-	}
+	// Initialize with Z_UP, since Blender uses right-handed, z-up
+	UnitConverter();
 
-	// TODO
-	// convert vector vec from COLLADA format to Blender
-	void convertVec3(float *vec)
-	{
-	}
+	void read_asset(const COLLADAFW::FileInfo* asset);
+
+	void convertVector3(COLLADABU::Math::Vector3 &vec, float *v);
+	
+	UnitConverter::UnitSystem isMetricSystem(void);
+	
+	float getLinearMeter(void);
 		
 	// TODO need also for angle conversion, time conversion...
 
-	void dae_matrix_to_mat4(float out[][4], const COLLADABU::Math::Matrix4& in)
-	{
-		// in DAE, matrices use columns vectors, (see comments in COLLADABUMathMatrix4.h)
-		// so here, to make a blender matrix, we swap columns and rows
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 4; j++) {
-				out[i][j] = in[j][i];
-			}
-		}
-	}
+	void dae_matrix_to_mat4_(float out[][4], const COLLADABU::Math::Matrix4& in);
 
-	void mat4_to_dae(float out[][4], float in[][4])
-	{
-		copy_m4_m4(out, in);
-		transpose_m4(out);
-	}
+	void mat4_to_dae(float out[][4], float in[][4]);
 
-	void mat4_to_dae_double(double out[][4], float in[][4])
-	{
-		float mat[4][4];
-
-		mat4_to_dae(mat, in);
-
-		for (int i = 0; i < 4; i++)
-			for (int j = 0; j < 4; j++)
-				out[i][j] = mat[i][j];
-	}
+	void mat4_to_dae_double(double out[][4], float in[][4]);
 };
 
 class TransformBase
 {
 public:
-	void decompose(float mat[][4], float *loc, float eul[3], float quat[4], float *size)
-	{
-		mat4_to_size(size, mat);
-		if (eul)
-			mat4_to_eul(eul, mat);
-		if (quat)
-			mat4_to_quat(quat, mat);
-		copy_v3_v3(loc, mat[3]);
-	}
+	void decompose(float mat[][4], float *loc, float eul[3], float quat[4], float *size);
 };
+
+extern void clear_global_id_map();
+/** Look at documentation of translate_map */
+extern std::string translate_id(const std::string &id);
+
+extern std::string id_name(void *id);
+
+extern std::string get_geometry_id(Object *ob);
+
+extern std::string get_light_id(Object *ob);
+
+extern std::string get_joint_id(Bone *bone, Object *ob_arm);
+
+extern std::string get_camera_id(Object *ob);
 
 #endif

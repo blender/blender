@@ -28,12 +28,12 @@
 #ifndef BKE_CONTEXT_H
 #define BKE_CONTEXT_H
 
+#include "DNA_listBase.h"
+#include "RNA_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "DNA_listBase.h"
-#include "RNA_types.h"
 
 struct ARegion;
 struct bScreen;

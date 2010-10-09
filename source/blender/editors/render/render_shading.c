@@ -267,6 +267,7 @@ static int material_slot_add_exec(bContext *C, wmOperator *op)
 
 	object_add_material_slot(ob);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_OB_SHADING, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -294,6 +295,7 @@ static int material_slot_remove_exec(bContext *C, wmOperator *op)
 
 	object_remove_material_slot(ob);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_OB_SHADING, ob);
 	
 	return OPERATOR_FINISHED;
 }

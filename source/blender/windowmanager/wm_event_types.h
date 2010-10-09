@@ -204,7 +204,7 @@
 #define	ENDKEY		170
 
 #define UNKNOWNKEY	171
-#define COMMANDKEY	172
+#define OSKEY		172
 #define GRLESSKEY	173
 
 /* for event checks */
@@ -215,7 +215,7 @@
 #define ISKEYBOARD(event)	(event >=' ' && event <=320)
 
 	/* test whether the event is a modifier key */
-#define ISKEYMODIFIER(event)	((event >= LEFTCTRLKEY && event <= LEFTSHIFTKEY) || event == COMMANDKEY)
+#define ISKEYMODIFIER(event)	((event >= LEFTCTRLKEY && event <= LEFTSHIFTKEY) || event == OSKEY)
 
 	/* test whether the event is a mouse button */
 #define ISMOUSE(event)	(event >= LEFTMOUSE && event <= MOUSEROTATE)

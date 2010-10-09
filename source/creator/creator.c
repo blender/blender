@@ -899,7 +899,10 @@ static int load_file(int argc, char **argv, void *data)
 	} else {
 		/* we are not running in background mode here, but start blender in UI mode with
 		   a file - this should do everything a 'load file' does */
-		WM_read_file(C, filename, NULL);
+		ReportList reports;
+		BKE_reports_init(&reports, RPT_PRINT);
+		WM_read_file(C, filename, &reports);
+		BKE_reports_clear(&reports);
 	}
 
 	G.file_loaded = 1;

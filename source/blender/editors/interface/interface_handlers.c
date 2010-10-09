@@ -1816,6 +1816,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		/* only update when typing for TAB key */
 		if(update && data->interactive) ui_apply_button(C, block, but, data, 1);
 		else ui_check_but(but);
+		but->changed= TRUE;
 		
 		if(data->searchbox)
 			ui_searchbox_update(C, data->searchbox, but, 1); /* 1 = reset */

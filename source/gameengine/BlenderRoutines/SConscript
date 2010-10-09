@@ -30,6 +30,9 @@ if env['WITH_BF_PYTHON']:
 else:
     defs.append('DISABLE_PYTHON')
 
+if env['WITH_BF_CXX_GUARDEDALLOC']:
+    defs.append('WITH_CXX_GUARDEDALLOC')
+
 incs += ' ' + env['BF_BULLET_INC']
 incs += ' ' + env['BF_OPENGL_INC']
 

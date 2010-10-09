@@ -1531,7 +1531,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 				if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) && event->ctrl) ||
 					(ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
 					(ELEM(kmi->type, LEFTALTKEY, RIGHTALTKEY) && event->alt) ||
-					(kmi->type == COMMANDKEY && event->oskey)) {
+					(kmi->type == OSKEY && event->oskey)) {
 					t->modifiers |= MOD_SNAP_INVERT;
 				}
 				break;

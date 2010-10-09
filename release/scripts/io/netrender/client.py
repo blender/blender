@@ -211,7 +211,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
         address = "" if netsettings.server_address == "[default]" else netsettings.server_address
 
-        master.runMaster((address, netsettings.server_port), netsettings.use_master_broadcast, netsettings.use_master_clear, netsettings.path, self.update_stats, self.test_break)
+        master.runMaster((address, netsettings.server_port), netsettings.use_master_broadcast, netsettings.use_master_clear, bpy.path.abspath(netsettings.path), self.update_stats, self.test_break)
 
 
     def render_slave(self, scene):
@@ -236,10 +236,11 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
             # reading back result
 
             self.update_stats("", "Network render waiting for results")
-
+            
+             
             requestResult(conn, job_id, scene.frame_current)
             response = conn.getresponse()
-            response.read()
+            buf = response.read()
 
             if response.status == http.client.NO_CONTENT:
                 new_job = True
@@ -248,13 +249,13 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
                 requestResult(conn, job_id, scene.frame_current)
                 response = conn.getresponse()
-                response.read()
-
+                buf = response.read()
+                
             while response.status == http.client.ACCEPTED and not self.test_break():
                 time.sleep(1)
                 requestResult(conn, job_id, scene.frame_current)
                 response = conn.getresponse()
-                response.read()
+                buf = response.read()
 
             # cancel new jobs (animate on network) on break
             if self.test_break() and new_job:
@@ -271,18 +272,22 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
             r = scene.render
             x= int(r.resolution_x*r.resolution_percentage*0.01)
             y= int(r.resolution_y*r.resolution_percentage*0.01)
+            
+            result_path = os.path.join(bpy.path.abspath(netsettings.path), "output.exr")
+            
+            folder = os.path.split(result_path)[0]
+            
+            if not os.path.exists(folder):
+                os.mkdir(folder)
 
-            f = open(os.path.join(netsettings.path, "output.exr"), "wb")
-            buf = response.read(1024)
+            f = open(result_path, "wb")
 
-            while buf:
-                f.write(buf)
-                buf = response.read(1024)
+            f.write(buf)
 
             f.close()
 
             result = self.begin_result(0, 0, x, y)
-            result.load_from_file(os.path.join(netsettings.path, "output.exr"))
+            result.load_from_file(result_path)
             self.end_result(result)
 
             conn.close()

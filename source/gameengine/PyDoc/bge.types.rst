@@ -929,9 +929,9 @@ Game Engine  bge.types Module
 
    .. attribute:: color
 
-      The object color of the object.
+      The object color of the object. [r, g, b, a]
 
-      :type: list [r, g, b, a]
+      :type: :class:`mathutils.Vector`
 
    .. attribute:: occlusion
 
@@ -941,63 +941,87 @@ Game Engine  bge.types Module
 
    .. attribute:: position
 
-      The object's position.
+      The object's position. [x, y, z] On write: local position, on read: world position
 
       .. deprecated:: use :data:`localPosition` and :data:`worldPosition`.
 
-      :type: list [x, y, z] On write: local position, on read: world position
+      :type: :class:`mathurils.Vector`
 
    .. attribute:: orientation
 
-      The object's orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector.
+      The object's orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector. On write: local orientation, on read: world orientation
 
       .. deprecated:: use :data:`localOrientation` and :data:`worldOrientation`.
 
-      :type: 3x3 Matrix [[float]] On write: local orientation, on read: world orientation
+      :type: :class:`mathutils.Matrix`
 
    .. attribute:: scaling
 
-      The object's scaling factor. list [sx, sy, sz]
+      The object's scaling factor. [sx, sy, sz] On write: local scaling, on read: world scaling
 
       .. deprecated:: use :data:`localScale` and :data:`worldScale`.
 
-      :type: list [sx, sy, sz] On write: local scaling, on read: world scaling
+      :type: :class:`mathutils.Vector`
 
    .. attribute:: localOrientation
 
       The object's local orientation. 3x3 Matrix. You can also write a Quaternion or Euler vector.
 
-      :type: 3x3 Matrix [[float]]
+      :type: :class:`mathutils.Matrix`
 
    .. attribute:: worldOrientation
 
-      The object's world orientation.
+      The object's world orientation. 3x3 Matrix.
 
-      :type: 3x3 Matrix [[float]]
+      :type: :class:`mathutils.Matrix`
 
    .. attribute:: localScale
 
-      The object's local scaling factor.
+      The object's local scaling factor. [sx, sy, sz]
 
-      :type: list [sx, sy, sz]
+      :type: :class:`mathutils.Vector`
 
    .. attribute:: worldScale
 
-      The object's world scaling factor. Read-only.
+      The object's world scaling factor. Read-only. [sx, sy, sz]
 
-      :type: list [sx, sy, sz]
+      :type: :class:`mathutils.Vector`
 
    .. attribute:: localPosition
 
-      The object's local position.
+      The object's local position. [x, y, z]
 
-      :type: list [x, y, z]
+      :type: :class:`mathutils.Vector`
 
    .. attribute:: worldPosition
 
-      The object's world position.
+      The object's world position. [x, y, z]
 
-      :type: list [x, y, z]
+      :type: :class:`mathutils.Vector`
+	  
+   .. attribute:: localLinearVelocity
+      
+	  The object's local linear velocity. [x, y, z]
+	  
+	  :type: :class:`mathutils.Vector`
+	  
+   .. attribute:: worldLinearVelocity
+   
+      The object's world linear velocity. [x, y, z]
+	  
+	  :type: :class:`mathutils.Vector`
+	  
+   .. attribute:: localAngularVelocity
+   
+      The object's local angular velocity. [x, y, z]
+	  
+	  :type: :class:`mathutils.Vector`
+	  
+   .. attribute:: worldAngularVelocity
+   
+      The object's world angular velocity. [x, y, z]
+	  
+	  :type: :class:`mathutils.Vector`
 
    .. attribute:: timeOffset
 

@@ -599,16 +599,6 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 		}
 #endif
 
-
-		static float q_x90d[4] = {0.70710676908493, 0.70710676908493, 0.0, 0.0};	// float rot_axis[3]= {1,0,0}; axis_angle_to_quat(q, rot_axis, 90 * (M_PI / 180));
-		static float q_y90d[4] = {0.70710676908493, 0.0, 0.70710676908493, 0.0};	// float rot_axis[3]= {0,1,0}; axis_angle_to_quat(q, rot_axis, 90 * (M_PI / 180));
-		static float q_z90d[4] = {0.70710676908493, 0.0, 0.0, 0.70710676908493};	// float rot_axis[3]= {0,0,2}; axis_angle_to_quat(q, rot_axis, 90 * (M_PI / 180));
-
-		static float q_nx90d[4] = {0.70710676908493, -0.70710676908493, 0.0, 0.0};	// float rot_axis[3]= {1,0,0}; axis_angle_to_quat(q, rot_axis, -90 * (M_PI / 180));
-		static float q_ny90d[4] = {0.70710676908493, 0.0, -0.70710676908493, 0.0};	// float rot_axis[3]= {0,1,0}; axis_angle_to_quat(q, rot_axis, -90 * (M_PI / 180));
-		static float q_nz90d[4] = {0.70710676908493, 0.0, 0.0, -0.70710676908493};	// float rot_axis[3]= {0,0,2}; axis_angle_to_quat(q, rot_axis, -90 * (M_PI / 180));
-
-
 		if(cd->no_rot_axis) {	/* set by caller */
 
 			/* this is not exactly the same as 2.4x, since the axis is having rotation removed rather then
@@ -635,53 +625,18 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 		 * Notice X,Y,Z Up all have light colors and each ordered CCW.
 		 *
 		 * Now for Neg Up XYZ, the colors are all dark, and ordered clockwise - Campbell
+		 *
+		 * note: moved functions into quat_apply_track/vec_apply_track
 		 * */
+		copy_qt_qt(quat, new_quat);
+		copy_v3_v3(cent, co);
 
-		switch(axis) {
-		case MOD_CURVE_POSX:
-			mul_qt_qtqt(quat, new_quat, q_y90d);
+		/* zero the axis which is not used,
+		 * the big block of text above now applies to these 3 lines */
+		quat_apply_track(quat, axis-1, (axis==1 || axis==3) ? 1:0); /* up flag is a dummy, set so no rotation is done */
+		vec_apply_track(cent, axis-1);
+		cent[axis < 4 ? axis-1 : axis-4]= 0.0f;
 
-			cent[0]=  0.0;
-			cent[1]=  co[2];
-			cent[2]=  co[1];
-			break;
-		case MOD_CURVE_NEGX:
-			mul_qt_qtqt(quat, new_quat, q_ny90d);
-
-			cent[0]=  0.0;
-			cent[1]= -co[1];
-			cent[2]=  co[2];
-
-			break;
-		case MOD_CURVE_POSY:
-			mul_qt_qtqt(quat, new_quat, q_x90d);
-
-			cent[0]=  co[2];
-			cent[1]=  0.0;
-			cent[2]= -co[0];
-			break;
-		case MOD_CURVE_NEGY:
-			mul_qt_qtqt(quat, new_quat, q_nx90d);
-
-			cent[0]= -co[0];
-			cent[1]=  0.0;
-			cent[2]= -co[2];
-			break;
-		case MOD_CURVE_POSZ:
-			mul_qt_qtqt(quat, new_quat, q_z90d);
-
-			cent[0]=  co[1];
-			cent[1]= -co[0];
-			cent[2]=  0.0;
-			break;
-		case MOD_CURVE_NEGZ:
-			mul_qt_qtqt(quat, new_quat, q_nz90d);
-
-			cent[0]=  co[0];
-			cent[1]= -co[1];
-			cent[2]=  0.0;
-			break;
-		}
 
 		/* scale if enabled */
 		if(cu->flag & CU_PATH_RADIUS)

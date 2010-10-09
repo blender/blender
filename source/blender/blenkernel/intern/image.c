@@ -596,7 +596,7 @@ void BKE_image_free_all_textures(void)
 {
 	Tex *tex;
 	Image *ima;
-	unsigned int totsize= 0;
+	/* unsigned int totsize= 0; */
 	
 	for(ima= G.main->image.first; ima; ima= ima->id.next)
 		ima->id.flag &= ~LIB_DOIT;
@@ -607,13 +607,14 @@ void BKE_image_free_all_textures(void)
 	
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if(ima->ibufs.first && (ima->id.flag & LIB_DOIT)) {
+			/*
 			ImBuf *ibuf;
 			for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next) {
 				if(ibuf->mipmap[0]) 
 					totsize+= 1.33*ibuf->x*ibuf->y*4;
 				else
 					totsize+= ibuf->x*ibuf->y*4;
-			}
+			} */
 			image_free_buffers(ima);
 		}
 	}
@@ -2183,7 +2184,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 
 void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
 {
-	int imanr, len;
+	int len;
 	
 	/* here (+fie_ima/2-1) makes sure that division happens correctly */
 	len= (iuser->fie_ima*iuser->frames)/2;
@@ -2192,8 +2193,9 @@ void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
 		iuser->framenr= 0;
 	}
 	else {
+		int imanr;
 		cfra= cfra - iuser->sfra+1;
-		
+
 		/* cyclic */
 		if(iuser->cycl) {
 			cfra= ( (cfra) % len );

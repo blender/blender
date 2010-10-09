@@ -25,6 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  * */
 
+#include <assert.h>
 
 #include "BLI_math.h"
 
@@ -133,6 +134,8 @@ void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, in
 		cb=(-0.16874f*sr)-(0.33126f*sg)+(0.5f*sb)+128.0f;
 		cr=(0.5f*sr)-(0.41869f*sg)-(0.08131f*sb)+128.0f;
 		break;
+	default:
+		assert(!"invalid colorspace");
 	}
 	
 	*ly=y;
@@ -163,6 +166,8 @@ void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb, in
 		g=y-0.34414f*cb - 0.71414f*cr + 135.45984f;
 		b=y+1.772f*cb - 226.816f;
 		break;
+	default:
+		assert(!"invalid colorspace");
 	}
 	*lr=r/255.0f;
 	*lg=g/255.0f;

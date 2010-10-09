@@ -891,13 +891,13 @@ getModifierKeys(
 		keys.set(GHOST_kModifierKeyRightAlt,false);
 	}
 
-	// Super (Windows) - only one GHOST-kModifierKeyCommand, so mapping
+	// Super (Windows) - only one GHOST-kModifierKeyOS, so mapping
 	// to either
 	if ( ((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) || 
 	     ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1) ) {
-		keys.set(GHOST_kModifierKeyCommand,true);
+		keys.set(GHOST_kModifierKeyOS,true);
 	} else {
-		keys.set(GHOST_kModifierKeyCommand,false);
+		keys.set(GHOST_kModifierKeyOS,false);
 	}
 	return GHOST_kSuccess;
 }
@@ -1106,8 +1106,8 @@ convertXKey(
 			GXMAP(type,XK_Control_R,	GHOST_kKeyRightControl);
 			GXMAP(type,XK_Alt_L,	 	GHOST_kKeyLeftAlt);
 			GXMAP(type,XK_Alt_R,	 	GHOST_kKeyRightAlt);
-			GXMAP(type,XK_Super_L,		GHOST_kKeyCommand);
-			GXMAP(type,XK_Super_R,		GHOST_kKeyCommand);
+			GXMAP(type,XK_Super_L,		GHOST_kKeyOS);
+			GXMAP(type,XK_Super_R,		GHOST_kKeyOS);
 
 			GXMAP(type,XK_Insert,	 	GHOST_kKeyInsert);
 			GXMAP(type,XK_Delete,	 	GHOST_kKeyDelete);

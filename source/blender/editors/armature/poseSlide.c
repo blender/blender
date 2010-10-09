@@ -119,7 +119,7 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 	
 	/* get info from context */
 	pso->scene= CTX_data_scene(C);
-	pso->ob= CTX_data_active_object(C);
+	pso->ob= ED_object_pose_armature(CTX_data_active_object(C));
 	pso->arm= (pso->ob)? pso->ob->data : NULL;
 	pso->ar= CTX_wm_region(C); /* only really needed when doing modal() */
 	

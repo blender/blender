@@ -206,10 +206,11 @@ struct uiBut {
 	char *tip, *lockstr;
 
 	BIFIconID icon;
-	short but_align;	/* aligning buttons, horiz/vertical */
-	short lock;
+	char lock;
+	char dt;
+	short changed; /* could be made into a single flag */
 	short modifier_key;
-	short iconadd, dt;
+	short iconadd;
 
 	/* IDPOIN data */
 	uiIDPoinFuncFP idpoin_func;
@@ -296,13 +297,14 @@ struct uiBlock {
 	void *drawextra_arg1;
 	void *drawextra_arg2;
 
-	int afterval, flag;
-	
-	short direction, dt;
-	short auto_open, in_use;
+	int flag;
+	char direction, dt;
+	short auto_open;
 	double auto_open_last;
 
-	int lock;
+	char active;					// to keep blocks while drawing and free them afterwards
+	char tooltipdisabled;		// to avoid tooltip after click
+	short lock;
 	char *lockstr;
 	
 	float xofs, yofs;				// offset to parent button
@@ -314,9 +316,7 @@ struct uiBlock {
 	ListBase saferct;			// uiSafetyRct list
 
 	uiPopupBlockHandle *handle;	// handle
-	int tooltipdisabled;		// to avoid tooltip after click
 
-	int active;					// to keep blocks while drawing and free them afterwards
 	int puphash;				// popup menu hash for memory
 	
 	int color_profile;				// color profile for correcting linear colors for display

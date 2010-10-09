@@ -127,7 +127,11 @@ class USERPREF_MT_splash(bpy.types.Menu):
         row.label("")
         row = split.row()
         row.label("Interaction:")
-        row.menu("USERPREF_MT_interaction_presets", text=bpy.types.USERPREF_MT_interaction_presets.bl_label)
+        # XXX, no redraws
+        # text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
+        # if not text:
+        #     text = "Blender (default)"
+        row.menu("USERPREF_MT_keyconfigs", text="Preset")
 
 
 class USERPREF_PT_interface(bpy.types.Panel):
@@ -1103,7 +1107,24 @@ class WM_OT_addon_install(bpy.types.Operator):
         import zipfile
         pyfile = self.filepath
 
-        path_addons = bpy.utils.script_paths("addons")[-1]
+        # dont use bpy.utils.script_paths("addons") because we may not be able to write to it.
+        path_addons = bpy.utils.user_resource('SCRIPTS', 'addons')
+
+        # should never happen.
+        if not path_addons:
+            self.report({'WARNING'}, "Failed to get addons path\n")
+            return {'CANCELLED'}
+
+        # create path if not existing.
+        if not os.path.exists(path_addons):
+            try:
+                os.makedirs(path_addons)
+            except:
+                self.report({'WARNING'}, "Failed to create %r\n" % path_addons)
+
+                traceback.print_exc()
+                return {'CANCELLED'}
+
         contents = set(os.listdir(path_addons))
 
         #check to see if the file is in compressed format (.zip)
@@ -1122,7 +1143,7 @@ class WM_OT_addon_install(bpy.types.Operator):
             path_dest = os.path.join(path_addons, os.path.basename(pyfile))
 
             if os.path.exists(path_dest):
-                self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
+                self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
                 return {'CANCELLED'}
 
             #if not compressed file just copy into the addon path
@@ -1155,11 +1176,6 @@ class WM_OT_addon_install(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        paths = bpy.utils.script_paths("addons")
-        if not paths:
-            self.report({'ERROR'}, "No 'addons' path could be found in " + str(bpy.utils.script_paths()))
-            return {'CANCELLED'}
-
         wm = context.window_manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}

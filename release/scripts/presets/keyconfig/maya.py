@@ -2,7 +2,7 @@
 import bpy
 
 wm = bpy.context.window_manager
-kc = wm.keyconfigs.new('Maya')
+kc = wm.keyconfigs.new('maya')
 
 # Map 3D View
 km = kc.keymaps.new('3D View', space_type='VIEW_3D', region_type='WINDOW', modal=False)

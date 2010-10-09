@@ -255,9 +255,8 @@ void GHOST_EventPrinter::getKeyString(GHOST_TKey key, STR_String& str) const
 		case GHOST_kKeyRightAlt:
 			str = "RightAlt";
 			break;
-		case GHOST_kKeyCommand:
-            // APPLE only!
-			str = "Command";
+		case GHOST_kKeyOS:
+			str = "OS";
 			break;
 		case GHOST_kKeyGrLess:
             // PC german!

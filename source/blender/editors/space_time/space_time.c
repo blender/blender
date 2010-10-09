@@ -519,6 +519,7 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch (wmn->data) {
 				case ND_OB_SELECT:
+				case ND_OB_ACTIVE:
 				case ND_FRAME:
 				case ND_FRAME_RANGE:
 				case ND_KEYINGSET:

@@ -12,4 +12,7 @@ if env['WITH_BF_PYTHON']:
 else:
     defs.append('DISABLE_PYTHON')
 
+if env['WITH_BF_CXX_GUARDEDALLOC']:
+    defs.append('WITH_CXX_GUARDEDALLOC')
+
 env.BlenderLib ( 'bf_expressions', sources, Split(incs), defs, libtype=['core','player'], priority = [360,80], cxx_compileflags=env['BGE_CXXFLAGS'])

@@ -937,7 +937,7 @@ void uiComposeLinks(uiBlock *block)
 void uiBlockSetButLock(uiBlock *block, int val, char *lockstr)
 {
 	if(val) {
-		block->lock |= val;
+		block->lock= val ? 1:0;
 		block->lockstr= lockstr;
 	}
 }
@@ -1947,7 +1947,7 @@ uiBlock *uiGetBlock(char *name, ARegion *ar)
 	return NULL;
 }
 
-void uiBlockSetEmboss(uiBlock *block, short dt)
+void uiBlockSetEmboss(uiBlock *block, char dt)
 {
 	block->dt= dt;
 }

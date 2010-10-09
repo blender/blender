@@ -127,6 +127,7 @@ public:
 	void	RegisterMeshName(const STR_String& meshname,void* mesh);
 	void	UnregisterMeshName(const STR_String& meshname,void* mesh);
 	GEN_Map<STR_HashedString,void*>&	GetMeshMap() { return m_mapStringToMeshes; };
+	GEN_Map<STR_HashedString,void*>&	GetActionMap() { return m_mapStringToActions; };
 	
 	void	RegisterActionName(const STR_String& actname,void* action);
 

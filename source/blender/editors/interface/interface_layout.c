@@ -1109,6 +1109,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, ui
 	int i=0, iconid=0, flag= RNA_property_flag(but->rnaprop);
 	ListBase *items_list= MEM_callocN(sizeof(ListBase), "items_list");
 	CollItemSearch *cis;
+	const int skip_filter= !but->changed;
 
 	/* build a temporary list of relevant items first */
 	RNA_PROP_BEGIN(&but->rnasearchpoin, itemptr, but->rnasearchprop) {
@@ -1140,7 +1141,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, ui
 		}
 
 		if(name) {
-			if(BLI_strcasestr(name, str)) {
+			if(skip_filter || BLI_strcasestr(name, str)) {
 				cis = MEM_callocN(sizeof(CollItemSearch), "CollectionItemSearch");
 				cis->name = MEM_dupallocN(name);
 				cis->index = i;
@@ -2168,6 +2169,7 @@ uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, int align)
 	split->litem.enabled= 1;
 	split->litem.context= layout->context;
 	split->litem.space= layout->root->style->columnspace;
+	split->litem.w= layout->w;
 	split->percentage= percentage;
 	BLI_addtail(&layout->items, split);
 

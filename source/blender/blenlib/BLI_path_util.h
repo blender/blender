@@ -44,6 +44,7 @@ char *BLI_getDefaultDocumentFolder(void);
 
 char *BLI_get_folder(int folder_id, char *subfolder);
 char *BLI_get_folder_create(int folder_id, char *subfolder);
+char *BLI_get_user_folder_notest(int folder_id, char *subfolder);
 
 /* folder_id */
 

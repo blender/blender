@@ -56,6 +56,7 @@
 #include "ED_util.h"
 #include "ED_screen.h"
 #include "ED_object.h"
+#include "ED_armature.h"
 #include "ED_screen_types.h"
 #include "ED_keyframes_draw.h"
 
@@ -243,7 +244,11 @@ int ED_operator_editmesh_view3d(bContext *C)
 
 int ED_operator_editmesh_region_view3d(bContext *C)
 {
-	return ED_operator_editmesh(C) && CTX_wm_region_view3d(C);
+	if(ED_operator_editmesh(C) && CTX_wm_region_view3d(C))
+		return 1;
+
+	CTX_wm_operator_poll_msg_set(C, "expected a view3d region & editmesh");
+	return 0;
 }
 
 int ED_operator_editarmature(bContext *C)
@@ -259,8 +264,8 @@ int ED_operator_posemode(bContext *C)
 	Object *obact= CTX_data_active_object(C);
 	Object *obedit= CTX_data_edit_object(C);
 	
-	if ((obact != obedit) && (obact) && (obact->type==OB_ARMATURE))
-		return (obact->mode & OB_MODE_POSE)!=0;
+	if ((obact != obedit) && ED_object_pose_armature(obact))
+		return 1;
 	
 	return 0;
 }

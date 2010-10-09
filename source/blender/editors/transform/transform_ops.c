@@ -445,9 +445,9 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 		}
 	}
 
-	// Add confirm method all the time. At the end because it's not really that important and should be hidden
+	// Add confirm method all the time. At the end because it's not really that important and should be hidden only in log, not in keymap edit
 	prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "Always confirm operation when releasing button");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	//RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 void TRANSFORM_OT_translate(struct wmOperatorType *ot)

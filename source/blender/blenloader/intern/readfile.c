@@ -12606,25 +12606,29 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 {
 	Main *mainvar= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
+	Library *curlib;
 
 	/* make main consistent */
 	expand_main(*fd, mainl);
 
 	/* do this when expand found other libs */
 	read_libraries(*fd, &(*fd)->mainlist);
+	
+	curlib= mainl->curlib;
 
 	/* make the lib path relative if required */
 	if(flag & FILE_RELPATH) {
 
 		/* use the full path, this could have been read by other library even */
-		BLI_strncpy(mainl->curlib->name, mainl->curlib->filepath, sizeof(mainl->curlib->name));
+		BLI_strncpy(curlib->name, curlib->filepath, sizeof(curlib->name));
 		
 		/* uses current .blend file as reference */
-		BLI_path_rel(mainl->curlib->name, G.sce);
+		BLI_path_rel(curlib->name, G.sce);
 	}
 
 	blo_join_main(&(*fd)->mainlist);
 	mainvar= (*fd)->mainlist.first;
+	mainl= NULL; /* blo_join_main free's mainl, cant use anymore */
 
 	lib_link_all(*fd, mainvar);
 	lib_verify_nodetree(mainvar, 0);
@@ -12639,7 +12643,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 			if (flag & FILE_LINK) {
 				give_base_to_objects(mainvar, scene, NULL, 0);
 			} else {
-				give_base_to_objects(mainvar, scene, mainl->curlib, 1);
+				give_base_to_objects(mainvar, scene, curlib, 1);
 			}
 
 			if (flag & FILE_GROUP_INSTANCE) {
@@ -12659,7 +12663,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 		*fd = NULL;
 	}	
 
-	append_do_cursor(scene, mainl->curlib, flag);
+	append_do_cursor(scene, curlib, flag);
 }
 
 void BLO_library_append_end(const bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag)

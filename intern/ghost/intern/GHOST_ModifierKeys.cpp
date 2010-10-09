@@ -55,7 +55,7 @@ GHOST_TKey GHOST_ModifierKeys::getModifierKeyCode(GHOST_TModifierKeyMask mask)
 	case GHOST_kModifierKeyRightAlt:		key = GHOST_kKeyRightAlt;		break;
 	case GHOST_kModifierKeyLeftControl:		key = GHOST_kKeyLeftControl;	break;
 	case GHOST_kModifierKeyRightControl:	key = GHOST_kKeyRightControl;	break;
-	case GHOST_kModifierKeyCommand:			key = GHOST_kKeyCommand;		break;
+	case GHOST_kModifierKeyOS:			key = GHOST_kKeyOS;		break;
 	default:
 		// Should not happen
 		key = GHOST_kKeyUnknown;
@@ -80,8 +80,8 @@ bool GHOST_ModifierKeys::get(GHOST_TModifierKeyMask mask) const
         return m_LeftControl;
     case GHOST_kModifierKeyRightControl:
         return m_RightControl;
-    case GHOST_kModifierKeyCommand:
-        return m_Command;
+    case GHOST_kModifierKeyOS:
+        return m_OS;
     default:
         return false;
     }
@@ -103,8 +103,8 @@ void GHOST_ModifierKeys::set(GHOST_TModifierKeyMask mask, bool down)
         m_LeftControl = down; break;
     case GHOST_kModifierKeyRightControl:
         m_RightControl = down; break;
-    case GHOST_kModifierKeyCommand:
-        m_Command = down; break;
+    case GHOST_kModifierKeyOS:
+        m_OS = down; break;
     default:
         break;
     }
@@ -119,7 +119,7 @@ void GHOST_ModifierKeys::clear()
     m_RightAlt = false;
     m_LeftControl = false;
     m_RightControl = false;
-    m_Command = false;
+    m_OS = false;
 }
 
 
@@ -131,5 +131,5 @@ bool GHOST_ModifierKeys::equals(const GHOST_ModifierKeys& keys) const
 		(m_RightAlt == keys.m_RightAlt) &&
 		(m_LeftControl == keys.m_LeftControl) &&
 		(m_RightControl == keys.m_RightControl) &&
-        (m_Command == keys.m_Command);
+        (m_OS == keys.m_OS);
 }

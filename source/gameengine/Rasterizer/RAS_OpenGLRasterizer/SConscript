@@ -10,4 +10,7 @@ incs += ' #source/blender/gpu #extern/glew/include ' + env['BF_OPENGL_INC']
 incs += ' #source/blender/gameengine/Ketsji #source/gameengine/SceneGraph #source/blender/makesdna #source/blender/blenkernel'
 incs += ' #intern/guardedalloc #source/blender/blenlib'
 
+if env['WITH_BF_CXX_GUARDEDALLOC']:
+    defs.append('WITH_CXX_GUARDEDALLOC')
+
 env.BlenderLib ( 'bf_oglrasterizer', Split(sources), Split(incs), defines = defs, libtype=['core','player'], priority=[350,75], cxx_compileflags=env['BGE_CXXFLAGS'])

@@ -146,7 +146,6 @@ static void view_pan_apply(bContext *C, wmOperator *op)
 	ED_region_tag_redraw(vpd->ar);
 	
 	UI_view2d_sync(vpd->sc, vpd->sa, v2d, V2D_LOCK_COPY);
-	WM_event_add_mousemove(C);
 	
 	/* exceptions */
 	if (vpd->sa->spacetype==SPACE_OUTLINER) {
@@ -628,7 +627,6 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 	/* request updates to be done... */
 	ED_region_tag_redraw(vzd->ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
-	WM_event_add_mousemove(C);
 }
 
 /* --------------- Individual Operators ------------------- */
@@ -822,7 +820,6 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 	/* request updates to be done... */
 	ED_region_tag_redraw(vzd->ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
-	WM_event_add_mousemove(C);
 }
 
 /* cleanup temp customdata  */
@@ -1095,7 +1092,6 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	/* request updates to be done... */
 	ED_region_tag_redraw(ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
-	WM_event_add_mousemove(C);
 	
 	return OPERATOR_FINISHED;
 } 
@@ -1355,7 +1351,6 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 	/* request updates to be done... */
 	ED_region_tag_redraw(vsm->ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
-	WM_event_add_mousemove(C);
 }
 
 /* handle user input for scrollers - calculations of mouse-movement need to be done here, not in the apply callback! */
@@ -1560,7 +1555,6 @@ static int reset_exec(bContext *C, wmOperator *op)
 	/* request updates to be done... */
 	ED_region_tag_redraw(ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
-	WM_event_add_mousemove(C);
 	
 	return OPERATOR_FINISHED;
 }

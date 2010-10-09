@@ -677,13 +677,13 @@ static void rna_def_strip_crop(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0, 4096, 1, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "min_x", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "min_y", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "bottom");
 	RNA_def_property_ui_text(prop, "Bottom", "");
 	RNA_def_property_ui_range(prop, 0, 4096, 1, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "min_y", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "min_x", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "left");
 	RNA_def_property_ui_text(prop, "Left", "");
 	RNA_def_property_ui_range(prop, 0, 4096, 1, 0);

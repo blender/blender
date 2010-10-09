@@ -354,7 +354,7 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
             for op_submodule_name in dir(op_module):
                 op = getattr(op_module, op_submodule_name)
                 text = repr(op)
-                if text.startswith('bpy.ops.'):
+                if text.split("\n")[-1].startswith('bpy.ops.'):
                     op_strings.append(text)
                     tot += 1
 

@@ -158,6 +158,8 @@ def setup_staticlibs(lenv):
         statlibs += Split(lenv['BF_ZLIB_LIB_STATIC'])
     if lenv['WITH_BF_FFTW3']:
         libincs += Split(lenv['BF_FFTW3_LIBPATH'])
+        if lenv['WITH_BF_STATICFFTW3']:
+            statlibs += Split(lenv['BF_FFTW3_LIB_STATIC'])
     if lenv['WITH_BF_FFMPEG'] and lenv['WITH_BF_STATICFFMPEG']:
         statlibs += Split(lenv['BF_FFMPEG_LIB_STATIC'])
     if lenv['WITH_BF_INTERNATIONAL']:
@@ -178,6 +180,9 @@ def setup_staticlibs(lenv):
     if lenv['WITH_BF_PYTHON'] and lenv['WITH_BF_STATICPYTHON']:
         statlibs += Split(lenv['BF_PYTHON_LIB_STATIC'])
 
+    if lenv['WITH_BF_SNDFILE'] and lenv['WITH_BF_STATICSNDFILE']:
+        statlibs += Split(lenv['BF_SNDFILE_LIB_STATIC'])
+
     if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
         libincs += Split(lenv['BF_PTHREADS_LIBPATH'])
 
@@ -191,6 +196,9 @@ def setup_staticlibs(lenv):
         if lenv['OURPLATFORM'] == 'linuxcross':
             libincs += Split(lenv['BF_OPENMP_LIBPATH'])
 
+    if lenv['WITH_BF_STATICLIBSAMPLERATE']:
+        statlibs += Split(lenv['BF_LIBSAMPLERATE_LIB_STATIC'])
+
     # setting this last so any overriding of manually libs could be handled
     if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
         libincs.append('/usr/lib')
@@ -202,7 +210,6 @@ def setup_syslibs(lenv):
         
         lenv['BF_JPEG_LIB'],
         lenv['BF_PNG_LIB'],
-        lenv['BF_LIBSAMPLERATE_LIB']
         ]
 
     if not lenv['WITH_BF_FREETYPE_STATIC']:
@@ -236,9 +243,9 @@ def setup_syslibs(lenv):
             syslibs += Split(lenv['BF_OGG_LIB'])
     if lenv['WITH_BF_JACK']:
             syslibs += Split(lenv['BF_JACK_LIB'])
-    if lenv['WITH_BF_SNDFILE']:
+    if lenv['WITH_BF_SNDFILE'] and not lenv['WITH_BF_STATICSNDFILE']:
             syslibs += Split(lenv['BF_SNDFILE_LIB'])
-    if lenv['WITH_BF_FFTW3']:
+    if lenv['WITH_BF_FFTW3'] and not lenv['WITH_BF_STATICFFTW3']:
         syslibs += Split(lenv['BF_FFTW3_LIB'])
     if lenv['WITH_BF_SDL']:
         syslibs += Split(lenv['BF_SDL_LIB'])
@@ -252,6 +259,9 @@ def setup_syslibs(lenv):
         syslibs.append(lenv['BF_PCRE_LIB'])
         syslibs += Split(lenv['BF_OPENCOLLADA_LIB'])
         syslibs.append(lenv['BF_EXPAT_LIB'])
+
+    if not lenv['WITH_BF_STATICLIBSAMPLERATE']:
+        syslibs += Split(lenv['BF_LIBSAMPLERATE_LIB'])
 
 
     syslibs += lenv['LLIBS']
@@ -295,9 +305,12 @@ def buildinfo(lenv, build_type):
                                     'BUILD_TYPE="%s"'%(build_type),
                                     'BUILD_REV="%s"'%(build_rev),
                                     'NAN_BUILDINFO',
-				    'BUILD_PLATFORM="%s:%s"'%(platform.system(), platform.architecture()[0])])
-        obj = [lenv.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type,
-                        [root_build_dir+'source/creator/buildinfo.c'])]
+                                    'BUILD_PLATFORM="%s:%s"'%(platform.system(), platform.architecture()[0])])
+
+        lenv.Append (CPPPATH = [root_build_dir+'source/blender/blenkernel'])
+
+        obj = [lenv.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type, [root_build_dir+'source/creator/buildinfo.c'])]
+
     return obj
 
 ##### END LIB STUFF ############

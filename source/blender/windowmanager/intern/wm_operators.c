@@ -1153,7 +1153,6 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiStyle *style= U.uistyles.first;
 	struct RecentFile *recent;
 	int i;
-	Menu menu= {0};
 	MenuType *mt= WM_menutype_find("USERPREF_MT_splash", TRUE);
 	char url[64];
 	
@@ -1193,9 +1192,13 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	/* show the splash menu (containing interaction presets), using python */
 	if (mt) {
+		Menu menu= {0};
 		menu.layout= layout;
 		menu.type= mt;
 		mt->draw(C, &menu);
+
+//		wmWindowManager *wm= CTX_wm_manager(C);
+//		uiItemM(layout, C, "USERPREF_MT_keyconfigs", U.keyconfigstr, 0);
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSSP);

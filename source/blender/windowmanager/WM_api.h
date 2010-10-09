@@ -31,6 +31,10 @@
 /* dna-savable wmStructs here */
 #include "DNA_windowmanager_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bContext;
 struct IDProperty;
 struct wmEvent;
@@ -337,6 +341,10 @@ void		WM_clipboard_text_set(char *buf, int selection);
 			/* progress */
 void		WM_progress_set(struct wmWindow *win, float progress);
 void		WM_progress_clear(struct wmWindow *win);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* WM_API_H */
 

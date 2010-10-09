@@ -250,6 +250,47 @@ class IMAGE_MT_uvs(bpy.types.Menu):
         layout.separator()
 
         layout.menu("IMAGE_MT_uvs_showhide")
+        
+class IMAGE_MT_uvs_select_mode(bpy.types.Menu):
+    bl_label = "UV Select Mode"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        toolsettings = context.tool_settings
+        
+        # do smart things depending on whether uv_select_sync is on
+        
+        if toolsettings.use_uv_select_sync:
+            prop = layout.operator("wm.context_set_value", text="Vertex", icon='VERTEXSEL')
+            prop.value = "(True, False, False)"
+            prop.data_path = "tool_settings.mesh_select_mode"
+
+            prop = layout.operator("wm.context_set_value", text="Edge", icon='EDGESEL')
+            prop.value = "(False, True, False)"
+            prop.data_path = "tool_settings.mesh_select_mode"
+
+            prop = layout.operator("wm.context_set_value", text="Face", icon='FACESEL')
+            prop.value = "(False, False, True)"
+            prop.data_path = "tool_settings.mesh_select_mode"
+
+        else:
+            prop = layout.operator("wm.context_set_string", text="Vertex", icon='UV_VERTEXSEL')
+            prop.value = "VERTEX"
+            prop.data_path = "tool_settings.uv_select_mode"
+
+            prop = layout.operator("wm.context_set_string", text="Edge", icon='UV_EDGESEL')
+            prop.value = "EDGE"
+            prop.data_path = "tool_settings.uv_select_mode"
+
+            prop = layout.operator("wm.context_set_string", text="Face", icon='UV_FACESEL')
+            prop.value = "FACE"
+            prop.data_path = "tool_settings.uv_select_mode"
+        
+            prop = layout.operator("wm.context_set_string", text="Island", icon='UV_ISLANDSEL')
+            prop.value = "ISLAND"
+            prop.data_path = "tool_settings.uv_select_mode"
 
 
 class IMAGE_HT_header(bpy.types.Header):

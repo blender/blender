@@ -41,6 +41,9 @@ int console_text_height(struct SpaceConsole *sc, struct ARegion *ar, struct Repo
 void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports, int mouse_y); /* needed for selection */
 int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports, int mval[2]);
 
+void console_scrollback_prompt_begin(struct SpaceConsole *sc, ConsoleLine *cl_dummy);
+void console_scrollback_prompt_end(struct SpaceConsole *sc, ConsoleLine *cl_dummy);
+
 /* console_ops.c */
 void console_history_free(SpaceConsole *sc, ConsoleLine *cl);
 void console_scrollback_free(SpaceConsole *sc, ConsoleLine *cl);
