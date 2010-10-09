@@ -323,8 +323,9 @@ void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
 	MVert *mvert;
 	int i;
 
-	for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++)
+	for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
 		get_vector(mvert->co, pos, i);
+	}
 }
 
 int MeshImporter::triangulate_poly(unsigned int *indices, int totvert, MVert *verts, std::vector<unsigned int>& tri)
@@ -631,7 +632,7 @@ void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris)
 			}
 		}
 		
-	   	mat_prim_map[mp->getMaterialId()].push_back(prim);
+		mat_prim_map[mp->getMaterialId()].push_back(prim);
 	}
 
 	geom_uid_mat_mapping_map[mesh->getUniqueId()] = mat_prim_map;
@@ -689,7 +690,7 @@ bool MeshImporter::flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor,
 	return true;
 }
 
-MeshImporter::MeshImporter(ArmatureImporter *arm, Scene *sce) : scene(sce), armature_importer(arm) {}
+MeshImporter::MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce) : unitconverter(unitconv), scene(sce), armature_importer(arm) {}
 
 Object *MeshImporter::get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid)
 {

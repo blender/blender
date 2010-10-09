@@ -28,12 +28,38 @@ UnitConverter::UnitConverter() : unit(), up_axis(COLLADAFW::FileInfo::Z_UP) {}
 
 void UnitConverter::read_asset(const COLLADAFW::FileInfo* asset)
 {
+	unit = asset->getUnit();
+	up_axis = asset->getUpAxisType();
 }
 
-// TODO
-// convert vector vec from COLLADA format to Blender
-void UnitConverter::convertVec3(float *vec)
+UnitConverter::UnitSystem UnitConverter::isMetricSystem()
 {
+	switch(unit.getLinearUnitUnit()) {
+		case COLLADAFW::FileInfo::Unit::MILLIMETER:
+		case COLLADAFW::FileInfo::Unit::CENTIMETER:
+		case COLLADAFW::FileInfo::Unit::DECIMETER:
+		case COLLADAFW::FileInfo::Unit::METER:
+		case COLLADAFW::FileInfo::Unit::KILOMETER:
+			return UnitConverter::Metric;
+		case COLLADAFW::FileInfo::Unit::INCH:
+		case COLLADAFW::FileInfo::Unit::FOOT:
+		case COLLADAFW::FileInfo::Unit::YARD:
+			return UnitConverter::Imperial;
+		default:
+			return UnitConverter::None;
+	}
+}
+
+float UnitConverter::getLinearMeter()
+{
+	return (float)unit.getLinearUnitMeter();
+}
+
+void UnitConverter::convertVector3(COLLADABU::Math::Vector3 &vec, float *v)
+{
+	v[0] = vec.x;
+	v[1] = vec.y;
+	v[2] = vec.z;
 }
 
 // TODO need also for angle conversion, time conversion...

@@ -834,7 +834,11 @@ char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, in
 int RNA_string_length(PointerRNA *ptr, const char *name);
 void RNA_string_set(PointerRNA *ptr, const char *name, const char *value);
 
+/**
+ * Retrieve the named property from PointerRNA.
+ */
 PointerRNA RNA_pointer_get(PointerRNA *ptr, const char *name);
+/* Set the property name of PointerRNA ptr to ptr_value */
 void RNA_pointer_set(PointerRNA *ptr, const char *name, PointerRNA ptr_value);
 void RNA_pointer_add(PointerRNA *ptr, const char *name);
 

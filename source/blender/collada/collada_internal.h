@@ -43,14 +43,22 @@ private:
 
 public:
 
+	enum UnitSystem {
+		None,
+		Metric,
+		Imperial
+	};
+
 	// Initialize with Z_UP, since Blender uses right-handed, z-up
 	UnitConverter();
 
 	void read_asset(const COLLADAFW::FileInfo* asset);
 
-	// TODO
-	// convert vector vec from COLLADA format to Blender
-	void convertVec3(float *vec);
+	void convertVector3(COLLADABU::Math::Vector3 &vec, float *v);
+	
+	UnitConverter::UnitSystem isMetricSystem(void);
+	
+	float getLinearMeter(void);
 		
 	// TODO need also for angle conversion, time conversion...
 

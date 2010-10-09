@@ -119,10 +119,12 @@ private:
 	void get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i);
 
 	bool flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor, int count);
+	
+	UnitConverter *unitconverter;
 
 public:
 
-	MeshImporter(ArmatureImporter *arm, Scene *sce);
+	MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce);
 
 	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid);
 	

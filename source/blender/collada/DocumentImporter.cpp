@@ -72,6 +72,8 @@
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
 
+#include "RNA_access.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DocumentImporter.h"
@@ -130,7 +132,7 @@ public:
 	/** Constructor. */
 	Writer(bContext *C, const char *filename) : mFilename(filename), mContext(C),
 												armature_importer(&unit_converter, &mesh_importer, &anim_importer, CTX_data_scene(C)),
-												mesh_importer(&armature_importer, CTX_data_scene(C)),
+												mesh_importer(&unit_converter, &armature_importer, CTX_data_scene(C)),
 												anim_importer(&unit_converter, &armature_importer, CTX_data_scene(C)) {}
 
 	/** Destructor. */
@@ -172,8 +174,30 @@ public:
 	{
 		std::vector<const COLLADAFW::VisualScene*>::iterator it;
 		for (it = vscenes.begin(); it != vscenes.end(); it++) {
+			PointerRNA sceneptr, unit_settings;
+			PropertyRNA *system, *scale;
 			// TODO: create a new scene except the selected <visual_scene> - use current blender scene for it
 			Scene *sce = CTX_data_scene(mContext);
+			
+			// for scene unit settings: system, scale_length
+			RNA_id_pointer_create(&sce->id, &sceneptr);
+			unit_settings = RNA_pointer_get(&sceneptr, "unit_settings");
+			system = RNA_struct_find_property(&unit_settings, "system");
+			scale = RNA_struct_find_property(&unit_settings, "scale_length");
+			
+			switch(unit_converter.isMetricSystem()) {
+				case UnitConverter::Metric:
+					RNA_property_enum_set(&unit_settings, system, USER_UNIT_METRIC);
+					break;
+				case UnitConverter::Imperial:
+					RNA_property_enum_set(&unit_settings, system, USER_UNIT_IMPERIAL);
+					break;
+				default:
+					RNA_property_enum_set(&unit_settings, system, USER_UNIT_NONE);
+					break;
+			}
+			RNA_property_float_set(&unit_settings, scale, unit_converter.getLinearMeter());
+			
 			const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 
 			for (unsigned int i = 0; i < roots.getCount(); i++) {
@@ -253,9 +277,6 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeGlobalAsset ( const COLLADAFW::FileInfo* asset ) 
 	{
-		// XXX take up_axis, unit into account
-		// COLLADAFW::FileInfo::Unit unit = asset->getUnit();
-		// COLLADAFW::FileInfo::UpAxisType upAxis = asset->getUpAxisType();
 		unit_converter.read_asset(asset);
 
 		return true;
