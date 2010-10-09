@@ -179,7 +179,7 @@ General functions
    
    :arg blend: The path to the blend file (or the name to use for the library if data is supplied)
    :type blend: string
-   :arg type: The datablock type (currently only "Scene" and "Mesh" are supported)
+   :arg type: The datablock type (currently only "Action", "Mesh" and "Scene" are supported)
    :type type: string
    :arg data: Binary data from a blend file (optional)
    :type data: bytes
