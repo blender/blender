@@ -49,6 +49,8 @@ extern "C" {
 
 #include "GL/glew.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BL_Material.h" // MAXTEX
 
 /* Data types encoding the game world: */
@@ -68,7 +70,11 @@ extern "C" {
 #include "BKE_bmfont.h"
 #include "BKE_image.h"
 
+#include "BLI_path_util.h"
+
 extern "C" {
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm_event_system.h"
@@ -206,18 +212,53 @@ void BL_NormalMouse(wmWindow *win)
 }
 #define MAX_FILE_LENGTH 512
 
-
-void BL_MakeScreenShot(struct ARegion *ar, const char* filename)
+/* get shot from frontbuffer sort of a copy from screendump.c */
+static unsigned int *screenshot(ScrArea *curarea, int *dumpsx, int *dumpsy)
 {
-	char copyfilename[MAX_FILE_LENGTH];
-	strcpy(copyfilename,filename);
-
-	// filename read - only
+	int x=0, y=0;
+	unsigned int *dumprect= NULL;
 	
-	  /* XXX will need to change at some point */
-	//XXX BIF_screendump(0);
+	x= curarea->totrct.xmin;
+	y= curarea->totrct.ymin;
+	*dumpsx= curarea->totrct.xmax-x;
+	*dumpsy= curarea->totrct.ymax-y;
 
-	// write+read filename
-	//XXX write_screendump((char*) copyfilename);
+	if (*dumpsx && *dumpsy) {
+		
+		dumprect= (unsigned int *)MEM_mallocN(sizeof(int) * (*dumpsx) * (*dumpsy), "dumprect");
+		glReadBuffer(GL_FRONT);
+		glReadPixels(x, y, *dumpsx, *dumpsy, GL_RGBA, GL_UNSIGNED_BYTE, dumprect);
+		glFinish();
+		glReadBuffer(GL_BACK);
+	}
+
+	return dumprect;
+}
+
+/* based on screendump.c::screenshot_exec */
+void BL_MakeScreenShot(ScrArea *curarea, const char* filename)
+{
+	char path[MAX_FILE_LENGTH];
+	strcpy(path,filename);
+
+	unsigned int *dumprect;
+	int dumpsx, dumpsy;
+	
+	dumprect= screenshot(curarea, &dumpsx, &dumpsy);
+	if(dumprect) {
+		ImBuf *ibuf;
+		BLI_path_abs(path, G.sce);
+		/* BKE_add_image_extension() checks for if extension was already set */
+		BKE_add_image_extension(path, R_PNG); /* scene->r.imtype */
+		ibuf= IMB_allocImBuf(dumpsx, dumpsy, 24, 0, 0);
+		ibuf->rect= dumprect;
+		ibuf->ftype= PNG;
+
+		IMB_saveiff(ibuf, path, IB_rect);
+
+		ibuf->rect= NULL;
+		IMB_freeImBuf(ibuf);
+		MEM_freeN(dumprect);
+	}
 }
 
