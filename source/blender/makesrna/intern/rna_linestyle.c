@@ -400,6 +400,11 @@ static void rna_def_linestyle(BlenderRNA *brna)
 		{LS_PANEL_DISTORT, "DISTORT", 0, "Distort", "Show the panel for stroke distortion."},
 		{LS_PANEL_MISC, "MISC", 0, "Misc", "Show the panel for miscellaneous options."},
 		{0, NULL, 0, NULL, NULL}};
+	static EnumPropertyItem cap_items[] = {
+		{LS_CAPS_BUTT, "BUTT", 0, "Butt", "Butt cap (flat)."},
+		{LS_CAPS_ROUND, "ROUND", 0, "Round", "Round cap (half-circle)."},
+		{LS_CAPS_SQUARE, "SQUARE", 0, "Square", "Square cap (flat and extended)."},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FreestyleLineStyle", "ID");
 	RNA_def_struct_ui_text(srna, "Freestyle Line Style", "Freestyle line style, reusable by multiple line sets");
@@ -443,6 +448,17 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "thickness_modifiers", NULL);
 	RNA_def_property_struct_type(prop, "LineStyleThicknessModifier");
 	RNA_def_property_ui_text(prop, "Thickness Modifiers", "List of line thickness modifiers.");
+
+	prop= RNA_def_property(srna, "same_object", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_SAME_OBJECT);
+	RNA_def_property_ui_text(prop, "Same Object", "if true, only feature edges of the same object are joined.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "caps", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "caps");
+	RNA_def_property_enum_items(prop, cap_items);
+	RNA_def_property_ui_text(prop, "Cap", "Select the shape of both ends of strokes.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 }
 

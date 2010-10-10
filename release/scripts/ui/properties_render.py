@@ -409,7 +409,11 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
             for modifier in linestyle.thickness_modifiers:
                 self.draw_thickness_modifier(context, modifier)
         elif linestyle.panel == "STROKES":
-            pass
+            col.label(text="Chaining:")
+            col.prop(linestyle, "same_object")
+            col.label(text="Caps:")
+            sub = col.row(align=True)
+            sub.prop(linestyle, "caps", expand=True)
         elif linestyle.panel == "DISTORT":
             pass
         elif linestyle.panel == "MISC":

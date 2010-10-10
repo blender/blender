@@ -62,6 +62,8 @@ static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 	linestyle->color_modifiers.first = linestyle->color_modifiers.last = NULL;
 	linestyle->alpha_modifiers.first = linestyle->alpha_modifiers.last = NULL;
 	linestyle->thickness_modifiers.first = linestyle->thickness_modifiers.last = NULL;
+
+	linestyle->caps = LS_CAPS_BUTT;
 }
 
 FreestyleLineStyle *FRS_new_linestyle(char *name, struct Main *main)

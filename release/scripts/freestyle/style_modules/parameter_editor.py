@@ -17,6 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import Freestyle
+import math
 
 from freestyle_init import *
 from logical_operators import *
@@ -298,6 +299,99 @@ def join_unary_predicates(upred_list, bpred):
         upred = bpred(upred, p)
     return upred
 
+# Stroke caps
+
+def iter_stroke_vertices(stroke):
+    it = stroke.strokeVerticesBegin()
+    while not it.isEnd():
+        yield it.getObject()
+        it.increment()
+
+class RoundCapShader(StrokeShader):
+    def round_cap_thickness(self, x):
+        x = max(0.0, min(x, 1.0))
+        return math.sqrt(1.0 - (x ** 2))
+    def shade(self, stroke):
+        # save the location and attribute of stroke vertices
+        buffer = []
+        for sv in iter_stroke_vertices(stroke):
+            buffer.append((sv.getPoint(), sv.attribute()))
+        # calculate the number of additional vertices to form caps
+        R, L = stroke[0].attribute().getThicknessRL()
+        caplen_beg = (R + L) / 2.0
+        nverts_beg = max(5, int(R + L))
+        R, L = stroke[-1].attribute().getThicknessRL()
+        caplen_end = (R + L) / 2.0
+        nverts_end = max(5, int(R + L))
+        # increase the total number of stroke vertices
+        nverts = stroke.strokeVerticesSize()
+        stroke.Resample(nverts + nverts_beg + nverts_end)
+        # restore the location and attribute of the original vertices
+        for i in range(nverts):
+            p, attr = buffer[i]
+            stroke[nverts_beg + i].setPoint(p)
+            stroke[nverts_beg + i].setAttribute(attr)
+        # reshape the cap at the beginning of the stroke
+        q, attr = buffer[1]
+        p, attr = buffer[0]
+        d = p - q
+        d = d / d.length * caplen_beg
+        n = 1.0 / nverts_beg
+        R, L = attr.getThicknessRL()
+        for i in range(nverts_beg):
+            t = (nverts_beg - i) * n
+            stroke[i].setPoint(p + d * t)
+            r = self.round_cap_thickness((nverts_beg - i + 1) * n)
+            stroke[i].setAttribute(attr)
+            stroke[i].attribute().setThickness(R * r, L * r)
+        # reshape the cap at the end of the stroke
+        q, attr = buffer[-2]
+        p, attr = buffer[-1]
+        d = p - q
+        d = d / d.length * caplen_end
+        n = 1.0 / nverts_end
+        R, L = attr.getThicknessRL()
+        for i in range(nverts_end):
+            t = (nverts_end - i) * n
+            stroke[-i-1].setPoint(p + d * t)
+            r = self.round_cap_thickness((nverts_end - i + 1) * n)
+            stroke[-i-1].setAttribute(attr)
+            stroke[-i-1].attribute().setThickness(R * r, L * r)
+
+class SquareCapShader(StrokeShader):
+    def shade(self, stroke):
+        # save the location and attribute of stroke vertices
+        buffer = []
+        for sv in iter_stroke_vertices(stroke):
+            buffer.append((sv.getPoint(), sv.attribute()))
+        # calculate the number of additional vertices to form caps
+        R, L = stroke[0].attribute().getThicknessRL()
+        caplen_beg = (R + L) / 2.0
+        nverts_beg = 1
+        R, L = stroke[-1].attribute().getThicknessRL()
+        caplen_end = (R + L) / 2.0
+        nverts_end = 1
+        # increase the total number of stroke vertices
+        nverts = stroke.strokeVerticesSize()
+        stroke.Resample(nverts + nverts_beg + nverts_end)
+        # restore the location and attribute of the original vertices
+        for i in range(nverts):
+            p, attr = buffer[i]
+            stroke[nverts_beg + i].setPoint(p)
+            stroke[nverts_beg + i].setAttribute(attr)
+        # reshape the cap at the beginning of the stroke
+        q, attr = buffer[1]
+        p, attr = buffer[0]
+        d = p - q
+        stroke[0].setPoint(p + d / d.length * caplen_beg)
+        stroke[0].setAttribute(attr)
+        # reshape the cap at the end of the stroke
+        q, attr = buffer[-2]
+        p, attr = buffer[-1]
+        d = p - q
+        stroke[-1].setPoint(p + d / d.length * caplen_beg)
+        stroke[-1].setAttribute(attr)
+
 # main function for parameter processing
 
 def process(layer_name, lineset_name):
@@ -372,7 +466,12 @@ def process(layer_name, lineset_name):
         upred = TrueUP1D()
     Operators.select(upred)
     # join feature edges
-    Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred)) # FIXME
+    if linestyle.same_object:
+        bpred = SameShapeIdBP1D()
+        chaining_iterator = ChainPredicateIterator(upred, bpred)
+    else:
+        chaining_iterator = ChainSilhouetteIterator()
+    Operators.bidirectionalChain(chaining_iterator, NotUP1D(upred))
     # prepare a list of stroke shaders
     color = linestyle.color
     shaders_list = [
@@ -422,5 +521,9 @@ def process(layer_name, lineset_name):
             shaders_list.append(ThicknessDistanceFromObjectShader(
                 m.blend, m.influence, m.mapping, m.invert, m.curve, m.target,
                 m.range_min, m.range_max, m.value_min, m.value_max))
+    if linestyle.caps == "ROUND":
+        shaders_list.append(RoundCapShader())
+    elif linestyle.caps == "SQUARE":
+        shaders_list.append(SquareCapShader())
     # create strokes using the shaders list
     Operators.create(TrueUP1D(), shaders_list)

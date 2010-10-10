@@ -179,7 +179,13 @@ typedef struct LineStyleThicknessModifier_DistanceFromObject {
 #define LS_PANEL_MISC         6
 
 /* FreestyleLineStyle::flag */
-#define LS_DS_EXPAND 1 /* for animation editors */
+#define LS_DS_EXPAND    1 /* for animation editors */
+#define LS_SAME_OBJECT  2
+
+/* FreestyleLineStyle::caps */
+#define LS_CAPS_BUTT    1
+#define LS_CAPS_ROUND   2
+#define LS_CAPS_SQUARE  3
 
 typedef struct FreestyleLineStyle {
 	ID id;
@@ -187,9 +193,8 @@ typedef struct FreestyleLineStyle {
 
 	float r, g, b, alpha;
 	float thickness;
-	int flag;
+	int flag, caps;
 	int panel; /* for UI */
-	int pad1;
 
 	ListBase color_modifiers;
 	ListBase alpha_modifiers;
