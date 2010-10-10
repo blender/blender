@@ -5526,16 +5526,20 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 									((ELEM(event->type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_RIGHT)) ||
 									((ELEM(event->type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_TOP))
 								) {
-									if(ui_but_first(block)->type & BUT)
+									if((bt= ui_but_first(block)) && (bt->type & BUT)) {
 										bt= ui_but_last(block);
-									else
-										bt= ui_but_first(block);
+									}
+									else {
+										/* keep ui_but_first() */
+									}
 								}
 								else {
-									if(ui_but_first(block)->type & BUT)
-										bt= ui_but_first(block);
-									else
+									if((bt= ui_but_first(block)) && (bt->type & BUT)) {
+										/* keep ui_but_first() */
+									}
+									else {
 										bt= ui_but_last(block);
+									}
 								}
 
 								if(bt)
