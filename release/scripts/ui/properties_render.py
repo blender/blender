@@ -266,7 +266,7 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
                     box = layout.box()
                     box.context_pointer_set("freestyle_module", module)
                     row = box.row(align=True)
-                    row.prop(module, "is_displayed", text="")
+                    row.prop(module, "use", text="")
                     row.prop(module, "module_path", text="")
                     row.operator("scene.freestyle_module_remove", icon='X', text="")
                     row.operator("scene.freestyle_module_move", icon='TRIA_UP', text="").direction = 'UP'
@@ -296,7 +296,7 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
         row.operator("scene.freestyle_modifier_toggle_fold", icon=icon, text="", emboss=False)
         row.label(text=modifier.rna_type.name)
         row.prop(modifier, "name", text="")
-        row.prop(modifier, "enabled", text="")
+        row.prop(modifier, "use", text="")
         sub = row.row(align=True)
         sub.operator("scene.freestyle_modifier_move", icon='TRIA_UP', text="").direction = 'UP'
         sub.operator("scene.freestyle_modifier_move", icon='TRIA_DOWN', text="").direction = 'DOWN'

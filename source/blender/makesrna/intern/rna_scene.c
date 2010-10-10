@@ -1667,9 +1667,9 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	RNA_def_struct_name_property(srna, prop);
 
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_LINESET_ENABLED);
-	RNA_def_property_ui_text(prop, "Enabled", "Enable or disable the line set.");
+	RNA_def_property_ui_text(prop, "Use", "Enable or disable this line set during stroke rendering.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "select_by_visibility", PROP_BOOLEAN, PROP_NONE);
@@ -1773,9 +1773,9 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Module Path", "Path to a style module file.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "is_displayed", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "is_displayed", 1);
-	RNA_def_property_ui_text(prop, "Is Displayed", "Enable this style module during the rendering.");
+	RNA_def_property_ui_text(prop, "Use", "Enable or disable this style module during stroke rendering.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	/* FreestyleSettings */

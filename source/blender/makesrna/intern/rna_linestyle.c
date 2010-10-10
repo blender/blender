@@ -145,9 +145,9 @@ static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modi
 	RNA_def_property_ui_text(prop, "Influence", "Influence factor by which the modifier changes the property.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "modifier.flags", LS_MODIFIER_ENABLED);
-	RNA_def_property_ui_text(prop, "Enabled", "True if the modifier is enabled.");
+	RNA_def_property_ui_text(prop, "Use", "Enable or disable this modifier during stroke rendering.");
 
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "modifier.flags", LS_MODIFIER_EXPANDED);

@@ -479,7 +479,7 @@ def process(layer_name, lineset_name):
         ConstantThicknessShader(linestyle.thickness),
         ConstantColorShader(color.r, color.g, color.b, linestyle.alpha)]
     for m in linestyle.color_modifiers:
-        if not m.enabled:
+        if not m.use:
             continue
         if m.type == "ALONG_STROKE":
             shaders_list.append(ColorAlongStrokeShader(
@@ -493,7 +493,7 @@ def process(layer_name, lineset_name):
                 m.blend, m.influence, m.color_ramp, m.target,
                 m.range_min, m.range_max))
     for m in linestyle.alpha_modifiers:
-        if not m.enabled:
+        if not m.use:
             continue
         if m.type == "ALONG_STROKE":
             shaders_list.append(AlphaAlongStrokeShader(
@@ -507,7 +507,7 @@ def process(layer_name, lineset_name):
                 m.blend, m.influence, m.mapping, m.invert, m.curve, m.target,
                 m.range_min, m.range_max))
     for m in linestyle.thickness_modifiers:
-        if not m.enabled:
+        if not m.use:
             continue
         if m.type == "ALONG_STROKE":
             shaders_list.append(ThicknessAlongStrokeShader(
