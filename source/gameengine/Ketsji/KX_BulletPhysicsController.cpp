@@ -521,4 +521,4 @@ bool KX_BulletPhysicsController::Update(double time)
 //	return false;
 }
 
-#endif //#ifdef USE_BULLET
+#endif // USE_BULLET

@@ -1743,7 +1743,7 @@ int enable_cu_speed= 1;
 static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 {
 	Curve *cu;
-	float q[4], vec[4], dir[3], quat[4], radius, x1, ctime;
+	float vec[4], dir[3], quat[4], radius, ctime;
 	float timeoffs = 0.0, sf_orig = 0.0;
 	
 	unit_m4(mat);
@@ -1795,6 +1795,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 
 		if(cu->flag & CU_FOLLOW) {
 #if 0
+			float x1, q[4];
 			vec_to_quat( quat,dir, ob->trackflag, ob->upflag);
 			
 			/* the tilt */

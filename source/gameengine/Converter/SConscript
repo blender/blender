@@ -35,4 +35,7 @@ else:
 if env['WITH_BF_CXX_GUARDEDALLOC']:
     defs.append('WITH_CXX_GUARDEDALLOC')
 
+if env['WITH_BF_BULLET']:
+    defs.append('USE_BULLET')
+
 env.BlenderLib ( 'bf_converter', sources, Split(incs), defs, libtype=['core','player'], priority=[305,40], cxx_compileflags=env['BGE_CXXFLAGS'])

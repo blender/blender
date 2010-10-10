@@ -51,13 +51,11 @@ SET(INC
 	../../../source/gameengine/Network
 	../../../source/gameengine/SceneGraph 
 	../../../source/gameengine/Physics/common
-	../../../source/gameengine/Physics/Bullet 
 	../../../source/gameengine/Network/LoopBackNetwork
 	../../../intern/audaspace/intern
 	../../../source/blender/misc 
 	../../../source/blender/blenloader
 	../../../source/blender/gpu
-	../../../extern/bullet2/src
 	../../../extern/glew/include
 )
 
@@ -78,5 +76,11 @@ ENDIF(WITH_PYTHON)
 IF(WITH_FFMPEG)
 	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
+
+IF(WITH_BULLET)
+	ADD_DEFINITIONS(-DUSE_BULLET)
+	LIST(APPEND INC ../../../extern/bullet2/src)
+	LIST(APPEND INC ../../../source/gameengine/Physics/Bullet )
+ENDIF(WITH_BULLET)
 
 BLENDERLIB(bf_ketsji "${SRC}" "${INC}")

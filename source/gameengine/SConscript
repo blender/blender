@@ -14,7 +14,6 @@ SConscript(['BlenderRoutines/SConscript',
             'Rasterizer/SConscript',
             'Rasterizer/RAS_OpenGLRasterizer/SConscript',
             'SceneGraph/SConscript',
-            'Physics/Bullet/SConscript'
             ])
 
 if env['WITH_BF_PYTHON']:
@@ -22,3 +21,6 @@ if env['WITH_BF_PYTHON']:
 
 if env['WITH_BF_PLAYER']:
     SConscript(['GamePlayer/SConscript'])
+
+if env['WITH_BF_BULLET']:
+    SConscript(['Physics/Bullet/SConscript'])
