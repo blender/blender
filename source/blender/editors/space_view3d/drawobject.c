@@ -2520,24 +2520,25 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			 * rather then the shading, this is also forced in wire view */
 			GPU_enable_material(0, NULL);
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1, GPU_enable_material);
-
+		
 			bglPolygonOffset(rv3d->dist, 1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 
 			glEnable(GL_BLEND);
-			glColor4ub(196, 196, 196, 196);
+			glColor4ub(255, 255, 255, 96);
 			glEnable(GL_LINE_STIPPLE);
-			glLineStipple(1, 0x8888);
+			glLineStipple(1, 0xAAAA);
 
-			dm->drawEdges(dm, 1, 0);
+			dm->drawEdges(dm, 1, 1);
 
 			bglPolygonOffset(rv3d->dist, 0.0);
 			glDepthMask(1);
 			glDisable(GL_LINE_STIPPLE);
 
 			GPU_disable_material();
-
-
+			
+			/* since we already draw wire as wp guide, dont draw over the top */
+			draw_wire= 0;
 		}
 		else {
 			Paint *p;
