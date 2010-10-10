@@ -85,12 +85,7 @@
 
 #ifdef USE_BULLET
 #include "KX_SoftBodyDeformer.h"
-#endif
-
-// to get USE_BULLET!
 #include "KX_ConvertPhysicsObject.h"
-
-#ifdef USE_BULLET
 #include "CcdPhysicsEnvironment.h"
 #include "CcdPhysicsController.h"
 #endif
