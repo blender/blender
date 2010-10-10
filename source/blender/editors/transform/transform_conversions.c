@@ -5318,19 +5318,19 @@ void createTransData(bContext *C, TransInfo *t)
 		createTransPose(C, t, ob);
 	}
 	else if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
-		/* exception, we look for the one selected armature */
-		CTX_DATA_BEGIN(C, Object*, ob_armature, selected_objects)
-		{
-			if(ob_armature->type==OB_ARMATURE)
-			{
-				if((ob_armature->mode & OB_MODE_POSE) && ob_armature == modifiers_isDeformedByArmature(ob))
-				{
+		/* important that ob_armature can be set even when its not selected [#23412]
+		 * lines below just check is also visible */
+		Object *ob_armature= modifiers_isDeformedByArmature(ob);
+		if(ob_armature && ob_armature->mode & OB_MODE_POSE) {
+			Base *base_arm= object_in_scene(ob_armature, t->scene);
+			if(base_arm) {
+				View3D *v3d = t->view;
+				if(BASE_VISIBLE(v3d, base_arm)) {
 					createTransPose(C, t, ob_armature);
-					break;
 				}
 			}
+			
 		}
-		CTX_DATA_END;
 	}
 	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) 
 		&& PE_start_edit(PE_get_current(scene, ob))) {
