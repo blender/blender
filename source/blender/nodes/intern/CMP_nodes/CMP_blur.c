@@ -93,105 +93,115 @@ static void blur_single_image(bNode *node, CompBuf *new, CompBuf *img, float sca
 	int x, y, pix= img->type;
 	int i, bigstep;
 	float *src, *dest;
-
+	
 	/* helper image */
 	work= alloc_compbuf(imgx, imgy, img->type, 1); /* allocs */
-	
+
 	/* horizontal */
-	rad = scale*(float)nbd->sizex;
-	if(rad>imgx/2)
-		rad= imgx/2;
-	else if(rad<1) 
-		rad= 1;
-
-	gausstab= make_gausstab(nbd->filtertype, rad);
-	gausstabcent= gausstab+rad;
-	
-	for (y = 0; y < imgy; y++) {
-		float *srcd= img->rect + pix*(y*img->x);
+	if(nbd->sizex == 0) {
+		memcpy(work->rect, img->rect, sizeof(float) * img->type * imgx * imgy);
+	}
+	else {
+		rad = scale*(float)nbd->sizex;
+		if(rad>imgx/2)
+			rad= imgx/2;
+		else if(rad<1) 
+			rad= 1;
 		
-		dest = work->rect + pix*(y * img->x);
+		gausstab= make_gausstab(nbd->filtertype, rad);
+		gausstabcent= gausstab+rad;
 		
-		for (x = 0; x < imgx ; x++) {
-			int minr= x-rad<0?-x:-rad;
-			int maxr= x+rad>imgx?imgx-x:rad;
+		for (y = 0; y < imgy; y++) {
+			float *srcd= img->rect + pix*(y*img->x);
 			
-			src= srcd + pix*(x+minr);
+			dest = work->rect + pix*(y * img->x);
 			
-			sum= gval = rval= bval= aval= 0.0f;
-			for (i= minr; i < maxr; i++) {
-				val= gausstabcent[i];
-				sum+= val;
-				rval += val * (*src++);
+			for (x = 0; x < imgx ; x++) {
+				int minr= x-rad<0?-x:-rad;
+				int maxr= x+rad>imgx?imgx-x:rad;
+				
+				src= srcd + pix*(x+minr);
+				
+				sum= gval = rval= bval= aval= 0.0f;
+				for (i= minr; i < maxr; i++) {
+					val= gausstabcent[i];
+					sum+= val;
+					rval += val * (*src++);
+					if(pix==4) {
+						gval += val * (*src++);
+						bval += val * (*src++);
+						aval += val * (*src++);
+					}
+				}
+				sum= 1.0f/sum;
+				*dest++ = rval*sum;
 				if(pix==4) {
-					gval += val * (*src++);
-					bval += val * (*src++);
-					aval += val * (*src++);
+					*dest++ = gval*sum;
+					*dest++ = bval*sum;
+					*dest++ = aval*sum;
 				}
 			}
-			sum= 1.0f/sum;
-			*dest++ = rval*sum;
-			if(pix==4) {
-				*dest++ = gval*sum;
-				*dest++ = bval*sum;
-				*dest++ = aval*sum;
-			}
+			if(node->exec & NODE_BREAK)
+				break;
 		}
-		if(node->exec & NODE_BREAK)
-			break;
+		
+		/* vertical */
+		MEM_freeN(gausstab);
 	}
 	
-	/* vertical */
-	MEM_freeN(gausstab);
+	if(nbd->sizey == 0) {
+		memcpy(new->rect, work->rect, sizeof(float) * img->type * imgx * imgy);
+	}
+	else {
+		rad = scale*(float)nbd->sizey;
+		if(rad>imgy/2)
+			rad= imgy/2;
+		else if(rad<1) 
+			rad= 1;
 	
-	rad = scale*(float)nbd->sizey;
-	if(rad>imgy/2)
-		rad= imgy/2;
-	else if(rad<1) 
-		rad= 1;
-
-	gausstab= make_gausstab(nbd->filtertype, rad);
-	gausstabcent= gausstab+rad;
-	
-	bigstep = pix*imgx;
-	for (x = 0; x < imgx; x++) {
-		float *srcd= work->rect + pix*x;
+		gausstab= make_gausstab(nbd->filtertype, rad);
+		gausstabcent= gausstab+rad;
 		
-		dest = new->rect + pix*x;
-		
-		for (y = 0; y < imgy ; y++) {
-			int minr= y-rad<0?-y:-rad;
-			int maxr= y+rad>imgy?imgy-y:rad;
+		bigstep = pix*imgx;
+		for (x = 0; x < imgx; x++) {
+			float *srcd= work->rect + pix*x;
 			
-			src= srcd + bigstep*(y+minr);
+			dest = new->rect + pix*x;
 			
-			sum= gval = rval= bval= aval= 0.0f;
-			for (i= minr; i < maxr; i++) {
-				val= gausstabcent[i];
-				sum+= val;
-				rval += val * src[0];
-				if(pix==4) {
-					gval += val * src[1];
-					bval += val * src[2];
-					aval += val * src[3];
+			for (y = 0; y < imgy ; y++) {
+				int minr= y-rad<0?-y:-rad;
+				int maxr= y+rad>imgy?imgy-y:rad;
+				
+				src= srcd + bigstep*(y+minr);
+				
+				sum= gval = rval= bval= aval= 0.0f;
+				for (i= minr; i < maxr; i++) {
+					val= gausstabcent[i];
+					sum+= val;
+					rval += val * src[0];
+					if(pix==4) {
+						gval += val * src[1];
+						bval += val * src[2];
+						aval += val * src[3];
+					}
+					src += bigstep;
 				}
-				src += bigstep;
+				sum= 1.0f/sum;
+				dest[0] = rval*sum;
+				if(pix==4) {
+					dest[1] = gval*sum;
+					dest[2] = bval*sum;
+					dest[3] = aval*sum;
+				}
+				dest+= bigstep;
 			}
-			sum= 1.0f/sum;
-			dest[0] = rval*sum;
-			if(pix==4) {
-				dest[1] = gval*sum;
-				dest[2] = bval*sum;
-				dest[3] = aval*sum;
-			}
-			dest+= bigstep;
+			if(node->exec & NODE_BREAK)
+				break;
 		}
-		if(node->exec & NODE_BREAK)
-			break;
+		MEM_freeN(gausstab);
 	}
-	
+
 	free_compbuf(work);
-	MEM_freeN(gausstab);
 }
 
 /* reference has to be mapped 0-1, and equal in size */
