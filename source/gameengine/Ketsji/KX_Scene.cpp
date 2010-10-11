@@ -812,6 +812,8 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 		// add a timebomb to this object
 		// for now, convert between so called frames and realtime
 		m_tempObjectList->Add(replica->AddRef());
+		// this convert the life from frames to sort-of seconds, hard coded 0.02 that assumes we have 50 frames per second
+		// if you change this value, make sure you change it in KX_GameObject::pyattr_get_life property too
 		CValue *fval = new CFloatValue(lifespan*0.02);
 		replica->SetProperty("::timebomb",fval);
 		fval->Release();
