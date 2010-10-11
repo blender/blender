@@ -431,6 +431,8 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	glViewport(0,0, texturewidth, textureheight);
 
 	glDisable(GL_DEPTH_TEST);
+	// if the last rendered face had alpha add it would messes with the color of the plane we apply 2DFilter to
+	glDisable(GL_BLEND); 
 	glPushMatrix();		//GL_MODELVIEW
 	glLoadIdentity();	// GL_MODELVIEW
 	glMatrixMode(GL_TEXTURE);
