@@ -4723,7 +4723,7 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 	}
 }
 
-void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int mirror)
+void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, Object *par, int heat, int mirror)
 {
 	/* This functions implements the automatic computation of vertex group
 	 * weights, either through envelopes or using a heat equilibrium.
@@ -4870,14 +4870,22 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 
 	/* compute the weights based on gathered vertices and bones */
 	if (heat) {
+		const char *error= NULL;
 		heat_bone_weighting(ob, mesh, verts, numbones, dgrouplist, dgroupflip,
-			root, tip, selected);
+			root, tip, selected, &error);
+		
+		if(error) {
+			BKE_report(reports, RPT_WARNING, error);
+		}
 	}
 	else {
 		envelope_bone_weighting(ob, mesh, verts, numbones, bonelist, dgrouplist,
 			dgroupflip, root, tip, selected, mat4_to_scale(par->obmat));
 	}
-	
+
+	/* only generated in some cases but can call anyway */
+	mesh_octree_table(ob, NULL, NULL, 'e');
+
 	/* free the memory allocated */
 	MEM_freeN(bonelist);
 	MEM_freeN(dgrouplist);
@@ -4888,7 +4896,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 	MEM_freeN(verts);
 }
 
-void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mode, int mirror)
+void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob, Object *par, int mode, int mirror)
 {
 	/* Lets try to create some vertex groups 
 	 * based on the bones of the parent armature.
@@ -4909,7 +4917,7 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mod
 		 * that are populated with the vertices for which the
 		 * bone is closest.
 		 */
-		add_verts_to_dgroups(scene, ob, par, (mode == ARM_GROUPS_AUTO), mirror);
+		add_verts_to_dgroups(reports, scene, ob, par, (mode == ARM_GROUPS_AUTO), mirror);
 	}
 } 
 /* ************* Clear Pose *****************************/

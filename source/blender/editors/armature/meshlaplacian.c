@@ -642,13 +642,15 @@ static float heat_limit_weight(float weight)
 		return weight;
 }
 
-void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource, bDeformGroup **dgrouplist, bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3], int *selected)
+void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource, bDeformGroup **dgrouplist, bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3], int *selected, const char **err_str)
 {
 	LaplacianSystem *sys;
 	MFace *mface;
 	float solution, weight;
 	int *vertsflipped = NULL, *mask= NULL;
 	int a, totface, j, bbone, firstsegment, lastsegment, thrownerror = 0;
+	
+	*err_str= NULL;
 
 	/* count triangles and create mask */
 	if(me->editflag & ME_EDIT_PAINT_MASK)
@@ -760,8 +762,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 			}
 		}
 		else if(!thrownerror) {
-			error("Bone Heat Weighting:"
-				" failed to find solution for one or more bones");
+			*err_str= "Bone Heat Weighting: failed to find solution for one or more bones";
 			thrownerror= 1;
 			break;
 		}
