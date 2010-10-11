@@ -1553,15 +1553,32 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 static int frame_jump_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	
-	if (RNA_boolean_get(op->ptr, "end"))
-		CFRA= PEFRA;
-	else
-		CFRA= PSFRA;
-	
-	sound_seek_scene(C);
+	wmTimer *animtimer= CTX_wm_screen(C)->animtimer;
 
-	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	/* Don't change CFRA directly if animtimer is running as this can cause
+	 * first/last frame not to be actually shown (bad since for example physics
+	 * simulations aren't reset properly).
+	 */
+	if(animtimer) {
+		ScreenAnimData *sad = animtimer->customdata;
+		
+		sad->flag |= ANIMPLAY_FLAG_USE_NEXT_FRAME;
+		
+		if (RNA_boolean_get(op->ptr, "end"))
+			sad->nextfra= PEFRA;
+		else
+			sad->nextfra= PSFRA;
+	}
+	else {
+		if (RNA_boolean_get(op->ptr, "end"))
+			CFRA= PEFRA;
+		else
+			CFRA= PSFRA;
+		
+		sound_seek_scene(C);
+
+		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	}
 	
 	return OPERATOR_FINISHED;
 }
@@ -2512,6 +2529,13 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 					sad->flag |= ANIMPLAY_FLAG_JUMPED;
 				}
 			}
+		}
+
+		/* next frame overriden by user action (pressed jump to first/last frame) */
+		if(sad->flag & ANIMPLAY_FLAG_USE_NEXT_FRAME) {
+			scene->r.cfra = sad->nextfra;
+			sad->flag &= ~ANIMPLAY_FLAG_USE_NEXT_FRAME;
+			sad->flag |= ANIMPLAY_FLAG_JUMPED;
 		}
 		
 		if (sad->flag & ANIMPLAY_FLAG_JUMPED)
