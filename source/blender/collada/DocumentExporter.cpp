@@ -69,6 +69,8 @@ extern char build_rev[];
 #include "BLI_string.h"
 #include "BLI_listbase.h"
 
+#include "RNA_access.h"
+
 #include "COLLADASWAsset.h"
 #include "COLLADASWLibraryVisualScenes.h"
 #include "COLLADASWNode.h"
@@ -901,19 +903,66 @@ protected:
 
 void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 {
+	PointerRNA sceneptr, unit_settings;
+	PropertyRNA *system, *scale;
+
 	clear_global_id_map();
 	
 	COLLADABU::NativeString native_filename =
 		COLLADABU::NativeString(std::string(filename));
 	COLLADASW::StreamWriter sw(native_filename);
 
-	// open <Collada>
+	// open <collada>
 	sw.startDocument();
 
 	// <asset>
 	COLLADASW::Asset asset(&sw);
-	// XXX ask blender devs about this?
-	asset.setUnit("decimetre", 0.1);
+
+	RNA_id_pointer_create(&(sce->id), &sceneptr);
+	unit_settings = RNA_pointer_get(&sceneptr, "unit_settings");
+	system = RNA_struct_find_property(&unit_settings, "system");
+	//scale = RNA_struct_find_property(&unit_settings, "scale_length");
+
+	std::string unitname = "meter";
+	float linearmeasure = 1.0f;
+
+	linearmeasure = RNA_float_get(&unit_settings, "scale_length");
+
+	switch(RNA_property_enum_get(&unit_settings, system)) {
+		case USER_UNIT_NONE:
+		case USER_UNIT_METRIC:
+			if(linearmeasure == 0.001f) {
+				unitname = "millimeter";
+			}
+			else if(linearmeasure == 0.01f) {
+				unitname = "centimeter";
+			}
+			else if(linearmeasure == 0.1f) {
+				unitname = "decimeter";
+			}
+			else if(linearmeasure == 1.0f) {
+				unitname = "meter";
+			}
+			else if(linearmeasure == 1000.0f) {
+				unitname = "kilometer";
+			}
+			break;
+		case USER_UNIT_IMPERIAL:
+			if(linearmeasure == 0.0254f) {
+				unitname = "inch";
+			}
+			else if(linearmeasure == 0.3048f) {
+				unitname = "foot";
+			}
+			else if(linearmeasure == 0.9144f) {
+				unitname = "yard";
+			}
+			break;
+		default:
+			break;
+	}
+
+	asset.setUnit(unitname, linearmeasure);
 	asset.setUpAxisType(COLLADASW::Asset::Z_UP);
 	// TODO: need an Author field in userpref
 	if(strlen(U.author) > 0) {
