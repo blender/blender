@@ -446,7 +446,9 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		return dm;
 	}
 
-	if(clmd->sim_parms->reset || (framenr == (startframe - clmd->sim_parms->preroll) && clmd->sim_parms->preroll != 0))
+	if(clmd->sim_parms->reset
+		|| (framenr == (startframe - clmd->sim_parms->preroll) && clmd->sim_parms->preroll != 0)
+		|| (clmd->clothObject && result->getNumVerts(result) != clmd->clothObject->numverts))
 	{
 		clmd->sim_parms->reset = 0;
 		cache->flag |= PTCACHE_OUTDATED;
@@ -455,17 +457,6 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		cache->last_exact= 0;
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
 		return result;
-	}
-	
-	/* verify we still have the same number of vertices, if not do nothing.
-	 * note that this should only happen if the number of vertices changes
-	 * during an animation due to a preceding modifier, this should not
-	 * happen because of object changes! */
-	if(clmd->clothObject) {
-		if(result->getNumVerts(result) != clmd->clothObject->numverts) {
-			BKE_ptcache_invalidate(cache);
-			return result;
-		}
 	}
 	
 	// unused in the moment, calculated separately in implicit.c
