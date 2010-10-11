@@ -259,8 +259,7 @@ static void wm_init_userdef(bContext *C)
 	/* set the python auto-execute setting from user prefs */
 	/* disabled by default, unless explicitly enabled in the command line */
 	if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
-
-	if(U.tempdir[0]) strncpy(btempdir, U.tempdir, FILE_MAXDIR+FILE_MAXFILE);
+	if(U.tempdir[0]) BLI_where_is_temp(btempdir, 1);
 }
 
 void WM_read_file(bContext *C, char *name, ReportList *reports)

@@ -1998,10 +1998,10 @@ static int wm_exit_blender_op(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void WM_OT_exit_blender(wmOperatorType *ot)
+static void WM_OT_quit_blender(wmOperatorType *ot)
 {
-	ot->name= "Exit Blender";
-	ot->idname= "WM_OT_exit_blender";
+	ot->name= "Quit Blender";
+	ot->idname= "WM_OT_quit_blender";
 	ot->description= "Quit Blender";
 
 	ot->invoke= WM_operator_confirm;
@@ -3068,7 +3068,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_read_factory_settings);
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
-	WM_operatortype_append(WM_OT_exit_blender);
+	WM_operatortype_append(WM_OT_quit_blender);
 	WM_operatortype_append(WM_OT_open_mainfile);
 	WM_operatortype_append(WM_OT_link_append);
 	WM_operatortype_append(WM_OT_recover_last_session);
@@ -3270,7 +3270,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_OSKEY, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
-	WM_keymap_add_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_quit_blender", QKEY, KM_PRESS, KM_OSKEY, 0);
 	#endif
 	WM_keymap_add_item(keymap, "WM_OT_read_homefile", NKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0); 
@@ -3290,7 +3290,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "copy", 1);
 
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_quit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_redraw_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);

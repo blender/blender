@@ -119,7 +119,7 @@ class INFO_MT_file(bpy.types.Menu):
         layout.separator()
 
         layout.operator_context = 'EXEC_AREA'
-        layout.operator("wm.exit_blender", text="Quit", icon='QUIT')
+        layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
 
 
 class INFO_MT_file_import(bpy.types.Menu):
