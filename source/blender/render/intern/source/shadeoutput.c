@@ -1141,6 +1141,11 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 					visifac = lar->dist/(lar->dist + dist[0]);
 					break;
 				case LA_FALLOFF_INVSQUARE:
+					/* NOTE: This seems to be a hack since commit r12045 says this
+					 * option is similar to old Quad, but with slight changes.
+					 * Correct inv square would be (which would be old Quad):
+					 * visifac = lar->distkw / (lar->distkw + dist[0]*dist[0]);
+					 */
 					visifac = lar->dist / (lar->dist + dist[0]*dist[0]);
 					break;
 				case LA_FALLOFF_SLIDERS:
