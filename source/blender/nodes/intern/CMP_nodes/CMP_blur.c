@@ -582,7 +582,11 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 		nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
 	}
 
-	if (((NodeBlurData *)node->storage)->filtertype == R_FILTER_FAST_GAUSS) {
+	if (nbd->sizex==0 && nbd->sizey==0) {
+		new= pass_on_compbuf(img);
+		out[0]->data= new;
+	}
+	else if (nbd->filtertype == R_FILTER_FAST_GAUSS) {
 		CompBuf *new, *img = in[0]->data;
 		/*from eeshlo's original patch, removed to fit in with the existing blur node */
 		/*const float sx = in[1]->vec[0], sy = in[2]->vec[0];*/
@@ -622,6 +626,7 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 		
 		/* if fac input, we do it different */
 		if(in[1]->data) {
+			CompBuf *gammabuf;
 			
 			/* make output size of input image */
 			new= alloc_compbuf(img->x, img->y, img->type, 1); /* allocs */
@@ -630,7 +635,18 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 			new->xof = img->xof;
 			new->yof = img->yof;
 			
-			blur_with_reference(node, new, img, in[1]->data);
+			if(nbd->gamma) {
+				gammabuf= dupalloc_compbuf(img);
+				gamma_correct_compbuf(gammabuf, 0);
+			}
+			else gammabuf= img;
+			
+			blur_with_reference(node, new, gammabuf, in[1]->data);
+			
+			if(nbd->gamma) {
+				gamma_correct_compbuf(new, 1);
+				free_compbuf(gammabuf);
+			}
 			if(node->exec & NODE_BREAK) {
 				free_compbuf(new);
 				new= NULL;
@@ -643,7 +659,6 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 				new= pass_on_compbuf(img);
 			}
 			else {
-				NodeBlurData *nbd= node->storage;
 				CompBuf *gammabuf;
 				
 				/* make output size of input image */
