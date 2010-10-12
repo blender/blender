@@ -141,7 +141,16 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 				done= 1;
 			}
 		}
-		if(done) normalize_v3(nor);
+		if(done) {
+			float view_vec[3], cross[3];
+
+			/* correct the normal to be aligned on the view plane */
+			copy_v3_v3(view_vec, vc.rv3d->viewinv[2]);
+			mul_mat3_m4_v3(vc.obedit->imat, view_vec);
+			cross_v3_v3v3(cross, nor, view_vec);
+			cross_v3_v3v3(nor, view_vec, cross);
+			normalize_v3(nor);
+		}
 		
 		/* center */
 		add_v3_v3v3(cent, min, max);
