@@ -964,7 +964,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *p
 			else
 				param = PyLong_AsLong( value );
 			
-			if( param < 0 || param > 1) {
+			if(param < 0) {
 				PyErr_Format(PyExc_TypeError, "%.200s %.200s.%.200s expected True/False or 0/1", error_prefix, RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
 				return -1;
 			} else {
