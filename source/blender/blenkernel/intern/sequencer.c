@@ -1005,7 +1005,7 @@ static int get_shown_sequences(	ListBase * seqbasep, int cfra, int chanshown, Se
 		}
 	}
 
-	for (;b <= chanshown; b++) {
+	for (;b <= chanshown && b >= 0; b++) {
 		if (video_seq_is_rendered(seq_arr[b])) {
 			seq_arr_out[cnt++] = seq_arr[b];
 		}
