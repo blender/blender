@@ -157,8 +157,8 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texre
 		}
 	}
 
-	x = (int)(fx*ibuf->x);
-	y = (int)(fy*ibuf->y);
+	x = (int)floorf(fx*ibuf->x);
+	y = (int)floorf(fy*ibuf->y);
 
 	if(tex->extend == TEX_CLIPCUBE) {
 		if(x<0 || y<0 || x>=ibuf->x || y>=ibuf->y || texvec[2]<-1.0 || texvec[2]>1.0) {
