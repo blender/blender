@@ -406,14 +406,9 @@ static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	// if(!RNA_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
 	if(!RNA_string_length(op->ptr, "text")) {
 		char str[2] = {event->ascii, '\0'};
-
-		/* XXX NOTE: Reverting this change from r32330, since it
-		 * breaks input for cases where modifierkey is needed to
-		 * create characters.
-		 */
 		/* if alt/ctrl/super are pressed pass through */
-		//if(event->alt || event->ctrl || event->oskey)
-		//	return OPERATOR_PASS_THROUGH;
+		if(event->ctrl || event->oskey)
+			return OPERATOR_PASS_THROUGH;
 
 		RNA_string_set(op->ptr, "text", str);
 	}
