@@ -27,6 +27,7 @@
 #include "bpy_util.h"
 
 #include "DNA_screen_types.h"
+#include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "ED_space_api.h"
 
@@ -34,7 +35,7 @@
 #define RNA_CAPSULE_ID "RNA_HANDLE"
 #define RNA_CAPSULE_ID_INVALID "RNA_HANDLE_REMOVED"
 
-void cb_region_draw(const bContext *C, ARegion *ar, void *customdata)
+void cb_region_draw(const bContext *C, ARegion *UNUSED(ar), void *customdata)
 {
 	PyObject *cb_func, *cb_args, *result;
 	PyGILState_STATE gilstate;

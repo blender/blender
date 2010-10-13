@@ -31,9 +31,14 @@
 
 //----------------------------------mathutils.Color() -------------------
 //makes a new color for you to play with
-static PyObject *Color_new(PyTypeObject * type, PyObject * args, PyObject * kwargs)
+static PyObject *Color_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
 	float col[3]= {0.0f, 0.0f, 0.0f};
+
+	if(kwds && PyDict_Size(kwds)) {
+		PyErr_SetString(PyExc_TypeError, "mathutils.Color(): takes no keyword args");
+		return NULL;
+	}
 
 	switch(PyTuple_GET_SIZE(args)) {
 	case 0:
@@ -83,7 +88,7 @@ static char Color_copy_doc[] =
 "\n"
 "   .. note:: use this to get a copy of a wrapped color with no reference to the original data.\n";
 
-static PyObject *Color_copy(ColorObject * self, PyObject *args)
+static PyObject *Color_copy(ColorObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
@@ -158,7 +163,7 @@ static PyObject* Color_richcmpr(PyObject *objectA, PyObject *objectB, int compar
 //---------------------SEQUENCE PROTOCOLS------------------------
 //----------------------------len(object)------------------------
 //sequence length
-static int Color_len(ColorObject * self)
+static int Color_len(ColorObject *UNUSED(self))
 {
 	return COLOR_SIZE;
 }
@@ -394,7 +399,7 @@ static int Color_setChannelHSV(ColorObject * self, PyObject * value, void * type
 }
 
 /* color channel (HSV), color.h/s/v */
-static PyObject *Color_getHSV(ColorObject * self, void *type)
+static PyObject *Color_getHSV(ColorObject * self, void *UNUSED(closure))
 {
 	float hsv[3];
 	PyObject *ret;
@@ -411,7 +416,7 @@ static PyObject *Color_getHSV(ColorObject * self, void *type)
 	return ret;
 }
 
-static int Color_setHSV(ColorObject * self, PyObject * value, void * type)
+static int Color_setHSV(ColorObject * self, PyObject * value, void *UNUSED(closure))
 {
 	float hsv[3];
 
@@ -452,8 +457,8 @@ static PyGetSetDef Color_getseters[] = {
 
 //-----------------------METHOD DEFINITIONS ----------------------
 static struct PyMethodDef Color_methods[] = {
-	{"__copy__", (PyCFunction) Color_copy, METH_VARARGS, Color_copy_doc},
-	{"copy", (PyCFunction) Color_copy, METH_VARARGS, Color_copy_doc},
+	{"__copy__", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
+	{"copy", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 

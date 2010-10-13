@@ -44,6 +44,12 @@
 #define STRINGIFY_ARG(x) #x
 #define STRINGIFY(x) STRINGIFY_ARG(x)
 
+#ifdef __GNUC__
+#  define UNUSED(x) x __attribute__((__unused__))
+#else
+#  define UNUSED(x) x
+#endif
+
 /* these values need to be hardcoded in structs, dna does not recognize defines */
 /* also defined in DNA_space_types.h */
 #ifndef FILE_MAXDIR

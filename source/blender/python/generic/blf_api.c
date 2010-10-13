@@ -26,6 +26,7 @@
 #include "blf_api.h"
 
 #include "../../blenfont/BLF_api.h"
+#include "BKE_utildefines.h"
 
 static char py_blf_position_doc[] =
 ".. function:: position(fontid, x, y, z)\n"
@@ -41,7 +42,7 @@ static char py_blf_position_doc[] =
 "   :arg z: Z axis position to draw the text.\n"
 "   :type z: float\n";
 
-static PyObject *py_blf_position(PyObject *self, PyObject *args)
+static PyObject *py_blf_position(PyObject *UNUSED(self), PyObject *args)
 {
 	int fontid;
 	float x, y, z;
@@ -67,7 +68,7 @@ static char py_blf_size_doc[] =
 "   :arg dpi: dots per inch value to use for drawing.\n"
 "   :type dpi: int\n";
 
-static PyObject *py_blf_size(PyObject *self, PyObject *args)
+static PyObject *py_blf_size(PyObject *UNUSED(self), PyObject *args)
 {
 	int fontid, size, dpi;
 
@@ -90,7 +91,7 @@ static char py_blf_aspect_doc[] =
 "   :arg aspect: The aspect ratio for text drawing to use.\n"
 "   :type aspect: float\n";
 
-static PyObject *py_blf_aspect(PyObject *self, PyObject *args)
+static PyObject *py_blf_aspect(PyObject *UNUSED(self), PyObject *args)
 {
 	float aspect;
 	int fontid;
@@ -114,7 +115,7 @@ static char py_blf_blur_doc[] =
 "   :arg radius: The radius for blurring text (in pixels).\n"
 "   :type radius: int\n";
 
-static PyObject *py_blf_blur(PyObject *self, PyObject *args)
+static PyObject *py_blf_blur(PyObject *UNUSED(self), PyObject *args)
 {
 	int blur, fontid;
 
@@ -137,7 +138,7 @@ static char py_blf_draw_doc[] =
 "   :arg text: the text to draw.\n"
 "   :type text: string\n";
 
-static PyObject *py_blf_draw(PyObject *self, PyObject *args)
+static PyObject *py_blf_draw(PyObject *UNUSED(self), PyObject *args)
 {
 	char *text;
 	int fontid;
@@ -162,7 +163,7 @@ static char py_blf_dimensions_doc[] =
 "   :return: the width and height of the text.\n"
 "   :rtype: tuple of 2 floats\n";
 
-static PyObject *py_blf_dimensions(PyObject *self, PyObject *args)
+static PyObject *py_blf_dimensions(PyObject *UNUSED(self), PyObject *args)
 {
 	char *text;
 	float r_width, r_height;
@@ -196,7 +197,7 @@ static char py_blf_clipping_doc[] =
 "   :arg ymax: Clip the drawing area by these bounds.\n"
 "   :type ymax: float\n";
 
-static PyObject *py_blf_clipping(PyObject *self, PyObject *args)
+static PyObject *py_blf_clipping(PyObject *UNUSED(self), PyObject *args)
 {
 	float xmin, ymin, xmax, ymax;
 	int fontid;
@@ -219,7 +220,7 @@ static char py_blf_disable_doc[] =
 "   :arg option: One of ROTATION, CLIPPING, SHADOW or KERNING_DEFAULT.\n"
 "   :type option: int\n";
 
-static PyObject *py_blf_disable(PyObject *self, PyObject *args)
+static PyObject *py_blf_disable(PyObject *UNUSED(self), PyObject *args)
 {
 	int option, fontid;
 
@@ -241,7 +242,7 @@ static char py_blf_enable_doc[] =
 "   :arg option: One of ROTATION, CLIPPING, SHADOW or KERNING_DEFAULT.\n"
 "   :type option: int\n";
 
-static PyObject *py_blf_enable(PyObject *self, PyObject *args)
+static PyObject *py_blf_enable(PyObject *UNUSED(self), PyObject *args)
 {
 	int option, fontid;
 
@@ -263,7 +264,7 @@ static char py_blf_rotation_doc[] =
 "   :arg angle: The angle for text drawing to use.\n"
 "   :type angle: float\n";
 
-static PyObject *py_blf_rotation(PyObject *self, PyObject *args)
+static PyObject *py_blf_rotation(PyObject *UNUSED(self), PyObject *args)
 {
 	float angle;
 	int fontid;
@@ -294,7 +295,7 @@ static char py_blf_shadow_doc[] =
 "   :arg a: Shadow color (alpha channel 0.0 - 1.0).\n"
 "   :type a: float\n";
 
-static PyObject *py_blf_shadow(PyObject *self, PyObject *args)
+static PyObject *py_blf_shadow(PyObject *UNUSED(self), PyObject *args)
 {
 	int level, fontid;
 	float r, g, b, a;
@@ -324,7 +325,7 @@ static char py_blf_shadow_offset_doc[] =
 "   :arg y: Horizontal shadow offset value in pixels.\n"
 "   :type y: float\n";
 
-static PyObject *py_blf_shadow_offset(PyObject *self, PyObject *args)
+static PyObject *py_blf_shadow_offset(PyObject *UNUSED(self), PyObject *args)
 {
 	int x, y, fontid;
 
@@ -346,7 +347,7 @@ static char py_blf_load_doc[] =
 "   :return: the new font's fontid or -1 if there was an error.\n"
 "   :rtype: integer\n";
 
-static PyObject *py_blf_load(PyObject *self, PyObject *args)
+static PyObject *py_blf_load(PyObject *UNUSED(self), PyObject *args)
 {
 	char* filename;
 

@@ -40,7 +40,7 @@
 #include "MEM_guardedalloc.h"
 #include "BKE_report.h"
 
-static PyObject *pyop_poll( PyObject * self, PyObject * args)
+static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 {
 	wmOperatorType *ot;
 	char		*opname;
@@ -80,7 +80,7 @@ static PyObject *pyop_poll( PyObject * self, PyObject * args)
 	return ret;
 }
 
-static PyObject *pyop_call( PyObject * self, PyObject * args)
+static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 {
 	wmOperatorType *ot;
 	int error_val = 0;
@@ -196,7 +196,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 
 }
 
-static PyObject *pyop_as_string( PyObject * self, PyObject * args)
+static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 {
 	wmOperatorType *ot;
 	PointerRNA ptr;
@@ -248,7 +248,7 @@ static PyObject *pyop_as_string( PyObject * self, PyObject * args)
 	return pybuf;
 }
 
-static PyObject *pyop_dir(PyObject *self)
+static PyObject *pyop_dir(PyObject *UNUSED(self))
 {
 	PyObject *list = PyList_New(0), *name;
 	wmOperatorType *ot;
@@ -262,7 +262,7 @@ static PyObject *pyop_dir(PyObject *self)
 	return list;
 }
 
-static PyObject *pyop_getrna(PyObject *self, PyObject *value)
+static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 {
 	wmOperatorType *ot;
 	PointerRNA ptr;

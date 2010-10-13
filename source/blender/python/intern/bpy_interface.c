@@ -43,6 +43,7 @@
 #include "BLI_math_base.h"
 #include "BLI_string.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "BKE_text.h"
 #include "BKE_font.h" /* only for utf8towchar */
@@ -104,7 +105,8 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 	}
 }
 
-void bpy_context_clear(bContext *C, PyGILState_STATE *gilstate)
+/* context should be used but not now because it causes some bugs */
+void bpy_context_clear(bContext *UNUSED(C), PyGILState_STATE *gilstate)
 {
 	py_call_level--;
 

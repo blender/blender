@@ -352,7 +352,7 @@ static char Quaternion_copy_doc[] =
 "\n"
 "   .. note:: use this to get a copy of a wrapped quaternion with no reference to the original data.\n";
 
-static PyObject *Quaternion_copy(QuaternionObject * self)
+static PyObject *Quaternion_copy(QuaternionObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
@@ -429,7 +429,7 @@ static PyObject* Quaternion_richcmpr(PyObject *objectA, PyObject *objectB, int c
 //---------------------SEQUENCE PROTOCOLS------------------------
 //----------------------------len(object)------------------------
 //sequence length
-static int Quaternion_len(QuaternionObject * self)
+static int Quaternion_len(QuaternionObject *UNUSED(self))
 {
 	return QUAT_SIZE;
 }
@@ -772,7 +772,7 @@ static int Quaternion_setAxis( QuaternionObject * self, PyObject * value, void *
 	return Quaternion_ass_item(self, GET_INT_FROM_POINTER(type), value);
 }
 
-static PyObject *Quaternion_getMagnitude( QuaternionObject * self, void *type )
+static PyObject *Quaternion_getMagnitude(QuaternionObject * self, void *UNUSED(closure))
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
@@ -780,7 +780,7 @@ static PyObject *Quaternion_getMagnitude( QuaternionObject * self, void *type )
 	return PyFloat_FromDouble(sqrt(dot_qtqt(self->quat, self->quat)));
 }
 
-static PyObject *Quaternion_getAngle( QuaternionObject * self, void *type )
+static PyObject *Quaternion_getAngle(QuaternionObject * self, void *UNUSED(closure))
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
@@ -788,7 +788,7 @@ static PyObject *Quaternion_getAngle( QuaternionObject * self, void *type )
 	return PyFloat_FromDouble(2.0 * (saacos(self->quat[0])));
 }
 
-static int Quaternion_setAngle(QuaternionObject * self, PyObject * value, void * type)
+static int Quaternion_setAngle(QuaternionObject * self, PyObject * value, void *UNUSED(closure))
 {
 	float axis[3];
 	float angle;
@@ -821,7 +821,7 @@ static int Quaternion_setAngle(QuaternionObject * self, PyObject * value, void *
 	return 0;
 }
 
-static PyObject *Quaternion_getAxisVec(QuaternionObject *self, void *type)
+static PyObject *Quaternion_getAxisVec(QuaternionObject *self, void *UNUSED(closure))
 {
 	float axis[3];
 	float angle;
@@ -842,7 +842,7 @@ static PyObject *Quaternion_getAxisVec(QuaternionObject *self, void *type)
 	return (PyObject *) newVectorObject(axis, 3, Py_NEW, NULL);
 }
 
-static int Quaternion_setAxisVec(QuaternionObject *self, PyObject *value, void *type)
+static int Quaternion_setAxisVec(QuaternionObject *self, PyObject *value, void *UNUSED(closure))
 {
 	float axis[3];
 	float angle;
@@ -872,12 +872,17 @@ static int Quaternion_setAxisVec(QuaternionObject *self, PyObject *value, void *
 }
 
 //----------------------------------mathutils.Quaternion() --------------
-static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *Quaternion_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
 	PyObject *seq= NULL;
 	float angle = 0.0f;
 	float quat[QUAT_SIZE]= {0.0f, 0.0f, 0.0f, 0.0f};
 
+	if(kwds && PyDict_Size(kwds)) {
+		PyErr_SetString(PyExc_TypeError, "mathutils.Quaternion(): takes no keyword args");
+		return NULL;
+	}
+	
 	if(!PyArg_ParseTuple(args, "|Of:mathutils.Quaternion", &seq, &angle))
 		return NULL;
 

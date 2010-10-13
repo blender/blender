@@ -60,7 +60,7 @@ static char M_Geometry_BezierInterp_doc[] = "";
 
 //---------------------------------INTERSECTION FUNCTIONS--------------------
 //----------------------------------geometry.Intersect() -------------------
-static PyObject *M_Geometry_Intersect( PyObject * self, PyObject * args )
+static PyObject *M_Geometry_Intersect(PyObject *UNUSED(self), PyObject* args)
 {
 	VectorObject *ray, *ray_off, *vec1, *vec2, *vec3;
 	float dir[3], orig[3], v1[3], v2[3], v3[3], e1[3], e2[3], pvec[3], tvec[3], qvec[3];
@@ -133,7 +133,7 @@ static PyObject *M_Geometry_Intersect( PyObject * self, PyObject * args )
 }
 //----------------------------------geometry.LineIntersect() -------------------
 /* Line-Line intersection using algorithm from mathworld.wolfram.com */
-static PyObject *M_Geometry_LineIntersect( PyObject * self, PyObject * args )
+static PyObject *M_Geometry_LineIntersect(PyObject *UNUSED(self), PyObject* args)
 {
 	PyObject * tuple;
 	VectorObject *vec1, *vec2, *vec3, *vec4;
@@ -201,7 +201,7 @@ static PyObject *M_Geometry_LineIntersect( PyObject * self, PyObject * args )
 
 //---------------------------------NORMALS FUNCTIONS--------------------
 //----------------------------------geometry.QuadNormal() -------------------
-static PyObject *M_Geometry_QuadNormal( PyObject * self, PyObject * args )
+static PyObject *M_Geometry_QuadNormal(PyObject *UNUSED(self), PyObject* args)
 {
 	VectorObject *vec1;
 	VectorObject *vec2;
@@ -252,7 +252,7 @@ static PyObject *M_Geometry_QuadNormal( PyObject * self, PyObject * args )
 }
 
 //----------------------------geometry.TriangleNormal() -------------------
-static PyObject *M_Geometry_TriangleNormal( PyObject * self, PyObject * args )
+static PyObject *M_Geometry_TriangleNormal(PyObject *UNUSED(self), PyObject* args)
 {
 	VectorObject *vec1, *vec2, *vec3;
 	float v1[3], v2[3], v3[3], e1[3], e2[3], n[3];
@@ -289,7 +289,7 @@ static PyObject *M_Geometry_TriangleNormal( PyObject * self, PyObject * args )
 
 //--------------------------------- AREA FUNCTIONS--------------------
 //----------------------------------geometry.TriangleArea() -------------------
-static PyObject *M_Geometry_TriangleArea( PyObject * self, PyObject * args )
+static PyObject *M_Geometry_TriangleArea(PyObject *UNUSED(self), PyObject* args)
 {
 	VectorObject *vec1, *vec2, *vec3;
 	float v1[3], v2[3], v3[3];
@@ -335,7 +335,7 @@ static PyObject *M_Geometry_TriangleArea( PyObject * self, PyObject * args )
 
 /*----------------------------------geometry.PolyFill() -------------------*/
 /* PolyFill function, uses Blenders scanfill to fill multiple poly lines */
-static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
+static PyObject *M_Geometry_PolyFill(PyObject *UNUSED(self), PyObject * polyLineSeq )
 {
 	PyObject *tri_list; /*return this list of tri's */
 	PyObject *polyLine, *polyVec;
@@ -450,7 +450,7 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 }
 
 
-static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
+static PyObject *M_Geometry_LineIntersect2D(PyObject *UNUSED(self), PyObject* args)
 {
 	VectorObject *line_a1, *line_a2, *line_b1, *line_b2;
 	float a1x, a1y, a2x, a2y,  b1x, b1y, b2x, b2y, xi, yi, a1,a2,b1,b2, newvec[2];
@@ -548,7 +548,7 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *M_Geometry_ClosestPointOnLine( PyObject * self, PyObject * args )
+static PyObject *M_Geometry_ClosestPointOnLine(PyObject *UNUSED(self), PyObject* args)
 {
 	VectorObject *pt, *line_1, *line_2;
 	float pt_in[3], pt_out[3], l1[3], l2[3];
@@ -586,7 +586,7 @@ static PyObject *M_Geometry_ClosestPointOnLine( PyObject * self, PyObject * args
 	return ret;
 }
 
-static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args )
+static PyObject *M_Geometry_PointInTriangle2D(PyObject *UNUSED(self), PyObject* args)
 {
 	VectorObject *pt_vec, *tri_p1, *tri_p2, *tri_p3;
 	
@@ -606,7 +606,7 @@ static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args 
 	return PyLong_FromLong(isect_point_tri_v2(pt_vec->vec, tri_p1->vec, tri_p2->vec, tri_p3->vec));
 }
 
-static PyObject *M_Geometry_PointInQuad2D( PyObject * self, PyObject * args )
+static PyObject *M_Geometry_PointInQuad2D(PyObject *UNUSED(self), PyObject* args)
 {
 	VectorObject *pt_vec, *quad_p1, *quad_p2, *quad_p3, *quad_p4;
 	
@@ -690,7 +690,7 @@ static void boxPack_ToPyObject(PyObject * value, boxPack **boxarray)
 }
 
 
-static PyObject *M_Geometry_BoxPack2D( PyObject * self, PyObject * boxlist )
+static PyObject *M_Geometry_BoxPack2D(PyObject *UNUSED(self), PyObject * boxlist )
 {
 	boxPack *boxarray = NULL;
 	float tot_width, tot_height;
@@ -718,7 +718,7 @@ static PyObject *M_Geometry_BoxPack2D( PyObject * self, PyObject * boxlist )
 	return Py_BuildValue( "ff", tot_width, tot_height);
 }
 
-static PyObject *M_Geometry_BezierInterp( PyObject * self, PyObject * args )
+static PyObject *M_Geometry_BezierInterp(PyObject *UNUSED(self), PyObject* args)
 {
 	VectorObject *vec_k1, *vec_h1, *vec_k2, *vec_h2;
 	int resolu;
@@ -767,7 +767,7 @@ static PyObject *M_Geometry_BezierInterp( PyObject * self, PyObject * args )
 	return list;
 }
 
-static PyObject *M_Geometry_BarycentricTransform(PyObject * self, PyObject * args)
+static PyObject *M_Geometry_BarycentricTransform(PyObject *UNUSED(self), PyObject *args)
 {
 	VectorObject *vec_pt;
 	VectorObject *vec_t1_tar, *vec_t2_tar, *vec_t3_tar;

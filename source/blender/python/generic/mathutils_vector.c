@@ -45,7 +45,7 @@ static PyObject *Vector_ToTupleExt(VectorObject *self, int ndigits);
 //----------------------------------mathutils.Vector() ------------------
 // Supports 2D, 3D, and 4D vector objects both int and float values
 // accepted. Mixed float and int values accepted. Ints are parsed to float 
-static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *UNUSED(kwds))
 {
 	float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
 	int size= 3; /* default to a 3D vector */
@@ -1445,7 +1445,7 @@ static int Vector_setAxis(VectorObject *self, PyObject * value, void * type )
 }
 
 /* vector.length */
-static PyObject *Vector_getLength(VectorObject *self, void *type )
+static PyObject *Vector_getLength(VectorObject *self, void *UNUSED(closure))
 {
 	double dot = 0.0f;
 	int i;

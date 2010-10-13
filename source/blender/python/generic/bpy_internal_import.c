@@ -30,6 +30,7 @@
 #include "DNA_text_types.h"
 
 #include "MEM_guardedalloc.h"
+#include "BKE_utildefines.h" /* UNUSED */	
 #include "BKE_text.h" /* txt_to_buf */	
 #include "BKE_main.h"
 #include "BKE_global.h" /* grr, only for G.sce */
@@ -191,7 +192,7 @@ PyObject *bpy_text_reimport( PyObject *module, int *found )
 }
 
 
-static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * kw)
+static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args,  PyObject * kw)
 {
 	PyObject *exception, *err, *tb;
 	char *name;
@@ -244,7 +245,7 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
  * our reload() module, to handle reloading in-memory scripts
  */
 
-static PyObject *blender_reload( PyObject * self, PyObject * module )
+static PyObject *blender_reload(PyObject *UNUSED(self), PyObject * module)
 {
 	PyObject *exception, *err, *tb;
 	PyObject *newmodule = NULL;
