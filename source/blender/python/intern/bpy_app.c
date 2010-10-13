@@ -94,11 +94,11 @@ static PyObject *make_app_info(void)
 	SetStrItem(build_platform);
 	SetStrItem(build_type);
 #else
-		SetStrItem("Unknown");
-		SetStrItem("Unknown");
-		SetStrItem("Unknown");
-		SetStrItem("Unknown");
-		SetStrItem("Unknown");
+	SetStrItem("Unknown");
+	SetStrItem("Unknown");
+	SetStrItem("Unknown");
+	SetStrItem("Unknown");
+	SetStrItem("Unknown");
 #endif
 
 #undef SetIntItem
