@@ -1685,6 +1685,7 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int f
 			ibuf->flags |= IB_rectfloat;
 			ibuf->mall= IB_rectfloat;
 			ibuf->channels= rpass->channels;
+			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 			
 			image_initialize_after_load(ima, ibuf);
 			image_assign_ibuf(ima, ibuf, iuser?iuser->multi_index:0, frame);
