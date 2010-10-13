@@ -191,6 +191,7 @@ typedef struct wmNotifier {
 #define ND_TOOLSETTINGS		(15<<16)
 #define ND_LAYER			(16<<16)
 #define ND_FRAME_RANGE		(17<<16)
+#define ND_WORLD			(92<<16)
 #define ND_LAYER_CONTENT	(101<<16)
 
 	/* NC_OBJECT Object */

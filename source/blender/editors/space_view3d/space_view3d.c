@@ -548,22 +548,36 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene
 		base= base->next;
 	}
 
-	sa= win->screen->areabase.first;
-	while(sa) {
-		if(sa->spacetype == SPACE_VIEW3D)
-			if(BLI_findindex(&sa->regionbase, ar) >= 0) {
+	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype == SPACE_VIEW3D) {
+			if(BLI_findindex(&sa->regionbase, ar) != -1) {
 				View3D *v3d= sa->spacedata.first;
 				v3d->lay_used= lay_used;
 				break;
 			}
-
-		sa= sa->next;
+		}
 	}
+}
+
+static View3D *view3d_from_wmn(ARegion *ar, wmNotifier *wmn)
+{
+	wmWindow *win= wmn->wm->winactive;
+	ScrArea *sa;
+
+	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype == SPACE_VIEW3D)
+			if(BLI_findindex(&sa->regionbase, ar) != -1) {
+				return (View3D *)sa->spacedata.first;
+			}
+	}
+
+	return NULL;
 }
 
 static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	bScreen *sc;
+	View3D *v3d;
 
 	/* context changes */
 	switch(wmn->category) {
@@ -599,6 +613,11 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_RENDER_OPTIONS:
 				case ND_MODE:
 					ED_region_tag_redraw(ar);
+					break;
+				case ND_WORLD:
+					v3d= view3d_from_wmn(ar, wmn);
+					if(v3d->flag2 & V3D_RENDER_OVERRIDE)
+						ED_region_tag_redraw(ar);
 					break;
 			}
 			if (wmn->action == NA_EDITED)
@@ -650,7 +669,9 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_WORLD:
 			switch(wmn->data) {
 				case ND_WORLD_DRAW:
-					ED_region_tag_redraw(ar);
+					v3d= view3d_from_wmn(ar, wmn);
+					if(v3d->flag2 & V3D_RENDER_OVERRIDE)
+						ED_region_tag_redraw(ar);
 					break;
 			}
 			break;
