@@ -20,7 +20,7 @@ $Id$
     with the patch to get started.
 
     This document describes the usage of the new SCons scripts. The
-    inner workings are described in blender-scons-dev.txt.
+    inner workings are described in scons-dev.txt.
 
     Building Blender
     ----------------

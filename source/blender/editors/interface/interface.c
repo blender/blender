@@ -67,7 +67,7 @@
 #define MENU_SEP_HEIGHT		6
 
 /* 
- * a full doc with API notes can be found in bf-blender/blender/doc/interface_API.txt
+ * a full doc with API notes can be found in bf-blender/trunk/blender/doc/guides/interface_API.txt
  * 
  * uiBlahBlah()		external function
  * ui_blah_blah()	internal function

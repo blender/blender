@@ -146,7 +146,7 @@ TEST_SSE_SUPPORT()
 # On Macs: 
 #   cmake -D PYTHON_INC=/System/Library/Frameworks/Python.framework/Versions/3.1/include/python3.1 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.1/lib/python3.1/config -G Xcode ../blender
 #
-# When changing any of this remember to update the notes in doc/blender-cmake.txt
+# When changing any of this remember to update the notes in doc/build_systems/cmake.txt
 
 #-----------------------------------------------------------------------------
 #Platform specifics

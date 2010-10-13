@@ -1,0 +1,170 @@
+Simple Blender Python Developer's Guide
+---------------------------------------
+
+This is an outline for a future guide yet to be written.  It is meant for
+programmers wanting to understand and maybe help with the embedding of Python
+inside Blender.
+
+I - Introduction
+
+We could praise Python here for its many qualities, but it's probably better
+to just give some links:
+
+The main site is at www.python.org , with documentation at www.python.org/doc/
+
+Also worth of mention: it's an interpreted language and is available for
+many different systems.  The download includes the interpreter, many modules
+(think libs), good documentation and some programs / examples.  If you use
+linux, there's a high chance you already have Python installed, just try
+"man python".
+
+The reason for embedding a language environment inside Blender is to give
+users the ability to access the program's internal data and functionality.
+This can be used to import / export (from / to other 2d / 3d formats) or
+change the data (to create new objects procedurally, among many other 
+interesting possibilities).  Script writers (Blender Python programmers) can 
+also expand Blender in new ways, adding new features on-the-fly, without having
+to recompile it.  It is usually much easier and faster to write scripts in 
+Python than to code the equivalent in C.
+
+II - Reference material:
+
+There are two important texts for us in the documentation that comes
+with Python ( docs also available online at www.python.org ):
+
+- Extending and Embedding (tutorial for C/C++ programmers)
+
+and specially
+
+- Python/C API.
+
+You can read the first one to get a feel for how things are done
+(reference counting is probably the most important part), but the second
+doc is a must.  Specially useful as a fast reference is its Index, at letter
+P, where all commands are.
+
+Specially useful commands are Py_BuildValue and the family of parsing
+functions, PyArg_Parse* (PyArg_Parse(), PyArg_ParseTuple(),
+PyArg_ParseTupleAndKeywords()). Py_BuildValue is usually the best way to make
+Python Objects (the 'variables' that the Python Interpreter understands)
+out of C ones.  The PyArg_Parse* functions do the opposite, they parse
+Python Objects to C variables.
+
+So, understand PyArg_Parse* functions, Py_BuildValue and reference
+counting.  The first doc has a good discussion about them.
+
+- C knowledge is also necessary, of course, use your favorite resource.
+
+- The Blender 2.25 API documentation ( www.blender.org ) is, along with
+the source, our basic API ref.
+
+III - Directories
+
+The previous Blender Python API's are spread in blender/intern/python
+and the C part of the current one, bpython, is at
+blender/source/blender/bpython/, specially in intern/.  The current
+solution is a Python wrapper on top of this bpython one, at
+blender/intern/python/modules/Blender/
+
+Note: since it's in Python, they needed the freeze Python utility, a
+process/program that creates stand-alone executables out of Python
+source files -- that is, it packs together an interpreter, the needed
+modules and the source of a Python program so that users of this program
+don't need to have the Python interpreter already installed in their
+machines to run the program -- Blender, in this case.
+
+The new implementation is pure C, so we won't need to "freeze" it.
+
+Another important dir for starters is blender/source/blender/makesdna,
+where the headers with Blender structs lie.
+
+IV - Experimental Python
+
+The new implementation, currently referred to as experimental python -
+exppython - was started by Michel Selten.  He chose to solve the mess in
+Blender Python by starting over from scratch, in C, but keeping API
+compatibility with the current 2.25 API used by Blender.
+
+It is in blender/source/blender/python , more specifically inside
+api2_2x/
+
+To make it clear, exppython is the new implementation being worked on.  It 
+will possibly become the de-facto implementation in Blender 2.28, the next 
+Blender version.  Currently, Blender still comes with the same implementation 
+found in the 2.25 version of the program.  So we call that the 2.25 
+implementation, or bpython.
+
+BPython had plenty of "macro magic", lot's of complicate #define's, etc.,
+since a lot of the embedding work is quite repetitive.  But that makes it
+much harder for newbies to jump in and learn, so the new files in exppython
+avoid that.
+
+This means: Blender, Object, Camera, Lamp, Image, Text, Window modules
+(the files have the same names, ending obviously with .c and .h)
+
+To speed things up, some independent parts of bpython are being
+integrated directly into exppython.  That already happened with Draw and
+BGL, both taken from opy_draw.c in the bpython/intern dir.  The same is
+happening with NMesh (Mesh is written in Python and imports NMesh to
+extend / change its functionality).
+
+For a good example of dexterity with macros (cheers to the NaN
+programmer(s)!), look at BGL.[ch], the OpenGL API wrapper.  The defines
+are in the header.
+
+Besides keeping compatibility with the 2.25 API, there are already some
+additions to exppython:
+
+- some modules have access to more variables than 2.25 had;
+- there are more method functions and the access is safer;
+- the file selector (or file browser, if you prefer) is back:
+    It's now in the Window module, along with an image selector, too.
+- there are totally new modules, unavailable in 2.25:
+    Fellow new developers joining our team are contributing new modules
+    that have been requested by the community for a long time.
+
+
+V - Coding
+
+The Camera module is a good reference, since it is like most others, in
+terms of programming, but is smaller and simple.  It's in Camera.c and
+Camera.h .  To have it working, it was also necessary to include a line to
+the end of Blender.c (registering it as a Blender submodule) and another to 
+modules.h (declaring its init and CreateObject method)
+
+Currently, one of our conventions is to prepend M_ to module functions,
+doc strings, etc. and C_ to the new types we had to create for Python,
+like C_Camera, C_Lamp, etc.
+
+If you look at Camera.[ch], you'll find code for creating the Camera
+module and the Camera "type", with all its methods and access policies. 
+It's really a new type defined in Python, like PyInt or PyFloat,
+PyString, etc.  In practice, it's a "thin" (because it doesn't make
+copies of the variables) wrapper for the Blender Camera Data Object.
+
+A note about Blender: objects in Blender share a common base, the
+Object, whose attributes are things like the matrix, the location, the
+rotation, the size, etc.  A Camera is actually an Object of type Camera
+(which means that its "data" field points to a Camera Data obj) and a
+Camera Data object, which is the specific camera part of the object
+(attributes like lens, clip start, etc.).  Same for other objects, like
+Lamp, Mesh, etc.
+
+That's why C_Camera is a wrapper for the Blender Camera **Data**
+object.  The full wrapper is Object("Camera") linked with
+Camera("camera_name").
+
+How to write a new module for a simple object?  Use Camera.[ch] as 
+templates, check the specifics of your object in the makesdna dir 
+(for example, the camera one is DNA_camera_types.h) and make the 
+necessary changes.
+
+If you want to help exppython and in the process possibly learn more about 
+embedding, the Python/C API and Blender internals, there's this mailing list:
+
+Bf-python mailing list
+Bf-python@blender.org
+http://www.blender.org/mailman/listinfo/bf-python
+
+There you can ask what hasn't been done yet, get help, make suggestions for 
+new features we should consider, send bug reports, etc.

@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* a full doc with API notes can be found in bf-blender/blender/doc/interface_API.txt */
+/* a full doc with API notes can be found in bf-blender/trunk/blender/doc/guides/interface_API.txt */
  
 #include <math.h>
 #include <stdlib.h>
