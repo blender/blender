@@ -133,7 +133,7 @@ typedef struct ConsoleDrawContext {
 	int draw;
 } ConsoleDrawContext;
 
-static void console_draw_sel(int sel[2], int xy[2], int str_len_draw, int cwidth, int console_width, int lheight)
+static void console_draw_sel(int sel[2], int xy[2], int str_len_draw, int cwidth, int lheight)
 {
 	if(sel[0] <= str_len_draw && sel[1] >= 0) {
 		int sta = MAX2(sel[0], 0);
@@ -222,7 +222,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 		if(cdc->sel[0] != cdc->sel[1]) {
 			STEP_SEL(-initial_offset);
 			// glColor4ub(255, 0, 0, 96); // debug
-			console_draw_sel(cdc->sel, cdc->xy, str_len % cdc->console_width, cdc->cwidth, cdc->console_width, cdc->lheight);
+			console_draw_sel(cdc->sel, cdc->xy, str_len % cdc->console_width, cdc->cwidth, cdc->lheight);
 			STEP_SEL(cdc->console_width);
 			glColor3ubv(fg);
 		}
@@ -240,7 +240,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 			
 			if(cdc->sel[0] != cdc->sel[1]) {
 				// glColor4ub(0, 255, 0, 96); // debug
-				console_draw_sel(cdc->sel, cdc->xy, cdc->console_width, cdc->cwidth, cdc->console_width, cdc->lheight);
+				console_draw_sel(cdc->sel, cdc->xy, cdc->console_width, cdc->cwidth, cdc->lheight);
 				STEP_SEL(cdc->console_width);
 				glColor3ubv(fg);
 			}
@@ -272,7 +272,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 		if(cdc->sel[0] != cdc->sel[1]) {
 			int isel[2]= {str_len - cdc->sel[1], str_len - cdc->sel[0]};
 			// glColor4ub(255, 255, 0, 96); // debug
-			console_draw_sel(isel, cdc->xy, str_len, cdc->cwidth, cdc->console_width, cdc->lheight);
+			console_draw_sel(isel, cdc->xy, str_len, cdc->cwidth, cdc->lheight);
 			STEP_SEL(-(str_len + 1));
 		}
 
