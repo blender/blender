@@ -30,6 +30,8 @@
 #include "BKE_global.h"
 #include "structseq.h"
 
+#include "../generic/py_capi_utils.h"
+
 #ifdef BUILD_DATE
 extern char build_date[];
 extern char build_time[];
@@ -146,7 +148,7 @@ static PyObject *bpy_app_tempdir_get(PyObject *self, void *closure)
 	(void)(self);
 	(void)(closure);
 
-	return PyUnicode_FromString(btempdir);
+	return PyC_UnicodeFromByte(btempdir);
 }
 
 PyGetSetDef bpy_app_debug_getset= {"debug", bpy_app_debug_get, bpy_app_debug_set, "Boolean, set when blender is running in debug mode (started with -d)", NULL};
