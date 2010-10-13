@@ -34,7 +34,7 @@ class EditExternally(bpy.types.Operator):
         import platform
         try:
             system = platform.system()
-        except UnicodeEncodingError:
+        except UnicodeDecodeError:
             import sys
             system = sys.platform
 

@@ -34,7 +34,7 @@ MAX_TIMEOUT = 10
 INCREMENT_TIMEOUT = 1
 try:
     system = platform.system()
-except UnicodeEncodingError:
+except UnicodeDecodeError:
     import sys
     system = sys.platform
 
