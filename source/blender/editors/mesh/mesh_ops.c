@@ -262,7 +262,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "inside", 1);
 	
-	WM_keymap_add_item(keymap, "view3d.edit_mesh_extrude_move_normal", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_edit_mesh_extrude_move_normal", EKEY, KM_PRESS, 0, 0); /* python operator */
 	WM_keymap_add_item(keymap, "VIEW3D_OT_edit_mesh_extrude_individual_move", EKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_extrude", EKEY, KM_PRESS, KM_ALT, 0);
 	

@@ -485,6 +485,7 @@ void image_operatortypes(void)
 void image_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Image Generic", SPACE_IMAGE, 0);
+	wmKeyMapItem *kmi;
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
@@ -524,6 +525,11 @@ void image_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_curves_point_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "point", 1);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_toolbox", SPACEKEY, KM_PRESS, 0, 0);
+
+	/* toggle editmode is handy to have while UV unwrapping */
+	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
+	RNA_boolean_set(kmi->ptr, "toggle", 1);
 }
 
 /* dropboxes */
