@@ -232,6 +232,26 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 	*lv = v;
 }
 
+void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *lv)
+{
+	float orig_h= *lh;
+	float orig_s= *ls;
+
+	rgb_to_hsv(r, g, b, lh, ls, lv);
+
+	if(*lv <= 0.0f) {
+		*lh= orig_h;
+		*ls= orig_s;
+	}
+	else if (*ls <= 0.0f) {
+		*lh= orig_h;
+	}
+
+	if(*lh==0.0f && orig_h >= 1.0f) {
+		*lh= 1.0f;
+	}
+}
+
 /*http://brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html */
 
 void xyz_to_rgb(float xc, float yc, float zc, float *r, float *g, float *b, int colorspace)

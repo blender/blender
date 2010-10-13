@@ -2136,11 +2136,6 @@ void ui_check_but(uiBut *but)
 
 	case HSVCUBE:
 	case HSVCIRCLE:
-		{
-			float rgb[3];
-			ui_get_but_vectorf(but, rgb);
-			rgb_to_hsv(rgb[0], rgb[1], rgb[2], but->hsv, but->hsv+1, but->hsv+2);
-		}
 		break;
 	default:
 		strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);

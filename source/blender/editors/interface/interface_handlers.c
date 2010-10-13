@@ -2830,17 +2830,18 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 		}
 		else if(but->type==COL) {
 			if( ELEM(event->type, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->alt) {
+				float *hsv= ui_block_hsv_get(but->block);
 				float col[3];
 				
 				ui_get_but_vectorf(but, col);
-				rgb_to_hsv(col[0], col[1], col[2], but->hsv, but->hsv+1, but->hsv+2);
+				rgb_to_hsv_compat(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
 
 				if(event->type==WHEELDOWNMOUSE)
-					but->hsv[2]= CLAMPIS(but->hsv[2]-0.05f, 0.0f, 1.0f);
+					hsv[2]= CLAMPIS(hsv[2]-0.05f, 0.0f, 1.0f);
 				else
-					but->hsv[2]= CLAMPIS(but->hsv[2]+0.05f, 0.0f, 1.0f);
+					hsv[2]= CLAMPIS(hsv[2]+0.05f, 0.0f, 1.0f);
 				
-				hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], data->vec, data->vec+1, data->vec+2);
+				hsv_to_rgb(hsv[0], hsv[1], hsv[2], data->vec, data->vec+1, data->vec+2);
 				ui_set_but_vectorf(but, data->vec);
 				
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -2970,7 +2971,8 @@ static int ui_do_but_NORMAL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 
 static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, int my)
 {
-	float rgb[3], hsv[3];
+	float rgb[3];
+	float *hsv= ui_block_hsv_get(but->block);
 	float x, y;
 	int changed= 1;
 	int color_profile = but->block->color_profile;
@@ -2979,10 +2981,11 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
 			color_profile = BLI_PR_NONE;
 	}
-	
+
 	ui_get_but_vectorf(but, rgb);
-	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
-		
+
+	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+
 	/* relative position within box */
 	x= ((float)mx-but->x1)/(but->x2-but->x1);
 	y= ((float)my-but->y1)/(but->y2-but->y1);
@@ -3059,21 +3062,22 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 		}
 		else if (event->type == ZEROKEY && event->val == KM_PRESS) {
 			if (but->a1==9){
-				float rgb[3], hsv[3], def_hsv[3];
-				float *def;
 				int len;
 				
 				/* reset only value */
 				
 				len= RNA_property_array_length(&but->rnapoin, but->rnaprop);
 				if (len >= 3) {
+					float rgb[3], def_hsv[3];
+					float *def;
+					float *hsv= ui_block_hsv_get(but->block);
 					def= MEM_callocN(sizeof(float)*len, "reset_defaults - float");
 					
 					RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
 					rgb_to_hsv(def[0], def[1], def[2], def_hsv, def_hsv+1, def_hsv+2);
 					
 					ui_get_but_vectorf(but, rgb);
-					rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+					rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 					
 					hsv_to_rgb(hsv[0], hsv[1], def_hsv[2], rgb, rgb+1, rgb+2);
 					ui_set_but_vectorf(but, rgb);
@@ -3111,13 +3115,15 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 {
 	rcti rect;
 	int changed= 1;
-	float rgb[3], hsv[3];
+	float rgb[3];
+	float hsv[3];
 	
 	rect.xmin= but->x1; rect.xmax= but->x2;
 	rect.ymin= but->y1; rect.ymax= but->y2;
 	
 	ui_get_but_vectorf(but, rgb);
-	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	copy_v3_v3(hsv, ui_block_hsv_get(but->block));
+	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	
 	/* exception, when using color wheel in 'locked' value state:
 	 * allow choosing a hue for black values, by giving a tiny increment */
@@ -3176,21 +3182,22 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			return WM_UI_HANDLER_BREAK;
 		}
 		else if (event->type == ZEROKEY && event->val == KM_PRESS) {
-			float rgb[3], hsv[3], def_hsv[3];
-			float *def;
 			int len;
 			
 			/* reset only saturation */
 			
 			len= RNA_property_array_length(&but->rnapoin, but->rnaprop);
 			if (len >= 3) {
+				float rgb[3], def_hsv[3];
+				float *def;
+				float *hsv= ui_block_hsv_get(but->block);
 				def= MEM_callocN(sizeof(float)*len, "reset_defaults - float");
 				
 				RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
 				rgb_to_hsv(def[0], def[1], def[2], def_hsv, def_hsv+1, def_hsv+2);
 				
 				ui_get_but_vectorf(but, rgb);
-				rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+				rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 				
 				hsv_to_rgb(hsv[0], def_hsv[1], hsv[2], rgb, rgb+1, rgb+2);
 				ui_set_but_vectorf(but, rgb);
@@ -3210,12 +3217,14 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		}
 		/* XXX hardcoded keymap check.... */
 		else if(event->type == WHEELDOWNMOUSE) {
-			but->hsv[2]= CLAMPIS(but->hsv[2]-0.05f, 0.0f, 1.0f);
+			float *hsv= ui_block_hsv_get(but->block);
+			hsv[2]= CLAMPIS(hsv[2]-0.05f, 0.0f, 1.0f);
 			ui_set_but_hsv(but);	// converts to rgb
 			ui_numedit_apply(C, block, but, data);
 		}
 		else if(event->type == WHEELUPMOUSE) {
-			but->hsv[2]= CLAMPIS(but->hsv[2]+0.05f, 0.0f, 1.0f);
+			float *hsv= ui_block_hsv_get(but->block);
+			hsv[2]= CLAMPIS(hsv[2]+0.05f, 0.0f, 1.0f);
 			ui_set_but_hsv(but);	// converts to rgb
 			ui_numedit_apply(C, block, but, data);
 		}

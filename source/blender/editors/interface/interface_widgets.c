@@ -1646,7 +1646,7 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	/* gouraud triangle fan */
 	float radstep, ang= 0.0f;
 	float centx, centy, radius;
-	float rgb[3], hsv[3], hsvo[3], col[3], colcent[3];
+	float rgb[3], hsvo[3], hsv[3], col[3], colcent[3];
 	int a, tot= 32;
 	int color_profile = but->block->color_profile;
 	
@@ -1664,7 +1664,8 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	
 	/* color */
 	ui_get_but_vectorf(but, rgb);
-	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	copy_v3_v3(hsv, ui_block_hsv_get(but->block));
+	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	copy_v3_v3(hsvo, hsv);
 	
 	/* exception: if 'lock' is set
@@ -1858,9 +1859,14 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 {
 	float rgb[3], h,s,v;
 	float x=0.0f, y=0.0f;
+	float *hsv= ui_block_hsv_get(but->block);
+	
+	h= hsv[0];
+	s= hsv[1];
+	v= hsv[2];
 	
 	ui_get_but_vectorf(but, rgb);
-	rgb_to_hsv(rgb[0], rgb[1], rgb[2], &h, &s, &v);
+	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], &h, &s, &v);
 	
 	ui_draw_gradient(rect, rgb, but->a1, 1.f);
 	
@@ -2481,12 +2487,10 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, 
 	VECCOPY(old_col, wcol->inner);
 	
 	/* abuse but->hsv - if it's non-zero, use this colour as the box's background */
-	if ((but->hsv[0] != 0.0) || (but->hsv[1] != 0.0) || (but->hsv[2] != 0.0)) {
-		float rgb[3];
-		hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], rgb+0, rgb+1, rgb+2);
-		wcol->inner[0] = rgb[0] * 255;
-		wcol->inner[1] = rgb[1] * 255;
-		wcol->inner[2] = rgb[2] * 255;
+	if (but->col[3]) {
+		wcol->inner[0] = but->col[0];
+		wcol->inner[1] = but->col[1];
+		wcol->inner[2] = but->col[2];
 	}
 	
 	/* half rounded */

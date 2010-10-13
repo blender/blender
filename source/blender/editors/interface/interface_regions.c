@@ -1571,27 +1571,22 @@ static void ui_warp_pointer(short x, short y)
 void ui_set_but_hsv(uiBut *but)
 {
 	float col[3];
+	float *hsv= ui_block_hsv_get(but->block);
 	
-	hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], col, col+1, col+2);
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
 	ui_set_but_vectorf(but, col);
 }
 
 /* also used by small picker, be careful with name checks below... */
-void ui_update_block_buts_rgb(uiBlock *block, float *rgb, float *rhsv)
+void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
 {
 	uiBut *bt;
-	float hsv[3];
+	float *hsv= ui_block_hsv_get(block);
 	
 	/* this is to keep the H and S value when V is equal to zero
 	 * and we are working in HSV mode, of course!
 	 */
-	if (rhsv) {
-		hsv[0]= rhsv[0];
-		hsv[1]= rhsv[1];
-		hsv[2]= rhsv[2];
-	}
-	else
-		rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	
 	// this updates button strings, is hackish... but button pointers are on stack of caller function
 	for(bt= block->buttons.first; bt; bt= bt->next) {
@@ -1657,23 +1652,23 @@ static void do_picker_rna_cb(bContext *C, void *bt1, void *unused)
 	
 	if (prop) {
 		RNA_property_float_get_array(&ptr, prop, rgb);
-		ui_update_block_buts_rgb(but->block, rgb, NULL);
+		ui_update_block_buts_rgb(but->block, rgb);
 	}
 	
 	if(popup)
 		popup->menuretval= UI_RETURN_UPDATE;
 }
 
-static void do_hsv_rna_cb(bContext *C, void *bt1, void *hsv_arg)
+static void do_hsv_rna_cb(bContext *C, void *bt1, void *arg_dummy)
 {
 	uiBut *but= (uiBut *)bt1;
 	uiPopupBlockHandle *popup= but->block->handle;
-	float *hsv = (float *)hsv_arg;
 	float rgb[3];
+	float *hsv= ui_block_hsv_get(but->block);
 	
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
 	
-	ui_update_block_buts_rgb(but->block, rgb, hsv);
+	ui_update_block_buts_rgb(but->block, rgb);
 	
 	if(popup)
 		popup->menuretval= UI_RETURN_UPDATE;
@@ -1694,7 +1689,7 @@ static void do_hex_rna_cb(bContext *C, void *bt1, void *hexcl)
 		srgb_to_linearrgb_v3_v3(rgb, rgb);
 	}
 	
-	ui_update_block_buts_rgb(but->block, rgb, NULL);
+	ui_update_block_buts_rgb(but->block, rgb);
 	
 	if(popup)
 		popup->menuretval= UI_RETURN_UPDATE;
@@ -1740,7 +1735,7 @@ static void picker_new_hide_reveal(uiBlock *block, short colormode)
 	}
 }
 
-static void do_picker_new_mode_cb(bContext *C, void *bt1, void *colv)
+static void do_picker_new_mode_cb(bContext *C, void *bt1, void *dummy)
 {
 	uiBut *bt= bt1;
 	short colormode= ui_get_but_val(bt);
@@ -1794,11 +1789,13 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	uiBut *bt;
 	int width, butwidth;
 	static char tip[50];
-	static float hsv[3];
 	static char hexcol[128];
 	float rgb_gamma[3];
 	float min, max, step, precision;
 	const char *propname = RNA_property_identifier(prop);
+	float *hsv= ui_block_hsv_get(block);
+	
+	ui_block_hsv_get(block);
 	
 	width= PICKER_TOTAL_W;
 	butwidth = width - UI_UNIT_X - 10;
@@ -1818,7 +1815,6 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 
 	RNA_property_float_ui_range(ptr, prop, &min, &max, &step, &precision);
 	RNA_property_float_get_array(ptr, prop, rgb);
-	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 
 	switch (U.color_picker_type) {
 		case USER_CP_CIRCLE:
@@ -1838,11 +1834,11 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	/* mode */
 	uiBlockBeginAlign(block);
 	bt= uiDefButS(block, ROW, 0, "RGB",	0, -30, width/3, UI_UNIT_Y, &colormode, 0.0, 0.0, 0, 0, "");
-	uiButSetFunc(bt, do_picker_new_mode_cb, bt, rgb);
+	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
 	bt= uiDefButS(block, ROW, 0, "HSV",	width/3, -30, width/3, UI_UNIT_Y, &colormode, 0.0, 1.0, 0, 0, "");
-	uiButSetFunc(bt, do_picker_new_mode_cb, bt, hsv);
+	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
 	bt= uiDefButS(block, ROW, 0, "Hex",	2*width/3, -30, width/3, UI_UNIT_Y, &colormode, 0.0, 2.0, 0, 0, "");
-	uiButSetFunc(bt, do_picker_new_mode_cb, bt, hexcol);
+	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
 	uiBlockEndAlign(block);
 
 	bt= uiDefIconButO(block, BUT, "UI_OT_eyedropper", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, butwidth+10, -60, UI_UNIT_X, UI_UNIT_Y, NULL);
@@ -1878,13 +1874,13 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 		rgb[3]= 1.0f;
 	}
 
-	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
-
 	sprintf(hexcol, "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
 
 	bt= uiDefBut(block, TEX, 0, "Hex: ", 0, -60, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, "Hex triplet for color (#RRGGBB)");
 	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);
 	uiDefBut(block, LABEL, 0, "(Gamma Corrected)", 0, -80, butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 
 	picker_new_hide_reveal(block, colormode);
 }
@@ -1906,16 +1902,17 @@ static int ui_picker_small_wheel(const bContext *C, uiBlock *block, wmEvent *eve
 			if(but->type==HSVCUBE && but->active==NULL) {
 				uiPopupBlockHandle *popup= block->handle;
 				float col[3];
+				float *hsv= ui_block_hsv_get(block);
 				
 				ui_get_but_vectorf(but, col);
 				
-				rgb_to_hsv(col[0], col[1], col[2], but->hsv, but->hsv+1, but->hsv+2);
-				but->hsv[2]= CLAMPIS(but->hsv[2]+add, 0.0f, 1.0f);
-				hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], col, col+1, col+2);
+				rgb_to_hsv_compat(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
+				hsv[2]= CLAMPIS(hsv[2]+add, 0.0f, 1.0f);
+				hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
 
 				ui_set_but_vectorf(but, col);
 				
-				ui_update_block_buts_rgb(block, col, NULL);
+				ui_update_block_buts_rgb(block, col);
 				if(popup)
 					popup->menuretval= UI_RETURN_UPDATE;
 				
@@ -1942,8 +1939,11 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	VECCOPY(handle->retvec, but->editvec);
-
+	
+	block->handle= handle; /* XXX, only for ui_block_hsv_get */
 	uiBlockPicker(block, handle->retvec, &but->rnapoin, but->rnaprop);
+	block->handle= NULL;
+	
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN;
 	uiBoundsBlock(block, 10);
 	
@@ -2438,3 +2438,7 @@ void uiPupBlockClose(bContext *C, uiBlock *block)
 	}
 }
 
+float *ui_block_hsv_get(uiBlock *block)
+{
+	return block->handle->retvec+4;
+}

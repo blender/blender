@@ -2327,7 +2327,6 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	uiBut *but;
 	uiStyle *style= U.uistyles.first;
 	int width;
-	float hsv[3];
 	
 	/* if the report display has timed out, don't show */
 	if (!reports->reporttimer) return;
@@ -2338,8 +2337,6 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	
 	abs = uiLayoutAbsolute(layout, 0);
 	block= uiLayoutGetBlock(abs);
-
-	rgb_to_hsv(rti->col[0], rti->col[1], rti->col[2], hsv+0, hsv+1, hsv+2);
 	
 	width = BLF_width(style->widget.uifont_id, report->message);
 	width = MIN2(rti->widthfac*width, width);
@@ -2348,11 +2345,16 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	/* make a box around the report to make it stand out */
 	uiBlockBeginAlign(block);
 	but= uiDefBut(block, ROUNDBOX, 0, "", 0, 0, UI_UNIT_X+10, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
-	copy_v3_v3(but->hsv, hsv);			/* set the report's bg colour in but->hsv - ROUNDBOX feature */
-	
+	/* set the report's bg colour in but->col - ROUNDBOX feature */
+	but->col[0]= FTOCHAR(rti->col[0]);
+	but->col[1]= FTOCHAR(rti->col[1]);
+	but->col[2]= FTOCHAR(rti->col[2]);
+	but->col[3]= 255; 
+
 	but= uiDefBut(block, ROUNDBOX, 0, "", UI_UNIT_X+10, 0, UI_UNIT_X+width, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
-	but->hsv[0] = but->hsv[1] = 0.0;	/* set a greyscale bg colour in but->hsv - ROUNDBOX feature */
-	but->hsv[2] = rti->greyscale;
+	but->col[0]= but->col[1]= but->col[2]= FTOCHAR(rti->greyscale);
+	but->col[3]= 255;
+
 	uiBlockEndAlign(block);
 	
 	

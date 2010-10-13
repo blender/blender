@@ -171,8 +171,9 @@ struct uiBut {
 
 	char *poin;
 	float hardmin, hardmax, softmin, softmax;
-	float a1, a2, hsv[3];	// hsv is temp memory for hsv buttons
+	float a1, a2;
 	float aspect;
+	char col[4];
 
 	uiButHandleFunc func;
 	void *func_arg1;
@@ -396,7 +397,7 @@ struct uiPopupBlockHandle {
 	int butretval;
 	int menuretval;
 	float retvalue;
-	float retvec[4];
+	float retvec[8];
 };
 
 uiBlock *ui_block_func_COL(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
@@ -407,6 +408,8 @@ struct ARegion *ui_tooltip_create(struct bContext *C, struct ARegion *butregion,
 void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
 
 uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but);
+
+float *ui_block_hsv_get(uiBlock *block);
 
 /* searchbox for string button */
 ARegion *ui_searchbox_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
