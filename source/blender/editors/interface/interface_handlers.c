@@ -4266,7 +4266,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	if(but->flag & UI_BUT_DISABLED)
 		return WM_UI_HANDLER_CONTINUE;
 
-	if(data->state == BUTTON_STATE_HIGHLIGHT) {
+	if(data->state == BUTTON_STATE_HIGHLIGHT && event->prevval != KM_PRESS) { /* check prevval because of modal operators [#24016] */
 		/* handle copy-paste */
 		if(ELEM(event->type, CKEY, VKEY) && event->val==KM_PRESS && (event->ctrl || event->oskey)) {
 			ui_but_copy_paste(C, but, data, (event->type == CKEY)? 'c': 'v');
