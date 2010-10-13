@@ -90,12 +90,20 @@ void flatten_string_free(FlattenString *fs);
 
 int wrap_width(struct SpaceText *st, struct ARegion *ar);
 void wrap_offset(struct SpaceText *st, struct ARegion *ar, struct TextLine *linein, int cursin, int *offl, int *offc);
+void wrap_offset_in_line(struct SpaceText *st, struct ARegion *ar, struct TextLine *linep, int cursin, int *offl, int *offc);
+int text_get_char_pos(struct SpaceText *st, char *line, int cur);
+
+void text_drawcache_tag_update(struct SpaceText *st, int full);
+void text_free_caches(struct SpaceText *st);
 
 int text_file_modified(struct Text *text);
 
 int text_do_suggest_select(struct SpaceText *st, struct ARegion *ar);
 void text_pop_suggest_list();
 
+int text_get_visible_lines(struct SpaceText *st, struct ARegion *ar, char *str);
+int text_get_span_wrap(struct SpaceText *st, struct ARegion *ar, struct TextLine *from, struct TextLine *to);
+int text_get_total_lines(struct SpaceText *st, struct ARegion *ar);
 
 /* text_ops.c */
 enum { LINE_BEGIN, LINE_END, FILE_TOP, FILE_BOTTOM, PREV_CHAR, NEXT_CHAR,

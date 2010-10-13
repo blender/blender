@@ -173,6 +173,7 @@ static int new_exec(bContext *C, wmOperator *op)
 		st->top= 0;
 	}
 
+	text_drawcache_tag_update(st, 1);
 	WM_event_add_notifier(C, NC_TEXT|NA_ADDED, text);
 
 	return OPERATOR_FINISHED;
@@ -254,6 +255,7 @@ static int open_exec(bContext *C, wmOperator *op)
 		text->name = NULL;
 	}
 
+	text_drawcache_tag_update(st, 1);
 	WM_event_add_notifier(C, NC_TEXT|NA_ADDED, text);
 
 	MEM_freeN(op->customdata);
@@ -315,6 +317,7 @@ static int reload_exec(bContext *C, wmOperator *op)
 
 	text_update_edited(text);
 	text_update_cursor_moved(C);
+	text_drawcache_tag_update(CTX_wm_space_text(C), 1);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -357,6 +360,8 @@ static int unlink_exec(bContext *C, wmOperator *op)
 
 	unlink_text(bmain, text);
 	free_libblock(&bmain->text, text);
+
+	text_drawcache_tag_update(st, 1);
 	WM_event_add_notifier(C, NC_TEXT|NA_REMOVED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -738,6 +743,8 @@ static int paste_exec(bContext *C, wmOperator *op)
 	if(!buf)
 		return OPERATOR_CANCELLED;
 
+	text_drawcache_tag_update(CTX_wm_space_text(C), 0);
+
 	txt_insert_buf(text, buf);
 	text_update_edited(text);
 
@@ -809,6 +816,8 @@ static int cut_exec(bContext *C, wmOperator *op)
 {
 	Text *text= CTX_data_edit_text(C);
 
+	text_drawcache_tag_update(CTX_wm_space_text(C), 0);
+
 	txt_copy_clipboard(text);
 	txt_delete_selected(text);
 
@@ -839,6 +848,8 @@ void TEXT_OT_cut(wmOperatorType *ot)
 static int indent_exec(bContext *C, wmOperator *op)
 {
 	Text *text= CTX_data_edit_text(C);
+
+	text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
 	if(txt_has_sel(text)) {
 		txt_order_cursors(text);
@@ -874,6 +885,8 @@ static int unindent_exec(bContext *C, wmOperator *op)
 	Text *text= CTX_data_edit_text(C);
 
 	if(txt_has_sel(text)) {
+		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
+
 		txt_order_cursors(text);
 		unindent(text);
 
@@ -908,6 +921,8 @@ static int line_break_exec(bContext *C, wmOperator *op)
 	Text *text= CTX_data_edit_text(C);
 	int a, curts;
 	int space = (text->flags & TXT_TABSTOSPACES) ? st->tabnumber : 1;
+
+	text_drawcache_tag_update(st, 0);
 
 	// double check tabs/spaces before splitting the line
 	curts= setcurr_tab_spaces(text, space);
@@ -952,6 +967,8 @@ static int comment_exec(bContext *C, wmOperator *op)
 	Text *text= CTX_data_edit_text(C);
 
 	if(txt_has_sel(text)) {
+		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
+
 		txt_order_cursors(text);
 		comment(text);
 		text_update_edited(text);
@@ -983,6 +1000,8 @@ static int uncomment_exec(bContext *C, wmOperator *op)
 	Text *text= CTX_data_edit_text(C);
 
 	if(txt_has_sel(text)) {
+		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
+
 		txt_order_cursors(text);
 		uncomment(text);
 		text_update_edited(text);
@@ -1130,6 +1149,7 @@ static int convert_whitespace_exec(bContext *C, wmOperator *op)
 
 	text_update_edited(text);
 	text_update_cursor_moved(C);
+	text_drawcache_tag_update(st, 1);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -1317,146 +1337,360 @@ static EnumPropertyItem move_type_items[]= {
 	{NEXT_PAGE, "NEXT_PAGE", 0, "Next Page", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+/* get cursor position in line by relative wrapped line and column positions */
+static int text_get_cursor_rel(SpaceText* st, ARegion *ar, TextLine *linein, int rell, int relc)
+{
+	int i, j, start, end, chars, max, chop, curs, loop, endj, found, selc;
+	char ch;
+
+	max= wrap_width(st, ar);
+
+	selc= start= chars= endj= curs= found= 0;
+	end= max;
+	chop= loop= 1;
+
+	for(i=0, j=0; loop; j++) {
+		/* Mimic replacement of tabs */
+		ch= linein->line[j];
+		if(ch=='\t') {
+			chars= st->tabnumber-i%st->tabnumber;
+			ch= ' ';
+		}
+		else chars= 1;
+
+		while(chars--) {
+			if(rell==0 && i-start==relc) {
+				/* current position could be wrapped to next line */
+				/* this should be checked when end of current line would be reached */
+				selc= j;
+				found= 1;
+			}
+			else if(i-end==relc) {
+				curs= j;
+			}
+			if(i-start>=max) {
+				if(found) {
+					/* exact cursor position was found, check if it's */
+					/* still on needed line (hasn't been wrapped) */
+					if(selc>endj && !chop) selc= endj;
+					loop= 0;
+					break;
+				}
+
+				if(chop) endj= j;
+
+				start= end;
+				end += max;
+				chop= 1;
+				rell--;
+
+				if(rell==0 && i-start>=relc) {
+					selc= curs;
+					loop= 0;
+					break;
+				}
+			}
+			else if (ch=='\0') {
+				if(!found) selc= linein->len;
+				loop= 0;
+				break;
+			}
+			else if(ch==' ' || ch=='-') {
+				if(found) {
+					loop= 0;
+					break;
+				}
+
+				if(rell==0 && i-start>=relc) {
+					selc= curs;
+					loop= 0;
+					break;
+				}
+				end= i+1;
+				endj= j;
+				chop= 0;
+			}
+			i++;
+		}
+	}
+
+  return selc;
+}
+
+static int cursor_skip_find_line(SpaceText* st, ARegion *ar, Text *text,
+	int lines, TextLine **linep, int *charp, int *rell, int *relc)
+{
+	int offl, offc, visible_lines;
+
+	wrap_offset_in_line(st, ar, *linep, *charp, &offl, &offc);
+	*relc= text_get_char_pos(st, (*linep)->line, *charp) + offc;
+	*rell= lines;
+
+	/* handle current line */
+	if(lines>0) {
+		visible_lines= text_get_visible_lines(st, ar, (*linep)->line);
+
+		if(*rell-visible_lines+offl>=0) {
+			if(!(*linep)->next) {
+				if(offl < visible_lines-1) {
+					*rell= visible_lines-1;
+					return 1;
+				}
+
+				*charp= (*linep)->len;
+				return 0;
+			}
+
+			*rell-= visible_lines-offl;
+			*linep=(*linep)->next;
+		} else {
+			*rell+= offl;
+			return 1;
+		}
+	} else {
+		if(*rell+offl<=0) {
+			if(!(*linep)->prev) {
+				if(offl) {
+					*rell= 0;
+					return 1;
+				}
+
+				*charp= 0;
+				return 0;
+			}
+
+			*rell+= offl;
+			*linep=(*linep)->prev;
+		} else {
+			*rell+= offl;
+			return 1;
+		}
+	}
+
+	/* skip lines and find destination line and offsets */
+	while(*linep) {
+		visible_lines= text_get_visible_lines(st, ar, (*linep)->line);
+
+		if(lines<0) { /* moving top */
+			if(*rell+visible_lines >= 0) {
+				*rell+= visible_lines;
+				break;
+			}
+
+			if(!(*linep)->prev) {
+				*rell= 0;
+				break;
+			}
+
+			*rell+= visible_lines;
+			*linep=(*linep)->prev;
+		} else { /* moving bottom */
+			if(*rell-visible_lines < 0) break;
+
+			if(!(*linep)->next) {
+				*rell= visible_lines-1;
+				break;
+			}
+
+			*rell-= visible_lines;
+			*linep=(*linep)->next;
+		}
+	}
+
+	return 1;
+}
+
 static void wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
-	int offl, offc, lin;
+	TextLine **linep;
+	int *charp;
+	int oldl, oldc, i, j, max, start, end, chars, endj, chop, loop;
+	char ch;
 
 	text_update_character_width(st);
 
-	lin= txt_get_span(text->lines.first, text->sell);
-	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
+	if (sel) linep= &text->sell, charp= &text->selc;
+	else linep= &text->curl, charp= &text->curc;
 
-	if (sel) {
-		txt_undo_add_toop(text, UNDO_STO, lin, text->selc, lin, -offc);
-		text->selc= -offc;
-	} else {
-		txt_undo_add_toop(text, UNDO_CTO, lin, text->curc, lin, -offc);
-		text->curc= -offc;
-		txt_pop_sel(text);
+	oldc= *charp;
+	oldl= txt_get_span(text->lines.first, *linep);
+
+	max= wrap_width(st, ar);
+
+	start= chars= endj= 0;
+	end= max;
+	chop= loop= 1;
+	*charp= 0;
+
+	for(i=0, j=0; loop; j++) {
+		/* Mimic replacement of tabs */
+		ch= (*linep)->line[j];
+		if(ch=='\t') {
+			chars= st->tabnumber-i%st->tabnumber;
+			ch= ' ';
+		}
+		else chars= 1;
+
+		while(chars--) {
+			if(i-start>=max) {
+				*charp= endj;
+
+				if(j>=oldc) {
+					loop= 0;
+					break;
+				}
+
+				if(chop) endj= j;
+
+				start= end;
+				end += max;
+				chop= 0;
+			}
+			else if(ch==' ' || ch=='-' || ch=='\0') {
+				if(j>=oldc) {
+					loop= 0;
+					break;
+				}
+
+				end= i+1;
+				endj= j+1;
+				chop= 0;
+			}
+			i++;
+		}
 	}
+
+	if (!sel) txt_pop_sel(text);
+	txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, oldl, oldc, oldl, *charp);
 }
 
 static void wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
-	int offl, offc, lin, startl, c;
+	TextLine **linep;
+	int *charp;
+	int oldl, oldc, i, j, max, start, end, chars, endj, chop, loop;
+	char ch;
 
 	text_update_character_width(st);
 
-	lin= txt_get_span(text->lines.first, text->sell);
-	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
-	startl= offl;
-	c= text->selc;
-	while (offl==startl && text->sell->line[c]!='\0') {
-		c++;
-		wrap_offset(st, ar, text->sell, c, &offl, &offc);
-	} if (offl!=startl) c--;
+	if (sel) linep= &text->sell, charp= &text->selc;
+	else linep= &text->curl, charp= &text->curc;
 
-	if (sel) {
-		txt_undo_add_toop(text, UNDO_STO, lin, text->selc, lin, c);
-		text->selc= c;
-	} else {
-		txt_undo_add_toop(text, UNDO_CTO, lin, text->curc, lin, c);
-		text->curc= c;
-		txt_pop_sel(text);
+	oldc= *charp;
+	oldl= txt_get_span(text->lines.first, *linep);
+
+	max= wrap_width(st, ar);
+
+	start= chars= endj= 0;
+	end= max;
+	chop= loop= 1;
+	*charp= 0;
+
+	for(i=0, j=0; loop; j++) {
+		/* Mimic replacement of tabs */
+		ch= (*linep)->line[j];
+		if(ch=='\t') {
+			chars= st->tabnumber-i%st->tabnumber;
+			ch= ' ';
+		}
+		else chars= 1;
+
+		while(chars--) {
+			if(i-start>=max) {
+				if(endj>=oldc) {
+					*charp= endj;
+					loop= 0;
+					break;
+				}
+
+				if(chop) endj= j;
+
+				start= end;
+				end += max;
+				chop= 0;
+			} else if(ch=='\0') {
+				*charp= (*linep)->len;
+				loop= 0;
+				break;
+			} else if(ch==' ' || ch=='-') {
+				end= i+1;
+				endj= j;
+				chop= 0;
+			}
+			i++;
+		}
 	}
+
+	if (!sel) txt_pop_sel(text);
+	txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, oldl, oldc, oldl, *charp);
 }
 
 static void wrap_move_up(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
-	int offl, offl_1, offc, fromline, toline, c, target;
+	TextLine **linep;
+	int *charp;
+	int oldl, oldc, offl, offc, col, newl;
 
 	text_update_character_width(st);
 
-	wrap_offset(st, ar, text->sell, 0, &offl_1, &offc);
-	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
-	fromline= toline= txt_get_span(text->lines.first, text->sell);
-	target= text->selc + offc;
+	if (sel) linep= &text->sell, charp= &text->selc;
+	else linep= &text->curl, charp= &text->curc;
 
-	if (offl==offl_1) {
-		if (!text->sell->prev) {
-			txt_move_bol(text, sel);
-			return;
-		}
-		toline--;
-		c= text->sell->prev->len; /* End of prev. line */
-		wrap_offset(st, ar, text->sell->prev, c, &offl, &offc);
-		c= -offc+target;
+	/* store previous position */
+	oldc= *charp;
+	newl= oldl= txt_get_span(text->lines.first, *linep);
+
+	wrap_offset_in_line(st, ar, *linep, *charp, &offl, &offc);
+	col= text_get_char_pos(st, (*linep)->line, *charp) + offc;
+	if(offl) {
+		*charp= text_get_cursor_rel(st, ar, *linep, offl-1, col);
 	} else {
-		c= -offc-1; /* End of prev. line */
-		wrap_offset(st, ar, text->sell, c, &offl, &offc);
-		c= -offc+target;
-	}
-	if (c<0) c=0;
+		if((*linep)->prev) {
+			int visible_lines;
 
-	if (sel) {
-		txt_undo_add_toop(text, UNDO_STO, fromline, text->selc, toline, c);
-		if (toline<fromline) text->sell= text->sell->prev;
-		if(text->sell) {
-			if (c>text->sell->len) c= text->sell->len;
-			text->selc= c;
-		}
-	} 
-	else if(text->curl) {
-		txt_undo_add_toop(text, UNDO_CTO, fromline, text->curc, toline, c);
-		if (toline<fromline) text->curl= text->curl->prev;
-		if(text->curl) {
-			if (c>text->curl->len) c= text->curl->len;
-			text->curc= c;
-			txt_pop_sel(text);
-		}
+			*linep= (*linep)->prev;
+			visible_lines= text_get_visible_lines(st, ar, (*linep)->line);
+			*charp= text_get_cursor_rel(st, ar, *linep, visible_lines-1, col);
+		} else *charp= 0;
 	}
+
+	if (!sel) txt_pop_sel(text);
+	txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, oldl, oldc, newl, *charp);
 }
 
 static void wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
-	int offl, startoff, offc, fromline, toline, c, target;
+	TextLine **linep;
+	int *charp;
+	int oldl, oldc, offl, offc, col, newl, visible_lines;
 
 	text_update_character_width(st);
 
-	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
-	fromline= toline= txt_get_span(text->lines.first, text->sell);
-	target= text->selc + offc;
-	startoff= offl;
-	c= text->selc;
-	while (offl==startoff && text->sell->line[c]!='\0') {
-		c++;
-		wrap_offset(st, ar, text->sell, c, &offl, &offc);
-	}
+	if (sel) linep= &text->sell, charp= &text->selc;
+	else linep= &text->curl, charp= &text->curc;
 
-	if (text->sell->line[c]=='\0') {
-		if (!text->sell->next) {
-			txt_move_eol(text, sel);
-			return;
-		}
-		toline++;
-		c= target;
+	/* store previous position */
+	oldc= *charp;
+	newl= oldl= txt_get_span(text->lines.first, *linep);
+
+	wrap_offset_in_line(st, ar, *linep, *charp, &offl, &offc);
+	col= text_get_char_pos(st, (*linep)->line, *charp) + offc;
+	visible_lines= text_get_visible_lines(st, ar, (*linep)->line);
+	if(offl<visible_lines-1) {
+		*charp= text_get_cursor_rel(st, ar, *linep, offl+1, col);
 	} else {
-		c += target;
-		if (c > text->sell->len) c= text->sell->len;
+		if((*linep)->next) {
+			*linep= (*linep)->next;
+			*charp= text_get_cursor_rel(st, ar, *linep, 0, col);
+		} else *charp= (*linep)->len;
 	}
-	if (c<0) c=0;
 
-	if (sel) {
-		txt_undo_add_toop(text, UNDO_STO, fromline, text->selc, toline, c);
-		if (toline>fromline) text->sell= text->sell->next;
-		if(text->sell) {
-			if (c>text->sell->len) c= text->sell->len;
-			text->selc= c;
-		}
-	} 
-	else if(text->curl) {
-		txt_undo_add_toop(text, UNDO_CTO, fromline, text->curc, toline, c);
-		if (toline>fromline) text->curl= text->curl->next;
-		if(text->curl) {
-			if (c > text->curl->len) c= text->curl->len;
-			text->curc= c;
-			txt_pop_sel(text);
-		}
-	}
+	if (!sel) txt_pop_sel(text);
+	txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, oldl, oldc, newl, *charp);
 }
 
 /* Moves the cursor vertically by the specified number of lines.
@@ -1465,7 +1699,7 @@ static void wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 
  This is to replace screen_skip for PageUp/Down operations.
  */
-static void cursor_skip(Text *text, int lines, int sel)
+static void cursor_skip(SpaceText* st, ARegion *ar, Text *text, int lines, int sel)
 {
 	TextLine **linep;
 	int oldl, oldc, *charp;
@@ -1475,13 +1709,21 @@ static void cursor_skip(Text *text, int lines, int sel)
 	oldl= txt_get_span(text->lines.first, *linep);
 	oldc= *charp;
 
-	while (lines>0 && (*linep)->next) {
-		*linep= (*linep)->next;
-		lines--;
-	}
-	while (lines<0 && (*linep)->prev) {
-		*linep= (*linep)->prev;
-		lines++;
+	if(st && ar && st->wordwrap) {
+		int rell, relc;
+
+		/* find line and offsets inside it needed to set cursor position */
+		if(cursor_skip_find_line(st, ar, text, lines, linep, charp, &rell, &relc))
+		  *charp= text_get_cursor_rel (st, ar, *linep, rell, relc);
+	} else {
+		while (lines>0 && (*linep)->next) {
+			*linep= (*linep)->next;
+			lines--;
+		}
+		while (lines<0 && (*linep)->prev) {
+			*linep= (*linep)->prev;
+			lines++;
+		}
 	}
 
 	if (*charp > (*linep)->len) *charp= (*linep)->len;
@@ -1546,18 +1788,18 @@ static int move_cursor(bContext *C, int type, int select)
 			break;
 
 		case PREV_PAGE:
-			if(st) cursor_skip(text, -st->viewlines, select);
-			else cursor_skip(text, -10, select);
+			if(st) cursor_skip(st, ar, st->text, -st->viewlines, select);
+			else cursor_skip(NULL, NULL, text, -10, select);
 			break;
 
 		case NEXT_PAGE:
-			if(st) cursor_skip(text, st->viewlines, select);
-			else cursor_skip(text, 10, select);
+			if(st) cursor_skip(st, ar, st->text, st->viewlines, select);
+			else cursor_skip(NULL, NULL, text, 10, select);
 			break;
 	}
 
 	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 
 	return OPERATOR_FINISHED;
 }
@@ -1665,6 +1907,8 @@ static int delete_exec(bContext *C, wmOperator *op)
 	Text *text= CTX_data_edit_text(C);
 	int type= RNA_enum_get(op->ptr, "type");
 
+	text_drawcache_tag_update(CTX_wm_space_text(C), 0);
+
 	if(type == DEL_PREV_WORD)
 		txt_backspace_word(text);
 	else if(type == DEL_PREV_CHAR)
@@ -1729,13 +1973,13 @@ void TEXT_OT_overwrite_toggle(wmOperatorType *ot)
 /******************* scroll operator **********************/
 
 /* Moves the view vertically by the specified number of lines */
-static void screen_skip(SpaceText *st, int lines)
+static void screen_skip(SpaceText *st, ARegion *ar, int lines)
 {
 	int last;
 
-	 st->top += lines;
+	st->top += lines;
 
-	last= txt_get_span(st->text->lines.first, st->text->lines.last);
+	last= text_get_total_lines(st, ar);
 	last= last - (st->viewlines/2);
 	
 	if(st->top>last) st->top= last;
@@ -1756,12 +2000,14 @@ typedef struct TextScroll {
 static int scroll_exec(bContext *C, wmOperator *op)
 {
 	SpaceText *st= CTX_wm_space_text(C);
+	ARegion *ar= CTX_wm_region(C);
+
 	int lines= RNA_int_get(op->ptr, "lines");
 
 	if(lines == 0)
 		return OPERATOR_CANCELLED;
 
-	screen_skip(st, lines*U.wheellinescroll);
+	screen_skip(st, ar, lines*U.wheellinescroll);
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 
@@ -1771,6 +2017,7 @@ static int scroll_exec(bContext *C, wmOperator *op)
 static void scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceText *st= CTX_wm_space_text(C);
+	ARegion *ar= CTX_wm_region(C);
 	TextScroll *tsc= op->customdata;
 	short *mval= event->mval;
 
@@ -1792,7 +2039,7 @@ static void scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 		tsc->delta[1]= (tsc->hold[1]-mval[1])*st->pix_per_line;
 	
 	if(tsc->delta[0] || tsc->delta[1]) {
-		screen_skip(st, tsc->delta[1]);
+		screen_skip(st, ar, tsc->delta[1]);
 
 		tsc->lines += tsc->delta[1];
 
@@ -1969,7 +2216,7 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 	Text *text= st->text;
 	TextLine **linep;
 	int *charp;
-	int w;
+	int w, tabs;
 
 	text_update_character_width(st);
 
@@ -1987,16 +2234,28 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 	x = (x/st->cwidth) + st->left;
 	
 	if(st->wordwrap) {
-		int i, j, endj, curs, max, chop, start, end, chars, loop;
+		int i, j, endj, curs, max, chop, start, end, chars, loop, found;
 		char ch;
 
 		/* Point to first visible line */
 		*linep= text->lines.first;
-		for(i=0; i<st->top && (*linep)->next; i++) *linep= (*linep)->next;
+		i= st->top;
+		while(i>0 && *linep) {
+			int lines= text_get_visible_lines(st, ar, (*linep)->line);
+
+			if (i-lines<0) {
+				y+= i;
+				break;
+			} else {
+				*linep= (*linep)->next;
+				i-= lines;
+			}
+		}
 
 		max= wrap_width(st, ar);
 
 		loop= 1;
+		found= 0;
 		while(loop && *linep) {
 			start= 0;
 			end= max;
@@ -2004,12 +2263,14 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 			chars= 0;
 			curs= 0;
 			endj= 0;
+			tabs= 0;
 			for(i=0, j=0; loop; j++) {
 
 				/* Mimic replacement of tabs */
 				ch= (*linep)->line[j];
 				if(ch=='\t') {
 					chars= st->tabnumber-i%st->tabnumber;
+					tabs+= chars-1;
 					ch= ' ';
 				}
 				else
@@ -2021,22 +2282,34 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 						*charp= endj;
 						loop= 0;
 						break;
-					/* Exactly at the cursor, done */
+					/* Exactly at the cursor */
 					}
 					else if(y==0 && i-start==x) {
+						/* current position could be wrapped to next line */
+						/* this should be checked when end of current line would be reached */
 						*charp= curs= j;
-						loop= 0;
-						break;
+						found= 1;
 					/* Prepare curs for next wrap */
 					}
 					else if(i-end==x) {
 						curs= j;
 					}
 					if(i-start>=max) {
+						if(found) {
+							/* exact cursor position was found, check if it's */
+							/* still on needed line (hasn't been wrapped) */
+							if(*charp>endj && !chop) (*charp)= endj;
+							loop= 0;
+							break;
+						}
+
 						if(chop) endj= j;
-						y--;
 						start= end;
 						end += max;
+
+						if(start-tabs<(*linep)->len)
+							y--;
+
 						chop= 1;
 						if(y==0 && i-start>=x) {
 							*charp= curs;
@@ -2045,6 +2318,11 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 						}
 					}
 					else if(ch==' ' || ch=='-' || ch=='\0') {
+						if(found) {
+							loop= 0;
+							break;
+						}
+
 						if(y==0 && i-start>=x) {
 							*charp= curs;
 							loop= 0;
@@ -2102,7 +2380,7 @@ static void set_cursor_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 	if(event->mval[1]<0 || event->mval[1]>ar->winy) {
 		int d= (scu->old[1]-event->mval[1])*st->pix_per_line;
-		if(d) screen_skip(st, d);
+		if(d) screen_skip(st, ar, d);
 
 		set_cursor_to_pos(st, ar, event->mval[0], event->mval[1]<0?0:ar->winy, 1);
 
@@ -2290,6 +2568,8 @@ static int insert_exec(bContext *C, wmOperator *op)
 	char *str;
 	int done = 0, i;
 
+	text_drawcache_tag_update(st, 0);
+
 	str= RNA_string_get_alloc(op->ptr, "text", NULL, 0);
 
 	if(st && st->overwrite) {
@@ -2396,6 +2676,7 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 					}
 					text_update_cursor_moved(C);
 					WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
+					text_drawcache_tag_update(CTX_wm_space_text(C), 1);
 				}
 				else if(mode==TEXT_MARK_ALL) {
 					char color[4];
@@ -2741,6 +3022,7 @@ void ED_text_undo_step(bContext *C, int step)
 	text_update_edited(text);
 
 	text_update_cursor_moved(C);
+	text_drawcache_tag_update(CTX_wm_space_text(C), 1);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 }
 

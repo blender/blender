@@ -318,6 +318,8 @@ typedef struct SpaceText {
 
 	char findstr[256];		/* ST_MAX_FIND_STR */
 	char replacestr[256];	/* ST_MAX_FIND_STR */
+
+	void *drawcache; /* cache for faster drawing */
 } SpaceText;
 
 typedef struct Script {

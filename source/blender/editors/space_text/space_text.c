@@ -92,6 +92,7 @@ static void text_free(SpaceLink *sl)
 	SpaceText *stext= (SpaceText*) sl;
 	
 	stext->text= NULL;
+	text_free_caches(stext);
 }
 
 
@@ -104,9 +105,11 @@ static void text_init(struct wmWindowManager *wm, ScrArea *sa)
 static SpaceLink *text_duplicate(SpaceLink *sl)
 {
 	SpaceText *stextn= MEM_dupallocN(sl);
-	
+
 	/* clear or remove stuff from old */
-	
+
+	stextn->drawcache= NULL; /* space need it's own cache */
+
 	return (SpaceLink *)stextn;
 }
 
@@ -132,8 +135,11 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 
 			switch(wmn->action) {
 				case NA_EDITED:
-					if(st->text)
+					if(st->text) {
+						text_drawcache_tag_update(st, 1);
 						text_update_edited(st->text);
+					}
+
 					ED_area_tag_redraw(sa);
 					/* no break -- fall down to tag redraw */
 				case NA_ADDED:
