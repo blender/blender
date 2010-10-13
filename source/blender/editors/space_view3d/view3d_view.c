@@ -1667,6 +1667,7 @@ static void RestoreState(bContext *C)
 	win->queue= queue_back;
 	
 	GPU_state_init();
+	GPU_set_tpage(NULL, 0);
 
 	glPopAttrib();
 }
