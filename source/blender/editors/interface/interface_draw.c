@@ -1404,7 +1404,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	if (but->a1 != -1) {
 		if (but->a1 == UI_GRAD_H) {
 			rcti grid;
-			float col[3];
+			float col[3]= {0.0f, 0.0f, 0.0f}; /* dummy arg */
 			
 			grid.xmin = rect->xmin + zoomx*(-offsx);
 			grid.xmax = rect->xmax + zoomx*(-offsx);

@@ -1725,16 +1725,14 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 /* ************ custom buttons, old stuff ************** */
 
 /* draws in resolution of 20x4 colors */
-void ui_draw_gradient(rcti *rect, float *rgb, int type, float alpha)
+void ui_draw_gradient(rcti *rect, float *hsv, int type, float alpha)
 {
 	int a;
-	float h, s, v;
+	float h= hsv[0], s= hsv[1], v= hsv[0];
 	float dx, dy, sx1, sx2, sy;
 	float col0[4][3];	// left half, rect bottom to top
 	float col1[4][3];	// right half, rect bottom to top
-	
-	rgb_to_hsv(rgb[0], rgb[1], rgb[2], &h, &s, &v);
-	
+
 	/* draw series of gouraud rects */
 	glShadeModel(GL_SMOOTH);
 	
@@ -1860,6 +1858,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 	float rgb[3], h,s,v;
 	float x=0.0f, y=0.0f;
 	float *hsv= ui_block_hsv_get(but->block);
+	float hsvn[3];
 	
 	h= hsv[0];
 	s= hsv[1];
@@ -1867,8 +1866,12 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 	
 	ui_get_but_vectorf(but, rgb);
 	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], &h, &s, &v);
+
+	hsvn[0]= h;
+	hsvn[1]= s;
+	hsvn[2]= v;
 	
-	ui_draw_gradient(rect, rgb, but->a1, 1.f);
+	ui_draw_gradient(rect, hsvn, but->a1, 1.f);
 	
 	switch((int)but->a1) {
 		case UI_GRAD_SV:
