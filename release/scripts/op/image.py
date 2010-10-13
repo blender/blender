@@ -32,13 +32,17 @@ class EditExternally(bpy.types.Operator):
 
     def _editor_guess(self, context):
         import platform
-        system = platform.system()
+        try:
+            system = platform.system()
+        except UnicodeEncodingError:
+            import sys
+            system = sys.platform
 
         image_editor = context.user_preferences.filepaths.image_editor
 
         # use image editor in the preferences when available.
         if not image_editor:
-            if system == 'Windows':
+            if system in ('Windows', 'win32'):
                 image_editor = ["start"]  # not tested!
             elif system == 'Darwin':
                 image_editor = ["open"]

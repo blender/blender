@@ -32,8 +32,13 @@ BLENDER_PATH = sys.argv[0]
 CANCEL_POLL_SPEED = 2
 MAX_TIMEOUT = 10
 INCREMENT_TIMEOUT = 1
+try:
+    system = platform.system()
+except UnicodeEncodingError:
+    import sys
+    system = sys.platform
 
-if platform.system() == 'Windows' and platform.version() >= '5': # Error mode is only available on Win2k or higher, that's version 5
+if system in ('Windows', 'win32') and platform.version() >= '5': # Error mode is only available on Win2k or higher, that's version 5
     import ctypes
     def SetErrorMode():
         val = ctypes.windll.kernel32.SetErrorMode(0x0002)
