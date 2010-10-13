@@ -77,25 +77,31 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 
 	/* now we need a float buffer from the image
 	 * with matching color management */
-	if(rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
-		if(ibuf->profile != IB_PROFILE_NONE) {
-			rect= ibuf->rect_float;
+	if(ibuf->channels == 4) {
+		if(rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
+			if(ibuf->profile != IB_PROFILE_NONE) {
+				rect= ibuf->rect_float;
+			}
+			else {
+				rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
+				srgb_to_linearrgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
+				alloc= TRUE;
+			}
 		}
 		else {
-			rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
-			srgb_to_linearrgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
-			alloc= TRUE;
+			if(ibuf->profile == IB_PROFILE_NONE) {
+				rect= ibuf->rect_float;
+			}
+			else {
+				rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
+				linearrgb_to_srgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
+				alloc= TRUE;
+			}
 		}
 	}
 	else {
-		if(ibuf->profile == IB_PROFILE_NONE) {
-			rect= ibuf->rect_float;
-		}
-		else {
-			rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
-			linearrgb_to_srgb_rgba_rgba_buf(rect, ibuf->rect_float, ibuf->x * ibuf->y);
-			alloc= TRUE;
-		}
+		/* non-rgba passes can't use color profiles */
+		rect= ibuf->rect_float;
 	}
 	/* done coercing into the correct color management */
 
