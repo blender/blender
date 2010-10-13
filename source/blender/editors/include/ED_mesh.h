@@ -159,6 +159,8 @@ void		EM_solidify(struct EditMesh *em, float dist);
 
 int			EM_deselect_nth(struct EditMesh *em, int nth);
 
+void EM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct Object *obedit, struct EditMesh *em);
+
 /* editmesh_mods.c */
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
 

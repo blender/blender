@@ -58,6 +58,7 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_transform.h"
 
 #include "mesh_intern.h"
 
@@ -2765,3 +2766,18 @@ int EM_deselect_nth(EditMesh *em, int nth)
 	return 0;
 }
 
+void EM_project_snap_verts(bContext *C, ARegion *ar, Object *obedit, EditMesh *em)
+{
+	EditVert *eve;
+	for(eve= em->verts.first;eve; eve=eve->next) {
+		if(eve->f & SELECT) {
+			float mval[2], vec[3], no_dummy[3];
+			int dist_dummy;
+			mul_v3_m4v3(vec, obedit->obmat, eve->co);
+			project_float_noclip(ar, vec, mval);
+			if(snapObjectsContext(C, mval, &dist_dummy, vec, no_dummy, SNAP_NOT_OBEDIT)) {
+				mul_v3_m4v3(eve->co, obedit->imat, vec);
+			}
+		}
+	}
+}

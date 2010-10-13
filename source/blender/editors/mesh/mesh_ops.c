@@ -292,7 +292,8 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 
 	/* use KM_CLICK because same key is used for tweaks */
 	WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", ACTIONMOUSE, KM_CLICK, KM_CTRL, 0);
-	
+	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", ACTIONMOUSE, KM_CLICK, KM_SHIFT|KM_CTRL, 0)->ptr, "rotate_source", 0);
+
 	WM_keymap_add_item(keymap, "MESH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	

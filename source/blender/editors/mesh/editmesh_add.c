@@ -110,17 +110,20 @@ static short icoface[20][3] = {
 static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewContext vc;
-	EditVert *eve, *v1;
+	EditVert *eve;
 	float min[3], max[3];
 	int done= 0;
+	int rot_src= RNA_boolean_get(op->ptr, "rotate_source");
 	
 	em_setup_viewcontext(C, &vc);
 	
+	invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 
+	
 	INIT_MINMAX(min, max);
 	
-	for(v1= vc.em->verts.first;v1; v1=v1->next) {
-		if(v1->f & SELECT) {
-			DO_MINMAX(v1->co, min, max);
+	for(eve= vc.em->verts.first; eve; eve= eve->next) {
+		if(eve->f & SELECT) {
+			DO_MINMAX(eve->co, min, max);
 			done= 1;
 		}
 	}
@@ -131,25 +134,56 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		float vec[3], cent[3], mat[3][3];
 		float nor[3]= {0.0, 0.0, 0.0};
 		
-		/* check for edges that are half selected, use for rotation */
+		/* 2D normal calc */
+		float mval_f[2]= {(float)event->mval[0], (float)event->mval[1]};
+
+#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
+		
 		done= 0;
+
+		/* calculate the normal for selected edges */
 		for(eed= vc.em->edges.first; eed; eed= eed->next) {
-			if( (eed->v1->f & SELECT)+(eed->v2->f & SELECT) == SELECT ) {
-				if(eed->v1->f & SELECT) sub_v3_v3v3(vec, eed->v1->co, eed->v2->co);
-				else sub_v3_v3v3(vec, eed->v2->co, eed->v1->co);
-				add_v3_v3(nor, vec);
+			if(eed->f & SELECT) {
+				float co1[3], co2[3];
+				mul_v3_m4v3(co1, vc.obedit->obmat, eed->v1->co);
+				mul_v3_m4v3(co2, vc.obedit->obmat, eed->v2->co);
+				project_float_noclip(vc.ar, co1, co1);
+				project_float_noclip(vc.ar, co2, co2);
+				
+				/* 2D rotate by 90d while subtracting
+				 *  (x, y) = (y, -x)
+				 *
+				 * accumulate the screenspace normal in 2D,
+				 * with screenspace edge length weighting the result. */
+				if(SIDE_OF_LINE(co1, co2, mval_f) >= 0.0f) {
+					nor[0] +=  (co1[1] - co2[1]);
+					nor[1] += -(co1[0] - co2[0]);
+				}
+				else {
+					nor[0] +=  (co2[1] - co1[1]);
+					nor[1] += -(co2[0] - co1[0]);
+				}
 				done= 1;
 			}
 		}
+
+#undef SIDE_OF_LINE
+
 		if(done) {
 			float view_vec[3], cross[3];
 
+			/* convert the 2D nomal into 3D */
+			mul_mat3_m4_v3(vc.rv3d->viewinv, nor); /* worldspace */
+			mul_mat3_m4_v3(vc.obedit->imat, nor); /* local space */
+			
 			/* correct the normal to be aligned on the view plane */
 			copy_v3_v3(view_vec, vc.rv3d->viewinv[2]);
 			mul_mat3_m4_v3(vc.obedit->imat, view_vec);
 			cross_v3_v3v3(cross, nor, view_vec);
 			cross_v3_v3v3(nor, view_vec, cross);
 			normalize_v3(nor);
+			
+			/* correct for flipping */
 		}
 		
 		/* center */
@@ -159,10 +193,9 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		
 		mul_m4_v3(vc.obedit->obmat, min);	// view space
 		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
-		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
 		
-		sub_v3_v3v3(min, min, cent);
+		sub_v3_v3(min, cent);
 		
 		/* calculate rotation */
 		unit_m3(mat);
@@ -179,15 +212,21 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 				cross_v3_v3v3(cross, nor, vec);
 				normalize_v3(cross);
 				dot= 0.5f*saacos(dot);
+				
+				/* halve the rotation if its applied twice */
+				if(rot_src) dot *= 0.5f;
+				
 				si= (float)sin(dot);
 				q1[0]= (float)cos(dot);
 				q1[1]= cross[0]*si;
 				q1[2]= cross[1]*si;
-				q1[3]= cross[2]*si;
-				
+				q1[3]= cross[2]*si;				
 				quat_to_mat3( mat,q1);
 			}
 		}
+		
+		if(rot_src)
+			rotateflag(vc.em, SELECT, cent, mat);
 		
 		extrudeflag(vc.obedit, vc.em, SELECT, nor, 0);
 		rotateflag(vc.em, SELECT, cent, mat);
@@ -213,8 +252,13 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		
 		eve->f= SELECT;
 	}
-	
-	//retopo_do_all();
+
+	if(	((vc.scene->toolsettings->snap_flag & (SCE_SNAP|SCE_SNAP_PROJECT))==(SCE_SNAP|SCE_SNAP_PROJECT)) &&
+		(vc.scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE)
+	) {
+		EM_project_snap_verts(C, vc.ar, vc.obedit, vc.em);
+	}
+
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, vc.obedit->data); 
 	DAG_id_flush_update(vc.obedit->data, OB_RECALC_DATA);
 	
@@ -234,6 +278,8 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "rotate_source", 1, "Rotate Source", "Rotate initial selection giving better shape");
 }
 
 
