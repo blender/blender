@@ -1221,7 +1221,7 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth)
 void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float **faceNors_r) 
 {
 	float (*tnorms)[3]= MEM_callocN(numVerts*sizeof(*tnorms), "tnorms");
-	float *fnors= MEM_mallocN(sizeof(*fnors)*3*numFaces, "meshnormals");
+	float *fnors= MEM_callocN(sizeof(*fnors)*3*numFaces, "meshnormals");
 	int i;
 
 	for (i=0; i<numFaces; i++) {
