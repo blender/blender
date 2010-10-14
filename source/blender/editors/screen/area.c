@@ -144,7 +144,7 @@ void ED_area_do_refresh(bContext *C, ScrArea *sa)
 
 /* based on screen region draw tags, set draw tags in azones, and future region tabs etc */
 /* only exported for WM */
-void ED_area_overdraw_flush(bContext *C, ScrArea *sa, ARegion *ar)
+void ED_area_overdraw_flush(ScrArea *sa, ARegion *ar)
 {
 	AZone *az;
 	
@@ -187,7 +187,7 @@ static void area_draw_azone(short x1, short y1, short x2, short y2)
 }
 
 
-static void region_draw_azone(ScrArea *sa, AZone *az)
+static void region_draw_azone(AZone *az)
 {
 	GLUquadricObj *qobj = NULL; 
 	short midx = az->x1 + (az->x2 - az->x1)/2;
@@ -247,7 +247,7 @@ void ED_area_overdraw(bContext *C)
 				if(az->type==AZONE_AREA) {
 					area_draw_azone(az->x1, az->y1, az->x2, az->y2);
 				} else if(az->type==AZONE_REGION) {
-					region_draw_azone(sa, az);
+					region_draw_azone(az);
 				}
 				
 				az->do_draw= 0;
@@ -817,7 +817,7 @@ static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 
 
 /* used for area initialize below */
-static void region_subwindow(wmWindowManager *wm, wmWindow *win, ARegion *ar)
+static void region_subwindow(wmWindow *win, ARegion *ar)
 {
 	if(ar->flag & (RGN_FLAG_HIDDEN|RGN_FLAG_TOO_SMALL)) {
 		if(ar->swinid)
@@ -908,7 +908,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	
 	/* region windows, default and own handlers */
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
-		region_subwindow(wm, win, ar);
+		region_subwindow(win, ar);
 		
 		if(ar->swinid) {
 			/* default region handlers */
@@ -931,7 +931,7 @@ void ED_region_init(bContext *C, ARegion *ar)
 //	ARegionType *at= ar->type;
 	
 	/* refresh can be called before window opened */
-	region_subwindow(CTX_wm_manager(C), CTX_wm_window(C), ar);
+	region_subwindow(CTX_wm_window(C), ar);
 	
 	ar->winx= ar->winrct.xmax - ar->winrct.xmin + 1;
 	ar->winy= ar->winrct.ymax - ar->winrct.ymin + 1;
@@ -1156,7 +1156,7 @@ static char *editortype_pup(void)
 		   );
 }
 
-static void spacefunc(struct bContext *C, void *arg1, void *arg2)
+static void spacefunc(struct bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 {
 	ED_area_newspace(C, CTX_wm_area(C), CTX_wm_area(C)->butspacetype);
 	ED_area_tag_redraw(CTX_wm_area(C));

@@ -526,7 +526,7 @@ static void do_history(char *name, ReportList *reports)
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 }
 
-static ImBuf *blend_file_thumb(const char *path, Scene *scene, int **thumb_pt)
+static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 {
 	/* will be scaled down, but gives some nice oversampling */
 	ImBuf *ibuf;
@@ -627,7 +627,7 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	ED_sculpt_force_update(C);
 
 	/* blend file thumbnail */
-	ibuf_thumb= blend_file_thumb(di, CTX_data_scene(C), &thumb);
+	ibuf_thumb= blend_file_thumb(CTX_data_scene(C), &thumb);
 
 	/* rename to .blend1, do this as last before write */
 	do_history(di, reports);

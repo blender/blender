@@ -369,7 +369,7 @@ ARegion *image_has_scope_region(ScrArea *sa)
 
 /* ******************** default callbacks for image space ***************** */
 
-static SpaceLink *image_new(const bContext *C)
+static SpaceLink *image_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceImage *simage;
@@ -429,7 +429,7 @@ static void image_free(SpaceLink *sl)
 
 
 /* spacetype; init callback, add handlers */
-static void image_init(struct wmWindowManager *wm, ScrArea *sa)
+static void image_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	ListBase *lb= WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
 
@@ -533,7 +533,7 @@ void image_keymap(struct wmKeyConfig *keyconf)
 }
 
 /* dropboxes */
-static int image_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int image_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_PATH)
 		if(ELEM3(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_BLANK))	/* rule might not work? */
@@ -557,7 +557,7 @@ static void image_dropboxes(void)
 
 
 
-static void image_refresh(const bContext *C, ScrArea *sa)
+static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -884,7 +884,7 @@ static void image_scope_area_listener(ARegion *ar, wmNotifier *wmn)
 /************************* header region **************************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void image_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void image_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }

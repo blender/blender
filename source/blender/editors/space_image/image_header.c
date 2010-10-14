@@ -53,7 +53,7 @@
 
 /********************** toolbox operator *********************/
 
-static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Object *obedit= CTX_data_edit_object(C);

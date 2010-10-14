@@ -37,9 +37,9 @@ void		area_copy_data	(ScrArea *sa1, ScrArea *sa2, int swap_space);
 
 /* screen_edit.c */
 ScrEdge		*screen_findedge(bScreen *sc, ScrVert *v1, ScrVert *v2);
-ScrArea		*area_split(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac);
+ScrArea		*area_split(bScreen *sc, ScrArea *sa, char dir, float fac);
 int			screen_area_join(bContext *C, bScreen* scr, ScrArea *sa1, ScrArea *sa2);
-int			area_getorientation(bScreen *screen, ScrArea *sa, ScrArea *sb);
+int			area_getorientation(ScrArea *sa, ScrArea *sb);
 void		select_connected_scredge(bScreen *sc, ScrEdge *edge);
 
 void		removenotused_scrverts(bScreen *sc);

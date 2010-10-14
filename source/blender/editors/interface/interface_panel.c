@@ -772,7 +772,7 @@ static void ui_do_animate(const bContext *C, Panel *panel)
 	}
 }
 
-void uiBeginPanels(const bContext *C, ARegion *ar)
+void uiBeginPanels(const bContext *UNUSED(C), ARegion *ar)
 {
 	Panel *pa;
   

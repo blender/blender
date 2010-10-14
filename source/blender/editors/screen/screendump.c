@@ -132,7 +132,7 @@ static unsigned int *screenshot(bContext *C, int *dumpsx, int *dumpsy, int fscre
 }
 
 
-static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	unsigned int *dumprect;
 	int dumpsx, dumpsy;
@@ -214,7 +214,7 @@ static void screenshot_updatejob(void *sjv)
 
 
 /* only this runs inside thread */
-static void screenshot_startjob(void *sjv, short *stop, short *do_update, float *progress)
+static void screenshot_startjob(void *sjv, short *stop, short *do_update, float *UNUSED(progress))
 {
 	ScreenshotJob *sj= sjv;
 	RenderData rd= sj->scene->r;

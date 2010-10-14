@@ -1097,7 +1097,7 @@ static void step_to_grid(float *step, int *power, int unit)
  *	
  *	- xunits,yunits	= V2D_UNIT_*  grid steps in seconds or frames 
  *	- xclamp,yclamp	= V2D_CLAMP_* only show whole-number intervals
- *	- winx			= width of region we're drawing to, note: not used but keeping for compleateness.
+ *	- winx			= width of region we're drawing to, note: not used but keeping for completeness.
  *	- winy			= height of region we're drawing into
  */
 View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d, short xunits, short xclamp, short yunits, short yclamp, int UNUSED(winx), int winy)

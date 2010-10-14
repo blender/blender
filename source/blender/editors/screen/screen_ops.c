@@ -265,7 +265,7 @@ int ED_operator_posemode(bContext *C)
 
 	if ((obact != CTX_data_edit_object(C))) {
 		Object *obpose;
-		if(obpose= ED_object_pose_armature(obact)) {
+		if((obpose= ED_object_pose_armature(obact))) {
 			if((obact == obpose) || (obact->mode & OB_MODE_WEIGHT_PAINT)) {
 				return 1;
 			}
@@ -443,7 +443,7 @@ AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 }
 
 
-static void actionzone_exit(bContext *C, wmOperator *op)
+static void actionzone_exit(wmOperator *op)
 {
 	if(op->customdata)
 		MEM_freeN(op->customdata);
@@ -489,7 +489,7 @@ static int actionzone_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* region azone directly reacts on mouse clicks */
 	if(sad->az->type==AZONE_REGION) {
 		actionzone_apply(C, op, AZONE_REGION);
-		actionzone_exit(C, op);
+		actionzone_exit(op);
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -529,16 +529,16 @@ static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
 				sad->sa2= screen_areahascursor(CTX_wm_screen(C), event->x, event->y);
 				/* apply sends event */
 				actionzone_apply(C, op, sad->az->type);
-				actionzone_exit(C, op);
+				actionzone_exit(op);
 				
 				return OPERATOR_FINISHED;
 			}
 			break;
 		case ESCKEY:
-			actionzone_exit(C, op);
+			actionzone_exit(op);
 			return OPERATOR_CANCELLED;
 		case LEFTMOUSE:				
-			actionzone_exit(C, op);
+			actionzone_exit(op);
 			return OPERATOR_CANCELLED;
 			
 	}
@@ -589,7 +589,7 @@ typedef struct sAreaSwapData {
 	ScrArea *sa1, *sa2;
 } sAreaSwapData;
 
-static int area_swap_init(bContext *C, wmOperator *op, wmEvent *event)
+static int area_swap_init(wmOperator *op, wmEvent *event)
 {
 	sAreaSwapData *sd= NULL;
 	sActionzoneData *sad= event->customdata;
@@ -623,7 +623,7 @@ static int area_swap_cancel(bContext *C, wmOperator *op)
 static int area_swap_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	
-	if(!area_swap_init(C, op, event))
+	if(!area_swap_init(op, event))
 		return OPERATOR_PASS_THROUGH;
 	
 	/* add modal handler */
@@ -709,7 +709,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/*  poll() checks area context, but we don't accept full-area windows */
 	if(sc->full != SCREENNORMAL) {
 		if(event->type==EVT_ACTIONZONE_AREA)
-			actionzone_exit(C, op);
+			actionzone_exit(op);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -731,7 +731,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	
 	if(event->type==EVT_ACTIONZONE_AREA)
-		actionzone_exit(C, op);
+		actionzone_exit(op);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1125,7 +1125,7 @@ static int area_split_apply(bContext *C, wmOperator *op)
 	fac= RNA_float_get(op->ptr, "factor");
 	dir= RNA_enum_get(op->ptr, "direction");
 	
-	sd->narea= area_split(CTX_wm_window(C), sc, sd->sarea, dir, fac);
+	sd->narea= area_split(sc, sd->sarea, dir, fac);
 	
 	if(sd->narea) {
 		ScrVert *sv;
@@ -1741,7 +1741,7 @@ static void SCREEN_OT_screen_set(wmOperatorType *ot)
 
 
 /* function to be called outside UI context, or for redo */
-static int screen_full_area_exec(bContext *C, wmOperator *op)
+static int screen_full_area_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ED_screen_full_toggle(C, CTX_wm_window(C), CTX_wm_area(C));
 	return OPERATOR_FINISHED;
@@ -1948,7 +1948,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			if (sa) {					
 				if (jd->sa1 != sa) {
-					dir = area_getorientation(sc, jd->sa1, sa);
+					dir = area_getorientation(jd->sa1, sa);
 					if (dir >= 0) {
 						if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 						jd->sa2 = sa;
@@ -1959,7 +1959,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 						 we check if area has common border with the one marked for removal
 						 in this case we can swap areas.
 						 */
-						dir = area_getorientation(sc, sa, jd->sa2);
+						dir = area_getorientation(sa, jd->sa2);
 						if (dir >= 0) {
 							if (jd->sa1) jd->sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
 							if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
@@ -1985,13 +1985,13 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 						jd->sa2 = sa;
 						if (jd->sa1) jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;
 						if (jd->sa2) jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
-						dir = area_getorientation(sc, jd->sa1, jd->sa2);
+						dir = area_getorientation(jd->sa1, jd->sa2);
 						if (dir < 0) {
 							printf("oops, didn't expect that!\n");
 						}
 					} 
 					else {
-						dir = area_getorientation(sc, jd->sa1, sa);
+						dir = area_getorientation(jd->sa1, sa);
 						if (dir >= 0) {
 							if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 							jd->sa2 = sa;
@@ -2048,7 +2048,7 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 
 /* ************** repeat last operator ***************************** */
 
-static int repeat_last_exec(bContext *C, wmOperator *op)
+static int repeat_last_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	wmOperator *lastop= CTX_wm_manager(C)->operators.last;
 	
@@ -2072,7 +2072,7 @@ static void SCREEN_OT_repeat_last(wmOperatorType *ot)
 	
 }
 
-static int repeat_history_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int repeat_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmOperator *lastop;
@@ -2129,7 +2129,7 @@ static void SCREEN_OT_repeat_history(wmOperatorType *ot)
 
 /* ********************** redo operator ***************************** */
 
-static int redo_last_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int redo_last_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmOperator *lastop;
@@ -2257,7 +2257,7 @@ static void SCREEN_OT_region_quadview(wmOperatorType *ot)
 /* ************** region flip operator ***************************** */
 
 /* flip a region alignment */
-static int region_flip_exec(bContext *C, wmOperator *op)
+static int region_flip_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ARegion *ar= CTX_wm_region(C);
 	
@@ -2295,7 +2295,7 @@ static void SCREEN_OT_region_flip(wmOperatorType *ot)
 /* ************** header flip operator ***************************** */
 
 /* flip a header region alignment */
-static int header_flip_exec(bContext *C, wmOperator *op)
+static int header_flip_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ARegion *ar= CTX_wm_region(C);
 	
@@ -2349,7 +2349,7 @@ static void SCREEN_OT_header_flip(wmOperatorType *ot)
 
 /* ************** header tools operator ***************************** */
 
-static int header_toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -2463,7 +2463,7 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 	return 0;
 }
 
-static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
+static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	bScreen *screen= CTX_wm_screen(C);
 
@@ -2672,7 +2672,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate");
 }
 
-static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
+static int screen_animation_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bScreen *screen= CTX_wm_screen(C);
 	
@@ -2800,7 +2800,7 @@ static void SCREEN_OT_back_to_previous(struct wmOperatorType *ot)
 
 /* *********** show user pref window ****** */
 
-static int userpref_show_invoke(bContext *C, wmOperator *unused, wmEvent *event)
+static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	ScrArea *sa;
 	rcti rect;
@@ -2839,7 +2839,7 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 
 /********************* new screen operator *********************/
 
-static int screen_new_exec(bContext *C, wmOperator *op)
+static int screen_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	wmWindow *win= CTX_wm_window(C);
 	bScreen *sc= CTX_wm_screen(C);
@@ -2866,7 +2866,7 @@ void SCREEN_OT_new(wmOperatorType *ot)
 
 /********************* delete screen operator *********************/
 
-static int screen_delete_exec(bContext *C, wmOperator *op)
+static int screen_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bScreen *sc= CTX_wm_screen(C);
 	
@@ -2937,7 +2937,7 @@ void SCENE_OT_new(wmOperatorType *ot)
 
 /********************* delete scene operator *********************/
 
-static int scene_delete_exec(bContext *C, wmOperator *op)
+static int scene_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	

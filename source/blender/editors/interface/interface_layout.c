@@ -472,7 +472,7 @@ static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *pt
 }
 
 /* callback for keymap item change button */
-static void ui_keymap_but_cb(bContext *C, void *but_v, void *key_v)
+static void ui_keymap_but_cb(bContext *UNUSED(C), void *but_v, void *UNUSED(key_v))
 {
 	uiBut *but= but_v;
 
@@ -1026,7 +1026,7 @@ void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, char *propname
 
 	for(a=0; item[a].identifier; a++) {
 		if(item[a].value == ivalue) {
-			uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, ivalue, 0, (char*)item[a].name, item[a].icon);
+			uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, ivalue, 0, name ? name : (char*)item[a].name, icon ? icon : item[a].icon);
 			break;
 		}
 	}
@@ -1324,7 +1324,7 @@ static void ui_item_menu(uiLayout *layout, char *name, int icon, uiMenuCreateFun
 	}
 }
 
-void uiItemM(uiLayout *layout, bContext *C, char *menuname, char *name, int icon)
+void uiItemM(uiLayout *layout, bContext *UNUSED(C), char *menuname, char *name, int icon)
 {
 	MenuType *mt;
 
@@ -1434,7 +1434,7 @@ typedef struct MenuItemLevel {
 	PointerRNA rnapoin;
 } MenuItemLevel;
 
-static void menu_item_enum_opname_menu(bContext *C, uiLayout *layout, void *arg)
+static void menu_item_enum_opname_menu(bContext *UNUSED(C), uiLayout *layout, void *arg)
 {
 	MenuItemLevel *lvl= (MenuItemLevel*)(((uiBut*)arg)->func_argN);
 
@@ -1465,7 +1465,7 @@ void uiItemMenuEnumO(uiLayout *layout, char *opname, char *propname, char *name,
 	ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl);
 }
 
-static void menu_item_enum_rna_menu(bContext *C, uiLayout *layout, void *arg)
+static void menu_item_enum_rna_menu(bContext *UNUSED(C), uiLayout *layout, void *arg)
 {
 	MenuItemLevel *lvl= (MenuItemLevel*)(((uiBut*)arg)->func_argN);
 
@@ -1674,7 +1674,7 @@ static void ui_litem_layout_column(uiLayout *litem)
 }
 
 /* root layout */
-static void ui_litem_estimate_root(uiLayout *litem)
+static void ui_litem_estimate_root(uiLayout *UNUSED(litem))
 {
 	/* nothing to do */
 }

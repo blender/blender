@@ -70,7 +70,7 @@
 
 #define HEADER_HEIGHT 18
 
-static void image_verify_buffer_float(SpaceImage *sima, Image *ima, ImBuf *ibuf, int color_manage)
+static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage)
 {
 	/* detect if we need to redo the curve map.
 	   ibuf->rect is zero for compositor and render results after change 
@@ -367,7 +367,7 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 	}
 #ifdef WITH_LCMS
 	else if(sima->flag & SI_COLOR_CORRECTION) {
-		image_verify_buffer_float(sima, ima, ibuf, color_manage);
+		image_verify_buffer_float(ima, ibuf, color_manage);
 		
 		if(sima_draw_colorcorrected_pixels(x, y, ibuf)==0) {
 			unsigned char col1[3]= {100, 0, 100}, col2[3]= {160, 0, 160}; /* pink says 'warning' in blender land */
@@ -387,7 +387,7 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 
 		/* we don't draw floats buffers directly but
 		 * convert them, and optionally apply curves */
-		image_verify_buffer_float(sima, ima, ibuf, color_manage);
+		image_verify_buffer_float(ima, ibuf, color_manage);
 
 		if(ibuf->rect)
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
@@ -440,7 +440,7 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 		sima->curtile = ima->xrep*ima->yrep - 1; 
 	
 	/* create char buffer from float if needed */
-	image_verify_buffer_float(sima, ima, ibuf, color_manage);
+	image_verify_buffer_float(ima, ibuf, color_manage);
 
 	/* retrieve part of image buffer */
 	dx= ibuf->x/ima->xrep;
@@ -579,7 +579,7 @@ static unsigned char *get_alpha_clone_image(Scene *scene, int *width, int *heigh
 	return rect;
 }
 
-static void draw_image_paint_helpers(SpaceImage *sima, ARegion *ar, Scene *scene, float zoomx, float zoomy)
+static void draw_image_paint_helpers(ARegion *ar, Scene *scene, float zoomx, float zoomy)
 {
 	Brush *brush;
 	int x, y, w, h;
@@ -658,7 +658,7 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 		draw_image_buffer(sima, ar, scene, ima, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 
 	/* paint helpers */
-	draw_image_paint_helpers(sima, ar, scene, zoomx, zoomy);
+	draw_image_paint_helpers(ar, scene, zoomx, zoomy);
 
 
 	/* XXX integrate this code */
