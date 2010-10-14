@@ -177,13 +177,16 @@ void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb, in
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
 {
 	unsigned int ri, gi, bi;
-	
+
 	if (hexcol[0] == '#') hexcol++;
-	
-	if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi)) {
+
+	if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi)==3) {
 		*r = ri / 255.0f;
 		*g = gi / 255.0f;		
 		*b = bi / 255.0f;
+		CLAMP(*r, 0.0f, 1.0f);
+		CLAMP(*g, 0.0f, 1.0f);
+		CLAMP(*b, 0.0f, 1.0f);
 	}
 }
 
