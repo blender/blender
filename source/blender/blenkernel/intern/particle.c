@@ -402,6 +402,7 @@ void free_hair(Object *ob, ParticleSystem *psys, int dynamics)
 			modifier_free((ModifierData*)psys->clmd);
 			
 			psys->clmd = NULL;
+			psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
 		}
 		else {
 			cloth_free_modifier(ob, psys->clmd);

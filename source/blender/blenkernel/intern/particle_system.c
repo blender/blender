@@ -4016,8 +4016,13 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	switch(part->type) {
 		case PART_HAIR:
 		{
+			/* nothing to do so bail out early */
+			if(psys->totpart == 0 && part->totpart == 0) {
+				psys_free_path_cache(psys, NULL);
+				free_hair(ob, psys, 0);
+			}
 			/* (re-)create hair */
-			if(hair_needs_recalc(psys)) {
+			else if(hair_needs_recalc(psys)) {
 				float hcfra=0.0f;
 				int i, recalc = psys->recalc;
 

@@ -2993,13 +2993,17 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 
 void BKE_ptcache_validate(PointCache *cache, int framenr)
 {
-	cache->flag |= PTCACHE_SIMULATION_VALID;
-	cache->simframe = framenr;
+	if(cache) {
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->simframe = framenr;
+	}
 }
 void BKE_ptcache_invalidate(PointCache *cache)
 {
-	cache->flag &= ~PTCACHE_SIMULATION_VALID;
-	cache->simframe = 0;
-	cache->last_exact = MIN2(cache->startframe, 0);
+	if(cache) {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe = 0;
+		cache->last_exact = MIN2(cache->startframe, 0);
+	}
 }
 
