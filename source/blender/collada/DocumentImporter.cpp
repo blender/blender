@@ -29,9 +29,6 @@
 #include <map>
 #include <algorithm> // sort()
 
-#include <math.h>
-#include <float.h>
-
 #include "COLLADAFWRoot.h"
 #include "COLLADAFWIWriter.h"
 #include "COLLADAFWStableHeaders.h"
@@ -67,6 +64,7 @@
 #include "BKE_image.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_string.h"
 
 #include "DNA_camera_types.h"
@@ -841,6 +839,38 @@ public:
 			lamp->g = col.getGreen();
 			lamp->b = col.getBlue();
 		}
+		float constatt = light->getConstantAttenuation().getValue();
+		float linatt = light->getLinearAttenuation().getValue();
+		float quadatt = light->getQuadraticAttenuation().getValue();
+		float d = 25.0f;
+		float att1 = 0.0f;
+		float att2 = 0.0f;
+		
+		float e = 1.0f/constatt;
+		
+		/* NOTE: We assume for now that inv square is used for quadratic light
+		 * and inv linear for linear light. Exported blender lin/quad weighted
+		 * most likely will result in wrong import. */
+		/* quadratic light */
+		if(IS_EQ(linatt, 0.0f) && quadatt > 0.0f) {
+			//quadatt = att2/(d*d*(e*2));
+			float invquadatt = 1.0f/quadatt;
+			float d2 = invquadatt / (2 * e);
+			d = sqrtf(d2);
+		}
+		// linear light
+		else if(IS_EQ(quadatt, 0.0f) && linatt > 0.0f) {
+			//linatt = att1/(d*e);
+			float invlinatt = 1.0f/linatt;
+			d = invlinatt / e;
+		} else {
+			printf("no linear nor quad light, using defaults for attenuation, import will be incorrect: Lamp %s\n", lamp->id.name);
+			att2 = 1.0f;
+		}
+		
+		lamp->dist = d;
+		lamp->energy = e;
+		
 		COLLADAFW::Light::LightType type = light->getLightType();
 		switch(type) {
 		case COLLADAFW::Light::AMBIENT_LIGHT:
@@ -851,9 +881,9 @@ public:
 		case COLLADAFW::Light::SPOT_LIGHT:
 			{
 				lamp->type = LA_SPOT;
-				lamp->falloff_type = LA_FALLOFF_SLIDERS;
-				lamp->att1 = light->getLinearAttenuation().getValue();
-				lamp->att2 = light->getQuadraticAttenuation().getValue();
+				lamp->falloff_type = LA_FALLOFF_INVSQUARE;
+				lamp->att1 = att1;
+				lamp->att2 = att2;
 				lamp->spotsize = light->getFallOffAngle().getValue();
 				lamp->spotblend = light->getFallOffExponent().getValue();
 			}
@@ -866,8 +896,9 @@ public:
 		case COLLADAFW::Light::POINT_LIGHT:
 			{
 				lamp->type = LA_LOCAL;
-				lamp->att1 = light->getLinearAttenuation().getValue();
-				lamp->att2 = light->getQuadraticAttenuation().getValue();
+				lamp->falloff_type = LA_FALLOFF_INVSQUARE;
+				lamp->att1 = att1;
+				lamp->att2 = att2;
 			}
 			break;
 		case COLLADAFW::Light::UNDEFINED:

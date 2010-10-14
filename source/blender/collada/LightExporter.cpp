@@ -30,6 +30,8 @@
 
 #include "DNA_lamp_types.h"
 
+#include "BLI_math.h"
+
 #include "LightExporter.h"
 #include "collada_internal.h"
 
@@ -48,6 +50,7 @@ void forEachLampObjectInScene(Scene *sce, Functor &f)
 }
 
 LightsExporter::LightsExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryLights(sw){}
+
 void LightsExporter::exportLights(Scene *sce)
 {
 	openLibrary();
@@ -62,18 +65,45 @@ void LightsExporter::operator()(Object *ob)
 	std::string la_id(get_light_id(ob));
 	std::string la_name(id_name(la));
 	COLLADASW::Color col(la->r, la->g, la->b);
-	float e = la->energy;
+	float att1, att2;
+	float e, d, constatt, linatt, quadatt;
+	att1 = att2 = 0.0f;
+	
+	if(la->falloff_type==LA_FALLOFF_INVLINEAR) {
+		att1 = 1.0f;
+		att2 = 0.0f;
+	}
+	else if(la->falloff_type==LA_FALLOFF_INVSQUARE) {
+		att1 = 0.0f;
+		att2 = 1.0f;
+	}
+	else if(la->falloff_type==LA_FALLOFF_SLIDERS) {
+		att1 = la->att1;
+		att2 = la->att2;
+	}
+	
+	e = la->energy;
+	d = la->dist;
+	
+	constatt = linatt = quadatt = MAXFLOAT;
+	if(e > 0.0f) {
+		constatt = 1.0f/e;
+		linatt = att1/(d*e);
+		quadatt = att2/(d*d*(e*2));
+	}
 	
 	// sun
 	if (la->type == LA_SUN) {
 		COLLADASW::DirectionalLight cla(mSW, la_id, la_name, e);
 		cla.setColor(col);
+		cla.setConstantAttenuation(constatt);
 		addLight(cla);
 	}
 	// hemi
 	else if (la->type == LA_HEMI) {
 		COLLADASW::AmbientLight cla(mSW, la_id, la_name, e);
 		cla.setColor(col);
+		cla.setConstantAttenuation(constatt);
 		addLight(cla);
 	}
 	// spot
@@ -82,16 +112,18 @@ void LightsExporter::operator()(Object *ob)
 		cla.setColor(col);
 		cla.setFallOffAngle(la->spotsize);
 		cla.setFallOffExponent(la->spotblend);
-		cla.setLinearAttenuation(la->att1);
-		cla.setQuadraticAttenuation(la->att2);
+		cla.setConstantAttenuation(constatt);
+		cla.setLinearAttenuation(linatt);
+		cla.setQuadraticAttenuation(quadatt);
 		addLight(cla);
 	}
 	// lamp
 	else if (la->type == LA_LOCAL) {
 		COLLADASW::PointLight cla(mSW, la_id, la_name, e);
 		cla.setColor(col);
-		cla.setLinearAttenuation(la->att1);
-		cla.setQuadraticAttenuation(la->att2);
+		cla.setConstantAttenuation(constatt);
+		cla.setLinearAttenuation(linatt);
+		cla.setQuadraticAttenuation(quadatt);
 		addLight(cla);
 	}
 	// area lamp is not supported
@@ -99,8 +131,9 @@ void LightsExporter::operator()(Object *ob)
 	else {
 		COLLADASW::PointLight cla(mSW, la_id, la_name, e);
 		cla.setColor(col);
-		cla.setLinearAttenuation(la->att1);
-		cla.setQuadraticAttenuation(la->att2);
+		cla.setConstantAttenuation(constatt);
+		cla.setLinearAttenuation(linatt);
+		cla.setQuadraticAttenuation(quadatt);
 		addLight(cla);
 	}
 }
