@@ -457,8 +457,18 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			object_to_mat3(ob, rsmat);
 		else if(apply_scale)
 			object_scale_to_mat3(ob, rsmat);
-		else if(apply_rot)
+		else if(apply_rot) {
+			float tmat[3][3], timat[3][3];
+
+			/* simple rotation matrix */
 			object_rot_to_mat3(ob, rsmat);
+
+			/* correct for scale, note mul_m3_m3m3 has swapped args! */
+			object_scale_to_mat3(ob, tmat);
+			invert_m3_m3(timat, tmat);
+			mul_m3_m3m3(rsmat, timat, rsmat);
+			mul_m3_m3m3(rsmat, rsmat, tmat);
+		}
 		else
 			unit_m3(rsmat);
 
