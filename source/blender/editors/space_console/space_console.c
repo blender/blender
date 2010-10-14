@@ -227,7 +227,7 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 	console_update_rect(C, ar);
 
 	/* worlks best with no view2d matrix set */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 
 	/* data... */
 

@@ -199,7 +199,7 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sfl
 }
 
 /* draw a given stroke in 3d (i.e. in 3d-space), using simple ogl lines */
-static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, short debug, int winx, int winy)
+static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thickness, short debug)
 {
 	bGPDspoint *pt;
 	float oldpressure = 0.0f;
@@ -501,7 +501,7 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 		if (gps->totpoints == 1)
 			gp_draw_stroke_point(gps->points, lthick, gps->flag, offsx, offsy, winx, winy);
 		else if (dflag & GP_DRAWDATA_ONLY3D)
-			gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
+			gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, debug);
 		else if (gps->totpoints > 1)	
 			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, offsx, offsy, winx, winy);
 	}

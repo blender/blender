@@ -467,15 +467,15 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 
 	/* start and end frame */
 	time_draw_sfra_efra(C, stime, ar);
 	
 	/* grid */
 	unit= (stime->flag & TIME_DRAWFRAMES)? V2D_UNIT_FRAMES: V2D_UNIT_SECONDS;
-	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
-	UI_view2d_grid_draw(C, v2d, grid, (V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS));
+	grid= UI_view2d_grid_calc(CTX_data_scene(C), v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
+	UI_view2d_grid_draw(v2d, grid, (V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS));
 	UI_view2d_grid_free(grid);
 	
 	/* keyframes */
@@ -488,7 +488,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	ANIM_draw_cfra(C, v2d, flag);
 	
 	/* markers */
-	UI_view2d_view_orthoSpecial(C, v2d, 1);
+	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 	draw_markers_time(C, 0);
 	
 	/* caches */

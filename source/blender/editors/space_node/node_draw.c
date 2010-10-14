@@ -1066,7 +1066,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	
 	//uiFreeBlocksWin(&sa->uiblocks, sa->win);
 
@@ -1078,7 +1078,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	snode->aspect= (v2d->cur.xmax - v2d->cur.xmin)/((float)ar->winx);
 	// XXX snode->curfont= uiSetCurFont_ext(snode->aspect);
 
-	UI_view2d_constant_grid_draw(C, v2d);
+	UI_view2d_constant_grid_draw(v2d);
 	/* backdrop */
 	draw_nodespace_back_pix(ar, snode, color_manage);
 	

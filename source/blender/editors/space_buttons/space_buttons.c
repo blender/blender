@@ -203,7 +203,7 @@ static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
+	UI_view2d_view_ortho(&ar->v2d);
 	
 	buttons_header_buttons(C, ar);
 

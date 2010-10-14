@@ -153,7 +153,7 @@ static void sound_main_area_draw(const bContext *C, ARegion *ar)
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 		
 	/* data... */
 	
@@ -194,7 +194,7 @@ static void sound_header_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
+	UI_view2d_view_ortho(&ar->v2d);
 	
 	sound_header_buttons(C, ar);
 	

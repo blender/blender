@@ -335,7 +335,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	file_calc_previews(C, ar);
 
 	/* set view */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	
 	/* on first read, find active file */
 	if (params->active_file == -1) {
@@ -505,7 +505,7 @@ static void file_ui_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
+	UI_view2d_view_ortho(&ar->v2d);
 
 	file_draw_buttons(C, ar);
 

@@ -5659,7 +5659,7 @@ void draw_outliner(const bContext *C)
 	UI_view2d_totRect_set(v2d, sizex, sizey);
 
 	/* set matrix for 2d-view controls */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 
 	/* draw outliner stuff (background, hierachy lines and names) */
 	outliner_back(ar, soops);

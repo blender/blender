@@ -384,7 +384,7 @@ static void text_main_area_draw(const bContext *C, ARegion *ar)
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	// UI_view2d_view_ortho(C, v2d);
+	// UI_view2d_view_ortho(v2d);
 		
 	/* data... */
 	draw_text_main(st, ar);

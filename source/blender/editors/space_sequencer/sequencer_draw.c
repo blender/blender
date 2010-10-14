@@ -772,7 +772,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	}
 	
 	/* setting up the view - actual drawing starts here */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 
 	last_texid= glaGetOneInteger(GL_TEXTURE_2D);
 	glEnable(GL_TEXTURE_2D);
@@ -1016,7 +1016,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 		glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	
 	
 	/* calculate extents of sequencer strips/data 
@@ -1029,7 +1029,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	draw_seq_backdrop(v2d);
 	
 	/* regular grid-pattern over the rest of the view (i.e. frame grid lines) */
-	UI_view2d_constant_grid_draw(C, v2d);
+	UI_view2d_constant_grid_draw(v2d);
 
 	seq_draw_sfra_efra(C, sseq, ar);	
 
@@ -1043,17 +1043,17 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	}
 	
 	/* current frame */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	if ((sseq->flag & SEQ_DRAWFRAMES)==0) 	flag |= DRAWCFRA_UNIT_SECONDS;
 	if ((sseq->flag & SEQ_NO_DRAW_CFRANUM)==0)  flag |= DRAWCFRA_SHOW_NUMBOX;
 	ANIM_draw_cfra(C, v2d, flag);
 	
 	/* markers */
-	UI_view2d_view_orthoSpecial(C, v2d, 1);
+	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 	draw_markers_time(C, DRAW_MARKERS_LINES);
 	
 	/* preview range */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	ANIM_draw_previewrange(C, v2d);
 
 	/* overlap playhead */

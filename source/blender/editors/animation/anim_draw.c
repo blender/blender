@@ -256,7 +256,7 @@ void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
 	
 	/* Draw current frame number in a little box */
 	if (flag & DRAWCFRA_SHOW_NUMBOX) {
-		UI_view2d_view_orthoSpecial(C, v2d, 1);
+		UI_view2d_view_orthoSpecial(CTX_wm_region(C), v2d, 1);
 		draw_cfra_number(scene, v2d, vec[0], (flag & DRAWCFRA_UNIT_SECONDS));
 	}
 }

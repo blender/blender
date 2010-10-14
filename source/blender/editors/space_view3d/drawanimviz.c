@@ -64,7 +64,7 @@
 //	- include support for editing the path verts
 
 /* Set up drawing environment for drawing motion paths */
-void draw_motion_paths_init(Scene *scene, View3D *v3d, ARegion *ar) 
+void draw_motion_paths_init(View3D *v3d, ARegion *ar) 
 {
 	RegionView3D *rv3d= ar->regiondata;
 	
@@ -79,7 +79,7 @@ void draw_motion_paths_init(Scene *scene, View3D *v3d, ARegion *ar)
  *		i.e. draw_motion_paths_init() has been called
  */
 // FIXME: the text is still drawn in the wrong space - it includes the current transforms of the object still...
-void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar, 
+void draw_motion_path_instance(Scene *scene, 
 			Object *ob, bPoseChannel *pchan, bAnimVizSettings *avs, bMotionPath *mpath)
 {
 	//RegionView3D *rv3d= ar->regiondata;
@@ -283,7 +283,7 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 }
 
 /* Clean up drawing environment after drawing motion paths */
-void draw_motion_paths_cleanup(Scene *scene, View3D *v3d, ARegion *ar)
+void draw_motion_paths_cleanup(View3D *v3d)
 {
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	glPopMatrix();

@@ -768,7 +768,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	draw_image_main(sima, ar, scene);
 
 	/* and uvs in 0.0-1.0 space */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	draw_uvedit_main(sima, ar, scene, obedit);
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);

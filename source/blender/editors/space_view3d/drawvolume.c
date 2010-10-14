@@ -175,7 +175,7 @@ static int larger_pow2(int n)
 	return n*2;
 }
 
-void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture *tex, float *min, float *max, int res[3], float dx, GPUTexture *tex_shadow)
+void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3], float dx, GPUTexture *tex_shadow)
 {
 	RegionView3D *rv3d= ar->regiondata;
 

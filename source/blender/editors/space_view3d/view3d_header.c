@@ -304,7 +304,7 @@ static char *view3d_modeselect_pup(Scene *scene)
 }
 
 
-static void do_view3d_header_buttons(bContext *C, void *arg, int event)
+static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 {
 	wmWindow *win= CTX_wm_window(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);

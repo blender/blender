@@ -1244,7 +1244,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	uiBeginPanels(C, ar);
 
 	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 
 	for(pt= ar->type->paneltypes.first; pt; pt= pt->next) {
 		/* verify context */
@@ -1365,7 +1365,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	UI_view2d_totRect_set(v2d, x+V2D_SCROLL_WIDTH, y+V2D_SCROLL_HEIGHT);
 
 	/* set the view */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 
 	/* this does the actual drawing! */
 	uiEndPanels(C, ar);
@@ -1414,7 +1414,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
+	UI_view2d_view_ortho(&ar->v2d);
 
 	xco= maxco= 8;
 	yco= HEADERY-3;
