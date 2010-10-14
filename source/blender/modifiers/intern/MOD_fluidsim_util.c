@@ -443,7 +443,7 @@ void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *dm, cha
 	gzclose(gzf);
 }
 
-DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
+DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
 {
 	int displaymode = 0;
 	int curFrame = framenr - 1 /*scene->r.sfra*/; /* start with 0 at start frame */
@@ -537,7 +537,11 @@ DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifie
 
 #endif // DISABLE_ELBEEM
 
-DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
+DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
+						Object *UNUSED(ob),
+						DerivedMesh *dm,
+						int useRenderParams,
+						int UNUSED(isFinalCalc))
 {
 #ifndef DISABLE_ELBEEM
 	DerivedMesh *result = NULL;
@@ -567,7 +571,7 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene, Ob
 	}
 	
 	/* try to read from cache */
-	if(((fss->lastgoodframe >= framenr) || (fss->lastgoodframe < 0)) && (result = fluidsim_read_cache(ob, dm, fluidmd, framenr, useRenderParams)))
+	if(((fss->lastgoodframe >= framenr) || (fss->lastgoodframe < 0)) && (result = fluidsim_read_cache(dm, fluidmd, framenr, useRenderParams)))
 	{
 		// fss->lastgoodframe = framenr; // set also in src/fluidsim.c
 		return result;
@@ -577,7 +581,7 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene, Ob
 		// display last known good frame
 		if(fss->lastgoodframe >= 0)
 		{
-			if((result = fluidsim_read_cache(ob, dm, fluidmd, fss->lastgoodframe, useRenderParams))) 
+			if((result = fluidsim_read_cache(dm, fluidmd, fss->lastgoodframe, useRenderParams))) 
 			{
 				return result;
 			}
@@ -587,7 +591,7 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene, Ob
 			
 			
 			// this could be likely the case when you load an old fluidsim
-			if((result = fluidsim_read_cache(ob, dm, fluidmd, fss->lastgoodframe, useRenderParams))) 
+			if((result = fluidsim_read_cache(dm, fluidmd, fss->lastgoodframe, useRenderParams))) 
 			{
 				return result;
 			}

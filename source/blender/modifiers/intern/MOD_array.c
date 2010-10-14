@@ -101,8 +101,8 @@ static void foreachObjectLink(
 	walk(userData, ob, &amd->offset_ob);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
-					 Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+	struct Scene *UNUSED(scene), Object *UNUSED(ob), DagNode *obNode)
 {
 	ArrayModifierData *amd = (ArrayModifierData*) md;
 
@@ -731,7 +731,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 static DerivedMesh *applyModifier(
 		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+  int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	ArrayModifierData *amd = (ArrayModifierData*) md;
@@ -745,7 +745,7 @@ static DerivedMesh *applyModifier(
 }
 
 static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct EditMesh *editData,
+		ModifierData *md, Object *ob, struct EditMesh *UNUSED(editData),
   DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

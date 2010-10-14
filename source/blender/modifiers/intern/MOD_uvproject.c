@@ -39,6 +39,7 @@
 #include "BLI_math.h"
 #include "BLI_uvproject.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
 
 #include "MOD_modifiertypes.h"
@@ -78,7 +79,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tumd->scaley = umd->scaley;
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
 {
 	CustomDataMask dataMask = 0;
 
@@ -109,8 +110,10 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 						userData);
 }
 
-static void updateDepgraph(ModifierData *md,
-						 DagForest *forest, struct Scene *scene, Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	UVProjectModifierData *umd = (UVProjectModifierData*) md;
 	int i;
@@ -376,9 +379,10 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	return dm;
 }
 
-static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	UVProjectModifierData *umd = (UVProjectModifierData*) md;
@@ -388,9 +392,9 @@ static DerivedMesh *applyModifier(
 	return result;
 }
 
-static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct EditMesh *editData,
-  DerivedMesh *derivedData)
+static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
+						struct EditMesh *UNUSED(editData),
+						DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
 }

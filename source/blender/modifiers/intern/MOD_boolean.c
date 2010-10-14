@@ -32,6 +32,7 @@
 
 #include "DNA_object_types.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
 
@@ -49,7 +50,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tbmd->operation = bmd->operation;
 }
 
-static int isDisabled(ModifierData *md, int useRenderParams)
+static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
 
@@ -66,9 +67,10 @@ static void foreachObjectLink(
 	walk(userData, ob, &bmd->object);
 }
 
-static void updateDepgraph(
-					   ModifierData *md, DagForest *forest, struct Scene *scene, Object *ob,
-	DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
 
@@ -81,9 +83,10 @@ static void updateDepgraph(
 }
 
 
-static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
 	DerivedMesh *dm = bmd->object->derivedFinal;
@@ -105,7 +108,7 @@ static DerivedMesh *applyModifier(
 	return derivedData;
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
 {
 	CustomDataMask dataMask = (1 << CD_MTFACE) + (1 << CD_MEDGE);
 

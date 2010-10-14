@@ -179,7 +179,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	strcpy(tsmd->defgrp_name, smd->defgrp_name);
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData*) md;
 	CustomDataMask dataMask = 0;
@@ -191,11 +191,10 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 }
 
 
-static DerivedMesh *applyModifier(ModifierData *md,
-						   Object *ob, 
-						   DerivedMesh *dm,
-						   int useRenderParams,
-						   int isFinalCalc)
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
+						DerivedMesh *dm,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	int i;
 	DerivedMesh *result;
@@ -630,7 +629,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 
 static DerivedMesh *applyModifierEM(ModifierData *md,
 							 Object *ob,
-							 struct EditMesh *editData,
+							 struct EditMesh *UNUSED(editData),
 							 DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);

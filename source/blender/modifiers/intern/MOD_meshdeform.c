@@ -35,6 +35,7 @@
 
 #include "BLI_math.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
@@ -76,7 +77,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tmmd->object = mmd->object;
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {	
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -87,7 +88,7 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 	return dataMask;
 }
 
-static int isDisabled(ModifierData *md, int useRenderParams)
+static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 
@@ -104,9 +105,10 @@ static void foreachObjectLink(
 	walk(userData, ob, &mmd->object);
 }
 
-static void updateDepgraph(
-						  ModifierData *md, DagForest *forest, struct Scene *scene, Object *ob,
-	   DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 
@@ -204,7 +206,7 @@ static void meshdeformModifier_do(
 	/* if we don't have one computed, use derivedmesh from data
 	 * without any modifiers */
 	if(!cagedm) {
-		cagedm= get_dm(md->scene, mmd->object, NULL, NULL, NULL, 0);
+		cagedm= get_dm(mmd->object, NULL, NULL, NULL, 0);
 		if(cagedm)
 			cagedm->needsFree= 1;
 	}
@@ -338,11 +340,14 @@ static void meshdeformModifier_do(
 	cagedm->release(cagedm);
 }
 
-static void deformVerts(
-					   ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+static void deformVerts(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int numVerts,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
-	DerivedMesh *dm= get_dm(md->scene, ob, NULL, derivedData, NULL, 0);;
+	DerivedMesh *dm= get_dm(ob, NULL, derivedData, NULL, 0);;
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
@@ -352,11 +357,13 @@ static void deformVerts(
 		dm->release(dm);
 }
 
-static void deformVertsEM(
-						 ModifierData *md, Object *ob, struct EditMesh *editData,
-	  DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+static void deformVertsEM(ModifierData *md, Object *ob,
+						struct EditMesh *UNUSED(editData),
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int numVerts)
 {
-	DerivedMesh *dm= get_dm(md->scene, ob, NULL, derivedData, NULL, 0);;
+	DerivedMesh *dm= get_dm(ob, NULL, derivedData, NULL, 0);;
 
 	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
 

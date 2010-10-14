@@ -37,6 +37,7 @@
 
 #include "BLI_math.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 
 #include "depsgraph_private.h"
@@ -128,8 +129,9 @@ static void copyData(ModifierData *md, ModifierData *target)
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-										DerivedMesh *derivedData,
-										int useRenderParams, int isFinalCalc)
+						DerivedMesh *derivedData,
+						int useRenderParams,
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm= derivedData;
 	DerivedMesh *result;
@@ -832,9 +834,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 }
 
 
-static void updateDepgraph(
-									ModifierData *md, DagForest *forest,
-									struct Scene *scene, Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	ScrewModifierData *ltmd= (ScrewModifierData*) md;
 
@@ -859,13 +862,15 @@ static void foreachObjectLink(
 
 /* This dosnt work with material*/
 static DerivedMesh *applyModifierEM(
-						ModifierData *md, Object *ob, struct EditMesh *editData,
+						ModifierData *md,
+						Object *ob,
+						struct EditMesh *UNUSED(editData),
 						DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
 }
 
-static int dependsOnTime(ModifierData *md)
+static int dependsOnTime(ModifierData *UNUSED(md))
 {
 	return 0;
 }

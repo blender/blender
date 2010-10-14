@@ -34,6 +34,7 @@
 
 #include "DNA_object_types.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_modifier.h"
@@ -52,7 +53,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	strncpy(tlmd->name, lmd->name, 32);
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	LatticeModifierData *lmd = (LatticeModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -63,7 +64,7 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 	return dataMask;
 }
 
-static int isDisabled(ModifierData *md, int userRenderParams)
+static int isDisabled(ModifierData *md, int UNUSED(userRenderParams))
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
@@ -80,8 +81,10 @@ static void foreachObjectLink(
 	walk(userData, ob, &lmd->object);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
-					   Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
@@ -93,9 +96,12 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *sc
 	}
 }
 
-static void deformVerts(
-					ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+static void deformVerts(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int numVerts,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 

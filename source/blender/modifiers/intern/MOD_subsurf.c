@@ -35,6 +35,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
@@ -83,9 +84,10 @@ static int isDisabled(ModifierData *md, int useRenderParams)
 	return get_render_subsurf_level(&md->scene->r, levels) == 0;
 }
 
-static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
+						DerivedMesh *derivedData,
+						int useRenderParams,
+						int isFinalCalc)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
 	DerivedMesh *result;
@@ -102,9 +104,9 @@ static DerivedMesh *applyModifier(
 	return result;
 }
 
-static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct EditMesh *editData,
-  DerivedMesh *derivedData)
+static DerivedMesh *applyModifierEM(ModifierData *md, Object *UNUSED(ob),
+						struct EditMesh *UNUSED(editData),
+						DerivedMesh *derivedData)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
 	DerivedMesh *result;

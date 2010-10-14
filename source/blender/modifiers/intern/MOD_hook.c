@@ -40,6 +40,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
+#include "BKE_utildefines.h"
 
 #include "depsgraph_private.h"
 #include "MEM_guardedalloc.h"
@@ -68,7 +69,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	strncpy(thmd->subtarget, hmd->subtarget, 32);
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	HookModifierData *hmd = (HookModifierData *)md;
 	CustomDataMask dataMask = 0;
@@ -86,7 +87,7 @@ static void freeData(ModifierData *md)
 	if (hmd->indexar) MEM_freeN(hmd->indexar);
 }
 
-static int isDisabled(ModifierData *md, int useRenderParams)
+static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	HookModifierData *hmd = (HookModifierData*) md;
 
@@ -103,8 +104,10 @@ static void foreachObjectLink(
 	walk(userData, ob, &hmd->object);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
-					Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
 
@@ -118,9 +121,12 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *sc
 	}
 }
 
-static void deformVerts(
-					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+static void deformVerts(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int numVerts,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	HookModifierData *hmd = (HookModifierData*) md;
 	bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);

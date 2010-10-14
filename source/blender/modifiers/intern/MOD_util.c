@@ -84,13 +84,13 @@ void validate_layer_name(const CustomData *data, int type, char *name, char *out
 
 	/* if a layer name was given, try to find that layer */
 	if(name[0])
-		index = CustomData_get_named_layer_index(data, CD_MTFACE, name);
+		index = CustomData_get_named_layer_index(data, type, name);
 
 	if(index < 0) {
 		/* either no layer was specified, or the layer we want has been
 		* deleted, so assign the active layer to name
 		*/
-		index = CustomData_get_active_layer_index(data, CD_MTFACE);
+		index = CustomData_get_active_layer_index(data, type);
 		strcpy(outname, data->layers[index].name);
 	}
 	else
@@ -98,13 +98,13 @@ void validate_layer_name(const CustomData *data, int type, char *name, char *out
 }
 
 /* returns a cdderivedmesh if dm == NULL or is another type of derivedmesh */
-DerivedMesh *get_cddm(struct Scene *scene, Object *ob, struct EditMesh *em, DerivedMesh *dm, float (*vertexCos)[3])
+DerivedMesh *get_cddm(Object *ob, struct EditMesh *em, DerivedMesh *dm, float (*vertexCos)[3])
 {
 	if(dm && dm->type == DM_TYPE_CDDM)
 		return dm;
 
 	if(!dm) {
-		dm= get_dm(scene, ob, em, dm, vertexCos, 0);
+		dm= get_dm(ob, em, dm, vertexCos, 0);
 	}
 	else {
 		dm= CDDM_copy(dm);
@@ -118,7 +118,7 @@ DerivedMesh *get_cddm(struct Scene *scene, Object *ob, struct EditMesh *em, Deri
 }
 
 /* returns a derived mesh if dm == NULL, for deforming modifiers that need it */
-DerivedMesh *get_dm(struct Scene *scene, Object *ob, struct EditMesh *em, DerivedMesh *dm, float (*vertexCos)[3], int orco)
+DerivedMesh *get_dm(Object *ob, struct EditMesh *em, DerivedMesh *dm, float (*vertexCos)[3], int orco)
 {
 	if(dm)
 		return dm;
@@ -143,7 +143,7 @@ DerivedMesh *get_dm(struct Scene *scene, Object *ob, struct EditMesh *em, Derive
 }
 
 /* only called by BKE_modifier.h/modifier.c */
-void modifier_type_init(ModifierTypeInfo *types[], ModifierType type)
+void modifier_type_init(ModifierTypeInfo *types[])
 {
 	memset(types, 0, sizeof(types));
 #define INIT_TYPE(typeName) (types[eModifierType_##typeName] = &modifierType_##typeName)
