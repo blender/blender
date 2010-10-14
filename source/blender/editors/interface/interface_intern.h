@@ -303,15 +303,16 @@ struct uiBlock {
 	short auto_open;
 	double auto_open_last;
 
-	char active;					// to keep blocks while drawing and free them afterwards
-	char tooltipdisabled;		// to avoid tooltip after click
-	short lock;
 	char *lockstr;
+
+	char lock;
+	char active;					// to keep blocks while drawing and free them afterwards
+	char tooltipdisabled;			// to avoid tooltip after click
+	char endblock;					// uiEndBlock done?
 	
 	float xofs, yofs;				// offset to parent button
 	int dobounds, mx, my;			// for doing delayed
 	int bounds, minbounds;			// for doing delayed
-	int endblock;					// uiEndBlock done?
 
 	rctf safety;				// pulldowns, to detect outside, can differ per case how it is created
 	ListBase saferct;			// uiSafetyRct list
@@ -320,9 +321,10 @@ struct uiBlock {
 
 	int puphash;				// popup menu hash for memory
 	
-	int color_profile;				// color profile for correcting linear colors for display
-
 	void *evil_C;				// XXX hack for dynamic operator enums
+
+	float _hsv[3];				// XXX, only access via ui_block_hsv_get()
+	char color_profile;				// color profile for correcting linear colors for display
 };
 
 typedef struct uiSafetyRct {
@@ -397,7 +399,7 @@ struct uiPopupBlockHandle {
 	int butretval;
 	int menuretval;
 	float retvalue;
-	float retvec[8];
+	float retvec[4];
 };
 
 uiBlock *ui_block_func_COL(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);

@@ -1940,9 +1940,7 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	
 	VECCOPY(handle->retvec, but->editvec);
 	
-	block->handle= handle; /* XXX, only for ui_block_hsv_get */
 	uiBlockPicker(block, handle->retvec, &but->rnapoin, but->rnaprop);
-	block->handle= NULL;
 	
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN;
 	uiBoundsBlock(block, 10);
@@ -2440,5 +2438,5 @@ void uiPupBlockClose(bContext *C, uiBlock *block)
 
 float *ui_block_hsv_get(uiBlock *block)
 {
-	return block->handle->retvec+4;
+	return block->_hsv;
 }
