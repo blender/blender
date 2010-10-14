@@ -53,6 +53,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_curve.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -100,8 +101,25 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 
 		BLI_remlink(&key->block, kb);
 		key->totkey--;
-		if(key->refkey== kb)
+		if(key->refkey== kb) {
 			key->refkey= key->block.first;
+
+			if(key->refkey) {
+				/* apply new basis key on original data */
+				switch(ob->type) {
+					case OB_MESH:
+						key_to_mesh(key->refkey, ob->data);
+						break;
+					case OB_CURVE:
+					case OB_SURF:
+						key_to_curve(key->refkey, ob->data, BKE_curve_nurbs(ob->data));
+						break;
+					case OB_LATTICE:
+						key_to_latt(key->refkey, ob->data);
+						break;
+				}
+			}
+		}
 			
 		if(kb->data) MEM_freeN(kb->data);
 		MEM_freeN(kb);
