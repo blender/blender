@@ -70,6 +70,11 @@ extern "C" {
 #define M_LN10          2.30258509299404568402
 #endif
 
+/* non-standard defines, used in some places */
+#ifndef MAXFLOAT
+#define MAXFLOAT  ((float)3.40282347e+38)
+#endif
+
 #ifndef sqrtf
 #define sqrtf(a) ((float)sqrt(a))
 #endif

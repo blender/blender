@@ -35,11 +35,6 @@
 #define SELECT	 1
 #define ACTIVE	 2
 
-/* nonstandard define, sometimes in math.h */
-#ifndef MAXFLOAT
-#define MAXFLOAT  ((float)3.40282347e+38)
-#endif
-
 /* buttons */
 #define XIC 20
 #define YIC 20
