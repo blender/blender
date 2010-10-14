@@ -1565,7 +1565,7 @@ static void bone_matrix_translate_y(float mat[][4], float y)
 }
 
 /* assumes object is Armature with pose */
-static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt)
+static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, short ghost)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	Object *ob= base->object;
@@ -1706,9 +1706,11 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 							}
 							
 							/* prepare colors */
-							if (arm->flag & ARM_POSEMODE)	
+							if(ghost) {
+								/* 13 October 2009, Disabled this to make ghosting show the right colors (Aligorith) */
+							}
+							else if (arm->flag & ARM_POSEMODE)	
 								set_pchan_colorset(ob, pchan);
-#if 0 // XXX - 13 October 2009, Disabled this to make ghosting show the right colors (Aligorith)
 							else {
 								if ((scene->basact)==base) {
 									if (base->flag & (SELECT+BA_WAS_SEL)) UI_ThemeColor(TH_ACTIVE);
@@ -1719,7 +1721,6 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 									else UI_ThemeColor(TH_WIRE);
 								}
 							}
-#endif
 								
 							/* catch exception for bone with hidden parent */
 							flag= bone->flag;
@@ -2211,7 +2212,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 		
 		BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		where_is_pose(scene, ob);
-		draw_pose_bones(scene, v3d, ar, base, OB_WIRE);
+		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2290,7 +2291,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 		
 		BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		where_is_pose(scene, ob);
-		draw_pose_bones(scene, v3d, ar, base, OB_WIRE);
+		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2360,7 +2361,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				where_is_pose(scene, ob);
-				draw_pose_bones(scene, v3d, ar, base, OB_WIRE);
+				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE);
 			}
 		}
 		
@@ -2375,7 +2376,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				where_is_pose(scene, ob);
-				draw_pose_bones(scene, v3d, ar, base, OB_WIRE);
+				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE);
 			}
 		}
 	}
@@ -2409,7 +2410,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 		/* we use color for solid lighting */
 		glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
 		glEnable(GL_COLOR_MATERIAL);
-		glColor3ub(0,0,0);	// clear spec
+		glColor3ub(255,0,255);	// clear spec
 		glDisable(GL_COLOR_MATERIAL);
 		
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
@@ -2458,7 +2459,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 					}
 				}	
 			}
-			draw_pose_bones(scene, v3d, ar, base, dt);
+			draw_pose_bones(scene, v3d, ar, base, dt, FALSE);
 			arm->flag &= ~ARM_POSEMODE; 
 			
 			if(ob->mode & OB_MODE_POSE)

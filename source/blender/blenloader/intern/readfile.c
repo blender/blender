@@ -1384,8 +1384,8 @@ static void test_pointer_array(FileData *fd, void **mat)
 
 /* ************ READ ID Properties *************** */
 
-void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
-void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
+static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
+static void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
 
 static void IDP_DirectLinkIDPArray(IDProperty *prop, int switch_endian, FileData *fd)
 {
