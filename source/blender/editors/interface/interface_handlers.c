@@ -3955,7 +3955,8 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 		
 		/* complex code to change name of button */
 		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
-			
+			wmKeyMap *km= NULL;
+
 			butstr= MEM_mallocN(strlen(but->str)+strlen(buf)+2, "menu_block_set_keymaps");
 			
 			// XXX but->str changed... should not, remove the hotkey from it
@@ -3971,6 +3972,11 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 			MEM_freeN(butstr);
 			
 			ui_check_but(but);
+			
+			/* set the keymap editable else the key wont save */
+			WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, 1, &km);
+			WM_keymap_copy_to_user(km);
+				
 		} else {
 			/* shortcut was removed */
 			cpoin= strchr(but->str, '|');
