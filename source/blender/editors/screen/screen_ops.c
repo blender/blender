@@ -262,11 +262,16 @@ int ED_operator_editarmature(bContext *C)
 int ED_operator_posemode(bContext *C)
 {
 	Object *obact= CTX_data_active_object(C);
-	Object *obedit= CTX_data_edit_object(C);
-	
-	if ((obact != obedit) && ED_object_pose_armature(obact))
-		return 1;
-	
+
+	if ((obact != CTX_data_edit_object(C))) {
+		Object *obpose;
+		if(obpose= ED_object_pose_armature(obact)) {
+			if((obact == obpose) || (obact->mode & OB_MODE_WEIGHT_PAINT)) {
+				return 1;
+			}
+		}
+	}
+
 	return 0;
 }
 
