@@ -931,9 +931,9 @@ ENDIF(WITH_CXX_GUARDEDALLOC)
 #-----------------------------------------------------------------------------
 # Libraries
 FILE(WRITE ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt "")
+ADD_SUBDIRECTORY(source)
 ADD_SUBDIRECTORY(intern)
 ADD_SUBDIRECTORY(extern)
-ADD_SUBDIRECTORY(source)
 
 
 #-----------------------------------------------------------------------------
