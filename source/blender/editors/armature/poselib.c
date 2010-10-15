@@ -290,7 +290,7 @@ static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout,
 	}
 }
 
-static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
@@ -1034,7 +1034,7 @@ static void poselib_preview_handle_search (tPoseLib_PreviewData *pld, unsigned s
 }
 
 /* handle events for poselib_preview_poses */
-static int poselib_preview_handle_event (bContext *C, wmOperator *op, wmEvent *event)
+static int poselib_preview_handle_event (bContext *UNUSED(C), wmOperator *op, wmEvent *event)
 {
 	tPoseLib_PreviewData *pld= op->customdata; 
 	int ret = OPERATOR_RUNNING_MODAL;
@@ -1411,7 +1411,7 @@ static int poselib_preview_modal (bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* Modal Operator init */
-static int poselib_preview_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int poselib_preview_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	tPoseLib_PreviewData *pld;
 	

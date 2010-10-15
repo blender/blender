@@ -655,7 +655,7 @@ void POSE_OT_armature_apply (wmOperatorType *ot)
 
 
 /* set the current pose as the restpose */
-static int pose_visual_transform_apply_exec (bContext *C, wmOperator *op)
+static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C)); // must be active object, not edit-object
@@ -817,7 +817,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 }
 
 /* join armature exec is exported for use in object->join objects operator... */
-int join_armature_exec(bContext *C, wmOperator *op)
+int join_armature_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1127,7 +1127,7 @@ static void separate_armature_bones (Scene *scene, Object *ob, short sel)
 }
 
 /* separate selected bones into their armature */
-static int separate_armature_exec (bContext *C, wmOperator *op)
+static int separate_armature_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1787,7 +1787,7 @@ EditBone *ED_armature_bone_get_mirrored(ListBase *edbo, EditBone *ebo)
 
 /* previously delete_armature */
 /* only editmode! */
-static int armature_delete_selected_exec(bContext *C, wmOperator *op)
+static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bArmature *arm;
 	EditBone	*curBone, *next;
@@ -2377,7 +2377,7 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 
 /* previously addvert_armature */
 /* the ctrl-click method */
-static int armature_click_extrude_exec(bContext *C, wmOperator *op)
+static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d;
 	bArmature *arm;
@@ -2691,7 +2691,7 @@ EditBone *duplicateEditBone(EditBone *curBone, char *name, ListBase *editbones, 
 }
 
 /* previously adduplicate_armature */
-static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
+static int armature_duplicate_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bArmature *arm;
 	EditBone	*eBone = NULL;
@@ -3262,7 +3262,7 @@ void ARMATURE_OT_merge (wmOperatorType *ot)
 /* ************** END Add/Remove stuff in editmode ************ */
 /* *************** Tools in editmode *********** */
 
-static int armature_hide_exec(bContext *C, wmOperator *op)
+static int armature_hide_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	bArmature *arm= obedit->data;
@@ -3302,7 +3302,7 @@ void ARMATURE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int armature_reveal_exec(bContext *C, wmOperator *op)
+static int armature_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	bArmature *arm= obedit->data;
@@ -3724,7 +3724,7 @@ void ARMATURE_OT_subdivide_multi(wmOperatorType *ot)
 
 
 
-static int armature_subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int armature_subdivs_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
@@ -3788,7 +3788,7 @@ void ARMATURE_OT_subdivs(wmOperatorType *ot)
  * this to be done easily.
  */
 
-static int armature_switch_direction_exec(bContext *C, wmOperator *op) 
+static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op)) 
 {
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm= (bArmature *)ob->data;
@@ -4009,7 +4009,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int armature_parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int armature_parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	EditBone *actbone = CTX_data_active_bone(C);
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Make Parent ", 0);
@@ -4106,7 +4106,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 
 /* ****************  Selections  ******************/
 
-static int armature_select_inverse_exec(bContext *C, wmOperator *op)
+static int armature_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones) {
@@ -4922,7 +4922,7 @@ void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob,
 } 
 /* ************* Clear Pose *****************************/
 
-static int pose_clear_scale_exec(bContext *C, wmOperator *op) 
+static int pose_clear_scale_exec(bContext *C, wmOperator *UNUSED(op)) 
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
@@ -4990,7 +4990,7 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int pose_clear_loc_exec(bContext *C, wmOperator *op) 
+static int pose_clear_loc_exec(bContext *C, wmOperator *UNUSED(op)) 
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
@@ -5059,7 +5059,7 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int pose_clear_rot_exec(bContext *C, wmOperator *op) 
+static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op)) 
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
@@ -5215,7 +5215,7 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 
 /* ***************** selections ********************** */
 
-static int pose_select_inverse_exec(bContext *C, wmOperator *op)
+static int pose_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	
 	/*	Set the flags */
@@ -5312,7 +5312,7 @@ void POSE_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
-static int pose_select_parent_exec(bContext *C, wmOperator *op)
+static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bPoseChannel *pchan,*parent;
@@ -5437,7 +5437,7 @@ static int show_pose_bone(Object *ob, Bone *bone, void *ptr)
 }
 
 /* active object is armature in posemode, poll checked */
-static int pose_reveal_exec(bContext *C, wmOperator *op) 
+static int pose_reveal_exec(bContext *C, wmOperator *UNUSED(op)) 
 {
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bArmature *arm= ob->data;
@@ -5634,7 +5634,7 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 }
 
 
-static int armature_flip_names_exec (bContext *C, wmOperator *op)
+static int armature_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm;

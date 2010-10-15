@@ -296,7 +296,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 }
 
 /* only meant for timer usage */
-static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
@@ -399,7 +399,7 @@ static void setcameratoview3d(View3D *v3d, RegionView3D *rv3d, Object *ob)
 }
 
 
-static int view3d_setcameratoview_exec(bContext *C, wmOperator *op)
+static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
@@ -444,7 +444,7 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 }
 
 
-static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
+static int view3d_setobjectascamera_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
@@ -1600,7 +1600,7 @@ static void endlocalview(Scene *scene, ScrArea *sa)
 	} 
 }
 
-static int localview_exec(bContext *C, wmOperator *unused)
+static int localview_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	View3D *v3d= CTX_wm_view3d(C);
 	
@@ -1770,7 +1770,7 @@ int ED_view3d_context_activate(bContext *C)
 	return 1;
 }
 
-static int game_engine_exec(bContext *C, wmOperator *op)
+static int game_engine_exec(bContext *C, wmOperator *UNUSED(op))
 {
 #if GAMEBLENDER == 1
 	Scene *startscene = CTX_data_scene(C);

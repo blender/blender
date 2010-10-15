@@ -60,7 +60,7 @@
 
 /********************** particle system slot operators *********************/
 
-static int particle_system_add_exec(bContext *C, wmOperator *op)
+static int particle_system_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Scene *scene = CTX_data_scene(C);
@@ -91,7 +91,7 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int particle_system_remove_exec(bContext *C, wmOperator *op)
+static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Scene *scene = CTX_data_scene(C);
@@ -138,7 +138,7 @@ static int psys_poll(bContext *C)
 	return (ptr.data != NULL);
 }
 
-static int new_particle_settings_exec(bContext *C, wmOperator *op)
+static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	Main *bmain= CTX_data_main(C);
@@ -191,7 +191,7 @@ void PARTICLE_OT_new(wmOperatorType *ot)
 
 /********************** keyed particle target operators *********************/
 
-static int new_particle_target_exec(bContext *C, wmOperator *op)
+static int new_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -237,7 +237,7 @@ void PARTICLE_OT_new_target(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int remove_particle_target_exec(bContext *C, wmOperator *op)
+static int remove_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -288,7 +288,7 @@ void PARTICLE_OT_target_remove(wmOperatorType *ot)
 
 /************************ move up particle target operator *********************/
 
-static int target_move_up_exec(bContext *C, wmOperator *op)
+static int target_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -327,7 +327,7 @@ void PARTICLE_OT_target_move_up(wmOperatorType *ot)
 
 /************************ move down particle target operator *********************/
 
-static int target_move_down_exec(bContext *C, wmOperator *op)
+static int target_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -365,7 +365,7 @@ void PARTICLE_OT_target_move_down(wmOperatorType *ot)
 
 /************************ move up particle dupliweight operator *********************/
 
-static int dupliob_move_up_exec(bContext *C, wmOperator *op)
+static int dupliob_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -403,7 +403,7 @@ void PARTICLE_OT_dupliob_move_up(wmOperatorType *ot)
 
 /********************** particle dupliweight operators *********************/
 
-static int copy_particle_dupliob_exec(bContext *C, wmOperator *op)
+static int copy_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -442,7 +442,7 @@ void PARTICLE_OT_dupliob_copy(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int remove_particle_dupliob_exec(bContext *C, wmOperator *op)
+static int remove_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
@@ -487,7 +487,7 @@ void PARTICLE_OT_dupliob_remove(wmOperatorType *ot)
 
 /************************ move down particle dupliweight operator *********************/
 
-static int dupliob_move_down_exec(bContext *C, wmOperator *op)
+static int dupliob_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;

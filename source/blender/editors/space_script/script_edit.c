@@ -80,7 +80,7 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 }
 
 
-static int script_reload_exec(bContext *C, wmOperator *op)
+static int script_reload_exec(bContext *C, wmOperator *UNUSED(op))
 {
 #ifndef DISABLE_PYTHON
 	/* TODO, this crashes on netrender and keying sets, need to look into why

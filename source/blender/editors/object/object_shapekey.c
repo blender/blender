@@ -267,7 +267,7 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "from_mix", 1, "From Mix", "Create the new shape key from the existing mix of keys.");
 }
 
-static int shape_key_remove_exec(bContext *C, wmOperator *op)
+static int shape_key_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
@@ -292,7 +292,7 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int shape_key_clear_exec(bContext *C, wmOperator *op)
+static int shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Key *key= ob_get_key(ob);
@@ -325,7 +325,7 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int shape_key_mirror_exec(bContext *C, wmOperator *op)
+static int shape_key_mirror_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;

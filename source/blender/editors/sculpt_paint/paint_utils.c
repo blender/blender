@@ -233,7 +233,7 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 
 
 /* face-select ops */
-static int paint_select_linked_exec(bContext *C, wmOperator *op)
+static int paint_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	select_linked_tfaces(C, CTX_data_active_object(C), NULL, 2);
 	ED_region_tag_redraw(CTX_wm_region(C));

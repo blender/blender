@@ -1438,7 +1438,7 @@ static int vertex_group_poll_edit(bContext *C)
 	return vgroup_object_in_edit_mode(ob);
 }
 
-static int vertex_group_add_exec(bContext *C, wmOperator *op)
+static int vertex_group_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
@@ -1561,7 +1561,7 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove from all vertex groups.");
 }
 
-static int vertex_group_select_exec(bContext *C, wmOperator *op)
+static int vertex_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_edit_object(C);
 
@@ -1588,7 +1588,7 @@ void OBJECT_OT_vertex_group_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int vertex_group_deselect_exec(bContext *C, wmOperator *op)
+static int vertex_group_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_edit_object(C);
 
@@ -1612,7 +1612,7 @@ void OBJECT_OT_vertex_group_deselect(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int vertex_group_copy_exec(bContext *C, wmOperator *op)
+static int vertex_group_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
@@ -1671,7 +1671,7 @@ void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "gain", 1.f, 0.f, FLT_MAX, "Gain", "Value to multiply weights by.", 0.0f, 10.f);
 }
 
-static int vertex_group_normalize_exec(bContext *C, wmOperator *op)
+static int vertex_group_normalize_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
@@ -1760,7 +1760,7 @@ void OBJECT_OT_vertex_group_invert(wmOperatorType *ot)
 }
 
 
-static int vertex_group_blend_exec(bContext *C, wmOperator *op)
+static int vertex_group_blend_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
@@ -1860,7 +1860,7 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 
 }
 
-static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *op)
+static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
@@ -1901,7 +1901,7 @@ void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
+static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obact= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 

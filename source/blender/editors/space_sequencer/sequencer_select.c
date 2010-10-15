@@ -209,7 +209,7 @@ void select_neighbor_from_last(Scene *scene, int lr)
 
 
 /* (de)select operator */
-static int sequencer_deselect_exec(bContext *C, wmOperator *op)
+static int sequencer_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -255,7 +255,7 @@ void SEQUENCER_OT_select_all_toggle(struct wmOperatorType *ot)
 
 
 /* (de)select operator */
-static int sequencer_select_inverse_exec(bContext *C, wmOperator *op)
+static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -582,7 +582,7 @@ static int select_more_less_seq__internal(Scene *scene, int sel, int linked) {
 
 
 /* select more operator */
-static int sequencer_select_more_exec(bContext *C, wmOperator *op)
+static int sequencer_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	
@@ -613,7 +613,7 @@ void SEQUENCER_OT_select_more(wmOperatorType *ot)
 
 
 /* select less operator */
-static int sequencer_select_less_exec(bContext *C, wmOperator *op)
+static int sequencer_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	
@@ -700,7 +700,7 @@ void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
 
 
 /* select linked operator */
-static int sequencer_select_linked_exec(bContext *C, wmOperator *op)
+static int sequencer_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	int selected;

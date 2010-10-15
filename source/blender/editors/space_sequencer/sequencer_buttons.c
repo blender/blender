@@ -92,7 +92,7 @@ void sequencer_buttons_register(ARegionType *art)
 
 /* **************** operator to open/close properties view ************* */
 
-static int sequencer_properties(bContext *C, wmOperator *op)
+static int sequencer_properties(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= sequencer_has_buttons_region(sa);

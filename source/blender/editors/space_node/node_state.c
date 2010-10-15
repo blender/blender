@@ -278,7 +278,7 @@ static void snode_home(ScrArea *sa, ARegion *ar, SpaceNode* snode)
 	UI_view2d_curRect_validate(&ar->v2d);
 }
 
-static int node_view_all_exec(bContext *C, wmOperator *op)
+static int node_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);

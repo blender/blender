@@ -1061,7 +1061,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 
 /* *************** set wpaint operator ****************** */
 
-static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
+static int set_wpaint(bContext *C, wmOperator *UNUSED(op))		/* toggle */
 {		
 	Object *ob= CTX_data_active_object(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1314,7 +1314,7 @@ static char *wpaint_make_validmap(Mesh *me, Object *ob)
 	return validmap;
 }
 
-static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
+static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Scene *scene= CTX_data_scene(C);
 	struct PaintStroke *stroke = op->customdata;
@@ -1663,7 +1663,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
 
-static int weight_paint_set_exec(bContext *C, wmOperator *op)
+static int weight_paint_set_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	struct Scene *scene= CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
@@ -1780,7 +1780,7 @@ typedef struct VPaintData {
 	float vpimat[3][3];
 } VPaintData;
 
-static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent *event)
+static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent *UNUSED(event))
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	struct PaintStroke *stroke = op->customdata;

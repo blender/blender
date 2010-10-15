@@ -2452,7 +2452,7 @@ void BDR_drawSketch(const bContext *C)
 	}
 }
 
-static int sketch_delete(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_delete(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch)
@@ -2558,7 +2558,7 @@ SK_Sketch* viewcontextSketch(ViewContext *vc, int create)
 	return sketch;
 }
 
-static int sketch_convert(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_convert(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch != NULL)
@@ -2569,7 +2569,7 @@ static int sketch_convert(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-static int sketch_cancel(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_cancel(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch != NULL)
@@ -2581,7 +2581,7 @@ static int sketch_cancel(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_PASS_THROUGH;
 }
 
-static int sketch_finish(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_finish(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch != NULL)
@@ -2595,7 +2595,7 @@ static int sketch_finish(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_PASS_THROUGH;
 }
 
-static int sketch_select(bContext *C, wmOperator *op, wmEvent *event)
+static int sketch_select(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	SK_Sketch *sketch = contextSketch(C, 0);
 	if (sketch)

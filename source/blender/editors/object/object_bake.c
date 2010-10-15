@@ -241,7 +241,7 @@ static void bake_freejob(void *bkv)
 }
 
 /* catch esc */
-static int objects_bake_render_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	/* no running blender, remove handler and pass through */
 	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C)))
@@ -256,7 +256,7 @@ static int objects_bake_render_modal(bContext *C, wmOperator *op, wmEvent *event
 	return OPERATOR_PASS_THROUGH;
 }
 
-static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *_event)
+static int objects_bake_render_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(_event))
 {
 	Scene *scene= CTX_data_scene(C);
 

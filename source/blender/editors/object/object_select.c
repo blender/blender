@@ -679,7 +679,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 
 /************************** Select Inverse *************************/
 
-static int object_select_inverse_exec(bContext *C, wmOperator *op)
+static int object_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if (base->flag & SELECT)

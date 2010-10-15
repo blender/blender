@@ -1451,7 +1451,7 @@ void view3d_buttons_register(ARegionType *art)
 	// XXX view3d_panel_preview(C, ar, 0);
 }
 
-static int view3d_properties(bContext *C, wmOperator *op)
+static int view3d_properties(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= view3d_has_buttons_region(sa);

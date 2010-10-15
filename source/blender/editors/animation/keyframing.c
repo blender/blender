@@ -1146,7 +1146,7 @@ void ANIM_OT_keyframe_insert (wmOperatorType *ot)
  * then calls the menu if necessary before 
  */
 
-static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
+static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Scene *scene= CTX_data_scene(C);
 	

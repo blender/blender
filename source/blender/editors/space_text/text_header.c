@@ -101,7 +101,7 @@ static int properties_poll(bContext *C)
 	return (CTX_wm_space_text(C) != NULL);
 }
 
-static int properties_exec(bContext *C, wmOperator *op)
+static int properties_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= text_has_properties_region(sa);

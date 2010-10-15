@@ -53,7 +53,7 @@
 
 /********************** toolbox operator *********************/
 
-static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	bScreen *sc= CTX_wm_screen(C);
 	SpaceButs *sbuts= CTX_wm_space_buts(C);
@@ -123,7 +123,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int file_browse_cancel(bContext *C, wmOperator *op)
+static int file_browse_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata= NULL;

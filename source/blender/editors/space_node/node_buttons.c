@@ -135,7 +135,7 @@ void node_buttons_register(ARegionType *art)
 	BLI_addtail(&art->paneltypes, pt);
 }
 
-static int node_properties(bContext *C, wmOperator *op)
+static int node_properties(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= node_has_buttons_region(sa);

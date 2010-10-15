@@ -1512,7 +1512,7 @@ void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 /* ********************************************************* */
 /* RESET */
 
-static int reset_exec(bContext *C, wmOperator *op)
+static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	uiStyle *style= U.uistyles.first;
 	ARegion *ar= CTX_wm_region(C);

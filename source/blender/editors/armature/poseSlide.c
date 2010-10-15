@@ -612,7 +612,7 @@ static void pose_slide_opdef_properties (wmOperatorType *ot)
 /* ------------------------------------ */
 
 /* invoke() - for 'push' mode */
-static int pose_slide_push_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+static int pose_slide_push_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
 	tPoseSlideOp *pso;
 	
@@ -669,7 +669,7 @@ void POSE_OT_push (wmOperatorType *ot)
 /* ........................ */
 
 /* invoke() - for 'relax' mode */
-static int pose_slide_relax_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+static int pose_slide_relax_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
 	tPoseSlideOp *pso;
 	
@@ -726,7 +726,7 @@ void POSE_OT_relax (wmOperatorType *ot)
 /* ........................ */
 
 /* invoke() - for 'breakdown' mode */
-static int pose_slide_breakdown_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+static int pose_slide_breakdown_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
 	tPoseSlideOp *pso;
 	

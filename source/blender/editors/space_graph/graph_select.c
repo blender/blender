@@ -539,7 +539,7 @@ void GRAPH_OT_select_column (wmOperatorType *ot)
 
 /* ******************** Select Linked Operator *********************** */
 
-static int graphkeys_select_linked_exec (bContext *C, wmOperator *op)
+static int graphkeys_select_linked_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -638,7 +638,7 @@ static void select_moreless_graph_keys (bAnimContext *ac, short mode)
 
 /* ----------------- */
 
-static int graphkeys_select_more_exec (bContext *C, wmOperator *op)
+static int graphkeys_select_more_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -672,7 +672,7 @@ void GRAPH_OT_select_more (wmOperatorType *ot)
 
 /* ----------------- */
 
-static int graphkeys_select_less_exec (bContext *C, wmOperator *op)
+static int graphkeys_select_less_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	

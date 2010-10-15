@@ -1052,7 +1052,7 @@ void UV_OT_align(wmOperatorType *ot)
 
 /* ******************** weld operator **************** */
 
-static int weld_exec(bContext *C, wmOperator *op)
+static int weld_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	weld_align_uv(C, 'w');
 
@@ -1264,7 +1264,7 @@ void UV_OT_stitch(wmOperatorType *ot)
 
 /* ******************** (de)select all operator **************** */
 
-static int select_inverse_exec(bContext *C, wmOperator *op)
+static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene;
 	ToolSettings *ts;
@@ -2714,7 +2714,7 @@ void UV_OT_pin(wmOperatorType *ot)
 
 /******************* select pinned operator ***************/
 
-static int select_pinned_exec(bContext *C, wmOperator *op)
+static int select_pinned_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -2902,7 +2902,7 @@ void UV_OT_hide(wmOperatorType *ot)
 
 /****************** reveal operator ******************/
 
-static int reveal_exec(bContext *C, wmOperator *op)
+static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);

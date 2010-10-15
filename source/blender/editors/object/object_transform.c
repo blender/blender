@@ -64,7 +64,7 @@
 
 /*************************** Clear Transformation ****************************/
 
-static int object_location_clear_exec(bContext *C, wmOperator *op)
+static int object_location_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -125,7 +125,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_rotation_clear_exec(bContext *C, wmOperator *op)
+static int object_rotation_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -270,7 +270,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_scale_clear_exec(bContext *C, wmOperator *op)
+static int object_scale_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -336,7 +336,7 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_origin_clear_exec(bContext *C, wmOperator *op)
+static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	float *v1, *v3, mat[3][3];
@@ -567,7 +567,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	return OPERATOR_FINISHED;
 }
 
-static int visual_transform_apply_exec(bContext *C, wmOperator *op)
+static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	int change = 0;

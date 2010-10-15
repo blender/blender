@@ -149,7 +149,7 @@ void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int group_objects_remove_exec(bContext *C, wmOperator *op)
+static int group_objects_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -224,7 +224,7 @@ void GROUP_OT_create(wmOperatorType *ot)
 
 /****************** properties window operators *********************/
 
-static int group_add_exec(bContext *C, wmOperator *op)
+static int group_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
@@ -293,7 +293,7 @@ void OBJECT_OT_group_link(wmOperatorType *ot)
 	ot->prop= prop;
 }
 
-static int group_remove_exec(bContext *C, wmOperator *op)
+static int group_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;

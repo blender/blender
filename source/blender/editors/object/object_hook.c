@@ -504,7 +504,7 @@ void OBJECT_OT_hook_add_selobj(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_add_hook_newob_exec(bContext *C, wmOperator *op)
+static int object_add_hook_newob_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);

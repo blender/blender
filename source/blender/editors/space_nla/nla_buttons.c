@@ -477,7 +477,7 @@ void nla_buttons_register(ARegionType *art)
 	BLI_addtail(&art->paneltypes, pt);
 }
 
-static int nla_properties(bContext *C, wmOperator *op)
+static int nla_properties(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= nla_has_buttons_region(sa);

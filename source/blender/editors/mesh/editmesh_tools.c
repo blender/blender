@@ -664,7 +664,7 @@ void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op, sh
 }
 
 // XXX should be a menu item
-static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -796,7 +796,7 @@ void MESH_OT_extrude(wmOperatorType *ot)
 	ot->prop= prop;
 }
 
-static int split_mesh(bContext *C, wmOperator *op)
+static int split_mesh(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -1000,7 +1000,7 @@ static int spin_mesh_exec(bContext *C, wmOperator *op)
 }
 
 /* get center and axis, in global coords */
-static int spin_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int spin_mesh_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -1108,7 +1108,7 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 }
 
 /* get center and axis, in global coords */
-static int screw_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int screw_mesh_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -6144,7 +6144,7 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 
 /********************** Region/Loop Operators *************************/
 
-static int region_to_loop(bContext *C, wmOperator *op)
+static int region_to_loop(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -6325,7 +6325,7 @@ static int loop_bisect(EditMesh *em, Collection *edgecollection){
 	else return(2);
 }
 
-static int loop_to_region(bContext *C, wmOperator *op)
+static int loop_to_region(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -7022,7 +7022,7 @@ static void fill_mesh(EditMesh *em)
 
 }
 
-static int fill_mesh_exec(bContext *C, wmOperator *op)
+static int fill_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -7053,7 +7053,7 @@ void MESH_OT_fill(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int beautify_fill_exec(bContext *C, wmOperator *op)
+static int beautify_fill_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -7263,7 +7263,7 @@ void MESH_OT_sort_faces(wmOperatorType *ot)
 
 /********************** Quad/Tri Operators *************************/
 
-static int quads_convert_to_tris_exec(bContext *C, wmOperator *op)
+static int quads_convert_to_tris_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -7292,7 +7292,7 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int tris_convert_to_quads_exec(bContext *C, wmOperator *op)
+static int tris_convert_to_quads_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -7321,7 +7321,7 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int edge_flip_exec(bContext *C, wmOperator *op)
+static int edge_flip_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -7366,7 +7366,7 @@ static void mesh_set_smooth_faces(EditMesh *em, short smooth)
 	}
 }
 
-static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *op)
+static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -7396,7 +7396,7 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int mesh_faces_shade_flat_exec(bContext *C, wmOperator *op)
+static int mesh_faces_shade_flat_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);

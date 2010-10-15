@@ -1374,7 +1374,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 }
 
 
-static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview without local!, was centerview() in 2.4x */
+static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a localview without local!, was centerview() in 2.4x */
 {
 	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -1514,7 +1514,7 @@ void VIEW3D_OT_view_selected(wmOperatorType *ot)
 	ot->flag= 0;
 }
 
-static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
+static int viewcenter_cursor_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
@@ -2151,7 +2151,7 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_view_pan_items, 0, "Pan", "Direction of View Pan");
 }
 
-static int viewpersportho_exec(bContext *C, wmOperator *op)
+static int viewpersportho_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ARegion *ar= CTX_wm_region(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
@@ -2200,14 +2200,14 @@ static BGpic *add_background_image(bContext *C)
 	return bgpic;
 }
 
-static int add_background_image_exec(bContext *C, wmOperator *op)
+static int add_background_image_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	add_background_image(C);
 
 	return OPERATOR_FINISHED;
 }
 
-static int add_background_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int add_background_image_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
@@ -2410,7 +2410,7 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 /* ***************** 3d cursor cursor op ******************* */
 
 /* mx my in region coords */
-static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -2535,7 +2535,7 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 	Transform_Properties(ot, P_CONSTRAINT);
 }
 
-static int enable_manipulator_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int enable_manipulator_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 

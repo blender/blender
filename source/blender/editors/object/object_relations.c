@@ -672,7 +672,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	Object *ob= CTX_data_active_object(C);
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", 0);
@@ -779,7 +779,7 @@ void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
 
 /************************ Clear Slow Parent Operator *********************/
 
-static int object_slow_parent_clear_exec(bContext *C, wmOperator *op)
+static int object_slow_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -821,7 +821,7 @@ void OBJECT_OT_slow_parent_clear(wmOperatorType *ot)
 
 /********************** Make Slow Parent Operator *********************/
 
-static int object_slow_parent_set_exec(bContext *C, wmOperator *op)
+static int object_slow_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);

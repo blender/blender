@@ -1185,7 +1185,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int sequencer_snap_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_snap_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	
@@ -1310,7 +1310,7 @@ void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 
 
 /* lock operator */
-static int sequencer_lock_exec(bContext *C, wmOperator *op)
+static int sequencer_lock_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -1343,7 +1343,7 @@ void SEQUENCER_OT_lock(struct wmOperatorType *ot)
 }
 
 /* unlock operator */
-static int sequencer_unlock_exec(bContext *C, wmOperator *op)
+static int sequencer_unlock_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -1376,7 +1376,7 @@ void SEQUENCER_OT_unlock(struct wmOperatorType *ot)
 }
 
 /* reload operator */
-static int sequencer_reload_exec(bContext *C, wmOperator *op)
+static int sequencer_reload_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -1409,7 +1409,7 @@ void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 }
 
 /* reload operator */
-static int sequencer_refresh_all_exec(bContext *C, wmOperator *op)
+static int sequencer_refresh_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -1609,7 +1609,7 @@ static int apply_unique_name_cb(Sequence *seq, void *arg_pt)
 
 }
 
-static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
+static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -1636,7 +1636,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int sequencer_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int sequencer_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	sequencer_add_duplicate_exec(C, op);
 
@@ -1666,7 +1666,7 @@ void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 }
 
 /* delete operator */
-static int sequencer_delete_exec(bContext *C, wmOperator *op)
+static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -1840,7 +1840,7 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 /* META Operators */
 
 /* separate_meta_toggle operator */
-static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
+static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -1985,7 +1985,7 @@ static int seq_depends_on_meta(Sequence *seq, Sequence *seqm)
 }
 
 /* separate_meta_make operator */
-static int sequencer_meta_separate_exec(bContext *C, wmOperator *op)
+static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -2046,7 +2046,7 @@ void SEQUENCER_OT_meta_separate(wmOperatorType *ot)
 }
 
 /* view_all operator */
-static int sequencer_view_all_exec(bContext *C, wmOperator *op)
+static int sequencer_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	//Scene *scene= CTX_data_scene(C);
 	bScreen *sc= CTX_wm_screen(C);
@@ -2078,7 +2078,7 @@ void SEQUENCER_OT_view_all(wmOperatorType *ot)
 }
 
 /* view_all operator */
-static int sequencer_view_all_preview_exec(bContext *C, wmOperator *op)
+static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *area= CTX_wm_area(C);
@@ -2189,7 +2189,7 @@ static EnumPropertyItem view_type_items[] = {
 #endif
 
 /* view_all operator */
-static int sequencer_view_toggle_exec(bContext *C, wmOperator *op)
+static int sequencer_view_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceSeq *sseq= (SpaceSeq *)CTX_wm_space_data(C);
 
@@ -2218,7 +2218,7 @@ void SEQUENCER_OT_view_toggle(wmOperatorType *ot)
 
 
 /* view_selected operator */
-static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
+static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
@@ -2354,7 +2354,7 @@ static int next_prev_edit_internal(Scene *scene, int side)
 }
 
 /* move frame to next edit point operator */
-static int sequencer_next_edit_exec(bContext *C, wmOperator *op)
+static int sequencer_next_edit_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	
@@ -2384,7 +2384,7 @@ void SEQUENCER_OT_next_edit(wmOperatorType *ot)
 }
 
 /* move frame to previous edit point operator */
-static int sequencer_previous_edit_exec(bContext *C, wmOperator *op)
+static int sequencer_previous_edit_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	
@@ -2518,7 +2518,7 @@ void SEQUENCER_OT_swap(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "side", prop_side_lr_types, SEQ_SIDE_RIGHT, "Side", "Side of the strip to swap");
 }
 
-static int sequencer_rendersize_exec(bContext *C, wmOperator *op)
+static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	int retval = OPERATOR_CANCELLED;
 	Scene *scene= CTX_data_scene(C);
@@ -2638,7 +2638,7 @@ static void seq_offset(Scene *scene, Sequence *seq, int ofs)
 	calc_sequence_disp(scene, seq);
 }
 
-static int sequencer_paste_exec(bContext *C, wmOperator *op)
+static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, TRUE); /* create if needed */

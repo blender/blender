@@ -541,7 +541,7 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 	ntreeSolveOrder(snode->nodetree);
 }
 
-static int node_group_edit_exec(bContext *C, wmOperator *op)
+static int node_group_edit_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *gnode;
@@ -556,7 +556,7 @@ static int node_group_edit_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int node_group_edit_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int node_group_edit_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *gnode;
@@ -1100,7 +1100,7 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 }
 
 
-static int node_active_link_viewer(bContext *C, wmOperator *op)
+static int node_active_link_viewer(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node;
@@ -1472,7 +1472,7 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 
 /* ****************** Duplicate *********************** */
 
-static int node_duplicate_exec(bContext *C, wmOperator *op)
+static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
@@ -1851,7 +1851,7 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 // XXX some code needing updating to operators...
 
 /* goes over all scenes, reads render layers */
-static int node_read_renderlayers_exec(bContext *C, wmOperator *op)
+static int node_read_renderlayers_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	SpaceNode *snode= CTX_wm_space_node(C);
@@ -1893,7 +1893,7 @@ void NODE_OT_read_renderlayers(wmOperatorType *ot)
 	ot->flag= 0;
 }
 
-static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *op)
+static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	Scene *curscene= CTX_data_scene(C);
@@ -2015,7 +2015,7 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
 	}
 }
 
-static int node_hide_exec(bContext *C, wmOperator *op)
+static int node_hide_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
@@ -2045,7 +2045,7 @@ void NODE_OT_hide_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int node_preview_exec(bContext *C, wmOperator *op)
+static int node_preview_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 
@@ -2077,7 +2077,7 @@ void NODE_OT_preview_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int node_socket_toggle_exec(bContext *C, wmOperator *op)
+static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node;
@@ -2128,7 +2128,7 @@ void NODE_OT_hide_socket_toggle(wmOperatorType *ot)
 
 /* ****************** Mute operator *********************** */
 
-static int node_mute_exec(bContext *C, wmOperator *op)
+static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node;
@@ -2170,7 +2170,7 @@ void NODE_OT_mute_toggle(wmOperatorType *ot)
 
 /* ****************** Delete operator ******************* */
 
-static int node_delete_exec(bContext *C, wmOperator *op)
+static int node_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node, *next;
@@ -2211,7 +2211,7 @@ void NODE_OT_delete(wmOperatorType *ot)
 
 /* ****************** Show Cyclic Dependencies Operator  ******************* */
 
-static int node_show_cycles_exec(bContext *C, wmOperator *op)
+static int node_show_cycles_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	

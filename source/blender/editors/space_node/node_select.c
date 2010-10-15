@@ -241,7 +241,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 
 /* ****** Select/Deselect All ****** */
 
-static int node_select_all_exec(bContext *C, wmOperator *op)
+static int node_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *first = snode->edittree->nodes.first;
@@ -282,7 +282,7 @@ void NODE_OT_select_all(wmOperatorType *ot)
 
 /* ****** Select Linked To ****** */
 
-static int node_select_linked_to_exec(bContext *C, wmOperator *op)
+static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeLink *link;
@@ -322,7 +322,7 @@ void NODE_OT_select_linked_to(wmOperatorType *ot)
 
 /* ****** Select Linked From ****** */
 
-static int node_select_linked_from_exec(bContext *C, wmOperator *op)
+static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeLink *link;
@@ -362,7 +362,7 @@ void NODE_OT_select_linked_from(wmOperatorType *ot)
 
 /* ****** Select Same Type ****** */
 
-static int node_select_same_type_exec(bContext *C, wmOperator *op)
+static int node_select_same_type_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -388,7 +388,7 @@ void NODE_OT_select_same_type(wmOperatorType *ot)
 
 /* ****** Select The Next/Prev Node Of The Same Type ****** */
 
-static int node_select_same_type_next_exec(bContext *C, wmOperator *op)
+static int node_select_same_type_next_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 
@@ -412,7 +412,7 @@ void NODE_OT_select_same_type_next(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int node_select_same_type_prev_exec(bContext *C, wmOperator *op)
+static int node_select_same_type_prev_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 

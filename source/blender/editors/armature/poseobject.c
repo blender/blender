@@ -242,7 +242,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 /* For the object with pose/action: create path curves for selected bones 
  * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
  */
-static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
+static int pose_calculate_paths_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Scene *scene= CTX_data_scene(C);
@@ -319,7 +319,7 @@ void ED_pose_clear_paths(Object *ob)
 }
 
 /* operator callback for this */
-static int pose_clear_paths_exec (bContext *C, wmOperator *op)
+static int pose_clear_paths_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
@@ -360,7 +360,7 @@ void POSE_OT_paths_clear (wmOperatorType *ot)
 
 /* ******************* Select Constraint Target Operator ************* */
 
-static int pose_select_constraint_target_exec(bContext *C, wmOperator *op)
+static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bArmature *arm= ob->data;
@@ -1100,7 +1100,7 @@ void POSE_OT_paste (wmOperatorType *ot)
 /* ********************************************** */
 
 
-static int pose_group_add_exec (bContext *C, wmOperator *op)
+static int pose_group_add_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
@@ -1140,7 +1140,7 @@ void POSE_OT_group_add (wmOperatorType *ot)
 }
 
 
-static int pose_group_remove_exec (bContext *C, wmOperator *op)
+static int pose_group_remove_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
@@ -1182,7 +1182,7 @@ void POSE_OT_group_remove (wmOperatorType *ot)
 /* ------------ */
 
 /* invoke callback which presents a list of bone-groups for the user to choose from */
-static int pose_groups_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+static int pose_groups_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
@@ -1300,7 +1300,7 @@ void POSE_OT_group_assign (wmOperatorType *ot)
 }
 
 
-static int pose_group_unassign_exec (bContext *C, wmOperator *op)
+static int pose_group_unassign_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
@@ -1375,7 +1375,7 @@ static void pose_group_select(bContext *C, Object *ob, int select)
 	CTX_DATA_END;
 }
 
-static int pose_group_select_exec (bContext *C, wmOperator *op)
+static int pose_group_select_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
@@ -1413,7 +1413,7 @@ void POSE_OT_group_select (wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int pose_group_deselect_exec (bContext *C, wmOperator *op)
+static int pose_group_deselect_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
@@ -1453,7 +1453,7 @@ void POSE_OT_group_deselect (wmOperatorType *ot)
 
 /* ********************************************** */
 
-static int pose_flip_names_exec (bContext *C, wmOperator *op)
+static int pose_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bArmature *arm;
@@ -1827,7 +1827,7 @@ void ARMATURE_OT_bone_layers (wmOperatorType *ot)
 
 /* ********************************************** */
 
-static int pose_flip_quats_exec (bContext *C, wmOperator *op)
+static int pose_flip_quats_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));

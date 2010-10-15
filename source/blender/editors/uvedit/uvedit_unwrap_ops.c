@@ -330,7 +330,7 @@ static int minimize_stretch_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int minimize_stretch_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int minimize_stretch_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	MinStretch *ms;
 
@@ -425,7 +425,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 
 /* ******************** Pack Islands operator **************** */
 
-static int pack_islands_exec(bContext *C, wmOperator *op)
+static int pack_islands_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -458,7 +458,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 
 /* ******************** Average Islands Scale operator **************** */
 
-static int average_islands_scale_exec(bContext *C, wmOperator *op)
+static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -975,7 +975,7 @@ void UV_OT_from_view(wmOperatorType *ot)
 
 /********************** Reset operator ********************/
 
-static int reset_exec(bContext *C, wmOperator *op)
+static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);

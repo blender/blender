@@ -218,7 +218,7 @@ static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 	}
 }
 
-int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	object_add_generic_invoke_options(C, op);
 	return op->type->exec(C, op);
@@ -537,7 +537,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	uiPopupMenu *pup;
@@ -805,7 +805,7 @@ void ED_base_object_free_and_unlink(Main *bmain, Scene *scene, Base *base)
 	MEM_freeN(base);
 }
 
-static int object_delete_exec(bContext *C, wmOperator *op)
+static int object_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1005,7 +1005,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 	base->object->transflag &= ~OB_DUPLI;	
 }
 
-static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
+static int object_duplicates_make_real_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);

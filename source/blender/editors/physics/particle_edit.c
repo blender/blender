@@ -1387,7 +1387,7 @@ static void select_root(PEData *data, int point_index)
 	data->edit->points[point_index].flag |= PEP_EDIT_RECALC; /* redraw selection only */
 }
 
-static int select_roots_exec(bContext *C, wmOperator *op)
+static int select_roots_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PEData data;
 
@@ -1427,7 +1427,7 @@ static void select_tip(PEData *data, int point_index)
 	point->flag |= PEP_EDIT_RECALC; /* redraw selection only */
 }
 
-static int select_tips_exec(bContext *C, wmOperator *op)
+static int select_tips_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PEData data;
 
@@ -1690,7 +1690,7 @@ void PARTICLE_OT_hide(wmOperatorType *ot)
 
 /*************************** reveal operator **************************/
 
-static int reveal_exec(bContext *C, wmOperator *op)
+static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_active_object(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1758,7 +1758,7 @@ static void select_less_keys(PEData *data, int point_index)
 	}
 }
 
-static int select_less_exec(bContext *C, wmOperator *op)
+static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PEData data;
 
@@ -1819,7 +1819,7 @@ static void select_more_keys(PEData *data, int point_index)
 	}
 }
 
-static int select_more_exec(bContext *C, wmOperator *op)
+static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PEData data;
 
@@ -1846,7 +1846,7 @@ void PARTICLE_OT_select_more(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int select_inverse_exec(bContext *C, wmOperator *op)
+static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PEData data;
 	PTCacheEdit *edit;
@@ -2260,7 +2260,7 @@ static void subdivide_particle(PEData *data, int pa_index)
 	pa->flag &= ~PARS_REKEY;
 }
 
-static int subdivide_exec(bContext *C, wmOperator *op)
+static int subdivide_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PEData data;
 
@@ -2734,7 +2734,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 	MEM_freeN(mirrorfaces);
 }
 
-static int mirror_exec(bContext *C, wmOperator *op)
+static int mirror_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -4084,7 +4084,7 @@ static int particle_edit_toggle_poll(bContext *C)
 	return (ob->particlesystem.first || modifiers_findByType(ob, eModifierType_Cloth) || modifiers_findByType(ob, eModifierType_Softbody));
 }
 
-static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
+static int particle_edit_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -4130,7 +4130,7 @@ void PARTICLE_OT_particle_edit_toggle(wmOperatorType *ot)
 
 /************************ set editable operator ************************/
 
-static int clear_edited_exec(bContext *C, wmOperator *op)
+static int clear_edited_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_active_object(C);
 	ParticleSystem *psys = psys_get_current(ob);

@@ -596,7 +596,7 @@ static int render_breakjob(void *rjv)
 }
 
 /* catch esc */
-static int screen_render_modal(bContext *C, wmOperator *op, wmEvent *event)
+static int screen_render_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	/* no running blender, remove handler and pass through */
 	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C))) {
@@ -763,7 +763,7 @@ void RENDER_OT_render(wmOperatorType *ot)
 
 /* *********************** cancel render viewer *************** */
 
-static int render_view_cancel_exec(bContext *C, wmOperator *unused)
+static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	wmWindow *win= CTX_wm_window(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -810,7 +810,7 @@ void RENDER_OT_view_cancel(struct wmOperatorType *ot)
 
 /* *********************** show render viewer *************** */
 
-static int render_view_show_invoke(bContext *C, wmOperator *unused, wmEvent *event)
+static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(unused), wmEvent *event)
 {
 	ScrArea *sa= find_area_showing_r_result(C);
 

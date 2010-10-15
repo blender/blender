@@ -472,7 +472,7 @@ void ANIM_OT_driver_button_remove (wmOperatorType *ot)
 
 /* Copy Driver Button Operator ------------------------ */
 
-static int copy_driver_button_exec (bContext *C, wmOperator *op)
+static int copy_driver_button_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr;
 	PropertyRNA *prop= NULL;
@@ -518,7 +518,7 @@ void ANIM_OT_copy_driver_button (wmOperatorType *ot)
 
 /* Paste Driver Button Operator ------------------------ */
 
-static int paste_driver_button_exec (bContext *C, wmOperator *op)
+static int paste_driver_button_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr;
 	PropertyRNA *prop= NULL;

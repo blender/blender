@@ -457,7 +457,7 @@ void NLA_OT_transition_add (wmOperatorType *ot)
 /* Add new meta-strips incorporating the selected strips */
 
 /* add the specified action as new strip */
-static int nlaedit_add_meta_exec (bContext *C, wmOperator *op)
+static int nlaedit_add_meta_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -518,7 +518,7 @@ void NLA_OT_meta_add (wmOperatorType *ot)
 /* ******************** Remove Meta-Strip Operator ***************************** */
 /* Separate out the strips held by the selected meta-strips */
 
-static int nlaedit_remove_meta_exec (bContext *C, wmOperator *op)
+static int nlaedit_remove_meta_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -572,7 +572,7 @@ void NLA_OT_meta_remove (wmOperatorType *ot)
  * the originals were housed in.
  */
  
-static int nlaedit_duplicate_exec (bContext *C, wmOperator *op)
+static int nlaedit_duplicate_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -645,7 +645,7 @@ static int nlaedit_duplicate_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 }
 
-static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	nlaedit_duplicate_exec(C, op);
 	
@@ -677,7 +677,7 @@ void NLA_OT_duplicate (wmOperatorType *ot)
 /* ******************** Delete Strips Operator ***************************** */
 /* Deletes the selected NLA-Strips */
 
-static int nlaedit_delete_exec (bContext *C, wmOperator *op)
+static int nlaedit_delete_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -818,7 +818,7 @@ static void nlaedit_split_strip_meta (AnimData *adt, NlaTrack *nlt, NlaStrip *st
 
 /* ----- */
 
-static int nlaedit_split_exec (bContext *C, wmOperator *op)
+static int nlaedit_split_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -893,7 +893,7 @@ void NLA_OT_split (wmOperatorType *ot)
 /* ******************** Bake Strips Operator ***************************** */
 /* Bakes the NLA Strips for the active AnimData blocks */
 
-static int nlaedit_bake_exec (bContext *C, wmOperator *op)
+static int nlaedit_bake_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -949,7 +949,7 @@ void NLA_OT_bake (wmOperatorType *ot)
 /* ******************** Toggle Muting Operator ************************** */
 /* Toggles whether strips are muted or not */
 
-static int nlaedit_toggle_mute_exec (bContext *C, wmOperator *op)
+static int nlaedit_toggle_mute_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -1008,7 +1008,7 @@ void NLA_OT_mute_toggle (wmOperatorType *ot)
 /* ******************** Move Strips Up Operator ************************** */
 /* Tries to move the selected strips into the track above if possible. */
 
-static int nlaedit_move_up_exec (bContext *C, wmOperator *op)
+static int nlaedit_move_up_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -1082,7 +1082,7 @@ void NLA_OT_move_up (wmOperatorType *ot)
 /* ******************** Move Strips Down Operator ************************** */
 /* Tries to move the selected strips into the track above if possible. */
 
-static int nlaedit_move_down_exec (bContext *C, wmOperator *op)
+static int nlaedit_move_down_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -1250,7 +1250,7 @@ static short bezt_apply_nlamapping (KeyframeEditData *ked, BezTriple *bezt)
 	return 0;
 }
 
-static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
+static int nlaedit_apply_scale_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -1333,7 +1333,7 @@ void NLA_OT_apply_scale (wmOperatorType *ot)
 /* ******************** Clear Scale Operator ***************************** */
 /* Reset the scaling of the selected strips to 1.0f */
 
-static int nlaedit_clear_scale_exec (bContext *C, wmOperator *op)
+static int nlaedit_clear_scale_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -1544,7 +1544,7 @@ void NLA_OT_snap (wmOperatorType *ot)
 /* ******************** Add F-Modifier Operator *********************** */
 
 /* present a special customised popup menu for this, with some filtering */
-static int nla_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *event)
+static int nla_fmodifier_add_invoke (bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;

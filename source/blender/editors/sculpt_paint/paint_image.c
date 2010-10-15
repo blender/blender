@@ -5087,7 +5087,7 @@ static int grab_clone_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int grab_clone_cancel(bContext *C, wmOperator *op)
+static int grab_clone_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	return OPERATOR_CANCELLED;

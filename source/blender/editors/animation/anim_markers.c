@@ -336,7 +336,7 @@ void draw_markers_time(const bContext *C, int flag)
 /* ************************** add markers *************************** */
 
 /* add TimeMarker at curent frame */
-static int ed_marker_add(bContext *C, wmOperator *op)
+static int ed_marker_add(bContext *C, wmOperator *UNUSED(op))
 {
 	ListBase *markers= context_get_markers(C);
 	TimeMarker *marker;
@@ -1033,7 +1033,7 @@ static void MARKER_OT_select_all(wmOperatorType *ot)
 /* ******************************* remove marker ***************** */
 
 /* remove selected TimeMarkers */
-static int ed_marker_delete_exec(bContext *C, wmOperator *op)
+static int ed_marker_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ListBase *markers= context_get_markers(C);
 	TimeMarker *marker, *nmarker;
@@ -1130,7 +1130,7 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 /* ******************************* camera bind marker ***************** */
 
 /* remove selected TimeMarkers */
-static int ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
+static int ed_marker_camera_bind_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	ListBase *markers= context_get_markers(C);

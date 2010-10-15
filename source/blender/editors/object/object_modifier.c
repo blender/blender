@@ -667,7 +667,7 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int modifier_remove_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int modifier_remove_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if (edit_modifier_invoke_properties(C, op))
 		return modifier_remove_exec(C, op);
@@ -706,7 +706,7 @@ static int modifier_move_up_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int modifier_move_up_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int modifier_move_up_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if (edit_modifier_invoke_properties(C, op))
 		return modifier_move_up_exec(C, op);
@@ -745,7 +745,7 @@ static int modifier_move_down_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int modifier_move_down_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int modifier_move_down_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if (edit_modifier_invoke_properties(C, op))
 		return modifier_move_down_exec(C, op);
@@ -787,7 +787,7 @@ static int modifier_apply_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int modifier_apply_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int modifier_apply_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if (edit_modifier_invoke_properties(C, op))
 		return modifier_apply_exec(C, op);
@@ -835,7 +835,7 @@ static int modifier_convert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int modifier_convert_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int modifier_convert_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if (edit_modifier_invoke_properties(C, op))
 		return modifier_convert_exec(C, op);
@@ -874,7 +874,7 @@ static int modifier_copy_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int modifier_copy_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int modifier_copy_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if (edit_modifier_invoke_properties(C, op))
 		return modifier_copy_exec(C, op);
@@ -919,7 +919,7 @@ static int multires_higher_levels_delete_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int multires_higher_levels_delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int multires_higher_levels_delete_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if (edit_modifier_invoke_properties(C, op))
 		return multires_higher_levels_delete_exec(C, op);
@@ -959,7 +959,7 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int multires_subdivide_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int multires_subdivide_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if (edit_modifier_invoke_properties(C, op))
 		return multires_subdivide_exec(C, op);
@@ -1017,7 +1017,7 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int multires_reshape_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int multires_reshape_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if (edit_modifier_invoke_properties(C, op))
 		return multires_reshape_exec(C, op);
@@ -1066,7 +1066,7 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int multires_external_save_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int multires_external_save_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Object *ob = ED_object_active_context(C);
 	MultiresModifierData *mmd;
@@ -1120,7 +1120,7 @@ void OBJECT_OT_multires_external_save(wmOperatorType *ot)
 
 /****************** multires pack operator *********************/
 
-static int multires_external_pack_exec(bContext *C, wmOperator *op)
+static int multires_external_pack_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_active_context(C);
 	Mesh *me= ob->data;
@@ -1210,7 +1210,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int meshdeform_bind_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int meshdeform_bind_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if (edit_modifier_invoke_properties(C, op))
 		return meshdeform_bind_exec(C, op);
@@ -1258,7 +1258,7 @@ static int explode_refresh_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int explode_refresh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int explode_refresh_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if (edit_modifier_invoke_properties(C, op))
 		return explode_refresh_exec(C, op);

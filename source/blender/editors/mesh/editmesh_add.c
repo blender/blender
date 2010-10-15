@@ -1712,7 +1712,7 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 
 /****************** add duplicate operator ***************/
 
-static int mesh_duplicate_exec(bContext *C, wmOperator *op)
+static int mesh_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(ob->data);
@@ -1727,7 +1727,7 @@ static int mesh_duplicate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int mesh_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int mesh_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	WM_cursor_wait(1);
 	mesh_duplicate_exec(C, op);

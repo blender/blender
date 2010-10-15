@@ -280,7 +280,7 @@ void view3d_tool_props_register(ARegionType *art)
 
 /* ********** operator to open/close toolshelf region */
 
-static int view3d_toolshelf(bContext *C, wmOperator *op)
+static int view3d_toolshelf(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= view3d_has_tools_region(sa);

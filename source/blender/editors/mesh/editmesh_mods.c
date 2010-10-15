@@ -2207,7 +2207,7 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 }
 
 
-static int mesh_shortest_path_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int mesh_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	
 	view3d_operator_needs_opengl(C);
@@ -2618,7 +2618,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;	
 }
 
-static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	linked_limit_default(C, op);
 	return select_linked_exec(C, op);
@@ -2815,7 +2815,7 @@ void EM_reveal_mesh(EditMesh *em)
 //	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
 }
 
-static int reveal_mesh_exec(bContext *C, wmOperator *op)
+static int reveal_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
@@ -3360,7 +3360,7 @@ void EM_select_swap(EditMesh *em) /* exported for UV */
 
 }
 
-static int select_inverse_mesh_exec(bContext *C, wmOperator *op)
+static int select_inverse_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
@@ -3493,7 +3493,7 @@ void EM_select_more(EditMesh *em)
 	}
 }
 
-static int select_more(bContext *C, wmOperator *op)
+static int select_more(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data)) ;
@@ -3584,7 +3584,7 @@ void EM_select_less(EditMesh *em)
 	}
 }
 
-static int select_less(bContext *C, wmOperator *op)
+static int select_less(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
@@ -4490,7 +4490,7 @@ void flipface(EditMesh *em, EditFace *efa)
 }
 
 
-static int flip_normals(bContext *C, wmOperator *op)
+static int flip_normals(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));

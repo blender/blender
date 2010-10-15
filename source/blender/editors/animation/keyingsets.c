@@ -107,7 +107,7 @@ static int keyingset_poll_activePath_edit (bContext *C)
  
 /* Add a Default (Empty) Keying Set ------------------------- */
 
-static int add_default_keyingset_exec (bContext *C, wmOperator *op)
+static int add_default_keyingset_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	short flag=0, keyingflag=0;
@@ -464,7 +464,7 @@ void ANIM_OT_keyingset_button_remove (wmOperatorType *ot)
 /* Change Active KeyingSet Operator ------------------------ */
 /* This operator checks if a menu should be shown for choosing the KeyingSet to make the active one */
 
-static int keyingset_active_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
+static int keyingset_active_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	/* call the menu, which will call this operator again, hence the cancelled */
 	ANIM_keying_sets_menu_setup(C, op->type->name, "ANIM_OT_keying_set_active_set");

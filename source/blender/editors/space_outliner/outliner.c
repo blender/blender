@@ -1590,7 +1590,7 @@ void object_toggle_visibility_cb(bContext *C, Scene *scene, TreeElement *te, Tre
 	}
 }
 
-static int outliner_toggle_visibility_exec(bContext *C, wmOperator *op)
+static int outliner_toggle_visibility_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1630,7 +1630,7 @@ static void object_toggle_selectability_cb(bContext *C, Scene *scene, TreeElemen
 	}
 }
 
-static int outliner_toggle_selectability_exec(bContext *C, wmOperator *op)
+static int outliner_toggle_selectability_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1668,7 +1668,7 @@ void object_toggle_renderability_cb(bContext *C, Scene *scene, TreeElement *te, 
 	}
 }
 
-static int outliner_toggle_renderability_exec(bContext *C, wmOperator *op)
+static int outliner_toggle_renderability_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1697,7 +1697,7 @@ void OUTLINER_OT_renderability_toggle(wmOperatorType *ot)
 
 /* --- */
 
-static int outliner_toggle_expanded_exec(bContext *C, wmOperator *op)
+static int outliner_toggle_expanded_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -1728,7 +1728,7 @@ void OUTLINER_OT_expanded_toggle(wmOperatorType *ot)
 
 /* --- */
 
-static int outliner_toggle_selected_exec(bContext *C, wmOperator *op)
+static int outliner_toggle_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -2660,7 +2660,7 @@ static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, T
 	return 0;
 }
 
-static int outliner_item_rename(bContext *C, wmOperator *op, wmEvent *event)
+static int outliner_item_rename(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	SpaceOops *soops= CTX_wm_space_outliner(C);
@@ -2739,7 +2739,7 @@ static TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, ID *id)
 	return NULL;
 }
 
-static int outliner_show_active_exec(bContext *C, wmOperator *op)
+static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *so= CTX_wm_space_outliner(C);
 	Scene *scene= CTX_data_scene(C);
@@ -2959,7 +2959,7 @@ static void tree_element_show_hierarchy(Scene *scene, SpaceOops *soops, ListBase
 }
 
 /* show entire object level hierarchy */
-static int outliner_show_hierarchy_exec(bContext *C, wmOperator *op)
+static int outliner_show_hierarchy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -3714,7 +3714,7 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 }
 
 
-static int outliner_operation(bContext *C, wmOperator *op, wmEvent *event)
+static int outliner_operation(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -3980,7 +3980,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 
 /* Add Operator ---------------------------------- */
 
-static int outliner_drivers_addsel_exec(bContext *C, wmOperator *op)
+static int outliner_drivers_addsel_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *soutliner= CTX_wm_space_outliner(C);
 	
@@ -4015,7 +4015,7 @@ void OUTLINER_OT_drivers_add_selected(wmOperatorType *ot)
 
 /* Remove Operator ---------------------------------- */
 
-static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *op)
+static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *soutliner= CTX_wm_space_outliner(C);
 	
@@ -4190,7 +4190,7 @@ void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
 
 /* Remove Operator ---------------------------------- */
 
-static int outliner_keyingset_removeitems_exec(bContext *C, wmOperator *op)
+static int outliner_keyingset_removeitems_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *soutliner= CTX_wm_space_outliner(C);
 	Scene *scene= CTX_data_scene(C);
