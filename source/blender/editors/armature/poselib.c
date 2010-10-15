@@ -268,7 +268,7 @@ static KeyingSet *poselib_ks_locrotscale = NULL;		/* the only keyingset we'll ne
 
 /* ----- */
 
-static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout, void *arg)
+static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bAction *act= ob->poselib;
@@ -402,7 +402,7 @@ void POSELIB_OT_pose_add (wmOperatorType *ot)
 
 /* ----- */
 
-static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bAction *act= (ob) ? ob->poselib : NULL;

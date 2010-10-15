@@ -1856,7 +1856,7 @@ class VIEW3D_MT_edit_armature(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("armature.subdivide_multi", text="Subdivide")
+        layout.operator("armature.subdivide", text="Subdivide")
         layout.operator("armature.switch_direction", text="Switch Direction")
 
         layout.separator()
@@ -1890,7 +1890,7 @@ class VIEW3D_MT_armature_specials(bpy.types.Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.operator("armature.subdivide_multi", text="Subdivide")
+        layout.operator("armature.subdivide", text="Subdivide")
         layout.operator("armature.switch_direction", text="Switch Direction")
 
         layout.separator()

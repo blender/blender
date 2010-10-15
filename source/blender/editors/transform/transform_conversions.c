@@ -4720,7 +4720,7 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 		 */
 		if (C && (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)) {
 			//ED_pose_clear_paths(C, ob); // XXX for now, don't need to clear
-			ED_pose_recalculate_paths(C, scene, ob);
+			ED_pose_recalculate_paths(scene, ob);
 		}
 	}
 	else {

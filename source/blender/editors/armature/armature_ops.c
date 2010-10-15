@@ -57,9 +57,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_align);
 	WM_operatortype_append(ARMATURE_OT_calculate_roll);
 	WM_operatortype_append(ARMATURE_OT_switch_direction);
-	WM_operatortype_append(ARMATURE_OT_subdivs);
-	WM_operatortype_append(ARMATURE_OT_subdivide_simple);
-	WM_operatortype_append(ARMATURE_OT_subdivide_multi);
+	WM_operatortype_append(ARMATURE_OT_subdivide);
 	
 	WM_operatortype_append(ARMATURE_OT_parent_set);
 	WM_operatortype_append(ARMATURE_OT_parent_clear);

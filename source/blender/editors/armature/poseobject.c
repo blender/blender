@@ -71,9 +71,9 @@
 #include "armature_intern.h"
 
 /* ************* XXX *************** */
-static int pupmenu(const char *dummy) {return 0;}
-static void error(const char *dummy) {};
-static void BIF_undo_push(const char *dummy) {}
+static int pupmenu(const char *UNUSED(dummy)) {return 0;}
+static void error(const char *UNUSED(dummy)) {};
+static void BIF_undo_push(const char *UNUSED(dummy)) {}
 /* ************* XXX *************** */
 
 
@@ -226,7 +226,7 @@ int ED_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
  *
  * To be called from various tools that do incremental updates 
  */
-void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
+void ED_pose_recalculate_paths(Scene *scene, Object *ob)
 {
 	ListBase targets = {NULL, NULL};
 	
@@ -267,7 +267,7 @@ static int pose_calculate_paths_exec (bContext *C, wmOperator *UNUSED(op))
 	
 	/* calculate the bones that now have motionpaths... */
 	// TODO: only make for the selected bones?
-	ED_pose_recalculate_paths(C, scene, ob);
+	ED_pose_recalculate_paths(scene, ob);
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1895,9 +1895,9 @@ void POSE_OT_quaternions_flip (wmOperatorType *ot)
 /* ********************************************** */
 
 /* context: active channel */
+#if 0
 void pose_special_editmenu(Scene *scene)
 {
-#if 0
 	Object *obedit= scene->obedit; // XXX context
 	Object *ob= OBACT;
 	short nr;
@@ -1920,7 +1920,7 @@ void pose_special_editmenu(Scene *scene)
 		pose_clear_paths(ob);
 	}
 	else if(nr==5) {
-		pose_clear_user_transforms(scene, ob);
+		pose_clear_user_transforms(ob);
 	}
 	else if(nr==6) {
 		pose_relax();
@@ -1928,11 +1928,11 @@ void pose_special_editmenu(Scene *scene)
 	else if(ELEM3(nr, 7, 8, 9)) {
 		pose_autoside_names(nr-7);
 	}
-#endif
 }
 
+
 /* Restore selected pose-bones to 'action'-defined pose */
-void pose_clear_user_transforms(Scene *scene, Object *ob)
+static void pose_clear_user_transforms(Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
@@ -1964,3 +1964,4 @@ void pose_clear_user_transforms(Scene *scene, Object *ob)
 	BIF_undo_push("Clear User Transform");
 }
 
+#endif

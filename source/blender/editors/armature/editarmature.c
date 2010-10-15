@@ -1075,7 +1075,7 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
  *	sel: remove selected bones from the armature, otherwise the unselected bones are removed
  *  (ob is not in editmode)
  */
-static void separate_armature_bones (Scene *scene, Object *ob, short sel) 
+static void separate_armature_bones(Object *ob, short sel) 
 {
 	bArmature *arm= (bArmature *)ob->data;
 	bPoseChannel *pchan, *pchann;
@@ -1176,8 +1176,8 @@ static int separate_armature_exec (bContext *C, wmOperator *UNUSED(op))
 	
 	
 	/* 3) remove bones that shouldn't still be around on both armatures */
-	separate_armature_bones(scene, oldob, 1);
-	separate_armature_bones(scene, newob, 0);
+	separate_armature_bones(oldob, 1);
+	separate_armature_bones(newob, 0);
 	
 	
 	/* 4) fix links before depsgraph flushes */ // err... or after?
@@ -2087,7 +2087,7 @@ float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3])
 
 
 /* Set roll value for given bone -> Z-Axis Point up (original method) */
-static void auto_align_ebone_zaxisup(Scene *scene, View3D *v3d, EditBone *ebone)
+static void auto_align_ebone_zaxisup(Scene *UNUSED(scene), View3D *UNUSED(v3d), EditBone *ebone)
 {
 	float	delta[3], curmat[3][3];
 	float	xaxis[3]={1.0f, 0.0f, 0.0f}, yaxis[3], zaxis[3]={0.0f, 0.0f, 1.0f};
@@ -3632,10 +3632,7 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 	int numcuts, i;
 	
 	/* there may not be a number_cuts property defined (for 'simple' subdivide) */
-	if (RNA_property_is_set(op->ptr, "number_cuts"))
-		numcuts= RNA_int_get(op->ptr, "number_cuts");
-	else
-		numcuts= 1;
+	numcuts= RNA_int_get(op->ptr, "number_cuts");
 	
 	/* loop over all editable bones */
 	// XXX the old code did this in reverse order though!
@@ -3690,26 +3687,11 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-
-void ARMATURE_OT_subdivide_simple(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Subdivide Simple";
-	ot->idname= "ARMATURE_OT_subdivide_simple";
-	
-	/* api callbacks */
-	ot->exec = armature_subdivide_exec;
-	ot->poll = ED_operator_editarmature;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-void ARMATURE_OT_subdivide_multi(wmOperatorType *ot)
+void ARMATURE_OT_subdivide(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Subdivide Multi";
-	ot->idname= "ARMATURE_OT_subdivide_multi";
+	ot->idname= "ARMATURE_OT_subdivide";
 	
 	/* api callbacks */
 	ot->exec = armature_subdivide_exec;
@@ -3719,65 +3701,7 @@ void ARMATURE_OT_subdivide_multi(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* Properties */
-	RNA_def_int(ot->srna, "number_cuts", 2, 1, INT_MAX, "Number of Cuts", "", 1, 10);
-}
-
-
-
-static int armature_subdivs_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
-{
-	uiPopupMenu *pup;
-	uiLayout *layout;
-
-	pup= uiPupMenuBegin(C, "Subdivision Type", 0);
-	layout= uiPupMenuLayout(pup);
-	uiItemsEnumO(layout, "ARMATURE_OT_subdivs", "type");
-	uiPupMenuEnd(C, pup);
-	
-	return OPERATOR_CANCELLED;
-}
-
-static int armature_subdivs_exec(bContext *C, wmOperator *op)
-{	
-	switch (RNA_int_get(op->ptr, "type"))
-	{
-		case 0: /* simple */
-			RNA_int_set(op->ptr, "number_cuts", 1);
-			armature_subdivide_exec(C, op);
-			break;
-		case 1: /* multi */
-			armature_subdivide_exec(C, op);
-			break;
-	}
-	
-	return OPERATOR_FINISHED;
-}
-
-void ARMATURE_OT_subdivs(wmOperatorType *ot)
-{
-	static EnumPropertyItem type_items[]= {
-		 {0, "SIMPLE", 0, "Simple", ""},
-		{1, "MULTI", 0, "Multi", ""},
-		{0, NULL, 0, NULL, NULL}};
-
-	/* identifiers */
-	ot->name= "subdivs";
-	ot->idname= "ARMATURE_OT_subdivs";
-	
-	/* api callbacks */
-	ot->invoke= armature_subdivs_invoke;
-	ot->exec= armature_subdivs_exec;
-	
-	ot->poll= ED_operator_editarmature;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
-	
-	/* this is temp, the ops are different, but they are called from subdivs, so all the possible props should be here as well*/
-	RNA_def_int(ot->srna, "number_cuts", 2, 1, INT_MAX, "Number of Cuts", "", 1, 10); 
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
 }
 
 /* ----------- */
@@ -4552,7 +4476,7 @@ void ED_pose_deselectall (Object *ob, int test)
 		arm->act_bone= NULL;
 }
 
-static int bone_skinnable(Object *ob, Bone *bone, void *datap)
+static int bone_skinnable_cb(Object *ob, Bone *bone, void *datap)
 {
 	/* Bones that are deforming
 	 * are regarded to be "skinnable" and are eligible for
@@ -4601,7 +4525,7 @@ static int bone_skinnable(Object *ob, Bone *bone, void *datap)
 	return 0;
 }
 
-static int ED_vgroup_add_unique_bone(Object *ob, Bone *bone, void *data) 
+static int vgroup_add_unique_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr)) 
 {
 	/* This group creates a vertex group to ob that has the
 	  * same name as bone (provided the bone is skinnable). 
@@ -4616,7 +4540,7 @@ static int ED_vgroup_add_unique_bone(Object *ob, Bone *bone, void *data)
 	return 0;
 }
 
-static int dgroup_skinnable(Object *ob, Bone *bone, void *datap) 
+static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap) 
 {
 	/* Bones that are deforming
 	 * are regarded to be "skinnable" and are eligible for
@@ -4672,7 +4596,7 @@ static int dgroup_skinnable(Object *ob, Bone *bone, void *datap)
 	return 0;
 }
 
-static void add_vgroups__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+static void add_vgroups__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
 	/* DerivedMesh mapFunc for getting final coords in weight paint mode */
 
@@ -4755,7 +4679,7 @@ void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, Object 
 	looper_data.list= NULL;
 
 	/* count the number of skinnable bones */
-	numbones = bone_looper(ob, arm->bonebase.first, &looper_data, bone_skinnable);
+	numbones = bone_looper(ob, arm->bonebase.first, &looper_data, bone_skinnable_cb);
 	
 	if (numbones == 0)
 		return;
@@ -4764,7 +4688,7 @@ void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, Object 
 	 * and fill it with all of the skinnable bones */
 	bonelist = MEM_callocN(numbones*sizeof(Bone *), "bonelist");
 	looper_data.list= bonelist;
-	bone_looper(ob, arm->bonebase.first, &looper_data, bone_skinnable);
+	bone_looper(ob, arm->bonebase.first, &looper_data, bone_skinnable_cb);
 
 	/* create an array of pointers to the deform groups that
 	 * coorespond to the skinnable bones (creating them
@@ -4773,7 +4697,7 @@ void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, Object 
 	dgroupflip = MEM_callocN(numbones*sizeof(bDeformGroup *), "dgroupflip");
 
 	looper_data.list= dgrouplist;
-	bone_looper(ob, arm->bonebase.first, &looper_data, dgroup_skinnable);
+	bone_looper(ob, arm->bonebase.first, &looper_data, dgroup_skinnable_cb);
 
 	/* create an array of root and tip positions transformed into
 	 * global coords */
@@ -4907,7 +4831,7 @@ void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob,
 		/* Traverse the bone list, trying to create empty vertex 
 		 * groups cooresponding to the bone.
 		 */
-		bone_looper(ob, arm->bonebase.first, NULL, ED_vgroup_add_unique_bone);
+		bone_looper(ob, arm->bonebase.first, NULL, vgroup_add_unique_bone_cb);
 
 		if (ob->type == OB_MESH)
 			ED_vgroup_data_create(ob->data);
@@ -4964,7 +4888,7 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *UNUSED(op))
 		
 		/* now recalculate paths */
 		if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS))
-			ED_pose_recalculate_paths(C, scene, ob);
+			ED_pose_recalculate_paths(scene, ob);
 	}
 	
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -5033,7 +4957,7 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *UNUSED(op))
 		
 		/* now recalculate paths */
 		if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS))
-			ED_pose_recalculate_paths(C, scene, ob);
+			ED_pose_recalculate_paths(scene, ob);
 	}
 	
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -5186,7 +5110,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *UNUSED(op))
 		
 		/* now recalculate paths */
 		if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS))
-			ED_pose_recalculate_paths(C, scene, ob);
+			ED_pose_recalculate_paths(scene, ob);
 	}
 	
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
@@ -5356,7 +5280,7 @@ void POSE_OT_select_parent(wmOperatorType *ot)
 
 /* ************* hide/unhide pose bones ******************* */
 
-static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr) 
+static int hide_selected_pose_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr)) 
 {
 	bArmature *arm= ob->data;
 	
@@ -5371,7 +5295,7 @@ static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr)
 	return 0;
 }
 
-static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr) 
+static int hide_unselected_pose_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr)) 
 {
 	bArmature *arm= ob->data;
 	
@@ -5393,11 +5317,9 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 	bArmature *arm= ob->data;
 
 	if(RNA_boolean_get(op->ptr, "unselected"))
-	   bone_looper(ob, arm->bonebase.first, NULL, 
-				hide_unselected_pose_bone);
+	   bone_looper(ob, arm->bonebase.first, NULL, hide_unselected_pose_bone_cb);
 	else
-	   bone_looper(ob, arm->bonebase.first, NULL, 
-				   hide_selected_pose_bone);
+	   bone_looper(ob, arm->bonebase.first, NULL, hide_selected_pose_bone_cb);
 	
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
@@ -5422,7 +5344,7 @@ void POSE_OT_hide(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "");
 }
 
-static int show_pose_bone(Object *ob, Bone *bone, void *ptr) 
+static int show_pose_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr)) 
 {
 	bArmature *arm= ob->data;
 	
@@ -5442,7 +5364,7 @@ static int pose_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bArmature *arm= ob->data;
 	
-	bone_looper(ob, arm->bonebase.first, NULL, show_pose_bone);
+	bone_looper(ob, arm->bonebase.first, NULL, show_pose_bone_cb);
 	
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
