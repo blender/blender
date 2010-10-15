@@ -807,7 +807,7 @@ public:
 		
 		BLI_split_dirfile(filename, dir, NULL);
 		BLI_join_dirfile(full_path, dir, filepath.c_str());
-		Image *ima = BKE_add_image_file(full_path, 0);
+		Image *ima = BKE_add_image_file(full_path);
 		if (!ima) {
 			fprintf(stderr, "Cannot create image. \n");
 			return true;
