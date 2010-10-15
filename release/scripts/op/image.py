@@ -88,7 +88,7 @@ class EditExternally(bpy.types.Operator):
 
 
 class SaveDirty(bpy.types.Operator):
-    '''Select object matching a naming pattern'''
+    """Save all modified textures"""
     bl_idname = "image.save_dirty"
     bl_label = "Save Dirty"
     bl_options = {'REGISTER', 'UNDO'}
@@ -109,7 +109,7 @@ class SaveDirty(bpy.types.Operator):
 
 
 class ProjectEdit(bpy.types.Operator):
-    '''Select object matching a naming pattern'''
+    """Edit a snapshot if the viewport in an external image editor"""
     bl_idname = "image.project_edit"
     bl_label = "Project Edit"
     bl_options = {'REGISTER'}
@@ -174,7 +174,7 @@ class ProjectEdit(bpy.types.Operator):
 
 
 class ProjectApply(bpy.types.Operator):
-    '''Select object matching a naming pattern'''
+    """Project edited image back onto the object"""
     bl_idname = "image.project_apply"
     bl_label = "Project Apply"
     bl_options = {'REGISTER'}
