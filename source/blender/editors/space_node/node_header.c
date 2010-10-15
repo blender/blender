@@ -202,7 +202,7 @@ static void node_menu_add(const bContext *C, Menu *menu)
 	}
 }
 
-void node_menus_register(ARegionType *art)
+void node_menus_register(void)
 {
 	MenuType *mt;
 

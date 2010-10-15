@@ -452,7 +452,7 @@ void ED_spacetype_node(void)
 	
 	BLI_addhead(&st->regiontypes, art);
 
-	node_menus_register(art);
+	node_menus_register();
 	
 	/* regions: listview/buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");

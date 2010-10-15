@@ -151,7 +151,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 				project_float_noclip(vc.ar, co1, co1);
 				project_float_noclip(vc.ar, co2, co2);
 				
-				/* 2D rotate by 90d while subtracting
+				/* 2D rotate by 90d while adding.
 				 *  (x, y) = (y, -x)
 				 *
 				 * accumulate the screenspace normal in 2D,
@@ -181,14 +181,11 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 			cross_v3_v3v3(cross, nor, view_vec);
 			cross_v3_v3v3(nor, view_vec, cross);
 			normalize_v3(nor);
-			
-			/* correct for flipping */
 		}
 		
 		/* center */
-		add_v3_v3v3(cent, min, max);
-		mul_v3_fl(cent, 0.5f);
-		VECCOPY(min, cent);
+		mid_v3_v3v3(cent, min, max);
+		copy_v3_v3(min, cent);
 		
 		mul_m4_v3(vc.obedit->obmat, min);	// view space
 		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
@@ -201,7 +198,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		if(done) {
 			float dot;
 			
-			VECCOPY(vec, min);
+			copy_v3_v3(vec, min);
 			normalize_v3(vec);
 			dot= INPR(vec, nor);
 
@@ -241,7 +238,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		float mat[3][3],imat[3][3];
 		float *curs= give_cursor(vc.scene, vc.v3d);
 		
-		VECCOPY(min, curs);
+		copy_v3_v3(min, curs);
 		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
 		
 		eve= addvertlist(vc.em, 0, NULL);
@@ -249,7 +246,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		copy_m3_m4(mat, vc.obedit->obmat);
 		invert_m3_m3(imat, mat);
 		
-		VECCOPY(eve->co, min);
+		copy_v3_v3(eve->co, min);
 		mul_m3_v3(imat, eve->co);
 		sub_v3_v3v3(eve->co, eve->co, vc.obedit->obmat[3]);
 		
