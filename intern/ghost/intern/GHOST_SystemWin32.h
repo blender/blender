@@ -248,7 +248,7 @@ protected:
 	 * events generated for both keys.
 	 * @param window	The window receiving the event (the active window).
 	 */
-	void processModifierKeys(GHOST_IWindow *window);
+	GHOST_EventKey* processModifierKeys(GHOST_IWindow *window);
 
 	/**
 	 * Creates mouse button event.
@@ -324,11 +324,6 @@ protected:
 	__int64 m_freq;
 	/** High frequency timer variable. */
 	__int64 m_start;
-	/** Stores the capability of this system to distinguish left and right modifier keys. */
-	bool m_separateLeftRight;
-	/** Stores the initialization state of the member m_leftRightDistinguishable. */
-	bool m_separateLeftRightInitialized;
-	
 };
 
 inline void GHOST_SystemWin32::retrieveModifierKeys(GHOST_ModifierKeys& keys) const
