@@ -68,7 +68,7 @@ GHOST_SystemHandle g_system= NULL;
 
 /* set by commandline */
 static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0, initialstate= GHOST_kWindowStateNormal;
-static int prefsizeused = 0;
+static unsigned short useprefsize= 0;
 
 /* ******** win open & close ************ */
 
@@ -373,13 +373,13 @@ void wm_window_add_ghostwindows(bContext* C, wmWindowManager *wm)
 	
 	for(win= wm->windows.first; win; win= win->next) {
 		if(win->ghostwin==NULL) {
-			if(win->sizex==0 || prefsizeused==0) {
+			if(win->sizex==0 || useprefsize) {
 				win->posx= prefstax;
 				win->posy= prefstay;
 				win->sizex= prefsizx;
 				win->sizey= prefsizy;
 				win->windowstate= initialstate;
-				prefsizeused= 1;
+				useprefsize= 0;
 			}
 			wm_window_add_ghostwindow(C, wm, "Blender", win);
 		}
@@ -1111,6 +1111,7 @@ void WM_setprefsize(int stax, int stay, int sizx, int sizy)
 	prefstay= stay;
 	prefsizx= sizx;
 	prefsizy= sizy;
+	useprefsize= 1;
 }
 
 /* for borderless and border windows set from command-line */
