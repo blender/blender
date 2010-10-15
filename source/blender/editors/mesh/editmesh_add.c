@@ -113,8 +113,11 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	EditVert *eve;
 	float min[3], max[3];
 	int done= 0;
-	
+	short use_proj;
+
 	em_setup_viewcontext(C, &vc);
+	
+	use_proj= ((vc.scene->toolsettings->snap_flag & (SCE_SNAP|SCE_SNAP_PROJECT))==(SCE_SNAP|SCE_SNAP_PROJECT)) &&	(vc.scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE);
 	
 	invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 
 	
@@ -129,7 +132,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* call extrude? */
 	if(done) {
-		int rot_src= RNA_boolean_get(op->ptr, "rotate_source");
+		short rot_src= RNA_boolean_get(op->ptr, "rotate_source");
 		EditEdge *eed;
 		float vec[3], cent[3], mat[3][3];
 		float nor[3]= {0.0, 0.0, 0.0};
@@ -221,8 +224,12 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		}
 		
-		if(rot_src)
+		if(rot_src) {
 			rotateflag(vc.em, SELECT, cent, mat);
+			/* also project the source, for retopo workflow */
+			if(use_proj)
+				EM_project_snap_verts(C, vc.ar, vc.obedit, vc.em);
+		}
 		
 		extrudeflag(vc.obedit, vc.em, SELECT, nor, 0);
 		rotateflag(vc.em, SELECT, cent, mat);
@@ -249,11 +256,8 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		eve->f= SELECT;
 	}
 
-	if(	((vc.scene->toolsettings->snap_flag & (SCE_SNAP|SCE_SNAP_PROJECT))==(SCE_SNAP|SCE_SNAP_PROJECT)) &&
-		(vc.scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE)
-	) {
+	if(use_proj)
 		EM_project_snap_verts(C, vc.ar, vc.obedit, vc.em);
-	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, vc.obedit->data); 
 	DAG_id_flush_update(vc.obedit->data, OB_RECALC_DATA);
