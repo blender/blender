@@ -289,6 +289,12 @@ static int material_slot_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	if(!ob)
 		return OPERATOR_CANCELLED;
 
+	/* Removing material slots in edit mode screws things up, see bug #21822.*/
+	if(ob == CTX_data_edit_object(C)) {
+		BKE_report(op->reports, RPT_ERROR, "Unable to remove material slot in edit mode.");
+		return OPERATOR_CANCELLED;
+	}
+
 	object_remove_material_slot(ob);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	WM_event_add_notifier(C, NC_OBJECT|ND_OB_SHADING, ob);
