@@ -159,7 +159,7 @@ static void rna_Image_end_frame_set(PointerRNA *ptr, int value)
 
 static void node_update(Main *bmain, Scene *scene, bNodeTree *ntree, bNode *node)
 {
-	ED_node_generic_update(bmain, scene, ntree, node);
+	ED_node_generic_update(bmain, ntree, node);
 }
 
 static void rna_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)

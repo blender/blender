@@ -111,7 +111,7 @@ static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
 	return 0;
 }
 
-void ED_node_generic_update(Main *bmain, Scene *scene, bNodeTree *ntree, bNode *node)
+void ED_node_generic_update(Main *bmain, bNodeTree *ntree, bNode *node)
 {
 	Material *ma;
 	Tex *tex;
@@ -309,7 +309,7 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 }
 
 /* based on settings in node, sets drawing rect info. each redraw! */
-static void node_update_hidden(const bContext *C, bNode *node)
+static void node_update_hidden(bNode *node)
 {
 	bNodeSocket *nsock;
 	float rad, drad, hiddenrad= HIDDEN_RAD;
@@ -392,7 +392,7 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		node->locy+= gnode->locy;
 		
 		if(node->flag & NODE_HIDDEN)
-			node_update_hidden(C, node);
+			node_update_hidden(node);
 		else
 			node_update(C, ntree, node);
 		node->locx-= gnode->locx;
@@ -483,7 +483,7 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 
 /* nice AA filled circle */
 /* this might have some more generic use */
-static void circle_draw(float x, float y, float size, int type, int col[3])
+static void circle_draw(float x, float y, float size, int col[3])
 {
 	/* 16 values of sin function */
 	static float si[16] = {
@@ -538,11 +538,11 @@ static void socket_circle_draw(bNodeSocket *sock, float size)
 	else { 
 		col[0]= 100; col[1]= 200; col[2]= 100;
 	}
-	
-	circle_draw(sock->locx, sock->locy, size, sock->type, col);
+
+	circle_draw(sock->locx, sock->locy, size, col);
 }
 
-static void node_sync_cb(bContext *C, void *snode_v, void *node_v)
+static void node_sync_cb(bContext *UNUSED(C), void *snode_v, void *node_v)
 {
 	SpaceNode *snode= snode_v;
 	
@@ -1103,7 +1103,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 			if(node->flag & NODE_GROUP_EDIT)
 				node_update_group(C, snode->nodetree, node);
 			else if(node->flag & NODE_HIDDEN)
-				node_update_hidden(C, node);
+				node_update_hidden(node);
 			else
 				node_update(C, snode->nodetree, node);
 		}

@@ -98,7 +98,7 @@ static int compo_breakjob(void *cjv)
 }
 
 /* called by compo, wmJob sends notifier */
-static void compo_redrawjob(void *cjv, char *str)
+static void compo_redrawjob(void *cjv, char *UNUSED(str))
 {
 	CompoJob *cj= cjv;
 	
@@ -1475,8 +1475,17 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 static int node_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
+	bNode *node;
 	
 	ED_preview_kill_jobs(C);
+
+	/* simple id user adjustment, node internal functions dont touch this
+	 * but operators and readfile.c do. */
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->flag & SELECT) {
+			id_us_plus(node->id);
+		}
+	}
 
 	ntreeCopyTree(snode->edittree, 1);	/* 1 == internally selected nodes */
 	
