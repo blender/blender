@@ -318,6 +318,7 @@ IF(UNIX AND NOT APPLE)
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
 	# Better warnings
+	# note: -Wunused-parameter should be added but for now only apply to ./source/blender
 	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
 	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 

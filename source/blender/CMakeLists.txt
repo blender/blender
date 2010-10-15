@@ -24,6 +24,11 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+# TODO: remove this and uncommend the global arg, but for now adding here keeps it managable
+IF(CMAKE_COMPILER_IS_GNUCC)
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wunused-parameter")
+ENDIF(CMAKE_COMPILER_IS_GNUCC)
+
 ADD_SUBDIRECTORY(windowmanager)
 ADD_SUBDIRECTORY(editors)
 ADD_SUBDIRECTORY(avi)
