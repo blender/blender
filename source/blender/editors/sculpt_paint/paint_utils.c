@@ -88,7 +88,7 @@ static void imapaint_tri_weights(Object *ob, float *v1, float *v2, float *v3, fl
 }
 
 /* compute uv coordinates of mouse in face */
-void imapaint_pick_uv(Scene *scene, Object *ob, Mesh *mesh, unsigned int faceindex, int *xy, float *uv)
+void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, int *xy, float *uv)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	int *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);

@@ -336,20 +336,19 @@ static short IsectLLPt2Df(float x0,float y0,float x1,float y1,
 	return 1; 
 } // end Intersect_Lines
 
-#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
 /* point in tri */
-// XXX was called IsectPT2Df
+
 int isect_point_tri_v2(float pt[2], float v1[2], float v2[2], float v3[2])
 {
-	if (SIDE_OF_LINE(v1,v2,pt)>=0.0) {
-		if (SIDE_OF_LINE(v2,v3,pt)>=0.0) {
-			if (SIDE_OF_LINE(v3,v1,pt)>=0.0) {
+	if (line_point_side_v2(v1,v2,pt)>=0.0) {
+		if (line_point_side_v2(v2,v3,pt)>=0.0) {
+			if (line_point_side_v2(v3,v1,pt)>=0.0) {
 				return 1;
 			}
 		}
 	} else {
-		if (! (SIDE_OF_LINE(v2,v3,pt)>=0.0)) {
-			if (! (SIDE_OF_LINE(v3,v1,pt)>=0.0)) {
+		if (! (line_point_side_v2(v2,v3,pt)>=0.0)) {
+			if (! (line_point_side_v2(v3,v1,pt)>=0.0)) {
 				return -1;
 			}
 		}
@@ -360,18 +359,18 @@ int isect_point_tri_v2(float pt[2], float v1[2], float v2[2], float v3[2])
 /* point in quad - only convex quads */
 int isect_point_quad_v2(float pt[2], float v1[2], float v2[2], float v3[2], float v4[2])
 {
-	if (SIDE_OF_LINE(v1,v2,pt)>=0.0) {
-		if (SIDE_OF_LINE(v2,v3,pt)>=0.0) {
-			if (SIDE_OF_LINE(v3,v4,pt)>=0.0) {
-				if (SIDE_OF_LINE(v4,v1,pt)>=0.0) {
+	if (line_point_side_v2(v1,v2,pt)>=0.0) {
+		if (line_point_side_v2(v2,v3,pt)>=0.0) {
+			if (line_point_side_v2(v3,v4,pt)>=0.0) {
+				if (line_point_side_v2(v4,v1,pt)>=0.0) {
 					return 1;
 				}
 			}
 		}
 	} else {
-		if (! (SIDE_OF_LINE(v2,v3,pt)>=0.0)) {
-			if (! (SIDE_OF_LINE(v3,v4,pt)>=0.0)) {
-				if (! (SIDE_OF_LINE(v4,v1,pt)>=0.0)) {
+		if (! (line_point_side_v2(v2,v3,pt)>=0.0)) {
+			if (! (line_point_side_v2(v3,v4,pt)>=0.0)) {
+				if (! (line_point_side_v2(v4,v1,pt)>=0.0)) {
 					return -1;
 				}
 			}

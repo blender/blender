@@ -488,7 +488,7 @@ static void free_posetree(PoseTree *tree)
 ///----------------------------------------
 /// Plugin API for legacy iksolver
 
-void iksolver_initialize_tree(struct Scene *scene, struct Object *ob, float ctime)
+void iksolver_initialize_tree(struct Scene *UNUSED(scene), struct Object *ob, float UNUSED(ctime))
 {
 	bPoseChannel *pchan;
 	

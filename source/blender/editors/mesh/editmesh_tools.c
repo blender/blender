@@ -7003,7 +7003,7 @@ static void fill_mesh(EditMesh *em)
 		}
 	}
 
-	if(BLI_edgefill(0, em->mat_nr)) {
+	if(BLI_edgefill(em->mat_nr)) {
 		efa= fillfacebase.first;
 		while(efa) {
 			/* normals default pointing up */

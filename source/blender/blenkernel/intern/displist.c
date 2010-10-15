@@ -979,7 +979,7 @@ void filldisplist(ListBase *dispbase, ListBase *to, int flipnormal)
 			dl= dl->next;
 		}
 		
-		if(totvert && BLI_edgefill(0, 0)) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
+		if(totvert && BLI_edgefill(0)) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
 
 			/* count faces  */
 			tot= 0;

@@ -511,7 +511,7 @@ static int edit_constraint_invoke_properties(bContext *C, wmOperator *op)
 	return 0;
 }
 
-static bConstraint *edit_constraint_property_get(bContext *C, wmOperator *op, Object *ob, int type)
+static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int type)
 {
 	char constraint_name[32];
 	int owner = RNA_enum_get(op->ptr, "owner");
@@ -547,7 +547,7 @@ static bConstraint *edit_constraint_property_get(bContext *C, wmOperator *op, Ob
 static int stretchto_reset_exec (bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_STRETCHTO);
+	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_STRETCHTO);
 	bStretchToConstraint *data= (con) ? (bStretchToConstraint *)con->data : NULL;
 	
 	/* despite 3 layers of checks, we may still not be able to find a constraint */
@@ -590,7 +590,7 @@ void CONSTRAINT_OT_stretchto_reset (wmOperatorType *ot)
 static int limitdistance_reset_exec (bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_DISTLIMIT);
+	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_DISTLIMIT);
 	bDistLimitConstraint *data= (con) ? (bDistLimitConstraint *)con->data : NULL;
 	
 	/* despite 3 layers of checks, we may still not be able to find a constraint */
@@ -636,7 +636,7 @@ static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_CHILDOF);
+	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_CHILDOF);
 	bChildOfConstraint *data= (con) ? (bChildOfConstraint *)con->data : NULL;
 	bPoseChannel *pchan= NULL;
 	
@@ -720,7 +720,7 @@ void CONSTRAINT_OT_childof_set_inverse (wmOperatorType *ot)
 static int childof_clear_inverse_exec (bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(C, op, ob, CONSTRAINT_TYPE_CHILDOF);
+	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_CHILDOF);
 	bChildOfConstraint *data= (con) ? (bChildOfConstraint *)con->data : NULL;
 	
 	/* simply clear the matrix */
@@ -837,7 +837,7 @@ void CONSTRAINT_OT_delete (wmOperatorType *ot)
 static int constraint_move_down_exec (bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(C, op, ob, 0);
+	bConstraint *con = edit_constraint_property_get(op, ob, 0);
 	
 	if (con && con->next) {
 		ListBase *conlist= get_constraint_lb(ob, con, NULL);
@@ -885,7 +885,7 @@ void CONSTRAINT_OT_move_down (wmOperatorType *ot)
 static int constraint_move_up_exec (bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(C, op, ob, 0);
+	bConstraint *con = edit_constraint_property_get(op, ob, 0);
 	
 	if (con && con->prev) {
 		ListBase *conlist= get_constraint_lb(ob, con, NULL);

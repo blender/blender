@@ -473,8 +473,6 @@ static int project_bucket_offset_safe(const ProjPaintState *ps, const float proj
 	}
 }
 
-#define SIDE_OF_LINE(pa, pb, pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
-
 /* still use 2D X,Y space but this works for verts transformed by a perspective matrix, using their 4th component as a weight */
 static void barycentric_weights_v2_persp(float v1[4], float v2[4], float v3[4], float co[2], float w[3])
 {
@@ -1689,7 +1687,7 @@ static float Vec2Lenf_nosqrt_other(const float *v1, const float v2_1, const floa
 /* note, use a squared value so we can use Vec2Lenf_nosqrt
  * be sure that you have done a bounds check first or this may fail */
 /* only give bucket_bounds as an arg because we need it elsewhere */
-static int project_bucket_isect_circle(const int bucket_x, const int bucket_y, const float cent[2], const float radius_squared, rctf *bucket_bounds)
+static int project_bucket_isect_circle(const float cent[2], const float radius_squared, rctf *bucket_bounds)
 {
 	 
 	/* Would normally to a simple intersection test, however we know the bounds of these 2 already intersect 
@@ -1852,7 +1850,7 @@ static void project_bucket_clip_face(
 {
 	int inside_bucket_flag = 0;
 	int inside_face_flag = 0;
-	const int flip = ((SIDE_OF_LINE(v1coSS, v2coSS, v3coSS) > 0.0f) != (SIDE_OF_LINE(uv1co, uv2co, uv3co) > 0.0f));
+	const int flip = ((line_point_side_v2(v1coSS, v2coSS, v3coSS) > 0.0f) != (line_point_side_v2(uv1co, uv2co, uv3co) > 0.0f));
 	
 	float bucket_bounds_ss[4][2];
 
@@ -2134,15 +2132,15 @@ if __name__ == '__main__':
 
 	
 /* checks if pt is inside a convex 2D polyline, the polyline must be ordered rotating clockwise
- * otherwise it would have to test for mixed (SIDE_OF_LINE > 0.0f) cases */
+ * otherwise it would have to test for mixed (line_point_side_v2 > 0.0f) cases */
 int IsectPoly2Df(const float pt[2], float uv[][2], const int tot)
 {
 	int i;
-	if (SIDE_OF_LINE(uv[tot-1], uv[0], pt) < 0.0f)
+	if (line_point_side_v2(uv[tot-1], uv[0], pt) < 0.0f)
 		return 0;
 	
 	for (i=1; i<tot; i++) {
-		if (SIDE_OF_LINE(uv[i-1], uv[i], pt) < 0.0f)
+		if (line_point_side_v2(uv[i-1], uv[i], pt) < 0.0f)
 			return 0;
 		
 	}
@@ -2152,10 +2150,10 @@ int IsectPoly2Df(const float pt[2], float uv[][2], const int tot)
 static int IsectPoly2Df_twoside(const float pt[2], float uv[][2], const int tot)
 {
 	int i;
-	int side = (SIDE_OF_LINE(uv[tot-1], uv[0], pt) > 0.0f);
+	int side = (line_point_side_v2(uv[tot-1], uv[0], pt) > 0.0f);
 	
 	for (i=1; i<tot; i++) {
-		if ((SIDE_OF_LINE(uv[i-1], uv[i], pt) > 0.0f) != side)
+		if ((line_point_side_v2(uv[i-1], uv[i], pt) > 0.0f) != side)
 			return 0;
 		
 	}
@@ -2652,7 +2650,7 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
  * calculated when it might not be needed later, (at the moment at least)
  * obviously it shouldn't have bugs though */
 
-static int project_bucket_face_isect(ProjPaintState *ps, float min[2], float max[2], int bucket_x, int bucket_y, int bucket_index, const MFace *mf)
+static int project_bucket_face_isect(ProjPaintState *ps, int bucket_x, int bucket_y, const MFace *mf)
 {
 	/* TODO - replace this with a tricker method that uses sideofline for all screenCoords's edges against the closest bucket corner */
 	rctf bucket_bounds;
@@ -2712,11 +2710,11 @@ static int project_bucket_face_isect(ProjPaintState *ps, float min[2], float max
 
 /* Add faces to the bucket but dont initialize its pixels
  * TODO - when painting occluded, sort the faces on their min-Z and only add faces that faces that are not occluded */
-static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf, const MTFace *tf, const int face_index)
+static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf, const int face_index)
 {
 	float min[2], max[2], *vCoSS;
 	int bucketMin[2], bucketMax[2]; /* for  ps->bucketRect indexing */
-	int fidx, bucket_x, bucket_y, bucket_index;
+	int fidx, bucket_x, bucket_y;
 	int has_x_isect = -1, has_isect = 0; /* for early loop exit */
 	MemArena *arena = ps->arena_mt[0]; /* just use the first thread arena since threading has not started yet */
 	
@@ -2733,10 +2731,8 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf,
 	for (bucket_y = bucketMin[1]; bucket_y < bucketMax[1]; bucket_y++) {
 		has_x_isect = 0;
 		for (bucket_x = bucketMin[0]; bucket_x < bucketMax[0]; bucket_x++) {
-			
-			bucket_index = bucket_x + (bucket_y * ps->buckets_x);
-			
-			if (project_bucket_face_isect(ps, min, max, bucket_x, bucket_y, bucket_index, mf)) {
+			if (project_bucket_face_isect(ps, bucket_x, bucket_y, mf)) {
+				int bucket_index= bucket_x + (bucket_y * ps->buckets_x);
 				BLI_linklist_prepend_arena(
 					&ps->bucketFaces[ bucket_index ],
 					SET_INT_IN_POINTER(face_index), /* cast to a pointer to shut up the compiler */
@@ -3194,7 +3190,7 @@ static void project_paint_begin(ProjPaintState *ps)
 					}
 				}
 				else {
-					if (SIDE_OF_LINE(v1coSS, v2coSS, v3coSS) < 0.0f) {
+					if (line_point_side_v2(v1coSS, v2coSS, v3coSS) < 0.0f) {
 						continue;
 					}
 					
@@ -3217,7 +3213,7 @@ static void project_paint_begin(ProjPaintState *ps)
 			if (image_index != -1) {
 				/* Initialize the faces screen pixels */
 				/* Add this to a list to initialize later */
-				project_paint_delayed_face_init(ps, mf, tf, face_index);
+				project_paint_delayed_face_init(ps, mf, face_index);
 			}
 		}
 	}
@@ -3500,7 +3496,7 @@ static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, rctf 
 			project_bucket_bounds(ps, ps->context_bucket_x, ps->context_bucket_y, bucket_bounds);
 			
 			if (	(ps->source != PROJ_SRC_VIEW) ||
-					project_bucket_isect_circle(ps->context_bucket_x, ps->context_bucket_y, mval, (float)(diameter*diameter), bucket_bounds)
+					project_bucket_isect_circle(mval, (float)(diameter*diameter), bucket_bounds)
 			) {
 				*bucket_index = ps->context_bucket_x + (ps->context_bucket_y * ps->buckets_x);
 				ps->context_bucket_x++;
@@ -3569,7 +3565,7 @@ static void blend_color_mix_accum(unsigned char *cp, const unsigned char *cp1, c
 	cp[3]= alpha > 255 ? 255 : alpha;
 }
 
-static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask)
+static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask)
 {
 	if (ps->is_airbrush==0 && mask < 1.0f) {
 		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), ps->blend);
@@ -3580,7 +3576,7 @@ static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, floa
 	}
 }
 
-static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask)
+static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask)
 {
 	if (ps->is_airbrush==0 && mask < 1.0f) {
 		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, ps->blend);
@@ -3597,7 +3593,7 @@ static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, fl
  * accumulation of color greater then 'projPixel->mask' however in the case of smear its not 
  * really that important to be correct as it is with clone and painting 
  */
-static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, MemArena *smearArena, LinkNode **smearPixels, float co[2])
+static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask, MemArena *smearArena, LinkNode **smearPixels, float co[2])
 {
 	unsigned char rgba_ub[4];
 	
@@ -3608,7 +3604,7 @@ static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, floa
 	BLI_linklist_prepend_arena(smearPixels, (void *)projPixel, smearArena);
 } 
 
-static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, MemArena *smearArena, LinkNode **smearPixels_f, float co[2])
+static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask, MemArena *smearArena, LinkNode **smearPixels_f, float co[2])
 {
 	unsigned char rgba_ub[4];
 	unsigned char rgba_smear[4];
@@ -3757,6 +3753,7 @@ static void *do_projectpaint_thread(void *ph_v)
 
 					if (falloff > 0.0f) {
 						if (ps->is_texbrush) {
+							/* note, for clone and smear, we only use the alpha, could be a special function */
 							brush_sample_tex(ps->brush, projPixel->projCoSS, rgba, thread_index);
 							alpha = rgba[3];
 						} else {
@@ -3808,20 +3805,20 @@ static void *do_projectpaint_thread(void *ph_v)
 							case PAINT_TOOL_CLONE:
 								if (is_floatbuf) {
 									if (((ProjPixelClone *)projPixel)->clonepx.f[3]) {
-										do_projectpaint_clone_f(ps, projPixel, rgba, alpha, mask);
+										do_projectpaint_clone_f(ps, projPixel, alpha, mask); /* rgba isnt used for cloning, only alpha */
 									}
 								}
 								else {
 									if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) {
-										do_projectpaint_clone(ps, projPixel, rgba, alpha, mask);
+										do_projectpaint_clone(ps, projPixel, alpha, mask); /* rgba isnt used for cloning, only alpha */
 									}
 								}
 								break;
 							case PAINT_TOOL_SMEAR:
 								sub_v2_v2v2(co, projPixel->projCoSS, pos_ofs);
 
-								if (is_floatbuf)	do_projectpaint_smear_f(ps, projPixel, rgba, alpha, mask, smearArena, &smearPixels_f, co);
-								else				do_projectpaint_smear(ps, projPixel, rgba, alpha, mask, smearArena, &smearPixels, co);
+								if (is_floatbuf)	do_projectpaint_smear_f(ps, projPixel, alpha, mask, smearArena, &smearPixels_f, co);
+								else				do_projectpaint_smear(ps, projPixel, alpha, mask, smearArena, &smearPixels, co);
 								break;
 							default:
 								if (is_floatbuf)	do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask);
@@ -3861,7 +3858,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	return NULL;
 }
 
-static int project_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *pos)
+static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), float *lastpos, float *pos)
 {
 	/* First unpack args from the struct */
 	ProjPaintState *ps = (ProjPaintState *)state;
@@ -3928,7 +3925,7 @@ static int project_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *po
 }
 
 
-static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, int *prevmval_i, int *mval_i, double time, float pressure)
+static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, int *UNUSED(prevmval_i), int *mval_i, double time, float pressure)
 {
 	
 	/* Use mouse coords as floats for projection painting */
@@ -4387,7 +4384,7 @@ static int imapaint_paint_stroke(ViewContext *vc, ImagePaintState *s, BrushPaint
 			ibuf= BKE_image_get_ibuf(newimage, s->sima? &s->sima->iuser: NULL);
 
 			if(ibuf && ibuf->rect)
-				imapaint_pick_uv(s->scene, s->ob, s->me, newfaceindex, mval, newuv);
+				imapaint_pick_uv(s->scene, s->ob, newfaceindex, mval, newuv);
 			else {
 				newimage = NULL;
 				newuv[0] = newuv[1] = 0.0f;
@@ -4398,8 +4395,8 @@ static int imapaint_paint_stroke(ViewContext *vc, ImagePaintState *s, BrushPaint
 
 		/* see if stroke is broken, and if so finish painting in old position */
 		if (s->image) {
-			imapaint_pick_uv(s->scene, s->ob, s->me, s->faceindex, mval, fwuv);
-			imapaint_pick_uv(s->scene, s->ob, s->me, newfaceindex, prevmval, bkuv);
+			imapaint_pick_uv(s->scene, s->ob, s->faceindex, mval, fwuv);
+			imapaint_pick_uv(s->scene, s->ob, newfaceindex, prevmval, bkuv);
 
 			if (newimage == s->image)
 				breakstroke= texpaint_break_stroke(s->uv, fwuv, bkuv, newuv);
@@ -4410,7 +4407,7 @@ static int imapaint_paint_stroke(ViewContext *vc, ImagePaintState *s, BrushPaint
 			fwuv[0]= fwuv[1]= 0.0f;
 
 		if (breakstroke) {
-			imapaint_pick_uv(s->scene, s->ob, s->me, s->faceindex, mval, fwuv);
+			imapaint_pick_uv(s->scene, s->ob, s->faceindex, mval, fwuv);
 			redraw |= imapaint_paint_sub_stroke(s, painter, s->image, texpaint,
 				fwuv, time, 1, pressure);
 			imapaint_clear_partial_redraw();
@@ -4923,7 +4920,7 @@ static int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 
 /************************ cursor drawing *******************************/
 
-static void brush_drawcursor(bContext *C, int x, int y, void *customdata)
+static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata))
 {
 	Brush *brush= image_paint_brush(C);
 	Paint *paint= paint_get_active(CTX_data_scene(C));

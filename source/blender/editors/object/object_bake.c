@@ -69,7 +69,7 @@
 /* ****************** render BAKING ********************** */
 
 /* threaded break test */
-static int thread_break(void *unused)
+static int thread_break(void *UNUSED(arg))
 {
 	return G.afbreek;
 }

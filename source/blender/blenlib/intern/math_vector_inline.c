@@ -454,5 +454,11 @@ MINLINE int compare_v4v4(float *v1, float *v2, float limit)
 	return 0;
 }
 
+MINLINE float line_point_side_v2(const float *l1, const float *l2, const float *pt)
+{
+	return	((l1[0]-pt[0]) * (l2[1]-pt[1])) -
+			((l2[0]-pt[0]) * (l1[1]-pt[1]));
+}
+
 #endif /* BLI_MATH_VECTOR_INLINE */
 

@@ -161,7 +161,7 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 	return 1;
 }
 
-static int ED_object_shape_key_mirror(bContext *C, Scene *scene, Object *ob)
+static int object_shape_key_mirror(bContext *C, Object *ob)
 {
 	KeyBlock *kb;
 	Key *key;
@@ -327,10 +327,9 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 
 static int shape_key_mirror_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
-	if(!ED_object_shape_key_mirror(C, scene, ob))
+	if(!object_shape_key_mirror(C, ob))
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;

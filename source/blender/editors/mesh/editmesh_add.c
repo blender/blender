@@ -113,7 +113,6 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	EditVert *eve;
 	float min[3], max[3];
 	int done= 0;
-	int rot_src= RNA_boolean_get(op->ptr, "rotate_source");
 	
 	em_setup_viewcontext(C, &vc);
 	
@@ -130,14 +129,13 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* call extrude? */
 	if(done) {
+		int rot_src= RNA_boolean_get(op->ptr, "rotate_source");
 		EditEdge *eed;
 		float vec[3], cent[3], mat[3][3];
 		float nor[3]= {0.0, 0.0, 0.0};
 		
 		/* 2D normal calc */
 		float mval_f[2]= {(float)event->mval[0], (float)event->mval[1]};
-
-#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
 		
 		done= 0;
 
@@ -155,7 +153,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 				 *
 				 * accumulate the screenspace normal in 2D,
 				 * with screenspace edge length weighting the result. */
-				if(SIDE_OF_LINE(co1, co2, mval_f) >= 0.0f) {
+				if(line_point_side_v2(co1, co2, mval_f) >= 0.0f) {
 					nor[0] +=  (co1[1] - co2[1]);
 					nor[1] += -(co1[0] - co2[0]);
 				}
@@ -166,8 +164,6 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 				done= 1;
 			}
 		}
-
-#undef SIDE_OF_LINE
 
 		if(done) {
 			float view_vec[3], cross[3];

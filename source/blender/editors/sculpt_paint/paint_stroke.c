@@ -253,7 +253,7 @@ static void make_snap(Snapshot* snap, Brush* brush, ViewContext* vc)
 	snap->winy = vc->ar->winy;
 }
 
-int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
+static int load_tex(Brush* br, ViewContext* vc)
 {
 	static GLuint overlay_texture = 0;
 	static int init = 0;
@@ -611,7 +611,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *unused)
 				GL_VIEWPORT_BIT|
 				GL_TEXTURE_BIT);
 
-			if (load_tex(sd, brush, &vc)) {
+			if (load_tex(brush, &vc)) {
 				glEnable(GL_BLEND);
 
 				glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);

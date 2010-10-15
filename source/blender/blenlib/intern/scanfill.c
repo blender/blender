@@ -747,7 +747,7 @@ static void scanfill(PolyFill *pf, int mat_nr)
 
 
 
-int BLI_edgefill(int mode, int mat_nr)
+int BLI_edgefill(int mat_nr)
 {
 	/*
 	  - fill works with its own lists, so create that first (no faces!)
