@@ -521,22 +521,37 @@ int wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op)
 
 /* ************ events *************** */
 
-static int query_qual(char qual) 
+typedef enum
+{
+	SHIFT = 's',
+	CONTROL = 'c',
+	ALT = 'a',
+	OS = 'C'
+} modifierKeyType;
+
+/* check if specified modifier key type is pressed */
+static int query_qual(modifierKeyType qual) 
 {
 	GHOST_TModifierKeyMask left, right;
 	int val= 0;
 	
-	if (qual=='s') {
-		left= GHOST_kModifierKeyLeftShift;
-		right= GHOST_kModifierKeyRightShift;
-	} else if (qual=='c') {
-		left= GHOST_kModifierKeyLeftControl;
-		right= GHOST_kModifierKeyRightControl;
-	} else if (qual=='C') {
-		left= right= GHOST_kModifierKeyOS;
-	} else {
-		left= GHOST_kModifierKeyLeftAlt;
-		right= GHOST_kModifierKeyRightAlt;
+	switch(qual) {
+		case SHIFT:
+			left= GHOST_kModifierKeyLeftShift;
+			right= GHOST_kModifierKeyRightShift;
+			break;
+		case CONTROL:
+			left= GHOST_kModifierKeyLeftControl;
+			right= GHOST_kModifierKeyRightControl;
+			break;
+		case OS:
+			left= right= GHOST_kModifierKeyOS;
+			break;
+		case ALT:
+		default:
+			left= GHOST_kModifierKeyLeftAlt;
+			right= GHOST_kModifierKeyRightAlt;
+			break;
 	}
 	
 	GHOST_GetModifierKeyState(g_system, left, &val);
@@ -605,19 +620,19 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				
 				/* bad ghost support for modifier keys... so on activate we set the modifiers again */
 				kdata.ascii= 0;
-				if (win->eventstate->shift && !query_qual('s')) {
+				if (win->eventstate->shift && !query_qual(SHIFT)) {
 					kdata.key= GHOST_kKeyLeftShift;
 					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
-				if (win->eventstate->ctrl && !query_qual('c')) {
+				if (win->eventstate->ctrl && !query_qual(CONTROL)) {
 					kdata.key= GHOST_kKeyLeftControl;
 					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
-				if (win->eventstate->alt && !query_qual('a')) {
+				if (win->eventstate->alt && !query_qual(ALT)) {
 					kdata.key= GHOST_kKeyLeftAlt;
 					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
-				if (win->eventstate->oskey && !query_qual('C')) {
+				if (win->eventstate->oskey && !query_qual(OS)) {
 					kdata.key= GHOST_kKeyOS;
 					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
