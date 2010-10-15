@@ -803,7 +803,7 @@ Currently the exporter lacks these features:
 
 def save(operator, context, filepath="",
          use_triangles=False,
-         use_edges=False,
+         use_edges=True,
          use_normals=False,
          use_hq_normals=False,
          use_uvs=True,
