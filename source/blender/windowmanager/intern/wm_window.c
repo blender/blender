@@ -353,7 +353,10 @@ void wm_window_add_ghostwindows(bContext* C, wmWindowManager *wm)
 	wmKeyMap *keymap;
 	wmWindow *win;
 	
-	/* no commandline prefsize? then we set this */
+	/* no commandline prefsize? then we set this.
+	 * Note that these values will be used only
+	 * when there is no startup.blend yet.
+	 */
 	if (!prefsizx) {
 		wm_get_screensize(&prefsizx, &prefsizy);
 		
