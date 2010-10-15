@@ -180,7 +180,7 @@ static void rna_NodeGroup_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	node_update(bmain, scene, ntree, node);
 }
 
-static void rna_Node_update_name(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 {
 	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
 	bNode *node= (bNode*)ptr->data;
@@ -188,14 +188,14 @@ static void rna_Node_update_name(Main *bmain, Scene *scene, PointerRNA *ptr)
 	
 	/* make a copy of the old name first */
 	BLI_strncpy(oldname, node->name, sizeof(node->name));
+	/* set new name */
+	BLI_strncpy(node->name, value, sizeof(node->name));
 	
 	nodeUniqueName(ntree, node);
 	node->flag |= NODE_CUSTOM_NAME;
 	
 	/* fix all the animation data which may link to this */
 	BKE_all_animdata_fix_paths_rename("nodes", oldname, node->name);
-	
-	node_update(bmain, scene, ntree, node);
 }
 
 /* this should be done at display time! if no custom names are set */
@@ -2263,7 +2263,8 @@ static void rna_def_node(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Node name");
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update_name");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Node_name_set");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "inputs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "inputs", NULL);
