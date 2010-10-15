@@ -68,6 +68,7 @@ GHOST_SystemHandle g_system= NULL;
 
 /* set by commandline */
 static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0, initialstate= GHOST_kWindowStateNormal;
+static int prefsizeused = 0;
 
 /* ******** win open & close ************ */
 
@@ -372,18 +373,19 @@ void wm_window_add_ghostwindows(bContext* C, wmWindowManager *wm)
 	
 	for(win= wm->windows.first; win; win= win->next) {
 		if(win->ghostwin==NULL) {
-			if(win->sizex==0) {
+			if(win->sizex==0 || prefsizeused==0) {
 				win->posx= prefstax;
 				win->posy= prefstay;
 				win->sizex= prefsizx;
 				win->sizey= prefsizy;
 				win->windowstate= initialstate;
+				prefsizeused= 1;
 			}
 			wm_window_add_ghostwindow(C, wm, "Blender", win);
 		}
 		/* happens after fileread */
 		if(win->eventstate==NULL)
-		   win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
+			win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
 
 		/* add keymap handlers (1 handler for all keys in map!) */
 		keymap= WM_keymap_find(wm->defaultconf, "Window", 0, 0);
