@@ -75,7 +75,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(!hmd->indexar && hmd->name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+	if(hmd->name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+	// if(hmd->indexar) dataMask |= CD_MASK_ORIGINDEX;
 
 	return dataMask;
 }
@@ -121,6 +122,21 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
+static float hook_falloff(float *co_1, float *co_2, const float falloff_squared, float fac)
+{
+	if(falloff_squared) {
+		float len_squared = len_squared_v3v3(co_1, co_2);
+		if(len_squared > falloff_squared) {
+			return 0.0f;
+		}
+		else if(len_squared > 0.0) {
+			return fac * (1.0 - (len_squared / falloff_squared));
+		}
+	}
+
+	return fac;
+}
+
 static void deformVerts(ModifierData *md, Object *ob,
 						DerivedMesh *derivedData,
 						float (*vertexCos)[3],
@@ -131,8 +147,13 @@ static void deformVerts(ModifierData *md, Object *ob,
 	HookModifierData *hmd = (HookModifierData*) md;
 	bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
 	float vec[3], mat[4][4], dmat[4][4];
-	int i;
+	int i, *index_pt;
 	DerivedMesh *dm = derivedData;
+	const float falloff_squared= hmd->falloff * hmd->falloff; /* for faster comparisons */
+	
+	int max_dvert= 0;
+	MDeformVert *dvert= NULL;
+	int defgrp_index = -1;
 	
 	/* get world-space matrix of target, corrected for the space the verts are in */
 	if (hmd->subtarget[0] && pchan) {
@@ -147,98 +168,91 @@ static void deformVerts(ModifierData *md, Object *ob,
 	mul_serie_m4(mat, ob->imat, dmat, hmd->parentinv,
 			 NULL, NULL, NULL, NULL, NULL);
 
-	/* vertex indices? */
-	if(hmd->indexar) {
-		for(i = 0; i < hmd->totindex; i++) {
-			int index = hmd->indexar[i];
+	if((defgrp_index= defgroup_name_index(ob, hmd->name)) != -1) {
+		Mesh *me = ob->data;
+		if(dm) {
+			dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);
+			if(dvert) {
+				max_dvert = numVerts;
+			}
+		}
+		else if(me->dvert) {
+			dvert= me->dvert;
+			if(dvert) {
+				max_dvert = me->totvert;
+			}
+		}
+	}
 
-			/* This should always be true and I don't generally like 
-			* "paranoid" style code like this, but old files can have
-			* indices that are out of range because old blender did
-			* not correct them on exit editmode. - zr
-			*/
-			if(index < numVerts) {
-				float *co = vertexCos[index];
-				float fac = hmd->force;
+	/* Regarding index range checking below.
+	 *
+	 * This should always be true and I don't generally like 
+	 * "paranoid" style code like this, but old files can have
+	 * indices that are out of range because old blender did
+	 * not correct them on exit editmode. - zr
+	 */
+	
+	if(hmd->force == 0.0f) {
+		/* do nothing, avoid annoying checks in the loop */
+	}
+	else if(hmd->indexar) { /* vertex indices? */
+		const float fac_orig= hmd->force;
+		float fac;
+		const int *origindex_ar;
 
-				/* if DerivedMesh is present and has original index data,
-				* use it
-				*/
-				if(dm && dm->getVertDataArray(dm, CD_ORIGINDEX)) {
+		/* if DerivedMesh is present and has original index data,
+		* use it
+		*/
+		if(dm && (origindex_ar= dm->getVertDataArray(dm, CD_ORIGINDEX))) {
+			for(i= 0, index_pt= hmd->indexar; i < hmd->totindex; i++, index_pt++) {
+				if(*index_pt < numVerts) {
 					int j;
-					int orig_index;
-					for(j = 0; j < numVerts; ++j) {
-						fac = hmd->force;
-						orig_index = *(int *)dm->getVertData(dm, j,
-								CD_ORIGINDEX);
-						if(orig_index == index) {
-							co = vertexCos[j];
-							if(hmd->falloff != 0.0) {
-								float len = len_v3v3(co, hmd->cent);
-								if(len > hmd->falloff) fac = 0.0;
-								else if(len > 0.0)
-									fac *= sqrt(1.0 - len / hmd->falloff);
-							}
 
-							if(fac != 0.0) {
-								mul_v3_m4v3(vec, mat, co);
-								interp_v3_v3v3(co, co, vec, fac);
+					for(j = 0; j < numVerts; j++) {
+						if(origindex_ar[j] == *index_pt) {
+							float *co = vertexCos[j];
+							if((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
+								if(dvert)
+									fac *= defvert_find_weight(dvert+j, defgrp_index);
+
+								if(fac) {
+									mul_v3_m4v3(vec, mat, co);
+									interp_v3_v3v3(co, co, vec, fac);
+								}
 							}
 						}
-					}
-				} else {
-					if(hmd->falloff != 0.0) {
-						float len = len_v3v3(co, hmd->cent);
-						if(len > hmd->falloff) fac = 0.0;
-						else if(len > 0.0)
-							fac *= sqrt(1.0 - len / hmd->falloff);
-					}
-
-					if(fac != 0.0) {
-						mul_v3_m4v3(vec, mat, co);
-						interp_v3_v3v3(co, co, vec, fac);
 					}
 				}
 			}
 		}
-	} 
-	else if(hmd->name[0]) {	/* vertex group hook */
-		Mesh *me = ob->data;
-		int use_dverts = 0;
-		int maxVerts = 0;
-		int defgrp_index = defgroup_name_index(ob, hmd->name);
+		else { /* missing dm or ORIGINDEX */
+			for(i= 0, index_pt= hmd->indexar; i < hmd->totindex; i++, index_pt++) {
+				if(*index_pt < numVerts) {
+					float *co = vertexCos[*index_pt];
+					if((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
+						if(dvert)
+							fac *= defvert_find_weight(dvert+(*index_pt), defgrp_index);
 
-		if(dm) {
-			if(dm->getVertData(dm, 0, CD_MDEFORMVERT)) {
-				maxVerts = dm->getNumVerts(dm);
-				use_dverts = 1;
+						if(fac) {
+							mul_v3_m4v3(vec, mat, co);
+							interp_v3_v3v3(co, co, vec, fac);
+						}
+					}
+				}
 			}
 		}
-		else if(me->dvert) {
-			maxVerts = me->totvert;
-			use_dverts = 1;
-		}
+	}
+	else if(dvert) {	/* vertex group hook */
+		int i;
+		const float fac_orig= hmd->force;
 
-		if(defgrp_index >= 0 && use_dverts) {
-			MDeformVert *dvert = me->dvert;
-			int i;
+		for(i = 0; i < max_dvert; i++, dvert++) {
 			float fac;
+			float *co = vertexCos[i];
 
-			for(i = 0; i < maxVerts; i++, dvert++) {
-				if(dm) dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
-
-				fac= defvert_find_weight(dvert, defgrp_index);
-
-				if(fac > 0.0f) {
-					float *co = vertexCos[i];
-
-					if(hmd->falloff != 0.0) {
-						float len = len_v3v3(co, hmd->cent);
-						if(len > hmd->falloff) fac = 0.0;
-						else if(len > 0.0)
-							fac *= sqrt(1.0 - len / hmd->falloff);
-					}
-
+			if((fac= hook_falloff(hmd->cent, co, falloff_squared, fac_orig))) {
+				fac *= defvert_find_weight(dvert, defgrp_index);
+				if(fac) {
 					mul_v3_m4v3(vec, mat, co);
 					interp_v3_v3v3(co, co, vec, fac);
 				}
