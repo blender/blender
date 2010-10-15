@@ -274,7 +274,7 @@ static void view3d_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void view3d_init(struct wmWindowManager *wm, ScrArea *sa)
+static void view3d_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 
 }
@@ -387,7 +387,7 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 }
 
-static int view3d_ob_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int view3d_ob_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_ID) {
 		ID *id= (ID *)drag->poin;
@@ -397,7 +397,7 @@ static int view3d_ob_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	return 0;
 }
 
-static int view3d_mat_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int view3d_mat_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_ID) {
 		ID *id= (ID *)drag->poin;
@@ -407,7 +407,7 @@ static int view3d_mat_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	return 0;
 }
 
-static int view3d_ima_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int view3d_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_ID) {
 		ID *id= (ID *)drag->poin;
@@ -726,7 +726,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 }
 
 /* concept is to retrieve cursor type context-less */
-static void view3d_main_area_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
+static void view3d_main_area_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *UNUSED(ar))
 {
 	Scene *scene= win->screen->scene;
 

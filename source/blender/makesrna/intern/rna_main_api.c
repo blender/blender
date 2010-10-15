@@ -261,7 +261,7 @@ Image *rna_Main_images_load(Main *bmain, ReportList *reports, char *filepath)
 	Image *ima;
 
 	errno= 0;
-	ima= BKE_add_image_file(filepath, 0);
+	ima= BKE_add_image_file(filepath);
 
 	if(!ima)
 		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s.", filepath, errno ? strerror(errno) : "Unsupported image format");

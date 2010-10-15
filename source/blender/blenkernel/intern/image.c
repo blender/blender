@@ -330,7 +330,7 @@ void BKE_image_merge(Image *dest, Image *source)
 /* otherwise creates new. */
 /* does not load ibuf itself */
 /* pass on optional frame for #name images */
-Image *BKE_add_image_file(const char *name, int frame)
+Image *BKE_add_image_file(const char *name)
 {
 	Image *ima;
 	int file, len;
@@ -397,7 +397,7 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, char *name,
 		rect= (unsigned char*)ibuf->rect;
 	}
 	
-	strcpy(ibuf->name, "//Untitled");
+	BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
 	ibuf->userflags |= IB_BITMAPDIRTY;
 	
 	switch(uvtestgrid) {
@@ -1202,7 +1202,8 @@ void BKE_stamp_info(Scene *scene, struct ImBuf *ibuf)
 int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimtype, int quality)
 {
 	int ok;
-	
+	(void)subimtype; /* quies unused warnings */
+
 	if(imtype==0) {
 		/* pass */
 	}

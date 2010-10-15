@@ -380,7 +380,7 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 
 /* ****************** change view operators ****************** */
 
-static void setcameratoview3d(View3D *v3d, RegionView3D *rv3d, Object *ob)
+static void setcameratoview3d(RegionView3D *rv3d, Object *ob)
 {
 	float dvec[3];
 	float mat3[3][3];
@@ -408,7 +408,7 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 	rv3d->lview= rv3d->view;
 	rv3d->lpersp= rv3d->persp;
 
-	setcameratoview3d(v3d, rv3d, v3d->camera);
+	setcameratoview3d(rv3d, v3d->camera);
 	rv3d->persp = RV3D_CAMOB;
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, v3d->camera);
@@ -1986,7 +1986,7 @@ typedef struct FlyInfo {
 
 } FlyInfo;
 
-static void drawFlyPixel(const struct bContext *C, struct ARegion *ar, void *arg)
+static void drawFlyPixel(const struct bContext *UNUSED(C), struct ARegion *UNUSED(ar), void *arg)
 {
 	FlyInfo *fly = arg;
 

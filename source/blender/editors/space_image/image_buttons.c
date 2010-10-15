@@ -494,7 +494,7 @@ static char *slot_menu()
 }
 
 /* TODO, curlay should be removed? */
-static char *layer_menu(RenderResult *rr, short *curlay)
+static char *layer_menu(RenderResult *rr, short *UNUSED(curlay))
 {
 	RenderLayer *rl;
 	int len= 64 + 32*BLI_countlist(&rr->layers);

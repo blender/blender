@@ -701,7 +701,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	errno= 0;
 
-	ima= BKE_add_image_file(str, scene ? scene->r.cfra : 1);
+	ima= BKE_add_image_file(str);
 
 	if(!ima) {
 		if(op->customdata) MEM_freeN(op->customdata);

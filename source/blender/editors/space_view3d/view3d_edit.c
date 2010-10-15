@@ -1548,7 +1548,7 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 	ot->flag= 0;
 }
 
-static int view3d_center_camera_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.4x */
+static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was view3d_home() in 2.4x */
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
@@ -1691,7 +1691,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		rv3d->depths->damaged = 1;
 	}
 
-	view3d_update_depths(ar, v3d);
+	view3d_update_depths(ar);
 
 	/* Constrain rect to depth bounds */
 	if (rect.xmin < 0) rect.xmin = 0;
@@ -2220,7 +2220,7 @@ static int add_background_image_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 		char path[FILE_MAX];
 		
 		RNA_string_get(op->ptr, "filepath", path);
-		ima= BKE_add_image_file(path, scene ? scene->r.cfra : 1);
+		ima= BKE_add_image_file(path);
 	}
 	else if(RNA_property_is_set(op->ptr, "name")) {
 		RNA_string_get(op->ptr, "name", name);
@@ -2644,7 +2644,7 @@ int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, short *mval, float mou
 		rv3d->depths->damaged = 1;
 	}
 
-	view3d_update_depths(ar, v3d);
+	view3d_update_depths(ar);
 
 	depth_close= view_autodist_depth_margin(ar, mval, 4);
 
@@ -2688,7 +2688,7 @@ int view_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode) //, flo
 		rv3d->depths->damaged = 1;
 	}
 
-	view3d_update_depths(ar, v3d);
+	view3d_update_depths(ar);
 	return 1;
 }
 
@@ -2785,7 +2785,7 @@ void filterNDOFvalues(float *sbval)
 int dz_flag = 0;
 float m_dist;
 
-void viewmoveNDOFfly(ARegion *ar, View3D *v3d, int mode)
+void viewmoveNDOFfly(ARegion *ar, View3D *v3d, int UNUSED(mode))
 {
 	RegionView3D *rv3d= ar->regiondata;
 	int i;
@@ -2914,7 +2914,7 @@ void viewmoveNDOFfly(ARegion *ar, View3D *v3d, int mode)
 // XXX	BIF_view3d_previewrender_signal(ar, PR_DBASE|PR_DISPRECT);
 }
 
-void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
+void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int UNUSED(mode))
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fval[7];

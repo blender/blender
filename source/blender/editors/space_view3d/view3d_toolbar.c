@@ -65,7 +65,7 @@
 
 
 /* op->invoke */
-static void redo_cb(bContext *C, void *arg_op, void *arg2)
+static void redo_cb(bContext *C, void *arg_op, void *UNUSED(arg2))
 {
 	wmOperator *lastop= arg_op;
 	
@@ -177,7 +177,7 @@ static void operator_call_cb(struct bContext *C, void *arg_listbase, void *arg2)
 		
 }
 
-static void operator_search_cb(const struct bContext *C, void *arg, char *str, uiSearchItems *items)
+static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), char *str, uiSearchItems *items)
 {
 	wmOperatorType *ot = WM_operatortype_first();
 	

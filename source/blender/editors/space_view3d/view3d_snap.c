@@ -82,7 +82,7 @@ static TransVert *transvmain=NULL;
 static int tottrans= 0;
 
 /* copied from editobject.c, now uses (almost) proper depgraph */
-static void special_transvert_update(Scene *scene, Object *obedit)
+static void special_transvert_update(Object *obedit)
 {
 	
 	if(obedit) {
@@ -481,7 +481,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 			VECCOPY(tv->loc, vec);
 		}
 		
-		special_transvert_update(scene, obedit);
+		special_transvert_update(obedit);
 		
 		MEM_freeN(transvmain);
 		transvmain= NULL;
@@ -602,15 +602,12 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 		
 		tv= transvmain;
 		for(a=0; a<tottrans; a++, tv++) {
-			vec[0]= curs[0]-obedit->obmat[3][0];
-			vec[1]= curs[1]-obedit->obmat[3][1];
-			vec[2]= curs[2]-obedit->obmat[3][2];
-			
+			sub_v3_v3v3(vec, curs, obedit->obmat[3]);
 			mul_m3_v3(imat, vec);
-			VECCOPY(tv->loc, vec);
+			copy_v3_v3(tv->loc, vec);
 		}
 		
-		special_transvert_update(scene, obedit);
+		special_transvert_update(obedit);
 		
 		MEM_freeN(transvmain);
 		transvmain= NULL;

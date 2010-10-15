@@ -1589,7 +1589,7 @@ static void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *bas
 }
 
 
-void view3d_update_depths(ARegion *ar, View3D *v3d)
+void view3d_update_depths(ARegion *ar)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	
@@ -2354,7 +2354,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 //	retopo= retopo_mesh_check() || retopo_curve_check();
 	sculptparticle= (obact && obact->mode & (OB_MODE_PARTICLE_EDIT)) && !scene->obedit;
 	if(retopo)
-		view3d_update_depths(ar, v3d);
+		view3d_update_depths(ar);
 	
 	/* draw selected and editmode */
 	for(base= scene->base.first; base; base= base->next) {
@@ -2365,7 +2365,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	
 	if(!retopo && sculptparticle && !(obact && (obact->dtx & OB_DRAWXRAY))) {
-		view3d_update_depths(ar, v3d);
+		view3d_update_depths(ar);
 	}
 	
 //	REEB_draw();
@@ -2378,7 +2378,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	
 	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
-		view3d_update_depths(ar, v3d);
+		view3d_update_depths(ar);
 	}
 	
 	if(rv3d->rflag & RV3D_CLIPPING)

@@ -2041,7 +2041,7 @@ static void load_backbuffer(Render *re)
 				BKE_image_signal(re->backbuf, NULL, IMA_SIGNAL_RELOAD);
 		}
 		
-		re->backbuf= BKE_add_image_file(name, re->r.cfra);
+		re->backbuf= BKE_add_image_file(name);
 		ibuf= BKE_image_get_ibuf(re->backbuf, NULL);
 		if(ibuf==NULL) {
 			// error() doesnt work with render window open

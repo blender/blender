@@ -130,7 +130,7 @@ void add_view3d_after(ListBase *lb, Base *base, int flag);
 
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);
-void view3d_update_depths(struct ARegion *ar, View3D *v3d);
+void view3d_update_depths(struct ARegion *ar);
 
 /* view3d_select.c */
 void VIEW3D_OT_select(struct wmOperatorType *ot);

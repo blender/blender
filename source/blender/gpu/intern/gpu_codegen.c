@@ -686,7 +686,7 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 	BLI_dynstr_append(ds, ";\n");
 }
 
-static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, const char *name)
+static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, const char *UNUSED(name))
 {
 	DynStr *ds = BLI_dynstr_new();
 	char *code;
@@ -916,7 +916,7 @@ GPUNode *GPU_node_begin(char *name)
 	return node;
 }
 
-void GPU_node_end(GPUNode *node)
+void GPU_node_end(GPUNode *UNUSED(node))
 {
 	/* empty */
 }
@@ -1036,7 +1036,7 @@ static void gpu_node_input_socket(GPUNode *node, GPUNodeStack *sock)
 	}
 }
 
-void GPU_node_output(GPUNode *node, int type, char *name, GPUNodeLink **link)
+void GPU_node_output(GPUNode *node, int type, char *UNUSED(name), GPUNodeLink **link)
 {
 	GPUOutput *output = MEM_callocN(sizeof(GPUOutput), "GPUOutput");
 

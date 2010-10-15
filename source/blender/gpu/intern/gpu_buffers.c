@@ -592,8 +592,8 @@ void GPU_update_grid_buffers(void *buffers_v, DMGridData **grids,
 	//printf("node updated %p\n", buffers_v);
 }
 
-void *GPU_build_grid_buffers(DMGridData **grids,
-	int *grid_indices, int totgrid, int gridsize)
+void *GPU_build_grid_buffers(DMGridData **UNUSED(grids), int *UNUSED(grid_indices),
+				int totgrid, int gridsize)
 {
 	GPU_Buffers *buffers;
 	int i, j, k, totquad, offset= 0;
@@ -852,7 +852,7 @@ GPUBuffer *GPU_buffer_setup( DerivedMesh *dm, GPUDrawObject *object, int size, G
 	return buffer;
 }
 
-void GPU_buffer_copy_vertex( DerivedMesh *dm, float *varray, int *index, int *redir, void *user )
+void GPU_buffer_copy_vertex(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
 {
 	int start;
 	int i, j, numfaces;
@@ -901,7 +901,7 @@ GPUBuffer *GPU_buffer_vertex( DerivedMesh *dm )
 	return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*3*(dm->drawObject->nelements+dm->drawObject->nlooseverts), GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_vertex);
 }
 
-void GPU_buffer_copy_normal( DerivedMesh *dm, float *varray, int *index, int *redir, void *user )
+void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
 {
 	int i, numfaces;
 	int start;
@@ -965,7 +965,7 @@ GPUBuffer *GPU_buffer_normal( DerivedMesh *dm )
 	return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_normal);
 }
 
-void GPU_buffer_copy_uv( DerivedMesh *dm, float *varray, int *index, int *redir, void *user )
+void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *redir, void *UNUSED(user))
 {
 	int start;
 	int i, numfaces;
@@ -1107,7 +1107,7 @@ GPUBuffer *GPU_buffer_color( DerivedMesh *dm )
 	return result;
 }
 
-void GPU_buffer_copy_edge( DerivedMesh *dm, float *varray, int *index, int *redir, void *user )
+void GPU_buffer_copy_edge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(redir), void *UNUSED(user))
 {
 	int i;
 
@@ -1135,7 +1135,7 @@ GPUBuffer *GPU_buffer_edge( DerivedMesh *dm )
 	return GPU_buffer_setup( dm, dm->drawObject, sizeof(int)*2*dm->drawObject->nedges, GL_ELEMENT_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_edge);
 }
 
-void GPU_buffer_copy_uvedge( DerivedMesh *dm, float *varray, int *index, int *redir, void *user )
+void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(index), int *UNUSED(redir), void *UNUSED(user))
 {
 	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
 	int i, j=0;

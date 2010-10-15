@@ -484,7 +484,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, double time, 
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &lastbindcode);
 
 	GPU_update_image_time(ima, time);
-	bindcode = GPU_verify_image(ima, iuser, 0, 0, 0, mipmap);
+	bindcode = GPU_verify_image(ima, iuser, 0, 0, mipmap);
 
 	if(ima->gputexture) {
 		ima->gputexture->bindcode = bindcode;
@@ -744,7 +744,7 @@ void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex)
 	tex->fb = NULL;
 }
 
-void GPU_framebuffer_texture_bind(GPUFrameBuffer *fb, GPUTexture *tex)
+void GPU_framebuffer_texture_bind(GPUFrameBuffer *UNUSED(fb), GPUTexture *tex)
 {
 	/* push attributes */
 	glPushAttrib(GL_ENABLE_BIT);
@@ -766,7 +766,7 @@ void GPU_framebuffer_texture_bind(GPUFrameBuffer *fb, GPUTexture *tex)
 	glLoadIdentity();
 }
 
-void GPU_framebuffer_texture_unbind(GPUFrameBuffer *fb, GPUTexture *tex)
+void GPU_framebuffer_texture_unbind(GPUFrameBuffer *UNUSED(fb), GPUTexture *UNUSED(tex))
 {
 	/* restore matrix */
 	glMatrixMode(GL_PROJECTION);
@@ -1063,7 +1063,7 @@ int GPU_shader_get_uniform(GPUShader *shader, char *name)
 	return glGetUniformLocationARB(shader->object, name);
 }
 
-void GPU_shader_uniform_vector(GPUShader *shader, int location, int length, int arraysize, float *value)
+void GPU_shader_uniform_vector(GPUShader *UNUSED(shader), int location, int length, int arraysize, float *value)
 {
 	if(location == -1)
 		return;
@@ -1080,7 +1080,7 @@ void GPU_shader_uniform_vector(GPUShader *shader, int location, int length, int 
 	GPU_print_error("Post Uniform Vector");
 }
 
-void GPU_shader_uniform_texture(GPUShader *shader, int location, GPUTexture *tex)
+void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUTexture *tex)
 {
 	GLenum arbnumber;
 

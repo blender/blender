@@ -334,8 +334,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		char path[FILE_MAX];
 		
 		RNA_string_get(op->ptr, "filepath", path);
-		ima= BKE_add_image_file(path, 
-								scene ? scene->r.cfra : 1);
+		ima= BKE_add_image_file(path);
 	}
 	else {
 		RNA_string_get(op->ptr, "name", name);

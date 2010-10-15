@@ -2264,7 +2264,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
 		errno= 0;
 
-		ima= BKE_add_image_file(path, scene ? scene->r.cfra : 1);
+		ima= BKE_add_image_file(path);
 
 		if(!ima) {
 			BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s.", path, errno ? strerror(errno) : "Unsupported image format");

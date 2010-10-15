@@ -500,7 +500,7 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 	}
 }
 
-static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float maxy, TexResult *texres, int imaprepeat, int imapextend, int intpol)
+static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float maxy, TexResult *texres, int imaprepeat, int imapextend)
 {
 	/* Sample box, performs clip. minx etc are in range 0.0 - 1.0 .
    * Enlarge with antialiased edges of pixels.
@@ -1606,11 +1606,11 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 			//minx*= 1.35f;
 			//miny*= 1.35f;
 			
-			boxsample(curibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend, 0);
+			boxsample(curibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend);
 			val1= texres->tr+texres->tg+texres->tb;
-			boxsample(curibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend, 0);
+			boxsample(curibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend);
 			val2= texr.tr + texr.tg + texr.tb;
-			boxsample(curibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend, 0);
+			boxsample(curibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend);
 			val3= texr.tr + texr.tg + texr.tb;
 
 			/* don't switch x or y! */
@@ -1619,7 +1619,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 			
 			if(previbuf!=curibuf) {  /* interpolate */
 				
-				boxsample(previbuf, fx-minx, fy-miny, fx+minx, fy+miny, &texr, imaprepeat, imapextend, 0);
+				boxsample(previbuf, fx-minx, fy-miny, fx+minx, fy+miny, &texr, imaprepeat, imapextend);
 				
 				/* calc rgb */
 				dx= 2.0f*(pixsize-maxd)/pixsize;
@@ -1636,9 +1636,9 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 				}
 				
 				val1= dy*val1+ dx*(texr.tr + texr.tg + texr.tb);
-				boxsample(previbuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend, 0);
+				boxsample(previbuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend);
 				val2= dy*val2+ dx*(texr.tr + texr.tg + texr.tb);
-				boxsample(previbuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend, 0);
+				boxsample(previbuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend);
 				val3= dy*val3+ dx*(texr.tr + texr.tg + texr.tb);
 				
 				texres->nor[0]= (val1-val2);	/* vals have been interpolated above! */
@@ -1661,10 +1661,10 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 			maxy= fy+miny;
 			miny= fy-miny;
 
-			boxsample(curibuf, minx, miny, maxx, maxy, texres, imaprepeat, imapextend, 0);
+			boxsample(curibuf, minx, miny, maxx, maxy, texres, imaprepeat, imapextend);
 
 			if(previbuf!=curibuf) {  /* interpolate */
-				boxsample(previbuf, minx, miny, maxx, maxy, &texr, imaprepeat, imapextend, 0);
+				boxsample(previbuf, minx, miny, maxx, maxy, &texr, imaprepeat, imapextend);
 				
 				fx= 2.0f*(pixsize-maxd)/pixsize;
 				
@@ -1690,11 +1690,11 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 		}
 
 		if(texres->nor && (tex->imaflag & TEX_NORMALMAP)==0) {
-			boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend, 0);
+			boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend);
 			val1= texres->tr+texres->tg+texres->tb;
-			boxsample(ibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend, 0);
+			boxsample(ibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend);
 			val2= texr.tr + texr.tg + texr.tb;
-			boxsample(ibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend, 0);
+			boxsample(ibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend);
 			val3= texr.tr + texr.tg + texr.tb;
 
 			/* don't switch x or y! */
@@ -1702,7 +1702,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 			texres->nor[1]= (val1-val3);
 		}
 		else
-			boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend, 0);
+			boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend);
 	}
 	
 	if(tex->imaflag & TEX_CALCALPHA) {
@@ -1749,7 +1749,7 @@ void image_sample(Image *ima, float fx, float fy, float dx, float dy, float *res
 	if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) )
 		ibuf->rect+= (ibuf->x*ibuf->y);
 	
-	boxsample(ibuf, fx, fy, fx+dx, fy+dy, &texres, 0, 1, 0);
+	boxsample(ibuf, fx, fy, fx+dx, fy+dy, &texres, 0, 1);
 	result[0]= texres.tr;
 	result[1]= texres.tg;
 	result[2]= texres.tb;
