@@ -1646,7 +1646,7 @@ void object_scale_to_mat3(Object *ob, float mat[][3])
 	size_to_mat3( mat,vec);
 }
 
-// TODO: this should take rotation orders into account later...
+
 void object_rot_to_mat3(Object *ob, float mat[][3])
 {
 	float rmat[3][3], dmat[3][3];
@@ -1675,7 +1675,6 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 	}
 	
 	/* combine these rotations */
-	// XXX is this correct? if errors, change the order of multiplication...
 	mul_m3_m3m3(mat, dmat, rmat);
 }
 

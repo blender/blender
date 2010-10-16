@@ -68,6 +68,31 @@ class OBJECT_PT_transform(ObjectButtonsPanel, bpy.types.Panel):
         row.column().prop(ob, "scale")
 
         layout.prop(ob, "rotation_mode")
+		
+class OBJECT_PT_delta_transform(ObjectButtonsPanel, bpy.types.Panel):
+    bl_label = "Delta Transform"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+
+        row = layout.row()
+
+        row.column().prop(ob, "delta_location")
+        if ob.rotation_mode == 'QUATERNION':
+            row.column().prop(ob, "delta_rotation_quaternion", text="Rotation")
+        elif ob.rotation_mode == 'AXIS_ANGLE':
+            #row.column().label(text="Rotation")
+            #row.column().prop(pchan, "delta_rotation_angle", text="Angle")
+            #row.column().prop(pchan, "delta_rotation_axis", text="Axis")
+            #row.column().prop(ob, "delta_rotation_axis_angle", text="Rotation")
+            row.column().label(ob, text="Not for Axis-Angle")
+        else:
+            row.column().prop(ob, "delta_rotation_euler", text="Rotation")
+
+        row.column().prop(ob, "delta_scale")
 
 
 class OBJECT_PT_transform_locks(ObjectButtonsPanel, bpy.types.Panel):
