@@ -205,7 +205,7 @@ void WM_keymap_init(bContext *C)
 		/* create default key config */
 		wm_window_keymap(wm->defaultconf);
 		ED_spacetypes_keymap(wm->defaultconf);
-		WM_keyconfig_userdef(wm);
+		WM_keyconfig_userdef();
 
 		wm->initialized |= WM_INIT_KEYMAP;
 	}

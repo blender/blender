@@ -1421,7 +1421,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	}
 	
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	uiDefAutoButsRNA(C, pa->layout, &ptr, 2);
+	uiDefAutoButsRNA(pa->layout, &ptr, 2);
 }
 #endif // XXX not used
 

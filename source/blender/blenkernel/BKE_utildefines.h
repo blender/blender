@@ -44,8 +44,10 @@
 #define STRINGIFY_ARG(x) #x
 #define STRINGIFY(x) STRINGIFY_ARG(x)
 
+
+
 #ifdef __GNUC__
-#  define UNUSED(x) x __attribute__((__unused__))
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #else
 #  define UNUSED(x) x
 #endif

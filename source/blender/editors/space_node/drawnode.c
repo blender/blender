@@ -72,7 +72,7 @@
 
 /* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
 
-void node_buts_group(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+void node_buts_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiTemplateIDBrowse(layout, C, ptr, "node_tree", NULL, NULL, "");
 }
@@ -297,7 +297,7 @@ static void node_browse_text_cb(bContext *C, void *ntree_v, void *node_v)
 	node->menunr= 0;
 }
 
-static void node_shader_buts_material(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node= ptr->data;
 	uiLayout *col;
@@ -343,7 +343,7 @@ static void node_shader_buts_vect_math(uiLayout *layout, bContext *UNUSED(C), Po
 	uiItemR(layout, ptr, "operation", 0, "", 0);
 }
 
-static void node_shader_buts_geometry(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_geometry(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	PointerRNA obptr= CTX_data_pointer_get(C, "active_object");
 	uiLayout *col;
@@ -362,7 +362,7 @@ static void node_shader_buts_geometry(uiLayout *layout, bContext *UNUSED(C), Poi
 	}
 }
 
-static void node_shader_buts_dynamic(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_dynamic(uiLayout *layout, bContext *C, PointerRNA *ptr)
 { 
 	Main *bmain= CTX_data_main(C);
 	uiBlock *block= uiLayoutAbsoluteBlock(layout);
@@ -457,7 +457,7 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 
 /* ****************** BUTTON CALLBACKS FOR COMPOSITE NODES ***************** */
 
-static void node_composit_buts_image(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiLayout *col;
 	bNode *node= ptr->data;
@@ -491,7 +491,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *UNUSED(C), Poin
 		uiItemR(col, ptr, "layer", 0, NULL, 0);
 }
 
-static void node_composit_buts_renderlayers(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node= ptr->data;
 	uiLayout *col, *row;
@@ -1210,7 +1210,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
 	}
 }
 
-static void node_texture_buts_image(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_texture_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 }

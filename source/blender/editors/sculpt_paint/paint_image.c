@@ -4986,10 +4986,10 @@ static int paint_radial_control_exec(bContext *C, wmOperator *op)
 	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->imapaint.paint);
 	float zoom;
 	int ret;
-	char str[256];
+	char str[64];
 	get_imapaint_zoom(C, &zoom, &zoom);
 	ret = brush_radial_control_exec(op, brush, 1.0f / zoom);
-	WM_radial_control_string(op, str, 256);
+	WM_radial_control_string(op, str, sizeof(str));
 	
 	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
 
@@ -5333,8 +5333,8 @@ static int texture_paint_radial_control_exec(bContext *C, wmOperator *op)
 {
 	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->imapaint.paint);
 	int ret = brush_radial_control_exec(op, brush, 1);
-	char str[256];
-	WM_radial_control_string(op, str, 256);
+	char str[64];
+	WM_radial_control_string(op, str, sizeof(str));
 
 	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, brush);
 

@@ -306,7 +306,7 @@ typedef struct uiTooltipData {
 	int toth, spaceh, lineh;
 } uiTooltipData;
 
-static void ui_tooltip_region_draw(const bContext *C, ARegion *ar)
+static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 {
 	uiTooltipData *data= ar->regiondata;
 	rcti bbox= data->bbox;
@@ -328,7 +328,7 @@ static void ui_tooltip_region_draw(const bContext *C, ARegion *ar)
 	}
 }
 
-static void ui_tooltip_region_free(ARegion *ar)
+static void ui_tooltip_region_free_cb(ARegion *ar)
 {
 	uiTooltipData *data;
 
@@ -455,8 +455,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	ar= ui_add_temporary_region(CTX_wm_screen(C));
 
 	memset(&type, 0, sizeof(ARegionType));
-	type.draw= ui_tooltip_region_draw;
-	type.free= ui_tooltip_region_free;
+	type.draw= ui_tooltip_region_draw_cb;
+	type.free= ui_tooltip_region_free_cb;
 	ar->type= &type;
 	
 	/* set font, get bb */
@@ -832,7 +832,7 @@ void ui_searchbox_autocomplete(bContext *C, ARegion *ar, uiBut *but, char *str)
 	}
 }
 
-static void ui_searchbox_region_draw(const bContext *C, ARegion *ar)
+static void ui_searchbox_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 {
 	uiSearchboxData *data= ar->regiondata;
 	
@@ -840,7 +840,7 @@ static void ui_searchbox_region_draw(const bContext *C, ARegion *ar)
 	wmOrtho2(-0.01f, ar->winx-0.01f, -0.01f, ar->winy-0.01f);
 
 	if(!data->noback)
-		ui_draw_search_back(U.uistyles.first, NULL, &data->bbox);
+		ui_draw_search_back(NULL, NULL, &data->bbox); /* style not used yet */
 	
 	/* draw text */
 	if(data->items.totitem) {
@@ -899,7 +899,7 @@ static void ui_searchbox_region_draw(const bContext *C, ARegion *ar)
 	}
 }
 
-static void ui_searchbox_region_free(ARegion *ar)
+static void ui_searchbox_region_free_cb(ARegion *ar)
 {
 	uiSearchboxData *data= ar->regiondata;
 	int a;
@@ -931,8 +931,8 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	ar= ui_add_temporary_region(CTX_wm_screen(C));
 	
 	memset(&type, 0, sizeof(ARegionType));
-	type.draw= ui_searchbox_region_draw;
-	type.free= ui_searchbox_region_free;
+	type.draw= ui_searchbox_region_draw_cb;
+	type.free= ui_searchbox_region_free_cb;
 	ar->type= &type;
 	
 	/* create searchbox data */
@@ -1418,7 +1418,7 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 
 /***************************** Menu Button ***************************/
 
-static void ui_block_func_MENUSTR(bContext *C, uiLayout *layout, void *arg_str)
+static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *arg_str)
 {
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiPopupBlockHandle *handle= block->handle;
@@ -1500,7 +1500,7 @@ static void ui_block_func_MENUSTR(bContext *C, uiLayout *layout, void *arg_str)
 	menudata_free(md);
 }
 
-void ui_block_func_ICONROW(bContext *C, uiLayout *layout, void *arg_but)
+void ui_block_func_ICONROW(bContext *UNUSED(C), uiLayout *layout, void *arg_but)
 {
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiPopupBlockHandle *handle= block->handle;
@@ -1514,7 +1514,7 @@ void ui_block_func_ICONROW(bContext *C, uiLayout *layout, void *arg_but)
 			&handle->retvalue, (float)a, 0.0, 0, 0, "");
 }
 
-void ui_block_func_ICONTEXTROW(bContext *C, uiLayout *layout, void *arg_but)
+void ui_block_func_ICONTEXTROW(bContext *UNUSED(C), uiLayout *layout, void *arg_but)
 {
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiPopupBlockHandle *handle= block->handle;
@@ -1642,7 +1642,7 @@ void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
 	}
 }
 
-static void do_picker_rna_cb(bContext *C, void *bt1, void *unused)
+static void do_picker_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 {
 	uiBut *but= (uiBut *)bt1;
 	uiPopupBlockHandle *popup= but->block->handle;
@@ -1659,7 +1659,7 @@ static void do_picker_rna_cb(bContext *C, void *bt1, void *unused)
 		popup->menuretval= UI_RETURN_UPDATE;
 }
 
-static void do_hsv_rna_cb(bContext *C, void *bt1, void *arg_dummy)
+static void do_hsv_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 {
 	uiBut *but= (uiBut *)bt1;
 	uiPopupBlockHandle *popup= but->block->handle;
@@ -1674,7 +1674,7 @@ static void do_hsv_rna_cb(bContext *C, void *bt1, void *arg_dummy)
 		popup->menuretval= UI_RETURN_UPDATE;
 }
 
-static void do_hex_rna_cb(bContext *C, void *bt1, void *hexcl)
+static void do_hex_rna_cb(bContext *UNUSED(C), void *bt1, void *hexcl)
 {
 	uiBut *but= (uiBut *)bt1;
 	uiPopupBlockHandle *popup= but->block->handle;
@@ -1695,7 +1695,7 @@ static void do_hex_rna_cb(bContext *C, void *bt1, void *hexcl)
 		popup->menuretval= UI_RETURN_UPDATE;
 }
 
-static void close_popup_cb(bContext *C, void *bt1, void *arg)
+static void close_popup_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 {
 	uiBut *but= (uiBut *)bt1;
 	uiPopupBlockHandle *popup= but->block->handle;
@@ -1735,7 +1735,7 @@ static void picker_new_hide_reveal(uiBlock *block, short colormode)
 	}
 }
 
-static void do_picker_new_mode_cb(bContext *C, void *bt1, void *dummy)
+static void do_picker_new_mode_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 {
 	uiBut *bt= bt1;
 	short colormode= ui_get_but_val(bt);
@@ -1886,7 +1886,7 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 }
 
 
-static int ui_picker_small_wheel(const bContext *C, uiBlock *block, wmEvent *event)
+static int ui_picker_small_wheel_cb(const bContext *UNUSED(C), uiBlock *block, wmEvent *event)
 {
 	float add= 0.0f;
 	
@@ -1945,7 +1945,7 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN;
 	uiBoundsBlock(block, 10);
 	
-	block->block_event_func= ui_picker_small_wheel;
+	block->block_event_func= ui_picker_small_wheel_cb;
 	
 	/* and lets go */
 	block->direction= UI_TOP;

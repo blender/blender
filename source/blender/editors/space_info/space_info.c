@@ -179,7 +179,7 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 	
 }
 
-static void recent_files_menu(const bContext *C, Menu *menu)
+static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 {
 	struct RecentFile *recent;
 	uiLayout *layout= menu->layout;
@@ -200,7 +200,7 @@ void recent_files_menu_register()
 	mt= MEM_callocN(sizeof(MenuType), "spacetype info menu recent files");
 	strcpy(mt->idname, "INFO_MT_file_open_recent");
 	strcpy(mt->label, "Open Recent...");
-	mt->draw= recent_files_menu;
+	mt->draw= recent_files_menu_draw;
 	WM_menutype_add(mt);
 }
 

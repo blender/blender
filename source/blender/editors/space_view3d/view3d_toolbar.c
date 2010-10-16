@@ -114,7 +114,7 @@ static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOper
 		op->layout= NULL;
 	}
 	else
-		uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
+		uiDefAutoButsRNA(pa->layout, &ptr, 1);
 }
 
 static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)

@@ -1894,7 +1894,7 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap
 }
 
 /* priorities not implemented yet, for time being just insert in begin of list */
-wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, wmKeyMap *keymap, int priority)
+wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, wmKeyMap *keymap, int UNUSED(priority))
 {
 	wmEventHandler *handler;
 	
@@ -2167,7 +2167,7 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 
 /* windows store own event queues, no bContext here */
 /* time is in 1000s of seconds, from ghost */
-void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int time, void *customdata)
+void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int UNUSED(time), void *customdata)
 {
 	wmWindow *owin;
 	wmEvent event, *evt= win->eventstate;

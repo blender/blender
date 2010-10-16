@@ -290,7 +290,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 }
 
 /* belongs to below */
-static void wm_window_add_ghostwindow(bContext *C, wmWindowManager *wm, char *title, wmWindow *win)
+static void wm_window_add_ghostwindow(bContext *C, char *title, wmWindow *win)
 {
 	GHOST_WindowHandle ghostwin;
 	int scr_w, scr_h, posy;
@@ -384,7 +384,7 @@ void wm_window_add_ghostwindows(bContext* C, wmWindowManager *wm)
 				win->windowstate= initialstate;
 				useprefsize= 0;
 			}
-			wm_window_add_ghostwindow(C, wm, "Blender", win);
+			wm_window_add_ghostwindow(C, "Blender", win);
 		}
 		/* happens after fileread */
 		if(win->eventstate==NULL)
@@ -493,7 +493,7 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 /* ****************** Operators ****************** */
 
 /* operator callback */
-int wm_window_duplicate_op(bContext *C, wmOperator *op)
+int wm_window_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	wm_window_copy(C, CTX_wm_window(C));
 	WM_check(C);
@@ -505,7 +505,7 @@ int wm_window_duplicate_op(bContext *C, wmOperator *op)
 
 
 /* fullscreen operator callback */
-int wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op)
+int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	wmWindow *window= CTX_wm_window(C);
 	GHOST_TWindowState state = GHOST_GetWindowState(window->ghostwin);
@@ -895,7 +895,7 @@ void wm_window_process_events(const bContext *C)
 		PIL_sleep_ms(5);
 }
 
-void wm_window_process_events_nosleep(const bContext *C) 
+void wm_window_process_events_nosleep(void) 
 {
 	if(GHOST_ProcessEvents(g_system, 0))
 		GHOST_DispatchEvents(g_system);
@@ -943,7 +943,7 @@ void wm_ghost_exit(void)
 /* **************** timer ********************** */
 
 /* to (de)activate running timers temporary */
-void WM_event_timer_sleep(wmWindowManager *wm, wmWindow *win, wmTimer *timer, int dosleep)
+void WM_event_timer_sleep(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *timer, int dosleep)
 {
 	wmTimer *wt;
 	
@@ -971,7 +971,7 @@ wmTimer *WM_event_add_timer(wmWindowManager *wm, wmWindow *win, int event_type, 
 	return wt;
 }
 
-void WM_event_remove_timer(wmWindowManager *wm, wmWindow *win, wmTimer *timer)
+void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *timer)
 {
 	wmTimer *wt;
 	

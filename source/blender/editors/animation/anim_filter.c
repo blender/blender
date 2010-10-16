@@ -91,7 +91,7 @@
 
 /* Get shapekey data being edited (for Action Editor -> ShapeKey mode) */
 /* Note: there's a similar function in key.c (ob_get_key) */
-Key *actedit_get_shapekeys (bAnimContext *ac, SpaceAction *saction) 
+static Key *actedit_get_shapekeys (bAnimContext *ac) 
 {
 	Scene *scene= ac->scene;
 	Object *ob;
@@ -153,7 +153,7 @@ static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 			
 		case SACTCONT_SHAPEKEY: /* 'ShapeKey Editor' */
 			ac->datatype= ANIMCONT_SHAPEKEY;
-			ac->data= actedit_get_shapekeys(ac, saction);
+			ac->data= actedit_get_shapekeys(ac);
 			
 			ac->mode= saction->mode;
 			return 1;

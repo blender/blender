@@ -45,7 +45,7 @@ void		wm_window_close			(bContext *C, wmWindowManager *wm, wmWindow *win);
 void		wm_window_title				(wmWindowManager *wm, wmWindow *win);
 void		wm_window_add_ghostwindows	(bContext *C, wmWindowManager *wm);
 void		wm_window_process_events	(const bContext *C);
-void		wm_window_process_events_nosleep(const bContext *C);
+void		wm_window_process_events_nosleep(void);
 
 void		wm_window_make_drawable(bContext *C, wmWindow *win);
 
@@ -65,8 +65,8 @@ wmWindow	*wm_window_copy			(bContext *C, wmWindow *winorig);
 void		wm_window_testbreak		(void);
 
 /* *************** window operators ************** */
-int			wm_window_duplicate_op	(bContext *C, struct wmOperator *op);
-int			wm_window_fullscreen_toggle_op(bContext *C, struct wmOperator *op);
+int			wm_window_duplicate_exec(bContext *C, struct wmOperator *op);
+int			wm_window_fullscreen_toggle_exec(bContext *C, struct wmOperator *op);
 
 #endif /* WM_WINDOW_H */
 

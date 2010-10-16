@@ -2530,7 +2530,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 }
 
 /* return: success (1) */
-int BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int write_flags, ReportList *reports)
+int BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int write_flags)
 {
 	int err;
 

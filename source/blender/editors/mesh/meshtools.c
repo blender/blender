@@ -1104,14 +1104,14 @@ static EditVert *editmesh_get_x_mirror_vert_topo(Object *ob, struct EditMesh *em
 	if(poinval != -1)
 		return (EditVert *)(poinval);
 	return NULL;
-}
+}	
 
 EditVert *editmesh_get_x_mirror_vert(Object *ob, struct EditMesh *em, EditVert *eve, float *co, int index)
 {
 	if (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_TOPO) {
 		return editmesh_get_x_mirror_vert_topo(ob, em, eve, index);
 	} else {
-		return editmesh_get_x_mirror_vert_spacial(ob, em, eve->co);
+		return editmesh_get_x_mirror_vert_spacial(ob, em, co);
 	}
 }
 

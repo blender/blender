@@ -77,7 +77,7 @@ static void deformVertsEM(ModifierData *md, Object *ob,
 static void deformMatricesEM(ModifierData *UNUSED(md), Object *ob,
 						struct EditMesh *UNUSED(editData),
 						DerivedMesh *UNUSED(derivedData),
-						float UNUSED((*vertexCos)[3]),
+						float (*vertexCos)[3],
 						float (*defMats)[3][3],
 						int numVerts)
 {

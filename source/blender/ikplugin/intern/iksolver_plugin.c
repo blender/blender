@@ -50,7 +50,7 @@
 
 /* allocates PoseTree, and links that to root bone/channel */
 /* Note: detecting the IK chain is duplicate code... in drawarmature.c and in transform_conversions.c */
-static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
+static void initialize_posetree(struct Object *UNUSED(ob), bPoseChannel *pchan_tip)
 {
 	bPoseChannel *curchan, *pchan_root=NULL, *chanlist[256], **oldchan;
 	PoseTree *tree;

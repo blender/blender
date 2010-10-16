@@ -2463,7 +2463,7 @@ static int match_region_with_redraws(int spacetype, int regiontype, int redraws)
 	return 0;
 }
 
-static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	bScreen *screen= CTX_wm_screen(C);
 

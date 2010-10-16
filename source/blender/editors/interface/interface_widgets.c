@@ -744,7 +744,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 #define PREVIEW_PAD	4
 
-static void widget_draw_preview(BIFIconID icon, float aspect, float alpha, rcti *rect)
+static void widget_draw_preview(BIFIconID icon, float aspect, float UNUSED(alpha), rcti *rect)
 {
 	int w, h, x, y, size;
 
@@ -1492,7 +1492,7 @@ static void widget_state_label(uiWidgetType *wt, int state)
 	
 }
 
-static void widget_state_nothing(uiWidgetType *wt, int state)
+static void widget_state_nothing(uiWidgetType *wt, int UNUSED(state))
 {
 	wt->wcol= *(wt->wcol_theme);
 }	
@@ -1949,7 +1949,7 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 
 
 /* ************ separator, for menus etc ***************** */
-static void ui_draw_separator(uiBut *but, rcti *rect,  uiWidgetColors *wcol)
+static void ui_draw_separator(rcti *rect,  uiWidgetColors *wcol)
 {
 	int y = rect->ymin + (rect->ymax - rect->ymin)/2 - 1;
 	unsigned char col[4];
@@ -2121,7 +2121,7 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 	}	
 }
 
-static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
 {
 	rcti rect1;
 	double value;
@@ -2182,7 +2182,7 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	uiWidgetScrollDraw(wcol, rect, &rect1, state);
 }
 
-static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
 {
 	rcti rect_prog = *rect, rect_bar = *rect;
 	float value = but->a1;
@@ -2208,7 +2208,7 @@ static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int
 	rect->xmin -= 6;
 }
 
-static void widget_link(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_link(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
 {
 	
 	if(but->flag & UI_SELECT) {
@@ -2362,7 +2362,7 @@ static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 }
 
 
-static void widget_menubut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_menubut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
 {
 	uiWidgetBase wtb;
 	
@@ -2380,7 +2380,7 @@ static void widget_menubut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	rect->xmax -= (rect->ymax-rect->ymin);
 }
 
-static void widget_menuiconbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_menuiconbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
 {
 	uiWidgetBase wtb;
 	
@@ -2393,7 +2393,7 @@ static void widget_menuiconbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 	widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
 {
 	if(state & UI_ACTIVE) {
 		uiWidgetBase wtb;
@@ -2408,7 +2408,7 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 	}
 }
 
-static void widget_menu_itembut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_menu_itembut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
 {
 	uiWidgetBase wtb;
 	
@@ -2421,7 +2421,7 @@ static void widget_menu_itembut(uiWidgetColors *wcol, rcti *rect, int state, int
 	widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_list_itembut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_list_itembut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
 {
 	uiWidgetBase wtb;
 	
@@ -2434,7 +2434,7 @@ static void widget_list_itembut(uiWidgetColors *wcol, rcti *rect, int state, int
 	widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
 {
 	uiWidgetBase wtb;
 	rcti recttemp= *rect;
@@ -2467,7 +2467,7 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int ro
 }
 
 
-static void widget_radiobut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_radiobut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
 {
 	uiWidgetBase wtb;
 	
@@ -2480,7 +2480,7 @@ static void widget_radiobut(uiWidgetColors *wcol, rcti *rect, int state, int rou
 
 }
 
-static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
 {
 	uiWidgetBase wtb;
 	char old_col[3];
@@ -2508,7 +2508,7 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, 
 	VECCOPY(wcol->inner, old_col);
 }
 
-static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_but(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
 {
 	uiWidgetBase wtb;
 	
@@ -2521,7 +2521,7 @@ static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 
 }
 
-static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
 {
 	uiWidgetBase wtb;
 	float rad= 5.0f; //0.5f*(rect->ymax - rect->ymin);
@@ -2786,7 +2786,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				widget_draw_text_icon(&style->widgetlabel, &tui->wcol_menu_back, but, rect);
 				break;
 			case SEPR:
-				ui_draw_separator(but, rect, &tui->wcol_menu_item);
+				ui_draw_separator(rect, &tui->wcol_menu_item);
 				break;
 				
 			default:
@@ -2972,7 +2972,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 	}
 }
 
-void ui_draw_menu_back(uiStyle *style, uiBlock *block, rcti *rect)
+void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 {
 	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_BACK);
 	
@@ -2984,7 +2984,7 @@ void ui_draw_menu_back(uiStyle *style, uiBlock *block, rcti *rect)
 	
 }
 
-void ui_draw_search_back(uiStyle *style, uiBlock *block, rcti *rect)
+void ui_draw_search_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 {
 	uiWidgetType *wt= widget_type(UI_WTYPE_BOX);
 	

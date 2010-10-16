@@ -434,7 +434,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 	uiBlockSetCurLayout(block, layout);
 }
 
-static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, char *uiname, int x, int y, int w, int h, int icon_only)
+static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, char *uiname, int h, int icon_only)
 {
 	uiBut *but;
 	EnumPropertyItem *item;
@@ -956,7 +956,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	}
 	/* expanded enum */
 	else if(type == PROP_ENUM && (expand || RNA_property_flag(prop) & PROP_ENUM_FLAG))
-		ui_item_enum_expand(layout, block, ptr, prop, name, 0, 0, w, h, icon_only);
+		ui_item_enum_expand(layout, block, ptr, prop, name, h, icon_only);
 	/* property with separate label */
 	else if(type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER) {
 		but= ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h, flag);

@@ -282,7 +282,7 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int material_slot_remove_exec(bContext *C, wmOperator *UNUSED(op))
+static int material_slot_remove_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 

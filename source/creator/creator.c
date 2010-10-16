@@ -873,7 +873,7 @@ static int load_file(int argc, char **argv, void *data)
 	BLI_path_cwd(filename);
 
 	if (G.background) {
-		int retval = BKE_read_file(C, filename, NULL, NULL);
+		int retval = BKE_read_file(C, filename, NULL);
 
 		/*we successfully loaded a blend file, get sure that
 		pointcache works */

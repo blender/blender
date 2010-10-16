@@ -283,7 +283,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		/* also exit screens and editors */
 		wm_window_match_init(C, &wmbase); 
 		
-		retval= BKE_read_file(C, name, NULL, reports);
+		retval= BKE_read_file(C, name, reports);
 		G.save_over = 1;
 
 		/* this flag is initialized by the operator but overwritten on read.
@@ -369,9 +369,9 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	wm_window_match_init(C, &wmbase); 
 	
 	if (!from_memory && BLI_exists(tstr)) {
-		success = BKE_read_file(C, tstr, NULL, NULL);
+		success = BKE_read_file(C, tstr, NULL);
 	} else {
-		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL, NULL);
+		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL);
 		if (wmbase.first == NULL) wm_clear_default_size(C);
 	}
 	
@@ -735,7 +735,7 @@ void WM_autosave_init(wmWindowManager *wm)
 		wm->autosavetimer= WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime*60.0);
 }
 
-void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
+void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(wt))
 {
 	wmWindow *win;
 	wmEventHandler *handler;

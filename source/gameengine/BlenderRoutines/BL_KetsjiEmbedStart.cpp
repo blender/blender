@@ -440,7 +440,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 						ketsjiengine->Render();
 					}
 					
-					wm_window_process_events_nosleep(C);
+					wm_window_process_events_nosleep();
 					
 					// test for the ESC key
 					//XXX while (qtest())

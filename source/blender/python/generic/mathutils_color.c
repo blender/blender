@@ -31,7 +31,7 @@
 
 //----------------------------------mathutils.Color() -------------------
 //makes a new color for you to play with
-static PyObject *Color_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	float col[3]= {0.0f, 0.0f, 0.0f};
 
