@@ -442,8 +442,15 @@ static void mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, fl
 
 static int mdisp_corners(MDisps *s)
 {
-	/* silly trick because we don't get it from callback */
-	return (s->totdisp % (3*3) == 0)? 3: 4;
+	int lvl= 13;
+
+	while(lvl > 0) {
+		int side = (1 << (lvl-1)) + 1;
+		if ((s->totdisp % (side*side)) == 0) return s->totdisp / (side*side);
+		lvl--;
+	}
+
+	return 0;
 }
 
 static void layerSwap_mdisps(void *data, const int *ci)
@@ -452,19 +459,28 @@ static void layerSwap_mdisps(void *data, const int *ci)
 	float (*d)[3] = NULL;
 	int corners, cornersize, S;
 
-	/* this function is untested .. */
 	if(s->disps) {
-		corners = mdisp_corners(s);
-		cornersize = s->totdisp/corners;
+		int nverts= (ci[1] == 3) ? 4 : 3; /* silly way to know vertex count of face */
+		corners= mdisp_corners(s);
+		cornersize= s->totdisp/corners;
 
-		d = MEM_callocN(sizeof(float) * 3 * s->totdisp, "mdisps swap");
+		if(corners!=nverts) {
+			/* happens when face changed vertex count in edit mode
+			   if it happened, just forgot displacement */
+
+			MEM_freeN(s->disps);
+			s->disps= NULL;
+			s->totdisp= 0; /* flag to update totdisp */
+			return;
+		}
+
+		d= MEM_callocN(sizeof(float) * 3 * s->totdisp, "mdisps swap");
 
 		for(S = 0; S < corners; S++)
 			memcpy(d + cornersize*S, s->disps + cornersize*ci[S], cornersize*3*sizeof(float));
 		
-		if(s->disps)
-			MEM_freeN(s->disps);
-		s->disps = d;
+		MEM_freeN(s->disps);
+		s->disps= d;
 	}
 }
 
