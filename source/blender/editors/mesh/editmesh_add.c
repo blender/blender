@@ -114,9 +114,9 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	float min[3], max[3];
 	int done= 0;
 	short use_proj;
+	wmWindow *win= CTX_wm_window(C);
 
 	em_setup_viewcontext(C, &vc);
-	wmWindow *win= CTX_wm_window(C);
 
 	printf("\n%d %d\n", event->x, event->y);
 	printf("%d %d\n", win->eventstate->x, win->eventstate->y);
