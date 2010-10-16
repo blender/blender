@@ -779,6 +779,15 @@ class WM_OT_keyconfig_activate(bpy.types.Operator):
         bpy.utils.keyconfig_set(self.filepath)
         return {'FINISHED'}
 
+class WM_OT_sysinfo(bpy.types.Operator):
+    '''Generate System Info'''
+    bl_idname = "wm.sysinfo"
+    bl_label = "System Info"
+
+    def execute(self, context):
+        import sys_info
+        sys_info.write_sysinfo(self)
+        return {'FINISHED'}
 
 def register():
     pass

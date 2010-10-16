@@ -345,6 +345,7 @@ class INFO_MT_help(bpy.types.Menu):
         layout.separator()
         layout.operator("wm.url_open", text="Python API Reference", icon='URL').url = "http://www.blender.org/documentation/blender_python_api_%s/contents.html" % "_".join(str(v) for v in bpy.app.version)
         layout.operator("help.operator_cheat_sheet", icon='TEXT')
+        layout.operator("wm.sysinfo", icon='TEXT')
         layout.separator()
         layout.operator("anim.update_data_paths", text="FCurve/Driver 2.54 fix", icon='HELP')
         layout.separator()
