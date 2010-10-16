@@ -3806,7 +3806,7 @@ static int ui_do_but_VECTORSCOPE(bContext *C, uiBlock *block, uiBut *but, uiHand
 }
 
 #ifdef INTERNATIONAL
-static int ui_do_but_CHARTAB(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
+static int ui_do_but_CHARTAB(bContext *UNUSED(C), uiBlock *UNUSED(block), uiBut *UNUSED(but), uiHandleButtonData *UNUSED(data), wmEvent *UNUSED(event))
 {
 	/* XXX 2.50 bad global and state access */
 #if 0

@@ -975,7 +975,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 		}
 		else {
 		
-			ibuf = IMB_allocImBuf(width, height, 32, 0, 0);
+			ibuf = IMB_allocImBuf(width, height, 32, 0);
 			ibuf->ftype = OPENEXR;
 
 			/* openEXR is linear as per EXR spec */

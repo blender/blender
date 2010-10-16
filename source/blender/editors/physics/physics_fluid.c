@@ -720,7 +720,7 @@ static void fluidbake_free(void *customdata)
 }
 
 /* called by fluidbake, only to check job 'stop' value */
-static int fluidbake_breakjob(void *customdata)
+static int fluidbake_breakjob(void *UNUSED(customdata))
 {
 	//FluidBakeJob *fb= (FluidBakeJob *)customdata;
 	//return *(fb->stop);
@@ -1047,7 +1047,7 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	return 1;
 }
 
-void fluidsimFreeBake(Object *ob)
+void fluidsimFreeBake(Object *UNUSED(ob))
 {
 	/* not implemented yet */
 }
@@ -1056,27 +1056,27 @@ void fluidsimFreeBake(Object *ob)
 
 /* compile dummy functions for disabled fluid sim */
 
-FluidsimSettings *fluidsimSettingsNew(Object *srcob)
+FluidsimSettings *fluidsimSettingsNew(Object *UNUSED(srcob))
 {
 	return NULL;
 }
 
-void fluidsimSettingsFree(FluidsimSettings *fss)
+void fluidsimSettingsFree(FluidsimSettings *UNUSED(fss))
 {
 }
 
-FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *fss)
+FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *UNUSED(fss))
 {
 	return NULL;
 }
 
 /* only compile dummy functions */
-int fluidsimBake(bContext *C, ReportList *reports, Object *ob)
+int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object *UNUSED(ob))
 {
 	return 0;
 }
 
-void fluidsimFreeBake(Object *ob)
+void fluidsimFreeBake(Object *UNUSED(ob))
 {
 }
 

@@ -820,7 +820,7 @@ static void *do_shadow_thread(void *re_v)
 }
 
 static volatile int g_break= 0;
-static int thread_break(void *unused)
+static int thread_break(void *UNUSED(arg))
 {
 	return g_break;
 }

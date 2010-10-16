@@ -101,10 +101,9 @@ LIBEXPORT void freeT(void *vmemh)
 LIBEXPORT struct ImBuf *allocImBuf(short x,
 						 short y,
 						 uchar d,
-						 uint flags,
-						 uchar bitmap)
+						 uint flags)
 {
-	return IMB_allocImBuf(x, y, d, flags, bitmap);
+	return IMB_allocImBuf(x, y, d, flags);
 }
 
 

@@ -876,7 +876,7 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 			ImBuf *ima;
 
 			/* first allocate imbuf for scaling and copy preview into it */
-			ima = IMB_allocImBuf(rw, rh, 32, IB_rect, 0);
+			ima = IMB_allocImBuf(rw, rh, 32, IB_rect);
 			memcpy(ima->rect, rect, rw*rh*sizeof(unsigned int));	
 			
 			/* scale it */

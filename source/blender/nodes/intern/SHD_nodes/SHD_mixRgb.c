@@ -42,7 +42,7 @@ static bNodeSocketType sh_node_mix_rgb_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_mix_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_mix_rgb(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: fac, col1, col2 */
 	/* stack order out: col */

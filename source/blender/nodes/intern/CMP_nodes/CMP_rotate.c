@@ -42,7 +42,7 @@ static bNodeSocketType cmp_node_rotate_out[]= {
 };
 
 /* only supports RGBA nodes now */
-static void node_composit_exec_rotate(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_rotate(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	
 	if(out[0]->hasoutput==0)
@@ -68,8 +68,8 @@ static void node_composit_exec_rotate(void *data, bNode *node, bNodeStack **in, 
 		maxy= -centy + (float)cbuf->y;
 		
 
-	  ibuf=IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
-	  obuf=IMB_allocImBuf(stackbuf->x, stackbuf->y, 32, 0, 0);
+	  ibuf=IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
+	  obuf=IMB_allocImBuf(stackbuf->x, stackbuf->y, 32, 0);
 
 	  if(ibuf && obuf){
 		 ibuf->rect_float=cbuf->rect;

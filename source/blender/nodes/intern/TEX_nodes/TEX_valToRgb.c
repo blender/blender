@@ -87,7 +87,7 @@ static bNodeSocketType rgbtobw_out[]= {
 };
 
 
-static void rgbtobw_valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+static void rgbtobw_valuefn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
 	float cin[4];
 	tex_input_rgba(cin, in[0], p, thread);

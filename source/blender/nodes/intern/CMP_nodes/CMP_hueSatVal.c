@@ -65,7 +65,7 @@ static void do_hue_sat_fac(bNode *node, float *out, float *in, float *fac)
 	}
 }
 
-static void node_composit_exec_hue_sat(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_hue_sat(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: Fac, Image */
 	/* stack order out: Image */

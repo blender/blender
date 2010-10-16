@@ -290,7 +290,7 @@ static void ed_keymap_paint_brush_switch(wmKeyMap *keymap, const char *path)
 	RNA_int_set(kmi->ptr, "value", 19);
 }
 
-static void ed_keymap_paint_brush_size(wmKeyMap *keymap, const char *path)
+static void ed_keymap_paint_brush_size(wmKeyMap *keymap, const char *UNUSED(path))
 {
 	wmKeyMapItem *kmi;
 

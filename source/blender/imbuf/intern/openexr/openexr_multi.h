@@ -70,7 +70,7 @@ void *	IMB_exr_get_handle			(void) {return NULL;}
 void	IMB_exr_add_channel			(void *handle, const char *layname, const char *channame, int xstride, int ystride, float *rect) {}
 
 int		IMB_exr_begin_read			(void *handle, char *filename, int *width, int *height) {return 0;}
-void	IMB_exr_begin_write			(void *handle, char *filename, int width, int height, int compress) {}
+void	IMB_exr_begin_write			(void *handle, char *filename, int width, int height, int compress) { (void)handle; (void)filename; (void)width; (void)height; (void)compress; }
 void	IMB_exrtile_begin_write		(void *handle, char *filename, int mipmap, int width, int height, int tilex, int tiley) {}
 
 void	IMB_exr_set_channel			(void *handle, char *layname, char *channame, int xstride, int ystride, float *rect) {}

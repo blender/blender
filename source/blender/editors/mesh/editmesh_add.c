@@ -116,7 +116,11 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	short use_proj;
 
 	em_setup_viewcontext(C, &vc);
-	
+	wmWindow *win= CTX_wm_window(C);
+
+	printf("\n%d %d\n", event->x, event->y);
+	printf("%d %d\n", win->eventstate->x, win->eventstate->y);
+
 	use_proj= (vc.scene->toolsettings->snap_flag & SCE_SNAP) &&	(vc.scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE);
 	
 	invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 

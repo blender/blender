@@ -205,7 +205,7 @@ static void blur_single_image(bNode *node, CompBuf *new, CompBuf *img, float sca
 }
 
 /* reference has to be mapped 0-1, and equal in size */
-static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float fac, NodeBlurData *nbd)
+static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *UNUSED(ref), float UNUSED(fac), NodeBlurData *nbd)
 {
 	CompBuf *wbuf;
 	register float val;

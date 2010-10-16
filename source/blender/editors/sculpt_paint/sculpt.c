@@ -2534,7 +2534,7 @@ static void sculpt_combine_proxies(Sculpt *sd, SculptSession *ss)
 
 /* Flip all the editdata across the axis/axes specified by symm. Used to
    calculate multiple modifications to the mesh when symmetry is enabled. */
-static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm, const char axis, const float angle, const float feather)
+static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm, const char axis, const float angle, const float UNUSED(feather))
 {
 	flip_coord(cache->location, cache->true_location, symm);
 	flip_coord(cache->grab_delta_symmetry, cache->grab_delta, symm);

@@ -111,7 +111,7 @@ static int count_outputs(bNode *node)
 /* Boilerplate generators */
 
 #define ProcNoInputs(name) \
-		static void name##_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread) \
+		static void name##_map_inputs(Tex *UNUSED(tex), bNodeStack **UNUSED(in), TexParams *UNUSED(p), short UNUSED(thread)) \
 		{}
 
 #define ProcDef(name) \

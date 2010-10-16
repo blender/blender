@@ -530,7 +530,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 	if (*outbuf)
 		ibuf= *outbuf;
 	else
-		ibuf= IMB_allocImBuf(bufsize, bufsize, 32, imbflag, 0);
+		ibuf= IMB_allocImBuf(bufsize, bufsize, 32, imbflag);
 
 	if (flt) {
 		for (y=0; y < ibuf->y; y++) {
@@ -796,11 +796,11 @@ static void brush_painter_fixed_tex_partial_update(BrushPainter *painter, float 
 
 	imbflag= (cache->flt)? IB_rectfloat: IB_rect;
 	if (!cache->ibuf)
-		cache->ibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag, 0);
+		cache->ibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag);
 	ibuf= cache->ibuf;
 
 	oldtexibuf= cache->texibuf;
-	cache->texibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag, 0);
+	cache->texibuf= IMB_allocImBuf(diameter, diameter, 32, imbflag);
 
 	if (oldtexibuf) {
 		srcx= srcy= 0;

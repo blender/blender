@@ -99,7 +99,7 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 
 			waitcursor(1); /* from screen.c */
 
-			ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0, 0);
+			ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0);
 			ibuf->rect= (unsigned int *)rres.rect32;
 			ibuf->rect_float= rres.rectf;
 			ibuf->zbuf_float= rres.rectz;

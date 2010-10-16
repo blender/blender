@@ -58,7 +58,7 @@ typedef struct BoidValues {
 
 static int apply_boid_rule(BoidBrainData *bbd, BoidRule *rule, BoidValues *val, ParticleData *pa, float fuzziness);
 
-static int rule_none(BoidRule *rule, BoidBrainData *data, BoidValues *val, ParticleData *pa)
+static int rule_none(BoidRule *rule, BoidBrainData *UNUSED(data), BoidValues *val, ParticleData *pa)
 {
 	return 0;
 }
@@ -823,7 +823,7 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 		return NULL;
 	}
 }
-static int boid_rule_applies(ParticleData *pa, BoidSettings *boids, BoidRule *rule)
+static int boid_rule_applies(ParticleData *pa, BoidSettings *UNUSED(boids), BoidRule *rule)
 {
 	BoidParticle *bpa = pa->boid;
 

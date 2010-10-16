@@ -171,7 +171,7 @@ static void Vec3PlusStVec(float *v, float s, float *v1);
 
 /*physical unit of force is [kg * m / sec^2]*/
 
-static float sb_grav_force_scale(Object *ob)
+static float sb_grav_force_scale(Object *UNUSED(ob))
 /* since unit of g is [m/sec^2] and F = mass * g we rescale unit mass of node to 1 gramm
   put it to a function here, so we can add user options later without touching simulation code
 */
@@ -179,7 +179,7 @@ static float sb_grav_force_scale(Object *ob)
 	return (0.001f);
 }
 
-static float sb_fric_force_scale(Object *ob)
+static float sb_fric_force_scale(Object *UNUSED(ob))
 /* rescaling unit of drag [1 / sec] to somehow reasonable
   put it to a function here, so we can add user options later without touching simulation code
 */
@@ -1029,7 +1029,7 @@ static int query_external_colliders(Scene *scene, Object *me)
 
 
 /* +++ the aabb "force" section*/
-static int sb_detect_aabb_collisionCached(	float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
+static int sb_detect_aabb_collisionCached(	float force[3], unsigned int par_layer,struct Object *vertexowner,float UNUSED(time))
 {
 	Object *ob;
 	SoftBody *sb=vertexowner->soft;

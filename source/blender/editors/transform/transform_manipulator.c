@@ -1187,7 +1187,7 @@ static void draw_cylinder(GLUquadricObj *qobj, float len, float width)
 }
 
 
-static void draw_manipulator_translate(View3D *v3d, RegionView3D *rv3d, int moving, int drawflags, int combo, int colcode)
+static void draw_manipulator_translate(View3D *v3d, RegionView3D *rv3d, int UNUSED(moving), int drawflags, int combo, int colcode)
 {
 	GLUquadricObj *qobj;
 	float cylen= 0.01f*(float)U.tw_handlesize;

@@ -320,7 +320,7 @@ static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Objec
 	}
 }
 
-void unlink_object(Scene *scene, Object *ob)
+void unlink_object(Object *ob)
 {
 	Main *bmain= G.main;
 	Object *obt;
@@ -1617,7 +1617,7 @@ void disable_speed_curve(int val)
 
 // XXX THIS CRUFT NEEDS SERIOUS RECODING ASAP!
 /* ob can be NULL */
-float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
+float bsystem_time(struct Scene *scene, Object *UNUSED(ob), float cfra, float ofs)
 {
 	/* returns float ( see BKE_curframe in scene.c) */
 	cfra += scene->r.subframe;

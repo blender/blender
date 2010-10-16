@@ -46,7 +46,7 @@ static void do_colorband_composit(bNode *node, float *out, float *in)
 	do_colorband(node->storage, in[0], out);
 }
 
-static void node_composit_exec_valtorgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_valtorgb(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: fac */
 	/* stack order out: col, alpha */
@@ -109,12 +109,12 @@ static bNodeSocketType cmp_node_rgbtobw_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_rgbtobw(bNode *node, float *out, float *in)
+static void do_rgbtobw(bNode *UNUSED(node), float *out, float *in)
 {
 	out[0]= in[0]*0.35f + in[1]*0.45f + in[2]*0.2f;
 }
 
-static void node_composit_exec_rgbtobw(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_rgbtobw(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order out: bw */
 	/* stack order in: col */

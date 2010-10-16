@@ -852,7 +852,7 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 /* else */
 /*     sets wp->weight to the closest weight value to vertex */
 /*     note: we cant sample frontbuf, weight colors are interpolated too unpredictable */
-void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
+void sample_wpaint(Scene *scene, ARegion *ar, View3D *UNUSED(v3d), int mode)
 {
 	ViewContext vc;
 	ToolSettings *ts= scene->toolsettings;
@@ -1256,7 +1256,7 @@ struct WPaintData {
 	char *vgroup_validmap; /*stores if vgroups tie to deforming bones or not*/
 };
 
-static char *wpaint_make_validmap(Mesh *me, Object *ob)
+static char *wpaint_make_validmap(Object *ob)
 {
 	bDeformGroup *dg;
 	ModifierData *md;
@@ -1344,7 +1344,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	  vgroups affect deform bones*/
 	wpd->auto_normalize = ts->auto_normalize;
 	if (wpd->auto_normalize)
-		wpd->vgroup_validmap = wpaint_make_validmap(me, ob);
+		wpd->vgroup_validmap = wpaint_make_validmap(ob);
 	
 	//	if(qual & LR_CTRLKEY) {
 	//		sample_wpaint(scene, ar, v3d, 0);
@@ -1817,7 +1817,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	return 1;
 }
 
-static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index, float mval[2], float pressure, int flip)
+static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index, float mval[2], float pressure, int UNUSED(flip))
 {
 	ViewContext *vc = &vpd->vc;
 	Brush *brush = paint_brush(&vp->paint);

@@ -79,7 +79,7 @@ void collision_move_object ( CollisionModifierData *collmd, float step, float pr
 	bvhtree_update_from_mvert ( collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1 );
 }
 
-BVHTree *bvhtree_build_from_mvert ( MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon )
+BVHTree *bvhtree_build_from_mvert ( MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int UNUSED(numverts), float epsilon )
 {
 	BVHTree *tree;
 	float co[12];
@@ -106,7 +106,7 @@ BVHTree *bvhtree_build_from_mvert ( MFace *mfaces, unsigned int numfaces, MVert 
 	return tree;
 }
 
-void bvhtree_update_from_mvert ( BVHTree * bvhtree, MFace *faces, int numfaces, MVert *x, MVert *xnew, int numverts, int moving )
+void bvhtree_update_from_mvert ( BVHTree * bvhtree, MFace *faces, int numfaces, MVert *x, MVert *xnew, int UNUSED(numverts), int moving )
 {
 	int i;
 	MFace *mfaces = faces;

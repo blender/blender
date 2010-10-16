@@ -371,7 +371,7 @@ void filelist_init_icons()
 			for (x=0; x<SPECIAL_IMG_COLS; x++) {
 				int tile = SPECIAL_IMG_COLS*y + x; 
 				if (tile < SPECIAL_IMG_MAX) {
-					ibuf = IMB_allocImBuf(SPECIAL_IMG_SIZE, SPECIAL_IMG_SIZE, 32, IB_rect, 0);
+					ibuf = IMB_allocImBuf(SPECIAL_IMG_SIZE, SPECIAL_IMG_SIZE, 32, IB_rect);
 					for (k=0; k<SPECIAL_IMG_SIZE; k++) {
 						memcpy(&ibuf->rect[k*SPECIAL_IMG_SIZE], &bbuf->rect[(k+y*SPECIAL_IMG_SIZE)*SPECIAL_IMG_SIZE*SPECIAL_IMG_COLS+x*SPECIAL_IMG_SIZE], SPECIAL_IMG_SIZE*sizeof(int));
 					}
@@ -965,7 +965,7 @@ void filelist_from_library(struct FileList* filelist)
 
 				/* first allocate imbuf for copying preview into it */
 				if (w > 0 && h > 0 && rect) {
-					ima = IMB_allocImBuf(w, h, 32, IB_rect, 0);
+					ima = IMB_allocImBuf(w, h, 32, IB_rect);
 					memcpy(ima->rect, rect, w*h*sizeof(unsigned int));
 					filelist->filelist[i + 1].image = ima;
 					filelist->filelist[i + 1].flags = IMAGEFILE;

@@ -383,7 +383,7 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 			return tile->rect;
 	
 	if (*tmpibuf==NULL)
-		*tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat|IB_rect, 0);
+		*tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat|IB_rect);
 	
 	tile= MEM_callocN(sizeof(UndoImageTile), "UndoImageTile");
 	strcpy(tile->idname, ima->id.name);
@@ -410,7 +410,7 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 	UndoImageTile *tile;
 
 	tmpibuf= IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32,
-							IB_rectfloat|IB_rect, 0);
+							IB_rectfloat|IB_rect);
 	
 	for(tile=lb->first; tile; tile=tile->next) {
 		/* find image based on name, pointer becomes invalid with global undo */
@@ -4191,7 +4191,7 @@ static ImBuf *imapaint_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 	/* note: allocImbuf returns zero'd memory, so regions outside image will
 	   have zero alpha, and hence not be blended onto the image */
 	int w=ibufb->x, h=ibufb->y, destx=0, desty=0, srcx=pos[0], srcy=pos[1];
-	ImBuf *clonebuf= IMB_allocImBuf(w, h, ibufb->depth, ibufb->flags, 0);
+	ImBuf *clonebuf= IMB_allocImBuf(w, h, ibufb->depth, ibufb->flags);
 
 	IMB_rectclip(clonebuf, ibuf, &destx, &desty, &srcx, &srcy, &w, &h);
 	IMB_rectblend(clonebuf, ibuf, destx, desty, srcx, srcy, w, h,

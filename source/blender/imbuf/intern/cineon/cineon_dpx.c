@@ -88,7 +88,7 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int
 		return NULL;
 	}
 	
-	ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat | flags, 0);
+	ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat | flags);
 
 	row = MEM_mallocN(sizeof(unsigned short)*width*depth, "row in cineon_dpx.c");
 	frow = ibuf->rect_float+width*height*4;

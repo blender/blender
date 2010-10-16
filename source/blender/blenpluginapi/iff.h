@@ -81,7 +81,7 @@ typedef struct ImBuf {
 	int refcounter; /* reference counter for multiple users */
 } ImBuf;
 
-LIBIMPORT struct ImBuf *allocImBuf(short,short,uchar,uint,uchar);
+LIBIMPORT struct ImBuf *allocImBuf(short,short,uchar,uint);
 LIBIMPORT struct ImBuf *dupImBuf(struct ImBuf *);
 LIBIMPORT void freeImBuf(struct ImBuf*);
 

@@ -1140,7 +1140,7 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 	if(ymax >= vc->ar->winy) ymaxc= vc->ar->winy-1; else ymaxc= ymax;
 	if(yminc > ymaxc) return NULL;
 	
-	ibuf= IMB_allocImBuf((xmaxc-xminc+1), (ymaxc-yminc+1), 32, IB_rect,0);
+	ibuf= IMB_allocImBuf((xmaxc-xminc+1), (ymaxc-yminc+1), 32, IB_rect);
 
 	view3d_validate_backbuf(vc); 
 	
@@ -1160,7 +1160,7 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) 
 		return ibuf;
 	
-	ibuf1= IMB_allocImBuf( (xmax-xmin+1),(ymax-ymin+1),32,IB_rect,0);
+	ibuf1= IMB_allocImBuf( (xmax-xmin+1),(ymax-ymin+1),32,IB_rect);
 	rd= ibuf->rect;
 	dr= ibuf1->rect;
 		
@@ -2092,7 +2092,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	}
 
 	/* read in pixels & stamp */
-	ibuf= IMB_allocImBuf(sizex, sizey, 32, flag, 0);
+	ibuf= IMB_allocImBuf(sizex, sizey, 32, flag);
 
 	if(ibuf->rect_float)
 		glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, ibuf->rect_float);

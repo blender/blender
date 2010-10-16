@@ -556,7 +556,7 @@ void bezt_add_to_cfra_elem (ListBase *lb, BezTriple *bezt)
 /* Basic sampling callback which acts as a wrapper for evaluate_fcurve() 
  *	'data' arg here is unneeded here...
  */
-float fcurve_samplingcb_evalcurve (FCurve *fcu, void *data, float evaltime)
+float fcurve_samplingcb_evalcurve (FCurve *fcu, void *UNUSED(data), float evaltime)
 {
 	/* assume any interference from drivers on the curve is intended... */
 	return evaluate_fcurve(fcu, evaltime);
@@ -1331,7 +1331,7 @@ float driver_get_variable_value (ChannelDriver *driver, DriverVar *dvar)
  *	- "evaltime" is the frame at which F-Curve is being evaluated
  * 	- has to return a float value 
  */
-static float evaluate_driver (ChannelDriver *driver, float evaltime)
+static float evaluate_driver (ChannelDriver *driver, float UNUSED(evaltime))
 {
 	DriverVar *dvar;
 	

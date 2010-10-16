@@ -1692,7 +1692,7 @@ int filterInternalExternalReebGraph(ReebGraph *rg, float threshold_internal, flo
 	return value;
 }
 
-int filterCyclesReebGraph(ReebGraph *rg, float distance_threshold)
+int filterCyclesReebGraph(ReebGraph *rg, float UNUSED(distance_threshold))
 {
 	ReebArc *arc1, *arc2;
 	ReebArc *next2;
@@ -1723,7 +1723,7 @@ int filterCyclesReebGraph(ReebGraph *rg, float distance_threshold)
 	return filtered;
 }
 
-int filterSmartReebGraph(ReebGraph *rg, float threshold)
+int filterSmartReebGraph(ReebGraph *rg, float UNUSED(threshold))
 {
 	int value = 0;
 #if 0 //XXX

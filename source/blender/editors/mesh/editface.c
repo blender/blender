@@ -68,7 +68,7 @@
 #include "mesh_intern.h"
 
 /* ***************** XXX **************** */
-static int pupmenu(const char *dummy) {return 0;}
+static int pupmenu(const char *UNUSED(dummy)) {return 0;}
 /* ***************** XXX **************** */
 
 
@@ -343,7 +343,7 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 	// object_tface_flags_changed(OBACT, 0);
 }
 
-void select_linked_tfaces(bContext *C, Object *ob, short mval[2], int mode)
+void select_linked_tfaces(bContext *UNUSED(C), Object *ob, short UNUSED(mval[2]), int mode)
 {
 	Mesh *me;
 	unsigned int index=0;
@@ -464,7 +464,7 @@ int minmax_tface(Object *ob, float *min, float *max)
 
 #define ME_SEAM_DONE 2		/* reuse this flag */
 
-static float edgetag_cut_cost(EditMesh *em, int e1, int e2, int vert)
+static float edgetag_cut_cost(int e1, int e2, int vert)
 {
 	EditVert *v = EM_get_vert_for_index(vert);
 	EditEdge *eed1 = EM_get_edge_for_index(e1), *eed2 = EM_get_edge_for_index(e2);
@@ -483,7 +483,7 @@ static float edgetag_cut_cost(EditMesh *em, int e1, int e2, int vert)
 	return cost;
 }
 
-static void edgetag_add_adjacent(EditMesh *em, Heap *heap, int mednum, int vertnum, int *nedges, int *edges, int *prevedge, float *cost)
+static void edgetag_add_adjacent(Heap *heap, int mednum, int vertnum, int *nedges, int *edges, int *prevedge, float *cost)
 {
 	int startadj, endadj = nedges[vertnum+1];
 
@@ -495,7 +495,7 @@ static void edgetag_add_adjacent(EditMesh *em, Heap *heap, int mednum, int vertn
 		if (eedadj->f2 & ME_SEAM_DONE)
 			continue;
 
-		newcost = cost[mednum] + edgetag_cut_cost(em, mednum, adjnum, vertnum);
+		newcost = cost[mednum] + edgetag_cut_cost(mednum, adjnum, vertnum);
 
 		if (cost[adjnum] > newcost) {
 			cost[adjnum] = newcost;
@@ -621,8 +621,8 @@ int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge
 
 		eed->f2 |= ME_SEAM_DONE;
 
-		edgetag_add_adjacent(em, heap, mednum, eed->v1->tmp.l, nedges, edges, prevedge, cost);
-		edgetag_add_adjacent(em, heap, mednum, eed->v2->tmp.l, nedges, edges, prevedge, cost);
+		edgetag_add_adjacent(heap, mednum, eed->v1->tmp.l, nedges, edges, prevedge, cost);
+		edgetag_add_adjacent(heap, mednum, eed->v2->tmp.l, nedges, edges, prevedge, cost);
 	}
 	
 	
@@ -819,7 +819,7 @@ void face_borderselect(struct bContext *C, Object *ob, rcti *rect, int select, i
 
 	view3d_validate_backbuf(&vc);
 
-	ibuf = IMB_allocImBuf(sx,sy,32,IB_rect,0);
+	ibuf = IMB_allocImBuf(sx,sy,32,IB_rect);
 	rt = ibuf->rect;
 	glReadPixels(rect->xmin+vc.ar->winrct.xmin,  rect->ymin+vc.ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
 	if(ENDIAN_ORDER==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);

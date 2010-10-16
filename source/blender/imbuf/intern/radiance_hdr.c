@@ -202,8 +202,8 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags)
 			ptr = (unsigned char *)strchr((char*)&mem[x+1], '\n');
 			ptr++;
 
-			if (flags & IB_test) ibuf = IMB_allocImBuf(width, height, 32, 0, 0);
-			else ibuf = IMB_allocImBuf(width, height, 32, (flags & IB_rect)|IB_rectfloat, 0);
+			if (flags & IB_test) ibuf = IMB_allocImBuf(width, height, 32, 0);
+			else ibuf = IMB_allocImBuf(width, height, 32, (flags & IB_rect)|IB_rectfloat);
 
 			if (ibuf==NULL) return NULL;
 			ibuf->ftype = RADHDR;

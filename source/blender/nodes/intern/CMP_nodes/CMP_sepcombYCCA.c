@@ -43,7 +43,7 @@ static bNodeSocketType cmp_node_sepycca_out[]= {
 	{  -1, 0, ""   }
 };
 
-static void do_sepycca(bNode *node, float *out, float *in)
+static void do_sepycca(bNode *UNUSED(node), float *out, float *in)
 {
 	float y, cb, cr;
 	
@@ -56,7 +56,7 @@ static void do_sepycca(bNode *node, float *out, float *in)
 	out[3]= in[3];
 }
 
-static void node_composit_exec_sepycca(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_sepycca(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* input no image? then only color operation */
 	if(in[0]->data==NULL) {
@@ -126,7 +126,7 @@ static bNodeSocketType cmp_node_combycca_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_comb_ycca(bNode *node, float *out, float *in1, float *in2, float *in3, float *in4)
+static void do_comb_ycca(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
 {
 	float r,g,b;
 	float y, cb, cr;
@@ -144,7 +144,7 @@ static void do_comb_ycca(bNode *node, float *out, float *in1, float *in2, float 
 	out[3] = in4[0];
 }
 
-static void node_composit_exec_combycca(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_combycca(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order out: 1 ycca channels */
 	/* stack order in: 4 value channels */

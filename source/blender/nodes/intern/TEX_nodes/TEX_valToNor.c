@@ -39,7 +39,7 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" } 
 };
 
-static void normalfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+static void normalfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
 	float new_co[3];
 	float *co = p->co;

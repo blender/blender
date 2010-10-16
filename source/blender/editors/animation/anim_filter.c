@@ -1065,7 +1065,7 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
  *	- for normal filtering (i.e. for editing), we only need the NLA-tracks but they can be in 'normal' evaluation
  *	  order, i.e. first to last. Otherwise, some tools may get screwed up.
  */
-static int animdata_filter_nla (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, AnimData *adt, int filter_mode, void *owner, short ownertype, ID *owner_id)
+static int animdata_filter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, bDopeSheet *UNUSED(ads), AnimData *adt, int filter_mode, void *owner, short ownertype, ID *owner_id)
 {
 	bAnimListElem *ale;
 	NlaTrack *nlt;

@@ -41,7 +41,7 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+static void valuefn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
 	float co1[3], co2[3];
 

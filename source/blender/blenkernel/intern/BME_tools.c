@@ -918,7 +918,7 @@ static int BME_face_sharededges(BME_Poly *f1, BME_Poly *f2){
  *	Returns -
  *  A BME_Mesh pointer to the BMesh passed as a parameter.
 */
-static BME_Mesh *BME_bevel_initialize(BME_Mesh *bm, int options, int defgrp_index, float angle, BME_TransData_Head *td) {
+static BME_Mesh *BME_bevel_initialize(BME_Mesh *bm, int options, int UNUSED(defgrp_index), float angle, BME_TransData_Head *td) {
 	BME_Vert *v;
 	BME_Edge *e;
 	BME_Poly *f;
@@ -1162,7 +1162,7 @@ static void bmesh_dissolve_disk(BME_Mesh *bm, BME_Vert *v){
 		//BME_JEKV(bm,v->edge,v);
 	}
 }
-static BME_Mesh *BME_bevel_mesh(BME_Mesh *bm, float value, int res, int options, int defgrp_index, BME_TransData_Head *td) {
+static BME_Mesh *BME_bevel_mesh(BME_Mesh *bm, float value, int res, int options, int UNUSED(defgrp_index), BME_TransData_Head *td) {
 	BME_Vert *v, *nv;
 	BME_Edge *e, *oe;
 	BME_Loop *l, *l2;

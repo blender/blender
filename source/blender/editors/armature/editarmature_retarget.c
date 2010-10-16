@@ -374,7 +374,7 @@ static RigNode *newRigNodeHead(RigGraph *rg, RigArc *arc, float p[3])
 	return node;
 }
 
-static void addRigNodeHead(RigGraph *rg, RigArc *arc, RigNode *node)
+static void addRigNodeHead(RigGraph *UNUSED(rg), RigArc *arc, RigNode *node)
 {
 	node->degree++;
 
@@ -1784,7 +1784,7 @@ static void repositionTailControl(RigGraph *rigg, RigControl *ctrl)
 	finalizeControl(rigg, ctrl, 1); /* resize will be recalculated anyway so we don't need it */
 }
 
-static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], float tail[3], float qrot[4], float resize)
+static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], float UNUSED(tail[3]), float qrot[4], float resize)
 {
 	float parent_offset[3], tail_offset[3];
 	
@@ -2051,7 +2051,7 @@ static float calcCostLengthDistance(BArcIterator *iter, float **vec_cache, RigEd
 }
 #endif
 
-static float calcCostAngleLengthDistance(BArcIterator *iter, float **vec_cache, RigEdge *edge, float *vec0, float *vec1, float *vec2, int i1, int i2, float angle_weight, float length_weight, float distance_weight)
+static float calcCostAngleLengthDistance(BArcIterator *iter, float **UNUSED(vec_cache), RigEdge *edge, float *vec0, float *vec1, float *vec2, int i1, int i2, float angle_weight, float length_weight, float distance_weight)
 {
 	float vec_second[3], vec_first[3];
 	float length2;

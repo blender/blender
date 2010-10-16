@@ -43,7 +43,7 @@ static bNodeSocketType sh_node_math_out[]= {
 	{ -1, 0, "" } 
 };
 
-static void node_shader_exec_math(void *data, bNode *node, bNodeStack **in, 
+static void node_shader_exec_math(void *UNUSED(data), bNode *node, bNodeStack **in, 
 bNodeStack **out) 
 {
 	switch(node->custom1){ 

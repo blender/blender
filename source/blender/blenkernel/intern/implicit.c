@@ -726,7 +726,7 @@ typedef struct Implicit_Data
 	fmatrix3x3 *A, *dFdV, *dFdX, *S, *P, *Pinv, *bigI, *M; 
 } Implicit_Data;
 
-int implicit_init (Object *ob, ClothModifierData *clmd)
+int implicit_init (Object *UNUSED(ob), ClothModifierData *clmd)
 {
 	unsigned int i = 0;
 	unsigned int pinned = 0;
@@ -1555,7 +1555,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 	free_collider_cache(&colliders);
 }
 
-static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
+static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
 {
 	/* Collect forces and derivatives:  F,dFdX,dFdV */
 	Cloth 		*cloth 		= clmd->clothObject;

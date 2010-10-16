@@ -109,7 +109,7 @@ int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);
 
 /* object motion paths */
-void ED_objects_clear_paths(struct bContext *C, struct Scene *scene);
+void ED_objects_clear_paths(struct bContext *C);
 void ED_objects_recalculate_paths(struct bContext *C, struct Scene *scene);
 
 /* constraints */

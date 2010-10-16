@@ -79,7 +79,7 @@ void sound_init_once()
 	AUD_initOnce();
 }
 
-void sound_init(struct Main *bmain)
+void sound_init(void)
 {
 	AUD_DeviceSpecs specs;
 	int device, buffersize;
@@ -141,7 +141,7 @@ struct bSound* sound_new_file(struct Main *bmain, char* filename)
 	BLI_strncpy(sound->name, filename, FILE_MAX);
 // XXX unused currently	sound->type = SOUND_TYPE_FILE;
 
-	sound_load(bmain, sound);
+	sound_load(sound);
 
 	if(!sound->playback_handle)
 	{
@@ -167,7 +167,7 @@ struct bSound* sound_new_buffer(struct bContext *C, struct bSound *source)
 	sound->child_sound = source;
 	sound->type = SOUND_TYPE_BUFFER;
 
-	sound_load(CTX_data_main(C), sound);
+	sound_load(sound);
 
 	if(!sound->playback_handle)
 	{
@@ -193,7 +193,7 @@ struct bSound* sound_new_limiter(struct bContext *C, struct bSound *source, floa
 	sound->end = end;
 	sound->type = SOUND_TYPE_LIMITER;
 
-	sound_load(CTX_data_main(C), sound);
+	sound_load(sound);
 
 	if(!sound->playback_handle)
 	{
@@ -234,7 +234,7 @@ void sound_delete_cache(struct bSound* sound)
 	}
 }
 
-void sound_load(struct Main *bmain, struct bSound* sound)
+void sound_load(struct bSound* sound)
 {
 	if(sound)
 	{

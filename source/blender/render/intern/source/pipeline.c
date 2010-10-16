@@ -122,20 +122,20 @@ Render R;
 
 
 static volatile int g_break= 0;
-static int thread_break(void *unused)
+static int thread_break(void *UNUSED(arg))
 {
 	return g_break;
 }
 
 /* default callbacks, set in each new render */
-static void result_nothing(void *unused, RenderResult *rr) {}
-static void result_rcti_nothing(void *unused, RenderResult *rr, volatile struct rcti *rect) {}
-static void stats_nothing(void *unused, RenderStats *rs) {}
-static void float_nothing(void *unused, float val) {}
-static void print_error(void *unused, char *str) {printf("ERROR: %s\n", str);}
-static int default_break(void *unused) {return G.afbreek == 1;}
+static void result_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr)) {}
+static void result_rcti_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr), volatile struct rcti *UNUSED(rect)) {}
+static void stats_nothing(void *UNUSED(arg), RenderStats *UNUSED(rs)) {}
+static void float_nothing(void *UNUSED(arg), float UNUSED(val)) {}
+static void print_error(void *UNUSED(arg), char *str) {printf("ERROR: %s\n", str);}
+static int default_break(void *UNUSED(arg)) {return G.afbreek == 1;}
 
-static void stats_background(void *unused, RenderStats *rs)
+static void stats_background(void *UNUSED(arg), RenderStats *rs)
 {
 	char str[400], *spos= str;
 	uintptr_t mem_in_use, mmap_in_use, peak_memory;
@@ -1398,7 +1398,7 @@ void RE_error_cb(Render *re, void *handle, void (*f)(void *handle, char *str))
 
 /* object is considered fully prepared on correct time etc */
 /* includes lights */
-void RE_AddObject(Render *re, Object *ob)
+void RE_AddObject(Render *UNUSED(re), Object *UNUSED(ob))
 {
 	
 }
@@ -2813,7 +2813,7 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 			}
 		}
 		else {
-			ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0, 0);
+			ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0);
 			
 			/* if not exists, BKE_write_ibuf makes one */
 			ibuf->rect= (unsigned int *)rres.rect32;    
@@ -3170,7 +3170,7 @@ void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, char *file
 				if(ibuf->rect_float==NULL)
 					IMB_float_from_rect(ibuf);
 
-				ibuf_clip = IMB_allocImBuf(layer->rectx, layer->recty, 32, IB_rectfloat, 0);
+				ibuf_clip = IMB_allocImBuf(layer->rectx, layer->recty, 32, IB_rectfloat);
 				if(ibuf_clip) {
 					IMB_rectcpy(ibuf_clip, ibuf, 0,0, 0,0, layer->rectx, layer->recty);
 

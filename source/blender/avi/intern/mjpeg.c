@@ -403,7 +403,7 @@ static void jpegmemdestmgr_build(j_compress_ptr cinfo, unsigned char *buffer, in
 /* Decompression from memory */
 
 static void jpegmemsrcmgr_init_source(j_decompress_ptr dinfo) {
-	;
+	(void)dinfo;
 }
 
 static boolean jpegmemsrcmgr_fill_input_buffer(j_decompress_ptr dinfo) {

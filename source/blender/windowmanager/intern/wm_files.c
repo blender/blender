@@ -254,7 +254,7 @@ static void wm_init_userdef(bContext *C)
 
 	UI_init_userdef();
 	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
-	sound_init(CTX_data_main(C));
+	sound_init();
 
 	/* set the python auto-execute setting from user prefs */
 	/* disabled by default, unless explicitly enabled in the command line */

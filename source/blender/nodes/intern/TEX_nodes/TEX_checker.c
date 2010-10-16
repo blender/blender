@@ -40,7 +40,7 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
 	float x  = p->co[0];
 	float y  = p->co[1];

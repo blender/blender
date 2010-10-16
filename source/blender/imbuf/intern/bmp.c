@@ -129,9 +129,9 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 	/* printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y, 
 		depth, bmi.biBitCount); */
 	if (flags & IB_test) {
-		ibuf = IMB_allocImBuf(x, y, depth, 0, 0);
+		ibuf = IMB_allocImBuf(x, y, depth, 0);
 	} else {
-		ibuf = IMB_allocImBuf(x, y, depth, IB_rect, 0);
+		ibuf = IMB_allocImBuf(x, y, depth, IB_rect);
 		bmp = mem + skip;
 		rect = (unsigned char *) ibuf->rect;
 

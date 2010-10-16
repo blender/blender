@@ -422,7 +422,7 @@ static void fglow(NodeGlare* ndg, CompBuf* dst, CompBuf* src)
 
 //--------------------------------------------------------------------------------------------
 
-static void node_composit_exec_glare(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_glare(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	CompBuf *new, *src, *img = in[0]->data;
 	NodeGlare* ndg = node->storage;

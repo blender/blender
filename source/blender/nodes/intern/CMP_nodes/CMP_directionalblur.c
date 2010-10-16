@@ -102,7 +102,7 @@ static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
 	return img;
 }
 
-static void node_composit_exec_dblur(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_dblur(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	NodeDBlurData *ndbd= node->storage;
 	CompBuf *new, *img= in[0]->data;

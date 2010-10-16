@@ -84,12 +84,12 @@ void make_editMball(Object *obedit)
 /* This function is called, when MetaBall Object switched from
  * edit mode to object mode. List od MetaElements is copied
  * from object->data->edit_elems to object->data->elems. */
-void load_editMball(Object *obedit)
+void load_editMball(Object *UNUSED(obedit))
 {
 }
 
 /* Add metaelem primitive to metaball object (which is in edit mode) */
-MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int newname)
+MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int UNUSED(newname))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	MetaBall *mball = (MetaBall*)obedit->data;

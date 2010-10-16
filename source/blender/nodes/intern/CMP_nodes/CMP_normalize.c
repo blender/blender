@@ -40,7 +40,7 @@ static bNodeSocketType cmp_node_normalize_out[]= {
 	{   -1, 0, ""   }
 };
 
-static void do_normalize(bNode *node, float *out, float *src, float *min, float *mult)
+static void do_normalize(bNode *UNUSED(node), float *out, float *src, float *min, float *mult)
 {
 	float res;
 	res = (src[0] - min[0]) * mult[0];
@@ -58,7 +58,7 @@ static void do_normalize(bNode *node, float *out, float *src, float *min, float 
 /* The code below assumes all data is inside range +- this, and that input buffer is single channel */
 #define BLENDER_ZMAX 10000.0f
 
-static void node_composit_exec_normalize(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_normalize(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: valbuf */
 	/* stack order out: valbuf */

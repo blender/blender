@@ -1163,7 +1163,7 @@ static void do_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock **k, float 
 	}
 }
 
-static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, float ctime, char *out, int tot)
+static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, float UNUSED(ctime), char *out, int tot)
 {
 	Nurb *nu;
 	int a, step;
@@ -1657,7 +1657,7 @@ void curve_to_key(Curve *cu, KeyBlock *kb, ListBase *nurb)
 	}
 }
 
-void key_to_curve(KeyBlock *kb, Curve  *cu, ListBase *nurb)
+void key_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
 {
 	Nurb *nu;
 	BezTriple *bezt;

@@ -1084,7 +1084,7 @@ static CustomDataLayer *rna_Mesh_uv_texture_new(struct Mesh *me, struct bContext
 	CustomDataLayer *cdl= NULL;
 	int index;
 
-	if(ED_mesh_uv_texture_add(C, NULL, NULL, me, name, FALSE)) {
+	if(ED_mesh_uv_texture_add(C, me, name, FALSE)) {
 		fdata= rna_mesh_fdata(me);
 		index= CustomData_get_named_layer_index(fdata, CD_MTFACE, name);
 		cdl= (index == -1)? NULL: &fdata->layers[index];

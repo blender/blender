@@ -215,7 +215,7 @@ void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, I
 };
 
 
-static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	
 	/* image assigned to output */
@@ -378,7 +378,7 @@ void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out
 	   out[RRES_OUT_ENV]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_ENVIRONMENT);
 };
 
-static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
    Scene *sce= (Scene *)node->id;
    Render *re= (sce)? RE_GetRender(sce->id.name): NULL;

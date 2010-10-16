@@ -81,7 +81,7 @@ static bNodeSocketType cmp_node_bilateralblur_out[]= {
 
 /* code of this node was heavily inspired by the smooth function of opencv library.
 The main change is an optional image input */
-static void node_composit_exec_bilateralblur(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_bilateralblur(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	NodeBilateralBlurData *nbbd= node->storage;
 	CompBuf *new, *source, *img= in[0]->data , *refimg= in[1]->data;

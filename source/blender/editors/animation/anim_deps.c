@@ -96,7 +96,7 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 
 /* tags the given ID block for refreshes (if applicable) due to 
  * Animation Editor editing */
-void ANIM_id_update(Scene *scene, ID *id)
+void ANIM_id_update(Scene *UNUSED(scene), ID *id)
 {
 	if (id) {
 		AnimData *adt= BKE_animdata_from_id(id);
@@ -121,7 +121,7 @@ void ANIM_id_update(Scene *scene, ID *id)
  */
 
 /* perform syncing updates for Action Groups */
-static void animchan_sync_group (bAnimContext *ac, bAnimListElem *ale)
+static void animchan_sync_group (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 {
 	bActionGroup *agrp= (bActionGroup *)ale->data;
 	ID *owner_id= ale->id;
@@ -154,7 +154,7 @@ static void animchan_sync_group (bAnimContext *ac, bAnimListElem *ale)
 }
  
 /* perform syncing updates for F-Curves */
-static void animchan_sync_fcurve (bAnimContext *ac, bAnimListElem *ale)
+static void animchan_sync_fcurve (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 {
 	FCurve *fcu= (FCurve *)ale->data;
 	ID *owner_id= ale->id;

@@ -62,13 +62,13 @@ static UndoStack MeshUndoStack = {UNDO_PAINT_MESH, {NULL, NULL}, NULL};
 
 /* Generic */
 
-static void undo_restore(bContext *C, UndoStack *stack, UndoElem *uel)
+static void undo_restore(bContext *C, UndoStack *UNUSED(stack), UndoElem *uel)
 {
 	if(uel && uel->restore)
 		uel->restore(C, &uel->elems);
 }
 
-static void undo_elem_free(UndoStack *stack, UndoElem *uel)
+static void undo_elem_free(UndoStack *UNUSED(stack), UndoElem *uel)
 {
 	if(uel && uel->free) {
 		uel->free(&uel->elems);

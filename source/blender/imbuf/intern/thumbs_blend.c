@@ -102,7 +102,7 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 			return NULL;
 	
 		/* finally malloc and read the data */
-		img= IMB_allocImBuf(size[0], size[1], 32, IB_rect | IB_metadata, 0);
+		img= IMB_allocImBuf(size[0], size[1], 32, IB_rect | IB_metadata);
 	
 		if(gzread(gzfile, img->rect, bhead[1]) != bhead[1]) {
 			IMB_freeImBuf(img);

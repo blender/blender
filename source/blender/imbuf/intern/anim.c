@@ -163,7 +163,7 @@ static ImBuf * movie_fetchibuf(struct anim * anim, int position) {
 
 	if (anim == 0) return (0);
 
-	ibuf = IMB_allocImBuf(anim->x, anim->y, 24, IB_rect, 0);
+	ibuf = IMB_allocImBuf(anim->x, anim->y, 24, IB_rect);
 
 	if ( mvReadFrames(anim->track, position, 1, ibuf->x * ibuf->y * 
 		sizeof(int), ibuf->rect ) != DM_SUCCESS ) {
@@ -483,7 +483,7 @@ static ImBuf * avi_fetchibuf (struct anim *anim, int position) {
 #else
 	if (1) {
 #endif
-		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, IB_rect, 0);
+		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, IB_rect);
 
 		tmp = AVI_read_frame (anim->avi, AVI_FORMAT_RGB32, position,
 			AVI_get_stream(anim->avi, AVIST_VIDEO, 0));
@@ -809,7 +809,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 
 	if (anim == 0) return (0);
 
-	ibuf = IMB_allocImBuf(anim->x, anim->y, 32, IB_rect, 0);
+	ibuf = IMB_allocImBuf(anim->x, anim->y, 32, IB_rect);
 
 	avpicture_fill((AVPicture*) anim->pFrameRGB, 
 			   (unsigned char*) ibuf->rect, 
@@ -998,7 +998,7 @@ static ImBuf * redcode_fetchibuf(struct anim * anim, int position) {
 	}
 	
 		ibuf = IMB_allocImBuf(raw_frame->width * 2, 
-				  raw_frame->height * 2, 32, IB_rectfloat, 0);
+				  raw_frame->height * 2, 32, IB_rectfloat);
 
 	redcode_decode_video_float(raw_frame, ibuf->rect_float, 1);
 
@@ -1050,31 +1050,31 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 		break;
 	case ANIM_MOVIE:
 		if (startmovie(anim)) return (0);
-		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0, 0); /* fake */
+		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0); /* fake */
 		break;
 	case ANIM_AVI:
 		if (startavi(anim)) {
 			printf("couldnt start avi\n"); 
 			return (0);
 		}
-		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0, 0);
+		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0);
 		break;
 #ifdef WITH_QUICKTIME
 	case ANIM_QTIME:
 		if (startquicktime(anim)) return (0);
-		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0, 0);
+		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0);
 		break;
 #endif
 #ifdef WITH_FFMPEG
 	case ANIM_FFMPEG:
 		if (startffmpeg(anim)) return (0);
-		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0, 0);
+		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0);
 		break;
 #endif
 #ifdef WITH_REDCODE
 	case ANIM_REDCODE:
 		if (startredcode(anim)) return (0);
-		ibuf = IMB_allocImBuf (8, 8, 32, 0, 0);
+		ibuf = IMB_allocImBuf (8, 8, 32, 0);
 		break;
 #endif
 	}

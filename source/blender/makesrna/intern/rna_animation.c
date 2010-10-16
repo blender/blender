@@ -206,7 +206,7 @@ static StructRNA *rna_KeyingSetInfo_register(const bContext *C, ReportList *repo
 	ksi->generate= (have_function[2])? RKS_GEN_rna_internal: NULL;
 
 	/* add and register with other info as needed */
-	ANIM_keyingset_info_register(C, ksi);
+	ANIM_keyingset_info_register(ksi);
 	
 	/* return the struct-rna added */
 	return ksi->ext.srna;

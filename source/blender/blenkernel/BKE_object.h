@@ -71,7 +71,7 @@ void object_free_modifiers(struct Object *ob);
 void object_make_proxy(struct Object *ob, struct Object *target, struct Object *gob);
 void object_copy_proxy_drivers(struct Object *ob, struct Object *target);
 
-void unlink_object(struct Scene *scene, struct Object *ob);
+void unlink_object(struct Object *ob);
 int exist_object(struct Object *obtest);
 void *add_camera(char *name);
 struct Camera *copy_camera(struct Camera *cam);

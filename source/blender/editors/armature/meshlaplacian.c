@@ -62,7 +62,7 @@
 
 /* ************* XXX *************** */
 static void waitcursor(int val) {}
-static void progress_bar(int dummy_val, const char *dummy) {}
+static void progress_bar(int UNUSED(dummy_val), const char *UNUSED(dummy)) {}
 static void start_progress_bar() {}
 static void end_progress_bar() {}
 static void error(char *str) { printf("error: %s\n", str); }
@@ -362,7 +362,7 @@ void laplacian_begin_solve(LaplacianSystem *sys, int index)
 	}
 }
 
-void laplacian_add_right_hand_side(LaplacianSystem *sys, int v, float value)
+void laplacian_add_right_hand_side(LaplacianSystem *UNUSED(sys), int v, float value)
 {
 	nlRightHandSideAdd(0, v, value);
 }
@@ -1712,7 +1712,7 @@ static void meshdeform_matrix_solve(MeshDeformBind *mdb)
 	nlDeleteContext(context);
 }
 
-static void harmonic_coordinates_bind(Scene *scene, MeshDeformModifierData *mmd, MeshDeformBind *mdb)
+static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierData *mmd, MeshDeformBind *mdb)
 {
 	MDefBindInfluence *inf;
 	MDefInfluence *mdinf;

@@ -289,7 +289,7 @@ static void init_fastshade_shadeinput(Render *re)
 	shi.combinedflag= -1;
 }
 
-static Render *fastshade_get_render(Scene *scene)
+static Render *fastshade_get_render(Scene *UNUSED(scene))
 {
 	// XXX 2.5: this crashes combined with previewrender
 	// due to global R so disabled for now
@@ -1117,7 +1117,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 	
 }
 
-static void curve_to_filledpoly(Curve *cu, ListBase *nurb, ListBase *dispbase)
+static void curve_to_filledpoly(Curve *cu, ListBase *UNUSED(nurb), ListBase *dispbase)
 {
 	if(cu->flag & CU_3D) return;
 

@@ -40,7 +40,7 @@ static bNodeSocketType cmp_node_composite_in[]= {
 };
 
 /* applies to render pipeline */
-static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
 {
 	/* image assigned to output */
 	/* stack order input sockets: col, alpha, z */

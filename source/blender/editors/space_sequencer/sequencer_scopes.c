@@ -143,7 +143,7 @@ static void wform_put_grid(unsigned char * tgt, int w, int h)
 
 static struct ImBuf *make_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 {
-	struct ImBuf * rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect, 0);
+	struct ImBuf * rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
 	int x,y;
 	unsigned char* src = (unsigned char*) ibuf->rect;
 	unsigned char* tgt = (unsigned char*) rval->rect;
@@ -189,7 +189,7 @@ static struct ImBuf *make_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 
 static struct ImBuf *make_waveform_view_from_ibuf_float(struct ImBuf * ibuf)
 {
-	struct ImBuf * rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect, 0);
+	struct ImBuf * rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect);
 	int x,y;
 	float* src = ibuf->rect_float;
 	unsigned char* tgt = (unsigned char*) rval->rect;
@@ -249,7 +249,7 @@ struct ImBuf *make_waveform_view_from_ibuf(struct ImBuf * ibuf)
 static struct ImBuf *make_sep_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 {
 	struct ImBuf * rval = IMB_allocImBuf(
-		ibuf->x + 3, 515, 32, IB_rect, 0);
+		ibuf->x + 3, 515, 32, IB_rect);
 	int x,y;
 	unsigned char* src = (unsigned char*) ibuf->rect;
 	unsigned char* tgt = (unsigned char*) rval->rect;
@@ -299,7 +299,7 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_float(
 	struct ImBuf * ibuf)
 {
 	struct ImBuf * rval = IMB_allocImBuf(
-		ibuf->x + 3, 515, 32, IB_rect, 0);
+		ibuf->x + 3, 515, 32, IB_rect);
 	int x,y;
 	float* src = ibuf->rect_float;
 	unsigned char* tgt = (unsigned char*) rval->rect;
@@ -422,7 +422,7 @@ static void draw_zebra_float(struct ImBuf * src,struct ImBuf * ibuf,float perc)
 
 struct ImBuf * make_zebra_view_from_ibuf(struct ImBuf * src, float perc)
 {
-	struct ImBuf * ibuf = IMB_allocImBuf(src->x, src->y, 32, IB_rect, 0);
+	struct ImBuf * ibuf = IMB_allocImBuf(src->x, src->y, 32, IB_rect);
 
 	if (src->rect_float) {
 		draw_zebra_float(src, ibuf, perc);
@@ -463,7 +463,7 @@ static void draw_histogram_bar(struct ImBuf * ibuf, int x,float val, int col)
 static struct ImBuf *make_histogram_view_from_ibuf_byte(
 	struct ImBuf * ibuf)
 {
-	struct ImBuf * rval = IMB_allocImBuf(515, 128, 32, IB_rect, 0);
+	struct ImBuf * rval = IMB_allocImBuf(515, 128, 32, IB_rect);
 	int n,c,x,y;
 	unsigned char* src = (unsigned char*) ibuf->rect;
 
@@ -517,7 +517,7 @@ static int get_bin_float(float f)
 static struct ImBuf *make_histogram_view_from_ibuf_float(
 	struct ImBuf * ibuf)
 {
-	struct ImBuf * rval = IMB_allocImBuf(515, 128, 32, IB_rect, 0);
+	struct ImBuf * rval = IMB_allocImBuf(515, 128, 32, IB_rect);
 	int n,c,x,y;
 	float* src = ibuf->rect_float;
 
@@ -596,7 +596,7 @@ static void vectorscope_put_cross(unsigned char r, unsigned char g,
 
 static struct ImBuf *make_vectorscope_view_from_ibuf_byte(struct ImBuf * ibuf)
 {
-	struct ImBuf * rval = IMB_allocImBuf(515, 515, 32, IB_rect, 0);
+	struct ImBuf * rval = IMB_allocImBuf(515, 515, 32, IB_rect);
 	int x,y;
 	char* src = (char*) ibuf->rect;
 	char* tgt = (char*) rval->rect;
@@ -643,7 +643,7 @@ static struct ImBuf *make_vectorscope_view_from_ibuf_byte(struct ImBuf * ibuf)
 
 static struct ImBuf *make_vectorscope_view_from_ibuf_float(struct ImBuf * ibuf)
 {
-	struct ImBuf * rval = IMB_allocImBuf(515, 515, 32, IB_rect, 0);
+	struct ImBuf * rval = IMB_allocImBuf(515, 515, 32, IB_rect);
 	int x,y;
 	float* src = ibuf->rect_float;
 	char* tgt = (char*) rval->rect;

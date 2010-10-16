@@ -468,8 +468,8 @@ static void layerSwap_mdisps(void *data, const int *ci)
 	}
 }
 
-static void layerInterp_mdisps(void **sources, float *weights, float *sub_weights,
-				   int count, void *dest)
+static void layerInterp_mdisps(void **UNUSED(sources), float *weights, float *sub_weights,
+				   int UNUSED(count), void *dest)
 {
 	MDisps *d = dest;
 	int i;
@@ -2503,7 +2503,7 @@ void CustomData_external_write(CustomData *data, ID *id, CustomDataMask mask, in
 	cdf_free(cdf);
 }
 
-void CustomData_external_add(CustomData *data, ID *id, int type, int totelem, const char *filename)
+void CustomData_external_add(CustomData *data, ID *id, int type, int UNUSED(totelem), const char *filename)
 {
 	CustomDataExternal *external= data->external;
 	CustomDataLayer *layer;

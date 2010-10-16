@@ -118,8 +118,7 @@ void IMB_freeImBuf(struct ImBuf *ibuf);
  * @attention Defined in allocimbuf.c
  */
 struct ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y,
-						 unsigned char d, unsigned int flags,
-						 unsigned char bitmap);
+						 unsigned char d, unsigned int flags);
 
 /**
  *

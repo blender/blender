@@ -42,7 +42,7 @@ static bNodeSocketType sh_node_curve_vec_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_curve_vec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	float vec[3];
 	
@@ -97,7 +97,7 @@ static bNodeSocketType sh_node_curve_rgb_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_curve_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	float vec[3];
 	

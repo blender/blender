@@ -132,8 +132,8 @@ void create_vert_edge_map(ListBase **map, IndexNode **mem, const struct MEdge *m
 /* Partial Mesh Visibility */
 struct PartialVisibility *mesh_pmv_copy(struct PartialVisibility *);
 void mesh_pmv_free(struct PartialVisibility *);
-void mesh_pmv_revert(struct Object *ob, struct Mesh *me);
-void mesh_pmv_off(struct Object *ob, struct Mesh *me);
+void mesh_pmv_revert(struct Mesh *me);
+void mesh_pmv_off(struct Mesh *me);
 
 /* functions for making menu's from customdata layers */
 int mesh_layers_menu_charlen(struct CustomData *data, int type); /* use this to work out how many chars to allocate */

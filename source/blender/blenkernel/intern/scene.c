@@ -106,7 +106,7 @@ void free_qtcodecdata(QuicktimeCodecData *qcd)
 	}
 }
 
-Scene *copy_scene(Main *bmain, Scene *sce, int type)
+Scene *copy_scene(Scene *sce, int type)
 {
 	Scene *scen;
 	ToolSettings *ts;

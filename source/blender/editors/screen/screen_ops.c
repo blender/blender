@@ -2897,7 +2897,7 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 	Main *bmain= CTX_data_main(C);
 	int type= RNA_enum_get(op->ptr, "type");
 	
-	newscene= copy_scene(bmain, scene, type);
+	newscene= copy_scene(scene, type);
 	
 	/* these can't be handled in blenkernel curently, so do them here */
 	if(type == SCE_COPY_LINK_DATA)

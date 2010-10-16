@@ -369,7 +369,7 @@ static short scene_keyframes_loop(KeyframeEditData *ked, Scene *sce, KeyframeEdi
 }
 
 /* This function is used to loop over the keyframe data in a DopeSheet summary */
-static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
+static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int UNUSED(filterflag))
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;

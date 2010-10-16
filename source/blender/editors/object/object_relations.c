@@ -353,7 +353,7 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 }
 
 /* Generic itemf's for operators that take library args */
-static EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {
 	EnumPropertyItem *item= NULL, item_tmp;
 	int totitem= 0;
@@ -1140,7 +1140,7 @@ void OBJECT_OT_move_to_layer(wmOperatorType *ot)
 
 /************************** Link to Scene Operator *****************************/
 
-void link_to_scene(Main *bmain, unsigned short nr)
+void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
 {
 #if 0
 	Scene *sce= (Scene*) BLI_findlink(&bmain->scene, G.curscreen->scenenr-1);
@@ -1344,7 +1344,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 
 /**************************** Make Single User ********************************/
 
-static void single_object_users__forwardModifierLinks(void *userData, Object *ob, Object **obpoin)
+static void single_object_users__forwardModifierLinks(void *UNUSED(userData), Object *UNUSED(ob), Object **obpoin)
 {
 	ID_NEW(*obpoin);
 }
@@ -1538,7 +1538,7 @@ void single_obdata_users(Main *bmain, Scene *scene, int flag)
 	}
 }
 
-void single_ipo_users(Scene *scene, int flag)
+void single_ipo_users(Scene *UNUSED(scene), int UNUSED(flag))
 {
 #if 0 // XXX old animation system
 	Object *ob;

@@ -337,7 +337,7 @@ int id_unlink(ID *id, int test)
 			break;
 		case ID_OB:
 			if(test) return 1;
-			unlink_object(NULL, (Object*)id);
+			unlink_object((Object*)id);
 			break;
 	}
 
@@ -822,7 +822,7 @@ void free_libblock_us(ListBase *lb, void *idv)		/* test users */
 		else printf("ERROR block %s users %d\n", id->name, id->us);
 	}
 	if(id->us==0) {
-		if( GS(id->name)==ID_OB ) unlink_object(NULL, (Object *)id);
+		if( GS(id->name)==ID_OB ) unlink_object((Object *)id);
 		
 		free_libblock(lb, id);
 	}

@@ -418,7 +418,7 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 
 static void cdDM_drawFacesSolid(DerivedMesh *dm,
 				float (*partial_redraw_planes)[4],
-				int fast, int (*setMaterial)(int, void *attribs))
+				int UNUSED(fast), int (*setMaterial)(int, void *attribs))
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mvert = cddm->mvert;
@@ -1489,7 +1489,7 @@ DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces)
 	return dm;
 }
 
-DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
+DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
 {
 	CDDerivedMesh *cddm = cdDM_create("CDDM_from_mesh dm");
 	DerivedMesh *dm = &cddm->dm;
@@ -1518,7 +1518,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	return dm;
 }
 
-DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
+DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *UNUSED(me))
 {
 	DerivedMesh *dm = CDDM_new(BLI_countlist(&em->verts),
 							   BLI_countlist(&em->edges),

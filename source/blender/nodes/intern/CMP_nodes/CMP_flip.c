@@ -40,7 +40,7 @@ static bNodeSocketType cmp_node_flip_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_exec_flip(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_flip(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if(in[0]->data) {
 		CompBuf *cbuf= in[0]->data;

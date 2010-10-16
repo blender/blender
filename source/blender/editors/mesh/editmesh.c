@@ -78,8 +78,8 @@ editmesh.c:
 */
 
 /* XXX */
-static void BIF_undo_push(const char *dummy) {}
-static void error(const char *dummy) {}
+static void BIF_undo_push(const char *UNUSED(arg)) {}
+static void error(const char *UNUSED(arg)) {}
 
 
 /* ***************** HASH ********************* */
@@ -91,7 +91,7 @@ static void error(const char *dummy) {}
 
 /* ************ ADD / REMOVE / FIND ****************** */
 
-static void *calloc_em(EditMesh *em, size_t size, size_t nr)
+static void *calloc_em(EditMesh *UNUSED(em), size_t size, size_t nr)
 {
 	return calloc(size, nr);
 }
@@ -447,19 +447,19 @@ int editface_containsEdge(EditFace *efa, EditEdge *eed)
 /* ************************ stuct EditMesh manipulation ***************************** */
 
 /* fake callocs for fastmalloc below */
-static void *calloc_fastvert(EditMesh *em, size_t size, size_t nr)
+static void *calloc_fastvert(EditMesh *em, size_t UNUSED(size), size_t UNUSED(nr))
 {
 	EditVert *eve= em->curvert++;
 	eve->fast= 1;
 	return eve;
 }
-static void *calloc_fastedge(EditMesh *em, size_t size, size_t nr)
+static void *calloc_fastedge(EditMesh *em, size_t UNUSED(size), size_t UNUSED(nr))
 {
 	EditEdge *eed= em->curedge++;
 	eed->fast= 1;
 	return eed;
 }
-static void *calloc_fastface(EditMesh *em, size_t size, size_t nr)
+static void *calloc_fastface(EditMesh *em, size_t UNUSED(size), size_t UNUSED(nr))
 {
 	EditFace *efa= em->curface++;
 	efa->fast= 1;

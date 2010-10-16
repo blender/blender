@@ -250,7 +250,7 @@ void BL_MakeScreenShot(ScrArea *curarea, const char* filename)
 		BLI_path_abs(path, G.sce);
 		/* BKE_add_image_extension() checks for if extension was already set */
 		BKE_add_image_extension(path, R_PNG); /* scene->r.imtype */
-		ibuf= IMB_allocImBuf(dumpsx, dumpsy, 24, 0, 0);
+		ibuf= IMB_allocImBuf(dumpsx, dumpsy, 24, 0);
 		ibuf->rect= dumprect;
 		ibuf->ftype= PNG;
 

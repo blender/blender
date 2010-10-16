@@ -52,7 +52,7 @@ static void do_normal(bNode *node, float *out, float *in)
 }
 
 /* generates normal, does dot product */
-static void node_composit_exec_normal(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_normal(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	bNodeSocket *sock= node->outputs.first;
 	/* stack order input:  normal */

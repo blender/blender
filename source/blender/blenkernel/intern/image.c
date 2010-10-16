@@ -103,8 +103,8 @@ static void de_interlace_ng(struct ImBuf *ibuf)	/* neogeo fields */
 	
 	if (ibuf->rect) {
 		/* make copies */
-		tbuf1 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, (int)IB_rect, (unsigned char)0);
-		tbuf2 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, (int)IB_rect, (unsigned char)0);
+		tbuf1 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, (int)IB_rect);
+		tbuf2 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, (int)IB_rect);
 		
 		ibuf->x *= 2;
 		
@@ -131,8 +131,8 @@ static void de_interlace_st(struct ImBuf *ibuf)	/* standard fields */
 	
 	if (ibuf->rect) {
 		/* make copies */
-		tbuf1 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, IB_rect, 0);
-		tbuf2 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, IB_rect, 0);
+		tbuf1 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, IB_rect);
+		tbuf2 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, IB_rect);
 		
 		ibuf->x *= 2;
 		
@@ -389,11 +389,11 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, char *name,
 	float *rect_float= NULL;
 	
 	if (floatbuf) {
-		ibuf= IMB_allocImBuf(width, height, depth, IB_rectfloat, 0);
+		ibuf= IMB_allocImBuf(width, height, depth, IB_rectfloat);
 		rect_float= (float*)ibuf->rect_float;
 	}
 	else {
-		ibuf= IMB_allocImBuf(width, height, depth, IB_rect, 0);
+		ibuf= IMB_allocImBuf(width, height, depth, IB_rect);
 		rect= (unsigned char*)ibuf->rect;
 	}
 	
@@ -1681,7 +1681,7 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int f
 		if(rpass) {
 			// printf("load from pass %s\n", rpass->name);
 			/* since we free  render results, we copy the rect */
-			ibuf= IMB_allocImBuf(ima->rr->rectx, ima->rr->recty, 32, 0, 0);
+			ibuf= IMB_allocImBuf(ima->rr->rectx, ima->rr->recty, 32, 0);
 			ibuf->rect_float= MEM_dupallocN(rpass->rect);
 			ibuf->flags |= IB_rectfloat;
 			ibuf->mall= IB_rectfloat;
@@ -1831,7 +1831,7 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 		RenderPass *rpass= BKE_image_multilayer_index(ima->rr, iuser);
 
 		if(rpass) {
-			ibuf= IMB_allocImBuf(ima->rr->rectx, ima->rr->recty, 32, 0, 0);
+			ibuf= IMB_allocImBuf(ima->rr->rectx, ima->rr->recty, 32, 0);
 			
 			image_initialize_after_load(ima, ibuf);
 			
@@ -1938,7 +1938,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 
 	/* make ibuf if needed, and initialize it */
 	if(ibuf==NULL) {
-		ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, 0, 0);
+		ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, 0);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 	}
 
@@ -2148,7 +2148,7 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 						if(!ibuf) {
 							/* Composite Viewer, all handled in compositor */
 							/* fake ibuf, will be filled in compositor */
-							ibuf= IMB_allocImBuf(256, 256, 32, IB_rect, 0);
+							ibuf= IMB_allocImBuf(256, 256, 32, IB_rect);
 							image_assign_ibuf(ima, ibuf, 0, frame);
 						}
 					}

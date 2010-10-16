@@ -435,7 +435,7 @@ static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs)
 }
 
 /*! init triangle divisions */
-void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *faces, int numfaces, int numtris, int **tridivs, float cell_len) 
+void calcTriangleDivs(Object *ob, MVert *verts, int UNUSED(numverts), MFace *faces, int numfaces, int numtris, int **tridivs, float cell_len) 
 {
 	// mTriangleDivs1.resize( faces.size() );
 	// mTriangleDivs2.resize( faces.size() );
@@ -1270,7 +1270,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 		}
 	}
 }
-void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
+void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm, int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {	
 	if((smd->type & MOD_SMOKE_TYPE_FLOW))
 	{

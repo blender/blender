@@ -83,8 +83,8 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BLO_sys_types.h" // for intptr_t support
 
 /* XXX */
-static void waitcursor(int val) {}
-static int pupmenu(const char *dummy) {return 0;}
+static void waitcursor(int UNUSED(val)) {}
+static int pupmenu(const char *UNUSED(arg)) {return 0;}
 
 /* ****************************** MIRROR **************** */
 
@@ -475,7 +475,7 @@ static float labda_PdistVL2Dfl( float *v1, float *v2, float *v3)
 }
 
 /* note; uses v3d, so needs active 3d window */
-static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
+static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int UNUSED(index))
 {
 	struct { ViewContext vc; float mval[2]; int dist; EditEdge *closest; } *data = userData;
 	float v1[2], v2[2];
@@ -544,7 +544,7 @@ EditEdge *findnearestedge(ViewContext *vc, int *dist)
 	}
 }
 
-static void findnearestface__getDistance(void *userData, EditFace *efa, int x, int y, int index)
+static void findnearestface__getDistance(void *userData, EditFace *efa, int x, int y, int UNUSED(index))
 {
 	struct { short mval[2]; int dist; EditFace *toFace; } *data = userData;
 
@@ -1252,7 +1252,7 @@ static int select_similar_exec(bContext *C, wmOperator *op)
 		return similar_face_select_exec(C, op);
 }
 
-static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EnumPropertyItem *item= NULL;

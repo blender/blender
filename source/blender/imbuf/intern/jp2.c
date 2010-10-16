@@ -189,7 +189,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 		float_divs[i]= (1<<image->comps[i].prec)-1;
 	}
 	
-	ibuf= IMB_allocImBuf(w, h, depth, use_float ? IB_rectfloat : IB_rect, 0);
+	ibuf= IMB_allocImBuf(w, h, depth, use_float ? IB_rectfloat : IB_rect);
 	
 	if (ibuf==NULL) {
 		if(dinfo)

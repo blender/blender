@@ -379,7 +379,7 @@ int cdf_write_open(CDataFile *cdf, char *filename)
 	return 1;
 }
 
-int cdf_write_layer(CDataFile *cdf, CDataFileLayer *blay)
+int cdf_write_layer(CDataFile *UNUSED(cdf), CDataFileLayer *UNUSED(blay))
 {
 	return 1;
 }

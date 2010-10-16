@@ -220,7 +220,7 @@ void clmdSetInterruptCallBack ( int ( *f ) ( void ) );
 
 // needed for modifier.c
 void cloth_free_modifier_extern ( struct ClothModifierData *clmd );
-void cloth_free_modifier ( struct Object *ob, struct ClothModifierData *clmd );
+void cloth_free_modifier ( struct ClothModifierData *clmd );
 void cloth_init ( struct ClothModifierData *clmd );
 struct DerivedMesh *clothModifier_do ( struct ClothModifierData *clmd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc );
 

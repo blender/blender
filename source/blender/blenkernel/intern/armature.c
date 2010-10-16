@@ -252,7 +252,7 @@ Bone *get_named_bone (bArmature *arm, const char *name)
  *	axis: the axis to name on
  *	head/tail: the head/tail co-ordinate of the bone on the specified axis
  */
-int bone_autoside_name (char *name, int strip_number, short axis, float head, float tail)
+int bone_autoside_name (char *name, int UNUSED(strip_number), short axis, float head, float tail)
 {
 	unsigned int len;
 	char	basename[32]={""};
@@ -1057,7 +1057,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 
 /* ************ END Armature Deform ******************* */
 
-void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed)
+void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int UNUSED(root), int UNUSED(posed))
 {
 	copy_m4_m4(M_accumulatedMatrix, bone->arm_mat);
 }
@@ -1616,7 +1616,7 @@ typedef struct tSplineIK_Tree {
 /* ----------- */
 
 /* Tag the bones in the chain formed by the given bone for IK */
-static void splineik_init_tree_from_pchan(Scene *scene, Object *ob, bPoseChannel *pchan_tip)
+static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPoseChannel *pchan_tip)
 {
 	bPoseChannel *pchan, *pchanRoot=NULL;
 	bPoseChannel *pchanChain[255];
@@ -1785,7 +1785,7 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *ob, bPoseChannel
 }
 
 /* Tag which bones are members of Spline IK chains */
-static void splineik_init_tree(Scene *scene, Object *ob, float ctime)
+static void splineik_init_tree(Scene *scene, Object *ob, float UNUSED(ctime))
 {
 	bPoseChannel *pchan;
 	

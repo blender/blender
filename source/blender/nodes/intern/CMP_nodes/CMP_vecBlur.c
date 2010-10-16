@@ -44,7 +44,7 @@ static bNodeSocketType cmp_node_vecblur_out[]= {
 
 
 
-static void node_composit_exec_vecblur(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_vecblur(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	NodeBlurData *nbd= node->storage;
 	CompBuf *new, *img= in[0]->data, *vecbuf= in[2]->data, *zbuf= in[1]->data;

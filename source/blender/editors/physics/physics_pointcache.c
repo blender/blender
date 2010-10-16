@@ -56,7 +56,7 @@
 
 #include "physics_intern.h"
 
-static int cache_break_test(void *cbd) {
+static int cache_break_test(void *UNUSED(cbd)) {
 	return G.afbreek==1;
 }
 static int ptcache_bake_all_poll(bContext *C)
@@ -75,13 +75,13 @@ static int ptcache_poll(bContext *C)
 	return (ptr.data && ptr.id.data);
 }
 
-void bake_console_progress(void *arg, int nr)
+void bake_console_progress(void *UNUSED(arg), int nr)
 {
 	printf("\rbake: %3i%%", nr);
 	fflush(stdout);
 }
 
-void bake_console_progress_end(void *arg)
+void bake_console_progress_end(void *UNUSED(arg))
 {
 	printf("\n");
 }

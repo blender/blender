@@ -118,11 +118,13 @@ void BLF_lang_init(void)
 
 void BLF_lang_encoding(char *str)
 {
+	(void)str;
 	return;
 }
 
 void BLF_lang_set(char *str)
 {
+	(void)str;
 	return;
 }
 

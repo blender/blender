@@ -52,7 +52,7 @@ static void do_map_value(bNode *node, float *out, float *src)
 			out[0]= texmap->max[0];
 }
 
-static void node_composit_exec_map_value(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_map_value(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: valbuf */
 	/* stack order out: valbuf */

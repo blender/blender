@@ -558,7 +558,7 @@ KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, const char name[
 /* --------------- */
 
 /* Add the given KeyingSetInfo to the list of type infos, and create an appropriate builtin set too */
-void ANIM_keyingset_info_register (const bContext *C, KeyingSetInfo *ksi)
+void ANIM_keyingset_info_register (KeyingSetInfo *ksi)
 {
 	KeyingSet *ks;
 	

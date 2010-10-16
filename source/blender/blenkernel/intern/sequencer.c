@@ -1021,7 +1021,7 @@ static int get_shown_sequences(	ListBase * seqbasep, int cfra, int chanshown, Se
 
 #define PROXY_MAXFILE (2*FILE_MAXDIR+FILE_MAXFILE)
 
-static int seq_proxy_get_fname(Scene *scene, Sequence * seq, int cfra, char * name, int render_size)
+static int seq_proxy_get_fname(Scene *UNUSED(scene), Sequence * seq, int cfra, char * name, int render_size)
 {
 	int frameno;
 	char dir[FILE_MAXDIR];
@@ -1444,7 +1444,7 @@ static void color_balance(Sequence * seq, ImBuf* ibuf, float mul)
 */
 
 int input_have_to_preprocess(
-	Scene *scene, Sequence * seq, float cfra, int seqrectx, int seqrecty)
+	Scene *UNUSED(scene), Sequence * seq, float UNUSED(cfra), int UNUSED(seqrectx), int UNUSED(seqrecty))
 {
 	float mul;
 
@@ -1476,7 +1476,7 @@ int input_have_to_preprocess(
 }
 
 static ImBuf * input_preprocess(
-	Scene *scene, Sequence *seq, float cfra, int seqrectx, int seqrecty,
+	Scene *scene, Sequence *seq, float UNUSED(cfra), int seqrectx, int seqrecty,
 	ImBuf * ibuf)
 {
 	float mul;
@@ -1521,9 +1521,9 @@ static ImBuf * input_preprocess(
 			ImBuf * i;
 
 			if (ibuf->rect_float) {
-				i = IMB_allocImBuf(dx, dy,32, IB_rectfloat, 0);
+				i = IMB_allocImBuf(dx, dy,32, IB_rectfloat);
 			} else {
-				i = IMB_allocImBuf(dx, dy,32, IB_rect, 0);
+				i = IMB_allocImBuf(dx, dy,32, IB_rect);
 			}
 
 			IMB_rectcpy(i, ibuf, 
@@ -1787,7 +1787,7 @@ finish:
 
 	if (!out) {
 		out = IMB_allocImBuf(
-			(short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
+			(short)seqrectx, (short)seqrecty, 32, IB_rect);
 	}
 
 	return out;
@@ -1878,7 +1878,7 @@ static ImBuf * seq_render_scene_strip_impl(
 		RE_AcquireResultImage(re, &rres);
 		
 		if(rres.rectf) {
-			ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat, 0);
+			ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat);
 			memcpy(ibuf->rect_float, rres.rectf, 4*sizeof(float)*rres.rectx*rres.recty);
 			if(rres.rectz) {
 				addzbuffloatImBuf(ibuf);
@@ -1890,7 +1890,7 @@ static ImBuf * seq_render_scene_strip_impl(
 			IMB_convert_profile(ibuf, IB_PROFILE_SRGB);			
 		}
 		else if (rres.rect32) {
-			ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect, 0);
+			ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect);
 			memcpy(ibuf->rect, rres.rect32, 4*rres.rectx*rres.recty);
 		}
 		
@@ -2079,7 +2079,7 @@ static ImBuf * seq_render_strip(Main *bmain, Scene *scene, Sequence * seq, float
 
 	if (!ibuf) {
 	        ibuf = IMB_allocImBuf(
-			(short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
+			(short)seqrectx, (short)seqrecty, 32, IB_rect);
 	}
 
 	if (ibuf->x != seqrectx || ibuf->y != seqrecty) {
@@ -2213,7 +2213,7 @@ static ImBuf* seq_render_strip_stack(
 			if (i == 0) {
 				out = IMB_allocImBuf(
 					(short)seqrectx, (short)seqrecty, 
-					32, IB_rect, 0);
+					32, IB_rect);
 			}
 			break;
 		case 0:

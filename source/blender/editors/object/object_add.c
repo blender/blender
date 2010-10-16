@@ -161,11 +161,6 @@ float ED_object_new_primitive_matrix(bContext *C, Object *obedit, float *loc, fl
 
 /********************* Add Object Operator ********************/
 
-void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menus, only non-editmode stuff */
-{
-	/* keep here to get things compile, remove later */
-}
-
 void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 {
 	PropertyRNA *prop;
@@ -362,11 +357,6 @@ static EnumPropertyItem field_type_items[] = {
 	{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", ""},
 	{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", ""},
 	{0, NULL, 0, NULL, NULL}};
-
-void add_effector_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menus, only non-editmode stuff */
-{
-	/* keep here to get things compile, remove later */
-}
 
 /* for effector add primitive operators */
 static Object *effector_add_type(bContext *C, wmOperator *op, int type)
@@ -855,7 +845,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 
 /**************************** Copy Utilities ******************************/
 
-static void copy_object__forwardModifierLinks(void *userData, Object *ob,
+static void copy_object__forwardModifierLinks(void *UNUSED(userData), Object *UNUSED(ob),
 											  ID **idpoin)
 {
 	/* this is copied from ID_NEW; it might be better to have a macro */

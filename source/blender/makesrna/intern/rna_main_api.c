@@ -176,7 +176,7 @@ Object *rna_Main_objects_new(Main *bmain, ReportList *reports, char* name, ID *d
 void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *object)
 {
 	if(ID_REAL_USERS(object) <= 0) {
-		unlink_object(NULL, object); /* needed or ID pointers to this are not cleared */
+		unlink_object(object); /* needed or ID pointers to this are not cleared */
 		free_libblock(&bmain->object, object);
 	}
 	else {

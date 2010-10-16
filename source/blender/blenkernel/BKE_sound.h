@@ -40,7 +40,7 @@ struct Sequence;
 
 void sound_init_once();
 
-void sound_init(struct Main *main);
+void sound_init(void);
 
 void sound_exit();
 
@@ -62,7 +62,7 @@ void sound_cache(struct bSound* sound, int ignore);
 
 void sound_delete_cache(struct bSound* sound);
 
-void sound_load(struct Main *main, struct bSound* sound);
+void sound_load(struct bSound* sound);
 
 void sound_free(struct bSound* sound);
 

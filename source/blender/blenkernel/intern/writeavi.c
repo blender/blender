@@ -137,6 +137,8 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 	int quality;
 	double framerate;
 	
+	(void)scene; /* unused */
+	
 	filepath_avi(name, rd);
 
 	sframe = (rd->sfra);
@@ -175,7 +177,7 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 	return 1;
 }
 
-static int append_avi(RenderData *rd, int frame, int *pixels, int rectx, int recty, ReportList *reports)
+static int append_avi(RenderData *UNUSED(rd), int frame, int *pixels, int rectx, int recty, ReportList *UNUSED(reports))
 {
 	unsigned int *rt1, *rt2, *rectot;
 	int x, y;

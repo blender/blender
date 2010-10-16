@@ -157,7 +157,7 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	}
 }
 
-int ED_mesh_uv_texture_add(bContext *C, Scene *scene, Object *ob, Mesh *me, const char *name, int active_set)
+int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_set)
 {
 	EditMesh *em;
 	int layernum;
@@ -292,7 +292,7 @@ static int uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Mesh *me= ob->data;
 
-	if(!ED_mesh_uv_texture_add(C, scene, ob, me, NULL, TRUE))
+	if(!ED_mesh_uv_texture_add(C, me, NULL, TRUE))
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;

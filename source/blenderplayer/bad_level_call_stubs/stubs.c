@@ -205,7 +205,7 @@ struct KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[]){return 
 struct KeyingSet *ANIM_scene_get_active_keyingset (struct Scene *scene){return (struct KeyingSet *) NULL;}
 int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks){return 0;}
 struct ListBase builtin_keyingsets;
-void ANIM_keyingset_info_register (const struct bContext *C, struct KeyingSetInfo *ksi){}
+void ANIM_keyingset_info_register (struct KeyingSetInfo *ksi){}
 void ANIM_keyingset_info_unregister (const struct bContext *C, struct KeyingSetInfo *ksi){}
 short ANIM_add_driver(struct ID *id, const char rna_path[], int array_index, short flag, int type){return 0;}
 short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index, short flag){return 0;}
@@ -254,7 +254,7 @@ void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count)
 void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_material_link(struct Mesh *mesh, struct Material *ma){}
 int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
-int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
+int ED_mesh_uv_texture_add(struct bContext *C, struct Mesh *me){return 0;}
 void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob){}
 void ED_object_constraint_update(struct Object *ob){}
 struct bDeformGroup *ED_vgroup_add_name(struct Object *ob, char *name){return (struct bDeformGroup *) NULL;}

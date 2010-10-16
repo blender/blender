@@ -116,7 +116,7 @@ static int nodes_use_tex(bNodeTree *ntree, Tex *tex)
 	return 0;
 }
 
-static void material_changed(Main *bmain, Material *ma)
+static void material_changed(Main *UNUSED(bmain), Material *ma)
 {
 	/* icons */
 	BKE_icon_changed(BKE_icon_getid(&ma->id));
@@ -208,7 +208,7 @@ static void image_changed(Main *bmain, Image *ima)
 			texture_changed(bmain, tex);
 }
 
-static void scene_changed(Main *bmain, Scene *sce)
+static void scene_changed(Main *bmain, Scene *UNUSED(scene))
 {
 	Object *ob;
 	Material *ma;
@@ -834,7 +834,7 @@ static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int
 	dx= env->cube[1]->x;
 	
 	if (env->type == ENV_CUBE) {
-		ibuf = IMB_allocImBuf(3*dx, 2*dx, 24, IB_rectfloat, 0);
+		ibuf = IMB_allocImBuf(3*dx, 2*dx, 24, IB_rectfloat);
 
 		IMB_rectcpy(ibuf, env->cube[0], 0, 0, 0, 0, dx, dx);
 		IMB_rectcpy(ibuf, env->cube[1], dx, 0, 0, 0, dx, dx);
@@ -844,7 +844,7 @@ static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int
 		IMB_rectcpy(ibuf, env->cube[5], 2*dx, dx, 0, 0, dx, dx);
 	}
 	else if (env->type == ENV_PLANE) {
-		ibuf = IMB_allocImBuf(dx, dx, 24, IB_rectfloat, 0);
+		ibuf = IMB_allocImBuf(dx, dx, 24, IB_rectfloat);
 		IMB_rectcpy(ibuf, env->cube[1], 0, 0, 0, 0, dx, dx);		
 	}
 	

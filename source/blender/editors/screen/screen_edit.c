@@ -1739,7 +1739,7 @@ void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
 }
 
 /* results in fully updated anim system */
-void ED_update_for_newframe(const bContext *C, int mute)
+void ED_update_for_newframe(const bContext *C, int UNUSED(mute))
 {
 	Main *bmain= CTX_data_main(C);
 	bScreen *screen= CTX_wm_screen(C);

@@ -846,7 +846,7 @@ DagNode * dag_get_sub_node (DagForest *forest,void * fob)
 	return node;
 }
 
-static void dag_add_parent_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, char *name) 
+static void dag_add_parent_relation(DagForest *UNUSED(forest), DagNode *fob1, DagNode *fob2, short rel, char *name) 
 {
 	DagAdjList *itA = fob2->parent;
 	
@@ -2280,7 +2280,7 @@ void DAG_on_load_update(Main *bmain)
 	}
 }
 
-static void dag_id_flush_update__isDependentTexture(void *userData, Object *ob, ID **idpoin)
+static void dag_id_flush_update__isDependentTexture(void *userData, Object *UNUSED(ob), ID **idpoin)
 {
 	struct { ID *id; int is_dependent; } *data = userData;
 	

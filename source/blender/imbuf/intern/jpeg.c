@@ -297,9 +297,9 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 
 		if (flags & IB_test) {
 			jpeg_abort_decompress(cinfo);
-			ibuf = IMB_allocImBuf(x, y, 8 * depth, 0, 0);
+			ibuf = IMB_allocImBuf(x, y, 8 * depth, 0);
 		}
-		else if ((ibuf = IMB_allocImBuf(x, y, 8 * depth, IB_rect, 0)) == NULL) {
+		else if ((ibuf = IMB_allocImBuf(x, y, 8 * depth, IB_rect)) == NULL) {
 			jpeg_abort_decompress(cinfo);
 		}
 		else {
@@ -699,7 +699,7 @@ static int save_jstjpeg(char * name, struct ImBuf * ibuf)
 	struct ImBuf * tbuf;
 	int oldy, returnval;
 
-	tbuf = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 24, IB_rect, 0);
+	tbuf = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 24, IB_rect);
 	tbuf->ftype = ibuf->ftype;
 	tbuf->flags = ibuf->flags;
 	

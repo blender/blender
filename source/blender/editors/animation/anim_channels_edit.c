@@ -1628,7 +1628,7 @@ void ANIM_OT_channels_select_border(wmOperatorType *ot)
 /* ******************** Mouse-Click Operator *********************** */
 /* Handle selection changes due to clicking on channels. Settings will get caught by UI code... */
 
-static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, short selectmode)
+static int mouse_anim_channels (bAnimContext *ac, float UNUSED(x), int channel_index, short selectmode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;

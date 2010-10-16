@@ -138,6 +138,8 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		fss->flag |= OB_FLUIDSIM_ACTIVE;
 
 	}
+#else
+	(void)fluidmd; /* unused */
 #endif
 	return;
 }
@@ -154,7 +156,10 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 		}
 		MEM_freeN(fluidmd->fss);
 	}
+#else
+	(void)fluidmd; /* unused */
 #endif
+	
 	return;
 }
 
@@ -607,6 +612,11 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
 	
 	return dm;
 #else
+	/* unused */
+	(void)fluidmd;
+	(void)scene;
+	(void)dm;
+	(void)useRenderParams;
 	return NULL;
 #endif
 }

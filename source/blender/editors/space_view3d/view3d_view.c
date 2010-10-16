@@ -1770,7 +1770,7 @@ int ED_view3d_context_activate(bContext *C)
 	return 1;
 }
 
-static int game_engine_exec(bContext *C, wmOperator *UNUSED(op))
+static int game_engine_exec(bContext *C, wmOperator *op)
 {
 #if GAMEBLENDER == 1
 	Scene *startscene = CTX_data_scene(C);
@@ -1780,6 +1780,8 @@ static int game_engine_exec(bContext *C, wmOperator *UNUSED(op))
 	RegionView3D *rv3d;
 	rcti cam_frame;
 
+	(void)op; /* unused */
+	
 	// bad context switch ..
 	if(!ED_view3d_context_activate(C))
 		return OPERATOR_CANCELLED;
@@ -1828,6 +1830,7 @@ static int game_engine_exec(bContext *C, wmOperator *UNUSED(op))
 
 	return OPERATOR_FINISHED;
 #else
+	(void)C; /* unused */
 	BKE_report(op->reports, RPT_ERROR, "Game engine is disabled in this build.");
 	return OPERATOR_CANCELLED;
 #endif

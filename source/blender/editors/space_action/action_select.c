@@ -990,7 +990,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 		}
 		else if (ale->type == ANIMTYPE_GPLAYER) {
 			struct bGPDlayer *gpl= (struct bGPDlayer *)ale->data;
-			gpl_to_keylist(ads, gpl, &anim_keys, NULL);
+			gpl_to_keylist(ads, gpl, &anim_keys);
 		}
 		
 		/* loop through keyframes, finding one that was within the range clicked on */

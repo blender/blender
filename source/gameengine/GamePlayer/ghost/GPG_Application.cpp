@@ -583,7 +583,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		if (!m_networkdevice)
 			goto initFailed;
 			
-		sound_init(m_maggie);
+		sound_init();
 
 		// create a ketsjisystem (only needed for timing and stuff)
 		m_kxsystem = new GPG_System (m_system);
