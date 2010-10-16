@@ -148,16 +148,17 @@ static SpaceLink *nla_new(const bContext *C)
 	ar->v2d.cur = ar->v2d.tot;
 	
 	ar->v2d.min[0]= 0.0f;
-	 ar->v2d.min[1]= 0.0f;
+	ar->v2d.min[1]= 0.0f;
 	
 	ar->v2d.max[0]= MAXFRAMEF;
-	 ar->v2d.max[1]= 10000.0f;
+	ar->v2d.max[1]= 10000.0f;
  	
 	ar->v2d.minzoom= 0.01f;
 	ar->v2d.maxzoom= 50;
 	ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 	ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 	ar->v2d.keepzoom= V2D_LOCKZOOM_Y;
+	ar->v2d.keepofs= V2D_KEEPOFS_Y;
 	ar->v2d.align= V2D_ALIGN_NO_POS_Y;
 	ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 	
