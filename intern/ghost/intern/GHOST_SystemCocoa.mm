@@ -1163,7 +1163,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 					NSEnumerator *enumerator;
 					NSImageRep *representation;
 					
-					ibuf = IMB_allocImBuf (imgSize.width , imgSize.height, 32, IB_rect, 0);
+					ibuf = IMB_allocImBuf (imgSize.width , imgSize.height, 32, IB_rect);
 					if (!ibuf) {
 						[droppedImg release];
 						return GHOST_kFailure;
