@@ -82,7 +82,7 @@ ARegion *logic_has_buttons_region(ScrArea *sa)
 
 /* ******************** default callbacks for image space ***************** */
 
-static SpaceLink *logic_new(const bContext *C)
+static SpaceLink *logic_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceLogic *slogic;
@@ -145,7 +145,7 @@ static SpaceLink *logic_new(const bContext *C)
 }
 
 /* not spacelink itself */
-static void logic_free(SpaceLink *sl)
+static void logic_free(SpaceLink *UNUSED(sl))
 {	
 //	Spacelogic *slogic= (SpaceLogic*) sl;
 	
@@ -156,7 +156,7 @@ static void logic_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void logic_init(struct wmWindowManager *wm, ScrArea *sa)
+static void logic_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 
 }
@@ -183,7 +183,7 @@ void logic_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "LOGIC_MT_logicbricks_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 }
 
-static void logic_refresh(const bContext *C, ScrArea *sa)
+static void logic_refresh(const bContext *UNUSED(C), ScrArea *UNUSED(sa))
 {
 //	SpaceLogic *slogic= CTX_wm_space_logic(C);
 //	Object *obedit= CTX_data_edit_object(C);
@@ -217,11 +217,9 @@ static void logic_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
-static int logic_context(const bContext *C, const char *member, bContextDataResult *result)
+static int logic_context(const bContext *UNUSED(C), const char *UNUSED(member), bContextDataResult *UNUSED(result))
 {
 //	SpaceLogic *slogic= CTX_wm_space_logic(C);
-
-
 	return 0;
 }
 
@@ -287,7 +285,7 @@ static void logic_buttons_area_draw(const bContext *C, ARegion *ar)
 /************************* header region **************************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void logic_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void logic_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }

@@ -66,7 +66,7 @@
 
 /* ******************** default callbacks for file space ***************** */
 
-static SpaceLink *file_new(const bContext *C)
+static SpaceLink *file_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceFile *sfile;
@@ -143,7 +143,7 @@ static void file_free(SpaceLink *sl)
 
 
 /* spacetype; init callback, area size changes, screen set, etc */
-static void file_init(struct wmWindowManager *wm, ScrArea *sa)
+static void file_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceFile *sfile= (SpaceFile*)sa->spacedata.first;
 	//printf("file_init\n");
@@ -178,7 +178,7 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	return (SpaceLink *)sfilen;
 }
 
-static void file_refresh(const bContext *C, ScrArea *sa)
+static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
@@ -457,7 +457,7 @@ static void file_channel_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
-static void file_channel_area_listener(ARegion *ar, wmNotifier *wmn)
+static void file_channel_area_listener(ARegion *UNUSED(ar), wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {

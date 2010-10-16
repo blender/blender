@@ -178,7 +178,7 @@ static void nla_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void nla_init(struct wmWindowManager *wm, ScrArea *sa)
+static void nla_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceNla *snla= (SpaceNla *)sa->spacedata.first;
 	
@@ -219,7 +219,6 @@ static void nla_channel_area_init(wmWindowManager *wm, ARegion *ar)
 /* draw entirely, view changes should be handled here */
 static void nla_channel_area_draw(const bContext *C, ARegion *ar)
 {
-	SpaceNla *snla= CTX_wm_space_nla(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
@@ -232,7 +231,7 @@ static void nla_channel_area_draw(const bContext *C, ARegion *ar)
 	
 	/* data */
 	if (ANIM_animdata_get_context(C, &ac)) {
-		draw_nla_channel_list((bContext *)C, &ac, snla, ar);
+		draw_nla_channel_list((bContext *)C, &ac, ar);
 	}
 	
 	/* reset view matrix */
@@ -316,7 +315,7 @@ static void nla_main_area_draw(const bContext *C, ARegion *ar)
 
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void nla_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void nla_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }

@@ -219,7 +219,7 @@ static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float co
 }
 
 /* helper call for drawing influence/time control curves for a given NLA-strip */
-static void nla_draw_strip_curves (NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip_curves (NlaStrip *strip, float yminc, float ymaxc)
 {
 	const float yheight = ymaxc - yminc;
 	
@@ -280,7 +280,7 @@ static void nla_draw_strip_curves (NlaStrip *strip, View2D *v2d, float yminc, fl
 }
 
 /* main call for drawing a single NLA-strip */
-static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt), NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
 {
 	float color[3];
 	
@@ -351,7 +351,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStr
 	 *	- only if user hasn't hidden them...
 	 */
 	if ((snla->flag & SNLA_NOSTRIPCURVES) == 0)
-		nla_draw_strip_curves(strip, v2d, yminc, ymaxc);
+		nla_draw_strip_curves(strip, yminc, ymaxc);
 	
 	/* draw strip outline 
 	 *	- color used here is to indicate active vs non-active
@@ -414,7 +414,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStr
 } 
 
 /* add the relevant text to the cache of text-strings to draw in pixelspace */
-static void nla_draw_strip_text (NlaTrack *nlt, NlaStrip *strip, int index, View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip_text (NlaTrack *UNUSED(nlt), NlaStrip *strip, int UNUSED(index), View2D *v2d, float yminc, float ymaxc)
 {
 	char str[256], dir[3];
 	rctf rect;
@@ -810,7 +810,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 	}
 }
 
-void draw_nla_channel_list (bContext *C, bAnimContext *ac, SpaceNla *snla, ARegion *ar)
+void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;

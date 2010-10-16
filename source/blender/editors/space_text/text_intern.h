@@ -53,7 +53,7 @@ int text_check_whitespace(char ch);
 int text_font_width_character(struct SpaceText *st);
 int text_font_width(struct SpaceText *st, char *str);
 
-void text_update_line_edited(struct Text *text, struct TextLine *line);
+void text_update_line_edited(struct TextLine *line);
 void text_update_edited(struct Text *text);
 void text_update_character_width(struct SpaceText *st);
 void text_update_cursor_moved(struct bContext *C);

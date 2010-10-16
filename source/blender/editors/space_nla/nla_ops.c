@@ -156,7 +156,7 @@ void nla_operatortypes(void)
 
 /* ************************** registration - keymaps **********************************/
 
-static void nla_keymap_channels (wmKeyConfig *keyconf, wmKeyMap *keymap)
+static void nla_keymap_channels(wmKeyMap *keymap)
 {
 	/* NLA-specific (different to standard channels keymap) -------------------------- */
 	/* selection */
@@ -287,7 +287,7 @@ void nla_keymap(wmKeyConfig *keyconf)
 	 * However, those operations which involve clicking on channels and/or the placement of them in the view are implemented here instead
 	 */
 	keymap= WM_keymap_find(keyconf, "NLA Channels", SPACE_NLA, 0);
-	nla_keymap_channels(keyconf, keymap);
+	nla_keymap_channels(keymap);
 	
 	/* data */
 	keymap= WM_keymap_find(keyconf, "NLA Editor", SPACE_NLA, 0);

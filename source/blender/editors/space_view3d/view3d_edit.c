@@ -2209,7 +2209,6 @@ static int add_background_image_exec(bContext *C, wmOperator *UNUSED(op))
 
 static int add_background_image_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	Image *ima= NULL;
 	BGpic *bgpic;

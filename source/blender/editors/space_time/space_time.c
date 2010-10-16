@@ -61,11 +61,8 @@
 
 /* ************************ main time area region *********************** */
 
-static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar)
-{
-	View2D *v2d= UI_view2d_fromcontext(C);
-	Scene *scene= CTX_data_scene(C);
-	
+static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
+{	
 	/* draw darkened area outside of active timeline 
 	 * frame range used is preview range or scene range */
 	UI_ThemeColorShade(TH_BACK, -25);
@@ -86,7 +83,7 @@ static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar
 
 #define CACHE_DRAW_HEIGHT	3.0f
 
-static void time_draw_cache(const bContext *C, SpaceTime *stime, ARegion *ar)
+static void time_draw_cache(SpaceTime *stime)
 {
 	SpaceTimeCache *stc;
 	float yoffs=0.f;
@@ -162,7 +159,7 @@ static void time_cache_free(SpaceTime *stime)
 	BLI_freelistN(&stime->caches);
 }
 
-static void time_cache_refresh(const bContext *C, SpaceTime *stime, ARegion *ar)
+static void time_cache_refresh(const bContext *C, SpaceTime *stime)
 {
 	Object *ob = CTX_data_active_object(C);
 	PTCacheID *pid;
@@ -389,7 +386,7 @@ static void time_refresh(const bContext *C, ScrArea *sa)
 	/* find the main timeline region and refresh cache display*/
 	for (ar= sa->regionbase.first; ar; ar= ar->next) {
 		if (ar->regiontype==RGN_TYPE_WINDOW) {
-			time_cache_refresh(C, stime, ar);
+			time_cache_refresh(C, stime);
 			break;
 		}
 	}
@@ -457,6 +454,7 @@ static void time_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void time_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
+	Scene *scene= CTX_data_scene(C);
 	SpaceTime *stime= CTX_wm_space_time(C);
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
@@ -470,11 +468,11 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(v2d);
 
 	/* start and end frame */
-	time_draw_sfra_efra(C, stime, ar);
+	time_draw_sfra_efra(scene, v2d);
 	
 	/* grid */
 	unit= (stime->flag & TIME_DRAWFRAMES)? V2D_UNIT_FRAMES: V2D_UNIT_SECONDS;
-	grid= UI_view2d_grid_calc(CTX_data_scene(C), v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
+	grid= UI_view2d_grid_calc(scene, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
 	UI_view2d_grid_draw(v2d, grid, (V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS));
 	UI_view2d_grid_free(grid);
 	
@@ -492,7 +490,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	draw_markers_time(C, 0);
 	
 	/* caches */
-	time_draw_cache(C, stime, ar);
+	time_draw_cache(stime);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
@@ -533,7 +531,7 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 /* ************************ header time area region *********************** */
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void time_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void time_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
@@ -632,7 +630,7 @@ static void time_free(SpaceLink *sl)
 /* spacetype; init callback in ED_area_initialize() */
 /* init is called to (re)initialize an existing editor (file read, screen changes) */
 /* validate spacedata, add own area level handlers */
-static void time_init(wmWindowManager *wm, ScrArea *sa)
+static void time_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceTime *stime= (SpaceTime *)sa->spacedata.first;
 	

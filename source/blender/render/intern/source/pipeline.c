@@ -2226,7 +2226,7 @@ static int composite_needs_render(Scene *sce)
 }
 
 /* bad call... need to think over proper method still */
-static void render_composit_stats(void *unused, char *str)
+static void render_composit_stats(void *UNUSED(arg), char *str)
 {
 	R.i.infostr= str;
 	R.stats_draw(R.sdh, &R.i);

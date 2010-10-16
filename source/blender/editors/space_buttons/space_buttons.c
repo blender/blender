@@ -55,7 +55,7 @@
 
 /* ******************** default callbacks for buttons space ***************** */
 
-static SpaceLink *buttons_new(const bContext *C)
+static SpaceLink *buttons_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceButs *sbuts;
@@ -103,7 +103,7 @@ static void buttons_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void buttons_init(struct wmWindowManager *wm, ScrArea *sa)
+static void buttons_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceButs *sbuts= sa->spacedata.first;
 
@@ -191,7 +191,7 @@ void buttons_keymap(struct wmKeyConfig *keyconf)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void buttons_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void buttons_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }

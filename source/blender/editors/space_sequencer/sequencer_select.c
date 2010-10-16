@@ -58,7 +58,7 @@
 
 /* own include */
 #include "sequencer_intern.h"
-static void *find_nearest_marker(int d1, int d2) {return NULL;}
+static void *find_nearest_marker(int UNUSED(d1), int UNUSED(d2)) {return NULL;}
 	
 void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRING BACK */
 {

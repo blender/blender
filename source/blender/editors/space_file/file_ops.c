@@ -613,7 +613,7 @@ void file_operator_to_sfile(SpaceFile *sfile, wmOperator *op)
 	/* XXX, files and dirs updates missing, not really so important though */
 }
 
-void file_draw_check_cb(bContext *C, void *dummy1, void *dummy2)
+void file_draw_check_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	wmOperator *op= sfile->op;

@@ -83,7 +83,7 @@ static void logic_panel_view_properties(const bContext *C, Panel *pa)
 }	
 #endif
 
-void logic_buttons_register(ARegionType *art)
+void logic_buttons_register(ARegionType *UNUSED(art))
 {
 #if 0
 	PanelType *pt;

@@ -55,7 +55,7 @@
 
 /* ******************** default callbacks for info space ***************** */
 
-static SpaceLink *info_new(const bContext *C)
+static SpaceLink *info_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceInfo *sinfo;
@@ -80,7 +80,7 @@ static SpaceLink *info_new(const bContext *C)
 }
 
 /* not spacelink itself */
-static void info_free(SpaceLink *sl)
+static void info_free(SpaceLink *UNUSED(sl))
 {	
 //	SpaceInfo *sinfo= (SpaceInfo*) sl;
 	
@@ -88,7 +88,7 @@ static void info_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void info_init(struct wmWindowManager *wm, ScrArea *sa)
+static void info_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 
 }
@@ -105,11 +105,11 @@ static SpaceLink *info_duplicate(SpaceLink *sl)
 
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void info_main_area_init(wmWindowManager *wm, ARegion *ar)
+static void info_main_area_init(wmWindowManager *UNUSED(wm), ARegion *UNUSED(ar))
 {
 }
 
-static void info_main_area_draw(const bContext *C, ARegion *ar)
+static void info_main_area_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar))
 {
 	
 	/* clear and setup matrix */
@@ -137,7 +137,7 @@ void info_keymap(struct wmKeyConfig *keyconf)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void info_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void info_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
@@ -147,7 +147,7 @@ static void info_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void info_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void info_main_area_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
 {
 	/* context changes */
 }

@@ -33,6 +33,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_context.h"
 
 #include "ED_screen.h"
@@ -50,7 +51,7 @@
 #define B_CONTEXT_SWITCH	101
 #define B_BUTSPREVIEW		102
 
-static void do_buttons_buttons(bContext *C, void *arg, int event)
+static void do_buttons_buttons(bContext *C, void *UNUSED(arg), int event)
 {
 	SpaceButs *sbuts= CTX_wm_space_buts(C);
 

@@ -810,7 +810,7 @@ static void nlaedit_split_strip_actclip (AnimData *adt, NlaTrack *nlt, NlaStrip 
 }
 
 /* split a given Meta strip */
-static void nlaedit_split_strip_meta (AnimData *adt, NlaTrack *nlt, NlaStrip *strip)
+static void nlaedit_split_strip_meta (NlaTrack *nlt, NlaStrip *strip)
 {
 	/* simply ungroup it for now...  */
 	BKE_nlastrips_clear_metastrip(&nlt->strips, strip);
@@ -852,7 +852,7 @@ static int nlaedit_split_exec (bContext *C, wmOperator *UNUSED(op))
 						break;
 						
 					case NLASTRIP_TYPE_META: /* meta-strips need special handling */
-						nlaedit_split_strip_meta(adt, nlt, strip);
+						nlaedit_split_strip_meta(nlt, strip);
 						break;
 					
 					default: /* for things like Transitions, do not split! */

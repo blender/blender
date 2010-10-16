@@ -89,7 +89,7 @@ ARegion *node_has_buttons_region(ScrArea *sa)
 
 /* ******************** default callbacks for node space ***************** */
 
-static SpaceLink *node_new(const bContext *C)
+static SpaceLink *node_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceNode *snode;
@@ -145,14 +145,14 @@ static SpaceLink *node_new(const bContext *C)
 }
 
 /* not spacelink itself */
-static void node_free(SpaceLink *sl)
+static void node_free(SpaceLink *UNUSED(sl))
 {	
 	
 }
 
 
 /* spacetype; init callback */
-static void node_init(struct wmWindowManager *wm, ScrArea *sa)
+static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 
 }
@@ -306,7 +306,7 @@ static void node_main_area_draw(const bContext *C, ARegion *ar)
 
 /* ************* dropboxes ************* */
 
-static int node_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int node_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_ID) {
 		ID *id= (ID *)drag->poin;
@@ -345,7 +345,7 @@ static void node_dropboxes(void)
 
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void node_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void node_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }

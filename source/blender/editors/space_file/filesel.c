@@ -463,7 +463,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern)
 	return match;
 }
 
-void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
+void autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
@@ -510,7 +510,7 @@ void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 	}
 }
 
-void autocomplete_file(struct bContext *C, char *str, void *arg_v)
+void autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 

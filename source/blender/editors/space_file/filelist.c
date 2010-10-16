@@ -295,7 +295,7 @@ static int is_hidden_file(const char* filename, short hide_dot)
 	return is_hidden;
 }
 
-static int is_filtered_file(struct direntry* file, const char* dir, unsigned int filter, short hide_dot)
+static int is_filtered_file(struct direntry* file, const char* UNUSED(dir), unsigned int filter, short hide_dot)
 {
 	int is_filtered=0;
 	if (filter) {
@@ -324,7 +324,7 @@ static int is_filtered_lib(struct direntry* file, const char* dir, unsigned int 
 	return is_filtered;
 }
 
-static int is_filtered_main(struct direntry* file, const char* dir, unsigned int filter, short hide_dot)
+static int is_filtered_main(struct direntry* file, const char* UNUSED(dir), unsigned int UNUSED(filter), short hide_dot)
 {
 	return !is_hidden_file(file->relname, hide_dot);
 }
@@ -1145,7 +1145,7 @@ static void thumbnail_joblist_free(ThumbnailJob *tj)
 	BLI_freelistN(&tj->loadimages);
 }
 
-static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float *progress)
+static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float *UNUSED(progress))
 {
 	ThumbnailJob *tj= tjv;
 	FileImage* limg = tj->loadimages.first;

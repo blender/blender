@@ -150,7 +150,7 @@ static void rna_Sequence_anim_startofs_final_set(PointerRNA *ptr, int value)
 
 	seq->anim_startofs = MIN2(value, seq->len + seq->anim_startofs);
 
-	reload_sequence_new_file(G.main, scene, seq, FALSE);
+	reload_sequence_new_file(scene, seq, FALSE);
 	rna_Sequence_frame_change_update(scene, seq);
 }
 
@@ -161,7 +161,7 @@ static void rna_Sequence_anim_endofs_final_set(PointerRNA *ptr, int value)
 
 	seq->anim_endofs = MIN2(value, seq->len + seq->anim_endofs);
 
-	reload_sequence_new_file(G.main, scene, seq, FALSE);
+	reload_sequence_new_file(scene, seq, FALSE);
 	rna_Sequence_frame_change_update(scene, seq);
 }
 
@@ -552,7 +552,7 @@ static void rna_Sequence_mute_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Sequence_filepath_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Sequence *seq= (Sequence*)(ptr->data);
-	reload_sequence_new_file(G.main, scene, seq, TRUE);
+	reload_sequence_new_file(scene, seq, TRUE);
 	calc_sequence(scene, seq);
 	rna_Sequence_update(bmain, scene, ptr);
 }

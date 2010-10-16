@@ -48,10 +48,10 @@
 #include "file_intern.h"
 
 /* XXX */
-static void error(const char *dummy) {}
-static void waitcursor(int val) {}
-static void activate_fileselect(int d1, char *d2, char *d3, void *d4) {}
-static int saveover(const char *dummy) {return 0;}
+static void error(const char *UNUSED(dummy)) {}
+static void waitcursor(int UNUSED(val)) {}
+static void activate_fileselect(int UNUSED(d1), char *UNUSED(d2), char *UNUSED(d3), void *UNUSED(d4)) {}
+static int saveover(const char *UNUSED(dummy)) {return 0;}
 /* XXX */
 
 

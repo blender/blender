@@ -1001,7 +1001,7 @@ typedef struct tSoundBakeInfo {
 /* Sampling callback used to determine the value from the sound to
  * save in the F-Curve at the specified frame
  */
-static float fcurve_samplingcb_sound (FCurve *fcu, void *data, float evaltime)
+static float fcurve_samplingcb_sound (FCurve *UNUSED(fcu), void *data, float evaltime)
 {
 	tSoundBakeInfo *sbi= (tSoundBakeInfo *)data;
 

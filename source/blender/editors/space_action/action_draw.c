@@ -63,7 +63,7 @@
 /* Channel List */
 
 /* left hand part */
-void draw_channel_names(bContext *C, bAnimContext *ac, SpaceAction *saction, ARegion *ar) 
+void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar) 
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;

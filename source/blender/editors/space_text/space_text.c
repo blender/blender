@@ -59,7 +59,7 @@
 
 /* ******************** default callbacks for text space ***************** */
 
-static SpaceLink *text_new(const bContext *C)
+static SpaceLink *text_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceText *stext;
@@ -97,7 +97,7 @@ static void text_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void text_init(struct wmWindowManager *wm, ScrArea *sa)
+static void text_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 
 }
@@ -395,7 +395,7 @@ static void text_main_area_draw(const bContext *C, ARegion *ar)
 	/* scrollers? */
 }
 
-static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
+static void text_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *UNUSED(ar))
 {
 	WM_cursor_set(win, BC_TEXTEDITCURSOR);
 }
@@ -404,7 +404,7 @@ static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 
 /* ************* dropboxes ************* */
 
-static int text_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int text_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_PATH)
 		if(ELEM(drag->icon, 0, ICON_FILE_BLANK))	/* rule might not work? */
@@ -433,7 +433,7 @@ static void text_dropboxes(void)
 /****************** header region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void text_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void text_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }

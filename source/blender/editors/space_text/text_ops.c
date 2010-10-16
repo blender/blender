@@ -66,7 +66,7 @@
 
 /************************ poll ***************************/
 
-static int text_new_poll(bContext *C)
+static int text_new_poll(bContext *UNUSED(C))
 {
 	return 1;
 }
@@ -125,7 +125,7 @@ static int text_region_edit_poll(bContext *C)
 
 /********************** updates *********************/
 
-void text_update_line_edited(Text *text, TextLine *line)
+void text_update_line_edited(TextLine *line)
 {
 	if(!line)
 		return;
@@ -142,7 +142,7 @@ void text_update_edited(Text *text)
 	TextLine *line;
 
 	for(line=text->lines.first; line; line=line->next)
-		text_update_line_edited(text, line);
+		text_update_line_edited(line);
 }
 
 /******************* new operator *********************/
@@ -938,8 +938,8 @@ static int line_break_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if(text->curl) {
 		if(text->curl->prev)
-			text_update_line_edited(text, text->curl->prev);
-		text_update_line_edited(text, text->curl);
+			text_update_line_edited(text->curl->prev);
+		text_update_line_edited(text->curl);
 	}
 
 	text_update_cursor_moved(C);
@@ -1417,7 +1417,7 @@ static int text_get_cursor_rel(SpaceText* st, ARegion *ar, TextLine *linein, int
   return selc;
 }
 
-static int cursor_skip_find_line(SpaceText* st, ARegion *ar, Text *text,
+static int cursor_skip_find_line(SpaceText* st, ARegion *ar,
 	int lines, TextLine **linep, int *charp, int *rell, int *relc)
 {
 	int offl, offc, visible_lines;
@@ -1713,7 +1713,7 @@ static void cursor_skip(SpaceText* st, ARegion *ar, Text *text, int lines, int s
 		int rell, relc;
 
 		/* find line and offsets inside it needed to set cursor position */
-		if(cursor_skip_find_line(st, ar, text, lines, linep, charp, &rell, &relc))
+		if(cursor_skip_find_line(st, ar, lines, linep, charp, &rell, &relc))
 		  *charp= text_get_cursor_rel (st, ar, *linep, rell, relc);
 	} else {
 		while (lines>0 && (*linep)->next) {
@@ -1918,7 +1918,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 	else if(type == DEL_NEXT_CHAR)
 		txt_delete_char(text);
 
-	text_update_line_edited(text, text->curl);
+	text_update_line_edited(text->curl);
 
 	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
@@ -2587,7 +2587,7 @@ static int insert_exec(bContext *C, wmOperator *op)
 	if(!done)
 		return OPERATOR_CANCELLED;
 
-	text_update_line_edited(text, text->curl);
+	text_update_line_edited(text->curl);
 
 	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);

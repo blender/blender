@@ -554,7 +554,7 @@ void calc_sequence(Scene *scene, Sequence *seq)
 }
 
 /* note: caller should run calc_sequence(scene, seq) after */
-void reload_sequence_new_file(Main *bmain, Scene *scene, Sequence * seq, int lock_range)
+void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	int prev_startdisp, prev_enddisp;
@@ -621,7 +621,7 @@ void reload_sequence_new_file(Main *bmain, Scene *scene, Sequence * seq, int loc
 		seq->strip->len = seq->len;
 	} else if (seq->type == SEQ_SCENE) {
 		/* 'seq->scenenr' should be replaced with something more reliable */
-		Scene * sce = bmain->scene.first;
+		Scene * sce = G.main->scene.first;
 		int nr = 1;
 		
 		while(sce) {

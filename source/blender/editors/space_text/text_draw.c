@@ -67,11 +67,11 @@ static void text_font_begin(SpaceText *st)
 	BLF_size(mono, st->lheight, 72);
 }
 
-static void text_font_end(SpaceText *st)
+static void text_font_end(SpaceText *UNUSED(st))
 {
 }
 
-static int text_font_draw(SpaceText *st, int x, int y, char *str)
+static int text_font_draw(SpaceText *UNUSED(st), int x, int y, char *str)
 {
 	BLF_position(mono, x, y, 0);
 	BLF_draw(mono, str);
@@ -92,7 +92,7 @@ static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 	return st->cwidth;
 }
 
-int text_font_width(SpaceText *st, char *str)
+int text_font_width(SpaceText *UNUSED(st), char *str)
 {
 	return BLF_width(mono, str);
 }
@@ -1173,7 +1173,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll)
 	CLAMP(st->txtscroll.ymax, pix_bottom_margin, ar->winy - pix_top_margin);
 }
 
-static void draw_textscroll(SpaceText *st, ARegion *ar, rcti *scroll)
+static void draw_textscroll(SpaceText *st, rcti *scroll)
 {
 	bTheme *btheme= U.themes.first;
 	uiWidgetColors wcol= btheme->tui.wcol_scroll;
@@ -1781,7 +1781,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	draw_brackets(st, ar);
 	draw_markers(st, ar);
 	glTranslatef(0.375f, 0.375f, 0.0f); /* XXX scroll requires exact pixel space */
-	draw_textscroll(st, ar, &scroll);
+	draw_textscroll(st, &scroll);
 	draw_documentation(st, ar);
 	draw_suggestion_list(st, ar);
 	

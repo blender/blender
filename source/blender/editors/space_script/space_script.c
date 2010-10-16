@@ -61,7 +61,7 @@
 
 /* ******************** default callbacks for script space ***************** */
 
-static SpaceLink *script_new(const bContext *C)
+static SpaceLink *script_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceScript *sscript;
@@ -107,7 +107,7 @@ static void script_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void script_init(struct wmWindowManager *wm, ScrArea *sa)
+static void script_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 
 }
@@ -164,7 +164,7 @@ static void script_main_area_draw(const bContext *C, ARegion *ar)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void script_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void script_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
@@ -174,7 +174,7 @@ static void script_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void script_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void script_main_area_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
 {
 	/* context changes */
 	// XXX - Todo, need the ScriptSpace accessible to get the python script to run.

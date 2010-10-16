@@ -182,7 +182,7 @@ void make_unique_prop_names(bContext *C, char *str)
 	MEM_freeN(names);
 }
 
-static void make_unique_prop_names_cb(bContext *C, void *strv, void *redraw_view3d_flagv)
+static void make_unique_prop_names_cb(bContext *C, void *strv, void *UNUSED(redraw_view3d_flagv))
 {
 	char *str= strv;
 //	int redraw_view3d_flag= GET_INT_FROM_POINTER(redraw_view3d_flagv);
@@ -354,7 +354,7 @@ static void old_sca_move_actuator(bContext *C, void *datav, void *move_up)
 	}
 }
 
-void do_logic_buts(bContext *C, void *arg, int event)
+void do_logic_buts(bContext *C, void *UNUSED(arg), int event)
 {
 	Main *bmain= CTX_data_main(C);
 	bSensor *sens;
@@ -964,7 +964,7 @@ static void set_col_sensor(int type, int medium)
 }
 
 
-static void verify_logicbutton_func(bContext *C, void *data1, void *data2)
+static void verify_logicbutton_func(bContext *UNUSED(C), void *data1, void *data2)
 {
 	bSensor *sens= (bSensor*)data1;
 	
@@ -1017,7 +1017,7 @@ static void test_scenepoin_but(struct bContext *C, char *name, ID **idpp)
 		id_us_plus(*idpp);
 }
 
-static void test_keyboard_event(struct bContext *C, void *arg_ks, void *arg_unused)
+static void test_keyboard_event(struct bContext *UNUSED(C), void *arg_ks, void *UNUSED(arg))
 {
 	bKeyboardSensor *ks= (bKeyboardSensor*)arg_ks;
 	
@@ -1116,7 +1116,7 @@ static void check_armature_sensor(bContext *C, void *arg1_but, void *arg2_sens)
 	check_armature_bone_constraint(ob, sens->posechannel, sens->constraint);
 }
 
-static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short xco, short yco, short width,char* objectname)
+static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short xco, short yco, short width)
 {
 	bNearSensor      *ns           = NULL;
 	bTouchSensor     *ts           = NULL;
@@ -1734,7 +1734,7 @@ static void set_col_actuator(int item, int medium)
 	
 }
 
-static void change_object_actuator(bContext *C, void *act, void *arg)
+static void change_object_actuator(bContext *UNUSED(C), void *act, void *UNUSED(arg))
 {
 	bObjectActuator *oa = act;
 
@@ -1758,7 +1758,7 @@ static void change_object_actuator(bContext *C, void *act, void *arg)
 	}
 }
 
-static void change_ipo_actuator(bContext *C, void *arg1_but, void *arg2_ia)
+static void change_ipo_actuator(bContext *UNUSED(C), void *arg1_but, void *arg2_ia)
 {
 	bIpoActuator *ia = arg2_ia;
 	uiBut *but = arg1_but;
@@ -1770,7 +1770,7 @@ static void change_ipo_actuator(bContext *C, void *arg1_but, void *arg2_ia)
 	but->retval = B_REDR;
 }
 
-void update_object_actuator_PID(bContext *C, void *act, void *arg)
+void update_object_actuator_PID(bContext *UNUSED(C), void *act, void *UNUSED(arg))
 {
 	bObjectActuator *oa = act;
 	oa->forcerot[0] = 60.0f*oa->forcerot[1];
@@ -2920,7 +2920,7 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 	return yco-4;
 }
 
-static void do_sensor_menu(bContext *C, void *arg, int event)
+static void do_sensor_menu(bContext *C, void *UNUSED(arg), int event)
 {	
 	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	ID **idar;
@@ -2949,7 +2949,7 @@ static void do_sensor_menu(bContext *C, void *arg, int event)
 	if(idar) MEM_freeN(idar);
 }
 
-static uiBlock *sensor_menu(bContext *C, ARegion *ar, void *arg_unused)
+static uiBlock *sensor_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
 {
 	uiBlock *block;
 	int yco=0;
@@ -2969,7 +2969,7 @@ static uiBlock *sensor_menu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-static void do_controller_menu(bContext *C, void *arg, int event)
+static void do_controller_menu(bContext *C, void *UNUSED(arg), int event)
 {	
 	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	ID **idar;
@@ -2998,7 +2998,7 @@ static void do_controller_menu(bContext *C, void *arg, int event)
 	if(idar) MEM_freeN(idar);
 }
 
-static uiBlock *controller_menu(bContext *C, ARegion *ar, void *arg_unused)
+static uiBlock *controller_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
 {
 	uiBlock *block;
 	int yco=0;
@@ -3018,7 +3018,7 @@ static uiBlock *controller_menu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-static void do_actuator_menu(bContext *C, void *arg, int event)
+static void do_actuator_menu(bContext *C, void *UNUSED(arg), int event)
 {	
 	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	ID **idar;
@@ -3047,7 +3047,7 @@ static void do_actuator_menu(bContext *C, void *arg, int event)
 	if(idar) MEM_freeN(idar);
 }
 
-static uiBlock *actuator_menu(bContext *C, ARegion *ar, void *arg_unused)
+static uiBlock *actuator_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
 {
 	uiBlock *block;
 	int xco=0;
@@ -3069,7 +3069,7 @@ static uiBlock *actuator_menu(bContext *C, ARegion *ar, void *arg_unused)
 
 
 
-static void check_controller_state_mask(bContext *C, void *arg1_but, void *arg2_mask)
+static void check_controller_state_mask(bContext *UNUSED(C), void *arg1_but, void *arg2_mask)
 {
 	unsigned int *cont_mask = arg2_mask;
 	uiBut *but = arg1_but;
@@ -3122,7 +3122,7 @@ static uiBlock *controller_state_mask_menu(bContext *C, ARegion *ar, void *arg_c
 	return block;
 }
 
-static void do_object_state_menu(bContext *C, void *arg, int event)
+static void do_object_state_menu(bContext *UNUSED(C), void *arg, int event)
 {	
 	Object *ob = arg;
 
@@ -3579,7 +3579,7 @@ static void draw_controller_python(uiLayout *layout, PointerRNA *ptr)
 	}
 }
 
-static void draw_controller_state(uiLayout *layout, PointerRNA *ptr)
+static void draw_controller_state(uiLayout *UNUSED(layout), PointerRNA *UNUSED(ptr))
 {
 
 }
@@ -4955,7 +4955,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 						uiButSetFunc(but, make_unique_prop_names_cb, sens->name, (void*) 0);
 
 						sens->otype= sens->type;
-						yco= draw_sensorbuttons(ob, sens, block, xco, yco, width,ob->id.name);
+						yco= draw_sensorbuttons(ob, sens, block, xco, yco, width);
 						if(yco-6 < ycoo) ycoo= (yco+ycoo-20)/2;
 					}
 					else {

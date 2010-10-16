@@ -565,7 +565,7 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 
 /* Find the first path that matches the given criteria */
 // TODO: do we want some method to perform partial matches too?
-KS_Path *BKE_keyingset_find_path (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, int group_mode)
+KS_Path *BKE_keyingset_find_path (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, int UNUSED(group_mode))
 {
 	KS_Path *ksp;
 	
@@ -767,7 +767,7 @@ void BKE_keyingsets_free (ListBase *list)
  *	- path: original path string (as stored in F-Curve data)
  *	- dst: destination string to write data to
  */
-static short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
+static short animsys_remap_path (AnimMapper *UNUSED(remap), char *path, char **dst)
 {
 	/* is there a valid remapping table to use? */
 	//if (remap) {
@@ -1693,7 +1693,7 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 /* Clear all overides */
 
 /* Add or get existing Override for given setting */
-AnimOverride *BKE_animsys_validate_override (PointerRNA *ptr, char *path, int array_index)
+AnimOverride *BKE_animsys_validate_override (PointerRNA *UNUSED(ptr), char *UNUSED(path), int UNUSED(array_index))
 {
 	// FIXME: need to define how to get overrides
 	return NULL;
@@ -1702,7 +1702,7 @@ AnimOverride *BKE_animsys_validate_override (PointerRNA *ptr, char *path, int ar
 /* -------------------- */
 
 /* Evaluate Overrides */
-static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt, float ctime)
+static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt)
 {
 	AnimOverride *aor;
 	
@@ -1801,7 +1801,7 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 	 *	- Overrides are cleared upon frame change and/or keyframing
 	 *	- It is best that we execute this everytime, so that no errors are likely to occur.
 	 */
-	animsys_evaluate_overrides(&id_ptr, adt, ctime);
+	animsys_evaluate_overrides(&id_ptr, adt);
 	
 	/* clear recalc flag now */
 	adt->recalc= 0;

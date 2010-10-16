@@ -886,7 +886,7 @@ static void get_nearest_fcurve_verts_list (bAnimContext *ac, int mval[2], ListBa
 }
 
 /* helper for find_nearest_fcurve_vert() - get the best match to use */
-static tNearestVertInfo *get_best_nearest_fcurve_vert (bAnimContext *ac, ListBase *matches)
+static tNearestVertInfo *get_best_nearest_fcurve_vert (ListBase *matches)
 {
 	tNearestVertInfo *nvi = NULL;
 	short found = 0;
@@ -941,7 +941,7 @@ static tNearestVertInfo *find_nearest_fcurve_vert (bAnimContext *ac, int mval[2]
 	get_nearest_fcurve_verts_list(ac, mval, &matches);
 	
 	/* step 2: find the best vert */
-	nvi= get_best_nearest_fcurve_vert(ac, &matches);
+	nvi= get_best_nearest_fcurve_vert(&matches);
 	
 	BLI_freelistN(&matches);
 	

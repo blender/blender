@@ -175,7 +175,7 @@ static void graph_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void graph_init(struct wmWindowManager *wm, ScrArea *sa)
+static void graph_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceIpo *sipo= (SpaceIpo *)sa->spacedata.first;
 	
@@ -239,7 +239,7 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw data */
 	if (ANIM_animdata_get_context(C, &ac)) {
 		/* draw ghost curves */
-		graph_draw_ghost_curves(&ac, sipo, ar, grid);
+		graph_draw_ghost_curves(&ac, sipo, ar);
 		
 		/* draw curves twice - unselected, then selected, so that the are fewer occlusion problems */
 		graph_draw_curves(&ac, sipo, ar, grid, 0);
@@ -314,7 +314,6 @@ static void graph_channel_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void graph_channel_area_draw(const bContext *C, ARegion *ar)
 {
-	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
@@ -329,7 +328,7 @@ static void graph_channel_area_draw(const bContext *C, ARegion *ar)
 	
 	/* draw channels */
 	if (ANIM_animdata_get_context(C, &ac)) {
-		graph_draw_channel_names((bContext*)C, &ac, sipo, ar);
+		graph_draw_channel_names((bContext*)C, &ac, ar);
 	}
 	
 	/* reset view matrix */
@@ -342,7 +341,7 @@ static void graph_channel_area_draw(const bContext *C, ARegion *ar)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void graph_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void graph_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }

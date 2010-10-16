@@ -79,7 +79,7 @@ enum {
 } eFile_ButEvents;
 
 
-static void do_file_buttons(bContext *C, void *arg, int event)
+static void do_file_buttons(bContext *C, void *UNUSED(arg), int event)
 {
 	switch(event) {
 		case B_FS_FILENAME:
@@ -433,7 +433,7 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 	}
 }
 
-static void renamebutton_cb(bContext *C, void *arg1, char *oldname)
+static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 {
 	char newname[FILE_MAX+12];
 	char orgname[FILE_MAX+12];

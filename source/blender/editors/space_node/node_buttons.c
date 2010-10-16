@@ -63,7 +63,7 @@
 #define B_NOP		1
 #define B_REDR		2
 
-static void do_node_region_buttons(bContext *C, void *arg, int event)
+static void do_node_region_buttons(bContext *C, void *UNUSED(arg), int event)
 {
 	//SpaceNode *snode= CTX_wm_space_node(C);
 	
@@ -75,7 +75,7 @@ static void do_node_region_buttons(bContext *C, void *arg, int event)
 }
 
 /* poll callback for active node */
-static int active_node_poll(const bContext *C, PanelType *pt)
+static int active_node_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
