@@ -5620,6 +5620,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	Nurb *nu = NULL;
 	BezTriple *bezt;
 	BPoint *bp;
+	Curve *cu= (Curve*)obedit->data;
 	float vec[3];
 	float fac, grid;
 	int a, b, cutype, stype;
@@ -5641,13 +5642,13 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	if (stype!=CU_PRIM_TUBE && stype!=CU_PRIM_DONUT) {
 		nu = (Nurb*)MEM_callocN(sizeof(Nurb), "addNurbprim");
 		nu->type= cutype;
-		nu->resolu= 4;
-		nu->resolv= 4;
+		nu->resolu= cu->resolu;
+		nu->resolv= cu->resolv;
 	}
 
 	switch(stype) {
 	case CU_PRIM_CURVE:	/* curve */
-		nu->resolu= 12; /* set as 4 above */
+		nu->resolu= cu->resolu;
 		if(newname) {
 			rename_id((ID *)obedit, "Curve");
 			rename_id((ID *)obedit->data, "Curve");
@@ -5724,7 +5725,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 		nu->pntsv= 1;
 		nu->orderu= 5;
 		nu->flagu= CU_NURB_ENDPOINT;	/* endpoint */
-		nu->resolu= 8;
+		nu->resolu= cu->resolu;
 		nu->bp= callocstructN(BPoint, 5, "addNurbprim3");
 
 		bp= nu->bp;
@@ -5753,7 +5754,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 
 		break;
 	case CU_PRIM_CIRCLE:	/* circle */
-		nu->resolu= 12; /* set as 4 above */
+		nu->resolu= cu->resolu;
 		if(newname) {
 			rename_id((ID *)obedit, "CurveCircle");
 			rename_id((ID *)obedit->data, "CurveCircle");
@@ -5870,7 +5871,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			}
 			
 			nu= add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
-			nu->resolu= 4;
+			nu->resolu= cu->resolu;
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(editnurb, nu); /* temporal for extrude and translate */
 			vec[0]=vec[1]= 0.0;
@@ -5913,8 +5914,8 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			nu->pntsu= 5;
 			nu->pntsv= 1;
 			nu->orderu= 3;
-			nu->resolu= 4;
-			nu->resolv= 4;
+			nu->resolu= cu->resolu;
+			nu->resolv= cu->resolv;
 			nu->flag= CU_SMOOTH;
 			nu->bp= callocstructN(BPoint, 5, "addNurbprim6");
 			nu->flagu= 0;
@@ -5962,8 +5963,8 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			xzproj= 1;
 			nu= add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
 			xzproj= 0;
-			nu->resolu= 4;
-			nu->resolv= 4;
+			nu->resolu= cu->resolu;
+			nu->resolv= cu->resolv;
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(editnurb, nu); /* temporal for spin */
 
