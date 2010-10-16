@@ -38,7 +38,7 @@
 
 static void rna_Sound_filepath_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	sound_load((bSound*)ptr->data);
+	sound_load(bmain, (bSound*)ptr->data);
 }
 
 static int rna_Sound_caching_get(PointerRNA *ptr)
