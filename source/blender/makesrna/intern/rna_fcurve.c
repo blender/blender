@@ -542,14 +542,14 @@ static BezTriple *rna_FKeyframe_points_add(FCurve *fcu, float frame, float value
 
 
 	index= insert_vert_fcurve(fcu, frame, value, flag);
-	return index >= 0 ? fcu->bezt + index : NULL;
+	return ((fcu->bezt) && (index >= 0))? (fcu->bezt + index) : NULL;
 }
 
 static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, BezTriple *bezt, int do_fast)
 {
 	int index= (int)(bezt - fcu->bezt);
 	if (index < 0 || index >= fcu->totvert) {
-		BKE_report(reports, RPT_ERROR, "bezier not in fcurve.");
+		BKE_report(reports, RPT_ERROR, "Keyframe not in F-Curve.");
 		return;
 	}
 
@@ -1320,7 +1320,7 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_float(func, "value", 0.0f, -FLT_MAX, FLT_MAX, "", "Y Value of this keyframe point", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* optional */
-	parm= RNA_def_boolean(func, "replace", 0, "Replace", "Replace existing keyframes");
+	parm= RNA_def_boolean(func, "replace", 0, "Replace", "Don't add any new keyframes, but just replace existing ones");
 	parm= RNA_def_boolean(func, "needed", 0, "Needed", "Only adds keyframes that are needed");
 	parm= RNA_def_boolean(func, "fast", 0, "Fast", "Fast keyframe insertion to avoid recalculating the curve each time");
 
