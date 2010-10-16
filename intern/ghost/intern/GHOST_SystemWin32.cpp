@@ -34,6 +34,8 @@
  * @date	May 7, 2001
  */
 
+#include <iostream>
+
 #include "GHOST_SystemWin32.h"
 #include "GHOST_EventDragnDrop.h"
 
@@ -141,6 +143,8 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 	m_displayManager = new GHOST_DisplayManagerWin32 ();
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
 	m_displayManager->initialize();
+	
+	this->keyboardAltGr();
 	
 	// Require COM for GHOST_DropTargetWin32 created in GHOST_WindowWin32.
 	OleInitialize(0);
@@ -285,18 +289,18 @@ GHOST_TSuccess GHOST_SystemWin32::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 
 GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys& keys) const
 {
-	bool down = HIBYTE(::GetKeyState(VK_LSHIFT)) != 0;
+	bool down = HIBYTE(::GetKeyState(VK_SHIFT)) != 0;
 	keys.set(GHOST_kModifierKeyLeftShift, down);
-	down = HIBYTE(::GetKeyState(VK_RSHIFT)) != 0;
 	keys.set(GHOST_kModifierKeyRightShift, down);
-	down = HIBYTE(::GetKeyState(VK_LMENU)) != 0;
+	
+	down = HIBYTE(::GetKeyState(VK_MENU)) != 0;
 	keys.set(GHOST_kModifierKeyLeftAlt, down);
-	down = HIBYTE(::GetKeyState(VK_RMENU)) != 0;
 	keys.set(GHOST_kModifierKeyRightAlt, down);
-	down = HIBYTE(::GetKeyState(VK_LCONTROL)) != 0;
+	
+	down = HIBYTE(::GetKeyState(VK_CONTROL)) != 0;
 	keys.set(GHOST_kModifierKeyLeftControl, down);
-	down = HIBYTE(::GetKeyState(VK_RCONTROL)) != 0;
 	keys.set(GHOST_kModifierKeyRightControl, down);
+	
 	bool lwindown = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
 	bool rwindown = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
 	if(lwindown || rwindown)
@@ -365,7 +369,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 		wc.hbrBackground= (HBRUSH)::GetStockObject(BLACK_BRUSH);
 		wc.lpszMenuName = 0;
 		wc.lpszClassName= GHOST_WindowWin32::getWindowClassName();
-    
+
 		// Use RegisterClassEx for setting small icon
 		if (::RegisterClass(&wc) == 0) {
 			success = GHOST_kFailure;
@@ -381,14 +385,14 @@ GHOST_TSuccess GHOST_SystemWin32::exit()
 }
 
 
-GHOST_TKey GHOST_SystemWin32::convertKey(WPARAM wParam, LPARAM lParam) const
+GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam) const
 {
+	bool isExtended = (lParam&(1<<24))?true:false;
+	
 	GHOST_TKey key;
 	GHOST_ModifierKeys oldModifiers, newModifiers;
 	((GHOST_SystemWin32*)getSystem())->retrieveModifierKeys(oldModifiers);
 	((GHOST_SystemWin32*)getSystem())->getModifierKeys(newModifiers);
-	
-	bool isExtended = (lParam&(1<<24))?true:false;
 
 	if ((wParam >= '0') && (wParam <= '9')) {
 		// VK_0 thru VK_9 are the same as ASCII '0' thru '9' (0x30 - 0x39)
@@ -474,6 +478,16 @@ GHOST_TKey GHOST_SystemWin32::convertKey(WPARAM wParam, LPARAM lParam) const
 			break;
 		case VK_MENU:
 			{
+				if(m_hasAltGr && isExtended) {
+					// We have here an extended RAlt, which is AltGr. The keyboard driver on Windows sends before this a LControl, so
+					// to be able to input characters created with AltGr (normal on German, French, Finnish and other keyboards) we
+					// push an extra LControl up event. This ensures we don't have a 'hanging' ctrl event in Blender windowmanager
+					// when typing in Text editor or Console.
+					GHOST_Event *extra = new GHOST_EventKey(getSystem()->getMilliSeconds(), GHOST_kEventKeyUp, window, GHOST_kKeyLeftControl, '\0');
+					((GHOST_SystemWin32*)getSystem())->pushEvent(extra);
+					newModifiers.set(GHOST_kModifierKeyRightControl, false);
+					newModifiers.set(GHOST_kModifierKeyLeftControl, false);
+				}
 				bool lchanged = oldModifiers.get(GHOST_kModifierKeyLeftAlt) != newModifiers.get(GHOST_kModifierKeyLeftAlt);
 				if(lchanged) {
 					key = GHOST_kKeyLeftAlt;
@@ -494,6 +508,7 @@ GHOST_TKey GHOST_SystemWin32::convertKey(WPARAM wParam, LPARAM lParam) const
 			break;
 		}
 	}
+	((GHOST_SystemWin32*)getSystem())->storeModifierKeys(newModifiers);
 	return key;
 }
 
@@ -573,7 +588,7 @@ GHOST_EventWheel* GHOST_SystemWin32::processWheelEvent(GHOST_IWindow *window, WP
 
 GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, bool keyDown, WPARAM wParam, LPARAM lParam)
 {
-	GHOST_TKey key = ((GHOST_SystemWin32*)getSystem())->convertKey(wParam, lParam);
+	GHOST_TKey key = ((GHOST_SystemWin32*)getSystem())->convertKey(window, wParam, lParam);
 	GHOST_EventKey* event;
 	if (key != GHOST_kKeyUnknown) {
 		MSG keyMsg;
@@ -582,6 +597,7 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, bool k
 			/* Eat any character related messages */
 		if (::PeekMessage(&keyMsg, NULL, WM_CHAR, WM_SYSDEADCHAR, PM_REMOVE)) {
 			ascii = (char) keyMsg.wParam;
+			
 		}
 
 		event = new GHOST_EventKey(getSystem()->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown: GHOST_kEventKeyUp, window, key, ascii);
@@ -630,6 +646,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 		GHOST_WindowWin32* window = (GHOST_WindowWin32*)::GetWindowLong(hwnd, GWL_USERDATA);
 		if (window) {
 			switch (msg) {
+				// we need to check if new key layout has altgr
+				case WM_INPUTLANGCHANGE:
+					system->keyboardAltGr();
+					break;
 				////////////////////////////////////////////////////////////////////////
 				// Keyboard events, processed
 				////////////////////////////////////////////////////////////////////////

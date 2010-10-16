@@ -239,7 +239,7 @@ protected:
 	 * @param lParam	The lParam from the wndproc
 	 * @return The GHOST key (GHOST_kKeyUnknown if no match).
 	 */
-	virtual GHOST_TKey convertKey(WPARAM wParam, LPARAM lParam) const;
+	virtual GHOST_TKey convertKey(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam) const;
 
 	/**
 	 * Creates modifier key event(s) and updates the key data stored locally (m_modifierKeys).
@@ -310,6 +310,11 @@ protected:
 	 * @param keys The new state of the modifier keys.
 	 */
 	inline virtual void storeModifierKeys(const GHOST_ModifierKeys& keys);
+	
+	/**
+	 * Check current key layout for AltGr
+	 */
+	inline virtual void keyboardAltGr();
 
 	/**
 	 * Windows call back routine for our window class.
@@ -324,6 +329,8 @@ protected:
 	__int64 m_freq;
 	/** High frequency timer variable. */
 	__int64 m_start;
+	/** AltGr on current keyboard layout. */
+	bool m_hasAltGr;
 };
 
 inline void GHOST_SystemWin32::retrieveModifierKeys(GHOST_ModifierKeys& keys) const
@@ -334,6 +341,23 @@ inline void GHOST_SystemWin32::retrieveModifierKeys(GHOST_ModifierKeys& keys) co
 inline void GHOST_SystemWin32::storeModifierKeys(const GHOST_ModifierKeys& keys)
 {
 	m_modifierKeys = keys;
+}
+
+inline void GHOST_SystemWin32::keyboardAltGr()
+{
+	HKL keylayout = GetKeyboardLayout(0); // get keylayout for current thread
+	int i;
+	SHORT s;
+	for(m_hasAltGr = false, i = 32; i < 256; ++i) {
+		s = VkKeyScanEx((char)i, keylayout);
+		// s == -1 means no key that translates passed char code
+		// high byte contains shift state. bit 2 ctrl pressed, bit 4 alt pressed
+		// if both are pressed, we have AltGr keycombo on keylayout
+		if(s!=-1 && (s & 0x600) == 0x600) {
+			m_hasAltGr = true;
+			break;
+		}
+	}
 }
 
 #endif // _GHOST_SYSTEM_WIN32_H_
