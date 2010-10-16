@@ -1161,7 +1161,7 @@ void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, i
 	}
 	
 	if (stamp_data.strip[0]) {
-		BLF_width_and_height(mono, stamp_data.scene, &w, &h); h= h_fixed;
+		BLF_width_and_height(mono, stamp_data.strip, &w, &h); h= h_fixed;
 
 		/* Top right corner, with an extra space because blenfont is too strict! */
 		x= width - w - pad;
