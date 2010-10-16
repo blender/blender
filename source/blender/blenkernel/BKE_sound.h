@@ -40,7 +40,7 @@ struct Sequence;
 
 void sound_init_once();
 
-void sound_init(void);
+void sound_init(struct Main *main);
 
 void sound_exit();
 

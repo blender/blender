@@ -79,7 +79,7 @@ void sound_init_once()
 	AUD_initOnce();
 }
 
-void sound_init(void)
+void sound_init(struct Main *bmain)
 {
 	AUD_DeviceSpecs specs;
 	int device, buffersize;
