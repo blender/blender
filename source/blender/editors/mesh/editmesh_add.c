@@ -117,7 +117,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 
 	em_setup_viewcontext(C, &vc);
 	
-	use_proj= ((vc.scene->toolsettings->snap_flag & (SCE_SNAP|SCE_SNAP_PROJECT))==(SCE_SNAP|SCE_SNAP_PROJECT)) &&	(vc.scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE);
+	use_proj= (vc.scene->toolsettings->snap_flag & SCE_SNAP) &&	(vc.scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE);
 	
 	invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 
 	
