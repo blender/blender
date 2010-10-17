@@ -93,7 +93,7 @@ struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, int size, int flags)
 	[bitmapImage setSize:bitmapSize];
 	
 	/* allocate the image buffer */
-	ibuf = IMB_allocImBuf(bitmapSize.width, bitmapSize.height, 32/*RGBA*/, 0, 0);
+	ibuf = IMB_allocImBuf(bitmapSize.width, bitmapSize.height, 32/*RGBA*/, 0);
 	if (!ibuf) {
 		fprintf(stderr, 
 			"imb_cocoaLoadImage: could not allocate memory for the " \

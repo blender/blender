@@ -379,8 +379,8 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, i
 	SCTemporalSettings gTemporalSettings;
 	OSErr err = noErr;
 
-	qtexport->ibuf = IMB_allocImBuf (rectx, recty, 32, IB_rect, 0);
-	qtexport->ibuf2 = IMB_allocImBuf (rectx, recty, 32, IB_rect, 0);
+	qtexport->ibuf = IMB_allocImBuf (rectx, recty, 32, IB_rect);
+	qtexport->ibuf2 = IMB_allocImBuf (rectx, recty, 32, IB_rect);
 
 	err = NewGWorldFromPtr( &qtexport->theGWorld,
 							k32ARGBPixelFormat,

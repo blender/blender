@@ -335,7 +335,7 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 		return (NULL);
 	}
 
-	ibuf = IMB_allocImBuf (anim->x, anim->y, 32, IB_rect, 0);
+	ibuf = IMB_allocImBuf (anim->x, anim->y, 32, IB_rect);
 	rect = ibuf->rect;
 
 	SetMovieTimeValue(anim->qtime->movie, anim->qtime->frameIndex[position]);
@@ -496,7 +496,7 @@ int startquicktime (struct anim *anim)
 		return -1;
 	}
 
-	anim->qtime->ibuf = IMB_allocImBuf (anim->x, anim->y, 32, IB_rect, 0);
+	anim->qtime->ibuf = IMB_allocImBuf (anim->x, anim->y, 32, IB_rect);
 
 #ifdef _WIN32
 	err = NewGWorldFromPtr(&anim->qtime->offscreenGWorld,
@@ -676,7 +676,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	depth = (**desc).depth;
 
 	if (flags & IB_test) {
-		ibuf = IMB_allocImBuf(x, y, depth, 0, 0);
+		ibuf = IMB_allocImBuf(x, y, depth, 0);
 		ibuf->ftype = QUICKTIME;
 		DisposeHandle((Handle)dataref);
 		if (gImporter != NULL)	CloseComponent(gImporter);
@@ -684,8 +684,8 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	}
 
 #ifdef __APPLE__
-	ibuf = IMB_allocImBuf (x, y, 32, IB_rect, 0);
-	wbuf = IMB_allocImBuf (x, y, 32, IB_rect, 0);
+	ibuf = IMB_allocImBuf (x, y, 32, IB_rect);
+	wbuf = IMB_allocImBuf (x, y, 32, IB_rect);
 
 	err = NewGWorldFromPtr(&offGWorld,
 						k32ARGBPixelFormat,
@@ -693,7 +693,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 						(unsigned char *)wbuf->rect, x * 4);
 #else
 
-	ibuf = IMB_allocImBuf (x, y, 32, IB_rect, 0);	
+	ibuf = IMB_allocImBuf (x, y, 32, IB_rect);	
 
 	err = NewGWorldFromPtr(&offGWorld,
 							k32RGBAPixelFormat,
