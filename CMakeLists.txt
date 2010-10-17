@@ -920,10 +920,8 @@ INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 
 #-----------------------------------------------------------------------------
 # Extra compile flags
-
-# TODO: remove this and uncommend the global arg, but for now adding here keeps it managable
 IF(CMAKE_COMPILER_IS_GNUCC)
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wunused-parameter")
+	SET(C_WARNINGS "${C_WARNINGS} -Wunused-parameter -Werror=declaration-after-statement -Werror=implicit-function-declaration -Werror=return-type")
 ENDIF(CMAKE_COMPILER_IS_GNUCC)
 
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
