@@ -1053,15 +1053,13 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		/* one segment first: the X axis */		
 		phi = (2*dia)/(float)(tot-1);
 		phid = (2*dia)/(float)(seg-1);
-		for(a=0;a<tot;a++) {
+		for(a=tot-1;a>=0;a--) {
 			vec[0] = (phi*a) - dia;
 			vec[1]= - dia;
 			vec[2]= 0.0f;
 			eve= addvertlist(em, vec, NULL);
 			eve->f= 1+2+4;
-			if (a) {
-				addedgelist(em, eve->prev, eve, NULL);
-			}
+			addedgelist(em, eve->prev, eve, NULL);
 		}
 		/* extrude and translate */
 		vec[0]= vec[2]= 0.0;
