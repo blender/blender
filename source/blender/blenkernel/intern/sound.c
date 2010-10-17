@@ -143,7 +143,7 @@ struct bSound* sound_new_file(struct Main *bmain, char* filename)
 	BLI_strncpy(sound->name, filename, FILE_MAX);
 // XXX unused currently	sound->type = SOUND_TYPE_FILE;
 
-	sound_load(sound);
+	sound_load(bmain, sound);
 
 	if(!sound->playback_handle)
 	{
@@ -169,7 +169,7 @@ struct bSound* sound_new_buffer(struct bContext *C, struct bSound *source)
 	sound->child_sound = source;
 	sound->type = SOUND_TYPE_BUFFER;
 
-	sound_load(sound);
+	sound_load(CTX_data_main(C), sound);
 
 	if(!sound->playback_handle)
 	{
@@ -195,7 +195,7 @@ struct bSound* sound_new_limiter(struct bContext *C, struct bSound *source, floa
 	sound->end = end;
 	sound->type = SOUND_TYPE_LIMITER;
 
-	sound_load(sound);
+	sound_load(CTX_data_main(C), sound);
 
 	if(!sound->playback_handle)
 	{
@@ -236,7 +236,7 @@ void sound_delete_cache(struct bSound* sound)
 	}
 }
 
-void sound_load(struct bSound* sound)
+void sound_load(struct Main *UNUSED(bmain), struct bSound* sound)
 {
 	if(sound)
 	{
@@ -266,6 +266,7 @@ void sound_load(struct bSound* sound)
 			if(sound->id.lib)
 				path = sound->id.lib->filepath;
 			else
+				// XXX this should be fixed!
 				path = /*bmain ? bmain->name :*/ G.sce;
 
 			BLI_path_abs(fullpath, path);

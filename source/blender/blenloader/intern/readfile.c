@@ -5308,7 +5308,7 @@ static void lib_link_sound(FileData *fd, Main *main)
 			sound->id.flag -= LIB_NEEDLINK;
 			sound->ipo= newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX depreceated - old animation system
 			
-			sound_load(sound);
+			sound_load(main, sound);
 
 			if(sound->cache)
 				sound_cache(sound, 1);

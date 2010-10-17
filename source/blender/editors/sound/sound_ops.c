@@ -180,7 +180,7 @@ static int pack_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	sound->packedfile= newPackedFile(op->reports, sound->name);
-	sound_load(sound);
+	sound_load(CTX_data_main(C), sound);
 
 	return OPERATOR_FINISHED;
 }
