@@ -481,6 +481,8 @@ static void view_editmove(unsigned short UNUSED(event))
  * */
 #define TFM_MODAL_PROPSIZE_UP	20
 #define TFM_MODAL_PROPSIZE_DOWN	21
+#define TFM_MODAL_AUTOIK_LEN_INC 22
+#define TFM_MODAL_AUTOIK_LEN_DEC 23
 
 /* called in transform_ops.c, on each regeneration of keymaps */
 wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
@@ -507,6 +509,8 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	{NUM_MODAL_INCREMENT_DOWN, "INCREMENT_DOWN", 0, "Numinput Increment Down", ""},
 	{TFM_MODAL_PROPSIZE_UP, "PROPORTIONAL_SIZE_UP", 0, "Increase Proportional Influence", ""},
 	{TFM_MODAL_PROPSIZE_DOWN, "PROPORTIONAL_SIZE_DOWN", 0, "Decrease Poportional Influence", ""},
+	{TFM_MODAL_AUTOIK_LEN_INC, "AUTOIK_CHAIN_LEN_UP", 0, "Increase Max AutoIK Chain Length", ""},
+	{TFM_MODAL_AUTOIK_LEN_DEC, "AUTOIK_CHAIN_LEN_DOWN", 0, "Decrease Max AutoIK Chain Length", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -541,7 +545,12 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, PAGEDOWNKEY, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
 	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_UP);
 	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
-
+	
+	WM_modalkeymap_add_item(keymap, PAGEUPKEY, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_AUTOIK_LEN_INC);
+	WM_modalkeymap_add_item(keymap, PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_AUTOIK_LEN_DEC);
+	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_AUTOIK_LEN_INC);
+	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_AUTOIK_LEN_DEC);
+	
 	return keymap;
 }
 
@@ -733,6 +742,16 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					t->prop_size*= 0.90909090f;
 					calculatePropRatio(t);
 				}
+				t->redraw |= TREDRAW_HARD;
+				break;
+			case TFM_MODAL_AUTOIK_LEN_INC:
+				if (t->flag & T_AUTOIK)
+					transform_autoik_update(t, 1);
+				t->redraw |= TREDRAW_HARD;
+				break;
+			case TFM_MODAL_AUTOIK_LEN_DEC:
+				if (t->flag & T_AUTOIK) 
+					transform_autoik_update(t, -1);
 				t->redraw |= TREDRAW_HARD;
 				break;
 			default:
