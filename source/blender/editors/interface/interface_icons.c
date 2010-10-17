@@ -28,6 +28,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #ifndef WIN32
 #include <unistd.h>
@@ -845,6 +846,15 @@ static void icon_set_image(bContext *C, ID *id, PreviewImage* prv_img, int miple
 
 static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect), int rw, int rh, unsigned int *rect, float alpha, float *rgb, short is_preview)
 {
+	ImBuf *ima= NULL;
+
+	/* sanity check */
+	if(w<=0 || h<=0 || w>2000 || h>2000) {
+		printf("icon_draw_rect: icons are %i x %i pixels?\n", w, h);
+		assert(!"invalid icon size");
+		return;
+	}
+
 	/* modulate color */
 	if(alpha != 1.0f)
 		glPixelTransferf(GL_ALPHA_SCALE, alpha);
@@ -861,45 +871,21 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	}
 
 	/* draw */
-	if((w<1 || h<1)) {
-		// XXX - TODO 2.5 verify whether this case can happen
-		if (G.f & G_DEBUG)
-			printf("what the heck! - icons are %i x %i pixels?\n", w, h);
-	}
+
 	/* rect contains image in 'rendersize', we only scale if needed */
-	else if(rw!=w && rh!=h) {
-		if(w>2000 || h>2000) { /* something has gone wrong! */
-			if (G.f & G_DEBUG)
-				printf("insane icon size w=%d h=%d\n",w,h);
-		}
-		else {
-			ImBuf *ima;
-
-			/* first allocate imbuf for scaling and copy preview into it */
-			ima = IMB_allocImBuf(rw, rh, 32, IB_rect);
-			memcpy(ima->rect, rect, rw*rh*sizeof(unsigned int));	
-			
-			/* scale it */
-			IMB_scaleImBuf(ima, w, h);
-
-			if(is_preview) {
-				glaDrawPixelsSafe(x, y, w, h, w, GL_RGBA, GL_UNSIGNED_BYTE, ima->rect);
-			}
-			else {
-				glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, ima->rect);
-			}
-
-			IMB_freeImBuf(ima);
-		}
+	if(rw!=w && rh!=h) {
+		/* first allocate imbuf for scaling and copy preview into it */
+		ima = IMB_allocImBuf(rw, rh, 32, IB_rect);
+		memcpy(ima->rect, rect, rw*rh*sizeof(unsigned int));	
+		IMB_scaleImBuf(ima, w, h); /* scale it */
+		rect= ima->rect;
 	}
-	else {
-		if(is_preview) {
-			glaDrawPixelsSafe(x, y, w, h, w, GL_RGBA, GL_UNSIGNED_BYTE, rect);
-		}
-		else {
-			glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
-		}
-	}
+
+	if(is_preview)	glaDrawPixelsSafe(x, y, w, h, w, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+	else			glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+
+	if(ima)
+		IMB_freeImBuf(ima);
 
 	/* restore color */
 	if(alpha != 0.0f)
