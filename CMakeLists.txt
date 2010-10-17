@@ -66,7 +66,6 @@ GET_BLENDER_VERSION()
 
 # Blender internal features
 OPTION(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
-OPTION(WITH_LCMS          "Enable color correction with lcms" OFF)
 OPTION(WITH_PYTHON        "Enable Embedded Python API" ON)
 OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_FLUID        "Enable Elbeem (Fluid Simulation)" ON)
@@ -126,6 +125,8 @@ IF(APPLE)
 	OPTION(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 ENDIF(APPLE)
 
+# only for developers who want to make this functional
+# OPTION(WITH_LCMS          "Enable color correction with lcms" OFF)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	MESSAGE(FATAL_ERROR "WITH_PLAYER needs WITH_GAMEENGINE")
