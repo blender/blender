@@ -363,7 +363,7 @@ void Controller::CloseFile()
     }
 
   // clears the canvas
-  _Canvas->Erase();
+  _Canvas->Clear();
 
   // clears the grid
   _Grid.clear();
