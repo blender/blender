@@ -446,16 +446,21 @@ static short apply_targetless_ik(Object *ob)
 				/* apply and decompose, doesn't work for constraints or non-uniform scale well */
 				{
 					float rmat3[3][3], qrmat[3][3], imat[3][3], smat[3][3];
-
+					
 					copy_m3_m4(rmat3, rmat);
 					
 					/* rotation */
-					if (parchan->rotmode > 0) 
-						mat3_to_eulO( parchan->eul, parchan->rotmode,rmat3);
+						/* [#22409] is partially caused by this, as slight numeric error introduced during 
+						 * the solving process leads to locked-axis values changing. However, we cannot modify
+						 * the values here, or else there are huge discreptancies between IK-solver (interactive)
+						 * and applied poses.
+						 */
+					if (parchan->rotmode > 0)
+						mat3_to_eulO(parchan->eul, parchan->rotmode,rmat3);
 					else if (parchan->rotmode == ROT_MODE_AXISANGLE)
-						mat3_to_axis_angle( parchan->rotAxis, &pchan->rotAngle,rmat3);
+						mat3_to_axis_angle(parchan->rotAxis, &parchan->rotAngle,rmat3);
 					else
-						mat3_to_quat( parchan->quat,rmat3);
+						mat3_to_quat(parchan->quat,rmat3);
 					
 					/* for size, remove rotation */
 					/* causes problems with some constraints (so apply only if needed) */
@@ -840,9 +845,9 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 	data->flag |= CONSTRAINT_IK_TEMP|CONSTRAINT_IK_AUTO;
 	VECCOPY(data->grabtarget, pchan->pose_tail);
 	data->rootbone= 1;
-
-	/* we include only a connected chain */
-	while ((pchan) && (pchan->bone->flag & BONE_CONNECTED)) {
+	
+	/* we only include bones that are part of a continual connected chain */
+	while (pchan) {
 		/* here, we set ik-settings for bone from pchan->protectflag */
 		if (pchan->protectflag & OB_LOCK_ROTX) pchan->ikflag |= BONE_IK_NO_XDOF_TEMP;
 		if (pchan->protectflag & OB_LOCK_ROTY) pchan->ikflag |= BONE_IK_NO_YDOF_TEMP;
@@ -850,7 +855,12 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 
 		/* now we count this pchan as being included */
 		data->rootbone++;
-		pchan= pchan->parent;
+		
+		/* continue to parent, but only if we're connected to it */
+		if (pchan->bone->flag & BONE_CONNECTED)
+			pchan = pchan->parent;
+		else
+			pchan = NULL;
 	}
 
 	/* make a copy of maximum chain-length */
