@@ -27,6 +27,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 
 #include "DNA_screen_types.h"
@@ -1773,6 +1774,12 @@ void ui_draw_gradient(rcti *rect, float *hsv, int type, float alpha)
 			VECCOPY(col1[1], col1[2]);
 			VECCOPY(col1[3], col1[2]);
 			break;
+		default:
+			assert(!"invalid 'type' argument");
+			hsv_to_rgb(1.0, 1.0, 1.0,   &col1[2][0], &col1[2][1], &col1[2][2]);
+			VECCOPY(col1[0], col1[2]);
+			VECCOPY(col1[1], col1[2]);
+			VECCOPY(col1[3], col1[2]);			
 	}
 	
 	/* old below */

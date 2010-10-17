@@ -422,11 +422,13 @@ static int without_borders(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(d
 	return 0;
 }
 
-static int register_extension(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(data))
+static int register_extension(int UNUSED(argc), char **UNUSED(argv), void *data)
 {
 #ifdef WIN32
 	char *path = BLI_argsArgv(data)[0];
 	RegisterBlendExtension(path);
+#else
+	(void)data; /* unused */
 #endif
 
 	return 0;

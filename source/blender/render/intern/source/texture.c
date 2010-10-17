@@ -771,7 +771,7 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 		if (pit->version < 6) {
 			texres->tin = pit->result[0];
 		} else {
-			texres->tin = result[0];
+			texres->tin = result[0]; /* XXX, assigning garbage value, fixme! */
 		}
 
 		if(rgbnor & TEX_NOR) {
