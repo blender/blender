@@ -58,7 +58,7 @@ typedef struct BoidValues {
 
 static int apply_boid_rule(BoidBrainData *bbd, BoidRule *rule, BoidValues *val, ParticleData *pa, float fuzziness);
 
-static int rule_none(BoidRule *rule, BoidBrainData *UNUSED(data), BoidValues *val, ParticleData *pa)
+static int rule_none(BoidRule *UNUSED(rule), BoidBrainData *UNUSED(data), BoidValues *UNUSED(val), ParticleData *UNUSED(pa))
 {
 	return 0;
 }
@@ -344,7 +344,7 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 
 	return ret;
 }
-static int rule_separate(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, ParticleData *pa)
+static int rule_separate(BoidRule *UNUSED(rule), BoidBrainData *bbd, BoidValues *val, ParticleData *pa)
 {
 	KDTreeNearest *ptn = NULL;
 	ParticleTarget *pt;
@@ -384,7 +384,7 @@ static int rule_separate(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Pa
 	}
 	return ret;
 }
-static int rule_flock(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, ParticleData *pa)
+static int rule_flock(BoidRule *UNUSED(rule), BoidBrainData *bbd, BoidValues *UNUSED(val), ParticleData *pa)
 {
 	KDTreeNearest ptn[11];
 	float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};

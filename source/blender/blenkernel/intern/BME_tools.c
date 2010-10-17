@@ -107,7 +107,7 @@ float *BME_new_transdata_float(BME_TransData_Head *td) {
 	return BLI_memarena_alloc(td->ma, sizeof(float));
 }
 
-static int BME_is_nonmanifold_vert(BME_Mesh *bm, BME_Vert *v) {
+static int BME_is_nonmanifold_vert(BME_Mesh *UNUSED(bm), BME_Vert *v) {
 	BME_Edge *e, *oe;
 	BME_Loop *l;
 	int len, count, flag;
@@ -217,7 +217,7 @@ static void BME_data_interp_from_verts(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2,
 #endif
 
 
-static void BME_data_facevert_edgesplit(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Vert *v, BME_Edge *e1, float fac){
+static void BME_data_facevert_edgesplit(BME_Mesh *bm, BME_Vert *v1, BME_Vert *UNUSED(v2), BME_Vert *v, BME_Edge *e1, float fac){
 	void *src[2];
 	float w[2];
 	BME_Loop *l=NULL, *v1loop = NULL, *vloop = NULL, *v2loop = NULL;
@@ -356,7 +356,7 @@ static int BME_bevel_get_vec(float *vec, BME_Vert *v1, BME_Vert *v2, BME_TransDa
  * vec2 is the direction of projection (pointing away from vec1)
  * up_vec is used for orientation (expected to be normalized)
  * returns the length of the projected vector that lies along vec1 */
-static float BME_bevel_project_vec(float *vec1, float *vec2, float *up_vec, int is_forward, BME_TransData_Head *td) {
+static float BME_bevel_project_vec(float *vec1, float *vec2, float *up_vec, int is_forward, BME_TransData_Head *UNUSED(td)) {
 	float factor, vec3[3], tmp[3],c1,c2;
 
 	cross_v3_v3v3(tmp,vec1,vec2);
@@ -582,7 +582,7 @@ static float BME_bevel_set_max(BME_Vert *v1, BME_Vert *v2, float value, BME_Tran
 	return max;
 }
 
-static BME_Vert *BME_bevel_wire(BME_Mesh *bm, BME_Vert *v, float value, int res, int options, BME_TransData_Head *td) {
+static BME_Vert *BME_bevel_wire(BME_Mesh *bm, BME_Vert *v, float value, int res, int UNUSED(options), BME_TransData_Head *td) {
 	BME_Vert *ov1, *ov2, *v1, *v2;
 
 	ov1 = BME_edge_getothervert(v->edge, v);
@@ -607,7 +607,7 @@ static BME_Vert *BME_bevel_wire(BME_Mesh *bm, BME_Vert *v, float value, int res,
 	return v1;
 }
 
-static BME_Loop *BME_bevel_edge(BME_Mesh *bm, BME_Loop *l, float value, int options, float *up_vec, BME_TransData_Head *td) {
+static BME_Loop *BME_bevel_edge(BME_Mesh *bm, BME_Loop *l, float value, int UNUSED(options), float *up_vec, BME_TransData_Head *td) {
 	BME_Vert *v1, *v2, *kv;
 	BME_Loop *kl=NULL, *nl;
 	BME_Edge *e;
@@ -708,7 +708,7 @@ static BME_Loop *BME_bevel_edge(BME_Mesh *bm, BME_Loop *l, float value, int opti
 	return l;
 }
 
-static BME_Loop *BME_bevel_vert(BME_Mesh *bm, BME_Loop *l, float value, int options, float *up_vec, BME_TransData_Head *td) {
+static BME_Loop *BME_bevel_vert(BME_Mesh *bm, BME_Loop *l, float value, int UNUSED(options), float *up_vec, BME_TransData_Head *td) {
 	BME_Vert *v1, *v2;
 	BME_Poly *f;
 
@@ -859,7 +859,7 @@ static void BME_bevel_add_vweight(BME_TransData_Head *td, BME_Mesh *bm, BME_Vert
 	}
 }
 
-static float BME_bevel_get_angle(BME_Mesh *bm, BME_Edge *e, BME_Vert *v) {
+static float BME_bevel_get_angle(BME_Mesh *UNUSED(bm), BME_Edge *e, BME_Vert *v) {
 	BME_Vert *v1, *v2;
 	BME_Loop *l1, *l2;
 	float vec1[3], vec2[3], vec3[3], vec4[3];

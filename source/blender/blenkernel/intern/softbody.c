@@ -678,7 +678,7 @@ static void add_mesh_quad_diag_springs(Object *ob)
 	}
 }
 
-static void add_2nd_order_roller(Object *ob,float stiffness,int *counter, int addsprings)
+static void add_2nd_order_roller(Object *ob,float UNUSED(stiffness), int *counter, int addsprings)
 {
 	/*assume we have a softbody*/
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
@@ -1029,7 +1029,7 @@ static int query_external_colliders(Scene *scene, Object *me)
 
 
 /* +++ the aabb "force" section*/
-static int sb_detect_aabb_collisionCached(	float force[3], unsigned int par_layer,struct Object *vertexowner,float UNUSED(time))
+static int sb_detect_aabb_collisionCached(	float UNUSED(force[3]), unsigned int UNUSED(par_layer),struct Object *vertexowner,float UNUSED(time))
 {
 	Object *ob;
 	SoftBody *sb=vertexowner->soft;
@@ -1094,7 +1094,7 @@ static int sb_detect_aabb_collisionCached(	float force[3], unsigned int par_laye
 
 /* +++ the face external section*/
 static int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float face_v3[3],float *damp,
-								   float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
+								   float force[3], unsigned int UNUSED(par_layer),struct Object *vertexowner,float time)
 								   {
 	Object *ob;
 	GHash *hash;
@@ -1192,7 +1192,7 @@ static int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float fa
 
 
 static int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_v3[3],float *damp,
-								   float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
+								   float force[3], unsigned int UNUSED(par_layer),struct Object *vertexowner,float time)
 {
 	Object *ob;
 	GHash *hash;
@@ -1418,7 +1418,7 @@ static void scan_for_ext_face_forces(Object *ob,float timenow)
 /* +++ the spring external section*/
 
 static int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp,
-								   float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
+								   float force[3], unsigned int UNUSED(par_layer),struct Object *vertexowner,float time)
 {
 	Object *ob;
 	GHash *hash;
@@ -1659,7 +1659,7 @@ static void *exec_scan_for_ext_spring_forces(void *data)
 	return 0;
 }
 
-static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,int totsprings,int *ptr_to_break_func())
+static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,int totsprings,int *UNUSED(ptr_to_break_func()))
 {
 	ListBase *do_effector = NULL;
 	ListBase threads;
@@ -1749,7 +1749,7 @@ static int choose_winner(float*w, float* pos,float*a,float*b,float*c,float*ca,fl
 
 
 static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *damp,
-									 float force[3], unsigned int par_layer,struct Object *vertexowner,
+									 float force[3], unsigned int UNUSED(par_layer), struct Object *vertexowner,
 									 float time,float vel[3], float *intrusion)
 {
 	Object *ob= NULL;
@@ -2084,7 +2084,7 @@ static void dfdv_goal(int ia, int ic,float factor)
 	for(i=0;i<3;i++) nlMatrixAdd(ia+i,ic+i,factor);
 }
 */
-static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float forcetime,int nl_flags)
+static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float UNUSED(forcetime), int nl_flags)
 {
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint  *bp1,*bp2;
@@ -2175,7 +2175,7 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float fo
 /* since this is definitely the most CPU consuming task here .. try to spread it */
 /* core function _softbody_calc_forces_slice_in_a_thread */
 /* result is int to be able to flag user break */
-static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, float forcetime, float timenow,int ifirst,int ilast,int *ptr_to_break_func(),ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
+static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, float forcetime, float timenow,int ifirst,int ilast,int *UNUSED(ptr_to_break_func()),ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
 {
 	float iks;
 	int bb,do_selfcollision,do_springcollision,do_aero;
@@ -2386,7 +2386,7 @@ static void *exec_softbody_calc_forces(void *data)
 	return 0;
 }
 
-static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float timenow,int totpoint,int *ptr_to_break_func(),struct ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
+static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float timenow,int totpoint,int *UNUSED(ptr_to_break_func()),struct ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
 {
 	ListBase threads;
 	SB_thread_context *sb_threads;
@@ -2444,7 +2444,7 @@ static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float t
 	MEM_freeN(sb_threads);
 }
 
-static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, float timenow, int nl_flags)
+static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, float timenow, int UNUSED(nl_flags))
 {
 /* rule we never alter free variables :bp->vec bp->pos in here !
  * this will ruin adaptive stepsize AKA heun! (BM)

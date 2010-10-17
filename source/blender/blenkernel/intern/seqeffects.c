@@ -524,7 +524,7 @@ static void do_alphaover_effect_float(float facf0, float facf1, int x, int y,
 }
 
 static struct ImBuf * do_alphaover_effect(
-	Main *bmain, Scene *UNUSED(scene), Sequence *UNUSED(seq), float UNUSED(cfra),
+	Main *UNUSED(bmain), Scene *UNUSED(scene), Sequence *UNUSED(seq), float UNUSED(cfra),
 	float facf0, float facf1, int x, int y, 
 	int UNUSED(preview_render_size),
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -2633,7 +2633,7 @@ static void copy_glow_effect(Sequence *dst, Sequence *src)
 //void do_glow_effect(Cast *cast, float facf0, float facf1, int xo, int yo, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *outbuf, ImBuf *use)
 static void do_glow_effect_byte(Sequence *seq, float facf0, float UNUSED(facf1), 
 				int x, int y, char *rect1, 
-				char *rect2, char *out)
+				char *UNUSED(rect2), char *out)
 {
 	unsigned char *outbuf=(unsigned char *)out;
 	unsigned char *inbuf=(unsigned char *)rect1;
@@ -2648,7 +2648,7 @@ static void do_glow_effect_byte(Sequence *seq, float facf0, float UNUSED(facf1),
 
 static void do_glow_effect_float(Sequence *seq, float facf0, float UNUSED(facf1), 
 				 int x, int y, 
-				 float *rect1, float *rect2, float *out)
+				 float *rect1, float *UNUSED(rect2), float *out)
 {
 	float *outbuf = out;
 	float *inbuf = rect1;
@@ -2822,8 +2822,8 @@ static struct ImBuf * do_multicam(
 	Main *bmain, Scene *scene, Sequence *seq, float cfra,
 	float UNUSED(facf0), float UNUSED(facf1), int x, int y, 
 	int preview_render_size,
-	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-	struct ImBuf *ibuf3)
+	struct ImBuf *UNUSED(ibuf1), struct ImBuf *UNUSED(ibuf2), 
+	struct ImBuf *UNUSED(ibuf3))
 {
 	struct ImBuf * i;
 	struct ImBuf * out;
@@ -2914,7 +2914,7 @@ static int early_out_speed(struct Sequence *UNUSED(seq),
 }
 
 static void store_icu_yrange_speed(struct Sequence * seq,
-				   short adrcode, float * ymin, float * ymax)
+				   short UNUSED(adrcode), float * ymin, float * ymax)
 {
 	SpeedControlVars * v = (SpeedControlVars *)seq->effectdata;
 
@@ -3091,7 +3091,7 @@ static int early_out_mul_input2(struct Sequence *UNUSED(seq),
 }
 
 static void store_icu_yrange_noop(struct Sequence * UNUSED(seq),
-				  short adrcode, float * ymin, float * ymax)
+				  short UNUSED(adrcode), float *UNUSED(ymin), float *UNUSED(ymax))
 {
 	/* defaults are fine */
 }

@@ -238,6 +238,8 @@ int imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
 	char buf[20];
 	FILE *fildes;
 	short ok = 0;
+	
+	(void)flags; /* unused */
 
 	if (ibuf == 0) return (0);
 	if (ibuf->rect == 0) return (0);

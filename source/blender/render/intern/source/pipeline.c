@@ -861,7 +861,7 @@ static void *ml_addlayer_cb(void *base, char *str)
 	BLI_strncpy(rl->name, str, EXR_LAY_MAXNAME);
 	return rl;
 }
-static void ml_addpass_cb(void *base, void *lay, char *str, float *rect, int totchan, char *chan_id)
+static void ml_addpass_cb(void *UNUSED(base), void *lay, char *str, float *rect, int totchan, char *chan_id)
 {
 	RenderLayer *rl= lay;	
 	RenderPass *rpass= MEM_callocN(sizeof(RenderPass), "loaded pass");
@@ -2677,7 +2677,7 @@ static int is_rendering_allowed(Render *re)
 	return 1;
 }
 
-static void update_physics_cache(Render *re, Scene *scene, int anim_init)
+static void update_physics_cache(Render *re, Scene *scene, int UNUSED(anim_init))
 {
 	PTCacheBaker baker;
 

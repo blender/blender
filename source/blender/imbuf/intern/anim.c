@@ -63,6 +63,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
+#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_depsgraph.h"
 
@@ -214,14 +215,14 @@ int ismovie(char *name) {
 
 #else
 
-int ismovie(char *name) {
+int ismovie(char *UNUSED(name)) {
 	return 0;
 }
 
 	/* never called, just keep the linker happy */
-static int startmovie(struct anim * anim) { return 1; }
-static ImBuf * movie_fetchibuf(struct anim * anim, int position) { return NULL; }
-static void free_anim_movie(struct anim * anim) { ; }
+static int startmovie(struct anim *UNUSED(anim)) { return 1; }
+static ImBuf * movie_fetchibuf(struct anim *UNUSED(anim), int UNUSED(position)) { return NULL; }
+static void free_anim_movie(struct anim *UNUSED(anim)) { ; }
 
 #endif
 

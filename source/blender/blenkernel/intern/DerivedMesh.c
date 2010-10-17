@@ -633,6 +633,8 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
 	int i, draw;
+	
+	(void)setMaterial; /* unused */
 
 	if (emdm->vertexCos) {
 		EditVert *eve;

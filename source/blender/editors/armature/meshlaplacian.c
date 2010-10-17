@@ -61,7 +61,7 @@
 
 
 /* ************* XXX *************** */
-static void waitcursor(int val) {}
+static void waitcursor(int UNUSED(val)) {}
 static void progress_bar(int UNUSED(dummy_val), const char *UNUSED(dummy)) {}
 static void start_progress_bar() {}
 static void end_progress_bar() {}
@@ -398,7 +398,7 @@ typedef struct BVHCallbackUserData {
 	LaplacianSystem *sys;
 } BVHCallbackUserData;
 
-static void bvh_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
+static void bvh_callback(void *userdata, int index, const BVHTreeRay *UNUSED(ray), BVHTreeRayHit *hit)
 {
 	BVHCallbackUserData *data = (struct BVHCallbackUserData*)userdata;
 	MFace *mf = data->sys->heat.mface + index;
@@ -1401,7 +1401,7 @@ static void meshdeform_bind_floodfill(MeshDeformBind *mdb)
 	MEM_freeN(stack);
 }
 
-static float meshdeform_boundary_phi(MeshDeformBind *mdb, MDefBoundIsect *isect, int cagevert)
+static float meshdeform_boundary_phi(MeshDeformBind *UNUSED(mdb), MDefBoundIsect *isect, int cagevert)
 {
 	int a;
 
@@ -1412,7 +1412,7 @@ static float meshdeform_boundary_phi(MeshDeformBind *mdb, MDefBoundIsect *isect,
 	return 0.0f;
 }
 
-static float meshdeform_interp_w(MeshDeformBind *mdb, float *gridvec, float *vec, int cagevert)
+static float meshdeform_interp_w(MeshDeformBind *mdb, float *gridvec, float *UNUSED(vec), int UNUSED(cagevert))
 {
 	float dvec[3], ivec[3], wx, wy, wz, result=0.0f;
 	float weight, totweight= 0.0f;
@@ -1563,7 +1563,7 @@ static void meshdeform_matrix_add_semibound_phi(MeshDeformBind *mdb, int x, int 
 	}
 }
 
-static void meshdeform_matrix_add_exterior_phi(MeshDeformBind *mdb, int x, int y, int z, int cagevert)
+static void meshdeform_matrix_add_exterior_phi(MeshDeformBind *mdb, int x, int y, int z, int UNUSED(cagevert))
 {
 	float phi, totweight;
 	int i, a, acenter;

@@ -288,7 +288,6 @@ static int layers_poll(bContext *C)
 
 static int uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Mesh *me= ob->data;
 

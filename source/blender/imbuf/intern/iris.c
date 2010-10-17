@@ -123,7 +123,8 @@ static int file_offset;
 static unsigned short getshort(FILE *inf)
 {
 	unsigned char * buf;
-	
+	(void)inf; /* unused */
+
 	buf = file_data + file_offset;
 	file_offset += 2;
 	
@@ -133,6 +134,7 @@ static unsigned short getshort(FILE *inf)
 static unsigned int getlong(FILE *inf)
 {
 	unsigned char * buf;
+	(void)inf; /* unused */
 	
 	buf = file_data + file_offset;
 	file_offset += 4;
@@ -258,6 +260,8 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 	int bpp, rle, cur, badorder;
 	ImBuf * ibuf;
 
+	(void)size; /* unused */
+	
 	if(!imb_is_a_iris(mem)) return NULL;
 
 	/*printf("new iris\n");*/

@@ -1125,7 +1125,7 @@ static void update_world_cos(Object *ob, PTCacheEdit *edit)
 		}
 	}
 }
-static void update_velocities(Object *ob, PTCacheEdit *edit)
+static void update_velocities(PTCacheEdit *edit)
 {
 	/*TODO: get frs_sec properly */
 	float vec1[3], vec2[3], frs_sec, dfra;
@@ -1208,7 +1208,7 @@ void PE_update_object(Scene *scene, Object *ob, int useflag)
 	if(edit->psys)
 		update_world_cos(ob, edit);
 	if(pset->flag & PE_AUTO_VELOCITY)
-		update_velocities(ob, edit);
+		update_velocities(edit);
 	PE_hide_keys_time(scene, edit, CFRA);
 
 	/* regenerate path caches */
@@ -1243,7 +1243,7 @@ static void select_key(PEData *data, int point_index, int key_index)
 	point->flag |= PEP_EDIT_RECALC;
 }
 
-static void select_keys(PEData *data, int point_index, int key_index)
+static void select_keys(PEData *data, int point_index, int UNUSED(key_index))
 {
 	PTCacheEdit *edit = data->edit;
 	PTCacheEditPoint *point = edit->points + point_index;
@@ -3034,7 +3034,7 @@ static void brush_puff(PEData *data, int point_index)
 }
 
 
-static void brush_weight(PEData *data, float UNUSED(mat[][4]), float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
+static void brush_weight(PEData *data, float UNUSED(mat[][4]), float UNUSED(imat[][4]), int point_index, int key_index, PTCacheEditKey *UNUSED(key))
 {
 	/* roots have full weight allways */
 	if(key_index) {
@@ -3048,7 +3048,7 @@ static void brush_weight(PEData *data, float UNUSED(mat[][4]), float imat[][4], 
 	}
 }
 
-static void brush_smooth_get(PEData *data, float mat[][4], float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
+static void brush_smooth_get(PEData *data, float mat[][4], float UNUSED(imat[][4]), int UNUSED(point_index), int key_index, PTCacheEditKey *key)
 {	
 	if(key_index) {
 		float dvec[3];

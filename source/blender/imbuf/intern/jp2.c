@@ -670,6 +670,8 @@ int imb_savejp2(struct ImBuf *ibuf, char *name, int flags) {
 	opj_event_mgr_t event_mgr;		/* event manager */
 	opj_image_t *image = NULL;
 	
+	(void)flags; /* unused */
+	
 	/*
 	configure the event callbacks (not required)
 	setting of each callback is optionnal

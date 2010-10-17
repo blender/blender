@@ -340,6 +340,8 @@ int imb_savehdr(struct ImBuf *ibuf, char *name, int flags)
 	int y, width=ibuf->x, height=ibuf->y;
 	unsigned char *cp= NULL;
 	
+	(void)flags; /* unused */
+	
 	if (file==NULL) return 0;
 
 	writeHeader(file, width, height);

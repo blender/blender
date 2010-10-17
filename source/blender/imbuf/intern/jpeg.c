@@ -132,6 +132,7 @@ typedef my_source_mgr * my_src_ptr;
 
 static void init_source(j_decompress_ptr cinfo)
 {
+	(void)cinfo; /* unused */
 }
 
 
@@ -165,6 +166,7 @@ static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 
 static void term_source(j_decompress_ptr cinfo)
 {
+	(void)cinfo; /* unused */
 }
 
 static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t size)

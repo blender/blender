@@ -358,7 +358,7 @@ void vol_get_sigma_t(ShadeInput *shi, float *sigma_t, float *co)
 /* phase function - determines in which directions the light 
  * is scattered in the volume relative to incoming direction 
  * and view direction */
-float vol_get_phasefunc(ShadeInput *shi, float g, float *w, float *wp)
+float vol_get_phasefunc(ShadeInput *UNUSED(shi), float g, float *w, float *wp)
 {
 	const float normalize = 0.25f; // = 1.f/4.f = M_PI/(4.f*M_PI)
 	

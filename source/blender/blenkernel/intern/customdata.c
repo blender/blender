@@ -145,7 +145,7 @@ static void linklist_free_simple(void *link)
 }
 
 static void layerInterp_mdeformvert(void **sources, float *weights,
-									float *sub_weights, int count, void *dest)
+									float *UNUSED(sub_weights), int count, void *dest)
 {
 	MDeformVert *dvert = dest;
 	LinkNode *dest_dw = NULL; /* a list of lists of MDeformWeight pointers */
@@ -203,7 +203,7 @@ static void layerInterp_mdeformvert(void **sources, float *weights,
 
 
 static void layerInterp_msticky(void **sources, float *weights,
-								float *sub_weights, int count, void *dest)
+								float *UNUSED(sub_weights), int count, void *dest)
 {
 	float co[2], w;
 	MSticky *mst;
@@ -484,8 +484,8 @@ static void layerSwap_mdisps(void *data, const int *ci)
 	}
 }
 
-static void layerInterp_mdisps(void **UNUSED(sources), float *weights, float *sub_weights,
-				   int UNUSED(count), void *dest)
+static void layerInterp_mdisps(void **UNUSED(sources), float *UNUSED(weights),
+				float *UNUSED(sub_weights), int UNUSED(count), void *dest)
 {
 	MDisps *d = dest;
 	int i;
@@ -563,7 +563,7 @@ static void layerCopy_mdisps(const void *source, void *dest, int count)
 	}
 }
 
-static void layerFree_mdisps(void *data, int count, int size)
+static void layerFree_mdisps(void *data, int count, int UNUSED(size))
 {
 	int i;
 	MDisps *d = data;
@@ -609,7 +609,7 @@ static int layerWrite_mdisps(CDataFile *cdf, void *data, int count)
 	return 1;
 }
 
-static size_t layerFilesize_mdisps(CDataFile *cdf, void *data, int count)
+static size_t layerFilesize_mdisps(CDataFile *UNUSED(cdf), void *data, int count)
 {
 	MDisps *d = data;
 	size_t size = 0;
@@ -2349,7 +2349,7 @@ static void customdata_external_filename(char filename[FILE_MAX], ID *id, Custom
 	BLI_path_abs(filename, path);
 }
 
-void CustomData_external_reload(CustomData *data, ID *id, CustomDataMask mask, int totelem)
+void CustomData_external_reload(CustomData *data, ID *UNUSED(id), CustomDataMask mask, int totelem)
 {
 	CustomDataLayer *layer;
 	const LayerTypeInfo *typeInfo;
@@ -2519,7 +2519,7 @@ void CustomData_external_write(CustomData *data, ID *id, CustomDataMask mask, in
 	cdf_free(cdf);
 }
 
-void CustomData_external_add(CustomData *data, ID *id, int type, int UNUSED(totelem), const char *filename)
+void CustomData_external_add(CustomData *data, ID *UNUSED(id), int type, int UNUSED(totelem), const char *filename)
 {
 	CustomDataExternal *external= data->external;
 	CustomDataLayer *layer;

@@ -342,7 +342,7 @@ static void free_all_fluidobject_channels(ListBase *fobjects)
 	}
 }
 
-static void fluid_init_all_channels(bContext *C, Object *fsDomain, FluidsimSettings *domainSettings, FluidAnimChannels *channels, ListBase *fobjects)
+static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), FluidsimSettings *domainSettings, FluidAnimChannels *channels, ListBase *fobjects)
 {
 	Scene *scene = CTX_data_scene(C);
 	Base *base;

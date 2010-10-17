@@ -31,6 +31,7 @@
 
 #include "BLI_listbase.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 

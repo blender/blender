@@ -110,6 +110,8 @@ void sound_init(struct Main *bmain)
 		
 #ifdef WITH_JACK
 	AUD_setSyncCallback(sound_sync_callback, bmain);
+#else
+	(void)bmain; /* unused */
 #endif
 }
 

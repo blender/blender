@@ -1647,7 +1647,7 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, float *
 	return DMCACHE_NOTFOUND;
 }
 
-static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, int *mapindex, float *mapfw)
+static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float UNUSED(foffset), int *mapindex, float *mapfw)
 {
 	if(index < 0)
 		return 0;
@@ -1803,7 +1803,7 @@ ParticleSystemModifierData *psys_get_modifier(Object *ob, ParticleSystem *psys)
 /*			Particles on a shape				*/
 /************************************************/
 /* ready for future use */
-static void psys_particle_on_shape(int UNUSED(distr), int index, float *UNUSED(fuv), float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
+static void psys_particle_on_shape(int UNUSED(distr), int UNUSED(index), float *UNUSED(fuv), float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
 {
 	/* TODO */
 	float zerovec[3]={0.0f,0.0f,0.0f};
@@ -2185,7 +2185,7 @@ static void do_rough_end(float *loc, float mat[4][4], float t, float fac, float 
 	VECADDFAC(state->co,state->co,mat[0],rough[0]);
 	VECADDFAC(state->co,state->co,mat[1],rough[1]);
 }
-static void do_path_effectors(ParticleSimulationData *sim, int i, ParticleCacheKey *ca, int k, int steps, float *rootco, float effector, float dfra, float UNUSED(cfra), float *length, float *vec)
+static void do_path_effectors(ParticleSimulationData *sim, int i, ParticleCacheKey *ca, int k, int steps, float *UNUSED(rootco), float effector, float UNUSED(dfra), float UNUSED(cfra), float *length, float *vec)
 {
 	float force[3] = {0.0f,0.0f,0.0f};
 	ParticleKey eff_key;

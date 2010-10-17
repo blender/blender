@@ -125,6 +125,8 @@ static int imb_save_dpx_cineon(ImBuf *buf, char *filename, int use_cineon, int f
 	int i, j;
 	int index;
 	float *fline;
+	
+	(void)flags; /* unused */
 
 	cineon_conversion_parameters(&conversion);
 

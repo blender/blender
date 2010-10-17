@@ -318,7 +318,7 @@ IF(UNIX AND NOT APPLE)
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
 	# Better warnings
-	# note: -Wunused-parameter should be added but for now only apply to ./source/blender
+	# note: -Wunused-parameter is added below for all GCC compilers
 	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
 	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
@@ -920,6 +920,12 @@ INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 
 #-----------------------------------------------------------------------------
 # Extra compile flags
+
+# TODO: remove this and uncommend the global arg, but for now adding here keeps it managable
+IF(CMAKE_COMPILER_IS_GNUCC)
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wunused-parameter")
+ENDIF(CMAKE_COMPILER_IS_GNUCC)
+
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
 

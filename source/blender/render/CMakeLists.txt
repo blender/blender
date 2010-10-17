@@ -24,6 +24,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+# remove warning until render branch merged.
+STRING(REGEX REPLACE "-Wunused-parameter" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
+
 FILE(GLOB SRC intern/source/*.c intern/raytrace/*.cpp)
 
 SET(INC 
