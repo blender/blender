@@ -49,7 +49,7 @@
 #ifdef __GNUC__
 #  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #else
-#  define UNUSED(x) x
+#  define UNUSED(x) UNUSED_ ## x
 #endif
 
 /* these values need to be hardcoded in structs, dna does not recognize defines */
