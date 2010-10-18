@@ -127,7 +127,8 @@ typedef struct knifetool_opdata {
 	ARegion *ar;		/* region that knifetool was activated in */
 	void *draw_handle;	/* for drawing preview loop */
 	ViewContext vc;
-
+	bContext *C;
+	
 	Object *ob;
 	BMEditMesh *em;
 	
@@ -165,6 +166,7 @@ typedef struct knifetool_opdata {
 	BLI_mempool *refs;
 	
 	float projmat[4][4];
+	int is_ortho, clipsta, clipend;
 	
 	enum {
 		MODE_IDLE,
@@ -174,6 +176,17 @@ typedef struct knifetool_opdata {
 } knifetool_opdata;
 
 static ListBase *knife_get_face_kedges(knifetool_opdata *kcd, BMFace *f);
+
+void knife_project_v3(knifetool_opdata *kcd, float co[3], float sco[3])
+{
+	if (kcd->is_ortho) {
+		mul_v3_m4v3(sco, kcd->projmat, co);
+		
+		sco[0] = (float)(kcd->ar->winx/2.0f)+(kcd->ar->winx/2.0f)*sco[0];
+		sco[1] = (float)(kcd->ar->winy/2.0f)+(kcd->ar->winy/2.0f)*sco[1];
+	} else
+		view3d_project_float(kcd->ar, co, sco, kcd->projmat);
+}
 
 static KnifeEdge *new_knife_edge(knifetool_opdata *kcd)
 {
@@ -190,7 +203,7 @@ static KnifeVert *new_knife_vert(knifetool_opdata *kcd, float *co)
 	copy_v3_v3(kfv->co, co);
 	copy_v3_v3(kfv->sco, co);
 
-	view3d_project_float(kcd->ar, kfv->co, kfv->sco, kcd->projmat);
+	knife_project_v3(kcd, kfv->co, kfv->sco);
 
 	return kfv;
 }
@@ -608,9 +621,9 @@ static void knifetool_draw(const bContext *C, ARegion *ar, void *arg)
 		lh = kcd->linehits;
 		for (i=0; i<kcd->totlinehit; i++, lh++) {
 			float sv1[3], sv2[3];
-
-			view3d_project_float_v3(kcd->ar, lh->kfe->v1->co, sv1, kcd->projmat);
-			view3d_project_float_v3(kcd->ar, lh->kfe->v2->co, sv2, kcd->projmat);
+			
+			knife_project_v3(kcd, lh->kfe->v1->co, sv1);
+			knife_project_v3(kcd, lh->kfe->v2->co, sv2);
 			
 			if (len_v2v2(lh->shit, sv1) < kcd->vthresh/4) {
 				copy_v3_v3(lh->hit, lh->kfe->v1->co);
@@ -717,8 +730,7 @@ BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float 
 	BMEdgeHit *edges = NULL;
 	BLI_array_declare(edges);
 	BVHTreeOverlap *results, *result;
-	BMLoop *l, **ls;
-	BMIter iter;
+	BMLoop **ls;
 	float cos[9], uv[3], lambda;
 	int tot=0, i, j;
 	
@@ -751,13 +763,15 @@ BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float 
 					mul_v3_fl(p, lambda);
 					add_v3_v3(p, kfe->v1->co);
 					
-					view3d_project_float_v3(kcd->ar, p, sp, kcd->projmat);
+					knife_project_v3(kcd, p, sp);
 					view3d_unproject(mats, view, sp[0], sp[1], 0.0f);
+					mul_m4_v3(kcd->ob->imat, view);
+
 					sub_v3_v3v3(view, p, view);
-					normalize_v3(view);
+					normalize_v3(view);;
 	
 					copy_v3_v3(no, view);
-					mul_v3_fl(no, -0.003);
+					mul_v3_fl(no, -0.0003);
 					
 					/*go backwards toward view a bit*/
 					add_v3_v3(p, no);
@@ -772,7 +786,7 @@ BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float 
 						hit.f = kfe->basef;
 						
 						copy_v3_v3(hit.hit, p);
-						view3d_project_float_v3(kcd->ar, hit.hit, hit.shit, kcd->projmat);
+						knife_project_v3(kcd, hit.hit, hit.shit);
 						
 						BLI_array_append(edges, hit);
 						BLI_smallhash_insert(ehash, (intptr_t)kfe, NULL);
@@ -789,6 +803,13 @@ BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree, float 
 	return edges;
 }
 
+knife_bgl_get_mats(knifetool_opdata *kcd, bglMats *mats)
+{
+	bgl_get_mats(mats);
+	//copy_m4_m4(mats->modelview, kcd->vc.rv3d->viewmat);
+	//copy_m4_m4(mats->projection, kcd->vc.rv3d->winmat);
+}
+
 /*finds (visible) edges that intersects the current screen drag line*/
 static void knife_find_line_hits(knifetool_opdata *kcd)
 {
@@ -798,7 +819,7 @@ static void knife_find_line_hits(knifetool_opdata *kcd)
 	float v1[3], v2[3], v3[3], v4[4], s1[3], s2[3], view[3];
 	int i, c1, c2;
 	
-	bgl_get_mats(&mats);
+	knife_bgl_get_mats(kcd, &mats);
 	
 	if (kcd->linehits) {
 		MEM_freeN(kcd->linehits);
@@ -807,8 +828,8 @@ static void knife_find_line_hits(knifetool_opdata *kcd)
 	}
 	
 	/*project screen line's 3d coordinates back into 2d*/
-	view3d_project_float_v3(kcd->ar, kcd->prevco, s1, kcd->projmat);
-	view3d_project_float_v3(kcd->ar, kcd->vertco, s2, kcd->projmat);
+	knife_project_v3(kcd, kcd->prevco, s1);
+	knife_project_v3(kcd, kcd->vertco, s2);
 	
 	if (len_v2v2(s1, s2) < 1)
 		return;
@@ -861,13 +882,13 @@ static BMFace *knife_find_closest_face(knifetool_opdata *kcd, float co[3])
 	float mval[2];
 	int dist = KMAXDIST; 
 	
-	bgl_get_mats(&mats);
+	knife_bgl_get_mats(kcd, &mats);
 
 	mval[0] = kcd->vc.mval[0]; mval[1] = kcd->vc.mval[1];
 	
 	/*unproject to find view ray*/
 	view3d_unproject(&mats, origin, mval[0], mval[1], 0.0f);
-	
+
 	sub_v3_v3v3(ray, origin, kcd->vc.rv3d->viewinv[3]);
 	normalize_v3(ray);
 	
@@ -906,7 +927,7 @@ static int knife_sample_screen_density(knifetool_opdata *kcd, float radius)
 		float dis;
 		int c = 0;
 		
-		view3d_project_float_v3(kcd->ar, co, sco, kcd->projmat);
+		knife_project_v3(kcd, co, sco);
 		
 		lst = knife_get_face_kedges(kcd, f);
 		for (ref=lst->first; ref; ref=ref->next) {
@@ -916,7 +937,7 @@ static int knife_sample_screen_density(knifetool_opdata *kcd, float radius)
 			for (i=0; i<2; i++) {
 				KnifeVert *kfv = i ? kfe->v2 : kfe->v1;
 				
-				view3d_project_float_v3(kcd->ar, kfv->co, kfv->sco, kcd->projmat);
+				knife_project_v3(kcd, kfv->co, kfv->sco);
 				
 				dis = len_v2v2(kfv->sco, sco);
 				if (dis < radius) {
@@ -969,7 +990,7 @@ static KnifeEdge *knife_find_closest_edge(knifetool_opdata *kcd, float p[3], BMF
 		Ref *ref;
 		float dis, curdis=FLT_MAX;
 		
-		view3d_project_float_v3(kcd->ar, co, sco, kcd->projmat);
+		knife_project_v3(kcd, co, sco);
 		
 		/*look through all edges associated with this face*/
 		lst = knife_get_face_kedges(kcd, f);
@@ -977,8 +998,8 @@ static KnifeEdge *knife_find_closest_edge(knifetool_opdata *kcd, float p[3], BMF
 			KnifeEdge *kfe = ref->ref;
 			
 			/*project edge vertices into screen space*/
-			view3d_project_float_v3(kcd->ar, kfe->v1->co, kfe->v1->sco, kcd->projmat);
-			view3d_project_float_v3(kcd->ar, kfe->v2->co, kfe->v2->sco, kcd->projmat);
+			knife_project_v3(kcd, kfe->v1->co, kfe->v1->sco);
+			knife_project_v3(kcd, kfe->v2->co, kfe->v2->sco);
 
 			dis = dist_to_line_segment_v2(sco, kfe->v1->sco, kfe->v2->sco);
 			if (dis < curdis && dis < maxdist) {
@@ -1035,7 +1056,7 @@ static KnifeVert *knife_find_closest_vert(knifetool_opdata *kcd, float p[3], BMF
 		KnifeVert *curv = NULL;
 		float dis, curdis=FLT_MAX;
 		
-		view3d_project_float_v3(kcd->ar, co, sco, kcd->projmat);
+		knife_project_v3(kcd, co, sco);
 		
 		lst = knife_get_face_kedges(kcd, f);
 		for (ref=lst->first; ref; ref=ref->next) {
@@ -1045,7 +1066,7 @@ static KnifeVert *knife_find_closest_vert(knifetool_opdata *kcd, float p[3], BMF
 			for (i=0; i<2; i++) {
 				KnifeVert *kfv = i ? kfe->v2 : kfe->v1;
 				
-				view3d_project_float_v3(kcd->ar, kfv->co, kfv->sco, kcd->projmat);
+				knife_project_v3(kcd, kfv->co, kfv->sco);
 				
 				dis = len_v2v2(kfv->sco, sco);
 				if (dis < curdis && dis < maxdist) {
@@ -1419,10 +1440,33 @@ static void knifetool_finish(bContext *C, wmOperator *op)
 	knifenet_fill_faces(kcd);
 }
 
+/*copied from paint_image.c*/
+static int project_knife_view_clip(View3D *v3d, RegionView3D *rv3d, float *clipsta, float *clipend)
+{
+	int orth= get_view3d_cliprange(v3d, rv3d, clipsta, clipend);
+
+	if (orth) { /* only needed for ortho */
+		float fac = 2.0f / ((*clipend) - (*clipsta));
+		*clipsta *= fac;
+		*clipend *= fac;
+	}
+
+	return orth;
+}
+
 void knife_recalc_projmat(knifetool_opdata *kcd)
 {
+	ARegion *ar = CTX_wm_region(kcd->C);
+	
+	if (!ar)
+		return;
+	
 	invert_m4_m4(kcd->ob->imat, kcd->ob->obmat);
-	view3d_get_object_project_mat(kcd->ar->regiondata, kcd->ob, kcd->projmat);	
+	view3d_get_object_project_mat(ar->regiondata, kcd->ob, kcd->projmat);
+	//mul_m4_m4m4(kcd->projmat, kcd->vc.rv3d->viewmat, kcd->vc.rv3d->winmat);
+	
+	kcd->is_ortho = project_knife_view_clip(kcd->vc.v3d, kcd->vc.rv3d, 
+	                                        &kcd->clipsta, &kcd->clipend);
 }
 
 /* called when modal loop selection is done... */
@@ -1466,6 +1510,7 @@ static int knifetool_init (bContext *C, wmOperator *op, int do_cut)
 	
 	/* assign the drawing handle for drawing preview line... */
 	kcd->ar= CTX_wm_region(C);
+	kcd->C = C;
 	kcd->draw_handle= ED_region_draw_cb_activate(kcd->ar->type, knifetool_draw, kcd, REGION_DRAW_POST_VIEW);
 	em_setup_viewcontext(C, &kcd->vc);
 
