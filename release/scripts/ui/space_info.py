@@ -347,6 +347,9 @@ class INFO_MT_help(bpy.types.Menu):
         layout.operator("help.operator_cheat_sheet", icon='TEXT')
         layout.operator("wm.sysinfo", icon='TEXT')
         layout.separator()
+        if bpy.app.build_platform[0:7] == 'Windows':
+            layout.operator("wm.toggle_console", icon='CONSOLE')
+            layout.separator()
         layout.operator("anim.update_data_paths", text="FCurve/Driver 2.54 fix", icon='HELP')
         layout.separator()
         layout.operator("wm.splash")
