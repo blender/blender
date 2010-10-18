@@ -161,11 +161,6 @@ float ED_object_new_primitive_matrix(bContext *C, Object *obedit, float *loc, fl
 
 /********************* Add Object Operator ********************/
 
-void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menus, only non-editmode stuff */
-{
-	/* keep here to get things compile, remove later */
-}
-
 void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 {
 	PropertyRNA *prop;
@@ -218,7 +213,7 @@ static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 	}
 }
 
-int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *event)
+int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	object_add_generic_invoke_options(C, op);
 	return op->type->exec(C, op);
@@ -362,11 +357,6 @@ static EnumPropertyItem field_type_items[] = {
 	{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", ""},
 	{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", ""},
 	{0, NULL, 0, NULL, NULL}};
-
-void add_effector_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menus, only non-editmode stuff */
-{
-	/* keep here to get things compile, remove later */
-}
 
 /* for effector add primitive operators */
 static Object *effector_add_type(bContext *C, wmOperator *op, int type)
@@ -537,7 +527,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	uiPopupMenu *pup;
@@ -805,7 +795,7 @@ void ED_base_object_free_and_unlink(Main *bmain, Scene *scene, Base *base)
 	MEM_freeN(base);
 }
 
-static int object_delete_exec(bContext *C, wmOperator *op)
+static int object_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -817,6 +807,10 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
 
 		if(base->object->type==OB_LAMP) islamp= 1;
+
+		/* deselect object -- it could be used in other scenes */
+		base->object->flag &= ~SELECT;
+
 		/* remove from current scene only */
 		ED_base_object_free_and_unlink(bmain, scene, base);
 	}
@@ -851,7 +845,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 
 /**************************** Copy Utilities ******************************/
 
-static void copy_object__forwardModifierLinks(void *userData, Object *ob,
+static void copy_object__forwardModifierLinks(void *UNUSED(userData), Object *UNUSED(ob),
 											  ID **idpoin)
 {
 	/* this is copied from ID_NEW; it might be better to have a macro */
@@ -1001,7 +995,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 	base->object->transflag &= ~OB_DUPLI;	
 }
 
-static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
+static int object_duplicates_make_real_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);

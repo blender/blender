@@ -93,11 +93,18 @@ typedef struct ImbTIFFMemFile {
 
 static void imb_tiff_DummyUnmapProc(thandle_t fd, tdata_t base, toff_t size)
 {
+	(void)fd;
+	(void)base;
+	(void)size;
 }
 
 static int imb_tiff_DummyMapProc(thandle_t fd, tdata_t* pbase, toff_t* psize) 
 {
-			return (0);
+	(void)fd;
+	(void)pbase;
+	(void)psize;
+
+	return (0);
 }
 
 /**
@@ -154,6 +161,10 @@ static tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n)
  */
 static tsize_t imb_tiff_WriteProc(thandle_t handle, tdata_t data, tsize_t n)
 {
+	(void)handle;
+	(void)data;
+	(void)n;
+	
 	printf("imb_tiff_WriteProc: this function should not be called.\n");
 	return (-1);
 }
@@ -368,7 +379,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 		ib_flag = IB_rect;
 	}
 	
-	tmpibuf= IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->depth, ib_flag, 0);
+	tmpibuf= IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->depth, ib_flag);
 	
 	/* simple RGBA image */
 	if (!(bitspersample == 32 || bitspersample == 16)) {
@@ -497,7 +508,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 	
 	ib_depth = (spp==3)?24:32;
 	
-	ibuf = IMB_allocImBuf(width, height, ib_depth, 0, 0);
+	ibuf = IMB_allocImBuf(width, height, ib_depth, 0);
 	if(ibuf) {
 		ibuf->ftype = TIF;
 	}
@@ -533,7 +544,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 					width= (width > 1)? width/2: 1;
 					height= (height > 1)? height/2: 1;
 
-					hbuf= IMB_allocImBuf(width, height, 32, 0, 0);
+					hbuf= IMB_allocImBuf(width, height, 32, 0);
 					hbuf->miplevel= level;
 					hbuf->ftype= ibuf->ftype;
 					ibuf->mipmap[level-1] = hbuf;

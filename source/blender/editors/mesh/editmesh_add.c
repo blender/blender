@@ -110,57 +110,95 @@ static short icoface[20][3] = {
 static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewContext vc;
-	EditVert *eve, *v1;
+	EditVert *eve;
 	float min[3], max[3];
 	int done= 0;
-	
+	short use_proj;
+printf("%d\n", event->val);
 	em_setup_viewcontext(C, &vc);
+
+	use_proj= (vc.scene->toolsettings->snap_flag & SCE_SNAP) &&	(vc.scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE);
+	
+	invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 
 	
 	INIT_MINMAX(min, max);
 	
-	for(v1= vc.em->verts.first;v1; v1=v1->next) {
-		if(v1->f & SELECT) {
-			DO_MINMAX(v1->co, min, max);
+	for(eve= vc.em->verts.first; eve; eve= eve->next) {
+		if(eve->f & SELECT) {
+			DO_MINMAX(eve->co, min, max);
 			done= 1;
 		}
 	}
 
 	/* call extrude? */
 	if(done) {
+		short rot_src= RNA_boolean_get(op->ptr, "rotate_source");
 		EditEdge *eed;
 		float vec[3], cent[3], mat[3][3];
 		float nor[3]= {0.0, 0.0, 0.0};
 		
-		/* check for edges that are half selected, use for rotation */
+		/* 2D normal calc */
+		float mval_f[2]= {(float)event->mval[0], (float)event->mval[1]};
+		
 		done= 0;
+
+		/* calculate the normal for selected edges */
 		for(eed= vc.em->edges.first; eed; eed= eed->next) {
-			if( (eed->v1->f & SELECT)+(eed->v2->f & SELECT) == SELECT ) {
-				if(eed->v1->f & SELECT) sub_v3_v3v3(vec, eed->v1->co, eed->v2->co);
-				else sub_v3_v3v3(vec, eed->v2->co, eed->v1->co);
-				add_v3_v3(nor, vec);
+			if(eed->f & SELECT) {
+				float co1[3], co2[3];
+				mul_v3_m4v3(co1, vc.obedit->obmat, eed->v1->co);
+				mul_v3_m4v3(co2, vc.obedit->obmat, eed->v2->co);
+				project_float_noclip(vc.ar, co1, co1);
+				project_float_noclip(vc.ar, co2, co2);
+				
+				/* 2D rotate by 90d while adding.
+				 *  (x, y) = (y, -x)
+				 *
+				 * accumulate the screenspace normal in 2D,
+				 * with screenspace edge length weighting the result. */
+				if(line_point_side_v2(co1, co2, mval_f) >= 0.0f) {
+					nor[0] +=  (co1[1] - co2[1]);
+					nor[1] += -(co1[0] - co2[0]);
+				}
+				else {
+					nor[0] +=  (co2[1] - co1[1]);
+					nor[1] += -(co2[0] - co1[0]);
+				}
 				done= 1;
 			}
 		}
-		if(done) normalize_v3(nor);
+
+		if(done) {
+			float view_vec[3], cross[3];
+
+			/* convert the 2D nomal into 3D */
+			mul_mat3_m4_v3(vc.rv3d->viewinv, nor); /* worldspace */
+			mul_mat3_m4_v3(vc.obedit->imat, nor); /* local space */
+			
+			/* correct the normal to be aligned on the view plane */
+			copy_v3_v3(view_vec, vc.rv3d->viewinv[2]);
+			mul_mat3_m4_v3(vc.obedit->imat, view_vec);
+			cross_v3_v3v3(cross, nor, view_vec);
+			cross_v3_v3v3(nor, view_vec, cross);
+			normalize_v3(nor);
+		}
 		
 		/* center */
-		add_v3_v3v3(cent, min, max);
-		mul_v3_fl(cent, 0.5f);
-		VECCOPY(min, cent);
+		mid_v3_v3v3(cent, min, max);
+		copy_v3_v3(min, cent);
 		
 		mul_m4_v3(vc.obedit->obmat, min);	// view space
 		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
-		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat); 
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
 		
-		sub_v3_v3v3(min, min, cent);
+		sub_v3_v3(min, cent);
 		
 		/* calculate rotation */
 		unit_m3(mat);
 		if(done) {
 			float dot;
 			
-			VECCOPY(vec, min);
+			copy_v3_v3(vec, min);
 			normalize_v3(vec);
 			dot= INPR(vec, nor);
 
@@ -170,14 +208,24 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 				cross_v3_v3v3(cross, nor, vec);
 				normalize_v3(cross);
 				dot= 0.5f*saacos(dot);
+				
+				/* halve the rotation if its applied twice */
+				if(rot_src) dot *= 0.5f;
+				
 				si= (float)sin(dot);
 				q1[0]= (float)cos(dot);
 				q1[1]= cross[0]*si;
 				q1[2]= cross[1]*si;
-				q1[3]= cross[2]*si;
-				
+				q1[3]= cross[2]*si;				
 				quat_to_mat3( mat,q1);
 			}
+		}
+		
+		if(rot_src) {
+			rotateflag(vc.em, SELECT, cent, mat);
+			/* also project the source, for retopo workflow */
+			if(use_proj)
+				EM_project_snap_verts(C, vc.ar, vc.obedit, vc.em);
 		}
 		
 		extrudeflag(vc.obedit, vc.em, SELECT, nor, 0);
@@ -190,7 +238,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		float mat[3][3],imat[3][3];
 		float *curs= give_cursor(vc.scene, vc.v3d);
 		
-		VECCOPY(min, curs);
+		copy_v3_v3(min, curs);
 		view3d_get_view_aligned_coordinate(&vc, min, event->mval);
 		
 		eve= addvertlist(vc.em, 0, NULL);
@@ -198,14 +246,16 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 		copy_m3_m4(mat, vc.obedit->obmat);
 		invert_m3_m3(imat, mat);
 		
-		VECCOPY(eve->co, min);
+		copy_v3_v3(eve->co, min);
 		mul_m3_v3(imat, eve->co);
 		sub_v3_v3v3(eve->co, eve->co, vc.obedit->obmat[3]);
 		
 		eve->f= SELECT;
 	}
-	
-	//retopo_do_all();
+
+	if(use_proj)
+		EM_project_snap_verts(C, vc.ar, vc.obedit, vc.em);
+
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, vc.obedit->data); 
 	DAG_id_flush_update(vc.obedit->data, OB_RECALC_DATA);
 	
@@ -225,6 +275,8 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "rotate_source", 1, "Rotate Source", "Rotate initial selection giving better shape");
 }
 
 
@@ -997,15 +1049,13 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		/* one segment first: the X axis */		
 		phi = (2*dia)/(float)(tot-1);
 		phid = (2*dia)/(float)(seg-1);
-		for(a=0;a<tot;a++) {
+		for(a=tot-1;a>=0;a--) {
 			vec[0] = (phi*a) - dia;
 			vec[1]= - dia;
 			vec[2]= 0.0f;
 			eve= addvertlist(em, vec, NULL);
 			eve->f= 1+2+4;
-			if (a) {
-				addedgelist(em, eve->prev, eve, NULL);
-			}
+			addedgelist(em, eve->prev, eve, NULL);
 		}
 		/* extrude and translate */
 		vec[0]= vec[2]= 0.0;
@@ -1657,7 +1707,7 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 
 /****************** add duplicate operator ***************/
 
-static int mesh_duplicate_exec(bContext *C, wmOperator *op)
+static int mesh_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(ob->data);
@@ -1672,7 +1722,7 @@ static int mesh_duplicate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int mesh_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int mesh_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	WM_cursor_wait(1);
 	mesh_duplicate_exec(C, op);

@@ -309,8 +309,8 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 #endif
 	
 	/* these are the same at times, should never copy to the same location */
-	if(G.sce != filename)
-		BLI_strncpy(G.sce, filename, FILE_MAX);
+	if(G.main->name != filename)
+		BLI_strncpy(G.main->name, filename, FILE_MAX);
 	
 	BLI_strncpy(G.main->name, filename, FILE_MAX); /* is guaranteed current file */
 
@@ -365,7 +365,7 @@ void BKE_userdef_free(void)
    2: OK, and with new user settings
 */
 
-int BKE_read_file(bContext *C, char *dir, void *unused, ReportList *reports) 
+int BKE_read_file(bContext *C, char *dir, ReportList *reports) 
 {
 	BlendFileData *bfd;
 	int retval= 1;
@@ -392,7 +392,7 @@ int BKE_read_file(bContext *C, char *dir, void *unused, ReportList *reports)
 	return (bfd?retval:0);
 }
 
-int BKE_read_file_from_memory(bContext *C, char* filebuf, int filelength, void *unused, ReportList *reports)
+int BKE_read_file_from_memory(bContext *C, char* filebuf, int filelength, ReportList *reports)
 {
 	BlendFileData *bfd;
 
@@ -410,7 +410,7 @@ int BKE_read_file_from_memfile(bContext *C, MemFile *memfile, ReportList *report
 {
 	BlendFileData *bfd;
 
-	bfd= BLO_read_from_memfile(CTX_data_main(C), G.sce, memfile, reports);
+	bfd= BLO_read_from_memfile(CTX_data_main(C), G.main->name, memfile, reports);
 	if (bfd)
 		setup_app_data(C, bfd, "<memory1>");
 	else
@@ -460,26 +460,23 @@ static UndoElem *curundo= NULL;
 
 static int read_undosave(bContext *C, UndoElem *uel)
 {
-	char scestr[FILE_MAXDIR+FILE_MAXFILE]; /* we should eventually just use G.main->name */
 	char mainstr[FILE_MAXDIR+FILE_MAXFILE];
 	int success=0, fileflags;
 	
 	/* This is needed so undoing/redoing doesnt crash with threaded previews going */
 	WM_jobs_stop_all(CTX_wm_manager(C));
-	
-	strcpy(scestr, G.sce);	/* temporal store */
+
 	strcpy(mainstr, G.main->name);	/* temporal store */
 
 	fileflags= G.fileflags;
 	G.fileflags |= G_FILE_NO_UI;
 
 	if(UNDO_DISK) 
-		success= BKE_read_file(C, uel->str, NULL, NULL);
+		success= BKE_read_file(C, uel->str, NULL);
 	else
 		success= BKE_read_file_from_memfile(C, &uel->memfile, NULL);
 
 	/* restore */
-	strcpy(G.sce, scestr); /* restore */
 	strcpy(G.main->name, mainstr); /* restore */
 	G.fileflags= fileflags;
 
@@ -554,7 +551,7 @@ void BKE_write_undo(bContext *C, char *name)
 		if(curundo->prev) prevfile= &(curundo->prev->memfile);
 		
 		memused= MEM_get_memory_in_use();
-		success= BLO_write_file_mem(CTX_data_main(C), prevfile, &curundo->memfile, G.fileflags, NULL);
+		success= BLO_write_file_mem(CTX_data_main(C), prevfile, &curundo->memfile, G.fileflags);
 		curundo->undosize= MEM_get_memory_in_use() - memused;
 	}
 
@@ -720,7 +717,7 @@ void BKE_undo_save_quit(void)
 Main *BKE_undo_get_main(Scene **scene)
 {
 	Main *mainp= NULL;
-	BlendFileData *bfd= BLO_read_from_memfile(G.main, G.sce, &curundo->memfile, NULL);
+	BlendFileData *bfd= BLO_read_from_memfile(G.main, G.main->name, &curundo->memfile, NULL);
 	
 	if(bfd) {
 		mainp= bfd->main;

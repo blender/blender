@@ -1343,7 +1343,7 @@ static void weightflagNurb(ListBase *editnurb, short flag, float w)
 	}
 }
 
-static int deleteflagNurb(bContext *C, wmOperator *op, int flag)
+static int deleteflagNurb(bContext *C, wmOperator *UNUSED(op), int flag)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
@@ -1765,7 +1765,7 @@ static void adduplicateflagNurb(Object *obedit, short flag)
 
 /**************** switch direction operator ***************/
 
-static int switch_direction_exec(bContext *C, wmOperator *op)
+static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= (Curve*)obedit->data;
@@ -1902,7 +1902,7 @@ void CURVE_OT_radius_set(wmOperatorType *ot)
 
 /********************* smooth operator ********************/
 
-static int smooth_exec(bContext *C, wmOperator *op)
+static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -1974,7 +1974,7 @@ void CURVE_OT_smooth(wmOperatorType *ot)
 /**************** smooth curve radius operator *************/
 
 /* TODO, make smoothing distance based */
-static int smooth_radius_exec(bContext *C, wmOperator *op)
+static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -2265,7 +2265,7 @@ void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatu
 	}
 }
 
-static int de_select_first_exec(bContext *C, wmOperator *op)
+static int de_select_first_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 
@@ -2289,7 +2289,7 @@ void CURVE_OT_de_select_first(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int de_select_last_exec(bContext *C, wmOperator *op)
+static int de_select_last_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 
@@ -2470,7 +2470,7 @@ void CURVE_OT_hide(wmOperatorType *ot)
 
 /********************** reveal operator *********************/
 
-static int reveal_exec(bContext *C, wmOperator *op)
+static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -2527,7 +2527,7 @@ void CURVE_OT_reveal(wmOperatorType *ot)
 
 /********************** select invert operator *********************/
 
-static int select_inverse_exec(bContext *C, wmOperator *op)
+static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
@@ -4071,7 +4071,7 @@ static int spin_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int spin_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int spin_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -4271,7 +4271,7 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
 
 /***************** extrude operator **********************/
 
-static int extrude_exec(bContext *C, wmOperator *op)
+static int extrude_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
@@ -4296,7 +4296,7 @@ static int extrude_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int extrude_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if(extrude_exec(C, op) == OPERATOR_FINISHED) {
 		RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
@@ -4406,7 +4406,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int toggle_cyclic_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int toggle_cyclic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -4531,7 +4531,7 @@ void CURVE_OT_select_linked(wmOperatorType *ot)
 
 /***************** select row operator **********************/
 
-static int select_row_exec(bContext *C, wmOperator *op)
+static int select_row_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
@@ -4606,7 +4606,7 @@ void CURVE_OT_select_row(wmOperatorType *ot)
 
 /***************** select next operator **********************/
 
-static int select_next_exec(bContext *C, wmOperator *op)
+static int select_next_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -4633,7 +4633,7 @@ void CURVE_OT_select_next(wmOperatorType *ot)
 
 /***************** select previous operator **********************/
 
-static int select_previous_exec(bContext *C, wmOperator *op)
+static int select_previous_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -4660,7 +4660,7 @@ void CURVE_OT_select_previous(wmOperatorType *ot)
 
 /***************** select more operator **********************/
 
-static int select_more_exec(bContext *C, wmOperator *op)
+static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -4748,7 +4748,7 @@ void CURVE_OT_select_more(wmOperatorType *ot)
 /******************** select less operator *****************/
 
 /* basic method: deselect if control point doesn't have all neighbours selected */
-static int select_less_exec(bContext *C, wmOperator *op)
+static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
@@ -5099,7 +5099,7 @@ void CURVE_OT_select_nth(wmOperatorType *ot)
 
 /********************** add duplicate operator *********************/
 
-static int duplicate_exec(bContext *C, wmOperator *op)
+static int duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 
@@ -5109,7 +5109,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	duplicate_exec(C, op);
 
@@ -5432,7 +5432,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int delete_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	uiPopupMenu *pup;
@@ -5534,7 +5534,7 @@ void CURVE_OT_shade_flat(wmOperatorType *ot)
 
 /************** join operator, to be used externally? ****************/
 
-int join_curve_exec(bContext *C, wmOperator *op)
+int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -5620,6 +5620,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	Nurb *nu = NULL;
 	BezTriple *bezt;
 	BPoint *bp;
+	Curve *cu= (Curve*)obedit->data;
 	float vec[3];
 	float fac, grid;
 	int a, b, cutype, stype;
@@ -5641,13 +5642,13 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 	if (stype!=CU_PRIM_TUBE && stype!=CU_PRIM_DONUT) {
 		nu = (Nurb*)MEM_callocN(sizeof(Nurb), "addNurbprim");
 		nu->type= cutype;
-		nu->resolu= 4;
-		nu->resolv= 4;
+		nu->resolu= cu->resolu;
+		nu->resolv= cu->resolv;
 	}
 
 	switch(stype) {
 	case CU_PRIM_CURVE:	/* curve */
-		nu->resolu= 12; /* set as 4 above */
+		nu->resolu= cu->resolu;
 		if(newname) {
 			rename_id((ID *)obedit, "Curve");
 			rename_id((ID *)obedit->data, "Curve");
@@ -5724,7 +5725,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 		nu->pntsv= 1;
 		nu->orderu= 5;
 		nu->flagu= CU_NURB_ENDPOINT;	/* endpoint */
-		nu->resolu= 8;
+		nu->resolu= cu->resolu;
 		nu->bp= callocstructN(BPoint, 5, "addNurbprim3");
 
 		bp= nu->bp;
@@ -5753,7 +5754,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 
 		break;
 	case CU_PRIM_CIRCLE:	/* circle */
-		nu->resolu= 12; /* set as 4 above */
+		nu->resolu= cu->resolu;
 		if(newname) {
 			rename_id((ID *)obedit, "CurveCircle");
 			rename_id((ID *)obedit->data, "CurveCircle");
@@ -5870,7 +5871,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			}
 			
 			nu= add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
-			nu->resolu= 4;
+			nu->resolu= cu->resolu;
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(editnurb, nu); /* temporal for extrude and translate */
 			vec[0]=vec[1]= 0.0;
@@ -5913,8 +5914,8 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			nu->pntsu= 5;
 			nu->pntsv= 1;
 			nu->orderu= 3;
-			nu->resolu= 4;
-			nu->resolv= 4;
+			nu->resolu= cu->resolu;
+			nu->resolv= cu->resolv;
 			nu->flag= CU_SMOOTH;
 			nu->bp= callocstructN(BPoint, 5, "addNurbprim6");
 			nu->flagu= 0;
@@ -5962,8 +5963,8 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newname)
 			xzproj= 1;
 			nu= add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_CIRCLE, 0);  /* circle */
 			xzproj= 0;
-			nu->resolu= 4;
-			nu->resolv= 4;
+			nu->resolu= cu->resolu;
+			nu->resolv= cu->resolv;
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(editnurb, nu); /* temporal for spin */
 
@@ -6308,7 +6309,7 @@ void SURFACE_OT_primitive_nurbs_surface_torus_add(wmOperatorType *ot)
 
 /***************** clear tilt operator ********************/
 
-static int clear_tilt_exec(bContext *C, wmOperator *op)
+static int clear_tilt_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;

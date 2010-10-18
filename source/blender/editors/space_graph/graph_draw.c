@@ -87,7 +87,7 @@
 /* Envelope -------------- */
 
 // TODO: draw a shaded poly showing the region of influence too!!!
-static void draw_fcurve_modifier_controls_envelope (FCurve *fcu, FModifier *fcm, View2D *v2d)
+static void draw_fcurve_modifier_controls_envelope (FModifier *fcm, View2D *v2d)
 {
 	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
 	FCM_EnvelopeData *fed;
@@ -137,7 +137,7 @@ static void draw_fcurve_modifier_controls_envelope (FCurve *fcu, FModifier *fcm,
 /* Points ---------------- */
 
 /* helper func - draw keyframe vertices only for an F-Curve */
-static void draw_fcurve_vertices_keyframes (bAnimContext *ac, FCurve *fcu, View2D *v2d, short edit, short sel)
+static void draw_fcurve_vertices_keyframes (FCurve *fcu, View2D *v2d, short edit, short sel)
 {
 	BezTriple *bezt= fcu->bezt;
 	const float fac= 0.05f * (v2d->cur.xmax - v2d->cur.xmin);
@@ -209,7 +209,7 @@ static void draw_fcurve_handle_control (float x, float y, float xscale, float ys
 }
 
 /* helper func - draw handle vertices only for an F-Curve (if it is not protected) */
-static void draw_fcurve_vertices_handles (bAnimContext *ac, SpaceIpo *sipo, FCurve *fcu, View2D *v2d, short sel)
+static void draw_fcurve_vertices_handles (FCurve *fcu, View2D *v2d, short sel, short sel_handle_only)
 {
 	BezTriple *bezt= fcu->bezt;
 	BezTriple *prevbezt = NULL;
@@ -237,7 +237,7 @@ static void draw_fcurve_vertices_handles (bAnimContext *ac, SpaceIpo *sipo, FCur
 		 * Also, need to take into account whether the keyframe was selected
 		 * if a Graph Editor option to only show handles of selected keys is on.
 		 */
-		if ( !(sipo->flag & SIPO_SELVHANDLESONLY) || BEZSELECTED(bezt) ) {
+		if ( !sel_handle_only || BEZSELECTED(bezt) ) {
 			if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) {
 				if ((bezt->f1 & SELECT) == sel)/* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax)*/
 					draw_fcurve_handle_control(bezt->vec[0][0], bezt->vec[0][1], xscale, yscale, hsize);
@@ -255,7 +255,7 @@ static void draw_fcurve_vertices_handles (bAnimContext *ac, SpaceIpo *sipo, FCur
 }
 
 /* helper func - set color to draw F-Curve data with */
-static void set_fcurve_vertex_color (SpaceIpo *sipo, FCurve *fcu, short sel)
+static void set_fcurve_vertex_color (FCurve *fcu, short sel)
 {
 	/* Fade the 'intensity' of the vertices based on the selection of the curves too */
 	int alphaOffset= (int)((drawFCurveFade(fcu) - 1.0f) * 255);
@@ -274,7 +274,7 @@ static void set_fcurve_vertex_color (SpaceIpo *sipo, FCurve *fcu, short sel)
 }
 
 
-static void draw_fcurve_vertices (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, FCurve *fcu, int do_handles)
+static void draw_fcurve_vertices (ARegion *ar, FCurve *fcu, short do_handles, short sel_handle_only)
 {
 	View2D *v2d= &ar->v2d;
 	
@@ -290,19 +290,19 @@ static void draw_fcurve_vertices (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar,
 	/* draw the two handles first (if they're shown, the curve doesn't have just a single keyframe, and the curve is being edited) */
 	if (do_handles)
 	{
-		set_fcurve_vertex_color(sipo, fcu, 0);
-		draw_fcurve_vertices_handles(ac, sipo, fcu, v2d, 0);
+		set_fcurve_vertex_color(fcu, 0);
+		draw_fcurve_vertices_handles(fcu, v2d, 0, sel_handle_only);
 		
-		set_fcurve_vertex_color(sipo, fcu, 1);
-		draw_fcurve_vertices_handles(ac, sipo, fcu, v2d, 1);
+		set_fcurve_vertex_color(fcu, 1);
+		draw_fcurve_vertices_handles(fcu, v2d, 1, sel_handle_only);
 	}
 		
 	/* draw keyframes over the handles */
-	set_fcurve_vertex_color(sipo, fcu, 0);
-	draw_fcurve_vertices_keyframes(ac, fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), 0);
+	set_fcurve_vertex_color(fcu, 0);
+	draw_fcurve_vertices_keyframes(fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), 0);
 	
-	set_fcurve_vertex_color(sipo, fcu, 1);
-	draw_fcurve_vertices_keyframes(ac, fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), 1);
+	set_fcurve_vertex_color(fcu, 1);
+	draw_fcurve_vertices_keyframes(fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), 1);
 	
 	glPointSize(1.0f);
 }
@@ -329,7 +329,7 @@ static int draw_fcurve_handles_check(SpaceIpo *sipo, FCurve *fcu)
 
 /* draw lines for F-Curve handles only (this is only done in EditMode)
  * note: draw_fcurve_handles_check must be checked before running this. */
-static void draw_fcurve_handles (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
+static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 {
 	int sel, b;
 	
@@ -455,7 +455,7 @@ static void draw_fcurve_sample_control (float x, float y, float xscale, float ys
 }
 
 /* helper func - draw keyframe vertices only for an F-Curve */
-static void draw_fcurve_samples (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
+static void draw_fcurve_samples (ARegion *ar, FCurve *fcu)
 {
 	FPoint *first, *last;
 	float hsize, xscale, yscale;
@@ -489,7 +489,7 @@ static void draw_fcurve_samples (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, 
 /* Curve ---------------- */
 
 /* helper func - just draw the F-Curve by sampling the visible region (for drawing curves with modifiers) */
-static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, SpaceIpo *sipo, View2D *v2d, View2DGrid *grid)
+static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, View2DGrid *grid)
 {
 	ChannelDriver *driver;
 	float samplefreq, ctime;
@@ -627,7 +627,7 @@ static void draw_fcurve_curve_samples (bAnimContext *ac, ID *id, FCurve *fcu, Vi
 }
 
 /* helper func - draw one repeat of an F-Curve */
-static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, View2DGrid *grid)
+static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d)
 {
 	BezTriple *prevbezt= fcu->bezt;
 	BezTriple *bezt= prevbezt+1;
@@ -784,7 +784,7 @@ static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View
 /* Draw the 'ghost' F-Curves (i.e. snapshots of the curve) 
  * NOTE: unit mapping has already been applied to the values, so do not try and apply again
  */
-void graph_draw_ghost_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid *grid)
+void graph_draw_ghost_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 {
 	FCurve *fcu;
 	
@@ -878,12 +878,12 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 				/* draw a curve affected by modifiers or only allowed to have integer values 
 				 * by sampling it at various small-intervals over the visible region 
 				 */
-				draw_fcurve_curve(ac, ale->id, fcu, sipo, &ar->v2d, grid);
+				draw_fcurve_curve(ac, ale->id, fcu, &ar->v2d, grid);
 			}
 			else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
 				/* just draw curve based on defined data (i.e. no modifiers) */
 				if (fcu->bezt)
-					draw_fcurve_curve_bezts(ac, ale->id, fcu, &ar->v2d, grid);
+					draw_fcurve_curve_bezts(ac, ale->id, fcu, &ar->v2d);
 				else if (fcu->fpt)
 					draw_fcurve_curve_samples(ac, ale->id, fcu, &ar->v2d);
 			}
@@ -904,7 +904,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 				if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
 					switch (fcm->type) {
 						case FMODIFIER_TYPE_ENVELOPE: /* envelope */
-							draw_fcurve_modifier_controls_envelope(fcu, fcm, &ar->v2d);
+							draw_fcurve_modifier_controls_envelope(fcm, &ar->v2d);
 							break;
 					}
 				}
@@ -919,15 +919,15 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 					if (do_handles) {
 						/* only draw handles/vertices on keyframes */
 						glEnable(GL_BLEND);
-						draw_fcurve_handles(ac, sipo, ar, fcu);
+						draw_fcurve_handles(sipo, fcu);
 						glDisable(GL_BLEND);
 					}
 					
-					draw_fcurve_vertices(ac, sipo, ar, fcu, do_handles);
+					draw_fcurve_vertices(ar, fcu, do_handles, sipo->flag&SIPO_SELVHANDLESONLY);
 				}
 				else {
 					/* samples: only draw two indicators at either end as indicators */
-					draw_fcurve_samples(ac, sipo, ar, fcu);
+					draw_fcurve_samples(ar, fcu);
 				}
 				
 				/* unapply unit mapping */
@@ -948,7 +948,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 /* Channel List */
 
 /* left hand part */
-void graph_draw_channel_names(bContext *C, bAnimContext *ac, SpaceIpo *sipo, ARegion *ar) 
+void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar) 
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;

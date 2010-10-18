@@ -478,9 +478,8 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Horizon Color", "Color at the horizon");
 	/* RNA_def_property_update(prop, 0, "rna_World_update"); */
-	/* render-only uses this, the notifier could be made to be more spesific */
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_World_update");
-
+	/* render-only uses this */
+	RNA_def_property_update(prop, NC_WORLD|ND_WORLD_DRAW, "rna_World_update");
 
 	
 	prop= RNA_def_property(srna, "zenith_color", PROP_FLOAT, PROP_COLOR);

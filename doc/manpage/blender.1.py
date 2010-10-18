@@ -44,7 +44,7 @@ def man_format(data):
     return data
 
 
-blender_bin = os.path.join(os.path.dirname(__file__), "../blender")
+blender_bin = os.path.join(os.path.dirname(__file__), "../../blender")
 
 blender_help = subprocess.Popen([blender_bin, "--help"], stdout=subprocess.PIPE).communicate()[0].decode()
 

@@ -140,7 +140,7 @@ void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, flo
 
 /* ****************** Automatic Preview-Range Operator ****************** */
 
-static int graphkeys_previewrange_exec(bContext *C, wmOperator *op)
+static int graphkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	Scene *scene;
@@ -183,7 +183,7 @@ void GRAPH_OT_previewrange_set (wmOperatorType *ot)
 
 /* ****************** View-All Operator ****************** */
 
-static int graphkeys_viewall_exec(bContext *C, wmOperator *op)
+static int graphkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	View2D *v2d;
@@ -305,7 +305,7 @@ static void create_ghost_curves (bAnimContext *ac, int start, int end)
 
 /* ------------------- */
 
-static int graphkeys_create_ghostcurves_exec(bContext *C, wmOperator *op)
+static int graphkeys_create_ghostcurves_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	View2D *v2d;
@@ -349,7 +349,7 @@ void GRAPH_OT_ghost_curves_create (wmOperatorType *ot)
 /* ******************** Clear Ghost-Curves Operator *********************** */
 /* This operator clears the 'ghost curves' for the active Graph Editor */
 
-static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *op)
+static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	SpaceIpo *sipo;
@@ -719,7 +719,7 @@ static void duplicate_graph_keys (bAnimContext *ac)
 
 /* ------------------- */
 
-static int graphkeys_duplicate_exec(bContext *C, wmOperator *op)
+static int graphkeys_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -739,7 +739,7 @@ static int graphkeys_duplicate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int graphkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int graphkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	graphkeys_duplicate_exec(C, op);
 	
@@ -799,7 +799,7 @@ static void delete_graph_keys (bAnimContext *ac)
 
 /* ------------------- */
 
-static int graphkeys_delete_exec(bContext *C, wmOperator *op)
+static int graphkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -935,7 +935,7 @@ static void bake_graph_curves (bAnimContext *ac, int start, int end)
 
 /* ------------------- */
 
-static int graphkeys_bake_exec(bContext *C, wmOperator *op)
+static int graphkeys_bake_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	Scene *scene= NULL;
@@ -1001,7 +1001,7 @@ typedef struct tSoundBakeInfo {
 /* Sampling callback used to determine the value from the sound to
  * save in the F-Curve at the specified frame
  */
-static float fcurve_samplingcb_sound (FCurve *fcu, void *data, float evaltime)
+static float fcurve_samplingcb_sound (FCurve *UNUSED(fcu), void *data, float evaltime)
 {
 	tSoundBakeInfo *sbi= (tSoundBakeInfo *)data;
 
@@ -1149,7 +1149,7 @@ static void sample_graph_keys (bAnimContext *ac)
 
 /* ------------------- */
 
-static int graphkeys_sample_exec(bContext *C, wmOperator *op)
+static int graphkeys_sample_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -1205,7 +1205,7 @@ static void setexpo_graph_keys(bAnimContext *ac, short mode)
 	int filter;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through setting mode per F-Curve */
@@ -1530,7 +1530,7 @@ void GRAPH_OT_euler_filter (wmOperatorType *ot)
 /* ***************** Jump to Selected Frames Operator *********************** */
 
 /* snap current-frame indicator to 'average time' of selected keyframe */
-static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
+static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	ListBase anim_data= {NULL, NULL};
@@ -1835,7 +1835,7 @@ void GRAPH_OT_mirror (wmOperatorType *ot)
 
 /* ******************** Smooth Keyframes Operator *********************** */
 
-static int graphkeys_smooth_exec(bContext *C, wmOperator *op)
+static int graphkeys_smooth_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
@@ -1890,7 +1890,7 @@ void GRAPH_OT_smooth (wmOperatorType *ot)
 /* ******************** Add F-Modifier Operator *********************** */
 
 /* present a special customised popup menu for this, with some filtering */
-static int graph_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *event)
+static int graph_fmodifier_add_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;

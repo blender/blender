@@ -157,7 +157,7 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 }
 
 /* exiting the operator - free data */
-static void pose_slide_exit (bContext *C, wmOperator *op)
+static void pose_slide_exit(wmOperator *op)
 {
 	tPoseSlideOp *pso= op->customdata;
 	
@@ -376,7 +376,7 @@ static void pose_slide_apply_quat (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 }
 
 /* apply() - perform the pose sliding based on weighting various poses */
-static void pose_slide_apply (bContext *C, wmOperator *op, tPoseSlideOp *pso)
+static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 {
 	tPChanFCurveLink *pfl;
 	
@@ -434,7 +434,7 @@ static void pose_slide_autoKeyframe (bContext *C, tPoseSlideOp *pso)
 }
 
 /* reset changes made to current pose */
-static void pose_slide_reset (bContext *C, tPoseSlideOp *pso)
+static void pose_slide_reset (tPoseSlideOp *pso)
 {
 	/* wrapper around the generic call, so that custom stuff can be added later */
 	poseAnim_mapping_reset(&pso->pfLinks);
@@ -501,7 +501,7 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 	
 	/* initial apply for operator... */
 	// TODO: need to calculate percentage for initial round too...
-	pose_slide_apply(C, op, pso);
+	pose_slide_apply(C, pso);
 	
 	/* depsgraph updates + redraws */
 	pose_slide_refresh(C, pso);
@@ -528,7 +528,7 @@ static int pose_slide_modal (bContext *C, wmOperator *op, wmEvent *evt)
 			
 			/* insert keyframes as required... */
 			pose_slide_autoKeyframe(C, pso);
-			pose_slide_exit(C, op);
+			pose_slide_exit(op);
 			
 			/* done! */
 			return OPERATOR_FINISHED;
@@ -541,13 +541,13 @@ static int pose_slide_modal (bContext *C, wmOperator *op, wmEvent *evt)
 			WM_cursor_restore(win);
 			
 			/* reset transforms back to original state */
-			pose_slide_reset(C, pso);
+			pose_slide_reset(pso);
 			
 			/* depsgraph updates + redraws */
 			pose_slide_refresh(C, pso);
 			
 			/* clean up temp data */
-			pose_slide_exit(C, op);
+			pose_slide_exit(op);
 			
 			/* cancelled! */
 			return OPERATOR_CANCELLED;
@@ -562,10 +562,10 @@ static int pose_slide_modal (bContext *C, wmOperator *op, wmEvent *evt)
 			RNA_float_set(op->ptr, "percentage", pso->percentage);
 			
 			/* reset transforms (to avoid accumulation errors) */
-			pose_slide_reset(C, pso);
+			pose_slide_reset(pso);
 			
 			/* apply... */
-			pose_slide_apply(C, op, pso);
+			pose_slide_apply(C, pso);
 		}
 			break;
 			
@@ -579,10 +579,10 @@ static int pose_slide_modal (bContext *C, wmOperator *op, wmEvent *evt)
 }
 
 /* common code for cancel() */
-static int pose_slide_cancel (bContext *C, wmOperator *op)
+static int pose_slide_cancel (bContext *UNUSED(C), wmOperator *op)
 {
 	/* cleanup and done */
-	pose_slide_exit(C, op);
+	pose_slide_exit(op);
 	return OPERATOR_CANCELLED;
 }
 
@@ -590,13 +590,13 @@ static int pose_slide_cancel (bContext *C, wmOperator *op)
 static int pose_slide_exec_common (bContext *C, wmOperator *op, tPoseSlideOp *pso)
 {
 	/* settings should have been set up ok for applying, so just apply! */
-	pose_slide_apply(C, op, pso);
+	pose_slide_apply(C, pso);
 	
 	/* insert keyframes if needed */
 	pose_slide_autoKeyframe(C, pso);
 	
 	/* cleanup and done */
-	pose_slide_exit(C, op);
+	pose_slide_exit(op);
 	
 	return OPERATOR_FINISHED;
 }
@@ -612,13 +612,13 @@ static void pose_slide_opdef_properties (wmOperatorType *ot)
 /* ------------------------------------ */
 
 /* invoke() - for 'push' mode */
-static int pose_slide_push_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+static int pose_slide_push_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
 	tPoseSlideOp *pso;
 	
 	/* initialise data  */
 	if (pose_slide_init(C, op, POSESLIDE_PUSH) == 0) {
-		pose_slide_exit(C, op);
+		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
 	}
 	else
@@ -635,7 +635,7 @@ static int pose_slide_push_exec (bContext *C, wmOperator *op)
 	
 	/* initialise data (from RNA-props) */
 	if (pose_slide_init(C, op, POSESLIDE_PUSH) == 0) {
-		pose_slide_exit(C, op);
+		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
 	}
 	else
@@ -669,13 +669,13 @@ void POSE_OT_push (wmOperatorType *ot)
 /* ........................ */
 
 /* invoke() - for 'relax' mode */
-static int pose_slide_relax_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+static int pose_slide_relax_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
 	tPoseSlideOp *pso;
 	
 	/* initialise data  */
 	if (pose_slide_init(C, op, POSESLIDE_RELAX) == 0) {
-		pose_slide_exit(C, op);
+		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
 	}
 	else
@@ -692,7 +692,7 @@ static int pose_slide_relax_exec (bContext *C, wmOperator *op)
 	
 	/* initialise data (from RNA-props) */
 	if (pose_slide_init(C, op, POSESLIDE_RELAX) == 0) {
-		pose_slide_exit(C, op);
+		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
 	}
 	else
@@ -726,13 +726,13 @@ void POSE_OT_relax (wmOperatorType *ot)
 /* ........................ */
 
 /* invoke() - for 'breakdown' mode */
-static int pose_slide_breakdown_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+static int pose_slide_breakdown_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
 	tPoseSlideOp *pso;
 	
 	/* initialise data  */
 	if (pose_slide_init(C, op, POSESLIDE_BREAKDOWN) == 0) {
-		pose_slide_exit(C, op);
+		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
 	}
 	else
@@ -749,7 +749,7 @@ static int pose_slide_breakdown_exec (bContext *C, wmOperator *op)
 	
 	/* initialise data (from RNA-props) */
 	if (pose_slide_init(C, op, POSESLIDE_BREAKDOWN) == 0) {
-		pose_slide_exit(C, op);
+		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
 	}
 	else

@@ -45,6 +45,7 @@
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -68,6 +69,7 @@ GHOST_SystemHandle g_system= NULL;
 
 /* set by commandline */
 static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0, initialstate= GHOST_kWindowStateNormal;
+static unsigned short useprefsize= 0;
 
 /* ******** win open & close ************ */
 
@@ -259,17 +261,15 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 	else {
 		
 		/* this is set to 1 if you don't have startup.blend open */
-		if(G.save_over) {
-			char *str= MEM_mallocN(strlen(G.sce) + 16, "title");
+		if(G.save_over && G.main->name[0]) {
+			char str[sizeof(G.main->name) + 12];
 			
 			if(wm->file_saved)
-				sprintf(str, "Blender [%s]", G.sce);
+				sprintf(str, "Blender [%s]", G.main->name);
 			else
-				sprintf(str, "Blender* [%s]", G.sce);
+				sprintf(str, "Blender* [%s]", G.main->name);
 			
 			GHOST_SetTitle(win->ghostwin, str);
-			
-			MEM_freeN(str);
 		}
 		else
 			GHOST_SetTitle(win->ghostwin, "Blender");
@@ -289,7 +289,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 }
 
 /* belongs to below */
-static void wm_window_add_ghostwindow(bContext *C, wmWindowManager *wm, char *title, wmWindow *win)
+static void wm_window_add_ghostwindow(bContext *C, char *title, wmWindow *win)
 {
 	GHOST_WindowHandle ghostwin;
 	int scr_w, scr_h, posy;
@@ -352,7 +352,10 @@ void wm_window_add_ghostwindows(bContext* C, wmWindowManager *wm)
 	wmKeyMap *keymap;
 	wmWindow *win;
 	
-	/* no commandline prefsize? then we set this */
+	/* no commandline prefsize? then we set this.
+	 * Note that these values will be used only
+	 * when there is no startup.blend yet.
+	 */
 	if (!prefsizx) {
 		wm_get_screensize(&prefsizx, &prefsizy);
 		
@@ -372,18 +375,19 @@ void wm_window_add_ghostwindows(bContext* C, wmWindowManager *wm)
 	
 	for(win= wm->windows.first; win; win= win->next) {
 		if(win->ghostwin==NULL) {
-			if(win->sizex==0) {
+			if(win->sizex==0 || useprefsize) {
 				win->posx= prefstax;
 				win->posy= prefstay;
 				win->sizex= prefsizx;
 				win->sizey= prefsizy;
 				win->windowstate= initialstate;
+				useprefsize= 0;
 			}
-			wm_window_add_ghostwindow(C, wm, "Blender", win);
+			wm_window_add_ghostwindow(C, "Blender", win);
 		}
 		/* happens after fileread */
 		if(win->eventstate==NULL)
-		   win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
+			win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
 
 		/* add keymap handlers (1 handler for all keys in map!) */
 		keymap= WM_keymap_find(wm->defaultconf, "Window", 0, 0);
@@ -488,7 +492,7 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 /* ****************** Operators ****************** */
 
 /* operator callback */
-int wm_window_duplicate_op(bContext *C, wmOperator *op)
+int wm_window_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	wm_window_copy(C, CTX_wm_window(C));
 	WM_check(C);
@@ -500,7 +504,7 @@ int wm_window_duplicate_op(bContext *C, wmOperator *op)
 
 
 /* fullscreen operator callback */
-int wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op)
+int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	wmWindow *window= CTX_wm_window(C);
 	GHOST_TWindowState state = GHOST_GetWindowState(window->ghostwin);
@@ -516,22 +520,37 @@ int wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op)
 
 /* ************ events *************** */
 
-static int query_qual(char qual) 
+typedef enum
+{
+	SHIFT = 's',
+	CONTROL = 'c',
+	ALT = 'a',
+	OS = 'C'
+} modifierKeyType;
+
+/* check if specified modifier key type is pressed */
+static int query_qual(modifierKeyType qual) 
 {
 	GHOST_TModifierKeyMask left, right;
 	int val= 0;
 	
-	if (qual=='s') {
-		left= GHOST_kModifierKeyLeftShift;
-		right= GHOST_kModifierKeyRightShift;
-	} else if (qual=='c') {
-		left= GHOST_kModifierKeyLeftControl;
-		right= GHOST_kModifierKeyRightControl;
-	} else if (qual=='C') {
-		left= right= GHOST_kModifierKeyOS;
-	} else {
-		left= GHOST_kModifierKeyLeftAlt;
-		right= GHOST_kModifierKeyRightAlt;
+	switch(qual) {
+		case SHIFT:
+			left= GHOST_kModifierKeyLeftShift;
+			right= GHOST_kModifierKeyRightShift;
+			break;
+		case CONTROL:
+			left= GHOST_kModifierKeyLeftControl;
+			right= GHOST_kModifierKeyRightControl;
+			break;
+		case OS:
+			left= right= GHOST_kModifierKeyOS;
+			break;
+		case ALT:
+		default:
+			left= GHOST_kModifierKeyLeftAlt;
+			right= GHOST_kModifierKeyRightAlt;
+			break;
 	}
 	
 	GHOST_GetModifierKeyState(g_system, left, &val);
@@ -600,19 +619,19 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				
 				/* bad ghost support for modifier keys... so on activate we set the modifiers again */
 				kdata.ascii= 0;
-				if (win->eventstate->shift && !query_qual('s')) {
+				if (win->eventstate->shift && !query_qual(SHIFT)) {
 					kdata.key= GHOST_kKeyLeftShift;
 					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
-				if (win->eventstate->ctrl && !query_qual('c')) {
+				if (win->eventstate->ctrl && !query_qual(CONTROL)) {
 					kdata.key= GHOST_kKeyLeftControl;
 					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
-				if (win->eventstate->alt && !query_qual('a')) {
+				if (win->eventstate->alt && !query_qual(ALT)) {
 					kdata.key= GHOST_kKeyLeftAlt;
 					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
-				if (win->eventstate->oskey && !query_qual('C')) {
+				if (win->eventstate->oskey && !query_qual(OS)) {
 					kdata.key= GHOST_kKeyOS;
 					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
@@ -875,7 +894,7 @@ void wm_window_process_events(const bContext *C)
 		PIL_sleep_ms(5);
 }
 
-void wm_window_process_events_nosleep(const bContext *C) 
+void wm_window_process_events_nosleep(void) 
 {
 	if(GHOST_ProcessEvents(g_system, 0))
 		GHOST_DispatchEvents(g_system);
@@ -923,7 +942,7 @@ void wm_ghost_exit(void)
 /* **************** timer ********************** */
 
 /* to (de)activate running timers temporary */
-void WM_event_timer_sleep(wmWindowManager *wm, wmWindow *win, wmTimer *timer, int dosleep)
+void WM_event_timer_sleep(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *timer, int dosleep)
 {
 	wmTimer *wt;
 	
@@ -951,7 +970,7 @@ wmTimer *WM_event_add_timer(wmWindowManager *wm, wmWindow *win, int event_type, 
 	return wt;
 }
 
-void WM_event_remove_timer(wmWindowManager *wm, wmWindow *win, wmTimer *timer)
+void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *timer)
 {
 	wmTimer *wt;
 	
@@ -1109,6 +1128,7 @@ void WM_setprefsize(int stax, int stay, int sizx, int sizy)
 	prefstay= stay;
 	prefsizx= sizx;
 	prefsizy= sizy;
+	useprefsize= 1;
 }
 
 /* for borderless and border windows set from command-line */

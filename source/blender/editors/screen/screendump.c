@@ -42,6 +42,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_image.h"
 #include "BKE_report.h"
 #include "BKE_writeavi.h"
@@ -77,14 +78,14 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 		RNA_string_get(op->ptr, "filepath", path);
 	
 		strcpy(G.ima, path);
-		BLI_path_abs(path, G.sce);
+		BLI_path_abs(path, G.main->name);
 		
 		/* BKE_add_image_extension() checks for if extension was already set */
 		if(scene->r.scemode & R_EXTENSION) 
 			if(strlen(path)<FILE_MAXDIR+FILE_MAXFILE-5)
 				BKE_add_image_extension(path, scene->r.imtype);
 		
-		ibuf= IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0, 0);
+		ibuf= IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0);
 		ibuf->rect= scd->dumprect;
 		
 		BKE_write_ibuf(scene, ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality);
@@ -132,7 +133,7 @@ static unsigned int *screenshot(bContext *C, int *dumpsx, int *dumpsy, int fscre
 }
 
 
-static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	unsigned int *dumprect;
 	int dumpsx, dumpsy;
@@ -214,7 +215,7 @@ static void screenshot_updatejob(void *sjv)
 
 
 /* only this runs inside thread */
-static void screenshot_startjob(void *sjv, short *stop, short *do_update, float *progress)
+static void screenshot_startjob(void *sjv, short *stop, short *do_update, float *UNUSED(progress))
 {
 	ScreenshotJob *sj= sjv;
 	RenderData rd= sj->scene->r;
@@ -251,7 +252,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 					break;
 			}
 			else {
-				ImBuf *ibuf= IMB_allocImBuf(sj->dumpsx, sj->dumpsy, rd.planes, 0, 0);
+				ImBuf *ibuf= IMB_allocImBuf(sj->dumpsx, sj->dumpsy, rd.planes, 0);
 				char name[FILE_MAXDIR+FILE_MAXFILE];
 				int ok;
 				

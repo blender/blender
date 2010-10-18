@@ -84,10 +84,10 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 }
 
 
-static void outliner_main_area_free(ARegion *ar)
+static void outliner_main_area_free(ARegion *UNUSED(ar))
 {
+	
 }
-
 
 static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
@@ -104,6 +104,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_FRAME:
 				case ND_RENDER_OPTIONS:
 				case ND_LAYER:
+				case ND_WORLD:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -162,6 +163,14 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_TEXTURE:
 			ED_region_tag_redraw(ar);
 			break;
+		case NC_GEOM:
+			switch(wmn->data) {
+				case ND_DATA:
+					/* needed for vertex groups only, no special notifier atm so use NC_GEOM|ND_DATA */
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 	}
 	
 }
@@ -170,7 +179,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 /* ************************ header outliner area region *********************** */
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void outliner_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void outliner_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
@@ -180,7 +189,7 @@ static void outliner_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void outliner_header_area_free(ARegion *ar)
+static void outliner_header_area_free(ARegion *UNUSED(ar))
 {
 }
 
@@ -201,7 +210,7 @@ static void outliner_header_area_listener(ARegion *ar, wmNotifier *wmn)
 
 /* ******************** default callbacks for outliner space ***************** */
 
-static SpaceLink *outliner_new(const bContext *C)
+static SpaceLink *outliner_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceOops *soutliner;
@@ -245,7 +254,7 @@ static void outliner_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void outliner_init(wmWindowManager *wm, ScrArea *sa)
+static void outliner_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 	
 }

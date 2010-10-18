@@ -570,7 +570,7 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 
 /* Find the first path that matches the given criteria */
 // TODO: do we want some method to perform partial matches too?
-KS_Path *BKE_keyingset_find_path (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, int group_mode)
+KS_Path *BKE_keyingset_find_path (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, int UNUSED(group_mode))
 {
 	KS_Path *ksp;
 	
@@ -772,7 +772,7 @@ void BKE_keyingsets_free (ListBase *list)
  *	- path: original path string (as stored in F-Curve data)
  *	- dst: destination string to write data to
  */
-static short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
+static short animsys_remap_path (AnimMapper *UNUSED(remap), char *path, char **dst)
 {
 	/* is there a valid remapping table to use? */
 	//if (remap) {
@@ -1612,7 +1612,7 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 	
 	/* 1. get the stack of strips to evaluate at current time (influence calculated here) */
 	for (nlt=adt->nla_tracks.first; nlt; nlt=nlt->next, track_index++) { 
-		/* if tweaking is on and this strip is the tweaking track, stop on this one */
+		/* stop here if tweaking is on and this strip is the tweaking track (it will be the first one that's 'disabled')... */
 		if ((adt->flag & ADT_NLA_EDIT_ON) && (nlt->flag & NLATRACK_DISABLED))
 			break;
 			
@@ -1639,22 +1639,30 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 	 */
 	if ((adt->action) && !(adt->flag & ADT_NLA_SOLO_TRACK)) {
 		/* if there are strips, evaluate action as per NLA rules */
-		if (has_strips) {
+		if ((has_strips) || (adt->actstrip)) {
 			/* make dummy NLA strip, and add that to the stack */
 			memset(&dummy_strip, 0, sizeof(NlaStrip));
 			dummy_trackslist.first= dummy_trackslist.last= &dummy_strip;
 			
-			dummy_strip.act= adt->action;
-			dummy_strip.remap= adt->remap;
-			
-			/* action range is calculated taking F-Modifiers into account (which making new strips doesn't do due to the troublesome nature of that) */
-			calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
-			dummy_strip.start = dummy_strip.actstart;
-			dummy_strip.end = (IS_EQ(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);
-			
-			dummy_strip.blendmode= adt->act_blendmode;
-			dummy_strip.extendmode= adt->act_extendmode;
-			dummy_strip.influence= adt->act_influence;
+			if ((nlt) && !(adt->flag & ADT_NLA_EDIT_NOMAP)) {
+				/* edit active action in-place according to its active strip, so copy the data  */
+				memcpy(&dummy_strip, adt->actstrip, sizeof(NlaStrip));
+				dummy_strip.next = dummy_strip.prev = NULL;
+			}
+			else {
+				/* set settings of dummy NLA strip from AnimData settings */
+				dummy_strip.act= adt->action;
+				dummy_strip.remap= adt->remap;
+				
+				/* action range is calculated taking F-Modifiers into account (which making new strips doesn't do due to the troublesome nature of that) */
+				calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
+				dummy_strip.start = dummy_strip.actstart;
+				dummy_strip.end = (IS_EQ(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);
+				
+				dummy_strip.blendmode= adt->act_blendmode;
+				dummy_strip.extendmode= adt->act_extendmode;
+				dummy_strip.influence= adt->act_influence;
+			}
 			
 			/* add this to our list of evaluation strips */
 			nlastrips_ctime_get_strip(&estrips, &dummy_trackslist, -1, ctime);
@@ -1690,7 +1698,7 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 /* Clear all overides */
 
 /* Add or get existing Override for given setting */
-AnimOverride *BKE_animsys_validate_override (PointerRNA *ptr, char *path, int array_index)
+AnimOverride *BKE_animsys_validate_override (PointerRNA *UNUSED(ptr), char *UNUSED(path), int UNUSED(array_index))
 {
 	// FIXME: need to define how to get overrides
 	return NULL;
@@ -1699,7 +1707,7 @@ AnimOverride *BKE_animsys_validate_override (PointerRNA *ptr, char *path, int ar
 /* -------------------- */
 
 /* Evaluate Overrides */
-static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt, float ctime)
+static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt)
 {
 	AnimOverride *aor;
 	
@@ -1798,7 +1806,7 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 	 *	- Overrides are cleared upon frame change and/or keyframing
 	 *	- It is best that we execute this everytime, so that no errors are likely to occur.
 	 */
-	animsys_evaluate_overrides(&id_ptr, adt, ctime);
+	animsys_evaluate_overrides(&id_ptr, adt);
 	
 	/* clear recalc flag now */
 	adt->recalc= 0;

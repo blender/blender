@@ -29,19 +29,6 @@
 #ifndef KX_CONVERTPHYSICSOBJECTS
 #define KX_CONVERTPHYSICSOBJECTS
 
-/* These are defined by the build system... */
-//but the build system is broken, because it doesn't allow for 2 or more defines at once.
-//Please leave Sumo _AND_ Bullet enabled
-#define USE_BULLET
-
-//on visual studio 7/8, always enable BULLET for now 
-//you can have multiple physics engines running anyway, and 
-//the scons build system doesn't really support this at the moment.
-//if you got troubles, just comment out USE_BULLET
-#if 1300 <= _MSC_VER
-#define USE_BULLET
-#endif
-
 class RAS_MeshObject;
 class KX_Scene;
 struct DerivedMesh;

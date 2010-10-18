@@ -235,7 +235,7 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
 
 
 class ExportUVLayout(bpy.types.Operator):
-    '''Export the Mesh as SVG'''
+    """Export UV layout to file"""
 
     bl_idname = "uv.export_layout"
     bl_label = "Export UV Layout"
@@ -251,7 +251,7 @@ class ExportUVLayout(bpy.types.Operator):
                 name="Format",
                 description="File format to export the UV layout to",
                 default='PNG')
-    size = IntVectorProperty(size=2, default=(1024, 1024), min=8, max=32768)
+    size = IntVectorProperty(size=2, default=(1024, 1024), min=8, max=32768, description="Dimensions of the exported file")
 
     @classmethod
     def poll(cls, context):

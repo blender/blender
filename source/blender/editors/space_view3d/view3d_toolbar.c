@@ -65,7 +65,7 @@
 
 
 /* op->invoke */
-static void redo_cb(bContext *C, void *arg_op, void *arg2)
+static void redo_cb(bContext *C, void *arg_op, void *UNUSED(arg2))
 {
 	wmOperator *lastop= arg_op;
 	
@@ -114,7 +114,7 @@ static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOper
 		op->layout= NULL;
 	}
 	else
-		uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
+		uiDefAutoButsRNA(pa->layout, &ptr, 1);
 }
 
 static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)
@@ -177,7 +177,7 @@ static void operator_call_cb(struct bContext *C, void *arg_listbase, void *arg2)
 		
 }
 
-static void operator_search_cb(const struct bContext *C, void *arg, char *str, uiSearchItems *items)
+static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), char *str, uiSearchItems *items)
 {
 	wmOperatorType *ot = WM_operatortype_first();
 	
@@ -280,7 +280,7 @@ void view3d_tool_props_register(ARegionType *art)
 
 /* ********** operator to open/close toolshelf region */
 
-static int view3d_toolshelf(bContext *C, wmOperator *op)
+static int view3d_toolshelf(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= view3d_has_tools_region(sa);

@@ -101,16 +101,17 @@ static SpaceLink *action_new(const bContext *C)
 	ar->v2d.cur = ar->v2d.tot;
 	
 	ar->v2d.min[0]= 0.0f;
-	 ar->v2d.min[1]= 0.0f;
+	ar->v2d.min[1]= 0.0f;
 	
 	ar->v2d.max[0]= MAXFRAMEF;
-	 ar->v2d.max[1]= FLT_MAX;
+	ar->v2d.max[1]= FLT_MAX;
  	
 	ar->v2d.minzoom= 0.01f;
 	ar->v2d.maxzoom= 50;
 	ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 	ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 	ar->v2d.keepzoom= V2D_LOCKZOOM_Y;
+	ar->v2d.keepofs= V2D_KEEPOFS_Y;
 	ar->v2d.align= V2D_ALIGN_NO_POS_Y;
 	ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 	
@@ -118,7 +119,7 @@ static SpaceLink *action_new(const bContext *C)
 }
 
 /* not spacelink itself */
-static void action_free(SpaceLink *sl)
+static void action_free(SpaceLink *UNUSED(sl))
 {	
 //	SpaceAction *saction= (SpaceAction*) sl;
 	
@@ -126,7 +127,7 @@ static void action_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void action_init(struct wmWindowManager *wm, ScrArea *sa)
+static void action_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceAction *saction = sa->spacedata.first;
 	saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
@@ -169,12 +170,12 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	
 	/* time grid */
 	unit= (saction->flag & SACTION_DRAWTIME)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
-	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
-	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
+	grid= UI_view2d_grid_calc(CTX_data_scene(C), v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
+	UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
 	UI_view2d_grid_free(grid);
 	
 	/* data */
@@ -188,11 +189,11 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 	ANIM_draw_cfra(C, v2d, flag);
 	
 	/* markers */
-	UI_view2d_view_orthoSpecial(C, v2d, 1);
+	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 	draw_markers_time(C, 0);
 	
 	/* preview range */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	ANIM_draw_previewrange(C, v2d);
 	
 	/* reset view matrix */
@@ -219,7 +220,6 @@ static void action_channel_area_init(wmWindowManager *wm, ARegion *ar)
 static void action_channel_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceAction *saction= CTX_wm_space_action(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
@@ -228,11 +228,11 @@ static void action_channel_area_draw(const bContext *C, ARegion *ar)
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	
 	/* data */
 	if (ANIM_animdata_get_context(C, &ac)) {
-		draw_channel_names((bContext *)C, &ac, saction, ar);
+		draw_channel_names((bContext *)C, &ac, ar);
 	}
 	
 	/* reset view matrix */
@@ -246,7 +246,7 @@ static void action_channel_area_draw(const bContext *C, ARegion *ar)
 
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void action_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void action_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
@@ -417,7 +417,7 @@ static void action_header_area_listener(ARegion *ar, wmNotifier *wmn)
 
 static void action_refresh(const bContext *C, ScrArea *sa)
 {
-	SpaceAction *saction= CTX_wm_space_action(C);
+	SpaceAction *saction= (SpaceAction *)sa->spacedata.first;
 	
 	/* update the state of the animchannels in response to changes from the data they represent 
 	 * NOTE: the temp flag is used to indicate when this needs to be done, and will be cleared once handled

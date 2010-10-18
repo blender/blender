@@ -53,7 +53,7 @@
 #include "IMB_imbuf_types.h"
 
 
-void floatbuf_to_srgb_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int w)
+void floatbuf_to_srgb_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int UNUSED(w))
 {
 	int x, y;
 	float *rf= rectf;
@@ -74,7 +74,7 @@ void floatbuf_to_srgb_byte(float *rectf, unsigned char *rectc, int x1, int x2, i
 	}
 }
 
-void floatbuf_to_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int w)
+void floatbuf_to_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int UNUSED(w))
 {
 	int x, y;
 	float *rf= rectf;
@@ -356,7 +356,7 @@ void curvemap_sethandle(CurveMap *cuma, int type)
 /* *********************** Making the tables and display ************** */
 
 /* reduced copy of garbled calchandleNurb() code in curve.c */
-static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
+static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *next, int UNUSED(mode))
 {
 	float *p1,*p2,*p3,pt[3];
 	float dx1,dy1, dx,dy, vx,vy, len,len1,len2;
@@ -830,6 +830,10 @@ void colorcorrection_do_ibuf(ImBuf *ibuf, const char *profile)
 			cmsCloseProfile(proofingProfile);
 		}
 	}
+#else
+	/* unused */
+	(void)ibuf;
+	(void)profile;
 #endif
 }
 

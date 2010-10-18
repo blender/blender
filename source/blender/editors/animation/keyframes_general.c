@@ -486,7 +486,7 @@ void free_anim_copybuf (void)
 /* ------------------- */
 
 /* This function adds data to the keyframes copy/paste buffer, freeing existing data first */
-short copy_animedit_keys (bAnimContext *ac, ListBase *anim_data)
+short copy_animedit_keys (bAnimContext *UNUSED(ac), ListBase *anim_data)
 {	
 	bAnimListElem *ale;
 	

@@ -1607,7 +1607,7 @@ void BLI_where_am_i(char *fullname, const char *name)
 				} while (temp);
 			}
 		}
-#ifndef NDEBUG
+#if defined(DEBUG)
 		if (strcmp(name, fullname)) {
 			printf("guessing '%s' == '%s'\n", name, fullname);
 		}
@@ -1620,7 +1620,7 @@ void BLI_where_am_i(char *fullname, const char *name)
 		// with spawnv(P_WAIT, bprogname, argv) instead of system() but
 		// that's even uglier
 		GetShortPathName(fullname, fullname, FILE_MAXDIR+FILE_MAXFILE);
-#ifndef NDEBUG
+#if defined(DEBUG)
 		printf("Shortname = '%s'\n", fullname);
 #endif
 #endif

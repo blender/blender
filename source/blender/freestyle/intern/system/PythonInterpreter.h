@@ -77,7 +77,7 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 	int status = BPY_run_python_script(_context, fn, NULL, reports);
 #else
 	int status;
-	Text *text = add_text(fn, G.sce);
+	Text *text = add_text(fn, G.main->name);
 	if (text) {
 		status = BPY_run_python_script(_context, NULL, text, reports);
 		unlink_text(G.main, text);

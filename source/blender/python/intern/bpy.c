@@ -34,7 +34,9 @@
 
 #include "BLI_path_util.h"
 #include "BLI_bpath.h"
- 
+
+#include "BKE_utildefines.h"
+
  /* external util modules */
 #include "../generic/geometry.h"
 #include "../generic/bgl.h"
@@ -53,7 +55,7 @@ static char bpy_script_paths_doc[] =
 "   :return: (system, user) strings will be empty when not found.\n"
 "   :rtype: tuple of strigs\n";
 
-PyObject *bpy_script_paths(PyObject *self)
+PyObject *bpy_script_paths(PyObject *UNUSED(self))
 {
 	PyObject *ret= PyTuple_New(2);
 	char *path;
@@ -75,7 +77,7 @@ static char bpy_blend_paths_doc[] =
 "   :type absolute: boolean\n"
 "   :return: path list.\n"
 "   :rtype: list of strigs\n";
-static PyObject *bpy_blend_paths(PyObject * self, PyObject *args, PyObject *kw)
+static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	struct BPathIterator bpi;
 	PyObject *list = PyList_New(0), *st; /* stupidly big string to be safe */
@@ -126,7 +128,7 @@ static char bpy_user_resource_doc[] =
 "   :type subdir: string\n"
 "   :return: a path.\n"
 "   :rtype: string\n";
-static PyObject *bpy_user_resource(PyObject * self, PyObject *args, PyObject *kw)
+static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	char *type;
 	char *subdir= NULL;

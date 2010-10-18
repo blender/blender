@@ -46,7 +46,7 @@
 
 /* ****************** Start/End Frame Operators *******************************/
 
-static int time_set_sfra_exec (bContext *C, wmOperator *op)
+static int time_set_sfra_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	int frame= CFRA;
@@ -86,7 +86,7 @@ void TIME_OT_start_frame_set (wmOperatorType *ot)
 }	
 
 
-static int time_set_efra_exec (bContext *C, wmOperator *op)
+static int time_set_efra_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	int frame= CFRA;
@@ -127,7 +127,7 @@ void TIME_OT_end_frame_set (wmOperatorType *ot)
 
 /* ************************ View All Operator *******************************/
 
-static int time_view_all_exec (bContext *C, wmOperator *op)
+static int time_view_all_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);

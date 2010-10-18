@@ -120,7 +120,7 @@ static void do_colorbalance_lgg_fac(bNode *node, float* out, float *in, float *f
 	out[3] = in[3];
 }
 
-static void node_composit_exec_colorbalance(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_colorbalance(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	CompBuf *cbuf= in[1]->data;
 	CompBuf *stackbuf;

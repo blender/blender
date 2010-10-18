@@ -190,7 +190,7 @@ static void fcm_generator_verify (FModifier *fcm)
 	}
 }
 
-static void fcm_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+static void fcm_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, float *cvalue, float evaltime)
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
 	
@@ -303,7 +303,7 @@ static double sinc (double x)
 		return sin(M_PI * x) / (M_PI * x);
 }
 
-static void fcm_fn_generator_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+static void fcm_fn_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, float *cvalue, float evaltime)
 {
 	FMod_FunctionGenerator *data= (FMod_FunctionGenerator *)fcm->data;
 	double arg= data->phase_multiplier*evaltime + data->phase_offset;
@@ -432,7 +432,7 @@ static void fcm_envelope_verify (FModifier *fcm)
 	}
 }
 
-static void fcm_envelope_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+static void fcm_envelope_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, float *cvalue, float evaltime)
 {
 	FMod_Envelope *env= (FMod_Envelope *)fcm->data;
 	FCM_EnvelopeData *fed, *prevfed, *lastfed;
@@ -524,7 +524,7 @@ static void fcm_cycles_new_data (void *mdata)
 	data->before_mode= data->after_mode= FCM_EXTRAPOLATE_CYCLIC;
 }
 
-static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float cvalue, float evaltime)
+static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float UNUSED(cvalue), float evaltime)
 {
 	FMod_Cycles *data= (FMod_Cycles *)fcm->data;
 	float prevkey[2], lastkey[2], cycyofs=0.0f;
@@ -664,7 +664,7 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float cvalue, float e
 	return evaltime;
 }
  
-static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+static void fcm_cycles_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, float *cvalue, float UNUSED(evaltime))
 {
 	tFCMED_Cycles *edata= (tFCMED_Cycles *)fcm->edata;
 	
@@ -708,7 +708,7 @@ static void fcm_noise_new_data (void *mdata)
 	data->modification = FCM_NOISE_MODIF_REPLACE;
 }
  
-static void fcm_noise_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+static void fcm_noise_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, float *cvalue, float evaltime)
 {
 	FMod_Noise *data= (FMod_Noise *)fcm->data;
 	float noise;
@@ -800,7 +800,7 @@ static void fcm_python_copy (FModifier *fcm, FModifier *src)
 	pymod->prop = IDP_CopyProperty(opymod->prop);
 }
 
-static void fcm_python_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+static void fcm_python_evaluate (FCurve *UNUSED(fcu), FModifier *UNUSED(fcm), float *UNUSED(cvalue), float UNUSED(evaltime))
 {
 #ifndef DISABLE_PYTHON
 	//FMod_Python *data= (FMod_Python *)fcm->data;
@@ -829,7 +829,7 @@ static FModifierTypeInfo FMI_PYTHON = {
 
 /* Limits F-Curve Modifier --------------------------- */
 
-static float fcm_limits_time (FCurve *fcu, FModifier *fcm, float cvalue, float evaltime)
+static float fcm_limits_time (FCurve *UNUSED(fcu), FModifier *fcm, float UNUSED(cvalue), float evaltime)
 {
 	FMod_Limits *data= (FMod_Limits *)fcm->data;
 	
@@ -843,7 +843,7 @@ static float fcm_limits_time (FCurve *fcu, FModifier *fcm, float cvalue, float e
 	return evaltime;
 }
 
-static void fcm_limits_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, float evaltime)
+static void fcm_limits_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, float *cvalue, float UNUSED(evaltime))
 {
 	FMod_Limits *data= (FMod_Limits *)fcm->data;
 	
@@ -880,7 +880,7 @@ static void fcm_stepped_new_data (void *mdata)
 	data->step_size = 2.0f;
 }
 
-static float fcm_stepped_time (FCurve *fcu, FModifier *fcm, float cvalue, float evaltime)
+static float fcm_stepped_time (FCurve *UNUSED(fcu), FModifier *fcm, float UNUSED(cvalue), float evaltime)
 {
 	FMod_Stepped *data= (FMod_Stepped *)fcm->data;
 	int snapblock;

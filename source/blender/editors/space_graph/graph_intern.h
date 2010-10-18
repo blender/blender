@@ -48,10 +48,10 @@ struct ARegion *graph_has_buttons_region(struct ScrArea *sa);
 
 /* ***************************************** */
 /* graph_draw.c */
-void graph_draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
+void graph_draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct ARegion *ar);
 
 void graph_draw_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar, struct View2DGrid *grid, short sel);
-void graph_draw_ghost_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar, struct View2DGrid *grid);
+void graph_draw_ghost_curves(struct bAnimContext *ac, struct SpaceIpo *sipo, struct ARegion *ar);
 
 /* ***************************************** */
 /* graph_header.c */

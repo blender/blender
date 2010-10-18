@@ -320,7 +320,7 @@ static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Objec
 	}
 }
 
-void unlink_object(Scene *scene, Object *ob)
+void unlink_object(Object *ob)
 {
 	Main *bmain= G.main;
 	Object *obt;
@@ -1264,6 +1264,17 @@ static void copy_object_pose(Object *obn, Object *ob)
 	}
 }
 
+static void copy_object_transform(Object *ob_tar, Object *ob_src)
+{
+	copy_v3_v3(ob_tar->loc, ob_src->loc);
+	copy_v3_v3(ob_tar->rot, ob_src->rot);
+	copy_v3_v3(ob_tar->quat, ob_src->quat);
+	copy_v3_v3(ob_tar->rotAxis, ob_src->rotAxis);
+	ob_tar->rotAngle= ob_src->rotAngle;
+	ob_tar->rotmode= ob_src->rotmode;
+	copy_v3_v3(ob_tar->size, ob_src->size);
+}
+
 Object *copy_object(Object *ob)
 {
 	Object *obn;
@@ -1530,22 +1541,22 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	
 	ob->recalc= target->recalc= OB_RECALC_ALL;
 	
-	/* copy transform */
+	/* copy transform
+	 * - gob means this proxy comes from a group, just apply the matrix
+	 *   so the object wont move from its dupli-transform.
+	 *
+	 * - no gob means this is being made from a linked object,
+	 *   this is closer to making a copy of the object - in-place. */
 	if(gob) {
-		VECCOPY(ob->loc, gob->loc);
-		VECCOPY(ob->rot, gob->rot);
-		VECCOPY(ob->size, gob->size);
-		
-		group_tag_recalc(gob->dup_group);
+		ob->rotmode= target->rotmode;
+		mul_m4_m4m4(ob->obmat, target->obmat, gob->obmat);
+		object_apply_mat4(ob, ob->obmat);
 	}
 	else {
-		VECCOPY(ob->loc, target->loc);
-		VECCOPY(ob->rot, target->rot);
-		VECCOPY(ob->size, target->size);
+		copy_object_transform(ob, target);
+		ob->parent= target->parent;	/* libdata */
+		copy_m4_m4(ob->parentinv, target->parentinv);
 	}
-	
-	ob->parent= target->parent;	/* libdata */
-	copy_m4_m4(ob->parentinv, target->parentinv);
 	
 	/* copy animdata stuff - drivers only for now... */
 	object_copy_proxy_drivers(ob, target);
@@ -1606,7 +1617,7 @@ void disable_speed_curve(int val)
 
 // XXX THIS CRUFT NEEDS SERIOUS RECODING ASAP!
 /* ob can be NULL */
-float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
+float bsystem_time(struct Scene *scene, Object *UNUSED(ob), float cfra, float ofs)
 {
 	/* returns float ( see BKE_curframe in scene.c) */
 	cfra += scene->r.subframe;
@@ -1635,7 +1646,7 @@ void object_scale_to_mat3(Object *ob, float mat[][3])
 	size_to_mat3( mat,vec);
 }
 
-// TODO: this should take rotation orders into account later...
+
 void object_rot_to_mat3(Object *ob, float mat[][3])
 {
 	float rmat[3][3], dmat[3][3];
@@ -1664,7 +1675,6 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 	}
 	
 	/* combine these rotations */
-	// XXX is this correct? if errors, change the order of multiplication...
 	mul_m3_m3m3(mat, dmat, rmat);
 }
 
@@ -1688,29 +1698,28 @@ void object_mat3_to_rot(Object *ob, float mat[][3], int use_compat)
 /* see pchan_apply_mat4() for the equivalent 'pchan' function */
 void object_apply_mat4(Object *ob, float mat[][4])
 {
-	float mat3[3][3], tmat[3][3], imat[3][3];
+	float mat3[3][3];    /* obmat -> 3x3 */
+	float mat3_n[3][3];  /* obmat -> normalized, 3x3 */
+	float imat3_n[3][3]; /* obmat -> normalized & inverted, 3x3 */
 
 	/* location */
 	copy_v3_v3(ob->loc, mat[3]);
 	
 	/* rotation */
 	copy_m3_m4(mat3, mat);
-	object_mat3_to_rot(ob, mat3, 0);
-	
-	/* scale */
-#if 0
-	/* works fine except for neg scales */
-	mat4_to_size(ob->size, mat);
-#else
-	/* this is more complicated but works for negative scales */
-	object_rot_to_mat3(ob, tmat);
-	invert_m3_m3(imat, tmat);
-	mul_m3_m3m3(tmat, imat, mat3);
+	/* so scale doesnt interfear with rotation [#24291] */
+	normalize_m3_m3(mat3_n, (const float(*)[3])mat3);
 
-	ob->size[0]= tmat[0][0];
-	ob->size[1]= tmat[1][1];
-	ob->size[2]= tmat[2][2];
-#endif
+	object_mat3_to_rot(ob, mat3_n, 0);
+
+	/* scale */
+	/* note: mat4_to_size(ob->size, mat) fails for negative scale */
+	invert_m3_m3(imat3_n, mat3_n);
+	mul_m3_m3m3(mat3, imat3_n, mat3);
+
+	ob->size[0]= mat3[0][0];
+	ob->size[1]= mat3[1][1];
+	ob->size[2]= mat3[2][2];
 }
 
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
@@ -1743,7 +1752,7 @@ int enable_cu_speed= 1;
 static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 {
 	Curve *cu;
-	float q[4], vec[4], dir[3], quat[4], radius, x1, ctime;
+	float vec[4], dir[3], quat[4], radius, ctime;
 	float timeoffs = 0.0, sf_orig = 0.0;
 	
 	unit_m4(mat);
@@ -1795,6 +1804,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 
 		if(cu->flag & CU_FOLLOW) {
 #if 0
+			float x1, q[4];
 			vec_to_quat( quat,dir, ob->trackflag, ob->upflag);
 			
 			/* the tilt */

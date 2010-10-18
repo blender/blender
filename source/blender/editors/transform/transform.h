@@ -571,7 +571,7 @@ void autokeyframe_pose_cb_func(struct bContext *C, struct Scene *scene, struct V
 
 /*********************** Constraints *****************************/
 
-void drawConstraint(const struct bContext *C, TransInfo *t);
+void drawConstraint(TransInfo *t);
 
 void getConstraintMatrix(TransInfo *t);
 void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]);

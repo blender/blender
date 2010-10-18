@@ -1125,7 +1125,7 @@ static void update_world_cos(Object *ob, PTCacheEdit *edit)
 		}
 	}
 }
-static void update_velocities(Object *ob, PTCacheEdit *edit)
+static void update_velocities(PTCacheEdit *edit)
 {
 	/*TODO: get frs_sec properly */
 	float vec1[3], vec2[3], frs_sec, dfra;
@@ -1208,7 +1208,7 @@ void PE_update_object(Scene *scene, Object *ob, int useflag)
 	if(edit->psys)
 		update_world_cos(ob, edit);
 	if(pset->flag & PE_AUTO_VELOCITY)
-		update_velocities(ob, edit);
+		update_velocities(edit);
 	PE_hide_keys_time(scene, edit, CFRA);
 
 	/* regenerate path caches */
@@ -1243,7 +1243,7 @@ static void select_key(PEData *data, int point_index, int key_index)
 	point->flag |= PEP_EDIT_RECALC;
 }
 
-static void select_keys(PEData *data, int point_index, int key_index)
+static void select_keys(PEData *data, int point_index, int UNUSED(key_index))
 {
 	PTCacheEdit *edit = data->edit;
 	PTCacheEditPoint *point = edit->points + point_index;
@@ -1387,7 +1387,7 @@ static void select_root(PEData *data, int point_index)
 	data->edit->points[point_index].flag |= PEP_EDIT_RECALC; /* redraw selection only */
 }
 
-static int select_roots_exec(bContext *C, wmOperator *op)
+static int select_roots_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PEData data;
 
@@ -1427,7 +1427,7 @@ static void select_tip(PEData *data, int point_index)
 	point->flag |= PEP_EDIT_RECALC; /* redraw selection only */
 }
 
-static int select_tips_exec(bContext *C, wmOperator *op)
+static int select_tips_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PEData data;
 
@@ -1690,7 +1690,7 @@ void PARTICLE_OT_hide(wmOperatorType *ot)
 
 /*************************** reveal operator **************************/
 
-static int reveal_exec(bContext *C, wmOperator *op)
+static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_active_object(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1758,7 +1758,7 @@ static void select_less_keys(PEData *data, int point_index)
 	}
 }
 
-static int select_less_exec(bContext *C, wmOperator *op)
+static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PEData data;
 
@@ -1819,7 +1819,7 @@ static void select_more_keys(PEData *data, int point_index)
 	}
 }
 
-static int select_more_exec(bContext *C, wmOperator *op)
+static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PEData data;
 
@@ -1846,7 +1846,7 @@ void PARTICLE_OT_select_more(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int select_inverse_exec(bContext *C, wmOperator *op)
+static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PEData data;
 	PTCacheEdit *edit;
@@ -2022,7 +2022,7 @@ static void rekey_particle_to_time(Scene *scene, Object *ob, int pa_index, float
 
 /************************* utilities **************************/
 
-static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psys, int mirror)
+static int remove_tagged_particles(Object *ob, ParticleSystem *psys, int mirror)
 {
 	PTCacheEdit *edit = psys->edit;
 	ParticleData *pa, *npa=0, *new_pars=0;
@@ -2092,7 +2092,7 @@ static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psy
 	return removed;
 }
 
-static void remove_tagged_keys(Scene *scene, Object *ob, ParticleSystem *psys)
+static void remove_tagged_keys(Object *ob, ParticleSystem *psys)
 {
 	PTCacheEdit *edit= psys->edit;
 	ParticleData *pa;
@@ -2123,7 +2123,7 @@ static void remove_tagged_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 		if(new_totkey < 2)
 			point->flag |= PEP_TAG;
 	}
-	remove_tagged_particles(scene, ob, psys, pe_x_mirror(ob));
+	remove_tagged_particles(ob, psys, pe_x_mirror(ob));
 
 	LOOP_POINTS {
 		pa = psys->particles + p;
@@ -2260,7 +2260,7 @@ static void subdivide_particle(PEData *data, int pa_index)
 	pa->flag &= ~PARS_REKEY;
 }
 
-static int subdivide_exec(bContext *C, wmOperator *op)
+static int subdivide_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PEData data;
 
@@ -2347,7 +2347,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 		BLI_kdtree_free(tree);
 
 		/* remove tagged particles - don't do mirror here! */
-		remove_tagged_particles(scene, ob, psys, 0);
+		remove_tagged_particles(ob, psys, 0);
 		totremoved += removed;
 	} while(removed);
 
@@ -2430,7 +2430,7 @@ void PARTICLE_OT_weight_set(wmOperatorType *ot)
 
 /************************ cursor drawing *******************************/
 
-static void brush_drawcursor(bContext *C, int x, int y, void *customdata)
+static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata))
 {
 	ParticleEditSettings *pset= PE_settings(CTX_data_scene(C));
 	ParticleBrushData *brush;
@@ -2574,12 +2574,12 @@ static int delete_exec(bContext *C, wmOperator *op)
 
 	if(type == DEL_KEY) {
 		foreach_selected_key(&data, set_delete_particle_key);
-		remove_tagged_keys(data.scene, data.ob, data.edit->psys);
+		remove_tagged_keys(data.ob, data.edit->psys);
 		recalc_lengths(data.edit);
 	}
 	else if(type == DEL_PARTICLE) {
 		foreach_selected_point(&data, set_delete_particle);
-		remove_tagged_particles(data.scene, data.ob, data.edit->psys, pe_x_mirror(data.ob));
+		remove_tagged_particles(data.ob, data.edit->psys, pe_x_mirror(data.ob));
 		recalc_lengths(data.edit);
 	}
 
@@ -2734,7 +2734,7 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 	MEM_freeN(mirrorfaces);
 }
 
-static int mirror_exec(bContext *C, wmOperator *op)
+static int mirror_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -2765,7 +2765,7 @@ void PARTICLE_OT_mirror(wmOperatorType *ot)
 
 /************************* brush edit callbacks ********************/
 
-static void brush_comb(PEData *data, float mat[][4], float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
+static void brush_comb(PEData *data, float UNUSED(mat[][4]), float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
 {
 	ParticleEditSettings *pset= PE_settings(data->scene);
 	float cvec[3], fac;
@@ -3034,7 +3034,7 @@ static void brush_puff(PEData *data, int point_index)
 }
 
 
-static void brush_weight(PEData *data, float mat[][4], float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
+static void brush_weight(PEData *data, float UNUSED(mat[][4]), float UNUSED(imat[][4]), int point_index, int key_index, PTCacheEditKey *UNUSED(key))
 {
 	/* roots have full weight allways */
 	if(key_index) {
@@ -3048,7 +3048,7 @@ static void brush_weight(PEData *data, float mat[][4], float imat[][4], int poin
 	}
 }
 
-static void brush_smooth_get(PEData *data, float mat[][4], float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
+static void brush_smooth_get(PEData *data, float mat[][4], float UNUSED(imat[][4]), int UNUSED(point_index), int key_index, PTCacheEditKey *key)
 {	
 	if(key_index) {
 		float dvec[3];
@@ -3060,7 +3060,7 @@ static void brush_smooth_get(PEData *data, float mat[][4], float imat[][4], int 
 	}
 }
 
-static void brush_smooth_do(PEData *data, float mat[][4], float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
+static void brush_smooth_do(PEData *data, float UNUSED(mat[][4]), float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
 {
 	float vec[3], dvec[3];
 	
@@ -3401,7 +3401,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 					else
 						foreach_point(&data, brush_cut);
 
-					removed= remove_tagged_particles(scene, ob, edit->psys, pe_x_mirror(ob));
+					removed= remove_tagged_particles(ob, edit->psys, pe_x_mirror(ob));
 					if(pset->flag & PE_KEEP_LENGTHS)
 						recalc_lengths(edit);
 				}
@@ -3538,7 +3538,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	pset->flag |= lock_root;
 }
 
-static void brush_edit_exit(bContext *C, wmOperator *op)
+static void brush_edit_exit(wmOperator *op)
 {
 	BrushEdit *bedit= op->customdata;
 
@@ -3555,7 +3555,7 @@ static int brush_edit_exec(bContext *C, wmOperator *op)
 	}
 	RNA_END;
 
-	brush_edit_exit(C, op);
+	brush_edit_exit(op);
 
 	return OPERATOR_FINISHED;
 }
@@ -3597,7 +3597,7 @@ static int brush_edit_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE: // XXX hardcoded
-			brush_edit_exit(C, op);
+			brush_edit_exit(op);
 			return OPERATOR_FINISHED;
 		case MOUSEMOVE:
 			brush_edit_apply_event(C, op, event);
@@ -3607,9 +3607,9 @@ static int brush_edit_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int brush_edit_cancel(bContext *C, wmOperator *op)
+static int brush_edit_cancel(bContext *UNUSED(C), wmOperator *op)
 {
-	brush_edit_exit(C, op);
+	brush_edit_exit(op);
 
 	return OPERATOR_CANCELLED;
 }
@@ -4084,7 +4084,7 @@ static int particle_edit_toggle_poll(bContext *C)
 	return (ob->particlesystem.first || modifiers_findByType(ob, eModifierType_Cloth) || modifiers_findByType(ob, eModifierType_Softbody));
 }
 
-static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
+static int particle_edit_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -4130,7 +4130,7 @@ void PARTICLE_OT_particle_edit_toggle(wmOperatorType *ot)
 
 /************************ set editable operator ************************/
 
-static int clear_edited_exec(bContext *C, wmOperator *op)
+static int clear_edited_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_active_object(C);
 	ParticleSystem *psys = psys_get_current(ob);

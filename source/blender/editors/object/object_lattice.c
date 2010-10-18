@@ -259,7 +259,7 @@ int make_regular_poll(bContext *C)
 	return (ob && ob->type==OB_LATTICE);
 }
 
-int make_regular_exec(bContext *C, wmOperator *op)
+int make_regular_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_edit_object(C);
 	Lattice *lt;

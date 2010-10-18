@@ -19,20 +19,29 @@
  # #**** END GPL LICENSE BLOCK #****
 
 script_help_msg = '''
-Usage,
-run this script from blenders root path once you have compiled blender
-    ./blender.bin -b -P /b/source/blender/python/doc/sphinx_doc_gen.py
+Usage:
 
-This will generate python files in "./source/blender/python/doc/sphinx-in"
-Generate html docs by running...
+For HTML generation
+-------------------
+- Run this script from blenders root path once you have compiled blender
+
+    ./blender.bin -b -P doc/python_api/sphinx_doc_gen.py
+
+  This will generate python files in doc/python_api/sphinx-in/,
+  assuming that ./blender.bin is or links to the blender executable
+
+- Generate html docs by running...
     
-    sphinx-build source/blender/python/doc/sphinx-in source/blender/python/doc/sphinx-out
+    sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
 
-
+  assuming that you have sphinx 0.6.7 installed
+  
 For PDF generation
+------------------
+- After you have built doc/python_api/sphinx-in (see above), run:
 
-    sphinx-build -b latex source/blender/python/doc/sphinx-in source/blender/python/doc/sphinx-out
-    cd source/blender/python/doc/sphinx-out
+    sphinx-build -b latex doc/python_api/sphinx-in doc/python_api/sphinx-out
+    cd doc/python_api/sphinx-out
     make
 '''
 
@@ -48,7 +57,6 @@ reload(rna_info)
 ClassMethodDescriptorType = type(dict.__dict__['fromkeys'])
 MethodDescriptorType = type(dict.get)
 GetSetDescriptorType = type(int.real)
-StaticMethodType = type(staticmethod(lambda: None))
 
 EXAMPLE_SET = set()
 EXAMPLE_SET_USED = set()
@@ -283,12 +291,6 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
             if type(descr) == GetSetDescriptorType:
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
 
-        for key, descr in descr_items:
-            if type(descr) == StaticMethodType:
-                descr = getattr(value, key)
-                write_indented_lines("   ", fw, descr.__doc__ or "Undocumented", False)
-                fw("\n")
-
         fw("\n\n")
 
     file.close()
@@ -393,7 +395,6 @@ def rna2sphinx(BASEPATH):
 
 
     fw("   mathutils.rst\n\n")
-    fw("   Freestyle.rst\n\n")
     fw("   blf.rst\n\n")
     fw("   aud.rst\n\n")
     
@@ -475,10 +476,6 @@ def rna2sphinx(BASEPATH):
     pymodule2sphinx(BASEPATH, "mathutils", module, "Math Types & Utilities (mathutils)")
     del module
 
-    import Freestyle as module
-    pymodule2sphinx(BASEPATH, "Freestyle", module, "Freestyle Operators & Rules (Freestyle)")
-    del module
-
     import blf as module
     pymodule2sphinx(BASEPATH, "blf", module, "Font Drawing (blf)")
     del module
@@ -487,13 +484,13 @@ def rna2sphinx(BASEPATH):
     pymodule2sphinx(BASEPATH, "aud", module, "Audio System (aud)")
     del module
 
-    # game engine
+    ## game engine
     import shutil
     # copy2 keeps time/date stamps
-    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.types.rst"), BASEPATH)
-    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.logic.rst"), BASEPATH)
-    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.render.rst"), BASEPATH)
-    shutil.copy2(os.path.join(BASEPATH, "../../../../gameengine/PyDoc/bge.events.rst"), BASEPATH)
+    shutil.copy2(os.path.join(BASEPATH,"..","rst","bge.types.rst"), BASEPATH)
+    shutil.copy2(os.path.join(BASEPATH,"..","rst","bge.logic.rst"), BASEPATH)
+    shutil.copy2(os.path.join(BASEPATH,"..","rst","bge.render.rst"), BASEPATH)
+    shutil.copy2(os.path.join(BASEPATH,"..","rst","bge.events.rst"), BASEPATH)
 
 
     if 0:
@@ -806,9 +803,10 @@ def main():
     else:
         import shutil
 
-        path_in = 'source/blender/python/doc/sphinx-in'
-        path_out = 'source/blender/python/doc/sphinx-out'
-        path_examples = 'source/blender/python/doc/examples'
+        script_dir = os.path.dirname(__file__)
+        path_in = os.path.join(script_dir,'sphinx-in')
+        path_out = os.path.join(script_dir,'sphinx-out')
+        path_examples = os.path.join(script_dir,'examples')
         # only for partial updates
         path_in_tmp = path_in + "-tmp"
 

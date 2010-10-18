@@ -84,7 +84,7 @@
 /* join selected meshes into the active mesh, context sensitive
 return 0 if no join is made (error) and 1 of the join is done */
 
-int join_mesh_exec(bContext *C, wmOperator *op)
+int join_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1104,14 +1104,14 @@ static EditVert *editmesh_get_x_mirror_vert_topo(Object *ob, struct EditMesh *em
 	if(poinval != -1)
 		return (EditVert *)(poinval);
 	return NULL;
-}
+}	
 
 EditVert *editmesh_get_x_mirror_vert(Object *ob, struct EditMesh *em, EditVert *eve, float *co, int index)
 {
 	if (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_TOPO) {
 		return editmesh_get_x_mirror_vert_topo(ob, em, eve, index);
 	} else {
-		return editmesh_get_x_mirror_vert_spacial(ob, em, eve->co);
+		return editmesh_get_x_mirror_vert_spacial(ob, em, co);
 	}
 }
 

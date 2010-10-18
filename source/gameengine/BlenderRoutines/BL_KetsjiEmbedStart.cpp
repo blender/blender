@@ -141,10 +141,10 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 	BlendFileData *bfd= NULL;
 
 	BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
-	BLI_strncpy(oldsce, G.sce, sizeof(oldsce));
+	BLI_strncpy(oldsce, G.main->name, sizeof(oldsce));
 #ifndef DISABLE_PYTHON
 	resetGamePythonPath(); // need this so running a second time wont use an old blendfiles path
-	setGamePythonPath(G.sce);
+	setGamePythonPath(G.main->name);
 
 	// Acquire Python's GIL (global interpreter lock)
 	// so we can safely run Python code and API calls
@@ -309,10 +309,10 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				startscenename = bfd->curscene->id.name + 2;
 
 				if(blenderdata) {
-					BLI_strncpy(G.sce, blenderdata->name, sizeof(G.sce));
+					BLI_strncpy(G.main->name, blenderdata->name, sizeof(G.main->name));
 					BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
 #ifndef DISABLE_PYTHON
-					setGamePythonPath(G.sce);
+					setGamePythonPath(G.main->name);
 #endif
 				}
 			}
@@ -440,7 +440,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 						ketsjiengine->Render();
 					}
 					
-					wm_window_process_events_nosleep(C);
+					wm_window_process_events_nosleep();
 					
 					// test for the ESC key
 					//XXX while (qtest())
@@ -573,7 +573,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 
 	if (bfd) BLO_blendfiledata_free(bfd);
 
-	BLI_strncpy(G.sce, oldsce, sizeof(G.sce));
+	BLI_strncpy(G.main->name, oldsce, sizeof(G.main->name));
 
 #ifndef DISABLE_PYTHON
 	Py_DECREF(pyGlobalDict);

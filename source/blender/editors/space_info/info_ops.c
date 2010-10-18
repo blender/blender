@@ -73,7 +73,7 @@ static int pack_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int pack_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int pack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Main *bmain= CTX_data_main(C);
 	Image *ima;
@@ -133,7 +133,7 @@ static int unpack_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Main *bmain= CTX_data_main(C);
 	uiPopupMenu *pup;
@@ -184,14 +184,14 @@ void FILE_OT_unpack_all(wmOperatorType *ot)
 
 /********************* make paths relative operator *********************/
 
-static int make_paths_relative_exec(bContext *C, wmOperator *op)
+static int make_paths_relative_exec(bContext *UNUSED(C), wmOperator *op)
 {
 	if(!G.relbase_valid) {
 		BKE_report(op->reports, RPT_WARNING, "Can't set relative paths with an unsaved blend file.");
 		return OPERATOR_CANCELLED;
 	}
 
-	makeFilesRelative(G.sce, op->reports);
+	makeFilesRelative(G.main->name, op->reports);
 
 	return OPERATOR_FINISHED;
 }
@@ -211,14 +211,14 @@ void FILE_OT_make_paths_relative(wmOperatorType *ot)
 
 /********************* make paths absolute operator *********************/
 
-static int make_paths_absolute_exec(bContext *C, wmOperator *op)
+static int make_paths_absolute_exec(bContext *UNUSED(C), wmOperator *op)
 {
 	if(!G.relbase_valid) {
 		BKE_report(op->reports, RPT_WARNING, "Can't set absolute paths with an unsaved blend file.");
 		return OPERATOR_CANCELLED;
 	}
 
-	makeFilesAbsolute(G.sce, op->reports);
+	makeFilesAbsolute(G.main->name, op->reports);
 	return OPERATOR_FINISHED;
 }
 
@@ -237,14 +237,14 @@ void FILE_OT_make_paths_absolute(wmOperatorType *ot)
 
 /********************* report missing files operator *********************/
 
-static int report_missing_files_exec(bContext *C, wmOperator *op)
+static int report_missing_files_exec(bContext *UNUSED(C), wmOperator *op)
 {
 	char txtname[24]; /* text block name */
 
 	txtname[0] = '\0';
 	
 	/* run the missing file check */
-	checkMissingFiles(G.sce, op->reports);
+	checkMissingFiles(G.main->name, op->reports);
 	
 	return OPERATOR_FINISHED;
 }
@@ -264,18 +264,18 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
 
 /********************* find missing files operator *********************/
 
-static int find_missing_files_exec(bContext *C, wmOperator *op)
+static int find_missing_files_exec(bContext *UNUSED(C), wmOperator *op)
 {
 	char *path;
 	
 	path= RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
-	findMissingFiles(path, G.sce);
+	findMissingFiles(path, G.main->name);
 	MEM_freeN(path);
 
 	return OPERATOR_FINISHED;
 }
 
-static int find_missing_files_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int find_missing_files_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	/* XXX file open button text "Find Missing Files" */
 	WM_event_add_fileselect(C, op); 
@@ -313,7 +313,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 #define ERROR_TIMEOUT		10.0
 #define ERROR_COLOR_TIMEOUT	6.0
 #define COLLAPSE_TIMEOUT	0.2
-static int update_reports_display_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	ReportList *reports= CTX_wm_reports(C);

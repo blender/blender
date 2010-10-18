@@ -49,7 +49,7 @@
 
 #include <string.h>
 
-static void file_panel_cb(bContext *C, void *arg_entry, void *arg_unused)
+static void file_panel_cb(bContext *C, void *arg_entry, void *UNUSED(arg_v))
 {
 	PointerRNA ptr;
 	char *entry= (char*)arg_entry;
@@ -151,7 +151,7 @@ static void file_panel_recent(const bContext *C, Panel *pa)
 }
 
 
-static int file_panel_operator_poll(const bContext *C, PanelType *pt)
+static int file_panel_operator_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	return (sfile && sfile->op);

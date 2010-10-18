@@ -268,7 +268,7 @@ static KeyingSet *poselib_ks_locrotscale = NULL;		/* the only keyingset we'll ne
 
 /* ----- */
 
-static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout, void *arg)
+static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bAction *act= ob->poselib;
@@ -290,7 +290,7 @@ static void poselib_add_menu_invoke__replacemenu (bContext *C, uiLayout *layout,
 	}
 }
 
-static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
@@ -402,7 +402,7 @@ void POSELIB_OT_pose_add (wmOperatorType *ot)
 
 /* ----- */
 
-static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bAction *act= (ob) ? ob->poselib : NULL;
@@ -1034,7 +1034,7 @@ static void poselib_preview_handle_search (tPoseLib_PreviewData *pld, unsigned s
 }
 
 /* handle events for poselib_preview_poses */
-static int poselib_preview_handle_event (bContext *C, wmOperator *op, wmEvent *event)
+static int poselib_preview_handle_event (bContext *UNUSED(C), wmOperator *op, wmEvent *event)
 {
 	tPoseLib_PreviewData *pld= op->customdata; 
 	int ret = OPERATOR_RUNNING_MODAL;
@@ -1411,7 +1411,7 @@ static int poselib_preview_modal (bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* Modal Operator init */
-static int poselib_preview_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int poselib_preview_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	tPoseLib_PreviewData *pld;
 	

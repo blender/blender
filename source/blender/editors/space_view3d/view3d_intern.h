@@ -93,11 +93,11 @@ void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
 
 /* drawanim.c */
-void draw_motion_paths_init(Scene *scene, View3D *v3d, struct ARegion *ar);
-void draw_motion_path_instance(Scene *scene, View3D *v3d, struct ARegion *ar, 
+void draw_motion_paths_init(View3D *v3d, struct ARegion *ar);
+void draw_motion_path_instance(Scene *scene,
 			struct Object *ob, struct bPoseChannel *pchan, 
 			struct bAnimVizSettings *avs, struct bMotionPath *mpath);
-void draw_motion_paths_cleanup(Scene *scene, View3D *v3d, struct ARegion *ar);
+void draw_motion_paths_cleanup(View3D *v3d);
 
 
 
@@ -106,7 +106,7 @@ void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, int 
 int draw_glsl_material(Scene *scene, struct Object *ob, View3D *v3d, int dt);
 void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob, int dt, int outline);
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob);
-void drawaxes(float size, int flag, char drawtype);
+void drawaxes(float size, char drawtype);
 
 void view3d_cached_text_draw_begin(void);
 void view3d_cached_text_draw_add(float x, float y, float z, char *str, short xoffs, short flag);
@@ -130,7 +130,7 @@ void add_view3d_after(ListBase *lb, Base *base, int flag);
 
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);
-void view3d_update_depths(struct ARegion *ar, View3D *v3d);
+void view3d_update_depths(struct ARegion *ar);
 
 /* view3d_select.c */
 void VIEW3D_OT_select(struct wmOperatorType *ot);
@@ -189,7 +189,7 @@ ARegion *view3d_has_buttons_region(ScrArea *sa);
 ARegion *view3d_has_tools_region(ScrArea *sa);
 
 /* draw_volume.c */
-void draw_volume(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct Base *base, struct GPUTexture *tex, float *min, float *max, int res[3], float dx, struct GPUTexture *tex_shadow);
+void draw_volume(struct ARegion *ar, struct GPUTexture *tex, float *min, float *max, int res[3], float dx, struct GPUTexture *tex_shadow);
 
 
 #endif /* ED_VIEW3D_INTERN_H */

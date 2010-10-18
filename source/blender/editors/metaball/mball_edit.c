@@ -84,12 +84,12 @@ void make_editMball(Object *obedit)
 /* This function is called, when MetaBall Object switched from
  * edit mode to object mode. List od MetaElements is copied
  * from object->data->edit_elems to object->data->elems. */
-void load_editMball(Object *obedit)
+void load_editMball(Object *UNUSED(obedit))
 {
 }
 
 /* Add metaelem primitive to metaball object (which is in edit mode) */
-MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int newname)
+MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int UNUSED(newname))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	MetaBall *mball = (MetaBall*)obedit->data;
@@ -177,7 +177,7 @@ void MBALL_OT_select_all(wmOperatorType *ot)
 /***************************** Select inverse operator *****************************/
 
 /* Invert metaball selection */
-static int select_inverse_metaelems_exec(bContext *C, wmOperator *op)
+static int select_inverse_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	MetaBall *mb = (MetaBall*)obedit->data;
@@ -266,7 +266,7 @@ void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 /***************************** Duplicate operator *****************************/
 
 /* Duplicate selected MetaElements */
-static int duplicate_metaelems_exec(bContext *C, wmOperator *op)
+static int duplicate_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	MetaBall *mb = (MetaBall*)obedit->data;
@@ -290,7 +290,7 @@ static int duplicate_metaelems_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	int retv= duplicate_metaelems_exec(C, op);
 	
@@ -325,7 +325,7 @@ void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 /***************************** Delete operator *****************************/
 
 /* Delete all selected MetaElems (not MetaBall) */
-static int delete_metaelems_exec(bContext *C, wmOperator *op)
+static int delete_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	MetaBall *mb= (MetaBall*)obedit->data;
@@ -420,7 +420,7 @@ void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 /***************************** Unhide operator *****************************/
 
 /* Unhide all edited MetaElems */
-static int reveal_metaelems_exec(bContext *C, wmOperator *op)
+static int reveal_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	MetaBall *mb= (MetaBall*)obedit->data;

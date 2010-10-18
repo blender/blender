@@ -43,7 +43,7 @@ static bNodeSocketType cmp_node_sepyuva_out[]= {
 	{  -1, 0, ""   }
 };
 
-static void do_sepyuva(bNode *node, float *out, float *in)
+static void do_sepyuva(bNode *UNUSED(node), float *out, float *in)
 {
 	float y, u, v;
 	
@@ -55,7 +55,7 @@ static void do_sepyuva(bNode *node, float *out, float *in)
 	out[3]= in[3];
 }
 
-static void node_composit_exec_sepyuva(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_sepyuva(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order out: bw channels */
 	/* stack order in: col */
@@ -127,7 +127,7 @@ static bNodeSocketType cmp_node_combyuva_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_comb_yuva(bNode *node, float *out, float *in1, float *in2, float *in3, float *in4)
+static void do_comb_yuva(bNode *UNUSED(node), float *out, float *in1, float *in2, float *in3, float *in4)
 {
 	float r,g,b;
 	yuv_to_rgb(in1[0], in2[0], in3[0], &r, &g, &b);
@@ -138,7 +138,7 @@ static void do_comb_yuva(bNode *node, float *out, float *in1, float *in2, float 
 	out[3] = in4[0];
 }
 
-static void node_composit_exec_combyuva(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_combyuva(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order out: 1 rgba channels */
 	/* stack order in: 4 value channels */

@@ -115,7 +115,7 @@ FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int array_ind
 /* Main Driver Management API calls:
  * 	Add a new driver for the specified property on the given ID block
  */
-short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short flag, int type)
+short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short UNUSED(flag), int type)
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -193,7 +193,7 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 /* Main Driver Management API calls:
  * 	Remove the driver for the specified property on the given ID block (if available)
  */
-short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index, short flag)
+short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {
 	AnimData *adt;
 	FCurve *fcu;
@@ -262,7 +262,7 @@ short ANIM_driver_can_paste (void)
 /* Main Driver Management API calls:
  * 	Make a copy of the driver for the specified property on the given ID block
  */
-short ANIM_copy_driver (ID *id, const char rna_path[], int array_index, short flag)
+short ANIM_copy_driver (ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -307,7 +307,7 @@ short ANIM_copy_driver (ID *id, const char rna_path[], int array_index, short fl
  * 	Add a new driver for the specified property on the given ID block or replace an existing one
  *	with the driver + driver-curve data from the buffer 
  */
-short ANIM_paste_driver (ID *id, const char rna_path[], int array_index, short flag)
+short ANIM_paste_driver (ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -472,7 +472,7 @@ void ANIM_OT_driver_button_remove (wmOperatorType *ot)
 
 /* Copy Driver Button Operator ------------------------ */
 
-static int copy_driver_button_exec (bContext *C, wmOperator *op)
+static int copy_driver_button_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr;
 	PropertyRNA *prop= NULL;
@@ -518,7 +518,7 @@ void ANIM_OT_copy_driver_button (wmOperatorType *ot)
 
 /* Paste Driver Button Operator ------------------------ */
 
-static int paste_driver_button_exec (bContext *C, wmOperator *op)
+static int paste_driver_button_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr;
 	PropertyRNA *prop= NULL;

@@ -233,7 +233,7 @@ void ANIM_OT_previewrange_set(wmOperatorType *ot)
 
 /* ****************** clear preview range operator ****************************/
 
-static int previewrange_clear_exec(bContext *C, wmOperator *op)
+static int previewrange_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *curarea= CTX_wm_area(C);
@@ -269,7 +269,7 @@ void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 
 /* ****************** time display toggle operator ****************************/
 
-static int toggle_time_exec(bContext *C, wmOperator *op)
+static int toggle_time_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	

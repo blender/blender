@@ -35,7 +35,7 @@ static bNodeSocketType sh_node_rgb_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_rgb(void *UNUSED(data), bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	bNodeSocket *sock= node->outputs.first;
 	

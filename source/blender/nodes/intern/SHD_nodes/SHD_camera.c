@@ -38,7 +38,7 @@ static bNodeSocketType sh_node_camera_out[]= {
 };
 
 
-static void node_shader_exec_camera(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_camera(void *data, bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	if(data) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;  /* Data we need for shading. */
@@ -49,7 +49,7 @@ static void node_shader_exec_camera(void *data, bNode *node, bNodeStack **in, bN
 	}
 }
 
-static int gpu_shader_camera(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_camera(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "camera", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }

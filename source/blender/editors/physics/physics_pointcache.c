@@ -56,7 +56,7 @@
 
 #include "physics_intern.h"
 
-static int cache_break_test(void *cbd) {
+static int cache_break_test(void *UNUSED(cbd)) {
 	return G.afbreek==1;
 }
 static int ptcache_bake_all_poll(bContext *C)
@@ -75,13 +75,13 @@ static int ptcache_poll(bContext *C)
 	return (ptr.data && ptr.id.data);
 }
 
-void bake_console_progress(void *arg, int nr)
+void bake_console_progress(void *UNUSED(arg), int nr)
 {
 	printf("\rbake: %3i%%", nr);
 	fflush(stdout);
 }
 
-void bake_console_progress_end(void *arg)
+void bake_console_progress_end(void *UNUSED(arg))
 {
 	printf("\n");
 }
@@ -120,7 +120,7 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 }
-static int ptcache_free_bake_all_exec(bContext *C, wmOperator *op)
+static int ptcache_free_bake_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Base *base;
@@ -221,7 +221,7 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 }
-static int ptcache_free_bake_exec(bContext *C, wmOperator *op)
+static int ptcache_free_bake_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	PointCache *cache= ptr.data;
@@ -241,7 +241,7 @@ static int ptcache_free_bake_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 }
-static int ptcache_bake_from_cache_exec(bContext *C, wmOperator *op)
+static int ptcache_bake_from_cache_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	PointCache *cache= ptr.data;
@@ -295,7 +295,7 @@ void PTCACHE_OT_bake_from_cache(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int ptcache_add_new_exec(bContext *C, wmOperator *op)
+static int ptcache_add_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
@@ -320,7 +320,7 @@ static int ptcache_add_new_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 }
-static int ptcache_remove_exec(bContext *C, wmOperator *op)
+static int ptcache_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	Scene *scene= CTX_data_scene(C);

@@ -183,7 +183,7 @@ struct KeyingSet *ANIM_builtin_keyingset_get_named(struct KeyingSet *prevKS, con
 KeyingSetInfo *ANIM_keyingset_info_find_named(const char name[]);
 
 /* for RNA type registrations... */
-void ANIM_keyingset_info_register(const struct bContext *C, KeyingSetInfo *ksi);
+void ANIM_keyingset_info_register(KeyingSetInfo *ksi);
 void ANIM_keyingset_info_unregister(const struct bContext *C, KeyingSetInfo *ksi);
 
 /* cleanup on exit */

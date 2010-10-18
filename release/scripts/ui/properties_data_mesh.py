@@ -182,7 +182,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
         enable_edit = ob.mode != 'EDIT'
         enable_edit_value = False
 
-        if ob.show_shape_key is False:
+        if ob.show_only_shape_key is False:
             if enable_edit or (ob.type == 'MESH' and ob.use_shape_key_edit_mode):
                 enable_edit_value = True
 
@@ -218,7 +218,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
             sub = row.row(align=True)
             subsub = sub.row(align=True)
             subsub.active = enable_edit_value
-            subsub.prop(ob, "show_shape_key", text="")
+            subsub.prop(ob, "show_only_shape_key", text="")
             subsub.prop(kb, "mute", text="")
             sub.prop(ob, "use_shape_key_edit_mode", text="")
 

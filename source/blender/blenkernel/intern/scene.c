@@ -108,7 +108,7 @@ void free_qtcodecdata(QuicktimeCodecData *qcd)
 	}
 }
 
-Scene *copy_scene(Main *bmain, Scene *sce, int type)
+Scene *copy_scene(Scene *sce, int type)
 {
 	Scene *scen;
 	ToolSettings *ts;
@@ -573,11 +573,11 @@ Scene *set_scene_name(Main *bmain, char *name)
 	Scene *sce= (Scene *)find_id("SC", name);
 	if(sce) {
 		set_scene_bg(bmain, sce);
-		printf("Scene switch: '%s' in file: '%s'\n", name, G.sce);
+		printf("Scene switch: '%s' in file: '%s'\n", name, G.main->name);
 		return sce;
 	}
 
-	printf("Can't find scene: '%s' in file: '%s'\n", name, G.sce);
+	printf("Can't find scene: '%s' in file: '%s'\n", name, G.main->name);
 	return NULL;
 }
 

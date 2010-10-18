@@ -40,6 +40,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_math.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
@@ -730,8 +731,7 @@ static int edge_is_loose(SmoothEdge *edge)
 	return !(edge->faces && edge->faces->next);
 }
 
-static int edge_is_sharp(SmoothEdge *edge, int flags,
-			 float threshold)
+static int edge_is_sharp(SmoothEdge *edge)
 {
 #ifdef EDGESPLIT_DEBUG_1
 	printf("edge %d: ", edge->newIndex);
@@ -761,8 +761,7 @@ static int edge_is_sharp(SmoothEdge *edge, int flags,
  * - hits a sharp edge (the edge is returned)
  * - returns to the start edge (NULL is returned)
  */
-static SmoothEdge *find_other_sharp_edge(SmoothVert *vert, SmoothEdge *edge,
-					 LinkNode **visited_faces, float threshold, int flags)
+static SmoothEdge *find_other_sharp_edge(SmoothVert *vert, SmoothEdge *edge, LinkNode **visited_faces)
 {
 	SmoothFace *face = NULL;
 	SmoothEdge *edge2 = NULL;
@@ -790,7 +789,7 @@ static SmoothEdge *find_other_sharp_edge(SmoothVert *vert, SmoothEdge *edge,
 	/* search until we hit a loose edge or a sharp edge or an edge we've
 	* seen before
 	*/
-	while(face && !edge_is_sharp(edge2, flags, threshold)
+	while(face && !edge_is_sharp(edge2)
 			 && !linklist_contains(visited_edges, edge2)) {
 #ifdef EDGESPLIT_DEBUG_3
 		printf("current face %4d; current edge %4d\n", face->newIndex,
@@ -902,8 +901,7 @@ static void propagate_split(SmoothEdge *edge, SmoothVert *vert,
 		   edge->newIndex, vert->newIndex);
 #endif
 
-	edge2 = find_other_sharp_edge(vert, edge, &visited_faces,
-					  mesh->threshold, mesh->flags);
+	edge2 = find_other_sharp_edge(vert, edge, &visited_faces);
 
 	if(!edge2) {
 		/* didn't find a sharp or loose edge, so we've hit a dead end */
@@ -912,7 +910,7 @@ static void propagate_split(SmoothEdge *edge, SmoothVert *vert,
 		if(edge_is_loose(edge)) {
 			/* edge is loose, so we can split edge2 at this vert */
 			split_edge(edge2, vert, mesh);
-		} else if(edge_is_sharp(edge, mesh->flags, mesh->threshold)) {
+		} else if(edge_is_sharp(edge)) {
 			/* both edges are sharp, so we can split the pair at vert */
 			split_edge(edge, vert, mesh);
 		} else {
@@ -961,8 +959,7 @@ static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
 		   edge->newIndex, vert->newIndex);
 #endif
 
-	edge2 = find_other_sharp_edge(vert, edge, &visited_faces,
-					  mesh->threshold, mesh->flags);
+	edge2 = find_other_sharp_edge(vert, edge, &visited_faces);
 
 	if(!edge2) {
 		/* didn't find a sharp or loose edge, so try the other vert */
@@ -1111,7 +1108,7 @@ static void split_sharp_edges(SmoothMesh *mesh, float split_angle, int flags)
 	for(i = 0; i < mesh->num_edges; i++) {
 		SmoothEdge *edge = &mesh->edges[i];
 
-		if(edge_is_sharp(edge, flags, mesh->threshold)) {
+		if(edge_is_sharp(edge)) {
 			split_edge(edge, edge->verts[0], mesh);
 
 			do {
@@ -1190,8 +1187,7 @@ static void split_bridge_verts(SmoothMesh *mesh)
 	}
 }
 
-static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
-					 Object *ob, DerivedMesh *dm)
+static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd, DerivedMesh *dm)
 {
 	SmoothMesh *mesh;
 	DerivedMesh *result;
@@ -1244,14 +1240,15 @@ static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 	return result;
 }
 
-static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
 
-	result = edgesplitModifier_do(emd, ob, derivedData);
+	result = edgesplitModifier_do(emd, derivedData);
 
 	if(result != derivedData)
 		CDDM_calc_normals(result);
@@ -1259,9 +1256,9 @@ static DerivedMesh *applyModifier(
 	return result;
 }
 
-static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct EditMesh *editData,
-  DerivedMesh *derivedData)
+static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
+						struct EditMesh *UNUSED(editData),
+						DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
 }

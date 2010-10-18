@@ -34,6 +34,8 @@
  * @date	May 7, 2001
  */
 
+#include <iostream>
+
 #include "GHOST_SystemWin32.h"
 #include "GHOST_EventDragnDrop.h"
 
@@ -136,13 +138,14 @@
 
 
 GHOST_SystemWin32::GHOST_SystemWin32()
-: m_hasPerformanceCounter(false), m_freq(0), m_start(0),
-  m_separateLeftRight(false),
-  m_separateLeftRightInitialized(false)
+: m_hasPerformanceCounter(false), m_freq(0), m_start(0)
 {
 	m_displayManager = new GHOST_DisplayManagerWin32 ();
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
 	m_displayManager->initialize();
+	
+	// Check if current keyboard layout uses AltGr
+	this->keyboardAltGr();
 	
 	// Require COM for GHOST_DropTargetWin32 created in GHOST_WindowWin32.
 	OleInitialize(0);
@@ -287,43 +290,24 @@ GHOST_TSuccess GHOST_SystemWin32::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 
 GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys& keys) const
 {
-	if (m_separateLeftRight && m_separateLeftRightInitialized) {
-		bool down = HIBYTE(::GetKeyState(VK_LSHIFT)) != 0;
-		keys.set(GHOST_kModifierKeyLeftShift, down);
-		down = HIBYTE(::GetKeyState(VK_RSHIFT)) != 0;
-		keys.set(GHOST_kModifierKeyRightShift, down);
-		down = HIBYTE(::GetKeyState(VK_LMENU)) != 0;
-		keys.set(GHOST_kModifierKeyLeftAlt, down);
-		down = HIBYTE(::GetKeyState(VK_RMENU)) != 0;
-		keys.set(GHOST_kModifierKeyRightAlt, down);
-		down = HIBYTE(::GetKeyState(VK_LCONTROL)) != 0;
-		keys.set(GHOST_kModifierKeyLeftControl, down);
-		down = HIBYTE(::GetKeyState(VK_RCONTROL)) != 0;
-		keys.set(GHOST_kModifierKeyRightControl, down);
-		bool lwindown = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
-		bool rwindown = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
-		if(lwindown || rwindown)
-			keys.set(GHOST_kModifierKeyOS, true);
-		else
-			keys.set(GHOST_kModifierKeyOS, false);
-	}
-	else {
-		bool down = HIBYTE(::GetKeyState(VK_SHIFT)) != 0;
-		keys.set(GHOST_kModifierKeyLeftShift, down);
-		keys.set(GHOST_kModifierKeyRightShift, down);
-		down = HIBYTE(::GetKeyState(VK_MENU)) != 0;
-		keys.set(GHOST_kModifierKeyLeftAlt, down);
-		keys.set(GHOST_kModifierKeyRightAlt, down);
-		down = HIBYTE(::GetKeyState(VK_CONTROL)) != 0;
-		keys.set(GHOST_kModifierKeyLeftControl, down);
-		keys.set(GHOST_kModifierKeyRightControl, down);
-		bool lwindown = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
-		bool rwindown = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
-		if(lwindown || rwindown)
-			keys.set(GHOST_kModifierKeyOS, true);
-		else
-			keys.set(GHOST_kModifierKeyOS, false);
-	}
+	bool down = HIBYTE(::GetKeyState(VK_SHIFT)) != 0;
+	keys.set(GHOST_kModifierKeyLeftShift, down);
+	keys.set(GHOST_kModifierKeyRightShift, down);
+	
+	down = HIBYTE(::GetKeyState(VK_MENU)) != 0;
+	keys.set(GHOST_kModifierKeyLeftAlt, down);
+	keys.set(GHOST_kModifierKeyRightAlt, down);
+	
+	down = HIBYTE(::GetKeyState(VK_CONTROL)) != 0;
+	keys.set(GHOST_kModifierKeyLeftControl, down);
+	keys.set(GHOST_kModifierKeyRightControl, down);
+	
+	bool lwindown = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
+	bool rwindown = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
+	if(lwindown || rwindown)
+		keys.set(GHOST_kModifierKeyOS, true);
+	else
+		keys.set(GHOST_kModifierKeyOS, false);
 	return GHOST_kSuccess;
 }
 
@@ -386,7 +370,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 		wc.hbrBackground= (HBRUSH)::GetStockObject(BLACK_BRUSH);
 		wc.lpszMenuName = 0;
 		wc.lpszClassName= GHOST_WindowWin32::getWindowClassName();
-    
+
 		// Use RegisterClassEx for setting small icon
 		if (::RegisterClass(&wc) == 0) {
 			success = GHOST_kFailure;
@@ -402,10 +386,14 @@ GHOST_TSuccess GHOST_SystemWin32::exit()
 }
 
 
-GHOST_TKey GHOST_SystemWin32::convertKey(WPARAM wParam, LPARAM lParam) const
+GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam) const
 {
-	GHOST_TKey key;
 	bool isExtended = (lParam&(1<<24))?true:false;
+	
+	GHOST_TKey key;
+	GHOST_ModifierKeys oldModifiers, newModifiers;
+	((GHOST_SystemWin32*)getSystem())->retrieveModifierKeys(oldModifiers);
+	((GHOST_SystemWin32*)getSystem())->getModifierKeys(newModifiers);
 
 	if ((wParam >= '0') && (wParam <= '9')) {
 		// VK_0 thru VK_9 are the same as ASCII '0' thru '9' (0x30 - 0x39)
@@ -469,54 +457,61 @@ GHOST_TKey GHOST_SystemWin32::convertKey(WPARAM wParam, LPARAM lParam) const
 		case VK_QUOTE:			key = GHOST_kKeyQuote;			break;
 		case VK_GR_LESS:		key = GHOST_kKeyGrLess;			break;
 
-		// Process these keys separately because we need to distinguish right from left modifier keys
 		case VK_SHIFT:
+			{
+				bool lchanged = oldModifiers.get(GHOST_kModifierKeyLeftShift) != newModifiers.get(GHOST_kModifierKeyLeftShift);
+				if(lchanged) {
+					key = GHOST_kKeyLeftShift;
+				} else {
+					key = GHOST_kKeyRightShift;
+				}
+			}
+			break;
 		case VK_CONTROL:
+			{
+				bool lchanged = oldModifiers.get(GHOST_kModifierKeyLeftControl) != newModifiers.get(GHOST_kModifierKeyLeftControl);
+				if(lchanged) {
+					key = GHOST_kKeyLeftControl;
+				} else {
+					key = GHOST_kKeyRightControl;
+				}
+			}
+			break;
 		case VK_MENU:
-
-		// Ignore these keys
-		case VK_NUMLOCK:
-		case VK_SCROLL:
-		case VK_CAPITAL:
+			{
+				if(m_hasAltGr && isExtended) {
+					// We have here an extended RAlt, which is AltGr. The keyboard driver on Windows sends before this a LControl, so
+					// to be able to input characters created with AltGr (normal on German, French, Finnish and other keyboards) we
+					// push an extra LControl up event. This ensures we don't have a 'hanging' ctrl event in Blender windowmanager
+					// when typing in Text editor or Console.
+					GHOST_Event *extra = new GHOST_EventKey(getSystem()->getMilliSeconds(), GHOST_kEventKeyUp, window, GHOST_kKeyLeftControl, '\0');
+					((GHOST_SystemWin32*)getSystem())->pushEvent(extra);
+					newModifiers.set(GHOST_kModifierKeyRightControl, false);
+					newModifiers.set(GHOST_kModifierKeyLeftControl, false);
+				}
+				bool lchanged = oldModifiers.get(GHOST_kModifierKeyLeftAlt) != newModifiers.get(GHOST_kModifierKeyLeftAlt);
+				if(lchanged) {
+					key = GHOST_kKeyLeftAlt;
+				} else {
+					key = GHOST_kKeyRightAlt;
+				}
+			}
+			break;
+		case VK_LWIN:
+		case VK_RWIN:
+			key = GHOST_kKeyOS;
+			break;
+		case VK_NUMLOCK: key = GHOST_kKeyNumLock; break;
+		case VK_SCROLL: key = GHOST_kKeyScrollLock; break;
+		case VK_CAPITAL: key = GHOST_kKeyCapsLock; break;
 		default:
 			key = GHOST_kKeyUnknown;
 			break;
 		}
 	}
+	((GHOST_SystemWin32*)getSystem())->storeModifierKeys(newModifiers);
 	return key;
 }
-
-
-void GHOST_SystemWin32::processModifierKeys(GHOST_IWindow *window)
-{
-	GHOST_ModifierKeys oldModifiers, newModifiers;
-	// Retrieve old state of the modifier keys
-	((GHOST_SystemWin32*)getSystem())->retrieveModifierKeys(oldModifiers);
-	// Retrieve current state of the modifier keys
-	((GHOST_SystemWin32*)getSystem())->getModifierKeys(newModifiers);
-
-	// Compare the old and the new
-	if (!newModifiers.equals(oldModifiers)) {
-		// Create events for the masks that changed
-		for (int i = 0; i < GHOST_kModifierKeyNumMasks; i++) {
-			if (newModifiers.get((GHOST_TModifierKeyMask)i) != oldModifiers.get((GHOST_TModifierKeyMask)i)) {
-				// Convert the mask to a key code
-				GHOST_TKey key = GHOST_ModifierKeys::getModifierKeyCode((GHOST_TModifierKeyMask)i);
-				bool keyDown = newModifiers.get((GHOST_TModifierKeyMask)i);
-				GHOST_EventKey* event;
-				if (key != GHOST_kKeyUnknown) {
-					// Create an event
-					event = new GHOST_EventKey(getSystem()->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown: GHOST_kEventKeyUp, window, key);
-					pushEvent(event);
-				}
-			}
-		}
-	}
-
-	// Store new modifier keys state
-	((GHOST_SystemWin32*)getSystem())->storeModifierKeys(newModifiers);
-}
-
 
 GHOST_EventButton* GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type, GHOST_IWindow *window, GHOST_TButtonMask mask)
 {
@@ -594,7 +589,7 @@ GHOST_EventWheel* GHOST_SystemWin32::processWheelEvent(GHOST_IWindow *window, WP
 
 GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, bool keyDown, WPARAM wParam, LPARAM lParam)
 {
-	GHOST_TKey key = ((GHOST_SystemWin32*)getSystem())->convertKey(wParam, lParam);
+	GHOST_TKey key = ((GHOST_SystemWin32*)getSystem())->convertKey(window, wParam, lParam);
 	GHOST_EventKey* event;
 	if (key != GHOST_kKeyUnknown) {
 		MSG keyMsg;
@@ -603,6 +598,7 @@ GHOST_EventKey* GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, bool k
 			/* Eat any character related messages */
 		if (::PeekMessage(&keyMsg, NULL, WM_CHAR, WM_SYSDEADCHAR, PM_REMOVE)) {
 			ascii = (char) keyMsg.wParam;
+			
 		}
 
 		event = new GHOST_EventKey(getSystem()->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown: GHOST_kEventKeyUp, window, key, ascii);
@@ -651,89 +647,30 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 		GHOST_WindowWin32* window = (GHOST_WindowWin32*)::GetWindowLong(hwnd, GWL_USERDATA);
 		if (window) {
 			switch (msg) {
+				// we need to check if new key layout has AltGr
+				case WM_INPUTLANGCHANGE:
+					system->keyboardAltGr();
+					break;
 				////////////////////////////////////////////////////////////////////////
 				// Keyboard events, processed
 				////////////////////////////////////////////////////////////////////////
 				case WM_KEYDOWN:
-					/* The WM_KEYDOWN message is posted to the window with the keyboard focus when a 
-					 * nonsystem key is pressed. A nonsystem key is a key that is pressed when the alt
-					 * key is not pressed. 
-					 */
 				case WM_SYSKEYDOWN:
-					/* The WM_SYSKEYDOWN message is posted to the window with the keyboard focus when 
-					 * the user presses the F10 key (which activates the menu bar) or holds down the 
-					 * alt key and then presses another key. It also occurs when no window currently 
-					 * has the keyboard focus; in this case, the WM_SYSKEYDOWN message is sent to the 
-					 * active window. The window that receives the message can distinguish between these 
-					 * two contexts by checking the context code in the lKeyData parameter. 
-					 */
-					switch (wParam) {
-						case VK_SHIFT:
-						case VK_CONTROL:
-						case VK_MENU:
-						case VK_LWIN:
-						case VK_RWIN:
-							if (!system->m_separateLeftRightInitialized) {
-								// Check whether this system supports separate left and right keys
-								switch (wParam) {
-									case VK_SHIFT:
-										system->m_separateLeftRight = 
-											(HIBYTE(::GetKeyState(VK_LSHIFT)) != 0) ||
-											(HIBYTE(::GetKeyState(VK_RSHIFT)) != 0) ?
-											true : false;
-										break;
-									case VK_CONTROL:
-										system->m_separateLeftRight = 
-											(HIBYTE(::GetKeyState(VK_LCONTROL)) != 0) ||
-											(HIBYTE(::GetKeyState(VK_RCONTROL)) != 0) ?
-											true : false;
-										break;
-									case VK_MENU:
-										system->m_separateLeftRight = 
-											(HIBYTE(::GetKeyState(VK_LMENU)) != 0) ||
-											(HIBYTE(::GetKeyState(VK_RMENU)) != 0) ?
-											true : false;
-										break;
-									case VK_LWIN:
-									case VK_RWIN:
-										system->m_separateLeftRight = true;
-										break;
-								}
-								system->m_separateLeftRightInitialized = true;
-							}
-							system->processModifierKeys(window);
-							// Bypass call to DefWindowProc
-							return 0;
-						default:
-							event = processKeyEvent(window, true, wParam, lParam);
-							if (!event) {
-								GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
-								GHOST_PRINT(msg)
-								GHOST_PRINT(" key ignored\n")
-							}
-							break;
-						}
+					event = processKeyEvent(window, true, wParam, lParam);
+					if (!event) {
+						GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
+						GHOST_PRINT(msg)
+						GHOST_PRINT(" key ignored\n")
+					}
 					break;
 
 				case WM_KEYUP:
 				case WM_SYSKEYUP:
-					switch (wParam) {
-						case VK_SHIFT:
-						case VK_CONTROL:
-						case VK_MENU:
-						case VK_LWIN:
-						case VK_RWIN:
-							system->processModifierKeys(window);
-							// Bypass call to DefWindowProc
-							return 0;
-						default:
-							event = processKeyEvent(window, false, wParam, lParam);
-							if (!event) {
-								GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
-								GHOST_PRINT(msg)
-								GHOST_PRINT(" key ignored\n")
-							}
-							break;
+					event = processKeyEvent(window, false, wParam, lParam);
+					if (!event) {
+						GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
+						GHOST_PRINT(msg)
+						GHOST_PRINT(" key ignored\n")
 					}
 					break;
 

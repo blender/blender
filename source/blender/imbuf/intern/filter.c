@@ -380,7 +380,7 @@ void IMB_makemipmap(ImBuf *ibuf, int use_filter)
 
 	while(curmap < IB_MIPMAP_LEVELS) {
 		if(use_filter) {
-			ImBuf *nbuf= IMB_allocImBuf(hbuf->x, hbuf->y, 32, IB_rect, 0);
+			ImBuf *nbuf= IMB_allocImBuf(hbuf->x, hbuf->y, 32, IB_rect);
 			IMB_filterN(nbuf, hbuf);
 			ibuf->mipmap[curmap] = IMB_onehalf(nbuf);
 			IMB_freeImBuf(nbuf);

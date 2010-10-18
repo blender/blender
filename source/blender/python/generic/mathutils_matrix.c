@@ -108,7 +108,7 @@ Mathutils_Callback mathutils_matrix_vector_cb = {
 //----------------------------------mathutils.Matrix() -----------------
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 //create a new matrix type
-static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *Matrix_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
 	PyObject *argObject, *m, *s;
 	MatrixObject *mat;
@@ -116,6 +116,11 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	float matrix[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 	float scalar;
+
+	if(kwds && PyDict_Size(kwds)) {
+		PyErr_SetString(PyExc_TypeError, "mathutils.Matrix(): takes no keyword args");
+		return NULL;
+	}
 
 	argSize = PyTuple_GET_SIZE(args);
 	if(argSize > MATRIX_MAX_DIM) {	//bad arg nums
@@ -1142,7 +1147,7 @@ static char Matrix_copy_doc[] =
 "   :return: an instance of itself\n"
 "   :rtype: :class:`Matrix`\n";
 
-PyObject *Matrix_copy(MatrixObject * self)
+PyObject *Matrix_copy(MatrixObject *self)
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
@@ -1680,17 +1685,17 @@ static PyNumberMethods Matrix_NumMethods = {
 		0,				/* nb_index */
 };
 
-static PyObject *Matrix_getRowSize( MatrixObject * self, void *type )
+static PyObject *Matrix_getRowSize(MatrixObject *self, void *UNUSED(closure))
 {
 	return PyLong_FromLong((long) self->rowSize);
 }
 
-static PyObject *Matrix_getColSize( MatrixObject * self, void *type )
+static PyObject *Matrix_getColSize(MatrixObject *self, void *UNUSED(closure))
 {
 	return PyLong_FromLong((long) self->colSize);
 }
 
-static PyObject *Matrix_getMedianScale( MatrixObject * self, void *type )
+static PyObject *Matrix_getMedianScale(MatrixObject *self, void *UNUSED(closure))
 {
 	float mat[3][3];
 
@@ -1710,7 +1715,7 @@ static PyObject *Matrix_getMedianScale( MatrixObject * self, void *type )
 	return PyFloat_FromDouble(mat3_to_scale(mat));
 }
 
-static PyObject *Matrix_getIsNegative( MatrixObject * self, void *type )
+static PyObject *Matrix_getIsNegative(MatrixObject *self, void *UNUSED(closure))
 {
 	if(!BaseMath_ReadCallback(self))
 		return NULL;

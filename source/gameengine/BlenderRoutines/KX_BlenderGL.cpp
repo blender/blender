@@ -67,6 +67,7 @@ extern "C" {
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_bmfont.h"
 #include "BKE_image.h"
 
@@ -247,10 +248,10 @@ void BL_MakeScreenShot(ScrArea *curarea, const char* filename)
 	dumprect= screenshot(curarea, &dumpsx, &dumpsy);
 	if(dumprect) {
 		ImBuf *ibuf;
-		BLI_path_abs(path, G.sce);
+		BLI_path_abs(path, G.main->name);
 		/* BKE_add_image_extension() checks for if extension was already set */
 		BKE_add_image_extension(path, R_PNG); /* scene->r.imtype */
-		ibuf= IMB_allocImBuf(dumpsx, dumpsy, 24, 0, 0);
+		ibuf= IMB_allocImBuf(dumpsx, dumpsy, 24, 0);
 		ibuf->rect= dumprect;
 		ibuf->ftype= PNG;
 

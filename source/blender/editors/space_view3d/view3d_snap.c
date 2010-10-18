@@ -82,7 +82,7 @@ static TransVert *transvmain=NULL;
 static int tottrans= 0;
 
 /* copied from editobject.c, now uses (almost) proper depgraph */
-static void special_transvert_update(Scene *scene, Object *obedit)
+static void special_transvert_update(Object *obedit)
 {
 	
 	if(obedit) {
@@ -443,7 +443,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 
 /* *********************** operators ******************** */
 
-static int snap_sel_to_grid(bContext *C, wmOperator *op)
+static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 {
 	extern float originmat[3][3];	/* XXX object.c */
 	Main *bmain= CTX_data_main(C);
@@ -481,7 +481,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 			VECCOPY(tv->loc, vec);
 		}
 		
-		special_transvert_update(scene, obedit);
+		special_transvert_update(obedit);
 		
 		MEM_freeN(transvmain);
 		transvmain= NULL;
@@ -577,7 +577,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 
 /* *************************************************** */
 
-static int snap_sel_to_curs(bContext *C, wmOperator *op)
+static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 {
 	extern float originmat[3][3];	/* XXX object.c */
 	Main *bmain= CTX_data_main(C);
@@ -602,15 +602,12 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 		
 		tv= transvmain;
 		for(a=0; a<tottrans; a++, tv++) {
-			vec[0]= curs[0]-obedit->obmat[3][0];
-			vec[1]= curs[1]-obedit->obmat[3][1];
-			vec[2]= curs[2]-obedit->obmat[3][2];
-			
+			sub_v3_v3v3(vec, curs, obedit->obmat[3]);
 			mul_m3_v3(imat, vec);
-			VECCOPY(tv->loc, vec);
+			copy_v3_v3(tv->loc, vec);
 		}
 		
-		special_transvert_update(scene, obedit);
+		special_transvert_update(obedit);
 		
 		MEM_freeN(transvmain);
 		transvmain= NULL;
@@ -703,7 +700,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 
 /* *************************************************** */
 
-static int snap_curs_to_grid(bContext *C, wmOperator *op)
+static int snap_curs_to_grid(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	RegionView3D *rv3d= CTX_wm_region_data(C);
@@ -740,7 +737,7 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 
 /* **************************************************** */
 
-static int snap_curs_to_sel(bContext *C, wmOperator *op)
+static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene= CTX_data_scene(C);
@@ -847,7 +844,7 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 
 /* ********************************************** */
 
-static int snap_curs_to_active(bContext *C, wmOperator *op)
+static int snap_curs_to_active(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Object *obact= CTX_data_active_object(C);
@@ -898,7 +895,7 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 
 /* **************************************************** */
 /*New Code - Snap Cursor to Center -*/
-static int snap_curs_to_center(bContext *C, wmOperator *op)
+static int snap_curs_to_center(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);

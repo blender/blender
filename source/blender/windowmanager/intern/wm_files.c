@@ -259,8 +259,7 @@ static void wm_init_userdef(bContext *C)
 	/* set the python auto-execute setting from user prefs */
 	/* disabled by default, unless explicitly enabled in the command line */
 	if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
-
-	if(U.tempdir[0]) strncpy(btempdir, U.tempdir, FILE_MAXDIR+FILE_MAXFILE);
+	if(U.tempdir[0]) BLI_where_is_temp(btempdir, 1);
 }
 
 void WM_read_file(bContext *C, char *name, ReportList *reports)
@@ -284,7 +283,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		/* also exit screens and editors */
 		wm_window_match_init(C, &wmbase); 
 		
-		retval= BKE_read_file(C, name, NULL, reports);
+		retval= BKE_read_file(C, name, reports);
 		G.save_over = 1;
 
 		/* this flag is initialized by the operator but overwritten on read.
@@ -336,13 +335,10 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'New File' */
 /* op can be NULL */
-/* note: G.sce is used to store the last saved path so backup and restore after loading
- * G.main->name is similar to G.sce but when loading from memory set the name to startup.blend 
- * ...this could be changed but seems better then setting to "" */
 int WM_read_homefile(bContext *C, wmOperator *op)
 {
 	ListBase wmbase;
-	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
+	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int from_memory= op && strcmp(op->type->idname, "WM_OT_read_factory_settings")==0;
 	int success;
 	
@@ -352,7 +348,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	if (!from_memory) {
 		char *cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
 		if (cfgdir) {
-			BLI_make_file_string(G.sce, tstr, cfgdir, BLENDER_STARTUP_FILE);
+			BLI_make_file_string(G.main->name, tstr, cfgdir, BLENDER_STARTUP_FILE);
 		} else {
 			tstr[0] = '\0';
 			from_memory = 1;
@@ -361,7 +357,6 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	strcpy(scestr, G.sce);	/* temporary store */
 	
 	/* prevent loading no UI */
 	G.fileflags &= ~G_FILE_NO_UI;
@@ -370,9 +365,9 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	wm_window_match_init(C, &wmbase); 
 	
 	if (!from_memory && BLI_exists(tstr)) {
-		success = BKE_read_file(C, tstr, NULL, NULL);
+		success = BKE_read_file(C, tstr, NULL);
 	} else {
-		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL, NULL);
+		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL);
 		if (wmbase.first == NULL) wm_clear_default_size(C);
 	}
 	
@@ -384,7 +379,6 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	wm_window_match_do(C, &wmbase); 
 	WM_check(C); /* opens window(s), checks keymaps */
 
-	strcpy(G.sce, scestr); /* restore */
 	G.main->name[0]= '\0';
 
 	wm_init_userdef(C);
@@ -441,9 +435,6 @@ void read_history(void)
 	for (l= lines, num= 0; l && (num<U.recent_files); l= l->next) {
 		line = l->link;
 		if (line[0] && BLI_exists(line)) {
-			if (num==0) 
-				strcpy(G.sce, line); /* note: this seems highly dodgy since the file isnt actually read. please explain. - campbell */
-			
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
 			BLI_addtail(&(G.recent_files), recent);
 			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(line)+1), "name of file");
@@ -469,14 +460,14 @@ static void write_history(void)
 
 	recent = G.recent_files.first;
 	/* refresh recent-files.txt of recent opened files, when current file was changed */
-	if(!(recent) || (strcmp(recent->filepath, G.sce)!=0)) {
+	if(!(recent) || (strcmp(recent->filepath, G.main->name)!=0)) {
 		fp= fopen(name, "w");
 		if (fp) {
 			/* add current file to the beginning of list */
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
-			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(G.sce)+1), "name of file");
+			recent->filepath = (char*)MEM_mallocN(sizeof(char)*(strlen(G.main->name)+1), "name of file");
 			recent->filepath[0] = '\0';
-			strcpy(recent->filepath, G.sce);
+			strcpy(recent->filepath, G.main->name);
 			BLI_addhead(&(G.recent_files), recent);
 			/* write current file to recent-files.txt */
 			fprintf(fp, "%s\n", recent->filepath);
@@ -485,7 +476,7 @@ static void write_history(void)
 			/* write rest of recent opened files to recent-files.txt */
 			while((i<U.recent_files) && (recent)){
 				/* this prevents to have duplicities in list */
-				if (strcmp(recent->filepath, G.sce)!=0) {
+				if (strcmp(recent->filepath, G.main->name)!=0) {
 					fprintf(fp, "%s\n", recent->filepath);
 					recent = recent->next;
 				}
@@ -527,7 +518,7 @@ static void do_history(char *name, ReportList *reports)
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 }
 
-static ImBuf *blend_file_thumb(const char *path, Scene *scene, int **thumb_pt)
+static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 {
 	/* will be scaled down, but gives some nice oversampling */
 	ImBuf *ibuf;
@@ -573,7 +564,7 @@ static ImBuf *blend_file_thumb(const char *path, Scene *scene, int **thumb_pt)
 int write_crash_blend(void)
 {
 	char path[FILE_MAX];
-	BLI_strncpy(path, G.sce, sizeof(path));
+	BLI_strncpy(path, G.main->name, sizeof(path));
 	BLI_replace_extension(path, sizeof(path), "_crash.blend");
 	if(BLO_write_file(G.main, path, G.fileflags, NULL, NULL)) {
 		printf("written: %s\n", path);
@@ -628,14 +619,13 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	ED_sculpt_force_update(C);
 
 	/* blend file thumbnail */
-	ibuf_thumb= blend_file_thumb(di, CTX_data_scene(C), &thumb);
+	ibuf_thumb= blend_file_thumb(CTX_data_scene(C), &thumb);
 
 	/* rename to .blend1, do this as last before write */
 	do_history(di, reports);
 
 	if (BLO_write_file(CTX_data_main(C), di, fileflags, reports, thumb)) {
 		if(!copy) {
-			strcpy(G.sce, di);
 			G.relbase_valid = 1;
 			strcpy(G.main->name, di);	/* is guaranteed current file */
 	
@@ -736,7 +726,7 @@ void WM_autosave_init(wmWindowManager *wm)
 		wm->autosavetimer= WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime*60.0);
 }
 
-void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
+void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(wt))
 {
 	wmWindow *win;
 	wmEventHandler *handler;

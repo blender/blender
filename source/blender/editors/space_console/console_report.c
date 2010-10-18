@@ -72,7 +72,7 @@ static int console_report_poll(bContext *C)
 	return 1;
 }
 
-static int report_replay_exec(bContext *C, wmOperator *op)
+static int report_replay_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ReportList *reports= CTX_wm_reports(C);
@@ -83,7 +83,7 @@ static int report_replay_exec(bContext *C, wmOperator *op)
 
 	for(report=reports->list.last; report; report=report->prev) {
 		if((report->type & report_mask) && (report->type & RPT_OPERATOR_ALL) && (report->flag & SELECT)) {
-			console_history_add_str(C, report->message, 0);
+			console_history_add_str(sc, report->message, 0);
 			WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, NULL);
 
 			ED_area_tag_redraw(CTX_wm_area(C));
@@ -165,7 +165,7 @@ void CONSOLE_OT_select_pick(wmOperatorType *ot)
 
 
 
-static int report_select_all_toggle_exec(bContext *C, wmOperator *op)
+static int report_select_all_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ReportList *reports= CTX_wm_reports(C);
@@ -314,7 +314,7 @@ void CONSOLE_OT_select_border(wmOperatorType *ot)
 
 
 
-static int report_delete_exec(bContext *C, wmOperator *op)
+static int report_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ReportList *reports= CTX_wm_reports(C);
@@ -359,7 +359,7 @@ void CONSOLE_OT_report_delete(wmOperatorType *ot)
 }
 
 
-static int report_copy_exec(bContext *C, wmOperator *op)
+static int report_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ReportList *reports= CTX_wm_reports(C);

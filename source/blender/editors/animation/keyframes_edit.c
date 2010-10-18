@@ -388,7 +388,7 @@ static short scene_keyframes_loop(KeyframeEditData *ked, Scene *sce, KeyframeEdi
 }
 
 /* This function is used to loop over the keyframe data in a DopeSheet summary */
-static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
+static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int UNUSED(filterflag))
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -560,7 +560,7 @@ static short ok_bezier_framerange(KeyframeEditData *ked, BezTriple *bezt)
 	return ok;
 }
 
-static short ok_bezier_selected(KeyframeEditData *ked, BezTriple *bezt)
+static short ok_bezier_selected(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 {
 	/* this macro checks all beztriple handles for selection... 
 	 * 	only one of the verts has to be selected for this to be ok...
@@ -696,7 +696,7 @@ void bezt_remap_times(KeyframeEditData *ked, BezTriple *bezt)
 /* Transform */
 
 /* snaps the keyframe to the nearest frame */
-static short snap_bezier_nearest(KeyframeEditData *ked, BezTriple *bezt)
+static short snap_bezier_nearest(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT)
 		bezt->vec[1][0]= (float)(floor(bezt->vec[1][0]+0.5));
@@ -732,7 +732,7 @@ static short snap_bezier_nearmarker(KeyframeEditData *ked, BezTriple *bezt)
 }
 
 /* make the handles have the same value as the key */
-static short snap_bezier_horizontal(KeyframeEditData *ked, BezTriple *bezt)
+static short snap_bezier_horizontal(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT) {
 		bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
@@ -787,7 +787,7 @@ static short mirror_bezier_cframe(KeyframeEditData *ked, BezTriple *bezt)
 	return 0;
 }
 
-static short mirror_bezier_yaxis(KeyframeEditData *ked, BezTriple *bezt)
+static short mirror_bezier_yaxis(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 {
 	float diff;
 	
@@ -799,7 +799,7 @@ static short mirror_bezier_yaxis(KeyframeEditData *ked, BezTriple *bezt)
 	return 0;
 }
 
-static short mirror_bezier_xaxis(KeyframeEditData *ked, BezTriple *bezt)
+static short mirror_bezier_xaxis(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 {
 	float diff;
 	
@@ -860,7 +860,7 @@ KeyframeEditFunc ANIM_editkeyframes_mirror(short type)
 /* Settings */
 
 /* Sets the selected bezier handles to type 'auto' */
-static short set_bezier_auto(KeyframeEditData *ked, BezTriple *bezt) 
+static short set_bezier_auto(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
 	if((bezt->f1  & SELECT) || (bezt->f3 & SELECT)) {
 		if (bezt->f1 & SELECT) bezt->h1= HD_AUTO; /* the secret code for auto */
@@ -878,7 +878,7 @@ static short set_bezier_auto(KeyframeEditData *ked, BezTriple *bezt)
 }
 
 /* Sets the selected bezier handles to type 'vector'  */
-static short set_bezier_vector(KeyframeEditData *ked, BezTriple *bezt) 
+static short set_bezier_vector(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
 	if ((bezt->f1 & SELECT) || (bezt->f3 & SELECT)) {
 		if (bezt->f1 & SELECT) bezt->h1= HD_VECT;
@@ -898,7 +898,7 @@ static short set_bezier_vector(KeyframeEditData *ked, BezTriple *bezt)
 /* Queries if the handle should be set to 'free' or 'align' */
 // NOTE: this was used for the 'toggle free/align' option
 //		currently this isn't used, but may be restored later
-static short bezier_isfree(KeyframeEditData *ked, BezTriple *bezt) 
+static short bezier_isfree(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
 	if ((bezt->f1 & SELECT) && (bezt->h1)) return 1;
 	if ((bezt->f3 & SELECT) && (bezt->h2)) return 1;
@@ -906,7 +906,7 @@ static short bezier_isfree(KeyframeEditData *ked, BezTriple *bezt)
 }
 
 /* Sets selected bezier handles to type 'align' */
-static short set_bezier_align(KeyframeEditData *ked, BezTriple *bezt) 
+static short set_bezier_align(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {	
 	if (bezt->f1 & SELECT) bezt->h1= HD_ALIGN;
 	if (bezt->f3 & SELECT) bezt->h2= HD_ALIGN;
@@ -914,7 +914,7 @@ static short set_bezier_align(KeyframeEditData *ked, BezTriple *bezt)
 }
 
 /* Sets selected bezier handles to type 'free'  */
-static short set_bezier_free(KeyframeEditData *ked, BezTriple *bezt) 
+static short set_bezier_free(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
 	if (bezt->f1 & SELECT) bezt->h1= HD_FREE;
 	if (bezt->f3 & SELECT) bezt->h2= HD_FREE;
@@ -944,21 +944,21 @@ KeyframeEditFunc ANIM_editkeyframes_handles(short code)
 
 /* ------- */
 
-static short set_bezt_constant(KeyframeEditData *ked, BezTriple *bezt) 
+static short set_bezt_constant(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
 	if (bezt->f2 & SELECT) 
 		bezt->ipo= BEZT_IPO_CONST;
 	return 0;
 }
 
-static short set_bezt_linear(KeyframeEditData *ked, BezTriple *bezt) 
+static short set_bezt_linear(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
 	if (bezt->f2 & SELECT) 
 		bezt->ipo= BEZT_IPO_LIN;
 	return 0;
 }
 
-static short set_bezt_bezier(KeyframeEditData *ked, BezTriple *bezt) 
+static short set_bezt_bezier(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
 	if (bezt->f2 & SELECT) 
 		bezt->ipo= BEZT_IPO_BEZ;
@@ -981,21 +981,21 @@ KeyframeEditFunc ANIM_editkeyframes_ipo(short code)
 
 /* ------- */
 
-static short set_keytype_keyframe(KeyframeEditData *ked, BezTriple *bezt) 
+static short set_keytype_keyframe(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
 	if (bezt->f2 & SELECT) 
 		BEZKEYTYPE(bezt)= BEZT_KEYTYPE_KEYFRAME;
 	return 0;
 }
 
-static short set_keytype_breakdown(KeyframeEditData *ked, BezTriple *bezt) 
+static short set_keytype_breakdown(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
 	if (bezt->f2 & SELECT) 
 		BEZKEYTYPE(bezt)= BEZT_KEYTYPE_BREAKDOWN;
 	return 0;
 }
 
-static short set_keytype_extreme(KeyframeEditData *ked, BezTriple *bezt) 
+static short set_keytype_extreme(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
 	if (bezt->f2 & SELECT) 
 		BEZKEYTYPE(bezt)= BEZT_KEYTYPE_EXTREME;
@@ -1057,7 +1057,7 @@ static short select_bezier_subtract(KeyframeEditData *ked, BezTriple *bezt)
 	return 0;
 }
 
-static short select_bezier_invert(KeyframeEditData *ked, BezTriple *bezt) 
+static short select_bezier_invert(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
 	/* Invert the selection for the whole bezier triple */
 	bezt->f2 ^= SELECT;

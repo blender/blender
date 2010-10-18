@@ -10,7 +10,6 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -68,11 +67,11 @@ static void text_font_begin(SpaceText *st)
 	BLF_size(mono, st->lheight, 72);
 }
 
-static void text_font_end(SpaceText *st)
+static void text_font_end(SpaceText *UNUSED(st))
 {
 }
 
-static int text_font_draw(SpaceText *st, int x, int y, char *str)
+static int text_font_draw(SpaceText *UNUSED(st), int x, int y, char *str)
 {
 	BLF_position(mono, x, y, 0);
 	BLF_draw(mono, str);
@@ -93,7 +92,7 @@ static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 	return st->cwidth;
 }
 
-int text_font_width(SpaceText *st, char *str)
+int text_font_width(SpaceText *UNUSED(st), char *str)
 {
 	return BLF_width(mono, str);
 }
@@ -521,9 +520,22 @@ void wrap_offset(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *
 	linep= text->lines.first;
 	i= st->top;
 	while(i>0 && linep) {
-		if(linep == linein) return; /* Line before top */
-		linep= linep->next;
-		i--;
+		int lines= text_get_visible_lines(st, ar, linep->line);
+
+		/* Line before top */
+		if(linep == linein) {
+			if(lines <= i)
+				/* no visible part of line */
+				return;
+		}
+
+		if (i-lines<0) {
+			break;
+		} else {
+			linep= linep->next;
+			(*offl)+= lines-1;
+			i-= lines;
+		}
 	}
 
 	max= wrap_width(st, ar);
@@ -548,10 +560,18 @@ void wrap_offset(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *
 
 			while(chars--) {
 				if(i-start>=max) {
-					if(chop && linep==linein && i >= cursin)
+					if(chop && linep==linein && i >= cursin) {
+						if (i==cursin) {
+							(*offl)++;
+							*offc -= end-start;
+						}
+
 						return;
+					}
+
 					(*offl)++;
 					*offc -= end-start;
+
 					start= end;
 					end += max;
 					chop= 1;
@@ -570,7 +590,66 @@ void wrap_offset(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *
 	}
 }
 
-static int get_char_pos(SpaceText *st, char *line, int cur)
+void wrap_offset_in_line(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *offl, int *offc)
+{
+	int i, j, start, end, chars, max, chop;
+	char ch;
+
+	*offl= *offc= 0;
+
+	if(!st->text) return;
+	if(!st->wordwrap) return;
+
+	max= wrap_width(st, ar);
+
+	start= 0;
+	end= max;
+	chop= 1;
+	chars= 0;
+	*offc= 0;
+
+	for(i=0, j=0; linein->line[j]!='\0'; j++) {
+
+		/* Mimic replacement of tabs */
+		ch= linein->line[j];
+		if(ch=='\t') {
+			chars= st->tabnumber-i%st->tabnumber;
+			if(i<cursin) cursin += chars-1;
+			ch= ' ';
+		}
+		else
+			chars= 1;
+
+		while(chars--) {
+			if(i-start>=max) {
+				if(chop && i >= cursin) {
+					if (i==cursin) {
+						(*offl)++;
+						*offc -= end-start;
+					}
+
+					return;
+				}
+
+				(*offl)++;
+				*offc -= end-start;
+
+				start= end;
+				end += max;
+				chop= 1;
+			}
+			else if(ch==' ' || ch=='-') {
+				end = i+1;
+				chop= 0;
+				if(i >= cursin)
+					return;
+			}
+			i++;
+		}
+	}
+}
+
+int text_get_char_pos(SpaceText *st, char *line, int cur)
 {
 	int a=0, i;
 	
@@ -583,7 +662,7 @@ static int get_char_pos(SpaceText *st, char *line, int cur)
 	return a;
 }
 
-static int text_draw_wrapped(SpaceText *st, char *str, int x, int y, int w, char *format)
+static int text_draw_wrapped(SpaceText *st, char *str, int x, int y, int w, char *format, int skip)
 {
 	FlattenString fs;
 	int basex, i, a, len, start, end, max, lines;
@@ -599,6 +678,14 @@ static int text_draw_wrapped(SpaceText *st, char *str, int x, int y, int w, char
 	end= max;
 	for(i=0; i<len; i++) {
 		if(i-start >= max) {
+			/* skip hidden part of line */
+			if(skip) {
+				skip--;
+				start= end;
+				end += max;
+				continue;
+			}
+
 			/* Draw the visible portion of text on the overshot line */
 			for(a=start; a<end; a++) {
 				if(st->showsyntax && format) format_draw_color(format[a]);
@@ -609,6 +696,8 @@ static int text_draw_wrapped(SpaceText *st, char *str, int x, int y, int w, char
 			lines++;
 			start= end;
 			end += max;
+
+			if(y<=0) break;
 		}
 		else if(str[i]==' ' || str[i]=='-') {
 			end = i+1;
@@ -616,7 +705,7 @@ static int text_draw_wrapped(SpaceText *st, char *str, int x, int y, int w, char
 	}
 
 	/* Draw the remaining text */
-	for(a=start; a<len; a++) {
+	for(a=start; a<len && y > 0; a++) {
 		if(st->showsyntax && format)
 			format_draw_color(format[a]);
 
@@ -631,7 +720,7 @@ static int text_draw_wrapped(SpaceText *st, char *str, int x, int y, int w, char
 static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int draw, int x, int y, char *format)
 {
 	FlattenString fs;
-	int r=0, w= 0;
+	int r=0, w= 0, amount;
 	int *acc;
 	char *in;
 
@@ -647,18 +736,26 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 
 	if(draw) {
 		if(st->showsyntax && format) {
-			int amount, a;
+			int a;
 			format = format+cshift;
 		
 			amount = strlen(in);
+			if(maxwidth)
+				amount= MIN2(amount, maxwidth);
 			
 			for(a = 0; a < amount; a++) {
 				format_draw_color(format[a]);
 				x += text_font_draw_character(st, x, y, in[a]);
 			}
 		}
-		else
+		else {
+			amount = strlen(in);
+			if(maxwidth)
+				amount= MIN2(amount, maxwidth);
+
+			in[amount]= 0;
 			text_font_draw(st, x, y, in);
+		}
 	}
 	else {
 		while(w-- && *acc++ < maxwidth)
@@ -675,18 +772,307 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 		return r+TXT_OFFSET;
 }
 
+/************************ cache utilities *****************************/
+
+typedef struct DrawCache {
+	int *line_height;
+	int total_lines, nlines;
+
+	/* this is needed to check cache relevance */
+	int winx, wordwrap, showlinenrs, tabnumber;
+	short lheight;
+	char cwidth;
+	char text_id[MAX_ID_NAME];
+
+	/* for partial lines recalculation */
+	short update_flag;
+	int valid_head, valid_tail; /* amount of unchanged lines */
+} DrawCache;
+
+static void text_drawcache_init(SpaceText *st)
+{
+	DrawCache *drawcache= MEM_callocN(sizeof (DrawCache), "text draw cache");
+
+	drawcache->winx= -1;
+	drawcache->nlines= BLI_countlist(&st->text->lines);
+	drawcache->text_id[0]= '\0';
+
+	st->drawcache= drawcache;
+}
+
+static void text_update_drawcache(SpaceText *st, ARegion *ar)
+{
+	DrawCache *drawcache;
+	int full_update= 0, nlines= 0;
+	Text *txt= st->text;
+
+	if(!st->drawcache) text_drawcache_init(st);
+
+	text_update_character_width(st);
+
+	drawcache= (DrawCache *)st->drawcache;
+	nlines= drawcache->nlines;
+
+	/* check if full cache update is needed */
+	full_update|= drawcache->winx != ar->winx;                 /* area was resized */
+	full_update|= drawcache->wordwrap != st->wordwrap;         /* word-wrapping option was toggled */
+	full_update|= drawcache->showlinenrs != st->showlinenrs; /* word-wrapping option was toggled */
+	full_update|= drawcache->tabnumber != st->tabnumber;  /* word-wrapping option was toggled */
+	full_update|= drawcache->lheight != st->lheight;      /* word-wrapping option was toggled */
+	full_update|= drawcache->cwidth != st->cwidth;        /* word-wrapping option was toggled */
+	full_update|= strncmp(drawcache->text_id, txt->id.name, MAX_ID_NAME); /* text datablock was changed */
+
+	if(st->wordwrap) {
+		/* update line heights */
+		if(full_update || !drawcache->line_height) {
+			drawcache->valid_head  = 0;
+			drawcache->valid_tail  = 0;
+			drawcache->update_flag = 1;
+		}
+
+		if(drawcache->update_flag) {
+			TextLine *line= st->text->lines.first;
+			int lineno= 0, size, lines_count;
+			int *fp= drawcache->line_height, *new_tail, *old_tail;
+
+			nlines= BLI_countlist(&txt->lines);
+			size= sizeof(int)*nlines;
+
+			if(fp) fp= MEM_reallocN(fp, size);
+			else fp= MEM_callocN(size, "text drawcache line_height");
+
+			drawcache->valid_tail= drawcache->valid_head= 0;
+			old_tail= fp + drawcache->nlines - drawcache->valid_tail;
+			new_tail= fp + nlines - drawcache->valid_tail;
+			memmove(new_tail, old_tail, drawcache->valid_tail);
+
+			drawcache->total_lines= 0;
+
+			if(st->showlinenrs)
+				st->linenrs_tot= (int)floor(log10((float)nlines)) + 1;
+
+			while(line) {
+				if(drawcache->valid_head) { /* we're inside valid head lines */
+					lines_count= fp[lineno];
+					drawcache->valid_head--;
+				} else if (lineno > new_tail - fp) {  /* we-re inside valid tail lines */
+					lines_count= fp[lineno];
+				} else {
+					lines_count= text_get_visible_lines(st, ar, line->line);
+				}
+
+				fp[lineno]= lines_count;
+
+				line= line->next;
+				lineno++;
+				drawcache->total_lines+= lines_count;
+			}
+
+			drawcache->line_height= fp;
+		}
+	} else {
+		if(drawcache->line_height) {
+			MEM_freeN(drawcache->line_height);
+			drawcache->line_height= NULL;
+		}
+
+		if(full_update || drawcache->update_flag) {
+			nlines= BLI_countlist(&txt->lines);
+
+			if(st->showlinenrs)
+				st->linenrs_tot= (int)floor(log10((float)nlines)) + 1;
+		}
+
+		drawcache->total_lines= nlines;
+	}
+
+	drawcache->nlines= nlines;
+
+	/* store settings */
+	drawcache->winx        = ar->winx;
+	drawcache->wordwrap    = st->wordwrap;
+	drawcache->lheight     = st->lheight;
+	drawcache->cwidth      = st->cwidth;
+	drawcache->showlinenrs = st->showlinenrs;
+	drawcache->tabnumber   = st->tabnumber;
+
+	strncpy(drawcache->text_id, txt->id.name, MAX_ID_NAME);
+
+	/* clear update flag */
+	drawcache->update_flag = 0;
+	drawcache->valid_head  = 0;
+	drawcache->valid_tail  = 0;
+}
+
+void text_drawcache_tag_update(SpaceText *st, int full)
+{
+	DrawCache *drawcache= (DrawCache *)st->drawcache;
+
+	if(drawcache) {
+		Text *txt= st->text;
+
+		if(drawcache->update_flag) {
+			/* happens when tagging update from space listener */
+			/* should do nothing to prevent locally tagged cache be fully recalculated */
+			return;
+		}
+
+		if(!full) {
+			int sellno= BLI_findindex(&txt->lines, txt->sell);
+			int curlno= BLI_findindex(&txt->lines, txt->curl);
+
+			if(curlno < sellno) {
+				drawcache->valid_head= curlno;
+				drawcache->valid_tail= drawcache->nlines - sellno - 1;
+			} else {
+				drawcache->valid_head= sellno;
+				drawcache->valid_tail= drawcache->nlines - curlno - 1;
+			}
+
+			/* quick cache recalculation is also used in delete operator,
+			   which could merge lines which are adjusent to current selection lines
+			   expand recalculate area to this lines */
+			if(drawcache->valid_head>0) drawcache->valid_head--;
+			if(drawcache->valid_tail>0) drawcache->valid_tail--;
+		} else {
+			drawcache->valid_head= 0;
+			drawcache->valid_tail= 0;
+		}
+
+		drawcache->update_flag= 1;
+	}
+}
+
+void text_free_caches(SpaceText *st)
+{
+	DrawCache *drawcache= (DrawCache *)st->drawcache;
+
+	if(drawcache) {
+		if(drawcache->line_height)
+			MEM_freeN(drawcache->line_height);
+
+		MEM_freeN(drawcache);
+	}
+}
+
+/************************ word-wrap utilities *****************************/
+
+/* cache should be updated in caller */
+int text_get_visible_lines_no(SpaceText *st, int lineno)
+{
+	DrawCache *drawcache= (DrawCache *)st->drawcache;
+
+	return drawcache->line_height[lineno];
+}
+
+int text_get_visible_lines(SpaceText *st, ARegion *ar, char *str)
+{
+	int i, j, start, end, max, lines, chars;
+	char ch;
+
+	max= wrap_width(st, ar);
+	lines= 1;
+	start= 0;
+	end= max;
+	for(i= 0, j= 0; str[j] != '\0'; j++) {
+		/* Mimic replacement of tabs */
+		ch= str[j];
+		if(ch=='\t') {
+			chars= st->tabnumber-i%st->tabnumber;
+			ch= ' ';
+		}
+		else chars= 1;
+
+		while(chars--) {
+			if(i-start >= max) {
+				lines++;
+				start= end;
+				end += max;
+			}
+			else if(ch==' ' || ch=='-') {
+				end= i+1;
+			}
+
+			i++;
+		}
+	}
+
+	return lines;
+}
+
+int text_get_span_wrap(SpaceText *st, ARegion *ar, TextLine *from, TextLine *to)
+{
+	if(st->wordwrap) {
+		int ret=0;
+		TextLine *tmp= from;
+
+		/* Look forwards */
+		while (tmp) {
+			if (tmp == to) return ret;
+			ret+= text_get_visible_lines(st, ar, tmp->line);
+			tmp= tmp->next;
+		}
+
+		return ret;
+	} else return txt_get_span(from, to);
+}
+
+int text_get_total_lines(SpaceText *st, ARegion *ar)
+{
+	DrawCache *drawcache;
+
+	text_update_drawcache(st, ar);
+	drawcache= (DrawCache *)st->drawcache;
+
+	return drawcache->total_lines;
+}
+
+/* Move pointer to first visible line (top) */
+static TextLine *first_visible_line(SpaceText *st, ARegion *ar, int *wrap_top)
+{
+	Text *text= st->text;
+	TextLine* pline= text->lines.first;
+	int i= st->top, lineno= 0;
+	DrawCache *drawcache;
+
+	text_update_drawcache(st, ar);
+	drawcache= (DrawCache *)st->drawcache;
+
+	if(wrap_top) *wrap_top= 0;
+
+	if(st->wordwrap) {
+		while(i>0 && pline) {
+			int lines= text_get_visible_lines_no(st, lineno);
+
+			if (i-lines<0) {
+				if(wrap_top) *wrap_top= i;
+				break;
+			} else {
+				pline= pline->next;
+				i-= lines;
+				lineno++;
+			}
+		}
+	} else {
+		for(i=st->top, pline= text->lines.first; pline->next && i>0; i--)
+			pline= pline->next;
+	}
+
+	return pline;
+}
+
 /************************ draw scrollbar *****************************/
 
 static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll)
 {
-	int lhlstart, lhlend, ltexth;
+	int lhlstart, lhlend, ltexth, sell_off, curl_off;
 	short barheight, barstart, hlstart, hlend, blank_lines;
 	short pix_available, pix_top_margin, pix_bottom_margin, pix_bardiff;
 
 	pix_top_margin = 8;
 	pix_bottom_margin = 4;
 	pix_available = ar->winy - pix_top_margin - pix_bottom_margin;
-	ltexth= txt_get_span(st->text->lines.first, st->text->lines.last);
+	ltexth= text_get_total_lines(st, ar);
 	blank_lines = st->viewlines / 2;
 	
 	/* nicer code: use scroll rect for entire bar */
@@ -722,10 +1108,10 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll)
 	st->pix_per_line= (pix_available > 0)? (float) ltexth/pix_available: 0;
 	if(st->pix_per_line<.1) st->pix_per_line=.1f;
 
-	lhlstart = MIN2(txt_get_span(st->text->lines.first, st->text->curl), 
-				txt_get_span(st->text->lines.first, st->text->sell));
-	lhlend = MAX2(txt_get_span(st->text->lines.first, st->text->curl), 
-				txt_get_span(st->text->lines.first, st->text->sell));
+	curl_off= text_get_span_wrap(st, ar, st->text->lines.first, st->text->curl);
+	sell_off= text_get_span_wrap(st, ar, st->text->lines.first, st->text->sell);
+	lhlstart = MIN2(curl_off, sell_off);
+	lhlend = MAX2(curl_off, sell_off);
 
 	if(ltexth > 0) {
 		hlstart = (lhlstart * pix_available)/ltexth;
@@ -787,7 +1173,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll)
 	CLAMP(st->txtscroll.ymax, pix_bottom_margin, ar->winy - pix_top_margin);
 }
 
-static void draw_textscroll(SpaceText *st, ARegion *ar, rcti *scroll)
+static void draw_textscroll(SpaceText *st, rcti *scroll)
 {
 	bTheme *btheme= U.themes.first;
 	uiWidgetColors wcol= btheme->tui.wcol_scroll;
@@ -811,78 +1197,80 @@ static void draw_markers(SpaceText *st, ARegion *ar)
 {
 	Text *text= st->text;
 	TextMarker *marker, *next;
-	TextLine *top, *bottom, *line;
-	int offl, offc, i, cy, x1, x2, y1, y2, x, y;
+	TextLine *top, *line;
+	int offl, offc, i, x1, x2, y1, y2, x, y;
+	int topi, topy;
 
-	for(i=st->top, top= text->lines.first; top->next && i>0; i--)
-		top= top->next;
+	/* Move pointer to first visible line (top) */
+	top= first_visible_line(st, ar, NULL);
+	topi= BLI_findindex(&text->lines, top);
 
-	for(i=st->viewlines-1, bottom=top; bottom->next && i>0; i--)
-		bottom= bottom->next;
-	
+	topy= txt_get_span(text->lines.first, top);
+
 	for(marker= text->markers.first; marker; marker= next) {
 		next= marker->next;
 
-		for(cy= 0, line= top; line; cy++, line= line->next) {
-			if(cy+st->top==marker->lineno) {
-				/* Remove broken markers */
-				if(marker->end>line->len || marker->start>marker->end) {
-					BLI_freelinkN(&text->markers, marker);
-					break;
-				}
+		/* invisible line (before top) */
+		if(marker->lineno<topi) continue;
 
-				wrap_offset(st, ar, line, marker->start, &offl, &offc);
-				x1= get_char_pos(st, line->line, marker->start) - st->left + offc;
-				y1= cy + offl;
-				wrap_offset(st, ar, line, marker->end, &offl, &offc);
-				x2= get_char_pos(st, line->line, marker->end) - st->left + offc;
-				y2= cy + offl;
+		line= BLI_findlink(&text->lines, marker->lineno);
 
-				glColor3ub(marker->color[0], marker->color[1], marker->color[2]);
-				x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-				y= ar->winy-3;
+		/* Remove broken markers */
+		if(marker->end>line->len || marker->start>marker->end) {
+			BLI_freelinkN(&text->markers, marker);
+			continue;
+		}
 
-				if(y1==y2) {
-					y -= y1*st->lheight;
-					glBegin(GL_LINE_LOOP);
-					glVertex2i(x+x2*st->cwidth+1, y);
-					glVertex2i(x+x1*st->cwidth-2, y);
-					glVertex2i(x+x1*st->cwidth-2, y-st->lheight);
-					glVertex2i(x+x2*st->cwidth+1, y-st->lheight);
-					glEnd();
-				}
-				else {
-					y -= y1*st->lheight;
-					glBegin(GL_LINE_STRIP);
-					glVertex2i(ar->winx, y);
-					glVertex2i(x+x1*st->cwidth-2, y);
-					glVertex2i(x+x1*st->cwidth-2, y-st->lheight);
-					glVertex2i(ar->winx, y-st->lheight);
-					glEnd();
-					y-=st->lheight;
+		wrap_offset(st, ar, line, marker->start, &offl, &offc);
+		y1 = txt_get_span(top, line) - st->top + offl + topy;
+		x1 = text_get_char_pos(st, line->line, marker->start) - st->left + offc;
 
-					for(i=y1+1; i<y2; i++) {
-						glBegin(GL_LINES);
-						glVertex2i(x, y);
-						glVertex2i(ar->winx, y);
-						glVertex2i(x, y-st->lheight);
-						glVertex2i(ar->winx, y-st->lheight);
-						glEnd();
-						y-=st->lheight;
-					}
+		wrap_offset(st, ar, line, marker->end, &offl, &offc);
+		y2 = txt_get_span(top, line) - st->top + offl + topy;
+		x2 = text_get_char_pos(st, line->line, marker->end) - st->left + offc;
 
-					glBegin(GL_LINE_STRIP);
-					glVertex2i(x, y);
-					glVertex2i(x+x2*st->cwidth+1, y);
-					glVertex2i(x+x2*st->cwidth+1, y-st->lheight);
-					glVertex2i(x, y-st->lheight);
-					glEnd();
-				}
+		/* invisible part of line (before top, after last visible line) */
+		if(y2 < 0 || y1 > st->top+st->viewlines) continue;
 
-				break;
+		glColor3ub(marker->color[0], marker->color[1], marker->color[2]);
+		x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+		y= ar->winy-3;
+
+		if(y1==y2) {
+			y -= y1*st->lheight;
+			glBegin(GL_LINE_LOOP);
+			glVertex2i(x+x2*st->cwidth+1, y);
+			glVertex2i(x+x1*st->cwidth-2, y);
+			glVertex2i(x+x1*st->cwidth-2, y-st->lheight);
+			glVertex2i(x+x2*st->cwidth+1, y-st->lheight);
+			glEnd();
+		}
+		else {
+			y -= y1*st->lheight;
+			glBegin(GL_LINE_STRIP);
+			glVertex2i(ar->winx, y);
+			glVertex2i(x+x1*st->cwidth-2, y);
+			glVertex2i(x+x1*st->cwidth-2, y-st->lheight);
+			glVertex2i(ar->winx, y-st->lheight);
+			glEnd();
+			y-=st->lheight;
+
+			for(i=y1+1; i<y2; i++) {
+				glBegin(GL_LINES);
+				glVertex2i(x, y);
+				glVertex2i(ar->winx, y);
+				glVertex2i(x, y-st->lheight);
+				glVertex2i(ar->winx, y-st->lheight);
+				glEnd();
+				y-=st->lheight;
 			}
 
-			if(line==bottom) break;
+			glBegin(GL_LINE_STRIP);
+			glVertex2i(x, y);
+			glVertex2i(x+x2*st->cwidth+1, y);
+			glVertex2i(x+x2*st->cwidth+1, y-st->lheight);
+			glVertex2i(x, y-st->lheight);
+			glEnd();
 		}
 	}
 }
@@ -1058,16 +1446,16 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 	Text *text= st->text;
 	int vcurl, vcurc, vsell, vselc, hidden=0;
 	int offl, offc, x, y, w, i;
-	
+
 	/* Draw the selection */
 	if(text->curl!=text->sell || text->curc!=text->selc) {
 		/* Convert all to view space character coordinates */
 		wrap_offset(st, ar, text->curl, text->curc, &offl, &offc);
 		vcurl = txt_get_span(text->lines.first, text->curl) - st->top + offl;
-		vcurc = get_char_pos(st, text->curl->line, text->curc) - st->left + offc;
+		vcurc = text_get_char_pos(st, text->curl->line, text->curc) - st->left + offc;
 		wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
 		vsell = txt_get_span(text->lines.first, text->sell) - st->top + offl;
-		vselc = get_char_pos(st, text->sell->line, text->selc) - st->left + offc;
+		vselc = text_get_char_pos(st, text->sell->line, text->selc) - st->left + offc;
 
 		if(vcurc<0) vcurc=0;
 		if(vselc<0) vselc=0, hidden=1;
@@ -1106,7 +1494,7 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 	else {
 		wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
 		vsell = txt_get_span(text->lines.first, text->sell) - st->top + offl;
-		vselc = get_char_pos(st, text->sell->line, text->selc) - st->left + offc;
+		vselc = text_get_char_pos(st, text->sell->line, text->selc) - st->left + offc;
 
 		if(vselc<0) {
 			vselc= 0;
@@ -1115,17 +1503,30 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 	}
 
 	if(st->line_hlight) {
-		y= ar->winy-2 - vsell*st->lheight;
-		if(!(y<0 || y > ar->winy)) { /* check we need to draw */
-			int x1= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-			int x2= x1 + ar->winx;
-			y= ar->winy-2 - vsell*st->lheight;
-	
+		int x1, x2, y1, y2;
+
+		if(st->wordwrap) {
+			int visible_lines = text_get_visible_lines(st, ar, text->sell->line);
+			int offl, offc;
+
+			wrap_offset_in_line(st, ar, text->sell, text->selc, &offl, &offc);
+
+			y1= ar->winy-2 - (vsell-offl)*st->lheight;
+			y2= y1-st->lheight*visible_lines+1;
+		} else {
+			y1= ar->winy-2 - vsell*st->lheight;
+			y2= y1-st->lheight+1;
+		}
+
+		if(!(y1<0 || y2 > ar->winy)) { /* check we need to draw */
+			x1= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+			x2= x1 + ar->winx;
+
 			glColor4ub(255, 255, 255, 32);
 			
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
-			glRecti(x1-4, y, x2, y-st->lheight+1);
+			glRecti(x1-4, y1, x2, y2);
 			glDisable(GL_BLEND);
 		}
 	}
@@ -1138,8 +1539,10 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 		
 		if(st->overwrite) {
 			char ch= text->sell->line[text->selc];
-			if(!ch) ch= ' ';
+			
 			w= st->cwidth;
+			if(ch=='\t')  w*= st->tabnumber-(vselc+st->left)%st->tabnumber;
+			
 			UI_ThemeColor(TH_HILITE);
 			glRecti(x, y-st->lheight-1, x+w, y-st->lheight+1);
 		}
@@ -1243,7 +1646,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	/* draw opening bracket */
 	ch= startl->line[startc];
 	wrap_offset(st, ar, startl, startc, &offl, &offc);
-	viewc= get_char_pos(st, startl->line, startc) - st->left + offc;
+	viewc= text_get_char_pos(st, startl->line, startc) - st->left + offc;
 
 	if(viewc >= 0){
 		viewl= txt_get_span(text->lines.first, startl) - st->top + offl;
@@ -1255,7 +1658,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	/* draw closing bracket */
 	ch= endl->line[endc];
 	wrap_offset(st, ar, endl, endc, &offl, &offc);
-	viewc= get_char_pos(st, endl->line, endc) - st->left + offc;
+	viewc= text_get_char_pos(st, endl->line, endc) - st->left + offc;
 
 	if(viewc >= 0) {
 		viewl= txt_get_span(text->lines.first, endl) - st->top + offl;
@@ -1273,12 +1676,15 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	TextLine *tmp;
 	rcti scroll;
 	char linenr[12];
-	int i, x, y, winx, linecount= 0;
+	int i, x, y, winx, linecount= 0, lineno= 0;
+	int wraplinecount= 0, wrap_skip= 0;
 
 	/* if no text, nothing to do */
 	if(!text)
 		return;
 	
+	text_update_drawcache(st, ar);
+
 	/* make sure all the positional pointers exist */
 	if(!text->curl || !text->sell || !text->lines.first || !text->lines.last)
 		txt_clean_text(text);
@@ -1291,12 +1697,28 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
 	/* update syntax formatting if needed */
 	tmp= text->lines.first;
+	lineno= 0;
 	for(i= 0; i<st->top && tmp; i++) {
 		if(st->showsyntax && !tmp->format)
 			txt_format_line(st, tmp, 0);
 
-		tmp= tmp->next;
-		linecount++;
+		if(st->wordwrap) {
+			int lines= text_get_visible_lines_no(st, lineno);
+
+			if (wraplinecount+lines>st->top) {
+				wrap_skip= st->top-wraplinecount;
+				break;
+			} else {
+				wraplinecount+= lines;
+				tmp= tmp->next;
+				linecount++;
+			}
+		} else {
+			tmp= tmp->next;
+			linecount++;
+		}
+
+		lineno++;
 	}
 
 	text_font_begin(st);
@@ -1305,7 +1727,6 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
 	/* draw line numbers background */
 	if(st->showlinenrs) {
-		st->linenrs_tot = (int)floor(log10((float)(linecount + st->viewlines))) + 1;
 		x= TXT_OFFSET + TEXTXLOC;
 
 		UI_ThemeColor(TH_GRID);
@@ -1328,7 +1749,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		if(st->showsyntax && !tmp->format)
 			txt_format_line(st, tmp, 0);
 
-		if(st->showlinenrs) {
+		if(st->showlinenrs && !wrap_skip) {
 			/* draw line number */
 			if(tmp == text->curl)
 				UI_ThemeColor(TH_HILITE);
@@ -1344,21 +1765,23 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
 		if(st->wordwrap) {
 			/* draw word wrapped text */
-			int lines = text_draw_wrapped(st, tmp->line, x, y, winx-x, tmp->format);
+			int lines = text_draw_wrapped(st, tmp->line, x, y, winx-x, tmp->format, wrap_skip);
 			y -= lines*st->lheight;
 		}
 		else {
 			/* draw unwrapped text */
-			text_draw(st, tmp->line, st->left, 0, 1, x, y, tmp->format);
+			text_draw(st, tmp->line, st->left, ar->winx/st->cwidth, 1, x, y, tmp->format);
 			y -= st->lheight;
 		}
+
+		wrap_skip= 0;
 	}
 	
 	/* draw other stuff */
 	draw_brackets(st, ar);
 	draw_markers(st, ar);
 	glTranslatef(0.375f, 0.375f, 0.0f); /* XXX scroll requires exact pixel space */
-	draw_textscroll(st, ar, &scroll);
+	draw_textscroll(st, &scroll);
 	draw_documentation(st, ar);
 	draw_suggestion_list(st, ar);
 	
@@ -1398,6 +1821,12 @@ void text_update_cursor_moved(bContext *C)
 	text_update_character_width(st);
 
 	i= txt_get_span(text->lines.first, text->sell);
+	if(st->wordwrap) {
+		int offl, offc;
+		wrap_offset(st, CTX_wm_region(C), text->sell, text->selc, &offl, &offc);
+		i+= offl;
+	}
+
 	if(st->top+st->viewlines <= i || st->top > i)
 		st->top= i - st->viewlines/2;
 	

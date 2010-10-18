@@ -66,7 +66,6 @@ GET_BLENDER_VERSION()
 
 # Blender internal features
 OPTION(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
-OPTION(WITH_LCMS          "Enable color correction with lcms" OFF)
 OPTION(WITH_PYTHON        "Enable Embedded Python API" ON)
 OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_FLUID        "Enable Elbeem (Fluid Simulation)" ON)
@@ -126,12 +125,11 @@ IF(APPLE)
 	OPTION(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
 ENDIF(APPLE)
 
-IF(NOT WITH_BULLET AND WITH_GAMEENGINE)
-	MESSAGE("WARNING: WITH_GAMEENGINE needs WITH_BULLET")
-ENDIF(NOT WITH_BULLET AND WITH_GAMEENGINE)
+# only for developers who want to make this functional
+# OPTION(WITH_LCMS          "Enable color correction with lcms" OFF)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
-	MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
+	MESSAGE(FATAL_ERROR "WITH_PLAYER needs WITH_GAMEENGINE")
 ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 
 IF(NOT WITH_INSTALL AND WITH_PYTHON_INSTALL)
@@ -149,7 +147,7 @@ TEST_SSE_SUPPORT()
 # On Macs: 
 #   cmake -D PYTHON_INC=/System/Library/Frameworks/Python.framework/Versions/3.1/include/python3.1 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.1/lib/python3.1/config -G Xcode ../blender
 #
-# When changing any of this remember to update the notes in doc/blender-cmake.txt
+# When changing any of this remember to update the notes in doc/build_systems/cmake.txt
 
 #-----------------------------------------------------------------------------
 #Platform specifics
@@ -315,12 +313,12 @@ IF(UNIX AND NOT APPLE)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 	ENDIF(WITH_OPENMP)
 
-
 	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
 	# Better warnings
+	# note: -Wunused-parameter is added below for all GCC compilers
 	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
 	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
@@ -332,12 +330,12 @@ IF(WIN32)
 
 	# this file is included anyway when building under Windows with cl.exe
 	#  INCLUDE(${CMAKE_ROOT}/Modules/Platform/Windows-cl.cmake)
-  
+
 	SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
 
 	# Setup 64bit and 64bit windows systems
 	IF(CMAKE_CL_64)
-		message("64 bit compiler detected.")
+		MESSAGE("64 bit compiler detected.")
 		SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
 	ENDIF(CMAKE_CL_64)
 	
@@ -487,7 +485,7 @@ IF(WIN32)
 			SET(LCMS_LIBPATH ${LCMS}/lib)
 			SET(LCMS_LIB lcms)
 		ENDIF(WITH_LCMS)
-        
+
 		IF(WITH_FFMPEG)
 			SET(FFMPEG ${LIBDIR}/ffmpeg)
 			SET(FFMPEG_INC ${FFMPEG}/include ${FFMPEG}/include/msvc)
@@ -538,7 +536,7 @@ IF(WIN32)
 		ELSE(CMAKE_CL_64)
 			SET(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib ")
 		ENDIF(CMAKE_CL_64)
-	  
+
 		SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:libcmt.lib;libc.lib ")
 
 	ELSE(MSVC) # MINGW
@@ -553,17 +551,6 @@ IF(WIN32)
 
 		SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 		SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG")
-
-
-		SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
-		SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -DNDEBUG")
-
-		SET(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -DNDEBUG")
-		SET(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} -DNDEBUG")
-
-		SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DNDEBUG")
-		SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DNDEBUG")
-
 
 		IF(WITH_OPENMP)
 			SET(LLIBS "${LLIBS} -lgomp")
@@ -922,6 +909,26 @@ INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 
 #-----------------------------------------------------------------------------
 # Extra compile flags
+
+IF((NOT WIN32) AND (NOT MSVC))
+	# used for internal debug checks
+	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+	SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
+	
+	# assert() checks for this.
+	SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
+	SET(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -DNDEBUG")
+	SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DNDEBUG")
+
+	SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -DNDEBUG")
+	SET(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} -DNDEBUG")
+	SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DNDEBUG")
+ENDIF((NOT WIN32) AND (NOT MSVC))
+
+IF(CMAKE_COMPILER_IS_GNUCC)
+	SET(C_WARNINGS "${C_WARNINGS} -Wunused-parameter -Werror=declaration-after-statement -Werror=implicit-function-declaration -Werror=return-type")
+ENDIF(CMAKE_COMPILER_IS_GNUCC)
+
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
 
@@ -933,9 +940,9 @@ ENDIF(WITH_CXX_GUARDEDALLOC)
 #-----------------------------------------------------------------------------
 # Libraries
 FILE(WRITE ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt "")
+ADD_SUBDIRECTORY(source)
 ADD_SUBDIRECTORY(intern)
 ADD_SUBDIRECTORY(extern)
-ADD_SUBDIRECTORY(source)
 
 
 #-----------------------------------------------------------------------------

@@ -30,6 +30,7 @@
 #include "BKE_screen.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
+#include "BKE_main.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
@@ -190,7 +191,7 @@ static FileSelect file_select(bContext* C, const rcti* rect, short selecting, sh
 					/* avoids /../../ */ 	 
 					BLI_parent_dir(params->dir); 	 
 				} else {
-					BLI_cleanup_dir(G.sce, params->dir);
+					BLI_cleanup_dir(G.main->name, params->dir);
 					strcat(params->dir, file->relname);
 					BLI_add_slash(params->dir);
 				}
@@ -304,7 +305,7 @@ void FILE_OT_select(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "Select everything beginning with the last selection.");
 }
 
-static int file_select_all_exec(bContext *C, wmOperator *op)
+static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
@@ -361,7 +362,7 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 
 		RNA_string_get(op->ptr, "dir", entry);
 		BLI_strncpy(params->dir, entry, sizeof(params->dir));
-		BLI_cleanup_dir(G.sce, params->dir);
+		BLI_cleanup_dir(G.main->name, params->dir);
 		file_change_dir(C, 1);
 
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
@@ -384,7 +385,7 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "dir", "", 256, "Dir", "");
 }
 
-static int bookmark_add_exec(bContext *C, wmOperator *op)
+static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
@@ -479,7 +480,7 @@ int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 	return (params->active_file != origfile);
 }
 
-static int file_highlight_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int file_highlight_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
@@ -504,7 +505,7 @@ void FILE_OT_highlight(struct wmOperatorType *ot)
 	ot->poll= ED_operator_file_active;
 }
 
-int file_cancel_exec(bContext *C, wmOperator *unused)
+int file_cancel_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	wmOperator *op = sfile->op;
@@ -544,7 +545,7 @@ void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
 	BLI_join_dirfile(filepath, sfile->params->dir, sfile->params->file);
 	if(RNA_struct_find_property(op->ptr, "relative_path")) {
 		if(RNA_boolean_get(op->ptr, "relative_path")) {
-			BLI_path_rel(filepath, G.sce);
+			BLI_path_rel(filepath, G.main->name);
 		}
 	}
 
@@ -613,7 +614,7 @@ void file_operator_to_sfile(SpaceFile *sfile, wmOperator *op)
 	/* XXX, files and dirs updates missing, not really so important though */
 }
 
-void file_draw_check_cb(bContext *C, void *dummy1, void *dummy2)
+void file_draw_check_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	wmOperator *op= sfile->op;
@@ -680,7 +681,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		file_sfile_to_operator(op, sfile, filepath);
 
 		fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir,0, 1);
-		BLI_make_file_string(G.sce, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
+		BLI_make_file_string(G.main->name, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu_get(), filepath);
 		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
 
@@ -704,14 +705,14 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 }
 
 
-int file_parent_exec(bContext *C, wmOperator *unused)
+int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
 	if(sfile->params) {
 		if (BLI_has_parent(sfile->params->dir)) {
 			BLI_parent_dir(sfile->params->dir);
-			BLI_cleanup_dir(G.sce, sfile->params->dir);
+			BLI_cleanup_dir(G.main->name, sfile->params->dir);
 			file_change_dir(C, 0);
 			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 		}
@@ -735,7 +736,7 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 }
 
 
-int file_refresh_exec(bContext *C, wmOperator *unused)
+int file_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
@@ -759,7 +760,7 @@ void FILE_OT_previous(struct wmOperatorType *ot)
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 }
 
-int file_previous_exec(bContext *C, wmOperator *unused)
+int file_previous_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
@@ -790,7 +791,7 @@ void FILE_OT_next(struct wmOperatorType *ot)
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 }
 
-int file_next_exec(bContext *C, wmOperator *unused)
+int file_next_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	if(sfile->params) {
@@ -812,7 +813,7 @@ int file_next_exec(bContext *C, wmOperator *unused)
 
 
 /* only meant for timer usage */
-static int file_smoothscroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceFile *sfile= CTX_wm_space_file(C);
@@ -995,7 +996,7 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 }
 
-int file_directory_exec(bContext *C, wmOperator *unused)
+int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
@@ -1010,7 +1011,7 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 		if (sfile->params->dir[0] == '\0')
 			get_default_root(sfile->params->dir);
 #endif
-		BLI_cleanup_dir(G.sce, sfile->params->dir);
+		BLI_cleanup_dir(G.main->name, sfile->params->dir);
 		BLI_add_slash(sfile->params->dir);
 		file_change_dir(C, 1);
 
@@ -1021,7 +1022,7 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 	return OPERATOR_FINISHED;
 }
 
-int file_filename_exec(bContext *C, wmOperator *unused)
+int file_filename_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
@@ -1049,7 +1050,7 @@ void FILE_OT_refresh(struct wmOperatorType *ot)
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 }
 
-int file_hidedot_exec(bContext *C, wmOperator *unused)
+int file_hidedot_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
@@ -1102,7 +1103,7 @@ struct ARegion *file_buttons_region(struct ScrArea *sa)
 	return arnew;
 }
 
-int file_bookmark_toggle_exec(bContext *C, wmOperator *unused)
+int file_bookmark_toggle_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= file_buttons_region(sa);
@@ -1158,7 +1159,7 @@ void FILE_OT_filenum(struct wmOperatorType *ot)
 	RNA_def_int(ot->srna, "increment", 1, 0, 100, "Increment", "", 0,100);
 }
 
-int file_rename_exec(bContext *C, wmOperator *op)
+int file_rename_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
@@ -1232,7 +1233,7 @@ int file_delete_poll(bContext *C)
 	return poll;
 }
 
-int file_delete_exec(bContext *C, wmOperator *op)
+int file_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	char str[FILE_MAX];
 	SpaceFile *sfile= CTX_wm_space_file(C);
@@ -1240,7 +1241,7 @@ int file_delete_exec(bContext *C, wmOperator *op)
 	
 	
 	file = filelist_file(sfile->files, sfile->params->active_file);
-	BLI_make_file_string(G.sce, str, sfile->params->dir, file->relname);
+	BLI_make_file_string(G.main->name, str, sfile->params->dir, file->relname);
 	BLI_delete(str, 0, 0);	
 	ED_fileselect_clear(C, sfile);
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);

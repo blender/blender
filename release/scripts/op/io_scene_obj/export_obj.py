@@ -750,7 +750,7 @@ def _write(context, filepath,
 
         # Export an animation?
         if EXPORT_ANIMATION:
-            scene_frames = range(scene.frame_start, context.frame_end + 1) # Up to and including the end frame.
+            scene_frames = range(scene.frame_start, scene.frame_end + 1) # Up to and including the end frame.
         else:
             scene_frames = [orig_frame] # Dont export an animation.
 
@@ -803,7 +803,7 @@ Currently the exporter lacks these features:
 
 def save(operator, context, filepath="",
          use_triangles=False,
-         use_edges=False,
+         use_edges=True,
          use_normals=False,
          use_hq_normals=False,
          use_uvs=True,

@@ -77,7 +77,7 @@ static void do_brightnesscontrast(bNode *node, float *out, float *in)
 	}
 }
 
-static void node_composit_exec_brightcontrast(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_brightcontrast(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if(out[0]->hasoutput==0)
 		return;

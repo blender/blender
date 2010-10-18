@@ -111,7 +111,7 @@ ImBuf* get_brush_icon(Brush *brush)
 				// first use the path directly to try and load the file
 
 				BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
-				BLI_path_abs(path, G.sce);
+				BLI_path_abs(path, G.main->name);
 
 				brush->icon_imbuf= IMB_loadiffname(path, flags);
 
@@ -121,7 +121,7 @@ ImBuf* get_brush_icon(Brush *brush)
 
 					path[0]= 0;
 
-					BLI_make_file_string(G.sce, path, folder, brush->icon_filepath);
+					BLI_make_file_string(G.main->name, path, folder, brush->icon_filepath);
 
 					if (path[0])
 						brush->icon_imbuf= IMB_loadiffname(path, flags);
@@ -190,7 +190,7 @@ void draw_tex_crop(Tex *tex)
 }
 
 /* temporal abuse; if id_code is -1 it only does texture.... solve! */
-void BIF_preview_changed(short id_code)
+void BIF_preview_changed(short UNUSED(id_code))
 {
 #if 0	
 	ScrArea *sa;
@@ -571,7 +571,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 
 /* ******************************** Icon Preview **************************** */
 
-void ED_preview_icon_draw(const bContext *C, void *idp, void *arg1, void *arg2, rcti *rect)
+void ED_preview_icon_draw(const bContext *UNUSED(C), void *UNUSED(idp), void *UNUSED(arg1), void *UNUSED(arg2), rcti *UNUSED(rect))
 {
 }
 
@@ -603,7 +603,7 @@ void view3d_previewrender_progress(RenderResult *rr, volatile rcti *renrect)
 
 }
 
-void BIF_view3d_previewrender_signal(ScrArea *sa, short signal)
+void BIF_view3d_previewrender_signal(ScrArea *UNUSED(sa), short UNUSED(signal))
 {
 #if 0
 	View3D *v3d= sa->spacedata.first;
@@ -625,7 +625,7 @@ void BIF_view3d_previewrender_signal(ScrArea *sa, short signal)
 #endif
 }
 
-void BIF_view3d_previewrender_free(View3D *v3d)
+void BIF_view3d_previewrender_free(View3D *UNUSED(v3d))
 {
 #if 0
 	if(v3d->ri) {
@@ -683,7 +683,7 @@ static int view3d_previewrender_get_rects(ScrArea *sa, rctf *viewplane, RenderIn
 }
 
 /* called before a panel gets moved/scaled, makes sure we can see through */
-void BIF_view3d_previewrender_clear(ScrArea *sa)
+void BIF_view3d_previewrender_clear(ScrArea *UNUSED(sa))
 {
 #if 0
 	View3D *v3d= sa->spacedata.first;
@@ -844,7 +844,7 @@ void BIF_view3d_previewrender(Main *bmain, Scene *scene, ScrArea *sa)
 }
 
 /* in panel space! */
-static void view3d_previewdraw_rect(ScrArea *sa, uiBlock *block, RenderInfo *ri)
+static void view3d_previewdraw_rect(ScrArea *UNUSED(sa), uiBlock *UNUSED(block), RenderInfo *ri)
 {
 //	rctf dispf;
 	
@@ -887,7 +887,7 @@ void BIF_view3d_previewdraw(struct ScrArea *sa, struct uiBlock *block)
 /* **************************** new shader preview system ****************** */
 
 /* inside thread, called by renderer, sets job update value */
-static void shader_preview_draw(void *spv, RenderResult *rr, volatile struct rcti *rect)
+static void shader_preview_draw(void *spv, RenderResult *UNUSED(rr), volatile struct rcti *UNUSED(rect))
 {
 	ShaderPreview *sp= spv;
 	
@@ -903,7 +903,7 @@ static int shader_preview_break(void *spv)
 }
 
 /* outside thread, called before redraw notifiers, it moves finished preview over */
-static void shader_preview_updatejob(void *spv)
+static void shader_preview_updatejob(void *UNUSED(spv))
 {
 //	ShaderPreview *sp= spv;
 	
@@ -1141,7 +1141,7 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 /* use same function for icon & shader, so the job manager
    does not run two of them at the same time. */
 
-static void common_preview_startjob(void *customdata, short *stop, short *do_update, float *progress)
+static void common_preview_startjob(void *customdata, short *stop, short *do_update, float *UNUSED(progress))
 {
 	ShaderPreview *sp= customdata;
 

@@ -55,7 +55,7 @@
 
 /* ************************ add menu *********************** */
 
-static void do_node_add(bContext *C, void *arg, int event)
+static void do_node_add(bContext *C, void *UNUSED(arg), int event)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node;
@@ -202,7 +202,7 @@ static void node_menu_add(const bContext *C, Menu *menu)
 	}
 }
 
-void node_menus_register(ARegionType *art)
+void node_menus_register(void)
 {
 	MenuType *mt;
 

@@ -2951,7 +2951,7 @@ void switchdirectionNurb(Nurb *nu)
 }
 
 
-float (*curve_getVertexCos(Curve *cu, ListBase *lb, int *numVerts_r))[3]
+float (*curve_getVertexCos(Curve *UNUSED(cu), ListBase *lb, int *numVerts_r))[3]
 {
 	int i, numVerts = *numVerts_r = count_curveverts(lb);
 	float *co, (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "cu_vcos");
@@ -2979,7 +2979,7 @@ float (*curve_getVertexCos(Curve *cu, ListBase *lb, int *numVerts_r))[3]
 	return cos;
 }
 
-void curve_applyVertexCos(Curve *cu, ListBase *lb, float (*vertexCos)[3])
+void curve_applyVertexCos(Curve *UNUSED(cu), ListBase *lb, float (*vertexCos)[3])
 {
 	float *co = vertexCos[0];
 	Nurb *nu;
@@ -3004,7 +3004,7 @@ void curve_applyVertexCos(Curve *cu, ListBase *lb, float (*vertexCos)[3])
 	}
 }
 
-float (*curve_getKeyVertexCos(Curve *cu, ListBase *lb, float *key))[3]
+float (*curve_getKeyVertexCos(Curve *UNUSED(cu), ListBase *lb, float *key))[3]
 {
 	int i, numVerts = count_curveverts(lb);
 	float *co, (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "cu_vcos");
@@ -3035,7 +3035,7 @@ float (*curve_getKeyVertexCos(Curve *cu, ListBase *lb, float *key))[3]
 	return cos;
 }
 
-void curve_applyKeyVertexTilts(Curve *cu, ListBase *lb, float *key)
+void curve_applyKeyVertexTilts(Curve *UNUSED(cu), ListBase *lb, float *key)
 {
 	Nurb *nu;
 	int i;

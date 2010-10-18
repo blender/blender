@@ -47,7 +47,7 @@ static bNodeSocketType sh_node_geom_out[]= {
 };
 
 /* node execute callback */
-static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	if(data) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;

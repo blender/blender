@@ -64,7 +64,7 @@
 
 /*************************** Clear Transformation ****************************/
 
-static int object_location_clear_exec(bContext *C, wmOperator *op)
+static int object_location_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -125,7 +125,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_rotation_clear_exec(bContext *C, wmOperator *op)
+static int object_rotation_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -270,7 +270,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_scale_clear_exec(bContext *C, wmOperator *op)
+static int object_scale_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -336,7 +336,7 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_origin_clear_exec(bContext *C, wmOperator *op)
+static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	float *v1, *v3, mat[3][3];
@@ -457,8 +457,18 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			object_to_mat3(ob, rsmat);
 		else if(apply_scale)
 			object_scale_to_mat3(ob, rsmat);
-		else if(apply_rot)
+		else if(apply_rot) {
+			float tmat[3][3], timat[3][3];
+
+			/* simple rotation matrix */
 			object_rot_to_mat3(ob, rsmat);
+
+			/* correct for scale, note mul_m3_m3m3 has swapped args! */
+			object_scale_to_mat3(ob, tmat);
+			invert_m3_m3(timat, tmat);
+			mul_m3_m3m3(rsmat, timat, rsmat);
+			mul_m3_m3m3(rsmat, rsmat, tmat);
+		}
 		else
 			unit_m3(rsmat);
 
@@ -557,7 +567,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	return OPERATOR_FINISHED;
 }
 
-static int visual_transform_apply_exec(bContext *C, wmOperator *op)
+static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	int change = 0;

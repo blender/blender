@@ -852,7 +852,7 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 /* else */
 /*     sets wp->weight to the closest weight value to vertex */
 /*     note: we cant sample frontbuf, weight colors are interpolated too unpredictable */
-void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
+void sample_wpaint(Scene *scene, ARegion *ar, View3D *UNUSED(v3d), int mode)
 {
 	ViewContext vc;
 	ToolSettings *ts= scene->toolsettings;
@@ -1061,7 +1061,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 
 /* *************** set wpaint operator ****************** */
 
-static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
+static int set_wpaint(bContext *C, wmOperator *UNUSED(op))		/* toggle */
 {		
 	Object *ob= CTX_data_active_object(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1256,7 +1256,7 @@ struct WPaintData {
 	char *vgroup_validmap; /*stores if vgroups tie to deforming bones or not*/
 };
 
-static char *wpaint_make_validmap(Mesh *me, Object *ob)
+static char *wpaint_make_validmap(Object *ob)
 {
 	bDeformGroup *dg;
 	ModifierData *md;
@@ -1314,7 +1314,7 @@ static char *wpaint_make_validmap(Mesh *me, Object *ob)
 	return validmap;
 }
 
-static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
+static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Scene *scene= CTX_data_scene(C);
 	struct PaintStroke *stroke = op->customdata;
@@ -1344,7 +1344,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 	  vgroups affect deform bones*/
 	wpd->auto_normalize = ts->auto_normalize;
 	if (wpd->auto_normalize)
-		wpd->vgroup_validmap = wpaint_make_validmap(me, ob);
+		wpd->vgroup_validmap = wpaint_make_validmap(ob);
 	
 	//	if(qual & LR_CTRLKEY) {
 	//		sample_wpaint(scene, ar, v3d, 0);
@@ -1663,7 +1663,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
 
-static int weight_paint_set_exec(bContext *C, wmOperator *op)
+static int weight_paint_set_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	struct Scene *scene= CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
@@ -1780,7 +1780,7 @@ typedef struct VPaintData {
 	float vpimat[3][3];
 } VPaintData;
 
-static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent *event)
+static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent *UNUSED(event))
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	struct PaintStroke *stroke = op->customdata;
@@ -1817,7 +1817,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	return 1;
 }
 
-static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index, float mval[2], float pressure, int flip)
+static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index, float mval[2], float pressure, int UNUSED(flip))
 {
 	ViewContext *vc = &vpd->vc;
 	Brush *brush = paint_brush(&vp->paint);
@@ -1971,7 +1971,7 @@ static int weight_from_bones_exec(bContext *C, wmOperator *op)
 	Mesh *me= ob->data;
 	int type= RNA_enum_get(op->ptr, "type");
 
-	create_vgroups_from_armature(scene, ob, armob, type, (me->editflag & ME_EDIT_MIRROR_X));
+	create_vgroups_from_armature(op->reports, scene, ob, armob, type, (me->editflag & ME_EDIT_MIRROR_X));
 
 	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);

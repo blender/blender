@@ -53,6 +53,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_curve.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -100,8 +101,25 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 
 		BLI_remlink(&key->block, kb);
 		key->totkey--;
-		if(key->refkey== kb)
+		if(key->refkey== kb) {
 			key->refkey= key->block.first;
+
+			if(key->refkey) {
+				/* apply new basis key on original data */
+				switch(ob->type) {
+					case OB_MESH:
+						key_to_mesh(key->refkey, ob->data);
+						break;
+					case OB_CURVE:
+					case OB_SURF:
+						key_to_curve(key->refkey, ob->data, BKE_curve_nurbs(ob->data));
+						break;
+					case OB_LATTICE:
+						key_to_latt(key->refkey, ob->data);
+						break;
+				}
+			}
+		}
 			
 		if(kb->data) MEM_freeN(kb->data);
 		MEM_freeN(kb);
@@ -143,7 +161,7 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 	return 1;
 }
 
-static int ED_object_shape_key_mirror(bContext *C, Scene *scene, Object *ob)
+static int object_shape_key_mirror(bContext *C, Object *ob)
 {
 	KeyBlock *kb;
 	Key *key;
@@ -249,7 +267,7 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "from_mix", 1, "From Mix", "Create the new shape key from the existing mix of keys.");
 }
 
-static int shape_key_remove_exec(bContext *C, wmOperator *op)
+static int shape_key_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
@@ -274,7 +292,7 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int shape_key_clear_exec(bContext *C, wmOperator *op)
+static int shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Key *key= ob_get_key(ob);
@@ -307,12 +325,11 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int shape_key_mirror_exec(bContext *C, wmOperator *op)
+static int shape_key_mirror_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
-	if(!ED_object_shape_key_mirror(C, scene, ob))
+	if(!object_shape_key_mirror(C, ob))
 		return OPERATOR_CANCELLED;
 
 	return OPERATOR_FINISHED;

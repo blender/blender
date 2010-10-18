@@ -917,7 +917,7 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
  *	The flag argument is used for special settings that alter the behaviour of
  *	the keyframe deletion. These include the quick refresh options.
  */
-short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
+short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short UNUSED(flag))
 {
 	AnimData *adt= BKE_animdata_from_id(id);
 	PointerRNA id_ptr, ptr;
@@ -1146,7 +1146,7 @@ void ANIM_OT_keyframe_insert (wmOperatorType *ot)
  * then calls the menu if necessary before 
  */
 
-static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
+static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Scene *scene= CTX_data_scene(C);
 	

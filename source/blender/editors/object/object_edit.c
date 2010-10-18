@@ -97,9 +97,9 @@
 #include "object_intern.h"	// own include
 
 /* ************* XXX **************** */
-static void error(const char *dummy) {}
-static void waitcursor(int val) {}
-static int pupmenu(const char *msg) {return 0;}
+static void error(const char *UNUSED(arg)) {}
+static void waitcursor(int UNUSED(val)) {}
+static int pupmenu(const char *UNUSED(msg)) {return 0;}
 
 /* port over here */
 static bContext *C;
@@ -120,7 +120,7 @@ Object *ED_object_active_context(bContext *C)
 
 
 /* ********* clear/set restrict view *********/
-static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
+static int object_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -219,7 +219,7 @@ void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 }
 
 /* 99% same as above except no need for scene refreshing (TODO, update render preview) */
-static int object_hide_render_clear_exec(bContext *C, wmOperator *op)
+static int object_hide_render_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	short changed= 0;
 
@@ -433,7 +433,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
 		
-		if(me->pv) mesh_pmv_off(ob, me);
+		if(me->pv) mesh_pmv_off(me);
 		ok= 1;
 		scene->obedit= ob;	// context sees this
 		
@@ -506,7 +506,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	if(flag & EM_WAITCURSOR) waitcursor(0);
 }
 
-static int editmode_toggle_exec(bContext *C, wmOperator *op)
+static int editmode_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	if(!CTX_data_edit_object(C))
 		ED_object_enter_editmode(C, EM_WAITCURSOR);
@@ -549,7 +549,7 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 
 /* *************************** */
 
-static int posemode_exec(bContext *C, wmOperator *op)
+static int posemode_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Base *base= CTX_data_active_base(C);
 	
@@ -1525,7 +1525,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 /* For the object with pose/action: create path curves for selected bones 
  * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
  */
-static int object_calculate_paths_exec (bContext *C, wmOperator *op)
+static int object_calculate_paths_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	
@@ -1565,7 +1565,7 @@ void OBJECT_OT_paths_calculate (wmOperatorType *ot)
 /* --------- */
 
 /* for the object with pose/action: clear path curves for selected bones only */
-void ED_objects_clear_paths(bContext *C, Scene *scene)
+void ED_objects_clear_paths(bContext *C)
 {
 	/* loop over objects in scene */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
@@ -1580,12 +1580,10 @@ void ED_objects_clear_paths(bContext *C, Scene *scene)
 }
 
 /* operator callback for this */
-static int object_clear_paths_exec (bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	
+static int object_clear_paths_exec (bContext *C, wmOperator *UNUSED(op))
+{	
 	/* use the backend function for this */
-	ED_objects_clear_paths(C, scene);
+	ED_objects_clear_paths(C);
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
@@ -1838,7 +1836,7 @@ void rand_timeoffs(Scene *scene, View3D *v3d)
 
 }
 
-static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {	
 	EnumPropertyItem *input = object_mode_items;
 	EnumPropertyItem *item= NULL;
@@ -1890,7 +1888,7 @@ static const char *object_mode_op_string(int mode)
 
 /* checks the mode to be set is compatible with the object
  * should be made into a generic function */
-static int object_mode_set_compat(bContext *C, wmOperator *op, Object *ob)
+static int object_mode_set_compat(bContext *UNUSED(C), wmOperator *op, Object *ob)
 {
 	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
 
@@ -1999,7 +1997,7 @@ void ED_object_toggle_modes(bContext *C, int mode)
 
 /************************ Game Properties ***********************/
 
-static int game_property_new(bContext *C, wmOperator *op)
+static int game_property_new(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_active_object(C);
 	bProperty *prop;
@@ -2082,7 +2080,7 @@ static EnumPropertyItem game_properties_copy_operations[] ={
 static EnumPropertyItem gameprops_items[]= {
 	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem *gameprops_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *gameprops_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {	
 	Object *ob= ED_object_active_context(C);
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -2164,7 +2162,7 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 	ot->prop=prop;
 }
 
-static int game_property_clear_exec(bContext *C, wmOperator *op)
+static int game_property_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
 		free_properties(&ob_iter->prop);
@@ -2190,7 +2188,7 @@ void OBJECT_OT_game_property_clear(wmOperatorType *ot)
 
 /************************ Copy Logic Bricks ***********************/
 
-static int logicbricks_copy_exec(bContext *C, wmOperator *op)
+static int logicbricks_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob=ED_object_active_context(C);
 

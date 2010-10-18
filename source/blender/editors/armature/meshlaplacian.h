@@ -66,7 +66,7 @@ float laplacian_system_get_solution(int v);
 void heat_bone_weighting(struct Object *ob, struct Mesh *me, float (*verts)[3],
 	int numbones, struct bDeformGroup **dgrouplist,
 	struct bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3],
-	int *selected);
+	int *selected, const char **error);
 
 #ifdef RIGID_DEFORM
 /* As-Rigid-As-Possible Deformation */

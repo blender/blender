@@ -136,7 +136,7 @@ void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, struct DLRBT_Tr
 void summary_to_keylist(struct bAnimContext *ac, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 /* Grease Pencil Layer */
 // XXX not restored
-void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct DLRBT_Tree *keys);
 
 /* ActKeyColumn API ---------------- */
 /* Comparator callback used for ActKeyColumns and cframe float-value pointer */

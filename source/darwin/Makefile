@@ -30,6 +30,7 @@
 include nan_definitions.mk
 
 DIR = $(OCGDIR)/$(DEBUG_DIR)
+VERSION = $(shell $(NANBLENDERHOME)/release/getversion.py)
 
 PYARCHIVE = python_$(MACOSX_ARCHITECTURE).zip
 
@@ -38,22 +39,25 @@ all::
 	@echo "---> creating directory structure for $(APPLICATION)"
 	@rm -rf $(DIR)/bin/$(APPLICATION).app
 	@cp -R $(APPLICATION).app $(DIR)/bin
-	@cat $(APPLICATION).app/Contents/Info.plist | sed s/VERSION/`cat ../../release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > $(DIR)/bin/$(APPLICATION).app/Contents/Info.plist
+	@cat $(APPLICATION).app/Contents/Info.plist | sed s/VERSION/$(VERSION)/ | sed s/DATE/`date +'%Y-%b-%d'`/ > $(DIR)/bin/$(APPLICATION).app/Contents/Info.plist
 	@echo "---> copying binary"
 	@cp $(DIR)/bin/$(APPLICATION) $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/
 	@echo "---> adding excutable attributes"
 	@chmod +x $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/$(APPLICATION)
 ifeq ($(APPLICATION), blender)
+	@mkdir -p $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/$(VERSION)
 	@echo "---> copying message files"
 	@cp -R $(NANBLENDERHOME)/release/bin/.blender/locale $(DIR)/bin/$(APPLICATION).app/Contents/Resources
 	@echo "---> copying .Blanguages"
 	@cp $(NANBLENDERHOME)/release/bin/.blender/.Blanguages $(DIR)/bin/$(APPLICATION).app/Contents/Resources
-	@echo "---> copying .blender/ scripts"
-	@cp -R $(NANBLENDERHOME)/release/bin/.blender $(DIR)/bin/$(APPLICATION).app/Contents/MacOS
-	@cp -R $(NANBLENDERHOME)/release/scripts $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/
+	@echo "---> copying bfont.ttf"
+	@cp $(NANBLENDERHOME)/release/datafiles/bfont.ttf $(DIR)/bin/$(APPLICATION).app/Contents/Resources/
+	@cp $(NANBLENDERHOME)/release/datafiles/bmonofont.ttf $(DIR)/bin/$(APPLICATION).app/Contents/Resources/
+	@echo "---> copying release scripts"
+	@cp -R $(NANBLENDERHOME)/release/scripts $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/$(VERSION)/
 	@echo "---> copying python modules"
-	@mkdir $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/python
-	@unzip -q $(LCGDIR)/release/$(PYARCHIVE) -d $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/python/	
+	@mkdir $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/$(VERSION)/python
+	@unzip -q $(LCGDIR)/release/$(PYARCHIVE) -d $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/$(VERSION)/python/	
 endif
 	@echo "---> removing SVN directories and Mac hidden files from distribution"
 	@find $(DIR)/bin/$(APPLICATION).app -name CVS -prune -exec rm -rf {} \;

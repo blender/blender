@@ -36,7 +36,7 @@ static bNodeSocketType cmp_node_splitviewer_in[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_copy_split_rgba(bNode *node, float *out, float *in1, float *in2, float *fac)
+static void do_copy_split_rgba(bNode *UNUSED(node), float *out, float *in1, float *in2, float *fac)
 {
 	if(*fac==0.0f) {
 		QUATCOPY(out, in1);
@@ -46,7 +46,7 @@ static void do_copy_split_rgba(bNode *node, float *out, float *in1, float *in2, 
 	}
 }
 
-static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
 {
 	/* image assigned to output */
 	/* stack order input sockets: image image */

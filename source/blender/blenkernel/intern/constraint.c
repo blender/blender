@@ -655,7 +655,7 @@ static bConstraintTypeInfo CTI_CONSTRNAME = {
 /* This function should be used for the get_target_matrix member of all 
  * constraints that are not picky about what happens to their target matrix.
  */
-static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
+static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
 	if (VALID_CONS_TARGET(ct))
 		constraint_target_to_mat4(cob->scene, ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
@@ -1107,7 +1107,7 @@ static void kinematic_flush_tars (bConstraint *con, ListBase *list, short nocopy
 	}
 }
 
-static void kinematic_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
+static void kinematic_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
 	bKinematicConstraint *data= con->data;
 	
@@ -1195,7 +1195,7 @@ static void followpath_flush_tars (bConstraint *con, ListBase *list, short nocop
 	}
 }
 
-static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
+static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
 	bFollowPathConstraint *data= con->data;
 	
@@ -1330,7 +1330,7 @@ static bConstraintTypeInfo CTI_FOLLOWPATH = {
 /* --------- Limit Location --------- */
 
 
-static void loclimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+static void loclimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
 {
 	bLocLimitConstraint *data = con->data;
 	
@@ -1378,7 +1378,7 @@ static bConstraintTypeInfo CTI_LOCLIMIT = {
 
 /* -------- Limit Rotation --------- */
 
-static void rotlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+static void rotlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
 {
 	bRotLimitConstraint *data = con->data;
 	float loc[3];
@@ -1437,7 +1437,7 @@ static bConstraintTypeInfo CTI_ROTLIMIT = {
 /* --------- Limit Scaling --------- */
 
 
-static void sizelimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+static void sizelimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
 {
 	bSizeLimitConstraint *data = con->data;
 	float obsize[3], size[3];
@@ -1831,7 +1831,7 @@ static void translike_flush_tars (bConstraint *con, ListBase *list, short nocopy
 	}
 }
 
-static void translike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+static void translike_evaluate (bConstraint *UNUSED(con), bConstraintOb *cob, ListBase *targets)
 {
 	bConstraintTarget *ct= targets->first;
 	
@@ -1867,7 +1867,7 @@ static void samevolume_new_data (void *cdata)
 	data->volume = 1.0f;
 }
 
-static void samevolume_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+static void samevolume_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
 {
 	bSameVolumeConstraint *data= con->data;
 
@@ -1981,7 +1981,7 @@ static void pycon_id_looper (bConstraint *con, ConstraintIDFunc func, void *user
 }
 
 /* Whether this approach is maintained remains to be seen (aligorith) */
-static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
+static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
 #ifndef DISABLE_PYTHON
 	bPythonConstraint *data= con->data;
@@ -2105,7 +2105,7 @@ static void actcon_flush_tars (bConstraint *con, ListBase *list, short nocopy)
 	}
 }
 
-static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
+static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
 	extern void chan_calc_mat(bPoseChannel *chan);
 	bActionConstraint *data = con->data;
@@ -2196,7 +2196,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 	}
 }
 
-static void actcon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+static void actcon_evaluate (bConstraint *UNUSED(con), bConstraintOb *cob, ListBase *targets)
 {
 	bConstraintTarget *ct= targets->first;
 	
@@ -3076,7 +3076,7 @@ static void clampto_flush_tars (bConstraint *con, ListBase *list, short nocopy)
 	}
 }
 
-static void clampto_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
+static void clampto_get_tarmat (bConstraint *UNUSED(con), bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
 	if (VALID_CONS_TARGET(ct)) {
 		Curve *cu= ct->tar->data;
@@ -3410,7 +3410,7 @@ static void shrinkwrap_flush_tars (bConstraint *con, ListBase *list, short nocop
 }
 
 
-static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
+static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
 	bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *) con->data;
 	
@@ -3513,7 +3513,7 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 	}
 }
 
-static void shrinkwrap_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+static void shrinkwrap_evaluate (bConstraint *UNUSED(con), bConstraintOb *cob, ListBase *targets)
 {
 	bConstraintTarget *ct= targets->first;
 	
@@ -3729,7 +3729,7 @@ static void splineik_flush_tars (bConstraint *con, ListBase *list, short nocopy)
 	}
 }
 
-static void splineik_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
+static void splineik_get_tarmat (bConstraint *UNUSED(con), bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
 	if (VALID_CONS_TARGET(ct)) {
 		Curve *cu= ct->tar->data;
@@ -4161,7 +4161,7 @@ void id_loop_constraints (ListBase *conlist, ConstraintIDFunc func, void *userda
 /* ......... */
 
 /* helper for copy_constraints(), to be used for making sure that ID's are valid */
-static void con_extern_cb(bConstraint *con, ID **idpoin, void *userdata)
+static void con_extern_cb(bConstraint *UNUSED(con), ID **idpoin, void *UNUSED(userData))
 {
 	if (*idpoin && (*idpoin)->lib)
 		id_lib_extern(*idpoin);

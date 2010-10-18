@@ -924,7 +924,7 @@ void ANIM_OT_channels_move_bottom (wmOperatorType *ot)
 
 /* ******************** Delete Channel Operator *********************** */
 
-static int animchannels_delete_exec(bContext *C, wmOperator *op)
+static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
@@ -1025,7 +1025,7 @@ void ANIM_OT_channels_delete (wmOperatorType *ot)
 /* ******************** Set Channel Visibility Operator *********************** */
 /* NOTE: this operator is only valid in the Graph Editor channels region */
 
-static int animchannels_visibility_set_exec(bContext *C, wmOperator *op)
+static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
@@ -1103,7 +1103,7 @@ void ANIM_OT_channels_visibility_set (wmOperatorType *ot)
 /* ******************** Toggle Channel Visibility Operator *********************** */
 /* NOTE: this operator is only valid in the Graph Editor channels region */
 
-static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *op)
+static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
@@ -1630,7 +1630,7 @@ void ANIM_OT_channels_select_border(wmOperatorType *ot)
 /* ******************** Mouse-Click Operator *********************** */
 /* Handle selection changes due to clicking on channels. Settings will get caught by UI code... */
 
-static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, short selectmode)
+static int mouse_anim_channels (bAnimContext *ac, float UNUSED(x), int channel_index, short selectmode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;

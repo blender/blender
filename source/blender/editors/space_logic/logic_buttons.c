@@ -83,7 +83,7 @@ static void logic_panel_view_properties(const bContext *C, Panel *pa)
 }	
 #endif
 
-void logic_buttons_register(ARegionType *art)
+void logic_buttons_register(ARegionType *UNUSED(art))
 {
 #if 0
 	PanelType *pt;
@@ -103,7 +103,7 @@ void logic_buttons_register(ARegionType *art)
 
 }
 
-static int logic_properties(bContext *C, wmOperator *op)
+static int logic_properties(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= logic_has_buttons_region(sa);

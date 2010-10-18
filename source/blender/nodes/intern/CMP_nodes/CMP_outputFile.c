@@ -36,7 +36,7 @@ static bNodeSocketType cmp_node_output_file_in[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
 {
 	/* image assigned to output */
 	/* stack order input sockets: col, alpha */
@@ -54,7 +54,7 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 			return;
 		} else {
 			CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
-			ImBuf *ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
+			ImBuf *ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
 			char string[256];
 			
 			ibuf->rect_float= cbuf->rect;

@@ -97,7 +97,7 @@
 static void image_editvertex_buts(const bContext *C, uiBlock *block);
 
 
-static void do_image_panel_events(bContext *C, void *arg, int event)
+static void do_image_panel_events(bContext *C, void *UNUSED(arg), int event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	
@@ -300,7 +300,7 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 
 /* is used for both read and write... */
 
-static int image_panel_poll(const bContext *C, PanelType *pt)
+static int image_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ImBuf *ibuf;
@@ -493,7 +493,8 @@ static char *slot_menu()
 	return str;
 }
 
-static char *layer_menu(RenderResult *rr, short *curlay)
+/* TODO, curlay should be removed? */
+static char *layer_menu(RenderResult *rr, short *UNUSED(curlay))
 {
 	RenderLayer *rl;
 	int len= 64 + 32*BLI_countlist(&rr->layers);
@@ -739,7 +740,7 @@ typedef struct RNAUpdateCb {
 	ImageUser *iuser;
 } RNAUpdateCb;
 
-static void rna_update_cb(bContext *C, void *arg_cb, void *arg_unused)
+static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 {
 	RNAUpdateCb *cb= (RNAUpdateCb*)arg_cb;
 
@@ -951,7 +952,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 	}
 }
 
-static int image_panel_uv_poll(const bContext *C, PanelType *pt)
+static int image_panel_uv_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	return ED_uvedit_test(obedit);
@@ -996,7 +997,7 @@ void image_buttons_register(ARegionType *art)
 	BLI_addtail(&art->paneltypes, pt);
 }
 
-static int image_properties(bContext *C, wmOperator *op)
+static int image_properties(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= image_has_buttons_region(sa);
@@ -1019,7 +1020,7 @@ void IMAGE_OT_properties(wmOperatorType *ot)
 	ot->flag= 0;
 }
 
-static int image_scopes(bContext *C, wmOperator *op)
+static int image_scopes(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= image_has_scope_region(sa);

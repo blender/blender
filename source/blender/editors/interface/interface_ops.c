@@ -134,7 +134,7 @@ static int eyedropper_modal(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* Modal Operator init */
-static int eyedropper_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int eyedropper_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	/* init */
 	if (eyedropper_init(C, op)) {
@@ -195,7 +195,7 @@ void UI_OT_eyedropper(wmOperatorType *ot)
 
 /* Reset Default Theme ------------------------ */
 
-static int reset_default_theme_exec(bContext *C, wmOperator *op)
+static int reset_default_theme_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ui_theme_init_default();
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -219,7 +219,7 @@ void UI_OT_reset_default_theme(wmOperatorType *ot)
 
 /* Copy Data Path Operator ------------------------ */
 
-static int copy_data_path_button_exec(bContext *C, wmOperator *op)
+static int copy_data_path_button_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;

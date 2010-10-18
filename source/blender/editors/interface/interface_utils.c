@@ -131,7 +131,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 	return but;
 }
 
-void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr, int columns)
+void uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr, int columns)
 {
 	uiLayout *split, *col;
 	int flag;

@@ -33,7 +33,7 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void vectorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+static void vectorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **UNUSED(in), short UNUSED(thread))
 {
 	out[0] = p->co[0];
 	out[1] = p->co[1];

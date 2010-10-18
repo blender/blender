@@ -317,7 +317,7 @@ static char *constraint_adrcodes_to_paths (int adrcode, int *array_index)
  * NOTE: as we don't have access to the keyblock where the data comes from (for now), 
  *	 	we'll just use numerical indicies for now... 
  */
-static char *shapekey_adrcodes_to_paths (int adrcode, int *array_index)
+static char *shapekey_adrcodes_to_paths (int adrcode, int *UNUSED(array_index))
 {
 	static char buf[128];
 	
@@ -331,7 +331,7 @@ static char *shapekey_adrcodes_to_paths (int adrcode, int *array_index)
 }
 
 /* MTex (Texture Slot) types */
-static char *mtex_adrcodes_to_paths (int adrcode, int *array_index)
+static char *mtex_adrcodes_to_paths (int adrcode, int *UNUSED(array_index))
 {
 	char *base=NULL, *prop=NULL;
 	static char buf[128];

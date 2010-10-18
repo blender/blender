@@ -460,7 +460,7 @@ void uiEmboss(float x1, float y1, float x2, float y2, int sel)
 
 /* ************** SPECIAL BUTTON DRAWING FUNCTIONS ************* */
 
-void ui_draw_but_IMAGE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect)
+void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *UNUSED(but), uiWidgetColors *UNUSED(wcol), rcti *rect)
 {
 	extern char datatoc_splash_png[];
 	extern int datatoc_splash_png_size;
@@ -564,7 +564,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 			int err;
 
 			strcpy(tmpStr, G.selfont->name);
-			BLI_path_abs(tmpStr, G.sce);
+			BLI_path_abs(tmpStr, G.main->name);
 			err = FTF_SetFont((unsigned char *)tmpStr, 0, 14.0);
 		}
 	}
@@ -747,7 +747,7 @@ void histogram_draw_one(float r, float g, float b, float alpha, float x, float y
 	glDisable(GL_LINE_SMOOTH);
 }
 
-void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *recti)
+void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *recti)
 {
 	Histogram *hist = (Histogram *)but->poin;
 	int res = hist->x_resolution;
@@ -800,7 +800,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *
 	draw_scope_end(&rect, scissor);
 }
 
-void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *recti)
+void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *recti)
 {
 	Scopes *scopes = (Scopes *)but->poin;
 	rctf rect;
@@ -1023,7 +1023,7 @@ void vectorscope_draw_target(float centerx, float centery, float diam, float r, 
 	glEnd();
 }
 
-void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *recti)
+void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *recti)
 {
 	Scopes *scopes = (Scopes *)but->poin;
 	rctf rect;
@@ -1105,7 +1105,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti
 	glDisable(GL_BLEND);
 }
 
-void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *wcol, rcti *rect)
+void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 {
 	ColorBand *coba;
 	CBData *cbd;
@@ -1404,7 +1404,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	if (but->a1 != -1) {
 		if (but->a1 == UI_GRAD_H) {
 			rcti grid;
-			float col[3];
+			float col[3]= {0.0f, 0.0f, 0.0f}; /* dummy arg */
 			
 			grid.xmin = rect->xmin + zoomx*(-offsx);
 			grid.xmax = rect->xmax + zoomx*(-offsx);

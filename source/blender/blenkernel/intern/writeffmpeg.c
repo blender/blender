@@ -19,7 +19,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#if defined(_WIN32) && defined(_DEBUG) && !defined(__MINGW32__) && !defined(__CYGWIN__)
+#if defined(_WIN32) && defined(DEBUG) && !defined(__MINGW32__) && !defined(__CYGWIN__)
 /* This does not seem necessary or present on MSVC 8, but may be needed in earlier versions? */
 #if _MSC_VER < 1400
 #include <stdint.h>
@@ -857,7 +857,7 @@ void filepath_ffmpeg(char* string, RenderData* rd) {
 	if (!string || !exts) return;
 
 	strcpy(string, rd->pic);
-	BLI_path_abs(string, G.sce);
+	BLI_path_abs(string, G.main->name);
 
 	BLI_make_existing_file(string);
 

@@ -64,6 +64,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "BLF_api.h"
 
@@ -104,7 +105,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	if (!sfile->params) {
 		sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
 		/* set path to most recently opened .blend */
-		BLI_split_dirfile(G.sce, sfile->params->dir, sfile->params->file);
+		BLI_split_dirfile(G.main->name, sfile->params->dir, sfile->params->file);
 		sfile->params->filter_glob[0] = '\0';
 	}
 
@@ -142,8 +143,8 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		}
 
 		if(params->dir[0]) {
-			BLI_cleanup_dir(G.sce, params->dir);
-			BLI_path_abs(params->dir, G.sce);
+			BLI_cleanup_dir(G.main->name, params->dir);
+			BLI_path_abs(params->dir, G.main->name);
 		}
 
 		params->filter = 0;
@@ -463,7 +464,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern)
 	return match;
 }
 
-void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
+void autocomplete_directory(struct bContext *C, char *str, void *UNUSED(arg_v))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
@@ -510,7 +511,7 @@ void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 	}
 }
 
-void autocomplete_file(struct bContext *C, char *str, void *arg_v)
+void autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 

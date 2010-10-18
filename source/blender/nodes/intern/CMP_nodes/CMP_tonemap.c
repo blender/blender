@@ -123,7 +123,7 @@ static void tonemap(NodeTonemap* ntm, CompBuf* dst, CompBuf* src)
 }
 
 
-static void node_composit_exec_tonemap(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_tonemap(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	CompBuf *new, *img = in[0]->data;
 

@@ -175,7 +175,7 @@ static void graph_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void graph_init(struct wmWindowManager *wm, ScrArea *sa)
+static void graph_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceIpo *sipo= (SpaceIpo *)sa->spacedata.first;
 	
@@ -229,17 +229,17 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	
 	/* grid */
 	unitx= (sipo->flag & SIPO_DRAWTIME)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMESCALE;
-	grid= UI_view2d_grid_calc(C, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
-	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
+	grid= UI_view2d_grid_calc(CTX_data_scene(C), v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
+	UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
 	
 	/* draw data */
 	if (ANIM_animdata_get_context(C, &ac)) {
 		/* draw ghost curves */
-		graph_draw_ghost_curves(&ac, sipo, ar, grid);
+		graph_draw_ghost_curves(&ac, sipo, ar);
 		
 		/* draw curves twice - unselected, then selected, so that the are fewer occlusion problems */
 		graph_draw_curves(&ac, sipo, ar, grid, 0);
@@ -282,11 +282,11 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 	ANIM_draw_cfra(C, v2d, flag);
 	
 	/* markers */
-	UI_view2d_view_orthoSpecial(C, v2d, 1);
+	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 	draw_markers_time(C, 0);
 	
 	/* preview range */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	ANIM_draw_previewrange(C, v2d);
 	
 	/* reset view matrix */
@@ -314,7 +314,6 @@ static void graph_channel_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void graph_channel_area_draw(const bContext *C, ARegion *ar)
 {
-	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
@@ -325,11 +324,11 @@ static void graph_channel_area_draw(const bContext *C, ARegion *ar)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	
 	/* draw channels */
 	if (ANIM_animdata_get_context(C, &ac)) {
-		graph_draw_channel_names((bContext*)C, &ac, sipo, ar);
+		graph_draw_channel_names((bContext*)C, &ac, ar);
 	}
 	
 	/* reset view matrix */
@@ -342,7 +341,7 @@ static void graph_channel_area_draw(const bContext *C, ARegion *ar)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void graph_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void graph_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }

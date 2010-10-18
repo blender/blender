@@ -369,7 +369,7 @@ ARegion *image_has_scope_region(ScrArea *sa)
 
 /* ******************** default callbacks for image space ***************** */
 
-static SpaceLink *image_new(const bContext *C)
+static SpaceLink *image_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceImage *simage;
@@ -429,7 +429,7 @@ static void image_free(SpaceLink *sl)
 
 
 /* spacetype; init callback, add handlers */
-static void image_init(struct wmWindowManager *wm, ScrArea *sa)
+static void image_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	ListBase *lb= WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
 
@@ -485,6 +485,7 @@ void image_operatortypes(void)
 void image_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Image Generic", SPACE_IMAGE, 0);
+	wmKeyMapItem *kmi;
 	
 	WM_keymap_add_item(keymap, "IMAGE_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
@@ -524,10 +525,15 @@ void image_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "IMAGE_OT_curves_point_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "point", 1);
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_toolbox", SPACEKEY, KM_PRESS, 0, 0);
+
+	/* toggle editmode is handy to have while UV unwrapping */
+	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "mode", OB_MODE_EDIT);
+	RNA_boolean_set(kmi->ptr, "toggle", 1);
 }
 
 /* dropboxes */
-static int image_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int image_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_PATH)
 		if(ELEM3(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_BLANK))	/* rule might not work? */
@@ -551,7 +557,7 @@ static void image_dropboxes(void)
 
 
 
-static void image_refresh(const bContext *C, ScrArea *sa)
+static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -762,7 +768,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	draw_image_main(sima, ar, scene);
 
 	/* and uvs in 0.0-1.0 space */
-	UI_view2d_view_ortho(C, v2d);
+	UI_view2d_view_ortho(v2d);
 	draw_uvedit_main(sima, ar, scene, obedit);
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
@@ -878,7 +884,7 @@ static void image_scope_area_listener(ARegion *ar, wmNotifier *wmn)
 /************************* header region **************************/
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void image_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void image_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }

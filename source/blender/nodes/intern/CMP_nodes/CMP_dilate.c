@@ -110,7 +110,7 @@ static void morpho_erode(CompBuf *cbuf)
 	
 }
 
-static void node_composit_exec_dilateerode(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_dilateerode(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: mask */
 	/* stack order out: mask */

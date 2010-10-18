@@ -51,6 +51,8 @@ void *avi_converter_from_avi_rgb (AviMovie *movie, int stream, unsigned char *bu
 	unsigned char *buf;
 	AviBitmapInfoHeader *bi;
 	short bits= 32;
+	
+	(void)size; /* unused */
 
 	bi= (AviBitmapInfoHeader *) movie->streams[stream].sf;
 	if (bi) bits= bi->BitCount;
@@ -119,6 +121,8 @@ void *avi_converter_from_avi_rgb (AviMovie *movie, int stream, unsigned char *bu
 void *avi_converter_to_avi_rgb (AviMovie *movie, int stream, unsigned char *buffer, int *size) {
 	int y, x, i, rowstride;
 	unsigned char *buf;
+
+	(void)stream; /* unused */
 
 	*size= movie->header->Height * movie->header->Width * 3;
 	if (movie->header->Width%2) *size+= movie->header->Height;

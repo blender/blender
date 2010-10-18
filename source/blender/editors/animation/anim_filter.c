@@ -92,7 +92,7 @@
 
 /* Get shapekey data being edited (for Action Editor -> ShapeKey mode) */
 /* Note: there's a similar function in key.c (ob_get_key) */
-Key *actedit_get_shapekeys (bAnimContext *ac, SpaceAction *saction) 
+static Key *actedit_get_shapekeys (bAnimContext *ac) 
 {
 	Scene *scene= ac->scene;
 	Object *ob;
@@ -154,7 +154,7 @@ static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 			
 		case SACTCONT_SHAPEKEY: /* 'ShapeKey Editor' */
 			ac->datatype= ANIMCONT_SHAPEKEY;
-			ac->data= actedit_get_shapekeys(ac, saction);
+			ac->data= actedit_get_shapekeys(ac);
 			
 			ac->mode= saction->mode;
 			return 1;
@@ -1079,7 +1079,7 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
  *	- for normal filtering (i.e. for editing), we only need the NLA-tracks but they can be in 'normal' evaluation
  *	  order, i.e. first to last. Otherwise, some tools may get screwed up.
  */
-static int animdata_filter_nla (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, AnimData *adt, int filter_mode, void *owner, short ownertype, ID *owner_id)
+static int animdata_filter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, bDopeSheet *UNUSED(ads), AnimData *adt, int filter_mode, void *owner, short ownertype, ID *owner_id)
 {
 	bAnimListElem *ale;
 	NlaTrack *nlt;

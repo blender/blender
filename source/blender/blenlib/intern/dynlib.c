@@ -122,6 +122,7 @@ void *PIL_dynlib_find_symbol(PILdynlib* lib, char *symname) {
 }
 
 char *PIL_dynlib_get_error_as_string(PILdynlib* lib) {
+	(void)lib; /* unused */
 	return dlerror();
 }
 	

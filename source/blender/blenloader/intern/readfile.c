@@ -705,7 +705,7 @@ BHead *blo_firstbhead(FileData *fd)
 	return(bhead);
 }
 
-BHead *blo_prevbhead(FileData *fd, BHead *thisblock)
+BHead *blo_prevbhead(FileData *UNUSED(fd), BHead *thisblock)
 {
 	BHeadN *bheadn= (BHeadN *) (((char *) thisblock) - GET_INT_FROM_POINTER( &((BHeadN*)0)->bhead) );
 	BHeadN *prev= bheadn->prev;
@@ -1156,7 +1156,7 @@ static void change_idid_adr(ListBase *mainlist, FileData *basefd, void *old, voi
  * to clear that pointer before reading the undo memfile since
  * the object might be removed, it is set again in reading
  * if the local object still exists */
-void blo_clear_proxy_pointers_from_lib(FileData *fd, Main *oldmain)
+void blo_clear_proxy_pointers_from_lib(Main *oldmain)
 {
 	Object *ob= oldmain->object.first;
 	
@@ -1385,8 +1385,8 @@ static void test_pointer_array(FileData *fd, void **mat)
 
 /* ************ READ ID Properties *************** */
 
-void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
-void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
+static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
+static void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
 
 static void IDP_DirectLinkIDPArray(IDProperty *prop, int switch_endian, FileData *fd)
 {
@@ -1443,7 +1443,7 @@ static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, FileData *f
 	}
 }
 
-static void IDP_DirectLinkString(IDProperty *prop, int switch_endian, FileData *fd)
+static void IDP_DirectLinkString(IDProperty *prop, FileData *fd)
 {
 	/*since we didn't save the extra string buffer, set totallen to len.*/
 	prop->totallen = prop->len;
@@ -1470,7 +1470,7 @@ void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd)
 			IDP_DirectLinkGroup(prop, switch_endian, fd);
 			break;
 		case IDP_STRING:
-			IDP_DirectLinkString(prop, switch_endian, fd);
+			IDP_DirectLinkString(prop, fd);
 			break;
 		case IDP_ARRAY:
 			IDP_DirectLinkArray(prop, switch_endian, fd);
@@ -1500,7 +1500,7 @@ void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd)
 }
 
 /*stub function*/
-void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, FileData *fd)
+void IDP_LibLinkProperty(IDProperty *UNUSED(prop), int UNUSED(switch_endian), FileData *UNUSED(fd))
 {
 }
 
@@ -1553,7 +1553,7 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 	brush->icon_imbuf= NULL;
 }
 
-static void direct_link_script(FileData *fd, Script *script)
+static void direct_link_script(FileData *UNUSED(fd), Script *script)
 {
 	script->id.us = 1;
 	SCRIPT_SET_NULL(script)
@@ -2031,7 +2031,7 @@ static void lib_link_nodetree(FileData *fd, Main *main)
 /* verify types for nodes and groups, all data has to be read */
 /* open = 0: appending/linking, open = 1: open new file (need to clean out dynamic
 * typedefs*/
-static void lib_verify_nodetree(Main *main, int open)
+static void lib_verify_nodetree(Main *main, int UNUSED(open))
 {
 	Scene *sce;
 	Material *ma;
@@ -2140,7 +2140,7 @@ typedef struct tConstraintLinkData {
 	ID *id;
 } tConstraintLinkData;
 /* callback function used to relink constraint ID-links */
-static void lib_link_constraint_cb(bConstraint *con, ID **idpoin, void *userdata)
+static void lib_link_constraint_cb(bConstraint *UNUSED(con), ID **idpoin, void *userdata)
 {
 	tConstraintLinkData *cld= (tConstraintLinkData *)userdata;
 	*idpoin = newlibadr(cld->fd, cld->id->lib, *idpoin);
@@ -2535,7 +2535,7 @@ static void direct_link_world(FileData *fd, World *wrld)
 
 /* ************ READ VFONT ***************** */
 
-static void lib_link_vfont(FileData *fd, Main *main)
+static void lib_link_vfont(FileData *UNUSED(fd), Main *main)
 {
 	VFont *vf;
 
@@ -2556,7 +2556,7 @@ static void direct_link_vfont(FileData *fd, VFont *vf)
 
 /* ************ READ TEXT ****************** */
 
-static void lib_link_text(FileData *fd, Main *main)
+static void lib_link_text(FileData *UNUSED(fd), Main *main)
 {
 	Text *text;
 
@@ -4659,6 +4659,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceText *st= (SpaceText *)sl;
 
 						st->text= newlibadr(fd, sc->id.lib, st->text);
+						st->drawcache= NULL;
 
 					}
 					else if(sl->spacetype==SPACE_SCRIPT) {
@@ -4890,6 +4891,8 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 
 					st->text= restore_pointer_by_name(newmain, (ID *)st->text, 1);
 					if(st->text==NULL) st->text= newmain->text.first;
+
+					st->drawcache= NULL;
 				}
 				else if(sl->spacetype==SPACE_SCRIPT) {
 					SpaceScript *scpt= (SpaceScript *)sl;
@@ -5271,7 +5274,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	lib->parent= NULL;
 }
 
-static void lib_link_library(FileData *fd, Main *main)
+static void lib_link_library(FileData *UNUSED(fd), Main *main)
 {
 	Library *lib;
 	for(lib= main->library.first; lib; lib= lib->id.next) {
@@ -6619,7 +6622,7 @@ static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
 	}
 }
 
-static void do_version_mdef_250(FileData *fd, Library *lib, Main *main)
+static void do_version_mdef_250(Main *main)
 {
 	Object *ob;
 	ModifierData *md;
@@ -9853,7 +9856,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					{
 						char str[FILE_MAX];
 						BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
-						BLI_path_abs(str, G.sce);
+						BLI_path_abs(str, G.main->name);
 						seq->sound = sound_new_file(main, str);
 					}
 					/* don't know, if anybody used that
@@ -11045,7 +11048,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 
-		do_version_mdef_250(fd, lib, main);
+		do_version_mdef_250(main);
 
 		/* parent type to modifier */
 		for(ob = main->object.first; ob; ob = ob->id.next) {
@@ -11438,7 +11441,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filename)
 
 	lib_link_all(fd, bfd->main);
 	//do_versions_after_linking(fd, NULL, bfd->main); // XXX: not here (or even in this function at all)! this causes crashes on many files - Aligorith (July 04, 2010)
-	lib_verify_nodetree(bfd->main, 1);
+	lib_verify_nodetree(bfd->main, TRUE);
 	fix_relpaths_library(fd->relabase, bfd->main); /* make all relative paths, relative to the open blend file */
 	
 	link_global(fd, bfd);	/* as last */
@@ -11923,7 +11926,7 @@ typedef struct tConstraintExpandData {
 	Main *mainvar;
 } tConstraintExpandData;
 /* callback function used to expand constraint ID-links */
-static void expand_constraint_cb(bConstraint *con, ID **idpoin, void *userdata)
+static void expand_constraint_cb(bConstraint *UNUSED(con), ID **idpoin, void *userdata)
 {
 	tConstraintExpandData *ced= (tConstraintExpandData *)userdata;
 	expand_doit(ced->fd, ced->mainvar, *idpoin);
@@ -12539,7 +12542,7 @@ static Main* library_append_begin(const bContext *C, FileData **fd, char *dir)
 	blo_split_main(&(*fd)->mainlist, mainvar);
 
 	/* which one do we need? */
-	mainl = blo_find_main(*fd, &(*fd)->mainlist, dir, G.sce);
+	mainl = blo_find_main(*fd, &(*fd)->mainlist, dir, G.main->name);
 	
 	/* needed for do_version */
 	mainl->versionfile= (*fd)->fileversion;
@@ -12623,7 +12626,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 		BLI_strncpy(curlib->name, curlib->filepath, sizeof(curlib->name));
 		
 		/* uses current .blend file as reference */
-		BLI_path_rel(curlib->name, G.sce);
+		BLI_path_rel(curlib->name, G.main->name);
 	}
 
 	blo_join_main(&(*fd)->mainlist);
@@ -12631,8 +12634,8 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	mainl= NULL; /* blo_join_main free's mainl, cant use anymore */
 
 	lib_link_all(*fd, mainvar);
-	lib_verify_nodetree(mainvar, 0);
-	fix_relpaths_library(G.sce, mainvar); /* make all relative paths, relative to the open blend file */
+	lib_verify_nodetree(mainvar, FALSE);
+	fix_relpaths_library(G.main->name, mainvar); /* make all relative paths, relative to the open blend file */
 
 	/* give a base to loose objects. If group append, do it for objects too */
 	if(scene) {
@@ -12748,7 +12751,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						while(fd==NULL) {
 							char newlib_path[240] = { 0 };
 							printf("Missing library...'\n");
-							printf("	current file: %s\n", G.sce);
+							printf("	current file: %s\n", G.main->name);
 							printf("	absolute lib: %s\n", mainptr->curlib->filepath);
 							printf("	relative lib: %s\n", mainptr->curlib->name);
 							printf("  enter a new path:\n");
@@ -12756,7 +12759,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 							if(scanf("%s", newlib_path) > 0) {
 								strcpy(mainptr->curlib->name, newlib_path);
 								strcpy(mainptr->curlib->filepath, newlib_path);
-								cleanup_path(G.sce, mainptr->curlib->filepath);
+								cleanup_path(G.main->name, mainptr->curlib->filepath);
 								
 								fd= blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
 

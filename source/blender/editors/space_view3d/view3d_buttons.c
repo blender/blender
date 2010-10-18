@@ -128,7 +128,7 @@ typedef struct {
 
 
 /* is used for both read and write... */
-static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d, Object *ob, float lim)
+static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
 	uiBlock *block= (layout)? uiLayoutAbsoluteBlock(layout): NULL;
 	MDeformVert *dvert=NULL;
@@ -643,7 +643,7 @@ static void vgroup_normalize_active(Object *ob)
 
 }
 
-static void do_view3d_vgroup_buttons(bContext *C, void *arg, int event)
+static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= OBACT;
@@ -670,7 +670,7 @@ static void do_view3d_vgroup_buttons(bContext *C, void *arg, int event)
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 }
 
-int view3d_panel_vgroup_poll(const bContext *C, PanelType *pt)
+int view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= OBACT;
@@ -794,7 +794,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 	}
 }
 
-static void v3d_posearmature_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
+static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
 {
 //	uiBlock *block= uiLayoutGetBlock(layout);
 //	bArmature *arm;
@@ -896,7 +896,7 @@ void validate_editbonebutton_cb(bContext *C, void *bonev, void *namev)
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, CTX_data_edit_object(C)); // XXX fix
 }
 
-static void v3d_editarmature_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
+static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
 {
 //	uiBlock *block= uiLayoutGetBlock(layout);
 	bArmature *arm= ob->data;
@@ -930,7 +930,7 @@ static void v3d_editarmature_buts(uiLayout *layout, View3D *v3d, Object *ob, flo
 	uiItemR(col, &eboneptr, "roll", 0, "Roll", 0);
 }
 
-static void v3d_editmetaball_buts(uiLayout *layout, Object *ob, float lim)
+static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 {
 	PointerRNA mbptr, ptr;
 	MetaBall *mball= ob->data;
@@ -989,7 +989,7 @@ static int test_parent_loop(Object *par, Object *ob)
 	return test_parent_loop(par->parent, ob);
 }
 
-static void do_view3d_region_buttons(bContext *C, void *arg, int event)
+static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -1012,7 +1012,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 	
 	case B_OBJECTPANELMEDIAN:
 		if(ob) {
-			v3d_editvertex_buts(C, NULL, v3d, ob, 1.0);
+			v3d_editvertex_buts(NULL, v3d, ob, 1.0);
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 		break;
@@ -1152,12 +1152,12 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, ob);
 }
 
-void removeTransformOrientation_func(bContext *C, void *target, void *unused)
+void removeTransformOrientation_func(bContext *C, void *target, void *UNUSED(arg))
 {
 	BIF_removeTransformOrientation(C, (TransformOrientation *) target);
 }
 
-void selectTransformOrientation_func(bContext *C, void *target, void *unused)
+void selectTransformOrientation_func(bContext *C, void *target, void *UNUSED(arg))
 {
 	BIF_selectTransformOrientation(C, (TransformOrientation *) target);
 }
@@ -1203,12 +1203,12 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	RNA_id_pointer_create(&ob->id, &obptr);
 
 	if(ob==obedit) {
-		if(ob->type==OB_ARMATURE) v3d_editarmature_buts(col, v3d, ob, lim);
-		if(ob->type==OB_MBALL) v3d_editmetaball_buts(col, ob, lim);
-		else v3d_editvertex_buts(C, col, v3d, ob, lim);
+		if(ob->type==OB_ARMATURE) v3d_editarmature_buts(col, ob);
+		if(ob->type==OB_MBALL) v3d_editmetaball_buts(col, ob);
+		else v3d_editvertex_buts(col, v3d, ob, lim);
 	}
 	else if(ob->mode & OB_MODE_POSE) {
-		v3d_posearmature_buts(col, v3d, ob, lim);
+		v3d_posearmature_buts(col, ob);
 	}
 	else {
 
@@ -1421,7 +1421,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	}
 	
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	uiDefAutoButsRNA(C, pa->layout, &ptr, 2);
+	uiDefAutoButsRNA(pa->layout, &ptr, 2);
 }
 #endif // XXX not used
 
@@ -1451,7 +1451,7 @@ void view3d_buttons_register(ARegionType *art)
 	// XXX view3d_panel_preview(C, ar, 0);
 }
 
-static int view3d_properties(bContext *C, wmOperator *op)
+static int view3d_properties(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= view3d_has_buttons_region(sa);

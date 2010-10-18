@@ -133,7 +133,7 @@ static int space_image_file_exists_poll(bContext *C)
 		ibuf= ED_space_image_acquire_buffer(sima, &lock);
 		if(ibuf) {
 			BLI_strncpy(name, ibuf->name, FILE_MAX);
-			BLI_path_abs(name, G.sce);
+			BLI_path_abs(name, G.main->name);
 			poll= (BLI_exists(name) && BLI_is_writable(name));
 		}
 		ED_space_image_release_buffer(sima, lock);
@@ -432,7 +432,7 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
  * Default behavior is to reset the position of the image and set the zoom to 1
  * If the image will not fit within the window rectangle, the zoom is adjusted */
 
-static int view_all_exec(bContext *C, wmOperator *op)
+static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceImage *sima;
 	ARegion *ar;
@@ -486,7 +486,7 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
 
 /********************** view selected operator *********************/
 
-static int view_selected_exec(bContext *C, wmOperator *op)
+static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceImage *sima;
 	ARegion *ar;
@@ -543,7 +543,7 @@ void IMAGE_OT_view_selected(wmOperatorType *ot)
 
 /********************** view zoom in/out operator *********************/
 
-static int view_zoom_in_exec(bContext *C, wmOperator *op)
+static int view_zoom_in_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -566,7 +566,7 @@ void IMAGE_OT_view_zoom_in(wmOperatorType *ot)
 	ot->poll= space_image_main_area_poll;
 }
 
-static int view_zoom_out_exec(bContext *C, wmOperator *op)
+static int view_zoom_out_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -679,7 +679,7 @@ static void open_init(bContext *C, wmOperator *op)
 	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
 }
 
-static int open_cancel(bContext *C, wmOperator *op)
+static int open_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata= NULL;
@@ -701,7 +701,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	errno= 0;
 
-	ima= BKE_add_image_file(str, scene ? scene->r.cfra : 1);
+	ima= BKE_add_image_file(str);
 
 	if(!ima) {
 		if(op->customdata) MEM_freeN(op->customdata);
@@ -736,7 +736,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	char *path=U.textudir;
@@ -806,7 +806,7 @@ static int replace_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int replace_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int replace_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 
@@ -856,7 +856,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 		int relative= (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path"));
 		int save_copy= (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
 
-		BLI_path_abs(path, G.sce);
+		BLI_path_abs(path, G.main->name);
 		
 		if(scene->r.scemode & R_EXTENSION)  {
 			BKE_add_image_extension(path, sima->imtypenr);
@@ -876,7 +876,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 				RE_WriteRenderResult(rr, path, scene->r.quality);
 
 				if(relative)
-					BLI_path_rel(path, G.sce); /* only after saving */
+					BLI_path_rel(path, G.main->name); /* only after saving */
 
 				if(!save_copy) {
 					if(do_newpath) {
@@ -896,7 +896,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 		else if (BKE_write_ibuf(scene, ibuf, path, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
 
 			if(relative)
-				BLI_path_rel(path, G.sce); /* only after saving */
+				BLI_path_rel(path, G.main->name); /* only after saving */
 
 			if(!save_copy) {
 				if(do_newpath) {
@@ -961,7 +961,7 @@ static int save_as_exec(bContext *C, wmOperator *op)
 }
 
 
-static int save_as_check(bContext *C, wmOperator *op)
+static int save_as_check(bContext *UNUSED(C), wmOperator *op)
 {
 	char filepath[FILE_MAX];
 	RNA_string_get(op->ptr, "filepath", filepath);
@@ -972,7 +972,7 @@ static int save_as_check(bContext *C, wmOperator *op)
 	return FALSE;
 }
 
-static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Image *ima = ED_space_image(sima);
@@ -1071,7 +1071,7 @@ static int save_exec(bContext *C, wmOperator *op)
 	if(name[0]==0)
 		BLI_strncpy(name, G.ima, FILE_MAX);
 	else
-		BLI_path_abs(name, G.sce);
+		BLI_path_abs(name, G.main->name);
 	
 	if(BLI_exists(name) && BLI_is_writable(name)) {
 		rr= BKE_image_acquire_renderresult(scene, ima);
@@ -1157,7 +1157,7 @@ static int save_sequence_exec(bContext *C, wmOperator *op)
 			char name[FILE_MAX];
 			BLI_strncpy(name, ibuf->name, sizeof(name));
 			
-			BLI_path_abs(name, G.sce);
+			BLI_path_abs(name, G.main->name);
 
 			if(0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
 				BKE_reportf(op->reports, RPT_ERROR, "Could not write image %s.", name);
@@ -1188,7 +1188,7 @@ void IMAGE_OT_save_sequence(wmOperatorType *ot)
 
 /******************** reload image operator ********************/
 
-static int reload_exec(bContext *C, wmOperator *op)
+static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Image *ima= CTX_data_edit_image(C);
 	SpaceImage *sima= CTX_wm_space_image(C);
@@ -1347,7 +1347,7 @@ static int pack_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int pack_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int pack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Image *ima= CTX_data_edit_image(C);
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
@@ -1507,7 +1507,7 @@ static int unpack_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int unpack_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int unpack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Image *ima= CTX_data_edit_image(C);
 
@@ -1570,7 +1570,7 @@ typedef struct ImageSampleInfo {
 	int draw;
 } ImageSampleInfo;
 
-static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
+static void sample_draw(const bContext *UNUSED(C), ARegion *ar, void *arg_info)
 {
 	ImageSampleInfo *info= arg_info;
 
@@ -1985,7 +1985,7 @@ static int record_composite_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int record_composite_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int record_composite_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	RecordCompositeData *rcd= op->customdata;
 	
@@ -2052,7 +2052,7 @@ static int cycle_render_slot_poll(bContext *C)
 	return (ima && ima->type == IMA_TYPE_R_RESULT);
 }
 
-static int cycle_render_slot_exec(bContext *C, wmOperator *op)
+static int cycle_render_slot_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Image *ima= CTX_data_edit_image(C);
 	int a, slot, cur= ima->render_slot;

@@ -147,7 +147,7 @@ static void lensDistort(CompBuf* dst, CompBuf* src, float kr, float kg, float kb
 }
 
 
-static void node_composit_exec_lensdist(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_lensdist(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	CompBuf *new, *img = in[0]->data;
 	NodeLensDist* nld = node->storage;

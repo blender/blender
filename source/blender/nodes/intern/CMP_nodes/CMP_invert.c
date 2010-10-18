@@ -75,7 +75,7 @@ static void do_invert_fac(bNode *node, float *out, float *in, float *fac)
 	QUATCOPY(out, col);
 }
 
-static void node_composit_exec_invert(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_invert(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: fac, Image, Image */
 	/* stack order out: Image */

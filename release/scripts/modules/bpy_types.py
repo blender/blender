@@ -258,15 +258,15 @@ class _GenericBone:
         return bones
 
 
-class PoseBone(StructRNA, _GenericBone):
+class PoseBone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
     __slots__ = ()
 
 
-class Bone(StructRNA, _GenericBone):
+class Bone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
     __slots__ = ()
 
 
-class EditBone(StructRNA, _GenericBone):
+class EditBone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
     __slots__ = ()
 
     def align_orientation(self, other):

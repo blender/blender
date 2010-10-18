@@ -48,7 +48,7 @@ static bNodeSocketType cmp_node_displace_out[]= {
  * in order to take effect */
 #define DISPLACE_EPSILON	0.01
 
-static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float *veccol, CompBuf *xbuf,  CompBuf *ybuf, float *xscale, float *yscale)
+static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float *UNUSED(veccol), CompBuf *xbuf,  CompBuf *ybuf, float *xscale, float *yscale)
 {
 	ImBuf *ibuf;
 	int x, y;
@@ -60,7 +60,7 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 	float vec[3], vecdx[3], vecdy[3];
 	float col[3];
 	
-	ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
+	ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
 	ibuf->rect_float= cbuf->rect;
 	
 	for(y=0; y < stackbuf->y; y++) {
@@ -140,7 +140,7 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 }
 
 
-static void node_composit_exec_displace(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_displace(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **in, bNodeStack **out)
 {
 	if(out[0]->hasoutput==0)
 		return;

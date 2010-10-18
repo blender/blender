@@ -1452,11 +1452,24 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		wmWindow *win = CTX_wm_window(C);
 
 		if (win && win->eventstate->prevtype == event->type && win->eventstate->prevval == KM_PRESS) {
-			/* test for double click first */
-			if ((PIL_check_seconds_timer() - win->eventstate->prevclicktime) * 1000 < U.dbl_click_time) {
+			/* test for double click first,
+			 * note1: this can be problematic because single click operators can get the
+			 *   double click event but then with old mouse coords which is highly confusing,
+			 *   so check for mouse moves too.
+			 * note2: the first click event will be handled but still used to create a
+			 *   double click event if clicking again quickly.
+			 *   If no double click events are found itwill fallback to a single click.
+			 *   So a double click event can result in 2 successive single click calls
+			 *   if its not handled by the keymap - campbell */
+			if (	(ABS(event->x - win->eventstate->prevclickx)) <= 2 &&
+					(ABS(event->y - win->eventstate->prevclicky)) <= 2 &&
+					((PIL_check_seconds_timer() - win->eventstate->prevclicktime) * 1000 < U.dbl_click_time)
+			) {
 				event->val = KM_DBL_CLICK;
-				event->x = win->eventstate->prevclickx;
-				event->y = win->eventstate->prevclicky;
+				/* removed this because in cases where we're this is used as a single click
+				 * event, this will give old coords, since the distance is checked above, using new coords should be ok. */
+				//   event->x = win->eventstate->prevclickx;
+				//   event->y = win->eventstate->prevclicky;
 				action |= wm_handlers_do(C, event, handlers);
 			}
 
@@ -1894,7 +1907,7 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap
 }
 
 /* priorities not implemented yet, for time being just insert in begin of list */
-wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, wmKeyMap *keymap, int priority)
+wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, wmKeyMap *keymap, int UNUSED(priority))
 {
 	wmEventHandler *handler;
 	
@@ -2167,7 +2180,7 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 
 /* windows store own event queues, no bContext here */
 /* time is in 1000s of seconds, from ghost */
-void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int time, void *customdata)
+void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int UNUSED(time), void *customdata)
 {
 	wmWindow *owin;
 	wmEvent event, *evt= win->eventstate;

@@ -38,7 +38,7 @@ static bNodeSocketType cmp_node_time_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	RenderData *rd= data;
 	/* stack order output: fac */
@@ -89,7 +89,7 @@ static bNodeSocketType cmp_node_curve_vec_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_exec_curve_vec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_curve_vec(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order input:  vec */
 	/* stack order output: vec */
@@ -158,7 +158,7 @@ static void do_curves_fac(bNode *node, float *out, float *in, float *fac)
 	out[3]= in[3];
 }
 
-static void node_composit_exec_curve_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order input:  fac, image, black level, white level */
 	/* stack order output: image */

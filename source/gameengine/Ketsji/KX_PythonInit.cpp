@@ -136,13 +136,14 @@ static RAS_ICanvas* gp_Canvas = NULL;
 static char gp_GamePythonPath[FILE_MAXDIR + FILE_MAXFILE] = "";
 static char gp_GamePythonPathOrig[FILE_MAXDIR + FILE_MAXFILE] = ""; // not super happy about this, but we need to remember the first loaded file for the global/dict load save
 
+static SCA_PythonKeyboard* gp_PythonKeyboard = NULL;
+static SCA_PythonMouse* gp_PythonMouse = NULL;
 #endif // DISABLE_PYTHON
 
 static KX_Scene*	gp_KetsjiScene = NULL;
 static KX_KetsjiEngine*	gp_KetsjiEngine = NULL;
 static RAS_IRasterizer* gp_Rasterizer = NULL;
-static SCA_PythonKeyboard* gp_PythonKeyboard = NULL;
-static SCA_PythonMouse* gp_PythonMouse = NULL;
+
 
 void KX_SetActiveScene(class KX_Scene* scene)
 {

@@ -593,7 +593,7 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
 
 /*----------------- DRAWING CONSTRAINTS -------------------*/
 
-void drawConstraint(const struct bContext *C, TransInfo *t)
+void drawConstraint(TransInfo *t)
 {
 	TransCon *tc = &(t->con);
 

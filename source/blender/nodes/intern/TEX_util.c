@@ -173,7 +173,7 @@ int ntreeTexExecTree(
 	float *dxt, float *dyt,
 	int osatex,
 	short thread, 
-	Tex *tex, 
+	Tex *UNUSED(tex), 
 	short which_output, 
 	int cfra,
 	int preview,

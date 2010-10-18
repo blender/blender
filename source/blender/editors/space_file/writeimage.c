@@ -41,6 +41,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_image.h"
 
 #include "RE_pipeline.h"
@@ -48,10 +49,10 @@
 #include "file_intern.h"
 
 /* XXX */
-static void error(const char *dummy) {}
-static void waitcursor(int val) {}
-static void activate_fileselect(int d1, char *d2, char *d3, void *d4) {}
-static int saveover(const char *dummy) {return 0;}
+static void error(const char *UNUSED(dummy)) {}
+static void waitcursor(int UNUSED(val)) {}
+static void activate_fileselect(int UNUSED(d1), char *UNUSED(d2), char *UNUSED(d3), void *UNUSED(d4)) {}
+static int saveover(const char *UNUSED(dummy)) {return 0;}
 /* XXX */
 
 
@@ -75,7 +76,7 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 			BKE_add_image_extension(name, scene->r.imtype);
 
 	strcpy(str, name);
-	BLI_path_abs(str, G.sce);
+	BLI_path_abs(str, G.main->name);
 
 	if (confirm)
 		overwrite = saveover(str);
@@ -99,7 +100,7 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 
 			waitcursor(1); /* from screen.c */
 
-			ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0, 0);
+			ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0);
 			ibuf->rect= (unsigned int *)rres.rect32;
 			ibuf->rect_float= rres.rectf;
 			ibuf->zbuf_float= rres.rectz;
@@ -218,7 +219,7 @@ void BIF_save_rendered_image_fs(Scene *scene)
 		char dir[FILE_MAXDIR * 2], str[FILE_MAXFILE * 2];
 		
 		if(G.ima[0]==0) {
-			strcpy(dir, G.sce);
+			strcpy(dir, G.main->name);
 			BLI_splitdirstring(dir, str);
 			strcpy(G.ima, dir);
 		}

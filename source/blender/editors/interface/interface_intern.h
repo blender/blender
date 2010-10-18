@@ -171,8 +171,9 @@ struct uiBut {
 
 	char *poin;
 	float hardmin, hardmax, softmin, softmax;
-	float a1, a2, hsv[3];	// hsv is temp memory for hsv buttons
+	float a1, a2;
 	float aspect;
+	char col[4];
 
 	uiButHandleFunc func;
 	void *func_arg1;
@@ -302,15 +303,16 @@ struct uiBlock {
 	short auto_open;
 	double auto_open_last;
 
-	char active;					// to keep blocks while drawing and free them afterwards
-	char tooltipdisabled;		// to avoid tooltip after click
-	short lock;
 	char *lockstr;
+
+	char lock;
+	char active;					// to keep blocks while drawing and free them afterwards
+	char tooltipdisabled;			// to avoid tooltip after click
+	char endblock;					// uiEndBlock done?
 	
 	float xofs, yofs;				// offset to parent button
 	int dobounds, mx, my;			// for doing delayed
 	int bounds, minbounds;			// for doing delayed
-	int endblock;					// uiEndBlock done?
 
 	rctf safety;				// pulldowns, to detect outside, can differ per case how it is created
 	ListBase saferct;			// uiSafetyRct list
@@ -319,9 +321,10 @@ struct uiBlock {
 
 	int puphash;				// popup menu hash for memory
 	
-	int color_profile;				// color profile for correcting linear colors for display
-
 	void *evil_C;				// XXX hack for dynamic operator enums
+
+	float _hsv[3];				// XXX, only access via ui_block_hsv_get()
+	char color_profile;				// color profile for correcting linear colors for display
 };
 
 typedef struct uiSafetyRct {
@@ -408,6 +411,8 @@ void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
 
 uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but);
 
+float *ui_block_hsv_get(uiBlock *block);
+
 /* searchbox for string button */
 ARegion *ui_searchbox_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
 int ui_searchbox_inside(struct ARegion *ar, int x, int y);
@@ -436,12 +441,12 @@ void autocomplete_end(struct AutoComplete *autocpl, char *autoname);
 
 /* interface_panel.c */
 extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);
-extern void ui_draw_aligned_panel(struct ARegion *ar, struct uiStyle *style, uiBlock *block, rcti *rect);
+extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, rcti *rect);
 
 /* interface_draw.c */
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 
-void ui_draw_gradient(rcti *rect, float *rgb, int type, float alpha);
+void ui_draw_gradient(rcti *rect, float *hsv, int type, float alpha);
 
 void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);

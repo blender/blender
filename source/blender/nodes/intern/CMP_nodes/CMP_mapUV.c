@@ -51,7 +51,7 @@ static void do_mapuv(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *uvbuf, float thr
 	int x, y, sx, sy, row= 3*stackbuf->x;
 	
 	/* ibuf needed for sampling */
-	ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
+	ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
 	ibuf->rect_float= cbuf->rect;
 	
 	/* vars for efficient looping */
@@ -134,7 +134,7 @@ static void do_mapuv(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *uvbuf, float thr
 }
 
 
-static void node_composit_exec_mapuv(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_mapuv(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if(out[0]->hasoutput==0)
 		return;

@@ -127,7 +127,7 @@ static void wm_method_draw_full(bContext *C, wmWindow *win)
 				CTX_wm_region_set(C, ar);
 				ED_region_do_draw(C, ar);
 				wm_paintcursor_draw(C, ar);
-				ED_area_overdraw_flush(C, sa, ar);
+				ED_area_overdraw_flush(sa, ar);
 				CTX_wm_region_set(C, NULL);
 			}
 		}
@@ -242,7 +242,7 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 					CTX_wm_region_set(C, ar);
 					ED_region_do_draw(C, ar);
 					wm_paintcursor_draw(C, ar);
-					ED_area_overdraw_flush(C, sa, ar);
+					ED_area_overdraw_flush(sa, ar);
 					CTX_wm_region_set(C, NULL);
 
 					if(exchange)
@@ -253,7 +253,7 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 						CTX_wm_region_set(C, ar);
 						ED_region_do_draw(C, ar);
 						wm_paintcursor_draw(C, ar);
-						ED_area_overdraw_flush(C, sa, ar);
+						ED_area_overdraw_flush(sa, ar);
 						CTX_wm_region_set(C, NULL);
 
 						ar->swap= WIN_BOTH_OK;
@@ -592,7 +592,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 			if(ar->swinid && ar->do_draw) {
 				CTX_wm_region_set(C, ar);
 				ED_region_do_draw(C, ar);
-				ED_area_overdraw_flush(C, sa, ar);
+				ED_area_overdraw_flush(sa, ar);
 				CTX_wm_region_set(C, NULL);
 				copytex= 1;
 			}

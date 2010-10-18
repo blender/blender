@@ -32,6 +32,7 @@
 #include "DNA_texture_types.h"
 
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_utildefines.h"
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
@@ -66,13 +67,13 @@ void ImagesExporter::operator()(Material *ma, Object *ob)
 			
 			BLI_split_dirfile(mfilename, dir, NULL);
 
-			BKE_rebase_path(abs, sizeof(abs), rel, sizeof(rel), G.sce, image->name, dir);
+			BKE_rebase_path(abs, sizeof(abs), rel, sizeof(rel), G.main->name, image->name, dir);
 
 			if (abs[0] != '\0') {
 
 				// make absolute source path
 				BLI_strncpy(src, image->name, sizeof(src));
-				BLI_path_abs(src, G.sce);
+				BLI_path_abs(src, G.main->name);
 
 				// make dest directory if it doesn't exist
 				BLI_make_existing_file(abs);

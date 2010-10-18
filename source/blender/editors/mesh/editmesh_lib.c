@@ -58,6 +58,7 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_transform.h"
 
 #include "mesh_intern.h"
 
@@ -214,7 +215,7 @@ static int EM_check_selection(EditMesh *em, void *data)
 	return 0;
 }
 
-void EM_remove_selection(EditMesh *em, void *data, int type)
+void EM_remove_selection(EditMesh *em, void *data, int UNUSED(type))
 {
 	EditSelection *ese;
 	for(ese=em->selected.first; ese; ese = ese->next){
@@ -1050,7 +1051,7 @@ static void set_edge_directions_f2(EditMesh *em, int val)
 
 /* individual face extrude */
 /* will use vertex normals for extrusion directions, so *nor is unaffected */
-short extrudeflag_face_indiv(EditMesh *em, short flag, float *nor)
+short extrudeflag_face_indiv(EditMesh *em, short UNUSED(flag), float *UNUSED(nor))
 {
 	EditVert *eve, *v1, *v2, *v3, *v4;
 	EditEdge *eed;
@@ -1204,7 +1205,7 @@ short extrudeflag_edges_indiv(EditMesh *em, short flag, float *nor)
 }
 
 /* extrudes individual vertices */
-short extrudeflag_verts_indiv(EditMesh *em, short flag, float *nor) 
+short extrudeflag_verts_indiv(EditMesh *em, short flag, float *UNUSED(nor)) 
 {
 	EditVert *eve;
 	
@@ -1230,7 +1231,7 @@ short extrudeflag_verts_indiv(EditMesh *em, short flag, float *nor)
 
 /* this is actually a recode of extrudeflag(), using proper edge/face select */
 /* hurms, doesnt use 'flag' yet, but its not called by primitive making stuff anyway */
-static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *nor, int all)
+static short extrudeflag_edge(Object *obedit, EditMesh *em, short UNUSED(flag), float *nor, int all)
 {
 	/* all select edges/faces: extrude */
 	/* old select is cleared, in new ones it is set */
@@ -2765,3 +2766,18 @@ int EM_deselect_nth(EditMesh *em, int nth)
 	return 0;
 }
 
+void EM_project_snap_verts(bContext *C, ARegion *ar, Object *obedit, EditMesh *em)
+{
+	EditVert *eve;
+	for(eve= em->verts.first;eve; eve=eve->next) {
+		if(eve->f & SELECT) {
+			float mval[2], vec[3], no_dummy[3];
+			int dist_dummy;
+			mul_v3_m4v3(vec, obedit->obmat, eve->co);
+			project_float_noclip(ar, vec, mval);
+			if(snapObjectsContext(C, mval, &dist_dummy, vec, no_dummy, SNAP_NOT_OBEDIT)) {
+				mul_v3_m4v3(eve->co, obedit->imat, vec);
+			}
+		}
+	}
+}

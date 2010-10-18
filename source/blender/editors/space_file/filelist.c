@@ -295,7 +295,7 @@ static int is_hidden_file(const char* filename, short hide_dot)
 	return is_hidden;
 }
 
-static int is_filtered_file(struct direntry* file, const char* dir, unsigned int filter, short hide_dot)
+static int is_filtered_file(struct direntry* file, const char* UNUSED(dir), unsigned int filter, short hide_dot)
 {
 	int is_filtered=0;
 	if (filter) {
@@ -324,7 +324,7 @@ static int is_filtered_lib(struct direntry* file, const char* dir, unsigned int 
 	return is_filtered;
 }
 
-static int is_filtered_main(struct direntry* file, const char* dir, unsigned int filter, short hide_dot)
+static int is_filtered_main(struct direntry* file, const char* UNUSED(dir), unsigned int UNUSED(filter), short hide_dot)
 {
 	return !is_hidden_file(file->relname, hide_dot);
 }
@@ -371,7 +371,7 @@ void filelist_init_icons()
 			for (x=0; x<SPECIAL_IMG_COLS; x++) {
 				int tile = SPECIAL_IMG_COLS*y + x; 
 				if (tile < SPECIAL_IMG_MAX) {
-					ibuf = IMB_allocImBuf(SPECIAL_IMG_SIZE, SPECIAL_IMG_SIZE, 32, IB_rect, 0);
+					ibuf = IMB_allocImBuf(SPECIAL_IMG_SIZE, SPECIAL_IMG_SIZE, 32, IB_rect);
 					for (k=0; k<SPECIAL_IMG_SIZE; k++) {
 						memcpy(&ibuf->rect[k*SPECIAL_IMG_SIZE], &bbuf->rect[(k+y*SPECIAL_IMG_SIZE)*SPECIAL_IMG_SIZE*SPECIAL_IMG_COLS+x*SPECIAL_IMG_SIZE], SPECIAL_IMG_SIZE*sizeof(int));
 					}
@@ -730,7 +730,7 @@ static void filelist_read_dir(struct FileList* filelist)
 
 	BLI_getwdN(wdir);	 
 
-	BLI_cleanup_dir(G.sce, filelist->dir);
+	BLI_cleanup_dir(G.main->name, filelist->dir);
 	filelist->numfiles = BLI_getdir(filelist->dir, &(filelist->filelist));
 
 	if(!chdir(wdir)) {} /* fix warning about not checking return value */
@@ -747,7 +747,7 @@ static void filelist_read_main(struct FileList* filelist)
 static void filelist_read_library(struct FileList* filelist)
 {
 	if (!filelist) return;
-	BLI_cleanup_dir(G.sce, filelist->dir);
+	BLI_cleanup_dir(G.main->name, filelist->dir);
 	filelist_from_library(filelist);
 	if(!filelist->libfiledata) {
 		int num;
@@ -912,7 +912,7 @@ void filelist_from_library(struct FileList* filelist)
 		return;
 	}
 	
-	BLI_strncpy(filename, G.sce, sizeof(filename));	// G.sce = last file loaded, for UI
+	BLI_strncpy(filename, G.main->name, sizeof(filename));
 
 	/* there we go */
 	/* for the time being only read filedata when libfiledata==0 */
@@ -965,7 +965,7 @@ void filelist_from_library(struct FileList* filelist)
 
 				/* first allocate imbuf for copying preview into it */
 				if (w > 0 && h > 0 && rect) {
-					ima = IMB_allocImBuf(w, h, 32, IB_rect, 0);
+					ima = IMB_allocImBuf(w, h, 32, IB_rect);
 					memcpy(ima->rect, rect, w*h*sizeof(unsigned int));
 					filelist->filelist[i + 1].image = ima;
 					filelist->filelist[i + 1].flags = IMAGEFILE;
@@ -979,7 +979,7 @@ void filelist_from_library(struct FileList* filelist)
 
 	filelist_sort(filelist, FILE_SORT_ALPHA);
 
-	BLI_strncpy(G.sce, filename, sizeof(filename));	// prevent G.sce to change
+	BLI_strncpy(G.main->name, filename, sizeof(filename));	// prevent G.main->name to change
 
 	filelist->filter = 0;
 	filelist_filter(filelist);
@@ -1145,7 +1145,7 @@ static void thumbnail_joblist_free(ThumbnailJob *tj)
 	BLI_freelistN(&tj->loadimages);
 }
 
-static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float *progress)
+static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float *UNUSED(progress))
 {
 	ThumbnailJob *tj= tjv;
 	FileImage* limg = tj->loadimages.first;

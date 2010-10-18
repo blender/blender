@@ -40,7 +40,7 @@ static bNodeSocketType cmp_node_crop_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_exec_crop(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if(in[0]->data) {
 		NodeTwoXYs *ntxy= node->storage;

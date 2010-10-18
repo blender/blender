@@ -36,7 +36,7 @@ static bNodeSocketType time_outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void time_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
+static void time_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **UNUSED(in), short UNUSED(thread))
 {
 	/* stack order output: fac */
 	float fac= 0.0f;

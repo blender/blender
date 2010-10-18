@@ -194,7 +194,7 @@ static ConsoleLine *console_scrollback_add(const bContext *C, ConsoleLine *from)
 }
 #endif
 
-static ConsoleLine *console_lb_add_str__internal(ListBase *lb, const bContext *C, char *str, int own)
+static ConsoleLine *console_lb_add_str__internal(ListBase *lb, char *str, int own)
 {
 	ConsoleLine *ci= MEM_callocN(sizeof(ConsoleLine), "ConsoleLine Add");
 	if(own)		ci->line= str;
@@ -205,14 +205,13 @@ static ConsoleLine *console_lb_add_str__internal(ListBase *lb, const bContext *C
 	BLI_addtail(lb, ci);
 	return ci;
 }
-ConsoleLine *console_history_add_str(const bContext *C, char *str, int own)
+ConsoleLine *console_history_add_str(SpaceConsole *sc, char *str, int own)
 {
-	return console_lb_add_str__internal(&CTX_wm_space_console(C)->history, C, str, own);
+	return console_lb_add_str__internal(&sc->history, str, own);
 }
-ConsoleLine *console_scrollback_add_str(const bContext *C, char *str, int own)
+ConsoleLine *console_scrollback_add_str(SpaceConsole *sc, char *str, int own)
 {
-	SpaceConsole *sc= CTX_wm_space_console(C);
-	ConsoleLine *ci= console_lb_add_str__internal(&sc->scrollback, C, str, own);
+	ConsoleLine *ci= console_lb_add_str__internal(&sc->scrollback, str, own);
 	console_select_offset(sc, ci->len + 1);
 	return ci;
 }
@@ -406,9 +405,8 @@ static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	// if(!RNA_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
 	if(!RNA_string_length(op->ptr, "text")) {
 		char str[2] = {event->ascii, '\0'};
-
 		/* if alt/ctrl/super are pressed pass through */
-		if(event->alt || event->ctrl || event->oskey)
+		if(event->ctrl || event->oskey)
 			return OPERATOR_PASS_THROUGH;
 
 		RNA_string_set(op->ptr, "text", str);
@@ -628,7 +626,7 @@ static int history_append_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	ci= console_history_add_str(C, str, 1); /* own the string */
+	ci= console_history_add_str(sc, str, 1); /* own the string */
 	console_select_offset(sc, ci->len - prev_len);
 	console_line_cursor_set(ci, cursor);
 	
@@ -664,7 +662,7 @@ static int scrollback_append_exec(bContext *C, wmOperator *op)
 	char *str= RNA_string_get_alloc(op->ptr, "text", NULL, 0); /* own this text in the new line, dont free */
 	int type= RNA_enum_get(op->ptr, "type");
 	
-	ci= console_scrollback_add_str(C, str, 1); /* own the string */
+	ci= console_scrollback_add_str(sc, str, 1); /* own the string */
 	ci->type= type;
 	
 	console_scrollback_limit(sc);
@@ -699,7 +697,7 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 }
 
 
-static int copy_exec(bContext *C, wmOperator *op)
+static int copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	int buf_len;
@@ -780,7 +778,7 @@ void CONSOLE_OT_copy(wmOperatorType *ot)
 	/* properties */
 }
 
-static int paste_exec(bContext *C, wmOperator *op)
+static int paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ConsoleLine *ci= console_history_verify(C);
@@ -835,7 +833,8 @@ typedef struct SetConsoleCursor {
 	int sel_init;
 } SetConsoleCursor;
 
-static void set_cursor_to_pos(SpaceConsole *sc, ARegion *ar, SetConsoleCursor *scu, int mval[2], int sel)
+// TODO, cursor placement without selection
+static void set_cursor_to_pos(SpaceConsole *sc, ARegion *ar, SetConsoleCursor *scu, int mval[2], int UNUSED(sel))
 {
 	int pos;
 	pos= console_char_pick(sc, ar, NULL, mval);
@@ -870,7 +869,7 @@ static void console_modal_select_apply(bContext *C, wmOperator *op, wmEvent *eve
 	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
-static void set_cursor_exit(bContext *C, wmOperator *op)
+static void set_cursor_exit(bContext *UNUSED(C), wmOperator *op)
 {
 //	SpaceConsole *sc= CTX_wm_space_console(C);
 	SetConsoleCursor *scu= op->customdata;

@@ -42,7 +42,7 @@
 
 /* Math stuff for ray casting on mesh faces and for nearest surface */
 
-static float ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, const float *v0, const float *v1, const float *v2)
+static float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), const float *v0, const float *v1, const float *v2)
 {
 	float dist;
 

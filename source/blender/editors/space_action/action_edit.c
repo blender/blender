@@ -70,7 +70,7 @@
 
 /* ******************** New Action Operator *********************** */
 
-static int act_new_exec(bContext *C, wmOperator *op)
+static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAction *action;
 	PointerRNA ptr, idptr;
@@ -173,7 +173,7 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 
 /* ****************** Automatic Preview-Range Operator ****************** */
 
-static int actkeys_previewrange_exec(bContext *C, wmOperator *op)
+static int actkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	Scene *scene;
@@ -217,7 +217,7 @@ void ACTION_OT_previewrange_set (wmOperatorType *ot)
 
 /* ****************** View-All Operator ****************** */
 
-static int actkeys_viewall_exec(bContext *C, wmOperator *op)
+static int actkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	View2D *v2d;
@@ -521,7 +521,7 @@ static void duplicate_action_keys (bAnimContext *ac)
 
 /* ------------------- */
 
-static int actkeys_duplicate_exec(bContext *C, wmOperator *op)
+static int actkeys_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -541,7 +541,7 @@ static int actkeys_duplicate_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED; // xxx - start transform
 }
 
-static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	actkeys_duplicate_exec(C, op);
 	
@@ -608,7 +608,7 @@ static void delete_action_keys (bAnimContext *ac)
 
 /* ------------------- */
 
-static int actkeys_delete_exec(bContext *C, wmOperator *op)
+static int actkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -734,7 +734,7 @@ static void sample_action_keys (bAnimContext *ac)
 
 /* ------------------- */
 
-static int actkeys_sample_exec(bContext *C, wmOperator *op)
+static int actkeys_sample_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -791,7 +791,7 @@ static void setexpo_action_keys(bAnimContext *ac, short mode)
 	int filter;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through setting mode per F-Curve */
@@ -1096,7 +1096,7 @@ void ACTION_OT_keyframe_type (wmOperatorType *ot)
 /* ***************** Jump to Selected Frames Operator *********************** */
 
 /* snap current-frame indicator to 'average time' of selected keyframe */
-static int actkeys_framejump_exec(bContext *C, wmOperator *op)
+static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	ListBase anim_data= {NULL, NULL};

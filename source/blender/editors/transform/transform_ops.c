@@ -145,7 +145,7 @@ static int select_orientation_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int select_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int select_orientation_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
@@ -179,7 +179,7 @@ void TRANSFORM_OT_select_orientation(struct wmOperatorType *ot)
 }
 
 
-static int delete_orientation_exec(bContext *C, wmOperator *op)
+static int delete_orientation_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
@@ -192,7 +192,7 @@ static int delete_orientation_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int delete_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int delete_orientation_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	return delete_orientation_exec(C, op);
 }
@@ -243,7 +243,7 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int create_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int create_orientation_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	return create_orientation_exec(C, op);
 }

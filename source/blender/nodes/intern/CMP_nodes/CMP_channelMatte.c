@@ -42,7 +42,7 @@ static bNodeSocketType cmp_node_channel_matte_out[]={
 	{-1,0,""}
 };
 
-static void do_normalized_rgba_to_ycca2(bNode *node, float *out, float *in)
+static void do_normalized_rgba_to_ycca2(bNode *UNUSED(node), float *out, float *in)
 {
 	/*normalize to the range 0.0 to 1.0) */
 	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
@@ -52,7 +52,7 @@ static void do_normalized_rgba_to_ycca2(bNode *node, float *out, float *in)
 	out[3]=in[3];
 }
 
-static void do_normalized_ycca_to_rgba2(bNode *node, float *out, float *in)
+static void do_normalized_ycca_to_rgba2(bNode *UNUSED(node), float *out, float *in)
 {
 	/*un-normalize the normalize from above */
 	in[0]=in[0]*255.0;

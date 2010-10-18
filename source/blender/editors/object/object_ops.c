@@ -378,7 +378,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	ED_object_generic_keymap(keyconf, keymap, 2);
 }
 
-void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet)
+void ED_object_generic_keymap(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyMap *keymap, int do_pet)
 {
 	wmKeyMapItem *kmi;
 

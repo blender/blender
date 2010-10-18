@@ -321,7 +321,7 @@ u	|     |  F1 |  F2 |
 
 /* ------------------------------------------------------------------------- */
 
-static void split_v_renderfaces(ObjectRen *obr, int startvlak, int startvert, int usize, int vsize, int uIndex, int cyclu, int cyclv)
+static void split_v_renderfaces(ObjectRen *obr, int startvlak, int startvert, int usize, int vsize, int uIndex, int UNUSED(cyclu), int cyclv)
 {
 	int vLen = vsize-1+(!!cyclv);
 	int v;

@@ -662,59 +662,59 @@ void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 	}
 }
 
-void do_rgba_to_yuva(bNode *node, float *out, float *in)
+void do_rgba_to_yuva(bNode *UNUSED(node), float *out, float *in)
 {
    rgb_to_yuv(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
    out[3]=in[3];
 }
 
-void do_rgba_to_hsva(bNode *node, float *out, float *in)
+void do_rgba_to_hsva(bNode *UNUSED(node), float *out, float *in)
 {
    rgb_to_hsv(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
    out[3]=in[3];
 }
 
-void do_rgba_to_ycca(bNode *node, float *out, float *in)
+void do_rgba_to_ycca(bNode *UNUSED(node), float *out, float *in)
 {
    rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
    out[3]=in[3];
 }
 
-void do_yuva_to_rgba(bNode *node, float *out, float *in)
+void do_yuva_to_rgba(bNode *UNUSED(node), float *out, float *in)
 {
    yuv_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
    out[3]=in[3];
 }
 
-void do_hsva_to_rgba(bNode *node, float *out, float *in)
+void do_hsva_to_rgba(bNode *UNUSED(node), float *out, float *in)
 {
    hsv_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
    out[3]=in[3];
 }
 
-void do_ycca_to_rgba(bNode *node, float *out, float *in)
+void do_ycca_to_rgba(bNode *UNUSED(node), float *out, float *in)
 {
    ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
    out[3]=in[3];
 }
 
-void do_copy_rgba(bNode *node, float *out, float *in)
+void do_copy_rgba(bNode *UNUSED(node), float *out, float *in)
 {
    QUATCOPY(out, in);
 }
 
-void do_copy_rgb(bNode *node, float *out, float *in)
+void do_copy_rgb(bNode *UNUSED(node), float *out, float *in)
 {
    VECCOPY(out, in);
    out[3]= 1.0f;
 }
 
-void do_copy_value(bNode *node, float *out, float *in)
+void do_copy_value(bNode *UNUSED(node), float *out, float *in)
 {
    out[0]= in[0];
 }
 
-void do_copy_a_rgba(bNode *node, float *out, float *in, float *fac)
+void do_copy_a_rgba(bNode *UNUSED(node), float *out, float *in, float *fac)
 {
    VECCOPY(out, in);
    out[3]= *fac;

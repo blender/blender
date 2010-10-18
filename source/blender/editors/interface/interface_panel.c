@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* a full doc with API notes can be found in bf-blender/blender/doc/interface_API.txt */
+/* a full doc with API notes can be found in bf-blender/trunk/blender/doc/guides/interface_API.txt */
  
 #include <math.h>
 #include <stdlib.h>
@@ -316,7 +316,7 @@ void uiPanelPush(uiBlock *block)
 		glTranslatef((float)block->panel->ofsx, (float)block->panel->ofsy, 0.0);
 }
 
-void uiPanelPop(uiBlock *block)
+void uiPanelPop(uiBlock *UNUSED(block))
 {
 	glPopMatrix();
 }
@@ -425,7 +425,7 @@ static void ui_draw_panel_dragwidget(rctf *rect)
 }
 
 
-static void ui_draw_aligned_panel_header(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect, char dir)
+static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *rect, char dir)
 {
 	Panel *panel= block->panel;
 	rcti hrect;
@@ -468,7 +468,7 @@ static void rectf_scale(rctf *rect, float scale)
 }
 
 /* panel integrated in buttonswindow, tool/property lists etc */
-void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
+void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 {
 	Panel *panel= block->panel;
 	rcti headrect;
@@ -499,7 +499,7 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 	
 	/* horizontal title */
 	if(!(panel->flag & PNL_CLOSEDX)) {
-		ui_draw_aligned_panel_header(ar, style, block, &headrect, 'h');
+		ui_draw_aligned_panel_header(style, block, &headrect, 'h');
 		
 		/* itemrect smaller */	
 		itemrect.xmax= headrect.xmax - 5.0f/block->aspect;
@@ -518,7 +518,7 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 	}
 	else if(panel->flag & PNL_CLOSEDX) {
 		/* draw vertical title */
-		ui_draw_aligned_panel_header(ar, style, block, &headrect, 'v');
+		ui_draw_aligned_panel_header(style, block, &headrect, 'v');
 	}
 	/* an open panel */
 	else {
@@ -772,7 +772,7 @@ static void ui_do_animate(const bContext *C, Panel *panel)
 	}
 }
 
-void uiBeginPanels(const bContext *C, ARegion *ar)
+void uiBeginPanels(const bContext *UNUSED(C), ARegion *ar)
 {
 	Panel *pa;
   

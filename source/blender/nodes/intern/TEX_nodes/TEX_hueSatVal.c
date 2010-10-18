@@ -42,7 +42,7 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void do_hue_sat_fac(bNode *node, float *out, float hue, float sat, float val, float *in, float fac)
+static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float hue, float sat, float val, float *in, float fac)
 {
 	if(fac != 0 && (hue != 0.5f || sat != 1 || val != 1)) {
 		float col[3], hsv[3], mfac= 1.0f - fac;

@@ -107,7 +107,7 @@ wmKeyConfig *WM_keyconfig_new	(struct wmWindowManager *wm, char *idname);
 wmKeyConfig *WM_keyconfig_new_user(struct wmWindowManager *wm, char *idname);
 void 		WM_keyconfig_remove	(struct wmWindowManager *wm, struct wmKeyConfig *keyconf);
 void 		WM_keyconfig_free	(struct wmKeyConfig *keyconf);
-void		WM_keyconfig_userdef(struct wmWindowManager *wm);
+void		WM_keyconfig_userdef(void);
 
 void		WM_keymap_init		(struct bContext *C);
 void		WM_keymap_free		(struct wmKeyMap *keymap);

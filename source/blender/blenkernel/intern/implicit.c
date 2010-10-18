@@ -726,7 +726,7 @@ typedef struct Implicit_Data
 	fmatrix3x3 *A, *dFdV, *dFdX, *S, *P, *Pinv, *bigI, *M; 
 } Implicit_Data;
 
-int implicit_init (Object *ob, ClothModifierData *clmd)
+int implicit_init (Object *UNUSED(ob), ClothModifierData *clmd)
 {
 	unsigned int i = 0;
 	unsigned int pinned = 0;
@@ -1218,7 +1218,7 @@ DO_INLINE void dfdx_damp(float to[3][3],  float dir[3],float length,const float 
 
 }
 
-DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *lF, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float time)
+DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *UNUSED(lF), lfVector *X, lfVector *V, fmatrix3x3 *UNUSED(dFdV), fmatrix3x3 *UNUSED(dFdX), float time)
 {
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;
@@ -1353,7 +1353,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	}
 }
 
-DO_INLINE void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *lF, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX)
+DO_INLINE void cloth_apply_spring_force(ClothModifierData *UNUSED(clmd), ClothSpring *s, lfVector *lF, lfVector *UNUSED(X), lfVector *UNUSED(V), fmatrix3x3 *dFdV, fmatrix3x3 *dFdX)
 {
 	if(s->flags & CLOTH_SPRING_FLAG_NEEDED)
 	{
@@ -1555,7 +1555,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 	free_collider_cache(&colliders);
 }
 
-static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
+static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
 {
 	/* Collect forces and derivatives:  F,dFdX,dFdV */
 	Cloth 		*cloth 		= clmd->clothObject;
@@ -1708,7 +1708,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF,
 	// printf("\n");
 }
 
-static void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, lfVector *olddV, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *M, fmatrix3x3 *bigI)
+static void simulate_implicit_euler(lfVector *Vnew, lfVector *UNUSED(lX), lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, lfVector *olddV, fmatrix3x3 *UNUSED(P), fmatrix3x3 *UNUSED(Pinv), fmatrix3x3 *M, fmatrix3x3 *UNUSED(bigI))
 {
 	unsigned int numverts = dFdV[0].vcount;
 

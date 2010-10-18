@@ -181,7 +181,7 @@ void GRAPH_OT_cursor_set(wmOperatorType *ot)
 
 /* Toggle Handles ----------------------------------------------------------------- */
 
-static int view_toggle_handles_exec (bContext *C, wmOperator *op)
+static int view_toggle_handles_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	ARegion *ar= CTX_wm_region(C);

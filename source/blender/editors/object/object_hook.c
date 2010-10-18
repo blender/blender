@@ -504,7 +504,7 @@ void OBJECT_OT_hook_add_selobj(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int object_add_hook_newob_exec(bContext *C, wmOperator *op)
+static int object_add_hook_newob_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -557,7 +557,7 @@ static int object_hook_remove_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static EnumPropertyItem *hook_mod_itemf(bContext *C, PointerRNA *ptr, int *free)
+static EnumPropertyItem *hook_mod_itemf(bContext *C, PointerRNA *UNUSED(ptr), int *free)
 {	
 	Object *ob = CTX_data_edit_object(C);
 	EnumPropertyItem tmp = {0, "", 0, "", ""};

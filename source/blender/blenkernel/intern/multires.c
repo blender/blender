@@ -456,7 +456,7 @@ static DerivedMesh *multires_dm_create_local(Object *ob, DerivedMesh *dm, int lv
 	return multires_dm_create_from_derived(&mmd, 1, dm, ob, 0, 0);
 }
 
-static DerivedMesh *subsurf_dm_create_local(Object *ob, DerivedMesh *dm, int lvl, int simple, int optimal)
+static DerivedMesh *subsurf_dm_create_local(Object *UNUSED(ob), DerivedMesh *dm, int lvl, int simple, int optimal)
 {
 	SubsurfModifierData smd;
 
@@ -780,7 +780,7 @@ void multires_stitch_grids(Object *ob)
 }
 
 DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, int local_mmd, DerivedMesh *dm, Object *ob,
-							int useRenderParams, int isFinalCalc)
+							int useRenderParams, int UNUSED(isFinalCalc))
 {
 	Mesh *me= ob->data;
 	DerivedMesh *result;
@@ -874,7 +874,7 @@ static void old_mdisps_bilinear(float out[3], float (*disps)[3], int st, float u
 	add_v3_v3v3(out, d2[0], d2[1]);
 }
 
-static void old_mdisps_rotate(int S, int newside, int oldside, int x, int y, float *u, float *v)
+static void old_mdisps_rotate(int S, int UNUSED(newside), int oldside, int x, int y, float *u, float *v)
 {
 	float offset = oldside*0.5f - 0.5f;
 

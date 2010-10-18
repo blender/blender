@@ -434,7 +434,7 @@ void NLA_OT_tracks_add (wmOperatorType *ot)
 /* ******************** Delete Tracks Operator ***************************** */
 /* Delete selected NLA Tracks */
 
-static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *op)
+static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	

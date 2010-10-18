@@ -63,7 +63,7 @@
 #define B_NOP		1
 #define B_REDR		2
 
-static void do_node_region_buttons(bContext *C, void *arg, int event)
+static void do_node_region_buttons(bContext *C, void *UNUSED(arg), int event)
 {
 	//SpaceNode *snode= CTX_wm_space_node(C);
 	
@@ -75,7 +75,7 @@ static void do_node_region_buttons(bContext *C, void *arg, int event)
 }
 
 /* poll callback for active node */
-static int active_node_poll(const bContext *C, PanelType *pt)
+static int active_node_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
@@ -135,7 +135,7 @@ void node_buttons_register(ARegionType *art)
 	BLI_addtail(&art->paneltypes, pt);
 }
 
-static int node_properties(bContext *C, wmOperator *op)
+static int node_properties(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= node_has_buttons_region(sa);

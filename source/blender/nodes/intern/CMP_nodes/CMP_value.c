@@ -35,7 +35,7 @@ static bNodeSocketType cmp_node_value_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_exec_value(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_value(void *UNUSED(data), bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	bNodeSocket *sock= node->outputs.first;
 	

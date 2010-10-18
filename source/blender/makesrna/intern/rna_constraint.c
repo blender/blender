@@ -1242,10 +1242,16 @@ static void rna_def_constraint_rigid_body_joint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Axis Z", "Rotate pivot on Z axis in degrees");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-	/* XXX not sure how to wrap the two 6 element arrays for the generic joint */
-	//float       minLimit[6];
-	//float       maxLimit[6];
-	
+	prop= RNA_def_property(srna, "limit_min", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "minLimit");
+	RNA_def_property_array(prop, 6);
+	RNA_def_property_ui_text(prop, "Minimum Limit", "");
+
+	prop= RNA_def_property(srna, "limit_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "maxLimit");
+	RNA_def_property_array(prop, 6);
+	RNA_def_property_ui_text(prop, "Maximum Limit", "");
+
 	prop= RNA_def_property(srna, "use_linked_collision", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_DISABLE_LINKED_COLLISION);
 	RNA_def_property_ui_text(prop, "Disable Linked Collision", "Disable collision between linked bodies");

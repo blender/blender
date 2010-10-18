@@ -126,20 +126,20 @@ Render R;
 
 
 static volatile int g_break= 0;
-static int thread_break(void *unused)
+static int thread_break(void *UNUSED(arg))
 {
 	return g_break;
 }
 
 /* default callbacks, set in each new render */
-static void result_nothing(void *unused, RenderResult *rr) {}
-static void result_rcti_nothing(void *unused, RenderResult *rr, volatile struct rcti *rect) {}
-static void stats_nothing(void *unused, RenderStats *rs) {}
-static void float_nothing(void *unused, float val) {}
-static void print_error(void *unused, char *str) {printf("ERROR: %s\n", str);}
-static int default_break(void *unused) {return G.afbreek == 1;}
+static void result_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr)) {}
+static void result_rcti_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr), volatile struct rcti *UNUSED(rect)) {}
+static void stats_nothing(void *UNUSED(arg), RenderStats *UNUSED(rs)) {}
+static void float_nothing(void *UNUSED(arg), float UNUSED(val)) {}
+static void print_error(void *UNUSED(arg), char *str) {printf("ERROR: %s\n", str);}
+static int default_break(void *UNUSED(arg)) {return G.afbreek == 1;}
 
-static void stats_background(void *unused, RenderStats *rs)
+static void stats_background(void *UNUSED(arg), RenderStats *rs)
 {
 	char str[400], *spos= str;
 	uintptr_t mem_in_use, mmap_in_use, peak_memory;
@@ -456,7 +456,7 @@ static void render_unique_exr_name(Render *re, char *str, int sample)
 {
 	char di[FILE_MAX], name[FILE_MAXFILE+MAX_ID_NAME+100], fi[FILE_MAXFILE];
 	
-	BLI_strncpy(di, G.sce, FILE_MAX);
+	BLI_strncpy(di, G.main->name, FILE_MAX);
 	BLI_splitdirstring(di, fi);
 	
 	if(sample==0)
@@ -866,7 +866,7 @@ static void *ml_addlayer_cb(void *base, char *str)
 	BLI_strncpy(rl->name, str, EXR_LAY_MAXNAME);
 	return rl;
 }
-static void ml_addpass_cb(void *base, void *lay, char *str, float *rect, int totchan, char *chan_id)
+static void ml_addpass_cb(void *UNUSED(base), void *lay, char *str, float *rect, int totchan, char *chan_id)
 {
 	RenderLayer *rl= lay;	
 	RenderPass *rpass= MEM_callocN(sizeof(RenderPass), "loaded pass");
@@ -1403,7 +1403,7 @@ void RE_error_cb(Render *re, void *handle, void (*f)(void *handle, char *str))
 
 /* object is considered fully prepared on correct time etc */
 /* includes lights */
-void RE_AddObject(Render *re, Object *ob)
+void RE_AddObject(Render *UNUSED(re), Object *UNUSED(ob))
 {
 	
 }
@@ -2043,7 +2043,7 @@ static void load_backbuffer(Render *re)
 		char name[256];
 		
 		strcpy(name, re->r.backbuf);
-		BLI_path_abs(name, G.sce);
+		BLI_path_abs(name, G.main->name);
 		BLI_path_frame(name, re->r.cfra, 0);
 		
 		if(re->backbuf) {
@@ -2052,7 +2052,7 @@ static void load_backbuffer(Render *re)
 				BKE_image_signal(re->backbuf, NULL, IMA_SIGNAL_RELOAD);
 		}
 		
-		re->backbuf= BKE_add_image_file(name, re->r.cfra);
+		re->backbuf= BKE_add_image_file(name);
 		ibuf= BKE_image_get_ibuf(re->backbuf, NULL);
 		if(ibuf==NULL) {
 			// error() doesnt work with render window open
@@ -2237,7 +2237,7 @@ static int composite_needs_render(Scene *sce)
 }
 
 /* bad call... need to think over proper method still */
-static void render_composit_stats(void *unused, char *str)
+static void render_composit_stats(void *UNUSED(arg), char *str)
 {
 	R.i.infostr= str;
 	R.stats_draw(R.sdh, &R.i);
@@ -2753,7 +2753,7 @@ static int is_rendering_allowed(Render *re)
 	return 1;
 }
 
-static void update_physics_cache(Render *re, Scene *scene, int anim_init)
+static void update_physics_cache(Render *re, Scene *scene, int UNUSED(anim_init))
 {
 	PTCacheBaker baker;
 
@@ -2899,7 +2899,7 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 			}
 		}
 		else {
-			ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0, 0);
+			ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0);
 			
 			/* if not exists, BKE_write_ibuf makes one */
 			ibuf->rect= (unsigned int *)rres.rect32;    
@@ -3256,7 +3256,7 @@ void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, char *file
 				if(ibuf->rect_float==NULL)
 					IMB_float_from_rect(ibuf);
 
-				ibuf_clip = IMB_allocImBuf(layer->rectx, layer->recty, 32, IB_rectfloat, 0);
+				ibuf_clip = IMB_allocImBuf(layer->rectx, layer->recty, 32, IB_rectfloat);
 				if(ibuf_clip) {
 					IMB_rectcpy(ibuf_clip, ibuf, 0,0, 0,0, layer->rectx, layer->recty);
 

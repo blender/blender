@@ -61,7 +61,8 @@ int imb_is_a_png(unsigned char *mem)
 }
 
 static void Flush(png_structp png_ptr) 
-{ 
+{
+	(void)png_ptr;
 }
 
 static void WriteData( png_structp png_ptr, png_bytep data, png_size_t length)
@@ -368,7 +369,7 @@ struct ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
 		longjmp(png_jmpbuf(png_ptr), 1);
 	}
 	
-	ibuf = IMB_allocImBuf(width, height, 8 * bytesperpixel, 0, 0);
+	ibuf = IMB_allocImBuf(width, height, 8 * bytesperpixel, 0);
 
 	if (ibuf) {
 		ibuf->ftype = PNG;

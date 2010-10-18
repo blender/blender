@@ -539,7 +539,7 @@ void GRAPH_OT_select_column (wmOperatorType *ot)
 
 /* ******************** Select Linked Operator *********************** */
 
-static int graphkeys_select_linked_exec (bContext *C, wmOperator *op)
+static int graphkeys_select_linked_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -638,7 +638,7 @@ static void select_moreless_graph_keys (bAnimContext *ac, short mode)
 
 /* ----------------- */
 
-static int graphkeys_select_more_exec (bContext *C, wmOperator *op)
+static int graphkeys_select_more_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -672,7 +672,7 @@ void GRAPH_OT_select_more (wmOperatorType *ot)
 
 /* ----------------- */
 
-static int graphkeys_select_less_exec (bContext *C, wmOperator *op)
+static int graphkeys_select_less_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -886,7 +886,7 @@ static void get_nearest_fcurve_verts_list (bAnimContext *ac, int mval[2], ListBa
 }
 
 /* helper for find_nearest_fcurve_vert() - get the best match to use */
-static tNearestVertInfo *get_best_nearest_fcurve_vert (bAnimContext *ac, ListBase *matches)
+static tNearestVertInfo *get_best_nearest_fcurve_vert (ListBase *matches)
 {
 	tNearestVertInfo *nvi = NULL;
 	short found = 0;
@@ -941,7 +941,7 @@ static tNearestVertInfo *find_nearest_fcurve_vert (bAnimContext *ac, int mval[2]
 	get_nearest_fcurve_verts_list(ac, mval, &matches);
 	
 	/* step 2: find the best vert */
-	nvi= get_best_nearest_fcurve_vert(ac, &matches);
+	nvi= get_best_nearest_fcurve_vert(&matches);
 	
 	BLI_freelistN(&matches);
 	

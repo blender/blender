@@ -192,7 +192,7 @@ static int draw_tfaces3D__drawFaceOpts(void *userData, int index)
 		return 0;
 }
 
-static void draw_tfaces3D(RegionView3D *rv3d, Object *ob, Mesh *me, DerivedMesh *dm)
+static void draw_tfaces3D(RegionView3D *rv3d, Mesh *me, DerivedMesh *dm)
 {
 	struct { Mesh *me; EdgeHash *eh; } data;
 
@@ -671,7 +671,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	
 	/* draw edges and selected faces over textured mesh */
 	if(!(ob == scene->obedit) && faceselect)
-		draw_tfaces3D(rv3d, ob, me, dm);
+		draw_tfaces3D(rv3d, me, dm);
 
 	/* reset from negative scale correction */
 	glFrontFace(GL_CCW);

@@ -177,13 +177,16 @@ void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb, in
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
 {
 	unsigned int ri, gi, bi;
-	
+
 	if (hexcol[0] == '#') hexcol++;
-	
-	if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi)) {
+
+	if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi)==3) {
 		*r = ri / 255.0f;
 		*g = gi / 255.0f;		
 		*b = bi / 255.0f;
+		CLAMP(*r, 0.0f, 1.0f);
+		CLAMP(*g, 0.0f, 1.0f);
+		CLAMP(*b, 0.0f, 1.0f);
 	}
 }
 
@@ -230,6 +233,26 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 	*lh = h / 360.0f;
 	if(*lh < 0.0f) *lh= 0.0f;
 	*lv = v;
+}
+
+void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *lv)
+{
+	float orig_h= *lh;
+	float orig_s= *ls;
+
+	rgb_to_hsv(r, g, b, lh, ls, lv);
+
+	if(*lv <= 0.0f) {
+		*lh= orig_h;
+		*ls= orig_s;
+	}
+	else if (*ls <= 0.0f) {
+		*lh= orig_h;
+	}
+
+	if(*lh==0.0f && orig_h >= 1.0f) {
+		*lh= 1.0f;
+	}
 }
 
 /*http://brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html */

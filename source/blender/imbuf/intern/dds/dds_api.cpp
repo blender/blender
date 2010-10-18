@@ -104,7 +104,7 @@ struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags)
 	// TODO use the image RGB or RGBA tag to determine the bits per pixel
 	if (dds.hasAlpha()) bits_per_pixel = 32;
 	else bits_per_pixel = 24;
-	ibuf = IMB_allocImBuf(dds.width(), dds.height(), bits_per_pixel, 0, 0); 
+	ibuf = IMB_allocImBuf(dds.width(), dds.height(), bits_per_pixel, 0);
 	if (ibuf == 0) return(0); /* memory allocation failed */
 
 	ibuf->ftype = DDS;

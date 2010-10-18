@@ -64,7 +64,7 @@ struct Base *object_in_scene(struct Object *ob, struct Scene *sce);
 void set_scene_bg(struct Main *bmain, struct Scene *sce);
 struct Scene *set_scene_name(struct Main *bmain, char *name);
 
-struct Scene *copy_scene(struct Main *bmain, struct Scene *sce, int type);
+struct Scene *copy_scene(struct Scene *sce, int type);
 void unlink_scene(struct Main *bmain, struct Scene *sce, struct Scene *newsce);
 
 int next_object(struct Scene **scene, int val, struct Base **base, struct Object **ob);

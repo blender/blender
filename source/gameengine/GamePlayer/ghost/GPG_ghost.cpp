@@ -95,9 +95,9 @@ extern char btempdir[];		/* use this to store a valid temp directory */
 
 #ifdef WIN32
 #include <windows.h>
-#ifdef NDEBUG
+#if !defined(DEBUG)
 #include <wincon.h>
-#endif // NDEBUG
+#endif // !defined(DEBUG)
 #endif // WIN32
 
 const int kMinWindowWidth = 100;
@@ -391,7 +391,7 @@ int main(int argc, char** argv)
 	IMB_init();
  
 	// Parse command line options
-#ifndef NDEBUG
+#if defined(DEBUG)
 	printf("argv[0] = '%s'\n", argv[0]);
 #endif
 
@@ -438,7 +438,7 @@ int main(int argc, char** argv)
 		;)
 
 	{
-#ifndef NDEBUG
+#if defined(DEBUG)
 		printf("argv[%d] = '%s'   , %i\n", i, argv[i],argc);
 #endif
 		if (argv[i][0] == '-')
@@ -469,7 +469,7 @@ int main(int argc, char** argv)
 								SYS_WriteCommandLineInt(syshandle, paramname, atoi(argv[i]));
 								SYS_WriteCommandLineFloat(syshandle, paramname, atof(argv[i]));
 								SYS_WriteCommandLineString(syshandle, paramname, argv[i]);
-#ifndef NDEBUG
+#if defined(DEBUG)
 								printf("%s = '%s'\n", paramname, argv[i]);
 #endif
 								i++;
@@ -542,9 +542,9 @@ int main(int argc, char** argv)
 					printf("error: too few options for parent window argument.\n");
 				}
 
-#ifndef NDEBUG
+#if defined(DEBUG)
 				printf("XWindows ID = %d\n", parentWindow);
-#endif //NDEBUG
+#endif // defined(DEBUG)
 
 #endif  // _WIN32			
 			case 'c':
@@ -745,12 +745,12 @@ int main(int argc, char** argv)
 					else 
 					{
 #ifdef WIN32
-#ifdef NDEBUG
+#if !defined(DEBUG)
 						if (closeConsole)
 						{
 							//::FreeConsole();    // Close a console window
 						}
-#endif // NDEBUG
+#endif // !defined(DEBUG)
 #endif // WIN32
 						Main *maggie = bfd->main;
 						Scene *scene = bfd->curscene;
@@ -821,8 +821,8 @@ int main(int argc, char** argv)
 						app.SetGameEngineData(maggie, scene, argc, argv); /* this argc cant be argc_py_clamped, since python uses it */
 						
 						BLI_strncpy(pathname, maggie->name, sizeof(pathname));
-						BLI_strncpy(G.sce, maggie->name, sizeof(G.sce));
-						setGamePythonPath(G.sce);
+						BLI_strncpy(G.main->name, maggie->name, sizeof(G.main->name));
+						setGamePythonPath(G.main->name);
 
 						if (firstTimeRunning)
 						{

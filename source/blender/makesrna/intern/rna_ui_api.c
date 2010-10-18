@@ -287,7 +287,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_int(func, "cols", 0, 0, INT_MAX, "Number of thumbnail preview columns to display", "", 0, INT_MAX);
 	
 	func= RNA_def_function(srna, "template_any_ID", "uiTemplateAnyID");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in data.");
@@ -297,7 +296,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_string(func, "text", "", 0, "", "Custom label to display in UI.");
 	
 	func= RNA_def_function(srna, "template_path_builder", "uiTemplatePathBuilder");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in data.");
@@ -343,17 +341,14 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "template_histogram", "uiTemplateHistogram");
 	RNA_def_function_ui_description(func, "Item. A histogramm widget to analyze imaga data.");
 	api_ui_item_rna_common(func);
-	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
 	
 	func= RNA_def_function(srna, "template_waveform", "uiTemplateWaveform");
 	RNA_def_function_ui_description(func, "Item. A waveform widget to analyze imaga data.");
 	api_ui_item_rna_common(func);
-	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
 	
 	func= RNA_def_function(srna, "template_vectorscope", "uiTemplateVectorscope");
 	RNA_def_function_ui_description(func, "Item. A vectorscope widget to analyze imaga data.");
 	api_ui_item_rna_common(func);
-	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
 	
 	func= RNA_def_function(srna, "template_layers", "uiTemplateLayers");
 	api_ui_item_rna_common(func);

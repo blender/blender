@@ -48,7 +48,7 @@
 MT_CDECL int MT_QueryAssert(const char *file, int line, const char *predicate, int *do_assert);
 
 
-#ifdef	NDEBUG
+#if !defined(DEBUG)
 #define MT_assert(predicate) ((void)0)
 #define BREAKPOINT() ((void)0)
 #else 
@@ -93,7 +93,7 @@ abort();
 }
 #endif /* windows */
 
-#endif /* NDEBUG */
+#endif /* !defined(DEBUG) */
 
 #endif
 

@@ -39,7 +39,7 @@ static bNodeSocketType cmp_node_viewer_in[]= {
 };
 
 
-static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
 {
 	/* image assigned to output */
 	/* stack order input sockets: col, alpha, z */

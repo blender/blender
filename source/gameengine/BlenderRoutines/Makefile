@@ -41,6 +41,8 @@ CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_AUDASPACE)/include
+# path to the guarded memory allocator
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 # because of kernel dependency on makesdna
 CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I../../blender/editors/include

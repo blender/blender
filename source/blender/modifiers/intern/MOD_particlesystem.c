@@ -34,6 +34,7 @@
 
 #include "DNA_material_types.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
@@ -119,9 +120,12 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 }
 
 /* saves the current emitter state for a particle system and calculates particles */
-static void deformVerts(
-						   ModifierData *md, Object *ob, DerivedMesh *derivedData,
-		float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+static void deformVerts(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						float (*vertexCos)[3],
+						int UNUSED(numVerts),
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm = derivedData;
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
@@ -137,7 +141,7 @@ static void deformVerts(
 		return;
 
 	if(dm==0) {
-		dm= get_dm(md->scene, ob, NULL, NULL, vertexCos, 1);
+		dm= get_dm(ob, NULL, NULL, vertexCos, 1);
 
 		if(!dm)
 			return;

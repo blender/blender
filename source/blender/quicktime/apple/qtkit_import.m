@@ -149,7 +149,7 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 	NSEnumerator *enumerator;
 	NSImageRep *representation;
 	
-	ibuf = IMB_allocImBuf (width, height, 32, IB_rect, 0);
+	ibuf = IMB_allocImBuf (width, height, 32, IB_rect);
 	if (!ibuf) {
 		if(QTIME_DEBUG) printf("quicktime_import: could not allocate memory for the " \
 				"image.\n");
@@ -359,7 +359,7 @@ int startquicktime (struct anim *anim)
 		return -1;
 	}
 
-	anim->qtime->ibuf = IMB_allocImBuf (anim->x, anim->y, 32, IB_rect, 0);
+	anim->qtime->ibuf = IMB_allocImBuf (anim->x, anim->y, 32, IB_rect);
 	
 	qtTimeDuration = [[anim->qtime->media attributeForKey:QTMediaDurationAttribute] QTTimeValue];
 	anim->qtime->durationTime = qtTimeDuration.timeValue;
@@ -450,7 +450,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	[bitmapImage setSize:bitmapSize];
 	
 	/* allocate the image buffer */
-	ibuf = IMB_allocImBuf(bitmapSize.width, bitmapSize.height, 32/*RGBA*/, 0, 0);
+	ibuf = IMB_allocImBuf(bitmapSize.width, bitmapSize.height, 32/*RGBA*/, 0);
 	if (!ibuf) {
 		fprintf(stderr, 
 				"imb_cocoaLoadImage: could not allocate memory for the " \

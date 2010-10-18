@@ -59,7 +59,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 	static int types_init = 1;
 
 	if (types_init) {
-		modifier_type_init(types, type); /* MOD_utils.c */
+		modifier_type_init(types); /* MOD_utils.c */
 		types_init= 0;
 	}
 
@@ -492,7 +492,7 @@ int modifier_isCorrectableDeformed(ModifierData *md)
 	return 0;
 }
 
-int modifiers_isCorrectableDeformed(struct Scene *scene, Object *ob)
+int modifiers_isCorrectableDeformed(Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	

@@ -551,7 +551,7 @@ void ACTION_OT_select_column (wmOperatorType *ot)
 
 /* ******************** Select Linked Operator *********************** */
 
-static int actkeys_select_linked_exec (bContext *C, wmOperator *op)
+static int actkeys_select_linked_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -650,7 +650,7 @@ static void select_moreless_action_keys (bAnimContext *ac, short mode)
 
 /* ----------------- */
 
-static int actkeys_select_more_exec (bContext *C, wmOperator *op)
+static int actkeys_select_more_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -684,7 +684,7 @@ void ACTION_OT_select_more (wmOperatorType *ot)
 
 /* ----------------- */
 
-static int actkeys_select_less_exec (bContext *C, wmOperator *op)
+static int actkeys_select_less_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -990,7 +990,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 		}
 		else if (ale->type == ANIMTYPE_GPLAYER) {
 			struct bGPDlayer *gpl= (struct bGPDlayer *)ale->data;
-			gpl_to_keylist(ads, gpl, &anim_keys, NULL);
+			gpl_to_keylist(ads, gpl, &anim_keys);
 		}
 		
 		/* loop through keyframes, finding one that was within the range clicked on */

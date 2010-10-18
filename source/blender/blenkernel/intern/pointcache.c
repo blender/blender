@@ -132,7 +132,7 @@ static int ptcache_write_basic_header(PTCacheFile *pf)
 	return 1;
 }
 /* Softbody functions */
-static int ptcache_write_softbody(int index, void *soft_v, void **data, int cfra)
+static int ptcache_write_softbody(int index, void *soft_v, void **data, int UNUSED(cfra))
 {
 	SoftBody *soft= soft_v;
 	BodyPoint *bp = soft->bpoint + index;
@@ -142,7 +142,7 @@ static int ptcache_write_softbody(int index, void *soft_v, void **data, int cfra
 
 	return 1;
 }
-static void ptcache_read_softbody(int index, void *soft_v, void **data, float frs_sec, float cfra, float *old_data)
+static void ptcache_read_softbody(int index, void *soft_v, void **data, float UNUSED(frs_sec), float UNUSED(cfra), float *old_data)
 {
 	SoftBody *soft= soft_v;
 	BodyPoint *bp = soft->bpoint + index;
@@ -156,7 +156,7 @@ static void ptcache_read_softbody(int index, void *soft_v, void **data, float fr
 		PTCACHE_DATA_TO(data, BPHYS_DATA_VELOCITY, 0, bp->vec);
 	}
 }
-static void ptcache_interpolate_softbody(int index, void *soft_v, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data)
+static void ptcache_interpolate_softbody(int index, void *soft_v, void **data, float UNUSED(frs_sec), float cfra, float cfra1, float cfra2, float *old_data)
 {
 	SoftBody *soft= soft_v;
 	BodyPoint *bp = soft->bpoint + index;
@@ -188,7 +188,7 @@ static void ptcache_interpolate_softbody(int index, void *soft_v, void **data, f
 	VECCOPY(bp->pos, keys->co);
 	VECCOPY(bp->vec, keys->vel);
 }
-static int ptcache_totpoint_softbody(void *soft_v, int cfra)
+static int ptcache_totpoint_softbody(void *soft_v, int UNUSED(cfra))
 {
 	SoftBody *soft= soft_v;
 	return soft->totpoint;
@@ -348,7 +348,7 @@ static void ptcache_interpolate_particle(int index, void *psys_v, void **data, f
 	pa->state.time = cfra;
 }
 
-static int ptcache_totpoint_particle(void *psys_v, int cfra)
+static int ptcache_totpoint_particle(void *psys_v, int UNUSED(cfra))
 {
 	ParticleSystem *psys = psys_v;
 	return psys->totpart;
@@ -493,7 +493,7 @@ static int ptcache_totwrite_particle(void *psys_v, int cfra)
 //}
 //
 /* Cloth functions */
-static int ptcache_write_cloth(int index, void *cloth_v, void **data, int cfra)
+static int ptcache_write_cloth(int index, void *cloth_v, void **data, int UNUSED(cfra))
 {
 	ClothModifierData *clmd= cloth_v;
 	Cloth *cloth= clmd->clothObject;
@@ -505,7 +505,7 @@ static int ptcache_write_cloth(int index, void *cloth_v, void **data, int cfra)
 
 	return 1;
 }
-static void ptcache_read_cloth(int index, void *cloth_v, void **data, float frs_sec, float cfra, float *old_data)
+static void ptcache_read_cloth(int index, void *cloth_v, void **data, float UNUSED(frs_sec), float UNUSED(cfra), float *old_data)
 {
 	ClothModifierData *clmd= cloth_v;
 	Cloth *cloth= clmd->clothObject;
@@ -522,7 +522,7 @@ static void ptcache_read_cloth(int index, void *cloth_v, void **data, float frs_
 		PTCACHE_DATA_TO(data, BPHYS_DATA_XCONST, 0, vert->xconst);
 	}
 }
-static void ptcache_interpolate_cloth(int index, void *cloth_v, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data)
+static void ptcache_interpolate_cloth(int index, void *cloth_v, void **data, float UNUSED(frs_sec), float cfra, float cfra1, float cfra2, float *old_data)
 {
 	ClothModifierData *clmd= cloth_v;
 	Cloth *cloth= clmd->clothObject;
@@ -558,7 +558,7 @@ static void ptcache_interpolate_cloth(int index, void *cloth_v, void **data, flo
 	/* should vert->xconst be interpolated somehow too? - jahka */
 }
 
-static int ptcache_totpoint_cloth(void *cloth_v, int cfra)
+static int ptcache_totpoint_cloth(void *cloth_v, int UNUSED(cfra))
 {
 	ClothModifierData *clmd= cloth_v;
 	return clmd->clothObject ? clmd->clothObject->numverts : 0;
@@ -635,7 +635,7 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 }
 
 /* Smoke functions */
-static int ptcache_totpoint_smoke(void *smoke_v, int cfra)
+static int ptcache_totpoint_smoke(void *smoke_v, int UNUSED(cfra))
 {
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
 	SmokeDomainSettings *sds = smd->domain;
@@ -648,7 +648,7 @@ static int ptcache_totpoint_smoke(void *smoke_v, int cfra)
 }
 
 /* Smoke functions */
-static int ptcache_totpoint_smoke_turbulence(void *smoke_v, int cfra)
+static int ptcache_totpoint_smoke_turbulence(void *smoke_v, int UNUSED(cfra))
 {
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
 	SmokeDomainSettings *sds = smd->domain;
@@ -670,6 +670,8 @@ static int ptcache_compress_write(PTCacheFile *pf, unsigned char *in, unsigned i
 	unsigned int out_len= 0;
 	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
 	size_t sizeOfIt = 5;
+
+	(void)mode; /* unused when building w/o compression */
 
 #ifdef WITH_LZO
 	out_len= LZO_OUT_LEN(in_len);
@@ -1083,7 +1085,7 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 static int ptcache_path(PTCacheID *pid, char *filename)
 {
 	Library *lib= (pid->ob)? pid->ob->id.lib: NULL;
-	const char *blendfilename= (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH)==0) ? lib->filepath: G.sce;
+	const char *blendfilename= (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH)==0) ? lib->filepath: G.main->name;
 	size_t i;
 
 	if(pid->cache->flag & PTCACHE_EXTERNAL) {
@@ -2220,7 +2222,7 @@ int BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
 
 		if(pid->type == PTCACHE_TYPE_CLOTH)
-			cloth_free_modifier(pid->ob, pid->calldata);
+			cloth_free_modifier(pid->calldata);
 		else if(pid->type == PTCACHE_TYPE_SOFTBODY)
 			sbFreeSimulation(pid->calldata);
 		else if(pid->type == PTCACHE_TYPE_PARTICLES)
@@ -2993,13 +2995,17 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 
 void BKE_ptcache_validate(PointCache *cache, int framenr)
 {
-	cache->flag |= PTCACHE_SIMULATION_VALID;
-	cache->simframe = framenr;
+	if(cache) {
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->simframe = framenr;
+	}
 }
 void BKE_ptcache_invalidate(PointCache *cache)
 {
-	cache->flag &= ~PTCACHE_SIMULATION_VALID;
-	cache->simframe = 0;
-	cache->last_exact = MIN2(cache->startframe, 0);
+	if(cache) {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe = 0;
+		cache->last_exact = MIN2(cache->startframe, 0);
+	}
 }
 

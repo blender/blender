@@ -98,7 +98,7 @@ static void do_huecorrect_fac(bNode *node, float *out, float *in, float *fac)
 	out[3]= in[3];
 }
 
-static void node_composit_exec_huecorrect(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_huecorrect(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	CompBuf *cbuf= in[1]->data;
 	CompBuf *stackbuf;

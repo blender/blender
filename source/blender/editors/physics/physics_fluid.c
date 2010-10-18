@@ -342,7 +342,7 @@ static void free_all_fluidobject_channels(ListBase *fobjects)
 	}
 }
 
-static void fluid_init_all_channels(bContext *C, Object *fsDomain, FluidsimSettings *domainSettings, FluidAnimChannels *channels, ListBase *fobjects)
+static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), FluidsimSettings *domainSettings, FluidAnimChannels *channels, ListBase *fobjects)
 {
 	Scene *scene = CTX_data_scene(C);
 	Base *base;
@@ -639,7 +639,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 	// prepare names...
 	strncpy(targetDir, domainSettings->surfdataPath, FILE_MAXDIR);
 	strncpy(newSurfdataPath, domainSettings->surfdataPath, FILE_MAXDIR);
-	BLI_path_abs(targetDir, G.sce); // fixed #frame-no 
+	BLI_path_abs(targetDir, G.main->name); // fixed #frame-no 
 	
 	strcpy(targetFile, targetDir);
 	strcat(targetFile, suffixConfig);
@@ -663,7 +663,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 		char blendFile[FILE_MAXDIR+FILE_MAXFILE];
 		
 		// invalid dir, reset to current/previous
-		strcpy(blendDir, G.sce);
+		strcpy(blendDir, G.main->name);
 		BLI_splitdirstring(blendDir, blendFile);
 		if(strlen(blendFile)>6){
 			int len = strlen(blendFile);
@@ -694,7 +694,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 		if(selection<1) return 0; // 0 from menu, or -1 aborted
 		strcpy(targetDir, newSurfdataPath);
 		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
-		BLI_path_abs(targetDir, G.sce); // fixed #frame-no 
+		BLI_path_abs(targetDir, G.main->name); // fixed #frame-no 
 	}
 #endif	
 	return outStringsChanged;
@@ -720,7 +720,7 @@ static void fluidbake_free(void *customdata)
 }
 
 /* called by fluidbake, only to check job 'stop' value */
-static int fluidbake_breakjob(void *customdata)
+static int fluidbake_breakjob(void *UNUSED(customdata))
 {
 	//FluidBakeJob *fb= (FluidBakeJob *)customdata;
 	//return *(fb->stop);
@@ -1047,7 +1047,7 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	return 1;
 }
 
-void fluidsimFreeBake(Object *ob)
+void fluidsimFreeBake(Object *UNUSED(ob))
 {
 	/* not implemented yet */
 }
@@ -1056,27 +1056,27 @@ void fluidsimFreeBake(Object *ob)
 
 /* compile dummy functions for disabled fluid sim */
 
-FluidsimSettings *fluidsimSettingsNew(Object *srcob)
+FluidsimSettings *fluidsimSettingsNew(Object *UNUSED(srcob))
 {
 	return NULL;
 }
 
-void fluidsimSettingsFree(FluidsimSettings *fss)
+void fluidsimSettingsFree(FluidsimSettings *UNUSED(fss))
 {
 }
 
-FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *fss)
+FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *UNUSED(fss))
 {
 	return NULL;
 }
 
 /* only compile dummy functions */
-int fluidsimBake(bContext *C, ReportList *reports, Object *ob)
+int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object *UNUSED(ob))
 {
 	return 0;
 }
 
-void fluidsimFreeBake(Object *ob)
+void fluidsimFreeBake(Object *UNUSED(ob))
 {
 }
 

@@ -967,7 +967,7 @@ static void view2d_map_cur_using_mask(View2D *v2d, rctf *curmasked)
 }
 
 /* Set view matrices to use 'cur' rect as viewing frame for View2D drawing */
-void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
+void UI_view2d_view_ortho(View2D *v2d)
 {
 	rctf curmasked;
 	float xofs, yofs;
@@ -997,9 +997,8 @@ void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 /* Set view matrices to only use one axis of 'cur' only
  *	- xaxis 	= if non-zero, only use cur x-axis, otherwise use cur-yaxis (mostly this will be used for x)
  */
-void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
+void UI_view2d_view_orthoSpecial(ARegion *ar, View2D *v2d, short xaxis)
 {
-	ARegion *ar= CTX_wm_region(C);
 	rctf curmasked;
 	float xofs, yofs;
 	
@@ -1098,12 +1097,12 @@ static void step_to_grid(float *step, int *power, int unit)
  *	
  *	- xunits,yunits	= V2D_UNIT_*  grid steps in seconds or frames 
  *	- xclamp,yclamp	= V2D_CLAMP_* only show whole-number intervals
- *	- winx			= width of region we're drawing to
+ *	- winx			= width of region we're drawing to, note: not used but keeping for completeness.
  *	- winy			= height of region we're drawing into
  */
-View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short xunits, short xclamp, short yunits, short yclamp, int winx, int winy)
+View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d, short xunits, short xclamp, short yunits, short yclamp, int UNUSED(winx), int winy)
 {
-	Scene *scene= CTX_data_scene(C);
+
 	View2DGrid *grid;
 	float space, pixels, seconddiv;
 	int secondgrid;
@@ -1174,7 +1173,7 @@ View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short xunits, sh
 }
 
 /* Draw gridlines in the given 2d-region */
-void UI_view2d_grid_draw(const bContext *C, View2D *v2d, View2DGrid *grid, int flag)
+void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 {
 	float vec1[2], vec2[2];
 	int a, step;
@@ -1283,7 +1282,7 @@ void UI_view2d_grid_draw(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 }
 
 /* Draw a constant grid in given 2d-region */
-void UI_view2d_constant_grid_draw(const bContext *C, View2D *v2d)
+void UI_view2d_constant_grid_draw(View2D *v2d)
 {
 	float start, step= 25.0f;
 
@@ -1481,7 +1480,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		scrollers->yclamp= yclamp;
 		scrollers->yunits= yunits;
 		
-		scrollers->grid= UI_view2d_grid_calc(C, v2d, xunits, xclamp, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
+		scrollers->grid= UI_view2d_grid_calc(CTX_data_scene(C), v2d, xunits, xclamp, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
 	}
 	
 	/* return scrollers */
@@ -1489,7 +1488,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 }
 
 /* Print scale marking along a time scrollbar */
-static void scroll_printstr(View2DScrollers *scrollers, Scene *scene, float x, float y, float val, int power, short unit, char dir)
+static void scroll_printstr(Scene *scene, float x, float y, float val, int power, short unit, char dir)
 {
 	int len;
 	char str[32];
@@ -1614,16 +1613,16 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 					
 					switch (vs->xunits) {							
 						case V2D_UNIT_FRAMES:		/* frames (as whole numbers)*/
-							scroll_printstr(vs, scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMES, 'h');
+							scroll_printstr(scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMES, 'h');
 							break;
 							
 						case V2D_UNIT_FRAMESCALE:	/* frames (not always as whole numbers) */
-							scroll_printstr(vs, scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMESCALE, 'h');
+							scroll_printstr(scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMESCALE, 'h');
 							break;
 						
 						case V2D_UNIT_SECONDS:		/* seconds */
 							fac2= val/(float)FPS;
-							scroll_printstr(vs, scene, fac, h, fac2, grid->powerx, V2D_UNIT_SECONDS, 'h');
+							scroll_printstr(scene, fac, h, fac2, grid->powerx, V2D_UNIT_SECONDS, 'h');
 							break;
 							
 						case V2D_UNIT_SECONDSSEQ:	/* seconds with special calculations (only used for sequencer only) */
@@ -1634,13 +1633,13 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 							time= (float)floor(fac2);
 							fac2= fac2-time;
 							
-							scroll_printstr(vs, scene, fac, h, time+(float)FPS*fac2/100.0f, grid->powerx, V2D_UNIT_SECONDSSEQ, 'h');
+							scroll_printstr(scene, fac, h, time+(float)FPS*fac2/100.0f, grid->powerx, V2D_UNIT_SECONDSSEQ, 'h');
 						}
 							break;
 							
 						case V2D_UNIT_DEGREES:		/* Graph Editor for rotation Drivers */
 							/* HACK: although we're drawing horizontal, we make this draw as 'vertical', just to get degree signs */
-							scroll_printstr(vs, scene, fac, h, val, grid->powerx, V2D_UNIT_DEGREES, 'v');
+							scroll_printstr(scene, fac, h, val, grid->powerx, V2D_UNIT_DEGREES, 'v');
 							break;
 					}
 				}
@@ -1719,7 +1718,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 					if(fac < vert.ymin+10)
 						continue;
 					
-					scroll_printstr(vs, scene, (float)(vert.xmax)-2.0f, fac, val, grid->powery, vs->yunits, 'v');
+					scroll_printstr(scene, (float)(vert.xmax)-2.0f, fac, val, grid->powery, vs->yunits, 'v');
 				}
 				
 				BLF_disable_default(BLF_ROTATION);

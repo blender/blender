@@ -39,6 +39,8 @@
 
 #include "BLI_blenlib.h"
 #include "DNA_texture_types.h"
+
+#include "BKE_utildefines.h"
 /*-----------------------------------------*/
 /* 'mersenne twister' random number generator */
 
@@ -207,12 +209,12 @@ static void randuvec(float v[3])
 		v[2] = 1.f;
 }
 
-static PyObject *Noise_random(PyObject * self)
+static PyObject *Noise_random(PyObject *UNUSED(self))
 {
 	return PyFloat_FromDouble(frand());
 }
 
-static PyObject *Noise_random_unit_vector(PyObject * self)
+static PyObject *Noise_random_unit_vector(PyObject *UNUSED(self))
 {
 	float v[3] = {0.0f, 0.0f, 0.0f};
 	randuvec(v);
@@ -223,7 +225,7 @@ static PyObject *Noise_random_unit_vector(PyObject * self)
 
 /* Random seed init. Only used for MT random() & randuvec() */
 
-static PyObject *Noise_seed_set(PyObject * self, PyObject * args)
+static PyObject *Noise_seed_set(PyObject *UNUSED(self), PyObject *args)
 {
 	int s;
 	if(!PyArg_ParseTuple(args, "i:seed_set", &s))
@@ -236,7 +238,7 @@ static PyObject *Noise_seed_set(PyObject * self, PyObject * args)
 
 /* General noise */
 
-static PyObject *Noise_noise(PyObject * self, PyObject * args)
+static PyObject *Noise_noise(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z;
 	int nb = 1;
@@ -260,7 +262,7 @@ static void noise_vector(float x, float y, float z, int nb, float v[3])
 				 nb) - 1.0);
 }
 
-static PyObject *Noise_vector(PyObject * self, PyObject * args)
+static PyObject *Noise_vector(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, v[3];
 	int nb = 1;
@@ -296,7 +298,7 @@ static float turb(float x, float y, float z, int oct, int hard, int nb,
 	return out;
 }
 
-static PyObject *Noise_turbulence(PyObject * self, PyObject * args)
+static PyObject *Noise_turbulence(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z;
 	int oct, hd, nb = 1;
@@ -340,7 +342,7 @@ static void vTurb(float x, float y, float z, int oct, int hard, int nb,
 	}
 }
 
-static PyObject *Noise_turbulence_vector(PyObject * self, PyObject * args)
+static PyObject *Noise_turbulence_vector(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, v[3];
 	int oct, hd, nb = 1;
@@ -355,7 +357,7 @@ static PyObject *Noise_turbulence_vector(PyObject * self, PyObject * args)
 
 /* F. Kenton Musgrave's fractal functions */
 
-static PyObject *Noise_fractal(PyObject * self, PyObject * args)
+static PyObject *Noise_fractal(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, H, lac, oct;
 	int nb = 1;
@@ -366,7 +368,7 @@ static PyObject *Noise_fractal(PyObject * self, PyObject * args)
 
 /*------------------------------------------------------------------------*/
 
-static PyObject *Noise_multi_fractal(PyObject * self, PyObject * args)
+static PyObject *Noise_multi_fractal(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, H, lac, oct;
 	int nb = 1;
@@ -378,7 +380,7 @@ static PyObject *Noise_multi_fractal(PyObject * self, PyObject * args)
 
 /*------------------------------------------------------------------------*/
 
-static PyObject *Noise_vl_vector(PyObject * self, PyObject * args)
+static PyObject *Noise_vl_vector(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, d;
 	int nt1 = 1, nt2 = 1;
@@ -389,7 +391,7 @@ static PyObject *Noise_vl_vector(PyObject * self, PyObject * args)
 
 /*-------------------------------------------------------------------------*/
 
-static PyObject *Noise_hetero_terrain(PyObject * self, PyObject * args)
+static PyObject *Noise_hetero_terrain(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, H, lac, oct, ofs;
 	int nb = 1;
@@ -401,7 +403,7 @@ static PyObject *Noise_hetero_terrain(PyObject * self, PyObject * args)
 
 /*-------------------------------------------------------------------------*/
 
-static PyObject *Noise_hybrid_multi_fractal(PyObject * self, PyObject * args)
+static PyObject *Noise_hybrid_multi_fractal(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, H, lac, oct, ofs, gn;
 	int nb = 1;
@@ -413,7 +415,7 @@ static PyObject *Noise_hybrid_multi_fractal(PyObject * self, PyObject * args)
 
 /*------------------------------------------------------------------------*/
 
-static PyObject *Noise_ridged_multi_fractal(PyObject * self, PyObject * args)
+static PyObject *Noise_ridged_multi_fractal(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, H, lac, oct, ofs, gn;
 	int nb = 1;
@@ -424,7 +426,7 @@ static PyObject *Noise_ridged_multi_fractal(PyObject * self, PyObject * args)
 
 /*-------------------------------------------------------------------------*/
 
-static PyObject *Noise_voronoi(PyObject * self, PyObject * args)
+static PyObject *Noise_voronoi(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, da[4], pa[12];
 	int dtype = 0;
@@ -441,7 +443,7 @@ static PyObject *Noise_voronoi(PyObject * self, PyObject * args)
 
 /*-------------------------------------------------------------------------*/
 
-static PyObject *Noise_cell(PyObject * self, PyObject * args)
+static PyObject *Noise_cell(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z;
 	if(!PyArg_ParseTuple(args, "(fff):cell", &x, &y, &z))
@@ -452,7 +454,7 @@ static PyObject *Noise_cell(PyObject * self, PyObject * args)
 
 /*--------------------------------------------------------------------------*/
 
-static PyObject *Noise_cell_vector(PyObject * self, PyObject * args)
+static PyObject *Noise_cell_vector(PyObject *UNUSED(self), PyObject *args)
 {
 	float x, y, z, ca[3];
 	if(!PyArg_ParseTuple(args, "(fff):cell_vector", &x, &y, &z))
@@ -603,22 +605,22 @@ look like anything from an earthquake to a very nervous or maybe even drunk came
 
 /* Just in case, declarations for a header file */
 /*
-static PyObject *Noise_random(PyObject *self);
-static PyObject *Noise_random_unit_vector(PyObject *self);
-static PyObject *Noise_seed_set(PyObject *self, PyObject *args);
-static PyObject *Noise_noise(PyObject *self, PyObject *args);
-static PyObject *Noise_vector(PyObject *self, PyObject *args);
-static PyObject *Noise_turbulence(PyObject *self, PyObject *args);
-static PyObject *Noise_turbulence_vector(PyObject *self, PyObject *args);
-static PyObject *Noise_fractal(PyObject *self, PyObject *args);
-static PyObject *Noise_multi_fractal(PyObject *self, PyObject *args);
-static PyObject *Noise_vl_vector(PyObject *self, PyObject *args);
-static PyObject *Noise_hetero_terrain(PyObject *self, PyObject *args);
-static PyObject *Noise_hybrid_multi_fractal(PyObject *self, PyObject *args);
-static PyObject *Noise_ridged_multi_fractal(PyObject *self, PyObject *args);
-static PyObject *Noise_voronoi(PyObject *self, PyObject *args);
-static PyObject *Noise_cell(PyObject *self, PyObject *args);
-static PyObject *Noise_cell_vector(PyObject *self, PyObject *args);
+static PyObject *Noise_random(PyObject *UNUSED(self));
+static PyObject *Noise_random_unit_vector(PyObject *UNUSED(self));
+static PyObject *Noise_seed_set(PyObject *UNUSED(self), PyObject *args);
+static PyObject *Noise_noise(PyObject *UNUSED(self), PyObject *args);
+static PyObject *Noise_vector(PyObject *UNUSED(self), PyObject *args);
+static PyObject *Noise_turbulence(PyObject *UNUSED(self), PyObject *args);
+static PyObject *Noise_turbulence_vector(PyObject *UNUSED(self), PyObject *args);
+static PyObject *Noise_fractal(PyObject *UNUSED(self), PyObject *args);
+static PyObject *Noise_multi_fractal(PyObject *UNUSED(self), PyObject *args);
+static PyObject *Noise_vl_vector(PyObject *UNUSED(self), PyObject *args);
+static PyObject *Noise_hetero_terrain(PyObject *UNUSED(self), PyObject *args);
+static PyObject *Noise_hybrid_multi_fractal(PyObject *UNUSED(self), PyObject *args);
+static PyObject *Noise_ridged_multi_fractal(PyObject *UNUSED(self), PyObject *args);
+static PyObject *Noise_voronoi(PyObject *UNUSED(self), PyObject *args);
+static PyObject *Noise_cell(PyObject *UNUSED(self), PyObject *args);
+static PyObject *Noise_cell_vector(PyObject *UNUSED(self), PyObject *args);
 */
 
 static PyMethodDef NoiseMethods[] = {

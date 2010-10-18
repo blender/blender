@@ -141,7 +141,7 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 
 /* dotile -	1, set the tile flag (from the space image)
  * 			2, set the tile index for the faces. */
-void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, int curtile)
+static int uvedit_set_tile(Object *obedit, Image *ima, int curtile)
 {
 	EditMesh *em;
 	EditFace *efa;
@@ -149,11 +149,14 @@ void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, i
 	
 	/* verify if we have something to do */
 	if(!ima || !ED_uvedit_test(obedit))
-		return;
-	
+		return 0;
+
+	if((ima->tpageflag & IMA_TILES) == 0)
+		return 0;
+
 	/* skip assigning these procedural images... */
 	if(ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE)
-		return;
+		return 0;
 	
 	em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 
@@ -165,8 +168,9 @@ void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, i
 	}
 
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 	BKE_mesh_end_editmesh(obedit->data, em);
+
+	return 1;
 }
 
 /*********************** space conversion *********************/
@@ -845,7 +849,8 @@ static void select_linked(Scene *scene, Image *ima, EditMesh *em, float limit[2]
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
 			if(uvedit_face_visible(scene, ima, efa, tf)) {
-				if(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) {
+				const char select_flag= efa->v4 ? (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4) : (TF_SEL1|TF_SEL2|TF_SEL3);
+				if(tf->flag & select_flag) {
 					stack[stacksize]= a;
 					stacksize++;
 					flag[a]= 1;
@@ -909,12 +914,9 @@ static void select_linked(Scene *scene, Image *ima, EditMesh *em, float limit[2]
 	else {
 		for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
 			if(flag[a]) {
+				const char select_flag= efa->v4 ? (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4) : (TF_SEL1|TF_SEL2|TF_SEL3);
 				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if(efa->v4) {
-					if((tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))
-						break;
-				}
-				else if(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
+				if((tf->flag & select_flag))
 					break;
 			}
 		}
@@ -1052,7 +1054,7 @@ void UV_OT_align(wmOperatorType *ot)
 
 /* ******************** weld operator **************** */
 
-static int weld_exec(bContext *C, wmOperator *op)
+static int weld_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	weld_align_uv(C, 'w');
 
@@ -1264,7 +1266,7 @@ void UV_OT_stitch(wmOperatorType *ot)
 
 /* ******************** (de)select all operator **************** */
 
-static int select_inverse_exec(bContext *C, wmOperator *op)
+static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene;
 	ToolSettings *ts;
@@ -1355,10 +1357,11 @@ static int select_all_exec(bContext *C, wmOperator *op)
 		if (action == SEL_TOGGLE) {
 			action = SEL_SELECT;
 			for(efa= em->faces.first; efa; efa= efa->next) {
+				const char select_flag= efa->v4 ? (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4) : (TF_SEL1|TF_SEL2|TF_SEL3);
 				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
 				if(uvedit_face_visible(scene, ima, efa, tf)) {
-					if(tf->flag & (TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4)) {
+					if(tf->flag & select_flag) {
 						action = SEL_DESELECT;
 						break;
 					}
@@ -1370,12 +1373,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
 			if(uvedit_face_visible(scene, ima, efa, tf)) {
-				char select_flag;
-
-				if(efa->v4)
-					select_flag = (TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4);
-				else
-					select_flag = (TF_SEL1+TF_SEL2+TF_SEL3);
+				const char select_flag= efa->v4 ? (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4) : (TF_SEL1|TF_SEL2|TF_SEL3);
 
 				switch (action) {
 				case SEL_SELECT:
@@ -1937,14 +1935,10 @@ static int unlink_selection_exec(bContext *C, wmOperator *op)
 		tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
 		if(uvedit_face_visible(scene, ima, efa, tf)) {
-			if(efa->v4) {
-				if(~tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4))
-					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-			}
-			else {
-				if(~tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
-					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3);
-			}
+			const char select_flag= efa->v4 ? (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4) : (TF_SEL1|TF_SEL2|TF_SEL3);
+			if(~tf->flag & select_flag)
+				tf->flag &= ~select_flag;
+
 		}
 	}
 	
@@ -2260,7 +2254,7 @@ void UV_OT_select_border(wmOperatorType *ot)
 
 /* ******************** circle select operator **************** */
 
-static void select_uv_inside_ellipse(SpaceImage *sima, Scene *scene, int select, EditFace *efa, MTFace *tface, int index, float *offset, float *ell, int select_index)
+static void select_uv_inside_ellipse(Scene *scene, int select, EditFace *efa, MTFace *tface, int index, float *offset, float *ell, int select_index)
 {
 	/* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
 	float x, y, r2, *uv;
@@ -2309,11 +2303,11 @@ int circle_select_exec(bContext *C, wmOperator *op)
 	/* do selection */
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		select_uv_inside_ellipse(sima, scene, select, efa, tface, 0, offset, ellipse, 0);
-		select_uv_inside_ellipse(sima, scene, select, efa, tface, 1, offset, ellipse, 1);
-		select_uv_inside_ellipse(sima, scene, select, efa, tface, 2, offset, ellipse, 2);
+		select_uv_inside_ellipse(scene, select, efa, tface, 0, offset, ellipse, 0);
+		select_uv_inside_ellipse(scene, select, efa, tface, 1, offset, ellipse, 1);
+		select_uv_inside_ellipse(scene, select, efa, tface, 2, offset, ellipse, 2);
 		if(efa->v4)
-			select_uv_inside_ellipse(sima, scene, select, efa, tface, 3, offset, ellipse, 3);
+			select_uv_inside_ellipse(scene, select, efa, tface, 3, offset, ellipse, 3);
 	}
 
 	if(select) EM_select_flush(em);
@@ -2714,7 +2708,7 @@ void UV_OT_pin(wmOperatorType *ot)
 
 /******************* select pinned operator ***************/
 
-static int select_pinned_exec(bContext *C, wmOperator *op)
+static int select_pinned_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -2800,11 +2794,9 @@ static int hide_exec(bContext *C, wmOperator *op)
 					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 				}
 				else if(em->selectmode == SCE_SELECT_FACE) {
-					if((tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3))==0) {
-						if(!efa->v4)
-							EM_select_face(efa, 0);
-						else if(!(tf->flag & TF_SEL4))
-							EM_select_face(efa, 0);
+					const char select_flag= efa->v4 ? (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4) : (TF_SEL1|TF_SEL2|TF_SEL3);
+					if((tf->flag & select_flag)==0) {
+						EM_select_face(efa, 0);
 						tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 					}
 				}
@@ -2845,9 +2837,8 @@ static int hide_exec(bContext *C, wmOperator *op)
 					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 				}
 				else if(em->selectmode == SCE_SELECT_FACE) {
-					if(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
-						EM_select_face(efa, 0);
-					else if(efa->v4 && tf->flag & TF_SEL4)
+					const char select_flag= efa->v4 ? (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4) : (TF_SEL1|TF_SEL2|TF_SEL3);
+					if(tf->flag & select_flag)
 						EM_select_face(efa, 0);
 
 					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
@@ -2902,7 +2893,7 @@ void UV_OT_hide(wmOperatorType *ot)
 
 /****************** reveal operator ******************/
 
-static int reveal_exec(bContext *C, wmOperator *op)
+static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
@@ -3086,16 +3077,18 @@ static int set_tile_exec(bContext *C, wmOperator *op)
 {
 	Image *ima= CTX_data_edit_image(C);
 	int tile[2];
-
-	if(!ima || !(ima->tpageflag & IMA_TILES))
-		return OPERATOR_CANCELLED;
+	Object *obedit= CTX_data_edit_object(C);
 
 	RNA_int_get_array(op->ptr, "tile", tile);
-	ED_uvedit_set_tile(C, CTX_data_scene(C), CTX_data_edit_object(C), ima, tile[0] + ima->xrep*tile[1]);
 
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_IMAGE, NULL);
+	if(uvedit_set_tile(obedit, ima, tile[0] + ima->xrep*tile[1])) {
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
-	return OPERATOR_FINISHED;
+		return OPERATOR_FINISHED;
+	}
+	
+	return OPERATOR_CANCELLED;
 }
 
 static int set_tile_invoke(bContext *C, wmOperator *op, wmEvent *event)

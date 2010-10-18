@@ -74,11 +74,11 @@ static void copyData(ModifierData *md, ModifierData *target)
 	temd->protect = emd->protect;
 	temd->vgroup = emd->vgroup;
 }
-static int dependsOnTime(ModifierData *md) 
+static int dependsOnTime(ModifierData *UNUSED(md)) 
 {
 	return 1;
 }
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	ExplodeModifierData *emd= (ExplodeModifierData*) md;
 	CustomDataMask dataMask = 0;
@@ -90,8 +90,8 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 }
 
 static void createFacepa(ExplodeModifierData *emd,
-					 ParticleSystemModifierData *psmd,
-	  Object *ob, DerivedMesh *dm)
+						ParticleSystemModifierData *psmd,
+						DerivedMesh *dm)
 {
 	ParticleSystem *psys=psmd->psys;
 	MFace *fa=0, *mface=0;
@@ -833,9 +833,10 @@ static ParticleSystemModifierData * findPrecedingParticlesystem(Object *ob, Modi
 	}
 	return psmd;
 }
-static DerivedMesh * applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm = derivedData;
 	ExplodeModifierData *emd= (ExplodeModifierData*) md;
@@ -852,16 +853,16 @@ static DerivedMesh * applyModifier(
 		if(emd->facepa==0
 				 || psmd->flag&eParticleSystemFlag_Pars
 				 || emd->flag&eExplodeFlag_CalcFaces
-				 || MEM_allocN_len(emd->facepa)/sizeof(int) != dm->getNumFaces(dm)){
+				 || MEM_allocN_len(emd->facepa)/sizeof(int) != dm->getNumFaces(dm))
+		{
 			if(psmd->flag & eParticleSystemFlag_Pars)
 				psmd->flag &= ~eParticleSystemFlag_Pars;
 			
 			if(emd->flag & eExplodeFlag_CalcFaces)
 				emd->flag &= ~eExplodeFlag_CalcFaces;
 
-			createFacepa(emd,psmd,ob,derivedData);
-				 }
-
+			createFacepa(emd,psmd,derivedData);
+		}
 				 /* 2. create new mesh */
 				 if(emd->flag & eExplodeFlag_EdgeSplit){
 					 int *facepa = emd->facepa;

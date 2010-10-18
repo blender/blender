@@ -69,6 +69,6 @@ extern ModifierTypeInfo modifierType_Solidify;
 extern ModifierTypeInfo modifierType_Screw;
 
 /* MOD_util.c */
-void modifier_type_init(ModifierTypeInfo *types[], ModifierType type);
+void modifier_type_init(ModifierTypeInfo *types[]);
 
 #endif //MOD_MODIFIERTYPES_H

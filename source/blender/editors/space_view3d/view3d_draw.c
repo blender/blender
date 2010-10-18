@@ -1140,7 +1140,7 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 	if(ymax >= vc->ar->winy) ymaxc= vc->ar->winy-1; else ymaxc= ymax;
 	if(yminc > ymaxc) return NULL;
 	
-	ibuf= IMB_allocImBuf((xmaxc-xminc+1), (ymaxc-yminc+1), 32, IB_rect,0);
+	ibuf= IMB_allocImBuf((xmaxc-xminc+1), (ymaxc-yminc+1), 32, IB_rect);
 
 	view3d_validate_backbuf(vc); 
 	
@@ -1160,7 +1160,7 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) 
 		return ibuf;
 	
-	ibuf1= IMB_allocImBuf( (xmax-xmin+1),(ymax-ymin+1),32,IB_rect,0);
+	ibuf1= IMB_allocImBuf( (xmax-xmin+1),(ymax-ymin+1),32,IB_rect);
 	rd= ibuf->rect;
 	dr= ibuf1->rect;
 		
@@ -1589,7 +1589,7 @@ static void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *bas
 }
 
 
-void view3d_update_depths(ARegion *ar, View3D *v3d)
+void view3d_update_depths(ARegion *ar)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	
@@ -2092,7 +2092,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 	}
 
 	/* read in pixels & stamp */
-	ibuf= IMB_allocImBuf(sizex, sizey, 32, flag, 0);
+	ibuf= IMB_allocImBuf(sizex, sizey, 32, flag);
 
 	if(ibuf->rect_float)
 		glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, ibuf->rect_float);
@@ -2354,7 +2354,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 //	retopo= retopo_mesh_check() || retopo_curve_check();
 	sculptparticle= (obact && obact->mode & (OB_MODE_PARTICLE_EDIT)) && !scene->obedit;
 	if(retopo)
-		view3d_update_depths(ar, v3d);
+		view3d_update_depths(ar);
 	
 	/* draw selected and editmode */
 	for(base= scene->base.first; base; base= base->next) {
@@ -2365,7 +2365,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	
 	if(!retopo && sculptparticle && !(obact && (obact->dtx & OB_DRAWXRAY))) {
-		view3d_update_depths(ar, v3d);
+		view3d_update_depths(ar);
 	}
 	
 //	REEB_draw();
@@ -2378,7 +2378,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	
 	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
-		view3d_update_depths(ar, v3d);
+		view3d_update_depths(ar);
 	}
 	
 	if(rv3d->rflag & RV3D_CLIPPING)

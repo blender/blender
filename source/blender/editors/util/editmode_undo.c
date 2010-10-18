@@ -37,6 +37,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -74,7 +75,7 @@ void undo_editmode_menu(void)				// history menu
 /* ********************************************************************* */
 
 /* ****** XXX ***** */
-void error(const char *dummy) {}
+void error(const char *UNUSED(arg)) {}
 /* ****** XXX ***** */
 
 
@@ -341,7 +342,7 @@ void undo_editmode_menu(bContext *C)
 	if(event>0) undo_number(C, event);
 }
 
-static void do_editmode_undohistorymenu(bContext *C, void *arg, int event)
+static void do_editmode_undohistorymenu(bContext *C, void *UNUSED(arg), int event)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	
@@ -351,7 +352,7 @@ static void do_editmode_undohistorymenu(bContext *C, void *arg, int event)
 	
 }
 
-uiBlock *editmode_undohistorymenu(bContext *C, ARegion *ar, void *arg_unused)
+uiBlock *editmode_undohistorymenu(bContext *C, ARegion *ar, void *UNUSED(arg))
 {
 	uiBlock *block;
 	UndoElem *uel;

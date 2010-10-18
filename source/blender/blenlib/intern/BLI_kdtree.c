@@ -132,6 +132,7 @@ void BLI_kdtree_balance(KDTree *tree)
 static float squared_distance(float *v2, float *v1, float *n1, float *n2)
 {
 	float d[3], dist;
+	(void)n1; /* unused */
 
 	d[0]= v2[0]-v1[0];
 	d[1]= v2[1]-v1[1];

@@ -36,6 +36,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_cloth.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"
@@ -111,7 +112,7 @@ static void updateDepgraph(
 	}
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	CustomDataMask dataMask = 0;
 	ClothModifierData *clmd = (ClothModifierData*)md;
@@ -150,7 +151,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tclmd->clothObject = NULL;
 }
 
-static int dependsOnTime(ModifierData *md)
+static int dependsOnTime(ModifierData *UNUSED(md))
 {
 	return 1;
 }

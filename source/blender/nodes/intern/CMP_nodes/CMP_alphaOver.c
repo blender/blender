@@ -41,7 +41,7 @@ static bNodeSocketType cmp_node_alphaover_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_alphaover_premul(bNode *node, float *out, float *src, float *over, float *fac)
+static void do_alphaover_premul(bNode *UNUSED(node), float *out, float *src, float *over, float *fac)
 {
 	
 	if(over[3]<=0.0f) {
@@ -61,7 +61,7 @@ static void do_alphaover_premul(bNode *node, float *out, float *src, float *over
 }
 
 /* result will be still premul, but the over part is premulled */
-static void do_alphaover_key(bNode *node, float *out, float *src, float *over, float *fac)
+static void do_alphaover_key(bNode *UNUSED(node), float *out, float *src, float *over, float *fac)
 {
 	
 	if(over[3]<=0.0f) {
@@ -107,7 +107,7 @@ static void do_alphaover_mixed(bNode *node, float *out, float *src, float *over,
 
 
 
-static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_alphaover(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: col col */
 	/* stack order out: col */

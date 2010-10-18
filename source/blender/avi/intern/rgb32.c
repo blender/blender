@@ -41,6 +41,8 @@ void *avi_converter_from_rgb32 (AviMovie *movie, int stream, unsigned char *buff
 	int y, x, rowstridea, rowstrideb;
 	unsigned char *buf;
 
+	(void)stream; /* unused */
+
 	buf = MEM_mallocN (movie->header->Height * movie->header->Width * 3, "fromrgb32buf");
 	*size = movie->header->Height * movie->header->Width * 3;
 
@@ -64,6 +66,8 @@ void *avi_converter_to_rgb32 (AviMovie *movie, int stream, unsigned char *buffer
 	int i;
 	unsigned char *buf;
 	unsigned char *to, *from;
+
+	(void)stream; /* unused */
 
 	buf= MEM_mallocN (movie->header->Height * movie->header->Width * 4, "torgb32buf");
 	*size= movie->header->Height * movie->header->Width * 4;

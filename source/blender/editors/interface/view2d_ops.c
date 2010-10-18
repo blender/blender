@@ -119,7 +119,7 @@ static int view_pan_init(bContext *C, wmOperator *op)
 }
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
-static void view_pan_apply(bContext *C, wmOperator *op)
+static void view_pan_apply(wmOperator *op)
 {
 	v2dViewPanData *vpd= op->customdata;
 	View2D *v2d= vpd->v2d;
@@ -156,7 +156,7 @@ static void view_pan_apply(bContext *C, wmOperator *op)
 }
 
 /* cleanup temp customdata  */
-static void view_pan_exit(bContext *C, wmOperator *op)
+static void view_pan_exit(wmOperator *op)
 {
 	if (op->customdata) {
 		MEM_freeN(op->customdata);
@@ -172,8 +172,8 @@ static int view_pan_exec(bContext *C, wmOperator *op)
 	if (!view_pan_init(C, op))
 		return OPERATOR_CANCELLED;
 	
-	view_pan_apply(C, op);
-	view_pan_exit(C, op);
+	view_pan_apply(op);
+	view_pan_exit(op);
 	return OPERATOR_FINISHED;
 }
 
@@ -199,8 +199,8 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_int_set(op->ptr, "deltax", event->prevx - event->x);
 		RNA_int_set(op->ptr, "deltay", event->prevy - event->y);
 		
-		view_pan_apply(C, op);
-		view_pan_exit(C, op);
+		view_pan_apply(op);
+		view_pan_exit(op);
 		return OPERATOR_FINISHED;
 	}
 	
@@ -236,7 +236,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			vpd->lastx= event->x;
 			vpd->lasty= event->y;
 			
-			view_pan_apply(C, op);
+			view_pan_apply(op);
 		}
 			break;
 			
@@ -247,7 +247,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
 				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
 				
-				view_pan_exit(C, op);
+				view_pan_exit(op);
 				WM_cursor_restore(CTX_wm_window(C));
 				
 				WM_operator_name_call(C, "VIEW2D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL);
@@ -260,7 +260,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
 				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
 				
-				view_pan_exit(C, op);
+				view_pan_exit(op);
 				WM_cursor_restore(CTX_wm_window(C));
 				
 				return OPERATOR_FINISHED;
@@ -271,9 +271,9 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int view_pan_cancel(bContext *C, wmOperator *op)
+static int view_pan_cancel(bContext *UNUSED(C), wmOperator *op)
 {
-	view_pan_exit(C, op);
+	view_pan_exit(op);
 	return OPERATOR_CANCELLED;
 }
 
@@ -312,7 +312,7 @@ static int view_scrollright_exec(bContext *C, wmOperator *op)
 	/* also, check if can pan in horizontal axis */
 	vpd= op->customdata;
 	if (vpd->v2d->keepofs & V2D_LOCKOFS_X) {
-		view_pan_exit(C, op);
+		view_pan_exit(op);
 		return OPERATOR_PASS_THROUGH;
 	}
 	
@@ -321,8 +321,8 @@ static int view_scrollright_exec(bContext *C, wmOperator *op)
 	RNA_int_set(op->ptr, "deltay", 0);
 	
 	/* apply movement, then we're done */
-	view_pan_apply(C, op);
-	view_pan_exit(C, op);
+	view_pan_apply(op);
+	view_pan_exit(op);
 	
 	return OPERATOR_FINISHED;
 }
@@ -356,7 +356,7 @@ static int view_scrollleft_exec(bContext *C, wmOperator *op)
 	/* also, check if can pan in horizontal axis */
 	vpd= op->customdata;
 	if (vpd->v2d->keepofs & V2D_LOCKOFS_X) {
-		view_pan_exit(C, op);
+		view_pan_exit(op);
 		return OPERATOR_PASS_THROUGH;
 	}
 	
@@ -365,8 +365,8 @@ static int view_scrollleft_exec(bContext *C, wmOperator *op)
 	RNA_int_set(op->ptr, "deltay", 0);
 	
 	/* apply movement, then we're done */
-	view_pan_apply(C, op);
-	view_pan_exit(C, op);
+	view_pan_apply(op);
+	view_pan_exit(op);
 	
 	return OPERATOR_FINISHED;
 }
@@ -399,7 +399,7 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 	/* also, check if can pan in vertical axis */
 	vpd= op->customdata;
 	if (vpd->v2d->keepofs & V2D_LOCKOFS_Y) {
-		view_pan_exit(C, op);
+		view_pan_exit(op);
 		return OPERATOR_PASS_THROUGH;
 	}
 	
@@ -408,8 +408,8 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 	RNA_int_set(op->ptr, "deltay", -40);
 	
 	/* apply movement, then we're done */
-	view_pan_apply(C, op);
-	view_pan_exit(C, op);
+	view_pan_apply(op);
+	view_pan_exit(op);
 	
 	return OPERATOR_FINISHED;
 }
@@ -443,7 +443,7 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 	/* also, check if can pan in vertical axis */
 	vpd= op->customdata;
 	if (vpd->v2d->keepofs & V2D_LOCKOFS_Y) {
-		view_pan_exit(C, op);
+		view_pan_exit(op);
 		return OPERATOR_PASS_THROUGH;
 	}
 	
@@ -452,8 +452,8 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 	RNA_int_set(op->ptr, "deltay", 40);
 	
 	/* apply movement, then we're done */
-	view_pan_apply(C, op);
-	view_pan_exit(C, op);
+	view_pan_apply(op);
+	view_pan_exit(op);
 	
 	return OPERATOR_FINISHED;
 }
@@ -632,7 +632,7 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 /* --------------- Individual Operators ------------------- */
 
 /* cleanup temp customdata  */
-static void view_zoomstep_exit(bContext *C, wmOperator *op)
+static void view_zoomstep_exit(wmOperator *op)
 {
 	if (op->customdata) {
 		MEM_freeN(op->customdata);
@@ -654,7 +654,7 @@ static int view_zoomin_exec(bContext *C, wmOperator *op)
 	/* apply movement, then we're done */
 	view_zoomstep_apply(C, op);
 	
-	view_zoomstep_exit(C, op);
+	view_zoomstep_exit(op);
 	
 	return OPERATOR_FINISHED;
 }
@@ -711,7 +711,7 @@ static int view_zoomout_exec(bContext *C, wmOperator *op)
 	/* apply movement, then we're done */
 	view_zoomstep_apply(C, op);
 
-	view_zoomstep_exit(C, op);
+	view_zoomstep_exit(op);
 	
 	return OPERATOR_FINISHED;
 }
@@ -823,7 +823,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 }
 
 /* cleanup temp customdata  */
-static void view_zoomdrag_exit(bContext *C, wmOperator *op)
+static void view_zoomdrag_exit(wmOperator *op)
 {
 	if (op->customdata) {
 		MEM_freeN(op->customdata);
@@ -838,7 +838,7 @@ static int view_zoomdrag_exec(bContext *C, wmOperator *op)
 		return OPERATOR_PASS_THROUGH;
 	
 	view_zoomdrag_apply(C, op);
-	view_zoomdrag_exit(C, op);
+	view_zoomdrag_exit(op);
 	return OPERATOR_FINISHED;
 }
 
@@ -873,7 +873,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_float_set(op->ptr, "deltay", dy);
 		
 		view_zoomdrag_apply(C, op);
-		view_zoomdrag_exit(C, op);
+		view_zoomdrag_exit(op);
 		return OPERATOR_FINISHED;
 	}	
 	
@@ -985,7 +985,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 					RNA_float_set(op->ptr, "deltay", 0);
 				
 				/* free customdata */
-				view_zoomdrag_exit(C, op);
+				view_zoomdrag_exit(op);
 				WM_cursor_restore(CTX_wm_window(C));
 				
 				return OPERATOR_FINISHED;
@@ -1512,7 +1512,7 @@ void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 /* ********************************************************* */
 /* RESET */
 
-static int reset_exec(bContext *C, wmOperator *op)
+static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	uiStyle *style= U.uistyles.first;
 	ARegion *ar= CTX_wm_region(C);

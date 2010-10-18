@@ -67,7 +67,7 @@ static void do_zcombine_mask(bNode *node, float *out, float *z1, float *z2)
 	}
 }
 
-static void do_zcombine_add(bNode *node, float *out, float *col1, float *col2, float *acol)
+static void do_zcombine_add(bNode *UNUSED(node), float *out, float *col1, float *col2, float *acol)
 {
 	float alpha= *acol;
 	float malpha= 1.0f - alpha;

@@ -271,7 +271,7 @@ static void text_update_edited(bContext *C, Scene *scene, Object *obedit, int re
 
 /********************** insert lorem operator *********************/
 
-static int insert_lorem_exec(bContext *C, wmOperator *op)
+static int insert_lorem_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	char *p, *p2;
@@ -383,7 +383,7 @@ static int paste_file_exec(bContext *C, wmOperator *op)
 	return retval;
 }
 
-static int paste_file_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int paste_file_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if(RNA_property_is_set(op->ptr, "filepath"))
 		return paste_file_exec(C, op);
@@ -414,7 +414,7 @@ void FONT_OT_file_paste(wmOperatorType *ot)
 
 /******************* paste buffer operator ********************/
 
-static int paste_buffer_exec(bContext *C, wmOperator *op)
+static int paste_buffer_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	char *filename;
 
@@ -714,7 +714,7 @@ static void copy_selection(Object *obedit)
 	}
 }
 
-static int copy_text_exec(bContext *C, wmOperator *op)
+static int copy_text_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 
@@ -737,7 +737,7 @@ void FONT_OT_text_copy(wmOperatorType *ot)
 
 /******************* cut text operator ********************/
 
-static int cut_text_exec(bContext *C, wmOperator *op)
+static int cut_text_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -1367,7 +1367,7 @@ static int textbox_poll(bContext *C)
 	return 1;
 }
 
-static int textbox_add_exec(bContext *C, wmOperator *op)
+static int textbox_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_active_object(C);
 	Curve *cu= obedit->data;
@@ -1585,7 +1585,7 @@ void FONT_OT_case_set(wmOperatorType *ot)
 
 /********************** toggle case operator *********************/
 
-static int toggle_case_exec(bContext *C, wmOperator *op)
+static int toggle_case_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
@@ -1633,7 +1633,7 @@ static void open_init(bContext *C, wmOperator *op)
 	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
 }
 
-static int open_cancel(bContext *C, wmOperator *op)
+static int open_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata= NULL;
@@ -1686,7 +1686,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Object *ob = CTX_data_active_object(C);
 	Curve *cu;

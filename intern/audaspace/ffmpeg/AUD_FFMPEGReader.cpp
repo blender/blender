@@ -246,13 +246,23 @@ void AUD_FFMPEGReader::seek(int position)
 {
 	if(position >= 0)
 	{
+		uint64_t st_time = m_formatCtx->streams[m_stream]->start_time;
+		double time_base = 
+			av_q2d(m_formatCtx->streams[m_stream]->time_base);
+		uint64_t seek_pos = position / time_base / m_specs.rate;
+
+		if (seek_pos < 0) {
+			seek_pos = 0;
+		}
+
+		if (st_time != AV_NOPTS_VALUE) {
+			seek_pos += st_time;
+		}
+
+
 		// a value < 0 tells us that seeking failed
-		if(av_seek_frame(m_formatCtx,
-						 -1,
-						 (uint64_t)(((uint64_t)position *
-									 (uint64_t)AV_TIME_BASE) /
-									(uint64_t)m_specs.rate),
-						 AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_ANY) >= 0)
+		if(av_seek_frame(m_formatCtx, m_stream, seek_pos,
+				 AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_ANY) >= 0)
 		{
 			avcodec_flush_buffers(m_codecCtx);
 			m_position = position;
@@ -273,9 +283,8 @@ void AUD_FFMPEGReader::seek(int position)
 					if(packet.pts != AV_NOPTS_VALUE)
 					{
 						// calculate real position, and read to frame!
-						m_position = packet.pts *
-							av_q2d(m_formatCtx->streams[m_stream]->time_base) *
-							m_specs.rate;
+						m_position = (packet.pts - 
+							((st_time != AV_NOPTS_VALUE) ? st_time : 0)) * time_base * m_specs.rate;
 
 						if(m_position < position)
 						{

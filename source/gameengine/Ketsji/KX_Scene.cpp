@@ -82,12 +82,10 @@
 #include "BL_ModifierDeformer.h"
 #include "BL_ShapeDeformer.h"
 #include "BL_DeformableGameObject.h"
-#include "KX_SoftBodyDeformer.h"
-
-// to get USE_BULLET!
-#include "KX_ConvertPhysicsObject.h"
 
 #ifdef USE_BULLET
+#include "KX_SoftBodyDeformer.h"
+#include "KX_ConvertPhysicsObject.h"
 #include "CcdPhysicsEnvironment.h"
 #include "CcdPhysicsController.h"
 #endif
@@ -814,6 +812,8 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 		// add a timebomb to this object
 		// for now, convert between so called frames and realtime
 		m_tempObjectList->Add(replica->AddRef());
+		// this convert the life from frames to sort-of seconds, hard coded 0.02 that assumes we have 50 frames per second
+		// if you change this value, make sure you change it in KX_GameObject::pyattr_get_life property too
 		CValue *fval = new CFloatValue(lifespan*0.02);
 		replica->SetProperty("::timebomb",fval);
 		fval->Release();
@@ -1163,11 +1163,13 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 				);
 				newobj->SetDeformer(meshdeformer);
 			}
+#ifdef USE_BULLET
 			else if (bHasSoftBody)
 			{
 				KX_SoftBodyDeformer *softdeformer = new KX_SoftBodyDeformer(mesh, newobj);
 				newobj->SetDeformer(softdeformer);
 			}
+#endif
 
 			// release parent reference if its not being used 
 			if( releaseParent && parentobj)
@@ -1177,10 +1179,12 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 
 	gameobj->AddMeshUser();
 	}
-	
+
+#ifdef USE_BULLET
 	if(use_phys) { /* update the new assigned mesh with the physics mesh */
 		KX_ReInstanceBulletShapeFromMesh(gameobj, NULL, use_gfx?NULL:mesh);
 	}
+#endif
 }
 
 KX_Camera* KX_Scene::FindCamera(KX_Camera* cam)
@@ -1629,7 +1633,9 @@ double KX_Scene::getSuspendedDelta()
 	return m_suspendeddelta;
 }
 
+#ifdef USE_BULLET
 #include "KX_BulletPhysicsController.h"
+#endif
 
 static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 {
@@ -1644,16 +1650,19 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 	}
 
 	/* near sensors have physics controllers */
+#ifdef USE_BULLET
 	KX_TouchSensor *touch_sensor = dynamic_cast<class KX_TouchSensor *>(brick);
 	if(touch_sensor) {
 		touch_sensor->GetPhysicsController()->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 	}
+#endif
 }
 
+#ifdef USE_BULLET
 #include "CcdGraphicController.h" // XXX  ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 #include "CcdPhysicsEnvironment.h" // XXX  ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 #include "KX_BulletPhysicsController.h"
-
+#endif
 
 static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene *from)
 {
@@ -1713,7 +1722,7 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 		if(sg->GetSGClientInfo() == from) {
 			sg->SetSGClientInfo(to);
 		}
-
+#ifdef USE_BULLET
 		SGControllerList::iterator contit;
 		SGControllerList& controllers = sg->GetSGControllerList();
 		for (contit = controllers.begin();contit!=controllers.end();++contit)
@@ -1722,6 +1731,7 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 			if (phys_ctrl)
 				phys_ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 		}
+#endif // USE_BULLET
 	}
 	/* If the object is a light, update it's scene */
 	if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_LIGHT)
@@ -1737,6 +1747,7 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 
 bool KX_Scene::MergeScene(KX_Scene *other)
 {
+#ifdef USE_BULLET
 	CcdPhysicsEnvironment *env=			dynamic_cast<CcdPhysicsEnvironment *>(this->GetPhysicsEnvironment());
 	CcdPhysicsEnvironment *env_other=	dynamic_cast<CcdPhysicsEnvironment *>(other->GetPhysicsEnvironment());
 
@@ -1746,6 +1757,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 		printf("\tsource %d, terget %d\n", (int)(env!=NULL), (int)(env_other!=NULL));
 		return false;
 	}
+#endif // USE_BULLET
 
 	if(GetSceneConverter() != other->GetSceneConverter()) {
 		printf("KX_Scene::MergeScene: converters differ, aborting\n");
@@ -1788,9 +1800,11 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	GetLightList()->MergeList(other->GetLightList());
 	other->GetLightList()->ReleaseAndRemoveAll();
 
+#ifdef USE_BULLET
 	if(env) /* bullet scene? - dummy scenes dont need touching */
 		env->MergeEnvironment(env_other);
-
+#endif
+	
 	/* merge logic */
 	{
 		SCA_LogicManager *logicmgr=			GetLogicManager();

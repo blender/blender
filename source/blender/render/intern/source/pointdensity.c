@@ -253,7 +253,7 @@ static void cache_pointdensity(Render *re, Tex *tex)
 	}
 }
 
-static void free_pointdensity(Render *re, Tex *tex)
+static void free_pointdensity(Render *UNUSED(re), Tex *tex)
 {
 	PointDensity *pd = tex->pd;
 

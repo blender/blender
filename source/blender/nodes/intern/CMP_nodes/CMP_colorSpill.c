@@ -182,7 +182,7 @@ static void do_apply_spillmap_blue(bNode *node, float* out, float *in, float *ma
 	}
 }
 
-static void node_composit_exec_color_spill(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/*
 	Originally based on the information from the book "The Art and Science of Digital Composition" and 

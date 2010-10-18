@@ -48,6 +48,7 @@
 #include "BKE_customdata.h"
 #include "BKE_customdata_file.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_utildefines.h"
 
 /* number of layers to add when growing a CustomData object */
@@ -145,7 +146,7 @@ static void linklist_free_simple(void *link)
 }
 
 static void layerInterp_mdeformvert(void **sources, float *weights,
-									float *sub_weights, int count, void *dest)
+									float *UNUSED(sub_weights), int count, void *dest)
 {
 	MDeformVert *dvert = dest;
 	LinkNode *dest_dw = NULL; /* a list of lists of MDeformWeight pointers */
@@ -203,7 +204,7 @@ static void layerInterp_mdeformvert(void **sources, float *weights,
 
 
 static void layerInterp_msticky(void **sources, float *weights,
-								float *sub_weights, int count, void *dest)
+								float *UNUSED(sub_weights), int count, void *dest)
 {
 	float co[2], w;
 	MSticky *mst;
@@ -442,8 +443,15 @@ static void mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, fl
 
 static int mdisp_corners(MDisps *s)
 {
-	/* silly trick because we don't get it from callback */
-	return (s->totdisp % (3*3) == 0)? 3: 4;
+	int lvl= 13;
+
+	while(lvl > 0) {
+		int side = (1 << (lvl-1)) + 1;
+		if ((s->totdisp % (side*side)) == 0) return s->totdisp / (side*side);
+		lvl--;
+	}
+
+	return 0;
 }
 
 static void layerSwap_mdisps(void *data, const int *ci)
@@ -452,24 +460,33 @@ static void layerSwap_mdisps(void *data, const int *ci)
 	float (*d)[3] = NULL;
 	int corners, cornersize, S;
 
-	/* this function is untested .. */
 	if(s->disps) {
-		corners = mdisp_corners(s);
-		cornersize = s->totdisp/corners;
+		int nverts= (ci[1] == 3) ? 4 : 3; /* silly way to know vertex count of face */
+		corners= mdisp_corners(s);
+		cornersize= s->totdisp/corners;
 
-		d = MEM_callocN(sizeof(float) * 3 * s->totdisp, "mdisps swap");
+		if(corners!=nverts) {
+			/* happens when face changed vertex count in edit mode
+			   if it happened, just forgot displacement */
+
+			MEM_freeN(s->disps);
+			s->disps= NULL;
+			s->totdisp= 0; /* flag to update totdisp */
+			return;
+		}
+
+		d= MEM_callocN(sizeof(float) * 3 * s->totdisp, "mdisps swap");
 
 		for(S = 0; S < corners; S++)
 			memcpy(d + cornersize*S, s->disps + cornersize*ci[S], cornersize*3*sizeof(float));
 		
-		if(s->disps)
-			MEM_freeN(s->disps);
-		s->disps = d;
+		MEM_freeN(s->disps);
+		s->disps= d;
 	}
 }
 
-static void layerInterp_mdisps(void **sources, float *weights, float *sub_weights,
-				   int count, void *dest)
+static void layerInterp_mdisps(void **UNUSED(sources), float *UNUSED(weights),
+				float *UNUSED(sub_weights), int UNUSED(count), void *dest)
 {
 	MDisps *d = dest;
 	int i;
@@ -547,7 +564,7 @@ static void layerCopy_mdisps(const void *source, void *dest, int count)
 	}
 }
 
-static void layerFree_mdisps(void *data, int count, int size)
+static void layerFree_mdisps(void *data, int count, int UNUSED(size))
 {
 	int i;
 	MDisps *d = data;
@@ -593,7 +610,7 @@ static int layerWrite_mdisps(CDataFile *cdf, void *data, int count)
 	return 1;
 }
 
-static size_t layerFilesize_mdisps(CDataFile *cdf, void *data, int count)
+static size_t layerFilesize_mdisps(CDataFile *UNUSED(cdf), void *data, int count)
 {
 	MDisps *d = data;
 	size_t size = 0;
@@ -2327,13 +2344,13 @@ int CustomData_verify_versions(struct CustomData *data, int index)
 
 static void customdata_external_filename(char filename[FILE_MAX], ID *id, CustomDataExternal *external)
 {
-	char *path = (id->lib)? id->lib->filepath: G.sce;
+	char *path = (id->lib)? id->lib->filepath: G.main->name;
 
 	BLI_strncpy(filename, external->filename, FILE_MAX);
 	BLI_path_abs(filename, path);
 }
 
-void CustomData_external_reload(CustomData *data, ID *id, CustomDataMask mask, int totelem)
+void CustomData_external_reload(CustomData *data, ID *UNUSED(id), CustomDataMask mask, int totelem)
 {
 	CustomDataLayer *layer;
 	const LayerTypeInfo *typeInfo;
@@ -2503,7 +2520,7 @@ void CustomData_external_write(CustomData *data, ID *id, CustomDataMask mask, in
 	cdf_free(cdf);
 }
 
-void CustomData_external_add(CustomData *data, ID *id, int type, int totelem, const char *filename)
+void CustomData_external_add(CustomData *data, ID *UNUSED(id), int type, int UNUSED(totelem), const char *filename)
 {
 	CustomDataExternal *external= data->external;
 	CustomDataLayer *layer;

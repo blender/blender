@@ -210,7 +210,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 	}
 }
 
-int  handleSnapping(TransInfo *t, wmEvent *event)
+int  handleSnapping(TransInfo *UNUSED(t), wmEvent *UNUSED(event))
 {
 	int status = 0;
 
@@ -596,7 +596,7 @@ void ApplySnapResize(TransInfo *t, float vec[3])
 
 /********************** DISTANCE **************************/
 
-float TranslationBetween(TransInfo *t, float p1[3], float p2[3])
+float TranslationBetween(TransInfo *UNUSED(t), float p1[3], float p2[3])
 {
 	return len_v3v3(p1, p2);
 }
@@ -680,12 +680,12 @@ float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
 
 /********************** CALC **************************/
 
-void CalcSnapGrid(TransInfo *t, float *vec)
+void CalcSnapGrid(TransInfo *t, float *UNUSED(vec))
 {
 	snapGridAction(t, t->tsnap.snapPoint, BIG_GEARS);
 }
 
-void CalcSnapGeometry(TransInfo *t, float *vec)
+void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 {
 	if (t->spacetype == SPACE_VIEW3D)
 	{
@@ -1194,7 +1194,7 @@ int snapVertex(ARegion *ar, float vco[3], short vno[3], float mval[2], float ray
 	return retval;
 }
 
-int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm, float obmat[][4], float ray_start[3], float ray_normal[3], float mval[2], float *loc, float *no, int *dist, float *depth)
+int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm, float obmat[][4], float ray_start[3], float ray_normal[3], float mval[2], float *loc, float *UNUSED(no), int *dist, float *depth)
 {
 	float imat[4][4];
 	float ray_start_local[3], ray_normal_local[3];
@@ -1587,7 +1587,7 @@ int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, float mv
 	
 	base= FIRSTBASE;
 	for ( base = FIRSTBASE; base != NULL; base = base->next ) {
-		if ( BASE_SELECTABLE(v3d, base) && (base->flag & (BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA)) == 0 && ((mode == SNAP_NOT_SELECTED && (base->flag & (SELECT|BA_WAS_SEL)) == 0) || (ELEM(mode, SNAP_ALL, SNAP_NOT_OBEDIT) && base != BASACT)) ) {
+		if ( BASE_VISIBLE(v3d, base) && (base->flag & (BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA)) == 0 && ((mode == SNAP_NOT_SELECTED && (base->flag & (SELECT|BA_WAS_SEL)) == 0) || (ELEM(mode, SNAP_ALL, SNAP_NOT_OBEDIT) && base != BASACT)) ) {
 			Object *ob = base->object;
 			
 			if (ob->transflag & OB_DUPLI)
@@ -1682,7 +1682,7 @@ void addDepthPeel(ListBase *depth_peels, float depth, float p[3], float no[3], O
 	peel->flag = 0;
 }
 
-int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_start[3], float ray_normal[3], float mval[2], ListBase *depth_peels)
+int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_start[3], float ray_normal[3], float UNUSED(mval[2]), ListBase *depth_peels)
 {
 	int retval = 0;
 	int totvert = dm->getNumVerts(dm);

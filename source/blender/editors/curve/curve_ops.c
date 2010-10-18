@@ -194,6 +194,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	keymap->poll= ED_operator_editsurfcurve;
 
 	WM_keymap_add_menu(keymap, "INFO_MT_edit_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_menu(keymap, "INFO_MT_curve_handle_type_set", VKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_vertex_add", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_select_all", AKEY, KM_PRESS, 0, 0);
@@ -214,9 +215,6 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CURVE_OT_tilt_clear", TKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "TRANSFORM_OT_tilt", TKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", TFM_CURVE_SHRINKFATTEN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_handle_type_set", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", 1);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_handle_type_set", HKEY, KM_PRESS, 0, 0)->ptr, "type", 3);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CURVE_OT_handle_type_set", VKEY, KM_PRESS, 0, 0)->ptr, "type", 2);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_hide", HKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);

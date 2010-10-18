@@ -141,7 +141,7 @@ void BIF_createTransformOrientation(bContext *C, ReportList *reports, char *name
 	}
 }
 
-TransformOrientation *createObjectSpace(bContext *C, ReportList *reports, char *name, int overwrite) {
+TransformOrientation *createObjectSpace(bContext *C, ReportList *UNUSED(reports), char *name, int overwrite) {
 	Base *base = CTX_data_active_base(C);
 	Object *ob;
 	float mat[3][3];

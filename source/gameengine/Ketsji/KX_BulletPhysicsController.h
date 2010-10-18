@@ -3,7 +3,9 @@
 
 
 #include "KX_IPhysicsController.h"
+#ifdef USE_BULLET
 #include "CcdPhysicsController.h"
+#endif
 
 class KX_BulletPhysicsController : public KX_IPhysicsController ,public CcdPhysicsController
 {
@@ -18,9 +20,10 @@ private:
 	btCollisionShape* m_bulletChildShape;
 
 public:
+#ifdef USE_BULLET
 	KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna, bool sensor, bool compound);
 	virtual ~KX_BulletPhysicsController ();
-
+#endif
 	///////////////////////////////////
 	//	KX_IPhysicsController interface
 	////////////////////////////////////

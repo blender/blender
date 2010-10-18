@@ -264,6 +264,9 @@ static void add_object_to_effectors(ListBase **effectors, Scene *scene, Effector
 
 	eff = new_effector_cache(scene, ob, NULL, ob->pd);
 
+	/* make sure imat is up to date */
+	invert_m4_m4(ob->imat, ob->obmat);
+
 	BLI_addtail(*effectors, eff);
 }
 static void add_particles_to_effectors(ListBase **effectors, Scene *scene, EffectorWeights *weights, Object *ob, ParticleSystem *psys, ParticleSystem *psys_src)
@@ -410,7 +413,7 @@ void pd_point_from_soft(Scene *scene, float *loc, float *vel, int index, Effecte
 /************************************************/
 
 // triangle - ray callback function
-static void eff_tri_ray_hit(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
+static void eff_tri_ray_hit(void *UNUSED(userData), int UNUSED(index), const BVHTreeRay *UNUSED(ray), BVHTreeRayHit *hit)
 {	
 	// whenever we hit a bounding box, we don't check further
 	hit->dist = -1;
@@ -515,7 +518,7 @@ static float falloff_func_rad(PartDeflect *pd, float fac)
 	return falloff_func(fac, pd->flag&PFIELD_USEMINR, pd->minrad, pd->flag&PFIELD_USEMAXR, pd->maxrad, pd->f_power_r);
 }
 
-float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, EffectorWeights *weights)
+float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *UNUSED(point), EffectorWeights *weights)
 {
 	float temp[3];
 	float falloff = weights ? weights->weight[0] * weights->weight[eff->pd->forcefield] : 1.0f;
@@ -774,7 +777,7 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 	}
 
 	if(eff->pd->flag & PFIELD_TEX_OBJECT) {
-		mul_m4_v3(eff->ob->obmat, tex_co);
+		mul_m4_v3(eff->ob->imat, tex_co);
 	}
 
 	hasrgb = multitex_ext(eff->pd->tex, tex_co, NULL,NULL, 0, result);

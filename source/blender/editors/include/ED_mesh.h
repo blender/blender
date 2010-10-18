@@ -159,6 +159,8 @@ void		EM_solidify(struct EditMesh *em, float dist);
 
 int			EM_deselect_nth(struct EditMesh *em, int nth);
 
+void EM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct Object *obedit, struct EditMesh *em);
+
 /* editmesh_mods.c */
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
 
@@ -223,7 +225,7 @@ void ED_mesh_calc_normals(struct Mesh *me);
 void ED_mesh_material_link(struct Mesh *me, struct Material *ma);
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, int calc_edges);
 
-int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me, const char *name, int active_set);
+int ED_mesh_uv_texture_add(struct bContext *C, struct Mesh *me, const char *name, int active_set);
 int ED_mesh_uv_texture_remove(struct bContext *C, struct Object *ob, struct Mesh *me);
 int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me, const char *name, int active_set);
 int ED_mesh_color_remove(struct bContext *C, struct Object *ob, struct Mesh *me);

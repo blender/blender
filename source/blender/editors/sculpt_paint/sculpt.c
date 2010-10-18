@@ -867,6 +867,8 @@ static void calc_area_normal(Sculpt *sd, SculptSession *ss, float an[3], PBVHNod
 
 	float out_flip[3] = {0.0f, 0.0f, 0.0f};
 
+	(void)sd; /* unused w/o openmp */
+	
 	zero_v3(an);
 
 	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
@@ -1667,6 +1669,8 @@ static void calc_flatten_center(Sculpt *sd, SculptSession *ss, PBVHNode **nodes,
 
 	float count = 0;
 
+	(void)sd; /* unused w/o openmp */
+
 	zero_v3(fc);
 
 	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
@@ -1721,6 +1725,8 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, SculptSession *ss, P
 	// fc
 	float count = 0;
 
+	(void)sd; /* unused w/o openmp */
+	
 	// an
 	zero_v3(an);
 
@@ -2534,8 +2540,10 @@ static void sculpt_combine_proxies(Sculpt *sd, SculptSession *ss)
 
 /* Flip all the editdata across the axis/axes specified by symm. Used to
    calculate multiple modifications to the mesh when symmetry is enabled. */
-static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm, const char axis, const float angle, const float feather)
+static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm, const char axis, const float angle, const float UNUSED(feather))
 {
+	(void)sd; /* unused */
+
 	flip_coord(cache->location, cache->true_location, symm);
 	flip_coord(cache->grab_delta_symmetry, cache->grab_delta, symm);
 	flip_coord(cache->view_normal, cache->true_view_normal, symm);

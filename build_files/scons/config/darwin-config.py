@@ -340,7 +340,7 @@ BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE = False
 
 BF_DEBUG = False
-BF_DEBUG_CCFLAGS = ['-g']
+BF_DEBUG_CCFLAGS = ['-g', '-DDEBUG']
 
 #############################################################################
 ###################           Output directories           ##################

@@ -34,13 +34,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "BKE_utildefines.h"
 #include "MOD_modifiertypes.h"
 
 /* We only need to define isDisabled; because it always returns 1,
  * no other functions will be called
  */
 
-static int isDisabled(ModifierData *md, int userRenderParams)
+static int isDisabled(ModifierData *UNUSED(md), int UNUSED(userRenderParams))
 {
 	return 1;
 }

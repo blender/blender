@@ -47,7 +47,7 @@
 
 /* ******************** default callbacks for userpref space ***************** */
 
-static SpaceLink *userpref_new(const bContext *C)
+static SpaceLink *userpref_new(const bContext *UNUSED(C))
 {
 	ARegion *ar;
 	SpaceUserPref *spref;
@@ -72,7 +72,7 @@ static SpaceLink *userpref_new(const bContext *C)
 }
 
 /* not spacelink itself */
-static void userpref_free(SpaceLink *sl)
+static void userpref_free(SpaceLink *UNUSED(sl))
 {	
 //	SpaceUserPref *spref= (SpaceUserPref*) sl;
 	
@@ -80,7 +80,7 @@ static void userpref_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void userpref_init(struct wmWindowManager *wm, ScrArea *sa)
+static void userpref_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 
 }
@@ -111,13 +111,13 @@ void userpref_operatortypes(void)
 {
 }
 
-void userpref_keymap(struct wmKeyConfig *keyconf)
+void userpref_keymap(struct wmKeyConfig *UNUSED(keyconf))
 {
 	
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void userpref_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void userpref_header_area_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
 	ED_region_header_init(ar);
 }
@@ -127,19 +127,20 @@ static void userpref_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
-static void userpref_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void userpref_main_area_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
 {
 	/* context changes */
 }
 
-static void userpref_header_listener(ARegion *ar, wmNotifier *wmn)
+static void userpref_header_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
 {
 	/* context changes */
+#if 0
 	switch(wmn->category) {
 		default:
 			break;
 	}
-	
+#endif	
 }
 
 /* only called once, from space/spacetypes.c */

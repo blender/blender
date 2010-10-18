@@ -252,7 +252,7 @@ Bone *get_named_bone (bArmature *arm, const char *name)
  *	axis: the axis to name on
  *	head/tail: the head/tail co-ordinate of the bone on the specified axis
  */
-int bone_autoside_name (char *name, int strip_number, short axis, float head, float tail)
+int bone_autoside_name (char *name, int UNUSED(strip_number), short axis, float head, float tail)
 {
 	unsigned int len;
 	char	basename[32]={""};
@@ -1057,7 +1057,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 
 /* ************ END Armature Deform ******************* */
 
-void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed)
+void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int UNUSED(root), int UNUSED(posed))
 {
 	copy_m4_m4(M_accumulatedMatrix, bone->arm_mat);
 }
@@ -1616,7 +1616,7 @@ typedef struct tSplineIK_Tree {
 /* ----------- */
 
 /* Tag the bones in the chain formed by the given bone for IK */
-static void splineik_init_tree_from_pchan(Scene *scene, Object *ob, bPoseChannel *pchan_tip)
+static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPoseChannel *pchan_tip)
 {
 	bPoseChannel *pchan, *pchanRoot=NULL;
 	bPoseChannel *pchanChain[255];
@@ -1785,7 +1785,7 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *ob, bPoseChannel
 }
 
 /* Tag which bones are members of Spline IK chains */
-static void splineik_init_tree(Scene *scene, Object *ob, float ctime)
+static void splineik_init_tree(Scene *scene, Object *ob, float UNUSED(ctime))
 {
 	bPoseChannel *pchan;
 	
@@ -2239,11 +2239,26 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 		offs_bone[3][1]+= parbone->length;
 		
 		/* Compose the matrix for this bone  */
-		if(bone->flag & BONE_HINGE) {	// uses restposition rotation, but actual position
+		if((bone->flag & BONE_HINGE) && (bone->flag & BONE_NO_SCALE)) {	// uses restposition rotation, but actual position
 			float tmat[4][4];
-			
 			/* the rotation of the parent restposition */
 			copy_m4_m4(tmat, parbone->arm_mat);
+			mul_serie_m4(pchan->pose_mat, tmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
+		}
+		else if(bone->flag & BONE_HINGE) {	// same as above but apply parent scale
+			float tmat[4][4];
+
+			/* apply the parent matrix scale */
+			float tsmat[4][4], tscale[3];
+
+			/* the rotation of the parent restposition */
+			copy_m4_m4(tmat, parbone->arm_mat);
+
+			/* extract the scale of the parent matrix */
+			mat4_to_size(tscale, parchan->pose_mat);
+			size_to_mat4(tsmat, tscale);
+			mul_m4_m4m4(tmat, tmat, tsmat);
+
 			mul_serie_m4(pchan->pose_mat, tmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 		}
 		else if(bone->flag & BONE_NO_SCALE) {

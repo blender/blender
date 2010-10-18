@@ -274,7 +274,7 @@ static void view3d_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void view3d_init(struct wmWindowManager *wm, ScrArea *sa)
+static void view3d_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 
 }
@@ -387,7 +387,7 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 }
 
-static int view3d_ob_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int view3d_ob_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_ID) {
 		ID *id= (ID *)drag->poin;
@@ -397,7 +397,7 @@ static int view3d_ob_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	return 0;
 }
 
-static int view3d_mat_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int view3d_mat_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_ID) {
 		ID *id= (ID *)drag->poin;
@@ -407,7 +407,7 @@ static int view3d_mat_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	return 0;
 }
 
-static int view3d_ima_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+static int view3d_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))
 {
 	if(drag->type==WM_DRAG_ID) {
 		ID *id= (ID *)drag->poin;
@@ -548,22 +548,36 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene
 		base= base->next;
 	}
 
-	sa= win->screen->areabase.first;
-	while(sa) {
-		if(sa->spacetype == SPACE_VIEW3D)
-			if(BLI_findindex(&sa->regionbase, ar) >= 0) {
+	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype == SPACE_VIEW3D) {
+			if(BLI_findindex(&sa->regionbase, ar) != -1) {
 				View3D *v3d= sa->spacedata.first;
 				v3d->lay_used= lay_used;
 				break;
 			}
-
-		sa= sa->next;
+		}
 	}
+}
+
+static View3D *view3d_from_wmn(ARegion *ar, wmNotifier *wmn)
+{
+	wmWindow *win= wmn->wm->winactive;
+	ScrArea *sa;
+
+	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype == SPACE_VIEW3D)
+			if(BLI_findindex(&sa->regionbase, ar) != -1) {
+				return (View3D *)sa->spacedata.first;
+			}
+	}
+
+	return NULL;
 }
 
 static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	bScreen *sc;
+	View3D *v3d;
 
 	/* context changes */
 	switch(wmn->category) {
@@ -599,6 +613,11 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_RENDER_OPTIONS:
 				case ND_MODE:
 					ED_region_tag_redraw(ar);
+					break;
+				case ND_WORLD:
+					v3d= view3d_from_wmn(ar, wmn);
+					if(v3d->flag2 & V3D_RENDER_OVERRIDE)
+						ED_region_tag_redraw(ar);
 					break;
 			}
 			if (wmn->action == NA_EDITED)
@@ -650,7 +669,9 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_WORLD:
 			switch(wmn->data) {
 				case ND_WORLD_DRAW:
-					ED_region_tag_redraw(ar);
+					v3d= view3d_from_wmn(ar, wmn);
+					if(v3d->flag2 & V3D_RENDER_OVERRIDE)
+						ED_region_tag_redraw(ar);
 					break;
 			}
 			break;
@@ -705,7 +726,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 }
 
 /* concept is to retrieve cursor type context-less */
-static void view3d_main_area_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
+static void view3d_main_area_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *UNUSED(ar))
 {
 	Scene *scene= win->screen->scene;
 

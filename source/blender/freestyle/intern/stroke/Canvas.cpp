@@ -403,7 +403,7 @@ int rowbytes = w*4;
     //    h = pyramid.height(i);
 	
 	//soc  QImage qtmp(ow, oh, QImage::Format_RGB32);
-    ImBuf *qtmp = IMB_allocImBuf(ow, oh, 32, IB_rect, 0);
+    ImBuf *qtmp = IMB_allocImBuf(ow, oh, 32, IB_rect);
 
 //int k = (1<<i);
     for(y=0;y<oh;++y){

@@ -41,7 +41,7 @@ static bNodeSocketType cmp_node_premulkey_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_composit_exec_premulkey(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_premulkey(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if(out[0]->hasoutput==0)
 		return;

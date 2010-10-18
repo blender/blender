@@ -35,10 +35,10 @@
 #define _GHOST_DEBUG_H_
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
-	#ifdef _DEBUG
+	#ifdef DEBUG
 		#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 		// #define GHOST_DEBUG
-	#endif // _DEBUG
+	#endif // DEBUG
 #endif // WIN32
 
 #ifdef BF_GHOST_DEBUG 

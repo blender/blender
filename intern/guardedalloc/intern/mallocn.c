@@ -856,4 +856,18 @@ int MEM_get_memory_blocks_in_use(void)
 	return _totblock;
 }
 
+#ifndef NDEBUG
+const char *MEM_name_ptr(void *vmemh)
+{
+	if (vmemh) {
+		MemHead *memh= vmemh;
+		memh--;
+		return memh->name;
+	}
+	else {
+		return "MEM_name_ptr(NULL)";
+	}
+}
+#endif
+
 /* eof */

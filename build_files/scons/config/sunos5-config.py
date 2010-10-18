@@ -161,7 +161,7 @@ BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE = False
 
 BF_DEBUG = False
-BF_DEBUG_CCFLAGS = []
+BF_DEBUG_CCFLAGS = ['-DDEBUG']
 
 BF_BUILDDIR = '../build/sunos5'
 BF_INSTALLDIR='../install/sunos5'

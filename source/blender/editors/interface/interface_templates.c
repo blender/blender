@@ -491,7 +491,7 @@ void uiTemplateIDPreview(uiLayout *layout, bContext *C, PointerRNA *ptr, char *p
  * - propname: property identifier for property that ID-pointer gets stored to
  * - proptypename: property identifier for property used to determine the type of ID-pointer that can be used
  */
-void uiTemplateAnyID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *proptypename, char *text)
+void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, char *propname, char *proptypename, char *text)
 {
 	PropertyRNA *propID, *propType;
 	uiLayout *row;
@@ -536,7 +536,7 @@ void uiTemplateAnyID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
  * - propname: property identifier for property that path gets stored to
  * - root_ptr: struct that path gets built from
  */
-void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, PointerRNA *root_ptr, char *text)
+void uiTemplatePathBuilder(uiLayout *layout, PointerRNA *ptr, char *propname, PointerRNA *UNUSED(root_ptr), char *text)
 {
 	PropertyRNA *propPath;
 	uiLayout *row;
@@ -817,7 +817,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 #define REMAKEIPO					8
 #define B_DIFF						9
 
-void do_constraint_panels(bContext *C, void *arg, int event)
+void do_constraint_panels(bContext *C, void *UNUSED(arg), int event)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -853,7 +853,7 @@ void do_constraint_panels(bContext *C, void *arg, int event)
 	// XXX allqueue(REDRAWBUTSEDIT, 0);
 }
 
-static void constraint_active_func(bContext *C, void *ob_v, void *con_v)
+static void constraint_active_func(bContext *UNUSED(C), void *ob_v, void *con_v)
 {
 	ED_object_constraint_set_active(ob_v, con_v);
 }
@@ -1142,7 +1142,7 @@ typedef struct RNAUpdateCb {
 	PropertyRNA *prop;
 } RNAUpdateCb;
 
-static void rna_update_cb(bContext *C, void *arg_cb, void *arg_unused)
+static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 {
 	RNAUpdateCb *cb= (RNAUpdateCb*)arg_cb;
 
@@ -1319,7 +1319,7 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, char *propname, int 
 
 /********************* Histogram Template ************************/
 
-void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, char *propname, int expand)
+void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, char *propname)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	PointerRNA cptr;
@@ -1358,7 +1358,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, char *propname, int 
 
 /********************* Waveform Template ************************/
 
-void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, char *propname, int expand)
+void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, char *propname)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	PointerRNA cptr;
@@ -1394,7 +1394,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, char *propname, int e
 
 /********************* Vectorscope Template ************************/
 
-void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, char *propname, int expand)
+void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, char *propname)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	PointerRNA cptr;
@@ -1432,7 +1432,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, char *propname, in
 /********************* CurveMapping Template ************************/
 
 
-static void curvemap_buttons_zoom_in(bContext *C, void *cumap_v, void *unused)
+static void curvemap_buttons_zoom_in(bContext *C, void *cumap_v, void *UNUSED(arg))
 {
 	CurveMapping *cumap = cumap_v;
 	float d;
@@ -1450,7 +1450,7 @@ static void curvemap_buttons_zoom_in(bContext *C, void *cumap_v, void *unused)
 	ED_region_tag_redraw(CTX_wm_region(C));
 }
 
-static void curvemap_buttons_zoom_out(bContext *C, void *cumap_v, void *unused)
+static void curvemap_buttons_zoom_out(bContext *C, void *cumap_v, void *UNUSED(unused))
 {
 	CurveMapping *cumap = cumap_v;
 	float d, d1;
@@ -1487,7 +1487,7 @@ static void curvemap_buttons_zoom_out(bContext *C, void *cumap_v, void *unused)
 	ED_region_tag_redraw(CTX_wm_region(C));
 }
 
-static void curvemap_buttons_setclip(bContext *C, void *cumap_v, void *unused)
+static void curvemap_buttons_setclip(bContext *UNUSED(C), void *cumap_v, void *UNUSED(arg))
 {
 	CurveMapping *cumap = cumap_v;
 
@@ -1607,7 +1607,7 @@ static uiBlock *curvemap_brush_tools_func(bContext *C, struct ARegion *ar, void 
 	return block;
 }
 
-static void curvemap_buttons_redraw(bContext *C, void *arg1, void *arg2)
+static void curvemap_buttons_redraw(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
 {
 	ED_region_tag_redraw(CTX_wm_region(C));
 }
@@ -2200,7 +2200,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propna
 
 /************************* Operator Search Template **************************/
 
-static void operator_call_cb(bContext *C, void *arg1, void *arg2)
+static void operator_call_cb(bContext *C, void *UNUSED(arg1), void *arg2)
 {
 	wmOperatorType *ot= arg2;
 	
@@ -2208,7 +2208,7 @@ static void operator_call_cb(bContext *C, void *arg1, void *arg2)
 		WM_operator_name_call(C, ot->idname, WM_OP_INVOKE_DEFAULT, NULL);
 }
 
-static void operator_search_cb(const bContext *C, void *arg, char *str, uiSearchItems *items)
+static void operator_search_cb(const bContext *C, void *UNUSED(arg), char *str, uiSearchItems *items)
 {
 	wmOperatorType *ot = WM_operatortype_first();
 	
@@ -2255,7 +2255,7 @@ void uiTemplateOperatorSearch(uiLayout *layout)
 #define B_STOPANIM		3
 #define B_STOPCOMPO		4
 
-static void do_running_jobs(bContext *C, void *arg, int event)
+static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 {
 	switch(event) {
 		case B_STOPRENDER:
@@ -2327,7 +2327,6 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	uiBut *but;
 	uiStyle *style= U.uistyles.first;
 	int width;
-	float hsv[3];
 	
 	/* if the report display has timed out, don't show */
 	if (!reports->reporttimer) return;
@@ -2338,8 +2337,6 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	
 	abs = uiLayoutAbsolute(layout, 0);
 	block= uiLayoutGetBlock(abs);
-
-	rgb_to_hsv(rti->col[0], rti->col[1], rti->col[2], hsv+0, hsv+1, hsv+2);
 	
 	width = BLF_width(style->widget.uifont_id, report->message);
 	width = MIN2(rti->widthfac*width, width);
@@ -2348,11 +2345,16 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	/* make a box around the report to make it stand out */
 	uiBlockBeginAlign(block);
 	but= uiDefBut(block, ROUNDBOX, 0, "", 0, 0, UI_UNIT_X+10, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
-	copy_v3_v3(but->hsv, hsv);			/* set the report's bg colour in but->hsv - ROUNDBOX feature */
-	
+	/* set the report's bg colour in but->col - ROUNDBOX feature */
+	but->col[0]= FTOCHAR(rti->col[0]);
+	but->col[1]= FTOCHAR(rti->col[1]);
+	but->col[2]= FTOCHAR(rti->col[2]);
+	but->col[3]= 255; 
+
 	but= uiDefBut(block, ROUNDBOX, 0, "", UI_UNIT_X+10, 0, UI_UNIT_X+width, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
-	but->hsv[0] = but->hsv[1] = 0.0;	/* set a greyscale bg colour in but->hsv - ROUNDBOX feature */
-	but->hsv[2] = rti->greyscale;
+	but->col[0]= but->col[1]= but->col[2]= FTOCHAR(rti->greyscale);
+	but->col[3]= 255;
+
 	uiBlockEndAlign(block);
 	
 	

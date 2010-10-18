@@ -71,7 +71,7 @@ EditMesh *BKE_mesh_get_editmesh(Mesh *me)
 	return me->edit_mesh;
 }
 
-void BKE_mesh_end_editmesh(Mesh *me, EditMesh *em)
+void BKE_mesh_end_editmesh(Mesh *UNUSED(me), EditMesh *UNUSED(em))
 {
 }
 
@@ -561,7 +561,7 @@ static void mfaces_strip_loose(MFace *mface, int *totface)
 }
 
 /* Create edges based on known verts and faces */
-static void make_edges_mdata(MVert *allvert, MFace *allface, int totvert, int totface,
+static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, int UNUSED(totvert), int totface,
 	int old, MEdge **alledge, int *_totedge)
 {
 	MFace *mface;
@@ -1221,7 +1221,7 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth)
 void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float **faceNors_r) 
 {
 	float (*tnorms)[3]= MEM_callocN(numVerts*sizeof(*tnorms), "tnorms");
-	float *fnors= MEM_mallocN(sizeof(*fnors)*3*numFaces, "meshnormals");
+	float *fnors= MEM_callocN(sizeof(*fnors)*3*numFaces, "meshnormals");
 	int i;
 
 	for (i=0; i<numFaces; i++) {
@@ -1441,7 +1441,7 @@ void mesh_pmv_free(PartialVisibility *pv)
 	MEM_freeN(pv);
 }
 
-void mesh_pmv_revert(Object *ob, Mesh *me)
+void mesh_pmv_revert(Mesh *me)
 {
 	if(me->pv) {
 		unsigned i;
@@ -1480,10 +1480,10 @@ void mesh_pmv_revert(Object *ob, Mesh *me)
 	}
 }
 
-void mesh_pmv_off(Object *ob, Mesh *me)
+void mesh_pmv_off(Mesh *me)
 {
-	if(ob && me->pv) {
-		mesh_pmv_revert(ob, me);
+	if(me->pv) {
+		mesh_pmv_revert(me);
 		MEM_freeN(me->pv);
 		me->pv= NULL;
 	}

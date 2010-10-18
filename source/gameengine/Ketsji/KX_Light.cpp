@@ -180,7 +180,7 @@ GPULamp *KX_LightObject::GetGPULamp()
 	if(m_glsl)
 		return GPU_lamp_from_blender(m_blenderscene, GetBlenderObject(), GetBlenderGroupObject());
 	else
-		return false;
+		return NULL;
 }
 
 void KX_LightObject::Update()

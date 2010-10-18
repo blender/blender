@@ -55,7 +55,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	strcpy(tmmd->vgroup, mmd->vgroup);
 }
 
-static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
 {
 	return (1 << CD_MDEFORMVERT);
 }
@@ -69,8 +69,10 @@ static void foreachObjectLink(
 	walk(userData, ob, &mmd->ob_arm);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *scene,
-					   Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, DagForest *forest,
+						struct Scene *UNUSED(scene),
+						Object *UNUSED(ob),
+						DagNode *obNode)
 {
 	MaskModifierData *mmd = (MaskModifierData *)md;
 
@@ -84,8 +86,9 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *sc
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-		DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	MaskModifierData *mmd= (MaskModifierData *)md;
 	DerivedMesh *dm= derivedData, *result= NULL;

@@ -34,6 +34,7 @@
 
 #include "BLI_math.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
@@ -59,9 +60,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tdmd->percent = dmd->percent;
 }
 
-static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DecimateModifierData *dmd = (DecimateModifierData*) md;
 	DerivedMesh *dm = derivedData, *result = NULL;

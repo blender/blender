@@ -36,7 +36,7 @@ static bNodeSocketType inputs[]= {
 };
 
 /* applies to render pipeline */
-static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
 {
 	TexCallData *cdata = (TexCallData *)data;
 	TexResult *target = cdata->target;

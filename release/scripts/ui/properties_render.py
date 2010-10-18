@@ -84,10 +84,11 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
         col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
         col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
 
+        row = layout.row()
         rl = rd.layers.active
-
         if rl:
-            layout.prop(rl, "name")
+            row.prop(rl, "name")
+        row.prop(rd, "use_single_layer", text="", icon_only=True)
 
         split = layout.split()
 
