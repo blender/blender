@@ -1211,7 +1211,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	/* a standing up pyramid with (0,0,0) as top */
 	Camera *cam;
 	World *wrld;
-	float nobmat[4][4], vec[8][4], fac, facx, facy, depth, aspx, aspy, caspx, caspy;
+	float nobmat[4][4], vec[8][4], fac, facx, facy, depth, aspx, aspy, caspx, caspy, shx, shy;
 	int i;
 
 	cam= ob->data;
@@ -1233,6 +1233,8 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	if(rv3d->persp>=2 && cam->type==CAM_ORTHO && ob==v3d->camera) {
 		facx= 0.5*cam->ortho_scale*caspx;
 		facy= 0.5*cam->ortho_scale*caspy;
+		shx= cam->shiftx * cam->ortho_scale;
+		shy= cam->shifty * cam->ortho_scale;
 		depth= -cam->clipsta-0.1;
 	}
 	else {
@@ -1242,13 +1244,15 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		depth= - fac*cam->lens/16.0;
 		facx= fac*caspx;
 		facy= fac*caspy;
+		shx= cam->shiftx*fac*2;
+		shy= cam->shifty*fac*2;
 	}
 	
 	vec[0][0]= 0.0; vec[0][1]= 0.0; vec[0][2]= 0.001;	/* GLBUG: for picking at iris Entry (well thats old!) */
-	vec[1][0]= facx; vec[1][1]= facy; vec[1][2]= depth;
-	vec[2][0]= facx; vec[2][1]= -facy; vec[2][2]= depth;
-	vec[3][0]= -facx; vec[3][1]= -facy; vec[3][2]= depth;
-	vec[4][0]= -facx; vec[4][1]= facy; vec[4][2]= depth;
+	vec[1][0]= shx + facx; vec[1][1]= shy + facy; vec[1][2]= depth;
+	vec[2][0]= shx + facx; vec[2][1]= shy - facy; vec[2][2]= depth;
+	vec[3][0]= shx - facx; vec[3][1]= shy - facy; vec[3][2]= depth;
+	vec[4][0]= shx - facx; vec[4][1]= shy + facy; vec[4][2]= depth;
 
 	glBegin(GL_LINE_LOOP);
 		glVertex3fv(vec[1]); 
@@ -1281,16 +1285,16 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		if (i==0) glBegin(GL_LINE_LOOP);
 		else if (i==1 && (ob == v3d->camera)) glBegin(GL_TRIANGLES);
 		else break;
-		
-		vec[0][0]= -0.7 * cam->drawsize;
-		vec[0][1]= cam->drawsize * (caspy + 0.1);
+
+		vec[0][0]= shx + (-0.7 * cam->drawsize);
+		vec[0][1]= shy + (cam->drawsize * (caspy + 0.1));
 		glVertex3fv(vec[0]); /* left */
 		
-		vec[0][0] *= -1.0;
+		vec[0][0]= shx + (0.7 * cam->drawsize);
 		glVertex3fv(vec[0]); /* right */
 		
-		vec[0][0]= 0.0;
-		vec[0][1]= 1.1 * cam->drawsize * (caspy + 0.7);
+		vec[0][0]= shx;
+		vec[0][1]= shy + (1.1 * cam->drawsize * (caspy + 0.7));
 		glVertex3fv(vec[0]); /* top */
 	
 		glEnd();
