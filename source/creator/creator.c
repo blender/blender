@@ -1046,14 +1046,14 @@ int main(int argc, char **argv)
 	BLI_where_am_i(bprogname, argv[0]);
 	
 #ifdef BUILD_DATE	
-    strip_quotes(build_date);
-    strip_quotes(build_time);
-    strip_quotes(build_rev);
-    strip_quotes(build_platform);
-    strip_quotes(build_type);
-    strip_quotes(build_cflags);
-    strip_quotes(build_cxxflags);
-    strip_quotes(build_linkflags);
+	strip_quotes(build_date);
+	strip_quotes(build_time);
+	strip_quotes(build_rev);
+	strip_quotes(build_platform);
+	strip_quotes(build_type);
+	strip_quotes(build_cflags);
+	strip_quotes(build_cxxflags);
+	strip_quotes(build_linkflags);
 #endif
 
 	BLI_threadapi_init();
