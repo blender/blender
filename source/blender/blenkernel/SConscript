@@ -25,7 +25,7 @@ else:
     incs += ' ../python'
     incs += ' ' + env['BF_PYTHON_INC']
     if env['BF_DEBUG']:
-        defs.append('_DEBUG')
+        defs.append('DEBUG')
 
 if env['WITH_BF_QUICKTIME']:
     incs += ' ../quicktime'
