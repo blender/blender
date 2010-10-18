@@ -185,7 +185,7 @@ CC_WARN = [ '-Wall' ]
 LLIBS = [ '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++', '-luuid', '-lole32'] #'-lutil', '-lc', '-lm', '-ldl', '-lpthread' ]
 
 BF_DEBUG = False
-BF_DEBUG_CCFLAGS = ['-g']
+BF_DEBUG_CCFLAGS = ['-g', '-DDEBUG']
 
 BF_PROFILE = False
 BF_PROFILE_CCFLAGS = ['-pg','-g']

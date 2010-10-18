@@ -1708,7 +1708,7 @@ void object_apply_mat4(Object *ob, float mat[][4])
 	/* rotation */
 	copy_m3_m4(mat3, mat);
 	/* so scale doesnt interfear with rotation [#24291] */
-	normalize_m3_m3(mat3_n, mat3);
+	normalize_m3_m3(mat3_n, (const float(*)[3])mat3);
 
 	object_mat3_to_rot(ob, mat3_n, 0);
 

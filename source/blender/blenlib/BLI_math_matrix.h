@@ -102,9 +102,9 @@ void transpose_m3(float R[3][3]);
 void transpose_m4(float R[4][4]);
 
 void normalize_m3(float R[3][3]);
-void normalize_m3_m3(float R[3][3], float A[3][3]);
+void normalize_m3_m3(float R[3][3], const float A[3][3]);
 void normalize_m4(float R[4][4]);
-void normalize_m4_m4(float R[4][4], float A[4][4]);
+void normalize_m4_m4(float R[4][4], const float A[4][4]);
 
 void orthogonalize_m3(float R[3][3], int axis);
 void orthogonalize_m4(float R[4][4], int axis);

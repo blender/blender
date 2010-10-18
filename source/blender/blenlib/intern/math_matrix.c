@@ -750,7 +750,7 @@ void normalize_m3(float mat[][3])
 	normalize_v3(mat[2]);
 }
 
-void normalize_m3_m3(float rmat[][3], float mat[][3])
+void normalize_m3_m3(float rmat[][3], const float mat[][3])
 {	
 	normalize_v3_v3(rmat[0], mat[0]);
 	normalize_v3_v3(rmat[1], mat[1]);
@@ -770,7 +770,7 @@ void normalize_m4(float mat[][4])
 	if(len!=0.0) mat[2][3]/= len;
 }
 
-void normalize_m4_m4(float rmat[][4], float mat[][4])
+void normalize_m4_m4(float rmat[][4], const float mat[][4])
 {
 	float len;
 	
