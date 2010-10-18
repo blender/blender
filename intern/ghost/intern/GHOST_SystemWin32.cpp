@@ -144,6 +144,7 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
 	m_displayManager->initialize();
 	
+	// Check if current keyboard layout uses AltGr
 	this->keyboardAltGr();
 	
 	// Require COM for GHOST_DropTargetWin32 created in GHOST_WindowWin32.
@@ -646,7 +647,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 		GHOST_WindowWin32* window = (GHOST_WindowWin32*)::GetWindowLong(hwnd, GWL_USERDATA);
 		if (window) {
 			switch (msg) {
-				// we need to check if new key layout has altgr
+				// we need to check if new key layout has AltGr
 				case WM_INPUTLANGCHANGE:
 					system->keyboardAltGr();
 					break;
