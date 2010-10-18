@@ -39,6 +39,9 @@ extern char build_time[];
 extern char build_rev[];
 extern char build_platform[];
 extern char build_type[];
+extern char build_cflags[];
+extern char build_cxxflags[];
+extern char build_linkflags[];
 #endif
 
 static PyTypeObject BlenderAppType;
@@ -55,6 +58,9 @@ static PyStructSequence_Field app_info_fields[] = {
 	{"build_revision", "The subversion revision this blender instance was built with"},
 	{"build_platform", "The platform this blender instance was built for"},
 	{"build_type", "The type of build (Release, Debug)"},
+	{"build_cflags", ""},
+	{"build_cxxflags", ""},
+	{"build_linkflags", ""},
 	{0}
 };
 
@@ -96,7 +102,13 @@ static PyObject *make_app_info(void)
 	SetStrItem(build_rev);
 	SetStrItem(build_platform);
 	SetStrItem(build_type);
+	SetStrItem(build_cflags);
+	SetStrItem(build_cxxflags);
+	SetStrItem(build_linkflags);
 #else
+	SetStrItem("Unknown");
+	SetStrItem("Unknown");
+	SetStrItem("Unknown");
 	SetStrItem("Unknown");
 	SetStrItem("Unknown");
 	SetStrItem("Unknown");

@@ -35,4 +35,15 @@ char build_time[]= STRINGIFY(BUILD_TIME);
 char build_rev[]= STRINGIFY(BUILD_REV);
 char build_platform[]= STRINGIFY(BUILD_PLATFORM);
 char build_type[]= STRINGIFY(BUILD_TYPE);
+
+#ifdef BUILD_CFLAGS
+char build_cflags[]= STRINGIFY(BUILD_CFLAGS);
+char build_cxxflags[]= STRINGIFY(BUILD_CXXFLAGS);
+char build_linkflags[]= STRINGIFY(BUILD_LINKFLAGS);
+#else
+char build_cflags[]= "unmaintained buildsystem alert!";
+char build_cxxflags[]= "unmaintained buildsystem alert!";
+char build_linkflags[]= "unmaintained buildsystem alert!";
 #endif
+
+#endif // BUILD_DATE
