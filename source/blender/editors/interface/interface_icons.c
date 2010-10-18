@@ -864,13 +864,6 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 		glPixelTransferf(GL_GREEN_SCALE, rgb[1]);
 		glPixelTransferf(GL_BLUE_SCALE, rgb[2]);
 	}
-	
-	if(is_preview == 0) {
-		/* position */
-		glRasterPos2f(x,y);
-	}
-
-	/* draw */
 
 	/* rect contains image in 'rendersize', we only scale if needed */
 	if(rw!=w && rh!=h) {
@@ -881,8 +874,14 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 		rect= ima->rect;
 	}
 
-	if(is_preview)	glaDrawPixelsSafe(x, y, w, h, w, GL_RGBA, GL_UNSIGNED_BYTE, rect);
-	else			glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+	/* draw */
+	if(is_preview) {
+		glaDrawPixelsSafe(x, y, w, h, w, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+	}
+	else {
+		glRasterPos2f(x, y);
+		glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+	}
 
 	if(ima)
 		IMB_freeImBuf(ima);

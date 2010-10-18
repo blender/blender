@@ -150,6 +150,10 @@ extern "C" {
 	/*get the peak memory usage in bytes, including mmap allocations*/
 	uintptr_t MEM_get_peak_memory(void);
 
+#ifndef NDEBUG
+const char *MEM_name_ptr(void *vmemh);
+#endif
+	
 #ifdef __cplusplus
 }
 #endif
