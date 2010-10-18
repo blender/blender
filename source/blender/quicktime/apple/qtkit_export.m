@@ -41,6 +41,7 @@
 #include "AUD_C-API.h"
 
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_scene.h"
 #include "BKE_report.h"
 
@@ -208,7 +209,7 @@ void makeqtstring (RenderData *rd, char *string) {
 	char txt[64];
 
 	strcpy(string, rd->pic);
-	BLI_path_abs(string, G.sce);
+	BLI_path_abs(string, G.main->name);
 
 	BLI_make_existing_file(string);
 
@@ -222,7 +223,7 @@ void filepath_qt(char *string, RenderData *rd) {
 	if (string==NULL) return;
 	
 	strcpy(string, rd->pic);
-	BLI_path_abs(string, G.sce);
+	BLI_path_abs(string, G.main->name);
 	
 	BLI_make_existing_file(string);
 	
