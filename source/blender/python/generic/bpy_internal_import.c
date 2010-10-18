@@ -198,18 +198,18 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args,  PyObjec
 	char *name;
 	int found= 0;
 	PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
-	PyObject *newmodule;
+	int level= -1; /* relative imports */
 	
+	PyObject *newmodule;
 	//PyObject_Print(args, stderr, 0);
-	int dummy_val; /* what does this do?*/
 	static char *kwlist[] = {"name", "globals", "locals", "fromlist", "level", 0};
 	
 	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOOi:bpy_import_meth", kwlist,
-				   &name, &globals, &locals, &fromlist, &dummy_val) )
+				   &name, &globals, &locals, &fromlist, &level) )
 		return NULL;
 
 	/* import existing builtin modules or modules that have been imported already */
-	newmodule = PyImport_ImportModuleEx( name, globals, locals, fromlist );
+	newmodule= PyImport_ImportModuleLevel(name, globals, locals, fromlist, level);
 	
 	if(newmodule)
 		return newmodule;
