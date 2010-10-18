@@ -750,6 +750,14 @@ void normalize_m3(float mat[][3])
 	normalize_v3(mat[2]);
 }
 
+void normalize_m3_m3(float rmat[][3], float mat[][3])
+{	
+	normalize_v3_v3(rmat[0], mat[0]);
+	normalize_v3_v3(rmat[1], mat[1]);
+	normalize_v3_v3(rmat[2], mat[2]);
+}
+
+
 void normalize_m4(float mat[][4])
 {
 	float len;
@@ -760,6 +768,18 @@ void normalize_m4(float mat[][4])
 	if(len!=0.0) mat[1][3]/= len;
 	len= normalize_v3(mat[2]);
 	if(len!=0.0) mat[2][3]/= len;
+}
+
+void normalize_m4_m4(float rmat[][4], float mat[][4])
+{
+	float len;
+	
+	len= normalize_v3_v3(rmat[0], mat[0]);
+	if(len!=0.0) rmat[0][3]= mat[0][3] / len;
+	len= normalize_v3_v3(rmat[1], mat[1]);
+	if(len!=0.0) rmat[1][3]= mat[1][3] / len;
+	len= normalize_v3_v3(rmat[2], mat[2]);
+	if(len!=0.0) rmat[2][3]= mat[2][3] / len;;
 }
 
 void adjoint_m3_m3(float m1[][3], float m[][3])

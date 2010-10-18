@@ -1698,29 +1698,28 @@ void object_mat3_to_rot(Object *ob, float mat[][3], int use_compat)
 /* see pchan_apply_mat4() for the equivalent 'pchan' function */
 void object_apply_mat4(Object *ob, float mat[][4])
 {
-	float mat3[3][3], tmat[3][3], imat[3][3];
+	float mat3[3][3];    /* obmat -> 3x3 */
+	float mat3_n[3][3];  /* obmat -> normalized, 3x3 */
+	float imat3_n[3][3]; /* obmat -> normalized & inverted, 3x3 */
 
 	/* location */
 	copy_v3_v3(ob->loc, mat[3]);
 	
 	/* rotation */
 	copy_m3_m4(mat3, mat);
-	object_mat3_to_rot(ob, mat3, 0);
-	
-	/* scale */
-#if 0
-	/* works fine except for neg scales */
-	mat4_to_size(ob->size, mat);
-#else
-	/* this is more complicated but works for negative scales */
-	object_rot_to_mat3(ob, tmat);
-	invert_m3_m3(imat, tmat);
-	mul_m3_m3m3(tmat, imat, mat3);
+	/* so scale doesnt interfear with rotation [#24291] */
+	normalize_m3_m3(mat3_n, mat3);
 
-	ob->size[0]= tmat[0][0];
-	ob->size[1]= tmat[1][1];
-	ob->size[2]= tmat[2][2];
-#endif
+	object_mat3_to_rot(ob, mat3_n, 0);
+
+	/* scale */
+	/* note: mat4_to_size(ob->size, mat) fails for negative scale */
+	invert_m3_m3(imat3_n, mat3_n);
+	mul_m3_m3m3(mat3, imat3_n, mat3);
+
+	ob->size[0]= mat3[0][0];
+	ob->size[1]= mat3[1][1];
+	ob->size[2]= mat3[2][2];
 }
 
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
