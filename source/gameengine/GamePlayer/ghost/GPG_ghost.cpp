@@ -821,8 +821,8 @@ int main(int argc, char** argv)
 						app.SetGameEngineData(maggie, scene, argc, argv); /* this argc cant be argc_py_clamped, since python uses it */
 						
 						BLI_strncpy(pathname, maggie->name, sizeof(pathname));
-						BLI_strncpy(G.sce, maggie->name, sizeof(G.sce));
-						setGamePythonPath(G.sce);
+						BLI_strncpy(G.main->name, maggie->name, sizeof(G.main->name));
+						setGamePythonPath(G.main->name);
 
 						if (firstTimeRunning)
 						{

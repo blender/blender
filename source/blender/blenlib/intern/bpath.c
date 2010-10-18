@@ -92,7 +92,7 @@ void BLI_bpathIterator_init( struct BPathIterator *bpi, char *base_path ) {
 	bpi->seqdata.seqar = NULL;
 	bpi->seqdata.scene = NULL;
 	
-	bpi->base_path= base_path ? base_path : G.sce;
+	bpi->base_path= base_path ? base_path : G.main->name;
 
 	BLI_bpathIterator_step(bpi);
 }

@@ -45,6 +45,7 @@
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -260,17 +261,15 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 	else {
 		
 		/* this is set to 1 if you don't have startup.blend open */
-		if(G.save_over) {
-			char *str= MEM_mallocN(strlen(G.sce) + 16, "title");
+		if(G.save_over && G.main->name[0]) {
+			char str[sizeof(G.main->name) + 12];
 			
 			if(wm->file_saved)
-				sprintf(str, "Blender [%s]", G.sce);
+				sprintf(str, "Blender [%s]", G.main->name);
 			else
-				sprintf(str, "Blender* [%s]", G.sce);
+				sprintf(str, "Blender* [%s]", G.main->name);
 			
 			GHOST_SetTitle(win->ghostwin, str);
-			
-			MEM_freeN(str);
 		}
 		else
 			GHOST_SetTitle(win->ghostwin, "Blender");

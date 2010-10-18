@@ -191,7 +191,7 @@ static int make_paths_relative_exec(bContext *UNUSED(C), wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	makeFilesRelative(G.sce, op->reports);
+	makeFilesRelative(G.main->name, op->reports);
 
 	return OPERATOR_FINISHED;
 }
@@ -218,7 +218,7 @@ static int make_paths_absolute_exec(bContext *UNUSED(C), wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	makeFilesAbsolute(G.sce, op->reports);
+	makeFilesAbsolute(G.main->name, op->reports);
 	return OPERATOR_FINISHED;
 }
 
@@ -244,7 +244,7 @@ static int report_missing_files_exec(bContext *UNUSED(C), wmOperator *op)
 	txtname[0] = '\0';
 	
 	/* run the missing file check */
-	checkMissingFiles(G.sce, op->reports);
+	checkMissingFiles(G.main->name, op->reports);
 	
 	return OPERATOR_FINISHED;
 }
@@ -269,7 +269,7 @@ static int find_missing_files_exec(bContext *UNUSED(C), wmOperator *op)
 	char *path;
 	
 	path= RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
-	findMissingFiles(path, G.sce);
+	findMissingFiles(path, G.main->name);
 	MEM_freeN(path);
 
 	return OPERATOR_FINISHED;

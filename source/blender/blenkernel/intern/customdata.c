@@ -48,6 +48,7 @@
 #include "BKE_customdata.h"
 #include "BKE_customdata_file.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_utildefines.h"
 
 /* number of layers to add when growing a CustomData object */
@@ -2343,7 +2344,7 @@ int CustomData_verify_versions(struct CustomData *data, int index)
 
 static void customdata_external_filename(char filename[FILE_MAX], ID *id, CustomDataExternal *external)
 {
-	char *path = (id->lib)? id->lib->filepath: G.sce;
+	char *path = (id->lib)? id->lib->filepath: G.main->name;
 
 	BLI_strncpy(filename, external->filename, FILE_MAX);
 	BLI_path_abs(filename, path);

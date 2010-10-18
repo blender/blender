@@ -1440,7 +1440,7 @@ static void open_set_use_scripts(wmOperator *op)
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	RNA_string_set(op->ptr, "filepath", G.sce);
+	RNA_string_set(op->ptr, "filepath", G.main->name);
 	open_set_load_ui(op);
 	open_set_use_scripts(op);
 
@@ -1773,7 +1773,7 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 
 	save_set_compress(op);
 	
-	BLI_strncpy(name, G.sce, FILE_MAX);
+	BLI_strncpy(name, G.main->name, FILE_MAX);
 	untitled(name);
 	RNA_string_set(op->ptr, "filepath", name);
 	
@@ -1794,7 +1794,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	if(RNA_property_is_set(op->ptr, "filepath"))
 		RNA_string_get(op->ptr, "filepath", path);
 	else {
-		BLI_strncpy(path, G.sce, FILE_MAX);
+		BLI_strncpy(path, G.main->name, FILE_MAX);
 		untitled(path);
 	}
 
@@ -1859,7 +1859,7 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 
 	save_set_compress(op);
 	
-	BLI_strncpy(name, G.sce, FILE_MAX);
+	BLI_strncpy(name, G.main->name, FILE_MAX);
 	untitled(name);
 	RNA_string_set(op->ptr, "filepath", name);
 	
@@ -1905,7 +1905,7 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {	
 	if(!RNA_property_is_set(op->ptr, "filepath")) {
 		char filepath[FILE_MAX];
-		BLI_strncpy(filepath, G.sce, sizeof(filepath));
+		BLI_strncpy(filepath, G.main->name, sizeof(filepath));
 		BLI_replace_extension(filepath, sizeof(filepath), ".dae");
 		RNA_string_set(op->ptr, "filepath", filepath);
 	}

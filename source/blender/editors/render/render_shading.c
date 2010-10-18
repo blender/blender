@@ -852,7 +852,7 @@ static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int
 		ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	
 	/* to save, we first get absolute path */
-	BLI_path_abs(str, G.sce);
+	BLI_path_abs(str, G.main->name);
 	
 	if (BKE_write_ibuf(scene, ibuf, str, imtype, scene->r.subimtype, scene->r.quality)) {
 		retval = OPERATOR_FINISHED;
@@ -863,7 +863,7 @@ static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int
 	}
 	/* in case we were saving with relative paths, change back again */
 	if(relative)
-		BLI_path_rel(str, G.sce);
+		BLI_path_rel(str, G.main->name);
 	
 	IMB_freeImBuf(ibuf);
 	ibuf = NULL;
@@ -908,7 +908,7 @@ static int envmap_save_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event
 
 	//RNA_enum_set(op->ptr, "file_type", scene->r.imtype);
 	
-	RNA_string_set(op->ptr, "filepath", G.sce);
+	RNA_string_set(op->ptr, "filepath", G.main->name);
 	WM_event_add_fileselect(C, op);
 	
 	return OPERATOR_RUNNING_MODAL;

@@ -30,6 +30,7 @@
 #include "BKE_screen.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
+#include "BKE_main.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
@@ -190,7 +191,7 @@ static FileSelect file_select(bContext* C, const rcti* rect, short selecting, sh
 					/* avoids /../../ */ 	 
 					BLI_parent_dir(params->dir); 	 
 				} else {
-					BLI_cleanup_dir(G.sce, params->dir);
+					BLI_cleanup_dir(G.main->name, params->dir);
 					strcat(params->dir, file->relname);
 					BLI_add_slash(params->dir);
 				}
@@ -361,7 +362,7 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 
 		RNA_string_get(op->ptr, "dir", entry);
 		BLI_strncpy(params->dir, entry, sizeof(params->dir));
-		BLI_cleanup_dir(G.sce, params->dir);
+		BLI_cleanup_dir(G.main->name, params->dir);
 		file_change_dir(C, 1);
 
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
@@ -544,7 +545,7 @@ void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
 	BLI_join_dirfile(filepath, sfile->params->dir, sfile->params->file);
 	if(RNA_struct_find_property(op->ptr, "relative_path")) {
 		if(RNA_boolean_get(op->ptr, "relative_path")) {
-			BLI_path_rel(filepath, G.sce);
+			BLI_path_rel(filepath, G.main->name);
 		}
 	}
 
@@ -680,7 +681,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		file_sfile_to_operator(op, sfile, filepath);
 
 		fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir,0, 1);
-		BLI_make_file_string(G.sce, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
+		BLI_make_file_string(G.main->name, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu_get(), filepath);
 		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
 
@@ -711,7 +712,7 @@ int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 	if(sfile->params) {
 		if (BLI_has_parent(sfile->params->dir)) {
 			BLI_parent_dir(sfile->params->dir);
-			BLI_cleanup_dir(G.sce, sfile->params->dir);
+			BLI_cleanup_dir(G.main->name, sfile->params->dir);
 			file_change_dir(C, 0);
 			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 		}
@@ -1010,7 +1011,7 @@ int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
 		if (sfile->params->dir[0] == '\0')
 			get_default_root(sfile->params->dir);
 #endif
-		BLI_cleanup_dir(G.sce, sfile->params->dir);
+		BLI_cleanup_dir(G.main->name, sfile->params->dir);
 		BLI_add_slash(sfile->params->dir);
 		file_change_dir(C, 1);
 
@@ -1240,7 +1241,7 @@ int file_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	
 	file = filelist_file(sfile->files, sfile->params->active_file);
-	BLI_make_file_string(G.sce, str, sfile->params->dir, file->relname);
+	BLI_make_file_string(G.main->name, str, sfile->params->dir, file->relname);
 	BLI_delete(str, 0, 0);	
 	ED_fileselect_clear(C, sfile);
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);

@@ -452,7 +452,7 @@ static void render_unique_exr_name(Render *re, char *str, int sample)
 {
 	char di[FILE_MAX], name[FILE_MAXFILE+MAX_ID_NAME+100], fi[FILE_MAXFILE];
 	
-	BLI_strncpy(di, G.sce, FILE_MAX);
+	BLI_strncpy(di, G.main->name, FILE_MAX);
 	BLI_splitdirstring(di, fi);
 	
 	if(sample==0)
@@ -2032,7 +2032,7 @@ static void load_backbuffer(Render *re)
 		char name[256];
 		
 		strcpy(name, re->r.backbuf);
-		BLI_path_abs(name, G.sce);
+		BLI_path_abs(name, G.main->name);
 		BLI_path_frame(name, re->r.cfra, 0);
 		
 		if(re->backbuf) {

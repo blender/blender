@@ -50,7 +50,7 @@ struct BPathIterator {
 	void (*setpath_callback)(struct BPathIterator *, char *);
 	void (*getpath_callback)(struct BPathIterator *, char *);
 	
-	char*	base_path; /* base path, the directry the blend file is in - normally G.sce */
+	char*	base_path; /* base path, the directry the blend file is in - normally G.main->name */
 
 	/* only for seq data */
 	struct BPathIteratorSeqData seqdata;

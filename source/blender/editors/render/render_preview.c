@@ -111,7 +111,7 @@ ImBuf* get_brush_icon(Brush *brush)
 				// first use the path directly to try and load the file
 
 				BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
-				BLI_path_abs(path, G.sce);
+				BLI_path_abs(path, G.main->name);
 
 				brush->icon_imbuf= IMB_loadiffname(path, flags);
 
@@ -121,7 +121,7 @@ ImBuf* get_brush_icon(Brush *brush)
 
 					path[0]= 0;
 
-					BLI_make_file_string(G.sce, path, folder, brush->icon_filepath);
+					BLI_make_file_string(G.main->name, path, folder, brush->icon_filepath);
 
 					if (path[0])
 						brush->icon_imbuf= IMB_loadiffname(path, flags);

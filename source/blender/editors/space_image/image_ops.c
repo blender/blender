@@ -133,7 +133,7 @@ static int space_image_file_exists_poll(bContext *C)
 		ibuf= ED_space_image_acquire_buffer(sima, &lock);
 		if(ibuf) {
 			BLI_strncpy(name, ibuf->name, FILE_MAX);
-			BLI_path_abs(name, G.sce);
+			BLI_path_abs(name, G.main->name);
 			poll= (BLI_exists(name) && BLI_is_writable(name));
 		}
 		ED_space_image_release_buffer(sima, lock);
@@ -856,7 +856,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 		int relative= (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path"));
 		int save_copy= (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
 
-		BLI_path_abs(path, G.sce);
+		BLI_path_abs(path, G.main->name);
 		
 		if(scene->r.scemode & R_EXTENSION)  {
 			BKE_add_image_extension(path, sima->imtypenr);
@@ -876,7 +876,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 				RE_WriteRenderResult(rr, path, scene->r.quality);
 
 				if(relative)
-					BLI_path_rel(path, G.sce); /* only after saving */
+					BLI_path_rel(path, G.main->name); /* only after saving */
 
 				if(!save_copy) {
 					if(do_newpath) {
@@ -896,7 +896,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 		else if (BKE_write_ibuf(scene, ibuf, path, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
 
 			if(relative)
-				BLI_path_rel(path, G.sce); /* only after saving */
+				BLI_path_rel(path, G.main->name); /* only after saving */
 
 			if(!save_copy) {
 				if(do_newpath) {
@@ -1071,7 +1071,7 @@ static int save_exec(bContext *C, wmOperator *op)
 	if(name[0]==0)
 		BLI_strncpy(name, G.ima, FILE_MAX);
 	else
-		BLI_path_abs(name, G.sce);
+		BLI_path_abs(name, G.main->name);
 	
 	if(BLI_exists(name) && BLI_is_writable(name)) {
 		rr= BKE_image_acquire_renderresult(scene, ima);
@@ -1157,7 +1157,7 @@ static int save_sequence_exec(bContext *C, wmOperator *op)
 			char name[FILE_MAX];
 			BLI_strncpy(name, ibuf->name, sizeof(name));
 			
-			BLI_path_abs(name, G.sce);
+			BLI_path_abs(name, G.main->name);
 
 			if(0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
 				BKE_reportf(op->reports, RPT_ERROR, "Could not write image %s.", name);

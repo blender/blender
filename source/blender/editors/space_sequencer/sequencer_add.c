@@ -101,7 +101,7 @@ static void sequencer_generic_invoke_path__internal(bContext *C, wmOperator *op,
 		if(last_seq && last_seq->strip && SEQ_HAS_PATH(last_seq)) {
 			char path[sizeof(last_seq->strip->dir)];
 			BLI_strncpy(path, last_seq->strip->dir, sizeof(path));
-			BLI_path_abs(path, G.sce);
+			BLI_path_abs(path, G.main->name);
 			RNA_string_set(op->ptr, identifier, path);
 		}
 	}
@@ -152,7 +152,7 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 	}
 
 	if((is_file != -1) && relative)
-		BLI_path_rel(seq_load->path, G.sce);
+		BLI_path_rel(seq_load->path, G.main->name);
 
 	
 	if (RNA_struct_find_property(op->ptr, "frame_end")) {

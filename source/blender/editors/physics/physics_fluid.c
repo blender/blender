@@ -639,7 +639,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 	// prepare names...
 	strncpy(targetDir, domainSettings->surfdataPath, FILE_MAXDIR);
 	strncpy(newSurfdataPath, domainSettings->surfdataPath, FILE_MAXDIR);
-	BLI_path_abs(targetDir, G.sce); // fixed #frame-no 
+	BLI_path_abs(targetDir, G.main->name); // fixed #frame-no 
 	
 	strcpy(targetFile, targetDir);
 	strcat(targetFile, suffixConfig);
@@ -663,7 +663,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 		char blendFile[FILE_MAXDIR+FILE_MAXFILE];
 		
 		// invalid dir, reset to current/previous
-		strcpy(blendDir, G.sce);
+		strcpy(blendDir, G.main->name);
 		BLI_splitdirstring(blendDir, blendFile);
 		if(strlen(blendFile)>6){
 			int len = strlen(blendFile);
@@ -694,7 +694,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 		if(selection<1) return 0; // 0 from menu, or -1 aborted
 		strcpy(targetDir, newSurfdataPath);
 		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
-		BLI_path_abs(targetDir, G.sce); // fixed #frame-no 
+		BLI_path_abs(targetDir, G.main->name); // fixed #frame-no 
 	}
 #endif	
 	return outStringsChanged;

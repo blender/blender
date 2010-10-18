@@ -579,7 +579,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 	if (seq->type != SEQ_SCENE && seq->type != SEQ_META &&
 		seq->type != SEQ_IMAGE) {
 		BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
-		BLI_path_abs(str, G.sce);
+		BLI_path_abs(str, G.main->name);
 	}
 
 	if (seq->type == SEQ_IMAGE) {
@@ -1044,7 +1044,7 @@ static int seq_proxy_get_fname(Scene *UNUSED(scene), Sequence * seq, int cfra, c
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
 		BLI_join_dirfile(name, dir, seq->strip->proxy->file);
-		BLI_path_abs(name, G.sce);
+		BLI_path_abs(name, G.main->name);
 
 		return TRUE;
 	}
@@ -1071,7 +1071,7 @@ static int seq_proxy_get_fname(Scene *UNUSED(scene), Sequence * seq, int cfra, c
 			 render_size);
 	}
 
-	BLI_path_abs(name, G.sce);
+	BLI_path_abs(name, G.main->name);
 	BLI_path_frame(name, frameno, 0);
 
 
@@ -2002,7 +2002,7 @@ static ImBuf * seq_render_strip(Main *bmain, Scene *scene, Sequence * seq, float
 
 		if(ibuf == 0 && s_elem) {
 			BLI_join_dirfile(name, seq->strip->dir, s_elem->name);
-			BLI_path_abs(name, G.sce);
+			BLI_path_abs(name, G.main->name);
 
 			ibuf = seq_proxy_fetch(scene, seq, cfra, render_size);
 		}
@@ -2038,7 +2038,7 @@ static ImBuf * seq_render_strip(Main *bmain, Scene *scene, Sequence * seq, float
 				BLI_join_dirfile(name, 
 						 seq->strip->dir, 
 						 seq->strip->stripdata->name);
-				BLI_path_abs(name, G.sce);
+				BLI_path_abs(name, G.main->name);
 					
 				seq->anim = openanim(
 					name, IB_rect | 
@@ -3492,7 +3492,7 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	struct anim *an;
 
 	BLI_strncpy(path, seq_load->path, sizeof(path));
-	BLI_path_abs(path, G.sce);
+	BLI_path_abs(path, G.main->name);
 
 	an = openanim(path, IB_rect);
 

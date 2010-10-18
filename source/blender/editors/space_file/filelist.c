@@ -730,7 +730,7 @@ static void filelist_read_dir(struct FileList* filelist)
 
 	BLI_getwdN(wdir);	 
 
-	BLI_cleanup_dir(G.sce, filelist->dir);
+	BLI_cleanup_dir(G.main->name, filelist->dir);
 	filelist->numfiles = BLI_getdir(filelist->dir, &(filelist->filelist));
 
 	if(!chdir(wdir)) {} /* fix warning about not checking return value */
@@ -747,7 +747,7 @@ static void filelist_read_main(struct FileList* filelist)
 static void filelist_read_library(struct FileList* filelist)
 {
 	if (!filelist) return;
-	BLI_cleanup_dir(G.sce, filelist->dir);
+	BLI_cleanup_dir(G.main->name, filelist->dir);
 	filelist_from_library(filelist);
 	if(!filelist->libfiledata) {
 		int num;
@@ -912,7 +912,7 @@ void filelist_from_library(struct FileList* filelist)
 		return;
 	}
 	
-	BLI_strncpy(filename, G.sce, sizeof(filename));	// G.sce = last file loaded, for UI
+	BLI_strncpy(filename, G.main->name, sizeof(filename));
 
 	/* there we go */
 	/* for the time being only read filedata when libfiledata==0 */
@@ -979,7 +979,7 @@ void filelist_from_library(struct FileList* filelist)
 
 	filelist_sort(filelist, FILE_SORT_ALPHA);
 
-	BLI_strncpy(G.sce, filename, sizeof(filename));	// prevent G.sce to change
+	BLI_strncpy(G.main->name, filename, sizeof(filename));	// prevent G.main->name to change
 
 	filelist->filter = 0;
 	filelist_filter(filelist);

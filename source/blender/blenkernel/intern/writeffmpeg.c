@@ -857,7 +857,7 @@ void filepath_ffmpeg(char* string, RenderData* rd) {
 	if (!string || !exts) return;
 
 	strcpy(string, rd->pic);
-	BLI_path_abs(string, G.sce);
+	BLI_path_abs(string, G.main->name);
 
 	BLI_make_existing_file(string);
 

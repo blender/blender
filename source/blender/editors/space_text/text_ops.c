@@ -221,7 +221,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", str);
 
-	text= add_text(str, G.sce);
+	text= add_text(str, G.main->name);
 
 	if(!text) {
 		if(op->customdata) MEM_freeN(op->customdata);
@@ -266,7 +266,7 @@ static int open_exec(bContext *C, wmOperator *op)
 static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Text *text= CTX_data_edit_text(C);
-	char *path= (text && text->name)? text->name: G.sce;
+	char *path= (text && text->name)? text->name: G.main->name;
 
 	if(RNA_property_is_set(op->ptr, "filepath"))
 		return open_exec(C, op);
@@ -438,7 +438,7 @@ static void txt_write_file(Text *text, ReportList *reports)
 	char file[FILE_MAXDIR+FILE_MAXFILE];
 	
 	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_path_abs(file, G.sce);
+	BLI_path_abs(file, G.main->name);
 	
 	fp= fopen(file, "w");
 	if(fp==NULL) {
@@ -524,7 +524,7 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	else if(text->flags & TXT_ISMEM)
 		str= text->id.name+2;
 	else
-		str= G.sce;
+		str= G.main->name;
 	
 	RNA_string_set(op->ptr, "filepath", str);
 	WM_event_add_fileselect(C, op); 
@@ -2860,7 +2860,7 @@ int text_file_modified(Text *text)
 		return 0;
 
 	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_path_abs(file, G.sce);
+	BLI_path_abs(file, G.main->name);
 
 	if(!BLI_exists(file))
 		return 2;
@@ -2888,7 +2888,7 @@ static void text_ignore_modified(Text *text)
 	if(!text || !text->name) return;
 
 	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_path_abs(file, G.sce);
+	BLI_path_abs(file, G.main->name);
 
 	if(!BLI_exists(file)) return;
 

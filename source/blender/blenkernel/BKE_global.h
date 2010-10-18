@@ -52,9 +52,9 @@ typedef struct Global {
 	struct Main *main;
 	
 	/* strings: lastsaved */
-	char ima[256], sce[256], lib[256];
+	char ima[256], lib[256];
 
-	/* flag: if != 0 G.sce contains valid relative base path */
+	/* flag: if != 0 G.main->name contains valid relative base path */
 	int relbase_valid;
 
 	/* strings of recent opend files */

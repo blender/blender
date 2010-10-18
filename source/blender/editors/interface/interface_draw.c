@@ -564,7 +564,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 			int err;
 
 			strcpy(tmpStr, G.selfont->name);
-			BLI_path_abs(tmpStr, G.sce);
+			BLI_path_abs(tmpStr, G.main->name);
 			err = FTF_SetFont((unsigned char *)tmpStr, 0, 14.0);
 		}
 	}

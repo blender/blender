@@ -40,6 +40,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 #include "BKE_writeavi.h"
@@ -119,7 +120,7 @@ static void filepath_avi (char *string, RenderData *rd)
 	if (string==NULL) return;
 
 	strcpy(string, rd->pic);
-	BLI_path_abs(string, G.sce);
+	BLI_path_abs(string, G.main->name);
 
 	BLI_make_existing_file(string);
 

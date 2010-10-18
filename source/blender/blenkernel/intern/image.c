@@ -338,7 +338,7 @@ Image *BKE_add_image_file(const char *name)
 	char str[FILE_MAX], strtest[FILE_MAX];
 	
 	BLI_strncpy(str, name, sizeof(str));
-	BLI_path_abs(str, G.sce);
+	BLI_path_abs(str, G.main->name);
 	
 	/* exists? */
 	file= open(str, O_BINARY|O_RDONLY);
@@ -349,7 +349,7 @@ Image *BKE_add_image_file(const char *name)
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if(ima->source!=IMA_SRC_VIEWER && ima->source!=IMA_SRC_GENERATED) {
 			BLI_strncpy(strtest, ima->name, sizeof(ima->name));
-			BLI_path_abs(strtest, G.sce);
+			BLI_path_abs(strtest, G.main->name);
 			
 			if( strcmp(strtest, str)==0 ) {
 				if(ima->anim==NULL || ima->id.us==0) {
@@ -861,8 +861,8 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 
 	if (scene->r.stamp & R_STAMP_FILENAME) {
 		if (G.relbase_valid) {
-			if (do_prefix)		sprintf(stamp_data->file, "File %s", G.sce);
-			else				sprintf(stamp_data->file, "%s", G.sce);
+			if (do_prefix)		sprintf(stamp_data->file, "File %s", G.main->name);
+			else				sprintf(stamp_data->file, "%s", G.main->name);
 		} else {
 			if (do_prefix)		strcpy(stamp_data->file, "File <untitled>");
 			else				strcpy(stamp_data->file, "<untitled>");
@@ -1311,7 +1311,7 @@ void BKE_makepicstring(char *string, char *base, int frame, int imtype, int use_
 {
 	if (string==NULL) return;
 	BLI_strncpy(string, base, FILE_MAX - 10);	/* weak assumption */
-	BLI_path_abs(string, G.sce);
+	BLI_path_abs(string, G.main->name);
 	BLI_path_frame(string, frame, 4);
 
 	if(use_ext)
@@ -1609,7 +1609,7 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 	if(ima->id.lib)
 		BLI_path_abs(name, ima->id.lib->filepath);
 	else
-		BLI_path_abs(name, G.sce);
+		BLI_path_abs(name, G.main->name);
 	
 	flag= IB_rect|IB_multilayer;
 	if(ima->flag & IMA_DO_PREMUL)
@@ -1717,7 +1717,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 		if(ima->id.lib)
 			BLI_path_abs(str, ima->id.lib->filepath);
 		else
-			BLI_path_abs(str, G.sce);
+			BLI_path_abs(str, G.main->name);
 		
 		ima->anim = openanim(str, IB_rect);
 		
@@ -1778,7 +1778,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		if(ima->id.lib)
 			BLI_path_abs(str, ima->id.lib->filepath);
 		else
-			BLI_path_abs(str, G.sce);
+			BLI_path_abs(str, G.main->name);
 		
 		/* read ibuf */
 		ibuf = IMB_loadiffname(str, flag);

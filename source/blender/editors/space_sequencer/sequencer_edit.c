@@ -992,7 +992,7 @@ void touch_seq_files(Scene *scene)
 		if(seq->flag & SELECT) {
 			if(seq->type==SEQ_MOVIE) {
 				if(seq->strip && seq->strip->stripdata) {
-					BLI_make_file_string(G.sce, str, seq->strip->dir, seq->strip->stripdata->name);
+					BLI_make_file_string(G.main->name, str, seq->strip->dir, seq->strip->stripdata->name);
 					BLI_touch(seq->name);
 				}
 			}

@@ -41,6 +41,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_image.h"
 
 #include "RE_pipeline.h"
@@ -75,7 +76,7 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 			BKE_add_image_extension(name, scene->r.imtype);
 
 	strcpy(str, name);
-	BLI_path_abs(str, G.sce);
+	BLI_path_abs(str, G.main->name);
 
 	if (confirm)
 		overwrite = saveover(str);
@@ -218,7 +219,7 @@ void BIF_save_rendered_image_fs(Scene *scene)
 		char dir[FILE_MAXDIR * 2], str[FILE_MAXFILE * 2];
 		
 		if(G.ima[0]==0) {
-			strcpy(dir, G.sce);
+			strcpy(dir, G.main->name);
 			BLI_splitdirstring(dir, str);
 			strcpy(G.ima, dir);
 		}

@@ -241,7 +241,7 @@ int reopen_text(Text *text)
 	if (!text || !text->name) return 0;
 	
 	BLI_strncpy(str, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_path_abs(str, G.sce);
+	BLI_path_abs(str, G.main->name);
 	
 	fp= fopen(str, "r");
 	if(fp==NULL) return 0;

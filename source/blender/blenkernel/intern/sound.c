@@ -131,7 +131,7 @@ struct bSound* sound_new_file(struct Main *bmain, char* filename)
 
 	strcpy(str, filename);
 
-	path = /*bmain ? bmain->name :*/ G.sce;
+	path = /*bmain ? bmain->name :*/ G.main->name;
 
 	BLI_path_abs(str, path);
 
@@ -267,7 +267,7 @@ void sound_load(struct Main *UNUSED(bmain), struct bSound* sound)
 				path = sound->id.lib->filepath;
 			else
 				// XXX this should be fixed!
-				path = /*bmain ? bmain->name :*/ G.sce;
+				path = /*bmain ? bmain->name :*/ G.main->name;
 
 			BLI_path_abs(fullpath, path);
 

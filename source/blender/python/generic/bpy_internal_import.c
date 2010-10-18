@@ -33,7 +33,7 @@
 #include "BKE_utildefines.h" /* UNUSED */	
 #include "BKE_text.h" /* txt_to_buf */	
 #include "BKE_main.h"
-#include "BKE_global.h" /* grr, only for G.sce */
+#include "BKE_global.h" /* grr, only for G.main->name */
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -62,7 +62,7 @@ void bpy_import_main_set(struct Main *maggie)
 /* returns a dummy filename for a textblock so we can tell what file a text block comes from */
 void bpy_text_filename_get(char *fn, Text *text)
 {
-	sprintf(fn, "%s/%s", text->id.lib ? text->id.lib->filepath : G.sce, text->id.name+2);
+	sprintf(fn, "%s/%s", text->id.lib ? text->id.lib->filepath : G.main->name, text->id.name+2);
 	
 	/* XXX, this is a bug in python's Py_CompileString()!
 	 the string encoding should not be required to be utf-8

@@ -9707,7 +9707,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					{
 						char str[FILE_MAX];
 						BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
-						BLI_path_abs(str, G.sce);
+						BLI_path_abs(str, G.main->name);
 						seq->sound = sound_new_file(main, str);
 					}
 					/* don't know, if anybody used that
@@ -12369,7 +12369,7 @@ static Main* library_append_begin(const bContext *C, FileData **fd, char *dir)
 	blo_split_main(&(*fd)->mainlist, mainvar);
 
 	/* which one do we need? */
-	mainl = blo_find_main(*fd, &(*fd)->mainlist, dir, G.sce);
+	mainl = blo_find_main(*fd, &(*fd)->mainlist, dir, G.main->name);
 	
 	/* needed for do_version */
 	mainl->versionfile= (*fd)->fileversion;
@@ -12453,7 +12453,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 		BLI_strncpy(curlib->name, curlib->filepath, sizeof(curlib->name));
 		
 		/* uses current .blend file as reference */
-		BLI_path_rel(curlib->name, G.sce);
+		BLI_path_rel(curlib->name, G.main->name);
 	}
 
 	blo_join_main(&(*fd)->mainlist);
@@ -12462,7 +12462,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 
 	lib_link_all(*fd, mainvar);
 	lib_verify_nodetree(mainvar, FALSE);
-	fix_relpaths_library(G.sce, mainvar); /* make all relative paths, relative to the open blend file */
+	fix_relpaths_library(G.main->name, mainvar); /* make all relative paths, relative to the open blend file */
 
 	/* give a base to loose objects. If group append, do it for objects too */
 	if(scene) {
@@ -12578,7 +12578,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						while(fd==NULL) {
 							char newlib_path[240] = { 0 };
 							printf("Missing library...'\n");
-							printf("	current file: %s\n", G.sce);
+							printf("	current file: %s\n", G.main->name);
 							printf("	absolute lib: %s\n", mainptr->curlib->filepath);
 							printf("	relative lib: %s\n", mainptr->curlib->name);
 							printf("  enter a new path:\n");
@@ -12586,7 +12586,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 							if(scanf("%s", newlib_path) > 0) {
 								strcpy(mainptr->curlib->name, newlib_path);
 								strcpy(mainptr->curlib->filepath, newlib_path);
-								cleanup_path(G.sce, mainptr->curlib->filepath);
+								cleanup_path(G.main->name, mainptr->curlib->filepath);
 								
 								fd= blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
 

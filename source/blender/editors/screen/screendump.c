@@ -42,6 +42,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_image.h"
 #include "BKE_report.h"
 #include "BKE_writeavi.h"
@@ -77,7 +78,7 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 		RNA_string_get(op->ptr, "filepath", path);
 	
 		strcpy(G.ima, path);
-		BLI_path_abs(path, G.sce);
+		BLI_path_abs(path, G.main->name);
 		
 		/* BKE_add_image_extension() checks for if extension was already set */
 		if(scene->r.scemode & R_EXTENSION) 

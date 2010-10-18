@@ -40,6 +40,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "BLF_api.h"
 
@@ -445,9 +446,9 @@ static void renamebutton_cb(bContext *C, void *UNUSED(arg1), char *oldname)
 	struct direntry *file = (struct direntry *)arg1;
 #endif
 
-	BLI_make_file_string(G.sce, orgname, sfile->params->dir, oldname);
+	BLI_make_file_string(G.main->name, orgname, sfile->params->dir, oldname);
 	BLI_strncpy(filename, sfile->params->renameedit, sizeof(filename));
-	BLI_make_file_string(G.sce, newname, sfile->params->dir, filename);
+	BLI_make_file_string(G.main->name, newname, sfile->params->dir, filename);
 
 	if( strcmp(orgname, newname) != 0 ) {
 		if (!BLI_exists(newname)) {
