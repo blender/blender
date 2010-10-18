@@ -264,6 +264,9 @@ static void add_object_to_effectors(ListBase **effectors, Scene *scene, Effector
 
 	eff = new_effector_cache(scene, ob, NULL, ob->pd);
 
+	/* make sure imat is up to date */
+	invert_m4_m4(ob->imat, ob->obmat);
+
 	BLI_addtail(*effectors, eff);
 }
 static void add_particles_to_effectors(ListBase **effectors, Scene *scene, EffectorWeights *weights, Object *ob, ParticleSystem *psys, ParticleSystem *psys_src)
@@ -774,7 +777,7 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 	}
 
 	if(eff->pd->flag & PFIELD_TEX_OBJECT) {
-		mul_m4_v3(eff->ob->obmat, tex_co);
+		mul_m4_v3(eff->ob->imat, tex_co);
 	}
 
 	hasrgb = multitex_ext(eff->pd->tex, tex_co, NULL,NULL, 0, result);
