@@ -879,8 +879,11 @@ static int object_select_name_exec(bContext *C, wmOperator *op)
 	short changed = 0;
 
 	if(!extend) {
-		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-			ED_base_object_select(base, BA_DESELECT);
+		CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+			if((base->flag & SELECT) == 0) {
+				ED_base_object_select(base, BA_DESELECT);
+				changed= 1;
+			}
 		}
 		CTX_DATA_END;
 	}
