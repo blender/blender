@@ -64,8 +64,8 @@ typedef struct DagNode
 	void * ob;
 	void * first_ancestor;
 	int ancestor_count;
-	int lay;			// accumulated layers of its relations + itself
-	int scelay;			// layers due to being in scene
+	unsigned int lay;			// accumulated layers of its relations + itself
+	unsigned int scelay;			// layers due to being in scene
 	int lasttime;		// if lasttime != DagForest->time, this node was not evaluated yet for flushing
 	int BFS_dist;		// BFS distance
 	int DFS_dist;		// DFS distance

@@ -91,7 +91,7 @@ typedef struct bArmature {
 	
 	int			pad;
 	
-	int			layer, layer_protected;		/* for buttons to work, both variables in this order together */
+	unsigned int layer, layer_protected;		/* for buttons to work, both variables in this order together */
 	
 // XXX depreceated... old animaton system (armature only viz) ---
 	short		ghostep, ghostsize;		/* number of frames to ghosts to show, and step between them  */

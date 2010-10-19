@@ -511,7 +511,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	}
  		
 	if(obedit==NULL && v3d->localvd==NULL) {
-		int ob_lay = ob ? ob->lay : 0;
+		unsigned int ob_lay = ob ? ob->lay : 0;
 		
 		/* Layers */
 		if (v3d->scenelock)

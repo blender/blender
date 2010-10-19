@@ -843,7 +843,8 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	GroupObject * go = NULL;
 	EditMesh *em;
 	float vec[3], no[3], pmat[4][4];
-	int lay, totvert, a, oblay;
+	int totvert, a, oblay;
+	unsigned int lay;
 	
 	copy_m4_m4(pmat, par->obmat);
 	
@@ -1153,8 +1154,9 @@ static void new_particle_duplilist(ListBase *lb, ID *UNUSED(id), Scene *scene, O
 	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], pamat[4][4], vec[3], size=0.0;
 	float (*obmat)[4], (*oldobmat)[4];
-	int lay, a, b, counter, hair = 0;
+	int a, b, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
+	unsigned int lay;
 
 	if(psys==0) return;
 	

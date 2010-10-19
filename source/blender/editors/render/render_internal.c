@@ -401,7 +401,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	Image *ima;
 	View3D *v3d= CTX_wm_view3d(C);
 	Main *mainp= CTX_data_main(C);
-	int lay= (v3d)? v3d->lay: scene->lay;
+	unsigned int lay= (v3d)? v3d->lay: scene->lay;
 
 	if(re==NULL) {
 		re= RE_NewRender(scene->id.name);

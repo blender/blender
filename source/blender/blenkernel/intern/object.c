@@ -1476,7 +1476,7 @@ static void armature_set_id_extern(Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
-	int lay= arm->layer_protected;
+	unsigned int lay= arm->layer_protected;
 	
 	for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
 		if(!(pchan->bone->layer & lay))
