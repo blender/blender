@@ -145,7 +145,7 @@ BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
 BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser MathMLSolver xml2 pcre buffer ftoa'
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 
-WITH_BF_LCMS = True
+WITH_BF_LCMS = False
 BF_LCMS = LIBDIR + '/lcms'
 BF_LCMS_INC = '${BF_LCMS}/include'
 BF_LCMS_LIB = 'lcms'
