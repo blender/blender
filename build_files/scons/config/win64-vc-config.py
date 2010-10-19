@@ -166,7 +166,7 @@ CC = 'cl.exe'
 CXX = 'cl.exe'
 
 CFLAGS = []
-CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/wd4244', '/wd4305', '/wd4800', '/wd4065', '/wd4267']
+CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/we4013', '/wd4244', '/wd4305', '/wd4800', '/wd4065', '/wd4267']
 CXXFLAGS = ['/EHsc']
 BGE_CXXFLAGS = ['/O2', '/EHsc', '/GR', '/fp:fast']
 
