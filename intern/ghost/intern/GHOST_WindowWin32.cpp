@@ -373,15 +373,24 @@ void GHOST_WindowWin32::getWindowBounds(GHOST_Rect& bounds) const
 void GHOST_WindowWin32::getClientBounds(GHOST_Rect& bounds) const
 {
 	RECT rect;
-
+	GHOST_TWindowState state= this->getState();
 	LONG_PTR result = ::GetWindowLongPtr(m_hWnd, GWL_STYLE);
+	int sm_cysizeframe = GetSystemMetrics(SM_CYSIZEFRAME);
 	::GetWindowRect(m_hWnd, &rect);
 
 	if((result & (WS_POPUP | WS_MAXIMIZE)) != (WS_POPUP | WS_MAXIMIZE)) {
-		bounds.m_b = rect.bottom-GetSystemMetrics(SM_CYCAPTION)-GetSystemMetrics(SM_CYSIZEFRAME)*2;
-		bounds.m_l = rect.left;
-		bounds.m_r = rect.right-GetSystemMetrics(SM_CYSIZEFRAME)*2;
-		bounds.m_t = rect.top;
+		if(state==GHOST_kWindowStateMaximized) {
+			// in maximized state we don't have borders on the window
+			bounds.m_b = rect.bottom-GetSystemMetrics(SM_CYCAPTION)- sm_cysizeframe*2;
+			bounds.m_l = rect.left + sm_cysizeframe;
+			bounds.m_r = rect.right - sm_cysizeframe;
+			bounds.m_t = rect.top;
+		} else {
+			bounds.m_b = rect.bottom-GetSystemMetrics(SM_CYCAPTION)-sm_cysizeframe*2;
+			bounds.m_l = rect.left;
+			bounds.m_r = rect.right-sm_cysizeframe*2;
+			bounds.m_t = rect.top;
+		}
 	} else {
 		::GetWindowRect(m_hWnd, &rect);
 		bounds.m_b = rect.bottom;
