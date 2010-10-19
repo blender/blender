@@ -2560,6 +2560,12 @@ void object_handle_update(Scene *scene, Object *ob)
 				makeDispListMBall(scene, ob);
 			} 
 			else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+				if(ob->type==OB_CURVE) {
+					/* cu->ctime is set on frame change but this is not enough when
+					 * adding new curves, appending etc. This assignment could be moved
+					 * but this ensures its always set esp before parenting: [#24309] */
+					((Curve *)ob->data)->ctime= ctime;
+				}
 				makeDispListCurveTypes(scene, ob, 0);
 			}
 			else if(ELEM(ob->type, OB_CAMERA, OB_LAMP)) {
