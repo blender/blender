@@ -571,93 +571,74 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 }
 
-/* Draw a live substitute of the view icon, which is always shown */
+/* Draw a live substitute of the view icon, which is always shown
+ * colors copied from transform_manipulator.c, we should keep these matching. */
 static void draw_view_axis(RegionView3D *rv3d)
 {
 	const float k = U.rvisize;   /* axis size */
 	const float toll = 0.5;      /* used to see when view is quasi-orthogonal */
 	const float start = k + 1.0; /* axis center in screen coordinates, x=y */
 	float ydisp = 0.0;          /* vertical displacement to allow obj info text */
-	
-	/* rvibright ranges approx. from original axis icon color to gizmo color */
-	float bright = U.rvibright / 15.0f;
-	
-	unsigned char col[3];
-	unsigned char gridcol[3];
-	float colf[3];
-	
-	float vec[4];
+
+	float vec[3];
 	float dx, dy;
-	float h, s, v;
 	
 	/* thickness of lines is proportional to k */
-	/*	(log(k)-1) gives a more suitable thickness, but fps decreased by about 3 fps */
-	glLineWidth(k / 10);
-	//glLineWidth(log(k)-1); // a bit slow
-	
-	UI_GetThemeColor3ubv(TH_GRID, (char *)gridcol);
-	
+	glLineWidth(2);
+
 	/* X */
-	vec[0] = vec[3] = 1;
+	vec[0] = 1;
 	vec[1] = vec[2] = 0;
 	mul_qt_v3(rv3d->viewquat, vec);
-	
-	UI_make_axis_color((char *)gridcol, (char *)col, 'x');
-	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
-	s = s<0.5 ? s+0.5 : 1.0;
-	v = 0.3;
-	v = (v<1.0-(bright) ? v+bright : 1.0);
-	hsv_to_rgb(h, s, v, colf, colf+1, colf+2);
-	glColor3fv(colf);
-	
 	dx = vec[0] * k;
 	dy = vec[1] * k;
-	fdrawline(start, start + ydisp, start + dx, start + dy + ydisp);
+
+	glColor3ub(220, 0, 0);
+	glBegin(GL_LINES);
+	glVertex2f(start, start + ydisp);
+	glVertex2f(start + dx, start + dy + ydisp);
+	glEnd();
+
 	if (fabs(dx) > toll || fabs(dy) > toll) {
 		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "x");
 	}
 	
 	/* Y */
-	vec[1] = vec[3] = 1;
+	vec[1] = 1;
 	vec[0] = vec[2] = 0;
 	mul_qt_v3(rv3d->viewquat, vec);
-	
-	UI_make_axis_color((char *)gridcol, (char *)col, 'y');
-	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
-	s = s<0.5 ? s+0.5 : 1.0;
-	v = 0.3;
-	v = (v<1.0-(bright) ? v+bright : 1.0);
-	hsv_to_rgb(h, s, v, colf, colf+1, colf+2);
-	glColor3fv(colf);
-	
 	dx = vec[0] * k;
 	dy = vec[1] * k;
-	fdrawline(start, start + ydisp, start + dx, start + dy + ydisp);
+
+	glColor3ub(0, 220, 0);
+	glBegin(GL_LINES);
+	glVertex2f(start, start + ydisp);
+	glVertex2f(start + dx, start + dy + ydisp);
+	glEnd();
+
 	if (fabs(dx) > toll || fabs(dy) > toll) {
 		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "y");
 	}
 	
 	/* Z */
-	vec[2] = vec[3] = 1;
+	vec[2] = 1;
 	vec[1] = vec[0] = 0;
 	mul_qt_v3(rv3d->viewquat, vec);
-	
-	UI_make_axis_color((char *)gridcol, (char *)col, 'z');
-	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
-	s = s<0.5 ? s+0.5 : 1.0;
-	v = 0.5;
-	v = (v<1.0-(bright) ? v+bright : 1.0);
-	hsv_to_rgb(h, s, v, colf, colf+1, colf+2);
-	glColor3fv(colf);
-	
 	dx = vec[0] * k;
 	dy = vec[1] * k;
-	fdrawline(start, start + ydisp, start + dx, start + dy + ydisp);
+
+	glColor3ub(30, 30, 220);
+	glBegin(GL_LINES);
+	glVertex2f(start, start + ydisp);
+	glVertex2f(start + dx, start + dy + ydisp);
+	glEnd();
+
 	if (fabs(dx) > toll || fabs(dy) > toll) {
 		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "z");
 	}
-	
+
 	/* restore line-width */
+	
 	glLineWidth(1.0);
 }
 
