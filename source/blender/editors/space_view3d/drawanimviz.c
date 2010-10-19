@@ -78,7 +78,6 @@ void draw_motion_paths_init(View3D *v3d, ARegion *ar)
  * 	- assumes that the viewport has already been initialised properly
  *		i.e. draw_motion_paths_init() has been called
  */
-// FIXME: the text is still drawn in the wrong space - it includes the current transforms of the object still...
 void draw_motion_path_instance(Scene *scene, 
 			Object *ob, bPoseChannel *pchan, bAnimVizSettings *avs, bMotionPath *mpath)
 {
@@ -201,15 +200,20 @@ void draw_motion_path_instance(Scene *scene,
 		UI_ThemeColor(TH_TEXT_HI);
 	}
 	
+	// XXX, this isnt up to date but probably should be kept so.
+	invert_m4_m4(ob->imat, ob->obmat);
+	
 	/* Draw frame numbers at each framestep value */
 	if (avs->path_viewflag & MOTIONPATH_VIEW_FNUMS) {
 		for (i=0, mpv=mpv_start; i < len; i+=stepsize, mpv+=stepsize) {
 			char str[32];
+			float co[3];
 			
 			/* only draw framenum if several consecutive highlighted points don't occur on same point */
 			if (i == 0) {
 				sprintf(str, "%d", (i+sfra));
-				view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0, 0);
+				mul_v3_m4v3(co, ob->imat, mpv->co);
+				view3d_cached_text_draw_add(co, str, 0, V3D_CACHE_TEXT_WORLDSPACE);
 			}
 			else if ((i > stepsize) && (i < len-stepsize)) { 
 				bMotionPathVert *mpvP = (mpv - stepsize);
@@ -217,7 +221,8 @@ void draw_motion_path_instance(Scene *scene,
 				
 				if ((equals_v3v3(mpv->co, mpvP->co)==0) || (equals_v3v3(mpv->co, mpvN->co)==0)) {
 					sprintf(str, "%d", (sfra+i));
-					view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0, 0);
+					mul_v3_m4v3(co, ob->imat, mpv->co);
+					view3d_cached_text_draw_add(co, str, 0, V3D_CACHE_TEXT_WORLDSPACE);
 				}
 			}
 		}
@@ -266,6 +271,7 @@ void draw_motion_path_instance(Scene *scene,
 		
 		/* Draw frame numbers of keyframes  */
 		if (avs->path_viewflag & MOTIONPATH_VIEW_KFNOS) {
+			float co[3];
 			for (i=0, mpv=mpv_start; i < len; i++, mpv++) {
 				float mframe= (float)(sfra + i);
 				
@@ -273,7 +279,8 @@ void draw_motion_path_instance(Scene *scene,
 					char str[32];
 					
 					sprintf(str, "%d", (sfra+i));
-					view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0, 0);
+					mul_v3_m4v3(co, ob->imat, mpv->co);
+					view3d_cached_text_draw_add(co, str, 0, V3D_CACHE_TEXT_WORLDSPACE);
 				}
 			}
 		}
