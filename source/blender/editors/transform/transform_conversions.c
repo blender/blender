@@ -1403,7 +1403,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 					  ) {
 						VECCOPY(td->iloc, bezt->vec[0]);
 						td->loc= bezt->vec[0];
-						VECCOPY(td->center, bezt->vec[1]);
+						VECCOPY(td->center, bezt->vec[(hide_handles || bezt->f2 & SELECT) ? 1:0]);
 						if (hide_handles) {
 							if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
 							else td->flag= 0;
@@ -1462,7 +1462,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 					  ) {
 						VECCOPY(td->iloc, bezt->vec[2]);
 						td->loc= bezt->vec[2];
-						VECCOPY(td->center, bezt->vec[1]);
+						VECCOPY(td->center, bezt->vec[(hide_handles || bezt->f2 & SELECT) ? 1:2]);
 						if (hide_handles) {
 							if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
 							else td->flag= 0;
