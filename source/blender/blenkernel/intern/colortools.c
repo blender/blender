@@ -869,7 +869,7 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	if(ibuf->channels)
 		stride= ibuf->channels;
 	
-	for(pixel= ibuf->x*ibuf->y; pixel>0; pixel--, pix_in+=stride, pix_out+=4) {
+	for(pixel= ibuf->x*ibuf->y; pixel>0; pixel--, pix_in+=stride, pix_out+=stride) {
 		if(stride<3) {
 			col[0]= curvemap_evaluateF(cumap->cm, *pix_in);
 			
