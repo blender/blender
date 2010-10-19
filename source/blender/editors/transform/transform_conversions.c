@@ -4298,8 +4298,8 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 		
 		td->ext->irotAngle= ob->rotAngle;
 		VECCOPY(td->ext->irotAxis, ob->rotAxis);
-		td->ext->drotAngle= ob->drotAngle;
-		VECCOPY(td->ext->drotAxis, ob->drotAxis);
+		// td->ext->drotAngle= ob->drotAngle;			// XXX, not implimented
+		// VECCOPY(td->ext->drotAxis, ob->drotAxis);	// XXX, not implimented
 	}
 	else {
 		td->ext->rot= NULL;
