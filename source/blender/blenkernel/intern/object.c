@@ -1704,12 +1704,18 @@ void object_apply_mat4(Object *ob, float mat[][4])
 
 	/* location */
 	copy_v3_v3(ob->loc, mat[3]);
-	
-	/* rotation */
+
+	/* rotation & scale are linked, we need to create the mat's
+	 * for these together since they are related. */
 	copy_m3_m4(mat3, mat);
 	/* so scale doesnt interfear with rotation [#24291] */
 	normalize_m3_m3(mat3_n, (const float(*)[3])mat3);
+	if(mat3_n[0][0] < 0.0f) negate_v3(mat3_n[0]);
+	if(mat3_n[1][1] < 0.0f) negate_v3(mat3_n[1]);
+	if(mat3_n[2][2] < 0.0f) negate_v3(mat3_n[2]);
 
+
+	/* rotation */
 	object_mat3_to_rot(ob, mat3_n, 0);
 
 	/* scale */
