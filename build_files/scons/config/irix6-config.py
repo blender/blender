@@ -171,9 +171,9 @@ REL_CCFLAGS = ['-O2']
 ##ARFLAGS = ruv
 ##ARFLAGSQUIET = ru
 ##
-C_WARN = '-no_prelink -ptused'
+C_WARN = ['-no_prelink', '-ptused']
 
-CC_WARN = '-no_prelink -ptused'
+CC_WARN = ['-no_prelink', '-ptused']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
@@ -185,7 +185,7 @@ BF_PROFILE_FLAGS = ['-pg','-g']
 BF_PROFILE = 'false'
 
 BF_DEBUG = 'false'
-BF_DEBUG_FLAGS = '-g'
+BF_DEBUG_CCFLAGS = ['-g']
 
 BF_BUILDDIR = '../build/irix6'
 BF_INSTALLDIR='../install/irix6'
