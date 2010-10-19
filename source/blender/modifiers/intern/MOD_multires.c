@@ -59,6 +59,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tmmd->sculptlvl = mmd->sculptlvl;
 	tmmd->renderlvl = mmd->renderlvl;
 	tmmd->totlvl = mmd->totlvl;
+	tmmd->simple = mmd->simple;
+	tmmd->flags = mmd->flags;
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
