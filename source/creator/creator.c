@@ -121,6 +121,7 @@ extern char build_type[];
 extern char build_cflags[];
 extern char build_cxxflags[];
 extern char build_linkflags[];
+extern char build_system[];
 #endif
 
 /*	Local Function prototypes */
@@ -190,6 +191,7 @@ static int print_version(int UNUSED(argc), char **UNUSED(argv), void *UNUSED(dat
 	printf ("\tbuild c flags: %s\n", build_cflags);
 	printf ("\tbuild c++ flags: %s\n", build_cxxflags);
 	printf ("\tbuild link flags: %s\n", build_linkflags);
+	printf ("\tbuild system: %s\n", build_system);
 #endif
 	exit(0);
 
@@ -1054,6 +1056,7 @@ int main(int argc, char **argv)
 	strip_quotes(build_cflags);
 	strip_quotes(build_cxxflags);
 	strip_quotes(build_linkflags);
+	strip_quotes(build_system);
 #endif
 
 	BLI_threadapi_init();
