@@ -3017,7 +3017,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				mat3_to_quat( quat,fmat);	// Actual transform
 				mul_qt_qtqt(tquat, quat, iquat);
 				
-				quat_to_axis_angle( td->ext->rotAxis, td->ext->rotAngle,quat); 
+				quat_to_axis_angle( td->ext->rotAxis, td->ext->rotAngle,tquat); 
 				
 				/* this function works on end result */
 				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
