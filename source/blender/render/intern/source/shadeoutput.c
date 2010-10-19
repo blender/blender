@@ -1396,6 +1396,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 					}
 					
 					i*= shadfac[3];
+					shr->shad[3] = shadfac[3]; /* store this for possible check in troublesome cases */
 				}
 			}
 		}
@@ -1730,10 +1731,17 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			VECCOPY(shr->combined, shr->diff);
 			
 		/* calculate shadow pass, we use a multiplication mask */
-		if(passflag & SCE_PASS_SHADOW) {
+		/* if diff = 0,0,0 it doesn't matter what the shadow pass is, so leave it as is */
+		if(passflag & SCE_PASS_SHADOW && !(shr->diff[0]==0.0f && shr->diff[1]==0.0f && shr->diff[2]==0.0f)) {
 			if(shr->diff[0]!=0.0f) shr->shad[0]= shr->shad[0]/shr->diff[0];
+			/* can't determine proper shadow from shad/diff (0/0), so use shadow intensity */
+			else if(shr->shad[0]==0.0f) shr->shad[0]= shr->shad[3];
+
 			if(shr->diff[1]!=0.0f) shr->shad[1]= shr->shad[1]/shr->diff[1];
+			else if(shr->shad[1]==0.0f) shr->shad[1]= shr->shad[3];
+
 			if(shr->diff[2]!=0.0f) shr->shad[2]= shr->shad[2]/shr->diff[2];
+			else if(shr->shad[2]==0.0f) shr->shad[2]= shr->shad[3];
 		}
 		
 		/* exposure correction */
