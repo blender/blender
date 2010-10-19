@@ -164,6 +164,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	if(srna) {
 		static char *kwlist[] = {"attr", "name", "description", "default", "options", "subtype", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		int def=0;
 		PropertyRNA *prop;
 		PyObject *pyopts= NULL;
@@ -171,8 +172,13 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiO!s:BoolProperty", (char **)kwlist, &id, &name, &description, &def, &PySet_Type, &pyopts, &pysubtype))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssiO!s:BoolProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &PySet_Type, &pyopts, &pysubtype))
 			return NULL;
+
+		if(id_len >= MAX_IDPROP_NAME) {
+			PyErr_Format(PyExc_TypeError, "BoolProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			return NULL;
+		}
 
 		if(RNA_def_property_free_identifier(srna, id) == -1) {
 			PyErr_Format(PyExc_TypeError, "BoolProperty(): '%s' is defined as a non-dynamic type.", id);
@@ -220,6 +226,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "options", "subtype", "size", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		int def[PYRNA_STACK_ARRAY]={0};
 		int size=3;
 		PropertyRNA *prop;
@@ -229,9 +236,14 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOO!si:BoolVectorProperty", (char **)kwlist, &id, &name, &description, &pydef, &PySet_Type, &pyopts, &pysubtype, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssOO!si:BoolVectorProperty", (char **)kwlist, &id, &id_len, &name, &description, &pydef, &PySet_Type, &pyopts, &pysubtype, &size))
 			return NULL;
 
+		if(id_len >= MAX_IDPROP_NAME) {
+			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			return NULL;
+		}
+		
 		if(RNA_def_property_free_identifier(srna, id) == -1) {
 			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(): '%s' is defined as a non-dynamic type.", id);
 			return NULL;
@@ -287,6 +299,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def=0;
 		PropertyRNA *prop;
 		PyObject *pyopts= NULL;
@@ -294,9 +307,14 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiiiiiiO!s:IntProperty", (char **)kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssiiiiiiO!s:IntProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype))
 			return NULL;
 
+		if(id_len >= MAX_IDPROP_NAME) {
+			PyErr_Format(PyExc_TypeError, "IntProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			return NULL;
+		}
+		
 		if(RNA_def_property_free_identifier(srna, id) == -1) {
 			PyErr_Format(PyExc_TypeError, "IntProperty(): '%s' is defined as a non-dynamic type.", id);
 			return NULL;
@@ -343,6 +361,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", "size", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def[PYRNA_STACK_ARRAY]={0};
 		int size=3;
 		PropertyRNA *prop;
@@ -352,9 +371,14 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOiiiiiO!si:IntVectorProperty", (char **)kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssOiiiiiO!si:IntVectorProperty", (char **)kwlist, &id, &id_len, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype, &size))
 			return NULL;
 
+		if(id_len >= MAX_IDPROP_NAME) {
+			PyErr_Format(PyExc_TypeError, "IntVectorProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			return NULL;
+		}
+		
 		if(RNA_def_property_free_identifier(srna, id) == -1) {
 			PyErr_Format(PyExc_TypeError, "IntVectorProperty(): '%s' is defined as a non-dynamic type.", id);
 			return NULL;
@@ -413,6 +437,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "unit", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def=0.0f;
 		int precision= 2;
 		PropertyRNA *prop;
@@ -423,9 +448,14 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		char *pyunit= NULL;
 		int unit= PROP_UNIT_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssffffffiO!ss:FloatProperty", (char **)kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &pyunit))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssffffffiO!ss:FloatProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &pyunit))
 			return NULL;
 
+		if(id_len >= MAX_IDPROP_NAME) {
+			PyErr_Format(PyExc_TypeError, "FloatProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			return NULL;
+		}
+		
 		if(RNA_def_property_free_identifier(srna, id) == -1) {
 			PyErr_Format(PyExc_TypeError, "FloatProperty(): '%s' is defined as a non-dynamic type.", id);
 			return NULL;
@@ -477,6 +507,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "size", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def[PYRNA_STACK_ARRAY]={0.0f};
 		int precision= 2, size=3;
 		PropertyRNA *prop;
@@ -486,9 +517,14 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOfffffiO!si:FloatVectorProperty", (char **)kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssOfffffiO!si:FloatVectorProperty", (char **)kwlist, &id, &id_len, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &size))
 			return NULL;
 
+		if(id_len >= MAX_IDPROP_NAME) {
+			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			return NULL;
+		}
+		
 		if(RNA_def_property_free_identifier(srna, id) == -1) {
 			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(): '%s' is defined as a non-dynamic type.", id);
 			return NULL;
@@ -544,6 +580,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "maxlen", "options", "subtype", NULL};
 		char *id=NULL, *name="", *description="", *def="";
+		int id_len;
 		int maxlen=0;
 		PropertyRNA *prop;
 		PyObject *pyopts= NULL;
@@ -551,9 +588,14 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|sssiO!s:StringProperty", (char **)kwlist, &id, &name, &description, &def, &maxlen, &PySet_Type, &pyopts, &pysubtype))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|sssiO!s:StringProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &maxlen, &PySet_Type, &pyopts, &pysubtype))
 			return NULL;
 
+		if(id_len >= MAX_IDPROP_NAME) {
+			PyErr_Format(PyExc_TypeError, "StringProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			return NULL;
+		}
+		
 		if(RNA_def_property_free_identifier(srna, id) == -1) {
 			PyErr_Format(PyExc_TypeError, "StringProperty(): '%s' is defined as a non-dynamic type.", id);
 			return NULL;
@@ -645,6 +687,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 	if(srna) {
 		static const char *kwlist[] = {"attr", "items", "name", "description", "default", "options", NULL};
 		char *id=NULL, *name="", *description="", *def="";
+		int id_len;
 		int defvalue=0;
 		PyObject *items= Py_None;
 		EnumPropertyItem *eitems;
@@ -652,9 +695,14 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		PyObject *pyopts= NULL;
 		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|sssO!:EnumProperty", (char **)kwlist, &id, &items, &name, &description, &def, &PySet_Type, &pyopts))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#O|sssO!:EnumProperty", (char **)kwlist, &id, &id_len, &items, &name, &description, &def, &PySet_Type, &pyopts))
 			return NULL;
 
+		if(id_len >= MAX_IDPROP_NAME) {
+			PyErr_Format(PyExc_TypeError, "EnumProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			return NULL;
+		}
+		
 		if(RNA_def_property_free_identifier(srna, id) == -1) {
 			PyErr_Format(PyExc_TypeError, "EnumProperty(): '%s' is defined as a non-dynamic type.", id);
 			return NULL;
@@ -718,15 +766,21 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 	if(srna) {
 		static const char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		PropertyRNA *prop;
 		StructRNA *ptype;
 		PyObject *type= Py_None;
 		PyObject *pyopts= NULL;
 		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ssO!:PointerProperty", (char **)kwlist, &id, &type, &name, &description, &PySet_Type, &pyopts))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#O|ssO!:PointerProperty", (char **)kwlist, &id, &id_len, &type, &name, &description, &PySet_Type, &pyopts))
 			return NULL;
 
+		if(id_len >= MAX_IDPROP_NAME) {
+			PyErr_Format(PyExc_TypeError, "PointerProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			return NULL;
+		}
+		
 		if(RNA_def_property_free_identifier(srna, id) == -1) {
 			PyErr_Format(PyExc_TypeError, "PointerProperty(): '%s' is defined as a non-dynamic type.", id);
 			return NULL;
@@ -767,15 +821,21 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 	if(srna) {
 		static const char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		PropertyRNA *prop;
 		StructRNA *ptype;
 		PyObject *type= Py_None;
 		PyObject *pyopts= NULL;
 		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ssO!:CollectionProperty", (char **)kwlist, &id, &type, &name, &description, &PySet_Type, &pyopts))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#O|ssO!:CollectionProperty", (char **)kwlist, &id, &id_len, &type, &name, &description, &PySet_Type, &pyopts))
 			return NULL;
 
+		if(id_len >= MAX_IDPROP_NAME) {
+			PyErr_Format(PyExc_TypeError, "CollectionProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			return NULL;
+		}
+		
 		if(RNA_def_property_free_identifier(srna, id) == -1) {
 			PyErr_Format(PyExc_TypeError, "CollectionProperty(): '%s' is defined as a non-dynamic type.", id);
 			return NULL;
