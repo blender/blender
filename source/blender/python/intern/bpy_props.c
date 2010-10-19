@@ -176,7 +176,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 
 		if(id_len >= MAX_IDPROP_NAME) {
-			PyErr_Format(PyExc_TypeError, "BoolProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			PyErr_Format(PyExc_TypeError, "BoolProperty(): %.200s too long, max length is %d", id, MAX_IDPROP_NAME-1);
 			return NULL;
 		}
 
@@ -240,7 +240,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 			return NULL;
 
 		if(id_len >= MAX_IDPROP_NAME) {
-			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(): %.200s too long, max length is %d", id, MAX_IDPROP_NAME-1);
 			return NULL;
 		}
 		
@@ -311,7 +311,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 
 		if(id_len >= MAX_IDPROP_NAME) {
-			PyErr_Format(PyExc_TypeError, "IntProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			PyErr_Format(PyExc_TypeError, "IntProperty(): %.200s too long, max length is %d", id, MAX_IDPROP_NAME-1);
 			return NULL;
 		}
 		
@@ -375,7 +375,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 			return NULL;
 
 		if(id_len >= MAX_IDPROP_NAME) {
-			PyErr_Format(PyExc_TypeError, "IntVectorProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			PyErr_Format(PyExc_TypeError, "IntVectorProperty(): %.200s too long, max length is %d", id, MAX_IDPROP_NAME-1);
 			return NULL;
 		}
 		
@@ -452,7 +452,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 
 		if(id_len >= MAX_IDPROP_NAME) {
-			PyErr_Format(PyExc_TypeError, "FloatProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			PyErr_Format(PyExc_TypeError, "FloatProperty(): %.200s too long, max length is %d", id, MAX_IDPROP_NAME-1);
 			return NULL;
 		}
 		
@@ -521,7 +521,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 			return NULL;
 
 		if(id_len >= MAX_IDPROP_NAME) {
-			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(): %.200s too long, max length is %d", id, MAX_IDPROP_NAME-1);
 			return NULL;
 		}
 		
@@ -592,7 +592,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 			return NULL;
 
 		if(id_len >= MAX_IDPROP_NAME) {
-			PyErr_Format(PyExc_TypeError, "StringProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			PyErr_Format(PyExc_TypeError, "StringProperty(): %.200s too long, max length is %d", id, MAX_IDPROP_NAME-1);
 			return NULL;
 		}
 		
@@ -699,7 +699,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 
 		if(id_len >= MAX_IDPROP_NAME) {
-			PyErr_Format(PyExc_TypeError, "EnumProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			PyErr_Format(PyExc_TypeError, "EnumProperty(): %.200s too long, max length is %d", id, MAX_IDPROP_NAME-1);
 			return NULL;
 		}
 		
@@ -777,7 +777,7 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 			return NULL;
 
 		if(id_len >= MAX_IDPROP_NAME) {
-			PyErr_Format(PyExc_TypeError, "PointerProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			PyErr_Format(PyExc_TypeError, "PointerProperty(): %.200s too long, max length is %d", id, MAX_IDPROP_NAME-1);
 			return NULL;
 		}
 		
@@ -832,7 +832,7 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 			return NULL;
 
 		if(id_len >= MAX_IDPROP_NAME) {
-			PyErr_Format(PyExc_TypeError, "CollectionProperty(): %.200s too long, max length is %d", MAX_IDPROP_NAME-1, id);
+			PyErr_Format(PyExc_TypeError, "CollectionProperty(): %.200s too long, max length is %d", id, MAX_IDPROP_NAME-1);
 			return NULL;
 		}
 		
