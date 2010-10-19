@@ -5999,6 +5999,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			PTCacheEdit *edit = PE_create_current(scene, ob);
 			if(edit) {
 				glLoadMatrixf(rv3d->viewmat);
+				draw_update_ptcache_edit(scene, ob, edit);
 				draw_ptcache_edit(scene, v3d, edit);
 				glMultMatrixf(ob->obmat);
 			}
