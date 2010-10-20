@@ -287,6 +287,7 @@ void CcdPhysicsEnvironment::setDebugDrawer(btIDebugDraw* debugDrawer)
 	m_debugDrawer = debugDrawer;
 }
 
+#if 0
 static void DrawAabb(btIDebugDraw* debugDrawer,const btVector3& from,const btVector3& to,const btVector3& color)
 {
 	btVector3 halfExtents = (to-from)* 0.5f;
@@ -314,10 +315,8 @@ static void DrawAabb(btIDebugDraw* debugDrawer,const btVector3& from,const btVec
 		if (i<3)
 			edgecoord[i]*=-1.f;
 	}
-
-
 }
-
+#endif
 
 
 

@@ -156,6 +156,9 @@ bool SCA_KeyboardSensor::Evaluate()
 			case SCA_InputEvent::KX_ACTIVE:
 				active = true;
 				break;
+			case SCA_InputEvent::KX_NO_INPUTSTATUS:
+				/* do nothing */
+				break;
 			}
 		}
 
@@ -221,6 +224,9 @@ bool SCA_KeyboardSensor::Evaluate()
 				break;
 			case SCA_InputEvent::KX_JUSTACTIVATED:
 				qual_change = true;
+			case SCA_InputEvent::KX_ACTIVE:
+				/* do nothing */
+				break;
 			}
 		}
 		if (m_qual2 > 0 && qual==true) {
@@ -236,6 +242,9 @@ bool SCA_KeyboardSensor::Evaluate()
 				break;
 			case SCA_InputEvent::KX_JUSTACTIVATED:
 				qual_change = true;
+			case SCA_InputEvent::KX_ACTIVE:
+				/* do nothing */
+				break;
 			}
 		}
 		/* done reading qualifiers */

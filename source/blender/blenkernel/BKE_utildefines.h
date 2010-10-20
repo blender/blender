@@ -262,8 +262,8 @@ behaviour, though it may not be the best in practice.
 #define V_GROW(vec) \
 	V_SIZE(vec) > _##vec##_count ? _##vec##_count++ : \
 	((_##vec##_tmp = MEM_callocN(sizeof(*vec)*(_##vec##_count*2+2), #vec " " __FILE__ " ")),\
-	(vec && memcpy(_##vec##_tmp, vec, sizeof(*vec) * _##vec##_count)),\
-	(vec && (MEM_freeN(vec),1)),\
+	(void)(vec && memcpy(_##vec##_tmp, vec, sizeof(*vec) * _##vec##_count)),\
+	(void)(vec && (MEM_freeN(vec),1)),\
 	(vec = _##vec##_tmp),\
 	_##vec##_count++)
 

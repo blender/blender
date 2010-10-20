@@ -109,6 +109,13 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 			}
 		}
 		return false;
+
+	// quiet the compiler
+	case KX_ClientObjectInfo::STATIC:
+	case KX_ClientObjectInfo::ACTOR:
+	case KX_ClientObjectInfo::RESERVED1:
+		/* do nothing*/
+		break;
 	}
 	return true;
 }

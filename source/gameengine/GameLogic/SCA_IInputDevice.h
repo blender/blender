@@ -47,7 +47,6 @@ public:
 		KX_JUSTACTIVATED,
 		KX_ACTIVE,
 		KX_JUSTRELEASED,
-		KX_MAX_INPUTSTATUS
 	};
 
 	SCA_InputEvent(SCA_EnumInputs status=KX_NO_INPUTSTATUS,int eventval=0)
