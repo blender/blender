@@ -209,7 +209,7 @@ static PyObject *Euler_Unique(EulerObject * self)
 	heading -= (floor(heading * PI_INV)) * PI_2;
 	heading -= Py_PI;
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject *)self;
 }
@@ -229,7 +229,7 @@ static PyObject *Euler_Zero(EulerObject * self)
 	self->eul[1] = 0.0;
 	self->eul[2] = 0.0;
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject *)self;
 }
@@ -266,7 +266,7 @@ static PyObject *Euler_rotate_axis(EulerObject * self, PyObject *args)
 	if(self->order == EULER_ORDER_XYZ)	rotate_eul(self->eul, *axis, angle);
 	else								rotate_eulO(self->eul, self->order, *axis, angle);
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject *)self;
 }
@@ -300,7 +300,7 @@ static PyObject *Euler_MakeCompatible(EulerObject * self, EulerObject *value)
 
 	compatible_eul(self->eul, value->eul);
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject *)self;
 }
@@ -488,7 +488,7 @@ static int Euler_ass_slice(EulerObject * self, int begin, int end, PyObject * se
 	for(i= 0; i < EULER_SIZE; i++)
 		self->eul[begin + i] = eul[i];
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	return 0;
 }
 
@@ -612,7 +612,7 @@ static int Euler_setOrder(EulerObject *self, PyObject *value, void *UNUSED(closu
 		return -1;
 
 	self->order= order;
-	BaseMath_WriteCallback(self); /* order can be written back */
+	(void)BaseMath_WriteCallback(self); /* order can be written back */
 	return 0;
 }
 

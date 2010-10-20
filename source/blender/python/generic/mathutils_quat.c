@@ -257,7 +257,7 @@ static PyObject *Quaternion_Normalize(QuaternionObject * self)
 
 	normalize_qt(self->quat);
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
@@ -277,7 +277,7 @@ static PyObject *Quaternion_Inverse(QuaternionObject * self)
 
 	invert_qt(self->quat);
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
@@ -297,7 +297,7 @@ static PyObject *Quaternion_Identity(QuaternionObject * self)
 
 	unit_qt(self->quat);
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
@@ -317,7 +317,7 @@ static PyObject *Quaternion_Negate(QuaternionObject * self)
 
 	mul_qt_fl(self->quat, -1.0f);
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
@@ -337,7 +337,7 @@ static PyObject *Quaternion_Conjugate(QuaternionObject * self)
 
 	conjugate_qt(self->quat);
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
@@ -523,7 +523,7 @@ static int Quaternion_ass_slice(QuaternionObject * self, int begin, int end, PyO
 	for(i= 0; i < size; i++)
 		self->quat[begin + i] = quat[i];
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	return 0;
 }
 

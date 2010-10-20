@@ -80,7 +80,7 @@ static PyObject *Vector_Zero(VectorObject *self)
 		self->vec[i] = 0.0f;
 	}
 	
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
@@ -113,7 +113,7 @@ static PyObject *Vector_Normalize(VectorObject *self)
 		self->vec[i] /= norm;
 	}
 	
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
@@ -940,7 +940,7 @@ static PyObject *Vector_iadd(PyObject * v1, PyObject * v2)
 		vec1->vec[i] = vec1->vec[i] + vec2->vec[i];
 	}
 
-	BaseMath_WriteCallback(vec1);
+	(void)BaseMath_WriteCallback(vec1);
 	Py_INCREF( v1 );
 	return v1;
 }
@@ -1000,7 +1000,7 @@ static PyObject *Vector_isub(PyObject * v1, PyObject * v2)
 		vec1->vec[i] = vec1->vec[i] -	vec2->vec[i];
 	}
 
-	BaseMath_WriteCallback(vec1);
+	(void)BaseMath_WriteCallback(vec1);
 	Py_INCREF( v1 );
 	return v1;
 }
@@ -1122,7 +1122,7 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		return NULL;
 	}
 	
-	BaseMath_WriteCallback(vec);
+	(void)BaseMath_WriteCallback(vec);
 	Py_INCREF( v1 );
 	return v1;
 }
@@ -1184,7 +1184,7 @@ static PyObject *Vector_idiv(PyObject * v1, PyObject * v2)
 		vec1->vec[i] /=	scalar;
 	}
 	
-	BaseMath_WriteCallback(vec1);
+	(void)BaseMath_WriteCallback(vec1);
 	
 	Py_INCREF( v1 );
 	return v1;
@@ -1501,7 +1501,7 @@ static int Vector_setLength(VectorObject *self, PyObject * value )
 		self->vec[i]= self->vec[i] / (float)dot;
 	}
 	
-	BaseMath_WriteCallback(self); /* checked already */
+	(void)BaseMath_WriteCallback(self); /* checked already */
 	
 	return 0;
 }
@@ -2067,7 +2067,7 @@ static PyObject *Vector_Negate(VectorObject *self)
 	for(i = 0; i < self->size; i++)
 		self->vec[i] = -(self->vec[i]);
 	
-	BaseMath_WriteCallback(self); // already checked for error
+	(void)BaseMath_WriteCallback(self); // already checked for error
 	
 	Py_INCREF(self);
 	return (PyObject*)self;
