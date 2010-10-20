@@ -78,6 +78,7 @@ void	ED_area_exit(struct bContext *C, struct ScrArea *sa);
 int		ED_screen_area_active(const struct bContext *C);
 void	ED_area_do_listen(ScrArea *sa, struct wmNotifier *note);
 void	ED_area_tag_redraw(ScrArea *sa);
+void	ED_area_tag_redraw_regiontype(ScrArea *sa, int type);
 void	ED_area_tag_refresh(ScrArea *sa);
 void	ED_area_do_refresh(struct bContext *C, ScrArea *sa);
 void	ED_area_headerprint(ScrArea *sa, char *str);
