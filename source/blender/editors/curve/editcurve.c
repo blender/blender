@@ -6012,11 +6012,13 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	if (!isSurf) { /* adding curve */
 		if(obedit==NULL || obedit->type!=OB_CURVE) {
 			Curve *cu;
+			Scene *scene= CTX_data_scene(C);
 			obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
 			newob = 1;
 
 			cu= (Curve*)obedit->data;
 			cu->flag |= CU_DEFORM_FILL;
+			cu->ctime= CFRA;
 			if(type & CU_PRIM_PATH)
 				cu->flag |= CU_PATH|CU_3D;
 		} else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
