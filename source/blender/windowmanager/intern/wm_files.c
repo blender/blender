@@ -453,10 +453,16 @@ static void write_history(void)
 {
 	struct RecentFile *recent, *next_recent;
 	char name[FILE_MAXDIR+FILE_MAXFILE];
+	char *user_config_dir;
 	FILE *fp;
 	int i;
 
-	BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_HISTORY_FILE);
+	/* will be NULL in background mode */
+	user_config_dir = BLI_get_folder_create(BLENDER_USER_CONFIG, NULL);
+	if(!user_config_dir)
+		return;
+
+	BLI_make_file_string("/", name, user_config_dir, BLENDER_HISTORY_FILE);
 
 	recent = G.recent_files.first;
 	/* refresh recent-files.txt of recent opened files, when current file was changed */
