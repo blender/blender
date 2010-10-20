@@ -44,6 +44,8 @@
 #define STRINGIFY_ARG(x) #x
 #define STRINGIFY(x) STRINGIFY_ARG(x)
 
+/* useful for debugging */
+#define AT __FILE__ ":" STRINGIFY(__LINE__)
 
 
 #ifdef __GNUC__

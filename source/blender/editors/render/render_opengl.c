@@ -157,8 +157,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			float winmat_jitter[4][4];
 			float *accum_buffer= MEM_mallocN(sizex * sizey * sizeof(float) * 4, "accum1");
 			float *accum_tmp= MEM_mallocN(sizex * sizey * sizeof(float) * 4, "accum2");
-			int j, i;
-			float *from, *to;
+			int j;
 
 			/* first sample buffer, also initializes 'rv3d->persmat' */
 			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat);
@@ -171,19 +170,11 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 
 				ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat_jitter);
 				glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, accum_tmp);
-				
-				i= (sizex*sizey * 4) - 1;
-				from= accum_tmp;
-				to= accum_buffer;
-				do {*to++ += *from++; } while (i--);
+				add_vn_vn(accum_buffer, accum_tmp, sizex*sizey*sizeof(float));
 			}
 
-			from= accum_buffer;
-			to= rr->rectf;
+			mul_vn_vn_fl(rr->rectf, accum_buffer, sizex*sizey*sizeof(float), 1.0/SAMPLES);
 
-			i= (sizex * sizey * 4) - 1;
-			do { *to++= *from++ * (1.0/SAMPLES); } while (i--);
-			
 			MEM_freeN(accum_buffer);
 			MEM_freeN(accum_tmp);
 		}

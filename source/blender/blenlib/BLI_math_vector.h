@@ -165,6 +165,14 @@ MINLINE void normal_float_to_short_v3(short r[3], const float n[3]);
 
 void minmax_v3v3_v3(float min[3], float max[3], const float vec[3]);
 
+/***************************** Array Functions *******************************/
+/* attempted to follow fixed length vertex functions. names could be improved*/
+void range_vni(int *array, const int size, const int start);
+void mul_vn_fl(float *array, int size, const float f);
+void mul_vn_vn_fl(float *array_tar, const float *array_src, int size, const float f);
+void add_vn_vn(float *array_tar, const float *array_src, const int size);
+void fill_vni(int *array_tar, const int size, const int val);
+
 #ifdef __cplusplus
 }
 #endif

@@ -196,7 +196,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						int UNUSED(useRenderParams),
 						int UNUSED(isFinalCalc))
 {
-	int i;
+	int i, *index;
 	DerivedMesh *result;
 	SolidifyModifierData *smd = (SolidifyModifierData*) md;
 
@@ -321,7 +321,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		dm_calc_normal(dm, vert_nors);
 	}
 
-	result = CDDM_from_template(dm, numVerts * 2, (numEdges * 2) + newEdges, (numFaces * 2) + newFaces);
+	result = CDDM_from_template(dm, numVerts * 2, (numEdges * 2) + newEdges, (numFaces * 2) + newFaces);	
 
 	mface = result->getFaceArray(result);
 	medge = result->getEdgeArray(result);
@@ -335,6 +335,23 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	DM_copy_vert_data(dm, result, 0, 0, numVerts);
 	DM_copy_vert_data(dm, result, 0, numVerts, numVerts);
+
+	/* CDDM_from_template() gives zero'd ORIGINDEX data, we can know ahead of time what the
+	 * indicies will be however it would be better if we could check if the're needed. */
+	index= DM_get_vert_data_layer(result, CD_ORIGINDEX);
+	range_vni(index, numVerts, 0);
+	memcpy(index+numVerts, index, numVerts * sizeof(int));
+
+	index= DM_get_edge_data_layer(result, CD_ORIGINDEX);
+	range_vni(index, numEdges, 0);
+	memcpy(index+numEdges, index, numEdges * sizeof(int));
+	fill_vni(index+numEdges*2, newEdges, ORIGINDEX_NONE);
+
+	index= DM_get_face_data_layer(result, CD_ORIGINDEX);
+	range_vni(index, numFaces, 0);
+	memcpy(index+numFaces, index, numFaces * sizeof(int));
+	fill_vni(index+numFaces*2, newFaces, ORIGINDEX_NONE);
+	/* done setting origindex values */
 
 	{
 		static int corner_indices[4] = {2, 1, 0, 3};

@@ -1686,6 +1686,8 @@ DerivedMesh *CDDM_copy(DerivedMesh *source)
 	return dm;
 }
 
+/* note, the CD_ORIGINDEX layers are all 0, so if there is a direct
+ * relationship betwen mesh data this needs to be set by the caller. */
 DerivedMesh *CDDM_from_template(DerivedMesh *source,
 								int numVerts, int numEdges, int numFaces)
 {

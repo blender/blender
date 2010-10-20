@@ -1840,17 +1840,13 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				/* constructive modifiers need to have an origindex
 				 * otherwise they wont have anywhere to copy the data from */
 				if(needMapping) {
-					int *index, i;
 					DM_add_vert_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 					DM_add_edge_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 					DM_add_face_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 
-					index = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
-					for(i=0; i<dm->numVertData; i++) *index++= i;
-					index = DM_get_edge_data_layer(dm, CD_ORIGINDEX);
-					for(i=0; i<dm->numEdgeData; i++) *index++= i;
-					index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
-					for(i=0; i<dm->numFaceData; i++) *index++= i;
+					range_vni(DM_get_vert_data_layer(dm, CD_ORIGINDEX), dm->numVertData, 0);
+					range_vni(DM_get_edge_data_layer(dm, CD_ORIGINDEX), dm->numEdgeData, 0);
+					range_vni(DM_get_face_data_layer(dm, CD_ORIGINDEX), dm->numFaceData, 0);
 				}
 			}
 
