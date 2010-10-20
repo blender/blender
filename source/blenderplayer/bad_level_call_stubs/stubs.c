@@ -174,6 +174,7 @@ int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan){r
 int ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit){return 0;}
 int ED_space_image_show_render(struct SpaceImage *sima){return 0;}
 int ED_space_image_show_paint(struct SpaceImage *sima){return 0;}
+void ED_space_image_paint_update(struct wmWindowManager *wm, struct ToolSettings *settings){}
 void ED_space_image_set(struct bContext *C, struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima){}
 struct ImBuf *ED_space_image_buffer(struct SpaceImage *sima){return (struct ImBuf *) NULL;}
 void	ED_screen_set_scene(struct bContext *C, struct Scene *scene){}
