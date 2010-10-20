@@ -373,6 +373,8 @@ static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
 static void rna_SpaceImageEditor_paint_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
+
+	ED_space_image_paint_update(bmain->wm.first, scene->toolsettings);
 }
 
 static int rna_SpaceImageEditor_show_render_get(PointerRNA *ptr)
