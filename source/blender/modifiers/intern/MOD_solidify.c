@@ -198,15 +198,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 {
 	int i;
 	DerivedMesh *result;
-	SolidifyModifierData *smd = (SolidifyModifierData*) md;
+	const SolidifyModifierData *smd = (SolidifyModifierData*) md;
 
 	MFace *mf, *mface, *orig_mface;
 	MEdge *ed, *medge, *orig_medge;
 	MVert *mv, *mvert, *orig_mvert;
 
-	int numVerts = dm->getNumVerts(dm);
-	int numEdges = dm->getNumEdges(dm);
-	int numFaces = dm->getNumFaces(dm);
+	const int numVerts = dm->getNumVerts(dm);
+	const int numEdges = dm->getNumEdges(dm);
+	const int numFaces = dm->getNumFaces(dm);
 
 	/* use for edges */
 	int *new_vert_arr= NULL;
@@ -220,13 +220,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	float (*vert_nors)[3]= NULL;
 
-	float ofs_orig=				- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
-	float ofs_new= smd->offset	- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+	float const ofs_orig=				- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+	float const ofs_new= smd->offset	- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
 
 	/* weights */
 	MDeformVert *dvert= NULL, *dv= NULL;
-	int defgrp_invert = ((smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0);
-	int defgrp_index= defgroup_name_index(ob, smd->defgrp_name);
+	const int defgrp_invert = ((smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0);
+	const int defgrp_index= defgroup_name_index(ob, smd->defgrp_name);
 
 	if (defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
