@@ -35,7 +35,7 @@
 #ifdef _WIN32
 
 #ifndef FREE_WINDOWS
-#pragma warning(once: 4761 4305 4244 4018)
+#pragma warning(once: 4761 4305 4244)
 #endif
 
 #define WIN32_LEAN_AND_MEAN
