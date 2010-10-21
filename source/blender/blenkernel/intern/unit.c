@@ -26,11 +26,7 @@
 #include <string.h>
 #include "BKE_unit.h"
 
-#ifdef WIN32
-#define _USE_MATH_DEFINES
-#endif
-#include <math.h>
-
+#include "BLI_math.h"
 #include "BLI_winstuff.h"
 
 
@@ -687,7 +683,7 @@ void bUnit_ToUnitAltName(char *str, int len_max, char *orig_str, int system, int
 
 			found= unit_find_str(orig_str, unit->name_short);
 			if(found) {
-				int offset= found - orig_str;
+				int offset= (int)(found - orig_str);
 				int len_name= 0;
 
 				/* copy everything before the unit */
