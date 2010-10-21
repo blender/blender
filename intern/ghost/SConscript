@@ -60,6 +60,8 @@ if env['BF_GHOST_DEBUG']:
 incs = '. ../string #extern/glew/include #source/blender/imbuf #source/blender/makesdna ' + env['BF_OPENGL_INC']
 if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
     incs = env['BF_WINTAB_INC'] + ' ' + incs
+
+if window_system in ('win32-vc', 'win64-vc'):
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15], cc_compileflags=['/WX'] ) 
 else:
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15] ) 
