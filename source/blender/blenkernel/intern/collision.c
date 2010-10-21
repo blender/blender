@@ -83,7 +83,7 @@ BVHTree *bvhtree_build_from_mvert ( MFace *mfaces, unsigned int numfaces, MVert 
 {
 	BVHTree *tree;
 	float co[12];
-	int i;
+	unsigned int i;
 	MFace *tface = mfaces;
 
 	tree = BLI_bvhtree_new ( numfaces*2, epsilon, 4, 26 );
@@ -1342,12 +1342,12 @@ static void add_collision_object(Object ***objs, int *numobj, int *maxobj, Objec
 
 // return all collision objects in scene
 // collision object will exclude self 
-Object **get_collisionobjects(Scene *scene, Object *self, Group *group, int *numcollobj)
+Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned int *numcollobj)
 {
 	Base *base;
 	Object **objs;
 	GroupObject *go;
-	int numobj= 0, maxobj= 100;
+	unsigned int numobj= 0, maxobj= 100;
 	
 	objs= MEM_callocN(sizeof(Object *)*maxobj, "CollisionObjectsArray");
 
@@ -1503,12 +1503,12 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 {
 	Cloth *cloth= clmd->clothObject;
 	BVHTree *cloth_bvh= cloth->bvhtree;
-	int i=0, numfaces = 0, numverts = 0, k, l, j;
+	unsigned int i=0, numfaces = 0, numverts = 0, k, l, j;
 	int rounds = 0; // result counts applied collisions; ic is for debug output;
 	ClothVertex *verts = NULL;
 	int ret = 0, ret2 = 0;
 	Object **collobjs = NULL;
-	int numcollobj = 0;
+	unsigned int numcollobj = 0;
 
 	if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ) || cloth_bvh==NULL)
 		return 0;
@@ -1605,11 +1605,11 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 		////////////////////////////////////////////////////////////
 		if ( clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF )
 		{
-			for(l = 0; l < clmd->coll_parms->self_loop_count; l++)
+			for(l = 0; l < (unsigned int)clmd->coll_parms->self_loop_count; l++)
 			{
 				// TODO: add coll quality rounds again
 				BVHTreeOverlap *overlap = NULL;
-				int result = 0;
+				unsigned int result = 0;
 	
 				// collisions = 1;
 				verts = cloth->verts; // needed for openMP

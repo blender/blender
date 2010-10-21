@@ -1004,7 +1004,8 @@ DO_INLINE void save_sample_line(Scopes *scopes, const int idx, const float fx, f
 
 void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 {
-	int x, y, c, n, nl;
+	int x, y, c;
+	unsigned int n, nl;
 	double div, divl;
 	float *rf=NULL;
 	unsigned char *rc=NULL;

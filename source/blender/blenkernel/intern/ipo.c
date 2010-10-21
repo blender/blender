@@ -1123,7 +1123,7 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 {
 	AdrBit2Path *abp;
 	FCurve *fcu;
-	int i=0, totbits;
+	unsigned int i=0, totbits;
 	
 	/* allocate memory for a new F-Curve */
 	fcu= MEM_callocN(sizeof(FCurve), "FCurve");
@@ -1174,7 +1174,7 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 	abp= adrcode_bitmaps_to_paths(icu->blocktype, icu->adrcode, &totbits);
 	if (abp && totbits) {
 		FCurve *fcurve;
-		int b;
+		unsigned int b;
 		
 		if (G.f & G_DEBUG) printf("\tconvert bitflag ipocurve, totbits = %d \n", totbits);
 		

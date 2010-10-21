@@ -385,7 +385,8 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	Cloth *cloth;
 	ListBase *effectors = NULL;
 	MVert *mvert;
-	int i, ret = 0;
+	unsigned int i = 0;
+	int ret = 0;
 
 	/* simulate 1 frame forward */
 	cloth = clmd->clothObject;
@@ -1044,10 +1045,10 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	Cloth *cloth = clmd->clothObject;
 	ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;
 	unsigned int struct_springs = 0, shear_springs=0, bend_springs = 0;
-	int i = 0;
-	int numverts = dm->getNumVerts ( dm );
-	int numedges = dm->getNumEdges ( dm );
-	int numfaces = dm->getNumFaces ( dm );
+	unsigned int i = 0;
+	unsigned int numverts = (unsigned int)dm->getNumVerts ( dm );
+	unsigned int numedges = (unsigned int)dm->getNumEdges ( dm );
+	unsigned int numfaces = (unsigned int)dm->getNumFaces ( dm );
 	MEdge *medge = CDDM_get_edges ( dm );
 	MFace *mface = CDDM_get_faces ( dm );
 	int index2 = 0; // our second vertex index

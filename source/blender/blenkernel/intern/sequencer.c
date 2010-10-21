@@ -62,8 +62,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-
-
 #include "BKE_context.h"
 #include "BKE_sound.h"
 #include "AUD_C-API.h"
@@ -3219,7 +3217,7 @@ void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 
 	for (fcu= scene->adt->action->curves.first; fcu; fcu= fcu->next) {
 		if(strstr(fcu->rna_path, "sequence_editor.sequences_all[") && strstr(fcu->rna_path, str)) {
-			int i;
+			unsigned int i;
 			for (i = 0; i < fcu->totvert; i++) {
 				BezTriple *bezt= &fcu->bezt[i];
 				bezt->vec[0][0] += ofs;

@@ -955,7 +955,7 @@ int append_ffmpeg(RenderData *rd, int frame, int *pixels, int rectx, int recty, 
 
 void end_ffmpeg(void)
 {
-	int i;
+	unsigned int i;
 	
 	fprintf(stderr, "Closing ffmpeg...\n");
 

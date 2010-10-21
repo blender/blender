@@ -136,7 +136,7 @@ void interpolateOnTriangle ( float to[3], float v1[3], float v2[3], float v3[3],
 /////////////////////////////////////////////////
 // used in effect.c
 /////////////////////////////////////////////////
-struct Object **get_collisionobjects(struct Scene *scene, struct Object *self, struct Group *group, int *numcollobj);
+struct Object **get_collisionobjects(struct Scene *scene, struct Object *self, struct Group *group, unsigned int *numcollobj);
 
 typedef struct ColliderCache {
 	struct ColliderCache *next, *prev;
