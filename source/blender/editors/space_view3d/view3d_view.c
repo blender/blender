@@ -2282,30 +2282,32 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				/* impliment WASD keys */
 			case FLY_MODAL_DIR_FORWARD:
 				if (fly->speed < 0.0f) fly->speed= -fly->speed; /* flip speed rather then stopping, game like motion */
-				else fly->speed += fly->grid; /* increse like mousewheel if were already moving in that difection*/
+				else if (fly->axis==2) fly->speed += fly->grid; /* increse like mousewheel if were already moving in that difection*/
 				fly->axis= 2;
 				break;
 			case FLY_MODAL_DIR_BACKWARD:
-				if (fly->speed>0) fly->speed= -fly->speed;
-				else fly->speed -= fly->grid;
+				if (fly->speed > 0.0f) fly->speed= -fly->speed;
+				else if (fly->axis==2) fly->speed -= fly->grid;
 				fly->axis= 2;
 				break;
 			case FLY_MODAL_DIR_LEFT:
 				if (fly->speed < 0.0f) fly->speed= -fly->speed;
+				else if (fly->axis==0) fly->speed += fly->grid;
 				fly->axis= 0;
 				break;
 			case FLY_MODAL_DIR_RIGHT:
 				if (fly->speed > 0.0f) fly->speed= -fly->speed;
+				else if (fly->axis==0) fly->speed -= fly->grid;
 				fly->axis= 0;
 				break;
-
-			case FLY_MODAL_DIR_UP:
-				if (fly->speed > 0.0f) fly->speed= -fly->speed;
-				fly->axis= 1;
-				break;
-
 			case FLY_MODAL_DIR_DOWN:
 				if (fly->speed < 0.0f) fly->speed= -fly->speed;
+				else if (fly->axis==1) fly->speed += fly->grid;
+				fly->axis= 1;
+				break;
+			case FLY_MODAL_DIR_UP:
+				if (fly->speed > 0.0f) fly->speed= -fly->speed;
+				else if (fly->axis==1) fly->speed -= fly->grid;
 				fly->axis= 1;
 				break;
 
