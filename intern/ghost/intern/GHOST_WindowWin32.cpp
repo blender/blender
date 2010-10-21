@@ -175,7 +175,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			top,					// vertical position of window
 			width,						// window width
 			height,						// window height
-			0,							// handle to parent or owner window
+			HWND_DESKTOP,				// handle to parent or owner window
 			0,							// handle to menu or child-window identifier
 			::GetModuleHandle(0),		// handle to application instance
 			0);							// pointer to window-creation data
@@ -189,7 +189,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
  			top,						// vertical position of window
 			width,						// window width
 			height,						// window height
-			0,							// handle to parent or owner window
+			HWND_DESKTOP,				// handle to parent or owner window
 			0,							// handle to menu or child-window identifier
 			::GetModuleHandle(0),		// handle to application instance
 			0);							// pointer to window-creation data
@@ -695,7 +695,7 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 			m_hGlRc = ::wglCreateContext(m_hDC);
 			if (m_hGlRc) {
 				if (s_firsthGLRc) {
-					wglShareLists(s_firsthGLRc, m_hGlRc);
+					::wglShareLists(s_firsthGLRc, m_hGlRc);
 				} else {
 					s_firsthGLRc = m_hGlRc;
 				}
@@ -761,9 +761,10 @@ GHOST_TSuccess GHOST_WindowWin32::removeDrawingContext()
 	switch (m_drawingContextType) {
 	case GHOST_kDrawingContextTypeOpenGL:
 		if (m_hGlRc) {
+			bool first = m_hGlRc == s_firsthGLRc;
 			success = ::wglDeleteContext(m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
-			if (m_hGlRc == s_firsthGLRc) {
-				s_firsthGLRc = NULL;
+			if (first) {
+				s_firsthGLRc = 0;
 			}
 			m_hGlRc = 0;
 		}
