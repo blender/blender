@@ -69,7 +69,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups */
-	dataMask |= (1 << CD_MDEFORMVERT);
+	dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }

@@ -149,11 +149,11 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 	/* ask for UV coordinates if we need them */
 	if(wmd->texture && wmd->texmapping == MOD_WAV_MAP_UV)
-		dataMask |= (1 << CD_MTFACE);
+		dataMask |= CD_MASK_MTFACE;
 
 	/* ask for vertexgroups if we need them */
 	if(wmd->defgrp_name[0])
-		dataMask |= (1 << CD_MDEFORMVERT);
+		dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }

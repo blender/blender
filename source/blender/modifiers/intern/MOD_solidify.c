@@ -185,7 +185,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(smd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+	if(smd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }
@@ -196,7 +196,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						int UNUSED(useRenderParams),
 						int UNUSED(isFinalCalc))
 {
-	int i, *index;
+	int i;
 	DerivedMesh *result;
 	SolidifyModifierData *smd = (SolidifyModifierData*) md;
 

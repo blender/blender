@@ -120,10 +120,10 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	ClothModifierData *clmd = (ClothModifierData*)md;
 
 	if(cloth_uses_vgroup(clmd))
-		dataMask |= (1 << CD_MDEFORMVERT);
+		dataMask |= CD_MASK_MDEFORMVERT;
 
 	if(clmd->sim_parms->shapekey_rest != 0)
-		dataMask |= (1 << CD_CLOTH_ORCO);
+		dataMask |= CD_MASK_CLOTH_ORCO;
 
 	return dataMask;
 }

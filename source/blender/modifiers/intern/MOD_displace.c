@@ -82,10 +82,10 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(dmd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+	if(dmd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	/* ask for UV coordinates if we need them */
-	if(dmd->texmapping == MOD_DISP_MAP_UV) dataMask |= (1 << CD_MTFACE);
+	if(dmd->texmapping == MOD_DISP_MAP_UV) dataMask |= CD_MASK_MTFACE;
 
 	return dataMask;
 }

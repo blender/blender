@@ -110,9 +110,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
 {
-	CustomDataMask dataMask = (1 << CD_MTFACE) + (1 << CD_MEDGE);
+	CustomDataMask dataMask = CD_MASK_MTFACE | CD_MASK_MEDGE;
 
-	dataMask |= (1 << CD_MDEFORMVERT);
+	dataMask |= CD_MASK_MDEFORMVERT;
 	
 	return dataMask;
 }
