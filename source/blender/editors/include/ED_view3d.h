@@ -63,6 +63,7 @@ typedef struct ViewContext {
 
 typedef struct ViewDepths {
 	unsigned short w, h;
+	short x, y; /* only for temp use for sub-rects, added to ar->winx/y */
 	float *depths;
 	double depth_range[2];
 	

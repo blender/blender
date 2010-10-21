@@ -1569,7 +1569,51 @@ static void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *bas
 	draw_dupli_objects_color(scene, ar, v3d, base, color);
 }
 
+void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
+{
+	int x, y, w, h;	
+	/* clamp rect by area */
+	
+	/* Constrain rect to depth bounds */
+	if (rect->xmin < 0) rect->xmin = 0;
+	if (rect->ymin < 0) rect->ymin = 0;
+	if (rect->xmax >= ar->winx) rect->xmax = ar->winx-1;
+	if (rect->ymax >= ar->winy) rect->ymax = ar->winy-1;
 
+	/* assign values to compare with the ViewDepths */
+	x= ar->winrct.xmin + rect->xmin;
+	y= ar->winrct.ymin + rect->ymin;
+
+	w= rect->xmax - rect->xmin;
+	h= rect->ymax - rect->ymin;
+
+	if(	d->w != w ||
+		d->h != h ||
+		d->x != x ||
+		d->y != y ||
+		d->depths==NULL
+	) {
+		d->x= x;
+		d->y= y;
+		d->w= w;
+		d->h= h;
+
+		if(d->depths)
+			MEM_freeN(d->depths);
+
+		d->depths= MEM_mallocN(sizeof(float)*d->w*d->h,"View depths Subset");
+		
+		d->damaged= 1;		
+	}
+
+	if(d->damaged) {
+		glReadPixels(ar->winrct.xmin+d->x,ar->winrct.ymin+d->y, d->w,d->h, GL_DEPTH_COMPONENT,GL_FLOAT, d->depths);
+		glGetDoublev(GL_DEPTH_RANGE,d->depth_range);
+		d->damaged= 0;
+	}
+}
+
+/* note, with nouveau drivers the glReadPixels() is very slow. [#24339] */
 void view3d_update_depths(ARegion *ar)
 {
 	RegionView3D *rv3d= ar->regiondata;
@@ -1598,6 +1642,30 @@ void view3d_update_depths(ARegion *ar)
 			d->damaged= 0;
 		}
 	}
+}
+
+/* utility function to find the closest Z value, use for autodepth */
+float view3d_depth_near(ViewDepths *d)
+{
+	/* convert to float for comparisons */
+	const float near= (float)d->depth_range[0];
+	const float far_real= (float)d->depth_range[1];
+	float far= far_real;
+
+	const float *depths= d->depths;
+	float depth= FLT_MAX;
+	int i= d->w * d->h;
+
+	/* far is both the starting 'far' value
+	 * and the closest value found. */	
+	while(i--) {
+		depth= *depths++;
+		if((depth < far) && (depth > near)) {
+			far= depth;
+		}
+	}
+
+	return far == far_real ? FLT_MAX : far;
 }
 
 void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
