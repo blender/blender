@@ -356,7 +356,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 
 	if (success) {
 		WNDCLASS wc;
-		wc.style= CS_HREDRAW | CS_VREDRAW | CS_CLASSDC;
+		wc.style= CS_HREDRAW | CS_VREDRAW;
 		wc.lpfnWndProc= s_wndProc;
 		wc.cbClsExtra= 0;
 		wc.cbWndExtra= 0;
