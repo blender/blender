@@ -1307,7 +1307,7 @@ static int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierDa
 }
 #endif
 
-static void add_collision_object(Object ***objs, int *numobj, int *maxobj, Object *ob, Object *self, int level)
+static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned int *maxobj, Object *ob, Object *self, int level)
 {
 	CollisionModifierData *cmd= NULL;
 
@@ -1545,7 +1545,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 			Object *collob= collobjs[i];
 			CollisionModifierData *collmd = (CollisionModifierData*)modifiers_findByType(collob, eModifierType_Collision);
 			BVHTreeOverlap *overlap = NULL;
-			int result = 0;
+			unsigned int result = 0;
 			
 			if(!collmd->bvhtree)
 				continue;

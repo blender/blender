@@ -1126,9 +1126,9 @@ static void traverse(BVHOverlapData *data, BVHNode *node1, BVHNode *node2)
 	return;
 }
 
-BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
+BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int *result)
 {
-	int j, total = 0;
+	unsigned int j, total = 0;
 	BVHTreeOverlap *overlap = NULL, *to = NULL;
 	BVHOverlapData **data;
 	

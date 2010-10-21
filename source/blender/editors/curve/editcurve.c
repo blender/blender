@@ -6012,7 +6012,6 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	if (!isSurf) { /* adding curve */
 		if(obedit==NULL || obedit->type!=OB_CURVE) {
 			Curve *cu;
-			Scene *scene= CTX_data_scene(C);
 			obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
 			newob = 1;
 
