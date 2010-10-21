@@ -2451,7 +2451,7 @@ static void do_render_seq(Render * re)
 {
 	static int recurs_depth = 0;
 	struct ImBuf *ibuf;
-	RenderResult *rr = re->result;
+	RenderResult *rr; /* don't assign re->result here as it might change during give_ibuf_seq */
 	int cfra = re->r.cfra;
 
 	re->i.cfra= cfra;
@@ -2463,9 +2463,11 @@ static void do_render_seq(Render * re)
 
 	recurs_depth++;
 
-	ibuf= give_ibuf_seq(re->main, re->scene, rr->rectx, rr->recty, cfra, 0, 100.0);
+	ibuf= give_ibuf_seq(re->main, re->scene, re->result->rectx, re->result->recty, cfra, 0, 100.0);
 
 	recurs_depth--;
+
+	rr = re->result;
 	
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
