@@ -62,7 +62,9 @@ static void initData(ModifierData *md)
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-		DerivedMesh *derivedData, int useRenderParams, int isFinalCalc)
+						DerivedMesh *dm,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	ClothModifierData *clmd = (ClothModifierData*) md;
 	DerivedMesh *result=NULL;
@@ -73,17 +75,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		initData(md);
 		
 		if(!clmd->sim_parms || !clmd->coll_parms)
-			return derivedData;
+			return dm;
 	}
 
-	result = clothModifier_do(clmd, md->scene, ob, derivedData, useRenderParams, isFinalCalc);
+	result = clothModifier_do(clmd, md->scene, ob, dm);
 
 	if(result)
 	{
 		CDDM_calc_normals(result);
 		return result;
 	}
-	return derivedData;
+	return dm;
 }
 
 static void updateDepgraph(

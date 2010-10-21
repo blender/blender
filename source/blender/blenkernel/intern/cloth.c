@@ -423,7 +423,7 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 /************************************************
  * clothModifier_do - main simulation function
 ************************************************/
-DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, DerivedMesh *dm, int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
+DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, DerivedMesh *dm)
 {
 	DerivedMesh *result;
 	PointCache *cache;

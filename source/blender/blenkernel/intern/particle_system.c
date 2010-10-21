@@ -3260,7 +3260,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	psys->clmd->point_cache = psys->pointcache;
 	psys->clmd->sim_parms->effector_weights = psys->part->effector_weights;
 
-	psys->hair_out_dm = clothModifier_do(psys->clmd, sim->scene, sim->ob, dm, 0, 0);
+	psys->hair_out_dm = clothModifier_do(psys->clmd, sim->scene, sim->ob, dm);
 
 	psys->clmd->sim_parms->effector_weights = NULL;
 }

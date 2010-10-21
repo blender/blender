@@ -729,26 +729,27 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		  return result;
 }
 
-static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+						DerivedMesh *dm,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	ArrayModifierData *amd = (ArrayModifierData*) md;
 
-	result = arrayModifier_doArray(amd, md->scene, ob, derivedData, 0);
+	result = arrayModifier_doArray(amd, md->scene, ob, dm, 0);
 
-	if(result != derivedData)
+	if(result != dm)
 		CDDM_calc_normals(result);
 
 	return result;
 }
 
-static DerivedMesh *applyModifierEM(
-		ModifierData *md, Object *ob, struct EditMesh *UNUSED(editData),
-  DerivedMesh *derivedData)
+static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
+						struct EditMesh *UNUSED(editData),
+						DerivedMesh *dm)
 {
-	return applyModifier(md, ob, derivedData, 0, 1);
+	return applyModifier(md, ob, dm, 0, 1);
 }
 
 

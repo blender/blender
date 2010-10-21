@@ -70,9 +70,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 
 
-static DerivedMesh * applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+						DerivedMesh *dm,
+						int useRenderParams,
+						int isFinalCalc)
 {
 	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
 	DerivedMesh *result = NULL;
@@ -83,17 +84,12 @@ static DerivedMesh * applyModifier(
 		initData(md);
 		
 		if(!fluidmd->fss)
-			return derivedData;
+			return dm;
 	}
 
-	result = fluidsimModifier_do(fluidmd, md->scene, ob, derivedData, useRenderParams, isFinalCalc);
+	result= fluidsimModifier_do(fluidmd, md->scene, ob, dm, useRenderParams, isFinalCalc);
 
-	if(result) 
-	{ 
-		return result; 
-	}
-	
-	return derivedData;
+	return result ? result : dm;
 }
 
 static void updateDepgraph(

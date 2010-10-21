@@ -546,8 +546,7 @@ DerivedMesh *fluidsim_read_cache(DerivedMesh *orgdm, FluidsimModifierData *fluid
 DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
 						Object *UNUSED(ob),
 						DerivedMesh *dm,
-						int useRenderParams,
-						int UNUSED(isFinalCalc))
+						int useRenderParams)
 {
 #ifndef DISABLE_ELBEEM
 	DerivedMesh *result = NULL;
