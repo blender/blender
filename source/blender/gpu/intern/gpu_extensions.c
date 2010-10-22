@@ -135,7 +135,7 @@ void GPU_extensions_init()
 		GG.device = GPU_DEVICE_ATI;
 		GG.driver = GPU_DRIVER_OPENSOURCE;
 	}
-	else if(strstr(renderer, "Nouveau")) {
+	else if(strstr(renderer, "Nouveau") || strstr(vendor, "nouveau")) {
 		GG.device = GPU_DEVICE_NVIDIA;
 		GG.driver = GPU_DRIVER_OPENSOURCE;
 	}

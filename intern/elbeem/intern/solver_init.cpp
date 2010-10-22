@@ -1001,7 +1001,7 @@ bool LbmFsgrSolver::initializeSolverMemory()
 	preinitGrids();
 	for(int lev=0; lev<=mMaxRefine; lev++) {
 		FSGR_FORIJK_BOUNDS(lev) {
-			RFLAG(lev,i,j,k,0) = RFLAG(lev,i,j,k,0) = 0; // reset for changeFlag usage
+			RFLAG(lev,i,j,k,0) = 0, RFLAG(lev,i,j,k,0) = 0; // reset for changeFlag usage
 			if(!mAllfluid) {
 				initEmptyCell(lev, i,j,k, CFEmpty, -1.0, -1.0); 
 			} else {
