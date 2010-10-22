@@ -1108,12 +1108,19 @@ void armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[][4], float outm
 	
 	/* paranoia: prevent crashes with no pose-channel supplied */
 	if (pchan==NULL) return;
-	
+
 	/* get the inverse matrix of the pchan's transforms */
-	if (pchan->rotmode)
-		loc_eul_size_to_mat4(pc_trans, pchan->loc, pchan->eul, pchan->size);
-	else
+	switch(pchan->rotmode) {
+	case ROT_MODE_QUAT:
 		loc_quat_size_to_mat4(pc_trans, pchan->loc, pchan->quat, pchan->size);
+		break;
+	case ROT_MODE_AXISANGLE:
+		loc_axisangle_size_to_mat4(pc_trans, pchan->loc, pchan->rotAxis, pchan->rotAngle, pchan->size);
+		break;
+	default: /* euler */
+		loc_eul_size_to_mat4(pc_trans, pchan->loc, pchan->eul, pchan->size);
+	}
+
 	invert_m4_m4(inv_trans, pc_trans);
 	
 	/* Remove the pchan's transforms from it's pose_mat.

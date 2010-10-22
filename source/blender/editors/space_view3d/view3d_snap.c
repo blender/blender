@@ -921,7 +921,7 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 	
 	/* api callbacks */ 
 	ot->exec= snap_curs_to_center;
-	   ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
 	   ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

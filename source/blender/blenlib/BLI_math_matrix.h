@@ -135,8 +135,8 @@ void scale_m4_fl(float R[4][4], float scale);
 float mat3_to_scale(float M[3][3]);
 float mat4_to_scale(float M[4][4]);
 
-void size_to_mat3(float R[3][3], float size[3]);
-void size_to_mat4(float R[4][4], float size[3]);
+void size_to_mat3(float R[3][3], const float size[3]);
+void size_to_mat4(float R[4][4], const float size[3]);
 
 void mat3_to_size(float r[3], float M[3][3]);
 void mat4_to_size(float r[3], float M[4][4]);
@@ -145,11 +145,13 @@ void translate_m4(float mat[4][4], float tx, float ty, float tz);
 void rotate_m4(float mat[4][4], char axis, float angle);
 
 void loc_eul_size_to_mat4(float R[4][4],
-	float loc[3], float eul[3], float size[3]);
+	const float loc[3], const float eul[3], const float size[3]);
 void loc_eulO_size_to_mat4(float R[4][4],
-	float loc[3], float eul[3], float size[3], short order);
+	const float loc[3], const float eul[3], const float size[3], const short order);
 void loc_quat_size_to_mat4(float R[4][4],
-	float loc[3], float quat[4], float size[3]);
+	const float loc[3], const float quat[4], const float size[3]);
+void loc_axisangle_size_to_mat4(float R[4][4],
+	const float loc[3], const float axis[4], const float angle, const float size[3]);
 
 void blend_m3_m3m3(float R[3][3], float A[3][3], float B[3][3], float t);
 void blend_m4_m4m4(float R[4][4], float A[4][4], float B[4][4], float t);
