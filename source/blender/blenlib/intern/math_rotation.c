@@ -1083,10 +1083,10 @@ void eulO_to_quat(float q[4],float e[3], short order)
 	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 	double a[3];
 	
-	ti = e[i]/2; tj = e[j]/2; th = e[k]/2;
-	
-	if (R->parity) e[j] = -e[j];
-	
+	ti = e[i] * 0.5f;
+	tj = e[j] * (R->parity ? -0.5f : 0.5f);
+	th = e[k] * 0.5f;
+
 	ci = cos(ti);  cj = cos(tj);  ch = cos(th);
 	si = sin(ti);  sj = sin(tj);  sh = sin(th);
 	
@@ -1102,7 +1102,7 @@ void eulO_to_quat(float q[4],float e[3], short order)
 	q[2] = a[1];
 	q[3] = a[2];
 	
-	if (R->parity) q[j] = -q[j];
+	if (R->parity) q[j+1] *= -1.0f;
 }
 
 /* Convert quaternion to Euler angles (in radians). */
