@@ -166,8 +166,13 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
     # place behind the wire
     obj_solid.location = 0, 0, -1
     
-    obj_wire.material_slots[0].link = 'OBJECT'
-    obj_wire.material_slots[0].material = material_wire
+    try:
+        obj_wire.material_slots[0].link = 'OBJECT'
+        obj_wire.material_slots[0].material = material_wire
+    except: # orig object didn't have material, add one here
+        obj_wire.data.materials.append(material_wire)
+        obj_wire.material_slots[0].link = 'OBJECT'
+        obj_wire.material_slots[0].material = material_wire
     
     
     # setup the camera
