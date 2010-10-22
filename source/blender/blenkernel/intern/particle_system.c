@@ -62,6 +62,7 @@
 #include "BLI_kdopbvh.h"
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
+#include "BLI_storage.h" /* For _LARGEFILE64_SOURCE;  zlib needs this on some systems */
 
 #include "BKE_main.h"
 #include "BKE_animsys.h"
