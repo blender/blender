@@ -142,7 +142,7 @@ void mat3_to_size(float r[3], float M[3][3]);
 void mat4_to_size(float r[3], float M[4][4]);
 
 void translate_m4(float mat[4][4], float tx, float ty, float tz);
-void rotate_m4(float mat[4][4], char axis, float angle);
+void rotate_m4(float mat[4][4], const char axis, const float angle);
 
 void loc_eul_size_to_mat4(float R[4][4],
 	const float loc[3], const float eul[3], const float size[3]);

@@ -624,7 +624,7 @@ void quat_to_axis_angle(float axis[3], float *angle, const float q[4])
 }
 
 /* Axis Angle to Euler Rotation */
-void axis_angle_to_eulO(float eul[3], short order, const float axis[3], const float angle)
+void axis_angle_to_eulO(float eul[3], const short order, const float axis[3], const float angle)
 {
 	float q[4];
 	
@@ -1175,7 +1175,7 @@ void mat3_to_eulO(float e[3], short order,float M[3][3])
 }
 
 /* Convert 4x4 matrix to Euler angles (in radians). */
-void mat4_to_eulO(float e[3], short order,float M[4][4])
+void mat4_to_eulO(float e[3], const short order,float M[4][4])
 {
 	float m[3][3];
 	
