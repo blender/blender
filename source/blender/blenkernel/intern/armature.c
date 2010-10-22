@@ -1105,21 +1105,42 @@ void armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[][4], float outm
 {
 	float pc_trans[4][4], inv_trans[4][4];
 	float pc_posemat[4][4], inv_posemat[4][4];
-	
+	float pose_mat[4][4];
+
 	/* paranoia: prevent crashes with no pose-channel supplied */
 	if (pchan==NULL) return;
 
-	/* get the inverse matrix of the pchan's transforms */
-	switch(pchan->rotmode) {
-	case ROT_MODE_QUAT:
-		loc_quat_size_to_mat4(pc_trans, pchan->loc, pchan->quat, pchan->size);
-		break;
-	case ROT_MODE_AXISANGLE:
-		loc_axisangle_size_to_mat4(pc_trans, pchan->loc, pchan->rotAxis, pchan->rotAngle, pchan->size);
-		break;
-	default: /* euler */
-		loc_eul_size_to_mat4(pc_trans, pchan->loc, pchan->eul, pchan->size);
+	/* default flag */
+	if((pchan->bone->flag & BONE_NO_LOCAL_LOCATION)==0) {
+		/* get the inverse matrix of the pchan's transforms */
+		switch(pchan->rotmode) {
+		case ROT_MODE_QUAT:
+			loc_quat_size_to_mat4(pc_trans, pchan->loc, pchan->quat, pchan->size);
+			break;
+		case ROT_MODE_AXISANGLE:
+			loc_axisangle_size_to_mat4(pc_trans, pchan->loc, pchan->rotAxis, pchan->rotAngle, pchan->size);
+			break;
+		default: /* euler */
+			loc_eul_size_to_mat4(pc_trans, pchan->loc, pchan->eul, pchan->size);
+		}
+
+		copy_m4_m4(pose_mat, pchan->pose_mat);
 	}
+	else {
+		/* local location, this is not default, different calculation
+		 * note: only tested for location with pose bone snapping.
+		 * If this is not useful in other cases the BONE_NO_LOCAL_LOCATION
+		 * case may have to be split into its own function. */
+		unit_m4(pc_trans);
+		copy_v3_v3(pc_trans[3], pchan->loc);
+
+		/* use parents rotation/scale space + own absolute position */
+		if(pchan->parent)	copy_m4_m4(pose_mat, pchan->parent->pose_mat);
+		else				unit_m4(pose_mat);
+
+		copy_v3_v3(pose_mat[3], pchan->pose_mat[3]);
+	}
+
 
 	invert_m4_m4(inv_trans, pc_trans);
 	
@@ -1127,7 +1148,7 @@ void armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[][4], float outm
 	 * This should leave behind the effects of restpose + 
 	 * parenting + constraints
 	 */
-	mul_m4_m4m4(pc_posemat, inv_trans, pchan->pose_mat);
+	mul_m4_m4m4(pc_posemat, inv_trans, pose_mat);
 	
 	/* get the inverse of the leftovers so that we can remove 
 	 * that component from the supplied matrix
