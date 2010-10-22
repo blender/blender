@@ -2018,7 +2018,9 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 	/* finally, store the new transform */
 	copy_m4_m4(pchan->pose_mat, poseMat);
 	VECCOPY(pchan->pose_head, poseHead);
-	VECCOPY(pchan->pose_tail, poseTail);
+	
+	/* recalculate tail, as it's now outdated after the head gets adjusted above! */
+	where_is_pose_bone_tail(pchan);
 	
 	/* done! */
 	pchan->flag |= POSE_DONE;
@@ -2231,6 +2233,15 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 	}
 }
 
+/* calculate tail of posechannel */
+void where_is_pose_bone_tail(bPoseChannel *pchan)
+{
+	float vec[3];
+	
+	VECCOPY(vec, pchan->pose_mat[1]);
+	mul_v3_fl(vec, pchan->bone->length);
+	add_v3_v3v3(pchan->pose_tail, pchan->pose_head, vec);
+}
 
 /* The main armature solver, does all constraints excluding IK */
 /* pchan is validated, as having bone and parent pointer
@@ -2364,9 +2375,7 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 	/* calculate head */
 	VECCOPY(pchan->pose_head, pchan->pose_mat[3]);
 	/* calculate tail */
-	VECCOPY(vec, pchan->pose_mat[1]);
-	mul_v3_fl(vec, bone->length);
-	add_v3_v3v3(pchan->pose_tail, pchan->pose_head, vec);
+	where_is_pose_bone_tail(pchan);
 }
 
 /* This only reads anim data from channels, and writes to channels */
