@@ -2530,6 +2530,9 @@ static void do_render_seq(Render * re)
 	}
 
 	BLI_rw_mutex_unlock(&re->resultmutex);
+
+	/* just in case this flag went missing at some point */
+	re->r.scemode |= R_DOSEQ;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
