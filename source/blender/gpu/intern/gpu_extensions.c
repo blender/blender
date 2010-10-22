@@ -91,6 +91,11 @@ void GPU_extensions_init()
 	GLint r, g, b;
 	const char *vendor, *renderer;
 
+	/* can't avoid calling this multiple times, see wm_window_add_ghostwindow */	
+	static char init= 0;
+	if(init) return;
+	init= 1;
+
 	glewInit();
 
 	/* glewIsSupported("GL_VERSION_2_0") */
