@@ -320,6 +320,11 @@ protected:
 	 * Windows call back routine for our window class.
 	 */
 	static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	
+	/**
+	 * Low-level inspection of keyboard events
+	 */
+	static LRESULT CALLBACK s_llKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam);
 
 	/** The current state of the modifier keys. */
 	GHOST_ModifierKeys m_modifierKeys;
@@ -331,6 +336,10 @@ protected:
 	__int64 m_start;
 	/** AltGr on current keyboard layout. */
 	bool m_hasAltGr;
+	/** holding hook handle for low-level keyboard handling */
+	HHOOK m_llKeyboardHook;
+	bool m_prevKeyStatus[255]; /* VK_* codes 0x01-0xFF, with 0xFF reserved */
+	bool m_curKeyStatus[255]; /* VK_* codes 0x01-0xFF, with 0xFF reserved */
 };
 
 inline void GHOST_SystemWin32::retrieveModifierKeys(GHOST_ModifierKeys& keys) const
