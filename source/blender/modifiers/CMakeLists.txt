@@ -31,10 +31,8 @@ SET(INC
 	../blenkernel
 	../blenkernel/intern
 	../render/extern/include
-    ../../../intern/guardedalloc
-	../../../intern/decimation/extern
+	../../../intern/guardedalloc
 	../../../intern/elbeem/extern
-	../../../intern/bsp/extern
 	${ZLIB_INC}
 )
 
@@ -43,7 +41,6 @@ SET(SRC
 	intern/MOD_array.c
 	intern/MOD_bevel.c
 	intern/MOD_boolean.c
-	intern/MOD_boolean_util.c
 	intern/MOD_build.c
 	intern/MOD_cast.c
 	intern/MOD_cloth.c
@@ -79,9 +76,19 @@ SET(SRC
 	intern/MOD_wave.c
 )
 
-IF(NOT WITH_FLUID)
+IF(WITH_MOD_BOOLEAN)
+	ADD_DEFINITIONS(-DWITH_MOD_BOOLEAN)
+	LIST(APPEND SRC intern/MOD_boolean_util.c)
+	LIST(APPEND INC ../../../intern/bsp/extern)
+ENDIF(WITH_MOD_BOOLEAN)
+
+IF(WITH_MOD_DECIMATE)
+	ADD_DEFINITIONS(-DWITH_MOD_DECIMATE)
+	LIST(APPEND INC ../../../intern/decimation/extern)
+ENDIF(WITH_MOD_BOOLEAN)
+
+IF(NOT WITH_MOD_FLUID)
 	ADD_DEFINITIONS(-DDISABLE_ELBEEM)
-ENDIF(NOT WITH_FLUID)
+ENDIF(NOT WITH_MOD_FLUID)
 
 BLENDERLIB(bf_modifiers "${SRC}" "${INC}")
-

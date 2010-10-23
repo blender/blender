@@ -68,7 +68,6 @@ GET_BLENDER_VERSION()
 OPTION(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
 OPTION(WITH_PYTHON        "Enable Embedded Python API" ON)
 OPTION(WITH_BUILDINFO     "Include extra build details" ON)
-OPTION(WITH_FLUID        "Enable Elbeem (Fluid Simulation)" ON)
 OPTION(WITH_IK_ITASC      "Enable ITASC IK solver" ON)
 OPTION(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" OFF)
 OPTION(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
@@ -80,6 +79,11 @@ IF(UNIX AND NOT APPLE)
 ELSE()
 	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
 ENDIF()
+
+# Modifiers
+OPTION(WITH_MOD_FLUID        	"Enable Elbeem Modifier (Fluid Simulation)" ON)
+OPTION(WITH_MOD_DECIMATE       	"Enable Decimate Modifier" ON)
+OPTION(WITH_MOD_BOOLEAN        	"Enable Boolean Modifier" ON)
 
 # Image format support
 OPTION(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)

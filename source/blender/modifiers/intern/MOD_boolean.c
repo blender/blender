@@ -82,7 +82,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
-
+#ifdef WITH_MOD_BOOLEAN
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 						DerivedMesh *derivedData,
 						int UNUSED(useRenderParams),
@@ -107,6 +107,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	
 	return derivedData;
 }
+#else // WITH_MOD_BOOLEAN
+static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
+{
+	return derivedData;
+}
+#endif // WITH_MOD_BOOLEAN
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
 {
