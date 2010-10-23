@@ -53,6 +53,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 
 #include "ED_mesh.h"
 #include "ED_object.h"
