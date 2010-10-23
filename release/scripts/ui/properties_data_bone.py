@@ -163,7 +163,7 @@ class BONE_PT_relations(BoneButtonsPanel, bpy.types.Panel):
         sub = col.column()
         sub.active = (bone.parent is not None)
         sub.prop(bone, "use_connect")
-        sub.prop(bone, "use_hinge", text="Inherit Rotation")
+        sub.prop(bone, "use_inherit_rotate", text="Inherit Rotation")
         sub.prop(bone, "use_inherit_scale", text="Inherit Scale")
         sub = col.column()
         sub.active = (not bone.parent or not bone.use_connect)
