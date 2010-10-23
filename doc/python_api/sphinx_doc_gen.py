@@ -57,6 +57,7 @@ reload(rna_info)
 ClassMethodDescriptorType = type(dict.__dict__['fromkeys'])
 MethodDescriptorType = type(dict.get)
 GetSetDescriptorType = type(int.real)
+StaticMethodType = type(staticmethod(lambda: None))
 
 EXAMPLE_SET = set()
 EXAMPLE_SET_USED = set()
@@ -291,6 +292,12 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
             if type(descr) == GetSetDescriptorType:
                 py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
 
+        for key, descr in descr_items:
+            if type(descr) == StaticMethodType:
+                descr = getattr(value, key)
+                write_indented_lines("   ", fw, descr.__doc__ or "Undocumented", False)
+                fw("\n")
+
         fw("\n\n")
 
     file.close()
@@ -395,6 +402,7 @@ def rna2sphinx(BASEPATH):
 
 
     fw("   mathutils.rst\n\n")
+    fw("   Freestyle.rst\n\n")
     fw("   blf.rst\n\n")
     fw("   aud.rst\n\n")
     
@@ -474,6 +482,10 @@ def rna2sphinx(BASEPATH):
     
     import mathutils as module
     pymodule2sphinx(BASEPATH, "mathutils", module, "Math Types & Utilities (mathutils)")
+    del module
+
+    import Freestyle as module
+    pymodule2sphinx(BASEPATH, "Freestyle", module, "Freestyle Data Types & Operators (Freestyle)")
     del module
 
     import blf as module
