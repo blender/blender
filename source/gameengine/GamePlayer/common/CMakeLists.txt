@@ -24,19 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(SRC 
-	bmfont.cpp
-	GPC_Canvas.cpp
-	GPC_Engine.cpp
-	GPC_KeyboardDevice.cpp
-	GPC_MouseDevice.cpp
-	GPC_RawImage.cpp
-	GPC_RawLoadDotBlendArray.cpp
-	GPC_RawLogoArrays.cpp
-	GPC_RenderTools.cpp
-	GPC_System.cpp
-)
-
 SET(INC
 	.
 	../../../../intern/string
@@ -69,6 +56,19 @@ SET(INC
 	${PYTHON_INC}
 	${PNG_INC}
 	${ZLIB_INC}
+)
+
+SET(SRC 
+	bmfont.cpp
+	GPC_Canvas.cpp
+	GPC_Engine.cpp
+	GPC_KeyboardDevice.cpp
+	GPC_MouseDevice.cpp
+	GPC_RawImage.cpp
+	GPC_RawLoadDotBlendArray.cpp
+	GPC_RawLogoArrays.cpp
+	GPC_RenderTools.cpp
+	GPC_System.cpp
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)

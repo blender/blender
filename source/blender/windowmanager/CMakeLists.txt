@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
-
 SET(INC
 	.
 	../nodes
@@ -48,6 +46,23 @@ SET(INC
 	../../../intern/opennl/extern
 	../../../extern/glew/include
 	${OPENGL_INCLUDE_DIR}
+)
+
+SET(SRC
+	intern/wm.c
+	intern/wm_apple.c
+	intern/wm_cursors.c
+	intern/wm_dragdrop.c
+	intern/wm_draw.c
+	intern/wm_event_system.c
+	intern/wm_files.c
+	intern/wm_gesture.c
+	intern/wm_init_exit.c
+	intern/wm_jobs.c
+	intern/wm_keymap.c
+	intern/wm_operators.c
+	intern/wm_subwindow.c
+	intern/wm_window.c
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)

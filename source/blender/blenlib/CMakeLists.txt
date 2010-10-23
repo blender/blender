@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
-
 SET(INC 
 	.
 	../makesdna
@@ -38,9 +36,52 @@ SET(INC
 	${FREETYPE_INCLUDE_DIRS}
 )
 
-# unused
-LIST(REMOVE_ITEM SRC "${CMAKE_CURRENT_SOURCE_DIR}/intern/BLI_bfile.c")
-
+SET(SRC
+	intern/BLI_args.c
+	intern/BLI_dynstr.c
+	intern/BLI_ghash.c
+	intern/BLI_heap.c
+	intern/BLI_kdopbvh.c
+	intern/BLI_kdtree.c
+	intern/BLI_linklist.c
+	intern/BLI_memarena.c
+	intern/BLI_mempool.c
+	intern/DLRB_tree.c
+	intern/boxpack2d.c
+	intern/bpath.c
+	intern/cpu.c
+	intern/dynlib.c
+	intern/edgehash.c
+	intern/fileops.c
+	intern/fnmatch.c
+	intern/freetypefont.c
+	intern/graph.c
+	intern/gsqueue.c
+	intern/jitter.c
+	intern/listbase.c
+	intern/math_base.c
+	intern/math_base_inline.c
+	intern/math_color.c
+	intern/math_geom.c
+	intern/math_geom_inline.c
+	intern/math_matrix.c
+	intern/math_rotation.c
+	intern/math_vector.c
+	intern/math_vector_inline.c
+	intern/noise.c
+	intern/path_util.c
+	intern/pbvh.c
+	intern/rand.c
+	intern/rct.c
+	intern/scanfill.c
+	intern/storage.c
+	intern/string.c
+	intern/threads.c
+	intern/time.c
+	intern/uvproject.c
+	intern/voxel.c
+	intern/winstuff.c
+)
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	LIST(APPEND INC "${BINRELOC_INC}")

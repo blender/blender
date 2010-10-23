@@ -24,9 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
-
-
 SET(INC 
 	.
 	../avi
@@ -38,6 +35,35 @@ SET(INC
 	${JPEG_INC}
 	${PNG_INC}
 	${ZLIB_INC}
+)
+
+SET(SRC
+	intern/allocimbuf.c
+	intern/anim_movie.c
+	intern/bmp.c
+	intern/cache.c
+	intern/divers.c
+	intern/filetype.c
+	intern/filter.c
+	intern/imageprocess.c
+	intern/iris.c
+	intern/jp2.c
+	intern/jpeg.c
+	intern/md5.c
+	intern/metadata.c
+	intern/module.c
+	intern/png.c
+	intern/radiance_hdr.c
+	intern/readimage.c
+	intern/rectop.c
+	intern/rotate.c
+	intern/scaling.c
+	intern/targa.c
+	intern/thumbs.c
+	intern/thumbs_blend.c
+	intern/tiff.c
+	intern/util.c
+	intern/writeimage.c
 )
 
 IF(WIN32)

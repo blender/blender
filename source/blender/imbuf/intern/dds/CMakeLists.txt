@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE (GLOB SRC *.cpp)
-
 SET(INC 
 	.
 	..
@@ -35,6 +33,15 @@ SET(INC
 	../../../blenkernel
 	../../../makesdna
 	../../../../../intern/guardedalloc
+)
+
+SET(SRC
+	BlockDXT.cpp
+	ColorBlock.cpp
+	DirectDrawSurface.cpp
+	Image.cpp
+	Stream.cpp
+	dds_api.cpp
 )
 
 if(WITH_IMAGE_DDS)

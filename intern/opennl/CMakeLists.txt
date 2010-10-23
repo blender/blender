@@ -24,8 +24,44 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC extern superlu)
+SET(INC
+	extern
+	superlu
+)
 
-FILE(GLOB SRC intern/*.c superlu/*.c)
+SET(SRC
+	intern/opennl.c
+	superlu/colamd.c
+	superlu/get_perm_c.c
+	superlu/heap_relax_snode.c
+	superlu/lsame.c
+	superlu/memory.c
+	superlu/mmd.c
+	superlu/relax_snode.c
+	superlu/scolumn_bmod.c
+	superlu/scolumn_dfs.c
+	superlu/scopy_to_ucol.c
+	superlu/sgssv.c
+	superlu/sgstrf.c
+	superlu/sgstrs.c
+	superlu/smemory.c
+	superlu/smyblas2.c
+	superlu/sp_coletree.c
+	superlu/sp_ienv.c
+	superlu/sp_preorder.c
+	superlu/spanel_bmod.c
+	superlu/spanel_dfs.c
+	superlu/spivotL.c
+	superlu/spruneL.c
+	superlu/ssnode_bmod.c
+	superlu/ssnode_dfs.c
+	superlu/ssp_blas2.c
+	superlu/ssp_blas3.c
+	superlu/strsv.c
+	superlu/superlu_timer.c
+	superlu/sutil.c
+	superlu/util.c
+	superlu/xerbla.c
+)
 
 BLENDERLIB(bf_intern_opennl "${SRC}" "${INC}")

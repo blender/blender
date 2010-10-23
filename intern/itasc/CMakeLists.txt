@@ -24,8 +24,46 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC ../../extern/Eigen2)
+SET(INC
+	../../extern/Eigen2
+)
 
-FILE(GLOB SRC *.cpp kdl/*.cpp kdl/utilities/*.cpp)
+SET(SRC
+	Armature.cpp
+	Cache.cpp
+	ConstraintSet.cpp
+	ControlledObject.cpp
+	CopyPose.cpp
+	Distance.cpp
+	FixedObject.cpp
+	MovingFrame.cpp
+	Scene.cpp
+	UncontrolledObject.cpp
+	WDLSSolver.cpp
+	WSDLSSolver.cpp
+	WorldObject.cpp
+	eigen_types.cpp
+	kdl/chain.cpp
+	kdl/chainfksolverpos_recursive.cpp
+	kdl/chainjnttojacsolver.cpp
+	kdl/frameacc.cpp
+	kdl/frames.cpp
+	kdl/frames_io.cpp
+	kdl/framevel.cpp
+	kdl/inertia.cpp
+	kdl/jacobian.cpp
+	kdl/jntarray.cpp
+	kdl/jntarrayacc.cpp
+	kdl/jntarrayvel.cpp
+	kdl/joint.cpp
+	kdl/kinfam_io.cpp
+	kdl/segment.cpp
+	kdl/tree.cpp
+	kdl/treefksolverpos_recursive.cpp
+	kdl/treejnttojacsolver.cpp
+	kdl/utilities/error_stack.cpp
+	kdl/utilities/utility.cpp
+	kdl/utilities/utility_io.cpp
+)
 
 BLENDERLIB(bf_intern_itasc "${SRC}" "${INC}")

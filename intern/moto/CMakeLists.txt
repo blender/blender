@@ -24,8 +24,23 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC include)
+SET(INC
+	include
+)
 
-FILE(GLOB SRC intern/*.cpp)
+SET(SRC
+	intern/MT_Assert.cpp
+	intern/MT_CmMatrix4x4.cpp
+	intern/MT_Matrix3x3.cpp
+	intern/MT_Matrix4x4.cpp
+	intern/MT_Plane3.cpp
+	intern/MT_Point3.cpp
+	intern/MT_Quaternion.cpp
+	intern/MT_Transform.cpp
+	intern/MT_Vector2.cpp
+	intern/MT_Vector3.cpp
+	intern/MT_Vector4.cpp
+	intern/MT_random.cpp
+)
 
 BLENDERLIB(bf_intern_moto "${SRC}" "${INC}")

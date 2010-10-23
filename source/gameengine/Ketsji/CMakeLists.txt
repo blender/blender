@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.cpp)
-
 SET(INC
 	.
 	../../../source/kernel/gen_system
@@ -57,6 +55,76 @@ SET(INC
 	../../../source/blender/blenloader
 	../../../source/blender/gpu
 	../../../extern/glew/include
+)
+
+SET(SRC
+	BL_BlenderShader.cpp
+	BL_Material.cpp
+	BL_Shader.cpp
+	BL_Texture.cpp
+	KX_ArmatureSensor.cpp
+	KX_BlenderMaterial.cpp
+	KX_BulletPhysicsController.cpp
+	KX_Camera.cpp
+	KX_CameraActuator.cpp
+	KX_CameraIpoSGController.cpp
+	KX_ConstraintActuator.cpp
+	KX_ConstraintWrapper.cpp
+	KX_ConvertPhysicsObjects.cpp
+	KX_Dome.cpp
+	KX_EmptyObject.cpp
+	KX_GameActuator.cpp
+	KX_GameObject.cpp
+	KX_IPO_SGController.cpp
+	KX_IPhysicsController.cpp
+	KX_IpoActuator.cpp
+	KX_KetsjiEngine.cpp
+	KX_Light.cpp
+	KX_LightIpoSGController.cpp
+	KX_MaterialIpoController.cpp
+	KX_MeshProxy.cpp
+	KX_MotionState.cpp
+	KX_MouseFocusSensor.cpp
+	KX_NearSensor.cpp
+	KX_ObColorIpoSGController.cpp
+	KX_ObjectActuator.cpp
+	KX_OrientationInterpolator.cpp
+	KX_ParentActuator.cpp
+	KX_PhysicsObjectWrapper.cpp
+	KX_PolyProxy.cpp
+	KX_PolygonMaterial.cpp
+	KX_PositionInterpolator.cpp
+	KX_PyConstraintBinding.cpp
+	KX_PyMath.cpp
+	KX_PythonInit.cpp
+	KX_PythonInitTypes.cpp
+	KX_PythonSeq.cpp
+	KX_RadarSensor.cpp
+	KX_RayCast.cpp
+	KX_RayEventManager.cpp
+	KX_RaySensor.cpp
+	KX_SCA_AddObjectActuator.cpp
+	KX_SCA_DynamicActuator.cpp
+	KX_SCA_EndObjectActuator.cpp
+	KX_SCA_ReplaceMeshActuator.cpp
+	KX_SG_BoneParentNodeRelationship.cpp
+	KX_SG_NodeRelationships.cpp
+	KX_ScalarInterpolator.cpp
+	KX_ScalingInterpolator.cpp
+	KX_Scene.cpp
+	KX_SceneActuator.cpp
+	KX_SoundActuator.cpp
+	KX_StateActuator.cpp
+	KX_TimeCategoryLogger.cpp
+	KX_TimeLogger.cpp
+	KX_TouchEventManager.cpp
+	KX_TouchSensor.cpp
+	KX_TrackToActuator.cpp
+	KX_VehicleWrapper.cpp
+	KX_VertexProxy.cpp
+	KX_VisibilityActuator.cpp
+	KX_WorldInfo.cpp
+	KX_WorldIpoController.cpp
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)

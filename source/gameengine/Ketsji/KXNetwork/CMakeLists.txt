@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.cpp)
-
 SET(INC
 	.
 	../../../../source/kernel/gen_system
@@ -36,6 +34,14 @@ SET(INC
 	../../../../source/gameengine/Expressions
 	../../../../source/gameengine/SceneGraph
 	../../../../source/gameengine/Network
+)
+
+SET(SRC
+	KX_NetworkEventManager.cpp
+	KX_NetworkMessageActuator.cpp
+	KX_NetworkMessageSensor.cpp
+	KX_NetworkObjectActuator.cpp
+	KX_NetworkObjectSensor.cpp
 )
 
 IF(WITH_PYTHON)

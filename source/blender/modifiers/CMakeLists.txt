@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
-
 SET(INC 
 	. ./intern
 	../blenlib
@@ -38,6 +36,47 @@ SET(INC
 	../../../intern/elbeem/extern
 	../../../intern/bsp/extern
 	${ZLIB_INC}
+)
+
+SET(SRC
+	intern/MOD_armature.c
+	intern/MOD_array.c
+	intern/MOD_bevel.c
+	intern/MOD_boolean.c
+	intern/MOD_boolean_util.c
+	intern/MOD_build.c
+	intern/MOD_cast.c
+	intern/MOD_cloth.c
+	intern/MOD_collision.c
+	intern/MOD_curve.c
+	intern/MOD_decimate.c
+	intern/MOD_displace.c
+	intern/MOD_edgesplit.c
+	intern/MOD_explode.c
+	intern/MOD_fluidsim.c
+	intern/MOD_fluidsim_util.c
+	intern/MOD_hook.c
+	intern/MOD_lattice.c
+	intern/MOD_mask.c
+	intern/MOD_meshdeform.c
+	intern/MOD_mirror.c
+	intern/MOD_multires.c
+	intern/MOD_none.c
+	intern/MOD_particleinstance.c
+	intern/MOD_particlesystem.c
+	intern/MOD_screw.c
+	intern/MOD_shapekey.c
+	intern/MOD_shrinkwrap.c
+	intern/MOD_simpledeform.c
+	intern/MOD_smoke.c
+	intern/MOD_smooth.c
+	intern/MOD_softbody.c
+	intern/MOD_solidify.c
+	intern/MOD_subsurf.c
+	intern/MOD_surface.c
+	intern/MOD_util.c
+	intern/MOD_uvproject.c
+	intern/MOD_wave.c
 )
 
 IF(NOT WITH_FLUID)

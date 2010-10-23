@@ -24,9 +24,37 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC ${PNG_INC} ${ZLIB_INC} extern)
+SET(INC
+	extern
+	${PNG_INC}
+	${ZLIB_INC}
+)
 
-FILE(GLOB SRC intern/*.cpp)
+SET(SRC
+	intern/attributes.cpp
+	intern/controlparticles.cpp
+	intern/elbeem.cpp
+	intern/elbeem_control.cpp
+	intern/isosurface.cpp
+	intern/mvmcoords.cpp
+	intern/ntl_blenderdumper.cpp
+	intern/ntl_bsptree.cpp
+	intern/ntl_geometrymodel.cpp
+	intern/ntl_geometryobject.cpp
+	intern/ntl_lighting.cpp
+	intern/ntl_ray.cpp
+	intern/ntl_world.cpp
+	intern/parametrizer.cpp
+	intern/particletracer.cpp
+	intern/simulation_object.cpp
+	intern/solver_adap.cpp
+	intern/solver_control.cpp
+	intern/solver_init.cpp
+	intern/solver_interface.cpp
+	intern/solver_main.cpp
+	intern/solver_util.cpp
+	intern/utilities.cpp
+)
 
 ADD_DEFINITIONS(-DNOGUI -DELBEEM_BLENDER=1)
 IF(WINDOWS)

@@ -22,8 +22,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
-
 SET(INC
 	.
 	../blenlib
@@ -33,6 +31,15 @@ SET(INC
 	../../../intern/guardedalloc
 	../../../extern/glew/include
 	${FREETYPE_INCLUDE_DIRS}
+)
+
+SET(SRC
+	intern/blf.c
+	intern/blf_dir.c
+	intern/blf_font.c
+	intern/blf_glyph.c
+	intern/blf_lang.c
+	intern/blf_util.c
 )
 
 IF(WITH_INTERNATIONAL)

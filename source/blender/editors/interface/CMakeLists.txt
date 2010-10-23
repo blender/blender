@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC
 	../include
 	../../blenfont
@@ -33,6 +31,25 @@ SET(INC
 	../../python
 	../../windowmanager
 	../../../../intern/guardedalloc
+)
+
+SET(SRC
+	interface.c
+	interface_anim.c
+	interface_draw.c
+	interface_handlers.c
+	interface_icons.c
+	interface_layout.c
+	interface_ops.c
+	interface_panel.c
+	interface_regions.c
+	interface_style.c
+	interface_templates.c
+	interface_utils.c
+	interface_widgets.c
+	resources.c
+	view2d.c
+	view2d_ops.c
 )
 
 IF(WITH_INTERNATIONAL)

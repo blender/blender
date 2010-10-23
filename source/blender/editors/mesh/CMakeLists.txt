@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC
 	../include
 	../../blenkernel
@@ -31,6 +29,20 @@ SET(INC
 	../../windowmanager
 	../../render/extern/include
 	../../../../intern/guardedalloc
+)
+
+SET(SRC
+	editface.c
+	editmesh.c
+	editmesh_add.c
+	editmesh_lib.c
+	editmesh_loop.c
+	editmesh_mods.c
+	editmesh_tools.c
+	loopcut.c
+	mesh_data.c
+	mesh_ops.c
+	meshtools.c
 )
 
 IF(WIN32)

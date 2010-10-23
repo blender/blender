@@ -27,8 +27,6 @@
 # remove warning until render branch merged.
 STRING(REGEX REPLACE "-Wunused-parameter" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
 
-FILE(GLOB SRC intern/source/*.c intern/raytrace/*.cpp)
-
 SET(INC 
 	intern/include
 	extern/include
@@ -42,6 +40,42 @@ SET(INC
 	../../kernel/gen_messaging
 	../../../intern/smoke/extern
 	../../../intern/guardedalloc
+)
+
+SET(SRC
+	intern/raytrace/rayobject.cpp
+	intern/raytrace/rayobject_qbvh.cpp
+	intern/raytrace/rayobject_rtbuild.cpp
+	intern/raytrace/rayobject_svbvh.cpp
+	intern/raytrace/rayobject_vbvh.cpp
+	intern/source/convertblender.c
+	intern/source/envmap.c
+	intern/source/gammaCorrectionTables.c
+	intern/source/imagetexture.c
+	intern/source/initrender.c
+	intern/source/occlusion.c
+	intern/source/pipeline.c
+	intern/source/pixelblending.c
+	intern/source/pixelshading.c
+	intern/source/pointdensity.c
+	intern/source/rayobject_blibvh.c
+	intern/source/rayobject_instance.c
+	intern/source/rayobject_octree.c
+	intern/source/rayobject_raycounter.c
+	intern/source/rayshade.c
+	intern/source/rendercore.c
+	intern/source/renderdatabase.c
+	intern/source/shadbuf.c
+	intern/source/shadeinput.c
+	intern/source/shadeoutput.c
+	intern/source/sss.c
+	intern/source/strand.c
+	intern/source/sunsky.c
+	intern/source/texture.c
+	intern/source/volume_precache.c
+	intern/source/volumetric.c
+	intern/source/voxeldata.c
+	intern/source/zbuf.c
 )
 
 IF(WIN32)

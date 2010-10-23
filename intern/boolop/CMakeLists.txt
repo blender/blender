@@ -36,6 +36,23 @@ SET(INC
 	../../source/blender/makesdna
 )
 
-FILE(GLOB SRC intern/*.cpp)
+SET(SRC
+	intern/BOP_BBox.cpp
+	intern/BOP_BSPNode.cpp
+	intern/BOP_BSPTree.cpp
+	intern/BOP_Edge.cpp
+	intern/BOP_Face.cpp
+	intern/BOP_Face2Face.cpp
+	intern/BOP_Interface.cpp
+	intern/BOP_MathUtils.cpp
+	intern/BOP_Merge.cpp
+	intern/BOP_Merge2.cpp
+	intern/BOP_Mesh.cpp
+	intern/BOP_Segment.cpp
+	intern/BOP_Splitter.cpp
+	intern/BOP_Tag.cpp
+	intern/BOP_Triangulator.cpp
+	intern/BOP_Vertex.cpp
+)
 
 BLENDERLIB(bf_intern_bop "${SRC}" "${INC}")

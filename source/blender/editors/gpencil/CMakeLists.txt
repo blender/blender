@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC
 	../include
 	../../blenkernel
@@ -30,6 +28,15 @@ SET(INC
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
+)
+
+SET(SRC
+	drawgpencil.c
+	editaction_gpencil.c
+	gpencil_buttons.c
+	gpencil_edit.c
+	gpencil_ops.c
+	gpencil_paint.c
 )
 
 BLENDERLIB(bf_editor_gpencil "${SRC}" "${INC}")

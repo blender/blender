@@ -18,8 +18,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC 
 	.
 	../../blenlib
@@ -29,6 +27,22 @@ SET(INC
 	../../../../intern/guardedalloc
 	../../../../extern/glew/include
 	${PYTHON_INC}
+)
+
+SET(SRC
+	IDProp.c
+	bgl.c
+	blf_api.c
+	bpy_internal_import.c
+	geometry.c
+	mathutils.c
+	mathutils_color.c
+	mathutils_euler.c
+	mathutils_matrix.c
+	mathutils_quat.c
+	mathutils_vector.c
+	noise.c
+	py_capi_utils.c
 )
 
 BLENDERLIB(bf_python_ext "${SRC}" "${INC}")

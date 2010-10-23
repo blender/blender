@@ -33,7 +33,16 @@ SET(INC
 	${ZLIB_INC}
 )
 
-FILE(GLOB SRC intern/*.cpp)
+SET(SRC
+	intern/EIGENVALUE_HELPER.cpp
+	intern/FLUID_3D.cpp
+	intern/FLUID_3D_SOLVERS.cpp
+	intern/FLUID_3D_STATIC.cpp
+	intern/LU_HELPER.cpp
+	intern/SPHERE.cpp
+	intern/WTURBULENCE.cpp
+	intern/smoke_API.cpp
+)
 
 IF(WITH_OPENMP)
 		ADD_DEFINITIONS(-DPARALLEL=1)

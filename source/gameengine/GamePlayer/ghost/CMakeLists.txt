@@ -24,14 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(SRC 
-	GPG_Application.cpp
-	GPG_Canvas.cpp
-	GPG_ghost.cpp
-	GPG_KeyboardDevice.cpp
-	GPG_System.cpp
-)
-
 SET(INC
 	.
 	../../../../intern/string
@@ -64,6 +56,14 @@ SET(INC
 	../../../../source/blender/gpu
 	../../../../extern/glew/include
 	${PYTHON_INC}
+)
+
+SET(SRC 
+	GPG_Application.cpp
+	GPG_Canvas.cpp
+	GPG_ghost.cpp
+	GPG_KeyboardDevice.cpp
+	GPG_System.cpp
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)

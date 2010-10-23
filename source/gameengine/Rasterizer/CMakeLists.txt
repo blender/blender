@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.cpp)
-
 SET(INC
 	.
 	../../../source/kernel/gen_system
@@ -38,6 +36,19 @@ SET(INC
 	../../../intern/guardedalloc
 	../Expressions
 	${PYTHON_INC}
+)
+
+SET(SRC
+	RAS_2DFilterManager.cpp
+	RAS_BucketManager.cpp
+	RAS_FramingManager.cpp
+	RAS_IPolygonMaterial.cpp
+	RAS_IRenderTools.cpp
+	RAS_MaterialBucket.cpp
+	RAS_MeshObject.cpp
+	RAS_Polygon.cpp
+	RAS_TexVert.cpp
+	RAS_texmatrix.cpp
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)

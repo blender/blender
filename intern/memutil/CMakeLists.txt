@@ -24,7 +24,10 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC . ..)
+SET(INC
+	.
+	..
+)
 
 SET(SRC
 	./intern/MEM_CacheLimiterC-Api.cpp

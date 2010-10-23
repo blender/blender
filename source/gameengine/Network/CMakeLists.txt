@@ -24,13 +24,17 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.cpp)
-
 SET(INC
 	.
 	../../../source/kernel/gen_system
 	../../../intern/string
 	../../../intern/moto/include
+)
+
+SET(SRC
+	NG_NetworkMessage.cpp
+	NG_NetworkObject.cpp
+	NG_NetworkScene.cpp
 )
 
 BLENDERLIB(bf_ngnetwork "${SRC}" "${INC}")

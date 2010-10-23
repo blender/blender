@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC
 	../include
 	../../blenfont
@@ -35,6 +33,14 @@ SET(INC
 	../../windowmanager
 	../../../../intern/guardedalloc
 	../../../../extern/glew/include
+)
+
+SET(SRC
+	render_internal.c
+	render_opengl.c
+	render_ops.c
+	render_preview.c
+	render_shading.c
 )
 
 IF(WITH_QUICKTIME)
