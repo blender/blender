@@ -1459,7 +1459,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 {
 	RegionView3D *rv3d= ar->regiondata;
 	ListBase *lb;
-	DupliObject *dob_prev= NULL, *dob, *dob_next;
+	DupliObject *dob_prev= NULL, *dob, *dob_next= NULL;
 	Base tbase;
 	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist=0;

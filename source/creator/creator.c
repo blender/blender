@@ -853,6 +853,7 @@ static int run_python(int argc, char **argv, void *data)
 		return 0;
 	}
 #else
+	(void)argc; (void)argv; (void)data; /* unused */
 	printf("This blender was built without python support\n");
 	return 0;
 #endif /* DISABLE_PYTHON */
@@ -868,6 +869,7 @@ static int run_python_console(int UNUSED(argc), char **argv, void *data)
 
 	return 0;
 #else
+	(void)argv; (void)data; /* unused */
 	printf("This blender was built without python support\n");
 	return 0;
 #endif /* DISABLE_PYTHON */

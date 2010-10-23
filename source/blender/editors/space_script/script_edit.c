@@ -60,6 +60,8 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 		ED_region_tag_redraw(ar);
 		return OPERATOR_FINISHED;
 	}
+#else
+	(void)C; /* unused */
 #endif
 	return OPERATOR_CANCELLED; /* FAIL */
 }
@@ -89,6 +91,8 @@ static int script_reload_exec(bContext *C, wmOperator *UNUSED(op))
 	BPY_eval_string(C, "__import__('bpy').utils.load_scripts(reload_scripts=True)");
 	WM_cursor_wait(0);
 	return OPERATOR_FINISHED;
+#else
+	(void)C; /* unused */
 #endif
 	return OPERATOR_CANCELLED;
 }

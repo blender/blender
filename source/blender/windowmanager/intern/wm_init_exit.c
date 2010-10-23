@@ -145,6 +145,9 @@ void WM_init(bContext *C, int argc, char **argv)
 	BPY_set_context(C); /* necessary evil */
 	BPY_start_python(argc, argv);
 	BPY_load_user_modules(C);
+#else
+	(void)argc; /* unused */
+	(void)argv; /* unused */
 #endif
 
 	wm_init_reports(C); /* reports cant be initialized before the wm */
@@ -212,7 +215,7 @@ int WM_init_game(bContext *C)
 	wmWindow* win;
 
 	ScrArea *sa;
-	ARegion *ar;
+	ARegion *ar= NULL;
 
 	Scene *scene= CTX_data_scene(C);
 
