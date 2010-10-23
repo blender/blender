@@ -392,6 +392,52 @@ class SquareCapShader(StrokeShader):
         stroke[-1].setPoint(p + d / d.length * caplen_beg)
         stroke[-1].setAttribute(attr)
 
+# dashed line
+
+class DashedLineStartingUP0D(UnaryPredicate0D):
+    def __init__(self, controller):
+        UnaryPredicate0D.__init__(self)
+        self._controller = controller
+    def __call__(self, inter):
+        return self._controller.start()
+
+class DashedLineStoppingUP0D(UnaryPredicate0D):
+    def __init__(self, controller):
+        UnaryPredicate0D.__init__(self)
+        self._controller = controller
+    def __call__(self, inter):
+        return self._controller.stop()
+
+class DashedLineController:
+    def __init__(self, pattern, sampling):
+        self.sampling = float(sampling)
+        k = len(pattern) // 2
+        n = k * 2
+        self.start_pos = [pattern[i] + pattern[i+1] for i in range(0, n, 2)]
+        self.stop_pos = [pattern[i] for i in range(0, n, 2)]
+        self.init()
+    def init(self):
+        self.start_len = 0.0
+        self.start_idx = 0
+        self.stop_len = self.sampling
+        self.stop_idx = 0
+    def start(self):
+        self.start_len += self.sampling
+        if abs(self.start_len - self.start_pos[self.start_idx]) < self.sampling / 2.0:
+            self.start_len = 0.0
+            self.start_idx = (self.start_idx + 1) % len(self.start_pos)
+            return True
+        return False
+    def stop(self):
+        if self.start_len > 0.0:
+            self.init()
+        self.stop_len += self.sampling
+        if abs(self.stop_len - self.stop_pos[self.stop_idx]) < self.sampling / 2.0:
+            self.stop_len = self.sampling
+            self.stop_idx = (self.stop_idx + 1) % len(self.stop_pos)
+            return True
+        return False
+
 # main function for parameter processing
 
 def process(layer_name, lineset_name):
@@ -472,6 +518,24 @@ def process(layer_name, lineset_name):
     else:
         chaining_iterator = ChainSilhouetteIterator()
     Operators.bidirectionalChain(chaining_iterator, NotUP1D(upred))
+    # dashed line
+    if linestyle.use_dashed_line:
+        pattern = []
+        if linestyle.dash1 > 0 and linestyle.gap1 > 0:
+            pattern.append(linestyle.dash1)
+            pattern.append(linestyle.gap1)
+        if linestyle.dash2 > 0 and linestyle.gap2 > 0:
+            pattern.append(linestyle.dash2)
+            pattern.append(linestyle.gap2)
+        if linestyle.dash3 > 0 and linestyle.gap3 > 0:
+            pattern.append(linestyle.dash3)
+            pattern.append(linestyle.gap3)
+        if len(pattern) > 0:
+            sampling = 1.0
+            controller = DashedLineController(pattern, sampling)
+            Operators.sequentialSplit(DashedLineStartingUP0D(controller),
+                                      DashedLineStoppingUP0D(controller),
+                                      sampling)
     # prepare a list of stroke shaders
     color = linestyle.color
     shaders_list = [

@@ -412,9 +412,32 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
         elif linestyle.panel == "STROKES":
             col.label(text="Chaining:")
             col.prop(linestyle, "same_object")
+            col.separator()
             col.label(text="Caps:")
             sub = col.row(align=True)
             sub.prop(linestyle, "caps", expand=True)
+            col.separator()
+            col.prop(linestyle, "use_dashed_line")
+            sub = col.row()
+            sub.enabled = linestyle.use_dashed_line
+            subsub = sub.column()
+            subsub.label(text="Dash")
+            subsub.prop(linestyle, "dash1", text="")
+            subsub = sub.column()
+            subsub.label(text="Gap")
+            subsub.prop(linestyle, "gap1", text="")
+            subsub = sub.column()
+            subsub.label(text="Dash")
+            subsub.prop(linestyle, "dash2", text="")
+            subsub = sub.column()
+            subsub.label(text="Gap")
+            subsub.prop(linestyle, "gap2", text="")
+            subsub = sub.column()
+            subsub.label(text="Dash")
+            subsub.prop(linestyle, "dash3", text="")
+            subsub = sub.column()
+            subsub.label(text="Gap")
+            subsub.prop(linestyle, "gap3", text="")
         elif linestyle.panel == "DISTORT":
             pass
         elif linestyle.panel == "MISC":

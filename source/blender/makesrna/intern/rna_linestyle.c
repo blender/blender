@@ -451,13 +451,54 @@ static void rna_def_linestyle(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "same_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_SAME_OBJECT);
-	RNA_def_property_ui_text(prop, "Same Object", "if true, only feature edges of the same object are joined.");
+	RNA_def_property_ui_text(prop, "Same Object", "If true, only feature edges of the same object are joined.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "use_dashed_line", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_DASHED_LINE);
+	RNA_def_property_ui_text(prop, "Dashed Line", "Enable or disable dashed line.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "caps", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "caps");
 	RNA_def_property_enum_items(prop, cap_items);
 	RNA_def_property_ui_text(prop, "Cap", "Select the shape of both ends of strokes.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "dash1", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "dash1");
+	RNA_def_property_range(prop, 0, USHRT_MAX);
+	RNA_def_property_ui_text(prop, "Dash #1", "Length of the 1st dash.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "gap1", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "gap1");
+	RNA_def_property_range(prop, 0, USHRT_MAX);
+	RNA_def_property_ui_text(prop, "Gap #1", "Length of the 1st gap.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "dash2", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "dash2");
+	RNA_def_property_range(prop, 0, USHRT_MAX);
+	RNA_def_property_ui_text(prop, "Dash #2", "Length of the 2nd dash.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "gap2", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "gap2");
+	RNA_def_property_range(prop, 0, USHRT_MAX);
+	RNA_def_property_ui_text(prop, "Gap #2", "Length of the 2nd gap.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "dash3", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "dash3");
+	RNA_def_property_range(prop, 0, USHRT_MAX);
+	RNA_def_property_ui_text(prop, "Dash #3", "Length of the 3rd dash.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "gap3", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "gap3");
+	RNA_def_property_range(prop, 0, USHRT_MAX);
+	RNA_def_property_ui_text(prop, "Gap #3", "Length of the 3rd gap.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 }

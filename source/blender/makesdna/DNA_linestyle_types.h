@@ -181,6 +181,7 @@ typedef struct LineStyleThicknessModifier_DistanceFromObject {
 /* FreestyleLineStyle::flag */
 #define LS_DS_EXPAND    1 /* for animation editors */
 #define LS_SAME_OBJECT  2
+#define LS_DASHED_LINE  4
 
 /* FreestyleLineStyle::caps */
 #define LS_CAPS_BUTT    1
@@ -194,7 +195,9 @@ typedef struct FreestyleLineStyle {
 	float r, g, b, alpha;
 	float thickness;
 	int flag, caps;
+	unsigned short dash1, gap1, dash2, gap2, dash3, gap3;
 	int panel; /* for UI */
+	int pad1;
 
 	ListBase color_modifiers;
 	ListBase alpha_modifiers;
