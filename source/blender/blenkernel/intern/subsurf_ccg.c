@@ -1151,8 +1151,10 @@ static void ccgDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int UNUSED(draw
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
+	CCGEdgeIterator *ei = ccgSubSurf_getEdgeIterator(ss);
 	int gridSize = ccgSubSurf_getGridSize(ss);
-	int start, end, step;
+	int edgeSize = ccgSubSurf_getEdgeSize(ss);
+	int step;
 	int useAging;
 
 	ccgSubSurf_getUseAgeCounts(ss, &useAging, NULL, NULL, NULL);
@@ -1165,20 +1167,12 @@ static void ccgDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int UNUSED(draw
 		glColor3ub(0, 0, 0);
 	}
 
-	if(drawLooseEdges) {
-		start = 0;
-		end = gridSize;
+	if(ccgdm->drawInteriorEdges)
+		step = 1;
+	else
 		step = gridSize - 1;
-	}
-	else if(ccgdm->drawInteriorEdges) {
-		start = 1;
-		end = gridSize - 1;
-		step = 1;
-	}
 
-	if(drawLooseEdges && ccgdm->drawInteriorEdges)
-		step = 1;
-
+	/* draw edges using face grids */
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f = ccgFaceIterator_getCurrent(fi);
 		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(f);
@@ -1186,18 +1180,36 @@ static void ccgDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int UNUSED(draw
 		for (S=0; S<numVerts; S++) {
 			DMGridData *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
 
-			for (y=start; y<end; y+=step) {
+			for (y=0; y<gridSize; y+=step) {
 				glBegin(GL_LINE_STRIP);
 				for (x=0; x<gridSize; x++)
 					glVertex3fv(faceGridData[y*gridSize + x].co);
 				glEnd();
 			}
-			for (x=start; x<end; x+=step) {
+			for (x=0; x<gridSize; x+=step) {
 				glBegin(GL_LINE_STRIP);
 				for (y=0; y<gridSize; y++)
 					glVertex3fv(faceGridData[y*gridSize + x].co);
 				glEnd();
 			}
+		}
+	}
+
+	/* draw edges with no adjacent face */
+	if(!drawLooseEdges) return;
+	for(; !ccgEdgeIterator_isStopped(ei); ccgEdgeIterator_next(ei))  {
+		CCGEdge *e = ccgEdgeIterator_getCurrent(ei);
+
+		if(!ccgSubSurf_getEdgeNumFaces(e)) {
+			DMGridData *edgeData = ccgSubSurf_getEdgeDataArray(ss, e);
+			int i;
+
+			glBegin(GL_LINE_STRIP);
+			for (i=0; i<edgeSize-1; i++) {
+				glVertex3fv(edgeData[i].co);
+				glVertex3fv(edgeData[i+1].co);
+			}
+			glEnd();
 		}
 	}
 
