@@ -289,16 +289,19 @@ GHOST_TSuccess GHOST_SystemWin32::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 
 GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys& keys) const
 {
-	bool down = HIBYTE(::GetKeyState(VK_SHIFT)) != 0;
+	bool down = HIBYTE(::GetKeyState(VK_LSHIFT)) != 0;
 	keys.set(GHOST_kModifierKeyLeftShift, down);
+	down = HIBYTE(::GetKeyState(VK_RSHIFT)) != 0;
 	keys.set(GHOST_kModifierKeyRightShift, down);
 	
-	down = HIBYTE(::GetKeyState(VK_MENU)) != 0;
+	down = HIBYTE(::GetKeyState(VK_LMENU)) != 0;
 	keys.set(GHOST_kModifierKeyLeftAlt, down);
+	down = HIBYTE(::GetKeyState(VK_RMENU)) != 0;
 	keys.set(GHOST_kModifierKeyRightAlt, down);
 	
-	down = HIBYTE(::GetKeyState(VK_CONTROL)) != 0;
+	down = HIBYTE(::GetKeyState(VK_LCONTROL)) != 0;
 	keys.set(GHOST_kModifierKeyLeftControl, down);
+	down = HIBYTE(::GetKeyState(VK_RCONTROL)) != 0;
 	keys.set(GHOST_kModifierKeyRightControl, down);
 	
 	bool lwindown = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
@@ -407,6 +410,7 @@ GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, WPARAM wParam, L
 	system->retrieveModifierKeys(oldModifiers);
 	system->getModifierKeys(newModifiers);
 	
+	//std::cout << wParam << " " << system->m_curKeyStatus[wParam] << " shift pressed: " << system->shiftPressed() << std::endl;
 
 	if ((wParam >= '0') && (wParam <= '9')) {
 		// VK_0 thru VK_9 are the same as ASCII '0' thru '9' (0x30 - 0x39)
@@ -432,7 +436,14 @@ GHOST_TKey GHOST_SystemWin32::convertKey(GHOST_IWindow *window, WPARAM wParam, L
 		case VK_PRIOR:    key = GHOST_kKeyUpPage;			break;
 		case VK_NEXT:     key = GHOST_kKeyDownPage;			break;
 		case VK_END:      key = GHOST_kKeyEnd;				break;
-		case VK_HOME:     key = GHOST_kKeyHome;				break;
+		case VK_HOME:
+			{
+				if(system->m_curKeyStatus[VK_NUMPAD7] && system->shiftPressed())
+					key = GHOST_kKeyNumpad7;
+				else
+					key = GHOST_kKeyHome;
+			}
+			break;
 		case VK_INSERT:   key = GHOST_kKeyInsert;			break;
 		case VK_DELETE:   key = GHOST_kKeyDelete;			break;
 		case VK_LEFT:     key = GHOST_kKeyLeftArrow;		break;
@@ -672,23 +683,38 @@ void GHOST_SystemWin32::processMinMaxInfo(MINMAXINFO * minmax)
 LRESULT CALLBACK GHOST_SystemWin32::s_llKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	GHOST_SystemWin32* system = ((GHOST_SystemWin32*)getSystem());
+	
+	bool down = false;
+	if(wParam==WM_KEYDOWN || wParam==WM_SYSKEYDOWN ){
+		down = true;
+	}
+	
+	if(nCode!=HC_ACTION)
+		return CallNextHookEx(system->m_llKeyboardHook, nCode, wParam, lParam);
+		
 	KBDLLHOOKSTRUCT &keyb = *(PKBDLLHOOKSTRUCT)(lParam);
 	system->m_prevKeyStatus[keyb.vkCode] = system->m_curKeyStatus[keyb.vkCode];
+	//std::cout << "ll: " << keyb.vkCode << " " << down << " ";
 	if(keyb.flags) {
 		if((keyb.flags & LLKHF_EXTENDED) == LLKHF_EXTENDED) {
+			//std::cout << "extended ";
 		}
 		if((keyb.flags & LLKHF_ALTDOWN) == LLKHF_ALTDOWN) {
 		}
+		if((keyb.flags & LLKHF_INJECTED)== LLKHF_INJECTED) {
+			//std::cout << "injected ";
+		}
 		if((keyb.flags & LLKHF_UP) == LLKHF_UP) {
 			system->m_curKeyStatus[keyb.vkCode] = false;
+			//std::cout << "up" << std::endl;
 		} else {
 			system->m_curKeyStatus[keyb.vkCode] = true;
-		}
-		if((keyb.flags & LLKHF_INJECTED)== LLKHF_INJECTED) {
+			//std::cout << "down" << std::endl;
 		}
 	}
 	else {
 		system->m_curKeyStatus[keyb.vkCode] = true;
+		//std::cout << "down" << std::endl;
 	}
 	
 	return CallNextHookEx(system->m_llKeyboardHook, nCode, wParam, lParam);

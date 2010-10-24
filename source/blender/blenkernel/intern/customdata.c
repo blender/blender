@@ -502,7 +502,8 @@ static void layerInterp_mdisps(void **UNUSED(sources), float *UNUSED(weights),
 
 	/* Initialize the destination */
 	for(i = 0; i < d->totdisp; ++i) {
-		zero_v3(d->disps[i]);
+		float z[3] = {0,0,0};
+		copy_v3_v3(d->disps[i], z);
 	}
 
 	/* For now, some restrictions on the input */

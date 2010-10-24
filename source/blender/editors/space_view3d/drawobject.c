@@ -6139,7 +6139,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
 				/* but, we also dont draw names for sets or duplicators */
 				if(flag == 0) {
-					view3d_cached_text_draw_add((float [3]){0,0,0}, ob->id.name+2, 10, 0);
+					float zero[3]= {0,0,0};
+					view3d_cached_text_draw_add(zero, ob->id.name+2, 10, 0);
 				}
 			}
 			/*if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/

@@ -248,7 +248,7 @@ protected:
 	 * events generated for both keys.
 	 * @param window	The window receiving the event (the active window).
 	 */
-	GHOST_EventKey* processModifierKeys(GHOST_IWindow *window);
+	//GHOST_EventKey* processModifierKeys(GHOST_IWindow *window);
 
 	/**
 	 * Creates mouse button event.
@@ -314,7 +314,7 @@ protected:
 	/**
 	 * Check current key layout for AltGr
 	 */
-	inline virtual void keyboardAltGr();
+	inline virtual void keyboardAltGr(void);
 
 	/**
 	 * Windows call back routine for our window class.
@@ -325,6 +325,11 @@ protected:
 	 * Low-level inspection of keyboard events
 	 */
 	static LRESULT CALLBACK s_llKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam);
+	
+	/**
+	 * Check if any shiftkey is pressed
+	 */
+	inline virtual bool shiftPressed(void);
 
 	/** The current state of the modifier keys. */
 	GHOST_ModifierKeys m_modifierKeys;
@@ -352,7 +357,7 @@ inline void GHOST_SystemWin32::storeModifierKeys(const GHOST_ModifierKeys& keys)
 	m_modifierKeys = keys;
 }
 
-inline void GHOST_SystemWin32::keyboardAltGr()
+inline void GHOST_SystemWin32::keyboardAltGr(void)
 {
 	HKL keylayout = GetKeyboardLayout(0); // get keylayout for current thread
 	int i;
@@ -367,6 +372,11 @@ inline void GHOST_SystemWin32::keyboardAltGr()
 			break;
 		}
 	}
+}
+
+inline bool GHOST_SystemWin32::shiftPressed(void)
+{
+	return (m_curKeyStatus[VK_SHIFT] || m_curKeyStatus[VK_RSHIFT] || m_curKeyStatus[VK_LSHIFT]);
 }
 
 #endif // _GHOST_SYSTEM_WIN32_H_

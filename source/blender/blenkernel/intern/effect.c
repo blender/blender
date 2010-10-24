@@ -1007,7 +1007,8 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 				else if(eff->pd->forcefield == PFIELD_TEXTURE)
 					do_texture_effector(eff, &efd, point, force);
 				else {
-					float temp1[3]={force[0], force[1], force[2]}, temp2[3];
+					float temp1[3]={0,0,0}, temp2[3];
+					VECCOPY(temp1, force);
 
 					do_physical_effector(eff, &efd, point, force);
 					
