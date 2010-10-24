@@ -1175,7 +1175,7 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 	abp= adrcode_bitmaps_to_paths(icu->blocktype, icu->adrcode, &totbits);
 	if (abp && totbits) {
 		FCurve *fcurve;
-		unsigned int b;
+		int b;
 		
 		if (G.f & G_DEBUG) printf("\tconvert bitflag ipocurve, totbits = %d \n", totbits);
 		
