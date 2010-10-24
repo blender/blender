@@ -477,8 +477,15 @@ def addon_reset_all():
     """
     Sets the addon state based on the user preferences.
     """
-
-    paths = script_paths("addons") + script_paths("addons_contrib")
+    
+    # RELEASE SCRIPTS: official scripts distributed in Blender releases
+    paths = script_paths("addons")
+    
+    # CONTRIB SCRIPTS: good for testing but not official scripts yet
+    paths += script_paths("addons_contrib")
+    
+    # EXTERN SCRIPTS: external projects scripts
+    paths += script_paths("addons_extern")
 
     for path in paths:
         _sys_path_ensure(path)
