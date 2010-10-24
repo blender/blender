@@ -84,8 +84,9 @@ CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)
     __B = iB->A();
     _t2d = t3;
   }
-  else if(iA->A() == iB->A() || (iA->A() != 0 && iB->A() != 0 && (iA->A()->point3d() - iB->A()->point3d()).norm() < 1e-6))
+  else if(iA->A() == iB->A())
   {
+iA_A_eq_iB_A:
     if(iA->t2d() == 0){
       __A = iB->A();
       __B = iB->B();
@@ -96,8 +97,9 @@ CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)
       _t2d = t3;
     }
   }
-  else if(iA->B() == iB->B() || (iA->B() != 0 && iB->B() != 0 && (iA->B()->point3d() - iB->B()->point3d()).norm() < 1e-6))
+  else if(iA->B() == iB->B())
   {
+iA_B_eq_iB_B:
     if(iA->t2d() == 1){
       __A = iB->A();
       __B = iB->B();
@@ -108,8 +110,9 @@ CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)
       _t2d = t3;
     }
   }
-  else if(iA->B() == iB->A() || (iA->B() != 0 && iB->A() != 0 && (iA->B()->point3d() - iB->A()->point3d()).norm() < 1e-6))
+  else if(iA->B() == iB->A())
   {
+iA_B_eq_iB_A:
     if((iA->t2d() != 1.f) && (iB->t2d() == 0.f))
     {
       __A = iA->A();
@@ -124,7 +127,21 @@ CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)
       //_t2d = t3;
       _t2d=t2*t3;
     }
-    
+  }
+  else if(iA->A() != 0 && iB->A() != 0 && (iA->A()->point3d() - iB->A()->point3d()).norm() < 1e-6)
+  {
+	goto iA_A_eq_iB_A;
+  }
+  else if(iA->B() != 0 && iB->B() != 0 && (iA->B()->point3d() - iB->B()->point3d()).norm() < 1e-6)
+  {
+	goto iA_B_eq_iB_B;
+  }
+  else if(iA->B() != 0 && iB->A() != 0 && (iA->B()->point3d() - iB->A()->point3d()).norm() < 1e-6)
+  {
+	goto iA_B_eq_iB_A;
+  }
+  if (!__A || !__B) {
+	cerr << "Fatal error in CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)" << endl;
   }
   assert(__A != 0 && __B != 0);
 
