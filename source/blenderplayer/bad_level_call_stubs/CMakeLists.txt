@@ -25,7 +25,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 # this warning on generated files gets annoying
-STRING(REGEX REPLACE "-Wunused-parameter" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
+REMOVE_STRICT_FLAGS()
 
 SET(INC 
 	.

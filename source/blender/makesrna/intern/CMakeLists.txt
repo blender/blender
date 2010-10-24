@@ -24,8 +24,8 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# this warning on generated files gets annoying
-STRING(REGEX REPLACE "-Wunused-parameter" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
+# Generated code has some unused vars we can ignore.
+REMOVE_STRICT_FLAGS()
 
 FILE(GLOB DEFSRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.c")
 FILE(GLOB APISRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*_api.c")

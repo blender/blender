@@ -25,7 +25,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 # Otherwise we get warnings here that we cant fix in external projects
-STRING(REGEX REPLACE "-Wunused-parameter" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
+REMOVE_STRICT_FLAGS()
 
 IF(WITH_BULLET)
 	ADD_SUBDIRECTORY(bullet2)
