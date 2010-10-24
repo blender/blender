@@ -1939,11 +1939,10 @@ static void make_bevel_list_3D_tangent(BevList *bl)
 
 		/* make perpendicular, modify tan in place, is ok */
 		float cross_tmp[3];
-		float zero[3] = {0,0,0};
 
 		cross_v3_v3v3(cross_tmp, bevp1->tan, bevp1->dir);
 		normalize_v3(cross_tmp);
-		tri_to_quat( bevp1->quat,zero, cross_tmp, bevp1->tan); /* XXX - could be faster */
+		tri_to_quat( bevp1->quat, (float [3]){0,0,0}, cross_tmp, bevp1->tan); /* XXX - could be faster */
 
 		bevp0= bevp1;
 		bevp1= bevp2;

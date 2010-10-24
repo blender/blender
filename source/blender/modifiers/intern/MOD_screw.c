@@ -212,9 +212,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			float totlen = len_v3(mtx_tx[3]);
 
 			if(totlen != 0.0f) {
-				float zero[3]={0.0f, 0.0f, 0.0f};
 				float cp[3];				
-				screw_ofs= closest_to_line_v3(cp, mtx_tx[3], zero, axis_vec);
+				screw_ofs= closest_to_line_v3(cp, mtx_tx[3], (float []){0,0,0}, axis_vec);
 			}
 			else {
 				screw_ofs= 0.0f;

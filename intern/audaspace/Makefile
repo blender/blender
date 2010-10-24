@@ -57,6 +57,7 @@ ifeq ($(WITH_SNDFILE),true)
   DIRS += sndfile
 endif
 
+# Not in use currently, see also source/Makefile and r31375
 #ifeq ($(WITH_FFTW3),true)
 #  DIRS += fftw
 #endif
