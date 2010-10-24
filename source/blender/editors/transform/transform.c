@@ -2916,9 +2916,19 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			
 			sub_v3_v3v3(vec, vec, td->center); // Translation needed from the initial location
 			
-			mul_m3_v3(pmtx, vec);	// To Global space
-			mul_m3_v3(td->smtx, vec);// To Pose space
-			
+			/* special exception, see TD_PBONE_LOCAL_MTX definition comments */
+			if(td->flag & TD_PBONE_LOCAL_MTX_P) {
+				/* do nothing */
+			}
+			else if (td->flag & TD_PBONE_LOCAL_MTX_C) {
+				mul_m3_v3(pmtx, vec);	// To Global space
+				mul_m3_v3(td->ext->l_smtx, vec);// To Pose space (Local Location)
+			}
+			else {
+				mul_m3_v3(pmtx, vec);	// To Global space
+				mul_m3_v3(td->smtx, vec);// To Pose space
+			}
+
 			protectedTransBits(td->protectflag, vec);
 			
 			add_v3_v3v3(td->loc, td->iloc, vec);

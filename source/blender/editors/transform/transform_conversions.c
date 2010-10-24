@@ -554,7 +554,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	/* proper way to get parent transform + own transform + constraints transform */
 	copy_m3_m4(omat, ob->obmat);
 
-	if (t->mode==TFM_TRANSLATION && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION))
+	if (ELEM(t->mode, TFM_TRANSLATION, TFM_RESIZE) && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION))
 		unit_m3(bmat);
 	else
 		copy_m3_m3(bmat, pchan->bone->bone_mat);
@@ -585,6 +585,19 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 
 	invert_m3_m3(td->smtx, td->mtx);
 
+	/* exceptional case: rotate the pose bone which also applies transformation
+	 * when a parentless bone has BONE_NO_LOCAL_LOCATION [] */
+	if (!ELEM(t->mode, TFM_TRANSLATION, TFM_RESIZE) && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION)) {
+		if(pchan->parent) {
+			/* same as td->smtx but without pchan->bone->bone_mat */
+			td->flag |= TD_PBONE_LOCAL_MTX_C;
+			mul_m3_m3m3(td->ext->l_smtx, pchan->bone->bone_mat, td->smtx);
+		}
+		else {
+			td->flag |= TD_PBONE_LOCAL_MTX_P;
+		}
+	}
+	
 	/* for axismat we use bone's own transform */
 	copy_m3_m4(pmat, pchan->pose_mat);
 	mul_m3_m3m3(td->axismtx, omat, pmat);
