@@ -414,7 +414,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_ui_text(prop, "Connected", "When bone has a parent, bone's head is struck to the parent's tail");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop= RNA_def_property(srna, "use_inherit_rotate", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_inherit_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_HINGE);
 	RNA_def_property_ui_text(prop, "Inherit Rotation", "Bone inherits rotation or scale from parent bone");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
