@@ -7269,8 +7269,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 
 		for (vf= main->vfont.first; vf; vf= vf->id.next) {
-			if (BLI_streq(vf->name+strlen(vf->name)-6, ".Bfont")) {
-				strcpy(vf->name, "<builtin>");
+			if (strcmp(vf->name+strlen(vf->name)-6, ".Bfont")==0) {
+				strcpy(vf->name, FO_BUILTIN_NAME);
 			}
 		}
 

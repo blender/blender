@@ -55,5 +55,6 @@ typedef struct VFont {
 #define FO_PAGEDOWN		9
 #define FO_SELCHANGE	10
 
+#define FO_BUILTIN_NAME "<builtin>"
 #endif
 
