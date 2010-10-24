@@ -149,7 +149,7 @@ BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
 BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser MathMLSolver xml2 pcre buffer ftoa'
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 
-WITH_BF_LCMS = True
+WITH_BF_LCMS = False
 BF_LCMS = LIBDIR + '/lcms'
 BF_LCMS_INC = '${BF_LCMS}/include'
 BF_LCMS_LIB = 'lcms'
@@ -170,7 +170,7 @@ BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a'
 CC = 'cl.exe'
 CXX = 'cl.exe'
 
-CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/wd4244', '/wd4305', '/wd4800', '/wd4065', '/wd4267']
+CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/wd4244', '/wd4305', '/wd4800', '/wd4065', '/wd4267', '/we4013']
 CXXFLAGS = ['/EHsc']
 BGE_CXXFLAGS = ['/O2', '/EHsc', '/GR', '/fp:fast', '/arch:SSE']
 

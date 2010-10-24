@@ -171,7 +171,7 @@ static struct VFont *vf_stepdata__internal(struct VFont *vf, int step_next) {
 		vf = vf->id.next;
 	
 	while (vf) {
-		if (vf->packedfile==NULL && BLI_streq(vf->name, "<builtin>")==0) {
+		if (vf->packedfile==NULL && strcmp(vf->name, FO_BUILTIN_NAME)!=0) {
 			break;
 		}
 		

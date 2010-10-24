@@ -227,7 +227,7 @@ void packAll(Main *bmain, ReportList *reports)
 	}
 
 	for(vf=bmain->vfont.first; vf; vf=vf->id.next)
-		if(vf->packedfile == NULL && vf->id.lib==NULL && strcmp(vf->name, "<builtin>") != 0)
+		if(vf->packedfile == NULL && vf->id.lib==NULL && strcmp(vf->name, FO_BUILTIN_NAME) != 0)
 			vf->packedfile = newPackedFile(reports, vf->name);
 
 	for(sound=bmain->sound.first; sound; sound=sound->id.next)

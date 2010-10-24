@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC
 	../include
 	../../blenkernel
@@ -30,6 +28,20 @@ SET(INC
 	../../windowmanager
 	../../../../intern/guardedalloc
 	../../../../intern/opennl/extern
+)
+
+SET(SRC
+	armature_ops.c
+	editarmature.c
+	editarmature_generate.c
+	editarmature_retarget.c
+	editarmature_sketch.c
+	meshlaplacian.c
+	poseSlide.c
+	poseUtils.c
+	poselib.c
+	poseobject.c
+	reeb.c
 )
 
 IF(WIN32)

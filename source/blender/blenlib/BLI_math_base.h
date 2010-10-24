@@ -128,6 +128,7 @@ extern "C" {
 #ifndef FREE_WINDOWS
 #define isnan(n) _isnan(n)
 #define finite _finite
+#define hypot _hypot
 #endif
 #endif
 

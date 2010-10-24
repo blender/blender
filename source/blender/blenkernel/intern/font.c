@@ -305,7 +305,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 	if (!vfont->data) {
 		PackedFile *pf;
 		
-		if (BLI_streq(vfont->name, "<builtin>")) {
+		if (strcmp(vfont->name, FO_BUILTIN_NAME)==0) {
 			pf= get_builtin_packedfile();
 		} else {
 			if (vfont->packedfile) {
@@ -342,7 +342,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 			if(!pf) {
 				printf("Font file doesn't exist: %s\n", vfont->name);
 
-				strcpy(vfont->name, "<builtin>");
+				strcpy(vfont->name, FO_BUILTIN_NAME);
 				pf= get_builtin_packedfile();
 			}
 		}
@@ -367,7 +367,7 @@ VFont *load_vfont(char *name)
 	int is_builtin;
 	struct TmpFont *tmpfnt;
 	
-	if (BLI_streq(name, "<builtin>")) {
+	if (strcmp(name, FO_BUILTIN_NAME)==0) {
 		strcpy(filename, name);
 		
 		pf= get_builtin_packedfile();
@@ -403,8 +403,8 @@ VFont *load_vfont(char *name)
 				vfont->packedfile = pf;
 			}
 			
-			// Do not add <builtin> to temporary listbase
-			if(strcmp(filename, "<builtin>"))
+			// Do not add FO_BUILTIN_NAME to temporary listbase
+			if(strcmp(filename, FO_BUILTIN_NAME))
 			{
 				tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
 				tmpfnt->pf= tpf;
@@ -443,10 +443,10 @@ VFont *get_builtin_font(void)
 	VFont *vf;
 	
 	for (vf= G.main->vfont.first; vf; vf= vf->id.next)
-		if (BLI_streq(vf->name, "<builtin>"))
+		if (strcmp(vf->name, FO_BUILTIN_NAME)==0)
 			return vf;
 	
-	return load_vfont("<builtin>");
+	return load_vfont(FO_BUILTIN_NAME);
 }
 
 static VChar *find_vfont_char(VFontData *vfd, intptr_t character)
@@ -781,10 +781,10 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 
 		/*
 		 * The character wasn't in the current curve base so load it
-		 * But if the font is <builtin> then do not try loading since
+		 * But if the font is FO_BUILTIN_NAME then do not try loading since
 		 * whole font is in the memory already
 		 */
-		if(che == NULL && strcmp(vfont->name, "<builtin>"))	{
+		if(che == NULL && strcmp(vfont->name, FO_BUILTIN_NAME))	{
 			BLI_vfontchar_from_freetypefont(vfont, ascii);
 		}
 

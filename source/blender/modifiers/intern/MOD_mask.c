@@ -57,7 +57,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
 {
-	return (1 << CD_MDEFORMVERT);
+	return CD_MASK_MDEFORMVERT;
 }
 
 static void foreachObjectLink(

@@ -829,6 +829,9 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 	dummyot.description= _operator_descr; /* only assigne the pointer, string is NULL'd */
 	RNA_pointer_create(NULL, &RNA_Operator, &dummyop, &dummyotr);
 
+	/* clear incase they are left unset */
+	_operator_idname[0]= _operator_name[0]= _operator_descr[0]= '\0';
+
 	/* validate the python class */
 	if(validate(&dummyotr, data, have_function) != 0)
 		return NULL;
@@ -1096,7 +1099,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
-	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	prop= RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->flag");
@@ -1151,7 +1154,7 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
-	RNA_def_property_flag(prop, PROP_REGISTER);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	prop= RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->flag");

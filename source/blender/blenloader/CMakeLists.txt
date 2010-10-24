@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
-
 SET(INC 
 	.
 	../blenlib
@@ -37,6 +35,13 @@ SET(INC
 	../render/extern/include
 	../../../intern/guardedalloc
 	${ZLIB_INC}
+)
+
+SET(SRC
+	intern/readblenentry.c
+	intern/readfile.c
+	intern/undofile.c
+	intern/writefile.c
 )
 
 BLENDERLIB(bf_blenloader "${SRC}" "${INC}")

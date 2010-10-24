@@ -308,7 +308,7 @@ int calc_manipulator_stats(const bContext *C)
 					while(a--) {
 						/* exceptions
 						 * if handles are hidden then only check the center points.
-						 * If 2 or more are selected then only use the center point too.
+						 * If the center knot is selected then only use this as the center point.
 						 */
 						if (cu->drawflag & CU_HIDE_HANDLES) {
 							if (bezt->f2 & SELECT) {
@@ -316,17 +316,13 @@ int calc_manipulator_stats(const bContext *C)
 								totsel++;
 							}
 						}
-						else if ( (bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT ) {
+						else if (bezt->f2 & SELECT) {
 							calc_tw_center(scene, bezt->vec[1]);
 							totsel++;
 						}
 						else {
 							if(bezt->f1) {
 								calc_tw_center(scene, bezt->vec[0]);
-								totsel++;
-							}
-							if(bezt->f2) {
-								calc_tw_center(scene, bezt->vec[1]);
 								totsel++;
 							}
 							if(bezt->f3) {

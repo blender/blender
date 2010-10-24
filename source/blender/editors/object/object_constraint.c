@@ -200,7 +200,10 @@ char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 /* this callback gets called when the 'refresh' button of a pyconstraint gets pressed */
 void update_pyconstraint_cb (void *arg1, void *arg2)
 {
-#ifndef DISABLE_PYTHON
+#ifdef DISABLE_PYTHON
+	(void)arg1; /* unused */
+	(void)arg2; /* unused */
+#else
 	Object *owner= (Object *)arg1;
 	bConstraint *con= (bConstraint *)arg2;
 	if (owner && con)

@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC
 	../include
 	../../blenfont
@@ -30,6 +28,14 @@ SET(INC
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
+)
+
+SET(SRC
+	space_text.c
+	text_draw.c
+	text_header.c
+	text_ops.c
+	text_python.c
 )
 
 IF(WITH_PYTHON)

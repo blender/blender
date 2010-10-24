@@ -24,7 +24,29 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC .)
+SET(INC
+	.
+)
 
-FILE(GLOB SRC *.c)
+SET(SRC
+	bio.c
+	cio.c
+	dwt.c
+	event.c
+	image.c
+	j2k.c
+	j2k_lib.c
+	jp2.c
+	jpt.c
+	mct.c
+	mqc.c
+	openjpeg.c
+	pi.c
+	raw.c
+	t1.c
+	t2.c
+	tcd.c
+	tgt.c
+)
+
 BLENDERLIB(extern_openjpeg "${SRC}" "${INC}")

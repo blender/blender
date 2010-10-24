@@ -869,7 +869,7 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	if(ibuf->channels)
 		stride= ibuf->channels;
 	
-	for(pixel= ibuf->x*ibuf->y; pixel>0; pixel--, pix_in+=stride, pix_out+=4) {
+	for(pixel= ibuf->x*ibuf->y; pixel>0; pixel--, pix_in+=stride, pix_out+=stride) {
 		if(stride<3) {
 			col[0]= curvemap_evaluateF(cumap->cm, *pix_in);
 			
@@ -1004,7 +1004,8 @@ DO_INLINE void save_sample_line(Scopes *scopes, const int idx, const float fx, f
 
 void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 {
-	int x, y, c, n, nl;
+	int x, y, c;
+	unsigned int n, nl;
 	double div, divl;
 	float *rf=NULL;
 	unsigned char *rc=NULL;

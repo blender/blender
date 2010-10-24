@@ -95,17 +95,17 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 			mtex=ma->mtex[i];
 			if(mtex && (ma->septex & (1<<i))==0)
 				if(mtex->pmapto && (mtex->texco & TEXCO_UV))
-					dataMask |= (1 << CD_MTFACE);
+					dataMask |= CD_MASK_MTFACE;
 		}
 	}
 
 	if(psmd->psys->part->tanfac!=0.0)
-		dataMask |= (1 << CD_MTFACE);
+		dataMask |= CD_MASK_MTFACE;
 
 	/* ask for vertexgroups if we need them */
 	for(i=0; i<PSYS_TOT_VG; i++){
 		if(psmd->psys->vgroup[i]){
-			dataMask |= (1 << CD_MDEFORMVERT);
+			dataMask |= CD_MASK_MDEFORMVERT;
 			break;
 		}
 	}

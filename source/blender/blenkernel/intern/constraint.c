@@ -2015,6 +2015,7 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 static void pycon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
 #ifdef DISABLE_PYTHON
+	(void)con; (void)cob; (void)targets; /* unused */
 	return;
 #else
 	bPythonConstraint *data= con->data;

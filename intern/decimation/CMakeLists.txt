@@ -31,6 +31,15 @@ SET(INC
 	../moto/include
 )
 
-FILE(GLOB SRC intern/*.cpp)
+SET(SRC
+	intern/LOD_EdgeCollapser.cpp
+	intern/LOD_ExternNormalEditor.cpp
+	intern/LOD_FaceNormalEditor.cpp
+	intern/LOD_ManMesh2.cpp
+	intern/LOD_MeshPrimitives.cpp
+	intern/LOD_QSDecimator.cpp
+	intern/LOD_QuadricEditor.cpp
+	intern/LOD_decimation.cpp
+)
 
 BLENDERLIB(bf_intern_decimate "${SRC}" "${INC}")

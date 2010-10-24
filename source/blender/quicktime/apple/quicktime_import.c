@@ -48,6 +48,7 @@
 #include <QTML.h>
 #include <TextUtils.h>
 #include <QuickTimeComponents.h>
+#include <QTLoadLibraryUtils.h>
 #endif /* _WIN32 */
 
 

@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(SRC openexr_api.cpp)
-
 SET(INC 
 	.
 	../../../blenkernel
@@ -36,6 +34,10 @@ SET(INC
 	../../../../../intern/guardedalloc
 	../../../makesdna
 	${OPENEXR_INC}
+)
+
+SET(SRC
+	openexr_api.cpp
 )
 
 IF(WITH_IMAGE_OPENEXR)

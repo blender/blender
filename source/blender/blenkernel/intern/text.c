@@ -991,8 +991,8 @@ void txt_move_to (Text *text, unsigned int line, unsigned int ch, short sel)
 		if ((*linep)->next) *linep= (*linep)->next;
 		else break;
 	}
-	if (ch>(*linep)->len)
-		ch= (*linep)->len;
+	if (ch>(unsigned int)((*linep)->len))
+		ch= (unsigned int)((*linep)->len);
 	*charp= ch;
 	
 	if(!sel) txt_pop_sel(text);

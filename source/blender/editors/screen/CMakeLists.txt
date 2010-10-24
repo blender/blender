@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC
 	../include
 	../../blenfont
@@ -31,6 +29,15 @@ SET(INC
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
+)
+
+SET(SRC
+	area.c
+	glutil.c
+	screen_context.c
+	screen_edit.c
+	screen_ops.c
+	screendump.c
 )
 
 IF(WIN32)

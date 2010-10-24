@@ -52,7 +52,7 @@ typedef struct ShadeResult
 	float emit[3];
 	float diff[3];		/* no ramps, shadow, etc */
 	float spec[3];
-	float shad[3];
+	float shad[4];		/* shad[3] is shadow intensity */
 	float ao[3];
 	float env[3];
 	float indirect[3];

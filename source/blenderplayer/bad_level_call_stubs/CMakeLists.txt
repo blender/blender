@@ -25,14 +25,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 # this warning on generated files gets annoying
-STRING(REGEX REPLACE "-Wunused-parameter" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
-
-FILE(GLOB SRC stubs.c)
-
-IF(WITH_BUILDINFO)
-	ADD_DEFINITIONS(-DBUILD_DATE)
-	FILE(GLOB SRC ${SRC} ../../creator/buildinfo.c)
-ENDIF(WITH_BUILDINFO)
+REMOVE_STRICT_FLAGS()
 
 SET(INC 
 	.
@@ -42,6 +35,17 @@ SET(INC
 	../../../source/blender/makesrna
 	../../../source/blender/blenkernel
 )
+
+SET(SRC
+	stubs.c
+)
+
+IF(WITH_BUILDINFO)
+	ADD_DEFINITIONS(-DBUILD_DATE)
+	LIST(APPEND SRC
+		../../creator/buildinfo.c
+	)
+ENDIF(WITH_BUILDINFO)
 
 IF(WITH_GAMEENGINE)
 	ADD_DEFINITIONS(-DGAMEBLENDER)

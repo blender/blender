@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC
 	../include
 	../../blenfont
@@ -34,6 +32,24 @@ SET(INC
 	../../render/extern/include
 	../../../../intern/guardedalloc
 	../../../../intern/smoke/extern
+)
+
+SET(SRC
+	drawanimviz.c
+	drawarmature.c
+	drawmesh.c
+	drawobject.c
+	drawvolume.c
+	space_view3d.c
+	view3d_buttons.c
+	view3d_draw.c
+	view3d_edit.c
+	view3d_header.c
+	view3d_ops.c
+	view3d_select.c
+	view3d_snap.c
+	view3d_toolbar.c
+	view3d_view.c
 )
 
 IF(WITH_GAMEENGINE)

@@ -40,10 +40,12 @@ char build_type[]= STRINGIFY(BUILD_TYPE);
 char build_cflags[]= STRINGIFY(BUILD_CFLAGS);
 char build_cxxflags[]= STRINGIFY(BUILD_CXXFLAGS);
 char build_linkflags[]= STRINGIFY(BUILD_LINKFLAGS);
+char build_system[]= STRINGIFY(BUILD_SYSTEM);
 #else
 char build_cflags[]= "unmaintained buildsystem alert!";
 char build_cxxflags[]= "unmaintained buildsystem alert!";
 char build_linkflags[]= "unmaintained buildsystem alert!";
+char build_system[]= "unmaintained buildsystem alert!";
 #endif
 
 #endif // BUILD_DATE

@@ -68,7 +68,7 @@ static int mathutils_matrix_vector_set(BaseMathObject *bmo, int subtype)
 	for(i=0; i < self->colSize; i++)
 		self->matrix[subtype][i]= bmo->data[i];
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	return 1;
 }
 
@@ -92,7 +92,7 @@ static int mathutils_matrix_vector_set_index(BaseMathObject *bmo, int subtype, i
 
 	self->matrix[subtype][index]= bmo->data[index];
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	return 1;
 }
 
@@ -1004,7 +1004,7 @@ PyObject *Matrix_Invert(MatrixObject * self)
 		return NULL;
 	}
 	
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject *)self;
 }
@@ -1066,7 +1066,7 @@ PyObject *Matrix_Transpose(MatrixObject * self)
 		transpose_m4((float (*)[4])self->contigPtr);
 	}
 
-	BaseMath_WriteCallback(self);
+	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject *)self;
 }
@@ -1302,7 +1302,7 @@ static int Matrix_ass_item(MatrixObject * self, int i, PyObject * ob)
 			self->matrix[i][y] = vec[y];
 		}
 		
-		BaseMath_WriteCallback(self);
+		(void)BaseMath_WriteCallback(self);
 		return 0;
 	}else{
 		PyErr_SetString(PyExc_TypeError, "matrix[attribute] = x: expects a sequence of column size\n");
@@ -1403,7 +1403,7 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject * 
 			self->matrix[begin + (int)floor(x / self->colSize)][x % self->colSize] = mat[x];
 		}
 		
-		BaseMath_WriteCallback(self);
+		(void)BaseMath_WriteCallback(self);
 		return 0;
 	}else{
 		PyErr_SetString(PyExc_TypeError, "matrix[begin:end] = []: illegal argument type for built-in operation\n");

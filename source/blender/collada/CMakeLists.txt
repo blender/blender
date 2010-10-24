@@ -24,42 +24,54 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.cpp)
+SET(INC
+	.
+	../blenlib
+	../blenkernel
+	../windowmanager
+	../makesdna
+	../makesrna
+	../editors/include
+	../../../intern/guardedalloc
+)
 
 IF(APPLE)
-SET(INC
-  .
-  ../blenlib
-  ../blenkernel
-  ../windowmanager
-  ../makesdna
-  ../makesrna
-  ../editors/include
-  ../../../intern/guardedalloc
-  ${OPENCOLLADA_INC}/COLLADAStreamWriter
-  ${OPENCOLLADA_INC}/COLLADABaseUtils
-  ${OPENCOLLADA_INC}/COLLADAFramework
-  ${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader 
-)
-
+	LIST(APPEND INC
+		${OPENCOLLADA_INC}/COLLADAStreamWriter
+		${OPENCOLLADA_INC}/COLLADABaseUtils
+		${OPENCOLLADA_INC}/COLLADAFramework
+		${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader 
+	)
 ELSE(APPLE)
-
-SET(INC
-  .
-  ../blenlib
-  ../blenkernel
-  ../windowmanager
-  ../makesdna
-  ../makesrna
-  ../editors/include
-  ../../../intern/guardedalloc
-  ${OPENCOLLADA_INC}/COLLADAStreamWriter/include
-  ${OPENCOLLADA_INC}/COLLADABaseUtils/include
-  ${OPENCOLLADA_INC}/COLLADAFramework/include
-  ${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader/include 
-)
-
+	LIST(APPEND INC
+		${OPENCOLLADA_INC}/COLLADAStreamWriter/include
+		${OPENCOLLADA_INC}/COLLADABaseUtils/include
+		${OPENCOLLADA_INC}/COLLADAFramework/include
+		${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader/include 
+	)
 ENDIF(APPLE)
+
+SET(SRC
+	AnimationImporter.cpp
+	ArmatureExporter.cpp
+	ArmatureImporter.cpp
+	CameraExporter.cpp
+	DocumentExporter.cpp
+	DocumentImporter.cpp
+	EffectExporter.cpp
+	GeometryExporter.cpp
+	ImageExporter.cpp
+	InstanceWriter.cpp
+	LightExporter.cpp
+	MaterialExporter.cpp
+	MeshImporter.cpp
+	SkinInfo.cpp
+	TransformReader.cpp
+	TransformWriter.cpp
+	collada.cpp
+	collada_internal.cpp
+	collada_utils.cpp
+)
 
 IF(WITH_BUILDINFO)
 	ADD_DEFINITIONS(-DNAN_BUILDINFO)

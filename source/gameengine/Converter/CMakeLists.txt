@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.cpp)
-
 SET(INC
 	.
 	../../../source/kernel/gen_system
@@ -61,6 +59,30 @@ SET(INC
 	../../../source/blender/gpu
 	../../../source/blender/ikplugin
 	../../../extern/bullet2/src
+)
+
+SET(SRC
+	BL_ActionActuator.cpp
+	BL_ArmatureActuator.cpp
+	BL_ArmatureChannel.cpp
+	BL_ArmatureConstraint.cpp
+	BL_ArmatureObject.cpp
+	BL_BlenderDataConversion.cpp
+	BL_DeformableGameObject.cpp
+	BL_MeshDeformer.cpp
+	BL_ModifierDeformer.cpp
+	BL_ShapeActionActuator.cpp
+	BL_ShapeDeformer.cpp
+	BL_SkinDeformer.cpp
+	BlenderWorldInfo.cpp
+	KX_BlenderScalarInterpolator.cpp
+	KX_BlenderSceneConverter.cpp
+	KX_ConvertActuators.cpp
+	KX_ConvertControllers.cpp
+	KX_ConvertProperties.cpp
+	KX_ConvertSensors.cpp
+	KX_IpoConvert.cpp
+	KX_SoftBodyDeformer.cpp
 )
 
 IF(WITH_PYTHON)

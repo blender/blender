@@ -129,9 +129,10 @@ endif
 ifeq ($(WITH_SNDFILE),true)
     COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sndfile.a
 endif
-ifeq ($(WITH_FFTW3),true)
-    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fftw.a
-endif
+# Not in use currently, see also intern/audaspace/Makefile and r31375
+#ifeq ($(WITH_FFTW3),true)
+#    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fftw.a
+#endif
 COMLIB += $(NAN_SAMPLERATE)/lib/$(DEBUG_DIR)libsamplerate.a
 COMLIB += $(NAN_LZO)/lib/$(DEBUG_DIR)libminilzo.a
 COMLIB += $(NAN_LZMA)/lib/$(DEBUG_DIR)liblzma.a

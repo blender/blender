@@ -63,6 +63,7 @@
 #include "PIL_time.h"
 
 #include "GPU_draw.h"
+#include "GPU_extensions.h"
 
 /* the global to talk to ghost */
 GHOST_SystemHandle g_system= NULL;
@@ -320,6 +321,8 @@ static void wm_window_add_ghostwindow(bContext *C, char *title, wmWindow *win)
 								 0 /* no AA */);
 	
 	if (ghostwin) {
+		/* needed so we can detect the graphics card below */
+		GPU_extensions_init();
 		
 		/* set the state*/
 		GHOST_SetWindowState(ghostwin, initial_state);
@@ -332,7 +335,11 @@ static void wm_window_add_ghostwindow(bContext *C, char *title, wmWindow *win)
 		
 		/* until screens get drawn, make it nice grey */
 		glClearColor(.55, .55, .55, 0.0);
-		glClear(GL_COLOR_BUFFER_BIT);
+		/* Crash on OSS ATI: bugs.launchpad.net/ubuntu/+source/mesa/+bug/656100 */
+		if(!GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
+			glClear(GL_COLOR_BUFFER_BIT);
+		}
+
 		wm_window_swap_buffers(win);
 		
 		//GHOST_SetWindowState(ghostwin, GHOST_kWindowStateModified);

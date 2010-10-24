@@ -30,6 +30,13 @@ SET(INC
 	../moto/include
 )
 
-FILE(GLOB SRC intern/*.cpp)
+SET(SRC
+	intern/IK_QJacobian.cpp
+	intern/IK_QJacobianSolver.cpp
+	intern/IK_QSegment.cpp
+	intern/IK_QTask.cpp
+	intern/IK_Solver.cpp
+	intern/MT_ExpMap.cpp
+)
 
 BLENDERLIB(bf_intern_ik "${SRC}" "${INC}")

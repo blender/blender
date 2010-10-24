@@ -4961,23 +4961,38 @@ static void toggle_paint_cursor(bContext *C, int enable)
 		settings->imapaint.paintcursor= WM_paint_cursor_activate(CTX_wm_manager(C), image_paint_poll, brush_drawcursor, NULL);
 }
 
+/* enable the paint cursor if it isn't already.
+
+   purpose is to make sure the paint cursor is shown if paint
+   mode is enabled in the image editor. the paint poll will
+   ensure that the cursor is hidden when not in paint mode */
+void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
+{
+	ImagePaintSettings *imapaint = &settings->imapaint;
+
+	if(!imapaint->paintcursor) {
+		imapaint->paintcursor =
+			WM_paint_cursor_activate(wm, image_paint_poll,
+						 brush_drawcursor, NULL);
+	}
+}
+
 /* ************ image paint radial control *************/
 static int paint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	float zoom;
 	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
 	get_imapaint_zoom(C, &zoom, &zoom);
-	toggle_paint_cursor(C, !ts->imapaint.paintcursor);
+	toggle_paint_cursor(C, 0);
 	brush_radial_control_invoke(op, paint_brush(&ts->imapaint.paint), zoom);
 	return WM_radial_control_invoke(C, op, event);
 }
 
 static int paint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
 	int ret = WM_radial_control_modal(C, op, event);
 	if(ret != OPERATOR_RUNNING_MODAL)
-			toggle_paint_cursor(C, !ts->imapaint.paintcursor);
+		toggle_paint_cursor(C, 1);
 	return ret;
 }
 

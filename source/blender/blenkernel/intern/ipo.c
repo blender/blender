@@ -1123,7 +1123,8 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 {
 	AdrBit2Path *abp;
 	FCurve *fcu;
-	int i=0, totbits;
+	unsigned int i=0;
+	int totbits;
 	
 	/* allocate memory for a new F-Curve */
 	fcu= MEM_callocN(sizeof(FCurve), "FCurve");

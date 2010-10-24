@@ -113,7 +113,7 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
     filepath = fw.__self__.name
     fw.__self__.close()
 
-    material_solids = [bpy.data.materials.new("uv_temp_solid") for i in range(len(mesh_source.materials))]
+    material_solids = [bpy.data.materials.new("uv_temp_solid") for i in range(max(1, len(mesh_source.materials)))]
     material_wire = bpy.data.materials.new("uv_temp_wire")
 
     scene = bpy.data.scenes.new("uv_temp")
@@ -181,7 +181,9 @@ def write_png(fw, mesh_source, image_width, image_height, face_iter):
 
     # setup materials
     for i, mat_solid in enumerate(material_solids):
-        mat_solid.diffuse_color = mesh_source.materials[i].diffuse_color
+        if mesh_source.materials and mesh_source.materials[i]:
+            mat_solid.diffuse_color = mesh_source.materials[i].diffuse_color
+
         mat_solid.use_shadeless = True
         mat_solid.use_transparency = True
         mat_solid.alpha = 0.25
@@ -353,7 +355,9 @@ class ExportUVLayout(bpy.types.Operator):
 
 
     def invoke(self, context, event):
+        import os
         self.size = self._image_size(context)
+        self.filepath = os.path.splitext(bpy.data.filepath)[0]
         wm = context.window_manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}

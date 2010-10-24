@@ -1425,7 +1425,7 @@ typedef struct HairGridVert {
 		by Lena Petrovic, Mark Henne and John Anderson
  *		Pixar Technical Memo #06-08, Pixar Animation Studios
  */
-static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, int numverts)
+static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, unsigned int numverts)
 {
 	/* TODO: This is an initial implementation and should be made much better in due time.
 	 * What should at least be implemented is a grid size parameter and a smoothing kernel
@@ -1441,10 +1441,10 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 	/* 2.0f is an experimental value that seems to give good results */
 	float smoothfac = 2.0f * clmd->sim_parms->velocity_smooth;
 	float collfac = 2.0f * clmd->sim_parms->collider_friction;
-	int	v = 0;
-	int	i = 0;
-	int	j = 0;
-	int	k = 0;
+	unsigned int	v = 0;
+	unsigned int	i = 0;
+	int				j = 0;
+	int				k = 0;
 
 	INIT_MINMAX(gmin, gmax);
 
@@ -1559,7 +1559,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 {
 	/* Collect forces and derivatives:  F,dFdX,dFdV */
 	Cloth 		*cloth 		= clmd->clothObject;
-	int		i 		= 0;
+	unsigned int i	= 0;
 	float 		spring_air 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
 	float 		gravity[3] = {0.0f, 0.0f, 0.0f};
 	float 		tm2[3][3] 	= {{-spring_air,0,0}, {0,-spring_air,0},{0,0,-spring_air}};

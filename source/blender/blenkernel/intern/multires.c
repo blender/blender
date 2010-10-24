@@ -1158,18 +1158,19 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 	MultiresLevel *lvl, *lvl1;
 	Multires *mr= me->mr;
 	MVert *vsrc, *vdst;
-	int src, dst;
+	unsigned int src, dst;
 	int st = multires_side_tot[totlvl - 1] - 1;
 	int extedgelen = multires_side_tot[totlvl] - 2;
 	int *vvmap; // inorder for dst, map to src
 	int crossedgelen;
-	int i, j, s, x, totvert, tottri, totquad;
+	int s, x, tottri, totquad;
+	unsigned int i, j, totvert;
 
 	src = 0;
 	dst = 0;
 	vsrc = mr->verts;
 	vdst = dm->getVertArray(dm);
-	totvert = dm->getNumVerts(dm);
+	totvert = (unsigned int)dm->getNumVerts(dm);
 	vvmap = MEM_callocN(sizeof(int) * totvert, "multires vvmap");
 
 	lvl1 = mr->levels.first;
@@ -1260,7 +1261,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 		fmem = MEM_callocN(sizeof(IndexNode*) * (mr->level_count-1), "multires fmem");
 		emem = MEM_callocN(sizeof(IndexNode*) * (mr->level_count-1), "multires emem");
 		lvl = lvl1;
-		for(i = 0; i < mr->level_count - 1; ++i) {
+		for(i = 0; i < (unsigned int)mr->level_count - 1; ++i) {
 			create_old_vert_face_map(fmap + i, fmem + i, lvl->faces, lvl->totvert, lvl->totface);
 			create_old_vert_edge_map(emap + i, emem + i, lvl->edges, lvl->totvert, lvl->totedge);
 			lvl = lvl->next;
@@ -1297,7 +1298,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 
 		lvl = lvl->next;
 
-		for(i = 0; i < mr->level_count - 1; ++i) {
+		for(i = 0; i < (unsigned int)(mr->level_count - 1); ++i) {
 			MEM_freeN(fmap[i]);
 			MEM_freeN(fmem[i]);
 			MEM_freeN(emap[i]);

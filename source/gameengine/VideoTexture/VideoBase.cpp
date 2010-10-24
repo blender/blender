@@ -82,6 +82,8 @@ void VideoBase::process (BYTE * sample)
 				// finish
 				break;
 			}
+		case None:
+			break; /* assert? */
 		}
 	}
 }

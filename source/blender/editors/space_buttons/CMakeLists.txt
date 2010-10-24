@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC
 	../include
 	../../blenkernel
@@ -29,6 +27,13 @@ SET(INC
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
+)
+
+SET(SRC
+	buttons_context.c
+	buttons_header.c
+	buttons_ops.c
+	space_buttons.c
 )
 
 BLENDERLIB(bf_editor_space_buttons "${SRC}" "${INC}")

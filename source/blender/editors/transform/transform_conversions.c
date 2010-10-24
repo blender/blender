@@ -554,7 +554,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	/* proper way to get parent transform + own transform + constraints transform */
 	copy_m3_m4(omat, ob->obmat);
 
-	if (t->mode==TFM_TRANSLATION && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION))
+	if (ELEM(t->mode, TFM_TRANSLATION, TFM_RESIZE) && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION))
 		unit_m3(bmat);
 	else
 		copy_m3_m3(bmat, pchan->bone->bone_mat);
@@ -585,6 +585,19 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 
 	invert_m3_m3(td->smtx, td->mtx);
 
+	/* exceptional case: rotate the pose bone which also applies transformation
+	 * when a parentless bone has BONE_NO_LOCAL_LOCATION [] */
+	if (!ELEM(t->mode, TFM_TRANSLATION, TFM_RESIZE) && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION)) {
+		if(pchan->parent) {
+			/* same as td->smtx but without pchan->bone->bone_mat */
+			td->flag |= TD_PBONE_LOCAL_MTX_C;
+			mul_m3_m3m3(td->ext->l_smtx, pchan->bone->bone_mat, td->smtx);
+		}
+		else {
+			td->flag |= TD_PBONE_LOCAL_MTX_P;
+		}
+	}
+	
 	/* for axismat we use bone's own transform */
 	copy_m3_m4(pmat, pchan->pose_mat);
 	mul_m3_m3m3(td->axismtx, omat, pmat);
@@ -1403,7 +1416,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 					  ) {
 						VECCOPY(td->iloc, bezt->vec[0]);
 						td->loc= bezt->vec[0];
-						VECCOPY(td->center, bezt->vec[1]);
+						VECCOPY(td->center, bezt->vec[(hide_handles || bezt->f2 & SELECT) ? 1:0]);
 						if (hide_handles) {
 							if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
 							else td->flag= 0;
@@ -1462,7 +1475,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 					  ) {
 						VECCOPY(td->iloc, bezt->vec[2]);
 						td->loc= bezt->vec[2];
-						VECCOPY(td->center, bezt->vec[1]);
+						VECCOPY(td->center, bezt->vec[(hide_handles || bezt->f2 & SELECT) ? 1:2]);
 						if (hide_handles) {
 							if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
 							else td->flag= 0;
@@ -4298,8 +4311,8 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 		
 		td->ext->irotAngle= ob->rotAngle;
 		VECCOPY(td->ext->irotAxis, ob->rotAxis);
-		td->ext->drotAngle= ob->drotAngle;
-		VECCOPY(td->ext->drotAxis, ob->drotAxis);
+		// td->ext->drotAngle= ob->drotAngle;			// XXX, not implimented
+		// VECCOPY(td->ext->drotAxis, ob->drotAxis);	// XXX, not implimented
 	}
 	else {
 		td->ext->rot= NULL;

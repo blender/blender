@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC
 	../include
 	../../blenkernel
@@ -29,6 +27,11 @@ SET(INC
 	../../makesrna
 	../../windowmanager
 	../../../../intern/guardedalloc
+)
+
+SET(SRC
+	sound_header.c
+	space_sound.c
 )
 
 BLENDERLIB(bf_editor_space_sound "${SRC}" "${INC}")

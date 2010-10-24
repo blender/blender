@@ -53,6 +53,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -1324,7 +1325,7 @@ static EnumPropertyItem prop_separate_types[] = {
 };
 
 /* return 1: success */
-static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase)
+static int mesh_separate_selected(wmOperator *op, Main *bmain, Scene *scene, Base *editbase)
 {
 	EditMesh *em, *emnew;
 	EditVert *eve, *v1;
@@ -1340,7 +1341,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase)
 	me= obedit->data;
 	em= BKE_mesh_get_editmesh(me);
 	if(me->key) {
-		error("Can't separate with vertex keys");
+		BKE_report(op->reports, RPT_WARNING, "Can't separate mesh with shape keys.");
 		BKE_mesh_end_editmesh(me, em);
 		return 0;
 	}
@@ -1435,7 +1436,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase)
 }
 
 /* return 1: success */
-static int mesh_separate_material(Main *bmain, Scene *scene, Base *editbase)
+static int mesh_separate_material(wmOperator *op, Main *bmain, Scene *scene, Base *editbase)
 {
 	Mesh *me= editbase->object->data;
 	EditMesh *em= BKE_mesh_get_editmesh(me);
@@ -1447,7 +1448,7 @@ static int mesh_separate_material(Main *bmain, Scene *scene, Base *editbase)
 		/* select the material */
 		EM_select_by_material(em, curr_mat);
 		/* and now separate */
-		if(0==mesh_separate_selected(bmain, scene, editbase)) {
+		if(0==mesh_separate_selected(op, bmain, scene, editbase)) {
 			BKE_mesh_end_editmesh(me, em);
 			return 0;
 		}
@@ -1458,7 +1459,7 @@ static int mesh_separate_material(Main *bmain, Scene *scene, Base *editbase)
 }
 
 /* return 1: success */
-static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase)
+static int mesh_separate_loose(wmOperator *op, Main *bmain, Scene *scene, Base *editbase)
 {
 	Mesh *me;
 	EditMesh *em;
@@ -1498,7 +1499,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase)
 		tot= BLI_countlist(&em->verts);
 
 		/* and now separate */
-		doit= mesh_separate_selected(bmain, scene, editbase);
+		doit= mesh_separate_selected(op, bmain, scene, editbase);
 
 		/* with hidden verts this can happen */
 		if(tot == BLI_countlist(&em->verts))
@@ -1518,11 +1519,11 @@ static int mesh_separate_exec(bContext *C, wmOperator *op)
 	int retval= 0, type= RNA_enum_get(op->ptr, "type");
 	
 	if(type == 0)
-		retval= mesh_separate_selected(bmain, scene, base);
+		retval= mesh_separate_selected(op, bmain, scene, base);
 	else if(type == 1)
-		retval= mesh_separate_material(bmain, scene, base);
+		retval= mesh_separate_material(op, bmain, scene, base);
 	else if(type == 2)
-		retval= mesh_separate_loose(bmain, scene, base);
+		retval= mesh_separate_loose(op, bmain, scene, base);
 	   
 	if(retval) {
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, base->object->data);

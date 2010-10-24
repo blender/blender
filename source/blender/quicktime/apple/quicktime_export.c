@@ -621,7 +621,9 @@ void end_qt(void) {
 		//printf("Finished QuickTime movie.\n");
 	}
 
-	ExitMoviesOnThread();
+#ifdef __APPLE__
+		ExitMoviesOnThread();
+#endif
 	
 	if(qtexport) {
 		MEM_freeN(qtexport);

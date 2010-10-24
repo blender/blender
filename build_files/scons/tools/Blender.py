@@ -295,8 +295,14 @@ def buildinfo(lenv, build_type):
         build_rev = '-UNKNOWN-'
     if lenv['BF_DEBUG']:
         build_type = "Debug"
+        build_cflags = ' '.join(lenv['CFLAGS'] + lenv['CCFLAGS'] + lenv['BF_DEBUG_CCFLAGS'] + lenv['CPPFLAGS'])
+        build_cxxflags = ' '.join(lenv['CCFLAGS'] + lenv['CXXFLAGS'] + lenv['CPPFLAGS'])
     else:
         build_type = "Release"
+        build_cflags = ' '.join(lenv['CFLAGS'] + lenv['CCFLAGS'] + lenv['REL_CFLAGS'] + lenv['REL_CCFLAGS'] + lenv['CPPFLAGS'])
+        build_cxxflags = ' '.join(lenv['CCFLAGS'] + lenv['CXXFLAGS'] + lenv['REL_CXXFLAGS'] + lenv['REL_CCFLAGS'] + lenv['CPPFLAGS'])
+
+    build_linkflags = ' '.join(lenv['PLATFORM_LINKFLAGS'])
 
     obj = []
     if lenv['BF_BUILDINFO']:
@@ -305,7 +311,12 @@ def buildinfo(lenv, build_type):
                                     'BUILD_TYPE="%s"'%(build_type),
                                     'BUILD_REV="%s"'%(build_rev),
                                     'NAN_BUILDINFO',
-                                    'BUILD_PLATFORM="%s:%s"'%(platform.system(), platform.architecture()[0])])
+                                    'BUILD_PLATFORM="%s:%s"'%(platform.system(), platform.architecture()[0]),
+                                    'BUILD_CFLAGS=\\"%s\\"'%(build_cflags),
+                                    'BUILD_CXXFLAGS=\\"%s\\"'%(build_cxxflags),
+                                    'BUILD_LINKFLAGS=\\"%s\\"'%(build_linkflags),
+                                    'BUILD_SYSTEM="SCons"'
+                    ])
 
         lenv.Append (CPPPATH = [root_build_dir+'source/blender/blenkernel'])
 

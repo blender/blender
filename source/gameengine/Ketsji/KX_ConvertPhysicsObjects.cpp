@@ -218,6 +218,9 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 			break;
 		}
+	case KX_BOUND_DYN_MESH:
+		/* do nothing */
+		break;
 	}
 
 

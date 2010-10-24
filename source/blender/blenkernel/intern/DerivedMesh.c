@@ -1693,9 +1693,6 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	if(useRenderParams) required_mode = eModifierMode_Render;
 	else required_mode = eModifierMode_Realtime;
 
-	/* we always want to keep original indices */
-	dataMask |= CD_MASK_ORIGINDEX;
-
 	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode);
 	curr = datamasks;
 
@@ -1816,6 +1813,12 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		} else {
 			DerivedMesh *ndm;
 
+			/* determine which data layers are needed by following modifiers */
+			if(curr->next)
+				nextmask= (CustomDataMask)GET_INT_FROM_POINTER(curr->next->link);
+			else
+				nextmask= dataMask;
+
 			/* apply vertex coordinates or build a DerivedMesh as necessary */
 			if(dm) {
 				if(deformedVerts) {
@@ -1837,28 +1840,25 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 					add_weight_mcol_dm(ob, dm);
 
-				/* constructive modifiers need to have an origindex
-				 * otherwise they wont have anywhere to copy the data from */
-				if(needMapping) {
-					int *index, i;
+				/* Constructive modifiers need to have an origindex
+				 * otherwise they wont have anywhere to copy the data from.
+				 *
+				 * Also create ORIGINDEX data if any of the following modifiers
+				 * requests it, this way Mirror, Solidify etc will keep ORIGINDEX
+				 * data by using generic DM_copy_vert_data() functions.
+				 */
+				if(needMapping || (nextmask & CD_MASK_ORIGINDEX)) {
+					/* calc */
 					DM_add_vert_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 					DM_add_edge_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 					DM_add_face_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 
-					index = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
-					for(i=0; i<dm->numVertData; i++) *index++= i;
-					index = DM_get_edge_data_layer(dm, CD_ORIGINDEX);
-					for(i=0; i<dm->numEdgeData; i++) *index++= i;
-					index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
-					for(i=0; i<dm->numFaceData; i++) *index++= i;
+					range_vni(DM_get_vert_data_layer(dm, CD_ORIGINDEX), dm->numVertData, 0);
+					range_vni(DM_get_edge_data_layer(dm, CD_ORIGINDEX), dm->numEdgeData, 0);
+					range_vni(DM_get_face_data_layer(dm, CD_ORIGINDEX), dm->numFaceData, 0);
 				}
 			}
 
-			/* determine which data layers are needed by following modifiers */
-			if(curr->next)
-				nextmask= (CustomDataMask)GET_INT_FROM_POINTER(curr->next->link);
-			else
-				nextmask= dataMask;
 			
 			/* set the DerivedMesh to only copy needed data */
 			mask= (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
@@ -1895,7 +1895,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					orcodm= create_orco_dm(ob, me, NULL, CD_ORCO);
 
 				nextmask &= ~CD_MASK_ORCO;
-				DM_set_only_copy(orcodm, nextmask);
+				DM_set_only_copy(orcodm, nextmask | CD_MASK_ORIGINDEX);
 				ndm = mti->applyModifier(md, ob, orcodm, useRenderParams, 0);
 
 				if(ndm) {
@@ -1911,7 +1911,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					clothorcodm= create_orco_dm(ob, me, NULL, CD_CLOTH_ORCO);
 
 				nextmask &= ~CD_MASK_CLOTH_ORCO;
-				DM_set_only_copy(clothorcodm, nextmask);
+				DM_set_only_copy(clothorcodm, nextmask | CD_MASK_ORIGINDEX);
 				ndm = mti->applyModifier(md, ob, clothorcodm, useRenderParams, 0);
 
 				if(ndm) {
@@ -2029,9 +2029,6 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 
 	dm = NULL;
 	md = modifiers_getVirtualModifierList(ob);
-	
-	/* we always want to keep original indices */
-	dataMask |= CD_MASK_ORIGINDEX;
 
 	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode);
 
@@ -2110,7 +2107,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 					orcodm= create_orco_dm(ob, ob->data, em, CD_ORCO);
 
 				mask &= ~CD_MASK_ORCO;
-				DM_set_only_copy(orcodm, mask);
+				DM_set_only_copy(orcodm, mask | CD_MASK_ORIGINDEX);
 
 				if (mti->applyModifierEM)
 					ndm = mti->applyModifierEM(md, ob, em, orcodm);
@@ -2125,9 +2122,11 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 			}
 
 			/* set the DerivedMesh to only copy needed data */
-			DM_set_only_copy(dm, (CustomDataMask)GET_INT_FROM_POINTER(curr->link));
+			mask= (CustomDataMask)GET_INT_FROM_POINTER(curr->link); /* CD_MASK_ORCO may have been cleared above */
 
-			if(((CustomDataMask)GET_INT_FROM_POINTER(curr->link)) & CD_MASK_ORIGSPACE)
+			DM_set_only_copy(dm, mask | CD_MASK_ORIGINDEX);
+
+			if(mask & CD_MASK_ORIGSPACE)
 				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
 					DM_add_face_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
 			

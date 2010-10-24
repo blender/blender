@@ -1,6 +1,4 @@
 
-FILE(GLOB SRC *.cpp)
-
 SET(INC
 	.
 	../../../source/kernel/gen_system
@@ -35,6 +33,17 @@ SET(INC
 	../../../source/blender/gpu
 	../../../extern/bullet2/src
 	../../../extern/glew/include
+)
+
+SET(SRC
+	BL_KetsjiEmbedStart.cpp
+	KX_BlenderCanvas.cpp
+	KX_BlenderGL.cpp
+	KX_BlenderInputDevice.cpp
+	KX_BlenderKeyboardDevice.cpp
+	KX_BlenderMouseDevice.cpp
+	KX_BlenderRenderTools.cpp
+	KX_BlenderSystem.cpp
 )
 
 ADD_DEFINITIONS(-DGLEW_STATIC)

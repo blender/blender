@@ -2815,6 +2815,36 @@ static void sculpt_cache_free(StrokeCache *cache)
 	MEM_freeN(cache);
 }
 
+/* Initialize mirror modifier clipping */
+static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
+{
+	ModifierData *md;
+	int i;
+
+	for(md= ob->modifiers.first; md; md= md->next) {
+		if(md->type==eModifierType_Mirror &&
+		   (md->mode & eModifierMode_Realtime)) {
+			MirrorModifierData *mmd = (MirrorModifierData*)md;
+			
+			if(mmd->flag & MOD_MIR_CLIPPING) {
+				/* check each axis for mirroring */
+				for(i = 0; i < 3; ++i) {
+					if(mmd->flag & (MOD_MIR_AXIS_X << i)) {
+						/* enable sculpt clipping */
+						ss->cache->flag |= CLIP_X << i;
+						
+						/* update the clip tolerance */
+						if(mmd->tolerance >
+						   ss->cache->clip_tolerance[i])
+							ss->cache->clip_tolerance[i] =
+								mmd->tolerance;
+					}
+				}
+			}
+		}
+	}
+}
+
 /* Initialize the stroke cache invariants from operator properties */
 static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSession *ss, wmOperator *op, wmEvent *event)
 {
@@ -2822,7 +2852,6 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 	Brush *brush = paint_brush(&sd->paint);
 	ViewContext *vc = paint_stroke_view_context(op->customdata);
 	Object *ob= CTX_data_active_object(C);
-	ModifierData *md;
 	int i;
 	int mode;
 
@@ -2835,22 +2864,9 @@ static void sculpt_update_cache_invariants(bContext* C, Sculpt *sd, SculptSessio
 
 	ss->cache->plane_trim_squared = brush->plane_trim * brush->plane_trim;
 
-	/* Initialize mirror modifier clipping */
-
 	ss->cache->flag = 0;
 
-	for(md= ob->modifiers.first; md; md= md->next) {
-		if(md->type==eModifierType_Mirror && (md->mode & eModifierMode_Realtime)) {
-			const MirrorModifierData *mmd = (MirrorModifierData*) md;
-			
-			/* Mark each axis that needs clipping along with its tolerance */
-			if(mmd->flag & MOD_MIR_CLIPPING) {
-				ss->cache->flag |= CLIP_X << mmd->axis;
-				if(mmd->tolerance > ss->cache->clip_tolerance[mmd->axis])
-					ss->cache->clip_tolerance[mmd->axis] = mmd->tolerance;
-			}
-		}
-	}
+	sculpt_init_mirror_clipping(ob, ss);
 
 	/* Initial mouse location */
 	if (event) {

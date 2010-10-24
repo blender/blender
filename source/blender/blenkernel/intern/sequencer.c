@@ -62,8 +62,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-
-
 #include "BKE_context.h"
 #include "BKE_sound.h"
 #include "AUD_C-API.h"
@@ -1803,7 +1801,8 @@ static ImBuf * seq_render_scene_strip_impl(
 	Object *oldcamera;
 	ListBase oldmarkers;
 	
-	/* Hack! This function can be called from do_render_seq(), in that case
+	/* Old info:
+	   Hack! This function can be called from do_render_seq(), in that case
 	   the seq->scene can already have a Render initialized with same name,
 	   so we have to use a default name. (compositor uses scene name to
 	   find render).
@@ -1815,9 +1814,27 @@ static ImBuf * seq_render_scene_strip_impl(
 	   and since G.rendering is uhm, gone... (Peter)
 	*/
 
+	/* New info:
+	   Using the same name for the renders works just fine as the do_render_seq()
+	   render is not used while the scene strips are rendered.
+	   
+	   However rendering from UI (through sequencer_preview_area_draw) can crash in
+	   very many cases since other renders (material preview, an actual render etc.)
+	   can be started while this sequence preview render is running. The only proper
+	   solution is to make the sequencer preview render a proper job, which can be
+	   stopped when needed. This would also give a nice progress bar for the preview
+	   space so that users know there's something happening.
+
+	   As a result the active scene now only uses OpenGL rendering for the sequencer
+	   preview. This is far from nice, but is the only way to prevent crashes at this
+	   time. 
+
+	   -jahka
+	*/
+
 	int rendering = G.rendering;
 	int doseq;
-	int doseq_gl= G.rendering ? /*(scene->r.seq_flag & R_SEQ_GL_REND)*/ 0 : (scene->r.seq_flag & R_SEQ_GL_PREV);
+	int doseq_gl= G.rendering ? /*(scene->r.seq_flag & R_SEQ_GL_REND)*/ 0 : /*(scene->r.seq_flag & R_SEQ_GL_PREV)*/ 1;
 	int have_seq= FALSE;
 	Scene *sce= seq->scene; /* dont refer to seq->scene above this point!, it can be NULL */
 	int sce_valid= FALSE;
@@ -1850,30 +1867,28 @@ static ImBuf * seq_render_scene_strip_impl(
 #endif
 	
 	if(sequencer_view3d_cb && BLI_thread_is_main() && doseq_gl && (seq->scene == scene || have_seq==0) && seq->scene->camera) {
+		/* for old scened this can be uninitialized, should probably be added to do_versions at some point if the functionality stays */
+		if(scene->r.seq_prev_type==0)
+			scene->r.seq_prev_type = 3 /* ==OB_SOLID */; 
+
 		/* opengl offscreen render */
 		scene_update_for_newframe(bmain, seq->scene, seq->scene->lay);
-		ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty, IB_rect,
-					  scene->r.seq_prev_type);
+		ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty, IB_rect, scene->r.seq_prev_type);
 	}
 	else {
-		Render *re;
+		Render *re = RE_GetRender(sce->id.name);
 		RenderResult rres;
-		
-		if(rendering)
-			re= RE_NewRender(" do_build_seq_ibuf");
-		/* If the top level scene that does the sequencer rendering is included 
-		 * as a strip the default render name for the strip will conflict with
-		 * the original render, so override the name in this case.
-		 * See bugs #22236 and #24160 for examples.
-		 * XXX: Somebody with deeper insight to the rendering pipeline should
-		 *      probably check if this is the best way to handle this. -jahka
-		 */
-		else if(seq->scene == scene)
-			re= RE_NewRender("scene_conflict_render");
-		else
-			re= RE_NewRender(sce->id.name);
-		
-		RE_BlenderFrame(re, bmain, sce, NULL, sce->lay, frame);
+
+		/* XXX: this if can be removed when sequence preview rendering uses the job system */
+		if(rendering || scene != sce) {
+			if(re==NULL)
+				re= RE_NewRender(sce->id.name);
+			
+			RE_BlenderFrame(re, bmain, sce, NULL, sce->lay, frame);
+
+			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
+			G.rendering = rendering;
+		}
 		
 		RE_AcquireResultImage(re, &rres);
 		
@@ -3219,7 +3234,7 @@ void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 
 	for (fcu= scene->adt->action->curves.first; fcu; fcu= fcu->next) {
 		if(strstr(fcu->rna_path, "sequence_editor.sequences_all[") && strstr(fcu->rna_path, str)) {
-			int i;
+			unsigned int i;
 			for (i = 0; i < fcu->totvert; i++) {
 				BezTriple *bezt= &fcu->bezt[i];
 				bezt->vec[0][0] += ofs;

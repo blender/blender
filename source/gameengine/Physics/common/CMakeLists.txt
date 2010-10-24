@@ -24,12 +24,19 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(SRC PHY_IMotionState.cpp PHY_IController.cpp PHY_IPhysicsController.cpp PHY_IGraphicController.cpp PHY_IPhysicsEnvironment.cpp PHY_IVehicle.cpp)
-
 SET(INC
 	.
 	../Dummy
 	../../../intern/moto/include
+)
+
+SET(SRC
+	PHY_IMotionState.cpp
+	PHY_IController.cpp
+	PHY_IPhysicsController.cpp
+	PHY_IGraphicController.cpp
+	PHY_IPhysicsEnvironment.cpp
+	PHY_IVehicle.cpp
 )
 
 BLENDERLIB(bf_common "${SRC}" "${INC}")

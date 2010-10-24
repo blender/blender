@@ -898,7 +898,7 @@ float determinant_m4(float m[][4])
 
 /****************************** Transformations ******************************/
 
-void size_to_mat3(float mat[][3], float *size)
+void size_to_mat3(float mat[][3], const float size[3])
 {
 	mat[0][0]= size[0];
 	mat[0][1]= 0.0f;
@@ -911,7 +911,7 @@ void size_to_mat3(float mat[][3], float *size)
 	mat[2][0]= 0.0f;
 }
 
-void size_to_mat4(float mat[][4], float *size)
+void size_to_mat4(float mat[][4], const float size[3])
 {
 	float tmat[3][3];
 	
@@ -1078,7 +1078,7 @@ int is_negative_m4(float mat[][4])
 /* make a 4x4 matrix out of 3 transform components */
 /* matrices are made in the order: scale * rot * loc */
 // TODO: need to have a version that allows for rotation order...
-void loc_eul_size_to_mat4(float mat[4][4], float loc[3], float eul[3], float size[3])
+void loc_eul_size_to_mat4(float mat[4][4], const float loc[3], const float eul[3], const float size[3])
 {
 	float rmat[3][3], smat[3][3], tmat[3][3];
 	
@@ -1101,7 +1101,7 @@ void loc_eul_size_to_mat4(float mat[4][4], float loc[3], float eul[3], float siz
 
 /* make a 4x4 matrix out of 3 transform components */
 /* matrices are made in the order: scale * rot * loc */
-void loc_eulO_size_to_mat4(float mat[4][4], float loc[3], float eul[3], float size[3], short rotOrder)
+void loc_eulO_size_to_mat4(float mat[4][4], const float loc[3], const float eul[3], const float size[3], const short rotOrder)
 {
 	float rmat[3][3], smat[3][3], tmat[3][3];
 	
@@ -1125,7 +1125,7 @@ void loc_eulO_size_to_mat4(float mat[4][4], float loc[3], float eul[3], float si
 
 /* make a 4x4 matrix out of 3 transform components */
 /* matrices are made in the order: scale * rot * loc */
-void loc_quat_size_to_mat4(float mat[4][4], float loc[3], float quat[4], float size[3])
+void loc_quat_size_to_mat4(float mat[4][4], const float loc[3], const float quat[4], const float size[3])
 {
 	float rmat[3][3], smat[3][3], tmat[3][3];
 	
@@ -1144,6 +1144,13 @@ void loc_quat_size_to_mat4(float mat[4][4], float loc[3], float quat[4], float s
 	mat[3][0] = loc[0];
 	mat[3][1] = loc[1];
 	mat[3][2] = loc[2];
+}
+
+void loc_axisangle_size_to_mat4(float mat[4][4], const float loc[3], const float axis[3], const float angle, const float size[3])
+{
+	float q[4];
+	axis_angle_to_quat(q, axis, angle);
+	loc_quat_size_to_mat4(mat, loc, q, size);
 }
 
 /*********************************** Other ***********************************/

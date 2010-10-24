@@ -728,6 +728,10 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	UI_view2d_totRect_set(v2d, viewrectx + 0.5f, viewrecty + 0.5f);
 	UI_view2d_curRect_validate(v2d);
 
+	/* only initialize the preview if a render is in progress */
+	if(G.rendering)
+		return;
+
 	if (special_seq_update)
 		ibuf= give_ibuf_seq_direct(bmain, scene, rectx, recty, cfra + frame_ofs, proxy_size, special_seq_update);
 	else if (!U.prefetchframes) // XXX || (G.f & G_PLAYANIM) == 0) {

@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC
 	../include
 	../../blenkernel
@@ -30,6 +28,13 @@ SET(INC
 	../../windowmanager
 	../../../../intern/guardedalloc
 	../../../../intern/opennl/extern
+)
+
+SET(SRC
+	uvedit_draw.c
+	uvedit_ops.c
+	uvedit_parametrizer.c
+	uvedit_unwrap_ops.c
 )
 
 BLENDERLIB(bf_editor_uvedit "${SRC}" "${INC}")

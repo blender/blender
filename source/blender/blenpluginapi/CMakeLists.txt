@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
-
 SET(INC 
 	.
 	..
@@ -33,6 +31,10 @@ SET(INC
 	../imbuf
 	../makesdna
 	../../../intern/guardedalloc
+)
+
+SET(SRC
+	intern/pluginapi.c
 )
 
 IF(WIN32)

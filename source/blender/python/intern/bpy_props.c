@@ -132,6 +132,27 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 		return bpy_prop_deferred_return((void *)pymeth_##_func, kw); \
 	} \
 
+/* terse macros for error checks shared between all funcs cant use function
+ * calls because of static strins passed to pyrna_set_to_enum_bitfield */
+#define BPY_PROPDEF_CHECK(_func) \
+	if(id_len >= MAX_IDPROP_NAME) { \
+		PyErr_Format(PyExc_TypeError, #_func"(): '%.200s' too long, max length is %d", id, MAX_IDPROP_NAME-1); \
+		return NULL; \
+	} \
+	if(RNA_def_property_free_identifier(srna, id) == -1) { \
+		PyErr_Format(PyExc_TypeError, #_func"(): '%s' is defined as a non-dynamic type.", id); \
+		return NULL; \
+	} \
+	if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, #_func"(options={...}):")) \
+		return NULL; \
+
+#define BPY_PROPDEF_SUBTYPE_CHECK(_func, _subtype) \
+	BPY_PROPDEF_CHECK(_func) \
+	if(pysubtype && RNA_enum_value_from_id(_subtype, pysubtype, &subtype)==0) { \
+		PyErr_Format(PyExc_TypeError, #_func"(subtype='%s'): invalid subtype.", pysubtype); \
+		return NULL; \
+	} \
+
 
 #if 0
 static int bpy_struct_id_used(StructRNA *srna, char *identifier)
@@ -164,6 +185,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	if(srna) {
 		static char *kwlist[] = {"attr", "name", "description", "default", "options", "subtype", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		int def=0;
 		PropertyRNA *prop;
 		PyObject *pyopts= NULL;
@@ -171,23 +193,11 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiO!s:BoolProperty", (char **)kwlist, &id, &name, &description, &def, &PySet_Type, &pyopts, &pysubtype))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssiO!s:BoolProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &PySet_Type, &pyopts, &pysubtype))
 			return NULL;
 
-		if(RNA_def_property_free_identifier(srna, id) == -1) {
-			PyErr_Format(PyExc_TypeError, "BoolProperty(): '%s' is defined as a non-dynamic type.", id);
-			return NULL;
-		}
+		BPY_PROPDEF_SUBTYPE_CHECK(BoolProperty, property_subtype_number_items)
 
-		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "BoolProperty(options={...}):"))
-			return NULL;
-
-		if(pysubtype && RNA_enum_value_from_id(property_subtype_number_items, pysubtype, &subtype)==0) {
-			PyErr_Format(PyExc_TypeError, "BoolProperty(subtype='%s'): invalid subtype.", pysubtype);
-			return NULL;
-		}
-
-		// prop= RNA_def_boolean(srna, id, def, name, description);
 		prop= RNA_def_property(srna, id, PROP_BOOLEAN, subtype);
 		RNA_def_property_boolean_default(prop, def);
 		RNA_def_property_ui_text(prop, name, description);
@@ -220,6 +230,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "options", "subtype", "size", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		int def[PYRNA_STACK_ARRAY]={0};
 		int size=3;
 		PropertyRNA *prop;
@@ -229,21 +240,10 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOO!si:BoolVectorProperty", (char **)kwlist, &id, &name, &description, &pydef, &PySet_Type, &pyopts, &pysubtype, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssOO!si:BoolVectorProperty", (char **)kwlist, &id, &id_len, &name, &description, &pydef, &PySet_Type, &pyopts, &pysubtype, &size))
 			return NULL;
 
-		if(RNA_def_property_free_identifier(srna, id) == -1) {
-			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(): '%s' is defined as a non-dynamic type.", id);
-			return NULL;
-		}
-
-		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "BoolVectorProperty(options={...}):"))
-			return NULL;
-
-		if(pysubtype && RNA_enum_value_from_id(property_subtype_array_items, pysubtype, &subtype)==0) {
-			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(subtype='%s'): invalid subtype.", pysubtype);
-			return NULL;
-		}
+		BPY_PROPDEF_SUBTYPE_CHECK(BoolVectorProperty, property_subtype_array_items)
 
 		if(size < 1 || size > PYRNA_STACK_ARRAY) {
 			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(size=%d): size must be between 0 and " STRINGIFY(PYRNA_STACK_ARRAY), size);
@@ -287,6 +287,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def=0;
 		PropertyRNA *prop;
 		PyObject *pyopts= NULL;
@@ -294,21 +295,10 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiiiiiiO!s:IntProperty", (char **)kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssiiiiiiO!s:IntProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype))
 			return NULL;
 
-		if(RNA_def_property_free_identifier(srna, id) == -1) {
-			PyErr_Format(PyExc_TypeError, "IntProperty(): '%s' is defined as a non-dynamic type.", id);
-			return NULL;
-		}
-
-		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "IntProperty(options={...}):"))
-			return NULL;
-
-		if(pysubtype && RNA_enum_value_from_id(property_subtype_number_items, pysubtype, &subtype)==0) {
-			PyErr_Format(PyExc_TypeError, "IntProperty(subtype='%s'): invalid subtype.", pysubtype);
-			return NULL;
-		}
+		BPY_PROPDEF_SUBTYPE_CHECK(IntProperty, property_subtype_number_items)
 
 		prop= RNA_def_property(srna, id, PROP_INT, subtype);
 		RNA_def_property_int_default(prop, def);
@@ -343,6 +333,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", "size", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def[PYRNA_STACK_ARRAY]={0};
 		int size=3;
 		PropertyRNA *prop;
@@ -352,21 +343,10 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOiiiiiO!si:IntVectorProperty", (char **)kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssOiiiiiO!si:IntVectorProperty", (char **)kwlist, &id, &id_len, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype, &size))
 			return NULL;
 
-		if(RNA_def_property_free_identifier(srna, id) == -1) {
-			PyErr_Format(PyExc_TypeError, "IntVectorProperty(): '%s' is defined as a non-dynamic type.", id);
-			return NULL;
-		}
-
-		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "IntVectorProperty(options={...}):"))
-			return NULL;
-
-		if(pysubtype && RNA_enum_value_from_id(property_subtype_array_items, pysubtype, &subtype)==0) {
-			PyErr_Format(PyExc_TypeError, "IntVectorProperty(subtype='%s'): invalid subtype.", pysubtype);
-			return NULL;
-		}
+		BPY_PROPDEF_SUBTYPE_CHECK(IntVectorProperty, property_subtype_array_items)
 
 		if(size < 1 || size > PYRNA_STACK_ARRAY) {
 			PyErr_Format(PyExc_TypeError, "IntVectorProperty(size=%d): size must be between 0 and " STRINGIFY(PYRNA_STACK_ARRAY), size);
@@ -413,6 +393,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "unit", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def=0.0f;
 		int precision= 2;
 		PropertyRNA *prop;
@@ -423,21 +404,10 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		char *pyunit= NULL;
 		int unit= PROP_UNIT_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssffffffiO!ss:FloatProperty", (char **)kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &pyunit))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssffffffiO!ss:FloatProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &pyunit))
 			return NULL;
 
-		if(RNA_def_property_free_identifier(srna, id) == -1) {
-			PyErr_Format(PyExc_TypeError, "FloatProperty(): '%s' is defined as a non-dynamic type.", id);
-			return NULL;
-		}
-
-		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "FloatProperty(options={...}):"))
-			return NULL;
-
-		if(pysubtype && RNA_enum_value_from_id(property_subtype_number_items, pysubtype, &subtype)==0) {
-			PyErr_Format(PyExc_TypeError, "FloatProperty(subtype='%s'): invalid subtype.", pysubtype);
-			return NULL;
-		}
+		BPY_PROPDEF_SUBTYPE_CHECK(FloatProperty, property_subtype_number_items)
 
 		if(pyunit && RNA_enum_value_from_id(property_unit_items, pyunit, &unit)==0) {
 			PyErr_Format(PyExc_TypeError, "FloatProperty(unit='%s'): invalid unit.");
@@ -477,6 +447,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "size", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def[PYRNA_STACK_ARRAY]={0.0f};
 		int precision= 2, size=3;
 		PropertyRNA *prop;
@@ -486,21 +457,10 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOfffffiO!si:FloatVectorProperty", (char **)kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|ssOfffffiO!si:FloatVectorProperty", (char **)kwlist, &id, &id_len, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &size))
 			return NULL;
 
-		if(RNA_def_property_free_identifier(srna, id) == -1) {
-			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(): '%s' is defined as a non-dynamic type.", id);
-			return NULL;
-		}
-
-		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "FloatVectorProperty(options={...}):"))
-			return NULL;
-
-		if(pysubtype && RNA_enum_value_from_id(property_subtype_array_items, pysubtype, &subtype)==0) {
-			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(subtype='%s'): invalid subtype.", pysubtype);
-			return NULL;
-		}
+		BPY_PROPDEF_SUBTYPE_CHECK(FloatVectorProperty, property_subtype_array_items)
 
 		if(size < 1 || size > PYRNA_STACK_ARRAY) {
 			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(size=%d): size must be between 0 and " STRINGIFY(PYRNA_STACK_ARRAY), size);
@@ -544,6 +504,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 	if(srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default", "maxlen", "options", "subtype", NULL};
 		char *id=NULL, *name="", *description="", *def="";
+		int id_len;
 		int maxlen=0;
 		PropertyRNA *prop;
 		PyObject *pyopts= NULL;
@@ -551,21 +512,10 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|sssiO!s:StringProperty", (char **)kwlist, &id, &name, &description, &def, &maxlen, &PySet_Type, &pyopts, &pysubtype))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#|sssiO!s:StringProperty", (char **)kwlist, &id, &id_len, &name, &description, &def, &maxlen, &PySet_Type, &pyopts, &pysubtype))
 			return NULL;
 
-		if(RNA_def_property_free_identifier(srna, id) == -1) {
-			PyErr_Format(PyExc_TypeError, "StringProperty(): '%s' is defined as a non-dynamic type.", id);
-			return NULL;
-		}
-
-		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "StringProperty(options={...}):"))
-			return NULL;
-
-		if(pysubtype && RNA_enum_value_from_id(property_subtype_string_items, pysubtype, &subtype)==0) {
-			PyErr_Format(PyExc_TypeError, "StringProperty(subtype='%s'): invalid subtype.", pysubtype);
-			return NULL;
-		}
+		BPY_PROPDEF_SUBTYPE_CHECK(StringProperty, property_subtype_string_items)
 
 		prop= RNA_def_property(srna, id, PROP_STRING, subtype);
 		if(maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen + 1); /* +1 since it includes null terminator */
@@ -645,6 +595,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 	if(srna) {
 		static const char *kwlist[] = {"attr", "items", "name", "description", "default", "options", NULL};
 		char *id=NULL, *name="", *description="", *def="";
+		int id_len;
 		int defvalue=0;
 		PyObject *items= Py_None;
 		EnumPropertyItem *eitems;
@@ -652,16 +603,10 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		PyObject *pyopts= NULL;
 		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|sssO!:EnumProperty", (char **)kwlist, &id, &items, &name, &description, &def, &PySet_Type, &pyopts))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#O|sssO!:EnumProperty", (char **)kwlist, &id, &id_len, &items, &name, &description, &def, &PySet_Type, &pyopts))
 			return NULL;
 
-		if(RNA_def_property_free_identifier(srna, id) == -1) {
-			PyErr_Format(PyExc_TypeError, "EnumProperty(): '%s' is defined as a non-dynamic type.", id);
-			return NULL;
-		}
-
-		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "EnumProperty(options={...}):"))
-			return NULL;
+		BPY_PROPDEF_CHECK(EnumProperty)
 
 		eitems= enum_items_from_py(items, def, &defvalue);
 		if(!eitems)
@@ -718,22 +663,17 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 	if(srna) {
 		static const char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		PropertyRNA *prop;
 		StructRNA *ptype;
 		PyObject *type= Py_None;
 		PyObject *pyopts= NULL;
 		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ssO!:PointerProperty", (char **)kwlist, &id, &type, &name, &description, &PySet_Type, &pyopts))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#O|ssO!:PointerProperty", (char **)kwlist, &id, &id_len, &type, &name, &description, &PySet_Type, &pyopts))
 			return NULL;
 
-		if(RNA_def_property_free_identifier(srna, id) == -1) {
-			PyErr_Format(PyExc_TypeError, "PointerProperty(): '%s' is defined as a non-dynamic type.", id);
-			return NULL;
-		}
-
-		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "PointerProperty(options={...}):"))
-			return NULL;
+		BPY_PROPDEF_CHECK(PointerProperty)
 
 		ptype= pointer_type_from_py(type, "PointerProperty(...):");
 		if(!ptype)
@@ -767,22 +707,17 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 	if(srna) {
 		static const char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
 		char *id=NULL, *name="", *description="";
+		int id_len;
 		PropertyRNA *prop;
 		StructRNA *ptype;
 		PyObject *type= Py_None;
 		PyObject *pyopts= NULL;
 		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ssO!:CollectionProperty", (char **)kwlist, &id, &type, &name, &description, &PySet_Type, &pyopts))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s#O|ssO!:CollectionProperty", (char **)kwlist, &id, &id_len, &type, &name, &description, &PySet_Type, &pyopts))
 			return NULL;
 
-		if(RNA_def_property_free_identifier(srna, id) == -1) {
-			PyErr_Format(PyExc_TypeError, "CollectionProperty(): '%s' is defined as a non-dynamic type.", id);
-			return NULL;
-		}
-
-		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "CollectionProperty(options={...}):"))
-			return NULL;
+		BPY_PROPDEF_CHECK(CollectionProperty)
 
 		ptype= pointer_type_from_py(type, "CollectionProperty(...):");
 		if(!ptype)

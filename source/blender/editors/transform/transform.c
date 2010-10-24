@@ -2916,9 +2916,19 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			
 			sub_v3_v3v3(vec, vec, td->center); // Translation needed from the initial location
 			
-			mul_m3_v3(pmtx, vec);	// To Global space
-			mul_m3_v3(td->smtx, vec);// To Pose space
-			
+			/* special exception, see TD_PBONE_LOCAL_MTX definition comments */
+			if(td->flag & TD_PBONE_LOCAL_MTX_P) {
+				/* do nothing */
+			}
+			else if (td->flag & TD_PBONE_LOCAL_MTX_C) {
+				mul_m3_v3(pmtx, vec);	// To Global space
+				mul_m3_v3(td->ext->l_smtx, vec);// To Pose space (Local Location)
+			}
+			else {
+				mul_m3_v3(pmtx, vec);	// To Global space
+				mul_m3_v3(td->smtx, vec);// To Pose space
+			}
+
 			protectedTransBits(td->protectflag, vec);
 			
 			add_v3_v3v3(td->loc, td->iloc, vec);
@@ -3017,7 +3027,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				mat3_to_quat( quat,fmat);	// Actual transform
 				mul_qt_qtqt(tquat, quat, iquat);
 				
-				quat_to_axis_angle( td->ext->rotAxis, td->ext->rotAngle,quat); 
+				quat_to_axis_angle( td->ext->rotAxis, td->ext->rotAngle,tquat); 
 				
 				/* this function works on end result */
 				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
@@ -4563,7 +4573,26 @@ static int createSlideVerts(TransInfo *t)
 	start[0] = t->mval[0];
 	start[1] = t->mval[1];
 	add_v3_v3v3(end, start, vec);
-	
+
+
+	/* Ensure minimum screen distance, when looking top down on edge loops */
+#define EDGE_SLIDE_MIN 30
+	if (len_squared_v2v2(start, end) < (EDGE_SLIDE_MIN * EDGE_SLIDE_MIN)) {
+		if(ABS(start[0]-end[0]) + ABS(start[1]-end[1]) < 4.0f) {
+			/* even more exceptional case, points are ontop of eachother */
+			end[0]= start[0];
+			end[1]= start[1] + EDGE_SLIDE_MIN;
+		}
+		else {
+			sub_v2_v2(end, start);
+			normalize_v2(end);
+			mul_v2_fl(end, EDGE_SLIDE_MIN);
+			add_v2_v2(end, start);
+		}
+	}
+#undef EDGE_SLIDE_MIN
+
+
 	sld->start[0] = (short) start[0];
 	sld->start[1] = (short) start[1];
 	sld->end[0] = (short) end[0];

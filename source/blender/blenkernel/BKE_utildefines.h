@@ -44,12 +44,14 @@
 #define STRINGIFY_ARG(x) #x
 #define STRINGIFY(x) STRINGIFY_ARG(x)
 
+/* useful for debugging */
+#define AT __FILE__ ":" STRINGIFY(__LINE__)
 
 
 #ifdef __GNUC__
 #  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #else
-#  define UNUSED(x) x
+#  define UNUSED(x) UNUSED_ ## x
 #endif
 
 /* these values need to be hardcoded in structs, dna does not recognize defines */
@@ -260,8 +262,8 @@ behaviour, though it may not be the best in practice.
 #define V_GROW(vec) \
 	V_SIZE(vec) > _##vec##_count ? _##vec##_count++ : \
 	((_##vec##_tmp = MEM_callocN(sizeof(*vec)*(_##vec##_count*2+2), #vec " " __FILE__ " ")),\
-	(vec && memcpy(_##vec##_tmp, vec, sizeof(*vec) * _##vec##_count)),\
-	(vec && (MEM_freeN(vec),1)),\
+	(void)(vec && memcpy(_##vec##_tmp, vec, sizeof(*vec) * _##vec##_count)),\
+	(void)(vec && (MEM_freeN(vec),1)),\
 	(vec = _##vec##_tmp),\
 	_##vec##_count++)
 

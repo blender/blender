@@ -1803,7 +1803,7 @@ int NodeTagIDChanged(bNodeTree *ntree, ID *id)
 {
 	int change = FALSE;
 
-	if(id==NULL)
+	if(ELEM(NULL, id, ntree))
 		return change;
 	
 	if(ntree->type==NTREE_COMPOSIT) {

@@ -220,7 +220,8 @@ typedef struct ArrayModifierData {
 typedef struct MirrorModifierData {
 	ModifierData modifier;
 
-	short axis, flag;
+	short axis; /* deprecated, use flag instead */
+	short flag;
 	float tolerance;
 	struct Object *mirror_ob;
 } MirrorModifierData;

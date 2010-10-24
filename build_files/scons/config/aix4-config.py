@@ -190,7 +190,7 @@ BF_PROFILE_FLAGS = ['-pg','-g']
 BF_PROFILE = 'false'
 
 BF_DEBUG = 'false'
-BF_DEBUG_FLAGS = '-g'
+BF_DEBUG_CCFLAGS = ['-g']
 
 BF_BUILDDIR = '../build/aix4'
 BF_INSTALLDIR='../install/aix4'

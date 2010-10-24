@@ -760,9 +760,10 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, bpy.types.Panel):
         render = context.scene.render
 
         col = layout.column()
+        col.active = False #Currently only opengl preview works!
         col.prop(render, "use_sequencer_gl_preview", text="Open GL Preview")
         col = layout.column()
-        col.active = render.use_sequencer_gl_preview
+        #col.active = render.use_sequencer_gl_preview
         col.prop(render, "sequencer_gl_preview", text="")
 
         '''

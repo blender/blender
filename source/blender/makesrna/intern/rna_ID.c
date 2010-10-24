@@ -29,6 +29,7 @@
 #include "RNA_define.h"
 
 #include "DNA_ID.h"
+#include "DNA_vfont_types.h"
 
 #include "WM_types.h"
 
@@ -99,7 +100,8 @@ static int rna_ID_name_editable(PointerRNA *ptr)
 	ID *id= (ID*)ptr->data;
 	
 	if (GS(id->name) == ID_VF) {
-		if (strcmp(id->name+2, "<builtin>")==0)
+		VFont *vf= (VFont *)id;
+		if (strcmp(vf->name, FO_BUILTIN_NAME)==0)
 			return 0;
 	}
 	

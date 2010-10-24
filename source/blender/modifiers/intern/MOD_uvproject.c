@@ -84,7 +84,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(
 	CustomDataMask dataMask = 0;
 
 	/* ask for UV coordinates */
-	dataMask |= (1 << CD_MTFACE);
+	dataMask |= CD_MASK_MTFACE;
 
 	return dataMask;
 }

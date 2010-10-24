@@ -559,25 +559,9 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene
 	}
 }
 
-static View3D *view3d_from_wmn(ARegion *ar, wmNotifier *wmn)
-{
-	wmWindow *win= wmn->wm->winactive;
-	ScrArea *sa;
-
-	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype == SPACE_VIEW3D)
-			if(BLI_findindex(&sa->regionbase, ar) != -1) {
-				return (View3D *)sa->spacedata.first;
-			}
-	}
-
-	return NULL;
-}
-
 static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	bScreen *sc;
-	View3D *v3d;
 
 	/* context changes */
 	switch(wmn->category) {
@@ -615,9 +599,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_WORLD:
-					v3d= view3d_from_wmn(ar, wmn);
-					if(v3d->flag2 & V3D_RENDER_OVERRIDE)
-						ED_region_tag_redraw(ar);
+					/* handled by space_view3d_listener() for v3d access */
 					break;
 			}
 			if (wmn->action == NA_EDITED)
@@ -669,9 +651,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_WORLD:
 			switch(wmn->data) {
 				case ND_WORLD_DRAW:
-					v3d= view3d_from_wmn(ar, wmn);
-					if(v3d->flag2 & V3D_RENDER_OVERRIDE)
-						ED_region_tag_redraw(ar);
+					/* handled by space_view3d_listener() for v3d access */
 					break;
 			}
 			break;
@@ -910,12 +890,53 @@ static void view3d_props_area_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
+/*area (not region) level listener*/
+void space_view3d_listener(struct ScrArea *sa, struct wmNotifier *wmn)
+{
+	View3D *v3d = sa->spacedata.first;
+
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_WORLD:
+					if(v3d->flag2 & V3D_RENDER_OVERRIDE)
+						ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
+					break;
+			}
+			break;
+		case NC_WORLD:
+			switch(wmn->data) {
+				case ND_WORLD_DRAW:
+					if(v3d->flag2 & V3D_RENDER_OVERRIDE)
+						ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
+					break;
+			}
+			break;
+
+	}
+
+#if 0 // removed since BKE_image_user_calc_frame is now called in draw_bgpic because screen_ops doesnt call the notifier.
+	if (wmn->category == NC_SCENE && wmn->data == ND_FRAME) {
+		View3D *v3d = area->spacedata.first;
+		BGpic *bgpic = v3d->bgpicbase.first;
+
+		for (; bgpic; bgpic = bgpic->next) {
+			if (bgpic->ima) {
+				Scene *scene = wmn->reference;
+				BKE_image_user_calc_frame(&bgpic->iuser, scene->r.cfra, 0);
+			}
+		}
+	}
+#endif
+}
+
 static int view3d_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	Base *base;
-	int lay = v3d ? v3d->lay:scene->lay; /* fallback to the scene layer, allows duplicate and other oject operators to run outside the 3d view */
+	unsigned int lay = v3d ? v3d->lay:scene->lay; /* fallback to the scene layer, allows duplicate and other oject operators to run outside the 3d view */
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
@@ -1012,23 +1033,6 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	return -1; /* found but not available */
 }
 
-/*area (not region) level listener*/
-#if 0 // removed since BKE_image_user_calc_frame is now called in draw_bgpic because screen_ops doesnt call the notifier.
-void space_view3d_listener(struct ScrArea *area, struct wmNotifier *wmn)
-{
-	if (wmn->category == NC_SCENE && wmn->data == ND_FRAME) {
-		View3D *v3d = area->spacedata.first;
-		BGpic *bgpic = v3d->bgpicbase.first;
-
-		for (; bgpic; bgpic = bgpic->next) {
-			if (bgpic->ima) {
-				Scene *scene = wmn->reference;
-				BKE_image_user_calc_frame(&bgpic->iuser, scene->r.cfra, 0);
-			}
-		}
-	}
-}
-#endif
 
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_view3d(void)
@@ -1042,7 +1046,7 @@ void ED_spacetype_view3d(void)
 	st->new= view3d_new;
 	st->free= view3d_free;
 	st->init= view3d_init;
-//	st->listener = space_view3d_listener;
+	st->listener = space_view3d_listener;
 	st->duplicate= view3d_duplicate;
 	st->operatortypes= view3d_operatortypes;
 	st->keymap= view3d_keymap;

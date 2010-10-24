@@ -48,29 +48,29 @@ void mul_qt_v3(const float q[4], float r[3]);
 void mul_qt_fl(float q[4], const float f);
 void mul_fac_qt_fl(float q[4], const float f);
 
-void sub_qt_qtqt(float q[4], float a[4], float b[4]);
+void sub_qt_qtqt(float q[4], const float a[4], const float b[4]);
 
 void invert_qt(float q[4]);
 void invert_qt_qt(float *q1, const float *q2);
 void conjugate_qt(float q[4]);
-float dot_qtqt(float a[4], float b[4]);
+float dot_qtqt(const float a[4], const float b[4]);
 void normalize_qt(float q[4]);
 
 /* comparison */
 int is_zero_qt(float q[4]);
 
 /* interpolation */
-void interp_qt_qtqt(float q[4], float a[4], float b[4], float t);
-void add_qt_qtqt(float q[4], float a[4], float b[4], float t);
+void interp_qt_qtqt(float q[4], const float a[4], const float b[4], const float t);
+void add_qt_qtqt(float q[4], const float a[4], const float b[4], const float t);
 
 /* conversion */
-void quat_to_mat3(float mat[3][3], float q[4]);
-void quat_to_mat4(float mat[4][4], float q[4]);
+void quat_to_mat3(float mat[3][3], const float q[4]);
+void quat_to_mat4(float mat[4][4], const float q[4]);
 
 void mat3_to_quat(float q[4], float mat[3][3]);
 void mat4_to_quat(float q[4], float mat[4][4]);
-void tri_to_quat(float q[4], float a[3], float b[3], float c[3]);
-void vec_to_quat(float q[4], float vec[3], short axis, short upflag);
+void tri_to_quat(float q[4], const float a[3], const float b[3], const float c[3]);
+void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag);
 /* note: v1 and v2 must be normalized */
 void rotation_between_vecs_to_quat(float q[4], const float v1[3], const float v2[3]);
 void rotation_between_quats_to_quat(float q[4], const float q1[4], const float q2[4]);
@@ -84,11 +84,11 @@ void print_qt(char *str, float q[4]);
 /******************************** Axis Angle *********************************/
 
 /* conversion */
-void axis_angle_to_quat(float r[4], float axis[3], float angle);
-void axis_angle_to_mat3(float R[3][3], float axis[3], float angle);
-void axis_angle_to_mat4(float R[4][4], float axis[3], float angle);
+void axis_angle_to_quat(float r[4], const float axis[3], float angle);
+void axis_angle_to_mat3(float R[3][3], const float axis[3], const float angle);
+void axis_angle_to_mat4(float R[4][4], const float axis[3], const float angle);
 
-void quat_to_axis_angle(float axis[3], float *angle, float q[4]);
+void quat_to_axis_angle(float axis[3], float *angle, const float q[4]);
 void mat3_to_axis_angle(float axis[3], float *angle, float M[3][3]);
 void mat4_to_axis_angle(float axis[3], float *angle, float M[4][4]);
 
@@ -100,24 +100,24 @@ void mat4_to_axis_angle(float axis[3], float *angle, float M[4][4]);
 void mat3_to_vec_rot(float vec[3], float *phi, float mat[3][3]);
 void mat4_to_vec_rot(float vec[3], float *phi, float mat[4][4]);
 
-void vec_rot_to_quat(float quat[4], float vec[3], float phi);
-void vec_rot_to_mat3(float mat[3][3], float vec[3], float phi);
-void vec_rot_to_mat4(float mat[4][4], float vec[3], float phi);
+void vec_rot_to_quat(float quat[4], const float vec[3], const float phi);
+void vec_rot_to_mat3(float mat[3][3], const float vec[3], const float phi);
+void vec_rot_to_mat4(float mat[4][4], const float vec[3], const float phi);
 
 /******************************** XYZ Eulers *********************************/
 
-void eul_to_quat(float quat[4], float eul[3]);
-void eul_to_mat3(float mat[3][3], float eul[3]);
-void eul_to_mat4(float mat[4][4], float eul[3]);
+void eul_to_quat(float quat[4], const float eul[3]);
+void eul_to_mat3(float mat[3][3], const float eul[3]);
+void eul_to_mat4(float mat[4][4], const float eul[3]);
 
-void quat_to_eul(float eul[3], float quat[4]);
+void quat_to_eul(float eul[3], const float quat[4]);
 void mat3_to_eul(float eul[3], float mat[3][3]);
 void mat4_to_eul(float eul[3], float mat[4][4]);
 
-void compatible_eul(float eul[3], float old[3]);
-void mat3_to_compatible_eul(float eul[3], float old[3], float mat[3][3]);
+void compatible_eul(float eul[3], const float old[3]);
+void mat3_to_compatible_eul(float eul[3], const float old[3], float mat[3][3]);
 
-void rotate_eul(float eul[3], char axis, float angle);
+void rotate_eul(float eul[3], const char axis, const float angle);
 
 /************************** Arbitrary Order Eulers ***************************/
 
@@ -135,16 +135,16 @@ typedef enum eEulerRotationOrders {
 	/* there are 6 more entries with dulpicate entries included */
 } eEulerRotationOrders;
 
-void eulO_to_quat(float quat[4], float eul[3], short order);
-void eulO_to_mat3(float mat[3][3], float eul[3], short order);
-void eulO_to_mat4(float mat[4][4], float eul[3], short order);
-void eulO_to_axis_angle(float axis[3], float *angle, float eul[3], short order);
-void eulO_to_gimbal_axis(float gmat[3][3], float eul[3], short order);
+void eulO_to_quat(float quat[4], const float eul[3], const short order);
+void eulO_to_mat3(float mat[3][3], const float eul[3], const short order);
+void eulO_to_mat4(float mat[4][4], const float eul[3], const short order);
+void eulO_to_axis_angle(float axis[3], float *angle, const float eul[3], const short order);
+void eulO_to_gimbal_axis(float gmat[3][3], const float eul[3], const short order);
  
-void quat_to_eulO(float eul[3], short order, float quat[4]);
-void mat3_to_eulO(float eul[3], short order, float mat[3][3]);
-void mat4_to_eulO(float eul[3], short order, float mat[4][4]);
-void axis_angle_to_eulO(float eul[3], short order, float axis[3], float angle);
+void quat_to_eulO(float eul[3], const short order, const float quat[4]);
+void mat3_to_eulO(float eul[3], const short order, float mat[3][3]);
+void mat4_to_eulO(float eul[3], const short order, float mat[4][4]);
+void axis_angle_to_eulO(float eul[3], const short order, const float axis[3], const float angle);
 
 void mat3_to_compatible_eulO(float eul[3], float old[3], short order, float mat[3][3]);
 void mat4_to_compatible_eulO(float eul[3], float old[3], short order, float mat[4][4]);

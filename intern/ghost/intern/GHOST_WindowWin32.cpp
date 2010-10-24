@@ -175,7 +175,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			top,					// vertical position of window
 			width,						// window width
 			height,						// window height
-			0,							// handle to parent or owner window
+			HWND_DESKTOP,				// handle to parent or owner window
 			0,							// handle to menu or child-window identifier
 			::GetModuleHandle(0),		// handle to application instance
 			0);							// pointer to window-creation data
@@ -189,7 +189,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
  			top,						// vertical position of window
 			width,						// window width
 			height,						// window height
-			0,							// handle to parent or owner window
+			HWND_DESKTOP,				// handle to parent or owner window
 			0,							// handle to menu or child-window identifier
 			::GetModuleHandle(0),		// handle to application instance
 			0);							// pointer to window-creation data
@@ -373,15 +373,24 @@ void GHOST_WindowWin32::getWindowBounds(GHOST_Rect& bounds) const
 void GHOST_WindowWin32::getClientBounds(GHOST_Rect& bounds) const
 {
 	RECT rect;
-
+	GHOST_TWindowState state= this->getState();
 	LONG_PTR result = ::GetWindowLongPtr(m_hWnd, GWL_STYLE);
+	int sm_cysizeframe = GetSystemMetrics(SM_CYSIZEFRAME);
 	::GetWindowRect(m_hWnd, &rect);
 
 	if((result & (WS_POPUP | WS_MAXIMIZE)) != (WS_POPUP | WS_MAXIMIZE)) {
-		bounds.m_b = rect.bottom-GetSystemMetrics(SM_CYCAPTION)-GetSystemMetrics(SM_CYSIZEFRAME)*2;
-		bounds.m_l = rect.left;
-		bounds.m_r = rect.right-GetSystemMetrics(SM_CYSIZEFRAME)*2;
-		bounds.m_t = rect.top;
+		if(state==GHOST_kWindowStateMaximized) {
+			// in maximized state we don't have borders on the window
+			bounds.m_b = rect.bottom-GetSystemMetrics(SM_CYCAPTION)- sm_cysizeframe*2;
+			bounds.m_l = rect.left + sm_cysizeframe;
+			bounds.m_r = rect.right - sm_cysizeframe;
+			bounds.m_t = rect.top;
+		} else {
+			bounds.m_b = rect.bottom-GetSystemMetrics(SM_CYCAPTION)-sm_cysizeframe*2;
+			bounds.m_l = rect.left;
+			bounds.m_r = rect.right-sm_cysizeframe*2;
+			bounds.m_t = rect.top;
+		}
 	} else {
 		::GetWindowRect(m_hWnd, &rect);
 		bounds.m_b = rect.bottom;
@@ -686,7 +695,7 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 			m_hGlRc = ::wglCreateContext(m_hDC);
 			if (m_hGlRc) {
 				if (s_firsthGLRc) {
-					wglShareLists(s_firsthGLRc, m_hGlRc);
+					::wglShareLists(s_firsthGLRc, m_hGlRc);
 				} else {
 					s_firsthGLRc = m_hGlRc;
 				}
@@ -752,9 +761,10 @@ GHOST_TSuccess GHOST_WindowWin32::removeDrawingContext()
 	switch (m_drawingContextType) {
 	case GHOST_kDrawingContextTypeOpenGL:
 		if (m_hGlRc) {
+			bool first = m_hGlRc == s_firsthGLRc;
 			success = ::wglDeleteContext(m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
-			if (m_hGlRc == s_firsthGLRc) {
-				s_firsthGLRc = NULL;
+			if (first) {
+				s_firsthGLRc = 0;
 			}
 			m_hGlRc = 0;
 		}

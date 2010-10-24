@@ -1177,6 +1177,13 @@ static void restoreElement(TransData *td) {
 		if (td->ext->rot) {
 			VECCOPY(td->ext->rot, td->ext->irot);
 		}
+		if(td->ext->rotAngle) {
+			*td->ext->rotAngle= td->ext->irotAngle;
+		}
+		if(td->ext->rotAxis) {
+			VECCOPY(td->ext->rotAxis, td->ext->irotAxis);
+		}
+		/* XXX, drotAngle & drotAxis not used yet */
 		if (td->ext->size) {
 			VECCOPY(td->ext->size, td->ext->isize);
 		}

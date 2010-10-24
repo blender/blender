@@ -24,7 +24,12 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC .)
-SET(SRC ./intern/STR_String.cpp)
+SET(INC
+	.
+)
+
+SET(SRC
+	./intern/STR_String.cpp
+)
 
 BLENDERLIB(bf_intern_string "${SRC}" "${INC}")

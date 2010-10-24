@@ -405,6 +405,19 @@ void ED_area_tag_redraw(ScrArea *sa)
 			ED_region_tag_redraw(ar);
 }
 
+void ED_area_tag_redraw_regiontype(ScrArea *sa, int regiontype)
+{
+	ARegion *ar;
+	
+	if(sa) {
+		for(ar= sa->regionbase.first; ar; ar= ar->next) {
+			if(ar->regiontype == regiontype) {
+				ED_region_tag_redraw(ar);
+			}
+		}
+	}
+}
+
 void ED_area_tag_refresh(ScrArea *sa)
 {
 	if(sa)

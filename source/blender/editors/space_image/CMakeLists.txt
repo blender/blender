@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC
 	../include
 	../../blenkernel
@@ -31,6 +29,15 @@ SET(INC
 	../../windowmanager
 	../../render/extern/include
 	../../../../intern/guardedalloc
+)
+
+SET(SRC
+	image_buttons.c
+	image_draw.c
+	image_header.c
+	image_ops.c
+	image_render.c
+	space_image.c
 )
 
 IF(WITH_IMAGE_OPENEXR)

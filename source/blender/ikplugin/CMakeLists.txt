@@ -24,12 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-
-SET(SRC
-	./intern/ikplugin_api.c
-	./intern/iksolver_plugin.c
-)
-
 SET(INC 
 	../blenlib
 	../makesdna
@@ -38,6 +32,11 @@ SET(INC
 	../ikplugin
 	../../../intern/guardedalloc
 	../../../intern/iksolver/extern
+)
+
+SET(SRC
+	./intern/ikplugin_api.c
+	./intern/iksolver_plugin.c
 )
 
 IF(WITH_IK_ITASC)

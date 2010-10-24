@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.c)
-
 SET(INC
 	../include
 	../../blenkernel
@@ -36,12 +34,29 @@ SET(INC
 	../../../../intern/guardedalloc
 )
 
-IF(NOT WITH_PYTHON)
-	ADD_DEFINITIONS(-DDISABLE_PYTHON)
-ENDIF(NOT WITH_PYTHON)
+SET(SRC
+	object_add.c
+	object_bake.c
+	object_constraint.c
+	object_edit.c
+	object_group.c
+	object_hook.c
+	object_lattice.c
+	object_modifier.c
+	object_ops.c
+	object_relations.c
+	object_select.c
+	object_shapekey.c
+	object_transform.c
+	object_vgroup.c
+)
 
 IF(WIN32)
 	LIST(APPEND INC ${PTHREADS_INC})
 ENDIF(WIN32)
+
+IF(NOT WITH_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(NOT WITH_PYTHON)
 
 BLENDERLIB(bf_editor_object "${SRC}" "${INC}")

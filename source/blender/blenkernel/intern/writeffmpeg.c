@@ -955,7 +955,7 @@ int append_ffmpeg(RenderData *rd, int frame, int *pixels, int rectx, int recty, 
 
 void end_ffmpeg(void)
 {
-	int i;
+	unsigned int i;
 	
 	fprintf(stderr, "Closing ffmpeg...\n");
 
@@ -1058,6 +1058,8 @@ IDProperty *ffmpeg_property_add(RenderData *rd, char * type, int opt_index, int 
 	IDPropertyTemplate val;
 	int idp_type;
 	char name[256];
+	
+	val.i = 0;
 
 	avcodec_get_context_defaults(&c);
 
@@ -1065,8 +1067,6 @@ IDProperty *ffmpeg_property_add(RenderData *rd, char * type, int opt_index, int 
 	parent = c.av_class->option + parent_index;
 
 	if (!rd->ffcodecdata.properties) {
-		IDPropertyTemplate val;
-
 		rd->ffcodecdata.properties 
 			= IDP_New(IDP_GROUP, val, "ffmpeg"); 
 	}
@@ -1075,8 +1075,6 @@ IDProperty *ffmpeg_property_add(RenderData *rd, char * type, int opt_index, int 
 		rd->ffcodecdata.properties, (char*) type);
 	
 	if (!group) {
-		IDPropertyTemplate val;
-		
 		group = IDP_New(IDP_GROUP, val, (char*) type); 
 		IDP_AddToGroup(rd->ffcodecdata.properties, group);
 	}

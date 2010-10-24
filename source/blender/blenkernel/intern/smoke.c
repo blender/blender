@@ -1270,7 +1270,7 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 		}
 	}
 }
-void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm, int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
+void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
 {	
 	if((smd->type & MOD_SMOKE_TYPE_FLOW))
 	{

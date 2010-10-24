@@ -517,7 +517,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	int charmax = G.charmax;
 	
 	/* <builtin> font in use. There are TTF <builtin> and non-TTF <builtin> fonts */
-	if(!strcmp(G.selfont->name, "<builtin>"))
+	if(!strcmp(G.selfont->name, FO_BUILTIN_NAME))
 	{
 		if(G.ui_international == TRUE)
 		{
@@ -548,8 +548,8 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 
 	cs = G.charstart;
 
-	/* Set the font, in case it is not <builtin> font */
-	if(G.selfont && strcmp(G.selfont->name, "<builtin>"))
+	/* Set the font, in case it is not FO_BUILTIN_NAME font */
+	if(G.selfont && strcmp(G.selfont->name, FO_BUILTIN_NAME))
 	{
 		char tmpStr[256];
 
@@ -605,9 +605,9 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 			memset(wstr, 0, sizeof(wchar_t)*2);
 			memset(ustr, 0, 16);
 
-			// Set the font to be either unicode or <builtin>				
+			// Set the font to be either unicode or FO_BUILTIN_NAME	
 			wstr[0] = cs;
-			if(strcmp(G.selfont->name, "<builtin>"))
+			if(strcmp(G.selfont->name, FO_BUILTIN_NAME))
 			{
 				wcs2utf8s((char *)ustr, (wchar_t *)wstr);
 			}
@@ -624,7 +624,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 				}
 			}
 
-			if((G.selfont && strcmp(G.selfont->name, "<builtin>")) || (G.selfont && !strcmp(G.selfont->name, "<builtin>") && G.ui_international == TRUE))
+			if((G.selfont && strcmp(G.selfont->name, FO_BUILTIN_NAME)) || (G.selfont && !strcmp(G.selfont->name, FO_BUILTIN_NAME) && G.ui_international == TRUE))
 			{
 				float wid;
 				float llx, lly, llz, urx, ury, urz;

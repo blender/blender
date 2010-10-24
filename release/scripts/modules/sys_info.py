@@ -68,7 +68,11 @@ def write_sysinfo(op):
 	output.write('version {}, revision {}. {}\n'.format(bpy.app.version_string, bpy.app.build_revision, bpy.app.build_type))
 	output.write('build date: {}, {}\n'.format(bpy.app.build_date, bpy.app.build_time))
 	output.write('platform: {}\n'.format(bpy.app.build_platform))
-	output.write('binary path: {}\n\n'.format(bpy.app.binary_path))
+	output.write('binary path: {}\n'.format(bpy.app.binary_path))
+	output.write('build cflags: {}\n'.format(bpy.app.build_cflags))
+	output.write('build cxxflags: {}\n'.format(bpy.app.build_cxxflags))
+	output.write('build linkflags: {}\n'.format(bpy.app.build_linkflags))
+	output.write('build system: {}\n'.format(bpy.app.build_system))
 
 	# python info
 	output.write('\nPython:\n')

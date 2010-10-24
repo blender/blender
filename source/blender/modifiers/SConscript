@@ -12,6 +12,10 @@ incs += ' ' + env['BF_ZLIB_INC']
 
 defs = []
 
+# could be made optional
+defs += ['WITH_MOD_BOOLEAN']
+defs += ['WITH_MOD_DECIMATE']
+
 if env['BF_NO_ELBEEM']:
     defs.append('DISABLE_ELBEEM')
 

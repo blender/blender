@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(SRC CcdPhysicsEnvironment.cpp CcdPhysicsController.cpp CcdGraphicController.cpp)
-
 SET(INC
 	.
 	../common
@@ -44,6 +42,12 @@ SET(INC
 	../../../../source/blender/blenlib
 	../../../../source/blender/blenkernel
 	${PYTHON_INC}
+)
+
+SET(SRC
+	CcdPhysicsEnvironment.cpp
+	CcdPhysicsController.cpp
+	CcdGraphicController.cpp
 )
 
 IF(WITH_BULLET)

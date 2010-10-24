@@ -32,7 +32,7 @@ SET(INC
 	../../source/blender/blenloader
 )
 
-FILE(GLOB SRC   
+SET(SRC
 	gen_messaging/intern/messaging.c
 	gen_system/GEN_HashedPtr.cpp
 	gen_system/GEN_Matrix4x4.cpp

@@ -25,8 +25,6 @@
 
 ADD_SUBDIRECTORY(generic)
 
-FILE(GLOB SRC intern/*.c)
-
 SET(INC 
 	.
 	../blenlib
@@ -39,6 +37,21 @@ SET(INC
 	../../../intern/guardedalloc
 	../../../intern/audaspace/intern
 	${PYTHON_INC}
+)
+
+SET(SRC
+	intern/bpy.c
+	intern/bpy_app.c
+	intern/bpy_array.c
+	intern/bpy_driver.c
+	intern/bpy_interface.c
+	intern/bpy_operator.c
+	intern/bpy_operator_wrap.c
+	intern/bpy_props.c
+	intern/bpy_rna.c
+	intern/bpy_rna_callback.c
+	intern/bpy_util.c
+	intern/stubs.c
 )
 
 # only to check if buildinfo is available

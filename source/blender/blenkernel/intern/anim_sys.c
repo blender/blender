@@ -1877,22 +1877,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	EVAL_ANIM_IDS(main->mball.first, ADT_RECALC_ANIM);
 	
 	/* curves */
-		/* we need to perform a special hack here to ensure that the ctime 
-		 * value of the curve gets set in case there's no animation for that
-		 *	- it needs to be set before animation is evaluated just so that 
-		 *	  animation can successfully override...
-		 *	- it shouldn't get set when calculating drivers...
-		 */
-	for (id= main->curve.first; id; id= id->next) {
-		AnimData *adt= BKE_animdata_from_id(id);
-		Curve *cu= (Curve *)id;
-		
-		/* set ctime variable for curve */
-		cu->ctime= ctime;
-		
-		/* now execute animation data on top of this as per normal */
-		BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM);
-	}
+	EVAL_ANIM_IDS(main->curve.first, ADT_RECALC_ANIM);
 	
 	/* armatures */
 	EVAL_ANIM_IDS(main->armature.first, ADT_RECALC_ANIM);

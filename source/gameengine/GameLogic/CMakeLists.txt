@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.cpp Joystick/*.cpp)
-
 SET(INC
 	. 
 	../../../source/kernel/gen_system 
@@ -34,6 +32,51 @@ SET(INC
 	../../../source/gameengine/SceneGraph
 	../../../intern/moto/include
 	../../../source/gameengine/Rasterizer
+)
+
+SET(SRC
+	Joystick/SCA_Joystick.cpp
+	Joystick/SCA_JoystickEvents.cpp
+	SCA_2DFilterActuator.cpp
+	SCA_ANDController.cpp
+	SCA_ActuatorEventManager.cpp
+	SCA_ActuatorSensor.cpp
+	SCA_AlwaysEventManager.cpp
+	SCA_AlwaysSensor.cpp
+	SCA_BasicEventManager.cpp
+	SCA_DelaySensor.cpp
+	SCA_EventManager.cpp
+	SCA_ExpressionController.cpp
+	SCA_IActuator.cpp
+	SCA_IController.cpp
+	SCA_IInputDevice.cpp
+	SCA_ILogicBrick.cpp
+	SCA_IObject.cpp
+	SCA_IScene.cpp
+	SCA_ISensor.cpp
+	SCA_JoystickManager.cpp
+	SCA_JoystickSensor.cpp
+	SCA_KeyboardManager.cpp
+	SCA_KeyboardSensor.cpp
+	SCA_LogicManager.cpp
+	SCA_MouseManager.cpp
+	SCA_MouseSensor.cpp
+	SCA_NANDController.cpp
+	SCA_NORController.cpp
+	SCA_ORController.cpp
+	SCA_PropertyActuator.cpp
+	SCA_PropertyEventManager.cpp
+	SCA_PropertySensor.cpp
+	SCA_PythonController.cpp
+	SCA_PythonKeyboard.cpp
+	SCA_PythonMouse.cpp
+	SCA_RandomActuator.cpp
+	SCA_RandomEventManager.cpp
+	SCA_RandomNumberGenerator.cpp
+	SCA_RandomSensor.cpp
+	SCA_TimeEventManager.cpp
+	SCA_XNORController.cpp
+	SCA_XORController.cpp
 )
 
 IF(WITH_SDL)

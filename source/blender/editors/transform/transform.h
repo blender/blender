@@ -131,8 +131,8 @@ typedef struct TransCon {
 
 typedef struct TransDataExtension {
 	float drot[3];		 /* Initial object drot */
-	float drotAngle;	 /* Initial object drotAngle */
-	float drotAxis[3];	 /* Initial object drotAxis */
+	// float drotAngle;	 /* Initial object drotAngle,    TODO: not yet implimented */
+	// float drotAxis[3];	 /* Initial object drotAxis, TODO: not yet implimented */
 	float dquat[4];		 /* Initial object dquat */
 	float dsize[3];		 /* Initial object dsize */
 	float *rot;          /* Rotation of the data to transform (Faculative)                                 */
@@ -146,6 +146,7 @@ typedef struct TransDataExtension {
 	float *size;         /* Size of the data to transform (Faculative)                                     */
 	float  isize[3];	 /* Initial size                                                                   */
 	float  obmat[4][4];	 /* Object matrix */
+	float  l_smtx[3][3]; /* use instead of td->smtx, It is the same but without the 'bone->bone_mat', see TD_PBONE_LOCAL_MTX_C */
 } TransDataExtension;
 
 typedef struct TransData2D {
@@ -432,6 +433,8 @@ typedef struct TransInfo {
 #define TD_MIRROR_EDGE	 	(1 << 16) 	/* For editmode mirror, clamp to x = 0 */
 #define TD_MOVEHANDLE1		(1 << 17)	/* For fcurve handles, move them along with their keyframes */
 #define TD_MOVEHANDLE2		(1 << 18)
+#define TD_PBONE_LOCAL_MTX_P (1 << 19)	/* exceptional case with pose bone rotating when a parent bone has 'Local Location' option enabled and rotating also transforms it. */
+#define TD_PBONE_LOCAL_MTX_C (1 << 20)	/* same as above but for a child bone */
 
 /* transsnap->status */
 #define SNAP_FORCED		1

@@ -2094,7 +2094,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_drag_immediately", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_RELEASECONFIRM);
-	RNA_def_property_ui_text(prop, "Release confirm", "Moving things with a mouse drag confirms when releasing the button");
+	RNA_def_property_ui_text(prop, "Release confirms", "Moving things with a mouse drag confirms when releasing the button");
 	
 	/* Undo */
 	prop= RNA_def_property(srna, "undo_steps", PROP_INT, PROP_NONE);

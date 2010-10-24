@@ -24,12 +24,20 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
-
 SET(INC 
 	.
 	../../../intern/guardedalloc
 	${JPEG_INC}
+)
+
+SET(SRC
+	intern/avi.c
+	intern/avirgb.c
+	intern/codecs.c
+	intern/endian.c
+	intern/mjpeg.c
+	intern/options.c
+	intern/rgb32.c
 )
 
 BLENDERLIB(bf_avi "${SRC}" "${INC}")

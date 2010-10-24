@@ -297,7 +297,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 	/* ask for vertexgroups if we need them */
 	if(smd->vgroup_name[0])
-		dataMask |= (1 << CD_MDEFORMVERT);
+		dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }

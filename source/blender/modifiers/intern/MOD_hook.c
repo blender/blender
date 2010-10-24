@@ -75,8 +75,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(hmd->name[0]) dataMask |= (1 << CD_MDEFORMVERT);
-	// if(hmd->indexar) dataMask |= CD_MASK_ORIGINDEX;
+	if(hmd->name[0]) dataMask |= CD_MASK_MDEFORMVERT;
+	if(hmd->indexar) dataMask |= CD_MASK_ORIGINDEX;
 
 	return dataMask;
 }
@@ -138,7 +138,7 @@ static float hook_falloff(float *co_1, float *co_2, const float falloff_squared,
 }
 
 static void deformVerts(ModifierData *md, Object *ob,
-						DerivedMesh *derivedData,
+						DerivedMesh *dm,
 						float (*vertexCos)[3],
 						int numVerts,
 						int UNUSED(useRenderParams),
@@ -148,7 +148,6 @@ static void deformVerts(ModifierData *md, Object *ob,
 	bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
 	float vec[3], mat[4][4], dmat[4][4];
 	int i, *index_pt;
-	DerivedMesh *dm = derivedData;
 	const float falloff_squared= hmd->falloff * hmd->falloff; /* for faster comparisons */
 	
 	int max_dvert= 0;

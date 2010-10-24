@@ -1696,7 +1696,8 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		cu = ob->data;
 		font = cu->vfont;
 	}
-	path = (font && font->name)? font->name: U.fontdir;
+	printf("%s\n", font->name);
+	path = (font && strcmp(font->name, FO_BUILTIN_NAME) != 0)? font->name: U.fontdir;
 	 
 	if(RNA_property_is_set(op->ptr, "filepath"))
 		return open_exec(C, op);
@@ -1737,7 +1738,7 @@ static int font_unlink_poll(bContext *C)
 	if (ob->type != OB_FONT) return 0;
 	
 	cu = ob->data;
-	if (cu && strcmp(cu->vfont->name, "<builtin>")==0) return 0;
+	if (cu && strcmp(cu->vfont->name, FO_BUILTIN_NAME)==0) return 0;
 	return 1;
 }
 
@@ -1755,7 +1756,7 @@ static int font_unlink_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	if (strcmp(font->name, "<builtin>")==0) {
+	if (strcmp(font->name, FO_BUILTIN_NAME)==0) {
 		BKE_report(op->reports, RPT_WARNING, "Can't unlink the default builtin font.");
 		return OPERATOR_FINISHED;
 	}

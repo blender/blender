@@ -623,12 +623,6 @@ void KX_BlenderSceneConverter::RegisterWorldInfo(
 	m_worldinfos.push_back(pair<KX_Scene*,KX_WorldInfo*>(m_currentScene,worldinfo));
 }
 
-//quick hack
-extern "C"
-{
-	void mat3_to_compatible_eul( float *eul, float *oldrot,float mat[][3]);
-}
-
 void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 {
 

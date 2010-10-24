@@ -68,7 +68,6 @@ GET_BLENDER_VERSION()
 OPTION(WITH_INTERNATIONAL "Enable I18N   (International fonts and text)" ON)
 OPTION(WITH_PYTHON        "Enable Embedded Python API" ON)
 OPTION(WITH_BUILDINFO     "Include extra build details" ON)
-OPTION(WITH_FLUID        "Enable Elbeem (Fluid Simulation)" ON)
 OPTION(WITH_IK_ITASC      "Enable ITASC IK solver" ON)
 OPTION(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" OFF)
 OPTION(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
@@ -80,6 +79,11 @@ IF(UNIX AND NOT APPLE)
 ELSE()
 	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
 ENDIF()
+
+# Modifiers
+OPTION(WITH_MOD_FLUID        	"Enable Elbeem Modifier (Fluid Simulation)" ON)
+OPTION(WITH_MOD_DECIMATE       	"Enable Decimate Modifier" ON)
+OPTION(WITH_MOD_BOOLEAN        	"Enable Boolean Modifier" ON)
 
 # Image format support
 OPTION(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
@@ -402,8 +406,8 @@ IF(WIN32)
 			SET(LLIBS kernel32 user32 gdi32 comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32 vfw32 winmm)
 		ENDIF(CMAKE_CL_64)
 		
-		SET(CMAKE_CXX_FLAGS "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /wd4800 /wd4244 /wd4305" CACHE STRING "MSVC MT C++ flags " FORCE)
-		SET(CMAKE_C_FLAGS   "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /wd4800 /wd4244 /wd4305" CACHE STRING "MSVC MT C++ flags " FORCE)
+		SET(CMAKE_CXX_FLAGS "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /we4013 /wd4800 /wd4244 /wd4305 /wd4065 /wd4267" CACHE STRING "MSVC MT C++ flags " FORCE)
+		SET(CMAKE_C_FLAGS   "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /we4013 /wd4800 /wd4244 /wd4305 /wd4065 /wd4267" CACHE STRING "MSVC MT C++ flags " FORCE)
 
 		IF(CMAKE_CL_64)
 			SET(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /Od /Gm /EHsc /RTC1 /MTd /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)

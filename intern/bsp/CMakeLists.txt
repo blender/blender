@@ -31,6 +31,10 @@ SET(INC
 	../memutil
 )
 
-FILE(GLOB SRC intern/*.cpp)
+SET(SRC
+	intern/BSP_CSGMesh.cpp
+	intern/BSP_MeshPrimitives.cpp
+	intern/CSG_BooleanOps.cpp
+)
 
 BLENDERLIB(bf_intern_bsp "${SRC}" "${INC}")

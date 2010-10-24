@@ -84,7 +84,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	if(emd->vgroup)
-		dataMask |= (1 << CD_MDEFORMVERT);
+		dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
 }

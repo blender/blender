@@ -24,8 +24,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC *.cpp)
-
 SET(INC
 	.
 	../../../source/gameengine/Ketsji
@@ -49,6 +47,25 @@ SET(INC
 	../../../intern/moto/include
 	../../../intern/guardedalloc
 	../../../extern/glew/include
+)
+
+SET(SRC
+	Exception.cpp
+	FilterBase.cpp
+	FilterBlueScreen.cpp
+	FilterColor.cpp
+	FilterNormal.cpp
+	FilterSource.cpp
+	ImageBase.cpp
+	ImageBuff.cpp
+	ImageMix.cpp
+	ImageRender.cpp
+	ImageViewport.cpp
+	PyTypeList.cpp
+	Texture.cpp
+	VideoBase.cpp
+	VideoFFmpeg.cpp
+	blendVideoTex.cpp
 )
 
 IF(WITH_FFMPEG)

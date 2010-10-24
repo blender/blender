@@ -558,6 +558,8 @@ static int run_script_poll(bContext *C)
 static int run_script_exec(bContext *C, wmOperator *op)
 {
 #ifdef DISABLE_PYTHON
+	(void)C; /* unused */
+
 	BKE_report(op->reports, RPT_ERROR, "Python disabled in this build");
 
 	return OPERATOR_CANCELLED;
