@@ -37,6 +37,7 @@
 #include "DNA_mesh_types.h"
 #include "KX_GameObject.h"
 #include "BL_MeshDeformer.h"
+#include "KX_SoftBodyDeformer.h"
 #include <vector>
 
 class BL_ShapeActionActuator;
@@ -79,7 +80,20 @@ public:
 	bool GetShape(vector<float> &shape);
 	Key* GetKey()
 	{
-		return (m_pDeformer) ? ((BL_MeshDeformer*)m_pDeformer)->GetMesh()->key : NULL;
+		if(m_pDeformer) {
+			BL_MeshDeformer *deformer= dynamic_cast<BL_MeshDeformer *>(m_pDeformer); // incase its not a MeshDeformer
+			if(deformer) {
+				return deformer->GetMesh()->key;
+			}
+
+#if 0		// TODO. shape keys for softbody, currently they dont store a mesh.
+			KX_SoftBodyDeformer *deformer_soft= dynamic_cast<KX_SoftBodyDeformer *>(m_pDeformer);	
+			if(deformer) {
+				return deformer->GetMesh()->key;
+			}
+#endif
+		}
+		return NULL;
 	}
 	
 	virtual void	SetDeformer(class RAS_Deformer* deformer);
