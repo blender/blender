@@ -1709,11 +1709,13 @@ void object_apply_mat4(Object *ob, float mat[][4])
 	 * for these together since they are related. */
 	copy_m3_m4(mat3, mat);
 	/* so scale doesnt interfear with rotation [#24291] */
+	/* note: this is a workaround for negative matrix not working for rotation conversion, FIXME */
 	normalize_m3_m3(mat3_n, (const float(*)[3])mat3);
-	if(mat3_n[0][0] < 0.0f) negate_v3(mat3_n[0]);
-	if(mat3_n[1][1] < 0.0f) negate_v3(mat3_n[1]);
-	if(mat3_n[2][2] < 0.0f) negate_v3(mat3_n[2]);
-
+	if(is_negative_m3(mat3_n)) {
+		negate_v3(mat3_n[0]);
+		negate_v3(mat3_n[1]);
+		negate_v3(mat3_n[2]);
+	}
 
 	/* rotation */
 	object_mat3_to_rot(ob, mat3_n, 0);
