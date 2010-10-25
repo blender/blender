@@ -88,7 +88,7 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	}
 	
 	// apply child obmat (i.e. decompose it into rot/loc/size)
-	object_apply_mat4(ob, ob->obmat);
+	object_apply_mat4(ob, ob->obmat, 0);
 
 	// compute parentinv
 	what_does_parent(sce, ob, &workob);
