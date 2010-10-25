@@ -3051,6 +3051,21 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int UNUSED(mode))
 // XXX    scrarea_do_windraw(curarea);
 }
 
-
-
-
+/* give a 4x4 matrix from a perspective view, only needs viewquat, ofs and dist
+ * basically the same as...
+ *     rv3d->persp= RV3D_PERSP
+ *     setviewmatrixview3d(scene, v3d, rv3d);
+ *     setcameratoview3d(v3d, rv3d, v3d->camera);
+ * ...but less of a hassle
+ * */
+void view3d_persp_mat4(RegionView3D *rv3d, float mat[][4])
+{
+	float qt[4], dvec[3];
+	copy_qt_qt(qt, rv3d->viewquat);
+	qt[0]= -qt[0];
+	quat_to_mat4(mat, qt);
+	mat[3][2] -= rv3d->dist;
+	translate_m4(mat, rv3d->ofs[0], rv3d->ofs[1], rv3d->ofs[2]);
+	mul_v3_v3fl(dvec, mat[2], -rv3d->dist);
+	sub_v3_v3v3(mat[3], dvec, rv3d->ofs);
+}
