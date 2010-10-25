@@ -1,5 +1,5 @@
 /**
- * $Id: view3d_view.c 32630 2010-10-21 09:02:21Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
