@@ -1550,7 +1550,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	if(gob) {
 		ob->rotmode= target->rotmode;
 		mul_m4_m4m4(ob->obmat, target->obmat, gob->obmat);
-		object_apply_mat4(ob, ob->obmat);
+		object_apply_mat4(ob, ob->obmat, FALSE);
 	}
 	else {
 		copy_object_transform(ob, target);
@@ -1678,7 +1678,7 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 	mul_m3_m3m3(mat, dmat, rmat);
 }
 
-void object_mat3_to_rot(Object *ob, float mat[][3], int use_compat)
+void object_mat3_to_rot(Object *ob, float mat[][3], short use_compat)
 {
 	if (ob->rotmode == ROT_MODE_QUAT)
 		mat3_to_quat(ob->quat, mat);
@@ -1696,7 +1696,7 @@ void object_mat3_to_rot(Object *ob, float mat[][3], int use_compat)
 }
 
 /* see pchan_apply_mat4() for the equivalent 'pchan' function */
-void object_apply_mat4(Object *ob, float mat[][4])
+void object_apply_mat4(Object *ob, float mat[][4], short use_compat)
 {
 	float mat3[3][3];    /* obmat -> 3x3 */
 	float mat3_n[3][3];  /* obmat -> normalized, 3x3 */
@@ -1718,7 +1718,7 @@ void object_apply_mat4(Object *ob, float mat[][4])
 	}
 
 	/* rotation */
-	object_mat3_to_rot(ob, mat3_n, 0);
+	object_mat3_to_rot(ob, mat3_n, use_compat);
 
 	/* scale */
 	/* note: mat4_to_size(ob->size, mat) fails for negative scale */

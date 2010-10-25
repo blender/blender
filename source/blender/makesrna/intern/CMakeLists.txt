@@ -27,12 +27,16 @@
 # Generated code has some unused vars we can ignore.
 REMOVE_STRICT_FLAGS()
 
+MESSAGE(STATUS "Configuring makesrna")
+
 FILE(GLOB DEFSRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.c")
 FILE(GLOB APISRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*_api.c")
 LIST(REMOVE_ITEM DEFSRC rna_access.c rna_define.c makesrna.c)
 LIST(REMOVE_ITEM DEFSRC ${APISRC})
  
 STRING(REGEX REPLACE "rna_([a-zA-Z0-9_-]*).c" "${CMAKE_CURRENT_BINARY_DIR}/rna_\\1_gen.c" GENSRC "${DEFSRC}")
+SET_SOURCE_FILES_PROPERTIES(GENSRC PROPERTIES GENERATED true)
+
 
 SET(SRC
 	makesrna.c
@@ -147,5 +151,3 @@ ADD_CUSTOM_COMMAND(
 # Build bf_rna
 SET(SRC rna_access.c ${GENSRC})
 BLENDERLIB(bf_rna "${SRC}" "${INC}")
-
-MESSAGE(STATUS "Configuring makesrna")

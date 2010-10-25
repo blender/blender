@@ -377,15 +377,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 		}
 	}
 	else if (fly->persp_backup==RV3D_CAMOB) {	/* camera */
-		float mat3[3][3];
-		if(fly->root_parent) {
-			DAG_id_flush_update(&fly->root_parent->id, OB_RECALC_OB);
-		}
-		else {
-			copy_m3_m4(mat3, v3d->camera->obmat);
-			object_mat3_to_rot(v3d->camera, mat3, TRUE);
-			DAG_id_flush_update(&v3d->camera->id, OB_RECALC_OB);
-		}
+		DAG_id_flush_update(fly->root_parent ? &fly->root_parent->id : &v3d->camera->id, OB_RECALC_OB);
 	}
 	else { /* not camera */
 		/* Apply the fly mode view */
@@ -802,7 +794,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					view3d_persp_mat4(rv3d, view_mat);
 					mul_m4_m4m4(diff_mat, prev_view_imat, view_mat);
 					mul_m4_m4m4(parent_mat, fly->root_parent->obmat, diff_mat);
-					object_apply_mat4(fly->root_parent, parent_mat);
+					object_apply_mat4(fly->root_parent, parent_mat, TRUE);
 
 					// where_is_object(scene, fly->root_parent);
 
@@ -820,7 +812,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				else {
 					float view_mat[4][4];
 					view3d_persp_mat4(rv3d, view_mat);
-					object_apply_mat4(v3d->camera, view_mat);
+					object_apply_mat4(v3d->camera, view_mat, TRUE);
 					id_key= &v3d->camera->id;
 				}
 
@@ -901,7 +893,7 @@ static int fly_cancel(bContext *C, wmOperator *op)
 static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int exit_code;
-
+	short do_draw= FALSE;
 	FlyInfo *fly = op->customdata;
 
 	fly->redraw= 0;
@@ -911,14 +903,20 @@ static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
 	if(event->type==TIMER && event->customdata == fly->timer)
 		flyApply(C, fly);
 
-	if(fly->redraw) {
-		ED_region_tag_redraw(CTX_wm_region(C));
-	}
+	do_draw |= fly->redraw;
 
 	exit_code = flyEnd(C, fly);
 
 	if(exit_code!=OPERATOR_RUNNING_MODAL)
+		do_draw= TRUE;
+	
+	if(do_draw) {
+		if(fly->rv3d->persp==RV3D_CAMOB) {
+			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, fly->root_parent ? fly->root_parent : fly->v3d->camera);
+		}
+
 		ED_region_tag_redraw(CTX_wm_region(C));
+	}
 
 	return exit_code;
 }
