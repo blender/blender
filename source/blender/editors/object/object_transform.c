@@ -47,6 +47,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_multires.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -490,6 +491,8 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		/* apply to object data */
 		if(ob->type==OB_MESH) {
 			me= ob->data;
+			
+			multiresModifier_scale_disp(scene, ob);
 			
 			/* adjust data */
 			mvert= me->mvert;

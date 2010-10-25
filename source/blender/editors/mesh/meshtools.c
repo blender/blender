@@ -63,6 +63,7 @@
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_report.h"
+#include "BKE_multires.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -396,6 +397,9 @@ int join_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 					}
 				}
 				
+				if(base->object!=ob)
+					multiresModifier_prepare_join(scene, base->object, ob);
+
 				CustomData_merge(&me->fdata, &fdata, CD_MASK_MESH, CD_DEFAULT, totface);
 				CustomData_copy_data(&me->fdata, &fdata, 0, faceofs, me->totface);
 				
