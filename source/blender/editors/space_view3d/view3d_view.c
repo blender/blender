@@ -34,6 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_rect.h"
 
 #include "BKE_anim.h"
 #include "BKE_action.h"
@@ -42,9 +43,12 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+
+#include "GPU_draw.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
