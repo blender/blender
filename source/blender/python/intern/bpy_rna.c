@@ -120,7 +120,9 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 	}
 
 	RNA_property_float_set_array(&self->ptr, self->prop, bmo->data);
-	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+	if(RNA_property_update_check(self->prop)) {
+		RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+	}
 
 	/* Euler order exception */
 	if(subtype==MATHUTILS_CB_SUBTYPE_EUL) {
@@ -129,7 +131,9 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 		short order= pyrna_rotation_euler_order_get(&self->ptr, &prop_eul_order, eul->order);
 		if(order != eul->order) {
 			RNA_property_enum_set(&self->ptr, prop_eul_order, eul->order);
-			RNA_property_update(BPy_GetContext(), &self->ptr, prop_eul_order);
+			if(RNA_property_update_check(prop_eul_order)) {
+				RNA_property_update(BPy_GetContext(), &self->ptr, prop_eul_order);
+			}
 		}
 	}
 	return 1;
@@ -160,7 +164,11 @@ static int mathutils_rna_vector_set_index(BaseMathObject *bmo, int UNUSED(subtyp
 
 	RNA_property_float_clamp(&self->ptr, self->prop, &bmo->data[index]);
 	RNA_property_float_set_index(&self->ptr, self->prop, index, bmo->data[index]);
-	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+
+	if(RNA_property_update_check(self->prop)) {
+		RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+	}
+
 	return 1;
 }
 
@@ -201,7 +209,10 @@ static int mathutils_rna_matrix_set(BaseMathObject *bmo, int UNUSED(subtype))
 	
 	/* can ignore clamping here */
 	RNA_property_float_set_array(&self->ptr, self->prop, bmo->data);
-	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+
+	if(RNA_property_update_check(self->prop)) {
+		RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+	}
 	return 1;
 }
 
@@ -1235,7 +1246,9 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 	}
 
 	/* Run rna property functions */
-	RNA_property_update(BPy_GetContext(), ptr, prop);
+	if(RNA_property_update_check(prop)) {
+		RNA_property_update(BPy_GetContext(), ptr, prop);
+	}
 
 	return 0;
 }
@@ -1309,8 +1322,10 @@ static int pyrna_py_to_prop_array_index(BPy_PropertyArrayRNA *self, int index, P
 	}
 
 	/* Run rna property functions */
-	RNA_property_update(BPy_GetContext(), ptr, prop);
-	
+	if(RNA_property_update_check(prop)) {
+		RNA_property_update(BPy_GetContext(), ptr, prop);
+	}
+
 	return ret;
 }
 
@@ -1720,7 +1735,9 @@ static int pyrna_prop_array_ass_subscript( BPy_PropertyArrayRNA *self, PyObject 
 	}
 
 	if(ret != -1) {
-		RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+		if(RNA_property_update_check(self->prop)) {
+			RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
+		}
 	}
 
 	return ret;

@@ -33,7 +33,6 @@ SET(INC
 	../../../source/gameengine/Rasterizer
 	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
 	../../../source/gameengine/BlenderRoutines
-	../../../source/blender/include
 	../../../source/blender/blenlib
 	../../../source/blender/blenkernel
 	../../../source/blender/makesdna

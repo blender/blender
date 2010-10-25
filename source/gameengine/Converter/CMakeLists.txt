@@ -41,7 +41,6 @@ SET(INC
 	../../../source/blender/blenkernel
 	../../../source/blender/windowmanager
 	../../../source/blender
-	../../../source/blender/include
 	../../../source/blender/makesdna
 	../../../source/blender/makesrna
 	../../../source/gameengine/Rasterizer
@@ -54,7 +53,6 @@ SET(INC
 	../../../source/gameengine/Physics/Bullet
 	../../../source/gameengine/Physics/Dummy
 	../../../source/gameengine/Network/LoopBackNetwork
-	../../../source/blender/misc
 	../../../source/blender/blenloader
 	../../../source/blender/gpu
 	../../../source/blender/ikplugin

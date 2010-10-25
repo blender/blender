@@ -1268,6 +1268,14 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 
 }
 
+/* must keep in sync with 'rna_property_update'
+ * note, its possible this returns a false positive in the case of PROP_CONTEXT_UPDATE
+ * but this isnt likely to be a performance problem. */
+int RNA_property_update_check(PropertyRNA *prop)
+{
+	return (prop->magic != RNA_MAGIC || prop->update || prop->noteflag);
+}
+
 void RNA_property_update(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
 	rna_property_update(C, CTX_data_main(C), CTX_data_scene(C), ptr, prop);
