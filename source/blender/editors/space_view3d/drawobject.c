@@ -3255,16 +3255,22 @@ static void draw_particle_arrays(int draw_as, int totpoint, int ob_dt, int selec
 static void draw_particle(ParticleKey *state, int draw_as, short draw, float pixsize, float imat[4][4], float *draw_line, ParticleBillboardData *bb, ParticleDrawData *pdd)
 {
 	float vec[3], vec2[3];
-	float *vd = pdd->vd;
-	float *cd = pdd->cd;
+	float *vd = NULL;
+	float *cd = NULL;
 	float ma_r=0.0f;
 	float ma_g=0.0f;
 	float ma_b=0.0f;
 
-	if(pdd->ma_r) {
-		ma_r = *pdd->ma_r;
-		ma_g = *pdd->ma_g;
-		ma_b = *pdd->ma_b;
+	/* null only for PART_DRAW_CIRC */
+	if(pdd) {
+		vd = pdd->vd;
+		cd = pdd->cd;
+
+		if(pdd->ma_r) {
+			ma_r = *pdd->ma_r;
+			ma_g = *pdd->ma_g;
+			ma_b = *pdd->ma_b;
+		}
 	}
 
 	switch(draw_as){
@@ -3356,8 +3362,6 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 		}
 		case PART_DRAW_CIRC:
 		{
-			if(pdd->ma_r)
-				glColor3f(ma_r,ma_g,ma_b);
 			drawcircball(GL_LINE_LOOP, state->co, pixsize, imat);
 			break;
 		}
@@ -3490,12 +3494,6 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	}
 	else
 		cpack(0);
-
-	if(pdd) {
-		pdd->ma_r = &ma_r;
-		pdd->ma_g = &ma_g;
-		pdd->ma_b = &ma_b;
-	}
 
 	timestep= psys_get_timestep(&sim);
 
@@ -3650,11 +3648,18 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		pdd->tot_vec_size= tot_vec_size;
 	}
 
+	if(pdd) {
+		pdd->ma_r = &ma_r;
+		pdd->ma_g = &ma_g;
+		pdd->ma_b = &ma_b;
+	}
+
 	psys->lattice= psys_get_lattice(&sim);
 
-	if(pdd && draw_as!=PART_DRAW_PATH){
+	/* circles don't use drawdata, so have to add a special case here */
+	if((pdd || draw_as==PART_DRAW_CIRC) && draw_as!=PART_DRAW_PATH){
 /* 5. */
-		if((pdd->flag & PARTICLE_DRAW_DATA_UPDATED)
+		if(pdd && (pdd->flag & PARTICLE_DRAW_DATA_UPDATED)
 			&& (pdd->vedata || part->draw & (PART_DRAW_SIZE|PART_DRAW_NUM|PART_DRAW_HEALTH))==0) {
 			totpoint = pdd->totpoint; /* draw data is up to date */
 		}
