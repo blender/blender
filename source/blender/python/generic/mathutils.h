@@ -55,6 +55,7 @@ typedef struct {
 #include "mathutils_quat.h"
 #include "mathutils_euler.h"
 #include "mathutils_color.h"
+#include "mathutils_geometry.h"
 
 PyObject *BaseMathObject_getOwner( BaseMathObject * self, void * );
 PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void * );

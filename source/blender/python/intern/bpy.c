@@ -38,7 +38,7 @@
 #include "BKE_utildefines.h"
 
  /* external util modules */
-#include "../generic/geometry.h"
+#include "../generic/mathutils.h"
 #include "../generic/bgl.h"
 #include "../generic/blf_api.h"
 #include "../generic/IDProp.h"
@@ -195,7 +195,6 @@ void BPy_init_modules( void )
 		printf("bpy: couldnt find 'scripts/modules', blender probably wont start.\n");
 	}
 	/* stand alone utility modules not related to blender directly */
-	Geometry_Init();
 	Mathutils_Init();
 	Noise_Init();
 	BGL_Init();

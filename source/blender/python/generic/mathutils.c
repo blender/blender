@@ -249,6 +249,8 @@ PyObject *Mathutils_Init(void)
 {
 	PyObject *submodule;
 	
+	
+	
 	if( PyType_Ready( &vector_Type ) < 0 )
 		return NULL;
 	if( PyType_Ready( &matrix_Type ) < 0 )
@@ -269,6 +271,9 @@ PyObject *Mathutils_Init(void)
 	PyModule_AddObject( submodule, "Euler",			(PyObject *)&euler_Type );
 	PyModule_AddObject( submodule, "Quaternion",	(PyObject *)&quaternion_Type );
 	PyModule_AddObject( submodule, "Color",			(PyObject *)&color_Type );
+	
+	/* submodule */
+	PyModule_AddObject( submodule, "geometry",			Geometry_Init());
 	
 	mathutils_matrix_vector_cb_index= Mathutils_RegisterCallback(&mathutils_matrix_vector_cb);
 

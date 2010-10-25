@@ -22,9 +22,8 @@
 
 # <pep8 compliant>
 
-from mathutils import Matrix, Vector
+from mathutils import Matrix, Vector, geometry
 import time
-import geometry
 import bpy
 from math import cos, radians
 
