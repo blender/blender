@@ -1585,6 +1585,11 @@ void wm_event_do_handlers(bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win;
 
+#ifdef EVENT_RECORDER
+	FILE *file = NULL;
+	char *fpath = NULL;
+#endif
+
 	for(win= wm->windows.first; win; win= win->next) {
 		wmEvent *event;
 		
@@ -1621,9 +1626,44 @@ void wm_event_do_handlers(bContext *C)
 			}
 		}
 		
+		#ifdef EVENT_RECORDER
+			if (CTX_play_events(C, &fpath) && fpath) {
+				wmEvent evt;
+				
+				file = fopen(fpath, "rb");
+				while (!feof(file)) {
+					char buf1[6];
+					fread(buf1, sizeof(*buf1), 1, file);
+					buf1[5] = 0;
+					if (!strcasecmp(buf1, "event")) {
+						fprintf(stderr, "EEK! bad event playback file!!");
+						break;
+					}
+					
+					fread(&evt, sizeof(*event), 1, file);
+					
+					wm_event_add(win, &evt);
+				}
+				
+				fclose(file);
+				CTX_set_events_path(C, NULL);
+			}
+		#endif
+
 		while( (event= win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
-
+			
+		#ifdef EVENT_RECORDER
+			if (CTX_rec_events(C) && !CTX_play_events(C, NULL)) {
+				FILE *file = CTX_rec_file(C);
+				
+				fwrite(event, sizeof(*event), 1, file);
+				fprintf(file, "event");
+				fflush(event);
+			}
+			
+		#endif
+		
 			if((G.f & G_DEBUG) && event && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE))
 				printf("pass on evt %d val %d\n", event->type, event->val); 
 			

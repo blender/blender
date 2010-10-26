@@ -397,6 +397,8 @@ void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			copy_v3_v3(vdata[BMINDEX_GET(v2)].sco, vec1);
 		}
 		
+		BLI_srandom(0);
+		
 		/*first, ensure no 0 or 180 angles between adjacent
 		  (and that adjacent's adjacent) edges*/
 		for (i=0, k=0; i<totedge; i++) {
@@ -451,7 +453,7 @@ void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 		}
 		
 		copy_v3_v3(vdata[BMINDEX_GET(v)].offco, cent);
-		copy_v3_v3(v->co, cent);
+		//copy_v3_v3(v->co, cent);
 		
 		/*now, sort edges so the triangle fan of all edges
 		  has a consistent normal.  this is the same as

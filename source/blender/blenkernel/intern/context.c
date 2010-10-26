@@ -80,6 +80,11 @@ struct bContext {
 	struct {
 		int render;
 	} eval;
+	
+#ifdef EVENT_RECORDER
+	int evtrec, evtplay;
+	char evtplaypath[300];
+#endif
 };
 
 /* context */
@@ -99,6 +104,34 @@ bContext *CTX_copy(const bContext *C)
 
 	return newC;
 }
+
+#ifdef EVENT_RECORDER
+int CTX_rec_events(bContext *C)
+{
+	return C->evtrec;
+}
+
+FILE *CTX_rec_file(bContext *C)
+{
+	static FILE *f = NULL;
+	if (!f)
+		f = fopen("eventlog.txt", "wb");
+	return f;
+}
+
+int CTX_set_events_path(bContext *C, char *path)
+{
+	if (!path)
+		C->evtplaypath[0] = 0;
+}
+
+int CTX_play_events(bContext *C, char **playpath)
+{
+	*playpath = C->evtplaypath[0] ? C->evtplaypath : NULL;
+	
+	return C->evtplaypath[0];
+}
+#endif
 
 void CTX_free(bContext *C)
 {

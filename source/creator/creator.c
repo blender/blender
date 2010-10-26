@@ -235,7 +235,9 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("Misc Options:\n");
 	BLI_argsPrintArgDoc(ba, "--debug");
 	BLI_argsPrintArgDoc(ba, "--debug-fpe");
-
+#ifdef EVENT_RECORDER
+	BLI_argsPrintArgDoc(ba, "--runmacro");
+#endif
 	printf("\n");
 
 	BLI_argsPrintArgDoc(ba, "-nojoystick");
@@ -798,6 +800,18 @@ static int set_start_frame(int argc, char **argv, void *data)
 	}
 }
 
+#ifdef EVENT_RECORDER
+static int set_macro_playback(int argc, char **argv, void *data)
+{
+	bContext *C = data;
+	
+	if (argc < 2)
+		return;
+		
+	CTX_set_events_path(C, argv[1]);
+}
+#endif
+
 static int set_end_frame(int argc, char **argv, void *data)
 {
 	bContext *C = data;
@@ -983,6 +997,10 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	/* end argument processing after -- */
 	BLI_argsAdd(ba, -1, "--", NULL, "\n\tEnds option processing, following arguments passed unchanged. Access via python's sys.argv", end_arguments, NULL);
 	BLI_argsAdd(ba, 1,  "--no_crash_handler", NULL, "disable crash handler", nocrashhandler, NULL);
+	
+#ifdef EVENT_RECORDER
+	BLI_argsAdd(ba, 1, "--eventmacro", NULL, "<file>\n\tevent macro", set_macro_playback, NULL);
+#endif
 
 	/* first pass: background mode, disable python and commands that exit after usage */
 	BLI_argsAdd(ba, 1, "-h", "--help", "\n\tPrint this help text and exit", print_help, ba);
