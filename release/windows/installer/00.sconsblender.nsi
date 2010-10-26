@@ -11,6 +11,8 @@
 !include "FileFunc.nsh"
 !include "WordFunc.nsh"
 !include "nsDialogs.nsh"
+!include "x64.nsh"
+
 
 SetCompressor /SOLID lzma
 
@@ -148,6 +150,9 @@ Section "Blender-[VERSION] (required)" SecCopyUI
   [DODATAFILES]
   
   SetOutPath $INSTDIR
+  ${If} ${RunningX64}
+    SetRegView 64
+  ${EndIf}
   ; Write the installation path into the registry
   WriteRegStr HKLM "SOFTWARE\BlenderFoundation" "Install_Dir" "$INSTDIR"
   WriteRegStr HKLM "SOFTWARE\BlenderFoundation" "ConfigData_Dir" "$BLENDERHOME"
@@ -179,6 +184,9 @@ SectionEnd
 
 Section "Open .blend files with Blender-[VERSION]" Section4
   
+  ${If} ${RunningX64}
+    SetRegView 64
+  ${EndIf}
   WriteRegStr HKCR ".blend" "" "blendfile"
   WriteRegStr HKCR "blendfile" "" "Blender .blend File"
   WriteRegStr HKCR "blendfile\shell" "" "open"
@@ -192,6 +200,9 @@ UninstallText "This will uninstall Blender [VERSION], and all installed files. B
 
 Section "Uninstall"
   ; remove registry keys
+  ${If} ${RunningX64}
+    SetRegView 64
+  ${EndIf}
   ReadRegStr $BLENDERHOME HKLM "SOFTWARE\BlenderFoundation" "ConfigData_Dir"
   ReadRegStr $SHORTVERSION HKLM "SOFTWARE\BlenderFoundation" "ShortVersion"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Blender"
