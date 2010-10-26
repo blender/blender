@@ -62,6 +62,6 @@ if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-v
     incs = env['BF_WINTAB_INC'] + ' ' + incs
 
 if window_system in ('win32-vc', 'win64-vc'):
-    env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15], cc_compileflags=['/WX'] ) 
+    env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15]) #, cc_compileflags=env['CCFLAGS'].append('/WX') ) 
 else:
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15] ) 

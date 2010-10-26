@@ -6,7 +6,7 @@ def normpath(path):
     return os.path.abspath(os.path.normpath(path))
 
 Import ('env')
-cflags = ['-Wall']
+cflags = [] #['-Wall']
 defines = []
 root_build_dir=normpath(env['BF_BUILDDIR'])
 
