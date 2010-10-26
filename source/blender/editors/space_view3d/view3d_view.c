@@ -1484,7 +1484,6 @@ static void initlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 				v3d->cursor[2]= -rv3d->ofs[2];
 			}
 		}
-		if (v3d->near> 0.1) v3d->near= 0.1;
 		
 		v3d->lay= locallay;
 	}
