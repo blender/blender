@@ -1177,32 +1177,30 @@ void armature_loc_pose_to_bone(bPoseChannel *pchan, float *inloc, float *outloc)
 	VECCOPY(outloc, nLocMat[3]);
 }
 
+/* same as object_mat3_to_rot() */
+void pchan_mat3_to_rot(bPoseChannel *pchan, float mat[][3], short use_compat)
+{
+	switch(pchan->rotmode) {
+	case ROT_MODE_QUAT:
+		mat3_to_quat(pchan->quat, mat);
+		break;
+	case ROT_MODE_AXISANGLE:
+		mat3_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, mat);
+		break;
+	default: /* euler */
+		if(use_compat)	mat3_to_compatible_eulO(pchan->eul, pchan->eul, pchan->rotmode, mat);
+		else			mat3_to_eulO(pchan->eul, pchan->rotmode, mat);
+	}
+}
 
 /* Apply a 4x4 matrix to the pose bone,
  * similar to object_apply_mat4()
  */
-void pchan_apply_mat4(bPoseChannel *pchan, float mat[][4])
+void pchan_apply_mat4(bPoseChannel *pchan, float mat[][4], short use_compat)
 {
-	/* location */
-	copy_v3_v3(pchan->loc, mat[3]);
-
-	/* scale */
-	mat4_to_size(pchan->size, mat);
-
-	/* rotation */
-	if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-		float tmp_quat[4];
-
-		/* need to convert to quat first (in temp var)... */
-		mat4_to_quat(tmp_quat, mat);
-		quat_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, tmp_quat);
-	}
-	else if (pchan->rotmode == ROT_MODE_QUAT) {
-		mat4_to_quat(pchan->quat, mat);
-	}
-	else {
-		mat4_to_eulO(pchan->eul, pchan->rotmode, mat);
-	}
+	float rot[3][3];
+	mat4_to_loc_rot_size(pchan->loc, rot, pchan->size, mat);
+	pchan_mat3_to_rot(pchan, rot, use_compat);
 }
 
 /* Remove rest-position effects from pose-transform for obtaining

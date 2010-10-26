@@ -952,6 +952,48 @@ float mat4_to_scale(float mat[][4])
 	return mat3_to_scale(tmat);
 }
 
+void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wmat[][4])
+{
+	float mat3[3][3];    /* wmat -> 3x3 */
+	float mat3_n[3][3];  /* wmat -> normalized, 3x3 */
+	float imat3_n[3][3]; /* wmat -> normalized & inverted, 3x3 */
+	short is_neg;
+	/* location */
+	copy_v3_v3(loc, wmat[3]);
+
+	/* rotation & scale are linked, we need to create the mat's
+	 * for these together since they are related. */
+	copy_m3_m4(mat3, wmat);
+	/* so scale doesnt interfear with rotation [#24291] */
+	/* note: this is a workaround for negative matrix not working for rotation conversion, FIXME */
+	is_neg= is_negative_m3(mat3);
+	normalize_m3_m3(mat3_n, (const float(*)[3])mat3);
+	if(is_neg) {
+		negate_v3(mat3_n[0]);
+		negate_v3(mat3_n[1]);
+		negate_v3(mat3_n[2]);
+	}
+
+	/* rotation */
+	/* keep rot as a 3x3 matrix, the caller can convert into a quat or euler */
+	copy_m3_m3(rot, mat3_n);
+
+	/* scale */
+	/* note: mat4_to_size(ob->size, mat) fails for negative scale */
+	invert_m3_m3(imat3_n, mat3_n);
+	mul_m3_m3m3(mat3, imat3_n, mat3);
+
+	size[0]= mat3[0][0];
+	size[1]= mat3[1][1];
+	size[2]= mat3[2][2];
+
+	/* with a negative matrix, all scaled will be negative
+	 * flipping isnt needed but nicer to result in a positive scale */
+	if(is_neg) {
+		negate_v3(size);
+	}
+}
+
 void scale_m3_fl(float m[][3], float scale)
 {
 	m[0][0]= m[1][1]= m[2][2]= scale;

@@ -550,7 +550,7 @@ static void rna_PoseChannel_matrix_local_get(PointerRNA *ptr, float *values)
 static void rna_PoseChannel_matrix_local_set(PointerRNA *ptr, const float *values)
 {
 	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
-	pchan_apply_mat4(pchan, (float (*)[4])values);
+	pchan_apply_mat4(pchan, (float (*)[4])values, FALSE); /* no compat for pradictable result */
 }
 
 #else
