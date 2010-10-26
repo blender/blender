@@ -832,7 +832,10 @@ int BKE_add_image_extension(char *string, int imtype)
 	}
 
 	if(extension) {
-		return BLI_replace_extension(string, FILE_MAX, extension);
+		/* prefer this in many cases to avoid .png.tga, but in certain cases it breaks */
+		/* return BLI_replace_extension(string, FILE_MAX, extension); */
+		strcat(string, extension);
+		return TRUE;
 	}
 	else {
 		return FALSE;
