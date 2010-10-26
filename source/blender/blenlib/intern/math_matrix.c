@@ -750,7 +750,7 @@ void normalize_m3(float mat[][3])
 	normalize_v3(mat[2]);
 }
 
-void normalize_m3_m3(float rmat[][3], const float mat[][3])
+void normalize_m3_m3(float rmat[][3], float mat[][3])
 {	
 	normalize_v3_v3(rmat[0], mat[0]);
 	normalize_v3_v3(rmat[1], mat[1]);
@@ -770,7 +770,7 @@ void normalize_m4(float mat[][4])
 	if(len!=0.0) mat[2][3]/= len;
 }
 
-void normalize_m4_m4(float rmat[][4], const float mat[][4])
+void normalize_m4_m4(float rmat[][4], float mat[][4])
 {
 	float len;
 	
@@ -967,7 +967,7 @@ void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wm
 	/* so scale doesnt interfear with rotation [#24291] */
 	/* note: this is a workaround for negative matrix not working for rotation conversion, FIXME */
 	is_neg= is_negative_m3(mat3);
-	normalize_m3_m3(mat3_n, (const float(*)[3])mat3);
+	normalize_m3_m3(mat3_n, mat3);
 	if(is_neg) {
 		negate_v3(mat3_n[0]);
 		negate_v3(mat3_n[1]);
