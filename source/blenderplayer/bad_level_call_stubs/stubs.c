@@ -374,10 +374,12 @@ struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int 
 struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items){return (struct wmKeyMap *) NULL;}
 
 /* intern/decimation */
+/*
 int LOD_FreeDecimationData(struct LOD_Decimation_Info *info){return 0;}
 int LOD_CollapseEdge(struct LOD_Decimation_Info *info){return 0;}
 int LOD_PreprocessMesh(struct LOD_Decimation_Info *info){return 0;}
 int LOD_LoadMesh(struct LOD_Decimation_Info *info){return 0;}
+*/
 
 /* smoke */
 void LzmaCompress(void) { return; }
@@ -423,17 +425,19 @@ void sculpt_set_brush_alpha(struct Brush *brush, float alpha){}
 char blender_path[] = "";
 
 /* CSG */
+/*
 struct CSG_BooleanOperation * CSG_NewBooleanFunction( void ){return (struct CSG_BooleanOperation *) NULL;}
 void CSG_FreeBooleanOperation(struct CSG_BooleanOperation *operation){return;}
 void CSG_FreeFaceDescriptor(struct CSG_FaceIteratorDescriptor * f_descriptor){return;}
 void CSG_FreeVertexDescriptor(struct CSG_VertexIteratorDescriptor * v_descriptor){return;}	
 int CSG_OutputFaceDescriptor(struct CSG_BooleanOperation * operation, struct CSG_FaceIteratorDescriptor * output){return 0;}
 int CSG_OutputVertexDescriptor(struct CSG_BooleanOperation * operation, struct CSG_VertexIteratorDescriptor *output){return 0;}
+*/
 
 typedef struct CSG_VertexIteratorDescriptor {int a;} CSG_VertexIteratorDescriptor; //workaround to build CSG_PerformanceBoolean Operation
 typedef struct CSG_FaceIteratorDescriptor {int a;} CSG_FaceIteratorDescriptor; //workaround to build CSG_PerformanceBoolean Operation
 typedef struct CSG_OperationType {int a;} CSG_OperationType; //workaround to build CSG_PerformanceBoolean Operation
-
+/*
 int CSG_PerformBooleanOperation(
 	struct CSG_BooleanOperation			*operation,
 	CSG_OperationType				op_type,
@@ -442,5 +446,6 @@ int CSG_PerformBooleanOperation(
 	CSG_FaceIteratorDescriptor		obBFaces,
 	CSG_VertexIteratorDescriptor	obBVertices)
 	{ return 0;}
+*/
 
 #endif // GAMEBLENDER == 1
