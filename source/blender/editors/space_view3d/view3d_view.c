@@ -1021,6 +1021,11 @@ int get_view3d_viewplane(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, 
 		if(cam) {
 			float dx= 0.5*fac*rv3d->camdx*(x2-x1);
 			float dy= 0.5*fac*rv3d->camdy*(y2-y1);
+
+			/* shify offset */			
+			dx += ((cam->shiftx/10.0f) / cam->lens) * 32.0;
+			dy += ((cam->shifty/10.0f) / cam->lens) * 32.0;
+
 			x1+= dx;
 			x2+= dx;
 			y1+= dy;
@@ -1762,7 +1767,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 
 	if(rv3d->persp==RV3D_CAMOB && startscene->gm.framing.type == SCE_GAMEFRAMING_BARS && startscene->gm.stereoflag != STEREO_DOME) { /* Letterbox */
 		rctf cam_framef;
-		view3d_calc_camera_border(startscene, ar, rv3d, CTX_wm_view3d(C), &cam_framef);
+		view3d_calc_camera_border(startscene, ar, rv3d, CTX_wm_view3d(C), &cam_framef, FALSE);
 		cam_frame.xmin = cam_framef.xmin + ar->winrct.xmin;
 		cam_frame.xmax = cam_framef.xmax + ar->winrct.xmin;
 		cam_frame.ymin = cam_framef.ymin + ar->winrct.ymin;

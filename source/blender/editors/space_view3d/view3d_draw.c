@@ -843,7 +843,7 @@ static void view3d_get_viewborder_size(Scene *scene, ARegion *ar, float size_r[2
 	}
 }
 
-void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r)
+void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r, short do_shift)
 {
 	float zoomfac, size[2];
 	float dx= 0.0f, dy= 0.0f;
@@ -882,12 +882,13 @@ void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, Vi
 	viewborder_r->xmax-= dx;
 	viewborder_r->ymax-= dy;
 	
-	if(v3d->camera && v3d->camera->type==OB_CAMERA) {
+	if(do_shift && v3d->camera && v3d->camera->type==OB_CAMERA) {
 		Camera *cam= v3d->camera->data;
 		float w = viewborder_r->xmax - viewborder_r->xmin;
 		float h = viewborder_r->ymax - viewborder_r->ymin;
 		float side = MAX2(w, h);
-		
+
+		if(do_shift == -1) side *= -1;
 		viewborder_r->xmin+= cam->shiftx*side;
 		viewborder_r->xmax+= cam->shiftx*side;
 		viewborder_r->ymin+= cam->shifty*side;
@@ -922,7 +923,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	if(v3d->camera->type==OB_CAMERA)
 		ca = v3d->camera->data;
 	
-	view3d_calc_camera_border(scene, ar, rv3d, v3d, &viewborder);
+	view3d_calc_camera_border(scene, ar, rv3d, v3d, &viewborder, FALSE);
 	/* the offsets */
 	x1= viewborder.xmin;
 	y1= viewborder.ymin;
@@ -1259,7 +1260,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			if(rv3d->persp==RV3D_CAMOB) {
 				rctf vb;
 
-				view3d_calc_camera_border(scene, ar, rv3d, v3d, &vb);
+				view3d_calc_camera_border(scene, ar, rv3d, v3d, &vb, FALSE);
 
 				x1= vb.xmin;
 				y1= vb.ymin;
