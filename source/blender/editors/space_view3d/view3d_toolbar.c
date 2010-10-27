@@ -303,3 +303,27 @@ void VIEW3D_OT_toolshelf(wmOperatorType *ot)
 	/* flags */
 	ot->flag= 0;
 }
+
+
+#ifdef EVENT_RECORDER
+static int view3d_evtrec(bContext *C, wmOperator *op)
+{
+
+	CTX_rec_events_set(C, !CTX_rec_events(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_evtrec(wmOperatorType *ot)
+{
+	ot->name= "Toggle Event Recorder";
+	ot->description= "Toggles event recorder";
+	ot->idname= "VIEW3D_OT_evtrec";
+	
+	ot->exec= view3d_evtrec;
+	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag= 0;
+}
+#endif

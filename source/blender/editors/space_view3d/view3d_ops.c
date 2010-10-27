@@ -54,6 +54,9 @@
 
 void view3d_operatortypes(void)
 {
+#ifdef EVENT_RECORDER
+	WM_operatortype_append(VIEW3D_OT_evtrec);
+#endif
 	WM_operatortype_append(VIEW3D_OT_rotate);
 	WM_operatortype_append(VIEW3D_OT_move);
 	WM_operatortype_append(VIEW3D_OT_zoom);

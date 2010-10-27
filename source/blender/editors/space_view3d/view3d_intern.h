@@ -182,6 +182,9 @@ void VIEW3D_OT_snap_cursor_to_grid(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_center(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_selected(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_active(struct wmOperatorType *ot);
+#ifdef EVENT_RECORDER
+void VIEW3D_OT_evtrec(struct wmOperatorType *ot);
+#endif
 
 /* space_view3d.c */
 ARegion *view3d_has_buttons_region(ScrArea *sa);

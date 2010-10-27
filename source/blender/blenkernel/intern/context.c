@@ -41,6 +41,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "PIL_time.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
@@ -84,6 +85,7 @@ struct bContext {
 #ifdef EVENT_RECORDER
 	int evtrec, evtplay;
 	char evtplaypath[300];
+	double evtlasttime;
 #endif
 };
 
@@ -111,6 +113,13 @@ int CTX_rec_events(bContext *C)
 	return C->evtrec;
 }
 
+int CTX_rec_events_set(bContext *C, int state)
+{
+	C->evtrec = state;
+	
+	return 1;
+}
+
 FILE *CTX_rec_file(bContext *C)
 {
 	static FILE *f = NULL;
@@ -119,15 +128,34 @@ FILE *CTX_rec_file(bContext *C)
 	return f;
 }
 
+double CTX_rec_lasttime(bContext *C, double newtime)
+{
+	double ret;
+	
+	if (C->evtlasttime == 0.0) {
+		ret = newtime;
+	} else ret = C->evtlasttime;
+	
+	C->evtlasttime = newtime;
+	
+	return ret;
+}
+
 int CTX_set_events_path(bContext *C, char *path)
 {
 	if (!path)
 		C->evtplaypath[0] = 0;
+	else
+		strcpy(C->evtplaypath, path);
+	
+	return 1;
 }
 
+extern int erec_playing;
 int CTX_play_events(bContext *C, char **playpath)
 {
-	*playpath = C->evtplaypath[0] ? C->evtplaypath : NULL;
+	if (playpath)
+		*playpath = C->evtplaypath[0] ? C->evtplaypath : NULL;
 	
 	return C->evtplaypath[0];
 }

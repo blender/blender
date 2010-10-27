@@ -42,9 +42,11 @@
 #include "DNA_key_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_ipo_types.h"
+#include "DNA_customdata_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_main.h"
+#include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
@@ -58,6 +60,7 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
+#include "BLI_edgehash.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -67,6 +70,230 @@
 #include "BLI_edgehash.h"
 
 #include "bmesh.h"
+
+enum {
+	MESHCMP_DVERT_WEIGHTMISMATCH = 1,
+	MESHCMP_DVERT_GROUPMISMATCH,
+	MESHCMP_DVERT_TOTGROUPMISMATCH,
+	MESHCMP_LOOPCOLMISMATCH,
+	MESHCMP_LOOPUVMISMATCH,
+	MESHCMP_LOOPMISMATCH,
+	MESHCMP_POLYVERTMISMATCH,
+	MESHCMP_POLYMISMATCH,
+	MESHCMP_EDGEUNKNOWN,
+	MESHCMP_VERTCOMISMATCH,
+	MESHCMP_CDLAYERS_MISMATCH,
+};
+
+static char *cmpcode_to_str(int code)
+{
+	switch (code) {
+		case MESHCMP_DVERT_WEIGHTMISMATCH:
+			return "Vertex Weight Mismatch";
+		case MESHCMP_DVERT_GROUPMISMATCH:
+					return "Vertex Group Mismatch";
+		case MESHCMP_DVERT_TOTGROUPMISMATCH:
+					return "Vertex Doesn't Belong To Same Number Of Groups";
+		case MESHCMP_LOOPCOLMISMATCH:
+					return "Vertex Color Mismatch";
+		case MESHCMP_LOOPUVMISMATCH:
+					return "UV Mismatch";
+		case MESHCMP_LOOPMISMATCH:
+					return "Loop Mismatch";
+		case MESHCMP_POLYVERTMISMATCH:
+					return "Loop Vert Mismatch In Poly Test";
+		case MESHCMP_POLYMISMATCH:
+					return "Loop Vert Mismatch";
+		case MESHCMP_EDGEUNKNOWN:
+					return "Edge Mismatch";
+		case MESHCMP_VERTCOMISMATCH:
+					return "Vertex Coordinate Mismatch";
+		case MESHCMP_CDLAYERS_MISMATCH:
+					"CustomData Layer Count Mismatch";
+		default:
+				return "Mesh Comparison Code Unknown";
+		}
+}
+
+/*thresh is threshold for comparing vertices, uvs, vertex colors,
+  weights, etc.*/
+int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2, float thresh)
+{
+	CustomDataLayer *l1, *l2;
+	int i, i1=0, i2=0, tot, j;
+	
+	for (i=0; i<c1->totlayer; i++) {
+		if (ELEM7(c1->layers[i].type, CD_MVERT, CD_MEDGE, CD_MPOLY, 
+				  CD_MLOOPUV, CD_MLOOPCOL, CD_MTEXPOLY, CD_MDEFORMVERT)) 		
+			i1++;
+	}
+	
+	for (i=0; i<c2->totlayer; i++) {
+		if (ELEM7(c2->layers[i].type, CD_MVERT, CD_MEDGE, CD_MPOLY, 
+				  CD_MLOOPUV, CD_MLOOPCOL, CD_MTEXPOLY, CD_MDEFORMVERT)) 		
+			i2++;
+	}
+	
+	if (i1 != i2)
+		return MESHCMP_CDLAYERS_MISMATCH;
+	
+	l1 = c1->layers; l2 = c2->layers;
+	tot = i1;
+	i1 = 0; i2 = 0; 
+	for (i=0; i < tot; i++) {
+		while (i1 < c1->totlayer && !ELEM7(l1->type, CD_MVERT, CD_MEDGE, CD_MPOLY, 
+				  CD_MLOOPUV, CD_MLOOPCOL, CD_MTEXPOLY, CD_MDEFORMVERT))
+			i1++, l1++;
+
+		while (i2 < c2->totlayer && !ELEM7(l2->type, CD_MVERT, CD_MEDGE, CD_MPOLY, 
+				  CD_MLOOPUV, CD_MLOOPCOL, CD_MTEXPOLY, CD_MDEFORMVERT))
+			i2++, l2++;
+		
+		if (l1->type == CD_MVERT) {
+			MVert *v1 = l1->data;
+			MVert *v2 = l2->data;
+			int vtot = m1->totvert;
+			
+			for (j=0; j<vtot; j++, v1++, v2++) {
+				if (len_v3v3(v1->co, v2->co) > thresh)
+					return MESHCMP_VERTCOMISMATCH;
+				/*I don't care about normals, let's just do coodinates*/
+			}
+		}
+		
+		/*we're order-agnostic for edges here*/
+		if (l1->type == CD_MEDGE) {
+			MEdge *e1 = l1->data;
+			MEdge *e2 = l2->data;
+			EdgeHash *eh = BLI_edgehash_new();
+			int etot = m1->totedge;
+		
+			for (j=0; j<etot; j++, e1++) {
+				BLI_edgehash_insert(eh, e1->v1, e1->v2, e1);
+			}
+			
+			for (j=0; j<etot; j++, e2++) {
+				if (!BLI_edgehash_lookup(eh, e2->v1, e2->v2))
+					return MESHCMP_EDGEUNKNOWN;
+			}
+			BLI_edgehash_free(eh, NULL);
+		}
+		
+		if (l1->type == CD_MPOLY) {
+			MPoly *p1 = l1->data;
+			MPoly *p2 = l2->data;
+			int ptot = m1->totpoly;
+		
+			for (j=0; j<ptot; j++, p1++, p2++) {
+				MLoop *lp1, *lp2;
+				int k;
+				
+				if (p1->totloop != p2->totloop)
+					return MESHCMP_POLYMISMATCH;
+				
+				lp1 = m1->mloop + p1->loopstart;
+				lp2 = m2->mloop + p2->loopstart;
+				
+				for (k=0; k<p1->totloop; k++, lp1++, lp2++) {
+					if (lp1->v != lp2->v)
+						return MESHCMP_POLYVERTMISMATCH;
+				}
+			}
+		}
+		if (l1->type == CD_MLOOP) {
+			MLoop *lp1 = l1->data;
+			MLoop *lp2 = l2->data;
+			int ltot = m1->totloop;
+		
+			for (j=0; j<ltot; j++, lp1++, lp2++) {
+				if (lp1->v != lp2->v)
+					return MESHCMP_LOOPMISMATCH;
+			}
+		}
+		if (l1->type == CD_MLOOPUV) {
+			MLoopUV *lp1 = l1->data;
+			MLoopUV *lp2 = l2->data;
+			int ltot = m1->totloop;
+		
+			for (j=0; j<ltot; j++, lp1++, lp2++) {
+				if (len_v2v2(lp1->uv, lp2->uv) > thresh)
+					return MESHCMP_LOOPUVMISMATCH;
+			}
+		}
+		
+		if (l1->type == CD_MLOOPCOL) {
+			MLoopCol *lp1 = l1->data;
+			MLoopCol *lp2 = l2->data;
+			int ltot = m1->totloop;
+		
+			for (j=0; j<ltot; j++, lp1++, lp2++) {
+				if (ABS(lp1->r - lp2->r) > thresh || 
+				    ABS(lp1->g - lp2->g) > thresh || 
+				    ABS(lp1->b - lp2->b) > thresh || 
+				    ABS(lp1->a - lp2->a) > thresh)
+				{
+					return MESHCMP_LOOPCOLMISMATCH;
+				}
+			}
+		}
+
+		if (l1->type == CD_MDEFORMVERT) {
+			MDeformVert *dv1 = l1->data;
+			MDeformVert *dv2 = l2->data;
+			int dvtot = m1->totvert;
+		
+			for (j=0; j<dvtot; j++, dv1++, dv2++) {
+				int k;
+				MDeformWeight *dw1 = dv1->dw, *dw2=dv2->dw;
+				
+				if (dv1->totweight != dv2->totweight)
+					return MESHCMP_DVERT_TOTGROUPMISMATCH;
+				
+				for (k=0; k<dv1->totweight; k++, dw1++, dw2++) {
+					if (dw1->def_nr != dw2->def_nr)
+						return MESHCMP_DVERT_GROUPMISMATCH;
+					if (ABS(dw1->weight - dw2->weight) > thresh)
+						return MESHCMP_DVERT_WEIGHTMISMATCH;
+				}
+			}
+		}
+	}
+}
+
+/*used for testing.  returns an error string the two meshes don't match*/
+char *mesh_cmp(Mesh *me1, Mesh *me2, float thresh)
+{
+	int c;
+	
+	if (!me1 || !me2)
+		return "Requires two input meshes";
+	
+	if (me1->totvert != me2->totvert) 
+		return "Number of verts don't match";
+	
+	if (me1->totedge != me2->totedge)
+		return "Number of edges don't match";
+	
+	if (me1->totpoly != me2->totpoly)
+		return "Number of faces don't match";
+				
+	if (me1->totloop !=me2->totloop)
+		return "Number of loops don't match";
+	
+	if ((c = customdata_compare(&me1->vdata, &me2->vdata, me1, me2, thresh)))
+		return cmpcode_to_str(c);
+
+	if ((c = customdata_compare(&me1->edata, &me2->edata, me1, me2, thresh)))
+		return cmpcode_to_str(c);
+
+	if ((c = customdata_compare(&me1->ldata, &me2->ldata, me1, me2, thresh)))
+		return cmpcode_to_str(c);
+
+	if ((c = customdata_compare(&me1->pdata, &me2->pdata, me1, me2, thresh)))
+		return cmpcode_to_str(c);
+	
+	return NULL;
+}
 
 static void mesh_ensure_tesselation_customdata(Mesh *me)
 {

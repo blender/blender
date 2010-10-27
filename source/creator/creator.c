@@ -236,7 +236,7 @@ static int print_help(int argc, char **argv, void *data)
 	BLI_argsPrintArgDoc(ba, "--debug");
 	BLI_argsPrintArgDoc(ba, "--debug-fpe");
 #ifdef EVENT_RECORDER
-	BLI_argsPrintArgDoc(ba, "--runmacro");
+	BLI_argsPrintArgDoc(ba, "--eventmacro");
 #endif
 	printf("\n");
 
@@ -346,7 +346,7 @@ static int nocrashhandler(int argc, char **argv, void *data)
 {
 	no_handler = 1;
 
-	return -1;
+	return 0;
 }
 
 
@@ -809,6 +809,8 @@ static int set_macro_playback(int argc, char **argv, void *data)
 		return;
 		
 	CTX_set_events_path(C, argv[1]);
+	
+	return 0;
 }
 #endif
 
@@ -996,11 +998,6 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 	/* end argument processing after -- */
 	BLI_argsAdd(ba, -1, "--", NULL, "\n\tEnds option processing, following arguments passed unchanged. Access via python's sys.argv", end_arguments, NULL);
-	BLI_argsAdd(ba, 1,  "--no_crash_handler", NULL, "disable crash handler", nocrashhandler, NULL);
-	
-#ifdef EVENT_RECORDER
-	BLI_argsAdd(ba, 1, "--eventmacro", NULL, "<file>\n\tevent macro", set_macro_playback, NULL);
-#endif
 
 	/* first pass: background mode, disable python and commands that exit after usage */
 	BLI_argsAdd(ba, 1, "-h", "--help", "\n\tPrint this help text and exit", print_help, ba);
@@ -1024,12 +1021,14 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 2, "-w", "--window-border", "\n\tForce opening with borders (default)", with_borders, NULL);
 	BLI_argsAdd(ba, 2, "-W", "--window-borderless", "\n\tForce opening with without borders", without_borders, NULL);
 	BLI_argsAdd(ba, 2, "-R", NULL, "\n\tRegister .blend extension (windows only)", register_extension, ba);
-
+	BLI_argsAdd(ba, 2,  "--no_crash_handler", NULL, "disable crash handler", nocrashhandler, NULL);
+	
 	/* third pass: disabling things and forcing settings */
 	BLI_argsAddCase(ba, 3, "-nojoystick", 1, NULL, 0, "\n\tDisable joystick support", no_joystick, syshandle);
 	BLI_argsAddCase(ba, 3, "-noglsl", 1, NULL, 0, "\n\tDisable GLSL shading", no_glsl, NULL);
 	BLI_argsAddCase(ba, 3, "-noaudio", 1, NULL, 0, "\n\tForce sound system to None", no_audio, NULL);
 	BLI_argsAddCase(ba, 3, "-setaudio", 1, NULL, 0, "\n\tForce sound system to a specific device\n\tNULL SDL OPENAL JACK", set_audio, NULL);
+
 
 	/* fourth pass: processing arguments */
 	BLI_argsAdd(ba, 4, "-g", NULL, game_doc, set_ge_parameters, syshandle);
@@ -1049,6 +1048,10 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 4, "-t", "--threads", "<threads>\n\tUse amount of <threads> for rendering in background\n\t[1-" QUOTE(BLENDER_MAX_THREADS) "], 0 for systems processor count.", set_threads, NULL);
 	BLI_argsAdd(ba, 4, "-x", "--use-extension", "<bool>\n\tSet option to add the file extension to the end of the file", set_extension, C);
 
+#ifdef EVENT_RECORDER
+	BLI_argsAdd(ba, 4, "--eventmacro", NULL, "<file>\n\tevent macro", set_macro_playback, C);
+#endif
+	
 }
 
 int main(int argc, char **argv)
@@ -1201,7 +1204,11 @@ int main(int argc, char **argv)
 			if(WM_init_game(C))
 				return 0;
 		}
-		else if(!G.file_loaded)
+#ifdef EVENT_RECORDER
+		else if(!G.file_loaded && !CTX_play_events(C, NULL))
+#else
+			else if(!G.file_loaded)
+#endif
 			WM_init_splash(C);
 	}
 

@@ -343,7 +343,7 @@ typedef struct wmEvent {
 	short customdatafree;
 	int pad2;
 	void *customdata;	/* ascii, unicode, mouse coords, angles, vectors, dragdrop info */
-	
+	double delay;
 } wmEvent;
 
 /* ************** custom wmEvent data ************** */

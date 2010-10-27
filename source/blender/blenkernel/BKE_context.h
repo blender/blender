@@ -261,6 +261,9 @@ struct bPoseChannel *CTX_data_active_pose_bone(const bContext *C);
 int CTX_data_selected_pose_bones(const bContext *C, ListBase *list);
 int CTX_data_visible_pose_bones(const bContext *C, ListBase *list);
 
+//stupid compiler flag isn't working
+//remember to undef this later
+#define EVENT_RECORDER
 #ifdef EVENT_RECORDER
 #include <stdio.h>
 
@@ -268,6 +271,8 @@ int CTX_rec_events(bContext *C);
 FILE *CTX_rec_file(bContext *C);
 int CTX_set_events_path(bContext *C, char *path);
 int CTX_play_events(bContext *C, char **playpath);
+int CTX_rec_events_set(bContext *C, int state);
+double CTX_rec_lasttime(bContext *C, double newtime);
 
 #endif
 

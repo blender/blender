@@ -413,7 +413,7 @@ static void rna_Mesh_uv_texture_clone_set(PointerRNA *ptr, PointerRNA value)
 		}
 	}
 #endif
-	return NULL;
+	return;
 }
 
 static void rna_Mesh_uv_texture_stencil_set(PointerRNA *ptr, PointerRNA value)
@@ -431,7 +431,7 @@ static void rna_Mesh_uv_texture_stencil_set(PointerRNA *ptr, PointerRNA value)
 		}
 	}
 #endif
-	return NULL;
+	return;
 }
 
 static int rna_Mesh_active_uv_texture_index_get(PointerRNA *ptr)

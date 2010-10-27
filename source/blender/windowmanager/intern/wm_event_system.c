@@ -72,6 +72,10 @@
 #include "wm_event_types.h"
 #include "wm_draw.h"
 
+#ifdef EVENT_RECORDER
+int erec_playing = 0;
+#endif
+
 /* ************ event management ************** */
 
 void wm_event_add(wmWindow *win, wmEvent *event_to_add)
@@ -1586,7 +1590,7 @@ void wm_event_do_handlers(bContext *C)
 	wmWindow *win;
 
 #ifdef EVENT_RECORDER
-	FILE *file = NULL;
+	static FILE *file = NULL;
 	char *fpath = NULL;
 #endif
 
@@ -1626,43 +1630,82 @@ void wm_event_do_handlers(bContext *C)
 			}
 		}
 		
-		#ifdef EVENT_RECORDER
-			if (CTX_play_events(C, &fpath) && fpath) {
-				wmEvent evt;
+#ifdef EVENT_RECORDER
+		if (CTX_play_events(C, &fpath) && fpath) 
+		{
+			wmEvent evt;
+			double nextdelay = 0.0;
+			
+			erec_playing = 1;
+			
+			if (!file)
+				file= fopen(fpath, "rb");
+			
+			while (file && !feof(file)) {
+				char buf1[6];
+				fread(buf1, 5, 1, file);
+				buf1[5] = 0;
 				
-				file = fopen(fpath, "rb");
-				while (!feof(file)) {
-					char buf1[6];
-					fread(buf1, sizeof(*buf1), 1, file);
-					buf1[5] = 0;
-					if (!strcasecmp(buf1, "event")) {
-						fprintf(stderr, "EEK! bad event playback file!!");
+				if (strcasecmp(buf1, "event")) {
+					if (!strcasecmp(buf1, "break"))
 						break;
-					}
 					
-					fread(&evt, sizeof(*event), 1, file);
-					
-					wm_event_add(win, &evt);
+					fprintf(stderr, "EEK! bad event playback file!!");
+					break;
 				}
 				
+				fread(&evt, sizeof(*event), 1, file);
+				
+				/*add in artifical delay after button open events*/
+				if (!evt.customdata) {
+					evt.delay += nextdelay;
+					nextdelay = 0.0;
+				}
+				
+				if (evt.type == EVT_BUT_OPEN)
+					nextdelay = 1.0;
+				
+				/*don't do anything if theres customdata in the
+				  event*/
+				if (evt.customdata)
+					continue;
+				
+				wm_event_add(win, &evt);
+			}
+			
+			if (file && feof(file)) {
+				erec_playing = 0;
 				fclose(file);
 				CTX_set_events_path(C, NULL);
 			}
-		#endif
-
+		}
+#endif
+		
+		if (win->lasttime == 0.0)
+			win->lasttime = PIL_check_seconds_timer();
+		
 		while( (event= win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
-			
-		#ifdef EVENT_RECORDER
+#if 1	
+			/*used for hackish recorder playback*/
+			while (event->delay>0.0 && PIL_check_seconds_timer()
+				- win->lasttime < event->delay) ;
+
+#endif		
+#ifdef EVENT_RECORDER
 			if (CTX_rec_events(C) && !CTX_play_events(C, NULL)) {
 				FILE *file = CTX_rec_file(C);
+				char tag[6] = "event";
+				double delay = PIL_check_seconds_timer();
 				
+				delay -= CTX_rec_lasttime(C, delay);
+				event->delay = delay;
+				
+				fwrite(tag, sizeof(tag)-1, 1, file);
 				fwrite(event, sizeof(*event), 1, file);
-				fprintf(file, "event");
-				fflush(event);
+				fflush(file);
 			}
-			
-		#endif
+#endif
 		
 			if((G.f & G_DEBUG) && event && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE))
 				printf("pass on evt %d val %d\n", event->type, event->val); 
@@ -1796,10 +1839,25 @@ void wm_event_do_handlers(bContext *C)
 			BLI_remlink(&win->queue, event);
 			wm_event_free(event);
 			
+			win->lasttime = PIL_check_seconds_timer();
 		}
 		
+#ifdef EVENT_RECORDER
+			if (CTX_rec_events(C) && !CTX_play_events(C, NULL)) {
+				FILE *file = CTX_rec_file(C);
+				char tag[6] = "break";
+				
+				fwrite(tag, 5, 1, file);
+				fflush(file);
+			}
+#endif
+			
 		/* only add mousemove when queue was read entirely */
+#ifdef EVENT_RECORDER
+		if(win->addmousemove && win->eventstate && !erec_playing) {
+#else
 		if(win->addmousemove && win->eventstate) {
+#endif
 			wmEvent event= *(win->eventstate);
 			event.type= MOUSEMOVE;
 			event.prevx= event.x;
@@ -2198,7 +2256,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 	switch (type) {
 		/* mouse move */
 		case GHOST_kEventCursorMove: {
-			if(win->active) {
+#ifdef EVENT_RECORDER
+				if(win->active && !erec_playing) {
+#else
+				if(win->active) {
+#endif
 				GHOST_TEventCursorData *cd= customdata;
 				wmEvent *lastevent= win->queue.last;
 				
@@ -2246,6 +2308,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 			break;
 		}
 		case GHOST_kEventTrackpad: {
+#ifdef EVENT_RECORDER
+			if(wm->winactive && !erec_playing) {
+#endif
+
 			GHOST_TEventTrackpadData * pd = customdata;
 			switch (pd->subtype) {
 				case GHOST_kTrackpadEventMagnify:
@@ -2259,6 +2325,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 					event.type= MOUSEPAN;
 					break;
 			}
+			
 #if defined(__APPLE__) && defined(GHOST_COCOA)
 			//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
 			event.x= evt->x = pd->x;
@@ -2278,6 +2345,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 			update_tablet_data(win, &event);
 			wm_event_add(win, &event);
 			break;
+#ifdef EVENT_RECORDER
+			}
+#endif
 		}
 		/* mouse button */
 		case GHOST_kEventButtonDown:
@@ -2285,6 +2355,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 			GHOST_TEventButtonData *bd= customdata;
 			event.val= (type==GHOST_kEventButtonDown) ? KM_PRESS:KM_RELEASE; /* Note!, this starts as 0/1 but later is converted to KM_PRESS/KM_RELEASE by tweak */
 			
+			#ifdef EVENT_RECORDER
+				if (erec_playing)
+					return;
+			#endif
+				
 			if (bd->button == GHOST_kButtonMaskLeft)
 				event.type= LEFTMOUSE;
 			else if (bd->button == GHOST_kButtonMaskRight)
@@ -2324,6 +2399,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 			event.ascii= kd->ascii;
 			event.val= (type==GHOST_kEventKeyDown)?KM_PRESS:KM_RELEASE;
 			
+			#ifdef EVENT_RECORDER
+				if (erec_playing)
+					return;
+			#endif
+
 			/* exclude arrow keys, esc, etc from text input */
 			if(type==GHOST_kEventKeyUp || (event.ascii<32 && event.ascii>0))
 				event.ascii= '\0';
@@ -2375,6 +2455,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int t
 		case GHOST_kEventWheel:	{
 			GHOST_TEventWheelData* wheelData = customdata;
 			
+			#ifdef EVENT_RECORDER
+				if (erec_playing)
+					return;
+			#endif
 			if (wheelData->z > 0)
 				event.type= WHEELUPMOUSE;
 			else

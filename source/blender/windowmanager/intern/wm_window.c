@@ -367,7 +367,7 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 	
 	for(win= wm->windows.first; win; win= win->next) {
 		if(win->ghostwin==NULL) {
-			if(win->sizex==0) {
+			if(win->sizex==0 || prefsizx || prefsizy) {
 				win->posx= prefstax;
 				win->posy= prefstay;
 				win->sizex= prefsizx;
@@ -858,7 +858,9 @@ static int wm_window_timer(const bContext *C)
 
 void wm_window_process_events(const bContext *C) 
 {
-	int hasevent= GHOST_ProcessEvents(g_system, 0);	/* 0 is no wait */
+	int hasevent= 0;
+	
+	hasevent = GHOST_ProcessEvents(g_system, 0);	/* 0 is no wait */
 	
 	if(hasevent)
 		GHOST_DispatchEvents(g_system);
