@@ -1029,23 +1029,26 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 	ScrArea *sa;
 	rcti winrct= {0, win->sizex-1, 0, win->sizey-1};
 	
-	screen_test_scale(win->screen, win->sizex, win->sizey);
+	/* exception for bg mode, we only need the screen context */
+	if (!G.background) {
+		screen_test_scale(win->screen, win->sizex, win->sizey);
+		
+		if(win->screen->mainwin==0)
+			win->screen->mainwin= wm_subwindow_open(win, &winrct);
+		else
+			wm_subwindow_position(win, win->screen->mainwin, &winrct);
+		
+		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+			/* set spacetype and region callbacks, calls init() */
+			/* sets subwindows for regions, adds handlers */
+			ED_area_initialize(wm, win, sa);
+		}
 	
-	if(win->screen->mainwin==0)
-		win->screen->mainwin= wm_subwindow_open(win, &winrct);
-	else
-		wm_subwindow_position(win, win->screen->mainwin, &winrct);
-	
-	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-		/* set spacetype and region callbacks, calls init() */
-		/* sets subwindows for regions, adds handlers */
-		ED_area_initialize(wm, win, sa);
+		/* wake up animtimer */
+		if(win->screen->animtimer)
+			WM_event_timer_sleep(wm, win, win->screen->animtimer, 0);
 	}
 
-	/* wake up animtimer */
-	if(win->screen->animtimer)
-		WM_event_timer_sleep(wm, win, win->screen->animtimer, 0);
-	
 	if(G.f & G_DEBUG) printf("set screen\n");
 	win->screen->do_refresh= 0;
 

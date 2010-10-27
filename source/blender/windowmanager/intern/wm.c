@@ -232,12 +232,13 @@ void WM_check(bContext *C)
 
 		/* case: no open windows at all, for old file reads */
 		wm_window_add_ghostwindows(C, wm);
+	}
 
-		/* case: fileread */
-		if((wm->initialized & WM_INIT_WINDOW) == 0) {
-			ED_screens_initialize(wm);
-			wm->initialized |= WM_INIT_WINDOW;
-		}
+	/* case: fileread */
+	/* note: this runs in bg mode to set the screen context cb */
+	if((wm->initialized & WM_INIT_WINDOW) == 0) {
+		ED_screens_initialize(wm);
+		wm->initialized |= WM_INIT_WINDOW;
 	}
 }
 
