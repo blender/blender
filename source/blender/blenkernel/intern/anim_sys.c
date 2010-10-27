@@ -1641,6 +1641,11 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 			
 			if ((nlt) && !(adt->flag & ADT_NLA_EDIT_NOMAP)) {
 				/* edit active action in-place according to its active strip, so copy the data  */
+				
+				/* this is cleared on undo */
+				if(adt->actstrip == NULL) {
+					adt->actstrip= BKE_nlastrip_find_active(nlt);
+				}
 				memcpy(&dummy_strip, adt->actstrip, sizeof(NlaStrip));
 				dummy_strip.next = dummy_strip.prev = NULL;
 			}
