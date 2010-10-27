@@ -26,6 +26,7 @@ import netrender
 from netrender.utils import *
 import netrender.client as client
 import netrender.model
+import netrender.versioning as versioning
 
 class RENDER_OT_netslave_bake(bpy.types.Operator):
     '''NEED DESCRIPTION'''
@@ -460,6 +461,38 @@ class netclientscan(bpy.types.Operator):
 
     def invoke(self, context, event):
         return self.execute(context)
+
+class netclientvcsguess(bpy.types.Operator):
+    '''Guess VCS setting for the current file'''
+    bl_idname = "render.netclientvcsguess"
+    bl_label = "VCS Guess"
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        netsettings = context.scene.network_render
+        
+        system = versioning.SYSTEMS.get(netsettings.vcs_system, None)
+        
+        if system:
+            wpath, name = os.path.split(os.path.abspath(bpy.data.filepath))
+            
+            rpath = system.path(wpath)
+            revision = system.revision(wpath)
+            
+            netsettings.vcs_wpath = wpath
+            netsettings.vcs_rpath = rpath
+            netsettings.vcs_revision = revision
+            
+        
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return self.execute(context)
+
 
 class netclientweb(bpy.types.Operator):
     '''Open new window with information about running rendering jobs'''

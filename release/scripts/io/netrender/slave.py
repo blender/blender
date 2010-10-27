@@ -78,7 +78,7 @@ def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path = None):
     
     found = os.path.exists(job_full_path)
     
-    if found:
+    if found and rfile.signature != None:
         found_signature = hashFile(job_full_path)
         found = found_signature == rfile.signature
         
@@ -161,6 +161,20 @@ def render_slave(engine, netsettings, threads):
                     netrender.repath.update(job)
 
                     engine.update_stats("", "Render File "+ main_file+ " for job "+ job.id)
+                elif job.type == netrender.model.JOB_VCS:
+                    if not job.version_info:
+                        # Need to return an error to server, incorrect job type
+                        pass
+                        
+                    job_path = job.files[0].filepath # path of main file
+                    main_path, main_file = os.path.split(job_path)
+                    
+                    job.version_info.update()
+                    
+                    # For VCS jobs, file path is relative to the working copy path
+                    job_full_path = os.path.join(job.version_info.wpath, job_path)
+                    
+                    engine.update_stats("", "Render File "+ main_file+ " for job "+ job.id)
 
                 # announce log to master
                 logfile = netrender.model.LogFile(job.id, slave_id, [frame.number for frame in job.frames])
@@ -174,7 +188,7 @@ def render_slave(engine, netsettings, threads):
                 # start render
                 start_t = time.time()
 
-                if job.type == netrender.model.JOB_BLENDER:
+                if job.rendersWithBlender():
                     frame_args = []
 
                     for frame in job.frames:
@@ -259,7 +273,7 @@ def render_slave(engine, netsettings, threads):
                     headers["job-result"] = str(DONE)
                     for frame in job.frames:
                         headers["job-frame"] = str(frame.number)
-                        if job.type == netrender.model.JOB_BLENDER:
+                        if job.hasRenderResult():
                             # send image back to server
 
                             filename = os.path.join(JOB_PREFIX, "%06d.exr" % frame.number)
