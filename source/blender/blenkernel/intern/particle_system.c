@@ -3076,8 +3076,8 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 					col.t = df;
 				}
 				else {
-					/* final chance to prevent failure, so don't do anything fancy */
-					copy_v3_v3(pa->state.co, co);
+					/* final chance to prevent failure, so stick to the surface and hope for the best */
+					madd_v3_v3v3fl(pa->state.co, co, col.vel, dt2);
 					copy_v3_v3(pa->state.vel, v0);
 				}
 			}
