@@ -168,7 +168,10 @@ def complete(line, cursor, namespace):
     'abs(number) -> number\\nReturn the absolute value of the argument.'
     """
     matches = []
+    word = ''
+    scrollback = ''
     match = RE_DEF_COMPLETE.search(line[:cursor])
+
     if match:
         word = match.group(1)
         func_word = match.group(2)
@@ -176,7 +179,7 @@ def complete(line, cursor, namespace):
             func = eval(func_word, namespace)
         except Exception:
             func = None
-            scrollback = ''
+
         if func:
             doc = get_doc(func)
             argspec = get_argspec(func, doc=doc)
@@ -186,7 +189,5 @@ def complete(line, cursor, namespace):
             elif doc:
                 scrollback += '\n' + doc
             scrollback = reduce_newlines(scrollback)
-    else:
-        word = ''
-        scrollback = ''
+
     return matches, word, scrollback
