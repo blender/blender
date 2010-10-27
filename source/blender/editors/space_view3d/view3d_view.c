@@ -1022,9 +1022,15 @@ int get_view3d_viewplane(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, 
 			float dx= 0.5*fac*rv3d->camdx*(x2-x1);
 			float dy= 0.5*fac*rv3d->camdy*(y2-y1);
 
-			/* shify offset */			
-			dx += ((cam->shiftx/10.0f) / cam->lens) * 32.0;
-			dy += ((cam->shifty/10.0f) / cam->lens) * 32.0;
+			/* shift offset */		
+			if(cam->type==CAM_ORTHO) {
+				dx += cam->shiftx * cam->ortho_scale;
+				dy += cam->shifty * cam->ortho_scale;
+			}
+			else {
+				dx += cam->shiftx * (cam->clipsta / cam->lens) * 32.0;
+				dy += cam->shifty * (cam->clipsta / cam->lens) * 32.0;
+			}
 
 			x1+= dx;
 			x2+= dx;
