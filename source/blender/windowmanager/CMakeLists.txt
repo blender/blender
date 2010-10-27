@@ -33,7 +33,6 @@ SET(INC
 	../makesdna
 	../makesrna
 	../blenkernel
-	../include
 	../imbuf
 	../blenloader
 	../editors/include

@@ -36,7 +36,6 @@ SET(INC
 	../makesrna
 	../blenkernel
 	../imbuf
-	../include
 	../../kernel/gen_messaging
 	../../../intern/smoke/extern
 	../../../intern/guardedalloc

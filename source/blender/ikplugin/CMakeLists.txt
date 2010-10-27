@@ -28,7 +28,6 @@ SET(INC
 	../blenlib
 	../makesdna
 	../blenkernel
-	../include
 	../ikplugin
 	../../../intern/guardedalloc
 	../../../intern/iksolver/extern
