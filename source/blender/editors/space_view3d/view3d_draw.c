@@ -1573,22 +1573,27 @@ static void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *bas
 void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 {
 	int x, y, w, h;	
+	rcti r= {0, ar->winx-1, 0, ar->winy-1};
 	/* clamp rect by area */
-	
+
 	/* Constrain rect to depth bounds */
-	if (rect->xmin < 0) rect->xmin = 0;
-	if (rect->ymin < 0) rect->ymin = 0;
-	if (rect->xmax >= ar->winx) rect->xmax = ar->winx-1;
-	if (rect->ymax >= ar->winy) rect->ymax = ar->winy-1;
+	BLI_isect_rcti(&r, rect, rect);
 
 	/* assign values to compare with the ViewDepths */
-	x= ar->winrct.xmin + rect->xmin;
-	y= ar->winrct.ymin + rect->ymin;
+	x= rect->xmin;
+	y= rect->ymin;
 
 	w= rect->xmax - rect->xmin;
 	h= rect->ymax - rect->ymin;
 
-	if(	d->w != w ||
+	if(w <= 0 || h <= 0) {
+		if(d->depths)
+			MEM_freeN(d->depths);
+		d->depths= NULL;
+
+		d->damaged= FALSE;
+	}
+	else if(	d->w != w ||
 		d->h != h ||
 		d->x != x ||
 		d->y != y ||
@@ -1604,13 +1609,13 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 
 		d->depths= MEM_mallocN(sizeof(float)*d->w*d->h,"View depths Subset");
 		
-		d->damaged= 1;		
+		d->damaged= TRUE;
 	}
 
 	if(d->damaged) {
 		glReadPixels(ar->winrct.xmin+d->x,ar->winrct.ymin+d->y, d->w,d->h, GL_DEPTH_COMPONENT,GL_FLOAT, d->depths);
 		glGetDoublev(GL_DEPTH_RANGE,d->depth_range);
-		d->damaged= 0;
+		d->damaged= FALSE;
 	}
 }
 
@@ -1655,7 +1660,7 @@ float view3d_depth_near(ViewDepths *d)
 
 	const float *depths= d->depths;
 	float depth= FLT_MAX;
-	int i= d->w * d->h;
+	int i= (int)d->w * (int)d->h; /* cast to avoid short overflow */
 
 	/* far is both the starting 'far' value
 	 * and the closest value found. */	

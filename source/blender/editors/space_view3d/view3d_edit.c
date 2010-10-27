@@ -2575,10 +2575,8 @@ static float view_autodist_depth_margin(ARegion *ar, short *mval, int margin)
 
 	view3d_update_depths_rect(ar, &depth_temp, &rect);
 	depth_close= view3d_depth_near(&depth_temp);
-
-	MEM_freeN(depth_temp.depths);
-
-	return depth_close;	
+	if(depth_temp.depths) MEM_freeN(depth_temp.depths);
+	return depth_close;
 }
 
 /* XXX todo Zooms in on a border drawn by the user */
