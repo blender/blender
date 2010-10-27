@@ -44,7 +44,7 @@ struct ReportList;
 struct Scene;
 struct Main;
 
-#define BLENDER_VERSION			254
+#define BLENDER_VERSION			255
 #define BLENDER_SUBVERSION		0
 
 #define BLENDER_MINVERSION		250
