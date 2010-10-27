@@ -5186,7 +5186,7 @@ static void calculate_speedvector(float *vectors, int step, float winsq, float w
 
 static float *calculate_strandsurface_speedvectors(Render *re, ObjectInstanceRen *obi, StrandSurface *mesh)
 {
-	float winsq= re->winx*re->winy, winroot= sqrt(winsq), (*winspeed)[4];
+	float winsq= (float)re->winx*(float)re->winy, winroot= sqrt(winsq), (*winspeed)[4];  /* int's can wrap on large images */
 	float ho[4], prevho[4], nextho[4], winmat[4][4], vec[2];
 	int a;
 
@@ -5225,7 +5225,7 @@ static void calculate_speedvectors(Render *re, ObjectInstanceRen *obi, float *ve
 	StrandSurface *mesh= NULL;
 	float *speed, (*winspeed)[4]=NULL, ho[4], winmat[4][4];
 	float *co1, *co2, *co3, *co4, w[4];
-	float winsq= re->winx*re->winy, winroot= sqrt(winsq);
+	float winsq= (float)re->winx*(float)re->winy, winroot= sqrt(winsq);  /* int's can wrap on large images */
 	int a, *face, *index;
 
 	if(obi->flag & R_TRANSFORMED)
@@ -5292,7 +5292,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	VertRen *ver= NULL;
 	float *speed, div, zco[2], avgvel[4] = {0.0, 0.0, 0.0, 0.0};
 	float zmulx= re->winx/2, zmuly= re->winy/2, len;
-	float winsq= re->winx*re->winy, winroot= sqrt(winsq);
+	float winsq= (float)re->winx*(float)re->winy, winroot= sqrt(winsq); /* int's can wrap on large images */
 	int a, j;
 	float hoco[4], ho[4], fsvec[4], camco[4];
 	float mat[4][4], winmat[4][4];
