@@ -26,7 +26,13 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
+#include <Python.h>
+#include "compile.h"	/* for the PyCodeObject */
+#include "eval.h"		/* for PyEval_EvalCode */
+#include "osdefs.h"		/* for 'SEP' */
+
 #include "bpy_internal_import.h"
+
 #include "DNA_text_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -62,16 +68,17 @@ void bpy_import_main_set(struct Main *maggie)
 /* returns a dummy filename for a textblock so we can tell what file a text block comes from */
 void bpy_text_filename_get(char *fn, Text *text)
 {
-	sprintf(fn, "%s/%s", text->id.lib ? text->id.lib->filepath : G.main->name, text->id.name+2);
-	
-	/* XXX, this is a bug in python's Py_CompileString()!
+#if PY_VERSION_HEX >=  0x03020000
+	sprintf(fn, "%s%c%s", text->id.lib ? text->id.lib->filepath : G.main->name, SEP, text->id.name+2);
+#else
+	/* this is a bug in python's Py_CompileString()!, fixed for python 3.2.
 	 the string encoding should not be required to be utf-8
-	 reported: http://bugs.python.org/msg115202
-	 */
-	BLI_utf8_invalid_strip(fn, strlen(fn));
+	 reported: http://bugs.python.org/msg115202  */
+	strcpy(fn, text->id.name+2);
+#endif
 }
 
-PyObject *bpy_text_import( Text *text )
+PyObject *bpy_text_import(Text *text)
 {
 	char *buf = NULL;
 	char modulename[24];
