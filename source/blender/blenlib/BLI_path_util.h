@@ -88,6 +88,14 @@ char *BLI_get_user_folder_notest(int folder_id, char *subfolder);
 #define BLENDER_SYSTEM_FORMAT			"%s/blender/%s"
 #endif
 
+#ifdef WIN32
+#define SEP '\\'
+#define ALTSEP '/'
+#else
+#define SEP '/'
+#define ALTSEP '\\'
+#endif
+
 void BLI_setenv(const char *env, const char *val);
 void BLI_setenv_if_new(const char *env, const char* val);
 
@@ -98,6 +106,11 @@ void BLI_split_dirfile(const char *string, char *dir, char *file);
 void BLI_join_dirfile(char *string, const char *dir, const char *file);
 char *BLI_path_basename(char *path);
 int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char *base_dir, const char *src_dir, const char *dest_dir);
+char *BLI_last_slash(const char *string);
+int	  BLI_add_slash(char *string);
+void  BLI_del_slash(char *string);
+char *BLI_first_slash(char *string);
+
 void BLI_getlastdir(const char* dir, char *last, int maxlen);
 int BLI_testextensie(const char *str, const char *ext);
 int BLI_testextensie_array(const char *str, const char **ext_array);

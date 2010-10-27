@@ -29,7 +29,6 @@
 #include <Python.h>
 #include "compile.h"	/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
-#include "osdefs.h"		/* for 'SEP' */
 
 #include "bpy_internal_import.h"
 

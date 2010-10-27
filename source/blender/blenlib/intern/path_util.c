@@ -471,11 +471,7 @@ int BLI_has_parent(char *path)
 
 int BLI_parent_dir(char *path)
 {
-#ifdef WIN32
-	static char *parent_dir="..\\";
-#else
-	static char *parent_dir="../";
-#endif
+	static char parent_dir[]= {'.', '.', SEP, '\0'}; /* "../" or "..\\" */
 	char tmp[FILE_MAXDIR+FILE_MAXFILE+4];
 	BLI_strncpy(tmp, path, sizeof(tmp)-4);
 	BLI_add_slash(tmp);
@@ -1143,42 +1139,28 @@ void BLI_char_switch(char *string, char from, char to)
 void BLI_make_exist(char *dir) {
 	int a;
 
-	#ifdef WIN32
-		BLI_char_switch(dir, '/', '\\');
-	#else
-		BLI_char_switch(dir, '\\', '/');
-	#endif	
-	
+	BLI_char_switch(dir, ALTSEP, SEP);
+
 	a = strlen(dir);
-	
-#ifdef WIN32	
+
 	while(BLI_is_dir(dir) == 0){
 		a --;
-		while(dir[a] != '\\'){
+		while(dir[a] != SEP){
 			a--;
 			if (a <= 0) break;
 		}
-		if (a >= 0) dir[a+1] = 0;
+		if (a >= 0) {
+			dir[a+1] = '\0';
+		}
 		else {
-			/* defaulting to drive (usually 'C:') of Windows installation */
+#ifdef WIN32
 			get_default_root(dir);
-			break;
-		}
-	}
 #else
-	while(BLI_is_dir(dir) == 0){
-		a --;
-		while(dir[a] != '/'){
-			a--;
-			if (a <= 0) break;
-		}
-		if (a >= 0) dir[a+1] = 0;
-		else {
 			strcpy(dir,"/");
+#endif
 			break;
 		}
 	}
-#endif
 }
 
 void BLI_make_existing_file(char *name)
@@ -1495,6 +1477,67 @@ int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char
 	return 1;
 }
 
+char *BLI_first_slash(char *string) {
+	char *ffslash, *fbslash;
+	
+	ffslash= strchr(string, '/');	
+	fbslash= strchr(string, '\\');
+	
+	if (!ffslash) return fbslash;
+	else if (!fbslash) return ffslash;
+	
+	if ((intptr_t)ffslash < (intptr_t)fbslash) return ffslash;
+	else return fbslash;
+}
+
+char *BLI_last_slash(const char *string) {
+	char *lfslash, *lbslash;
+	
+	lfslash= strrchr(string, '/');	
+	lbslash= strrchr(string, '\\');
+
+	if (!lfslash) return lbslash; 
+	else if (!lbslash) return lfslash;
+	
+	if ((intptr_t)lfslash < (intptr_t)lbslash) return lbslash;
+	else return lfslash;
+}
+
+/* adds a slash if there isnt one there already */
+int BLI_add_slash(char *string) {
+	int len = strlen(string);
+#ifdef WIN32
+	if (len==0 || string[len-1]!='\\') {
+		string[len] = '\\';
+		string[len+1] = '\0';
+		return len+1;
+	}
+#else
+	if (len==0 || string[len-1]!='/') {
+		string[len] = '/';
+		string[len+1] = '\0';
+		return len+1;
+	}
+#endif
+	return len;
+}
+
+/* removes a slash if there is one */
+void BLI_del_slash(char *string) {
+	int len = strlen(string);
+	while (len) {
+#ifdef WIN32
+		if (string[len-1]=='\\') {
+#else
+		if (string[len-1]=='/') {
+#endif
+			string[len-1] = '\0';
+			len--;
+		} else {
+			break;
+		}
+	}
+}
 
 static int add_win32_extension(char *name)
 {
