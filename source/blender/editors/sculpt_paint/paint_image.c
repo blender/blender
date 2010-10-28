@@ -4178,7 +4178,7 @@ static void imapaint_lift_smear(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 	int a, tot;
 
 	imapaint_set_region(region, 0, 0, pos[0], pos[1], ibufb->x, ibufb->y);
-	tot= imapaint_torus_split_region(region, ibuf, ibufb);
+	tot= imapaint_torus_split_region(region, ibufb, ibuf);
 
 	for(a=0; a<tot; a++)
 		IMB_rectblend(ibufb, ibuf, region[a].destx, region[a].desty,

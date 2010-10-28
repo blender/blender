@@ -171,9 +171,19 @@ static void rna_Image_file_format_set(PointerRNA *ptr, int value)
 {
 	Image *image= (Image*)ptr->data;
 	if(BKE_imtype_is_movie(value) == 0) { /* should be able to throw an error here */
-		ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
+		ImBuf *ibuf;
+		int ftype= BKE_imtype_to_ftype(value);
+
+		/*
+		ibuf= BKE_image_get_ibuf(image, NULL);
 		if(ibuf)
-			ibuf->ftype= BKE_imtype_to_ftype(value);
+			ibuf->ftype= ftype;
+		*/
+
+		/* to be safe change all buffer file types */
+		for(ibuf= image->ibufs.first; ibuf; ibuf->next) {
+			ibuf->ftype= ftype;
+		}
 	}
 }
 
