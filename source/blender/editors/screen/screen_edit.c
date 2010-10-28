@@ -608,6 +608,10 @@ void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 }
 
 /* test if screen vertices should be scaled */
+
+/* needed to alternate AREAGRID snapping else it shifts one way
+ * to avoid this we should use floats at least during runtime [#24428]. */
+static char scale_alt_bool= 0;
 static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 {
 	ScrVert *sv=NULL;
@@ -643,20 +647,26 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 		
 		/* make sure it fits! */
 		for(sv= sc->vertbase.first; sv; sv= sv->next) {
+			/* 0.1519 was 0.5f, but tweaked so resizing the window doesnt favor one direction
+			 * also note scale_alt_bool */
 			tempf= ((float)sv->vec.x)*facx;
-			sv->vec.x= (short)(tempf+0.5);
-			sv->vec.x+= AREAGRID-1;
+			sv->vec.x= (short)(tempf+0.1519);
+			sv->vec.x+=  AREAGRID-2;
+			sv->vec.x-=  scale_alt_bool;
 			sv->vec.x-=  (sv->vec.x % AREAGRID); 
 			
 			CLAMP(sv->vec.x, 0, winsizex);
 			
 			tempf= ((float)sv->vec.y )*facy;
-			sv->vec.y= (short)(tempf+0.5);
-			sv->vec.y+= AREAGRID-1;
+			sv->vec.y= (short)(tempf+0.1519);
+			sv->vec.y+=  AREAGRID-2;
+			sv->vec.y-=  scale_alt_bool;
 			sv->vec.y-=  (sv->vec.y % AREAGRID); 
 			
 			CLAMP(sv->vec.y, 0, winsizey);
 		}
+
+		scale_alt_bool= scale_alt_bool ? 0:1;
 	}
 	
 	/* test for collapsed areas. This could happen in some blender version... */
