@@ -2905,7 +2905,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 				
 			case HSVCUBE:
-				if(but->a1==9) // vertical V slider, uses new widget draw now
+				if(but->a1 == UI_GRAD_V_ALT) // vertical V slider, uses new widget draw now
 					ui_draw_but_HSV_v(but, rect);
 				else  // other HSV pickers...
 					ui_draw_but_HSVCUBE(but, rect);
