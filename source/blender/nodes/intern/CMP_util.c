@@ -1303,7 +1303,7 @@ CompBuf* qd_downScaledCopy(CompBuf* src, int scale)
 void IIR_gauss(CompBuf* src, float sigma, int chan, int xy)
 {
 	double q, q2, sc, cf[4], tsM[9], tsu[3], tsv[3];
-	float *X, *Y, *W;
+	double *X, *Y, *W;
 	int i, x, y, sz;
 
 	// <0.5 not valid, though can have a possibly useful sort of sharpening effect
@@ -1367,9 +1367,9 @@ void IIR_gauss(CompBuf* src, float sigma, int chan, int xy)
 
 	// intermediate buffers
 	sz = MAX2(src->x, src->y);
-	X = MEM_callocN(sz*sizeof(float), "IIR_gauss X buf");
-	Y = MEM_callocN(sz*sizeof(float), "IIR_gauss Y buf");
-	W = MEM_callocN(sz*sizeof(float), "IIR_gauss W buf");
+	X = MEM_callocN(sz*sizeof(double), "IIR_gauss X buf");
+	Y = MEM_callocN(sz*sizeof(double), "IIR_gauss Y buf");
+	W = MEM_callocN(sz*sizeof(double), "IIR_gauss W buf");
 	if (xy & 1) {	// H
 		for (y=0; y<src->y; ++y) {
 			const int yx = y*src->x;
