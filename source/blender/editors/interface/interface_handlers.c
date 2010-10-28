@@ -3006,13 +3006,13 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 		hsv[0]= x;
 		hsv[1]= y;
 		break;
-	case UI_GRAD_SV + 3:
+	case UI_GRAD_H:
 		hsv[0]= x;
 		break;
-	case UI_GRAD_HV + 3:
+	case UI_GRAD_S:
 		hsv[1]= x;
 		break;
-	case UI_GRAD_HS + 3:
+	case UI_GRAD_V:
 		hsv[2]= x;
 		break;
 	case UI_GRAD_V_ALT:	

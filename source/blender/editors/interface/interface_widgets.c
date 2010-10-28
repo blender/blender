@@ -1729,7 +1729,7 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 void ui_draw_gradient(rcti *rect, float *hsv, int type, float alpha)
 {
 	int a;
-	float h= hsv[0], s= hsv[1], v= hsv[0];
+	float h= hsv[0], s= hsv[1], v= hsv[2];
 	float dx, dy, sx1, sx2, sy;
 	float col0[4][3];	// left half, rect bottom to top
 	float col1[4][3];	// right half, rect bottom to top
