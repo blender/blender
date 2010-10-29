@@ -774,6 +774,7 @@ static void PE_mirror_particle(Object *ob, DerivedMesh *dm, ParticleSystem *psys
 		if(mpoint->keys) MEM_freeN(mpoint->keys);
 
 		mpa->hair= MEM_dupallocN(pa->hair);
+		mpa->totkey= pa->totkey;
 		mpoint->keys= MEM_dupallocN(point->keys);
 		mpoint->totkey= point->totkey;
 
@@ -782,7 +783,7 @@ static void PE_mirror_particle(Object *ob, DerivedMesh *dm, ParticleSystem *psys
 		for(k=0; k<mpa->totkey; k++, mkey++, mhkey++) {
 			mkey->co= mhkey->co;
 			mkey->time= &mhkey->time;
-			mkey->flag &= PEK_SELECT;
+			mkey->flag &= ~PEK_SELECT;
 		}
 	}
 
@@ -4008,12 +4009,16 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 					key->co= hkey->co;
 					key->time= &hkey->time;
 					key->flag= hkey->editflag;
-					if(!(psys->flag & PSYS_GLOBAL_HAIR))
+					if(!(psys->flag & PSYS_GLOBAL_HAIR)) {
 						key->flag |= PEK_USE_WCO;
+						hkey->editflag |= PEK_USE_WCO;
+					}
+
 					hkey++;
 				}
 				pa++;
 			}
+			update_world_cos(ob, edit);
 		}
 		else {
 			PTCacheMem *pm;
