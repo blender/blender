@@ -3200,6 +3200,7 @@ static int brush_add(PEData *data, short number)
 			framestep= pa->lifetime/(float)(pset->totaddkey-1);
 
 			if(tree) {
+				ParticleData *ppa;
 				HairKey *hkey;
 				ParticleKey key[3];
 				KDTreeNearest ptn[3];
@@ -3224,6 +3225,8 @@ static int brush_add(PEData *data, short number)
 				for(w=0; w<maxw; w++)
 					weight[w] /= totw;
 
+				ppa= psys->particles+ptn[0].index;
+
 				for(k=0; k<pset->totaddkey; k++) {
 					hkey= (HairKey*)pa->hair + k;
 					hkey->time= pa->time + k * framestep;
@@ -3231,6 +3234,9 @@ static int brush_add(PEData *data, short number)
 					key[0].time= hkey->time/ 100.0f;
 					psys_get_particle_on_path(&sim, ptn[0].index, key, 0);
 					mul_v3_fl(key[0].co, weight[0]);
+					
+					/* TODO: interpolatint the weight would be nicer */
+					hkey->weight= (ppa->hair+MIN2(k, ppa->totkey-1))->weight;
 					
 					if(maxw>1) {
 						key[1].time= key[0].time;
@@ -3258,6 +3264,7 @@ static int brush_add(PEData *data, short number)
 				for(k=0, hkey=pa->hair; k<pset->totaddkey; k++, hkey++) {
 					VECADDFAC(hkey->co, pa->state.co, pa->state.vel, k * framestep * timestep);
 					hkey->time += k * framestep;
+					hkey->weight = 1.f - (float)k/(float)(pset->totaddkey-1);
 				}
 			}
 			for(k=0, hkey=pa->hair; k<pset->totaddkey; k++, hkey++) {
