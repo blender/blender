@@ -1159,8 +1159,9 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 	}
 	SEQ_END
 
-	/* test for effects and overlap */
-	SEQP_BEGIN(ed, seq) {
+	/* test for effects and overlap
+	 * dont use SEQP_BEGIN since that would be recursive */
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 			seq->flag &= ~SEQ_OVERLAP;
 			if( seq_test_overlap(ed->seqbasep, seq) ) {
@@ -1176,7 +1177,6 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 				calc_sequence(scene, seq);
 		}
 	}
-	SEQ_END;
 
 	/* as last: */
 	sort_seq(scene);
@@ -2008,16 +2008,16 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 
 	recurs_del_seq_flag(scene, ed->seqbasep, SEQ_FLAG_DELETE, 0);
 
-	/* test for effects and overlap */
-	SEQP_BEGIN(ed, seq) {
+	/* test for effects and overlap
+	 * dont use SEQP_BEGIN since that would be recursive */
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if(seq->flag & SELECT) {
 			seq->flag &= ~SEQ_OVERLAP;
-			if( seq_test_overlap(ed->seqbasep, seq) ) {
+			if(seq_test_overlap(ed->seqbasep, seq)) {
 				shuffle_seq(ed->seqbasep, seq, scene);
 			}
 		}
 	}
-	SEQ_END;
 
 	sort_seq(scene);
 	seq_update_muting(scene, ed);
