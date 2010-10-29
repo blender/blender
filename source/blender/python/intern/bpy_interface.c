@@ -196,6 +196,22 @@ void BPY_set_context(bContext *C)
 	BPy_SetContext(C);
 }
 
+/* init-tab */
+extern PyObject *BPyInit_noise(void);
+extern PyObject *BPyInit_mathutils(void);
+extern PyObject *BPyInit_bgl(void);
+extern PyObject *BPyInit_blf(void);
+extern PyObject *AUD_initPython(void);
+
+static struct _inittab bpy_internal_modules[]= {
+	{"noise", BPyInit_noise},
+	{"mathutils", BPyInit_mathutils},
+	{"bgl", BPyInit_bgl},
+	{"blf", BPyInit_blf},
+	{"aud", AUD_initPython},
+	{NULL, NULL}
+};
+
 /* call BPY_set_context first */
 void BPY_start_python( int argc, char **argv )
 {
@@ -205,6 +221,9 @@ void BPY_start_python( int argc, char **argv )
 	static wchar_t bprogname_wchar[FILE_MAXDIR+FILE_MAXFILE]; /* python holds a reference */
 	utf8towchar(bprogname_wchar, bprogname);
 	Py_SetProgramName(bprogname_wchar);
+
+	/* builtin modules */
+	PyImport_ExtendInittab(bpy_internal_modules);
 
 	BPY_start_python_path(); /* allow to use our own included python */
 

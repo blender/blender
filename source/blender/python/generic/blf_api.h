@@ -22,5 +22,4 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-
-PyObject *BLF_Init(void);
+PyObject *BPyInit_blf(void);

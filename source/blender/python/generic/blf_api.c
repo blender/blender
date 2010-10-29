@@ -390,17 +390,16 @@ static struct PyModuleDef BLF_module_def = {
 	0,  /* m_free */
 };
 
-PyObject *BLF_Init(void)
+PyObject *BPyInit_blf(void)
 {
 	PyObject *submodule;
 
 	submodule = PyModule_Create(&BLF_module_def);
-	PyDict_SetItemString(PyImport_GetModuleDict(), BLF_module_def.m_name, submodule);
 
 	PyModule_AddIntConstant(submodule, "ROTATION", BLF_ROTATION);
 	PyModule_AddIntConstant(submodule, "CLIPPING", BLF_CLIPPING);
 	PyModule_AddIntConstant(submodule, "SHADOW", BLF_SHADOW);
 	PyModule_AddIntConstant(submodule, "KERNING_DEFAULT", BLF_KERNING_DEFAULT);
 
-	return (submodule);
+	return submodule;
 }

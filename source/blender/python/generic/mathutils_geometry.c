@@ -830,12 +830,8 @@ static struct PyModuleDef M_Geometry_module_def = {
 };
 
 /*----------------------------MODULE INIT-------------------------*/
-PyObject *Geometry_Init(void)
+PyMODINIT_FUNC BPyInit_mathutils_geometry(void)
 {
-	PyObject *submodule;
-
-	submodule = PyModule_Create(&M_Geometry_module_def);
-	PyDict_SetItemString(PyImport_GetModuleDict(), M_Geometry_module_def.m_name, submodule);
-
-	return (submodule);
+	PyObject *submodule= PyModule_Create(&M_Geometry_module_def);
+	return submodule;
 }

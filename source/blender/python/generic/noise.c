@@ -122,8 +122,6 @@ static int left = 1;
 static int initf = 0;
 static unsigned long *next;
 
-PyObject *Noise_Init(void);
-
 /* initializes state[N] with a seed */
 static void init_genrand(unsigned long s)
 {
@@ -657,10 +655,9 @@ static struct PyModuleDef noise_module_def = {
 	0,  /* m_free */
 };
 
-PyObject *Noise_Init(void)
+PyObject *BPyInit_noise(void)
 {
 	PyObject *submodule = PyModule_Create(&noise_module_def);
-	PyDict_SetItemString(PyImport_GetModuleDict(), noise_module_def.m_name, submodule);
 
 	/* use current time as seed for random number generator by default */
 	setRndSeed(0);	

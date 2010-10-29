@@ -197,7 +197,7 @@ PyObject* AUD_initPython()
 {
 	PyObject* module = PyInit_aud();
 	PyModule_AddObject(module, "device", (PyObject *)PyCFunction_New(meth_getcdevice, NULL));
-	PyDict_SetItemString(PySys_GetObject("modules"), "aud", module);
+	PyDict_SetItemString(PyImport_GetModuleDict(), "aud", module);
 	if(AUD_device)
 	{
 		g_device = (Device*)Device_empty();

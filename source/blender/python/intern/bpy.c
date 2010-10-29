@@ -195,12 +195,7 @@ void BPy_init_modules( void )
 		printf("bpy: couldnt find 'scripts/modules', blender probably wont start.\n");
 	}
 	/* stand alone utility modules not related to blender directly */
-	Mathutils_Init();
-	Noise_Init();
-	BGL_Init();
-	BLF_Init();
-	IDProp_Init_Types();
-	AUD_initPython();
+	IDProp_Init_Types(); /* not actually a submodule, just types */
 
 	mod = PyModule_New("_bpy");
 
