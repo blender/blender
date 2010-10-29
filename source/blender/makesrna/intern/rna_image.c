@@ -181,7 +181,7 @@ static void rna_Image_file_format_set(PointerRNA *ptr, int value)
 		*/
 
 		/* to be safe change all buffer file types */
-		for(ibuf= image->ibufs.first; ibuf; ibuf->next) {
+		for(ibuf= image->ibufs.first; ibuf; ibuf= ibuf->next) {
 			ibuf->ftype= ftype;
 		}
 	}

@@ -452,11 +452,13 @@ int set_listbasepointers(Main *main, ListBase **lb)
 {
 	int a = 0;
 
-	/* BACKWARDS! also watch order of free-ing! (mesh<->mat) */
-
+	/* BACKWARDS! also watch order of free-ing! (mesh<->mat), first items freed last.
+	 * This is important because freeing data decreases usercounts of other datablocks,
+	 * if this data is its self freed it can crash. */
 	lb[a++]= &(main->ipo);
 	lb[a++]= &(main->action); // xxx moved here to avoid problems when freeing with animato (aligorith)
 	lb[a++]= &(main->key);
+	lb[a++]= &(main->gpencil); /* referenced by nodes, objects, view, scene etc, before to free after. */
 	lb[a++]= &(main->nodetree);
 	lb[a++]= &(main->image);
 	lb[a++]= &(main->tex);
@@ -483,14 +485,13 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++]= &(main->brush);
 	lb[a++]= &(main->script);
 	lb[a++]= &(main->particle);
-	
+
 	lb[a++]= &(main->world);
 	lb[a++]= &(main->screen);
 	lb[a++]= &(main->object);
 	lb[a++]= &(main->scene);
 	lb[a++]= &(main->library);
 	lb[a++]= &(main->wm);
-	lb[a++]= &(main->gpencil);
 	
 	lb[a]= NULL;
 
