@@ -46,6 +46,11 @@ struct StripElem;
 #define BUILD_SEQAR_COUNT_CURRENT  1
 #define BUILD_SEQAR_COUNT_CHILDREN 2
 
+#define EARLY_NO_INPUT		-1
+#define EARLY_DO_EFFECT		0
+#define EARLY_USE_INPUT_1	1
+#define EARLY_USE_INPUT_2	2
+
 /* sequence iterator */
 
 typedef struct SeqIterator {
