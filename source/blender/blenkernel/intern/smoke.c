@@ -629,9 +629,6 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 				smd->domain->fluid = NULL;
 			}
 
-			smd->domain->point_cache[0]->flag |= PTCACHE_OUTDATED;
-			smd->domain->point_cache[1]->flag |= PTCACHE_OUTDATED;
-
 			smokeModifier_reset_turbulence(smd);
 
 			smd->time = -1;
@@ -1412,6 +1409,10 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		/* if on second frame, write cache for first frame */
 		/* this needs to be done for smoke too so that pointcache works properly */
 		if((int)smd->time == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0)) {
+			// create shadows straight after domain initialization so we get nice shadows for startframe, too
+			if(get_lamp(scene, light))
+				smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
+
 			BKE_ptcache_write_cache(&pid, startframe);
 			if(sds->wt)
 				BKE_ptcache_write_cache(&pid_wt, startframe);
@@ -1443,7 +1444,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			}
 		}
 
-		// create shadows before writing cache so we get nice shadows for startframe, too
+		// create shadows before writing cache so they get stored
 		if(get_lamp(scene, light))
 			smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
 	
