@@ -115,8 +115,9 @@ void drawaxes(float size, char drawtype);
 void view3d_cached_text_draw_begin(void);
 void view3d_cached_text_draw_add(const float co[3], const char *str, short xoffs, short flag);
 void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, float mat[][4]);
-#define V3D_CACHE_TEXT_ZBUF 1
-#define V3D_CACHE_TEXT_WORLDSPACE 2
+#define V3D_CACHE_TEXT_ZBUF			(1<<0)
+#define V3D_CACHE_TEXT_WORLDSPACE	(1<<1)
+#define V3D_CACHE_TEXT_ASCII		(1<<2)
 
 /* drawarmature.c */
 int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag);

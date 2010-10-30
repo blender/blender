@@ -558,10 +558,10 @@ static int CachedTextLevel= 0;
 typedef struct ViewCachedString {
 	struct ViewCachedString *next, *prev;
 	float vec[3], col[4];
-	char str[128]; 
 	short mval[2];
 	short xoffs;
 	short flag;
+	/* str is allocated past the end */
 } ViewCachedString;
 
 void view3d_cached_text_draw_begin()
@@ -573,15 +573,18 @@ void view3d_cached_text_draw_begin()
 
 void view3d_cached_text_draw_add(const float co[3], const char *str, short xoffs, short flag)
 {
+	int alloc_len= strlen(str) + 1;
 	ListBase *strings= &CachedText[CachedTextLevel-1];
-	ViewCachedString *vos= MEM_callocN(sizeof(ViewCachedString), "ViewCachedString");
+	ViewCachedString *vos= MEM_callocN(sizeof(ViewCachedString) + alloc_len, "ViewCachedString");
 
 	BLI_addtail(strings, vos);
-	BLI_strncpy(vos->str, str, 128);
 	copy_v3_v3(vos->vec, co);
 	glGetFloatv(GL_CURRENT_COLOR, vos->col);
 	vos->xoffs= xoffs;
 	vos->flag= flag;
+
+	/* allocate past the end */
+	memcpy(++vos, str, alloc_len);
 }
 
 void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, float mat[][4])
@@ -635,8 +638,14 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 			}
 #endif
 			if(vos->mval[0]!=IS_CLIPPED) {
+				const char *str= (char *)(vos+1);
 				glColor3fv(vos->col);
-				BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, vos->str);
+				if(vos->flag & V3D_CACHE_TEXT_ASCII) {
+					BLF_draw_default_ascii((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str);
+				}
+				else {
+					BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str);
+				}
 			}
 		}
 		
@@ -1809,8 +1818,9 @@ static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, int i
 
 static void draw_dm_edges_sel_interp(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol)
 {
-	unsigned char *cols[2] = {baseCol, selCol};
-
+	unsigned char *cols[2];
+	cols[0]= baseCol;
+	cols[1]= selCol;
 	dm->drawMappedEdgesInterp(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_sel_interp__setDrawInterpOptions, cols);
 }
 
@@ -2113,7 +2123,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				else
 					sprintf(val, conv_float, len_v3v3(v1, v2));
 				
-				view3d_cached_text_draw_add(vmid, val, 0, 0);
+				view3d_cached_text_draw_add(vmid, val, 0, V3D_CACHE_TEXT_ASCII);
 			}
 		}
 	}
@@ -2152,7 +2162,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				else
 					sprintf(val, conv_float, area);
 
-				view3d_cached_text_draw_add(efa->cent, val, 0, 0);
+				view3d_cached_text_draw_add(efa->cent, val, 0, V3D_CACHE_TEXT_ASCII);
 			}
 		}
 	}
@@ -2194,13 +2204,13 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				/* Vec 1 */
 				sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v4, v1, v2)));
 				interp_v3_v3v3(fvec, efa->cent, efa->v1->co, 0.8f);
-				view3d_cached_text_draw_add(fvec, val, 0, 0);
+				view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII);
 			}
 			if( (e1->f & e2->f & SELECT) || (do_moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
 				sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v1, v2, v3)));
 				interp_v3_v3v3(fvec, efa->cent, efa->v2->co, 0.8f);
-				view3d_cached_text_draw_add(fvec, val, 0, 0);
+				view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII);
 			}
 			if( (e2->f & e3->f & SELECT) || (do_moving && (efa->v3->f & SELECT)) ) {
 				/* Vec 3 */
@@ -2209,14 +2219,14 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				else
 					sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v2, v3, v1)));
 				interp_v3_v3v3(fvec, efa->cent, efa->v3->co, 0.8f);
-				view3d_cached_text_draw_add(fvec, val, 0, 0);
+				view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII);
 			}
 				/* Vec 4 */
 			if(efa->v4) {
 				if( (e3->f & e4->f & SELECT) || (do_moving && (efa->v4->f & SELECT)) ) {
 					sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v3, v4, v1)));
 					interp_v3_v3v3(fvec, efa->cent, efa->v4->co, 0.8f);
-					view3d_cached_text_draw_add(fvec, val, 0, 0);
+					view3d_cached_text_draw_add(fvec, val, 0, V3D_CACHE_TEXT_ASCII);
 				}
 			}
 		}
@@ -3827,16 +3837,24 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					char *val_pos= val;
 					val[0]= '\0';
 
-					if(part->draw&PART_DRAW_NUM)
-						val_pos += sprintf(val, "%i", a);
-
-					if((part->draw & PART_DRAW_HEALTH) && a < totpart && part->phystype==PART_PHYS_BOIDS)
-						sprintf(val_pos, (val_pos==val) ? "%.2f" : ":%.2f", pa_health);
+					if(part->draw&PART_DRAW_NUM) {
+						if(a < totpart && (part->draw & PART_DRAW_HEALTH) && (part->phystype==PART_PHYS_BOIDS)) {
+							sprintf(val_pos, "%d:%.2f", a, pa_health);
+						}
+						else {
+							sprintf(val_pos, "%d", a);
+						}
+					}
+					else {
+						if(a < totpart && (part->draw & PART_DRAW_HEALTH) && (part->phystype==PART_PHYS_BOIDS)) {
+							sprintf(val_pos, "%.2f", pa_health);
+						}
+					}
 
 					/* in path drawing state.co is the end point */
 					/* use worldspace beause object matrix is already applied */
 					mul_v3_m4v3(vec_txt, ob->imat, state.co);
-					view3d_cached_text_draw_add(vec_txt, val, 10, V3D_CACHE_TEXT_WORLDSPACE);
+					view3d_cached_text_draw_add(vec_txt, val, 10, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII);
 				}
 			}
 		}
@@ -3925,12 +3943,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 			for(a=0, pa=psys->particles; a<totpart; a++, pa++){
 				float vec_txt[3];
-				val[0]= '\0';
-
 				sprintf(val, "%i", a);
 				/* use worldspace beause object matrix is already applied */
 				mul_v3_m4v3(vec_txt, ob->imat, cache[a]->co);
-				view3d_cached_text_draw_add(vec_txt, val, 10, V3D_CACHE_TEXT_WORLDSPACE);
+				view3d_cached_text_draw_add(vec_txt, val, 10, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII);
 			}
 		}
 	}
@@ -5513,11 +5529,11 @@ void drawRBpivot(bRigidBodyJointConstraint *data)
 		glVertex3fv(v);			
 		glEnd();
 		if (axis==0)
-			view3d_cached_text_draw_add(v, "px", 0, 0);
+			view3d_cached_text_draw_add(v, "px", 0, V3D_CACHE_TEXT_ASCII);
 		else if (axis==1)
-			view3d_cached_text_draw_add(v, "py", 0, 0);
+			view3d_cached_text_draw_add(v, "py", 0, V3D_CACHE_TEXT_ASCII);
 		else
-			view3d_cached_text_draw_add(v, "pz", 0, 0);
+			view3d_cached_text_draw_add(v, "pz", 0, V3D_CACHE_TEXT_ASCII);
 	}
 	glLineWidth (1.0f);
 	setlinestyle(0);

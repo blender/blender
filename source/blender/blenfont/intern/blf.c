@@ -361,7 +361,7 @@ void BLF_blur(int fontid, int size)
 		font->blur= size;
 }
 
-void BLF_draw_default(float x, float y, float z, char *str)
+void BLF_draw_default(float x, float y, float z, const char *str)
 {
 	if (!str)
 		return;
@@ -378,6 +378,24 @@ void BLF_draw_default(float x, float y, float z, char *str)
 	BLF_position(global_font_default, x, y, z);
 	BLF_draw(global_font_default, str);
 }
+/* same as above but call 'BLF_draw_ascii' */
+void BLF_draw_default_ascii(float x, float y, float z, const char *str)
+{
+	if (!str)
+		return;
+
+	if (global_font_default == -1)
+		global_font_default= blf_search("default");
+
+	if (global_font_default == -1) {
+		printf("Warning: Can't found default font!!\n");
+		return;
+	}
+
+	BLF_size(global_font_default, global_font_points, global_font_dpi);
+	BLF_position(global_font_default, x, y, z);
+	BLF_draw_ascii(global_font_default, str);
+}
 
 void BLF_rotation_default(float angle)
 {
@@ -388,32 +406,49 @@ void BLF_rotation_default(float angle)
 		font->angle= angle;
 }
 
-void BLF_draw(int fontid, char *str)
-{
-	FontBLF *font;
 
+static void blf_draw__start(FontBLF *font)
+{
 	/*
 	 * The pixmap alignment hack is handle
 	 * in BLF_position (old ui_rasterpos_safe).
 	 */
-	font= BLF_get(fontid);
+
+	glEnable(GL_BLEND);
+	glEnable(GL_TEXTURE_2D);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glPushMatrix();
+	glTranslatef(font->pos[0], font->pos[1], font->pos[2]);
+	glScalef(font->aspect, font->aspect, 1.0);
+
+	if (font->flags & BLF_ROTATION)
+		glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
+}
+static void blf_draw__end(void)
+{
+	glPopMatrix();
+	glDisable(GL_BLEND);
+	glDisable(GL_TEXTURE_2D);
+}
+
+void BLF_draw(int fontid, const char *str)
+{
+	FontBLF *font= BLF_get(fontid);
 	if (font) {
-		glEnable(GL_BLEND);
-		glEnable(GL_TEXTURE_2D);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glPushMatrix();
-		glTranslatef(font->pos[0], font->pos[1], font->pos[2]);
-		glScalef(font->aspect, font->aspect, 1.0);
-
-		if (font->flags & BLF_ROTATION)
-			glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
-
+		blf_draw__start(font);
 		blf_font_draw(font, str);
+		blf_draw__end();
+	}
+}
 
-		glPopMatrix();
-		glDisable(GL_BLEND);
-		glDisable(GL_TEXTURE_2D);
+void BLF_draw_ascii(int fontid, const char *str)
+{
+	FontBLF *font= BLF_get(fontid);
+	if (font) {
+		blf_draw__start(font);
+		blf_font_draw_ascii(font, str);
+		blf_draw__end();
 	}
 }
 
