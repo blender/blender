@@ -2333,22 +2333,22 @@ PyObject* initGameKeys()
 
 PyObject* initMathutils()
 {
-	return Mathutils_Init();
+	return BPyInit_mathutils();
 }
 
 PyObject* initGeometry()
 {
-	return Geometry_Init();
+	return BPyInit_mathutils_geometry();
 }
 
 PyObject* initBGL()
 {
-	return BGL_Init();
+	return BPyInit_bgl();
 }
 
 PyObject* initBLF()
 {
-	return BLF_Init();
+	return BPyInit_blf();
 }
 
 // utility function for loading and saving the globalDict
