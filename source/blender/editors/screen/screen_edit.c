@@ -1035,12 +1035,17 @@ void ED_screen_draw(wmWindow *win)
 /* make this screen usable */
 /* for file read and first use, for scaling window, area moves */
 void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
-{
-	ScrArea *sa;
-	rcti winrct= {0, win->sizex-1, 0, win->sizey-1};
-	
+{	
 	/* exception for bg mode, we only need the screen context */
 	if (!G.background) {
+		ScrArea *sa;
+		rcti winrct;
+	
+		winrct.xmin= 0;
+		winrct.xmax= win->sizex-1;
+		winrct.ymin= 0;
+		winrct.ymax= win->sizey-1;
+		
 		screen_test_scale(win->screen, win->sizex, win->sizey);
 		
 		if(win->screen->mainwin==0)

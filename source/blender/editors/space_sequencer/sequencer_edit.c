@@ -1502,7 +1502,6 @@ static int sequencer_swap_inputs_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Sequence *seq, *last_seq = seq_active_get(scene);
-	char *error_msg;
 
 	if(last_seq->seq1==NULL || last_seq->seq2 == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No valid inputs to swap");

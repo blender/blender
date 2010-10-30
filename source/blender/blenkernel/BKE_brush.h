@@ -36,7 +36,7 @@ struct Brush;
 struct ImBuf;
 struct Scene;
 struct wmOperator;
-enum CurveMappingPreset;
+// enum CurveMappingPreset;
 
 /* datablock functions */
 struct Brush *add_brush(const char *name);
