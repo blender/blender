@@ -1686,6 +1686,15 @@ static ImBuf* seq_render_effect_strip_impl(
 		goto finish;
 	}
 
+	/* Override render size here, effects need to get the actual
+	 * ratio so they can scale appropriately. This whole business
+	 * with render size, proxy size, and seqrectx, etc. is a bit
+	 * complicated and should probably be cleaned up and handled
+	 * properly way before we get to this point. -jahka
+	 * (fix for bug #23318)
+	 */
+	render_size = 100*seqrectx/scene->r.xsch;
+
 	if ((seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) != 0) {
 		sh.get_default_fac(seq, cfra, &fac, &facf);
 		if( scene->r.mode & R_FIELDS ); else facf= fac;

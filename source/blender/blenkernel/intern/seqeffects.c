@@ -2631,32 +2631,30 @@ static void copy_glow_effect(Sequence *dst, Sequence *src)
 }
 
 //void do_glow_effect(Cast *cast, float facf0, float facf1, int xo, int yo, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *outbuf, ImBuf *use)
-static void do_glow_effect_byte(Sequence *seq, float facf0, float UNUSED(facf1), 
+static void do_glow_effect_byte(Sequence *seq, int render_size, float facf0, float UNUSED(facf1), 
 				int x, int y, char *rect1, 
 				char *UNUSED(rect2), char *out)
 {
 	unsigned char *outbuf=(unsigned char *)out;
 	unsigned char *inbuf=(unsigned char *)rect1;
 	GlowVars *glow = (GlowVars *)seq->effectdata;
-	int size= 100; // renderdata XXX
 	
 	RVIsolateHighlights_byte(inbuf, outbuf , x, y, glow->fMini*765, glow->fBoost * facf0, glow->fClamp);
-	RVBlurBitmap2_byte (outbuf, x, y, glow->dDist * (size / 100.0f),glow->dQuality);
+	RVBlurBitmap2_byte (outbuf, x, y, glow->dDist * (render_size / 100.0f),glow->dQuality);
 	if (!glow->bNoComp)
 		RVAddBitmaps_byte (inbuf , outbuf, outbuf, x, y);
 }
 
-static void do_glow_effect_float(Sequence *seq, float facf0, float UNUSED(facf1), 
+static void do_glow_effect_float(Sequence *seq, int render_size, float facf0, float UNUSED(facf1), 
 				 int x, int y, 
 				 float *rect1, float *UNUSED(rect2), float *out)
 {
 	float *outbuf = out;
 	float *inbuf = rect1;
 	GlowVars *glow = (GlowVars *)seq->effectdata;
-	int size= 100; // renderdata XXX
 
 	RVIsolateHighlights_float(inbuf, outbuf , x, y, glow->fMini*3.0f, glow->fBoost * facf0, glow->fClamp);
-	RVBlurBitmap2_float (outbuf, x, y, glow->dDist * (size / 100.0f),glow->dQuality);
+	RVBlurBitmap2_float (outbuf, x, y, glow->dDist * (render_size / 100.0f),glow->dQuality);
 	if (!glow->bNoComp)
 		RVAddBitmaps_float (inbuf , outbuf, outbuf, x, y);
 }
@@ -2664,19 +2662,19 @@ static void do_glow_effect_float(Sequence *seq, float facf0, float UNUSED(facf1)
 static struct ImBuf * do_glow_effect(
 	Main *UNUSED(bmain), Scene *UNUSED(scene), Sequence *seq, float UNUSED(cfra),
 	float facf0, float facf1, int x, int y, 
-	int UNUSED(preview_render_size),
+	int render_size,
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 	struct ImBuf *ibuf3)
 {
 	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
 
 	if (out->rect_float) {
-		do_glow_effect_float(seq,
+		do_glow_effect_float(seq, render_size,
 					 facf0, facf1, x, y,
 					 ibuf1->rect_float, ibuf2->rect_float,
 					 out->rect_float);
 	} else {
-		do_glow_effect_byte(seq,
+		do_glow_effect_byte(seq, render_size,
 					facf0, facf1, x, y,
 					(char*) ibuf1->rect, (char*) ibuf2->rect,
 					(char*) out->rect);
