@@ -592,8 +592,11 @@ void axis_angle_to_quat(float q[4], const float axis[3], float angle)
 	float nor[3];
 	float si;
 
-	normalize_v3_v3(nor, axis);
-	
+	if(normalize_v3_v3(nor, axis) == 0.0f) {
+		unit_qt(q);
+		return;
+	}
+
 	angle /= 2;
 	si = (float)sin(angle);
 	q[0] = (float)cos(angle);
@@ -649,7 +652,10 @@ void axis_angle_to_mat3(float mat[3][3], const float axis[3], const float angle)
 	float nor[3], nsi[3], co, si, ico;
 	
 	/* normalise the axis first (to remove unwanted scaling) */
-	normalize_v3_v3(nor, axis);
+	if(normalize_v3_v3(nor, axis) == 0.0f) {
+		unit_m3(mat);
+		return;
+	}
 	
 	/* now convert this to a 3x3 matrix */
 	co= (float)cos(angle);		
