@@ -3812,6 +3812,10 @@ static void pivotcon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 	
 	float pivot[3], vec[3];
 	float rotMat[3][3];
+
+	/* pivot correction */
+	float axis[3], angle;
+	float dvec[3];
 	
 	/* firstly, check if pivoting should take place based on the current rotation */
 	if (data->rotAxis != PIVOTCON_AXIS_NONE) {
@@ -3854,7 +3858,15 @@ static void pivotcon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 	// TODO: perhaps we might want to include scaling based on the pivot too?
 	copy_m3_m4(rotMat, cob->matrix);
 	normalize_m3(rotMat);
-	
+
+
+	/* correct the pivot by the rotation axis otherwise the pivot translates when it shouldnt */
+	mat3_to_axis_angle(axis, &angle, rotMat);
+	sub_v3_v3v3(vec, pivot, cob->matrix[3]);
+	project_v3_v3v3(dvec, vec, axis);
+	sub_v3_v3(pivot, dvec);
+
+
 	/* perform the pivoting... */
 		/* 1. take the vector from owner to the pivot */
 	sub_v3_v3v3(vec, pivot, cob->matrix[3]);
