@@ -1144,53 +1144,6 @@ void eulO_to_mat3(float M[3][3], const float e[3], const short order)
 	M[i][k] = -sj;	 M[j][k] = cj*si;	 M[k][k] = cj*ci;
 }
 
-/* Construct 4x4 matrix from Euler angles (in radians). */
-void eulO_to_mat4(float M[4][4], const float e[3], const short order)
-{
-	float m[3][3];
-	
-	/* for now, we'll just do this the slow way (i.e. copying matrices) */
-	normalize_m3(m);
-	eulO_to_mat3(m,e, order);
-	copy_m4_m3(M, m);
-}
-
-/* Convert 3x3 matrix to Euler angles (in radians). */
-void mat3_to_eulO(float e[3], short order,float M[3][3])
-{
-	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
-	short i=R->axis[0],  j=R->axis[1], 	k=R->axis[2];
-	double cy = sqrt(M[i][i]*M[i][i] + M[i][j]*M[i][j]);
-	
-	if (cy > 16*FLT_EPSILON) {
-		e[i] = atan2(M[j][k], M[k][k]);
-		e[j] = atan2(-M[i][k], cy);
-		e[k] = atan2(M[i][j], M[i][i]);
-	} 
-	else {
-		e[i] = atan2(-M[k][j], M[j][j]);
-		e[j] = atan2(-M[i][k], cy);
-		e[k] = 0;
-	}
-	
-	if (R->parity) {
-		e[0] = -e[0]; 
-		e[1] = -e[1]; 
-		e[2] = -e[2];
-	}
-}
-
-/* Convert 4x4 matrix to Euler angles (in radians). */
-void mat4_to_eulO(float e[3], const short order,float M[4][4])
-{
-	float m[3][3];
-	
-	/* for now, we'll just do this the slow way (i.e. copying matrices) */
-	copy_m3_m4(m, M);
-	normalize_m3(m);
-	mat3_to_eulO(e, order,m);
-}
-
 /* returns two euler calculation methods, so we can pick the best */
 static void mat3_to_eulo2(float M[3][3], float *e1, float *e2, short order)
 {
@@ -1231,6 +1184,45 @@ static void mat3_to_eulo2(float M[3][3], float *e1, float *e2, short order)
 		e2[1] = -e2[1]; 
 		e2[2] = -e2[2];
 	}
+}
+
+/* Construct 4x4 matrix from Euler angles (in radians). */
+void eulO_to_mat4(float M[4][4], const float e[3], const short order)
+{
+	float m[3][3];
+	
+	/* for now, we'll just do this the slow way (i.e. copying matrices) */
+	normalize_m3(m);
+	eulO_to_mat3(m,e, order);
+	copy_m4_m3(M, m);
+}
+
+
+/* Convert 3x3 matrix to Euler angles (in radians). */
+void mat3_to_eulO(float eul[3], short order,float M[3][3])
+{
+	float eul1[3], eul2[3];
+	
+	mat3_to_eulo2(M, eul1, eul2, order);
+		
+	/* return best, which is just the one with lowest values it in */
+	if(fabs(eul1[0])+fabs(eul1[1])+fabs(eul1[2]) > fabs(eul2[0])+fabs(eul2[1])+fabs(eul2[2])) {
+		copy_v3_v3(eul, eul2);
+	}
+	else {
+		copy_v3_v3(eul, eul1);
+	}
+}
+
+/* Convert 4x4 matrix to Euler angles (in radians). */
+void mat4_to_eulO(float e[3], const short order,float M[4][4])
+{
+	float m[3][3];
+	
+	/* for now, we'll just do this the slow way (i.e. copying matrices) */
+	copy_m3_m4(m, M);
+	normalize_m3(m);
+	mat3_to_eulO(e, order,m);
 }
 
 /* uses 2 methods to retrieve eulers, and picks the closest */

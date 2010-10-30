@@ -1381,16 +1381,14 @@ static bConstraintTypeInfo CTI_LOCLIMIT = {
 static void rotlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
 {
 	bRotLimitConstraint *data = con->data;
-	float eul_zero[3]= {0.0f, 0.0f, 0.0f};
 	float loc[3];
 	float eul[3];
 	float size[3];
 	
 	copy_v3_v3(loc, cob->matrix[3]);
 	mat4_to_size(size, cob->matrix);
-	
-	/* use compat function because it uses the rotation without axis flipping [#24002] */
-	mat4_to_compatible_eulO(eul, eul_zero, cob->rotOrder, cob->matrix);
+
+	mat4_to_eulO(eul, cob->rotOrder, cob->matrix);
 
 	/* constraint data uses radians internally */
 	
