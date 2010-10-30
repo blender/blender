@@ -43,9 +43,10 @@ PseudoNoise::init (long seed)
 real 
 PseudoNoise::linearNoise (real x)
 {
-  int i = x*NB_VALUE_NOISE;
-  real x1=_values[i%NB_VALUE_NOISE], x2=_values[(i+1)%NB_VALUE_NOISE];
-  real t=x*real(NB_VALUE_NOISE)-real(i);
+  real tmp;
+  int i = modf(x, &tmp) * NB_VALUE_NOISE;
+  real x1=_values[i], x2=_values[(i+1)%NB_VALUE_NOISE];
+  real t = modf(x * NB_VALUE_NOISE, &tmp);
   return x1*(1-t)+x2*t;
 }
 
@@ -60,18 +61,18 @@ LanczosWindowed(real t)
 real 
 PseudoNoise::smoothNoise (real x)
 {
-  int i = x*NB_VALUE_NOISE;
-  real t=x*real(NB_VALUE_NOISE)-real(i);
-  if (i - 1 < 0)
+  real tmp;
+  int i = modf(x, &tmp) * NB_VALUE_NOISE;
+  int h = i - 1;
+  if (h < 0)
     {
-      int plus=-i/NB_VALUE_NOISE;
-      i=i+NB_VALUE_NOISE*(plus+2);
-      t=(x+plus+2)*real(NB_VALUE_NOISE)-real(i);
+	  h = NB_VALUE_NOISE + h;
     }
 
-  real x1=_values[i%NB_VALUE_NOISE], x2=_values[(i+1)%NB_VALUE_NOISE];
-  real x0=_values[(i-1)%NB_VALUE_NOISE], x3=_values[(i+2)%NB_VALUE_NOISE];
+  real x1=_values[i], x2=_values[(i+1)%NB_VALUE_NOISE];
+  real x0=_values[h], x3=_values[(i+2)%NB_VALUE_NOISE];
 
+  real t = modf(x * NB_VALUE_NOISE, &tmp);
   real y0=LanczosWindowed(-1-t);
   real y1=LanczosWindowed(-t);
   real y2=LanczosWindowed(1-t);
