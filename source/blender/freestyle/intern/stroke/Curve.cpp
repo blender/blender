@@ -127,6 +127,12 @@ iA_B_eq_iB_A:
       //_t2d = t3;
       _t2d=t2*t3;
     }
+	else if((iA->getPoint2D() - iA->getPoint2D()).norm() < 1e-6) {
+      __A = iB->A();
+      __B = iB->B();
+      //_t2d = t3;
+      _t2d=t2*t3;
+	}
   }
   else if(iA->A() != 0 && iB->A() != 0 && (iA->A()->point3d() - iB->A()->point3d()).norm() < 1e-6)
   {
@@ -141,7 +147,13 @@ iA_B_eq_iB_A:
 	goto iA_B_eq_iB_A;
   }
   if (!__A || !__B) {
-	cerr << "Fatal error in CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)" << endl;
+	  printf("iA A 0x%p p (%f, %f)\n", iA->A(), iA->A()->getPoint2D().x(), iA->A()->getPoint2D().y());
+	  printf("iA B 0x%p p (%f, %f)\n", iA->B(), iA->B()->getPoint2D().x(), iA->B()->getPoint2D().y());
+	  printf("iB A 0x%p p (%f, %f)\n", iB->A(), iB->A()->getPoint2D().x(), iB->A()->getPoint2D().y());
+	  printf("iB B 0x%p p (%f, %f)\n", iB->B(), iB->B()->getPoint2D().x(), iB->B()->getPoint2D().y());
+	  printf("iA t2d %f p (%f, %f)\n", iA->t2d(), iA->getPoint2D().x(), iA->getPoint2D().y());
+	  printf("iB t2d %f p (%f, %f)\n", iB->t2d(), iB->getPoint2D().x(), iB->getPoint2D().y());
+	  cerr << "Fatal error in CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)" << endl;
   }
   assert(__A != 0 && __B != 0);
 
