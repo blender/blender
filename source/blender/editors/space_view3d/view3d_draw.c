@@ -579,12 +579,16 @@ static void draw_view_axis(RegionView3D *rv3d)
 	const float toll = 0.5;      /* used to see when view is quasi-orthogonal */
 	const float start = k + 1.0; /* axis center in screen coordinates, x=y */
 	float ydisp = 0.0;          /* vertical displacement to allow obj info text */
+	int bright = 25*(float)U.rvibright + 5; /* axis alpha (rvibright has range 0-10) */
 
 	float vec[3];
 	float dx, dy;
 	
 	/* thickness of lines is proportional to k */
 	glLineWidth(2);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	/* X */
 	vec[0] = 1;
@@ -593,7 +597,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dx = vec[0] * k;
 	dy = vec[1] * k;
 
-	glColor3ub(220, 0, 0);
+	glColor4ub(220, 0, 0, bright);
 	glBegin(GL_LINES);
 	glVertex2f(start, start + ydisp);
 	glVertex2f(start + dx, start + dy + ydisp);
@@ -603,6 +607,9 @@ static void draw_view_axis(RegionView3D *rv3d)
 		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "x");
 	}
 	
+	/* BLF_draw_default disables blending */
+	glEnable(GL_BLEND);
+
 	/* Y */
 	vec[1] = 1;
 	vec[0] = vec[2] = 0;
@@ -610,7 +617,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dx = vec[0] * k;
 	dy = vec[1] * k;
 
-	glColor3ub(0, 220, 0);
+	glColor4ub(0, 220, 0, bright);
 	glBegin(GL_LINES);
 	glVertex2f(start, start + ydisp);
 	glVertex2f(start + dx, start + dy + ydisp);
@@ -619,6 +626,8 @@ static void draw_view_axis(RegionView3D *rv3d)
 	if (fabs(dx) > toll || fabs(dy) > toll) {
 		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "y");
 	}
+
+	glEnable(GL_BLEND);
 	
 	/* Z */
 	vec[2] = 1;
@@ -627,7 +636,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dx = vec[0] * k;
 	dy = vec[1] * k;
 
-	glColor3ub(30, 30, 220);
+	glColor4ub(30, 30, 220, bright);
 	glBegin(GL_LINES);
 	glVertex2f(start, start + ydisp);
 	glVertex2f(start + dx, start + dy + ydisp);
@@ -640,6 +649,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	/* restore line-width */
 	
 	glLineWidth(1.0);
+	glDisable(GL_BLEND);
 }
 
 
