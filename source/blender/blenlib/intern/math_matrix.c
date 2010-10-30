@@ -957,7 +957,6 @@ void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wm
 	float mat3[3][3];    /* wmat -> 3x3 */
 	float mat3_n[3][3];  /* wmat -> normalized, 3x3 */
 	float imat3_n[3][3]; /* wmat -> normalized & inverted, 3x3 */
-	short is_neg;
 	/* location */
 	copy_v3_v3(loc, wmat[3]);
 
@@ -966,9 +965,8 @@ void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wm
 	copy_m3_m4(mat3, wmat);
 	/* so scale doesnt interfear with rotation [#24291] */
 	/* note: this is a workaround for negative matrix not working for rotation conversion, FIXME */
-	is_neg= is_negative_m3(mat3);
 	normalize_m3_m3(mat3_n, mat3);
-	if(is_neg) {
+	if(is_negative_m3(mat3)) {
 		negate_v3(mat3_n[0]);
 		negate_v3(mat3_n[1]);
 		negate_v3(mat3_n[2]);
@@ -986,12 +984,6 @@ void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wm
 	size[0]= mat3[0][0];
 	size[1]= mat3[1][1];
 	size[2]= mat3[2][2];
-
-	/* with a negative matrix, all scaled will be negative
-	 * flipping isnt needed but nicer to result in a positive scale */
-	if(is_neg) {
-		negate_v3(size);
-	}
 }
 
 void scale_m3_fl(float m[][3], float scale)
