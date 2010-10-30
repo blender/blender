@@ -87,6 +87,7 @@ void SEQUENCER_OT_unlock(struct wmOperatorType *ot);
 void SEQUENCER_OT_reload(struct wmOperatorType *ot);
 void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_reassign_inputs(struct wmOperatorType *ot);
+void SEQUENCER_OT_swap_inputs(struct wmOperatorType *ot);
 void SEQUENCER_OT_duplicate(struct wmOperatorType *ot);
 void SEQUENCER_OT_delete(struct wmOperatorType *ot);
 void SEQUENCER_OT_images_separate(struct wmOperatorType *ot);

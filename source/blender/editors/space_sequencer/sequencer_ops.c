@@ -60,6 +60,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_reload);
 	WM_operatortype_append(SEQUENCER_OT_refresh_all);
 	WM_operatortype_append(SEQUENCER_OT_reassign_inputs);
+	WM_operatortype_append(SEQUENCER_OT_swap_inputs);
 	WM_operatortype_append(SEQUENCER_OT_duplicate);
 	WM_operatortype_append(SEQUENCER_OT_delete);
 	WM_operatortype_append(SEQUENCER_OT_images_separate);
@@ -169,6 +170,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_swap", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "side", SEQ_SIDE_RIGHT);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_inputs", SKEY, KM_PRESS, KM_ALT, 0);
 
 	/* multicam editing keyboard layout, switch to camera 1-10 using
 	   regular number keys */

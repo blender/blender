@@ -1498,6 +1498,43 @@ void SEQUENCER_OT_reassign_inputs(struct wmOperatorType *ot)
 }
 
 
+static int sequencer_swap_inputs_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Sequence *seq, *last_seq = seq_active_get(scene);
+	char *error_msg;
+
+	if(last_seq->seq1==NULL || last_seq->seq2 == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No valid inputs to swap");
+		return OPERATOR_CANCELLED;
+	}
+
+	seq = last_seq->seq1;
+	last_seq->seq1 = last_seq->seq2;
+	last_seq->seq2 = seq;
+
+	update_changed_seq_and_deps(scene, last_seq, 1, 1);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
+	return OPERATOR_FINISHED;
+}
+void SEQUENCER_OT_swap_inputs(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Swap Inputs";
+	ot->idname= "SEQUENCER_OT_swap_inputs";
+	ot->description="Swap the first two inputs for the effects strip";
+
+	/* api callbacks */
+	ot->exec= sequencer_swap_inputs_exec;
+	ot->poll= sequencer_effect_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
 /* cut operator */
 static EnumPropertyItem prop_cut_types[] = {
 	{SEQ_CUT_SOFT, "SOFT", 0, "Soft", ""},
