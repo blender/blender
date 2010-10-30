@@ -661,6 +661,9 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
         layout.label(text="Camera Override")
         layout.template_ID(strip, "scene_camera")
 
+        sce = strip.scene
+        layout.label(text="Original frame range: "+ str(sce.frame_start) +" - "+ str(sce.frame_end) + " (" + str(sce.frame_end-sce.frame_start+1) + ")")
+
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
     bl_label = "Filter"
