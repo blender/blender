@@ -492,9 +492,8 @@ void multiresModifier_del_levels(MultiresModifierData *mmd, Object *ob, int dire
 
 static DerivedMesh *multires_dm_create_local(Object *ob, DerivedMesh *dm, int lvl, int totlvl, int simple)
 {
-	MultiresModifierData mmd;
+	MultiresModifierData mmd= {{0}};
 
-	memset(&mmd, 0, sizeof(MultiresModifierData));
 	mmd.lvl = lvl;
 	mmd.sculptlvl = lvl;
 	mmd.renderlvl = lvl;
@@ -506,9 +505,8 @@ static DerivedMesh *multires_dm_create_local(Object *ob, DerivedMesh *dm, int lv
 
 static DerivedMesh *subsurf_dm_create_local(Object *UNUSED(ob), DerivedMesh *dm, int lvl, int simple, int optimal)
 {
-	SubsurfModifierData smd;
+	SubsurfModifierData smd= {{0}};
 
-	memset(&smd, 0, sizeof(SubsurfModifierData));
 	smd.levels = smd.renderLevels = lvl;
 	smd.flags |= eSubsurfModifierFlag_SubsurfUv;
 	if(simple)

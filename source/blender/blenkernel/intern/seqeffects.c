@@ -3260,9 +3260,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 
 struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 {
-	struct SeqEffectHandle rval;
-
-	memset(&rval, 0, sizeof(struct SeqEffectHandle));
+	struct SeqEffectHandle rval= {0};
 
 	if (seq->type & SEQ_EFFECT) {
 		rval = get_sequence_effect_impl(seq->type);
@@ -3277,9 +3275,7 @@ struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 
 struct SeqEffectHandle get_sequence_blend(Sequence * seq)
 {
-	struct SeqEffectHandle rval;
-
-	memset(&rval, 0, sizeof(struct SeqEffectHandle));
+	struct SeqEffectHandle rval= {0};
 
 	if (seq->blend_mode != 0) {
 		rval = get_sequence_effect_impl(seq->blend_mode);

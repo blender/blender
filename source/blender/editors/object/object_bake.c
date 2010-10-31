@@ -307,9 +307,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		ListBase threads;
-		BakeRender bkr;
-
-		memset(&bkr, 0, sizeof(bkr));
+		BakeRender bkr= {0};
 
 		init_bake_internal(&bkr, C);
 		bkr.reports= op->reports;

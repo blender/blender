@@ -1474,12 +1474,9 @@ static ImBuf * input_preprocess(
 	}
 
 	if(seq->flag & (SEQ_USE_CROP|SEQ_USE_TRANSFORM)) {
-		StripCrop c;
-		StripTransform t;
+		StripCrop c= {0};
+		StripTransform t= {0};
 		int sx,sy,dx,dy;
-
-		memset(&c, 0, sizeof(StripCrop));
-		memset(&t, 0, sizeof(StripTransform));
 
 		if(seq->flag & SEQ_USE_CROP && seq->strip->crop) {
 			c = *seq->strip->crop;

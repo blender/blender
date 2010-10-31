@@ -1919,14 +1919,13 @@ static void constraintTransLim(TransInfo *UNUSED(t), TransData *td)
 {
 	if (td->con) {
 		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_LOCLIMIT);
-		bConstraintOb cob;
+		bConstraintOb cob= {0};
 		bConstraint *con;
 		
 		/* Make a temporary bConstraintOb for using these limit constraints
 		 * 	- they only care that cob->matrix is correctly set ;-)
 		 *	- current space should be local
 		 */
-		memset(&cob, 0, sizeof(bConstraintOb));
 		unit_m4(cob.matrix);
 		VECCOPY(cob.matrix[3], td->loc);
 		
@@ -2084,14 +2083,13 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 {
 	if (td->con && td->ext) {
 		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_SIZELIMIT);
-		bConstraintOb cob;
+		bConstraintOb cob= {0};
 		bConstraint *con;
 		
 		/* Make a temporary bConstraintOb for using these limit constraints
 		 * 	- they only care that cob->matrix is correctly set ;-)
 		 *	- current space should be local
 		 */
-		memset(&cob, 0, sizeof(bConstraintOb));
 		if ((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)) {
 			/* scale val and reset size */
 			return; // TODO: fix this case

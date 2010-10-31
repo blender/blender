@@ -91,12 +91,11 @@ int intersect_outside_volume(RayObject *tree, Isect *isect, float *offset, int l
 /* Uses ray tracing to check if a point is inside or outside an ObjectInstanceRen */
 int point_inside_obi(RayObject *tree, ObjectInstanceRen *UNUSED(obi), float *co)
 {
-	Isect isect;
+	Isect isect= {{0}};
 	float vec[3] = {0.0f,0.0f,1.0f};
 	int final_depth=0, depth=0, limit=20;
 	
 	/* set up the isect */
-	memset(&isect, 0, sizeof(isect));
 	VECCOPY(isect.start, co);
 	VECCOPY(isect.vec, vec);
 	isect.mode= RE_RAY_MIRROR;

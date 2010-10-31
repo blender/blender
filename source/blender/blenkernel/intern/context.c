@@ -554,8 +554,7 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
 		return result.list;
 	}
 	else {
-		ListBase list;
-		memset(&list, 0, sizeof(list));
+		ListBase list= {NULL, NULL};
 		return list;
 	}
 }

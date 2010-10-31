@@ -407,15 +407,13 @@ static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUS
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
-	EnumPropertyItem *item= NULL, item_tmp;
+	EnumPropertyItem *item= NULL, item_tmp= {0};
 	int totitem= 0;
 	int i= 0;
 
 	if (C==NULL) {
 		return DummyRNA_DEFAULT_items;
 	}
-
-	memset(&item_tmp, 0, sizeof(item_tmp));
 	
 	/* check that the action exists */
 	if (act) {
@@ -708,7 +706,7 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 	bAction *act= pld->act;
 	bActionGroup *agrp;
 	
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{0}};
 	KeyframeEditFunc group_ok_cb;
 	int frame= 1;
 	
@@ -721,7 +719,6 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 	
 	/* init settings for testing groups for keyframes */
 	group_ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
-	memset(&ked, 0, sizeof(KeyframeEditData)); 
 	ked.f1= ((float)frame) - 0.5f;
 	ked.f2= ((float)frame) + 0.5f;
 	

@@ -588,20 +588,16 @@ static void bh8_from_bh4(BHead *bhead, BHead4 *bhead4)
 
 static BHeadN *get_bhead(FileData *fd)
 {
-	BHead8 bhead8;
-	BHead4 bhead4;
-	BHead  bhead;
 	BHeadN *new_bhead = 0;
 	int readsize;
 	
 	if (fd) {
 		if ( ! fd->eof) {
-
-			/* not strictly needed but shuts valgrind up
+			/* initializing to zero isn't strictly needed but shuts valgrind up
 			 * since uninitialized memory gets compared */
-			memset(&bhead8, 0, sizeof(BHead8));
-			memset(&bhead4, 0, sizeof(BHead4));
-			memset(&bhead,  0, sizeof(BHead));
+			BHead8 bhead8= {0};
+			BHead4 bhead4= {0};
+			BHead  bhead= {0};
 			
 			// First read the bhead structure.
 			// Depending on the platform the file was written on this can

@@ -228,10 +228,8 @@ void make_local_brush(Brush *brush)
 
 void brush_debug_print_state(Brush *br)
 {
-	Brush def;
-
 	/* create a fake brush and set it to the defaults */
-	memset(&def, 0, sizeof(Brush));
+	Brush def= {{0}};
 	brush_set_defaults(&def);
 	
 #define BR_TEST(field, t)					\
@@ -1098,11 +1096,9 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 {
 	unsigned int *texcache = NULL;
 	MTex *mtex = &br->mtex;
-	TexResult texres;
+	TexResult texres= {0};
 	int hasrgb, ix, iy;
 	int side = half_side * 2;
-
-	memset(&texres, 0, sizeof(TexResult));
 	
 	if(mtex->tex) {
 		float x, y, step = 2.0 / side, co[3];

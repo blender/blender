@@ -286,7 +286,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks = NULL;
 	PropertyRNA *prop= NULL;
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	char *path = NULL;
 	short success= 0;
 	int index=0, pflag=0;
@@ -322,7 +322,6 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
 	
 	/* try to add to keyingset using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
 	/* check if property is able to be added */
@@ -387,7 +386,7 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks = NULL;
 	PropertyRNA *prop= NULL;
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	char *path = NULL;
 	short success= 0;
 	int index=0;
@@ -408,7 +407,6 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 		ks= BLI_findlink(&scene->keyingsets, scene->active_keyingset-1);
 	
 	/* try to add to keyingset using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 
 	if (ptr.id.data && ptr.data && prop) {

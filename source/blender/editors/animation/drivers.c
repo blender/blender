@@ -364,14 +364,13 @@ short ANIM_paste_driver (ID *id, const char rna_path[], int array_index, short U
 
 static int add_driver_button_exec (bContext *C, wmOperator *op)
 {
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	PropertyRNA *prop= NULL;
 	char *path;
 	short success= 0;
 	int index, all= RNA_boolean_get(op->ptr, "all");
 	
 	/* try to create driver using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 
 	if (all)
@@ -421,14 +420,13 @@ void ANIM_OT_driver_button_add (wmOperatorType *ot)
 
 static int remove_driver_button_exec (bContext *C, wmOperator *op)
 {
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	PropertyRNA *prop= NULL;
 	char *path;
 	short success= 0;
 	int index, all= RNA_boolean_get(op->ptr, "all");
 	
 	/* try to find driver using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
 	if (all)
@@ -474,14 +472,13 @@ void ANIM_OT_driver_button_remove (wmOperatorType *ot)
 
 static int copy_driver_button_exec (bContext *C, wmOperator *UNUSED(op))
 {
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	PropertyRNA *prop= NULL;
 	char *path;
 	short success= 0;
 	int index;
 	
 	/* try to create driver using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
@@ -520,14 +517,13 @@ void ANIM_OT_copy_driver_button (wmOperatorType *ot)
 
 static int paste_driver_button_exec (bContext *C, wmOperator *UNUSED(op))
 {
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	PropertyRNA *prop= NULL;
 	char *path;
 	short success= 0;
 	int index;
 	
 	/* try to create driver using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 	
 	if (ptr.id.data && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {

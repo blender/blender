@@ -175,10 +175,9 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	struct SmoothViewStore sms;
+	struct SmoothViewStore sms= {0};
 	
 	/* initialize sms */
-	memset(&sms,0,sizeof(struct SmoothViewStore));
 	copy_v3_v3(sms.new_ofs, rv3d->ofs);
 	copy_qt_qt(sms.new_quat, rv3d->viewquat);
 	sms.new_dist= rv3d->dist;

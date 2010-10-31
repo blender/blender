@@ -85,7 +85,7 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{0}};
 	KeyframeEditFunc test_cb, sel_cb;
 	
 	/* determine type-based settings */
@@ -98,7 +98,6 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* init BezTriple looping data */
-	memset(&ked, 0, sizeof(KeyframeEditData));
 	test_cb= ANIM_editkeyframes_ok(BEZT_OK_SELECTED);
 	
 	/* See if we should be selecting or deselecting */
@@ -367,7 +366,7 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	int filter;
 	
 	KeyframeEditFunc ok_cb, select_cb;
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{0}};
 	float min, max;
 	
 	/* get extreme markers */
@@ -378,8 +377,7 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	/* get editing funcs + data */
 	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
 	select_cb= ANIM_editkeyframes_select(SELECT_ADD);
-	
-	memset(&ked, 0, sizeof(KeyframeEditData));
+
 	ked.f1= min; 
 	ked.f2= max;
 	
@@ -416,10 +414,9 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	Scene *scene= ac->scene;
 	CfraElem *ce;
 	KeyframeEditFunc select_cb, ok_cb;
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{0}};;
 	
 	/* initialise keyframe editing data */
-	memset(&ked, 0, sizeof(KeyframeEditData));
 	
 	/* build list of columns */
 	switch (mode) {
@@ -613,13 +610,12 @@ static void select_moreless_action_keys (bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{0}};
 	KeyframeEditFunc build_cb;
 	
 	
 	/* init selmap building data */
 	build_cb= ANIM_editkeyframes_buildselmap(mode);
-	memset(&ked, 0, sizeof(KeyframeEditData)); 
 	
 	/* loop through all of the keys and select additional keyframes based on these */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
@@ -746,13 +742,12 @@ static void actkeys_mselect_single (bAnimContext *ac, bAnimListElem *ale, short 
 	bDopeSheet *ads= (ac->datatype == ANIMCONT_DOPESHEET) ? ac->data : NULL;
 	int ds_filter = ((ads) ? (ads->filterflag) : (0));
 	
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{0}};
 	KeyframeEditFunc select_cb, ok_cb;
 	
 	/* get functions for selecting keyframes */
 	select_cb= ANIM_editkeyframes_select(select_mode);
 	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAME);
-	memset(&ked, 0, sizeof(KeyframeEditData)); 
 	ked.f1= selx;
 	
 	/* select the nominated keyframe on the given frame */
@@ -767,7 +762,7 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 	int filter;
 	
 	KeyframeEditFunc ok_cb, select_cb;
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{0}};
 	Scene *scene= ac->scene;
 	
 	/* if select mode is replace, deselect all keyframes (and channels) first */
@@ -782,8 +777,7 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 	/* set callbacks and editing data */
 	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
 	select_cb= ANIM_editkeyframes_select(select_mode);
-	
-	memset(&ked, 0, sizeof(KeyframeEditFunc));
+
 	if (leftright == ACTKEYS_LRSEL_LEFT) {
 		ked.f1 = MINAFRAMEF;
 		ked.f2 = (float)(CFRA + FRAME_CLICK_THRESH);
@@ -847,10 +841,9 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 	int filter;
 	
 	KeyframeEditFunc select_cb, ok_cb;
-	KeyframeEditData ked;
+	KeyframeEditData ked= {{0}};
 	
 	/* initialise keyframe editing data */
-	memset(&ked, 0, sizeof(KeyframeEditData));
 	
 	/* set up BezTriple edit callbacks */
 	select_cb= ANIM_editkeyframes_select(select_mode);
