@@ -1785,7 +1785,7 @@ static int cut_links_intersect(bNodeLink *link, float mcoords[][2], int tot)
 	if(node_link_bezier_points(NULL, NULL, link, coord_array, LINK_RESOL)) {
 
 		for(i=0; i<tot-1; i++)
-			for(b=0; b<LINK_RESOL-1; b++)
+			for(b=0; b<LINK_RESOL; b++)
 				if(isect_line_line_v2(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0)
 					return 1;
 	}
