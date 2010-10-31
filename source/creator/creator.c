@@ -97,7 +97,11 @@
 #include "GPU_extensions.h"
 
 /* for passing information between creator and gameengine */
+#if GAMEBLENDER == 1
 #include "SYS_System.h"
+#else /* dummy */
+#define SYS_SystemHandle int
+#endif
 
 #include <signal.h>
 
@@ -444,6 +448,9 @@ static int register_extension(int UNUSED(argc), char **UNUSED(argv), void *data)
 
 static int no_joystick(int UNUSED(argc), char **UNUSED(argv), void *data)
 {
+#if GAMEBLENDER != 1
+	(void)data;
+#else
 	SYS_SystemHandle *syshandle = data;
 
 	/**
@@ -452,6 +459,7 @@ static int no_joystick(int UNUSED(argc), char **UNUSED(argv), void *data)
 	*/
 	SYS_WriteCommandLineInt(*syshandle, "nojoystick",1);
 	if (G.f & G_DEBUG) printf("disabling nojoystick\n");
+#endif
 
 	return 0;
 }
@@ -633,8 +641,13 @@ static int set_extension(int argc, char **argv, void *data)
 
 static int set_ge_parameters(int argc, char **argv, void *data)
 {
-	SYS_SystemHandle syshandle = *(SYS_SystemHandle*)data;
 	int a = 0;
+#if GAMEBLENDER == 1
+	SYS_SystemHandle syshandle = *(SYS_SystemHandle*)data;
+#else
+	(void)data;
+#endif
+
 /**
 gameengine parameters are automaticly put into system
 -g [paramname = value]
@@ -655,7 +668,9 @@ example:
 			{
 				a++;
 				/* assignment */
+#if GAMEBLENDER == 1
 				SYS_WriteCommandLineString(syshandle,paramname,argv[a]);
+#endif
 			}  else
 			{
 				printf("error: argument assignment (%s) without value.\n",paramname);
@@ -664,8 +679,9 @@ example:
 			/* name arg eaten */
 
 		} else {
+#if GAMEBLENDER == 1
 			SYS_WriteCommandLineInt(syshandle,argv[a],1);
-
+#endif
 			/* doMipMap */
 			if (!strcmp(argv[a],"nomipmap"))
 			{
@@ -1077,8 +1093,12 @@ int main(int argc, char **argv)
 
 	IMB_init();
 
+#if GAMEBLENDER == 1
 	syshandle = SYS_GetSystem();
 	GEN_init_messaging_system();
+#else
+	syshandle= 0;
+#endif
 
 	/* first test for background */
 	ba = BLI_argsInit(argc, argv); /* skip binary path */

@@ -65,7 +65,9 @@
 #include "BPY_extern.h"
 #endif
 
+#if GAMEBLENDER == 1
 #include "SYS_System.h"
+#endif
 
 #include "RNA_define.h"
 
@@ -432,9 +434,9 @@ void WM_exit(bContext *C)
 	wm_ghost_exit();
 
 	CTX_free(C);
-	
+#if GAMEBLENDER == 1
 	SYS_DeleteSystem(SYS_GetSystem());
-
+#endif
 	if(MEM_get_memory_blocks_in_use()!=0) {
 		printf("Error Totblock: %d\n", MEM_get_memory_blocks_in_use());
 		MEM_printmemlist();
