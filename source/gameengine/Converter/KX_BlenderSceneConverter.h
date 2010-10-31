@@ -174,7 +174,7 @@ public:
 
 
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	PyObject *GetPyNamespace();
 #endif
 	

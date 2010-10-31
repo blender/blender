@@ -358,7 +358,7 @@ short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val)
 }
 
 #if 0
-#ifndef DISABLE_PYTHON	
+#ifdef WITH_PYTHON	
 	/* Run text plugin scripts if enabled */
 	if(st->doplugins && event && val) {
 		if(BPY_menu_do_shortcut(PYMENU_TEXTPLUGIN, event, qual)) {

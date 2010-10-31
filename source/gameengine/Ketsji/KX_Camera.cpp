@@ -474,7 +474,7 @@ int KX_Camera::GetViewportTop() const
 	return m_camdata.m_viewporttop;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 //----------------------------------------------------------------------------
 //Python
 

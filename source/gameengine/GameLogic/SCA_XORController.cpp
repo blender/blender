@@ -91,7 +91,7 @@ CValue* SCA_XORController::GetReplica()
 	return replica;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -127,6 +127,6 @@ PyMethodDef SCA_XORController::Methods[] = {
 PyAttributeDef SCA_XORController::Attributes[] = {
 	{ NULL }	//Sentinel
 };
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */

@@ -40,7 +40,7 @@ public:
 	virtual ~KX_ConstraintWrapper ();
 	int			getConstraintId() { return m_constraintId;};
 	
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	KX_PYMETHOD_NOARGS(KX_ConstraintWrapper,GetConstraintId);
 	KX_PYMETHOD(KX_ConstraintWrapper,SetParam);
 	KX_PYMETHOD(KX_ConstraintWrapper,GetParam);

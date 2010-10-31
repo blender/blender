@@ -28,7 +28,7 @@
 #define __STDC_CONSTANT_MACROS
 #endif
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "AUD_PyInit.h"
 #include "AUD_PyAPI.h"
 
@@ -141,7 +141,7 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 		AUD_device = dev;
 		AUD_3ddevice = dynamic_cast<AUD_I3DDevice*>(AUD_device);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 		if(g_pyinitialized)
 		{
 			g_device = (Device*)Device_empty();
@@ -162,7 +162,7 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 
 void AUD_exit()
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if(g_device)
 	{
 		Py_XDECREF(g_device);
@@ -176,7 +176,7 @@ void AUD_exit()
 	AUD_3ddevice = NULL;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 static PyObject* AUD_getCDevice(PyObject* self)
 {
 	if(g_device)

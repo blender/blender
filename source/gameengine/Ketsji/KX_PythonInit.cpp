@@ -34,7 +34,7 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 #ifdef _POSIX_C_SOURCE
 #undef _POSIX_C_SOURCE
@@ -56,7 +56,6 @@ extern "C" {
 	#include "marshal.h" /* python header for loading/saving dicts */
 }
 
-#define WITH_PYTHON
 #include "AUD_PyInit.h"
 
 #endif
@@ -139,7 +138,7 @@ extern "C" {
 
 // 'local' copy of canvas ptr, for window height/width python scripts
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 static RAS_ICanvas* gp_Canvas = NULL;
 static char gp_GamePythonPath[FILE_MAXDIR + FILE_MAXFILE] = "";
@@ -147,7 +146,7 @@ static char gp_GamePythonPathOrig[FILE_MAXDIR + FILE_MAXFILE] = ""; // not super
 
 static SCA_PythonKeyboard* gp_PythonKeyboard = NULL;
 static SCA_PythonMouse* gp_PythonMouse = NULL;
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 static KX_Scene*	gp_KetsjiScene = NULL;
 static KX_KetsjiEngine*	gp_KetsjiEngine = NULL;
@@ -176,7 +175,7 @@ void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,cons
 		gp_Rasterizer->DrawDebugLine(from,to,color);
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 static PyObject *gp_OrigPythonSysPath= NULL;
 static PyObject *gp_OrigPythonSysModules= NULL;
@@ -2452,4 +2451,4 @@ void resetGamePythonPath()
 	gp_GamePythonPathOrig[0] = '\0';
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

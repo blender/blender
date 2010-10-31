@@ -104,7 +104,7 @@ class SCA_MouseSensor : public SCA_ISensor
 	static void UpdateHotkey(void *self);
 
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */

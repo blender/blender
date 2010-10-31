@@ -52,7 +52,7 @@
 #include "BIF_gl.h"
 
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 //#include "BPY_extern.h"
 //#include "BPY_menus.h"
 #endif

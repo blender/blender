@@ -156,7 +156,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		
 		if(do_glob_undo) {
 			if(U.uiflag & USER_GLOBALUNDO) {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 				// XXX		BPY_scripts_clear_pyobjects();
 #endif
 				if(undoname)

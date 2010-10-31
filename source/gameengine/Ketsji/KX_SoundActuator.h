@@ -93,7 +93,7 @@ public:
 	CValue* GetReplica();
 	void ProcessReplica();
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* -------------------------------------------------------------------- */
 	/* Python interface --------------------------------------------------- */
@@ -115,7 +115,7 @@ public:
 	static PyObject* pyattr_get_pitch(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject* pyattr_get_type(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 };
 

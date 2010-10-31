@@ -174,7 +174,7 @@ class TEXT_MT_text(bpy.types.Menu):
             layout.column()
             layout.operator("text.run_script")
 
-            #ifndef DISABLE_PYTHON
+            #ifdef WITH_PYTHON
             # XXX if(BPY_is_pyconstraint(text))
             # XXX   uiMenuItemO(head, 0, "text.refresh_pyconstraints");
             #endif

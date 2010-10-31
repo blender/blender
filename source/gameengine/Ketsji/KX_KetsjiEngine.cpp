@@ -112,7 +112,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_rendertools(NULL),
 	m_sceneconverter(NULL),
 	m_networkdevice(NULL),
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	m_pythondictionary(NULL),
 #endif
 	m_keyboarddevice(NULL),
@@ -233,7 +233,7 @@ void KX_KetsjiEngine::SetRasterizer(RAS_IRasterizer* rasterizer)
 	m_rasterizer = rasterizer;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 /*
  * At the moment the bge.logic module is imported into 'pythondictionary' after this function is called.
  * if this function ever changes to assign a copy, make sure the game logic module is imported into this dictionary before hand.
@@ -370,7 +370,7 @@ void KX_KetsjiEngine::RenderDome()
 	}
 	m_dome->Draw();
 	// Draw Callback for the last scene
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	scene->RunDrawingCallbacks(scene->GetPostDrawCB());
 #endif	
 	EndFrame();
@@ -612,7 +612,7 @@ else
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				SG_SetActiveStage(SG_STAGE_PHYSICS1);
 				// set Python hooks for each scene
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 				PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
 #endif
 				KX_SetActiveScene(scene);
@@ -716,7 +716,7 @@ else
 				m_suspendeddelta = scene->getSuspendedDelta();
 				
 				// set Python hooks for each scene
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 				PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
 #endif
 				KX_SetActiveScene(scene);
@@ -1287,7 +1287,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	m_logger->StartLog(tc_rasterizer, m_kxsystem->GetTimeInSeconds(), true);
 	SG_SetActiveStage(SG_STAGE_RENDER);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	// Run any pre-drawing python callbacks
 	scene->RunDrawingCallbacks(scene->GetPreDrawCB());
 #endif
@@ -1304,7 +1304,7 @@ void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 {
 	m_rendertools->MotionBlur(m_rasterizer);
 	scene->Render2DFilters(m_canvas);
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
 #endif
 	m_rasterizer->FlushDebugLines();

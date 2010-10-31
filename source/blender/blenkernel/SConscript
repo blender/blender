@@ -19,11 +19,10 @@ incs += ' ' + env['BF_ZLIB_INC']
 
 defs = [ 'GLEW_STATIC' ]
 
-if not env['WITH_BF_PYTHON']:
-    defs.append('DISABLE_PYTHON')
-else:
+if env['WITH_BF_PYTHON']:
     incs += ' ../python'
     incs += ' ' + env['BF_PYTHON_INC']
+    defs.append('WITH_PYTHON')
     if env['BF_DEBUG']:
         defs.append('DEBUG')
 

@@ -58,7 +58,7 @@
 
 #include "ED_screen.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -69,7 +69,7 @@
 void WM_operator_free(wmOperator *op)
 {
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if(op->py_instance) {
 		/* do this first incase there are any __del__ functions or
 		 * similar that use properties */

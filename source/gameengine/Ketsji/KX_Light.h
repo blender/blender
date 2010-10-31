@@ -69,7 +69,7 @@ public:
 
 	virtual int GetGameObjectType() { return OBJ_LIGHT; }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* attributes */
 	static PyObject*	pyattr_get_color(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_color(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject* value);

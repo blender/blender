@@ -58,7 +58,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -310,7 +310,7 @@ static int reload_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if(text->compiled)
 		BPY_free_compiled_text(text);
 #endif
@@ -557,7 +557,7 @@ static int run_script_poll(bContext *C)
 
 static int run_script_exec(bContext *C, wmOperator *op)
 {
-#ifdef DISABLE_PYTHON
+#ifndef WITH_PYTHON
 	(void)C; /* unused */
 
 	BKE_report(op->reports, RPT_ERROR, "Python disabled in this build");
@@ -597,7 +597,7 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 
 static int refresh_pyconstraints_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #if 0
 	Text *text= CTX_data_edit_text(C);
 	Object *ob;

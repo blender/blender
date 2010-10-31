@@ -37,7 +37,7 @@
 
 #include "KX_SCA_DynamicActuator.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -77,7 +77,7 @@ PyAttributeDef KX_SCA_DynamicActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */

@@ -22,10 +22,9 @@ defs = []
 if env['WITH_BF_PYTHON']:
     incs += ' ' + env['BF_PYTHON_INC']
     incs += ' ../python'
+    defs.append('WITH_PYTHON')
     if env['BF_DEBUG']:
         defs.append('_DEBUG')
-else:
-    defs.append('DISABLE_PYTHON')
 
 if env['OURPLATFORM'] == 'linux2':
     cflags='-pthread'

@@ -53,7 +53,7 @@
 #include "BKE_text.h"
 #include "BKE_utildefines.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -167,7 +167,7 @@ void free_text(Text *text)
 
 	if(text->name) MEM_freeN(text->name);
 	MEM_freeN(text->undo_buf);
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if (text->compiled) BPY_free_compiled_text(text);
 #endif
 }
@@ -683,7 +683,7 @@ int txt_get_span (TextLine *from, TextLine *to)
 static void txt_make_dirty (Text *text)
 {
 	text->flags |= TXT_ISDIRTY;
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if (text->compiled) BPY_free_compiled_text(text);
 #endif
 }

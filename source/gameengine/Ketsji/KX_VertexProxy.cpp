@@ -26,7 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 #include "KX_VertexProxy.h"
 #include "KX_MeshProxy.h"
@@ -553,4 +553,4 @@ PyObject* KX_VertexProxy::PySetUV2(PyObject* args)
 	Py_RETURN_NONE;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

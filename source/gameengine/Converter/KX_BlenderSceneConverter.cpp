@@ -906,7 +906,7 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 PyObject *KX_BlenderSceneConverter::GetPyNamespace()
 {
 	return m_ketsjiEngine->GetPyNamespace();

@@ -677,11 +677,11 @@ bool GPG_Application::startEngine(void)
 			m_startScene,
 			m_canvas);
 		
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 			// some python things
 			PyObject *gameLogic, *gameLogic_keys;
 			setupGamePython(m_ketsjiengine, startscene, m_maggie, NULL, &gameLogic, &gameLogic_keys, m_argc, m_argv);
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 		//initialize Dome Settings
 		if(m_startScene->gm.stereoflag == STEREO_DOME)

@@ -70,7 +70,7 @@
 #include "BKE_shrinkwrap.h"
 #include "BKE_mesh.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -1983,7 +1983,7 @@ static void pycon_id_looper (bConstraint *con, ConstraintIDFunc func, void *user
 /* Whether this approach is maintained remains to be seen (aligorith) */
 static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	bPythonConstraint *data= con->data;
 #endif
 
@@ -2003,7 +2003,7 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 		constraint_target_to_mat4(cob->scene, ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 		
 		/* only execute target calculation if allowed */
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 		if (G.f & G_SCRIPT_AUTOEXEC)
 			BPY_pyconstraint_target(data, ct);
 #endif
@@ -2014,7 +2014,7 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 
 static void pycon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
-#ifdef DISABLE_PYTHON
+#ifndef WITH_PYTHON
 	(void)con; (void)cob; (void)targets; /* unused */
 	return;
 #else
@@ -2034,7 +2034,7 @@ static void pycon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targ
 	
 	/* Now, run the actual 'constraint' function, which should only access the matrices */
 	BPY_pyconstraint_eval(data, cob, targets);
-#endif /* DISABLE_PYTHON */
+#endif /* WITH_PYTHON */
 }
 
 static bConstraintTypeInfo CTI_PYTHON = {

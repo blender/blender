@@ -29,7 +29,7 @@
 #ifndef __KX_VERTEXPROXY
 #define __KX_VERTEXPROXY
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 #include "SCA_IObject.h"
 
@@ -102,7 +102,7 @@ public:
 
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 #endif //__KX_VERTEXPROXY
 

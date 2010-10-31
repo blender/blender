@@ -26,7 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 #include "KX_MeshProxy.h"
 #include "RAS_IPolygonMaterial.h"
@@ -308,4 +308,4 @@ bool ConvertPythonToMesh(PyObject * value, RAS_MeshObject **object, bool py_none
 	return false;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

@@ -102,7 +102,7 @@ KX_GameObject::KX_GameObject(
 	m_xray(false),
 	m_pHitObject(NULL),
 	m_isDeformable(false)
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	, m_attr_dict(NULL)
 #endif
 {
@@ -148,12 +148,12 @@ KX_GameObject::~KX_GameObject()
 	{
 		delete m_pGraphicController;
 	}
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if (m_attr_dict) {
 		PyDict_Clear(m_attr_dict); /* incase of circular refs or other weired cases */
 		Py_DECREF(m_attr_dict);
 	}
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 }
 
 KX_GameObject* KX_GameObject::GetClientObject(KX_ClientObjectInfo* info)
@@ -348,7 +348,7 @@ void KX_GameObject::ProcessReplica()
 	m_pClient_info->m_gameobject = this;
 	m_state = 0;
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if(m_attr_dict)
 		m_attr_dict= PyDict_Copy(m_attr_dict);
 #endif
@@ -1448,7 +1448,7 @@ void KX_GameObject_Mathutils_Callback_Init(void)
 
 #endif // USE_MATHUTILS
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 /* ------- python stuff ---------------------------------------------------*/
 PyMethodDef KX_GameObject::Methods[] = {
 	{"applyForce", (PyCFunction)	KX_GameObject::sPyApplyForce, METH_VARARGS},
@@ -3053,4 +3053,4 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 	
 	return false;
 }
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

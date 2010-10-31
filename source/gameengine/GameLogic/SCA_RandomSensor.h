@@ -56,7 +56,7 @@ public:
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

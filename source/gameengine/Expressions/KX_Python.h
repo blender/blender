@@ -40,7 +40,7 @@
 #undef _POSIX_C_SOURCE
 #endif
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "Python.h"
 
 #define USE_MATHUTILS // Blender 2.5x api will use mathutils, for a while we might want to test without it

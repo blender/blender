@@ -17,7 +17,7 @@ incs = [
     '../../blenloader',
 ]
 
-if not env['WITH_BF_PYTHON']:
-    defs.append('DISABLE_PYTHON')
+if env['WITH_BF_PYTHON']:
+    defs.append('WITH_PYTHON')
 
 env.BlenderLib ( 'bf_editors_space_console', sources, incs, defs, libtype=['core'], priority=[95] )

@@ -33,7 +33,7 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 PyTypeObject BL_ArmatureChannel::Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -72,7 +72,7 @@ PyObject *BL_ArmatureChannel::NewProxy(bool py_owns)
 	return NewProxyPlus_Ext(this, &Type, m_posechannel, py_owns);
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 BL_ArmatureChannel::BL_ArmatureChannel(
 	BL_ArmatureObject *armature, 
@@ -85,7 +85,7 @@ BL_ArmatureChannel::~BL_ArmatureChannel()
 {
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 // PYTHON
 
@@ -461,4 +461,4 @@ PyObject *BL_ArmatureBone::py_bone_get_children(void *self, const struct KX_PYAT
 	return childrenlist;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

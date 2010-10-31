@@ -29,8 +29,7 @@ if env['BF_DEBUG']:
         
 if env['WITH_BF_PYTHON']:
     incs += ' ' + env['BF_PYTHON_INC']
-else:
-    defs.append('DISABLE_PYTHON')
+    defs.append('WITH_PYTHON')
 
 if env['WITH_BF_CXX_GUARDEDALLOC']:
     defs.append('WITH_CXX_GUARDEDALLOC')

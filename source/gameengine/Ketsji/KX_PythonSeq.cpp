@@ -28,7 +28,7 @@
  * Readonly sequence wrapper for lookups on logic bricks
  */
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 #include "KX_PythonSeq.h"
 #include "KX_GameObject.h"
@@ -512,4 +512,4 @@ PyTypeObject KX_PythonSeq_Type = {
 	NULL
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

@@ -142,7 +142,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 
 	BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
 	BLI_strncpy(oldsce, G.main->name, sizeof(oldsce));
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	resetGamePythonPath(); // need this so running a second time wont use an old blendfiles path
 	setGamePythonPath(G.main->name);
 
@@ -172,7 +172,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool animation_record = (SYS_GetCommandLineInt(syshandle, "animation_record", 0) != 0);
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
 #endif
 		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
@@ -221,7 +221,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		ketsjiengine->SetUseFixedTime(usefixed);
 		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 		CValue::SetDeprecationWarnings(nodepwarnings);
 #endif
 
@@ -311,7 +311,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				if(blenderdata) {
 					BLI_strncpy(G.main->name, blenderdata->name, sizeof(G.main->name));
 					BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 					setGamePythonPath(G.main->name);
 #endif
 				}
@@ -382,11 +382,11 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				scene,
 				canvas);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 			// some python things
 			PyObject *gameLogic, *gameLogic_keys;
 			setupGamePython(ketsjiengine, startscene, blenderdata, pyGlobalDict, &gameLogic, &gameLogic_keys, 0, NULL);
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 			//initialize Dome Settings
 			if(scene->gm.stereoflag == STEREO_DOME)
@@ -477,7 +477,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 
 
 				// when exiting the mainloop
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 				// Clears the dictionary by hand:
 				// This prevents, extra references to global variables
 				// inside the GameLogic dictionary when the python interpreter is finalized.
@@ -499,7 +499,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				gameLogic_keys_new = NULL;
 #endif
 				ketsjiengine->StopEngine();
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 				exitGamePythonScripting();
 #endif
 				networkdevice->Disconnect();
@@ -510,7 +510,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				sceneconverter = NULL;
 			}
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 			Py_DECREF(gameLogic_keys);
 			gameLogic_keys = NULL;
 #endif
@@ -575,7 +575,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 
 	BLI_strncpy(G.main->name, oldsce, sizeof(G.main->name));
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	Py_DECREF(pyGlobalDict);
 
 	// Release Python's GIL

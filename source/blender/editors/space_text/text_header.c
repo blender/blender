@@ -57,7 +57,7 @@
 
 
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 // XXX #include "BPY_menus.h"
 #endif
 

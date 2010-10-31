@@ -31,10 +31,9 @@ if not env['WITH_BF_SDL']:
 
 if env['WITH_BF_PYTHON']:
     incs += ' ../blender/python'
+    defs.append('WITH_PYTHON')
     if env['BF_DEBUG']:
         defs.append('_DEBUG')
-else:
-    defs.append('DISABLE_PYTHON')
     
 if env['BF_BUILDINFO']:
     defs.append('BUILD_DATE')

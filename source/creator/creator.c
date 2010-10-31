@@ -80,7 +80,7 @@
 
 #include "IMB_imbuf.h"	// for IMB_init
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -829,7 +829,7 @@ static int set_skip_frame(int argc, char **argv, void *data)
 }
 
 /* macro for ugly context setup/reset */
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #define BPY_CTX_SETUP(_cmd) \
 { \
 	wmWindowManager *wm= CTX_wm_manager(C); \
@@ -847,11 +847,11 @@ static int set_skip_frame(int argc, char **argv, void *data)
 	CTX_data_scene_set(C, prevscene); \
 } \
 
-#endif /* DISABLE_PYTHON */
+#endif /* WITH_PYTHON */
 
 static int run_python(int argc, char **argv, void *data)
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	bContext *C = data;
 
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
@@ -872,12 +872,12 @@ static int run_python(int argc, char **argv, void *data)
 	(void)argc; (void)argv; (void)data; /* unused */
 	printf("This blender was built without python support\n");
 	return 0;
-#endif /* DISABLE_PYTHON */
+#endif /* WITH_PYTHON */
 }
 
 static int run_python_console(int UNUSED(argc), char **argv, void *data)
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	bContext *C = data;	
 	const char *expr= "__import__('code').interact()";
 
@@ -888,7 +888,7 @@ static int run_python_console(int UNUSED(argc), char **argv, void *data)
 	(void)argv; (void)data; /* unused */
 	printf("This blender was built without python support\n");
 	return 0;
-#endif /* DISABLE_PYTHON */
+#endif /* WITH_PYTHON */
 }
 
 static int load_file(int UNUSED(argc), char **argv, void *data)
@@ -914,7 +914,7 @@ static int load_file(int UNUSED(argc), char **argv, void *data)
 		}
 
 		/* WM_read_file() runs normally but since we're in background mode do here */
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_load_user_modules(C);
 #endif
@@ -1150,7 +1150,7 @@ int main(int argc, char **argv)
 
 		BLI_where_is_temp( btempdir, 0 ); /* call after loading the startup.blend so we can read U.tempdir */
 	}
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/**
 	 * NOTE: the U.pythondir string is NULL until WM_init() is executed,
 	 * so we provide the BPY_ function below to append the user defined

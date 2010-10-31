@@ -310,9 +310,9 @@ CValue* CFloatValue::GetReplica()
 }
 
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 PyObject* CFloatValue::ConvertValueToPython()
 {
 	return PyFloat_FromDouble(m_float);
 }
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

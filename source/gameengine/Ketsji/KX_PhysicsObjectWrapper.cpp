@@ -46,7 +46,7 @@ KX_PhysicsObjectWrapper::~KX_PhysicsObjectWrapper()
 {
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 PyObject* KX_PhysicsObjectWrapper::PySetPosition(PyObject* args)
 {

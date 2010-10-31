@@ -110,7 +110,7 @@ void SCA_ActuatorSensor::Update()
 	}
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -160,6 +160,6 @@ int SCA_ActuatorSensor::CheckActuator(void *self, const PyAttributeDef*)
 	return 1;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */

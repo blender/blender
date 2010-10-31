@@ -62,8 +62,7 @@ defs = [ 'GLEW_STATIC' ]
 
 if env['WITH_BF_PYTHON']:
     incs += Split(env['BF_PYTHON_INC'])
-else:
-    defs.append('DISABLE_PYTHON')
+    defs.append('WITH_PYTHON')
 
 incs += Split(env['BF_PNG_INC'])
 incs += Split(env['BF_ZLIB_INC'])

@@ -94,7 +94,7 @@ bool SCA_AlwaysSensor::Evaluate()
 	return result;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

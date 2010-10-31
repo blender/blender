@@ -347,7 +347,7 @@ const MT_Vector2& KX_MouseFocusSensor::HitUV() const
 	return m_hitUV;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -442,7 +442,7 @@ PyObject* KX_MouseFocusSensor::pyattr_get_hit_uv(void *self_v, const KX_PYATTRIB
 	return PyObjectFrom(self->HitUV());
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* eof */
 

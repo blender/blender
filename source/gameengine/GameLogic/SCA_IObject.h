@@ -41,7 +41,7 @@ class SCA_ISensor;
 class SCA_IController;
 class SCA_IActuator;
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 template<class T> T PyVecTo(PyObject*);
 #endif
 
