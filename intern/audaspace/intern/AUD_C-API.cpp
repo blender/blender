@@ -241,6 +241,7 @@ AUD_SoundInfo AUD_getInfo(AUD_Sound* sound)
 		{
 			info.specs = reader->getSpecs();
 			info.length = reader->getLength() / (float) info.specs.rate;
+			delete reader;
 		}
 	}
 	catch(AUD_Exception&)
@@ -721,7 +722,7 @@ int AUD_setDeviceVolume(AUD_Device* device, float volume)
 		return true;
 	}
 	catch(AUD_Exception&) {}
-	
+
 	return false;
 }
 
