@@ -56,7 +56,7 @@
 #include "ED_screen.h"
 #include "ED_armature.h"
 
-#if GAMEBLENDER == 1
+#ifdef WITH_GAMEENGINE
 #include "SYS_System.h"
 #endif
 
@@ -1609,7 +1609,7 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 }
 
-#if GAMEBLENDER == 1
+#ifdef WITH_GAMEENGINE
 
 static ListBase queue_back;
 static void SaveState(bContext *C)
@@ -1701,7 +1701,7 @@ void game_set_commmandline_options(GameData *gm)
 /* maybe we need this defined somewhere else */
 extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *cam_frame, int always_use_expand_framing);
 
-#endif // GAMEBLENDER == 1
+#endif // WITH_GAMEENGINE
 
 int game_engine_poll(bContext *C)
 {
@@ -1753,7 +1753,7 @@ int ED_view3d_context_activate(bContext *C)
 
 static int game_engine_exec(bContext *C, wmOperator *op)
 {
-#if GAMEBLENDER == 1
+#ifdef WITH_GAMEENGINE
 	Scene *startscene = CTX_data_scene(C);
 	ScrArea *sa, *prevsa= CTX_wm_area(C);
 	ARegion *ar, *prevar= CTX_wm_region(C);

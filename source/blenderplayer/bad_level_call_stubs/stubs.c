@@ -28,7 +28,7 @@
  * BKE_bad_level_calls function stubs
  */
 
-#if GAMEBLENDER == 1
+#ifdef WITH_GAMEENGINE
 #include <stdlib.h>
 #include "DNA_listBase.h"
 #include "RNA_types.h"
@@ -443,4 +443,4 @@ int CSG_PerformBooleanOperation(
 	CSG_VertexIteratorDescriptor	obBVertices)
 	{ return 0;}
 
-#endif // GAMEBLENDER == 1
+#endif // WITH_GAMEENGINE

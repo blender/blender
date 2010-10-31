@@ -155,6 +155,8 @@ static void script_main_area_draw(const bContext *C, ARegion *ar)
 		//BPY_run_python_script_space(scpt->script.filename, NULL);
 		BPY_run_script_space_draw(C, sscript);
 	}
+#else
+	(void)sscript;
 #endif
 	
 	/* reset view matrix */

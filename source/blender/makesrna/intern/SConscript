@@ -68,7 +68,7 @@ if env['WITH_BF_LCMS']:
     defs.append('WITH_LCMS')
 
 if env['WITH_BF_GAMEENGINE']:
-    defs.append('GAMEBLENDER=1')
+    defs.append('WITH_GAMEENGINE')
     
 if env['WITH_BF_FFTW3']:
     defs.append('FFTW3=1')

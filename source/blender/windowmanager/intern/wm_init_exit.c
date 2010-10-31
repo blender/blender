@@ -65,7 +65,7 @@
 #include "BPY_extern.h"
 #endif
 
-#if GAMEBLENDER == 1
+#ifdef WITH_GAME_ENGINE
 #include "SYS_System.h"
 #endif
 
@@ -434,7 +434,7 @@ void WM_exit(bContext *C)
 	wm_ghost_exit();
 
 	CTX_free(C);
-#if GAMEBLENDER == 1
+#ifdef WITH_GAME_ENGINE
 	SYS_DeleteSystem(SYS_GetSystem());
 #endif
 	if(MEM_get_memory_blocks_in_use()!=0) {

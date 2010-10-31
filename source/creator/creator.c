@@ -97,7 +97,7 @@
 #include "GPU_extensions.h"
 
 /* for passing information between creator and gameengine */
-#if GAMEBLENDER == 1
+#ifdef WITH_GAMEENGINE
 #include "SYS_System.h"
 #else /* dummy */
 #define SYS_SystemHandle int
@@ -448,7 +448,7 @@ static int register_extension(int UNUSED(argc), char **UNUSED(argv), void *data)
 
 static int no_joystick(int UNUSED(argc), char **UNUSED(argv), void *data)
 {
-#if GAMEBLENDER != 1
+#ifndef WITH_GAMEENGINE
 	(void)data;
 #else
 	SYS_SystemHandle *syshandle = data;
@@ -642,7 +642,7 @@ static int set_extension(int argc, char **argv, void *data)
 static int set_ge_parameters(int argc, char **argv, void *data)
 {
 	int a = 0;
-#if GAMEBLENDER == 1
+#ifdef WITH_GAMEENGINE
 	SYS_SystemHandle syshandle = *(SYS_SystemHandle*)data;
 #else
 	(void)data;
@@ -668,7 +668,7 @@ example:
 			{
 				a++;
 				/* assignment */
-#if GAMEBLENDER == 1
+#ifdef WITH_GAMEENGINE
 				SYS_WriteCommandLineString(syshandle,paramname,argv[a]);
 #endif
 			}  else
@@ -679,7 +679,7 @@ example:
 			/* name arg eaten */
 
 		} else {
-#if GAMEBLENDER == 1
+#ifdef WITH_GAMEENGINE
 			SYS_WriteCommandLineInt(syshandle,argv[a],1);
 #endif
 			/* doMipMap */
@@ -1093,7 +1093,7 @@ int main(int argc, char **argv)
 
 	IMB_init();
 
-#if GAMEBLENDER == 1
+#ifdef WITH_GAMEENGINE
 	syshandle = SYS_GetSystem();
 	GEN_init_messaging_system();
 #else
