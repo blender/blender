@@ -60,9 +60,7 @@ class SelectPattern(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        # return wm.invoke_props_popup(self, event)
-        wm.invoke_props_popup(self, event)
-        return {'RUNNING_MODAL'}
+        return wm.invoke_props_popup(self, event)
 
     def draw(self, context):
         layout = self.layout

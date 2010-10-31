@@ -364,9 +364,9 @@ int WM_operator_poll(bContext *C, wmOperatorType *ot)
 	wmOperatorTypeMacro *otmacro;
 	
 	for(otmacro= ot->macro.first; otmacro; otmacro= otmacro->next) {
-		wmOperatorType *ot= WM_operatortype_find(otmacro->idname, 0);
+		wmOperatorType *ot_macro= WM_operatortype_find(otmacro->idname, 0);
 		
-		if(0==WM_operator_poll(C, ot))
+		if(0==WM_operator_poll(C, ot_macro))
 			return 0;
 	}
 	

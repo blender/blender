@@ -29,6 +29,7 @@ class AddPresetBase():
      - preset_subdir '''
     # bl_idname = "script.preset_base_add"
     # bl_label = "Add a Python Preset"
+    bl_options = {'REGISTER'} # only because invoke_props_popup requires.
 
     name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen=64, default="")
     remove_active = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
@@ -110,11 +111,7 @@ class AddPresetBase():
     def invoke(self, context, event):
         if not self.remove_active:
             wm = context.window_manager
-            #crashes, TODO - fix
-            #return wm.invoke_props_popup(self, event)
-
-            wm.invoke_props_popup(self, event)
-            return {'RUNNING_MODAL'}
+            return wm.invoke_props_popup(self, event)
         else:
             return self.execute(context)
 

@@ -31,6 +31,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stddef.h>
+#include <assert.h>
 #ifdef WIN32
 #include <windows.h>
 #include <io.h>
@@ -889,6 +890,11 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	block= uiBeginBlock(C, ar, "redo_popup", UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
+
+	/* if register is not enabled, the operator gets freed on OPERATOR_FINISHED
+	 * ui_apply_but_funcs_after calls redo_cb and crashes */
+	assert(op->type->flag & OPTYPE_REGISTER);
+
 	uiBlockSetHandleFunc(block, redo_cb, arg_op);
 
 	if(!op->properties) {
@@ -1021,6 +1027,11 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	int retval= OPERATOR_CANCELLED;
 	
+	if((op->type->flag & OPTYPE_REGISTER)==0) {
+		BKE_reportf(op->reports, RPT_ERROR, "Operator '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
+		return OPERATOR_CANCELLED;
+	}
+	
 	if(op->type->exec) {
 		retval= op->type->exec(C, op);
 
@@ -1059,6 +1070,11 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
 
 int WM_operator_redo_popup(bContext *C, wmOperator *op)
 {
+	if((op->type->flag & OPTYPE_REGISTER)==0) {
+		BKE_reportf(op->reports, RPT_ERROR, "Operator '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
+		return OPERATOR_CANCELLED;
+	}
+	
 	uiPupBlock(C, wm_block_create_redo, op);
 
 	return OPERATOR_CANCELLED;
