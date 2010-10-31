@@ -1647,7 +1647,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 		if(BASACT==base)
 			ED_base_object_activate(C, basen);
 		
-		ED_render_id_flush_update(bmain, basen->object->data);
+		DAG_id_flush_update(base->object->data, 0);
 	}
 	CTX_DATA_END;
 
