@@ -1205,6 +1205,11 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 			}
 			translate_m4( rv3d->viewmat,-vec[0], -vec[1], -vec[2]);
 		}
+		else if (v3d->ob_centre_cursor) {
+			float vec[3];
+			copy_v3_v3(vec, give_cursor(scene, v3d));
+			translate_m4(rv3d->viewmat, -vec[0], -vec[1], -vec[2]);
+		}
 		else translate_m4( rv3d->viewmat,rv3d->ofs[0], rv3d->ofs[1], rv3d->ofs[2]);
 	}
 }
