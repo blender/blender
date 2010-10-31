@@ -2313,10 +2313,12 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 	BLI_rw_mutex_unlock(&re->resultmutex);
 }
 
-void RE_MergeFullSample(Render *re, Scene *sce, bNodeTree *ntree)
+void RE_MergeFullSample(Render *re, Main *bmain, Scene *sce, bNodeTree *ntree)
 {
 	Scene *scene;
 	bNode *node;
+
+	re->main= bmain;
 	
 	/* first call RE_ReadRenderResult on every renderlayer scene. this creates Render structs */
 	

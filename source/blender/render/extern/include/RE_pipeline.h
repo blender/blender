@@ -220,7 +220,7 @@ void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress);
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty);
 
 /* do a full sample buffer compo */
-void RE_MergeFullSample(struct Render *re, struct Scene *sce, struct bNodeTree *ntree);
+void RE_MergeFullSample(struct Render *re, struct Main *bmain, struct Scene *sce, struct bNodeTree *ntree);
 
 /* ancient stars function... go away! */
 void RE_make_stars(struct Render *re, struct Scene *scenev3d, void (*initfunc)(void),
