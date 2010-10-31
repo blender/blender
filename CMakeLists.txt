@@ -543,24 +543,27 @@ IF(WIN32)
 
 		SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:libcmt.lib;libc.lib ")
 
-	ELSE(MSVC) # MINGW
-		SET(LLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
-		SET(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
+	ELSE(MSVC)
+		# keep GCC spesific stuff here
+		IF(CMAKE_COMPILER_IS_GNUCC)
+			SET(LLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
+			SET(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 
-		# Better warnings
-		SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
-		SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
+			# Better warnings
+			SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
+			SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
+			
+			IF(WITH_OPENMP)
+				SET(LLIBS "${LLIBS} -lgomp")
+				SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+				SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+			ENDIF(WITH_OPENMP)
+		ENDIF(CMAKE_COMPILER_IS_GNUCC)
 
 		ADD_DEFINITIONS(-DFREE_WINDOWS)
 
 		SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 		SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG")
-
-		IF(WITH_OPENMP)
-			SET(LLIBS "${LLIBS} -lgomp")
-			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-		ENDIF(WITH_OPENMP)
 
 		IF(WITH_INTERNATIONAL)
 			SET(GETTEXT ${LIBDIR}/gcc/gettext)

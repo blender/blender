@@ -282,7 +282,7 @@ behaviour, though it may not be the best in practice.
 #elif defined(__GNUC__)
 #define BM_INLINE static inline __attribute((always_inline))
 #else
-#warning "MSC/GNUC defines not found, inline non-functional"
+/* #warning "MSC/GNUC defines not found, inline non-functional" */
 #define BM_INLINE static 
 #endif
 

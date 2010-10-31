@@ -248,6 +248,7 @@ static struct PyModuleDef M_Mathutils_module_def = {
 PyMODINIT_FUNC BPyInit_mathutils(void)
 {
 	PyObject *submodule;
+	PyObject *item;
 
 	if( PyType_Ready( &vector_Type ) < 0 )
 		return NULL;
@@ -270,8 +271,13 @@ PyMODINIT_FUNC BPyInit_mathutils(void)
 	PyModule_AddObject( submodule, "Color",			(PyObject *)&color_Type );
 	
 	/* submodule */
-	PyModule_AddObject( submodule, "geometry",		BPyInit_mathutils_geometry());
-	
+	PyModule_AddObject( submodule, "geometry",		(item=BPyInit_mathutils_geometry()));
+	/* XXX, python doesnt do imports with this usefully yet
+	 * 'from mathutils.geometry import PolyFill'
+	 * ...fails without this. */
+	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "mathutils.geometry", item);
+	Py_INCREF(item);
+
 	mathutils_matrix_vector_cb_index= Mathutils_RegisterCallback(&mathutils_matrix_vector_cb);
 
 	return submodule;

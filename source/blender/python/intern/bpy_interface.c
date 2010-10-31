@@ -199,6 +199,7 @@ void BPY_set_context(bContext *C)
 /* init-tab */
 extern PyObject *BPyInit_noise(void);
 extern PyObject *BPyInit_mathutils(void);
+// extern PyObject *BPyInit_mathutils_geometry(void); // BPyInit_mathutils calls, py doesnt work with thos :S
 extern PyObject *BPyInit_bgl(void);
 extern PyObject *BPyInit_blf(void);
 extern PyObject *AUD_initPython(void);
@@ -206,6 +207,7 @@ extern PyObject *AUD_initPython(void);
 static struct _inittab bpy_internal_modules[]= {
 	{"noise", BPyInit_noise},
 	{"mathutils", BPyInit_mathutils},
+//	{"mathutils.geometry", BPyInit_mathutils_geometry},
 	{"bgl", BPyInit_bgl},
 	{"blf", BPyInit_blf},
 	{"aud", AUD_initPython},
