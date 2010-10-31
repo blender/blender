@@ -538,13 +538,13 @@ ENDIF(WITH_MOD_FLUID)
 		bf_intern_ctr 
 		bf_blroutines 
 		bf_converter 
-		bf_dummy 
+		bf_dummy
 		bf_bullet 
 		bf_intern_smoke
 		extern_minilzo
 		extern_lzma
-		bf_common 
 		bf_ketsji 
+		bf_common
 		bf_logic 
 		bf_rasterizer 
 		bf_oglrasterizer 
