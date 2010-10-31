@@ -782,10 +782,20 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 	AUD_Sound* sound;
 
 	AUD_FileFactory file(filename);
+
+	AUD_IReader* reader = file.createReader();
+	AUD_SampleRate rate = reader->getSpecs().rate;
+	delete reader;
+
 	AUD_ChannelMapperFactory mapper(&file, specs);
-	AUD_LowpassFactory lowpass(&mapper, high);
-	AUD_HighpassFactory highpass(&lowpass, low);
-	AUD_EnvelopeFactory envelope(&highpass, attack, release, threshold, 0.1f);
+	sound = &mapper;
+	AUD_LowpassFactory lowpass(sound, high);
+	if(high < rate)
+		sound = &lowpass;
+	AUD_HighpassFactory highpass(sound, low);
+	if(low > 0)
+		sound = &highpass;
+	AUD_EnvelopeFactory envelope(sound, attack, release, threshold, 0.1f);
 	AUD_LinearResampleFactory resampler(&envelope, specs);
 	sound = &resampler;
 	AUD_SquareFactory squaref(sound, sthreshold);
@@ -798,7 +808,7 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 	else if(additive)
 		sound = &sum;
 
-	AUD_IReader* reader = sound->createReader();
+	reader = sound->createReader();
 
 	if(reader == NULL)
 		return NULL;
