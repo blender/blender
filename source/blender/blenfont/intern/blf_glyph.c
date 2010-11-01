@@ -36,6 +36,7 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 #include FT_OUTLINE_H
+#include FT_BITMAP_H
 
 #include "MEM_guardedalloc.h"
 
@@ -49,6 +50,7 @@
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
+FT_Library global_ft_lib;
 
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 {
@@ -190,22 +192,40 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
 	FT_GlyphSlot slot;
 	GlyphBLF *g;
 	FT_Error err;
-	FT_Bitmap bitmap;
+	FT_Bitmap bitmap, tempbitmap;
+	int sharp;
 	FT_BBox bbox;
 	unsigned int key;
+
+	sharp = 0; /* TODO make the value be configurable somehow */
 
 	g= blf_glyph_search(font->glyph_cache, c);
 	if (g)
 		return(g);
 
-	err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
+	if (sharp)
+		err = FT_Load_Glyph(font->face, index, FT_LOAD_TARGET_MONO);
+	else
+		err = FT_Load_Glyph(font->face, index, FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP); /* Sure about NO_* flags? */
 	if (err)
 		return(NULL);
 
 	/* get the glyph. */
 	slot= font->face->glyph;
 
-	err= FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL);
+	if (sharp) {
+		err = FT_Render_Glyph(slot, FT_RENDER_MODE_MONO);
+
+		/* Convert result from 1 bit per pixel to 8 bit per pixel */
+		/* Accum errors for later, fine if not interested beyond "ok vs any error" */
+		FT_Bitmap_New(&tempbitmap);
+		err += FT_Bitmap_Convert(global_ft_lib, &slot->bitmap, &tempbitmap, 1); /* Does Blender use Pitch 1 always? It works so far */
+		err += FT_Bitmap_Copy(global_ft_lib, &tempbitmap, &slot->bitmap);
+		err += FT_Bitmap_Done(global_ft_lib, &tempbitmap);
+	} else {
+		err = FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL);
+	}
+
 	if (err || slot->format != FT_GLYPH_FORMAT_BITMAP)
 		return(NULL);
 
@@ -228,6 +248,14 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
 	g->height= bitmap.rows;
 
 	if (g->width && g->height) {
+		if (sharp) {
+			/* Font buffer uses only 0 or 1 values, Blender expects full 0..255 range */
+			int i;
+			for (i=0; i < (g->width * g->height); i++) {
+				bitmap.buffer[i] = 255 * bitmap.buffer[i];
+			}
+		}
+
 		g->bitmap= (unsigned char *)MEM_mallocN(g->width * g->height, "glyph bitmap");
 		memcpy((void *)g->bitmap, (void *)bitmap.buffer, g->width * g->height);
 	}
