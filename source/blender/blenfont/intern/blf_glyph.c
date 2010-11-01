@@ -218,7 +218,7 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
 
 		/* Convert result from 1 bit per pixel to 8 bit per pixel */
 		/* Accum errors for later, fine if not interested beyond "ok vs any error" */
-		err += FT_Bitmap_New(&tempbitmap);
+		FT_Bitmap_New(&tempbitmap);
 		err += FT_Bitmap_Convert(global_ft_lib, &slot->bitmap, &tempbitmap, 1); /* Does Blender use Pitch 1 always? It works so far */
 		err += FT_Bitmap_Copy(global_ft_lib, &tempbitmap, &slot->bitmap);
 		err += FT_Bitmap_Done(global_ft_lib, &tempbitmap);
