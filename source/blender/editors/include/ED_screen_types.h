@@ -52,7 +52,7 @@ enum {
 		/* don't drop frames (and ignore SCE_FRAME_DROP flag) */
 	ANIMPLAY_FLAG_NO_SYNC		= (1<<3),
 		/* use nextfra at next timer update */
-	ANIMPLAY_FLAG_USE_NEXT_FRAME,
+	ANIMPLAY_FLAG_USE_NEXT_FRAME = (1<<4)
 };
 
 /* ----------------------------------------------------- */
