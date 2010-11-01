@@ -543,9 +543,20 @@ int BLI_path_frame(char *path, int frame, int digits)
 		ensure_digits(path, digits);
 
 	if (stringframe_chars(path, &ch_sta, &ch_end)) { /* warning, ch_end is the last # +1 */
-		char tmp[FILE_MAX], format[64];
+		char tmp[FILE_MAX];
+#if 0	// neat but breaks on non ascii strings.
+		char format[64];
 		sprintf(format, "%%.%ds%%.%dd%%s", ch_sta, ch_end-ch_sta); /* example result: "%.12s%.5d%s" */
 		sprintf(tmp, format, path, frame, path+ch_end);
+#else
+		char format[8];
+		char *p;
+		sprintf(format, "%%.%dd", ch_end-ch_sta); /* example result: "%.5d" */
+		memcpy(tmp, path, sizeof(char) * ch_sta);
+		p= tmp + ch_sta;
+		p += sprintf(p, format, frame);
+		memcpy(p, path + ch_end, strlen(path + ch_end));
+#endif
 		strcpy(path, tmp);
 		return 1;
 	}

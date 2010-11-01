@@ -1005,6 +1005,11 @@ void RNA_def_property_clear_flag(PropertyRNA *prop, int flag)
 	prop->flag &= ~flag;
 }
 
+void RNA_def_property_subtype(PropertyRNA *prop, PropertySubType subtype)
+{
+	prop->subtype= subtype;
+}
+
 void RNA_def_property_array(PropertyRNA *prop, int length)
 {
 	StructRNA *srna= DefRNA.laststruct;
