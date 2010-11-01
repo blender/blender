@@ -41,7 +41,7 @@ EnumPropertyItem actuator_type_items[] ={
 	{ACT_CAMERA, "CAMERA", 0, "Camera", ""},
 	{ACT_CONSTRAINT, "CONSTRAINT", 0, "Constraint", ""},
 	{ACT_EDIT_OBJECT, "EDIT_OBJECT", 0, "Edit Object", ""},
-	{ACT_IPO, "F-Curve", 0, "F-Curve", ""},
+	{ACT_IPO, "FCURVE", 0, "F-Curve", ""},
 	{ACT_2DFILTER, "FILTER_2D", 0, "Filter 2D", ""},
 	{ACT_GAME, "GAME", 0, "Game", ""},
 	{ACT_MESSAGE, "MESSAGE", 0, "Message", ""},
@@ -1384,16 +1384,16 @@ static void rna_def_random_actuator(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_distribution_items[] ={
-		{ACT_RANDOM_BOOL_CONST, "RESTART", 0, "Bool Constant", ""},
-		{ACT_RANDOM_BOOL_UNIFORM, "SET", 0, "Bool Uniform", ""},
-		{ACT_RANDOM_BOOL_BERNOUILLI, "CAMERA", 0, "Bool Bernoulli", ""},
-		{ACT_RANDOM_INT_CONST, "ADDFRONT", 0, "Int Constant", ""},
-		{ACT_RANDOM_INT_UNIFORM, "ADDBACK", 0, "Int Uniform", ""},
-		{ACT_RANDOM_INT_POISSON, "REMOVE", 0, "Int Poisson", ""},
-		{ACT_RANDOM_FLOAT_CONST, "SUSPEND", 0, "Float Constant", ""},
-		{ACT_RANDOM_FLOAT_UNIFORM, "RESUME", 0, "Float Uniform", ""},
-		{ACT_RANDOM_FLOAT_NORMAL, "RESUME", 0, "Float Normal", ""},
-		{ACT_RANDOM_FLOAT_NEGATIVE_EXPONENTIAL, "RESUME", 0, "Float Neg. Exp.", ""},
+		{ACT_RANDOM_BOOL_CONST, "BOOL_CONSTANT", 0, "Bool Constant", ""},
+		{ACT_RANDOM_BOOL_UNIFORM, "BOOL_UNIFORM", 0, "Bool Uniform", ""},
+		{ACT_RANDOM_BOOL_BERNOUILLI, "BOOL_BERNOUILLI", 0, "Bool Bernouilli", ""},
+		{ACT_RANDOM_INT_CONST, "INT_CONSTANT", 0, "Int Constant", ""},
+		{ACT_RANDOM_INT_UNIFORM, "INT_UNIFORM", 0, "Int Uniform", ""},
+		{ACT_RANDOM_INT_POISSON, "INT_POISSON", 0, "Int Poisson", ""},
+		{ACT_RANDOM_FLOAT_CONST, "FLOAT_CONSTANT", 0, "Float Constant", ""},
+		{ACT_RANDOM_FLOAT_UNIFORM, "FLOAT_UNIFORM", 0, "Float Uniform", ""},
+		{ACT_RANDOM_FLOAT_NORMAL, "FLOAT_NORMAL", 0, "Float Normal", ""},
+		{ACT_RANDOM_FLOAT_NEGATIVE_EXPONENTIAL, "FLOAT_NEGATIVE_EXPONENTIAL", 0, "Float Neg. Exp.", ""},
 		{0, NULL, 0, NULL, NULL}};	
 
 	srna= RNA_def_struct(brna, "RandomActuator", "Actuator");
