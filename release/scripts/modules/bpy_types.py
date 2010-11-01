@@ -650,14 +650,14 @@ class Operator(StructRNA, metaclass=OrderedMeta):
         properties = StructRNA.path_resolve(self, "properties")
         bl_rna = getattr(properties, "bl_rna", None)
         if bl_rna and attr in bl_rna.properties:
-            setattr(properties, attr, value)
+            return setattr(properties, attr, value)
         return super().__setattr__(attr, value)
 
     def __delattr__(self, attr):
         properties = StructRNA.path_resolve(self, "properties")
         bl_rna = getattr(properties, "bl_rna", None)
         if bl_rna and attr in bl_rna.properties:
-            delattr(properties, attr)
+            return delattr(properties, attr)
         return super().__delattr__(attr)
 
 

@@ -54,7 +54,7 @@ class AddPresetBase():
                 return {'FINISHED'}
 
             filename = self.as_filename(self.name)
-            
+
             target_path = bpy.utils.preset_paths(self.preset_subdir)[0]  # we need some way to tell the user and system preset path
 
             filepath = os.path.join(target_path, filename) + ".py"
@@ -76,8 +76,8 @@ class AddPresetBase():
                     file_preset.write("%s = %r\n" % (rna_path, value))
 
                 file_preset.close()
-            
-            preset_menu_class.bl_label = bpy.path.display_name(self.name)
+
+            preset_menu_class.bl_label = bpy.path.display_name(filename)
 
         else:
             preset_active = preset_menu_class.bl_label
@@ -108,10 +108,13 @@ class AddPresetBase():
 
         return {'FINISHED'}
 
+    def check(self, context):
+        self.name = self.as_filename(self.name)
+
     def invoke(self, context, event):
         if not self.remove_active:
             wm = context.window_manager
-            return wm.invoke_props_popup(self, event)
+            return wm.invoke_props_dialog(self)
         else:
             return self.execute(context)
 
