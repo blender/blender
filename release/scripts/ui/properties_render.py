@@ -483,9 +483,14 @@ class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
 
 
 class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Full Sample Motion Blur"
+    bl_label = "Sampled Motion Blur"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
+	
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        return not rd.use_full_sample
 
     def draw_header(self, context):
         rd = context.scene.render

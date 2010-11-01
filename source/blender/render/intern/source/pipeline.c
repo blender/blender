@@ -1965,7 +1965,7 @@ static void do_render_fields_3d(Render *re)
 	
 	/* first field, we have to call camera routine for correct aspect and subpixel offset */
 	RE_SetCamera(re, re->scene->camera);
-	if(re->r.mode & R_MBLUR)
+	if(re->r.mode & R_MBLUR && (re->r.scemode & R_FULL_SAMPLE)==0)
 		do_render_blur_3d(re);
 	else
 		do_render_3d(re);
@@ -1985,7 +1985,7 @@ static void do_render_fields_3d(Render *re)
 			re->field_offs = 0.5f;
 		}
 		RE_SetCamera(re, re->scene->camera);
-		if(re->r.mode & R_MBLUR)
+		if(re->r.mode & R_MBLUR && (re->r.scemode & R_FULL_SAMPLE)==0)
 			do_render_blur_3d(re);
 		else
 			do_render_3d(re);
@@ -2075,7 +2075,7 @@ static void do_render_fields_blur_3d(Render *re)
 	
 	if(re->r.mode & R_FIELDS)
 		do_render_fields_3d(re);
-	else if(re->r.mode & R_MBLUR)
+	else if(re->r.mode & R_MBLUR && (re->r.scemode & R_FULL_SAMPLE)==0)
 		do_render_blur_3d(re);
 	else
 		do_render_3d(re);
