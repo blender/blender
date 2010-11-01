@@ -71,4 +71,4 @@ CPPFLAGS += -I..
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I../../../source/blender/imbuf
 CPPFLAGS += -I../../../source/blender/makesdna
-
+CPPFLAGS += -DPREFIX=\"$(BF_PREFIX)\"
