@@ -1022,7 +1022,7 @@ static int get_shown_sequences(	ListBase * seqbasep, int cfra, int chanshown, Se
 
 #define PROXY_MAXFILE (2*FILE_MAXDIR+FILE_MAXFILE)
 
-static int seq_proxy_get_fname(Scene *UNUSED(scene), Sequence * seq, int cfra, char * name, int render_size)
+static int seq_proxy_get_fname(Scene *UNUSED(scene), Sequence * seq, int cfra, char * name, int preview_render_size)
 {
 	int frameno;
 	char dir[FILE_MAXDIR];
@@ -1053,17 +1053,17 @@ static int seq_proxy_get_fname(Scene *UNUSED(scene), Sequence * seq, int cfra, c
 	switch(seq->type) {
 	case SEQ_IMAGE:
 		snprintf(name, PROXY_MAXFILE, "%s/images/%d/%s_proxy", dir,
-					render_size, give_stripelem(seq, cfra)->name);
+					preview_render_size, give_stripelem(seq, cfra)->name);
 		frameno = 1;
 		break;
 	case SEQ_MOVIE:
 		frameno = (int) give_stripelem_index(seq, cfra) + seq->anim_startofs;
 		snprintf(name, PROXY_MAXFILE, "%s/%s/%d/####", dir,
-					seq->strip->stripdata->name, render_size);
+					seq->strip->stripdata->name, preview_render_size);
 		break;
 	default:
 		frameno = (int) give_stripelem_index(seq, cfra) + seq->anim_startofs;
-		snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir, render_size);
+		snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir, preview_render_size);
 	}
 
 	BLI_path_abs(name, G.main->name);
@@ -1074,7 +1074,7 @@ static int seq_proxy_get_fname(Scene *UNUSED(scene), Sequence * seq, int cfra, c
 	return TRUE;
 }
 
-static struct ImBuf * seq_proxy_fetch(Scene *scene, Sequence * seq, int cfra, int render_size)
+static struct ImBuf * seq_proxy_fetch(Scene *scene, Sequence * seq, int cfra, int preview_render_size)
 {
 	char name[PROXY_MAXFILE];
 
@@ -1083,14 +1083,14 @@ static struct ImBuf * seq_proxy_fetch(Scene *scene, Sequence * seq, int cfra, in
 	}
 
 	/* rendering at 100% ? No real sense in proxy-ing, right? */
-	if (render_size == 100) {
+	if (preview_render_size == 100) {
 		return 0;
 	}
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
 		int frameno = (int) give_stripelem_index(seq, cfra) + seq->anim_startofs;
 		if (seq->strip->proxy->anim == NULL) {
-			if (seq_proxy_get_fname(scene, seq, cfra, name, render_size)==0) {
+			if (seq_proxy_get_fname(scene, seq, cfra, name, preview_render_size)==0) {
 				return 0;
 			}
  
@@ -1103,7 +1103,7 @@ static struct ImBuf * seq_proxy_fetch(Scene *scene, Sequence * seq, int cfra, in
 		return IMB_anim_absolute(seq->strip->proxy->anim, frameno);
 	}
  
-	if (seq_proxy_get_fname(scene, seq, cfra, name, render_size)==0) {
+	if (seq_proxy_get_fname(scene, seq, cfra, name, preview_render_size)==0) {
 		return 0;
 	}
 
@@ -1116,9 +1116,9 @@ static struct ImBuf * seq_proxy_fetch(Scene *scene, Sequence * seq, int cfra, in
 
 #if 0
 static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int cfra,
-				  int build_proxy_run, int render_size);
+				  int build_proxy_run, int preview_render_size);
 
-static void seq_proxy_build_frame(Scene *scene, Sequence * seq, int cfra, int render_size, int seqrectx, int seqrecty)
+static void seq_proxy_build_frame(Scene *scene, Sequence * seq, int cfra, int preview_render_size, int seqrectx, int seqrecty)
 {
 	char name[PROXY_MAXFILE];
 	int quality;
@@ -1132,7 +1132,7 @@ static void seq_proxy_build_frame(Scene *scene, Sequence * seq, int cfra, int re
 	}
 
 	/* rendering at 100% ? No real sense in proxy-ing, right? */
-	if (render_size == 100) {
+	if (preview_render_size == 100) {
 		return;
 	}
 
@@ -1141,7 +1141,7 @@ static void seq_proxy_build_frame(Scene *scene, Sequence * seq, int cfra, int re
 		return;
 	}
 
-	if (!seq_proxy_get_fname(scene, seq, cfra, name, render_size)) {
+	if (!seq_proxy_get_fname(scene, seq, cfra, name, preview_render_size)) {
 		return;
 	}
 
@@ -1155,15 +1155,15 @@ static void seq_proxy_build_frame(Scene *scene, Sequence * seq, int cfra, int re
 		se->ibuf = 0;
 	}
 	
-	do_build_seq_ibuf(scene, seq, se, cfra, TRUE, render_size,
+	do_build_seq_ibuf(scene, seq, se, cfra, TRUE, preview_render_size,
 			  seqrectx, seqrecty);
 
 	if (!se->ibuf) {
 		return;
 	}
 
-	rectx= (render_size*scene->r.xsch)/100;
-	recty= (render_size*scene->r.ysch)/100;
+	rectx= (preview_render_size*scene->r.xsch)/100;
+	recty= (preview_render_size*scene->r.ysch)/100;
 
 	ibuf = se->ibuf;
 
@@ -1629,14 +1629,14 @@ static void copy_to_ibuf_still(Sequence * seq, float nr,
    ********************************************************************** */
 
 static ImBuf* seq_render_strip_stack( Main *bmain, Scene *scene, ListBase *seqbasep,
-		float cfra, int chanshown, int render_size, int seqrectx, int seqrecty);
+		float cfra, int chanshown, int preview_render_size, int seqrectx, int seqrecty);
 
 static ImBuf * seq_render_strip(Main *bmain, Scene *scene, Sequence * seq, float cfra,
-		int render_size, int seqrectx, int seqrecty);
+		int preview_render_size, int seqrectx, int seqrecty);
 
 
 static ImBuf* seq_render_effect_strip_impl(Main *bmain, Scene *scene, float cfra,
-		Sequence *seq, int render_size, int seqrectx, int seqrecty)
+		Sequence *seq, int preview_render_size, int seqrectx, int seqrecty)
 {
 	float fac, facf;
 	int early_out;
@@ -1655,15 +1655,6 @@ static ImBuf* seq_render_effect_strip_impl(Main *bmain, Scene *scene, float cfra
 		out = IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rect);
 		return out;
 	}
-
-	/* Override render size here, effects need to get the actual
-	 * ratio so they can scale appropriately. This whole business
-	 * with render size, proxy size, and seqrectx, etc. is a bit
-	 * complicated and should probably be cleaned up and handled
-	 * properly way before we get to this point. -jahka
-	 * (fix for bug #23318)
-	 */
-	render_size = 100*seqrectx/scene->r.xsch;
 
 	if (seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
 		sh.get_default_fac(seq, cfra, &fac, &facf);
@@ -1688,23 +1679,23 @@ static ImBuf* seq_render_effect_strip_impl(Main *bmain, Scene *scene, float cfra
 	switch (early_out) {
 	case EARLY_NO_INPUT:
 		out = sh.execute(bmain, scene, seq, cfra, fac, facf, 
-				 seqrectx, seqrecty, render_size, NULL, NULL, NULL);
+				 seqrectx, seqrecty, preview_render_size, NULL, NULL, NULL);
 	case EARLY_DO_EFFECT:
 		for(i=0; i<3; i++) {
 			if(input[i])
 				ibuf[i] = seq_render_strip(bmain, scene, input[i], cfra,
-							render_size, seqrectx, seqrecty);
+							preview_render_size, seqrectx, seqrecty);
 		}
 
 		if (ibuf[0] && ibuf[1]) {
 			out = sh.execute(bmain, scene, seq, cfra, fac, facf, seqrectx, seqrecty, 
-					 render_size, ibuf[0], ibuf[1], ibuf[2]);
+					 preview_render_size, ibuf[0], ibuf[1], ibuf[2]);
 		}
 		break;
 	case EARLY_USE_INPUT_1:
 		if (input[0]) {
 			ibuf[0] = seq_render_strip(bmain, scene, input[0], cfra,
-						   render_size, seqrectx, seqrecty);
+						   preview_render_size, seqrectx, seqrecty);
 		}
 		if (ibuf[0]) {
 			if (input_have_to_preprocess(scene, seq, cfra, seqrectx, seqrecty)) {
@@ -1718,7 +1709,7 @@ static ImBuf* seq_render_effect_strip_impl(Main *bmain, Scene *scene, float cfra
 	case EARLY_USE_INPUT_2:
 		if (input[1]) {
 			ibuf[1] = seq_render_strip(bmain, scene, input[1], cfra,
-						   render_size, seqrectx, seqrecty);
+						   preview_render_size, seqrectx, seqrecty);
 		}
 		if (ibuf[1]) {
 			if (input_have_to_preprocess(scene, seq, cfra, seqrectx, seqrecty)) {
@@ -1880,7 +1871,7 @@ static ImBuf * seq_render_scene_strip_impl(
 }
 
 static ImBuf * seq_render_strip(Main *bmain, Scene *scene, Sequence * seq, float cfra,
-				int render_size, int seqrectx, int seqrecty)
+				int preview_render_size, int seqrectx, int seqrecty)
 {
 	ImBuf * ibuf = NULL;
 	char name[FILE_MAXDIR+FILE_MAXFILE];
@@ -1899,7 +1890,7 @@ static ImBuf * seq_render_strip(Main *bmain, Scene *scene, Sequence * seq, float
 		use_preprocess = FALSE;
 
 	if (ibuf == NULL)
-		ibuf = seq_proxy_fetch(scene, seq, cfra, render_size);
+		ibuf = seq_proxy_fetch(scene, seq, cfra, preview_render_size);
 
 	if(ibuf == NULL) switch(type) {
 		case SEQ_META:
@@ -1908,7 +1899,7 @@ static ImBuf * seq_render_strip(Main *bmain, Scene *scene, Sequence * seq, float
 
 			if(seq->seqbase.first)
 				meta_ibuf = seq_render_strip_stack(bmain, scene, &seq->seqbase,
-							seq->start + nr, 0, render_size, seqrectx, seqrecty);
+							seq->start + nr, 0, preview_render_size, seqrectx, seqrecty);
 
 			if(meta_ibuf) {
 				ibuf = meta_ibuf;
@@ -1934,7 +1925,7 @@ static ImBuf * seq_render_strip(Main *bmain, Scene *scene, Sequence * seq, float
 			/* weeek! */
 			f_cfra = seq->start + s->frameMap[(int) nr];
 
-			child_ibuf = seq_render_strip(bmain, scene, seq->seq1, f_cfra, render_size,
+			child_ibuf = seq_render_strip(bmain, scene, seq->seq1, f_cfra, preview_render_size,
 										seqrectx, seqrecty);
 
 			if (child_ibuf) {
@@ -1951,7 +1942,7 @@ static ImBuf * seq_render_strip(Main *bmain, Scene *scene, Sequence * seq, float
 		}
 		case SEQ_EFFECT:
 		{	
-			ibuf = seq_render_effect_strip_impl(bmain, scene, cfra, seq, render_size,
+			ibuf = seq_render_effect_strip_impl(bmain, scene, cfra, seq, preview_render_size,
 										seqrectx, seqrecty);
 			break;
 		}
@@ -2061,7 +2052,7 @@ static int seq_get_early_out_for_blend_mode(Sequence * seq)
 
 static ImBuf* seq_render_strip_stack(
 	Main *bmain, Scene *scene, ListBase *seqbasep, float cfra, int chanshown, 
-	int render_size, int seqrectx, int seqrecty)
+	int preview_render_size, int seqrectx, int seqrecty)
 {
 	Sequence* seq_arr[MAXSEQ+1];
 	int count;
@@ -2089,7 +2080,7 @@ static ImBuf* seq_render_strip_stack(
 	}
 	
 	if(count == 1) {
-		out = seq_render_strip(bmain, scene, seq_arr[0], cfra, render_size, seqrectx, seqrecty);
+		out = seq_render_strip(bmain, scene, seq_arr[0], cfra, preview_render_size, seqrectx, seqrecty);
 		seq_stripelem_cache_put(seq_arr[0], seqrectx, seqrecty, cfra, SEQ_STRIPELEM_IBUF_COMP, out);
 
 		return out;
@@ -2106,7 +2097,7 @@ static ImBuf* seq_render_strip_stack(
 			break;
 		}
 		if (seq->blend_mode == SEQ_BLEND_REPLACE) {
-			out = seq_render_strip(bmain, scene, seq, cfra, render_size, seqrectx, seqrecty);
+			out = seq_render_strip(bmain, scene, seq, cfra, preview_render_size, seqrectx, seqrecty);
 			break;
 		}
 
@@ -2115,7 +2106,7 @@ static ImBuf* seq_render_strip_stack(
 		switch (early_out) {
 		case EARLY_NO_INPUT:
 		case EARLY_USE_INPUT_2:
-			out = seq_render_strip(bmain, scene, seq, cfra, render_size, seqrectx, seqrecty);
+			out = seq_render_strip(bmain, scene, seq, cfra, preview_render_size, seqrectx, seqrecty);
 			break;
 		case EARLY_USE_INPUT_1:
 			if (i == 0) {
@@ -2124,7 +2115,7 @@ static ImBuf* seq_render_strip_stack(
 			break;
 		case EARLY_DO_EFFECT:
 			if (i == 0) {
-				out = seq_render_strip(bmain, scene, seq, cfra, render_size, seqrectx, seqrecty);
+				out = seq_render_strip(bmain, scene, seq, cfra, preview_render_size, seqrectx, seqrecty);
 			}
 
 			break;
@@ -2145,7 +2136,7 @@ static ImBuf* seq_render_strip_stack(
 		if (seq_get_early_out_for_blend_mode(seq) == EARLY_DO_EFFECT) {
 			struct SeqEffectHandle sh = get_sequence_blend(seq);
 			ImBuf * ibuf1 = out;
-			ImBuf * ibuf2 = seq_render_strip(bmain, scene, seq, cfra, render_size,
+			ImBuf * ibuf2 = seq_render_strip(bmain, scene, seq, cfra, preview_render_size,
 												seqrectx, seqrecty);
 
 			float facf = seq->blend_opacity / 100.0;
@@ -2156,10 +2147,10 @@ static ImBuf* seq_render_strip_stack(
 
 			if (swap_input) {
 				out = sh.execute(bmain, scene, seq, cfra, facf, facf, x, y,
-									render_size, ibuf2, ibuf1, 0);
+									preview_render_size, ibuf2, ibuf1, 0);
 			} else {
 				out = sh.execute(bmain, scene, seq, cfra, facf, facf, x, y,
-									render_size, ibuf1, ibuf2, 0);
+									preview_render_size, ibuf1, ibuf2, 0);
 			}
 		
 			IMB_freeImBuf(ibuf1);
@@ -2178,7 +2169,7 @@ static ImBuf* seq_render_strip_stack(
  * you have to free after usage!
  */
 
-ImBuf *give_ibuf_seq(Main *bmain, Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size)
+ImBuf *give_ibuf_seq(Main *bmain, Scene *scene, int rectx, int recty, int cfra, int chanshown, int preview_render_size)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	int count;
@@ -2195,18 +2186,18 @@ ImBuf *give_ibuf_seq(Main *bmain, Scene *scene, int rectx, int recty, int cfra, 
 	}
 
 	return seq_render_strip_stack(bmain, scene, seqbasep, cfra, chanshown,
-									render_size, rectx, recty);
+									preview_render_size, rectx, recty);
 }
 
-ImBuf *give_ibuf_seqbase(Main *bmain, Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size, ListBase *seqbasep)
+ImBuf *give_ibuf_seqbase(Main *bmain, Scene *scene, int rectx, int recty, int cfra, int chanshown, int preview_render_size, ListBase *seqbasep)
 {
-	return seq_render_strip_stack(bmain, scene, seqbasep, cfra, chanshown, render_size, rectx, recty);
+	return seq_render_strip_stack(bmain, scene, seqbasep, cfra, chanshown, preview_render_size, rectx, recty);
 }
 
 
-ImBuf *give_ibuf_seq_direct(Main *bmain, Scene *scene, int rectx, int recty, int cfra, int render_size, Sequence *seq)
+ImBuf *give_ibuf_seq_direct(Main *bmain, Scene *scene, int rectx, int recty, int cfra, int preview_render_size, Sequence *seq)
 {
-	return seq_render_strip(bmain, scene, seq, cfra, render_size, rectx, recty);
+	return seq_render_strip(bmain, scene, seq, cfra, preview_render_size, rectx, recty);
 }
 
 #if 0
@@ -2258,7 +2249,7 @@ typedef struct PrefetchQueueElem {
 	int recty;
 	int cfra;
 	int chanshown;
-	int render_size;
+	int preview_render_size;
 
 	int monoton_cfra;
 
@@ -2306,7 +2297,7 @@ static void *seq_prefetch_thread(void * This_)
 		if (e->cfra >= s_last) { 
 			e->ibuf = give_ibuf_seq_impl(This->scene, 
 				e->rectx, e->recty, e->cfra, e->chanshown,
-				e->render_size);
+				e->preview_render_size);
 		}
 
 		pthread_mutex_lock(&queue_lock);
@@ -2416,7 +2407,7 @@ static void seq_stop_threads()
 }
 #endif
 
-void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown, int render_size)
+void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown, int preview_render_size)
 {
 	PrefetchQueueElem *e;
 	if (seq_thread_shutdown) {
@@ -2428,7 +2419,7 @@ void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown, i
 	e->recty = recty;
 	e->cfra = cfra;
 	e->chanshown = chanshown;
-	e->render_size = render_size;
+	e->preview_render_size = preview_render_size;
 	e->monoton_cfra = monoton_cfra++;
 
 	pthread_mutex_lock(&queue_lock);
@@ -2471,13 +2462,13 @@ static void seq_wait_for_prefetch_ready()
 }
 #endif
 
-ImBuf *give_ibuf_seq_threaded(Main *bmain, Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size)
+ImBuf *give_ibuf_seq_threaded(Main *bmain, Scene *scene, int rectx, int recty, int cfra, int chanshown, int preview_render_size)
 {
 	PrefetchQueueElem *e = NULL;
 	int found_something = FALSE;
 
 	if (seq_thread_shutdown) {
-		return give_ibuf_seq(bmain, scene, rectx, recty, cfra, chanshown, render_size);
+		return give_ibuf_seq(bmain, scene, rectx, recty, cfra, chanshown, preview_render_size);
 	}
 
 	while (!e) {
@@ -2489,7 +2480,7 @@ ImBuf *give_ibuf_seq_threaded(Main *bmain, Scene *scene, int rectx, int recty, i
 				chanshown == e->chanshown &&
 				rectx == e->rectx && 
 				recty == e->recty &&
-				render_size == e->render_size) {
+				preview_render_size == e->preview_render_size) {
 				success = TRUE;
 				found_something = TRUE;
 				break;
@@ -2502,7 +2493,7 @@ ImBuf *give_ibuf_seq_threaded(Main *bmain, Scene *scene, int rectx, int recty, i
 					chanshown == e->chanshown &&
 					rectx == e->rectx && 
 					recty == e->recty &&
-					render_size == e->render_size) {
+					preview_render_size == e->preview_render_size) {
 					found_something = TRUE;
 					break;
 				}
@@ -2519,7 +2510,7 @@ ImBuf *give_ibuf_seq_threaded(Main *bmain, Scene *scene, int rectx, int recty, i
 					chanshown == tslot->current->chanshown &&
 					rectx == tslot->current->rectx && 
 					recty == tslot->current->recty &&
-					render_size== tslot->current->render_size){
+					preview_render_size== tslot->current->preview_render_size){
 					found_something = TRUE;
 					break;
 				}

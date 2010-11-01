@@ -2660,13 +2660,15 @@ static void do_glow_effect_float(Sequence *seq, int render_size, float facf0, fl
 }
 
 static struct ImBuf * do_glow_effect(
-	Main *UNUSED(bmain), Scene *UNUSED(scene), Sequence *seq, float UNUSED(cfra),
+	Main *UNUSED(bmain), Scene * scene, Sequence *seq, float UNUSED(cfra),
 	float facf0, float facf1, int x, int y, 
-	int render_size,
+	int UNUSED(preview_render_size),
 	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 	struct ImBuf *ibuf3)
 {
 	struct ImBuf * out = prepare_effect_imbufs(x, y, ibuf1, ibuf2, ibuf3);
+
+	int render_size = 100*x/scene->r.xsch;
 
 	if (out->rect_float) {
 		do_glow_effect_float(seq, render_size,
