@@ -509,28 +509,23 @@ static EditBone *editbone_name_exists (ListBase *edbo, const char *name)
 void unique_editbone_name (ListBase *edbo, char *name, EditBone *bone)
 {
 	EditBone *dupli;
-	char	tempname[64];
-	int		number;
-	char	*dot;
 
 	dupli = editbone_name_exists(edbo, name);
 	
 	if (dupli && bone != dupli) {
-		/*	Strip off the suffix, if it's a number */
-		number= strlen(name);
-		if (number && isdigit(name[number-1])) {
-			dot= strrchr(name, '.');	// last occurrence
-			if (dot)
-				*dot=0;
-		}
-		
-		for (number = 1; number <= 999; number++) {
-			sprintf(tempname, "%s.%03d", name, number);
-			if (!editbone_name_exists(edbo, tempname)) {
-				BLI_strncpy(name, tempname, 32);
-				return;
+		/* note: this block is used in other places, when changing logic apply to all others, search this message */
+		char	tempname[sizeof(bone->name)];
+		char	left[sizeof(bone->name)];
+		int		number;
+		int		len= BLI_split_name_num(left, &number, name);
+		do {	/* nested while loop looks bad but likely it wont run most times */
+			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
+				if(len > 0)	left[--len]= '\0';	/* word too long */
+				else		number= 0;			/* reset, must be a massive number */
 			}
-		}
+		} while(number++, ((dupli= editbone_name_exists(edbo, tempname)) && bone != dupli));
+
+		BLI_strncpy(name, tempname, sizeof(bone->name));
 	}
 }
 
@@ -5389,29 +5384,22 @@ void POSE_OT_reveal(wmOperatorType *ot)
 /* ************* RENAMING DISASTERS ************ */
 
 /* note: there's a unique_editbone_name() too! */
-void unique_bone_name (bArmature *arm, char *name)
-{
-	char		tempname[64];
-	int			number;
-	char		*dot;
-	
+static void unique_bone_name (bArmature *arm, char *name)
+{	
 	if (get_named_bone(arm, name)) {
-		
-		/*	Strip off the suffix, if it's a number */
-		number= strlen(name);
-		if(number && isdigit(name[number-1])) {
-			dot= strrchr(name, '.');	// last occurrence
-			if (dot)
-				*dot=0;
-		}
-		
-		for (number = 1; number <=999; number++) {
-			sprintf (tempname, "%s.%03d", name, number);
-			if (!get_named_bone(arm, tempname)) {
-				BLI_strncpy (name, tempname, 32);
-				return;
+		/* note: this block is used in other places, when changing logic apply to all others, search this message */
+		char	tempname[sizeof(((Bone *)NULL)->name)];
+		char	left[sizeof(((Bone *)NULL)->name)];
+		int		number;
+		int		len= BLI_split_name_num(left, &number, name);
+		do {	/* nested while loop looks bad but likely it wont run most times */
+			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
+				if(len > 0)	left[--len]= '\0';	/* word too long */
+				else		number= 0;			/* reset, must be a massive number */
 			}
-		}
+		} while(number++, get_named_bone(arm, tempname));
+
+		BLI_strncpy(name, tempname, sizeof(tempname));
 	}
 }
 

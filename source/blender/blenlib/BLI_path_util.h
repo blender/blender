@@ -120,6 +120,7 @@ void BLI_uniquename(struct ListBase *list, void *vlink, const char defname[], ch
 void BLI_newname(char * name, int add);
 int BLI_stringdec(const char *string, char *head, char *start, unsigned short *numlen);
 void BLI_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic);
+int BLI_split_name_num(char *left, int *nr, const char *name);
 void BLI_splitdirstring(char *di,char *fi);
 
 /* make sure path separators conform to system one */

@@ -596,7 +596,7 @@ static void vgroup_select_verts(Object *ob, int select)
 static void vgroup_duplicate(Object *ob)
 {
 	bDeformGroup *dg, *cdg;
-	char name[32], s[32];
+	char name[sizeof(dg->name)];
 	MDeformWeight *org, *cpy;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, idg, icdg, dvert_tot=0;
@@ -605,26 +605,17 @@ static void vgroup_duplicate(Object *ob)
 	if(!dg)
 		return;
 	
-	if(strstr(dg->name, "_copy")) {
-		BLI_strncpy(name, dg->name, 32); /* will be renamed _copy.001... etc */
+	if(!strstr(dg->name, "_copy")) {
+		BLI_snprintf(name, sizeof(name), "%s_copy", dg->name);
 	}
 	else {
-		BLI_snprintf(name, 32, "%s_copy", dg->name);
-		while(defgroup_find_name(ob, name)) {
-			if((strlen(name) + 6) > 32) {
-				if (G.f & G_DEBUG)
-					printf("Internal error: the name for the new vertex group is > 32 characters");
-				return;
-			}
-			strcpy(s, name);
-			BLI_snprintf(name, 32, "%s_copy", s);
-		}
-	}		
+		BLI_snprintf(name, sizeof(name), "%s", dg->name);
+	}
 
 	cdg = defgroup_duplicate(dg);
 	strcpy(cdg->name, name);
 	defgroup_unique_name(cdg, ob);
-	
+
 	BLI_addtail(&ob->defbase, cdg);
 
 	idg = (ob->actdef-1);

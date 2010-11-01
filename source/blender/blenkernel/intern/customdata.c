@@ -2249,69 +2249,56 @@ static int  CustomData_is_property_layer(int type)
 	return 0;
 }
 
+static int cd_layer_find_dupe(CustomData *data, const char *name, int type, int index)
+{
+	int i;
+	/* see if there is a duplicate */
+	for(i=0; i<data->totlayer; i++) {
+		if(i != index) {
+			CustomDataLayer *layer= &data->layers[i];
+			
+			if(CustomData_is_property_layer(type)) {
+				if(CustomData_is_property_layer(layer->type) && strcmp(layer->name, name)==0) {
+					return 1;
+				}
+			}
+			else{
+				if(i!=index && layer->type==type && strcmp(layer->name, name)==0) {
+					return 1;
+				}
+			}
+		}
+	}
+	
+	return 0;
+}
+
 void CustomData_set_layer_unique_name(CustomData *data, int index)
 {
-	char tempname[64];
-	int number, i, type;
-	char *dot, *name;
-	CustomDataLayer *layer, *nlayer= &data->layers[index];
+	CustomDataLayer *nlayer= &data->layers[index];
 	const LayerTypeInfo *typeInfo= layerType_getInfo(nlayer->type);
 
 	if (!typeInfo->defaultname)
 		return;
 
-	type = nlayer->type;
-	name = nlayer->name;
-
-	if (name[0] == '\0')
+	if (nlayer->name[0] == '\0')
 		BLI_strncpy(nlayer->name, typeInfo->defaultname, sizeof(nlayer->name));
-	
-	/* see if there is a duplicate */
-	for(i=0; i<data->totlayer; i++) {
-		layer = &data->layers[i];
+
+	if(cd_layer_find_dupe(data, nlayer->name, nlayer->type, index)) {
+		/* note: this block is used in other places, when changing logic apply to all others, search this message */
+		char	tempname[sizeof(nlayer->name)];
+		char	left[sizeof(nlayer->name)];
+		int		number;
+		int		len= BLI_split_name_num(left, &number, nlayer->name);
+		do {	/* nested while loop looks bad but likely it wont run most times */
+			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
+				if(len > 0)	left[--len]= '\0';	/* word too long */
+				else		number= 0;			/* reset, must be a massive number */
+			}
+		} while(number++, cd_layer_find_dupe(data, tempname, nlayer->type, index));
 		
-		if(CustomData_is_property_layer(type)){
-			if(i!=index && CustomData_is_property_layer(layer->type) && 
-				strcmp(layer->name, name)==0)
-					break;	
-		
-		}
-		else{
-			if(i!=index && layer->type==type && strcmp(layer->name, name)==0)
-				break;
-		}
+		BLI_strncpy(nlayer->name, tempname, sizeof(nlayer->name));
 	}
-
-	if(i == data->totlayer)
-		return;
-
-	/* strip off the suffix */
-	dot = strchr(nlayer->name, '.');
-	if(dot) *dot=0;
-	
-	for(number=1; number <=999; number++) {
-		sprintf(tempname, "%s.%03d", nlayer->name, number);
-
-		for(i=0; i<data->totlayer; i++) {
-			layer = &data->layers[i];
-			
-			if(CustomData_is_property_layer(type)){
-				if(i!=index && CustomData_is_property_layer(layer->type) && 
-					strcmp(layer->name, tempname)==0)
-
-				break;
-			}
-			else{
-				if(i!=index && layer->type==type && strcmp(layer->name, tempname)==0)
-					break;
-			}
-		}
-
-		if(i == data->totlayer) {
-			BLI_strncpy(nlayer->name, tempname, sizeof(nlayer->name));
-			return;
-		}
-	}	
 }
 
 int CustomData_verify_versions(struct CustomData *data, int index)

@@ -1260,27 +1260,21 @@ void BKE_nlastrip_validate_name (AnimData *adt, NlaStrip *strip)
 	 *	- in an extreme case, it might not be able to find a name, but then everything else in Blender would fail too :)
 	 */
 	if (BLI_ghash_haskey(gh, strip->name)) {
-		char tempname[128];
-		int	number = 1;
-		char *dot;
-		
-		/* Strip off the suffix */
-		dot = strrchr(strip->name, '.');
-		if (dot) *dot=0;
-		
-		/* Try different possibilities */
-		for (number = 1; number <= 999; number++) {
-			/* assemble alternative name */
-			BLI_snprintf(tempname, 128, "%s.%03d", strip->name, number);
-			
-			/* if hash doesn't have this, set it */
-			if (BLI_ghash_haskey(gh, tempname) == 0) {
-				BLI_strncpy(strip->name, tempname, sizeof(strip->name));
-				break;
+		/* note: this block is used in other places, when changing logic apply to all others, search this message */
+		char	tempname[sizeof(strip->name)];
+		char	left[sizeof(strip->name)];
+		int		number;
+		int		len= BLI_split_name_num(left, &number, strip->name);
+		do {	/* nested while loop looks bad but likely it wont run most times */
+			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
+				if(len > 0)	left[--len]= '\0';	/* word too long */
+				else		number= 0;			/* reset, must be a massive number */
 			}
-		}
-	}
+		} while(number++, BLI_ghash_haskey(gh, tempname));
 	
+		BLI_strncpy(strip->name, tempname, sizeof(strip->name));
+	}
+
 	/* free the hash... */
 	BLI_ghash_free(gh, NULL, NULL);
 }

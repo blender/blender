@@ -86,33 +86,23 @@ TransformOrientation* findOrientationName(bContext *C, char *name)
 	return NULL;
 }
 
-void uniqueOrientationName(bContext *C, char *name)
+static void uniqueOrientationName(bContext *C, char *name)
 {
 	if (findOrientationName(C, name) != NULL)
 	{
-		char		tempname[64];
-		int			number;
-		char		*dot;
-
-		
-		number = strlen(name);
-
-		if (number && isdigit(name[number-1]))
-		{
-			dot = strrchr(name, '.');	// last occurrence
-			if (dot)
-				*dot=0;
-		}
-
-		for (number = 1; number <= 999; number++)
-		{
-			sprintf(tempname, "%s.%03d", name, number);
-			if (findOrientationName(C, tempname) == NULL)
-			{
-				BLI_strncpy(name, tempname, 32);
-				break;
+		/* note: this block is used in other places, when changing logic apply to all others, search this message */
+		char	tempname[sizeof(((TransformOrientation *)NULL)->name)];
+		char	left[sizeof(((TransformOrientation *)NULL)->name)];
+		int		number;
+		int		len= BLI_split_name_num(left, &number, name);
+		do {	/* nested while loop looks bad but likely it wont run most times */
+			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
+				if(len > 0)	left[--len]= '\0';	/* word too long */
+				else		number= 0;			/* reset, must be a massive number */
 			}
-		}
+		} while(number++, findOrientationName(C, tempname));
+	
+		BLI_strncpy(name, tempname, sizeof(tempname));	
 	}
 }
 

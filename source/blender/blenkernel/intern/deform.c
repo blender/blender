@@ -304,14 +304,23 @@ int defgroup_flip_index(Object *ob, int index, int use_default)
 	return (flip_index==-1 && use_default) ? index : flip_index;
 }
 
-void defgroup_unique_name (bDeformGroup *dg, Object *ob)
+static int defgroup_find_name_dupe(const char *name, bDeformGroup *dg, Object *ob)
 {
 	bDeformGroup *curdef;
-	int number;
-	int exists = 0;
-	char tempname[64];
-	char *dot;
 	
+	for (curdef = ob->defbase.first; curdef; curdef=curdef->next) {
+		if (dg!=curdef) {
+			if (!strcmp(curdef->name, name)) {
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+void defgroup_unique_name (bDeformGroup *dg, Object *ob)
+{	
 	if (!ob)
 		return;
 		
@@ -320,44 +329,23 @@ void defgroup_unique_name (bDeformGroup *dg, Object *ob)
 		/* give it default name first */
 		strcpy (dg->name, "Group");
 	}	
-		
-	/* See if we even need to do this */
-	for (curdef = ob->defbase.first; curdef; curdef=curdef->next) {
-		if (dg!=curdef) {
-			if (!strcmp(curdef->name, dg->name)) {
-				exists = 1;
-				break;
+
+	if(defgroup_find_name_dupe(dg->name, dg, ob)) {
+		/* note: this block is used in other places, when changing logic apply to all others, search this message */
+		char	tempname[sizeof(dg->name)];
+		char	left[sizeof(dg->name)];
+		int		number;
+		int		len= BLI_split_name_num(left, &number, dg->name);
+		do {	/* nested while loop looks bad but likely it wont run most times */
+			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
+				if(len > 0)	left[--len]= '\0';	/* word too long */
+				else		number= 0;			/* reset, must be a massive number */
 			}
-		}
+		} while(number++, defgroup_find_name_dupe(tempname, dg, ob));
+
+		BLI_strncpy(dg->name, tempname, sizeof(dg->name));
 	}
-	
-	if (!exists)
-		return;
-
-	/*	Strip off the suffix */
-	dot=strchr(dg->name, '.');
-	if (dot)
-		*dot=0;
-	
-	for (number = 1; number <=999; number++) {
-		sprintf (tempname, "%s.%03d", dg->name, number);
-		
-		exists = 0;
-		for (curdef=ob->defbase.first; curdef; curdef=curdef->next) {
-			if (dg!=curdef) {
-				if (!strcmp (curdef->name, tempname)) {
-					exists = 1;
-					break;
-				}
-			}
-		}
-		if (!exists) {
-			BLI_strncpy (dg->name, tempname, 32);
-			return;
-		}
-	}	
 }
-
 
 /* finds the best possible flipped name. For renaming; check for unique names afterwards */
 /* if strip_number: removes number extensions */
