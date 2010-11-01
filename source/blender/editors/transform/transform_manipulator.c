@@ -201,24 +201,50 @@ int gimbal_axis(Object *ob, float gmat[][3])
 		}
 		else {
 			if(test_rotmode_euler(ob->rotmode)) {
-
-				
-				if (ob->parent)
-				{
-					float parent_mat[3][3], amat[3][3];
-
-					eulO_to_gimbal_axis(amat, ob->rot, ob->rotmode);
-					copy_m3_m4(parent_mat, ob->parent->obmat);
-					normalize_m3(parent_mat);
-					mul_m3_m3m3(gmat, parent_mat, amat);
-					return 1;
-				}
-				else
-				{
-					eulO_to_gimbal_axis(gmat, ob->rot, ob->rotmode);
-					return 1;
-				}
+				eulO_to_gimbal_axis(gmat, ob->rot, ob->rotmode);
 			}
+			else if(ob->rotmode == ROT_MODE_AXISANGLE) {
+				/* X/Y are arbitrary axies, most importantly Z is the axis of rotation
+				 * there is also an axis flipping problem if the rotation axis points
+				 * exactly on Z and Y value is modified. */
+				float cross_vec[3]= {0};
+				float quat[4];
+
+				if(ob->rotAxis[0] || ob->rotAxis[1]) {
+					cross_vec[2]= 1.0f;
+				}
+				else {
+					cross_vec[0]= 1.0f; /* could be X or Y */
+				}
+
+				/* X-axis */
+				cross_v3_v3v3(gmat[0], cross_vec, ob->rotAxis);
+				normalize_v3(gmat[0]);
+				axis_angle_to_quat(quat, ob->rotAxis, ob->rotAngle);
+				mul_qt_v3(quat, gmat[0]);
+
+				/* Y-axis */
+				axis_angle_to_quat(quat, ob->rotAxis, M_PI/2.0);
+				copy_v3_v3(gmat[1], gmat[0]);
+				mul_qt_v3(quat, gmat[1]);
+
+				/* Z-axis */
+				copy_v3_v3(gmat[2], ob->rotAxis);
+
+				normalize_m3(gmat);
+			}
+			else { /* quat */
+				return 0;
+			}
+
+			if (ob->parent)
+			{
+				float parent_mat[3][3];
+				copy_m3_m4(parent_mat, ob->parent->obmat);
+				normalize_m3(parent_mat);
+				mul_m3_m3m3(gmat, parent_mat, gmat);
+			}
+			return 1;
 		}
 	}
 
