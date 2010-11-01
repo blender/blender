@@ -839,7 +839,15 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 		}
 	}
 
+/* disable seek_by_bytes for now, since bitrates are guessed wrong!
+   also: MPEG2TS-seeking was fixed in later versions of ffmpeg, so problem
+   is somewhat fixed by now (until we add correct timecode management code...)
+*/
+#if 0
 	seek_by_bytes = !!(anim->pFormatCtx->iformat->flags & AVFMT_TS_DISCONT);
+#else
+	seek_by_bytes = FALSE;
+#endif
 
 	if (position != anim->curposition + 1) { 
 #ifdef FFMPEG_OLD_FRAME_RATE
@@ -851,12 +859,9 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 			av_q2d(anim->pFormatCtx->streams[anim->videoStream]
 				   ->r_frame_rate);
 #endif
-		double time_base = 
-			av_q2d(anim->pFormatCtx->streams[anim->videoStream]
-				   ->time_base);
+		double pts_time_base = av_q2d(anim->pFormatCtx->streams[anim->videoStream]->time_base);
 		long long pos;
-		long long st_time = anim->pFormatCtx
-			->streams[anim->videoStream]->start_time;
+		long long st_time = anim->pFormatCtx->start_time;
 		int ret;
 
 		if (seek_by_bytes) {
@@ -876,7 +881,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 			}
 
 			if (st_time != AV_NOPTS_VALUE) {
-				pos += st_time * AV_TIME_BASE * time_base;
+				pos += st_time;
 			}
 		}
 
@@ -891,9 +896,9 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 		}
 
 		pts_to_search = (long long) 
-			(((double) position) / time_base / frame_rate);
+			(((double) position) / pts_time_base / frame_rate);
 		if (st_time != AV_NOPTS_VALUE) {
-			pts_to_search += st_time;
+			pts_to_search += st_time / pts_time_base/ AV_TIME_BASE;
 		}
 
 		pos_found = 0;
