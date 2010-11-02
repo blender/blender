@@ -609,7 +609,11 @@ void orthogonalize_m3(float mat[][3], int axis)
 				normalize_v3(mat[1]);
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
 			} else {
-				float vec[3] = {mat[0][1], mat[0][2], mat[0][0]};
+				float vec[3];
+
+				vec[0]= mat[0][1];
+				vec[1]= mat[0][2];
+				vec[2]= mat[0][0];
 
 				cross_v3_v3v3(mat[2], mat[0], vec);
 				normalize_v3(mat[2]);
@@ -625,7 +629,11 @@ void orthogonalize_m3(float mat[][3], int axis)
 				normalize_v3(mat[0]);
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
 			} else {
-				float vec[3] = {mat[1][1], mat[1][2], mat[1][0]};
+				float vec[3];
+
+				vec[0]= mat[1][1];
+				vec[1]= mat[1][2];
+				vec[2]= mat[1][0];
 
 				cross_v3_v3v3(mat[0], mat[1], vec);
 				normalize_v3(mat[0]);
@@ -641,7 +649,11 @@ void orthogonalize_m3(float mat[][3], int axis)
 				normalize_v3(mat[0]);
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
 			} else {
-				float vec[3] = {mat[2][1], mat[2][2], mat[2][0]};
+				float vec[3];
+
+				vec[0]= mat[2][1];
+				vec[1]= mat[2][2];
+				vec[2]= mat[2][0];
 
 				cross_v3_v3v3(mat[0], vec, mat[2]);
 				normalize_v3(mat[0]);
@@ -670,7 +682,11 @@ void orthogonalize_m4(float mat[][4], int axis)
 				normalize_v3(mat[1]);
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
 			} else {
-				float vec[3] = {mat[0][1], mat[0][2], mat[0][0]};
+				float vec[3];
+
+				vec[0]= mat[0][1];
+				vec[1]= mat[0][2];
+				vec[2]= mat[0][0];
 
 				cross_v3_v3v3(mat[2], mat[0], vec);
 				normalize_v3(mat[2]);
@@ -687,7 +703,11 @@ void orthogonalize_m4(float mat[][4], int axis)
 				normalize_v3(mat[0]);
 				cross_v3_v3v3(mat[2], mat[0], mat[1]);
 			} else {
-				float vec[3] = {mat[1][1], mat[1][2], mat[1][0]};
+				float vec[3];
+
+				vec[0]= mat[1][1];
+				vec[1]= mat[1][2];
+				vec[2]= mat[1][0];
 
 				cross_v3_v3v3(mat[0], mat[1], vec);
 				normalize_v3(mat[0]);
@@ -703,7 +723,11 @@ void orthogonalize_m4(float mat[][4], int axis)
 				normalize_v3(mat[0]);
 				cross_v3_v3v3(mat[1], mat[2], mat[0]);
 			} else {
-				float vec[3] = {mat[2][1], mat[2][2], mat[2][0]};
+				float vec[3];
+
+				vec[0]= mat[2][1];
+				vec[1]= mat[2][2];
+				vec[2]= mat[2][0];
 
 				cross_v3_v3v3(mat[0], vec, mat[2]);
 				normalize_v3(mat[0]);

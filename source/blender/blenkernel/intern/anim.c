@@ -1145,7 +1145,6 @@ static void new_particle_duplilist(ListBase *lb, ID *UNUSED(id), Scene *scene, O
 	Object *ob=0, **oblist=0, obcopy, *obcopylist=0;
 	DupliObject *dob;
 	ParticleDupliWeight *dw;
-	ParticleSimulationData sim = {scene, par, psys, psys_get_modifier(par, psys)};
 	ParticleSettings *part;
 	ParticleData *pa;
 	ChildParticle *cpa=0;
@@ -1180,6 +1179,11 @@ static void new_particle_duplilist(ListBase *lb, ID *UNUSED(id), Scene *scene, O
 	
 	lay= scene->lay;
 	if((psys->renderdata || part->draw_as==PART_DRAW_REND) && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
+		ParticleSimulationData sim= {0};
+		sim.scene= scene;
+		sim.ob= par;
+		sim.psys= psys;
+		sim.psmd= psys_get_modifier(par, psys);
 
 		/* first check for loops (particle system object used as dupli object) */
 		if(part->ren_as == PART_DRAW_OB) {

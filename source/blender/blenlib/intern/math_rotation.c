@@ -121,7 +121,13 @@ void mul_qt_fl(float *q, const float f)
 
 void sub_qt_qtqt(float q[4], const float q1[4], const float q2[4])
 {
-	const float nq2[4]= {-q2[0], q2[1], q2[2], q2[3]};
+	float nq2[4];
+
+	nq2[0]= -q2[0];
+	nq2[1]=  q2[1];
+	nq2[2]=  q2[2];
+	nq2[3]=  q2[3];
+
 	mul_qt_qtqt(q, q1, nq2);
 }
 

@@ -404,12 +404,17 @@ static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	// if(!RNA_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
 	if(!RNA_string_length(op->ptr, "text")) {
-		char str[2] = {event->ascii, '\0'};
 		/* if alt/ctrl/super are pressed pass through */
-		if(event->ctrl || event->oskey)
+		if(event->ctrl || event->oskey) {
 			return OPERATOR_PASS_THROUGH;
+		}
+		else {
+			char str[2];
+			str[0]= event->ascii;
+			str[1]= '\0';
 
-		RNA_string_set(op->ptr, "text", str);
+			RNA_string_set(op->ptr, "text", str);
+		}
 	}
 	return insert_exec(C, op);
 }
@@ -863,7 +868,10 @@ static void console_modal_select_apply(bContext *C, wmOperator *op, wmEvent *eve
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ARegion *ar= CTX_wm_region(C);
 	SetConsoleCursor *scu= op->customdata;
-	int mval[2] = {event->mval[0], event->mval[1]};
+	int mval[2];
+
+	mval[0]= event->mval[0];
+	mval[1]= event->mval[1];
 
 	set_cursor_to_pos(sc, ar, scu, mval, TRUE);
 	ED_area_tag_redraw(CTX_wm_area(C));

@@ -491,7 +491,11 @@ void *GPU_build_mesh_buffers(GHash *map, MVert *mvert, MFace *mface,
 		if(tri_data) {
 			for(i = 0; i < totface; ++i) {
 				MFace *f = mface + face_indices[i];
-				int v[3] = {f->v1, f->v2, f->v3};
+				int v[3];
+
+				v[0]= f->v1;
+				v[1]= f->v2;
+				v[2]= f->v3;
 
 				for(j = 0; j < (f->v4 ? 2 : 1); ++j) {
 					for(k = 0; k < 3; ++k) {

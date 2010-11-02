@@ -1890,7 +1890,7 @@ static void rekey_particle(PEData *data, int pa_index)
 {
 	PTCacheEdit *edit= data->edit;
 	ParticleSystem *psys= edit->psys;
-	ParticleSimulationData sim = {data->scene, data->ob, edit->psys, NULL};
+	ParticleSimulationData sim= {0};
 	ParticleData *pa= psys->particles + pa_index;
 	PTCacheEditPoint *point = edit->points + pa_index;
 	ParticleKey state;
@@ -1898,6 +1898,10 @@ static void rekey_particle(PEData *data, int pa_index)
 	PTCacheEditKey *ekey;
 	float dval, sta, end;
 	int k;
+
+	sim.scene= data->scene;
+	sim.ob= data->ob;
+	sim.psys= edit->psys;
 
 	pa->flag |= PARS_REKEY;
 
@@ -1983,7 +1987,7 @@ static void rekey_particle_to_time(Scene *scene, Object *ob, int pa_index, float
 {
 	PTCacheEdit *edit= PE_get_current(scene, ob);
 	ParticleSystem *psys;
-	ParticleSimulationData sim = {scene, ob, edit ? edit->psys : NULL, NULL};
+	ParticleSimulationData sim= {0};
 	ParticleData *pa;
 	ParticleKey state;
 	HairKey *new_keys, *key;
@@ -1993,6 +1997,10 @@ static void rekey_particle_to_time(Scene *scene, Object *ob, int pa_index, float
 	if(!edit || !edit->psys) return;
 
 	psys = edit->psys;
+
+	sim.scene= scene;
+	sim.ob= ob;
+	sim.psys= psys;
 
 	pa= psys->particles + pa_index;
 
@@ -2188,7 +2196,7 @@ static void subdivide_particle(PEData *data, int pa_index)
 {
 	PTCacheEdit *edit= data->edit;
 	ParticleSystem *psys= edit->psys;
-	ParticleSimulationData sim = {data->scene, data->ob, edit->psys, NULL};
+	ParticleSimulationData sim= {0};
 	ParticleData *pa= psys->particles + pa_index;
 	PTCacheEditPoint *point = edit->points + pa_index;
 	ParticleKey state;
@@ -2198,6 +2206,10 @@ static void subdivide_particle(PEData *data, int pa_index)
 	int k;
 	short totnewkey=0;
 	float endtime;
+
+	sim.scene= data->scene;
+	sim.ob= data->ob;
+	sim.psys= edit->psys;
 
 	for(k=0, ekey=point->keys; k<pa->totkey-1; k++,ekey++) {
 		if(ekey->flag&PEK_SELECT && (ekey+1)->flag&PEK_SELECT)
@@ -3088,13 +3100,13 @@ static int brush_add(PEData *data, short number)
 	ParticleSystem *psys= edit->psys;
 	ParticleData *add_pars= MEM_callocN(number*sizeof(ParticleData),"ParticleData add");
 	ParticleSystemModifierData *psmd= psys_get_modifier(ob,psys);
-	ParticleSimulationData sim = {scene, ob, psys, psmd};
+	ParticleSimulationData sim= {0};
 	ParticleEditSettings *pset= PE_settings(scene);
 	int i, k, n= 0, totpart= psys->totpart;
 	float mco[2];
 	short dmx= 0, dmy= 0;
 	float co1[3], co2[3], min_d, imat[4][4];
-	float framestep, timestep= psys_get_timestep(&sim);
+	float framestep, timestep;
 	short size= pset->brush[PE_BRUSH_ADD].size;
 	short size2= size*size;
 	DerivedMesh *dm=0;
@@ -3104,7 +3116,14 @@ static int brush_add(PEData *data, short number)
 		return 0;
 
 	BLI_srandom(psys->seed+data->mval[0]+data->mval[1]);
-	
+
+	sim.scene= scene;
+	sim.ob= ob;
+	sim.psys= psys;
+	sim.psmd= psmd;
+
+	timestep= psys_get_timestep(&sim);
+
 	/* painting onto the deformed mesh, could be an option? */
 	if(psmd->dm->deformedOnly)
 		dm= psmd->dm;

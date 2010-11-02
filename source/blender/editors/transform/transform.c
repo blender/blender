@@ -1230,7 +1230,10 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 	if (t->helpline != HLP_NONE && !(t->flag & T_USES_MANIPULATOR))
 	{
 		float vecrot[3], cent[2];
-		int mval[2] = {x, y};
+		int mval[2];
+
+		mval[0]= x;
+		mval[1]= y;
 
 		VECCOPY(vecrot, t->center);
 		if(t->flag & T_EDIT) {

@@ -270,7 +270,11 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 		BLF_draw(mono, str);
 		
 		if(cdc->sel[0] != cdc->sel[1]) {
-			int isel[2]= {str_len - cdc->sel[1], str_len - cdc->sel[0]};
+			int isel[2];
+
+			isel[0]= str_len - cdc->sel[1];
+			isel[1]= str_len - cdc->sel[0];
+
 			// glColor4ub(255, 255, 0, 96); // debug
 			console_draw_sel(isel, cdc->xy, str_len, cdc->cwidth, cdc->lheight);
 			STEP_SEL(-(str_len + 1));
@@ -447,8 +451,12 @@ int console_text_height(struct SpaceConsole *sc, struct ARegion *ar, ReportList 
 
 void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports, int mouse_y)
 {
-	int mval[2] = {0, mouse_y};
 	void *mouse_pick= NULL;
+	int mval[2];
+
+	mval[0]= 0;
+	mval[1]= mouse_y;
+
 	console_text_main__internal(sc, ar, reports, 0, mval, &mouse_pick, NULL);
 	return (void *)mouse_pick;
 }

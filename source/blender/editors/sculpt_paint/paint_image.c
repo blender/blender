@@ -1011,8 +1011,11 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 	float puv[4][2]; /* pixelspace uv's */
 	float no1[2], no2[2], no3[2], no4[2]; /* normals */
 	float dir1[2], dir2[2], dir3[2], dir4[2];
-	float ibuf_inv[2] = {1.0f / (float)ibuf_x, 1.0f / (float)ibuf_y};
-	
+	float ibuf_inv[2];
+
+	ibuf_inv[0]= 1.0f / (float)ibuf_x;
+	ibuf_inv[1]= 1.0f / (float)ibuf_y;
+
 	/* make UV's in pixel space so we can */
 	puv[0][0] = orig_uv[0][0] * ibuf_x;
 	puv[0][1] = orig_uv[0][1] * ibuf_y;

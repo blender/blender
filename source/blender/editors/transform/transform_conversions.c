@@ -3868,8 +3868,13 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 #ifdef XXX_DURIAN_ANIM_TX_HACK
 	/* hack */
 	if((seq->flag & SELECT)==0 && seq->type & SEQ_EFFECT) {
-		Sequence *seq_t[3] = {seq->seq1, seq->seq2, seq->seq3};
+		Sequence *seq_t[3];
 		int i;
+
+		seq_t[0]= seq->seq1;
+		seq_t[1]= seq->seq2;
+		seq_t[2]= seq->seq3;
+
 		for(i=0; i<3; i++) {
 			if (seq_t[i] && ((seq_t[i])->flag & SELECT) && !(seq_t[i]->flag & SEQ_LOCK) && !(seq_t[i]->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)))
 				seq->flag |= SELECT;

@@ -1257,7 +1257,11 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	switch(bpa->data.mode) {
 		case eBoidMode_InAir:
 		{
-			float grav[3] = {0.0f, 0.0f, bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f};
+			float grav[3];
+
+			grav[0]= 0.0f;
+			grav[1]= 0.0f;
+			grav[2]= bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f;
 
 			/* don't take forward acceleration into account (better banking) */
 			if(dot_v3v3(bpa->data.acc, pa->state.vel) > 0.0f) {
@@ -1296,7 +1300,12 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		}
 		case eBoidMode_Falling:
 		{
-			float grav[3] = {0.0f, 0.0f, bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f};
+			float grav[3];
+
+			grav[0]= 0.0f;
+			grav[1]= 0.0f;
+			grav[2]= bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f;
+
 
 			/* gather apparent gravity */
 			VECADDFAC(bpa->gravity, bpa->gravity, grav, dtime);

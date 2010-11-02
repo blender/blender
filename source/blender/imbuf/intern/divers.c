@@ -163,7 +163,13 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 			if (dither != 0.f) {
 				for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=4) {
 					const float d = (BLI_frand()-0.5)*dither;
-					const float col[4] = {d+tof[0], d+tof[1], d+tof[2], d+tof[3]};
+					float col[4];
+
+					col[0]= d + tof[0];
+					col[1]= d + tof[1];
+					col[2]= d + tof[2];
+					col[3]= d + tof[3];
+
 					to[0] = FTOCHAR(col[0]);
 					to[1] = FTOCHAR(col[1]);
 					to[2] = FTOCHAR(col[2]);
