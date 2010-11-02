@@ -2002,7 +2002,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 					if((mode==PTCACHE_CLEAR_BEFORE && pm->frame < cfra)	|| 
 					(mode==PTCACHE_CLEAR_AFTER && pm->frame > cfra)	) {
 						link = pm;
-						if(pm->frame >=sta && pm->frame <= end)
+						if(pid->cache->cached_frames && pm->frame >=sta && pm->frame <= end)
 							pid->cache->cached_frames[pm->frame-sta] = 0;
 						ptcache_free_data(pm);
 						pm = pm->next;
