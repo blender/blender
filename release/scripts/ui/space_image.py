@@ -660,6 +660,26 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, bpy.types.Panel):
         col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
 
 
+class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, bpy.types.Panel):
+    bl_label = "Tool"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        settings = context.tool_settings.image_paint
+        brush = settings.brush
+
+        col = layout.column(align=True)
+
+        col.prop(brush, "imagepaint_tool", expand=False, text="")
+
+        row = layout.row(align=True)
+        row.prop(brush, "use_paint_sculpt", text="", icon='SCULPTMODE_HLT')
+        row.prop(brush, "use_paint_vertex", text="", icon='VPAINT_HLT')
+        row.prop(brush, "use_paint_weight", text="", icon='WPAINT_HLT')
+        row.prop(brush, "use_paint_texture", text="", icon='TPAINT_HLT')
+
+
 class IMAGE_PT_paint_stroke(BrushButtonsPanel, bpy.types.Panel):
     bl_label = "Paint Stroke"
     bl_options = {'DEFAULT_CLOSED'}
