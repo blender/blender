@@ -1471,15 +1471,19 @@ void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	int i, numGrids, gridSize, dGridSize, dSkip, totvert;
 	float (*vertCos)[3] = NULL;
 	MultiresModifierData *mmd= get_multires_modifier(scene, ob);
+	MultiresModifierData high_mmd;
 
 	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
 	mdisps= CustomData_get_layer(&me->fdata, CD_MDISPS);
 
 	if(!mdisps || !mmd) return;
 
+	/* we need derived mesh created from highest resolution */
+	high_mmd= *mmd;
+	high_mmd.lvl= high_mmd.totlvl;
 
 	/* unscaled multires with applied displacement */
-	subdm= get_multires_dm(scene, mmd, ob);
+	subdm= get_multires_dm(scene, &high_mmd, ob);
 
 	/* prepare scaled CDDM to create ccgDN */
 	cddm= mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
@@ -1495,7 +1499,7 @@ void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	mvert= cddm->getVertArray(cddm);
 
 	/* scaled ccgDM for tangent space of object with applied scale */
-	dm= subsurf_dm_create_local(ob, cddm, mmd->totlvl, mmd->simple, 0);
+	dm= subsurf_dm_create_local(ob, cddm, high_mmd.totlvl, high_mmd.simple, 0);
 	cddm->release(cddm);
 
 	numGrids= dm->getNumGrids(dm);
@@ -1504,7 +1508,7 @@ void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	gridOffset= dm->getGridOffset(dm);
 	subGridData= subdm->getGridData(subdm);
 
-	dGridSize= multires_side_tot[mmd->totlvl];
+	dGridSize= multires_side_tot[high_mmd.totlvl];
 	dSkip= (dGridSize-1)/(gridSize-1);
 
 	#pragma omp parallel for private(i) if(me->totface*gridSize*gridSize*4 >= CCG_OMP_LIMIT)
