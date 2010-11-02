@@ -78,7 +78,7 @@ void ED_node_changed_update(ID *id, bNode *node)
 
 	if(treetype==NTREE_SHADER) {
 		DAG_id_flush_update(id, 0);
-		WM_main_add_notifier(NC_MATERIAL|ND_SHADING, id);
+		WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, id);
 	}
 	else if(treetype==NTREE_COMPOSIT) {
 		NodeTagChanged(edittree, node);
