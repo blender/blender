@@ -490,7 +490,7 @@ class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return not rd.use_full_sample
+        return not rd.use_full_sample and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         rd = context.scene.render
