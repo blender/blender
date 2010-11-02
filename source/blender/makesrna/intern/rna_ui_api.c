@@ -65,12 +65,13 @@ static PointerRNA rna_uiItemO(uiLayout *layout, char *opname, char *name, int ic
 
 #else
 
+#define DEF_ICON_BLANK_SKIP
 #define DEF_ICON(name) {ICON_##name, (#name), 0, (#name), ""},
 #define DEF_VICO(name) {VICO_##name, (#name), 0, (#name), ""},
-
 static EnumPropertyItem icon_items[] = {
 #include "UI_icons.h"
 		{0, NULL, 0, NULL, NULL}};
+#undef DEF_ICON_BLANK_SKIP
 #undef DEF_ICON
 #undef DEF_VICO
 
