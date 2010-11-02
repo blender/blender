@@ -427,7 +427,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 		RE_BlenderFrame(re, mainp, scene, NULL, lay, scene->r.cfra);
 
 	// no redraw needed, we leave state as we entered it
-	ED_update_for_newframe(C, 1);
+	ED_update_for_newframe(mainp, scene, CTX_wm_screen(C), 1);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, scene);
 
@@ -578,6 +578,9 @@ static void render_endjob(void *rjv)
 	if(rj->main != G.main)
 		free_main(rj->main);
 
+	/* else the frame will not update for the original value */
+	ED_update_for_newframe(G.main, rj->scene, rj->win->screen, 1);
+	
 	/* XXX render stability hack */
 	G.rendering = 0;
 	WM_main_add_notifier(NC_WINDOW, NULL);

@@ -1450,7 +1450,7 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 	CTX_data_scene_set(C, scene);
 	set_scene_bg(CTX_data_main(C), scene);
 	
-	ED_update_for_newframe(C, 1);
+	ED_update_for_newframe(CTX_data_main(C), scene, curscreen, 1);
 	
 	/* complete redraw */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -1756,20 +1756,17 @@ void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
 	}
 }
 
-/* results in fully updated anim system */
-void ED_update_for_newframe(const bContext *C, int UNUSED(mute))
-{
-	Main *bmain= CTX_data_main(C);
-	bScreen *screen= CTX_wm_screen(C);
-	Scene *scene= CTX_data_scene(C);
-	
+/* results in fully updated anim system
+ * screen can be NULL */
+void ED_update_for_newframe(Main *bmain, Scene *scene, bScreen *screen, int UNUSED(mute))
+{	
 #ifdef DURIAN_CAMERA_SWITCH
 	void *camera= scene_camera_switch_find(scene);
 	if(camera && scene->camera != camera) {
 		bScreen *sc;
 		scene->camera= camera;
 		/* are there cameras in the views that are not in the scene? */
-		for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
+		for(sc= bmain->screen.first; sc; sc= sc->id.next) {
 			BKE_screen_view3d_scene_sync(sc);
 		}
 	}
@@ -1779,7 +1776,7 @@ void ED_update_for_newframe(const bContext *C, int UNUSED(mute))
 	
 	/* update animated image textures for gpu, etc,
 	 * call before scene_update_for_newframe so modifiers with textuers dont lag 1 frame */
-	ED_image_update_frame(C);
+	ED_image_update_frame(bmain, scene->r.cfra);
 
 	/* this function applies the changes too */
 	/* XXX future: do all windows */
@@ -1801,7 +1798,7 @@ void ED_update_for_newframe(const bContext *C, int UNUSED(mute))
 	/* update animated texture nodes */
 	{
 		Tex *tex;
-		for(tex= CTX_data_main(C)->tex.first; tex; tex= tex->id.next)
+		for(tex= bmain->tex.first; tex; tex= tex->id.next)
 			if( tex->use_nodes && tex->nodetree ) {
 				ntreeTexTagAnimated( tex->nodetree );
 			}
