@@ -759,7 +759,7 @@ def _write(context, filepath,
             if EXPORT_ANIMATION: # Add frame to the filepath.
                 context_name[2] = '_%.6d' % frame
 
-            scene.frame_current = frame
+            scene.frame_set(frame, 0.0)
             if EXPORT_SEL_ONLY:
                 objects = context.selected_objects
             else:
@@ -787,7 +787,7 @@ def _write(context, filepath,
                   EXPORT_CURVE_AS_NURBS)
 
 
-        scene.frame_current = orig_frame
+        scene.frame_set(orig_frame, 0.0)
 
     # Restore old active scene.
 #   orig_scene.makeCurrent()
