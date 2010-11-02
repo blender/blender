@@ -509,8 +509,12 @@ def save(operator, context, filepath="",
             else:
                 return self.matrixWorld
 
-        def setPoseFrame(self, f):
-            self.__anim_poselist[f] =  self.blenObject.matrix_world.copy()
+        def setPoseFrame(self, f, fake=False):
+            if fake:
+                # annoying, have to clear GLOBAL_MATRIX
+                self.__anim_poselist[f] =  self.matrixWorld * GLOBAL_MATRIX.copy().invert()
+            else:
+                self.__anim_poselist[f] =  self.blenObject.matrix_world.copy()
 
         def getAnimParRelMatrix(self, frame):
             if self.fbxParent:
@@ -2665,7 +2669,7 @@ Takes:  {''')
                         #Blender.Window.RedrawAll()
                         if ob_generic == ob_meshes and my_ob.fbxArm:
                             # We cant animate armature meshes!
-                            pass
+                            my_ob.setPoseFrame(i, fake=True)
                         else:
                             my_ob.setPoseFrame(i)
 
