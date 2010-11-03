@@ -1678,7 +1678,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	/* overwrite initial values if operator supplied a non-null vector */
 	if (RNA_property_is_set(op->ptr, "value"))
 	{
-		float values[4];
+		float values[4]= {0}; /* incase value isn't length 4, avoid uninitialized memory  */
 		RNA_float_get_array(op->ptr, "value", values);
 		QUATCOPY(t->values, values);
 		QUATCOPY(t->auto_values, values);
@@ -1690,6 +1690,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	{
 		RNA_float_get_array(op->ptr, "axis", t->axis);
 		normalize_v3(t->axis);
+		copy_v3_v3(t->axis_orig, t->axis);
 	}
 
 	/* Constraint init from operator */
@@ -2843,6 +2844,8 @@ void initRotation(TransInfo *t)
 
 	negate_v3_v3(t->axis, t->viewinv[2]);
 	normalize_v3(t->axis);
+
+	copy_v3_v3(t->axis_orig, t->axis);
 }
 
 static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short around) {
@@ -3109,8 +3112,7 @@ int Rotation(TransInfo *t, short UNUSED(mval[2]))
 		t->con.applyRot(t, NULL, t->axis, NULL);
 	} else {
 		/* reset axis if constraint is not set */
-		negate_v3_v3(t->axis, t->viewinv[2]);
-		normalize_v3(t->axis);
+		copy_v3_v3(t->axis, t->axis_orig);
 	}
 	
 	applySnapping(t, &final);
