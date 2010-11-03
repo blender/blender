@@ -443,7 +443,7 @@ int calc_manipulator_stats(const bContext *C)
 			mul_m4_v3(ob->obmat, scene->twmax);
 		}
 	}
-	else if(ob && (ob->mode & (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
+	else if(ob && (ob->mode & OB_MODE_ALL_PAINT)) {
 		;
 	}
 	else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {

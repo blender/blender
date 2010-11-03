@@ -67,7 +67,7 @@ static void brush_set_defaults(Brush *brush)
 	brush->blend = 0;
 	brush->flag = 0;
 
-	brush->ob_mode = (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT);
+	brush->ob_mode = OB_MODE_ALL_PAINT;
 
 	/* BRUSH SCULPT TOOL SETTINGS */
 	brush->size= 35; /* radius of the brush in pixels */

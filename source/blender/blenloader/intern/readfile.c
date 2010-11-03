@@ -11124,7 +11124,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Brush *br;
 		for(br= main->brush.first; br; br= br->id.next) {
 			if(br->ob_mode==0)
-				br->ob_mode= (OB_MODE_SCULPT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT|OB_MODE_VERTEX_PAINT);
+				br->ob_mode= OB_MODE_ALL_PAINT;
 		}
 		
 	}

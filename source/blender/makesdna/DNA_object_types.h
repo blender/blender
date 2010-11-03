@@ -557,6 +557,9 @@ typedef enum ObjectMode {
 	OB_MODE_POSE = 64
 } ObjectMode;
 
+/* any mode where the brush system is used */
+#define OB_MODE_ALL_PAINT (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)
+
 #define MAX_DUPLI_RECUR 8
 
 #ifdef __cplusplus
