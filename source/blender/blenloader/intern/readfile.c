@@ -8196,7 +8196,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 
 			if(sce->r.mode & R_PANORAMA) {
-				/* all these checks to ensure saved files with cvs version keep working... */
+				/* all these checks to ensure saved files with svn version keep working... */
 				if(sce->r.xsch < sce->r.ysch) {
 					Object *obc= newlibadr(fd, lib, sce->camera);
 					if(obc && obc->type==OB_CAMERA) {

@@ -219,7 +219,7 @@ public:
 		if (libnode_ob.size()) {
 			Scene *sce = CTX_data_scene(mContext);
 
-			fprintf(stderr, "got %u library nodes to free\n", libnode_ob.size());
+			fprintf(stderr, "got %d library nodes to free\n", (int)libnode_ob.size());
 			// free all library_nodes
 			std::vector<Object*>::iterator it;
 			for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
