@@ -1513,6 +1513,17 @@ void PARTICLE_OT_select_linked(wmOperatorType *ot)
 }
 
 /************************ border select operator ************************/
+void PE_deselect_all_visible(PTCacheEdit *edit)
+{
+	POINT_P; KEY_K;
+
+	LOOP_VISIBLE_POINTS {
+		LOOP_SELECTED_KEYS {
+			key->flag &= ~PEK_SELECT;
+			point->flag |= PEP_EDIT_RECALC;
+		}
+	}
+}
 
 int PE_border_select(bContext *C, rcti *rect, int select, int extend)
 {
@@ -1524,16 +1535,8 @@ int PE_border_select(bContext *C, rcti *rect, int select, int extend)
 	if(!PE_start_edit(edit))
 		return OPERATOR_CANCELLED;
 
-	if (extend == 0 && select) {
-		POINT_P; KEY_K;
-
-		LOOP_VISIBLE_POINTS {
-			LOOP_SELECTED_KEYS {
-				key->flag &= ~PEK_SELECT;
-				point->flag |= PEP_EDIT_RECALC;
-			}
-		}
-	}
+	if (extend == 0 && select)
+		PE_deselect_all_visible(edit);
 
 	PE_set_view3d_data(C, &data);
 	data.rect= rect;
@@ -1574,7 +1577,7 @@ int PE_circle_select(bContext *C, int selecting, short *mval, float rad)
 
 /************************ lasso select operator ************************/
 
-int PE_lasso_select(bContext *C, short mcords[][2], short moves, short select)
+int PE_lasso_select(bContext *C, short mcords[][2], short moves, short extend, short select)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -1590,6 +1593,9 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short select)
 	if(!PE_start_edit(edit))
 		return OPERATOR_CANCELLED;
 
+	if (extend == 0 && select)
+		PE_deselect_all_visible(edit);
+	
 	unit_m4(mat);
 
 	LOOP_VISIBLE_POINTS {

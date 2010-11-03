@@ -40,8 +40,6 @@ INCLUDE_DIRECTORIES(
 	../blender/makesdna
 	../blender/gpu
 	../blender/windowmanager
-	../kernel/gen_messaging
-	../kernel/gen_system
 )
 
 IF(WIN32)
@@ -78,6 +76,11 @@ IF(WITH_PYTHON)
 ENDIF(WITH_PYTHON)
 
 IF(WITH_GAMEENGINE)
+	INCLUDE_DIRECTORIES(
+		../kernel/gen_messaging
+		../kernel/gen_system
+	)
+
 	ADD_DEFINITIONS(-DWITH_GAMEENGINE)
 ENDIF(WITH_GAMEENGINE)
 

@@ -181,12 +181,13 @@ void		EM_deselect_by_material(struct EditMesh *em, int index);
 void		EM_automerge(struct Scene *scene, struct Object *obedit, int update);
 
 /* editface.c */
+void paintface_flush_flags(struct Object *ob);
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
-int face_select(struct bContext *C, struct Object *ob, short mval[2], int extend);
-void face_borderselect(struct bContext *C, struct Object *ob, struct rcti *rect, int select, int extend);
-void selectall_tface(struct Object *ob, int action);
-void select_linked_tfaces(struct bContext *C, struct Object *ob, short mval[2], int mode);
-int minmax_tface(struct Object *ob, float *min, float *max);
+int paintface_mouse_select(struct bContext *C, struct Object *ob, short mval[2], int extend);
+int do_paintface_box_select(struct ViewContext *vc, struct rcti *rect, int select, int extend);
+void paintface_deselect_all_visible(struct Object *ob, int action, short flush_flags);
+void paintface_select_linked(struct bContext *C, struct Object *ob, short mval[2], int mode);
+int paintface_minmax(struct Object *ob, float *min, float *max);
 
 /* object_vgroup.c */
 

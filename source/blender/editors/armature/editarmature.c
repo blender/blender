@@ -1359,8 +1359,9 @@ static EditBone *editbone_get_child(bArmature *arm, EditBone *pabone, short use_
 	for (curbone= arm->edbo->first; curbone; curbone= curbone->next) {
 		if (curbone->parent == pabone) {
 			if (use_visibility) {
-				if ((arm->layer & curbone->layer) && !(pabone->flag & BONE_HIDDEN_A))
+				if ((arm->layer & curbone->layer) && !(pabone->flag & BONE_HIDDEN_A)) {
 					chbone = curbone;
+				}
 			}
 			else
 				chbone = curbone;
@@ -1887,7 +1888,7 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
  * toggle==2: only active tag
  * toggle==3: swap (no test)
  */
-void ED_armature_deselectall(Object *obedit, int toggle)
+void ED_armature_deselect_all(Object *obedit, int toggle)
 {
 	bArmature *arm= obedit->data;
 	EditBone	*eBone;
@@ -1914,7 +1915,7 @@ void ED_armature_deselectall(Object *obedit, int toggle)
 		for (eBone=arm->edbo->first;eBone;eBone=eBone->next) {
 			if (sel==3) {
 				/* invert selection of bone */
-				if ((arm->layer & eBone->layer) && (eBone->flag & BONE_HIDDEN_A)==0) {
+				if(EBONE_VISIBLE(arm, eBone)) {
 					eBone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 					if(arm->act_edbone==eBone)
 						arm->act_edbone= NULL;
@@ -1922,7 +1923,7 @@ void ED_armature_deselectall(Object *obedit, int toggle)
 			}
 			else if (sel==1) {
 				/* select bone */
-				if(arm->layer & eBone->layer && (eBone->flag & BONE_HIDDEN_A)==0) {
+				if(EBONE_VISIBLE(arm, eBone)) {
 					eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 					if(eBone->parent)
 						eBone->parent->flag |= (BONE_TIPSEL);
@@ -1940,6 +1941,20 @@ void ED_armature_deselectall(Object *obedit, int toggle)
 	ED_armature_sync_selection(arm->edbo);
 }
 
+void ED_armature_deselect_all_visible(Object *obedit)
+{
+	bArmature *arm= obedit->data;
+	EditBone	*ebone;
+
+	for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+		/* first and foremost, bone must be visible and selected */
+		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE)==0) {
+			ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+		}
+	}
+
+	ED_armature_sync_selection(arm->edbo);
+}
 
 /* context: editmode armature in view3d */
 int mouse_armature(bContext *C, short mval[2], int extend)
@@ -1958,7 +1973,7 @@ int mouse_armature(bContext *C, short mval[2], int extend)
 	if (nearBone) {
 
 		if (!extend)
-			ED_armature_deselectall(obedit, 0);
+			ED_armature_deselect_all(obedit, 0);
 		
 		/* by definition the non-root connected bones have no root point drawn,
 		   so a root selection needs to be delivered to the parent tip */
@@ -2355,7 +2370,7 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 	mul_m3_m3m3(totmat, obmat, viewmat);
 	invert_m3_m3(imat, totmat);
 	
-	ED_armature_deselectall(obedit, 0);
+	ED_armature_deselect_all(obedit, 0);
 	
 	/*	Create a bone	*/
 	bone= ED_armature_edit_bone_add(obedit->data, "Bone");
@@ -2408,7 +2423,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 		to_root= 1;
 	}
 	
-	ED_armature_deselectall(obedit, 0);
+	ED_armature_deselect_all(obedit, 0);
 	
 	/* we re-use code for mirror editing... */
 	flipbone= NULL;
@@ -3575,7 +3590,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	mul_m3_m3m3(totmat, obmat, viewmat);
 	invert_m3_m3(imat, totmat);
 	
-	ED_armature_deselectall(obedit, 0);
+	ED_armature_deselect_all(obedit, 0);
 	
 	/*	Create a bone	*/
 	bone= ED_armature_edit_bone_add(obedit->data, name);
@@ -4441,7 +4456,7 @@ void ED_pose_deselectall (Object *ob, int test)
 	/*	Determine if we're selecting or deselecting	*/
 	if (test==1) {
 		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if ((pchan->bone->layer & arm->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+			if (PBONE_VISIBLE(arm, pchan->bone)) {
 				if (pchan->bone->flag & BONE_SELECTED)
 					break;
 			}

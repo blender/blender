@@ -57,8 +57,7 @@
 
 #include "BLI_args.h"
 #include "BLI_threads.h"
-
-#include "GEN_messaging.h"
+#include "BLI_scanfill.h" // for BLI_setErrorCallBack, TODO, move elsewhere
 
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
@@ -98,6 +97,7 @@
 
 /* for passing information between creator and gameengine */
 #ifdef WITH_GAMEENGINE
+#include "GEN_messaging.h"
 #include "SYS_System.h"
 #else /* dummy */
 #define SYS_SystemHandle int

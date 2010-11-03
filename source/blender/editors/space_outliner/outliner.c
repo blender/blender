@@ -2211,8 +2211,8 @@ static int tree_element_active_ebone(bContext *C, Scene *scene, TreeElement *te,
 	if(set) {
 		if(!(ebone->flag & BONE_HIDDEN_A)) {
 			bArmature *arm= scene->obedit->data;
-			if(set==2) ED_armature_deselectall(scene->obedit, 2);	// only clear active tag
-			else ED_armature_deselectall(scene->obedit, 0);	// deselect
+			if(set==2) ED_armature_deselect_all(scene->obedit, 2);	// only clear active tag
+			else ED_armature_deselect_all(scene->obedit, 0);	// deselect
 
 			ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL;
 			arm->act_edbone= ebone;

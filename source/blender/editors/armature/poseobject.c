@@ -439,7 +439,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					if (pchan->parent == NULL) continue;
 					else pabone= pchan->parent->bone;
 					
-					if ((arm->layer & pabone->layer) && !(pabone->flag & BONE_HIDDEN_P)) {
+					if (PBONE_VISIBLE(arm, pabone)) {
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						pabone->flag |= BONE_SELECTED;
 						arm->act_bone= pabone;
@@ -452,7 +452,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					if (pchan->child == NULL) continue;
 					else chbone = pchan->child->bone;
 					
-					if ((arm->layer & chbone->layer) && !(chbone->flag & BONE_HIDDEN_P)) {
+					if (PBONE_VISIBLE(arm, chbone)) {
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						chbone->flag |= BONE_SELECTED;
 						arm->act_bone= chbone;

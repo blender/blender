@@ -1432,7 +1432,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 		}
 	}
 	else if (paint_facesel_test(ob)) {
-		ok= minmax_tface(ob, min, max);
+		ok= paintface_minmax(ob, min, max);
 	}
 	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		ok= PE_minmax(scene, min, max);
