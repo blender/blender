@@ -157,7 +157,7 @@ typedef struct SpaceSeq {
 } SpaceSeq;
 
 typedef struct FileSelectParams {
-	char title[24]; /* title, also used for the text of the execute button */
+	char title[32]; /* title, also used for the text of the execute button */
 	char dir[240]; /* directory */
 	char file[80]; /* file */
 	char renamefile[80];
