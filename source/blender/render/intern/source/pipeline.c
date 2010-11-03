@@ -1158,6 +1158,18 @@ Render *RE_NewRender(const char *name)
 		BLI_rw_mutex_init(&re->resultmutex);
 	}
 	
+	RE_InitRenderCB(re);
+
+	/* init some variables */
+	re->ycor= 1.0f;
+	
+	return re;
+}
+
+/* called for new renders and when finishing rendering so
+ * we calways have valid callbacks on a render */
+void RE_InitRenderCB(Render *re)
+{
 	/* set default empty callbacks */
 	re->display_init= result_nothing;
 	re->display_clear= result_nothing;
@@ -1171,11 +1183,6 @@ Render *RE_NewRender(const char *name)
 		re->stats_draw= stats_nothing;
 	/* clear callback handles */
 	re->dih= re->dch= re->ddh= re->sdh= re->prh= re->tbh= re->erh= NULL;
-	
-	/* init some variables */
-	re->ycor= 1.0f;
-	
-	return re;
 }
 
 /* only call this while you know it will remove the link too */

@@ -573,7 +573,11 @@ static void render_startjob(void *rjv, short *stop, short *do_update, float *pro
 
 static void render_endjob(void *rjv)
 {
-	RenderJob *rj= rjv;
+	RenderJob *rj= rjv;	
+
+	/* this render may be used again by the sequencer without the active 'Render' where the callbacks
+	 * would be re-assigned. assign dummy callbacks to avoid referencing freed renderjobs bug [#24508] */
+	RE_InitRenderCB(rj->re);
 
 	if(rj->main != G.main)
 		free_main(rj->main);
