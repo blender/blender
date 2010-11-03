@@ -1177,7 +1177,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
 
 		case TEX_MARBLE:
 			row= uiLayoutRow(col, 0);
-			uiItemR(row, &tex_ptr, "stype", UI_ITEM_R_EXPAND, NULL, 0);
+			uiItemR(row, &tex_ptr, "marble_type", UI_ITEM_R_EXPAND, NULL, 0);
 			row= uiLayoutRow(col, 0);
 			uiItemR(row, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND, NULL, 0);
 			row= uiLayoutRow(col, 0);
@@ -1186,18 +1186,18 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
 
 		case TEX_WOOD:
 			uiItemR(col, &tex_ptr, "noise_basis", 0, "", 0);
-			uiItemR(col, &tex_ptr, "stype", 0, "", 0);
+			uiItemR(col, &tex_ptr, "wood_type", 0, "", 0);
 			row= uiLayoutRow(col, 0);
 			uiItemR(row, &tex_ptr, "noisebasis_2", UI_ITEM_R_EXPAND, NULL, 0);
 			row= uiLayoutRow(col, 0);
-			uiLayoutSetActive(row, !(RNA_enum_get(&tex_ptr, "stype")==TEX_BAND || RNA_enum_get(&tex_ptr, "stype")==TEX_RING)); 
+			uiLayoutSetActive(row, !(RNA_enum_get(&tex_ptr, "wood_type")==TEX_BAND || RNA_enum_get(&tex_ptr, "wood_type")==TEX_RING)); 
 			uiItemR(row, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND, NULL, 0);
 			break;
 			
 		case TEX_CLOUDS:
 			uiItemR(col, &tex_ptr, "noise_basis", 0, "", 0);
 			row= uiLayoutRow(col, 0);
-			uiItemR(row, &tex_ptr, "stype", UI_ITEM_R_EXPAND, NULL, 0);
+			uiItemR(row, &tex_ptr, "cloud_type", UI_ITEM_R_EXPAND, NULL, 0);
 			row= uiLayoutRow(col, 0);
 			uiItemR(row, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND, NULL, 0);
 			uiItemR(col, &tex_ptr, "noise_depth", UI_ITEM_R_EXPAND, "Depth", 0);
