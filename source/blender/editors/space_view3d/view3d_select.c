@@ -733,8 +733,8 @@ static void do_lasso_select_paintface(ViewContext *vc, short mcords[][2], short 
 	Object *ob= vc->obact;
 	Mesh *me= ob?ob->data:NULL;
 	rcti rect;
-	
-	if(me==NULL || me->mtface==NULL || me->totface)
+
+	if(me==NULL || me->totface==0)
 		return;
 
 	if(extend==0 && select)
