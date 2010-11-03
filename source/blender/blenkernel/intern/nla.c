@@ -362,7 +362,7 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 			return strip->end - scale*(cframe - strip->actstart);
 		}
 		else if (mode == NLATIME_CONVERT_UNMAP) {
-			return strip->actend - (strip->end - cframe) / scale;	
+			return (strip->end + (strip->actstart * scale - cframe)) / scale;
 		}
 		else /* if (mode == NLATIME_CONVERT_EVAL) */{
 			if (IS_EQ(cframe, strip->end) && IS_EQ(strip->repeat, ((int)strip->repeat))) {
