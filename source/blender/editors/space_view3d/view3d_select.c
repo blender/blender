@@ -700,6 +700,34 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 	}
 }
 
+
+
+
+static void do_lasso_select_meta(ViewContext *vc, short mcords[][2], short moves, short extend, short select)
+{
+	MetaBall *mb = (MetaBall*)vc->obedit->data;
+	MetaElem *ml;
+	float vec[3];
+	short sco[2];
+
+	if (extend == 0 && select) {
+		for(ml= mb->editelems->first; ml; ml= ml->next) {
+			ml->flag &= ~SELECT;
+		}
+	}
+
+	for(ml= mb->editelems->first; ml; ml= ml->next) {
+		
+		mul_v3_m4v3(vec, vc->obedit->obmat, &ml->x);
+		project_short(vc->ar, vec, sco);
+
+		if(lasso_inside(mcords, moves, sco[0], sco[1])) {
+			if(select)	ml->flag |= SELECT;
+			else		ml->flag &= ~SELECT;
+		}
+	}
+}
+
 static void do_lasso_select_paintface(ViewContext *vc, short mcords[][2], short moves, short extend, short select)
 {
 	Object *ob= vc->obact;
@@ -772,15 +800,27 @@ static void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2],
 		}
 	}
 	else { /* Edit Mode */
-		if(vc->obedit->type==OB_MESH)
+		switch(vc->obedit->type) {
+		case OB_MESH:
 			do_lasso_select_mesh(vc, mcords, moves, extend, select);
-		else if(vc->obedit->type==OB_CURVE || vc->obedit->type==OB_SURF) 
+			break;
+		case OB_CURVE:
+		case OB_SURF:
 			do_lasso_select_curve(vc, mcords, moves, extend, select);
-		else if(vc->obedit->type==OB_LATTICE) 
+			break;
+		case OB_LATTICE:
 			do_lasso_select_lattice(vc, mcords, moves, extend, select);
-		else if(vc->obedit->type==OB_ARMATURE)
+			break;
+		case OB_ARMATURE:
 			do_lasso_select_armature(vc, mcords, moves, extend, select);
-	
+			break;
+		case OB_MBALL:
+			do_lasso_select_meta(vc, mcords, moves, extend, select);
+			break;
+		default:
+			assert(!"lasso select on incorrect object type");
+		}
+
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc->obedit->data);
 	}
 }
@@ -1514,13 +1554,13 @@ static int do_meta_box_select(ViewContext *vc, rcti *rect, int select, int exten
 			if(ml->selcol1==buffer[ (4 * a) + 3 ]) {
 				ml->flag |= MB_SCALE_RAD;
 				if(select)	ml->flag |= SELECT;
-				else			ml->flag &= ~SELECT;
+				else		ml->flag &= ~SELECT;
 				break;
 			}
 			if(ml->selcol2==buffer[ (4 * a) + 3 ]) {
 				ml->flag &= ~MB_SCALE_RAD;
 				if(select)	ml->flag |= SELECT;
-				else			ml->flag &= ~SELECT;
+				else		ml->flag &= ~SELECT;
 				break;
 			}
 		}
