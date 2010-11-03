@@ -796,6 +796,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 	DupliObject *dob;
 	vertexDupliData *vdd= userData;
 	float vec[3], q2[4], mat[3][3], tmat[4][4], obmat[4][4];
+	int origlay;
 	
 	mul_v3_m4v3(vec, vdd->pmat, co);
 	sub_v3_v3(vec, vdd->pmat[3]);
@@ -818,7 +819,14 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 		copy_m4_m4(tmat, obmat);
 		mul_m4_m4m3(obmat, tmat, mat);
 	}
+
+	origlay = vdd->ob->lay;
+	
 	dob= new_dupli_object(vdd->lb, vdd->ob, obmat, vdd->par->lay, index, OB_DUPLIVERTS, vdd->animated);
+
+	/* restore the original layer so that each dupli will have proper dob->origlay */
+	vdd->ob->lay = origlay;
+
 	if(vdd->orco)
 		VECCOPY(dob->orco, vdd->orco[index]);
 	
@@ -927,6 +935,14 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 							
 							vertex_dupli__mapFunc(&vdd, a, vec, no, NULL);
 						}
+					}
+					if(sce) {
+						/* Set proper layer in case of scene looping,
+						 * in case of groups the object layer will be
+						 * changed when it's duplicated due to the
+						 * group duplication.
+						 */
+						ob->lay = vdd.par->lay;
 					}
 					
 					break;
