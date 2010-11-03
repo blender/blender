@@ -300,5 +300,7 @@ void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info);
 void RE_engines_init(void);
 void RE_engines_exit(void);
 
+int RE_is_rendering_allowed(struct Scene *scene, void *erh, void (*error)(void *handle, char *str));
+
 #endif /* RE_PIPELINE_H */
 

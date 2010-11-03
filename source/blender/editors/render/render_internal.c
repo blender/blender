@@ -637,6 +637,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(WM_jobs_test(CTX_wm_manager(C), scene))
 		return OPERATOR_CANCELLED;
 
+	if(!RE_is_rendering_allowed(scene, op->reports, render_error_reports)) {
+		return OPERATOR_CANCELLED;
+	}
+
 	/* stop all running jobs, currently previews frustrate Render */
 	WM_jobs_stop_all(CTX_wm_manager(C));
 
