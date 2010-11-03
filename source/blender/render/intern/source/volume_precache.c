@@ -485,7 +485,11 @@ static void *vol_precache_part(void *data)
 	float scatter_col[3] = {0.f, 0.f, 0.f};
 	float co[3], cco[3];
 	int x, y, z, i;
-	const int res[3]= {pa->res[0], pa->res[1], pa->res[2]};
+	int res[3];
+
+	res[0]= pa->res[0];
+	res[1]= pa->res[1];
+	res[2]= pa->res[2];
 
 	for (z= pa->minz; z < pa->maxz; z++) {
 		co[2] = pa->bbmin[2] + (pa->voxel[2] * (z + 0.5f));

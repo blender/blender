@@ -1193,8 +1193,12 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 				ascii = mem[i];
 				info = &(custrinfo[i]);
 				if (cu->sepchar == (i+1)) {
-					float vecyo[3]= {ct->xof, ct->yof, 0.0f};
-					
+					float vecyo[3];
+
+					vecyo[0]= ct->xof;
+					vecyo[1]= ct->yof;
+					vecyo[2]= 0.0f;
+
 					mem[0] = ascii;
 					mem[1] = 0;
 					custrinfo[0]= *info;

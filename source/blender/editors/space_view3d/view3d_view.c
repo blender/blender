@@ -139,8 +139,12 @@ void view3d_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, f
 	}
 
 	if (dist) {
-		float vec[3] = {0.0f, 0.0f, -(*dist)};
 		float tquat[4];
+		float vec[3];
+
+		vec[0]= 0.0f;
+		vec[1]= 0.0f;
+		vec[2]= -(*dist);
 
 		mat4_to_quat(tquat, ob->obmat);
 

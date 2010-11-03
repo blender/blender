@@ -391,8 +391,8 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 			//Project over negative direction of axis
 			if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)
 			{
-				float inv_no[3] = { -tmp_no[0], -tmp_no[1], -tmp_no[2] };
-
+				float inv_no[3];
+				negate_v3_v3(inv_no, tmp_no);
 
 				if(auxData.tree)
 					normal_projection_project_vertex(0, tmp_co, inv_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);

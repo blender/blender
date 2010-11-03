@@ -320,8 +320,12 @@ static void draw_xyz_wire(float *c, float size, int axis)
 {
 	float v1[3]= {0.f, 0.f, 0.f}, v2[3] = {0.f, 0.f, 0.f};
 	float dim = size * 0.1;
-	float dx[3]={dim, 0.0, 0.0}, dy[3]={0.0, dim, 0.0}, dz[3]={0.0, 0.0, dim};
-	
+	float dx[3], dy[3], dz[3];
+
+	dx[0]=dim; dx[1]=0.f; dx[2]=0.f;
+	dy[0]=0.f; dy[1]=dim; dy[2]=0.f;
+	dz[0]=0.f; dz[1]=0.f; dz[2]=dim;
+
 	switch(axis) {
 		case 0:		/* x axis */
 			glBegin(GL_LINES);
@@ -524,8 +528,13 @@ void drawcircball(int mode, float *cent, float rad, float tmat[][4])
 /* circle for object centers, special_color is for library or ob users */
 static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, float *co, int selstate, int special_color)
 {
-	float vec[3]= {rv3d->persmat[0][3], rv3d->persmat[1][3], rv3d->persmat[2][3]};
 	float size= rv3d->pixsize*((float)U.obcenter_dia*0.5f);
+	float vec[3];
+	
+	vec[0]= rv3d->persmat[0][3];
+	vec[1]= rv3d->persmat[1][3];
+	vec[2]= rv3d->persmat[2][3];
+
 	size *= dot_v3v3(vec, co) + rv3d->persmat[3][3];
 
 	/* using gldepthfunc guarantees that it does write z values, but not checks for it, so centers remain visible independt order of drawing */
@@ -3430,7 +3439,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	ParticleData *pars, *pa;
 	ParticleKey state, *states=0;
 	ParticleBillboardData bb;
-	ParticleSimulationData sim = {scene, ob, psys, NULL};
+	ParticleSimulationData sim= {0};
 	ParticleDrawData *pdd = psys->pdd;
 	Material *ma;
 	float vel[3], imat[4][4];
@@ -3468,6 +3477,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		return;
 
 /* 2. */
+	sim.scene= scene;
+	sim.ob= ob;
+	sim.psys= psys;
 	sim.psmd = psmd = psys_get_modifier(ob,psys);
 
 	if(part->phystype==PART_PHYS_KEYED){
@@ -4757,9 +4769,17 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 			
 			while (nr-->0) { /* accounts for empty bevel lists */
 				float fac= bevp->radius * ts->normalsize;
-				float vec_a[3] = { fac,0, 0}; // Offset perpendicular to the curve
-				float vec_b[3] = {-fac,0, 0}; // Delta along the curve
+				float vec_a[3]; // Offset perpendicular to the curve
+				float vec_b[3]; // Delta along the curve
 
+				vec_a[0]= fac;
+				vec_a[1]= 0.0f;
+				vec_a[2]= 0.0f;
+
+				vec_b[0]= -fac;
+				vec_b[1]= 0.0f;
+				vec_b[2]= 0.0f;
+				
 				mul_qt_v3(bevp->quat, vec_a);
 				mul_qt_v3(bevp->quat, vec_b);
 				add_v3_v3(vec_a, bevp->vec);
@@ -5510,22 +5530,22 @@ static void draw_hooks(Object *ob)
 void drawRBpivot(bRigidBodyJointConstraint *data)
 {
 	int axis;
-	float v1[3]= {data->pivX, data->pivY, data->pivZ};
-	float eu[3]= {data->axX, data->axY, data->axZ};
 	float mat[4][4];
 
-	eul_to_mat4(mat,eu);
+	eul_to_mat4(mat,&data->axX);
 	glLineWidth (4.0f);
 	setlinestyle(2);
 	for (axis=0; axis<3; axis++) {
 		float dir[3] = {0,0,0};
-		float v[3]= {data->pivX, data->pivY, data->pivZ};
+		float v[3];
+
+		copy_v3_v3(v, &data->pivX);
 
 		dir[axis] = 1.f;
 		glBegin(GL_LINES);
 		mul_m4_v3(mat,dir);
 		add_v3_v3(v, dir);
-		glVertex3fv(v1);
+		glVertex3fv(&data->pivX);
 		glVertex3fv(v);			
 		glEnd();
 		if (axis==0)

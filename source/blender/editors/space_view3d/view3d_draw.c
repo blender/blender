@@ -1583,8 +1583,13 @@ static void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *bas
 void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 {
 	int x, y, w, h;	
-	rcti r= {0, ar->winx-1, 0, ar->winy-1};
+	rcti r;
 	/* clamp rect by area */
+
+	r.xmin= 0;
+	r.xmax= ar->winx-1;
+	r.ymin= 0;
+	r.ymax= ar->winy-1;
 
 	/* Constrain rect to depth bounds */
 	BLI_isect_rcti(&r, rect, rect);
@@ -1997,10 +2002,19 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	{
 		/* note:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
 		 * because of float point precission problems at large values [#23908] */
-		float v1[3]= {rv3d->persmat[0][0], rv3d->persmat[1][0], rv3d->persmat[2][0]};
-		float v2[3]= {rv3d->persmat[0][1], rv3d->persmat[1][1], rv3d->persmat[2][1]};
-		float len1= 1.0f / len_v3(v1);
-		float len2= 1.0f / len_v3(v2);
+		float v1[3], v2[3];
+		float len1, len2;
+
+		v1[0]= rv3d->persmat[0][0];
+		v1[1]= rv3d->persmat[1][0];
+		v1[2]= rv3d->persmat[2][0];
+
+		v2[0]= rv3d->persmat[0][1];
+		v2[1]= rv3d->persmat[1][1];
+		v2[2]= rv3d->persmat[2][1];
+		
+		len1= 1.0f / len_v3(v1);
+		len2= 1.0f / len_v3(v2);
 
 		rv3d->pixsize = (2.0f * MAX2(len1, len2)) / (float)MAX2(ar->winx, ar->winy);
 	}

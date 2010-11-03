@@ -3221,7 +3221,12 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 	edit->totcached = totpart;
 
 	if(psys) {
-		ParticleSimulationData sim = {scene, ob, psys, psys_get_modifier(ob, psys), NULL};
+		ParticleSimulationData sim= {0};
+		sim.scene= scene;
+		sim.ob= ob;
+		sim.psys= psys;
+		sim.psmd= psys_get_modifier(ob, psys);
+
 		psys_cache_child_paths(&sim, cfra, 1);
 	}
 

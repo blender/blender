@@ -2866,7 +2866,10 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	int mode = RNA_int_get(op->ptr, "mode");
 	float initial_value = RNA_float_get(op->ptr, "initial_value");
 	//float initial_size = RNA_float_get(op->ptr, "initial_size");
-	int mouse[2] = {event->x, event->y};
+	int mouse[2];
+
+	mouse[0]= event->x;
+	mouse[1]= event->y;
 
 	//if (initial_size == 0)
 	//	initial_size = WM_RADIAL_CONTROL_DISPLAY_SIZE;

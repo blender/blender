@@ -1485,7 +1485,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	ParticleKey state;
 	ParticleCacheKey *cache=0;
 	ParticleBillboardData bb;
-	ParticleSimulationData sim = {re->scene, ob, psys, NULL};
+	ParticleSimulationData sim = {0};
 	ParticleStrandData sd;
 	StrandBuffer *strandbuf=0;
 	StrandVert *svert=0;
@@ -1519,9 +1519,14 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 /* 2. start initialising things */
 
 	/* last possibility to bail out! */
-	sim.psmd = psmd = psys_get_modifier(ob,psys);
+	psmd = psys_get_modifier(ob,psys);
 	if(!(psmd->modifier.mode & eModifierMode_Render))
 		return 0;
+
+	sim.scene= re->scene;
+	sim.ob= ob;
+	sim.psys= psys;
+	sim.psmd= psmd;
 
 	if(part->phystype==PART_PHYS_KEYED)
 		psys_count_keyed_targets(&sim);
