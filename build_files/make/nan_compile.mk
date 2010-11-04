@@ -173,8 +173,8 @@ ifeq ($(OS),linux)
     CCC ?= g++
 #    CFLAGS += -pipe
 #    CCFLAGS += -pipe
-    CFLAGS  += -pipe -fPIC -funsigned-char -fno-strict-aliasing -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-    CCFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+    CFLAGS  += -pipe -fPIC -funsigned-char -fno-strict-aliasing -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE
+    CCFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE
     REL_CFLAGS  += -O2
     REL_CCFLAGS += -O2
     NAN_DEPEND = true
