@@ -83,7 +83,7 @@ void bake_console_progress(void *UNUSED(arg), int nr)
 
 void bake_console_progress_end(void *UNUSED(arg))
 {
-	printf("\n");
+	printf("\rbake: done!\n");
 }
 
 static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
@@ -103,7 +103,10 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;
 
-	if (win) {
+	/* Disabled for now as this doesn't work properly,
+	 * and pointcache baking will be reimplemented with
+	 * the job system soon anyways. */
+	if (win && 0) {
 		baker.progressbar = (void (*)(void *, int))WM_timecursor;
 		baker.progressend = (void (*)(void *))WM_cursor_restore;
 		baker.progresscontext = win;
@@ -201,7 +204,10 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;
 
-	if (win) {
+	/* Disabled for now as this doesn't work properly,
+	 * and pointcache baking will be reimplemented with
+	 * the job system soon anyways. */
+	if (win && 0) {
 		baker.progressbar = (void (*)(void *, int))WM_timecursor;
 		baker.progressend = (void (*)(void *))WM_cursor_restore;
 		baker.progresscontext = win;

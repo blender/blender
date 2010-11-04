@@ -2607,6 +2607,8 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 	thread_data.break_operation = FALSE;
 	thread_data.thread_ended = FALSE;
 	old_progress = -1;
+
+	WM_cursor_wait(1);
 	
 	if(G.background) {
 		ptcache_make_cache_thread((void*)&thread_data);
@@ -2689,6 +2691,8 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		WM_cursor_wait(0);
 	else if (baker->progressend)
 		baker->progressend(baker->progresscontext);
+
+	WM_cursor_wait(0);
 
 	/* TODO: call redraw all windows somehow */
 }
