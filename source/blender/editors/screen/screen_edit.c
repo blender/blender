@@ -647,14 +647,14 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 			 * need some way to store these as floats internally and re-apply from there. */
 			tempf= ((float)sv->vec.x)*facx;
 			sv->vec.x= (short)(tempf+0.5);
-			sv->vec.x+=  AREAGRID-2;
+			sv->vec.x+= AREAGRID-1;
 			sv->vec.x-=  (sv->vec.x % AREAGRID); 
 
 			CLAMP(sv->vec.x, 0, winsizex);
 			
 			tempf= ((float)sv->vec.y)*facy;
 			sv->vec.y= (short)(tempf+0.5);
-			sv->vec.y+=  AREAGRID-2;
+			sv->vec.y+= AREAGRID-1;
 			sv->vec.y-=  (sv->vec.y % AREAGRID); 
 
 			CLAMP(sv->vec.y, 0, winsizey);
