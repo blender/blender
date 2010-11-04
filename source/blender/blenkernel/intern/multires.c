@@ -305,33 +305,45 @@ int multiresModifier_reshapeFromDeformMod(Scene *scene, MultiresModifierData *mm
 }
 
 /* reset the multires levels to match the number of mdisps */
+static int get_levels_from_disps(Object *ob)
+{
+	Mesh *me = ob->data;
+	MDisps *mdisp;
+	int i, totlvl= 0;
+
+	mdisp = CustomData_get_layer(&me->fdata, CD_MDISPS);
+
+	for(i = 0; i < me->totface; ++i, ++mdisp) {
+		int S = me->mface[i].v4 ? 4 : 3;
+
+		if(mdisp->totdisp == 0) continue;
+
+		while(1) {
+			int side = (1 << (totlvl-1)) + 1;
+			int lvl_totdisp = side*side*S;
+			if(mdisp->totdisp == lvl_totdisp)
+				break;
+			else if(mdisp->totdisp < lvl_totdisp)
+				--totlvl;
+			else
+				++totlvl;
+
+		}
+	}
+
+	return totlvl;
+}
+
+/* reset the multires levels to match the number of mdisps */
 void multiresModifier_set_levels_from_disps(MultiresModifierData *mmd, Object *ob)
 {
 	Mesh *me = ob->data;
 	MDisps *mdisp;
-	int i;
 
 	mdisp = CustomData_get_layer(&me->fdata, CD_MDISPS);
 
 	if(mdisp) {
-		for(i = 0; i < me->totface; ++i, ++mdisp) {
-			int S = me->mface[i].v4 ? 4 : 3;
-
-			if(mdisp->totdisp == 0) continue;
-
-			while(1) {
-				int side = (1 << (mmd->totlvl-1)) + 1;
-				int lvl_totdisp = side*side*S;
-				if(mdisp->totdisp == lvl_totdisp)
-					break;
-				else if(mdisp->totdisp < lvl_totdisp)
-					--mmd->totlvl;
-				else
-					++mmd->totlvl;
-					
-			}
-		}
-
+		mmd->totlvl = get_levels_from_disps(ob);
 		mmd->lvl = MIN2(mmd->sculptlvl, mmd->totlvl);
 		mmd->sculptlvl = MIN2(mmd->sculptlvl, mmd->totlvl);
 		mmd->renderlvl = MIN2(mmd->renderlvl, mmd->totlvl);
@@ -1555,6 +1567,19 @@ void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	subdm->release(subdm);
 }
 
+int multires_mdisp_corners(MDisps *s)
+{
+	int lvl= 13;
+
+	while(lvl > 0) {
+		int side = (1 << (lvl-1)) + 1;
+		if ((s->totdisp % (side*side)) == 0) return s->totdisp / (side*side);
+		lvl--;
+	}
+
+	return 0;
+}
+
 void multiresModifier_scale_disp(Scene *scene, Object *ob)
 {
 	float smat[3][3];
@@ -1577,4 +1602,28 @@ void multiresModifier_prepare_join(Scene *scene, Object *ob, Object *to_ob)
 	mul_m3_m3m3(mat, smat, tmat);
 
 	multires_apply_smat(scene, ob, mat);
+}
+
+/* update multires data after topology changing */
+void multires_topology_changed(Object *ob)
+{
+	Mesh *me= (Mesh*)ob->data;
+	MDisps *mdisp= CustomData_get_layer(&me->fdata, CD_MDISPS);
+	int i;
+
+	if(!mdisp) return;
+
+	for(i = 0; i < me->totface; i++, mdisp++) {
+		int corners= multires_mdisp_corners(mdisp);
+		int nvert= me->mface[i].v4 ? 4 : 3;
+
+		if(corners!=nvert) {
+			mdisp->totdisp= (mdisp->totdisp/corners)*nvert;
+
+			if(mdisp->disps)
+				MEM_freeN(mdisp->disps);
+
+			mdisp->disps= MEM_callocN(mdisp->totdisp*sizeof(float)*3, "mdisp topology");
+		}
+	}
 }

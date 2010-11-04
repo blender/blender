@@ -50,6 +50,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
+#include "BKE_multires.h"
 
 /* number of layers to add when growing a CustomData object */
 #define CUSTOMDATA_GROW 5
@@ -441,19 +442,6 @@ static void mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, fl
 }
 #endif
 
-static int mdisp_corners(MDisps *s)
-{
-	int lvl= 13;
-
-	while(lvl > 0) {
-		int side = (1 << (lvl-1)) + 1;
-		if ((s->totdisp % (side*side)) == 0) return s->totdisp / (side*side);
-		lvl--;
-	}
-
-	return 0;
-}
-
 static void layerSwap_mdisps(void *data, const int *ci)
 {
 	MDisps *s = data;
@@ -462,7 +450,7 @@ static void layerSwap_mdisps(void *data, const int *ci)
 
 	if(s->disps) {
 		int nverts= (ci[1] == 3) ? 4 : 3; /* silly way to know vertex count of face */
-		corners= mdisp_corners(s);
+		corners= multires_mdisp_corners(s);
 		cornersize= s->totdisp/corners;
 
 		if(corners!=nverts) {
@@ -470,8 +458,8 @@ static void layerSwap_mdisps(void *data, const int *ci)
 			   if it happened, just forgot displacement */
 
 			MEM_freeN(s->disps);
-			s->disps= NULL;
-			s->totdisp= 0; /* flag to update totdisp */
+			s->totdisp= (s->totdisp/corners)*nverts;
+			s->disps= MEM_callocN(s->totdisp*sizeof(float)*3, "mdisp swap");
 			return;
 		}
 

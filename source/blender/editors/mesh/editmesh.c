@@ -54,6 +54,7 @@
 #include "BKE_mesh.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
+#include "BKE_multires.h"
 
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -1306,6 +1307,9 @@ void load_editMesh(Scene *scene, Object *ob)
 	}
 
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+
+	/* topology could be changed, ensure mdisps are ok */
+	multires_topology_changed(ob);
 }
 
 void remake_editMesh(Scene *scene, Object *ob)

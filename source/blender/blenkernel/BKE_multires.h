@@ -37,6 +37,8 @@ struct Multires;
 struct MultiresModifierData;
 struct ModifierData;
 struct Object;
+struct Scene;
+struct MDisps;
 
 void multires_mark_as_modified(struct Object *ob);
 
@@ -73,6 +75,11 @@ void multires_load_old_250(struct Mesh *);
 
 void multiresModifier_scale_disp(struct Scene *scene, struct Object *ob);
 void multiresModifier_prepare_join(struct Scene *scene, struct Object *ob, struct Object *to_ob);
+
+int multires_mdisp_corners(struct MDisps *s);
+
+/* update multires data after topology changing */
+void multires_topology_changed(struct Object *ob);
 
 #endif
 
