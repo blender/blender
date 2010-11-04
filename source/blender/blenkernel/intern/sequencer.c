@@ -2848,7 +2848,7 @@ int seq_test_overlap(ListBase * seqbasep, Sequence *test)
 }
 
 
-static void seq_translate(Scene *evil_scene, Sequence *seq, int delta)
+void seq_translate(Scene *evil_scene, Sequence *seq, int delta)
 {
 	seq_offset_animdata(evil_scene, seq, delta);
 	seq->start += delta;

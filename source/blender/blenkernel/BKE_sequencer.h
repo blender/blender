@@ -218,6 +218,7 @@ int seq_tx_test(struct Sequence * seq);
 int seq_single_check(struct Sequence *seq);
 void seq_single_fix(struct Sequence *seq);
 int seq_test_overlap(struct ListBase * seqbasep, struct Sequence *test);
+void seq_translate(struct Scene *scene, struct Sequence *seq, int delta);
 struct ListBase *seq_seqbase(struct ListBase *seqbase, struct Sequence *seq);
 void seq_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
 void seq_dupe_animdata(struct Scene *scene, char *name_from, char *name_to);

@@ -119,7 +119,7 @@ static void rna_Sequence_start_frame_set(PointerRNA *ptr, int value)
 	Sequence *seq= (Sequence*)ptr->data;
 	Scene *scene= (Scene*)ptr->id.data;
 	
-	seq->start= value;
+	seq_translate(scene, seq, value - seq->start);
 	rna_Sequence_frame_change_update(scene, seq);
 }
 
