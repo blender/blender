@@ -2524,6 +2524,12 @@ static void do_render_seq(Render * re)
 			/* 	if (R.rectz) freeN(R.rectz); */
 			/* 	R.rectz = BLI_dupallocN(ibuf->zbuf); */
 			/* } */
+
+			/* Same things as above, old rectf can hang around from previous render. */
+			if(rr->rectf) {
+				MEM_freeN(rr->rectf);
+				rr->rectf= NULL;
+			}
 		}
 		
 		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
