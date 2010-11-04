@@ -128,6 +128,7 @@ int		ED_operator_scene_editable(struct bContext *C);
 
 int		ED_operator_view3d_active(struct bContext *C);
 int		ED_operator_region_view3d_active(struct bContext *C);
+int		ED_operator_animview_active(struct bContext *C);
 int		ED_operator_timeline_active(struct bContext *C);
 int		ED_operator_outliner_active(struct bContext *C);
 int		ED_operator_outliner_active_no_editobject(struct bContext *C);
@@ -143,6 +144,7 @@ int		ED_operator_logic_active(struct bContext *C);
 
 int		ED_operator_object_active(struct bContext *C);
 int		ED_operator_object_active_editable(struct bContext *C);
+int		ED_operator_object_active_editable_mesh(struct bContext *C);
 int		ED_operator_editmesh(struct bContext *C);
 int		ED_operator_editmesh_view3d(struct bContext *C);
 int		ED_operator_editmesh_region_view3d(struct bContext *C);

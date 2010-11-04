@@ -689,7 +689,7 @@ void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= view_zoomin_invoke;
-	ot->exec= view_zoomin_exec;
+//	ot->exec= view_zoomin_exec;  // XXX, needs view_zoomdrag_init called first.
 	ot->poll= view_zoom_poll;
 	
 	/* rna - must keep these in sync with the other operators */
@@ -746,7 +746,7 @@ void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= view_zoomout_invoke;
-	ot->exec= view_zoomout_exec;
+//	ot->exec= view_zoomout_exec; // XXX, needs view_zoomdrag_init called first.
 	ot->poll= view_zoom_poll;
 	
 	/* rna - must keep these in sync with the other operators */

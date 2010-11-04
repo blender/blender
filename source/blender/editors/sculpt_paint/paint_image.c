@@ -5587,6 +5587,7 @@ void PAINT_OT_image_from_view(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= texture_paint_image_from_view_exec;
+	ot->poll= ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;

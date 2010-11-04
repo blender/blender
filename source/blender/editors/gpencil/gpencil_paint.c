@@ -141,8 +141,20 @@ static void gp_session_validatebuffer(tGPsdata *p);
 /* check if context is suitable for drawing */
 static int gpencil_draw_poll (bContext *C)
 {
-	/* check if current context can support GPencil data */
-	return (gpencil_data_get_pointers(C, NULL) != NULL);
+	if(ED_operator_regionactive(C)) {
+		/* check if current context can support GPencil data */
+		if(gpencil_data_get_pointers(C, NULL) != NULL) {
+			return 1;
+		}
+		else {
+			CTX_wm_operator_poll_msg_set(C, "failed to find grease pencil data to draw into");
+		}
+	}
+	else {
+		CTX_wm_operator_poll_msg_set(C, "active region not set");
+	}
+	
+	return 0;
 }
 
 /* check if projecting strokes into 3d-geometry in the 3D-View */

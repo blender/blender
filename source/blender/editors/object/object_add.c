@@ -607,7 +607,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	View3D *v3d= CTX_wm_view3d(C);
-	RegionView3D *rv3d= NULL;
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	int newob= 0;
 	int enter_editmode;
 	unsigned int layer;
@@ -628,9 +628,6 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Cannot create editmode armature.");
 		return OPERATOR_CANCELLED;
 	}
-	
-	if(v3d) 
-		rv3d= CTX_wm_region(C)->regiondata;
 	
 	/* v3d and rv3d are allowed to be NULL */
 	add_primitive_bone(CTX_data_scene(C), v3d, rv3d);

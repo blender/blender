@@ -726,6 +726,11 @@ static int childof_clear_inverse_exec (bContext *C, wmOperator *op)
 	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_CHILDOF);
 	bChildOfConstraint *data= (con) ? (bChildOfConstraint *)con->data : NULL;
 	
+	if(data==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Childof constraint not found.");
+		return OPERATOR_CANCELLED;
+	}
+	
 	/* simply clear the matrix */
 	unit_m4(data->invmat);
 	

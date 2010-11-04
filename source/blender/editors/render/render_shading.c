@@ -399,36 +399,38 @@ static int material_slot_de_select(bContext *C, int select)
 		BezTriple *bezt;
 		int a;
 
-		for(nu= nurbs->first; nu; nu=nu->next) {
-			if(nu->mat_nr==ob->actcol-1) {
-				if(nu->bezt) {
-					a= nu->pntsu;
-					bezt= nu->bezt;
-					while(a--) {
-						if(bezt->hide==0) {
-							if(select) {
-								bezt->f1 |= SELECT;
-								bezt->f2 |= SELECT;
-								bezt->f3 |= SELECT;
+		if(nurbs) {
+			for(nu= nurbs->first; nu; nu=nu->next) {
+				if(nu->mat_nr==ob->actcol-1) {
+					if(nu->bezt) {
+						a= nu->pntsu;
+						bezt= nu->bezt;
+						while(a--) {
+							if(bezt->hide==0) {
+								if(select) {
+									bezt->f1 |= SELECT;
+									bezt->f2 |= SELECT;
+									bezt->f3 |= SELECT;
+								}
+								else {
+									bezt->f1 &= ~SELECT;
+									bezt->f2 &= ~SELECT;
+									bezt->f3 &= ~SELECT;
+								}
 							}
-							else {
-								bezt->f1 &= ~SELECT;
-								bezt->f2 &= ~SELECT;
-								bezt->f3 &= ~SELECT;
-							}
+							bezt++;
 						}
-						bezt++;
 					}
-				}
-				else if(nu->bp) {
-					a= nu->pntsu*nu->pntsv;
-					bp= nu->bp;
-					while(a--) {
-						if(bp->hide==0) {
-							if(select) bp->f1 |= SELECT;
-							else bp->f1 &= ~SELECT;
+					else if(nu->bp) {
+						a= nu->pntsu*nu->pntsv;
+						bp= nu->bp;
+						while(a--) {
+							if(bp->hide==0) {
+								if(select) bp->f1 |= SELECT;
+								else bp->f1 &= ~SELECT;
+							}
+							bp++;
 						}
-						bp++;
 					}
 				}
 			}

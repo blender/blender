@@ -376,7 +376,7 @@ static void MARKER_OT_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= ed_marker_add;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_animview_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -667,7 +667,7 @@ static void MARKER_OT_move(wmOperatorType *ot)
 	ot->exec= ed_marker_move_exec;
 	ot->invoke= ed_marker_move_invoke;
 	ot->modal= ed_marker_move_modal;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_animview_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -755,7 +755,7 @@ static void MARKER_OT_duplicate(wmOperatorType *ot)
 	ot->exec= ed_marker_duplicate_exec;
 	ot->invoke= ed_marker_duplicate_invoke;
 	ot->modal= ed_marker_move_modal;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_animview_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -870,7 +870,7 @@ static void MARKER_OT_select(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= ed_marker_select_invoke;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_animview_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -958,7 +958,7 @@ static void MARKER_OT_select_border(wmOperatorType *ot)
 	ot->invoke= WM_border_select_invoke;
 	ot->modal= WM_border_select_modal;
 	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_animview_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1021,7 +1021,7 @@ static void MARKER_OT_select_all(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= ed_marker_select_all_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_animview_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1069,7 +1069,7 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= ed_marker_delete_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_animview_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1114,7 +1114,7 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= ed_marker_make_links_scene_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_animview_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1163,7 +1163,7 @@ static void MARKER_OT_camera_bind(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= ed_marker_camera_bind_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_animview_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
