@@ -1134,13 +1134,6 @@ int main(int argc, char **argv)
 
 #ifndef DISABLE_SDL
 	BLI_setenv("SDL_VIDEODRIVER", "dummy");
-/* I think this is not necessary anymore (04-24-2010 neXyon)
-#ifdef __linux__
-	// On linux the default SDL driver dma often would not play
-	// use alsa if none is set
-	setenv("SDL_AUDIODRIVER", "alsa", 0);
-#endif
-*/
 #endif
 	}
 	else {
@@ -1161,7 +1154,8 @@ int main(int argc, char **argv)
 	 */
 
 	// TODO - U.pythondir
-
+#else
+	printf("\n* WARNING * - Blender compiled without Python!\nthis is not intended for typical usage\n\n");
 #endif
 	
 	CTX_py_init_set(C, 1);
