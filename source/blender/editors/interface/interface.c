@@ -629,7 +629,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 			if(but->context)
 				CTX_store_set((bContext*)C, but->context);
 
-			if(ot == NULL || WM_operator_poll((bContext*)C, ot)==0) {
+			if(ot == NULL || WM_operator_poll_context((bContext*)C, ot, but->opcontext)==0) {
 				but->flag |= UI_BUT_DISABLED;
 				but->lock = 1;
 			}
