@@ -3182,6 +3182,7 @@ void ED_operatortypes_uvedit(void)
 void ED_keymap_uvedit(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
 	
 	keymap= WM_keymap_find(keyconf, "UV Editor", 0, 0);
 	keymap->poll= ED_operator_uvedit;
@@ -3233,6 +3234,19 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	/* menus */
 	WM_keymap_add_menu(keymap, "IMAGE_MT_uvs_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_menu(keymap, "IMAGE_MT_uvs_select_mode", TABKEY, KM_PRESS, KM_CTRL, 0);
+
+	/* pivot */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.uv_editor.pivot_point");
+	RNA_string_set(kmi->ptr, "value", "CENTER");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.uv_editor.pivot_point");
+	RNA_string_set(kmi->ptr, "value", "MEDIAN");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.uv_editor.pivot_point");
+	RNA_string_set(kmi->ptr, "value", "CURSOR");
 
 	ED_object_generic_keymap(keyconf, keymap, 2);
 
