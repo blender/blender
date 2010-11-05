@@ -1613,8 +1613,11 @@ void multiresModifier_prepare_join(Scene *scene, Object *ob, Object *to_ob)
 void multires_topology_changed(Object *ob)
 {
 	Mesh *me= (Mesh*)ob->data;
-	MDisps *mdisp= CustomData_get_layer(&me->fdata, CD_MDISPS);
+	MDisps *mdisp= NULL;
 	int i;
+
+	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
+	mdisp= CustomData_get_layer(&me->fdata, CD_MDISPS);
 
 	if(!mdisp) return;
 
