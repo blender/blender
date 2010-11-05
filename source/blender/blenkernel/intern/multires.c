@@ -1073,7 +1073,12 @@ static void create_old_vert_edge_map(ListBase **map, IndexNode **mem, const Mult
 static MultiresFace *find_old_face(ListBase *map, MultiresFace *faces, int v1, int v2, int v3, int v4)
 {
 	IndexNode *n1;
-	int v[4] = {v1, v2, v3, v4}, i, j;
+	int v[4], i, j;
+
+	 v[0]= v1;
+	 v[1]= v2;
+	 v[2]= v3;
+	 v[3]= v4;
 
 	for(n1 = map[v1].first; n1; n1 = n1->next) {
 		int fnd[4] = {0, 0, 0, 0};

@@ -49,14 +49,9 @@
 #include "BKE_subsurf.h"
 
 #include "BLI_math.h"
-#include "BLI_editVert.h"
-
 
 
 /* Util macros */
-#define TO_STR(a)	#a
-#define JOIN(a,b)	a##b
-
 #define OUT_OF_MEMORY()	((void)printf("Shrinkwrap: Out of memory\n"))
 
 /* Benchmark macros */
@@ -90,7 +85,7 @@ typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *c
 DerivedMesh *object_get_derived_final(struct Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Mesh *me= ob->data;
-	EditMesh *em = BKE_mesh_get_editmesh(me);
+	struct EditMesh *em = BKE_mesh_get_editmesh(me);
 
 	if (em)
 	{

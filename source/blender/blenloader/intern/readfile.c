@@ -39,7 +39,6 @@
 
 #ifndef WIN32
 	#include <unistd.h> // for read close
-	#include <sys/param.h> // for MAXPATHLEN
 #else
 	#include <io.h> // for open close read
 #include "winsock2.h"

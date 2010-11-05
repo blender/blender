@@ -32,7 +32,6 @@
 
 #ifndef _WIN32 
 	#include <unistd.h> // for read close
-	#include <sys/param.h> // for MAXPATHLEN
 #else
 	#include <io.h> // for open close read
 	#define open _open

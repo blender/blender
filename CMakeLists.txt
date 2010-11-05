@@ -317,19 +317,19 @@ IF(UNIX AND NOT APPLE)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 	ENDIF(WITH_OPENMP)
 
+	SET(PLATFORM_LINKFLAGS "-pthread")
+
 	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
 
-	SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
-
-	SET(PLATFORM_LINKFLAGS "-pthread")
-
-	# Better warnings
-	# note: -Wunused-parameter is added below for all GCC compilers
-	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
-	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
-
-	INCLUDE_DIRECTORIES(${JPEG_INCLUDE_DIR} ${PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} )
+	IF(CMAKE_COMPILER_IS_GNUCC)
+		SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
+	
+		# Better warnings
+		# note: -Wunused-parameter is added below for all GCC compilers
+		SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
+		SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
+	ENDIF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF(UNIX AND NOT APPLE)
 
 

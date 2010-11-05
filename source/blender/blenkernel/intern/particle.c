@@ -4454,7 +4454,11 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 
 
 void psys_apply_hair_lattice(Scene *scene, Object *ob, ParticleSystem *psys) {
-	ParticleSimulationData sim = {scene, ob, psys, psys_get_modifier(ob, psys)};
+	ParticleSimulationData sim= {0};
+	sim.scene= scene;
+	sim.ob= ob;
+	sim.psys= psys;
+	sim.psmd= psys_get_modifier(ob, psys);
 
 	psys->lattice = psys_get_lattice(&sim);
 
