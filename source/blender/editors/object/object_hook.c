@@ -447,7 +447,7 @@ static void add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *o
 	hmd->indexar= indexar;
 	copy_v3_v3(hmd->cent, cent);
 	hmd->totindex= tot;
-	BLI_strncpy(hmd->name, name, 32);
+	BLI_strncpy(hmd->name, name, sizeof(hmd->name));
 	
 	/* matrix calculus */
 	/* vert x (obmat x hook->imat) x hook->obmat x ob->imat */

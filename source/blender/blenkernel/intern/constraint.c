@@ -674,7 +674,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 		ct= MEM_callocN(sizeof(bConstraintTarget), "tempConstraintTarget"); \
 		 \
 		ct->tar= datatar; \
-		strcpy(ct->subtarget, datasubtarget); \
+		BLI_strncpy(ct->subtarget, datasubtarget, sizeof(ct->subtarget)); \
 		ct->space= con->tarspace; \
 		ct->flag= CONSTRAINT_TAR_TEMP; \
 		 \

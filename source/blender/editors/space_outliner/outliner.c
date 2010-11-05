@@ -5054,11 +5054,11 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				bArmature *arm= (bArmature *)tselem->id;
 				if(arm->edbo) {
 					EditBone *ebone= te->directdata;
-					char newname[32];
+					char newname[sizeof(ebone->name)];
 					
 					/* restore bone name */
-					BLI_strncpy(newname, ebone->name, 32);
-					BLI_strncpy(ebone->name, oldname, 32);
+					BLI_strncpy(newname, ebone->name, sizeof(ebone->name));
+					BLI_strncpy(ebone->name, oldname, sizeof(ebone->name));
 					ED_armature_bone_rename(obedit->data, oldname, newname);
 					WM_event_add_notifier(C, NC_OBJECT|ND_POSE, OBACT);
 				}
@@ -5069,15 +5069,15 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				{
 					Bone *bone= te->directdata;
 					Object *ob;
-					char newname[32];
+					char newname[sizeof(bone->name)];
 					
 					// always make current object active
 					tree_element_set_active_object(C, scene, soops, te, 1);
 					ob= OBACT;
 					
 					/* restore bone name */
-					BLI_strncpy(newname, bone->name, 32);
-					BLI_strncpy(bone->name, oldname, 32);
+					BLI_strncpy(newname, bone->name, sizeof(bone->name));
+					BLI_strncpy(bone->name, oldname, sizeof(bone->name));
 					ED_armature_bone_rename(ob->data, oldname, newname);
 					WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 				}
@@ -5086,15 +5086,15 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				{
 					bPoseChannel *pchan= te->directdata;
 					Object *ob;
-					char newname[32];
+					char newname[sizeof(pchan->name)];
 					
 					// always make current object active
 					tree_element_set_active_object(C, scene, soops, te, 1);
 					ob= OBACT;
 					
 					/* restore bone name */
-					BLI_strncpy(newname, pchan->name, 32);
-					BLI_strncpy(pchan->name, oldname, 32);
+					BLI_strncpy(newname, pchan->name, sizeof(pchan->name));
+					BLI_strncpy(pchan->name, oldname, sizeof(pchan->name));
 					ED_armature_bone_rename(ob->data, oldname, newname);
 					WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 				}

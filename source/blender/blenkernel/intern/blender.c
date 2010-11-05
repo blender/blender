@@ -460,13 +460,13 @@ static UndoElem *curundo= NULL;
 
 static int read_undosave(bContext *C, UndoElem *uel)
 {
-	char mainstr[FILE_MAXDIR+FILE_MAXFILE];
+	char mainstr[sizeof(G.main->name)];
 	int success=0, fileflags;
 	
 	/* This is needed so undoing/redoing doesnt crash with threaded previews going */
 	WM_jobs_stop_all(CTX_wm_manager(C));
 
-	strcpy(mainstr, G.main->name);	/* temporal store */
+	BLI_strncpy(mainstr, G.main->name, sizeof(mainstr));	/* temporal store */
 
 	fileflags= G.fileflags;
 	G.fileflags |= G_FILE_NO_UI;

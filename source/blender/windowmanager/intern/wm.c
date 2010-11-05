@@ -275,7 +275,7 @@ void wm_add_default(bContext *C)
 	win= wm_window_new(C);
 	win->screen= screen;
 	screen->winid= win->winid;
-	BLI_strncpy(win->screenname, screen->id.name+2, 21);
+	BLI_strncpy(win->screenname, screen->id.name+2, sizeof(win->screenname));
 	
 	wm->winactive= win;
 	wm->file_saved= 1;

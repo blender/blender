@@ -198,7 +198,7 @@ static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
 
 	node->id= &tex->id;
 	id_us_plus(node->id);
-	BLI_strncpy(node->name, node->id->name+2, 21);
+	BLI_strncpy(node->name, node->id->name+2, sizeof(node->name));
 	
 	nodeSetActive(ntree, node);
 	
@@ -285,7 +285,7 @@ static void node_browse_text_cb(bContext *C, void *ntree_v, void *node_v)
 	oldid= node->id;
 	node->id= BLI_findlink(&bmain->text, node->menunr-1);
 	id_us_plus(node->id);
-	BLI_strncpy(node->name, node->id->name+2, 21); /* huh? why 21? */
+	BLI_strncpy(node->name, node->id->name+2, sizeof(node->name));
 
 	node->custom1= BSET(node->custom1, NODE_DYNAMIC_NEW);
 	

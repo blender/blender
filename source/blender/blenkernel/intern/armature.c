@@ -260,7 +260,7 @@ int bone_autoside_name (char *name, int UNUSED(strip_number), short axis, float 
 
 	len= strlen(name);
 	if (len == 0) return 0;
-	strcpy(basename, name);
+	BLI_strncpy(basename, name, sizeof(basename));
 	
 	/* Figure out extension to append: 
 	 *	- The extension to append is based upon the axis that we are working on.

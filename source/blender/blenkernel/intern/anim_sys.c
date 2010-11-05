@@ -614,12 +614,9 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	
 	/* allocate new KeyingSet */
 	ks= MEM_callocN(sizeof(KeyingSet), "KeyingSet");
-	
-	if (name)
-		strncpy(ks->name, name, sizeof(ks->name));
-	else
-		strcpy(ks->name, "KeyingSet");
-	
+
+	BLI_strncpy(ks->name, name ? name : "KeyingSet", sizeof(ks->name));
+
 	ks->flag= flag;
 	ks->keyingflag= keyingflag;
 	
@@ -667,7 +664,7 @@ KS_Path *BKE_keyingset_add_path (KeyingSet *ks, ID *id, const char group_name[],
 	if (group_name)
 		BLI_snprintf(ksp->group, 64, group_name);
 	else
-		strcpy(ksp->group, "");
+		ksp->group[0]= '\0';
 	
 	/* store additional info for relative paths (just in case user makes the set relative) */
 	if (id)

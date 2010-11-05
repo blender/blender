@@ -1323,7 +1323,7 @@ void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 						BKE_text_to_curve(scene, base->object, 0);		/* needed? */
 
 						
-						strcpy(cu1->family, cu->family);
+						BLI_strncpy(cu1->family, cu->family, sizeof(cu1->family));
 						
 						base->object->recalc |= OB_RECALC_DATA;
 					}

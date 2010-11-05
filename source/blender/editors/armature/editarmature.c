@@ -170,7 +170,7 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 		
 		/*	Copy relevant data from bone to eBone */
 		eBone->parent= parent;
-		BLI_strncpy(eBone->name, curBone->name, 32);
+		BLI_strncpy(eBone->name, curBone->name, sizeof(eBone->name));
 		eBone->flag = curBone->flag;
 		
 		/* fix selection flags */
@@ -332,9 +332,9 @@ void ED_armature_from_edit(Object *obedit)
 		newBone= MEM_callocN(sizeof(Bone), "bone");
 		eBone->temp= newBone;	/* Associate the real Bones with the EditBones */
 		
-		BLI_strncpy(newBone->name, eBone->name, 32);
-		memcpy(newBone->head, eBone->head, sizeof(float)*3);
-		memcpy(newBone->tail, eBone->tail, sizeof(float)*3);
+		BLI_strncpy(newBone->name, eBone->name, sizeof(newBone->name));
+		memcpy(newBone->head, eBone->head, sizeof(newBone->head));
+		memcpy(newBone->tail, eBone->tail, sizeof(newBone->tail));
 		newBone->flag= eBone->flag;
 		
 		if (eBone == arm->act_edbone) {
@@ -758,7 +758,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 							
 							for (achan= act->chanbase.first; achan; achan= achan->next) {
 								if (strcmp(achan->name, pchan->name)==0)
-									BLI_strncpy(achan->name, curbone->name, 32);
+									BLI_strncpy(achan->name, curbone->name, sizeof(achan->name));
 							}
 						}
 					}
@@ -802,7 +802,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 			if (ob->partype==PARBONE) {
 				/* bone name in object */
 				if (!strcmp(ob->parsubstr, pchan->name))
-					BLI_strncpy(ob->parsubstr, curbone->name, 32);
+					BLI_strncpy(ob->parsubstr, curbone->name, sizeof(ob->parsubstr));
 			}
 			
 			/* make tar armature be new parent */
@@ -2331,7 +2331,7 @@ EditBone *ED_armature_edit_bone_add(bArmature *arm, char *name)
 {
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
-	BLI_strncpy(bone->name, name, 32);
+	BLI_strncpy(bone->name, name, sizeof(bone->name));
 	unique_editbone_name(arm->edbo, bone->name, NULL);
 	
 	BLI_addtail(arm->edbo, bone);
@@ -2663,7 +2663,7 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, char *name, ListBase *edit
 	
 	if (name != NULL)
 	{
-		BLI_strncpy(eBone->name, name, 32);
+		BLI_strncpy(eBone->name, name, sizeof(eBone->name));
 	}
 
 	unique_editbone_name(editbones, eBone->name, NULL);
@@ -3507,7 +3507,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 					newbone->segments= 1;
 					newbone->layer= ebone->layer;
 					
-					BLI_strncpy (newbone->name, ebone->name, 32);
+					BLI_strncpy (newbone->name, ebone->name, sizeof(newbone->name));
 					
 					if (flipbone && forked) {	// only set if mirror edit
 						if (strlen(newbone->name)<30) {

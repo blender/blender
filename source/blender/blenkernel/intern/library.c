@@ -1365,7 +1365,7 @@ void rename_id(ID *id, char *name)
 {
 	ListBase *lb;
 
-	strncpy(id->name+2, name, 21);
+	BLI_strncpy(id->name+2, name, sizeof(id->name)-2);
 	lb= which_libbase(G.main, GS(id->name) );
 	
 	new_id(lb, id, name);				
