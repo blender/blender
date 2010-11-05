@@ -46,6 +46,8 @@
 
 #include "UI_view2d.h"
 
+#include "PIL_time.h" /* USER_ZOOM_CONT */
+
 static int view2d_poll(bContext *C)
 {
 	ARegion *ar= CTX_wm_region(C);
@@ -493,7 +495,11 @@ void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 typedef struct v2dViewZoomData {
 	View2D *v2d;			/* view2d we're operating in */
 	ARegion *ar;
-	
+
+	/* needed for continuous zoom */
+	wmTimer *timer;
+	double timer_lastdraw;
+
 	int lastx, lasty;		/* previous x/y values of mouse in window */
 	float dx, dy;			/* running tally of previous delta values (for obtaining final zoom) */
 	float mx_2d, my_2d;		/* initial mouse location in v2d coords */
@@ -773,7 +779,18 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 	/* get amount to move view by */
 	dx= RNA_float_get(op->ptr, "deltax");
 	dy= RNA_float_get(op->ptr, "deltay");
-	
+
+	/* continous zoom shouldn't move that fast... */
+	if (U.viewzoom == USER_ZOOM_CONT) { // XXX store this setting as RNA prop?
+		double time= PIL_check_seconds_timer();
+		float time_step= (float)(time - vzd->timer_lastdraw);
+
+		dx *= time_step * 0.5f;
+		dy *= time_step * 0.5f;
+		
+		vzd->timer_lastdraw= time;
+	}
+
 	/* only move view on an axis if change is allowed */
 	if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0) {
 		if (v2d->keepofs & V2D_LOCKOFS_X) {
@@ -823,9 +840,14 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 }
 
 /* cleanup temp customdata  */
-static void view_zoomdrag_exit(wmOperator *op)
+static void view_zoomdrag_exit(bContext *C, wmOperator *op)
 {
 	if (op->customdata) {
+		v2dViewZoomData *vzd= op->customdata;
+		
+		if(vzd->timer)
+			WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), vzd->timer);
+		
 		MEM_freeN(op->customdata);
 		op->customdata= NULL;				
 	}
@@ -838,7 +860,7 @@ static int view_zoomdrag_exec(bContext *C, wmOperator *op)
 		return OPERATOR_PASS_THROUGH;
 	
 	view_zoomdrag_apply(C, op);
-	view_zoomdrag_exit(op);
+	view_zoomdrag_exit(C, op);
 	return OPERATOR_FINISHED;
 }
 
@@ -873,7 +895,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_float_set(op->ptr, "deltay", dy);
 		
 		view_zoomdrag_apply(C, op);
-		view_zoomdrag_exit(op);
+		view_zoomdrag_exit(C, op);
 		return OPERATOR_FINISHED;
 	}	
 	
@@ -902,6 +924,12 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* add temp handler */
 	WM_event_add_modal_handler(C, op);
 
+	if (U.viewzoom == USER_ZOOM_CONT) {
+		/* needs a timer to continue redrawing */
+		vzd->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+		vzd->timer_lastdraw= PIL_check_seconds_timer();
+	}
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -912,85 +940,87 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 	View2D *v2d= vzd->v2d;
 	
 	/* execute the events */
-	switch (event->type) {
-		case MOUSEMOVE:
-		{
-			float dx, dy;
+	if (event->type == TIMER && event->customdata == vzd->timer) {
+		view_zoomdrag_apply(C, op);
+	}
+	else if(event->type == MOUSEMOVE) {
+		float dx, dy;
+		
+		/* calculate new delta transform, based on zooming mode */
+		if (U.viewzoom == USER_ZOOM_SCALE) {
+			/* 'scale' zooming */
+			float dist;
 			
-			/* calculate new delta transform, based on zooming mode */
-			if (U.viewzoom == USER_ZOOM_SCALE) {
-				/* 'scale' zooming */
-				float dist;
-				
-				/* x-axis transform */
-				dist = (v2d->mask.xmax - v2d->mask.xmin) / 2.0f;
-				dx= 1.0f - ((float)fabs(vzd->lastx - dist) + 2.0f) / ((float)fabs(event->x - dist) + 2.0f);
-				dx*= 0.5f * (v2d->cur.xmax - v2d->cur.xmin);
-				
-				/* y-axis transform */
-				dist = (v2d->mask.ymax - v2d->mask.ymin) / 2.0f;
-				dy= 1.0f - ((float)fabs(vzd->lasty - dist) + 2.0f) / ((float)fabs(event->y - dist) + 2.0f);
-				dy*= 0.5f * (v2d->cur.ymax - v2d->cur.ymin);
-			}
-			else {
-				/* 'continuous' or 'dolly' */
-				float fac;
-				
-				/* x-axis transform */
-				fac= 0.01f * (event->x - vzd->lastx);
-				dx= fac * (v2d->cur.xmax - v2d->cur.xmin);
-				
-				/* y-axis transform */
-				fac= 0.01f * (event->y - vzd->lasty);
-				dy= fac * (v2d->cur.ymax - v2d->cur.ymin);
-				
-				/* continous zoom shouldn't move that fast... */
-				if (U.viewzoom == USER_ZOOM_CONT) { // XXX store this setting as RNA prop?
-					dx /= 20.0f;
-					dy /= 20.0f;
-				}
-			}
+			/* x-axis transform */
+			dist = (v2d->mask.xmax - v2d->mask.xmin) / 2.0f;
+			dx= 1.0f - ((float)fabs(vzd->lastx - dist) + 2.0f) / ((float)fabs(event->x - dist) + 2.0f);
+			dx*= 0.5f * (v2d->cur.xmax - v2d->cur.xmin);
 			
-			/* set transform amount, and add current deltas to stored total delta (for redo) */
-			RNA_float_set(op->ptr, "deltax", dx);
-			RNA_float_set(op->ptr, "deltay", dy);
-			vzd->dx += dx;
-			vzd->dy += dy;
-			
-			/* store mouse coordinates for next time, if not doing continuous zoom
-			 *	- continuous zoom only depends on distance of mouse to starting point to determine rate of change
-			 */
-			if (U.viewzoom != USER_ZOOM_CONT) { // XXX store this setting as RNA prop?
-				vzd->lastx= event->x;
-				vzd->lasty= event->y;
-			}
-			
-			/* apply zooming */
-			view_zoomdrag_apply(C, op);
+			/* y-axis transform */
+			dist = (v2d->mask.ymax - v2d->mask.ymin) / 2.0f;
+			dy= 1.0f - ((float)fabs(vzd->lasty - dist) + 2.0f) / ((float)fabs(event->y - dist) + 2.0f);
+			dy*= 0.5f * (v2d->cur.ymax - v2d->cur.ymin);
 		}
-			break;
+		else {
+			/* 'continuous' or 'dolly' */
+			float fac;
 			
-		case LEFTMOUSE:
-		case MIDDLEMOUSE:
-			if (event->val==KM_RELEASE) {
-				/* for redo, store the overall deltas - need to respect zoom-locks here... */
-				if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0)
-					RNA_float_set(op->ptr, "deltax", vzd->dx);
-				else
-					RNA_float_set(op->ptr, "deltax", 0);
-					
-				if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0)
-					RNA_float_set(op->ptr, "deltay", vzd->dy);
-				else
-					RNA_float_set(op->ptr, "deltay", 0);
+			/* x-axis transform */
+			fac= 0.01f * (event->x - vzd->lastx);
+			dx= fac * (v2d->cur.xmax - v2d->cur.xmin);
+			
+			/* y-axis transform */
+			fac= 0.01f * (event->y - vzd->lasty);
+			dy= fac * (v2d->cur.ymax - v2d->cur.ymin);
+#if 0
+			/* continous zoom shouldn't move that fast... */
+			if (U.viewzoom == USER_ZOOM_CONT) { // XXX store this setting as RNA prop?
+				double time= PIL_check_seconds_timer();
+				float time_step= (float)(time - vzd->timer_lastdraw);
+
+				dx /= (0.1f / time_step);
+				dy /= (0.1f / time_step);
 				
-				/* free customdata */
-				view_zoomdrag_exit(op);
-				WM_cursor_restore(CTX_wm_window(C));
-				
-				return OPERATOR_FINISHED;
+				vzd->timer_lastdraw= time;
 			}
-			break;
+#endif
+		}
+		
+		/* set transform amount, and add current deltas to stored total delta (for redo) */
+		RNA_float_set(op->ptr, "deltax", dx);
+		RNA_float_set(op->ptr, "deltay", dy);
+		vzd->dx += dx;
+		vzd->dy += dy;
+		
+		/* store mouse coordinates for next time, if not doing continuous zoom
+		 *	- continuous zoom only depends on distance of mouse to starting point to determine rate of change
+		 */
+		if (U.viewzoom != USER_ZOOM_CONT) { // XXX store this setting as RNA prop?
+			vzd->lastx= event->x;
+			vzd->lasty= event->y;
+		}
+		
+		/* apply zooming */
+		view_zoomdrag_apply(C, op);
+	} else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE)) {
+		if (event->val==KM_RELEASE) {
+			/* for redo, store the overall deltas - need to respect zoom-locks here... */
+			if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0)
+				RNA_float_set(op->ptr, "deltax", vzd->dx);
+			else
+				RNA_float_set(op->ptr, "deltax", 0);
+				
+			if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0)
+				RNA_float_set(op->ptr, "deltay", vzd->dy);
+			else
+				RNA_float_set(op->ptr, "deltay", 0);
+			
+			/* free customdata */
+			view_zoomdrag_exit(C, op);
+			WM_cursor_restore(CTX_wm_window(C));
+			
+			return OPERATOR_FINISHED;
+		}
 	}
 
 	return OPERATOR_RUNNING_MODAL;
