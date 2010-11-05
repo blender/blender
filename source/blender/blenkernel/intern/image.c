@@ -1571,15 +1571,10 @@ static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 /* common stuff to do with images after loading */
 static void image_initialize_after_load(Image *ima, ImBuf *ibuf)
 {
-	
-	
 	/* preview is NULL when it has never been used as an icon before */
 	if(G.background==0 && ima->preview==NULL)
 		BKE_icon_changed(BKE_icon_getid(&ima->id));
-	
-	/* stringcodes also in ibuf, ibuf->name is used to retrieve original (buttons) */
-	BLI_strncpy(ibuf->name, ima->name, FILE_MAX);
-	
+
 	/* fields */
 	if (ima->flag & IMA_FIELDS) {
 		if(ima->flag & IMA_STD_FIELD) de_interlace_st(ibuf);
@@ -1604,11 +1599,10 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 		ima->tpageflag |= IMA_TPAGE_REFRESH;
 
 	ima->lastframe= frame;
-
-	BLI_stringdec(ima->name, head, tail, &numlen);
-	BLI_stringenc(ima->name, head, tail, numlen, frame);
 	BLI_strncpy(name, ima->name, sizeof(name));
-	
+	BLI_stringdec(name, head, tail, &numlen);
+	BLI_stringenc(name, head, tail, numlen, frame);
+
 	if(ima->id.lib)
 		BLI_path_abs(name, ima->id.lib->filepath);
 	else
@@ -1753,8 +1747,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 	return ibuf;
 }
 
-/* cfra used for # code, Image can only have this # for all its users
- * warning, 'iuser' can be NULL */
+/* warning, 'iuser' can be NULL */
 static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 {
 	struct ImBuf *ibuf;
@@ -2002,11 +1995,6 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 			/* XXX temp stuff? */
 			if(ima->lastframe != frame) {
 				ima->tpageflag |= IMA_TPAGE_REFRESH;
-				if(ibuf) {
-					/* without this the image name only updates
-					 * on first load which is quite confusing */
-					BLI_strncpy(ima->name, ibuf->name, sizeof(ima->name));
-				}
 			}
 			ima->lastframe = frame;
 		}	
@@ -2109,9 +2097,6 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 					/* only 1 layer/pass stored in imbufs, no exrhandle anim storage, no saving */
 					ibuf= image_load_sequence_multilayer(ima, iuser, frame);
 				}
-
-				if(ibuf)
-					BLI_strncpy(ima->name, ibuf->name, sizeof(ima->name));
 			}
 			else if(ima->source==IMA_SRC_FILE) {
 				

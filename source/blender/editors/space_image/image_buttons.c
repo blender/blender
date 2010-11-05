@@ -137,21 +137,28 @@ static void image_info(Image *ima, ImBuf *ibuf, char *str)
 	
 	if(ibuf->rect_float) {
 		if(ibuf->channels!=4) {
-			sprintf(str+ofs, "%d float channel(s)", ibuf->channels);
+			ofs+= sprintf(str+ofs, "%d float channel(s)", ibuf->channels);
 		}
 		else if(ibuf->depth==32)
-			strcat(str, " RGBA float");
+			ofs+= sprintf(str+ofs, " RGBA float");
 		else
-			strcat(str, " RGB float");
+			ofs+= sprintf(str+ofs, " RGB float");
 	}
 	else {
 		if(ibuf->depth==32)
-			strcat(str, " RGBA byte");
+			ofs+= sprintf(str+ofs, " RGBA byte");
 		else
-			strcat(str, " RGB byte");
+			ofs+= sprintf(str+ofs, " RGB byte");
 	}
 	if(ibuf->zbuf || ibuf->zbuf_float)
-		strcat(str, " + Z");
+		ofs+= sprintf(str+ofs, " + Z");
+
+	if(ima->source==IMA_SRC_SEQUENCE) {
+		char *file= BLI_last_slash(ibuf->name);
+		if(file==NULL)	file= ibuf->name;
+		else			file++;
+		sprintf(str+ofs, ", %s", file);
+	}
 	
 }
 
