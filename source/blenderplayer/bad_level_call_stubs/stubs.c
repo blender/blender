@@ -358,6 +358,7 @@ struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *
 int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int context, struct PointerRNA *properties, struct ReportList *reports){return 0;}
 int WM_operatortype_remove(const char *idname){return 0;}
 int WM_operator_poll(struct bContext *C, struct wmOperatorType *ot){return 0;}
+int WM_operator_poll_context(struct bContext *C, struct wmOperatorType *ot, int context){return 0;}
 int WM_operator_props_popup(struct bContext *C, struct wmOperator *op, struct wmEvent *event){return 0;}
 void WM_operator_properties_free(struct PointerRNA *ptr){}
 void WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring){}
