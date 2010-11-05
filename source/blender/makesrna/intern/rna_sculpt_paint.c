@@ -167,7 +167,7 @@ static int rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 	 * but for 2D view image painting we always want texture brushes 
 	 * this is not quite correct since you could be in object weightpaint
 	 * mode at the same time as the 2D image view, but for now its *good enough* */
-	if(ob->mode & OB_MODE_ALL_PAINT) {
+	if(ob && ob->mode & OB_MODE_ALL_PAINT) {
 		return ob->mode & brush->ob_mode;
 	}
 	else {
