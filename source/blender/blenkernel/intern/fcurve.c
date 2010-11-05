@@ -53,7 +53,7 @@
 
 #include "RNA_access.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h" 
 #endif
 
@@ -1174,7 +1174,7 @@ void driver_free_variable (ChannelDriver *driver, DriverVar *dvar)
 	else
 		MEM_freeN(dvar);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* since driver variables are cached, the expression needs re-compiling too */
 	if(driver->type==DRIVER_TYPE_PYTHON)
 		driver->flag |= DRIVER_FLAG_RENAMEVAR;
@@ -1231,7 +1231,7 @@ DriverVar *driver_add_new_variable (ChannelDriver *driver)
 	/* set the default type to 'single prop' */
 	driver_change_variable_type(dvar, DVAR_TYPE_SINGLE_PROP);
 	
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* since driver variables are cached, the expression needs re-compiling too */
 	if(driver->type==DRIVER_TYPE_PYTHON)
 		driver->flag |= DRIVER_FLAG_RENAMEVAR;
@@ -1258,7 +1258,7 @@ void fcurve_free_driver(FCurve *fcu)
 		driver_free_variable(driver, dvar);
 	}
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* free compiled driver expression */
 	if (driver->expr_comp)
 		BPY_DECREF(driver->expr_comp);
@@ -1406,7 +1406,7 @@ static float evaluate_driver (ChannelDriver *driver, float UNUSED(evaltime))
 			
 		case DRIVER_TYPE_PYTHON: /* expression */
 		{
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 			/* check for empty or invalid expression */
 			if ( (driver->expression[0] == '\0') ||
 				 (driver->flag & DRIVER_FLAG_INVALID) )
@@ -1420,7 +1420,7 @@ static float evaluate_driver (ChannelDriver *driver, float UNUSED(evaltime))
 				 */
 				driver->curval= BPY_eval_driver(driver);
 			}
-#endif /* DISABLE_PYTHON*/
+#endif /* WITH_PYTHON*/
 		}
 			break;
 		

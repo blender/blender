@@ -28,7 +28,7 @@ try:
 except:
   bpy = None
 
-VERSION = bytes("0.9", encoding='utf8')
+VERSION = bytes("1.0", encoding='utf8')
 
 # Jobs status
 JOB_WAITING = 0 # before all data has been entered
@@ -56,6 +56,17 @@ FRAME_STATUS_TEXT = {
         DONE: "Done",
         ERROR: "Error"
         }
+
+class DirectoryContext:
+    def __init__(self, path):
+        self.path = path
+        
+    def __enter__(self):
+        self.curdir = os.path.abspath(os.curdir)
+        os.chdir(self.path)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.curdir)
 
 def responseStatus(conn):
     response = conn.getresponse()
@@ -216,9 +227,19 @@ def thumbnail(filename):
         scene = bpy.data.scenes[0] # FIXME, this is dodgy!
         scene.render.file_format = "JPEG"
         scene.render.file_quality = 90
+        
+        # remove existing image, if there's a leftover (otherwise open changes the name)
+        if imagename in bpy.data.images:
+            img = bpy.data.images[imagename]
+            bpy.data.images.remove(img)
+
         bpy.ops.image.open(filepath=filename)
         img = bpy.data.images[imagename]
+            
         img.save_render(thumbname, scene=scene)
+        
+        img.user_clear()
+        bpy.data.images.remove(img)
 
         try:
             process = subprocess.Popen(["convert", thumbname, "-resize", "300x300", thumbname])

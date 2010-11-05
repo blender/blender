@@ -39,7 +39,6 @@
 
 #ifndef WIN32
 	#include <unistd.h> // for read close
-	#include <sys/param.h> // for MAXPATHLEN
 #else
 	#include <io.h> // for open close read
 #include "winsock2.h"
@@ -589,20 +588,16 @@ static void bh8_from_bh4(BHead *bhead, BHead4 *bhead4)
 
 static BHeadN *get_bhead(FileData *fd)
 {
-	BHead8 bhead8;
-	BHead4 bhead4;
-	BHead  bhead;
 	BHeadN *new_bhead = 0;
 	int readsize;
 	
 	if (fd) {
 		if ( ! fd->eof) {
-
-			/* not strictly needed but shuts valgrind up
+			/* initializing to zero isn't strictly needed but shuts valgrind up
 			 * since uninitialized memory gets compared */
-			memset(&bhead8, 0, sizeof(BHead8));
-			memset(&bhead4, 0, sizeof(BHead4));
-			memset(&bhead,  0, sizeof(BHead));
+			BHead8 bhead8= {0};
+			BHead4 bhead4= {0};
+			BHead  bhead= {0};
 			
 			// First read the bhead structure.
 			// Depending on the platform the file was written on this can
@@ -1981,9 +1976,13 @@ static void direct_link_animdata(FileData *fd, AnimData *adt)
 	link_list(fd, &adt->nla_tracks);
 	direct_link_nladata(fd, &adt->nla_tracks);
 	
-	/* clear temp pointers that may have been set... */
-	// TODO: it's probably only a small cost to reload this anyway...
-	adt->actstrip= NULL;
+	/* relink active strip - even though strictly speaking this should only be used
+	 * if we're in 'tweaking mode', we need to be able to have this loaded back for
+	 * undo, but also since users may not exit tweakmode before saving (#24535)
+	 */
+	// TODO: it's not really nice that anyone should be able to save the file in this
+	//		state, but it's going to be too hard to enforce this single case...
+	adt->actstrip= newdataadr(fd, adt->actstrip);
 }	
 
 /* ************ READ MOTION PATHS *************** */
@@ -8349,7 +8348,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 
 			if(sce->r.mode & R_PANORAMA) {
-				/* all these checks to ensure saved files with cvs version keep working... */
+				/* all these checks to ensure saved files with svn version keep working... */
 				if(sce->r.xsch < sce->r.ysch) {
 					Object *obc= newlibadr(fd, lib, sce->camera);
 					if(obc && obc->type==OB_CAMERA) {
@@ -11277,7 +11276,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Brush *br;
 		for(br= main->brush.first; br; br= br->id.next) {
 			if(br->ob_mode==0)
-				br->ob_mode= (OB_MODE_SCULPT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT|OB_MODE_VERTEX_PAINT);
+				br->ob_mode= OB_MODE_ALL_PAINT;
 		}
 		
 	}

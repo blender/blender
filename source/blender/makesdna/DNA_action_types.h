@@ -203,12 +203,10 @@ typedef struct bPoseChannel {
 	struct bPoseChannel *child;		/* set on read file or rebuild pose, the 'ik' child, for b-bones */
 	struct ListBase		 iktree;		/* only while evaluating pose */
 	
-	/* only while deform, stores precalculated b_bone deform mats,
-	   dual quaternions */
-	void				*b_bone_mats;	
-	void				*dual_quat;
-	void				*b_bone_dual_quats;
-	
+	bMotionPath *mpath;				/* motion path cache for this bone */
+	struct Object *custom;			/* draws custom object instead of default bone shape */
+	struct bPoseChannel *custom_tx;	/* odd feature, display with another bones transform. needed in rare cases for advanced rigs, since the alternative is highly complicated - campbell */
+
 		/* transforms - written in by actions or transform */
 	float		loc[3];				
 	float		size[3];
@@ -234,9 +232,6 @@ typedef struct bPoseChannel {
 	float		iklinweight;		/* weight of joint stretch constraint */
 
 	float		*path;				/* totpath x 3 x float */		// XXX depreceated... old animation system (armature only viz)
-	bMotionPath *mpath;				/* motion path cache for this bone */
-	struct Object *custom;			/* draws custom object instead of default bone shape */
-	struct bPoseChannel *custom_tx;	/* odd feature, display with another bones transform. needed in rare cases for advanced rigs, since the alternative is highly complicated - campbell */
 } bPoseChannel;
 
 

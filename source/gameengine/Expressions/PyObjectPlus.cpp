@@ -49,7 +49,7 @@
 
 PyObjectPlus::~PyObjectPlus()
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if(m_proxy) {
 		BGE_PROXY_REF(m_proxy)= NULL;
 		Py_DECREF(m_proxy);			/* Remove own reference, python may still have 1 */
@@ -60,14 +60,14 @@ PyObjectPlus::~PyObjectPlus()
 
 PyObjectPlus::PyObjectPlus() : SG_QList()				// constructor
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	m_proxy= NULL;
 #endif
 };
 
 void PyObjectPlus::ProcessReplica()
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* Clear the proxy, will be created again if needed with GetProxy()
 	 * otherwise the PyObject will point to the wrong reference */
 	m_proxy= NULL;
@@ -84,7 +84,7 @@ void PyObjectPlus::ProcessReplica()
  */
 void PyObjectPlus::InvalidateProxy()		// check typename of each parent
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if(m_proxy) {
 		BGE_PROXY_REF(m_proxy)=NULL;
 		Py_DECREF(m_proxy);
@@ -94,7 +94,7 @@ void PyObjectPlus::InvalidateProxy()		// check typename of each parent
 }
 
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /*------------------------------
  * PyObjectPlus Type		-- Every class, even the abstract one should have a Type
@@ -1224,4 +1224,4 @@ void			PyObjectPlus::SetDeprecationWarningFirst(WarnLink* wlink) {m_base_wlink_f
 void			PyObjectPlus::SetDeprecationWarningLinkLast(WarnLink* wlink) {m_base_wlink_last= wlink;}
 void			PyObjectPlus::NullDeprecationWarning() {m_base_wlink_first= m_base_wlink_last= NULL;}
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

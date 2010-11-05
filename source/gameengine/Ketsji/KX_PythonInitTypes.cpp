@@ -32,7 +32,7 @@
 #ifndef _adr_py_init_types_h_				// only process once,
 #define _adr_py_init_types_h_				// even if multiply included
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* Only for Class::Parents */
 #include "BL_BlenderShader.h"
@@ -256,6 +256,6 @@ void initPyTypes(void)
 #endif
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 #endif

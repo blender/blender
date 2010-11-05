@@ -191,7 +191,7 @@ static SpaceLink *view3d_new(const bContext *C)
 		v3d->lay= v3d->layact= scene->lay;
 		v3d->camera= scene->camera;
 	}
-	v3d->scenelock= 1;
+	v3d->scenelock= TRUE;
 	v3d->grid= 1.0f;
 	v3d->gridlines= 16;
 	v3d->gridsubdiv = 10;
@@ -206,6 +206,7 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->near= 0.01f;
 	v3d->far= 500.0f;
 
+	v3d->twflag |= U.tw_flag & V3D_USE_MANIPULATOR;
 	v3d->twtype= V3D_MANIP_TRANSLATE;
 	v3d->around= V3D_CENTROID;
 	
@@ -249,8 +250,8 @@ static SpaceLink *view3d_new(const bContext *C)
 	ar->regiondata= MEM_callocN(sizeof(RegionView3D), "region view3d");
 	rv3d= ar->regiondata;
 	rv3d->viewquat[0]= 1.0f;
-	rv3d->persp= 1;
-	rv3d->view= 7;
+	rv3d->persp= RV3D_PERSP;
+	rv3d->view= RV3D_VIEW_PERSPORTHO;
 	rv3d->dist= 10.0;
 	
 	return (SpaceLink *)v3d;

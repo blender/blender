@@ -439,7 +439,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					if (pchan->parent == NULL) continue;
 					else pabone= pchan->parent->bone;
 					
-					if ((arm->layer & pabone->layer) && !(pabone->flag & BONE_HIDDEN_P)) {
+					if (PBONE_VISIBLE(arm, pabone)) {
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						pabone->flag |= BONE_SELECTED;
 						arm->act_bone= pabone;
@@ -452,7 +452,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					if (pchan->child == NULL) continue;
 					else chbone = pchan->child->bone;
 					
-					if ((arm->layer & chbone->layer) && !(chbone->flag & BONE_HIDDEN_P)) {
+					if (PBONE_VISIBLE(arm, chbone)) {
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						chbone->flag |= BONE_SELECTED;
 						arm->act_bone= chbone;
@@ -1682,11 +1682,9 @@ void ARMATURE_OT_armature_layers (wmOperatorType *ot)
 /* Present a popup to get the layers that should be used */
 static int pose_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
+	int layers[32]= {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
-	/* get layers that are active already */
-	memset(&layers, 0, sizeof(layers)); /* set all layers to be off by default */
-	
+	/* get layers that are active already */	
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones) 
 	{
 		short bit;
@@ -1756,11 +1754,9 @@ void POSE_OT_bone_layers (wmOperatorType *ot)
 /* Present a popup to get the layers that should be used */
 static int armature_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
+	int layers[32]= {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* get layers that are active already */
-	memset(&layers, 0, sizeof(layers)); /* set all layers to be off by default */
-	
 	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) 
 	{
 		short bit;

@@ -1485,7 +1485,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	ParticleKey state;
 	ParticleCacheKey *cache=0;
 	ParticleBillboardData bb;
-	ParticleSimulationData sim = {re->scene, ob, psys, NULL};
+	ParticleSimulationData sim = {0};
 	ParticleStrandData sd;
 	StrandBuffer *strandbuf=0;
 	StrandVert *svert=0;
@@ -1519,9 +1519,14 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 /* 2. start initialising things */
 
 	/* last possibility to bail out! */
-	sim.psmd = psmd = psys_get_modifier(ob,psys);
+	psmd = psys_get_modifier(ob,psys);
 	if(!(psmd->modifier.mode & eModifierMode_Render))
 		return 0;
+
+	sim.scene= re->scene;
+	sim.ob= ob;
+	sim.psys= psys;
+	sim.psmd= psmd;
 
 	if(part->phystype==PART_PHYS_KEYED)
 		psys_count_keyed_targets(&sim);
@@ -5186,7 +5191,7 @@ static void calculate_speedvector(float *vectors, int step, float winsq, float w
 
 static float *calculate_strandsurface_speedvectors(Render *re, ObjectInstanceRen *obi, StrandSurface *mesh)
 {
-	float winsq= re->winx*re->winy, winroot= sqrt(winsq), (*winspeed)[4];
+	float winsq= (float)re->winx*(float)re->winy, winroot= sqrt(winsq), (*winspeed)[4];  /* int's can wrap on large images */
 	float ho[4], prevho[4], nextho[4], winmat[4][4], vec[2];
 	int a;
 
@@ -5225,7 +5230,7 @@ static void calculate_speedvectors(Render *re, ObjectInstanceRen *obi, float *ve
 	StrandSurface *mesh= NULL;
 	float *speed, (*winspeed)[4]=NULL, ho[4], winmat[4][4];
 	float *co1, *co2, *co3, *co4, w[4];
-	float winsq= re->winx*re->winy, winroot= sqrt(winsq);
+	float winsq= (float)re->winx*(float)re->winy, winroot= sqrt(winsq);  /* int's can wrap on large images */
 	int a, *face, *index;
 
 	if(obi->flag & R_TRANSFORMED)
@@ -5292,7 +5297,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	VertRen *ver= NULL;
 	float *speed, div, zco[2], avgvel[4] = {0.0, 0.0, 0.0, 0.0};
 	float zmulx= re->winx/2, zmuly= re->winy/2, len;
-	float winsq= re->winx*re->winy, winroot= sqrt(winsq);
+	float winsq= (float)re->winx*(float)re->winy, winroot= sqrt(winsq); /* int's can wrap on large images */
 	int a, j;
 	float hoco[4], ho[4], fsvec[4], camco[4];
 	float mat[4][4], winmat[4][4];

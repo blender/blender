@@ -603,8 +603,11 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_ketsjiengine->SetNetworkDevice(m_networkdevice);
 
 		m_ketsjiengine->SetTimingDisplay(frameRate, false, false);
-
+#ifdef WITH_PYTHON
 		CValue::SetDeprecationWarnings(nodepwarnings);
+#else
+		(void)nodepwarnings;
+#endif
 
 		m_ketsjiengine->SetUseFixedTime(fixed_framerate);
 		m_ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
@@ -677,20 +680,21 @@ bool GPG_Application::startEngine(void)
 			m_startScene,
 			m_canvas);
 		
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 			// some python things
 			PyObject *gameLogic, *gameLogic_keys;
 			setupGamePython(m_ketsjiengine, startscene, m_maggie, NULL, &gameLogic, &gameLogic_keys, m_argc, m_argv);
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 		//initialize Dome Settings
 		if(m_startScene->gm.stereoflag == STEREO_DOME)
 			m_ketsjiengine->InitDome(m_startScene->gm.dome.res, m_startScene->gm.dome.mode, m_startScene->gm.dome.angle, m_startScene->gm.dome.resbuf, m_startScene->gm.dome.tilt, m_startScene->gm.dome.warptext);
 
+#ifdef WITH_PYTHON
 		// Set the GameLogic.globalDict from marshal'd data, so we can
 		// load new blend files and keep data in GameLogic.globalDict
 		loadGamePythonConfig(m_pyGlobalDictString, m_pyGlobalDictString_Length);
-		
+#endif		
 		m_sceneconverter->ConvertScene(
 			startscene,
 			m_rendertools,
@@ -723,6 +727,7 @@ bool GPG_Application::startEngine(void)
 
 void GPG_Application::stopEngine()
 {
+#ifdef WITH_PYTHON
 	// GameLogic.globalDict gets converted into a buffer, and sorted in
 	// m_pyGlobalDictString so we can restore after python has stopped
 	// and started between .blend file loads.
@@ -735,6 +740,8 @@ void GPG_Application::stopEngine()
 	
 	// when exiting the mainloop
 	exitGamePythonScripting();
+#endif
+	
 	m_ketsjiengine->StopEngine();
 	m_networkdevice->Disconnect();
 

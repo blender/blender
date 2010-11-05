@@ -84,7 +84,7 @@ public:
 	virtual bool	IsPositiveTrigger();
 	virtual CValue*		FindIdentifier(const STR_String& identifiername);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

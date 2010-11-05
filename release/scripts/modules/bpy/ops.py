@@ -115,14 +115,34 @@ class bpy_ops_submodule_op(object):
     def _get_doc(self):
         return op_as_string(self.idname())
 
+    @staticmethod
+    def _parse_args(args):
+        C_dict = None
+        C_exec = 'EXEC_DEFAULT'
+
+        if len(args) == 0:
+            pass
+        elif len(args) == 1:
+            if type(args[0]) != str:
+                C_dict = args[0]
+            else:
+                C_exec = args[0]
+        elif len(args) == 2:
+            C_exec, C_dict = args
+        else:
+            raise ValueError("1 or 2 args execution context is supported")
+
+        return C_dict, C_exec
+
     __doc__ = property(_get_doc)
 
     def __init__(self, module, func):
         self.module = module
         self.func = func
 
-    def poll(self, context=None):
-        return op_poll(self.idname_py(), context)
+    def poll(self, *args):
+        C_dict, C_exec = __class__._parse_args(args)
+        return op_poll(self.idname_py(), C_dict, C_exec)
 
     def idname(self):
         # submod.foo -> SUBMOD_OT_foo
@@ -135,31 +155,11 @@ class bpy_ops_submodule_op(object):
     def __call__(self, *args, **kw):
 
         # Get the operator from blender
-        if len(args) > 2:
-            raise ValueError("1 or 2 args execution context is supported")
-
-        C_dict = None
-
         if args:
-
-            C_exec = 'EXEC_DEFAULT'
-
-            if len(args) == 2:
-                C_exec = args[0]
-                C_dict = args[1]
-            else:
-                if type(args[0]) != str:
-                    C_dict = args[0]
-                else:
-                    C_exec = args[0]
-
-            if len(args) == 2:
-                C_dict = args[1]
-
+            C_dict, C_exec = __class__._parse_args(args)
             ret = op_call(self.idname_py(), C_dict, kw, C_exec)
-
         else:
-            ret = op_call(self.idname_py(), C_dict, kw)
+            ret = op_call(self.idname_py(), None, kw)
 
         if 'FINISHED' in ret:
             import bpy

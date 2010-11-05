@@ -20,6 +20,7 @@ import os
 import re
 import shutil
 from netrender.utils import *
+import netrender.model
 
 src_folder = os.path.split(__file__)[0]
 
@@ -115,6 +116,7 @@ def get(handler):
                         "id",
                         "name",
                         "category",
+                        "type",
                         "chunks",
                         "priority",
                         "usage",
@@ -139,6 +141,7 @@ def get(handler):
                         job.id,
                         link(job.name, "/html/job" + job.id),
                         job.category if job.category else "<i>None</i>",
+                        netrender.model.JOB_TYPES[job.type],
                         str(job.chunks) +
                         """<button title="increase chunks size" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);">+</button>""" % (job.id, job.chunks + 1) +
                         """<button title="decrease chunks size" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);" %s>-</button>""" % (job.id, job.chunks - 1, "disabled=True" if job.chunks == 1 else ""),
@@ -228,39 +231,52 @@ def get(handler):
             endTable()
 
 
-            output("<h2>Files</h2>")
-
-            startTable()
-            headerTable("path")
-
-            tot_cache = 0
-            tot_fluid = 0
-
-            rowTable(job.files[0].filepath)
-            rowTable("Other Files", class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.other&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
-
-            for file in job.files:
-                if file.filepath.endswith(".bphys"):
-                    tot_cache += 1
-                elif file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"):
-                    tot_fluid += 1
-                else:
-                    if file != job.files[0]:
-                        rowTable(file.filepath, class_style = "other")
-
-            if tot_cache > 0:
-                rowTable("%i physic cache files" % tot_cache, class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.cache&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
+            if job.type == netrender.model.JOB_BLENDER:
+                output("<h2>Files</h2>")
+                
+                startTable()
+                headerTable("path")
+    
+                tot_cache = 0
+                tot_fluid = 0
+    
+                rowTable(job.files[0].filepath)
+                rowTable("Other Files", class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.other&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
+    
                 for file in job.files:
                     if file.filepath.endswith(".bphys"):
-                        rowTable(os.path.split(file.filepath)[1], class_style = "cache")
-
-            if tot_fluid > 0:
-                rowTable("%i fluid bake files" % tot_fluid, class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.fluid&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
-                for file in job.files:
-                    if file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"):
-                        rowTable(os.path.split(file.filepath)[1], class_style = "fluid")
-
-            endTable()
+                        tot_cache += 1
+                    elif file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"):
+                        tot_fluid += 1
+                    else:
+                        if file != job.files[0]:
+                            rowTable(file.filepath, class_style = "other")
+    
+                if tot_cache > 0:
+                    rowTable("%i physic cache files" % tot_cache, class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.cache&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
+                    for file in job.files:
+                        if file.filepath.endswith(".bphys"):
+                            rowTable(os.path.split(file.filepath)[1], class_style = "cache")
+    
+                if tot_fluid > 0:
+                    rowTable("%i fluid bake files" % tot_fluid, class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.fluid&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
+                    for file in job.files:
+                        if file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"):
+                            rowTable(os.path.split(file.filepath)[1], class_style = "fluid")
+    
+                endTable()
+            elif job.type == netrender.model.JOB_VCS:
+                output("<h2>Versioning</h2>")
+                
+                startTable()
+    
+                rowTable("System", job.version_info.system.name)
+                rowTable("Remote Path", job.version_info.rpath)
+                rowTable("Working Path", job.version_info.wpath)
+                rowTable("Revision", job.version_info.revision)
+                rowTable("Render File", job.files[0].filepath)
+    
+                endTable()
 
             if job.blacklist:
                 output("<h2>Blacklist</h2>")

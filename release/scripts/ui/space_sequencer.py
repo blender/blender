@@ -295,6 +295,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.separator()
         layout.operator("sequencer.reload")
         layout.operator("sequencer.reassign_inputs")
+        layout.operator("sequencer.swap_inputs")
         layout.separator()
         layout.operator("sequencer.lock")
         layout.operator("sequencer.unlock")
@@ -407,6 +408,13 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         strip = act_strip(context)
+        if strip.input_count > 0:
+            col = layout.column()
+            col.prop(strip, "input_1")
+            if strip.input_count > 1:
+                col.prop(strip, "input_2")
+            if strip.input_count > 2:
+                col.prop(strip, "input_3")
 
         if strip.type == 'COLOR':
             layout.prop(strip, "color")
@@ -652,6 +660,9 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
 
         layout.label(text="Camera Override")
         layout.template_ID(strip, "scene_camera")
+
+        sce = strip.scene
+        layout.label(text="Original frame range: "+ str(sce.frame_start) +" - "+ str(sce.frame_end) + " (" + str(sce.frame_end-sce.frame_start+1) + ")")
 
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):

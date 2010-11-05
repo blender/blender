@@ -47,6 +47,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_multires.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -119,7 +120,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_location_clear_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -264,7 +265,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_rotation_clear_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -330,7 +331,7 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_scale_clear_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -372,7 +373,7 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_origin_clear_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -390,7 +391,7 @@ static void ignore_parent_tx(Main *bmain, Scene *scene, Object *ob )
 	/* a change was made, adjust the children to compensate */
 	for(ob_child=bmain->object.first; ob_child; ob_child=ob_child->id.next) {
 		if(ob_child->parent == ob) {
-			object_apply_mat4(ob_child, ob_child->obmat);
+			object_apply_mat4(ob_child, ob_child->obmat, TRUE);
 			what_does_parent(scene, ob_child, &workob);
 			invert_m4_m4(ob_child->parentinv, workob.obmat);
 		}
@@ -491,6 +492,8 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		if(ob->type==OB_MESH) {
 			me= ob->data;
 			
+			multiresModifier_scale_disp(scene, ob);
+			
 			/* adjust data */
 			mvert= me->mvert;
 			for(a=0; a<me->totvert; a++, mvert++)
@@ -574,7 +577,7 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		where_is_object(scene, ob);
-		object_apply_mat4(ob, ob->obmat);
+		object_apply_mat4(ob, ob->obmat, TRUE);
 		where_is_object(scene, ob);
 		
 		change = 1;
@@ -597,7 +600,7 @@ void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= visual_transform_apply_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -617,7 +620,7 @@ void OBJECT_OT_location_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= location_apply_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -637,7 +640,7 @@ void OBJECT_OT_scale_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= scale_apply_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -657,7 +660,7 @@ void OBJECT_OT_rotation_apply(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= rotation_apply_exec;
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

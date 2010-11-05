@@ -71,7 +71,7 @@ public:
 		m_NetworkScene= val;
 	};
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* ------------------------------------------------------------- */
 	/* Python interface -------------------------------------------- */
@@ -81,7 +81,7 @@ public:
 	static PyObject*	pyattr_get_bodies(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);	
 	static PyObject*	pyattr_get_subjects(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
-#endif //  DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 };
 

@@ -58,7 +58,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -171,9 +171,9 @@ static int new_exec(bContext *C, wmOperator *UNUSED(op))
 	else if(st) {
 		st->text= text;
 		st->top= 0;
+		text_drawcache_tag_update(st, 1);
 	}
 
-	text_drawcache_tag_update(st, 1);
 	WM_event_add_notifier(C, NC_TEXT|NA_ADDED, text);
 
 	return OPERATOR_FINISHED;
@@ -310,7 +310,7 @@ static int reload_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if(text->compiled)
 		BPY_free_compiled_text(text);
 #endif
@@ -557,7 +557,7 @@ static int run_script_poll(bContext *C)
 
 static int run_script_exec(bContext *C, wmOperator *op)
 {
-#ifdef DISABLE_PYTHON
+#ifndef WITH_PYTHON
 	(void)C; /* unused */
 
 	BKE_report(op->reports, RPT_ERROR, "Python disabled in this build");
@@ -597,7 +597,7 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 
 static int refresh_pyconstraints_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #if 0
 	Text *text= CTX_data_edit_text(C);
 	Object *ob;
@@ -2603,12 +2603,16 @@ static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	// if(!RNA_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
 	if(!RNA_string_length(op->ptr, "text")) {
-		char str[2] = {event->ascii, '\0'};
 		/* if alt/ctrl/super are pressed pass through */
-		if(event->ctrl || event->oskey)
+		if(event->ctrl || event->oskey) {
 			return OPERATOR_PASS_THROUGH;
-
-		RNA_string_set(op->ptr, "text", str);
+		}
+		else {
+			char str[2];
+			str[0]= event->ascii;
+			str[1]= '\0';
+			RNA_string_set(op->ptr, "text", str);
+		}
 	}
 
 	ret = insert_exec(C, op);

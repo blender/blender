@@ -1729,7 +1729,7 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 void ui_draw_gradient(rcti *rect, float *hsv, int type, float alpha)
 {
 	int a;
-	float h= hsv[0], s= hsv[1], v= hsv[0];
+	float h= hsv[0], s= hsv[1], v= hsv[2];
 	float dx, dy, sx1, sx2, sy;
 	float col0[4][3];	// left half, rect bottom to top
 	float col1[4][3];	// right half, rect bottom to top
@@ -2905,7 +2905,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 				
 			case HSVCUBE:
-				if(but->a1==9) // vertical V slider, uses new widget draw now
+				if(but->a1 == UI_GRAD_V_ALT) // vertical V slider, uses new widget draw now
 					ui_draw_but_HSV_v(but, rect);
 				else  // other HSV pickers...
 					ui_draw_but_HSVCUBE(but, rect);

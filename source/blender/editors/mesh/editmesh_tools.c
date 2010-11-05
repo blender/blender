@@ -57,6 +57,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_heap.h"
+#include "BLI_scanfill.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"

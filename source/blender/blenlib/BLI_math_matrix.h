@@ -102,9 +102,9 @@ void transpose_m3(float R[3][3]);
 void transpose_m4(float R[4][4]);
 
 void normalize_m3(float R[3][3]);
-void normalize_m3_m3(float R[3][3], const float A[3][3]);
+void normalize_m3_m3(float R[3][3], float A[3][3]);
 void normalize_m4(float R[4][4]);
-void normalize_m4_m4(float R[4][4], const float A[4][4]);
+void normalize_m4_m4(float R[4][4], float A[4][4]);
 
 void orthogonalize_m3(float R[3][3], int axis);
 void orthogonalize_m4(float R[4][4], int axis);
@@ -143,6 +143,8 @@ void mat4_to_size(float r[3], float M[4][4]);
 
 void translate_m4(float mat[4][4], float tx, float ty, float tz);
 void rotate_m4(float mat[4][4], const char axis, const float angle);
+
+void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wmat[][4]);
 
 void loc_eul_size_to_mat4(float R[4][4],
 	const float loc[3], const float eul[3], const float size[3]);

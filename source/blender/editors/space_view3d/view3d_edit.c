@@ -1366,7 +1366,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= view3d_all_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag= 0;
@@ -1432,7 +1432,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 		}
 	}
 	else if (paint_facesel_test(ob)) {
-		ok= minmax_tface(ob, min, max);
+		ok= paintface_minmax(ob, min, max);
 	}
 	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		ok= PE_minmax(scene, min, max);
@@ -1594,7 +1594,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 
 	/* calculate range */
-	view3d_calc_camera_border(scene, ar, rv3d, v3d, &vb);
+	view3d_calc_camera_border(scene, ar, rv3d, v3d, &vb, FALSE);
 
 	scene->r.border.xmin= ((float)rect.xmin-vb.xmin)/(vb.xmax-vb.xmin);
 	scene->r.border.ymin= ((float)rect.ymin-vb.ymin)/(vb.ymax-vb.ymin);
@@ -2423,7 +2423,9 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 		short depth_used = 0;
 
 		if (U.uiflag & USER_ORBIT_ZBUF) { /* maybe this should be accessed some other way */
-			short mval_depth[2] = {mx, my};
+			short mval_depth[2];
+			mval_depth[0]= mx;
+			mval_depth[1]= my;
 			view3d_operator_needs_opengl(C);
 			if (view_autodist(scene, ar, v3d, mval_depth, fp))
 				depth_used= 1;
@@ -2575,10 +2577,8 @@ static float view_autodist_depth_margin(ARegion *ar, short *mval, int margin)
 
 	view3d_update_depths_rect(ar, &depth_temp, &rect);
 	depth_close= view3d_depth_near(&depth_temp);
-
-	MEM_freeN(depth_temp.depths);
-
-	return depth_close;	
+	if(depth_temp.depths) MEM_freeN(depth_temp.depths);
+	return depth_close;
 }
 
 /* XXX todo Zooms in on a border drawn by the user */
@@ -3051,6 +3051,21 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int UNUSED(mode))
 // XXX    scrarea_do_windraw(curarea);
 }
 
-
-
-
+/* give a 4x4 matrix from a perspective view, only needs viewquat, ofs and dist
+ * basically the same as...
+ *     rv3d->persp= RV3D_PERSP
+ *     setviewmatrixview3d(scene, v3d, rv3d);
+ *     setcameratoview3d(v3d, rv3d, v3d->camera);
+ * ...but less of a hassle
+ * */
+void view3d_persp_mat4(RegionView3D *rv3d, float mat[][4])
+{
+	float qt[4], dvec[3];
+	copy_qt_qt(qt, rv3d->viewquat);
+	qt[0]= -qt[0];
+	quat_to_mat4(mat, qt);
+	mat[3][2] -= rv3d->dist;
+	translate_m4(mat, rv3d->ofs[0], rv3d->ofs[1], rv3d->ofs[2]);
+	mul_v3_v3fl(dvec, mat[2], -rv3d->dist);
+	sub_v3_v3v3(mat[3], dvec, rv3d->ofs);
+}

@@ -60,7 +60,7 @@ class plugin(object):
 				init_properties(property_group, property_group.properties)
 				#print('Initialised IDPropertyGroup %s' % property_group.__name__)
 		
-		log('Render Engine "%s" initialised' % r_class.bl_label)
+		log('Extension "%s" initialised' % r_class.bl_label)
 	
 	@classmethod
 	def uninstall(r_class):

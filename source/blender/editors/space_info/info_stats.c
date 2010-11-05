@@ -327,12 +327,10 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 /* Statistics displayed in info header. Called regularly on scene changes. */
 static void stats_update(Scene *scene)
 {
-	SceneStats stats;
+	SceneStats stats= {0};
 	Object *ob= (scene->basact)? scene->basact->object: NULL;
 	Base *base;
 	
-	memset(&stats, 0, sizeof(stats));
-
 	if(scene->obedit) {
 		/* Edit Mode */
 		stats_object_edit(scene->obedit, &stats);
@@ -341,7 +339,7 @@ static void stats_update(Scene *scene)
 		/* Pose Mode */
 		stats_object_pose(ob, &stats);
 	}
-	else if(ob && (ob->flag & (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
+	else if(ob && (ob->flag & OB_MODE_ALL_PAINT)) {
 		/* Sculpt and Paint Mode */
 		stats_object_paint(ob, &stats);
 	}

@@ -36,6 +36,7 @@
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_sequencer.h"
 
 #include "RNA_access.h"
@@ -234,7 +235,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		if (obpose && obpose->pose && arm) {
 			for (pchan= obpose->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
-				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+				if (PBONE_VISIBLE(arm, pchan->bone)) {
 					CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
 				}
 			}
@@ -250,7 +251,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		if (obpose && obpose->pose && arm) {
 			for (pchan= obpose->pose->chanbase.first; pchan; pchan= pchan->next) {
 				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
-				if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+				if (PBONE_VISIBLE(arm, pchan->bone)) {
 					if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone)
 						CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
 				}

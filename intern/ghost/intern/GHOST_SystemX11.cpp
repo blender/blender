@@ -68,7 +68,7 @@
 #include <cstdlib> // for exit
 
 #ifndef PREFIX
-#  define PREFIX "/usr/local"
+#error "PREFIX not defined"
 #endif
 
 typedef struct NDOFPlatformInfo {

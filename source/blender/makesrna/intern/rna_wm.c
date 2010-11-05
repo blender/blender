@@ -649,7 +649,7 @@ static void rna_wmClipboard_set(PointerRNA *ptr, const char *value)
 	WM_clipboard_text_set((void *) value, FALSE);
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 static void rna_Operator_unregister(const bContext *C, StructRNA *type)
 {
 	char *idname;
@@ -952,7 +952,7 @@ static StructRNA *rna_MacroOperator_register(const bContext *C, ReportList *repo
 
 	return dummyot.ext.srna;
 }
-#endif /* DISABLE_PYTHON */
+#endif /* WITH_PYTHON */
 
 static StructRNA* rna_Operator_refine(PointerRNA *opr)
 {
@@ -1061,7 +1061,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Operator", "Storage of an operator being executed, or registered after execution");
 	RNA_def_struct_sdna(srna, "wmOperator");
 	RNA_def_struct_refine_func(srna, "rna_Operator_refine");
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	RNA_def_struct_register_funcs(srna, "rna_Operator_register", "rna_Operator_unregister");
 #endif
 
@@ -1124,7 +1124,7 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Macro Operator", "Storage of a macro operator being executed, or registered after execution");
 	RNA_def_struct_sdna(srna, "wmOperator");
 	RNA_def_struct_refine_func(srna, "rna_MacroOperator_refine");
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	RNA_def_struct_register_funcs(srna, "rna_MacroOperator_register", "rna_Operator_unregister");
 #endif
     

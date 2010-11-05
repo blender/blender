@@ -408,7 +408,7 @@ bPoseChannel *verify_pose_channel(bPose *pose, const char *name)
 	/* If not, create it and add it */
 	chan = MEM_callocN(sizeof(bPoseChannel), "verifyPoseChannel");
 	
-	strncpy(chan->name, name, 31);
+	BLI_strncpy(chan->name, name, sizeof(chan->name));
 	/* init vars to prevent math errors */
 	chan->quat[0] = chan->rotAxis[1]= 1.0f;
 	chan->size[0] = chan->size[1] = chan->size[2] = 1.0f;
@@ -774,7 +774,7 @@ void pose_add_group (Object *ob)
 		return;
 	
 	grp= MEM_callocN(sizeof(bActionGroup), "PoseGroup");
-	strcpy(grp->name, "Group");
+	BLI_strncpy(grp->name, "Group", sizeof(grp->name));
 	BLI_addtail(&pose->agroups, grp);
 	BLI_uniquename(&pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), sizeof(grp->name));
 	
@@ -1119,8 +1119,8 @@ void what_does_obaction (Scene *UNUSED(scene), Object *ob, Object *workob, bPose
 	
 	workob->pose= pose;	/* need to set pose too, since this is used for both types of Action Constraint */
 
-	strcpy(workob->parsubstr, ob->parsubstr);
-	strcpy(workob->id.name, "OB<ConstrWorkOb>"); /* we don't use real object name, otherwise RNA screws with the real thing */
+	BLI_strncpy(workob->parsubstr, ob->parsubstr, sizeof(workob->parsubstr));
+	BLI_strncpy(workob->id.name, "OB<ConstrWorkOb>", sizeof(workob->id.name)); /* we don't use real object name, otherwise RNA screws with the real thing */
 	
 	/* if we're given a group to use, it's likely to be more efficient (though a bit more dangerous) */
 	if (agrp) {
@@ -1134,10 +1134,9 @@ void what_does_obaction (Scene *UNUSED(scene), Object *ob, Object *workob, bPose
 		animsys_evaluate_action_group(&id_ptr, act, agrp, NULL, cframe);
 	}
 	else {
-		AnimData adt;
+		AnimData adt= {0};
 		
 		/* init animdata, and attach to workob */
-		memset(&adt, 0, sizeof(AnimData));
 		workob->adt= &adt;
 		
 		adt.recalc= ADT_RECALC_ANIM;

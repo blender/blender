@@ -199,13 +199,17 @@ static int ptcache_write_particle(int index, void *psys_v, void **data, int cfra
 	ParticleSystem *psys= psys_v;
 	ParticleData *pa = psys->particles + index;
 	BoidParticle *boid = (psys->part->phystype == PART_PHYS_BOIDS) ? pa->boid : NULL;
-	float times[3] = {pa->time, pa->dietime, pa->lifetime};
+	float times[3];
 	int step = psys->pointcache->step;
 
 	/* No need to store unborn or died particles outside cache step bounds */
 	if(data[BPHYS_DATA_INDEX] && (cfra < pa->time - step || cfra > pa->dietime + step))
 		return 0;
-	
+
+	times[0]= pa->time;
+	times[1]= pa->dietime;
+	times[2]= pa->lifetime;
+
 	PTCACHE_DATA_FROM(data, BPHYS_DATA_INDEX, &index);
 	PTCACHE_DATA_FROM(data, BPHYS_DATA_LOCATION, pa->state.co);
 	PTCACHE_DATA_FROM(data, BPHYS_DATA_VELOCITY, pa->state.vel);
@@ -2002,7 +2006,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 					if((mode==PTCACHE_CLEAR_BEFORE && pm->frame < cfra)	|| 
 					(mode==PTCACHE_CLEAR_AFTER && pm->frame > cfra)	) {
 						link = pm;
-						if(pm->frame >=sta && pm->frame <= end)
+						if(pid->cache->cached_frames && pm->frame >=sta && pm->frame <= end)
 							pid->cache->cached_frames[pm->frame-sta] = 0;
 						ptcache_free_data(pm);
 						pm = pm->next;
@@ -2603,6 +2607,8 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 	thread_data.break_operation = FALSE;
 	thread_data.thread_ended = FALSE;
 	old_progress = -1;
+
+	WM_cursor_wait(1);
 	
 	if(G.background) {
 		ptcache_make_cache_thread((void*)&thread_data);
@@ -2685,6 +2691,8 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		WM_cursor_wait(0);
 	else if (baker->progressend)
 		baker->progressend(baker->progresscontext);
+
+	WM_cursor_wait(0);
 
 	/* TODO: call redraw all windows somehow */
 }

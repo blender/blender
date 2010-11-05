@@ -334,15 +334,13 @@ void recalcData(TransInfo *t)
 		Scene *scene= t->scene;
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		
-		bAnimContext ac;
+		bAnimContext ac= {0};
 		ListBase anim_data = {NULL, NULL};
 		bAnimListElem *ale;
 		int filter;
 		
 		/* initialise relevant anim-context 'context' data from TransInfo data */
 			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
-		memset(&ac, 0, sizeof(bAnimContext));
-		
 		ac.scene= t->scene;
 		ac.obact= OBACT;
 		ac.sa= t->sa;
@@ -1569,13 +1567,4 @@ void calculatePropRatio(TransInfo *t)
 		}
 		strcpy(t->proptext, "");
 	}
-}
-
-float get_drawsize(ARegion *ar, float *co)
-{
-	RegionView3D *rv3d= ar->regiondata;
-	float vec[3]= {rv3d->persmat[0][3], rv3d->persmat[1][3], rv3d->persmat[2][3]};
-	float size= rv3d->pixsize * 5;
-	size *= dot_v3v3(vec, co) + rv3d->persmat[3][3];
-	return size;
 }

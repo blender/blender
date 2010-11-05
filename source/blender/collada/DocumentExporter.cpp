@@ -904,7 +904,7 @@ protected:
 void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 {
 	PointerRNA sceneptr, unit_settings;
-	PropertyRNA *system, *scale;
+	PropertyRNA *system; /* unused , *scale; */
 
 	clear_global_id_map();
 	

@@ -6,7 +6,7 @@ def normpath(path):
     return os.path.abspath(os.path.normpath(path))
 
 Import ('env')
-cflags = ['-Wall']
+cflags = [] #['-Wall']
 defines = []
 root_build_dir=normpath(env['BF_BUILDDIR'])
 
@@ -68,7 +68,7 @@ if env['WITH_BF_LCMS']:
     defs.append('WITH_LCMS')
 
 if env['WITH_BF_GAMEENGINE']:
-    defs.append('GAMEBLENDER=1')
+    defs.append('WITH_GAMEENGINE')
     
 if env['WITH_BF_FFTW3']:
     defs.append('FFTW3=1')
@@ -85,8 +85,8 @@ if env['WITH_BF_JACK']:
 if env['BF_UNIT_TEST']:
     defs.append('UNIT_TEST')
 
-if not env['WITH_BF_PYTHON']:
-    defs.append('DISABLE_PYTHON')
+if env['WITH_BF_PYTHON']:
+    defs.append('WITH_PYTHON')
 
 if env['OURPLATFORM'] == 'linux2':
     cflags='-pthread'

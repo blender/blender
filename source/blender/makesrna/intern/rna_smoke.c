@@ -33,6 +33,7 @@
 #include "BKE_smoke.h"
 
 #include "DNA_modifier_types.h"
+#include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
@@ -64,6 +65,11 @@ static void rna_Smoke_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	smokeModifier_reset(settings->smd);
 
+	if(settings->smd && settings->smd->domain) {
+		settings->point_cache[0]->flag |= PTCACHE_OUTDATED;
+		settings->point_cache[1]->flag |= PTCACHE_OUTDATED;
+	}
+
 	rna_Smoke_update(bmain, scene, ptr);
 }
 
@@ -72,6 +78,11 @@ static void rna_Smoke_reset_dependancy(Main *bmain, Scene *scene, PointerRNA *pt
 	SmokeDomainSettings *settings = (SmokeDomainSettings*)ptr->data;
 
 	smokeModifier_reset(settings->smd);
+
+	if(settings->smd && settings->smd->domain) {
+		settings->smd->domain->point_cache[0]->flag |= PTCACHE_OUTDATED;
+		settings->smd->domain->point_cache[1]->flag |= PTCACHE_OUTDATED;
+	}
 
 	rna_Smoke_dependency_update(bmain, scene, ptr);
 }

@@ -74,8 +74,8 @@ IF(UNIX)
 		bf_converter 
 		bf_ketsji 
 		bf_bullet 
+		bf_dummy
 		bf_common 
-		bf_dummy 
 		bf_logic 
 		bf_rasterizer 
 		bf_oglrasterizer 

@@ -1,45 +1,44 @@
 
-IF(MSVC)
-	# only MSVC uses SOURCE_GROUP
-	MACRO(BLENDERLIB_NOLIST
-		name
-		sources
-		includes)
+# only MSVC uses SOURCE_GROUP
+MACRO(BLENDERLIB_NOLIST
+	name
+	sources
+	includes)
 
-		MESSAGE(STATUS "Configuring library ${name}")
+	MESSAGE(STATUS "Configuring library ${name}")
 
-		# Gather all headers
-		FILE(GLOB_RECURSE INC_ALL *.h)
-			 
-		INCLUDE_DIRECTORIES(${includes})
-		ADD_LIBRARY(${name} ${INC_ALL} ${sources})
+	# Gather all headers
+	FILE(GLOB_RECURSE INC_ALL *.h)
+		 
+	INCLUDE_DIRECTORIES(${includes})
+	ADD_LIBRARY(${name} ${INC_ALL} ${sources})
 
-		# Group by location on disk
-		SOURCE_GROUP(Files FILES CMakeLists.txt)
-		SET(ALL_FILES ${sources} ${INC_ALL})
-		FOREACH(SRC ${ALL_FILES})
-			STRING(REGEX REPLACE ${CMAKE_CURRENT_SOURCE_DIR} "Files" REL_DIR "${SRC}")
-			STRING(REGEX REPLACE "[\\\\/][^\\\\/]*$" "" REL_DIR "${REL_DIR}")
-			STRING(REGEX REPLACE "^[\\\\/]" "" REL_DIR "${REL_DIR}")
-			IF(REL_DIR)
-				SOURCE_GROUP(${REL_DIR} FILES ${SRC})
-			ELSE(REL_DIR)
-				SOURCE_GROUP(Files FILES ${SRC})
-			ENDIF(REL_DIR)
-		ENDFOREACH(SRC)
-	ENDMACRO(BLENDERLIB_NOLIST)
-ELSE(MSVC)
+	# Group by location on disk
+	SOURCE_GROUP(Files FILES CMakeLists.txt)
+	SET(ALL_FILES ${sources} ${INC_ALL})
+	FOREACH(SRC ${ALL_FILES})
+		STRING(REGEX REPLACE ${CMAKE_CURRENT_SOURCE_DIR} "Files" REL_DIR "${SRC}")
+		STRING(REGEX REPLACE "[\\\\/][^\\\\/]*$" "" REL_DIR "${REL_DIR}")
+		STRING(REGEX REPLACE "^[\\\\/]" "" REL_DIR "${REL_DIR}")
+		IF(REL_DIR)
+			SOURCE_GROUP(${REL_DIR} FILES ${SRC})
+		ELSE(REL_DIR)
+			SOURCE_GROUP(Files FILES ${SRC})
+		ENDIF(REL_DIR)
+	ENDFOREACH(SRC)
+ENDMACRO(BLENDERLIB_NOLIST)
 
-	MACRO(BLENDERLIB_NOLIST
-		name
-		sources
-		includes)
+#	# works fine but having the includes listed is helpful for IDE's (QtCreator/MSVC)
+#	MACRO(BLENDERLIB_NOLIST
+#		name
+#		sources
+#		includes)
+#
+#		MESSAGE(STATUS "Configuring library ${name}")
+#		INCLUDE_DIRECTORIES(${includes})
+#		ADD_LIBRARY(${name} ${sources})
+#	ENDMACRO(BLENDERLIB_NOLIST)
 
-		MESSAGE(STATUS "Configuring library ${name}")
-		INCLUDE_DIRECTORIES(${includes})
-		ADD_LIBRARY(${name} ${sources})
-	ENDMACRO(BLENDERLIB_NOLIST)
-ENDIF(MSVC)
 
 MACRO(BLENDERLIB
 	name

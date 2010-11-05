@@ -170,7 +170,7 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 		
 		/*	Copy relevant data from bone to eBone */
 		eBone->parent= parent;
-		BLI_strncpy(eBone->name, curBone->name, 32);
+		BLI_strncpy(eBone->name, curBone->name, sizeof(eBone->name));
 		eBone->flag = curBone->flag;
 		
 		/* fix selection flags */
@@ -332,9 +332,9 @@ void ED_armature_from_edit(Object *obedit)
 		newBone= MEM_callocN(sizeof(Bone), "bone");
 		eBone->temp= newBone;	/* Associate the real Bones with the EditBones */
 		
-		BLI_strncpy(newBone->name, eBone->name, 32);
-		memcpy(newBone->head, eBone->head, sizeof(float)*3);
-		memcpy(newBone->tail, eBone->tail, sizeof(float)*3);
+		BLI_strncpy(newBone->name, eBone->name, sizeof(newBone->name));
+		memcpy(newBone->head, eBone->head, sizeof(newBone->head));
+		memcpy(newBone->tail, eBone->tail, sizeof(newBone->tail));
 		newBone->flag= eBone->flag;
 		
 		if (eBone == arm->act_edbone) {
@@ -509,28 +509,23 @@ static EditBone *editbone_name_exists (ListBase *edbo, const char *name)
 void unique_editbone_name (ListBase *edbo, char *name, EditBone *bone)
 {
 	EditBone *dupli;
-	char	tempname[64];
-	int		number;
-	char	*dot;
 
 	dupli = editbone_name_exists(edbo, name);
 	
 	if (dupli && bone != dupli) {
-		/*	Strip off the suffix, if it's a number */
-		number= strlen(name);
-		if (number && isdigit(name[number-1])) {
-			dot= strrchr(name, '.');	// last occurrence
-			if (dot)
-				*dot=0;
-		}
-		
-		for (number = 1; number <= 999; number++) {
-			sprintf(tempname, "%s.%03d", name, number);
-			if (!editbone_name_exists(edbo, tempname)) {
-				BLI_strncpy(name, tempname, 32);
-				return;
+		/* note: this block is used in other places, when changing logic apply to all others, search this message */
+		char	tempname[sizeof(bone->name)];
+		char	left[sizeof(bone->name)];
+		int		number;
+		int		len= BLI_split_name_num(left, &number, name);
+		do {	/* nested while loop looks bad but likely it wont run most times */
+			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
+				if(len > 0)	left[--len]= '\0';	/* word too long */
+				else		number= 0;			/* reset, must be a massive number */
 			}
-		}
+		} while(number++, ((dupli= editbone_name_exists(edbo, tempname)) && bone != dupli));
+
+		BLI_strncpy(name, tempname, sizeof(bone->name));
 	}
 }
 
@@ -546,7 +541,7 @@ static void applyarmature_fix_boneparents (Scene *scene, Object *armob)
 			/* apply current transform from parent (not yet destroyed), 
 			 * then calculate new parent inverse matrix
 			 */
-			object_apply_mat4(ob, ob->obmat);
+			object_apply_mat4(ob, ob->obmat, FALSE);
 			
 			what_does_parent(scene, ob, &workob);
 			invert_m4_m4(ob->parentinv, workob.obmat);
@@ -681,7 +676,7 @@ static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op)
 		invert_m4_m4(imat, pchan->pose_mat);
 		mul_m4_m4m4(delta_mat, mat, imat);
 
-		pchan_apply_mat4(pchan, delta_mat);
+		pchan_apply_mat4(pchan, delta_mat, TRUE);
 
 		where_is_pose_bone(scene, ob, pchan, CFRA, 1);
 	}
@@ -763,7 +758,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 							
 							for (achan= act->chanbase.first; achan; achan= achan->next) {
 								if (strcmp(achan->name, pchan->name)==0)
-									BLI_strncpy(achan->name, curbone->name, 32);
+									BLI_strncpy(achan->name, curbone->name, sizeof(achan->name));
 							}
 						}
 					}
@@ -807,7 +802,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 			if (ob->partype==PARBONE) {
 				/* bone name in object */
 				if (!strcmp(ob->parsubstr, pchan->name))
-					BLI_strncpy(ob->parsubstr, curbone->name, 32);
+					BLI_strncpy(ob->parsubstr, curbone->name, sizeof(ob->parsubstr));
 			}
 			
 			/* make tar armature be new parent */
@@ -1364,8 +1359,9 @@ static EditBone *editbone_get_child(bArmature *arm, EditBone *pabone, short use_
 	for (curbone= arm->edbo->first; curbone; curbone= curbone->next) {
 		if (curbone->parent == pabone) {
 			if (use_visibility) {
-				if ((arm->layer & curbone->layer) && !(pabone->flag & BONE_HIDDEN_A))
+				if ((arm->layer & curbone->layer) && !(pabone->flag & BONE_HIDDEN_A)) {
 					chbone = curbone;
+				}
 			}
 			else
 				chbone = curbone;
@@ -1892,7 +1888,7 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
  * toggle==2: only active tag
  * toggle==3: swap (no test)
  */
-void ED_armature_deselectall(Object *obedit, int toggle)
+void ED_armature_deselect_all(Object *obedit, int toggle)
 {
 	bArmature *arm= obedit->data;
 	EditBone	*eBone;
@@ -1919,7 +1915,7 @@ void ED_armature_deselectall(Object *obedit, int toggle)
 		for (eBone=arm->edbo->first;eBone;eBone=eBone->next) {
 			if (sel==3) {
 				/* invert selection of bone */
-				if ((arm->layer & eBone->layer) && (eBone->flag & BONE_HIDDEN_A)==0) {
+				if(EBONE_VISIBLE(arm, eBone)) {
 					eBone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 					if(arm->act_edbone==eBone)
 						arm->act_edbone= NULL;
@@ -1927,7 +1923,7 @@ void ED_armature_deselectall(Object *obedit, int toggle)
 			}
 			else if (sel==1) {
 				/* select bone */
-				if(arm->layer & eBone->layer && (eBone->flag & BONE_HIDDEN_A)==0) {
+				if(EBONE_VISIBLE(arm, eBone)) {
 					eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 					if(eBone->parent)
 						eBone->parent->flag |= (BONE_TIPSEL);
@@ -1945,6 +1941,20 @@ void ED_armature_deselectall(Object *obedit, int toggle)
 	ED_armature_sync_selection(arm->edbo);
 }
 
+void ED_armature_deselect_all_visible(Object *obedit)
+{
+	bArmature *arm= obedit->data;
+	EditBone	*ebone;
+
+	for (ebone= arm->edbo->first; ebone; ebone= ebone->next) {
+		/* first and foremost, bone must be visible and selected */
+		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE)==0) {
+			ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+		}
+	}
+
+	ED_armature_sync_selection(arm->edbo);
+}
 
 /* context: editmode armature in view3d */
 int mouse_armature(bContext *C, short mval[2], int extend)
@@ -1963,7 +1973,7 @@ int mouse_armature(bContext *C, short mval[2], int extend)
 	if (nearBone) {
 
 		if (!extend)
-			ED_armature_deselectall(obedit, 0);
+			ED_armature_deselect_all(obedit, 0);
 		
 		/* by definition the non-root connected bones have no root point drawn,
 		   so a root selection needs to be delivered to the parent tip */
@@ -2321,7 +2331,7 @@ EditBone *ED_armature_edit_bone_add(bArmature *arm, char *name)
 {
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
-	BLI_strncpy(bone->name, name, 32);
+	BLI_strncpy(bone->name, name, sizeof(bone->name));
 	unique_editbone_name(arm->edbo, bone->name, NULL);
 	
 	BLI_addtail(arm->edbo, bone);
@@ -2360,7 +2370,7 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 	mul_m3_m3m3(totmat, obmat, viewmat);
 	invert_m3_m3(imat, totmat);
 	
-	ED_armature_deselectall(obedit, 0);
+	ED_armature_deselect_all(obedit, 0);
 	
 	/*	Create a bone	*/
 	bone= ED_armature_edit_bone_add(obedit->data, "Bone");
@@ -2413,7 +2423,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 		to_root= 1;
 	}
 	
-	ED_armature_deselectall(obedit, 0);
+	ED_armature_deselect_all(obedit, 0);
 	
 	/* we re-use code for mirror editing... */
 	flipbone= NULL;
@@ -2653,7 +2663,7 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, char *name, ListBase *edit
 	
 	if (name != NULL)
 	{
-		BLI_strncpy(eBone->name, name, 32);
+		BLI_strncpy(eBone->name, name, sizeof(eBone->name));
 	}
 
 	unique_editbone_name(editbones, eBone->name, NULL);
@@ -3497,7 +3507,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 					newbone->segments= 1;
 					newbone->layer= ebone->layer;
 					
-					BLI_strncpy (newbone->name, ebone->name, 32);
+					BLI_strncpy (newbone->name, ebone->name, sizeof(newbone->name));
 					
 					if (flipbone && forked) {	// only set if mirror edit
 						if (strlen(newbone->name)<30) {
@@ -3580,7 +3590,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	mul_m3_m3m3(totmat, obmat, viewmat);
 	invert_m3_m3(imat, totmat);
 	
-	ED_armature_deselectall(obedit, 0);
+	ED_armature_deselect_all(obedit, 0);
 	
 	/*	Create a bone	*/
 	bone= ED_armature_edit_bone_add(obedit->data, name);
@@ -4446,7 +4456,7 @@ void ED_pose_deselectall (Object *ob, int test)
 	/*	Determine if we're selecting or deselecting	*/
 	if (test==1) {
 		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if ((pchan->bone->layer & arm->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+			if (PBONE_VISIBLE(arm, pchan->bone)) {
 				if (pchan->bone->flag & BONE_SELECTED)
 					break;
 			}
@@ -5389,29 +5399,22 @@ void POSE_OT_reveal(wmOperatorType *ot)
 /* ************* RENAMING DISASTERS ************ */
 
 /* note: there's a unique_editbone_name() too! */
-void unique_bone_name (bArmature *arm, char *name)
-{
-	char		tempname[64];
-	int			number;
-	char		*dot;
-	
+static void unique_bone_name (bArmature *arm, char *name)
+{	
 	if (get_named_bone(arm, name)) {
-		
-		/*	Strip off the suffix, if it's a number */
-		number= strlen(name);
-		if(number && isdigit(name[number-1])) {
-			dot= strrchr(name, '.');	// last occurrence
-			if (dot)
-				*dot=0;
-		}
-		
-		for (number = 1; number <=999; number++) {
-			sprintf (tempname, "%s.%03d", name, number);
-			if (!get_named_bone(arm, tempname)) {
-				BLI_strncpy (name, tempname, 32);
-				return;
+		/* note: this block is used in other places, when changing logic apply to all others, search this message */
+		char	tempname[sizeof(((Bone *)NULL)->name)];
+		char	left[sizeof(((Bone *)NULL)->name)];
+		int		number;
+		int		len= BLI_split_name_num(left, &number, name);
+		do {	/* nested while loop looks bad but likely it wont run most times */
+			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
+				if(len > 0)	left[--len]= '\0';	/* word too long */
+				else		number= 0;			/* reset, must be a massive number */
 			}
-		}
+		} while(number++, get_named_bone(arm, tempname));
+
+		BLI_strncpy(name, tempname, sizeof(tempname));
 	}
 }
 

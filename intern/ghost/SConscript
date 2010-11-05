@@ -21,6 +21,8 @@ if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'fr
             sources.remove('intern' + os.sep + f + 'Carbon.cpp')
         except ValueError:
             pass
+    defs += ['PREFIX=\\"/usr/local/\\"']
+
 elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
     for f in pf:
         try:
@@ -62,6 +64,6 @@ if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-v
     incs = env['BF_WINTAB_INC'] + ' ' + incs
 
 if window_system in ('win32-vc', 'win64-vc'):
-    env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15], cc_compileflags=['/WX'] ) 
+    env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15]) #, cc_compileflags=env['CCFLAGS'].append('/WX') ) 
 else:
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15] ) 

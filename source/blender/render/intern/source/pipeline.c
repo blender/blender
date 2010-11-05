@@ -452,7 +452,7 @@ static int passtype_from_name(char *str)
 	return 0;
 }
 
-static void render_unique_exr_name(Render *re, char *str, int sample)
+static void scene_unique_exr_name(Scene *scene, char *str, int sample)
 {
 	char di[FILE_MAX], name[FILE_MAXFILE+MAX_ID_NAME+100], fi[FILE_MAXFILE];
 	
@@ -460,11 +460,16 @@ static void render_unique_exr_name(Render *re, char *str, int sample)
 	BLI_splitdirstring(di, fi);
 	
 	if(sample==0)
-		sprintf(name, "%s_%s.exr", fi, re->scene->id.name+2);
+		sprintf(name, "%s_%s.exr", fi, scene->id.name+2);
 	else
-		sprintf(name, "%s_%s%d.exr", fi, re->scene->id.name+2, sample);
+		sprintf(name, "%s_%s%d.exr", fi, scene->id.name+2, sample);
 
 	BLI_make_file_string("/", str, btempdir, name);
+}
+
+static void render_unique_exr_name(Render *re, char *str, int sample)
+{
+	scene_unique_exr_name(re->scene, str, sample);
 }
 
 static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channels, int passtype)
@@ -1163,6 +1168,18 @@ Render *RE_NewRender(const char *name)
 		BLI_rw_mutex_init(&re->resultmutex);
 	}
 	
+	RE_InitRenderCB(re);
+
+	/* init some variables */
+	re->ycor= 1.0f;
+	
+	return re;
+}
+
+/* called for new renders and when finishing rendering so
+ * we calways have valid callbacks on a render */
+void RE_InitRenderCB(Render *re)
+{
 	/* set default empty callbacks */
 	re->display_init= result_nothing;
 	re->display_clear= result_nothing;
@@ -1176,11 +1193,6 @@ Render *RE_NewRender(const char *name)
 		re->stats_draw= stats_nothing;
 	/* clear callback handles */
 	re->dih= re->dch= re->ddh= re->sdh= re->prh= re->tbh= re->erh= NULL;
-	
-	/* init some variables */
-	re->ycor= 1.0f;
-	
-	return re;
 }
 
 /* only call this while you know it will remove the link too */
@@ -1542,8 +1554,10 @@ static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
 static RenderPart *find_next_part(Render *re, int minx)
 {
 	RenderPart *pa, *best= NULL;
-	int centx=re->winx/2, centy=re->winy/2, tot=1;
-	int mindist, distx, disty;
+
+	/* long long int's needed because of overflow [#24414] */
+	long long int centx=re->winx/2, centy=re->winy/2, tot=1;
+	long long int mindist= (long long int)re->winx * (long long int)re->winy;
 	
 	/* find center of rendered parts, image center counts for 1 too */
 	for(pa= re->parts.first; pa; pa= pa->next) {
@@ -1557,12 +1571,11 @@ static RenderPart *find_next_part(Render *re, int minx)
 	centy/=tot;
 	
 	/* closest of the non-rendering parts */
-	mindist= re->winx*re->winy;
 	for(pa= re->parts.first; pa; pa= pa->next) {
 		if(pa->ready==0 && pa->nr==0) {
-			distx= centx - (pa->disprect.xmin+pa->disprect.xmax)/2;
-			disty= centy - (pa->disprect.ymin+pa->disprect.ymax)/2;
-			distx= (int)sqrt(distx*distx + disty*disty);
+			long long int distx= centx - (pa->disprect.xmin+pa->disprect.xmax)/2;
+			long long int disty= centy - (pa->disprect.ymin+pa->disprect.ymax)/2;
+			distx= (long long int)sqrt(distx*distx + disty*disty);
 			if(distx<mindist) {
 				if(re->r.mode & R_PANORAMA) {
 					if(pa->disprect.xmin==minx) {
@@ -1975,7 +1988,7 @@ static void do_render_fields_3d(Render *re)
 	
 	/* first field, we have to call camera routine for correct aspect and subpixel offset */
 	RE_SetCamera(re, re->scene->camera);
-	if(re->r.mode & R_MBLUR)
+	if(re->r.mode & R_MBLUR && (re->r.scemode & R_FULL_SAMPLE)==0)
 		do_render_blur_3d(re);
 	else
 		do_render_3d(re);
@@ -1995,7 +2008,7 @@ static void do_render_fields_3d(Render *re)
 			re->field_offs = 0.5f;
 		}
 		RE_SetCamera(re, re->scene->camera);
-		if(re->r.mode & R_MBLUR)
+		if(re->r.mode & R_MBLUR && (re->r.scemode & R_FULL_SAMPLE)==0)
 			do_render_blur_3d(re);
 		else
 			do_render_3d(re);
@@ -2085,7 +2098,7 @@ static void do_render_fields_blur_3d(Render *re)
 	
 	if(re->r.mode & R_FIELDS)
 		do_render_fields_3d(re);
-	else if(re->r.mode & R_MBLUR)
+	else if(re->r.mode & R_MBLUR && (re->r.scemode & R_FULL_SAMPLE)==0)
 		do_render_blur_3d(re);
 	else
 		do_render_3d(re);
@@ -2386,10 +2399,12 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 	BLI_rw_mutex_unlock(&re->resultmutex);
 }
 
-void RE_MergeFullSample(Render *re, Scene *sce, bNodeTree *ntree)
+void RE_MergeFullSample(Render *re, Main *bmain, Scene *sce, bNodeTree *ntree)
 {
 	Scene *scene;
 	bNode *node;
+
+	re->main= bmain;
 	
 	/* first call RE_ReadRenderResult on every renderlayer scene. this creates Render structs */
 	
@@ -2585,6 +2600,12 @@ static void do_render_seq(Render * re)
 			/* 	if (R.rectz) freeN(R.rectz); */
 			/* 	R.rectz = BLI_dupallocN(ibuf->zbuf); */
 			/* } */
+
+			/* Same things as above, old rectf can hang around from previous render. */
+			if(rr->rectf) {
+				MEM_freeN(rr->rectf);
+				rr->rectf= NULL;
+			}
 		}
 		
 		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
@@ -2654,61 +2675,112 @@ static void do_render_all_options(Render *re)
 	}
 }
 
-static int is_rendering_allowed(Render *re)
+static int check_valid_camera(Scene *scene)
+{
+	int check_comp= 1;
+
+	if (scene->camera == NULL)
+		scene->camera= scene_find_camera(scene);
+
+	if(scene->r.scemode&R_DOSEQ) {
+		if(scene->ed) {
+			Sequence *seq= scene->ed->seqbase.first;
+
+			check_comp= 0;
+
+			while(seq) {
+				if(seq->type == SEQ_SCENE) {
+					if(!seq->scene_camera) {
+						if(!seq->scene->camera && !scene_find_camera(seq->scene)) {
+							if(seq->scene == scene) {
+								/* for current scene camera could be unneeded due to compisite nodes */
+								check_comp= 1;
+							} else {
+								/* for other scenes camera is necessary */
+								return 0;
+							}
+						}
+					}
+				}
+
+				seq= seq->next;
+			}
+		}
+	}
+
+	if(check_comp) { /* no sequencer or sequencer depends on compositor */
+		if(scene->r.scemode&R_DOCOMP && scene->use_nodes) {
+			bNode *node= scene->nodetree->nodes.first;
+
+			while(node) {
+				if(node->type == CMP_NODE_R_LAYERS) {
+					Scene *sce= node->id ? (Scene*)node->id : scene;
+
+					if(!sce->camera && !scene_find_camera(sce)) {
+						/* all render layers nodes need camera */
+						return 0;
+					}
+				}
+
+				node= node->next;
+			}
+		} else return scene->camera != NULL;
+	}
+
+	return 1;
+}
+
+int RE_is_rendering_allowed(Scene *scene, void *erh, void (*error)(void *handle, char *str))
 {
 	SceneRenderLayer *srl;
 	
 	/* forbidden combinations */
-	if(re->r.mode & R_PANORAMA) {
-		if(re->r.mode & R_BORDER) {
-			re->error(re->erh, "No border supported for Panorama");
+	if(scene->r.mode & R_PANORAMA) {
+		if(scene->r.mode & R_BORDER) {
+			error(erh, "No border supported for Panorama");
 			return 0;
 		}
-		if(re->r.mode & R_ORTHO) {
-			re->error(re->erh, "No Ortho render possible for Panorama");
-			return 0;
-		}
-	}
-	
-	if(re->r.mode & R_BORDER) {
-		if(re->r.border.xmax <= re->r.border.xmin || 
-		   re->r.border.ymax <= re->r.border.ymin) {
-			re->error(re->erh, "No border area selected.");
+		if(scene->r.mode & R_ORTHO) {
+			error(erh, "No Ortho render possible for Panorama");
 			return 0;
 		}
 	}
 	
-	if(re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE)) {
+	if(scene->r.mode & R_BORDER) {
+		if(scene->r.border.xmax <= scene->r.border.xmin ||
+		   scene->r.border.ymax <= scene->r.border.ymin) {
+			error(erh, "No border area selected.");
+			return 0;
+		}
+	}
+	
+	if(scene->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE)) {
 		char str[FILE_MAX];
 		
-		render_unique_exr_name(re, str, 0);
+		scene_unique_exr_name(scene, str, 0);
 		
 		if (BLI_is_writable(str)==0) {
-			re->error(re->erh, "Can not save render buffers, check the temp default path");
+			error(erh, "Can not save render buffers, check the temp default path");
 			return 0;
 		}
 		
-		/* no osa + fullsample won't work... */
-		if(re->osa==0)
-			re->r.scemode &= ~R_FULL_SAMPLE;
-		
 		/* no fullsample and edge */
-		if((re->r.scemode & R_FULL_SAMPLE) && (re->r.mode & R_EDGE)) {
-			re->error(re->erh, "Full Sample doesn't support Edge Enhance");
+		if((scene->r.scemode & R_FULL_SAMPLE) && (scene->r.mode & R_EDGE)) {
+			error(erh, "Full Sample doesn't support Edge Enhance");
 			return 0;
 		}
 		
 	}
 	else
-		re->r.scemode &= ~R_FULL_SAMPLE;	/* clear to be sure */
+		scene->r.scemode &= ~R_FULL_SAMPLE;	/* clear to be sure */
 	
-	if(re->r.scemode & R_DOCOMP) {
-		if(re->scene->use_nodes) {
-			bNodeTree *ntree= re->scene->nodetree;
+	if(scene->r.scemode & R_DOCOMP) {
+		if(scene->use_nodes) {
+			bNodeTree *ntree= scene->nodetree;
 			bNode *node;
 		
 			if(ntree==NULL) {
-				re->error(re->erh, "No Nodetree in Scene");
+				error(erh, "No Nodetree in Scene");
 				return 0;
 			}
 			
@@ -2718,44 +2790,49 @@ static int is_rendering_allowed(Render *re)
 			
 			
 			if(node==NULL) {
-				re->error(re->erh, "No Render Output Node in Scene");
+				error(erh, "No Render Output Node in Scene");
 				return 0;
 			}
 		}
 	}
 	
 	 /* check valid camera, without camera render is OK (compo, seq) */
-	if(re->scene->camera==NULL)
-		re->scene->camera= scene_find_camera(re->scene);
-	
-	if(!(re->r.scemode & (R_DOSEQ|R_DOCOMP))) {
-		if(re->scene->camera==NULL) {
-			re->error(re->erh, "No camera");
-			return 0;
-		}
+	if(!check_valid_camera(scene)) {
+		error(erh, "No camera");
+		return 0;
 	}
 	
 	/* layer flag tests */
-	if(re->r.scemode & R_SINGLE_LAYER) {
-		srl= BLI_findlink(&re->scene->r.layers, re->r.actlay);
+	if(scene->r.scemode & R_SINGLE_LAYER) {
+		srl= BLI_findlink(&scene->r.layers, scene->r.actlay);
 		/* force layer to be enabled */
 		srl->layflag &= ~SCE_LAY_DISABLE;
 	}
 	
-	for(srl= re->scene->r.layers.first; srl; srl= srl->next)
+	for(srl= scene->r.layers.first; srl; srl= srl->next)
 		if(!(srl->layflag & SCE_LAY_DISABLE))
 			break;
 	if(srl==NULL) {
-		re->error(re->erh, "All RenderLayers are disabled");
+		error(erh, "All RenderLayers are disabled");
 		return 0;
 	}
 	
 	/* renderer */
-	if(!ELEM(re->r.renderer, R_INTERN, R_YAFRAY)) {
-		re->error(re->erh, "Unknown render engine set");
+	if(!ELEM(scene->r.renderer, R_INTERN, R_YAFRAY)) {
+		error(erh, "Unknown render engine set");
 		return 0;
 	}
+
 	return 1;
+}
+
+static void validate_render_settings(Render *re)
+{
+	if(re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE)) {
+		/* no osa + fullsample won't work... */
+		if(re->r.osa==0)
+			re->r.scemode &= ~R_FULL_SAMPLE;
+	} else re->r.scemode &= ~R_FULL_SAMPLE;	/* clear to be sure */
 }
 
 static void update_physics_cache(Render *re, Scene *scene, int UNUSED(anim_init))
@@ -2834,10 +2911,9 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 	
 	/* initstate makes new result, have to send changed tags around */
 	ntreeCompositTagRender(re->scene);
-	
-	if(!is_rendering_allowed(re))
-		return 0;
-	
+
+	validate_render_settings(re);
+
 	re->display_init(re->dih, re->result);
 	re->display_clear(re->dch, re->result);
 	

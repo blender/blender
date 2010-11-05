@@ -157,7 +157,7 @@ typedef struct SpaceSeq {
 } SpaceSeq;
 
 typedef struct FileSelectParams {
-	char title[24]; /* title, also used for the text of the execute button */
+	char title[32]; /* title, also used for the text of the execute button */
 	char dir[240]; /* directory */
 	char file[80]; /* file */
 	char renamefile[80];
@@ -241,34 +241,30 @@ typedef struct SpaceImage {
 	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 
-	float blockscale;
-	short blockhandler[8];
-	
+	int flag;
+
 	struct Image *image;
 	struct ImageUser iuser;
+	struct CurveMapping *cumap;		
 	
-	struct CurveMapping *cumap;
-	short menunr, imanr, pad2;
+	struct Scopes scopes;			/* histogram waveform and vectorscope */
+	struct Histogram sample_line_hist;	/* sample line histogram */
+
+	struct bGPdata *gpd;			/* grease pencil data */
+
+	float cursor[2];				/* UV editor 2d cursor */
+	float xof, yof;					/* user defined offset, image is centered */
+	float zoom;						/* user defined zoom level */
+	float centx, centy;				/* storage for offset while render drawing */
+
 	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
-	int flag;
-	short imtypenr, lock;
-	short pin, pad3;
+	short imtypenr;
+	short lock;
+	short pin;
 	char dt_uv; /* UV draw type */
 	char sticky; /* sticky selection type */
 	char dt_uvstretch;
 	char around;
-	float cursor[2];				/* UV editor 2d cursor */
-	
-	float xof, yof;					/* user defined offset, image is centered */
-	float zoom, pad4;				/* user defined zoom level */
-	float centx, centy;				/* storage for offset while render drawing */
-	
-	struct bGPdata *gpd;			/* grease pencil data */
-	
-	struct Scopes scopes;			/* histogram waveform and vectorscope */
-
-	struct Histogram sample_line_hist;	/* sample line histogram */
-	
 } SpaceImage;
 
 typedef struct SpaceNla {

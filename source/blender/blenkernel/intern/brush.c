@@ -67,7 +67,7 @@ static void brush_set_defaults(Brush *brush)
 	brush->blend = 0;
 	brush->flag = 0;
 
-	brush->ob_mode = (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT);
+	brush->ob_mode = OB_MODE_ALL_PAINT;
 
 	/* BRUSH SCULPT TOOL SETTINGS */
 	brush->size= 35; /* radius of the brush in pixels */
@@ -228,10 +228,8 @@ void make_local_brush(Brush *brush)
 
 void brush_debug_print_state(Brush *br)
 {
-	Brush def;
-
 	/* create a fake brush and set it to the defaults */
-	memset(&def, 0, sizeof(Brush));
+	Brush def= {{0}};
 	brush_set_defaults(&def);
 	
 #define BR_TEST(field, t)					\
@@ -1098,11 +1096,9 @@ unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 {
 	unsigned int *texcache = NULL;
 	MTex *mtex = &br->mtex;
-	TexResult texres;
+	TexResult texres= {0};
 	int hasrgb, ix, iy;
 	int side = half_side * 2;
-
-	memset(&texres, 0, sizeof(TexResult));
 	
 	if(mtex->tex) {
 		float x, y, step = 2.0 / side, co[3];

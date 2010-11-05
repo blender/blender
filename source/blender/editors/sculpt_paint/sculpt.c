@@ -3658,7 +3658,7 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= sculpt_toggle_mode;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable_mesh;
 	
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }

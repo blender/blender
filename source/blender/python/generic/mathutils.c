@@ -245,10 +245,11 @@ static struct PyModuleDef M_Mathutils_module_def = {
 	0,  /* m_free */
 };
 
-PyObject *Mathutils_Init(void)
+PyMODINIT_FUNC BPyInit_mathutils(void)
 {
 	PyObject *submodule;
-	
+	PyObject *item;
+
 	if( PyType_Ready( &vector_Type ) < 0 )
 		return NULL;
 	if( PyType_Ready( &matrix_Type ) < 0 )
@@ -261,7 +262,6 @@ PyObject *Mathutils_Init(void)
 		return NULL;
 
 	submodule = PyModule_Create(&M_Mathutils_module_def);
-	PyDict_SetItemString(PyImport_GetModuleDict(), M_Mathutils_module_def.m_name, submodule);
 	
 	/* each type has its own new() function */
 	PyModule_AddObject( submodule, "Vector",		(PyObject *)&vector_Type );
@@ -270,7 +270,15 @@ PyObject *Mathutils_Init(void)
 	PyModule_AddObject( submodule, "Quaternion",	(PyObject *)&quaternion_Type );
 	PyModule_AddObject( submodule, "Color",			(PyObject *)&color_Type );
 	
+	/* submodule */
+	PyModule_AddObject( submodule, "geometry",		(item=BPyInit_mathutils_geometry()));
+	/* XXX, python doesnt do imports with this usefully yet
+	 * 'from mathutils.geometry import PolyFill'
+	 * ...fails without this. */
+	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "mathutils.geometry", item);
+	Py_INCREF(item);
+
 	mathutils_matrix_vector_cb_index= Mathutils_RegisterCallback(&mathutils_matrix_vector_cb);
 
-	return (submodule);
+	return submodule;
 }

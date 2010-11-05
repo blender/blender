@@ -11,6 +11,8 @@
 !include "FileFunc.nsh"
 !include "WordFunc.nsh"
 !include "nsDialogs.nsh"
+!include "x64.nsh"
+
 
 SetCompressor /SOLID lzma
 
@@ -148,6 +150,9 @@ Section "Blender-[VERSION] (required)" SecCopyUI
   [DODATAFILES]
   
   SetOutPath $INSTDIR
+  ${If} ${RunningX64}
+    SetRegView 64
+  ${EndIf}
   ; Write the installation path into the registry
   WriteRegStr HKLM "SOFTWARE\BlenderFoundation" "Install_Dir" "$INSTDIR"
   WriteRegStr HKLM "SOFTWARE\BlenderFoundation" "ConfigData_Dir" "$BLENDERHOME"
@@ -179,6 +184,9 @@ SectionEnd
 
 Section "Open .blend files with Blender-[VERSION]" Section4
   
+  ${If} ${RunningX64}
+    SetRegView 64
+  ${EndIf}
   WriteRegStr HKCR ".blend" "" "blendfile"
   WriteRegStr HKCR "blendfile" "" "Blender .blend File"
   WriteRegStr HKCR "blendfile\shell" "" "open"
@@ -188,32 +196,50 @@ Section "Open .blend files with Blender-[VERSION]" Section4
   
 SectionEnd
 
-UninstallText "This will uninstall Blender [VERSION], and all datafiles from the installation dir. Hit next to continue."
+UninstallText "This will uninstall Blender [VERSION], and all installed files. Before continuing make sure you have created backup of all the files you may want to keep: startup.blend, bookmarks.txt, recent-files.txt. Hit next to continue."
 
 Section "Uninstall"
   ; remove registry keys
+  ${If} ${RunningX64}
+    SetRegView 64
+  ${EndIf}
   ReadRegStr $BLENDERHOME HKLM "SOFTWARE\BlenderFoundation" "ConfigData_Dir"
   ReadRegStr $SHORTVERSION HKLM "SOFTWARE\BlenderFoundation" "ShortVersion"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Blender"
   DeleteRegKey HKLM "SOFTWARE\BlenderFoundation"
   SetShellVarContext all
-
-  StrCpy $0 "$SMPROGRAMS\Blender Foundation\"
-  MessageBox MB_OK $0
+ 
   ; remove files
   [DELROOTDIRCONTS]
 
+  ; remove bundled python
+  RmDir /r $INSTDIR\$SHORTVERSION\python
+
   Delete "$INSTDIR\uninstall.exe"
 
-  MessageBox MB_YESNO "Erase $BLENDERHOME? This includes all installed scripts and configuration files and any file you may have created there." IDNO Next
-  RMDir /r "$BLENDERHOME"
-Next:
-  ; remove shortcuts, if any.
+  MessageBox MB_YESNO "Recursively erase contents of $BLENDERHOME\$SHORTVERSION\scripts? NOTE: This includes all installed scripts and *any* file and directory you have manually created, installed later or copied. This also including .blend files." IDNO NextNoScriptRemove
+  RMDir /r "$BLENDERHOME\$SHORTVERSION\scripts"
+NextNoScriptRemove:
+  MessageBox MB_YESNO "Recursively erase contents from $BLENDERHOME\$SHORTVERSION\config? NOTE: This includes your startup.blend, bookmarks and any other file and directory you may have created in that directory" IDNO NextNoConfigRemove
+  RMDir /r "$BLENDERHOME\$SHORTVERSION\config"
+NextNoConfigRemove:
+  MessageBox MB_YESNO "Recursively erase contents from $BLENDERHOME\$SHORTVERSION\plugins? NOTE: This includes files and subdirectories in this directory" IDNO NextNoPluginRemove
+  RMDir /r "$BLENDERHOME\$SHORTVERSION\plugins"
+NextNoPluginRemove:
+  ; try to remove dirs, but leave them if they contain anything
+  RMDir "$BLENDERHOME\$SHORTVERSION\plugins"
+  RMDir "$BLENDERHOME\$SHORTVERSION\config"
+  RMDir "$BLENDERHOME\$SHORTVERSION\scripts"
+  RMDir "$BLENDERHOME\$SHORTVERSION"
+  RMDir "$BLENDERHOME"
+  ; remove shortcuts
+  Delete "$SMPROGRAMS\Blender Foundation\Blender\*.*"
   Delete "$DESKTOP\Blender.lnk"
   ; remove all link related directories and files
-  RMDir /r "$SMPROGRAMS\Blender Foundation\"
-  ; remove entire installation directory, including any file created by the user
-  RMDir /r "$INSTDIR"
+  RMDir "$SMPROGRAMS\Blender Foundation\Blender"
+  RMDir "$SMPROGRAMS\Blender Foundation"
+  ; Clear out installation dir
+  RMDir "$INSTDIR"
 SectionEnd
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN

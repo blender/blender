@@ -53,68 +53,6 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
-/* implementations: */
-char *first_slash(char *string) {
-	char *ffslash, *fbslash;
-	
-	ffslash= strchr(string, '/');	
-	fbslash= strchr(string, '\\');
-	
-	if (!ffslash) return fbslash;
-	else if (!fbslash) return ffslash;
-	
-	if ((intptr_t)ffslash < (intptr_t)fbslash) return ffslash;
-	else return fbslash;
-}
-
-char *BLI_last_slash(const char *string) {
-	char *lfslash, *lbslash;
-	
-	lfslash= strrchr(string, '/');	
-	lbslash= strrchr(string, '\\');
-
-	if (!lfslash) return lbslash; 
-	else if (!lbslash) return lfslash;
-	
-	if ((intptr_t)lfslash < (intptr_t)lbslash) return lbslash;
-	else return lfslash;
-}
-
-/* adds a slash if there isnt one there already */
-int BLI_add_slash(char *string) {
-	int len = strlen(string);
-#ifdef WIN32
-	if (len==0 || string[len-1]!='\\') {
-		string[len] = '\\';
-		string[len+1] = '\0';
-		return len+1;
-	}
-#else
-	if (len==0 || string[len-1]!='/') {
-		string[len] = '/';
-		string[len+1] = '\0';
-		return len+1;
-	}
-#endif
-	return len;
-}
-
-/* removes a slash if there is one */
-void BLI_del_slash(char *string) {
-	int len = strlen(string);
-	while (len) {
-#ifdef WIN32
-		if (string[len-1]=='\\') {
-#else
-		if (string[len-1]=='/') {
-#endif
-			string[len-1] = '\0';
-			len--;
-		} else {
-			break;
-		}
-	}
-}
 
 /* gzip the file in from and write it to "to". 
  return -1 if zlib fails, -2 if the originating file does not exist

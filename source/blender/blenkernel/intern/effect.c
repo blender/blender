@@ -628,7 +628,6 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		}
 	}
 	else if(eff->psys) {
-		ParticleSimulationData sim = {eff->scene, eff->ob, eff->psys, NULL, NULL};
 		ParticleData *pa = eff->psys->particles + *efd->index;
 		ParticleKey state;
 
@@ -636,6 +635,11 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		if(eff->psys == point->psys && *efd->index == point->index)
 			;
 		else {
+			ParticleSimulationData sim= {0};
+			sim.scene= eff->scene;
+			sim.ob= eff->ob;
+			sim.psys= eff->psys;
+
 			/* TODO: time from actual previous calculated frame (step might not be 1) */
 			state.time = cfra - 1.0;
 			ret = psys_get_particle_state(&sim, *efd->index, &state, 0);

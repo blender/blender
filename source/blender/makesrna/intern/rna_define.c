@@ -1005,6 +1005,11 @@ void RNA_def_property_clear_flag(PropertyRNA *prop, int flag)
 	prop->flag &= ~flag;
 }
 
+void RNA_def_property_subtype(PropertyRNA *prop, PropertySubType subtype)
+{
+	prop->subtype= subtype;
+}
+
 void RNA_def_property_array(PropertyRNA *prop, int length)
 {
 	StructRNA *srna= DefRNA.laststruct;
@@ -2235,8 +2240,11 @@ PropertyRNA *RNA_def_float_matrix(StructOrFunctionRNA *cont_, const char *identi
 {
 	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
-	int length[2]= {rows, columns};
-	
+	int length[2];
+
+	length[0]= rows;
+	length[1]= columns;
+
 	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_multi_array(prop, 2, length);
 	if(default_value) RNA_def_property_float_array_default(prop, default_value);

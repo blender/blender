@@ -72,6 +72,8 @@
 #include "wm_event_types.h"
 #include "wm_draw.h"
 
+static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports, short context, short poll_only);
+
 /* ************ event management ************** */
 
 void wm_event_add(wmWindow *win, wmEvent *event_to_add)
@@ -241,7 +243,7 @@ void wm_event_do_notifiers(bContext *C)
 			if(!G.rendering) {
 
 				/* depsgraph gets called, might send more notifiers */
-				ED_update_for_newframe(C, 1);
+				ED_update_for_newframe(CTX_data_main(C), win->screen->scene, win->screen, 1);
 			}
 		}
 	}
@@ -364,9 +366,9 @@ int WM_operator_poll(bContext *C, wmOperatorType *ot)
 	wmOperatorTypeMacro *otmacro;
 	
 	for(otmacro= ot->macro.first; otmacro; otmacro= otmacro->next) {
-		wmOperatorType *ot= WM_operatortype_find(otmacro->idname, 0);
+		wmOperatorType *ot_macro= WM_operatortype_find(otmacro->idname, 0);
 		
-		if(0==WM_operator_poll(C, ot))
+		if(0==WM_operator_poll(C, ot_macro))
 			return 0;
 	}
 	
@@ -377,6 +379,12 @@ int WM_operator_poll(bContext *C, wmOperatorType *ot)
 		return ot->poll(C);
 
 	return 1;
+}
+
+/* sets up the new context and calls 'wm_operator_invoke()' with poll_only */
+int WM_operator_poll_context(bContext *C, wmOperatorType *ot, int context)
+{
+	return wm_operator_call_internal(C, ot, NULL, NULL, context, TRUE);
 }
 
 static void wm_operator_print(wmOperator *op)
@@ -603,10 +611,14 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 	}
 }
 
-int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports)
+int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_PASS_THROUGH;
+
+	/* this is done because complicated setup is done to call this function that is better not duplicated */
+	if(poll_only)
+		return WM_operator_poll(C, ot);
 
 	if(WM_operator_poll(C, ot)) {
 		wmOperator *op= wm_operator_create(wm, ot, properties, reports); /* if reports==NULL, theyll be initialized */
@@ -693,7 +705,7 @@ int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerR
  * this is for python to access since its done the operator lookup
  * 
  * invokes operator in context */
-static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int context, PointerRNA *properties, ReportList *reports)
+static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports, short context, short poll_only)
 {
 	wmWindow *window= CTX_wm_window(C);
 	wmEvent *event;
@@ -758,7 +770,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 						CTX_wm_region_set(C, ar1);
 				}
 				
-				retval= wm_operator_invoke(C, ot, event, properties, reports);
+				retval= wm_operator_invoke(C, ot, event, properties, reports, poll_only);
 				
 				/* set region back */
 				CTX_wm_region_set(C, ar);
@@ -772,7 +784,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 				ARegion *ar= CTX_wm_region(C);
 
 				CTX_wm_region_set(C, NULL);
-				retval= wm_operator_invoke(C, ot, event, properties, reports);
+				retval= wm_operator_invoke(C, ot, event, properties, reports, poll_only);
 				CTX_wm_region_set(C, ar);
 
 				return retval;
@@ -786,7 +798,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 
 				CTX_wm_region_set(C, NULL);
 				CTX_wm_area_set(C, NULL);
-				retval= wm_operator_invoke(C, ot, event, properties, reports);
+				retval= wm_operator_invoke(C, ot, event, properties, reports, poll_only);
 				CTX_wm_region_set(C, ar);
 				CTX_wm_area_set(C, area);
 
@@ -794,7 +806,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 			}
 			case WM_OP_EXEC_DEFAULT:
 			case WM_OP_INVOKE_DEFAULT:
-				return wm_operator_invoke(C, ot, event, properties, reports);
+				return wm_operator_invoke(C, ot, event, properties, reports, poll_only);
 		}
 	}
 	
@@ -807,7 +819,7 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 {
 	wmOperatorType *ot= WM_operatortype_find(opstring, 0);
 	if(ot)
-		return wm_operator_call_internal(C, ot, context, properties, NULL);
+		return wm_operator_call_internal(C, ot, properties, NULL, context, FALSE);
 
 	return 0;
 }
@@ -839,7 +851,7 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 		printf("error \"%s\" operator has no exec function, python cannot call it\n", op->type->name);
 #endif
 
-	retval= wm_operator_call_internal(C, ot, context, properties, reports);
+	retval= wm_operator_call_internal(C, ot, properties, reports, context, FALSE);
 	
 	/* keep the reports around if needed later */
 	if (	(retval & OPERATOR_RUNNING_MODAL) ||
@@ -1168,7 +1180,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname, 0);
 
 		if(ot)
-			retval= wm_operator_invoke(C, ot, event, properties, NULL);
+			retval= wm_operator_invoke(C, ot, event, properties, NULL, FALSE);
 	}
 
 	/* Finished and pass through flag as handled */
@@ -1421,7 +1433,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 								if(drop->poll(C, drag, event)) {
 									drop->copy(drag, drop);
 									
-									wm_operator_invoke(C, drop->ot, event, drop->ptr, NULL);
+									wm_operator_invoke(C, drop->ot, event, drop->ptr, NULL, FALSE);
 									action |= WM_HANDLER_BREAK;
 								}
 							}
@@ -1636,7 +1648,7 @@ void wm_event_do_handlers(bContext *C)
 						int ncfra = sound_sync_scene(scene) * FPS + 0.5;
 						if(ncfra != scene->r.cfra)	{
 							scene->r.cfra = ncfra;
-							ED_update_for_newframe(C, 1);
+							ED_update_for_newframe(CTX_data_main(C), scene, win->screen, 1);
 							WM_event_add_notifier(C, NC_WINDOW, NULL);
 						}
 					}

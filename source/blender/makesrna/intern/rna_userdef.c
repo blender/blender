@@ -33,6 +33,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_view3d_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -47,6 +48,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
 #include "DNA_object_types.h"
+#include "DNA_screen_types.h"
 #include "GPU_draw.h"
 #include "BKE_global.h"
 
@@ -57,6 +59,34 @@ static void rna_userdef_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
+
+static void rna_userdef_show_manipulator_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	UserDef *userdef = (UserDef *)ptr->data;
+
+	/* lame, loop over all views and set */
+	bScreen *sc;
+	ScrArea *sa;
+	SpaceLink *sl;
+
+	/* from scene copy to the other views */
+	for(sc=bmain->screen.first; sc; sc=sc->id.next) {
+		for(sa=sc->areabase.first; sa; sa=sa->next) {
+			for(sl=sa->spacedata.first; sl; sl=sl->next) {
+				if(sl->spacetype==SPACE_VIEW3D) {
+					View3D *v3d= (View3D *)sl;
+					if(userdef->tw_flag & V3D_USE_MANIPULATOR)
+						v3d->twflag |= V3D_USE_MANIPULATOR;
+					else
+						v3d->twflag &= ~V3D_USE_MANIPULATOR;
+				}
+			}
+		}
+	}
+	
+	rna_userdef_update(bmain, scene, ptr);
+}
+
 
 static void rna_userdef_script_autoexec_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -2008,9 +2038,9 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
 	/* 3D transform widget */
 	prop= RNA_def_property(srna, "show_manipulator", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "tw_flag", 1);
+	RNA_def_property_boolean_sdna(prop, NULL, "tw_flag", V3D_USE_MANIPULATOR);
 	RNA_def_property_ui_text(prop, "Manipulator", "Use 3D transform manipulator");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	RNA_def_property_update(prop, 0, "rna_userdef_show_manipulator_update");
 
 	prop= RNA_def_property(srna, "manipulator_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tw_size");
@@ -2733,11 +2763,11 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Temporary Directory", "The directory for storing temporary save files");
 	RNA_def_property_update(prop, 0, "rna_userdef_temp_update");
 
-	prop= RNA_def_property(srna, "image_editor", PROP_STRING, PROP_DIRPATH);
+	prop= RNA_def_property(srna, "image_editor", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "image_editor");
 	RNA_def_property_ui_text(prop, "Image Editor", "Path to an image editor");
 	
-	prop= RNA_def_property(srna, "animation_player", PROP_STRING, PROP_DIRPATH);
+	prop= RNA_def_property(srna, "animation_player", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "anim_player");
 	RNA_def_property_ui_text(prop, "Animation Player", "Path to a custom animation/frame sequence player");
 

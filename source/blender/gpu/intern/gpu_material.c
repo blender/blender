@@ -629,10 +629,8 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 	}
 	else {
 		if(lamp->type == LA_AREA) {
-			float area[4][4], areasize;
+			float area[4][4]= {{0.0f}}, areasize= 0.0f;
 
-			memset(&area, 0, sizeof(area));
-			memset(&areasize, 0, sizeof(areasize));
 			mat->dynproperty |= DYN_LAMP_VEC|DYN_LAMP_CO;
 			GPU_link(mat, "shade_inp_area", GPU_builtin(GPU_VIEW_POSITION), GPU_dynamic_uniform(lamp->dynco), GPU_dynamic_uniform(lamp->dynvec), vn, GPU_uniform((float*)area),
 				GPU_uniform(&areasize), GPU_uniform(&lamp->k), &inp);

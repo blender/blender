@@ -58,7 +58,7 @@ private:
 	unsigned int*	m_mcol;
 	Material*		m_material;
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	PyObject*		m_pymaterial;
 #endif
 
@@ -122,7 +122,7 @@ public:
 	}
 	virtual void GetMaterialRGBAColor(unsigned char *rgba) const;
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, updateTexture);
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, setTexture);
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, activate);

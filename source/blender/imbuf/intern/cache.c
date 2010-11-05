@@ -82,6 +82,8 @@ typedef struct ImGlobalTileCache {
 	int totthread;
 
 	ThreadMutex mutex;
+
+	int initialized;
 } ImGlobalTileCache;
 
 static ImGlobalTileCache GLOBAL_CACHE;
@@ -203,6 +205,8 @@ void imb_tile_cache_init(void)
 	/* initialize for one thread, for places that access textures
 	   outside of rendering (displace modifier, painting, ..) */
 	IMB_tile_cache_params(0, 0);
+
+	GLOBAL_CACHE.initialized = 1;
 }
 
 void imb_tile_cache_exit(void)
@@ -210,19 +214,23 @@ void imb_tile_cache_exit(void)
 	ImGlobalTile *gtile;
 	int a;
 
-	for(gtile=GLOBAL_CACHE.tiles.first; gtile; gtile=gtile->next)
-		imb_global_cache_tile_unload(gtile);
+	if(GLOBAL_CACHE.initialized) {
+		for(gtile=GLOBAL_CACHE.tiles.first; gtile; gtile=gtile->next)
+			imb_global_cache_tile_unload(gtile);
 
-	for(a=0; a<GLOBAL_CACHE.totthread; a++)
-		imb_thread_cache_exit(&GLOBAL_CACHE.thread_cache[a]);
+		for(a=0; a<GLOBAL_CACHE.totthread; a++)
+			imb_thread_cache_exit(&GLOBAL_CACHE.thread_cache[a]);
 
-	if(GLOBAL_CACHE.memarena)
-		BLI_memarena_free(GLOBAL_CACHE.memarena);
+		if(GLOBAL_CACHE.memarena)
+			BLI_memarena_free(GLOBAL_CACHE.memarena);
 
-	if(GLOBAL_CACHE.tilehash)
-		BLI_ghash_free(GLOBAL_CACHE.tilehash, NULL, NULL);
+		if(GLOBAL_CACHE.tilehash)
+			BLI_ghash_free(GLOBAL_CACHE.tilehash, NULL, NULL);
 
-	BLI_mutex_end(&GLOBAL_CACHE.mutex);
+		BLI_mutex_end(&GLOBAL_CACHE.mutex);
+
+		memset(&GLOBAL_CACHE, 0, sizeof(ImGlobalTileCache));
+	}
 }
 
 /* presumed to be called when no threads are running */

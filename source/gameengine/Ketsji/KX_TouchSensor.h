@@ -118,7 +118,7 @@ public:
 
 	// todo: put some info for collision maybe
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

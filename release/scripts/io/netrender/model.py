@@ -20,6 +20,7 @@ import sys, os
 import http, http.client, http.server, urllib
 import subprocess, shutil, time, hashlib
 
+import netrender.versioning as versioning
 from netrender.utils import *
 
 class LogFile:
@@ -96,11 +97,65 @@ class RenderSlave:
 
 JOB_BLENDER = 1
 JOB_PROCESS = 2
+JOB_VCS     = 3
 
 JOB_TYPES = {
-                            JOB_BLENDER: "Blender",
-                            JOB_PROCESS: "Process"
-                        }
+                JOB_BLENDER: "Blender",
+                JOB_PROCESS: "Process",
+                JOB_VCS:     "Versioned",
+            }
+
+class VersioningInfo:
+    def __init__(self, info = None):
+        self._system = None
+        self.wpath = ""
+        self.rpath = ""
+        self.revision = ""
+        
+    @property
+    def system(self):
+        return self._system
+
+    @system.setter
+    def system(self, value):
+        self._system = versioning.SYSTEMS[value]
+
+    def update(self):
+        self.system.update(self)
+    
+    def serialize(self):
+        return {
+                "wpath": self.wpath,
+                "rpath": self.rpath,
+                "revision": self.revision,
+                "system": self.system.name
+                }
+        
+    @staticmethod
+    def generate(system, path):
+        vs = VersioningInfo()
+        vs.wpath = path
+        vs.system = system
+
+        vs.rpath = vs.system.path(path)
+        vs.revision = vs.system.revision(path)
+        
+        return vs
+        
+        
+    @staticmethod
+    def materialize(data):
+        if not data:
+            return None
+        
+        vs = VersioningInfo()
+        vs.wpath = data["wpath"]
+        vs.rpath = data["rpath"]
+        vs.revision = data["revision"]
+        vs.system = data["system"]
+        
+        return vs
+        
 
 class RenderFile:
     def __init__(self, filepath = "", index = 0, start = -1, end = -1, signature=0):
@@ -142,6 +197,8 @@ class RenderJob:
         self.chunks = 0
         self.priority = 0
         self.blacklist = []
+        
+        self.version_info = None
 
         self.usage = 0.0
         self.last_dispatched = 0.0
@@ -156,9 +213,19 @@ class RenderJob:
             self.chunks = job_info.chunks
             self.priority = job_info.priority
             self.blacklist = job_info.blacklist
+            self.version_info = job_info.version_info
 
-    def addFile(self, file_path, start=-1, end=-1):
-        signature = hashFile(file_path)
+    def hasRenderResult(self):
+        return self.type in (JOB_BLENDER, JOB_VCS)
+
+    def rendersWithBlender(self):
+        return self.type in (JOB_BLENDER, JOB_VCS)
+
+    def addFile(self, file_path, start=-1, end=-1, signed=True):
+        if signed:
+            signature = hashFile(file_path)
+        else:
+            signature = None
         self.files.append(RenderFile(file_path, len(self.files), start, end, signature))
 
     def addFrame(self, frame_number, command = ""):
@@ -225,7 +292,8 @@ class RenderJob:
                             "priority": self.priority,
                             "usage": self.usage,
                             "blacklist": self.blacklist,
-                            "last_dispatched": self.last_dispatched
+                            "last_dispatched": self.last_dispatched,
+                            "version_info": self.version_info.serialize() if self.version_info else None
                         }
 
     @staticmethod
@@ -246,6 +314,10 @@ class RenderJob:
         job.usage = data["usage"]
         job.blacklist = data["blacklist"]
         job.last_dispatched = data["last_dispatched"]
+        
+        version_info = data.get("version_info", None)
+        if version_info:
+            job.version_info = VersioningInfo.materialize(version_info)
 
         return job
 

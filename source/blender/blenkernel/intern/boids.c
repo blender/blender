@@ -205,7 +205,9 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 		add_v3_v3v3(col.co2, pa->prev_state.co, pa->prev_state.vel);
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
 		mul_v3_fl(ray_dir, acbr->look_ahead);
-		col.t = 0.0f;
+		col.f = 0.0f;
+		col.cfra = fmod(bbd->cfra-bbd->dfra, 1.0f);
+		col.dfra = bbd->dfra;
 		hit.index = -1;
 		hit.dist = col.ray_len = len_v3(ray_dir);
 
@@ -772,7 +774,9 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 		sub_v3_v3v3(col.co2, pa->state.co, zvec);
 		sub_v3_v3(col.co2, zvec);
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
-		col.t = 0.0f;
+		col.f = 0.0f;
+		col.cfra = fmod(bbd->cfra-bbd->dfra, 1.0f);
+		col.dfra = bbd->dfra;
 		hit.index = -1;
 		hit.dist = col.ray_len = len_v3(ray_dir);
 
@@ -796,7 +800,9 @@ static Object *boid_find_ground(BoidBrainData *bbd, ParticleData *pa, float *gro
 		sub_v3_v3v3(col.co2, pa->state.co, zvec);
 		sub_v3_v3(col.co2, zvec);
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
-		col.t = 0.0f;
+		col.f = 0.0f;
+		col.cfra = fmod(bbd->cfra-bbd->dfra, 1.0f);
+		col.dfra = bbd->dfra;
 		hit.index = -1;
 		hit.dist = col.ray_len = len_v3(ray_dir);
 
@@ -1257,7 +1263,11 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	switch(bpa->data.mode) {
 		case eBoidMode_InAir:
 		{
-			float grav[3] = {0.0f, 0.0f, bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f};
+			float grav[3];
+
+			grav[0]= 0.0f;
+			grav[1]= 0.0f;
+			grav[2]= bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f;
 
 			/* don't take forward acceleration into account (better banking) */
 			if(dot_v3v3(bpa->data.acc, pa->state.vel) > 0.0f) {
@@ -1296,7 +1306,12 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		}
 		case eBoidMode_Falling:
 		{
-			float grav[3] = {0.0f, 0.0f, bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f};
+			float grav[3];
+
+			grav[0]= 0.0f;
+			grav[1]= 0.0f;
+			grav[2]= bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f;
+
 
 			/* gather apparent gravity */
 			VECADDFAC(bpa->gravity, bpa->gravity, grav, dtime);

@@ -507,7 +507,7 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon 
 			data[1]= sce->r.efra;
 
 			memset(data+2, 0, sizeof(int)*6);
-			strncpy((char *)(data+2), sce->id.name+2, 21);
+			BLI_strncpy((char *)(data+2), sce->id.name+2, sizeof(sce->id.name)-2);
 
 			writedata(wd, REND, 32, data);
 		}

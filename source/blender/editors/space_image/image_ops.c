@@ -798,7 +798,7 @@ static int replace_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	RNA_string_get(op->ptr, "filepath", str);
-	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name)-1); /* we cant do much if the str is longer then 240 :/ */
+	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name)); /* we cant do much if the str is longer then 240 :/ */
 
 	BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
@@ -2098,11 +2098,9 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 
 /* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
 
-void ED_image_update_frame(const bContext *C)
+void ED_image_update_frame(const Main *mainp, int cfra)
 {
-	Main *mainp= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
-	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindowManager *wm;
 	wmWindow *win;
 	Tex *tex;
 	
@@ -2111,13 +2109,13 @@ void ED_image_update_frame(const bContext *C)
 		if(tex->type==TEX_IMAGE && tex->ima) {
 			if(ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				if(tex->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_calc_frame(&tex->iuser, scene->r.cfra, 0);
+					BKE_image_user_calc_frame(&tex->iuser, cfra, 0);
 			}
 		}
 	}
 	
 	/* image window, compo node users */
-	if(wm) {
+	for(wm=mainp->wm.first; wm; wm= wm->id.next) { /* only 1 wm */
 		for(win= wm->windows.first; win; win= win->next) {
 			ScrArea *sa;
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
@@ -2126,12 +2124,12 @@ void ED_image_update_frame(const bContext *C)
 					BGpic *bgpic;
 					for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next)
 						if(bgpic->iuser.flag & IMA_ANIM_ALWAYS)
-							BKE_image_user_calc_frame(&bgpic->iuser, scene->r.cfra, 0);
+							BKE_image_user_calc_frame(&bgpic->iuser, cfra, 0);
 				}
 				else if(sa->spacetype==SPACE_IMAGE) {
 					SpaceImage *sima= sa->spacedata.first;
 					if(sima->iuser.flag & IMA_ANIM_ALWAYS)
-						BKE_image_user_calc_frame(&sima->iuser, scene->r.cfra, 0);
+						BKE_image_user_calc_frame(&sima->iuser, cfra, 0);
 				}
 				else if(sa->spacetype==SPACE_NODE) {
 					SpaceNode *snode= sa->spacedata.first;
@@ -2143,7 +2141,7 @@ void ED_image_update_frame(const bContext *C)
 								ImageUser *iuser= node->storage;
 								if(ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
 									if(iuser->flag & IMA_ANIM_ALWAYS)
-										BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
+										BKE_image_user_calc_frame(iuser, cfra, 0);
 							}
 						}
 					}

@@ -434,7 +434,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		if(but->flag & UI_BUT_DISABLED) {
 			const char *poll_msg;
 			CTX_wm_operator_poll_msg_set(C, NULL);
-			WM_operator_poll(C, but->optype);
+			WM_operator_poll_context(C, but->optype, but->opcontext);
 			poll_msg= CTX_wm_operator_poll_msg_get(C);
 			if(poll_msg) {
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Disabled: %s", poll_msg);

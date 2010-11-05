@@ -44,6 +44,7 @@ SET(SRC
 	view3d_buttons.c
 	view3d_draw.c
 	view3d_edit.c
+	view3d_fly.c
 	view3d_header.c
 	view3d_ops.c
 	view3d_select.c
@@ -54,7 +55,7 @@ SET(SRC
 
 IF(WITH_GAMEENGINE)
 	LIST(APPEND INC ../../../kernel/gen_system)
-	ADD_DEFINITIONS(-DGAMEBLENDER)
+	ADD_DEFINITIONS(-DWITH_GAMEENGINE)
 ENDIF(WITH_GAMEENGINE)
 
 IF(WIN32)

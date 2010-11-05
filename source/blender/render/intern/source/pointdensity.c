@@ -94,7 +94,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 {
 	DerivedMesh* dm;
 	ParticleKey state;
-	ParticleSimulationData sim = {re->scene, ob, psys, NULL};
+	ParticleSimulationData sim= {0};
 	ParticleData *pa=NULL;
 	float cfra = BKE_curframe(re->scene);
 	int i, childexists;
@@ -103,10 +103,9 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	float partco[3];
 	float obview[4][4];
 	
-	
 	/* init everything */
 	if (!psys || !ob || !pd) return;
-	
+
 	mul_m4_m4m4(obview, re->viewinv, ob->obmat);
 	
 	/* Just to create a valid rendering context for particles */
@@ -119,6 +118,10 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 		return;
 	}
 	
+	sim.scene= re->scene;
+	sim.ob= ob;
+	sim.psys= psys;
+
 	/* in case ob->imat isn't up-to-date */
 	invert_m4_m4(ob->imat, ob->obmat);
 	

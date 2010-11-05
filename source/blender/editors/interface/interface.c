@@ -629,7 +629,7 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 			if(but->context)
 				CTX_store_set((bContext*)C, but->context);
 
-			if(ot == NULL || WM_operator_poll((bContext*)C, ot)==0) {
+			if(ot == NULL || WM_operator_poll_context((bContext*)C, ot, but->opcontext)==0) {
 				but->flag |= UI_BUT_DISABLED;
 				but->lock = 1;
 			}
@@ -1645,7 +1645,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		/* number editing */
 		double value;
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 		{
 			char str_unit_convert[256];
 			int unit_type;
@@ -1672,7 +1672,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		}
 #else
 		value= atof(str);
-#endif
+#endif // WITH_PYTHON
 
 		if(!ui_is_but_float(but)) value= (int)floor(value + 0.5);
 		if(but->type==NUMABS) value= fabs(value);

@@ -28,7 +28,6 @@ SET(INC
 	.
 	../makesdna
 	../blenkernel
-	../include
 	../gpu
 	../../../intern/ghost
 	../../../intern/guardedalloc

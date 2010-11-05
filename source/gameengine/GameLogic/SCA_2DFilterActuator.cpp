@@ -96,7 +96,7 @@ void SCA_2DFilterActuator::SetShaderText(const char *text)
 	m_shaderText = text;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

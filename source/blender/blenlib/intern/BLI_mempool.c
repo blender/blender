@@ -154,9 +154,11 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr){ //doesnt protect against d
 		first = pool->chunks.first;
 		BLI_remlink(&pool->chunks, first);
 
-		for(mpchunk = pool->chunks.first; mpchunk; mpchunk = mpchunk->next) 
-			pool->use_sysmalloc ? free(mpchunk->data) : MEM_freeN(mpchunk->data);
-		
+		for(mpchunk = pool->chunks.first; mpchunk; mpchunk = mpchunk->next) {
+			if(pool->use_sysmalloc) free(mpchunk->data);
+			else					MEM_freeN(mpchunk->data);
+		}
+
 		pool->use_sysmalloc ? BLI_freelist(&(pool->chunks)) : BLI_freelistN(&(pool->chunks));
 		
 		BLI_addtail(&pool->chunks, first);
@@ -175,9 +177,18 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr){ //doesnt protect against d
 void BLI_mempool_destroy(BLI_mempool *pool)
 {
 	BLI_mempool_chunk *mpchunk=NULL;
-	for(mpchunk = pool->chunks.first; mpchunk; mpchunk = mpchunk->next)
-		pool->use_sysmalloc ? free(mpchunk->data) : MEM_freeN(mpchunk->data);
-	
-	pool->use_sysmalloc ? BLI_freelist(&(pool->chunks)) : BLI_freelistN(&(pool->chunks));	
-	pool->use_sysmalloc ? free(pool) : MEM_freeN(pool);
+	if(pool->use_sysmalloc) {
+		for(mpchunk = pool->chunks.first; mpchunk; mpchunk = mpchunk->next) {
+			free(mpchunk->data);
+		}
+		BLI_freelist(&(pool->chunks));
+		free(pool);
+	}
+	else {
+		for(mpchunk = pool->chunks.first; mpchunk; mpchunk = mpchunk->next) {
+			MEM_freeN(mpchunk->data);
+		}
+		BLI_freelistN(&(pool->chunks));
+		MEM_freeN(pool);
+	}
 }

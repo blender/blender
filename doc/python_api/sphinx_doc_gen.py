@@ -371,7 +371,7 @@ def rna2sphinx(BASEPATH):
     fw("   These parts of the API are relatively stable and are unlikely to change significantly\n")
     fw("      * data API, access to attributes of blender data such as mesh verts, material color, timeline frames and scene objects\n")
     fw("      * user interface functions for defining buttons, creation of menus, headers, panels\n")
-    fw("      * modules: bgl, mathutils and geometry\n")
+    fw("      * modules: bgl and mathutils\n")
     fw("      * game engine modules\n")
     fw("\n")
 

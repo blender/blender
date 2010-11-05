@@ -96,7 +96,7 @@
 
 #include "LBM_fluidsim.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -1550,7 +1550,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	if(gob) {
 		ob->rotmode= target->rotmode;
 		mul_m4_m4m4(ob->obmat, target->obmat, gob->obmat);
-		object_apply_mat4(ob, ob->obmat);
+		object_apply_mat4(ob, ob->obmat, FALSE);
 	}
 	else {
 		copy_object_transform(ob, target);
@@ -1678,54 +1678,27 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 	mul_m3_m3m3(mat, dmat, rmat);
 }
 
-void object_mat3_to_rot(Object *ob, float mat[][3], int use_compat)
+void object_mat3_to_rot(Object *ob, float mat[][3], short use_compat)
 {
-	if (ob->rotmode == ROT_MODE_QUAT)
+	switch(ob->rotmode) {
+	case ROT_MODE_QUAT:
 		mat3_to_quat(ob->quat, mat);
-	else if (ob->rotmode == ROT_MODE_AXISANGLE)
+		break;
+	case ROT_MODE_AXISANGLE:
 		mat3_to_axis_angle(ob->rotAxis, &ob->rotAngle, mat);
-	else {
-		if(use_compat) {
-			float eul[3];
-			VECCOPY(eul, ob->rot);
-			mat3_to_compatible_eulO(ob->rot, eul, ob->rotmode, mat);
-		}
-		else
-			mat3_to_eulO(ob->rot, ob->rotmode, mat);
+		break;
+	default: /* euler */
+		if(use_compat)	mat3_to_compatible_eulO(ob->rot, ob->rot, ob->rotmode, mat);
+		else			mat3_to_eulO(ob->rot, ob->rotmode, mat);
 	}
 }
 
 /* see pchan_apply_mat4() for the equivalent 'pchan' function */
-void object_apply_mat4(Object *ob, float mat[][4])
+void object_apply_mat4(Object *ob, float mat[][4], short use_compat)
 {
-	float mat3[3][3];    /* obmat -> 3x3 */
-	float mat3_n[3][3];  /* obmat -> normalized, 3x3 */
-	float imat3_n[3][3]; /* obmat -> normalized & inverted, 3x3 */
-
-	/* location */
-	copy_v3_v3(ob->loc, mat[3]);
-
-	/* rotation & scale are linked, we need to create the mat's
-	 * for these together since they are related. */
-	copy_m3_m4(mat3, mat);
-	/* so scale doesnt interfear with rotation [#24291] */
-	normalize_m3_m3(mat3_n, (const float(*)[3])mat3);
-	if(mat3_n[0][0] < 0.0f) negate_v3(mat3_n[0]);
-	if(mat3_n[1][1] < 0.0f) negate_v3(mat3_n[1]);
-	if(mat3_n[2][2] < 0.0f) negate_v3(mat3_n[2]);
-
-
-	/* rotation */
-	object_mat3_to_rot(ob, mat3_n, 0);
-
-	/* scale */
-	/* note: mat4_to_size(ob->size, mat) fails for negative scale */
-	invert_m3_m3(imat3_n, mat3_n);
-	mul_m3_m3m3(mat3, imat3_n, mat3);
-
-	ob->size[0]= mat3[0][0];
-	ob->size[1]= mat3[1][1];
-	ob->size[2]= mat3[2][2];
+	float rot[3][3];
+	mat4_to_loc_rot_size(ob->loc, rot, ob->size, mat);
+	object_mat3_to_rot(ob, rot, use_compat);
 }
 
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */

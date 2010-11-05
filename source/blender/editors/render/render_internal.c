@@ -427,7 +427,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 		RE_BlenderFrame(re, mainp, scene, NULL, lay, scene->r.cfra);
 
 	// no redraw needed, we leave state as we entered it
-	ED_update_for_newframe(C, 1);
+	ED_update_for_newframe(mainp, scene, CTX_wm_screen(C), 1);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, scene);
 
@@ -573,11 +573,18 @@ static void render_startjob(void *rjv, short *stop, short *do_update, float *pro
 
 static void render_endjob(void *rjv)
 {
-	RenderJob *rj= rjv;
+	RenderJob *rj= rjv;	
+
+	/* this render may be used again by the sequencer without the active 'Render' where the callbacks
+	 * would be re-assigned. assign dummy callbacks to avoid referencing freed renderjobs bug [#24508] */
+	RE_InitRenderCB(rj->re);
 
 	if(rj->main != G.main)
 		free_main(rj->main);
 
+	/* else the frame will not update for the original value */
+	ED_update_for_newframe(G.main, rj->scene, rj->win->screen, 1);
+	
 	/* XXX render stability hack */
 	G.rendering = 0;
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -629,6 +636,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* only one render job at a time */
 	if(WM_jobs_test(CTX_wm_manager(C), scene))
 		return OPERATOR_CANCELLED;
+
+	if(!RE_is_rendering_allowed(scene, op->reports, render_error_reports)) {
+		return OPERATOR_CANCELLED;
+	}
 
 	/* stop all running jobs, currently previews frustrate Render */
 	WM_jobs_stop_all(CTX_wm_manager(C));

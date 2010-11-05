@@ -66,7 +66,6 @@ void VIEW3D_OT_layers(struct wmOperatorType *ot);
 
 /* view3d_ops.c */
 void view3d_operatortypes(void);
-void view3d_keymap(struct wmKeyConfig *keyconf);
 
 /* view3d_edit.c */
 void VIEW3D_OT_zoom(struct wmOperatorType *ot);
@@ -91,6 +90,11 @@ void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
+void view3d_persp_mat4(struct RegionView3D *rv3d, float mat[][4]);
+
+/* view3d_fly.c */
+void view3d_keymap(struct wmKeyConfig *keyconf);
+void VIEW3D_OT_fly(struct wmOperatorType *ot);
 
 /* drawanim.c */
 void draw_motion_paths_init(View3D *v3d, struct ARegion *ar);
@@ -111,8 +115,9 @@ void drawaxes(float size, char drawtype);
 void view3d_cached_text_draw_begin(void);
 void view3d_cached_text_draw_add(const float co[3], const char *str, short xoffs, short flag);
 void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, float mat[][4]);
-#define V3D_CACHE_TEXT_ZBUF 1
-#define V3D_CACHE_TEXT_WORLDSPACE 2
+#define V3D_CACHE_TEXT_ZBUF			(1<<0)
+#define V3D_CACHE_TEXT_WORLDSPACE	(1<<1)
+#define V3D_CACHE_TEXT_ASCII		(1<<2)
 
 /* drawarmature.c */
 int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag);
@@ -150,7 +155,6 @@ void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
 void VIEW3D_OT_object_as_camera(struct wmOperatorType *ot);
 void VIEW3D_OT_localview(struct wmOperatorType *ot);
 void VIEW3D_OT_game_start(struct wmOperatorType *ot);
-void VIEW3D_OT_fly(struct wmOperatorType *ot);
 
 
 int boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);

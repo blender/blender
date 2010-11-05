@@ -34,10 +34,10 @@ SET(SRC
 	bgl.c
 	blf_api.c
 	bpy_internal_import.c
-	geometry.c
 	mathutils.c
 	mathutils_color.c
 	mathutils_euler.c
+	mathutils_geometry.c
 	mathutils_matrix.c
 	mathutils_quat.c
 	mathutils_vector.c

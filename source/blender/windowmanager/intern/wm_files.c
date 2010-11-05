@@ -96,7 +96,7 @@
 
 #include "GPU_draw.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -195,7 +195,7 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 						else 
 							win->screen= ED_screen_duplicate(win, screen);
 						
-						BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+						BLI_strncpy(win->screenname, win->screen->id.name+2, sizeof(win->screenname));
 						win->screen->winid= win->winid;
 					}
 				}
@@ -317,7 +317,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		ED_editors_init(C);
 		DAG_on_load_update(CTX_data_main(C));
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_load_user_modules(C);
 #endif
@@ -400,7 +400,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	ED_editors_init(C);
 	DAG_on_load_update(CTX_data_main(C));
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if(CTX_py_init_get(C)) {
 		/* sync addons, these may have changed from the defaults */
 		BPY_eval_string(C, "__import__('bpy').utils.addon_reset_all()");

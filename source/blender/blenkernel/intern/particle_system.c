@@ -1705,9 +1705,10 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	r_phase = PSYS_FRAND(p + 20);
 	
 	if(part->from==PART_FROM_PARTICLE){
-		ParticleSimulationData tsim = {sim->scene, psys->target_ob ? psys->target_ob : ob, NULL, NULL};
 		float speed;
-
+		ParticleSimulationData tsim= {0};
+		tsim.scene= sim->scene;
+		tsim.ob= psys->target_ob ? psys->target_ob : ob;
 		tsim.psys = BLI_findlink(&tsim.ob->particlesystem, sim->psys->target_psys-1);
 
 		state.time = pa->time;
@@ -2057,12 +2058,14 @@ void psys_count_keyed_targets(ParticleSimulationData *sim)
 static void set_keyed_keys(ParticleSimulationData *sim)
 {
 	ParticleSystem *psys = sim->psys;
-	ParticleSimulationData ksim = {sim->scene, NULL, NULL, NULL};
+	ParticleSimulationData ksim= {0};
 	ParticleTarget *pt;
 	PARTICLE_P;
 	ParticleKey *key;
 	int totpart = psys->totpart, k, totkeys = psys->totkeyed;
 
+	ksim.scene= sim->scene;
+	
 	/* no proper targets so let's clear and bail out */
 	if(psys->totkeyed==0) {
 		free_keyed_keys(psys);
@@ -2777,23 +2780,26 @@ void particle_intersect_face(void *userdata, int index, const BVHTreeRay *ray, B
 	MVert *x = col->md->x;
 	MVert *v = col->md->current_v;
 	float vel[3], co1[3], co2[3], uv[2], ipoint[3], temp[3], t;
+	float x0[3], x1[3], x2[3], x3[3];
+	float *t0=x0, *t1=x1, *t2=x2, *t3=(face->v4 ? x3 : NULL);
 
-	float *t0, *t1, *t2, *t3;
-	t0 = x[ face->v1 ].co;
-	t1 = x[ face->v2 ].co;
-	t2 = x[ face->v3 ].co;
-	t3 = face->v4 ? x[ face->v4].co : NULL;
+	/* move collision face to start of timestep */
+	madd_v3_v3v3fl(t0, x[face->v1].co, v[face->v1].co, col->cfra);
+	madd_v3_v3v3fl(t1, x[face->v2].co, v[face->v2].co, col->cfra);
+	madd_v3_v3v3fl(t2, x[face->v3].co, v[face->v3].co, col->cfra);
+	if(t3)
+		madd_v3_v3v3fl(t3, x[face->v4].co, v[face->v4].co, col->cfra);
 
 	/* calculate average velocity of face */
-	VECCOPY(vel, v[ face->v1 ].co);
-	VECADD(vel, vel, v[ face->v2 ].co);
-	VECADD(vel, vel, v[ face->v3 ].co);
-	mul_v3_fl(vel, 0.33334f);
+	copy_v3_v3(vel, v[ face->v1 ].co);
+	add_v3_v3(vel, v[ face->v2 ].co);
+	add_v3_v3(vel, v[ face->v3 ].co);
+	mul_v3_fl(vel, 0.33334f*col->dfra);
 
 	/* substract face velocity, in other words convert to 
 	   a coordinate system where only the particle moves */
-	VECADDFAC(co1, col->co1, vel, -col->t);
-	VECSUB(co2, col->co2, vel);
+	madd_v3_v3v3fl(co1, col->co1, vel, -col->f);
+	sub_v3_v3v3(co2, col->co2, vel);
 
 	do
 	{	
@@ -2875,7 +2881,7 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 	copy_v3_v3(col.co2, pa->state.co);
 	copy_v3_v3(col.ve1, pa->prev_state.vel);
 	copy_v3_v3(col.ve2, pa->state.vel);
-	col.t = 0.0f;
+	col.f = 0.0f;
 
 	/* override for boids */
 	if(part->phystype == PART_PHYS_BOIDS) {
@@ -2892,6 +2898,9 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 		sub_v3_v3v3(ray_dir, col.co2, col.co1);
 		hit.index = -1;
 		hit.dist = col.ray_len = len_v3(ray_dir);
+
+		col.cfra = fmod(cfra-dfra, 1.0f);
+		col.dfra = dfra;
 
 		/* even if particle is stationary we want to check for moving colliders */
 		/* if hit.dist is zero the bvhtree_ray_cast will just ignore everything */
@@ -2917,11 +2926,11 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 		/* 2. */
 		if(hit.index>=0) {
 			PartDeflect *pd = col.hit_ob->pd;
-			float co[3]; /* point of collision */
-			float x = hit.dist/col.ray_len; /* location of collision between this iteration */
-			float df = col.t + x * (1.0f - col.t); /* time of collision between frame change*/
-			float dt1 = (df - col.t) * timestep; /* iteration time of collision (in seconds) */
-			float dt2 = (1.0f - df) * timestep; /* time left after collision (in seconds) */
+			float co[3];							/* point of collision */
+			float x = hit.dist/col.ray_len;			/* location factor of collision between this iteration */
+			float f = col.f + x * (1.0f - col.f);	/* time factor of collision between timestep */
+			float dt1 = (f - col.f) * timestep;		/* time since previous collision (in seconds) */
+			float dt2 = (1.0f - f) * timestep;		/* time left after collision (in seconds) */
 			int through = (BLI_frand() < pd->pdef_perm) ? 1 : 0; /* did particle pass through the collision surface? */
 
 			deflections++;
@@ -2935,12 +2944,12 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 			/* particle dies in collision */
 			if(through == 0 && (part->flag & PART_DIE_ON_COL || pd->flag & PDEFLE_KILL_PART)) {
 				pa->alive = PARS_DYING;
-				pa->dietime = pa->state.time + (cfra - pa->state.time) * df;
+				pa->dietime = pa->state.time + (cfra - pa->state.time) * f;
 
 				copy_v3_v3(pa->state.co, co);
-				interp_v3_v3v3(pa->state.vel, pa->prev_state.vel, pa->state.vel, df);
-				interp_qt_qtqt(pa->state.rot, pa->prev_state.rot, pa->state.rot, df);
-				interp_v3_v3v3(pa->state.ave, pa->prev_state.ave, pa->state.ave, df);
+				interp_v3_v3v3(pa->state.vel, pa->prev_state.vel, pa->state.vel, f);
+				interp_qt_qtqt(pa->state.rot, pa->prev_state.rot, pa->state.rot, f);
+				interp_v3_v3v3(pa->state.ave, pa->prev_state.ave, pa->state.ave, f);
 
 				/* particle is dead so we don't need to calculate further */
 				return;
@@ -3073,11 +3082,11 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 					copy_v3_v3(col.ve1, v0);
 					copy_v3_v3(col.ve2, pa->state.vel);
 
-					col.t = df;
+					col.f = f;
 				}
 				else {
-					/* final chance to prevent failure, so don't do anything fancy */
-					copy_v3_v3(pa->state.co, co);
+					/* final chance to prevent failure, so stick to the surface and hope for the best */
+					madd_v3_v3v3fl(pa->state.co, co, col.vel, dt2);
 					copy_v3_v3(pa->state.vel, v0);
 				}
 			}
@@ -3983,7 +3992,7 @@ static int hair_needs_recalc(ParticleSystem *psys)
  * then advances in to actual particle calculations depending on particle type */
 void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 {
-	ParticleSimulationData sim = {scene, ob, psys, NULL, NULL};
+	ParticleSimulationData sim= {0};
 	ParticleSettings *part = psys->part;
 	float cfra;
 
@@ -3994,6 +4003,10 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 		return;
 
 	cfra= BKE_curframe(scene);
+
+	sim.scene= scene;
+	sim.ob= ob;
+	sim.psys= psys;
 	sim.psmd= psys_get_modifier(ob, psys);
 
 	/* system was already updated from modifier stack */

@@ -607,7 +607,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	View3D *v3d= CTX_wm_view3d(C);
-	RegionView3D *rv3d= NULL;
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	int newob= 0;
 	int enter_editmode;
 	unsigned int layer;
@@ -628,9 +628,6 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Cannot create editmode armature.");
 		return OPERATOR_CANCELLED;
 	}
-	
-	if(v3d) 
-		rv3d= CTX_wm_region(C)->regiondata;
 	
 	/* v3d and rv3d are allowed to be NULL */
 	add_primitive_bone(CTX_data_scene(C), v3d, rv3d);
@@ -985,7 +982,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 		ob->lay= base->lay;
 		
 		copy_m4_m4(ob->obmat, dob->mat);
-		object_apply_mat4(ob, ob->obmat);
+		object_apply_mat4(ob, ob->obmat, FALSE);
 	}
 	
 	copy_object_set_idnew(C, 0);
@@ -1647,7 +1644,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 		if(BASACT==base)
 			ED_base_object_activate(C, basen);
 		
-		ED_render_id_flush_update(bmain, basen->object->data);
+		DAG_id_flush_update(base->object->data, 0);
 	}
 	CTX_DATA_END;
 

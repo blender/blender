@@ -30,7 +30,6 @@ SET(INC
 	../blenkernel
 	../makesdna
 	../readblenfile
-	../include
 	../makesrna
 	../render/extern/include
 	../../../intern/guardedalloc

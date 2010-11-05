@@ -1011,8 +1011,11 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 	float puv[4][2]; /* pixelspace uv's */
 	float no1[2], no2[2], no3[2], no4[2]; /* normals */
 	float dir1[2], dir2[2], dir3[2], dir4[2];
-	float ibuf_inv[2] = {1.0f / (float)ibuf_x, 1.0f / (float)ibuf_y};
-	
+	float ibuf_inv[2];
+
+	ibuf_inv[0]= 1.0f / (float)ibuf_x;
+	ibuf_inv[1]= 1.0f / (float)ibuf_y;
+
 	/* make UV's in pixel space so we can */
 	puv[0][0] = orig_uv[0][0] * ibuf_x;
 	puv[0][1] = orig_uv[0][1] * ibuf_y;
@@ -4178,7 +4181,7 @@ static void imapaint_lift_smear(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 	int a, tot;
 
 	imapaint_set_region(region, 0, 0, pos[0], pos[1], ibufb->x, ibufb->y);
-	tot= imapaint_torus_split_region(region, ibuf, ibufb);
+	tot= imapaint_torus_split_region(region, ibufb, ibuf);
 
 	for(a=0; a<tot; a++)
 		IMB_rectblend(ibufb, ibuf, region[a].destx, region[a].desty,
@@ -5584,6 +5587,7 @@ void PAINT_OT_image_from_view(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= texture_paint_image_from_view_exec;
+	ot->poll= ED_operator_region_view3d_active;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;

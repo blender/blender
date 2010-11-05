@@ -29,7 +29,7 @@
 #ifndef __KX_POLYROXY
 #define __KX_POLYPROXY
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 #include "SCA_IObject.h"
 
@@ -77,7 +77,7 @@ public:
 
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 #endif //__KX_POLYPROXY
 

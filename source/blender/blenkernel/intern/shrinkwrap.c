@@ -49,14 +49,9 @@
 #include "BKE_subsurf.h"
 
 #include "BLI_math.h"
-#include "BLI_editVert.h"
-
 
 
 /* Util macros */
-#define TO_STR(a)	#a
-#define JOIN(a,b)	a##b
-
 #define OUT_OF_MEMORY()	((void)printf("Shrinkwrap: Out of memory\n"))
 
 /* Benchmark macros */
@@ -90,7 +85,7 @@ typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *c
 DerivedMesh *object_get_derived_final(struct Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Mesh *me= ob->data;
-	EditMesh *em = BKE_mesh_get_editmesh(me);
+	struct EditMesh *em = BKE_mesh_get_editmesh(me);
 
 	if (em)
 	{
@@ -391,8 +386,8 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 			//Project over negative direction of axis
 			if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)
 			{
-				float inv_no[3] = { -tmp_no[0], -tmp_no[1], -tmp_no[2] };
-
+				float inv_no[3];
+				negate_v3_v3(inv_no, tmp_no);
 
 				if(auxData.tree)
 					normal_projection_project_vertex(0, tmp_co, inv_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
@@ -559,8 +554,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Scene *scene, Object
 		//Using vertexs positions/normals as if a subsurface was applied 
 		if(smd->subsurfLevels)
 		{
-			SubsurfModifierData ssmd;
-			memset(&ssmd, 0, sizeof(ssmd));
+			SubsurfModifierData ssmd= {{0}};
 			ssmd.subdivType	= ME_CC_SUBSURF;		//catmull clark
 			ssmd.levels		= smd->subsurfLevels;	//levels
 

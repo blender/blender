@@ -53,7 +53,7 @@
 #include "BKE_report.h"
 #include "BIK_api.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -154,7 +154,7 @@ void validate_pyconstraint_cb (void *arg1, void *arg2)
 	data->text = text;
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 /* this returns a string for the list of usable pyconstraint script names */
 char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 {
@@ -195,12 +195,12 @@ char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 	
 	return str;
 }
-#endif /* DISABLE_PYTHON */
+#endif /* WITH_PYTHON */
 
 /* this callback gets called when the 'refresh' button of a pyconstraint gets pressed */
 void update_pyconstraint_cb (void *arg1, void *arg2)
 {
-#ifdef DISABLE_PYTHON
+#ifndef WITH_PYTHON
 	(void)arg1; /* unused */
 	(void)arg2; /* unused */
 #else
@@ -725,6 +725,11 @@ static int childof_clear_inverse_exec (bContext *C, wmOperator *op)
 	Object *ob = ED_object_active_context(C);
 	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_CHILDOF);
 	bChildOfConstraint *data= (con) ? (bChildOfConstraint *)con->data : NULL;
+	
+	if(data==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Childof constraint not found.");
+		return OPERATOR_CANCELLED;
+	}
 	
 	/* simply clear the matrix */
 	unit_m4(data->invmat);
@@ -1297,7 +1302,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 			
 		case CONSTRAINT_TYPE_PYTHON: // FIXME: this code is not really valid anymore
 		{
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 			char *menustr;
 			int scriptint= 0;
 			/* popup a list of usable scripts */

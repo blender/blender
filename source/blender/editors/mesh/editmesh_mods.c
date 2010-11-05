@@ -4581,10 +4581,7 @@ static int mesh_select_nth_exec(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	int nth = RNA_int_get(op->ptr, "nth");
 
-	if(EM_deselect_nth(em, nth) == 0) {
-		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face.");
-		return OPERATOR_CANCELLED;
-	}
+	EM_deselect_nth(em, nth);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 

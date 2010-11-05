@@ -27,7 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "geometry.h"
+#include "mathutils_geometry.h"
 
 /* Used for PolyFill */
 #include "BKE_displist.h"
@@ -819,7 +819,7 @@ struct PyMethodDef M_Geometry_methods[] = {
 
 static struct PyModuleDef M_Geometry_module_def = {
 	PyModuleDef_HEAD_INIT,
-	"geometry",  /* m_name */
+	"mathutils.geometry",  /* m_name */
 	M_Geometry_doc,  /* m_doc */
 	0,  /* m_size */
 	M_Geometry_methods,  /* m_methods */
@@ -830,12 +830,8 @@ static struct PyModuleDef M_Geometry_module_def = {
 };
 
 /*----------------------------MODULE INIT-------------------------*/
-PyObject *Geometry_Init(void)
+PyMODINIT_FUNC BPyInit_mathutils_geometry(void)
 {
-	PyObject *submodule;
-
-	submodule = PyModule_Create(&M_Geometry_module_def);
-	PyDict_SetItemString(PyImport_GetModuleDict(), M_Geometry_module_def.m_name, submodule);
-
-	return (submodule);
+	PyObject *submodule= PyModule_Create(&M_Geometry_module_def);
+	return submodule;
 }

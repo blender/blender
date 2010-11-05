@@ -101,11 +101,10 @@ void RNA_main_pointer_create(struct Main *main, PointerRNA *r_ptr)
 
 void RNA_id_pointer_create(ID *id, PointerRNA *r_ptr)
 {
-	PointerRNA tmp;
 	StructRNA *type, *idtype= NULL;
 
 	if(id) {
-		memset(&tmp, 0, sizeof(tmp));
+		PointerRNA tmp= {{0}};
 		tmp.data= id;
 		idtype= rna_ID_refine(&tmp);
 		
@@ -126,11 +125,10 @@ void RNA_id_pointer_create(ID *id, PointerRNA *r_ptr)
 
 void RNA_pointer_create(ID *id, StructRNA *type, void *data, PointerRNA *r_ptr)
 {
-	PointerRNA tmp;
 	StructRNA *idtype= NULL;
 
 	if(id) {
-		memset(&tmp, 0, sizeof(tmp));
+		PointerRNA tmp= {{0}};
 		tmp.data= id;
 		idtype= rna_ID_refine(&tmp);
 	}
@@ -1268,6 +1266,14 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 
 }
 
+/* must keep in sync with 'rna_property_update'
+ * note, its possible this returns a false positive in the case of PROP_CONTEXT_UPDATE
+ * but this isnt likely to be a performance problem. */
+int RNA_property_update_check(PropertyRNA *prop)
+{
+	return (prop->magic != RNA_MAGIC || prop->update || prop->noteflag);
+}
+
 void RNA_property_update(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
 	rna_property_update(C, CTX_data_main(C), CTX_data_scene(C), ptr, prop);
@@ -1966,9 +1972,7 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 		return RNA_property_pointer_get(ptr, prop);
 	}
 	else {
-		PointerRNA result;
-
-		memset(&result, 0, sizeof(result));
+		PointerRNA result= {{0}};
 		return result;
 	}
 }

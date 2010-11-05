@@ -534,6 +534,9 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 
 	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_INV_ON);
 	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, TFM_MODAL_SNAP_INV_OFF);
+
+	WM_modalkeymap_add_item(keymap, RIGHTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_INV_ON);
+	WM_modalkeymap_add_item(keymap, RIGHTCTRLKEY, KM_RELEASE, KM_ANY, 0, TFM_MODAL_SNAP_INV_OFF);
 	
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, 0, 0, TFM_MODAL_ADD_SNAP);
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, KM_ALT, 0, TFM_MODAL_REMOVE_SNAP);
@@ -1224,7 +1227,10 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 	if (t->helpline != HLP_NONE && !(t->flag & T_USES_MANIPULATOR))
 	{
 		float vecrot[3], cent[2];
-		int mval[2] = {x, y};
+		int mval[2];
+
+		mval[0]= x;
+		mval[1]= y;
 
 		VECCOPY(vecrot, t->center);
 		if(t->flag & T_EDIT) {
@@ -1669,7 +1675,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	/* overwrite initial values if operator supplied a non-null vector */
 	if (RNA_property_is_set(op->ptr, "value"))
 	{
-		float values[4];
+		float values[4]= {0}; /* incase value isn't length 4, avoid uninitialized memory  */
 		RNA_float_get_array(op->ptr, "value", values);
 		QUATCOPY(t->values, values);
 		QUATCOPY(t->auto_values, values);
@@ -1681,6 +1687,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	{
 		RNA_float_get_array(op->ptr, "axis", t->axis);
 		normalize_v3(t->axis);
+		copy_v3_v3(t->axis_orig, t->axis);
 	}
 
 	/* Constraint init from operator */
@@ -1919,14 +1926,13 @@ static void constraintTransLim(TransInfo *UNUSED(t), TransData *td)
 {
 	if (td->con) {
 		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_LOCLIMIT);
-		bConstraintOb cob;
+		bConstraintOb cob= {0};
 		bConstraint *con;
 		
 		/* Make a temporary bConstraintOb for using these limit constraints
 		 * 	- they only care that cob->matrix is correctly set ;-)
 		 *	- current space should be local
 		 */
-		memset(&cob, 0, sizeof(bConstraintOb));
 		unit_m4(cob.matrix);
 		VECCOPY(cob.matrix[3], td->loc);
 		
@@ -2084,14 +2090,13 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 {
 	if (td->con && td->ext) {
 		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_SIZELIMIT);
-		bConstraintOb cob;
+		bConstraintOb cob= {0};
 		bConstraint *con;
 		
 		/* Make a temporary bConstraintOb for using these limit constraints
 		 * 	- they only care that cob->matrix is correctly set ;-)
 		 *	- current space should be local
 		 */
-		memset(&cob, 0, sizeof(bConstraintOb));
 		if ((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)) {
 			/* scale val and reset size */
 			return; // TODO: fix this case
@@ -2839,6 +2844,8 @@ void initRotation(TransInfo *t)
 
 	negate_v3_v3(t->axis, t->viewinv[2]);
 	normalize_v3(t->axis);
+
+	copy_v3_v3(t->axis_orig, t->axis);
 }
 
 static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short around) {
@@ -3105,8 +3112,7 @@ int Rotation(TransInfo *t, short UNUSED(mval[2]))
 		t->con.applyRot(t, NULL, t->axis, NULL);
 	} else {
 		/* reset axis if constraint is not set */
-		negate_v3_v3(t->axis, t->viewinv[2]);
-		normalize_v3(t->axis);
+		copy_v3_v3(t->axis, t->axis_orig);
 	}
 	
 	applySnapping(t, &final);

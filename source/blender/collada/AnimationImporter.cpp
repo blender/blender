@@ -131,7 +131,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 		}
 		break;
 	default:
-		fprintf(stderr, "Output dimension of %d is not yet supported (animation id = %s)\n", dim, curve->getOriginalId().c_str());
+		fprintf(stderr, "Output dimension of %d is not yet supported (animation id = %s)\n", (int)dim, curve->getOriginalId().c_str());
 	}
 
 	for (std::vector<FCurve*>::iterator it = fcurves.begin(); it != fcurves.end(); it++)
@@ -221,7 +221,7 @@ AnimationImporter::~AnimationImporter()
 		free_fcurve(*it);
 
 	if (unused_curves.size())
-		fprintf(stderr, "removed %u unused curves\n", unused_curves.size());
+		fprintf(stderr, "removed %d unused curves\n", (int)unused_curves.size());
 }
 
 bool AnimationImporter::write_animation(const COLLADAFW::Animation* anim) 
@@ -403,7 +403,7 @@ void AnimationImporter::read_node_transform(COLLADAFW::Node *node, Object *ob)
 	TransformReader::get_node_mat(mat, node, &uid_animated_map, ob);
 	if (ob) {
 		copy_m4_m4(ob->obmat, mat);
-		object_apply_mat4(ob, ob->obmat);
+		object_apply_mat4(ob, ob->obmat, 0);
 	}
 }
 
@@ -564,7 +564,7 @@ Object *AnimationImporter::translate_animation(COLLADAFW::Node *node,
 							}
 						}
 						else {
-							fprintf(stderr, "expected %d curves, got %u\n", xyz ? 3 : 1, curves.size());
+							fprintf(stderr, "expected %d curves, got %d\n", xyz ? 3 : 1, (int)curves.size());
 						}
 					}
 				}
@@ -902,7 +902,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 
 			if (type == COLLADAFW::Transformation::ROTATE) {
 				if (curves.size() != 1) {
-					fprintf(stderr, "expected 1 curve, got %u\n", curves.size());
+					fprintf(stderr, "expected 1 curve, got %d\n", (int)curves.size());
 					return false;
 				}
 
@@ -924,9 +924,9 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 
 				if ((!is_xyz && curves.size() != 1) || (is_xyz && curves.size() != 3)) {
 					if (is_xyz)
-						fprintf(stderr, "%s: expected 3 curves, got %u\n", path, curves.size());
+						fprintf(stderr, "%s: expected 3 curves, got %d\n", path, (int)curves.size());
 					else
-						fprintf(stderr, "%s: expected 1 curve, got %u\n", path, curves.size());
+						fprintf(stderr, "%s: expected 1 curve, got %d\n", path, (int)curves.size());
 					return false;
 				}
 				
@@ -953,7 +953,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 			else if (type == COLLADAFW::Transformation::MATRIX) {
 				// for now, of matrix animation, support only the case when all values are packed into one animation
 				if (curves.size() != 16) {
-					fprintf(stderr, "%s: expected 16 curves, got %u\n", path, curves.size());
+					fprintf(stderr, "%s: expected 16 curves, got %d\n", path, (int)curves.size());
 					return false;
 				}
 

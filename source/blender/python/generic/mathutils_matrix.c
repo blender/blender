@@ -942,6 +942,7 @@ PyObject *Matrix_scalePart(MatrixObject * self)
 	scale[2]= tmat[2][2];
 	return newVectorObject(scale, 3, Py_NEW, NULL);
 }
+
 /*---------------------------Matrix.invert() ---------------------*/
 static char Matrix_Invert_doc[] =
 ".. method:: invert()\n"
@@ -1007,6 +1008,41 @@ PyObject *Matrix_Invert(MatrixObject * self)
 	(void)BaseMath_WriteCallback(self);
 	Py_INCREF(self);
 	return (PyObject *)self;
+}
+
+/*---------------------------Matrix.decompose() ---------------------*/
+static char Matrix_decompose_doc[] =
+".. method:: decompose()\n"
+"\n"
+"   Return the location, rotaion and scale components of this matrix.\n"
+"\n"
+"   :return: loc, rot, scale triple.\n"
+"   :rtype: (:class:`Vector`, :class:`Quaternion`, :class:`Vector`)";
+static PyObject *Matrix_decompose(MatrixObject * self)
+{
+	PyObject *ret;
+	float loc[3];
+	float rot[3][3];
+	float quat[4];
+	float size[3];
+
+	if(self->colSize != 4 || self->rowSize != 4) {
+		PyErr_SetString(PyExc_AttributeError, "Matrix.decompose(): inappropriate matrix size - expects 4x4 matrix\n");
+		return NULL;
+	}
+
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
+	mat4_to_loc_rot_size(loc, rot, size, (float (*)[4])self->contigPtr);
+	mat3_to_quat(quat, rot);
+
+	ret= PyTuple_New(3);
+	PyTuple_SET_ITEM(ret, 0, newVectorObject(loc, 3, Py_NEW, NULL));
+	PyTuple_SET_ITEM(ret, 1, newQuaternionObject(quat, Py_NEW, NULL));
+	PyTuple_SET_ITEM(ret, 2, newVectorObject(size, 3, Py_NEW, NULL));
+
+	return ret;
 }
 
 
@@ -1755,6 +1791,7 @@ static struct PyMethodDef Matrix_methods[] = {
 	{"translation_part", (PyCFunction) Matrix_TranslationPart, METH_NOARGS, Matrix_TranslationPart_doc},
 	{"rotation_part", (PyCFunction) Matrix_RotationPart, METH_NOARGS, Matrix_RotationPart_doc},
 	{"scale_part", (PyCFunction) Matrix_scalePart, METH_NOARGS, Matrix_scalePart_doc},
+	{"decompose", (PyCFunction) Matrix_decompose, METH_NOARGS, Matrix_decompose_doc},
 	{"resize4x4", (PyCFunction) Matrix_Resize4x4, METH_NOARGS, Matrix_Resize4x4_doc},
 	{"to_4x4", (PyCFunction) Matrix_to_4x4, METH_NOARGS, Matrix_to_4x4_doc},
 	{"to_3x3", (PyCFunction) Matrix_to_3x3, METH_NOARGS, Matrix_to_3x3_doc},

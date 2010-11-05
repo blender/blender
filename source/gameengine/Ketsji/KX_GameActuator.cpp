@@ -124,7 +124,7 @@ bool KX_GameActuator::Update()
 		}
 	case KX_GAME_SAVECFG:
 		{
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 			if (m_ketsjiengine)
 			{
 				char mashal_path[512];
@@ -152,11 +152,11 @@ bool KX_GameActuator::Update()
 					delete [] marshal_buffer;
 			}
 			break;
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 		}
 	case KX_GAME_LOADCFG:
 		{
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 			if (m_ketsjiengine)
 			{
 				char mashal_path[512];
@@ -191,7 +191,7 @@ bool KX_GameActuator::Update()
 				}
 			}
 			break;
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 		}
 	default:
 		; /* do nothing? this is an internal error !!! */
@@ -201,7 +201,7 @@ bool KX_GameActuator::Update()
 }
 
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -241,4 +241,4 @@ PyAttributeDef KX_GameActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

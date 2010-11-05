@@ -24,6 +24,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+# since this includes bullet we get errors from the headers too
+REMOVE_STRICT_FLAGS()
+
 SET(INC
 	.
 	../common

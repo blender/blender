@@ -84,8 +84,6 @@ extern "C" {
 
 #include "BLI_rect.h"
 
-#include "BLI_scanfill.h"
-
 #include "BLI_noise.h"
 
 /**

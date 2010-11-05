@@ -60,7 +60,9 @@ void project_from_camera(float target[2], float source[3], UvCameraInfo *uci)
 			target[1]= pv4[1] / uci->camsize;
 		}
 		else {
-			float vec2d[2]= {pv4[0], pv4[2]}; /* 2D position from the camera */
+			float vec2d[2]; /* 2D position from the camera */
+			vec2d[0]= pv4[0];
+			vec2d[1]= pv4[2];
 			target[0]= angle * (M_PI / uci->camangle);
 			target[1]= pv4[1] / (len_v2(vec2d) * uci->camsize);
 		}

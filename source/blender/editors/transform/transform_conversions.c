@@ -678,7 +678,7 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
-		if ((bone->layer & arm->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+		if (PBONE_VISIBLE(arm, bone)) {
 			if ((bone->flag & BONE_SELECTED) && !(ob->proxy && pchan->bone->layer & arm->layer_protected))
 				bone->flag |= BONE_TRANSFORM;
 			else
@@ -3868,8 +3868,13 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 #ifdef XXX_DURIAN_ANIM_TX_HACK
 	/* hack */
 	if((seq->flag & SELECT)==0 && seq->type & SEQ_EFFECT) {
-		Sequence *seq_t[3] = {seq->seq1, seq->seq2, seq->seq3};
+		Sequence *seq_t[3];
 		int i;
+
+		seq_t[0]= seq->seq1;
+		seq_t[1]= seq->seq2;
+		seq_t[2]= seq->seq3;
+
 		for(i=0; i<3; i++) {
 			if (seq_t[i] && ((seq_t[i])->flag & SELECT) && !(seq_t[i]->flag & SEQ_LOCK) && !(seq_t[i]->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)))
 				seq->flag |= SELECT;
@@ -5080,6 +5085,17 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		if (C && recalcObPaths) {
 			//ED_objects_clear_paths(C); // XXX for now, don't need to clear
 			ED_objects_recalculate_paths(C, t->scene);
+
+			/* recalculating the frame positions means we loose our original transform if its not auto-keyed [#24451]
+			 * this hack re-applies it, which is annoying, only alternatives are...
+			 * - dont recalc paths.
+			 * - have an object_handle_update() which gives is the new transform without touching the objects.
+			 * - only recalc paths on auto-keying.
+			 * - ED_objects_recalculate_paths could backup/restore transforms.
+			 * - re-apply the transform which is simplest in this case. (2 lines below)
+			 */
+			t->redraw |= TREDRAW_HARD;
+			transformApply(C, t);
 		}
 	}
 

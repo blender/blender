@@ -24,6 +24,8 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+REMOVE_STRICT_FLAGS()
+
 SET(INC
 	.
 	../blenlib

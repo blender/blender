@@ -33,7 +33,6 @@ SET(INC
 	../../../source/gameengine/Rasterizer
 	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
 	../../../source/gameengine/BlenderRoutines
-	../../../source/blender/include
 	../../../source/blender/blenlib
 	../../../source/blender/blenkernel
 	../../../source/blender/makesdna
@@ -76,8 +75,7 @@ ENDIF(WITH_FFMPEG)
 
 IF(WITH_PYTHON)
 	LIST(APPEND INC ${PYTHON_INC})
-ELSE(WITH_PYTHON)
-	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+	ADD_DEFINITIONS(-DWITH_PYTHON)
 ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_videotex "${SRC}" "${INC}")

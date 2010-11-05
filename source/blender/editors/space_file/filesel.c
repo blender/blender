@@ -59,6 +59,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
+#include "BLI_path_util.h"
 #include "BLI_storage_types.h"
 #include "BLI_dynstr.h"
 

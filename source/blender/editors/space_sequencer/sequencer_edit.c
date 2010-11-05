@@ -1159,8 +1159,9 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 	}
 	SEQ_END
 
-	/* test for effects and overlap */
-	SEQP_BEGIN(ed, seq) {
+	/* test for effects and overlap
+	 * dont use SEQP_BEGIN since that would be recursive */
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 			seq->flag &= ~SEQ_OVERLAP;
 			if( seq_test_overlap(ed->seqbasep, seq) ) {
@@ -1176,7 +1177,6 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 				calc_sequence(scene, seq);
 		}
 	}
-	SEQ_END;
 
 	/* as last: */
 	sort_seq(scene);
@@ -1491,6 +1491,42 @@ void SEQUENCER_OT_reassign_inputs(struct wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= sequencer_reassign_inputs_exec;
+	ot->poll= sequencer_effect_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
+static int sequencer_swap_inputs_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Sequence *seq, *last_seq = seq_active_get(scene);
+
+	if(last_seq->seq1==NULL || last_seq->seq2 == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No valid inputs to swap");
+		return OPERATOR_CANCELLED;
+	}
+
+	seq = last_seq->seq1;
+	last_seq->seq1 = last_seq->seq2;
+	last_seq->seq2 = seq;
+
+	update_changed_seq_and_deps(scene, last_seq, 1, 1);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
+	return OPERATOR_FINISHED;
+}
+void SEQUENCER_OT_swap_inputs(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Swap Inputs";
+	ot->idname= "SEQUENCER_OT_swap_inputs";
+	ot->description="Swap the first two inputs for the effects strip";
+
+	/* api callbacks */
+	ot->exec= sequencer_swap_inputs_exec;
 	ot->poll= sequencer_effect_poll;
 
 	/* flags */
@@ -2008,16 +2044,16 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 
 	recurs_del_seq_flag(scene, ed->seqbasep, SEQ_FLAG_DELETE, 0);
 
-	/* test for effects and overlap */
-	SEQP_BEGIN(ed, seq) {
+	/* test for effects and overlap
+	 * dont use SEQP_BEGIN since that would be recursive */
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if(seq->flag & SELECT) {
 			seq->flag &= ~SEQ_OVERLAP;
-			if( seq_test_overlap(ed->seqbasep, seq) ) {
+			if(seq_test_overlap(ed->seqbasep, seq)) {
 				shuffle_seq(ed->seqbasep, seq, scene);
 			}
 		}
 	}
-	SEQ_END;
 
 	sort_seq(scene);
 	seq_update_muting(scene, ed);

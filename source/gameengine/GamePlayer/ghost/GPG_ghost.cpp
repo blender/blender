@@ -822,8 +822,9 @@ int main(int argc, char** argv)
 						
 						BLI_strncpy(pathname, maggie->name, sizeof(pathname));
 						BLI_strncpy(G.main->name, maggie->name, sizeof(G.main->name));
+#ifdef WITH_PYTHON
 						setGamePythonPath(G.main->name);
-
+#endif
 						if (firstTimeRunning)
 						{
 							firstTimeRunning = false;

@@ -31,6 +31,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stddef.h>
+#include <assert.h>
 #ifdef WIN32
 #include <windows.h>
 #include <io.h>
@@ -889,6 +890,11 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	block= uiBeginBlock(C, ar, "redo_popup", UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
+
+	/* if register is not enabled, the operator gets freed on OPERATOR_FINISHED
+	 * ui_apply_but_funcs_after calls redo_cb and crashes */
+	assert(op->type->flag & OPTYPE_REGISTER);
+
 	uiBlockSetHandleFunc(block, redo_cb, arg_op);
 
 	if(!op->properties) {
@@ -1021,6 +1027,11 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	int retval= OPERATOR_CANCELLED;
 	
+	if((op->type->flag & OPTYPE_REGISTER)==0) {
+		BKE_reportf(op->reports, RPT_ERROR, "Operator '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
+		return OPERATOR_CANCELLED;
+	}
+	
 	if(op->type->exec) {
 		retval= op->type->exec(C, op);
 
@@ -1059,6 +1070,11 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
 
 int WM_operator_redo_popup(bContext *C, wmOperator *op)
 {
+	if((op->type->flag & OPTYPE_REGISTER)==0) {
+		BKE_reportf(op->reports, RPT_ERROR, "Operator '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
+		return OPERATOR_CANCELLED;
+	}
+	
 	uiPupBlock(C, wm_block_create_redo, op);
 
 	return OPERATOR_CANCELLED;
@@ -1904,7 +1920,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 
 #include "../../collada/collada.h"
 
-static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {	
 	if(!RNA_property_is_set(op->ptr, "filepath")) {
 		char filepath[FILE_MAX];
@@ -2850,7 +2866,10 @@ int WM_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	int mode = RNA_int_get(op->ptr, "mode");
 	float initial_value = RNA_float_get(op->ptr, "initial_value");
 	//float initial_size = RNA_float_get(op->ptr, "initial_size");
-	int mouse[2] = {event->x, event->y};
+	int mouse[2];
+
+	mouse[0]= event->x;
+	mouse[1]= event->y;
 
 	//if (initial_size == 0)
 	//	initial_size = WM_RADIAL_CONTROL_DISPLAY_SIZE;
@@ -2986,7 +3005,8 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
 	for(a=0; a<iter; a++) {
 		if (type==0) {
-			ED_region_do_draw(C, ar);
+			if(ar)
+				ED_region_do_draw(C, ar);
 		} 
 		else if (type==1) {
 			wmWindow *win= CTX_wm_window(C);

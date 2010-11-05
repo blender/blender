@@ -382,18 +382,17 @@ def save(operator, context, filepath="",
 
     # ----------------------------------------------
     # storage classes
-    class my_bone_class:
-        __slots__ =(\
-          'blenName',\
-          'blenBone',\
-          'blenMeshes',\
-          'restMatrix',\
-          'parent',\
-          'blenName',\
-          'fbxName',\
-          'fbxArm',\
-          '__pose_bone',\
-          '__anim_poselist')
+    class my_bone_class(object):
+        __slots__ =("blenName",
+                    "blenBone",
+                    "blenMeshes",
+                    "restMatrix",
+                    "parent",
+                    "blenName",
+                    "fbxName",
+                    "fbxArm",
+                    "__pose_bone",
+                    "__anim_poselist")
 
         def __init__(self, blenBone, fbxArm):
 
@@ -474,7 +473,25 @@ def save(operator, context, filepath="",
             self.__anim_poselist.clear()
 
 
-    class my_object_generic:
+    class my_object_generic(object):
+        __slots__ =("fbxName",
+                    "blenObject",
+                    "blenData",
+                    "origData",
+                    "blenTextures",
+                    "blenMaterials",
+                    "blenMaterialList",
+                    "blenAction",
+                    "blenActionList",
+                    "fbxGroupNames",
+                    "fbxParent",
+                    "fbxBoneParent",
+                    "fbxBones",
+                    "fbxArm",
+                    "matrixWorld",
+                    "__anim_poselist",
+                    )
+
         # Other settings can be applied for each type - mesh, armature etc.
         def __init__(self, ob, matrixWorld = None):
             self.fbxName = sane_obname(ob)
@@ -492,8 +509,12 @@ def save(operator, context, filepath="",
             else:
                 return self.matrixWorld
 
-        def setPoseFrame(self, f):
-            self.__anim_poselist[f] =  self.blenObject.matrix_world.copy()
+        def setPoseFrame(self, f, fake=False):
+            if fake:
+                # annoying, have to clear GLOBAL_MATRIX
+                self.__anim_poselist[f] =  self.matrixWorld * GLOBAL_MATRIX.copy().invert()
+            else:
+                self.__anim_poselist[f] =  self.blenObject.matrix_world.copy()
 
         def getAnimParRelMatrix(self, frame):
             if self.fbxParent:
@@ -2648,7 +2669,7 @@ Takes:  {''')
                         #Blender.Window.RedrawAll()
                         if ob_generic == ob_meshes and my_ob.fbxArm:
                             # We cant animate armature meshes!
-                            pass
+                            my_ob.setPoseFrame(i, fake=True)
                         else:
                             my_ob.setPoseFrame(i)
 

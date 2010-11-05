@@ -138,8 +138,11 @@ printf("%d\n", event->val);
 		float nor[3]= {0.0, 0.0, 0.0};
 		
 		/* 2D normal calc */
-		float mval_f[2]= {(float)event->mval[0], (float)event->mval[1]};
-		
+		float mval_f[2];
+
+		mval_f[0]= (float)event->mval[0];
+		mval_f[1]= (float)event->mval[1];
+
 		done= 0;
 
 		/* calculate the normal for selected edges */

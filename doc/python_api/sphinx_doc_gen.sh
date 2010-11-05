@@ -15,7 +15,6 @@ blender_version=$(grep BLENDER_VERSION $blender_srcdir/source/blender/blenkernel
 blender_subversion=$(grep BLENDER_SUBVERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | tr -dc 0-9)
 BLENDER_VERSION=$(expr $blender_version / 100)_$(expr $blender_version % 100)_$blender_subversion
 
-BLENDER_VERSION=`$BLENDER --version | cut -f2-4 -d" " | sed 's/(//g' | sed 's/)//g' | sed 's/ sub /./g' | sed 's/\./_/g'`
 SSH_UPLOAD_FULL=$SSH_UPLOAD/"blender_python_api_"$BLENDER_VERSION
 
 SPHINXBASE=doc/python_api/

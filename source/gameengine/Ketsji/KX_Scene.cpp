@@ -208,7 +208,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 	m_bucketmanager=new RAS_BucketManager();
 	
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	m_attr_dict = PyDict_New(); /* new ref */
 	m_draw_call_pre = NULL;
 	m_draw_call_post = NULL;
@@ -262,7 +262,7 @@ KX_Scene::~KX_Scene()
 		delete m_bucketmanager;
 	}
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	PyDict_Clear(m_attr_dict);
 	Py_DECREF(m_attr_dict);
 
@@ -1073,8 +1073,9 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 				blendobj->parent &&							// original object had armature (not sure this test is needed)
 				blendobj->parent->type == OB_ARMATURE &&
 				blendmesh->dvert!=NULL;						// mesh has vertex group
+#ifdef USE_BULLET
 			bool bHasSoftBody = (!parentobj && (blendobj->gameflag & OB_SOFT_BODY));
-
+#endif
 			bool releaseParent = true;
 
 			
@@ -1838,7 +1839,7 @@ void KX_Scene::Render2DFilters(RAS_ICanvas* canvas)
 	m_filtermanager.RenderFilters(canvas);
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
 {
@@ -2248,4 +2249,4 @@ KX_PYMETHODDEF_DOC(KX_Scene, get, "")
 	return def;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON

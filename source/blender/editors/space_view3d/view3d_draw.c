@@ -579,12 +579,16 @@ static void draw_view_axis(RegionView3D *rv3d)
 	const float toll = 0.5;      /* used to see when view is quasi-orthogonal */
 	const float start = k + 1.0; /* axis center in screen coordinates, x=y */
 	float ydisp = 0.0;          /* vertical displacement to allow obj info text */
+	int bright = 25*(float)U.rvibright + 5; /* axis alpha (rvibright has range 0-10) */
 
 	float vec[3];
 	float dx, dy;
 	
 	/* thickness of lines is proportional to k */
 	glLineWidth(2);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	/* X */
 	vec[0] = 1;
@@ -593,7 +597,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dx = vec[0] * k;
 	dy = vec[1] * k;
 
-	glColor3ub(220, 0, 0);
+	glColor4ub(220, 0, 0, bright);
 	glBegin(GL_LINES);
 	glVertex2f(start, start + ydisp);
 	glVertex2f(start + dx, start + dy + ydisp);
@@ -603,6 +607,9 @@ static void draw_view_axis(RegionView3D *rv3d)
 		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "x");
 	}
 	
+	/* BLF_draw_default disables blending */
+	glEnable(GL_BLEND);
+
 	/* Y */
 	vec[1] = 1;
 	vec[0] = vec[2] = 0;
@@ -610,7 +617,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dx = vec[0] * k;
 	dy = vec[1] * k;
 
-	glColor3ub(0, 220, 0);
+	glColor4ub(0, 220, 0, bright);
 	glBegin(GL_LINES);
 	glVertex2f(start, start + ydisp);
 	glVertex2f(start + dx, start + dy + ydisp);
@@ -619,6 +626,8 @@ static void draw_view_axis(RegionView3D *rv3d)
 	if (fabs(dx) > toll || fabs(dy) > toll) {
 		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "y");
 	}
+
+	glEnable(GL_BLEND);
 	
 	/* Z */
 	vec[2] = 1;
@@ -627,7 +636,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dx = vec[0] * k;
 	dy = vec[1] * k;
 
-	glColor3ub(30, 30, 220);
+	glColor4ub(30, 30, 220, bright);
 	glBegin(GL_LINES);
 	glVertex2f(start, start + ydisp);
 	glVertex2f(start + dx, start + dy + ydisp);
@@ -640,6 +649,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	/* restore line-width */
 	
 	glLineWidth(1.0);
+	glDisable(GL_BLEND);
 }
 
 
@@ -843,7 +853,7 @@ static void view3d_get_viewborder_size(Scene *scene, ARegion *ar, float size_r[2
 	}
 }
 
-void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r)
+void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, rctf *viewborder_r, short do_shift)
 {
 	float zoomfac, size[2];
 	float dx= 0.0f, dy= 0.0f;
@@ -882,12 +892,13 @@ void view3d_calc_camera_border(Scene *scene, ARegion *ar, RegionView3D *rv3d, Vi
 	viewborder_r->xmax-= dx;
 	viewborder_r->ymax-= dy;
 	
-	if(v3d->camera && v3d->camera->type==OB_CAMERA) {
+	if(do_shift && v3d->camera && v3d->camera->type==OB_CAMERA) {
 		Camera *cam= v3d->camera->data;
 		float w = viewborder_r->xmax - viewborder_r->xmin;
 		float h = viewborder_r->ymax - viewborder_r->ymin;
 		float side = MAX2(w, h);
-		
+
+		if(do_shift == -1) side *= -1;
 		viewborder_r->xmin+= cam->shiftx*side;
 		viewborder_r->xmax+= cam->shiftx*side;
 		viewborder_r->ymin+= cam->shifty*side;
@@ -922,7 +933,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	if(v3d->camera->type==OB_CAMERA)
 		ca = v3d->camera->data;
 	
-	view3d_calc_camera_border(scene, ar, rv3d, v3d, &viewborder);
+	view3d_calc_camera_border(scene, ar, rv3d, v3d, &viewborder, FALSE);
 	/* the offsets */
 	x1= viewborder.xmin;
 	y1= viewborder.ymin;
@@ -1259,7 +1270,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			if(rv3d->persp==RV3D_CAMOB) {
 				rctf vb;
 
-				view3d_calc_camera_border(scene, ar, rv3d, v3d, &vb);
+				view3d_calc_camera_border(scene, ar, rv3d, v3d, &vb, FALSE);
 
 				x1= vb.xmin;
 				y1= vb.ymin;
@@ -1572,22 +1583,32 @@ static void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *bas
 void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 {
 	int x, y, w, h;	
+	rcti r;
 	/* clamp rect by area */
-	
+
+	r.xmin= 0;
+	r.xmax= ar->winx-1;
+	r.ymin= 0;
+	r.ymax= ar->winy-1;
+
 	/* Constrain rect to depth bounds */
-	if (rect->xmin < 0) rect->xmin = 0;
-	if (rect->ymin < 0) rect->ymin = 0;
-	if (rect->xmax >= ar->winx) rect->xmax = ar->winx-1;
-	if (rect->ymax >= ar->winy) rect->ymax = ar->winy-1;
+	BLI_isect_rcti(&r, rect, rect);
 
 	/* assign values to compare with the ViewDepths */
-	x= ar->winrct.xmin + rect->xmin;
-	y= ar->winrct.ymin + rect->ymin;
+	x= rect->xmin;
+	y= rect->ymin;
 
 	w= rect->xmax - rect->xmin;
 	h= rect->ymax - rect->ymin;
 
-	if(	d->w != w ||
+	if(w <= 0 || h <= 0) {
+		if(d->depths)
+			MEM_freeN(d->depths);
+		d->depths= NULL;
+
+		d->damaged= FALSE;
+	}
+	else if(	d->w != w ||
 		d->h != h ||
 		d->x != x ||
 		d->y != y ||
@@ -1603,13 +1624,13 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 
 		d->depths= MEM_mallocN(sizeof(float)*d->w*d->h,"View depths Subset");
 		
-		d->damaged= 1;		
+		d->damaged= TRUE;
 	}
 
 	if(d->damaged) {
 		glReadPixels(ar->winrct.xmin+d->x,ar->winrct.ymin+d->y, d->w,d->h, GL_DEPTH_COMPONENT,GL_FLOAT, d->depths);
 		glGetDoublev(GL_DEPTH_RANGE,d->depth_range);
-		d->damaged= 0;
+		d->damaged= FALSE;
 	}
 }
 
@@ -1654,7 +1675,7 @@ float view3d_depth_near(ViewDepths *d)
 
 	const float *depths= d->depths;
 	float depth= FLT_MAX;
-	int i= d->w * d->h;
+	int i= (int)d->w * (int)d->h; /* cast to avoid short overflow */
 
 	/* far is both the starting 'far' value
 	 * and the closest value found. */	
@@ -1855,8 +1876,6 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 	Scene *sce;
 	Base *base;
 	Object *ob;
-	ARegion ar;
-	RegionView3D rv3d;
 	
 	shadows.first= shadows.last= NULL;
 	
@@ -1885,6 +1904,8 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		/* this needs to be done better .. */
 		float viewmat[4][4], winmat[4][4];
 		int drawtype, lay, winsize, flag2=v3d->flag2;
+		ARegion ar= {0};
+		RegionView3D rv3d= {{{0}}};
 		
 		drawtype= v3d->drawtype;
 		lay= v3d->lay;
@@ -1895,9 +1916,6 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		v3d->flag2 |= V3D_RENDER_OVERRIDE;
 		
 		GPU_lamp_shadow_buffer_bind(shadow->lamp, viewmat, &winsize, winmat);
-
-		memset(&ar, 0, sizeof(ar));
-		memset(&rv3d, 0, sizeof(rv3d));
 
 		ar.regiondata= &rv3d;
 		ar.regiontype= RGN_TYPE_WINDOW;
@@ -1984,10 +2002,19 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	{
 		/* note:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
 		 * because of float point precission problems at large values [#23908] */
-		float v1[3]= {rv3d->persmat[0][0], rv3d->persmat[1][0], rv3d->persmat[2][0]};
-		float v2[3]= {rv3d->persmat[0][1], rv3d->persmat[1][1], rv3d->persmat[2][1]};
-		float len1= 1.0f / len_v3(v1);
-		float len2= 1.0f / len_v3(v2);
+		float v1[3], v2[3];
+		float len1, len2;
+
+		v1[0]= rv3d->persmat[0][0];
+		v1[1]= rv3d->persmat[1][0];
+		v1[2]= rv3d->persmat[2][0];
+
+		v2[0]= rv3d->persmat[0][1];
+		v2[1]= rv3d->persmat[1][1];
+		v2[2]= rv3d->persmat[2][1];
+		
+		len1= 1.0f / len_v3(v1);
+		len2= 1.0f / len_v3(v2);
 
 		rv3d->pixsize = (2.0f * MAX2(len1, len2)) / (float)MAX2(ar->winx, ar->winy);
 	}
@@ -2164,13 +2191,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 /* creates own 3d views, used by the sequencer */
 ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, unsigned int flag, int drawtype)
 {
-	View3D v3d;
-	ARegion ar;
-	RegionView3D rv3d;
-
-	memset(&v3d, 0, sizeof(v3d));
-	memset(&ar, 0, sizeof(ar));
-	memset(&rv3d, 0, sizeof(rv3d));
+	View3D v3d= {0};
+	ARegion ar= {0};
+	RegionView3D rv3d= {{{0}}};
 
 	/* connect data */
 	v3d.regionbase.first= v3d.regionbase.last= &ar;

@@ -39,11 +39,11 @@ public:
 	virtual	CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);
 	virtual void		SetValue(CValue* newval) { 	m_strString = newval->GetText(); SetModified(true);	};
 	virtual CValue*		GetReplica();
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	virtual PyObject*	ConvertValueToPython() {
 		return PyUnicode_FromString(m_strString.Ptr());
 	}
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 private:
 	// data member

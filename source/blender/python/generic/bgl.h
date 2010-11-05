@@ -38,7 +38,7 @@
 
 #include <Python.h>
 
-PyObject *BGL_Init(void);
+PyObject *BPyInit_bgl(void);
 
 /*@ Create a buffer object */
 /*@ dimensions is an array of ndimensions integers representing the size of each dimension */

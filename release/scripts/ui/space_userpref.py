@@ -838,13 +838,21 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         modules = []
         loaded_modules = set()
+        
+        # RELEASE SCRIPTS: official scripts distributed in Blender releases
         paths = bpy.utils.script_paths("addons")
-        # if folder addons_contrib/ exists, scripts in there will be loaded
+        
+        # CONTRIB SCRIPTS: good for testing but not official scripts yet
+        # if folder addons_contrib/ exists, scripts in there will be loaded too
         paths += bpy.utils.script_paths("addons_contrib")
+        
+        # EXTERN SCRIPTS: external projects scripts
+        # if folder addons_extern/ exists, scripts in there will be loaded too
+        paths += bpy.utils.script_paths("addons_extern")
 
         if bpy.app.debug:
             t_main = time.time()
-
+        
         # fake module importing
         def fake_module(mod_name, mod_path, speedy=True):
             if bpy.app.debug:

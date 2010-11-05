@@ -91,8 +91,8 @@ typedef struct EditBone
 #define BONESEL_NOSEL	(1<<31)	/* Indicates a negative number */
 
 /* useful macros */
-#define EBONE_VISIBLE(arm, ebone) ((arm->layer & ebone->layer) && !(ebone->flag & BONE_HIDDEN_A))
-#define EBONE_EDITABLE(ebone) ((ebone->flag & BONE_SELECTED) && !(ebone->flag & BONE_EDITMODE_LOCKED)) 
+#define EBONE_VISIBLE(arm, ebone) (((arm)->layer & (ebone)->layer) && !((ebone)->flag & BONE_HIDDEN_A))
+#define EBONE_EDITABLE(ebone) (((ebone)->flag & BONE_SELECTED) && !((ebone)->flag & BONE_EDITMODE_LOCKED)) 
 
 /* used in bone_select_hierachy() */
 #define BONE_SELECT_PARENT	0
@@ -107,7 +107,8 @@ void ED_keymap_armature(struct wmKeyConfig *keyconf);
 void ED_armature_from_edit(struct Object *obedit);
 void ED_armature_to_edit(struct Object *ob);
 void ED_armature_edit_free(struct Object *ob);
-void ED_armature_deselectall(struct Object *obedit, int toggle);
+void ED_armature_deselect_all(struct Object *obedit, int toggle);
+void ED_armature_deselect_all_visible(struct Object *obedit);
 
 int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer, 
 							short hits, short extend);

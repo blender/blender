@@ -48,10 +48,12 @@ void BLF_position(int fontid, float x, float y, float z);
 void BLF_size(int fontid, int size, int dpi);
 
 /* Draw the string using the default font, size and dpi. */
-void BLF_draw_default(float x, float y, float z, char *str);
+void BLF_draw_default(float x, float y, float z, const char *str);
+void BLF_draw_default_ascii(float x, float y, float z, const char *str);
 
 /* Draw the string using the current font. */
-void BLF_draw(int fontid, char *str);
+void BLF_draw(int fontid, const char *str);
+void BLF_draw_ascii(int fontid, const char *str);
 
 /*
  * This function return the bounding box of the string

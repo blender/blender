@@ -58,7 +58,7 @@
 
 #include "ED_screen.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -69,7 +69,7 @@
 void WM_operator_free(wmOperator *op)
 {
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if(op->py_instance) {
 		/* do this first incase there are any __del__ functions or
 		 * similar that use properties */
@@ -232,12 +232,13 @@ void WM_check(bContext *C)
 
 		/* case: no open windows at all, for old file reads */
 		wm_window_add_ghostwindows(C, wm);
+	}
 
-		/* case: fileread */
-		if((wm->initialized & WM_INIT_WINDOW) == 0) {
-			ED_screens_initialize(wm);
-			wm->initialized |= WM_INIT_WINDOW;
-		}
+	/* case: fileread */
+	/* note: this runs in bg mode to set the screen context cb */
+	if((wm->initialized & WM_INIT_WINDOW) == 0) {
+		ED_screens_initialize(wm);
+		wm->initialized |= WM_INIT_WINDOW;
 	}
 }
 
@@ -274,7 +275,7 @@ void wm_add_default(bContext *C)
 	win= wm_window_new(C);
 	win->screen= screen;
 	screen->winid= win->winid;
-	BLI_strncpy(win->screenname, screen->id.name+2, 21);
+	BLI_strncpy(win->screenname, screen->id.name+2, sizeof(win->screenname));
 	
 	wm->winactive= win;
 	wm->file_saved= 1;

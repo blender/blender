@@ -28,7 +28,6 @@ SET(INC
 	.
 	../blenlib
 	../blenkernel
-	../include
 	../imbuf
 	../makesdna
 	../makesrna

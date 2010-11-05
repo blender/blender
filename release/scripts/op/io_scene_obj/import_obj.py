@@ -35,7 +35,7 @@ import os
 import time
 import bpy
 import mathutils
-from geometry import PolyFill
+from mathutils.geometry import PolyFill
 from io_utils import load_image, unpack_list, unpack_face_list
 
 

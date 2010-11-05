@@ -78,7 +78,7 @@ void ED_node_changed_update(ID *id, bNode *node)
 
 	if(treetype==NTREE_SHADER) {
 		DAG_id_flush_update(id, 0);
-		WM_main_add_notifier(NC_MATERIAL|ND_SHADING, id);
+		WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, id);
 	}
 	else if(treetype==NTREE_COMPOSIT) {
 		NodeTagChanged(edittree, node);
@@ -432,10 +432,8 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *valsock= NULL, *colsock= NULL, *vecsock= NULL;
 	bNodeSocket *sock;
-	bNodeLink link;
+	bNodeLink link= {0};
 	int a;
-	
-	memset(&link, 0, sizeof(bNodeLink));
 	
 	/* connect the first value buffer in with first value out */
 	/* connect the first RGBA buffer in with first RGBA out */

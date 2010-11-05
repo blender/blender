@@ -109,7 +109,8 @@ struct ScrArea *ED_screen_full_toggle(struct bContext *C, struct wmWindow *win, 
 void	ED_screen_new_window(struct bContext *C, struct rcti *position, int type);
 
 /* anim */
-void	ED_update_for_newframe(const struct bContext *C, int mute);
+void	ED_update_for_newframe(struct Main *bmain, struct Scene *scene, struct bScreen *screen, int mute);
+
 void 	ED_refresh_viewport_fps(struct bContext *C);
 int ED_screen_animation_play(struct bContext *C, int sync, int mode);
 
@@ -127,6 +128,7 @@ int		ED_operator_scene_editable(struct bContext *C);
 
 int		ED_operator_view3d_active(struct bContext *C);
 int		ED_operator_region_view3d_active(struct bContext *C);
+int		ED_operator_animview_active(struct bContext *C);
 int		ED_operator_timeline_active(struct bContext *C);
 int		ED_operator_outliner_active(struct bContext *C);
 int		ED_operator_outliner_active_no_editobject(struct bContext *C);
@@ -142,6 +144,7 @@ int		ED_operator_logic_active(struct bContext *C);
 
 int		ED_operator_object_active(struct bContext *C);
 int		ED_operator_object_active_editable(struct bContext *C);
+int		ED_operator_object_active_editable_mesh(struct bContext *C);
 int		ED_operator_editmesh(struct bContext *C);
 int		ED_operator_editmesh_view3d(struct bContext *C);
 int		ED_operator_editmesh_region_view3d(struct bContext *C);

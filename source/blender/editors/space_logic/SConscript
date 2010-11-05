@@ -10,6 +10,6 @@ incs += ' ../../makesrna ../interface'
 defs = []
 
 if env['WITH_BF_GAMEENGINE']:
-    defs.append('GAMEBLENDER=1')
+    defs.append('WITH_GAMEENGINE')
 
 env.BlenderLib ( 'bf_editors_space_game', sources, Split(incs), defs, libtype=['core'], priority=[120] )

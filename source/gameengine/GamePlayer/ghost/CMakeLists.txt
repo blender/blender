@@ -40,7 +40,6 @@ SET(INC
 	../../../../source/blender/blenkernel
 	../../../../source/blender/readblenfile
 	../../../../source/blender
-	../../../../source/blender/include
 	../../../../source/blender/makesdna
 	../../../../source/blender/makesrna
 	../../../../source/gameengine/Rasterizer
@@ -51,7 +50,6 @@ SET(INC
 	../../../../source/gameengine/Physics/common
 	../../../../source/gameengine/Network/LoopBackNetwork
 	../../../../source/gameengine/GamePlayer/common
-	../../../../source/blender/misc
 	../../../../source/blender/blenloader
 	../../../../source/blender/gpu
 	../../../../extern/glew/include
@@ -71,5 +69,10 @@ ADD_DEFINITIONS(-DGLEW_STATIC)
 IF(WITH_FFMPEG)
 	ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
+
+IF(WITH_PYTHON)
+	LIST(APPEND INC ${PYTHON_INC})
+	ADD_DEFINITIONS(-DWITH_PYTHON)
+ENDIF(WITH_PYTHON)
 
 BLENDERLIB_NOLIST(gp_ghost "${SRC}" "${INC}")

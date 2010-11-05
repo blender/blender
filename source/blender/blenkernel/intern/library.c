@@ -459,11 +459,13 @@ int set_listbasepointers(Main *main, ListBase **lb)
 {
 	int a = 0;
 
-	/* BACKWARDS! also watch order of free-ing! (mesh<->mat) */
-
+	/* BACKWARDS! also watch order of free-ing! (mesh<->mat), first items freed last.
+	 * This is important because freeing data decreases usercounts of other datablocks,
+	 * if this data is its self freed it can crash. */
 	lb[a++]= &(main->ipo);
 	lb[a++]= &(main->action); // xxx moved here to avoid problems when freeing with animato (aligorith)
 	lb[a++]= &(main->key);
+	lb[a++]= &(main->gpencil); /* referenced by nodes, objects, view, scene etc, before to free after. */
 	lb[a++]= &(main->nodetree);
 	lb[a++]= &(main->image);
 	lb[a++]= &(main->tex);
@@ -490,14 +492,13 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++]= &(main->brush);
 	lb[a++]= &(main->script);
 	lb[a++]= &(main->particle);
-	
+
 	lb[a++]= &(main->world);
 	lb[a++]= &(main->screen);
 	lb[a++]= &(main->object);
 	lb[a++]= &(main->scene);
 	lb[a++]= &(main->library);
 	lb[a++]= &(main->wm);
-	lb[a++]= &(main->gpencil);
 	lb[a++]= &(main->linestyle);
 	
 	lb[a]= NULL;
@@ -997,35 +998,6 @@ void IMAnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb
 	BLI_dynstr_free(pupds);
 }
 
-
-/* used by buttons.c library.c mball.c */
-int splitIDname(char *name, char *left, int *nr)
-{
-	int a;
-	
-	*nr= 0;
-	strncpy(left, name, 21);
-	
-	a= strlen(name);
-	if(a>1 && name[a-1]=='.') return a;
-	
-	while(a--) {
-		if( name[a]=='.' ) {
-			left[a]= 0;
-			*nr= atol(name+a+1);
-			return a;
-		}
-		if( isdigit(name[a])==0 ) break;
-		
-		left[a]= 0;
-	}
-
-	for(a= 0; name[a]; a++)
-		left[a]= name[a];
-
-	return a;
-}
-
 static void sort_alpha_id(ListBase *lb, ID *id)
 {
 	ID *idtest;
@@ -1105,7 +1077,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 		memset(in_use, 0, sizeof(in_use));
 
 		/* get name portion, number portion ("name.number") */
-		left_len= splitIDname(name, left, &nr);
+		left_len= BLI_split_name_num(left, &nr, name);
 
 		/* if new name will be too long, truncate it */
 		if(nr > 999 && left_len > 16) {
@@ -1122,7 +1094,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 					(idtest->lib == NULL) &&
 					(*name == *(idtest->name+2)) &&
 					(strncmp(name, idtest->name+2, left_len)==0) &&
-					(splitIDname(idtest->name+2, leftest, &nrtest) == left_len)
+					(BLI_split_name_num(leftest, &nrtest, idtest->name+2) == left_len)
 			) {
 				if(nrtest < sizeof(in_use))
 					in_use[nrtest]= 1;	/* mark as used */
@@ -1407,7 +1379,7 @@ void rename_id(ID *id, char *name)
 {
 	ListBase *lb;
 
-	strncpy(id->name+2, name, 21);
+	BLI_strncpy(id->name+2, name, sizeof(id->name)-2);
 	lb= which_libbase(G.main, GS(id->name) );
 	
 	new_id(lb, id, name);				

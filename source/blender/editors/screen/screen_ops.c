@@ -132,15 +132,24 @@ int ED_operator_view3d_active(bContext *C)
 
 int ED_operator_region_view3d_active(bContext *C)
 {
-#if 0 // correct but messes up poll() for menu items.
 	if(CTX_wm_region_view3d(C))
 		return TRUE;
-#else
-	if(ed_spacetype_test(C, SPACE_VIEW3D))
-		return TRUE;
-#endif
+
 	CTX_wm_operator_poll_msg_set(C, "expected a view3d region");
 	return FALSE;	
+}
+
+/* generic for any view2d which uses anim_ops */
+int ED_operator_animview_active(bContext *C)
+{
+	if(ED_operator_areaactive(C)) {
+		SpaceLink *sl= (SpaceLink *)CTX_wm_space_data(C);
+		if (sl && (ELEM5(sl->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_TIME)))
+			return TRUE;
+	}
+
+	CTX_wm_operator_poll_msg_set(C, "expected an timeline/animation area to be active");
+	return 0;
 }
 
 int ED_operator_timeline_active(bContext *C)
@@ -227,6 +236,12 @@ int ED_operator_object_active_editable(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
 	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW));
+}
+
+int ED_operator_object_active_editable_mesh(bContext *C)
+{
+	Object *ob = ED_object_active_context(C);
+	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW) && ob->type == OB_MESH);
 }
 
 int ED_operator_editmesh(bContext *C)
@@ -2248,7 +2263,7 @@ static void SCREEN_OT_region_quadview(wmOperatorType *ot)
 	/* api callbacks */
 	//	ot->invoke= WM_operator_confirm;
 	ot->exec= region_quadview_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_region_view3d_active;
 	ot->flag= 0;
 }
 
@@ -2547,7 +2562,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 			sound_seek_scene(C);
 		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
-		ED_update_for_newframe(C, 1);
+		ED_update_for_newframe(CTX_data_main(C), scene, screen, 1);
 		
 		for (sa= screen->areabase.first; sa; sa= sa->next) {
 			ARegion *ar;

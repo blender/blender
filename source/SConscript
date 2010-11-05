@@ -1,11 +1,10 @@
 #!/usr/bin/python
 Import ('env')
 
-SConscript(['blender/SConscript',
-            'kernel/SConscript',
-            'creator/SConscript'])
+SConscript(['blender/SConscript', 'creator/SConscript'])
+
 if env['WITH_BF_GAMEENGINE']:
-    SConscript (['gameengine/SConscript'])
+    SConscript (['kernel/SConscript', 'gameengine/SConscript'])
 
 if env['WITH_BF_PLAYER']:
     SConscript (['blenderplayer/bad_level_call_stubs/SConscript'])

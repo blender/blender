@@ -24,7 +24,7 @@ Developed as part of a Research and Development project for SAT - La Société d
 
 #include "KX_Dome.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include <structmember.h>
 #endif
 

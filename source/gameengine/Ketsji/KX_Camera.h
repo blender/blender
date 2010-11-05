@@ -41,7 +41,7 @@
 #include "IntValue.h"
 #include "RAS_CameraData.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 /* utility conversion function */
 bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok, const char *error_prefix);
 #endif
@@ -269,7 +269,7 @@ public:
 
 	virtual int GetGameObjectType() { return OBJ_CAMERA; }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, sphereInsideFrustum);
 	KX_PYMETHOD_DOC_O(KX_Camera, boxInsideFrustum);
 	KX_PYMETHOD_DOC_O(KX_Camera, pointInsideFrustum);

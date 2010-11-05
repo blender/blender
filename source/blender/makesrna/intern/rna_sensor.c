@@ -491,7 +491,7 @@ static void rna_def_armature_sensor(BlenderRNA *brna)
 		{SENS_ARM_LIN_ERROR_BELOW, "LINERRORBELOW", 0, "Lin error below", ""},
 		{SENS_ARM_LIN_ERROR_ABOVE, "LINERRORABOVE", 0, "Lin error above", ""},
 		{SENS_ARM_ROT_ERROR_BELOW, "ROTERRORBELOW", 0, "Rot error below", ""},
-		{SENS_ARM_ROT_ERROR_ABOVE, "ROTERRORBELOW", 0, "Rot error above", ""},
+		{SENS_ARM_ROT_ERROR_ABOVE, "ROTERRORABOVE", 0, "Rot error above", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ArmatureSensor", "Sensor");

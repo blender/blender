@@ -1439,7 +1439,7 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	PointerRNA ptr;
+	PointerRNA ptr= {{0}};
 	PropertyRNA *prop= NULL;
 	char *path;
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
@@ -1447,7 +1447,6 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 	int a, index, length, all= RNA_boolean_get(op->ptr, "all");
 	
 	/* try to insert keyframe using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
 	uiContextActiveProperty(C, &ptr, &prop, &index);
 
 	if (ptr.id.data && ptr.data && prop) {

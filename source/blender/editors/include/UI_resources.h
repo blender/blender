@@ -35,7 +35,8 @@
 
 /* elubie: TODO: move the typedef for icons to UI_interface_icons.h */
 /* and add/replace include of UI_resources.h by UI_interface_icons.h */
-#define DEF_ICON(name) name,
+#define DEF_ICON(name) ICON_##name,
+#define DEF_VICO(name) VICO_##name,
 
 typedef enum {
 #define BIFICONID_FIRST		(ICON_BLENDER)
@@ -45,6 +46,7 @@ typedef enum {
 #define BIFNICONIDS			(BIFICONID_LAST-BIFICONID_FIRST + 1)
 } BIFIconID;
 #undef DEF_ICON
+#undef DEF_VICO
 
 
 typedef enum {

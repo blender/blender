@@ -603,12 +603,13 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 
 /************************ generic functions for operators using mod names and data context *********************/
 
-static int edit_modifier_poll_generic(bContext *C, StructRNA *rna_type)
+static int edit_modifier_poll_generic(bContext *C, StructRNA *rna_type, int obtype_flag)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", rna_type);
 	Object *ob= (ptr.id.data)?ptr.id.data:ED_object_active_context(C);
 	
 	if (!ob || ob->id.lib) return 0;
+	if (obtype_flag && ((1<<ob->type) & obtype_flag)==0) return 0;
 	if (ptr.data && ((ID*)ptr.id.data)->lib) return 0;
 	
 	return 1;
@@ -616,7 +617,7 @@ static int edit_modifier_poll_generic(bContext *C, StructRNA *rna_type)
 
 static int edit_modifier_poll(bContext *C)
 {
-	return edit_modifier_poll_generic(C, &RNA_Modifier);
+	return edit_modifier_poll_generic(C, &RNA_Modifier, 0);
 }
 
 static void edit_modifier_properties(wmOperatorType *ot)
@@ -913,7 +914,7 @@ void OBJECT_OT_modifier_copy(wmOperatorType *ot)
 
 static int multires_poll(bContext *C)
 {
-	return edit_modifier_poll_generic(C, &RNA_MultiresModifier);
+	return edit_modifier_poll_generic(C, &RNA_MultiresModifier, (1<<OB_MESH));
 }
 
 static int multires_higher_levels_delete_exec(bContext *C, wmOperator *op)
@@ -1163,7 +1164,7 @@ void OBJECT_OT_multires_external_pack(wmOperatorType *ot)
 
 static int meshdeform_poll(bContext *C)
 {
-	return edit_modifier_poll_generic(C, &RNA_MeshDeformModifier);
+	return edit_modifier_poll_generic(C, &RNA_MeshDeformModifier, (1<<OB_MESH));
 }
 
 static int meshdeform_bind_exec(bContext *C, wmOperator *op)
@@ -1251,7 +1252,7 @@ void OBJECT_OT_meshdeform_bind(wmOperatorType *ot)
 
 static int explode_poll(bContext *C)
 {
-	return edit_modifier_poll_generic(C, &RNA_ExplodeModifier);
+	return edit_modifier_poll_generic(C, &RNA_ExplodeModifier, 0);
 }
 
 static int explode_refresh_exec(bContext *C, wmOperator *op)

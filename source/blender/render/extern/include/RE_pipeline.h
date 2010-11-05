@@ -159,6 +159,9 @@ struct Render *RE_GetRender(const char *name);
 /* returns 1 while render is working (or renders called from within render) */
 int RE_RenderInProgress(struct Render *re);
 
+/* assign default dummy callbacks */
+void RE_InitRenderCB(struct Render *re);
+
 /* use free render as signal to do everything over (previews) */
 void RE_FreeRender (struct Render *re);
 /* only called on exit */
@@ -221,7 +224,7 @@ void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress);
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty);
 
 /* do a full sample buffer compo */
-void RE_MergeFullSample(struct Render *re, struct Scene *sce, struct bNodeTree *ntree);
+void RE_MergeFullSample(struct Render *re, struct Main *bmain, struct Scene *sce, struct bNodeTree *ntree);
 
 /* ancient stars function... go away! */
 void RE_make_stars(struct Render *re, struct Scene *scenev3d, void (*initfunc)(void),
@@ -297,6 +300,8 @@ void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info);
 
 void RE_engines_init(void);
 void RE_engines_exit(void);
+
+int RE_is_rendering_allowed(struct Scene *scene, void *erh, void (*error)(void *handle, char *str));
 
 #endif /* RE_PIPELINE_H */
 

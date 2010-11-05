@@ -92,7 +92,82 @@ def addPointCache(job, ob, point_cache, default_path):
                     previous_frame = previous_item[0]
                     job.addFile(cache_path + current_file, previous_frame + 1, next_frame - 1)
 
+def fillCommonJobSettings(job, job_name, netsettings):
+    job.name = job_name
+    job.category = netsettings.job_category
+
+    for slave in netrender.blacklist:
+        job.blacklist.append(slave.id)
+
+    job.chunks = netsettings.chunks
+    job.priority = netsettings.priority
+    
+    if netsettings.job_type == "JOB_BLENDER":
+        job.type = netrender.model.JOB_BLENDER
+    elif netsettings.job_type == "JOB_PROCESS":
+        job.type = netrender.model.JOB_PROCESS
+    elif netsettings.job_type == "JOB_VCS":
+        job.type = netrender.model.JOB_VCS
+
 def clientSendJob(conn, scene, anim = False):
+    netsettings = scene.network_render
+    if netsettings.job_type == "JOB_BLENDER":
+        return clientSendJobBlender(conn, scene, anim)
+    elif netsettings.job_type == "JOB_VCS":
+        return clientSendJobVCS(conn, scene, anim)
+
+def clientSendJobVCS(conn, scene, anim = False):
+    netsettings = scene.network_render
+    job = netrender.model.RenderJob()
+
+    if anim:
+        for f in range(scene.frame_start, scene.frame_end + 1):
+            job.addFrame(f)
+    else:
+        job.addFrame(scene.frame_current)
+
+    filename = bpy.data.filepath
+    
+    if not filename.startswith(netsettings.vcs_wpath):
+        # this is an error, need better way to handle this
+        return
+
+    filename = filename[len(netsettings.vcs_wpath):]
+    
+    if filename[0] in (os.sep, os.altsep):
+        filename = filename[1:]
+    
+    print("CREATING VCS JOB", filename)
+    
+    job.addFile(filename, signed=False)
+
+    job_name = netsettings.job_name
+    path, name = os.path.split(filename)
+    if job_name == "[default]":
+        job_name = name
+
+
+    fillCommonJobSettings(job, job_name, netsettings)
+    
+    # VCS Specific code
+    job.version_info = netrender.model.VersioningInfo()
+    job.version_info.system = netsettings.vcs_system
+    job.version_info.wpath = netsettings.vcs_wpath
+    job.version_info.rpath = netsettings.vcs_rpath
+    job.version_info.revision = netsettings.vcs_revision
+
+    # try to send path first
+    conn.request("POST", "/job", json.dumps(job.serialize()))
+    response = conn.getresponse()
+    response.read()
+
+    job_id = response.getheader("job-id")
+    
+    # a VCS job is always good right now, need error handling
+
+    return job_id
+
+def clientSendJobBlender(conn, scene, anim = False):
     netsettings = scene.network_render
     job = netrender.model.RenderJob()
 
@@ -160,14 +235,7 @@ def clientSendJob(conn, scene, anim = False):
 
     #print(job.files)
 
-    job.name = job_name
-    job.category = netsettings.job_category
-
-    for slave in netrender.blacklist:
-        job.blacklist.append(slave.id)
-
-    job.chunks = netsettings.chunks
-    job.priority = netsettings.priority
+    fillCommonJobSettings(job, job_name, netsettings)
 
     # try to send path first
     conn.request("POST", "/job", json.dumps(job.serialize()))

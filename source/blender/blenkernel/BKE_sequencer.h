@@ -46,6 +46,11 @@ struct StripElem;
 #define BUILD_SEQAR_COUNT_CURRENT  1
 #define BUILD_SEQAR_COUNT_CHILDREN 2
 
+#define EARLY_NO_INPUT		-1
+#define EARLY_DO_EFFECT		0
+#define EARLY_USE_INPUT_1	1
+#define EARLY_USE_INPUT_2	2
+
 /* sequence iterator */
 
 typedef struct SeqIterator {
@@ -148,10 +153,10 @@ void seq_free_editing(struct Scene *scene);
 void seq_free_clipboard(void);
 struct Editing *seq_give_editing(struct Scene *scene, int alloc);
 char *give_seqname(struct Sequence *seq);
-struct ImBuf *give_ibuf_seq(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
-struct ImBuf *give_ibuf_seq_threaded(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
-struct ImBuf *give_ibuf_seq_direct(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int render_size, struct Sequence *seq);
-struct ImBuf *give_ibuf_seqbase(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chan_shown, int render_size, struct ListBase *seqbasep);
+struct ImBuf *give_ibuf_seq(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int preview_render_size);
+struct ImBuf *give_ibuf_seq_threaded(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int preview_render_size);
+struct ImBuf *give_ibuf_seq_direct(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int preview_render_size, struct Sequence *seq);
+struct ImBuf *give_ibuf_seqbase(struct Main *bmain, struct Scene *scene, int rectx, int recty, int cfra, int chan_shown, int preview_render_size, struct ListBase *seqbasep);
 void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown, int render_size);
 void calc_sequence(struct Scene *scene, struct Sequence *seq);
 void calc_sequence_disp(struct Scene *scene, struct Sequence *seq);
@@ -213,6 +218,7 @@ int seq_tx_test(struct Sequence * seq);
 int seq_single_check(struct Sequence *seq);
 void seq_single_fix(struct Sequence *seq);
 int seq_test_overlap(struct ListBase * seqbasep, struct Sequence *test);
+void seq_translate(struct Scene *scene, struct Sequence *seq, int delta);
 struct ListBase *seq_seqbase(struct ListBase *seqbase, struct Sequence *seq);
 void seq_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
 void seq_dupe_animdata(struct Scene *scene, char *name_from, char *name_to);

@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -2991,42 +2992,43 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 	y= ((float)my-but->y1)/(but->y2-but->y1);
 	CLAMP(x, 0.0, 1.0);
 	CLAMP(y, 0.0, 1.0);
-	
-	if(but->a1==0) {
-		hsv[2]= x; 
-		hsv[1]= y; 
-	}
-	else if(but->a1==1) {
-		hsv[0]= x; 				
-		hsv[2]= y; 				
-	}
-	else if(but->a1==2) {
-		hsv[0]= x; 
-		hsv[1]= y; 
-	}
-	else if(but->a1==3) {
-		hsv[0]= x; 
-	}
-	else if(but->a1==4) {
-		hsv[1]= x; 
-	}
-	else if(but->a1==5) {
-		hsv[2]= x; 
-	}
-	else if (but->a1==9){
-		float range;
-		
-		/* vertical 'value' strip */
 
+	switch((int)but->a1) {
+	case UI_GRAD_SV:
+		hsv[2]= x;
+		hsv[1]= y;
+		break;
+	case UI_GRAD_HV:
+		hsv[0]= x;
+		hsv[2]= y;
+		break;
+	case UI_GRAD_HS:
+		hsv[0]= x;
+		hsv[1]= y;
+		break;
+	case UI_GRAD_H:
+		hsv[0]= x;
+		break;
+	case UI_GRAD_S:
+		hsv[1]= x;
+		break;
+	case UI_GRAD_V:
+		hsv[2]= x;
+		break;
+	case UI_GRAD_V_ALT:	
+		/* vertical 'value' strip */
+	
 		/* exception only for value strip - use the range set in but->min/max */
-		range = but->softmax - but->softmin;
-		hsv[2] = y*range + but->softmin;
+		hsv[2] = y * (but->softmax - but->softmin) + but->softmin;
 		
 		if (color_profile)
 			hsv[2] = srgb_to_linearrgb(hsv[2]);
 		
 		if (hsv[2] > but->softmax)
 			hsv[2] = but->softmax;
+		break;
+	default:
+		assert(!"invalid hsv type");
 	}
 
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
@@ -3061,7 +3063,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 			return WM_UI_HANDLER_BREAK;
 		}
 		else if (event->type == ZEROKEY && event->val == KM_PRESS) {
-			if (but->a1==9){
+			if (but->a1==UI_GRAD_V_ALT){
 				int len;
 				
 				/* reset only value */
@@ -4429,7 +4431,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		retval= ui_do_but_BUT(C, but, data, event);
 		break;
 	case COL:
-		if(but->a1 == 9)  // signal to prevent calling up color picker
+		if(but->a1 == UI_GRAD_V_ALT)  // signal to prevent calling up color picker
 			retval= ui_do_but_EXIT(C, but, data, event);
 		else
 			retval= ui_do_but_BLOCK(C, but, data, event);

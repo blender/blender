@@ -46,7 +46,7 @@
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -425,7 +425,7 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 	int ret= 0;
 
 	memset(result, 0, sizeof(bContextDataResult));
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if(CTX_py_dict_get(C)) {
 		return BPY_context_get(C, member, result);
 //		if (BPY_context_get(C, member, result))
@@ -554,8 +554,7 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
 		return result.list;
 	}
 	else {
-		ListBase list;
-		memset(&list, 0, sizeof(list));
+		ListBase list= {NULL, NULL};
 		return list;
 	}
 }

@@ -35,7 +35,7 @@ class MRenderFile(netrender.model.RenderFile):
 
     def test(self):
         self.found = os.path.exists(self.filepath)
-        if self.found:
+        if self.found and self.signature != None:
             found_signature = hashFile(self.filepath)
             self.found = self.signature == found_signature
             
@@ -105,9 +105,11 @@ class MRenderJob(netrender.model.RenderJob):
             self.chunks = info_map["chunks"]
 
     def testStart(self):
-        for f in self.files:
-            if not f.test():
-                return False
+        # Don't test files for versionned jobs
+        if not self.version_info:
+            for f in self.files:
+                if not f.test():
+                    return False
 
         self.start()
         self.initInfo()
@@ -769,7 +771,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[job_frame]
 
                     if frame:
-                        if job.type == netrender.model.JOB_BLENDER:
+                        if job.hasRenderResult():
                             if job_result == DONE:
                                 length = int(self.headers['content-length'])
                                 buf = self.rfile.read(length)
@@ -820,7 +822,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[job_frame]
 
                     if frame:
-                        if job.type == netrender.model.JOB_BLENDER:
+                        if job.hasRenderResult():
                             length = int(self.headers['content-length'])
                             buf = self.rfile.read(length)
                             f = open(os.path.join(job.save_path, "%06d.jpg" % job_frame), 'wb')

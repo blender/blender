@@ -41,7 +41,6 @@ SET(INC
 	../../../source/blender/blenkernel
 	../../../source/blender/windowmanager
 	../../../source/blender
-	../../../source/blender/include
 	../../../source/blender/makesdna
 	../../../source/blender/makesrna
 	../../../source/gameengine/Rasterizer
@@ -54,7 +53,6 @@ SET(INC
 	../../../source/gameengine/Physics/Bullet
 	../../../source/gameengine/Physics/Dummy
 	../../../source/gameengine/Network/LoopBackNetwork
-	../../../source/blender/misc
 	../../../source/blender/blenloader
 	../../../source/blender/gpu
 	../../../source/blender/ikplugin
@@ -87,8 +85,7 @@ SET(SRC
 
 IF(WITH_PYTHON)
 	LIST(APPEND INC ${PYTHON_INC})
-ELSE(WITH_PYTHON)
-	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+	ADD_DEFINITIONS(-DWITH_PYTHON)
 ENDIF(WITH_PYTHON)
 
 IF(WITH_BULLET)

@@ -1115,12 +1115,11 @@ static struct PyModuleDef BGL_module_def = {
 };
 
 
-PyObject *BGL_Init(void)
+PyObject *BPyInit_bgl(void)
 {
-	PyObject *mod, *dict, *item;
-	mod = PyModule_Create(&BGL_module_def);
-	PyDict_SetItemString(PyImport_GetModuleDict(), BGL_module_def.m_name, mod);
-	dict= PyModule_GetDict(mod);
+	PyObject *submodule, *dict, *item;
+	submodule= PyModule_Create(&BGL_module_def);
+	dict= PyModule_GetDict(submodule);
 	
 	if( PyType_Ready( &BGL_bufferType) < 0)
 		return NULL; /* should never happen */
@@ -1612,6 +1611,6 @@ PyObject *BGL_Init(void)
 	EXPP_ADDCONST(GL_TEXTURE_BINDING_1D);
 	EXPP_ADDCONST(GL_TEXTURE_BINDING_2D);
       
-	return mod;
+	return submodule;
 }
 

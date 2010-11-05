@@ -171,7 +171,9 @@ typedef struct ParticleCollision
 	float co1[3], co2[3]; // ray start and end points
 	float ve1[3], ve2[3]; // particle velocities
 	float ray_len; // original length of co2-co1, needed for collision time evaluation
-	float t;	// time of previous collision, needed for substracting face velocity
+	float f;	// time factor of previous collision, needed for substracting face velocity
+	float cfra; // start of the timestep (during frame change, since previous integer frame)
+	float dfra; // duration of timestep in frames
 } ParticleCollision;
 
 typedef struct ParticleDrawData {

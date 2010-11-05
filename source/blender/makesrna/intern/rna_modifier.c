@@ -811,7 +811,7 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "DecimateModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_DECIM);
 
-	prop= RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "percent");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_range(prop, 0, 1, 1, 2);

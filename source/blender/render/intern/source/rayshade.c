@@ -718,7 +718,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 
 		shi.mask= origshi->mask;
 		shi.osatex= origshi->osatex;
-		shi.depth= 1;					/* only used to indicate tracing */
+		shi.depth= origshi->depth + 1;					/* only used to indicate tracing */
 		shi.thread= origshi->thread;
 		//shi.sample= 0; // memset above, so dont need this
 		shi.xs= origshi->xs;
@@ -1458,8 +1458,8 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	float diff[3];
 	int do_tra, do_mir;
 	
-	do_tra= ((shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0f);
-	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0f);
+	do_tra= ((shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0f && (shi->depth <= shi->mat->ray_depth_tra));
+	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0f && (shi->depth <= shi->mat->ray_depth));
 	
 	/* raytrace mirror amd refract like to separate the spec color */
 	if(shi->combinedflag & SCE_PASS_SPEC)
@@ -1570,7 +1570,7 @@ static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int 
 		memset(&shi, 0, sizeof(ShadeInput)); 
 		/* end warning! - Campbell */
 		
-		shi.depth= 1;					/* only used to indicate tracing */
+		shi.depth= origshi->depth + 1;					/* only used to indicate tracing */
 		shi.mask= origshi->mask;
 		shi.thread= origshi->thread;
 		shi.passflag= SCE_PASS_COMBINED;

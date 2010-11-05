@@ -31,6 +31,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "BLO_sys_types.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -213,7 +214,7 @@ void draw_motion_path_instance(Scene *scene,
 			if (i == 0) {
 				sprintf(str, "%d", (i+sfra));
 				mul_v3_m4v3(co, ob->imat, mpv->co);
-				view3d_cached_text_draw_add(co, str, 0, V3D_CACHE_TEXT_WORLDSPACE);
+				view3d_cached_text_draw_add(co, str, 0, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII);
 			}
 			else if ((i > stepsize) && (i < len-stepsize)) { 
 				bMotionPathVert *mpvP = (mpv - stepsize);
@@ -222,7 +223,7 @@ void draw_motion_path_instance(Scene *scene,
 				if ((equals_v3v3(mpv->co, mpvP->co)==0) || (equals_v3v3(mpv->co, mpvN->co)==0)) {
 					sprintf(str, "%d", (sfra+i));
 					mul_v3_m4v3(co, ob->imat, mpv->co);
-					view3d_cached_text_draw_add(co, str, 0, V3D_CACHE_TEXT_WORLDSPACE);
+					view3d_cached_text_draw_add(co, str, 0, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII);
 				}
 			}
 		}
@@ -280,7 +281,7 @@ void draw_motion_path_instance(Scene *scene,
 					
 					sprintf(str, "%d", (sfra+i));
 					mul_v3_m4v3(co, ob->imat, mpv->co);
-					view3d_cached_text_draw_add(co, str, 0, V3D_CACHE_TEXT_WORLDSPACE);
+					view3d_cached_text_draw_add(co, str, 0, V3D_CACHE_TEXT_WORLDSPACE|V3D_CACHE_TEXT_ASCII);
 				}
 			}
 		}

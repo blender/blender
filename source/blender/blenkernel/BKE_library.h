@@ -67,7 +67,6 @@ void free_libblock_us(struct ListBase *lb, void *idv);
 void free_main(struct Main *mainvar);
 void tag_main(struct Main *mainvar, int tag);
 
-int splitIDname(char *name, char *left, int *nr);
 void rename_id(struct ID *id, char *name);
 void name_uiprefix_id(char *name, struct ID *id);
 void test_idbutton(char *name);

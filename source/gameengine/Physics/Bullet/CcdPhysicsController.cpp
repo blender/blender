@@ -13,6 +13,10 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+#ifndef WIN32
+#include <stdint.h>
+#endif
+
 #include "CcdPhysicsController.h"
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h"

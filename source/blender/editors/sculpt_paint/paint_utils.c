@@ -235,7 +235,7 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 /* face-select ops */
 static int paint_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	select_linked_tfaces(C, CTX_data_active_object(C), NULL, 2);
+	paintface_select_linked(C, CTX_data_active_object(C), NULL, 2);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
 }
@@ -255,7 +255,7 @@ void PAINT_OT_face_select_linked(wmOperatorType *ot)
 static int paint_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int mode= RNA_boolean_get(op->ptr, "extend") ? 1:0;
-	select_linked_tfaces(C, CTX_data_active_object(C), event->mval, mode);
+	paintface_select_linked(C, CTX_data_active_object(C), event->mval, mode);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
 }
@@ -277,7 +277,8 @@ void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 
 static int face_select_all_exec(bContext *C, wmOperator *op)
 {
-	selectall_tface(CTX_data_active_object(C), RNA_enum_get(op->ptr, "action"));
+	Object *ob= CTX_data_active_object(C);
+	paintface_deselect_all_visible(ob, RNA_enum_get(op->ptr, "action"), TRUE);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
 }

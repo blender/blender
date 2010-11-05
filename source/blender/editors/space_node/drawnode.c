@@ -198,7 +198,7 @@ static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
 
 	node->id= &tex->id;
 	id_us_plus(node->id);
-	BLI_strncpy(node->name, node->id->name+2, 21);
+	BLI_strncpy(node->name, node->id->name+2, sizeof(node->name));
 	
 	nodeSetActive(ntree, node);
 	
@@ -285,7 +285,7 @@ static void node_browse_text_cb(bContext *C, void *ntree_v, void *node_v)
 	oldid= node->id;
 	node->id= BLI_findlink(&bmain->text, node->menunr-1);
 	id_us_plus(node->id);
-	BLI_strncpy(node->name, node->id->name+2, 21); /* huh? why 21? */
+	BLI_strncpy(node->name, node->id->name+2, sizeof(node->name));
 
 	node->custom1= BSET(node->custom1, NODE_DYNAMIC_NEW);
 	
@@ -1177,7 +1177,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
 
 		case TEX_MARBLE:
 			row= uiLayoutRow(col, 0);
-			uiItemR(row, &tex_ptr, "stype", UI_ITEM_R_EXPAND, NULL, 0);
+			uiItemR(row, &tex_ptr, "marble_type", UI_ITEM_R_EXPAND, NULL, 0);
 			row= uiLayoutRow(col, 0);
 			uiItemR(row, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND, NULL, 0);
 			row= uiLayoutRow(col, 0);
@@ -1186,18 +1186,18 @@ static void node_texture_buts_proc(uiLayout *layout, bContext *UNUSED(C), Pointe
 
 		case TEX_WOOD:
 			uiItemR(col, &tex_ptr, "noise_basis", 0, "", 0);
-			uiItemR(col, &tex_ptr, "stype", 0, "", 0);
+			uiItemR(col, &tex_ptr, "wood_type", 0, "", 0);
 			row= uiLayoutRow(col, 0);
 			uiItemR(row, &tex_ptr, "noisebasis_2", UI_ITEM_R_EXPAND, NULL, 0);
 			row= uiLayoutRow(col, 0);
-			uiLayoutSetActive(row, !(RNA_enum_get(&tex_ptr, "stype")==TEX_BAND || RNA_enum_get(&tex_ptr, "stype")==TEX_RING)); 
+			uiLayoutSetActive(row, !(RNA_enum_get(&tex_ptr, "wood_type")==TEX_BAND || RNA_enum_get(&tex_ptr, "wood_type")==TEX_RING)); 
 			uiItemR(row, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND, NULL, 0);
 			break;
 			
 		case TEX_CLOUDS:
 			uiItemR(col, &tex_ptr, "noise_basis", 0, "", 0);
 			row= uiLayoutRow(col, 0);
-			uiItemR(row, &tex_ptr, "stype", UI_ITEM_R_EXPAND, NULL, 0);
+			uiItemR(row, &tex_ptr, "cloud_type", UI_ITEM_R_EXPAND, NULL, 0);
 			row= uiLayoutRow(col, 0);
 			uiItemR(row, &tex_ptr, "noise_type", UI_ITEM_R_EXPAND, NULL, 0);
 			uiItemR(col, &tex_ptr, "noise_depth", UI_ITEM_R_EXPAND, "Depth", 0);

@@ -99,7 +99,7 @@ class KX_Scene : public PyObjectPlus, public SCA_IScene
 {
 	Py_Header;
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	PyObject*	m_attr_dict;
 	PyObject*	m_draw_call_pre;
 	PyObject*	m_draw_call_post;
@@ -544,7 +544,7 @@ public:
 	void Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
 	void Render2DFilters(RAS_ICanvas* canvas);
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */

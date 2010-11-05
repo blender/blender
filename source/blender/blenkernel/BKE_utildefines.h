@@ -279,8 +279,11 @@ behaviour, though it may not be the best in practice.
 /*little macro so inline keyword works*/
 #if defined(_MSC_VER)
 #define BM_INLINE static __forceinline
-#else
+#elif defined(__GNUC__)
 #define BM_INLINE static inline __attribute((always_inline))
+#else
+/* #warning "MSC/GNUC defines not found, inline non-functional" */
+#define BM_INLINE static 
 #endif
 
 #define BMEMSET(mem, val, size) {unsigned int _i; char *_c = (char*) mem; for (_i=0; _i<size; _i++) *_c++ = val;}

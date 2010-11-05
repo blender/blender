@@ -26,7 +26,7 @@
 #ifndef AUD_PYINIT
 #define AUD_PYINIT
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "Python.h"
 
 #ifdef __cplusplus

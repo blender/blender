@@ -79,7 +79,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_curve.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -489,7 +489,7 @@ int BKE_read_exotic(Scene *scene, char *name)
 						read_stl_mesh_binary(scene, name);
 					retval = 1;
 				}
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 				// TODO: this should not be in the kernel...
 				else { // unknown format, call Python importloader 
 					if (BPY_call_importloader(name)) {
@@ -499,7 +499,7 @@ int BKE_read_exotic(Scene *scene, char *name)
 					}	
 				
 				}
-#endif /* DISABLE_PYTHON */
+#endif /* WITH_PYTHON */
 				//XXX waitcursor(0);
 			}
 		}

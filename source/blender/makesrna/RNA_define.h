@@ -132,6 +132,7 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 
 void RNA_def_property_flag(PropertyRNA *prop, int flag);
 void RNA_def_property_clear_flag(PropertyRNA *prop, int flag);
+void RNA_def_property_subtype(PropertyRNA *prop, PropertySubType subtype);
 void RNA_def_property_array(PropertyRNA *prop, int length);
 void RNA_def_property_multi_array(PropertyRNA *prop, int dimension, int length[]);
 void RNA_def_property_range(PropertyRNA *prop, double min, double max);

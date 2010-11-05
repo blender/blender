@@ -232,8 +232,12 @@ static void draw_filled_lasso(wmGesture *gt)
 	int i;
 	
 	for (i=0; i<gt->points; i++, lasso+=2) {
-		float co[3] = {(float)lasso[0], (float)lasso[1], 0.f};
-		
+		float co[3];
+
+		co[0]= (float)lasso[0];
+		co[1]= (float)lasso[1];
+		co[2]= 0.0f;
+
 		v = BLI_addfillvert(co);
 		if (lastv)
 			e = BLI_addfilledge(lastv, v);

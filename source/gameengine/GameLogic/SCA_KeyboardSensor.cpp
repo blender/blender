@@ -408,7 +408,7 @@ void SCA_KeyboardSensor::LogKeystrokes(void)
 	}
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python Functions						       */
@@ -501,7 +501,7 @@ PyObject* SCA_KeyboardSensor::pyattr_get_events(void *self_v, const KX_PYATTRIBU
 	return resultlist;
 }
 
-#endif // DISABLE_PYTHON
+#endif // WITH_PYTHON
 
 /* Accessed from python */
 

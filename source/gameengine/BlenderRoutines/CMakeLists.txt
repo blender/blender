@@ -8,7 +8,6 @@ SET(INC
 	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer 
 	../../../source/gameengine/Converter
 	../../../source/blender/imbuf
-	../../../intern/ghost/include
 	../../../intern/moto/include
 	../../../source/gameengine/Ketsji 
 	../../../source/blender/blenlib
@@ -16,8 +15,7 @@ SET(INC
 	../../../source/blender/blenfont
 	../../../source/blender/editors/include
 	../../../source/blender/windowmanager
-	../../../source/blender 
-	../../../source/blender/include
+	../../../source/blender
 	../../../source/blender/makesdna
 	../../../source/blender/makesrna 
 	../../../source/gameengine/Rasterizer 
@@ -28,7 +26,6 @@ SET(INC
 	../../../source/gameengine/Physics/common
 	../../../source/gameengine/Physics/Bullet
 	../../../source/gameengine/Network/LoopBackNetwork
-	../../../source/blender/misc 
 	../../../source/blender/blenloader
 	../../../source/blender/gpu
 	../../../extern/bullet2/src
@@ -54,8 +51,7 @@ ENDIF(WITH_FFMPEG)
 
 IF(WITH_PYTHON)
 	LIST(APPEND INC ${PYTHON_INC})
-ELSE(WITH_PYTHON)
-	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+	ADD_DEFINITIONS(-DWITH_PYTHON)
 ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_blroutines "${SRC}" "${INC}")

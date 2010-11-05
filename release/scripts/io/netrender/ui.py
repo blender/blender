@@ -203,16 +203,42 @@ class RENDER_PT_network_job(bpy.types.Panel, RenderButtonsPanel):
         split = layout.split(percentage=0.3)
 
         col = split.column()
+        col.label(text="Type:")
         col.label(text="Name:")
         col.label(text="Category:")
 
         col = split.column()
+        col.prop(netsettings, "job_type", text="")
         col.prop(netsettings, "job_name", text="")
         col.prop(netsettings, "job_category", text="")
 
         row = layout.row()
         row.prop(netsettings, "priority")
         row.prop(netsettings, "chunks")
+
+class RENDER_PT_network_job_vcs(bpy.types.Panel, RenderButtonsPanel):
+    bl_label = "VCS Job Settings"
+    COMPAT_ENGINES = {'NET_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return (super(RENDER_PT_network_job_vcs, cls).poll(context)
+            and scene.network_render.mode == "RENDER_CLIENT"
+            and scene.network_render.job_type == "JOB_VCS")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        netsettings = scene.network_render
+
+        layout.operator("render.netclientvcsguess", icon='FILE_REFRESH', text="")
+
+        layout.prop(netsettings, "vcs_system")
+        layout.prop(netsettings, "vcs_revision")
+        layout.prop(netsettings, "vcs_rpath")
+        layout.prop(netsettings, "vcs_wpath")
 
 class RENDER_PT_network_slaves(bpy.types.Panel, RenderButtonsPanel):
     bl_label = "Slaves Status"
@@ -397,6 +423,16 @@ def addProperties():
                     default = default_path,
                     subtype='FILE_PATH')
     
+    NetRenderSettings.job_type = EnumProperty(
+                            items=(
+                                            ("JOB_BLENDER", "Blender", "Standard Blender Job"),
+                                            ("JOB_PROCESS", "Process", "Custom Process Job"),
+                                            ("JOB_VCS", "VCS", "Version Control System Managed Job"),
+                                        ),
+                            name="Job Type",
+                            description="Type of render job",
+                            default="JOB_BLENDER")
+
     NetRenderSettings.job_name = StringProperty(
                     name="Job name",
                     description="Name of the job",
@@ -423,6 +459,30 @@ def addProperties():
                     min=1,
                     max=10)
     
+    NetRenderSettings.vcs_wpath = StringProperty(
+                    name="Working Copy",
+                    description="Path of the local working copy",
+                    maxlen = 1024,
+                    default = "")
+
+    NetRenderSettings.vcs_rpath = StringProperty(
+                    name="Remote Path",
+                    description="Path of the server copy (protocol specific)",
+                    maxlen = 1024,
+                    default = "")
+
+    NetRenderSettings.vcs_revision = StringProperty(
+                    name="Revision",
+                    description="Revision for this job",
+                    maxlen = 256,
+                    default = "")
+
+    NetRenderSettings.vcs_system = StringProperty(
+                    name="VCS",
+                    description="Version Control System",
+                    maxlen = 64,
+                    default = "Subversion")
+
     NetRenderSettings.job_id = StringProperty(
                     name="Network job id",
                     description="id of the last sent render job",

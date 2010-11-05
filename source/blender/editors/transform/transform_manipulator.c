@@ -156,6 +156,37 @@ static void stats_editbone(RegionView3D *rv3d, EditBone *ebo)
 		protectflag_to_drawflags(OB_LOCK_LOC|OB_LOCK_ROT|OB_LOCK_SCALE, &rv3d->twdrawflag);
 }
 
+/* could move into BLI_math however this is only useful for display/editing purposes */
+static void axis_angle_to_gimbal_axis(float gmat[3][3], float axis[3], float angle)
+{
+	/* X/Y are arbitrary axies, most importantly Z is the axis of rotation */
+
+	float cross_vec[3];
+	float quat[4];
+
+	/* this is an un-scientific method to get a vector to cross with
+	 * XYZ intentionally YZX */
+	cross_vec[0]= axis[1];
+	cross_vec[1]= axis[2];
+	cross_vec[2]= axis[0];
+
+	/* X-axis */
+	cross_v3_v3v3(gmat[0], cross_vec, axis);
+	normalize_v3(gmat[0]);
+	axis_angle_to_quat(quat, axis, angle);
+	mul_qt_v3(quat, gmat[0]);
+
+	/* Y-axis */
+	axis_angle_to_quat(quat, axis, M_PI/2.0);
+	copy_v3_v3(gmat[1], gmat[0]);
+	mul_qt_v3(quat, gmat[1]);
+
+	/* Z-axis */
+	copy_v3_v3(gmat[2], axis);
+
+	normalize_m3(gmat);
+}
+
 
 static int test_rotmode_euler(short rotmode)
 {
@@ -169,10 +200,18 @@ int gimbal_axis(Object *ob, float gmat[][3])
 		{
 			bPoseChannel *pchan= get_active_posechannel(ob);
 
-			if(pchan && test_rotmode_euler(pchan->rotmode)) {
+			if(pchan) {
 				float mat[3][3], tmat[3][3], obmat[3][3];
+				if(test_rotmode_euler(pchan->rotmode)) {
+					eulO_to_gimbal_axis(mat, pchan->eul, pchan->rotmode);
+				}
+				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+					axis_angle_to_gimbal_axis(mat, pchan->rotAxis, pchan->rotAngle);
+				}
+				else { /* quat */
+					return 0;
+				}
 
-				eulO_to_gimbal_axis(mat, pchan->eul, pchan->rotmode);
 
 				/* apply bone transformation */
 				mul_m3_m3m3(tmat, pchan->bone->bone_mat, mat);
@@ -201,24 +240,23 @@ int gimbal_axis(Object *ob, float gmat[][3])
 		}
 		else {
 			if(test_rotmode_euler(ob->rotmode)) {
-
-				
-				if (ob->parent)
-				{
-					float parent_mat[3][3], amat[3][3];
-
-					eulO_to_gimbal_axis(amat, ob->rot, ob->rotmode);
-					copy_m3_m4(parent_mat, ob->parent->obmat);
-					normalize_m3(parent_mat);
-					mul_m3_m3m3(gmat, parent_mat, amat);
-					return 1;
-				}
-				else
-				{
-					eulO_to_gimbal_axis(gmat, ob->rot, ob->rotmode);
-					return 1;
-				}
+				eulO_to_gimbal_axis(gmat, ob->rot, ob->rotmode);
 			}
+			else if(ob->rotmode == ROT_MODE_AXISANGLE) {
+				axis_angle_to_gimbal_axis(gmat, ob->rotAxis, ob->rotAngle);
+			}
+			else { /* quat */
+				return 0;
+			}
+
+			if (ob->parent)
+			{
+				float parent_mat[3][3];
+				copy_m3_m4(parent_mat, ob->parent->obmat);
+				normalize_m3(parent_mat);
+				mul_m3_m3m3(gmat, parent_mat, gmat);
+			}
+			return 1;
 		}
 	}
 
@@ -278,7 +316,7 @@ int calc_manipulator_stats(const bContext *C)
 			bArmature *arm= obedit->data;
 			EditBone *ebo;
 			for (ebo= arm->edbo->first; ebo; ebo=ebo->next){
-				if(ebo->layer & arm->layer && !(ebo->flag & BONE_HIDDEN_A)) {
+				if(EBONE_VISIBLE(arm, ebo)) {
 					if (ebo->flag & BONE_TIPSEL) {
 						calc_tw_center(scene, ebo->tail);
 						totsel++;
@@ -405,7 +443,7 @@ int calc_manipulator_stats(const bContext *C)
 			mul_m4_v3(ob->obmat, scene->twmax);
 		}
 	}
-	else if(ob && (ob->mode & (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
+	else if(ob && (ob->mode & OB_MODE_ALL_PAINT)) {
 		;
 	}
 	else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
@@ -1363,17 +1401,6 @@ static void draw_manipulator_rotate_cyl(View3D *v3d, RegionView3D *rv3d, int mov
 
 /* ********************************************* */
 
-static float get_manipulator_drawsize(ARegion *ar)
-{
-	RegionView3D *rv3d= ar->regiondata;
-	float size = get_drawsize(ar, rv3d->twmat[3]);
-
-	size*= (float)U.tw_size;
-
-	return size;
-}
-
-
 /* main call, does calc centers & orientation too */
 /* uses global G.moving */
 static int drawflags= 0xFFFF;		// only for the calls below, belongs in scene...?
@@ -1421,7 +1448,7 @@ void BIF_draw_manipulator(const bContext *C)
 			break;
 		}
 
-		mul_mat3_m4_fl(rv3d->twmat, get_manipulator_drawsize(ar));
+		mul_mat3_m4_fl(rv3d->twmat, view3d_pixel_size(rv3d, rv3d->twmat[3]) * U.tw_size * 5.0f);
 	}
 
 	test_manipulator_axis(C);

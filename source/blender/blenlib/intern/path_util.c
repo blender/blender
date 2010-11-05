@@ -136,6 +136,37 @@ void BLI_stringenc(char *string, const char *head, const char *tail, unsigned sh
 	sprintf(string, fmtstr, head, pic, tail);
 }
 
+/* Foo.001 -> "Foo", 1
+ * Returns the length of "Foo" */
+int BLI_split_name_num(char *left, int *nr, const char *name)
+{
+	int a;
+	
+	*nr= 0;
+	a= strlen(name);
+	memcpy(left, name, (a + 1) * sizeof(char));
+
+	if(a>1 && name[a-1]=='.') return a;
+	
+	while(a--) {
+		if( name[a]=='.' ) {
+			left[a]= 0;
+			*nr= atol(name+a+1);
+			/* casting down to an int, can overflow for large numbers */
+			if(*nr < 0)
+				*nr= 0;
+			return a;
+		}
+		if( isdigit(name[a])==0 ) break;
+		
+		left[a]= 0;
+	}
+
+	for(a= 0; name[a]; a++)
+		left[a]= name[a];
+
+	return a;
+}
 
 void BLI_newname(char *name, int add)
 {
@@ -174,15 +205,25 @@ void BLI_newname(char *name, int add)
  *	defname: the name that should be used by default if none is specified already
  *	delim: the character which acts as a delimeter between parts of the name
  */
-void BLI_uniquename(ListBase *list, void *vlink, const char defname[], char delim, short name_offs, short len)
+static int uniquename_find_dupe(ListBase *list, void *vlink, const char *name, short name_offs)
 {
 	Link *link;
-	char tempname[128];
-	int	number = 1, exists = 0;
-	char *dot;
-	
+
+	for (link = list->first; link; link= link->next) {
+		if (link != vlink) {
+			if (!strcmp(GIVE_STRADDR(link, name_offs), name)) {
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+void BLI_uniquename(ListBase *list, void *vlink, const char defname[], char delim, short name_offs, short name_len)
+{	
 	/* Make sure length can be handled */
-	if ((len < 0) || (len > 128))
+	if ((name_len < 0) || (name_len > 128))
 		return;
 	
 	/* See if we are given an empty string */
@@ -191,45 +232,27 @@ void BLI_uniquename(ListBase *list, void *vlink, const char defname[], char deli
 	
 	if (GIVE_STRADDR(vlink, name_offs) == '\0') {
 		/* give it default name first */
-		BLI_strncpy(GIVE_STRADDR(vlink, name_offs), defname, len);
+		BLI_strncpy(GIVE_STRADDR(vlink, name_offs), defname, name_len);
 	}
 	
 	/* See if we even need to do this */
 	if (list == NULL)
 		return;
-	
-	for (link = list->first; link; link= link->next) {
-		if (link != vlink) {
-			if (!strcmp(GIVE_STRADDR(link, name_offs), GIVE_STRADDR(vlink, name_offs))) {
-				exists = 1;
-				break;
-			}
-		}
-	}
-	if (exists == 0)
-		return;
 
-	/* Strip off the suffix */
-	dot = strrchr(GIVE_STRADDR(vlink, name_offs), delim);
-	if (dot)
-		*dot=0;
-	
-	for (number = 1; number <= 999; number++) {
-		BLI_snprintf(tempname, sizeof(tempname), "%s%c%03d", GIVE_STRADDR(vlink, name_offs), delim, number);
-		
-		exists = 0;
-		for (link= list->first; link; link= link->next) {
-			if (vlink != link) {
-				if (!strcmp(GIVE_STRADDR(link, name_offs), tempname)) {
-					exists = 1;
-					break;
-				}
+	if(uniquename_find_dupe(list,vlink, GIVE_STRADDR(vlink, name_offs), name_offs)) {
+		/* note: this block is used in other places, when changing logic apply to all others, search this message */
+		char	tempname[128];
+		char	left[128];
+		int		number;
+		int		len= BLI_split_name_num(left, &number, GIVE_STRADDR(vlink, name_offs));
+		do {	/* nested while loop looks bad but likely it wont run most times */
+			while(BLI_snprintf(tempname, name_len, "%s%c%03d", left, delim, number) >= name_len) {
+				if(len > 0)	left[--len]= '\0';	/* word too long */
+				else		number= 0;			/* reset, must be a massive number */
 			}
-		}
-		if (exists == 0) {
-			BLI_strncpy(GIVE_STRADDR(vlink, name_offs), tempname, len);
-			return;
-		}
+		} while(number++, uniquename_find_dupe(list, vlink, tempname, name_offs));
+		
+		BLI_strncpy(GIVE_STRADDR(vlink, name_offs), tempname, name_len);
 	}
 }
 
@@ -471,11 +494,7 @@ int BLI_has_parent(char *path)
 
 int BLI_parent_dir(char *path)
 {
-#ifdef WIN32
-	static char *parent_dir="..\\";
-#else
-	static char *parent_dir="../";
-#endif
+	static char parent_dir[]= {'.', '.', SEP, '\0'}; /* "../" or "..\\" */
 	char tmp[FILE_MAXDIR+FILE_MAXFILE+4];
 	BLI_strncpy(tmp, path, sizeof(tmp)-4);
 	BLI_add_slash(tmp);
@@ -547,9 +566,20 @@ int BLI_path_frame(char *path, int frame, int digits)
 		ensure_digits(path, digits);
 
 	if (stringframe_chars(path, &ch_sta, &ch_end)) { /* warning, ch_end is the last # +1 */
-		char tmp[FILE_MAX], format[64];
+		char tmp[FILE_MAX];
+#if 0	// neat but breaks on non ascii strings.
+		char format[64];
 		sprintf(format, "%%.%ds%%.%dd%%s", ch_sta, ch_end-ch_sta); /* example result: "%.12s%.5d%s" */
 		sprintf(tmp, format, path, frame, path+ch_end);
+#else
+		char format[8];
+		char *p;
+		sprintf(format, "%%.%dd", ch_end-ch_sta); /* example result: "%.5d" */
+		memcpy(tmp, path, sizeof(char) * ch_sta);
+		p= tmp + ch_sta;
+		p += sprintf(p, format, frame);
+		memcpy(p, path + ch_end, strlen(path + ch_end));
+#endif
 		strcpy(path, tmp);
 		return 1;
 	}
@@ -1143,42 +1173,28 @@ void BLI_char_switch(char *string, char from, char to)
 void BLI_make_exist(char *dir) {
 	int a;
 
-	#ifdef WIN32
-		BLI_char_switch(dir, '/', '\\');
-	#else
-		BLI_char_switch(dir, '\\', '/');
-	#endif	
-	
+	BLI_char_switch(dir, ALTSEP, SEP);
+
 	a = strlen(dir);
-	
-#ifdef WIN32	
+
 	while(BLI_is_dir(dir) == 0){
 		a --;
-		while(dir[a] != '\\'){
+		while(dir[a] != SEP){
 			a--;
 			if (a <= 0) break;
 		}
-		if (a >= 0) dir[a+1] = 0;
+		if (a >= 0) {
+			dir[a+1] = '\0';
+		}
 		else {
-			/* defaulting to drive (usually 'C:') of Windows installation */
+#ifdef WIN32
 			get_default_root(dir);
-			break;
-		}
-	}
 #else
-	while(BLI_is_dir(dir) == 0){
-		a --;
-		while(dir[a] != '/'){
-			a--;
-			if (a <= 0) break;
-		}
-		if (a >= 0) dir[a+1] = 0;
-		else {
 			strcpy(dir,"/");
+#endif
 			break;
 		}
 	}
-#endif
 }
 
 void BLI_make_existing_file(char *name)
@@ -1495,6 +1511,67 @@ int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char
 	return 1;
 }
 
+char *BLI_first_slash(char *string) {
+	char *ffslash, *fbslash;
+	
+	ffslash= strchr(string, '/');	
+	fbslash= strchr(string, '\\');
+	
+	if (!ffslash) return fbslash;
+	else if (!fbslash) return ffslash;
+	
+	if ((intptr_t)ffslash < (intptr_t)fbslash) return ffslash;
+	else return fbslash;
+}
+
+char *BLI_last_slash(const char *string) {
+	char *lfslash, *lbslash;
+	
+	lfslash= strrchr(string, '/');	
+	lbslash= strrchr(string, '\\');
+
+	if (!lfslash) return lbslash; 
+	else if (!lbslash) return lfslash;
+	
+	if ((intptr_t)lfslash < (intptr_t)lbslash) return lbslash;
+	else return lfslash;
+}
+
+/* adds a slash if there isnt one there already */
+int BLI_add_slash(char *string) {
+	int len = strlen(string);
+#ifdef WIN32
+	if (len==0 || string[len-1]!='\\') {
+		string[len] = '\\';
+		string[len+1] = '\0';
+		return len+1;
+	}
+#else
+	if (len==0 || string[len-1]!='/') {
+		string[len] = '/';
+		string[len+1] = '\0';
+		return len+1;
+	}
+#endif
+	return len;
+}
+
+/* removes a slash if there is one */
+void BLI_del_slash(char *string) {
+	int len = strlen(string);
+	while (len) {
+#ifdef WIN32
+		if (string[len-1]=='\\') {
+#else
+		if (string[len-1]=='/') {
+#endif
+			string[len-1] = '\0';
+			len--;
+		} else {
+			break;
+		}
+	}
+}
 
 static int add_win32_extension(char *name)
 {

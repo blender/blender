@@ -887,7 +887,7 @@ static int groupname_to_code(char *group)
 	char buf[32];
 	char *lslash;
 	
-	BLI_strncpy(buf, group, 31);
+	BLI_strncpy(buf, group, sizeof(buf));
 	lslash= BLI_last_slash(buf);
 	if (lslash)
 		lslash[0]= '\0';

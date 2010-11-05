@@ -49,7 +49,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
 
@@ -94,7 +94,7 @@ static void script_free(SpaceLink *sl)
 {	
 	SpaceScript *sscript= (SpaceScript*) sl;
 
-#ifndef DISABLE_PYTHON	
+#ifdef WITH_PYTHON
 	/*free buttons references*/
 	if (sscript->but_refs) {
 // XXX		BPy_Set_DrawButtonsList(sscript->but_refs);
@@ -150,11 +150,13 @@ static void script_main_area_draw(const bContext *C, ARegion *ar)
 	/* data... */
 	// BPY_run_python_script(C, "/root/blender-svn/blender25/test.py", NULL);
 	
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	if (sscript->script) {
 		//BPY_run_python_script_space(scpt->script.filename, NULL);
 		BPY_run_script_space_draw(C, sscript);
 	}
+#else
+	(void)sscript;
 #endif
 	
 	/* reset view matrix */

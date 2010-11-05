@@ -33,20 +33,20 @@ SCA_PythonKeyboard::SCA_PythonKeyboard(SCA_IInputDevice* keyboard)
 : PyObjectPlus(),
 m_keyboard(keyboard)
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	m_event_dict = PyDict_New();
 #endif
 }
 
 SCA_PythonKeyboard::~SCA_PythonKeyboard()
 {
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 	PyDict_Clear(m_event_dict);
 	Py_DECREF(m_event_dict);
 #endif
 }
 
-#ifndef DISABLE_PYTHON
+#ifdef WITH_PYTHON
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

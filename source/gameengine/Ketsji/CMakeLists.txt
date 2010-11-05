@@ -32,7 +32,6 @@ SET(INC
 	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer 
 	../../../source/gameengine/Converter
 	../../../source/blender/imbuf
-	../../../intern/ghost/include
 	../../../intern/moto/include
 	../../../source/gameengine/Ketsji 
 	../../../source/blender/blenlib
@@ -40,7 +39,6 @@ SET(INC
 	../../../source/blender/python
 	../../../source/blender/python/generic
 	../../../source/blender 
-	../../../source/blender/include
 	../../../source/blender/makesdna 
 	../../../source/gameengine/Rasterizer 
 	../../../source/gameengine/GameLogic
@@ -51,7 +49,6 @@ SET(INC
 	../../../source/gameengine/Physics/common
 	../../../source/gameengine/Network/LoopBackNetwork
 	../../../intern/audaspace/intern
-	../../../source/blender/misc 
 	../../../source/blender/blenloader
 	../../../source/blender/gpu
 	../../../extern/glew/include
@@ -137,8 +134,7 @@ ENDIF(WITH_SDL)
 
 IF(WITH_PYTHON)
 	LIST(APPEND INC ${PYTHON_INC})
-ELSE(WITH_PYTHON)
-	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+	ADD_DEFINITIONS(-DWITH_PYTHON)
 ENDIF(WITH_PYTHON)
 
 IF(WITH_FFMPEG)
