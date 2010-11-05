@@ -1976,9 +1976,13 @@ static void direct_link_animdata(FileData *fd, AnimData *adt)
 	link_list(fd, &adt->nla_tracks);
 	direct_link_nladata(fd, &adt->nla_tracks);
 	
-	/* clear temp pointers that may have been set... */
-	// TODO: it's probably only a small cost to reload this anyway...
-	adt->actstrip= NULL;
+	/* relink active strip - even though strictly speaking this should only be used
+	 * if we're in 'tweaking mode', we need to be able to have this loaded back for
+	 * undo, but also since users may not exit tweakmode before saving (#24535)
+	 */
+	// TODO: it's not really nice that anyone should be able to save the file in this
+	//		state, but it's going to be too hard to enforce this single case...
+	adt->actstrip= newdataadr(fd, adt->actstrip);
 }	
 
 /* ************ READ MOTION PATHS *************** */
