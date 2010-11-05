@@ -557,7 +557,6 @@ void flushTransSeq(TransInfo *t);
 /*********************** exported from transform_manipulator.c ********** */
 int gimbal_axis(struct Object *ob, float gmat[][3]); /* return 0 when no gimbal for selection */
 int calc_manipulator_stats(const struct bContext *C);
-float get_drawsize(struct ARegion *ar, float *co);
 
 /*********************** TransData Creation and General Handling *********** */
 void createTransData(struct bContext *C, TransInfo *t);

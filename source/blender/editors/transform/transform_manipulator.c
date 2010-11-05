@@ -1401,17 +1401,6 @@ static void draw_manipulator_rotate_cyl(View3D *v3d, RegionView3D *rv3d, int mov
 
 /* ********************************************* */
 
-static float get_manipulator_drawsize(ARegion *ar)
-{
-	RegionView3D *rv3d= ar->regiondata;
-	float size = get_drawsize(ar, rv3d->twmat[3]);
-
-	size*= (float)U.tw_size;
-
-	return size;
-}
-
-
 /* main call, does calc centers & orientation too */
 /* uses global G.moving */
 static int drawflags= 0xFFFF;		// only for the calls below, belongs in scene...?
@@ -1459,7 +1448,7 @@ void BIF_draw_manipulator(const bContext *C)
 			break;
 		}
 
-		mul_mat3_m4_fl(rv3d->twmat, get_manipulator_drawsize(ar));
+		mul_mat3_m4_fl(rv3d->twmat, view3d_pixel_size(rv3d, rv3d->twmat[3]) * U.tw_size * 5.0f);
 	}
 
 	test_manipulator_axis(C);

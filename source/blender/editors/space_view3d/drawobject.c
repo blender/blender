@@ -528,14 +528,7 @@ void drawcircball(int mode, float *cent, float rad, float tmat[][4])
 /* circle for object centers, special_color is for library or ob users */
 static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, float *co, int selstate, int special_color)
 {
-	float size= rv3d->pixsize*((float)U.obcenter_dia*0.5f);
-	float vec[3];
-	
-	vec[0]= rv3d->persmat[0][3];
-	vec[1]= rv3d->persmat[1][3];
-	vec[2]= rv3d->persmat[2][3];
-
-	size *= dot_v3v3(vec, co) + rv3d->persmat[3][3];
+	const float size= view3d_pixel_size(rv3d, co) * (float)U.obcenter_dia * 0.5f;
 
 	/* using gldepthfunc guarantees that it does write z values, but not checks for it, so centers remain visible independt order of drawing */
 	if(v3d->zbuf)  glDepthFunc(GL_ALWAYS);
@@ -906,9 +899,10 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z)
 static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
+	const float pixsize= view3d_pixel_size(rv3d, ob->obmat[3]);
 	Lamp *la= ob->data;
 	float vec[3], lvec[3], vvec[3], circrad, x,y,z;
-	float pixsize, lampsize;
+	float lampsize;
 	float imat[4][4], curcol[4];
 	char col[4];
 	int drawcone= (dt>OB_WIRE && !(G.f & G_PICKSEL) && la->type == LA_SPOT && (la->mode & LA_SHOW_CONE));
@@ -924,8 +918,6 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	glLoadMatrixf(rv3d->viewmat);
 
 	/* lets calculate the scale: */
-	pixsize= rv3d->persmat[0][3]*ob->obmat[3][0]+ rv3d->persmat[1][3]*ob->obmat[3][1]+ rv3d->persmat[2][3]*ob->obmat[3][2]+ rv3d->persmat[3][3];
-	pixsize*= rv3d->pixsize;
 	lampsize= pixsize*((float)U.obcenter_dia*0.5f);
 
 	/* and view aligned matrix: */
@@ -3552,12 +3544,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		case PART_DRAW_CROSS:
 		case PART_DRAW_AXIS:
 			/* lets calculate the scale: */
-			pixsize= rv3d->persmat[0][3]*ob->obmat[3][0]+ rv3d->persmat[1][3]*ob->obmat[3][1]+ rv3d->persmat[2][3]*ob->obmat[3][2]+ rv3d->persmat[3][3];
-			pixsize*= rv3d->pixsize;
-			if(part->draw_size==0.0)
-				pixsize*=2.0;
-			else
-				pixsize*=part->draw_size;
+			pixsize= view3d_pixel_size(rv3d, ob->obmat[3]);
 
 			if(draw_as==PART_DRAW_AXIS)
 				create_cdata = 1;

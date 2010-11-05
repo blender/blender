@@ -1568,17 +1568,3 @@ void calculatePropRatio(TransInfo *t)
 		strcpy(t->proptext, "");
 	}
 }
-
-float get_drawsize(ARegion *ar, float *co)
-{
-	RegionView3D *rv3d= ar->regiondata;
-	float size= rv3d->pixsize * 5;
-	float vec[3];
-
-	vec[0]= rv3d->persmat[0][3];
-	vec[1]= rv3d->persmat[1][3];
-	vec[2]= rv3d->persmat[2][3];
-
-	size *= dot_v3v3(vec, co) + rv3d->persmat[3][3];
-	return size;
-}

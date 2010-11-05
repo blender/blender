@@ -118,6 +118,7 @@ void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userDa
 void ED_view3d_local_clipping(struct RegionView3D *rv3d, float mat[][4]);
 int view3d_test_clipping(struct RegionView3D *rv3d, float *vec, int local);
 void view3d_align_axis_to_vector(struct View3D *v3d, struct RegionView3D *rv3d, int axisidx, float vec[3]);
+float view3d_pixel_size(struct RegionView3D *rv3d, const float co[3]);
 
 void drawcircball(int mode, float *cent, float rad, float tmat[][4]);
 
@@ -164,7 +165,6 @@ void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct AR
 struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey, unsigned int flag);
 struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, unsigned int flag, int drawtype);
 
-void view3d_clipping_local(struct RegionView3D *rv3d, float mat[][4]);
 
 Base *ED_view3d_give_base_under_cursor(struct bContext *C, short *mval);
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar);

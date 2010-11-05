@@ -146,16 +146,16 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			
 			glDisable(GL_DEPTH_TEST);
 	
-			size = 0.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
+			size = 2.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
 
 			invert_m4_m4(imat, rv3d->viewmat);
 
 			for (p = t->tsnap.points.first; p; p = p->next) {
-				drawcircball(GL_LINE_LOOP, p->co, size * get_drawsize(t->ar, p->co), imat);
+				drawcircball(GL_LINE_LOOP, p->co, view3d_pixel_size(rv3d, p->co) * size, imat);
 			}
 
 			if (t->tsnap.status & POINT_INIT) {
-				drawcircball(GL_LINE_LOOP, t->tsnap.snapPoint, size * get_drawsize(t->ar, t->tsnap.snapPoint), imat);
+				drawcircball(GL_LINE_LOOP, t->tsnap.snapPoint, view3d_pixel_size(rv3d, t->tsnap.snapPoint) * size, imat);
 			}
 			
 			/* draw normal if needed */
