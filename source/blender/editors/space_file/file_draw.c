@@ -240,56 +240,6 @@ static void draw_tile(int sx, int sy, int width, int height, int colorid, int sh
 	uiRoundBox(sx, sy - height, sx + width, sy, 5);
 }
 
-#define FILE_SHORTEN_END				0
-#define FILE_SHORTEN_FRONT				1
-
-static float shorten_string(char* string, float w, int flag)
-{	
-	char temp[FILE_MAX];
-	short shortened = 0;
-	float sw = 0;
-	float pad = 0;
-
-	if (w <= 0) {
-		*string = '\0';
-		return 0.0;
-	}
-
-	sw = file_string_width(string);
-	if (flag == FILE_SHORTEN_FRONT) {
-		char *s = string;
-		BLI_strncpy(temp, "...", 4);
-		pad = file_string_width(temp);
-		while ((*s) && (sw+pad>w)) {
-			s++;
-			sw = file_string_width(s);
-			shortened = 1;
-		}
-		if (shortened) {
-			int slen = strlen(s);			
-			BLI_strncpy(temp+3, s, slen+1);
-			temp[slen+4] = '\0';
-			BLI_strncpy(string, temp, slen+4);
-		}
-	} else {
-		char *s = string;
-		while (sw>w) {
-			int slen = strlen(string);
-			string[slen-1] = '\0';
-			sw = file_string_width(s);
-			shortened = 1;
-		}
-
-		if (shortened) {
-			int slen = strlen(string);
-			if (slen > 3) {
-				BLI_strncpy(string+slen-3, "...", 4);				
-			}
-		}
-	}
-	
-	return sw;
-}
 
 static int get_file_icon(struct direntry *file)
 {
@@ -350,7 +300,7 @@ static void file_draw_string(int sx, int sy, const char* string, float width, in
 
 
 	BLI_strncpy(fname,string, FILE_MAXFILE);
-	sw = shorten_string(fname, width, flag );
+	sw = file_shorten_string(fname, width, flag );
 
 	soffs = (width - sw) / 2;
 	x = (float)(sx);
@@ -548,9 +498,16 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		
 		UI_ThemeColor4(TH_TEXT);
 
-		spos = ( FILE_IMGDISPLAY == params->display ) ? sx : sx + ICON_DEFAULT_WIDTH + 4;
+		
+		
+		if ( FILE_IMGDISPLAY == params->display ) {
+			sw = file_string_width_shortened(file->relname, layout->tile_w);
+			spos = sx + (layout->tile_w - sw)/2;
+		} else {
+			sw = file_string_width(file->relname);
+			spos = sx + ICON_DEFAULT_WIDTH + 4;
+		}	
 
-		sw = file_string_width(file->relname);
 		if (file->flags & EDITING) {
 			int but_width = (FILE_IMGDISPLAY == params->display) ? layout->tile_w : layout->column_widths[COLUMN_NAME];
 
@@ -591,15 +548,15 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 		UI_ThemeColor4(TH_TEXT);
 		if (!(file->flags & EDITING))  {
-			float name_width = (FILE_IMGDISPLAY == params->display) ? layout->tile_w : sw;
-			file_draw_string(spos, sy, file->relname, name_width, layout->tile_h, FILE_SHORTEN_END);
+			// float name_width = (FILE_IMGDISPLAY == params->display) ? layout->tile_w : sw;
+			file_draw_string(spos, sy, file->relname, sw, layout->tile_h, 0);
 		}
 
 		if (params->display == FILE_SHORTDISPLAY) {
 			spos += layout->column_widths[COLUMN_NAME] + 12;
 			if (!(file->type & S_IFDIR)) {
 				sw = file_string_width(file->size);
-				file_draw_string(spos, sy, file->size, sw+1, layout->tile_h, FILE_SHORTEN_END);	
+				file_draw_string(spos, sy, file->size, sw+1, layout->tile_h, 0);	
 				spos += layout->column_widths[COLUMN_SIZE] + 12;
 			}
 		} else if (params->display == FILE_LONGDISPLAY) {
@@ -608,33 +565,33 @@ void file_draw_list(const bContext *C, ARegion *ar)
 #ifndef WIN32
 			/* rwx rwx rwx */
 			sw = file_string_width(file->mode1);
-			file_draw_string(spos, sy, file->mode1, sw, layout->tile_h, FILE_SHORTEN_END); 
+			file_draw_string(spos, sy, file->mode1, sw, layout->tile_h, 0); 
 			spos += layout->column_widths[COLUMN_MODE1] + 12;
 
 			sw = file_string_width(file->mode2);
-			file_draw_string(spos, sy, file->mode2, sw, layout->tile_h, FILE_SHORTEN_END);
+			file_draw_string(spos, sy, file->mode2, sw, layout->tile_h, 0);
 			spos += layout->column_widths[COLUMN_MODE2] + 12;
 
 			sw = file_string_width(file->mode3);
-			file_draw_string(spos, sy, file->mode3, sw, layout->tile_h, FILE_SHORTEN_END);
+			file_draw_string(spos, sy, file->mode3, sw, layout->tile_h, 0);
 			spos += layout->column_widths[COLUMN_MODE3] + 12;
 
 			sw = file_string_width(file->owner);
-			file_draw_string(spos, sy, file->owner, sw, layout->tile_h, FILE_SHORTEN_END);
+			file_draw_string(spos, sy, file->owner, sw, layout->tile_h, 0);
 			spos += layout->column_widths[COLUMN_OWNER] + 12;
 #endif
 
 			sw = file_string_width(file->date);
-			file_draw_string(spos, sy, file->date, sw, layout->tile_h, FILE_SHORTEN_END);
+			file_draw_string(spos, sy, file->date, sw, layout->tile_h, 0);
 			spos += layout->column_widths[COLUMN_DATE] + 12;
 
 			sw = file_string_width(file->time);
-			file_draw_string(spos, sy, file->time, sw, layout->tile_h, FILE_SHORTEN_END); 
+			file_draw_string(spos, sy, file->time, sw, layout->tile_h, 0); 
 			spos += layout->column_widths[COLUMN_TIME] + 12;
 
 			if (!(file->type & S_IFDIR)) {
 				sw = file_string_width(file->size);
-				file_draw_string(spos, sy, file->size, sw, layout->tile_h, FILE_SHORTEN_END);
+				file_draw_string(spos, sy, file->size, sw, layout->tile_h, 0);
 				spos += layout->column_widths[COLUMN_SIZE] + 12;
 			}
 		}
