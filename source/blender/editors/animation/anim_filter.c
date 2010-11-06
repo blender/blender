@@ -1394,9 +1394,9 @@ static int animdata_filter_dopesheet_mats (bAnimContext *ac, ListBase *anim_data
 			/* need to check textures */
 			if(ma->mtex) {
 				MTex **mtex = ma->mtex;
-				int a;
-				for (a=0; a < MAX_MTEX; a++) {
-					if (ELEM3(NULL, mtex[a], mtex[a]->tex, mtex[a]->tex->adt))
+				int mtInd;
+				for (mtInd=0; mtInd < MAX_MTEX; mtInd++) {
+					if (ELEM3(NULL, mtex[mtInd], mtex[mtInd]->tex, mtex[mtInd]->tex->adt))
 						continue;
 					else
 						ok=1;
@@ -2206,7 +2206,7 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 					int a;
 					
 					/* firstly check that we actuallly have some materials */
-					for (a=0; a < ob->totcol; a++) {
+					for (a=1; a <= ob->totcol; a++) {
 						Material *ma= give_current_material(ob, a);
 						
 						if (ma) {
@@ -2411,7 +2411,7 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 					int a;
 					
 					/* firstly check that we actuallly have some materials */
-					for (a=0; a < ob->totcol; a++) {
+					for (a=1; a <= ob->totcol; a++) {
 						Material *ma= give_current_material(ob, a);
 						int mtInd;
 						
