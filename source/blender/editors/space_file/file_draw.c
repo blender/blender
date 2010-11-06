@@ -177,7 +177,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		/* callbacks for operator check functions */
 		uiBlockSetFunc(block, file_draw_check_cb, NULL, NULL);
 
-		but = uiDefBut(block, TEX, B_FS_DIRNAME, "",
+		but = uiDefButTextO(block, TEX, "FILE_OT_directory", 0, "",
 				 min_x, line1_y, line1_w-chan_offs, btn_h, 
 				 params->dir, 0.0, (float)FILE_MAX-1, 0, 0, 
 				 "File path.");

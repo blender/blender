@@ -400,6 +400,7 @@ uiBut *uiDefButC(uiBlock *block, int type, int retval, char *str, short x1, shor
 uiBut *uiDefButBitC(uiBlock *block, int type, int bit, int retval, char *str, short x1, short y1, short x2, short y2, char *poin, float min, float max, float a1, float a2,  char *tip);
 uiBut *uiDefButR(uiBlock *block, int type, int retval, char *str, short x1, short y1, short x2, short y2, struct PointerRNA *ptr, const char *propname, int index, float min, float max, float a1, float a2,  char *tip);
 uiBut *uiDefButO(uiBlock *block, int type, char *opname, int opcontext, char *str, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefButTextO(uiBlock *block, int type, char *opname, int opcontext, char *str, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip);
 
 uiBut *uiDefIconBut(uiBlock *block, 
 					   int type, int retval, int icon, 

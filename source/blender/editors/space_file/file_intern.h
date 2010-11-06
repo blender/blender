@@ -66,6 +66,7 @@ void FILE_OT_cancel(struct wmOperatorType *ot);
 void FILE_OT_parent(struct wmOperatorType *ot);
 void FILE_OT_directory_new(struct wmOperatorType *ot);
 void FILE_OT_filename(struct wmOperatorType *ot);
+void FILE_OT_directory(struct wmOperatorType *ot);
 void FILE_OT_previous(struct wmOperatorType *ot);
 void FILE_OT_next(struct wmOperatorType *ot);
 void FILE_OT_refresh(struct wmOperatorType *ot);
