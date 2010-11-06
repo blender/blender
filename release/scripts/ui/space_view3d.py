@@ -2167,7 +2167,6 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 
                     box.prop(bg, "opacity", slider=True)
                     if bg.view_axis != 'CAMERA':
-                        box.prop(bg, "object")
                         box.prop(bg, "size")
                         row = box.row(align=True)
                         row.prop(bg, "offset_x", text="X")
