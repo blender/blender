@@ -142,7 +142,7 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         light = getattr(context.world, "light_settings", None)
-        return light and light.gather_method == 'APPROXIMATE'
+        return light
 
     def draw_header(self, context):
         light = context.world.light_settings
@@ -152,11 +152,14 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
         layout = self.layout
         light = context.world.light_settings
 
-        layout.active = light.use_indirect_light
+        layout.active = light.use_indirect_light and light.gather_method == 'APPROXIMATE'
 
         split = layout.split()
         split.prop(light, "indirect_factor", text="Factor")
         split.prop(light, "indirect_bounces", text="Bounces")
+        
+        if light.gather_method == 'RAYTRACE':
+            layout.label(text="Only works with Approximate gather method")
 
 
 class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
