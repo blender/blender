@@ -436,6 +436,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  {
 				  vert1 = calc_mapping(indexMap, inMED.v1, j);
 				  vert2 = calc_mapping(indexMap, inMED.v2, j);
+
+				  /* edge could collapse to single point after mapping */
+				  if(vert1 == vert2) continue;
+
 				  /* avoid duplicate edges */
 				  if(!BLI_edgehash_haskey(edges, vert1, vert2)) {
 					  med2 = &medge[numEdges];
