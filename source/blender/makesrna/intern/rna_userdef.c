@@ -2718,10 +2718,18 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_FILTERFILEEXTS);
 	RNA_def_property_ui_text(prop, "Filter File Extensions", "Display only files with extensions in the image select window");
 	
+	prop= RNA_def_property(srna, "hide_recent_locations", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_HIDE_RECENT);
+	RNA_def_property_ui_text(prop, "Hide Recent Locations", "Hide recent locations in the file selector");
+
+	prop= RNA_def_property(srna, "show_thumbnails", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_THUMBNAILS);
+	RNA_def_property_ui_text(prop, "Show Thumbnails", "Open in thumbnail view for images and movies");
+
 	prop= RNA_def_property(srna, "use_relative_paths", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_RELPATHS);
 	RNA_def_property_ui_text(prop, "Relative Paths", "Default relative path option for the file selector");
-
+	
 	prop= RNA_def_property(srna, "use_file_compression", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_FILECOMPRESS);
 	RNA_def_property_ui_text(prop, "Compress File", "Enable file compression when saving .blend files");

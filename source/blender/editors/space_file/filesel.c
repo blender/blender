@@ -199,12 +199,16 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->flag |= RNA_boolean_get(op->ptr, "autoselect") ? FILE_AUTOSELECT : 0;
 			params->flag |= RNA_boolean_get(op->ptr, "active_layer") ? FILE_ACTIVELAY : 0;
 		}
-
-		if(params->filter & (IMAGEFILE|MOVIEFILE))
-			params->display= FILE_IMGDISPLAY;
-		else
-			params->display= FILE_SHORTDISPLAY;
 		
+		if (U.uiflag & USER_SHOW_THUMBNAILS) {
+			if(params->filter & (IMAGEFILE|MOVIEFILE))
+				params->display= FILE_IMGDISPLAY;
+			else
+				params->display= FILE_SHORTDISPLAY;
+		} else {
+			params->display= FILE_SHORTDISPLAY;
+		}
+
 	} else {
 		/* default values, if no operator */
 		params->type = FILE_UNIX;
