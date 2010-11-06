@@ -1247,6 +1247,9 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 		return;
 	}
 
+	if((re->r.mode & (R_OSA))==0)
+		re->r.scemode &= ~R_FULL_SAMPLE;
+
 #ifdef WITH_OPENEXR
 	if(re->r.scemode & R_FULL_SAMPLE)
 		re->r.scemode |= R_EXR_TILE_FILE;	/* enable automatic */
