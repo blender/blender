@@ -52,6 +52,18 @@ static void rna_cloth_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 }
 
+static void rna_cloth_pinning_changed(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ClothSimSettings *settings = (ClothSimSettings*)ptr->data;
+	ClothModifierData *clmd = (ClothModifierData*)modifiers_findByType(ob, eModifierType_Cloth);
+
+	cloth_free_modifier(clmd);
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
+}
+
 static void rna_cloth_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -256,7 +268,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "vertex_group_mass", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ClothSettings_mass_vgroup_get", "rna_ClothSettings_mass_vgroup_length", "rna_ClothSettings_mass_vgroup_set");
 	RNA_def_property_ui_text(prop, "Mass Vertex Group", "Vertex Group for pinning of vertices");
-	RNA_def_property_update(prop, 0, "rna_cloth_update");
+	RNA_def_property_update(prop, 0, "rna_cloth_pinning_changed");
 	
 	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_ACCELERATION);
 	RNA_def_property_array(prop, 3);
@@ -276,7 +288,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_pin_cloth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_SIMSETTINGS_FLAG_GOAL);
 	RNA_def_property_ui_text(prop, "Pin Cloth", "Enable pinning of cloth vertices to other objects/positions");
-	RNA_def_property_update(prop, 0, "rna_cloth_update");
+	RNA_def_property_update(prop, 0, "rna_cloth_pinning_changed");
 
 	prop= RNA_def_property(srna, "pin_stiffness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "goalspring");
