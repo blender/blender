@@ -841,7 +841,12 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(unused), wmEv
 				ED_screen_full_prevspace(C, sa);
 			}
 			else if(sima->next) {
-				ED_area_newspace(C, sa, sima->next->spacetype);
+				/* workaround for case of double prevspace, render window
+				   with a file browser on top of it (same as in ED_area_prevspace) */
+				if(sima->next->spacetype == SPACE_FILE && sima->next->next)
+					ED_area_newspace(C, sa, sima->next->next->spacetype);
+				else
+					ED_area_newspace(C, sa, sima->next->spacetype);
 				ED_area_tag_redraw(sa);
 			}
 		}
