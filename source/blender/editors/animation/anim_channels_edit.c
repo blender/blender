@@ -754,7 +754,7 @@ static void rearrange_clear_fcurve_tags (ListBase *list)
  * ! NLA tracks are displayed in opposite order, so directions need care
  *	mode: REARRANGE_ANIMCHAN_*  
  */
-static void rearrange_nla_channels (bAnimContext *ac, AnimData *adt, short mode)
+static void rearrange_nla_channels (bAnimContext *UNUSED(ac), AnimData *adt, short mode)
 {
 	NlaTrack *nlt, *track;
 	
@@ -777,9 +777,9 @@ static void rearrange_nla_channels (bAnimContext *ac, AnimData *adt, short mode)
 		nlt->flag &= ~NLASTRIP_FLAG_EDIT_TOUCHED;
 	
 	/* reorder all selected tracks */
-	for (nlt= rearrange_iter_first(&adt->nla_tracks, mode); nlt; nlt= track) {
+	for (nlt= (NlaTrack *)rearrange_iter_first(&adt->nla_tracks, mode); nlt; nlt= track) {
 		/* Get next channel to consider */
-		track= rearrange_iter_next(nlt, mode);
+		track= (NlaTrack *)rearrange_iter_next((Link *)nlt, mode);
 		
 		/* Try to do channel */
 		if (rearrange_func(&adt->nla_tracks, (Link *)nlt, ANIMTYPE_NLATRACK))
@@ -796,7 +796,7 @@ static void rearrange_nla_channels (bAnimContext *ac, AnimData *adt, short mode)
 /* Change the order drivers within AnimData block
  *	mode: REARRANGE_ANIMCHAN_*  
  */
-static void rearrange_driver_channels (bAnimContext *ac, AnimData *adt, short mode)
+static void rearrange_driver_channels (bAnimContext *UNUSED(ac), AnimData *adt, short mode)
 {
 	FCurve *fcu, *fcun;
 	
@@ -813,9 +813,9 @@ static void rearrange_driver_channels (bAnimContext *ac, AnimData *adt, short mo
 	rearrange_clear_fcurve_tags(&adt->drivers);
 	
 	/* reorder all selected driver F-Curves */
-	for (fcu= rearrange_iter_first(&adt->drivers, mode); fcu; fcu= fcun) {
+	for (fcu= (FCurve *)rearrange_iter_first(&adt->drivers, mode); fcu; fcu= fcun) {
 		/* Get next channel to consider */
-		fcun= rearrange_iter_next(fcu, mode);
+		fcun= (FCurve *)rearrange_iter_next((Link *)fcu, mode);
 		
 		/* Try to do channel */
 		if (rearrange_func(&adt->drivers, (Link *)fcu, ANIMTYPE_FCURVE))
@@ -881,7 +881,6 @@ static void split_groups_action_temp (bAction *act, bActionGroup *tgrp)
 static void join_groups_action_temp (bAction *act)
 {
 	bActionGroup *agrp;
-	FCurve *fcu;
 	
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		ListBase tempGroup;
@@ -925,9 +924,9 @@ static void rearrange_action_channels (bAnimContext *ac, bAction *act, short mod
 	split_groups_action_temp(act, &tgrp);
 	
 	/* rearrange groups first (and then, only consider channels if the groups weren't moved) */
-	for (agrp= rearrange_iter_first(&act->groups, mode); agrp; agrp= grp) {
+	for (agrp= (bActionGroup *)rearrange_iter_first(&act->groups, mode); agrp; agrp= grp) {
 		/* Get next group to consider */
-		grp= rearrange_iter_next(agrp, mode);
+		grp= (bActionGroup *)rearrange_iter_next((Link *)agrp, mode);
 		
 		/* try to do group first */
 		if (rearrange_func(&act->groups, (Link *)agrp, ANIMTYPE_GROUP)) {
@@ -937,15 +936,15 @@ static void rearrange_action_channels (bAnimContext *ac, bAction *act, short mod
 	}
 	
 	if (do_channels) {
-		for (agrp= rearrange_iter_first(&act->groups, mode); agrp; agrp= grp) {
+		for (agrp= (bActionGroup *)rearrange_iter_first(&act->groups, mode); agrp; agrp= grp) {
 			/* Get next group to consider */
-			grp= rearrange_iter_next(agrp, mode);
+			grp= (bActionGroup *)rearrange_iter_next((Link *)agrp, mode);
 			
 			/* only consider F-Curves if they're visible (group expanded) */
 			if (EXPANDED_AGRP(agrp)) {
-				for (fcu= rearrange_iter_first(&agrp->channels, mode); fcu; fcu= fcun) {
+				for (fcu= (FCurve *)rearrange_iter_first(&agrp->channels, mode); fcu; fcu= fcun) {
 					/* Get next channel to consider */
-					fcun= rearrange_iter_next(fcu, mode);
+					fcun= (FCurve *)rearrange_iter_next((Link *)fcu, mode);
 					
 					/* Try to do channel */
 					if (rearrange_func(&agrp->channels, (Link *)fcu, ANIMTYPE_FCURVE))

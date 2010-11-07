@@ -292,7 +292,6 @@ static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon,
 
 static void file_draw_string(int sx, int sy, const char* string, float width, int height, int flag)
 {
-	uiStyle *style= U.uistyles.first;
 	int soffs;
 	char fname[FILE_MAXFILE];
 	float sw;
