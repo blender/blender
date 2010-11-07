@@ -1650,11 +1650,14 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 	float ymin, ymax;
 	
 	/* set initial y extents */
-	if (ac->datatype == ANIMCONT_NLA)
-		ymax = (float)(-NLACHANNEL_HEIGHT);
-	else
+	if (ac->datatype == ANIMCONT_NLA) {
+		ymin = (float)(-NLACHANNEL_HEIGHT);
+		ymax = 0.0f;
+	}
+	else {
+		ymin = 0.0f;
 		ymax = (float)(-ACHANNEL_HEIGHT);
-	ymin = 0.0f;
+	}
 	
 	/* convert border-region to view coordinates */
 	UI_view2d_region_to_view(v2d, rect->xmin, rect->ymin+2, &rectf.xmin, &rectf.ymin);
