@@ -347,6 +347,9 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 		v3d->lens = sms->new_lens*step + sms->orig_lens*step_inv;
 	}
 	
+	if(rv3d->viewlock & RV3D_BOXVIEW)
+		view3d_boxview_copy(CTX_wm_area(C), CTX_wm_region(C));
+	
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 	
 	return OPERATOR_FINISHED;

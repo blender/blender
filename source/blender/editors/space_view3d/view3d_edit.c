@@ -1348,9 +1348,6 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 	}
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 
-	if(rv3d->viewlock & RV3D_BOXVIEW)
-		view3d_boxview_copy(CTX_wm_area(C), ar);
-		
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 
 	return OPERATOR_FINISHED;
@@ -1492,9 +1489,9 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op)) /* like a loca
 		smooth_view(C, NULL, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
 	}
 
+	/* smooth view does viewlock RV3D_BOXVIEW copy */
+	
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
-	if(rv3d->viewlock & RV3D_BOXVIEW)
-		view3d_boxview_copy(CTX_wm_area(C), ar);
 
 	return OPERATOR_FINISHED;
 }
@@ -1527,8 +1524,7 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *UNUSED(op))
 		negate_v3_v3(new_ofs, give_cursor(scene, v3d));
 		smooth_view(C, NULL, NULL, new_ofs, NULL, NULL, NULL);
 		
-		if (rv3d->viewlock & RV3D_BOXVIEW)
-			view3d_boxview_copy(CTX_wm_area(C), CTX_wm_region(C));
+		/* smooth view does viewlock RV3D_BOXVIEW copy */
 	}
 	
 	return OPERATOR_FINISHED;
