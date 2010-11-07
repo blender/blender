@@ -1204,6 +1204,11 @@ void BKE_nlastrip_validate_fcurves (NlaStrip *strip)
 	}
 }
 
+static int nla_editbone_name_check(void *arg, const char *name)
+{
+	return BLI_ghash_haskey((GHash *)arg, (void *)name);
+}
+
 /* Sanity Validation ------------------------------------ */
 
 /* Find (and set) a unique name for a strip from the whole AnimData block 
@@ -1259,21 +1264,7 @@ void BKE_nlastrip_validate_name (AnimData *adt, NlaStrip *strip)
 	/* if the hash-table has a match for this name, try other names... 
 	 *	- in an extreme case, it might not be able to find a name, but then everything else in Blender would fail too :)
 	 */
-	if (BLI_ghash_haskey(gh, strip->name)) {
-		/* note: this block is used in other places, when changing logic apply to all others, search this message */
-		char	tempname[sizeof(strip->name)];
-		char	left[sizeof(strip->name)];
-		int		number;
-		int		len= BLI_split_name_num(left, &number, strip->name);
-		do {	/* nested while loop looks bad but likely it wont run most times */
-			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
-				if(len > 0)	left[--len]= '\0';	/* word too long */
-				else		number= 0;			/* reset, must be a massive number */
-			}
-		} while(number++, BLI_ghash_haskey(gh, tempname));
-	
-		BLI_strncpy(strip->name, tempname, sizeof(strip->name));
-	}
+	BLI_uniquename_cb(nla_editbone_name_check, (void *)gh, "NlaStrip", '.', strip->name, sizeof(strip->name));
 
 	/* free the hash... */
 	BLI_ghash_free(gh, NULL, NULL);

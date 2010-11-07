@@ -1063,7 +1063,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 		memset(in_use, 0, sizeof(in_use));
 
 		/* get name portion, number portion ("name.number") */
-		left_len= BLI_split_name_num(left, &nr, name);
+		left_len= BLI_split_name_num(left, &nr, name, '.');
 
 		/* if new name will be too long, truncate it */
 		if(nr > 999 && left_len > 16) {
@@ -1080,7 +1080,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 					(idtest->lib == NULL) &&
 					(*name == *(idtest->name+2)) &&
 					(strncmp(name, idtest->name+2, left_len)==0) &&
-					(BLI_split_name_num(leftest, &nrtest, idtest->name+2) == left_len)
+					(BLI_split_name_num(leftest, &nrtest, idtest->name+2, '.') == left_len)
 			) {
 				if(nrtest < sizeof(in_use))
 					in_use[nrtest]= 1;	/* mark as used */

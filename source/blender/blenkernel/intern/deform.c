@@ -319,32 +319,19 @@ static int defgroup_find_name_dupe(const char *name, bDeformGroup *dg, Object *o
 	return 0;
 }
 
+static int defgroup_unique_check(void *arg, const char *name)
+{
+	struct {Object *ob; void *dg;} *data= arg;
+	return defgroup_find_name_dupe(name, data->dg, data->ob);
+}
+
 void defgroup_unique_name (bDeformGroup *dg, Object *ob)
-{	
-	if (!ob)
-		return;
-		
-	/* See if we are given an empty string */
-	if (dg->name[0] == '\0') {
-		/* give it default name first */
-		strcpy (dg->name, "Group");
-	}	
+{
+	struct {Object *ob; void *dg;} data;
+	data.ob= ob;
+	data.dg= dg;
 
-	if(defgroup_find_name_dupe(dg->name, dg, ob)) {
-		/* note: this block is used in other places, when changing logic apply to all others, search this message */
-		char	tempname[sizeof(dg->name)];
-		char	left[sizeof(dg->name)];
-		int		number;
-		int		len= BLI_split_name_num(left, &number, dg->name);
-		do {	/* nested while loop looks bad but likely it wont run most times */
-			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
-				if(len > 0)	left[--len]= '\0';	/* word too long */
-				else		number= 0;			/* reset, must be a massive number */
-			}
-		} while(number++, defgroup_find_name_dupe(tempname, dg, ob));
-
-		BLI_strncpy(dg->name, tempname, sizeof(dg->name));
-	}
+	BLI_uniquename_cb(defgroup_unique_check, &data, "Group", '.', dg->name, sizeof(dg->name));
 }
 
 /* finds the best possible flipped name. For renaming; check for unique names afterwards */

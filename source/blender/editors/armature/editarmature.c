@@ -506,27 +506,20 @@ static EditBone *editbone_name_exists (ListBase *edbo, const char *name)
 }
 
 /* note: there's a unique_bone_name() too! */
+static int editbone_unique_check(void *arg, const char *name)
+{
+	struct {ListBase *lb;void *bone;} *data= arg;
+	EditBone *dupli= editbone_name_exists(data->lb, name);
+	return dupli && dupli != data->bone;
+}
+
 void unique_editbone_name (ListBase *edbo, char *name, EditBone *bone)
 {
-	EditBone *dupli;
+	struct {ListBase *lb; void *bone;} data;
+	data.lb= edbo;
+	data.bone= bone;
 
-	dupli = editbone_name_exists(edbo, name);
-	
-	if (dupli && bone != dupli) {
-		/* note: this block is used in other places, when changing logic apply to all others, search this message */
-		char	tempname[sizeof(bone->name)];
-		char	left[sizeof(bone->name)];
-		int		number;
-		int		len= BLI_split_name_num(left, &number, name);
-		do {	/* nested while loop looks bad but likely it wont run most times */
-			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
-				if(len > 0)	left[--len]= '\0';	/* word too long */
-				else		number= 0;			/* reset, must be a massive number */
-			}
-		} while(number++, ((dupli= editbone_name_exists(edbo, tempname)) && bone != dupli));
-
-		BLI_strncpy(name, tempname, sizeof(bone->name));
-	}
+	BLI_uniquename_cb(editbone_unique_check, &data, "Bone", '.', name, sizeof(bone->name));
 }
 
 /* helper for apply_armature_pose2bones - fixes parenting of objects that are bone-parented to armature */
@@ -5398,25 +5391,16 @@ void POSE_OT_reveal(wmOperatorType *ot)
 
 /* ************* RENAMING DISASTERS ************ */
 
-/* note: there's a unique_editbone_name() too! */
-static void unique_bone_name (bArmature *arm, char *name)
-{	
-	if (get_named_bone(arm, name)) {
-		/* note: this block is used in other places, when changing logic apply to all others, search this message */
-		char	tempname[sizeof(((Bone *)NULL)->name)];
-		char	left[sizeof(((Bone *)NULL)->name)];
-		int		number;
-		int		len= BLI_split_name_num(left, &number, name);
-		do {	/* nested while loop looks bad but likely it wont run most times */
-			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
-				if(len > 0)	left[--len]= '\0';	/* word too long */
-				else		number= 0;			/* reset, must be a massive number */
-			}
-		} while(number++, get_named_bone(arm, tempname));
-
-		BLI_strncpy(name, tempname, sizeof(tempname));
-	}
+static int bone_unique_check(void *arg, const char *name)
+{
+	return get_named_bone((bArmature *)arg, name) != NULL;
 }
+
+void unique_bone_name(bArmature *arm, char *name)
+{
+	BLI_uniquename_cb(bone_unique_check, (void *)arm, "Bone", '.', name, sizeof(((Bone *)NULL)->name));
+}
+
 
 #define MAXBONENAME 32
 /* helper call for armature_bone_rename */
