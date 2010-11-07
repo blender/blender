@@ -205,10 +205,12 @@ int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, cons
 		char	left[UNIQUE_NAME_MAX];
 		int		number;
 		int		len= BLI_split_name_num(left, &number, name, delim);
-		do {	/* nested while loop looks bad but likely it wont run most times */
-			while(BLI_snprintf(tempname, name_len, "%s%c%03d", left, delim, number) >= name_len) {
-				if(len > 0)	left[--len]= '\0';	/* word too long */
-				else		number= 0;			/* reset, must be a massive number */
+		do {
+			int newlen= BLI_snprintf(tempname, name_len, "%s%c%03d", left, delim, number);
+			if(newlen >= name_len) {
+				len -= ((newlen + 1) - name_len);
+				if(len < 0) len= number= 0;
+				left[len]= '\0';
 			}
 		} while(number++, unique_check(arg, tempname));
 
