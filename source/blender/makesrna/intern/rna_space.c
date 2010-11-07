@@ -721,6 +721,18 @@ static void rna_Sequencer_display_mode_update(bContext *C, PointerRNA *ptr)
 	ED_sequencer_update_view(C, view);
 }
 
+static float rna_BackgroundImage_opacity_get(PointerRNA *ptr)
+{
+	BGpic *bgpic= (BGpic *)ptr->data;
+	return 1.0f-bgpic->blend;
+}
+
+static void rna_BackgroundImage_opacity_set(PointerRNA *ptr, float value)
+{
+	BGpic *bgpic= (BGpic *)ptr->data;
+	bgpic->blend = 1.0f - value;
+}
+
 #else
 
 static void rna_def_space(BlenderRNA *brna)
@@ -958,6 +970,7 @@ static void rna_def_background_image(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "opacity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "blend");
+	RNA_def_property_float_funcs(prop, "rna_BackgroundImage_opacity_get", "rna_BackgroundImage_opacity_set", NULL);
 	RNA_def_property_ui_text(prop, "Opacity", "Image opacity to blend the image against the background color");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
