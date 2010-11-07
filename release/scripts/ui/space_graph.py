@@ -158,7 +158,7 @@ class GRAPH_MT_channel(bpy.types.Menu):
         layout.operator("anim.channels_collapse")
 
         layout.separator()
-        layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
 
 
 class GRAPH_MT_key(bpy.types.Menu):
@@ -194,6 +194,9 @@ class GRAPH_MT_key(bpy.types.Menu):
         layout.separator()
         layout.operator("graph.copy")
         layout.operator("graph.paste")
+
+        layout.separator()
+        layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
 
 
 class GRAPH_MT_key_transform(bpy.types.Menu):
