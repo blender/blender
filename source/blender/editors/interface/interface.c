@@ -511,7 +511,13 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 	for(oldbut=oldblock->buttons.first; oldbut; oldbut=oldbut->next) {
 		if(ui_but_equals_old(oldbut, but)) {
 			if(oldbut->active) {
+#if 0
 				but->flag= oldbut->flag;
+#else
+				/* exception! redalert flag can't be update from old button. 
+				 * perhaps it should only copy spesific flags rather then all. */
+				but->flag= (oldbut->flag & ~UI_BUT_REDALERT) | (but->flag & UI_BUT_REDALERT);
+#endif
 				but->active= oldbut->active;
 				but->pos= oldbut->pos;
 				but->editstr= oldbut->editstr;
