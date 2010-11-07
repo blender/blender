@@ -253,9 +253,15 @@ void UI_DrawString(float x, float y, char *str)
 {
 	uiStyle *style= U.uistyles.first;
 	
+	if (style->widget.kerning == 1)
+		BLF_enable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
+
 	uiStyleFontSet(&style->widget);
 	BLF_position(style->widget.uifont_id, x, y, 0.0f);
 	BLF_draw(style->widget.uifont_id, str);
+
+	if (style->widget.kerning == 1)
+		BLF_disable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
 }
 
 /* ************** init exit ************************ */
