@@ -306,14 +306,8 @@ static void file_draw_string(int sx, int sy, const char* string, float width, in
 	x = (float)(sx);
 	y = (float)(sy-height);
 
-	if (style->widget.kerning == 1)
-		BLF_enable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
+	UI_DrawString(x,y, fname);
 
-	uiStyleFontSet(&style->widget);
-	BLF_position(style->widget.uifont_id, x, y, 0);
-	BLF_draw(style->widget.uifont_id, fname);
-	if (style->widget.kerning == 1)
-		BLF_disable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
 }
 
 void file_calc_previews(const bContext *C, ARegion *ar)
