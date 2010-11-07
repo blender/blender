@@ -41,7 +41,6 @@ SET(SRC
 	filesel.c
 	fsmenu.c
 	space_file.c
-	writeimage.c
 )
 
 IF(WITH_IMAGE_OPENEXR)
