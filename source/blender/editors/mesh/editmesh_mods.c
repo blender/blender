@@ -59,6 +59,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BKE_material.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
+#include "BKE_texture.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -4425,48 +4426,76 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "zaxis", 1, "Z-Axis", "Smooth along the Z axis.");
 }
 
-void vertexnoise(Object *obedit, EditMesh *em)
+static int mesh_noise_exec(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	Material *ma;
 	Tex *tex;
 	EditVert *eve;
-	float b2, ofs, vec[3];
+	float fac= RNA_float_get(op->ptr, "factor");
 
-	if(em==NULL) return;
-	
+	if(em==NULL) return OPERATOR_FINISHED;
+
 	ma= give_current_material(obedit, obedit->actcol);
 	if(ma==0 || ma->mtex[0]==0 || ma->mtex[0]->tex==0) {
-		return;
+		return OPERATOR_FINISHED;
 	}
-	tex= ma->mtex[0]->tex;
-	
-	ofs= tex->turbul/200.0;
-	
-	eve= (struct EditVert *)em->verts.first;
-	while(eve) {
-		if(eve->f & SELECT) {
-			
-			if(tex->type==TEX_STUCCI) {
-				
+	tex= give_current_material_texture(ma);
+
+
+	if(tex->type==TEX_STUCCI) {
+		float b2, vec[3];
+		float ofs= tex->turbul/200.0;
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			if(eve->f & SELECT) {
 				b2= BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1], eve->co[2]);
 				if(tex->stype) ofs*=(b2*b2);
-				vec[0]= 0.2*(b2-BLI_hnoise(tex->noisesize, eve->co[0]+ofs, eve->co[1], eve->co[2]));
-				vec[1]= 0.2*(b2-BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1]+ofs, eve->co[2]));
-				vec[2]= 0.2*(b2-BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1], eve->co[2]+ofs));
+				vec[0]= fac*(b2-BLI_hnoise(tex->noisesize, eve->co[0]+ofs, eve->co[1], eve->co[2]));
+				vec[1]= fac*(b2-BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1]+ofs, eve->co[2]));
+				vec[2]= fac*(b2-BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1], eve->co[2]+ofs));
 				
 				add_v3_v3(eve->co, vec);
 			}
-			else {
+		}
+	}
+	else {
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			if(eve->f & SELECT) {
 				float tin, dum;
 				externtex(ma->mtex[0], eve->co, &tin, &dum, &dum, &dum, &dum, 0);
-				eve->co[2]+= 0.05*tin;
+				eve->co[2]+= fac*tin;
 			}
 		}
-		eve= eve->next;
 	}
 
 	recalc_editnormals(em);
-//	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_noise(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Noise";
+	ot->description= "Use vertex coordinate as texture coordinate";
+	ot->idname= "MESH_OT_noise";
+
+	/* api callbacks */
+	ot->exec= mesh_noise_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	prop= RNA_def_float(ot->srna, "factor", 0.1f, -FLT_MAX, FLT_MAX, "Factor", "", 0.0f, 1.0f);
 
 }
 
