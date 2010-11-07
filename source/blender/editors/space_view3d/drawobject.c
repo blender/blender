@@ -1238,7 +1238,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
 	
-	if(rv3d->persp>=2 && cam->type==CAM_ORTHO && ob==v3d->camera) {
+	if(rv3d->persp==RV3D_CAMOB && cam->type==CAM_ORTHO && ob==v3d->camera) {
 		facx= 0.5*cam->ortho_scale*caspx;
 		facy= 0.5*cam->ortho_scale*caspy;
 		shx= cam->shiftx * cam->ortho_scale;
@@ -1247,7 +1247,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	}
 	else {
 		fac= cam->drawsize;
-		if(rv3d->persp>=2 && ob==v3d->camera) fac= cam->clipsta+0.1; /* that way it's always visible */
+		if(rv3d->persp==RV3D_CAMOB && ob==v3d->camera) fac= cam->clipsta+0.1; /* that way it's always visible */
 		
 		depth= - fac*cam->lens/16.0;
 		facx= fac*caspx;
@@ -1270,7 +1270,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	glEnd();
 	
 
-	if(rv3d->persp>=2 && ob==v3d->camera) return;
+	if(rv3d->persp==RV3D_CAMOB && ob==v3d->camera) return;
 	
 	glBegin(GL_LINE_STRIP);
 		glVertex3fv(vec[2]); 
