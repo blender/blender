@@ -875,8 +875,15 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 			if(rr) {
 				RE_WriteRenderResult(rr, path, scene->r.quality);
 
+				BLI_strncpy(G.ima, path, sizeof(G.ima));
+
 				if(relative)
 					BLI_path_rel(path, G.main->name); /* only after saving */
+
+				if(ibuf->name[0]==0) {
+					BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
+					BLI_strncpy(ima->name, path, sizeof(ima->name));
+				}
 
 				if(!save_copy) {
 					if(do_newpath) {
@@ -894,10 +901,17 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 			BKE_image_release_renderresult(scene, ima);
 		}
 		else if (BKE_write_ibuf(scene, ibuf, path, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
+			
+			BLI_strncpy(G.ima, path, sizeof(G.ima));
 
 			if(relative)
 				BLI_path_rel(path, G.main->name); /* only after saving */
 
+			if(ibuf->name[0]==0) {
+				BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
+				BLI_strncpy(ima->name, path, sizeof(ima->name));
+			}
+			
 			if(!save_copy) {
 				if(do_newpath) {
 					BLI_strncpy(ima->name, path, sizeof(ima->name));
@@ -978,6 +992,8 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	Image *ima = ED_space_image(sima);
 	Scene *scene= CTX_data_scene(C);
 	ImBuf *ibuf;
+	char filename[FILE_MAX];
+	
 	void *lock;
 
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
@@ -1006,15 +1022,21 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		RNA_enum_set(op->ptr, "file_type", sima->imtypenr);
 		
 		if(ibuf->name[0]==0)
-			BLI_strncpy(ibuf->name, G.ima, FILE_MAX);
-
+			if ( (G.ima[0] == '/') && (G.ima[1] == '/') && (G.ima[2] == '\0') ) {
+				BLI_strncpy(filename, "//untitled", FILE_MAX);
+			} else {
+				BLI_strncpy(filename, G.ima, FILE_MAX);
+			}
+		else
+			BLI_strncpy(filename, ibuf->name, FILE_MAX);
+		
 		/* enable save_copy by default for render results */
 		if(ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE) && !RNA_property_is_set(op->ptr, "copy")) {
 			RNA_boolean_set(op->ptr, "copy", TRUE);
 		}
 
 		// XXX note: we can give default menu enums to operator for this 
-		image_filesel(C, op, ibuf->name);
+		image_filesel(C, op, filename);
 
 		ED_space_image_release_buffer(sima, lock);
 		
