@@ -171,10 +171,8 @@ static void rna_Cache_idname_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 		if(!pid)
 			return;
 
-		cache->flag |= (PTCACHE_BAKED|PTCACHE_DISK_CACHE|PTCACHE_SIMULATION_VALID);
-		cache->flag &= ~(PTCACHE_OUTDATED|PTCACHE_FRAMES_SKIPPED);
-
 		BKE_ptcache_load_external(pid);
+
 		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
 	else {

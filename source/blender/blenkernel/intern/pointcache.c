@@ -2847,6 +2847,8 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 	PointCache *cache = pid->cache;
 	int len; /* store the length of the string */
 	int info = 0;
+	int start = MAXFRAME;
+	int end = -1;
 
 	/* mode is same as fopen's modes */
 	DIR *dir; 
@@ -2857,10 +2859,6 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 
 	if(!cache)
 		return;
-
-	cache->startframe = MAXFRAME;
-	cache->endframe = -1;
-	cache->totpoint = 0;
 
 	ptcache_path(pid, path);
 	
@@ -2887,8 +2885,8 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 					frame = atoi(num);
 
 					if(frame) {
-						cache->startframe = MIN2(cache->startframe, frame);
-						cache->endframe = MAX2(cache->endframe, frame);
+						start = MIN2(start, frame);
+						end = MAX2(end, frame);
 					}
 					else
 						info = 1;
@@ -2898,8 +2896,12 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 	}
 	closedir(dir);
 
-	if(cache->startframe != MAXFRAME) {
+	if(start != MAXFRAME) {
 		PTCacheFile *pf;
+
+		cache->startframe = start;
+		cache->endframe = end;
+		cache->totpoint = 0;
 
 		/* read totpoint from info file (frame 0) */
 		if(info) {
@@ -2931,9 +2933,9 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 				ptcache_file_close(pf);
 			}
 		}
+		cache->flag |= (PTCACHE_BAKED|PTCACHE_DISK_CACHE|PTCACHE_SIMULATION_VALID);
+		cache->flag &= ~(PTCACHE_OUTDATED|PTCACHE_FRAMES_SKIPPED);
 	}
-
-	cache->flag &= ~(PTCACHE_OUTDATED|PTCACHE_FRAMES_SKIPPED);
 
 	BKE_ptcache_update_info(pid);
 }
