@@ -1223,6 +1223,10 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	float drawsize;
 	const short is_view= (rv3d->persp==RV3D_CAMOB && ob==v3d->camera);
 
+	const float scax= 1.0f / len_v3(ob->obmat[0]);
+	const float scay= 1.0f / len_v3(ob->obmat[1]);
+	const float scaz= 1.0f / len_v3(ob->obmat[2]);
+	
 	cam= ob->data;
 	aspx= (float) scene->r.xsch*scene->r.xasp;
 	aspy= (float) scene->r.ysch*scene->r.yasp;
@@ -1240,22 +1244,25 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	glDisable(GL_CULL_FACE);
 	
 	if(cam->type==CAM_ORTHO) {
-		facx= 0.5f * cam->ortho_scale * caspx;
-		facy= 0.5f * cam->ortho_scale * caspy;
-		shx= cam->shiftx * cam->ortho_scale;
-		shy= cam->shifty * cam->ortho_scale;
-		depth= -(is_view ? cam->clipsta - 0.1f : MAX2(facx, facy));
+		facx= 0.5f * cam->ortho_scale * caspx * scax;
+		facy= 0.5f * cam->ortho_scale * caspy * scay;
+		shx= cam->shiftx * cam->ortho_scale * scax;
+		shy= cam->shifty * cam->ortho_scale * scay;
+		depth= is_view ? -((cam->clipsta * scaz) + 0.1f) : - cam->drawsize * cam->ortho_scale * scaz;
+		
 		drawsize= 0.5f * cam->ortho_scale;
 	}
 	else {
 		/* that way it's always visible - clipsta+0.1 */
-		const float fac= is_view ? (cam->clipsta + 0.1f) : cam->drawsize;
-		depth= - fac*cam->lens/16.0;
-		facx= fac*caspx;
-		facy= fac*caspy;
-		shx= cam->shiftx*fac*2;
-		shy= cam->shifty*fac*2;
-		drawsize= cam->drawsize;
+		float fac;
+		drawsize= cam->drawsize / ((scax + scay + scaz) / 3.0f);
+		fac= is_view ? (cam->clipsta + 0.1f) : drawsize;
+		depth= - fac*cam->lens/16.0 * scaz;
+		facx= fac * caspx * scax;
+		facy= fac * caspy * scay;
+		shx= cam->shiftx*fac*2 * scax;
+		shy= cam->shifty*fac*2 * scay;
+		
 	}
 	
 	vec[0][0]= 0.0; vec[0][1]= 0.0; vec[0][2]= 0.0;
@@ -1289,7 +1296,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	/* arrow on top */
 	vec[0][2]= depth;
 
-	
+
 	/* draw an outline arrow for inactive cameras and filled
 	 * for active cameras. We actually draw both outline+filled
 	 * for active cameras so the wire can be seen side-on */	
@@ -1298,15 +1305,15 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		else if (i==1 && (ob == v3d->camera)) glBegin(GL_TRIANGLES);
 		else break;
 
-		vec[0][0]= shx + (-0.7 * drawsize);
-		vec[0][1]= shy + (drawsize * (caspy + 0.1));
+		vec[0][0]= shx + ((-0.7 * drawsize) * scax);
+		vec[0][1]= shy + ((drawsize * (caspy + 0.1)) * scay);
 		glVertex3fv(vec[0]); /* left */
 		
-		vec[0][0]= shx + (0.7 * drawsize);
+		vec[0][0]= shx + ((0.7 * drawsize) * scax);
 		glVertex3fv(vec[0]); /* right */
 		
 		vec[0][0]= shx;
-		vec[0][1]= shy + (1.1 * drawsize * (caspy + 0.7));
+		vec[0][1]= shy + ((1.1 * drawsize * (caspy + 0.7)) * scay);
 		glVertex3fv(vec[0]); /* top */
 	
 		glEnd();
