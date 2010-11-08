@@ -1613,26 +1613,33 @@ void multiresModifier_prepare_join(Scene *scene, Object *ob, Object *to_ob)
 void multires_topology_changed(Object *ob)
 {
 	Mesh *me= (Mesh*)ob->data;
-	MDisps *mdisp= NULL;
-	int i, totlvl;
+	MDisps *mdisp= NULL, *cur= NULL;
+	int i, grid= 0, corners;
 
 	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
 	mdisp= CustomData_get_layer(&me->fdata, CD_MDISPS);
 
 	if(!mdisp) return;
 
-	totlvl= get_levels_from_disps(ob);
+	cur= mdisp;
+	for(i = 0; i < me->totface; i++, cur++) {
+		if(mdisp->totdisp) {
+			corners= multires_mdisp_corners(mdisp);
+			grid= mdisp->totdisp / corners;
+
+			break;
+		}
+	}
 
 	for(i = 0; i < me->totface; i++, mdisp++) {
-		int corners= 0;
 		int nvert= me->mface[i].v4 ? 4 : 3;
 
 		/* allocate memory for mdisp, the whole disp layer would be erased otherwise */
 		if(!mdisp->totdisp) {
-			int side = multires_side_tot[totlvl];
-
-			mdisp->totdisp= nvert*side*side;
-			mdisp->disps= MEM_callocN(mdisp->totdisp*sizeof(float)*3, "mdisp topology");
+			if(grid) {
+				mdisp->totdisp= nvert*grid;
+				mdisp->disps= MEM_callocN(mdisp->totdisp*sizeof(float)*3, "mdisp topology");
+			}
 
 			continue;
 		}
