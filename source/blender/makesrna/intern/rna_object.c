@@ -144,7 +144,7 @@ static void rna_Object_internal_update(Main *bmain, Scene *scene, PointerRNA *pt
 static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	/* dont use compat so we get pradictable rotation */
-	object_apply_mat4(ptr->id.data, ((Object *)ptr->id.data)->obmat, FALSE);
+	object_apply_mat4(ptr->id.data, ((Object *)ptr->id.data)->obmat, FALSE, TRUE);
 	rna_Object_internal_update(bmain, scene, ptr);
 }
 
@@ -179,7 +179,7 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
 	}
 
 	/* dont use compat so we get pradictable rotation */
-	object_apply_mat4(ob, ob->obmat, FALSE);
+	object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
 }
 
 void rna_Object_internal_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)

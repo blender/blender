@@ -431,7 +431,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 		}			
 		else if(type == 1) {
 			ob->parent= NULL;
-			object_apply_mat4(ob, ob->obmat, TRUE);
+			object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
 		}
 		else if(type == 2)
 			unit_m4(ob->parentinv);
@@ -906,7 +906,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		}
 		
 		if(type == 1)
-			object_apply_mat4(ob, ob->obmat, TRUE);
+			object_apply_mat4(ob, ob->obmat, TRUE, TRUE);
 	}
 	CTX_DATA_END;
 
