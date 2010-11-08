@@ -573,6 +573,7 @@ void default_tex(Tex *tex)
 	tex->iuser.fie_ima= 2;
 	tex->iuser.ok= 1;
 	tex->iuser.frames= 100;
+	tex->iuser.sfra= 1;
 	
 	tex->preview = NULL;
 }

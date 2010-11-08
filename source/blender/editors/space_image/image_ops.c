@@ -688,9 +688,10 @@ static int open_cancel(bContext *UNUSED(C), wmOperator *op)
 
 static int open_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
+	SpaceImage *sima= CTX_wm_space_image(C); /* XXX other space types can call */
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
+	ImageUser *iuser= NULL;
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	Image *ima= NULL;
@@ -724,11 +725,25 @@ static int open_exec(bContext *C, wmOperator *op)
 		RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
 		RNA_property_update(C, &pprop->ptr, pprop->prop);
 	}
-	else if(sima)
+	else if(sima) {
 		ED_space_image_set(C, sima, scene, obedit, ima);
+		iuser= &sima->iuser;
+	}
+	else {
+		Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+		if(tex && tex->type==TEX_IMAGE)
+			iuser= &tex->iuser;
+		
+	}
+	
+	/* initialize because of new image */
+	if(iuser) {
+		iuser->sfra= 1;
+		iuser->offset= 0;
+		iuser->fie_ima= 2;
+	}
 
-	// XXX other users?
-	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_RELOAD);
+	BKE_image_signal(ima, iuser, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
 	
 	MEM_freeN(op->customdata);
@@ -738,7 +753,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
 static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
+	SpaceImage *sima= CTX_wm_space_image(C); /* XXX other space types can call */
 	char *path=U.textudir;
 	Image *ima= NULL;
 
@@ -769,6 +784,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* called by other space types too */
 void IMAGE_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
