@@ -1390,29 +1390,34 @@ static int animdata_filter_dopesheet_mats (bAnimContext *ac, ListBase *anim_data
 		
 		/* for now, if no material returned, skip (this shouldn't confuse the user I hope) */
 		if (ma == NULL) continue;
-		if (ma->adt == NULL) {
-			/* need to check textures */
-			if(ma->mtex) {
-				MTex **mtex = ma->mtex;
-				int mtInd;
-				for (mtInd=0; mtInd < MAX_MTEX; mtInd++) {
-					if (ELEM3(NULL, mtex[mtInd], mtex[mtInd]->tex, mtex[mtInd]->tex->adt))
-						continue;
-					else
-						ok=1;
-				}
-			}
-			else
-				continue;
-		}
-		
-		
+
 		/* check if ok */
 		ANIMDATA_FILTER_CASES(ma, 
 			{ /* AnimData blocks - do nothing... */ },
 			ok=1;, 
 			ok=1;, 
 			ok=1;)
+
+		/* need to check textures */
+		if (ok == 0 && !(ads->filterflag & ADS_FILTER_NOTEX)) {
+			int mtInd;
+
+			for (mtInd=0; mtInd < MAX_MTEX; mtInd++) {
+				MTex *mtex = ma->mtex[mtInd];
+
+				if(mtex && mtex->tex) {
+					ANIMDATA_FILTER_CASES(mtex->tex,
+					{ /* AnimData blocks - do nothing... */ },
+					ok=1;, 
+					ok=1;, 
+					ok=1;)
+				}
+
+				if(ok)
+					break;
+			}
+		}
+		
 		if (ok == 0) continue;
 		
 		/* make a temp list elem for this */
