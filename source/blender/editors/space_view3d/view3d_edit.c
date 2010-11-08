@@ -34,6 +34,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_camera_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -737,10 +738,19 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			/* changed since 2.4x, use the camera view */
 			View3D *v3d = CTX_wm_view3d(C);
-			if(v3d->camera)
-				view3d_settings_from_ob(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 
-			vod->rv3d->persp= RV3D_PERSP;
+			if(v3d->camera) {
+				view3d_settings_from_ob(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
+				if(v3d->camera->type == OB_CAMERA) {
+					/* overwrite setting from above with cameras perspective */
+					vod->rv3d->persp= (((Camera *)v3d->camera->data)->type==CAM_ORTHO) ? RV3D_ORTHO : RV3D_PERSP;
+				}
+			}
+			
+			/* if not overwritten above */
+			if(vod->rv3d->persp==RV3D_CAMOB) {
+				vod->rv3d->persp= RV3D_PERSP;
+			}
 		}
 		ED_region_tag_redraw(vod->ar);
 	}

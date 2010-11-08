@@ -1218,9 +1218,10 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 {
 	/* a standing up pyramid with (0,0,0) as top */
 	Camera *cam;
-	World *wrld;
-	float nobmat[4][4], vec[8][4], fac, facx, facy, depth, aspx, aspy, caspx, caspy, shx, shy;
+	float vec[8][4], facx, facy, depth, aspx, aspy, caspx, caspy, shx, shy;
 	int i;
+	float drawsize;
+	const short is_view= (rv3d->persp==RV3D_CAMOB && ob==v3d->camera);
 
 	cam= ob->data;
 	aspx= (float) scene->r.xsch*scene->r.xasp;
@@ -1238,40 +1239,43 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
 	
-	if(rv3d->persp==RV3D_CAMOB && cam->type==CAM_ORTHO && ob==v3d->camera) {
-		facx= 0.5*cam->ortho_scale*caspx;
-		facy= 0.5*cam->ortho_scale*caspy;
+	if(cam->type==CAM_ORTHO) {
+		facx= 0.5f * cam->ortho_scale * caspx;
+		facy= 0.5f * cam->ortho_scale * caspy;
 		shx= cam->shiftx * cam->ortho_scale;
 		shy= cam->shifty * cam->ortho_scale;
-		depth= -cam->clipsta-0.1;
+		depth= -(is_view ? cam->clipsta - 0.1f : MAX2(facx, facy));
+		drawsize= 0.5f * cam->ortho_scale;
 	}
 	else {
-		fac= cam->drawsize;
-		if(rv3d->persp==RV3D_CAMOB && ob==v3d->camera) fac= cam->clipsta+0.1; /* that way it's always visible */
-		
+		/* that way it's always visible - clipsta+0.1 */
+		const float fac= is_view ? (cam->clipsta + 0.1f) : cam->drawsize;
 		depth= - fac*cam->lens/16.0;
 		facx= fac*caspx;
 		facy= fac*caspy;
 		shx= cam->shiftx*fac*2;
 		shy= cam->shifty*fac*2;
+		drawsize= cam->drawsize;
 	}
 	
-	vec[0][0]= 0.0; vec[0][1]= 0.0; vec[0][2]= 0.001;	/* GLBUG: for picking at iris Entry (well thats old!) */
+	vec[0][0]= 0.0; vec[0][1]= 0.0; vec[0][2]= 0.0;
 	vec[1][0]= shx + facx; vec[1][1]= shy + facy; vec[1][2]= depth;
 	vec[2][0]= shx + facx; vec[2][1]= shy - facy; vec[2][2]= depth;
 	vec[3][0]= shx - facx; vec[3][1]= shy - facy; vec[3][2]= depth;
 	vec[4][0]= shx - facx; vec[4][1]= shy + facy; vec[4][2]= depth;
 
+	/* camera frame */
 	glBegin(GL_LINE_LOOP);
 		glVertex3fv(vec[1]); 
 		glVertex3fv(vec[2]); 
 		glVertex3fv(vec[3]); 
 		glVertex3fv(vec[4]);
 	glEnd();
-	
 
-	if(rv3d->persp==RV3D_CAMOB && ob==v3d->camera) return;
-	
+	if(is_view)
+		return;
+
+	/* center point to camera frame */
 	glBegin(GL_LINE_STRIP);
 		glVertex3fv(vec[2]); 
 		glVertex3fv(vec[0]);
@@ -1294,15 +1298,15 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		else if (i==1 && (ob == v3d->camera)) glBegin(GL_TRIANGLES);
 		else break;
 
-		vec[0][0]= shx + (-0.7 * cam->drawsize);
-		vec[0][1]= shy + (cam->drawsize * (caspy + 0.1));
+		vec[0][0]= shx + (-0.7 * drawsize);
+		vec[0][1]= shy + (drawsize * (caspy + 0.1));
 		glVertex3fv(vec[0]); /* left */
 		
-		vec[0][0]= shx + (0.7 * cam->drawsize);
+		vec[0][0]= shx + (0.7 * drawsize);
 		glVertex3fv(vec[0]); /* right */
 		
 		vec[0][0]= shx;
-		vec[0][1]= shy + (1.1 * cam->drawsize * (caspy + 0.7));
+		vec[0][1]= shy + (1.1 * drawsize * (caspy + 0.7));
 		glVertex3fv(vec[0]); /* top */
 	
 		glEnd();
@@ -1310,6 +1314,9 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 
 	if(flag==0) {
 		if(cam->flag & (CAM_SHOWLIMITS+CAM_SHOWMIST)) {
+			float nobmat[4][4];
+			World *wrld;
+	
 			/* draw in normalized object matrix space */
 			copy_m4_m4(nobmat, ob->obmat);
 			normalize_m4(nobmat);
