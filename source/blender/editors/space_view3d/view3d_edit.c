@@ -757,8 +757,9 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* switch from camera view when: */
 	if(vod->rv3d->persp != RV3D_PERSP) {
 
-		if (U.uiflag & USER_AUTOPERSP)
+		if (U.uiflag & USER_AUTOPERSP) {
 			vod->rv3d->persp= RV3D_PERSP;
+		}
 		else if(vod->rv3d->persp==RV3D_CAMOB) {
 
 			/* changed since 2.4x, use the camera view */
@@ -766,15 +767,10 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			if(v3d->camera) {
 				view3d_settings_from_ob(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
-				if(v3d->camera->type == OB_CAMERA) {
-					/* overwrite setting from above with cameras perspective */
-					vod->rv3d->persp= (((Camera *)v3d->camera->data)->type==CAM_ORTHO) ? RV3D_ORTHO : RV3D_PERSP;
-				}
 			}
-			
-			/* if not overwritten above */
+
 			if(vod->rv3d->persp==RV3D_CAMOB) {
-				vod->rv3d->persp= RV3D_PERSP;
+				vod->rv3d->persp= vod->rv3d->lpersp;
 			}
 		}
 		ED_region_tag_redraw(vod->ar);
