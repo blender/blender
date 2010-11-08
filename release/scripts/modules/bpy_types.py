@@ -326,7 +326,7 @@ class Mesh(bpy_types.ID):
                 else:
                     return f[0], f[1], f[2], 0
             elif f[2] == 0 or f[3] == 0:
-                return f[3], f[0], f[1], f[2]
+                return f[2], f[3], f[0], f[1]
             return f
 
         faces_flat = [v for f in faces for v in treat_face(f)]
