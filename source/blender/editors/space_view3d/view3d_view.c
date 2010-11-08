@@ -180,6 +180,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	struct SmoothViewStore sms= {0};
+	short ok= FALSE;
 	
 	/* initialize sms */
 	copy_v3_v3(sms.new_ofs, rv3d->ofs);
@@ -269,18 +270,26 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 			/* TIMER1 is hardcoded in keymap */
 			rv3d->smooth_timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER1, 1.0/100.0);	/* max 30 frs/sec */
 			
-			return;
+			ok= TRUE;
 		}
 	}
 	
 	/* if we get here nothing happens */
-	if(sms.to_camera==0) {
-		copy_v3_v3(rv3d->ofs, sms.new_ofs);
-		copy_qt_qt(rv3d->viewquat, sms.new_quat);
-		rv3d->dist = sms.new_dist;
-		v3d->lens = sms.new_lens;
+	if(ok == FALSE) {
+		ARegion *ar= CTX_wm_region(C);
+
+		if(sms.to_camera==0) {
+			copy_v3_v3(rv3d->ofs, sms.new_ofs);
+			copy_qt_qt(rv3d->viewquat, sms.new_quat);
+			rv3d->dist = sms.new_dist;
+			v3d->lens = sms.new_lens;
+		}
+
+		if(rv3d->viewlock & RV3D_BOXVIEW)
+			view3d_boxview_copy(CTX_wm_area(C), ar);
+
+		ED_region_tag_redraw(ar);
 	}
-	ED_region_tag_redraw(CTX_wm_region(C));
 }
 
 /* only meant for timer usage */

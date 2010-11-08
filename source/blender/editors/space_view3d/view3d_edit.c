@@ -159,6 +159,7 @@ static void view3d_boxview_sync(ScrArea *sa, ARegion *ar)
 {
 	ARegion *artest;
 	RegionView3D *rv3d= ar->regiondata;
+	short clip= 0;
 
 	for(artest= sa->regionbase.first; artest; artest= artest->next) {
 		if(artest!=ar && artest->regiontype==RGN_TYPE_WINDOW) {
@@ -186,11 +187,16 @@ static void view3d_boxview_sync(ScrArea *sa, ARegion *ar)
 						rv3dtest->ofs[2]= rv3d->ofs[2];
 				}
 
+				clip |= rv3dtest->viewlock & RV3D_BOXCLIP;
+
 				ED_region_tag_redraw(artest);
 			}
 		}
 	}
-	view3d_boxview_clip(sa);
+
+	if(clip) {
+		view3d_boxview_clip(sa);
+	}
 }
 
 /* for home, center etc */
@@ -198,6 +204,7 @@ void view3d_boxview_copy(ScrArea *sa, ARegion *ar)
 {
 	ARegion *artest;
 	RegionView3D *rv3d= ar->regiondata;
+	short clip= 0;
 
 	for(artest= sa->regionbase.first; artest; artest= artest->next) {
 		if(artest!=ar && artest->regiontype==RGN_TYPE_WINDOW) {
@@ -207,17 +214,23 @@ void view3d_boxview_copy(ScrArea *sa, ARegion *ar)
 				rv3dtest->dist= rv3d->dist;
 				copy_v3_v3(rv3dtest->ofs, rv3d->ofs);
 				ED_region_tag_redraw(artest);
+
+				clip |= rv3dtest->viewlock & RV3D_BOXCLIP;
 			}
 		}
 	}
-	view3d_boxview_clip(sa);
+
+	if(clip) {
+		view3d_boxview_clip(sa);
+	}
 }
 
-void ED_view3d_quadview_update(ScrArea *sa, ARegion *ar)
+/* 'clip' is used to know if our clip setting has changed */
+void ED_view3d_quadview_update(ScrArea *sa, ARegion *ar, short do_clip)
 {
+	ARegion *arsync= NULL;
 	RegionView3D *rv3d= ar->regiondata;
 	short viewlock;
-
 	/* this function copies flags from the first of the 3 other quadview
 	   regions to the 2 other, so it assumes this is the region whose
 	   properties are always being edited, weak */
@@ -225,18 +238,30 @@ void ED_view3d_quadview_update(ScrArea *sa, ARegion *ar)
 
 	if((viewlock & RV3D_LOCKED)==0)
 		viewlock= 0;
-	else if((viewlock & RV3D_BOXVIEW)==0)
+	else if((viewlock & RV3D_BOXVIEW)==0) {
 		viewlock &= ~RV3D_BOXCLIP;
+		do_clip= TRUE;
+	}
 
 	for(; ar; ar= ar->prev) {
 		if(ar->alignment==RGN_ALIGN_QSPLIT) {
 			rv3d= ar->regiondata;
 			rv3d->viewlock= viewlock;
+
+			if(do_clip && (viewlock & RV3D_BOXCLIP)==0) {
+				rv3d->rflag &= ~RV3D_BOXCLIP;
+			}
+
+			/* use arsync so we sync with one of the aligned views below
+			 * else the view jumps on changing view settings like 'clip'
+			 * since it copies from the perspective view */
+			arsync= ar;
 		}
 	}
 
-	if(rv3d->viewlock & RV3D_BOXVIEW)
-		view3d_boxview_copy(sa, sa->regionbase.last);
+	if(rv3d->viewlock & RV3D_BOXVIEW) {
+		view3d_boxview_copy(sa, arsync ? arsync : sa->regionbase.last);
+	}
 
 	ED_area_tag_redraw(sa);
 }
