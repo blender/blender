@@ -1688,6 +1688,16 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 					agrp->flag &= ~AGRP_ACTIVE;
 				}
 					break;
+				case ANIMTYPE_NLATRACK:
+				{
+					NlaTrack *nlt= (NlaTrack *)ale->data;
+					
+					/* for now, it's easier just to do this here manually, as defining a new type 
+					 * currently adds complications when doing other stuff 
+					 */
+					ACHANNEL_SET_FLAG(nlt, selectmode, NLATRACK_SELECTED);
+				}
+					break;
 			}
 		}
 		
