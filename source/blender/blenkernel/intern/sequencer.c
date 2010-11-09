@@ -610,6 +610,8 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 		}
 		seq->strip->len = seq->len;
 	case SEQ_SOUND:
+		if(!seq->sound)
+			return;
 		seq->len = ceil(AUD_getInfo(seq->sound->playback_handle).length * FPS);
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
