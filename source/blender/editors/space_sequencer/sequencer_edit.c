@@ -1138,14 +1138,15 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 
 	snap_frame= RNA_int_get(op->ptr, "frame");
 
-	/* problem: contents of meta's are all shifted to the same position... */
-
 	/* also check metas */
-	SEQP_BEGIN(ed, seq) {
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if (seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK) &&
 			seq_tx_test(seq)) {
 			if((seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0) {
-				seq->start= snap_frame-seq->startofs+seq->startstill;
+				/* simple but no anim update */
+				/* seq->start= snap_frame-seq->startofs+seq->startstill; */
+
+				seq_translate(scene, seq, (snap_frame-seq->startofs+seq->startstill) - seq->start);
 			} else { 
 				if(seq->flag & SEQ_LEFTSEL) {
 					seq_tx_set_final_left(seq, snap_frame);
@@ -1157,7 +1158,6 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 			calc_sequence(scene, seq);
 		}
 	}
-	SEQ_END
 
 	/* test for effects and overlap
 	 * dont use SEQP_BEGIN since that would be recursive */
