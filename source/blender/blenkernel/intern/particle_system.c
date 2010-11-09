@@ -136,9 +136,12 @@ void psys_reset(ParticleSystem *psys, int mode)
 
 	if(ELEM(mode, PSYS_RESET_ALL, PSYS_RESET_DEPSGRAPH)) {
 		if(mode == PSYS_RESET_ALL || !(psys->flag & PSYS_EDITED)) {
-			psys_free_particles(psys);
+			/* don't free if not absolutely necessary */
+			if(psys->totpart != psys->part->totpart) {
+				psys_free_particles(psys);
+				psys->totpart= 0;
+			}
 
-			psys->totpart= 0;
 			psys->totkeyed= 0;
 			psys->flag &= ~(PSYS_HAIR_DONE|PSYS_KEYED);
 
@@ -3750,14 +3753,14 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 
 		/* simulation is only active during a specific period */
 		if(framenr < startframe) {
-			psys_reset(psys, PSYS_RESET_CACHE_MISS);
+			/* set correct particle state and reset particles */
+			cached_step(sim, cfra);
 			return;
 		}
 		else if(framenr > endframe) {
 			framenr= endframe;
 		}
-		
-		if(framenr == startframe) {
+		else if(framenr == startframe) {
 			BKE_ptcache_id_reset(sim->scene, use_cache, PTCACHE_RESET_OUTDATED);
 			BKE_ptcache_validate(cache, framenr);
 			cache->flag &= ~PTCACHE_REDO_NEEDED;
