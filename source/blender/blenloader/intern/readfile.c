@@ -10344,31 +10344,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-		/* clear hanging 'temp' screens from older 2.5 files*/
-		if (main->versionfile == 250) {
-			bScreen *screen, *nextscreen;
-			wmWindowManager *wm;
-			wmWindow *win, *nextwin;
-
-			for(screen= main->screen.first; screen; screen= nextscreen) {
-				nextscreen= screen->id.next;
-
-				if (screen->full == SCREENTEMP) {
-					/* remove corresponding windows */
-					for(wm= main->wm.first; wm; wm=wm->id.next) {
-						for(win= wm->windows.first; win; win=nextwin) {
-							nextwin= win->next;
-
-							if(newlibadr(fd, wm->id.lib, win->screen) == screen)
-								BLI_freelinkN(&wm->windows, win);
-						}
-					}
-
-					/* remove screen itself */
-					free_libblock(&main->screen, screen);
-				}
-			}
-		}
 	}
 	
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 9))

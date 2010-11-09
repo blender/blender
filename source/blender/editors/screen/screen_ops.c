@@ -1708,6 +1708,10 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 	int tot= BLI_countlist(&CTX_data_main(C)->screen);
 	int delta= RNA_int_get(op->ptr, "delta");
 	
+	/* temp screens are for userpref or render display */
+	if(screen->temp)
+		return OPERATOR_CANCELLED;
+	
 	/* return to previous state before switching screens */
 	if(sa && sa->full)
 		ED_screen_full_restore(C, sa);
@@ -2817,7 +2821,6 @@ static void SCREEN_OT_back_to_previous(struct wmOperatorType *ot)
 
 static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
-	ScrArea *sa;
 	rcti rect;
 	int sizex, sizey;
 	
@@ -2832,9 +2835,6 @@ static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *ev
 	
 	/* changes context! */
 	WM_window_open_temp(C, &rect, WM_WINDOW_USERPREFS);
-	
-	sa= CTX_wm_area(C);
-	
 	
 	return OPERATOR_FINISHED;
 }

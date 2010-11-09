@@ -781,7 +781,7 @@ static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(unused))
 	SpaceImage *sima= sa->spacedata.first;
 
 	/* test if we have a temp screen in front */
-	if(CTX_wm_window(C)->screen->full==SCREENTEMP) {
+	if(CTX_wm_window(C)->screen->temp) {
 		wm_window_lower(CTX_wm_window(C));
 		return OPERATOR_FINISHED;
 	}
@@ -826,7 +826,7 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(unused), wmEv
 	ScrArea *sa= find_area_showing_r_result(C);
 
 	/* test if we have a temp screen in front */
-	if(CTX_wm_window(C)->screen->full==SCREENTEMP) {
+	if(CTX_wm_window(C)->screen->temp) {
 		wm_window_lower(CTX_wm_window(C));
 	}
 	/* determine if render already shows */

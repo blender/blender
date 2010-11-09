@@ -673,7 +673,7 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	int fileflags;
 	
 	/* check current window and close it if temp */
-	if(win->screen->full == SCREENTEMP)
+	if(win->screen->temp)
 		wm_window_close(C, wm, win);
 	
 	BLI_make_file_string("/", tstr, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
