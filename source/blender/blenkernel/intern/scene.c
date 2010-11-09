@@ -171,7 +171,7 @@ Scene *copy_scene(Scene *sce, int type)
 		BKE_keyingsets_copy(&(scen->keyingsets), &(sce->keyingsets));
 
 		if(sce->nodetree) {
-			scen->nodetree= ntreeCopyTree(sce->nodetree, 0);
+			scen->nodetree= ntreeCopyTree(sce->nodetree, 0); /* copies actions */
 			ntreeSwitchID(scen->nodetree, &sce->id, &scen->id);
 		}
 
@@ -216,9 +216,11 @@ Scene *copy_scene(Scene *sce, int type)
 
 	/* world */
 	if(type == SCE_COPY_FULL) {
+		BKE_copy_animdata_id_action((ID *)scen);
 		if(scen->world) {
 			id_us_plus((ID *)scen->world);
 			scen->world= copy_world(scen->world);
+			BKE_copy_animdata_id_action((ID *)scen->world);
 		}
 
 		if(sce->ed) {

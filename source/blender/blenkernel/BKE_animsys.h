@@ -56,10 +56,13 @@ struct AnimData *BKE_id_add_animdata(struct ID *id);
 void BKE_free_animdata(struct ID *id);
 
 /* Copy AnimData */
-struct AnimData *BKE_copy_animdata(struct AnimData *adt);
+struct AnimData *BKE_copy_animdata(struct AnimData *adt, const short do_action);
 
 /* Copy AnimData */
-int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from);
+int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from, const short do_action);
+
+/* Copy AnimData Actions */
+void BKE_copy_animdata_id_action(struct ID *id);
 
 /* Make Local */
 void BKE_animdata_make_local(struct AnimData *adt);

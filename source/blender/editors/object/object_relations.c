@@ -1279,8 +1279,8 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 					}
 					break;
 				case MAKE_LINKS_ANIMDATA:
-					BKE_copy_animdata_id((ID *)obt, (ID *)ob);
-					BKE_copy_animdata_id((ID *)obt->data, (ID *)ob->data);
+					BKE_copy_animdata_id((ID *)obt, (ID *)ob, FALSE);
+					BKE_copy_animdata_id((ID *)obt->data, (ID *)ob->data, FALSE);
 					break;
 				case MAKE_LINKS_DUPLIGROUP:
 					obt->dup_group= ob->dup_group;
@@ -1573,6 +1573,8 @@ void single_ipo_users(Scene *UNUSED(scene), int UNUSED(flag))
 		}
 	}
 #endif // XXX old animation system
+	// TODO, something like this but must check users first.
+	// BKE_copy_animdata_id_action((ID *)obn->data);
 }
 
 static void single_mat_users(Scene *scene, int flag, int do_textures)

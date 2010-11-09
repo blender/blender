@@ -45,6 +45,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_anim.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
@@ -1445,17 +1446,12 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				}
 			}
 		}
-		if(dupflag & USER_DUP_ACT){ /* Not buttons in the UI to modify this, add later? */
-			id= (ID *)obn->action;
-			if (id){
-				ID_NEW_US(obn->action)
-				else{
-					obn->action= copy_action(obn->action);
-				}
-				id->us--;
-			}
-		}
 #endif // XXX old animation system
+		
+		if(dupflag & USER_DUP_ACT) {
+			BKE_copy_animdata_id_action(&obn->id);
+		}
+		
 		if(dupflag & USER_DUP_MAT) {
 			for(a=0; a<obn->totcol; a++) {
 				id= (ID *)obn->mat[a];
@@ -1463,6 +1459,10 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 					ID_NEW_US(obn->mat[a])
 					else obn->mat[a]= copy_material(obn->mat[a]);
 					id->us--;
+					
+					if(dupflag & USER_DUP_ACT) {
+						BKE_copy_animdata_id_action(&obn->mat[a]->id);
+					}
 				}
 			}
 		}
@@ -1473,6 +1473,11 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if(id) {
 					ID_NEW_US(psys->part)
 					else psys->part= psys_copy_settings(psys->part);
+					
+					if(dupflag & USER_DUP_ACT) {
+						BKE_copy_animdata_id_action(&psys->part->id);
+					}
+
 					id->us--;
 				}
 			}
@@ -1540,7 +1545,10 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 			case OB_LAMP:
 				if(dupflag & USER_DUP_LAMP) {
 					ID_NEW_US2(obn->data )
-					else obn->data= copy_lamp(obn->data);
+					else {
+						obn->data= copy_lamp(obn->data);
+						didit= 1;
+					}
 					id->us--;
 				}
 				break;
@@ -1564,29 +1572,42 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 			case OB_LATTICE:
 				if(dupflag!=0) {
 					ID_NEW_US2(obn->data )
-					else obn->data= copy_lattice(obn->data);
+					else {
+						obn->data= copy_lattice(obn->data);
+						didit= 1;
+					}
 					id->us--;
 				}
 				break;
 			case OB_CAMERA:
 				if(dupflag!=0) {
 					ID_NEW_US2(obn->data )
-					else obn->data= copy_camera(obn->data);
+					else {
+						obn->data= copy_camera(obn->data);
+						didit= 1;
+					}
 					id->us--;
 				}
 				break;
 		}
-		
-		if(dupflag & USER_DUP_MAT) {
-			matarar= give_matarar(obn);
-			if(didit && matarar) {
-				for(a=0; a<obn->totcol; a++) {
-					id= (ID *)(*matarar)[a];
-					if(id) {
-						ID_NEW_US( (*matarar)[a] )
-						else (*matarar)[a]= copy_material((*matarar)[a]);
-						
-						id->us--;
+
+		/* check if obdata is copied */
+		if(didit) {
+			if(dupflag & USER_DUP_ACT) {
+				BKE_copy_animdata_id_action((ID *)obn->data);
+			}
+			
+			if(dupflag & USER_DUP_MAT) {
+				matarar= give_matarar(obn);
+				if(matarar) {
+					for(a=0; a<obn->totcol; a++) {
+						id= (ID *)(*matarar)[a];
+						if(id) {
+							ID_NEW_US( (*matarar)[a] )
+							else (*matarar)[a]= copy_material((*matarar)[a]);
+							
+							id->us--;
+						}
 					}
 				}
 			}
