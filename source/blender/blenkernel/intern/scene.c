@@ -128,7 +128,6 @@ Scene *copy_scene(Scene *sce, int type)
 		
 		id_us_plus((ID *)scen->world);
 		id_us_plus((ID *)scen->set);
-		id_us_plus((ID *)scen->ima);
 		id_us_plus((ID *)scen->gm.dome.warptext);
 
 		scen->ed= NULL;
@@ -444,8 +443,7 @@ Scene *add_scene(char *name)
 		pset->brush[a].count= 10;
 	}
 	pset->brush[PE_BRUSH_CUT].strength= 100;
-	
-	sce->jumpframe = 10;
+
 	sce->r.ffcodecdata.audio_mixrate = 44100;
 
 	sce->audio.distance_model = 2.0;

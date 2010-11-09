@@ -760,7 +760,6 @@ typedef struct Scene {
 	struct World *world;
 	
 	struct Scene *set;
-	struct Image *ima;
 	
 	ListBase base;
 	struct Base *basact;		/* active base */
@@ -804,7 +803,7 @@ typedef struct Scene {
 	short dagisvalid, dagflags;
 	short recalc;				/* recalc = counterpart of ob->recalc */
 
-	short jumpframe;
+	short pad6;
 	int pad5;
 
 	/* User-Defined KeyingSets */

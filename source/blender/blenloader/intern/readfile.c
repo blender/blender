@@ -4158,7 +4158,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->camera= newlibadr(fd, sce->id.lib, sce->camera);
 			sce->world= newlibadr_us(fd, sce->id.lib, sce->world);
 			sce->set= newlibadr(fd, sce->id.lib, sce->set);
-			sce->ima= newlibadr_us(fd, sce->id.lib, sce->ima);
 			sce->gpd= newlibadr_us(fd, sce->id.lib, sce->gpd);
 			
 			link_paint(fd, sce, &sce->toolsettings->sculpt->paint);
@@ -8166,7 +8165,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(arm->layer==0) arm->layer= 1;
 		}
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
-			if(sce->jumpframe==0) sce->jumpframe= 10;
 			if(sce->audio.mixrate==0) sce->audio.mixrate= 44100;
 
 			if(sce->r.xparts<2) sce->r.xparts= 4;
