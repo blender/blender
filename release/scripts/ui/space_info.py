@@ -97,6 +97,7 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
 
         layout.operator_context = 'EXEC_AREA'
+        layout.operator("wm.save_homefile")
         layout.operator("wm.read_factory_settings")
 
         layout.separator()
