@@ -49,7 +49,7 @@ slaves = []
 blacklist = []
 
 init_file = ""
-init_address = True
+valid_address = False
 init_data = True
 
 

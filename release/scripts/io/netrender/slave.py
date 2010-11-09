@@ -281,12 +281,12 @@ def render_slave(engine, netsettings, threads):
                             # thumbnail first
                             if netsettings.use_slave_thumb:
                                 thumbname = thumbnail(filename)
-
-                                f = open(thumbname, 'rb')
-                                conn.request("PUT", "/thumb", f, headers=headers)
-                                f.close()
-                                responseStatus(conn)
                                 
+                                if thumbname:
+                                    f = open(thumbname, 'rb')
+                                    conn.request("PUT", "/thumb", f, headers=headers)
+                                    f.close()
+                                    responseStatus(conn)
 
                             f = open(filename, 'rb')
                             conn.request("PUT", "/render", f, headers=headers)

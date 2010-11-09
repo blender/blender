@@ -245,8 +245,9 @@ def thumbnail(filename):
             process = subprocess.Popen(["convert", thumbname, "-resize", "300x300", thumbname])
             process.wait()
             return thumbname
-        except:
-            pass
+        except Exception as exp:
+            print("Error while generating thumbnail")
+            print(exp)
 
     return None
 
