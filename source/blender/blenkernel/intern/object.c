@@ -715,7 +715,6 @@ Camera *copy_camera(Camera *cam)
 	Camera *camn;
 	
 	camn= copy_libblock(cam);
-	camn->adt= BKE_copy_animdata(cam->adt);
 	
 	return camn;
 }
