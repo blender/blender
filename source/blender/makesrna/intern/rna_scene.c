@@ -150,6 +150,8 @@ EnumPropertyItem image_type_items[] = {
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 
+#include "RNA_access.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
@@ -179,6 +181,20 @@ EnumPropertyItem image_type_items[] = {
 #include "ED_keyframing.h"
 
 #include "RE_pipeline.h"
+
+static PointerRNA rna_Scene_object_bases_lookup_string(PointerRNA *ptr, const char *key)
+{
+	Scene *scene= (Scene*)ptr->data;
+	Base *base;
+
+	for(base= scene->base.first; base; base= base->next) {
+		if(strncmp(base->object->id.name+2, key, sizeof(base->object->id.name)-2)==0) {
+			return rna_pointer_inherit_refine(ptr, &RNA_ObjectBase, base);
+		}
+	}
+
+	return PointerRNA_NULL;
+}
 
 static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 {
@@ -3107,6 +3123,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "ObjectBase");
 	RNA_def_property_ui_text(prop, "Bases", "");
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, "rna_Scene_object_bases_lookup_string");
 	rna_def_scene_bases(brna, prop);
 
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);

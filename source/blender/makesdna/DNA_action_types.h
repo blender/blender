@@ -193,9 +193,9 @@ typedef struct bPoseChannel {
 	short				agrp_index; /* index of action-group this bone belongs to (0 = default/no group) */
 	
 // XXX depreceated.... old animation system (armature only viz) ----
-	int				    pathlen;	/* for drawing paths, the amount of frames */
-	int 				pathsf;		/* for drawing paths, the start frame number */
-	int					pathef;		/* for drawing paths, the end frame number */
+//	int				    pathlen;	/* for drawing paths, the amount of frames */
+//	int 				pathsf;		/* for drawing paths, the start frame number */
+//	int					pathef;		/* for drawing paths, the end frame number */
 // XXX end of depreceated code -------------------------------------
 	
 	struct Bone			*bone;		/* set on read file or rebuild pose */
