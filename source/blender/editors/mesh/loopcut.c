@@ -94,13 +94,15 @@ typedef struct tringselOpData {
 } tringselOpData;
 
 /* modal loop selection drawing callback */
-static void ringsel_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
+static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 {
-	int i;
+	View3D *v3d = CTX_wm_view3d(C);
 	tringselOpData *lcd = arg;
+	int i;
 	
 	if (lcd->totedge > 0) {
-		glDisable(GL_DEPTH_TEST);
+		if(v3d && v3d->zbuf)
+			glDisable(GL_DEPTH_TEST);
 
 		glPushMatrix();
 		glMultMatrixf(lcd->ob->obmat);
@@ -114,7 +116,8 @@ static void ringsel_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *a
 		glEnd();
 
 		glPopMatrix();
-		glEnable(GL_DEPTH_TEST);
+		if(v3d && v3d->zbuf)
+			glEnable(GL_DEPTH_TEST);
 	}
 }
 
