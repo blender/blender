@@ -1566,7 +1566,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_MESH, "MESH", 0, "Mesh", ""},
 		{OB_CURVE, "CURVE", 0, "Curve", ""},
 		{OB_SURF, "SURFACE", 0, "Surface", ""},
-		{OB_FONT, "TEXT", 0, "Text", ""},
+		{OB_FONT, "FONT", 0, "Font", ""},
 		{OB_MBALL, "META", 0, "Meta", ""},
 		{OB_LAMP, "LAMP", 0, "Lamp", ""},
 		{OB_CAMERA, "CAMERA", 0, "Camera", ""},

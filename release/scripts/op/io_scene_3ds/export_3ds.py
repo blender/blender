@@ -913,7 +913,7 @@ def save(operator, context, filepath=""):
         for ob_derived, mat in derived:
 # 		for ob_derived, mat in getDerivedObjects(ob, False):
 
-            if ob.type not in ('MESH', 'CURVE', 'SURFACE', 'TEXT', 'META'):
+            if ob.type not in ('MESH', 'CURVE', 'SURFACE', 'FONT', 'META'):
                 continue
 
             data = ob_derived.create_mesh(scene, True, 'PREVIEW')

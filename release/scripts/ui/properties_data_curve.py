@@ -28,7 +28,7 @@ class CurveButtonsPanel():
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.type in ('CURVE', 'SURFACE', 'TEXT') and context.curve)
+        return (context.object and context.object.type in ('CURVE', 'SURFACE', 'FONT') and context.curve)
 
 
 class CurveButtonsPanelCurve(CurveButtonsPanel):
@@ -79,7 +79,7 @@ class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
         curve = context.curve
         is_surf = (ob.type == 'SURFACE')
         is_curve = (ob.type == 'CURVE')
-        is_text = (ob.type == 'TEXT')
+        is_text = (ob.type == 'FONT')
 
         if is_curve:
             row = layout.row()
@@ -261,7 +261,7 @@ class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.type == 'TEXT' and context.curve)
+        return (context.object and context.object.type == 'FONT' and context.curve)
 
     def draw(self, context):
         layout = self.layout
@@ -317,7 +317,7 @@ class DATA_PT_paragraph(CurveButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.type == 'TEXT' and context.curve)
+        return (context.object and context.object.type == 'FONT' and context.curve)
 
     def draw(self, context):
         layout = self.layout
@@ -346,7 +346,7 @@ class DATA_PT_textboxes(CurveButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.type == 'TEXT' and context.curve)
+        return (context.object and context.object.type == 'FONT' and context.curve)
 
     def draw(self, context):
         layout = self.layout
