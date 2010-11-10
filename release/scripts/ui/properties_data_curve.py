@@ -103,8 +103,9 @@ class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
         col = split.column()
 
         if is_surf:
-            sub = col.column(align=True)
+            sub = col.column()
             sub.label(text="")
+            sub = col.column(align=True)
             sub.prop(curve, "resolution_v", text="Preview V")
             sub.prop(curve, "render_resolution_v", text="Render V")
 
