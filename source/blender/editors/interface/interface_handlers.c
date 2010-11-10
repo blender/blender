@@ -4031,12 +4031,16 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 	
 	km = WM_keymap_guess_opname(C, but->optype->idname);		
 	kmi = WM_keymap_add_item(km, but->optype->idname, AKEY, KM_PRESS, 0, 0);
-	MEM_freeN(kmi->properties);
-	if (prop)
-		kmi->properties= IDP_CopyProperty(prop);
-	
+
+	if (prop) {
+		prop= IDP_CopyProperty(prop);
+	}
+
+	/* prop can be NULL */	
+	WM_keymap_properties_reset(kmi, prop);
+
 	RNA_pointer_create(NULL, &RNA_KeyMapItem, kmi, &ptr);
-	
+
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, but_shortcut_name_func, but);
 	uiBlockSetFlag(block, UI_BLOCK_RET_1);

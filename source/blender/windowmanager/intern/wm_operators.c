@@ -617,6 +617,7 @@ void WM_operator_properties_free(PointerRNA *ptr)
 	if(properties) {
 		IDP_FreeProperty(properties);
 		MEM_freeN(properties);
+		ptr->data= NULL; /* just incase */
 	}
 }
 
