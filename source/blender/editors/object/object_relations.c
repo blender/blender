@@ -262,7 +262,7 @@ void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
 static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= ED_object_active_context(C);
 	
 	/* sanity checks */
 	if (!scene || scene->id.lib || !ob)
@@ -299,7 +299,7 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 static int make_proxy_exec (bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
-	Object *ob, *gob= CTX_data_active_object(C);
+	Object *ob, *gob= ED_object_active_context(C);
 	GroupObject *go;
 	Scene *scene= CTX_data_scene(C);
 
@@ -360,7 +360,7 @@ static EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA *UNUSE
 	EnumPropertyItem *item= NULL, item_tmp;
 	int totitem= 0;
 	int i= 0;
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= ED_object_active_context(C);
 	GroupObject *go;
 
 	if(!ob || !ob->dup_group)
@@ -528,7 +528,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	Object *par= CTX_data_active_object(C);
+	Object *par= ED_object_active_context(C);
 	bPoseChannel *pchan= NULL;
 	int partype= RNA_enum_get(op->ptr, "type");
 	int pararm= ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
@@ -688,7 +688,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 
 static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob= ED_object_active_context(C);
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Set Parent To", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
@@ -729,7 +729,7 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	ot->invoke= parent_set_invoke;
 	ot->exec= parent_set_exec;
 	
-	ot->poll= ED_operator_object_active_editable;
+	ot->poll= ED_operator_object_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -742,7 +742,7 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
-	Object *par= CTX_data_active_object(C);
+	Object *par= ED_object_active_context(C);
 	
 	par->recalc |= OB_RECALC_OB;
 	
@@ -949,7 +949,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	Object *obact= CTX_data_active_object(C); 
+	Object *obact= ED_object_active_context(C); 
 	
 	int type= RNA_enum_get(op->ptr, "type");
 	
@@ -1252,7 +1252,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 	ID *id;
 	int a;
 
-	ob= CTX_data_active_object(C);
+	ob= ED_object_active_context(C);
 
 	CTX_DATA_BEGIN(C, Object*, obt, selected_editable_objects) {
 		if(ob != obt) {
