@@ -1829,8 +1829,8 @@ void mesh_pmv_off(Object *ob, Mesh *me)
 }
 
 static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata, 
-			   CustomData *pdata, int lindex[3], int findex, 
-			   int polyindex, int numTex, int numCol) 
+			   CustomData *pdata, int lindex[4], int findex, 
+			   int polyindex, int numTex, int numCol, int tot) 
 {
 	MTFace *texface;
 	MTexPoly *texpoly;
@@ -1850,7 +1850,7 @@ static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata,
 		texface->tile = texpoly->tile;
 		texface->unwrap = texpoly->unwrap;
 
-		for (j=0; j<3; j++) {
+		for (j=0; j<tot; j++) {
 			mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, lindex[j], i);
 			texface->uv[j][0] = mloopuv->uv[0];
 			texface->uv[j][1] = mloopuv->uv[1];
@@ -1860,7 +1860,7 @@ static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata,
 	for(i=0; i < numCol; i++){
 		mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
 
-		for (j=0; j<3; j++) {
+		for (j=0; j<tot; j++) {
 			mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, lindex[j], i);
 			mcol[j].r = mloopcol->r;
 			mcol[j].g = mloopcol->g;
@@ -1872,7 +1872,7 @@ static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata,
 	if (hasWCol) {
 		mcol = CustomData_get(fdata,  findex, CD_WEIGHT_MCOL);
 
-		for (j=0; j<3; j++) {
+		for (j=0; j<tot; j++) {
 			mloopcol = CustomData_get(ldata, lindex[j], CD_WEIGHT_MLOOPCOL);
 			mcol[j].r = mloopcol->r;
 			mcol[j].g = mloopcol->g;
@@ -1908,7 +1908,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 	EditVert *v, *lastv, *firstv;
 	EditFace *f;
 	BLI_array_declare(origIndex);
-	int i, j, k, lindex[3], *origIndex = NULL, *polyorigIndex;
+	int i, j, k, lindex[4], *origIndex = NULL, *polyorigIndex;
 	int numTex, numCol;
 
 	mpoly = CustomData_get_layer(pdata, CD_MPOLY);
@@ -1922,46 +1922,73 @@ int mesh_recalcTesselation(CustomData *fdata,
 	polyorigIndex = use_poly_origindex? CustomData_get_layer(pdata, CD_ORIGINDEX) : NULL;
 	for (i=0; i<totpoly; i++, mp++) {
 		ml = mloop + mp->loopstart;
-		firstv = NULL;
-		lastv = NULL;
-		for (j=0; j<mp->totloop; j++, ml++) {
-			v = BLI_addfillvert(mvert[ml->v].co);
-			if (polyorigIndex)
-				v->tmp.l = polyorigIndex[i];
-			else
-				v->tmp.l = i;
-
-			v->keyindex = mp->loopstart + j;
-
-			if (lastv)
-				BLI_addfilledge(lastv, v);
-
-			if (!firstv)
-				firstv = v;
-			lastv = v;
-		}
-		BLI_addfilledge(lastv, firstv);
 		
-		BLI_edgefill(0, 0);
-		for (f=fillfacebase.first; f; f=f->next) {
+		if (mp->totloop < 5) {
 			BLI_array_growone(mf);
 			BLI_array_growone(origIndex);
 
-			/*these are loop indices, they'll be transformed
-			  into vert indices later.*/
-			mf[k].v1 = f->v1->keyindex;
-			mf[k].v2 = f->v2->keyindex;
-			mf[k].v3 = f->v3->keyindex;
-			mf[k].v4 = f->v1->tmp.l;
-			
-			mf[k].mat_nr = mp->mat_nr;
-			mf[k].flag = mp->flag;
 			origIndex[k] = use_face_origindex ? k : f->v1->tmp.l;
+			
+			for (j=0; j<mp->totloop; j++, ml++) {
+				switch (j) {
+					case 0:
+						mf[k].v1 = mp->loopstart + j;
+					case 1:
+						mf[k].v2 = mp->loopstart + j;
+					case 2:
+						mf[k].v3 = mp->loopstart + j;
+					case 3:
+						mf[k].v4 = mp->loopstart + j;
+				}
+			}
+			if (mp->totloop == 4 && !mf->v4) {
+				SWAP(int, mf[k].v1, mf[k].v4);
+				SWAP(int, mf[k].v2, mf[k].v3);
+			}
 
 			k++;
+		} else {		
+			firstv = NULL;
+			lastv = NULL;
+			for (j=0; j<mp->totloop; j++, ml++) {
+				v = BLI_addfillvert(mvert[ml->v].co);
+				if (polyorigIndex)
+					v->tmp.l = polyorigIndex[i];
+				else
+					v->tmp.l = i;
+	
+				v->keyindex = mp->loopstart + j;
+	
+				if (lastv)
+					BLI_addfilledge(lastv, v);
+	
+				if (!firstv)
+					firstv = v;
+				lastv = v;
+			}
+			BLI_addfilledge(lastv, firstv);
+			
+			BLI_edgefill(0, 0);
+			for (f=fillfacebase.first; f; f=f->next) {
+				BLI_array_growone(mf);
+				BLI_array_growone(origIndex);
+	
+				/*these are loop indices, they'll be transformed
+				  into vert indices later.*/
+				mf[k].v1 = f->v1->keyindex;
+				mf[k].v2 = f->v2->keyindex;
+				mf[k].v3 = f->v3->keyindex;
+				mf[k].v4 = f->v1->tmp.l;
+				
+				mf[k].mat_nr = mp->mat_nr;
+				mf[k].flag = mp->flag;
+				origIndex[k] = use_face_origindex ? k : f->v1->tmp.l;
+	
+				k++;
+			}
+	
+			BLI_end_edgefill();
 		}
-
-		BLI_end_edgefill();
 	}
 
 	CustomData_free(fdata, totface);
@@ -1975,29 +2002,27 @@ int mesh_recalcTesselation(CustomData *fdata,
 	mface = mf;
 	for (i=0; i<totface; i++, mf++) {
 		/*ensure winding is correct*/
-		if (mf->v1 > mf->v2) {
-			SWAP(int, mf->v1, mf->v2);
-		}
-		if (mf->v2 > mf->v3) {
-			SWAP(int, mf->v2, mf->v3);
-		}
-		if (mf->v1 > mf->v2) {
-			SWAP(int, mf->v1, mf->v2);
-		}
+		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
+		if (mf->v2 > mf->v3) SWAP(int, mf->v2, mf->v3);
+		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
+		if (mf->v4 && mf->v1 > mf->v4) SWAP(int, mf->v1, mf->v4);
+		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
+		if (mf->v2 > mf->v3) SWAP(int, mf->v2, mf->v3);
+		if (mf->v1 > mf->v2) SWAP(int, mf->v1, mf->v2);
 
 		lindex[0] = mf->v1;
 		lindex[1] = mf->v2;
 		lindex[2] = mf->v3;
+		lindex[4] = mf->v4;
 
 		/*transform loop indices to vert indices*/
 		mf->v1 = mloop[mf->v1].v;
 		mf->v2 = mloop[mf->v2].v;
 		mf->v3 = mloop[mf->v3].v;
+		mf->v4 = mf->v4 ? mloop[mf->v4].v : 0;
 
 		mesh_loops_to_corners(fdata, ldata, pdata,
-			lindex, i, mf->v4, numTex, numCol);
-		
-		mf->v4 = 0;
+			lindex, i, mf->v4, numTex, numCol, mf->v4 ? 4 : 3);
 	}
 
 	return totface;

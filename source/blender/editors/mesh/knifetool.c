@@ -1291,6 +1291,24 @@ void knifenet_fill_faces(knifetool_opdata *kcd)
 			BMO_ClearFlag(bm, e, MARK);
 	}
 
+	BM_ITER(f, &bmiter, bm, BM_FACES_OF_MESH, NULL) {
+		BMIter eiter;
+		
+		if (!BMO_TestFlag(bm, f, DEL))
+			continue;
+		
+		BM_ITER(e, &eiter, bm, BM_EDGES_OF_FACE, f) {
+			BMIter liter;
+			BMLoop *l;
+			
+			BMO_SetFlag(bm, e, MARK);
+			
+			BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
+				BMINDEX_SET(e, BMINDEX_GET(e)|BMINDEX_GET(l->f));
+			}
+		}
+	}
+
 	BMO_Flag_To_Slot(bm, &bmop, "edges", MARK, BM_EDGE);
 	BMO_Flag_To_Slot(bm, &bmop, "excludefaces", DEL, BM_FACE);
 	

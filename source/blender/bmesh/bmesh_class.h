@@ -19,6 +19,13 @@ struct BMFlagLayer;
 struct BLI_mempool;
 
 /*
+ UPDATE: ok, this hasn't been all that useful.  Need to rip this out and just go with original 
+         structs. 
+       
+        well, much of the actual code was great, but this inheritance thing isn't so
+        useful, need to just make CDDM better.
+*/
+/*
 ok: we have a simple subclassing system, to layer in bmesh api features (and
 let people subclass the api).  There's also a separate, compile-time system
 that will end up being the back-end to a "lite" bmesh API for modifiers.
