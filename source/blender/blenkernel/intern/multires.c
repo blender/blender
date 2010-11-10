@@ -180,68 +180,6 @@ void multires_force_render_update(Object *ob)
 		multires_force_update(ob);
 }
 
-/* XXX */
-#if 0
-void multiresModifier_join(Object *ob)
-{
-	Base *base = NULL;
-	int highest_lvl = 0;
-
-	/* First find the highest level of subdivision */
-	base = FIRSTBASE;
-	while(base) {
-		if(TESTBASELIB_BGMODE(v3d, scene, base) && base->object->type==OB_MESH) {
-			ModifierData *md;
-			for(md = base->object->modifiers.first; md; md = md->next) {
-				if(md->type == eModifierType_Multires) {
-					int totlvl = ((MultiresModifierData*)md)->totlvl;
-					if(totlvl > highest_lvl)
-						highest_lvl = totlvl;
-
-					/* Ensure that all updates are processed */
-					multires_force_update(base->object);
-				}
-			}
-		}
-		base = base->next;
-	}
-
-	/* No multires meshes selected */
-	if(highest_lvl == 0)
-		return;
-
-	/* Subdivide all the displacements to the highest level */
-	base = FIRSTBASE;
-	while(base) {
-		if(TESTBASELIB_BGMODE(v3d, scene, base) && base->object->type==OB_MESH) {
-			ModifierData *md = NULL;
-			MultiresModifierData *mmd = NULL;
-
-			for(md = base->object->modifiers.first; md; md = md->next) {
-				if(md->type == eModifierType_Multires)
-					mmd = (MultiresModifierData*)md;
-			}
-
-			/* If the object didn't have multires enabled, give it a new modifier */
-			if(!mmd) {
-				md = base->object->modifiers.first;
-				
-				while(md && modifierType_getInfo(md->type)->type == eModifierTypeType_OnlyDeform)
-					md = md->next;
-				
-				mmd = (MultiresModifierData*)modifier_new(eModifierType_Multires);
-				BLI_insertlinkbefore(&base->object->modifiers, md, mmd);
-				modifier_unique_name(&base->object->modifiers, mmd);
-			}
-
-			if(mmd)
-				multiresModifier_subdivide(mmd, base->object, highest_lvl - mmd->totlvl, 0, 0);
-		}
-		base = base->next;
-	}
-}
-#endif
-
 int multiresModifier_reshapeFromDM(Scene *scene, MultiresModifierData *mmd,
 				Object *ob, DerivedMesh *srcdm)
 {

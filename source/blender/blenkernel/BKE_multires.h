@@ -55,7 +55,6 @@ struct MultiresModifierData *find_multires_modifier_before(struct Scene *scene,
 	struct ModifierData *lastmd);
 struct DerivedMesh *get_multires_dm(struct Scene *scene, struct MultiresModifierData *mmd,
 				struct Object *ob);
-void multiresModifier_join(struct Object *);
 void multiresModifier_del_levels(struct MultiresModifierData *, struct Object *, int direction);
 void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object *ob,
 				int updateblock, int simple);
