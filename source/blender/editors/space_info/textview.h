@@ -1,5 +1,5 @@
 /**
- * $Id: console_draw.c 32840 2010-11-02 13:12:30Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
