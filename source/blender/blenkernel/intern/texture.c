@@ -1286,8 +1286,7 @@ void BKE_free_pointdensity(PointDensity *pd)
 void BKE_free_voxeldatadata(struct VoxelData *vd)
 {
 	if (vd->dataset) {
-		if(vd->file_format != TEX_VD_SMOKE)
-			MEM_freeN(vd->dataset);
+		MEM_freeN(vd->dataset);
 		vd->dataset = NULL;
 	}
 

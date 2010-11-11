@@ -238,13 +238,22 @@ static void init_frame_smoke(VoxelData *vd)
 
 			}
 			else {
+				int totRes;
+				float *density;
+
 				if (smd->domain->flags & MOD_SMOKE_HIGHRES) {
 					smoke_turbulence_get_res(smd->domain->wt, vd->resol);
-					vd->dataset = smoke_turbulence_get_density(smd->domain->wt);
+					density = smoke_turbulence_get_density(smd->domain->wt);
 				} else {
 					VECCOPY(vd->resol, smd->domain->res);
-					vd->dataset = smoke_get_density(smd->domain->fluid);
+					density = smoke_get_density(smd->domain->fluid);
 				}
+
+				totRes = (vd->resol[0])*(vd->resol[1])*(vd->resol[2]);
+
+				/* always store copy, as smoke internal data can change */
+				vd->dataset = MEM_mapallocN(sizeof(float)*(totRes), "smoke data");
+				memcpy(vd->dataset, density, sizeof(float)*totRes);
 			} // end of fluid condition
 		}
 	}
@@ -267,8 +276,7 @@ static void cache_voxeldata(struct Render *re,Tex *tex)
 	
 	/* clear out old cache, ready for new */
 	if (vd->dataset) {
-		if(vd->file_format != TEX_VD_SMOKE)
-			MEM_freeN(vd->dataset);
+		MEM_freeN(vd->dataset);
 		vd->dataset = NULL;
 	}
 
