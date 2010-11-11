@@ -789,7 +789,7 @@ void reshadeall_displist(Scene *scene)
 
 /* ****************** make displists ********************* */
 
-static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
+static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, int forRender)
 {
 	Nurb *nu;
 	DispList *dl;
@@ -802,7 +802,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 	while(nu) {
 		if(nu->hide==0) {
 			
-			if(G.rendering && cu->resolu_ren!=0) 
+			if(forRender && cu->resolu_ren!=0)
 				resolu= cu->resolu_ren;
 			else
 				resolu= nu->resolu;
@@ -1718,7 +1718,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 
 		/* no bevel or extrude, and no width correction? */
 		if (!dlbev.first && cu->width==1.0f) {
-			curve_to_displist(cu, nubase, dispbase);
+			curve_to_displist(cu, nubase, dispbase, forRender);
 		} else {
 			float widfac= cu->width-1.0;
 			BevList *bl= cu->bev.first;
