@@ -741,16 +741,16 @@ static void basisNurb(float t, short order, short pnts, float *knots, float *bas
 }
 
 
-void makeNurbfaces(Nurb *nu, float *coord_array, int rowstride) 
+void makeNurbfaces(Nurb *nu, float *coord_array, int rowstride, int resolu, int resolv)
 /* coord_array  has to be 3*4*resolu*resolv in size, and zero-ed */
 {
 	BPoint *bp;
 	float *basisu, *basis, *basisv, *sum, *fp, *in;
 	float u, v, ustart, uend, ustep, vstart, vend, vstep, sumdiv;
-	int i, j, iofs, jofs, cycl, len, resolu, resolv;
+	int i, j, iofs, jofs, cycl, len, curu, curv;
 	int istart, iend, jsta, jen, *jstart, *jend, ratcomp;
 	
-	int totu = nu->pntsu*nu->resolu, totv = nu->pntsv*nu->resolv;
+	int totu = nu->pntsu*resolu, totv = nu->pntsv*resolv;
 	
 	if(nu->knotsu==NULL || nu->knotsv==NULL) return;
 	if(nu->orderu>nu->pntsu) return;
@@ -807,9 +807,9 @@ void makeNurbfaces(Nurb *nu, float *coord_array, int rowstride)
 	else cycl= 0;
 	v= vstart;
 	basis= basisv;
-	resolv= totv;
-	while(resolv--) {
-		basisNurb(v, nu->orderv, (short)(nu->pntsv+cycl), nu->knotsv, basis, jstart+resolv, jend+resolv);
+	curv= totv;
+	while(curv--) {
+		basisNurb(v, nu->orderv, (short)(nu->pntsv+cycl), nu->knotsv, basis, jstart+curv, jend+curv);
 		basis+= KNOTSV(nu);
 		v+= vstep;
 	}
@@ -818,17 +818,17 @@ void makeNurbfaces(Nurb *nu, float *coord_array, int rowstride)
 	else cycl= 0;
 	in= coord_array;
 	u= ustart;
-	resolu= totu;
-	while(resolu--) {
+	curu= totu;
+	while(curu--) {
 
 		basisNurb(u, nu->orderu, (short)(nu->pntsu+cycl), nu->knotsu, basisu, &istart, &iend);
 
 		basis= basisv;
-		resolv= totv;
-		while(resolv--) {
+		curv= totv;
+		while(curv--) {
 
-			jsta= jstart[resolv];
-			jen= jend[resolv];
+			jsta= jstart[curv];
+			jen= jend[curv];
 
 			/* calculate sum */
 			sumdiv= 0.0;
@@ -1056,10 +1056,13 @@ static void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float
 
 float *make_orco_surf(Object *ob)
 {
+	/* Note: this function is used in convertblender only atm, so
+	 * suppose nonzero curve's render resolution should always be used */
 	Curve *cu= ob->data;
 	Nurb *nu;
 	int a, b, tot=0;
 	int sizeu, sizev;
+	int resolu, resolv;
 	float *fp, *coord_array;
 	
 	/* first calculate the size of the datablock */
@@ -1073,9 +1076,12 @@ float *make_orco_surf(Object *ob)
 		
 		See also convertblender.c: init_render_surf()
 		*/
+
+		resolu= cu->resolu_ren ? cu->resolu_ren : nu->resolu;
+		resolv= cu->resolv_ren ? cu->resolv_ren : nu->resolv;
 		
-		sizeu = nu->pntsu*nu->resolu; 
-		sizev = nu->pntsv*nu->resolv;
+		sizeu = nu->pntsu*resolu;
+		sizev = nu->pntsv*resolv;
 		if (nu->flagu & CU_NURB_CYCLIC) sizeu++;
 		if (nu->flagv & CU_NURB_CYCLIC) sizev++;
 		 if(nu->pntsv>1) tot+= sizeu * sizev;
@@ -1087,9 +1093,12 @@ float *make_orco_surf(Object *ob)
 	
 	nu= cu->nurb.first;
 	while(nu) {
+		resolu= cu->resolu_ren ? cu->resolu_ren : nu->resolu;
+		resolv= cu->resolv_ren ? cu->resolv_ren : nu->resolv;
+
 		if(nu->pntsv>1) {
-			sizeu = nu->pntsu*nu->resolu; 
-			sizev = nu->pntsv*nu->resolv;
+			sizeu = nu->pntsu*resolu;
+			sizev = nu->pntsv*resolv;
 			if (nu->flagu & CU_NURB_CYCLIC) sizeu++;
 			if (nu->flagv & CU_NURB_CYCLIC) sizev++;
 			
@@ -1110,10 +1119,10 @@ float *make_orco_surf(Object *ob)
 				}
 			}
 			else {
-				float *_tdata= MEM_callocN((nu->pntsu*nu->resolu) * (nu->pntsv*nu->resolv) *3*sizeof(float), "temp data");
+				float *_tdata= MEM_callocN((nu->pntsu*resolu) * (nu->pntsv*resolv) *3*sizeof(float), "temp data");
 				float *tdata= _tdata;
 				
-				makeNurbfaces(nu, tdata, 0);
+				makeNurbfaces(nu, tdata, 0, resolu, resolv);
 				
 				for(b=0; b<sizeu; b++) {
 					int use_b= b;
@@ -1125,7 +1134,7 @@ float *make_orco_surf(Object *ob)
 						if (a==sizev-1 && (nu->flagv & CU_NURB_CYCLIC))
 							use_a= 0;
 						
-						tdata = _tdata + 3 * (use_b * (nu->pntsv*nu->resolv) + use_a);
+						tdata = _tdata + 3 * (use_b * (nu->pntsv*resolv) + use_a);
 						
 						fp[0]= (tdata[0]-cu->loc[0])/cu->size[0];
 						fp[1]= (tdata[1]-cu->loc[1])/cu->size[1];
