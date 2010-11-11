@@ -34,11 +34,11 @@ struct rctf;
 int BLF_init(int points, int dpi);
 void BLF_exit(void);
 
-int BLF_load(char *name);
-int BLF_load_mem(char *name, unsigned char *mem, int mem_size);
+int BLF_load(const char *name);
+int BLF_load_mem(const char *name, unsigned char *mem, int mem_size);
 
-int BLF_load_unique(char *name);
-int BLF_load_mem_unique(char *name, unsigned char *mem, int mem_size);
+int BLF_load_unique(const char *name);
+int BLF_load_mem_unique(const char *name, unsigned char *mem, int mem_size);
 
 /* Attach a file with metrics information from memory. */
 void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size);
@@ -59,21 +59,21 @@ void BLF_draw_ascii(int fontid, const char *str, size_t len);
  * This function return the bounding box of the string
  * and are not multiplied by the aspect.
  */
-void BLF_boundbox(int fontid, char *str, struct rctf *box);
+void BLF_boundbox(int fontid, const char *str, struct rctf *box);
 
 /*
  * The next both function return the width and height
  * of the string, using the current font and both value 
  * are multiplied by the aspect of the font.
  */
-float BLF_width(int fontid, char *str);
-float BLF_height(int fontid, char *str);
+float BLF_width(int fontid, const char *str);
+float BLF_height(int fontid, const char *str);
 
 /*
  * The following function return the width and height of the string, but
  * just in one call, so avoid extra freetype2 stuff.
  */
-void BLF_width_and_height(int fontid, char *str, float *width, float *height);
+void BLF_width_and_height(int fontid, const char *str, float *width, float *height);
 
 /*
  * For fixed width fonts only, returns the width of a
@@ -86,8 +86,8 @@ float BLF_fixed_width(int fontid);
  * of the string, using the default font and both value
  * are multiplied by the aspect of the font.
  */
-float BLF_width_default(char *str);
-float BLF_height_default(char *str);
+float BLF_width_default(const char *str);
+float BLF_height_default(const char *str);
 
 /*
  * Set rotation for default font.
@@ -147,7 +147,7 @@ void BLF_buffer_col(int fontid, float r, float g, float b, float a);
  * Draw the string into the buffer, this function draw in both buffer, float and unsigned char _BUT_
  * it's not necessary set both buffer, NULL is valid here.
  */
-void BLF_draw_buffer(int fontid, char *str);
+void BLF_draw_buffer(int fontid, const char *str);
 
 /*
  * Search the path directory to the locale files, this try all

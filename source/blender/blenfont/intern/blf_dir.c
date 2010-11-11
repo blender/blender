@@ -121,7 +121,7 @@ void BLF_dir_free(char **dirs, int count)
 	MEM_freeN(dirs);
 }
 
-char *blf_dir_search(char *file)
+char *blf_dir_search(const char *file)
 {
 	DirBLF *dir;
 	char full_path[FILE_MAXDIR+FILE_MAXFILE];
@@ -175,7 +175,7 @@ int blf_dir_split(const char *str, char *file, int *size)
 /* Some font have additional file with metrics information,
  * in general, the extension of the file is: .afm or .pfm
  */
-char *blf_dir_metrics_search(char *filename)
+char *blf_dir_metrics_search(const char *filename)
 {
 	char *mfile;
 	char *s;

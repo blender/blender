@@ -33,24 +33,24 @@ unsigned int blf_hash(unsigned int val);
 int blf_utf8_next(unsigned char *buf, int *iindex);
 
 char *blf_dir_search(const char *file);
-char *blf_dir_metrics_search(char *filename);
+char *blf_dir_metrics_search(const char *filename);
 int blf_dir_split(const char *str, char *file, int *size);
 
 int blf_font_init(void);
 void blf_font_exit(void);
 
-FontBLF *blf_font_new(char *name, char *filename);
-FontBLF *blf_font_new_from_mem(char *name, unsigned char *mem, int mem_size);
+FontBLF *blf_font_new(const char *name, const char *filename);
+FontBLF *blf_font_new_from_mem(const char *name, unsigned char *mem, int mem_size);
 void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, int mem_size);
 
 void blf_font_size(FontBLF *font, int size, int dpi);
 void blf_font_draw(FontBLF *font, const char *str, unsigned int len);
 void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len);
-void blf_font_buffer(FontBLF *font, char *str);
-void blf_font_boundbox(FontBLF *font, char *str, rctf *box);
-void blf_font_width_and_height(FontBLF *font, char *str, float *width, float *height);
-float blf_font_width(FontBLF *font, char *str);
-float blf_font_height(FontBLF *font, char *str);
+void blf_font_buffer(FontBLF *font, const char *str);
+void blf_font_boundbox(FontBLF *font, const char *str, rctf *box);
+void blf_font_width_and_height(FontBLF *font, const char *str, float *width, float *height);
+float blf_font_width(FontBLF *font, const char *str);
+float blf_font_height(FontBLF *font, const char *str);
 float blf_font_fixed_width(FontBLF *font);
 void blf_font_free(FontBLF *font);
 

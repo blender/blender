@@ -81,7 +81,7 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	PyObject *list = PyList_New(0), *st; /* stupidly big string to be safe */
 	/* be sure there is low chance of the path being too short */
 	char filepath_expanded[1024];
-	char *lib;
+	const char *lib;
 
 	int absolute = 0;
 	static char *kwlist[] = {"absolute", NULL};

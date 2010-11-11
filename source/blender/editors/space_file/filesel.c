@@ -342,7 +342,7 @@ float file_string_width(const char* str)
 {
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
-	return BLF_width(style->widget.uifont_id, (char *)str);
+	return BLF_width(style->widget.uifont_id, str);
 }
 
 /* gives the exact width of the string after being shortened to
