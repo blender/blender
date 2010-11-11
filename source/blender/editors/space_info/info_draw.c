@@ -1,5 +1,5 @@
 /**
- * $Id: info_ops.c 32551 2010-10-18 06:41:16Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
