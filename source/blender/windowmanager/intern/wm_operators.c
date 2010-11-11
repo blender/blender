@@ -1460,7 +1460,15 @@ static void open_set_use_scripts(wmOperator *op)
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	RNA_string_set(op->ptr, "filepath", G.main->name);
+	const char *openname= G.main->name;
+
+	/* if possible, get the name of the most recently used .blend file */
+	if (G.recent_files.first) {
+		struct RecentFile *recent = G.recent_files.first;
+		openname = recent->filepath;
+	}
+
+	RNA_string_set(op->ptr, "filepath", openname);
 	open_set_load_ui(op);
 	open_set_use_scripts(op);
 
