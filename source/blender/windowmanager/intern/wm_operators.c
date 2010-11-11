@@ -3148,7 +3148,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);
-#ifdef WIN32
+#ifdef WIN32 && !defined(FREE_WINDOWS)
 	WM_operatortype_append(WM_OT_toggle_console);
 #endif
 
