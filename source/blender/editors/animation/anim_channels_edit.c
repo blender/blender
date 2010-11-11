@@ -1598,7 +1598,7 @@ void ANIM_OT_channels_collapse (wmOperatorType *ot)
 
 /* ******************* Reenable Disabled Operator ******************* */
 
-static int animchannels_revive_poll (bContext *C)
+static int animchannels_enable_poll (bContext *C)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	
@@ -1614,7 +1614,7 @@ static int animchannels_revive_poll (bContext *C)
 	return 1;
 }
 
-static int animchannels_revive_exec (bContext *C, wmOperator *op)
+static int animchannels_enable_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -1645,16 +1645,16 @@ static int animchannels_revive_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_channels_revive_fcurves (wmOperatorType *ot)
+void ANIM_OT_channels_fcurves_enable (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Revive Disabled F-Curves";
-	ot->idname= "ANIM_OT_channels_revive_fcurves";
+	ot->idname= "ANIM_OT_channels_fcurves_enable";
 	ot->description= "Clears 'disabled' tag from all F-Curves to get broken F-Curves working again";
 	
 	/* api callbacks */
-	ot->exec= animchannels_revive_exec;
-	ot->poll= animchannels_revive_poll;
+	ot->exec= animchannels_enable_exec;
+	ot->poll= animchannels_enable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2180,7 +2180,7 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_visibility_toggle);
 	WM_operatortype_append(ANIM_OT_channels_visibility_set);
 	
-	WM_operatortype_append(ANIM_OT_channels_revive_fcurves);
+	WM_operatortype_append(ANIM_OT_channels_fcurves_enable);
 }
 
 // TODO: check on a poll callback for this, to get hotkeys into menus
