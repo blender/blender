@@ -151,6 +151,30 @@ static float vertarray_size(MVert *mvert, int numVerts, int axis)
 	return max_co - min_co;
 }
 
+/* XXX This function fixes bad merging code, in some cases removing vertices creates indices > maxvert */
+
+static int test_index_face_maxvert(MFace *mface, CustomData *fdata, int mfindex, int nr, int maxvert)
+{
+	if(mface->v1 >= maxvert) {
+		// printf("bad index in array\n");
+		mface->v1= maxvert - 1;
+	}
+	if(mface->v2 >= maxvert) {
+		// printf("bad index in array\n");
+		mface->v2= maxvert - 1;
+	}
+	if(mface->v3 >= maxvert) {
+		// printf("bad index in array\n");
+		mface->v3= maxvert - 1;
+	}
+	if(mface->v4 >= maxvert) {
+		// printf("bad index in array\n");
+		mface->v4= maxvert - 1;
+	}
+	
+	return test_index_face(mface, fdata, mfindex, nr);
+}
+
 typedef struct IndexMapEntry {
 	/* the new vert index that this old vert index maps to */
 	int new;
@@ -485,7 +509,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  if(inMF.v4 && indexMap[inMF.v4].merge_final)
 				  mf->v4 = calc_mapping(indexMap, indexMap[inMF.v4].merge, count-1);
 
-			  if(test_index_face(mf, &result->faceData, numFaces, inMF.v4?4:3) < 3)
+			  if(test_index_face_maxvert(mf, &result->faceData, numFaces, inMF.v4?4:3, numVerts) < 3)
 				  continue;
 
 			  numFaces++;
@@ -509,7 +533,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				  if (inMF.v4)
 					  mf2->v4 = calc_mapping(indexMap, inMF.v4, j);
 
-				  test_index_face(mf2, &result->faceData, numFaces, inMF.v4?4:3);
+				  test_index_face_maxvert(mf2, &result->faceData, numFaces, inMF.v4?4:3, numVerts);
 				  numFaces++;
 
 				  /* if the face has fewer than 3 vertices, don't create it */
@@ -605,8 +629,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				  if(mface[numFaces].v4) {
 					  mface[numFaces].v4 = vert_map[mface[numFaces].v4];
 
-					  test_index_face(&mface[numFaces], &result->faceData,
-									  numFaces, 4);
+					  test_index_face_maxvert(&mface[numFaces], &result->faceData,
+									  numFaces, 4, numVerts);
 				  }
 				  else
 				  {
