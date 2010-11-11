@@ -144,7 +144,7 @@ int ED_operator_animview_active(bContext *C)
 {
 	if(ED_operator_areaactive(C)) {
 		SpaceLink *sl= (SpaceLink *)CTX_wm_space_data(C);
-		if (sl && (ELEM5(sl->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_TIME)))
+		if (sl && (ELEM6(sl->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_IPO, SPACE_TIME)))
 			return TRUE;
 	}
 
