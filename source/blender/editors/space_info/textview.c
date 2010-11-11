@@ -89,7 +89,7 @@ static void console_draw_sel(int sel[2], int xy[2], int str_len_draw, int cwidth
 /* return 0 if the last line is off the screen
  * should be able to use this for any string type */
 
-static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, unsigned char *fg, unsigned char *bg)
+static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str_len, unsigned char *fg, unsigned char *bg)
 {
 #define STEP_SEL(value) cdc->sel[0] += (value); cdc->sel[1] += (value)
 	int rct_ofs= cdc->lheight/4;
@@ -131,8 +131,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 
 	if(str_len > cdc->console_width) { /* wrap? */
 		const int initial_offset= ((tot_lines-1) * cdc->console_width);
-		char *line_stride= str + initial_offset;	/* advance to the last line and draw it first */
-		char eol;													/* baclup the end of wrapping */
+		const char *line_stride= str + initial_offset;	/* advance to the last line and draw it first */
 		
 		int sel_orig[2];
 		VECCOPY2D(sel_orig, cdc->sel);
@@ -150,7 +149,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 
 		/* last part needs no clipping */
 		BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
-		BLF_draw(mono, line_stride);
+		BLF_draw(mono, line_stride, str_len - initial_offset);
 
 		if(cdc->sel[0] != cdc->sel[1]) {
 			STEP_SEL(-initial_offset);
@@ -165,11 +164,8 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 		line_stride -= cdc->console_width;
 		
 		for(; line_stride >= str; line_stride -= cdc->console_width) {
-			eol = line_stride[cdc->console_width];
-			line_stride[cdc->console_width]= '\0';
-			
 			BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
-			BLF_draw(mono, line_stride);
+			BLF_draw(mono, line_stride, cdc->console_width);
 			
 			if(cdc->sel[0] != cdc->sel[1]) {
 				// glColor4ub(0, 255, 0, 96); // debug
@@ -179,8 +175,6 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 			}
 
 			cdc->xy[1] += cdc->lheight;
-
-			line_stride[cdc->console_width] = eol; /* restore */
 			
 			/* check if were out of view bounds */
 			if(cdc->xy[1] > cdc->ymax)
@@ -200,7 +194,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, char *str, int str_len, 
 		glColor3ubv(fg);
 
 		BLF_position(mono, cdc->xy[0], cdc->xy[1], 0);
-		BLF_draw(mono, str);
+		BLF_draw(mono, str, str_len);
 		
 		if(cdc->sel[0] != cdc->sel[1]) {
 			int isel[2];
@@ -269,9 +263,9 @@ int textview_draw(TextViewContext *tvc, int draw, int mval[2], void **mouse_pick
 	}
 
 	if(tvc->begin(tvc)) {
-	
+
 		do {
-			char *ext_line;
+			const char *ext_line;
 			int ext_len;
 			int color_flag= 0;
 

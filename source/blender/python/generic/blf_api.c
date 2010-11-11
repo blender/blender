@@ -141,12 +141,13 @@ static char py_blf_draw_doc[] =
 static PyObject *py_blf_draw(PyObject *UNUSED(self), PyObject *args)
 {
 	char *text;
+	int text_length;
 	int fontid;
 
-	if (!PyArg_ParseTuple(args, "is:blf.draw", &fontid, &text))
+	if (!PyArg_ParseTuple(args, "is#:blf.draw", &fontid, &text, &text_length))
 		return NULL;
 
-	BLF_draw(fontid, text);
+	BLF_draw(fontid, text, (unsigned int)text_length);
 
 	Py_RETURN_NONE;
 }

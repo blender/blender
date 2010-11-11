@@ -168,7 +168,7 @@ static int console_textview_step(TextViewContext *tvc)
 	return ((tvc->iter= (void *)((Link *)tvc->iter)->prev) != NULL);
 }
 
-static int console_textview_line_get(struct TextViewContext *tvc, char **line, int *len)
+static int console_textview_line_get(struct TextViewContext *tvc, const char **line, int *len)
 {
 	ConsoleLine *cl= (ConsoleLine *)tvc->iter;
 	*line= cl->line;
@@ -231,7 +231,7 @@ static int report_textview_step(TextViewContext *tvc)
 	return ((tvc->iter= (void *)((Link *)tvc->iter)->prev) != NULL);
 }
 
-static int report_textview_line_get(struct TextViewContext *tvc, char **line, int *len)
+static int report_textview_line_get(struct TextViewContext *tvc, const char **line, int *len)
 {
 	Report *report= (Report *)tvc->iter;
 	*line= report->message;

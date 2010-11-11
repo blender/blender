@@ -92,7 +92,7 @@ void blf_font_size(FontBLF *font, int size, int dpi)
 	}
 }
 
-void blf_font_draw(FontBLF *font, const char *str)
+void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
 {
 	unsigned int c;
 	GlyphBLF *g, *g_prev;
@@ -110,7 +110,7 @@ void blf_font_draw(FontBLF *font, const char *str)
 	has_kerning= FT_HAS_KERNING(font->face);
 	g_prev= NULL;
 
-	while (str[i]) {
+	while (str[i] && i < len) {
 		c= blf_utf8_next((unsigned char *)str, &i);
 		if (c == 0)
 			break;
@@ -147,7 +147,7 @@ void blf_font_draw(FontBLF *font, const char *str)
 }
 
 /* faster version of blf_font_draw, ascii only for view dimensions */
-void blf_font_draw_ascii(FontBLF *font, const char *str)
+void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len)
 {
 	char c;
 	GlyphBLF *g, *g_prev;
@@ -177,7 +177,7 @@ void blf_font_draw_ascii(FontBLF *font, const char *str)
 		}
 	}
 	
-	while ((c= *(str++))) {
+	while ((c= *(str++)) && len--) {
 		g= font->glyph_ascii_table[c];
 
 		/* if we don't found a glyph, skip it. */

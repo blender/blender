@@ -361,7 +361,7 @@ void BLF_blur(int fontid, int size)
 		font->blur= size;
 }
 
-void BLF_draw_default(float x, float y, float z, const char *str)
+void BLF_draw_default(float x, float y, float z, const char *str, size_t len)
 {
 	if (!str)
 		return;
@@ -376,10 +376,10 @@ void BLF_draw_default(float x, float y, float z, const char *str)
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
 	BLF_position(global_font_default, x, y, z);
-	BLF_draw(global_font_default, str);
+	BLF_draw(global_font_default, str, len);
 }
 /* same as above but call 'BLF_draw_ascii' */
-void BLF_draw_default_ascii(float x, float y, float z, const char *str)
+void BLF_draw_default_ascii(float x, float y, float z, const char *str, size_t len)
 {
 	if (!str)
 		return;
@@ -394,7 +394,7 @@ void BLF_draw_default_ascii(float x, float y, float z, const char *str)
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
 	BLF_position(global_font_default, x, y, z);
-	BLF_draw_ascii(global_font_default, str);
+	BLF_draw_ascii(global_font_default, str, len); /* XXX, use real length */
 }
 
 void BLF_rotation_default(float angle)
@@ -432,22 +432,22 @@ static void blf_draw__end(void)
 	glDisable(GL_TEXTURE_2D);
 }
 
-void BLF_draw(int fontid, const char *str)
+void BLF_draw(int fontid, const char *str, size_t len)
 {
 	FontBLF *font= BLF_get(fontid);
 	if (font) {
 		blf_draw__start(font);
-		blf_font_draw(font, str);
+		blf_font_draw(font, str, len);
 		blf_draw__end();
 	}
 }
 
-void BLF_draw_ascii(int fontid, const char *str)
+void BLF_draw_ascii(int fontid, const char *str, size_t len)
 {
 	FontBLF *font= BLF_get(fontid);
 	if (font) {
 		blf_draw__start(font);
-		blf_font_draw_ascii(font, str);
+		blf_font_draw_ascii(font, str, len);
 		blf_draw__end();
 	}
 }

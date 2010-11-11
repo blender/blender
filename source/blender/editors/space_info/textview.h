@@ -39,7 +39,7 @@ typedef struct TextViewContext {
 
 	/* iterator */
 	int (*step)(struct TextViewContext *tvc);
-	int (*line_get)(struct TextViewContext *tvc, char **, int *);
+	int (*line_get)(struct TextViewContext *tvc, const char **, int *);
 	int (*line_color)(struct TextViewContext *tvc, unsigned char fg[3], unsigned char bg[3]);
 	void *iter;
 	int iter_index;

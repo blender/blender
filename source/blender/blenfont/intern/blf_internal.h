@@ -44,8 +44,8 @@ FontBLF *blf_font_new_from_mem(char *name, unsigned char *mem, int mem_size);
 void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, int mem_size);
 
 void blf_font_size(FontBLF *font, int size, int dpi);
-void blf_font_draw(FontBLF *font, const char *str);
-void blf_font_draw_ascii(FontBLF *font, const char *str);
+void blf_font_draw(FontBLF *font, const char *str, unsigned int len);
+void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len);
 void blf_font_buffer(FontBLF *font, char *str);
 void blf_font_boundbox(FontBLF *font, char *str, rctf *box);
 void blf_font_width_and_height(FontBLF *font, char *str, float *width, float *height);

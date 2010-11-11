@@ -604,7 +604,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	glEnd();
 
 	if (fabs(dx) > toll || fabs(dy) > toll) {
-		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "x");
+		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "x", 1);
 	}
 	
 	/* BLF_draw_default disables blending */
@@ -624,7 +624,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	glEnd();
 
 	if (fabs(dx) > toll || fabs(dy) > toll) {
-		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "y");
+		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "y", 1);
 	}
 
 	glEnable(GL_BLEND);
@@ -643,7 +643,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	glEnd();
 
 	if (fabs(dx) > toll || fabs(dy) > toll) {
-		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "z");
+		BLF_draw_default(start + dx + 2, start + dy + ydisp + 2, 0.0f, "z", 1);
 	}
 
 	/* restore line-width */
@@ -724,24 +724,17 @@ static char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 static void draw_viewport_name(ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
-	char *name = view3d_get_name(v3d, rv3d);
-	char *printable = NULL;
+	char *name= view3d_get_name(v3d, rv3d);
+	char tmpstr[24];
 	
 	if (v3d->localvd) {
-		printable = MEM_mallocN(strlen(name) + strlen(" (Local)_"), "viewport_name"); /* '_' gives space for '\0' */
-												 strcpy(printable, name);
-												 strcat(printable, " (Local)");
-	} else {
-		printable = name;
+		snprintf(tmpstr, sizeof(tmpstr), "%s (Local)", name);
+		name= tmpstr;
 	}
 
-	if (printable) {
+	if (name) {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(22,  ar->winy-17, 0.0f, printable);
-	}
-
-	if (v3d->localvd) {
-		MEM_freeN(printable);
+		BLF_draw_default(22,  ar->winy-17, 0.0f, name, sizeof(tmpstr));
 	}
 }
 
@@ -836,7 +829,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 	if (U.uiflag & USER_SHOW_ROTVIEWICON)
 		offset = 14 + (U.rvisize * 2);
 
-	BLF_draw_default(offset,  10, 0.0f, info);
+	BLF_draw_default(offset,  10, 0.0f, info, sizeof(info)-1);
 }
 
 static void view3d_get_viewborder_size(Scene *scene, ARegion *ar, float size_r[2])
@@ -1015,7 +1008,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	/* camera name - draw in highlighted text color */
 	if (ca && (ca->flag & CAM_SHOWNAME)) {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(x1i, y1i-15, 0.0f, v3d->camera->id.name+2);
+		BLF_draw_default(x1i, y1i-15, 0.0f, v3d->camera->id.name+2, sizeof(v3d->camera->id.name)-2);
 		UI_ThemeColor(TH_WIRE);
 	}
 }
@@ -2274,7 +2267,7 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 		BLI_snprintf(printable, sizeof(printable), "fps: %i", (int)(fps+0.5));
 	}
 	
-	BLF_draw_default(22,  ar->winy-17, 0.0f, printable);
+	BLF_draw_default(22,  ar->winy-17, 0.0f, printable, sizeof(printable)-1);
 }
 
 void view3d_main_area_draw(const bContext *C, ARegion *ar)
@@ -2507,7 +2500,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	if (grid_unit) { /* draw below the viewport name */
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, grid_unit);
+		BLF_draw_default(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, grid_unit, 65535); /* XXX, use real length */
 	}
 
 	ob= OBACT;
