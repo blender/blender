@@ -30,5 +30,6 @@
 
 SOURCEDIR = source/blender/modifiers
 DIRS = intern
-CFLAGS += -DWITH_MOD_BOOLEAN -DWITH_MOD_BOOLEAN
+CFLAGS += -DWITH_MOD_BOOLEAN
+CFLAGS += -DWITH_MOD_DECIMATE
 include nan_subdirs.mk
