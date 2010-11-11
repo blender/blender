@@ -1596,9 +1596,73 @@ void ANIM_OT_channels_collapse (wmOperatorType *ot)
 	ot->prop= RNA_def_boolean(ot->srna, "all", 1, "All", "Collapse all channels (not just selected ones)");
 }
 
+/* ******************* Reenable Disabled Operator ******************* */
+
+static int animchannels_revive_poll (bContext *C)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	
+	/* channels region test */
+	// TODO: could enhance with actually testing if channels region?
+	if (ELEM(NULL, sa, CTX_wm_region(C)))
+		return 0;
+		
+	/* animation editor test - Action/Dopesheet/etc. and Graph only */
+	if (ELEM(sa->spacetype, SPACE_ACTION, SPACE_IPO) == 0)
+		return 0;
+		
+	return 1;
+}
+
+static int animchannels_revive_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* loop through filtered data and clean curves */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu = (FCurve *)ale->data;
+		fcu->flag &= ~FCURVE_DISABLED;
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+		
+	/* send notifier that things have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_channels_revive_fcurves (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Revive Disabled F-Curves";
+	ot->idname= "ANIM_OT_channels_revive_fcurves";
+	ot->description= "Clears 'disabled' tag from all F-Curves to get broken F-Curves working again";
+	
+	/* api callbacks */
+	ot->exec= animchannels_revive_exec;
+	ot->poll= animchannels_revive_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* ********************** Select All Operator *********************** */
 
-static int animchannels_deselectall_exec(bContext *C, wmOperator *op)
+static int animchannels_deselectall_exec (bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	
@@ -2115,6 +2179,8 @@ void ED_operatortypes_animchannels(void)
 	
 	WM_operatortype_append(ANIM_OT_channels_visibility_toggle);
 	WM_operatortype_append(ANIM_OT_channels_visibility_set);
+	
+	WM_operatortype_append(ANIM_OT_channels_revive_fcurves);
 }
 
 // TODO: check on a poll callback for this, to get hotkeys into menus
