@@ -73,39 +73,6 @@ static void console_line_color(unsigned char fg[3], int type)
 	}
 }
 
-static void console_report_color(unsigned char *fg, unsigned char *bg, Report *report, int bool)
-{
-	/*
-	if		(type & RPT_ERROR_ALL)		{ fg[0]=220; fg[1]=0; fg[2]=0; }
-	else if	(type & RPT_WARNING_ALL)	{ fg[0]=220; fg[1]=96; fg[2]=96; }
-	else if	(type & RPT_OPERATOR_ALL)	{ fg[0]=96; fg[1]=128; fg[2]=255; }
-	else if	(type & RPT_INFO_ALL)		{ fg[0]=0; fg[1]=170; fg[2]=0; }
-	else if	(type & RPT_DEBUG_ALL)		{ fg[0]=196; fg[1]=196; fg[2]=196; }
-	else								{ fg[0]=196; fg[1]=196; fg[2]=196; }
-	*/
-	if(report->flag & SELECT) {
-		fg[0]=255; fg[1]=255; fg[2]=255;
-		if(bool) {
-			bg[0]=96; bg[1]=128; bg[2]=255;
-		}
-		else {
-			bg[0]=90; bg[1]=122; bg[2]=249;
-		}
-	}
-
-	else {
-		fg[0]=0; fg[1]=0; fg[2]=0;
-
-		if(bool) {
-			bg[0]=120; bg[1]=120; bg[2]=120;
-		}
-		else {
-			bg[0]=114; bg[1]=114; bg[2]=114;
-		}
-
-	}
-}
-
 typedef struct ConsoleDrawContext {
 	int cwidth;
 	int lheight;
@@ -201,131 +168,50 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 }
 
 
-
-/* reports! */
-static int report_textview_begin(TextViewContext *tvc)
+static int console_textview_main__internal(struct SpaceConsole *sc, struct ARegion *ar, ReportList *UNUSED(reports), int draw, int mval[2], void **mouse_pick, int *pos_pick)
 {
-	SpaceConsole *sc= (SpaceConsole *)tvc->arg1;
-	ReportList *reports= (ReportList *)tvc->arg2;
-
-	tvc->lheight= sc->lheight;
-	tvc->sel_start= sc->sel_start;
-	tvc->sel_end= sc->sel_end;
+	ConsoleLine cl_dummy= {0};
+	int ret= 0;
 	
-	/* iterator */
-	tvc->iter= reports->list.last;
-	
-	glClearColor(120.0/255.0, 120.0/255.0, 120.0/255.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	return (tvc->iter != NULL);
-}
+	View2D *v2d= &ar->v2d;
 
-static void report_textview_end(TextViewContext *UNUSED(tvc))
-{
-	/* pass */
-}
+	TextViewContext tvc= {0};
+	tvc.begin= console_textview_begin;
+	tvc.end= console_textview_end;
 
-static int report_textview_step(TextViewContext *tvc)
-{
-	return ((tvc->iter= (void *)((Link *)tvc->iter)->prev) != NULL);
-}
+	tvc.step= console_textview_step;
+	tvc.line_get= console_textview_line_get;
+	tvc.line_color= console_textview_line_color;
 
-static int report_textview_line_get(struct TextViewContext *tvc, const char **line, int *len)
-{
-	Report *report= (Report *)tvc->iter;
-	*line= report->message;
-	*len= report->len;
+	tvc.arg1= sc;
+	tvc.arg2= NULL;
 
-	return 1;
-}
+	/* view */
+	tvc.sel_start= sc->sel_start;
+	tvc.sel_end= sc->sel_end;
+	tvc.lheight= sc->lheight;
+	tvc.ymin= v2d->cur.ymin;
+	tvc.ymax= v2d->cur.ymax;
+	tvc.winx= ar->winx;
 
-static int report_textview_line_color(struct TextViewContext *tvc, unsigned char fg[3], unsigned char bg[3])
-{
-	Report *report= (Report *)tvc->iter;
-	console_report_color(fg, bg, report, tvc->iter_index % 2);
-	return TVC_LINE_FG | TVC_LINE_BG;
+	console_scrollback_prompt_begin(sc, &cl_dummy);
+	ret= textview_draw(&tvc, draw, mval, mouse_pick, pos_pick);
+	console_scrollback_prompt_end(sc, &cl_dummy);
+
+	return ret;
 }
 
 
-static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports, int draw, int mval[2], void **mouse_pick, int *pos_pick)
-{
-	if(sc->type==CONSOLE_TYPE_PYTHON) {
-		int ret= 0;
-		
-		View2D *v2d= &ar->v2d;
-	
-		TextViewContext tvc= {0};
-		tvc.begin= console_textview_begin;
-		tvc.end= console_textview_end;
-	
-		tvc.step= console_textview_step;
-		tvc.line_get= console_textview_line_get;
-		tvc.line_color= console_textview_line_color;
-	
-		tvc.arg1= sc;
-		tvc.arg2= NULL;
-	
-		/* view */
-		tvc.sel_start= sc->sel_start;
-		tvc.sel_end= sc->sel_end;
-		tvc.lheight= sc->lheight;
-		tvc.ymin= v2d->cur.ymin;
-		tvc.ymax= v2d->cur.ymax;
-		tvc.winx= ar->winx;
-
-		{
-			ConsoleLine cl_dummy= {0};
-			console_scrollback_prompt_begin(sc, &cl_dummy);
-			ret= textview_draw(&tvc, draw, mval, mouse_pick, pos_pick);
-			console_scrollback_prompt_end(sc, &cl_dummy);
-		}
-		
-		return ret;
-	}
-	else {
-		int ret= 0;
-
-		View2D *v2d= &ar->v2d;
-
-		TextViewContext tvc= {0};
-		tvc.begin= report_textview_begin;
-		tvc.end= report_textview_end;
-	
-		tvc.step= report_textview_step;
-		tvc.line_get= report_textview_line_get;
-		tvc.line_color= report_textview_line_color;
-	
-		tvc.arg1= sc;
-		tvc.arg2= reports;
-	
-		/* view */
-		tvc.sel_start= sc->sel_start;
-		tvc.sel_end= sc->sel_end;
-		tvc.lheight= sc->lheight;
-		tvc.ymin= v2d->cur.ymin;
-		tvc.ymax= v2d->cur.ymax;
-		tvc.winx= ar->winx;
-
-		{
-			ret= textview_draw(&tvc, draw, mval, mouse_pick, pos_pick);
-		}
-
-		return ret;
-	}
-}
-
-
-void console_text_main(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports)
+void console_textview_main(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports)
 {
 	int mval[2] = {INT_MAX, INT_MAX};
-	console_text_main__internal(sc, ar, reports, 1,  mval, NULL, NULL);
+	console_textview_main__internal(sc, ar, reports, 1,  mval, NULL, NULL);
 }
 
-int console_text_height(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports)
+int console_textview_height(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports)
 {
 	int mval[2] = {INT_MAX, INT_MAX};
-	return console_text_main__internal(sc, ar, reports, 0,  mval, NULL, NULL);
+	return console_textview_main__internal(sc, ar, reports, 0,  mval, NULL, NULL);
 }
 
 void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports, int mouse_y)
@@ -336,7 +222,7 @@ void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList 
 	mval[0]= 0;
 	mval[1]= mouse_y;
 
-	console_text_main__internal(sc, ar, reports, 0, mval, &mouse_pick, NULL);
+	console_textview_main__internal(sc, ar, reports, 0, mval, &mouse_pick, NULL);
 	return (void *)mouse_pick;
 }
 
@@ -349,6 +235,6 @@ int console_char_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList *r
 	mval_clamp[0]= CLAMPIS(mval[0], CONSOLE_DRAW_MARGIN, ar->winx-(CONSOLE_DRAW_SCROLL + CONSOLE_DRAW_MARGIN));
 	mval_clamp[1]= CLAMPIS(mval[1], CONSOLE_DRAW_MARGIN, ar->winy-CONSOLE_DRAW_MARGIN);
 
-	console_text_main__internal(sc, ar, reports, 0, mval_clamp, &mouse_pick, &pos_pick);
+	console_textview_main__internal(sc, ar, reports, 0, mval_clamp, &mouse_pick, &pos_pick);
 	return pos_pick;
 }

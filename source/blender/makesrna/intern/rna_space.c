@@ -62,7 +62,7 @@ EnumPropertyItem space_type_items[] = {
 	{SPACE_TIME, "TIMELINE", 0, "Timeline", ""},
 	{SPACE_NODE, "NODE_EDITOR", 0, "Node Editor", ""},
 	{SPACE_LOGIC, "LOGIC_EDITOR", 0, "Logic Editor", ""},
-	{SPACE_CONSOLE, "CONSOLE", 0, "Console", ""},
+	{SPACE_CONSOLE, "CONSOLE", 0, "Python Console", ""},
 	{SPACE_USERPREF, "USER_PREFERENCES", 0, "User Preferences", ""},
 	{0, NULL, 0, NULL, NULL}};
 
@@ -2012,11 +2012,6 @@ static void rna_def_console_line(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_ConsoleLine_cursor_index_range");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE, NULL);
 }
-
-static EnumPropertyItem console_type_items[] = {
-	{CONSOLE_TYPE_PYTHON, "PYTHON", 0, "Python", ""},
-	{CONSOLE_TYPE_REPORT, "REPORT", 0, "Report", ""},
-	{0, NULL, 0, NULL, NULL}};
 	
 static void rna_def_space_console(BlenderRNA *brna)
 {
@@ -2033,12 +2028,7 @@ static void rna_def_space_console(BlenderRNA *brna)
 	RNA_def_property_range(prop, 8, 32);
 	RNA_def_property_ui_text(prop, "Font Size", "Font size to use for displaying the text");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE, NULL);
-	
-	prop= RNA_def_property(srna, "console_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, console_type_items);
-	RNA_def_property_ui_text(prop, "Type", "Console type");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE, NULL);
+
 
 	prop= RNA_def_property(srna, "select_start", PROP_INT, PROP_UNSIGNED); /* copied from text editor */
 	RNA_def_property_int_sdna(prop, NULL, "sel_start");
@@ -2047,32 +2037,6 @@ static void rna_def_space_console(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "select_end", PROP_INT, PROP_UNSIGNED); /* copied from text editor */
 	RNA_def_property_int_sdna(prop, NULL, "sel_end");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE, NULL);
-
-	/* reporting display */
-	prop= RNA_def_property(srna, "show_report_debug", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "rpt_mask", CONSOLE_RPT_DEBUG);
-	RNA_def_property_ui_text(prop, "Show Debug", "Display debug reporting info");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE_REPORT, NULL);
-	
-	prop= RNA_def_property(srna, "show_report_info", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "rpt_mask", CONSOLE_RPT_INFO);
-	RNA_def_property_ui_text(prop, "Show Info", "Display general information");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE_REPORT, NULL);
-	
-	prop= RNA_def_property(srna, "show_report_operator", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "rpt_mask", CONSOLE_RPT_OP);
-	RNA_def_property_ui_text(prop, "Show Operator", "Display the operator log");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE_REPORT, NULL);
-	
-	prop= RNA_def_property(srna, "show_report_warning", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "rpt_mask", CONSOLE_RPT_WARN);
-	RNA_def_property_ui_text(prop, "Show Warn", "Display warnings");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE_REPORT, NULL);
-	
-	prop= RNA_def_property(srna, "show_report_error", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "rpt_mask", CONSOLE_RPT_ERR);
-	RNA_def_property_ui_text(prop, "Show Error", "Display error text");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE_REPORT, NULL);
 
 	prop= RNA_def_property(srna, "prompt", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Prompt", "Command line prompt");
@@ -2225,10 +2189,37 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
 static void rna_def_space_info(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "SpaceInfo", "Space");
 	RNA_def_struct_sdna(srna, "SpaceInfo");
 	RNA_def_struct_ui_text(srna, "Space Info", "Info space data");
+	
+	/* reporting display */
+	prop= RNA_def_property(srna, "show_report_debug", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "rpt_mask", INFO_RPT_DEBUG);
+	RNA_def_property_ui_text(prop, "Show Debug", "Display debug reporting info");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_INFO_REPORT, NULL);
+	
+	prop= RNA_def_property(srna, "show_report_info", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "rpt_mask", INFO_RPT_INFO);
+	RNA_def_property_ui_text(prop, "Show Info", "Display general information");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_INFO_REPORT, NULL);
+	
+	prop= RNA_def_property(srna, "show_report_operator", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "rpt_mask", INFO_RPT_OP);
+	RNA_def_property_ui_text(prop, "Show Operator", "Display the operator log");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_INFO_REPORT, NULL);
+	
+	prop= RNA_def_property(srna, "show_report_warning", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "rpt_mask", INFO_RPT_WARN);
+	RNA_def_property_ui_text(prop, "Show Warn", "Display warnings");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_INFO_REPORT, NULL);
+	
+	prop= RNA_def_property(srna, "show_report_error", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "rpt_mask", INFO_RPT_ERR);
+	RNA_def_property_ui_text(prop, "Show Error", "Display error text");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_INFO_REPORT, NULL);	
 }
 
 static void rna_def_space_userpref(BlenderRNA *brna)

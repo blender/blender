@@ -110,9 +110,6 @@ def execute(context):
     except:
         return {'CANCELLED'}
 
-    if sc.console_type != 'PYTHON':
-        return {'CANCELLED'}
-
     console, stdout, stderr = get_console(hash(context.region))
 
     # redirect output
@@ -198,9 +195,6 @@ def autocomplete(context):
     console = get_console(hash(context.region))[0]
 
     if not console:
-        return {'CANCELLED'}
-
-    if sc.console_type != 'PYTHON':
         return {'CANCELLED'}
 
     # dont allow the stdin to be used, can lock blender.

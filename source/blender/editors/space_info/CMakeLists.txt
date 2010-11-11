@@ -34,6 +34,8 @@ SET(INC
 SET(SRC
 	info_ops.c
 	info_stats.c
+	info_draw.c
+	info_report.c
 	textview.c
 	space_info.c
 )

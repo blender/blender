@@ -84,10 +84,19 @@ typedef struct SpaceInfo {
 
 	short blockhandler[8];		/* XXX depricate this */
 	
-	struct bScreen *screen;		/* browse screen */
-	struct Scene *scene;		/* browse scene */
+	char rpt_mask;
+	char pad[7];
 	
 } SpaceInfo;
+
+/* SpaceInfo.rpt_mask */
+enum {
+	INFO_RPT_DEBUG	= 1<<0,
+	INFO_RPT_INFO	= 1<<1,
+	INFO_RPT_OP		= 1<<2,
+	INFO_RPT_WARN	= 1<<3,
+	INFO_RPT_ERR		= 1<<4,
+};
 
 /* 'Graph' Editor (formerly known as the IPO Editor) */
 typedef struct SpaceIpo {
@@ -505,21 +514,6 @@ enum {
 	CONSOLE_LINE_ERROR
 };
 
-/* SpaceConsole.rpt_mask */
-enum {
-	CONSOLE_TYPE_PYTHON=0,
-	CONSOLE_TYPE_REPORT,
-};
-
-/* SpaceConsole.type see BKE_report.h */
-enum {
-	CONSOLE_RPT_DEBUG	= 1<<0,
-	CONSOLE_RPT_INFO	= 1<<1,
-	CONSOLE_RPT_OP		= 1<<2,
-	CONSOLE_RPT_WARN	= 1<<3,
-	CONSOLE_RPT_ERR		= 1<<4,
-};
-
 typedef struct SpaceConsole {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -529,9 +523,7 @@ typedef struct SpaceConsole {
 	short blockhandler[8];		// XXX are these needed?
 	
 	/* space vars */
-	int type; /* console/report/..? */
-	int rpt_mask; /* which reports to display */
-	int flag, lheight;
+	int lheight, pad;
 
 	ListBase scrollback; /* ConsoleLine; output */
 	ListBase history; /* ConsoleLine; command history, current edited line is the first */

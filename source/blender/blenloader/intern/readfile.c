@@ -11112,6 +11112,35 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	{
+		bScreen *sc;
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if (sl->spacetype == SPACE_INFO) {
+						SpaceInfo *sinfo= (SpaceInfo *)sl;
+						ARegion *ar;
+
+						sinfo->rpt_mask= INFO_RPT_OP;
+
+						for (ar= sa->regionbase.first; ar; ar= ar->next) {
+							if (ar->regiontype == RGN_TYPE_WINDOW) {
+								ar->v2d.scroll = (V2D_SCROLL_RIGHT);
+								ar->v2d.align = V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y; /* align bottom left */
+								ar->v2d.keepofs = V2D_LOCKOFS_X;
+								ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_LIMITZOOM|V2D_KEEPASPECT);
+								ar->v2d.keeptot= V2D_KEEPTOT_BOUNDS;
+								ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

@@ -1698,7 +1698,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 		{14, "USER_PREFERENCES", ICON_PREFERENCES, "User Preferences", ""},
 		{15, "INFO", ICON_INFO, "Info", ""},
 		{16, "FILE_BROWSER", ICON_FILESEL, "File Browser", ""},
-		{17, "CONSOLE", ICON_CONSOLE, "Console", ""},
+		{17, "CONSOLE", ICON_CONSOLE, "Python Console", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Theme", NULL);

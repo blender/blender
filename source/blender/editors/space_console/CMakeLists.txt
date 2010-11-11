@@ -34,7 +34,6 @@ SET(INC
 SET(SRC
 	console_draw.c
 	console_ops.c
-	console_report.c
 	space_console.c
 )
 

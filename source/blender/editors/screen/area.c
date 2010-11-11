@@ -1165,7 +1165,7 @@ static char *editortype_pup(void)
 		   
 		   "|%l"
 		   
-		   "|Console %x18"
+		   "|Python Console %x18"
 		   );
 }
 

@@ -888,6 +888,10 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, char *opname)
 	else if (strstr(opname, "CONSOLE_OT")) {
 		km = WM_keymap_find_all(C, "Console", sl->spacetype, 0);
 	}
+	/* Console */
+	else if (strstr(opname, "INFO_OT")) {
+		km = WM_keymap_find_all(C, "Info", sl->spacetype, 0);
+	}
 	
 	/* Transform */
 	else if (strstr(opname, "TRANSFORM_OT")) {

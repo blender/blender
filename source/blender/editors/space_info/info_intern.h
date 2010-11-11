@@ -30,7 +30,9 @@
 
 /* internal exports only */
 
+struct SpaceInfo;
 struct wmOperatorType;
+struct ReportList;
 
 void FILE_OT_pack_all(struct wmOperatorType *ot);
 void FILE_OT_unpack_all(struct wmOperatorType *ot);
@@ -41,5 +43,19 @@ void FILE_OT_find_missing_files(struct wmOperatorType *ot);
 
 void INFO_OT_reports_display_update(struct wmOperatorType *ot);
 
-#endif /* ED_INFO_INTERN_H */
+/* info_draw.c */
+void *info_text_pick(struct SpaceInfo *sinfo, struct ARegion *ar, ReportList *reports, int mouse_y);
+int info_textview_height(struct SpaceInfo *sinfo, struct ARegion *ar, struct ReportList *reports);
+void info_textview_main(struct SpaceInfo *sinfo, struct ARegion *ar, struct ReportList *reports);
 
+/* info_report.c */
+/* console_report.c */
+void INFO_OT_select_pick(struct wmOperatorType *ot); /* report selection */
+void INFO_OT_select_all_toggle(struct wmOperatorType *ot);
+void INFO_OT_select_border(struct wmOperatorType *ot);
+
+void INFO_OT_report_replay(struct wmOperatorType *ot);
+void INFO_OT_report_delete(struct wmOperatorType *ot);
+void INFO_OT_report_copy(struct wmOperatorType *ot);
+
+#endif /* ED_INFO_INTERN_H */
