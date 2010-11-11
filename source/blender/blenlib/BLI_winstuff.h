@@ -89,15 +89,6 @@ extern "C" {
 #endif
 
 /* defines for using ISO C++ conformant names */
-#define open _open
-#define close _close
-#define write _write
-#define read _read
-#define getcwd _getcwd
-#define chdir _chdir
-#define strdup _strdup
-#define lseek _lseek
-#define getpid _getpid
 #define snprintf _snprintf
 
 #ifndef FREE_WINDOWS
@@ -141,15 +132,13 @@ void get_default_root(char *root);
 int check_file_chars(char *filename);
 char *dirname(char *path);
 
-#ifdef WIN32
 int BLI_getInstallationDir(char *str);
-#endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* _WIN32 */
 
 #endif /* __WINSTUFF_H__ */
 
