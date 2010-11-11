@@ -916,9 +916,14 @@ void BKE_nlatrack_set_active (ListBase *tracks, NlaTrack *nlt_a)
 /* Check if there is any space in the given track to add a strip of the given length */
 short BKE_nlatrack_has_space (NlaTrack *nlt, float start, float end)
 {
-	/* sanity checks */
-	if ((nlt == NULL) || IS_EQ(start, end))
+	/* sanity checks 
+	 * 	- track must exist
+	 * 	- track must be editable
+	 * 	- bounds cannot be equal (0-length is nasty) 
+	 */
+	if ((nlt == NULL) || (nlt->flag & NLATRACK_PROTECTED) || IS_EQ(start, end))
 		return 0;
+	
 	if (start > end) {
 		puts("BKE_nlatrack_has_space() error... start and end arguments swapped");
 		SWAP(float, start, end);
