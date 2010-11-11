@@ -2028,7 +2028,7 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 }
 
 /* *********************** */
-#ifdef WIN32
+#ifdef WIN32 and !defined(FREE_WINDOWS)
 static int console= 1;
 void WM_toggle_console(bContext *C, short show)
 {
