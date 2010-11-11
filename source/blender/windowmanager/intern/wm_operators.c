@@ -34,7 +34,10 @@
 #include <assert.h>
 
 #ifdef WIN32
-#include "BLI_winstuff.h"
+// XXX: winstuff commented out, as was getting  "io.h(322) : error C3163: '_write': attribute..." from MSVC - Aligorith 2010Nov12
+//#include "BLI_winstuff.h"
+#include <windows.h>  
+
 #include <io.h>
 #endif
 
