@@ -2662,6 +2662,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		/* only if a real NLA-track */
 		if (ale->type == ANIMTYPE_NLATRACK) {
+			AnimData *adt = ale->adt;
 			NlaTrack *nlt= (NlaTrack *)ale->data;
 			NlaStrip *strip;
 			
@@ -2686,7 +2687,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 						tdn->id= ale->id;
 						tdn->oldTrack= tdn->nlt= nlt;
 						tdn->strip= strip;
-						tdn->trackIndex= BLI_findindex(&nlt->strips, strip);
+						tdn->trackIndex= BLI_findindex(&adt->nla_tracks, nlt);
 						
 						yval= (float)(tdn->trackIndex * NLACHANNEL_STEP);
 						
