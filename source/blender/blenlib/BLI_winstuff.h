@@ -36,6 +36,13 @@
 
 #ifndef FREE_WINDOWS
 #pragma warning(once: 4761 4305 4244 4018)
+#else
+#ifdef WINVER
+#undef WINVER
+#endif
+
+/* Some stuff requires WINVER 0x500, but mingw's default is 0x400 */
+#define WINVER 0x0501
 #endif
 
 #define WIN32_LEAN_AND_MEAN

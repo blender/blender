@@ -32,8 +32,9 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <assert.h>
+
 #ifdef WIN32
-#include <windows.h>
+#include "BLI_winstuff.h"
 #include <io.h>
 #endif
 
@@ -2036,7 +2037,7 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 }
 
 /* *********************** */
-#if defined(WIN32) && !defined(FREE_WINDOWS)
+#if defined(WIN32)
 static int console= 1;
 void WM_toggle_console(bContext *C, short show)
 {
@@ -3148,7 +3149,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);
-#if defined(WIN32) && !defined(FREE_WINDOWS)
+#if defined(WIN32)
 	WM_operatortype_append(WM_OT_toggle_console);
 #endif
 
