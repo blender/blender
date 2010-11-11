@@ -2033,28 +2033,11 @@ static int console= 1;
 void WM_toggle_console(bContext *C, short show)
 {
 	if(show) {
-		FILE *fp;
-		char fn[FILE_MAX];
-		char tmp[FILE_MAXDIR];
-		BLI_where_is_temp(tmp, 1);
-		BLI_make_file_string("/", fn, tmp, "blenderlog.txt");
-		/* open the console */
-		AllocConsole();
-		
-		/* redirect stdin */
-		fp= freopen(fn, "r", stdin);
-		SetStdHandle(STD_INPUT_HANDLE, (HANDLE)_get_osfhandle(_fileno(stdin)));
-		/* redirect stdout */
-		fp= freopen(fn, "w", stdout);
-		SetStdHandle(STD_OUTPUT_HANDLE, (HANDLE)_get_osfhandle(_fileno(stdout)));
-		/* redirect stderr */
-		fp= freopen(fn, "w", stderr);
-		SetStdHandle(STD_ERROR_HANDLE, (HANDLE)_get_osfhandle(_fileno(stderr)));
-		
+		ShowWindow(GetConsoleWindow(),SW_SHOW);
 		console= 1;
 	}
 	else {
-		FreeConsole();
+		ShowWindow(GetConsoleWindow(),SW_HIDE);
 		console= 0;
 	}
 }
