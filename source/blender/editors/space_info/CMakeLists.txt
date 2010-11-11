@@ -21,6 +21,7 @@
 
 SET(INC
 	../include
+	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../imbuf
@@ -33,6 +34,7 @@ SET(INC
 SET(SRC
 	info_ops.c
 	info_stats.c
+	textview.c
 	space_info.c
 )
 
