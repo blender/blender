@@ -34,8 +34,8 @@
 #define _GHOST_IEVENT_H_
 
 #include "GHOST_Types.h"
-
-class GHOST_IWindow;
+#include "GHOST_IWindow.h"
+#include "intern/GHOST_ModifierKeys.h"
 
 /**
  * Interface class for events received from GHOST.
@@ -71,6 +71,13 @@ public:
 	 */
 	virtual GHOST_TUns64 getTime() = 0;
 
+	virtual void setTime(GHOST_TUns64 t) = 0;
+	
+	virtual void setPlaybackModifierKeys(GHOST_ModifierKeys keys) = 0;
+	virtual void getPlaybackModifierKeys(GHOST_ModifierKeys &keys) = 0;
+	virtual void setPlaybackCursor(GHOST_TInt32 x, GHOST_TInt32 y) = 0;
+	virtual void getPlaybackCursor(GHOST_TInt32 &x, GHOST_TInt32 &y) = 0;
+	
 	/**
 	 * Returns the window this event was generated on, 
 	 * or NULL if it is a 'system' event.
@@ -83,6 +90,17 @@ public:
 	 * @return The event data.
 	 */
 	virtual GHOST_TEventDataPtr getData() = 0;
+
+	virtual int serialize(char buf[256])
+	{
+		return 0;
+	}
+
+	int writeheader(char buf[256])
+	{
+		sprintf(buf, "%lf %d %d", ((double)this->getTime())*0.001, this->getType(), this->getWindow()->getID());
+		return 0;
+	}
 };
 
 #endif // _GHOST_IEVENT_H_

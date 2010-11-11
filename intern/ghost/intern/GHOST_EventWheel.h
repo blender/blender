@@ -58,6 +58,22 @@ public:
 		m_data = &m_wheelEventData;
 	}
 
+	GHOST_EventWheel(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window, char buf[256])
+		: GHOST_Event(msec, type, window)
+	{
+		int z;
+		sscanf(buf, "wheel: %d", &z);
+		
+		m_wheelEventData.z = z;
+		m_data = &m_wheelEventData;
+	}
+	
+	virtual int serialize(char buf[256])
+	{
+		sprintf(buf, "wheel: %d", m_wheelEventData.z);
+		
+		return 0;
+	}
 protected:
 	/** The z-displacement of the mouse wheel. */
 	GHOST_TEventWheelData m_wheelEventData;

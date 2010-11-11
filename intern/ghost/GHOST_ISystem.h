@@ -275,6 +275,13 @@ public:
 	/***************************************************************************************
 	 ** Event management functionality
 	 ***************************************************************************************/
+	
+	virtual GHOST_TSuccess beginRecord(FILE *file) = 0;
+	virtual GHOST_TSuccess endRecord() = 0;
+	virtual GHOST_TSuccess playbackEvents(FILE *file) = 0;
+	
+	virtual bool playingEvents(bool *hasevent) const = 0;
+	virtual bool recordingEvents() = 0;
 
 	/**
 	 * Retrieves events from the system and stores them in the queue.

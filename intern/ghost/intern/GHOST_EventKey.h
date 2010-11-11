@@ -71,7 +71,24 @@ public:
 		m_keyEventData.ascii = ascii;
 		m_data = &m_keyEventData;
 	}
+	
+	GHOST_EventKey(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window, char buf[256])
+		: GHOST_Event(msec, type, window)
+	{
+		int key, ascii;
+		sscanf(buf, "key: %d %d", &key, &ascii);
 		
+		m_keyEventData.key = (GHOST_TKey) key;
+		m_keyEventData.ascii = ascii;
+		m_data = &m_keyEventData;
+	}
+	
+	virtual int serialize(char buf[256])
+	{
+		sprintf(buf, "key: %d %d", m_keyEventData.key, m_keyEventData.ascii);
+		
+		return 0;
+	}		
 protected:
 	/** The key event data. */
 	GHOST_TEventKeyData m_keyEventData;

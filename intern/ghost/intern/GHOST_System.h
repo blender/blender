@@ -236,6 +236,13 @@ public:
 	 ** Other (internal) functionality.
 	 ***************************************************************************************/
 
+	virtual GHOST_TSuccess beginRecord(FILE *file);
+	virtual GHOST_TSuccess endRecord();
+	virtual GHOST_TSuccess playbackEvents(FILE *file);
+	
+	virtual bool playingEvents(bool *hasevent) const;
+	virtual bool recordingEvents();
+	
 	/**
 	 * Pushes an event on the stack.
 	 * To dispatch it, call dispatchEvent() or dispatchEvents().

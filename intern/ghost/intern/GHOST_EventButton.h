@@ -58,6 +58,23 @@ public:
 		m_data = &m_buttonEventData;
 	}
 
+	virtual int serialize(char buf[256])
+	{
+		sprintf(buf, "button mask: %d", m_buttonEventData.button);
+		
+		return 0;
+	}
+	
+	GHOST_EventButton(GHOST_TUns64 time, GHOST_TEventType type, GHOST_IWindow* window, char buf[256])
+		: GHOST_Event(time, type, window)
+	{
+		int i;
+		sscanf(buf, "button mask: %d", &i);
+		
+		m_buttonEventData.button = (GHOST_TButtonMask)i;
+		m_data = &m_buttonEventData;
+	}
+
 protected:
 	/** The button event data. */
 	GHOST_TEventButtonData m_buttonEventData;

@@ -258,6 +258,8 @@ int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2, float
 			}
 		}
 	}
+	
+	return 0;
 }
 
 /*used for testing.  returns an error string the two meshes don't match*/

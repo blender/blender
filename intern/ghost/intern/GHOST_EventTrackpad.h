@@ -60,7 +60,27 @@ public:
 		m_trackpadEventData.deltaY = deltaY;
 		m_data = &m_trackpadEventData;
 	}
-
+	
+	GHOST_EventTrackpad(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window, char buf[256])
+		: GHOST_Event(msec, type, window)
+	{
+		int subtype, x, y, dx, dy;
+		sscanf(buf, "trackpad: %d %d %d %d %d", &subtype, &x, &y, &dx, &dy);
+		
+		m_trackpadEventData.subtype = (GHOST_TTrackpadEventSubTypes) subtype;
+		m_trackpadEventData.x = x;
+		m_trackpadEventData.y = y;
+		m_trackpadEventData.deltaX = dx;
+		m_trackpadEventData.deltaY = dy;
+		m_data = &m_trackpadEventData;
+	}
+	
+	virtual int serialize(char buf[256])
+	{
+		sprintf(buf, "trackpad: %d %d %d %d %d", m_trackpadEventData.subtype, m_trackpadEventData.x, m_trackpadEventData.y, m_trackpadEventData.deltaX, m_trackpadEventData.deltaY);
+		
+		return 0;
+	}
 protected:
 	/** The mouse pan data */
 	GHOST_TEventTrackpadData m_trackpadEventData;

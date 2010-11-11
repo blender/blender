@@ -35,6 +35,7 @@
 #define GHOST_C_API_H
 
 #include "GHOST_Types.h"
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" { 
@@ -836,6 +837,12 @@ extern GHOST_TUns8* GHOST_getClipboard(int selection);
  */
 extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection);
 
+
+extern GHOST_TSuccess GHOST_RecordEvents(GHOST_SystemHandle systemhandle, FILE *file);
+extern GHOST_TSuccess GHOST_StopRecording(GHOST_SystemHandle systemhandle);
+extern GHOST_TSuccess GHOST_PlaybackEvents(GHOST_SystemHandle systemhandle, FILE *file);
+extern int GHOST_PlayingEvents(GHOST_SystemHandle systemhandle);
+extern int GHOST_RecordingEvents(GHOST_SystemHandle systemhandle);
 
 #ifdef __cplusplus
 }

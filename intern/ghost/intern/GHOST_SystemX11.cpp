@@ -388,6 +388,10 @@ processEvents(
 	
 	bool anyProcessed = false;
 	
+	if (playingEvents(&anyProcessed)) {
+		return anyProcessed;
+	}
+	
 	do {
 		GHOST_TimerManager* timerMgr = getTimerManager();
 		
@@ -835,7 +839,10 @@ GHOST_SystemX11::
 getModifierKeys(
 	GHOST_ModifierKeys& keys
 ) const {
-
+	if (this->playingEvents(NULL)) {
+		return getEventManager()->getModifierKeys(keys);
+	}
+	
 	// analyse the masks retuned from XQueryPointer.
 
 	memset((void *)m_keyboard_vector,0,sizeof(m_keyboard_vector));
@@ -946,7 +953,11 @@ getCursorPosition(
 	Window root_return, child_return;
 	int rx,ry,wx,wy;
 	unsigned int mask_return;
-
+	
+	if (playingEvents(NULL)) {
+		return getEventManager()->getCursorPosition(x, y);
+	}
+	
 	if (XQueryPointer(
 		m_display,
 		RootWindow(m_display,DefaultScreen(m_display)),

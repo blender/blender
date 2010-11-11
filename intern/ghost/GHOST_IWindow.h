@@ -65,6 +65,17 @@ public:
 	virtual ~GHOST_IWindow()
 	{
 	}
+	
+	GHOST_IWindow()
+	{
+		static int id = 0;	
+		m_id = id++;
+	}
+
+	virtual int getID()
+	{
+		return m_id;
+	}
 
 	/**
 	 * Returns indication as to whether the window is valid.
@@ -305,6 +316,8 @@ public:
 	 */
 	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds) { return GHOST_kSuccess; };
 
+private:
+	int m_id;
 };
 
 #endif // _GHOST_IWINDOW_H_

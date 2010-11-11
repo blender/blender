@@ -95,6 +95,39 @@ GHOST_TimerTaskHandle GHOST_InstallTimer(GHOST_SystemHandle systemhandle,
 	return (GHOST_TimerTaskHandle) system->installTimer(delay, interval, timerproc, userdata);
 }
 
+GHOST_TSuccess GHOST_RecordEvents(GHOST_SystemHandle systemhandle, FILE *file)
+{
+	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
+	
+	return system->beginRecord(file);
+}
+
+GHOST_TSuccess GHOST_StopRecording(GHOST_SystemHandle systemhandle)
+{
+	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
+	
+	return system->endRecord();
+}
+
+GHOST_TSuccess GHOST_PlaybackEvents(GHOST_SystemHandle systemhandle, FILE *file)
+{
+	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
+	
+	return system->playbackEvents(file);
+}
+
+int GHOST_PlayingEvents(GHOST_SystemHandle systemhandle)
+{
+	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
+	return system->playingEvents(NULL);
+}
+
+int GHOST_RecordingEvents(GHOST_SystemHandle systemhandle)
+{
+	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
+	
+	return system->recordingEvents();
+}
 
 
 GHOST_TSuccess GHOST_RemoveTimer(GHOST_SystemHandle systemhandle,

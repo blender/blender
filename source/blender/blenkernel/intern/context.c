@@ -47,6 +47,10 @@
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
+#ifdef EVENT_RECORDER
+#include "../../../../intern/ghost/GHOST_C-api.h"
+#endif
+
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #endif
@@ -108,14 +112,21 @@ bContext *CTX_copy(const bContext *C)
 }
 
 #ifdef EVENT_RECORDER
+extern GHOST_SystemHandle g_system;
+
 int CTX_rec_events(bContext *C)
 {
-	return C->evtrec;
+	return GHOST_RecordingEvents(g_system);
 }
 
 int CTX_rec_events_set(bContext *C, int state)
 {
-	C->evtrec = state;
+	FILE *f = CTX_rec_file(C);
+	
+	if (GHOST_RecordingEvents(g_system) && !state)
+		GHOST_StopRecording(g_system);
+	else if (!GHOST_RecordingEvents(g_system) && state) 
+		GHOST_RecordEvents(g_system, f);
 	
 	return 1;
 }
@@ -128,25 +139,20 @@ FILE *CTX_rec_file(bContext *C)
 	return f;
 }
 
-double CTX_rec_lasttime(bContext *C, double newtime)
-{
-	double ret;
-	
-	if (C->evtlasttime == 0.0) {
-		ret = newtime;
-	} else ret = C->evtlasttime;
-	
-	C->evtlasttime = newtime;
-	
-	return ret;
-}
-
 int CTX_set_events_path(bContext *C, char *path)
 {
-	if (!path)
+	if (!path) {
 		C->evtplaypath[0] = 0;
-	else
+	} else {
+		FILE *file = fopen(path, "rb");
+		
+		if (!file)
+			return 0;
+		
 		strcpy(C->evtplaypath, path);
+		if (g_system)
+			GHOST_PlaybackEvents(g_system, file);
+	}
 	
 	return 1;
 }
@@ -156,8 +162,8 @@ int CTX_play_events(bContext *C, char **playpath)
 {
 	if (playpath)
 		*playpath = C->evtplaypath[0] ? C->evtplaypath : NULL;
-	
-	return C->evtplaypath[0];
+
+	return GHOST_PlayingEvents(g_system);
 }
 #endif
 

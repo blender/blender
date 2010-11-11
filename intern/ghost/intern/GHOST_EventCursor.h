@@ -58,6 +58,24 @@ public:
 		m_data = &m_cursorEventData;
 	}
 
+	GHOST_EventCursor(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window, char buf[256])
+		: GHOST_Event(msec, type, window)
+	{
+		int x, y;
+		sscanf(buf, "mousecursor: %d %d", &x, &y);
+		
+		m_cursorEventData.x = x;
+		m_cursorEventData.y = y;
+		m_data = &m_cursorEventData;
+	}
+	
+	virtual int serialize(char buf[256])
+	{
+		sprintf(buf, "mousecursor: %d %d", m_cursorEventData.x, m_cursorEventData.y);
+		
+		return 0;
+	}
+		
 protected:
 	/** The x,y-coordinates of the cursor position. */
 	GHOST_TEventCursorData m_cursorEventData;

@@ -222,10 +222,37 @@ GHOST_TSuccess GHOST_System::addEventConsumer(GHOST_IEventConsumer* consumer)
 }
 
 
+ GHOST_TSuccess GHOST_System::beginRecord(FILE *file)
+ {
+	return this->m_eventManager->beginRecord(file);
+ }
+
+ GHOST_TSuccess GHOST_System::endRecord()
+ {
+	return this->m_eventManager->endRecord();
+ }
+
+ GHOST_TSuccess GHOST_System::playbackEvents(FILE *file)
+ {
+	return this->m_eventManager->playbackEvents(file);
+ }
+
+
+ bool GHOST_System::playingEvents(bool *hasevent) const
+ {
+	return this->m_eventManager->playingEvents(hasevent);
+ }
+
+ bool GHOST_System::recordingEvents()
+ {
+	return this->m_eventManager->recordingEvents();
+ }
+
+
 GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent* event)
 {
 	GHOST_TSuccess success;
-	if (m_eventManager) {
+	if (m_eventManager && !m_eventManager->playingEvents(NULL)) {
 		success = m_eventManager->pushEvent(event);
 	}
 	else {

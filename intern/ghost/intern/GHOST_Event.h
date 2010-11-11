@@ -35,6 +35,14 @@
 
 #include "GHOST_IEvent.h"
 
+/* INTEGER CODES */
+#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
+	/* Big Endian */
+#define MAKE_ID(a,b,c,d) ( (int)(a)<<24 | (int)(b)<<16 | (c)<<8 | (d) )
+#else
+	/* Little Endian */
+#define MAKE_ID(a,b,c,d) ( (int)(d)<<24 | (int)(c)<<16 | (b)<<8 | (a) )
+#endif
 
 /**
  * Base class for events received the operating system.
@@ -73,6 +81,12 @@ public:
 		return m_time;
 	}
 
+	virtual void setTime(GHOST_TUns64 t)
+	{
+		m_time = t;
+	}
+	
+
 	/**
 	 * Returns the window this event was generated on, 
 	 * or NULL if it is a 'system' event.
@@ -91,7 +105,29 @@ public:
 	{
 		return m_data;
 	}
+	
+	virtual void setPlaybackModifierKeys(GHOST_ModifierKeys keys)
+	{
+		m_playmods = keys;
+	}
 
+	virtual void getPlaybackModifierKeys(GHOST_ModifierKeys &keys)
+	{
+		keys = m_playmods;
+	}
+
+	virtual void setPlaybackCursor(GHOST_TInt32 mx, GHOST_TInt32 my)
+	{
+		x = mx;
+		y = my;
+	}
+
+	virtual void getPlaybackCursor(GHOST_TInt32 &mx, GHOST_TInt32 &my)
+	{
+		mx = x;
+		my = y;
+	}
+	
 protected:
 	/** Type of this event. */
 	GHOST_TEventType m_type;
@@ -101,6 +137,11 @@ protected:
 	GHOST_IWindow* m_window;
 	/** Pointer to the event data. */
 	GHOST_TEventDataPtr m_data;
+	
+	/** Modifier key state during event playback **/
+	GHOST_ModifierKeys m_playmods;
+	/** Mouse cursor state during event playback **/
+	GHOST_TInt32 x, y;
 };
 
 #endif // _GHOST_EVENT_H_

@@ -263,7 +263,10 @@ int CTX_data_visible_pose_bones(const bContext *C, ListBase *list);
 
 //stupid compiler flag isn't working
 //remember to undef this later
+#ifndef EVENT_RECORDER
 #define EVENT_RECORDER
+#endif
+
 #ifdef EVENT_RECORDER
 #include <stdio.h>
 

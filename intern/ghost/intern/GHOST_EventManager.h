@@ -35,9 +35,10 @@
 
 #include <deque>
 #include <vector>
+#include <cstdio>
 
 #include "GHOST_IEventConsumer.h"
-
+#include "GHOST_ModifierKeys.h"
 
 /**
  * Manages an event stack and a list of event consumers.
@@ -87,7 +88,31 @@ public:
 	 * @param event	The event to push on the stack.
 	 */
 	virtual	GHOST_TSuccess pushEvent(GHOST_IEvent* event);
-
+	
+	virtual GHOST_TSuccess beginRecord(FILE *file);
+	virtual GHOST_TSuccess endRecord();
+	virtual GHOST_TSuccess playbackEvents(FILE *file);
+	
+	virtual bool playingEvents(bool *hasevent);
+	
+	virtual bool recordingEvents() {
+		return m_recfile != NULL;
+	}
+	
+	/** only used during playback **/
+	virtual GHOST_TSuccess getModifierKeys(GHOST_ModifierKeys &keys) const
+	{
+		keys = m_playmods;
+		return GHOST_kSuccess;
+	}
+	
+	/** only used during playback **/
+	virtual GHOST_TSuccess getCursorPosition(GHOST_TInt32 &x, GHOST_TInt32 &y) const
+	{
+		x = m_x;
+		y = m_y;
+	}
+	
 	/**
 	 * Dispatches the given event directly, bypassing the event stack.
 	 * @return Indication as to whether any of the consumers handled the event.
@@ -168,6 +193,13 @@ protected:
 
 	/** The list with event consumers. */
 	TConsumerVector m_consumers;
+private:
+	/** used for playback functionality**/
+	FILE *m_recfile;
+	FILE *m_playfile;
+	GHOST_ModifierKeys m_playmods;	
+	GHOST_TUns64 m_lasttime;
+	GHOST_TInt32 m_x, m_y;
 };
 
 #endif // _GHOST_EVENT_MANAGER_H_
