@@ -332,7 +332,7 @@ void OBJECT_OT_add(wmOperatorType *ot)
 	ot->invoke= ED_object_add_generic_invoke;
 	ot->exec= object_add_exec;
 	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -422,7 +422,7 @@ void OBJECT_OT_effector_add(wmOperatorType *ot)
 	ot->invoke= WM_menu_invoke;
 	ot->exec= effector_add_exec;
 	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -473,7 +473,7 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_camera_add_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -557,7 +557,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= object_metaball_add_invoke;
 	ot->exec= object_metaball_add_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -597,7 +597,7 @@ void OBJECT_OT_text_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= ED_object_add_generic_invoke;
 	ot->exec= object_add_text_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -652,7 +652,7 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= ED_object_add_generic_invoke;
 	ot->exec= object_armature_add_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -712,7 +712,7 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_lamp_add_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -769,7 +769,7 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	ot->invoke= WM_enum_search_invoke;
 	ot->exec= group_instance_add_exec;
 
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -835,7 +835,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= object_delete_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1027,7 +1027,7 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= object_duplicates_make_real_exec;
 	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1690,7 +1690,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= duplicate_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1703,20 +1703,6 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 
 /* **************** add named object, for dragdrop ************* */
 
-/* contextual operator dupli */
-
-static int add_named_poll(bContext *C)
-{
-	if(!ED_operator_scene_editable(C)) {
-		return 0;
-	} else {
-		Object *ob= CTX_data_active_object(C);
-		if(ob && ob->mode != OB_MODE_OBJECT)
-			return 0;
-		else
-			return 1;
-	}
-}
 
 static int add_named_exec(bContext *C, wmOperator *op)
 {
@@ -1775,7 +1761,7 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_named_exec;
-	ot->poll= add_named_poll;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

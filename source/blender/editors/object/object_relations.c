@@ -928,7 +928,7 @@ void OBJECT_OT_track_clear(wmOperatorType *ot)
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_track_clear_exec;
 	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1033,7 +1033,7 @@ void OBJECT_OT_track_set(wmOperatorType *ot)
 	ot->invoke= WM_menu_invoke;
 	ot->exec= track_set_exec;
 	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1143,7 +1143,7 @@ void OBJECT_OT_move_to_layer(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= move_to_layer_invoke;
 	ot->exec= move_to_layer_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1346,7 +1346,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= make_links_data_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1850,7 +1850,7 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= make_local_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1902,7 +1902,7 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= make_single_user_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1949,7 +1949,7 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= drop_named_material_invoke;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_UNDO;

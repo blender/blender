@@ -116,6 +116,24 @@ int ED_operator_scene_editable(bContext *C)
 	return 0;
 }
 
+int ED_operator_objectmode(bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obact= CTX_data_active_object(C);
+
+	if(scene==NULL || scene->id.lib)
+		return 0;
+	if( CTX_data_edit_object(C) )
+		return 0;
+	
+	/* add a check for ob->mode too? */
+	if(obact && obact->mode)
+		return 0;
+	
+	return 1;
+}
+
+
 static int ed_spacetype_test(bContext *C, int type)
 {
 	if(ED_operator_areaactive(C)) {
