@@ -31,9 +31,6 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
-static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec); /* utility func */
-
-
 /* matrix vector callbacks */
 int mathutils_matrix_vector_cb_index= -1;
 
@@ -1568,7 +1565,8 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 	}
 	else /* if(mat1) { */ {
 		if(VectorObject_Check(m2)) { /* MATRIX*VECTOR */
-			return column_vector_multiplication(mat1, (VectorObject *)m2); /* vector update done inside the function */
+			PyErr_SetString(PyExc_TypeError, "Matrix multiplication: Only 'vec * matrix' is supported, not the reverse.");
+			return NULL;
 		}
 		else {
 			scalar= PyFloat_AsDouble(m2);
@@ -1944,43 +1942,4 @@ PyObject *newMatrixObject_cb(PyObject *cb_user, int rowSize, int colSize, int cb
 		self->cb_subtype=		(unsigned char)cb_subtype;
 	}
 	return (PyObject *) self;
-}
-
-//----------------column_vector_multiplication (internal)---------
-//COLUMN VECTOR Multiplication (Matrix X Vector)
-// [1][4][7]   [a]
-// [2][5][8] * [b]
-// [3][6][9]   [c]
-//vector/matrix multiplication IS NOT COMMUTATIVE!!!!
-static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec)
-{
-	float vecNew[4], vecCopy[4];
-	double dot = 0.0f;
-	int x, y, z = 0;
-
-	if(!BaseMath_ReadCallback(mat) || !BaseMath_ReadCallback(vec))
-		return NULL;
-	
-	if(mat->rowSize != vec->size){
-		if(mat->rowSize == 4 && vec->size != 3){
-			PyErr_SetString(PyExc_AttributeError, "matrix * vector: matrix row size and vector size must be the same");
-			return NULL;
-		}else{
-			vecCopy[3] = 1.0f;
-		}
-	}
-
-	for(x = 0; x < vec->size; x++){
-		vecCopy[x] = vec->vec[x];
-	}
-	vecNew[3] = 1.0f;
-
-	for(x = 0; x < mat->colSize; x++) {
-		for(y = 0; y < mat->rowSize; y++) {
-			dot += mat->matrix[y][x] * vecCopy[y];
-		}
-		vecNew[z++] = (float)dot;
-		dot = 0.0f;
-	}
-	return newVectorObject(vecNew, vec->size, Py_NEW, NULL);
 }

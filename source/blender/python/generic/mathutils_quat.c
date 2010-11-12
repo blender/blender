@@ -647,7 +647,6 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 {
 	float quat[QUAT_SIZE], scalar;
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
-	VectorObject *vec = NULL;
 
 	if(QuaternionObject_Check(q1)) {
 		quat1 = (QuaternionObject*)q1;
@@ -678,19 +677,8 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 	}
 	else { /* QUAT*SOMETHING */
 		if(VectorObject_Check(q2)){  /* QUAT*VEC */
-			float tvec[3];
-			vec = (VectorObject*)q2;
-			if(vec->size != 3){
-				PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: only 3D vector rotations currently supported\n");
-				return NULL;
-			}
-			if(!BaseMath_ReadCallback(vec)) {
-				return NULL;
-			}
-
-			copy_v3_v3(tvec, vec->vec);
-			mul_qt_v3(quat1->quat, tvec);
-			return newVectorObject(tvec, 3, Py_NEW, NULL);
+			PyErr_SetString(PyExc_TypeError, "Quaternion multiplication: Only 'vector * quaternion' is supported, not the reverse");
+			return NULL;
 		}
 		
 		scalar= PyFloat_AsDouble(q2);
