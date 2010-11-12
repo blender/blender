@@ -776,6 +776,15 @@ static void node_composit_buts_alphaover(uiLayout *layout, bContext *UNUSED(C), 
 	uiItemR(col, ptr, "premul", 0, NULL, 0);
 }
 
+static void node_composit_buts_zcombine(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{	
+	uiLayout *col;
+	
+	col =uiLayoutColumn(layout, 1);
+	uiItemR(col, ptr, "use_alpha", 0, NULL, 0);
+}
+
+
 static void node_composit_buts_hue_sat(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *col;
@@ -1148,6 +1157,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			 break;
 		case CMP_NODE_HUECORRECT:
 			ntype->uifunc=node_composit_buts_huecorrect;
+			 break;
+		case CMP_NODE_ZCOMBINE:
+			ntype->uifunc=node_composit_buts_zcombine;
 			 break;
 		default:
 			ntype->uifunc= NULL;

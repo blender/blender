@@ -71,7 +71,7 @@ DefNode( CompositorNode, CMP_NODE_COMPOSITE,      0,                      "COMPO
 DefNode( CompositorNode, CMP_NODE_OUTPUT_FILE,    def_cmp_output_file,    "OUTPUT_FILE",    OutputFile,       "Output File",       ""              )
 DefNode( CompositorNode, CMP_NODE_TEXTURE,        def_texture,            "TEXTURE",        Texture,          "Texture",           ""              )
 DefNode( CompositorNode, CMP_NODE_TRANSLATE,      0,                      "TRANSLATE",      Translate,        "Translate",         ""              )
-DefNode( CompositorNode, CMP_NODE_ZCOMBINE,       0,                      "ZCOMBINE",       Zcombine,         "Z Combine",         ""              )
+DefNode( CompositorNode, CMP_NODE_ZCOMBINE,       def_cmp_zcombine,		  "ZCOMBINE",       Zcombine,         "Z Combine",         ""              )
 DefNode( CompositorNode, CMP_NODE_COMBRGBA,       0,                      "COMBRGBA",       CombRGBA,         "Combine RGBA",      ""              )
 DefNode( CompositorNode, CMP_NODE_DILATEERODE,    def_cmp_dilate_erode,   "DILATEERODE",    DilateErode,      "Dilate/Erode",      ""              )
 DefNode( CompositorNode, CMP_NODE_ROTATE,         def_cmp_rotate,         "ROTATE",         Rotate,           "Rotate",            ""              )
