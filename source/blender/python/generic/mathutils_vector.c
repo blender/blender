@@ -1100,7 +1100,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 			return NULL;
 		}
 
-		return newVectorObject(tvec, 3, Py_NEW, NULL);
+		return newVectorObject(tvec, vec1->size, Py_NEW, NULL);
 	} else if (QuaternionObject_Check(v2)) {
 		/* VEC * QUAT */
 		QuaternionObject *quat2 = (QuaternionObject*)v2;
