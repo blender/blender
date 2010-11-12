@@ -56,6 +56,7 @@
 #include "BKE_displist.h"
 #include "BKE_font.h"
 #include "BKE_mball.h"
+#include "BKE_modifier.h"
 
 #include "BLI_math.h"
 
@@ -280,29 +281,6 @@ static void rna_Object_update(Object *ob, Scene *sce, int object, int data, int 
 	DAG_id_flush_update(&ob->id, flag);
 }
 
-static Object *rna_Object_find_armature(Object *ob)
-{
-	Object *ob_arm = NULL;
-
-	if (ob->type != OB_MESH) return NULL;
-
-	if (ob->parent && ob->partype == PARSKEL && ob->parent->type == OB_ARMATURE) {
-		ob_arm = ob->parent;
-	}
-	else {
-		ModifierData *mod = (ModifierData*)ob->modifiers.first;
-		while (mod) {
-			if (mod->type == eModifierType_Armature) {
-				ob_arm = ((ArmatureModifierData*)mod)->object;
-			}
-
-			mod = mod->next;
-		}
-	}
-
-	return ob_arm;
-}
-
 static PointerRNA rna_Object_add_shape_key(Object *ob, bContext *C, ReportList *reports, char *name, int from_mix)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -447,7 +425,7 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
 	/* Armature */
-	func= RNA_def_function(srna, "find_armature", "rna_Object_find_armature");
+	func= RNA_def_function(srna, "find_armature", "modifiers_isDeformedByArmature");
 	RNA_def_function_ui_description(func, "Find armature influencing this object as a parent or via a modifier.");
 	parm= RNA_def_pointer(func, "ob_arm", "Object", "", "Armature object influencing this object or NULL.");
 	RNA_def_function_return(func, parm);
