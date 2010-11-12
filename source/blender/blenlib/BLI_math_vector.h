@@ -63,6 +63,8 @@ MINLINE void sub_v2_v2(float r[2], const float a[2]);
 MINLINE void sub_v2_v2v2(float r[2], const float a[2], const float b[2]);
 MINLINE void sub_v3_v3(float r[3], const float a[3]);
 MINLINE void sub_v3_v3v3(float r[3], const float a[3], const float b[3]);
+MINLINE void sub_v4_v4(float r[4], const float a[4]);
+MINLINE void sub_v4_v4v4(float r[4], const float a[4], const float b[4]);
 
 MINLINE void mul_v2_fl(float r[2], float f);
 MINLINE void mul_v2_v2fl(float r[2], const float a[2], float f);
