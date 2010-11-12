@@ -36,6 +36,7 @@ SET(INC
 	../../../../source/gameengine/Converter
 	../../../../source/blender/imbuf
 	../../../../source/gameengine/Ketsji
+	../../../../source/blender/blenfont
 	../../../../source/blender/blenlib
 	../../../../source/blender/blenkernel
 	../../../../source/blender/readblenfile

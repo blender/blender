@@ -72,6 +72,11 @@ extern "C"
 extern char bprogname[];	/* holds a copy of argv[0], from creator.c */
 extern char btempdir[];		/* use this to store a valid temp directory */
 
+// For BLF
+#include "BLF_api.h"
+extern int datatoc_bfont_ttf_size;
+extern char datatoc_bfont_ttf[];
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus
@@ -389,6 +394,11 @@ int main(int argc, char** argv)
 	GEN_init_messaging_system();
 
 	IMB_init();
+
+	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
+	BLF_init(11, U.dpi);
+	BLF_lang_init();
+	BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
  
 	// Parse command line options
 #if defined(DEBUG)
