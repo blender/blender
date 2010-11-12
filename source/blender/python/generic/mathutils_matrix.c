@@ -1193,28 +1193,35 @@ PyObject *Matrix_copy(MatrixObject *self)
 static PyObject *Matrix_repr(MatrixObject * self)
 {
 	int x, y;
-	char str[1024]="Matrix((", *str_p;
+	PyObject *rows[MATRIX_MAX_DIM]= {0};
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	str_p= &str[8];
-
-	for(x = 0; x < self->colSize; x++){
-		for(y = 0; y < (self->rowSize - 1); y++) {
-			str_p += sprintf(str_p, "%f, ", self->matrix[y][x]);
-		}
-		if(x < (self->colSize-1)){
-			str_p += sprintf(str_p, "%f), (", self->matrix[y][x]);
-		}
-		else{
-			str_p += sprintf(str_p, "%f)", self->matrix[y][x]);
+	for(x = 0; x < self->rowSize; x++){
+		rows[x]= PyTuple_New(self->rowSize);
+		for(y = 0; y < self->colSize; y++) {
+			PyTuple_SET_ITEM(rows[x], y, PyFloat_FromDouble(self->matrix[x][y]));
 		}
 	}
-	strcat(str_p, ")");
+	switch(self->rowSize) {
+	case 2:	return PyUnicode_FromFormat("Matrix(%R,\n"
+										"       %R)", rows[0], rows[1]);
 
-	return PyUnicode_FromString(str);
+	case 3:	return PyUnicode_FromFormat("Matrix(%R,\n"
+										"       %R,\n"
+										"       %R)", rows[0], rows[1], rows[2]);
+
+	case 4:	return PyUnicode_FromFormat("Matrix(%R,\n"
+										"       %R,\n"
+										"       %R,\n"
+										"       %R)", rows[0], rows[1], rows[2], rows[3]);
+	}
+
+	PyErr_SetString(PyExc_RuntimeError, "invalid matrix size");
+	return NULL;
 }
+
 /*------------------------tp_richcmpr*/
 /*returns -1 execption, 0 false, 1 true*/
 static PyObject* Matrix_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
