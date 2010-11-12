@@ -35,6 +35,11 @@ include nan_compile.mk
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
+ifeq ($(WITH_QUICKTIME),true)
+	CPPFLAGS += -I../../quicktime
+	CPPFLAGS += -DWITH_QUICKTIME
+endif
+
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 
