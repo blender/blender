@@ -548,7 +548,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		
 		QUATCOPY(td->ext->iquat, pchan->quat);
 	}
-	td->rotOrder= pchan->rotmode;
+	td->ext->rotOrder= pchan->rotmode;
 	
 
 	/* proper way to get parent transform + own transform + constraints transform */
@@ -4329,7 +4329,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 		QUATCOPY(td->ext->iquat, ob->quat);
 		QUATCOPY(td->ext->dquat, ob->dquat);
 	}
-	td->rotOrder=ob->rotmode;
+	td->ext->rotOrder=ob->rotmode;
 
 	td->ext->size = ob->size;
 	VECCOPY(td->ext->isize, ob->size);
@@ -5158,7 +5158,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 		td->flag = TD_SELECTED;
 		td->protectflag= ob->protectflag;
 		td->ext = tx;
-		td->rotOrder= ob->rotmode;
+		td->ext->rotOrder= ob->rotmode;
 		
 		if (base->flag & BA_TRANSFORM_CHILD)
 		{
@@ -5192,7 +5192,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 			{
 				td->protectflag= ob->protectflag;
 				td->ext = tx;
-				td->rotOrder= ob->rotmode;
+				td->ext->rotOrder= ob->rotmode;
 				
 				ObjectToTransData(t, td, ob);
 				td->val = NULL;

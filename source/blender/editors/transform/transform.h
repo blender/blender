@@ -147,6 +147,7 @@ typedef struct TransDataExtension {
 	float  isize[3];	 /* Initial size                                                                   */
 	float  obmat[4][4];	 /* Object matrix */
 	float  l_smtx[3][3]; /* use instead of td->smtx, It is the same but without the 'bone->bone_mat', see TD_PBONE_LOCAL_MTX_C */
+	int    rotOrder;	/* rotation mode,  as defined in eRotationModes (DNA_action_types.h) */
 } TransDataExtension;
 
 typedef struct TransData2D {
@@ -233,7 +234,6 @@ typedef struct TransData {
 	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to EditVert) (editbone for roll fixing) (...) */
 	int  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
-	int    rotOrder;	/* rotation mode,  as defined in eRotationModes (DNA_action_types.h) */
 } TransData;
 
 typedef struct MouseInput {
