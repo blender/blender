@@ -93,7 +93,7 @@ void file_operator_to_sfile(struct SpaceFile *sfile, struct wmOperator *op);
 
 
 /* filesel.c */
-float file_shorten_string(char* string, float w, int flag);
+float file_shorten_string(char* string, float w, int front);
 float file_string_width(const char* str);
 float file_string_width_shortened(const char* str, float width);
 
