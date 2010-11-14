@@ -561,16 +561,16 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 #ifndef WIN32
 			/* rwx rwx rwx */
-			file_draw_string(spos, sy, file->mode1, layout->column_widths[COLUMN_MODE1], layout->tile_h, align); 
+			file_draw_string(sx, sy, file->mode1, layout->column_widths[COLUMN_MODE1], layout->tile_h, align); 
 			sx += layout->column_widths[COLUMN_MODE1] + 12;
 
-			file_draw_string(spos, sy, file->mode2, layout->column_widths[COLUMN_MODE2], layout->tile_h, align);
+			file_draw_string(sx, sy, file->mode2, layout->column_widths[COLUMN_MODE2], layout->tile_h, align);
 			sx += layout->column_widths[COLUMN_MODE2] + 12;
 
-			file_draw_string(spos, sy, file->mode3, layout->column_widths[COLUMN_MODE3], layout->tile_h, align);
+			file_draw_string(sx, sy, file->mode3, layout->column_widths[COLUMN_MODE3], layout->tile_h, align);
 			sx += layout->column_widths[COLUMN_MODE3] + 12;
 
-			file_draw_string(spos, sy, file->owner, layout->column_widths[COLUMN_OWNER] , layout->tile_h, align);
+			file_draw_string(sx, sy, file->owner, layout->column_widths[COLUMN_OWNER] , layout->tile_h, align);
 			sx += layout->column_widths[COLUMN_OWNER] + 12;
 #endif
 
