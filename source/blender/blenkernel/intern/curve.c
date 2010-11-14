@@ -1212,8 +1212,8 @@ float *make_orco_curve(Scene *scene, Object *ob)
 			for (u=0; u<sizev; u++) {
 				for (v=0; v<sizeu; v++,fp+=3) {
 					if (cu->flag & CU_UV_ORCO) {
-						fp[0]= 2.0f*u/(dl->parts-1) - 1.0f;
-						fp[1]= 2.0f*v/(dl->nr-1) - 1.0f;
+						fp[0]= 2.0f*u/(sizev - 1) - 1.0f;
+						fp[1]= 2.0f*v/(sizeu - 1) - 1.0f;
 						fp[2]= 0.0;
 					} else {
 						float *vert;
