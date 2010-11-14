@@ -3365,8 +3365,8 @@ static void draw_sensor_keyboard(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "modifier_key_2", UI_ITEM_R_EVENT, "", 0);
 
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
-	uiItemPointerR(layout, ptr, "target", &settings_ptr, "properties", NULL, 0);
 	uiItemPointerR(layout, ptr, "log", &settings_ptr, "properties", NULL, 0);
+	uiItemPointerR(layout, ptr, "target", &settings_ptr, "properties", NULL, 0);
 }
 
 static void draw_sensor_message(uiLayout *layout, PointerRNA *ptr)
