@@ -1145,11 +1145,14 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 	/* only support vec*=float and vec*=mat
 	   vec*=vec result is a float so that wont work */
 	if (MatrixObject_Check(v2)) {
+		float rvec[MAX_DIMENSIONS];
 		if(!BaseMath_ReadCallback((MatrixObject *)v2))
 			return NULL;
 		
-		if(column_vector_multiplication(vec->vec, vec, (MatrixObject*)v2) == -1)
+		if(column_vector_multiplication(rvec, vec, (MatrixObject*)v2) == -1)
 			return NULL;
+
+		memcpy(vec->vec, rvec, sizeof(float) * vec->size);
 	}
 	else if (QuaternionObject_Check(v2)) {
 		/* VEC *= QUAT */
