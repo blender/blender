@@ -342,17 +342,15 @@ void BIF_removeTransformOrientationIndex(bContext *C, int index) {
 }
 
 void BIF_selectTransformOrientation(bContext *C, TransformOrientation *target) {
+	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	View3D *v3d = CTX_wm_view3d(C);
-	if(v3d) {
-		ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
-		TransformOrientation *ts = transform_spaces->first;
-		int i;
-
-		for (i = 0, ts = transform_spaces->first; ts; ts = ts->next, i++) {
-			if (ts == target) {
-				v3d->twmode = V3D_MANIP_CUSTOM + i;
-				break;
-			}
+	TransformOrientation *ts = transform_spaces->first;
+	int i;
+	
+	for (i = 0, ts = transform_spaces->first; ts; ts = ts->next, i++) {
+		if (ts == target) {
+			v3d->twmode = V3D_MANIP_CUSTOM + i;
+			break;
 		}
 	}
 }
