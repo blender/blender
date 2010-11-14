@@ -622,11 +622,6 @@ void recalcData(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_VIEW3D) {
 		
-		/* project */
-		if(t->state != TRANS_CANCEL) {
-			applyProject(t);
-		}
-		
 		if (t->obedit) {
 			if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
 				Curve *cu= t->obedit->data;
@@ -635,6 +630,7 @@ void recalcData(TransInfo *t)
 
 				if(t->state != TRANS_CANCEL) {
 					clipMirrorModifier(t, t->obedit);
+					applyProject(t);
 				}
 
 				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
@@ -655,6 +651,11 @@ void recalcData(TransInfo *t)
 			}
 			else if(t->obedit->type==OB_LATTICE) {
 				Lattice *la= t->obedit->data;
+
+				if(t->state != TRANS_CANCEL) {
+					applyProject(t);
+				}
+
 				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
 	
 				if(la->editlatt->latt->flag & LT_OUTSIDE) outside_lattice(la->editlatt->latt);
@@ -664,6 +665,7 @@ void recalcData(TransInfo *t)
 				/* mirror modifier clipping? */
 				if(t->state != TRANS_CANCEL) {
 					clipMirrorModifier(t, t->obedit);
+					applyProject(t);
 				}
 				if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
 					editmesh_apply_to_mirror(t);
@@ -679,6 +681,10 @@ void recalcData(TransInfo *t)
 				TransData *td = t->data;
 				int i;
 				
+				if(t->state != TRANS_CANCEL) {
+					applyProject(t);
+				}
+
 				/* Ensure all bones are correctly adjusted */
 				for (ebo = edbo->first; ebo; ebo = ebo->next){
 					
@@ -751,7 +757,12 @@ void recalcData(TransInfo *t)
 				
 			}
 			else
+			{
+				if(t->state != TRANS_CANCEL) {
+					applyProject(t);
+				}
 				DAG_id_flush_update(t->obedit->data, OB_RECALC_DATA);  /* sets recalc flags */
+			}
 		}
 		else if( (t->flag & T_POSE) && t->poseobj) {
 			Object *ob= t->poseobj;
@@ -777,11 +788,18 @@ void recalcData(TransInfo *t)
 				where_is_pose(scene, ob);
 		}
 		else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(scene, base->object)) {
+			if(t->state != TRANS_CANCEL) {
+				applyProject(t);
+			}
 			flushTransParticles(t);
 		}
 		else {
 			int i;
 			
+			if(t->state != TRANS_CANCEL) {
+				applyProject(t);
+			}
+
 			for (i = 0; i < t->total; i++) {
 				TransData *td = t->data + i;
 				Object *ob = td->ob;
