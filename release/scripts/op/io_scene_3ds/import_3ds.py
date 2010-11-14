@@ -146,14 +146,16 @@ def read_chunk(file, chunk):
 def read_string(file):
     #read in the characters till we get a null character
     s = b''
-    while not s.endswith(b'\x00'):
-        s += struct.unpack('<c', file.read(1))[0]
+    while True:
+        c = struct.unpack('<c', file.read(1))[0]
+        if c == b'\x00':
+            break
+        s += c
         #print 'string: ',s
 
     #remove the null character from the string
-    s = str(s[:-1], 'ASCII')
 # 	print("read string", s)
-    return s
+    return str(s, "utf-8", "replace"), len(s) + 1
 
 ######################################################
 # IMPORT
@@ -226,8 +228,11 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
     # print STRUCT_SIZE_4x3MAT, ' STRUCT_SIZE_4x3MAT'
 
     def putContextMesh(myContextMesh_vertls, myContextMesh_facels, myContextMeshMaterials):
-        
         bmesh = bpy.data.meshes.new(contextObName)
+
+        if myContextMesh_facels is None:
+            myContextMesh_facels = []
+
         if myContextMesh_vertls:
 
             bmesh.vertices.add(len(myContextMesh_vertls)//3)
@@ -317,9 +322,9 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             read_chunk(file, temp_chunk)
 
             if (temp_chunk.ID == MAT_MAP_FILEPATH):
-                texture_name = read_string(file)
+                texture_name, read_str_len = read_string(file)
                 img = TEXTURE_DICT[contextMaterial.name] = load_image(texture_name, dirname)
-                new_chunk.bytes_read += (len(texture_name)+1) #plus one for the null character that gets removed
+                new_chunk.bytes_read += read_str_len #plus one for the null character that gets removed
 
             else:
                 skip_to_end(file, temp_chunk)
@@ -377,9 +382,9 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                 #contextMatrix_tx = None
 
             CreateBlenderObject = True
-            tempName = read_string(file)
+            tempName, read_str_len = read_string(file)
             contextObName = tempName
-            new_chunk.bytes_read += len(tempName)+1
+            new_chunk.bytes_read += read_str_len
 
         #is it a material chunk?
         elif (new_chunk.ID == MATERIAL):
@@ -391,12 +396,12 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
         elif (new_chunk.ID == MAT_NAME):
             #print 'elif (new_chunk.ID == MAT_NAME):'
-            material_name = read_string(file)
+            material_name, read_str_len = read_string(file)
 
 # 			print("material name", material_name)
 
             #plus one for the null character that ended the string
-            new_chunk.bytes_read += len(material_name)+1
+            new_chunk.bytes_read += read_str_len
 
             contextMaterial.name = material_name.rstrip() # remove trailing  whitespace
             MATDICT[material_name]= (contextMaterial.name, contextMaterial)
@@ -537,8 +542,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
         elif (new_chunk.ID == OBJECT_MATERIAL):
             # print 'elif (new_chunk.ID == OBJECT_MATERIAL):'
-            material_name = read_string(file)
-            new_chunk.bytes_read += len(material_name)+1 # remove 1 null character.
+            material_name, read_str_len = read_string(file)
+            new_chunk.bytes_read += read_str_len # remove 1 null character.
 
             temp_data = file.read(STRUCT_SIZE_UNSIGNED_SHORT)
             num_faces_using_mat = struct.unpack('<H', temp_data)[0]
@@ -617,7 +622,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             #contextMatrix = contextMatrix  *tx
 
         elif  (new_chunk.ID == MAT_MAP_FILEPATH):
-            texture_name = read_string(file)
+            texture_name, read_str_len = read_string(file)
             try:
                 TEXTURE_DICT[contextMaterial.name]
             except:
@@ -625,7 +630,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                 img = TEXTURE_DICT[contextMaterial.name] = load_image(texture_name, dirname)
 # 				img = TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILEPATH, PLACE_HOLDER=False, RECURSIVE=IMAGE_SEARCH)
 
-            new_chunk.bytes_read += len(texture_name)+1 #plus one for the null character that gets removed
+            new_chunk.bytes_read += read_str_len #plus one for the null character that gets removed
 
         else: #(new_chunk.ID!=VERSION or new_chunk.ID!=OBJECTINFO or new_chunk.ID!=OBJECT or new_chunk.ID!=MATERIAL):
             # print 'skipping to end of this chunk'
@@ -653,7 +658,7 @@ def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
 # 	if BPyMessages.Error_NoFile(filepath):
 # 		return
 
-    print('\n\nImporting 3DS: %r' % (filepath))
+    print("importing 3DS: %r..." % (filepath), end="")
 
     time1 = time.clock()
 # 	time1 = Blender.sys.time()
@@ -776,8 +781,7 @@ def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
                 SCALE/=10
 
             # SCALE Matrix
-            SCALE_MAT = mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
-# 			SCALE_MAT = Blender.mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
+            SCALE_MAT = mathutils.Matrix.Scale(SCALE, 4)
 
             for ob in importedObjects:
                 ob.matrix_world =  ob.matrix_world * SCALE_MAT
@@ -785,7 +789,7 @@ def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
         # Done constraining to bounds.
 
     # Select all new objects.
-    print('finished importing: %r in %.4f sec.' % (filepath, (time.clock()-time1)))
+    print(" done in %.4f sec." % (time.clock()-time1))
     file.close()
 
 
