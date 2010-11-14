@@ -264,14 +264,14 @@ class RENDER_PT_freestyle(RenderButtonsPanel, bpy.types.Panel):
             col.operator("scene.freestyle_module_add")
 
             for i, module in enumerate(freestyle.modules):
-                    box = layout.box()
-                    box.context_pointer_set("freestyle_module", module)
-                    row = box.row(align=True)
-                    row.prop(module, "use", text="")
-                    row.prop(module, "module_path", text="")
-                    row.operator("scene.freestyle_module_remove", icon='X', text="")
-                    row.operator("scene.freestyle_module_move", icon='TRIA_UP', text="").direction = 'UP'
-                    row.operator("scene.freestyle_module_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+                box = layout.box()
+                box.context_pointer_set("freestyle_module", module)
+                row = box.row(align=True)
+                row.prop(module, "use", text="")
+                row.prop(module, "module_path", text="")
+                row.operator("scene.freestyle_module_remove", icon='X', text="")
+                row.operator("scene.freestyle_module_move", icon='TRIA_UP', text="").direction = 'UP'
+                row.operator("scene.freestyle_module_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
 
 class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):

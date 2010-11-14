@@ -48,6 +48,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_freestyle_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_bpath.h"
@@ -75,6 +76,7 @@ enum BPathTypes {
 	BPATH_LIB,
 	BPATH_SEQ,
 	BPATH_CDATA,
+	BPATH_FRS_MODULE,
 
 	 BPATH_DONE
 };
@@ -92,6 +94,11 @@ void BLI_bpathIterator_init( struct BPathIterator *bpi, char *base_path ) {
 	bpi->seqdata.seqar = NULL;
 	bpi->seqdata.scene = NULL;
 	
+	/* Freestyle module specific */
+	bpi->frsmoduledata.scene = NULL;
+	bpi->frsmoduledata.layer = NULL;
+	bpi->frsmoduledata.module = NULL;
+
 	bpi->base_path= base_path ? base_path : G.main->name;
 
 	BLI_bpathIterator_step(bpi);
@@ -251,6 +258,32 @@ static struct Sequence *seq_stepdata__internal(struct BPathIterator *bpi, int st
 		}
 	}
 	
+	return NULL;
+}
+
+static struct FreestyleModuleConfig *frs_module_stepdata__internal(struct BPathIterator *bpi, int step_next)
+{
+	struct FreestyleModuleConfig *module;
+
+	/* Initializing */
+	if (bpi->frsmoduledata.scene==NULL) {
+		bpi->frsmoduledata.scene= G.main->scene.first;
+		bpi->frsmoduledata.layer= bpi->frsmoduledata.scene->r.layers.first;
+		bpi->frsmoduledata.module= bpi->frsmoduledata.layer->freestyleConfig.modules.first;
+	}
+
+	while (bpi->frsmoduledata.scene) {
+		while (bpi->frsmoduledata.layer) {
+			while (bpi->frsmoduledata.module) {
+				module= bpi->frsmoduledata.module;
+				bpi->frsmoduledata.module= module->next;
+				return module;
+			}
+			bpi->frsmoduledata.layer= bpi->frsmoduledata.layer->next;
+		}
+		bpi->frsmoduledata.scene= bpi->frsmoduledata.scene->id.next;
+	}
+
 	return NULL;
 }
 
@@ -431,6 +464,20 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 			} else {
 				bpi_type_step__internal(bpi);
 			}
+		} else if  ((bpi->type) == BPATH_FRS_MODULE) {
+			if (bpi->data)	bpi->data = frs_module_stepdata__internal( bpi, 1 );
+			else 			bpi->data = frs_module_stepdata__internal( bpi, 0 );
+
+			if (bpi->data) {
+				FreestyleModuleConfig *module = (FreestyleModuleConfig *)bpi->data;
+				bpi->lib = NULL;
+				bpi->path = module->module_path;
+				bpi->name = NULL;
+				bpi->len = sizeof(module->module_path);
+				break;
+			} else {
+				bpi_type_step__internal(bpi);
+			}
 		}
 	}
 }
@@ -467,6 +514,9 @@ static void bpath_as_report(struct BPathIterator *bpi, const char *message, Repo
 		break;
 	case BPATH_CDATA:
 		prefix= "Mesh Data";
+		break;
+	case BPATH_FRS_MODULE:
+		prefix= "Freestyle Module";
 		break;
 	default:
 		prefix= "Unknown";

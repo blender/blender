@@ -39,6 +39,12 @@ struct BPathIteratorSeqData {
 	struct Scene *scene;			/* Current scene */
 };
 
+struct BPathIteratorFrsModuleData {
+	struct Scene *scene;			/* Current scene */
+	struct SceneRenderLayer *layer;	/* Scene render layer */
+	struct FreestyleModuleConfig *module;
+};
+
 struct BPathIterator {
 	char*	path;
 	char*	lib;
@@ -54,6 +60,8 @@ struct BPathIterator {
 
 	/* only for seq data */
 	struct BPathIteratorSeqData seqdata;
+	/* only for Freestyle module data */
+	struct BPathIteratorFrsModuleData frsmoduledata;
 };
 
 void			BLI_bpathIterator_init				(struct BPathIterator *bpi, char *base_path);
