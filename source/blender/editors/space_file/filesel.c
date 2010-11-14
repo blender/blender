@@ -346,16 +346,6 @@ float file_string_width(const char* str)
 	return BLF_width(style->widget.uifont_id, str);
 }
 
-/* gives the exact width of the string after being shortened to
-   the maximum width. Assumes shortening from the end of the string. */
-float file_string_width_shortened(const char* str, float width)
-{
-	char fname[FILE_MAXFILE];
-
-	BLI_strncpy(fname, str, FILE_MAXFILE);
-	return file_shorten_string(fname, width, 0 );
-}
-
 float file_font_pointsize()
 {
 	float s;
