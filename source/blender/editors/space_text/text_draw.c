@@ -81,8 +81,9 @@ static int text_font_draw(SpaceText *UNUSED(st), int x, int y, char *str)
 
 static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 {
-	char str[1];
+	char str[2];
 	str[0]= c;
+	str[1]= '\0';
 
 	BLF_position(mono, x, y, 0);
 	BLF_draw(mono, str, 1);
