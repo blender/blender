@@ -654,6 +654,13 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_WORLD_DRAW:
 					/* handled by space_view3d_listener() for v3d access */
 					break;
+				case ND_WORLD_STARS:
+				{
+					RegionView3D *rv3d= ar->regiondata;
+					if(rv3d->persp == RV3D_CAMOB) {
+						ED_region_tag_redraw(ar);
+					}
+				}
 			}
 			break;
 		case NC_LAMP:

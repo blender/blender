@@ -98,6 +98,15 @@ static void rna_World_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, wo);
 }
 
+static void rna_World_stars_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	World *wo= ptr->id.data;
+
+	DAG_id_flush_update(&wo->id, 0);
+	WM_main_add_notifier(NC_WORLD|ND_WORLD_STARS, wo);
+}
+
+
 #else
 
 static void rna_def_world_mtex(BlenderRNA *brna)
@@ -414,31 +423,31 @@ static void rna_def_world_stars(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_stars", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_STARS);
 	RNA_def_property_ui_text(prop, "Use Stars", "Enable starfield generation");
-	RNA_def_property_update(prop, 0, "rna_World_draw_update");
+	RNA_def_property_update(prop, 0, "rna_World_stars_update");
 
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "starsize");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Size", "Average screen dimension of stars");
-	RNA_def_property_update(prop, 0, "rna_World_update");
+	RNA_def_property_update(prop, 0, "rna_World_draw_update"); /* use normal update since this isnt visualized */
 
 	prop= RNA_def_property(srna, "distance_min", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "starmindist");
 	RNA_def_property_range(prop, 0, 1000);
 	RNA_def_property_ui_text(prop, "Minimum Distance", "Minimum distance to the camera for stars");
-	RNA_def_property_update(prop, 0, "rna_World_update");
+	RNA_def_property_update(prop, 0, "rna_World_stars_update");
 
 	prop= RNA_def_property(srna, "average_separation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "stardist");
 	RNA_def_property_range(prop, 2, 1000);
 	RNA_def_property_ui_text(prop, "Average Separation", "Average distance between any two stars");
-	RNA_def_property_update(prop, 0, "rna_World_draw_update");
+	RNA_def_property_update(prop, 0, "rna_World_stars_update");
 
 	prop= RNA_def_property(srna, "color_random", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "starcolnoise");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Color Randomization", "Randomize star colors");
-	RNA_def_property_update(prop, 0, "rna_World_update");
+	RNA_def_property_update(prop, 0, "rna_World_stars_update");
 	
 	/* unused
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);

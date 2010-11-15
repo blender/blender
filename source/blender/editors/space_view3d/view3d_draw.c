@@ -2332,22 +2332,25 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	rv3d->gridview= v3d->grid;
-	
-	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 
-		if(rv3d->view==0 || rv3d->persp != RV3D_ORTHO) {
+	if(rv3d->view==0 || rv3d->persp != RV3D_ORTHO) {
+		if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 			drawfloor(scene, v3d);
-			if(rv3d->persp==RV3D_CAMOB) {
-				if(scene->world) {
-					if(scene->world->mode & WO_STARS) {
-						RE_make_stars(NULL, scene, star_stuff_init_func, star_stuff_vertex_func,
-									  star_stuff_term_func);
-					}
+		}
+		if(rv3d->persp==RV3D_CAMOB) {
+			if(scene->world) {
+				if(scene->world->mode & WO_STARS) {
+					RE_make_stars(NULL, scene, star_stuff_init_func, star_stuff_vertex_func,
+								  star_stuff_term_func);
 				}
+			}
+			if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 				if(v3d->flag & V3D_DISPBGPICS) draw_bgpic(scene, ar, v3d);
 			}
 		}
-		else {
+	}
+	else {
+		if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 			ED_region_pixelspace(ar);
 			drawgrid(&scene->unit, ar, v3d, &grid_unit);
 			/* XXX make function? replaces persp(1) */

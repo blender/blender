@@ -219,6 +219,7 @@ typedef struct wmNotifier {
 
 	/* NC_WORLD World */
 #define	ND_WORLD_DRAW		(45<<16)
+#define	ND_WORLD_STARS		(46<<16)
 
 	/* NC_TEXT Text */
 #define ND_CURSOR			(50<<16)
