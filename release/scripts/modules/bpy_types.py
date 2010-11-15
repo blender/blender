@@ -723,12 +723,6 @@ class _GenericUI:
 class Panel(StructRNA, _GenericUI, metaclass=RNAMeta):
     __slots__ = ()
 
-    @classmethod
-    def poll(cls, context):
-        # super class might not have a poll function, better be careful
-        cls = super()
-        return not hasattr(cls, "poll") or cls.poll(context)
-
 
 class Header(StructRNA, _GenericUI, metaclass=RNAMeta):
     __slots__ = ()
