@@ -4083,7 +4083,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 					if(psys->recalc & PSYS_RECALC_RESET)
 						psys_reset(psys, PSYS_RESET_ALL);
 
-					if(emit_particles(&sim, NULL, cfra)) {
+					if(emit_particles(&sim, NULL, cfra) || (psys->recalc & PSYS_RECALC_RESET)) {
 						free_keyed_keys(psys);
 						distribute_particles(&sim, part->from);
 						initialize_all_particles(&sim);
