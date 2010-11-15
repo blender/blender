@@ -1084,7 +1084,7 @@ static RotOrderInfo rotOrders[]= {
  * NOTE: since we start at 1 for the values, but arrays index from 0, 
  *		 there is -1 factor involved in this process...
  */
-#define GET_ROTATIONORDER_INFO(order) (((order)>=1) ? &rotOrders[(order)-1] : &rotOrders[0])
+#define GET_ROTATIONORDER_INFO(order) ( ((order)>5 || (order < 1)) ? &rotOrders[0] : &rotOrders[(order)-1] )
 
 /* Construct quaternion from Euler angles (in radians). */
 void eulO_to_quat(float q[4], const float e[3], const short order)
