@@ -199,9 +199,10 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 		* x = -z | +z,
 		* y = -z | +z
 		*/
-	
-	if(scene->camera==NULL)
+
+	if(scene->camera==NULL || scene->camera->type != OB_CAMERA)
 		return;
+
 	camera = scene->camera->data;
 	clipend = camera->clipend;
 	
