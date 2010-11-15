@@ -578,49 +578,6 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
              data[6:9] + [0],\
              data[9:] + [1])
 
-
-            '''
-            contextMatrix_rot = Blender.mathutils.Matrix(\
-             data[:3] + [0],\
-             data[3:6] + [0],\
-             data[6:9] + [0],\
-             [0,0,0,1])
-            '''
-
-            '''
-            contextMatrix_rot = Blender.mathutils.Matrix(\
-             data[:3] ,\
-             data[3:6],\
-             data[6:9])
-            '''
-
-            '''
-            contextMatrix_rot = Blender.mathutils.Matrix()
-            m = 0
-            for j in xrange(4):
-                for i in xrange(3):
-                    contextMatrix_rot[j][i] = data[m]
-                    m += 1
-
-            contextMatrix_rot[0][3]=0;
-            contextMatrix_rot[1][3]=0;
-            contextMatrix_rot[2][3]=0;
-            contextMatrix_rot[3][3]=1;
-            '''
-
-            #contextMatrix_rot.resize4x4()
-            #print "MTX"
-            #print contextMatrix_rot
-            contextMatrix_rot.invert()
-            #print contextMatrix_rot
-            #contextMatrix_tx = mathutils.Matrix.Translation(0.5 * Blender.mathutils.Vector(data[9:]))
-            #contextMatrix_tx.invert()
-
-            #tx.invert()
-
-            #contextMatrix = contextMatrix * tx
-            #contextMatrix = contextMatrix  *tx
-
         elif  (new_chunk.ID == MAT_MAP_FILEPATH):
             texture_name, read_str_len = read_string(file)
             try:
@@ -651,7 +608,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
     if CreateBlenderObject:
         putContextMesh(contextMesh_vertls, contextMesh_facels, contextMeshMaterials)
 
-def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True, APPLY_MATRIX=False):
+def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True, APPLY_MATRIX=True):
     global SCN
 
     # XXX
@@ -722,11 +679,10 @@ def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
 
     # REMOVE DUMMYVERT, - remove this in the next release when blenders internal are fixed.
 
-    for ob in importedObjects:
-        if ob.type == 'MESH':
-            me = ob.data
-#           me.vertices.delete([me.vertices[0],]) # XXX, todo
-            if not APPLY_MATRIX:
+    if APPLY_MATRIX:
+        for ob in importedObjects:
+            if ob.type == 'MESH':
+                me = ob.data
                 me.transform(ob.matrix_world.copy().invert())
 
     # Done DUMMYVERT

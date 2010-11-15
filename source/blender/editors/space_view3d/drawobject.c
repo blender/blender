@@ -2335,7 +2335,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		}
 	}
 	
-	if((me->drawflag & (ME_DRAWFACES)) || paint_facesel_test(ob)) {	/* transp faces */
+	if(me->drawflag & ME_DRAWFACES) {	/* transp faces */
 		unsigned char col1[4], col2[4], col3[4];
 			
 		UI_GetThemeColor4ubv(TH_FACE, (char *)col1);
@@ -2472,7 +2472,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	Object *ob= base->object;
 	Mesh *me = ob->data;
 	Material *ma= give_current_material(ob, 1);
-	int hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO));
+	const short hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO));
+	const short is_paint_sel= (ob==OBACT && paint_facesel_test(ob));
 	int draw_wire = 0;
 	int totvert, totedge, totface;
 	DispList *dl;
@@ -2494,7 +2495,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
-	if (ob==OBACT && paint_facesel_test(ob)) draw_wire = 0;
+	if (is_paint_sel) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
 		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
@@ -2508,11 +2509,10 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire = 1; /* draw wire only, no depth buffer stuff  */
 	}
-	else if(	(ob==OBACT && (ob->mode & OB_MODE_TEXTURE_PAINT || paint_facesel_test(ob))) ||
+	else if(	(is_paint_sel && (ob->mode & OB_MODE_TEXTURE_PAINT)) ||
 				CHECK_OB_DRAWTEXTURE(v3d, dt))
 	{
-		int faceselect= (ob==OBACT && paint_facesel_test(ob));
-		if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !(G.f&G_PICKSEL || paint_facesel_test(ob)) && !draw_wire) {
+		if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !(G.f&G_PICKSEL || is_paint_sel) && !draw_wire) {
 			draw_mesh_object_outline(v3d, ob, dm);
 		}
 
@@ -2527,10 +2527,10 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glFrontFace(GL_CCW);
 		}
 		else {
-			draw_mesh_textured(scene, v3d, rv3d, ob, dm, faceselect);
+			draw_mesh_textured(scene, v3d, rv3d, ob, dm, is_paint_sel);
 		}
 
-		if(!faceselect) {
+		if(!is_paint_sel) {
 			if(base->flag & SELECT)
 				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
 			else
