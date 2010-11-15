@@ -378,7 +378,11 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 
 	//------------------------------------------------------------------
 	// main loop
+#ifdef __INTEL_COMPILER /* icc doesn't like the compound statement -- internal error: 0_1506 */
+	#pragma omp parallel for private(y) if(!nqd->preview) schedule(guided)
+#else
 	#pragma omp parallel for private(y) if(!nqd->preview && img->y*img->x > 16384) schedule(guided)
+#endif
 	for (y=0; y<img->y; y++) {
 		unsigned int p, p4, zp, cp, cp4;
 		float *ctcol, u, v, ct_crad, cR2=0;

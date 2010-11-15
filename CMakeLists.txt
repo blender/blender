@@ -311,24 +311,58 @@ IF(UNIX AND NOT APPLE)
 		SET(BINRELOC_INC ${BINRELOC}/include)
 	ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
-	IF(WITH_OPENMP)
-		LIST(APPEND LLIBS -lgomp)
-		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-	ENDIF(WITH_OPENMP)
-
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
 	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE")
 
+	# GNU Compiler
 	IF(CMAKE_COMPILER_IS_GNUCC)
+		IF(WITH_OPENMP)
+			LIST(APPEND LLIBS -lgomp)
+			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+		ENDIF(WITH_OPENMP)
+
 		SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 	
 		# Better warnings
 		# note: -Wunused-parameter is added below for all GCC compilers
 		SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
 		SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
+
+	# Intel C++ Compiler
+	ELSEIF(CMAKE_C_COMPILER_ID MATCHES "Intel")
+		IF(WITH_OPENMP)
+			LIST(APPEND LLIBS -lgomp)
+			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -openmp")
+			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -openmp")
+		ENDIF(WITH_OPENMP)
+
+		# think these next two are broken
+		FIND_PROGRAM(XIAR xiar) 
+		IF(XIAR) 
+			SET(CMAKE_AR "${XIAR}")
+		ENDIF(XIAR) 
+		MARK_AS_ADVANCED(XIAR)
+
+		FIND_PROGRAM(XILD xild) 
+		IF(XILD) 
+			SET(CMAKE_LINKER "${XILD}")
+		ENDIF(XILD) 
+		MARK_AS_ADVANCED(XILD)
+
+		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fp-model precise -prec_div -parallel")
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model precise -prec_div -parallel")
+
+		SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
+
+		# SET(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -diag-enable sc3")
+
+		SET(C_WARNINGS "-Wall -Wpointer-arith -Wno-unknown-pragmas")
+		SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
+
+		SET(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -static-intel")
 	ENDIF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF(UNIX AND NOT APPLE)
 
