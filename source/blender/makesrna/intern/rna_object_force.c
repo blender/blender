@@ -1437,7 +1437,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	int matrix_dimsize[]= {3, 3};
+	const int matrix_dimsize[]= {3, 3};
 
 	
 	static EnumPropertyItem collision_type_items[] = {

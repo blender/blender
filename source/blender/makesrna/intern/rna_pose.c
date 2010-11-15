@@ -541,13 +541,13 @@ PointerRNA rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key)
 	return rptr;
 }
 
-static void rna_PoseChannel_matrix_local_get(PointerRNA *ptr, float *values)
+static void rna_PoseChannel_matrix_basis_get(PointerRNA *ptr, float *values)
 {
 	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
 	pchan_to_mat4(pchan, (float (*)[4])values);
 }
 
-static void rna_PoseChannel_matrix_local_set(PointerRNA *ptr, const float *values)
+static void rna_PoseChannel_matrix_basis_set(PointerRNA *ptr, const float *values)
 {
 	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
 	pchan_apply_mat4(pchan, (float (*)[4])values, FALSE); /* no compat for pradictable result */
@@ -683,6 +683,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	static float default_axisAngle[4] = {0,0,1,0};	/* default axis-angle rotation values */
 	static float default_scale[3] = {1,1,1}; /* default scale values */
 	
+	const int matrix_dimsize[]= {4, 4};
+	
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -784,18 +786,21 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	/* transform matrices - should be read-only since these are set directly by AnimSys evaluation */
 	prop= RNA_def_property(srna, "matrix_channel", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "chan_mat");
-	RNA_def_property_array(prop, 16);
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Channel Matrix", "4x4 matrix, before constraints");
 
-	prop= RNA_def_property(srna, "matrix_local", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_array(prop, 16);
-	RNA_def_property_ui_text(prop, "Local Matrix", "Matrix representing the parent relative location, scale and rotation. Provides an alternative access to these properties.");
-	RNA_def_property_float_funcs(prop, "rna_PoseChannel_matrix_local_get", "rna_PoseChannel_matrix_local_set", NULL);
+	/* writable because it touches loc/scale/rot directly */
+	prop= RNA_def_property(srna, "matrix_basis", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_ui_text(prop, "Basis Matrix", "Provides an alternative access to loc/scale/rotation relative to the parent and own rest bone.");
+	RNA_def_property_float_funcs(prop, "rna_PoseChannel_matrix_basis_get", "rna_PoseChannel_matrix_basis_set", NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
+	/* final matrix */
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "pose_mat");
-	RNA_def_property_array(prop, 16);
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
 	RNA_def_property_ui_text(prop, "Pose Matrix", "Final 4x4 matrix for this channel");
 

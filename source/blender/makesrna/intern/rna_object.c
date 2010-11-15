@@ -182,6 +182,18 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
 	object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
 }
 
+static void rna_Object_matrix_basis_get(PointerRNA *ptr, float values[16])
+{
+	Object *ob= ptr->id.data;
+	object_to_mat4(ob, (float(*)[4])values);
+}
+
+static void rna_Object_matrix_basis_set(PointerRNA *ptr, const float values[16])
+{
+	Object *ob= ptr->id.data;
+	object_apply_mat4(ob, (float(*)[4])values, FALSE, FALSE);
+}
+
 void rna_Object_internal_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
@@ -1639,8 +1651,8 @@ static void rna_def_object(BlenderRNA *brna)
 	static float default_quat[4] = {1,0,0,0};	/* default quaternion values */
 	static float default_axisAngle[4] = {0,0,1,0};	/* default axis-angle rotation values */
 	static float default_scale[3] = {1,1,1}; /* default scale values */
-	int matrix_dimsize[]= {4, 4};
-	int boundbox_dimsize[]= {8, 3};
+	const int matrix_dimsize[]= {4, 4};
+	const int boundbox_dimsize[]= {8, 3};
 
 	srna= RNA_def_struct(brna, "Object", "ID");
 	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene");
@@ -1886,6 +1898,12 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_Object_matrix_local_get", "rna_Object_matrix_local_set", NULL);
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, NULL);
 
+	prop= RNA_def_property(srna, "matrix_basis", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_ui_text(prop, "Input Matrix", "Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied.");
+	RNA_def_property_float_funcs(prop, "rna_Object_matrix_basis_get", "rna_Object_matrix_basis_set", NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
+	
 	/* collections */
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");

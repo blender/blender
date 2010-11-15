@@ -979,7 +979,7 @@ static void rna_def_transform_orientation(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	int matrix_dimsize[]= {3, 3};
+	const int matrix_dimsize[]= {3, 3};
 	
 	srna= RNA_def_struct(brna, "TransformOrientation", NULL);
 	
