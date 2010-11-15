@@ -638,14 +638,18 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 		case NC_OBJECT:
+		{
+			Object *ob= (Object *)wmn->reference;
 			switch(wmn->data) {
 				case ND_TRANSFORM:
-					if(sima->lock && (sima->flag & SI_DRAWSHADOW)) {
+				case ND_MODIFIER:
+					if(ob && (ob->mode & OB_MODE_EDIT) && sima->lock && (sima->flag & SI_DRAWSHADOW)) {
 						ED_area_tag_refresh(sa);
 						ED_area_tag_redraw(sa);
 					}
 					break;
 			}
+		}
 	}
 }
 
