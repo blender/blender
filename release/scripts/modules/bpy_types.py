@@ -660,6 +660,12 @@ class Operator(StructRNA, metaclass=OrderedMeta):
             return delattr(properties, attr)
         return super().__delattr__(attr)
 
+    def as_keywords(self, ignore=()):
+        """ Return a copy of the properties as a dictionary.
+        """
+        ignore = ignore + ("rna_type",)
+        return {attr: getattr(self, attr) for attr in self.properties.rna_type.properties.keys() if attr not in ignore}
+
 
 class Macro(StructRNA, metaclass=OrderedMeta):
     # bpy_types is imported before ops is defined

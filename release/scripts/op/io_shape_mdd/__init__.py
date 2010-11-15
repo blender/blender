@@ -55,7 +55,7 @@ class ImportMDD(bpy.types.Operator, ImportHelper):
             self.frame_start = scene.frame_current
         
         import io_shape_mdd.import_mdd
-        return io_shape_mdd.import_mdd.load(self, context, **self.properties)
+        return io_shape_mdd.import_mdd.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
 
 class ExportMDD(bpy.types.Operator, ExportHelper):
     '''Animated mesh to MDD vertex keyframe file'''
@@ -93,7 +93,7 @@ class ExportMDD(bpy.types.Operator, ExportHelper):
             self.fps = scene.render.fps
 
         import io_shape_mdd.export_mdd
-        return io_shape_mdd.export_mdd.save(self, context, **self.properties)
+        return io_shape_mdd.export_mdd.save(self, context, **self.as_keywords(ignore=("check_existing",)))
 
 
 def menu_func_import(self, context):

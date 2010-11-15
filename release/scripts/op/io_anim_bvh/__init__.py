@@ -57,13 +57,7 @@ class BvhImporter(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         import io_anim_bvh.import_bvh
-        return io_anim_bvh.import_bvh.load(self, context,
-                                           filepath=self.filepath,
-                                           rotate_mode=self.rotate_mode,
-                                           scale=self.scale,
-                                           use_cyclic=self.use_cyclic,
-                                           frame_start=self.frame_start,
-                                           )
+        return io_anim_bvh.import_bvh.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
 
 
 def menu_func(self, context):

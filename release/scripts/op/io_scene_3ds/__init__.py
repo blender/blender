@@ -44,7 +44,7 @@ class Import3DS(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         import io_scene_3ds.import_3ds
-        return io_scene_3ds.import_3ds.load(self, context, **self.properties)
+        return io_scene_3ds.import_3ds.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
 
 
 class Export3DS(bpy.types.Operator, ExportHelper):
@@ -56,7 +56,7 @@ class Export3DS(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         import io_scene_3ds.export_3ds
-        return io_scene_3ds.export_3ds.save(self, context, **self.properties)
+        return io_scene_3ds.export_3ds.save(self, context, **self.as_keywords(ignore=("check_existing",)))
 
 
 # Add to a menu

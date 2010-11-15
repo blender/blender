@@ -56,22 +56,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
     def execute(self, context):
         # print("Selected: " + context.active_object.name)
         import io_scene_obj.import_obj
-        return io_scene_obj.import_obj.load(self, context, **self.properties)
-        '''
-        load_obj(self.filepath,
-                 context,
-                 self.CLAMP_SIZE,
-                 self.CREATE_FGONS,
-                 self.CREATE_SMOOTH_GROUPS,
-                 self.CREATE_EDGES,
-                 self.SPLIT_OBJECTS,
-                 self.SPLIT_GROUPS,
-                 self.ROTATE_X90,
-                 self.IMAGE_SEARCH,
-                 self.POLYGROUPS)
-        '''
-
-        return {'FINISHED'}
+        return io_scene_obj.import_obj.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
 
 
 class ExportOBJ(bpy.types.Operator, ExportHelper):
@@ -114,7 +99,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         import io_scene_obj.export_obj
-        return io_scene_obj.export_obj.save(self, context, **self.properties)
+        return io_scene_obj.export_obj.save(self, context, **self.as_keywords(ignore=("check_existing",)))
 
 
 def menu_func_import(self, context):

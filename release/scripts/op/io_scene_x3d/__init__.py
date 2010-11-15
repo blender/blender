@@ -41,7 +41,7 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         import io_scene_x3d.export_x3d
-        return io_scene_x3d.export_x3d.save(self, context, **self.properties)
+        return io_scene_x3d.export_x3d.save(self, context, **self.as_keywords(ignore=("check_existing",)))
 
 
 def menu_func(self, context):
