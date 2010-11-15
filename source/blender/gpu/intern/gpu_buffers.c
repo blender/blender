@@ -1179,8 +1179,13 @@ void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(index), 
 GPUBuffer *GPU_buffer_uvedge( DerivedMesh *dm )
 {
 	DEBUG_VBO("GPU_buffer_uvedge\n");
-
-	return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*2*(dm->drawObject->nelements/3)*2, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_uvedge);
+	/* logic here:
+	 * ...each face gets 3 'nelements'
+	 * ...3 edges per triangle
+	 * ...each edge has its own, non-shared coords.
+	 * so each tri corner needs minimum of 4 floats, quads used less so here we can over allocate and assume all tris.
+	 * */
+	return GPU_buffer_setup( dm, dm->drawObject, 4 * sizeof(float) * dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_uvedge);
 }
 
 
