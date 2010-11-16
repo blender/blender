@@ -718,7 +718,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->srl = srl;
 	rj->lay = (v3d)? v3d->lay: scene->lay;
 	rj->anim= is_animation;
-	rj->write_still= is_write_still;
+	rj->write_still= is_write_still && !is_animation;
 	rj->iuser.scene= scene;
 	rj->iuser.ok= 1;
 	rj->reports= op->reports;
