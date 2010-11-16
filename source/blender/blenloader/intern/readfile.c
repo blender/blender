@@ -3705,6 +3705,9 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->path= NULL;
+		
+		/* incase this value changes in future, clamp else we get undefined behavior */
+		CLAMP(pchan->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
 	}
 	pose->ikdata = NULL;
 	if (pose->ikparam != NULL) {
@@ -4110,6 +4113,9 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->derivedFinal= NULL;
 	ob->gpulamp.first= ob->gpulamp.last= NULL;
 	link_list(fd, &ob->pc_ids);
+
+	/* incase this value changes in future, clamp else we get undefined behavior */
+	CLAMP(ob->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
 
 	if(ob->sculpt) {
 		ob->sculpt= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
