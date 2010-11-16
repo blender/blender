@@ -2562,8 +2562,11 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 
 	unit_m4(cache->symm_rot_mat);
 	unit_m4(cache->symm_rot_mat_inv);
-	rotate_m4(cache->symm_rot_mat, axis, angle);
-	rotate_m4(cache->symm_rot_mat_inv, axis, -angle);
+
+	if(axis) { /* expects XYZ */
+		rotate_m4(cache->symm_rot_mat, axis, angle);
+		rotate_m4(cache->symm_rot_mat_inv, axis, -angle);
+	}
 
 	mul_m4_v3(cache->symm_rot_mat, cache->location);
 	mul_m4_v3(cache->symm_rot_mat, cache->grab_delta_symmetry);
