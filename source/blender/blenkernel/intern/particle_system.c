@@ -4061,6 +4061,8 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 				psys->flag |= PSYS_HAIR_DONE;
 				psys->recalc = recalc;
 			}
+			else if(psys->flag & PSYS_EDITED)
+				psys->flag |= PSYS_HAIR_DONE;
 
 			if(psys->flag & PSYS_HAIR_DONE)
 				hair_step(&sim, cfra);
