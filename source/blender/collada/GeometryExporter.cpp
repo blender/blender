@@ -63,6 +63,11 @@ void GeometryExporter::operator()(Object *ob)
 	std::vector<Normal> nor;
 	std::vector<Face> norind;
 
+	// Skip if linked geometry was already exported from another reference
+	if (exportedGeometry.find(geom_id) != exportedGeometry.end())
+		return;
+	exportedGeometry.insert(geom_id);
+
 	bool has_color = (bool)CustomData_has_layer(&me->fdata, CD_MCOL);
 
 	create_normals(nor, norind, me);
