@@ -534,8 +534,8 @@ def save(operator, context, filepath="",
             if obj_type =='LAMP':
                 matrix_rot = matrix_rot * mtx_x90
             elif obj_type =='CAMERA':
-                y = matrix_rot * Vector((0.0, 1.0, 0.0))
-                matrix_rot = Matrix.Rotation(math.pi/2, 3, y) * matrix_rot
+                y = Vector((0.0, 1.0, 0.0)) * matrix_rot
+                matrix_rot = Matrix.Rotation(math.pi/2.0, 3, y) * matrix_rot
 
             return matrix_rot
 
@@ -634,7 +634,7 @@ def save(operator, context, filepath="",
                     matrix_rot = matrix_rot * mtx_x90
                     rot = tuple(matrix_rot.to_euler())
                 elif ob and ob.type =='CAMERA':
-                    y = matrix_rot * Vector((0.0, 1.0, 0.0))
+                    y = Vector((0.0, 1.0, 0.0)) * matrix_rot
                     matrix_rot = Matrix.Rotation(math.pi/2, 3, y) * matrix_rot
                     rot = tuple(matrix_rot.to_euler())
                 else:
@@ -1012,8 +1012,8 @@ def save(operator, context, filepath="",
         file.write('\n\t\tTypeFlags: "Camera"')
         file.write('\n\t\tGeometryVersion: 124')
         file.write('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
-        file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(matrix_rot * Vector((0.0, 1.0, 0.0))))
-        file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(matrix_rot * Vector((0.0, 0.0, -1.0))))
+        file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(Vector((0.0, 1.0, 0.0)) * matrix_rot))
+        file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(Vector((0.0, 0.0, -1.0)) * matrix_rot))
 
         #file.write('\n\t\tUp: 0,0,0' )
         #file.write('\n\t\tLookAt: 0,0,0' )
