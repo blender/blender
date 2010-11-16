@@ -115,7 +115,7 @@ class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
             sub.label(text="Fill:")
             sub.prop(curve, "use_fill_front")
             sub.prop(curve, "use_fill_back")
-            sub.prop(curve, "use_fill_deform", text="Use Deformed")
+            sub.prop(curve, "use_fill_deform", text="Fill Deformed")
 
         col.label(text="Textures:")
         col.prop(curve, "use_uv_as_generated")
