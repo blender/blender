@@ -258,7 +258,7 @@ class ExportUVLayout(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        return (obj and obj.type == 'MESH')
+        return (obj and obj.type == 'MESH' and obj.data.uv_textures)
 
     def _space_image(self, context):
         space_data = context.space_data
@@ -352,7 +352,6 @@ class ExportUVLayout(bpy.types.Operator):
             return True
         else:
             return False
-
 
     def invoke(self, context, event):
         import os
