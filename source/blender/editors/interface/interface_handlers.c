@@ -1589,7 +1589,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	if(but) {
-		if(ui_is_utf8_but(but)) {
+		if(!ui_is_utf8_but(but)) {
 			int strip= BLI_utf8_invalid_strip(but->editstr, strlen(but->editstr));
 			/* not a file?, strip non utf-8 chars */
 			if(strip) {
