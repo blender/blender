@@ -225,9 +225,18 @@ void ED_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
 	
 	ED_space_image_aspect(sima, aspx, aspy);
 	ED_space_image_size(sima, &w, &h);
+
+	*aspx *= (float)w;
+	*aspy *= (float)h;
 	
-	*aspx *= (float)w/256.0f;
-	*aspy *= (float)h/256.0f;
+	if(*aspx < *aspy) {
+		*aspy= *aspy / *aspx;
+		*aspx= 1.0f;
+	}
+	else {
+		*aspx= *aspx / *aspy;
+		*aspy= 1.0f;		
+	}
 }
 
 void ED_image_uv_aspect(Image *ima, float *aspx, float *aspy)

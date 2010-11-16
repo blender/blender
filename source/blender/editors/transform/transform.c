@@ -3426,6 +3426,9 @@ int Translation(TransInfo *t, short UNUSED(mval[2]))
 	if (t->con.mode & CON_APPLY) {
 		float pvec[3] = {0.0f, 0.0f, 0.0f};
 		float tvec[3];
+		if (hasNumInput(&t->num)) {
+			removeAspectRatio(t, t->values);
+		}
 		applySnapping(t, t->values);
 		t->con.applyVec(t, NULL, t->values, tvec, pvec);
 		VECCOPY(t->values, tvec);
@@ -3435,11 +3438,9 @@ int Translation(TransInfo *t, short UNUSED(mval[2]))
 		applyNDofInput(&t->ndof, t->values);
 		snapGrid(t, t->values);
 		applyNumInput(&t->num, t->values);
-		if (hasNumInput(&t->num))
-		{
+		if (hasNumInput(&t->num)) {
 			removeAspectRatio(t, t->values);
 		}
-
 		applySnapping(t, t->values);
 		headerTranslation(t, t->values, str);
 	}

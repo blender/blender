@@ -154,6 +154,7 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 
 	if (hasNumInput(&t->num)) {
 		applyNumInput(&t->num, vec);
+		removeAspectRatio(t, vec);
 		constraintNumInput(t, vec);
 	}
 
