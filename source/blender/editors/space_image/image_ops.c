@@ -124,6 +124,7 @@ static int space_image_buffer_exists_poll(bContext *C)
 static int space_image_file_exists_poll(bContext *C)
 {
 	if(space_image_buffer_exists_poll(C)) {
+		Main *bmain= CTX_data_main(C);
 		SpaceImage *sima= CTX_wm_space_image(C);
 		ImBuf *ibuf;
 		void *lock;
@@ -133,7 +134,7 @@ static int space_image_file_exists_poll(bContext *C)
 		ibuf= ED_space_image_acquire_buffer(sima, &lock);
 		if(ibuf) {
 			BLI_strncpy(name, ibuf->name, FILE_MAX);
-			BLI_path_abs(name, G.main->name);
+			BLI_path_abs(name, bmain->name);
 			poll= (BLI_exists(name) && BLI_is_writable(name));
 		}
 		ED_space_image_release_buffer(sima, lock);
@@ -869,65 +870,49 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
 
 	if (ibuf) {
-		int relative= (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path"));
-		int save_copy= (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
+		Main *bmain= CTX_data_main(C);
+		const short relative= (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path"));
+		const short save_copy= (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
+		short ok= FALSE;
 
-		BLI_path_abs(path, G.main->name);
+		BLI_path_abs(path, bmain->name);
 		
-		if(scene->r.scemode & R_EXTENSION)  {
-			BKE_add_image_extension(path, sima->imtypenr);
-		}
-		
+		WM_cursor_wait(1);
+
 		/* enforce user setting for RGB or RGBA, but skip BW */
 		if(scene->r.planes==32)
 			ibuf->depth= 32;
 		else if(scene->r.planes==24)
 			ibuf->depth= 24;
 		
-		WM_cursor_wait(1);
-
+		if(scene->r.scemode & R_EXTENSION)  {
+			BKE_add_image_extension(path, sima->imtypenr);
+		}
+		
 		if(sima->imtypenr==R_MULTILAYER) {
 			RenderResult *rr= BKE_image_acquire_renderresult(scene, ima);
 			if(rr) {
 				RE_WriteRenderResult(rr, path, scene->r.quality);
-
-				BLI_strncpy(G.ima, path, sizeof(G.ima));
-
-				if(relative)
-					BLI_path_rel(path, G.main->name); /* only after saving */
-
-				if(ibuf->name[0]==0) {
-					BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
-					BLI_strncpy(ima->name, path, sizeof(ima->name));
-				}
-
-				if(!save_copy) {
-					if(do_newpath) {
-						BLI_strncpy(ima->name, path, sizeof(ima->name));
-						BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
-					}
-
-					/* should be function? nevertheless, saving only happens here */
-					for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next)
-						ibuf->userflags &= ~IB_BITMAPDIRTY;
-				}
+				ok= TRUE;
 			}
-			else
+			else {
 				BKE_report(op->reports, RPT_ERROR, "Did not write, no Multilayer Image");
+			}
 			BKE_image_release_renderresult(scene, ima);
 		}
 		else if (BKE_write_ibuf(scene, ibuf, path, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
-			
-			BLI_strncpy(G.ima, path, sizeof(G.ima));
+			ok= TRUE;
+		}
 
+		if(ok)	{
 			if(relative)
-				BLI_path_rel(path, G.main->name); /* only after saving */
+				BLI_path_rel(path, bmain->name); /* only after saving */
 
 			if(ibuf->name[0]==0) {
 				BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
 				BLI_strncpy(ima->name, path, sizeof(ima->name));
 			}
-			
+
 			if(!save_copy) {
 				if(do_newpath) {
 					BLI_strncpy(ima->name, path, sizeof(ima->name));
@@ -956,14 +941,14 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 					ima->source= IMA_SRC_FILE;
 					ima->type= IMA_TYPE_IMAGE;
 				}
-
-				/* name image as how we saved it */
-				rename_id(&ima->id, BLI_path_basename(path));
 			}
-		} 
-		else
+		}
+		else {
 			BKE_reportf(op->reports, RPT_ERROR, "Couldn't write image: %s", path);
-
+		}
+		
+		
+		
 		WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
 
 		WM_cursor_wait(0);
@@ -1090,6 +1075,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 
 static int save_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Image *ima = ED_space_image(sima);
 	void *lock;
@@ -1109,7 +1095,7 @@ static int save_exec(bContext *C, wmOperator *op)
 	if(name[0]==0)
 		BLI_strncpy(name, G.ima, FILE_MAX);
 	else
-		BLI_path_abs(name, G.main->name);
+		BLI_path_abs(name, bmain->name);
 	
 	if(BLI_exists(name) && BLI_is_writable(name)) {
 		rr= BKE_image_acquire_renderresult(scene, ima);
@@ -1152,6 +1138,7 @@ void IMAGE_OT_save(wmOperatorType *ot)
 
 static int save_sequence_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ImBuf *ibuf;
 	int tot= 0;
@@ -1195,7 +1182,7 @@ static int save_sequence_exec(bContext *C, wmOperator *op)
 			char name[FILE_MAX];
 			BLI_strncpy(name, ibuf->name, sizeof(name));
 			
-			BLI_path_abs(name, G.main->name);
+			BLI_path_abs(name, bmain->name);
 
 			if(0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
 				BKE_reportf(op->reports, RPT_ERROR, "Could not write image %s.", name);
@@ -1331,7 +1318,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string(ot->srna, "name", "Untitled", 21, "Name", "Image datablock name.");
+	RNA_def_string(ot->srna, "name", "untitled", 21, "Name", "Image datablock name.");
 	RNA_def_int(ot->srna, "width", 1024, 1, INT_MAX, "Width", "Image width.", 1, 16384);
 	RNA_def_int(ot->srna, "height", 1024, 1, INT_MAX, "Height", "Image height.", 1, 16384);
 	prop= RNA_def_float_color(ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color.", 0.0f, 1.0f);
