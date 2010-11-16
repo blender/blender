@@ -120,7 +120,7 @@ typedef struct RegionView3D {
 	
 	/* last view */
 	float lviewquat[4];
-	short lpersp, lview;
+	short lpersp, lview; /* lpersp can never be set to 'RV3D_CAMOB' */
 	float gridview;
 	
 	float twangle[3];

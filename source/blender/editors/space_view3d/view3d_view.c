@@ -406,7 +406,9 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *UNUSED(op))
 
 	copy_qt_qt(rv3d->lviewquat, rv3d->viewquat);
 	rv3d->lview= rv3d->view;
-	rv3d->lpersp= rv3d->persp;
+	if(rv3d->persp != RV3D_CAMOB) {
+		rv3d->lpersp= rv3d->persp;
+	}
 
 	setcameratoview3d(rv3d, v3d->camera);
 	rv3d->persp = RV3D_CAMOB;

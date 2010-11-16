@@ -733,7 +733,7 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 		viewrotate_apply(vod, event->x, event->y);
 	}
 	else if (event_code==VIEW_CONFIRM) {
-		request_depth_update(CTX_wm_region_view3d(C));
+		request_depth_update(vod->rv3d);
 		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
@@ -744,33 +744,36 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	ViewOpsData *vod;
-
-	if(rv3d->viewlock)
-		return OPERATOR_CANCELLED;
+	RegionView3D *rv3d;
 
 	/* makes op->customdata */
 	viewops_data_create(C, op, event);
 	vod= op->customdata;
+	rv3d= vod->rv3d;
+
+	if(rv3d->viewlock) { /* poll should check but in some cases fails, see poll func for details */
+		viewops_data_free(C, op);
+		return OPERATOR_CANCELLED;
+	}
 
 	/* switch from camera view when: */
-	if(vod->rv3d->persp != RV3D_PERSP) {
+	if(rv3d->persp != RV3D_PERSP) {
 
 		if (U.uiflag & USER_AUTOPERSP) {
-			vod->rv3d->persp= RV3D_PERSP;
+			rv3d->persp= RV3D_PERSP;
 		}
-		else if(vod->rv3d->persp==RV3D_CAMOB) {
+		else if(rv3d->persp==RV3D_CAMOB) {
 
 			/* changed since 2.4x, use the camera view */
-			View3D *v3d = CTX_wm_view3d(C);
+			View3D *v3d = vod->sa->spacedata.first;
 
 			if(v3d->camera) {
 				view3d_settings_from_ob(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 			}
 
-			if(vod->rv3d->persp==RV3D_CAMOB) {
-				vod->rv3d->persp= vod->rv3d->lpersp;
+			if(rv3d->persp==RV3D_CAMOB) {
+				rv3d->persp= rv3d->lpersp;
 			}
 		}
 		ED_region_tag_redraw(vod->ar);
@@ -778,7 +781,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	if (event->type == MOUSEPAN) {
 		viewrotate_apply(vod, event->prevx, event->prevy);
-		request_depth_update(CTX_wm_region_view3d(C));
+		request_depth_update(rv3d);
 		
 		viewops_data_free(C, op);
 		
@@ -787,7 +790,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else if (event->type == MOUSEROTATE) {
 		/* MOUSEROTATE performs orbital rotation, so y axis delta is set to 0 */
 		viewrotate_apply(vod, event->prevx, event->y);
-		request_depth_update(CTX_wm_region_view3d(C));
+		request_depth_update(rv3d);
 		
 		viewops_data_free(C, op);
 		
@@ -945,7 +948,7 @@ static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 		viewmove_apply(vod, event->x, event->y);
 	}
 	else if (event_code==VIEW_CONFIRM) {
-		request_depth_update(CTX_wm_region_view3d(C));
+		request_depth_update(vod->rv3d);
 
 		viewops_data_free(C, op);
 
@@ -963,7 +966,7 @@ static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (event->type == MOUSEPAN) {
 		ViewOpsData *vod= op->customdata;
 		viewmove_apply(vod, event->prevx, event->prevy);
-		request_depth_update(CTX_wm_region_view3d(C));
+		request_depth_update(vod->rv3d);
 		
 		viewops_data_free(C, op);		
 		
@@ -1177,7 +1180,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 		viewzoom_apply(vod, event->x, event->y, U.viewzoom);
 	}
 	else if (event_code==VIEW_CONFIRM) {
-		request_depth_update(CTX_wm_region_view3d(C));
+		request_depth_update(vod->rv3d);
 		viewops_data_free(C, op);
 
 		return OPERATOR_FINISHED;
@@ -1217,7 +1220,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	if(rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_sync(CTX_wm_area(C), CTX_wm_region(C));
 
-	request_depth_update(CTX_wm_region_view3d(C));
+	request_depth_update(rv3d);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	
 	viewops_data_free(C, op);
@@ -1263,7 +1266,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				vod->origy = vod->oldy = vod->origy + event->x - event->prevx;
 				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY);
 			}
-			request_depth_update(CTX_wm_region_view3d(C));
+			request_depth_update(vod->rv3d);
 			
 			viewops_data_free(C, op);
 			return OPERATOR_FINISHED;
