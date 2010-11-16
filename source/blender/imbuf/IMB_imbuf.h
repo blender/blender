@@ -283,7 +283,7 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned
  *
  * @attention Defined in writeimage.c
  */
-short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags);
+short IMB_saveiff(struct ImBuf *ibuf, char *filepath, int flags);
 
 /**
  * Encodes a png image from an ImBuf

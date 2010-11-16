@@ -143,7 +143,7 @@ int BLI_touch(const char *file)
 	return 0;
 }
 
-int BLI_exists(char *file) {
+int BLI_exists(const char *file) {
 	return BLI_exist(file);
 }
 

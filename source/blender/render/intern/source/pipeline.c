@@ -120,6 +120,7 @@ Render R;
 
 /* ********* alloc and free ******** */
 
+static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, ReportList *reports, const char *name_override);
 
 static volatile int g_break= 0;
 static int thread_break(void *UNUSED(arg))
@@ -807,7 +808,7 @@ static char *make_pass_name(RenderPass *rpass, int chan)
 
 /* filename already made absolute */
 /* called from within UI, saves both rendered result as a file-read result */
-void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress)
+void RE_WriteRenderResult(RenderResult *rr, const char *filename, int compress)
 {
 	RenderLayer *rl;
 	RenderPass *rpass;
@@ -2844,7 +2845,7 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 }
 
 /* general Blender frame render call */
-void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int frame)
+void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int frame, const short write_still)
 {
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
 	G.rendering= 1;
@@ -2855,12 +2856,26 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 		MEM_reset_peak_memory();
 		do_render_all_options(re);
 	}
-		
+
+	if(write_still) {
+		if(BKE_imtype_is_movie(scene->r.imtype)) {
+			/* operator checks this but incase its called from elsewhere */
+			printf("Error: cant write single images with a movie format!\n");
+		}
+		else {
+			char name[FILE_MAX];
+			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
+
+			/* reports only used for Movie */
+			do_write_image_or_movie(re, scene, NULL, NULL, name);
+		}
+	}
+
 	/* UGLY WARNING */
 	G.rendering= 0;
 }
 
-static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, ReportList *reports)
+static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, ReportList *reports, const char *name_override)
 {
 	char name[FILE_MAX];
 	RenderResult rres;
@@ -2884,7 +2899,10 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 		printf("Append frame %d", scene->r.cfra);
 	} 
 	else {
-		BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION);
+		if(name_override)
+			BLI_strncpy(name, name_override, sizeof(name));
+		else
+			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
 		
 		if(re->r.imtype==R_MULTILAYER) {
 			if(re->result) {
@@ -2974,7 +2992,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, unsigned int lay, int
 				do_render_all_options(re);
 
 				if(re->test_break(re->tbh) == 0) {
-					if(!do_write_image_or_movie(re, scene, mh, reports))
+					if(!do_write_image_or_movie(re, scene, mh, reports, NULL))
 						G.afbreek= 1;
 				}
 			} else {
@@ -3011,7 +3029,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, unsigned int lay, int
 			/* Touch/NoOverwrite options are only valid for image's */
 			if(BKE_imtype_is_movie(scene->r.imtype) == 0) {
 				if(scene->r.mode & (R_NO_OVERWRITE | R_TOUCH))
-					BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION);
+					BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
 
 				if(scene->r.mode & R_NO_OVERWRITE && BLI_exist(name)) {
 					printf("skipping existing frame \"%s\"\n", name);
@@ -3029,7 +3047,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, unsigned int lay, int
 			
 			if(re->test_break(re->tbh) == 0) {
 				if(!G.afbreek)
-					if(!do_write_image_or_movie(re, scene, mh, reports))
+					if(!do_write_image_or_movie(re, scene, mh, reports, NULL))
 						G.afbreek= 1;
 			}
 			else

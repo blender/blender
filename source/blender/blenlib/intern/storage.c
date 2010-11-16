@@ -474,7 +474,7 @@ int BLI_exist(const char *name)
 }
 
 /* would be better in fileops.c except that it needs stat.h so add here */
-int BLI_is_dir(char *file) {
+int BLI_is_dir(const char *file) {
 	return S_ISDIR(BLI_exist(file));
 }
 

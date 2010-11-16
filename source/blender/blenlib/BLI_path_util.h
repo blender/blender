@@ -42,9 +42,9 @@ struct direntry;
 
 char *BLI_getDefaultDocumentFolder(void);
 
-char *BLI_get_folder(int folder_id, char *subfolder);
-char *BLI_get_folder_create(int folder_id, char *subfolder);
-char *BLI_get_user_folder_notest(int folder_id, char *subfolder);
+char *BLI_get_folder(int folder_id, const char *subfolder);
+char *BLI_get_folder_create(int folder_id, const char *subfolder);
+char *BLI_get_user_folder_notest(int folder_id, const char *subfolder);
 
 /* folder_id */
 
@@ -101,7 +101,7 @@ void BLI_setenv_if_new(const char *env, const char* val);
 
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);
-void BLI_make_existing_file(char *name);
+void BLI_make_existing_file(const char *name);
 void BLI_split_dirfile(const char *string, char *dir, char *file);
 void BLI_join_dirfile(char *string, const char *dir, const char *file);
 char *BLI_path_basename(char *path);
