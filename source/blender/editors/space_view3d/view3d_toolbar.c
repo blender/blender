@@ -64,23 +64,34 @@
 /* ******************* view3d space & buttons ************** */
 
 
-/* op->invoke */
+/* op->exec */
+/* XXX DUPLICATE CODE */
 static void redo_cb(bContext *C, void *arg_op, void *UNUSED(arg2))
 {
 	wmOperator *lastop= arg_op;
 	
 	if(lastop) {
+		ARegion *ar= CTX_wm_region(C);
+		ARegion *ar1= BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_WINDOW);
 		int retval;
+		
+		if(ar1)
+			CTX_wm_region_set(C, ar1);
 		
 		if (G.f & G_DEBUG)
 			printf("operator redo %s\n", lastop->type->name);
+		
 		ED_undo_pop_op(C, lastop);
 		retval= WM_operator_repeat(C, lastop);
+		
 		if((retval & OPERATOR_FINISHED)==0) {
 			if (G.f & G_DEBUG)
 				printf("operator redo failed %s\n", lastop->type->name);
 			ED_undo_redo(C);
 		}
+		
+		/* set region back */
+		CTX_wm_region_set(C, ar);
 	}
 }
 
