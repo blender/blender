@@ -1132,7 +1132,7 @@ static void rna_def_vertex_group(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Vertex group name");
 	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_update(prop, NC_GEOM|ND_DATA|NA_RENAME, NULL);
+	RNA_def_property_update(prop, NC_GEOM|ND_DATA|NA_RENAME, "rna_Object_internal_update_data"); /* update data because modifiers may use [#24761] */
 
 	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
