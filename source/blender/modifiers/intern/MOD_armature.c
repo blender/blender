@@ -61,6 +61,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 	tamd->object = amd->object;
 	tamd->deformflag = amd->deformflag;
+	tamd->multi = amd->multi;
 	strncpy(tamd->defgrp_name, amd->defgrp_name, 32);
 }
 

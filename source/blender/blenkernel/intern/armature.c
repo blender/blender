@@ -813,9 +813,9 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	bDeformGroup *dg;
 	DualQuat *dualquats= NULL;
 	float obinv[4][4], premat[4][4], postmat[4][4];
-	int use_envelope = deformflag & ARM_DEF_ENVELOPE;
-	int use_quaternion = deformflag & ARM_DEF_QUATERNION;
-	int invert_vgroup= deformflag & ARM_DEF_INVERT_VGROUP;
+	const short use_envelope = deformflag & ARM_DEF_ENVELOPE;
+	const short use_quaternion = deformflag & ARM_DEF_QUATERNION;
+	const short invert_vgroup= deformflag & ARM_DEF_INVERT_VGROUP;
 	int numGroups = 0;		/* safety for vertexgroup index overflow */
 	int i, target_totvert = 0;	/* safety for vertexgroup overflow */
 	int use_dverts = 0;
