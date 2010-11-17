@@ -1839,8 +1839,9 @@ static void give_parvert(Object *par, int nr, float *vec)
 	
 	if(par->type==OB_MESH) {
 		Mesh *me= par->data;
-		em = me->edit_btmesh;
 		DerivedMesh *dm;
+
+		em = me->edit_btmesh;
 
 		if(em) {
 			BMVert *eve;
