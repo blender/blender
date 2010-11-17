@@ -2375,7 +2375,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	 * to be shown instead of icon when appropriate...
 	 */
 	if (reports->list.first != reports->list.last)
-		uiDefIconButO(block, BUT, "UI_OT_reports_to_textblock", WM_OP_INVOKE_REGION_WIN, icon, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Click to see rest of reports in textblock: 'Recent Reports'");
+		uiDefIconButO(block, BUT, "UI_OT_reports_to_textblock", WM_OP_INVOKE_REGION_WIN, icon, 2, 0, UI_UNIT_X, UI_UNIT_Y, "Click to see rest of reports in textblock: 'Recent Reports'");
 	else
 		uiDefIconBut(block, LABEL, 0, icon, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
 	

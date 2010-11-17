@@ -418,7 +418,7 @@ static int reports_to_text_poll(bContext *C)
 	return CTX_wm_reports(C) != NULL;
 }
 
-static int reports_to_text_exec(bContext *C, wmOperator *op)
+static int reports_to_text_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ReportList *reports = CTX_wm_reports(C);
 	Text *txt;
