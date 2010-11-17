@@ -2855,19 +2855,19 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	if(render_initialize_from_main(re, bmain, scene, srl, lay, 0, 0)) {
 		MEM_reset_peak_memory();
 		do_render_all_options(re);
-	}
 
-	if(write_still) {
-		if(BKE_imtype_is_movie(scene->r.imtype)) {
-			/* operator checks this but incase its called from elsewhere */
-			printf("Error: cant write single images with a movie format!\n");
-		}
-		else {
-			char name[FILE_MAX];
-			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
-
-			/* reports only used for Movie */
-			do_write_image_or_movie(re, scene, NULL, NULL, name);
+		if(write_still && !G.afbreek) {
+			if(BKE_imtype_is_movie(scene->r.imtype)) {
+				/* operator checks this but incase its called from elsewhere */
+				printf("Error: cant write single images with a movie format!\n");
+			}
+			else {
+				char name[FILE_MAX];
+				BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
+	
+				/* reports only used for Movie */
+				do_write_image_or_movie(re, scene, NULL, NULL, name);
+			}
 		}
 	}
 

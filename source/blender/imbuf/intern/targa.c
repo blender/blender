@@ -235,18 +235,11 @@ static int dumptarga(struct ImBuf * ibuf, FILE * file)
 
 int imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
 {
-	char buf[20];
+	char buf[20]= {0};
 	FILE *fildes;
 	short ok = 0;
 	
 	(void)flags; /* unused */
-
-	if (ibuf == 0) return (0);
-	if (ibuf->rect == 0) return (0);
-
-	memset(buf,0,sizeof(buf));
-
-	/* buf[0] = 0;  length string */
 
 	buf[16] = (ibuf->depth + 0x7 ) & ~0x7;
 	if (ibuf->depth > 8 ){
