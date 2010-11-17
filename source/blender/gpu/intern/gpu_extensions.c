@@ -66,11 +66,12 @@ static struct GPUGlobal {
 	GLuint currentfb;
 	int glslsupport;
 	int extdisabled;
+	unsigned int texturevram; // An approximation of how much vram is being used for textures
 	int colordepth;
 	GPUDeviceType device;
 	GPUOSType os;
 	GPUDriverType driver;
-} GG = {1, 0, 0, 0};
+} GG = {1, 0, 0, 0, 0};
 
 /* GPU Types */
 
@@ -183,6 +184,21 @@ int GPU_non_power_of_two_support()
 int GPU_color_depth()
 {
     return GG.colordepth;
+}
+
+unsigned int GPU_texture_vram_usage()
+{
+	return GG.texturevram;
+}
+
+void GPU_texture_vram_add(unsigned int amount)
+{
+	GG.texturevram += amount;
+}
+
+void GPU_texture_vram_subtract(unsigned int amount)
+{
+	GG.texturevram -= amount;
 }
 
 int GPU_print_error(char *str)
@@ -343,6 +359,8 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 	if (tex->target == GL_TEXTURE_1D) {
 		glTexImage1D(tex->target, 0, internalformat, tex->w, 0, format, type, 0);
 
+		GPU_texture_vram_add(tex->w*4);
+
 		if (fpixels) {
 			glTexSubImage1D(tex->target, 0, 0, w, format, type,
 				pixels? pixels: fpixels);
@@ -355,6 +373,8 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 	else {
 		glTexImage2D(tex->target, 0, internalformat, tex->w, tex->h, 0,
 			format, type, 0);
+
+		GPU_texture_vram_add(tex->w*tex->h*4);
 
 		if (fpixels) {
 			glTexSubImage2D(tex->target, 0, 0, 0, w, h,
@@ -620,7 +640,14 @@ void GPU_texture_free(GPUTexture *tex)
 		if (tex->fb)
 			GPU_framebuffer_texture_detach(tex->fb, tex);
 		if (tex->bindcode && !tex->fromblender)
+		{
 			glDeleteTextures(1, &tex->bindcode);
+
+			if (tex->target == GL_TEXTURE_2D)
+				GPU_texture_vram_subtract(tex->w*tex->h*4);
+			else
+				GPU_texture_vram_subtract(tex->w*4);
+		}
 
 		MEM_freeN(tex);
 	}

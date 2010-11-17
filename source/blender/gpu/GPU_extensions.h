@@ -104,6 +104,10 @@ int GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver);
 	- if created with from_blender, will not free the texture
 */
 
+unsigned int GPU_texture_vram_usage(void);
+void GPU_texture_vram_add(unsigned int amount);
+void GPU_texture_vram_subtract(unsigned int amount);
+
 GPUTexture *GPU_texture_create_1D(int w, float *pixels);
 GPUTexture *GPU_texture_create_2D(int w, int h, float *pixels);
 GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels);

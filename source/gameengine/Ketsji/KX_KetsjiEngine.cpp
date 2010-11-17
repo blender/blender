@@ -75,6 +75,8 @@
 #include "DNA_world_types.h"
 #include "DNA_scene_types.h"
 
+#include "GPU_extensions.h"
+
 // If define: little test for Nzc: guarded drawing. If the canvas is
 // not valid, skip rendering this frame.
 //#define NZC_GUARDED_OUTPUT
@@ -1439,6 +1441,18 @@ void KX_KetsjiEngine::RenderDebugProperties()
 										m_canvas->GetHeight());
 			ycoord += 14;
 		}
+
+		// Put an extra gap in the printed results
+		ycoord += 14;
+
+		/* Print texture vram usage */
+		debugtxt.Format("Texture VRAM: %.2f MB", GPU_texture_vram_usage()/1048576.f);
+		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
+										debugtxt.Ptr(),
+										xcoord, ycoord,
+										m_canvas->GetWidth(),
+										m_canvas->GetHeight());
+		ycoord += 14;
 	}
 
 	/* Property display*/
