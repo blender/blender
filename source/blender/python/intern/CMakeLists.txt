@@ -14,34 +14,46 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# Contributor(s): Campbell Barton
+# The Original Code is Copyright (C) 2006, Blender Foundation
+# All rights reserved.
+#
+# The Original Code is: all of this file.
+#
+# Contributor(s): Jacques Beaurainm, Campbell Barton
 #
 # ***** END GPL LICENSE BLOCK *****
 
 SET(INC 
-	.
+	../
 	../../blenlib
 	../../makesdna
+	../../makesrna
 	../../blenkernel
+	../../windowmanager
+	../../editors/include
 	../../../../intern/guardedalloc
-	../../../../extern/glew/include
+	../../../../intern/audaspace/intern
 	${PYTHON_INC}
 )
 
 SET(SRC
-	IDProp.c
-	bgl.c
-	blf_api.c
-	bpy_internal_import.c
-	mathutils.c
-	mathutils_color.c
-	mathutils_euler.c
-	mathutils_geometry.c
-	mathutils_matrix.c
-	mathutils_quat.c
-	mathutils_vector.c
-	noise.c
-	py_capi_utils.c
+	bpy.c
+	bpy_app.c
+	bpy_driver.c
+	bpy_interface.c
+	bpy_operator.c
+	bpy_operator_wrap.c
+	bpy_props.c
+	bpy_rna.c
+	bpy_rna_array.c
+	bpy_rna_callback.c
+	bpy_util.c
+	stubs.c
 )
 
-BLENDERLIB(bf_python_ext "${SRC}" "${INC}")
+# only to check if buildinfo is available
+IF(WITH_BUILDINFO)
+	ADD_DEFINITIONS(-DBUILD_DATE)
+ENDIF(WITH_BUILDINFO)
+
+BLENDERLIB(bf_python "${SRC}" "${INC}")
