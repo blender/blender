@@ -256,9 +256,12 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 		view_align = FALSE;
 	else if (RNA_property_is_set(op->ptr, "view_align"))
 		view_align = RNA_boolean_get(op->ptr, "view_align");
-	else
+	else {
 		view_align = U.flag & USER_ADD_VIEWALIGNED;
-
+		if(view_align) 
+			RNA_boolean_set(op->ptr, "view_align", 1);
+	}
+	
 	if (view_align)
 		ED_object_rotation_from_view(C, rot);
 	else
