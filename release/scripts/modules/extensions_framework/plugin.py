@@ -24,21 +24,45 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 #
-from . import init_properties
-from . import log
-
 import bpy
 
+from extensions_framework import init_properties
+from extensions_framework import log
+
 class plugin(object):
+	"""Base class for plugins which wish to make use of utilities
+	provided in extensions_framework. Using the property_groups
+	attribute and the install() and uninstall() methods, a large number
+	of custom scene properties can be easily defined, displayed and
+	managed.
 	
-	# List of IDPropertyGroup types to create in the scene
-	property_groups = [
-		# ('bpy.type prototype to attach to. eg. Scene', <declarative_property_group type>)
-	]
+	TODO: Rename, 'extension' would be more appropriate than 'plugin'
+	
+	"""
+	
+	"""The property_groups defines a list of declarative_property_group
+	types to create in specified types during the initialisation of the
+	plugin.
+	Item format:
+	('bpy.type prototype to attach to', <declarative_property_group>)
+	
+	Example item:
+	('Scene', myaddon_property_group)
+	In this example, a new property group will be attached to
+	bpy.types.Scene and all of the properties described in that group
+	will be added to it.
+	See extensions_framework.declarative_property_group.
+	
+	"""
+	property_groups = []
 	
 	@classmethod
 	def install(r_class):
-		# create custom property groups
+		"""Initialise this plugin. So far, all this does is to create
+		custom property groups specified in the property_groups
+		attribute.
+		
+		"""
 		for property_group_parent, property_group in r_class.property_groups:
 			call_init = False
 			if property_group_parent is not None:
@@ -52,19 +76,17 @@ class plugin(object):
 						'description': property_group.__name__
 					}])
 					call_init = True
-					#print('Created IDPropertyGroup %s.%s' % (prototype, property_group.__name__))
 			else:
 				call_init = True
 			
 			if call_init:
 				init_properties(property_group, property_group.properties)
-				#print('Initialised IDPropertyGroup %s' % property_group.__name__)
 		
 		log('Extension "%s" initialised' % r_class.bl_label)
 	
 	@classmethod
 	def uninstall(r_class):
-		# unregister property groups in reverse order
+		"""Unregister property groups in reverse order"""
 		reverse_property_groups = [p for p in r_class.property_groups]
 		reverse_property_groups.reverse()
 		for property_group_parent, property_group in reverse_property_groups:

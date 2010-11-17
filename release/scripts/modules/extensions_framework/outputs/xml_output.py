@@ -28,36 +28,49 @@ import xml.etree.cElementTree as ET
 import xml.dom.minidom as MD
 
 class xml_output(object):
+	"""This class serves to describe an XML output, it uses
+	cElementTree and minidom to construct and format the XML
+	data.
 	
+	"""
+	
+	"""The format dict describes the XML structure that this class
+	should generate, and which properties should be used to fill
+	the XML data structure
+	
+	"""
 	format = {}
 	
 	def __str__(self):
 		return ET.tostring(self.root)
 	
 	def write_pretty(self, file):
+		"""Write a formatted XML string to file"""
 		xml_dom = MD.parseString(ET.tostring(self.root, encoding='utf-8'))
 		xml_dom.writexml(file, addindent=' ', newl='\n', encoding='utf-8')
 	
 	def pretty(self):
+		"""Return a formatted XML string"""
 		xml_str = MD.parseString(ET.tostring(self.root))
 		return xml_str.toprettyxml()
 	
-	# This should be overridden in classes that produce XML conditionally
 	def get_format(self):
+		"""This should be overridden in classes that produce XML
+		conditionally
+		
+		"""
 		return self.format
 	
 	def compute(self, context):
+		"""Compute the XML output from the input format"""
 		self.context = context
 		
 		self.root = ET.Element(self.root_element)
 		self.parse_dict(self.get_format(), self.root)
-		#ET.dump(root)
 		
 		return self.root
-		
-	def make_subelement(self, elem, name):
-		return ET.SubElement(elem, name)
-		
+	
+	"""Formatting functions for various data types"""
 	format_types = {
 		'bool': lambda c,x: str(x).lower(),
 		'collection': lambda c,x: x,
@@ -67,8 +80,12 @@ class xml_output(object):
 		'pointer': lambda c,x: x,
 		'string': lambda c,x: x,
 	}
-		
+	
 	def parse_dict(self, d, elem):
+		"""Parse the values in the format dict and collect the
+		formatted data into XML structure starting at self.root
+		
+		"""
 		for key in d.keys():
 			# tuple provides multiple child elements
 			if type(d[key]) is tuple:
@@ -93,4 +110,7 @@ class xml_output(object):
 						if 'compute' in p.keys():
 							x.text = str(p['compute'](self.context, self))
 						else:
-							x.text = str(self.format_types[p['type']](self.context, getattr(self, d[key])))
+							x.text = str(
+								self.format_types[p['type']](self.context,
+									getattr(self, d[key]))
+							)
