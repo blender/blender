@@ -395,3 +395,5 @@ void INFO_OT_reports_display_update(wmOperatorType *ot)
 	
 	/* properties */
 }
+
+/* report operators */

@@ -34,6 +34,8 @@ DIR = $(OCGDIR)/blender/$(LIBNAME)
 include nan_compile.mk
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
+CFLAGS += -DWITH_MOD_BOOLEAN
+CFLAGS += -DWITH_MOD_DECIMATE
 
 CPPFLAGS += -I..
 

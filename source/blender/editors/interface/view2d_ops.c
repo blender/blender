@@ -1002,7 +1002,8 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* apply zooming */
 		view_zoomdrag_apply(C, op);
-	} else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE)) {
+	} 
+	else if (ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)) { /* XXX needs modal keymap */
 		if (event->val==KM_RELEASE) {
 			/* for redo, store the overall deltas - need to respect zoom-locks here... */
 			if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0)

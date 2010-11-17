@@ -1063,7 +1063,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "cache_resolution", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "precache_resolution");
-	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_range(prop, 1, 1024);
 	RNA_def_property_ui_text(prop, "Resolution", "Resolution of the voxel grid, low resolutions are faster, high resolutions use more memory");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
@@ -1403,7 +1403,7 @@ static void rna_def_material_specularity(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Specular Toon Smooth", "Smoothness of specular toon area");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
-	prop= RNA_def_property(srna, "specular_slope", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "specular_slope", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "rms");
 	RNA_def_property_range(prop, 0, 0.4);
 	RNA_def_property_ui_text(prop, "Specular Slope", "The standard deviation of surface slope");

@@ -50,7 +50,7 @@ void packAll(struct Main *bmain, struct ReportList *reports);
 /* unpack */
 char *unpackFile(struct ReportList *reports, char *abs_name, char *local_name, struct PackedFile *pf, int how);
 int unpackVFont(struct ReportList *reports, struct VFont *vfont, int how);
-int unpackSound(struct ReportList *reports, struct bSound *sound, int how);
+int unpackSound(struct Main *bmain, struct ReportList *reports, struct bSound *sound, int how);
 int unpackImage(struct ReportList *reports, struct Image *ima, int how);
 void unpackAll(struct Main *bmain, struct ReportList *reports, int how);
 

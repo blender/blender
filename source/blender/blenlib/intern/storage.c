@@ -146,7 +146,7 @@ int BLI_compare(struct direntry *entry1, struct direntry *entry2)
 }
 
 
-double BLI_diskfree(char *dir)
+double BLI_diskfree(const char *dir)
 {
 #ifdef WIN32
 	DWORD sectorspc, bytesps, freec, clusters;
@@ -201,7 +201,7 @@ double BLI_diskfree(char *dir)
 #endif
 }
 
-void BLI_builddir(char *dirname, char *relname)
+void BLI_builddir(const char *dirname, char *relname)
 {
 	struct dirent *fname;
 	struct dirlink *dlink;
@@ -397,7 +397,7 @@ void BLI_adddirstrings()
 	}
 }
 
-unsigned int BLI_getdir(char *dirname,  struct direntry **filelist)
+unsigned int BLI_getdir(const char *dirname,  struct direntry **filelist)
 {
 	// reset global variables
 	// memory stored in files is free()'d in
@@ -443,7 +443,7 @@ size_t BLI_filepathsize(const char *path)
 }
 
 
-int BLI_exist(char *name)
+int BLI_exist(const char *name)
 {
 #if defined(WIN32) && !defined(__MINGW32__)
 	struct _stat64i32 st;
@@ -474,7 +474,7 @@ int BLI_exist(char *name)
 }
 
 /* would be better in fileops.c except that it needs stat.h so add here */
-int BLI_is_dir(char *file) {
+int BLI_is_dir(const char *file) {
 	return S_ISDIR(BLI_exist(file));
 }
 

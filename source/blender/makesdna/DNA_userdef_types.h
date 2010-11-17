@@ -468,6 +468,8 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_ZOOM_INVERT		(1 << 25)
 #define USER_ZOOM_DOLLY_HORIZ	(1 << 26)
 #define USER_SPLASH_DISABLE		(1 << 27)
+#define USER_HIDE_RECENT		(1 << 28)
+#define USER_SHOW_THUMBNAILS	(1 << 29)
 
 /* Auto-Keying mode */
 	/* AUTOKEY_ON is a bitflag */

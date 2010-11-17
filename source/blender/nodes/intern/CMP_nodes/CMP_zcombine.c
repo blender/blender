@@ -31,7 +31,7 @@
 
 
 /* **************** Z COMBINE ******************** */
-	/* lazy coder note: node->custom1 is abused to send signal */
+	/* lazy coder note: node->custom2 is abused to send signal */
 static bNodeSocketType cmp_node_zcombine_in[]= {
 	{	SOCK_RGBA, 1, "Image",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "Z",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 10000.0f},
@@ -47,13 +47,40 @@ static bNodeSocketType cmp_node_zcombine_out[]= {
 
 static void do_zcombine(bNode *node, float *out, float *src1, float *z1, float *src2, float *z2)
 {
+	float alpha;
+	float malpha;
+	
 	if(*z1 <= *z2) {
-		QUATCOPY(out, src1);
+		if (node->custom1) {
+			// use alpha in combine operation
+			alpha= src1[3];
+			malpha= 1.0f - alpha;
+			out[0]= malpha*src2[0] + alpha*src1[0];
+			out[1]= malpha*src2[1] + alpha*src1[1];
+			out[2]= malpha*src2[2] + alpha*src1[2];
+			out[3]= malpha*src2[3] + alpha*src1[3];
+		}
+		else {
+			// do combination based solely on z value
+			QUATCOPY(out, src1);
+		}
 	}
 	else {
-		QUATCOPY(out, src2);
+		if (node->custom1) {
+			// use alpha in combine operation
+			alpha= src2[3];
+			malpha= 1.0f - alpha;
+			out[0]= malpha*src1[0] + alpha*src2[0];
+			out[1]= malpha*src1[1] + alpha*src2[1];
+			out[2]= malpha*src1[2] + alpha*src2[2];
+			out[3]= malpha*src1[3] + alpha*src2[3];
+		}
+		else {
+			// do combination based solely on z value
+			QUATCOPY(out, src1);
+		}
 		
-		if(node->custom1)
+		if(node->custom2)
 			*z1= *z2;
 	}
 }
@@ -62,20 +89,49 @@ static void do_zcombine_mask(bNode *node, float *out, float *z1, float *z2)
 {
 	if(*z1 > *z2) {
 		*out= 1.0f;
-		if(node->custom1)
+		if(node->custom2)
 			*z1= *z2;
 	}
 }
 
-static void do_zcombine_add(bNode *UNUSED(node), float *out, float *col1, float *col2, float *acol)
+static void do_zcombine_add(bNode *node, float *out, float *col1, float *col2, float *acol)
 {
-	float alpha= *acol;
-	float malpha= 1.0f - alpha;
-	
-	out[0]= malpha*col1[0] + alpha*col2[0];
-	out[1]= malpha*col1[1] + alpha*col2[1];
-	out[2]= malpha*col1[2] + alpha*col2[2];
-	out[3]= malpha*col1[3] + alpha*col2[3];
+	float alpha;
+	float malpha;
+
+	if (node->custom1) {
+		// use alpha in combine operation, antialiased mask in used here just as hint for the z value
+		if (*acol>0.0f) {
+			alpha= col2[3];
+			malpha= 1.0f - alpha;
+		
+		
+			out[0]= malpha*col1[0] + alpha*col2[0];
+			out[1]= malpha*col1[1] + alpha*col2[1];
+			out[2]= malpha*col1[2] + alpha*col2[2];
+			out[3]= malpha*col1[3] + alpha*col2[3];
+		}
+		else {
+			alpha= col1[3];
+			malpha= 1.0f - alpha;
+		
+		
+			out[0]= malpha*col2[0] + alpha*col1[0];
+			out[1]= malpha*col2[1] + alpha*col1[1];
+			out[2]= malpha*col2[2] + alpha*col1[2];
+			out[3]= malpha*col2[3] + alpha*col1[3];
+		}
+	}
+	else {
+		// do combination based solely on z value but with antialiased mask
+		alpha = *acol;
+		malpha= 1.0f - alpha;
+		
+		out[0]= malpha*col1[0] + alpha*col2[0];
+		out[1]= malpha*col1[1] + alpha*col2[1];
+		out[2]= malpha*col1[2] + alpha*col2[2];
+		out[3]= malpha*col1[3] + alpha*col2[3];
+	}
 }
 
 static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
@@ -107,11 +163,11 @@ static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in
 				*zval= in[1]->vec[0];
 		}
 		/* lazy coder hack */
-		node->custom1= 1;
+		node->custom2= 1;
 		out[1]->data= zbuf;
 	}
 	else {
-		node->custom1= 0;
+		node->custom2= 0;
 		zbuf= in[1]->data;
 	}
 	

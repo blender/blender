@@ -70,7 +70,8 @@ IF(UNIX)
 		bf_blenkernel
 		bf_blenloader 
 		bf_blenpluginapi 
-		bf_blroutines 
+		bf_blroutines
+		bf_editor_datafiles
 		bf_converter 
 		bf_ketsji 
 		bf_bullet 

@@ -199,9 +199,10 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 		* x = -z | +z,
 		* y = -z | +z
 		*/
-	
-	if(scene->camera==NULL)
+
+	if(scene->camera==NULL || scene->camera->type != OB_CAMERA)
 		return;
+
 	camera = scene->camera->data;
 	clipend = camera->clipend;
 	
@@ -3307,7 +3308,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				
 				/* test for 100% transparant */
 				ok= 1;
-				if(ma->alpha==0.0 && ma->spectra==0.0) {
+				if(ma->alpha==0.0f && ma->spectra==0.0f && ma->filter==0.0f) {
 					ok= 0;
 					/* texture on transparency? */
 					for(a=0; a<MAX_MTEX; a++) {

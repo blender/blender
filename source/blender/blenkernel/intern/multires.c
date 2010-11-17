@@ -180,68 +180,6 @@ void multires_force_render_update(Object *ob)
 		multires_force_update(ob);
 }
 
-/* XXX */
-#if 0
-void multiresModifier_join(Object *ob)
-{
-	Base *base = NULL;
-	int highest_lvl = 0;
-
-	/* First find the highest level of subdivision */
-	base = FIRSTBASE;
-	while(base) {
-		if(TESTBASELIB_BGMODE(v3d, scene, base) && base->object->type==OB_MESH) {
-			ModifierData *md;
-			for(md = base->object->modifiers.first; md; md = md->next) {
-				if(md->type == eModifierType_Multires) {
-					int totlvl = ((MultiresModifierData*)md)->totlvl;
-					if(totlvl > highest_lvl)
-						highest_lvl = totlvl;
-
-					/* Ensure that all updates are processed */
-					multires_force_update(base->object);
-				}
-			}
-		}
-		base = base->next;
-	}
-
-	/* No multires meshes selected */
-	if(highest_lvl == 0)
-		return;
-
-	/* Subdivide all the displacements to the highest level */
-	base = FIRSTBASE;
-	while(base) {
-		if(TESTBASELIB_BGMODE(v3d, scene, base) && base->object->type==OB_MESH) {
-			ModifierData *md = NULL;
-			MultiresModifierData *mmd = NULL;
-
-			for(md = base->object->modifiers.first; md; md = md->next) {
-				if(md->type == eModifierType_Multires)
-					mmd = (MultiresModifierData*)md;
-			}
-
-			/* If the object didn't have multires enabled, give it a new modifier */
-			if(!mmd) {
-				md = base->object->modifiers.first;
-				
-				while(md && modifierType_getInfo(md->type)->type == eModifierTypeType_OnlyDeform)
-					md = md->next;
-				
-				mmd = (MultiresModifierData*)modifier_new(eModifierType_Multires);
-				BLI_insertlinkbefore(&base->object->modifiers, md, mmd);
-				modifier_unique_name(&base->object->modifiers, mmd);
-			}
-
-			if(mmd)
-				multiresModifier_subdivide(mmd, base->object, highest_lvl - mmd->totlvl, 0, 0);
-		}
-		base = base->next;
-	}
-}
-#endif
-
 int multiresModifier_reshapeFromDM(Scene *scene, MultiresModifierData *mmd,
 				Object *ob, DerivedMesh *srcdm)
 {
@@ -1613,17 +1551,38 @@ void multiresModifier_prepare_join(Scene *scene, Object *ob, Object *to_ob)
 void multires_topology_changed(Object *ob)
 {
 	Mesh *me= (Mesh*)ob->data;
-	MDisps *mdisp= NULL;
-	int i;
+	MDisps *mdisp= NULL, *cur= NULL;
+	int i, grid= 0, corners;
 
 	CustomData_external_read(&me->fdata, &me->id, CD_MASK_MDISPS, me->totface);
 	mdisp= CustomData_get_layer(&me->fdata, CD_MDISPS);
 
 	if(!mdisp) return;
 
+	cur= mdisp;
+	for(i = 0; i < me->totface; i++, cur++) {
+		if(mdisp->totdisp) {
+			corners= multires_mdisp_corners(mdisp);
+			grid= mdisp->totdisp / corners;
+
+			break;
+		}
+	}
+
 	for(i = 0; i < me->totface; i++, mdisp++) {
-		int corners= multires_mdisp_corners(mdisp);
 		int nvert= me->mface[i].v4 ? 4 : 3;
+
+		/* allocate memory for mdisp, the whole disp layer would be erased otherwise */
+		if(!mdisp->totdisp) {
+			if(grid) {
+				mdisp->totdisp= nvert*grid;
+				mdisp->disps= MEM_callocN(mdisp->totdisp*sizeof(float)*3, "mdisp topology");
+			}
+
+			continue;
+		}
+
+		corners= multires_mdisp_corners(mdisp);
 
 		if(corners!=nvert) {
 			mdisp->totdisp= (mdisp->totdisp/corners)*nvert;

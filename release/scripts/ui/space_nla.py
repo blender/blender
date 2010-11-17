@@ -122,6 +122,10 @@ class NLA_MT_edit(bpy.types.Menu):
         layout.operator("nla.move_up")
         layout.operator("nla.move_down")
 
+        # TODO: this really belongs more in a "channel" (or better, "track") menu
+        layout.separator()
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Track Ordering...")
+
         layout.separator()
         # TODO: names of these tools for 'tweakmode' need changing?
         if scene.is_nla_tweakmode:

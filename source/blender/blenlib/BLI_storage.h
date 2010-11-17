@@ -38,19 +38,19 @@ struct direntry;
 
 
 void   BLI_adddirstrings(void);
-void   BLI_builddir(char *dirname, char *relname);
+void   BLI_builddir(const char *dirname, const char *relname);
 int    BLI_compare(struct direntry *entry1, struct direntry *entry2);
 
 size_t BLI_filesize(int file);
 size_t BLI_filepathsize(const char *path);
-double BLI_diskfree(char *dir);
-char *BLI_getwdN(char *dir);
+double BLI_diskfree(const char *dir);
+char *BLI_getwdN(const char *dir);
 
-unsigned int BLI_getdir(char *dirname, struct direntry **filelist);
+unsigned int BLI_getdir(const char *dirname, struct direntry **filelist);
 /**
  * @attention Do not confuse with BLI_exists
  */
-int    BLI_exist(char *name);
+int    BLI_exist(const char *name);
 /**
 	 * Read a file as ASCII lines. An empty list is
 	 * returned if the file cannot be opened or read.
@@ -62,9 +62,9 @@ int    BLI_exist(char *name);
 	 * @retval A list of strings representing the file lines.
 	 */
 
-int BLI_is_dir(char *file);
+int BLI_is_dir(const char *file);
 
-struct LinkNode *BLI_read_file_as_lines(char *name);
+struct LinkNode *BLI_read_file_as_lines(const char *name);
 
 	/**
 	 * Free the list returned by BLI_read_file_as_lines.

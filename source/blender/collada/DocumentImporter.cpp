@@ -375,27 +375,36 @@ public:
 			COLLADAFW::InstanceLightPointerArray &lamp = node->getInstanceLights();
 			COLLADAFW::InstanceControllerPointerArray &controller = node->getInstanceControllers();
 			COLLADAFW::InstanceNodePointerArray &inst_node = node->getInstanceNodes();
+			int geom_done = 0;
+			int camera_done = 0;
+			int lamp_done = 0;
+			int controller_done = 0;
+			int inst_done = 0;
 
 			// XXX linking object with the first <instance_geometry>, though a node may have more of them...
 			// maybe join multiple <instance_...> meshes into 1, and link object with it? not sure...
 			// <instance_geometry>
-			if (geom.getCount() != 0) {
-				ob = mesh_importer.create_mesh_object(node, geom[0], false, uid_material_map,
+			while (geom_done < geom.getCount()) {
+				ob = mesh_importer.create_mesh_object(node, geom[geom_done], false, uid_material_map,
 													  material_texture_mapping_map);
+				++geom_done;
 			}
-			else if (camera.getCount() != 0) {
-				ob = create_camera_object(camera[0], sce);
+			while (camera_done < camera.getCount()) {
+				ob = create_camera_object(camera[camera_done], sce);
+				++camera_done;
 			}
-			else if (lamp.getCount() != 0) {
-				ob = create_lamp_object(lamp[0], sce);
+			while (lamp_done < lamp.getCount()) {
+				ob = create_lamp_object(lamp[lamp_done], sce);
+				++lamp_done;
 			}
-			else if (controller.getCount() != 0) {
-				COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry*)controller[0];
+			while (controller_done < controller.getCount()) {
+				COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry*)controller[controller_done];
 				ob = mesh_importer.create_mesh_object(node, geom, true, uid_material_map, material_texture_mapping_map);
+				++controller_done;
 			}
 			// XXX instance_node is not supported yet
-			else if (inst_node.getCount() != 0) {
-				const COLLADAFW::UniqueId& node_id = inst_node[0]->getInstanciatedObjectId();
+			while (inst_done < inst_node.getCount()) {
+				const COLLADAFW::UniqueId& node_id = inst_node[inst_done]->getInstanciatedObjectId();
 				if (object_map.find(node_id) == object_map.end()) {
 					fprintf(stderr, "Cannot find node to instanciate.\n");
 					ob = NULL;
@@ -406,10 +415,11 @@ public:
 
 					ob = create_instance_node(source_ob, source_node, node, sce, is_library_node);
 				}
+				++inst_done;
 			}
 			// if node is empty - create empty object
 			// XXX empty node may not mean it is empty object, not sure about this
-			else {
+			if ( (geom_done + camera_done + lamp_done + controller_done + inst_done) < 1) {
 				ob = add_object(sce, OB_EMPTY);
 			}
 			

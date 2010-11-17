@@ -94,13 +94,15 @@ typedef struct tringselOpData {
 } tringselOpData;
 
 /* modal loop selection drawing callback */
-static void ringsel_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
+static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 {
-	int i;
+	View3D *v3d = CTX_wm_view3d(C);
 	tringselOpData *lcd = arg;
+	int i;
 	
 	if (lcd->totedge > 0) {
-		glDisable(GL_DEPTH_TEST);
+		if(v3d && v3d->zbuf)
+			glDisable(GL_DEPTH_TEST);
 
 		glPushMatrix();
 		glMultMatrixf(lcd->ob->obmat);
@@ -114,7 +116,8 @@ static void ringsel_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *a
 		glEnd();
 
 		glPopMatrix();
-		glEnable(GL_DEPTH_TEST);
+		if(v3d && v3d->zbuf)
+			glEnable(GL_DEPTH_TEST);
 	}
 }
 
@@ -487,7 +490,7 @@ void MESH_OT_edgering_select (wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->invoke= ringsel_invoke;
-	ot->poll= ED_operator_editmesh_view3d;
+	ot->poll= ED_operator_editmesh_region_view3d; 
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -506,7 +509,7 @@ void MESH_OT_loopcut (wmOperatorType *ot)
 	ot->invoke= ringcut_invoke;
 	ot->modal= ringcut_modal;
 	ot->cancel= ringcut_cancel;
-	ot->poll= ED_operator_editmesh_view3d;
+	ot->poll= ED_operator_editmesh_region_view3d;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;

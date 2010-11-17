@@ -1285,6 +1285,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 
 						retval= handler->op->type->exec(C, handler->op);
 
+						/* XXX check this carefully, CTX_wm_manager(C) == wm is a bit hackish */
 						if(handler->op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 							wm->op_undo_depth--;
 						
@@ -1292,7 +1293,8 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 							if(G.f & G_DEBUG)
 								wm_operator_print(handler->op);
 						
-						if(wm->op_undo_depth == 0)
+						/* XXX check this carefully, CTX_wm_manager(C) == wm is a bit hackish */
+						if(CTX_wm_manager(C) == wm && wm->op_undo_depth == 0)
 							if(handler->op->type->flag & OPTYPE_UNDO)
 								ED_undo_push_op(C, handler->op);
 

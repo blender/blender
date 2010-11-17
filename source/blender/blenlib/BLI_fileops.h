@@ -47,7 +47,7 @@ int BLI_is_writable(char *filename);
 /**
  * @attention Do not confuse with BLI_exist
  */
-int   BLI_exists(char *file);
+int   BLI_exists(const char *file);
 int   BLI_copy_fileops(char *file, char *to);
 int   BLI_rename(char *from, char *to);
 int   BLI_gzip(char *from, char *to);

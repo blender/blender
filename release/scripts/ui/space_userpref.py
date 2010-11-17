@@ -703,6 +703,8 @@ class USERPREF_PT_file(bpy.types.Panel):
         col.prop(paths, "use_load_ui")
         col.prop(paths, "use_filter_files")
         col.prop(paths, "show_hidden_files_datablocks")
+        col.prop(paths, "hide_recent_locations")
+        col.prop(paths, "show_thumbnails")
 
         col.separator()
         col.separator()

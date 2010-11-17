@@ -74,6 +74,33 @@ def execute_context_assign(self, context):
     return {'FINISHED'}
 
 
+class BRUSH_OT_set_active_number(bpy.types.Operator):
+    '''Set active sculpt/paint brush from it's number'''
+    bl_idname = "brush.set_active_number"
+    bl_label = "Set Brush Number"
+
+    mode = StringProperty(name="mode",
+            description="Paint mode to set brush for", maxlen=1024)
+    number = IntProperty(name="number",
+            description="Brush number")
+
+    _attr_dict = {"sculpt"      : "use_paint_sculpt",
+                  "vertex_paint": "use_paint_vertex",
+                  "weight_paint": "use_paint_weight",
+                  "image_paint" : "use_paint_texture"}
+
+    def execute(self, context):
+        attr = self._attr_dict.get(self.mode)
+        if attr is None:
+            return {'CANCELLED'}
+
+        for i, brush in enumerate((cur for cur in bpy.data.brushes if getattr(cur, attr))):
+            if i == self.number:
+                getattr(context.tool_settings, self.mode).brush = brush
+                return {'FINISHED'}
+
+        return {'CANCELLED'}
+
 class WM_OT_context_set_boolean(bpy.types.Operator):
     '''Set a context value.'''
     bl_idname = "wm.context_set_boolean"

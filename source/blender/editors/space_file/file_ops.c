@@ -947,6 +947,8 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 {
 	char name[FILE_MAXFILE];
 	char path[FILE_MAX];
+	int generate_name= 1;
+
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
 	if(!sfile->params) {
@@ -954,13 +956,22 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	/* create a new, non-existing folder name */
-	if (!new_folder_path(sfile->params->dir, path, name)) {
-		BKE_report(op->reports,RPT_ERROR, "Couldn't create new folder name.");
-		return OPERATOR_CANCELLED;
+	path[0] = '\0';
+
+	if(RNA_struct_find_property(op->ptr, "directory")) {
+		RNA_string_get(op->ptr, "directory", path);
+		if (path[0] != '\0') generate_name= 0;
 	}
-		
-	/* rename the file */
+
+	if (generate_name) {
+		/* create a new, non-existing folder name */
+		if (!new_folder_path(sfile->params->dir, path, name)) {
+			BKE_report(op->reports,RPT_ERROR, "Couldn't create new folder name.");
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	/* create the file */
 	BLI_recurdir_fileops(path);
 
 	if (!BLI_exists(path)) {
@@ -994,9 +1005,13 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= file_directory_new_exec;
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+
+	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Name of new directory");
+
 }
 
-int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
+
+static void file_expand_directory(bContext *C)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
@@ -1011,6 +1026,39 @@ int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
 		if (sfile->params->dir[0] == '\0')
 			get_default_root(sfile->params->dir);
 #endif
+	}
+}
+
+int file_directory_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	SpaceFile *sfile= CTX_wm_space_file(C);
+
+	if(sfile->params) {
+		file_expand_directory(C);
+		
+		if (!BLI_exists(sfile->params->dir)) {
+			return WM_operator_confirm_message(C, op, "Create new directory?");
+		} 
+
+		return file_directory_exec(C, op);
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+
+
+int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
+{
+	SpaceFile *sfile= CTX_wm_space_file(C);
+	
+	if(sfile->params) {
+		file_expand_directory(C);
+
+		if (!BLI_exists(sfile->params->dir)) {
+			BLI_recurdir_fileops(sfile->params->dir);
+		} 
+
 		BLI_cleanup_dir(G.main->name, sfile->params->dir);
 		BLI_add_slash(sfile->params->dir);
 		file_change_dir(C, 1);
@@ -1037,6 +1085,18 @@ int file_filename_exec(bContext *C, wmOperator *UNUSED(unused))
 	return OPERATOR_FINISHED;
 }
 
+void FILE_OT_directory(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Enter Directory Name";
+	ot->description= "Enter a directory name";
+	ot->idname= "FILE_OT_directory";
+	
+	/* api callbacks */
+	ot->invoke= file_directory_invoke;
+	ot->exec= file_directory_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+}
 
 void FILE_OT_refresh(struct wmOperatorType *ot)
 {

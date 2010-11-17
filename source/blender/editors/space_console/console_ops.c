@@ -17,11 +17,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
  * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -264,22 +259,6 @@ static int console_line_insert(ConsoleLine *ci, char *str)
 	return len;
 }
 
-static int console_edit_poll(bContext *C)
-{
-	SpaceConsole *sc= CTX_wm_space_console(C);
-
-	if(!sc || sc->type != CONSOLE_TYPE_PYTHON)
-		return 0;
-
-	return 1;
-}
-#if 0
-static int console_poll(bContext *C)
-{
-	return (CTX_wm_space_console(C) != NULL);
-}
-#endif
-
 /* static funcs for text editing */
 
 /* similar to the text editor, with some not used. keep compatible */
@@ -361,7 +340,7 @@ void CONSOLE_OT_move(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= move_exec;
-	ot->poll= console_edit_poll;
+	ot->poll= ED_operator_console_active;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, "Type", "Where to move cursor to.");
@@ -429,7 +408,7 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= insert_exec;
 	ot->invoke= insert_invoke;
-	ot->poll= console_edit_poll;
+	ot->poll= ED_operator_console_active;
 
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");
@@ -498,7 +477,7 @@ void CONSOLE_OT_delete(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= delete_exec;
-	ot->poll= console_edit_poll;
+	ot->poll= ED_operator_console_active;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete.");
@@ -539,7 +518,7 @@ void CONSOLE_OT_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= clear_exec;
-	ot->poll= console_edit_poll;
+	ot->poll= ED_operator_console_active;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "scrollback", 1, "Scrollback", "Clear the scrollback history");
@@ -601,7 +580,7 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= history_cycle_exec;
-	ot->poll= console_edit_poll;
+	ot->poll= ED_operator_console_active;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "reverse", 0, "Reverse", "reverse cycle history");
@@ -649,7 +628,7 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= history_append_exec;
-	ot->poll= console_edit_poll;
+	ot->poll= ED_operator_console_active;
 	
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");	
@@ -694,7 +673,7 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= scrollback_append_exec;
-	ot->poll= console_edit_poll;
+	ot->poll= ED_operator_console_active;
 	
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");	
@@ -777,7 +756,7 @@ void CONSOLE_OT_copy(wmOperatorType *ot)
 	ot->idname= "CONSOLE_OT_copy";
 
 	/* api callbacks */
-	ot->poll= console_edit_poll;
+	ot->poll= ED_operator_console_active;
 	ot->exec= copy_exec;
 
 	/* properties */
@@ -827,7 +806,7 @@ void CONSOLE_OT_paste(wmOperatorType *ot)
 	ot->idname= "CONSOLE_OT_paste";
 
 	/* api callbacks */
-	ot->poll= console_edit_poll;
+	ot->poll= ED_operator_console_active;
 	ot->exec= paste_exec;
 
 	/* properties */
@@ -946,5 +925,5 @@ void CONSOLE_OT_select_set(wmOperatorType *ot)
 	ot->invoke= console_modal_select_invoke;
 	ot->modal= console_modal_select;
 	ot->cancel= console_modal_select_cancel;
-	ot->poll= console_edit_poll;
+	ot->poll= ED_operator_console_active;
 }

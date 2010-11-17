@@ -17,11 +17,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
  * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -29,6 +24,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -47,38 +43,30 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "console_intern.h"
+#include "info_intern.h"
 
-int console_report_mask(SpaceConsole *sc)
+int info_report_mask(SpaceInfo *sinfo)
 {
 	int report_mask = 0;
 
-	if(sc->rpt_mask & CONSOLE_RPT_DEBUG)	report_mask |= RPT_DEBUG_ALL;
-	if(sc->rpt_mask & CONSOLE_RPT_INFO)		report_mask |= RPT_INFO_ALL;
-	if(sc->rpt_mask & CONSOLE_RPT_OP)		report_mask |= RPT_OPERATOR_ALL;
-	if(sc->rpt_mask & CONSOLE_RPT_WARN)		report_mask |= RPT_WARNING_ALL;
-	if(sc->rpt_mask & CONSOLE_RPT_ERR)		report_mask |= RPT_ERROR_ALL;
+	if(sinfo->rpt_mask & INFO_RPT_DEBUG)	report_mask |= RPT_DEBUG_ALL;
+	if(sinfo->rpt_mask & INFO_RPT_INFO)		report_mask |= RPT_INFO_ALL;
+	if(sinfo->rpt_mask & INFO_RPT_OP)		report_mask |= RPT_OPERATOR_ALL;
+	if(sinfo->rpt_mask & INFO_RPT_WARN)		report_mask |= RPT_WARNING_ALL;
+	if(sinfo->rpt_mask & INFO_RPT_ERR)		report_mask |= RPT_ERROR_ALL;
 
 	return report_mask;
 }
 
-static int console_report_poll(bContext *C)
-{
-	SpaceConsole *sc= CTX_wm_space_console(C);
-
-	if(!sc || sc->type != CONSOLE_TYPE_REPORT)
-		return 0;
-
-	return 1;
-}
-
+// TODO, get this working again!
 static int report_replay_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceConsole *sc= CTX_wm_space_console(C);
-	ReportList *reports= CTX_wm_reports(C);
-	int report_mask= console_report_mask(sc);
-	Report *report;
+//	SpaceInfo *sc= CTX_wm_space_info(C);
+//	ReportList *reports= CTX_wm_reports(C);
+//	int report_mask= info_report_mask(sc);
+//	Report *report;
 
+#if 0
 	sc->type= CONSOLE_TYPE_PYTHON;
 
 	for(report=reports->list.last; report; report=report->prev) {
@@ -91,21 +79,21 @@ static int report_replay_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	sc->type= CONSOLE_TYPE_REPORT;
-
+#endif
 	ED_area_tag_redraw(CTX_wm_area(C));
 
 	return OPERATOR_FINISHED;
 }
 
-void CONSOLE_OT_report_replay(wmOperatorType *ot)
+void INFO_OT_report_replay(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Replay Operators";
 	ot->description= "Replay selected reports";
-	ot->idname= "CONSOLE_OT_report_replay";
+	ot->idname= "INFO_OT_report_replay";
 
 	/* api callbacks */
-	ot->poll= console_report_poll;
+	ot->poll= ED_operator_info_active;
 	ot->exec= report_replay_exec;
 
 	/* flags */
@@ -131,12 +119,12 @@ static int select_report_pick_exec(bContext *C, wmOperator *op)
 
 static int select_report_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceConsole *sc= CTX_wm_space_console(C);
+	SpaceInfo *sinfo= CTX_wm_space_info(C);
 	ARegion *ar= CTX_wm_region(C);
 	ReportList *reports= CTX_wm_reports(C);
 	Report *report;
 
-	report= console_text_pick(sc, ar, reports, event->mval[1]);
+	report= info_text_pick(sinfo, ar, reports, event->mval[1]);
 
 	RNA_int_set(op->ptr, "report_index", BLI_findindex(&reports->list, report));
 
@@ -144,15 +132,15 @@ static int select_report_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 }
 
 
-void CONSOLE_OT_select_pick(wmOperatorType *ot)
+void INFO_OT_select_pick(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select report";
 	ot->description= "Select reports by index";
-	ot->idname= "CONSOLE_OT_select_pick";
+	ot->idname= "INFO_OT_select_pick";
 
 	/* api callbacks */
-	ot->poll= console_report_poll;
+	ot->poll= ED_operator_info_active;
 	ot->invoke= select_report_pick_invoke;
 	ot->exec= select_report_pick_exec;
 
@@ -167,9 +155,9 @@ void CONSOLE_OT_select_pick(wmOperatorType *ot)
 
 static int report_select_all_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceConsole *sc= CTX_wm_space_console(C);
+	SpaceInfo *sinfo= CTX_wm_space_info(C);
 	ReportList *reports= CTX_wm_reports(C);
-	int report_mask= console_report_mask(sc);
+	int report_mask= info_report_mask(sinfo);
 	int deselect= 0;
 
 	Report *report;
@@ -198,15 +186,15 @@ static int report_select_all_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void CONSOLE_OT_select_all_toggle(wmOperatorType *ot)
+void INFO_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "(De)Select All";
 	ot->description= "(de)select all reports";
-	ot->idname= "CONSOLE_OT_select_all_toggle";
+	ot->idname= "INFO_OT_select_all_toggle";
 
 	/* api callbacks */
-	ot->poll= console_report_poll;
+	ot->poll= ED_operator_info_active;
 	ot->exec= report_select_all_toggle_exec;
 
 	/* flags */
@@ -218,10 +206,10 @@ void CONSOLE_OT_select_all_toggle(wmOperatorType *ot)
 /* borderselect operator */
 static int borderselect_exec(bContext *C, wmOperator *op)
 {
-	SpaceConsole *sc= CTX_wm_space_console(C);
+	SpaceInfo *sinfo= CTX_wm_space_info(C);
 	ARegion *ar= CTX_wm_region(C);
 	ReportList *reports= CTX_wm_reports(C);
-	int report_mask= console_report_mask(sc);
+	int report_mask= info_report_mask(sinfo);
 	Report *report_min, *report_max, *report;
 
 	//View2D *v2d= UI_view2d_fromcontext(C);
@@ -246,8 +234,8 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &rectf.xmax, &rectf.ymax);
 */
 
-	report_min= console_text_pick(sc, ar, reports, rect.ymax);
-	report_max= console_text_pick(sc, ar, reports, rect.ymin);
+	report_min= info_text_pick(sinfo, ar, reports, rect.ymax);
+	report_max= info_text_pick(sinfo, ar, reports, rect.ymin);
 
 	/* get the first report if none found */
 	if(report_min==NULL) {
@@ -291,19 +279,19 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 
 
 /* ****** Border Select ****** */
-void CONSOLE_OT_select_border(wmOperatorType *ot)
+void INFO_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
 	ot->description= "Toggle border selection";
-	ot->idname= "CONSOLE_OT_select_border";
+	ot->idname= "INFO_OT_select_border";
 
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= borderselect_exec;
 	ot->modal= WM_border_select_modal;
 
-	ot->poll= console_report_poll;
+	ot->poll= ED_operator_info_active;
 
 	/* flags */
 	/* ot->flag= OPTYPE_REGISTER; */
@@ -316,9 +304,9 @@ void CONSOLE_OT_select_border(wmOperatorType *ot)
 
 static int report_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceConsole *sc= CTX_wm_space_console(C);
+	SpaceInfo *sinfo= CTX_wm_space_info(C);
 	ReportList *reports= CTX_wm_reports(C);
-	int report_mask= console_report_mask(sc);
+	int report_mask= info_report_mask(sinfo);
 
 
 	Report *report, *report_next;
@@ -341,15 +329,15 @@ static int report_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void CONSOLE_OT_report_delete(wmOperatorType *ot)
+void INFO_OT_report_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Reports";
 	ot->description= "Delete selected reports";
-	ot->idname= "CONSOLE_OT_report_delete";
+	ot->idname= "INFO_OT_report_delete";
 
 	/* api callbacks */
-	ot->poll= console_report_poll;
+	ot->poll= ED_operator_info_active;
 	ot->exec= report_delete_exec;
 
 	/* flags */
@@ -361,9 +349,9 @@ void CONSOLE_OT_report_delete(wmOperatorType *ot)
 
 static int report_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	SpaceConsole *sc= CTX_wm_space_console(C);
+	SpaceInfo *sinfo= CTX_wm_space_info(C);
 	ReportList *reports= CTX_wm_reports(C);
-	int report_mask= console_report_mask(sc);
+	int report_mask= info_report_mask(sinfo);
 
 	Report *report;
 
@@ -386,15 +374,15 @@ static int report_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void CONSOLE_OT_report_copy(wmOperatorType *ot)
+void INFO_OT_report_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy Reports to Clipboard";
 	ot->description= "Copy selected reports to Clipboard";
-	ot->idname= "CONSOLE_OT_report_copy";
+	ot->idname= "INFO_OT_report_copy";
 
 	/* api callbacks */
-	ot->poll= console_report_poll;
+	ot->poll= ED_operator_info_active;
 	ot->exec= report_copy_exec;
 
 	/* flags */

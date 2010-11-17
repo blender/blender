@@ -96,8 +96,15 @@ void calc_view_vector(float *view, float x, float y)
 	}
 	else {
 		
-		if(R.r.mode & R_PANORAMA)
-			x-= R.panodxp;
+		if(R.r.mode & R_PANORAMA) {
+			if(R.r.mode & R_BORDER) {
+				/* scale by the win/border size */
+				x-= R.panodxp * ((float)R.winx / (float)(R.disprect.xmax - R.disprect.xmin));
+			}
+			else {
+				x-= R.panodxp;
+			}
+		}
 		
 		/* move x and y to real viewplane coords */
 		x= (x/(float)R.winx);

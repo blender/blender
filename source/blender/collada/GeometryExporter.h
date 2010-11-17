@@ -28,6 +28,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 
 #include "COLLADASWStreamWriter.h"
 #include "COLLADASWLibraryGeometries.h"
@@ -89,6 +90,8 @@ public:
 	COLLADASW::URI makeUrl(std::string id);
 	
 	/* int getTriCount(MFace *faces, int totface);*/
+private:
+	std::set<std::string> exportedGeometry;
 };
 
 struct GeometryFunctor {

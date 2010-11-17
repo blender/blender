@@ -40,11 +40,11 @@ class Import3DS(bpy.types.Operator, ImportHelper):
 
     constrain_size = FloatProperty(name="Size Constraint", description="Scale the model by 10 until it reacehs the size constraint. Zero Disables.", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=10.0)
     use_image_search = BoolProperty(name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True)
-    use_apply_transform = BoolProperty(name="Apply Transform", description="Workaround for object transformations importing incorrectly", default=False)
+    use_apply_transform = BoolProperty(name="Apply Transform", description="Workaround for object transformations importing incorrectly", default=True)
 
     def execute(self, context):
         import io_scene_3ds.import_3ds
-        return io_scene_3ds.import_3ds.load(self, context, **self.properties)
+        return io_scene_3ds.import_3ds.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
 
 
 class Export3DS(bpy.types.Operator, ExportHelper):
@@ -56,7 +56,7 @@ class Export3DS(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         import io_scene_3ds.export_3ds
-        return io_scene_3ds.export_3ds.save(self, context, **self.properties)
+        return io_scene_3ds.export_3ds.save(self, context, **self.as_keywords(ignore=("check_existing",)))
 
 
 # Add to a menu

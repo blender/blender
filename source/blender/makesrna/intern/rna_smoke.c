@@ -176,14 +176,14 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
-	RNA_def_property_ui_text(prop, "Gravity", "Higher value results in sinking smoke");
+	RNA_def_property_ui_text(prop, "Density", "How much density effects smoke motion, higher value results in faster rising smoke");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "beta", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "beta");
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
-	RNA_def_property_ui_text(prop, "Heat", "Higher value results in faster rising smoke");
+	RNA_def_property_ui_text(prop, "Heat", "How much heat effects smoke motion, higher value results in faster rising smoke");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "collision_group", PROP_POINTER, PROP_NONE);

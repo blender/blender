@@ -477,7 +477,7 @@ int calc_manipulator_stats(const bContext *C)
 		if(ob && !(ob->flag & SELECT)) ob= NULL;
 
 		for(base= scene->base.first; base; base= base->next) {
-			if TESTBASELIB(scene, base) {
+			if TESTBASELIB(v3d, base) {
 				if(ob==NULL)
 					ob= base->object;
 				calc_tw_center(scene, base->object->obmat[3]);

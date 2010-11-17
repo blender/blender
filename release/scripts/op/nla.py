@@ -108,7 +108,7 @@ def bake(frame_start, frame_end, step=1, only_selected=False):
 
             #pbone.location = matrix.translation_part()
             #pbone.rotation_quaternion = matrix.to_quat()
-            pbone.matrix_local = [f for v in matrix for f in v]
+            pbone.matrix_basis = matrix
 
             pbone.keyframe_insert("location", -1, f, name)
 
@@ -149,7 +149,7 @@ class BakeAction(bpy.types.Operator):
 
     def execute(self, context):
 
-        action = bake(self.frame_start, self.frame_end, self.step, self.show_only_selected)
+        action = bake(self.frame_start, self.frame_end, self.step, self.only_selected)
 
         # basic cleanup, could move elsewhere
         for fcu in action.fcurves:

@@ -47,7 +47,7 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
         filepath = self.filepath
         filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
         import io_mesh_ply.export_ply
-        return io_mesh_ply.export_ply.save(self, context, **self.properties)
+        return io_mesh_ply.export_ply.save(self, context, **self.as_keywords(ignore=("check_existing",)))
 
     def draw(self, context):
         layout = self.layout

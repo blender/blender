@@ -1166,12 +1166,12 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Constant Offset Displacement", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "use_relative_offset", PROP_BOOLEAN, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "use_relative_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "offset_type", MOD_ARR_OFF_RELATIVE);
 	RNA_def_property_ui_text(prop, "Relative Offset", "Add an offset relative to the object's bounding box");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "relative_offset_displace", PROP_FLOAT, PROP_TRANSLATION);
+	prop= RNA_def_property(srna, "relative_offset_displace", PROP_FLOAT, PROP_NONE); /* PROP_TRANSLATION causes units to be used which we dont want */
 	RNA_def_property_float_sdna(prop, NULL, "scale");
 	RNA_def_property_ui_text(prop, "Relative Offset Displacement", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");

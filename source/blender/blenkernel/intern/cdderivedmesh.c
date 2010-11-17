@@ -289,7 +289,7 @@ static void cdDM_drawUVEdges(DerivedMesh *dm)
 			GPU_uvedge_setup(dm);
 			if( !GPU_buffer_legacy(dm) ) {
 				for(i = 0; i < dm->numFaceData; i++, mf++) {
-					if(mf->flag&ME_LOOSEEDGE) {
+					if(!(mf->flag&ME_HIDE)) {
 						draw = 1;
 					} 
 					else {

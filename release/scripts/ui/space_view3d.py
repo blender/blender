@@ -2165,7 +2165,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
                 if (bg.image):
                     box.template_image(bg, "image", bg.image_user, compact=True)
 
-                    box.prop(bg, "transparency", slider=True)
+                    box.prop(bg, "opacity", slider=True)
                     if bg.view_axis != 'CAMERA':
                         box.prop(bg, "size")
                         row = box.row(align=True)

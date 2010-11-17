@@ -3772,7 +3772,10 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 	}
 	case PROP_POINTER:
 	{
-		BLI_dynstr_append(dynstr, "'<POINTER>'"); /* TODO */
+		PointerRNA tptr= RNA_property_pointer_get(ptr, prop);
+		cstring= RNA_pointer_as_string(&tptr);
+		BLI_dynstr_append(dynstr, cstring);
+		MEM_freeN(cstring);
 		break;
 	}
 	case PROP_COLLECTION:

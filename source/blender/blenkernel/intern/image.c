@@ -1310,12 +1310,14 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 }
 
 
-void BKE_makepicstring(char *string, char *base, int frame, int imtype, int use_ext)
+void BKE_makepicstring(char *string, const char *base, int frame, int imtype, const short use_ext, const short use_frames)
 {
 	if (string==NULL) return;
 	BLI_strncpy(string, base, FILE_MAX - 10);	/* weak assumption */
 	BLI_path_abs(string, G.main->name);
-	BLI_path_frame(string, frame, 4);
+
+	if(use_frames)
+		BLI_path_frame(string, frame, 4);
 
 	if(use_ext)
 		BKE_add_image_extension(string, imtype);

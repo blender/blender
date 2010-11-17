@@ -425,12 +425,12 @@ static void rna_def_keyboard_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "target", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "targetName");
-	RNA_def_property_ui_text(prop, "Target", "Property that indicates whether to log keystrokes as a string");
+	RNA_def_property_ui_text(prop, "Target", "Property that receive the keystrokes in case a string is logged");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "log", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "toggleName");
-	RNA_def_property_ui_text(prop, "Log Toggle", "Property that receive the keystrokes in case a string is logged");
+	RNA_def_property_ui_text(prop, "Log Toggle", "Property that indicates whether to log keystrokes as a string");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "use_all_keys", PROP_BOOLEAN, PROP_NONE);

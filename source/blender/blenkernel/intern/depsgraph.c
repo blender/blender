@@ -1858,7 +1858,7 @@ static void flush_pointcache_reset(Scene *scene, DagNode *node, int curtime, int
 	for(itA = node->child; itA; itA= itA->next) {
 		if(itA->node->type==ID_OB) {
 			if(itA->node->lasttime!=curtime) {
-				ob= (Object*)(node->ob);
+				ob= (Object*)(itA->node->ob);
 
 				if(reset || (ob->recalc & OB_RECALC_ALL)) {
 					if(BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH))

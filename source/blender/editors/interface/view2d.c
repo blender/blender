@@ -1525,7 +1525,7 @@ static void scroll_printstr(Scene *scene, float x, float y, float val, int power
 	}
 	
 	/* draw it */
-	BLF_draw_default(x, y, 0.0f, str);
+	BLF_draw_default(x, y, 0.0f, str, sizeof(str)-1);
 }
 
 /* Draw scrollbars in the given 2d-region */
@@ -2054,7 +2054,7 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 	for(v2s= strings.first; v2s; v2s= v2s->next) {
 		glColor3fv(v2s->col);
 		if(v2s->rect.xmin==v2s->rect.xmax)
-			BLF_draw_default((float)v2s->mval[0], (float)v2s->mval[1], 0.0, v2s->str);
+			BLF_draw_default((float)v2s->mval[0], (float)v2s->mval[1], 0.0, v2s->str, sizeof(v2s->str)-1);
 		else {
 			int xofs=0, yofs;
 			
@@ -2063,7 +2063,7 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 			
 			BLF_clipping_default(v2s->rect.xmin-4, v2s->rect.ymin-4, v2s->rect.xmax+4, v2s->rect.ymax+4);
 			BLF_enable_default(BLF_CLIPPING);
-			BLF_draw_default(v2s->rect.xmin+xofs, v2s->rect.ymin+yofs, 0.0f, v2s->str);
+			BLF_draw_default(v2s->rect.xmin+xofs, v2s->rect.ymin+yofs, 0.0f, v2s->str, sizeof(v2s->str)-1);
 			BLF_disable_default(BLF_CLIPPING);
 		}
 	}

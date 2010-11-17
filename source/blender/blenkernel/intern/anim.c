@@ -436,6 +436,7 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 
 /* free curve path data 
  * NOTE: frees the path itself!
+ * NOTE: this is increasingly innacurate with non-uniform BevPoint subdivisions [#24633]
  */
 void free_path(Path *path)
 {
@@ -444,7 +445,7 @@ void free_path(Path *path)
 }
 
 /* calculate a curve-deform path for a curve 
- * 	- only called from displist.c -> makeDispListCurveTypes
+ * 	- only called from displist.c -> do_makeDispListCurveTypes
  */
 void calc_curvepath(Object *ob)
 {
@@ -507,7 +508,7 @@ void calc_curvepath(Object *ob)
 	
 		/* the path verts  in path->data */
 		/* now also with TILT value */
-	pp= path->data = (PathPoint *)MEM_callocN(sizeof(PathPoint)*4*path->len, "pathdata"); // XXX - why *4? - in 2.4x each element was 4 and the size was 16, so better leave for now - Campbell
+	pp= path->data = (PathPoint *)MEM_callocN(sizeof(PathPoint)*path->len, "pathdata");
 	
 	bevp= bevpfirst;
 	bevpn= bevp+1;
@@ -637,7 +638,6 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, 
 	vec[1]= data[0]*p0->vec[1] + data[1]*p1->vec[1] + data[2]*p2->vec[1] + data[3]*p3->vec[1] ; /* Y */
 	vec[2]= data[0]*p0->vec[2] + data[1]*p1->vec[2] + data[2]*p2->vec[2] + data[3]*p3->vec[2] ; /* Z */
 	vec[3]= data[0]*p0->vec[3] + data[1]*p1->vec[3] + data[2]*p2->vec[3] + data[3]*p3->vec[3] ; /* Tilt, should not be needed since we have quat still used */
-	/* Need to verify the quat interpolation is correct - XXX */
 
 	if (quat) {
 		float totfac, q1[4], q2[4];

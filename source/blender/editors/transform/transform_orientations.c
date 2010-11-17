@@ -72,13 +72,12 @@ void BIF_clearTransformOrientation(bContext *C)
 	}
 }
 
-TransformOrientation* findOrientationName(bContext *C, char *name)
+static TransformOrientation* findOrientationName(ListBase *lb, const char *name)
 {
-	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts= NULL;
 
-	for (ts = transform_spaces->first; ts; ts = ts->next) {
-		if (strncmp(ts->name, name, 35) == 0) {
+	for (ts= lb->first; ts; ts = ts->next) {
+		if (strncmp(ts->name, name, sizeof(ts->name)-1) == 0) {
 			return ts;
 		}
 	}
@@ -86,24 +85,14 @@ TransformOrientation* findOrientationName(bContext *C, char *name)
 	return NULL;
 }
 
-static void uniqueOrientationName(bContext *C, char *name)
+static int uniqueOrientationNameCheck(void *arg, const char *name)
 {
-	if (findOrientationName(C, name) != NULL)
-	{
-		/* note: this block is used in other places, when changing logic apply to all others, search this message */
-		char	tempname[sizeof(((TransformOrientation *)NULL)->name)];
-		char	left[sizeof(((TransformOrientation *)NULL)->name)];
-		int		number;
-		int		len= BLI_split_name_num(left, &number, name);
-		do {	/* nested while loop looks bad but likely it wont run most times */
-			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
-				if(len > 0)	left[--len]= '\0';	/* word too long */
-				else		number= 0;			/* reset, must be a massive number */
-			}
-		} while(number++, findOrientationName(C, tempname));
-	
-		BLI_strncpy(name, tempname, sizeof(tempname));	
-	}
+	return findOrientationName((ListBase *)arg, name) != NULL;
+}
+
+static void uniqueOrientationName(ListBase *lb, char *name)
+{
+	BLI_uniquename_cb(uniqueOrientationNameCheck, lb, "Space", '.', name, sizeof(((TransformOrientation *)NULL)->name));
 }
 
 void BIF_createTransformOrientation(bContext *C, ReportList *reports, char *name, int use, int overwrite)
@@ -277,11 +266,11 @@ TransformOrientation* addMatrixSpace(bContext *C, float mat[3][3], char name[], 
 
 	if (overwrite)
 	{
-		ts = findOrientationName(C, name);
+		ts = findOrientationName(transform_spaces, name);
 	}
 	else
 	{
-		uniqueOrientationName(C, name);
+		uniqueOrientationName(transform_spaces, name);
 	}
 
 	/* if not, create a new one */

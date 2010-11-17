@@ -142,19 +142,19 @@ class _GenericBone:
     def x_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotation_part() * Vector((1.0, 0.0, 0.0))
+        return Vector((1.0, 0.0, 0.0)) * self.matrix.rotation_part()
 
     @property
     def y_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotation_part() * Vector((0.0, 1.0, 0.0))
+        return Vector((0.0, 1.0, 0.0)) * self.matrix.rotation_part()
 
     @property
     def z_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotation_part() * Vector((0.0, 0.0, 1.0))
+        return Vector((0.0, 0.0, 1.0)) * self.matrix.rotation_part()
 
     @property
     def basename(self):
@@ -284,13 +284,13 @@ class EditBone(StructRNA, _GenericBone, metaclass=StructMetaIDProp):
         Expects a 4x4 or 3x3 matrix.
         """
         from mathutils import Vector
-        z_vec = self.matrix.rotation_part() * Vector((0.0, 0.0, 1.0))
-        self.tail = matrix * self.tail
-        self.head = matrix * self.head
+        z_vec = Vector((0.0, 0.0, 1.0)) * self.matrix.rotation_part()
+        self.tail = self.tail * matrix
+        self.head = self.head * matrix
         scalar = matrix.median_scale
         self.head_radius *= scalar
         self.tail_radius *= scalar
-        self.align_roll(matrix * z_vec)
+        self.align_roll(z_vec * matrix)
 
 
 def ord_ind(i1, i2):
@@ -326,7 +326,7 @@ class Mesh(bpy_types.ID):
                 else:
                     return f[0], f[1], f[2], 0
             elif f[2] == 0 or f[3] == 0:
-                return f[3], f[0], f[1], f[2]
+                return f[2], f[3], f[0], f[1]
             return f
 
         faces_flat = [v for f in faces for v in treat_face(f)]
@@ -659,6 +659,12 @@ class Operator(StructRNA, metaclass=OrderedMeta):
         if bl_rna and attr in bl_rna.properties:
             return delattr(properties, attr)
         return super().__delattr__(attr)
+
+    def as_keywords(self, ignore=()):
+        """ Return a copy of the properties as a dictionary.
+        """
+        ignore = ignore + ("rna_type",)
+        return {attr: getattr(self, attr) for attr in self.properties.rna_type.properties.keys() if attr not in ignore}
 
 
 class Macro(StructRNA, metaclass=OrderedMeta):

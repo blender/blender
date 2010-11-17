@@ -31,9 +31,6 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
-static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec); /* utility func */
-
-
 /* matrix vector callbacks */
 int mathutils_matrix_vector_cb_index= -1;
 
@@ -1196,28 +1193,35 @@ PyObject *Matrix_copy(MatrixObject *self)
 static PyObject *Matrix_repr(MatrixObject * self)
 {
 	int x, y;
-	char str[1024]="Matrix((", *str_p;
+	PyObject *rows[MATRIX_MAX_DIM]= {0};
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
-	str_p= &str[8];
-
-	for(x = 0; x < self->colSize; x++){
-		for(y = 0; y < (self->rowSize - 1); y++) {
-			str_p += sprintf(str_p, "%f, ", self->matrix[y][x]);
-		}
-		if(x < (self->colSize-1)){
-			str_p += sprintf(str_p, "%f), (", self->matrix[y][x]);
-		}
-		else{
-			str_p += sprintf(str_p, "%f)", self->matrix[y][x]);
+	for(x = 0; x < self->rowSize; x++){
+		rows[x]= PyTuple_New(self->rowSize);
+		for(y = 0; y < self->colSize; y++) {
+			PyTuple_SET_ITEM(rows[x], y, PyFloat_FromDouble(self->matrix[x][y]));
 		}
 	}
-	strcat(str_p, ")");
+	switch(self->rowSize) {
+	case 2:	return PyUnicode_FromFormat("Matrix(%R,\n"
+										"       %R)", rows[0], rows[1]);
 
-	return PyUnicode_FromString(str);
+	case 3:	return PyUnicode_FromFormat("Matrix(%R,\n"
+										"       %R,\n"
+										"       %R)", rows[0], rows[1], rows[2]);
+
+	case 4:	return PyUnicode_FromFormat("Matrix(%R,\n"
+										"       %R,\n"
+										"       %R,\n"
+										"       %R)", rows[0], rows[1], rows[2], rows[3]);
+	}
+
+	PyErr_SetString(PyExc_RuntimeError, "invalid matrix size");
+	return NULL;
 }
+
 /*------------------------tp_richcmpr*/
 /*returns -1 execption, 0 false, 1 true*/
 static PyObject* Matrix_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
@@ -1568,7 +1572,8 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 	}
 	else /* if(mat1) { */ {
 		if(VectorObject_Check(m2)) { /* MATRIX*VECTOR */
-			return column_vector_multiplication(mat1, (VectorObject *)m2); /* vector update done inside the function */
+			PyErr_SetString(PyExc_TypeError, "Matrix multiplication: Only 'vec * matrix' is supported, not the reverse.");
+			return NULL;
 		}
 		else {
 			scalar= PyFloat_AsDouble(m2);
@@ -1944,43 +1949,4 @@ PyObject *newMatrixObject_cb(PyObject *cb_user, int rowSize, int colSize, int cb
 		self->cb_subtype=		(unsigned char)cb_subtype;
 	}
 	return (PyObject *) self;
-}
-
-//----------------column_vector_multiplication (internal)---------
-//COLUMN VECTOR Multiplication (Matrix X Vector)
-// [1][4][7]   [a]
-// [2][5][8] * [b]
-// [3][6][9]   [c]
-//vector/matrix multiplication IS NOT COMMUTATIVE!!!!
-static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec)
-{
-	float vecNew[4], vecCopy[4];
-	double dot = 0.0f;
-	int x, y, z = 0;
-
-	if(!BaseMath_ReadCallback(mat) || !BaseMath_ReadCallback(vec))
-		return NULL;
-	
-	if(mat->rowSize != vec->size){
-		if(mat->rowSize == 4 && vec->size != 3){
-			PyErr_SetString(PyExc_AttributeError, "matrix * vector: matrix row size and vector size must be the same");
-			return NULL;
-		}else{
-			vecCopy[3] = 1.0f;
-		}
-	}
-
-	for(x = 0; x < vec->size; x++){
-		vecCopy[x] = vec->vec[x];
-	}
-	vecNew[3] = 1.0f;
-
-	for(x = 0; x < mat->colSize; x++) {
-		for(y = 0; y < mat->rowSize; y++) {
-			dot += mat->matrix[y][x] * vecCopy[y];
-		}
-		vecNew[z++] = (float)dot;
-		dot = 0.0f;
-	}
-	return newVectorObject(vecNew, vec->size, Py_NEW, NULL);
 }

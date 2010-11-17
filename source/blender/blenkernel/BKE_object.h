@@ -101,7 +101,7 @@ void object_rot_to_mat3(struct Object *ob, float mat[][3]);
 void object_mat3_to_rot(struct Object *ob, float mat[][3], short use_compat);
 void object_to_mat3(struct Object *ob, float mat[][3]);
 void object_to_mat4(struct Object *ob, float mat[][4]);
-void object_apply_mat4(struct Object *ob, float mat[][4], short use_compat);
+void object_apply_mat4(struct Object *ob, float mat[][4], const short use_compat, const short use_parent);
 
 void set_no_parent_ipo(int val);
 

@@ -28,6 +28,7 @@ class INFO_HT_header(bpy.types.Header):
 
         wm = context.window_manager
         window = context.window
+        sinfo = context.space_data
         scene = context.scene
         rd = scene.render
 
@@ -69,6 +70,35 @@ class INFO_HT_header(bpy.types.Header):
         layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER', text="")
 
 
+        # XXX: BEFORE RELEASE, MOVE FILE MENU OUT OF INFO!!!
+        """
+        row = layout.row(align=True)
+        row.prop(sinfo, "show_report_debug", text="Debug")
+        row.prop(sinfo, "show_report_info", text="Info")
+        row.prop(sinfo, "show_report_operator", text="Operators")
+        row.prop(sinfo, "show_report_warning", text="Warnings")
+        row.prop(sinfo, "show_report_error", text="Errors")
+
+        row = layout.row()
+        row.enabled = sinfo.show_report_operator
+        row.operator("info.report_replay")
+        
+        row.menu("INFO_MT_report")
+        """
+
+
+class INFO_MT_report(bpy.types.Menu):
+    bl_label = "Report"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.column()
+        layout.operator("console.select_all_toggle")
+        layout.operator("console.select_border")
+        layout.operator("console.report_delete")
+        layout.operator("console.report_copy")
+
+
 class INFO_MT_file(bpy.types.Menu):
     bl_label = "File"
 
@@ -97,6 +127,7 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
 
         layout.operator_context = 'EXEC_AREA'
+        layout.operator("wm.save_homefile")
         layout.operator("wm.read_factory_settings")
 
         layout.separator()

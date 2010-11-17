@@ -36,7 +36,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BKE_library.h"
 #include "BLI_dynstr.h"
+
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -176,7 +178,7 @@ void BKE_free_animdata (ID *id)
 /* Freeing -------------------------------------------- */
 
 /* Make a copy of the given AnimData - to be used when copying datablocks */
-AnimData *BKE_copy_animdata (AnimData *adt)
+AnimData *BKE_copy_animdata (AnimData *adt, const short do_action)
 {
 	AnimData *dadt;
 	
@@ -186,9 +188,15 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	dadt= MEM_dupallocN(adt);
 	
 	/* make a copy of action - at worst, user has to delete copies... */
-	dadt->action= copy_action(adt->action);
-	dadt->tmpact= copy_action(adt->tmpact);
-	
+	if(do_action) {
+		dadt->action= copy_action(adt->action);
+		dadt->tmpact= copy_action(adt->tmpact);
+	}
+	else {
+		id_us_plus((ID *)dadt->action);
+		id_us_plus((ID *)dadt->tmpact);
+	}
+
 	/* duplicate NLA data */
 	copy_nladata(&dadt->nla_tracks, &adt->nla_tracks);
 	
@@ -202,7 +210,7 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	return dadt;
 }
 
-int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from)
+int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from, const short do_action)
 {
 	AnimData *adt;
 
@@ -214,13 +222,26 @@ int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from)
 	adt = BKE_animdata_from_id(id_from);
 	if (adt) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)id_to;
-		iat->adt= BKE_copy_animdata(adt);
+		iat->adt= BKE_copy_animdata(adt, do_action);
 	}
 
 	return 1;
 }
 
-
+void BKE_copy_animdata_id_action(struct ID *id)
+{
+	AnimData *adt= BKE_animdata_from_id(id);
+	if(adt) {
+		if(adt->action) {
+			((ID *)adt->action)->us--;
+			adt->action= copy_action(adt->action);
+		}
+		if(adt->tmpact) {
+			((ID *)adt->tmpact)->us--;
+			adt->tmpact= copy_action(adt->tmpact);
+		}
+	}
+}
 
 /* Make Local -------------------------------------------- */
 

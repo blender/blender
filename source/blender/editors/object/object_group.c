@@ -96,7 +96,7 @@ void GROUP_OT_objects_add_active(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= objects_add_active_exec;	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -143,7 +143,7 @@ void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= objects_remove_active_exec;	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -177,7 +177,7 @@ void GROUP_OT_objects_remove(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= group_objects_remove_exec;	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -214,7 +214,7 @@ void GROUP_OT_create(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= group_create_exec;	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

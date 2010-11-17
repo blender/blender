@@ -45,6 +45,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_anim.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
@@ -331,7 +332,7 @@ void OBJECT_OT_add(wmOperatorType *ot)
 	ot->invoke= ED_object_add_generic_invoke;
 	ot->exec= object_add_exec;
 	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -421,7 +422,7 @@ void OBJECT_OT_effector_add(wmOperatorType *ot)
 	ot->invoke= WM_menu_invoke;
 	ot->exec= effector_add_exec;
 	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -472,7 +473,7 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_camera_add_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -556,7 +557,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= object_metaball_add_invoke;
 	ot->exec= object_metaball_add_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -596,7 +597,7 @@ void OBJECT_OT_text_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= ED_object_add_generic_invoke;
 	ot->exec= object_add_text_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -651,7 +652,7 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= ED_object_add_generic_invoke;
 	ot->exec= object_armature_add_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -711,7 +712,7 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_lamp_add_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -768,7 +769,7 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	ot->invoke= WM_enum_search_invoke;
 	ot->exec= group_instance_add_exec;
 
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -834,7 +835,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= object_delete_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -982,7 +983,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 		ob->lay= base->lay;
 		
 		copy_m4_m4(ob->obmat, dob->mat);
-		object_apply_mat4(ob, ob->obmat, FALSE);
+		object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
 	}
 	
 	copy_object_set_idnew(C, 0);
@@ -1026,7 +1027,7 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= object_duplicates_make_real_exec;
 	
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1445,17 +1446,12 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				}
 			}
 		}
-		if(dupflag & USER_DUP_ACT){ /* Not buttons in the UI to modify this, add later? */
-			id= (ID *)obn->action;
-			if (id){
-				ID_NEW_US(obn->action)
-				else{
-					obn->action= copy_action(obn->action);
-				}
-				id->us--;
-			}
-		}
 #endif // XXX old animation system
+		
+		if(dupflag & USER_DUP_ACT) {
+			BKE_copy_animdata_id_action(&obn->id);
+		}
+		
 		if(dupflag & USER_DUP_MAT) {
 			for(a=0; a<obn->totcol; a++) {
 				id= (ID *)obn->mat[a];
@@ -1463,6 +1459,10 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 					ID_NEW_US(obn->mat[a])
 					else obn->mat[a]= copy_material(obn->mat[a]);
 					id->us--;
+					
+					if(dupflag & USER_DUP_ACT) {
+						BKE_copy_animdata_id_action(&obn->mat[a]->id);
+					}
 				}
 			}
 		}
@@ -1473,6 +1473,11 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if(id) {
 					ID_NEW_US(psys->part)
 					else psys->part= psys_copy_settings(psys->part);
+					
+					if(dupflag & USER_DUP_ACT) {
+						BKE_copy_animdata_id_action(&psys->part->id);
+					}
+
 					id->us--;
 				}
 			}
@@ -1540,7 +1545,10 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 			case OB_LAMP:
 				if(dupflag & USER_DUP_LAMP) {
 					ID_NEW_US2(obn->data )
-					else obn->data= copy_lamp(obn->data);
+					else {
+						obn->data= copy_lamp(obn->data);
+						didit= 1;
+					}
 					id->us--;
 				}
 				break;
@@ -1564,29 +1572,42 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 			case OB_LATTICE:
 				if(dupflag!=0) {
 					ID_NEW_US2(obn->data )
-					else obn->data= copy_lattice(obn->data);
+					else {
+						obn->data= copy_lattice(obn->data);
+						didit= 1;
+					}
 					id->us--;
 				}
 				break;
 			case OB_CAMERA:
 				if(dupflag!=0) {
 					ID_NEW_US2(obn->data )
-					else obn->data= copy_camera(obn->data);
+					else {
+						obn->data= copy_camera(obn->data);
+						didit= 1;
+					}
 					id->us--;
 				}
 				break;
 		}
-		
-		if(dupflag & USER_DUP_MAT) {
-			matarar= give_matarar(obn);
-			if(didit && matarar) {
-				for(a=0; a<obn->totcol; a++) {
-					id= (ID *)(*matarar)[a];
-					if(id) {
-						ID_NEW_US( (*matarar)[a] )
-						else (*matarar)[a]= copy_material((*matarar)[a]);
-						
-						id->us--;
+
+		/* check if obdata is copied */
+		if(didit) {
+			if(dupflag & USER_DUP_ACT) {
+				BKE_copy_animdata_id_action((ID *)obn->data);
+			}
+			
+			if(dupflag & USER_DUP_MAT) {
+				matarar= give_matarar(obn);
+				if(matarar) {
+					for(a=0; a<obn->totcol; a++) {
+						id= (ID *)(*matarar)[a];
+						if(id) {
+							ID_NEW_US( (*matarar)[a] )
+							else (*matarar)[a]= copy_material((*matarar)[a]);
+							
+							id->us--;
+						}
 					}
 				}
 			}
@@ -1669,7 +1690,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= duplicate_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1682,20 +1703,6 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 
 /* **************** add named object, for dragdrop ************* */
 
-/* contextual operator dupli */
-
-static int add_named_poll(bContext *C)
-{
-	if(!ED_operator_scene_editable(C)) {
-		return 0;
-	} else {
-		Object *ob= CTX_data_active_object(C);
-		if(ob && ob->mode != OB_MODE_OBJECT)
-			return 0;
-		else
-			return 1;
-	}
-}
 
 static int add_named_exec(bContext *C, wmOperator *op)
 {
@@ -1754,7 +1761,7 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_named_exec;
-	ot->poll= add_named_poll;
+	ot->poll= ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

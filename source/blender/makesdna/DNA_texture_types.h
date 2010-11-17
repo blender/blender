@@ -224,7 +224,7 @@ typedef struct Tex {
 	float vn_mexp;
 	short vn_distm, vn_coltype;
 
-	short noisedepth, noisetype;
+	short noisedepth, noisetype; /* noisedepth MUST be <= 30 else we get floating point exceptions */
 
 	/* newnoise: noisebasis type for clouds/marble/etc, noisebasis2 only used for distorted noise */
 	short noisebasis, noisebasis2;

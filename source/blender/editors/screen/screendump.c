@@ -256,7 +256,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				char name[FILE_MAXDIR+FILE_MAXFILE];
 				int ok;
 				
-				BKE_makepicstring(name, rd.pic, cfra, rd.imtype, rd.scemode & R_EXTENSION);
+				BKE_makepicstring(name, rd.pic, cfra, rd.imtype, rd.scemode & R_EXTENSION, TRUE);
 				
 				ibuf->rect= sj->dumprect;
 				ok= BKE_write_ibuf(sj->scene, ibuf, name, rd.imtype, rd.subimtype, rd.quality);

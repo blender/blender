@@ -1986,9 +1986,10 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
 	 *	- current space should be local
 	 */
 	memset(cob, 0, sizeof(bConstraintOb));
-	if (td->rotOrder == ROT_MODE_QUAT) {
-		/* quats */
-		if (td->ext) {
+	if (td->ext)
+	{
+		if (td->ext->rotOrder == ROT_MODE_QUAT) {
+			/* quats */
 			/* objects and bones do normalization first too, otherwise
 			   we don't necessarily end up with a rotation matrix, and
 			   then conversion back to quat gives a different result */
@@ -1997,22 +1998,14 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
 			normalize_qt(quat);
 			quat_to_mat4(cob->matrix, quat);
 		}
-		else
-			return;
-	}
-	else if (td->rotOrder == ROT_MODE_AXISANGLE) {
-		/* axis angle */
-		if (td->ext)
+		else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
+			/* axis angle */
 			axis_angle_to_mat4(cob->matrix, &td->ext->quat[1], td->ext->quat[0]);
-		else
-			return;
-	}
-	else {
-		/* eulers */
-		if (td->ext)
-			eulO_to_mat4(cob->matrix, td->ext->rot, td->rotOrder);
-		else
-			return;
+		}
+		else {
+			/* eulers */
+			eulO_to_mat4(cob->matrix, td->ext->rot, td->ext->rotOrder);
+		}
 	}
 }
 
@@ -2070,17 +2063,17 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 		
 		if(dolimit) {
 			/* copy results from cob->matrix */
-			if (td->rotOrder == ROT_MODE_QUAT) {
+			if (td->ext->rotOrder == ROT_MODE_QUAT) {
 				/* quats */
 				mat4_to_quat( td->ext->quat,cob.matrix);
 			}
-			else if (td->rotOrder == ROT_MODE_AXISANGLE) {
+			else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
 				/* axis angle */
 				mat4_to_axis_angle( &td->ext->quat[1], &td->ext->quat[0],cob.matrix);
 			}
 			else {
 				/* eulers */
-				mat4_to_eulO( td->ext->rot, td->rotOrder,cob.matrix);
+				mat4_to_eulO( td->ext->rot, td->ext->rotOrder,cob.matrix);
 			}
 		}
 	}
@@ -2946,7 +2939,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		/* rotation */
 		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
 			/* euler or quaternion/axis-angle? */
-			if (td->rotOrder == ROT_MODE_QUAT) {
+			if (td->ext->rotOrder == ROT_MODE_QUAT) {
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 				
 				mat3_to_quat( quat,fmat);	// Actual transform
@@ -2956,7 +2949,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
 				
 			}
-			else if (td->rotOrder == ROT_MODE_AXISANGLE) {
+			else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
 				/* calculate effect based on quats */
 				float iquat[4], tquat[4];
 				
@@ -2979,12 +2972,12 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				
 				/* calculate the total rotatation in eulers */
 				VECCOPY(eul, td->ext->irot);
-				eulO_to_mat3( eulmat,eul, td->rotOrder);
+				eulO_to_mat3( eulmat,eul, td->ext->rotOrder);
 				
 				/* mat = transform, obmat = bone rotation */
 				mul_m3_m3m3(fmat, smat, eulmat);
 				
-				mat3_to_compatible_eulO( eul, td->ext->rot, td->rotOrder,fmat);
+				mat3_to_compatible_eulO( eul, td->ext->rot, td->ext->rotOrder,fmat);
 				
 				/* and apply (to end result only) */
 				protectedRotateBits(td->protectflag, eul, td->ext->irot);
@@ -3016,7 +3009,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		/* rotation */
 		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
 			/* euler or quaternion? */
-			   if ((td->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
+			   if ((td->ext->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 				mat3_to_quat( quat,fmat);	// Actual transform
 				
@@ -3024,7 +3017,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				/* this function works on end result */
 				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
 			}
-			else if (td->rotOrder == ROT_MODE_AXISANGLE) {
+			else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
 				/* calculate effect based on quats */
 				float iquat[4], tquat[4];
 				
@@ -3047,11 +3040,11 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				
 				/* calculate the total rotatation in eulers */
 				add_v3_v3v3(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
-				eulO_to_mat3( obmat,eul, td->rotOrder);
+				eulO_to_mat3( obmat,eul, td->ext->rotOrder);
 				/* mat = transform, obmat = object rotation */
 				mul_m3_m3m3(fmat, smat, obmat);
 				
-				mat3_to_compatible_eulO( eul, td->ext->rot, td->rotOrder,fmat);
+				mat3_to_compatible_eulO( eul, td->ext->rot, td->ext->rotOrder,fmat);
 				
 				/* correct back for delta rot */
 				sub_v3_v3v3(eul, eul, td->ext->drot);
@@ -3433,6 +3426,9 @@ int Translation(TransInfo *t, short UNUSED(mval[2]))
 	if (t->con.mode & CON_APPLY) {
 		float pvec[3] = {0.0f, 0.0f, 0.0f};
 		float tvec[3];
+		if (hasNumInput(&t->num)) {
+			removeAspectRatio(t, t->values);
+		}
 		applySnapping(t, t->values);
 		t->con.applyVec(t, NULL, t->values, tvec, pvec);
 		VECCOPY(t->values, tvec);
@@ -3442,11 +3438,9 @@ int Translation(TransInfo *t, short UNUSED(mval[2]))
 		applyNDofInput(&t->ndof, t->values);
 		snapGrid(t, t->values);
 		applyNumInput(&t->num, t->values);
-		if (hasNumInput(&t->num))
-		{
+		if (hasNumInput(&t->num)) {
 			removeAspectRatio(t, t->values);
 		}
-
 		applySnapping(t, t->values);
 		headerTranslation(t, t->values, str);
 	}

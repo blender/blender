@@ -794,7 +794,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					view3d_persp_mat4(rv3d, view_mat);
 					mul_m4_m4m4(diff_mat, prev_view_imat, view_mat);
 					mul_m4_m4m4(parent_mat, fly->root_parent->obmat, diff_mat);
-					object_apply_mat4(fly->root_parent, parent_mat, TRUE);
+					object_apply_mat4(fly->root_parent, parent_mat, TRUE, FALSE);
 
 					// where_is_object(scene, fly->root_parent);
 
@@ -812,7 +812,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				else {
 					float view_mat[4][4];
 					view3d_persp_mat4(rv3d, view_mat);
-					object_apply_mat4(v3d->camera, view_mat, TRUE);
+					object_apply_mat4(v3d->camera, view_mat, TRUE, FALSE);
 					id_key= &v3d->camera->id;
 				}
 

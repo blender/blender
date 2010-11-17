@@ -85,7 +85,7 @@
 /* join selected meshes into the active mesh, context sensitive
 return 0 if no join is made (error) and 1 of the join is done */
 
-int join_mesh_exec(bContext *C, wmOperator *UNUSED(op))
+int join_mesh_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
@@ -105,12 +105,16 @@ int join_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 	MDeformVert *dvert;
 	CustomData vdata, edata, fdata;
 
-	if(scene->obedit)
+	if(scene->obedit) {
+		BKE_report(op->reports, RPT_ERROR, "Cant join while in editmode");
 		return OPERATOR_CANCELLED;
+	}
 	
 	/* ob is the object we are adding geometry to */
-	if(!ob || ob->type!=OB_MESH)
+	if(!ob || ob->type!=OB_MESH) {
+		BKE_report(op->reports, RPT_ERROR, "Active object is not a mesh");
 		return OPERATOR_CANCELLED;
+	}
 	
 	/* count & check */
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
@@ -133,15 +137,25 @@ int join_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_END;
 	
 	/* that way the active object is always selected */ 
-	if(ok==0)
+	if(ok==0) {
+		BKE_report(op->reports, RPT_ERROR, "Active object is not a selected mesh");
 		return OPERATOR_CANCELLED;
+	}
 	
 	/* only join meshes if there are verts to join, there aren't too many, and we only had one mesh selected */
 	me= (Mesh *)ob->data;
 	key= me->key;
-	if(totvert==0 || totvert>MESH_MAX_VERTS || totvert==me->totvert) 
+
+	if(totvert==0 || totvert==me->totvert) {
+		BKE_report(op->reports, RPT_ERROR, "No mesh data to join");
 		return OPERATOR_CANCELLED;
+	}
 	
+	if(totvert > MESH_MAX_VERTS) {
+		BKE_reportf(op->reports, RPT_ERROR, "Joining results in %d vertices, limit is " STRINGIFY(MESH_MAX_VERTS), totvert);
+		return OPERATOR_CANCELLED;		
+	}
+
 	/* new material indices and material array */
 	matar= MEM_callocN(sizeof(void*)*totmat, "join_mesh matar");
 	if (totmat) matmap= MEM_callocN(sizeof(int)*totmat, "join_mesh matmap");
@@ -508,10 +522,19 @@ int join_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	DAG_scene_sort(bmain, scene);	// removed objects, need to rebuild dag before editmode call
-	
+
+#if 0
 	ED_object_enter_editmode(C, EM_WAITCURSOR);
 	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR|EM_DO_UNDO);
-
+#else
+	/* toggle editmode using lower level functions so this can be called from python */
+	make_editMesh(scene, ob);
+	load_editMesh(scene, ob);
+	free_editMesh(me->edit_mesh);
+	MEM_freeN(me->edit_mesh);
+	me->edit_mesh= NULL;
+	DAG_id_flush_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA);
+#endif
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 
 	return OPERATOR_FINISHED;

@@ -1353,13 +1353,17 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			}
 		}
 
-		if(framenr < startframe)
+		if(!smd->domain->fluid && (framenr != startframe) && (cache->flag & PTCACHE_BAKED)==0)
 			return;
+
+		if(framenr < startframe)
+			framenr = startframe;
 
 		if(framenr > endframe)
-			return;
+			framenr = endframe;
 
-		if(!smd->domain->fluid && (framenr != startframe) && (cache->flag & PTCACHE_BAKED)==0)
+		/* If already viewing a pre/after frame, no need to reload */
+		if ((smd->time == framenr) && (framenr != scene->r.cfra))
 			return;
 
 		// printf("startframe: %d, framenr: %d\n", startframe, framenr);
@@ -1400,6 +1404,10 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		}
 		/* only calculate something when we advanced a single frame */
 		else if(framenr != (int)smd->time+1)
+			return;
+
+		/* don't simulate if viewing start frame, but scene frame is not real start frame */
+		if (framenr != scene->r.cfra)
 			return;
 
 		tstart();

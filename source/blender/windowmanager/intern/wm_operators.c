@@ -32,8 +32,11 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <assert.h>
+
 #ifdef WIN32
-#include <windows.h>
+#include "BLI_winstuff.h"
+#include <windows.h>  
+
 #include <io.h>
 #endif
 
@@ -617,6 +620,7 @@ void WM_operator_properties_free(PointerRNA *ptr)
 	if(properties) {
 		IDP_FreeProperty(properties);
 		MEM_freeN(properties);
+		ptr->data= NULL; /* just incase */
 	}
 }
 
@@ -1459,7 +1463,15 @@ static void open_set_use_scripts(wmOperator *op)
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	RNA_string_set(op->ptr, "filepath", G.main->name);
+	const char *openname= G.main->name;
+
+	/* if possible, get the name of the most recently used .blend file */
+	if (G.recent_files.first) {
+		struct RecentFile *recent = G.recent_files.first;
+		openname = recent->filepath;
+	}
+
+	RNA_string_set(op->ptr, "filepath", openname);
 	open_set_load_ui(op);
 	open_set_use_scripts(op);
 
@@ -2027,33 +2039,16 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 }
 
 /* *********************** */
-#ifdef WIN32
+#if defined(WIN32)
 static int console= 1;
 void WM_toggle_console(bContext *C, short show)
 {
 	if(show) {
-		FILE *fp;
-		char fn[FILE_MAX];
-		char tmp[FILE_MAXDIR];
-		BLI_where_is_temp(tmp, 1);
-		BLI_make_file_string("/", fn, tmp, "blenderlog.txt");
-		/* open the console */
-		AllocConsole();
-		
-		/* redirect stdin */
-		fp= freopen(fn, "r", stdin);
-		SetStdHandle(STD_INPUT_HANDLE, (HANDLE)_get_osfhandle(_fileno(stdin)));
-		/* redirect stdout */
-		fp= freopen(fn, "w", stdout);
-		SetStdHandle(STD_OUTPUT_HANDLE, (HANDLE)_get_osfhandle(_fileno(stdout)));
-		/* redirect stderr */
-		fp= freopen(fn, "w", stderr);
-		SetStdHandle(STD_ERROR_HANDLE, (HANDLE)_get_osfhandle(_fileno(stderr)));
-		
+		ShowWindow(GetConsoleWindow(),SW_SHOW);
 		console= 1;
 	}
 	else {
-		FreeConsole();
+		ShowWindow(GetConsoleWindow(),SW_HIDE);
 		console= 0;
 	}
 }
@@ -3156,7 +3151,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);
-#ifdef WIN32
+#if defined(WIN32)
 	WM_operatortype_append(WM_OT_toggle_console);
 #endif
 
@@ -3285,7 +3280,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "ACTION_OT_select_border");
 	WM_modalkeymap_assign(keymap, "ANIM_OT_channels_select_border");
 	WM_modalkeymap_assign(keymap, "ANIM_OT_previewrange_set");
-	WM_modalkeymap_assign(keymap, "CONSOLE_OT_select_border");
+	WM_modalkeymap_assign(keymap, "INFO_OT_select_border");
 	WM_modalkeymap_assign(keymap, "FILE_OT_select_border");
 	WM_modalkeymap_assign(keymap, "GRAPH_OT_select_border");
 	WM_modalkeymap_assign(keymap, "MARKER_OT_select_border");

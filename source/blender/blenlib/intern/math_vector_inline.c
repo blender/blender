@@ -149,6 +149,23 @@ MINLINE void sub_v3_v3v3(float r[3], const float a[3], const float b[3])
 	r[2]= a[2] - b[2];
 }
 
+MINLINE void sub_v4_v4(float r[4], const float a[4])
+{
+	r[0] -= a[0];
+	r[1] -= a[1];
+	r[2] -= a[2];
+	r[3] -= a[3];
+}
+
+MINLINE void sub_v4_v4v4(float r[3], const float a[3], const float b[3])
+{
+	r[0]= a[0] - b[0];
+	r[1]= a[1] - b[1];
+	r[2]= a[2] - b[2];
+	r[3]= a[3] - b[3];
+}
+
+
 MINLINE void mul_v2_fl(float *v1, float f)
 {
 	v1[0]*= f;

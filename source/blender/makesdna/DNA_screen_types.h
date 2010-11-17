@@ -54,7 +54,8 @@ typedef struct bScreen {
 	struct Scene *scene;
 	struct Scene *newscene;				/* temporary when switching */
 	
-	short full;							/* fade out? */
+	short full;							/* temp screen for image render display or fileselect */
+	short temp;							/* temp screen in a temp window, don't save (like user prefs) */
 	short winid;						/* winid from WM, starts with 1 */
 	short do_draw;						/* notifier for drawing edges */
 	short do_refresh;					/* notifier for scale screen, changed screen, etc */
@@ -66,7 +67,7 @@ typedef struct bScreen {
 	short mainwin;						/* screensize subwindow, for screenedges and global menus */
 	short subwinactive;					/* active subwindow */
 	
-	int pad2;
+	short pad;
 	
 	struct wmTimer *animtimer;			/* if set, screen has timer handler added in window */
 	void *context;						/* context callback */
@@ -187,10 +188,9 @@ typedef struct ARegion {
 #define HEADERDOWN	1
 #define HEADERTOP	2
 
+/* screen->full */
 #define SCREENNORMAL    0
 #define SCREENFULL      1
-#define SCREENAUTOPLAY  2
-#define SCREENTEMP		3
 
 
 /* Panel->snap - for snapping to screen edges */

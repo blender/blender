@@ -2495,6 +2495,7 @@
 #+ * Node|CompositorNode.type -> type:   enum,  "(read-only)"
 #+ * Node|CompositorNode|CompositorNodeAlphaOver.premul -> premul:   float  "Mix Factor"
 #Node|CompositorNode|CompositorNodeAlphaOver.use_premultiply -> use_premultiply:   boolean  "NO DESCRIPTION"
+#Node|CompositorNode|CompositorNodeZcombine.use_alpha -> use_alpha:   boolean  "NO DESCRIPTION"
 #+ * Node|CompositorNode|CompositorNodeBilateralblur.iterations -> iterations:   int  "NO DESCRIPTION"
 #+ * Node|CompositorNode|CompositorNodeBilateralblur.sigma_color -> sigma_color:   float  "NO DESCRIPTION"
 #+ * Node|CompositorNode|CompositorNodeBilateralblur.sigma_space -> sigma_space:   float  "NO DESCRIPTION"

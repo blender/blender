@@ -1925,8 +1925,6 @@ static RetargetMode detectArcRetargetMode(RigArc *iarc)
 		mode = RETARGET_LENGTH;
 	}
 	
-	mode = RETARGET_AGGRESSIVE;
-	
 	return mode;
 }
 

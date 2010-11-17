@@ -1077,7 +1077,7 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 			newtree= copy_libblock(ntree);
 		} else {
 			newtree= MEM_dupallocN(ntree);
-			copy_libblock_data(&newtree->id, &ntree->id); /* copy animdata and ID props */
+			copy_libblock_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
 		}
 		newtree->nodes.first= newtree->nodes.last= NULL;
 		newtree->links.first= newtree->links.last= NULL;

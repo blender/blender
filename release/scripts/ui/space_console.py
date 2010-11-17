@@ -34,29 +34,10 @@ class CONSOLE_HT_header(bpy.types.Header):
 
         if context.area.show_menus:
             sub = row.row(align=True)
+            sub.menu("CONSOLE_MT_console")
 
-            if sc.console_type == 'REPORT':
-                sub.menu("CONSOLE_MT_report")
-            else:
-                sub.menu("CONSOLE_MT_console")
-
-        layout.separator()
-        layout.prop(sc, "console_type", expand=True)
-
-        if sc.console_type == 'REPORT':
-            row = layout.row(align=True)
-            row.prop(sc, "show_report_debug", text="Debug")
-            row.prop(sc, "show_report_info", text="Info")
-            row.prop(sc, "show_report_operator", text="Operators")
-            row.prop(sc, "show_report_warning", text="Warnings")
-            row.prop(sc, "show_report_error", text="Errors")
-
-            row = layout.row()
-            row.enabled = sc.show_report_operator
-            row.operator("console.report_replay")
-        else:
-            row = layout.row(align=True)
-            row.operator("console.autocomplete", text="Autocomplete")
+        row = layout.row(align=True)
+        row.operator("console.autocomplete", text="Autocomplete")
 
 
 class CONSOLE_MT_console(bpy.types.Menu):
@@ -74,18 +55,6 @@ class CONSOLE_MT_console(bpy.types.Menu):
 
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
-
-
-class CONSOLE_MT_report(bpy.types.Menu):
-    bl_label = "Report"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.column()
-        layout.operator("console.select_all_toggle")
-        layout.operator("console.select_border")
-        layout.operator("console.report_delete")
-        layout.operator("console.report_copy")
 
 
 class CONSOLE_MT_language(bpy.types.Menu):
@@ -137,10 +106,6 @@ class ConsoleAutocomplete(bpy.types.Operator):
     '''Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one'''
     bl_idname = "console.autocomplete"
     bl_label = "Console Autocomplete"
-
-    @classmethod
-    def poll(cls, context):
-        return context.space_data.console_type != 'REPORT'
 
     def execute(self, context):
         sc = context.space_data

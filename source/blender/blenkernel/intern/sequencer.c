@@ -610,6 +610,8 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 		}
 		seq->strip->len = seq->len;
 	case SEQ_SOUND:
+		if(!seq->sound)
+			return;
 		seq->len = ceil(AUD_getInfo(seq->sound->playback_handle).length * FPS);
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
@@ -1826,7 +1828,7 @@ static ImBuf * seq_render_scene_strip_impl(
 			if(re==NULL)
 				re= RE_NewRender(sce->id.name);
 			
-			RE_BlenderFrame(re, bmain, sce, NULL, sce->lay, frame);
+			RE_BlenderFrame(re, bmain, sce, NULL, sce->lay, frame, FALSE);
 
 			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
 			G.rendering = rendering;

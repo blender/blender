@@ -340,7 +340,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	ListBase wmbase;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int from_memory= op && strcmp(op->type->idname, "WM_OT_read_factory_settings")==0;
-	int success;
+	int success= 0;
 	
 	free_ttfont(); /* still weird... what does it here? */
 		
@@ -366,7 +366,13 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	
 	if (!from_memory && BLI_exists(tstr)) {
 		success = BKE_read_file(C, tstr, NULL);
-	} else {
+		
+		if(U.themes.first==NULL) {
+			printf("\nError: No valid startup.blend, fall back to built-in default.\n\n");
+			success = 0;
+		}
+	}
+	if(success==0) {
 		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL);
 		if (wmbase.first == NULL) wm_clear_default_size(C);
 	}
@@ -673,7 +679,7 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	int fileflags;
 	
 	/* check current window and close it if temp */
-	if(win->screen->full == SCREENTEMP)
+	if(win->screen->temp)
 		wm_window_close(C, wm, win);
 	
 	BLI_make_file_string("/", tstr, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);

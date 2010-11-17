@@ -42,9 +42,9 @@ struct direntry;
 
 char *BLI_getDefaultDocumentFolder(void);
 
-char *BLI_get_folder(int folder_id, char *subfolder);
-char *BLI_get_folder_create(int folder_id, char *subfolder);
-char *BLI_get_user_folder_notest(int folder_id, char *subfolder);
+char *BLI_get_folder(int folder_id, const char *subfolder);
+char *BLI_get_folder_create(int folder_id, const char *subfolder);
+char *BLI_get_user_folder_notest(int folder_id, const char *subfolder);
 
 /* folder_id */
 
@@ -101,7 +101,7 @@ void BLI_setenv_if_new(const char *env, const char* val);
 
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);
-void BLI_make_existing_file(char *name);
+void BLI_make_existing_file(const char *name);
 void BLI_split_dirfile(const char *string, char *dir, char *file);
 void BLI_join_dirfile(char *string, const char *dir, const char *file);
 char *BLI_path_basename(char *path);
@@ -117,10 +117,11 @@ int BLI_testextensie_array(const char *str, const char **ext_array);
 int BLI_testextensie_glob(const char *str, const char *ext_fnmatch);
 int BLI_replace_extension(char *path, int maxlen, const char *ext);
 void BLI_uniquename(struct ListBase *list, void *vlink, const char defname[], char delim, short name_offs, short len);
+int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, const char defname[], char delim, char *name, short name_len);
 void BLI_newname(char * name, int add);
 int BLI_stringdec(const char *string, char *head, char *start, unsigned short *numlen);
 void BLI_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic);
-int BLI_split_name_num(char *left, int *nr, const char *name);
+int BLI_split_name_num(char *left, int *nr, const char *name, const char delim);
 void BLI_splitdirstring(char *di,char *fi);
 
 /* make sure path separators conform to system one */

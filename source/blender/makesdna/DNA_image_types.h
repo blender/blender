@@ -51,8 +51,9 @@ typedef struct ImageUser {
 	short flag, ok;
 	
 	short multi_index, layer, pass;	 /* listbase indices, for menu browsing or retrieve buffer */
-	short menunr;					/* localized menu entry, for handling browse event */
-	
+	/* short menunr; */					/* localized menu entry, for handling browse event */
+	short pad;
+
 	struct Scene *scene;		/* to retrieve render result */
 } ImageUser;
 

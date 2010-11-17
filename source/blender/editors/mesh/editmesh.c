@@ -739,6 +739,7 @@ void make_editMesh(Scene *scene, Object *ob)
 	EditSelection *ese;
 	float *co, (*keyco)[3]= NULL;
 	int tot, a, eekadoodle= 0;
+	const short is_paint_sel= paint_facesel_test(ob);
 
 	if(me->edit_mesh==NULL)
 		me->edit_mesh= MEM_callocN(sizeof(EditMesh), "editmesh");
@@ -789,7 +790,7 @@ void make_editMesh(Scene *scene, Object *ob)
 		evlist[a]= eve;
 		
 		/* face select sets selection in next loop */
-		if(!paint_facesel_test(ob))
+		if(!is_paint_sel)
 			eve->f |= (mvert->flag & 1);
 		
 		if (mvert->flag & ME_HIDE) eve->h= 1;		
@@ -864,7 +865,7 @@ void make_editMesh(Scene *scene, Object *ob)
 					if(mface->flag & ME_FACE_SEL) {
 						efa->f |= SELECT;
 						
-						if(paint_facesel_test(ob)) {
+						if(is_paint_sel) {
 							EM_select_face(efa, 1); /* flush down */
 						}
 

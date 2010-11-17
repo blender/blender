@@ -1026,6 +1026,12 @@ void RNA_def_property_array(PropertyRNA *prop, int length)
 		return;
 	}
 
+	if(prop->arraydimension > 1) {
+		fprintf(stderr, "RNA_def_property_array: \"%s.%s\", array dimensions has been set to %d but would be overwritten as 1.\n", srna->identifier, prop->identifier, prop->arraydimension);
+		DefRNA.error= 1;
+		return;
+	}
+
 	switch(prop->type) {
 		case PROP_BOOLEAN:
 		case PROP_INT:
@@ -1041,7 +1047,7 @@ void RNA_def_property_array(PropertyRNA *prop, int length)
 	}
 }
 
-void RNA_def_property_multi_array(PropertyRNA *prop, int dimension, int length[])
+void RNA_def_property_multi_array(PropertyRNA *prop, int dimension, const int length[])
 {
 	StructRNA *srna= DefRNA.laststruct;
 	int i;

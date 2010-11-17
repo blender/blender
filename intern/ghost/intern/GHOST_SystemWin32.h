@@ -235,11 +235,28 @@ protected:
 	
 	/**
 	 * Converts raw WIN32 key codes from the wndproc to GHOST keys.
+	 * @param window->	The window for this handling
 	 * @param wParam	The wParam from the wndproc
 	 * @param lParam	The lParam from the wndproc
 	 * @return The GHOST key (GHOST_kKeyUnknown if no match).
 	 */
 	virtual GHOST_TKey convertKey(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam) const;
+
+	/**
+	 * @param window	The window for this handling
+	 * @param wParam	The wParam from the wndproc
+	 * @param lParam	The lParam from the wndproc
+	 * @param oldModifiers	The old modifiers
+	 * @param newModifiers	The new modifiers
+	 */
+	virtual void handleModifierKeys(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam, GHOST_ModifierKeys &oldModifiers, GHOST_ModifierKeys &newModifiers) const;
+	/**
+	 * Immediately push key event for given key
+	 * @param window	The window for this handling
+	 * @param down		Whether we send up or down event
+	 * @param key		The key to send the event for
+	 */
+	virtual void triggerKey(GHOST_IWindow *window, bool down, GHOST_TKey key);
 
 	/**
 	 * Creates modifier key event(s) and updates the key data stored locally (m_modifierKeys).

@@ -751,8 +751,12 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 	float *data;
 	int a, b, ofs, vertcount, startvert, totvert=0, totvlak=0;
 	int p1, p2, p3, p4, *index;
+	int conv_polys= 0;
 
 	cu= ob->data;
+
+	conv_polys|= cu->flag & CU_3D;		/* 2d polys are filled with DL_INDEX3 displists */
+	conv_polys|= ob->type == OB_SURF;	/* surf polys are never filled */
 
 	/* count */
 	dl= dispbase->first;
@@ -762,8 +766,10 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 			totvlak+= dl->parts*(dl->nr-1);
 		}
 		else if(dl->type==DL_POLY) {
-			totvert+= dl->parts*dl->nr;
-			totvlak+= dl->parts*dl->nr;
+			if(conv_polys) {
+				totvert+= dl->parts*dl->nr;
+				totvlak+= dl->parts*dl->nr;
+			}
 		}
 		else if(dl->type==DL_SURF) {
 			totvert+= dl->parts*dl->nr;
@@ -815,24 +821,26 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 
 		}
 		else if(dl->type==DL_POLY) {
-			startvert= vertcount;
-			a= dl->parts*dl->nr;
-			data= dl->verts;
-			while(a--) {
-				VECCOPY(mvert->co, data);
-				data+=3;
-				vertcount++;
-				mvert++;
-			}
+			if(conv_polys) {
+				startvert= vertcount;
+				a= dl->parts*dl->nr;
+				data= dl->verts;
+				while(a--) {
+					VECCOPY(mvert->co, data);
+					data+=3;
+					vertcount++;
+					mvert++;
+				}
 
-			for(a=0; a<dl->parts; a++) {
-				ofs= a*dl->nr;
-				for(b=0; b<dl->nr; b++) {
-					mface->v1= startvert+ofs+b;
-					if(b==dl->nr-1) mface->v2= startvert+ofs;
-					else mface->v2= startvert+ofs+b+1;
-					if(smooth) mface->flag |= ME_SMOOTH;
-					mface++;
+				for(a=0; a<dl->parts; a++) {
+					ofs= a*dl->nr;
+					for(b=0; b<dl->nr; b++) {
+						mface->v1= startvert+ofs+b;
+						if(b==dl->nr-1) mface->v2= startvert+ofs;
+						else mface->v2= startvert+ofs+b+1;
+						if(smooth) mface->flag |= ME_SMOOTH;
+						mface++;
+					}
 				}
 			}
 		}

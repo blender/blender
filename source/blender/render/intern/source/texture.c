@@ -1348,9 +1348,16 @@ int multitex_mtex(ShadeInput *shi, MTex *mtex, float *texvec, float *dxt, float 
 
 /* Warning, if the texres's values are not declared zero, check the return value to be sure
  * the color values are set before using the r/g/b values, otherwise you may use uninitialized values - Campbell */
+/* extern-tex doesn't support nodes (ntreeBeginExec() can't be called when rendering is going on) */
 int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
 {
-	return multitex_nodes(tex, texvec, dxt, dyt, osatex, texres, 0, 0, NULL, NULL);
+	int use_nodes= tex->use_nodes, retval;
+	
+	tex->use_nodes= 0;
+	retval= multitex_nodes(tex, texvec, dxt, dyt, osatex, texres, 0, 0, NULL, NULL);
+	tex->use_nodes= use_nodes;
+	
+	return retval;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1667,7 +1674,7 @@ void do_material_tex(ShadeInput *shi)
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3]={0.0f, 0.0f, 0.0f}, Tnor=1.0;
 	int tex_nr, rgbnor= 0, warpdone=0;
 	float nu[3] = {0,0,0}, nv[3] = {0,0,0}, nn[3] = {0,0,0}, dudnu = 1.f, dudnv = 0.f, dvdnu = 0.f, dvdnv = 1.f; // bump mapping
-	int nunvdone= 0;
+	int nunvdone= 0, newbump;
 
 	if (R.r.scemode & R_NO_TEX) return;
 	/* here: test flag if there's a tex (todo) */
@@ -1683,6 +1690,9 @@ void do_material_tex(ShadeInput *shi)
 			tex= mtex->tex;
 			if(tex==0) continue;
 
+			/* XXX texture node trees don't work for this yet */
+			newbump= (mtex->texflag & MTEX_NEW_BUMP) && !(tex->nodetree && tex->use_nodes);
+			
 			/* which coords */
 			if(mtex->texco==TEXCO_ORCO) {
 				if(mtex->texflag & MTEX_DUPLI_MAPTO) {
@@ -1844,7 +1854,8 @@ void do_material_tex(ShadeInput *shi)
 				co= tempvec;
 			}
 
-			if(mtex->texflag & MTEX_NEW_BUMP) {
+			/* XXX texture node trees don't work for this yet */
+			if(newbump) {
 				// compute ortho basis around normal
 				if(!nunvdone) {
 					// render normal is negated
@@ -2169,7 +2180,8 @@ void do_material_tex(ShadeInput *shi)
 						}
 					}
 					else {
-						if (mtex->texflag & MTEX_NEW_BUMP) {
+						/* XXX texture node trees don't work for this yet */
+						if (newbump) {
 							shi->vn[0] = texres.nor[0];
 							shi->vn[1] = texres.nor[1];
 							shi->vn[2] = texres.nor[2];

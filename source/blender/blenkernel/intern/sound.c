@@ -236,7 +236,7 @@ void sound_delete_cache(struct bSound* sound)
 	}
 }
 
-void sound_load(struct Main *UNUSED(bmain), struct bSound* sound)
+void sound_load(struct Main *bmain, struct bSound* sound)
 {
 	if(sound)
 	{
@@ -266,8 +266,7 @@ void sound_load(struct Main *UNUSED(bmain), struct bSound* sound)
 			if(sound->id.lib)
 				path = sound->id.lib->filepath;
 			else
-				// XXX this should be fixed!
-				path = /*bmain ? bmain->name :*/ G.main->name;
+				path = bmain->name;
 
 			BLI_path_abs(fullpath, path);
 
@@ -277,7 +276,7 @@ void sound_load(struct Main *UNUSED(bmain), struct bSound* sound)
 			/* or else load it from disk */
 			else
 				sound->handle = AUD_load(fullpath);
-		} // XXX
+		}
 // XXX unused currently
 #if 0
 			break;

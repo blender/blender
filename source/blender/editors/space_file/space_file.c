@@ -377,6 +377,7 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_delete);
 	WM_operatortype_append(FILE_OT_rename);
 	WM_operatortype_append(FILE_OT_smoothscroll);
+	WM_operatortype_append(FILE_OT_directory);
 }
 
 /* NOTE: do not add .blend file reading on this level */

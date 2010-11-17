@@ -124,6 +124,7 @@ Render R;
 
 /* ********* alloc and free ******** */
 
+static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, ReportList *reports, const char *name_override);
 
 static volatile int g_break= 0;
 static int thread_break(void *UNUSED(arg))
@@ -812,7 +813,7 @@ static char *make_pass_name(RenderPass *rpass, int chan)
 
 /* filename already made absolute */
 /* called from within UI, saves both rendered result as a file-read result */
-void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress)
+void RE_WriteRenderResult(RenderResult *rr, const char *filename, int compress)
 {
 	RenderLayer *rl;
 	RenderPass *rpass;
@@ -1252,6 +1253,9 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 		return;
 	}
 
+	if((re->r.mode & (R_OSA))==0)
+		re->r.scemode &= ~R_FULL_SAMPLE;
+
 #ifdef WITH_OPENEXR
 	if(re->r.scemode & R_FULL_SAMPLE)
 		re->r.scemode |= R_EXR_TILE_FILE;	/* enable automatic */
@@ -1533,9 +1537,9 @@ static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
 			
 	if(best) {
 		float phi= panorama_pixel_rot(re);
-
+		/* R.disprect.xmax - R.disprect.xmin rather then R.winx for border render */
 		R.panodxp= (re->winx - (best->disprect.xmin + best->disprect.xmax) )/2;
-		R.panodxv= ((viewplane->xmax-viewplane->xmin)*R.panodxp)/(float)R.winx;
+		R.panodxv= ((viewplane->xmax-viewplane->xmin)*R.panodxp)/(float)(R.disprect.xmax - R.disprect.xmin);
 		
 		/* shift viewplane */
 		R.viewplane.xmin = viewplane->xmin + R.panodxv;
@@ -2736,10 +2740,6 @@ int RE_is_rendering_allowed(Scene *scene, void *erh, void (*error)(void *handle,
 	
 	/* forbidden combinations */
 	if(scene->r.mode & R_PANORAMA) {
-		if(scene->r.mode & R_BORDER) {
-			error(erh, "No border supported for Panorama");
-			return 0;
-		}
 		if(scene->r.mode & R_ORTHO) {
 			error(erh, "No Ortho render possible for Panorama");
 			return 0;
@@ -2921,7 +2921,7 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 }
 
 /* general Blender frame render call */
-void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int frame)
+void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int frame, const short write_still)
 {
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
 	G.rendering= 1;
@@ -2933,6 +2933,20 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 		do_render_all_options(re);
 	}
 		
+	if(write_still) {
+		if(BKE_imtype_is_movie(scene->r.imtype)) {
+			/* operator checks this but incase its called from elsewhere */
+			printf("Error: cant write single images with a movie format!\n");
+		}
+		else {
+			char name[FILE_MAX];
+			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, FALSE);
+
+			/* reports only used for Movie */
+			do_write_image_or_movie(re, scene, NULL, NULL, name);
+		}
+	}
+
 	/* UGLY WARNING */
 	G.rendering= 0;
 }
@@ -2947,7 +2961,7 @@ void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene)
 	re->result_ok= 1;
 }
 
-static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, ReportList *reports)
+static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, ReportList *reports, const char *name_override)
 {
 	char name[FILE_MAX];
 	RenderResult rres;
@@ -2971,7 +2985,10 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 		printf("Append frame %d", scene->r.cfra);
 	} 
 	else {
-		BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION);
+		if(name_override)
+			BLI_strncpy(name, name_override, sizeof(name));
+		else
+			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
 		
 		if(re->r.imtype==R_MULTILAYER) {
 			if(re->result) {
@@ -3061,7 +3078,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, unsigned int lay, int
 				do_render_all_options(re);
 
 				if(re->test_break(re->tbh) == 0) {
-					if(!do_write_image_or_movie(re, scene, mh, reports))
+					if(!do_write_image_or_movie(re, scene, mh, reports, NULL))
 						G.afbreek= 1;
 				}
 			} else {
@@ -3098,7 +3115,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, unsigned int lay, int
 			/* Touch/NoOverwrite options are only valid for image's */
 			if(BKE_imtype_is_movie(scene->r.imtype) == 0) {
 				if(scene->r.mode & (R_NO_OVERWRITE | R_TOUCH))
-					BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION);
+					BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION, TRUE);
 
 				if(scene->r.mode & R_NO_OVERWRITE && BLI_exist(name)) {
 					printf("skipping existing frame \"%s\"\n", name);
@@ -3116,7 +3133,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, unsigned int lay, int
 			
 			if(re->test_break(re->tbh) == 0) {
 				if(!G.afbreek)
-					if(!do_write_image_or_movie(re, scene, mh, reports))
+					if(!do_write_image_or_movie(re, scene, mh, reports, NULL))
 						G.afbreek= 1;
 			}
 			else

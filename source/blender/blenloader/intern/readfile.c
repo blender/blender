@@ -3706,6 +3706,9 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->path= NULL;
+		
+		/* incase this value changes in future, clamp else we get undefined behavior */
+		CLAMP(pchan->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
 	}
 	pose->ikdata = NULL;
 	if (pose->ikparam != NULL) {
@@ -4112,6 +4115,9 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->gpulamp.first= ob->gpulamp.last= NULL;
 	link_list(fd, &ob->pc_ids);
 
+	/* incase this value changes in future, clamp else we get undefined behavior */
+	CLAMP(ob->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
+
 	if(ob->sculpt) {
 		ob->sculpt= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
 		ob->sculpt->ob= ob;
@@ -4160,7 +4166,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->camera= newlibadr(fd, sce->id.lib, sce->camera);
 			sce->world= newlibadr_us(fd, sce->id.lib, sce->world);
 			sce->set= newlibadr(fd, sce->id.lib, sce->set);
-			sce->ima= newlibadr_us(fd, sce->id.lib, sce->ima);
 			sce->gpd= newlibadr_us(fd, sce->id.lib, sce->gpd);
 			
 			link_paint(fd, sce, &sce->toolsettings->sculpt->paint);
@@ -8315,7 +8320,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(arm->layer==0) arm->layer= 1;
 		}
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
-			if(sce->jumpframe==0) sce->jumpframe= 10;
 			if(sce->audio.mixrate==0) sce->audio.mixrate= 44100;
 
 			if(sce->r.xparts<2) sce->r.xparts= 4;
@@ -10495,31 +10499,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-		/* clear hanging 'temp' screens from older 2.5 files*/
-		if (main->versionfile == 250) {
-			bScreen *screen, *nextscreen;
-			wmWindowManager *wm;
-			wmWindow *win, *nextwin;
-
-			for(screen= main->screen.first; screen; screen= nextscreen) {
-				nextscreen= screen->id.next;
-
-				if (screen->full == SCREENTEMP) {
-					/* remove corresponding windows */
-					for(wm= main->wm.first; wm; wm=wm->id.next) {
-						for(win= wm->windows.first; win; win=nextwin) {
-							nextwin= win->next;
-
-							if(newlibadr(fd, wm->id.lib, win->screen) == screen)
-								BLI_freelinkN(&wm->windows, win);
-						}
-					}
-
-					/* remove screen itself */
-					free_libblock(&main->screen, screen);
-				}
-			}
-		}
 	}
 	
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 9))
@@ -11288,6 +11267,35 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	{
+		bScreen *sc;
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if (sl->spacetype == SPACE_INFO) {
+						SpaceInfo *sinfo= (SpaceInfo *)sl;
+						ARegion *ar;
+
+						sinfo->rpt_mask= INFO_RPT_OP;
+
+						for (ar= sa->regionbase.first; ar; ar= ar->next) {
+							if (ar->regiontype == RGN_TYPE_WINDOW) {
+								ar->v2d.scroll = (V2D_SCROLL_RIGHT);
+								ar->v2d.align = V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y; /* align bottom left */
+								ar->v2d.keepofs = V2D_LOCKOFS_X;
+								ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_LIMITZOOM|V2D_KEEPASPECT);
+								ar->v2d.keeptot= V2D_KEEPTOT_BOUNDS;
+								ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

@@ -63,13 +63,14 @@ static void keymap_properties_set(wmKeyMapItem *kmi)
 	WM_operator_properties_sanitize(kmi->ptr, 1);
 }
 
-void WM_keymap_properties_reset(wmKeyMapItem *kmi)
+/* properties can be NULL, otherwise the arg passed is used and ownership is given to the kmi */
+void WM_keymap_properties_reset(wmKeyMapItem *kmi, struct IDProperty *properties)
 {
 	WM_operator_properties_free(kmi->ptr);
 	MEM_freeN(kmi->ptr);
 
 	kmi->ptr = NULL;
-	kmi->properties = NULL;
+	kmi->properties = properties;
 
 	keymap_properties_set(kmi);
 }
@@ -706,7 +707,7 @@ void WM_keymap_restore_item_to_default(bContext *C, wmKeyMap *keymap, wmKeyMapIt
 			if(strcmp(orig->idname, kmi->idname) != 0) {
 				BLI_strncpy(kmi->idname, orig->idname, sizeof(kmi->idname));
 
-				WM_keymap_properties_reset(kmi);
+				WM_keymap_properties_reset(kmi, NULL);
 			}
 			
 			if (orig->properties) {
@@ -886,6 +887,10 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, char *opname)
 	/* Console */
 	else if (strstr(opname, "CONSOLE_OT")) {
 		km = WM_keymap_find_all(C, "Console", sl->spacetype, 0);
+	}
+	/* Console */
+	else if (strstr(opname, "INFO_OT")) {
+		km = WM_keymap_find_all(C, "Info", sl->spacetype, 0);
 	}
 	
 	/* Transform */

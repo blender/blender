@@ -162,10 +162,6 @@ Section "Blender-[VERSION] (required)" SecCopyUI
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Blender" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteUninstaller "uninstall.exe"
 
-  ; Let's now run silent vcredist installer
-  SetOutPath $TEMP
-  [VCREDIST]
-
 SectionEnd
 
 Section "Add Start Menu shortcuts" Section2

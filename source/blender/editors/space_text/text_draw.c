@@ -74,7 +74,7 @@ static void text_font_end(SpaceText *UNUSED(st))
 static int text_font_draw(SpaceText *UNUSED(st), int x, int y, char *str)
 {
 	BLF_position(mono, x, y, 0);
-	BLF_draw(mono, str);
+	BLF_draw(mono, str, 65535); /* XXX, use real length */
 
 	return BLF_width(mono, str);
 }
@@ -82,12 +82,11 @@ static int text_font_draw(SpaceText *UNUSED(st), int x, int y, char *str)
 static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 {
 	char str[2];
-
 	str[0]= c;
 	str[1]= '\0';
 
 	BLF_position(mono, x, y, 0);
-	BLF_draw(mono, str);
+	BLF_draw(mono, str, 1);
 
 	return st->cwidth;
 }

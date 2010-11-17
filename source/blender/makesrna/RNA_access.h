@@ -342,6 +342,7 @@ extern StructRNA RNA_NlaStrip;
 extern StructRNA RNA_NlaTrack;
 extern StructRNA RNA_Node;
 extern StructRNA RNA_NodeGroup;
+extern StructRNA RNA_NodeLink;
 extern StructRNA RNA_NodeSocket;
 extern StructRNA RNA_NodeTree;
 extern StructRNA RNA_NoiseTexture;

@@ -1404,29 +1404,34 @@ static int animdata_filter_dopesheet_mats (bAnimContext *ac, ListBase *anim_data
 		
 		/* for now, if no material returned, skip (this shouldn't confuse the user I hope) */
 		if (ma == NULL) continue;
-		if (ma->adt == NULL) {
-			/* need to check textures */
-			if(ma->mtex) {
-				MTex **mtex = ma->mtex;
-				int a;
-				for (a=0; a < MAX_MTEX; a++) {
-					if (ELEM3(NULL, mtex[a], mtex[a]->tex, mtex[a]->tex->adt))
-						continue;
-					else
-						ok=1;
-				}
-			}
-			else
-				continue;
-		}
-		
-		
+
 		/* check if ok */
 		ANIMDATA_FILTER_CASES(ma, 
 			{ /* AnimData blocks - do nothing... */ },
 			ok=1;, 
 			ok=1;, 
 			ok=1;)
+
+		/* need to check textures */
+		if (ok == 0 && !(ads->filterflag & ADS_FILTER_NOTEX)) {
+			int mtInd;
+
+			for (mtInd=0; mtInd < MAX_MTEX; mtInd++) {
+				MTex *mtex = ma->mtex[mtInd];
+
+				if(mtex && mtex->tex) {
+					ANIMDATA_FILTER_CASES(mtex->tex,
+					{ /* AnimData blocks - do nothing... */ },
+					ok=1;, 
+					ok=1;, 
+					ok=1;)
+				}
+
+				if(ok)
+					break;
+			}
+		}
+		
 		if (ok == 0) continue;
 		
 		/* make a temp list elem for this */
@@ -2279,7 +2284,7 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 			}
 			
 			/* additionally, dopesheet filtering also affects what objects to consider */
-			if (ads->filterflag) {
+			{
 				/* check selection and object type filters */
 				if ( (ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag & SELECT) /*|| (base == sce->basact)*/) )  {
 					/* only selected should be shown */
@@ -2336,7 +2341,7 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 					int a;
 					
 					/* firstly check that we actuallly have some materials */
-					for (a=0; a < ob->totcol; a++) {
+					for (a=1; a <= ob->totcol; a++) {
 						Material *ma= give_current_material(ob, a);
 						
 						if (ma) {
@@ -2522,104 +2527,6 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 							
 						if (partOk) 
 							break;
-					}
-				}
-				
-				/* check if all bad (i.e. nothing to show) */
-				if (!actOk && !keyOk && !dataOk && !matOk && !partOk)
-					continue;
-			}
-			else {
-				/* check data-types */
-				actOk= ANIMDATA_HAS_KEYS(ob);
-				keyOk= (key != NULL);
-				
-				/* materials - only for geometric types */
-				matOk= 0; /* by default, not ok... */
-				if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) && (ob->totcol)) 
-				{
-					int a;
-					
-					/* firstly check that we actuallly have some materials */
-					for (a=0; a < ob->totcol; a++) {
-						Material *ma= give_current_material(ob, a);
-						int mtInd;
-						
-						if ((ma) && ANIMDATA_HAS_KEYS(ma)) {
-							matOk= 1;
-							break;
-						}
-								
-						if(ma) {
-							for (mtInd= 0; mtInd < MAX_MTEX; mtInd++) {
-								MTex *mtex= ma->mtex[mtInd];
-								
-								if (mtex && mtex->tex && ANIMDATA_HAS_KEYS(mtex->tex)) {									
-									matOk= 1; 
-									break;
-								}
-							}
-						}
-
-						if(matOk)
-							break;
-					}
-				}
-				
-				/* data */
-				switch (ob->type) {
-					case OB_CAMERA: /* ------- Camera ------------ */
-					{
-						Camera *ca= (Camera *)ob->data;
-						dataOk= ANIMDATA_HAS_KEYS(ca);						
-					}
-						break;
-					case OB_LAMP: /* ---------- Lamp ----------- */
-					{
-						Lamp *la= (Lamp *)ob->data;
-						dataOk= ANIMDATA_HAS_KEYS(la);	
-					}
-						break;
-					case OB_CURVE: /* ------- Curve ---------- */
-					case OB_SURF: /* ------- Nurbs Surface ---------- */
-					case OB_FONT: /* ------- Text Curve ---------- */
-					{
-						Curve *cu= (Curve *)ob->data;
-						dataOk= ANIMDATA_HAS_KEYS(cu);	
-					}
-						break;
-					case OB_MBALL: /* -------- Metas ---------- */
-					{
-						MetaBall *mb= (MetaBall *)ob->data;
-						dataOk= ANIMDATA_HAS_KEYS(mb);	
-					}
-						break;
-					case OB_ARMATURE: /* -------- Armature ---------- */
-					{
-						bArmature *arm= (bArmature *)ob->data;
-						dataOk= ANIMDATA_HAS_KEYS(arm);	
-					}
-						break;
-					case OB_MESH: /* -------- Mesh ---------- */
-					{
-						Mesh *me= (Mesh *)ob->data;
-						dataOk= ANIMDATA_HAS_KEYS(me);	
-					}
-						break;
-					default: /* --- other --- */
-						dataOk= 0;
-						break;
-				}
-				
-				/* particles */
-				partOk = 0;
-				if (ob->particlesystem.first) {
-					ParticleSystem *psys = ob->particlesystem.first;
-					for(; psys; psys=psys->next) {
-						if(psys->part && ANIMDATA_HAS_KEYS(psys->part)) {
-							partOk = 1;
-							break;
-						}
 					}
 				}
 				

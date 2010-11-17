@@ -130,7 +130,7 @@ wmKeyMap	*WM_keymap_guess_opname(const struct bContext *C, char *opname);
 int			 WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap);
 wmKeyMap	*WM_keymap_copy_to_user(struct wmKeyMap *keymap);
 void		WM_keymap_restore_to_default(struct wmKeyMap *keymap);
-void		WM_keymap_properties_reset(struct wmKeyMapItem *kmi);
+void		WM_keymap_properties_reset(struct wmKeyMapItem *kmi, struct IDProperty *properties);
 void		WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
 
 wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id);

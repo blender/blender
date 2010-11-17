@@ -129,7 +129,7 @@ void WM_init(bContext *C, int argc, char **argv)
 	ED_file_init();			/* for fsmenu */
 	ED_init_node_butfuncs();	
 	
-	BLF_init(11, U.dpi);
+	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
 	BLF_lang_init();
 	
 	/* get the default database, plus a wm */

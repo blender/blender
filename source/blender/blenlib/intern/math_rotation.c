@@ -26,6 +26,7 @@
  * */
 
 
+#include <assert.h>
 #include "BLI_math.h"
 
 /******************************** Quaternions ********************************/
@@ -364,6 +365,9 @@ void rotation_between_quats_to_quat(float *q, const float q1[4], const float q2[
 void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 {
 	float q2[4], nor[3], *fp, mat[3][3], angle, si, co, x2, y2, z2, len1;
+	
+	assert(axis >= 0 && axis <= 5);
+	assert(upflag >= 0 && upflag <= 2);
 	
 	/* first rotate to axis */
 	if(axis>2) {	
@@ -946,7 +950,9 @@ void eul_to_quat(float *quat, const float eul[3])
 void rotate_eul(float *beul, const char axis, const float ang)
 {
 	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
-	
+
+	assert(axis >= 'X' && axis <= 'Z');
+
 	eul[0]= eul[1]= eul[2]= 0.0f;
 	if(axis=='X') eul[0]= ang;
 	else if(axis=='Y') eul[1]= ang;
@@ -1084,7 +1090,7 @@ static RotOrderInfo rotOrders[]= {
  * NOTE: since we start at 1 for the values, but arrays index from 0, 
  *		 there is -1 factor involved in this process...
  */
-#define GET_ROTATIONORDER_INFO(order) (((order)>=1) ? &rotOrders[(order)-1] : &rotOrders[0])
+#define GET_ROTATIONORDER_INFO(order) (assert(order>=0 && order<=6), (order < 1) ? &rotOrders[0] : &rotOrders[(order)-1])
 
 /* Construct quaternion from Euler angles (in radians). */
 void eulO_to_quat(float q[4], const float e[3], const short order)
@@ -1266,7 +1272,9 @@ void mat4_to_compatible_eulO(float eul[3], float oldrot[3], short order,float M[
 void rotate_eulO(float beul[3], short order, char axis, float ang)
 {
 	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
-	
+
+	assert(axis >= 'X' && axis <= 'Z');
+
 	eul[0]= eul[1]= eul[2]= 0.0f;
 	if (axis=='X') 
 		eul[0]= ang;
@@ -1544,6 +1552,9 @@ void quat_apply_track(float quat[4], short axis, short upflag)
 	                              {0.5, -0.5, -0.5, 0.5}, /* Quaternion((1,0,0), radians(-90)) * Quaternion((0,1,0), radians(-90)) */ 
 	                              {-3.0908619663705394e-08, 0.70710676908493, 0.70710676908493, 3.0908619663705394e-08}}; /* no rotation */
 
+	assert(axis >= 0 && axis <= 5);
+	assert(upflag >= 0 && upflag <= 2);
+	
 	mul_qt_qtqt(quat, quat, quat_track[axis]);
 
 	if(axis>2)
@@ -1564,6 +1575,8 @@ void vec_apply_track(float vec[3], short axis)
 {
 	float tvec[3];
 
+	assert(axis >= 0 && axis <= 5);
+	
 	copy_v3_v3(tvec, vec);
 
 	switch(axis) {

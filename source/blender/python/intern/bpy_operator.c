@@ -73,8 +73,13 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 		}
 	}
 	
-	if(!PyDict_Check(context_dict))
+	if(context_dict==NULL || context_dict==Py_None) {
 		context_dict= NULL;
+	}
+	else if (!PyDict_Check(context_dict)) {
+		PyErr_Format(PyExc_TypeError, "Calling operator \"bpy.ops.%s.poll\" error, custom context expected a dict or None, got a %.200s", opname, Py_TYPE(context_dict)->tp_name);
+		return NULL;
+	}
 
 	context_dict_back= CTX_py_dict_get(C);
 
@@ -130,8 +135,13 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 		}
 	}
 
-	if(!PyDict_Check(context_dict))
+	if(context_dict==NULL || context_dict==Py_None) {
 		context_dict= NULL;
+	}
+	else if (!PyDict_Check(context_dict)) {
+		PyErr_Format(PyExc_TypeError, "Calling operator \"bpy.ops.%s\" error, custom context expected a dict or None, got a %.200s", opname, Py_TYPE(context_dict)->tp_name);
+		return NULL;
+	}
 
 	context_dict_back= CTX_py_dict_get(C);
 

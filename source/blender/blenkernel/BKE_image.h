@@ -47,7 +47,7 @@ void	free_image(struct Image *me);
 void	BKE_stamp_info(struct Scene *scene, struct ImBuf *ibuf);
 void	BKE_stamp_buf(struct Scene *scene, unsigned char *rect, float *rectf, int width, int height, int channels);
 int		BKE_write_ibuf(struct Scene *scene, struct ImBuf *ibuf, char *name, int imtype, int subimtype, int quality);
-void	BKE_makepicstring(char *string, char *base, int frame, int imtype, int use_ext);
+void	BKE_makepicstring(char *string, const char *base, int frame, int imtype, const short use_ext, const short use_frames);
 int		BKE_add_image_extension(char *string, int imtype);
 int		BKE_ftype_to_imtype(int ftype);
 int		BKE_imtype_to_ftype(int imtype);

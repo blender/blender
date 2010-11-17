@@ -631,24 +631,24 @@ void *alloc_libblock(ListBase *lb, short type, const char *name)
 
 /* by spec, animdata is first item after ID */
 /* and, trust that BKE_animdata_from_id() will only find AnimData for valid ID-types */
-static void id_copy_animdata(ID *id)
+static void id_copy_animdata(ID *id, const short do_action)
 {
 	AnimData *adt= BKE_animdata_from_id(id);
 	
 	if (adt) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)id;
-		iat->adt= BKE_copy_animdata(iat->adt);
+		iat->adt= BKE_copy_animdata(iat->adt, do_action); /* could be set to FALSE, need to investigate */
 	}
 }
 
 /* material nodes use this since they are not treated as libdata */
-void copy_libblock_data(ID *id, const ID *id_from)
+void copy_libblock_data(ID *id, const ID *id_from, const short do_action)
 {
 	if (id_from->properties)
 		id->properties = IDP_CopyProperty(id_from->properties);
 
 	/* the duplicate should get a copy of the animdata */
-	id_copy_animdata(id);
+	id_copy_animdata(id, do_action);
 }
 
 /* used everywhere in blenkernel */
@@ -676,7 +676,7 @@ void *copy_libblock(void *rt)
 	id->newid= idn;
 	idn->flag |= LIB_NEW;
 
-	copy_libblock_data(idn, id);
+	copy_libblock_data(idn, id, FALSE);
 	
 	return idn;
 }
@@ -1077,7 +1077,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 		memset(in_use, 0, sizeof(in_use));
 
 		/* get name portion, number portion ("name.number") */
-		left_len= BLI_split_name_num(left, &nr, name);
+		left_len= BLI_split_name_num(left, &nr, name, '.');
 
 		/* if new name will be too long, truncate it */
 		if(nr > 999 && left_len > 16) {
@@ -1094,7 +1094,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 					(idtest->lib == NULL) &&
 					(*name == *(idtest->name+2)) &&
 					(strncmp(name, idtest->name+2, left_len)==0) &&
-					(BLI_split_name_num(leftest, &nrtest, idtest->name+2) == left_len)
+					(BLI_split_name_num(leftest, &nrtest, idtest->name+2, '.') == left_len)
 			) {
 				if(nrtest < sizeof(in_use))
 					in_use[nrtest]= 1;	/* mark as used */

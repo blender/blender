@@ -116,6 +116,24 @@ int ED_operator_scene_editable(bContext *C)
 	return 0;
 }
 
+int ED_operator_objectmode(bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obact= CTX_data_active_object(C);
+
+	if(scene==NULL || scene->id.lib)
+		return 0;
+	if( CTX_data_edit_object(C) )
+		return 0;
+	
+	/* add a check for ob->mode too? */
+	if(obact && obact->mode)
+		return 0;
+	
+	return 1;
+}
+
+
 static int ed_spacetype_test(bContext *C, int type)
 {
 	if(ED_operator_areaactive(C)) {
@@ -144,7 +162,7 @@ int ED_operator_animview_active(bContext *C)
 {
 	if(ED_operator_areaactive(C)) {
 		SpaceLink *sl= (SpaceLink *)CTX_wm_space_data(C);
-		if (sl && (ELEM5(sl->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_TIME)))
+		if (sl && (ELEM6(sl->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_IPO, SPACE_TIME)))
 			return TRUE;
 	}
 
@@ -224,6 +242,17 @@ int ED_operator_nla_active(bContext *C)
 int ED_operator_logic_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_LOGIC);
+}
+
+int ED_operator_info_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_INFO);
+}
+
+
+int ED_operator_console_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_CONSOLE);
 }
 
 int ED_operator_object_active(bContext *C)
@@ -1708,6 +1737,10 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 	int tot= BLI_countlist(&CTX_data_main(C)->screen);
 	int delta= RNA_int_get(op->ptr, "delta");
 	
+	/* temp screens are for userpref or render display */
+	if(screen->temp)
+		return OPERATOR_CANCELLED;
+	
 	/* return to previous state before switching screens */
 	if(sa && sa->full)
 		ED_screen_full_restore(C, sa);
@@ -2817,7 +2850,6 @@ static void SCREEN_OT_back_to_previous(struct wmOperatorType *ot)
 
 static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
-	ScrArea *sa;
 	rcti rect;
 	int sizex, sizey;
 	
@@ -2832,9 +2864,6 @@ static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *ev
 	
 	/* changes context! */
 	WM_window_open_temp(C, &rect, WM_WINDOW_USERPREFS);
-	
-	sa= CTX_wm_area(C);
-	
 	
 	return OPERATOR_FINISHED;
 }

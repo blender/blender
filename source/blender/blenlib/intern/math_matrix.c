@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-
+#include <assert.h>
 #include "BLI_math.h"
 
 /********************************* Init **************************************/
@@ -1040,6 +1040,8 @@ void rotate_m4(float mat[][4], const char axis, const float angle)
 	int col;
 	float temp[4]= {0.0f, 0.0f, 0.0f, 0.0f};
 	float cosine, sine;
+
+	assert(axis >= 'X' && axis <= 'Z');
 
 	cosine = (float)cos(angle);
 	sine = (float)sin(angle);

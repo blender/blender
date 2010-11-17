@@ -34,6 +34,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -41,6 +42,7 @@
 #include "DNA_ID.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_path_util.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_mempool.h"
@@ -2261,32 +2263,26 @@ static int cd_layer_find_dupe(CustomData *data, const char *name, int type, int 
 	return 0;
 }
 
-void CustomData_set_layer_unique_name(CustomData *data, int index)
+static int customdata_unique_check(void *arg, const char *name)
 {
+	struct {CustomData *data; int type; int index;} *data_arg= arg;
+	return cd_layer_find_dupe(data_arg->data, name, data_arg->type, data_arg->index);
+}
+
+void CustomData_set_layer_unique_name(CustomData *data, int index)
+{	
 	CustomDataLayer *nlayer= &data->layers[index];
 	const LayerTypeInfo *typeInfo= layerType_getInfo(nlayer->type);
 
+	struct {CustomData *data; int type; int index;} data_arg;
+	data_arg.data= data;
+	data_arg.type= nlayer->type;
+	data_arg.index= index;
+
 	if (!typeInfo->defaultname)
 		return;
-
-	if (nlayer->name[0] == '\0')
-		BLI_strncpy(nlayer->name, typeInfo->defaultname, sizeof(nlayer->name));
-
-	if(cd_layer_find_dupe(data, nlayer->name, nlayer->type, index)) {
-		/* note: this block is used in other places, when changing logic apply to all others, search this message */
-		char	tempname[sizeof(nlayer->name)];
-		char	left[sizeof(nlayer->name)];
-		int		number;
-		int		len= BLI_split_name_num(left, &number, nlayer->name);
-		do {	/* nested while loop looks bad but likely it wont run most times */
-			while(BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", left, number) >= sizeof(tempname)) {
-				if(len > 0)	left[--len]= '\0';	/* word too long */
-				else		number= 0;			/* reset, must be a massive number */
-			}
-		} while(number++, cd_layer_find_dupe(data, tempname, nlayer->type, index));
-		
-		BLI_strncpy(nlayer->name, tempname, sizeof(nlayer->name));
-	}
+	
+	BLI_uniquename_cb(customdata_unique_check, &data_arg, typeInfo->defaultname, '.', nlayer->name, sizeof(nlayer->name));
 }
 
 int CustomData_verify_versions(struct CustomData *data, int index)

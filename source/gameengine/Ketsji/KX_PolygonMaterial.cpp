@@ -47,6 +47,8 @@
 
 #include "KX_PyMath.h"
 
+#define KX_POLYGONMATERIAL_CAPSULE_ID "KX_POLYGONMATERIAL_PTR"
+
 KX_PolygonMaterial::KX_PolygonMaterial()
 		: PyObjectPlus(),
 		  RAS_IPolyMaterial(),
@@ -113,8 +115,8 @@ bool KX_PolygonMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingI
 #ifdef WITH_PYTHON
 	if (m_pymaterial)
 	{
-		PyObject *pyRasty = PyCObject_FromVoidPtr((void*)rasty, NULL);	/* new reference */
-		PyObject *pyCachingInfo = PyCObject_FromVoidPtr((void*) &cachingInfo, NULL); /* new reference */
+		PyObject *pyRasty = PyCapsule_New((void*)rasty, KX_POLYGONMATERIAL_CAPSULE_ID, NULL);	/* new reference */
+		PyObject *pyCachingInfo = PyCapsule_New((void*) &cachingInfo, KX_POLYGONMATERIAL_CAPSULE_ID, NULL); /* new reference */
 		PyObject *ret = PyObject_CallMethod(m_pymaterial, (char *)"activate", (char *)"(NNO)", pyRasty, pyCachingInfo, (PyObject*) this->m_proxy);
 		if (ret)
 		{
@@ -284,10 +286,10 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setCustomMaterial, "setCustomMaterial(mat
 KX_PYMETHODDEF_DOC(KX_PolygonMaterial, updateTexture, "updateTexture(tface, rasty)")
 {
 	PyObject *pyrasty, *pytface;
-	if (PyArg_ParseTuple(args, "O!O!:updateTexture", &PyCObject_Type, &pytface, &PyCObject_Type, &pyrasty))
+	if (PyArg_ParseTuple(args, "O!O!:updateTexture", &PyCapsule_Type, &pytface, &PyCapsule_Type, &pyrasty))
 	{
-		MTFace *tface = (MTFace*) PyCObject_AsVoidPtr(pytface);
-		RAS_IRasterizer *rasty = (RAS_IRasterizer*) PyCObject_AsVoidPtr(pyrasty);
+		MTFace *tface = (MTFace*) PyCapsule_GetPointer(pytface, KX_POLYGONMATERIAL_CAPSULE_ID);
+		RAS_IRasterizer *rasty = (RAS_IRasterizer*) PyCapsule_GetPointer(pyrasty, KX_POLYGONMATERIAL_CAPSULE_ID);
 		Image *ima = (Image*)tface->tpage;
 		GPU_update_image_time(ima, rasty->GetTime());
 
@@ -300,9 +302,9 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, updateTexture, "updateTexture(tface, rast
 KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setTexture, "setTexture(tface)")
 {
 	PyObject *pytface;
-	if (PyArg_ParseTuple(args, "O!:setTexture", &PyCObject_Type, &pytface))
+	if (PyArg_ParseTuple(args, "O!:setTexture", &PyCapsule_Type, &pytface))
 	{
-		MTFace *tface = (MTFace*) PyCObject_AsVoidPtr(pytface);
+		MTFace *tface = (MTFace*) PyCapsule_GetPointer(pytface, KX_POLYGONMATERIAL_CAPSULE_ID);
 		GPU_set_tpage(tface, 1);
 		Py_RETURN_NONE;
 	}
@@ -313,10 +315,10 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setTexture, "setTexture(tface)")
 KX_PYMETHODDEF_DOC(KX_PolygonMaterial, activate, "activate(rasty, cachingInfo)")
 {
 	PyObject *pyrasty, *pyCachingInfo;
-	if (PyArg_ParseTuple(args, "O!O!:activate", &PyCObject_Type, &pyrasty, &PyCObject_Type, &pyCachingInfo))
+	if (PyArg_ParseTuple(args, "O!O!:activate", &PyCapsule_Type, &pyrasty, &PyCapsule_Type, &pyCachingInfo))
 	{
-		RAS_IRasterizer *rasty = static_cast<RAS_IRasterizer*>(PyCObject_AsVoidPtr(pyrasty));
-		TCachingInfo *cachingInfo = static_cast<TCachingInfo*>(PyCObject_AsVoidPtr(pyCachingInfo));
+		RAS_IRasterizer *rasty = static_cast<RAS_IRasterizer*>(PyCapsule_GetPointer(pyrasty, KX_POLYGONMATERIAL_CAPSULE_ID));
+		TCachingInfo *cachingInfo = static_cast<TCachingInfo*>(PyCapsule_GetPointer(pyCachingInfo, KX_POLYGONMATERIAL_CAPSULE_ID));
 		if (rasty && cachingInfo)
 		{
 			DefaultActivate(rasty, *cachingInfo);
@@ -343,7 +345,7 @@ PyObject* KX_PolygonMaterial::pyattr_get_material(void *self_v, const KX_PYATTRI
 PyObject* KX_PolygonMaterial::pyattr_get_tface(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
-	return PyCObject_FromVoidPtr(self->m_tface, NULL);
+	return PyCapsule_New(self->m_tface, KX_POLYGONMATERIAL_CAPSULE_ID, NULL);
 }
 
 PyObject* KX_PolygonMaterial::pyattr_get_gl_texture(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

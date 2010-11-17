@@ -49,7 +49,7 @@ typedef struct Lattice {
 	
 	short pntsu, pntsv, pntsw, flag;
 	short opntsu, opntsv, opntsw, pad2;
-	char typeu, typev, typew, type;
+	char typeu, typev, typew, pad3;
 	int pad;
 	
 	float fu, fv, fw, du, dv, dw;

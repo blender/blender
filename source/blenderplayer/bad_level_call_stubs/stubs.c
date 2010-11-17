@@ -116,8 +116,6 @@ struct Render *RE_GetRender(const char *name){return (struct Render *) NULL;}
 /* blenkernel */
 char btempdir[] = "";
 void RE_FreeRenderResult(struct RenderResult *res){}
-char datatoc_bmonofont_ttf[] = "";
-int datatoc_bmonofont_ttf_size = 0;
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty){return (struct RenderResult *) NULL;}
 void RE_GetResultImage(struct Render *re, struct RenderResult *rr){}
 int RE_RenderInProgress(struct Render *re){return 0;}
@@ -373,6 +371,10 @@ short delete_keyframe(struct ID *id, struct bAction *act, const char group[], co
 char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args){return (char *)NULL;}
 struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value){return (struct wmKeyMapItem *)NULL;}
 struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items){return (struct wmKeyMap *) NULL;}
+
+/* RNA Collada dependency */
+int collada_export(struct Scene *sce, const char *filepath){return 0;}
+
 
 /* intern/decimation */
 int LOD_FreeDecimationData(struct LOD_Decimation_Info *info){return 0;}

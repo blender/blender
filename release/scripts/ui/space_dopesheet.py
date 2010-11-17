@@ -201,6 +201,12 @@ class DOPESHEET_MT_channel(bpy.types.Menu):
         layout.operator("anim.channels_expand")
         layout.operator("anim.channels_collapse")
 
+        layout.separator()
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
+
+        layout.separator()
+        layout.operator("anim.channels_fcurves_enable")
+
 
 class DOPESHEET_MT_key(bpy.types.Menu):
     bl_label = "Key"

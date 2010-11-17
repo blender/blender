@@ -58,6 +58,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 		
 		/* we should find out if a normal as output is needed, for now we do all */
 		texres.nor= nor;
+		texres.tr= texres.tg= texres.tb= 0.0f;
 		
 		if(in[0]->hasinput) {
 			nodestack_get_vec(vec, SOCK_VECTOR, in[0]);

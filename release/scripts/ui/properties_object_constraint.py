@@ -624,7 +624,7 @@ class ConstraintButtonsPanel():
         self.space_template(layout, con)
 
     def SHRINKWRAP(self, context, layout, con):
-        self.target_template(layout, con)
+        self.target_template(layout, con, False)
 
         layout.prop(con, "distance")
         layout.prop(con, "shrinkwrap_type")

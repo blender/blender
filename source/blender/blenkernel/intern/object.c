@@ -715,7 +715,6 @@ Camera *copy_camera(Camera *cam)
 	Camera *camn;
 	
 	camn= copy_libblock(cam);
-	camn->adt= BKE_copy_animdata(cam->adt);
 	
 	return camn;
 }
@@ -1550,7 +1549,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	if(gob) {
 		ob->rotmode= target->rotmode;
 		mul_m4_m4m4(ob->obmat, target->obmat, gob->obmat);
-		object_apply_mat4(ob, ob->obmat, FALSE);
+		object_apply_mat4(ob, ob->obmat, FALSE, TRUE);
 	}
 	else {
 		copy_object_transform(ob, target);
@@ -1683,22 +1682,44 @@ void object_mat3_to_rot(Object *ob, float mat[][3], short use_compat)
 	switch(ob->rotmode) {
 	case ROT_MODE_QUAT:
 		mat3_to_quat(ob->quat, mat);
+		sub_v4_v4(ob->quat, ob->dquat);
 		break;
 	case ROT_MODE_AXISANGLE:
 		mat3_to_axis_angle(ob->rotAxis, &ob->rotAngle, mat);
+		sub_v3_v3(ob->rotAxis, ob->drotAxis);
+		ob->rotAngle -= ob->drotAngle;
 		break;
 	default: /* euler */
 		if(use_compat)	mat3_to_compatible_eulO(ob->rot, ob->rot, ob->rotmode, mat);
 		else			mat3_to_eulO(ob->rot, ob->rotmode, mat);
+		sub_v3_v3(ob->rot, ob->drot);
 	}
 }
 
 /* see pchan_apply_mat4() for the equivalent 'pchan' function */
-void object_apply_mat4(Object *ob, float mat[][4], short use_compat)
+void object_apply_mat4(Object *ob, float mat[][4], const short use_compat, const short use_parent)
 {
 	float rot[3][3];
-	mat4_to_loc_rot_size(ob->loc, rot, ob->size, mat);
-	object_mat3_to_rot(ob, rot, use_compat);
+
+	if(use_parent && ob->parent) {
+		float rmat[4][4], diff_mat[4][4], imat[4][4];
+		mul_m4_m4m4(diff_mat, ob->parentinv, ob->parent->obmat);
+		invert_m4_m4(imat, diff_mat);
+		mul_m4_m4m4(rmat, mat, imat); /* get the parent relative matrix */
+		object_apply_mat4(ob, rmat, use_compat, FALSE);
+
+		/* same as below, use rmat rather then mat */
+		mat4_to_loc_rot_size(ob->loc, rot, ob->size, rmat);
+		object_mat3_to_rot(ob, rot, use_compat);
+	}
+	else {
+		mat4_to_loc_rot_size(ob->loc, rot, ob->size, mat);
+		object_mat3_to_rot(ob, rot, use_compat);
+	}
+	
+	sub_v3_v3(ob->loc, ob->dloc);
+	sub_v3_v3(ob->size, ob->dsize);
+	/* object_mat3_to_rot handles delta rotations */
 }
 
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
@@ -2127,7 +2148,7 @@ static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[
 		copy_m3_m4(originmat, tmat);
 		
 		// origin, voor help line
-		if( (ob->partype & 15)==PARSKEL ) {
+		if( (ob->partype & PARTYPE)==PARSKEL ) {
 			VECCOPY(ob->orig, par->obmat[3]);
 		}
 		else {

@@ -548,7 +548,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		
 		QUATCOPY(td->ext->iquat, pchan->quat);
 	}
-	td->rotOrder= pchan->rotmode;
+	td->ext->rotOrder= pchan->rotmode;
 	
 
 	/* proper way to get parent transform + own transform + constraints transform */
@@ -2662,6 +2662,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		/* only if a real NLA-track */
 		if (ale->type == ANIMTYPE_NLATRACK) {
+			AnimData *adt = ale->adt;
 			NlaTrack *nlt= (NlaTrack *)ale->data;
 			NlaStrip *strip;
 			
@@ -2686,7 +2687,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 						tdn->id= ale->id;
 						tdn->oldTrack= tdn->nlt= nlt;
 						tdn->strip= strip;
-						tdn->trackIndex= BLI_findindex(&nlt->strips, strip);
+						tdn->trackIndex= BLI_findindex(&adt->nla_tracks, nlt);
 						
 						yval= (float)(tdn->trackIndex * NLACHANNEL_STEP);
 						
@@ -4328,7 +4329,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 		QUATCOPY(td->ext->iquat, ob->quat);
 		QUATCOPY(td->ext->dquat, ob->dquat);
 	}
-	td->rotOrder=ob->rotmode;
+	td->ext->rotOrder=ob->rotmode;
 
 	td->ext->size = ob->size;
 	VECCOPY(td->ext->isize, ob->size);
@@ -4403,8 +4404,11 @@ static void set_trans_object_base_flags(TransInfo *t)
 			while(parsel) {
 				if(parsel->flag & SELECT) {
 					Base *parbase = object_in_scene(parsel, scene);
-					if TESTBASELIB_BGMODE(v3d, scene, parbase)
+					if(parbase) { /* in rare cases this can fail */
+						if TESTBASELIB_BGMODE(v3d, scene, parbase) {
 							break;
+						}
+					}
 				}
 				parsel= parsel->parent;
 			}
@@ -5154,7 +5158,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 		td->flag = TD_SELECTED;
 		td->protectflag= ob->protectflag;
 		td->ext = tx;
-		td->rotOrder= ob->rotmode;
+		td->ext->rotOrder= ob->rotmode;
 		
 		if (base->flag & BA_TRANSFORM_CHILD)
 		{
@@ -5188,7 +5192,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 			{
 				td->protectflag= ob->protectflag;
 				td->ext = tx;
-				td->rotOrder= ob->rotmode;
+				td->ext->rotOrder= ob->rotmode;
 				
 				ObjectToTransData(t, td, ob);
 				td->val = NULL;

@@ -309,9 +309,11 @@ typedef enum eRotationModes {
 	/* NOTE: space is reserved here for 18 other possible 
 	 * euler rotation orders not implemented 
 	 */
-	ROT_MODE_MAX,	/* sentinel for Py API */
 		/* axis angle rotations */
-	ROT_MODE_AXISANGLE = -1
+	ROT_MODE_AXISANGLE = -1,
+
+	ROT_MODE_MIN = ROT_MODE_AXISANGLE,	/* sentinel for Py API */
+	ROT_MODE_MAX = ROT_MODE_ZYX
 } eRotationModes;
 
 /* Pose ------------------------------------ */

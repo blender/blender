@@ -337,11 +337,13 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	/* text button with name */
 	if(id) {
 		char name[UI_MAX_NAME_STR];
+		const short user_alert= (id->us <= 0);
 
 		//text_idbutton(id, name);
 		name[0]= '\0';
 		but= uiDefButR(block, TEX, 0, name, 0, 0, UI_UNIT_X*6, UI_UNIT_Y, &idptr, "name", -1, 0, 0, -1, -1, NULL);
 		uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_RENAME));
+		if(user_alert) uiButSetFlag(but, UI_BUT_REDALERT);
 
 		if(id->lib) {
 			if(id->flag & LIB_INDIRECT) {
@@ -373,6 +375,8 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			if(!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib))
 				uiButSetFlag(but, UI_BUT_DISABLED);
 		}
+	
+		if(user_alert) uiButSetFlag(but, UI_BUT_REDALERT);
 		
 		if(id->lib == NULL && !(ELEM4(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT))) {
 			uiDefButR(block, TOG, 0, "F", 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "use_fake_user", -1, 0, 0, -1, -1, NULL);

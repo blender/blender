@@ -81,7 +81,7 @@ enum BPathTypes {
 	 BPATH_DONE
 };
 
-void BLI_bpathIterator_init( struct BPathIterator *bpi, char *base_path ) {
+void BLI_bpathIterator_init( struct BPathIterator *bpi, const char *base_path ) {
 	bpi->type = BPATH_IMAGE;
 	bpi->data = NULL;
 	
@@ -119,7 +119,7 @@ void BLI_bpathIterator_getPath( struct BPathIterator *bpi, char *path) {
 	}
 }
 
-void BLI_bpathIterator_setPath( struct BPathIterator *bpi, char *path) {
+void BLI_bpathIterator_setPath( struct BPathIterator *bpi, const char *path) {
 	if (bpi->setpath_callback) {
 		bpi->setpath_callback( bpi, path );
 	} else {
@@ -128,7 +128,7 @@ void BLI_bpathIterator_setPath( struct BPathIterator *bpi, char *path) {
 }
 
 void BLI_bpathIterator_getPathExpanded( struct BPathIterator *bpi, char *path_expanded) {
-	char *libpath;
+	const char *libpath;
 	
 	BLI_bpathIterator_getPath(bpi, path_expanded);
 	libpath = BLI_bpathIterator_getLib(bpi);
@@ -140,10 +140,10 @@ void BLI_bpathIterator_getPathExpanded( struct BPathIterator *bpi, char *path_ex
 	}
 	BLI_cleanup_file(NULL, path_expanded);
 }
-char* BLI_bpathIterator_getLib( struct BPathIterator *bpi) {
+const char* BLI_bpathIterator_getLib( struct BPathIterator *bpi) {
 	return bpi->lib;
 }
-char* BLI_bpathIterator_getName( struct BPathIterator *bpi) {
+const char* BLI_bpathIterator_getName( struct BPathIterator *bpi) {
 	return bpi->name;
 }
 int	BLI_bpathIterator_getType( struct BPathIterator *bpi) {
@@ -308,7 +308,7 @@ static void seq_getpath(struct BPathIterator *bpi, char *path) {
 	}
 }
 
-static void seq_setpath(struct BPathIterator *bpi, char *path) {
+static void seq_setpath(struct BPathIterator *bpi, const char *path) {
 	Sequence *seq = (Sequence *)bpi->data;
 	if (seq==NULL) return; 
 	
@@ -490,7 +490,7 @@ int BLI_bpathIterator_isDone( struct BPathIterator *bpi) {
 static void bpath_as_report(struct BPathIterator *bpi, const char *message, ReportList *reports)
 {
 	char *prefix;
-	char *name;
+	const char *name;
 	char path_expanded[FILE_MAXDIR*2];
 	
 	if(reports==NULL)
@@ -534,7 +534,7 @@ static void bpath_as_report(struct BPathIterator *bpi, const char *message, Repo
 }
 
 /* high level function */
-void checkMissingFiles(char *basepath, ReportList *reports) {
+void checkMissingFiles(const char *basepath, ReportList *reports) {
 	struct BPathIterator bpi;
 	
 	/* be sure there is low chance of the path being too short */
@@ -553,10 +553,11 @@ void checkMissingFiles(char *basepath, ReportList *reports) {
 }
 
 /* dont log any errors at the moment, should probably do this */
-void makeFilesRelative(char *basepath, ReportList *reports) {
+void makeFilesRelative(const char *basepath, ReportList *reports) {
 	int tot= 0, changed= 0, failed= 0, linked= 0;
 	struct BPathIterator bpi;
-	char filepath[FILE_MAX], *libpath;
+	char filepath[FILE_MAX];
+	const char *libpath;
 	
 	/* be sure there is low chance of the path being too short */
 	char filepath_relative[(FILE_MAXDIR * 2) + FILE_MAXFILE];
@@ -601,12 +602,13 @@ void makeFilesRelative(char *basepath, ReportList *reports) {
 
 /* dont log any errors at the moment, should probably do this -
  * Verry similar to makeFilesRelative - keep in sync! */
-void makeFilesAbsolute(char *basepath, ReportList *reports)
+void makeFilesAbsolute(const char *basepath, ReportList *reports)
 {
 	int tot= 0, changed= 0, failed= 0, linked= 0;
 
 	struct BPathIterator bpi;
-	char filepath[FILE_MAX], *libpath;
+	char filepath[FILE_MAX];
+	const char *libpath;
 	
 	/* be sure there is low chance of the path being too short */
 	char filepath_absolute[(FILE_MAXDIR * 2) + FILE_MAXFILE];
@@ -702,12 +704,13 @@ static int findFileRecursive(char *filename_new, const char *dirname, const char
 }
 
 /* high level function - call from fileselector */
-void findMissingFiles(char *basepath, char *str) {
+void findMissingFiles(const char *basepath, const char *str) {
 	struct BPathIterator bpi;
 	
 	/* be sure there is low chance of the path being too short */
 	char filepath_expanded[FILE_MAXDIR*2]; 
-	char filepath[FILE_MAX], *libpath;
+	char filepath[FILE_MAX];
+	const char *libpath;
 	int filesize, recur_depth;
 	
 	char dirname[FILE_MAX], filename_new[FILE_MAX];

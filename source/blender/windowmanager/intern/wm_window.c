@@ -44,6 +44,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
@@ -237,13 +238,20 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 	CTX_wm_window_set(C, win);	/* needed by handlers */
 	WM_event_remove_handlers(C, &win->handlers);
 	WM_event_remove_handlers(C, &win->modalhandlers);
-	ED_screen_exit(C, win, win->screen); /* will free the current screen if it is a temp layout */
+	ED_screen_exit(C, win, win->screen); 
+	
+	/* if temp screen, delete it */
+	if(win->screen->temp) {
+		Main *bmain= CTX_data_main(C);
+		free_libblock(&bmain->screen, win->screen);
+	}
+	
 	wm_window_free(C, wm, win);
 	
 	/* check remaining windows */
 	if(wm->windows.first) {
 		for(win= wm->windows.first; win; win= win->next)
-			if(win->screen->full!=SCREENTEMP)
+			if(win->screen->temp == 0)
 				break;
 		/* in this case we close all */
 		if(win==NULL)
@@ -256,7 +264,7 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 void wm_window_title(wmWindowManager *wm, wmWindow *win)
 {
 	/* handle the 'temp' window */
-	if(win->screen && win->screen->full==SCREENTEMP) {
+	if(win->screen && win->screen->temp) {
 		GHOST_SetTitle(win->ghostwin, "Blender");
 	}
 	else {
@@ -430,7 +438,7 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 	return win;
 }
 
-/* uses screen->full tag to define what to do, currently it limits
+/* uses screen->temp tag to define what to do, currently it limits
    to only one "temp" window for render out, preferences, filewindow, etc */
 /* type is #define in WM_api.h */
 
@@ -444,7 +452,7 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 	
 	/* test if we have a temp screen already */
 	for(win= CTX_wm_manager(C)->windows.first; win; win= win->next)
-		if(win->screen->full == SCREENTEMP)
+		if(win->screen->temp)
 			break;
 	
 	/* add new window? */
@@ -466,7 +474,7 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 	/* add new screen? */
 	if(win->screen==NULL)
 		win->screen= ED_screen_add(win, CTX_data_scene(C), "temp");
-	win->screen->full = SCREENTEMP; 
+	win->screen->temp = 1; 
 	
 	/* make window active, and validate/resize */
 	CTX_wm_window_set(C, win);

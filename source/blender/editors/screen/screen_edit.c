@@ -1140,8 +1140,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	/* mark it available for use for other windows */
 	screen->winid= 0;
 	
-	/* before deleting the temp screen or we get invalid access */
-	if (prevwin->screen->full != SCREENTEMP) {
+	if (prevwin->screen->temp == 0) {
 		/* use previous window if possible */
 		CTX_wm_window_set(C, prevwin);
 	} else {
@@ -1149,11 +1148,6 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 		CTX_wm_window_set(C, NULL);
 	}
 	
-	/* if temp screen, delete it */
-	if(screen->full == SCREENTEMP) {
-		Main *bmain= CTX_data_main(C);
-		free_libblock(&bmain->screen, screen);
-	}
 }
 
 /* *********************************** */
@@ -1560,46 +1554,39 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 	}
 
 	if(sa && sa->full) {
+		ScrArea *old;
 		short fulltype;
 
 		sc= sa->full;		/* the old screen to restore */
 		oldscreen= win->screen;	/* the one disappearing */
 
 		fulltype = sc->full;
+		sc->full= 0;
 
-		/* refuse to go out of SCREENAUTOPLAY as long as G_FLAGS_AUTOPLAY
-		   is set */
-
-		if (fulltype != SCREENAUTOPLAY || (G.flags & G_FILE_AUTOPLAY) == 0) {
-			ScrArea *old;
-
-			sc->full= 0;
-
-			/* find old area */
-			for(old= sc->areabase.first; old; old= old->next)
-				if(old->full) break;
-			if(old==NULL) {
-				if (G.f & G_DEBUG)
-					printf("something wrong in areafullscreen\n");
-				return NULL;
-			}
-				// old feature described below (ton)
-				// in autoplay screens the headers are disabled by
-				// default. So use the old headertype instead
-
-			area_copy_data(old, sa, 1);	/*  1 = swap spacelist */
-			if (sa->flag & AREA_TEMP_INFO) sa->flag &= ~AREA_TEMP_INFO;
-			old->full= NULL;
-
-			/* animtimer back */
-			sc->animtimer= oldscreen->animtimer;
-			oldscreen->animtimer= NULL;
-
-			ED_screen_set(C, sc);
-
-			free_screen(oldscreen);
-			free_libblock(&CTX_data_main(C)->screen, oldscreen);
+		/* removed: SCREENAUTOPLAY exception here */
+	
+		/* find old area */
+		for(old= sc->areabase.first; old; old= old->next)
+			if(old->full) break;
+		if(old==NULL) {
+			if (G.f & G_DEBUG)
+				printf("something wrong in areafullscreen\n");
+			return NULL;
 		}
+
+		area_copy_data(old, sa, 1);	/*  1 = swap spacelist */
+		if (sa->flag & AREA_TEMP_INFO) sa->flag &= ~AREA_TEMP_INFO;
+		old->full= NULL;
+
+		/* animtimer back */
+		sc->animtimer= oldscreen->animtimer;
+		oldscreen->animtimer= NULL;
+
+		ED_screen_set(C, sc);
+
+		free_screen(oldscreen);
+		free_libblock(&CTX_data_main(C)->screen, oldscreen);
+
 	}
 	else {
 		ScrArea *newa;
@@ -1614,7 +1601,7 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 		*/
 
 		oldscreen->full = SCREENFULL;
-		BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name+2, "temp");
+		BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name+2, "full");
 		sc= ED_screen_add(win, oldscreen->scene, newname);
 		sc->full = SCREENFULL; // XXX
 

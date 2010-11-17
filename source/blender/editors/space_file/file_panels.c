@@ -33,6 +33,7 @@
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -146,8 +147,11 @@ static void file_panel_recent(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 
-	if(sfile)
-		file_panel_category(C, pa, FS_CATEGORY_RECENT, &sfile->recentnr, ICON_FILE_FOLDER, 0, 1);
+	if(sfile) {
+		if ( !(U.uiflag & USER_HIDE_RECENT) ) {
+			file_panel_category(C, pa, FS_CATEGORY_RECENT, &sfile->recentnr, ICON_FILE_FOLDER, 0, 1);
+		}
+	}
 }
 
 

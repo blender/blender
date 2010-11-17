@@ -171,7 +171,7 @@ void TRANSFORM_OT_select_orientation(struct wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = select_orientation_invoke;
 	ot->exec   = select_orientation_exec;
-	ot->poll   = ED_operator_areaactive;
+	ot->poll   = ED_operator_view3d_active;
 
 	prop= RNA_def_property(ot->srna, "orientation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Orientation", "Transformation orientation");

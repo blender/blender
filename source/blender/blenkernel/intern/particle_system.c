@@ -136,9 +136,12 @@ void psys_reset(ParticleSystem *psys, int mode)
 
 	if(ELEM(mode, PSYS_RESET_ALL, PSYS_RESET_DEPSGRAPH)) {
 		if(mode == PSYS_RESET_ALL || !(psys->flag & PSYS_EDITED)) {
-			psys_free_particles(psys);
+			/* don't free if not absolutely necessary */
+			if(psys->totpart != psys->part->totpart) {
+				psys_free_particles(psys);
+				psys->totpart= 0;
+			}
 
-			psys->totpart= 0;
 			psys->totkeyed= 0;
 			psys->flag &= ~(PSYS_HAIR_DONE|PSYS_KEYED);
 
@@ -3750,14 +3753,14 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 
 		/* simulation is only active during a specific period */
 		if(framenr < startframe) {
-			psys_reset(psys, PSYS_RESET_CACHE_MISS);
+			/* set correct particle state and reset particles */
+			cached_step(sim, cfra);
 			return;
 		}
 		else if(framenr > endframe) {
 			framenr= endframe;
 		}
-		
-		if(framenr == startframe) {
+		else if(framenr == startframe) {
 			BKE_ptcache_id_reset(sim->scene, use_cache, PTCACHE_RESET_OUTDATED);
 			BKE_ptcache_validate(cache, framenr);
 			cache->flag &= ~PTCACHE_REDO_NEEDED;
@@ -4058,6 +4061,8 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 				psys->flag |= PSYS_HAIR_DONE;
 				psys->recalc = recalc;
 			}
+			else if(psys->flag & PSYS_EDITED)
+				psys->flag |= PSYS_HAIR_DONE;
 
 			if(psys->flag & PSYS_HAIR_DONE)
 				hair_step(&sim, cfra);
@@ -4075,12 +4080,13 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 				case PART_PHYS_KEYED:
 				{
 					PARTICLE_P;
+					float disp = (float)psys_get_current_display_percentage(psys)/100.0f;
 
 					/* Particles without dynamics haven't been reset yet because they don't use pointcache */
 					if(psys->recalc & PSYS_RECALC_RESET)
 						psys_reset(psys, PSYS_RESET_ALL);
 
-					if(emit_particles(&sim, NULL, cfra)) {
+					if(emit_particles(&sim, NULL, cfra) || (psys->recalc & PSYS_RECALC_RESET)) {
 						free_keyed_keys(psys);
 						distribute_particles(&sim, part->from);
 						initialize_all_particles(&sim);
@@ -4092,6 +4098,11 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 							pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
 
 						reset_particle(&sim, pa, 0.0, cfra);
+
+						if(PSYS_FRAND(p) > disp)
+							pa->flag |= PARS_NO_DISP;
+						else
+							pa->flag &= ~PARS_NO_DISP;
 					}
 
 					if(part->phystype == PART_PHYS_KEYED) {

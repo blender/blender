@@ -151,6 +151,8 @@ EnumPropertyItem image_type_items[] = {
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 
+#include "RNA_access.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
@@ -182,6 +184,20 @@ EnumPropertyItem image_type_items[] = {
 #include "RE_pipeline.h"
 
 #include "FRS_freestyle.h"
+
+static PointerRNA rna_Scene_object_bases_lookup_string(PointerRNA *ptr, const char *key)
+{
+	Scene *scene= (Scene*)ptr->data;
+	Base *base;
+
+	for(base= scene->base.first; base; base= base->next) {
+		if(strncmp(base->object->id.name+2, key, sizeof(base->object->id.name)-2)==0) {
+			return rna_pointer_inherit_refine(ptr, &RNA_ObjectBase, base);
+		}
+	}
+
+	return PointerRNA_NULL;
+}
 
 static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 {
@@ -1009,7 +1025,7 @@ static void rna_def_transform_orientation(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	int matrix_dimsize[]= {3, 3};
+	const int matrix_dimsize[]= {3, 3};
 	
 	srna= RNA_def_struct(brna, "TransformOrientation", NULL);
 	
@@ -1153,7 +1169,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	
 	prop= RNA_def_property(srna, "use_snap_project", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PROJECT);
-	RNA_def_property_ui_text(prop, "Project Individual Elements", "Project vertices on the surface of other objects");
+	RNA_def_property_ui_text(prop, "Project Individual Elements", "Project individual elements on the surface of other objects");
 	RNA_def_property_ui_icon(prop, ICON_RETOPO, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
@@ -3412,6 +3428,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "ObjectBase");
 	RNA_def_property_ui_text(prop, "Bases", "");
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, "rna_Scene_object_bases_lookup_string");
 	rna_def_scene_bases(brna, prop);
 
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);

@@ -68,6 +68,28 @@ class DirectoryContext:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.curdir)
 
+class BreakableIncrementedSleep:
+    def __init__(self, increment, default_timeout, max_timeout, break_fct):
+        self.increment = increment
+        self.default = default_timeout
+        self.max = max_timeout
+        self.current = self.default
+        self.break_fct = break_fct
+        
+    def reset(self):
+        self.current = self.default
+
+    def increase(self):
+        self.current = min(self.current + self.increment, self.max)
+        
+    def sleep(self):
+        for i in range(self.current):
+            time.sleep(1)
+            if self.break_fct():
+                break
+            
+        self.increase()
+
 def responseStatus(conn):
     response = conn.getresponse()
     response.read()
@@ -130,12 +152,13 @@ def clientConnection(address, port, report = None, scan = True):
             else:
                 conn.close()
                 reporting(report, "Incorrect master version", ValueError)
-    except Exception as err:
+    except BaseException as err:
         if report:
             report('ERROR', str(err))
             return None
         else:
-            raise
+            print(err)
+            return None
 
 def clientVerifyVersion(conn):
     conn.request("GET", "/version")
@@ -245,8 +268,9 @@ def thumbnail(filename):
             process = subprocess.Popen(["convert", thumbname, "-resize", "300x300", thumbname])
             process.wait()
             return thumbname
-        except:
-            pass
+        except Exception as exp:
+            print("Error while generating thumbnail")
+            print(exp)
 
     return None
 

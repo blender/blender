@@ -391,7 +391,7 @@ static void ignore_parent_tx(Main *bmain, Scene *scene, Object *ob )
 	/* a change was made, adjust the children to compensate */
 	for(ob_child=bmain->object.first; ob_child; ob_child=ob_child->id.next) {
 		if(ob_child->parent == ob) {
-			object_apply_mat4(ob_child, ob_child->obmat, TRUE);
+			object_apply_mat4(ob_child, ob_child->obmat, TRUE, FALSE);
 			what_does_parent(scene, ob_child, &workob);
 			invert_m4_m4(ob_child->parentinv, workob.obmat);
 		}
@@ -577,9 +577,12 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		where_is_object(scene, ob);
-		object_apply_mat4(ob, ob->obmat, TRUE);
+		object_apply_mat4(ob, ob->obmat, TRUE, TRUE);
 		where_is_object(scene, ob);
-		
+
+		/* update for any children that may get moved */
+		DAG_id_flush_update(&ob->id, OB_RECALC_OB);
+	
 		change = 1;
 	}
 	CTX_DATA_END;

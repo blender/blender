@@ -61,6 +61,9 @@
 #include <Movies.h>
 #include <QuickTimeComponents.h>
 #include <TextUtils.h> 
+#include <string.h>
+#include <memory.h>
+
 #endif /* _WIN32 */
 
 #ifdef __APPLE__

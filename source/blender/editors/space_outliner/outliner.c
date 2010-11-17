@@ -5587,7 +5587,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				spx=te->xs+2*OL_X-4;
 				if(spx+dx+10>ar->v2d.cur.xmax) dx = ar->v2d.cur.xmax-spx-10;
 
-				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (short)te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len-1, 0, 0, "");
+				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "", spx, (short)te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len, 0, 0, "");
 				uiButSetRenameFunc(bt, namebutton_cb, tselem);
 				
 				/* returns false if button got removed */

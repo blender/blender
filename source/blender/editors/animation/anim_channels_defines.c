@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-
+#include <stdio.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -62,6 +62,7 @@
 #include "ED_keyframing.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -2863,6 +2864,17 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		
 		offset += 3;
 		UI_DrawString(offset, ytext, name);
+		
+		/* draw red underline if channel is disabled */
+		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_DISABLED)) 
+		{
+			// FIXME: replace hardcoded color here, and check on extents!
+			glColor3f(1.0f, 0.0f, 0.0f);
+			glLineWidth(2.0);
+				fdrawline((float)(offset), yminc, 
+						  (float)(v2d->cur.xmax), yminc);
+			glLineWidth(1.0);
+		}
 	}
 	
 	/* step 6) draw backdrops behidn mute+protection toggles + (sliders) ....................... */

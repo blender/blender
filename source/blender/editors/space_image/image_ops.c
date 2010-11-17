@@ -124,6 +124,7 @@ static int space_image_buffer_exists_poll(bContext *C)
 static int space_image_file_exists_poll(bContext *C)
 {
 	if(space_image_buffer_exists_poll(C)) {
+		Main *bmain= CTX_data_main(C);
 		SpaceImage *sima= CTX_wm_space_image(C);
 		ImBuf *ibuf;
 		void *lock;
@@ -133,7 +134,7 @@ static int space_image_file_exists_poll(bContext *C)
 		ibuf= ED_space_image_acquire_buffer(sima, &lock);
 		if(ibuf) {
 			BLI_strncpy(name, ibuf->name, FILE_MAX);
-			BLI_path_abs(name, G.main->name);
+			BLI_path_abs(name, bmain->name);
 			poll= (BLI_exists(name) && BLI_is_writable(name));
 		}
 		ED_space_image_release_buffer(sima, lock);
@@ -688,9 +689,10 @@ static int open_cancel(bContext *UNUSED(C), wmOperator *op)
 
 static int open_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
+	SpaceImage *sima= CTX_wm_space_image(C); /* XXX other space types can call */
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
+	ImageUser *iuser= NULL;
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	Image *ima= NULL;
@@ -724,11 +726,25 @@ static int open_exec(bContext *C, wmOperator *op)
 		RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
 		RNA_property_update(C, &pprop->ptr, pprop->prop);
 	}
-	else if(sima)
+	else if(sima) {
 		ED_space_image_set(C, sima, scene, obedit, ima);
+		iuser= &sima->iuser;
+	}
+	else {
+		Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+		if(tex && tex->type==TEX_IMAGE)
+			iuser= &tex->iuser;
+		
+	}
+	
+	/* initialize because of new image */
+	if(iuser) {
+		iuser->sfra= 1;
+		iuser->offset= 0;
+		iuser->fie_ima= 2;
+	}
 
-	// XXX other users?
-	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_RELOAD);
+	BKE_image_signal(ima, iuser, IMA_SIGNAL_RELOAD);
 	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
 	
 	MEM_freeN(op->customdata);
@@ -738,7 +754,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
 static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
+	SpaceImage *sima= CTX_wm_space_image(C); /* XXX other space types can call */
 	char *path=U.textudir;
 	Image *ima= NULL;
 
@@ -769,6 +785,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* called by other space types too */
 void IMAGE_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -853,50 +870,48 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
 
 	if (ibuf) {
-		int relative= (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path"));
-		int save_copy= (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
+		Main *bmain= CTX_data_main(C);
+		const short relative= (RNA_struct_find_property(op->ptr, "relative_path") && RNA_boolean_get(op->ptr, "relative_path"));
+		const short save_copy= (RNA_struct_find_property(op->ptr, "copy") && RNA_boolean_get(op->ptr, "copy"));
+		short ok= FALSE;
 
-		BLI_path_abs(path, G.main->name);
+		BLI_path_abs(path, bmain->name);
 		
-		if(scene->r.scemode & R_EXTENSION)  {
-			BKE_add_image_extension(path, sima->imtypenr);
-		}
-		
+		WM_cursor_wait(1);
+
 		/* enforce user setting for RGB or RGBA, but skip BW */
 		if(scene->r.planes==32)
 			ibuf->depth= 32;
 		else if(scene->r.planes==24)
 			ibuf->depth= 24;
 		
-		WM_cursor_wait(1);
-
+		if(scene->r.scemode & R_EXTENSION)  {
+			BKE_add_image_extension(path, sima->imtypenr);
+		}
+		
 		if(sima->imtypenr==R_MULTILAYER) {
 			RenderResult *rr= BKE_image_acquire_renderresult(scene, ima);
 			if(rr) {
 				RE_WriteRenderResult(rr, path, scene->r.quality);
-
-				if(relative)
-					BLI_path_rel(path, G.main->name); /* only after saving */
-
-				if(!save_copy) {
-					if(do_newpath) {
-						BLI_strncpy(ima->name, path, sizeof(ima->name));
-						BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
-					}
-
-					/* should be function? nevertheless, saving only happens here */
-					for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next)
-						ibuf->userflags &= ~IB_BITMAPDIRTY;
-				}
+				ok= TRUE;
 			}
-			else
+			else {
 				BKE_report(op->reports, RPT_ERROR, "Did not write, no Multilayer Image");
+			}
 			BKE_image_release_renderresult(scene, ima);
 		}
 		else if (BKE_write_ibuf(scene, ibuf, path, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
+			ok= TRUE;
+		}
 
+		if(ok)	{
 			if(relative)
-				BLI_path_rel(path, G.main->name); /* only after saving */
+				BLI_path_rel(path, bmain->name); /* only after saving */
+
+			if(ibuf->name[0]==0) {
+				BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
+				BLI_strncpy(ima->name, path, sizeof(ima->name));
+			}
 
 			if(!save_copy) {
 				if(do_newpath) {
@@ -926,14 +941,14 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 					ima->source= IMA_SRC_FILE;
 					ima->type= IMA_TYPE_IMAGE;
 				}
-
-				/* name image as how we saved it */
-				rename_id(&ima->id, BLI_path_basename(path));
 			}
-		} 
-		else
+		}
+		else {
 			BKE_reportf(op->reports, RPT_ERROR, "Couldn't write image: %s", path);
-
+		}
+		
+		
+		
 		WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
 
 		WM_cursor_wait(0);
@@ -978,6 +993,8 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	Image *ima = ED_space_image(sima);
 	Scene *scene= CTX_data_scene(C);
 	ImBuf *ibuf;
+	char filename[FILE_MAX];
+	
 	void *lock;
 
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
@@ -1006,15 +1023,21 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		RNA_enum_set(op->ptr, "file_type", sima->imtypenr);
 		
 		if(ibuf->name[0]==0)
-			BLI_strncpy(ibuf->name, G.ima, FILE_MAX);
-
+			if ( (G.ima[0] == '/') && (G.ima[1] == '/') && (G.ima[2] == '\0') ) {
+				BLI_strncpy(filename, "//untitled", FILE_MAX);
+			} else {
+				BLI_strncpy(filename, G.ima, FILE_MAX);
+			}
+		else
+			BLI_strncpy(filename, ibuf->name, FILE_MAX);
+		
 		/* enable save_copy by default for render results */
 		if(ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE) && !RNA_property_is_set(op->ptr, "copy")) {
 			RNA_boolean_set(op->ptr, "copy", TRUE);
 		}
 
 		// XXX note: we can give default menu enums to operator for this 
-		image_filesel(C, op, ibuf->name);
+		image_filesel(C, op, filename);
 
 		ED_space_image_release_buffer(sima, lock);
 		
@@ -1052,6 +1075,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 
 static int save_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Image *ima = ED_space_image(sima);
 	void *lock;
@@ -1071,7 +1095,7 @@ static int save_exec(bContext *C, wmOperator *op)
 	if(name[0]==0)
 		BLI_strncpy(name, G.ima, FILE_MAX);
 	else
-		BLI_path_abs(name, G.main->name);
+		BLI_path_abs(name, bmain->name);
 	
 	if(BLI_exists(name) && BLI_is_writable(name)) {
 		rr= BKE_image_acquire_renderresult(scene, ima);
@@ -1114,6 +1138,7 @@ void IMAGE_OT_save(wmOperatorType *ot)
 
 static int save_sequence_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ImBuf *ibuf;
 	int tot= 0;
@@ -1157,7 +1182,7 @@ static int save_sequence_exec(bContext *C, wmOperator *op)
 			char name[FILE_MAX];
 			BLI_strncpy(name, ibuf->name, sizeof(name));
 			
-			BLI_path_abs(name, G.main->name);
+			BLI_path_abs(name, bmain->name);
 
 			if(0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
 				BKE_reportf(op->reports, RPT_ERROR, "Could not write image %s.", name);
@@ -1293,7 +1318,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string(ot->srna, "name", "Untitled", 21, "Name", "Image datablock name.");
+	RNA_def_string(ot->srna, "name", "untitled", 21, "Name", "Image datablock name.");
 	RNA_def_int(ot->srna, "width", 1024, 1, INT_MAX, "Width", "Image width.", 1, 16384);
 	RNA_def_int(ot->srna, "height", 1024, 1, INT_MAX, "Height", "Image height.", 1, 16384);
 	prop= RNA_def_float_color(ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color.", 0.0f, 1.0f);

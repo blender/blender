@@ -3029,6 +3029,9 @@ static int set_2d_cursor_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima = CTX_wm_space_image(C);
 	float location[2];
 
+	if(!sima)
+		return OPERATOR_CANCELLED;
+
 	RNA_float_get_array(op->ptr, "location", location);
 	sima->cursor[0]= location[0];
 	sima->cursor[1]= location[1];

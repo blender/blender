@@ -643,10 +643,10 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 				const char *str= (char *)(vos+1);
 				glColor3fv(vos->col);
 				if(vos->flag & V3D_CACHE_TEXT_ASCII) {
-					BLF_draw_default_ascii((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str);
+					BLF_draw_default_ascii((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, 65535); /* XXX, use real length */
 				}
 				else {
-					BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str);
+					BLF_draw_default((float)vos->mval[0]+vos->xoffs, (float)vos->mval[1], (depth_write)? 0.0f: 2.0f, str, 65535); /* XXX, use real length */
 				}
 			}
 		}
@@ -1218,10 +1218,15 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 {
 	/* a standing up pyramid with (0,0,0) as top */
 	Camera *cam;
-	World *wrld;
-	float nobmat[4][4], vec[8][4], fac, facx, facy, depth, aspx, aspy, caspx, caspy, shx, shy;
+	float vec[8][4], facx, facy, depth, aspx, aspy, caspx, caspy, shx, shy;
 	int i;
+	float drawsize;
+	const short is_view= (rv3d->persp==RV3D_CAMOB && ob==v3d->camera);
 
+	const float scax= 1.0f / len_v3(ob->obmat[0]);
+	const float scay= 1.0f / len_v3(ob->obmat[1]);
+	const float scaz= 1.0f / len_v3(ob->obmat[2]);
+	
 	cam= ob->data;
 	aspx= (float) scene->r.xsch*scene->r.xasp;
 	aspy= (float) scene->r.ysch*scene->r.yasp;
@@ -1238,40 +1243,46 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
 	
-	if(rv3d->persp>=2 && cam->type==CAM_ORTHO && ob==v3d->camera) {
-		facx= 0.5*cam->ortho_scale*caspx;
-		facy= 0.5*cam->ortho_scale*caspy;
-		shx= cam->shiftx * cam->ortho_scale;
-		shy= cam->shifty * cam->ortho_scale;
-		depth= -cam->clipsta-0.1;
+	if(cam->type==CAM_ORTHO) {
+		facx= 0.5f * cam->ortho_scale * caspx * scax;
+		facy= 0.5f * cam->ortho_scale * caspy * scay;
+		shx= cam->shiftx * cam->ortho_scale * scax;
+		shy= cam->shifty * cam->ortho_scale * scay;
+		depth= is_view ? -((cam->clipsta * scaz) + 0.1f) : - cam->drawsize * cam->ortho_scale * scaz;
+		
+		drawsize= 0.5f * cam->ortho_scale;
 	}
 	else {
-		fac= cam->drawsize;
-		if(rv3d->persp>=2 && ob==v3d->camera) fac= cam->clipsta+0.1; /* that way it's always visible */
+		/* that way it's always visible - clipsta+0.1 */
+		float fac;
+		drawsize= cam->drawsize / ((scax + scay + scaz) / 3.0f);
+		fac= is_view ? (cam->clipsta + 0.1f) : drawsize;
+		depth= - fac*cam->lens/16.0 * scaz;
+		facx= fac * caspx * scax;
+		facy= fac * caspy * scay;
+		shx= cam->shiftx*fac*2 * scax;
+		shy= cam->shifty*fac*2 * scay;
 		
-		depth= - fac*cam->lens/16.0;
-		facx= fac*caspx;
-		facy= fac*caspy;
-		shx= cam->shiftx*fac*2;
-		shy= cam->shifty*fac*2;
 	}
 	
-	vec[0][0]= 0.0; vec[0][1]= 0.0; vec[0][2]= 0.001;	/* GLBUG: for picking at iris Entry (well thats old!) */
+	vec[0][0]= 0.0; vec[0][1]= 0.0; vec[0][2]= 0.0;
 	vec[1][0]= shx + facx; vec[1][1]= shy + facy; vec[1][2]= depth;
 	vec[2][0]= shx + facx; vec[2][1]= shy - facy; vec[2][2]= depth;
 	vec[3][0]= shx - facx; vec[3][1]= shy - facy; vec[3][2]= depth;
 	vec[4][0]= shx - facx; vec[4][1]= shy + facy; vec[4][2]= depth;
 
+	/* camera frame */
 	glBegin(GL_LINE_LOOP);
 		glVertex3fv(vec[1]); 
 		glVertex3fv(vec[2]); 
 		glVertex3fv(vec[3]); 
 		glVertex3fv(vec[4]);
 	glEnd();
-	
 
-	if(rv3d->persp>=2 && ob==v3d->camera) return;
-	
+	if(is_view)
+		return;
+
+	/* center point to camera frame */
 	glBegin(GL_LINE_STRIP);
 		glVertex3fv(vec[2]); 
 		glVertex3fv(vec[0]);
@@ -1285,7 +1296,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	/* arrow on top */
 	vec[0][2]= depth;
 
-	
+
 	/* draw an outline arrow for inactive cameras and filled
 	 * for active cameras. We actually draw both outline+filled
 	 * for active cameras so the wire can be seen side-on */	
@@ -1294,15 +1305,15 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 		else if (i==1 && (ob == v3d->camera)) glBegin(GL_TRIANGLES);
 		else break;
 
-		vec[0][0]= shx + (-0.7 * cam->drawsize);
-		vec[0][1]= shy + (cam->drawsize * (caspy + 0.1));
+		vec[0][0]= shx + ((-0.7 * drawsize) * scax);
+		vec[0][1]= shy + ((drawsize * (caspy + 0.1)) * scay);
 		glVertex3fv(vec[0]); /* left */
 		
-		vec[0][0]= shx + (0.7 * cam->drawsize);
+		vec[0][0]= shx + ((0.7 * drawsize) * scax);
 		glVertex3fv(vec[0]); /* right */
 		
 		vec[0][0]= shx;
-		vec[0][1]= shy + (1.1 * cam->drawsize * (caspy + 0.7));
+		vec[0][1]= shy + ((1.1 * drawsize * (caspy + 0.7)) * scay);
 		glVertex3fv(vec[0]); /* top */
 	
 		glEnd();
@@ -1310,6 +1321,9 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 
 	if(flag==0) {
 		if(cam->flag & (CAM_SHOWLIMITS+CAM_SHOWMIST)) {
+			float nobmat[4][4];
+			World *wrld;
+	
 			/* draw in normalized object matrix space */
 			copy_m4_m4(nobmat, ob->obmat);
 			normalize_m4(nobmat);
@@ -2321,7 +2335,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		}
 	}
 	
-	if((me->drawflag & (ME_DRAWFACES)) || paint_facesel_test(ob)) {	/* transp faces */
+	if(me->drawflag & ME_DRAWFACES) {	/* transp faces */
 		unsigned char col1[4], col2[4], col3[4];
 			
 		UI_GetThemeColor4ubv(TH_FACE, (char *)col1);
@@ -2458,7 +2472,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	Object *ob= base->object;
 	Mesh *me = ob->data;
 	Material *ma= give_current_material(ob, 1);
-	int hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO));
+	const short hasHaloMat = (ma && (ma->material_type == MA_TYPE_HALO));
+	const short is_paint_sel= (ob==OBACT && paint_facesel_test(ob));
 	int draw_wire = 0;
 	int totvert, totedge, totface;
 	DispList *dl;
@@ -2480,7 +2495,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
-	if (ob==OBACT && paint_facesel_test(ob)) draw_wire = 0;
+	if (is_paint_sel) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
 		if((v3d->flag2 & V3D_RENDER_OVERRIDE && v3d->drawtype >= OB_WIRE)==0)
@@ -2494,11 +2509,10 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire = 1; /* draw wire only, no depth buffer stuff  */
 	}
-	else if(	(ob==OBACT && (ob->mode & OB_MODE_TEXTURE_PAINT || paint_facesel_test(ob))) ||
+	else if(	(is_paint_sel && (ob->mode & OB_MODE_TEXTURE_PAINT)) ||
 				CHECK_OB_DRAWTEXTURE(v3d, dt))
 	{
-		int faceselect= (ob==OBACT && paint_facesel_test(ob));
-		if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !(G.f&G_PICKSEL || paint_facesel_test(ob)) && !draw_wire) {
+		if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !(G.f&G_PICKSEL || is_paint_sel) && !draw_wire) {
 			draw_mesh_object_outline(v3d, ob, dm);
 		}
 
@@ -2513,10 +2527,10 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glFrontFace(GL_CCW);
 		}
 		else {
-			draw_mesh_textured(scene, v3d, rv3d, ob, dm, faceselect);
+			draw_mesh_textured(scene, v3d, rv3d, ob, dm, is_paint_sel);
 		}
 
-		if(!faceselect) {
+		if(!is_paint_sel) {
 			if(base->flag & SELECT)
 				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
 			else

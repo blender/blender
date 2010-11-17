@@ -39,7 +39,6 @@
 #define SWIZZLE_VALID_AXIS 0x4
 #define SWIZZLE_AXIS       0x3
 
-static int row_vector_multiplication(float rvec[4], VectorObject* vec, MatrixObject * mat); /* utility func */
 static PyObject *Vector_ToTupleExt(VectorObject *self, int ndigits);
 
 //----------------------------------mathutils.Vector() ------------------
@@ -1007,6 +1006,47 @@ static PyObject *Vector_isub(PyObject * v1, PyObject * v2)
 
 /*------------------------obj * obj------------------------------
   mulplication*/
+
+
+/* COLUMN VECTOR Multiplication (Vector X Matrix)
+ * [a] * [1][4][7]
+ * [b] * [2][5][8]
+ * [c] * [3][6][9]
+ *
+ * note: vector/matrix multiplication IS NOT COMMUTATIVE!!!!
+ * note: assume read callbacks have been done first.
+ */
+static int column_vector_multiplication(float *rvec, VectorObject* vec, MatrixObject * mat)
+{
+	float vecCopy[4];
+	double dot = 0.0f;
+	int x, y, z = 0;
+	
+	if(mat->rowSize != vec->size){
+		if(mat->rowSize == 4 && vec->size != 3){
+			PyErr_SetString(PyExc_AttributeError, "matrix * vector: matrix row size and vector size must be the same");
+			return -1;
+		}else{
+			vecCopy[3] = 1.0f;
+		}
+	}
+
+	for(x = 0; x < vec->size; x++){
+		vecCopy[x] = vec->vec[x];
+	}
+	rvec[3] = 1.0f;
+
+	for(x = 0; x < mat->colSize; x++) {
+		for(y = 0; y < mat->rowSize; y++) {
+			dot += mat->matrix[y][x] * vecCopy[y];
+		}
+		rvec[z++] = (float)dot;
+		dot = 0.0f;
+	}
+	
+	return 0;
+}
+
 static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
@@ -1050,17 +1090,21 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 		vec1= vec2;
 		v2= v1;
 	}
-	
+
 	if (MatrixObject_Check(v2)) {
 		/* VEC * MATRIX */
-		float tvec[4];
-		if(row_vector_multiplication(tvec, vec1, (MatrixObject*)v2) == -1)
+		float tvec[MAX_DIMENSIONS];
+		if(!BaseMath_ReadCallback((MatrixObject *)v2))
 			return NULL;
+		if(column_vector_multiplication(tvec, vec1, (MatrixObject*)v2) == -1) {
+			return NULL;
+		}
+
 		return newVectorObject(tvec, vec1->size, Py_NEW, NULL);
 	} else if (QuaternionObject_Check(v2)) {
 		/* VEC * QUAT */
 		QuaternionObject *quat2 = (QuaternionObject*)v2;
-		float tvec[4];
+		float tvec[3];
 
 		if(vec1->size != 3) {
 			PyErr_SetString(PyExc_TypeError, "Vector multiplication: only 3D vector rotations (with quats) currently supported\n");
@@ -1075,7 +1119,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 	}
 	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*FLOAT */
 		int i;
-		float vec[4];
+		float vec[MAX_DIMENSIONS];
 		
 		for(i = 0; i < vec1->size; i++) {
 			vec[i] = vec1->vec[i] * scalar;
@@ -1093,7 +1137,6 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 {
 	VectorObject *vec = (VectorObject *)v1;
-	int i;
 	float scalar;
 	
 	if(!BaseMath_ReadCallback(vec))
@@ -1102,20 +1145,31 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 	/* only support vec*=float and vec*=mat
 	   vec*=vec result is a float so that wont work */
 	if (MatrixObject_Check(v2)) {
-		float tvec[4];
-		if(row_vector_multiplication(tvec, vec, (MatrixObject*)v2) == -1)
+		float rvec[MAX_DIMENSIONS];
+		if(!BaseMath_ReadCallback((MatrixObject *)v2))
+			return NULL;
+		
+		if(column_vector_multiplication(rvec, vec, (MatrixObject*)v2) == -1)
 			return NULL;
 
-		i= vec->size - 1;
-		do {
-			vec->vec[i] = tvec[i];
-		} while(i--);
+		memcpy(vec->vec, rvec, sizeof(float) * vec->size);
+	}
+	else if (QuaternionObject_Check(v2)) {
+		/* VEC *= QUAT */
+		QuaternionObject *quat2 = (QuaternionObject*)v2;
+
+		if(vec->size != 3) {
+			PyErr_SetString(PyExc_TypeError, "Vector multiplication: only 3D vector rotations (with quats) currently supported\n");
+			return NULL;
+		}
+
+		if(!BaseMath_ReadCallback(quat2)) {
+			return NULL;
+		}
+		mul_qt_v3(quat2->quat, vec->vec);
 	}
 	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0 && PyErr_Occurred())==0) { /* VEC*=FLOAT */
-		i= vec->size - 1;
-		do {
-			vec->vec[i] *=	scalar;
-		} while(i--);		
+		mul_vn_fl(vec->vec, vec->size, scalar);
 	}
 	else {
 		PyErr_SetString(PyExc_TypeError, "Vector multiplication: arguments not acceptable for this operation\n");
@@ -2010,7 +2064,7 @@ if len(unique) != len(items):
 	print "ERROR"
 */
 
-//-----------------row_vector_multiplication (internal)-----------
+#if 0
 //ROW VECTOR Multiplication - Vector X Matrix
 //[x][y][z] *  [1][4][7]
 //             [2][5][8]
@@ -2048,6 +2102,7 @@ static int row_vector_multiplication(float rvec[4], VectorObject* vec, MatrixObj
 	}
 	return 0;
 }
+#endif
 
 /*----------------------------Vector.negate() -------------------- */
 static char Vector_Negate_doc[] =

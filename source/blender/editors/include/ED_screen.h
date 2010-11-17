@@ -125,6 +125,7 @@ int		ED_operator_areaactive(struct bContext *C);
 int		ED_operator_regionactive(struct bContext *C);
 
 int		ED_operator_scene_editable(struct bContext *C);
+int		ED_operator_objectmode(struct bContext *C);
 
 int		ED_operator_view3d_active(struct bContext *C);
 int		ED_operator_region_view3d_active(struct bContext *C);
@@ -141,6 +142,9 @@ int		ED_operator_sequencer_active(struct bContext *C);
 int		ED_operator_image_active(struct bContext *C);
 int		ED_operator_nla_active(struct bContext *C);
 int		ED_operator_logic_active(struct bContext *C);
+int		ED_operator_info_active(struct bContext *C);
+int		ED_operator_console_active(struct bContext *C);
+
 
 int		ED_operator_object_active(struct bContext *C);
 int		ED_operator_object_active_editable(struct bContext *C);

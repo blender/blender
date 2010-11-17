@@ -165,7 +165,7 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
 	if (fs->kerning == 1)
 		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
 
-	BLF_draw(fs->uifont_id, str);
+	BLF_draw(fs->uifont_id, str, 65535); /* XXX, use real length */
 	BLF_disable(fs->uifont_id, BLF_CLIPPING);
 	if (fs->shadow)
 		BLF_disable(fs->uifont_id, BLF_SHADOW);
@@ -218,7 +218,7 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, char *str)
 	if (fs->kerning == 1)
 		BLF_enable(fs->uifont_id, BLF_KERNING_DEFAULT);
 
-	BLF_draw(fs->uifont_id, str);
+	BLF_draw(fs->uifont_id, str, 65535); /* XXX, use real length */
 	BLF_disable(fs->uifont_id, BLF_ROTATION);
 	BLF_disable(fs->uifont_id, BLF_CLIPPING);
 	if (fs->shadow)
@@ -253,9 +253,15 @@ void UI_DrawString(float x, float y, char *str)
 {
 	uiStyle *style= U.uistyles.first;
 	
+	if (style->widget.kerning == 1)
+		BLF_enable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
+
 	uiStyleFontSet(&style->widget);
 	BLF_position(style->widget.uifont_id, x, y, 0.0f);
-	BLF_draw(style->widget.uifont_id, str);
+	BLF_draw(style->widget.uifont_id, str, 65535); /* XXX, use real length */
+
+	if (style->widget.kerning == 1)
+		BLF_disable(style->widget.uifont_id, BLF_KERNING_DEFAULT);
 }
 
 /* ************** init exit ************************ */

@@ -511,7 +511,13 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 	for(oldbut=oldblock->buttons.first; oldbut; oldbut=oldbut->next) {
 		if(ui_but_equals_old(oldbut, but)) {
 			if(oldbut->active) {
+#if 0
 				but->flag= oldbut->flag;
+#else
+				/* exception! redalert flag can't be update from old button. 
+				 * perhaps it should only copy spesific flags rather then all. */
+				but->flag= (oldbut->flag & ~UI_BUT_REDALERT) | (but->flag & UI_BUT_REDALERT);
+#endif
 				but->active= oldbut->active;
 				but->pos= oldbut->pos;
 				but->editstr= oldbut->editstr;
@@ -2634,6 +2640,35 @@ uiBut *ui_def_but_operator(uiBlock *block, int type, char *opname, int opcontext
 	return but;
 }
 
+uiBut *ui_def_but_operator_text(uiBlock *block, int type, char *opname, int opcontext, char *str, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip)
+{
+	uiBut *but;
+	wmOperatorType *ot;
+	
+	ot= WM_operatortype_find(opname, 0);
+
+	if(!str) {
+		if(ot) str= ot->name;
+		else str= opname;
+	}
+	
+	if ((!tip || tip[0]=='\0') && ot && ot->description) {
+		tip= ot->description;
+	}
+
+	but= ui_def_but(block, type, -1, str, x1, y1, x2, y2, poin, min, max, a1, a2, tip);
+	but->optype= ot;
+	but->opcontext= opcontext;
+
+	if(!ot) {
+		but->flag |= UI_BUT_DISABLED;
+		but->lock = 1;
+		but->lockstr = "";
+	}
+
+	return but;
+}
+
 uiBut *uiDefBut(uiBlock *block, int type, int retval, char *str, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip)
 {
 	uiBut *but= ui_def_but(block, type, retval, str, x1, y1, x2, y2, poin, min, max, a1, a2, tip);
@@ -2802,6 +2837,16 @@ uiBut *uiDefButO(uiBlock *block, int type, char *opname, int opcontext, char *st
 	if(but)
 		ui_check_but(but);
 
+	return but;
+}
+
+uiBut *uiDefButTextO(uiBlock *block, int type, char *opname, int opcontext, char *str, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip)
+{
+	uiBut *but= ui_def_but_operator_text(block, type, opname, opcontext, str, x1, y1, x2, y2, poin, min, max, a1, a2, tip);
+
+	if(but)
+		ui_check_but(but);
+	
 	return but;
 }
 
