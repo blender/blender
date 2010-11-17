@@ -1159,7 +1159,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         brush = context.tool_settings.image_paint.brush
-        return (brush and brush.imagepaint_tool != 'SMEAR')
+        return (brush and brush.imagepaint_tool != 'SOFTEN')
 
     def draw_header(self, context):
         ipaint = context.tool_settings.image_paint

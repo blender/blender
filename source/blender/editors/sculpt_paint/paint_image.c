@@ -4526,6 +4526,8 @@ typedef struct PaintOperation {
 
 	ViewContext vc;
 	wmTimer *timer;
+
+	short restore_projection;
 } PaintOperation;
 
 static void paint_redraw(bContext *C, ImagePaintState *s, int final)
@@ -4611,6 +4613,13 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	pop->first= 1;
 	op->customdata= pop;
 	
+	/* XXX: Soften tool does not support projection painting atm, so just disable
+	        projection for this brush */
+	if(brush->imagepaint_tool == PAINT_TOOL_SOFTEN) {
+		settings->imapaint.flag |= IMAGEPAINT_PROJECT_DISABLE;
+		pop->restore_projection = 1;
+	}
+
 	/* initialize from context */
 	if(CTX_wm_region_view3d(C)) {
 		pop->mode= PAINT_MODE_3D;
@@ -4730,6 +4739,9 @@ static void paint_exit(bContext *C, wmOperator *op)
 
 	if(pop->timer)
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), pop->timer);
+
+	if(pop->restore_projection)
+		settings->imapaint.flag &= ~IMAGEPAINT_PROJECT_DISABLE;
 
 	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
 	imapaint_canvas_free(&pop->s);
