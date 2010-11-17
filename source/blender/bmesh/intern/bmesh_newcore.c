@@ -402,7 +402,7 @@ int bmesh_check_element(BMesh *bm, void *element, int type) {
 	return err;
 }
 
-static void bmesh_kill_loop(BMesh *bm, BMLoop *l) {
+void bmesh_kill_loop(BMesh *bm, BMLoop *l) {
 	int i;
 	
 	for (i=0; i<bm->totlayer; i++) {
@@ -702,9 +702,13 @@ static int disk_is_flagged(BMVert *v, int flag)
 	do {
 		BMLoop *l = e->l;
 
-		if (!l)
+		if (!l) {
 			return 0;
-
+		}
+		
+		if (bmesh_radial_length(l) == 1)
+			return 0;
+		
 		do {
 			if (!bmesh_api_getflag(l->f, flag))
 				return 0;
@@ -792,6 +796,7 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 
 		for (lst=f->loops.first; lst; lst=lst->next) {
 			if (lst == f->loops.first) continue;
+			
 			BLI_remlink(&f->loops, lst);
 			BLI_addtail(&holes, lst);
 		}
@@ -852,14 +857,14 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 	bmesh_api_clearflag(newf, _FLAG_JF);
 
 	/*delete old geometry*/
-	for (i=0; i<BLI_array_count(delverts); i++) {
-		BM_Kill_Vert(bm, delverts[i]);
-	}
-
 	for (i=0; i<BLI_array_count(deledges); i++) {
 		BM_Kill_Edge(bm, deledges[i]);
 	}
 
+	for (i=0; i<BLI_array_count(delverts); i++) {
+		BM_Kill_Vert(bm, delverts[i]);
+	}
+	
 	BLI_array_free(edges);
 	BLI_array_free(deledges);
 	BLI_array_free(delverts);

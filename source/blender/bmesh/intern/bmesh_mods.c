@@ -113,9 +113,12 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		/*handle two-valence*/
 		f = v->e->l->f;
 		f2 = ((BMLoop*)v->e->l->radial_next)->f;
+		
 		/*collapse the vertex*/
 		BM_Collapse_Vert(bm, v->e, v, 1.0);
-		BM_Join_TwoFaces(bm, f, f2, NULL);
+		
+		if (f != f2 && !BM_Join_TwoFaces(bm, f, f2, NULL))
+			return 0;
 
 		return 1;
 	}
@@ -220,6 +223,11 @@ BMFace *BM_Join_TwoFaces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e) {
 		}while(l1!=bm_firstfaceloop(f1));
 	}
 
+	if (!jed) {
+		bmesh_error();
+		return NULL;
+	}
+	
 	l1 = jed->l;
 	
 	if (!l1) {
@@ -342,7 +350,7 @@ void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
 	BM_Data_Interp_From_Verts(bm, kv, tv, kv, fac);
 
 	//bmesh_jekv(bm,ke,kv);
-	if (faces) {
+	if (faces && BLI_array_count(faces) > 1) {
 		BMFace *f2;
 		BMEdge *e2;
 		BMVert *tv2;
@@ -353,6 +361,58 @@ void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
 
 		f2 = BM_Join_Faces(bm, faces, BLI_array_count(faces));
 		BM_Split_Face(bm, f2, tv, tv2, NULL, NULL);
+	} else if (faces && BLI_array_count(faces) == 1) {
+		BMLoop **loops = NULL;
+		BMEdge *e;
+		BMVert **verts = NULL;
+		BMEdge **edges = NULL;
+		BMFace *f2;
+		BLI_array_staticdeclare(verts, 64);
+		BLI_array_staticdeclare(edges, 64);
+		BLI_array_staticdeclare(loops, 64);
+		int i;
+		
+		/*create new face excluding kv*/
+		f = *faces;
+		l = bm_firstfaceloop(f);
+		i = 0;
+		do {
+			if (l->v != kv) {
+				BLI_array_append(verts, l->v);
+
+				if (l->e != ke && !BM_Vert_In_Edge(l->e, kv)) {	
+					BLI_array_append(edges, l->e);
+				} else {
+					BMVert *v2;
+					
+					if (BM_Vert_In_Edge(l->next->e, kv))
+						v2 = BM_OtherEdgeVert(l->next->e, kv);
+					else
+						v2 = BM_OtherEdgeVert(l->prev->e, kv);
+						
+					e = BM_Make_Edge(bm, BM_OtherEdgeVert(l->e, kv), v2, l->e, 1);
+					BLI_array_append(edges, e);
+				}
+
+				BLI_array_append(loops, l);
+				i++;
+			}
+			
+			l = l->next;
+		} while (l != bm_firstfaceloop(f));
+		
+		f2 = BM_Make_Face(bm, verts, edges, BLI_array_count(verts));
+		l = bm_firstfaceloop(f2);
+		i = 0;
+		do {
+			BM_Copy_Attributes(bm, bm, loops[i], l);
+			i++;
+			l = l->next;
+		} while (l != bm_firstfaceloop(f2));
+		
+		BM_Copy_Attributes(bm, bm, f, f2);
+		BM_Kill_Face(bm, f);
+		BM_Kill_Vert(bm, kv);
 	} else {
 		BMVert *tv2;
 		BMEdge *e2, *ne;
