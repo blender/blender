@@ -111,6 +111,8 @@ public:
 	{
 		x = m_x;
 		y = m_y;
+		
+		return GHOST_kSuccess;
 	}
 	
 	/**
