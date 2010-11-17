@@ -75,7 +75,7 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name
 
 #include "../../collada/collada.h"
 
-static void rna_Scene_collada_export(Scene *scene, char *filepath)
+static void rna_Scene_collada_export(Scene *scene, const char *filepath)
 {
 	/* XXX not really nice, as this will bring essentially in COLLADA as dependency for
 	 * blenderplayer. For now stubbing in blc. */
