@@ -511,7 +511,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	if(!CTX_data_edit_object(C))
 		ED_object_enter_editmode(C, EM_WAITCURSOR);
 	else
-		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* had EM_DO_UNDO but op flag calls undo too [#24685] */
 	
 	return OPERATOR_FINISHED;
 }
