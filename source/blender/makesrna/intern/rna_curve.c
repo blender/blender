@@ -77,6 +77,38 @@ EnumPropertyItem curve_type_items[] = {
 
 #include "ED_curve.h" /* for BKE_curve_nurbs */
 
+/* highly irritating but from RNA we cant know this */
+static Nurb *curve_nurb_from_point(Curve *cu, const void *point, int *nu_index, int *pt_index)
+{
+	ListBase *nurbs= BKE_curve_nurbs(cu);
+	Nurb *nu;
+	int i= 0;
+
+	for(nu= nurbs->first; nu; nu= nu->next, i++) {
+		if(nu->type == CU_BEZIER) {
+			if(point >= (void *)nu->bezt && point < (void *)(nu->bezt + nu->pntsu)) {
+				break;
+			}
+		}
+		else {
+			if(point >= (void *)nu->bp && point < (void *)(nu->bp + (nu->pntsu * nu->pntsv))) {
+				break;
+			}
+		}
+	}	
+
+	if(nu_index) {
+		*nu_index= i;
+	}
+
+	if(pt_index) {
+		if(nu->type == CU_BEZIER)	*pt_index= (int)((BezTriple *)point - nu->bezt);
+		else						*pt_index= (int)((BPoint *)point - nu->bp);
+	}
+
+	return nu;
+}
+
 static StructRNA *rna_Curve_refine(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->data;
@@ -256,6 +288,17 @@ static void rna_Curve_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Curve_update_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_scene_sort(bmain, scene);
+	rna_Curve_update_data(bmain, scene, ptr);
+}
+
+static void rna_Curve_update_points(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	Nurb *nu= curve_nurb_from_point(cu, ptr->data, NULL, NULL);
+
+	if(nu)
+		calchandlesNurb(nu);
+
 	rna_Curve_update_data(bmain, scene, ptr);
 }
 
@@ -548,6 +591,43 @@ static void rna_Curve_active_spline_set(PointerRNA *ptr, PointerRNA value)
 		cu->actnu= BLI_findindex(nubase, nu);
 }
 
+static char *rna_Curve_spline_path(PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	ListBase *nubase= BKE_curve_nurbs(cu);
+	Nurb *nu= ptr->data;
+	int index= BLI_findindex(nubase, nu);
+
+	if (index >= 0)
+		return BLI_sprintfN("splines[%d]", index);
+	else
+		return BLI_strdup("");
+}
+
+/* use for both bezier and nurbs */
+static char *rna_Curve_spline_point_path(PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	Nurb *nu;
+	void *point= ptr->data;
+	int nu_index, pt_index;
+
+	nu= curve_nurb_from_point(cu, point, &nu_index, &pt_index);
+
+	if (nu) {
+		if(nu->type == CU_BEZIER) {
+			return BLI_sprintfN("splines[%d].bezier_points[%d]", nu_index, pt_index);
+		}
+		else {
+			return BLI_sprintfN("splines[%d].points[%d]", nu_index, pt_index);
+		}	
+	}
+	else {
+		return BLI_strdup("");
+	}
+}
+
+
 static char *rna_TextBox_path(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->id.data;
@@ -613,6 +693,8 @@ static void rna_def_bpoint(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bevel Radius", "Radius for bevelling");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	RNA_def_struct_path_func(srna, "rna_Curve_spline_point_path");
 }
 
 static void rna_def_beztriple(BlenderRNA *brna)
@@ -650,32 +732,32 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "h1");
 	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
 	RNA_def_property_ui_text(prop, "Handle 1 Type", "Handle types");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_points");
 
 	prop= RNA_def_property(srna, "handle_right_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "h2");
 	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
 	RNA_def_property_ui_text(prop, "Handle 2 Type", "Handle types");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_points");
 
 	/* Vector values */
 	prop= RNA_def_property(srna, "handle_left", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_BezTriple_handle1_get", "rna_BezTriple_handle1_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 1", "Coordinates of the first handle");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_points");
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_BezTriple_ctrlpoint_get", "rna_BezTriple_ctrlpoint_set", NULL);
 	RNA_def_property_ui_text(prop, "Control Point", "Coordinates of the control point");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_points");
 
 	prop= RNA_def_property(srna, "handle_right", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_BezTriple_handle2_get", "rna_BezTriple_handle2_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 2", "Coordinates of the second handle");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_points");
 
 	/* Number values */
 	prop= RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
@@ -695,6 +777,8 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bevel Radius", "Radius for bevelling");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	RNA_def_struct_path_func(srna, "rna_Curve_spline_point_path");
 }
 
 static void rna_def_path(BlenderRNA *brna, StructRNA *srna)
@@ -1419,6 +1503,8 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* editing this needs knot recalc*/
 	RNA_def_property_ui_text(prop, "Character Index", "Location of this character in the text data (only for text curves)");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	RNA_def_struct_path_func(srna, "rna_Curve_spline_path");
 }
 
 void RNA_def_curve(BlenderRNA *brna)
