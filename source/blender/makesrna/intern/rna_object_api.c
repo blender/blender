@@ -281,7 +281,7 @@ static void rna_Object_update(Object *ob, Scene *sce, int object, int data, int 
 	DAG_id_flush_update(&ob->id, flag);
 }
 
-static PointerRNA rna_Object_add_shape_key(Object *ob, bContext *C, ReportList *reports, char *name, int from_mix)
+static PointerRNA rna_Object_add_shape_key(Object *ob, bContext *C, ReportList *reports, const char *name, int from_mix)
 {
 	Scene *scene= CTX_data_scene(C);
 	KeyBlock *kb= NULL;

@@ -57,7 +57,7 @@ void BKE_mesh_end_editmesh(struct Mesh *me, struct EditMesh *em);
 
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me);
-struct Mesh *add_mesh(char *name);
+struct Mesh *add_mesh(const char *name);
 struct Mesh *copy_mesh(struct Mesh *me);
 void mesh_update_customdata_pointers(struct Mesh *me);
 void make_local_tface(struct Mesh *me);

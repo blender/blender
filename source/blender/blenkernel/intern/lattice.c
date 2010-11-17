@@ -181,7 +181,7 @@ void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 	MEM_freeN(vertexCos);
 }
 
-Lattice *add_lattice(char *name)
+Lattice *add_lattice(const char *name)
 {
 	Lattice *lt;
 	

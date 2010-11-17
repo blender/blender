@@ -56,7 +56,7 @@
 
 Add this in your local code:
 
-void undo_editmode_push(bContext *C, char *name, 
+void undo_editmode_push(bContext *C, const char *name, 
 		void * (*getdata)(bContext *C),     // use context to retrieve current editdata
 		void (*freedata)(void *), 			// pointer to function freeing data
 		void (*to_editmode)(void *, void *),        // data to editmode conversion
@@ -109,7 +109,7 @@ static void undo_restore(UndoElem *undo, void *editdata)
 }
 
 /* name can be a dynamic string */
-void undo_editmode_push(bContext *C, char *name, 
+void undo_editmode_push(bContext *C, const char *name, 
 						void * (*getdata)(bContext *C),
 						void (*freedata)(void *), 
 						void (*to_editmode)(void *, void *),  

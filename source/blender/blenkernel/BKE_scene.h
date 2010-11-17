@@ -58,7 +58,7 @@ void free_avicodecdata(struct AviCodecData *acd);
 void free_qtcodecdata(struct QuicktimeCodecData *acd);
 
 void free_scene(struct Scene *sce);
-struct Scene *add_scene(char *name);
+struct Scene *add_scene(const char *name);
 struct Base *object_in_scene(struct Object *ob, struct Scene *sce);
 
 void set_scene_bg(struct Main *bmain, struct Scene *sce);

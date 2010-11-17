@@ -81,7 +81,7 @@ void	ED_area_tag_redraw(ScrArea *sa);
 void	ED_area_tag_redraw_regiontype(ScrArea *sa, int type);
 void	ED_area_tag_refresh(ScrArea *sa);
 void	ED_area_do_refresh(struct bContext *C, ScrArea *sa);
-void	ED_area_headerprint(ScrArea *sa, char *str);
+void	ED_area_headerprint(ScrArea *sa, const char *str);
 void	ED_area_newspace(struct bContext *C, ScrArea *sa, int type);
 void	ED_area_prevspace(struct bContext *C, ScrArea *sa);
 void	ED_area_swapspace(struct bContext *C, ScrArea *sa1, ScrArea *sa2);

@@ -1840,7 +1840,7 @@ static void *get_undoFont(bContext *C)
 }
 
 /* and this is all the undo system needs to know */
-void undo_push_font(bContext *C, char *name)
+void undo_push_font(bContext *C, const char *name)
 {
 	undo_editmode_push(C, name, get_undoFont, free_undoFont, undoFont_to_editFont, editFont_to_undoFont, NULL);
 }

@@ -162,7 +162,7 @@ PackedFile *newPackedFileMemory(void *mem, int memlen)
 	return pf;
 }
 
-PackedFile *newPackedFile(ReportList *reports, char *filename)
+PackedFile *newPackedFile(ReportList *reports, const char *filename)
 {
 	PackedFile *pf = NULL;
 	int file, filelen;

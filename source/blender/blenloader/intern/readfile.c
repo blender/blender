@@ -936,7 +936,7 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 
 /* cannot be called with relative paths anymore! */
 /* on each new library added, it now checks for the current FileData and expands relativeness */
-FileData *blo_openblenderfile(char *name, ReportList *reports)
+FileData *blo_openblenderfile(const char *name, ReportList *reports)
 {
 	gzFile gzfile;
 	errno= 0;

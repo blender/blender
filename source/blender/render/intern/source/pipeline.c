@@ -925,7 +925,7 @@ static void renderresult_add_names(RenderResult *rr)
 }
 
 /* called for reading temp files, and for external engines */
-static int read_render_result_from_file(char *filename, RenderResult *rr)
+static int read_render_result_from_file(const char *filename, RenderResult *rr)
 {
 	RenderLayer *rl;
 	RenderPass *rpass;
@@ -3238,7 +3238,7 @@ int RE_engine_test_break(RenderEngine *engine)
 	return re->test_break(re->tbh);
 }
 
-void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info)
+void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info)
 {
 	Render *re= engine->re;
 
@@ -3251,7 +3251,7 @@ void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info)
 
 /* loads in image into a result, size must match
  * x/y offsets are only used on a partial copy when dimensions dont match */
-void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, char *filename)
+void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char *filename)
 {
 	ImBuf *ibuf = IMB_loadiffname(filename, IB_rect);
 
@@ -3291,7 +3291,7 @@ void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, char *file
 	}
 }
 
-void RE_result_load_from_file(RenderResult *result, ReportList *reports, char *filename)
+void RE_result_load_from_file(RenderResult *result, ReportList *reports, const char *filename)
 {
 	if(!read_render_result_from_file(filename, result)) {
 		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'\n", filename);

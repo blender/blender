@@ -230,7 +230,7 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, char *str)
 /* ************** helpers ************************ */
 
 /* temporarily, does widget font */
-int UI_GetStringWidth(char *str)
+int UI_GetStringWidth(const char *str)
 {
 	uiStyle *style= U.uistyles.first;
 	uiFontStyle *fstyle= &style->widget;
@@ -249,7 +249,7 @@ int UI_GetStringWidth(char *str)
 }
 
 /* temporarily, does widget font */
-void UI_DrawString(float x, float y, char *str)
+void UI_DrawString(float x, float y, const char *str)
 {
 	uiStyle *style= U.uistyles.first;
 	

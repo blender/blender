@@ -3386,7 +3386,7 @@ void psys_mat_hair_to_global(Object *ob, DerivedMesh *dm, short from, ParticleDa
 /************************************************/
 /*			ParticleSettings handling			*/
 /************************************************/
-ModifierData *object_add_particle_system(Scene *scene, Object *ob, char *name)
+ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *name)
 {
 	ParticleSystem *psys;
 	ModifierData *md;
@@ -3543,7 +3543,7 @@ static void default_particle_settings(ParticleSettings *part)
 }
 
 
-ParticleSettings *psys_new_settings(char *name, Main *main)
+ParticleSettings *psys_new_settings(const char *name, Main *main)
 {
 	ParticleSettings *part;
 

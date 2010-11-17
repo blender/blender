@@ -83,7 +83,7 @@ void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
 			/* files */
 int			WM_read_homefile	(struct bContext *C, struct wmOperator *op);
 int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
-void		WM_read_file		(struct bContext *C, char *name, struct ReportList *reports);
+void		WM_read_file		(struct bContext *C, const char *name, struct ReportList *reports);
 int			WM_write_file		(struct bContext *C, const char *target, int fileflags, struct ReportList *reports, int copy);
 void		WM_read_autosavefile(struct bContext *C);
 void		WM_autosave_init	(struct wmWindowManager *wm);
@@ -103,8 +103,8 @@ void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 void		WM_cursor_warp		(struct wmWindow *win, int x, int y);
 
 			/* keyconfig and keymap */
-wmKeyConfig *WM_keyconfig_new	(struct wmWindowManager *wm, char *idname);
-wmKeyConfig *WM_keyconfig_new_user(struct wmWindowManager *wm, char *idname);
+wmKeyConfig *WM_keyconfig_new	(struct wmWindowManager *wm, const char *idname);
+wmKeyConfig *WM_keyconfig_new_user(struct wmWindowManager *wm, const char *idname);
 void 		WM_keyconfig_remove	(struct wmWindowManager *wm, struct wmKeyConfig *keyconf);
 void 		WM_keyconfig_free	(struct wmKeyConfig *keyconf);
 void		WM_keyconfig_userdef(void);
@@ -114,7 +114,7 @@ void		WM_keymap_free		(struct wmKeyMap *keymap);
 
 wmKeyMapItem *WM_keymap_verify_item(struct wmKeyMap *keymap, char *idname, int type, 
 								 int val, int modifier, int keymodifier);
-wmKeyMapItem *WM_keymap_add_item(struct wmKeyMap *keymap, char *idname, int type, 
+wmKeyMapItem *WM_keymap_add_item(struct wmKeyMap *keymap, const char *idname, int type, 
 								 int val, int modifier, int keymodifier);
 wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap, char *idname, int type,
 								 int val, int modifier, int keymodifier);
@@ -122,11 +122,11 @@ wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap, char *idname, int type
 void		WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
 char		 *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len);
 
-wmKeyMap	*WM_keymap_list_find(ListBase *lb, char *idname, int spaceid, int regionid);
-wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, char *idname, int spaceid, int regionid);
-wmKeyMap	*WM_keymap_find_all(const struct bContext *C, char *idname, int spaceid, int regionid);
+wmKeyMap	*WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid);
+wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid);
+wmKeyMap	*WM_keymap_find_all(const struct bContext *C, const char *idname, int spaceid, int regionid);
 wmKeyMap	*WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap);
-wmKeyMap	*WM_keymap_guess_opname(const struct bContext *C, char *opname);
+wmKeyMap	*WM_keymap_guess_opname(const struct bContext *C, const char *opname);
 int			 WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap);
 wmKeyMap	*WM_keymap_copy_to_user(struct wmKeyMap *keymap);
 void		WM_keymap_restore_to_default(struct wmKeyMap *keymap);
@@ -137,10 +137,10 @@ wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id);
 int			WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2);
 int			WM_userdef_event_map(int kmitype);
 
-wmKeyMap	*WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, struct EnumPropertyItem *items);
-wmKeyMap	*WM_modalkeymap_get(struct wmKeyConfig *keyconf, char *idname);
+wmKeyMap	*WM_modalkeymap_add(struct wmKeyConfig *keyconf, const char *idname, struct EnumPropertyItem *items);
+wmKeyMap	*WM_modalkeymap_get(struct wmKeyConfig *keyconf, const char *idname);
 wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value);
-void		WM_modalkeymap_assign(struct wmKeyMap *km, char *opname);
+void		WM_modalkeymap_assign(struct wmKeyMap *km, const char *opname);
 
 const char	*WM_key_event_string(short type);
 int			WM_key_event_operator_id(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, int hotkey, struct wmKeyMap **keymap_r);
@@ -213,7 +213,7 @@ void		WM_operatortype_append_ptr	(void (*opfunc)(struct wmOperatorType*, void *)
 void		WM_operatortype_append_macro_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
 int			WM_operatortype_remove(const char *idname);
 
-struct wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag);
+struct wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, int flag);
 struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname);
 
 

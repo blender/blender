@@ -59,7 +59,7 @@ static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
 	iter->valid= (internal->link != NULL);
 }
 
-static bActionGroup *rna_Action_groups_new(bAction *act, char name[])
+static bActionGroup *rna_Action_groups_new(bAction *act, const char name[])
 {
 	return action_groups_add_new(act, name);
 }
@@ -89,7 +89,7 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, bActionG
 	MEM_freeN(agrp); 
 }
 
-static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, char *data_path, int index, char *group)
+static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, const char *data_path, int index, const char *group)
 {
 	if(group && group[0]=='\0') group= NULL;
 
@@ -128,7 +128,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *
 	}
 }
 
-static TimeMarker *rna_Action_pose_markers_new(bAction *act, ReportList *reports, char name[])
+static TimeMarker *rna_Action_pose_markers_new(bAction *act, ReportList *reports, const char name[])
 {
 	TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
 	marker->flag= 1;

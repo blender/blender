@@ -197,7 +197,7 @@ static void clean_paths(Main *main)
 /* context matching */
 /* handle no-ui case */
 
-static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename) 
+static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filename) 
 {
 	bScreen *curscreen= NULL;
 	Scene *curscene= NULL;
@@ -364,7 +364,7 @@ void BKE_userdef_free(void)
    2: OK, and with new user settings
 */
 
-int BKE_read_file(bContext *C, char *dir, ReportList *reports) 
+int BKE_read_file(bContext *C, const char *dir, ReportList *reports) 
 {
 	BlendFileData *bfd;
 	int retval= 1;
@@ -486,7 +486,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 }
 
 /* name can be a dynamic string */
-void BKE_write_undo(bContext *C, char *name)
+void BKE_write_undo(bContext *C, const char *name)
 {
 	uintptr_t maxmem, totmem, memused;
 	int nr, success;

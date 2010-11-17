@@ -34,7 +34,7 @@
 struct World;
 
 void free_world(struct World *sc); 
-struct World *add_world(char *name);
+struct World *add_world(const char *name);
 struct World *copy_world(struct World *wrld);
 void make_local_world(struct World *wrld);
 

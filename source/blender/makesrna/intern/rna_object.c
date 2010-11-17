@@ -1062,7 +1062,7 @@ static void rna_Object_constraints_remove(Object *object, ReportList *reports, b
 	WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT, object);
 }
 
-static ModifierData *rna_Object_modifier_new(Object *object, bContext *C, ReportList *reports, char *name, int type)
+static ModifierData *rna_Object_modifier_new(Object *object, bContext *C, ReportList *reports, const char *name, int type)
 {
 	return ED_object_modifier_add(reports, CTX_data_main(C), CTX_data_scene(C), object, name, type);
 }

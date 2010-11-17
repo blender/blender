@@ -317,7 +317,7 @@ static int wm_macro_cancel(bContext *C, wmOperator *op)
 }
 
 /* Names have to be static for now */
-wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag)
+wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, int flag)
 {
 	wmOperatorType *ot;
 	
@@ -654,7 +654,7 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 
 
 /* generic enum search invoke popup */
-static void operator_enum_search_cb(const struct bContext *C, void *arg_ot, char *str, uiSearchItems *items)
+static void operator_enum_search_cb(const struct bContext *C, void *arg_ot, const char *str, uiSearchItems *items)
 {
 	wmOperatorType *ot = (wmOperatorType *)arg_ot;
 	PropertyRNA *prop= ot->prop;
@@ -1281,7 +1281,7 @@ static void operator_call_cb(struct bContext *C, void *UNUSED(arg1), void *arg2)
 		WM_operator_name_call(C, ot->idname, WM_OP_INVOKE_DEFAULT, NULL);
 }
 
-static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), char *str, uiSearchItems *items)
+static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
 {
 	wmOperatorType *ot = WM_operatortype_first();
 	
@@ -3124,7 +3124,7 @@ void wm_operatortype_free(void)
 			wm_operatortype_free_macro(ot);
 
 		if(ot->ext.srna) /* python operator, allocs own string */
-			MEM_freeN(ot->idname);
+			MEM_freeN((void *)ot->idname);
 	}
 	
 	BLI_freelistN(&global_ops);

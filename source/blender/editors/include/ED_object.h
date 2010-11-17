@@ -125,7 +125,7 @@ void ED_object_constraint_dependency_update(struct Main *bmain, struct Scene *sc
 
 /* object_lattice.c */
 int  mouse_lattice(struct bContext *C, short mval[2], int extend);
-void undo_push_lattice(struct bContext *C, char *name);
+void undo_push_lattice(struct bContext *C, const char *name);
 
 /* object_lattice.c */
 
@@ -137,7 +137,7 @@ enum {
 	MODIFIER_APPLY_SHAPE,
 } eModifier_Apply_Mode;
 
-struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, char *name, int type);
+struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, const char *name, int type);
 int ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);

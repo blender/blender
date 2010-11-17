@@ -95,7 +95,7 @@ static void id_search_call_cb(bContext *C, void *arg_template, void *item)
 }
 
 /* ID Search browse menu, do the search */
-static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSearchItems *items)
+static void id_search_cb(const bContext *C, void *arg_template, const char *str, uiSearchItems *items)
 {
 	TemplateID *template= (TemplateID*)arg_template;
 	ListBase *lb= template->idlb;
@@ -287,7 +287,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 	}
 }
 
-static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, int flag, char *newop, char *openop, char *unlinkop)
+static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, int flag, const char *newop, const char *openop, const char *unlinkop)
 {
 	uiBut *but;
 	uiBlock *block;
@@ -435,7 +435,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	uiBlockEndAlign(block);
 }
 
-static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, int flag, int prv_rows, int prv_cols)
+static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, const char *newop, const char *openop, const char *unlinkop, int flag, int prv_rows, int prv_cols)
 {
 	TemplateID *template;
 	PropertyRNA *prop;
@@ -473,17 +473,17 @@ static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 	MEM_freeN(template);
 }
 
-void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop)
+void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, const char *newop, const char *openop, const char *unlinkop)
 {
 	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_DELETE, 0, 0);
 }
 
-void uiTemplateIDBrowse(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop)
+void uiTemplateIDBrowse(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, const char *newop, const char *openop, const char *unlinkop)
 {
 	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, UI_ID_BROWSE|UI_ID_RENAME, 0, 0);
 }
 
-void uiTemplateIDPreview(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, int rows, int cols)
+void uiTemplateIDPreview(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, const char *newop, const char *openop, const char *unlinkop, int rows, int cols)
 {
 	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_DELETE|UI_ID_PREVIEWS, rows, cols);
 }
@@ -495,7 +495,7 @@ void uiTemplateIDPreview(uiLayout *layout, bContext *C, PointerRNA *ptr, char *p
  * - propname: property identifier for property that ID-pointer gets stored to
  * - proptypename: property identifier for property used to determine the type of ID-pointer that can be used
  */
-void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, char *propname, char *proptypename, char *text)
+void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *proptypename, const char *text)
 {
 	PropertyRNA *propID, *propType;
 	uiLayout *row;
@@ -540,7 +540,7 @@ void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, char *propname, char *pr
  * - propname: property identifier for property that path gets stored to
  * - root_ptr: struct that path gets built from
  */
-void uiTemplatePathBuilder(uiLayout *layout, PointerRNA *ptr, char *propname, PointerRNA *UNUSED(root_ptr), char *text)
+void uiTemplatePathBuilder(uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *UNUSED(root_ptr), const char *text)
 {
 	PropertyRNA *propPath;
 	uiLayout *row;
@@ -1293,7 +1293,7 @@ static void colorband_buttons_layout(uiLayout *layout, uiBlock *block, ColorBand
 		colorband_buttons_large(layout, block, coba, 0, 0, cb);
 }
 
-void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, char *propname, int expand)
+void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, const char *propname, int expand)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	PointerRNA cptr;
@@ -1323,7 +1323,7 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, char *propname, int 
 
 /********************* Histogram Template ************************/
 
-void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, char *propname)
+void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	PointerRNA cptr;
@@ -1362,7 +1362,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, char *propname)
 
 /********************* Waveform Template ************************/
 
-void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, char *propname)
+void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	PointerRNA cptr;
@@ -1398,7 +1398,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, char *propname)
 
 /********************* Vectorscope Template ************************/
 
-void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, char *propname)
+void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propname)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	PointerRNA cptr;
@@ -1762,7 +1762,7 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	uiBlockSetNFunc(block, NULL, NULL, NULL);
 }
 
-void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, char *propname, int type, int levels, int brush)
+void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, const char *propname, int type, int levels, int brush)
 {
 	RNAUpdateCb *cb;
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
@@ -1788,7 +1788,7 @@ void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, char *propname, i
 
 #define WHEEL_SIZE	100
 
-void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int value_slider, int lock, int lock_luminosity, int cubic)
+void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, const char *propname, int value_slider, int lock, int lock_luminosity, int cubic)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	uiBlock *block= uiLayoutGetBlock(layout);
@@ -1853,8 +1853,8 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
 //	- for now, grouping of layers is determined by dividing up the length of 
 //	  the array of layer bitflags
 
-void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname,
-			  PointerRNA *used_ptr, char *used_propname, int active_layer)
+void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, const char *propname,
+			  PointerRNA *used_ptr, const char *used_propname, int active_layer)
 {
 	uiLayout *uRow, *uCol;
 	PropertyRNA *prop, *used_prop= NULL;
@@ -1956,7 +1956,7 @@ static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon)
 	return rnaicon;
 }
 
-static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *itemptr, int i, int rnaicon, PointerRNA *activeptr, char *activepropname)
+static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *itemptr, int i, int rnaicon, PointerRNA *activeptr, const char *activepropname)
 {
 	Object *ob;
 	uiBlock *block= uiLayoutGetBlock(layout);
@@ -2025,7 +2025,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		MEM_freeN(namebuf);
 }
 
-void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, PointerRNA *activeptr, char *activepropname, int rows, int maxrows, int listtype)
+void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *activeptr, const char *activepropname, int rows, int maxrows, int listtype)
 {
 	//Scene *scene= CTX_data_scene(C);
 	PropertyRNA *prop= NULL, *activeprop;
@@ -2212,7 +2212,7 @@ static void operator_call_cb(bContext *C, void *UNUSED(arg1), void *arg2)
 		WM_operator_name_call(C, ot->idname, WM_OP_INVOKE_DEFAULT, NULL);
 }
 
-static void operator_search_cb(const bContext *C, void *UNUSED(arg), char *str, uiSearchItems *items)
+static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
 {
 	wmOperatorType *ot = WM_operatortype_first();
 	

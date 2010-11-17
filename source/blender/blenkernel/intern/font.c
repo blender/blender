@@ -358,7 +358,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 	return vfont->data;	
 }
 
-VFont *load_vfont(char *name)
+VFont *load_vfont(const char *name)
 {
 	char filename[FILE_MAXFILE];
 	VFont *vfont= NULL;

@@ -984,7 +984,7 @@ int CustomData_get_layer_index(const CustomData *data, int type)
 	return -1;
 }
 
-int CustomData_get_named_layer_index(const CustomData *data, int type, char *name)
+int CustomData_get_named_layer_index(const CustomData *data, int type, const char *name)
 {
 	int i;
 
@@ -1371,7 +1371,7 @@ void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type)
 }
 
 void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
-												  int type, char *name)
+												  int type, const char *name)
 {
 	CustomDataLayer *layer;
 	int layer_index;
@@ -1603,7 +1603,7 @@ void *CustomData_get_layer_n(const CustomData *data, int type, int n)
 }
 
 void *CustomData_get_layer_named(const struct CustomData *data, int type,
-								 char *name)
+								 const char *name)
 {
 	int layer_index = CustomData_get_named_layer_index(data, type, name);
 	if(layer_index < 0) return NULL;

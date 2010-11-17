@@ -40,7 +40,7 @@ struct Scene;
  * @retval 1 The file was read succesfully.
  * @attention Used in filesel.c
  */
-int BKE_read_exotic(struct Scene *scene, char *name);
+int BKE_read_exotic(struct Scene *scene, const char *name);
 
 void write_dxf(struct Scene *scene, char *str);
 void write_stl(struct Scene *scene, char *str);

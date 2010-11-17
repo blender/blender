@@ -63,7 +63,7 @@ void free_world(World *wrld)
 }
 
 
-World *add_world(char *name)
+World *add_world(const char *name)
 {
 	Main *bmain= G.main;
 	World *wrld;

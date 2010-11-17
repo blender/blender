@@ -262,7 +262,7 @@ static void wm_init_userdef(bContext *C)
 	if(U.tempdir[0]) BLI_where_is_temp(btempdir, 1);
 }
 
-void WM_read_file(bContext *C, char *name, ReportList *reports)
+void WM_read_file(bContext *C, const char *name, ReportList *reports)
 {
 	int retval;
 

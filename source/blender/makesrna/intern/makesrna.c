@@ -292,7 +292,12 @@ static const char *rna_type_type_name(PropertyRNA *prop)
 		case PROP_FLOAT:
 			return "float";
 		case PROP_STRING:
-			return "char*";
+			if(prop->flag & PROP_THICK_WRAP) {
+				return "char*";
+			}
+			else {
+				return "const char*";
+			}
 		default:
 			return NULL;
 	}

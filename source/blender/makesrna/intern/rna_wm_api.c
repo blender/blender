@@ -50,7 +50,7 @@ static void rna_keymap_restore_item_to_default(wmKeyMap *km, bContext *C, wmKeyM
 	WM_keymap_restore_item_to_default(C, km, kmi);
 }
 
-static void rna_Operator_report(wmOperator *op, int type, char *msg)
+static void rna_Operator_report(wmOperator *op, int type, const char *msg)
 {
 	BKE_report(op->reports, type, msg);
 }

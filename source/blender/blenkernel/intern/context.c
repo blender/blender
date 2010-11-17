@@ -108,7 +108,7 @@ void CTX_free(bContext *C)
 
 /* store */
 
-bContextStore *CTX_store_add(ListBase *contexts, char *name, PointerRNA *ptr)
+bContextStore *CTX_store_add(ListBase *contexts, const char *name, PointerRNA *ptr)
 {
 	bContextStoreEntry *entry;
 	bContextStore *ctx, *lastctx;

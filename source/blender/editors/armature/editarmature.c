@@ -2308,7 +2308,7 @@ static void *get_armature_edit(bContext *C)
 }
 
 /* and this is all the undo system needs to know */
-void undo_push_armature(bContext *C, char *name)
+void undo_push_armature(bContext *C, const char *name)
 {
 	// XXX solve getdata()
 	undo_editmode_push(C, name, get_armature_edit, free_undoBones, undoBones_to_editBones, editBones_to_undoBones, NULL);
@@ -2320,7 +2320,7 @@ void undo_push_armature(bContext *C, char *name)
 /* *************** Adding stuff in editmode *************** */
 
 /* default bone add, returns it selected, but without tail set */
-EditBone *ED_armature_edit_bone_add(bArmature *arm, char *name)
+EditBone *ED_armature_edit_bone_add(bArmature *arm, const char *name)
 {
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	

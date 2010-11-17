@@ -382,7 +382,7 @@ Image *BKE_add_image_file(const char *name)
 	return ima;
 }
 
-static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
+static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
 {
 	ImBuf *ibuf;
 	unsigned char *rect= NULL;
@@ -415,7 +415,7 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, char *name,
 }
 
 /* adds new image block, creates ImBuf and initializes color */
-Image *BKE_add_image_size(unsigned int width, unsigned int height, char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
+Image *BKE_add_image_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
 {
 	/* on save, type is changed to FILE in editsima.c */
 	Image *ima= image_alloc(name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
@@ -1202,7 +1202,7 @@ void BKE_stamp_info(Scene *scene, struct ImBuf *ibuf)
 	if (stamp_data.rendertime[0]) IMB_metadata_change_field (ibuf, "RenderTime", stamp_data.rendertime);
 }
 
-int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimtype, int quality)
+int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, const char *name, int imtype, int subimtype, int quality)
 {
 	int ok;
 	(void)subimtype; /* quies unused warnings */

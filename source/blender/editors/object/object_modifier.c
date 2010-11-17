@@ -76,7 +76,7 @@
 
 /******************************** API ****************************/
 
-ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *scene, Object *ob, char *name, int type)
+ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *scene, Object *ob, const char *name, int type)
 {
 	ModifierData *md=NULL, *new_md=NULL;
 	ModifierTypeInfo *mti = modifierType_getInfo(type);

@@ -39,7 +39,7 @@ struct BPoint;
 struct MDeformVert;
 
 void resizelattice(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
-struct Lattice *add_lattice(char *name);
+struct Lattice *add_lattice(const char *name);
 struct Lattice *copy_lattice(struct Lattice *lt);
 void free_lattice(struct Lattice *lt);
 void make_local_lattice(struct Lattice *lt);

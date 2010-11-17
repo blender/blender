@@ -93,7 +93,7 @@ static void rna_Armature_act_edit_bone_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, char *name)
+EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, const char *name)
 {
 	if(arm->edbo==NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant add an editbone.", arm->id.name+2);

@@ -79,12 +79,12 @@
 
 #include "ED_screen.h"
 
-Tex *rna_Main_add_texture(Main *bmain, char *name)
+Tex *rna_Main_add_texture(Main *bmain, const char *name)
 {
 	return add_texture(name);
 }
 
-Camera *rna_Main_cameras_new(Main *bmain, char* name)
+Camera *rna_Main_cameras_new(Main *bmain, const char *name)
 {
 	ID *id= add_camera(name);
 	id->us--;
@@ -100,7 +100,7 @@ void rna_Main_cameras_remove(Main *bmain, ReportList *reports, struct Camera *ca
 	/* XXX python now has invalid pointer? */
 }
 
-Scene *rna_Main_scenes_new(Main *bmain, char* name)
+Scene *rna_Main_scenes_new(Main *bmain, const char *name)
 {
 	return add_scene(name);
 }
@@ -123,7 +123,7 @@ void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, struc
 	unlink_scene(bmain, scene, newscene);
 }
 
-Object *rna_Main_objects_new(Main *bmain, ReportList *reports, char* name, ID *data)
+Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char *name, ID *data)
 {
 	Object *ob;
 	int type= OB_EMPTY;
@@ -184,7 +184,7 @@ void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *ob
 	}
 }
 
-struct Material *rna_Main_materials_new(Main *bmain, char* name)
+struct Material *rna_Main_materials_new(Main *bmain, const char *name)
 {
 	ID *id= (ID *)add_material(name);
 	id->us--;
@@ -217,7 +217,7 @@ void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, struct bNodeTree
 	/* XXX python now has invalid pointer? */
 }
 
-Mesh *rna_Main_meshes_new(Main *bmain, char* name)
+Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
 {
 	Mesh *me= add_mesh(name);
 	me->id.us--;
@@ -233,7 +233,7 @@ void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
 	/* XXX python now has invalid pointer? */
 }
 
-Lamp *rna_Main_lamps_new(Main *bmain, char* name)
+Lamp *rna_Main_lamps_new(Main *bmain, const char *name)
 {
 	Lamp *lamp= add_lamp(name);
 	lamp->id.us--;
@@ -249,14 +249,14 @@ void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
 	/* XXX python now has invalid pointer? */
 }
 
-Image *rna_Main_images_new(Main *bmain, char* name, int width, int height, int alpha, int float_buffer)
+Image *rna_Main_images_new(Main *bmain, const char *name, int width, int height, int alpha, int float_buffer)
 {
 	float color[4]= {0.0, 0.0, 0.0, 1.0};
 	Image *image= BKE_add_image_size(width, height, name, alpha ? 32:24, float_buffer, 0, color);
 	image->id.us--;
 	return image;
 }
-Image *rna_Main_images_load(Main *bmain, ReportList *reports, char *filepath)
+Image *rna_Main_images_load(Main *bmain, ReportList *reports, const char *filepath)
 {
 	Image *ima;
 
@@ -278,7 +278,7 @@ void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *image)
 	/* XXX python now has invalid pointer? */
 }
 
-Lattice *rna_Main_lattices_new(Main *bmain, char* name)
+Lattice *rna_Main_lattices_new(Main *bmain, const char *name)
 {
 	Lattice *lt= add_lattice(name);
 	lt->id.us--;
@@ -292,7 +292,7 @@ void rna_Main_lattices_remove(Main *bmain, ReportList *reports, struct Lattice *
 		BKE_reportf(reports, RPT_ERROR, "Lattice \"%s\" must have zero users to be removed, found %d.", lt->id.name+2, ID_REAL_USERS(lt));
 }
 
-Curve *rna_Main_curves_new(Main *bmain, char* name, int type)
+Curve *rna_Main_curves_new(Main *bmain, const char *name, int type)
 {
 	Curve *cu= add_curve(name, type);
 	cu->id.us--;
@@ -306,7 +306,7 @@ void rna_Main_curves_remove(Main *bmain, ReportList *reports, struct Curve *cu)
 		BKE_reportf(reports, RPT_ERROR, "Curve \"%s\" must have zero users to be removed, found %d.", cu->id.name+2, ID_REAL_USERS(cu));
 }
 
-MetaBall *rna_Main_metaballs_new(Main *bmain, char* name)
+MetaBall *rna_Main_metaballs_new(Main *bmain, const char *name)
 {
 	MetaBall *mb= add_mball(name);
 	mb->id.us--;
@@ -320,7 +320,7 @@ void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, struct MetaBall
 		BKE_reportf(reports, RPT_ERROR, "MetaBall \"%s\" must have zero users to be removed, found %d.", mb->id.name+2, ID_REAL_USERS(mb));
 }
 
-VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, char *filepath)
+VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, const char *filepath)
 {
 	VFont *font;
 
@@ -343,7 +343,7 @@ void rna_Main_fonts_remove(Main *bmain, ReportList *reports, VFont *vfont)
 	/* XXX python now has invalid pointer? */
 }
 
-Tex *rna_Main_textures_new(Main *bmain, char* name, int type)
+Tex *rna_Main_textures_new(Main *bmain, const char *name, int type)
 {
 	Tex *tex= add_texture(name);
 	tex_set_type(tex, type);
@@ -358,7 +358,7 @@ void rna_Main_textures_remove(Main *bmain, ReportList *reports, struct Tex *tex)
 		BKE_reportf(reports, RPT_ERROR, "Texture \"%s\" must have zero users to be removed, found %d.", tex->id.name+2, ID_REAL_USERS(tex));
 }
 
-Brush *rna_Main_brushes_new(Main *bmain, char* name)
+Brush *rna_Main_brushes_new(Main *bmain, const char *name)
 {
 	Brush *brush = add_brush(name);
 	brush->id.us--;
@@ -372,7 +372,7 @@ void rna_Main_brushes_remove(Main *bmain, ReportList *reports, struct Brush *bru
 		BKE_reportf(reports, RPT_ERROR, "Brush \"%s\" must have zero users to be removed, found %d.", brush->id.name+2, ID_REAL_USERS(brush));
 }
 
-World *rna_Main_worlds_new(Main *bmain, char* name)
+World *rna_Main_worlds_new(Main *bmain, const char *name)
 {
 	World *world = add_world(name);
 	world->id.us--;
@@ -386,7 +386,7 @@ void rna_Main_worlds_remove(Main *bmain, ReportList *reports, struct World *worl
 		BKE_reportf(reports, RPT_ERROR, "World \"%s\" must have zero users to be removed, found %d.", world->id.name+2, ID_REAL_USERS(world));
 }
 
-Group *rna_Main_groups_new(Main *bmain, char* name)
+Group *rna_Main_groups_new(Main *bmain, const char *name)
 {
 	return add_group(name);
 }
@@ -397,7 +397,7 @@ void rna_Main_groups_remove(Main *bmain, ReportList *reports, Group *group)
 	/* XXX python now has invalid pointer? */
 }
 
-Text *rna_Main_texts_new(Main *bmain, char* name)
+Text *rna_Main_texts_new(Main *bmain, const char *name)
 {
 	return add_empty_text(name);
 }
@@ -408,7 +408,7 @@ void rna_Main_texts_remove(Main *bmain, ReportList *reports, Text *text)
 	/* XXX python now has invalid pointer? */
 }
 
-Text *rna_Main_texts_load(Main *bmain, ReportList *reports, char* filepath)
+Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *filepath)
 {
 	Text *txt;
 
@@ -421,7 +421,7 @@ Text *rna_Main_texts_load(Main *bmain, ReportList *reports, char* filepath)
 	return txt;
 }
 
-bArmature *rna_Main_armatures_new(Main *bmain, char* name)
+bArmature *rna_Main_armatures_new(Main *bmain, const char *name)
 {
 	bArmature *arm= add_armature(name);
 	arm->id.us--;
@@ -437,7 +437,7 @@ void rna_Main_armatures_remove(Main *bmain, ReportList *reports, bArmature *arm)
 	/* XXX python now has invalid pointer? */
 }
 
-bAction *rna_Main_actions_new(Main *bmain, char* name)
+bAction *rna_Main_actions_new(Main *bmain, const char *name)
 {
 	bAction *act= add_empty_action(name);
 	act->id.us--;
@@ -454,7 +454,7 @@ void rna_Main_actions_remove(Main *bmain, ReportList *reports, bAction *act)
 	/* XXX python now has invalid pointer? */
 }
 
-ParticleSettings *rna_Main_particles_new(Main *bmain, char* name)
+ParticleSettings *rna_Main_particles_new(Main *bmain, const char *name)
 {
 	ParticleSettings *part = psys_new_settings(name, bmain);
 	part->id.us--;

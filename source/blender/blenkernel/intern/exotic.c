@@ -85,11 +85,11 @@
 
 #include "zlib.h"
 
-static int is_dxf(char *str);
-static void dxf_read(Scene *scene, char *filename);
-static int is_stl(char *str);
+static int is_dxf(const char *str);
+static void dxf_read(Scene *scene, const char *filename);
+static int is_stl(const char *str);
 
-static int is_stl_ascii(char *str)
+static int is_stl_ascii(const char *str)
 {	
 	FILE *fpSTL;
 	char buffer[1000];
@@ -114,7 +114,7 @@ static int is_stl_ascii(char *str)
 	return 1;
 }
 
-static int is_stl(char *str)
+static int is_stl(const char *str)
 {
 	int i;
 	i = strlen(str) - 3;
@@ -190,7 +190,7 @@ static void mesh_add_normals_flags(Mesh *me)
 	}	
 }
 
-static void read_stl_mesh_binary(Scene *scene, char *str)
+static void read_stl_mesh_binary(Scene *scene, const char *str)
 {
 	FILE   *fpSTL;
 	Object *ob;
@@ -314,7 +314,7 @@ static void read_stl_mesh_binary(Scene *scene, char *str)
 		STLBAILOUT("Bad vertex!"); \
 	++totvert; \
 }
-static void read_stl_mesh_ascii(Scene *scene, char *str)
+static void read_stl_mesh_ascii(Scene *scene, const char *str)
 {
 	FILE   *fpSTL;
 	char   buffer[2048], *cp;
@@ -454,7 +454,7 @@ static void read_stl_mesh_ascii(Scene *scene, char *str)
 
 /* ************************************************************ */
 
-int BKE_read_exotic(Scene *scene, char *name)
+int BKE_read_exotic(Scene *scene, const char *name)
 {
 	int len;
 	gzFile gzfile;
@@ -1069,7 +1069,7 @@ static char val[256];
 static short error_exit=0;
 static short hasbumped=0;
 
-static int is_dxf(char *str)
+static int is_dxf(const char *str)
 {	
 	dxf_line=0;
 	
@@ -2207,7 +2207,7 @@ static void dxf_read_3dface(Scene *scene, int noob)
 	hasbumped=1;
 }
 
-static void dxf_read(Scene *scene, char *filename)
+static void dxf_read(Scene *scene, const char *filename)
 {
 	Mesh *lastMe = G.main->mesh.last;
 

@@ -933,7 +933,7 @@ static void rna_GameSettings_auto_start_set(PointerRNA *ptr, int value)
 }
 
 
-static TimeMarker *rna_TimeLine_add(Scene *scene, char name[])
+static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[])
 {
 	TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
 	marker->flag= SELECT;
@@ -955,7 +955,7 @@ static void rna_TimeLine_remove(Scene *scene, ReportList *reports, TimeMarker *m
 	MEM_freeN(marker);
 }
 
-static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, char name[])
+static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, const char name[])
 {
 	KeyingSet *ks= NULL;
 

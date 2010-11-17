@@ -692,7 +692,7 @@ KeyingSet *ANIM_get_keyingset_for_autokeying(Scene *scene, const char *tranformK
 /* Menu of All Keying Sets ----------------------------- */
 
 /* Create (and show) a menu containing all the Keying Sets which can be used in the current context */
-void ANIM_keying_sets_menu_setup (bContext *C, char title[], char op_name[])
+void ANIM_keying_sets_menu_setup (bContext *C, const char title[], const char op_name[])
 {
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks;

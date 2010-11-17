@@ -145,7 +145,8 @@ typedef struct RenderStats {
 	int totface, totvert, totstrand, tothalo, totlamp, totpart;
 	short curfield, curblur, curpart, partsdone, convertdone;
 	double starttime, lastframetime;
-	char *infostr, *statstr, scenename[32];
+	const char *infostr, *statstr;
+	char scenename[32];
 	
 } RenderStats;
 
@@ -287,15 +288,15 @@ typedef struct RenderEngine {
 	ListBase fullresult;
 } RenderEngine;
 
-void RE_layer_load_from_file(RenderLayer *layer, struct ReportList *reports, char *filename);
-void RE_result_load_from_file(RenderResult *result, struct ReportList *reports, char *filename);
+void RE_layer_load_from_file(RenderLayer *layer, struct ReportList *reports, const char *filename);
+void RE_result_load_from_file(RenderResult *result, struct ReportList *reports, const char *filename);
 
 struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h);
 void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
 void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
 
 int RE_engine_test_break(RenderEngine *engine);
-void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info);
+void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
 
 void RE_engines_init(void);
 void RE_engines_exit(void);

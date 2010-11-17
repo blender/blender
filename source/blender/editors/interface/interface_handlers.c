@@ -324,7 +324,7 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 {
 	Scene *scene= CTX_data_scene(C);
 	uiAfterFunc *after;
-	char *str= NULL;
+	const char *str= NULL;
 
 	if(but->flag & UI_BUT_UNDO) {
 		/* define which string to use for undo */
@@ -4090,7 +4090,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	int length;
-	char *name;
+	const char *name;
 
 	if((but->rnapoin.data && but->rnaprop)==0 && but->optype==NULL)
 		return 0;

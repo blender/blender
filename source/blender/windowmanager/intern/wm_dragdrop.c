@@ -167,7 +167,7 @@ void WM_event_drag_image(wmDrag *drag, ImBuf *imb, float scale, int sx, int sy)
 }
 
 
-static char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag, wmEvent *event)
+static const char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag, wmEvent *event)
 {
 	wmEventHandler *handler= handlers->first;
 	for(; handler; handler= handler->next) {
@@ -183,12 +183,12 @@ static char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag, wmEve
 }
 
 /* return active operator name when mouse is in box */
-static char *wm_dropbox_active(bContext *C, wmDrag *drag, wmEvent *event)
+static const char *wm_dropbox_active(bContext *C, wmDrag *drag, wmEvent *event)
 {
 	wmWindow *win= CTX_wm_window(C);
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
-	char *name;
+	const char *name;
 	
 	name= dropbox_active(C, &win->handlers, drag, event);
 	if(name) return name;
@@ -218,7 +218,7 @@ static void wm_drop_operator_options(bContext *C, wmDrag *drag, wmEvent *event)
 		strcpy(drag->opname, "Paste name");
 	}
 	else {
-		char *opname= wm_dropbox_active(C, drag, event);
+		const char *opname= wm_dropbox_active(C, drag, event);
 		
 		if(opname) {
 			BLI_strncpy(drag->opname, opname, FILE_MAX);

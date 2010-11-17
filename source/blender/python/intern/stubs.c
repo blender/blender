@@ -29,7 +29,7 @@
 /* python, will come back */
 //void BPY_run_python_script() {}
 //void BPY_start_python() {}
-void BPY_call_importloader() {}
+void BPY_call_importloader(const char *filepath) {(void)filepath;}
 //void BPY_free_compiled_text() {}
 void BPY_pyconstraint_eval() {}
 void BPY_pyconstraint_target() {}

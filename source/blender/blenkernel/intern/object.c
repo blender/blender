@@ -693,7 +693,7 @@ int exist_object(Object *obtest)
 	return 0;
 }
 
-void *add_camera(char *name)
+void *add_camera(const char *name)
 {
 	Camera *cam;
 	
@@ -794,7 +794,7 @@ float dof_camera(Object *ob)
 	return cam->YF_dofdist;
 }
 
-void *add_lamp(char *name)
+void *add_lamp(const char *name)
 {
 	Lamp *la;
 	
@@ -989,7 +989,7 @@ static char *get_obdata_defname(int type)
 }
 
 /* more general add: creates minimum required data, but without vertices etc. */
-Object *add_only_object(int type, char *name)
+Object *add_only_object(int type, const char *name)
 {
 	Object *ob;
 
@@ -2899,7 +2899,7 @@ void object_delete_ptcache(Object *ob, int index)
 /* shape key utility function */
 
 /************************* Mesh ************************/
-static KeyBlock *insert_meshkey(Scene *scene, Object *ob, char *name, int from_mix)
+static KeyBlock *insert_meshkey(Scene *scene, Object *ob, const char *name, int from_mix)
 {
 	Mesh *me= ob->data;
 	Key *key= me->key;
@@ -2930,7 +2930,7 @@ static KeyBlock *insert_meshkey(Scene *scene, Object *ob, char *name, int from_m
 	return kb;
 }
 /************************* Lattice ************************/
-static KeyBlock *insert_lattkey(Scene *scene, Object *ob, char *name, int from_mix)
+static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, int from_mix)
 {
 	Lattice *lt= ob->data;
 	Key *key= lt->key;
@@ -2962,7 +2962,7 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, char *name, int from_m
 	return kb;
 }
 /************************* Curve ************************/
-static KeyBlock *insert_curvekey(Scene *scene, Object *ob, char *name, int from_mix)
+static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int from_mix)
 {
 	Curve *cu= ob->data;
 	Key *key= cu->key;
@@ -2998,7 +2998,7 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, char *name, int from_
 	return kb;
 }
 
-KeyBlock *object_insert_shape_key(Scene *scene, Object *ob, char *name, int from_mix)
+KeyBlock *object_insert_shape_key(Scene *scene, Object *ob, const char *name, int from_mix)
 {
 	if(ob->type==OB_MESH)					 return insert_meshkey(scene, ob, name, from_mix);
 	else if ELEM(ob->type, OB_CURVE, OB_SURF)return insert_curvekey(scene, ob, name, from_mix);

@@ -93,7 +93,7 @@ void free_mball(MetaBall *mb)
 	if(mb->disp.first) freedisplist(&mb->disp);
 }
 
-MetaBall *add_mball(char *name)
+MetaBall *add_mball(const char *name)
 {
 	MetaBall *mb;
 	

@@ -79,7 +79,7 @@ static Lattice *vgroup_edit_lattice(Object *ob)
 	return NULL;
 }
 
-bDeformGroup *ED_vgroup_add_name(Object *ob, char *name)
+bDeformGroup *ED_vgroup_add_name(Object *ob, const char *name)
 {
 	bDeformGroup *defgroup;
 	

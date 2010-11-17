@@ -72,7 +72,7 @@ void name_uiprefix_id(char *name, struct ID *id);
 void test_idbutton(char *name);
 void text_idbutton(struct ID *id, char *text);
 void all_local(struct Library *lib, int untagged_only);
-struct ID *find_id(char *type, char *name);
+struct ID *find_id(char *type, const char *name);
 void clear_id_newpoins(void);
 
 void IDnames_to_pupstring(char **str, char *title, char *extraops, struct ListBase *lb,struct ID* link, short *nr);

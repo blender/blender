@@ -69,7 +69,7 @@
 
 /*	**************** Generic Functions, data level *************** */
 
-bArmature *add_armature(char *name)
+bArmature *add_armature(const char *name)
 {
 	bArmature *arm;
 	

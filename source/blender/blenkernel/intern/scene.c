@@ -317,7 +317,7 @@ void free_scene(Scene *sce)
 	sound_destroy_scene(sce);
 }
 
-Scene *add_scene(char *name)
+Scene *add_scene(const char *name)
 {
 	Main *bmain= G.main;
 	Scene *sce;

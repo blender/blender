@@ -3810,7 +3810,7 @@ static void get_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
 	}
 }
 
-void PE_undo_push(Scene *scene, char *str)
+void PE_undo_push(Scene *scene, const char *str)
 {
 	PTCacheEdit *edit= PE_get_current(scene, OBACT);
 	PTCacheUndo *undo;
