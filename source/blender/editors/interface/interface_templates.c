@@ -2331,6 +2331,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	uiBut *but;
 	uiStyle *style= U.uistyles.first;
 	int width;
+	int icon=0;
 	
 	/* if the report display has timed out, don't show */
 	if (!reports->reporttimer) return;
@@ -2364,13 +2365,20 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	
 	/* icon and report message on top */
 	if(report->type & RPT_ERROR_ALL)
-		uiDefIconBut(block, LABEL, 0, ICON_ERROR, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+		icon = ICON_ERROR;
 	else if(report->type & RPT_WARNING_ALL)
-		uiDefIconBut(block, LABEL, 0, ICON_ERROR, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+		icon = ICON_ERROR;
 	else if(report->type & RPT_INFO_ALL)
-		uiDefIconBut(block, LABEL, 0, ICON_INFO, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
+		icon = ICON_INFO;
+	
+	/* XXX: temporary operator to dump all reports to a text block, but only if more than 1 report 
+	 * to be shown instead of icon when appropriate...
+	 */
+	if (reports->list.first != reports->list.last)
+		uiDefIconButO(block, BUT, "UI_OT_reports_to_textblock", WM_OP_INVOKE_REGION_WIN, icon, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Click to see rest of reports in textblock: 'Recent Reports'");
+	else
+		uiDefIconBut(block, LABEL, 0, icon, 2, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
 	
 	uiDefBut(block, LABEL, 0, report->message, UI_UNIT_X+10, 0, UI_UNIT_X+width, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "");
-
 }
 

@@ -818,6 +818,7 @@ void ANIM_relative_keyingset_add_source (ListBase *dsources, ID *id, StructRNA *
 int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
 {
 	Scene *scene= CTX_data_scene(C);
+	ReportList *reports = CTX_wm_reports(C);
 	KS_Path *ksp;
 	int kflag=0, success= 0;
 	char *groupname= NULL;
@@ -913,9 +914,9 @@ int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingS
 		for (; i < arraylen; i++) {
 			/* action to take depends on mode */
 			if (mode == MODIFYKEY_MODE_INSERT)
-				success += insert_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
+				success += insert_keyframe(reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
 			else if (mode == MODIFYKEY_MODE_DELETE)
-				success += delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
+				success += delete_keyframe(reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
 		}
 		
 		/* set recalc-flags */

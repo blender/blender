@@ -899,7 +899,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 		 *	- if the option to only show controls if the F-Curve is selected is enabled, we must obey this
 		 */
 		if (!(sipo->flag & SIPO_SELCUVERTSONLY) || (fcu->flag & FCURVE_SELECTED)) {
-			if (fcurve_needs_draw_fmodifier_controls(fcu, fcm)) {
+			if (fcurve_are_keyframes_usable(fcu) == 0) {
 				/* only draw controls if this is the active modifier */
 				if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
 					switch (fcm->type) {

@@ -697,25 +697,26 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
  */
-short insert_keyframe_direct (PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, float cfra, short flag)
+short insert_keyframe_direct (ReportList *reports, PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, float cfra, short flag)
 {
 	float curval= 0.0f;
 	
 	/* no F-Curve to add keyframe to? */
 	if (fcu == NULL) {
-		printf("ERROR: no F-Curve to add keyframes to \n");
+		BKE_report(reports, RPT_ERROR, "No F-Curve to add keyframes to");
 		return 0;
 	}
 	/* F-Curve not editable? */
-	if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ) {
-		if (G.f & G_DEBUG)
-			printf("WARNING: not inserting keyframe for locked F-Curve \n");
+	if (fcurve_is_keyframable(fcu) == 0) {
+		BKE_reportf(reports, RPT_ERROR, 
+			"F-Curve with path = '%s' [%d] cannot be keyframed. Ensure that it is not locked or sampled. Also, try removing F-Modifiers.",
+			fcu->rna_path, fcu->array_index);
 		return 0;
 	}
 	
 	/* if no property given yet, try to validate from F-Curve info */
 	if ((ptr.id.data == NULL) && (ptr.data==NULL)) {
-		printf("ERROR: no RNA-pointer available to retrieve values for keyframing from\n");
+		BKE_report(reports, RPT_ERROR, "No RNA-pointer available to retrieve values for keyframing from");
 		return 0;
 	}
 	if (prop == NULL) {
@@ -726,7 +727,9 @@ short insert_keyframe_direct (PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, fl
 			/* property not found... */
 			char *idname= (ptr.id.data) ? ((ID *)ptr.id.data)->name : "<No ID-Pointer>";
 			
-			printf("Insert Key: Could not insert keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", idname, fcu->rna_path);
+			BKE_reportf(reports, RPT_ERROR,
+				"Could not insert keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)", 
+				idname, fcu->rna_path);
 			return 0;
 		}
 		else {
@@ -815,7 +818,7 @@ short insert_keyframe_direct (PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, fl
  *
  *	index of -1 keys all array indices
  */
-short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
+short insert_keyframe (ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop = NULL;
@@ -825,13 +828,14 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 	
 	/* validate pointer first - exit if failure */
 	if (id == NULL) {
-		printf("Insert Key: no ID-block to insert keyframe in (Path = %s) \n", rna_path);
+		BKE_reportf(reports, RPT_ERROR, "No ID-block to insert keyframe in (Path = %s)", rna_path);
 		return 0;
 	}
 	
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
-		printf("Insert Key: Could not insert keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", 
+		BKE_reportf(reports, RPT_ERROR,
+			"Could not insert keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)", 
 			(id)? id->name : "<Missing ID-Block>", rna_path);
 		return 0;
 	}
@@ -844,7 +848,9 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 		act= verify_adt_action(id, 1);
 		
 		if (act == NULL) {
-			printf("Insert Key: Could not insert keyframe, as this type does not support animation data (ID = %s, Path = %s)\n", id->name, rna_path);
+			BKE_reportf(reports, RPT_ERROR, 
+				"Could not insert keyframe, as this type does not support animation data (ID = %s, Path = %s)", 
+				id->name, rna_path);
 			return 0;
 		}
 		
@@ -900,7 +906,7 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 			}
 			
 			/* insert keyframe */
-			ret += insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
+			ret += insert_keyframe_direct(reports, ptr, prop, fcu, cfra, flag);
 		}
 	}
 	
@@ -917,7 +923,7 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
  *	The flag argument is used for special settings that alter the behaviour of
  *	the keyframe deletion. These include the quick refresh options.
  */
-short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short UNUSED(flag))
+short delete_keyframe (ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short UNUSED(flag))
 {
 	AnimData *adt= BKE_animdata_from_id(id);
 	PointerRNA id_ptr, ptr;
@@ -927,14 +933,14 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 	
 	/* sanity checks */
 	if ELEM(NULL, id, adt) {
-		printf("ERROR: no ID-block and/or AnimData to delete keyframe from \n");
+		BKE_report(reports, RPT_ERROR, "No ID-Block and/Or AnimData to delete keyframe from");
 		return 0;
 	}
 	
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
-		printf("Delete Key: Could not delete keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", id->name, rna_path);
+		BKE_reportf(reports, RPT_ERROR, "Could not delete keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)", id->name, rna_path);
 		return 0;
 	}
 	
@@ -953,7 +959,7 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 			cfra= BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP); 
 		}
 		else {
-			printf("ERROR: no Action to delete keyframes from for ID = %s \n", id->name);
+			BKE_reportf(reports, RPT_ERROR, "No Action to delete keyframes from for ID = %s \n", id->name);
 			return 0;
 		}
 	}
@@ -997,7 +1003,7 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 			
 		if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ) {
 			if (G.f & G_DEBUG)
-				printf("WARNING: not inserting keyframe for locked F-Curve \n");
+				printf("WARNING: not deleting keyframe for locked F-Curve \n");
 			continue;
 		}
 		
@@ -1308,7 +1314,7 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 			
 			for (fcu= act->curves.first; fcu; fcu= fcn) {
 				fcn= fcu->next;
-				success+= delete_keyframe(id, NULL, NULL, fcu->rna_path, fcu->array_index, cfra, 0);
+				success+= delete_keyframe(op->reports, id, NULL, NULL, fcu->rna_path, fcu->array_index, cfra, 0);
 			}
 		}
 		
@@ -1378,7 +1384,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 				length= 1;
 			
 			for (a=0; a<length; a++)
-				success+= insert_keyframe(ptr.id.data, NULL, NULL, path, index+a, cfra, flag);
+				success+= insert_keyframe(op->reports, ptr.id.data, NULL, NULL, path, index+a, cfra, flag);
 			
 			MEM_freeN(path);
 		}
@@ -1387,7 +1393,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 			NlaStrip *strip= (NlaStrip *)ptr.data;
 			FCurve *fcu= list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), flag);
 			
-			success+= insert_keyframe_direct(ptr, prop, fcu, cfra, 0);
+			success+= insert_keyframe_direct(op->reports, ptr, prop, fcu, cfra, 0);
 		}
 		else {
 			if (G.f & G_DEBUG)
@@ -1456,14 +1462,14 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 			if (all) {
 				length= RNA_property_array_length(&ptr, prop);
 				
-				if(length) index= 0;
+				if (length) index= 0;
 				else length= 1;
 			}
 			else
 				length= 1;
 			
 			for (a=0; a<length; a++)
-				success+= delete_keyframe(ptr.id.data, NULL, NULL, path, index+a, cfra, 0);
+				success+= delete_keyframe(op->reports, ptr.id.data, NULL, NULL, path, index+a, cfra, 0);
 			
 			MEM_freeN(path);
 		}

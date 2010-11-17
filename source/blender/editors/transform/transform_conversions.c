@@ -68,6 +68,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_bmesh.h"
 #include "BKE_scene.h"
+#include "BKE_report.h"
 
 
 #include "ED_anim_api.h"
@@ -4546,6 +4547,7 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 	
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
+		ReportList *reports = CTX_wm_reports(C);
 		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
 		ListBase dsources = {NULL, NULL};
 		float cfra= (float)CFRA; // xxx this will do for now
@@ -4570,7 +4572,7 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 			if (adt && adt->action) {
 				for (fcu= adt->action->curves.first; fcu; fcu= fcu->next) {
 					fcu->flag &= ~FCURVE_SELECTED;
-					insert_keyframe(id, adt->action, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+					insert_keyframe(reports, id, adt->action, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 				}
 			}
 		}
@@ -4645,6 +4647,7 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 	
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
+		ReportList *reports = CTX_wm_reports(C);
 		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
 		float cfra= (float)CFRA;
 		short flag= 0;
@@ -4686,7 +4689,7 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 								 * NOTE: this will do constraints too, but those are ok to do here too?
 								 */
 								if (pchanName && strcmp(pchanName, pchan->name) == 0) 
-									insert_keyframe(id, act, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+									insert_keyframe(reports, id, act, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 									
 								if (pchanName) MEM_freeN(pchanName);
 							}
